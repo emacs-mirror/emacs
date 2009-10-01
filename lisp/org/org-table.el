@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -614,6 +614,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 		      (re-search-forward "<[rl]?[0-9]+>" end t)))
     (goto-char beg)
     (setq falign (re-search-forward "<[rl][0-9]*>" end t))
+    (goto-char beg)
     ;; Get the rows
     (setq lines (org-split-string
 		 (buffer-substring beg end) "\n"))
@@ -2712,6 +2713,7 @@ Parameters get priority."
 	(pos (move-marker (make-marker) (point)))
 	(startline 1)
 	(wc (current-window-configuration))
+	(sel-win (selected-window))
 	(titles '((column . "# Column Formulas\n")
 		  (field . "# Field Formulas\n")
 		  (named . "# Named Field Formulas\n")))
@@ -2724,6 +2726,7 @@ Parameters get priority."
     (org-set-local 'font-lock-global-modes (list 'not major-mode))
     (org-set-local 'org-pos pos)
     (org-set-local 'org-window-configuration wc)
+    (org-set-local 'org-selected-window sel-win)
     (use-local-map org-table-fedit-map)
     (org-add-hook 'post-command-hook 'org-table-fedit-post-command t t)
     (easy-menu-add org-table-fedit-menu)
@@ -2944,7 +2947,7 @@ With prefix ARG, apply the new formulas to the table."
       (progn
 	(org-table-fedit-convert-buffer 'org-table-convert-refs-to-rc)
 	(setq org-table-buffer-is-an nil)))
-  (let ((pos org-pos) eql var form)
+  (let ((pos org-pos) (sel-win org-selected-window) eql var form)
     (goto-char (point-min))
     (while (re-search-forward
 	    "^\\(@[0-9]+\\$[0-9]+\\|\\$\\([a-zA-Z0-9]+\\)\\) *= *\\(.*\\(\n[ \t]+.*$\\)*\\)"
@@ -2960,7 +2963,7 @@ With prefix ARG, apply the new formulas to the table."
 	(push (cons var form) eql)))
     (setq org-pos nil)
     (set-window-configuration org-window-configuration)
-    (select-window (get-buffer-window (marker-buffer pos)))
+    (select-window sel-win)
     (goto-char pos)
     (unless (org-at-table-p)
       (error "Lost table position - cannot install formulae"))
@@ -2975,9 +2978,9 @@ With prefix ARG, apply the new formulas to the table."
   "Abort editing formulas, without installing the changes."
   (interactive)
   (org-table-remove-rectangle-highlight)
-  (let ((pos org-pos))
+  (let ((pos org-pos) (sel-win org-selected-window))
     (set-window-configuration org-window-configuration)
-    (select-window (get-buffer-window (marker-buffer pos)))
+    (select-window sel-win)
     (goto-char pos)
     (move-marker pos nil)
     (message "Formula editing aborted without installing changes")))
@@ -3340,7 +3343,8 @@ table editor in arbitrary modes.")
 (defvar org-old-auto-fill-inhibit-regexp nil
   "Local variable used by `orgtbl-mode'")
 
-(defconst orgtbl-line-start-regexp "[ \t]*\\(|\\|#\\+\\(TBLFM\\|ORGTBL\\):\\)"
+(defconst orgtbl-line-start-regexp
+  "[ \t]*\\(|\\|#\\+\\(TBLFM\\|ORGTBL\\|TBLNAME\\):\\)"
   "Matches a line belonging to an orgtbl.")
 
 (defconst orgtbl-extra-font-lock-keywords
@@ -4221,7 +4225,7 @@ list of the fields in the rectangle ."
 	  (save-excursion
 	    (goto-char (point-min))
 	    (if (re-search-forward
-		 (concat "^#[ \t]*\\+TBLNAME:[ \t]*" (regexp-quote name-or-id) "[ \t]*$")
+		 (concat "^[ \t]*#\\+TBLNAME:[ \t]*" (regexp-quote name-or-id) "[ \t]*$")
 		 nil t)
 		(setq buffer (current-buffer) loc (match-beginning 0))
 	      (setq id-loc (org-id-find name-or-id 'marker))

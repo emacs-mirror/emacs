@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-docbook.el
-;; Version: 6.30c
+;; Version: 6.31a
 ;; Author: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
@@ -241,6 +241,11 @@ the variable to
   "A printf format string to be applied to time stamps by DocBook exporter."
   :group 'org-export-docbook
   :type 'string)
+
+;;; Hooks
+
+(defvar org-export-docbook-final-hook nil
+  "Hook run at the end of DocBook export, in the new buffer.")
 
 ;;; Autoload functions:
 
@@ -1123,6 +1128,7 @@ publishing directory."
       (goto-char (point-max))
       (unless body-only
 	(insert "</article>"))
+      (run-hooks 'org-export-docbook-final-hook)
       (or to-buffer (save-buffer))
       (goto-char (point-min))
       (or (org-export-push-to-kill-ring "DocBook")

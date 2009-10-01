@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -36,11 +36,8 @@
 
 ;; Declare external functions and variables
 (declare-function rmail-show-message "rmail" (&optional n no-summary))
-(declare-function rmail-get-header "rmail" (name &optional msgnum))
 (declare-function rmail-what-message "rmail" ())
 (defvar rmail-current-message)
-(defvar rmail-buffer)
-(defvar rmail-view-buffer)
 
 ;; Install the link type
 (org-add-link-type "rmail" 'org-rmail-open)
@@ -49,35 +46,29 @@
 ;; Implementation
 (defun org-rmail-store-link ()
   "Store a link to an Rmail folder or message."
-  (when (memq major-mode '(rmail-mode rmail-summary-mode))
-    (let (message-id from to subject desc link)
-      (if (fboundp 'rmail-get-header)	; Emacs 23
-	  (setq message-id (rmail-get-header "message-id")
-		from (rmail-get-header "from")
-		to (rmail-get-header "to")
-		subject (rmail-get-header "subject"))
-	(save-window-excursion		; Emacs 22
-	  (save-restriction
-	    (when (eq major-mode 'rmail-summary-mode)
-	      (rmail-show-message rmail-current-message))
-	    (with-no-warnings	  ; don't warn when compiling Emacs 23
-	      (rmail-narrow-to-non-pruned-header))
-	    (setq message-id (mail-fetch-field "message-id")
-		  from (mail-fetch-field "from")
-		  to (mail-fetch-field "to")
-		  subject (mail-fetch-field "subject"))
-	    (rmail-show-message rmail-current-message))))
-      (org-store-link-props
-       :type "rmail" :from from :to to
-       :subject subject :message-id message-id)
-      (setq message-id (org-remove-angle-brackets message-id))
-      (setq desc (org-email-link-description))
-      (setq link (org-make-link "rmail:"
-				(with-current-buffer rmail-buffer
-				  buffer-file-name)
-				"#" message-id))
-      (org-add-link-props :link link :description desc)
-      link)))
+  (when (or (eq major-mode 'rmail-mode)
+	    (eq major-mode 'rmail-summary-mode))
+    (save-window-excursion
+      (save-restriction
+	(when (eq major-mode 'rmail-summary-mode)
+	  (rmail-show-message rmail-current-message))
+	(when (fboundp 'rmail-narrow-to-non-pruned-header)
+	  (rmail-narrow-to-non-pruned-header))
+	(let* ((folder buffer-file-name)
+	       (message-id (mail-fetch-field "message-id"))
+	       (from (mail-fetch-field "from"))
+	       (to (mail-fetch-field "to"))
+	       (subject (mail-fetch-field "subject"))
+	       desc link)
+	  (org-store-link-props
+	   :type "rmail" :from from :to to
+	   :subject subject :message-id message-id)
+	  (setq message-id (org-remove-angle-brackets message-id))
+	  (setq desc (org-email-link-description))
+	  (setq link (org-make-link "rmail:" folder "#" message-id))
+	  (org-add-link-props :link link :description desc)
+	  (rmail-show-message rmail-current-message)
+	  link)))))
 
 (defun org-rmail-open (path)
   "Follow an Rmail message link to the specified PATH."
@@ -92,27 +83,19 @@
   "Follow an Rmail link to FOLDER and ARTICLE."
   (require 'rmail)
   (setq article (org-add-angle-brackets article))
-  (let (message-number buff)
+  (let (message-number)
     (save-excursion
       (save-window-excursion
 	(rmail (if (string= folder "RMAIL") rmail-file-name folder))
-	(setq buff (current-buffer)
-	      message-number
-	      (with-current-buffer
-		  (if (and (fboundp 'rmail-buffers-swapped-p)
-			   (rmail-buffers-swapped-p))
-		      rmail-view-buffer
-		    (current-buffer))
-		(save-restriction
-		  (widen)
-		  (goto-char (point-max))
-		  (if (re-search-backward
-		       (concat "^Message-ID:\\s-+" (regexp-quote
-						    (or article "")))
-		       nil t)
-		      ;; This is an rmail "debugging" function. :(
-		      (with-current-buffer buff
-			(rmail-what-message))))))))
+	(setq message-number
+	      (save-restriction
+		(widen)
+		(goto-char (point-max))
+		(if (re-search-backward
+		     (concat "^Message-ID:\\s-+" (regexp-quote
+						  (or article "")))
+		     nil t)
+		    (rmail-what-message))))))
     (if message-number
 	(progn
 	  (rmail (if (string= folder "RMAIL") rmail-file-name folder))

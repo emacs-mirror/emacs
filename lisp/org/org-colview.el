@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -169,8 +169,8 @@ This is the compiled version of the format.")
     ;; Check if the entry is in another buffer.
     (unless props
       (if (eq major-mode 'org-agenda-mode)
-	  (setq pom (or (get-text-property (point) 'org-hd-marker)
-			(get-text-property (point) 'org-marker))
+	  (setq pom (or (org-get-at-bol 'org-hd-marker)
+			(org-get-at-bol 'org-marker))
 		props (if pom (org-entry-properties pom) nil))
 	(setq props (org-entry-properties nil))))
     ;; Walk the format
@@ -503,8 +503,8 @@ Where possible, use the standard interface for changing this line."
 (defun org-columns-edit-allowed ()
   "Edit the list of allowed values for the current property."
   (interactive)
-  (let* ((pom (or (get-text-property (point-at-bol) 'org-marker)
-		  (get-text-property (point-at-bol) 'org-hd-marker)
+  (let* ((pom (or (org-get-at-bol 'org-marker)
+		  (org-get-at-bol 'org-hd-marker)
 		  (point)))
 	 (key (get-char-property (point) 'org-columns-key))
 	 (key1 (concat key "_ALL"))
@@ -1259,7 +1259,7 @@ and tailing newline characters."
 	   org-agenda-overriding-columns-format)
       (setq fmt org-agenda-overriding-columns-format)
       (org-set-local 'org-agenda-overriding-columns-format fmt))
-     ((setq m (get-text-property (point-at-bol) 'org-hd-marker))
+     ((setq m (org-get-at-bol 'org-hd-marker))
       (setq fmt (or (org-entry-get m "COLUMNS" t)
 		    (with-current-buffer (marker-buffer m)
 		      org-columns-default-format))))
@@ -1281,8 +1281,8 @@ and tailing newline characters."
       ;; Get and cache the properties
       (goto-char (point-min))
       (while (not (eobp))
-	(when (setq m (or (get-text-property (point) 'org-hd-marker)
-			  (get-text-property (point) 'org-marker)))
+	(when (setq m (or (org-get-at-bol 'org-hd-marker)
+			  (org-get-at-bol 'org-marker)))
 	  (setq p (org-entry-properties m))
 
 	  (when (or (not (setq a (assoc org-effort-property p)))

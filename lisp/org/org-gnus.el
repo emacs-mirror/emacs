@@ -7,7 +7,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -36,6 +36,12 @@
 (require 'org)
 (eval-when-compile (require 'gnus-sum))
 
+;; Declare external functions and variables
+(declare-function message-fetch-field "message" (header &optional not-all))
+(declare-function message-narrow-to-head-1 "message" nil)
+;; The following line suppresses a compiler warning stemming from gnus-sum.el
+(declare-function gnus-summary-last-subject "gnus-sum" nil)
+
 ;; Customization variables
 
 (when (fboundp 'defvaralias)
@@ -49,11 +55,6 @@ negates this setting for the duration of the command."
   :group 'org-link-store
   :type 'boolean)
 
-;; Declare external functions and variables
-
-(defvar gnus-other-frame-object)
-(defvar gnus-group-name)
-(defvar gnus-article-current)
 
 ;; Install the link type
 (org-add-link-type "gnus" 'org-gnus-open)

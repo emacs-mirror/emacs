@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -771,8 +771,7 @@ The user is queried for the template."
     (widen)
     (goto-char (point-min))
     (if (re-search-forward
-	 (concat "^\\*+[ \t]+" (regexp-quote heading)
-		 (org-re "\\([ \t]+:[[:alnum:]@_:]*\\)?[ \t]*$"))
+	 (format org-complex-heading-regexp-format (regexp-quote heading))
 	 nil t)
 	(goto-char (match-beginning 0))
       (error "Target headline not found: %s" heading))))
@@ -951,8 +950,8 @@ See also the variable `org-reverse-note-order'."
 	       ((and (stringp heading) (string-match "\\S-" heading))
 		(goto-char (point-min))
 		(if (re-search-forward
-		     (concat "^\\*+[ \t]+" (regexp-quote heading)
-			     (org-re "\\([ \t]+:[[:alnum:]@_:]*\\)?[ \t]*$"))
+		     (format org-complex-heading-regexp-format
+			     (regexp-quote heading))
 		     nil t)
 		    (setq org-goto-start-pos (match-beginning 0))
 		  (when fastp

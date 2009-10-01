@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -29,6 +29,9 @@
 (require 'org-exp)
 
 ;;; XOXO export
+
+(defvar org-export-xoxo-final-hook nil
+  "Hook run after XOXO export, in the new buffer.")
 
 (defun org-export-as-xoxo-insert-into (buffer &rest output)
   (with-current-buffer buffer
@@ -112,6 +115,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
       ;; Finish the buffer off and clean it up.
       (switch-to-buffer-other-window out)
       (indent-region (point-min) (point-max) nil)
+      (run-hooks 'org-export-xoxo-final-hook)
       (save-buffer)
       (goto-char (point-min))
       )))

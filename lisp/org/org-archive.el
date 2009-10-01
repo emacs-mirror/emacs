@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,6 +33,15 @@
 (require 'org)
 
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
+
+(defcustom org-archive-default-command 'org-archive-subtree
+  "The default archiving command.
+Currently this is only used by org-mobile.el."
+  :group 'org-archive
+  :type '(choice
+	  (const org-archive-subtree)
+	  (const org-archive-to-archive-sibling)
+	  (const org-archive-set-tag)))  
 
 (defcustom org-archive-sibling-heading "Archive"
   "Name of the local archive sibling that is used to archive entries locally.
@@ -427,6 +436,18 @@ the children that do not contain any open TODO items."
 	(when set (hide-subtree)))
       (and set (beginning-of-line 1))
       (message "Subtree %s" (if set "archived" "unarchived")))))
+
+(defun org-archive-set-tag ()
+  "Set the ARCHIVE tag."
+  (interactive)
+  (org-toggle-tag org-archive-tag 'on))
+
+;;;###autoload
+(defun org-archive-subtree-default ()
+  "Archive the current subtree with the default command.
+This command is set with the variable `org-archive-default-command'."
+  (interactive)
+  (call-interactively 'org-archive-default-command))
 
 (provide 'org-archive)
 

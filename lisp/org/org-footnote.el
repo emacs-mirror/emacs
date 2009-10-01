@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -290,7 +290,8 @@ or new, let the user edit the definition of the footnote."
 	  (goto-char (point-max))
 	  (insert "\n\n* " org-footnote-section "\n")))
       ;; Now go to the end of this entry and insert there.
-      (org-footnote-goto-local-insertion-point))
+      (org-footnote-goto-local-insertion-point)
+      (org-show-context 'link-search))
      (t
       (setq re (concat "^" org-footnote-tag-for-non-org-mode-files "[ \t]*$"))
       (unless (re-search-forward re nil t)

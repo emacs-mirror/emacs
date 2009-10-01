@@ -6,7 +6,7 @@
 ;; Author: Tokuya Kameshima <kames at fa2 dot so-net dot ne dot jp>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,8 +54,6 @@
 ;; Backward compatibility to old version of wl
 (declare-function wl "ext:wl" () t)
 (declare-function wl-summary-buffer-msgdb "ext:wl-folder" () t)
-;(declare-function wl-folder-get-elmo-folder "ext:wl-folder"
-;		  (entity &optional no-cache))
 (declare-function wl-summary-jump-to-msg-by-message-id "ext:wl-summary"
 		  (&optional id))
 (declare-function wl-summary-line-from "ext:wl-summary" ())

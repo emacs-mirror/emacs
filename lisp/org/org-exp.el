@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,7 @@
 ;;; Commentary:
 
 (require 'org)
+(require 'org-macs)
 (require 'org-agenda)
 (require 'org-exp-blocks)
 (eval-when-compile
@@ -655,12 +656,13 @@ modified) list.")
       (let ((re (org-make-options-regexp
 		 (append
 		  '("TITLE" "AUTHOR" "DATE" "EMAIL" "TEXT" "OPTIONS" "LANGUAGE"
-		    "LINK_UP" "LINK_HOME" "SETUPFILE" "STYLE" "LATEX_HEADER"
+		    "LINK_UP" "LINK_HOME" "SETUPFILE" "STYLE"
+		    "LATEX_HEADER" "LATEX_CLASS"
 		    "EXPORT_SELECT_TAGS" "EXPORT_EXCLUDE_TAGS"
 		    "KEYWORDS" "DESCRIPTION" "MACRO" "BIND")
 		  (mapcar 'car org-export-inbuffer-options-extra))))
 	    p key val text options a pr style
-	    latex-header macros letbind
+	    latex-header latex-class macros letbind
 	    ext-setup-or-nil setup-contents (start 0))
 	(while (or (and ext-setup-or-nil
 			(string-match re ext-setup-or-nil start)
@@ -685,6 +687,8 @@ modified) list.")
 	    (setq style (concat style "\n" val)))
 	   ((string-equal key "LATEX_HEADER")
 	    (setq latex-header (concat latex-header "\n" val)))
+	   ((string-equal key "LATEX_CLASS")
+	    (setq latex-class val))
 	   ((string-equal key "TEXT")
 	    (setq text (if text (concat text "\n" val) val)))
 	   ((string-equal key "OPTIONS")
@@ -719,6 +723,8 @@ modified) list.")
 	(when style (setq p (plist-put p :style-extra style)))
 	(when latex-header
 	  (setq p (plist-put p :latex-header-extra (substring latex-header 1))))
+	(when latex-class
+	  (setq p (plist-put p :latex-class latex-class)))
 	(when options
 	  (setq p (org-export-add-options-to-plist p options)))
 	;; Add macro definitions
@@ -1840,8 +1846,17 @@ When it is nil, all comments will be removed."
   (while (re-search-forward "^[ \t]*|" nil t)
     (beginning-of-line 1)
     (if (or (looking-at "[ \t]*| *[!_^] *|")
-	    (and (looking-at "[ \t]*|\\( *\\(<[0-9]+>\\|<[rl]>\\|<[rl][0-9]+>\\)? *|\\)+[ \t]*$")
-		 (not (looking-at ".*?| *[^ <|\n]"))))
+	    (not 
+	     (memq
+	      nil
+	      (mapcar
+	       (lambda (f)
+		 (or (= (length f) 0)
+		     (string-match
+		      "\\`<\\([0-9]\\|[rl]\\|[rl][0-9]+\\)>\\'" f)))
+	       (org-split-string ;; FIXME, can't we do this without splitting???
+		(buffer-substring (point-at-bol) (point-at-eol))
+		"[ \t]*|[ \t]*")))))
 	(delete-region (max (point-min) (1- (point-at-bol)))
 		       (point-at-eol))
       (end-of-line 1))))
@@ -2076,36 +2091,41 @@ TYPE must be a string, any of:
     (while (re-search-forward
 	    "{{{\\([a-zA-Z][-a-zA-Z0-9_]*\\)\\(([ \t\n]*\\([^\000]*?\\))\\)?}}}"
 	    nil t)
-      (setq key (downcase (match-string 1))
-	    args (match-string 3))
-      (when (setq val (or (plist-get org-export-opt-plist
-				     (intern (concat ":macro-" key)))
-			  (plist-get org-export-opt-plist
-				     (intern (concat ":" key)))))
-	(save-match-data
-	  (when args
-	    (setq args (org-split-string args ",[ \t\n]*") args2 nil)
-	    (setq args (mapcar 'org-trim args))
-	    (while args
-	      (while (string-match "\\\\\\'" (car args))
-		;; repair bad splits
-		(setcar (cdr args) (concat (substring (car args) 0 -1)
-					   ";" (nth 1 args)))
-		(pop args))
-	      (push (pop args) args2))
-	    (setq args (nreverse args2))
-	    (setq s 0)
-	    (while (string-match "\\$\\([0-9]+\\)" val s)
-	      (setq s (1+ (match-beginning 0))
-		    n (string-to-number (match-string 1 val)))
-	      (and (>= (length args) n)
-		   (setq val (replace-match (nth (1- n) args) t t val)))))
-	  (when (string-match "\\`(eval\\>" val)
-	    (setq val (eval (read val))))
-	  (if (and val (not (stringp val)))
-	      (setq val (format "%s" val))))
-	(and (stringp val)
-	     (replace-match val t t))))))
+      (unless (save-match-data
+		(save-excursion
+		  (goto-char (point-at-bol))
+		  (looking-at "[ \t]*#\\+macro")))
+	(setq key (downcase (match-string 1))
+	      args (match-string 3))
+	(when (setq val (or (plist-get org-export-opt-plist
+				       (intern (concat ":macro-" key)))
+			    (plist-get org-export-opt-plist
+				       (intern (concat ":" key)))))
+	  (save-match-data
+	    (when args
+	      (setq args (org-split-string args ",[ \t\n]*") args2 nil)
+	      (setq args (mapcar 'org-trim args))
+	      (while args
+		(while (string-match "\\\\\\'" (car args))
+		  ;; repair bad splits
+		  (setcar (cdr args) (concat (substring (car args) 0 -1)
+					     ";" (nth 1 args)))
+		  (pop args))
+		(push (pop args) args2))
+	      (setq args (nreverse args2))
+	      (setq s 0)
+	      (while (string-match "\\$\\([0-9]+\\)" val s)
+		(setq s (1+ (match-beginning 0))
+		      n (string-to-number (match-string 1 val)))
+		(and (>= (length args) n)
+		     (setq val (replace-match (nth (1- n) args) t t val)))))
+	    (when (string-match "\\`(eval\\>" val)
+	      (setq val (eval (read val))))
+	    (if (and val (not (stringp val)))
+		(setq val (format "%s" val))))
+	  (and (stringp val)
+	       (prog1 (replace-match val t t)
+		 (goto-char (match-beginning 0)))))))))
 
 (defun org-export-apply-macros-in-string (s)
   "Apply the macros in string S."
@@ -2801,6 +2821,8 @@ If yes remove the column and the special lines."
   (while (string-match org-bracket-link-regexp s)
     (setq s (replace-match (match-string (if (match-end 3) 3 1) s)
 			   t t s)))
+  (while (string-match "\\[\\([0-9]\\|fn:[^]]*\\)\\]" s)
+    (setq s (replace-match "" t t s)))
   s)
 
 (defun org-create-multibrace-regexp (left right n)

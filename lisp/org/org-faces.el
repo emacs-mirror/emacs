@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -32,6 +32,18 @@
 
 (require 'org-macs)
 (require 'org-compat)
+
+(defun org-copy-face (old-face new-face docstring &rest attributes)
+  (unless (facep new-face)
+    (if (fboundp 'set-face-attribute)
+	(progn
+	  (make-face new-face)
+	  (set-face-attribute new-face nil :inherit old-face)
+	  (apply 'set-face-attribute new-face nil attributes)
+	  (set-face-doc-string new-face docstring))
+      (copy-face old-face new-face)
+      (if (fboundp 'set-face-doc-string)
+	  (set-face-doc-string new-face docstring)))))
 
 (defgroup org-faces nil
   "Faces in Org-mode."
@@ -363,15 +375,12 @@ list of attributes, like (:foreground \"blue\" :weight bold :underline t)."
   "Face for checkboxes"
   :group 'org-faces)
 
-(unless (facep 'org-checkbox-statistics-todo)
-  (copy-face 'org-todo 'org-checkbox-statistics-todo)
-  (set-face-doc-string 'org-checkbox-statistics-todo
-		       "Face used for unfinished checkbox statistics."))
 
-(unless (facep 'org-checkbox-statistics-done)
-  (copy-face 'org-done 'org-checkbox-statistics-done)
-  (set-face-doc-string 'org-checkbox-statistics-done
-		       "Face used for finished checkbox statistics."))
+(org-copy-face 'org-todo 'org-checkbox-statistics-todo
+	       "Face used for unfinished checkbox statistics.")
+
+(org-copy-face 'org-done 'org-checkbox-statistics-done
+	       "Face used for finished checkbox statistics.")
 
 (defcustom org-tag-faces nil
   "Faces for specific tags.
@@ -486,31 +495,21 @@ changes."
   "Face used in agenda for captions and dates."
   :group 'org-faces)
 
-(unless (facep 'org-agenda-date)
-  (copy-face 'org-agenda-structure 'org-agenda-date)
-  (set-face-doc-string 'org-agenda-date
-		       "Face used in agenda for normal days."))
+(org-copy-face 'org-agenda-structure 'org-agenda-date
+	       "Face used in agenda for normal days.")
 
-(unless (facep 'org-agenda-date-today)
-  (copy-face 'org-agenda-date 'org-agenda-date-today)
-  (set-face-doc-string 'org-agenda-date-today
- 		       "Face used in agenda for today.")
-  (when (fboundp 'set-face-attribute)
-    (set-face-attribute 'org-agenda-date-today nil :weight 'bold :italic 't)))
+(org-copy-face 'org-agenda-date 'org-agenda-date-today
+	       "Face used in agenda for today."
+	       :weight 'bold :italic 't)
 
-(unless (facep 'org-agenda-clocking)
-  (copy-face 'secondary-selection 'org-agenda-clocking)
-  (set-face-doc-string 'org-agenda-clocking
- 		       "Face marking the current clock item in the agenda."))
+(org-copy-face 'secondary-selection 'org-agenda-clocking
+	       "Face marking the current clock item in the agenda.")
 
-(unless (facep 'org-agenda-date-weekend)
-  (copy-face 'org-agenda-date 'org-agenda-date-weekend)
-  (set-face-doc-string 'org-agenda-date-weekend
-		       "Face used in agenda for weekend days.
+(org-copy-face 'org-agenda-date 'org-agenda-date-weekend
+	       "Face used in agenda for weekend days.
 See the variable `org-agenda-weekend-days' for a definition of which days
-belong to the weekend.")
-  (when (fboundp 'set-face-attribute)
-    (set-face-attribute 'org-agenda-date-weekend nil :weight 'bold)))
+belong to the weekend."
+	       :weight 'bold)
 
 (defface org-scheduled
   (org-compatible-face nil
@@ -628,10 +627,8 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
   "Face used to highlight math latex and other special exporter stuff."
   :group 'org-faces)
 
-(unless (facep 'org-mode-line-clock)
-  (copy-face 'modeline 'org-mode-line-clock)
-  (set-face-doc-string 'org-agenda-date
-		       "Face used for clock display in mode line."))
+(org-copy-face 'modeline 'org-mode-line-clock
+	       "Face used for clock display in mode line.")
 
 (provide 'org-faces)
 

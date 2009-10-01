@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -427,7 +427,7 @@ the whole buffer."
 	  (re "\\(\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)\\)")
 	  (re-box "^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
 	  (re-find (concat re "\\|" re-box))
-	  beg-cookie end-cookie is-percent c-on c-off lim
+	  beg-cookie end-cookie is-percent c-on c-off lim new
 	  eline curr-ind next-ind continue-from startsearch
 	  (recursive
 	   (or (not org-hierarchical-checkbox-statistics)
@@ -488,12 +488,12 @@ the whole buffer."
 	 (goto-char continue-from)
 	 ;; update cookie
 	 (when end-cookie
-	   (delete-region beg-cookie end-cookie)
+	   (setq new (if is-percent
+			 (format "[%d%%]" (/ (* 100 c-on) (max 1 (+ c-on c-off))))
+		       (format "[%d/%d]" c-on (+ c-on c-off))))
 	   (goto-char beg-cookie)
-	   (insert
-	    (if is-percent
-		(format "[%d%%]" (/ (* 100 c-on) (max 1 (+ c-on c-off))))
-	      (format "[%d/%d]" c-on (+ c-on c-off)))))
+	   (insert new)
+	   (delete-region (point) (+ (point) (- end-cookie beg-cookie))))
 	 ;; update items checkbox if it has one
 	 (when (org-at-item-p)
 	   (org-beginning-of-item)
@@ -812,7 +812,7 @@ with something like \"1.\" or \"2)\"."
 	      (buffer-substring (point-at-bol) (match-beginning 3))))
 	;; (term (substring (match-string 3) -1))
 	ind1 (n (1- arg))
-	fmt bobp old new)
+	fmt bobp old new delta)
     ;; find where this list begins
     (org-beginning-of-item-list)
     (setq bobp (bobp))
@@ -834,7 +834,9 @@ with something like \"1.\" or \"2)\"."
 	  (delete-region (match-beginning 2) (match-end 2))
 	  (goto-char (match-beginning 2))
 	  (insert (setq new (format fmt (setq n (1+ n)))))
-	  (org-shift-item-indentation (- (length new) (length old))))))
+	  (setq delta (- (length new) (length old)))
+	  (org-shift-item-indentation delta)
+	  (if (= (org-current-line) line) (setq col (+ col delta))))))
     (org-goto-line line)
     (org-move-to-column col)))
 

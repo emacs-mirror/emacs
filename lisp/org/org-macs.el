@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -102,6 +102,7 @@ We use a macro so that the test can happen at compilation time."
      (save-excursion
        (goto-char (or ,pom (point)))
        ,@body)))
+(put 'org-with-point-at 'lisp-indent-function 1)
 
 (defmacro org-no-warnings (&rest body)
   (cons (if (fboundp 'with-no-warnings) 'with-no-warnings 'progn) body))
@@ -117,7 +118,7 @@ We use a macro so that the test can happen at compilation time."
      ,@body))
 
 (defmacro org-if-unprotected-at (pos &rest body)
-  "Execute BODY if there is no `org-protected' text property at point-1."
+  "Execute BODY if there is no `org-protected' text property at POS."
   `(unless (get-text-property ,pos 'org-protected)
      ,@body))
 

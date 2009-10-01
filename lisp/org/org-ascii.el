@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,7 +27,8 @@
 ;;; Commentary:
 
 (require 'org-exp)
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl))
 
 (defgroup org-export-ascii nil
   "Options specific for ASCII export of Org-mode files."
@@ -56,6 +57,11 @@ When nil, the link will be exported in place.  If the line becomes long
 in this way, it will be wrapped."
   :group 'org-export-ascii
   :type 'boolean)
+
+;;; Hooks
+
+(defvar org-export-ascii-final-hook nil
+  "Hook run at the end of ASCII export, in the new buffer.")
 
 ;;; ASCII export
 
@@ -456,6 +462,7 @@ publishing directory."
 	(setq end (next-single-property-change beg 'org-cwidth))
 	(delete-region beg end)
 	(goto-char beg)))
+    (run-hooks 'org-export-ascii-final-hook)
     (or to-buffer (save-buffer))
     (goto-char (point-min))
     (or (org-export-push-to-kill-ring "ASCII")

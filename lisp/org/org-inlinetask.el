@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.31a
 
 ;; This file is part of GNU Emacs.
 
@@ -93,25 +93,6 @@ the value of this variable."
   :group 'org-inlinetask
   :type 'boolean)
 
-(defcustom org-inlinetask-export 'arrow+content
-  "What should be done with inlinetasks upon export?
-Possible values:
-
-nil            Remove entirely, headline and \"content\"
-arrow          Insert heading in bold, preceeded by an arrow
-arrow+content  Insert arrow and headline, add content below in an
-               #+begin_example box (ugly, but works for now)
-
-The \"content\" of an inline task is the material below the planning
-line and any drawers, up to a lines wit the same number of stars,
-but containing only the word END."
-  :group 'org-inlinetask
-  :group 'org-export-general
-  :type '(choice
-	  (const :tag "Remove entirely" nil)
-	  (const :tag "Headline preceeded by arrow" arrow)
-	  (const :tag "Arrow, headline, + content" arrow+content)))
-
 (defvar org-odd-levels-only)
 (defvar org-keyword-time-regexp)
 (defvar org-drawer-regexp)
@@ -127,6 +108,8 @@ but containing only the word END."
   (end-of-line -1))
 (define-key org-mode-map "\C-c\C-xt" 'org-inlinetask-insert-task)
 
+(defvar htmlp)  ; dynamically scoped into the next function
+(defvar latexp) ; dynamically scoped into the next function
 (defun org-inlinetask-export-handler ()
   "Handle headlines with level larger or equal to `org-inlinetask-min-level'.
 Either remove headline and meta data, or do special formatting."
@@ -136,7 +119,7 @@ Either remove headline and meta data, or do special formatting."
 		   (or org-inlinetask-min-level 200)))
 	 (re1 (format "^\\(\\*\\{%d,\\}\\) .*\n" nstars))
 	 (re2 (concat "^[ \t]*" org-keyword-time-regexp))
-	 headline beg end stars content)
+	 headline beg end stars content indent)
     (while (re-search-forward re1 nil t)
       (setq headline (match-string 0)
 	    stars (match-string 1)
@@ -156,15 +139,24 @@ Either remove headline and meta data, or do special formatting."
 	(setq content (buffer-substring beg (1- (point-at-bol))))
 	(delete-region beg (1+ (match-end 0))))
       (goto-char beg)
-      (when (and org-inlinetask-export
-		 (string-match org-complex-heading-regexp headline))
-	(when (memq org-inlinetask-export '(arrow+content arrow))
-	  (insert "\n\n\\Rightarrow\\Rightarrow\\Rightarrow *"
-		  (if (match-end 2) (concat (match-string 2 headline) " ") "")
-		  (match-string 4 headline) "*\n"))
-	(when (and content (eq org-inlinetask-export 'arrow+content))
-	  (insert "#+BEGIN_EXAMPLE\n" content "\n#+END_EXAMPLE\n"))
-	(insert "\n")))))
+      (when (string-match org-complex-heading-regexp headline)
+	(setq headline (concat
+			(if (match-end 2)
+			    (concat (match-string 2 headline) " ") "")
+			(match-string 4 headline)))
+	(if (not (string-match "\\S-" content))
+	    (setq content nil)
+	  (if (string-match "[ \t\n]+\\'" content)
+	      (setq content (substring content 0 (match-beginning 0))))
+	  (setq content (org-remove-indentation content))
+	  (if latexp (setq content (concat "\\quad \\\\\n" content))))
+	(insert "- ")
+	(setq indent (make-string (current-column) ?\ ))
+	(insert headline " ::")
+	(when content
+	  (insert (if htmlp " " (concat "\n" indent))
+		  (mapconcat 'identity (org-split-string content "\n")
+			     (concat "\n" indent)) "\n"))))))
 
 (defun org-inlinetask-fontify (limit)
   "Fontify the inline tasks."
@@ -196,5 +188,4 @@ Either remove headline and meta data, or do special formatting."
 
 (provide 'org-inlinetask)
 
-;; arch-tag: b76736bc-9f4a-43cd-977c-ecfd6689846a
 ;;; org-inlinetask.el ends here

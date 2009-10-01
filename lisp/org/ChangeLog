@@ -1,3 +1,329 @@
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-set-tags-to): New command.
+
+	* org-latex.el (org-export-latex-set-initial-vars): Also check in
+	the plist.
+
+	* org.el (org-additional-option-like-keywords): Add LATEX_CLASS
+	keyword.
+
+	* org-exp.el (org-infile-export-plist): Add LATEX_CLASS keyword.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-inlinetask.el (org-inlinetask-export): Option removed.
+	(org-inlinetask-export-handler): Better export.
+
+	* org-xoxo.el (org-export-xoxo-final-hook): New hook.
+	(org-export-as-xoxo): Run the new hook.
+
+	* org-html.el (org-export-html-final-hook): New hook.
+	(org-export-as-html): Run the new hook.
+
+	* org-docbook.el (org-export-docbook-final-hook): New hook.
+	(org-export-as-docbook): Run the new hook.
+
+	* org-ascii.el (org-export-ascii-final-hook): New hook.
+	(org-export-as-ascii): Run the new hook.
+
+	* org-latex.el (org-export-latex-treat-sub-super-char): Allow a
+	space character as the character before the ^/_.
+	(org-export-latex-final-hook): New hook.
+	(org-export-as-latex): Run `org-export-latex-final-hook'.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-macs.el (org-if-unprotected-at): Fix docstring.
+
+	* org-agenda.el (org-agenda-change-all-lines): Handle invisible
+	text in the prefix (if category is a link).
+
+	* org-latex.el (org-export-latex-preprocess): Deal properly with
+	empty lines in verse environments.
+
+	* org.el (org-format-latex-header): Inline fullpage.sty.
+
+	* org-footnote.el (org-footnote-create-definition): Reveal context
+	to add a new footnote definition.
+
+	* org.el (org-ctrl-c-ctrl-c): Pass prefix arg to
+	org-table-recalculate when cursor is in TBLFM line.
+
+	* org-list.el (org-renumber-ordered-list): Fix cursor position
+	when bullet length has changed.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-format-latex): Mention `org-format-latex-options' in
+	the docstring.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-agenda-get): New function.
+
+	* org-agenda.el (org-agenda-post-command-hook): No longer move
+	point away from end of line.
+	(org-agenda-add-entry-text, org-agenda-collect-markers)
+	(org-finalize-agenda, org-agenda-mark-clocking-task)
+	(org-agenda-dim-blocked-tasks, org-agenda-entry-text-show-here)
+	(org-agenda-entry-text-show, org-agenda-highlight-todo)
+	(org-agenda-compare-effort, org-agenda-filter-apply)
+	(org-agenda-later, org-agenda-change-time-span)
+	(org-agenda-post-command-hook, org-agenda-show-priority)
+	(org-agenda-show-tags, org-agenda-goto, org-agenda-kill)
+	(org-agenda-archive, org-agenda-archive-to-archive-sibling)
+	(org-remove-subtree-entries-from-agenda, org-agenda-refile)
+	(org-agenda-open-link, org-agenda-copy-local-variable)
+	(org-agenda-switch-to, org-agenda-check-no-diary)
+	(org-agenda-tree-to-indirect-buffer, org-agenda-todo)
+	(org-agenda-add-note, org-agenda-change-all-lines)
+	(org-agenda-priority, org-agenda-set-tags)
+	(org-agenda-set-property, org-agenda-set-effort)
+	(org-agenda-toggle-archive-tag, org-agenda-date-later)
+	(org-agenda-show-new-time, org-agenda-date-prompt)
+	(org-agenda-schedule, org-agenda-deadline, org-agenda-action)
+	(org-agenda-clock-in, org-agenda-bulk-mark)
+	(org-agenda-bulk-unmark, org-agenda-show-the-flagging-note): Use
+	`org-get-at-bol'.
+
+	* org-colview.el (org-columns-display-here)
+	(org-columns-edit-allowed, org-agenda-columns): Use
+	`org-get-at-bol'.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-special-ctrl-a/e): Improve documentation and
+	customize type.
+	(org-end-of-line): Don't jump to after the ellipsis.
+	(org-mode-map): Bind <home> and <end> as well.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-fontify-meta-lines-and-blocks): Treat lines with a
+	space after #+ as comments.
+	(org-open-at-point): Run `org-follow-link-hook' always.
+
+	* org-latex.el (org-export-latex-emph-format): Use better commands
+	to insert special characters in verbatim snippets.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-faces.el (org-copy-face): New function.  Use it to create
+	various faces formerly created by using `copy-face'.
+
+	* org-agenda.el (org-prepare-agenda): Don't officially mark this
+	window dedicated.
+	(org-agenda-quit): Kill the frame containing the agenda window if
+	that frame was created for the agenda.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-date-prompt): Mark the changed time
+	stamp in the agenda.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-prepare-agenda): Reset
+	`org-drawers-for-agenda'.
+	(org-prepare-agenda): Uniquify list of drawers.
+
+	* org.el (org-complex-heading-regexp-format): New variable.
+	(org-set-regexps-and-options): Define
+	`org-complex-heading-regexp-format'.
+	(org-drawers-for-agenda): New variable.
+	(org-map-entries): Bind `org-drawers-for-agenda'.
+	(org-prepare-agenda-buffers): Add to `org-drawers-for-agenda'.
+
+	* org-remember.el (org-go-to-remember-target)
+	(org-remember-handler): Use `org-complex-heading-regexp-format'.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-highlight-todo): Fix text property
+	problem.
+
+	* org.el (org-on-heading-p, org-at-heading-p): Make sure these are
+	always with `invisible-ok'.
+	(org-store-link): No error when there is nothing to link to in the
+	agenda.
+
+	* org-list.el (org-update-checkbox-count): Insert changed cookie
+	before the old, to avoid problems with invisibility at the end of
+	the line.
+	(org-update-checkbox-count): Insert changed cookie before the old,
+	to avoid problems with invisibility at the end of the line.
+
+	* org.el (org-sort-entries-or-items): Include the final newline.
+	(org-fontify-meta-lines-and-blocks): Add indented dynamic block
+	lines for fontification.
+	(org-dblock-start-re, org-dblock-end-re): Allow indentation.
+	(org-prepare-dblock): Store the current indentation of the BEGIN
+	line.
+	(org-update-dblock): Apply the indentation of the begin line to
+	the rest of the block.
+	(org-ctrl-c-ctrl-c): Also find indented dblock lines.
+	(org-startup-folded): New allowed value `showeverything'.
+	(org-startup-options): Add STARTUP keyword `showeverything'.
+	(org-set-startup-visibility): Respect value `showeverything' in
+	org-startup-folded.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-closest-date): Fix issue with past preference.
+
+	* org-archive.el (org-archive-set-tag)
+	(org-archive-subtree-default): New commands.
+
+	* org-clock.el (org-clock-clocktable-default-properties): New
+	option.
+	(org-clock-report): Use
+	`org-clock-clocktable-default-properties'.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-iswitchb-completing-read): Fix typo.
+
+	* org-crypt.el: New file.
+
+	* org.el: Add an entry for org-crypt.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-menu): Reorganize the menu for more
+	consistency.
+	(org-batch-store-agenda-views): New function.
+	(org-agenda-title-append): Define variable.
+	(org-write-agenda): New export to Org files.
+	(org-agenda-get-some-entry-text): New arguments INDENT and KEEP.
+	(org-agenda): Allow to keep the restricted file list if a special
+	variable is bound to t.
+	(org-agenda): Define a special agenda view for working on flagged
+	entries.
+	(org-agenda-get-restriction-and-command): List the new agenda
+	view.
+	(org-agenda-show-the-flagging-note): New command.
+	(org-agenda-mode-map): New key `?' for looking at the flagging
+	note.
+
+	* org.el (org-autoload): Autoload org-mobile.el.
+	(org-org-menu): Add menu commands for MobileOrg in the Org menu.
+
+	* org-mobile.el: New file.
+
+	* org-id.el (org-id-get): Fix bug with forcing ID on an item.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (orgtbl-line-start-regexp): Match also TBLNAME
+	statements.
+	(org-table-get-remote-range): Match indented #+TBLNAME
+	statements.
+
+	* org.el (org-convert-to-odd-levels)
+	(org-convert-to-oddeven-levels): Work also correctly if the file
+	is in outline-mode.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-store-link): When in agenda buffer, link to
+	referenced entry.
+	(org-add-planning-info): Remove spaces at eol.
+
+	* org-macs.el (org-with-point-at): Add a `lisp-indent-function'
+	property.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-first-lines): Fix problem with
+	LaTeX export of first line and selected subtree.
+
+	* org.el (org-shifttab): Interpret arg differently when using only
+	odd levels.
+
+2009-10-01  Bastien Guerry  <bzg@altern.org>
+
+	* org.el (org-check-agenda-file): Use a more explicit message
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-remove-special-table-lines): Don't remove
+	normal lines.
+
+2009-10-01  Bastien Guerry  <bzg@altern.org>
+
+	* org.el (org-offer-links-in-entry): Don't use "Select link" as a
+	prompt in the temporary window.
+
+	* org-agenda.el (org-agenda-bulk-mark): Use a slightly soberer
+	prefix for marked entries in the agenda view.
+
+2009-10-01  Andreas Burtzlaff <andy13@gmx.net>  (tiny change)
+
+	* org.el (outline-end-of-subtree): Bugfix: advise this function in
+	a way that prevents any trailing character from being displayed.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-menu): Fix bugs in the bulk action
+	menu.
+
+	* org-exp.el (org-export-remove-special-table-lines): Remove bad
+	slow regexp match.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): Do not protect in
+	the LaTeX header.
+
+	* org-src.el (org-edit-src-save): Save window setup while saving.
+	(org-edit-src-code): Use new buffer name construction scheme.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-entry-text-exclude-regexps): New
+	variable.
+	(org-agenda-entry-text-cleanup-hook): New hook.
+	(org-agenda-get-some-entry-text): Remove matches of
+	`org-agenda-entry-text-exclude-regexps' and run the hook
+	`org-agenda-entry-text-cleanup-hook'.
+
+	* org.el (org-offer-links-in-entry): New argument ZERO to
+	implement a link with index zero.
+	(org-cycle-show-empty-lines): Not keep empty line under header
+	hidden.
+	(org-iswitchb-completing-read): Bind `switchb-use-virtual-buffers'
+	to nil for special completion.
+	(org-store-link): Don't error before the first heading.
+
+	* org-agenda.el (org-agenda-open-link): Pass the prefix to
+	`org-offer-links-in-entry'.
+
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-quit): Provide the window argument for
+	`window-dedicated-p', Emacs 22 needs it.
+	(org-format-agenda-item): If the category is a link, arrange for
+	invisible text to replaced with spaces.
+	(org-compile-prefix-format): Add the extra space.
+	(org-prefix-category-length): New variable.
+
+	* org-exp.el (org-export-cleanup-toc-line): Remove footnote
+	references from TOC lines.
+
+	* org.el (org-selected-window): New variable.
+
+	* org-table.el (org-table-edit-formulas): Remember the selected
+	window.
+	(org-table-fedit-finish, org-table-fedit-abort): Select the window
+	that was originally selected.
+
+	* org-exp.el (org-export-preprocess-apply-macros): Scan the
+	expansion of a macro for more macro definitions.
+
+	* org-agenda.el (org-agenda-dim-blocked-tasks): Make sure the
+	invisibility overlay starts on the newline.
+
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* org-agenda.el (calendar-check-holidays):

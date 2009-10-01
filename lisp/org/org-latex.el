@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
-;; Version: 6.30c
+;; Version: 6.31a
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -49,6 +49,7 @@
 (require 'footnote)
 (require 'org)
 (require 'org-exp)
+(require 'org-macs)
 
 ;;; Variables:
 (defvar org-export-latex-class nil)
@@ -410,6 +411,9 @@ These are the .aux, .log, .out, and .toc files."
 (defvar org-export-latex-after-blockquotes-hook nil
   "Hook run during LaTeX export, after blockquote, verse, center are done.")
 
+(defvar org-export-latex-final-hook nil
+  "Hook run in the finalized LaTeX buffer.")
+
 ;;; Autoload functions:
 
 ;;;###autoload
@@ -662,6 +666,7 @@ when PUB-DIR is set, use this as the publishing directory."
       (and (re-search-forward "\\[TABLE-OF-CONTENTS\\]" nil t)
 	   (replace-match "\\tableofcontents" t t)))
 
+    (run-hooks 'org-export-latex-final-hook)
     (or to-buffer (save-buffer))
     (goto-char (point-min))
     (or (org-export-push-to-kill-ring "LaTeX")
@@ -923,6 +928,7 @@ LEVEL indicates the default depth for export."
 		(goto-char (point-min))
 		(and (re-search-forward "^#\\+LaTeX_CLASS:[ \t]*\\([a-zA-Z]+\\)" nil t)
 		     (match-string 1))))
+	    (plist-get org-export-latex-options-plist :latex-class)
 	    org-export-latex-default-class)
 	org-export-latex-class
 	(or (car (assoc org-export-latex-class org-export-latex-classes))
@@ -1003,11 +1009,10 @@ If BEG is non-nil, it is the beginning of the region.
 If END is non-nil, it is the end of the region."
   (save-excursion
     (goto-char (or beg (point-min)))
-    (let* ((pt (point)))
-      (or end
-	  (and (re-search-forward "^\\*+ " end t)
-	       (setq end (match-beginning 0)))
-	  (setq end (point-max)))
+    (let* ((pt (point))
+	   (end (if (re-search-forward "^\\*+ " end t)
+		    (goto-char (match-beginning 0))
+		  (goto-char (or end (point-max))))))
       (prog1
 	  (org-export-latex-content
 	   (org-export-preprocess-string
@@ -1233,9 +1238,8 @@ SUBSUP corresponds to the ^: option in the #+OPTIONS line.
 Convert CHAR depending on STRING-BEFORE and STRING-AFTER."
   (cond ((equal string-before "\\")
 	 (concat string-before char string-after))
-	;; this is part of a math formula
-	((and (string-match "\\S-+" string-before)
-	      (string-match "\\S-+" string-after))
+	((and (string-match "\\S-+" string-after))
+	 ;; this is part of a math formula
 	 (cond ((eq 'org-link (get-text-property 0 'face char))
 		(concat string-before "\\" char string-after))
 	       ((save-match-data (org-inside-latex-math-p))
@@ -1480,9 +1484,9 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 					       "%s" (substring ll i (1+ i))))
 			  (throw 'exit nil))))))
 	(let ((start 0)
-	      (trans '(("\\" . "\\backslash")
-		       ("~" . "\\ensuremath{\\sim}")
-		       ("^" . "\\ensuremath{\\wedge}")))
+	      (trans '(("\\" . "\\textbackslash{}")
+		       ("~" . "\\textasciitilde{}")
+		       ("^" . "\\textasciicircum{}")))
 	      (rtn "") char)
 	  (while (string-match "[\\{}$%&_#~^]" string)
 	    (setq char (match-string 0 string))
@@ -1551,8 +1555,8 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
        (cond ((and imgp (plist-get org-export-latex-options-plist :inline-images))
 	      (insert
 	       (concat
-		(if floatp "\\begin{figure}[htb]\n")
-		(format "\\centerline{\\includegraphics[%s]{%s}}\n"
+		(if floatp "\\begin{figure}[htb]\n\\centering\n")
+		(format "\\includegraphics[%s]{%s}\n"
 			attr
 			(if (file-name-absolute-p raw-path)
 			    (expand-file-name raw-path)
@@ -1561,7 +1565,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		    (format "\\caption{%s%s}\n"
 			    (if label (concat "\\label{" label "}") "")
 			    (or caption "")))
-		(if floatp "\\end{figure}\n"))))
+		(if floatp "\\end{figure}"))))
 	     (coderefp
 	      (insert (format
 		       (org-export-get-coderef-format path desc)
@@ -1662,9 +1666,11 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	 (org-export-latex-protect-string
 	  (concat "\\hspace*{1cm}" (match-string 2))) t t)
 	(beginning-of-line 1))
-      (unless (looking-at ".*?[^ \t\n].*?\\\\\\\\[ \t]*$")
-	(end-of-line 1)
-	(insert "\\\\"))
+      (if (looking-at "[ \t]*$")
+	  (insert "\\vspace*{1em}")
+	(unless (looking-at ".*?[^ \t\n].*?\\\\\\\\[ \t]*$")
+	  (end-of-line 1)
+	  (insert "\\\\")))
       (beginning-of-line 2))
     (and (looking-at "[ \t]*ORG-VERSE-END.*")
 	 (org-replace-match-keep-properties "\\end{verse}" t t)))
@@ -1691,8 +1697,10 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		    "\\)?"
 		    (org-create-multibrace-regexp "{" "}" 3))))
     (while (re-search-forward re nil t)
-      (add-text-properties (match-beginning 0) (match-end 0)
-			   '(org-protected t))))
+      (unless (save-excursion (goto-char (match-beginning 0))
+			      (equal (char-after (point-at-bol)) ?#))
+	(add-text-properties (match-beginning 0) (match-end 0)
+			     '(org-protected t)))))
 
   ;; Protect LaTeX entities
   (goto-char (point-min))
