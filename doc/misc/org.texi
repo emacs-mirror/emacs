@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.30c
-@set DATE September 2009
+@set VERSION 6.31a
+@set DATE October 2009
 
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers webpage}
@@ -109,6 +109,7 @@ license to the document, as described in section 6 of the license.
 * Publishing::                  Create a web site of linked Org files
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Hacking::                     How to hack your way around
+* MobileOrg::                   Viewing and capture on a mobile device
 * History and Acknowledgments::  How Org came into being
 * Main Index::                  An index of Org's concepts and features
 * Key Index::                   Key bindings and where they are described
@@ -258,7 +259,7 @@ Capture
 
 Remember
 
-* Setting up Remember for Org:: Some code for .emacs to get things going
+* Setting up Remember for Org::  Some code for .emacs to get things going
 * Remember templates::          Define the outline of different note types
 * Storing notes::               Directly get the note to where it belongs
 * Refiling notes::              Moving a note or task to a project
@@ -271,7 +272,7 @@ Agenda Views
 * Presentation and sorting::    How agenda items are prepared for display
 * Agenda commands::             Remote editing of Org trees
 * Custom agenda views::         Defining special searches and views
-* Exporting Agenda Views::
+* Exporting Agenda Views::      Writing a view to a file
 * Agenda column view::          Using column view for collected entries
 
 The built-in agenda views
@@ -420,6 +421,12 @@ Tables and lists in arbitrary syntax
 * Translator functions::        Copy and modify
 * Radio lists::                 Doing the same for lists
 
+MobileOrg
+
+* Setting up the staging area::  Where to interact with the mobile device
+* Pushing to MobileOrg::        Uploading Org files and agendas
+* Pulling from MobileOrg::      Integrating captured and flagged items
+
 @end detailmenu
 @end menu
 
@@ -506,9 +513,9 @@ questions (FAQ), links to tutorials, etc@.  This page is located at
 @cindex installation
 @cindex XEmacs
 
-@b{Important:} @i{If Org is part of the Emacs distribution or an
-XEmacs package, please skip this section and go directly to
-@ref{Activation}.}
+@b{Important:} @i{If you are using a version of Org that is part of the Emacs
+distribution or an XEmacs package, please skip this section and go directly
+to @ref{Activation}.}
 
 If you have downloaded Org from the Web, either as a distribution @file{.zip}
 or @file{.tar} file, or as a Git archive, you must take the following steps
@@ -532,13 +539,17 @@ step for this directory:
 (setq load-path (cons "~/path/to/orgdir/contrib/lisp" load-path))
 @end example
 
-@b{XEmacs users now need to install the file @file{noutline.el} from
+@sp 2
+@cartouche
+XEmacs users now need to install the file @file{noutline.el} from
 the @file{xemacs} sub-directory of the Org distribution.  Use the
-command:}
+command:
 
 @example
-@b{make install-noutline}
+     make install-noutline
 @end example
+@end cartouche
+@sp 2
 
 @noindent Now byte-compile the Lisp files with the shell command:
 
@@ -566,14 +577,15 @@ make install-info
 make install-info-debian
 @end example
 
-@noindent Then add to @file{.emacs}:
-
+Then add the following line to @file{.emacs}.  It is needed so that
+Emacs can autoload functions that are located in files not immediately loaded
+when Org-mode starts.
 @lisp
-;; This line only if Org is not part of the X/Emacs distribution.
 (require 'org-install)
 @end lisp
 
 Do not forget to activate Org as described in the following section.
+@page
 
 @node Activation, Feedback, Installation, Introduction
 @section Activation
@@ -882,6 +894,7 @@ the previously used indirect buffer.
 @cindex @code{overview}, STARTUP keyword
 @cindex @code{content}, STARTUP keyword
 @cindex @code{showall}, STARTUP keyword
+@cindex @code{showeverything}, STARTUP keyword
 
 When Emacs first visits an Org file, the global state is set to
 OVERVIEW, @ie only the top level headlines are visible.  This can be
@@ -893,6 +906,7 @@ buffer:
 #+STARTUP: overview
 #+STARTUP: content
 #+STARTUP: showall
+#+STARTUP: showeverything
 @end example
 
 @cindex property, VISIBILITY
@@ -2968,6 +2982,11 @@ search string.  If the automatically created link is not working correctly or
 accurately enough, you can write custom functions to select the search string
 and to do the search for particular file types---see @ref{Custom searches}.
 The key binding @kbd{C-c l} is only a suggestion---see @ref{Installation}.
+
+@b{Agenda view}@*
+When the cursor is in an agenda view, the created link points to the
+entry referenced by the current line.
+
 @c
 @kindex C-c C-l
 @cindex link completion
@@ -4028,7 +4047,9 @@ the final heading will have the tags @samp{:work:}, @samp{:boss:},
 @samp{:notes:}, and @samp{:action:} even though the final heading is not
 explicitly marked with those tags.  You can also set tags that all entries in
 a file should inherit just as if these tags were defined in a hypothetical
-level zero that surrounds the entire file.
+level zero that surrounds the entire file.  Use a line like this@footnote{As
+with all these in-buffer settings, pressing @kbd{C-c C-c} activates any
+changes in the line.}:
 
 @cindex #+FILETAGS
 @example
@@ -4613,7 +4634,7 @@ Here is an example for a complete columns definition, along with allowed
 values.
 
 @example
-:COLUMNS:  %20ITEM %9Approved(Approved?)@{X@} %Owner %11Status \@footnote{Please note that the COLUMNS definition must be on a single line---it is wrapped here only because of formatting constraints.}
+:COLUMNS:  %25ITEM %9Approved(Approved?)@{X@} %Owner %11Status \@footnote{Please note that the COLUMNS definition must be on a single line---it is wrapped here only because of formatting constraints.}
                    %10Time_Estimate@{:@} %CLOCKSUM
 :Owner_ALL:    Tammy Mark Karl Lisa Don
 :Status_ALL:   "In progress" "Not started yet" "Finished" ""
@@ -4831,13 +4852,13 @@ is used in a much wider sense.
 @cindex deadlines
 @cindex scheduling
 
-A timestamp is a specification of a date (possibly with a time or a range
-of times) in a special format, either @samp{<2003-09-16 Tue>} or
+A timestamp is a specification of a date (possibly with a time or a range of
+times) in a special format, either @samp{<2003-09-16 Tue>} or
 @samp{<2003-09-16 Tue 09:39>} or @samp{<2003-09-16 Tue
-12:00-12:30>}@footnote{This is the standard ISO date/time format.  To
-use an alternative format, see @ref{Custom time format}.}.  A timestamp
-can appear anywhere in the headline or body of an Org tree entry.  Its
-presence causes entries to be shown on specific dates in the agenda
+12:00-12:30>}@footnote{This is inspired by the standard ISO 6801 date/time
+format.  To use an alternative format, see @ref{Custom time format}.}.  A
+timestamp can appear anywhere in the headline or body of an Org tree entry.
+Its presence causes entries to be shown on specific dates in the agenda
 (@pxref{Weekly/daily agenda}).  We distinguish:
 
 @table @var
@@ -4985,21 +5006,20 @@ the following column).
 @cindex time, reading in minibuffer
 
 @vindex org-read-date-prefer-future
-When Org mode prompts for a date/time, the default is shown as an ISO
-date, and the prompt therefore seems to ask for an ISO date.  But it
-will in fact accept any string containing some date and/or time
-information, and it is really smart about interpreting your input.  You
+When Org mode prompts for a date/time, the default is shown in default
+date/time format, and the prompt therefore seems to ask for a specific
+format.  But it will in fact accept any string containing some date and/or
+time information, and it is really smart about interpreting your input.  You
 can, for example, use @kbd{C-y} to paste a (possibly multi-line) string
-copied from an email message.  Org mode will find whatever information
-is in there and derive anything you have not specified from the
-@emph{default date and time}.  The default is usually the current date
-and time, but when modifying an existing timestamp, or when entering
-the second stamp of a range, it is taken from the stamp in the buffer.
-When filling in information, Org mode assumes that most of the time you
-will want to enter a date in the future: if you omit the month/year and
-the given day/month is @i{before} today, it will assume that you mean a
-future date@footnote{See the variable
-@code{org-read-date-prefer-future}.}.
+copied from an email message.  Org mode will find whatever information is in
+there and derive anything you have not specified from the @emph{default date
+and time}.  The default is usually the current date and time, but when
+modifying an existing timestamp, or when entering the second stamp of a
+range, it is taken from the stamp in the buffer.  When filling in
+information, Org mode assumes that most of the time you will want to enter a
+date in the future: if you omit the month/year and the given day/month is
+@i{before} today, it will assume that you mean a future date@footnote{See the
+variable @code{org-read-date-prefer-future}.}.
 
 For example, let's assume that today is @b{June 13, 2006}.  Here is how
 various inputs will be interpreted, the items filled in by Org mode are
@@ -5657,7 +5677,7 @@ with specific templates.  It also allows you to select the location where a
 note should be stored interactively, on the fly.
 
 @menu
-* Setting up Remember for Org:: Some code for .emacs to get things going
+* Setting up Remember for Org::  Some code for .emacs to get things going
 * Remember templates::          Define the outline of different note types
 * Storing notes::               Directly get the note to where it belongs
 * Refiling notes::              Moving a note or task to a project
@@ -6148,7 +6168,7 @@ window configuration is restored when the agenda exits:
 * Presentation and sorting::    How agenda items are prepared for display
 * Agenda commands::             Remote editing of Org trees
 * Custom agenda views::         Defining special searches and views
-* Exporting Agenda Views::
+* Exporting Agenda Views::      Writing a view to a file
 * Agenda column view::          Using column view for collected entries
 @end menu
 
@@ -7395,10 +7415,10 @@ This is a globally available command, and also available in the agenda menu.
 Write the agenda view to a file.  Depending on the extension of the selected
 file name, the view will be exported as HTML (extension @file{.html} or
 @file{.htm}), Postscript (extension @file{.ps}), PDF (extension @file{.pdf}),
-or plain text (any other extension).  When called with a @kbd{C-u} prefix
-argument, immediately open the newly created file.  Use the variable
-@code{org-agenda-exporter-settings} to set options for @file{ps-print} and
-for @file{htmlize} to be used during export.
+Org-mode (extension @file{.org}), and plain text (any other extension).  When
+called with a @kbd{C-u} prefix argument, immediately open the newly created
+file.  Use the variable @code{org-agenda-exporter-settings} to set options
+for @file{ps-print} and for @file{htmlize} to be used during export.
 
 @tsubheading{Quit and Exit}
 @kindex q
@@ -7622,13 +7642,13 @@ you want to do this only occasionally, use the command
 @cindex exporting agenda views
 @cindex agenda views, exporting
 @vindex org-agenda-exporter-settings
-Write the agenda view to a file.  Depending on the extension of the
-selected file name, the view will be exported as HTML (extension
-@file{.html} or @file{.htm}), Postscript (extension @file{.ps}),
-iCalendar (extension @file{.ics}), or plain text (any other extension).
-Use the variable @code{org-agenda-exporter-settings} to
-set options for @file{ps-print} and for @file{htmlize} to be used during
-export, for example
+Write the agenda view to a file.  Depending on the extension of the selected
+file name, the view will be exported as HTML (extension @file{.html} or
+@file{.htm}), Postscript (extension @file{.ps}), iCalendar (extension
+@file{.ics}), Org-mode (extension @file{.org}), or plain text (any other
+extension).  Use the variable @code{org-agenda-exporter-settings} to set
+options for @file{ps-print} and for @file{htmlize} to be used during export,
+for example
 
 @vindex org-agenda-add-entry-text-maxlines
 @vindex htmlize-output-type
@@ -7951,6 +7971,12 @@ process the entire buffer.
 Remove the overlay preview images.
 @end table
 
+@vindex org-format-latex-options
+You can customize the variable @code{org-format-latex-options} to influence
+some aspects of the preview. In particular, the @code{:scale} (and for HTML
+export, @code{:html-scale}) property can be used to adjust the size of the
+preview images.
+
 During HTML export (@pxref{HTML export}), all La@TeX{} fragments are
 converted into images and inlined into the document if the following
 setting is active:
@@ -8107,13 +8133,13 @@ property @code{EXPORT_TITLE}, that will take precedence.
 @subheading Headings and sections
 @cindex headings and sections, markup rules
 
-@vindex org-headline-levels
+@vindex org-export-headline-levels
 The outline structure of the document as described in @ref{Document
 Structure}, forms the basis for defining sections of the exported document.
 However, since the outline structure is also used for (for example) lists of
 tasks, only the first three outline levels will be used as headings.  Deeper
 levels will become itemized lists.  You can change the location of this
-switch globally by setting the variable @code{org-headline-levels}, or on a
+switch globally by setting the variable @code{org-export-headline-levels}, or on a
 per-file basis with a line
 
 @cindex #+OPTIONS
@@ -8451,7 +8477,8 @@ exported as a horizontal line (@samp{<hr/>} in HTML).
 @cindex #+BEGIN_COMMENT
 
 Lines starting with @samp{#} in column zero are treated as comments and will
-never be exported.  Also entire subtrees starting with the word
+never be exported. If you want an indented line to be treated as a comment,
+start it with @samp{#+ }.  Also entire subtrees starting with the word
 @samp{COMMENT} will never be exported.  Finally, regions surrounded by
 @samp{#+BEGIN_COMMENT} ... @samp{#+END_COMMENT} will not be exported.
 
@@ -9027,13 +9054,13 @@ view:    @r{Initial view when website is first shown.  Possible values are:}
          showall   @r{Folding interface, all headlines and text visible.}
 sdepth:  @r{Maximum headline level that will still become an independent}
          @r{section for info and folding modes.  The default is taken from}
-         @r{@code{org-headline-levels} (= the @code{H} switch in @code{#+OPTIONS}).}
-         @r{If this is smaller than in @code{org-headline-levels}, each}
+         @r{@code{org-export-headline-levels} (= the @code{H} switch in @code{#+OPTIONS}).}
+         @r{If this is smaller than in @code{org-export-headline-levels}, each}
          @r{info/folding section can still contain child headlines.}
 toc:     @r{Should the table of content @emph{initially} be visible?}
          @r{Even when @code{nil}, you can always get to the "toc" with @kbd{i}.}
 tdepth:  @r{The depth of the table of contents.  The defaults are taken from}
-         @r{the variables @code{org-headline-levels} and @code{org-export-with-toc}.}
+         @r{the variables @code{org-export-headline-levels} and @code{org-export-with-toc}.}
 ftoc:    @r{Does the css of the page specify a fixed position for the "toc"?}
          @r{If yes, the toc will never be displayed as a section.}
 ltoc:    @r{Should there be short contents (children) in each section?}
@@ -10152,10 +10179,12 @@ tree.  The corresponding variable for global default settings is
 @cindex @code{overview}, STARTUP keyword
 @cindex @code{content}, STARTUP keyword
 @cindex @code{showall}, STARTUP keyword
+@cindex @code{showeverything}, STARTUP keyword
 @example
-overview   @r{top-level headlines only}
-content    @r{all headlines}
-showall    @r{no folding at all, show everything}
+overview         @r{top-level headlines only}
+content          @r{all headlines}
+showall          @r{no folding of any entries}
+showeverything   @r{show even drawer contents}
 @end example
 
 @vindex org-startup-indented
@@ -10678,7 +10707,8 @@ in the paragraph above about CUA mode also applies here.
 
 @end table
 
-@node Hacking, History and Acknowledgments, Miscellaneous, Top
+
+@node Hacking, MobileOrg, Miscellaneous, Top
 @appendix Hacking
 @cindex hacking
 
@@ -11444,19 +11474,6 @@ foreach $line (split(/\n/,$agenda)) @{
 @}
 @end example
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 @node Using the property API, Using the mapping API, Extracting agenda information, Hacking
 @section Using the property API
 @cindex API, for properties
@@ -11636,7 +11653,130 @@ The following example counts the number of entries with TODO keyword
 (length (org-map-entries t "/+WAITING" 'agenda))
 @end lisp
 
-@node History and Acknowledgments, Main Index, Hacking, Top
+@node MobileOrg, History and Acknowledgments, Hacking, Top
+@appendix MobileOrg
+@cindex iPhone
+@cindex MobileOrg
+
+@i{MobileOrg} is an application for the @i{iPhone/iPod Touch} series of
+devices, developed by Richard Moreland.  Instead of trying to implement the
+full feature set of Org and fighting with synchronization issues, this
+application chooses a different path.  @i{MobileOrg} provides offline viewing
+and capture support for an Org-mode system rooted on a ``real'' computer.
+Synchronization issues are avoided by making @i{MobileOrg} only @i{write} to
+a special capture file, that is only @i{read} by the computer-based system.
+
+This appendix describes the support Org has for creating agenda views in a
+format that can be displayed by @i{MobileOrg}, and for integrating notes
+captured by @i{MobileOrg} into the main system.  It does not cover the
+operation of @i{MobileOrg} itself (see @uref{http://ncogni.to/mobileorg/}).
+
+@menu
+* Setting up the staging area::  Where to interact with the mobile device
+* Pushing to MobileOrg::        Uploading Org files and agendas
+* Pulling from MobileOrg::      Integrating captured and flagged items
+@end menu
+
+@node Setting up the staging area, Pushing to MobileOrg, MobileOrg, MobileOrg
+@section Setting up the staging area
+
+Org-mode has commands to prepare a directory with files for @i{MobileOrg},
+and to read captured notes from there.  If Emacs can directly write to the
+WebDAV directory accessed by @i{MobileOrg}, all you need to do is to point to
+this directory using the variable @code{org-mobile-directory}.
+
+If Emacs cannot access the WebDAV directory directly, you can use a local
+directory for staging.  Other means must then be used to keep this directory
+in sync with the WebDAV directory.  In the following example, files are
+staged in @file{~/stage}, and Org-mode hooks take care of moving files to and
+from the WebDAV directory using @file{scp}.
+
+@example
+(setq org-mobile-directory "~/stage/")
+(add-hook 'org-mobile-post-push-hook
+  (lambda ()
+   (shell-command "scp ~/stage/* user@@webdavhost:mobile/")))
+(add-hook 'org-mobile-pre-pull-hook
+  (lambda ()
+   (shell-command "scp user@@webdavhost:mobile/mobileorg.org ~/stage/ ")))
+(add-hook 'org-mobile-post-pull-hook
+  (lambda ()
+   (shell-command "scp ~/stage/mobileorg.org user@@webdavhost:mobile/")))
+@end example
+
+@node Pushing to MobileOrg, Pulling from MobileOrg, Setting up the staging area, MobileOrg
+@section Pushing to MobileOrg
+
+This operation copies all files currently listed in @code{org-mobile-files}
+to the directory @code{org-mobile-directory}.  By default this list contains
+all agenda files (as listed in @code{org-agenda-files}), but additional files
+can be included by customizing @code{org-mobiles-files}.  The push operation
+also creates (in the same directory) a special Org file @file{agendas.org}.
+This file is an Org-mode style outline, containing every custom agenda view
+defined by the user.  While creating the agendas, Org-mode will
+force@footnote{See the variable @code{org-mobile-force-id-on-agenda-items}.}
+an ID property on all entries referenced by the agendas, so that these
+entries can be uniquely identified if @i{MobileOrg} flags them for further
+action.  Finally, Org writes the file @file{index.org}, containing links to
+all other files.  If @i{MobileOrg} is configured to request this file from
+the WebDAV server, all agendas and Org files will be downloaded to the
+iPhone.  To speed up the download, MobileOrg will only read files whose
+checksums@footnote{stored automatically in the file @file{checksums.dat}}
+have changed.
+
+@node Pulling from MobileOrg,  , Pushing to MobileOrg, MobileOrg
+@section Pulling from MobileOrg
+
+When @i{MobileOrg} synchronizes with the WebDAV server, it not only pulls the
+Org files for viewing.  It also appends captured entries and pointers to
+flagged entries to the file @file{mobileorg.org} on the server.  Org has
+a @emph{pull} operation that integrates this information into an inbox file
+and operates on the pointers to flagged entries.  Here is how it works:
+
+@enumerate
+@item
+Org moves all entries found in
+@file{mobileorg.org}@footnote{@file{mobileorg.org} will be empty after this
+operation.} and appends them to the file pointed to by the variable
+@code{org-mobile-inbox-for-pull}.  Each captured entry will be a top-level
+entry in the inbox file.
+@item
+After moving the entries, Org will attempt to act on the flags.  Some flags
+specify simple operations that will be executed directly and without user
+interaction.  Examples are marking an entry as DONE and/or archiving
+it@footnote{as specified by the variable @code{org-archive-default-action}}.
+All other flagged entries will receive a tag @code{:FLAGGED:}, so that they
+can be easily found again.  When there is a problem finding the entry that
+should be flagged, the pointer entry will remain in the inbox and will be
+marked with an error message.
+@item
+Org will then generate an agenda view with all flagged entries.  The user
+should then go through these entries and do whatever actions are necessary.
+If a note has been stored while flagging an entry in @i{MobileOrg}, that note
+will be displayed in the echo area when the cursor is on the corresponding
+agenda line.
+@table @kbd
+@kindex ?
+@item ?
+Pressing @kbd{?} in that special agenda will display the full flagging note in
+another window and also push it onto the kill ring.  So you could use @kbd{?
+z C-y C-c C-c} to store that flagging note as a normal note in the entry.
+Pressing @kbd{?} twice in succession will offer to remove the
+@code{:FLAGGED:} tag along with the recorded flagging note (which is stored
+in a property).
+@end table
+@end enumerate
+
+@kindex C-c a ?
+If you are not able to process all flagged entries directly, you can always
+return to this agenda view using @kbd{C-c a ?}.  Note, however, that there is
+a subtle difference.  The view created automatically by @kbd{M-x
+org-mobile-pull RET} is guaranteed to search all files that have been
+addressed by the last pull.  This might include a file that is not currently
+in your list of agenda files.  If you later use @kbd{C-c a ?} to regenerate
+the view, only the current agenda files will be searched.
+
+@node History and Acknowledgments, Main Index, MobileOrg, Top
 @appendix History and Acknowledgments
 @cindex acknowledgments
 @cindex history
@@ -11762,6 +11902,8 @@ basis.
 @item
 @i{Stefan Monnier} provided a patch to keep the Emacs-Lisp compiler
 happy.
+@item
+@i{Richard Moreland} wrote @i{MobileOrg} for the iPhone.
 @item
 @i{Rick Moynihan} proposed allowing multiple TODO sequences in a file
 and being able to quickly restrict the agenda to a subtree.
@@ -11901,3 +12043,5 @@ org-customize @key{RET}} and then klick yourself through the tree.
 @c fill-column: 77
 @c End:
 
+
+@c  LocalWords:  webdavhost pre

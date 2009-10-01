@@ -1,3 +1,17 @@
+2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Pushing to MobileOrg): Document `org-mobile-files'.
+	(Processing LaTeX fragments): Document that the size of images can be
+	changes using the variable `org-format-latex-options'.
+	(The date/time prompt, Timestamps): Be more accurate over ISO format
+	dates and times.
+	(Visibility cycling): Document showeverything keyword.
+	(In-buffer settings): Document showeverything keyword.
+	(Setting up the staging area): Fix the example.
+	(MobileOrg): New section.
+	(Agenda commands, Exporting Agenda Views): Document exporting the
+	agenda view to Org files.
+
 2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (History): Add IMAP support.
