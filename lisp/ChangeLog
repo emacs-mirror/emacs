@@ -1,3 +1,8 @@
+2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/wisent/javat-wy.el
+	(wisent-java-tags-wy--keyword-table): Use \000 instead of literal ^@.
+
 2009-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/srecode/expandproto.el: Fix provide statement.
