@@ -1,3 +1,9 @@
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fdelete_directory_internal): Renamed from
+	Fdelete_directory.  It is not a command anymore.  It has no file
+	name handler.
+
 2009-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (get_next_display_element): Use an enum in last change.
