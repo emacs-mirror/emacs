@@ -520,9 +520,9 @@ is no information where to trace the message.")
      newname)
    ok-if-already-exists keep-date preserve-uid-gid))
 
-(defun tramp-gvfs-handle-delete-directory (directory)
+(defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
-  (delete-directory (tramp-gvfs-fuse-file-name directory)))
+  (delete-directory (tramp-gvfs-fuse-file-name directory) recursive))
 
 (defun tramp-gvfs-handle-delete-file (filename)
   "Like `delete-file' for Tramp files."
