@@ -7,6 +7,13 @@
 	(check-declare-directory): Doc fix.
 	* subr.el (declare-function): Doc fix.
 
+	* ibuffer.el (ibuffer-format-qualifier):
+	* isearch.el (hi-lock-regexp-okay):
+	* calc/calc.el (math-zerop):
+	* mail/uce.el (rmail-msgbeg, rmail-msgend):
+	* term/w32-win.el (setup-default-fontset, set-fontset-font):
+	Remove unused declarations.
+
 2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/semantic/wisent/javat-wy.el

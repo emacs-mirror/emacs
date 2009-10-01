@@ -1,7 +1,7 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -166,11 +166,11 @@ the last file dropped is selected."
  ;;; navigation feature.
  (defun w32-menu-bar-open (&optional frame)
    "Start key navigation of the menu bar in FRAME.
- 
+
 This initially activates the first menu-bar item, and you can then navigate
 with the arrow keys, select a menu entry with the Return key or cancel with
 the Escape key.  If FRAME has no menu bar, this function does nothing.
- 
+
 If FRAME is nil or not given, use the selected frame.
 If FRAME does not have the menu bar enabled, display a text menu using
 `tmm-menubar'."
@@ -218,11 +218,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (declare-function x-open-connection "w32fns.c"
                   (display &optional xrm-string must-succeed))
-
-(declare-function setup-default-fontset "fontset" ())
-(declare-function set-fontset-font "fontset.c"
-                  (name target font-spec &optional frame add))
-(declare-function setup-default-fontset "fontset" ())
 (declare-function create-fontset-from-fontset-spec "fontset"
                   (fontset-spec &optional style-variant noerror))
 (declare-function create-fontset-from-x-resource "fontset" ())
@@ -257,7 +252,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; Create the standard fontset.
   (condition-case err
       (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
-    (error (display-warning 
+    (error (display-warning
 	    'initialization
 	    (format "Creation of the standard fontset failed: %s" err)
 	    :error)))

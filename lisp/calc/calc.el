@@ -185,7 +185,6 @@
 (declare-function calc-incomplete-error "calc-incom" (a))
 (declare-function math-float-fancy "calc-arith" (a))
 (declare-function math-neg-fancy "calc-arith" (a))
-(declare-function math-zerop "calc-misc" (a))
 (declare-function calc-add-fractions "calc-frac" (a b))
 (declare-function math-add-objects-fancy "calc-arith" (a b))
 (declare-function math-add-symb-fancy "calc-arith" (a b))

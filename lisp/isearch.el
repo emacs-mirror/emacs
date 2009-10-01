@@ -1401,7 +1401,6 @@ string.  NLINES has the same meaning as in `occur'."
 	(search-upper-case nil))
     (occur regexp nlines)))
 
-(declare-function hi-lock-regexp-okay "hi-lock" (regexp))
 (declare-function hi-lock-read-face-name "hi-lock" ())
 
 (defun isearch-highlight-regexp ()
