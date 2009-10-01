@@ -1,5 +1,8 @@
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
+	* vc-cvs.el (vc-cvs-parse-entry): Be more careful with the
+	match-data.  (Bug#4555).
+
 	* cedet/semantic/bovine/gcc.el
 	(semantic-c-reset-preprocessor-symbol-map): Fix declaration.
 	(semantic-gcc-get-include-paths, semantic-gcc-setup-data): Doc fixes.
