@@ -1199,8 +1199,8 @@ Display a verbose directory listing.
 @item M-x make-directory @key{RET} @var{dirname} @key{RET}
 Create a new directory named @var{dirname}.
 @item M-x delete-directory @key{RET} @var{dirname} @key{RET}
-Delete the directory named @var{dirname}.  It must be empty,
-or you get an error.
+Delete the directory named @var{dirname}.  If it isn't empty,
+you will be asked whether you want to delete it recursively.
 @end table
 
 @findex list-directory
@@ -1247,12 +1247,12 @@ this, it runs the program specified by
 
   The command @kbd{M-x delete-directory} prompts for a directory name
 using the minibuffer, and deletes the directory if it is empty.  If
-the directory is not empty, this signals an error.  On systems that
-have a ``Trash'' or ``Recycle Bin'' feature, you can make this command
-move the specified directory to the Trash or Recycle Bin, instead of
-deleting it outright, by changing the variable
-@code{delete-by-moving-to-trash} to @code{t}.  @xref{Misc File Ops},
-for more information about using the Trash.
+the directory is not empty, you will be asked whether you want to
+delete it recursively.  On systems that have a ``Trash'' or ``Recycle
+Bin'' feature, you can make this command move the specified directory
+to the Trash or Recycle Bin, instead of deleting it outright, by
+changing the variable @code{delete-by-moving-to-trash} to @code{t}.
+@xref{Misc File Ops}, for more information about using the Trash.
 
 @node Comparing Files
 @section Comparing Files
