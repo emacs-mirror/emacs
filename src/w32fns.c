@@ -6218,7 +6218,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
   if (!NILP (Ffile_directory_p (filename))
       && NILP (Ffile_symlink_p (filename)))
     {
-      operation = Qdelete_directory;
+      operation = Qdelete_directory_internal;
       filename = Fdirectory_file_name (filename);
     }
   filename = Fexpand_file_name (filename, Qnil);

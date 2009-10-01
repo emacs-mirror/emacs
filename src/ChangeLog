@@ -1,3 +1,10 @@
+2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (Qdelete_directory_internal):
+	Declare, instead of Qdelete_directory.
+
+	* w32fns.c (Fsystem_move_file_to_trash): Use it.
+
 2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fcalled_interactively_p): Add `kind' argument.
