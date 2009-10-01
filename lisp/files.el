@@ -648,7 +648,12 @@ Directories are separated by occurrences of `path-separator'
   ;; Put the name into directory syntax now,
   ;; because otherwise expand-file-name may give some bad results.
   (setq dir (file-name-as-directory dir))
-  (setq dir (abbreviate-file-name (expand-file-name dir)))
+  ;; We used to additionally call abbreviate-file-name here, for an
+  ;; unknown reason.  Problem is that most buffers are setup
+  ;; without going through cd-absolute and don't call
+  ;; abbreviate-file-name on their default-directory, so the few that
+  ;; do end up using a superficially different directory.
+  (setq dir (expand-file-name dir))
   (if (not (file-directory-p dir))
       (if (file-exists-p dir)
 	  (error "%s is not a directory" dir)

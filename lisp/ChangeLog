@@ -1,5 +1,7 @@
 2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (cd-absolute): Don't abbreviate-file-name (bug#4599).
+
 	* vc-dispatcher.el (vc-resynch-window): Don't revert a buffer which
 	has no associated file.
 	(vc-resynch-buffer): Use vc-dir-buffers.
