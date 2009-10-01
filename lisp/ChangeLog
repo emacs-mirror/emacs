@@ -1,5 +1,9 @@
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/bovine/gcc.el
+	(semantic-c-reset-preprocessor-symbol-map): Fix declaration.
+	(semantic-gcc-get-include-paths, semantic-gcc-setup-data): Doc fixes.
+
 	* emacs-lisp/check-declare.el (check-declare-scan): Read the declaration
 	rather than parsing it as a regexp.  This relaxes the layout
 	requirements and makes errors easier to detect.

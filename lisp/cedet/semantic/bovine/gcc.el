@@ -28,8 +28,7 @@
 
 (defvar semantic-lex-c-preprocessor-symbol-file)
 (defvar semantic-lex-c-preprocessor-symbol-map)
-(declare-function semantic-c-reset-preprocessor-symbol-map
-		  "semantic/bovine/gcc")
+(declare-function semantic-c-reset-preprocessor-symbol-map "semantic/bovine/c")
 
 ;;; Code:
 
@@ -63,7 +62,7 @@ to give to the program."
 ;;(semantic-gcc-get-include-paths "c")
 ;;(semantic-gcc-get-include-paths "c++")
 (defun semantic-gcc-get-include-paths (lang)
-  "Return include paths as gcc use them for language LANG."
+  "Return include paths as gcc uses them for language LANG."
   (let* ((gcc-cmd (cond
                    ((string= lang "c") "gcc")
                    ((string= lang "c++") "c++")
@@ -139,9 +138,9 @@ to give to the program."
   "The GCC setup data.
 This is setup by `semantic-gcc-setup'.
 This is an alist, and should include keys of:
-  'version - The version of gcc
-  '--host  - The host symbol.  (Used in include directories)
-  '--prefix - Where GCC was installed.
+  'version  - the version of gcc
+  '--host   - the host symbol (used in include directories)
+  '--prefix - where GCC was installed.
 It should also include other symbols GCC was compiled with.")
 
 ;;;###autoload
