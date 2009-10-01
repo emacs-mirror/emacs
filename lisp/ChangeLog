@@ -1,3 +1,32 @@
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (delete-directory): New defun.  The original function
+	in fileio.c has been renamed to `delete-directory-internal'.
+
+	* dired.el (dired-delete-file): Call `delete-directory' with
+	RECURSIVE parameter.
+
+	* net/ange-ftp.el (ange-ftp-delete-directory ): Add optional
+	parameter RECURSIVE.  Implementation is missing.
+
+	* net/tramp.el (tramp-handle-make-directory): Flush upper
+	directory's file properties.
+	(tramp-handle-delete-directory): Handle optional parameter
+	RECURSIVE.
+	(tramp-handle-dired-recursive-delete-directory): Flush directory
+	properties after the remove command only.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-directory): Handle
+	optional parameter RECURSIVE.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-directory): Handle
+	optional parameter RECURSIVE.
+
+	* net/tramp-smb.el (tramp-smb-errors): Add error message for
+	connection timeout.
+	(tramp-smb-handle-delete-directory): Handle optional parameter
+	RECURSIVE.
+
 2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-defmacro-declaration): New fun.
