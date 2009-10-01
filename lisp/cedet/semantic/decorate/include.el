@@ -24,7 +24,7 @@
 ;; Highlight any include that is in a state the user may care about.
 ;; The basic idea is to have the state be highly visible so users will
 ;; as 'what is this?" and get the info they need to fix problems that
-;; are otherwises transparent when trying to get smart completion
+;; are otherwise transparent when trying to get smart completion
 ;; working.
 
 (require 'semantic/decorate/mode)
