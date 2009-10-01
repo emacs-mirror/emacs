@@ -22,11 +22,11 @@
 
 ;;; Commentary:
 ;;
-;; There are some features of tags that are too langauge dependent to
+;; There are some features of tags that are too language dependent to
 ;; put in the core `semantic-tag' functionality.  For instance, the
 ;; protection of a tag (as specified by UML) could be almost anything.
 ;; In Java, it is a type specifier.  In C, there is a label.  This
-;; informatin can be derived, and thus should not be stored in the tag
+;; information can be derived, and thus should not be stored in the tag
 ;; itself.  These are the functions that languages can use to derive
 ;; the information.
 
