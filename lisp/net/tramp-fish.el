@@ -312,10 +312,19 @@ pass to the OPERATION."
   (tramp-fish-do-copy-or-rename-file
    'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
 
-(defun tramp-fish-handle-delete-directory (directory)
+(defun tramp-fish-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
   (when (file-exists-p directory)
-    (with-parsed-tramp-file-name
+    (if recursive
+	(mapc
+	 (lambda (file)
+	   (if (file-directory-p file)
+	       (delete-directory file recursive)
+	     (delete-file file)))
+	 ;; We do not want to delete "." and "..".
+	 (directory-files
+	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+     (with-parsed-tramp-file-name
 	(directory-file-name (expand-file-name directory)) nil
       (tramp-flush-directory-property v localname)
       (tramp-fish-send-command-and-check v (format "#RMD %s" localname)))))
