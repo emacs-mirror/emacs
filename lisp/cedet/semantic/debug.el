@@ -26,7 +26,7 @@
 ;; controlling and stepping through the parsing work must be implemented
 ;; by the parser.
 ;;
-;; Fortunatly, the nature of language support files means that the parser
+;; Fortunately, the nature of language support files means that the parser
 ;; may not need to be instrumented first.
 ;;
 ;; The debugger uses EIEIO objects.  One object controls the user
