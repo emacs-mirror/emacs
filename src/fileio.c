@@ -206,7 +206,7 @@ int write_region_inhibit_fsync;
 #endif
 
 /* Non-zero means call move-file-to-trash in Fdelete_file or
-   Fdelete_directory.  */
+   Fdelete_directory_internal.  */
 int delete_by_moving_to_trash;
 
 Lisp_Object Qdelete_by_moving_to_trash;
@@ -315,7 +315,7 @@ Lisp_Object Qfile_name_as_directory;
 Lisp_Object Qcopy_file;
 Lisp_Object Qmake_directory_internal;
 Lisp_Object Qmake_directory;
-Lisp_Object Qdelete_directory;
+Lisp_Object Qdelete_directory_internal;
 Lisp_Object Qdelete_file;
 Lisp_Object Qrename_file;
 Lisp_Object Qadd_name_to_file;
@@ -2134,7 +2134,8 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   return Qnil;
 }
 
-DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
+DEFUN ("delete-directory-internal", Fdelete_directory_internal,
+       Sdelete_directory_internal, 1, 1, 0,
        doc: /* Delete the directory named DIRECTORY.  Does not follow symlinks.  */)
      (directory)
      Lisp_Object directory;
@@ -2145,10 +2146,6 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
 
   CHECK_STRING (directory);
   directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
-
-  handler = Ffind_file_name_handler (directory, Qdelete_directory);
-  if (!NILP (handler))
-    return call2 (handler, Qdelete_directory, directory);
 
   if (delete_by_moving_to_trash)
     return call1 (Qmove_file_to_trash, directory);
@@ -5481,7 +5478,7 @@ syms_of_fileio ()
   Qcopy_file = intern ("copy-file");
   Qmake_directory_internal = intern ("make-directory-internal");
   Qmake_directory = intern ("make-directory");
-  Qdelete_directory = intern ("delete-directory");
+  Qdelete_directory_internal = intern ("delete-directory-internal");
   Qdelete_file = intern ("delete-file");
   Qrename_file = intern ("rename-file");
   Qadd_name_to_file = intern ("add-name-to-file");
@@ -5516,7 +5513,7 @@ syms_of_fileio ()
   staticpro (&Qcopy_file);
   staticpro (&Qmake_directory_internal);
   staticpro (&Qmake_directory);
-  staticpro (&Qdelete_directory);
+  staticpro (&Qdelete_directory_internal);
   staticpro (&Qdelete_file);
   staticpro (&Qrename_file);
   staticpro (&Qadd_name_to_file);
@@ -5743,7 +5740,7 @@ When non-nil, the function `move-file-to-trash' will be used by
   defsubr (&Ssubstitute_in_file_name);
   defsubr (&Scopy_file);
   defsubr (&Smake_directory_internal);
-  defsubr (&Sdelete_directory);
+  defsubr (&Sdelete_directory_internal);
   defsubr (&Sdelete_file);
   defsubr (&Srename_file);
   defsubr (&Sadd_name_to_file);
