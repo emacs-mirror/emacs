@@ -2429,6 +2429,24 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-defmacro (form)
   (byte-compile-file-form-defmumble form t))
 
+(defun byte-compile-defmacro-declaration (form)
+  "Generate code for declarations in macro definitions.
+Remove declarations from the body of the macro definition
+by side-effects."
+  (let ((tail (nthcdr 2 form))
+        (res '()))
+    (when (stringp (car (cdr tail)))
+      (setq tail (cdr tail)))
+    (while (and (consp (car (cdr tail)))
+                (eq (car (car (cdr tail))) 'declare))
+      (let ((declaration (car (cdr tail))))
+        (setcdr tail (cdr (cdr tail)))
+        (push `(if macro-declaration-function
+                   (funcall macro-declaration-function
+                            ',(car (cdr form)) ',declaration))
+              res)))
+    res))
+
 (defun byte-compile-file-form-defmumble (form macrop)
   (let* ((bytecomp-name (car (cdr form)))
 	 (bytecomp-this-kind (if macrop 'byte-compile-macro-environment
@@ -2498,17 +2516,8 @@ list that represents a doc string reference.
     ;; Generate code for declarations in macro definitions.
     ;; Remove declarations from the body of the macro definition.
     (when macrop
-      (let ((tail (nthcdr 2 form)))
-	(when (stringp (car (cdr tail)))
-	  (setq tail (cdr tail)))
-	(while (and (consp (car (cdr tail)))
-		    (eq (car (car (cdr tail))) 'declare))
-	  (let ((declaration (car (cdr tail))))
-	    (setcdr tail (cdr (cdr tail)))
-	    (prin1 `(if macro-declaration-function
-			(funcall macro-declaration-function
-				 ',bytecomp-name ',declaration))
-		   bytecomp-outbuffer)))))
+      (dolist (decl (byte-compile-defmacro-declaration form))
+        (prin1 decl bytecomp-outbuffer)))
 
     (let* ((new-one (byte-compile-lambda (nthcdr 2 form) t))
 	   (code (byte-compile-byte-code-maker new-one)))
@@ -4003,13 +4012,15 @@ that suppresses all warnings during execution of BODY."
 (defun byte-compile-defmacro (form)
   ;; This is not used for file-level defmacros with doc strings.
   (byte-compile-body-do-effect
-   (list (list 'fset (list 'quote (nth 1 form))
-	       (let ((code (byte-compile-byte-code-maker
-			    (byte-compile-lambda (cdr (cdr form)) t))))
-		 (if (eq (car-safe code) 'make-byte-code)
-		     (list 'cons ''macro code)
-		   (list 'quote (cons 'macro (eval code))))))
-	 (list 'quote (nth 1 form)))))
+   (let ((decls (byte-compile-defmacro-declaration form))
+         (code (byte-compile-byte-code-maker
+                (byte-compile-lambda (cdr (cdr form)) t))))
+     `((defalias ',(nth 1 form)
+         ,(if (eq (car-safe code) 'make-byte-code)
+              `(cons 'macro ,code)
+            `'(macro . ,(eval code))))
+       ,@decls
+       ',(nth 1 form)))))
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
