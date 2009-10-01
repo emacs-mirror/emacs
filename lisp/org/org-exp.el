@@ -36,7 +36,6 @@
 (declare-function org-export-ascii-preprocess "org-ascii" (parameters))
 (declare-function org-export-html-preprocess "org-html" (parameters))
 (declare-function org-export-docbook-preprocess "org-docbook" (parameters))
-(declare-function org-agenda-skip "org-agenda" ())
 (declare-function org-infojs-options-inbuffer-template "org-jsinfo" ())
 (declare-function org-export-htmlize-region-for-paste "org-html" (beg end))
 (declare-function htmlize-buffer "ext:htmlize" (&optional buffer))

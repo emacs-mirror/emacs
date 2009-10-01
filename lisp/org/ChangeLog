@@ -1,3 +1,16 @@
+2009-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* org-agenda.el (calendar-check-holidays):
+	* org-exp.el (org-agenda-skip):
+	* org-list.el (outline-back-to-heading):
+	* org-wl.el (wl-summary-goto-folder-subr):
+	* org.el (iswitchb-mode, remember, remember-buffer-desc)
+	(remember-finalize, remember-save-after-remembering, remember-register)
+	(remember-buffer, remember-handler-functions)
+	(remember-annotation-functions): Remove unused declarations.
+
+	* org.el (iswitchb-read-buffer): Fix declaration.
+
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* org-compat.el (w32-focus-frame):

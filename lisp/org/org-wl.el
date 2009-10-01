@@ -56,9 +56,6 @@
 (declare-function wl-summary-buffer-msgdb "ext:wl-folder" () t)
 ;(declare-function wl-folder-get-elmo-folder "ext:wl-folder"
 ;		  (entity &optional no-cache))
-(declare-function wl-summary-goto-folder-subr "ext:wl-summary"
-		  (&optional name scan-type other-window sticky interactive
-			     scoring force-exit))
 (declare-function wl-summary-jump-to-msg-by-message-id "ext:wl-summary"
 		  (&optional id))
 (declare-function wl-summary-line-from "ext:wl-summary" ())

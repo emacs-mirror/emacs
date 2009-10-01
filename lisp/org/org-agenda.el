@@ -40,7 +40,6 @@
 (declare-function calendar-absolute-from-iso    "cal-iso"    (date))
 (declare-function calendar-astro-date-string    "cal-julian" (&optional date))
 (declare-function calendar-bahai-date-string    "cal-bahai"  (&optional date))
-(declare-function calendar-check-holidays       "holidays"   (date))
 (declare-function calendar-chinese-date-string  "cal-china"  (&optional date))
 (declare-function calendar-coptic-date-string   "cal-coptic" (&optional date))
 (declare-function calendar-ethiopic-date-string "cal-coptic" (&optional date))
