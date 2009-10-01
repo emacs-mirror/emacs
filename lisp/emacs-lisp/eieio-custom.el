@@ -1,9 +1,9 @@
 ;;; eieio-custom.el -- eieio object customization
 
-;;; Copyright (C) 1999, 2000, 2001, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: OO, lisp
 
@@ -25,7 +25,7 @@
 ;;; Commentary:
 ;;
 ;;   This contains support customization of eieio objects.  Enabling
-;; your object to be customizable requires use of the slot attirbute
+;; your object to be customizable requires use of the slot attribute
 ;; `:custom'.
 
 (require 'eieio)
