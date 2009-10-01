@@ -302,6 +302,9 @@ be in use:
   time-stamp-yyyy-mm-dd, time-stamp-yymmdd, time-stamp-hh:mm:ss,
   time-stamp-hhmm, baud-rate
 
+** `delete-directory' has an optional parameter RECURSIVE.
+
+
 * Changes in Emacs 23.2 on non-free operating systems
 
 ---
