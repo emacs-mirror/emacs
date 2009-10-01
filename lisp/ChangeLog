@@ -1,3 +1,9 @@
+2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-resynch-window): Don't revert a buffer which
+	has no associated file.
+	(vc-resynch-buffer): Use vc-dir-buffers.
+
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/chart.el (chart-zap-chars, chart-bar-quickie)
@@ -87,7 +93,7 @@
 
 2009-09-30  Eric Ludlam  <zappo@gnu.org>
 
-	* emacs-lisp/eieio.el (boolean-p): Deleted.
+	* emacs-lisp/eieio.el (boolean-p): Delete.
 
 2009-09-30  Sascha Wilde  <wilde@sha-bang.de>
 
@@ -108,8 +114,8 @@
 
 	* cedet/semantic/analyze/fcn.el (semantic-scope-find): Fix declaration.
 
-	* cedet/semantic/bovine/gcc.el (semantic-gcc-setup): Replace runtime use
-	of CL function `remove-if-not'.
+	* cedet/semantic/bovine/gcc.el (semantic-gcc-setup): Replace runtime
+	use of CL function `remove-if-not'.
 
 	* emacs-lisp/authors.el (authors-ignored-files): Add "js2-mode.el".
 
