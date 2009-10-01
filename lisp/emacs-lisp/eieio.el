@@ -1,10 +1,10 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
 ;;;              or maybe Eric's Implementation of Emacs Intrepreted Objects
 
-;;; Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003,
-;;; 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: OO, lisp
 
@@ -307,7 +307,7 @@ Options added to EIEIO:
                         If a string, use as an error string if someone does
                         try to make an instance.
   :method-invocation-order
-                      - Control the method invokation order if there is
+                      - Control the method invocation order if there is
                         multiple inheritance.  Valid values are:
                          :breadth-first - The default.
                          :depth-first
@@ -333,7 +333,7 @@ wish, and reference them using the function `class-option'."
 ;;;###autoload
 (defun eieio-defclass-autoload (cname superclasses filename doc)
   "Create autoload symbols for the EIEIO class CNAME.
-SUPERCLASSES are the superclasses that CNAME inherites from.
+SUPERCLASSES are the superclasses that CNAME inherits from.
 DOC is the docstring for CNAME.
 This function creates a mock-class for CNAME and adds it into
 SUPERCLASSES as children.
@@ -1020,7 +1020,7 @@ if default value is nil."
 
 (defun eieio-copy-parents-into-subclass (newc parents)
   "Copy into NEWC the slots of PARENTS.
-Follow the rules of not overwritting early parents when applying to
+Follow the rules of not overwriting early parents when applying to
 the new child class."
   (let ((ps (aref newc class-parent))
 	(sn (class-option-assoc (aref newc class-options)
@@ -1101,7 +1101,7 @@ for each slot.  For example:
 
   (make-instance 'foo :slot1 value1 :slotN valueN)
 
-Compatability note:
+Compatibility note:
 
 If the first element of INITARGS is a string, it is used as the
 name of the class.
@@ -1615,7 +1615,7 @@ The CLOS function `class-direct-superclasses' is aliased to this function."
   `(aref (class-v ,class) class-children))
 
 (defun class-children (class)
-"Return child classses to CLASS.
+"Return child classes to CLASS.
 
 The CLOS function `class-direct-subclasses' is aliased to this function."
   (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
@@ -2274,7 +2274,7 @@ function performs no type checking!"
 If CLASS is not a class then use `generic' instead.  If class has no
 form, but has a parent class, then trace to that parent class.  The
 first time a form is requested from a symbol, an optimized path is
-memoized for future faster use."
+memorized for future faster use."
  (let ((emto (aref (get method 'eieio-method-obarray)
 		   (if class key (+ key 3)))))
    (if (class-p class)

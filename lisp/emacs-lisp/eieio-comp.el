@@ -1,9 +1,9 @@
 ;;; eieio-comp.el -- eieio routines to help with byte compilation
 
-;;; Copyright (C) 1995,1996, 1998, 1999, 2000, 2001, 2002, 2005, 2008,
-;;; 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995,1996, 1998, 1999, 2000, 2001, 2002, 2005, 2008,
+;;   2009  Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: oop, lisp, tools
 
@@ -126,7 +126,7 @@ that is called but rarely.  Argument FORM is the body of the method."
 
 (defun byte-compile-defmethod-param-convert (paramlist)
   "Convert method params into the params used by the defmethod thingy.
-Argument PARAMLIST is the paramter list to convert."
+Argument PARAMLIST is the parameter list to convert."
   (let ((argfix nil))
     (while paramlist
       (setq argfix (cons (if (listp (car paramlist))

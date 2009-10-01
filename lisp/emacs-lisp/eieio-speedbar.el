@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: OO, tools
 
@@ -77,9 +77,9 @@
 ;;    string.   This will automatically handle cases when speedbar is
 ;;    not already loaded, and specifying all overload functions.
 ;;
-;; 5) Create an initliazer function which looks like this:
+;; 5) Create an initializer function which looks like this:
 ;;
-;; (defun my-speedbar-mode-initilaize ()
+;; (defun my-speedbar-mode-initialize ()
 ;;   "documentation"
 ;;   (interactive)
 ;;   (speedbar-frame-mode 1)
@@ -136,8 +136,8 @@
   "Create a speedbar mode for displaying an object hierarchy.
 MAP-FN is the keymap generator function used for extra keys.
 MAP-VAR is the keymap variable used.
-MENU-VAR is the symbol containting an easymenu compatible menu part to use.
-MODENAME is a s tring used to identify this browser mode.
+MENU-VAR is the symbol containing an easymenu compatible menu part to use.
+MODENAME is a string used to identify this browser mode.
 FETCHER is a generic function used to fetch the base object list used when
 creating the speedbar display."
   (if (not (featurep 'speedbar))

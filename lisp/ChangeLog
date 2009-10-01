@@ -1,5 +1,14 @@
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/chart.el (chart-zap-chars, chart-bar-quickie)
+	(chart-file-count):
+	* emacs-lisp/eieio-comp.el (byte-compile-defmethod-param-convert):
+	* emacs-lisp/eieio-datadebug.el (data-debug-insert-object-button):
+	* emacs-lisp/eieio-opt.el (eieio-describe-class):
+	* emacs-lisp/eieio-speedbar.el (eieio-speedbar-create):
+	* emacs-lisp/eieio.el (defclass, eieio-defclass-autoload)
+	(eieio-copy-parents-into-subclass, make-instance, class-children)
+	(eieio-generic-form):
 	* cedet/cedet-files.el (cedet-directory-name-to-file-name):
 	* cedet/cedet-idutils.el (cedet-idutils-search)
 	(cedet-idutils-expand-filename, cedet-idutils-support-for-directory)

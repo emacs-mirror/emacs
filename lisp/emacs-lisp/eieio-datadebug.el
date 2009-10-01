@@ -1,8 +1,8 @@
 ;;; eieio-datadebug.el --- EIEIO extensions to the data debugger.
 
-;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -51,7 +51,7 @@ PREFIX specifies what to insert at the start of each line."
 
 (defun data-debug-insert-object-button (object prefix prebuttontext)
   "Insert a button representing OBJECT.
-PREFIX is the text that preceeds the button.
+PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between PREFIX and the object button."
   (let ((start (point))
 	(end nil)

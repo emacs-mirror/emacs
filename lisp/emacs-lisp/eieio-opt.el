@@ -1,9 +1,9 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;;; Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005,
-;;; 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005, 2008,
+;;   2009  Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: OO, lisp
 
@@ -75,7 +75,7 @@ Argument CH-PREFIX is another character prefix to display."
 
 (defun eieio-describe-class (class &optional headerfcn)
   "Describe a CLASS defined by a string or symbol.
-If CLASS is actually an object, then also display current values of that obect.
+If CLASS is actually an object, then also display current values of that object.
 Optional HEADERFCN should be called to insert a few bits of info first."
   (interactive (list (eieio-read-class "Class: ")))
   (with-output-to-temp-buffer (help-buffer) ;"*Help*"

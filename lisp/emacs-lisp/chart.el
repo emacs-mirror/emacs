@@ -1,7 +1,7 @@
 ;;; chart.el --- Draw charts (bar charts, etc)
 
-;;; Copyright (C) 1996, 1998, 1999, 2001, 2004, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 1999, 2001, 2004, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Version: 0.2
@@ -528,7 +528,7 @@ cons cells of the form (NAME . NUM).  See SORT for more details."
 	  (remove-text-properties p (point) '(face))))))
 
 (defun chart-zap-chars (n)
-  "Zap up to N chars without deleteting EOLs."
+  "Zap up to N chars without deleting EOLs."
   (if (not (eobp))
       (if (< n (- (save-excursion (end-of-line) (point)) (point)))
 	  (delete-char n)
@@ -579,7 +579,7 @@ R1 and R2 are dotted pairs.  Colorize it with FACE."
 (defun chart-bar-quickie (dir title namelst nametitle numlst numtitle
 			      &optional max sort-pred)
   "Wash over the complex eieio stuff and create a nice bar chart.
-Creat it going in direction DIR ['horizontal 'vertical] with TITLE
+Create it going in direction DIR ['horizontal 'vertical] with TITLE
 using a name sequence NAMELST labeled NAMETITLE with values NUMLST
 labeled NUMTITLE.
 Optional arguments:
@@ -619,7 +619,7 @@ SORT-PRED if desired."
 ;;; Sample utility function
 
 (defun chart-file-count (dir)
-  "Draw a chart displaying the number of different file extentions in DIR."
+  "Draw a chart displaying the number of different file extensions in DIR."
   (interactive "DDirectory: ")
   (if (not (string-match "/$" dir))
       (setq dir (concat dir "/")))
