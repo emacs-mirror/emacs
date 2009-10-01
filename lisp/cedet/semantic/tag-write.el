@@ -28,7 +28,7 @@
 ;; to share tags between processes as well.
 ;;
 ;; As a bonus, these routines will also validate the tag structure, and make sure
-;; that they conform to good semantic tag hygene.
+;; that they conform to good semantic tag hygiene.
 ;;
 
 (require 'semantic)
