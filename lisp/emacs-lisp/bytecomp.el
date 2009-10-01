@@ -1248,7 +1248,11 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 			  (and (not macro-p)
 			       (byte-code-function-p (symbol-function fn)))))
 	    (setq fn (symbol-function fn)))
-          (let ((advertised (gethash fn advertised-signature-table t)))
+          (let ((advertised (gethash (if (and (symbolp fn) (fboundp fn))
+                                         ;; Could be a subr.
+                                         (symbol-function fn)
+                                       fn)
+                                     advertised-signature-table t)))
             (cond
              ((listp advertised)
               (if macro-p
@@ -3104,14 +3108,14 @@ That command is designed for interactive use only" bytecomp-fn))
 ;; which have special byte codes just for speed.
 
 (defmacro byte-defop-compiler (function &optional compile-handler)
-  ;; add a compiler-form for FUNCTION.
-  ;; If function is a symbol, then the variable "byte-SYMBOL" must name
-  ;; the opcode to be used.  If function is a list, the first element
-  ;; is the function and the second element is the bytecode-symbol.
-  ;; The second element may be nil, meaning there is no opcode.
-  ;; COMPILE-HANDLER is the function to use to compile this byte-op, or
-  ;; may be the abbreviations 0, 1, 2, 3, 0-1, or 1-2.
-  ;; If it is nil, then the handler is "byte-compile-SYMBOL."
+  "Add a compiler-form for FUNCTION.
+If function is a symbol, then the variable \"byte-SYMBOL\" must name
+the opcode to be used.  If function is a list, the first element
+is the function and the second element is the bytecode-symbol.
+The second element may be nil, meaning there is no opcode.
+COMPILE-HANDLER is the function to use to compile this byte-op, or
+may be the abbreviations 0, 1, 2, 3, 0-1, or 1-2.
+If it is nil, then the handler is \"byte-compile-SYMBOL.\""
   (let (opcode)
     (if (symbolp function)
 	(setq opcode (intern (concat "byte-" (symbol-name function))))

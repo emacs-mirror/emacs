@@ -1008,6 +1008,39 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
+(define-obsolete-function-alias 'window-dot 'window-point "22.1")
+(define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
+(define-obsolete-function-alias 'read-input 'read-string "22.1")
+(define-obsolete-function-alias 'show-buffer 'set-window-buffer "22.1")
+(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
+(define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
+
+(make-obsolete 'char-bytes "now always returns 1." "20.4")
+(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
+
+(defun insert-string (&rest args)
+  "Mocklisp-compatibility insert function.
+Like the function `insert' except that any argument that is a number
+is converted into a string by expressing it in decimal."
+  (dolist (el args)
+    (insert (if (integerp el) (number-to-string el) el))))
+(make-obsolete 'insert-string 'insert "22.1")
+
+(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
+(make-obsolete 'makehash 'make-hash-table "22.1")
+
+;; These are used by VM and some old programs
+(defalias 'focus-frame 'ignore "")
+(make-obsolete 'focus-frame "it does nothing." "22.1")
+(defalias 'unfocus-frame 'ignore "")
+(make-obsolete 'unfocus-frame "it does nothing." "22.1")
+(make-obsolete 'make-variable-frame-local
+	       "explicitly check for a frame-parameter instead." "22.2")
+(make-obsolete 'interactive-p 'called-interactively-p "23.2")
+(set-advertised-calling-convention 'called-interactively-p '(kind))
+
+;;;; Obsolescence declarations for variables, and aliases.
+
 ;; Special "default-FOO" variables which contain the default value of
 ;; the "FOO" variable are nasty.  Their implementation is brittle, and
 ;; slows down several unrelated variable operations; furthermore, they
@@ -1046,37 +1079,6 @@ and `event-end' functions."
 (make-obsolete-variable 'default-major-mode 'major-mode "23.2")
 (make-obsolete-variable 'default-enable-multibyte-characters
       "use enable-multibyte-characters or set-buffer-multibyte instead" "23.2")
-
-(define-obsolete-function-alias 'window-dot 'window-point "22.1")
-(define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
-(define-obsolete-function-alias 'read-input 'read-string "22.1")
-(define-obsolete-function-alias 'show-buffer 'set-window-buffer "22.1")
-(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
-(define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
-
-(make-obsolete 'char-bytes "now always returns 1." "20.4")
-(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
-
-(defun insert-string (&rest args)
-  "Mocklisp-compatibility insert function.
-Like the function `insert' except that any argument that is a number
-is converted into a string by expressing it in decimal."
-  (dolist (el args)
-    (insert (if (integerp el) (number-to-string el) el))))
-(make-obsolete 'insert-string 'insert "22.1")
-
-(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
-(make-obsolete 'makehash 'make-hash-table "22.1")
-
-;; These are used by VM and some old programs
-(defalias 'focus-frame 'ignore "")
-(make-obsolete 'focus-frame "it does nothing." "22.1")
-(defalias 'unfocus-frame 'ignore "")
-(make-obsolete 'unfocus-frame "it does nothing." "22.1")
-(make-obsolete 'make-variable-frame-local
-	       "explicitly check for a frame-parameter instead." "22.2")
-
-;;;; Obsolescence declarations for variables, and aliases.
 
 (make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")

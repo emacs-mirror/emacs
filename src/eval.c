@@ -608,19 +608,31 @@ use `called-interactively-p'.  */)
 }
 
 
-DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
+DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 1, 0,
        doc: /* Return t if the containing function was called by `call-interactively'.
-This includes being called as the binding of a key, or called from a
-keyboard macro (unlike `interactive-p').
+If KIND is `interactive', then only return t if the call was made
+interactively by the user, i.e. not in `noninteractive' mode nor
+when `executing-kbd-macro'.
+If KIND is `any', on the other hand, it will return t for any kind of
+interactive call, including being called as the binding of a key, or
+from a keyboard macro, or in `noninteractive' mode.
+
+The only known proper use of `interactive' for KIND is in deciding
+whether to display a helpful message, or how to display it.  If you're
+thinking of using it for any other purpose, it is quite likely that
+you're making a mistake.  Think: what do you want to do when the
+command is called from a keyboard macro?
 
 This function is meant for implementing advice and other
 function-modifying features.  Instead of using this, it is sometimes
 cleaner to give your function an extra optional argument whose
 `interactive' spec specifies non-nil unconditionally (\"p\" is a good
-way to do this).  */)
-     ()
+way to do this), or via (not (or executing-kbd-macro noninteractive)).  */)
+     (kind)
+     Lisp_Object kind;
 {
-  return interactive_p (1) ? Qt : Qnil;
+  return ((INTERACTIVE || !EQ (kind, intern ("interactive")))
+	  && interactive_p (1)) ? Qt : Qnil;
 }
 
 

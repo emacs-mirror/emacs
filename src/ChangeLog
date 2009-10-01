@@ -1,6 +1,10 @@
+2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fcalled_interactively_p): Add `kind' argument.
+
 2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
 
-	* fileio.c (Fdelete_directory_internal): Renamed from
+	* fileio.c (Fdelete_directory_internal): Rename from
 	Fdelete_directory.  It is not a command anymore.  It has no file
 	name handler.
 

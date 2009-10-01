@@ -1,5 +1,10 @@
 2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (interactive-p): Mark obsolete.
+	(called-interactively-p): Make the optional-ness of `kind' obsolete.
+	* emacs-lisp/bytecomp.el (byte-compile-fdefinition): Make it obey
+	advertised-signature-table for subroutines as well.
+
 	* emacs-lisp/byte-run.el (advertised-signature-table): New var.
 	(set-advertised-calling-convention): New function.
 	(make-obsolete, define-obsolete-function-alias)
