@@ -1,7 +1,7 @@
 ;;; ede.el --- Emacs Development Environment gloss
 
-;;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -75,7 +75,7 @@
   )
 
 (defcustom ede-auto-add-method 'ask
-  "Whether a new source file shoud be automatically added to a target.
+  "Whether a new source file should be automatically added to a target.
 Whenever a new file is encountered in a directory controlled by a
 project file, all targets are queried to see if it should be added.
 If the value is 'always, then the new file is added to the first
@@ -175,7 +175,7 @@ type is required and the load function used.")
 			 :proj-file 'ede-simple-projectfile-for-dir
 			 :load-type 'ede-simple-load
 			 :class-sym 'ede-simple-project))
-  "List of vectos defining how to determine what type of projects exist.")
+  "List of vectors defining how to determine what type of projects exist.")
 
 ;;; Generic project information manager objects
 
@@ -575,7 +575,7 @@ Argument LIST-O-O is the list of objects to choose from."
     (define-key map [menu-bar cedet-menu]
       (cons "Development" cedet-menu-map))
     map)
-  "Keymap used in `global-ede-mode'")
+  "Keymap used in `global-ede-mode'.")
 
 ;; Activate the EDE items in cedet-menu-map
 
@@ -955,7 +955,7 @@ Optional argument NAME is the name to give this project."
 			  nil t)))
   ;; Make sure we have a valid directory
   (when (not (file-exists-p default-directory))
-    (error "Cannot create project in non-existant directory %s" default-directory))
+    (error "Cannot create project in non-existent directory %s" default-directory))
   (when (not (file-writable-p default-directory))
     (error "No write permissions for %s" default-directory))
   ;; Create the project
@@ -1136,7 +1136,7 @@ Optional argument FORCE forces the file to be removed without asking."
   (ede-invoke-method 'project-compile-target))
 
 (defun ede-debug-target ()
-  "Debug the current buffer's assocated target."
+  "Debug the current buffer's associated target."
   (interactive)
   (ede-invoke-method 'project-debug-target))
 
@@ -1174,7 +1174,7 @@ Optional argument GROUP is the slot group to display."
   (interactive "P")
   (require 'eieio-custom)
   (if (not (obj-of-class-p ede-object ede-target))
-      (error "Current file is not part of a target."))
+      (error "Current file is not part of a target"))
   (let ((group (if group (eieio-read-customization-group ede-object))))
     (ede-customize-target ede-object group)))
 
@@ -1787,7 +1787,7 @@ This includes buffers controlled by a specific target of PROJECT."
     pl))
 
 (defun ede-buffers ()
-  "Return a list of all buffers controled by an EDE object."
+  "Return a list of all buffers controlled by an EDE object."
   (let ((bl (buffer-list))
 	(pl nil))
     (while bl
@@ -1799,7 +1799,7 @@ This includes buffers controlled by a specific target of PROJECT."
     pl))
 
 (defun ede-map-buffers (proc)
-  "Execute PROC on all buffers controled by EDE."
+  "Execute PROC on all buffers controlled by EDE."
   (mapcar proc (ede-buffers)))
 
 (defmethod ede-map-project-buffers ((this ede-project) proc)
@@ -1900,7 +1900,8 @@ Return the first non-nil value returned by PROC."
 
 (defun ede-set (variable value &optional proj)
   "Set the project local VARIABLE to VALUE.
-If VARIABLE is not project local, just use set."
+If VARIABLE is not project local, just use set.  Optional argument PROJ
+is the project to use, instead of `ede-current-project'."
   (let ((p (or proj (ede-current-project)))
 	a)
     (if (and p (setq a (assoc variable (oref p local-variables))))

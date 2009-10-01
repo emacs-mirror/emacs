@@ -1,7 +1,7 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -526,7 +526,7 @@ is requested."
 (defvar semantic-minimum-working-buffer-size (* 1024 5)
   "*The minimum size of a buffer before working messages are displayed.
 Buffers smaller than will parse silently.
-Bufferse larger than this will display the working progress bar.")
+Buffers larger than this will display the working progress bar.")
 
 (defsubst semantic-parser-working-message (&optional arg)
   "Return the message string displayed while parsing.
@@ -549,7 +549,7 @@ If the buffer cache is up to date, return that.
 If the buffer cache is out of date, attempt an incremental reparse.
 If the buffer has not been parsed before, or if the incremental reparse
 fails, then parse the entire buffer.
-If a lexcial error had been previously discovered and the buffer
+If a lexical error had been previously discovered and the buffer
 was marked unparseable, then do nothing, and return the cache."
   (and
    ;; Is this a semantic enabled buffer?
@@ -995,12 +995,12 @@ Prevent this load system from loading files in twice.")
     global-semanticdb-minor-mode
     global-semantic-idle-summary-mode
     global-semantic-mru-bookmark-mode)
-  "List of auxilliary minor modes in the Semantic package.")
+  "List of auxiliary minor modes in the Semantic package.")
 
 ;;;###autoload
 (defcustom semantic-default-submodes
   '(global-semantic-idle-scheduler-mode global-semanticdb-minor-mode)
-  "List of auxilliary Semantic minor modes enabled by `semantic-mode'.
+  "List of auxiliary Semantic minor modes enabled by `semantic-mode'.
 The possible elements of this list include the following:
 
  `semantic-highlight-func-mode'   - Highlight the current tag.

@@ -1,5 +1,29 @@
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/cedet-files.el (cedet-directory-name-to-file-name):
+	* cedet/cedet-idutils.el (cedet-idutils-search)
+	(cedet-idutils-expand-filename, cedet-idutils-support-for-directory)
+	(cedet-idutils-version-check):
+	* cedet/cedet.el (cedet-version):
+	* cedet/data-debug.el (data-debug-insert-overlay-button)
+	(data-debug-insert-overlay-list-button)
+	(data-debug-insert-buffer-button)
+	(data-debug-insert-buffer-list-button)
+	(data-debug-insert-process-button, data-debug-insert-ring-button)
+	(data-debug-insert-widget, data-debug-insert-stuff-list-button)
+	(data-debug-insert-stuff-vector-button)
+	(data-debug-insert-symbol-button, data-debug-insert-string)
+	(data-debug-insert-number, data-debug-insert-lambda-expression)
+	(data-debug-insert-nil, data-debug-insert-simple-thing)
+	(data-debug-insert-custom, data-debug-edebug-expr):
+	* cedet/ede.el (ede-auto-add-method, ede-project-class-files)
+	(global-ede-mode-map, ede-new, ede-debug-target)
+	(ede-customize-current-target, ede-buffers, ede-map-buffers, ede-set):
+	* cedet/semantic.el (semantic-minimum-working-buffer-size)
+	(semantic-fetch-tags, semantic-submode-list)
+	(semantic-default-submodes):
+	Doc/message fixes.
+
 	* vc-cvs.el (vc-cvs-parse-entry): Be more careful with the
 	match-data.  (Bug#4555).
 

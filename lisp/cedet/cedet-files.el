@@ -1,6 +1,6 @@
 ;;; cedet-files.el --- Common routines dealing with file names.
 
-;;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -28,7 +28,7 @@
 
 (defun cedet-directory-name-to-file-name (referencedir &optional testmode)
   "Convert the REFERENCEDIR (a full path name) into a filename.
-Convert directory seperation characters into ! characters.
+Convert directory separation characters into ! characters.
 Optional argument TESTMODE is used by tests to avoid conversion
 to the file's truename, and dodging platform tricks."
   (let ((file referencedir))

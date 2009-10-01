@@ -1,7 +1,7 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
@@ -94,7 +94,7 @@ REQUESTED VERSION is the version requested by the CEDET load script.
 See `cedet-packages' for details.
 
 FILE VERSION is the version number found in the source file
-for the specificed PACKAGE.
+for the specified PACKAGE.
 
 LOADED VERSION is the version of PACKAGE current loaded in Emacs
 memory and (presumably) running in this Emacs instance.  Value is X

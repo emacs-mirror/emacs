@@ -1,6 +1,6 @@
 ;;; cedet-idutils.el --- ID Utils support for CEDET.
 
-;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Version: 0.2
@@ -44,7 +44,7 @@
   :group 'cedet)
 
 (defun cedet-idutils-search (searchtext texttype type scope)
-  "Perform a search with IDUtils, return the created buffer.
+  "Perform a search with ID Utils, return the created buffer.
 SEARCHTEXT is text to find.
 TEXTTYPE is the type of text, such as 'regexp, 'string, 'tagname,
 'tagregexp, or 'tagcompletions.
@@ -109,7 +109,7 @@ Return the created buffer with with program output."
 ;;; UTIL CALLS
 ;;
 (defun cedet-idutils-expand-filename (filename)
-  "Expand the FILENAME with IDUtils.
+  "Expand the FILENAME with ID Utils.
 Return a filename relative to the default directory."
   (interactive "sFile: ")
   (let ((ans (save-excursion
@@ -129,7 +129,7 @@ Return a filename relative to the default directory."
     ans))
 
 (defun cedet-idutils-support-for-directory (&optional dir)
-  "Return non-nil if IDUtils has a support file for DIR.
+  "Return non-nil if ID Utils has a support file for DIR.
 If DIR is not supplied, use the current default directory.
 This works by running lid on a bogus symbol, and looking for
 the error code."
@@ -168,7 +168,7 @@ return nil."
 	(if (inversion-check-version rev nil cedet-idutils-min-version)
 	    (if noerror
 		nil
-	      (error "Version of ID Utis is %s.  Need at least %s"
+	      (error "Version of ID Utils is %s.  Need at least %s"
 		     rev cedet-idutils-min-version))
 	  ;; Else, return TRUE, as in good enough.
 	  (when (interactive-p)
