@@ -4064,7 +4064,7 @@ directory, so that Emacs will know its current contents."
 	    (ange-ftp-add-file-entry dir t))
 	(ange-ftp-real-make-directory dir)))))
 
-(defun ange-ftp-delete-directory (dir)
+(defun ange-ftp-delete-directory (dir &optional recursive)
   (if (file-directory-p dir)
       (let ((parsed (ange-ftp-ftp-name dir)))
 	(if parsed
@@ -4083,6 +4083,7 @@ directory, so that Emacs will know its current contents."
 			    (ange-ftp-real-file-name-as-directory
 			     (nth 2 parsed)))))
 		   (abbr (ange-ftp-abbreviate-filename dir))
+		   ;; TODO: handle RECURSIVE.
 		   (result (ange-ftp-send-cmd host user
 					      (list 'rmdir name)
 					      (format "Removing directory %s"
@@ -4093,7 +4094,7 @@ directory, so that Emacs will know its current contents."
 					  dir
 					  (cdr result))))
 	      (ange-ftp-delete-file-entry dir t))
-	  (ange-ftp-real-delete-directory dir)))
+	  (ange-ftp-real-delete-directory dir recursive)))
     (error "Not a directory: %s" dir)))
 
 ;; Make a local copy of FILE and return its name.
