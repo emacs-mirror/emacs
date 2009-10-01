@@ -1,3 +1,22 @@
+2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.e:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el:
+	Regenerate from Unicode 5.2.0 data.
+
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Regenerate.

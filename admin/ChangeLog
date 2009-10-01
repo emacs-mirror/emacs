@@ -1,3 +1,7 @@
+2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/UnicodeData.txt: Update to Unicode 5.2.0.
+
 2009-09-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/.gitignore: New file.
