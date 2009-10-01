@@ -33,7 +33,7 @@
   "History for `srecode-read-variable-name'.")
 
 (defun srecode-read-variable-name (prompt &optional initial hist default)
-  "Read in the name of a declaired variable in the current SRT file.
+  "Read in the name of a declared variable in the current SRT file.
 PROMPT is the prompt to use.
 INITIAL is the initial string.
 HIST is the history value, otherwise `srecode-read-variable-name-history'

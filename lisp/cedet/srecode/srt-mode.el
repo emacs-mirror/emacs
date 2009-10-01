@@ -232,7 +232,7 @@ we can tell font lock about them.")
 
 
 (defun srecode-macro-help ()
-  "Provide help for working with macros in a tempalte."
+  "Provide help for working with macros in a template."
   (interactive)
   (let* ((root 'srecode-template-inserter)
 	 (chl (aref (class-v root) class-children))
@@ -307,7 +307,7 @@ we can tell font lock about them.")
   "Non-nil if POINT is inside a macro bounds.
 If the ESCAPE_START and END are different sequences,
 a simple search is used.  If ESCAPE_START and END are the same
-characteres, start at the beginning of the line, and find out
+characters, start at the beginning of the line, and find out
 how many occur."
   (let ((tag (semantic-current-tag))
 	(es (regexp-quote (srecode-template-get-escape-start)))

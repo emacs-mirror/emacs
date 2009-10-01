@@ -1,6 +1,6 @@
 ;;; srecode/insert --- Insert srecode templates to an output stream.
 
-;;; Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -69,7 +69,7 @@ NOTE: The field feature does not yet work with XEmacs."
 
 ;;;###autoload
 (defun srecode-insert (template-name &rest dict-entries)
-  "Inesrt the template TEMPLATE-NAME into the current buffer at point.
+  "Insert the template TEMPLATE-NAME into the current buffer at point.
 DICT-ENTRIES are additional dictionary values to add."
   (interactive (list (srecode-read-template-name "Template Name: ")))
   (if (not (srecode-table))
@@ -424,7 +424,7 @@ If SECONDNAME is nil, return VALUE."
 	    (let ((srecode-inserter-variable-current-dictionary dictionary))
 	      (funcall fcnpart value))
 	  ;; Else, warn.
-	  (error "Variable insertion second arg %s is not a function."
+	  (error "Variable insertion second arg %s is not a function"
 		 secondname)))
     value))
 
@@ -461,11 +461,11 @@ If SECONDNAME is nil, return VALUE."
 	)
        ;; Dictionaries... not allowed in this style
        ((srecode-dictionary-child-p val)
-	(error "Macro %s cannot insert a dictionary.  Use section macros instead."
+	(error "Macro %s cannot insert a dictionary - use section macros instead"
 	       name))
        ;; Other stuff... convert
        (t
-	(error "Macro %s cannot insert arbitrary data." name)
+	(error "Macro %s cannot insert arbitrary data" name)
 	;;(if (and val (not (stringp val)))
 	;;    (setq val (format "%S" val))))
 	))
@@ -654,7 +654,7 @@ By default, treat as a function name."
 	    (if (eq pad 'left)
 		(concat padchars value)
 	      (concat value padchars)))))
-    (error "Width not specified for variable/width inserter.")))
+    (error "Width not specified for variable/width inserter")))
 
 (defmethod srecode-inserter-prin-example :STATIC ((ins srecode-template-inserter-width)
 						  escape-start escape-end)
@@ -668,7 +668,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   )
 
 (defvar srecode-template-inserter-point-override nil
-  "When non-nil, the point inserter will do this functin instead.")
+  "When non-nil, the point inserter will do this function instead.")
 
 (defclass srecode-template-inserter-point (srecode-template-inserter)
   ((key :initform ?^
@@ -851,7 +851,7 @@ this template instance."
 	 )
     ;; If there was no template name, throw an error
     (if (not templatenamepart)
-	(error "Include macro %s needs a template name." (oref sti :object-name)))
+	(error "Include macro %s needs a template name" (oref sti :object-name)))
     ;; Find the template by name, and save it.
     (if (or (not (slot-boundp sti 'includedtemplate))
 	    (not (oref sti includedtemplate)))

@@ -31,6 +31,28 @@
 	* cedet/semantic.el (semantic-minimum-working-buffer-size)
 	(semantic-fetch-tags, semantic-submode-list)
 	(semantic-default-submodes):
+	* cedet/srecode/table.el (srecode-mode-table-new):
+	* cedet/srecode/srt.el (srecode-read-variable-name):
+	* cedet/srecode/srt-mode.el (srecode-macro-help, srecode-in-macro-p):
+	* cedet/srecode/semantic.el (srecode-semantic-handle-:tag)
+	(srecode-semantic-handle-:tagtype, srecode-semantic-insert-tag):
+	* cedet/srecode/map.el (srecode-current-map):
+	* cedet/srecode/insert.el (srecode-insert)
+	(srecode-insert-variable-secondname-handler, srecode-insert-method)
+	(srecode-template-inserter-point-override)
+	(srecode-insert-include-lookup):
+	* cedet/srecode/getset.el (srecode-auto-choose-class):
+	* cedet/srecode/extract.el (srecode-inserter-extract):
+	* cedet/srecode/document.el
+	(srecode-document-autocomment-return-last-alist)
+	(srecode-document-autocomment-param-type-alist)
+	(srecode-document-insert-function-comment)
+	(srecode-document-insert-variable-one-line-comment)
+	(srecode-document-function-name-comment):
+	* cedet/srecode/dictionary.el (srecode-create-dictionary)
+	(srecode-compound-toString):
+	* cedet/srecode/compile.el (srecode-flush-active-templates):
+	* cedet/srecode/args.el (srecode-semantic-handle-:blank):
 	Doc/message fixes.
 
 	* vc-cvs.el (vc-cvs-parse-entry): Be more careful with the

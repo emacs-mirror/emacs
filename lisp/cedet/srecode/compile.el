@@ -25,7 +25,7 @@
 ;; Compile a Semantic Recoder template file.
 ;;
 ;; Template files are parsed using a Semantic/Wisent parser into
-;; a tag table.  The code therin is then further parsed down using
+;; a tag table.  The code therein is then further parsed down using
 ;; a regular expression parser.
 ;;
 ;; The output are a series of EIEIO objects which represent the
@@ -85,7 +85,7 @@ for push, pop, and peek for the active template.")
 
 (defun srecode-flush-active-templates ()
   "Flush the active template storage.
-Useful if something goes wrong in SRecode, and the active tempalte
+Useful if something goes wrong in SRecode, and the active template
 stack is broken."
   (interactive)
   (if (oref srecode-template active)

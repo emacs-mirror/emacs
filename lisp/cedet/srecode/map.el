@@ -45,7 +45,7 @@
 ;;
 
 (defvar srecode-current-map nil
-  "The current map for global SRecode templtes.")
+  "The current map for global SRecode templates.")
 
 (defcustom srecode-map-save-file (expand-file-name "~/.srecode/srecode-map")
   "The save location for SRecode's map file.

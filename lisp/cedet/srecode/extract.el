@@ -1,6 +1,6 @@
 ;;; srecode/extract.el --- Extract content from previously inserted macro.
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -221,7 +221,7 @@ Return nil if nothing was extracted."
       ;; With a name, do the insertion.
       (let ((subdict (srecode-dictionary-add-section-dictionary
 		      dict (oref ins :object-name))))
-	(error "Need to implement include w/ name extractor.")
+	(error "Need to implement include w/ name extractor")
 	;; Recurse into the new template while no errors.
 	(while (condition-case nil
 		   (progn

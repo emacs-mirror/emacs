@@ -84,7 +84,7 @@
     )
   "List of common English abbreviations or full words.
 These are nouns (as opposed to verbs) for use in creating expanded
-versions of names.This is an alist with each element of the form:
+versions of names.  This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
 RESULT is a string."
@@ -171,7 +171,7 @@ doesn't always work correctly."
     )
   "List of common English abbreviations or full words.
 These are nouns (as opposed to verbs) for use in creating expanded
-versions of names.This is an alist with each element of the form:
+versions of names.  This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
 RESULT is a string."
@@ -211,7 +211,7 @@ RESULT is a string."
 This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
-RESULT is a string, which can contain %s, whih is replaced with
+RESULT is a string, which can contain %s, which is replaced with
 `match-string' 1."
   :group 'document
   :type '(repeat (cons (string :tag "Regexp")
@@ -253,7 +253,7 @@ place this comment after the parameter name."
     ("GC" . "Graphic Context")
     ("Widget" . "Widget")
     )
-  "Alist of input parameter types and strings desribing them.
+  "Alist of input parameter types and strings describing them.
 This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
@@ -360,7 +360,7 @@ If the cursor is on a one line prototype, then insert post-fcn comments."
 (defun srecode-document-insert-function-comment (&optional fcn-in)
   "Insert or replace a function comment.
 FCN-IN is the Semantic tag of the function to add a comment too.
-If FCN-IN is not provied, the current tag is used instead.
+If FCN-IN is not provided, the current tag is used instead.
 It is assumed that the comment occurs just in front of FCN-IN."
   (interactive)
 
@@ -471,7 +471,7 @@ It is assumed that the comment occurs just in front of FCN-IN."
 (defun srecode-document-insert-variable-one-line-comment (&optional var-in)
   "Insert or replace a variable comment.
 VAR-IN is the Semantic tag of the function to add a comment too.
-If VAR-IN is not provied, the current tag is used instead.
+If VAR-IN is not provided, the current tag is used instead.
 It is assumed that the comment occurs just after VAR-IN."
   (interactive)
 
@@ -655,7 +655,7 @@ If there is only one tag in the region, complain."
   "Create documentation for the function defined in TAG.
 If we can identify a verb in the list followed by some
 name part then check the return value to see if we can use that to
-finish off the sentence.  ie. any function with 'alloc' in it will be
+finish off the sentence.  That is, any function with 'alloc' in it will be
 allocating something based on its type."
   (let ((al srecode-document-autocomment-return-first-alist)
 	(dropit nil)

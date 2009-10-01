@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 ;;
-;; Dictionaries contain lists of names and their assocaited values.
+;; Dictionaries contain lists of names and their associated values.
 ;; These dictionaries are used to fill in macros from recoder templates.
 
 ;;; Code:
@@ -154,7 +154,7 @@ is the same as belongs to the parent dictionary.
 The dictionary is initialized with variables setup for that
 buffer's table.
 If BUFFER-OR-PARENT is t, then this dictionary should not be
-assocated with a buffer or parent."
+associated with a buffer or parent."
   (save-excursion
     (let ((parent nil)
 	  (buffer nil)
@@ -418,10 +418,10 @@ inserted with a new editable field.")
   (require 'srecode/fields)
   ;; If we are not in a buffer, then this is not supported.
   (when (not (bufferp standard-output))
-    (error "FIELDS invoked while inserting template to non-buffer."))
+    (error "FIELDS invoked while inserting template to non-buffer"))
 
   (if function
-      (error "@todo: Cannot mix field insertion with functions.")
+      (error "@todo: Cannot mix field insertion with functions")
 
     ;; No function.  Perform a plain field insertion.
     ;; We know we are in a buffer, so we can perform the insertion.

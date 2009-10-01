@@ -304,7 +304,7 @@ Base selection on the field related to POINT."
     ))
 
 (defun srecode-auto-choose-class (point)
-  "Choose a class based on locatin of POINT."
+  "Choose a class based on location of POINT."
   (save-excursion
     (when point
       (goto-char point))

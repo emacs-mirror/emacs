@@ -1,6 +1,6 @@
 ;;; srecode/args.el --- Provide some simple template arguments
 
-;;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -37,7 +37,7 @@
 (defun srecode-semantic-handle-:blank (dict)
   "Add macros into the dictionary DICT specifying blank line spacing.
 The wrapgap means make sure the first and last lines of the macro
-do not contain any text from preceeding or following text."
+do not contain any text from preceding or following text."
   ;; This won't actually get used, but it might be nice
   ;; to know about it.
   (srecode-dictionary-set-value dict "BLANK" t)

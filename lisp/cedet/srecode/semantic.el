@@ -197,7 +197,7 @@ variable default values, and other things."
 ;; When a :tag argument is required, identify the current :tag,
 ;; and apply it's parts into the dictionary.
 (defun srecode-semantic-handle-:tag (dict)
-  "Add macroes into the dictionary DICT based on the current :tag."
+  "Add macros into the dictionary DICT based on the current :tag."
   ;; We have a tag, start adding "stuff" into the dictionary.
   (let ((tag (or srecode-semantic-selected-tag
 		 (srecode-semantic-tag-from-kill-ring))))
@@ -214,7 +214,7 @@ variable default values, and other things."
 ;; cf class 'type.  Apply those parameters to the dictionary.
 
 (defun srecode-semantic-handle-:tagtype (dict)
-  "Add macroes into the dictionary DICT based on a tag of class type at point.
+  "Add macros into the dictionary DICT based on a tag of class type at point.
 Assumes the cursor is in a tag of class type.  If not, throw an error."
   (let ((typetag (or srecode-semantic-selected-tag
 		     (semantic-current-tag-of-class 'type))))
@@ -283,7 +283,7 @@ CTXT is the pre-calculated context."
 (defun srecode-semantic-insert-tag (tag &optional style-option
 					point-insert-fcn
 					&rest dict-entries)
-  "Insert TAG into a buffer useing srecode templates at point.
+  "Insert TAG into a buffer using srecode templates at point.
 
 Optional STYLE-OPTION is a list of minor configuration of styles,
 such as the symbol 'prototype for prototype functions, or
@@ -316,7 +316,7 @@ the dictionary when the templates are called.
 
 This function returns to location in the buffer where the
 inserted tag ENDS, and will leave point inside the inserted
-text based on any occurance of a point-inserter.  Templates such
+text based on any occurrence of a point-inserter.  Templates such
 as `function' will leave point where code might be inserted."
   (srecode-load-tables-for-mode major-mode)
   (let* ((ctxt (srecode-calculate-context))

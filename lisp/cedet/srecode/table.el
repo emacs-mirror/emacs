@@ -146,7 +146,7 @@ Return nil if there was none."
 
 (defun srecode-mode-table-new (mode file &rest init)
   "Create a new template table for MODE in FILE.
-INIT are the initialization parametrs for the new template table."
+INIT are the initialization parameters for the new template table."
   (let* ((mt (srecode-make-mode-table mode))
 	 (old (srecode-mode-table-find mt file))
 	 (attr (file-attributes file))
