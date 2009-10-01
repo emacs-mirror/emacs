@@ -1,7 +1,7 @@
 ;;; semantic/bovine/c.el --- Semantic details for C
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -168,7 +168,7 @@ lexical analyzer, such as `symbol' or `string'.  The string in the
 second position is the text that makes up the replacement.  This is
 the way to have multiple lexical symbols in a replacement.  Using the
 first way to specify text like \"foo::bar\" would not work, because :
-is a sepearate lexical symbol.
+is a separate lexical symbol.
 
 A quick way to see what you would need to insert is to place a
 definition such as:
@@ -682,7 +682,7 @@ as for the parent."
     ))
 
 (defvar semantic-c-parse-token-hack-depth 0
-  "Current depth of recursive calls to `semantic-c-parse-lexical-token'")
+  "Current depth of recursive calls to `semantic-c-parse-lexical-token'.")
 
 (defun semantic-c-parse-lexical-token (lexicaltoken nonterminal depth
 						    returnonerror)
@@ -1284,8 +1284,8 @@ SPEC-LIST is the template specifier of the datatype instantiated."
     (semantic-c--instantiate-template tag (cdr def-list) (cdr spec-list))))
 
 (defun semantic-c--template-name-1 (spec-list)
-  "return a string used to compute template class name based on SPEC-LIST
-for ref<Foo,Bar> it will return 'Foo,Bar'."
+  "Return a string used to compute template class name.
+Based on SPEC-LIST, for ref<Foo,Bar> it will return 'Foo,Bar'."
   (when (car spec-list)
     (let* ((endpart (semantic-c--template-name-1 (cdr spec-list)))
 	   (separator (and endpart ",")))
@@ -1299,7 +1299,7 @@ return 'ref<Foo,Bar>'."
 	  "<" (semantic-c--template-name-1 (cdr spec-list)) ">"))
 
 (defun semantic-c-dereference-template (type scope &optional type-declaration)
-  "Dereference any template specifieres in TYPE within SCOPE.
+  "Dereference any template specifiers in TYPE within SCOPE.
 If TYPE is a template, return a TYPE copy with the templates types
 instantiated as specified in TYPE-DECLARATION."
   (when (semantic-tag-p type-declaration)

@@ -40,7 +40,7 @@
 
 (defcustom semantic-sb-autoexpand-length 1
   "*Length of a semantic bucket to autoexpand in place.
-This will replace the named bucket that would have usually occured here."
+This will replace the named bucket that would have usually occurred here."
   :group 'speedbar
   :type 'integer)
 

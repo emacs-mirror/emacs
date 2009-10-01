@@ -24,7 +24,7 @@
 ;; Calculate information about the current scope.
 ;;
 ;; Manages the current scope as a structure that can be cached on a
-;; per-file basis and recycled between different occurances of
+;; per-file basis and recycled between different occurrences of
 ;; analysis on different parts of a file.
 ;;
 ;; Pattern for Scope Calculation
@@ -388,7 +388,7 @@ without use of \"object.function()\" style syntax due to an
 implicit \"object\".")
 
 (defun semantic-analyze-scoped-tags-default (typelist halfscope)
-  "Return accessable tags when TYPELIST and HALFSCOPE is in scope.
+  "Return accessible tags when TYPELIST and HALFSCOPE is in scope.
 HALFSCOPE is the current scope partially initialized.
 Tags returned are not in the global name space, but are instead
 scoped inside a class or namespace.  Such items can be referenced
@@ -556,8 +556,8 @@ PROTECTION specifies the type of access requested, such as 'public or 'private."
 Argument SCOPE specify additional tags that are in scope
 whose tags can be searched when needed, OR it may be a scope object.
 ACCESS is the level of access we filter on child supplied tags.
-For langauges with protection on specific methods or slots,
-it should strip out those not accessable by methods of TYPE.
+For languages with protection on specific methods or slots,
+it should strip out those not accessible by methods of TYPE.
 An ACCESS of 'public means not in a method of a subclass of type.
 A value of 'private means we can access private parts of the originating
 type."
@@ -733,7 +733,7 @@ The class returned from the scope calculation is variable
 	scopecache))))
 
 (defun semantic-scope-find (name &optional class scope-in)
-  "Find the tag with NAME, and optinal CLASS in the current SCOPE-IN.
+  "Find the tag with NAME, and optional CLASS in the current SCOPE-IN.
 Searches various elements of the scope for NAME.  Return ALL the
 hits in order, with the first tag being in the closest scope."
   (let ((scope (or scope-in (semantic-calculate-scope)))

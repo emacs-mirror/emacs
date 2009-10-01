@@ -1,7 +1,7 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;; 2009 Free Software Foundation, Inc.
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: FSF
@@ -208,7 +208,7 @@ Ignore tags of classes in `senator-search-ignore-tag-classes'"
 (defvar senator-search-tag-filter-functions
   '(senator-search-default-tag-filter)
   "List of functions to be called to filter searched tags.
-Each function is passed a tag. If one of them returns nil, the tag is
+Each function is passed a tag.  If one of them returns nil, the tag is
 excluded from the search.")
 
 (defun senator-search (searcher text &optional bound noerror count)
@@ -413,7 +413,7 @@ NOERROR and COUNT arguments."
     (error "No previous search"))))
 
 (defun senator-nonincremental-search-forward (string)
-  "Search for STRING  nonincrementally."
+  "Search for STRING nonincrementally."
   (interactive "sSemantic search for string: ")
   (setq senator-last-search-type 'string)
   (if (equal string "")
@@ -544,7 +544,7 @@ Some tags such as includes have other reference features."
 	(error "Unknown result type from `semantic-up-reference'"))))))
 
 (defun semantic-up-reference-default (tag)
-  "Return a tag that is referredto by TAG.
+  "Return a tag that is referred to by TAG.
 Makes C/C++ language like assumptions."
   (cond ((semantic-tag-faux-p tag)
          ;; Faux tags should have a real tag in some other location.
@@ -707,7 +707,7 @@ the kill ring.  Retrieve that text with \\[yank]."
 ;;;###autoload
 (defun senator-yank-tag ()
   "Yank a tag from the tag ring.
-The form the tag takes is differnet depending on where it is being
+The form the tag takes is different depending on where it is being
 yanked to."
   (interactive)
   (or (ring-empty-p senator-tag-ring)
@@ -735,7 +735,7 @@ kill ring."
 
 ;;;###autoload
 (defun senator-transpose-tags-up ()
-  "Transpose the current tag, and the preceeding tag."
+  "Transpose the current tag, and the preceding tag."
   (interactive)
   (semantic-fetch-tags)
   (let* ((current-tag (semantic-current-tag))

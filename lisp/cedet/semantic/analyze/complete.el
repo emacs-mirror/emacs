@@ -1,6 +1,6 @@
 ;;; semantic/analyze/complete.el --- Smart Completions
 
-;;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 ;;
-;; Caclulate smart completions.
+;; Calculate smart completions.
 ;;
 ;; Uses the analyzer context routine to determine the best possible
 ;; list of completions.
@@ -88,7 +88,7 @@ in a buffer."
                         context
                       (semantic-analyze-current-context context)))
 	   (ans (if (not context)
-		    (error "Nothing to Complete.")
+		    (error "Nothing to complete")
 		  (:override))))
       ;; If interactive, display them.
       (when (interactive-p)

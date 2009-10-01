@@ -1,7 +1,7 @@
 ;;; semantic/edit.el --- Edit Management for Semantic
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -54,7 +54,7 @@
 ;;    syntax instead.
 ;;
 ;; 2. Incremental parsing while a new function is being typed in
-;;    somtimes gets a chance only when lists are incomplete,
+;;    sometimes gets a chance only when lists are incomplete,
 ;;    preventing correct context identification.
 
 ;;
@@ -114,13 +114,13 @@ incremental reparse.")
 
 (defvar semantic-edits-incremental-reparse-failed-hook nil
   "Hook run after the incremental parser fails.
-When this happens, the buffer is marked as needing a full reprase.")
+When this happens, the buffer is marked as needing a full reparse.")
 
 (semantic-varalias-obsolete 'semantic-edits-incremental-reparse-failed-hooks
 			    'semantic-edits-incremental-reparse-failed-hook)
 
 (defcustom semantic-edits-verbose-flag nil
-  "Non-nil means the incremental perser is verbose.
+  "Non-nil means the incremental parser is verbose.
 If nil, errors are still displayed, but informative messages are not."
   :group 'semantic
   :type 'boolean)
@@ -499,7 +499,7 @@ the semantic cache to see what needs to be changed."
     changed-tags))
 
 (defmacro semantic-edits-assert-valid-region ()
-  "Asert that parse-start and parse-end are sorted correctly."
+  "Assert that parse-start and parse-end are sorted correctly."
 ;;;  (if (> parse-start parse-end)
 ;;;      (error "Bug is %s !> %d!  Buff min/max = [ %d %d ]"
 ;;;	     parse-start parse-end
@@ -838,7 +838,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 ;; list can be fiddled.
 (defun semantic-edits-splice-remove (oldtags parent cachelist)
   "Remove OLDTAGS from PARENT's CACHELIST.
-OLDTAGS are tags in the currenet buffer, preferably linked
+OLDTAGS are tags in the current buffer, preferably linked
 together also in CACHELIST.
 PARENT is the parent tag containing OLDTAGS.
 CACHELIST should be the children from PARENT, but may be
@@ -931,7 +931,7 @@ convenient location, so use that."
 
 (defun semantic-edits-splice-replace (oldtag newtag)
   "Replace OLDTAG with NEWTAG in the current cache.
-Do this by recycling OLDTAG's first CONS cell.  This effectivly
+Do this by recycling OLDTAG's first CONS cell.  This effectively
 causes the new tag to completely replace the old one.
 Make sure that all information in the overlay is transferred.
 It is presumed that OLDTAG and NEWTAG are both cooked.

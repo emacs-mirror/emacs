@@ -1,7 +1,7 @@
 ;;; semantic/tag.el --- tag creation and access
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
-;;; 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -39,7 +39,7 @@
 ;; II.  There is also an API for tag creation.  Use `semantic-tag' to create
 ;;     a new tag.
 ;;
-;; III.  Tag Comparison.  Allows explicit or comparitive tests to see
+;; III.  Tag Comparison.  Allows explicit or comparative tests to see
 ;;      if two tags are the same.
 
 ;;; Code:
@@ -111,7 +111,7 @@ A variable, or named storage for data.
 @item include
 Statement that represents a file from which more tags can be found.
 @item package
-Statement that declairs this file's package name.
+Statement that declares this file's package name.
 @item code
 Code that has not name or binding to any other symbol, such as in a script.
 @end table
@@ -528,8 +528,9 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
   "Create a semantic tag of class 'variable.
 NAME is the name of this variable.
 TYPE is a string or semantic tag representing the type of this variable.
-Optional DEFAULT-VALUE is a string representing the default value of this variable.
-ATTRIBUTES is a list of additional attributes belonging to this tag."
+Optional DEFAULT-VALUE is a string representing the default value of this
+variable.  ATTRIBUTES is a list of additional attributes belonging to this
+tag."
   (apply 'semantic-tag name 'variable
          :type type
          :default-value default-value
@@ -631,7 +632,7 @@ copied tag.
 If optional argument KEEP-FILE is non-nil, and TAG was linked to a
 buffer, the originating buffer file name is kept in the `:filename'
 property of the copied tag.
-If KEEP-FILE is a string, and the orginating buffer is NOT available,
+If KEEP-FILE is a string, and the originating buffer is NOT available,
 then KEEP-FILE is stored on the `:filename' property.
 This runs the tag hook `unlink-copy-hook`."
   ;; Right now, TAG is a list.
@@ -702,7 +703,7 @@ It is safe for FILTER to modify the input tag and return it."
 (defun semantic--tag-deep-copy-attributes (attrs &optional filter)
   "Make a deep copy of ATTRS, applying FILTER to each child-tag.
 
-It is safe to modify ATTR, and return a permutaion of that list.
+It is safe to modify ATTR, and return a permutation of that list.
 
 FILTER takes TAG as an argument, and should returns a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
@@ -715,7 +716,7 @@ It is safe for FILTER to modify the input tag and return it."
 (defun semantic--tag-deep-copy-value (value &optional filter)
   "Make a deep copy of VALUE, applying FILTER to each child-tag.
 
-It is safe to  modify VALUE, and return a permutaion of that list.
+It is safe to modify VALUE, and return a permutation of that list.
 
 FILTER takes TAG as an argument, and should returns a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
@@ -734,7 +735,7 @@ It is safe for FILTER to modify the input tag and return it."
 (defun semantic--tag-deep-copy-tag-list (tags &optional filter)
   "Make a deep copy of TAGS, applying FILTER to each child-tag.
 
-It is safe to modify the TAGS list, and return a permutaion of that list.
+It is safe to modify the TAGS list, and return a permutation of that list.
 
 FILTER takes TAG as an argument, and should returns a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
@@ -994,7 +995,7 @@ Ignoring this step will prevent several features from working correctly."
   "Return the list of top level components belonging to TAG.
 Children are any sub-tags which contain overlays.
 The default action collects regular components of TAG, in addition
-to any components beloning to an anonymous type."
+to any components belonging to an anonymous type."
   (let ((explicit-children (semantic-tag-components tag))
 	(type (semantic-tag-type tag))
 	(anon-type-children nil)

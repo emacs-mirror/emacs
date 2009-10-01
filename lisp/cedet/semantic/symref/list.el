@@ -23,11 +23,11 @@
 ;;
 ;; Provide a simple user facing API to finding symbol references.
 ;;
-;; This UI will is the base of some refactoring tools.  For any
-;; refactor, the user will execture `semantic-symref' in a tag.  Once
-;; that data is collected, the output will be listed in a buffer.  In
-;; the output buffer, the user can then initiate different refactoring
-;; operations.
+;; This UI is the base of some refactoring tools.  For any refactor,
+;; the user will execture [FIXME what?] `semantic-symref' in a tag.
+;; Once that data is collected, the output will be listed in a buffer.
+;; In the output buffer, the user can then initiate different
+;; refactoring operations.
 ;;
 ;; NOTE: Need to add some refactoring tools.
 
@@ -41,10 +41,10 @@
 (defun semantic-symref ()
   "Find references to the current tag.
 This command uses the currently configured references tool within the
-current project to find references to the current tag. The
+current project to find references to the current tag.  The
 references are the organized by file and the name of the function
 they are used in.
-Display the references in`semantic-symref-results-mode'"
+Display the references in`semantic-symref-results-mode'."
   (interactive)
   (semantic-fetch-tags)
   (let ((ct (semantic-current-tag))
@@ -67,7 +67,7 @@ This command uses the currently configured references tool within the
 current project to find references to the input SYM.  The
 references are the organized by file and the name of the function
 they are used in.
-Display the references in`semantic-symref-results-mode'"
+Display the references in`semantic-symref-results-mode'."
   (interactive (list (semantic-tag-name (semantic-complete-read-tag-buffer-deep
 					 "Symrefs for: "))))
   (semantic-fetch-tags)
@@ -141,7 +141,7 @@ RESULTS is an object of class `semantic-symref-results'."
   )
 
 (defun semantic-symref-hide-buffer ()
-  "Hide buffer with sematinc-symref results"
+  "Hide buffer with semantic-symref results."
   (interactive)
   (bury-buffer))
 

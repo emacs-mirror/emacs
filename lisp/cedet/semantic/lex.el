@@ -1,7 +1,7 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -41,12 +41,12 @@
 ;; the lexical analysis.
 ;;
 ;; In the lexical analyzer created with `define-lex', each condition
-;; is tested for a given point.  When the conditin is true, the forms
+;; is tested for a given point.  When the condition is true, the forms
 ;; run.
 ;;
 ;; The forms can push a lexical token onto the token stream.  The
 ;; analyzer forms also must move the current analyzer point.  If the
-;; analyzer point is moved without pushing a token, then tne matched
+;; analyzer point is moved without pushing a token, then the matched
 ;; syntax is effectively ignored, or skipped.
 ;;
 ;; Thus, starting at the beginning of a region to be analyzed, each
@@ -61,7 +61,7 @@
 ;;
 ;; The `define-lex' macro accepts a list of lexical analyzers.  Each
 ;; analyzer is created with `define-lex-analyzer', or one of the
-;; derivitive macros.  A single analyzer defines a regular expression
+;; derivative macros.  A single analyzer defines a regular expression
 ;; to match text in a buffer, and a short segment of code to create
 ;; one lexical token.
 ;;
@@ -105,7 +105,7 @@
 ;;           Keywords are used by `semantic-lex-symbol-or-keyword'
 ;;           to create lexical tokens based on the keyword.
 ;;
-;;   Lexical type table - A table of symbols declared in a grammer
+;;   Lexical type table - A table of symbols declared in a grammar
 ;;           file with the %type declaration.
 ;;           The grammar compiler uses the type table to create new
 ;;           lexical analyzers.  These analyzers are then used to when
@@ -115,10 +115,10 @@
 ;;
 ;; A lexical type defines a kind of lexical analyzer that will be
 ;; automatically generated from a grammar file based on some
-;; predetermined attributes. For now these two attributes are
+;; predetermined attributes.  For now these two attributes are
 ;; recognized :
 ;;
-;; * matchdatatype : define the kind of lexical analyzer. That is :
+;; * matchdatatype : define the kind of lexical analyzer.  That is :
 ;;
 ;;   - regexp : define a regexp analyzer (see
 ;;     `define-lex-regex-type-analyzer')
@@ -136,7 +136,7 @@
 ;;     `define-lex-keyword-type-analyzer')
 ;;
 ;; * syntax : define the syntax that matches a syntactic
-;;   expression. When syntax is matched the corresponding type
+;;   expression.  When syntax is matched the corresponding type
 ;;   analyzer is entered and the resulting match data will be
 ;;   interpreted based on the kind of analyzer (see matchdatatype
 ;;   above).
@@ -576,7 +576,7 @@ See also `semantic-lex-syntax-modifications'.")
 (defvar semantic-lex-comment-regex nil
   "Regular expression for identifying comment start during lexical analysis.
 This may be automatically set when semantic initializes in a mode, but
-may need to be overriden for some special languages.")
+may need to be overridden for some special languages.")
 (make-variable-buffer-local 'semantic-lex-comment-regex)
 
 (defvar semantic-lex-number-expression
@@ -730,7 +730,7 @@ Argument ANALYZERS is the list of analyzers being used."
   "The current depth as tracked through lexical functions.")
 
 (defvar semantic-lex-maximum-depth nil
-  "The maximum depth of parenthisis as tracked through lexical functions.")
+  "The maximum depth of parenthesis as tracked through lexical functions.")
 
 (defvar semantic-lex-token-stream nil
   "The current token stream we are collecting.")
@@ -765,7 +765,7 @@ Each analyzer should be an analyzer created with `define-lex-analyzer'.
 Note: The order in which analyzers are listed is important.
 If two analyzers can match the same text, it is important to order the
 analyzers so that the one you want to match first occurs first.  For
-example, it is good to put a numbe analyzer in front of a symbol
+example, it is good to put a number analyzer in front of a symbol
 analyzer which might mistake a number for as a symbol."
   `(defun ,name  (start end &optional depth length)
      ,(concat doc "\nSee `semantic-lex' for more information.")
@@ -897,7 +897,7 @@ The collapsed tokens are saved in `semantic-lex-block-streams'."
   "Create a lexical token.
 SYMBOL is a symbol representing the class of syntax found.
 START and END define the bounds of the token in the current buffer.
-Optional STR is the string for the token iff the the bounds
+Optional STR is the string for the token only if the the bounds
 in the buffer do not cover the string they represent.  (As from
 macro expansion.)"
   ;; This if statement checks the existance of a STR argument at
@@ -1066,7 +1066,7 @@ Only in effect if `debug-on-error' is also non-nil."
   "For SYNTAX, execute FORMS with protection for unterminated syntax.
 If FORMS throws an error, treat this as a syntax problem, and
 execute the unterminated syntax code.  FORMS should return a position.
-Irreguardless of an error, the cursor should be moved to the end of
+Irregardless of an error, the cursor should be moved to the end of
 the desired syntax, and a position returned.
 If `debug-on-error' is set, errors are not caught, so that you can
 debug them.
@@ -1093,7 +1093,7 @@ While forms are running, the following variables will be locally bound:
   `semantic-lex-maximum-depth' - The maximum depth of semantic-list
                   for the current analysis.
   `semantic-lex-current-depth' - The current depth of `semantic-list' that has
-                  been decended.
+                  been descended.
   `semantic-lex-end-point' - End Point after match.
                    Analyzers should set this to a buffer location if their
                    match string does not represent the end of the matched text.

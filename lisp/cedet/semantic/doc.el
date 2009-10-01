@@ -1,7 +1,7 @@
 ;;; semantic/doc.el --- Routines for documentation strings
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 ;;
-;; It is good practice to write documenation for your functions and
+;; It is good practice to write documentation for your functions and
 ;; variables.  These core routines deal with these documentation
 ;; comments or strings.  They can exist either as a tag property
 ;; (:documentation) or as a comment just before the symbol, or after
@@ -61,10 +61,11 @@ If nosnarf if 'lex, then only return the lex token."
 	  ;; Not sure yet.  Fill in something clever later....
 	  nil))))))
 
+;; FIXME this is not how you spell "preceding".
 (defun semantic-documentation-comment-preceeding-tag (&optional tag nosnarf)
-  "Find a comment preceeding TAG.
+  "Find a comment preceding TAG.
 If TAG is nil.  use the tag under point.
-Searches the space between TAG and the preceeding tag for a comment,
+Searches the space between TAG and the preceding tag for a comment,
 and converts the comment into clean documentation.
 Optional argument NOSNARF with a value of 'lex means to return
 just the lexical token and not the string."

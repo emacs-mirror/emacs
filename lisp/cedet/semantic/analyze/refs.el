@@ -140,7 +140,7 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 ;;; LOOKUP
 ;;
 (defun semantic--analyze-refs-full-lookup (tag scope)
-  "Perform a full lookup for all occurances of TAG in the current project.
+  "Perform a full lookup for all occurrences of TAG in the current project.
 TAG should be the tag currently under point.
 PARENT is the list of tags that are parents to TAG by
 containment, as opposed to reference."
@@ -195,7 +195,7 @@ PARENTS is a list of names."
     ans))
 
 (defun semantic--analyze-refs-full-lookup-with-parents (tag scope)
-  "Perform a lookup for all occurances of TAG based on TAG's SCOPE.
+  "Perform a lookup for all occurrences of TAG based on TAG's SCOPE.
 TAG should be the tag currently under point."
   (let* ((classmatch (semantic-tag-class tag))
 	 (plist (mapcar (lambda (T) (semantic-tag-name T)) (oref scope parents)))
@@ -242,7 +242,7 @@ TAG should be the tag currently under point."
     answer))
 
 (defun semantic--analyze-refs-full-lookup-simple (tag &optional noerror)
-  "Perform a simple  lookup for occurances of TAG in the current project.
+  "Perform a simple  lookup for occurrences of TAG in the current project.
 TAG should be the tag currently under point.
 Optional NOERROR means don't throw errors on failure to find something.
 This only compares the tag name, and does not infer any matches in namespaces,

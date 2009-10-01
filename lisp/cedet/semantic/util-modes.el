@@ -1,7 +1,7 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -522,7 +522,7 @@ minor mode is enabled.
 (defcustom global-semantic-show-parser-state-mode nil
   "If non-nil enable global use of `semantic-show-parser-state-mode'.
 When enabled, the current parse state of the current buffer is displayed
-in the mode line. See `semantic-show-parser-state-marker' for details
+in the mode line.  See `semantic-show-parser-state-marker' for details
 on what is displayed."
   :group 'semantic
   :type 'boolean
@@ -634,7 +634,7 @@ minor mode is enabled."
 (defun semantic-show-parser-state-mode (&optional arg)
   "Minor mode for displaying parser cache state in the modeline.
 The cache can be in one of three states.  They are
-Up to date, Partial reprase needed, and Full reparse needed.
+Up to date, Partial reparse needed, and Full reparse needed.
 The state is indicated in the modeline with the following characters:
  `-'  ->  The cache is up to date.
  `!'  ->  The cache requires a full update.

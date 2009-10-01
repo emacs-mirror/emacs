@@ -1,7 +1,7 @@
 ;;; semantic/chart.el --- Utilities for use with semantic tag tables
 
-;;; Copyright (C) 1999, 2000, 2001, 2003, 2005, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2003, 2005, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -40,7 +40,7 @@
 Each bar represents how many toplevel tags in TAGTABLE
 exist with a given class.  See `semantic-symbol->name-assoc-list'
 for tokens which will be charted.
-TAGTABLE is passedto `semantic-something-to-tag-table'."
+TAGTABLE is passed to `semantic-something-to-tag-table'."
   (interactive)
   (let* ((stream (semantic-something-to-tag-table
 		  (or tagtable (current-buffer))))
@@ -108,7 +108,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
   "Create a bar chart representing the complexity of some tags.
 Complexity is calculated for tags of CLASS.  Each bar represents
 the complexity of some tag in TAGTABLE.  Only the most complex
-items are charted.  TAGTABLE is passedto
+items are charted.  TAGTABLE is passed to
 `semantic-something-to-tag-table'."
   (interactive)
   (let* ((sym (if (not class) 'function))

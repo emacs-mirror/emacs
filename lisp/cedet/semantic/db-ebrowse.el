@@ -1,6 +1,7 @@
 ;;; semantic/db-ebrowse.el --- Semanticdb backend using ebrowse.
 
-;;; Copyright (C) 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;	Joakim Verona
@@ -403,7 +404,7 @@ If there is no database for DIRECTORY available, then
 
 (defun semanticdb-ebrowse-add-tree-to-table (dbe tree &optional fname baseclasses)
   "For database DBE, add the ebrowse TREE into the table for FNAME.
-Optional argument BASECLASSES specifyies a baseclass to the tree being provided."
+Optional argument BASECLASSES specifies a baseclass to the tree being provided."
   (if (not (ebrowse-ts-p tree))
       (signal 'wrong-type-argument (list 'ebrowse-ts-p tree)))
 

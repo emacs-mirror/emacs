@@ -1,7 +1,7 @@
 ;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
-;;; 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -140,7 +140,7 @@ syntax as specified by the syntax table."
 
 (defun semantic-elisp-form-to-doc-string (form)
   "After reading a form FORM, covert it to a doc string.
-For Emacs Lisp, sometimes that string is non-existant.
+For Emacs Lisp, sometimes that string is non-existent.
 Sometimes it is a form which is evaluated at compile time, permitting
 compound strings."
   (cond ((stringp form) form)

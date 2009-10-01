@@ -1,6 +1,6 @@
 ;;; semantic/symref/filter.el --- Filter symbol reference hits for accuracy.
 
-;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -60,10 +60,10 @@ Return non-nil for a match."
 ;; a symref results object.
 
 (defun semantic-symref-hits-in-region (target hookfcn start end)
-  "Find all occurances of the symbol TARGET that match TARGET the tag.
+  "Find all occurrences of the symbol TARGET that match TARGET the tag.
 For each match, call HOOKFCN.
 HOOKFCN takes three arguments that match
-`semantic-analyze-current-symbol's use of HOOKfCN.
+`semantic-analyze-current-symbol's use of HOOKFCN.
   ( START END PREFIX )
 
 Search occurs in the current buffer between START and END."

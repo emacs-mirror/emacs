@@ -52,7 +52,7 @@ When non-nil it is directly returned by `wisent-lex-function'.")
 
 (defmacro wisent-lex-eoi ()
   "Return an End-Of-Input lexical token.
-The EOI token is like this: ($EOI "" POINT-MAX . POINT-MAX)."
+The EOI token is like this: ($EOI \"\" POINT-MAX . POINT-MAX)."
   `(cons ',wisent-eoi-term
          (cons ""
                (cons (point-max) (point-max)))))

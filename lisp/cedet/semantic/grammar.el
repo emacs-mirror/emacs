@@ -1,7 +1,7 @@
 ;;; semantic/grammar.el --- Major mode framework for Semantic grammars
 
-;;; Copyright (C) 2002, 2003, 2004, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -949,7 +949,7 @@ Lisp code."
     output))
 
 (defun semantic-grammar-recreate-package ()
-  "Unconditionnaly create Lisp code from grammar in current buffer.
+  "Unconditionally create Lisp code from grammar in current buffer.
 Like \\[universal-argument] \\[semantic-grammar-create-package]."
   (interactive)
   (semantic-grammar-create-package t))
@@ -1537,7 +1537,7 @@ library found in DEF."
           (list mac lib))))
 
 (defun semantic--grammar-macro-compl-dict ()
-  "Return a completion dictionnary of macro definitions."
+  "Return a completion dictionary of macro definitions."
   (let ((defs (semantic-grammar-macros))
         def dups dict)
     (while defs

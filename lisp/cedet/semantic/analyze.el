@@ -1,7 +1,7 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -414,7 +414,7 @@ to calculate the context information.  The purpose for this function is
 to provide a large number of non-cached analysis for filtering symbols."
   ;; Only do this in a Semantic enabled buffer.
   (when (not (semantic-active-p))
-    (error "Cannot analyze buffers not supported by Semantic."))
+    (error "Cannot analyze buffers not supported by Semantic"))
   ;; Always refresh out tags in a safe way before doing the
   ;; context.
   (semantic-refresh-tags-safe)
@@ -482,7 +482,7 @@ if a cached copy of the return object is found."
   (interactive "d")
   ;; Only do this in a Semantic enabled buffer.
   (when (not (semantic-active-p))
-    (error "Cannot analyze buffers not supported by Semantic."))
+    (error "Cannot analyze buffers not supported by Semantic"))
   ;; Always refresh out tags in a safe way before doing the
   ;; context.
   (semantic-refresh-tags-safe)

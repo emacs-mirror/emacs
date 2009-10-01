@@ -1,7 +1,7 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -714,7 +714,7 @@ If semanticdb is not in use, use the current buffer only."
 (defun semantic-idle-summary-current-symbol-info-brutish ()
   "Return a string message describing the current context.
 Gets a symbol with `semantic-ctxt-current-thing' and then
-trys to find it with a deep targetted search."
+tries to find it with a deep targeted search."
   ;; Try the current "thing".
   (let ((sym (car (semantic-ctxt-current-thing))))
     (when sym
@@ -740,7 +740,7 @@ Use the semantic analyzer to find the symbol information."
 
 (defun semantic-idle-summary-current-symbol-info-default ()
   "Return a string message describing the current context.
-This functin will disable loading of previously unloaded files
+This function will disable loading of previously unloaded files
 by semanticdb as a time-saving measure."
   (let (
 	(semanticdb-find-default-throttle

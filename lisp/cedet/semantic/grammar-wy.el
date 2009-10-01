@@ -340,7 +340,7 @@
              (cond
               ((vectorp elt)
                (if prec
-                   (error "duplicate %%prec in `%s:%d' rule" nterm rindx))
+                   (error "Duplicate %%prec in `%s:%d' rule" nterm rindx))
                (setq prec
                      (aref elt 0)))
               ((consp elt)

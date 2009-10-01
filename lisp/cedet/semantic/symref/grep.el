@@ -1,6 +1,6 @@
 ;;; semantic/symref/grep.el --- Symref implementation using find/grep
 
-;;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -103,9 +103,9 @@ Optional argument MODE specifies the `major-mode' to test."
 (defun semantic-symref-grep-use-template (rootdir filepattern grepflags greppattern)
   "Use the grep template expand feature to create a grep command.
 ROOTDIR is the root location to run the `find' from.
-FILEPATTERN is a string represeting find flags for searching file patterns.
+FILEPATTERN is a string representing find flags for searching file patterns.
 GREPFLAGS are flags passed to grep, such as -n or -l.
-GREPPATTERN is the pattren used by grep."
+GREPPATTERN is the pattern used by grep."
   ;; We have grep-compute-defaults.  Lets use it.
   (grep-compute-defaults)
   (let* ((grep-expand-keywords semantic-symref-grep-expand-keywords)

@@ -54,6 +54,78 @@
 	* cedet/ede/cpp-root.el (initialize-instance):
 	* cedet/ede/autoconf-edit.el (autoconf-find-last-macro)
 	(autoconf-parameter-strip, autoconf-insert-new-macro):
+	* cedet/semantic/wisent.el (wisent-lex-eoi):
+	* cedet/semantic/util-modes.el (global-semantic-show-parser-state-mode)
+	(semantic-show-parser-state-mode):
+	* cedet/semantic/texi.el (semantic-texi-environment-regexp):
+	* cedet/semantic/tag.el (semantic-tag-new-variable)
+	(semantic-tag-class, semantic-tag-new-variable, semantic-tag-copy)
+	(semantic--tag-deep-copy-attributes, semantic--tag-deep-copy-value)
+	(semantic--tag-deep-copy-tag-list)
+	(semantic-tag-components-with-overlays-default):
+	* cedet/semantic/symref.el (semantic-symref-find-text):
+	* cedet/semantic/senator.el (senator-yank-tag)
+	(senator-transpose-tags-up):
+	* cedet/semantic/scope.el (semantic-analyze-scoped-tags-default)
+	(semantic-analyze-scoped-inherited-tags, semantic-scope-find):
+	* cedet/semantic/sb.el (semantic-sb-autoexpand-length):
+	* cedet/semantic/lex.el (semantic-lex-comment-regex)
+	(semantic-lex-maximum-depth, define-lex, semantic-lex-token)
+	(semantic-lex-unterminated-syntax-protection, define-lex-analyzer):
+	* cedet/semantic/lex-spp.el
+	(semantic-lex-spp-dynamic-macro-symbol-obarray-stack)
+	(semantic-lex-spp-symbol, semantic-lex-spp-one-token-to-txt):
+	* cedet/semantic/idle.el
+	(semantic-idle-summary-current-symbol-info-brutish)
+	(semantic-idle-summary-current-symbol-info-default):
+	* cedet/semantic/grammar.el (semantic-grammar-recreate-package)
+	(semantic--grammar-macro-compl-dict):
+	* cedet/semantic/grammar-wy.el (semantic-grammar-wy--parse-table):
+	* cedet/semantic/format.el (semantic-format-tag-custom-list)
+	(semantic-format-tag-canonical-name-default):
+	* cedet/semantic/find.el (semantic-find-tag-by-overlay-in-region)
+	(semantic-find-tags-for-completion)
+	(semantic-find-tags-by-scope-protection-default)
+	(semantic-deep-find-tags-for-completion):
+	* cedet/semantic/edit.el
+	(semantic-edits-incremental-reparse-failed-hook)
+	(semantic-edits-verbose-flag, semantic-edits-assert-valid-region)
+	(semantic-edits-splice-remove, semantic-edits-splice-replace):
+	* cedet/semantic/doc.el (semantic-documentation-comment-preceeding-tag):
+	* cedet/semantic/dep.el (semantic-dependency-include-path):
+	* cedet/semantic/db.el (semanticdb-default-find-index-class)
+	(semanticdb-match-any-mode, semanticdb-with-match-any-mode)
+	(semanticdb-project-roots):
+	* cedet/semantic/db-find.el (semanticdb-implied-include-tags)
+	(semanticdb-find-adebug-insert-scanned-tag-cons)
+	(semanticdb-find-log-buffer-name, semanticdb-find-result-mapc)
+	(semanticdb-brute-deep-find-tags-for-completion):
+	* cedet/semantic/db-ebrowse.el (semanticdb-ebrowse-add-tree-to-table):
+	* cedet/semantic/ctxt.el (semantic-beginning-of-context-default)
+	(semantic-end-of-context-default)
+	(semantic-ctxt-current-function-default)
+	(semantic-ctxt-scoped-types-default):
+	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
+	(semantic-complete-inline-tag-engine)
+	(semantic-complete-inline-custom-type)
+	(semantic-complete-read-tag-analyzer):
+	* cedet/semantic/chart.el (semantic-chart-tags-by-class)
+	(semantic-chart-database-size):
+	* cedet/semantic/analyze.el (semantic-analyze-current-symbol)
+	(semantic-analyze-current-context):
+	* cedet/semantic/symref/list.el (semantic-symref)
+	(semantic-symref-hide-buffer, semantic-symref-symbol):
+	* cedet/semantic/symref/grep.el (semantic-symref-grep-use-template):
+	* cedet/semantic/symref/filter.el (semantic-symref-hits-in-region):
+	* cedet/semantic/bovine/el.el (semantic-elisp-form-to-doc-string):
+	* cedet/semantic/bovine/c.el (semantic-lex-c-preprocessor-symbol-map)
+	(semantic-c-parse-token-hack-depth, semantic-c--template-name-1)
+	(semantic-c-dereference-template):
+	* cedet/semantic/analyze/refs.el (semantic--analyze-refs-full-lookup)
+	(semantic--analyze-refs-full-lookup-with-parents)
+	(semantic--analyze-refs-full-lookup-simple):
+	* cedet/semantic/analyze/complete.el
+	(semantic-analyze-possible-completions):
 	* cedet/srecode/table.el (srecode-mode-table-new):
 	* cedet/srecode/srt.el (srecode-read-variable-name):
 	* cedet/srecode/srt-mode.el (srecode-macro-help, srecode-in-macro-p):

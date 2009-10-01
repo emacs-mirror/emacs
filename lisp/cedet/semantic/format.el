@@ -1,7 +1,7 @@
 ;;; semantic/format.el --- Routines for formatting tags
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
-;;; 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -71,7 +71,7 @@ COLOR indicates that the generated text should be colored using
 	  (mapcar (lambda (f) (list 'const f))
 		  semantic-format-tag-functions)
 	  '(function))
-  "A List used by customizeable variables to choose a tag to text function.
+  "A List used by customizable variables to choose a tag to text function.
 Use this variable in the :type field of a customizable variable.")
 
 (defcustom semantic-format-use-images-flag ezimage-use-images
@@ -304,7 +304,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors.")
 
 (defun semantic-format-tag-canonical-name-default (tag &optional parent color)
   "Return a canonical name for TAG.
-A canonical name includes the names of any parents or namespaces preceeding
+A canonical name includes the names of any parents or namespaces preceding
 the tag with colons separating them.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors."

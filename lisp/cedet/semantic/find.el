@@ -1,7 +1,7 @@
 ;;; semantic/find.el --- Search routines for Semantic
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -32,11 +32,11 @@
 ;;    used for compatibility with the semantic 1.x search routines.
 ;;
 ;; 1.5) semantic-brute-find-first-tag-by-*
-;;    Like 1, except seraching stops on the first match for the given
+;;    Like 1, except searching stops on the first match for the given
 ;;    information.
 ;;
 ;; 2) semantic-find-tag-by-*
-;;    These prefered search routines attempt to scan through lists
+;;    These preferred search routines attempt to scan through lists
 ;;    in an intelligent way based on questions asked.
 ;;
 ;; 3) semantic-find-*-overlay
@@ -86,7 +86,7 @@ from largest to smallest via the start location."
 ;;;###autoload
 (defun semantic-find-tag-by-overlay-in-region (start end &optional buffer)
   "Find all tags which exist in whole or in part between START and END.
-Uses overlays to determine positin.
+Uses overlays to determine position.
 Optional BUFFER argument specifies the buffer to use."
   (save-excursion
     (if buffer (set-buffer buffer))
@@ -279,7 +279,7 @@ TABLE is a tag table.  See `semantic-something-to-tag-table'."
       ,table)))
 
 (defmacro semantic-find-tags-for-completion (prefix &optional table)
-  "Find all tags whos name begins with PREFIX in TABLE.
+  "Find all tags whose name begins with PREFIX in TABLE.
 PREFIX is a string.
 TABLE is a tag table.  See `semantic-something-to-tag-table'.
 While it would be nice to use `try-completion' or `all-completions',
@@ -350,7 +350,7 @@ See `semantic-tag-protected-p' for details on which tags are returned."
 
 (defun semantic-find-tags-by-scope-protection-default
   (scopeprotection parent &optional table)
-  "Find all tags accessable by SCOPEPROTECTION.
+  "Find all tags accessible by SCOPEPROTECTION.
 SCOPEPROTECTION is a symbol which can be returned by the method
 `semantic-tag-protection'.  A hard-coded order is used to determine a match.
 PARENT is a tag representing the PARENT slot needed for
@@ -383,7 +383,7 @@ See also `semantic-find-tags-by-name'."
     ,name (semantic-flatten-tags-table ,table)))
 
 (defmacro semantic-deep-find-tags-for-completion (prefix &optional table)
-  "Find all tags whos name begins with PREFIX in TABLE.
+  "Find all tags whose name begins with PREFIX in TABLE.
 Search in top level tags, and their components, in TABLE.
 TABLE is a tag table.  See `semantic-flatten-tags-table'.
 See also `semantic-find-tags-for-completion'."

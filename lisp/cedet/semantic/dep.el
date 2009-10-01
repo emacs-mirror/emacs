@@ -1,6 +1,6 @@
 ;;; semantic/dep.el --- Methods for tracking dependencies (include files)
 
-;;; Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -30,7 +30,7 @@
 ;; EDE or even ECB can control our project dependencies, and help us
 ;; find file within the setting of a given project.  For system
 ;; dependencies, we need to depend on user supplied lists, which can
-;; manifest themselves in the form of system datatabases (from
+;; manifest themselves in the form of system databases (from
 ;; semanticdb.)
 ;;
 ;; Provide ways to track these different files here.
@@ -47,7 +47,7 @@ to the file being included.
 If `semantic-dependency-tag-file' is overridden for a given
 language, this path is most likely ignored.
 
-The above function, reguardless of being overriden, caches the
+The above function, regardless of being overridden, caches the
 located dependency file location in the tag property
 `dependency-file'.  If you override this function, you do not
 need to implement your own cache.  Each time the buffer is fully

@@ -1,7 +1,7 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -252,7 +252,7 @@ The cursor should be on the @ sign."
 	      "menu\\|"
 	       (substring texinfo-environment-regexp
 			 (match-beginning 0)))))
-  "Regular expression for matching texinfo enviroments.
+  "Regular expression for matching texinfo environments.
 uses `texinfo-environment-regexp', but makes sure that it
 can handle the @menu environment.")
 

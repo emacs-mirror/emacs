@@ -1,7 +1,7 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;; 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -53,7 +53,7 @@ mechanism.")
 
 (defvar semanticdb-default-find-index-class 'semanticdb-find-search-index
   "The default type of search index to use for a `semanticdb-table's.
-This can be changed to try out new types of search indicies.")
+This can be changed to try out new types of search indices.")
 (make-variable-buffer-local 'semanticdb-default-find=index-class)
 
 ;;;###autoload
@@ -709,14 +709,14 @@ Uses `semanticdb-persistent-path' to determine the return value."
       nil))
 
 (defvar semanticdb-match-any-mode nil
-  "Non-nil to temporarilly search any major mode for a tag.
+  "Non-nil to temporarily search any major mode for a tag.
 If a particular major mode wants to search any mode, put the
 `semantic-match-any-mode' symbol onto the symbol of that major mode.
 Do not set the value of this variable permanently.")
 
 (defmacro semanticdb-with-match-any-mode (&rest body)
-  "A Semanticdb search occuring withing BODY will search tags in all modes.
-This temporarilly sets `semanticdb-match-any-mode' while executing BODY."
+  "A Semanticdb search occurring withing BODY will search tags in all modes.
+This temporarily sets `semanticdb-match-any-mode' while executing BODY."
   `(let ((semanticdb-match-any-mode t))
      ,@body))
 (put 'semanticdb-with-match-any-mode 'lisp-indent-function 0)
@@ -764,7 +764,7 @@ local variable."
 (defcustom semanticdb-project-roots nil
   "*List of directories, where each directory is the root of some project.
 All subdirectories of a root project are considered a part of one project.
-Values in this string can be overriden by project management programs
+Values in this string can be overridden by project management programs
 via the `semanticdb-project-root-functions' variable."
   :group 'semanticdb
   :type '(repeat string))

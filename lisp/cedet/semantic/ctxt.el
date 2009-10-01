@@ -1,7 +1,7 @@
 ;;; semantic/ctxt.el --- Context calculations for Semantic tools.
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -86,7 +86,7 @@ Return non-nil if there is no upper context.
 The default behavior uses `semantic-up-context'.")
 
 (defun semantic-beginning-of-context-default (&optional point)
-  "Move POINT to the beginning of the current context via parenthisis.
+  "Move POINT to the beginning of the current context via parenthesis.
 Return non-nil if there is no upper context."
   (if point (goto-char point))
   (if (semantic-up-context)
@@ -101,7 +101,7 @@ Be default, this uses `semantic-up-context', and assumes parenthetical
 block delimiters.")
 
 (defun semantic-end-of-context-default (&optional point)
-  "Move POINT to the end of the current context via parenthisis.
+  "Move POINT to the end of the current context via parenthesis.
 Return non-nil if there is no upper context."
   (if point (goto-char point))
   (let ((start (point)))
@@ -510,7 +510,7 @@ cursor is on the text representing that function.")
 
 (defun semantic-ctxt-current-function-default (&optional point)
   "Return the current function call the cursor is in at POINT.
-The call will be identifed for C like langauges with the form
+The call will be identified for C like languages with the form
  NAME ( args ... )"
   (if point (goto-char point))
   (let ((case-fold-search semantic-case-fold))
@@ -602,7 +602,7 @@ that may or may not have a name.)")
 (defun semantic-ctxt-scoped-types-default (&optional point)
   "Return a list of scoped types by name for the current context at POINT.
 This is very different for various languages, and does nothing unless
-overriden."
+overridden."
   (if point (goto-char point))
   (let ((case-fold-search semantic-case-fold))
     ;; We need to look at TYPES within the bounds of locally parse arguments.

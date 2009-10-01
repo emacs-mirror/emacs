@@ -1,7 +1,7 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;; 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -103,7 +103,7 @@
 ;; eldoc - popup help
 ;;   => Requires basic search using default path.  (Header files ok)
 ;; tag jump - jump to a named tag
-;;   => Requires a brute search useing whole project.  (Source files only)
+;;   => Requires a brute search using whole project.  (Source files only)
 ;; completion - Completing symbol names in a smart way
 ;;   => Basic search (headers ok)
 ;; type analysis - finding type definitions for variables & fcns
@@ -440,7 +440,7 @@ and TAG is a clone of the include tag that was found.")
 Set this variable with `defvar-mode-local' for a particular mode so
 that any symbols that exist for all files for that mode are included.
 
-Note: This could be used as a way to write a file in a langauge
+Note: This could be used as a way to write a file in a language
 to declare all the built-ins for that language.")
 
 (defun semanticdb-find-translate-path-includes--internal (path)
@@ -781,7 +781,7 @@ Examines the variable `semanticdb-find-lost-includes'."
 
 (defun semanticdb-find-adebug-insert-scanned-tag-cons (consdata prefix prebuttontext)
   "Insert a button representing scanned include CONSDATA.
-PREFIX is the text that preceeds the button.
+PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between prefix and the overlay button."
   (let* ((start (point))
 	 (end nil)
@@ -1019,7 +1019,7 @@ is still made current."
 (defun semanticdb-find-result-mapc (fcn result)
   "Apply FCN to each element of find RESULT for side-effects only.
 FCN takes two arguments.  The first is a TAG, and the
-second is a DB from wence TAG originated.
+second is a DB from whence TAG originated.
 Returns result."
   (mapc (lambda (sublst)
 	  (mapc (lambda (tag)
@@ -1038,7 +1038,7 @@ Returns result."
   "The name of the logging buffer.")
 
 (defun semanticdb-find-toggle-logging ()
-  "Toggle sematnicdb logging."
+  "Toggle semanticdb logging."
   (interactive)
   (setq semanticdb-find-log-flag (null semanticdb-find-log-flag))
   (message "Semanticdb find logging is %sabled"
@@ -1239,7 +1239,7 @@ associated with that tag should be loaded into a buffer."
 See `semanticdb-find-translate-path' for details on PATH.
 The argument BRUTISH will be set so that searching includes all tables
 in the current project.
-FIND-FILE-MATCH indicates that any time a matchi is found, the file
+FIND-FILE-MATCH indicates that any time a match is found, the file
 associated wit that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
@@ -1251,7 +1251,7 @@ associated wit that tag should be loaded into a buffer."
 See `semanticdb-find-translate-path' for details on PATH.
 The argument BRUTISH will be set so that searching includes all tables
 in the current project.
-FIND-FILE-MATCH indicates that any time a matchi is found, the file
+FIND-FILE-MATCH indicates that any time a match is found, the file
 associated wit that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
