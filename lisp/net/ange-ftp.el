@@ -1176,7 +1176,7 @@ only return the directory part of FILE."
 ;;;; ------------------------------------------------------------
 
 (defmacro ange-ftp-generate-passwd-key (host user)
-  `(concat (downcase ,host) "/" ,user))
+  `(and (stringp ,host) (stringp ,user) (concat (downcase ,host) "/" ,user)))
 
 (defmacro ange-ftp-lookup-passwd (host user)
   `(gethash (ange-ftp-generate-passwd-key ,host ,user)
@@ -4067,6 +4067,15 @@ directory, so that Emacs will know its current contents."
 (defun ange-ftp-delete-directory (dir &optional recursive)
   (if (file-directory-p dir)
       (let ((parsed (ange-ftp-ftp-name dir)))
+	(if recursive
+	    (mapc
+	     (lambda (file)
+	       (if (file-directory-p file)
+		   (ange-ftp-delete-directory file recursive)
+		 (delete-file file)))
+	     ;; We do not want to delete "." and "..".
+	     (directory-files
+	      dir 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
 	(if parsed
 	    (let* ((host (nth 0 parsed))
 		   (user (nth 1 parsed))
@@ -4083,11 +4092,14 @@ directory, so that Emacs will know its current contents."
 			    (ange-ftp-real-file-name-as-directory
 			     (nth 2 parsed)))))
 		   (abbr (ange-ftp-abbreviate-filename dir))
-		   ;; TODO: handle RECURSIVE.
-		   (result (ange-ftp-send-cmd host user
-					      (list 'rmdir name)
-					      (format "Removing directory %s"
-						      abbr))))
+		   (result
+		    (progn
+		      ;; CWD must not in this directory.
+		      (ange-ftp-cd host user "/" 'noerror)
+		      (ange-ftp-send-cmd host user
+					 (list 'rmdir name)
+					 (format "Removing directory %s"
+						 abbr)))))
 	      (or (car result)
 		  (ange-ftp-error host user
 				  (format "Could not remove directory %s: %s"
