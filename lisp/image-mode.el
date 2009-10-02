@@ -429,7 +429,7 @@ and showing the image as an image."
 	(setq image-type "text")
 	(if (eq major-mode 'image-mode)
 	    (setq mode-name "Image[text]"))
-	(if (called-interactively-p)
+	(if (called-interactively-p 'any)
 	    (message "Repeat this command to go back to displaying the image")))
     ;; Turn the image data into a real image, but only if the whole file
     ;; was inserted
@@ -472,7 +472,7 @@ and showing the image as an image."
       (setq image-type type)
       (if (eq major-mode 'image-mode)
 	  (setq mode-name (format "Image[%s]" type)))
-      (if (called-interactively-p)
+      (if (called-interactively-p 'any)
 	  (message "Repeat this command to go back to displaying the file as text")))))
 
 ;;; Support for bookmark.el

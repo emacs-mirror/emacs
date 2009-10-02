@@ -669,7 +669,7 @@ for use in `interactive'."
 ;; this macro.  We use that rather than interactive-p because
 ;; use in a keyboard macro should not change this behavior.
 (defmacro browse-url-maybe-new-window (arg)
-  `(if (or noninteractive (not (called-interactively-p)))
+  `(if (or noninteractive (not (called-interactively-p 'any)))
        ,arg
      browse-url-new-window-flag))
 

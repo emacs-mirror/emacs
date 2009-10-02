@@ -3210,7 +3210,7 @@ This command can often take a long time to run."
 	   )))
       ;; Are abnormal hooks considered bad form?
       (run-hook-with-args 'sh-learned-buffer-hook learned-var-list)
-      (and (called-interactively-p)
+      (and (called-interactively-p 'any)
 	   (or sh-popup-occur-buffer (> num-diffs 0))
 	   (pop-to-buffer out-buffer)))))
 

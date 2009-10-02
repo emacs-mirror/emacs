@@ -234,7 +234,7 @@ With zero or negative ARG turn mode off.
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
-           (if (called-interactively-p)
+           (if (called-interactively-p 'any)
                (progn
                  ,(if globalp `(customize-mark-as-set ',mode))
                  ;; Avoid overwriting a message shown by the body,

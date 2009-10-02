@@ -269,7 +269,7 @@ FUNSYM must be a symbol of a defined function."
     (setq newguts (append newguts `((elp-wrapper
 				     (quote ,funsym)
 				     ,(when (commandp funsym)
-					'(called-interactively-p))
+					'(called-interactively-p 'any))
 				     args))))
     ;; to record profiling times, we set the symbol's function
     ;; definition so that it runs the elp-wrapper function with the

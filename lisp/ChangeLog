@@ -1,3 +1,13 @@
+2009-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-mode.el (image-toggle-display):
+	* emacs-lisp/elp.el (elp-instrument-function):
+	* emacs-lisp/advice.el (ad-make-advised-definition):
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	* net/browse-url.el (browse-url-maybe-new-window):
+	* progmodes/sh-script.el (sh-learn-buffer-indent):
+	Pass new argument 'any to `called-interactively-p'.
+
 2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/uni-bidi.el:
