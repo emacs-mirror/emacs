@@ -99,6 +99,7 @@ WINS_CEDET_SUBDIRS=\
 WINS_BASIC=\
 	calc \
 	calendar \
+	eieio \
 	emacs-lisp \
 	emulation \
 	erc \
