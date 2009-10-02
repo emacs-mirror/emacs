@@ -6,6 +6,7 @@
 	(bootstrap-clean-CMD, bootstrap-clean-SH): Remove *.elc files in
 	subdirs of cedet as well.
 	(WINS_BASIC): Add eieio.
+	(AUTOGENEL): Add loaddefs.el files in cedet subdirectories.
 
 2009-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
