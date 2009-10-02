@@ -1,3 +1,9 @@
+2009-10-02  Kevin Ryde  <user42@zip.com.au>
+
+	* net/browse-url.el (browse-url): Pass any symbol in
+	browse-url-browser-function to `apply', since if you've mistakenly put
+	an unbound symbol then the error is clearer.  (Bug#4531)
+
 2009-10-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-init, allout-back-to-current-heading)

@@ -778,7 +778,10 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
     ;; which may not even exist any more.
     (if (stringp (frame-parameter (selected-frame) 'display))
         (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
-    (if (functionp browse-url-browser-function)
+    ;; Send any symbol to `apply', not just fboundp ones, since void-function
+    ;; from apply is clearer than wrong-type-argument from dolist.
+    (if (or (symbolp browse-url-browser-function)
+            (functionp browse-url-browser-function))
         (apply browse-url-browser-function url args)
       ;; The `function' can be an alist; look down it for first match
       ;; and apply the function (which might be a lambda).
