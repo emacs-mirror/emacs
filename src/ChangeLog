@@ -1,3 +1,10 @@
+2009-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp.h (Qdelete_directory_internal): Removed, because it is not
+	used anymore outside fileio.c.
+
+	* w32fns.c (Fsystem_move_file_to_trash): Use delete-directory.
+
 2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lisp.h (Qdelete_directory_internal):
