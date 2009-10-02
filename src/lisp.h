@@ -785,7 +785,7 @@ struct Lisp_Vector
 	_val = _tbl->defalt;						\
     } while (NILP (_val) && ! NILP (_tbl->parent));			\
     _val; })
-      
+
 #else  /* not __GNUC__ */
 
 #define CHAR_TABLE_REF_ASCII(CT, IDX)					  \
@@ -2952,7 +2952,6 @@ extern void syms_of_fileio P_ ((void));
 extern void init_fileio_once P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 EXFUN (Fmake_symbolic_link, 3);
-extern Lisp_Object Qdelete_directory_internal;
 extern Lisp_Object Qdelete_file;
 
 /* Defined in abbrev.c */
