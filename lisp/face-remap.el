@@ -417,7 +417,8 @@ may be more appropriate."
 An interface to `buffer-face-mode' which uses the `variable-pitch' face.
 Besides the choice of face, it is the same as `buffer-face-mode'."
   (interactive (list (or current-prefix-arg 'toggle)))
-  (buffer-face-mode-invoke 'variable-pitch arg (interactive-p)))
+  (buffer-face-mode-invoke 'variable-pitch arg
+			   (called-interactively-p 'interactive)))
 
 
 (provide 'face-remap)

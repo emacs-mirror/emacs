@@ -1311,7 +1311,7 @@ The completion is altered appropriately if NUM-USES and/or LAST-USE-TIME
 are specified."
   (interactive (interactive-completion-string-reader "Completion to add"))
   (check-completion-length string)
-  (let* ((current-completion-source (if (interactive-p)
+  (let* ((current-completion-source (if (called-interactively-p 'interactive)
 					cmpl-source-interactive
 					current-completion-source))
 	 (entry (add-completion-to-head string)))
@@ -1324,7 +1324,7 @@ are specified."
   "Add STRING if it isn't already listed, and mark it permanent."
   (interactive
     (interactive-completion-string-reader "Completion to add permanently"))
-  (let ((current-completion-source (if (interactive-p)
+  (let ((current-completion-source (if (called-interactively-p 'interactive)
 				       cmpl-source-interactive
 				       current-completion-source)))
     (add-completion string nil t)))

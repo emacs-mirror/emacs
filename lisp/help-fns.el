@@ -52,7 +52,8 @@
 	       fn (intern val)))))
   (if (null function)
       (message "You didn't specify a function")
-    (help-setup-xref (list #'describe-function function) (interactive-p))
+    (help-setup-xref (list #'describe-function function)
+		     (called-interactively-p 'interactive))
     (save-excursion
       (with-help-window (help-buffer)
 	(prin1 function)
@@ -606,7 +607,7 @@ it is displayed along with the global value."
 		(setq val (symbol-value variable)
 		      locus (variable-binding-locus variable)))))
 	  (help-setup-xref (list #'describe-variable variable buffer)
-			   (interactive-p))
+			   (called-interactively-p 'interactive))
 	  (with-help-window (help-buffer)
 	    (with-current-buffer buffer
 	      (prin1 variable)
@@ -800,7 +801,8 @@ The descriptions are inserted in a help buffer, which is then displayed.
 BUFFER defaults to the current buffer."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
-  (help-setup-xref (list #'describe-syntax buffer) (interactive-p))
+  (help-setup-xref (list #'describe-syntax buffer)
+		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
     (let ((table (with-current-buffer buffer (syntax-table))))
       (with-current-buffer standard-output
@@ -825,7 +827,8 @@ If BUFFER is non-nil, then describe BUFFER's category table instead.
 BUFFER should be a buffer or a buffer name."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
-  (help-setup-xref (list #'describe-categories buffer) (interactive-p))
+  (help-setup-xref (list #'describe-categories buffer)
+		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
     (let* ((table (with-current-buffer buffer (category-table)))
 	   (docs (char-table-extra-slot table 0)))

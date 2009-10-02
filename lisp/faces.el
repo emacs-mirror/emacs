@@ -1348,7 +1348,8 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:inherit . "Inherit")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
-    (help-setup-xref (list #'describe-face face) (interactive-p))
+    (help-setup-xref (list #'describe-face face)
+		     (called-interactively-p 'interactive))
     (unless face
       (setq face 'default))
     (if (not (listp face))

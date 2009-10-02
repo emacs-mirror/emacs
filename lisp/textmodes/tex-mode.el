@@ -1274,7 +1274,7 @@ on the line for the invalidity you want to see."
 	(let ((no-matches (zerop num-matches)))
 	  (if no-matches
 	      (insert "None!\n"))
-	  (if (interactive-p)
+	  (if (called-interactively-p 'interactive)
 	      (message (cond (no-matches "No mismatches found")
 			     ((= num-matches 1) "1 mismatch found")
 			     (t "%d mismatches found"))

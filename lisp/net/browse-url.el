@@ -770,7 +770,7 @@ narrowed."
 Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
-  (unless (interactive-p)
+  (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
   (let ((process-environment (copy-sequence process-environment)))
     ;; When connected to various displays, be careful to use the display of

@@ -1595,7 +1595,7 @@ context."
   (let* ((syntactic-context (js--syntactic-context-from-pstate
                              (js--parse-state-at-point))))
 
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Syntactic context: %s" syntactic-context))
 
     syntactic-context))
@@ -2821,7 +2821,7 @@ With argument, run even if no intervening GC has happened."
       (setq num (js--js-funcall '(repl "_jsGC") (or keys [])))
 
       (setq js--js-last-gcs-done this-gcs-done)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
         (message "Cleaned %s entries" num))
 
       num)))
@@ -2835,7 +2835,7 @@ With argument, run even if no intervening GC has happened."
    (let* ((content-window (js--js-content-window
                            (js--get-js-context)))
           (result (js-eval content-window js)))
-     (when (interactive-p)
+     (when (called-interactively-p 'interactive)
        (message "%s" (js! "String" result)))
      result)))
 

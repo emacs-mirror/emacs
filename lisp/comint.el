@@ -1899,7 +1899,8 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (save-excursion
       (condition-case nil
 	  (goto-char
-	   (if (interactive-p) comint-last-input-end comint-last-output-start))
+	   (if (called-interactively-p 'interactive)
+	       comint-last-input-end comint-last-output-start))
 	(error nil))
       (while (re-search-forward "\r+$" pmark t)
 	(replace-match "" t t)))))
@@ -3068,7 +3069,7 @@ from input that has not yet been sent."
   (let ((proc (or (get-buffer-process (current-buffer))
 		  (error "Current buffer has no process"))))
     (goto-char (process-mark proc))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Point is now at the process mark"))))
 
 (defun comint-bol-or-process-mark ()

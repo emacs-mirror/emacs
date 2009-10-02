@@ -436,7 +436,7 @@ A repeat count means scroll that many sections."
     (ad-enable-advice f 'around 'tpu-respect-bottom-scroll-margin)
     (ad-activate f))
   ;; report scroll margin settings if running interactively
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
 		tpu-top-scroll-margin tpu-bottom-scroll-margin)))
 

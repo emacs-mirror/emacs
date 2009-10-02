@@ -1272,7 +1272,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window."
 	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
   ;; report scroll margin settings if running interactively
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
 		edt-top-scroll-margin edt-bottom-scroll-margin)))
 

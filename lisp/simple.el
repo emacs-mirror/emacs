@@ -3026,9 +3026,9 @@ This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
   (interactive "r")
   (copy-region-as-kill beg end)
-  ;; This use of interactive-p is correct
+  ;; This use of called-interactively-p is correct
   ;; because the code it controls just gives the user visual feedback.
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (let ((other-end (if (= (point) beg) end beg))
 	    (opoint (point))
 	    ;; Inhibit quitting so we can make a quit here
@@ -3992,7 +3992,7 @@ and more reliable (no dependence on goal column, etc.)."
 	    (end-of-line)
 	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(condition-case nil
 	    (line-move arg nil nil try-vscroll)
 	  ((beginning-of-buffer end-of-buffer) (ding)))
@@ -4022,7 +4022,7 @@ If you are thinking of using this in a Lisp program, consider using
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "^p\np")
   (or arg (setq arg 1))
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (condition-case nil
 	  (line-move (- arg) nil nil try-vscroll)
 	((beginning-of-buffer end-of-buffer) (ding)))
@@ -6429,7 +6429,7 @@ See also `normal-erase-is-backspace'."
 	     (keyboard-translate ?\C-? ?\C-?))))
 
     (run-hooks 'normal-erase-is-backspace-hook)
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "Delete key deletes %s"
 		 (if (terminal-parameter nil 'normal-erase-is-backspace)
 		     "forward" "backward")))))

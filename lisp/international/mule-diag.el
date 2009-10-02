@@ -67,7 +67,8 @@ ISO-2022-based coding systems.
 With prefix ARG, the output format gets more cryptic,
 but still shows the full information."
   (interactive "P")
-  (help-setup-xref (list #'list-character-sets arg) (interactive-p))
+  (help-setup-xref (list #'list-character-sets arg)
+		   (called-interactively-p 'interactive))
   (with-output-to-temp-buffer "*Character Set List*"
     (with-current-buffer standard-output
       (if arg
@@ -314,7 +315,8 @@ meanings of these arguments."
   (interactive (list (read-charset "Charset: ")))
   (or (charsetp charset)
       (error "Invalid charset: %S" charset))
-  (help-setup-xref (list #'describe-character-set charset) (interactive-p))
+  (help-setup-xref (list #'describe-character-set charset)
+		   (called-interactively-p 'interactive))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
       (insert "Character set: " (symbol-name charset))
@@ -419,7 +421,7 @@ meanings of these arguments."
   (if (null coding-system)
       (describe-current-coding-system)
     (help-setup-xref (list #'describe-coding-system coding-system)
-		     (interactive-p))
+		     (called-interactively-p 'interactive))
     (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
       (let ((type (coding-system-type coding-system))
@@ -983,7 +985,8 @@ This shows which font is used for which character(s)."
   (if (= (length fontset) 0)
       (setq fontset (face-attribute 'default :fontset))
     (setq fontset (query-fontset fontset)))
-  (help-setup-xref (list #'describe-fontset fontset) (interactive-p))
+  (help-setup-xref (list #'describe-fontset fontset)
+		   (called-interactively-p 'interactive))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
       (print-fontset fontset t))))
@@ -999,7 +1002,8 @@ see the function `describe-fontset' for the format of the list."
   (interactive "P")
   (if (not (and window-system (fboundp 'fontset-list)))
       (error "No fontsets being used")
-    (help-setup-xref (list #'list-fontsets arg) (interactive-p))
+    (help-setup-xref (list #'list-fontsets arg)
+		     (called-interactively-p 'interactive))
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
 	;; This code is duplicated near the end of mule-diag.
@@ -1018,7 +1022,8 @@ see the function `describe-fontset' for the format of the list."
 (defun list-input-methods ()
   "Display information about all input methods."
   (interactive)
-  (help-setup-xref '(list-input-methods) (interactive-p))
+  (help-setup-xref '(list-input-methods)
+		   (called-interactively-p 'interactive))
   (with-output-to-temp-buffer (help-buffer)
     (list-input-methods-1)
     (with-current-buffer standard-output

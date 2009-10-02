@@ -1577,7 +1577,8 @@ returns t if the buffer had changes, nil otherwise."
     (error "Not a valid revision range"))
   ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
   ;; placement rules for (interactive) don't actually leave us a choice.
-  (vc-diff-internal t (vc-deduce-fileset) rev1 rev2 (interactive-p)))
+  (vc-diff-internal t (vc-deduce-fileset) rev1 rev2
+		    (called-interactively-p 'interactive)))
 
 ;; (defun vc-contains-version-controlled-file (dir)
 ;;   "Return t if DIR contains a version-controlled file, nil otherwise."
@@ -1598,7 +1599,8 @@ saving the buffer."
   (if historic
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
-    (vc-diff-internal t (vc-deduce-fileset) nil nil (interactive-p))))
+    (vc-diff-internal t (vc-deduce-fileset) nil nil
+		      (called-interactively-p 'interactive))))
 
 ;;;###autoload
 (defun vc-root-diff (historic &optional not-urgent)
@@ -1625,7 +1627,8 @@ saving the buffer."
       (setq rootdir (vc-call-backend backend 'root default-directory))
       (setq working-revision (vc-working-revision rootdir))
       (vc-diff-internal
-       t (list backend (list rootdir) working-revision) nil nil (interactive-p)))))
+       t (list backend (list rootdir) working-revision) nil nil
+       (called-interactively-p 'interactive)))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)

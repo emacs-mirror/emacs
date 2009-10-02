@@ -3773,7 +3773,7 @@ If MAJOR-MODE is set, set the macros only in that major mode."
 	       "///" 'vi-state
 	       [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	       scope)
-	      (if (interactive-p)
+	      (if (called-interactively-p 'interactive)
 		  (message
 		   "// and /// now toggle case-sensitivity and regexp search")))
 	  (viper-unrecord-kbd-macro "//" 'vi-state)
@@ -3796,7 +3796,7 @@ With a prefix argument, unsets the macro."
 	     "%%%" 'vi-state
 	     [(meta x) v i p e r - t o g g l e - p a r s e - s e x p - i g n o r e - c o m m e n t s return]
 	     't)
-	    (if (interactive-p)
+	    (if (called-interactively-p 'interactive)
 		(message
 		 "%%%%%% now toggles whether comments should be parsed for matching parentheses")))
 	(viper-unrecord-kbd-macro "%%%" 'vi-state))))
@@ -3825,7 +3825,7 @@ the macros are set in the current major mode.
 	     "///" 'emacs-state
 	     [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	     (or arg-majormode major-mode))
-	    (if (interactive-p)
+	    (if (called-interactively-p 'interactive)
 		(message
 		 "// and /// now toggle case-sensitivity and regexp search.")))
 	(viper-unrecord-kbd-macro "//" 'emacs-state)

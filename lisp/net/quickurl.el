@@ -368,7 +368,7 @@ is decided."
     (quickurl-load-urls)
     (let* ((current-url (quickurl-find-url word))
            (add-it      (if current-url
-                            (if (interactive-p)
+                            (if (called-interactively-p 'interactive)
                                 (y-or-n-p (format "\"%s\" exists, replace URL? " word))
                               t)
                           t)))
@@ -382,7 +382,7 @@ is decided."
         (quickurl-save-urls)
         (when (get-buffer quickurl-list-buffer-name)
           (quickurl-list-populate-buffer))
-        (when (interactive-p)
+        (when (called-interactively-p 'interactive)
           (message "Added %s" url))))))
 
 ;;;###autoload

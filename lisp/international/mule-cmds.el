@@ -403,7 +403,7 @@ A coding system that requires automatic detection of text+encoding
   (let ((base (coding-system-base coding-system))
 	(eol-type (coding-system-eol-type coding-system)))
     (set-coding-system-priority base)
-    (and (interactive-p)
+    (and (called-interactively-p 'interactive)
 	 (or (eq base coding-system)
 	     (message "Highest priority is set to %s (base of %s)"
 		      base coding-system)))
@@ -1530,7 +1530,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
       (setq input-method (symbol-name input-method)))
   (help-setup-xref (list #'describe-input-method
 			 (or input-method current-input-method))
-		   (interactive-p))
+		   (called-interactively-p 'interactive))
 
   (if (null input-method)
       (describe-current-input-method)
@@ -1544,7 +1544,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
 	(error
 	 (activate-input-method current)
 	 (help-setup-xref (list #'describe-input-method input-method)
-			  (interactive-p))
+			  (called-interactively-p 'interactive))
 	 (with-output-to-temp-buffer (help-buffer)
 	   (let ((elt (assoc input-method input-method-alist)))
 	     (princ (format
@@ -2067,7 +2067,7 @@ See `set-language-info-alist' for use in programs."
     (require feature))
   (let ((doc (get-language-info language-name 'documentation)))
     (help-setup-xref (list #'describe-language-environment language-name)
-		     (interactive-p))
+		     (called-interactively-p 'interactive))
     (with-output-to-temp-buffer (help-buffer)
       (save-excursion
 	(set-buffer standard-output)

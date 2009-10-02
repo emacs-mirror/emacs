@@ -1357,7 +1357,7 @@ that were operated on recently."
       (dolist (hook recentf-used-hooks)
         (apply hook-setup hook)))
     (run-hooks 'recentf-mode-hook)
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Recentf mode %sabled" (if recentf-mode "en" "dis"))))
   recentf-mode)
 

@@ -853,7 +853,8 @@ With a prefix argument (in Lisp, the argument TAKE-NOTES),
 store all errors found in a warnings buffer,
 otherwise stop after the first error."
   (interactive "P")
-  (if (interactive-p) (message "Checking buffer for style..."))
+  (if (called-interactively-p 'interactive)
+      (message "Checking buffer for style..."))
   ;; Assign a flag to spellcheck flag
   (let ((checkdoc-spellcheck-documentation-flag
 	 (car (memq checkdoc-spellcheck-documentation-flag
@@ -870,7 +871,7 @@ otherwise stop after the first error."
 	(checkdoc-start)
 	(checkdoc-message-text)
 	(checkdoc-rogue-spaces)
-	(not (interactive-p))
+	(not (called-interactively-p 'interactive))
 	(if take-notes (checkdoc-show-diagnostics))
 	(message "Checking buffer for style...Done."))))
 
@@ -884,7 +885,7 @@ a separate buffer."
   (interactive "P")
   (let ((p (point)))
     (goto-char (point-min))
-    (if (and take-notes (interactive-p))
+    (if (and take-notes (called-interactively-p 'interactive))
 	(checkdoc-start-section "checkdoc-start"))
     (checkdoc-continue take-notes)
     ;; Go back since we can't be here without success above.
@@ -920,7 +921,7 @@ is the starting location.  If this is nil, `point-min' is used instead."
 	  (if (not take-notes)
 	      (error "%s" (checkdoc-error-text msg)))))
     (checkdoc-show-diagnostics)
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "No style warnings."))))
 
 (defun checkdoc-next-docstring ()
@@ -968,7 +969,7 @@ Optional argument INTERACT permits more interactive fixing."
 	 (e (checkdoc-rogue-space-check-engine nil nil interact))
 	(checkdoc-generate-compile-warnings-flag
 	 (or take-notes checkdoc-generate-compile-warnings-flag)))
-    (if (not (interactive-p))
+    (if (not (called-interactively-p 'interactive))
 	e
       (if e
 	  (message "%s" (checkdoc-error-text e))
@@ -986,13 +987,14 @@ Optional argument TAKE-NOTES causes all errors to be logged."
 	 (checkdoc-generate-compile-warnings-flag
 	  (or take-notes checkdoc-generate-compile-warnings-flag)))
     (setq e (checkdoc-message-text-search))
-    (if (not (interactive-p))
+    (if (not (called-interactively-p 'interactive))
 	e
       (if e
 	  (error "%s" (checkdoc-error-text e))
 	(checkdoc-show-diagnostics)))
     (goto-char p))
-  (if (interactive-p) (message "Checking interactive message text...done.")))
+  (if (called-interactively-p 'interactive)
+      (message "Checking interactive message text...done.")))
 
 ;;;###autoload
 (defun checkdoc-eval-defun ()
@@ -1041,7 +1043,8 @@ space at the end of each line."
 	    (if msg (if no-error
 			(message "%s" (checkdoc-error-text msg))
 		      (error "%s" (checkdoc-error-text msg))))))
-	(if (interactive-p) (message "Checkdoc: done."))))))
+	(if (called-interactively-p 'interactive)
+	    (message "Checkdoc: done."))))))
 
 ;;; Ispell interface for forcing a spell check
 ;;

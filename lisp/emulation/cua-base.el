@@ -1599,7 +1599,7 @@ shifted movement key, set `cua-highlight-region-shift-only'."
     (if (nth 2 cua--saved-state)
 	(pc-selection-mode 1))
     (setq shift-select-mode (nth 3 cua--saved-state))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "CUA mode disabled.%s%s%s%s"
 		 (if (nth 1 cua--saved-state) " Delete-Selection" "")
 		 (if (and (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " and" "")

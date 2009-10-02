@@ -562,7 +562,7 @@ Use `todo-categories' instead.")
 		      todo-prefix todo-category-beg cat
 		      todo-category-end
 		      todo-prefix todo-category-sep))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
 	  ;; properly display the newly added category
 	  (progn (setq todo-category-number 0) (todo-show))
 	0))))

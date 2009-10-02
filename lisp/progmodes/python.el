@@ -1785,7 +1785,8 @@ will."
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
  	;; Fixme: Is this actually useful?
-	(help-setup-xref (list 'python-describe-symbol symbol) (interactive-p))
+	(help-setup-xref (list 'python-describe-symbol symbol)
+			 (called-interactively-p 'interactive))
 	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
 	(help-print-return-message))))
   (comint-redirect-send-command-to-process (format "emacs.ehelp(%S, %s)"
@@ -2797,7 +2798,7 @@ filter."
     (python-toggle-shells python-default-interpreter))
   (let ((args python-which-args))
     (when (and argprompt
-	       (interactive-p)
+	       (called-interactively-p 'interactive)
 	       (fboundp 'split-string))
       ;; TBD: Perhaps force "-i" in the final list?
       (setq args (split-string

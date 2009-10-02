@@ -442,7 +442,7 @@ the empty string."
 We need this because sometimes bookmark functions are invoked from
 menus, so `completing-read' never gets a chance to set `bookmark-history'."
   `(or
-    (interactive-p)
+    (called-interactively-p 'interactive)
     (setq bookmark-history (cons ,string bookmark-history))))
 
 (defvar bookmark-make-record-function 'bookmark-make-record-default
@@ -1494,7 +1494,7 @@ The leftmost column displays a D if the bookmark is flagged for
 deletion, or > if it is flagged for displaying."
   (interactive)
   (bookmark-maybe-load-default-file)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (switch-to-buffer (get-buffer-create "*Bookmark List*"))
     (set-buffer (get-buffer-create "*Bookmark List*")))
   (let ((inhibit-read-only t))

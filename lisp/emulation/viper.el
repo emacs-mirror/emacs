@@ -897,7 +897,8 @@ It also can't undo some Viper settings."
 
   (defadvice self-insert-command (around viper-self-insert-ad activate)
     "Ignore all self-inserting keys in the vi-state."
-    (if (and (eq viper-current-state 'vi-state) (interactive-p))
+    (if (and (eq viper-current-state 'vi-state)
+	     (called-interactively-p 'interactive))
 	(beep 1)
       ad-do-it
       ))

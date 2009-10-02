@@ -1382,7 +1382,8 @@ expand wildcards (if any) and visit multiple files."
 Like \\[find-file], but only allow a file that exists, and do not allow
 file names with wildcards."
    (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
-   (if (and (not (interactive-p)) (not (file-exists-p filename)))
+   (if (and (not (called-interactively-p 'interactive))
+	    (not (file-exists-p filename)))
        (error "%s does not exist" filename)
      (find-file filename)
      (current-buffer)))
@@ -5067,7 +5068,7 @@ With prefix argument ARG, turn auto-saving on if positive, else off."
   ;; turn it back on.
   (and (< buffer-saved-size 0)
        (setq buffer-saved-size 0))
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Auto-save %s (in this buffer)"
 	       (if buffer-auto-save-file-name "on" "off")))
   buffer-auto-save-file-name)

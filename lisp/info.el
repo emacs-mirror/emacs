@@ -4093,7 +4093,7 @@ the variable `Info-file-list-for-emacs'."
   (let ((command (key-binding key)))
     (cond ((null command)
 	   (message "%s is undefined" (key-description key)))
-	  ((and (interactive-p)
+	  ((and (called-interactively-p 'interactive)
 		(eq command 'execute-extended-command))
 	   (Info-goto-emacs-command-node
 	    (read-command "Find documentation for command: ")))

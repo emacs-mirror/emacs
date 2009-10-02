@@ -3334,7 +3334,8 @@ Return the new location of point."
           ((looking-at bibtex-any-valid-entry-type)
            ;; Parsing of entry failed
            (error "Syntactically incorrect BibTeX entry starts here"))
-          (t (if (interactive-p) (message "Not on a known BibTeX entry."))
+          (t (if (called-interactively-p 'interactive)
+		 (message "Not on a known BibTeX entry."))
              (goto-char pnt)))
     (point)))
 
@@ -4749,9 +4750,10 @@ Return the URL or nil if none can be generated."
                         (error "Match failed: %s" text)))
                     (if fmt (apply 'format fmt (nreverse obj))
                       (apply 'concat (nreverse obj)))))
-        (if (interactive-p) (message "%s" url))
+        (if (called-interactively-p 'interactive) (message "%s" url))
         (unless no-browse (browse-url url)))
-      (if (and (not url) (interactive-p)) (message "No URL known."))
+      (if (and (not url) (called-interactively-p 'interactive))
+	  (message "No URL known."))
       url)))
 
 

@@ -502,7 +502,7 @@ engine specific, widget :notify function to visualize xesam:url."
 		       'face 'xesam-mode-line
 		       'help-echo (when xesam-debug xesam-xml-string)))))))
 
-  (when (not (interactive-p))
+  (when (not (called-interactively-p 'interactive))
     ;; Initialize buffer.
     (setq buffer-read-only t)
     (let ((inhibit-read-only t))

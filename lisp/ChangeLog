@@ -1,5 +1,127 @@
 2009-10-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* allout.el (allout-init, allout-back-to-current-heading)
+	(allout-beginning-of-current-entry, allout-ascend-to-depth)
+	(allout-ascend, allout-up-current-level, allout-end-of-level)
+	(allout-previous-visible-heading, allout-forward-current-level)
+	(allout-backward-current-level, allout-show-children):
+	* apropos.el (apropos-describe-plist):
+	* bookmark.el (bookmark-maybe-historicize-string, bookmark-bmenu-list):
+	* comint.el (comint-strip-ctrl-m, comint-goto-process-mark):
+	* completion.el (add-completion, add-permanent-completion):
+	* descr-text.el (describe-text-category, describe-char):
+	* desktop.el (desktop-lazy-abort):
+	* dired-x.el (dired-omit-expunge, dired-x-bind-find-file):
+	* dired.el (dired-build-subdir-alist):
+	* ediff.el (ediff-version):
+	* elide-head.el (elide-head, elide-head-show):
+	* emerge.el (emerge-version):
+	* env.el (getenv):
+	* face-remap.el (variable-pitch-mode):
+	* faces.el (describe-face):
+	* ffap.el (ffap-next-url, find-file-at-point, ffap-at-mouse)
+	(dired-at-point):
+	* files.el (find-file-existing, auto-save-mode):
+	* font-lock.el (font-lock-fontify-buffer):
+	* help-fns.el (describe-function, describe-variable)
+	(describe-syntax, describe-categories):
+	* help.el (view-lossage, describe-bindings, describe-key)
+	(describe-mode):
+	* hexl.el (hexl-current-address):
+	* hi-lock.el (hi-lock-mode, hi-lock-find-patterns):
+	* info.el (Info-goto-emacs-key-command-node):
+	* log-edit.el (log-edit-insert-cvs-template)
+	(log-edit-insert-cvs-rcstemplate):
+	* menu-bar.el (menu-bar-mode):
+	* mouse.el (mouse-appearance-menu):
+	* newcomment.el (comment-indent-new-line):
+	* pgg.el (pgg-save-coding-system, pgg-encrypt-region)
+	(pgg-encrypt-symmetric-region, pgg-encrypt-symmetric)
+	(pgg-encrypt, pgg-decrypt-region, pgg-decrypt, )
+	(pgg-sign-region, pgg-sign, pgg-verify-region, pgg-verify):
+	* recentf.el (recentf-mode):
+	* savehist.el (savehist-mode, savehist-save):
+	* shadowfile.el (shadow-copy-files):
+	* simple.el (kill-ring-save, next-line, previous-line)
+	(normal-erase-is-backspace-mode):
+	* strokes.el (strokes-update-window-configuration)
+	(strokes-load-user-strokes, strokes-prompt-user-save-strokes)
+	(strokes-xpm-for-stroke):
+	* time.el (emacs-uptime, emacs-init-time):
+	* tutorial.el (tutorial--describe-nonstandard-key)
+	(tutorial--detailed-help):
+	* type-break.el (type-break-mode)
+	(type-break-mode-line-message-mode, type-break-query-mode)
+	(type-break-guesstimate-keystroke-threshold):
+	* vc.el (vc-version-diff, vc-diff, vc-root-diff):
+	* version.el (emacs-version):
+	* vt-control.el (vt-keypad-on, vt-keypad-off, vt-numlock):
+	* winner.el (winner-mode):
+	* calendar/timeclock.el (timeclock-in, timeclock-out)
+	(timeclock-status-string, timeclock-change)
+	(timeclock-workday-remaining-string)
+	(timeclock-workday-elapsed-string)
+	(timeclock-when-to-leave-string):
+	* calendar/todo-mode.el (todo-add-category):
+	* emacs-lisp/advice.el (ad-enable-regexp, ad-disable-regexp):
+	* emacs-lisp/autoload.el (update-file-autoloads):
+	* emacs-lisp/checkdoc.el (checkdoc-current-buffer)
+	(checkdoc-start, checkdoc-continue, checkdoc-rogue-spaces)
+	(checkdoc-message-text, checkdoc-defun):
+	* emacs-lisp/debug.el (debugger-list-functions):
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	* emacs-lisp/eieio-opt.el (eieio-describe-class)
+	(eieio-describe-generic):
+	* emacs-lisp/lisp-mnt.el (lm-synopsis):
+	* emacs-lisp/shadow.el (list-load-path-shadows):
+	* emulation/cua-base.el (cua-mode):
+	* emulation/edt.el (edt-set-scroll-margins):
+	* emulation/tpu-edt.el (tpu-toggle-newline-and-indent)
+	(tpu-toggle-regexp, tpu-toggle-search-direction)
+	(tpu-toggle-rectangle, tpu-toggle-control-keys):
+	* emulation/tpu-extras.el (tpu-set-scroll-margins):
+	* emulation/viper-cmd.el (viper-set-searchstyle-toggling-macros)
+	(viper-set-parsing-style-toggling-macro)
+	(viper-set-emacs-state-searchstyle-macros):
+	* emulation/viper.el (viper-set-hooks):
+	* eshell/esh-mode.el (eshell-truncate-buffer):
+	* international/mule-cmds.el (prefer-coding-system)
+	(describe-input-method, describe-language-environment):
+	* international/mule-diag.el (list-character-sets)
+	(describe-character-set, describe-coding-system)
+	(describe-fontset, list-fontsets, list-input-methods):
+	* mail/sendmail.el (mail-signature):
+	* net/ange-ftp.el (ange-ftp-copy-file):
+	* net/browse-url.el (browse-url):
+	* net/eudc.el (eudc-set-server, eudc-get-attribute-list):
+	* net/quickurl.el (quickurl-add-url):
+	* net/rcirc.el (names, topic):
+	* net/xesam.el (xesam-mode):
+	* play/5x5.el (5x5-new-game):
+	* play/yow.el (apropos-zippy):
+	* progmodes/ada-mode.el (ada-mode-version):
+	* progmodes/f90.el (f90-beginning-of-subprogram, f90-end-of-subprogram)
+	(f90-end-of-block)
+	(f90-beginning-of-block):
+	* progmodes/fortran.el (fortran-end-of-block)
+	(fortran-beginning-of-block):
+	* progmodes/js.el (js-syntactic-context, js-gc, js-eval):
+	* progmodes/python.el (python-describe-symbol, python-shell):
+	* term/ns-win.el (ns-print-buffer):
+	* textmodes/bibtex.el (bibtex-end-of-entry, bibtex-url):
+	* textmodes/flyspell.el (flyspell-mode-on):
+	* textmodes/page-ext.el (set-page-delimiter, pages-directory)
+	(pages-directory-for-addresses):
+	* textmodes/table.el (table-recognize-cell)
+	(table-query-dimension, table-generate-source)
+	(table-insert-sequence, table--warn-incompatibility):
+	* textmodes/tex-mode.el (tex-validate-buffer):
+	* textmodes/texinfmt.el (texinfmt-version)
+	(texinfo-format-buffer):
+	Use `called-interactively-p' instead of `interactive-p'.
+
+2009-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
 	* image-mode.el (image-toggle-display):
 	* emacs-lisp/elp.el (elp-instrument-function):
 	* emacs-lisp/advice.el (ad-make-advised-definition):

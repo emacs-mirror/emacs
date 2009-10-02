@@ -595,7 +595,7 @@ This functions works by temporarily binding `dired-marker-char' to
 `dired-omit-marker-char' and calling `dired-do-kill-lines'."
   (interactive "sOmit files (regexp): ")
   (if (and dired-omit-mode
-           (or (interactive-p)
+           (or (called-interactively-p 'interactive)
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
 	       (progn
@@ -1640,7 +1640,7 @@ Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
 Binding direction based on `dired-x-hands-off-my-keys'.
 This function is part of `after-init-hook'."
   (interactive)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
             (not (y-or-n-p "Bind dired-x-find-file over find-file? "))))
   (cond ((not dired-x-hands-off-my-keys)

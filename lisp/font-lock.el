@@ -1019,7 +1019,8 @@ The region it returns may start or end in the middle of a line.")
   "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)
   (font-lock-set-defaults)
-  (let ((font-lock-verbose (or font-lock-verbose (interactive-p))))
+  (let ((font-lock-verbose (or font-lock-verbose
+			       (called-interactively-p 'interactive))))
     (funcall font-lock-fontify-buffer-function)))
 
 (defun font-lock-unfontify-buffer ()

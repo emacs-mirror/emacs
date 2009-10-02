@@ -999,10 +999,10 @@ a key."
       (beginning-of-line)
       (let ((pos (point)))
 	(if (bobp)
-	    (if (interactive-p)
+	    (if (called-interactively-p 'interactive)
 		(message "Buffer too short to truncate"))
 	  (delete-region (point-min) (point))
-	  (if (interactive-p)
+	  (if (called-interactively-p 'interactive)
 	      (message "Truncated buffer from %d to %d lines (%.1fk freed)"
 		       lines eshell-buffer-maximum-lines
 		       (/ pos 1024.0))))))))

@@ -241,7 +241,7 @@ function, `find-emacs-lisp-shadows'."
 	  (setq shadows (cdr (cdr shadows))))
 	(if stringp
 	    (buffer-string)
-	  (if (interactive-p)
+	  (if (called-interactively-p 'interactive)
 	      (save-excursion
 		;; We are interactive.
 		;; Create the *Shadows* buffer and display shadowings there.

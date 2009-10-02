@@ -1055,7 +1055,7 @@ This is based on the last time `strokes-window-configuration' was updated."
 	   ;; don't try to update strokes window configuration
 	   ;; if window is dedicated or a minibuffer
 	   nil)
-	  ((or (interactive-p)
+	  ((or (called-interactively-p 'interactive)
 	       (not (buffer-live-p (get-buffer strokes-buffer-name)))
 	       (null strokes-window-configuration))
 	   ;; create `strokes-window-configuration' from scratch...
@@ -1092,7 +1092,7 @@ This is based on the last time `strokes-window-configuration' was updated."
   (cond ((and (file-exists-p strokes-file)
 	      (file-readable-p strokes-file))
 	 (load-file strokes-file))
-	((interactive-p)
+	((called-interactively-p 'interactive)
 	 (error "Trouble loading user-defined strokes; nothing done"))
 	(t
 	 (message "No user-defined strokes, sorry"))))
@@ -1107,7 +1107,7 @@ This is based on the last time `strokes-window-configuration' was updated."
 	    (setq strokes-global-map nil)
 	    (strokes-load-user-strokes)
 	    (if (and (not (equal current strokes-global-map))
-		     (or (interactive-p)
+		     (or (called-interactively-p 'interactive)
 			 (yes-or-no-p "Save your strokes? ")))
 		(progn
 		  (require 'pp)		; pretty-print variables
@@ -1202,7 +1202,7 @@ the stroke as a character in some language."
 		  ((strokes-lift-p point)
 		   ;; a lift--tell the loop to X out the next point...
 		   (setq lift-flag t))))
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(pop-to-buffer " *strokes-xpm*")
 	;;	(xpm-mode 1)
 	(goto-char (point-min))

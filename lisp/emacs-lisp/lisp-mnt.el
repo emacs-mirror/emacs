@@ -583,7 +583,7 @@ which do not include a recognizable synopsis."
       (let ((must-kill (and file (not (get-file-buffer file)))))
         (when file (find-file file))
         (prog1
-            (if (interactive-p)
+            (if (called-interactively-p 'interactive)
                 (message "%s" (lm-summary))
               (lm-summary))
           (when must-kill (kill-buffer (current-buffer))))))))

@@ -2014,7 +2014,7 @@ activity.  Only run if the buffer is not visible and
   "Display list of names in CHANNEL or in current channel if CHANNEL is nil.
 If called interactively, prompt for a channel when prefix arg is supplied."
   (interactive "P")
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (if channel
           (setq channel (read-string "List names in channel: " target))))
   (let ((channel (if (> (length channel) 0)
@@ -2026,7 +2026,7 @@ If called interactively, prompt for a channel when prefix arg is supplied."
   "List TOPIC for the TARGET channel.
 With a prefix arg, prompt for new topic."
   (interactive "P")
-  (if (and (interactive-p) topic)
+  (if (and (called-interactively-p 'interactive) topic)
       (setq topic (read-string "New Topic: " rcirc-topic)))
   (rcirc-send-string process (concat "TOPIC " target
                                      (when (> (length topic) 0)

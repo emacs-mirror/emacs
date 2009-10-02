@@ -94,7 +94,7 @@ but can be invoked directly in `fast' mode.")
   "Return string describing the version of Emerge.
 When called interactively, displays the version."
   (interactive)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Emerge version %s" emacs-version)
     emacs-version))
 

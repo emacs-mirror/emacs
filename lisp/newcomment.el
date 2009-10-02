@@ -1236,7 +1236,7 @@ if we're not inside a comment."
                              (buffer-substring (point)
                                                (progn (move-to-left-margin)
                                                       (point)))))))))))))
-                    
+
 
 ;;;###autoload
 (defun comment-indent-new-line (&optional soft)
@@ -1260,7 +1260,7 @@ unless optional argument SOFT is non-nil."
     ;; don't do anything (unless no comment syntax is defined).
     (unless (and comment-start
 		 comment-auto-fill-only-comments
-		 (not (interactive-p))
+		 (not (called-interactively-p 'interactive))
 		 (not (save-excursion
 			(prog1 (setq compos (comment-beginning))
 			  (setq comin (point))))))

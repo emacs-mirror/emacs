@@ -884,7 +884,7 @@ With argument, fill and justify."
          (setq tpu-newline-and-indent-p t)
          (tpu-local-set-key "\C-m" 'newline-and-indent)))
   (tpu-update-mode-line)
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Carriage return inserts a newline%s"
 		(if tpu-newline-and-indent-p " and indents." "."))))
 
@@ -1305,7 +1305,7 @@ kill modified buffers without asking."
   (interactive)
   (setq tpu-regexp-p (not tpu-regexp-p))
   (tpu-set-search)
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Regular expression search and substitute %sabled."
 		(if tpu-regexp-p "en" "dis"))))
 
@@ -1450,7 +1450,7 @@ Used for reversing a search in progress."
   (interactive)
   (setq tpu-searching-forward (not tpu-searching-forward))
   (tpu-set-search t)
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Searching %sward."
 		(if tpu-searching-forward "for" "back"))))
 
@@ -1501,7 +1501,7 @@ Used for reversing a search in progress."
   (setq tpu-rectangular-p (not tpu-rectangular-p))
   (setq tpu-rectangle-string (if tpu-rectangular-p " Rect" ""))
   (tpu-update-mode-line)
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Rectangular cut and paste %sabled."
 		(if tpu-rectangular-p "en" "dis"))))
 
@@ -2273,7 +2273,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
   "Toggle control key bindings between TPU-edt and Emacs."
   (interactive)
   (tpu-reset-control-keys (not tpu-control-keys))
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Control keys function with %s bindings."
 		(if tpu-control-keys "TPU-edt" "Emacs"))))
 
@@ -2438,7 +2438,7 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "a7e10e36bed23a02f05ec5a69ae8569a")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "54d496981b1b831be427cbe3521e01d1")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\

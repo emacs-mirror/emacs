@@ -338,7 +338,7 @@ is found.  A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   :keymap hi-lock-map
   (when (and (equal (buffer-name) "*scratch*")
              load-in-progress
-             (not (interactive-p))
+             (not (called-interactively-p 'interactive))
              (not hi-lock-archaic-interface-message-used))
     (setq hi-lock-archaic-interface-message-used t)
     (if hi-lock-archaic-interface-deduce
@@ -636,7 +636,7 @@ This is used by `hi-lock-set-pattern'.")
                    (y-or-n-p "Add patterns from this buffer to hi-lock? "))
                   (t nil)))
         (hi-lock-set-file-patterns all-patterns)
-        (if (interactive-p)
+        (if (called-interactively-p 'interactive)
             (message "Hi-lock added %d patterns." (length all-patterns)))))))
 
 (defun hi-lock-font-lock-hook ()

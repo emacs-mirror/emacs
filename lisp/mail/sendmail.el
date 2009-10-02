@@ -1437,7 +1437,7 @@ Prefix argument ATPOINT means insert at point rather than the end."
   ;; whitespace, so that we don't modify the buffer needlessly.
   (if (and (memq mail-signature '(t nil))
 	   (not (file-readable-p mail-signature-file)))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
 	  (message "The signature file `%s' could not be read"
 		   mail-signature-file))
     (save-excursion

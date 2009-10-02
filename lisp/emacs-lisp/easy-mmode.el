@@ -533,7 +533,7 @@ BODY is executed after moving to the destination location."
                     (error "No next %s" ,name))
                 (goto-char (match-beginning 0))
                 (when (and (eq (current-buffer) (window-buffer (selected-window)))
-                           (interactive-p))
+                           (called-interactively-p 'interactive))
                   (let ((endpt (or (save-excursion
                                      ,(if endfun `(,endfun)
                                         `(re-search-forward ,re nil t 2)))

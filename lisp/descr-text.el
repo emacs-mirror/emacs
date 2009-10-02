@@ -101,7 +101,8 @@ into help buttons that call `describe-text-category' or
 (defun describe-text-category (category)
   "Describe a text property category."
   (interactive "SCategory: ")
-  (help-setup-xref (list #'describe-text-category category) (interactive-p))
+  (help-setup-xref (list #'describe-text-category category)
+		   (called-interactively-p 'interactive))
   (save-excursion
     (with-output-to-temp-buffer "*Help*"
       (set-buffer standard-output)
@@ -607,7 +608,7 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (help-setup-xref nil (interactive-p))
+    (help-setup-xref nil (called-interactively-p 'interactive))
     (with-help-window (help-buffer)
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)

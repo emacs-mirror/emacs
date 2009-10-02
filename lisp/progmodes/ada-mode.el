@@ -135,7 +135,7 @@
   "Return Ada mode version."
   (interactive)
   (let ((version-string "4.00"))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message version-string)
       version-string)))
 

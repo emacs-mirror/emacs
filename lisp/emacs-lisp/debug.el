@@ -873,7 +873,8 @@ To specify a nil argument interactively, exit with an empty minibuffer."
   "Display a list of all the functions now set to debug on entry."
   (interactive)
   (require 'help-mode)
-  (help-setup-xref '(debugger-list-functions) (interactive-p))
+  (help-setup-xref '(debugger-list-functions)
+		   (called-interactively-p 'interactive))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
       (if (null debug-function-list)

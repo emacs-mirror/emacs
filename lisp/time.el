@@ -562,7 +562,7 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
                          (float-time
                           (time-subtract (current-time) before-init-time)))))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message "%s" str)
       str)))
 
@@ -574,7 +574,7 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
 	 (format "%.1f seconds"
 		 (float-time
 		  (time-subtract after-init-time before-init-time)))))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message "%s" str)
       str)))
 

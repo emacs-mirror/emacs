@@ -3797,7 +3797,7 @@ Value is (0 0) if the modification time cannot be determined."
 			       keep-date
 			       nil
 			       nil
-			       (interactive-p)))
+			       (called-interactively-p 'interactive)))
 
 (defun ange-ftp-copy-files-async (okay-p line verbose-p files)
   "Copy some files in the background.

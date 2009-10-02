@@ -510,7 +510,7 @@ Pending copies are stored in variable `shadow-files-to-copy', and in
 call it manually."
   (interactive "P")
   (if (not shadow-files-to-copy)
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
 	  (message "No files need to be shadowed."))
     (save-excursion
       (map-y-or-n-p (function

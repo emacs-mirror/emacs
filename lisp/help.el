@@ -461,7 +461,8 @@ is specified by the variable `message-log-max'."
 
 To record all your input on a file, use `open-dribble-file'."
   (interactive)
-  (help-setup-xref (list #'view-lossage) (interactive-p))
+  (help-setup-xref (list #'view-lossage)
+		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
     (princ (mapconcat (lambda (key)
 			(if (or (integerp key) (symbolp key) (listp key))
@@ -492,7 +493,8 @@ to display (default, the current buffer).  BUFFER can be a buffer
 or a buffer name."
   (interactive)
   (or buffer (setq buffer (current-buffer)))
-  (help-setup-xref (list #'describe-bindings prefix buffer) (interactive-p))
+  (help-setup-xref (list #'describe-bindings prefix buffer)
+		   (called-interactively-p 'interactive))
   (with-current-buffer buffer
     (describe-bindings-internal nil prefix)))
 
@@ -721,7 +723,8 @@ temporarily enables it to allow getting help on disabled items and buttons."
     (if (or (null defn) (integerp defn) (equal defn 'undefined))
 	(message "%s%s is undefined"
 		 (help-key-description key untranslated) mouse-msg)
-      (help-setup-xref (list #'describe-function defn) (interactive-p))
+      (help-setup-xref (list #'describe-function defn)
+		       (called-interactively-p 'interactive))
       ;; Don't bother user with strings from (e.g.) the select-paste menu.
       (when (stringp (aref key (1- (length key))))
 	(aset key (1- (length key)) "(any string)"))
@@ -798,7 +801,7 @@ whose documentation describes the minor mode."
   (interactive "@")
   (unless buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-mode buffer)
-		   (interactive-p))
+		   (called-interactively-p 'interactive))
   ;; For the sake of help-do-xref and help-xref-go-back,
   ;; don't switch buffers before calling `help-buffer'.
   (with-help-window (help-buffer)

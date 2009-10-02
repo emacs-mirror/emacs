@@ -203,7 +203,7 @@ which is probably undesirable."
 	    ;; coding cookie to convey that information.  That way, if
 	    ;; the user changes the value of savehist-coding-system,
 	    ;; we can still correctly load the old file.
-	    (load savehist-file nil (not (interactive-p)))
+	    (load savehist-file nil (not (called-interactively-p 'interactive)))
 	    (setq savehist-loaded t))
 	(error
 	 ;; Don't install the mode if reading failed.  Doing so would
@@ -351,7 +351,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	(let ((file-precious-flag t)
 	      (coding-system-for-write savehist-coding-system))
 	  (write-region (point-min) (point-max) savehist-file nil
-			(unless (interactive-p) 'quiet)))
+			(unless (called-interactively-p 'interactive) 'quiet)))
 	(when savehist-file-modes
 	  (set-file-modes savehist-file savehist-file-modes))
 	(setq savehist-last-checksum checksum)))))

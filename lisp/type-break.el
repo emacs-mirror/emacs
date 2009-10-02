@@ -386,7 +386,7 @@ problems."
 
     (cond
      ((and already-enabled type-break-mode)
-      (and (interactive-p)
+      (and (called-interactively-p 'interactive)
            (message "Type Break mode is already enabled")))
      (type-break-mode
       (when type-break-file-name
@@ -430,7 +430,7 @@ problems."
        type-break-interval-start
        type-break-interval)
 
-      (and (interactive-p)
+      (and (called-interactively-p 'interactive)
            (message "Type Break mode is enabled and set")))
      (t
       (type-break-keystroke-reset)
@@ -443,7 +443,7 @@ problems."
 	  (set-buffer-modified-p nil)
 	  (unlock-buffer)
 	  (kill-this-buffer)))
-      (and (interactive-p)
+      (and (called-interactively-p 'interactive)
            (message "Type Break mode is disabled")))))
   type-break-mode)
 
@@ -465,7 +465,7 @@ Variables controlling the display of messages in the mode line include:
   (interactive "P")
   (setq type-break-mode-line-message-mode
         (>= (prefix-numeric-value prefix) 0))
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (if type-break-mode-line-message-mode
            (message "type-break-mode-line-message-mode is enabled")
          (message "type-break-mode-line-message-mode is disabled")))
@@ -486,7 +486,7 @@ variable of the same name."
   (interactive "P")
   (setq type-break-query-mode
         (>= (prefix-numeric-value prefix) 0))
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (if type-break-query-mode
            (message "type-break-query-mode is enabled")
          (message "type-break-query-mode is disabled")))
@@ -1015,7 +1015,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
         (setq type-break-keystroke-threshold (cons nil nil)))
     (setcar type-break-keystroke-threshold lower)
     (setcdr type-break-keystroke-threshold upper)
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message "min threshold: %d\tmax threshold: %d" lower upper))
     type-break-keystroke-threshold))
 

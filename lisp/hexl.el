@@ -448,7 +448,7 @@ Ask the user for confirmation."
 	     (if (>= current-column 41)
 		 (- current-column 41)
 	       (/ (- current-column  (/ current-column 5)) 2))))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Current address is %d/0x%08x" hexl-address hexl-address))
     hexl-address))
 

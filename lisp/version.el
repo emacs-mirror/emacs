@@ -55,7 +55,7 @@ Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
-         (format (if (not (interactive-p))
+         (format (if (not (called-interactively-p 'interactive))
 		     "GNU Emacs %s (%s%s%s)\n of %s on %s"
 		   "GNU Emacs %s (%s%s%s) of %s on %s")
                  emacs-version
@@ -77,7 +77,7 @@ to the system configuration; look at `system-configuration' instead."
                  emacs-build-system)))
     (if here
         (insert version-string)
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "%s" version-string)
         version-string))))
 

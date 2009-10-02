@@ -888,7 +888,7 @@ unless the current buffer is a scratch buffer."
 (defun ns-print-buffer ()
   "Interactive front-end to `print-buffer': asks for user confirmation first."
   (interactive)
-  (if (and (interactive-p)
+  (if (and (called-interactively-p 'interactive)
            (or (listp last-nonmenu-event)
                (and (char-or-string-p (event-basic-type last-command-event))
                     (memq 'super (event-modifiers last-command-event)))))

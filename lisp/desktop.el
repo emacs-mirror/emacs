@@ -1280,7 +1280,7 @@ If there are no buffers left to create, kill the timer."
     (setq desktop-lazy-timer nil))
   (when desktop-buffer-args-list
     (setq desktop-buffer-args-list nil)
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Lazy desktop load aborted"))))
 
 ;; ----------------------------------------------------------------------------

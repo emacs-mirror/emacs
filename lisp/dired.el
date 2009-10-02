@@ -2373,7 +2373,7 @@ instead of `dired-actual-switches'."
 			       (goto-char (match-beginning 0))
 			       (beginning-of-line)
 			       (point-marker)))))
-      (if (and (> count 1) (interactive-p))
+      (if (and (> count 1) (called-interactively-p 'interactive))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per
     ;; constructionem.  Return new alist:
@@ -3914,7 +3914,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "1a0298749959c80c24c73b8bec5f1f74")
+;;;;;;  "7c58535b489f23d5503ef8219c7d1282")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

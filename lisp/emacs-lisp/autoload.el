@@ -505,7 +505,7 @@ Return FILE if there was no autoload cookie in it, else nil."
          (no-autoloads (autoload-generate-file-autoloads file)))
     (if autoload-modified-buffers
         (if save-after (autoload-save-buffers))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "Autoload section for %s is up to date." file)))
     (if no-autoloads file)))
 

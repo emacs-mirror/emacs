@@ -507,7 +507,7 @@ resets the page-delimiter to the original value."
   (if (not reset-p)
       (setq page-delimiter regexp)
     (setq page-delimiter original-page-delimiter))
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "The value of `page-delimiter' is now: %s" page-delimiter)))
 
 
@@ -565,7 +565,7 @@ directory for only the accessible portion of the buffer."
       (setq regexp pages-directory-previous-regexp)
     (setq pages-directory-previous-regexp regexp))
 
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Creating directory for: %s "
                (buffer-name)))
 
@@ -633,7 +633,7 @@ directory for only the accessible portion of the buffer."
       (set-buffer standard-output)
       ;; Put positions in increasing order to go with buffer.
       (setq pages-pos-list (nreverse pages-pos-list))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "%d matching lines in: %s"
                    (length pages-pos-list) (buffer-name pages-target-buffer))))
     (pop-to-buffer pages-directory-buffer)
@@ -765,7 +765,7 @@ directory."
    (list (if current-prefix-arg
              (read-file-name "Filename: " pages-addresses-file-name))))
 
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Creating directory for: %s "
                (or filename pages-addresses-file-name)))
   (if (file-exists-p (or filename pages-addresses-file-name))

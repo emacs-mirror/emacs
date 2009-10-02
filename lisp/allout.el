@@ -1590,7 +1590,7 @@ the following two lines in your Emacs init file:
 \(allout-init t)"
 
   (interactive)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (progn
 	(setq mode
 	      (completing-read
@@ -1614,7 +1614,7 @@ the following two lines in your Emacs init file:
     (cond ((not mode)
 	   (set find-file-hook-var-name
                 (delq hook (symbol-value find-file-hook-var-name)))
-	   (if (interactive-p)
+	   (if (called-interactively-p 'interactive)
 	       (message "Allout outline mode auto-activation inhibited.")))
 	  ((eq mode 'report)
 	   (if (not (memq hook (symbol-value find-file-hook-var-name)))
@@ -2901,7 +2901,7 @@ of (before any) topics, in which case we return nil."
   (let ((bol-point (point)))
     (if (allout-goto-prefix-doublechecked)
         (if (<= (point) bol-point)
-            (if (interactive-p)
+            (if (called-interactively-p 'interactive)
                 (allout-end-of-prefix)
               (point))
           (goto-char (point-min))
@@ -2968,7 +2968,7 @@ If already there, move cursor to bullet for hot-spot operation.
         (goto-char allout-recent-prefix-end)
       (goto-char (point-min)))
     (allout-end-of-prefix)
-    (if (and (interactive-p)
+    (if (and (called-interactively-p 'interactive)
 	     (= (point) start-point))
 	(goto-char (allout-current-bullet-pos)))))
 ;;;_   > allout-end-of-entry (&optional inclusive)
@@ -3018,7 +3018,7 @@ collapsed."
         (while (and (< depth allout-recent-depth)
                     (setq last-ascended (allout-ascend))))
         (goto-char allout-recent-prefix-beginning)
-        (if (interactive-p) (allout-end-of-prefix))
+        (if (called-interactively-p 'interactive) (allout-end-of-prefix))
         (and last-ascended allout-recent-depth))))
 ;;;_   > allout-ascend ()
 (defun allout-ascend (&optional dont-move-if-unsuccessful)
@@ -3046,7 +3046,7 @@ which case point is returned to its original starting location."
                    (goto-char bolevel)
                    (allout-depth)
                    nil))))
-    (if (interactive-p) (allout-end-of-prefix))))
+    (if (called-interactively-p 'interactive) (allout-end-of-prefix))))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
   "Descend to depth DEPTH within current topic.
@@ -3074,7 +3074,7 @@ Returning depth if successful, nil if not."
     (if (not (allout-ascend))
         (progn (goto-char start-point)
                (error "Can't ascend past outermost level"))
-      (if (interactive-p) (allout-end-of-prefix))
+      (if (called-interactively-p 'interactive) (allout-end-of-prefix))
       allout-recent-prefix-beginning)))
 
 ;;;_  - Linear
@@ -3219,7 +3219,7 @@ Presumes point is at the start of a topic prefix."
   (let ((depth (allout-depth)))
     (while (allout-previous-sibling depth nil))
     (prog1 allout-recent-depth
-      (if (interactive-p) (allout-end-of-prefix)))))
+      (if (called-interactively-p 'interactive) (allout-end-of-prefix)))))
 ;;;_   > allout-next-visible-heading (arg)
 (defun allout-next-visible-heading (arg)
   "Move to the next ARG'th visible heading line, backward if arg is negative.
@@ -3272,7 +3272,7 @@ A heading line is one that starts with a `*' (or that `allout-regexp'
 matches)."
   (interactive "p")
   (prog1 (allout-next-visible-heading (- arg))
-    (if (interactive-p) (allout-end-of-prefix))))
+    (if (called-interactively-p 'interactive) (allout-end-of-prefix))))
 ;;;_   > allout-forward-current-level (arg)
 (defun allout-forward-current-level (arg)
   "Position point at the next heading of the same level.
@@ -3293,7 +3293,7 @@ Returns resulting position, else nil if none found."
                     (allout-previous-sibling)
                   (allout-next-sibling)))
       (setq arg (1- arg)))
-    (if (not (interactive-p))
+    (if (not (called-interactively-p 'interactive))
         nil
       (allout-end-of-prefix)
       (if (not (zerop arg))
@@ -3306,7 +3306,7 @@ Returns resulting position, else nil if none found."
 (defun allout-backward-current-level (arg)
   "Inverse of `allout-forward-current-level'."
   (interactive "p")
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (let ((current-prefix-arg (* -1 arg)))
 	(call-interactively 'allout-forward-current-level))
     (allout-forward-current-level (* -1 arg))))
@@ -4845,7 +4845,7 @@ point of non-opened subtree?)"
                  (to-reveal (or (allout-chart-to-reveal chart chart-level)
                                 ;; interactive, show discontinuous children:
                                 (and chart
-                                     (interactive-p)
+                                     (called-interactively-p 'interactive)
                                      (save-excursion
                                        (allout-back-to-current-heading)
                                        (setq depth (allout-current-depth))

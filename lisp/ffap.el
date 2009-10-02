@@ -360,7 +360,7 @@ Actual search is done by `ffap-next-guess'."
   "Like `ffap-next', but search with `ffap-url-regexp'."
   (interactive)
   (let ((ffap-next-regexp ffap-url-regexp))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(call-interactively 'ffap-next)
       (ffap-next back wrap))))
 
@@ -1416,7 +1416,7 @@ If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
 and the functions `ffap-file-at-point' and `ffap-url-at-point'."
   (interactive)
-  (if (and (interactive-p)
+  (if (and (called-interactively-p 'interactive)
 	   (if ffap-require-prefix (not current-prefix-arg)
 	     current-prefix-arg))
       ;; Do exactly the ffap-file-finder command, even the prompting:
@@ -1624,7 +1624,7 @@ Return value:
 	    (find-file-at-point guess)
 	    guess)			; success: return non-nil
 	(ffap-highlight t)))
-     ((interactive-p)
+     ((called-interactively-p 'interactive)
       (if ffap-at-mouse-fallback
 	  (call-interactively ffap-at-mouse-fallback)
 	(message "No file or url found at mouse click.")
@@ -1780,7 +1780,7 @@ ffap most of the time."
 (defun dired-at-point (&optional filename)
   "Start Dired, defaulting to file at point.  See `ffap'."
   (interactive)
-  (if (and (interactive-p)
+  (if (and (called-interactively-p 'interactive)
 	   (if dired-at-point-require-prefix
 	       (not current-prefix-arg)
 	     current-prefix-arg))

@@ -218,7 +218,7 @@
 ;;  "Make `car' an interactive function."
 ;;   (interactive "xCar of list: ")
 ;;   ad-do-it
-;;   (if (interactive-p)
+;;   (if (called-interactively-p 'interactive)
 ;;       (message "%s" ad-return-value)))
 
 
@@ -2390,7 +2390,7 @@ All currently advised functions will be considered."
   (interactive
    (list (ad-read-regexp "Enable advices via regexp")))
   (let ((matched-advices (ad-enable-regexp-internal regexp 'any t)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "%d matching advices enabled" matched-advices))
     matched-advices))
 
@@ -2400,7 +2400,7 @@ All currently advised functions will be considered."
   (interactive
    (list (ad-read-regexp "Disable advices via regexp")))
   (let ((matched-advices (ad-enable-regexp-internal regexp 'any nil)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "%d matching advices disabled" matched-advices))
     matched-advices))
 

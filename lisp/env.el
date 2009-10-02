@@ -203,7 +203,7 @@ in the environment list of the selected frame."
 					   (frame-parameters frame))))))
     (if (and enable-multibyte-characters value)
 	(setq value (decode-coding-string value locale-coding-system)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "%s" (if value value "Not set")))
     value))
 

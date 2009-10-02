@@ -604,7 +604,7 @@ in your .emacs file.
   ;; the welcome message
   (if (and flyspell-issue-message-flag
 	   flyspell-issue-welcome-flag
-	   (interactive-p))
+	   (called-interactively-p 'interactive))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
 					nil 'non-ascii)))
 	(message "%s"

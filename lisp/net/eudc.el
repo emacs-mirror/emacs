@@ -706,7 +706,7 @@ server for future sessions."
   (setq eudc-server server)
   (eudc-update-local-variables)
   (run-hooks 'eudc-switch-to-server-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Current directory server is now %s (%s)" eudc-server eudc-protocol))
   (if (null no-save)
       (eudc-save-options)))
@@ -753,9 +753,10 @@ When called interactively the list is formatted in a dedicated buffer
 otherwise a list of symbols is returned."
   (interactive)
   (if eudc-list-attributes-function
-      (let ((entries (funcall eudc-list-attributes-function (interactive-p))))
+      (let ((entries (funcall eudc-list-attributes-function
+			      (called-interactively-p 'interactive))))
 	(if entries
-	    (if (interactive-p)
+	    (if (called-interactively-p 'interactive)
 		(eudc-display-records entries t)
 	      entries)))
     (error "The %s protocol has no support for listing attributes" eudc-protocol)))

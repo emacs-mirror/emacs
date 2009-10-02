@@ -378,7 +378,8 @@ discover the name of the project."
 					       60 60.0) 60))))))
     (timeclock-log "i" (or project
 			   (and timeclock-get-project-function
-				(or find-project (interactive-p))
+				(or find-project
+				    (called-interactively-p 'interactive))
 				(funcall timeclock-get-project-function))))
     (run-hooks 'timeclock-in-hook)))
 
@@ -401,7 +402,7 @@ discover the reason."
      (if arg "O" "o")
      (or reason
 	 (and timeclock-get-reason-function
-	      (or find-reason (interactive-p))
+	      (or find-reason (called-interactively-p 'interactive))
 	      (funcall timeclock-get-reason-function))))
     (run-hooks 'timeclock-out-hook)
     (if arg
@@ -445,7 +446,7 @@ worked today, ignoring the time worked on previous days."
 		  (if (> remainder 0)
 		      "remaining" "over")
 		  (timeclock-when-to-leave-string show-seconds today-only)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "%s" status)
       status)))
 
@@ -458,7 +459,7 @@ time of changeover.  PROJECT is the name of the last project you were
 working on."
   (interactive "P")
   (timeclock-out arg)
-  (timeclock-in nil project (interactive-p)))
+  (timeclock-in nil project (called-interactively-p 'interactive)))
 
 ;;;###autoload
 (defun timeclock-query-out ()
@@ -516,7 +517,7 @@ See `timeclock-relative' for more information about the meaning of
   (let ((string (timeclock-seconds-to-string
 		 (timeclock-workday-remaining today-only)
 		 show-seconds t)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "%s" string)
       string)))
 
@@ -538,7 +539,7 @@ non-nil, the amount returned will be relative to past time worked."
   (interactive)
   (let ((string (timeclock-seconds-to-string (timeclock-workday-elapsed)
 					     show-seconds)))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "%s" string)
       string)))
 
@@ -583,7 +584,7 @@ relative only to the time worked today, and not to past time."
 	  (if show-seconds
 	      (format-time-string "%-I:%M:%S %p" then)
 	    (format-time-string "%-I:%M %p" then))))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "%s" string)
       string)))
 
