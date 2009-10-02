@@ -1,3 +1,9 @@
+2009-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (WINS_BASIC): Remove cedet.
+	(WINS_CEDET): Add cedet.
+	(update-subdirs-SH): Use $(WINS_SUBDIR), not $(WINS).
+
 2009-10-02  Kevin Ryde  <user42@zip.com.au>
 
 	* net/browse-url.el (browse-url): Pass any symbol in
