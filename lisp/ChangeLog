@@ -1,3 +1,17 @@
+2009-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (start-file-process): Say in the doc-string, that file
+	handlers might not support pty association, if PROGRAM is nil.
+
+	* net/ange-ftp.el (ange-ftp-generate-passwd-key): Check, whether
+	HOST and USER are strings.  They are nil, when there are
+	incomplete entries in ~/.netrc, for example.
+	(ange-ftp-delete-directory): Implement RECURSIVE case.  Change to
+	root directory ("device busy" error otherwise).
+
+	* net/tramp-smb.el (tramp-smb-handle-make-directory-internal): Flush
+	file properties of created directory.
+
 2009-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (WINS_BASIC): Remove cedet.
