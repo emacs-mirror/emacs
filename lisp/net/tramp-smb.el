@@ -548,6 +548,7 @@ PRESERVE-UID-GID is completely ignored."
 	  (tramp-smb-send-command v (format "mkdir \"%s\"" file))
 	  ;; We must also flush the cache of the directory, because
 	  ;; file-attributes reads the values from there.
+	  (tramp-flush-file-property v localname)
 	  (tramp-flush-file-property v (file-name-directory localname)))
 	(unless (file-directory-p directory)
 	  (tramp-error
