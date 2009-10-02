@@ -128,4 +128,4 @@ Return nil if it isn't a variable."
 
 ;;; ede/makefile-edit.el ends here
 
-# arch-tag: aba26b5f-4306-40d9-b63c-84a9590ac986
+;; arch-tag: aba26b5f-4306-40d9-b63c-84a9590ac986
