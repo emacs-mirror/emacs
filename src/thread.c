@@ -333,8 +333,8 @@ does not try to get a lock on the current buffer.  */)
   if (!initialized)
     abort ();
 
-  new_thread = (struct thread_state *) allocate_pseudovector (VECSIZE (struct thread_state),
-							      4, PVEC_THREAD);
+  new_thread = ALLOCATE_PSEUDOVECTOR (struct thread_state, m_gcprolist,
+				      PVEC_THREAD);
   memset ((char *) new_thread + OFFSETOF (struct thread_state, m_gcprolist),
 	  0, sizeof (struct thread_state) - OFFSETOF (struct thread_state,
 						      m_gcprolist));

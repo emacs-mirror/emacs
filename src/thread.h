@@ -21,6 +21,7 @@ struct thread_state
   Lisp_Object m_saved_last_thing_searched;
 #define saved_last_thing_searched (current_thread->m_saved_last_thing_searched)
 
+  /* m_gcprolist must be the first non-lisp field.  */
   /* Recording what needs to be marked for gc.  */
   struct gcpro *m_gcprolist;
 #define gcprolist (current_thread->m_gcprolist)

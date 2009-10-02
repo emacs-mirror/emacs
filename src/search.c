@@ -3266,6 +3266,9 @@ syms_of_search ()
   Fput (Qinvalid_regexp, Qerror_message,
 	build_string ("Invalid regexp"));
 
+  last_thing_searched = Qnil;
+  saved_last_thing_searched = Qnil;
+
   DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
       doc: /* Regexp to substitute for bunches of spaces in regexp search.
 Some commands use this for user-specified regexps.
