@@ -332,4 +332,5 @@ BUTTON is the button that was clicked."
 ;; generated-autoload-load-name: "semantic/symref/list"
 ;; End:
 
+;; arch-tag: e355d9c6-26e0-42d1-9bf1-f4801a54fffa
 ;;; semantic/symref/list.el ends here

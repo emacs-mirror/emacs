@@ -278,4 +278,5 @@ Optional argument MORESOURCE is not used."
 
 (provide 'ede/proj-obj)
 
+;; arch-tag: f521b89f-1a3f-4910-ba81-65de3f421698
 ;;; ede/proj-obj.el ends here

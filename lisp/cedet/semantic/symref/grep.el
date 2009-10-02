@@ -199,4 +199,5 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/grep"
 ;; End:
 
+;; arch-tag: 43d4469d-963c-4094-ac6f-99f7490973ce
 ;;; semantic/symref/grep.el ends here

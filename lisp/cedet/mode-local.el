@@ -777,4 +777,5 @@ invoked interactively."
 
 (provide 'mode-local)
 
+;; arch-tag: 14b77823-f93c-4b3d-9116-495f69a6ec07
 ;;; mode-local.el ends here

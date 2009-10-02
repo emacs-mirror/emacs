@@ -505,4 +505,5 @@ determining which symbols are considered."
 ;;
 (require 'semantic/util-modes)
 
+;; arch-tag: eaa7808d-83b9-43fe-adf0-4fb742dcb956
 ;;; semantic/util.el ends here

@@ -954,4 +954,5 @@ Call `semantic-symref-hits-in-region' to identify local references."
 ;; generated-autoload-load-name: "semantic/idle"
 ;; End:
 
+;; arch-tag: 4bfd54da-5023-4cc1-91ae-e1fefc1a8d1b
 ;;; semantic-idle.el ends here

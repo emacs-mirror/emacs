@@ -564,4 +564,5 @@ Use a primary decoration."
 ;; generated-autoload-load-name: "semantic/decorate/mode"
 ;; End:
 
+;; arch-tag: c1ac7888-e323-4467-96d6-18eb2820ed58
 ;;; semantic/decorate/mode.el ends here

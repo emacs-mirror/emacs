@@ -639,4 +639,5 @@ Argument INDENT specifies the indentation level for the list."
 ;; generated-autoload-load-name: "srecode/compile"
 ;; End:
 
+;; arch-tag: d993ffab-2704-4bb2-bd92-eafe803af3be
 ;;; srecode/compile.el ends here

@@ -244,4 +244,5 @@ This might add the following:
 
 (provide 'srecode/ctxt)
 
+;; arch-tag: 5a004702-28e5-4e26-9b14-8a78eae49865
 ;;; srecode/ctxt.el ends here

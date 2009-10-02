@@ -199,4 +199,5 @@ Argument THIS is the target that should insert stuff."
 
 (provide 'semantic/ede-grammar)
 
+;; arch-tag: 37a06a8d-957a-4fa2-a931-38482d28c24a
 ;;; semantic/ede-grammar.el ends here

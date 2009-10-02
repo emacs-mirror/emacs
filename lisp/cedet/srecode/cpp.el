@@ -146,4 +146,5 @@ special behavior for tag of classes include, using and function."
 ;; generated-autoload-load-name: "srecode/cpp"
 ;; End:
 
+;; arch-tag: 4659755c-88b4-405e-818f-bb1f776a8e82
 ;;; srecode/cpp.el ends here

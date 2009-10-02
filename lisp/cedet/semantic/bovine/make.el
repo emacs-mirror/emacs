@@ -239,4 +239,5 @@ Uses default implementation, and also gets a list of filenames."
 ;; generated-autoload-load-name: "semantic/bovine/make"
 ;; End:
 
+;; arch-tag: 8122d1f5-d4b7-4f6e-b909-d61ac65ef118
 ;;; semantic/bovine/make.el ends here

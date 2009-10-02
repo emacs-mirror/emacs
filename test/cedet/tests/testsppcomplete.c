@@ -27,3 +27,6 @@ int main(int argc, char *argv[]) {
   bar->// -3-
     ; // #3# ( "test" )
 }
+
+/* arch-tag: f4a9fe26-9035-4378-b951-9f06d6554599
+   (do not change this comment) */

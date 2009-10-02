@@ -371,4 +371,5 @@ TEXT TAG and INDENT are the details."
 ;; generated-autoload-load-name: "semantic/ia-sb"
 ;; End:
 
+;; arch-tag: 4ab9f509-6978-415f-9938-9266edad9886
 ;;; semantic/ia-sb.el ends here

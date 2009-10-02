@@ -100,4 +100,5 @@ This function overrides `get-local-variables'."
 ;; generated-autoload-load-name: "semantic/wisent/javascript"
 ;; End:
 
+;; arch-tag: 15416a3a-84ca-4b3b-a13c-e7a1891ec3ea
 ;;; semantic/wisent/javascript-jv.el ends here

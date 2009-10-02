@@ -45,3 +45,4 @@ int aclass2::amethod2(int arg2)
   ac;
 }
 
+// arch-tag: 9336063c-6b2e-4677-a390-d2dd091a2474

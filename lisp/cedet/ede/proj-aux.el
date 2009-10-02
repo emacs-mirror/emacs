@@ -44,4 +44,5 @@
 
 (provide 'ede/proj-aux)
 
+;; arch-tag: 668e96e0-2b30-474e-ba3c-9fa4fa696922
 ;;; ede/proj-aux.el ends here

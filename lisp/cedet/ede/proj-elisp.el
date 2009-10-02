@@ -392,4 +392,5 @@ Argument THIS is the target which needs to insert an info file."
 
 (provide 'ede/proj-elisp)
 
+;; arch-tag: 3802c94b-d04d-4ecf-9bab-b29ed6e77588
 ;;; ede/proj-elisp.el ends here

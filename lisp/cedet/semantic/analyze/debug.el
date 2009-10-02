@@ -621,4 +621,5 @@ Look for key expressions, and add push-buttons near them."
 
 (provide 'semantic/analyze/debug)
 
+;; arch-tag: 943db1e5-47e6-4bec-9989-78ebfadf0358
 ;;; semantic/analyze/debug.el ends here

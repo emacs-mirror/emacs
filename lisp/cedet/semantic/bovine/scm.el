@@ -116,4 +116,5 @@ syntax as specified by the syntax table."
 ;; generated-autoload-load-name: "semantic/bovine/scm"
 ;; End:
 
+;; arch-tag: 4f929838-b817-447d-848c-d47789ff140f
 ;;; semantic/bovine/scm.el ends here

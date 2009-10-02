@@ -538,4 +538,5 @@ The package should have VERSION available for download."
 
 (provide 'inversion)
 
+;; arch-tag: 7239729c-3051-4d85-bb09-dcf92363aa3b
 ;;; inversion.el ends here

@@ -127,3 +127,4 @@ foo<0> bar0;
 class SomeName;
 class OtherName;
 
+// arch-tag: 55ff74de-74dc-44ad-8252-50dc5f3492c3

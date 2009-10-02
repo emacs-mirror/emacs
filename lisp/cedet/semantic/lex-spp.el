@@ -1195,4 +1195,5 @@ If BUFFER is not provided, use the current buffer."
 ;; generated-autoload-load-name: "semantic/lex-spp"
 ;; End:
 
+;; arch-tag: 8877d83e-07ea-4d86-a960-e3562138d8a5
 ;;; semantic-lex-spp.el ends here

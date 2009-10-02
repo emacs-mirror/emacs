@@ -748,4 +748,5 @@ When optional BUFFER is provided, search that buffer."
 ;; generated-autoload-load-name: "srecode/srt-mode"
 ;; End:
 
+;; arch-tag: 9c613c25-d885-417a-8f0d-1824b26b22a5
 ;;; srecode/srt-mode.el ends here

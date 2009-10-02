@@ -325,4 +325,5 @@ that crated this ede locat object."
 ;; generated-autoload-load-name: "ede/locate"
 ;; End:
 
+;; arch-tag: a04cb356-d11c-4f69-bd72-5a8a2aff708c
 ;;; ede/locate.el ends here

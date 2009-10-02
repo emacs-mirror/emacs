@@ -603,4 +603,5 @@ If there isn't one, create it.
 ;; generated-autoload-load-name: "semantic/db-typecache"
 ;; End:
 
+;; arch-tag: cd7c37a8-2006-4ead-a037-977ffe7e7624
 ;;; semanticdb-typecache.el ends here

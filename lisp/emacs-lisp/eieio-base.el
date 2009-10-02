@@ -325,4 +325,5 @@ a set type."
 
 (provide 'eieio-base)
 
+;; arch-tag: 6260571e-9e8a-41a0-880f-a937b0c2ea8b
 ;;; eieio-base.el ends here

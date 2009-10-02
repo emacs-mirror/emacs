@@ -144,4 +144,5 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
 ;; generated-autoload-load-name: "ede/system"
 ;; End:
 
+;; arch-tag: a974ea44-151e-488b-b5d4-df2c05be6fe6
 ;;; ede/system.el ends here

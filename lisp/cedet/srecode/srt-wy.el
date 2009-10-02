@@ -274,4 +274,5 @@ It ignores whitespace, newlines and comments."
 
 (provide 'srecode/srt-wy)
 
+;; arch-tag: 1be4c0bc-2a79-4f75-a07a-1ac518f41271
 ;;; srecode/srt-wy.el ends here

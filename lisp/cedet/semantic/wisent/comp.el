@@ -3536,4 +3536,5 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
 
 (provide 'semantic/wisent/comp)
 
+;; arch-tag: 758ea04c-ea97-466b-9b35-aea0861033c9
 ;;; semantic/wisent/comp.el ends here

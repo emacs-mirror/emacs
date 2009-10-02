@@ -171,4 +171,5 @@ items are charted.  TAGTABLE is passed to
 
 (provide 'semantic/chart)
 
+;; arch-tag: 026573b1-f4f1-4dda-ae77-b6451283ff23
 ;;; semantic/chart.el ends here

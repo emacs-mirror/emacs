@@ -137,4 +137,5 @@ Depends on the SRecode Field editing API."
 
 (provide 'semantic/symref/filter)
 
+;; arch-tag: 14b9e795-02bf-408b-b375-c3f8ff6a4e38
 ;;; semantic/symref/filter.el ends here

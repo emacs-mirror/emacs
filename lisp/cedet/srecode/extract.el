@@ -239,4 +239,5 @@ Return nil if nothing was extracted."
 
 (provide 'srecode/extract)
 
+;; arch-tag: 051f5901-46ae-4319-8c84-16daf971e226
 ;;; srecode/extract.el ends here

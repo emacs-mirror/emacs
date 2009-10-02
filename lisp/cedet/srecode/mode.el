@@ -416,4 +416,5 @@ programming modes."
 ;; generated-autoload-load-name: "srecode/mode"
 ;; End:
 
+;; arch-tag: 56ad9d6b-899b-4a68-8636-1432b6bc149b
 ;;; srecode/mode.el ends here

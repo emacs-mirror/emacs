@@ -2770,4 +2770,5 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
+;; arch-tag: c1aeab9c-2938-41a3-842b-1a38bd26e9f2
 ;;; eieio ends here

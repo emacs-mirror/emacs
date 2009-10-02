@@ -110,4 +110,5 @@ Note: Not currently used.  This bug needs to be fixed.")
 
 (provide 'ede/proj-prog)
 
+;; arch-tag: 0bfa9364-f385-4745-a846-462146a79a25
 ;;; ede/proj-prog.el ends here

@@ -813,4 +813,5 @@ hits in order, with the first tag being in the closest scope."
 ;; generated-autoload-load-name: "semantic/scope"
 ;; End:
 
+;; arch-tag: 056ab514-3e28-4d6e-84ed-9283dce5a01e
 ;;; semantic/scope.el ends here

@@ -186,3 +186,4 @@ do not contain any text from preceding or following text."
 
 ;;; srecode/args.el ends here
 
+;; arch-tag: 645fc31e-30a9-469b-9215-fb320a46ee96

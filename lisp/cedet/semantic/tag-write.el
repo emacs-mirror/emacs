@@ -176,4 +176,5 @@ The VALUE is a list of tags."
 ;; generated-autoload-load-name: "semantic/tag-write"
 ;; End:
 
+;; arch-tag: aa2301b3-f0c5-4d73-b456-43eaba5b2198
 ;;; semantic/tag-write.el ends here

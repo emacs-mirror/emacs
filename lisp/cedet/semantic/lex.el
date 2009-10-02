@@ -2050,4 +2050,5 @@ return LENGTH tokens."
 ;; generated-autoload-load-name: "semantic/lex"
 ;; End:
 
+;; arch-tag: a47664fc-48d9-4b36-921f-cab0ea8cdf92
 ;;; semantic/lex.el ends here

@@ -721,4 +721,5 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 ;; generated-autoload-load-name: "semantic/format"
 ;; End:
 
+;; arch-tag: deae500e-20b6-437e-8856-884f6c46bc3e
 ;;; semantic/format.el ends here

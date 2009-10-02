@@ -253,4 +253,5 @@ Return the name of TAG found in the toplevel STREAM."
 ;; generated-autoload-load-name: "semantic/tag-ls"
 ;; End:
 
+;; arch-tag: 06041439-e4bf-46f9-ab30-7805888d4464
 ;;; semantic/tag-ls.el ends here

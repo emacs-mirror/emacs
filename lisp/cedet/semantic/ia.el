@@ -419,4 +419,5 @@ parts of the parent classes are displayed."
 ;; generated-autoload-load-name: "semantic/ia"
 ;; End:
 
+;; arch-tag: ceeed1f2-e5b6-4f7c-a85a-a2f8ee0193ca
 ;;; semantic/ia.el ends here

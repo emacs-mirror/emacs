@@ -1112,4 +1112,5 @@ minor mode is enabled." t nil)
 
 ;; (require 'semantic/load)
 
+;; arch-tag: 31583e10-6508-41a9-be40-f83d0ae0a4ed
 ;;; semantic.el ends here

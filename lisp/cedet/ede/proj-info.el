@@ -183,4 +183,5 @@ files in the project."
 
 (provide 'ede/proj-info)
 
+;; arch-tag: e4b7ce51-ae46-4d7c-a5fb-073f435cdcbf
 ;;; ede/proj-info.el ends here

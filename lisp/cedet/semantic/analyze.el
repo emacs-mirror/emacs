@@ -795,4 +795,5 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
 ;; generated-autoload-load-name: "semantic/analyze"
 ;; End:
 
+;; arch-tag: 1102143a-1c05-4631-83e8-45aafc6b4a59
 ;;; semantic/analyze.el ends here

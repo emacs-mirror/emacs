@@ -178,4 +178,5 @@ return nil."
 
 (provide 'cedet-idutils)
 
+;; arch-tag: 663ca082-5b3d-4384-8710-cc74f990b501
 ;;; cedet-idutils.el ends here

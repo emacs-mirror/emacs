@@ -133,3 +133,6 @@ int STARTMACRO () {
 
 
 /* END */
+
+/* arch-tag: ee9bd650-35f4-468f-82d7-a5f3606c0132
+   (do not change this comment) */

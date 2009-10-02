@@ -363,4 +363,5 @@ Base selection on the field related to POINT."
 ;; generated-autoload-load-name: "srecode/getset"
 ;; End:
 
+;; arch-tag: c2098b7a-df7f-4e8a-a9e3-2be8798a7554
 ;;; srecode/getset.el ends here

@@ -105,4 +105,5 @@ Each directory needs a a project file to control it.")
 
 (provide 'ede/simple)
 
+;; arch-tag: a0c4264a-89ce-4364-afab-2512acd3b22a
 ;;; ede/simple.el ends here

@@ -513,4 +513,5 @@ Argument DIR is the directory to trim upwards."
 ;; generated-autoload-load-name: "ede/files"
 ;; End:
 
+;; arch-tag: 28e17358-0208-4678-828c-23fb0e783fd6
 ;;; ede/files.el ends here

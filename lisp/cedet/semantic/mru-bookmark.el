@@ -432,4 +432,5 @@ Useful for debugging mrub problems."
 ;; generated-autoload-load-name: "semantic/mru-bookmark"
 ;; End:
 
+;; arch-tag: 297fa190-2942-460b-941d-f117db4e1fbf
 ;;; semantic/mru-bookmark.el ends here

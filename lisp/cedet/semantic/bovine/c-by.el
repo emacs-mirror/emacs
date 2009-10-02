@@ -2193,4 +2193,5 @@
 
 (provide 'semantic/bovine/c-by)
 
+;; arch-tag: 27da9f71-d2ef-473f-92a7-b0006b1a8491
 ;;; semantic/bovine/c-by.el ends here

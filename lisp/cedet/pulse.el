@@ -254,4 +254,5 @@ Only pulses the line if `pulse-command-advice-flag' is non-nil."
 
 (provide 'pulse)
 
+;; arch-tag: 6e2f78c1-65b3-4164-a141-872cb1552959
 ;;; pulse.el ends here

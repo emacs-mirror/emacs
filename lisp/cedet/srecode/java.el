@@ -59,4 +59,5 @@ FILENAME_AS_CLASS - file converted to a Java class name."
 ;; generated-autoload-load-name: "srecode/java"
 ;; End:
 
+;; arch-tag: d796b86c-3a0e-457c-a346-9f1ccfdc5e2c
 ;;; srecode/java.el ends here

@@ -188,4 +188,5 @@
 
 (provide 'semantic/bovine/scm-by)
 
+;; arch-tag: 945749cc-a039-434f-bf95-bf2480a506c3
 ;;; semantic/bovine/scm-by.el ends here

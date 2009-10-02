@@ -103,4 +103,5 @@ Note: Just like `srecode-insert', but templates found in 'ede app."
 
 (provide 'ede/srecode)
 
+;; arch-tag: 75bec542-7cc8-41a4-b5a0-8fb247609f03
 ;;; ede/srecode.el ends here

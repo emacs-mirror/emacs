@@ -1234,4 +1234,5 @@ function was called, move the overlay."
 ;; generated-autoload-load-name: "semantic/util-modes"
 ;; End:
 
+;; arch-tag: 18f5a3d8-1fd7-4c17-b149-a313c126987d
 ;;; semantic/util-modes.el ends here

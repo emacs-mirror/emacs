@@ -92,4 +92,5 @@ All listed sources are included in the distribution.")
 
 (provide 'ede/proj-misc)
 
+;; arch-tag: e5e5f8d2-9897-4a1b-8a29-5944ec5a892d
 ;;; ede/proj-misc.el ends here

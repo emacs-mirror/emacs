@@ -384,4 +384,5 @@
 
 (provide 'semantic/bovine/make-by)
 
+;; arch-tag: 8c3749b8-7b19-46e0-af01-2a4d02fd0352
 ;;; semantic/bovine/make-by.el ends here

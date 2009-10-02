@@ -885,4 +885,5 @@ Use a senator search function when semantic isearch mode is enabled."
 ;; generated-autoload-load-name: "semantic/senator"
 ;; End:
 
+;; arch-tag: 397100d0-e2db-467e-8c19-d8d4d99d51f1
 ;;; semantic/senator.el ends here

@@ -1,7 +1,7 @@
 /* Test file for C language.
  * Attempt to include as many aspects of the C language as possible.
  *
- * $Id: test.c,v 1.1.2.1 2009/09/20 04:00:17 cyd Exp $
+ * $Id: test.c,v 1.2 2009/09/28 23:23:31 cyd Exp $
  *
  */
 /* types of include files */
@@ -220,3 +220,6 @@ int funk4_fixme(arg_61, arg_62)
 }
 
 /* End of C tests */
+
+/* arch-tag: ac9c7740-05ad-4821-a0b4-5db4357750ae
+   (do not change this comment) */

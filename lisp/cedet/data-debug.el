@@ -1082,4 +1082,5 @@ If the result is a list or vector, then use the data debugger to display it."
 (if (featurep 'eieio)
     (require 'eieio-datadebug))
 
+;; arch-tag: 4807227d-08e7-45c4-8ea5-9e4595c3bfb1
 ;;; data-debug.el ends here

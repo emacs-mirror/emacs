@@ -421,4 +421,5 @@ to create a speedbar button."
 
 (provide 'eieio-speedbar)
 
+;; arch-tag: eaac1283-10b0-4419-a929-982b87e83234
 ;;; eieio-speedbar.el ends here

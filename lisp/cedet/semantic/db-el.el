@@ -344,4 +344,5 @@ Return a list of tags."
 
 (provide 'semantic/db-el)
 
+;; arch-tag: e54f556e-fa3f-4bc5-9b15-744a659a6e65
 ;;; semantic/db-el.el ends here

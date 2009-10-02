@@ -864,4 +864,5 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 
 
 
+;; arch-tag: 082cbe6f-2290-476e-9760-a19a6bdd16b8
 ;;; semantic-utest.el ends here

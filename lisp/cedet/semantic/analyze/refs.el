@@ -329,4 +329,5 @@ Only works for tags in the global namespace."
 ;; generated-autoload-load-name: "semantic/analyze/refs"
 ;; End:
 
+;; arch-tag: f8c59a91-1829-42b3-b083-437c6881841c
 ;;; semantic/analyze/refs.el ends here

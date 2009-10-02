@@ -1,6 +1,6 @@
 # Test file for Python language.
 #
-# $Id: test.py,v 1.1.2.1 2009/09/20 04:00:17 cyd Exp $
+# $Id: test.py,v 1.2 2009/09/28 23:23:31 cyd Exp $
 
 # Simle class compount statement with blank lines sprinkled.
 class Foo(Bar):
@@ -577,3 +577,5 @@ def test(HandlerClass = BaseHTTPRequestHandler,
 
 if __name__ == '__main__':
     test()
+
+# arch-tag: 567449b3-cc90-45b6-bbe3-1e113995bdae

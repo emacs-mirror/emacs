@@ -71,4 +71,5 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/global"
 ;; End:
 
+;; arch-tag: 1f061cc0-d8dd-44b1-9de3-3d00cb6e8abe
 ;;; semantic/symref/global.el ends here

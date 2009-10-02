@@ -119,4 +119,5 @@ Use the alternate LALR(1) parser."
 ;; generated-autoload-load-name: "semantic/wisent/java-tags"
 ;; End:
 
+;; arch-tag: 4125e018-58db-4456-b878-e58c602f4add
 ;;; semantic/wisent/java-tags.el ends here

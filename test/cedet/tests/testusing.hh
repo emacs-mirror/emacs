@@ -123,3 +123,5 @@ namespace outerinner {
   // equivalent to 'namespace outerinner = outer::inner;'
   using namespace outer::inner;
 }
+
+// arch-tag: f7e59fad-100b-47d3-ae8b-a8390a026ade

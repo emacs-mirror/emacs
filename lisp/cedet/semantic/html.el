@@ -257,4 +257,5 @@ tag with greater section value than LEVEL is found."
 ;; generated-autoload-load-name: "semantic/html"
 ;; End:
 
+;; arch-tag: 2a088b99-4585-46d5-bce8-3a5a8ec5eb2e
 ;;; semantic/html.el ends here

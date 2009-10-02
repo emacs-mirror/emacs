@@ -428,4 +428,5 @@ as `function' will leave point where code might be inserted."
 
 (provide 'srecode/semantic)
 
+;; arch-tag: b87ccbd6-bd87-48bc-8182-1043a9052d79
 ;;; srecode/semantic.el ends here

@@ -161,4 +161,5 @@ We need to override -program which has an LDADD element."
 
 (provide 'ede/proj-shared)
 
+;; arch-tag: 05f22c3e-b269-4411-9425-65e8fe4ab74a
 ;;; ede/proj-shared.el ends here

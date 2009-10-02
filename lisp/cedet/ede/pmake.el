@@ -660,4 +660,5 @@ Argument TARGETS are the targets we should depend on for TAGS."
 
 (provide 'ede/pmake)
 
+;; arch-tag: 7ad8e19f-cdee-484c-8caf-f15cb0fc4df2
 ;;; ede/pmake.el ends here

@@ -130,3 +130,5 @@ void func8()
   g.//-10-
     ; //#10# ( "four" "three" )
 }
+
+// arch-tag: 8e68d5d1-4d48-47c6-a910-d8d6b66b2768

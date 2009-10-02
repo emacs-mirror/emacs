@@ -110,4 +110,5 @@ Calls `srecode-semantic-apply-tag-to-dict-default' first."
 ;; generated-autoload-load-name: "srecode/el"
 ;; End:
 
+;; arch-tag: c1852a36-d45b-4263-8f3e-03f4f3c795d9
 ;;; srecode/el.el ends here

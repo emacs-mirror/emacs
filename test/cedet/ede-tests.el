@@ -56,3 +56,5 @@ The search is done with the current EDE root."
     (ede-locate-file-in-project loc file)
     (data-debug-insert-object-slots loc "]"))
   )
+
+;; arch-tag: 79fae12e-652f-4544-a20e-b24d87b4917d

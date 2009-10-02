@@ -562,4 +562,5 @@ STATE is the current compiler state."
 
 (provide 'srecode/dictionary)
 
+;; arch-tag: c664179c-171c-4709-9b56-d5a2fd30e457
 ;;; srecode/dictionary.el ends here

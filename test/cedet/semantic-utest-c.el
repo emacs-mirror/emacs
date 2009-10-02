@@ -68,4 +68,6 @@
 
 
 (provide 'semantic-utest-c)
+
+;; arch-tag: a90183e0-36ba-486e-9adb-8d37c929e6ba
 ;;; semantic-utest-c.el ends here

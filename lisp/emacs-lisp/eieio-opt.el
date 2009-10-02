@@ -694,4 +694,5 @@ INDENT is the current indentation level."
 
 (provide 'eieio-opt)
 
+;; arch-tag: 71eab5f5-462f-4fa1-8ed1-f5ca1bf9adb6
 ;;; eieio-opt.el ends here

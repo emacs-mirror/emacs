@@ -167,4 +167,5 @@ Used to guess header files, but uses the auxsource regular expression."
 
 (provide 'ede/source)
 
+;; arch-tag: 60165fe2-920e-4adf-8531-25655388467d
 ;;; ede/source.el ends here

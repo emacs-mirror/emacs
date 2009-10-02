@@ -1023,4 +1023,5 @@ If file does not have tags available, then load the file, and create them."
 ;; generated-autoload-load-name: "semantic/db"
 ;; End:
 
+;; arch-tag: d9f75280-737d-494f-9f70-09a649d27433
 ;;; semantic/db.el ends here

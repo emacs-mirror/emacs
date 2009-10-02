@@ -417,4 +417,5 @@ Returns the tag list, or t for an error."
 
 (provide 'semantic/sb)
 
+;; arch-tag: 82aa0570-9e27-41a3-a834-2641dbb2f829
 ;;; semantic/sb.el ends here

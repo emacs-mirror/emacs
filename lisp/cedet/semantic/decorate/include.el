@@ -771,4 +771,5 @@ If TABLE is not in a buffer, do nothing."
 ;; generated-autoload-load-name: "semantic/decorate/include"
 ;; End:
 
+;; arch-tag: c3277137-be3f-43e2-af89-3b14b9bd7479
 ;;; semantic/decorate/include.el ends here

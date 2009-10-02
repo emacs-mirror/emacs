@@ -127,4 +127,5 @@ If NOSNARF is 'lex, then return the lex token."
 ;; generated-autoload-load-name: "semantic/doc"
 ;; End:
 
+;; arch-tag: fe6e965b-4a81-4304-aab8-22ca113194ca
 ;;; semantic/doc.el ends here

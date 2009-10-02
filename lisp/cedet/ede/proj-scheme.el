@@ -46,4 +46,5 @@
 
 (provide 'ede/proj-scheme)
 
+;; arch-tag: 451081e6-0d45-4560-9821-8ee03e8401ab
 ;;; ede/proj-scheme.el ends here

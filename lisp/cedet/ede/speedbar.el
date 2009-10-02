@@ -357,4 +357,5 @@ INDENT is the current indentation level."
 ;; generated-autoload-load-name: "ede/speedbar"
 ;; End:
 
+;; arch-tag: 56721fc9-8eb5-4115-8511-18cf8397ec87
 ;;; ede/speedbar.el ends here

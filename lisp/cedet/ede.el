@@ -1984,4 +1984,5 @@ Display the results as a debug list."
     (ede-speedbar-file-setup)
   (add-hook 'speedbar-load-hook 'ede-speedbar-file-setup))
 
+;; arch-tag: 0e1e0eba-484f-4119-abdb-30951f725705
 ;;; ede.el ends here

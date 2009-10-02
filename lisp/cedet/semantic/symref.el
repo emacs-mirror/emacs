@@ -498,4 +498,5 @@ over until it returns nil."
 ;; generated-autoload-load-name: "semantic/symref"
 ;; End:
 
+;; arch-tag: 928394b7-19ef-4f76-8cb3-37e9a9891984
 ;;; semantic/symref.el ends here

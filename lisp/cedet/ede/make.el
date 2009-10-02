@@ -107,4 +107,5 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
 ;; generated-autoload-load-name: "ede/make"
 ;; End:
 
+;; arch-tag: cc54abdb-7ca5-4902-9735-eda3c6a77852
 ;;; ede/make.el ends here

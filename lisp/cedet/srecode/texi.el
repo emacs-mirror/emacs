@@ -279,4 +279,5 @@ that class.
 ;; generated-autoload-load-name: "srecode/texi"
 ;; End:
 
+;; arch-tag: 6f0e7f45-2281-49e4-b73c-680cba477094
 ;;; srecode/texi.el ends here

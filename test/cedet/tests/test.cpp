@@ -3,7 +3,7 @@
  * Do not include things tested in test.c since that shares the
  * same language.
  *
- * $Id: test.cpp,v 1.1.2.1 2009/09/20 04:00:17 cyd Exp $
+ * $Id: test.cpp,v 1.2 2009/09/28 23:23:31 cyd Exp $
  *
  */
 
@@ -591,3 +591,5 @@ wchar_t testc = L'a';
 wchar_t const *wp = L"string with a \" in it";
 wchar_t const *wq = L"string \n\t\"test" L"string2";
 wchar_t const *wr = L"string L";
+
+// arch-tag: 59828880-d72f-4059-922f-89579edf9e58

@@ -435,4 +435,5 @@ PRE-LEN is used in the after mode for the length of the changed text."
 
 (provide 'srecode/fields)
 
+;; arch-tag: 00cea6f0-42ac-4b15-b778-46e6db0bfcb5
 ;;; srecode/fields.el ends here

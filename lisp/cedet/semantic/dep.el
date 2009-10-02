@@ -231,4 +231,5 @@ provided mode, not from the current major mode."
 ;; generated-autoload-load-name: "semantic/dep"
 ;; End:
 
+;; arch-tag: f6975d6a-845f-44c5-9a22-5dfeee46dce2
 ;;; semantic/dep.el ends here

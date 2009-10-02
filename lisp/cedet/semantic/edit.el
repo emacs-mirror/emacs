@@ -969,4 +969,5 @@ lost if not transferred into NEWTAG."
 ;; generated-autoload-load-name: "semantic/edit"
 ;; End:
 
+;; arch-tag: 91c7fbf0-a418-4220-a90a-b58c74b450e3
 ;;; semantic/edit.el ends here

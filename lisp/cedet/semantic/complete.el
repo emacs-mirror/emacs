@@ -2099,4 +2099,5 @@ use `semantic-complete-analyze-inline' to complete."
 ;; generated-autoload-load-name: "semantic/complete"
 ;; End:
 
+;; arch-tag: a07c8f71-e53b-416e-9704-3a99ef101b09
 ;;; semantic/complete.el ends here

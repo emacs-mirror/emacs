@@ -69,3 +69,6 @@ int test_1(int var_arg1) {
   in_var2.// -11-
     ; // #11# ( "named_3" "named_4")
 }
+
+/* arch-tag: ca9f23e9-0c66-4a5e-b233-3fdc841d3a63
+   (do not change this comment) */

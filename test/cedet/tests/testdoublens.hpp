@@ -49,3 +49,5 @@ namespace a {
 
   } // namespace b
 } // namespace a
+
+// arch-tag: 22e0ca95-6a61-4627-8816-68c67a896a8d

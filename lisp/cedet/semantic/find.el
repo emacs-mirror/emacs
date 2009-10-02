@@ -702,4 +702,5 @@ details are available of findable."
 ;; generated-autoload-load-name: "semantic/find"
 ;; End:
 
+;; arch-tag: db00c93e-e561-4bd6-942b-96eca5aaa9a6
 ;;; semantic/find.el ends here

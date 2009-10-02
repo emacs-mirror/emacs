@@ -64,3 +64,5 @@ int foo () {
     ;
   // #2# ("implementation" "interface" "static_func" "static_sub_func")
 }
+
+// arch-tag: d6e39f96-525e-44af-8cd1-d03e1829acd3

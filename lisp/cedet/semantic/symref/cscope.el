@@ -92,4 +92,5 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/cscope"
 ;; End:
 
+;; arch-tag: 7c0a4e02-ade4-407a-9df7-4f948bd61a19
 ;;; semantic/symref/cscope.el ends here

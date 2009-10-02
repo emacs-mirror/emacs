@@ -334,4 +334,5 @@ SCOPE is the current scope."
 
 (provide 'semantic/analyze/fcn)
 
+;; arch-tag: 32525305-515e-4b96-ad11-216d3a99f829
 ;;; semantic/analyze/fcn.el ends here

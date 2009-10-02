@@ -223,4 +223,5 @@ It should also include other symbols GCC was compiled with.")
 ;; generated-autoload-load-name: "semantic/bovine/gcc"
 ;; End:
 
+;; arch-tag: 7086f4a0-1ce8-48e2-9783-d750d3765186
 ;;; semantic/bovine/gcc.el ends here

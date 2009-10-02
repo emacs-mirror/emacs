@@ -567,4 +567,5 @@ See `semantic-tag-external-class' for details."
 ;; generated-autoload-load-name: "semantic/sort"
 ;; End:
 
+;; arch-tag: 9231c8e7-ac7f-4b35-9302-651a02e5fef0
 ;;; semantic-sort.el ends here

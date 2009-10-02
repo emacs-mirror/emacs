@@ -264,3 +264,5 @@ Dump out the extracted dictionary."
 	  (princ (semantic-tag-name fcn-in))
 	  (princ "\n--------------------------------------------\n")
 	  (srecode-dump extract))))))
+
+;; arch-tag: 7a467849-b415-4bdc-ba2a-284ace156a65

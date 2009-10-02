@@ -296,4 +296,5 @@ OVERLAY is passed in by isearch."
 
 (provide 'semantic/decorate)
 
+;; arch-tag: 30e5b6cb-dba0-41cd-920a-bc1dce267ad8
 ;;; semantic/decorate.el ends here

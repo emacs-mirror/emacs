@@ -1733,4 +1733,5 @@ DO NOT return the list of tags encompassing point."
 ;; generated-autoload-load-name: "semantic/bovine/c"
 ;; End:
 
+;; arch-tag: 263951a8-0f18-445d-8e73-eb8f9ac8e2a3
 ;;; semantic/bovine/c.el ends here

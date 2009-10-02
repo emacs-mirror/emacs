@@ -103,4 +103,5 @@ MODE - The mode of this buffer.  If not declared yet, guess."
 
 (provide 'srecode/srt)
 
+;; arch-tag: fb69da04-0bd6-48fe-b935-f8668420ecaf
 ;;; srecode/srt.el ends here

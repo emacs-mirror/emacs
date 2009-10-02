@@ -799,3 +799,5 @@ With NEEDED-SUBJECT, alters the imap-hash test accordingly."
 ;;; (tramp-imap-make-iht (tramp-dissect-file-name "/imap:yourhosthere.com:/test/welcommen"))
 ;;; (tramp-imap-make-iht (tramp-dissect-file-name "/imap:yourhosthere.com:/INBOX.test/4"))
 ;;; (tramp-imap-make-iht (tramp-dissect-file-name "/imap:yourhosthere.com:/INBOX.test/4") "extra")
+
+;; arch-tag: f2723749-58fb-4f29-894e-39708096e850

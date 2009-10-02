@@ -421,4 +421,5 @@ to Makefiles, or other files using Autoconf substitution."
 
 (provide 'ede/autoconf-edit)
 
+;; arch-tag: 5932c433-4fd4-4d5e-ab35-8effd95a405f
 ;;; ede/autoconf-edit.el ends here

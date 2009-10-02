@@ -573,4 +573,5 @@ A frame is of the form:
 ;; generated-autoload-load-name: "semantic/debug"
 ;; End:
 
+;; arch-tag: 6f189d2d-8a65-45a5-a7f0-9894625eb860
 ;;; semantic/debug.el ends here

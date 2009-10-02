@@ -434,3 +434,5 @@ gcc version 2.95.2 19991024 (release)"
   (let ((semantic-gcc-test-strings (list (semantic-gcc-query "gcc" "-v"))))
     (semantic-gcc-test-output-parser))
   )
+
+;; arch-tag: 91686489-4ab3-4392-8277-b3831269ddbb

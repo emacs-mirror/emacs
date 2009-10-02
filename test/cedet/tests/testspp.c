@@ -82,3 +82,5 @@ int no_show_moose_elif_2() {}
 int show_moose_elif_else() {}
 #endif
 
+/* arch-tag: 5ea50b2a-1e12-439e-ade4-e68267f49674
+   (do not change this comment) */

@@ -751,4 +751,5 @@ SORT-PRED if desired."
 
 (provide 'chart)
 
+;; arch-tag: 43847e44-5b45-465e-adc9-e505490a6b59
 ;;; chart.el ends here

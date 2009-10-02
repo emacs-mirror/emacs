@@ -991,4 +991,5 @@ Calculates the info with `project-am-extract-package-info'."
 
 (provide 'ede/project-am)
 
+;; arch-tag: 528db935-f186-4240-b647-e305c5b784a2
 ;;; ede/project-am.el ends here

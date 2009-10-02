@@ -138,4 +138,5 @@ Argument PARAMLIST is the parameter list to convert."
 
 (provide 'eieio-comp)
 
+;; arch-tag: f2aacdd3-1da2-4ee9-b3e5-e8eac0832ee3
 ;;; eieio-comp.el ends here

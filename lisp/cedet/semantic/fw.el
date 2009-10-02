@@ -384,4 +384,5 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'"
 
 (provide 'semantic/fw)
 
+;; arch-tag: e7eeffbf-112b-4665-92fc-5f69479ca2c4
 ;;; semantic/fw.el ends here

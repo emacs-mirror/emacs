@@ -459,4 +459,5 @@ removed from the result list."
 
 (provide 'semantic/java)
 
+;; arch-tag: ca14cb88-9343-48a9-9aa0-14d05be8d49f
 ;;; semantic/java.el ends here

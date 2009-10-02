@@ -1894,4 +1894,5 @@ Optional argument COLOR determines if color is added to the text."
 
 (provide 'semantic/grammar)
 
+;; arch-tag: 12ffc9d5-557d-49af-a5fd-a66a006ddb3e
 ;;; semantic/grammar.el ends here

@@ -343,4 +343,5 @@ compiler it decides to use after inserting in the rule."
 
 (provide 'ede/proj-comp)
 
+;; arch-tag: ade67766-1a5d-467a-826a-93e95594d717
 ;;; ede/proj-comp.el ends here

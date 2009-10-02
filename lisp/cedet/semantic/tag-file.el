@@ -217,4 +217,5 @@ file prototypes belong in."
 ;; generated-autoload-load-name: "semantic/tag-file"
 ;; End:
 
+;; arch-tag: 71d4cf18-c1ec-414c-bb0a-c2ed914c1361
 ;;; semantic/tag-file.el ends here

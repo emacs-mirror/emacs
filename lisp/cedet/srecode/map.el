@@ -412,4 +412,5 @@ Return non-nil if the map changed."
 ;; generated-autoload-load-name: "srecode/map"
 ;; End:
 
+;; arch-tag: dc90c737-1e87-455a-bbd1-6b72cdbfb7fd
 ;;; srecode/map.el ends here

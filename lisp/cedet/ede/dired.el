@@ -107,4 +107,5 @@ negative, force off."
 
 (provide 'ede/dired)
 
+;; arch-tag: 95d3e0a7-a8b7-43a9-b7df-ba647e4c56f6
 ;;; ede/dired.el ends here

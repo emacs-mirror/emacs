@@ -142,4 +142,5 @@ if the package has not been loaded."
 
 (provide 'cedet)
 
+;; arch-tag: ad4b0b63-d1f9-4a41-b003-9bbb2feb5226
 ;;; cedet.el ends here

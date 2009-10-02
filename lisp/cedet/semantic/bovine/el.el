@@ -963,4 +963,5 @@ ELisp variables can be pretty long, so track this one too.")
 
 (provide 'semantic/bovine/el)
 
+;; arch-tag: d634cbab-9610-4510-9fce-048ae1eb7aa6
 ;;; semantic/bovine/el.el ends here

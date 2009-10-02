@@ -130,4 +130,5 @@
 ;; generated-autoload-load-name: "srecode/expandproto"
 ;; End:
 
+;; arch-tag: f0371b5f-9bec-46a1-9b5d-8dff0e897426
 ;;; srecode/expandproto.el ends here

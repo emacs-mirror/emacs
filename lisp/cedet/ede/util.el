@@ -103,4 +103,5 @@ If BUFFER isn't specified, use the current buffer."
 ;; generated-autoload-load-name: "ede/util"
 ;; End:
 
+;; arch-tag: 3cddf449-7f6a-4c76-86dd-04142c60eba2
 ;;; ede/util.el ends here

@@ -618,4 +618,5 @@ overridden."
 ;; generated-autoload-load-name: "semantic/ctxt"
 ;; End:
 
+;; arch-tag: 04f3ae3c-78bb-40ca-b112-ba77f5e4ea88
 ;;; semantic/ctxt.el ends here

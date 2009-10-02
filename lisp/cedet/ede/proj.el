@@ -672,4 +672,5 @@ Optional argument FORCE will force items to be regenerated."
 
 (provide 'ede/proj)
 
+;; arch-tag: eb8a40f8-0d2c-41c4-b273-af04101d1cdf
 ;;; ede/proj.el ends here

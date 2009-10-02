@@ -679,4 +679,5 @@ If TAG is nil, it is derived from the deffn under POINT."
 
 (provide 'semantic/texi)
 
+;; arch-tag: a8649049-46da-407b-a620-d175c1fedca6
 ;;; semantic/texi.el ends here

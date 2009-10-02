@@ -246,3 +246,4 @@ Use PREDICATE is the same as for the `sort' function."
 
 ;;; srecode/table.el ends here
 
+;; arch-tag: 547d2f1d-2694-49b3-ab13-b2cda6b25b4d
