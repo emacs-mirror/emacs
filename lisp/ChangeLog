@@ -172,7 +172,7 @@
 	* international/uni-combining.el:
 	* international/uni-comment.el:
 	* international/uni-decimal.el:
-	* international/uni-decomposition.e:
+	* international/uni-decomposition.el:
 	* international/uni-digit.el:
 	* international/uni-lowercase.el:
 	* international/uni-mirrored.el:
@@ -630,7 +630,7 @@
 
 2009-09-26  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-beginning-of-statement-1):  Correct
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Correct
 	buggy bracketing.
 
 	* progmodes/cc-langs.el (c-nonlabel-token-key): Allow quoted
@@ -1524,7 +1524,7 @@
 	* progmodes/gdb-mi.el (gdb-var-list-children-regexp): Delete.
 	(gdb-var-list-children): Use json parsing.
 
-2009-09-11  Daniel Colascione <dan.colascione@gmail.com>
+2009-09-11  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* progmodes/js.el (js--proper-indentation): Handle the case where
 	char-before is null.  Reported by Deniz Dogan.
