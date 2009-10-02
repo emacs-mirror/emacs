@@ -89,6 +89,13 @@ WINS_CEDET=\
 	cedet/semantic \
 	cedet/srecode
 
+WINS_CEDET_SUBDIRS=\
+	cedet/semantic/analyze \
+	cedet/semantic/bovine \
+	cedet/semantic/decorate \
+	cedet/semantic/symref \
+	cedet/semantic/wisent
+
 WINS_BASIC=\
 	calc \
 	calendar \
@@ -409,11 +416,12 @@ bootstrap-clean:
 bootstrap-clean-CMD:
 #	if exist "$(EMACS)" $(MAKE) $(MFLAGS) autoloads
 	-for %%f in (. $(WINS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
+	-for %%f in ($(WINS_CEDET_SUBDIRS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
 
 bootstrap-clean-SH:
 #	if test -f "$(EMACS)"; then $(MAKE) $(MFLAGS) autoloads; fi
 #	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
-	-for dir in . $(WINS); do rm -f $$dir/*.elc; done
+	-for dir in . $(WINS)  $(WINS_CEDET_SUBDIRS); do rm -f $$dir/*.elc $$dir/*/*.elc $$dir/*/*/*.elc; done
 
 # Generate/update files for the bootstrap process.
 # When done, remove bootstrap-emacs from ../bin, so that
