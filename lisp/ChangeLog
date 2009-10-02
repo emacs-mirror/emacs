@@ -1,3 +1,12 @@
+2009-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (update-subdirs-CMD): Add cedet to
+	$(WINS_SUBDIR).
+	(WINS_CEDET_SUBDIRS): List of subdirectories of cedet.
+	(bootstrap-clean-CMD, bootstrap-clean-SH): Remove *.elc files in
+	subdirs of cedet as well.
+	(WINS_BASIC): Add eieio.
+
 2009-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string):
