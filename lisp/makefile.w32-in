@@ -84,6 +84,7 @@ emacs = "$(EMACS)" $(EMACSOPT)
 
 # Have to define the list of subdirs manually when not using sh.
 WINS_CEDET=\
+	cedet \
 	cedet/ede \
 	cedet/semantic \
 	cedet/srecode
@@ -91,7 +92,6 @@ WINS_CEDET=\
 WINS_BASIC=\
 	calc \
 	calendar \
-	cedet \
 	emacs-lisp \
 	emulation \
 	erc \
@@ -215,7 +215,7 @@ update-subdirs-CMD: doit
 
 update-subdirs-SH: doit
 	$(srcdir)/update-subdirs $(lisp); \
-	for file in $(WINS); do \
+	for file in $(WINS_SUBDIR); do \
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
