@@ -290,11 +290,14 @@ or elsewhere, return a 1-line docstring.  Calls the functions
 former calls `eldoc-argument-case'; the latter gives the
 function name `font-lock-function-name-face', and optionally
 highlights argument number INDEX."
-  (let (args doc)
+  (let (args doc advertised)
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
 	  ((and (eq sym (aref eldoc-last-data 0))
 		(eq 'function (aref eldoc-last-data 2)))
 	   (setq doc (aref eldoc-last-data 1)))
+	  ((listp (setq advertised (gethash (indirect-function sym)
+					    advertised-signature-table t)))
+	   (setq args advertised))
 	  ((setq doc (help-split-fundoc (documentation sym t) sym))
 	   (setq args (car doc))
 	   ;; Remove any enclosing (), since e-function-argstring adds them.

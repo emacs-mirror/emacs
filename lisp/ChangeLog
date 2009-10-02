@@ -1,3 +1,12 @@
+2009-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string):
+	Obey advertised-signature-table.
+
+	* help-fns.el (help-function-arglist): Don't check
+	advertised-signature-table.
+	(describe-function-1): Do it here instead so it also applies to subrs.
+
 2009-10-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* simple.el (start-file-process): Say in the doc-string, that file
@@ -9,8 +18,8 @@
 	(ange-ftp-delete-directory): Implement RECURSIVE case.  Change to
 	root directory ("device busy" error otherwise).
 
-	* net/tramp-smb.el (tramp-smb-handle-make-directory-internal): Flush
-	file properties of created directory.
+	* net/tramp-smb.el (tramp-smb-handle-make-directory-internal):
+	Flush file properties of created directory.
 
 2009-10-02  Eli Zaretskii  <eliz@gnu.org>
 
