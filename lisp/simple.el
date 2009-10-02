@@ -2541,7 +2541,8 @@ In the latter case, the local part of `default-directory' becomes
 the working directory of the process.
 
 PROGRAM and PROGRAM-ARGS might be file names.  They are not
-objects of file handler invocation."
+objects of file handler invocation.  File handlers might not
+support pty association, if PROGRAM is nil."
   (let ((fh (find-file-name-handler default-directory 'start-file-process)))
     (if fh (apply fh 'start-file-process name buffer program program-args)
       (apply 'start-process name buffer program program-args))))
