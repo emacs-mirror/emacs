@@ -564,7 +564,7 @@ fast_string_match_ignore_case (regexp, string)
   return val;
 }
 
-/* Match REGEXP atainst the characters after POS to LIMIT, and return
+/* Match REGEXP against the characters after POS to LIMIT, and return
    the number of matched characters.  If STRING is non-nil, match
    against the characters in it.  In that case, POS and LIMIT are
    indices into the string.  This function doesn't modify the match
