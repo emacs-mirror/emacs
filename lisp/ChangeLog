@@ -1,3 +1,9 @@
+2009-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Remove commented out code.
+	(vc-derived-from-dir-mode): Remove, unused.
+	(vc-version-diff, vc-diff): Consistently pass t to vc-deduce-fileset.
+
 2009-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Disable

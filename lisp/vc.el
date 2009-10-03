@@ -861,31 +861,7 @@ Within directories, only files already under version control are noticed."
       (unless (file-directory-p node) (push node flattened)))
     (nreverse flattened)))
 
-(defun vc-derived-from-dir-mode (&optional buffer)
-  "Are we in a VC-directory buffer, or do we have one as an ancestor?"
-  (let ((buffer (or buffer (current-buffer))))
-    (cond ((derived-mode-p 'vc-dir-mode) t)
-	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
-	  (t nil))))
-
 (defvar vc-dir-backend)
-
-;; FIXME: this is not functional, commented out.
-;; (defun vc-deduce-fileset (&optional observer)
-;;   "Deduce a set of files and a backend to which to apply an operation and
-;; the common state of the fileset.  Return (BACKEND . FILESET)."
-;;   (let* ((selection (vc-dispatcher-selection-set observer))
-;; 	 (raw (car selection))		;; Selection as user made it
-;; 	 (cooked (cdr selection))	;; Files only
-;;          ;; FIXME: Store the backend in a buffer-local variable.
-;;          (backend (if (vc-derived-from-dir-mode (current-buffer))
-;; 		      ;; FIXME: this should use vc-dir-backend from
-;; 		      ;; the *vc-dir* buffer.
-;;                       (vc-responsible-backend default-directory)
-;;                     (assert (and (= 1 (length raw))
-;;                                  (not (file-directory-p (car raw)))))
-;;                     (vc-backend (car cooked)))))
-;; 	(cons backend selection)))
 
 (declare-function vc-dir-current-file "vc-dir" ())
 (declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
@@ -1577,14 +1553,8 @@ returns t if the buffer had changes, nil otherwise."
     (error "Not a valid revision range"))
   ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
   ;; placement rules for (interactive) don't actually leave us a choice.
-  (vc-diff-internal t (vc-deduce-fileset) rev1 rev2
+  (vc-diff-internal t (vc-deduce-fileset t) rev1 rev2
 		    (called-interactively-p 'interactive)))
-
-;; (defun vc-contains-version-controlled-file (dir)
-;;   "Return t if DIR contains a version-controlled file, nil otherwise."
-;;   (catch 'found
-;;     (mapc (lambda (f) (and (not (file-directory-p f)) (vc-backend f) (throw 'found 't))) (directory-files dir))
-;;     nil))
 
 ;;;###autoload
 (defun vc-diff (historic &optional not-urgent)
@@ -1599,7 +1569,7 @@ saving the buffer."
   (if historic
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
-    (vc-diff-internal t (vc-deduce-fileset) nil nil
+    (vc-diff-internal t (vc-deduce-fileset t) nil nil
 		      (called-interactively-p 'interactive))))
 
 ;;;###autoload
