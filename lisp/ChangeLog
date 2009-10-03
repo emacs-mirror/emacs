@@ -1,3 +1,10 @@
+2009-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Disable
+	`file-name-handler-alist' when loading 'ange-ftp.  Otherwise,
+	there could be recursive loading when `default-directory' is a
+	remote file name.  (Bug#4614)
+
 2009-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-basic-setup): Handle the case where
