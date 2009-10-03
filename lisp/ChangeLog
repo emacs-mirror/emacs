@@ -22,6 +22,8 @@
 
 	* cedet/srecode/map.el (srecode-map-base-template-dir): Look for
 	templates in data-directory.
+	(srecode-map-save-file): Default to a file in
+	user-emacs-directory.
 
 	* cedet/ede/srecode.el (ede-srecode-setup): Use default templates
 	directory.
