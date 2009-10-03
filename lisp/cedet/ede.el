@@ -436,7 +436,7 @@ Do not set this to non-nil globally.  It is used internally.")
 ;;; The EDE persistent cache.
 ;;
 (defcustom ede-project-placeholder-cache-file
-  (expand-file-name "~/.projects.ede")
+  (expand-file-name "ede-projects" user-emacs-directory)
   "File containing the list of projects EDE has viewed."
   :group 'ede
   :type 'file)

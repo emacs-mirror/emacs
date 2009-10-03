@@ -19,6 +19,8 @@
 
 	* cedet/ede.el (ede-target-forms-menu): Don't enable if no
 	projects exist.
+	(ede-project-placeholder-cache-file): Default to a file in
+	user-emacs-directory.
 
 	* cedet/srecode/map.el (srecode-map-base-template-dir): Look for
 	templates in data-directory.
