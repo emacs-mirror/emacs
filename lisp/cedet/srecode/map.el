@@ -36,10 +36,7 @@
 
 (defun srecode-map-base-template-dir ()
   "Find the base template directory for SRecode."
-  (let* ((lib (locate-library "srecode.el"))
-	 (dir (file-name-directory lib)))
-    (expand-file-name "templates/" dir)
-    ))
+  (expand-file-name "srecode" data-directory))
 
 ;;; Current MAP
 ;;
@@ -399,7 +396,7 @@ Return non-nil if the map changed."
   (list (srecode-map-base-template-dir)
 	(expand-file-name "~/.srecode/")
 	)
-  "*Global load path for SRecode template files."
+  "Global load path for SRecode template files."
   :group 'srecode
   :type '(repeat file)
   :set 'srecode-map-load-path-set)

@@ -2178,6 +2178,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.dtx\\'" . doctex-mode)
      ("\\.org\\'" . org-mode)
      ("\\.el\\'" . emacs-lisp-mode)
+     ("Project\\.ede\\'" . emacs-lisp-mode)
      ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.li?sp\\'" . lisp-mode)
@@ -2237,6 +2238,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.f9[05]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
+     ("\\.srt\\'" . srecode-template-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with

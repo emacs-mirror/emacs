@@ -39,6 +39,7 @@
       ans)
     ))
 
+;;;###autoload
 (defun srecode-template-setup-parser ()
   "Setup buffer for parse."
   (srecode-template-wy--install-parser)
@@ -61,10 +62,13 @@
    senator-step-at-tag-classes '(function variable)
    ))
 
-;;;;###autoload
-(add-hook 'srecode-template-mode-hook 'srecode-template-setup-parser)
-
 (provide 'srecode/template)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: srecode/loaddefs
+;; generated-autoload-load-name: "srecode/template"
+;; End:
 
 ;; arch-tag: 037fbca7-e846-4521-b801-3463f50c3080
 ;;; srecode/template.el ends here

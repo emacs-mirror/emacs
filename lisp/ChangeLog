@@ -1,3 +1,39 @@
+2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/srecode/srt-mode.el (srecode-template-mode): Doc fix.
+
+	* files.el (auto-mode-alist): Add .srt and Project.ede.
+
+	* cedet/semantic.el (semantic-mode): Handle
+	srecode-template-mode-hook as well.
+
+	* cedet/srecode/template.el: Remove hook variable.
+
+	* cedet/ede/proj-comp.el: Require ede/pmake when compiling.
+
+	* cedet/ede.el (ede-target-forms-menu): Don't enable if no
+	projects exist.
+
+	* cedet/srecode/map.el (srecode-map-base-template-dir): Look for
+	templates in data-directory.
+
+	* cedet/ede/srecode.el (ede-srecode-setup): Use default templates
+	directory.
+
+2009-09-30  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/util-modes.el (semantic-highlight-func-mode): Doc
+	fix.
+
+	* cedet/ede/proj-comp.el (ede-proj-makefile-insert-variables):
+	Only insert each variable once.
+
+	* cedet/ede/pmake.el (ede-pmake-insert-variable-once): New macro.
+	(ede-pmake-insert-variable-shared): Use it.
+
+	* cedet/ede/cpp-root.el (ede-preprocessor-map): Do not deref table
+	for lexical table iff table is nil.
+
 2009-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Remove commented out code.

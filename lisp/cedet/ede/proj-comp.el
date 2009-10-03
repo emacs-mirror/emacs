@@ -46,6 +46,7 @@
 
 (require 'ede)				;source object
 (require 'ede/autoconf-edit)
+(eval-when-compile (require 'ede/pmake))
 
 ;;; Types:
 (defclass ede-compilation-program (eieio-instance-inheritor)
@@ -256,12 +257,11 @@ This will prevent rules from creating duplicate variables or rules."
       (with-slots (variables) this
 	(mapcar
 	 (lambda (var)
-	   (insert (car var) "=")
-	  (let ((cd (cdr var)))
-	    (if (listp cd)
-		(mapc (lambda (c) (insert " " c)) cd)
-	      (insert cd)))
-	  (insert "\n"))
+	   (ede-pmake-insert-variable-once (car var)
+	     (let ((cd (cdr var)))
+	       (if (listp cd)
+		   (mapc (lambda (c) (insert " " c)) cd)
+		 (insert cd)))))
 	 variables))))
 
 (defmethod ede-compiler-intermediate-objects-p ((this ede-compiler))

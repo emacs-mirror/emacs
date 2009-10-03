@@ -659,7 +659,9 @@ Argument MENU-DEF is the menu definition to use."
     "Target Forms"
     (let ((obj (or ede-selected-object ede-object)))
       (append
-       '([ "Add File" ede-add-file (ede-current-project) ]
+       '([ "Add File" ede-add-file
+	   (and (ede-current-project)
+		(oref (ede-current-project) targets)) ]
 	 [ "Remove File" ede-remove-file
 	   (and ede-object
 		(or (listp ede-object)

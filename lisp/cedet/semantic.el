@@ -176,7 +176,7 @@ For language specific hooks, make sure you define this as a local hook.
 
 This hook should not be used any more.
 Use `semantic-after-toplevel-cache-change-hook' instead.")
-(make-obsolete-variable 'semantic-after-toplevel-bovinate-hook nil)
+(make-obsolete-variable 'semantic-after-toplevel-bovinate-hook nil "23.2")
 
 (defvar semantic-after-toplevel-cache-change-hook nil
   "Hooks run after the buffer tag list has changed.
@@ -661,7 +661,7 @@ Does nothing if the current buffer doesn't need reparsing."
 (defun semantic-bovinate-toplevel (&optional ignored)
   "Backward Compatibility Function."
   (semantic-fetch-tags))
-(make-obsolete 'semantic-bovinate-toplevel 'semantic-fetch-tags)
+(make-obsolete 'semantic-bovinate-toplevel 'semantic-fetch-tags "23.2")
 
 ;; Another approach is to let Emacs call the parser on idle time, when
 ;; needed, use `semantic-fetch-available-tags' to only retrieve
@@ -793,7 +793,7 @@ code blocks in methods.  If `bovine-inner-scope' can also support
 commands, use `semantic-bovinate-from-nonterminal-full'."
   (semantic-parse-region start end nonterm depth t))
 (make-obsolete 'semantic-bovinate-region-until-error
-               'semantic-parse-region)
+               'semantic-parse-region "23.2")
 
 (defsubst semantic-bovinate-from-nonterminal
   (start end nonterm &optional depth length)
@@ -821,7 +821,7 @@ When used in a `lambda' of a MATCH-LIST, there is no need to include
 a START and END part."
   (semantic-parse-region start end nonterm (or depth 1)))
 (make-obsolete 'semantic-bovinate-from-nonterminal-full
-               'semantic-parse-region)
+               'semantic-parse-region "23.2")
 
 ;;; User interface
 
@@ -1055,7 +1055,9 @@ Semantic mode.
 	(add-hook 'makefile-mode-hook 'semantic-default-make-setup)
 	(add-hook 'c-mode-hook 'semantic-default-c-setup)
 	(add-hook 'c++-mode-hook 'semantic-default-c-setup)
-	(add-hook 'html-mode-hook 'semantic-default-html-setup))
+	(add-hook 'html-mode-hook 'semantic-default-html-setup)
+	(add-hook 'html-mode-hook 'semantic-default-html-setup)
+	(add-hook 'srecode-template-mode-hook 'srecode-template-setup-parser))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
     (remove-hook 'javascript-mode-hook 'wisent-javascript-setup-parser)
@@ -1066,6 +1068,7 @@ Semantic mode.
     (remove-hook 'c-mode-hook 'semantic-default-c-setup)
     (remove-hook 'c++-mode-hook 'semantic-default-c-setup)
     (remove-hook 'html-mode-hook 'semantic-default-html-setup)
+    (remove-hook 'srecode-template-mode-hook 'srecode-template-setup-parser)
 
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
@@ -1103,6 +1106,9 @@ With prefix argument ARG, turn on if positive, otherwise off.  The
 minor mode can be turned on only if semantic feature is available and
 the current buffer was set up for parsing.  Return non-nil if the
 minor mode is enabled." t nil)
+
+(autoload 'srecode-template-setup-parser "srecode/srecode-template"
+  "Set up buffer for parsing SRecode template files." t nil)
 
 (provide 'semantic)
 

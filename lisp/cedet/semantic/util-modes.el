@@ -874,7 +874,7 @@ when it lands in the sticky line."
   "Setup option `semantic-stickyfunc-mode'.
 For semantic enabled buffers, make the function declaration for the top most
 function \"sticky\".  This is accomplished by putting the first line of
-text for that function in Emacs 21's header line."
+text for that function in the header line."
   (if semantic-stickyfunc-mode
       (progn
 	(unless (and (featurep 'semantic) (semantic-active-p))
@@ -911,7 +911,7 @@ Enables/disables making the header line of functions sticky.
 A function (or other tag class specified by
 `semantic-stickyfunc-sticky-classes') has a header line, meaning the
 first line which describes the rest of the construct.  This first
-line is what is displayed in the Emacs 21 header line.
+line is what is displayed in the header line.
 
 With prefix argument ARG, turn on if positive, otherwise off.  The
 minor mode can be turned on only if semantic feature is available and
@@ -1149,7 +1149,7 @@ current tag declaration."
 ;;;###autoload
 (defun semantic-highlight-func-mode (&optional arg)
   "Minor mode to highlight the first line of the current tag.
-Enables/disables making the header line of functions sticky.
+Enables/disables making the current function's first line light up.
 A function (or other tag class specified by
 `semantic-stickyfunc-sticky-classes') is highlighted, meaning the
 first line which describes the rest of the construct.

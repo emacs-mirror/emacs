@@ -491,8 +491,8 @@ Also set up the lexical preprocessor map."
 	 (when (not table)
 	   (message "Cannot find file %s in project." F))
 	 (when (and table (semanticdb-needs-refresh-p table))
-	   (semanticdb-refresh-table table))
-	 (setq spp (append spp (oref table lexical-table)))))
+	   (semanticdb-refresh-table table)
+	   (setq spp (append spp (oref table lexical-table))))))
      (oref this spp-files))
     spp))
 

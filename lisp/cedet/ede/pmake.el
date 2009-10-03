@@ -240,20 +240,32 @@ MFILENAME is the makefile to generate."
   "Add VARNAME into the current Makefile.
 Execute BODY in a location where a value can be placed."
   `(let ((addcr t) (v ,varname))
-       (if (re-search-backward (concat "^" v "\\s-*=") nil t)
-	   (progn
-	     (ede-pmake-end-of-variable)
-	     (if (< (current-column) 40)
-		 (if (and (/= (preceding-char) ?=)
-			  (/= (preceding-char) ? ))
-		     (insert " "))
-	       (insert "\\\n   "))
-	     (setq addcr nil))
-	 (insert v "="))
+     (if (re-search-backward (concat "^" v "\\s-*=") nil t)
+	 (progn
+	   (ede-pmake-end-of-variable)
+	   (if (< (current-column) 40)
+	       (if (and (/= (preceding-char) ?=)
+			(/= (preceding-char) ? ))
+		   (insert " "))
+	     (insert "\\\n   "))
+	   (setq addcr nil))
+       (insert v "="))
+     ,@body
+     (if addcr (insert "\n"))
+     (goto-char (point-max))))
+(put 'ede-pmake-insert-variable-shared 'lisp-indent-function 1)
+
+(defmacro ede-pmake-insert-variable-once (varname &rest body)
+  "Add VARNAME into the current Makefile if it doesn't exist.
+Execute BODY in a location where a value can be placed."
+  `(let ((addcr t) (v ,varname))
+     (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
+       (insert v "=")
        ,@body
        (if addcr (insert "\n"))
-       (goto-char (point-max))))
-(put 'ede-pmake-insert-variable-shared 'lisp-indent-function 1)
+       (goto-char (point-max)))
+     ))
+(put 'ede-pmake-insert-variable-once 'lisp-indent-function 1)
 
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 

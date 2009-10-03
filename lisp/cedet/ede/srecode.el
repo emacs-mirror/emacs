@@ -37,27 +37,13 @@
 
 ;;; Code:
 (defun ede-srecode-setup ()
-  "Update various paths to get SRecode to identify our macros."
-  (let* ((lib (locate-library "ede.el" t))
-	 (ededir (file-name-directory lib))
-	 (tmpdir (file-name-as-directory
-		  (expand-file-name "templates" ededir))))
-    (when (not tmpdir)
-      (error "Unable to location EDE Templates directory"))
-
-    ;; Rig up the map.
-    (require 'srecode/map)
-    (require 'srecode/find)
-    (add-to-list 'srecode-map-load-path tmpdir)
-    (srecode-map-update-map t)
-
-    ;; We don't call this unless we need it.  Load in the templates.
-    (srecode-load-tables-for-mode 'makefile-mode)
-    (srecode-load-tables-for-mode 'makefile-mode 'ede)
-
-    ;; @todo - autoconf files.
-
-    ))
+  "Initialize Srecode for EDE."
+  (require 'srecode/map)
+  (require 'srecode/find)
+  (srecode-map-update-map t)
+  ;; We don't call this unless we need it.  Load in the templates.
+  (srecode-load-tables-for-mode 'makefile-mode)
+  (srecode-load-tables-for-mode 'makefile-mode 'ede))
 
 (defmacro ede-srecode-insert-with-dictionary (template &rest forms)
   "Insert TEMPLATE after executing FORMS with a dictionary.

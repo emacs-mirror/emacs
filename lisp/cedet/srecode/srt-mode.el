@@ -184,7 +184,7 @@ we can tell font lock about them.")
 
 ;;;###autoload
 (defun srecode-template-mode ()
-  "Major-mode for writing srecode macros."
+  "Major-mode for writing SRecode macros."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'srecode-template-mode
