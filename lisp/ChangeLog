@@ -1,5 +1,8 @@
 2009-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/db-find.el (data-debug-insert-tag-list): Comment out
+	declaration, currently false.
+
 	* mail/rmail.el (rmail-generate-viewer-buffer): Be more careful about
 	reusing existing buffers, in case we happen to visit two files with the
 	same basename.  (Bug#4593)
