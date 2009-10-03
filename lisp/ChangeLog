@@ -11,6 +11,7 @@
 
 	* cedet/semantic.el (semantic-mode): Handle
 	srecode-template-mode-hook as well.
+	(semantic-mode): Use js-mode-hook for Javascript hook.
 
 	* cedet/srecode/template.el: Remove hook variable.
 

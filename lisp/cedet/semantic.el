@@ -1048,7 +1048,7 @@ Semantic mode.
 	    (semanticdb-load-ebrowse-caches)))
 	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
 	;; Add mode-local hooks
-	(add-hook 'javascript-mode-hook 'wisent-javascript-setup-parser)
+	(add-hook 'js-mode-hook 'wisent-javascript-setup-parser)
 	(add-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
 	(add-hook 'java-mode-hook 'wisent-java-default-setup)
 	(add-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
@@ -1060,7 +1060,7 @@ Semantic mode.
 	(add-hook 'srecode-template-mode-hook 'srecode-template-setup-parser))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
-    (remove-hook 'javascript-mode-hook 'wisent-javascript-setup-parser)
+    (remove-hook 'js-mode-hook 'wisent-javascript-setup-parser)
     (remove-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
     (remove-hook 'java-mode-hook 'wisent-java-default-setup)
     (remove-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
