@@ -1,3 +1,9 @@
+2009-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-generate-viewer-buffer): Be more careful about
+	reusing existing buffers, in case we happen to visit two files with the
+	same basename.  (Bug#4593)
+
 2009-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (update-subdirs-CMD): Add cedet to

@@ -1294,11 +1294,15 @@ Instead, these commands are available:
 (defun rmail-generate-viewer-buffer ()
   "Return a reusable buffer suitable for viewing messages.
 Create the buffer if necessary."
-  (let* ((suffix (file-name-nondirectory (or buffer-file-name (buffer-name))))
-	 (name (format " *message-viewer %s*" suffix))
-	 (buf (get-buffer name)))
-    (or buf
-	(generate-new-buffer name))))
+  ;; We want to reuse any existing view buffer, so as not to create an
+  ;; endless number of them.  But we must avoid clashes if we visit
+  ;; two different rmail files with the same basename (Bug#4593).
+  (if (and (local-variable-p 'rmail-view-buffer)
+	   (buffer-live-p rmail-view-buffer))
+      rmail-view-buffer
+    (generate-new-buffer
+     (format " *message-viewer %s*"
+	     (file-name-nondirectory (or buffer-file-name (buffer-name)))))))
 
 (defun rmail-swap-buffers ()
   "Swap text between current buffer and `rmail-view-buffer'.
@@ -1367,6 +1371,9 @@ If so restore the actual mbox message collection."
   (set-buffer-multibyte nil)
   (with-current-buffer (setq rmail-view-buffer (rmail-generate-viewer-buffer))
     (setq buffer-undo-list t)
+    ;; Note that this does not erase the buffer.  Should it?
+    ;; It depends on how this is called.  If somehow called with the
+    ;; rmail buffers swapped, it would erase the message collection.
     (set (make-local-variable 'rmail-overlay-list) nil)
     (set-buffer-multibyte t)
     ;; Force C-x C-s write Unix EOLs.
