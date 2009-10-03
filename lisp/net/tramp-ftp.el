@@ -134,7 +134,7 @@ First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
   (save-match-data
     (or (boundp 'ange-ftp-name-format)
-	(require 'ange-ftp))
+	(let (file-name-handler-alist) (require 'ange-ftp)))
     (let ((ange-ftp-name-format
 	   (list (nth 0 tramp-file-name-structure)
 		 (nth 3 tramp-file-name-structure)
