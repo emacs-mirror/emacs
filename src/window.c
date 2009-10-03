@@ -1533,6 +1533,9 @@ Signal an error when WINDOW is the only window on its frame.  */)
   struct frame *f;
   if (NILP (window))
     window = selected_window;
+  else
+    CHECK_LIVE_WINDOW (window);
+
   f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   delete_window (window);
 
