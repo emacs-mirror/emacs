@@ -25,7 +25,7 @@
 ;; sets of dictionary words that need to be derived.  This file contains
 ;; a set of simple arguments for srecode templates.
 
-(require 'srecode/insert)
+(require 'srecode/dictionary)
 
 ;;; Code:
 

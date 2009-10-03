@@ -1,5 +1,10 @@
 2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/srecode/insert.el: Require srecode/args.
+
+	* cedet/srecode/args.el: Require srecode/dictionary instead of
+	srecode/insert.
+
 	* cedet/srecode/srt-mode.el (srecode-template-mode): Doc fix.
 
 	* files.el (auto-mode-alist): Add .srt and Project.ede.

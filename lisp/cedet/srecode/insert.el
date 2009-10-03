@@ -29,6 +29,7 @@
 (require 'srecode/compile)
 (require 'srecode/find)
 (require 'srecode/dictionary)
+(require 'srecode/args)
 
 (defvar srecode-template-inserter-point)
 (declare-function srecode-overlaid-activate "srecode/fields")
