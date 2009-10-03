@@ -1,3 +1,7 @@
+2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* srecode: New directory for SRecode template files.
+
 2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: delete-directory has an optional parameter RECURSIVE.
