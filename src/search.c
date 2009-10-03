@@ -209,7 +209,7 @@ clear_regexp_cache ()
   int i;
 
   for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
-    /* It's tempting to compare with the syntax-table we've actually changd,
+    /* It's tempting to compare with the syntax-table we've actually changed,
        but it's not sufficient because char-table inheritance mewans that
        modifying one syntax-table can change others at the same time.  */
     if (!EQ (searchbufs[i].syntax_table, Qt))
