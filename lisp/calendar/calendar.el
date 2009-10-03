@@ -1283,6 +1283,8 @@ display the generated calendar."
   (set-buffer (get-buffer-create calendar-buffer))
   (calendar-mode)
   (let* ((pop-up-windows t)
+         ;; Not really needed now, but means we use exactly the same
+         ;; behavior as before in the non-wide case (see below).
          (split-height-threshold 1000)
          (date (if arg (calendar-read-date t)
                  (calendar-current-date)))
@@ -1291,7 +1293,40 @@ display the generated calendar."
     (calendar-increment-month month year (- calendar-offset))
     ;; Display the buffer before calling calendar-generate-window so that it
     ;; can get a chance to adjust the window sizes to the frame size.
-    (or nodisplay (pop-to-buffer calendar-buffer))
+    (unless nodisplay
+      ;; We want a window configuration that looks something like
+      ;; X        X | Y
+      ;; -        -----
+      ;; C        Z | C
+      ;; where C is the calendar, and the LHS is the traditional,
+      ;; non-wide frame, and the RHS is the wide frame case.
+      ;; We should end up in the same state regardless of whether the
+      ;; windows were initially split or not.
+      ;; Previously, we only thought about the non-wide case.
+      ;; We could just set split-height-threshold to 1000, relying on
+      ;; the fact that the window splitting treated a single window as
+      ;; a special case and would always split it (vertically).  The
+      ;; same thing does not work in the wide-frame case, so now we do
+      ;; the splitting by hand.
+      ;; See discussion in bug#1806.
+      ;; Actually, this still does not do quite the right thing in the
+      ;; wide frame case if started from a configuration like the LHS.
+      ;; Eg if you start with a non-wide frame, call calendar, then
+      ;; make the frame wider.  This one is problematic because you
+      ;; might need to split a totally unrelated window.  Oh well, it
+      ;; seems unlikely, and perhaps respecting the original layout is
+      ;; the right thing in that case.
+      ;;
+      ;; Is this a wide frame?  If so, split it horizontally.
+      (if (window-splittable-p t) (split-window-horizontally))
+      (pop-to-buffer calendar-buffer)
+      ;; Has the window already been split vertically?  (See bug#4543)
+      (when (= (window-height) (window-height (frame-root-window)))
+        (let ((win (split-window-vertically)))
+          ;; Show something else in the upper window.
+          (switch-to-buffer (other-buffer))
+          ;; Switch to the lower window with the calendar buffer.
+          (select-window win))))
     (calendar-generate-window month year)
     (if (and calendar-view-diary-initially-flag
              (calendar-date-is-visible-p date))
@@ -1325,7 +1360,12 @@ Optional integers MON and YR are used instead of today's date."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
     (when in-calendar-window
-      (if (or (one-window-p t) (not (window-full-width-p)))
+      ;; The second test used to be window-full-width-p.
+      ;; Not sure what it was/is for, except perhaps some way of saying
+      ;; "try not to mess with existing configurations".
+      ;; If did the wrong thing on wide frames, where we have done a
+      ;; horizontal split in calendar-basic-setup.
+      (if (or (one-window-p t) (not (window-safely-shrinkable-p)))
           ;; Don't mess with the window size, but ensure that the first
           ;; line is fully visible.
           (set-window-vscroll nil 0)

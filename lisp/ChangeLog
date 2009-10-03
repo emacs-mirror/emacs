@@ -1,5 +1,9 @@
 2009-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (calendar-basic-setup): Handle the case where
+	the frame is wide.
+	(calendar-generate-window): Test for shrinkability rather than width.
+
 	* cedet/semantic/db-find.el (data-debug-insert-tag-list): Comment out
 	declaration, currently false.
 
