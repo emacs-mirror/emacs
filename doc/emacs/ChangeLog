@@ -1,3 +1,9 @@
+2009-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Horizontal Scrolling): Document cursor behavior under
+	horizontal scrolling when point moves off the screen (Bug#4564).
+	Improve wording.
+
 2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Directories): delete-directory prompts for recursive
