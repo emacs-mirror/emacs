@@ -87,7 +87,11 @@ return value, use `window-text-height' instead."
 		(if mode-line-format 1 0)
 		(if header-line-format 1 0))))))
 
+;; See discussion in bug#4543.
 (defun window-full-height-p (&optional window)
+  "Return non-nil if WINDOW is not the result of a vertical split.
+WINDOW defaults to the selected window.  (This function is not
+appropriate for minibuffers.)"
   (unless window
     (setq window (selected-window)))
   (= (window-height window)

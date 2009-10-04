@@ -1,3 +1,7 @@
+2009-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (window-full-height-p): Add doc string.
+
 2009-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-full-height-p): New function.  (Bug#4543)
