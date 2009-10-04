@@ -1,3 +1,8 @@
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-directory, org-map-entries):
+	* org-clock.el (org-clock-get-clocked-time): Fix typos in docstrings.
+
 2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-set-tags-to): New command.
@@ -2506,7 +2511,7 @@
 	`org-font-lock-add-priority-faces'.
 	(org-font-lock-add-priority-faces): New function.
 
-	* org-faces.el: (org-set-tag-faces): New option.
+	* org-faces.el (org-set-tag-faces): New option.
 	(org-priority-faces): New variable.
 
 	* org-exp.el (org-export-as-html): Add a "content" div around the
@@ -2620,7 +2625,7 @@
 	info yet and the call does not want to add anything, only maybe
 	tries to remove something.
 	(org-special-ctrl-a/e): All value to be a cons cell with separate
-	settings for `C-a. and `C-e'.
+	settings for `C-a' and `C-e'.
 	(org-beginning-of-line, org-end-of-line): Honor separate values
 	for `C-a' and `C-e'.
 

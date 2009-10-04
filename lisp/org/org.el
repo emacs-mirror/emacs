@@ -1468,7 +1468,7 @@ following situations:
    absolute path.  The path will then be interpreted relative to
    `org-directory'
 2. When a remember note is filed away in an interactive way (when exiting the
-   note buffer with `C-1 C-c C-c'.  The the user is prompted for an org file,
+   note buffer with `C-1 C-c C-c'.  The user is prompted for an org file,
    with `org-directory' as the default path."
   :group 'org-refile
   :group 'org-remember
@@ -11708,7 +11708,7 @@ the scanner.  The following items can be given here:
   comment    skip trees with the COMMENT keyword
   function or Emacs Lisp form:
              will be used as value for `org-agenda-skip-function', so whenever
-             the the function returns t, FUNC will not be called for that
+             the function returns t, FUNC will not be called for that
              entry and search will continue from the point where the
              function leaves it.
 
