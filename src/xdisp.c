@@ -25054,10 +25054,13 @@ fontified regions the property `fontified'.  */);
   DEFVAR_BOOL ("unibyte-display-via-language-environment",
                &unibyte_display_via_language_environment,
     doc: /* *Non-nil means display unibyte text according to language environment.
-Specifically this means that unibyte non-ASCII characters
+Specifically, this means that raw bytes in the range 160-255 decimal
 are displayed by converting them to the equivalent multibyte characters
 according to the current language environment.  As a result, they are
-displayed according to the current fontset.  */);
+displayed according to the current fontset.
+
+Note that this variable affects only how these bytes are displayed,
+but does not change the fact they are interpreted as raw bytes.  */);
   unibyte_display_via_language_environment = 0;
 
   DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height,
