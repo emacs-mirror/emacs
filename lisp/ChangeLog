@@ -1,3 +1,9 @@
+2009-10-04  Karl Fogel  <kfogel@red-bean.com>
+
+	* info.el (Info-bookmark-make-record): Document this function.
+	(Info-bookmark-jump): Document with a doc string, not just a comment.
+	(Bug#4203)
+
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic.el (semantic-new-buffer-setup-functions): New

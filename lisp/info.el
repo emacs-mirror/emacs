@@ -4769,6 +4769,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
 (declare-function bookmark-get-bookmark-record "bookmark" (bmk))
 
 (defun Info-bookmark-make-record ()
+  "This implements the `bookmark-make-record-function' type (which see)
+for Info nodes."
   `(,Info-current-node
     ,@(bookmark-make-record-default 'point-only)
     (filename . ,Info-current-file)
@@ -4777,8 +4779,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
-  ;; This implements the `handler' function interface for record type returned
-  ;; by `Info-bookmark-make-record', which see.
+  "This implements the `handler' function interface for the record
+type returned by `Info-bookmark-make-record', which see."
   (let* ((file                   (bookmark-prop-get bmk 'filename))
          (info-node              (bookmark-prop-get bmk 'info-node))
          (buf (save-window-excursion    ;FIXME: doesn't work with frames!
