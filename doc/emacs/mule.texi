@@ -1515,9 +1515,12 @@ sequences mostly correspond to those of the prefix input methods.
   The ISO 8859 Latin-@var{n} character sets define character codes in
 the range 0240 to 0377 octal (160 to 255 decimal) to handle the
 accented letters and punctuation needed by various European languages
-(and some non-European ones).  If you disable multibyte characters,
-Emacs can still handle @emph{one} of these character codes at a time.
-To specify @emph{which} of these codes to use, invoke @kbd{M-x
+(and some non-European ones).  Note that Emacs considers bytes with
+codes in this range as raw bytes, not as characters, even in a unibyte
+session, i.e.@: if you disable multibyte characters.  However, Emacs
+can still handle these character codes as if they belonged to
+@emph{one} of the single-byte character sets at a time.  To specify
+@emph{which} of these codes to use, invoke @kbd{M-x
 set-language-environment} and specify a suitable language environment
 such as @samp{Latin-@var{n}}.
 
@@ -1527,13 +1530,16 @@ your initialization files are read as unibyte if they contain
 non-@acronym{ASCII} characters.
 
 @vindex unibyte-display-via-language-environment
-  Emacs can also display those characters, provided the terminal or font
-in use supports them.  This works automatically.  Alternatively, on a
-graphical display, Emacs can also display single-byte characters
-through fontsets, in effect by displaying the equivalent multibyte
-characters according to the current language environment.  To request
-this, set the variable @code{unibyte-display-via-language-environment}
-to a non-@code{nil} value.
+  Emacs can also display bytes in the range 160 to 255 as readable
+characters, provided the terminal or font in use supports them.  This
+works automatically.  On a graphical display, Emacs can also display
+single-byte characters through fontsets, in effect by displaying the
+equivalent multibyte characters according to the current language
+environment.  To request this, set the variable
+@code{unibyte-display-via-language-environment} to a non-@code{nil}
+value.  Note that setting this only affects how these bytes are
+displayed, but does not change the fundamental fact that Emacs treats
+them as raw bytes, not as characters.
 
 @cindex @code{iso-ascii} library
   If your terminal does not support display of the Latin-1 character
