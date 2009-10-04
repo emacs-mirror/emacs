@@ -4649,8 +4649,8 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 	       (y-or-n-p
 		(format "Directory `%s' is not empty, really delete? " dir))
 	     nil))))
-  ;; If default-directory is a remote directory,
-  ;; make sure we find its delete-directory handler.
+  ;; If default-directory is a remote directory, make sure we find its
+  ;; delete-directory handler.
   (setq directory (directory-file-name (expand-file-name directory)))
   (let ((handler (find-file-name-handler directory 'delete-directory)))
     (if handler
@@ -4666,6 +4666,73 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 	    directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
       (delete-directory-internal directory))))
 
+(defun copy-directory
+  (directory newname &optional keep-time preserve-uid-gid parents)
+  "Copy DIRECTORY to NEWNAME.  Both args must be strings.
+If NEWNAME names an existing directory, copy DIRECTORY as subdirectory there.
+
+This function always sets the file modes of the output files to match
+the corresponding input file.
+
+The third arg KEEP-TIME non-nil means give the output files the same
+last-modified time as the old ones.  (This works on only some systems.)
+
+A prefix arg makes KEEP-TIME non-nil.
+
+If PRESERVE-UID-GID is non-nil, we try to transfer the
+uid and gid of the input files to the corresponding output file.
+
+Noninteractively, the last argument PARENTS says whether to
+create parent directories if they don't exist.  Interactively,
+this happens by default."
+  (interactive
+   (let ((dir (read-directory-name
+	       "Copy directory: " default-directory default-directory t nil)))
+     (list dir
+	   (read-file-name
+	    (format "Copy directory %s to: " dir)
+	    default-directory default-directory nil nil)
+	   current-prefix-arg nil t)))
+  ;; If default-directory is a remote directory, make sure we find its
+  ;; copy-directory handler.
+  (let ((handler (or (find-file-name-handler directory 'copy-directory)
+		     (find-file-name-handler newname 'copy-directory))))
+    (if handler
+	(funcall
+	 handler
+	 'copy-directory directory newname keep-time preserve-uid-gid parents)
+
+      ;; Compute target name.
+      (setq directory (directory-file-name (expand-file-name directory))
+	    newname   (directory-file-name (expand-file-name newname)))
+      (if (and (file-directory-p newname)
+	       (not (string-equal (file-name-nondirectory directory)
+				  (file-name-nondirectory newname))))
+	  (setq newname
+		(expand-file-name (file-name-nondirectory directory) newname)))
+      (if (not (file-directory-p newname)) (make-directory newname parents))
+      ;; Copy recursively.
+      (mapc
+       (lambda (file)
+	 (if (file-directory-p file)
+	     (copy-directory file newname keep-time preserve-uid-gid parents)
+	   (copy-file file newname t keep-time preserve-uid-gid)))
+       ;; We do not want to delete "." and "..".
+       (directory-files
+	directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+
+      ;; Set directory attributes.
+      (set-file-modes newname (file-modes directory))
+      (if keep-time
+	  (set-file-times newname (nth 5 (file-attributes directory))))
+      (if preserve-uid-gid
+	  (ignore-errors
+	    (call-process
+	     "chown" nil nil nil
+	     (format "%s:%s"
+		     (nth 2 (file-attributes directory))
+		     (nth 3 (file-attributes directory)))
+	     directory))))))
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
