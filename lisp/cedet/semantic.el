@@ -1075,7 +1075,10 @@ Semantic mode.
 		     (file-exists-p semanticdb-default-system-save-directory))
 	    (require 'semantic/db-ebrowse)
 	    (semanticdb-load-ebrowse-caches)))
-	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn))
+	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+	(dolist (b (buffer-list))
+	  (with-current-buffer b
+	    (semantic-new-buffer-fcn))))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
     ;; FIXME: handle semanticdb-load-ebrowse-caches
