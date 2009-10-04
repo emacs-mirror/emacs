@@ -43,7 +43,7 @@
   :type 'string)
 
 (defcustom semanticdb-default-save-directory
-  (expand-file-name "semanticdb" user-emacs-directory)
+  (locate-user-emacs-file "semanticdb" ".semanticdb")
   "Directory name where semantic cache files are stored.
 If this value is nil, files are saved in the current directory.  If the value
 is a valid directory, then it overrides `semanticdb-default-file-name' and

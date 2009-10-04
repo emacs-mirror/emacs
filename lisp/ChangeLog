@@ -1,3 +1,10 @@
+2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/db-file.el (semanticdb-default-save-directory):
+	* cedet/srecode/map.el (srecode-map-save-file):
+	* cedet/ede.el (ede-project-placeholder-cache-file): Use
+	locate-user-emacs-file.  Suggested by Juanma Barranquero.
+
 2009-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* window.el (window-full-height-p): Add doc string.

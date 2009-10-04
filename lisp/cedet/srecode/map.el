@@ -45,7 +45,7 @@
   "The current map for global SRecode templates.")
 
 (defcustom srecode-map-save-file
-  (expand-file-name "srecode-map.el" user-emacs-directory)
+  (locate-user-emacs-file "srecode-map.el" ".srecode/srecode-map")
   "The save location for SRecode's map file.
 If the save file is nil, then the MAP is not saved between sessions."
   :group 'srecode
