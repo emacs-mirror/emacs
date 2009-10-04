@@ -308,6 +308,8 @@ be in use:
 
 ** `delete-directory' has an optional parameter RECURSIVE.
 
+** New function `window-full-height-p', analogous to the full-width version.
+
 
 * Changes in Emacs 23.2 on non-free operating systems
 
