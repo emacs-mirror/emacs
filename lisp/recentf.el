@@ -1361,6 +1361,12 @@ that were operated on recently."
       (message "Recentf mode %sabled" (if recentf-mode "en" "dis"))))
   recentf-mode)
 
+(defun recentf-unload-function ()
+  "Unload the recentf library."
+  ;; continue standard unloading
+  (recentf-mode -1)
+  nil)
+
 (provide 'recentf)
 
 (run-hooks 'recentf-load-hook)

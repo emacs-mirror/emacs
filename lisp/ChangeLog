@@ -1,3 +1,7 @@
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* recentf.el (recentf-unload-function): New function.
+
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic/db-file.el (semanticdb-default-save-directory):
@@ -47,8 +51,8 @@
 
 2009-09-30  Eric Ludlam  <zappo@gnu.org>
 
-	* cedet/semantic/util-modes.el (semantic-highlight-func-mode): Doc
-	fix.
+	* cedet/semantic/util-modes.el (semantic-highlight-func-mode):
+	Doc fix.
 
 	* cedet/ede/proj-comp.el (ede-proj-makefile-insert-variables):
 	Only insert each variable once.
