@@ -1209,51 +1209,7 @@ Special value `always' suppresses confirmation."
 	     (or (eq recursive 'always)
 		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
-	(let ((mode (or (file-modes from) #o700))
-	      (files
-	       (condition-case err
-		   (directory-files from nil dired-re-no-dot)
-		 (file-error
-		  (push (dired-make-relative from)
-			dired-create-files-failures)
-		  (dired-log "Copying error for %s:\n%s\n" from err)
-		  (setq dirfailed t)
-		  nil))))
-	  (if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.
-	  (unless dirfailed
-	    (if (file-exists-p to)
-		(or top (dired-handle-overwrite to))
-	      (condition-case err
-		  ;; We used to call set-file-modes here, but on some
-		  ;; Linux kernels, that returns an error on vfat
-		  ;; filesystems
-		  (let ((default-mode (default-file-modes)))
-		    (unwind-protect
-			(progn
-			  (set-default-file-modes #o700)
-			  (make-directory to))
-		      (set-default-file-modes default-mode)))
-		(file-error
-		 (push (dired-make-relative from)
-		       dired-create-files-failures)
-		 (setq files nil)
-		 (dired-log "Copying error for %s:\n%s\n" from err)))))
-	  (dolist (file files)
-	    (let ((thisfrom (expand-file-name file from))
-		  (thisto (expand-file-name file to)))
-	      ;; Catch errors copying within a directory,
-	      ;; and report them through the dired log mechanism
-	      ;; just as our caller will do for the top level files.
-	      (condition-case err
-		  (dired-copy-file-recursive
-		   thisfrom thisto
-		   ok-flag preserve-time nil recursive)
-		(file-error
-		 (push (dired-make-relative thisfrom)
-		       dired-create-files-failures)
-		 (dired-log "Copying error for %s:\n%s\n" thisfrom err)))))
-	  (when (file-directory-p to)
-	    (set-file-modes to mode)))
+	(copy-directory from to dired-copy-preserve-time)
       ;; Not a directory.
       (or top (dired-handle-overwrite to))
       (condition-case err
