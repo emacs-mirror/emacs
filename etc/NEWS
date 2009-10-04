@@ -308,6 +308,8 @@ be in use:
 
 ** `delete-directory' has an optional parameter RECURSIVE.
 
+** New function `copy-directory', which copies a directory recursively.
+
 ** New function `window-full-height-p', analogous to the full-width version.
 
 
