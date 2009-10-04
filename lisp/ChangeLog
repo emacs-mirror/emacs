@@ -1,5 +1,12 @@
 2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* cedet/ede/makefile-edit.el (makefile-beginning-of-command)
+	(makefile-end-of-command):
+	* cedet/srecode/srt-mode.el (semantic-beginning-of-context)
+	(semantic-end-of-context): Fix previous change.  Doc fixes.
+
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
 	* files-x.el (modify-dir-local-variable)
 	(copy-dir-locals-to-file-locals-prop-line):
 	* cedet/ede/makefile-edit.el (makefile-beginning-of-command)

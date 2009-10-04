@@ -375,7 +375,7 @@ Moves out one named section."
 (define-mode-local-override semantic-beginning-of-context
   srecode-template-mode (&optional point)
   "Move to the beginning of the current context.
-Moves the beginning of one named section."
+Moves to the beginning of one named section."
   (if (semantic-up-context point)
       t
     (let ((es (regexp-quote (srecode-template-get-escape-start)))
@@ -386,8 +386,8 @@ Moves the beginning of one named section."
 
 (define-mode-local-override semantic-end-of-context
   srecode-template-mode (&optional point)
-  "Move to the beginning of the current context.
-Moves the beginning of one named section."
+  "Move to the end of the current context.
+Moves to the end of one named section."
   (let ((name (srecode-up-context-get-name point))
 	(tag (semantic-current-tag))
 	(es  (regexp-quote (srecode-template-get-escape-start))))
