@@ -1363,8 +1363,8 @@ that were operated on recently."
 
 (defun recentf-unload-function ()
   "Unload the recentf library."
-  ;; continue standard unloading
   (recentf-mode -1)
+  ;; continue standard unloading
   nil)
 
 (provide 'recentf)
