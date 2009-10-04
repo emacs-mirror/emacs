@@ -551,7 +551,7 @@ check the variable `spam-stat-score-data'."
 ;; Testing
 
 (defun spam-stat-strip-xref ()
-  "Strip the the Xref header."
+  "Strip the Xref header."
   (save-restriction
     (mail-narrow-to-head)
     (when (re-search-forward "^Xref:.*\n" nil t)

@@ -1,3 +1,7 @@
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* spam-stat.el (spam-stat-strip-xref): Fix typo in docstring.
+
 2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* spam-stat.el (spam-stat-load): Fix typo in message.
