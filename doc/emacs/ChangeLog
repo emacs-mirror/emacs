@@ -1,5 +1,8 @@
 2009-10-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* mule.texi (Unibyte Mode): Emphasize that
+	unibyte-display-via-language-environment affects only the display.
+
 	* display.texi (Horizontal Scrolling): Document cursor behavior under
 	horizontal scrolling when point moves off the screen (Bug#4564).
 	Improve wording.
