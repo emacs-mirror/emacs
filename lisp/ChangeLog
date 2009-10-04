@@ -1,3 +1,7 @@
+2009-10-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-full-height-p): New function.  (Bug#4543)
+
 2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/srecode/insert.el: Require srecode/args.

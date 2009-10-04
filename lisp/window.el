@@ -87,6 +87,12 @@ return value, use `window-text-height' instead."
 		(if mode-line-format 1 0)
 		(if header-line-format 1 0))))))
 
+(defun window-full-height-p (&optional window)
+  (unless window
+    (setq window (selected-window)))
+  (= (window-height window)
+     (window-height (frame-root-window (window-frame window)))))
+
 (defun one-window-p (&optional nomini all-frames)
   "Return non-nil if the selected window is the only window.
 Optional arg NOMINI non-nil means don't count the minibuffer
