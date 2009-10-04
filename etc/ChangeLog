@@ -1,3 +1,7 @@
+2009-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: New function copy-directory.
+
 2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* srecode: New directory for SRecode template files.
