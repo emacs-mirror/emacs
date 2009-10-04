@@ -682,7 +682,7 @@ either.
 @section Indenting Macros
 
   You can use the @code{declare} form in the macro definition to
-specify how to @key{TAB} should indent indent calls to the macro.  You
+specify how to @key{TAB} should indent calls to the macro.  You
 write it like this:
 
 @example

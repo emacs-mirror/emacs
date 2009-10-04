@@ -1,3 +1,10 @@
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* anti.texi (Antinews):
+	* macros.texi (Indenting Macros):
+	* strings.texi (Creating Strings, Case Conversion):
+	Remove duplicate words.
+
 2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Create/Delete Dirs): delete-directory has an
@@ -32,7 +39,7 @@
 
 2009-09-11  Alan Mackenzie  <acm@muc.de>
 
-	* os.texi (Terminal Output): document `send-string-to-terminal' in
+	* os.texi (Terminal Output): Document `send-string-to-terminal' in
 	batch mode.
 
 2009-09-01  Glenn Morris  <rgm@gnu.org>
@@ -7722,7 +7729,7 @@
 2002-08-05  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* customize.texi (Splicing into Lists): Fixed example.
-	Reported by Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>
+	Reported by Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>.
 
 2002-06-17  Juanma Barranquero  <lektu@terra.es>
 

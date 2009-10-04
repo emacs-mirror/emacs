@@ -36,7 +36,7 @@ handling of keybindings much more consistent.
 @item
 Temporarily-active regions are not created by giving the variable
 @code{transient-mark-mode} values of the form @code{(only
-. @var{oldvar})}.  We instead use a more more complicated scheme:
+. @var{oldvar})}.  We instead use a more complicated scheme:
 setting @code{transient-mark-mode} to @code{only} enables Transient
 Mark mode for the following command only, during which the value of
 @code{transient-mark-mode} is set to @code{identity}; if it is still
