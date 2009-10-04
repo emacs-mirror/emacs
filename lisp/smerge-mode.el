@@ -705,7 +705,7 @@ An error is raised if not inside a conflict."
 	   ((save-excursion
 	      (goto-char mine-start)
 	      (re-search-forward smerge-begin-re end t))
-	    ;; There's a nested conflict and we're after the the beginning
+	    ;; There's a nested conflict and we're after the beginning
 	    ;; of the outer one but before the beginning of the inner one.
 	    ;; Of course, maybe this is not a nested conflict but in that
 	    ;; case it can only be something nastier that we don't know how

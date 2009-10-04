@@ -1022,7 +1022,7 @@ Argument EVENT describes the event that caused this function to be called."
 ;;;;
 
 ;; Highlight the first like of the function we are in if it is different
-;; from the the tag going off the top of the screen.
+;; from the tag going off the top of the screen.
 
 ;;;###autoload
 (defun global-semantic-highlight-func-mode (&optional arg)

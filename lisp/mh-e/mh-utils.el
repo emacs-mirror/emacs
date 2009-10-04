@@ -282,7 +282,7 @@ and displayed in a help buffer."
   "Display cheat sheet for the commands of the current prefix in minibuffer."
   (interactive)
   ;; We got here because the user pressed a "?", but he pressed a prefix key
-  ;; before that. Since the the key vector starts at index 0, the index of the
+  ;; before that. Since the key vector starts at index 0, the index of the
   ;; last keystroke is length-1 and thus the second to last keystroke is at
   ;; length-2. We use that information to obtain a suitable prefix character
   ;; from the recent keys.

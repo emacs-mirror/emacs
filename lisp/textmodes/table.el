@@ -4968,7 +4968,7 @@ only and must not be specified."
 	   (px (or internal-px (car (if (eq pivot 'left) lu-coordinate rb-coordinate))))
 	   (ty (- (cdr lu-coordinate) 2))
 	   (by (+ (cdr rb-coordinate) 2)))
-      ;; in case of finding the the first cell, get the last adding item on the list
+      ;; in case of finding the first cell, get the last adding item on the list
       (if (and (null internal-dir) first-only) (setq top-to-bottom (null top-to-bottom)))
       ;; travel up and process as recursion traces back (reverse order)
       (and cell
@@ -5008,7 +5008,7 @@ only and must not be specified."
 	   (py (or internal-py (if (eq pivot 'top) (cdr lu-coordinate) (1+ (cdr rb-coordinate)))))
 	   (lx (1- (car lu-coordinate)))
 	   (rx (1+ (car rb-coordinate))))
-      ;; in case of finding the the first cell, get the last adding item on the list
+      ;; in case of finding the first cell, get the last adding item on the list
       (if (and (null internal-dir) first-only) (setq left-to-right (null left-to-right)))
       ;; travel left and process as recursion traces back (reverse order)
       (and cell

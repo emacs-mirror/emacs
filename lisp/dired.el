@@ -937,7 +937,7 @@ BEG..END is the line where the file info is located."
   ;; spaces there (and within the filename as well, of course).
   (save-excursion
     (let (file file-col other other-col)
-      ;; Check the there is indeed a file, and that there is anoter adjacent
+      ;; Check that there is indeed a file, and that there is anoter adjacent
       ;; file with which to align, and that additional spaces are needed to
       ;; align the filenames.
       (when (and (setq file (progn (goto-char beg)

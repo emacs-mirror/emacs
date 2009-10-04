@@ -321,7 +321,7 @@ If BODY uses EVENT, it should be a variable,
 
 (defun vc-dir-node-directory (node)
   ;; Compute the directory for NODE.
-  ;; If it's a directory node, get it from the the node.
+  ;; If it's a directory node, get it from the node.
   (let ((data (ewoc-data node)))
     (or (vc-dir-fileinfo->directory data)
 	;; Otherwise compute it from the file name.

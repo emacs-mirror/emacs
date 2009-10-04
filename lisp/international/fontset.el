@@ -292,7 +292,7 @@
 ;;	or a string FONT-NAME,
 ;;	or an object created by `font-spec'.
 ;;
-;; FAMILY may be nil, in which case, the the corresponding name of
+;; FAMILY may be nil, in which case, the corresponding name of
 ;; default face is used.  If REGISTRY contains a character `-', the
 ;; string before that is embedded in `CHARSET_REGISTRY' field, and the
 ;; string after that is embedded in `CHARSET_ENCODING' field.  If it

@@ -4382,7 +4382,7 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-forward-<>-arglist (all-types)
   ;; The point is assumed to be at a "<".  Try to treat it as the open
-  ;; paren of an angle bracket arglist and move forward to the the
+  ;; paren of an angle bracket arglist and move forward to the
   ;; corresponding ">".  If successful, the point is left after the
   ;; ">" and t is returned, otherwise the point isn't moved and nil is
   ;; returned.  If ALL-TYPES is t then all encountered arguments in

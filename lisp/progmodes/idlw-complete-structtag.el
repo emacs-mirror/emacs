@@ -79,7 +79,7 @@
 ;; Notes
 ;; -----
 ;;  - The structure definition assignment "state = {...}" must use the
-;;    same variable name as the the completion location "state.*".
+;;    same variable name as the completion location "state.*".
 ;;  - The structure definition must be in the same file.
 ;;  - The structure definition is searched backwards and then forward
 ;;    from the current position, until a definition with tags is found.

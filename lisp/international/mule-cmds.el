@@ -854,7 +854,7 @@ and TO is ignored."
   (let ((no-other-defaults nil)
 	auto-cs)
     (unless (or (stringp from) find-file-literally)
-      ;; Find an auto-coding that is specified for the the current
+      ;; Find an auto-coding that is specified for the current
       ;; buffer and file from the region FROM and TO.
       (save-excursion
 	(save-restriction
