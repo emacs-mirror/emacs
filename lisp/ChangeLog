@@ -1,3 +1,8 @@
+2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/ede/proj-comp.el:  Don't require ede/pmake at toplevel.
+	(ede-proj-makefile-insert-variables): Require ede/pmake.
+
 2009-10-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (copy-directory): New defun.

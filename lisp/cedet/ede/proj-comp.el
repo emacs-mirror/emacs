@@ -46,7 +46,7 @@
 
 (require 'ede)				;source object
 (require 'ede/autoconf-edit)
-(eval-when-compile (require 'ede/pmake))
+(declare-function ede-pmake-insert-variable-once "ede/pmake")
 
 ;;; Types:
 (defclass ede-compilation-program (eieio-instance-inheritor)
@@ -253,6 +253,7 @@ This will prevent rules from creating duplicate variables or rules."
 
 (defmethod ede-proj-makefile-insert-variables ((this ede-compilation-program))
   "Insert variables needed by the compiler THIS."
+  (require 'ede/pmake)
   (if (eieio-instance-inheritor-slot-boundp this 'variables)
       (with-slots (variables) this
 	(mapcar
