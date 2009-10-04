@@ -270,7 +270,12 @@ the new favored one.  PARAM-ALIST is typically of the form:
   (front-context-string . FRONT-STR)
   (rear-context-string  . REAR-STR)
   (position . POS)
-  (annotation . ANNOTATION)))")
+  (handler . HANDLER-FUNC)
+  (annotation . ANNOTATION))
+
+If the element `(handler . HANDLER-FUNC)' is present, HANDLER-FUNC
+will be used to open this bookmark instead of `bookmark-default-handler',
+whose calling discipline HANDLER-FUNC should of course match.")
 
 
 (defvar bookmarks-already-loaded nil)
@@ -457,10 +462,9 @@ the current location.
 
 The returned record should be a cons cell of the form (NAME . ALIST)
 where ALIST is as described in `bookmark-alist' and may typically contain
-a special cons (handler . SOME-FUNCTION) which sets the handler function
-that should be used to open this bookmark instead of
-`bookmark-default-handler'.  The handler should follow the same calling
-convention as the one used by `bookmark-default-handler'.
+a special cons (handler . HANDLER-FUNC) which specifies the handler function
+that should be used instead of `bookmark-default-handler' to open this
+bookmark.  See the documentation for `bookmark-alist' for more.
 
 NAME is a suggested name for the constructed bookmark.  It can be nil
 in which case a default heuristic will be used.  The function can also
