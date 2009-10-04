@@ -1,3 +1,9 @@
+2009-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (copy-directory): New defun.
+
+	* dired-aux.el (dired-copy-file-recursive): Use it.
+
 2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/ede/makefile-edit.el (makefile-beginning-of-command)
