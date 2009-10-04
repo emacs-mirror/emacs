@@ -1,7 +1,11 @@
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/ede/proj-comp.el:  Don't require ede/pmake at toplevel.
-	(ede-proj-makefile-insert-variables): Require ede/pmake.
+	* cedet/ede/pmake.el (ede-pmake-insert-variable-once): Delete.
+
+	* cedet/ede/proj-comp.el: Don't require ede/pmake at toplevel.
+	(proj-comp-insert-variable-once): New macro, renamed from
+	ede-pmake-insert-variable-once in ede/pmake.edl.
+	(ede-proj-makefile-insert-variables): Use it.
 
 2009-10-04  Michael Albinus  <michael.albinus@gmx.de>
 

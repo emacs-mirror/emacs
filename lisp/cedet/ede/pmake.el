@@ -255,18 +255,6 @@ Execute BODY in a location where a value can be placed."
      (goto-char (point-max))))
 (put 'ede-pmake-insert-variable-shared 'lisp-indent-function 1)
 
-(defmacro ede-pmake-insert-variable-once (varname &rest body)
-  "Add VARNAME into the current Makefile if it doesn't exist.
-Execute BODY in a location where a value can be placed."
-  `(let ((addcr t) (v ,varname))
-     (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
-       (insert v "=")
-       ,@body
-       (if addcr (insert "\n"))
-       (goto-char (point-max)))
-     ))
-(put 'ede-pmake-insert-variable-once 'lisp-indent-function 1)
-
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 
 (defsubst ede-pmake-varname (obj)

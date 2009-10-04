@@ -46,7 +46,6 @@
 
 (require 'ede)				;source object
 (require 'ede/autoconf-edit)
-(declare-function ede-pmake-insert-variable-once "ede/pmake")
 
 ;;; Types:
 (defclass ede-compilation-program (eieio-instance-inheritor)
@@ -251,14 +250,25 @@ This will prevent rules from creating duplicate variables or rules."
   "Flush the configure file (current buffer) to accomodate THIS."
   nil)
 
+(defmacro proj-comp-insert-variable-once (varname &rest body)
+  "Add VARNAME into the current Makefile if it doesn't exist.
+Execute BODY in a location where a value can be placed."
+  `(let ((addcr t) (v ,varname))
+     (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
+       (insert v "=")
+       ,@body
+       (if addcr (insert "\n"))
+       (goto-char (point-max)))
+     ))
+(put 'proj-comp-insert-variable-once 'lisp-indent-function 1)
+
 (defmethod ede-proj-makefile-insert-variables ((this ede-compilation-program))
   "Insert variables needed by the compiler THIS."
-  (require 'ede/pmake)
   (if (eieio-instance-inheritor-slot-boundp this 'variables)
       (with-slots (variables) this
 	(mapcar
 	 (lambda (var)
-	   (ede-pmake-insert-variable-once (car var)
+	   (proj-comp-insert-variable-once (car var)
 	     (let ((cd (cdr var)))
 	       (if (listp cd)
 		   (mapc (lambda (c) (insert " " c)) cd)
