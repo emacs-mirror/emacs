@@ -260,6 +260,30 @@ setup to use Semantic."
   :group 'semantic
   :type 'hook)
 
+(defcustom semantic-new-buffer-setup-functions
+  '((js-mode . wisent-javascript-setup-parser)
+    (java-mode . wisent-java-default-setup)
+    (scheme-mode . semantic-default-scheme-setup)
+    (c-mode . semantic-default-c-setup)
+    (c++-mode . semantic-default-c-setup)
+    (html-mode . semantic-default-html-setup)
+    (srecode-template-mode . srecode-template-setup-parser)
+    (makefile-automake-mode . semantic-default-make-setup)
+    (makefile-gmake-mode . semantic-default-make-setup)
+    (makefile-makepp-mode . semantic-default-make-setup)
+    (makefile-bsdmake-mode . semantic-default-make-setup)
+    (makefile-imake-mode . semantic-default-make-setup)
+    (makefile-mode . semantic-default-make-setup))
+  "Alist of functions to call to set up Semantic parsing in the buffer.
+Each element has the form (MODE . FN), where MODE is a value of
+`major-mode' for the buffer and FN is the corresponding function
+to call, with no arguments, to set up the parser.
+
+These functions are called by `semantic-new-buffer-fcn', before
+`semantic-inhibit-functions'."
+  :group 'semantic
+  :type '(alist :key-type symbol :value-type function))
+
 (defvar semantic-init-hook nil
   "Hook run when a buffer is initialized with a parsing table.")
 
@@ -299,6 +323,11 @@ That is if it is dirty or if the current parse tree isn't up to date."
 If the major mode is ready for Semantic, and no
 `semantic-inhibit-functions' disabled it, the current buffer is setup
 to use Semantic, and `semantic-init-hook' is run."
+  ;; In upstream Semantic, the parser setup functions are called from
+  ;; mode hooks.  In the version bundled with Emacs, we do it here.
+  (let ((entry (assq major-mode semantic-new-buffer-setup-functions)))
+    (when entry
+      (funcall (cdr entry))))
   ;; Do stuff if semantic was activated by a mode hook in this buffer,
   ;; and not afterwards disabled.
   (when (and semantic--parse-table
@@ -1046,30 +1075,9 @@ Semantic mode.
 		     (file-exists-p semanticdb-default-system-save-directory))
 	    (require 'semantic/db-ebrowse)
 	    (semanticdb-load-ebrowse-caches)))
-	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
-	;; Add mode-local hooks
-	(add-hook 'js-mode-hook 'wisent-javascript-setup-parser)
-	(add-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
-	(add-hook 'java-mode-hook 'wisent-java-default-setup)
-	(add-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
-	(add-hook 'makefile-mode-hook 'semantic-default-make-setup)
-	(add-hook 'c-mode-hook 'semantic-default-c-setup)
-	(add-hook 'c++-mode-hook 'semantic-default-c-setup)
-	(add-hook 'html-mode-hook 'semantic-default-html-setup)
-	(add-hook 'html-mode-hook 'semantic-default-html-setup)
-	(add-hook 'srecode-template-mode-hook 'srecode-template-setup-parser))
+	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
-    (remove-hook 'js-mode-hook 'wisent-javascript-setup-parser)
-    (remove-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
-    (remove-hook 'java-mode-hook 'wisent-java-default-setup)
-    (remove-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
-    (remove-hook 'makefile-mode-hook 'semantic-default-make-setup)
-    (remove-hook 'c-mode-hook 'semantic-default-c-setup)
-    (remove-hook 'c++-mode-hook 'semantic-default-c-setup)
-    (remove-hook 'html-mode-hook 'semantic-default-html-setup)
-    (remove-hook 'srecode-template-mode-hook 'srecode-template-setup-parser)
-
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
       (if (and (boundp mode) (eval mode))

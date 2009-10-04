@@ -1,5 +1,16 @@
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/semantic.el (semantic-new-buffer-setup-functions): New
+	option.
+	(semantic-new-buffer-fcn): Call parser setup functions here.
+	(semantic-mode): Don't call parser setup functions here, it's done
+	in semantic-new-buffer-fcn now.
+
+	* cedet/srecode/compile.el (srecode-compile-file): Call
+	semantic-new-buffer-fcn if the buffer has not been parsed.
+
+2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cedet/ede/pmake.el (ede-pmake-insert-variable-once): Delete.
 
 	* cedet/ede/proj-comp.el: Don't require ede/pmake at toplevel.

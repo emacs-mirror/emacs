@@ -188,6 +188,8 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	  (set-buffer (semantic-find-file-noselect fname))
 	(set-buffer peb))
       ;; Do the compile.
+      (unless (semantic-active-p)
+	(semantic-new-buffer-fcn))
       (srecode-compile-templates)
       ;; Trash the buffer if we had to read it in.
       (if (not peb)
