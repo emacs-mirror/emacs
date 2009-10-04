@@ -1,3 +1,8 @@
+2009-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <unibyte-display-via-language-environment>:
+	Doc fix.
+
 2009-10-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fdelete_window): Check WINDOW argument.  (Bug#4618)
