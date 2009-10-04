@@ -354,7 +354,7 @@ If .dir-locals.el was not found and OP is not `delete' then create
 this file in the current directory.
 
 If OP is `delete' then delete all existing settings of VARIABLE
-from the the MODE alist ignoring the input argument VALUE."
+from the MODE alist ignoring the input argument VALUE."
   (catch 'exit
     (unless enable-local-variables
       (throw 'exit (message "Directory-local variables are disabled")))
@@ -450,7 +450,7 @@ from the the MODE alist ignoring the input argument VALUE."
 
 ;;;###autoload
 (defun copy-dir-locals-to-file-locals-prop-line ()
-  "Copy directory-local variables to the the -*- line."
+  "Copy directory-local variables to the -*- line."
   (interactive)
   (dolist (elt dir-local-variables-alist)
     (add-file-local-variable-prop-line (car elt) (cdr elt))))

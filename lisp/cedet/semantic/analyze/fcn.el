@@ -288,7 +288,7 @@ Optional argument TYPE-DECLARATION is how TYPE was found referenced."
 
 (defun semantic-analyze-dereference-metatype-1 (ans scope)
   "Do extra work after dereferencing a metatype.
-ANS is the answer from the the language specific query.
+ANS is the answer from the language specific query.
 SCOPE is the current scope."
   (require 'semantic/scope)
   ;; If ANS is a string, or if ANS is a short tag, we

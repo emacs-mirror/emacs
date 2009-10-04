@@ -320,7 +320,7 @@ how many occur."
 	    (beginning-of-line)
 	    (while (re-search-forward es start t 2))
 	    (if (re-search-forward es start t)
-		;; If there is a single, the the answer is yes.
+		;; If there is a single, the answer is yes.
 		t
 	      ;; If there wasn't another, then the answer is no.
 	      nil)
@@ -375,7 +375,7 @@ Moves out one named section."
 (define-mode-local-override semantic-beginning-of-context
   srecode-template-mode (&optional point)
   "Move to the beginning of the current context.
-Moves the the beginning of one named section."
+Moves the beginning of one named section."
   (if (semantic-up-context point)
       t
     (let ((es (regexp-quote (srecode-template-get-escape-start)))
@@ -387,7 +387,7 @@ Moves the the beginning of one named section."
 (define-mode-local-override semantic-end-of-context
   srecode-template-mode (&optional point)
   "Move to the beginning of the current context.
-Moves the the beginning of one named section."
+Moves the beginning of one named section."
   (let ((name (srecode-up-context-get-name point))
 	(tag (semantic-current-tag))
 	(es  (regexp-quote (srecode-template-get-escape-start))))

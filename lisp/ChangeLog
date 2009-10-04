@@ -1,13 +1,26 @@
 2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* files-x.el (modify-dir-local-variable)
+	(copy-dir-locals-to-file-locals-prop-line):
+	* cedet/ede/makefile-edit.el (makefile-beginning-of-command)
+	(makefile-end-of-command):
+	* cedet/semantic/lex.el (semantic-lex-token):
+	* cedet/semantic/analyze/fcn.el
+	(semantic-analyze-dereference-metatype-1):
+	* cedet/semantic/bovine/c.el (semantic-lex-cpp-define)
+	(semantic-lex-cpp-undef):
+	* cedet/semantic/wisent/wisent.el (wisent-skip-block):
+	* cedet/srecode/srt-mode.el (semantic-beginning-of-context)
+	(semantic-end-of-context): Fix typos in docstrings.
+
 	* recentf.el (recentf-unload-function): New function.
 
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/ede.el (ede-project-placeholder-cache-file):
 	* cedet/semantic/db-file.el (semanticdb-default-save-directory):
 	* cedet/srecode/map.el (srecode-map-save-file):
-	* cedet/ede.el (ede-project-placeholder-cache-file): Use
-	locate-user-emacs-file.  Suggested by Juanma Barranquero.
+	Use locate-user-emacs-file.  Suggested by Juanma Barranquero.
 
 2009-10-04  Glenn Morris  <rgm@gnu.org>
 

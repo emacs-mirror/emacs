@@ -42,7 +42,7 @@
 ;;; Code:
 
 (defun makefile-beginning-of-command ()
-  "Move the the beginning of the current command."
+  "Move the beginning of the current command."
   (interactive)
   (if (save-excursion
 	(forward-line -1)
@@ -57,7 +57,7 @@
     (forward-line 1)))
 
 (defun makefile-end-of-command ()
-  "Move the the beginning of the current command."
+  "Move the beginning of the current command."
   (interactive)
   (end-of-line)
   (while (and (makefile-line-continued-p)

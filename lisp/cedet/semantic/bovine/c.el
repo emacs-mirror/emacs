@@ -228,7 +228,7 @@ if `semantic-c-member-of-autocast' is nil :
 (define-lex-spp-macro-declaration-analyzer semantic-lex-cpp-define
   "A #define of a symbol with some value.
 Record the symbol in the semantic preprocessor.
-Return the the defined symbol as a special spp lex token."
+Return the defined symbol as a special spp lex token."
   "^\\s-*#\\s-*define\\s-+\\(\\(\\sw\\|\\s_\\)+\\)" 1
   (goto-char (match-end 0))
   (skip-chars-forward " \t")
@@ -264,7 +264,7 @@ Return the the defined symbol as a special spp lex token."
 (define-lex-spp-macro-undeclaration-analyzer semantic-lex-cpp-undef
   "A #undef of a symbol.
 Remove the symbol from the semantic preprocessor.
-Return the the defined symbol as a special spp lex token."
+Return the defined symbol as a special spp lex token."
   "^\\s-*#\\s-*undef\\s-+\\(\\(\\sw\\|\\s_\\)+\\)" 1)
 
 
