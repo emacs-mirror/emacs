@@ -341,7 +341,7 @@ dec_bytepos (bytepos)
   return bytepos;
 }
 
-/* Return a defun-start position before before POS and not too far before.
+/* Return a defun-start position before POS and not too far before.
    It should be the last one before POS, or nearly the last.
 
    When open_paren_in_column_0_is_defun_start is nonzero,

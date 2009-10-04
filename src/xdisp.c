@@ -22711,7 +22711,7 @@ x_update_cursor (f, on_p)
 /* EXPORT:
    Clear the cursor of window W to background color, and mark the
    cursor as not shown.  This is used when the text where the cursor
-   is is about to be rewritten.  */
+   is about to be rewritten.  */
 
 void
 x_clear_cursor (w)

@@ -199,7 +199,7 @@ gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap)
   QUIT;
 }
 
-/* Move the gap to a position greater than than the current GPT.
+/* Move the gap to a position greater than the current GPT.
    BYTEPOS describes the new position as a byte position,
    and CHARPOS is the corresponding char position.  */
 

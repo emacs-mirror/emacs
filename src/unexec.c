@@ -498,7 +498,7 @@ write_segment (new, ptr, end)
 	  )
 	{
 	  /* Write only a page of zeros at once,
-	     so that we we don't overshoot the start
+	     so that we don't overshoot the start
 	     of the valid memory in the old data segment.  */
 	  if (nwrite > pagesize)
 	    nwrite = pagesize;

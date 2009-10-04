@@ -2400,7 +2400,7 @@ set_image_of_range_1 (work_area, start, end, translate)
 
 #endif /* emacs */
 
-/* Record the the image of the range start..end when passed through
+/* Record the image of the range start..end when passed through
    TRANSLATE.  This is not necessarily TRANSLATE(start)..TRANSLATE(end)
    and is not even necessarily contiguous.
    Normally we approximate it with the smallest contiguous range that contains

@@ -2953,7 +2953,7 @@ x_make_gc (f)
 }
 
 
-/* Free what was was allocated in x_make_gc.  */
+/* Free what was allocated in x_make_gc.  */
 
 void
 x_free_gcs (f)

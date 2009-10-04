@@ -1808,8 +1808,8 @@ append_composite_glyph (it)
 
 /* Produce a composite glyph for iterator IT.  IT->cmp_id is the ID of
    the composition.  We simply produces components of the composition
-   assuming that that the terminal has a capability to layout/render
-   it correctly.  */
+   assuming that the terminal has a capability to layout/render it
+   correctly.  */
 
 static void
 produce_composite_glyph (it)
