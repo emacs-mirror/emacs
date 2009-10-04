@@ -209,13 +209,17 @@ lines are truncated rather than continued (@pxref{Line Truncation}).
 If a window shows truncated lines, Emacs performs automatic horizontal
 scrolling whenever point moves off the left or right edge of the
 screen.  To disable automatic horizontal scrolling, set the variable
-@code{auto-hscroll-mode} to @code{nil}.
+@code{auto-hscroll-mode} to @code{nil}.  Note that when the automatic
+horizontal scrolling is turned off, if point moves off the edge of the
+screen, the cursor disappears to indicate that.  (On text-mode
+terminals, the cursor is left at the edge instead.)
 
 @vindex hscroll-margin
   The variable @code{hscroll-margin} controls how close point can get
-to the window's edges before automatic scrolling occurs.  It
-is measured in columns.  If the value is 5, then moving point within 5
-columns of an edge causes horizontal scrolling away from that edge.
+to the window's edges before automatic scrolling occurs.  It is
+measured in columns.  For example, if the value is 5, then moving
+point within 5 columns of an edge causes horizontal scrolling away
+from that edge.
 
 @vindex hscroll-step
   The variable @code{hscroll-step} determines how many columns to
@@ -239,10 +243,18 @@ Scroll to the right (@code{scroll-right}).
 @kindex C-x >
 @findex scroll-left
 @findex scroll-right
-  @kbd{C-x <} (@code{scroll-left}) scrolls the selected window to the
-left by the full width of the window, less two columns.  (In other
-words, the text in the window moves left relative to the window.)
-With a numeric argument @var{n}, it scrolls by @var{n} columns.
+  @kbd{C-x <} (@code{scroll-left}) scrolls text in the selected window
+to the left by the full width of the window, less two columns.  (In
+other words, the text in the window moves left relative to the
+window.)  With a numeric argument @var{n}, it scrolls by @var{n}
+columns.
+
+  If the text is scrolled to the left, and point moves off the left
+edge of the window, the cursor will freeze at the left edge of the
+window, until point moves back to the displayed portion of the text.
+This is independent of the current setting of
+@code{auto-hscroll-mode}, which, for text scrolled to the left, only
+affects the behavior at the right edge of the window.
 
   @kbd{C-x >} (@code{scroll-right}) scrolls similarly to the right.
 The window cannot be scrolled any farther to the right once it is
