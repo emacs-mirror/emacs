@@ -1,3 +1,9 @@
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (directory-files-no-dot-files-regexp): New defconst.
+	(delete-directory): Use it.
+	(copy-directory): Use it.  Remove parameter PRESERVE-UID-GID.
+
 2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/diary-lib.el (diary-show-all-entries): Re-fit the calendar
