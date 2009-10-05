@@ -1025,26 +1025,6 @@ the latter is usually only used by programmatic callers."
     (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
 
 
-(defun bookmark-file-or-variation-thereof (file)
-  "Return FILE (a string) if it exists, or return a reasonable
-variation of FILE if that exists.  Reasonable variations are checked
-by appending suffixes defined in `Info-suffix-list'.  If cannot find FILE
-nor a reasonable variation thereof, then still return FILE if it can
-be retrieved from a VC backend, else return nil."
-  (if (file-exists-p file)
-      file
-    (or
-     (progn (require 'info)  ; ensure Info-suffix-list is bound
-            (catch 'found
-              (mapc (lambda (elt)
-                      (let ((suffixed-file (concat file (car elt))))
-                        (if (file-exists-p suffixed-file)
-                            (throw 'found suffixed-file))))
-                    Info-suffix-list)
-              nil))
-     ;; Last possibility: try VC
-     (if (vc-backend file) file))))
-
 (defun bookmark-jump-noselect (bookmark)
   "Return the location pointed to by the bookmark BOOKMARK.
 The return value has the form (BUFFER . POINT).
@@ -1061,9 +1041,13 @@ compatibility only."
 
 (defun bookmark-handle-bookmark (bookmark)
   "Call BOOKMARK's handler or `bookmark-default-handler' if it has none.
+BOOKMARK may be a bookmark name (a string) or a bookmark record.
+
 Changes current buffer and point and returns nil, or signals a `file-error'.
 
-BOOKMARK may be a bookmark name (a string) or a bookmark record."
+If BOOKMARK has no file, this is a no-op.  If BOOKMARK has a file, but
+that file no longer exists, then offer interactively to relocate BOOKMARK.
+"
   (condition-case err
       (funcall (or (bookmark-get-handler bookmark)
                    'bookmark-default-handler)
@@ -1072,57 +1056,57 @@ BOOKMARK may be a bookmark name (a string) or a bookmark record."
      ;; We were unable to find the marked file, so ask if user wants to
      ;; relocate the bookmark, else remind them to consider deletion.
      (when (stringp bookmark)
-       ;; `bookmark' can either be a bookmark name (found in
-       ;; `bookmark-alist') or a bookmark object.  If it's an object, we
-       ;; assume it's a bookmark used internally by some other package.
-       (let* ((file (bookmark-get-filename bookmark))
-              ;; If file is not a directory, this should be a no-op.
-              (display-name (directory-file-name file)))
+       ;; `bookmark' can be either a bookmark name (from `bookmark-alist')
+       ;; or a bookmark object.  If it's an object, we assume it's a
+       ;; bookmark used internally by some other package.
+       (let ((file (bookmark-get-filename bookmark)))
          (when file        ;Don't know how to relocate if there's no `file'.
-           (ding)
-           ;; Dialog boxes can accept a file target, but usually don't
-           ;; know how to accept a directory target (at least, this
-           ;; was true in Gnome on GNU/Linux, and Bug#4230 says it's
-           ;; true on Windows as well).  Thus, suppress file dialogs
-           ;; when relocating.
-           (let ((use-dialog-box nil)
-                 (use-file-dialog nil))
-             (if (y-or-n-p (concat display-name " nonexistent.  Relocate \""
-                                   bookmark "\"? "))
-                 (progn
-                   (bookmark-relocate bookmark)
-                   ;; Try again.
-                   (funcall (or (bookmark-get-handler bookmark)
-                                'bookmark-default-handler)
-                            (bookmark-get-bookmark bookmark)))
-               (message
-                "Bookmark not relocated; consider removing it \(%s\)." bookmark)
-               (signal (car err) (cdr err)))))))))
+           ;; If file is not a dir, directory-file-name just returns file.
+           (let ((display-name (directory-file-name file)))
+             (ding)
+             ;; Dialog boxes can accept a file target, but usually don't
+             ;; know how to accept a directory target (at least, this
+             ;; is true in Gnome on GNU/Linux, and Bug#4230 says it's
+             ;; true on Windows as well).  So we suppress file dialogs
+             ;; when relocating.
+             (let ((use-dialog-box nil)
+                   (use-file-dialog nil))
+               (if (y-or-n-p (concat display-name " nonexistent.  Relocate \""
+                                     bookmark "\"? "))
+                   (progn
+                     (bookmark-relocate bookmark)
+                     ;; Try again.
+                     (funcall (or (bookmark-get-handler bookmark)
+                                  'bookmark-default-handler)
+                              (bookmark-get-bookmark bookmark)))
+                 (message
+                  "Bookmark not relocated; consider removing it \(%s\)."
+                  bookmark)
+                 (signal (car err) (cdr err))))))))))
   ;; Added by db.
   (when (stringp bookmark)
     (setq bookmark-current-bookmark bookmark))
   nil)
 
+(put 'bookmark-error-no-filename
+     'error-conditions
+     '(error bookmark-errors bookmark-error-no-filename))
+(put 'bookmark-error-no-filename
+     'error-message
+     "Bookmark has no associated file (or directory)")
+
 (defun bookmark-default-handler (bmk-record)
   "Default handler to jump to a particular bookmark location.
 BMK-RECORD is a bookmark record, not a bookmark name (i.e., not a string).
 Changes current buffer and point and returns nil, or signals a `file-error'."
-  (let* ((file                   (bookmark-get-filename bmk-record))
-         (buf                    (bookmark-prop-get bmk-record 'buffer))
-         (forward-str            (bookmark-get-front-context-string bmk-record))
-         (behind-str             (bookmark-get-rear-context-string bmk-record))
-         (place                  (bookmark-get-position bmk-record)))
-    ;; FIXME: bookmark-file-or-variation-thereof was needed for Info files,
-    ;; but now that Info bookmarks are handled elsewhere it seems that we
-    ;; should be able to get rid of it.  --Stef
-    (if (not (if buf (buffer-live-p buf)
-               (setq file (bookmark-file-or-variation-thereof file))))
-        (signal 'file-error
-                `("Jumping to bookmark" "No such file or directory"
-                  (bookmark-get-filename bmk-record)))
-      (set-buffer (or buf (find-file-noselect file)))
+  (let ((file          (bookmark-get-filename bmk-record))
+        (forward-str   (bookmark-get-front-context-string bmk-record))
+        (behind-str    (bookmark-get-rear-context-string bmk-record))
+        (place         (bookmark-get-position bmk-record)))
+    (if (not file)
+        (signal 'bookmark-error-no-filename (list 'stringp file))
+      (set-buffer (find-file-noselect file))
       (if place (goto-char place))
-
       ;; Go searching forward first.  Then, if forward-str exists and
       ;; was found in the file, we can search backward for behind-str.
       ;; Rationale is that if text was inserted between the two in the
@@ -1186,7 +1170,7 @@ minibuffer history list `bookmark-history'."
 (defalias 'bookmark-locate 'bookmark-insert-location)
 
 (defun bookmark-location (bookmark)
-  "Return the name of the file associated with BOOKMARK.
+  "Return the name of the file associated with BOOKMARK, or nil if none.
 BOOKMARK may be a bookmark name (a string) or a bookmark record."
   (bookmark-maybe-load-default-file)
   (bookmark-get-filename bookmark))

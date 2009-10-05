@@ -1,3 +1,16 @@
+2009-10-05  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-handle-bookmark): If bookmark has no file,
+	  don't do anything related to relocating, just return nil.
+	(bookmark-error-no-filename): New error.
+	(bookmark-default-handler): Signal `bookmark-error-no-filename' if
+	  bookmark has no file.  Don't even attempt to handle things that
+	  are not files; the whole point of custom handlers is to keep that
+	  knowledge elsewhere anyway.  Tighten some comments.
+	(bookmark-file-or-variation-thereof): Remove now-unused function.
+	(bookmark-location): Doc string fix.
+	(Bug#4250)
+
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-handle-bookmark): When relocating a bookmark,
