@@ -1,5 +1,9 @@
 2009-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el (log-view-vc-backend): Declare for compiler.
+	(vc-hg-outgoing-mode, vc-hg-incoming-mode): Set
+	log-view-vc-backend so that diff can work.
+
 	* log-view.el (log-view-diff): Use vc-diff-internal instead of
 	vc-version-diff.
 	(vc-diff-internal): Autoload this instead of vc-version-diff.

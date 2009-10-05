@@ -446,9 +446,15 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-extra-status-menu () vc-hg-extra-menu-map)
 
-(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
+(defvar log-view-vc-backend)
 
-(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
+(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing"
+  "Mode for browsing Hg outgoing changes."
+  (set (make-local-variable 'log-view-vc-backend) 'Hg))
+
+(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming"
+  "Mode for browsing Hg incoming changes."
+  (set (make-local-variable 'log-view-vc-backend) 'Hg))
 
 (defstruct (vc-hg-extra-fileinfo
             (:copier nil)
@@ -569,14 +575,16 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-outgoing ()
   (interactive)
-  (let ((bname "*Hg outgoing*") (vc-short-log nil))
+  (let ((bname "*Hg outgoing*")
+	(vc-short-log nil))
     (vc-hg-command bname 1 nil "outgoing" "-n")
     (pop-to-buffer bname)
     (vc-hg-outgoing-mode)))
 
 (defun vc-hg-incoming ()
   (interactive)
-  (let ((bname "*Hg incoming*") (vc-short-log nil))
+  (let ((bname "*Hg incoming*")
+	(vc-short-log nil))
     (vc-hg-command bname 0 nil "incoming" "-n")
     (pop-to-buffer bname)
     (vc-hg-incoming-mode)))
