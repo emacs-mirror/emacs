@@ -1,3 +1,7 @@
+2009-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Doc fix.  (Bug#4638)
+
 2009-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (syms_of_xdisp) <unibyte-display-via-language-environment>:
