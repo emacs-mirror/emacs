@@ -973,20 +973,26 @@ Elements of the attribute list are:
  3. File gid, likewise.
  4. Last access time, as a list of two integers.
   First integer has high-order 16 bits of time, second has low 16 bits.
-  (See a note below about FAT-based filesystems.)
- 5. Last modification time, likewise.
- 6. Last status change time, likewise.
+  (See a note below about access time on FAT-based filesystems.)
+ 5. Last modification time, likewise.  This is the time of the last
+  change to the file's contents.
+ 6. Last status change time, likewise.  This is the time of last change
+  to the file's attributes: owner and group, access mode bits, etc.
  7. Size in bytes.
   This is a floating point number if the size is too large for an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. t if file's gid would change if file were deleted and recreated.
-10. inode number.  If inode number is larger than the Emacs integer,
-  but still fits into a 32-bit number, this is a cons cell containing two
-  integers: first the high part, then the low 16 bits.  If the inode number
-  is wider than 32 bits, this is a cons cell containing three integers:
-  first the high 24 bits, then middle 24 bits, and finally the low 16 bits.
-11. Device number.  If it is larger than the Emacs integer, this is
-  a cons cell, similar to the inode number.
+10. inode number.  If inode number is larger than what Emacs integer
+  can hold, but still fits into a 32-bit number, this is a cons cell
+  containing two integers: first the high part, then the low 16 bits.
+  If the inode number is wider than 32 bits, this is of the form
+  (HIGH MIDDLE . LOW): first the high 24 bits, then middle 24 bits,
+  and finally the low 16 bits.
+11. Filesystem device number.  If it is larger than what the Emacs
+  integer can hold, this is a cons cell, similar to the inode number.
+
+On most filesystems, the combination of the inode and the device
+number uniquely identifies the file.
 
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.
