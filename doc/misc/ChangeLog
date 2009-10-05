@@ -1,3 +1,7 @@
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Association of a pty is not supported.
+
 2009-10-01  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Pushing to MobileOrg): Document `org-mobile-files'.
