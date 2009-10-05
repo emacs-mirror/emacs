@@ -2450,7 +2450,8 @@ always cached values for the directory contents.
 @value{tramp} supports running processes on a remote host.  This
 allows to exploit @value{emacsname} packages without modification for
 remote file names.  It does not work for the @option{ftp} and
-@option{smb} methods.
+@option{smb} methods.  Association of a pty, as specified in
+@code{start-file-process}, is not supported.
 
 @ifset emacsgvfs
 If the remote host is mounted via GVFS (see @ref{GVFS based methods}),
