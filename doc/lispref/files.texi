@@ -2482,8 +2482,9 @@ which generate the listing with Lisp code.
 @end defvar
 
 @node Create/Delete Dirs
-@section Creating and Deleting Directories
+@section Creating, Copying and Deleting Directories
 @cindex creating and deleting directories
+@cindex copying directories
 @c Emacs 19 features
 
   Most Emacs Lisp file-manipulation functions get errors when used on
@@ -2499,6 +2500,23 @@ interactive call, that means to create the parent directories first,
 if they don't already exist.
 
 @code{mkdir} is an alias for this.
+@end deffn
+
+@deffn Command copy-directory dirname newname &optional keep-time parents
+This command copies the directory named @var{dirname} to
+@var{newname}.  If @var{newname} names an existing directory,
+@var{dirname} will be copied to a subdirectory there.
+
+It always sets the file modes of the copied files to match the
+corresponding original file.
+
+The third arg @var{keep-time} non-@code{nil} means to preserve the
+modification time of the copied files.  A prefix arg makes
+@var{keep-time} non-@code{nil}.
+
+Noninteractively, the last argument @var{parents} says whether to
+create parent directories if they don't exist.  Interactively,
+this happens by default.
 @end deffn
 
 @deffn Command delete-directory dirname &optional recursive
