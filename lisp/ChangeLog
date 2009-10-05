@@ -1,3 +1,7 @@
+2009-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/cwarn.el (cwarn-mode): Doc fix.
+
 2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (directory-files-no-dot-files-regexp): New defconst.
