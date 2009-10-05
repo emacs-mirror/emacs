@@ -1,3 +1,7 @@
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add `copy-directory'.
+
 2009-10-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (File Attributes): Fix description of file
