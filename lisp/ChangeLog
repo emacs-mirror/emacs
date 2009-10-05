@@ -1,5 +1,7 @@
 2009-10-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* simple.el (eval-expression): Doc fix.
+
 	* progmodes/cwarn.el (cwarn-mode): Doc fix.
 
 2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
