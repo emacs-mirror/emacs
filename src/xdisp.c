@@ -11401,6 +11401,9 @@ redisplay_internal (preserve_echo_area)
       }
   }
 
+  Finhibit_yield (Qt);
+  record_unwind_protect (Finhibit_yield, Qnil);
+
  retry:
   if (!EQ (old_frame, selected_frame)
       && FRAME_LIVE_P (XFRAME (old_frame)))
