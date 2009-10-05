@@ -1,3 +1,9 @@
+2009-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Attributes): Fix description of file
+	attributes.  (Bug#4638) Update attributes of files.texi example to
+	be more representative.
+
 2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Create/Delete Dirs): New command copy-directory.
