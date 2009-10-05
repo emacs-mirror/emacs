@@ -2620,8 +2620,8 @@ first, before handlers for jobs such as remote file access.
 @noindent
 @code{access-file}, @code{add-name-to-file},
 @code{byte-compiler-base-file-name},@*
-@code{copy-file}, @code{delete-directory},
-@code{delete-file},
+@code{copy-directory}, @code{copy-file},
+@code{delete-directory}, @code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
 @code{directory-files},
@@ -2667,8 +2667,8 @@ first, before handlers for jobs such as remote file access.
 @flushleft
 @code{access-file}, @code{add-name-to-file},
 @code{byte-com@discretionary{}{}{}piler-base-file-name},
-@code{copy-file}, @code{delete-directory},
-@code{delete-file},
+@code{copy-directory}, @code{copy-file},
+@code{delete-directory}, @code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
 @code{directory-files},
