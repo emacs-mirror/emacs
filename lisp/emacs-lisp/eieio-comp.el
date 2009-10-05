@@ -52,9 +52,9 @@
 
 (defun byte-compile-file-form-defmethod (form)
   "Mumble about the method we are compiling.
-This function is mostly ripped from `byte-compile-file-form-defun', but
-it's been modified to handle the special syntax of the defmethod
-command.  There should probably be one for defgeneric as well, but
+This function is mostly ripped from `byte-compile-file-form-defun',
+but it's been modified to handle the special syntax of the `defmethod'
+command.  There should probably be one for `defgeneric' as well, but
 that is called but rarely.  Argument FORM is the body of the method."
   (setq form (cdr form))
   (let* ((meth (car form))
@@ -125,7 +125,7 @@ that is called but rarely.  Argument FORM is the body of the method."
     nil))
 
 (defun byte-compile-defmethod-param-convert (paramlist)
-  "Convert method params into the params used by the defmethod thingy.
+  "Convert method params into the params used by the `defmethod' thingy.
 Argument PARAMLIST is the parameter list to convert."
   (let ((argfix nil))
     (while paramlist

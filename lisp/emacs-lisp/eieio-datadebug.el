@@ -122,7 +122,7 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 ;; A generic function to run DDEBUG on an object and popup a new buffer.
 ;;
 (defmethod data-debug-show ((obj eieio-default-superclass))
-  "Run ddebug against any EIEIO object OBJ"
+  "Run ddebug against any EIEIO object OBJ."
   (data-debug-new-buffer (format "*%s DDEBUG*" (object-name obj)))
   (data-debug-insert-object-slots obj "]"))
 

@@ -1,3 +1,56 @@
+2009-10-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/chart.el (chart-face-pixmap-list, chart-new-buffer, chart)
+	(chart-axis-range, chart-axis-names, chart-sequece, chart-bar)
+	(chart-draw, chart-axis-draw, chart-sort, chart-sort-matchlist)
+	(chart-draw-line, chart-bar-quickie): Fix typos in docstrings.
+
+	* emacs-lisp/eieio.el (generic-p, eieiomt-next, eieio-generic-form)
+	(eieio-default-superclass): Reflow docstrings.
+	(this, class-option-assoc, defclass, eieio-class-un-autoload)
+	(eieio-unbind-method-implementations, defmethod)
+	(eieio-validate-slot-value, eieio-validate-class-slot-value)
+	(oref-default, eieio-oref-default, eieio-oset, eieio-oset-default)
+	(with-slots, eieio-add-new-slot, object-assoc, object-remove-from-list)
+	(eieio-slot-originating-class-p, eieio-slot-name-index)
+	(eieio-pre-method-execution-hooks, eieio-initarg-to-attribute)
+	(constructor, initialize-instance, no-next-method, object-print)
+	(object-write, eieio-override-prin1, eieio-edebug-prin1-to-string):
+	Fix typos in docstrings.
+	(eieio-defclass, eieio-perform-slot-validation-for-default, defgeneric)
+	(child-of-class-p, object-slots, slot-boundp, slot-exists-p)
+	(next-method-p): Doc fixes.
+	(eieio-add-new-slot, call-next-method, eieiomt-add, change-class):
+	Fix typos in error messages.
+	(eieio-defmethod): Fix typo in description of generic method.
+
+	* emacs-lisp/eieio-base.el (eieio-instance-inheritor, slot-unbound)
+	(eieio-persistent-save-interactive, slot-missing):
+	Fix typos in docstrings.
+	(eieio-instance-inheritor-slot-boundp): Doc fix.
+
+	* emacs-lisp/eieio-comp.el (byte-compile-file-form-defmethod)
+	(byte-compile-defmethod-param-convert): Fix typos in docstrings.
+
+	* emacs-lisp/eieio-custom.el (eieio-done-customizing)
+	(eieio-custom-object-apply-reset):
+	Fix typos in docstrings and error messages.
+
+	* emacs-lisp/eieio-datadebug.el (data-debug-show):
+	Fix typo in docstring.
+
+	* emacs-lisp/eieio-opt.el (top): Fix typo in error message.
+	(eieio-browse-tree): Doc fix.
+	(eieio-all-generic-functions, eieio-class-speedbar): Reflow docstrings.
+	(eieio-help-mode-augmentation-maybee, eieio-class-speedbar-make-map):
+	Fix typos in docstrings.
+
+	* emacs-lisp/eieio-speedbar.el (eieio-speedbar-file-button): Doc fix.
+	(eieio-speedbar-key-map, eieio-speedbar-create-engine)
+	(eieio-speedbar-buttons, eieio-speedbar, eieio-speedbar-object-children)
+	(eieio-speedbar-make-tag-line, eieio-speedbar-object-expand):
+	Reflow docstrings.
+
 2009-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (log-view-vc-backend): Declare for compiler.
@@ -24,14 +77,13 @@
 	(tramp-methods): Add recursive option to `tramp-copy-args'.  Add
 	`tramp-copy-recursive'.  Valid for "rcp", "scp", "scp1", "scp2",
 	"scp1_old", "scp2_old", "rsync", "rsyncc".
-	(tramp-default-method): Check also for
-	`auth-source-user-or-password'.
+	(tramp-default-method): Check also for `auth-source-user-or-password'.
 	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
 	Add handler for `copy-directory'.
 	(tramp-handle-copy-directory): New defun.
 	(tramp-do-copy-or-rename-file-out-of-band): Handle directory case.
-	(tramp-handle-start-file-process): Raise an error when PROGRAM is
-	nil.  Optimize sent command.
+	(tramp-handle-start-file-process): Raise an error when PROGRAM is nil.
+	Optimize sent command.
 
 2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4741,7 +4793,7 @@
 	blocks.
 	(verilog-init-font) Remove definition & use of verilog-init-font,
 	as it is redundant with font-lock-defaults.
-	(verilog-mode): Alter the definition of verilog-font-lock-defualts
+	(verilog-mode): Alter the definition of verilog-font-lock-defaults
 	to avoid circular calls if syntax-ppss is a function (as is the
 	case now in 22.x GNU Emacs) as that function would sometimes call
 	itself, leading to (nearly) infinite recursion.

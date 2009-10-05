@@ -52,7 +52,7 @@
   (message eieio-version))
 
 (eval-and-compile
-;; About the above.  EIEIO must process it's own code when it compiles
+;; About the above.  EIEIO must process its own code when it compiles
 ;; itself, thus, by eval-and-compiling outselves, we solve the problem.
 
 ;; Compatibility
@@ -98,7 +98,7 @@ DO NOT SET THIS YOURSELF unless you are trying to simulate friendly slots.
 
 Note: Embedded methods are no longer supported.  The variable THIS is
 still set for CLOS methods for the sake of routines like
-`call-next-method'")
+`call-next-method'.")
 
 (defvar scoped-class nil
   "This is set to a class when a method is running.
@@ -205,8 +205,8 @@ CLASS is a symbol."
 
 (defmacro generic-p (method)
   "Return t if symbol METHOD is a generic function.
-Only methods have the symbol `eieio-method-obarray' as a property (which
-contains a list of all bindings to that method type.)"
+Only methods have the symbol `eieio-method-obarray' as a property
+\(which contains a list of all bindings to that method type.)"
   `(and (fboundp ,method) (get ,method 'eieio-method-obarray)))
 
 (defun generic-primary-only-p (method)
@@ -242,7 +242,8 @@ Methods with only primary implementations are executed in an optimized way."
        ))
 
 (defmacro class-option-assoc (list option)
-  "Return from LIST the found OPTION.  Nil if it doesn't exist."
+  "Return from LIST the found OPTION.
+Return nil if it doesn't exist."
   `(car-safe (cdr (memq ,option ,list))))
 
 (defmacro class-option (class option)
@@ -272,20 +273,20 @@ being the slots residing in that class definition.  NOTE: Currently
 only one slot may exist in SUPERCLASS as multiple inheritance is not
 yet supported.  Supported tags are:
 
-  :initform   - initializing form
-  :initarg    - tag used during initialization
-  :accessor   - tag used to create a function to access this slot
-  :allocation - specify where the value is stored.
-                defaults to `:instance', but could also be `:class'
-  :writer     - a function symbol which will `write' an object's slot
-  :reader     - a function symbol which will `read' an object
-  :type       - the type of data allowed in this slot (see `typep')
+  :initform   - Initializing form.
+  :initarg    - Tag used during initialization.
+  :accessor   - Tag used to create a function to access this slot.
+  :allocation - Specify where the value is stored.
+                Defaults to `:instance', but could also be `:class'.
+  :writer     - A function symbol which will `write' an object's slot.
+  :reader     - A function symbol which will `read' an object.
+  :type       - The type of data allowed in this slot (see `typep').
   :documentation
               - A string documenting use of this slot.
 
 The following are extensions on CLOS:
   :protection - Specify protection for this slot.
-                Defaults to `:public'.  Also use `:protected', or `:private'
+                Defaults to `:public'.  Also use `:protected', or `:private'.
   :custom     - When customizing an object, the custom :type.  Public only.
   :label      - A text string label used for a slot when customizing.
   :group      - Name of a customization group this slot belongs in.
@@ -293,14 +294,14 @@ The following are extensions on CLOS:
                 See `eieio-override-prin1' as an example.
 
 A class can also have optional options.  These options happen in place
-of documentation, (including a :documentation tag) in addition to
+of documentation (including a :documentation tag), in addition to
 documentation, or not at all.  Supported options are:
 
   :documentation - The doc-string used for this class.
 
 Options added to EIEIO:
 
-  :allow-nil-initform - Non-nil to skip typechecking of initforms if nil.
+  :allow-nil-initform - Non-nil to skip typechecking of null initforms.
   :custom-groups      - List of custom group names.  Organizes slots into
                         reasonable groups for customizations.
   :abstract           - Non-nil to prevent instances of this class.
@@ -318,8 +319,8 @@ Options in CLOS not supported in EIEIO:
   :default-initargs - Initargs to use when initializing new objects of
                       this class.
 
-Due to the way class options are set up, you can add any tags in you
-wish, and reference them using the function `class-option'."
+Due to the way class options are set up, you can add any tags you wish,
+and reference them using the function `class-option'."
   ;; We must `eval-and-compile' this so that when we byte compile
   ;; an eieio program, there is no need to load it ahead of time.
   ;; It also provides lots of nice debugging errors at compile time.
@@ -406,15 +407,15 @@ It creates an autoload function for CNAME's constructor."
 	))))
 
 (defsubst eieio-class-un-autoload (cname)
-  "If class CNAME is in an autoload state, load it's file."
+  "If class CNAME is in an autoload state, load its file."
   (when (eq (car-safe (symbol-function cname)) 'autoload)
     (load-library (car (cdr (symbol-function cname))))))
 
 (defun eieio-defclass (cname superclasses slots options-and-doc)
-  "See `defclass' for more information.
-Define CNAME as a new subclass of SUPERCLASSES, with SLOTS being the
-slots residing in that class definition, and with options or documentation
-OPTIONS-AND-DOC as the toplevel documentation for this class."
+  "Define CNAME as a new subclass of SUPERCLASSES.
+SLOTS are the slots residing in that class definition, and options or
+documentation OPTIONS-AND-DOC is the toplevel documentation for this class.
+See `defclass' for more information."
   ;; Run our eieio-hook each time, and clear it when we are done.
   ;; This way people can add hooks safely if they want to modify eieio
   ;; or add definitions when eieio is loaded or something like that.
@@ -434,7 +435,7 @@ OPTIONS-AND-DOC as the toplevel documentation for this class."
     (aset newc 0 'defclass)
     (aset newc class-symbol cname)
 
-    ;; If this class already existed, and we are updating it's structure,
+    ;; If this class already existed, and we are updating its structure,
     ;; make sure we keep the old child list.  This can cause bugs, but
     ;; if no new slots are created, it also saves time, and prevents
     ;; method table breakage, particularly when the users is only
@@ -793,7 +794,7 @@ OPTIONS-AND-DOC as the toplevel documentation for this class."
 
 (defun eieio-perform-slot-validation-for-default (slot spec value skipnil)
   "For SLOT, signal if SPEC does not match VALUE.
-If SKIPNIL is non-nil, then if VALUE is nil, return t."
+If SKIPNIL is non-nil, then if VALUE is nil return t instead."
   (let ((val (eieio-default-eval-maybe value)))
     (if (and (not eieio-skip-typecheck)
 	     (not (and skipnil (null val)))
@@ -804,10 +805,10 @@ If SKIPNIL is non-nil, then if VALUE is nil, return t."
 				 &optional defaultoverride skipnil)
   "Add into NEWC attribute A.
 If A already exists in NEWC, then do nothing.  If it doesn't exist,
-then also add in D (defualt), DOC, TYPE, CUST, LABEL, CUSTG, PRINT, PROT, and INIT arg.
+then also add in D (default), DOC, TYPE, CUST, LABEL, CUSTG, PRINT, PROT, and INIT arg.
 Argument ALLOC specifies if the slot is allocated per instance, or per class.
 If optional DEFAULTOVERRIDE is non-nil, then if A exists in NEWC,
-we must override it's value for a default.
+we must override its value for a default.
 Optional argument SKIPNIL indicates if type checking should be skipped
 if default value is nil."
   ;; Make sure we duplicate those items that are sequences.
@@ -856,7 +857,7 @@ if default value is nil."
 		   (tp (if np (nth num (aref newc class-public-type))))
 		   )
 	      (if (not np)
-		  (error "Eieio internal error overriding default value for %s"
+		  (error "EIEIO internal error overriding default value for %s"
 			 a)
 		;; If type is passed in, is it the same?
 		(if (not (eq type t))
@@ -964,7 +965,7 @@ if default value is nil."
 		 (tp (if np (nth num (aref newc class-class-allocation-type))
 		       nil)))
 	    (if (not np)
-		(error "Eieio internal error overriding default value for %s"
+		(error "EIEIO internal error overriding default value for %s"
 		       a)
 	      ;; If type is passed in, is it the same?
 	      (if (not (eq type t))
@@ -1121,11 +1122,11 @@ a string."
 ;;; CLOS methods and generics
 ;;
 (defmacro defgeneric (method args &optional doc-string)
-  "Create a generic function METHOD.  ARGS is ignored.
+  "Create a generic function METHOD.
 DOC-STRING is the base documentation for this class.  A generic
-function has no body, as it's purpose is to decide which method body
-is appropriate to use.  Use `defmethod' to create methods, and it
-calls defgeneric for you.  With this implementation the arguments are
+function has no body, as its purpose is to decide which method body
+is appropriate to use.  Uses `defmethod' to create methods, and calls
+`defgeneric' for you.  With this implementation the ARGS are
 currently ignored.  You can use `defgeneric' to apply specialized
 top level documentation to a method."
   `(eieio-defgeneric (quote ,method) ,doc-string))
@@ -1242,21 +1243,21 @@ IMPL is the symbol holding the method implementation."
     'method))
 
 (defun eieio-unbind-method-implementations (method)
-  "Make the generic method METHOD have no implementations..
-It will leave the original generic function in place, but remove
-reference to all implementations of METHOD."
+  "Make the generic method METHOD have no implementations.
+It will leave the original generic function in place,
+but remove reference to all implementations of METHOD."
   (put method 'eieio-method-tree nil)
   (put method 'eieio-method-obarray nil))
 
 (defmacro defmethod (method &rest args)
   "Create a new METHOD through `defgeneric' with ARGS.
 
-The second optional argument KEY is a specifier that
+The optional second argument KEY is a specifier that
 modifies how the method is called, including:
-   :before - Method will be called before the :primary
-   :primary - The default if not specified.
-   :after - Method will be called after the :primary
-   :static - First arg could be an object or class
+   :before  - Method will be called before the :primary
+   :primary - The default if not specified
+   :after   - Method will be called after the :primary
+   :static  - First arg could be an object or class
 The next argument is the ARGLIST.  The ARGLIST specifies the arguments
 to the method as with `defun'.  The first argument can have a type
 specifier, such as:
@@ -1311,7 +1312,7 @@ Summary:
     (eieio-defgeneric
      method
      (if (stringp (car body))
-	 (car body) (format "Generically created method `%s'" method)))
+	 (car body) (format "Generically created method `%s'." method)))
     ;; create symbol for property to bind to.  If the first arg is of
     ;; the form (varname vartype) and `vartype' is a class, then
     ;; that class will be the type symbol.  If not, then it will fall
@@ -1360,10 +1361,10 @@ Summary:
       (typep value spec)))
 
 (defun eieio-validate-slot-value (class slot-idx value slot)
-  "Make sure that for CLASS referencing SLOT-IDX, that VALUE is valid.
+  "Make sure that for CLASS referencing SLOT-IDX, VALUE is valid.
 Checks the :type specifier.
 SLOT is the slot that is being checked, and is only used when throwing
-and error."
+an error."
   (if eieio-skip-typecheck
       nil
     ;; Trim off object IDX junk added in for the object index.
@@ -1373,10 +1374,10 @@ and error."
 	  (signal 'invalid-slot-type (list class slot st value))))))
 
 (defun eieio-validate-class-slot-value (class slot-idx value slot)
-  "Make sure that for CLASS referencing SLOT-IDX, that VALUE is valid.
+  "Make sure that for CLASS referencing SLOT-IDX, VALUE is valid.
 Checks the :type specifier.
 SLOT is the slot that is being checked, and is only used when throwing
-and error."
+an error."
   (if eieio-skip-typecheck
       nil
     (let ((st (aref (aref (class-v class) class-class-allocation-type)
@@ -1418,7 +1419,7 @@ created by the :initarg tag."
 	    (aref (aref (class-v class) class-class-allocation-values) c)
 	  ;; The slot-missing method is a cool way of allowing an object author
 	  ;; to intercept missing slot definitions.  Since it is also the LAST
-	  ;; thing called in this fn, it's return value would be retrieved.
+	  ;; thing called in this fn, its return value would be retrieved.
 	  (slot-missing obj slot 'oref)
 	  ;;(signal 'invalid-slot-name (list (object-name obj) slot))
 	  )
@@ -1430,15 +1431,15 @@ created by the :initarg tag."
 (defalias 'set-slot-value 'eieio-oset)
 
 (defmacro oref-default (obj slot)
-  "Gets the default value of OBJ (maybe a class) for SLOT.
+  "Get the default value of OBJ (maybe a class) for SLOT.
 The default value is the value installed in a class with the :initform
 tag.  SLOT can be the slot name, or the tag specified by the :initarg
 tag in the `defclass' call."
   `(eieio-oref-default ,obj (quote ,slot)))
 
 (defun eieio-oref-default (obj slot)
-  "Does the work for the macro `oref-default' with similar parameters.
-Fills in OBJ's SLOT with it's default value."
+  "Do the work for the macro `oref-default' with similar parameters.
+Fills in OBJ's SLOT with its default value."
   (if (not (or (eieio-object-p obj) (class-p obj))) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
   (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
   (let* ((cl (if (eieio-object-p obj) (aref obj object-class) obj))
@@ -1476,7 +1477,7 @@ with in the :initarg slot.  VALUE can be any Lisp object."
   `(eieio-oset ,obj (quote ,slot) ,value))
 
 (defun eieio-oset (obj slot value)
-  "Does the work for the macro `oset'.
+  "Do the work for the macro `oset'.
 Fills in OBJ's SLOT with VALUE."
   (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
   (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
@@ -1507,7 +1508,7 @@ after they are created."
   `(eieio-oset-default ,class (quote ,slot) ,value))
 
 (defun eieio-oset-default (class slot value)
-  "Does the work for the macro `oset-default'.
+  "Do the work for the macro `oset-default'.
 Fills in the default value in CLASS' in SLOT with VALUE."
   (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
   (if (not (symbolp slot)) (signal 'wrong-type-argument (list 'symbolp slot)))
@@ -1551,7 +1552,7 @@ SPEC-LIST is of a form similar to `let'.  For example:
    (VARN+1 SLOTN+1))
 
 Where each VAR is the local variable given to the associated
-SLOT.  A Slot specified without a variable name is given a
+SLOT.  A slot specified without a variable name is given a
 variable name of the same name as the slot."
   ;; Transform the spec-list into a symbol-macrolet spec-list.
   (let ((mappings (mapcar (lambda (entry)
@@ -1648,7 +1649,7 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
 (defalias 'obj-of-class-p 'object-of-class-p)
 
 (defun child-of-class-p (child class)
-  "If CHILD class is a subclass of CLASS."
+  "Return non-nil if CHILD class is a subclass of CLASS."
   (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
   (if (not (class-p child)) (signal 'wrong-type-argument (list 'class-p child)))
   (let ((p nil))
@@ -1658,7 +1659,7 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
 	    p (cdr p)))
     (if child t)))
 
-(defun object-slots (obj) "List of slots available in OBJ."
+(defun object-slots (obj) "Return list of slots available in OBJ."
   (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
   (aref (class-v (object-class-fast obj)) class-public-a))
 
@@ -1675,7 +1676,7 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
 ;;; CLOS queries into classes and slots
 ;;
 (defun slot-boundp (object slot)
-  "Non-nil if OBJECT's SLOT is bound.
+  "Return non-nil if OBJECT's SLOT is bound.
 Setting a slot's value makes it bound.  Calling `slot-makeunbound' will
 make a slot unbound.
 OBJECT can be an instance or a class."
@@ -1693,7 +1694,7 @@ OBJECT can be an instance or a class."
   (eieio-oset object slot eieio-unbound))
 
 (defun slot-exists-p (object-or-class slot)
-  "Non-nil if OBJECT-OR-CLASS has SLOT."
+  "Return non-nil if OBJECT-OR-CLASS has SLOT."
   (let ((cv (class-v (cond ((eieio-object-p object-or-class)
 			    (object-class object-or-class))
 			   ((class-p object-or-class)
@@ -1716,7 +1717,7 @@ If ERRORP is non-nil, `wrong-argument-type' is signaled."
 ;;
 (defun object-assoc (key slot list)
   "Return an object if KEY is `equal' to SLOT's value of an object in LIST.
-LIST is a list of objects who's slots are searched.
+LIST is a list of objects whose slots are searched.
 Objects in LIST do not need to have a slot named SLOT, nor does
 SLOT need to be bound.  If these errors occur, those objects will
 be ignored."
@@ -1781,7 +1782,7 @@ If SLOT is unbound, bind it to the list containing ITEM."
 
 (defun object-remove-from-list (object slot item)
   "In OBJECT's SLOT, remove occurrences of ITEM.
-Deletion is done with `delete', which deletes by side effect
+Deletion is done with `delete', which deletes by side effect,
 and comparisons are done with `equal'.
 If SLOT is unbound, do nothing."
   (if (not (slot-boundp object slot))
@@ -1791,7 +1792,7 @@ If SLOT is unbound, do nothing."
 ;;; EIEIO internal search functions
 ;;
 (defun eieio-slot-originating-class-p (start-class slot)
-  "Return Non-nil if START-CLASS is the first class to define SLOT.
+  "Return non-nil if START-CLASS is the first class to define SLOT.
 This is for testing if `scoped-class' is the class that defines SLOT
 so that we can protect private slots."
   (let ((par (class-parents start-class))
@@ -1810,7 +1811,7 @@ so that we can protect private slots."
   "In CLASS for OBJ find the index of the named SLOT.
 The slot is a symbol which is installed in CLASS by the `defclass'
 call.  OBJ can be nil, but if it is an object, and the slot in question
-is protected, access will be allowed if obj is a child of the currently
+is protected, access will be allowed if OBJ is a child of the currently
 `scoped-class'.
 If SLOT is the value created with :initarg instead,
 reverse-lookup that name, and recurse with the associated slot value."
@@ -1869,7 +1870,7 @@ is called, the next method is popped off the stack.")
 
 (defvar eieio-pre-method-execution-hooks nil
   "*Hooks run just before a method is executed.
-The hook function must accept on argument, this list of forms
+The hook function must accept one argument, the list of forms
 about to be executed.")
 
 (defun eieio-generic-call (method args)
@@ -2122,7 +2123,7 @@ If CLASS is nil, then an empty list of methods should be returned."
       (nreverse lambdas))))
 
 (defun next-method-p ()
-  "Non-nil if there is a next method.
+  "Return non-nil if there is a next method.
 Returns a list of lambda expressions which is the `next-method'
 order."
   eieio-generic-call-next-method-list)
@@ -2138,7 +2139,7 @@ arguments passed in at the top level.
 
 Use `next-method-p' to find out if there is a next method to call."
   (if (not scoped-class)
-      (error "Call-next-method not called within a class specific method"))
+      (error "`call-next-method' not called within a class specific method"))
   (if (and (/= eieio-generic-call-key method-primary)
 	   (/= eieio-generic-call-key method-static))
       (error "Cannot `call-next-method' except in :primary or :static methods")
@@ -2204,7 +2205,7 @@ is associated with the :static :before :primary and :after tags.
 It also indicates if CLASS is defined or not.
 CLASS is the class this method is associated with."
   (if (or (> key method-num-slots) (< key 0))
-      (error "Eieiomt-add: method key error!"))
+      (error "eieiomt-add: method key error!"))
   (let ((emtv (get method-name 'eieio-method-tree))
 	(emto (get method-name 'eieio-method-obarray)))
     ;; Make sure the method tables are available.
@@ -2229,10 +2230,10 @@ CLASS is the class this method is associated with."
 
 (defun eieiomt-next (class)
   "Return the next parent class for CLASS.
-If CLASS is a superclass, return variable `eieio-default-superclass'.  If CLASS
-is variable `eieio-default-superclass' then return nil.  This is different from
-function `class-parent' as class parent returns nil for superclasses.  This
-function performs no type checking!"
+If CLASS is a superclass, return variable `eieio-default-superclass'.
+If CLASS is variable `eieio-default-superclass' then return nil.
+This is different from function `class-parent' as class parent returns
+nil for superclasses.  This function performs no type checking!"
   ;; No type-checking because all calls are made from functions which
   ;; are safe and do checking for us.
   (or (class-parents-fast class)
@@ -2249,7 +2250,7 @@ function performs no type checking!"
 	 (cont t))
     ;; This converts ES from a single symbol to a list of parent classes.
     (setq es (eieiomt-next es))
-    ;; Loop over ES, then it's children individually.
+    ;; Loop over ES, then its children individually.
     ;; We can have multiple hits only at one level of the parent tree.
     (while (and es cont)
       (setq ov (intern-soft (symbol-name (car es)) eieiomt-optimizing-obarray))
@@ -2271,10 +2272,10 @@ function performs no type checking!"
 
 (defun eieio-generic-form (method key class)
  "Return the lambda form belonging to METHOD using KEY based upon CLASS.
-If CLASS is not a class then use `generic' instead.  If class has no
-form, but has a parent class, then trace to that parent class.  The
-first time a form is requested from a symbol, an optimized path is
-memorized for future faster use."
+If CLASS is not a class then use `generic' instead.  If class has
+no form, but has a parent class, then trace to that parent class.
+The first time a form is requested from a symbol, an optimized path
+is memorized for future faster use."
  (let ((emto (aref (get method 'eieio-method-obarray)
 		   (if class key (+ key 3)))))
    (if (class-p class)
@@ -2285,7 +2286,7 @@ memorized for future faster use."
 	     ;;    This can be slow since it only occurs once
 	     (progn
 	       (setq cs (intern (symbol-name class) emto))
-	       ;; 2.1) Cache it's nearest neighbor with a quick optimize
+	       ;; 2.1) Cache its nearest neighbor with a quick optimize
 	       ;;      which should only occur once for this call ever
 	       (let ((eieiomt-optimizing-obarray emto))
 		 (eieiomt-sym-optimize cs))))
@@ -2295,7 +2296,7 @@ memorized for future faster use."
 	   ;; 4) If it's not bound then this variable knows something
 	   (if (symbol-value cs)
 	       (progn
-		 ;; 4.1) This symbol holds the next class in it's value
+		 ;; 4.1) This symbol holds the next class in its value
 		 (setq class (symbol-value cs)
 		       cs (intern-soft (symbol-name class) emto))
 		 ;; 4.2) The optimizer should always have chosen a
@@ -2337,7 +2338,7 @@ not nil."
 (defun eieio-initarg-to-attribute (class initarg)
   "For CLASS, convert INITARG to the actual attribute name.
 If there is no translation, pass it in directly (so we can cheat if
-need be.. May remove that later...)"
+need be... May remove that later...)"
   (let ((tuple (assoc initarg (aref (class-v class) class-initarg-tuples))))
     (if tuple
 	(cdr tuple)
@@ -2405,18 +2406,18 @@ This is usually a symbol that starts with `:'."
 (defclass eieio-default-superclass nil
   nil
   "Default parent class for classes with no specified parent class.
-Its slots are automatically adopted by classes with no specified
-parents.  This class is not stored in the `parent' slot of a class vector."
+Its slots are automatically adopted by classes with no specified parents.
+This class is not stored in the `parent' slot of a class vector."
   :abstract t)
 
 (defalias 'standard-class 'eieio-default-superclass)
 
 (defgeneric constructor (class newname &rest slots)
-  "Default constructor for CLASS `eieio-defualt-superclass'.")
+  "Default constructor for CLASS `eieio-default-superclass'.")
 
 (defmethod constructor :static
   ((class eieio-default-superclass) newname &rest slots)
-  "Default constructor for CLASS `eieio-defualt-superclass'.
+  "Default constructor for CLASS `eieio-default-superclass'.
 NEWNAME is the name to be given to the constructed object.
 SLOTS are the initialization slots used by `shared-initialize'.
 This static method is called when an object is constructed.
@@ -2449,17 +2450,17 @@ Called from the constructor routine."
       (setq slots (cdr (cdr slots))))))
 
 (defgeneric initialize-instance (this &optional slots)
-    "Constructs the new object THIS based on SLOTS.")
+  "Construct the new object THIS based on SLOTS.")
 
 (defmethod initialize-instance ((this eieio-default-superclass)
 				&optional slots)
-    "Constructs the new object THIS based on SLOTS.
+  "Construct the new object THIS based on SLOTS.
 SLOTS is a tagged list where odd numbered elements are tags, and
-even numbered elements are the values to store in the tagged slot.  If
-you overload the `initialize-instance', there you will need to call
-`shared-initialize' yourself, or you can call `call-next-method' to
-have this constructor called automatically.  If these steps are not
-taken, then new objects of your class will not have their values
+even numbered elements are the values to store in the tagged slot.
+If you overload the `initialize-instance', there you will need to
+call `shared-initialize' yourself, or you can call `call-next-method'
+to have this constructor called automatically.  If these steps are
+not taken, then new objects of your class will not have their values
 dynamically set from SLOTS."
     ;; First, see if any of our defaults are `lambda', and
     ;; re-evaluate them and apply the value to our slots.
@@ -2526,9 +2527,9 @@ value becomes the return value of the original method call."
 			   &rest args)
   "Called from `call-next-method' when no additional methods are available.
 OBJECT is othe object being called on `call-next-method'.
-ARGS are the  arguments it is called by.
+ARGS are the arguments it is called by.
 This method signals `no-next-method' by default.  Override this
-method to not throw an error, and it's return value becomes the
+method to not throw an error, and its return value becomes the
 return value of `call-next-method'."
   (signal 'no-next-method (list (object-name object) args))
 )
@@ -2570,7 +2571,7 @@ ignored parameters."
   "Pretty printer for object THIS.  Call function `object-name' with STRINGS.
 
 It is sometimes useful to put a summary of the object into the
-default #<notation> string when using eieio browsing tools.
+default #<notation> string when using EIEIO browsing tools.
 Implement this method to customize the summary.")
 
 (defmethod object-print ((this eieio-default-superclass) &rest strings)
@@ -2579,7 +2580,7 @@ The default method for printing object THIS is to use the
 function `object-name'.
 
 It is sometimes useful to put a summary of the object into the
-default #<notation> string when using eieio browsing tools.
+default #<notation> string when using EIEIO browsing tools.
 
 Implement this function and specify STRINGS in a call to
 `call-next-method' to provide additional summary information.
@@ -2592,7 +2593,7 @@ to prepend a space."
 
 (defgeneric object-write (this &optional comment)
   "Write out object THIS to the current stream.
-Optional COMMENDS will add comments to the beginning of the output.")
+Optional COMMENT will add comments to the beginning of the output.")
 
 (defmethod object-write ((this eieio-default-superclass) &optional comment)
   "Write object THIS out to the current stream.
@@ -2644,7 +2645,7 @@ this object."
     (princ ")\n")))
 
 (defun eieio-override-prin1 (thing)
-  "Perform a prin1 on THING taking advantage of object knowledge."
+  "Perform a `prin1' on THING taking advantage of object knowledge."
   (cond ((eieio-object-p thing)
 	 (object-write thing))
 	((listp thing)
@@ -2680,7 +2681,7 @@ this object."
   "Change the class of OBJ to type CLASS.
 This may create or delete slots, but does not affect the return value
 of `eq'."
-  (error "Eieio: `change-class' is unimplemented"))
+  (error "EIEIO: `change-class' is unimplemented"))
 
 )
 
@@ -2688,7 +2689,8 @@ of `eq'."
 ;;; Interfacing with edebug
 ;;
 (defun eieio-edebug-prin1-to-string (object &optional noescape)
-  "Display eieio OBJECT in fancy format.  Overrides the edebug default.
+  "Display EIEIO OBJECT in fancy format.
+Overrides the edebug default.
 Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
   (cond ((class-p object) (class-name object))
 	((eieio-object-p object) (object-print object))

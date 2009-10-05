@@ -51,7 +51,7 @@ variable `eieio-default-superclass'."
     ))
 
 (defun eieio-browse-tree (this-root prefix ch-prefix)
-  "Recursively, draws the children of the given class on the screen.
+  "Recursively draw the children of the given class on the screen.
 Argument THIS-ROOT is the local root of the tree.
 Argument PREFIX is the character prefix to use.
 Argument CH-PREFIX is another character prefix to display."
@@ -389,7 +389,8 @@ Also extracts information about all methods specific to this generic."
 
 (defun eieio-all-generic-functions (&optional class)
   "Return a list of all generic functions.
-Optional CLASS argument returns only those functions that contain methods for CLASS."
+Optional CLASS argument returns only those functions that contain
+methods for CLASS."
   (let ((l nil) tree (cn (if class (symbol-name class) nil)))
     (mapatoms
      (lambda (symbol)
@@ -552,7 +553,7 @@ Optional argument HISTORYVAR is the variable to use as history."
 ;;; HELP AUGMENTATION
 ;;
 (defun eieio-help-mode-augmentation-maybee (&rest unused)
-  "For buffers thrown into help mode, augment for eieio.
+  "For buffers thrown into help mode, augment for EIEIO.
 Arguments UNUSED are not used."
   ;; Scan created buttons so far if we are in help mode.
   (when (eq major-mode 'help-mode)
@@ -600,13 +601,13 @@ Arguments UNUSED are not used."
 (eval-when-compile
   (condition-case nil
       (require 'speedbar)
-    (error (message "Error loading speedbar... ignored."))))
+    (error (message "Error loading speedbar... ignored"))))
 
 (defvar eieio-class-speedbar-key-map nil
   "Keymap used when working with a project in speedbar.")
 
 (defun eieio-class-speedbar-make-map ()
-  "Make a keymap for eieio under speedbar."
+  "Make a keymap for EIEIO under speedbar."
   (setq eieio-class-speedbar-key-map (speedbar-make-specialized-keymap))
 
   ;; General viewing stuff
@@ -637,8 +638,8 @@ Arguments UNUSED are not used."
 
 (defun eieio-class-speedbar (dir-or-object depth)
   "Create buttons in speedbar that represents the current project.
-DIR-OR-OBJECT is the object to expand, or nil, and DEPTH is the current
-expansion depth."
+DIR-OR-OBJECT is the object to expand, or nil, and DEPTH is the
+current expansion depth."
   (when (eq (point-min) (point-max))
     ;; This function is only called once, to start the whole deal.
     ;; Ceate, and expand the default object.

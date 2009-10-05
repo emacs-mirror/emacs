@@ -90,7 +90,7 @@ of these.")
 (defvar eieio-cog nil
   "Buffer local variable in object customize buffers for the current group.")
 
- (defvar eieio-custom-ignore-eieio-co  nil
+ (defvar eieio-custom-ignore-eieio-co nil
    "When true, all customizable slots of the current object are updated.
 Updates occur regardless of the current customization group.")
 
@@ -227,7 +227,7 @@ Optional argument IGNORE is an extraneous parameter."
       (when (and (car fcust)
 		 (or (not master-group) (member master-group (car fgroup)))
 		 (slot-boundp obj (car slots)))
-	;; In this case, this slot has a custom type.  Create it's
+	;; In this case, this slot has a custom type.  Create its
 	;; children widgets.
 	(let ((type (eieio-filter-slot-type widget (car fcust)))
 	      (stuff nil))
@@ -320,9 +320,9 @@ Optional argument IGNORE is an extraneous parameter."
     obj))
 
 (defmethod eieio-done-customizing ((obj eieio-default-superclass))
-  "When a applying change to a widget, call this method.
-This method is called by the default widget-edit commands.  User made
-commands should also call this method when applying changes.
+  "When applying change to a widget, call this method.
+This method is called by the default widget-edit commands.
+User made commands should also call this method when applying changes.
 Argument OBJ is the object that has been customized."
   nil)
 
@@ -374,7 +374,7 @@ These groups are specified with the `:group' slot flag."
 
 (defmethod eieio-custom-object-apply-reset ((obj eieio-default-superclass))
   "Insert an Apply and Reset button into the object editor.
-Argument OBJ os the object being customized."
+Argument OBJ is the object being customized."
   (widget-create 'push-button
 		 :notify (lambda (&rest ignore)
 			   (widget-apply eieio-wo :value-get)
@@ -385,16 +385,16 @@ Argument OBJ os the object being customized."
   (widget-create 'push-button
 		 :notify (lambda (&rest ignore)
 			   ;; I think the act of getting it sets
-			   ;; it's value through the get function.
+			   ;; its value through the get function.
 			   (message "Applying Changes...")
 			   (widget-apply eieio-wo :value-get)
 			   (eieio-done-customizing eieio-co)
-			   (message "Applying Changes...Done."))
+			   (message "Applying Changes...Done"))
 		 "Apply")
   (widget-insert "   ")
   (widget-create 'push-button
 		 :notify (lambda (&rest ignore)
-			   (message "Resetting.")
+			   (message "Resetting")
 			   (eieio-customize-object eieio-co eieio-cog))
 		 "Reset")
   (widget-insert "   ")

@@ -42,7 +42,7 @@
 		    :type eieio-instance-inheritor-child
 		    :documentation
 		    "The parent of this instance.
-If a slot of this class is reference, and is unbound, then  the parent
+If a slot of this class is referenced, and is unbound, then the parent
 is checked for a value.")
    )
   "This special class can enable instance inheritance.
@@ -53,7 +53,7 @@ not been set, use values from the parent."
 
 (defmethod slot-unbound ((object eieio-instance-inheritor) class slot-name fn)
   "If a slot OBJECT in this CLASS is unbound, try to inherit, or throw a signal.
-SLOT-NAME, is the offending slot.  FN is the function signalling the error."
+SLOT-NAME is the offending slot.  FN is the function signalling the error."
   (if (slot-boundp object 'parent-instance)
       ;; It may not look like it, but this line recurses back into this
       ;; method if the parent instance's slot is unbound.
@@ -85,9 +85,9 @@ All slots are unbound, except those initialized with PARAMS."
 
 (defmethod eieio-instance-inheritor-slot-boundp ((object eieio-instance-inheritor)
 						slot)
-  "Non-nil if the instance inheritor OBJECT's SLOT is bound.
-See `slot-boundp' for for details on binding slots.
-The instance inheritor uses unbound slots as a way cascading cloned
+  "Return non-nil if the instance inheritor OBJECT's SLOT is bound.
+See `slot-boundp' for details on binding slots.
+The instance inheritor uses unbound slots as a way of cascading cloned
 slot values, so testing for a slot being bound requires extra steps
 for this kind of object."
   (if (slot-boundp object slot)
@@ -213,7 +213,7 @@ specified will not be saved."
 
 (defmethod eieio-persistent-save-interactive ((this eieio-persistent) prompt
 					      &optional name)
-  "Perpare to save THIS.  Use in an `interactive' statement.
+  "Prepare to save THIS.  Use in an `interactive' statement.
 Query user for file name with PROMPT if THIS does not yet specify
 a file.  Optional argument NAME specifies a default file name."
   (unless (slot-boundp this 'file)
@@ -308,7 +308,7 @@ access to it."
 			 slot-name operation &optional new-value)
   "Called when a on-existant slot is accessed.
 For variable `eieio-named', provide an imaginary `object-name' slot.
-Argument OBJ is the Named object.
+Argument OBJ is the named object.
 Argument SLOT-NAME is the slot that was attempted to be accessed.
 OPERATION is the type of access, such as `oref' or `oset'.
 NEW-VALUE is the value that was being set into SLOT if OPERATION were
