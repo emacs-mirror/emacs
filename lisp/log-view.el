@@ -113,7 +113,7 @@
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
 (autoload 'vc-find-revision "vc")
-(autoload 'vc-version-diff "vc")
+(autoload 'vc-diff-internal "vc")
 
 (defvar cvs-minor-wrap-function)
 
@@ -496,11 +496,12 @@ changeset that affected the currently considered file(s)."
         (goto-char end)
         (log-view-msg-next)
         (setq to (log-view-current-tag))))
-    (vc-version-diff
-     (if log-view-per-file-logs
-	 (list (log-view-current-file))
-       log-view-vc-fileset)
-       to fr)))
+    (vc-diff-internal
+     t (list log-view-vc-backend
+	     (if log-view-per-file-logs
+		 (list (log-view-current-file))
+	       log-view-vc-fileset))
+     to fr)))
 
 (declare-function vc-diff-internal "vc"
 		  (async vc-fileset rev1 rev2 &optional verbose))

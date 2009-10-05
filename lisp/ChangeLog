@@ -1,3 +1,9 @@
+2009-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-diff): Use vc-diff-internal instead of
+	vc-version-diff.
+	(vc-diff-internal): Autoload this instead of vc-version-diff.
+
 2009-10-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (eval-expression): Doc fix.
