@@ -4,6 +4,19 @@
 	(delete-directory): Use it.
 	(copy-directory): Use it.  Remove parameter PRESERVE-UID-GID.
 
+	* net/tramp.el (tramp-verbose): Fix docstring.
+	(tramp-methods): Add recursive option to `tramp-copy-args'.  Add
+	`tramp-copy-recursive'.  Valid for "rcp", "scp", "scp1", "scp2",
+	"scp1_old", "scp2_old", "rsync", "rsyncc".
+	(tramp-default-method): Check also for
+	`auth-source-user-or-password'.
+	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
+	Add handler for `copy-directory'.
+	(tramp-handle-copy-directory): New defun.
+	(tramp-do-copy-or-rename-file-out-of-band): Handle directory case.
+	(tramp-handle-start-file-process): Raise an error when PROGRAM is
+	nil.  Optimize sent command.
+
 2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/diary-lib.el (diary-show-all-entries): Re-fit the calendar
