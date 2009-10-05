@@ -1,5 +1,8 @@
 2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/diary-lib.el (diary-show-all-entries): Re-fit the calendar
+	window if necessary.
+
 	* calendar/calendar.el (calendar-basic-setup): Don't call
 	switch-to-buffer in a dedicated window.
 
@@ -30,25 +33,25 @@
 
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-get-bookmark, bookmark-get-bookmark-record,
-	 bookmark-set-name, bookmark-prop-get, bookmark-prop-set,
-	 bookmark-get-annotation, bookmark-set-annotation,
-	 bookmark-get-filename, bookmark-set-filename, bookmark-get-position,
-	 bookmark-set-position, bookmark-get-front-context-string,
-	 bookmark-set-front-context-string, bookmark-get-rear-context-string,
-	 bookmark-set-rear-context-string, bookmark-location, bookmark-jump,
-	 bookmark-jump-other-window, bookmark-handle-bookmark,
-	 bookmark-relocate, bookmark-insert-location, bookmark-rename,
-	 bookmark-insert, bookmark-delete, bookmark-time-to-save-p,
-	 bookmark-edit-annotation-mode, bookmark-edit-annotation): Improve
-	   doc strings to say whether bookmark can be a string or a record
-	   or both, and make other consistency and clarity fixes.
-	(bookmark-get-handler, bookmark--jump-via, bookmark-write-file
-	 bookmark-default-annotation-text, bookmark-yank-word,
-	 bookmark-maybe-load-default-file, bookmark-maybe-sort-alist,
-	 bookmark-import-new-list, bookmark-maybe-rename,
-	 bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames,
-	 bookmark-bmenu-bookmark): Give these doc strings.
+	* bookmark.el (bookmark-get-bookmark, bookmark-get-bookmark-record)
+	(bookmark-set-name, bookmark-prop-get, bookmark-prop-set)
+	(bookmark-get-annotation, bookmark-set-annotation)
+	(bookmark-get-filename, bookmark-set-filename, bookmark-get-position)
+	(bookmark-set-position, bookmark-get-front-context-string)
+	(bookmark-set-front-context-string, bookmark-get-rear-context-string)
+	(bookmark-set-rear-context-string, bookmark-location, bookmark-jump)
+	(bookmark-jump-other-window, bookmark-handle-bookmark)
+	(bookmark-relocate, bookmark-insert-location, bookmark-rename)
+	(bookmark-insert, bookmark-delete, bookmark-time-to-save-p)
+	(bookmark-edit-annotation-mode, bookmark-edit-annotation):
+	   Improve doc strings to say whether bookmark can be a string or
+	   a record or both, and make other consistency and clarity fixes.
+	(bookmark-get-handler, bookmark--jump-via, bookmark-write-file)
+	(bookmark-default-annotation-text, bookmark-yank-word)
+	(bookmark-maybe-load-default-file, bookmark-maybe-sort-alist)
+	(bookmark-import-new-list, bookmark-maybe-rename)
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
+	(bookmark-bmenu-bookmark): Give these doc strings.
 	(bookmark-bmenu-check-position): Give this a doc string, but also
 	   add a FIXME comment about how the function may be pointless.
 	(bookmark-default-handler): Rework doc string and change a
@@ -73,15 +76,14 @@
 
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/semantic.el (semantic-new-buffer-setup-functions): New
-	option.
+	* cedet/semantic.el (semantic-new-buffer-setup-functions): New option.
 	(semantic-new-buffer-fcn): Call parser setup functions here.
 	(semantic-mode): Don't call parser setup functions here, it's done
 	in semantic-new-buffer-fcn now.
 	(semantic-mode): Parse all existing buffers when enabled.
 
-	* cedet/srecode/compile.el (srecode-compile-file): Call
-	semantic-new-buffer-fcn if the buffer has not been parsed.
+	* cedet/srecode/compile.el (srecode-compile-file):
+	Call semantic-new-buffer-fcn if the buffer has not been parsed.
 
 2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -148,8 +150,8 @@
 
 	* files.el (auto-mode-alist): Add .srt and Project.ede.
 
-	* cedet/semantic.el (semantic-mode): Handle
-	srecode-template-mode-hook as well.
+	* cedet/semantic.el (semantic-mode):
+	Handle srecode-template-mode-hook as well.
 	(semantic-mode): Use js-mode-hook for Javascript hook.
 
 	* cedet/srecode/template.el: Remove hook variable.
@@ -163,8 +165,7 @@
 
 	* cedet/srecode/map.el (srecode-map-base-template-dir): Look for
 	templates in data-directory.
-	(srecode-map-save-file): Default to a file in
-	user-emacs-directory.
+	(srecode-map-save-file): Default to a file in user-emacs-directory.
 
 	* cedet/ede/srecode.el (ede-srecode-setup): Use default templates
 	directory.
@@ -191,8 +192,8 @@
 
 2009-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Disable
-	`file-name-handler-alist' when loading 'ange-ftp.  Otherwise,
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
+	Disable `file-name-handler-alist' when loading 'ange-ftp.  Otherwise,
 	there could be recursive loading when `default-directory' is a
 	remote file name.  (Bug#4614)
 
@@ -211,8 +212,7 @@
 
 2009-10-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (update-subdirs-CMD): Add cedet to
-	$(WINS_SUBDIR).
+	* makefile.w32-in (update-subdirs-CMD): Add cedet to $(WINS_SUBDIR).
 	(WINS_CEDET_SUBDIRS): List of subdirectories of cedet.
 	(bootstrap-clean-CMD, bootstrap-clean-SH): Remove *.elc files in
 	subdirs of cedet as well.

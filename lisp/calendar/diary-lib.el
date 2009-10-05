@@ -1084,14 +1084,20 @@ This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
-  (let ((d-file (diary-check-diary-file))
-        (pop-up-frames (or pop-up-frames
-                           (window-dedicated-p (selected-window)))))
+  (let* ((d-file (diary-check-diary-file))
+         (pop-up-frames (or pop-up-frames
+                            (window-dedicated-p (selected-window))))
+         (win (selected-window))
+         (height (window-height)))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
       (when (eq major-mode (default-value 'major-mode)) (diary-mode))
       (diary-unhide-everything)
-      (display-buffer (current-buffer)))))
+      (display-buffer (current-buffer))
+      (when (and (/= height (window-height win))
+                 (with-current-buffer (window-buffer win)
+                   (derived-mode-p 'calendar-mode)))
+        (fit-window-to-buffer win)))))
 
 (define-obsolete-function-alias 'show-all-diary-entries
   'diary-show-all-entries "22.1")
