@@ -1567,9 +1567,12 @@ On MS-Windows, this command works only if the file resides in an NTFS
 file system.  On MS-DOS, it works by copying the file.
 
 @findex copy-file
+@findex copy-directory
 @cindex copying files
   @kbd{M-x copy-file} reads the file @var{old} and writes a new file
-named @var{new} with the same contents.
+named @var{new} with the same contents.  @kbd{M-x copy-directory} does
+the same for directories, by recursive copying all files and
+subdirectories.
 
 @findex make-symbolic-link
 @cindex symbolic links (creation)
