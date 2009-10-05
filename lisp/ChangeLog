@@ -1,5 +1,35 @@
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el (bookmark-get-bookmark, bookmark-get-bookmark-record,
+	 bookmark-set-name, bookmark-prop-get, bookmark-prop-set,
+	 bookmark-get-annotation, bookmark-set-annotation,
+	 bookmark-get-filename, bookmark-set-filename, bookmark-get-position,
+	 bookmark-set-position, bookmark-get-front-context-string,
+	 bookmark-set-front-context-string, bookmark-get-rear-context-string,
+	 bookmark-set-rear-context-string, bookmark-location, bookmark-jump,
+	 bookmark-jump-other-window, bookmark-handle-bookmark,
+	 bookmark-relocate, bookmark-insert-location, bookmark-rename,
+	 bookmark-insert, bookmark-delete, bookmark-time-to-save-p,
+	 bookmark-edit-annotation-mode, bookmark-edit-annotation): Improve
+	   doc strings to say whether bookmark can be a string or a record
+	   or both, and make other consistency and clarity fixes.
+	(bookmark-get-handler, bookmark--jump-via, bookmark-write-file
+	 bookmark-default-annotation-text, bookmark-yank-word,
+	 bookmark-maybe-load-default-file, bookmark-maybe-sort-alist,
+	 bookmark-import-new-list, bookmark-maybe-rename,
+	 bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames,
+	 bookmark-bmenu-bookmark): Give these doc strings.
+	(bookmark-bmenu-check-position): Give this a doc string, but also
+	   add a FIXME comment about how the function may be pointless.
+	(bookmark-default-handler): Rework doc string and change a
+	   parameter name, to clarify that this takes a bookmark record
+	   not a bookmark name.
+	(bookmark-set): Change a parameter name to indicate its meaning,
+	   and improve the doc string a bit.
+	(Bug#4188)
+
+2009-10-04  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-alist): Document the new `handler' element
 	in the param alist.
 	(bookmark-make-record-function): Adjust documentation for above.
