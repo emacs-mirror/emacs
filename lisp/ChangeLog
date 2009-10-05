@@ -1,3 +1,8 @@
+2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-basic-setup): Don't call
+	switch-to-buffer in a dedicated window.
+
 2009-10-05  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-handle-bookmark): If bookmark has no file,
