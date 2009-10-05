@@ -4635,6 +4635,10 @@ this happens by default."
 	    (make-directory-internal (car create-list))
 	    (setq create-list (cdr create-list))))))))
 
+(defconst directory-files-no-dot-files-regexp
+  "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"
+  "Regexp of file names excluging \".\" an \"..\".")
+
 (defun delete-directory (directory &optional recursive)
   "Delete the directory named DIRECTORY.  Does not follow symlinks.
 If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
@@ -4644,8 +4648,7 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 		"Delete directory: "
 		default-directory default-directory nil nil))))
      (list dir
-	   (if (directory-files
-		dir nil "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
+	   (if (directory-files	dir nil directory-files-no-dot-files-regexp)
 	       (y-or-n-p
 		(format "Directory `%s' is not empty, really delete? " dir))
 	     nil))))
@@ -4663,11 +4666,10 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 	       (delete-file file)))
 	   ;; We do not want to delete "." and "..".
 	   (directory-files
-	    directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+	    directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory))))
 
-(defun copy-directory
-  (directory newname &optional keep-time preserve-uid-gid parents)
+(defun copy-directory (directory newname &optional keep-time parents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
 If NEWNAME names an existing directory, copy DIRECTORY as subdirectory there.
 
@@ -4679,9 +4681,6 @@ last-modified time as the old ones.  (This works on only some systems.)
 
 A prefix arg makes KEEP-TIME non-nil.
 
-If PRESERVE-UID-GID is non-nil, we try to transfer the
-uid and gid of the input files to the corresponding output file.
-
 Noninteractively, the last argument PARENTS says whether to
 create parent directories if they don't exist.  Interactively,
 this happens by default."
@@ -4692,15 +4691,13 @@ this happens by default."
 	   (read-file-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
-	   current-prefix-arg nil t)))
+	   current-prefix-arg t)))
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
 		     (find-file-name-handler newname 'copy-directory))))
     (if handler
-	(funcall
-	 handler
-	 'copy-directory directory newname keep-time preserve-uid-gid parents)
+	(funcall handler 'copy-directory directory newname keep-time parents)
 
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
@@ -4711,28 +4708,20 @@ this happens by default."
 	  (setq newname
 		(expand-file-name (file-name-nondirectory directory) newname)))
       (if (not (file-directory-p newname)) (make-directory newname parents))
+
       ;; Copy recursively.
       (mapc
        (lambda (file)
 	 (if (file-directory-p file)
-	     (copy-directory file newname keep-time preserve-uid-gid parents)
-	   (copy-file file newname t keep-time preserve-uid-gid)))
+	     (copy-directory file newname keep-time parents)
+	   (copy-file file newname t keep-time)))
        ;; We do not want to delete "." and "..".
-       (directory-files
-	directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+       (directory-files	directory 'full directory-files-no-dot-files-regexp))
 
       ;; Set directory attributes.
       (set-file-modes newname (file-modes directory))
       (if keep-time
-	  (set-file-times newname (nth 5 (file-attributes directory))))
-      (if preserve-uid-gid
-	  (ignore-errors
-	    (call-process
-	     "chown" nil nil nil
-	     (format "%s:%s"
-		     (nth 2 (file-attributes directory))
-		     (nth 3 (file-attributes directory)))
-	     directory))))))
+	  (set-file-times newname (nth 5 (file-attributes directory)))))))
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
