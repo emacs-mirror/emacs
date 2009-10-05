@@ -60,6 +60,11 @@
 ;; characters over the default mechanism of `nobreak-char-display'
 ;; (which see) and `show-trailing-whitespace' (which see).
 ;;
+;; The trailing spaces are not highlighted while point is at end of line.
+;; Also the spaces at beginning of buffer are not highlighted while point is at
+;; beginning of buffer; and the spaces at end of buffer are not highlighted
+;; while point is at end of buffer.
+;;
 ;; There are two ways of using whitespace: local and global.
 ;;
 ;; * Local whitespace affects only the current buffer.
