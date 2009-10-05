@@ -1,3 +1,7 @@
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Misc File Ops): Mention copy-directory.
+
 2009-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Unibyte Mode): Emphasize that
