@@ -1,5 +1,10 @@
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el (bookmark-set, bookmark-buffer-name):
+	Improve doc strings.  (Bug#1193)
+
+2009-10-04  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-get-bookmark, bookmark-get-bookmark-record,
 	 bookmark-set-name, bookmark-prop-get, bookmark-prop-set,
 	 bookmark-get-annotation, bookmark-set-annotation,

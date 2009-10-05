@@ -733,13 +733,13 @@ This expects to be called from `point-min' in a bookmark file."
 
 ;;;###autoload
 (defun bookmark-set (&optional name no-overwrite)
-  "Set a bookmark named NAME inside a file.
+  "Set a bookmark named NAME at the current location.
 If name is nil, then prompt the user.
 
 With prefix arg (NO-OVERWRITE), do not overwrite a bookmark that
 has the same name as NAME if such a bookmark already exists, but
-instead \"push\" the new bookmark onto the bookmark alist.  Thus
-the most recently set bookmark with name NAME would be the one in
+instead push the new bookmark onto the bookmark alist.  Thus the
+most recently set bookmark with name NAME would be the one in
 effect at any given time, but the others are still there, should
 the user decide to delete the most recent one.
 
@@ -747,10 +747,11 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-u inserts the name of the last bookmark used in the buffer
-\(as an aid in using a single bookmark name to track progress through
-a large file\).  If no bookmark was used, then C-u inserts the name of
-the file being visited.
+Typing C-u will insert (at the bookmark name prompt) the name of the
+last bookmark used in the document where the new bookmark is being set;
+this helps one use a single bookmark name to track progress through
+a large document.  If there is no prior bookmark for this document,
+then C-u inserts an appropriate name based on the buffer or file.
 
 Use \\[bookmark-delete] to remove bookmarks \(give it a name and it
 removes only the first instance of a bookmark with that name from
@@ -883,7 +884,8 @@ Default to file name if it's nil."
 
 
 (defun bookmark-buffer-name ()
-  "Return the name of the current buffer's file, non-directory."
+  "Return the name of the current buffer (or its file, if any) in a
+way that is suitable as a bookmark name."
   (cond
    ;; Or are we a file?
    (buffer-file-name (file-name-nondirectory buffer-file-name))
