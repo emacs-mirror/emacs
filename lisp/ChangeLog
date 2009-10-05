@@ -1,5 +1,12 @@
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el (bookmark-handle-bookmark): When relocating a bookmark,
+	don't use a file dialog, because they usually don't know how to read
+	a directory target from the user.  (Bug#4230)
+	Also, make sure the prompt can display directories as well as files.
+
+2009-10-04  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-set, bookmark-buffer-name):
 	Improve doc strings.  (Bug#1193)
 

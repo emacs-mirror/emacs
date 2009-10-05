@@ -1075,23 +1075,29 @@ BOOKMARK may be a bookmark name (a string) or a bookmark record."
        ;; `bookmark' can either be a bookmark name (found in
        ;; `bookmark-alist') or a bookmark object.  If it's an object, we
        ;; assume it's a bookmark used internally by some other package.
-       (let ((file (bookmark-get-filename bookmark)))
+       (let* ((file (bookmark-get-filename bookmark))
+              ;; If file is not a directory, this should be a no-op.
+              (display-name (directory-file-name file)))
          (when file        ;Don't know how to relocate if there's no `file'.
-           (setq file (expand-file-name file))
            (ding)
-           (if (y-or-n-p (concat (file-name-nondirectory file)
-                                 " nonexistent.  Relocate \""
-                                 bookmark
-                                 "\"? "))
-               (progn
-                 (bookmark-relocate bookmark)
-                 ;; Try again.
-                 (funcall (or (bookmark-get-handler bookmark)
-                              'bookmark-default-handler)
-                          (bookmark-get-bookmark bookmark)))
-             (message
-              "Bookmark not relocated; consider removing it \(%s\)." bookmark)
-             (signal (car err) (cdr err))))))))
+           ;; Dialog boxes can accept a file target, but usually don't
+           ;; know how to accept a directory target (at least, this
+           ;; was true in Gnome on GNU/Linux, and Bug#4230 says it's
+           ;; true on Windows as well).  Thus, suppress file dialogs
+           ;; when relocating.
+           (let ((use-dialog-box nil)
+                 (use-file-dialog nil))
+             (if (y-or-n-p (concat display-name " nonexistent.  Relocate \""
+                                   bookmark "\"? "))
+                 (progn
+                   (bookmark-relocate bookmark)
+                   ;; Try again.
+                   (funcall (or (bookmark-get-handler bookmark)
+                                'bookmark-default-handler)
+                            (bookmark-get-bookmark bookmark)))
+               (message
+                "Bookmark not relocated; consider removing it \(%s\)." bookmark)
+               (signal (car err) (cdr err)))))))))
   ;; Added by db.
   (when (stringp bookmark)
     (setq bookmark-current-bookmark bookmark))
