@@ -1303,6 +1303,7 @@ main (int argc, char **argv)
     {
       init_alloc_once ();
       init_obarray ();
+      init_threads_once ();
       init_eval_once ();
       init_character_once ();
       init_charset_once ();

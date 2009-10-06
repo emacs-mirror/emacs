@@ -126,6 +126,8 @@ extern __thread struct thread_state *current_thread;
 
 extern void init_threads P_ ((void));
 
+extern void init_threads_once P_ ((void));
+
 extern void thread_yield P_ ((void));
 
 extern void syms_of_threads P_ ((void));

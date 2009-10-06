@@ -455,7 +455,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 	 does not preserve the buffer from being GC'd (it's weak), so
 	 markers have to be unlinked from their buffer as soon as the buffer
 	 is killed.  */
-      eassert (!NILP (XBUFFER (buf)->name));
+      eassert (!NILP (BUF_NAME (XBUFFER (buf))));
       return buf;
     }
   return Qnil;

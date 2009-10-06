@@ -391,7 +391,7 @@ even if it is dead.  The return value is never nil.  */)
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
-  BUF_WIDTH_TABLE (b) = Qnil;
+b->width_table_ = Qnil;
   b->prevent_redisplay_optimizations_p = 1;
 
   /* Put this on the chain of all buffers including killed ones.  */
@@ -400,22 +400,22 @@ even if it is dead.  The return value is never nil.  */)
 
   /* An ordinary buffer normally doesn't need markers
      to handle BEGV and ZV.  */
-  BUF_PT_MARKER (b) = Qnil;
-  BUF_BEGV_MARKER (b) = Qnil;
-  BUF_ZV_MARKER (b) = Qnil;
+  b->pt_marker_ = Qnil;
+  b->begv_marker_ = Qnil;
+  b->zv_marker_ = Qnil;
 
   name = Fcopy_sequence (buffer_or_name);
   STRING_SET_INTERVALS (name, NULL_INTERVAL);
-  BUF_NAME (b) = name;
+  b->name_ = name;
 
-  BUF_UNDO_LIST (b) = (SREF (name, 0) != ' ') ? Qnil : Qt;
+  b->undo_list_ = (SREF (name, 0) != ' ') ? Qnil : Qt;
 
   reset_buffer (b);
   reset_buffer_local_variables (b, 1);
 
-  BUF_MARK (b) = Fmake_marker ();
+  b->mark_ = Fmake_marker ();
   BUF_MARKERS (b) = NULL;
-  BUF_NAME (b) = name;
+  b->name_ = name;
   b->owner = Qnil;
   b->prev_owner = Qnil;
 

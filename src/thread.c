@@ -461,6 +461,16 @@ other_threads_p (void)
 }
 
 void
+init_threads_once (void)
+{
+  primary_thread.size = PSEUDOVECSIZE (struct thread_state, m_gcprolist);
+  primary_thread.next = NULL;
+  primary_thread.func = Qnil;
+  primary_thread.initial_specpdl = Qnil;
+  XSETPVECTYPE (&primary_thread, PVEC_THREAD);
+}
+
+void
 init_threads (void)
 {
   pthread_mutex_init (&global_lock, NULL);
