@@ -1,5 +1,13 @@
 2009-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* emerge.el (emerge-show-file-name):
+	* calc/calc.el (calc-quit):
+	* calc/calc-misc.el (calc-big-or-small):
+	* calc/calc-graph.el (calc-graph-view):
+	* calc/calc-ext.el (calc-reset):
+	* calendar/calendar.el (calendar-basic-setup):
+	Use window-full-height-p.
+
 	* mail/rmailedit.el (rmail-cease-edit): If there is a Content-Type
 	header we don't understand, don't insert another.  (Bug#4624)
 	If changing mime charset, insert the new one in the right place.

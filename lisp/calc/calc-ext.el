@@ -1343,7 +1343,7 @@ calc-kill calc-kill-region calc-yank))))
        ;; take up the whole height of the frame.
        (if (and
             win
-            (< (window-height win) (1- (frame-height))))
+	    (not (window-full-height-p)))
            (let ((height (- (window-height win) 2)))
              (set-window-point win (point))
              (or (= height calc-window-height)

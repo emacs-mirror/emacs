@@ -148,9 +148,11 @@ displayed."
             (if (not clean-message-header)
                 (mh-start-of-uncleaned-message)))
         (mh-display-msg msg folder)))
-    (if (not (= (1+ (window-height)) (frame-height))) ;not horizontally split
-        (shrink-window (- (window-height) (or mh-summary-height
-                                              (mh-summary-height)))))
+    (unless (if (fbound 'window-full-height-p)
+                (window-full-height-p)
+              (= (1+ (window-height)) (frame-height))) ; not vertically split
+      (shrink-window (- (window-height) (or mh-summary-height
+                                            (mh-summary-height)))))
     (mh-recenter nil)
     ;; The following line is a nop which forces update of the scan line so
     ;; that font-lock will update it (if needed)...

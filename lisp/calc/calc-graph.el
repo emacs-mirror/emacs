@@ -1388,7 +1388,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	      (set-window-buffer win buf)
 	    (if (eq major-mode 'calc-mode)
 		(if (or need
-			(< (window-height) (1- (frame-height))))
+			(not (window-full-height-p)))
 		    (display-buffer buf))
 	      (switch-to-buffer buf)))))
     (save-excursion

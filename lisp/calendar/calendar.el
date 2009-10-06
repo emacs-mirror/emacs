@@ -1320,9 +1320,9 @@ display the generated calendar."
       ;; Is this a wide frame?  If so, split it horizontally.
       (if (window-splittable-p t) (split-window-horizontally))
       (pop-to-buffer calendar-buffer)
-      ;; Has the window already been split vertically?  (See bug#4543)
+      ;; Has the window already been split vertically?
       (when (and (not (window-dedicated-p))
-                 (= (window-height) (window-height (frame-root-window))))
+                 (window-full-height-p))
         (let ((win (split-window-vertically)))
           ;; Show something else in the upper window.
           (switch-to-buffer (other-buffer))

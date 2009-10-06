@@ -1,3 +1,7 @@
+2009-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* mh-show.el (mh-show-msg): Use window-full-height-p.
+
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-comp.el (mh-send-letter): default-buffer-file-coding-system
