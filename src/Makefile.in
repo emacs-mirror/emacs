@@ -906,7 +906,7 @@ RUN_TEMACS = `/bin/pwd`/temacs
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
-emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
+emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 #ifdef CANNOT_DUMP
 	rm -f emacs${EXEEXT}
 	ln temacs${EXEEXT} emacs${EXEEXT}
