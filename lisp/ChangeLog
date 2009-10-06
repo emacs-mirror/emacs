@@ -1,3 +1,8 @@
+2009-10-06  Sam Steingold  <sds@gnu.org>
+
+	* net/tramp-compat.el (tramp-compat-process-running-p): Check that
+	the comm attribute is present before calling regexp-quote.
+
 2009-10-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/animate.el (animate-string): For good effect, make sure

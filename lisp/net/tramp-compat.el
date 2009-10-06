@@ -312,15 +312,15 @@ element is not omitted."
 	(dolist (pid (funcall (symbol-function 'list-system-processes)) result)
 	  (let ((attributes
 		 (funcall (symbol-function 'process-attributes) pid)))
-	    (when
-		(and (string-equal
-		      (cdr (assoc 'user attributes)) (user-login-name))
-		     ;; The returned command name could be truncated
-		     ;; to 15 characters.  Therefore, we cannot check
-		     ;; for `string-equal'.
-		     (string-match
-		      (concat "^" (regexp-quote (cdr (assoc 'comm attributes))))
-		      process-name))
+	    (when (and (string-equal
+                        (cdr (assoc 'user attributes)) (user-login-name))
+                       (let ((comm (cdr (assoc 'comm attributes))))
+                         ;; The returned command name could be truncated
+                         ;; to 15 characters.  Therefore, we cannot check
+                         ;; for `string-equal'.
+                         (and comm (string-match
+                                    (concat "^" (regexp-quote comm))
+                                    process-name))))
 	      (setq result t))))))
 
      ;; Fallback, if there is no Lisp support yet.
