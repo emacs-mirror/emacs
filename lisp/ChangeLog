@@ -1,5 +1,11 @@
 2009-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/autoload.el (autoload-excludes): New variable.
+	(autoload-generate-file-autoloads): Skip files in autoload-excludes.
+	(batch-update-autoloads): Process a string value of autoload-excludes,
+	set during the build process.
+	* Makefile.in (autoloads): Skip preloaded files.  (Bug#4446)
+
 	* net/tramp.el (tramp-handle-start-file-process): Move tramp-error call
 	inside with-parsed...  macro so that `v' is defined.
 

@@ -145,13 +145,16 @@ finder-data: doit
 
 # The chmod +w is to handle env var CVSREAD=1.  Files named
 # are identified by being the value of `generated-autoload-file'.
-autoloads: $(LOADDEFS) doit
+# The Makefile dependency is to make any missing-file error more explicit.
+autoloads: $(LOADDEFS) ../src/Makefile doit
 	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el $(lisp)/mail/rmail.el \
 	  $(lisp)/dired.el $(lisp)/ibuffer.el
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	preload=`sed -n -e '/^lisp=/ s/$${lispsource}//g p' ../src/Makefile | \
+	  sed 's/^lisp= //'`; \
+	$(emacs) -l autoload --eval "(setq generated-autoload-file \"$(lisp)/loaddefs.el\" autoload-excludes \"$${preload}\")" -f batch-update-autoloads $$wins
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
