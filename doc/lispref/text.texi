@@ -3168,7 +3168,11 @@ Consecutive characters with the same @code{field} property constitute a
 Normally, the cursor is displayed at the end of any overlay and text
 property strings present at the current window position.  You can
 place the cursor on any desired character of these strings by giving
-that character a non-@code{nil} @var{cursor} text property.
+that character a non-@code{nil} @code{cursor} text property.  If the
+value of the @code{cursor} property is an integer number, it specifies
+the number of buffer's character positions associated with the overlay
+or text property string; this helps Emacs display the cursor correctly
+when point moves across these character positions.
 
 @item pointer
 @kindex pointer @r{(text property)}
