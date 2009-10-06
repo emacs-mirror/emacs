@@ -210,8 +210,8 @@ Info node `(elisp)Variable Aliases' for more details."
 ;; It only really affects M-x describe-face output.
 (defmacro define-obsolete-face-alias (obsolete-face current-face when)
   "Make OBSOLETE-FACE a face alias for CURRENT-FACE and mark it obsolete.
-The optional string WHEN gives the Emacs version where OBSOLETE-FACE
-became obsolete."
+The string WHEN gives the Emacs version where OBSOLETE-FACE became
+obsolete."
   `(progn
      (put ,obsolete-face 'face-alias ,current-face)
      ;; Used by M-x describe-face.
