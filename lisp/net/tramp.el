@@ -3999,10 +3999,10 @@ beginning of local filename are not substituted."
 ;; connection has been setup.
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
-  (unless (stringp program)
-    (tramp-error
-     v 'file-error "pty association is not supported for `%s'" name))
   (with-parsed-tramp-file-name default-directory nil
+    (unless (stringp program)
+      (tramp-error
+       v 'file-error "pty association is not supported for `%s'" name))
     (unwind-protect
 	(let ((command (format "cd %s; exec %s"
 			       (tramp-shell-quote-argument localname)
