@@ -1,3 +1,8 @@
+2009-10-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Document the meaning of the
+	`cursor' text property whose value is an integer.
+
 2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add `copy-directory'.
