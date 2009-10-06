@@ -439,13 +439,13 @@ Optional EVENT indicates a buffer position to use instead of point."
          (end-year year)
          (cal-tex-which-days '(0 1 2 3 4 5 6))
          (d1 (calendar-absolute-from-gregorian (list month 1 year)))
-         (d2 (calendar-absolute-from-gregorian
-              (list end-month
-                    (calendar-last-day-of-month end-month end-year)
-                    end-year)))
-         (diary-list (progn
-                       (calendar-increment-month end-month end-year (1- n))
-                       (if cal-tex-diary (cal-tex-list-diary-entries d1 d2))))
+         (d2 (progn
+               (calendar-increment-month end-month end-year (1- n))
+               (calendar-absolute-from-gregorian
+                (list end-month
+                      (calendar-last-day-of-month end-month end-year)
+                      end-year))))
+         (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
          (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2)))
          other-month other-year small-months-at-start)
     (cal-tex-insert-preamble (cal-tex-number-weeks month year 1) t "12pt")
@@ -508,13 +508,13 @@ indicates a buffer position to use instead of point."
          (end-month month)
          (end-year year)
          (d1 (calendar-absolute-from-gregorian (list month 1 year)))
-         (d2 (calendar-absolute-from-gregorian
-              (list end-month
-                    (calendar-last-day-of-month end-month end-year)
-                    end-year)))
-         (diary-list (progn
-                       (calendar-increment-month end-month end-year (1- n))
-                       (if cal-tex-diary (cal-tex-list-diary-entries d1 d2))))
+         (d2 (progn
+               (calendar-increment-month end-month end-year (1- n))
+               (calendar-absolute-from-gregorian
+                (list end-month
+                      (calendar-last-day-of-month end-month end-year)
+                      end-year))))
+         (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
          (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2)))
          other-month other-year)
     (cal-tex-insert-preamble (cal-tex-number-weeks month year n) nil "12pt")

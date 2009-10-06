@@ -1,3 +1,9 @@
+2009-10-06  Matthew Junker  <matthew.junker@sbcglobal.net>  (tiny change)
+
+	* calendar/cal-tex.el (cal-tex-cursor-month-landscape)
+	(cal-tex-cursor-month): Correctly increment the end date for diary and
+	holiday listing.  (Bug#4626)
+
 2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-function-1): Don't burp is the function is not
