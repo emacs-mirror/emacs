@@ -70,6 +70,9 @@ If this string appears alone on a line, the following form will be
 read and an autoload made for it.  If there is further text on the line,
 that text will be copied verbatim to `generated-autoload-file'.")
 
+(defvar autoload-excludes nil
+  "If non-nil, list of absolute file names not to scan for autoloads.")
+
 (defconst generate-autoload-section-header "\f\n;;;### "
   "String that marks the form at the start of a new file's autoload section.")
 
@@ -373,7 +376,8 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           relfile
           ;; nil until we found a cookie.
           output-start)
-
+      (if (member absfile autoload-excludes)
+      	  (message "Generating autoloads for %s...skipped" file)
       (with-current-buffer (or visited
                                ;; It is faster to avoid visiting the file.
                                (autoload-find-file file))
@@ -482,7 +486,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           (message "Generating autoloads for %s...done" file))
         (or visited
             ;; We created this buffer, so we should kill it.
-            (kill-buffer (current-buffer))))
+            (kill-buffer (current-buffer)))))
       ;; If the entries were added to some other buffer, then the file
       ;; doesn't add entries to OUTFILE.
       (or (not output-start) otherbuf))))
@@ -679,6 +683,18 @@ directory or directories specified."
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
 Calls `update-directory-autoloads' on the command line arguments."
+  ;; For use during the Emacs build process only.  We do the file-name
+  ;; expansion here rather than in lisp/Makefile in order to keep the
+  ;; shell command line short.  (Long lines are an issue on some systems.)
+  (if (stringp autoload-excludes)
+      (setq autoload-excludes
+	    (mapcar
+	     (lambda (file)
+	       (concat
+		(expand-file-name (file-name-sans-extension file)
+				  (file-name-directory generated-autoload-file))
+		".el"))
+	     (split-string autoload-excludes))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))
