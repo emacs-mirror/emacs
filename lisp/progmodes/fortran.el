@@ -1295,7 +1295,7 @@ If NUM is negative, go backward to the start of a block.  Does
 not check for consistency of block types.  Interactively, pushes
 mark before moving point."
   (interactive "p")
-  (if (called-interactively-p 'interactive) (push-mark (point) t))
+  (if (called-interactively-p 'any) (push-mark (point) t))
   (and num (< num 0) (fortran-beginning-of-block (- num)))
   (let ((case-fold-search t)
         (count (or num 1)))
@@ -1328,7 +1328,7 @@ blocks.  If NUM is negative, go forward to the end of a block.
 Does not check for consistency of block types.  Interactively,
 pushes mark before moving point."
   (interactive "p")
-  (if (called-interactively-p 'interactive) (push-mark (point) t))
+  (if (called-interactively-p 'any) (push-mark (point) t))
   (and num (< num 0) (fortran-end-of-block (- num)))
   (let ((case-fold-search t)
         (count (or num 1)))
