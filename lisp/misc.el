@@ -122,7 +122,6 @@ variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
 	(switch-to-buffer (get-buffer-create "*butterfly*"))
 	(erase-buffer)
 	(sit-for 0)
-	(setq indent-tabs-mode nil)
 	(animate-string "Amazing physics going on..."
 			(/ (window-height) 2) (- (/ (window-width) 2) 12))
 	(sit-for (* 5 (/ (abs (random)) (float most-positive-fixnum))))

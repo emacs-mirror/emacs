@@ -1,3 +1,11 @@
+2009-10-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/animate.el (animate-string): For good effect, make sure
+	`indent-tabs-mode' and `show-trailing-whitespace' are nil.
+
+	* play/animate.el (animate-sequence, animate-birthday-present):
+	* misc.el (butterfly): Don't set `indent-tabs-mode'.
+
 2009-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/byte-run.el (define-obsolete-face-alias): Doc fix.
