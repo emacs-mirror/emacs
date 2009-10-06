@@ -1,3 +1,9 @@
+2009-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el (rmail-cease-edit): If there is a Content-Type
+	header we don't understand, don't insert another.  (Bug#4624)
+	If changing mime charset, insert the new one in the right place.
+
 2009-10-06  Matthew Junker  <matthew.junker@sbcglobal.net>  (tiny change)
 
 	* calendar/cal-tex.el (cal-tex-cursor-month-landscape)
