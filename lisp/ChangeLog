@@ -1,5 +1,10 @@
 2009-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el (f90-end-of-block, f90-beginning-of-block):
+	* progmodes/fortran.el (fortran-end-of-block)
+	(fortran-beginning-of-block):
+	Also push mark in the macro case.
+
 	* emerge.el (emerge-show-file-name):
 	* calc/calc.el (calc-quit):
 	* calc/calc-misc.el (calc-big-or-small):
