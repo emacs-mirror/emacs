@@ -4183,7 +4183,7 @@ encoded string (and the same mask) will decode the string."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "c70c6c35b8c5bbdb73787a48b83e5adc")
+;;;;;;  "71405ac2040af35d8147b0ddfe4d3197")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
