@@ -12316,16 +12316,18 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   struct glyph *glyph = row->glyphs[TEXT_AREA];
   struct glyph *end = glyph + row->used[TEXT_AREA];
   struct glyph *cursor = NULL;
-  /* The first glyph that starts a sequence of glyphs from string.  */
+  /* The first glyph that starts a sequence of glyphs from a string
+     that is a value of a display property.  */
   struct glyph *string_start;
   /* The X coordinate of string_start.  */
   int string_start_x;
-  /* The last known character position.  */
+  /* The last known character position in row.  */
   int last_pos = MATRIX_ROW_START_CHARPOS (row) + delta;
   /* The last known character position before string_start.  */
   int string_before_pos;
   int x = row->x;
   int cursor_x = x;
+  /* Last buffer position covered by an overlay.  */
   int cursor_from_overlay_pos = 0;
   int pt_old = PT - delta;
 
@@ -12353,11 +12355,15 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  string_start = NULL;
 	  x += glyph->pixel_width;
 	  ++glyph;
+	  /* If we are beyond the cursor position computed from the
+	     last overlay seen, that overlay is not in effect for
+	     current cursor position.  Reset the cursor information
+	     computed from that overlay.  */
 	  if (cursor_from_overlay_pos
 	      && last_pos >= cursor_from_overlay_pos)
 	    {
 	      cursor_from_overlay_pos = 0;
-	      cursor = 0;
+	      cursor = NULL;
 	    }
 	}
       else
@@ -12368,7 +12374,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      string_start = glyph;
 	      string_start_x = x;
 	    }
-	  /* Skip all glyphs from string.  */
+	  /* Skip all glyphs from a string.  */
 	  do
 	    {
 	      Lisp_Object cprop;
@@ -12379,14 +12385,14 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		      !NILP (cprop))
 		  && (pos = string_buffer_position (w, glyph->object,
 						    string_before_pos),
-		      (pos == 0	  /* From overlay */
+		      (pos == 0	  /* from overlay */
 		       || pos == pt_old)))
 		{
-		  /* Estimate overlay buffer position from the buffer
-		     positions of the glyphs before and after the overlay.
-		     Add 1 to last_pos so that if point corresponds to the
-		     glyph right after the overlay, we still use a 'cursor'
-		     property found in that overlay.  */
+		  /* Compute the first buffer position after the overlay.
+		     If the `cursor' property tells us how  many positions
+		     are associated with the overlay, use that.  Otherwise,
+		     estimate from the buffer positions of the glyphs
+		     before and after the overlay.  */
 		  cursor_from_overlay_pos = (pos ? 0 : last_pos
 					     + (INTEGERP (cprop) ? XINT (cprop) : 0));
 		  cursor = glyph;
@@ -12410,9 +12416,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       while (glyph > row->glyphs[TEXT_AREA]
 	     && (glyph - 1)->charpos == last_pos)
 	glyph--, x -= glyph->pixel_width;
-      /* That loop always goes one position too far,
-	 including the glyph before the ellipsis.
-	 So scan forward over that one.  */
+      /* That loop always goes one position too far, including the
+	 glyph before the ellipsis.  So scan forward over that one.  */
       x += glyph->pixel_width;
       glyph++;
     }
@@ -12433,8 +12438,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       x = string_start_x;
       string = glyph->object;
       pos = string_buffer_position (w, string, string_before_pos);
-      /* If STRING is from overlay, LAST_POS == 0.  We skip such glyphs
-	 because we always put cursor after overlay strings.  */
+      /* If POS == 0, STRING is from overlay.  We skip such glyphs
+	 because we always put the cursor after overlay strings.  */
       while (pos == 0 && glyph < stop)
 	{
 	  string = glyph->object;
@@ -12461,8 +12466,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    }
 	}
 
-      /* If we reached the end of the line, and end was from a string,
-	 cursor is not on this line.  */
+      /* If we reached the end of the line, and END was from a string,
+	 the cursor is not on this line.  */
       if (glyph == end && row->continued_p)
 	return 0;
     }
