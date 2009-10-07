@@ -238,6 +238,13 @@ KEY identifies the connection, it is either a process or a vector."
   (when (vectorp key)
     (setq key (copy-sequence key))
     (aset key 3 nil))
+  (tramp-message
+   key 7 "%s %s" key
+   (let (properties)
+     (maphash
+      (lambda (x y) (add-to-list 'properties x 'append))
+      (gethash key tramp-cache-data))
+     properties))
   (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
 
