@@ -27,11 +27,6 @@
 ;; highlighted briefly.  This adds a gentle pulsing style to the text
 ;; decorated this way.
 ;;
-;; Useful user functions:
-;;
-;; `pulse-enable-integration-advice' - Turn on advice to make various
-;;      Emacs commands pulse, such as `goto-line', or `find-tag'.
-;;
 ;; The following are useful entry points:
 ;;
 ;; `pulse' - Cause `pulse-highlight-face' to shift toward background color.
