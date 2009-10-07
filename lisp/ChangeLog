@@ -1,3 +1,8 @@
+2009-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files-x.el (read-file-local-variable): Include some
+	non-user-variables in the completion table (bug#4664).
+
 2009-10-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-flush-connection-property): Add trace

@@ -49,6 +49,7 @@ Intended to be used in the `interactive' spec of
 	   obarray
 	   (lambda (sym)
 	     (or (user-variable-p sym)
+                 (get sym 'safe-local-variable)
 		 (memq sym '(mode eval coding unibyte))))
 	   nil nil nil default nil))
     (and (stringp variable) (intern variable))))
