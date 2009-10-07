@@ -1,3 +1,8 @@
+2009-10-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (WINS_UPDATES): New macro.
+	(custom-deps, finder-data, autoloads): Use it.
+
 2009-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (autoloads): Revert previous change.
