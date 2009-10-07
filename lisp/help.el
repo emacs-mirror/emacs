@@ -323,7 +323,8 @@ If that doesn't give a function, return nil."
   (interactive)
   (describe-copying)
   (let (case-fold-search)
-    (search-forward "NO WARRANTY")
+    (search-forward "Disclaimer of Warranty")
+    (forward-line 0)
     (recenter 0)))
 
 (defun describe-prefix-bindings ()

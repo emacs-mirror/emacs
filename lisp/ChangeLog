@@ -1,3 +1,8 @@
+2009-10-07  Markus Rost <rost@math.uni-bielefeld.de>
+
+	* help.el (describe-no-warranty): Place point in a slightly better
+	position in the GPLv3 text.
+
 2009-10-06  Sam Steingold  <sds@gnu.org>
 
 	* net/tramp-compat.el (tramp-compat-process-running-p): Check that
