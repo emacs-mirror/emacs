@@ -683,18 +683,19 @@ directory or directories specified."
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
 Calls `update-directory-autoloads' on the command line arguments."
-  ;; For use during the Emacs build process only.  We do the file-name
-  ;; expansion here rather than in lisp/Makefile in order to keep the
-  ;; shell command line short.  (Long lines are an issue on some systems.)
-  (if (stringp autoload-excludes)
-      (setq autoload-excludes
-	    (mapcar
-	     (lambda (file)
-	       (concat
-		(expand-file-name (file-name-sans-extension file)
-				  (file-name-directory generated-autoload-file))
-		".el"))
-	     (split-string autoload-excludes))))
+  ;; For use during the Emacs build process only.
+  (unless autoload-excludes
+    (let* ((ldir (file-name-directory generated-autoload-file))
+	   (mfile (expand-file-name "../src/Makefile" ldir))
+	   lim)
+      (when (file-readable-p mfile)
+	(with-temp-buffer
+	  (insert-file-contents mfile)
+	  (when (re-search-forward "^lisp= ")
+	    (setq lim (line-end-position))
+	    (while (re-search-forward "\\${lispsource}\\([^ ]*\\)\\.elc?" lim t)
+	      (push (concat (expand-file-name (match-string 1) ldir) ".el")
+		    autoload-excludes)))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))
