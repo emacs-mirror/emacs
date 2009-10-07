@@ -1,5 +1,10 @@
 2009-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (autoloads): Revert previous change.
+	* emacs-lisp/autoload.el (batch-update-autoloads): Rather than having
+	the list of preloaded files passed on the command-line, get
+	it from src/Makefile.
+
 	* calendar/calendar.el (calendar-basic-setup): In the wide frame case,
 	show the original buffer rather than a random one.
 
