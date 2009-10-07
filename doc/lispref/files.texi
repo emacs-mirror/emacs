@@ -1957,9 +1957,13 @@ function:
 @defun abbreviate-file-name filename
 @anchor{Definition of abbreviate-file-name}
 This function applies abbreviations from @code{directory-abbrev-alist}
-to its argument, and substitutes @samp{~} for the user's home
-directory.  You can use it for directory names and for file names,
-because it recognizes abbreviations even as part of the name.
+to its argument, and also substitutes @samp{~} for the user's home
+directory if the argument names a file in the home directory or one of
+its subdirectories.  (If the home directory is a root directory, it is
+not replaced with @samp{~}, because this does not make the result
+shorter on many systems.)  You can use it for directory names and for
+file names, because it recognizes abbreviations even as part of the
+name.
 @end defun
 
 @node File Name Expansion
