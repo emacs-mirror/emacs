@@ -47,7 +47,9 @@ INFO_TARGETS = \
 	$(infodir)/dbus \
 	$(infodir)/dired-x \
 	$(infodir)/ebrowse \
+	$(infodir)/ede \
 	$(infodir)/ediff \
+	$(infodir)/eieio \
 	$(infodir)/emacs-mime \
 	$(infodir)/epa \
 	$(infodir)/erc \
@@ -93,7 +95,9 @@ DVI_TARGETS = \
 	dbus.dvi \
 	dired-x.dvi \
 	ebrowse.dvi \
+	ede.dvi \
 	ediff.dvi \
+	eieio.dvi \
 	emacs-mime.dvi \
 	epa.dvi \
 	erc.dvi \
@@ -208,11 +212,23 @@ $(infodir)/ebrowse: ebrowse.texi
 ebrowse.dvi: ebrowse.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ebrowse.texi
 
+ede : $(infodir)/ede
+$(infodir)/ede: ede.texi
+	cd $(srcdir); $(MAKEINFO) ede.texi
+ede.dvi: ede.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ede.texi
+
 ediff : $(infodir)/ediff
 $(infodir)/ediff: ediff.texi
 	cd $(srcdir); $(MAKEINFO) ediff.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
+
+eieio : $(infodir)/eieio
+$(infodir)/eieio: eieio.texi
+	cd $(srcdir); $(MAKEINFO) eieio.texi
+eieio.dvi: eieio.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/eieio.texi
 
 emacs-mime : $(infodir)/emacs-mime
 $(infodir)/emacs-mime: emacs-mime.texi

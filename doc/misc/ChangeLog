@@ -1,3 +1,12 @@
+2009-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Build EIEIO and EDE manuals.
+
+2009-10-07  Eric Ludlam  <zappo@gnu.org>
+
+	* eieio.texi:
+	* ede.texi: New files.
+
 2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote processes): Association of a pty is not supported.
