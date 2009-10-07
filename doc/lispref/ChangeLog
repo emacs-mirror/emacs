@@ -1,7 +1,12 @@
+2009-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* positions.texi (Text Lines): Remove goto-line, since it shouldn't be
+	used from Lisp.
+
 2009-10-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* files.texi (Directory Names) <abbreviate-file-name>: Document
-	that root home directories are not replaced with "~".
+	* files.texi (Directory Names) <abbreviate-file-name>:
+	Document that root home directories are not replaced with "~".
 
 2009-10-06  Eli Zaretskii  <eliz@gnu.org>
 

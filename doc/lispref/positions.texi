@@ -299,33 +299,6 @@ The division of the buffer into text lines is not affected by the width
 of the window, by line continuation in display, or by how tabs and
 control characters are displayed.
 
-@deffn Command goto-line line &optional buffer
-This function moves point to the front of the @var{line}th line,
-counting from line 1 at beginning of the buffer, and leaves mark at the
-previous position.  If @var{line} is less than 1, it moves point to the
-beginning of the buffer.  If @var{line} is greater than the number of
-lines in the buffer, it moves point to the end of the buffer---that is,
-the @emph{end of the last line} of the buffer.
-
-If narrowing is in effect, then @var{line} still counts from the
-beginning of the buffer, but point cannot go outside the accessible
-portion.  So @code{goto-line} moves point to the beginning or end of the
-accessible portion, if the line number specifies an inaccessible
-position.
-
-The return value of @code{goto-line} is the difference between
-@var{line} and the line number of the line to which point actually was
-able to move (in the full buffer, before taking account of narrowing).
-Thus, the value is positive if the scan encounters the real end of the
-buffer before finding the specified line.  The value is zero if scan
-encounters the end of the accessible portion, but not the real end of
-the buffer.
-
-If you provide the optional argument @var{buffer}, @code{goto-line} uses
-@var{buffer} instead of the current buffer and displays it in another
-window, if it was not already visible.
-@end deffn
-
 @deffn Command beginning-of-line &optional count
 This function moves point to the beginning of the current line.  With an
 argument @var{count} not @code{nil} or 1, it moves forward
