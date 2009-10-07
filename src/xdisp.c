@@ -12301,10 +12301,11 @@ redisplay_window_1 (window)
 
 
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
-   DELTA is the number of bytes by which positions recorded in ROW
-   differ from current buffer positions.
+   DELTA and DELTA_BYTES are the numbers of characters and bytes by
+   which positions recorded in ROW differ from current buffer
+   positions.
 
-   Return 0 if cursor is not on this row.  1 otherwise.  */
+   Return 0 if cursor is not on this row, 1 otherwise.  */
 
 int
 set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
