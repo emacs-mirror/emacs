@@ -457,15 +457,26 @@ argument @code{b} as well, since @code{(foo 1 :c 2)} would bind
 @code{b} to the keyword @code{:c}, then signal an error because
 @code{2} is not a valid keyword.
 
-If a @var{keyword} symbol is explicitly specified in the argument
-list as shown in the above diagram, then that keyword will be
-used instead of just the variable name prefixed with a colon.
-You can specify a @var{keyword} symbol which does not begin with
-a colon at all, but such symbols will not be self-quoting; you
-will have to quote them explicitly with an apostrophe in the
-function call.
+You can also explicitly specify the keyword argument; it need not be
+simply the variable name prefixed with a colon.  For example,
 
-Ordinarily it is an error to pass an unrecognized keyword to
+@example
+(defun* bar (&key (a 1) ((baz b) 4)))
+@end example
+
+@noindent
+
+specifies a keyword @code{:a} that sets the variable @code{a} with
+default value 1, as well as a keyword @code{baz} that sets the
+variable @code{b} with default value 4.  In this case, because
+@code{baz} is not self-quoting, you must quote it explicitly in the
+function call, like this:
+
+@example
+(bar :a 10 'baz 42)
+@end example
+
+Ordinarily, it is an error to pass an unrecognized keyword to
 a function, e.g., @code{(foo 1 2 :c 3 :goober 4)}.  You can ask
 Lisp to ignore unrecognized keywords, either by adding the
 marker @code{&allow-other-keys} after the keyword section
