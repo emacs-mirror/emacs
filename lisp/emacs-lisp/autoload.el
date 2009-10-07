@@ -693,8 +693,9 @@ Calls `update-directory-autoloads' on the command line arguments."
 	  (insert-file-contents mfile)
 	  (when (re-search-forward "^lisp= " nil t)
 	    (setq lim (line-end-position))
-	    (while (re-search-forward "\\${lispsource}\\([^ ]*\\)\\.elc?" lim t)
-	      (push (concat (expand-file-name (match-string 1) ldir) ".el")
+	    (while (re-search-forward "\\${lispsource}\\([^ ]+\\.el\\)c?\\>"
+				      lim t)
+	      (push (expand-file-name (match-string 1) ldir)
 		    autoload-excludes)))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)

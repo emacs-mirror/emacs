@@ -1,3 +1,8 @@
+2009-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (batch-update-autoloads): Remove useless use of
+	concat.
+
 2009-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files-x.el (read-file-local-variable): Include some
