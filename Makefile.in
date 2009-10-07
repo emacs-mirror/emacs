@@ -140,11 +140,11 @@ MAN_PAGES=b2m.1 ctags.1 ebrowse.1 emacs.1 emacsclient.1 etags.1 \
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
 INFO_FILES=ada-mode auth autotype calc ccmode cl dbus dired-x ebrowse	\
-           ediff efaq eintr elisp emacs emacs-mime epa erc eshell eudc	\
-           flymake forms gnus idlwave info mairix-el message mh-e	\
-           newsticker nxml-mode org pcl-cvs pgg rcirc reftex remember	\
-           sasl sc ses sieve smtpmail speedbar tramp url vip viper	\
-           widget woman
+           ede ediff eieio efaq eintr elisp emacs emacs-mime epa erc	\
+	   eshell eudc flymake forms gnus idlwave info mairix-el	\
+	   message mh-e newsticker nxml-mode org pcl-cvs pgg rcirc	\
+	   reftex remember sasl sc ses sieve smtpmail speedbar tramp	\
+	   url vip viper widget woman
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@

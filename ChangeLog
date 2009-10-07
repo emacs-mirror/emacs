@@ -1,3 +1,7 @@
+2009-10-07  Edward Trumbo  <etrumbo@comcast.net>  (tiny change)
+
+	* Makefile.in (INFO_FILES): Add EDE and EIEIO.
+
 2009-09-29  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist (check): Update for two new levels of subdirectory in lisp/.
