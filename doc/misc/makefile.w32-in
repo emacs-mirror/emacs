@@ -350,7 +350,7 @@ clean: mostlyclean
 		 $(infodir)/remember* $(infodir)/nxml-mode* \
 		 $(infodir)/epa* $(infodir)/sasl* \
 		 $(infodir)/mairix-el* $(infodir)/auth* \
-		 $(infodir)/eieio* $(infodir)ede*
+		 $(infodir)/eieio* $(infodir)/ede*
 
 distclean: clean
 	- $(DEL) makefile
