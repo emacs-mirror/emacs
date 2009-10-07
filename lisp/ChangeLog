@@ -1,3 +1,8 @@
+2009-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-basic-setup): In the wide frame case,
+	show the original buffer rather than a random one.
+
 2009-10-07  Markus Rost <rost@math.uni-bielefeld.de>
 
 	* help.el (describe-no-warranty): Place point in a slightly better
