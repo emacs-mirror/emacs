@@ -9,7 +9,7 @@
 	(tramp-smb-handle-copy-directory)
 	(tramp-smb-handle-expand-file-name)
 	(tramp-smb-handle-set-file-modes): New defuns.
-	(tramp-smb-handle-copy-file): Handle KEPP-DATE.
+	(tramp-smb-handle-copy-file): Handle KEEP-DATE.
 	(tramp-smb-handle-file-attributes): Simplify check for retrieving
 	entry.
 	(tramp-smb-handle-insert-directory): Don't flush the cache.
