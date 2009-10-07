@@ -62,9 +62,11 @@ Emacs misc features
 * Dired-X: (dired-x).   Dired Extra Features.
 * EasyPG Assistant: (epa).   An Emacs user interface to GNU Privacy Guard.
 * Ebrowse: (ebrowse).   A C++ class browser for Emacs.
+* EDE: (ede).           The Emacs Development Environment.
 * Ediff: (ediff).       A visual interface for comparing and merging programs.
+* EIEIO: (eieio).       An object system for Emacs Lisp.
 * Eshell: (eshell).     A command shell implemented in Emacs Lisp.
-* Flymake: (flymake). A universal on-the-fly syntax checker.
+* Flymake: (flymake).   A universal on-the-fly syntax checker.
 * Forms: (forms).       Emacs package for editing data bases
                           by filling in forms.
 * PCL-CVS: (pcl-cvs).   Emacs front-end to CVS.
