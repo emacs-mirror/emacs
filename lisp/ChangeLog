@@ -1,3 +1,21 @@
+2009-10-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-flush-connection-property): Add trace
+	message.
+
+	* net/tramp-smb.el (tramp-smb-errors): Add error messages.
+	(tramp-smb-file-name-handler-alist): Add handler for
+	`copy-directory', `expand-file-name', `set-file-modes'.
+	(tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-expand-file-name)
+	(tramp-smb-handle-set-file-modes): New defuns.
+	(tramp-smb-handle-copy-file): Handle KEPP-DATE.
+	(tramp-smb-handle-file-attributes): Simplify check for retrieving
+	entry.
+	(tramp-smb-handle-insert-directory): Don't flush the cache.
+	(tramp-smb-maybe-open-connection): Check for samba client and
+	server versions.
+
 2009-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/autoload.el (batch-update-autoloads): Fix last change
