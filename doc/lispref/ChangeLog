@@ -1,3 +1,8 @@
+2009-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Directory Names) <abbreviate-file-name>: Document
+	that root home directories are not replaced with "~".
+
 2009-10-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (Special Properties): Document the meaning of the
