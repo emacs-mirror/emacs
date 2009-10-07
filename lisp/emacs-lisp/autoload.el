@@ -691,7 +691,7 @@ Calls `update-directory-autoloads' on the command line arguments."
       (when (file-readable-p mfile)
 	(with-temp-buffer
 	  (insert-file-contents mfile)
-	  (when (re-search-forward "^lisp= ")
+	  (when (re-search-forward "^lisp= " nil t)
 	    (setq lim (line-end-position))
 	    (while (re-search-forward "\\${lispsource}\\([^ ]*\\)\\.elc?" lim t)
 	      (push (concat (expand-file-name (match-string 1) ldir) ".el")
