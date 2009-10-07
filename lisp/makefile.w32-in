@@ -123,7 +123,7 @@ WINS_ALMOST=$(WINS_BASIC) \
 	$(WINS_CEDET)
 
 # Directories to extract data from (customs, autoloads, etc.)
-WINS_UPDATES=$(WIN_ALMOST) \
+WINS_UPDATES=$(WINS_ALMOST) \
 	$(WINS_CEDET_SUBDIRS)
 
 # Directories to add to subdirs.el
