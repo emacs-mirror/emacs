@@ -46,9 +46,10 @@
 				  ;; fortran or pascal can be added here
 				  ))
    (availablelinkers :initform (ede-g++-linker
-				;; Add more linker thingies here.
-				ede-ld-linker
+				ede-gcc-linker
 				ede-gfortran-linker
+				ede-ld-linker
+				;; Add more linker thingies here.
 				))
    (sourcetype :initform (ede-source-c
 			  ede-source-c++
@@ -107,6 +108,16 @@ file.")
    :uselinker t)
   "Compiler for C sourcecode.")
 
+(defvar ede-gcc-linker
+  (ede-linker
+   "ede-gcc-linker"
+   :name "gcc"
+   :sourcetype '(ede-source-c)
+   :variables  '(("C_LINK" . "$(CC) $(CFLAGS) $(LDFLAGS) -L."))
+   :commands '("$(C_LINK) -o $@ $^")
+   :objectextention "")
+  "Linker for C sourcecode.")
+
 (defvar ede-source-c++
   (ede-sourcecode "ede-source-c++"
 		  :name "C++"
@@ -145,10 +156,8 @@ file.")
    :name "g++"
    ;; Only use this linker when c++ exists.
    :sourcetype '(ede-source-c++)
-   :variables  '(("CXX_LINK" .
-		  "$(CXX) $(CFLAGS) $(LDFLAGS) -L. -o $@")
-		 )
-   :commands '("$(CXX_LINK) $^")
+   :variables  '(("CXX_LINK" . "$(CXX) $(CFLAGS) $(LDFLAGS) -L."))
+   :commands '("$(CXX_LINK) -o $@ $^")
    :autoconf '("AC_PROG_CXX")
    :objectextention "")
   "Linker needed for c++ programs.")
@@ -210,10 +219,8 @@ file.")
    "ede-gfortran-linker"
    :name "gfortran"
    :sourcetype '(ede-source-f90 ede-source-f77)
-   :variables  '(("F90_LINK" .
-		  "$(F90) $(CFLAGS) $(LDFLAGS) -L. -o $@")
-		 )
-   :commands '("$(F90_LINK) $^")
+   :variables  '(("F90_LINK" . "$(F90) $(CFLAGS) $(LDFLAGS) -L."))
+   :commands '("$(F90_LINK) -o $@ $^")
    :objectextention "")
   "Linker needed for Fortran programs.")
 
@@ -224,10 +231,8 @@ file.")
    "ede-ld-linker"
    :name "ld"
    :variables  '(("LD" . "ld")
-		 ("LD_LINK" .
-		  "$(LD) $(LDFLAGS) -L. -o $@")
-		 )
-   :commands '("$(LD_LINK) $^")
+		 ("LD_LINK" . "$(LD) $(LDFLAGS) -L."))
+   :commands '("$(LD_LINK) -o $@ $^")
    :objectextention "")
   "Linker needed for c++ programs.")
 

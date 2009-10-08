@@ -1,5 +1,8 @@
 2009-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/ede/proj-obj.el (ede-gcc-linker): New var.
+	(ede-proj-target-makefile-objectcode): Use it.
+
 	* cedet/ede/source.el (ede-want-any-source-files-p)
 	(ede-want-any-auxiliary-files-p, ede-want-any-files-p): Return
 	search result.  This error was introduced while merging.
