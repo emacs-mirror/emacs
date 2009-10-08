@@ -1553,7 +1553,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   if (CHARACTERP (target))
     {
       if (XFASTINT (target) < 0x80)
-	error ("Can't set a font for partial ASCII range.");
+	error ("Can't set a font for partial ASCII range");
       range_list = Fcons (Fcons (target, target), Qnil);
     }
   else if (CONSP (target))
@@ -1567,7 +1567,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
       if (XFASTINT (from) < 0x80)
 	{
 	  if (XFASTINT (from) != 0 || XFASTINT (to) < 0x7F)
-	    error ("Can't set a font for partial ASCII range.");
+	    error ("Can't set a font for partial ASCII range");
 	  ascii_changed = 1;
 	}
       range_list = Fcons (target, Qnil);
