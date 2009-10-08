@@ -218,40 +218,53 @@ pass to the OPERATION."
   (let ((t1 (tramp-tramp-file-p dirname))
 	(t2 (tramp-tramp-file-p newname)))
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
-      (if (or (null t1) (null t2))
-	  ;; We can copy recursively.
-	  (let ((prompt (tramp-smb-send-command v "prompt"))
-		(recurse (tramp-smb-send-command v "recurse")))
-	    (unless (file-directory-p newname)
-	      (make-directory newname parents))
-	    (unwind-protect
-		(unless
-		    (and
-		     prompt recurse
-		     (tramp-smb-send-command
-		      v (format "cd \"%s\""
-				(tramp-smb-get-localname localname t)))
-		     (tramp-smb-send-command
-		      v (format "lcd \"%s\"" (if t1 newname dirname)))
-		     (if t1
-			 (tramp-smb-send-command v "mget *")
-		       (tramp-smb-send-command v "mput *")))
-		  ;; Error.
-		  (with-current-buffer (tramp-get-connection-buffer v)
-		    (goto-char (point-min))
-		    (search-forward-regexp tramp-smb-errors nil t)
-		    (tramp-error
-		     v 'file-error
-		     "%s `%s'" (match-string 0) (if t1 dirname newname))))
-	      ;; Always go home.
-	      (tramp-smb-send-command v (format "cd \\"))
-	      ;; Toggle prompt and recurse OFF.
-	      (if prompt (tramp-smb-send-command v "prompt"))
-	      (if recurse (tramp-smb-send-command v "recurse"))))
-
+      (cond
+       ((and t1 t2)
+	;; We must copy, using a local temporary directory.
+	(let ((tmpdir
+	       (make-temp-name
+		(expand-file-name
+		 tramp-temp-name-prefix
+		 (tramp-compat-temporary-file-directory)))))
+	  (unwind-protect
+	      (progn
+		(copy-directory dirname tmpdir keep-date parents)
+		(copy-directory tmpdir newname keep-date parents))
+	    (delete-directory tmpdir 'recursive))))
+       ((or t1 t2)
+	;; We can copy recursively.
+	(let ((prompt (tramp-smb-send-command v "prompt"))
+	      (recurse (tramp-smb-send-command v "recurse")))
+	  (unless (file-directory-p newname)
+	    (make-directory newname parents))
+	  (unwind-protect
+	      (unless
+		  (and
+		   prompt recurse
+		   (tramp-smb-send-command
+		    v (format "cd \"%s\""
+			      (tramp-smb-get-localname localname t)))
+		   (tramp-smb-send-command
+		    v (format "lcd \"%s\"" (if t1 newname dirname)))
+		   (if t1
+		       (tramp-smb-send-command v "mget *")
+		     (tramp-smb-send-command v "mput *")))
+		;; Error.
+		(with-current-buffer (tramp-get-connection-buffer v)
+		  (goto-char (point-min))
+		  (search-forward-regexp tramp-smb-errors nil t)
+		  (tramp-error
+		   v 'file-error
+		   "%s `%s'" (match-string 0) (if t1 dirname newname))))
+	    ;; Always go home.
+	    (tramp-smb-send-command v (format "cd \\"))
+	    ;; Toggle prompt and recurse OFF.
+	    (if prompt (tramp-smb-send-command v "prompt"))
+	    (if recurse (tramp-smb-send-command v "recurse")))))
+       (t
 	;; We must do it file-wise.
 	(tramp-run-real-handler
-	 'copy-directory (list dirname newname keep-date parents))))))
+	 'copy-directory (list dirname newname keep-date parents)))))))
 
 (defun tramp-smb-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
@@ -400,17 +413,18 @@ PRESERVE-UID-GID is completely ignored."
       (tramp-run-real-handler 'expand-file-name (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
-      (unless (tramp-run-real-handler 'file-name-absolute-p (list localname))
-	(setq localname (concat "/" localname)))
       ;; Tilde expansion if necessary.  We use the user name as share,
-      ;; which is offen the case in work groups.
-      (when (string-match "\\`~[^/]*" localname)
+      ;; which is offen the case in domains.
+      (when (string-match "\\`/?~\\([^/]*\\)" localname)
 	(setq localname
 	      (replace-match
-	       (if (zerop (length (match-string 0 localname)))
+	       (if (zerop (length (match-string 1 localname)))
 		   (tramp-file-name-real-user v)
-		 (match-string 0 localname))
+		 (match-string 1 localname))
 	       nil nil localname)))
+      ;; Make the file name absolute.
+      (unless (tramp-run-real-handler 'file-name-absolute-p (list localname))
+	(setq localname (concat "/" localname)))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       (tramp-make-tramp-file-name
@@ -1000,11 +1014,12 @@ connection if a previous connection has died for some reason."
 	(unless (string-equal
 		 smbclient-version
 		 (tramp-get-connection-property vec "smbclient-version" ""))
-	  (tramp-flush-directory-property vec "")
-	  (tramp-flush-connection-property vec)
+	  (when (tramp-get-connection-property vec "smbclient-version" nil)
+	    (tramp-flush-directory-property vec "")
+	    (tramp-flush-connection-property vec)
+);	    (setq buf (tramp-get-buffer vec)))
 	  (tramp-set-connection-property
-	   vec "smbclient-version" smbclient-version)
-	  (setq buf (tramp-get-buffer vec)))))
+	   vec "smbclient-version" smbclient-version))))
 
     ;; If too much time has passed since last command was sent, look
     ;; whether there has been an error message; maybe due to
@@ -1089,12 +1104,14 @@ connection if a previous connection has died for some reason."
 	      (search-forward-regexp
 	       "Domain=\\[[^]]*\\] OS=\\[[^]]*\\] Server=\\[[^]]*\\]" nil t)
 	      (let ((smbserver-version (match-string 0)))
-		(when (not (string-equal
-			    smbserver-version
-			    (tramp-get-connection-property
-			     vec "smbserver-version" "")))
-		  (tramp-flush-directory-property vec "")
-		  (tramp-flush-connection-property vec)
+		(unless (string-equal
+			 smbserver-version
+			 (tramp-get-connection-property
+			  vec "smbserver-version" ""))
+		  (when (tramp-get-connection-property
+			 vec "smbserver-version" nil)
+		    (tramp-flush-directory-property vec "")
+		    (tramp-flush-connection-property vec))
 		  (tramp-set-connection-property
 		   vec "smbserver-version" smbserver-version))))
 
