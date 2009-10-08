@@ -1516,13 +1516,7 @@ with SIGHUP.  */)
   /* Make this buffer not be current.
      In the process, notice if this is the sole visible buffer
      and give up if so.  */
-  if (b == current_buffer)
-    {
-      tem = Fother_buffer (buffer, Qnil, Qnil);
-      Fset_buffer (tem);
-      if (b == current_buffer)
-	return Qnil;
-    }
+  thread_notify_kill_buffer (b);
 
   /* Notice if the buffer to kill is the sole visible buffer
      when we're currently in the mini-buffer, and give up if so.  */
