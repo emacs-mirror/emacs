@@ -456,9 +456,10 @@ FILE must be massaged by `ede-convert-path'."
 	     (not (y-or-n-p "Dist file already exists.  Rebuild? ")))
 	(error "Try `ede-update-version' before making a distribution"))
     (ede-proj-setup-buildenvironment this)
-    (if (string= pm "Makefile.am") (setq pm "Makefile"))
-    (compile (concat ede-make-command " -f " pm " dist"))
-    ))
+    (if (string= (file-name-nondirectory pm) "Makefile.am")
+	(setq pm (expand-file-name "Makefile"
+				   (file-name-directory pm))))
+    (compile (concat ede-make-command " -f " pm " dist"))))
 
 (defmethod project-dist-files ((this ede-proj-project))
   "Return a list of files that constitutes a distribution of THIS project."
@@ -597,11 +598,11 @@ Converts all symbols into the objects to be used."
 	 (concat (file-name-directory (oref this file))
 		 "Makefile.am"))
 	((eq (oref this makefile-type) 'Makefile.in)
-	 (concat (file-name-directory (oref this file))
-		 "Makefile.in"))
+	 (expand-file-name "Makefile.in"
+			   (file-name-directory (oref this file))))
 	((object-assoc "Makefile" 'makefile (oref this targets))
-	 (concat (file-name-directory (oref this file))
-		 "Makefile"))
+	 (expand-file-name "Makefile"
+			   (file-name-directory (oref this file))))
 	(t
 	 (let ((targets (oref this targets)))
 	   (while (and targets
@@ -610,8 +611,8 @@ Converts all symbols into the objects to be used."
 			     'ede-proj-target-makefile)))
 	     (setq targets (cdr targets)))
 	   (if targets (oref (car targets) makefile)
-	     (concat (file-name-directory (oref this file))
-		     "Makefile"))))))
+	     (expand-file-name "Makefile"
+			       (file-name-directory (oref this file))))))))
 
 (defun ede-proj-regenerate ()
   "Regenerate Makefiles for and edeproject project."
