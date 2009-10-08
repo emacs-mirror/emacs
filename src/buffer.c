@@ -1516,7 +1516,8 @@ with SIGHUP.  */)
   /* Make this buffer not be current.
      In the process, notice if this is the sole visible buffer
      and give up if so.  */
-  thread_notify_kill_buffer (b);
+  if (NILP (thread_notify_kill_buffer (b)))
+    return Qnil;
 
   /* Notice if the buffer to kill is the sole visible buffer
      when we're currently in the mini-buffer, and give up if so.  */
