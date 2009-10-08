@@ -1,3 +1,8 @@
+2009-10-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (create_menus): Call gtk_widget_set_size_request for
+	menu bar with a small width so it doesn't enlarge the frame.
+
 2009-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fontset.c (Fset_fontset_font): Fix typos in error messages.

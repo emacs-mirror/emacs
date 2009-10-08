@@ -2194,7 +2194,15 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                           G_CALLBACK (menuitem_highlight_callback),
                           NULL);
       }
-      else wmenu = gtk_menu_bar_new ();
+      else
+        {
+          wmenu = gtk_menu_bar_new ();
+          // Set width of menu bar to a small value so it doesn't enlarge
+          // a small initial frame size.  The width will be set to the
+          // width of the frame later on when it is added to a container.
+          // height -1: Natural height.
+          gtk_widget_set_size_request (wmenu, 1, -1);
+        }
 
       /* Put cl_data on the top menu for easier access.  */
       cl_data = make_cl_data (cl_data, f, highlight_cb);
