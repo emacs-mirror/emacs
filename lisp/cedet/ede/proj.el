@@ -474,7 +474,9 @@ Argument COMMAND is the command to use when compiling."
   (let ((pm (ede-proj-dist-makefile proj))
 	(default-directory (file-name-directory (oref proj file))))
     (ede-proj-setup-buildenvironment proj)
-    (if (string= pm "Makefile.am") (setq pm "Makefile"))
+    (if (string= (file-name-nondirectory pm) "Makefile.am")
+	(setq pm (expand-file-name "Makefile"
+				   (file-name-directory pm))))
     (compile (concat ede-make-command" -f " pm " all"))))
 
 ;;; Target type specific compilations/debug

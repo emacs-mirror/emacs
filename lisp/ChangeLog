@@ -1,6 +1,7 @@
 2009-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/ede/proj.el (project-make-dist): Fix filename test.
+	* cedet/ede/proj.el (project-make-dist, project-compile-project):
+	Fix filename test.
 	(ede-proj-dist-makefile): Use expand-file-name instead of concat
 	to expand file names.
 
