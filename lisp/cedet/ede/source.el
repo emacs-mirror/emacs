@@ -106,19 +106,22 @@ that they are willing to use.")
   "Return non-nil if THIS will accept any source files in FILENAMES."
   (let (found)
     (while (and (not found) filenames)
-      (setq found (ede-want-file-source-p this (pop filenames))))))
+      (setq found (ede-want-file-source-p this (pop filenames))))
+    found))
 
 (defmethod ede-want-any-auxiliary-files-p ((this ede-sourcecode) filenames)
   "Return non-nil if THIS will accept any aux files in FILENAMES."
   (let (found)
     (while (and (not found) filenames)
-      (setq found (ede-want-file-auxiliary-p this (pop filenames))))))
+      (setq found (ede-want-file-auxiliary-p this (pop filenames))))
+    found))
 
 (defmethod ede-want-any-files-p ((this ede-sourcecode) filenames)
   "Return non-nil if THIS will accept any files in FILENAMES."
   (let (found)
     (while (and (not found) filenames)
-      (setq found (ede-want-file-p this (pop filenames))))))
+      (setq found (ede-want-file-p this (pop filenames))))
+    found))
 
 (defmethod ede-buffer-header-file ((this ede-sourcecode) filename)
   "Return a list of file names of header files for THIS with FILENAME.
