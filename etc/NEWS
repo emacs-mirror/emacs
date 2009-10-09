@@ -993,6 +993,12 @@ identify cited keys in BibTeX entries, used by `bibtex-find-crossref'.
 
 *** Command `bibtex-url' allows multiple URLs per entry.
 
+** Bookmarks
+
+*** bookmark.el saves bookmarks in a pre-Emacs-23-incompatible file format
+bookmark.el can read a .emacs.bmk file saved by an older Emacs, but an
+older Emacs cannot read one saved by Emacs 23.
+
 ** Calendar and diary
 
 *** There is a new date style, `iso', essentially year/month/day.

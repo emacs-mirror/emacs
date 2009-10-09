@@ -1,3 +1,7 @@
+2009-10-09  Karl Fogel  <karl.fogel@red-bean.com>
+
+	* NEWS: Document bookmark.el (rev 1.114) format upgrade.  (Bug#3375)
+
 2009-10-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: New function copy-directory.
