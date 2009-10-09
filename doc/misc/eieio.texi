@@ -172,7 +172,7 @@ In these examples, @eieio{} automatically examines the class of
 @code{rec}, and ensures that the method defined above is called.  If
 @code{rec} is some other class lacking a @code{call-record} method, or
 some other data type, Emacs signals a @code{no-method-definition}
-error. @ref{Signals}.
+error.  @ref{Signals}.
 
 @node Introduction
 @comment  node-name,  next,  previous,  up
@@ -469,7 +469,7 @@ will not be evaluated at instantiation time, and the value in this
 slot will instead be @code{(lambda () some-variablename)}.
 
 After a class has been created with @code{defclass}, you can change
-that default value with @code{oset-default}. @ref{Accessing Slots}.
+that default value with @code{oset-default}.  @ref{Accessing Slots}.
 
 @item :type
 An unquoted type specifier used to validate data set into this slot.
@@ -542,11 +542,11 @@ This options is specific to Emacs, and is not in the CLOS spec.
 
 @item :printer
 This routine takes a symbol which is a function name.  The function
-should accept one argument.  The a rgument is the value from the slot
+should accept one argument.  The argument is the value from the slot
 to be printed.  The function in @code{object-write} will write the
 slot value out to a printable form on @code{standard-output}.
 
-The output format MUST be  something that could in turn be interpreted
+The output format MUST be something that could in turn be interpreted
 with @code{read} such that the object can be brought back in from the
 output stream.  Thus, if you wanted to output a symbol, you would need
 to quote the symbol.  If you wanted to run a function on load, you
@@ -682,7 +682,7 @@ Example of creating an object from a class:
 
 @end defun
 
-To create an object from a class symbol, use use @code{make-instance}.
+To create an object from a class symbol, use @code{make-instance}.
 
 @defun make-instance class &rest initargs
 @anchor{make-instance}
@@ -700,7 +700,7 @@ for each slot.  For example:
   (make-instance @code{'foo} @code{:slot1} value1 @code{:slotN} valueN)
 @end example
 
-Compatability note:
+Compatibility note:
 
 If the first element of @var{initargs} is a string, it is used as the
 name of the class.
@@ -730,7 +730,7 @@ This macro sets the @code{:initform} for @var{slot} in @var{class} to
 @var{value}.
 
 This allows the user to set both public and private defaults after the
-class has been constructed, and provides a way to to configure the
+class has been constructed, and provides a way to configure the
 default behavior of packages built with classes (the same way
 @code{setq-default} does for buffer-local variables).
 
@@ -817,7 +817,7 @@ slot.
 @end example
 
 Where each @var{var} is the local variable given to the associated
-@var{slot}.  A Slot specified without a variable name is given a
+@var{slot}.  A slot specified without a variable name is given a
 variable name of the same name as the slot.
 
 @example
@@ -1070,13 +1070,13 @@ Will fetch the documentation string for @code{eieio-default-superclass}.
 @defun class-constructor class
 Return a symbol used as a constructor for @var{class}.  The
 constructor is a function used to create new instances of
-@var{CLASS}. This function provides a way to make an object of a class
+@var{CLASS}.  This function provides a way to make an object of a class
 without knowing what it is.  This is not a part of CLOS.
 @end defun
 
 @defun object-name obj
 Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
-This should look like Lisp symbols from other parts of emacs such as
+This should look like Lisp symbols from other parts of Emacs such as
 buffers and processes, and is shorter and cleaner than printing the
 object's vector.  It is more useful to use @code{object-print} to get
 and object's print form, as this allows the object to add extra display
@@ -1155,7 +1155,7 @@ to manage association lists of @eieio{} objects:
 @defun object-assoc key slot list
 @anchor{object-assoc}
 Return an object if @var{key} is @dfn{equal} to SLOT's value of an object in @var{list}.
-@var{list} is a list of objects who's slots are searched.
+@var{list} is a list of objects whose slots are searched.
 Objects in @var{list} do not need to have a slot named @var{slot}, nor does
 @var{slot} need to be bound.  If these errors occur, those objects will
 be ignored.
@@ -1309,7 +1309,7 @@ The @code{eieio-instance-inheritor} class works by causing cloned
 objects to have all slots unbound.  This class' @code{slot-unbound}
 method will cause references to unbound slots to be redirected to the
 parent instance.  If the parent slot is also unbound, then
-@code{slot-unbound} will signal an an error named @code{slot-unbound}.
+@code{slot-unbound} will signal an error named @code{slot-unbound}.
 
 @node eieio-instance-tracker
 @section @code{eieio-instance-tracker}
@@ -1342,7 +1342,7 @@ This may let the garbage collector nab this instance.
 This convenience function lets you find instances.  @var{key} is the
 value to search for.  @var{slot} is the slot to compare @var{KEY}
 against.  The function @code{equal} is used for comparison.
-The paramter @var{list-symbol} is the variable symbol which contains the
+The parameter @var{list-symbol} is the variable symbol which contains the
 list of objects to be searched.
 @end deffn
 
@@ -1426,7 +1426,7 @@ access to it.
 This class is in package @file{eieio-speedbar}.
 
 If a series of class instances map to a tree structure, it is possible
-to cause your classes to be displayable in Speedbar. @xref{Top,,,speedbar}.
+to cause your classes to be displayable in Speedbar.  @xref{Top,,,speedbar}.
 Inheriting from these classes will enable a speedbar major display mode
 with a minimum of effort.
 
@@ -1519,7 +1519,7 @@ on how speedbar modes work
 @chapter Browsing class trees
 
 The command @kbd{M-x eieio-browse} displays a buffer listing all the
-currently loaded classes in emacs.  The classes are listed in an
+currently loaded classes in Emacs.  The classes are listed in an
 indented tree structure, starting from @code{eieio-default-superclass}
 (@pxref{Default Superclass}).
 
@@ -1542,19 +1542,19 @@ comes out upside-down.
 @chapter Class Values
 
 Details about any class or object can be retrieved using the function
-@code{eieio-describe-class} function.  Interactively, type in the name of
+@code{eieio-describe-class}.  Interactively, type in the name of
 a class.  In a program, pass it a string with the name of a class, a
 class symbol, or an object.  The resulting buffer will display all slot
 names.
 
-Additionally, all methods defined to have functionality on this class is
-displayed.
+Additionally, all methods defined to have functionality on this class
+are displayed.
 
 @node Default Superclass
 @comment  node-name,  next,  previous,  up
 @chapter Default Superclass
 
-All defined classes, if created with no specified parent class) will
+All defined classes, if created with no specified parent class, will
 inherit from a special class stored in
 @code{eieio-default-superclass}.  This superclass is quite simple, but
 with it, certain default methods or attributes can be added to all
@@ -1615,7 +1615,7 @@ This is called from the default @code{constructor}.
 @node Basic Methods
 @section Basic Methods
 
-Additional useful methods defined on the base sublcass are:
+Additional useful methods defined on the base subclass are:
 
 @defun clone obj &rest params
 @anchor{clone}
@@ -1650,7 +1650,7 @@ to prepend a space.
          (cons (format " value: %s" (render this)) strings)))
 @end example
 
-here is what some output could look like:
+Here is what some output could look like:
 @example
 (object-print test-object)
    => #<data-object test-object value: 3>
@@ -1674,7 +1674,7 @@ By implementing one of these methods for a class, you can change the
 behavior that occurs during one of these error cases, or even ignore
 the error by providing some behavior.
 
-@defun slot-missing ab &rest foo
+@defun slot-missing object slot-name operation &optional new-value
 @anchor{slot-missing}
 Method invoked when an attempt to access a slot in @var{object} fails.
 @var{slot-name} is the name of the failed slot, @var{operation} is the type of access
@@ -1721,9 +1721,9 @@ value becomes the return value of the original method call.
 @anchor{no-next-method}
 Called from @dfn{call-next-method} when no additional methods are available.
 @var{object} is othe object being called on @dfn{call-next-method}.
-@var{args} are the  arguments it is called by.
+@var{args} are the arguments it is called by.
 This method signals @dfn{no-next-method} by default.  Override this
-method to not throw an error, and it's return value becomes the
+method to not throw an error, and its return value becomes the
 return value of @dfn{call-next-method}.
 @end defun
 
@@ -1826,7 +1826,7 @@ instead pre-builds a method that gets the slot's value.
 
 @item :type
 Specifier uses the @code{typep} function from the @file{cl}
-package.  @xref{(cl)Type Predicates}. It therefore has the same issues as
+package.  @xref{(cl)Type Predicates}.  It therefore has the same issues as
 that package.  Extensions include the ability to provide object names.
 @end table
 
@@ -1846,7 +1846,7 @@ except @code{:around}.
 Calls defgeneric, and accepts most of the expected arguments.  Only
 the first argument to the created method may have a type specifier.
 To type cast against a class, the class must exist before defmethod is
-called. In addition, the @code{:around} tag is not supported.
+called.  In addition, the @code{:around} tag is not supported.
 
 @item call-next-method
 Inside a method, calls the next available method up the inheritance tree
@@ -1874,10 +1874,10 @@ In @eieio{} tags are in lower case, not mixed case.
 @chapter Wish List
 
 @eieio{} is an incomplete implementation of CLOS.  Finding ways to
-improve the compatability would help make CLOS style programs run
+improve the compatibility would help make CLOS style programs run
 better in Emacs.
 
-Some important compatability features that would be good to add are:
+Some important compatibility features that would be good to add are:
 
 @enumerate
 @item

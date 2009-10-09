@@ -1,3 +1,7 @@
+2009-10-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eieio.texi: Fix typos.
+
 2009-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cl.texi (Argument Lists): Clarify explicit keyword arguments.
