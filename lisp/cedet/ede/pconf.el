@@ -99,13 +99,7 @@ don't do it.  A value of nil means to just do it.")
        (ede-map-targets this 'ede-proj-tweak-autoconf)))
     ;; Now save
     (save-buffer)
-    ;; Verify aclocal
-    (setq postcmd "aclocal;")
-    ;; Always add missing files as needed.
-    (setq postcmd (concat postcmd "automake --add-missing;"))
-
-    ;; Always do autoreconf
-    (setq postcmd (concat postcmd "autoreconf;"))
+    (setq postcmd "autoreconf -i;")
     ;; Verify a bunch of files that are required by automake.
     (ede-proj-configure-test-required-file this "AUTHORS")
     (ede-proj-configure-test-required-file this "NEWS")

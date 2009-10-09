@@ -1,3 +1,8 @@
+2009-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/ede/pconf.el (ede-proj-configure-synchronize): Use
+	"autoreconf -i".  Suggested by Andreas Schwab.
+
 2009-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (ucs-names): Exclude new "Enclosed
