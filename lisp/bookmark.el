@@ -2027,7 +2027,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
       (let ((bmrk (bookmark-bmenu-bookmark))
             (thispoint (point)))
         (bookmark-rename bmrk)
-        (bookmark-bmenu-list)
         (goto-char thispoint))))
 
 

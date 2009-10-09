@@ -1,6 +1,11 @@
 2009-10-09  Karl Fogel  <kfogel@red-bean.com>
 
-	* lisp/bookmark.el (bookmark-delete): Don't let batch arg prevent
+	* bookmark.el (bookmark-bmenu-rename): Don't call bookmark-bmenu-list,
+	  since the list will have been rebuilt anyway.  (Bug#4349)
+
+2009-10-09  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-delete): Don't let batch arg prevent
 	saving.
 	(bookmark-bmenu-execute-deletions): Don't save here, as
 	bookmark-delete will now do so if necessary.
