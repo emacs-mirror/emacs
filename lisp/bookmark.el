@@ -989,7 +989,7 @@ any annotations for this bookmark."
 
 
 ;;;###autoload
-(defun bookmark-jump (bookmark)
+(defun bookmark-jump (bookmark &optional display-func)
   "Jump to bookmark BOOKMARK (a point in some file).
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
@@ -1002,27 +1002,27 @@ will then jump to the new location, as well as recording it in place
 of the old one in the permanent bookmark record.
 
 BOOKMARK may be a bookmark name (a string) or a bookmark record, but
-the latter is usually only used by programmatic callers."
+the latter is usually only used by programmatic callers.
+
+If DISPLAY-FUNC is non-nil, it is a function to invoke to display the
+bookmark.  It defaults to `switch-to-buffer'; a typical other value
+would be, e.g., `switch-to-buffer-other-window'."
   (interactive
    (list (bookmark-completing-read "Jump to bookmark"
 				   bookmark-current-bookmark)))
   (unless bookmark
     (error "No bookmark specified"))
   (bookmark-maybe-historicize-string bookmark)
-  (bookmark--jump-via bookmark 'switch-to-buffer))
+  (bookmark--jump-via bookmark (or display-func 'switch-to-buffer)))
 
 
 ;;;###autoload
 (defun bookmark-jump-other-window (bookmark)
   "Jump to BOOKMARK in another window.  See `bookmark-jump' for more."
   (interactive
-   (let ((bkm (bookmark-completing-read "Jump to bookmark (in another window)"
-                                        bookmark-current-bookmark)))
-     (if (> emacs-major-version 21)
-         (list bkm) bkm)))
-  (when bookmark
-    (bookmark-maybe-historicize-string bookmark)
-    (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
+   (list (bookmark-completing-read "Jump to bookmark (in another window)"
+                                   bookmark-current-bookmark)))
+  (bookmark-jump bookmark 'switch-to-buffer-other-window))
 
 
 (defun bookmark-jump-noselect (bookmark)

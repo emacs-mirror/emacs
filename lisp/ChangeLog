@@ -1,3 +1,9 @@
+2009-10-09  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-jump): Add new `display-func' parameter.
+	(bookmark-jump-other-window): Just invoke bookmark-jump with new
+	argument now, so the two function's behaviors will match.  (Bug#3645)
+
 2009-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/ede/proj.el (project-make-dist, project-compile-project):
