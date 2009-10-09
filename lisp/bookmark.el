@@ -1261,14 +1261,12 @@ probably because we were called from there."
     ;; occurrence has been deleted
     (or (bookmark-get-bookmark bookmark-current-bookmark 'noerror)
         (setq bookmark-current-bookmark nil)))
-  ;; Don't rebuild the list
-  (if batch
-      nil
-    (bookmark-bmenu-surreptitiously-rebuild-list)
-    (setq bookmark-alist-modification-count
-          (1+ bookmark-alist-modification-count))
-    (if (bookmark-time-to-save-p)
-        (bookmark-save))))
+  (unless batch
+    (bookmark-bmenu-surreptitiously-rebuild-list))
+  (setq bookmark-alist-modification-count
+        (1+ bookmark-alist-modification-count))
+  (when (bookmark-time-to-save-p)
+    (bookmark-save)))
 
 
 (defun bookmark-time-to-save-p (&optional final-time)
@@ -2018,10 +2016,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
           (forward-char o-col))
       (goto-char o-point))
     (beginning-of-line)
-    (setq bookmark-alist-modification-count
-          (1+ bookmark-alist-modification-count))
-    (if (bookmark-time-to-save-p)
-        (bookmark-save))
     (message "Deleting bookmarks...done")
     ))
 
