@@ -218,8 +218,9 @@ usually do not have translators to read other languages for them.\n\n")
       (insert (if (zerop (length shadows))
                   "None found.\n"
                 shadows)))
-    ;; This is so the user has to type something
-    ;; in order to send easily.
+    (insert (format "\nFeatures:\n%s\n" features))
+    (fill-region (line-beginning-position 0) (point))
+    ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
     (unless report-emacs-bug-no-explanations

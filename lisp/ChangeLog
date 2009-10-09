@@ -1,3 +1,7 @@
+2009-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Also print `features'.
+
 2009-10-09  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-jump): Add new `display-func' parameter.
