@@ -1,15 +1,19 @@
+2009-10-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (ucs-names): Exclude new "Enclosed
+	Ideographic Supplement" range (U+1F200..U+1F2FF).
+
 2009-10-09  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-bmenu-rename): Don't call bookmark-bmenu-list,
-	  since the list will have been rebuilt anyway.  (Bug#4349)
+	since the list will have been rebuilt anyway.  (Bug#4349)
 
 2009-10-09  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-delete): Don't let batch arg prevent
-	saving.
+	* bookmark.el (bookmark-delete): Don't let batch arg prevent saving.
 	(bookmark-bmenu-execute-deletions): Don't save here, as
 	bookmark-delete will now do so if necessary.
-	Suggested by: Thierry Volpiatto <thierry.volpiatto {_AT_} gmail.com>
+	Suggested by Thierry Volpiatto <thierry.volpiatto {_AT_} gmail.com>.
 	(Bug#4348)
 
 2009-10-09  Glenn Morris  <rgm@gnu.org>
