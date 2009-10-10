@@ -150,7 +150,11 @@ We need to override -program which has an LDADD element."
   "Return the name of the main target for THIS target."
   ;; We need some platform gunk to make the .so change to .sl, or .a,
   ;; depending on the platform we are going to compile against.
-  (concat "lib" (ede-name this) ".so"))
+  (concat "lib" (ede-name this)
+	  (if (eq (oref (ede-target-parent this) makefile-type)
+		  'Makefile.am)
+	      ".la"
+	    ".so")))
 
 (defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-makefile-shared-object))
   "Return the variable name for THIS's sources."
