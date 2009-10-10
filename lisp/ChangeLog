@@ -16,6 +16,8 @@
 
 2009-10-10  Glenn Morris  <rgm@gnu.org>
 
+	* frame.el (frame-height): Doc fix.
+
 	* calendar/calendar.el (calendar-split-width-threshold): New option.
 	(calendar-basic-setup): Use calendar-split-width-threshold.
 
