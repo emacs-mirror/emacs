@@ -1,3 +1,13 @@
+2009-10-10  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (Info-suffix-list): Remove this unused variable.
+	(bookmark-current-point): Remove this obsolete variable.
+	(bookmark-set, bookmark-rename, bookmark-send-edited-annotation):
+	Adjust for removal of bookmark-current-point.
+
+	(bookmarks-already-loaded, bookmark-current-buffer)
+	(bookmark-yank-point): Document.  (Bug#4188)
+
 2009-10-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-split-width-threshold): New option.

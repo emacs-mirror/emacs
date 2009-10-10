@@ -278,7 +278,8 @@ will be used to open this bookmark instead of `bookmark-default-handler',
 whose calling discipline HANDLER-FUNC should of course match.")
 
 
-(defvar bookmarks-already-loaded nil)
+(defvar bookmarks-already-loaded nil
+  "Non-nil iff bookmarks have been loaded from `bookmark-default-file'.")
 
 
 ;; more stuff added by db.
@@ -299,11 +300,18 @@ through a file easier.")
   "Length of the context strings recorded on either side of a bookmark.")
 
 
-(defvar bookmark-current-point 0)
-(defvar bookmark-yank-point 0)
-(defvar bookmark-current-buffer nil)
+(defvar bookmark-current-buffer nil
+  "The buffer in which a bookmark is currently being set or renamed.
+Functions that insert strings into the minibuffer use this to know
+the source buffer for that information; see `bookmark-yank-word' and
+`bookmark-insert-current-bookmark' for example.")
 
-(defvar Info-suffix-list)
+
+(defvar bookmark-yank-point 0
+  "The next point from which to pull source text for `bookmark-yank-word'.
+This point is in `bookmark-curent-buffer'.")
+
+
 
 ;; Helper functions.
 
@@ -762,7 +770,6 @@ the list of bookmarks.\)"
 
     (bookmark-maybe-load-default-file)
 
-    (setq bookmark-current-point (point))
     (setq bookmark-yank-point (point))
     (setq bookmark-current-buffer (current-buffer))
 
@@ -777,9 +784,8 @@ the list of bookmarks.\)"
       (bookmark-store str (cdr record) no-overwrite)
 
       ;; Ask for an annotation buffer for this bookmark
-      (if bookmark-use-annotations
-          (bookmark-edit-annotation str)
-        (goto-char bookmark-current-point)))))
+      (when bookmark-use-annotations
+        (bookmark-edit-annotation str)))))
 
 (defun bookmark-kill-line (&optional newline-too)
   "Kill from point to end of line.
@@ -860,8 +866,7 @@ Lines beginning with `#' are ignored."
   (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
 	(bookmark bookmark-annotation-name))
     (bookmark-set-annotation bookmark annotation)
-    (bookmark-bmenu-surreptitiously-rebuild-list)
-    (goto-char bookmark-current-point))
+    (bookmark-bmenu-surreptitiously-rebuild-list))
   (kill-buffer (current-buffer)))
 
 
@@ -1195,7 +1200,6 @@ name."
   (bookmark-maybe-historicize-string old)
   (bookmark-maybe-load-default-file)
 
-  (setq bookmark-current-point (point))
   (setq bookmark-yank-point (point))
   (setq bookmark-current-buffer (current-buffer))
   (let ((newname
