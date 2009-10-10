@@ -878,8 +878,9 @@ BOOKMARK is a bookmark name (a string) or a bookmark record."
 
 
 (defun bookmark-insert-current-bookmark ()
-  "Insert this buffer's value of `bookmark-current-bookmark'.
-Default to file name if it's nil."
+  "Insert into the bookmark name currently being set the value of
+`bookmark-current-bookmark' in `bookmark-current-buffer', defaulting
+to the buffer's file name if `bookmark-current-bookmark' is nil."
   (interactive)
   (let ((str
 	 (with-current-buffer bookmark-current-buffer
@@ -911,8 +912,9 @@ way that is suitable as a bookmark name."
 
 
 (defun bookmark-yank-word ()
-  "Get the next word from the buffer and append it to the name of the
-bookmark currently being set, advancing point by one word."
+  "Get the next word from buffer `bookmark-current-buffer' and append
+it to the name of the bookmark currently being set, advancing
+`bookmark-yank-point' by one word." 
   (interactive)
   (let ((string (with-current-buffer bookmark-current-buffer
                   (goto-char bookmark-yank-point)

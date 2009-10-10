@@ -1,5 +1,11 @@
 2009-10-10  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el: (bookmark-yank-word, bookmark-insert-current-bookmark):
+	Update documentation to refer to the variables documented in r1.135.
+	(Bug#4188)
+
+2009-10-10  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (Info-suffix-list): Remove this unused variable.
 	(bookmark-current-point): Remove this obsolete variable.
 	(bookmark-set, bookmark-rename, bookmark-send-edited-annotation):
