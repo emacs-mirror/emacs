@@ -1,3 +1,9 @@
+2009-10-10  Glenn Morris  <rgm@gnu.org>
+
+	* windows.texi (Size of Window): The relationship between window and
+	frame heights is not so simple.  (Bug#4535)
+	Mention window-full-height-p.
+
 2009-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* positions.texi (Text Lines): Remove goto-line, since it shouldn't be
