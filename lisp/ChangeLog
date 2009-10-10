@@ -1,3 +1,8 @@
+2009-10-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-split-width-threshold): New option.
+	(calendar-basic-setup): Use calendar-split-width-threshold.
+
 2009-10-10  Sascha Wilde <wilde@sha-bang.de>
 
 	* cedet/ede/proj-shared.el (ede-proj-makefile-target-name): Use

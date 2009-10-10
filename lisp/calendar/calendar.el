@@ -163,6 +163,16 @@ three options overrides the value of `calendar-view-diary-initially-flag'."
   :version "22.1"
   :group 'calendar)
 
+;; See discussion in bug#1806.
+(defcustom calendar-split-width-threshold nil
+  "Value to use for `split-width-threshold' when creating a calendar.
+This only affects frames wider than the default value of
+`split-width-threshold'."
+  :type '(choice (const nil)
+                 (integer))
+  :version "23.2"
+  :group 'calendar)
+
 (defcustom calendar-week-start-day 0
   "The day of the week on which a week in the calendar begins.
 0 means Sunday (default), 1 means Monday, and so on.
@@ -1287,6 +1297,7 @@ display the generated calendar."
            ;; Not really needed now, but means we use exactly the same
            ;; behavior as before in the non-wide case (see below).
            (split-height-threshold 1000)
+           (split-width-threshold calendar-split-width-threshold)
            (date (if arg (calendar-read-date t)
                    (calendar-current-date)))
            (month (calendar-extract-month date))
