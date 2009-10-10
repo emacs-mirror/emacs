@@ -11607,7 +11607,7 @@ redisplay_internal (preserve_echo_area)
       && PT >= CHARPOS (tlbufpos)
       && PT <= Z - CHARPOS (tlendpos)
       /* All text outside that line, including its final newline,
-	 must be unchanged */
+	 must be unchanged.  */
       && text_outside_line_unchanged_p (w, CHARPOS (tlbufpos),
 					CHARPOS (tlendpos)))
     {
@@ -11615,15 +11615,15 @@ redisplay_internal (preserve_echo_area)
 	  && FETCH_BYTE (BYTEPOS (tlbufpos) - 1) != '\n'
 	  && (CHARPOS (tlbufpos) == ZV
 	      || FETCH_BYTE (BYTEPOS (tlbufpos)) == '\n'))
-	/* Former continuation line has disappeared by becoming empty */
+	/* Former continuation line has disappeared by becoming empty.  */
 	goto cancel;
       else if (XFASTINT (w->last_modified) < MODIFF
 	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF
 	       || MINI_WINDOW_P (w))
 	{
 	  /* We have to handle the case of continuation around a
-	     wide-column character (See the comment in indent.c around
-	     line 885).
+	     wide-column character (see the comment in indent.c around
+	     line 1340).
 
 	     For instance, in the following case:
 
@@ -11633,13 +11633,14 @@ redisplay_internal (preserve_echo_area)
 	     ^^                ^^
 	     --------          --------
 
-	     As we have to redraw the line above, we should goto cancel.  */
+	     As we have to redraw the line above, we cannot use this
+	     optimization.  */
 
 	  struct it it;
 	  int line_height_before = this_line_pixel_height;
 
 	  /* Note that start_display will handle the case that the
-	     line starting at tlbufpos is a continuation lines.  */
+	     line starting at tlbufpos is a continuation line.  */
 	  start_display (&it, w, tlbufpos);
 
 	  /* Implementation note: It this still necessary?  */
@@ -11655,7 +11656,7 @@ redisplay_internal (preserve_echo_area)
 	  display_line (&it);
 
 	  /* If line contains point, is not continued,
-             and ends at same distance from eob as before, we win */
+             and ends at same distance from eob as before, we win.  */
 	  if (w->cursor.vpos >= 0
               /* Line is not continued, otherwise this_line_start_pos
                  would have been set to 0 in display_line.  */
