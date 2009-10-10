@@ -14879,7 +14879,7 @@ try_window_id (w)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
-  /* Give up if point is not known NOT to appear in W.  */
+  /* Give up if point is known NOT to appear in W.  */
   if (PT < CHARPOS (start))
     GIVE_UP (5);
 
@@ -14909,7 +14909,7 @@ try_window_id (w)
   if (!NILP (w->region_showing))
     GIVE_UP (10);
 
-  /* Can't use this if overlay arrow position and or string have
+  /* Can't use this if overlay arrow position and/or string have
      changed.  */
   if (overlay_arrows_changed_p ())
     GIVE_UP (12);
