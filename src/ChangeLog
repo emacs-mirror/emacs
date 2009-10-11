@@ -1,3 +1,7 @@
+2009-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* frame.c (Fframe_pixel_height): Doc fix.  (Bug#4535)
+
 2009-10-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (create_menus): Call gtk_widget_set_size_request for

@@ -2643,10 +2643,22 @@ For a terminal screen, the value is always 1.  */)
 DEFUN ("frame-pixel-height", Fframe_pixel_height,
        Sframe_pixel_height, 0, 1, 0,
        doc: /* Return a FRAME's height in pixels.
-This counts only the height available for text lines,
-not menu bars on window-system Emacs frames.
-For a terminal frame, the result really gives the height in characters.
-If FRAME is omitted, the selected frame is used.  */)
+If FRAME is omitted, the selected frame is used.  The exact value
+of the result depends on the window-system and toolkit in use:
+
+In the Gtk+ version of Emacs, it includes only any window (including
+the minibuffer or eacho area), mode line, and header line.  It does not
+include the tool bar or menu bar.
+
+With the Motif or Lucid toolkits, it also includes the tool bar (but
+not the menu bar).
+
+In a graphical version with no toolkit, it includes both the tool bar
+and menu bar.
+
+For a text-only terminal, it includes the menu bar.  In this case, the
+result is really in characters rather than pixels (i.e., is identical
+to `frame-height'). */)
      (frame)
      Lisp_Object frame;
 {
