@@ -10,7 +10,7 @@
 	(tramp-smb-file-name-handler-alist): Add handlers for
 	`add-name-to-file', `make-symbolic-link'.
 	(tramp-smb-handle-add-name-to-file)
-	(tramp-do-file-attributes-with-stat)
+	(tramp-smb-do-file-attributes-with-stat)
 	(tramp-smb-handle-make-symbolic-link)
 	(tramp-smb-get-cifs-capabilities): New defuns.
 	(tramp-smb-handle-copy-directory, tramp-smb-handle-copy-file)
@@ -20,7 +20,7 @@
 	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region): The
 	file name syntax depends on cifs capabilities.
 	(tramp-smb-handle-file-attributes); Call
-	`tramp-do-file-attributes-with-stat' if possible.
+	`tramp-smb-do-file-attributes-with-stat' if possible.
 	(tramp-smb-handle-insert-directory): Use posix attributes if
 	possible.
 	(tramp-smb-handle-set-file-modes): It is applicable for posix
