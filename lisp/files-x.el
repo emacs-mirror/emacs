@@ -92,7 +92,8 @@ Intended to be used in the `interactive' spec of
 			 nil 'set-variable-value-history
 			 (format "%S"
 				 (cond ((eq variable 'unibyte) t)
-				       (t (symbol-value variable))))))))))
+				       ((boundp variable)
+					(symbol-value variable))))))))))
 
 (defun read-file-local-variable-mode ()
   "Read per-directory file-local variable's mode using completion.
