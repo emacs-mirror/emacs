@@ -1,3 +1,31 @@
+2009-10-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-host-p): Function shall return nil for
+	connection methods like smb.
+
+	* net/tramp-cache.el (tramp-flush-connection-property): The hash
+	can be empty.
+
+	* net/tramp-smb.el (tramp-smb-errors): Add error messages.
+	(tramp-smb-file-name-handler-alist): Add handlers for
+	`add-name-to-file', `make-symbolic-link'.
+	(tramp-smb-handle-add-name-to-file)
+	(tramp-do-file-attributes-with-stat)
+	(tramp-smb-handle-make-symbolic-link)
+	(tramp-smb-get-cifs-capabilities): New defuns.
+	(tramp-smb-handle-copy-directory, tramp-smb-handle-copy-file)
+	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file)
+	(tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-make-directory-internal)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region): The
+	file name syntax depends on cifs capabilities.
+	(tramp-smb-handle-file-attributes); Call
+	`tramp-do-file-attributes-with-stat' if possible.
+	(tramp-smb-handle-insert-directory): Use posix attributes if
+	possible.
+	(tramp-smb-handle-set-file-modes): It is applicable for posix
+	only.
+
 2009-10-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/eieio.el: Avoid requiring cl at runtime.
