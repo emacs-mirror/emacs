@@ -1,7 +1,7 @@
 2009-10-11  Juri Linkov  <juri@jurta.org>
 
 	* files-x.el (read-file-local-variable-value):
-	Provide default value only for bound variables.
+	Provide default value only for bound variables (bug#4664).
 
 2009-10-11  Michael Albinus  <michael.albinus@gmx.de>
 
