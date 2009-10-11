@@ -482,7 +482,7 @@ PRESERVE-UID-GID is completely ignored."
     (with-file-property v localname (format "file-attributes-%s" id-format)
       (if (and (tramp-smb-get-share localname)
 	       (tramp-smb-get-cifs-capabilities v))
-	  (tramp-do-file-attributes-with-stat v localname id-format)
+	  (tramp-smb-do-file-attributes-with-stat v localname id-format)
 	;; Reading just the filename entry via "dir localname" is not
 	;; possible, because when filename is a directory, some
 	;; smbclient versions return the content of the directory, and
@@ -513,7 +513,7 @@ PRESERVE-UID-GID is completely ignored."
 		  inode	        ;10 inode number
 		  device))))))) ;11 file system number
 
-(defun tramp-do-file-attributes-with-stat
+(defun tramp-smb-do-file-attributes-with-stat
   (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using stat command."
   (tramp-message vec 5 "file attributes with stat: %s" localname)
