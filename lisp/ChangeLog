@@ -1,3 +1,12 @@
+2009-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/eieio.el: Avoid requiring cl at runtime.
+	(eieio-defclass): Apply deftype handler and setf-method properties
+	directly.
+	(eieio-add-new-slot): Avoid union function from cl library.
+	(eieio--typep): New function.
+	(eieio-perform-slot-validation): Use it.
+
 2009-10-10  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: (bookmark-yank-word, bookmark-insert-current-bookmark):

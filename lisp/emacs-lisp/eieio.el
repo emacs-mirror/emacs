@@ -40,8 +40,9 @@
 
 ;;; Code:
 
-(require 'cl)
-(eval-when-compile (require 'eieio-comp))
+(eval-when-compile
+  (require 'cl)
+  (require 'eieio-comp))
 
 (defvar eieio-version "1.2"
   "Current version of EIEIO.")
@@ -538,11 +539,11 @@ See `defclass' for more information."
       ;; "cl" uses this technique to specify symbols with specific typep
       ;; test, so we can let typep have the CLOS documented behavior
       ;; while keeping our above predicate clean.
-      (eval `(deftype ,cname ()
-	       '(satisfies
-		 ,(intern (concat (symbol-name cname) "-child-p")))))
 
-      )
+      ;; It would be cleaner to use `defsetf' here, but that requires cl
+      ;; at runtime.
+      (put cname 'cl-deftype-handler
+	   (list 'lambda () `(list 'satisfies (quote ,csym)))))
 
     ;; before adding new slots, lets add all the methods and classes
     ;; in from the parent class
@@ -657,17 +658,21 @@ See `defclass' for more information."
 		      (list 'if (list 'slot-boundp 'this (list 'quote name))
 			    (list 'eieio-oref 'this (list 'quote name))
 			    ;; Else - Some error?  nil?
-			    nil
-			    )))
-	      ;; Thanks Pascal Bourguignon <pjb@informatimago.com>
-	      ;; For this complex macro.
-	      (eval (macroexpand
-		     (list  'defsetf acces '(widget) '(store)
-			    (list 'list ''eieio-oset 'widget
-				  (list 'quote (list 'quote name)) 'store))))
-	      ;;`(defsetf ,acces (widget) (store) (eieio-oset widget ',cname store))
-	      )
-	  )
+			    nil)))
+
+	      ;; Provide a setf method.  It would be cleaner to use
+	      ;; defsetf, but that would require CL at runtime.
+	      (put acces 'setf-method
+		   `(lambda (widget)
+		      (let* ((--widget-sym-- (make-symbol "--widget--"))
+			     (--store-sym-- (make-symbol "--store--")))
+			(list
+			 (list --widget-sym--)
+			 (list widget)
+			 (list --store-sym--)
+			 (list 'eieio-oset --widget-sym-- '',name --store-sym--)
+			 (list 'getfoo --widget-sym--)))))))
+
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
 	(if writer
@@ -895,15 +900,19 @@ if default value is nil."
 		;; End original PLN
 
 		;; PLN Tue Jun 26 11:57:06 2007 :
-		;; We do a non redundant combination of ancient
-		;; custom groups and new ones using the common lisp
-		;; `union' method.
+		;; Do a non redundant combination of ancient custom
+		;; groups and new ones.
 		(when custg
-		  (let ((where-groups
-			 (nthcdr num (aref newc class-public-custom-group))))
-		    (setcar where-groups
-			    (union (car where-groups)
-				   (if (listp custg) custg (list custg))))))
+		  (let* ((groups
+			  (nthcdr num (aref newc class-public-custom-group)))
+			 (list1 (car groups))
+			 (list2 (if (listp custg) custg (list custg))))
+		    (if (< (length list1) (length list2))
+			(setq list1 (prog1 list2 (setq list2 list1))))
+		    (dolist (elt list2)
+		      (unless (memq elt list1)
+			(push elt list1)))
+		    (setcar groups list1)))
 		;;  End PLN
 
 		;;  PLN Mon Jun 25 22:44:34 2007 : If a new cust is
@@ -990,16 +999,19 @@ if default value is nil."
 	      (if (not (eq prot super-prot))
 		  (error "Child slot protection `%s' does not match inherited protection `%s' for `%s'"
 			 prot super-prot a)))
-	    ;; We do a non redundant combination of ancient
-	    ;; custom groups and new ones using the common lisp
-	    ;; `union' method.
+	    ;; Do a non redundant combination of ancient custom groups
+	    ;; and new ones.
 	    (when custg
-	      (let ((where-groups
-		     (nthcdr num (aref newc class-class-allocation-custom-group))))
-		(setcar where-groups
-			(union (car where-groups)
-			       (if (listp custg) custg (list custg))))))
-	    ;;  End PLN
+	      (let* ((groups
+		      (nthcdr num (aref newc class-class-allocation-custom-group)))
+		     (list1 (car groups))
+		     (list2 (if (listp custg) custg (list custg))))
+		(if (< (length list1) (length list2))
+		    (setq list1 (prog1 list2 (setq list2 list1))))
+		(dolist (elt list2)
+		  (unless (memq elt list1)
+		    (push elt list1)))
+		(setcar groups list1)))
 
 	    ;; PLN Sat Jun 30 17:24:42 2007 : when a new
 	    ;; doc is specified, simply replaces the old one.
@@ -1352,13 +1364,57 @@ Summary:
   method)
 
 ;;; Slot type validation
-;;
+
+;; This is a hideous hack for replacing `typep' from cl-macs, to avoid
+;; requiring the CL library at run-time.  It can be eliminated if/when
+;; `typep' is merged into Emacs core.
+(defun eieio--typep (val type)
+  (if (symbolp type)
+      (cond ((get type 'cl-deftype-handler)
+	     (eieio--typep val (funcall (get type 'cl-deftype-handler))))
+	    ((eq type t) t)
+	    ((eq type 'null)   (null val))
+	    ((eq type 'atom)   (atom val))
+	    ((eq type 'float)  (and (numberp val) (not (integerp val))))
+	    ((eq type 'real)   (numberp val))
+	    ((eq type 'fixnum) (integerp val))
+	    ((memq type '(character string-char)) (characterp val))
+	    (t
+	     (let* ((name (symbol-name type))
+		    (namep (intern (concat name "p"))))
+	       (if (fboundp namep)
+		   (funcall `(lambda () (,namep val)))
+		 (funcall `(lambda ()
+			     (,(intern (concat name "-p")) val)))))))
+    (cond ((get (car type) 'cl-deftype-handler)
+	   (eieio--typep val (apply (get (car type) 'cl-deftype-handler)
+				    (cdr type))))
+	  ((memq (car type) '(integer float real number))
+	   (and (eieio--typep val (car type))
+		(or (memq (cadr type) '(* nil))
+		    (if (consp (cadr type))
+			(> val (car (cadr type)))
+		      (>= val (cadr type))))
+		(or (memq (caddr type) '(* nil))
+		    (if (consp (car (cddr type)))
+			(< val (caar (cddr type)))
+		      (<= val (car (cddr type)))))))
+	  ((memq (car type) '(and or not))
+	   (eval (cons (car type)
+		       (mapcar (lambda (x)
+				 `(eieio--typep (quote ,val) (quote ,x)))
+			       (cdr type)))))
+	  ((memq (car type) '(member member*))
+	   (memql val (cdr type)))
+	  ((eq (car type) 'satisfies)
+	   (funcall `(lambda () (,(cadr type) val))))
+	  (t (error "Bad type spec: %s" type)))))
+
 (defun eieio-perform-slot-validation (spec value)
   "Return non-nil if SPEC does not match VALUE."
-  ;; typep is in cl-macs
   (or (eq spec t)			; t always passes
       (eq value eieio-unbound)		; unbound always passes
-      (typep value spec)))
+      (eieio--typep value spec)))
 
 (defun eieio-validate-slot-value (class slot-idx value slot)
   "Make sure that for CLASS referencing SLOT-IDX, VALUE is valid.
@@ -2383,15 +2439,17 @@ This is usually a symbol that starts with `:'."
 
 ;; The below setf method was written by Arnd Kohrs <kohrs@acm.org>
 (define-setf-method oref (obj slot)
-  (let ((obj-temp (gensym))
-	(slot-temp (gensym))
-	(store-temp (gensym)))
-    (list (list obj-temp slot-temp)
-	  (list obj `(quote ,slot))
-	  (list store-temp)
-	  (list 'set-slot-value obj-temp slot-temp
-		store-temp)
-	  (list 'slot-value obj-temp slot-temp))))
+  (with-no-warnings
+    (require 'cl)
+    (let ((obj-temp (gensym))
+	  (slot-temp (gensym))
+	  (store-temp (gensym)))
+      (list (list obj-temp slot-temp)
+	    (list obj `(quote ,slot))
+	    (list store-temp)
+	    (list 'set-slot-value obj-temp slot-temp
+		  store-temp)
+	    (list 'slot-value obj-temp slot-temp)))))
 
 
 ;;;
@@ -2767,10 +2825,6 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 (autoload 'customize-object "eieio-custom" "Create a custom buffer editing OBJ.")
 
 (provide 'eieio)
-
-;; Local variables:
-;; byte-compile-warnings: (not cl-functions)
-;; End:
 
 ;; arch-tag: c1aeab9c-2938-41a3-842b-1a38bd26e9f2
 ;;; eieio ends here
