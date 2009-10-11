@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/frames
 @node Frames, Positions, Windows, Top
@@ -980,12 +981,17 @@ selected frame.
 @defunx frame-pixel-width &optional frame
 These functions return the height and width of the main display area
 of @var{frame}, measured in pixels.  If you don't supply @var{frame},
-they use the selected frame.
+they use the selected frame.  For a text-only terminal, the results are
+in characters rather than pixels.
 
-These values include the internal borders, and windows' scroll bars
-and fringes (which belong to individual windows, not to the frame
-itself), but do not include menu bars or tool bars (except when using
-X without an X toolkit).
+These values include the internal borders, and windows' scroll bars and
+fringes (which belong to individual windows, not to the frame itself).
+The exact value of the heights depends on the window-system and toolkit
+in use.  With Gtk+, the height does not include any tool bar or menu
+bar.  With the Motif or Lucid toolkits, it includes the tool bar but
+not the menu bar.  In a graphical version with no toolkit, it includes
+both the tool bar and menu bar.  For a text-only terminal, the result
+includes the menu bar.
 @end defun
 
 @defun frame-char-height &optional frame
