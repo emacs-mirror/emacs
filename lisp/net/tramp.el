@@ -7480,6 +7480,11 @@ necessary only.  This function will be used in file name completion."
     (and
      (stringp host)
      (string-match tramp-local-host-regexp host)
+     ;; The method shall be applied to one of the shell file name
+     ;; handler.  `tramp-local-host-p' is also called for "smb" and
+     ;; alike, where it must fail.
+     (tramp-get-method-parameter
+      (tramp-file-name-method vec) 'tramp-login-program)
      ;; The local temp directory must be writable for the other user.
      (file-writable-p
       (tramp-make-tramp-file-name
