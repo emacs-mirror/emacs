@@ -658,7 +658,7 @@ name_is_separator (name)
       else
         [item setState: NSOffState];
 
-      [item setTag: (int)wv->call_data];
+      [item setTag: (NSInteger)wv->call_data];
     }
 
   return item;
@@ -1336,7 +1336,7 @@ update_frame_tool_bar (FRAME_PTR f)
       item = [[[NSToolbarItem alloc] initWithItemIdentifier: identifier]
                autorelease];
       [item setImage: img];
-      [item setToolTip: [NSString stringWithCString: help]];
+      [item setToolTip: [NSString stringWithUTF8String: help]];
       [item setTarget: emacsView];
       [item setAction: @selector (toolbarClicked:)];
     }
@@ -1615,7 +1615,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 #define TEXTHEIGHT	20.0
 #define MINCELLWIDTH	90.0
 
-- initWithContentRect: (NSRect)contentRect styleMask: (unsigned int)aStyle
+- initWithContentRect: (NSRect)contentRect styleMask: (NSUInteger)aStyle
               backing: (NSBackingStoreType)backingType defer: (BOOL)flag
 {
   NSSize spacing = {SPACER, SPACER};
