@@ -33,6 +33,8 @@
 	(EmacsScroller-mouseDown:) Use long format in printf, and cast
 	argument.
 
+	* config.in (NS_HAVE_NSINTEGER): Drop.
+
 2009-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (Fframe_pixel_height): Doc fix.  (Bug#4535)
