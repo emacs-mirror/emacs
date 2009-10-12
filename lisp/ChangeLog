@@ -1,3 +1,7 @@
+2009-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu-bar.el (menu-bar-file-menu): Fix format of `separator-exit' item.
+
 2009-10-11  Juri Linkov  <juri@jurta.org>
 
 	* files-x.el (read-file-local-variable-value):
@@ -22,14 +26,12 @@
 	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file)
 	(tramp-smb-handle-file-local-copy)
 	(tramp-smb-handle-make-directory-internal)
-	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region): The
-	file name syntax depends on cifs capabilities.
-	(tramp-smb-handle-file-attributes); Call
-	`tramp-smb-do-file-attributes-with-stat' if possible.
-	(tramp-smb-handle-insert-directory): Use posix attributes if
-	possible.
-	(tramp-smb-handle-set-file-modes): It is applicable for posix
-	only.
+	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region):
+	The file name syntax depends on cifs capabilities.
+	(tramp-smb-handle-file-attributes):
+	Call `tramp-smb-do-file-attributes-with-stat' if possible.
+	(tramp-smb-handle-insert-directory): Use posix attributes if possible.
+	(tramp-smb-handle-set-file-modes): It is applicable for posix only.
 
 2009-10-11  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -42,7 +44,7 @@
 
 2009-10-10  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el: (bookmark-yank-word, bookmark-insert-current-bookmark):
+	* bookmark.el (bookmark-yank-word, bookmark-insert-current-bookmark):
 	Update documentation to refer to the variables documented in r1.135.
 	(Bug#4188)
 
@@ -63,15 +65,15 @@
 	* calendar/calendar.el (calendar-split-width-threshold): New option.
 	(calendar-basic-setup): Use calendar-split-width-threshold.
 
-2009-10-10  Sascha Wilde <wilde@sha-bang.de>
+2009-10-10  Sascha Wilde  <wilde@sha-bang.de>
 
-	* cedet/ede/proj-shared.el (ede-proj-makefile-target-name): Use
-	.la for Automake.
+	* cedet/ede/proj-shared.el (ede-proj-makefile-target-name):
+	Use .la for Automake.
 
 2009-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/ede/pconf.el (ede-proj-configure-synchronize): Use
-	"autoreconf -i".  Suggested by Andreas Schwab.
+	* cedet/ede/pconf.el (ede-proj-configure-synchronize):
+	Use "autoreconf -i".  Suggested by Andreas Schwab.
 
 2009-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
