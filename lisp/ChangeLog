@@ -1,7 +1,10 @@
 2009-10-12  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-next-error-function): Fix the
-	timestamps if the buffer has been visited before
+	timestamps if the buffer has been visited before.
+
+	(compilation-mode-font-lock-keywords): Do not prepend "^ *" to
+	non-anchored patterns, like the perl one (bug#3928).
 
 2009-10-12  Glenn Morris  <rgm@gnu.org>
 

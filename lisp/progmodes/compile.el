@@ -989,11 +989,10 @@ FMTS is a list of format specs for transforming the file name.
           ;; another solution is to modify (some?) regexps in
           ;; `compilation-error-regexp-alist'.
           ;; note that omake usage is not limited to ocaml and C (for stubs).
-          (unless (string-match (concat "^" (regexp-quote "^ *")) pat)
-            (setq pat (concat "^ *"
-                              (if (= ?^ (aref pat 0))
-                                  (substring pat 1)
-                                  pat))))
+          (when (and (= ?^ (aref pat 0)) ; anchored: starts with "^"
+                     ;; but does not allow an arbitrary number of leading spaces
+                     (not (and (= ?  (aref pat 1)) (= ?* (aref pat 1)))))
+            (setq pat (concat "^ *" (substring pat 1))))
 	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
 	  (if (consp line)	(setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
