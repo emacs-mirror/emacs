@@ -329,7 +329,7 @@ static EmacsImage *ImageList = nil;
   NSSize s = [self size];
   int len = (int) s.width * s.height;
   unsigned char *planes[5];
-  float r, g, b, a;
+  CGFloat r, g, b, a;
   NSColor *rgbColor;
 
   if (bmRep == nil || color == nil)
@@ -431,7 +431,7 @@ static EmacsImage *ImageList = nil;
   else if (onTiger)
     {
       NSColor *color = [bmRep colorAtX: x y: y];
-      float r, g, b, a;
+      CGFloat r, g, b, a;
       [color getRed: &r green: &g blue: &b alpha: &a];
       return ((int)(a * 255.0) << 24)
         | ((int)(r * 255.0) << 16) | ((int)(g * 255.0) << 8)
