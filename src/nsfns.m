@@ -2224,7 +2224,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
      Lisp_Object color, frame;
 {
   NSColor * col;
-  float red, green, blue, alpha;
+  CGFloat red, green, blue, alpha;
 
   check_ns ();
   CHECK_STRING (color);
