@@ -244,7 +244,11 @@ ns_char_width (NSFont *sfont, int c)
 	    return w;
       }
 #endif
-    w = [sfont widthOfString: cstr];
+    {
+      NSDictionary *attrsDictionary =
+        [NSDictionary dictionaryWithObject: sfont forKey: NSFontAttributeName];
+      w = [cstr sizeWithAttributes: attrsDictionary].width;
+    }
     return max (w, 2.0);
 }
 
@@ -543,7 +547,8 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
       return ns_fallback_entity ();
 
     if (NSFONT_TRACE)
-	fprintf (stderr, "    Returning %d entities.\n", XINT (Flength (list)));
+	fprintf (stderr, "    Returning %ld entities.\n",
+                 (long)XINT (Flength (list)));
 
     return list;
 }
@@ -649,8 +654,8 @@ nsfont_list_family (Lisp_Object frame)
   /* FIXME: escape the name? */
 
   if (NSFONT_TRACE)
-    fprintf (stderr, "nsfont: list families returning %d entries\n",
-            XINT (Flength (list)));
+    fprintf (stderr, "nsfont: list families returning %ld entries\n",
+            (long)XINT (Flength (list)));
 
   return list;
 }
@@ -876,7 +881,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     /* set up metrics portion of font struct */
     font->ascent = [sfont ascender];
     font->descent = -[sfont descender];
-    font->min_width = [sfont widthOfString: @"|"]; /* FIXME */
+    font->min_width = ns_char_width(sfont, '|');
     font->space_width = lrint (ns_char_width (sfont, ' '));
     font->average_width = lrint (font_info->width);
     font->max_width = lrint (font_info->max_bounds.width);
@@ -1332,7 +1337,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
     NSGlyphGenerator *glyphGenerator = [NSGlyphGenerator sharedGlyphGenerator];
     /*NSCharacterSet *coveredChars = [nsfont coveredCharacterSet]; */
     unsigned int numGlyphs = [font_info->nsfont numberOfGlyphs];
-    unsigned int gInd =0, cInd =0;
+    NSUInteger gInd =0, cInd =0;
 
     [glyphStorage setString: allChars font: font_info->nsfont];
     [glyphGenerator generateGlyphsForGlyphStorage: glyphStorage
@@ -1454,7 +1459,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
 }
 
 /* NSGlyphStorage protocol */
-- (unsigned int)layoutOptions
+- (NSUInteger)layoutOptions
 {
   return 0;
 }
@@ -1464,9 +1469,9 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
   return attrStr;
 }
 
-- (void)insertGlyphs: (const NSGlyph *)glyphs length: (unsigned int)length
-        forStartingGlyphAtIndex: (unsigned int)glyphIndex
-        characterIndex: (unsigned int)charIndex
+- (void)insertGlyphs: (const NSGlyph *)glyphs length: (NSUInteger)length
+        forStartingGlyphAtIndex: (NSUInteger)glyphIndex
+        characterIndex: (NSUInteger)charIndex
 {
   len = glyphIndex+length;
   for (i =glyphIndex; i<len; i++)
@@ -1475,8 +1480,8 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
     maxGlyph = len;
 }
 
-- (void)setIntAttribute: (int)attributeTag value: (int)val
-        forGlyphAtIndex: (unsigned)glyphIndex
+- (void)setIntAttribute: (NSInteger)attributeTag value: (NSInteger)val
+        forGlyphAtIndex: (NSUInteger)glyphIndex
 {
   return;
 }
