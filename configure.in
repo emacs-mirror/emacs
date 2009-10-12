@@ -1339,14 +1339,6 @@ if test "${with_ns}" != no; then
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
-  NS_HAVE_NSINTEGER=yes
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <Foundation/NSObjCRuntime.h>],
-                                     [NSInteger i;])],
-		    ns_have_nsinteger=yes,
-		    ns_have_nsinteger=no)
-  if test $ns_have_nsinteger = no; then
-    NS_HAVE_NSINTEGER=no
-  fi
 fi
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
