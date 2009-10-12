@@ -1449,7 +1449,7 @@ ns_color_to_lisp (NSColor *col)
      Convert a color to a lisp string with the RGB equivalent
    -------------------------------------------------------------------------- */
 {
-  float red, green, blue, alpha, gray;
+  CGFloat red, green, blue, alpha, gray;
   char buf[1024];
   const char *str;
   NSTRACE (ns_color_to_lisp);
@@ -1469,13 +1469,13 @@ ns_color_to_lisp (NSColor *col)
     {
       [[col colorUsingColorSpaceName: NSCalibratedWhiteColorSpace]
             getWhite: &gray alpha: &alpha];
-      snprintf (buf, sizeof (buf), "#%02.2lx%02.2lx%02.2lx",
+      snprintf (buf, sizeof (buf), "#%2.2lx%2.2lx%2.2lx",
 		lrint (gray * 0xff), lrint (gray * 0xff), lrint (gray * 0xff));
       UNBLOCK_INPUT;
       return build_string (buf);
     }
 
-  snprintf (buf, sizeof (buf), "#%02.2lx%02.2lx%02.2lx",
+  snprintf (buf, sizeof (buf), "#%2.2lx%2.2lx%2.2lx",
             lrint (red*0xff), lrint (green*0xff), lrint (blue*0xff));
 
   UNBLOCK_INPUT;
@@ -1491,7 +1491,7 @@ ns_query_color(void *col, XColor *color_def, int setPixel)
          and set color_def pixel to the resulting index.
    -------------------------------------------------------------------------- */
 {
-  float r, g, b, a;
+  CGFloat r, g, b, a;
 
   [((NSColor *)col) getRed: &r green: &g blue: &b alpha: &a];
   color_def->red   = r * 65535;
@@ -4705,7 +4705,7 @@ extern void update_window_cursor (struct window *w, int on);
   return NSMakeRange (NSNotFound, 0);
 }
 
-- (unsigned int)characterIndexForPoint: (NSPoint)thePoint
+- (NSUInteger)characterIndexForPoint: (NSPoint)thePoint
 {
   if (NS_KEYLOG)
     NSLog (@"characterIndexForPoint request");
@@ -5395,7 +5395,7 @@ extern void update_window_cursor (struct window *w, int on);
 /* NSDraggingDestination protocol methods.  Actually this is not really a
    protocol, but a category of Object.  O well...  */
 
--(unsigned int) draggingEntered: (id <NSDraggingInfo>) sender
+-(NSUInteger) draggingEntered: (id <NSDraggingInfo>) sender
 {
   NSTRACE (draggingEntered);
   return NSDragOperationGeneric;
@@ -5680,7 +5680,7 @@ extern void update_window_cursor (struct window *w, int on);
 #define SCROLL_BAR_FIRST_DELAY 0.5
 #define SCROLL_BAR_CONTINUOUS_DELAY (1.0 / 15)
 
-+ (float) scrollerWidth
++ (CGFloat) scrollerWidth
 {
   /* TODO: if we want to allow variable widths, this is the place to do it,
            however neither GNUstep nor Cocoa support it very well */
@@ -5925,7 +5925,8 @@ extern void update_window_cursor (struct window *w, int on);
     case NSScrollerKnobSlot:  /* GNUstep-only */
       last_hit_part = scroll_bar_move_ratio; break;
     default:  /* NSScrollerNoPart? */
-      fprintf (stderr, "EmacsScoller-mouseDown: unexpected part %d\n", part);
+      fprintf (stderr, "EmacsScoller-mouseDown: unexpected part %ld\n",
+               (long)part);
       return;
     }
 
