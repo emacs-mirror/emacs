@@ -1,5 +1,9 @@
 2009-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bs.el (bs-mode): Set `revert-buffer-function' to `bs-refresh'.
+	(bs-refresh): Add IGNORED arg for `revert-buffer' compatibility.
+	Doc fix.
+
 	* menu-bar.el (menu-bar-file-menu): Fix format of `separator-exit' item.
 
 2009-10-11  Juri Linkov  <juri@jurta.org>
