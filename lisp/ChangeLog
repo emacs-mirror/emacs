@@ -1,3 +1,8 @@
+2009-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp-smb.el (tramp-smb-do-file-attributes-with-stat):
+	Let-bind `size'.
+
 2009-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* proced.el (proced-unload-function): New function.

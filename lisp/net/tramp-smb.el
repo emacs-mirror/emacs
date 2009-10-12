@@ -519,7 +519,7 @@ PRESERVE-UID-GID is completely ignored."
   (tramp-message vec 5 "file attributes with stat: %s" localname)
   (with-current-buffer (tramp-get-buffer vec)
     (let* ((file (tramp-smb-get-localname localname nil))
-	   id link uid gid atime mtime ctime mode inode)
+	   size id link uid gid atime mtime ctime mode inode)
       (tramp-smb-send-command vec (format "stat \"%s\"" file))
 
       ;; Loop the listing.
