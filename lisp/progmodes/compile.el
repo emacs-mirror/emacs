@@ -1944,16 +1944,13 @@ This is the value of `next-error-function' in Compilation buffers."
     ;; (`omake -P' polls filesystem for changes and recompiles when needed
     ;;  in the same process and buffer).
     ;; So, recalculate all markers for that file.
-    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc))
-                 ;; There may be no timestamp info if the loc is a `fake-loc'.
-                 ;; So we skip the time-check here, although we should maybe
-                 ;; change `compilation-fake-loc' to add timestamp info.
-                 (or (null (nth 4 loc))
-                     (equal (nth 4 loc)
-                            (setq timestamp
-                                  (with-current-buffer
-                                      (marker-buffer (nth 3 loc))
-                                    (visited-file-modtime))))))
+    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc)) (nthcdr 4 loc)
+                 ;; There may be no timestamp info if the loc is a `fake-loc',
+                 ;; but we just checked that the file has been visited before!
+                 (equal (nth 4 loc)
+                        (setq timestamp
+                              (with-current-buffer (marker-buffer (nth 3 loc))
+                                (visited-file-modtime)))))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (cadr (car (nth 2 loc))))
 	(save-restriction
