@@ -1,3 +1,38 @@
+2009-10-11  Adrian Robert  <Adrian.B.Robert@gmail.com>
+	Changes for 64-bit compile under Snow Leopard.
+
+	* nsfns.m (xw-color-values): Use CGFloat where appropriate.
+
+	* nsfont.m (ns_char_width): Replace deprecated call (suggested by
+	Erik Charlebois).
+	(ns_findfonts, nsfont_list_family): Use long format in printf, and
+	cast argument.
+	(nsfont_open): Use ns_char_width() everywhere.
+	(ns_uni_to_glyphs, NSGlyphStorage): Use NS[U]Integer where
+	appropriate.
+
+	* nsgui.h (NSPoint, NSSize) [!__OBJC__]: Define and use CGFloat.
+
+	* nsimage.m (EmacsImage-setXBMColor:,-getPixelAtX:Y:): Use CGFloat
+	where appropriate.
+
+	* nsmenu.m (EmacsMenu-addItemWithWidgetValue:): Use NSInteger
+	where appropriate.
+	(EmacsToolbar-addDisplayItemWithImage:idx:helpText:enabled:): Use
+	stringWithUTF8String.
+	(EmacsDialogPanel-initWithContentRect:styleMask:): Fix signature.
+
+	* nsterm.h (EmacsView, EmacsMenu, EmacsToolbar, EmacsTooltip): Add
+	formal protocol mention to inheritance.
+	[NS_HAVE_NSINTEGER]: Drop conditional and contents.
+
+	* nsterm.m (ns_color_to_lisp): Use CGFloat where appropriate.  Fix
+	printf format.
+	(ns_query_color): Use CGFloat where appropriate.
+	(EmacsView<NSTextInput>, EmacsScroller): Fix method signatures.
+	(EmacsScroller-mouseDown:) Use long format in printf, and cast
+	argument.
+
 2009-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (Fframe_pixel_height): Doc fix.  (Bug#4535)
