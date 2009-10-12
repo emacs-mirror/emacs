@@ -1,5 +1,7 @@
 2009-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
+	* proced.el (proced-unload-function): New function.
+
 	* bs.el (bs-mode): Set `revert-buffer-function' to `bs-refresh'.
 	(bs-refresh): Add IGNORED arg for `revert-buffer' compatibility.
 	Doc fix.
