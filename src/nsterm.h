@@ -54,7 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 @class EmacsToolbar;
 
-@interface EmacsView : NSView <NSTextInput>
+@interface EmacsView : NSView <NSTextInput,NSWindowDelegate>
    {
    char *old_title;
    BOOL windowClosing;
@@ -104,7 +104,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    ========================================================================== */
 
-@interface EmacsMenu : NSMenu
+@interface EmacsMenu : NSMenu <NSMenuDelegate>
 {
   struct frame *frame;
   unsigned long keyEquivModMask;
@@ -131,7 +131,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 @class EmacsImage;
 
-@interface EmacsToolbar : NSToolbar
+@interface EmacsToolbar : NSToolbar <NSToolbarDelegate>
    {
      EmacsView *emacsView;
      NSMutableDictionary *identifierToItem;
@@ -174,7 +174,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (Lisp_Object)runDialogAt: (NSPoint)p;
 @end
 
-@interface EmacsTooltip : NSObject
+@interface EmacsTooltip : NSObject <NSWindowDelegate>
   {
     NSWindow *win;
     NSTextField *textField;
@@ -327,11 +327,6 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 - (void)setAppleMenu: (NSMenu *)menu;
 @end
 #endif
-
-#ifndef NS_HAVE_NSINTEGER
-typedef long NSInteger;
-typedef unsigned long NSUInteger;
-#endif /* not NS_HAVE_NSINTEGER */
 
 #endif  /* __OBJC__ */
 
