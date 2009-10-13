@@ -1522,7 +1522,7 @@ list_processes_1 (query_only)
 	    insert_string ("?");
 	  if (INTEGERP (speed))
 	    {
-	      sprintf (tembuf, " at %d b/s", XINT (speed));
+	      sprintf (tembuf, " at %ld b/s", (long) XINT (speed));
 	      insert_string (tembuf);
 	    }
 	  insert_string (")\n");
