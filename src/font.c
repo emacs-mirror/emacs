@@ -1352,8 +1352,8 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
   if (INTEGERP (AREF (font,  FONT_AVGWIDTH_INDEX)))
     {
       f[XLFD_AVGWIDTH_INDEX] = alloca (11);
-      len += sprintf (f[XLFD_AVGWIDTH_INDEX],
-		      "%d", XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
+      len += sprintf (f[XLFD_AVGWIDTH_INDEX], "%ld",
+                      (long) XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
     }
   else
     f[XLFD_AVGWIDTH_INDEX] = "*", len += 2;
@@ -1669,7 +1669,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
     }
 
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    len += sprintf (work, ":dpi=%d", XINT (AREF (font, FONT_DPI_INDEX)));
+    len += sprintf (work, ":dpi=%ld", (long)XINT (AREF (font, FONT_DPI_INDEX)));
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
     len += strlen (":spacing=100");
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
@@ -1682,7 +1682,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
       if (STRINGP (val))
 	len += SBYTES (val);
       else if (INTEGERP (val))
-	len += sprintf (work, "%d", XINT (val));
+	len += sprintf (work, "%ld", (long) XINT (val));
       else if (SYMBOLP (val))
 	len += (NILP (val) ? 5 : 4); /* for "false" or "true" */
     }
@@ -1709,9 +1709,10 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
       p += sprintf (p, ":%s=%s", style_names[i],
 		    SDATA (SYMBOL_NAME (styles[i])));
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    p += sprintf (p, ":dpi=%d", XINT (AREF (font, FONT_DPI_INDEX)));
+    p += sprintf (p, ":dpi=%ld", (long) XINT (AREF (font, FONT_DPI_INDEX)));
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    p += sprintf (p, ":spacing=%d", XINT (AREF (font, FONT_SPACING_INDEX)));
+    p += sprintf (p, ":spacing=%ld",
+                  (long) XINT (AREF (font, FONT_SPACING_INDEX)));
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
     {
       if (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0)
