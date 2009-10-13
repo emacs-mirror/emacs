@@ -1,3 +1,8 @@
+2009-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-mode): Fix last change.  (`revert-buffer-function'
+	should be automatically buffer-local, but isn't.)
+
 2009-10-12  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-next-error-function): Fix the

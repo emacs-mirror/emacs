@@ -664,8 +664,8 @@ to show always.
 	show-trailing-whitespace nil
 	font-lock-global-modes '(not bs-mode)
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
-	font-lock-verbose nil
-	revert-buffer-function 'bs-refresh)
+	font-lock-verbose nil)
+  (set (make-local-variable 'revert-buffer-function) 'bs-refresh)
   (add-hook 'window-size-change-functions 'bs--track-window-changes)
   (add-hook 'kill-buffer-hook 'bs--remove-hooks nil t)
   (add-hook 'change-major-mode-hook 'bs--remove-hooks nil t))
