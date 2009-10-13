@@ -1,3 +1,7 @@
+2009-10-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-uppercase.el: Regenerated.
+
 2009-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-mode): Fix last change.  (`revert-buffer-function'
