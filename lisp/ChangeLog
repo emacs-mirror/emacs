@@ -1,3 +1,8 @@
+2009-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (ucs-names): Remove exclusion of
+	"Enclosed Ideographic Supplement" range (U+1F200..U+1F2FF).
+
 2009-10-13  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-name.el: Regenerated.

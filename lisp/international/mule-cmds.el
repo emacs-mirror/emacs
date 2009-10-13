@@ -2893,7 +2893,6 @@ on encoding."
 			 (and (>= c #x3400 ) (<= c #x4dbf )) ; CJK Ideograph Extension A
 			 (and (>= c #x4e00 ) (<= c #x9fff )) ; CJK Ideograph
 			 (and (>= c #xd800 ) (<= c #xfaff )) ; Private/Surrogate
-			 (and (>= c #x1f200) (<= c #x1f2ff)) ; Enclosed Ideographic Supplement
 			 (and (>= c #x20000) (<= c #x2ffff)) ; CJK Ideograph Extensions B, C
 			 )
 		  (if (setq name (get-char-code-property c 'name))
