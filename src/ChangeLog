@@ -35,6 +35,16 @@
 
 	* config.in (NS_HAVE_NSINTEGER): Drop.
 
+	* dbusbind.c (dbus-method-return-internal)
+	(dbus-method-error-internal): Use long format in printf, and cast
+	argument.
+
+	* font.c (font_unparse_xlfd, font_unparse_fcname): Use long format
+	in printf, and cast argument.
+
+	* process.c (list_processes_1): Use long format	in printf, and
+	cast argument.
+
 2009-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (Fframe_pixel_height): Doc fix.  (Bug#4535)
