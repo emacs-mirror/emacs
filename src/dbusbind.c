@@ -1247,7 +1247,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   CHECK_STRING (service);
   GCPRO3 (bus, serial, service);
 
-  XD_DEBUG_MESSAGE ("%d %s ", XUINT (serial), SDATA (service));
+  XD_DEBUG_MESSAGE ("%lu %s ", (unsigned long) XUINT (serial), SDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
@@ -1341,7 +1341,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   CHECK_STRING (service);
   GCPRO3 (bus, serial, service);
 
-  XD_DEBUG_MESSAGE ("%d %s ", XUINT (serial), SDATA (service));
+  XD_DEBUG_MESSAGE ("%lu %s ", (unsigned long) XUINT (serial), SDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
