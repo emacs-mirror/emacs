@@ -5926,7 +5926,7 @@ extern void update_window_cursor (struct window *w, int on);
       last_hit_part = scroll_bar_move_ratio; break;
     default:  /* NSScrollerNoPart? */
       fprintf (stderr, "EmacsScoller-mouseDown: unexpected part %ld\n",
-               (long)part);
+               (long) part);
       return;
     }
 
