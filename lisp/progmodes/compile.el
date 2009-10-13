@@ -991,7 +991,7 @@ FMTS is a list of format specs for transforming the file name.
           ;; note that omake usage is not limited to ocaml and C (for stubs).
           (when (and (= ?^ (aref pat 0)) ; anchored: starts with "^"
                      ;; but does not allow an arbitrary number of leading spaces
-                     (not (and (= ?  (aref pat 1)) (= ?* (aref pat 1)))))
+                     (not (and (= ?  (aref pat 1)) (= ?* (aref pat 2)))))
             (setq pat (concat "^ *" (substring pat 1))))
 	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
 	  (if (consp line)	(setq end-line (cdr line) line (car line)))
