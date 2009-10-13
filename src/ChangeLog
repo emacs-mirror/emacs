@@ -1,10 +1,10 @@
 2009-10-11  Adrian Robert  <Adrian.B.Robert@gmail.com>
-	Changes for 64-bit compile under Snow Leopard.
+	Cleanups and changes for 64-bit compile under Snow Leopard.  Based
+	on suggestions by Erik Charlebois.
 
 	* nsfns.m (xw-color-values): Use CGFloat where appropriate.
 
-	* nsfont.m (ns_char_width): Replace deprecated call (suggested by
-	Erik Charlebois).
+	* nsfont.m (ns_char_width): Replace deprecated call.
 	(ns_findfonts, nsfont_list_family): Use long format in printf, and
 	cast argument.
 	(nsfont_open): Use ns_char_width() everywhere.
