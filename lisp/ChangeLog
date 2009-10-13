@@ -1,3 +1,8 @@
+2009-10-13  Juri Linkov  <juri@jurta.org>
+
+	* files-x.el (read-file-local-variable-value): Don't filter out
+	minor modes from mode name completion (bug#4664).
+
 2009-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (ucs-names): Remove exclusion of

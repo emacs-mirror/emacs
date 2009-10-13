@@ -69,8 +69,7 @@ Intended to be used in the `interactive' spec of
 	       (format "Add %s with value: " variable))
 	     obarray
 	     (lambda (sym)
-	       (and (string-match-p "-mode\\'" (symbol-name sym))
-		    (not (string-match-p "-minor-mode\\'" (symbol-name sym)))))
+	       (string-match-p "-mode\\'" (symbol-name sym)))
 	     nil nil nil default nil))
       (and (stringp value)
 	   (intern (replace-regexp-in-string "-mode\\'" "" value))))
