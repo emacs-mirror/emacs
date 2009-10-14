@@ -366,16 +366,6 @@ use either \\[customize] or the function `ido-mode'."
                  (const :tag "Switch off all" nil))
   :group 'ido)
 
-(defcustom ido-everywhere nil
-  "Use ido everywhere for reading file names and directories.
-Setting this variable directly does not work.  Use `customize' or
-call the function `ido-everywhere'."
-  :set #'(lambda (symbol value)
-	   (ido-everywhere (if value 1 -1)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'ido)
-
 (defcustom ido-case-fold case-fold-search
   "Non-nil if searching of buffer and file names should ignore case."
   :type 'boolean
@@ -1449,6 +1439,25 @@ Removes badly formatted data and ignored directories."
   ;; ido kill emacs hook
   (ido-save-history))
 
+(define-minor-mode ido-everywhere
+  "Toggle using ido speed-ups everywhere file and directory names are read.
+With ARG, turn ido speed-up on if arg is positive, off otherwise."
+  :global t
+  :group 'ido
+  (when (get 'ido-everywhere 'file)
+    (setq read-file-name-function (car (get 'ido-everywhere 'file)))
+    (put 'ido-everywhere 'file nil))
+  (when (get 'ido-everywhere 'buffer)
+    (setq read-buffer-function (car (get 'ido-everywhere 'buffer)))
+    (put 'ido-everywhere 'buffer nil))
+  (when ido-everywhere
+    (when (memq ido-mode '(both file))
+      (put 'ido-everywhere 'file (cons read-file-name-function nil))
+      (setq read-file-name-function 'ido-read-file-name))
+    (when (memq ido-mode '(both buffer))
+      (put 'ido-everywhere 'buffer (cons read-buffer-function nil))
+      (setq read-buffer-function 'ido-read-buffer))))
+
 (defvar ido-minor-mode-map-entry nil)
 
 ;;;###autoload
@@ -1492,15 +1501,21 @@ This function also adds a hook to the minibuffer."
 	(define-key map [remap insert-file] 'ido-insert-file)
 	(define-key map [remap list-directory] 'ido-list-directory)
 	(define-key map [remap dired] 'ido-dired)
-	(define-key map [remap find-file-other-window] 'ido-find-file-other-window)
-	(define-key map [remap find-file-read-only-other-window] 'ido-find-file-read-only-other-window)
-	(define-key map [remap find-file-other-frame] 'ido-find-file-other-frame)
-	(define-key map [remap find-file-read-only-other-frame] 'ido-find-file-read-only-other-frame))
+	(define-key map [remap find-file-other-window]
+          'ido-find-file-other-window)
+	(define-key map [remap find-file-read-only-other-window]
+          'ido-find-file-read-only-other-window)
+	(define-key map [remap find-file-other-frame]
+          'ido-find-file-other-frame)
+	(define-key map [remap find-file-read-only-other-frame]
+          'ido-find-file-read-only-other-frame))
 
       (when (memq ido-mode '(buffer both))
 	(define-key map [remap switch-to-buffer] 'ido-switch-buffer)
-	(define-key map [remap switch-to-buffer-other-window] 'ido-switch-buffer-other-window)
-	(define-key map [remap switch-to-buffer-other-frame] 'ido-switch-buffer-other-frame)
+	(define-key map [remap switch-to-buffer-other-window]
+          'ido-switch-buffer-other-window)
+	(define-key map [remap switch-to-buffer-other-frame]
+          'ido-switch-buffer-other-frame)
 	(define-key map [remap insert-buffer] 'ido-insert-buffer)
 	(define-key map [remap kill-buffer] 'ido-kill-buffer)
 	(define-key map [remap display-buffer] 'ido-display-buffer))
@@ -1511,28 +1526,6 @@ This function also adds a hook to the minibuffer."
 	(add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry))))
 
   (message "Ido mode %s" (if ido-mode "enabled" "disabled")))
-
-
-(defun ido-everywhere (arg)
-  "Toggle using ido speed-ups everywhere file and directory names are read.
-With ARG, turn ido speed-up on if arg is positive, off otherwise."
-  (interactive "P")
-  (setq ido-everywhere (if arg
-			   (> (prefix-numeric-value arg) 0)
-			 (not ido-everywhere)))
-  (when (get 'ido-everywhere 'file)
-    (setq read-file-name-function (car (get 'ido-everywhere 'file)))
-    (put 'ido-everywhere 'file nil))
-  (when (get 'ido-everywhere 'buffer)
-    (setq read-buffer-function (car (get 'ido-everywhere 'buffer)))
-    (put 'ido-everywhere 'buffer nil))
-  (when ido-everywhere
-    (when (memq ido-mode '(both file))
-      (put 'ido-everywhere 'file (cons read-file-name-function nil))
-      (setq read-file-name-function 'ido-read-file-name))
-    (when (memq ido-mode '(both buffer))
-      (put 'ido-everywhere 'buffer (cons read-buffer-function nil))
-      (setq read-buffer-function 'ido-read-buffer))))
 
 
 ;;; IDO KEYMAP

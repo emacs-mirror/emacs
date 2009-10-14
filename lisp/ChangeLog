@@ -1,3 +1,11 @@
+2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ido.el (ido-everywhere): Use define-minor-mode.
+
+	* buff-menu.el (list-buffers, ctl-x-map):
+	Mark the entry points with ;;;###autoload cookies.
+
+
 2009-10-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-dir-extra-headers): Set the branch name
@@ -172,14 +180,13 @@
 2009-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-real-user, tramp-file-name-domain)
-	(tramp-file-name-real-host, tramp-file-name-port): Apply
-	`save-match-data.
+	(tramp-file-name-real-host, tramp-file-name-port):
+	Apply `save-match-data.
 
 	* net/tramp-smb.el (tramp-smb-handle-copy-directory): Handle the
 	case both directories are remote.
 	(tramp-smb-handle-expand-file-name): Implement "~" expansion.
-	(tramp-smb-maybe-open-connection): Flush the cache only if
-	necessary.
+	(tramp-smb-maybe-open-connection): Flush the cache only if necessary.
 
 2009-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -187,8 +194,8 @@
 	(ede-proj-target-makefile-objectcode): Use it.
 
 	* cedet/ede/source.el (ede-want-any-source-files-p)
-	(ede-want-any-auxiliary-files-p, ede-want-any-files-p): Return
-	search result.  This error was introduced while merging.
+	(ede-want-any-auxiliary-files-p, ede-want-any-files-p):
+	Return search result.  This error was introduced while merging.
 
 2009-10-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -196,8 +203,8 @@
 
 2009-10-07  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/autoload.el (batch-update-autoloads): Remove useless use of
-	concat.
+	* emacs-lisp/autoload.el (batch-update-autoloads): Remove useless use
+	of concat.
 
 2009-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
