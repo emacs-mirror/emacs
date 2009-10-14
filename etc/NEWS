@@ -2143,7 +2143,7 @@ declare-function macros (see Lisp Changes, above).
 ** The package misearch.el has been added.  It allows Isearch to search
 through multiple buffers.  A variable `multi-isearch-next-buffer-function'
 defines the function to call to get the next buffer to search in the series
-of multiple buffers.  Top-level commands `multi-isearch-buffers',
+of multiple buffers.  Top-level functions `multi-isearch-buffers',
 `multi-isearch-buffers-regexp', `multi-isearch-files' and
 `multi-isearch-files-regexp' accept a single argument that specifies
 a list of buffers/files to search for a string/regexp.
