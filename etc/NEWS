@@ -185,6 +185,11 @@ new connection methods "dav", "davs", "obex" and "synce".
 
 ** VC and related modes
 
+*** When using C-x v v or C-x v i on a unregistered file that is in a
+directory not controlled by any VCS, ask the user what VC backend to
+use to create a repository, create a new repository and register the
+file.
+
 *** FIXME: add info about the new VC functions: vc-root-diff and
 vc-root-print-log once they stabilize.
 

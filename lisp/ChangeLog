@@ -1,4 +1,9 @@
-2009-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+2009-10-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-responsible-backend): When a directory is passed for
+	for registration create a VC repository if no backend is
+	responsible for the directory argument.
+	(vc-deduce-fileset): Tell vc-responsible-backend to register.
 
 	* vc.el: Move comments about RCS and SCCS ...
 	* vc-rcs.el:
