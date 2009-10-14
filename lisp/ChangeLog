@@ -1,3 +1,8 @@
+2009-10-14  Juri Linkov  <juri@jurta.org>
+
+	* misearch.el (multi-isearch-next-buffer-from-list)
+	(multi-isearch-next-file-buffer-from-list): Doc fix.  (Bug#4723)
+
 2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (compile-onefile): Load `bytecomp' rather than

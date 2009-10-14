@@ -213,11 +213,10 @@ Switch to the buffer restored from the search status stack."
 (defvar multi-isearch-buffer-list nil)
 
 (defun multi-isearch-next-buffer-from-list (&optional buffer wrap)
-  "Return the next buffer in the series of ChangeLog file buffers.
-This function is used for multiple buffers isearch.
-A sequence of buffers is formed by ChangeLog files with decreasing
-numeric file name suffixes in the directory of the initial ChangeLog
-file were isearch was started."
+  "Return the next buffer in the series of buffers.
+This function is used for multiple buffers Isearch.  A sequence of
+buffers is defined by the variable `multi-isearch-buffer-list'
+set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
   (let ((buffers (if isearch-forward
 		     multi-isearch-buffer-list
 		   (reverse multi-isearch-buffer-list))))
@@ -251,11 +250,12 @@ file were isearch was started."
 (defvar multi-isearch-file-list nil)
 
 (defun multi-isearch-next-file-buffer-from-list (&optional buffer wrap)
-  "Return the next buffer in the series of ChangeLog file buffers.
-This function is used for multiple buffers isearch.
-A sequence of buffers is formed by ChangeLog files with decreasing
-numeric file name suffixes in the directory of the initial ChangeLog
-file were isearch was started."
+  "Return the next buffer in the series of file buffers.
+This function is used for multiple file buffers Isearch.  A sequence
+of files is defined by the variable `multi-isearch-file-list' set in
+`multi-isearch-files' or `multi-isearch-files-regexp'.
+Every next/previous file in the defined sequence is visited by
+`find-file-noselect' that returns the corresponding file buffer."
   (let ((files (if isearch-forward
 		   multi-isearch-file-list
 		 (reverse multi-isearch-file-list))))
