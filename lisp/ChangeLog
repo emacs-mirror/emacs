@@ -1,5 +1,9 @@
 2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-pcm--merge-completions): Make sure the
+	string we return is all made up of text from the completions rather
+	than part from the completions and part from the input (bug#4219).
+
 	* ido.el (ido-everywhere): Use define-minor-mode.
 
 	* buff-menu.el (list-buffers, ctl-x-map):
