@@ -1078,16 +1078,18 @@ variables.")
        ((null action)
         (let ((comp (file-name-completion name realdir
                                           read-file-name-predicate)))
-          (if (stringp comp)
-              ;; Requote the $s before returning the completion.
-              (minibuffer--double-dollars (concat specdir comp))
+          (cond
+           ((stringp comp)
+            ;; Requote the $s before returning the completion.
+            (minibuffer--double-dollars (concat specdir comp)))
+           (comp
             ;; Requote the $s before checking for changes.
             (setq str (minibuffer--double-dollars str))
             (if (string-equal string str)
                 comp
               ;; If there's no real completion, but substitute-in-file-name
               ;; changed the string, then return the new string.
-              str))))
+              str)))))
 
        ((eq action t)
         (let ((all (file-name-all-completions name realdir)))

@@ -1,3 +1,9 @@
+2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--file-name-table): Return nil if there's
+	no file completion, even if substitute-in-file-name changed
+	the string (bug#4708).
+
 2009-10-13  Juri Linkov  <juri@jurta.org>
 
 	* files-x.el (read-file-local-variable-value): Don't filter out
@@ -277,7 +283,7 @@
 
 2009-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* help-fns.el (describe-function-1): Don't burp is the function is not
+	* help-fns.el (describe-function-1): Don't burp if the function is not
 	a symbol.
 
 2009-10-05  Juanma Barranquero  <lekktu@gmail.com>
