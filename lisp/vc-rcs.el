@@ -26,6 +26,16 @@
 
 ;; See vc.el
 
+;; Some features will not work with old RCS versions.  Where
+;; appropriate, VC finds out which version you have, and allows or
+;; disallows those features (stealing locks, for example, works only
+;; from 5.6.2 onwards).
+;; Even initial checkins will fail if your RCS version is so old that ci
+;; doesn't understand -t-; this has been known to happen to people running
+;; NExTSTEP 3.0.
+;;
+;; You can support the RCS -x option by customizing vc-rcs-master-templates.
+
 ;;; Code:
 
 ;;;

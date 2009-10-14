@@ -24,6 +24,10 @@
 
 ;;; Commentary:
 
+;; Proper function of the SCCS diff commands requires the shellscript vcdiff
+;; to be installed somewhere on Emacs's path for executables.
+;;
+
 ;;; Code:
 
 (eval-when-compile

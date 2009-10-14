@@ -1,3 +1,9 @@
+2009-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Move comments about RCS and SCCS ...
+	* vc-rcs.el:
+	* vc-sccs.el: ... here, respectively.
+
 2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--file-name-table): Return nil if there's
