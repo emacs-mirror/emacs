@@ -421,7 +421,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		      (vc-git--out-ok "config" (concat "remote." remote ".url"))))))
 	  (when (string-match "\\([^\n]+\\)" remote-url)
 	    (setq remote-url (match-string 1 remote-url))))
-      "not (detached HEAD)")
+      (setq branch "not (detached HEAD)"))
     ;; FIXME: maybe use a different face when nothing is stashed.
     (concat
      (propertize "Branch     : " 'face 'font-lock-type-face)
@@ -503,10 +503,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-print-log (files &optional buffer shortlog)
   "Get change log associated with FILES."
-  (let ((coding-system-for-read git-commits-coding-system)
-	;; Support both the old print-log interface that passes a
-	;; single file, and the new one that passes a file list.
-	(flist (if (listp files) files (list files))))
+  (let ((coding-system-for-read git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
