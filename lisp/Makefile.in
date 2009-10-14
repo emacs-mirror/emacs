@@ -1456,7 +1456,9 @@ ELCFILES = \
 # the most common problems of not bootstrapping from a clean state.
 compile-onefile:
 	@echo Compiling $(THEFILE)
-	@$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
+	@# Use byte-compile-refresh-preloaded to try and work around some of
+	@# the most common bootstrapping problems.
+	@$(emacs) -l bytecomp -f byte-compile-refresh-preloaded $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that

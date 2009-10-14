@@ -1,5 +1,8 @@
 2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* Makefile.in (compile-onefile): Load `bytecomp' rather than
+	`bytecomp.el'.
+
 	* minibuffer.el (completion-pcm--merge-completions): Make sure the
 	string we return is all made up of text from the completions rather
 	than part from the completions and part from the input (bug#4219).
