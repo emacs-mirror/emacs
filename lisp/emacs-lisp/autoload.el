@@ -679,6 +679,9 @@ directory or directories specified."
 (define-obsolete-function-alias 'update-autoloads-from-directories
     'update-directory-autoloads "22.1")
 
+(defvar autoload-make-program (or (getenv "MAKE") "make")
+  "Name of the make program in use during the Emacs build process.")
+
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
@@ -686,17 +689,48 @@ Calls `update-directory-autoloads' on the command line arguments."
   ;; For use during the Emacs build process only.
   (unless autoload-excludes
     (let* ((ldir (file-name-directory generated-autoload-file))
-	   (mfile (expand-file-name "../src/Makefile" ldir))
+	   (default-directory
+	     (file-name-as-directory
+	      (expand-file-name (if (eq system-type 'windows-nt)
+				    "../lib-src"
+				  "../src") ldir)))
+	   (mfile "Makefile")
+	   (tmpfile "echolisp.tmp")
 	   lim)
+      ;; Windows uses the 'echolisp' approach because:
+      ;; i) It does not have $lisp as a single simple definition, so
+      ;; it would be harder to parse the Makefile.
+      ;; ii) It can, since it already has $lisp broken up into pieces
+      ;; that the command-line can handle.
+      ;; Non-Windows builds do not use the 'echolisp' approach because
+      ;; no-one knows (?) the maximum safe command-line length on all
+      ;; supported systems.  $lisp is much longer there since it uses
+      ;; absolute paths, and it would seem a shame to split it just for this.
       (when (file-readable-p mfile)
-	(with-temp-buffer
-	  (insert-file-contents mfile)
-	  (when (re-search-forward "^lisp= " nil t)
-	    (setq lim (line-end-position))
-	    (while (re-search-forward "\\${lispsource}\\([^ ]+\\.el\\)c?\\>"
-				      lim t)
-	      (push (expand-file-name (match-string 1) ldir)
-		    autoload-excludes)))))))
+	(if (eq system-type 'windows-nt)
+	    (when (ignore-errors
+		   (if (file-exists-p tmpfile) (delete-file tmpfile))
+		   ;; FIXME call-process is better, if it works.
+		   (shell-command (format "%s echolisp > %s"
+					  autoload-make-program tmpfile))
+		   (file-readable-p tmpfile))
+	      (with-temp-buffer
+		(insert-file-contents tmpfile)
+		;; FIXME could be a single while loop.
+		(while (not (eobp))
+		  (setq lim (line-end-position))
+		  (while (re-search-forward "\\([^ ]+\\.el\\)c?\\>" lim t)
+		    (push (expand-file-name (match-string 1))
+			  autoload-excludes))
+		  (forward-line 1))))
+	  (with-temp-buffer
+	    (insert-file-contents mfile)
+	    (when (re-search-forward "^lisp= " nil t)
+	      (setq lim (line-end-position))
+	      (while (re-search-forward "\\${lispsource}\\([^ ]+\\.el\\)c?\\>"
+					lim t)
+		(push (expand-file-name (match-string 1) ldir)
+		      autoload-excludes))))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))
