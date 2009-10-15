@@ -1,3 +1,7 @@
+2009-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (print_object): Escape a symbol like "2E10" too.
+
 2009-10-11  Adrian Robert  <Adrian.B.Robert@gmail.com>
 	Cleanups and changes for 64-bit compile under Snow Leopard.  Based
 	on suggestions by Erik Charlebois.
