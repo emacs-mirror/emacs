@@ -193,15 +193,16 @@ and a method symbol followed by method specific arguments.
 The valid METHOD symbols are `nickserv', `chanserv' and
 `bitlbee'.
 
-The required ARGUMENTS for each METHOD symbol are:
-  `nickserv': NICK PASSWORD
+The ARGUMENTS for each METHOD symbol are:
+  `nickserv': NICK PASSWORD [NICKSERV-NICK]
   `chanserv': NICK CHANNEL PASSWORD
   `bitlbee': NICK PASSWORD
 
-Example:
+Examples:
  ((\"freenode\" nickserv \"bob\" \"p455w0rd\")
   (\"freenode\" chanserv \"bob\" \"#bobland\" \"passwd99\")
-  (\"bitlbee\" bitlbee \"robert\" \"sekrit\"))"
+  (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
+  (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\"))"
   :type '(alist :key-type (string :tag "Server")
 		:value-type (choice (list :tag "NickServ"
 					  (const nickserv)
@@ -1538,6 +1539,14 @@ log-files with absolute names (see `rcirc-log-filename-function')."
 	(write-region (point-min) (point-max) filename t 'quiet))))
   (setq rcirc-log-alist nil))
 
+(defun rcirc-view-log-file ()
+  "View logfile corresponding to the current buffer."
+  (interactive)
+  (find-file-other-window 
+   (expand-file-name (funcall rcirc-log-filename-function 
+			      (rcirc-buffer-process) rcirc-target)
+		     rcirc-log-directory)))
+
 (defun rcirc-join-channels (process channels)
   "Join CHANNELS."
   (save-window-excursion
@@ -1628,7 +1637,6 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 (defvar rcirc-track-minor-mode-map (make-sparse-keymap)
   "Keymap for rcirc track minor mode.")
 
-(define-key rcirc-track-minor-mode-map (kbd "C-c `") 'rcirc-next-active-buffer)
 (define-key rcirc-track-minor-mode-map (kbd "C-c C-@") 'rcirc-next-active-buffer)
 (define-key rcirc-track-minor-mode-map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
 
@@ -2553,11 +2561,12 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	(when (and (string-match server rcirc-server)
 		   (string-match nick rcirc-nick))
 	  (cond ((equal method 'nickserv)
+		 (let ((password (car args))
+		       (nickserv-nick (or (cadr args) "nickserv")))
 		 (rcirc-send-string
 		  process
-		  (concat
-		   "PRIVMSG nickserv :identify "
-		   (car args))))
+		  (concat "PRIVMSG " nickserv-nick " :identify "
+			  password))))
 		((equal method 'chanserv)
 		 (rcirc-send-string
 		  process

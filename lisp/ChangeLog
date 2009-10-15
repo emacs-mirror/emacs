@@ -1,3 +1,10 @@
+2009-10-15  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-view-log-file): New command.
+	(rcirc-track-minor-mode-map): Remove C-c ` binding.
+	(rcirc-authenticate, rcirc-authinfo): Allow nickserv-nick to be
+	specified.
+
 2009-10-15  Glenn Morris  <rgm@gnu.org>
 
 	* w32-fns.el (w32-batch-update-autoloads): Take autoload-make-program
