@@ -871,19 +871,12 @@ the completions buffer."
 	  (display-completion-list completions common-substring))
 	(princ (buffer-string)))
 
-    (let ((mainbuf (current-buffer)))
-      (with-current-buffer standard-output
-	(goto-char (point-max))
-	(if (null completions)
-	    (insert "There are no possible completions of what you have typed.")
-	  (insert "Possible completions are:\n")
-	  (let ((last (last completions)))
-	    ;; Set base-size from the tail of the list.
-	    (set (make-local-variable 'completion-base-size)
-		 (or (cdr last)
-		     (and (minibufferp mainbuf) 0)))
-	    (setcdr last nil)) ; Make completions a properly nil-terminated list.
-	  (completion--insert-strings completions)))))
+    (with-current-buffer standard-output
+      (goto-char (point-max))
+      (if (null completions)
+          (insert "There are no possible completions of what you have typed.")
+        (insert "Possible completions are:\n")
+        (completion--insert-strings completions))))
 
   ;; The hilit used to be applied via completion-setup-hook, so there
   ;; may still be some code that uses completion-common-substring.
@@ -913,7 +906,8 @@ variables.")
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
   (message "Making completion list...")
-  (let* ((string (field-string))
+  (let* ((start (field-beginning))
+         (string (field-string))
          (completions (completion-all-completions
                        string
                        minibuffer-completion-table
@@ -937,7 +931,13 @@ variables.")
                                      (funcall completion-annotate-function s)))
                                 (if ann (list s ann) s)))
                             completions)))
-            (display-completion-list (nconc completions base-size))))
+            (with-current-buffer standard-output
+	      (set (make-local-variable 'completion-base-position)
+		   ;; FIXME: We should provide the END part as well, but
+		   ;; currently completion-all-completions does not give
+		   ;; us the necessary information.
+		   (list (+ start base-size) nil)))
+            (display-completion-list completions)))
 
       ;; If there are no completions, or if the current input is already the
       ;; only possible completion, then hide (previous&stale) completions.

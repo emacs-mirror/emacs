@@ -1,3 +1,35 @@
+2009-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Replace completion-base-size by completion-base-position to fix bugs
+	such as (bug#4699).
+	* simple.el (completion-base-position): New var.
+	(completion-base-size): Mark as obsolete.
+	(choose-completion): Make it work for mouse events as well.
+	Pass the new base-position to choose-completion-string.
+	(choose-completion-guess-base-position): New function, extracted from
+	choose-completion-delete-max-match.
+	(choose-completion-delete-max-match): Use it.  Make obsolete.
+	(choose-completion-string): Use the new base-position info.
+	(completion-root-regexp): Delete.
+	(completion-setup-function): Preserve completion-base-position.
+	Eliminate obsolete base-size manipulation.
+	* minibuffer.el (display-completion-list): Don't mess with base-size.
+	(minibuffer-completion-help): Set completion-base-position instead.
+	* mouse.el (mouse-choose-completion): Redefine as a mere alias to
+	choose-completion.
+	* textmodes/bibtex.el (bibtex-complete):
+	* emacs-lisp/crm.el (crm--choose-completion-string):
+	Adjust to new calling convention.
+	* complete.el (partial-completion-mode): Use minibufferp to avoid
+	bumping into incompatible change to choose-completion-string-functions.
+	* ido.el (ido-choose-completion-string): Make its calling convention
+	more permissive.
+	* comint.el (comint-dynamic-list-input-ring-select): Remove obsolete
+	base-size manipulation.
+	(comint-dynamic-list-input-ring): Use dotimes and push.
+	* iswitchb.el (iswitchb-completion-help): Remove dead-code call to
+	fundamental-mode.  Use `or'.
+
 2009-10-14  Juri Linkov  <juri@jurta.org>
 
 	* misearch.el (multi-isearch-next-buffer-from-list)

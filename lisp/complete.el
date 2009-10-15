@@ -231,11 +231,11 @@ second TAB brings up the `*Completions*' buffer."
   (funcall
    (if partial-completion-mode 'add-hook 'remove-hook)
    'choose-completion-string-functions
-   (lambda (choice buffer mini-p base-size)
+   (lambda (choice buffer &rest ignored)
      ;; When completing M-: (lisp- ) with point before the ), it is
      ;; not appropriate to go to point-max (unlike the filename case).
      (if (and (not PC-goto-end)
-              mini-p)
+              (minibufferp buffer))
          (goto-char (point-max))
        ;; Need a similar hack for the non-minibuffer-case -- gm.
        (when PC-do-completion-end

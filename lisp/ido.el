@@ -3757,7 +3757,7 @@ for first matching file."
   ;; Return dotted pair (RES . 1).
   (cons res 1))
 
-(defun ido-choose-completion-string (choice buffer mini-p base-size)
+(defun ido-choose-completion-string (choice &rest ignored)
   (when (ido-active)
     ;; Insert the completion into the buffer where completion was requested.
     (if (get-buffer ido-completion-buffer)

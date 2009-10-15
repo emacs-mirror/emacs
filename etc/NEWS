@@ -251,6 +251,12 @@ Command*'.
 
 * Lisp changes in Emacs 23.2
 
+** completion-base-size is obsoleted by completion-base-position.
+This change causes a few backward incompatibilities, mostly with
+choose-completion-string-functions where the `mini-p' argument has
+been replaced by a `base-position' argument, and where the `base-size'
+argument is now always nil.
+
 ** called-interactively-p now takes one argument and replaces interactive-p
 which is now marked obsolete.
 ** New function set-advertised-calling-convention makes it possible

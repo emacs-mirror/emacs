@@ -968,7 +968,6 @@ See also `comint-read-input-ring'."
   "Choose the input history entry that point is in or next to."
   (interactive)
   (let ((buffer completion-reference-buffer)
-        (base-size completion-base-size)
         beg end completion)
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
@@ -980,7 +979,7 @@ See also `comint-read-input-ring'."
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
     (setq completion (buffer-substring beg end))
     (set-window-configuration comint-dynamic-list-input-ring-window-conf)
-    (choose-completion-string completion buffer base-size)))
+    (choose-completion-string completion buffer)))
 
 (defun comint-dynamic-list-input-ring ()
   "List in help buffer the buffer's input history."
@@ -993,9 +992,10 @@ See also `comint-read-input-ring'."
 	  (index (1- (ring-length comint-input-ring)))
 	  (conf (current-window-configuration)))
       ;; We have to build up a list ourselves from the ring vector.
-      (while (>= index 0)
-	(setq history (cons (ring-ref comint-input-ring index) history)
-	      index (1- index)))
+      (dotimes (index (ring-length comint-input-ring))
+	(push (ring-ref comint-input-ring index) history))
+      ;; Show them most-recent-first.
+      (setq history (nreverse history))
       ;; Change "completion" to "history reference"
       ;; to make the display accurate.
       (with-output-to-temp-buffer history-buffer
