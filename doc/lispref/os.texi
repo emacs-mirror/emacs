@@ -1104,13 +1104,13 @@ used for each part is always the same, so you can reliably use
 characters from the beginning of the string rather than from the end, as
 additional information may some day be added at the end.
 
-@c Emacs 19 feature
 The argument @var{time-value}, if given, specifies a time to format
-instead of the current time.  The argument should be a list whose first
-two elements are integers.  Thus, you can use times obtained from
-@code{current-time} (see below) and from @code{file-attributes}
-(@pxref{Definition of file-attributes}).  @var{time-value} can also be
-a cons of two integers, but this is considered obsolete.
+instead of the current time.  This argument should have the same form
+as the times obtained from @code{current-time} (see below) and from
+@code{file-attributes} (@pxref{Definition of file-attributes}).  It
+should be a list whose first two elements are integers; a third
+(microsecond) element, if present, is ignored.  @var{time-value} can
+also be a cons of two integers, but this usage is obsolete.
 
 @example
 @group
@@ -1120,7 +1120,6 @@ a cons of two integers, but this is considered obsolete.
 @end example
 @end defun
 
-@c Emacs 19 feature
 @defun current-time
 This function returns the system's time value as a list of three
 integers: @code{(@var{high} @var{low} @var{microsec})}.  The integers
@@ -1142,7 +1141,6 @@ get with the function @code{file-attributes}.
 @xref{Definition of file-attributes}.
 @end defun
 
-@c Emacs 19 feature
 @defun current-time-zone &optional time-value
 This function returns a list describing the time zone that the user is
 in.
@@ -1179,7 +1177,7 @@ seconds since the epoch.  The argument @var{time-value}, if given,
 specifies a time to convert instead of the current time.  The argument
 should have the same form as for @code{current-time-string} (see
 above).  Thus, it accepts the output of @code{current-time} and
-@code{file-attributes}.
+@code{file-attributes} (@pxref{Definition of file-attributes}).
 
 @emph{Warning}: Since the result is floating point, it may not be
 exact.  Do not use this function if precise time stamps are required.
