@@ -1,5 +1,7 @@
 2009-10-15  Glenn Morris  <rgm@gnu.org>
 
+	* emacsclient.c (print_help_and_exit): Fix bug report instructions.
+
 	* makefile.w32-in (echolisp): New rule.
 	(clean): Delete echolisp.tmp.
 
