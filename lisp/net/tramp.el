@@ -3922,9 +3922,11 @@ the result will be a local, non-Tramp, filename."
   "Replace environment variables in FILENAME.
 Return the string with the replaced variables."
   (save-match-data
-    (let ((idx (string-match "$\\w+" filename)))
+    (let ((idx (string-match "$\\(\\w+\\)" filename)))
       ;; `$' is coded as `$$'.
-      (when (and idx (or (zerop idx) (not (eq ?$ (aref filename (1- idx))))))
+      (when (and idx
+		 (or (zerop idx) (not (eq ?$ (aref filename (1- idx)))))
+		 (getenv (match-string 1 filename)))
 	(setq filename
 	      (replace-match
 	       (substitute-in-file-name (match-string 0 filename))
