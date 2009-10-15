@@ -1,3 +1,8 @@
+2009-10-15  Juri Linkov  <juri@jurta.org>
+
+	* menu-bar.el (menu-bar-file-menu): Convert `separator-exit'
+	to the `menu-item' format.
+
 2009-10-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-replace-environment-variables): Do not fail
