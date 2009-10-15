@@ -1753,7 +1753,7 @@ print_object (obj, printcharfun, escapeflag)
 	  {
 	    while (p != end && ((*p >= '0' && *p <= '9')
 				/* Needed for \2e10.  */
-				|| *p == 'e'))
+				|| *p == 'e' || *p == 'E'))
 	      p++;
 	    confusing = (end == p);
 	  }
