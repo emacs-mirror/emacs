@@ -1,3 +1,7 @@
+2009-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .gitignore: Add echolisp.tmp.
+
 2009-10-15  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c (print_help_and_exit): Fix bug report instructions.
