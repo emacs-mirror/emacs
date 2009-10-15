@@ -1,3 +1,31 @@
+2009-10-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-replace-environment-variables): Do not fail
+	if the environment variable does not exist.
+
+	* net/tramp-smb.el (tramp-smb-errors): Add error messages.
+	(tramp-smb-get-share, tramp-smb-get-localname): Use only VEC as
+	parameter.
+	(tramp-smb-handle-add-name-to-file)
+	(tramp-smb-handle-copy-directory, tramp-smb-handle-copy-file)
+	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file)
+	(tramp-smb-handle-file-attributes)
+	(tramp-smb-do-file-attributes-with-stat)
+	(tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-insert-directory)
+	(tramp-smb-handle-make-directory)
+	(tramp-smb-handle-make-directory-internal)
+	(tramp-smb-handle-make-symbolic-link)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-set-file-modes)
+	(tramp-smb-handle-write-region, tramp-smb-get-file-entries)
+	(tramp-smb-maybe-open-connection): Apply the changed parameters.
+	(tramp-smb-read-file-entry): Read Disk names in compressed format.
+	Handle long file names.
+	(tramp-smb-get-cifs-capabilities): Check, whether the connection
+	process is running.
+	(tramp-smb-maybe-open-connection): Trace "smbclient -V" command.
+	Read share names with "-g" option.
+
 2009-10-15  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-view-log-file): New command.
