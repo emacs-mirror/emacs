@@ -1,3 +1,9 @@
+2009-10-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el (rmail-cease-edit): Give an error if the end of
+	the headers cannot be located.  Simplify, subtracting superflous
+	save-excursions.
+
 2009-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Replace completion-base-size by completion-base-position to fix bugs

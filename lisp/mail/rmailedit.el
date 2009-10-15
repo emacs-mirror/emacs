@@ -126,19 +126,23 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (with-current-buffer rmail-summary-buffer
 	(rmail-summary-enable)))
   (widen)
+  (goto-char (point-min))
+  ;; This is far from ideal.  The edit may have inadvertently
+  ;; removed the blank line at the end of the headers, but there
+  ;; are almost certainly other blank lines.
+  (or (search-forward "\n\n" nil t)
+      (error "There must be a blank line at the end of the headers"))
   ;; Disguise any "From " lines so they don't start a new message.
-  (save-excursion
-    (goto-char (point-min))
-    (or rmail-old-pruned (forward-line 1))
-    (while (re-search-forward "^>*From " nil t)
-      (beginning-of-line)
-      (insert ">")
-      (forward-line)))
+  (goto-char (point-min))
+  (or rmail-old-pruned (forward-line 1))
+  (while (re-search-forward "^>*From " nil t)
+    (beginning-of-line)
+    (insert ">")
+    (forward-line))
   ;; Make sure buffer ends with a blank line so as not to run this
   ;; message together with the following one.
-  (save-excursion
-    (goto-char (point-max))
-    (rmail-ensure-blank-line))
+  (goto-char (point-max))
+  (rmail-ensure-blank-line)
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
 	;; People who know what they are doing might have modified the
@@ -168,7 +172,6 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
       (goto-char (point-min))
-      ;; FIXME the edit may have inadvertently removed this.
       (search-forward "\n\n")
       (setq headers-end (point-marker))
       (goto-char (point-min))
@@ -204,20 +207,16 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 	    (goto-char mime-end)
 	    (delete-region mime-beg mime-end)
 	    (insert mime-charset)))))
-      (goto-char headers-end)
       (setq new-headers (rmail-edit-headers-alist t))
       (rmail-swap-buffers-maybe)
       (narrow-to-region (rmail-msgbeg rmail-current-message)
 			(rmail-msgend rmail-current-message))
+      (goto-char (point-min))
+      (setq limit (search-forward "\n\n"))
       (save-restriction
-	(setq limit
-	      (save-excursion
-		(goto-char (point-min))
-		;; FIXME this should not be using NOERROR.
-		(search-forward "\n\n" nil t)))
 	;; All 3 of the functions we call below assume the buffer was
 	;; narrowed to just the headers of the message.
-	(narrow-to-region (rmail-msgbeg rmail-current-message) limit)
+	(narrow-to-region (point-min) limit)
 	(setq character-coding
 	      (mail-fetch-field "content-transfer-encoding")
 	      is-text-message (rmail-is-text-p)
@@ -256,9 +255,8 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     ;;??? BROKEN perhaps.
 ;;;    (if (boundp 'rmail-summary-vector)
 ;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
-    (save-excursion
-      (rmail-show-message)
-      (rmail-toggle-header (if pruned 1 0))))
+    (rmail-show-message)
+    (rmail-toggle-header (if pruned 1 0)))
   (run-hooks 'rmail-mode-hook))
 
 (defun rmail-abort-edit ()
