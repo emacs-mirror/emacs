@@ -601,8 +601,6 @@ and `same-window-regexps'.  Those variables take precedence over
 this one.
 
 See also `special-display-regexps'."
-  ;; Autoload if this file no longer dumped.
-  :risky t
   :type '(repeat
 	  (choice :tag "Buffer"
 		  :value ""
@@ -623,6 +621,9 @@ See also `special-display-regexps'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
+
+;;;###autoload
+(put 'special-display-buffer-names 'risky-local-variable t)
 
 (defcustom special-display-regexps nil
   "List of regexps saying which buffers should be displayed specially.

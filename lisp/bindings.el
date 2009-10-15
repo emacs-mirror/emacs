@@ -153,7 +153,7 @@ corresponding to the mode line clicked."
     (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
 		 help-echo "emacsclient frame"))
   "Mode-line control for identifying emacsclient frames.")
-;; Autoload all risky properties if this file no longer dumped.
+;;;###autoload
 (put 'mode-line-client 'risky-local-variable t)
 
 (defvar mode-line-mule-info
@@ -196,6 +196,7 @@ mnemonics of the following coding systems:
   ;;  coding system for encoding text to send to buffer process (if any)."
 )
 
+;;;###autoload
 (put 'mode-line-mule-info 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-mule-info)
 
@@ -212,12 +213,14 @@ Value is used for `mode-line-frame-identification', which see."
 ;; the mode line is actually displayed.
 (defvar mode-line-frame-identification '(:eval (mode-line-frame-control))
   "Mode-line control to describe the current frame.")
+;;;###autoload
 (put 'mode-line-frame-identification 'risky-local-variable t)
 
 (defvar mode-line-process nil "\
 Mode-line control for displaying info on process status.
 Normally nil in most modes, since there is no process to display.")
 
+;;;###autoload
 (put 'mode-line-process 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-process)
 
@@ -249,6 +252,7 @@ Normally nil in most modes, since there is no process to display.")
 	 'mouse-face 'mode-line-highlight))
   "Mode-line control for displaying whether current buffer is modified.")
 
+;;;###autoload
 (put 'mode-line-modified 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-modified)
 
@@ -266,6 +270,7 @@ Normally nil in most modes, since there is no process to display.")
 					     "Current directory is local: ")
 					   default-directory)))))))
   "Mode-line flag to show if default-directory for current buffer is remote.")
+;;;###autoload
 (put 'mode-line-remote 'risky-local-variable t)
 
 (make-variable-buffer-local 'mode-line-remote)
@@ -275,10 +280,12 @@ Normally nil in most modes, since there is no process to display.")
   "Mode-line control for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
 buffer size, the line number and the column number.")
+;;;###autoload
 (put 'mode-line-position 'risky-local-variable t)
 
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
+;;;###autoload
 (put 'mode-line-modes 'risky-local-variable t)
 
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
@@ -458,6 +465,7 @@ Its default value is (\"%12b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
 
+;;;###autoload
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
@@ -565,6 +573,7 @@ STRING is included in the mode line if VARIABLE's value is non-nil.
 
 Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")
+;;;###autoload
 (put 'minor-mode-alist 'risky-local-variable t)
 ;; Don't use purecopy here--some people want to change these strings.
 (setq minor-mode-alist
