@@ -1,5 +1,14 @@
 2009-10-15  Glenn Morris  <rgm@gnu.org>
 
+	* w32-fns.el (w32-batch-update-autoloads): Take autoload-make-program
+	from the second command-line argument.
+	* makefile.w32-in (autoloads, $(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el, $(lisp)/calendar/hol-loaddefs.el)
+	($(lisp)/mh-e/mh-loaddefs.el): Pass $(MAKE) as second argument to
+	w32-batch-update-autoloads.
+	* emacs-lisp/autoload.el (autoload-make-program): New variable.
+	(batch-update-autoloads): Handle autoload-excludes on windows-nt.
+
 	* mail/rmailedit.el (rmail-cease-edit): Give an error if the end of
 	the headers cannot be located.  Simplify, subtracting superflous
 	save-excursions.

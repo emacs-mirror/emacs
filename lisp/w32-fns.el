@@ -490,7 +490,9 @@ This is required because some Windows build environments, such as MSYS,
 munge command-line arguments that include file names to a horrible mess
 that Emacs is unable to cope with."
   (let ((generated-autoload-file
-	 (expand-file-name (pop command-line-args-left))))
+	 (expand-file-name (pop command-line-args-left)))
+	;; I can only assume the same considerations may apply here...
+	(autoload-make-program (pop command-line-args-left)))
     (batch-update-autoloads)))
 
 (defun w32-append-code-lines (orig extra)
