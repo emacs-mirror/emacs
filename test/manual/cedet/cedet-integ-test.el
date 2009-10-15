@@ -117,6 +117,7 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
   (cit-make-dir cedet-integ-target)
   ;; 1 c) make src and include directories
   (cit-make-dir (cit-file "src"))
+  (cit-make-dir (cit-file "lib"))
   (cit-make-dir (cit-file "include"))
   (cit-make-dir (cit-file "uml"))
   ;;
@@ -136,7 +137,7 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
   (cit-remove-add-to-project-cpp)
 
   ;; 1 f) remove files from a project
-  (cit-remove-and-do-shared-lib)
+  (cit-remove-and-do-shared-lib make-type)
 
   ;; 2 e) srecode map manipulation
   (cit-srecode-map-test)
@@ -296,13 +297,15 @@ are found, but don't error if they are not their."
     (setq actual (cdr actual))
     ))
 
-(defun cit-compile-and-wait ()
-  "Compile our current project, but wait for it to finish."
+(defun cit-compile-and-wait (&optional ARGS)
+  "Compile our current project, but wait for it to finish.
+Optional ARGS are additional arguments to add to the compile command,
+such as 'clean'."
   (let ((bufftokill (find-file (cit-file "Project.ede"))))
     ;; 1 f) Create a build file.
     (ede-proj-regenerate)
     ;; 1 g) build the sources.
-    (compile ede-make-command)
+    (compile (concat ede-make-command (or ARGS "")))
 
     (while compilation-in-progress
       (accept-process-output)
