@@ -1,3 +1,8 @@
+2009-10-15  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (echolisp): New rule.
+	(clean): Delete echolisp.tmp.
+
 2009-09-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Add term/internal.elc,
