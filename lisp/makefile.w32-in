@@ -1,8 +1,8 @@
-#  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-#  Copyright (C) 2000, 2001, 2002, 2003, 2004,
-#                2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+# -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+#   2009  Free Software Foundation, Inc.
 
-#  This file is part of GNU Emacs.
+# This file is part of GNU Emacs.
 
 # GNU Emacs is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -214,7 +214,7 @@ autoloads: $(lisp)/loaddefs.el $(LOADDEFS) doit
 	@echo Directories: . $(WINS_UPDATES)
 	$(emacs) -l autoload \
 		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
-		-f w32-batch-update-autoloads "$(lisp)/loaddefs.el" . $(WINS_UPDATES)
+		-f w32-batch-update-autoloads "$(lisp)/loaddefs.el" $(MAKE) . $(WINS_UPDATES)
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -358,7 +358,7 @@ $(lisp)/calendar/cal-loaddefs.el:
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f w32-batch-update-autoloads "$(lisp)/calendar/cal-loaddefs.el" \
-	      ./calendar
+	      $(MAKE) ./calendar
 
 $(lisp)/calendar/diary-loaddefs.el:
 	"$(EMACS)" $(EMACSOPT) -l autoload \
@@ -366,7 +366,7 @@ $(lisp)/calendar/diary-loaddefs.el:
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f w32-batch-update-autoloads $(lisp)/calendar/diary-loaddefs.el \
-	      ./calendar
+	      $(MAKE) ./calendar
 
 $(lisp)/calendar/hol-loaddefs.el:
 	"$(EMACS)" $(EMACSOPT) -l autoload \
@@ -374,7 +374,7 @@ $(lisp)/calendar/hol-loaddefs.el:
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f w32-batch-update-autoloads $(lisp)/calendar/hol-loaddefs.el \
-	      ./calendar
+	      $(MAKE) ./calendar
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
@@ -403,7 +403,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	   --eval $(ARGQUOTE)(setq find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
 	   --eval $(ARGQUOTE)(setq make-backup-files nil)$(ARGQUOTE) \
 	   -f w32-batch-update-autoloads \
-	   $(ARGQUOTE)$(lisp)/mh-e/mh-loaddefs.el$(ARGQUOTE) ./mh-e
+	   $(ARGQUOTE)$(lisp)/mh-e/mh-loaddefs.el$(ARGQUOTE) $(MAKE) ./mh-e
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
