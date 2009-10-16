@@ -1,3 +1,8 @@
+2009-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Doc fix.
+	Maybe copy some custom properties from old to new name.  (Bug#4706)
+
 2009-10-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (error, sit-for, start-process-shell-command)
