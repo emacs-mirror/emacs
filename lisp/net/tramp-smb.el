@@ -61,6 +61,9 @@
   :group 'tramp
   :type 'string)
 
+(defvar tramp-smb-version nil
+  "*Version string of the SMB client.")
+
 (defconst tramp-smb-prompt "^smb: .+> \\|^\\s-+Server\\s-+Comment$"
   "Regexp used as prompt in smbclient.")
 
@@ -1209,13 +1212,15 @@ connection if a previous connection has died for some reason."
 	 "Cannot find command %s in %s" tramp-smb-program exec-path))
 
       (let* ((default-directory (tramp-compat-temporary-file-directory))
-	     (smbclient-version
-	      (shell-command-to-string (concat tramp-smb-program " -V"))))
-	(tramp-message vec 6 (concat tramp-smb-program " -V"))
-	(tramp-message vec 6 "\n%s" smbclient-version)
-	(if (string-match "[ \t\n\r]+\\'" smbclient-version)
-	    (setq smbclient-version
-		  (replace-match "" nil nil smbclient-version)))
+	     (smbclient-version tramp-smb-version))
+	(unless smbclient-version
+	  (setq smbclient-version
+		(shell-command-to-string (concat tramp-smb-program " -V")))
+	  (tramp-message vec 6 (concat tramp-smb-program " -V"))
+	  (tramp-message vec 6 "\n%s" smbclient-version)
+	  (if (string-match "[ \t\n\r]+\\'" smbclient-version)
+	      (setq smbclient-version
+		    (replace-match "" nil nil smbclient-version))))
 	(unless
 	    (string-equal
 	     smbclient-version
@@ -1223,8 +1228,9 @@ connection if a previous connection has died for some reason."
 	      vec "smbclient-version" smbclient-version))
 	  (tramp-flush-directory-property vec "")
 	  (tramp-flush-connection-property vec))
-	(tramp-set-connection-property
-	 vec "smbclient-version" smbclient-version)))
+	(setq tramp-smb-version
+	      (tramp-set-connection-property
+	       vec "smbclient-version" smbclient-version))))
 
     ;; If too much time has passed since last command was sent, look
     ;; whether there has been an error message; maybe due to
