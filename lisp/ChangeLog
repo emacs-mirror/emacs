@@ -1,3 +1,7 @@
+2009-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* net/rcirc.el (rcirc-authenticate): Simplify previous change.
+
 2009-10-16  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
 
 	* net/ange-ftp.el (ange-ftp-send-cmd): Handle `size' like `mdtm'.

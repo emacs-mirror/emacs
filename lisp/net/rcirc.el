@@ -2561,12 +2561,10 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	(when (and (string-match server rcirc-server)
 		   (string-match nick rcirc-nick))
 	  (cond ((equal method 'nickserv)
-		 (let ((password (car args))
-		       (nickserv-nick (or (cadr args) "nickserv")))
 		 (rcirc-send-string
 		  process
-		  (concat "PRIVMSG " nickserv-nick " :identify "
-			  password))))
+		  (concat "PRIVMSG " (or (cadr args) "nickserv")
+                          " :identify " (car args))))
 		((equal method 'chanserv)
 		 (rcirc-send-string
 		  process
