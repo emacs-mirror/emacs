@@ -21116,10 +21116,10 @@ x_produce_glyphs (it)
 	 later.
 
 	 Note: It seems that we don't have to record multibyte_p in
-	 struct glyph because the character code itself tells if or
-	 not the character is multibyte.  Thus, in the future, we must
-	 consider eliminating the field `multibyte_p' in the struct
-	 glyph.  */
+	 struct glyph because the character code itself tells whether
+	 or not the character is multibyte.  Thus, in the future, we
+	 must consider eliminating the field `multibyte_p' in the
+	 struct glyph.  */
       int saved_multibyte_p = it->multibyte_p;
 
       /* Maybe translate single-byte characters to multibyte, or the
@@ -21285,9 +21285,9 @@ x_produce_glyphs (it)
 	}
       else if (it->char_to_display == '\n')
 	{
-	  /* A newline has no width but we need the height of the line.
-	     But if previous part of the line set a height, don't
-	     increase that height */
+	  /* A newline has no width, but we need the height of the
+	     line.  But if previous part of the line sets a height,
+	     don't increase that height */
 
 	  Lisp_Object height;
 	  Lisp_Object total_height = Qnil;
@@ -21482,12 +21482,12 @@ x_produce_glyphs (it)
     }
   else if (it->what == IT_COMPOSITION && it->cmp_it.ch < 0)
     {
-      /* A static compositoin.
+      /* A static composition.
 
 	 Note: A composition is represented as one glyph in the
 	 glyph matrix.  There are no padding glyphs.
 
-	 Important is that pixel_width, ascent, and descent are the
+	 Important note: pixel_width, ascent, and descent are the
 	 values of what is drawn by draw_glyphs (i.e. the values of
 	 the overall glyphs composed).  */
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
@@ -21502,15 +21502,15 @@ x_produce_glyphs (it)
 	 the composition for the current face font, calculate them
 	 now.  Theoretically, we have to check all fonts for the
 	 glyphs, but that requires much time and memory space.  So,
-	 here we check only the font of the first glyph.  This leads
-	 to incorrect display, but it's very rare, and C-l (recenter)
-	 can correct the display anyway.  */
+	 here we check only the font of the first glyph.  This may
+	 lead to incorrect display, but it's very rare, and C-l
+	 (recenter-top-bottom) can correct the display anyway.  */
       if (! cmp->font || cmp->font != font)
 	{
 	  /* Ascent and descent of the font of the first character
 	     of this composition (adjusted by baseline offset).
 	     Ascent and descent of overall glyphs should not be less
-	     than them respectively.  */
+	     than these, respectively.  */
 	  int font_ascent, font_descent, font_height;
 	  /* Bounding box of the overall glyphs.  */
 	  int leftmost, rightmost, lowest, highest;
@@ -21539,7 +21539,7 @@ x_produce_glyphs (it)
 
 	  pos = (STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
 		 : IT_CHARPOS (*it));
-	  /* When no suitable font found, use the default font.  */
+	  /* If no suitable font is found, use the default font.  */
 	  font_not_found_p = font == NULL;
 	  if (font_not_found_p)
 	    {
