@@ -4667,9 +4667,9 @@ extern void update_window_cursor (struct window *w, int on);
 }
 
 
-- (NSInteger)conversationIdentifier
+- (long)conversationIdentifier
 {
-  return (NSInteger)self;
+  return (long)self;
 }
 
 
