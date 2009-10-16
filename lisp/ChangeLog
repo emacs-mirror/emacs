@@ -1,3 +1,9 @@
+2009-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (error, sit-for, start-process-shell-command)
+	(start-file-process-shell-command): Set the calling convention
+	after the function definition.
+
 2009-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (error, sit-for, start-process-shell-command)
