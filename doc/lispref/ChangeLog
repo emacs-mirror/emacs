@@ -1,3 +1,8 @@
+2009-10-16  Kevin Ryde  <user42@zip.com.au>
+
+	* files.texi (Magic File Names): Add @vindex file-name-handler-alist,
+	in particular so `info-lookup-symbol' can find its docs.
+
 2009-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* variables.texi (Constant Variables): Distinguish from defconst
