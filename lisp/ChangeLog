@@ -127,7 +127,6 @@
 	* buff-menu.el (list-buffers, ctl-x-map):
 	Mark the entry points with ;;;###autoload cookies.
 
-
 2009-10-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-dir-extra-headers): Set the branch name
@@ -172,7 +171,6 @@
 
 	* progmodes/compile.el (compilation-next-error-function): Fix the
 	timestamps if the buffer has been visited before.
-
 	(compilation-mode-font-lock-keywords): Do not prepend "^ *" to
 	non-anchored patterns, like the perl one (bug#3928).
 
