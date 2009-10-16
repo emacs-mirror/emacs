@@ -1,8 +1,14 @@
+2009-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (error, sit-for, start-process-shell-command)
+	(start-file-process-shell-command): Use the new
+	set-advertised-calling-convention feature.
+
 2009-10-16  Taichi Kawabata  <kawabata.taichi@gmail.com>
 
-	* international/ucs-normalize.el (ucs-normalize-version): Changed
-	to 1.2.
-	(check-range): Adjusted for Unicode 5.2.
+	* international/ucs-normalize.el (ucs-normalize-version):
+	Change to 1.2.
+	(check-range): Adjust for Unicode 5.2.
 
 2009-10-15  Juri Linkov  <juri@jurta.org>
 
