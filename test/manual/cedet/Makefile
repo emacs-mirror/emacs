@@ -13,6 +13,7 @@ Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el cit-s
 EMACS=emacs
 EMACSFLAGS=-batch --no-site-file
 LOADPATH= ../speedbar/ ../cogre/ ../contrib/ ../ede/ ../srecode/ ../semantic/wisent/ ../semantic/bovine/ ../semantic/ ../eieio/ ../common/
+ELISPPRELOAD= cedet-compat
 templates_MISC=cit-extra-cpp.srt
 scripts_MISC=cit-test.sh
 Misc_MISC=README ChangeLog cit-uml.cgr
@@ -28,6 +29,9 @@ Lisp: $(Lisp_LISP)
 	@echo "(add-to-list 'load-path nil)" > $@-compile-script
 	for loadpath in . ${LOADPATH}; do \
 	   echo "(add-to-list 'load-path \"$$loadpath\")" >> $@-compile-script; \
+	done;
+	for preload in ${ELISPPRELOAD}; do \
+	   echo "(load \"$$preload\")" >> $@-compile-script; \
 	done;
 	@echo "(setq debug-on-error t)" >> $@-compile-script
 	"$(EMACS)" $(EMACSFLAGS) -l $@-compile-script -f batch-byte-compile $^
