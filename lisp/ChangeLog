@@ -1,3 +1,9 @@
+2009-10-16  Taichi Kawabata  <kawabata.taichi@gmail.com>
+
+	* international/ucs-normalize.el (ucs-normalize-version): Changed
+	to 1.2.
+	(check-range): Adjusted for Unicode 5.2.
+
 2009-10-15  Juri Linkov  <juri@jurta.org>
 
 	* menu-bar.el (menu-bar-file-menu): Convert `separator-exit'
