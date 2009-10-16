@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 ;;
-;; This program has passed the NormalizationTest-5.1.0.txt.
+;; This program has passed the NormalizationTest-5.2.0.txt.
 ;;
 ;; References:
 ;; http://www.unicode.org/reports/tr15/
@@ -108,7 +108,7 @@
 
 ;;; Code:
 
-(defconst ucs-normalize-version "1.1")
+(defconst ucs-normalize-version "1.2")
 
 (eval-when-compile (require 'cl))
 
@@ -130,11 +130,11 @@
       #x1D1BF #x1D1C0)
    "Composition Exclusion List.
   This list is taken from
-    http://www.unicode.org/Public/UNIDATA/CompositionExclusions-5.1.0.txt")
+    http://www.unicode.org/Public/UNIDATA/5.2/CompositionExclusions.txt")
 
   ;; Unicode ranges that decompositions & combinings are defined.
   (defvar check-range nil)
-    (setq check-range '((#x00a0 . #x3400) (#xA600 . #xAC00) (#xF900 . #x10fff) (#x1d000 . #x1dfff) (#x2f800 . #x2faff)))
+    (setq check-range '((#x00a0 . #x3400) (#xA600 . #xAC00) (#xF900 . #x110ff) (#x1d000 . #x1dfff) (#x1f100 . #x1f2ff) (#x2f800 . #x2faff)))
 
   ;; Basic normalization functions
   (defun nfd (char)
