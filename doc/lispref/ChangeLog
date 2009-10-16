@@ -1,3 +1,9 @@
+2009-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* variables.texi (Constant Variables): Distinguish from defconst
+	variables.
+	(Defining Variables): Add cindex.
+
 2009-10-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* os.texi (Time of Day): Clarify that the microsecond part is

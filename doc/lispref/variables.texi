@@ -134,6 +134,12 @@ starts with @samp{:}, interned in the standard obarray, and returns
 @code{nil} otherwise.
 @end defun
 
+These constants are fundamentally different from the ``constants''
+defined using the @code{defconst} special form (@pxref{Defining
+Variables}).  A @code{defconst} form serves to inform human readers
+that you do not intend to change the value of a variable, but Emacs
+does not raise an error if you actually change it.
+
 @node Local Variables
 @section Local Variables
 @cindex binding local variables
@@ -523,6 +529,7 @@ The @code{defvar} form returns @var{symbol}, but it is normally used
 at top level in a file where its value does not matter.
 @end defspec
 
+@cindex constant variables
 @defspec defconst symbol value [doc-string]
 This special form defines @var{symbol} as a value and initializes it.
 It informs a person reading your code that @var{symbol} has a standard
