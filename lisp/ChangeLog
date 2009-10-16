@@ -1,3 +1,9 @@
+2009-10-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-version): New defvar.
+	(tramp-smb-maybe-open-connection): Use it, in order to avoid
+	repeated checks.
+
 2009-10-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Doc fix.
