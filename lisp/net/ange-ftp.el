@@ -2332,7 +2332,7 @@ and NOWAIT."
 
      ;; Second argument is the remote name
      ((or (memq cmd0 '(append put chmod))
-          (and (eq cmd0 'quote) (string= cmd1 "mdtm")))
+          (and (eq cmd0 'quote) (member cmd1 '("mdtm" "size"))))
       (setq cmd2 (funcall fix-name-func cmd2)))
      ;; Both arguments are remote names
      ((eq cmd0 'rename)
@@ -2971,6 +2971,8 @@ this also returns nil."
 
 (defun ange-ftp-set-binary-mode (host user)
   "Tell the FTP process for the given HOST & USER to switch to binary mode."
+  ;; FIXME: We should keep track of the current mode, so as to avoid
+  ;; unnecessary roundtrips.
   (let ((result (ange-ftp-send-cmd host user '(type "binary"))))
     (if (not (car result))
 	(ange-ftp-error host user (concat "BINARY failed: " (cdr result)))
@@ -2981,6 +2983,8 @@ this also returns nil."
 
 (defun ange-ftp-set-ascii-mode (host user)
   "Tell the FTP process for the given HOST & USER to switch to ASCII mode."
+  ;; FIXME: We should keep track of the current mode, so as to avoid
+  ;; unnecessary roundtrips.
   (let ((result (ange-ftp-send-cmd host user '(type "ascii"))))
     (if (not (car result))
 	(ange-ftp-error host user (concat "ASCII failed: " (cdr result)))
@@ -3449,7 +3453,7 @@ system TYPE.")
 		      '(0 0)		;4 atime
 		      (ange-ftp-file-modtime file) ;5 mtime
 		      '(0 0)		;6 ctime
-		      -1		;7 size
+		      (ange-ftp-file-size file)	;7 size
 		      (concat (if (stringp dirp) "l" (if dirp "d" "-"))
 			      "?????????") ;8 mode
 		      nil		;9 gid weird
@@ -3551,6 +3555,32 @@ Value is (0 0) if the modification time cannot be determined."
           (or (zerop (car file-mdtm))
               (<= (float-time file-mdtm) (float-time buf-mdtm))))
       (ange-ftp-real-verify-visited-file-modtime buf))))
+
+(defun ange-ftp-file-size (file &optional ascii-mode)
+  "Return the size of remote file FILE. Return -1 if can't get it.
+If ascii-mode is non-nil, return the size with the extra octets that
+need to be inserted, one at the end of each line, to provide correct
+end-of-line semantics for a transfer using TYPE=A. The default is nil,
+so return the size on the remote host exactly. See RFC 3659."
+  (let* ((parsed (ange-ftp-ftp-name file))
+	 (host (nth 0 parsed))
+	 (user (nth 1 parsed))
+	 (name (ange-ftp-quote-string (nth 2 parsed)))
+	 ;; At least one FTP server (wu-ftpd) can return a "226
+	 ;; Transfer complete" before the "213 SIZE".  Let's skip
+	 ;; that.
+	 (ange-ftp-skip-msgs (concat ange-ftp-skip-msgs "\\|^226"))
+	 (res (prog2
+		  (unless ascii-mode
+		    (ange-ftp-set-binary-mode host user))
+		  (ange-ftp-send-cmd host user (list 'quote "size" name))
+		(unless ascii-mode
+		  (ange-ftp-set-ascii-mode host user))))
+	 (line (cdr res)))
+    (if (string-match "^213 \\([0-9]+\\)$" line)
+	(string-to-number (match-string 1 line))
+      -1)))
+
 
 ;;;; ------------------------------------------------------------
 ;;;; File copying support... totally re-written 6/24/92.

@@ -1,3 +1,9 @@
+2009-10-16  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+
+	* net/ange-ftp.el (ange-ftp-send-cmd): Handle `size' like `mdtm'.
+	(ange-ftp-file-size): New function.
+	(ange-ftp-file-attributes): Use it.
+
 2009-10-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-smb.el (tramp-smb-version): New defvar.
