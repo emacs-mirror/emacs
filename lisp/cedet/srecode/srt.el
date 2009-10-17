@@ -25,6 +25,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'eieio)
 (require 'srecode/dictionary)
 (require 'srecode/insert)

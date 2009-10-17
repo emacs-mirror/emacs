@@ -396,7 +396,7 @@ Get it from the toplevel project.  If it doesn't have one, make one."
   ;; caching values, and for locating things more robustly.
   (let ((top (ede-toplevel proj)))
     (when (not (slot-boundp top 'locate-obj))
-      (ede-enable-locate-on-project this))
+      (ede-enable-locate-on-project top))
     (oref top locate-obj)
     ))
 

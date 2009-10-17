@@ -31,6 +31,7 @@
 ;; The output are a series of EIEIO objects which represent the
 ;; templates in a way that could be inserted later.
 
+(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio)
 (require 'eieio-base)

@@ -27,6 +27,7 @@
 ;; This misc target lets the user link in custom makefiles to an EDE
 ;; project.
 
+(eval-when-compile (require 'cl))
 (require 'ede/pmake)
 (require 'ede/proj-comp)
 

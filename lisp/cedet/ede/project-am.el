@@ -392,6 +392,7 @@ Argument COMMAND is the command to use for compiling the target."
 	(cmd nil))
     (unwind-protect
 	(progn
+	  (require 'ede/shell)
 	  (set-buffer tb)
 	  (setq default-directory dd)
 	  (setq cmd (read-from-minibuffer
@@ -399,6 +400,21 @@ Argument COMMAND is the command to use for compiling the target."
 		     (concat (symbol-name project-am-debug-target-function)
 			     " " (ede-target-name obj))))
 	  (funcall project-am-debug-target-function cmd))
+      (kill-buffer tb))))
+
+(defmethod project-run-target ((obj project-am-objectcode))
+  "Run the current project target in comint buffer."
+  (let ((tb (get-buffer-create " *padt*"))
+	(dd (oref obj path))
+	(cmd nil))
+    (unwind-protect
+	(progn
+	  (set-buffer tb)
+	  (setq default-directory dd)
+	  (setq cmd (read-from-minibuffer
+		     "Run (like this): "
+		     (concat (ede-target-name obj))))
+	  (ede-shell-run-something obj cmd))
       (kill-buffer tb))))
 
 (defmethod project-make-dist ((this project-am-target))

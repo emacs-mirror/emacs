@@ -905,7 +905,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	   target (lambda (start end prefix)
 		    (when (/= start (car Hbounds))
 		      (pulse-momentary-highlight-region
-		       start end))
+		       start end semantic-idle-summary-highlight-face))
 		    (semantic-throw-on-input 'symref-highlight)
 		    )
 	   (semantic-tag-start tag)

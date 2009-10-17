@@ -44,6 +44,7 @@
 ;;       1) Insert distribution source variables for targets
 ;;       2) Insert user requested rules
 
+(eval-when-compile (require 'cl))
 (require 'ede/proj)
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)
@@ -205,6 +206,9 @@ MFILENAME is the makefile to generate."
 	(error "Makefile.in is not supported"))
        ((eq (oref this makefile-type) 'Makefile.am)
 	(require 'ede/pconf)
+	;; Basic vars needed:
+	(ede-proj-makefile-automake-insert-subdirs this)
+	(ede-proj-makefile-automake-insert-extradist this)
 	;; Distribution variables
 	(let ((targ (if isdist (oref this targets) mt)))
 	  (ede-compiler-begin-unique
@@ -240,8 +244,11 @@ MFILENAME is the makefile to generate."
   "Add VARNAME into the current Makefile.
 Execute BODY in a location where a value can be placed."
   `(let ((addcr t) (v ,varname))
-     (if (re-search-backward (concat "^" v "\\s-*=") nil t)
+     (if (save-excursion
+	   (goto-char (point-max))
+	   (re-search-backward (concat "^" v "\\s-*=") nil t))
 	 (progn
+	   (goto-char (match-end 0))
 	   (ede-pmake-end-of-variable)
 	   (if (< (current-column) 40)
 	       (if (and (/= (preceding-char) ?=)
@@ -501,6 +508,18 @@ Argument THIS is the target that should insert stuff."
 Argument THIS is the target that should insert stuff."
   (ede-proj-makefile-insert-dist-dependencies this)
   )
+
+(defmethod ede-proj-makefile-automake-insert-subdirs ((this ede-proj-project))
+  "Insert a SUBDIRS variable for Automake."
+  (proj-comp-insert-variable-once "SUBDIRS"
+    (ede-map-subprojects
+     this (lambda (sproj)
+	    (insert " " (ede-subproject-relative-path sproj))
+	    ))))
+
+(defmethod ede-proj-makefile-automake-insert-extradist ((this ede-proj-project))
+  "Insert the EXTRADIST variable entries needed for Automake and EDE."
+  (proj-comp-insert-variable-once "EXTRA_DIST" (insert "Project.ede")))
 
 (defmethod ede-proj-makefile-insert-dist-rules ((this ede-proj-project))
   "Insert distribution rules for THIS in a Makefile, such as CLEAN and DIST."

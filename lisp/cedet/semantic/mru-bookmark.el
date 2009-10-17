@@ -45,6 +45,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-base)
 (require 'ring)

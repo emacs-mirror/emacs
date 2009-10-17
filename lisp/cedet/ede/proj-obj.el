@@ -26,6 +26,7 @@
 ;; Handles a superclass of target types which create object code in
 ;; and EDE Project file.
 
+(eval-when-compile (require 'cl))
 (require 'ede/proj)
 (declare-function ede-pmake-varname "ede/pmake")
 
@@ -46,7 +47,7 @@
 				  ;; fortran or pascal can be added here
 				  ))
    (availablelinkers :initform (ede-g++-linker
-				ede-gcc-linker
+				ede-cc-linker
 				ede-gfortran-linker
 				ede-ld-linker
 				;; Add more linker thingies here.
@@ -108,10 +109,10 @@ file.")
    :uselinker t)
   "Compiler for C sourcecode.")
 
-(defvar ede-gcc-linker
+(defvar ede-cc-linker
   (ede-linker
-   "ede-gcc-linker"
-   :name "gcc"
+   "ede-cc-linker"
+   :name "cc"
    :sourcetype '(ede-source-c)
    :variables  '(("C_LINK" . "$(CC) $(CFLAGS) $(LDFLAGS) -L."))
    :commands '("$(C_LINK) -o $@ $^")

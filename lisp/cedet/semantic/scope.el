@@ -602,28 +602,29 @@ whose tags can be searched when needed, OR it may be a scope object."
       ;;         for recycling later?  Should this become a helpful
       ;;         extra routine?
       (when (and parents (semantic-tag-with-position-p type))
-	;; If TYPE has a position, go there and get the scope.
-	(semantic-go-to-tag type)
+	(save-excursion
+	  ;; If TYPE has a position, go there and get the scope.
+	  (semantic-go-to-tag type)
 
-	;; We need to make a mini scope, and only include the misc bits
-	;; that will help in finding the parent.  We don't really need
-	;; to do any of the stuff related to variables and what-not.
-	(setq tmpscope (semantic-scope-cache "mini"))
-	(let* (;; Step 1:
-	       (scopetypes (semantic-analyze-scoped-types (point)))
-	       (parents (semantic-analyze-scope-nested-tags (point) scopetypes))
-	       ;;(parentinherited (semantic-analyze-scope-lineage-tags parents scopetypes))
-	       (lscope nil)
-	       )
-	  (oset tmpscope scopetypes scopetypes)
-	  (oset tmpscope parents parents)
-	  ;;(oset tmpscope parentinheritance parentinherited)
+	  ;; We need to make a mini scope, and only include the misc bits
+	  ;; that will help in finding the parent.  We don't really need
+	  ;; to do any of the stuff related to variables and what-not.
+	  (setq tmpscope (semantic-scope-cache "mini"))
+	  (let* ( ;; Step 1:
+		 (scopetypes (semantic-analyze-scoped-types (point)))
+		 (parents (semantic-analyze-scope-nested-tags (point) scopetypes))
+		 ;;(parentinherited (semantic-analyze-scope-lineage-tags parents scopetypes))
+		 (lscope nil)
+		 )
+	    (oset tmpscope scopetypes scopetypes)
+	    (oset tmpscope parents parents)
+	    ;;(oset tmpscope parentinheritance parentinherited)
 
-	  (when (or scopetypes parents)
-	    (setq lscope (semantic-analyze-scoped-tags scopetypes tmpscope))
-	    (oset tmpscope scope lscope))
-	  (oset tmpscope fullscope (append scopetypes lscope parents))
-	  ))
+	    (when (or scopetypes parents)
+	      (setq lscope (semantic-analyze-scoped-tags scopetypes tmpscope))
+	      (oset tmpscope scope lscope))
+	    (oset tmpscope fullscope (append scopetypes lscope parents))
+	    )))
       ;; END creating tmpscope
 
       ;; Look up each parent one at a time.

@@ -42,21 +42,22 @@ don't do it.  A value of nil means to just do it.")
 
 (defmethod ede-proj-configure-test-required-file ((this ede-proj-project) file)
   "For project THIS, test that the file FILE exists, or create it."
-  (when (not (ede-expand-filename (ede-toplevel this) file))
-    (save-excursion
-      (find-file (ede-expand-filename (ede-toplevel this) file t))
-      (cond ((string= file "AUTHORS")
-	     (insert (user-full-name) " <" (user-login-name) ">"))
-	    ((string= file "NEWS")
-	     (insert "NEWS file for " (ede-name this)))
-	    (t (insert "\n")))
-      (save-buffer)
-      (when
-	  (and (eq ede-pconf-create-file-query 'ask)
-	       (not (eq ede-pconf-create-file-query 'never))
-	       (not (y-or-n-p
-		     (format "I had to create the %s file for you.  Ok? " file)))
-	       (error "Quit"))))))
+  (let ((f (ede-expand-filename (ede-toplevel this) file t)))
+    (when (not (file-exists-p f))
+      (save-excursion
+	(find-file f)
+	(cond ((string= file "AUTHORS")
+	       (insert (user-full-name) " <" (user-login-name) ">"))
+	      ((string= file "NEWS")
+	       (insert "NEWS file for " (ede-name this)))
+	      (t (insert "\n")))
+	(save-buffer)
+	(when
+	    (and (eq ede-pconf-create-file-query 'ask)
+		 (not (eq ede-pconf-create-file-query 'never))
+		 (not (y-or-n-p
+		       (format "I had to create the %s file for you.  Ok? " file)))
+		 (error "Quit")))))))
 
 
 (defmethod ede-proj-configure-synchronize ((this ede-proj-project))
@@ -100,6 +101,7 @@ don't do it.  A value of nil means to just do it.")
     ;; Now save
     (save-buffer)
     (setq postcmd "autoreconf -i;")
+
     ;; Verify a bunch of files that are required by automake.
     (ede-proj-configure-test-required-file this "AUTHORS")
     (ede-proj-configure-test-required-file this "NEWS")

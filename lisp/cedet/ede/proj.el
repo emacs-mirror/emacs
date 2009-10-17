@@ -498,6 +498,10 @@ Optional argument COMMAND is the s the alternate command to use."
   "Run the current project target OBJ in a debugger."
   (error "Debug-target not supported by %s" (object-name obj)))
 
+(defmethod project-run-target ((obj ede-proj-target))
+  "Run the current project target OBJ."
+  (error "Run-target not supported by %s" (object-name obj)))
+
 (defmethod ede-proj-makefile-target-name ((this ede-proj-target))
   "Return the name of the main target for THIS target."
   (ede-name this))

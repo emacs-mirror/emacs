@@ -76,7 +76,7 @@ DIR is the directory to search from."
       (set-buffer buff)
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
-      (call-process "head" nil buff nil "-n" "3" "Makefile")
+      (insert-file-contents "Makefile" nil 0 512)
       (goto-char (point-min))
       (let (major minor sub)
 	(re-search-forward "^VERSION *= *\\([0-9.]+\\)")
@@ -104,8 +104,9 @@ ROOTPROJ is nil, since there is only one project."
   (or (ede-linux-file-existing dir)
       ;; Doesn't already exist, so lets make one.
       (ede-linux-project "Linux"
-			 :name (concat "Linux" (ede-linux-version dir))
-			 :directory dir
+			 :name "Linux"
+			 :version (ede-linux-version dir)
+			 :directory (file-name-as-directory dir)
 			 :file (expand-file-name "scripts/ver_linux"
 						 dir))
       (ede-add-project-to-global-list this)

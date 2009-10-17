@@ -25,8 +25,11 @@
 ;;
 ;; Handle building programs from object files in and EDE Project file.
 
+(eval-when-compile (require 'cl))
 (require 'ede/pmake)
 (require 'ede/proj-obj)
+
+(declare-function ede-shell-run-something "ede/shell")
 
 ;;; Code:
 (defclass ede-proj-target-makefile-program
@@ -107,6 +110,26 @@ Note: Not currently used.  This bug needs to be fixed.")
 	  (funcall ede-debug-program-function cmd))
       (kill-buffer tb))))
 
+(defmethod project-run-target ((obj ede-proj-target-makefile-program) &optional command)
+  "Run a program target OBJ.
+Optional COMMAND is the command to run in place of asking the user."
+  (require 'ede/shell)
+  (let ((tb (get-buffer-create " *padt*"))
+	(dd (if (not (string= (oref obj path) ""))
+		(oref obj path)
+	      default-directory))
+	(cmd nil))
+    (unwind-protect
+	(progn
+	  (set-buffer tb)
+	  (setq default-directory dd)
+	  (setq cmd (or command
+			(read-from-minibuffer
+			 "Run (like this): "
+			 (concat "./" (ede-target-name obj)))))
+	  (ede-shell-run-something obj cmd)
+	  )
+      (kill-buffer tb))))
 
 (provide 'ede/proj-prog)
 

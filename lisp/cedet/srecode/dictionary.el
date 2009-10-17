@@ -28,6 +28,7 @@
 
 ;;; CLASSES
 
+(eval-when-compile (require 'cl))
 (require 'eieio)
 (require 'srecode)
 (require 'srecode/table)

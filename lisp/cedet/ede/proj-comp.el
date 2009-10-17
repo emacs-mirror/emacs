@@ -44,6 +44,7 @@
 ;; To write a method that inserts a variable or rule for a compiler
 ;; based object, wrap the body of your call in `ede-compiler-only-once'
 
+(eval-when-compile (require 'cl))
 (require 'ede)				;source object
 (require 'ede/autoconf-edit)
 
