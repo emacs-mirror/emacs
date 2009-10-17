@@ -242,7 +242,7 @@ spawned for speed.
 Doubled words are not detected in a large region, because Ispell
 does not check for them.
 
-If `flyspell-large-region' is nil, all regions are treated as small."
+If this variable is nil, all regions are treated as small."
   :group 'flyspell
   :version "21.1"
   :type '(choice number (const :tag "All small" nil)))
@@ -1011,7 +1011,10 @@ Mostly we check word delimiters."
 ;;*    flyspell-word ...                                                */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-word (&optional following)
-  "Spell check a word."
+  "Spell check a word.
+If the optional argument FOLLOWING, or, when called interactively
+`ispell-following-word', is non-nil, checks the following (rather
+than preceding) word when the cursor is not over a word."
   (interactive (list ispell-following-word))
   (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
   (save-excursion
@@ -1252,13 +1255,10 @@ this function changes the last char of the `ispell-casechars' string."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-get-word (&optional following extra-otherchars)
   "Return the word for spell-checking according to Ispell syntax.
-If optional argument FOLLOWING is non-nil or if `flyspell-following-word'
-is non-nil when called interactively, then the following word
-\(rather than preceding\) is checked when the cursor is not over a word.
-Optional second argument contains otherchars that can be included in word
-many times.
-
-Word syntax described by `flyspell-dictionary-alist' (which see)."
+Optional argument FOLLOWING non-nil means to get the following
+\(rather than preceding) word when the cursor is not over a word.
+Optional second argument EXTRA-OTHERCHARS is a regexp of characters
+that may be included as part of a word (see `ispell-dictionary-alist')."
   (let* ((flyspell-casechars (flyspell-get-casechars))
 	 (flyspell-not-casechars (flyspell-get-not-casechars))
 	 (ispell-otherchars (ispell-get-otherchars))
@@ -1560,7 +1560,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	      (flyspell-delete-region-overlays beg end)
 	      (flyspell-check-region-doublons beg end))
 	    (flyspell-external-point-words))
-	(error "Can't check region...")))))
+	(error "Can't check region")))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-region ...                                              */
@@ -1979,7 +1979,7 @@ Sets `flyspell-auto-correct-previous-pos' to nil"
 ;;*    flyspell-auto-correct-previous-word ...                          */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-auto-correct-previous-word (position)
-  "Auto correct the first mispelled word that occurs before point.
+  "Auto correct the first misspelled word that occurs before point.
 But don't look beyond what's visible on the screen."
   (interactive "d")
 

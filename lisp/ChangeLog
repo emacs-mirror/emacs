@@ -1,3 +1,9 @@
+2009-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region, flyspell-word)
+	(flyspell-get-word, flyspell-large-region)
+	(flyspell-auto-correct-previous-word): Doc/error message fixes.
+
 2009-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (ELCFILES): Add ede/shell.
