@@ -1289,7 +1289,8 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 (defun ispell-get-decoded-string (n)
   (let* ((slot (or
 		(assoc ispell-current-dictionary ispell-local-dictionary-alist)
-		(assoc ispell-current-dictionary ispell-dictionary-alist)))
+		(assoc ispell-current-dictionary ispell-dictionary-alist)
+		(error "No match for the current dictionary")))
 	 (str (nth n slot)))
     (when (and (> (length str) 0)
 	       (not (multibyte-string-p str)))
