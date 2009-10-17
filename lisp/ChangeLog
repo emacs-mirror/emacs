@@ -1,3 +1,20 @@
+2009-10-17  Jari Aalto  <jari.aalto@cante.net>
+
+	* textmodes/ispell.el (ispell-get-decoded-string): Give an error
+	if no match is found for the current dictionary.  (Bug#4578)
+
+	* textmodes/flyspell.el (flyspell-get-word): Make `following' argument
+	optional, since that is how it is documented, and this is often called
+	with a nil argument.  (Bug#4577)
+	(flyspell-external-point-words, flyspell-auto-correct-word)
+	(flyspell-correct-word-before-point, flyspell-word-search-forward)
+	(flyspell-word-search-backward): Remove nil argument in calls to
+	flyspell-get-word, since it is not needed now.
+
+2009-10-17  Ulrich Mueller  <ulm@gentoo.org>
+
+	* play/doctor.el (doctor-adverbp): Exclude some nouns.	(Bug#4565)
+
 2009-10-16  Glenn Morris  <rgm@gnu.org>
 
 	* net/rcirc.el (rcirc-authenticate): Simplify previous change.
