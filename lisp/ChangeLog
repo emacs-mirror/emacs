@@ -1,5 +1,7 @@
 2009-10-17  Glenn Morris  <rgm@gnu.org>
 
+	* gs.el (gs-load-image): Replace obsolete forms of sit-for, sleep-for.
+
 	* dired.el (dired-ls-F-marks-symlinks, dired-keep-marker-rename)
 	(dired-keep-marker-copy, dired-keep-marker-hardlink)
 	(dired-keep-marker-symlink, dired-dwim-target)
