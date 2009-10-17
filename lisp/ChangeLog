@@ -1,3 +1,8 @@
+2009-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (select-safe-coding-system): If the file
+	has a coding cookie, use it regardless of any other setting (bug#4712).
+
 2009-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* cedet/semantic/grammar.el (semantic-grammar--lex-delim-spec):

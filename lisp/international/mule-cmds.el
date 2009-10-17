@@ -889,13 +889,12 @@ It is highly recommended to fix it before writing to a file."
 		  default-coding-system))
 
     (if (and auto-cs (not no-other-defaults))
-	;; If the file has a coding cookie, try to use it before anything
-	;; else (i.e. before default-coding-system which will typically come
-	;; from file-coding-system-alist).
+	;; If the file has a coding cookie, use it regardless of any
+	;; other setting.
 	(let ((base (coding-system-base auto-cs)))
-	  (or (memq base '(nil undecided))
-	      (rassq base default-coding-system)
-	      (push (cons auto-cs base) default-coding-system))))
+	  (unless (memq base '(nil undecided))
+            (setq default-coding-system (list (cons auto-cs base)))
+            (setq no-other-defaults t))))
 
     (unless no-other-defaults
       ;; If buffer-file-coding-system is not nil nor undecided, append it
