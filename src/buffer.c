@@ -877,7 +877,8 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
 
 DEFUN ("buffer-name", Fbuffer_name, Sbuffer_name, 0, 1, 0,
        doc: /* Return the name of BUFFER, as a string.
-With no argument or nil as argument, return the name of the current buffer.  */)
+BUFFER defaults to the current buffer.
+Return nil if BUFFER has been killed.  */)
      (buffer)
      register Lisp_Object buffer;
 {

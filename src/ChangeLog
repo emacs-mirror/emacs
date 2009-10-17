@@ -1,3 +1,7 @@
+2009-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fbuffer_name): Doc fix.  (Bug#4728)
+
 2009-10-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.h (NS_HAVE_NSINTEGER): Back out and augment with CGFloat,
