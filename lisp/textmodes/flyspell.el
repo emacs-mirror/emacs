@@ -986,7 +986,7 @@ Mostly we check word delimiters."
 	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-backward word bound t)))
-	(let ((lw (flyspell-get-word '())))
+	(let ((lw (flyspell-get-word)))
 	  (if (and (consp lw) (string-equal (car lw) word))
 	      (setq r p)
 	    (goto-char p))))
@@ -1001,7 +1001,7 @@ Mostly we check word delimiters."
 	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-forward word bound t)))
-	(let ((lw (flyspell-get-word '())))
+	(let ((lw (flyspell-get-word)))
 	  (if (and (consp lw) (string-equal (car lw) word))
 	      (setq r p)
 	    (goto-char (1+ p)))))
@@ -1250,7 +1250,7 @@ this function changes the last char of the `ispell-casechars' string."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-get-word ...                                            */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-get-word (following &optional extra-otherchars)
+(defun flyspell-get-word (&optional following extra-otherchars)
   "Return the word for spell-checking according to Ispell syntax.
 If optional argument FOLLOWING is non-nil or if `flyspell-following-word'
 is non-nil when called interactively, then the following word
@@ -1394,7 +1394,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			      ;; Move back into the match
 			      ;; so flyspell-get-word will find it.
 			      (forward-char -1)
-			      (flyspell-get-word nil)))
+			      (flyspell-get-word)))
 			   (found (car found-list))
 			   (found-length (length found))
 			   (misspell-length (length word)))
@@ -1887,7 +1887,7 @@ This command proposes various successive corrections for the current word."
 	  (flyspell-ajust-cursor-point pos (point) old-max)
 	  (setq flyspell-auto-correct-pos (point)))
       ;; fetch the word to be checked
-      (let ((word (flyspell-get-word nil)))
+      (let ((word (flyspell-get-word)))
 	(if (consp word)
 	    (let ((start (car (cdr word)))
 		  (end (car (cdr (cdr word))))
@@ -2049,7 +2049,7 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
   (flyspell-accept-buffer-local-defs)
   (or opoint (setq opoint (point)))
   (let ((cursor-location (point))
-	(word (flyspell-get-word nil)))
+	(word (flyspell-get-word)))
     (if (consp word)
 	(let ((start (car (cdr word)))
 	      (end (car (cdr (cdr word))))
