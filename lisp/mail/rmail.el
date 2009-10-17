@@ -4176,6 +4176,9 @@ encoded string (and the same mask) will decode the string."
 (defun rmail-write-region-annotate (start end)
   (when (and (null start) (rmail-buffers-swapped-p))
     (set-buffer rmail-view-buffer)
+    ;; Prevent viewing different messages from messing up the coding. (Bug#4623)
+    ;; FIXME is there a better solution?
+    (set (make-local-variable 'coding-system-for-write) 'no-conversion)
     (widen)
     nil))
 
