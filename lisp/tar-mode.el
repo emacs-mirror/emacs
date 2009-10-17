@@ -171,8 +171,9 @@ This information is useful, but it takes screen space away from file names."
        ;; state correctly: the raw data is expected to be always larger than
        ;; the summary.
        (progn
-	 (assert (eq tar-data-swapped
-		     (> (buffer-size tar-data-buffer) (buffer-size))))
+	 (assert (or (= (buffer-size tar-data-buffer) (buffer-size))
+                     (eq tar-data-swapped
+                         (> (buffer-size tar-data-buffer) (buffer-size)))))
 	 tar-data-swapped)))
 
 (defun tar-swap-data ()
@@ -312,8 +313,12 @@ write-date, checksum, link-type, and link-name."
            link-p
            linkname
            uname-valid-p
-           (and uname-valid-p (substring string tar-uname-offset uname-end))
-           (and uname-valid-p (substring string tar-gname-offset gname-end))
+           (when uname-valid-p
+             (decode-coding-string
+              (substring string tar-uname-offset uname-end) coding))
+           (when uname-valid-p
+             (decode-coding-string
+              (substring string tar-gname-offset gname-end) coding))
            (tar-parse-octal-integer string tar-dmaj-offset tar-dmin-offset)
            (tar-parse-octal-integer string tar-dmin-offset tar-prefix-offset)
            ))))))
@@ -1013,7 +1018,10 @@ for this to be permanent."
         (read-string "New UID string: " (tar-header-uname descriptor))))))
   (cond ((stringp new-uid)
 	 (setf (tar-header-uname (tar-current-descriptor)) new-uid)
-	 (tar-alter-one-field tar-uname-offset (concat new-uid "\000")))
+	 (tar-alter-one-field tar-uname-offset
+                              (concat (encode-coding-string
+                                       new-uid tar-file-name-coding-system)
+                                      "\000")))
 	(t
 	 (setf (tar-header-uid (tar-current-descriptor)) new-uid)
 	 (tar-alter-one-field tar-uid-offset
@@ -1039,7 +1047,9 @@ for this to be permanent."
   (cond ((stringp new-gid)
 	 (setf (tar-header-gname (tar-current-descriptor)) new-gid)
 	 (tar-alter-one-field tar-gname-offset
-	   (concat new-gid "\000")))
+                              (concat (encode-coding-string
+                                       new-gid tar-file-name-coding-system)
+                                      "\000")))
 	(t
 	 (setf (tar-header-gid (tar-current-descriptor)) new-gid)
 	 (tar-alter-one-field tar-gid-offset

@@ -1,3 +1,10 @@
+2009-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-data-swapped-p): Make the assertion a bit more
+	permissive for when the buffer is empty.
+	(tar-header-block-tokenize): Decode the username and groupname.
+	(tar-chown-entry, tar-chgrp-entry): Encode the names (bug#4730).
+
 2009-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/srecode/srt.el:
@@ -13,8 +20,8 @@
 	(semantic-analyze-scoped-inherited-tag-map): Wrap calculation of
 	tmpscope so that the regular scope will continue to work.
 
-	* cedet/semantic/idle.el (semantic-idle-tag-highlight): Use
-	semantic-idle-summary-highlight-face as the highlighting.
+	* cedet/semantic/idle.el (semantic-idle-tag-highlight):
+	Use semantic-idle-summary-highlight-face as the highlighting.
 
 	* emacs-lisp/eieio-base.el (eieio-persistent-save): If buffer
 	contains multibyte characters, choose first applicable coding
@@ -40,12 +47,11 @@
 
 	* cedet/ede/proj-prog.el (project-run-target): New method.
 
-	* cedet/ede/proj-obj.el (ede-cc-linker): Rename from
-	ede-gcc-linker.
+	* cedet/ede/proj-obj.el (ede-cc-linker): Rename from ede-gcc-linker.
 	(ede-g++-linker): Change Change link lines.
 
-	* cedet/ede/pmake.el (ede-pmake-insert-variable-shared): When
-	searching for old variables, go to the end of the buffer and
+	* cedet/ede/pmake.el (ede-pmake-insert-variable-shared):
+	When searching for old variables, go to the end of the buffer and
 	search backward from there.
 	(ede-proj-makefile-automake-insert-subdirs)
 	(ede-proj-makefile-automake-insert-extradist): New methods.
@@ -56,16 +62,16 @@
 	check that it exists.
 
 	* cedet/ede/linux.el (ede-linux-version): Don't call "head".
-	(ede-linux-load): Wrap dir in file-name-as-directory.  Set
-	:version slot.
+	(ede-linux-load): Wrap dir in file-name-as-directory.
+	Set :version slot.
 
 	* cedet/ede/files.el (ede-get-locator-object): When enabling
 	locate, do so on "top".
 
 	* cedet/ede/emacs.el (ede-emacs-file-existing): Wrap "dir" in
 	file-name-as-directory during compare.
-	(ede-emacs-version): Return Emacs/XEmacs differentiator.  Get
-	version number from different places.  Don't call egrep.
+	(ede-emacs-version): Return Emacs/XEmacs differentiator.
+	Get version number from different places.  Don't call egrep.
 	(ede-emacs-load): Set :version slot.  Call file-name-as-directory
 	to set the directory.
 
