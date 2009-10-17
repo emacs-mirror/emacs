@@ -1,7 +1,7 @@
 ;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Maintainer: FSF
@@ -495,7 +495,7 @@ What happens depends on the number of mouse clicks:-
   "Swallow intervening mouse events so we only get the final click-count.
 Signal an error if the final event isn't the same type as the first one."
   (let ((initial-event-type (event-basic-type event)))
-    (while (null (sit-for 0 double-click-time 'nodisplay))
+    (while (null (sit-for (/ double-click-time 1000.0) 'nodisplay))
       (setq event (read-event)))
     (or (eq initial-event-type (event-basic-type event))
 	(error "")))

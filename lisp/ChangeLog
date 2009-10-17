@@ -1,5 +1,6 @@
 2009-10-17  Glenn Morris  <rgm@gnu.org>
 
+	* foldout.el (foldout-mouse-swallow-events):
 	* gs.el (gs-load-image): Replace obsolete forms of sit-for, sleep-for.
 
 	* dired.el (dired-ls-F-marks-symlinks, dired-keep-marker-rename)
