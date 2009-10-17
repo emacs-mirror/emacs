@@ -204,7 +204,8 @@ This function returns ARGS minus the arguments that have been processed."
 ;; of grey.
 
 (defvar x-colors
-  '("gray100" "gray99" "gray98" "gray97" "gray96" "gray95" "gray94" "gray93" "gray92"
+  (purecopy 
+   '("gray100" "gray99" "gray98" "gray97" "gray96" "gray95" "gray94" "gray93" "gray92"
     "gray91" "gray90" "gray89" "gray88" "gray87" "gray86" "gray85" "gray84" "gray83"
     "gray82" "gray81" "gray80" "gray79" "gray78" "gray77" "gray76" "gray75" "gray74"
     "gray73" "gray72" "gray71" "gray70" "gray69" "gray68" "gray67" "gray66" "gray65"
@@ -286,7 +287,7 @@ This function returns ARGS minus the arguments that have been processed."
     "dark magenta" "dark violet" "medium blue" "blue" "deep sky blue"
     "cyan" "medium spring green" "spring green" "green" "lawn green" "chartreuse"
     "yellow" "gold" "orange" "dark orange" "orange red" "red" "white" "white smoke"
-    "gainsboro" "light grey" "gray" "dark grey" "dim gray" "black" )
+    "gainsboro" "light grey" "gray" "dark grey" "dim gray" "black" ))
   "List of basic colors available on color displays.
 For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by

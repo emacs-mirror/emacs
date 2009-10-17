@@ -1,3 +1,7 @@
+2009-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1310000.
+
 2009-10-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (Fbuffer_name): Doc fix.  (Bug#4728)

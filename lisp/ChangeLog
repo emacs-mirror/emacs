@@ -1,3 +1,7 @@
+2009-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/common-win.el (x-colors): Purecopy it.
+
 2009-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-data-swapped-p): Make the assertion a bit more
