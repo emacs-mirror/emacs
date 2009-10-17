@@ -87,7 +87,6 @@ If nil, `dired-listing-switches' is used.")
 (defvar dired-touch-program "touch"
   "Name of touch command (usually `touch').")
 
-;;;###autoload
 (defcustom dired-ls-F-marks-symlinks nil
   "Informs Dired about how `ls -lF' marks symbolic links.
 Set this to t if `ls' (or whatever program is specified by
@@ -114,7 +113,6 @@ A value of t means move to first file."
 		 regexp)
   :group 'dired)
 
-;;;###autoload
 (defcustom dired-keep-marker-rename t
   ;; Use t as default so that moved files "take their markers with them".
   "Controls marking of renamed files.
@@ -125,7 +123,6 @@ are afterward marked with that character."
 		 (character :tag "Mark"))
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-keep-marker-copy ?C
   "Controls marking of copied files.
 If t, copied files are marked if and as the corresponding original files were.
@@ -134,7 +131,6 @@ If a character, copied files are unconditionally marked with that character."
 		 (character :tag "Mark"))
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-keep-marker-hardlink ?H
   "Controls marking of newly made hard links.
 If t, they are marked if and as the files linked to were marked.
@@ -143,7 +139,6 @@ If a character, new links are unconditionally marked with that character."
 		 (character :tag "Mark"))
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-keep-marker-symlink ?Y
   "Controls marking of newly made symbolic links.
 If t, they are marked if and as the files linked to were marked.
@@ -152,7 +147,6 @@ If a character, new links are unconditionally marked with that character."
 		 (character :tag "Mark"))
   :group 'dired-mark)
 
-;;;###autoload
 (defcustom dired-dwim-target nil
   "If non-nil, Dired tries to guess a default target directory.
 This means: if there is a dired buffer displayed in the next window,
@@ -162,7 +156,6 @@ The target is used in the prompt for file copy, rename etc."
   :type 'boolean
   :group 'dired)
 
-;;;###autoload
 (defcustom dired-copy-preserve-time t
   "If non-nil, Dired preserves the last-modified time in a file copy.
 \(This works on only some systems.)"

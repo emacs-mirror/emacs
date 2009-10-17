@@ -1,5 +1,10 @@
 2009-10-17  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-ls-F-marks-symlinks, dired-keep-marker-rename)
+	(dired-keep-marker-copy, dired-keep-marker-hardlink)
+	(dired-keep-marker-symlink, dired-dwim-target)
+	(dired-copy-preserve-time): Do not autoload these defcustoms.
+
 	* mail/rmail.el (rmail-write-region-annotate): Prevent viewing different
 	messages from messing up the file coding.  (Bug#4623)
 
