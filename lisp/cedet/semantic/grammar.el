@@ -690,7 +690,7 @@ The symbols in the list are local variables in
                  (car delim-spec) (symbolp (car delim-spec))
                  (cadr delim-spec) (symbolp (cadr delim-spec)))
             delim-spec
-          (error)))
+          (error "Invalid delimiter")))
     (error
      (error "Invalid delimiters specification %s in block token %s"
             (cdr block-spec) (car block-spec)))))

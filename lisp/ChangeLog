@@ -1,5 +1,8 @@
 2009-10-17  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/grammar.el (semantic-grammar--lex-delim-spec):
+	All errors should have messages.
+
 	* foldout.el (foldout-mouse-swallow-events):
 	* gs.el (gs-load-image): Replace obsolete forms of sit-for, sleep-for.
 
