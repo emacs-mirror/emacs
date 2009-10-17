@@ -331,6 +331,7 @@ ELCFILES = \
 	$(lisp)/cedet/ede/proj-shared.elc \
 	$(lisp)/cedet/ede/proj.elc \
 	$(lisp)/cedet/ede/project-am.elc \
+	$(lisp)/cedet/ede/shell.elc \
 	$(lisp)/cedet/ede/simple.elc \
 	$(lisp)/cedet/ede/source.elc \
 	$(lisp)/cedet/ede/speedbar.elc \

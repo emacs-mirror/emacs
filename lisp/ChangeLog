@@ -1,3 +1,7 @@
+2009-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (ELCFILES): Add ede/shell.
+
 2009-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/common-win.el (x-colors): Purecopy it.
