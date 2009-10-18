@@ -1,3 +1,10 @@
+2009-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (compile-last): Ensure GREP_OPTIONS is null before calling
+	grep, so that binary files (eg international/uni-bidi.el) can match.
+	Remove test for "UnicodeData" files, since it is hopefully unnecesary
+	now, and in any case the file header format has changed.
+
 2009-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-large-region, flyspell-word)

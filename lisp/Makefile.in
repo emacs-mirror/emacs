@@ -1505,15 +1505,13 @@ compile-always: doit
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
 ## In case any files are missing from ELCFILES.
-## Why is the UnicodeData check needed, when these files are no-byte-compile?
 compile-last:
 	@wd=$(lisp); $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
 	  test -f $$el || continue; \
 	  test -f $${el}c && continue; \
-	  grep 'no-byte-compile: t' $$el > /dev/null && continue; \
-	  head -n 1 $$el | grep '^;; Automatically generated from UnicodeData.txt.' > /dev/null && continue; \
+	  GREP_OPTIONS= grep 'no-byte-compile: t' $$el > /dev/null && continue; \
 	  sel=`echo $$el | sed "s|^$(lisp)|\\$$(lisp)|"`; \
 	  echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
 	  echo "Compiling $$el"; \
