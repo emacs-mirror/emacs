@@ -6,7 +6,7 @@
 
 	* Makefile.in (compile-last): Ensure GREP_OPTIONS is null before calling
 	grep, so that binary files (eg international/uni-bidi.el) can match.
-	Remove test for "UnicodeData" files, since it is hopefully unnecesary
+	Remove test for "UnicodeData" files, since it is hopefully unnecessary
 	now, and in any case the file header format has changed.
 
 2009-10-17  Glenn Morris  <rgm@gnu.org>
