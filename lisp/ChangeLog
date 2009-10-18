@@ -1,3 +1,8 @@
+2009-10-18  Kevin Ryde  <user42@zip.com.au>
+
+	* ibuffer.el (ibuffer-confirm-operation-on): Correction to error
+	re-throw, `err' is a pair not a list so can't use apply (Bug#4740).
+
 2009-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (read-file-name): Check for repeat before putting
