@@ -62,6 +62,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Return the character code for raw 8-bit byte BYTE.  */
 #define BYTE8_TO_CHAR(byte) ((byte) + 0x3FFF00)
 
+#define UNIBYTE_TO_CHAR(byte) \
+  (ASCII_BYTE_P (byte) ? (byte) : BYTE8_TO_CHAR (byte))
+
 /* Return the raw 8-bit byte for character C.  */
 #define CHAR_TO_BYTE8(c)	\
   (CHAR_BYTE8_P (c)		\
@@ -79,14 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that corresponds to a raw 8-bit byte.  */
 #define CHAR_BYTE8_HEAD_P(byte) ((byte) == 0xC0 || (byte) == 0xC1)
 
-/* Mapping table from unibyte chars to multibyte chars.  */
-extern int unibyte_to_multibyte_table[256];
-
-/* Convert the unibyte character C to the corresponding multibyte
-   character.  If C can't be converted, return C.  */
-#define unibyte_char_to_multibyte(c)	\
-  ((c) < 256 ? unibyte_to_multibyte_table[(c)] : (c))
-
 /* If C is not ASCII, make it unibyte. */
 #define MAKE_CHAR_UNIBYTE(c)	\
   do {				\
@@ -97,7 +92,7 @@ extern int unibyte_to_multibyte_table[256];
 
 /* If C is not ASCII, make it multibyte.  Assumes C < 256.  */
 #define MAKE_CHAR_MULTIBYTE(c) \
-  (eassert ((c) >= 0 && (c) < 256), (c) = unibyte_to_multibyte_table[(c)])
+  (eassert ((c) >= 0 && (c) < 256), (c) = UNIBYTE_TO_CHAR (c))
 
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5

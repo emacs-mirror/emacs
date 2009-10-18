@@ -2759,7 +2759,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      /* Note that we don't have to increment POS.  */
 	      c = SREF (newtext, pos_byte++);
 	      if (buf_multibyte)
-		c = unibyte_char_to_multibyte (c);
+		MAKE_CHAR_MULTIBYTE (c);
 	    }
 
 	  /* Either set ADD_STUFF and ADD_LEN to the text to put in SUBSTED,
@@ -2781,7 +2781,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		{
 		  c = SREF (newtext, pos_byte++);
 		  if (buf_multibyte)
-		    c = unibyte_char_to_multibyte (c);
+		    MAKE_CHAR_MULTIBYTE (c);
 		}
 
 	      if (c == '&')

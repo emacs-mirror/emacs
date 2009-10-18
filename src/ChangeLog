@@ -1,5 +1,27 @@
 2009-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Remove leftover table unibyte_to_multibyte_table.
+	* character.c (unibyte_to_multibyte_table): Remove.
+	(Funibyte_char_to_multibyte): Use MAKE_CHAR_MULTIBYTE.
+	* charset.c (init_charset_once): Don't init unibyte_to_multibyte_table.
+	* character.h (UNIBYTE_TO_CHAR): New macro.
+	(MAKE_CHAR_MULTIBYTE): Use it.
+	(unibyte_to_multibyte_table, unibyte_char_to_multibyte): Remove.
+	* xdisp.c (get_next_display_element): USE ASCII_CHAR_P.
+	(message_dolog, set_message_1):
+	* search.c (Freplace_match):
+	* editfns.c (Fcompare_buffer_substrings):
+	* fns.c (Fcompare_strings): Use MAKE_CHAR_MULTIBYTE.
+	(concat):
+	* insdel.c (copy_text, count_size_as_multibyte):
+	Use ASCII_CHAR_P and BYTE8_TO_CHAR.
+	* term.c (produce_glyphs):
+	* syntax.c (skip_chars): Use BYTE8_TO_CHAR.
+	* regex.c (RE_CHAR_TO_MULTIBYTE):
+	* cmds.c (internal_self_insert):
+	* buffer.h (FETCH_CHAR_AS_MULTIBYTE): Use UNIBYTE_TO_CHAR.
+
+
 	* cmds.c (internal_self_insert): `c' is already in "multibyte" form.
 
 2009-10-17  Dan Nicolaescu  <dann@ics.uci.edu>

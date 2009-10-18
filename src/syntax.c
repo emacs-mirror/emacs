@@ -1555,14 +1555,14 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 	  bzero (fastmap + 0200, 0200);
 	  /* We are sure that this loop stops.  */
 	  for (i = 0200; ! fastmap2[i]; i++);
-	  c = unibyte_char_to_multibyte (i);
+	  c = BYTE8_TO_CHAR (i);
 	  fastmap[CHAR_LEADING_CODE (c)] = 1;
 	  range_start_byte = i;
 	  range_start_char = c;
 	  char_ranges = (int *) alloca (sizeof (int) * 128 * 2);
 	  for (i = 129; i < 0400; i++)
 	    {
-	      c = unibyte_char_to_multibyte (i);
+	      c = BYTE8_TO_CHAR (i);
 	      fastmap[CHAR_LEADING_CODE (c)] = 1;
 	      if (i - range_start_byte != c - range_start_char)
 		{

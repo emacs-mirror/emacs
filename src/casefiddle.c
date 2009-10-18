@@ -90,7 +90,7 @@ casify_object (flag, obj)
       for (i = 0; i < size; i++)
 	{
 	  c = SREF (obj, i);
-	      MAKE_CHAR_MULTIBYTE (c);
+	  MAKE_CHAR_MULTIBYTE (c);
 	  c1 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
 	    c = DOWNCASE (c);

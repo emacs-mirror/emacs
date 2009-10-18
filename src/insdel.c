@@ -666,9 +666,9 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
 	{
 	  int c = *from_addr++;
 
-	  if (c >= 0200)
+	  if (!ASCII_CHAR_P (c))
 	    {
-	      c = unibyte_char_to_multibyte (c);
+	      c = BYTE8_TO_CHAR (c);
 	      to_addr += CHAR_STRING (c, to_addr);
 	      nbytes--;
 	    }
@@ -694,11 +694,11 @@ count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
     {
       unsigned int c = *ptr++;
 
-      if (c < 0200)
+      if (ASCII_CHAR_P (c))
 	outgoing_nbytes++;
       else
 	{
-	  c = unibyte_char_to_multibyte (c);
+	  c = BYTE8_TO_CHAR (c);
 	  outgoing_nbytes += CHAR_BYTES (c);
 	}
     }

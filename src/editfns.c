@@ -2698,7 +2698,7 @@ determines whether case is significant or ignored.  */)
       else
 	{
 	  c1 = BUF_FETCH_BYTE (bp1, i1);
-	  c1 = unibyte_char_to_multibyte (c1);
+	  MAKE_CHAR_MULTIBYTE (c1);
 	  i1++;
 	}
 
@@ -2711,7 +2711,7 @@ determines whether case is significant or ignored.  */)
       else
 	{
 	  c2 = BUF_FETCH_BYTE (bp2, i2);
-	  c2 = unibyte_char_to_multibyte (c2);
+	  MAKE_CHAR_MULTIBYTE (c2);
 	  i2++;
 	}
 

@@ -86,10 +86,6 @@ Lisp_Object Vscript_representative_chars;
 static Lisp_Object Qchar_script_table;
 
 Lisp_Object Vunicode_category_table;
-
-/* Mapping table from unibyte chars to multibyte chars.  */
-int unibyte_to_multibyte_table[256];
-
 
 
 /* If character code C has modifier masks, reflect them to the
@@ -325,8 +321,7 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
   c = XFASTINT (ch);
   if (c >= 0x100)
     error ("Not a unibyte character: %d", c);
-  if (c >= 0x80)
-    c = BYTE8_TO_CHAR (c);
+  MAKE_CHAR_MULTIBYTE (c);
   return make_number (c);
 }
 

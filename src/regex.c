@@ -151,7 +151,7 @@
 # define RE_STRING_CHAR_AND_LENGTH(p, s, len, multibyte) \
   (multibyte ? (STRING_CHAR_AND_LENGTH (p, s, len)) : ((len) = 1, *(p)))
 
-# define RE_CHAR_TO_MULTIBYTE(c) unibyte_to_multibyte_table[(c)]
+# define RE_CHAR_TO_MULTIBYTE(c) UNIBYTE_TO_CHAR (c)
 
 # define RE_CHAR_TO_UNIBYTE(c) CHAR_TO_BYTE_SAFE (c)
 

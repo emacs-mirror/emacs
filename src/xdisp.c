@@ -5716,7 +5716,7 @@ get_next_display_element (it)
 	    }
 
 	  if (unibyte_display_via_language_environment
-	      && it->c >= 0x80)
+	      && !ASCII_CHAR_P (it->c))
 	    decoded = DECODE_CHAR (unibyte, it->c);
 
 	  if (it->c >= 0x80 && ! NILP (Vnobreak_char_display))
@@ -7773,7 +7773,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	  for (i = 0; i < nbytes; i++)
 	    {
 	      c = msg[i];
-	      c = unibyte_char_to_multibyte (c);
+	      MAKE_CHAR_MULTIBYTE (c);
 	      char_bytes = CHAR_STRING (c, str);
 	      insert_1_both (str, 1, char_bytes, 1, 0, 0);
 	    }
@@ -9079,7 +9079,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 	  for (i = 0; i < nbytes; i++)
 	    {
 	      c = msg[i];
-	      c = unibyte_char_to_multibyte (c);
+	      MAKE_CHAR_MULTIBYTE (c);
 	      n = CHAR_STRING (c, str);
 	      insert_1_both (str, 1, n, 1, 0, 0);
 	    }

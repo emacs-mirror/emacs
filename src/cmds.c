@@ -503,7 +503,7 @@ internal_self_insert (c, noautofill)
       && PT > BEGV
       && (!NILP (current_buffer->enable_multibyte_characters)
 	  ? SYNTAX (XFASTINT (Fprevious_char ())) == Sword
-	  : (SYNTAX (unibyte_char_to_multibyte (XFASTINT (Fprevious_char ())))
+	  : (SYNTAX (UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
 	     == Sword)))
     {
       int modiff = MODIFF;
