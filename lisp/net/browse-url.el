@@ -778,20 +778,20 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
     ;; which may not even exist any more.
     (if (stringp (frame-parameter (selected-frame) 'display))
         (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
-    ;; Send any symbol to `apply', not just fboundp ones, since void-function
-    ;; from apply is clearer than wrong-type-argument from dolist.
-    (if (or (symbolp browse-url-browser-function)
-            (functionp browse-url-browser-function))
-        (apply browse-url-browser-function url args)
-      ;; The `function' can be an alist; look down it for first match
-      ;; and apply the function (which might be a lambda).
-      (catch 'done
-        (dolist (bf browse-url-browser-function)
-          (when (string-match (car bf) url)
-            (apply (cdr bf) url args)
-            (throw 'done t)))
-        (error "No browse-url-browser-function matching URL %s"
-               url)))))
+    (if (and (consp browse-url-browser-function)
+	     (not (functionp browse-url-browser-function)))
+	;; The `function' can be an alist; look down it for first match
+	;; and apply the function (which might be a lambda).
+	(catch 'done
+	  (dolist (bf browse-url-browser-function)
+	    (when (string-match (car bf) url)
+	      (apply (cdr bf) url args)
+	      (throw 'done t)))
+	  (error "No browse-url-browser-function matching URL %s"
+		 url))
+      ;; Unbound symbols go down this leg, since void-function from
+      ;; apply is clearer than wrong-type-argument from dolist.
+      (apply browse-url-browser-function url args))))
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
