@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-load.el,v 1.4 2009-03-14 15:17:28 zappo Exp $
+;; X-RCS: $Id: cit-load.el,v 1.5 2009-10-18 16:15:59 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -37,6 +37,10 @@
   "Src dir to CIT testing suite.")
 
 (setq inhibit-splash-screen t)
+
+;; Fix bug in Emacs 21
+(when (< emacs-major-version 22)
+  (require 'semantic-c))
 
 ;; Disables all caches related to semantic DB so all
 ;; tests run as if we have bootstrapped CEDET for the
