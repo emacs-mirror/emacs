@@ -1,3 +1,7 @@
+2009-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (internal_self_insert): `c' is already in "multibyte" form.
+
 2009-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1310000.
