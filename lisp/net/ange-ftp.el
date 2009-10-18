@@ -3570,10 +3570,11 @@ so return the size on the remote host exactly. See RFC 3659."
 	 ;; Transfer complete" before the "213 SIZE".  Let's skip
 	 ;; that.
 	 (ange-ftp-skip-msgs (concat ange-ftp-skip-msgs "\\|^226"))
-	 (res (prog2
-		  (unless ascii-mode
-		    (ange-ftp-set-binary-mode host user))
-		  (ange-ftp-send-cmd host user (list 'quote "size" name))
+	 (res (unwind-protect
+                  (progn
+                    (unless ascii-mode
+                      (ange-ftp-set-binary-mode host user))
+                    (ange-ftp-send-cmd host user (list 'quote "size" name)))
 		(unless ascii-mode
 		  (ange-ftp-set-ascii-mode host user))))
 	 (line (cdr res)))

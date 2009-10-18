@@ -1,3 +1,7 @@
+2009-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-file-size): Use unwind-protect.
+
 2009-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (compile-last): Ensure GREP_OPTIONS is null before calling
