@@ -1191,7 +1191,7 @@ a new window in the current frame, splitting vertically."
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
 				  (not (string-match "too small" (cadr err)))))
-			 (apply #'signal err)
+			 (signal (car err) (cdr err))
 		       (enlarge-window 3))))))
 	      (select-window (next-window))
 	      (switch-to-buffer buf)
