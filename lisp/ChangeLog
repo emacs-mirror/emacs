@@ -3,6 +3,10 @@
 	* ibuffer.el (ibuffer-confirm-operation-on): Correction to error
 	re-throw, `err' is a pair not a list so can't use apply (Bug#4740).
 
+	* net/browse-url.el (browse-url): Identify alist with "consp and
+	not functionp" and let all other things go down the `apply' leg,
+	as suggested by Stefan.  (Further to bug#4531.)
+
 2009-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (read-file-name): Check for repeat before putting
