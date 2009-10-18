@@ -909,7 +909,7 @@ With prefix argument ARG, repeat this ARG times."
 	      (kill-sexp 1))
 	  (setq open (point))
 	  (when (and (sgml-skip-tag-forward 1)
-		     (not (looking-back "/>")))
+		     (not (sgml-looking-back-at "/>")))
 	    (kill-sexp -1)))
 	;; Delete any resulting empty line.  If we didn't kill-sexp,
 	;; this *should* do nothing, because we're right after the tag.

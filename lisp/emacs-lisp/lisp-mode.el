@@ -673,6 +673,11 @@ If CHAR is not a character, return nil."
 	  (when (eq (preceding-char) ??)
 	    (forward-char -1)))
 
+	;; Skip over hash table read syntax.
+	(and (> (point) (1+ (point-min)))
+	     (looking-back "#s" (- (point) 2))
+	     (forward-char -2))
+
 	;; Skip over `#N='s.
 	(when (eq (preceding-char) ?=)
 	  (let (labeled-p)

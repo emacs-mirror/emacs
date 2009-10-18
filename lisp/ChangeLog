@@ -1,3 +1,14 @@
+2009-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (read-file-name): Check for repeat before putting
+	a default argument in file-name-history (Bug#4657).
+
+	* emacs-lisp/lisp-mode.el (preceding-sexp): Recognize hash table
+	read syntax (Bug#4737).
+
+	* textmodes/sgml-mode.el (sgml-delete-tag): Use
+	sgml-looking-back-at.
+
 2009-10-18  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* textmodes/sgml-mode.el (sgml-tag-help): Prompt user for tag.

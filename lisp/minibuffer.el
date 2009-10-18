@@ -1289,12 +1289,16 @@ and `read-file-name-function'."
 
           (if replace-in-history
               ;; Replace what Fcompleting_read added to the history
-              ;; with what we will actually return.
+              ;; with what we will actually return.  As an exception,
+              ;; if that's the same as the second item in
+              ;; file-name-history, it's really a repeat (Bug#4657).
               (let ((val1 (minibuffer--double-dollars val)))
                 (if history-delete-duplicates
                     (setcdr file-name-history
                             (delete val1 (cdr file-name-history))))
-                (setcar file-name-history val1))
+		(if (string= val1 (cadr file-name-history))
+		    (pop file-name-history)
+		  (setcar file-name-history val1)))
             (if add-to-history
                 ;; Add the value to the history--but not if it matches
                 ;; the last value already there.
