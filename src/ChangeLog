@@ -21,7 +21,6 @@
 	* cmds.c (internal_self_insert):
 	* buffer.h (FETCH_CHAR_AS_MULTIBYTE): Use UNIBYTE_TO_CHAR.
 
-
 	* cmds.c (internal_self_insert): `c' is already in "multibyte" form.
 
 2009-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -93,7 +92,7 @@
 	* font.c (font_unparse_xlfd, font_unparse_fcname): Use long format
 	in printf, and cast argument.
 
-	* process.c (list_processes_1): Use long format	in printf, and
+	* process.c (list_processes_1): Use long format in printf, and
 	cast argument.
 
 2009-10-11  Glenn Morris  <rgm@gnu.org>
@@ -6596,11 +6595,11 @@
 	* s/msdos.h: Remove boilerplate comments.
 
 	* m/iris4d.h: Remove boilerplate comments and code for systems that
-	 do not use this file.
+	do not use this file.
 	(IRIS_4D): Remove, unused.
 
 	* m/mips.h: Remove boilerplate comments and code for systems that
-	 do not use this file.
+	do not use this file.
 	(SIGN_EXTEND_CHAR):
 	* m/arm.h (SIGN_EXTEND_CHAR): Remove, unused.
 	* unexmips.c: Remove file, unused.
