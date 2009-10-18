@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-cpp.el,v 1.7 2009-10-15 02:55:46 zappo Exp $
+;; X-RCS: $Id: cit-cpp.el,v 1.8 2009-10-18 16:16:30 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -97,19 +97,22 @@
 
 (defvar cit-main-cpp-tags
   (list
+   (semantic-tag-new-include "stdio.h" nil)
    (semantic-tag-new-include "foo.hh" nil)
    (semantic-tag-new-function
     "main" "int"
     (list (semantic-tag-new-variable "argc" "int")
 	  (semantic-tag-new-variable "argv" "char"
 				     nil
-				     :pointer 2 )))
+				     :pointer 2 ))
+    :code "   printf(\"MOOSE\\n\");\n")
    )
   "Tags to be inserted into main.")
 
 
 (defun cit-srecode-fill-cpp (make-type)
-  "Fill up a base set of files with some base tags."
+  "Fill up a base set of files with some base tags.
+MAKE-TYPE is the type of make process to use."
 
   ;; 2 b) Test various templates.
 
@@ -136,8 +139,12 @@
     (ede-commit-project p)
     )
 
+  ;; 1 g) build the sources.
   (cit-compile-and-wait)
 
+  ;; 1 g.1) Run the compiled program.
+  (find-file (cit-file "src/main.cpp"))
+  (cit-run-target "./Prog")
   )
 
 (defun cit-remove-add-to-project-cpp (make-type)
