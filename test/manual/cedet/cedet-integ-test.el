@@ -34,6 +34,9 @@
 ;; The below listed parts DO NOT happen in this order as various
 ;; tools have to work together to build up the project.
 ;;
+;; Note: Not all entries below are actually tested.  Make in comments the
+;; bit a new piece of code implements.
+;;
 ;; Parts:
 ;;
 ;; 1) Create an EDE project in /tmp
@@ -44,6 +47,7 @@
 ;;    e Tell EDE where they are.
 ;;    f create a build file.
 ;;    g build the sources
+;;    g.1 Run a program build by EDE
 ;;    e remove files from a project.
 ;;    f shared libraries from EDE.
 ;;
@@ -69,6 +73,12 @@
 ;;    a Create a COGRE graph.
 ;;    b Generate C++ code from the graph.
 ;;    c Compile the sources.
+;;
+;; @TODO -
+;; 6) Create a distribution file.
+;;    a Call "make dist"
+;;    b In a fresh dir, unpack the dist.
+;;    c Compile that dist.
 
 (require 'semantic)
 (require 'ede)
@@ -225,7 +235,10 @@ EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
 
       ;; 3 b) Srecode to make more sources
       ;; 3 c) Test incremental parsers (by side-effect)
-      (let ((e (srecode-semantic-insert-tag tag)))
+      (let ((e (srecode-semantic-insert-tag tag))
+	    (code (semantic-tag-get-attribute tag :code)))
+
+	(when code (insert code))
 
 	(goto-char e)
 	(sit-for 0)
@@ -321,6 +334,27 @@ such as 'clean'."
       )
     (kill-buffer bufftokill)
     ))
+
+(defun cit-run-target (command)
+  "Run the program (or whatever) that is associated w/ the current target.
+Use COMMAND to run the program."
+  (let ((target ede-object)
+	(cnt 0))
+    ;; Run the target.
+    (project-run-target target command)
+    ;; Did it produce errors or anything?
+    (save-excursion
+      (set-buffer (ede-shell-buffer target))
+      (goto-char (point-min))
+      ;; Wait for prompt.
+      (unwind-protect
+	  (while (not (re-search-forward "MOOSE" nil t))
+	    (setq cnt (1+ cnt))
+	    (when (> cnt 10) (error "Program output not detected"))
+	    (sit-for .1))
+	;; Kill the buffer.
+	(kill-buffer (ede-shell-buffer target)))
+      )))
 
 (provide 'cedet-integ-test)
 ;;; cedet-integ-test.el ends here
