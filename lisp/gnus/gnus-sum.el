@@ -3069,8 +3069,7 @@ The following commands are available:
   (setq buffer-read-only t		;Disable modification
 	show-trailing-whitespace nil)
   (setq truncate-lines t)
-  (setq selective-display t)
-  (setq selective-display-ellipses t)	;Display `...'
+  (add-to-invisibility-spec '(gnus-sum . t))
   (gnus-summary-set-display-table)
   (gnus-set-default-directory)
   (make-local-variable 'gnus-summary-line-format)
@@ -11278,29 +11277,44 @@ If ARG is positive number, turn showing conversation threads on."
     (gnus-message 6 "Threading is now %s" (if gnus-show-threads "on" "off"))
     (gnus-summary-position-point)))
 
+(if (fboundp 'remove-overlays)
+    (defalias 'gnus-remove-overlays 'remove-overlays)
+  (defun gnus-remove-overlays (beg end name val)
+    "Clear BEG and END of overlays whose property NAME has value VAL.
+For compatibility with Emacs 21 and XEmacs."
+    (dolist (ov (gnus-overlays-in beg end))
+      (when (eq (gnus-overlay-get ov name) val)
+	(gnus-delete-overlay ov)))))
+
 (defun gnus-summary-show-all-threads ()
   "Show all threads."
   (interactive)
-  (save-excursion
-    (let ((buffer-read-only nil))
-      (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)))
+  (gnus-remove-overlays (point-min) (point-max) 'invisible 'gnus-sum)
   (gnus-summary-position-point))
 
 (defun gnus-summary-show-thread ()
   "Show thread subtrees.
 Returns nil if no thread was there to be shown."
   (interactive)
-  (let ((buffer-read-only nil)
-	(orig (point))
-	(end (point-at-eol))
-	;; Leave point at bol
-	(beg (progn (beginning-of-line) (point))))
-    (prog1
-	;; Any hidden lines here?
-	(search-forward "\r" end t)
-      (subst-char-in-region beg end ?\^M ?\n t)
+  (let* ((orig (point))
+	 (end (point-at-eol))
+	 ;; Leave point at bol
+	 (beg (progn (beginning-of-line) (if (bobp) (point) (1- (point)))))
+	 (eoi (when (eq (get-char-property end 'invisible) 'gnus-sum)
+		(if (fboundp 'next-single-char-property-change)
+		    (or (next-single-char-property-change end 'invisible)
+			(point-max))
+		  (while (progn
+			   (end-of-line 2)
+			   (and (not (eobp))
+				(eq (get-char-property (point) 'invisible)
+				    'gnus-sum))))
+		  (point)))))
+    (when eoi
+      (gnus-remove-overlays beg eoi 'invisible 'gnus-sum)
       (goto-char orig)
-      (gnus-summary-position-point))))
+      (gnus-summary-position-point)
+      eoi)))
 
 (defun gnus-summary-maybe-hide-threads ()
   "If requested, hide the threads that should be hidden."
@@ -11349,22 +11363,26 @@ If PREDICATE is supplied, threads that satisfy this predicate
 will not be hidden.
 Returns nil if no threads were there to be hidden."
   (interactive)
-  (let ((buffer-read-only nil)
-	(start (point))
+  (let ((start (point))
+	(starteol (line-end-position))
 	(article (gnus-summary-article-number)))
     (goto-char start)
     ;; Go forward until either the buffer ends or the subthread ends.
     (when (and (not (eobp))
 	       (or (zerop (gnus-summary-next-thread 1 t))
 		   (goto-char (point-max))))
-      (prog1
-	  (if (and (> (point) start)
-		   (search-backward "\n" start t))
-	      (progn
-		(subst-char-in-region start (point) ?\n ?\^M)
-		(gnus-summary-goto-subject article))
-	    (goto-char start)
-	    nil)))))
+      (if (and (> (point) start)
+	       ;; FIXME: this should actually search for a non-invisible \n.
+	       (search-backward "\n" start t))
+	  (progn
+	    (when (> (point) starteol)
+	      (gnus-remove-overlays starteol (point) 'invisible 'gnus-sum)
+	      (let ((ol (gnus-make-overlay starteol (point) nil t nil)))
+		(gnus-overlay-put ol 'invisible 'gnus-sum)
+		(gnus-overlay-put ol 'evaporate t)))
+	    (gnus-summary-goto-subject article))
+	(goto-char start)
+	nil))))
 
 (defun gnus-summary-go-to-next-thread (&optional previous)
   "Go to the same level (or less) next thread.

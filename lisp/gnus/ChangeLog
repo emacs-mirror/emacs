@@ -1,3 +1,34 @@
+2009-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread): Remove useless goto-char.
+	(gnus-summary-show-thread, gnus-summary-hide-thread): Indent.
+
+2009-10-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-overlay-get): New alias to overlay-get.
+	(gnus-overlays-in): New alias to overlays-in.
+
+	* gnus-sum.el (gnus-remove-overlays): Use gnus-overlays-in,
+	gnus-overlay-get, and gnus-delete-overlay.
+	(gnus-summary-show-thread): Make it work as well for systems in which
+	next-single-char-property-change is not available.
+	(gnus-summary-hide-thread): Use gnus-make-overlay and gnus-overlay-put.
+
+2009-10-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-remove-overlays): Add doc string and alias.
+
+2009-10-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* gnus-sum.el (gnus-remove-overlays): Compatibility code for Emacs 21
+	and XEmacs that don't have `remove-overlays'.
+
+2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-mode, gnus-summary-show-all-threads)
+	(gnus-summary-show-thread, gnus-summary-hide-thread): Get rid of
+	selective display.  Use overlays instead.
+
 2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* spam-stat.el (spam-stat-strip-xref): Fix typo in docstring.
