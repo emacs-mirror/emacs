@@ -2480,9 +2480,7 @@ Because of ambiguities, this should be concatenated with something like
 		   (list Info-current-file Info-current-node
 			 Info-complete-next-re string completions
 			 Info-complete-nodes)))
-	    (if action
-		(all-completions string completions predicate)
-	      (try-completion string completions predicate))))))))
+            (complete-with-action action completions string predicate)))))))
 
 
 (defun Info-menu (menu-item &optional fork)

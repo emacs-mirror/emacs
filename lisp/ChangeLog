@@ -1,8 +1,12 @@
+2009-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-complete-menu-item): Use complete-with-action.
+
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make vc-annotate work through copies and renames.
-	* vc-annotate.el (vc-annotate-extract-revision-at-line): Return
-	the file name too.
+	* vc-annotate.el (vc-annotate-extract-revision-at-line):
+	Return the file name too.
 	(vc-annotate-revision-at-line)
 	(vc-annotate-find-revision-at-line)
 	(vc-annotate-revision-previous-to-line)
@@ -11,8 +15,8 @@
 	(vc-annotate-show-diff-revision-at-line-internal): Change the
 	argument to mean whether to show a file diff or not.  Get the file
 	name from vc-annotate-extract-revision-at-line.
-	(vc-annotate-show-diff-revision-at-line): Update
-	vc-annotate-show-diff-revision-at-line call.
+	(vc-annotate-show-diff-revision-at-line):
+	Update vc-annotate-show-diff-revision-at-line call.
 	(vc-annotate-warp-revision): Add an optional file argument.
 
 	* vc-git.el (vc-git-annotate-command): Pass -C -C to the blame command.
@@ -44,8 +48,7 @@
 	* emacs-lisp/lisp-mode.el (preceding-sexp): Recognize hash table
 	read syntax (Bug#4737).
 
-	* textmodes/sgml-mode.el (sgml-delete-tag): Use
-	sgml-looking-back-at.
+	* textmodes/sgml-mode.el (sgml-delete-tag): Use sgml-looking-back-at.
 
 2009-10-18  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
