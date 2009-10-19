@@ -2829,15 +2829,6 @@ _ACEOF
     esac
   ;;
 
-  ## Vaxen.
-  vax-dec-* )
-    machine=vax
-    case "${canonical}" in
-      *-vms* ) 						opsys=vms ;;
-      * ) 						unported=yes
-    esac
-  ;;
-
   ## IA-64
   ia64*-*-linux* )
     machine=ia64 opsys=gnu-linux

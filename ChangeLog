@@ -1,3 +1,7 @@
+2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (vac-dec-vms): Remove, not supported anymore.
+
 2009-10-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in (NS_HAVE_NSINTEGER): Back out previous change.
