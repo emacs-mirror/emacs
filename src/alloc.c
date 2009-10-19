@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <limits.h>		/* For CHAR_BIT.  */
+#include <setjmp.h>
 
 #ifdef STDC_HEADERS
 #include <stddef.h>		/* For offsetof, used by PSEUDOVECSIZE. */
@@ -4938,13 +4939,6 @@ staticpro (varaddress)
   if (staticidx >= NSTATICS)
     abort ();
 }
-
-struct catchtag
-{
-    Lisp_Object tag;
-    Lisp_Object val;
-    struct catchtag *next;
-};
 
 
 /***********************************************************************

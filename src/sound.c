@@ -44,6 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "dispextern.h"
 #include "atimer.h"

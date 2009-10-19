@@ -34,6 +34,7 @@ by Hallvard:
  */
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"

@@ -23,6 +23,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #ifdef emacs
+#include <setjmp.h>
 #include "lisp.h"		/* for xmalloc */
 #else
 

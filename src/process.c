@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>		/* some typedefs are used in sys/file.h */
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <setjmp.h>
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
@@ -7641,6 +7642,7 @@ The variable takes effect when `start-process' is called.  */);
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <setjmp.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

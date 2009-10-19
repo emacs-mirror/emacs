@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <setjmp.h>
 
 #ifdef STDC_HEADERS
 #include <float.h>

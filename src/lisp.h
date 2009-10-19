@@ -1826,6 +1826,41 @@ struct handler
 
 extern struct handler *handlerlist;
 
+/* This structure helps implement the `catch' and `throw' control
+   structure.  A struct catchtag contains all the information needed
+   to restore the state of the interpreter after a non-local jump.
+
+   Handlers for error conditions (represented by `struct handler'
+   structures) just point to a catch tag to do the cleanup required
+   for their jumps.
+
+   catchtag structures are chained together in the C calling stack;
+   the `next' member points to the next outer catchtag.
+
+   A call like (throw TAG VAL) searches for a catchtag whose `tag'
+   member is TAG, and then unbinds to it.  The `val' member is used to
+   hold VAL while the stack is unwound; `val' is returned as the value
+   of the catch form.
+
+   All the other members are concerned with restoring the interpreter
+   state.  */
+
+struct catchtag
+{
+  Lisp_Object tag;
+  Lisp_Object val;
+  struct catchtag *next;
+  struct gcpro *gcpro;
+  jmp_buf jmp;
+  struct backtrace *backlist;
+  struct handler *handlerlist;
+  int lisp_eval_depth;
+  int pdlcount;
+  int poll_suppress_count;
+  int interrupt_input_blocked;
+  struct byte_stack *byte_stack;
+};
+
 extern struct catchtag *catchlist;
 extern struct backtrace *backtrace_list;
 

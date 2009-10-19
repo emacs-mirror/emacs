@@ -31,6 +31,7 @@ Boston, MA 02110-1301, USA.  */
 #undef index
 #undef rindex
 
+#include <setjmp.h>
 #include "../src/lisp.h"
 
 #include <X11/Xatom.h>

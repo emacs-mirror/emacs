@@ -204,6 +204,7 @@ static int pagemask;
 
 #ifdef emacs
 
+#include <setjmp.h>
 #include "lisp.h"
 
 static

@@ -1,3 +1,106 @@
+2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Do not define struct catchtag.
+	* eval.c: Move struct catchtag definition ...
+	* lisp.h: ... here.
+
+	* image.c: Move png.h #include earlier to avoid warnings.
+
+	* xterm.c:
+	* xsmfns.c:
+	* xselect.c:
+	* xrdb.c:
+	* xmenu.c:
+	* xftfont.c:
+	* xfont.c:
+	* xfns.c:
+	* xfaces.c:
+	* xdisp.c:
+	* window.c:
+	* widget.c:
+	* w32xfns.c:
+	* w32uniscribe.c:
+	* w32term.c:
+	* w32select.c:
+	* w32reg.c:
+	* w32proc.c:
+	* w32menu.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32font.c:
+	* w32fns.c:
+	* w32console.c:
+	* w32.c:
+	* w16select.c:
+	* vm-limit.c:
+	* unexsol.c:
+	* unexec.c:
+	* unexcw.c:
+	* unexaix.c:
+	* undo.c:
+	* tparam.c:
+	* textprop.c:
+	* terminfo.c:
+	* terminal.c:
+	* termcap.c:
+	* term.c:
+	* syntax.c:
+	* sound.c:
+	* sheap.c:
+	* search.c:
+	* scroll.c:
+	* region-cache.c:
+	* regex.c:
+	* ralloc.c:
+	* process.c:
+	* print.c:
+	* msdos.c:
+	* minibuf.c:
+	* menu.c:
+	* marker.c:
+	* macros.c:
+	* keymap.c:
+	* keyboard.c:
+	* intervals.c:
+	* insdel.c:
+	* indent.c:
+	* gtkutil.c:
+	* ftxfont.c:
+	* ftfont.c:
+	* fringe.c:
+	* frame.c:
+	* fontset.c:
+	* font.c:
+	* fns.c:
+	* floatfns.c:
+	* filelock.c:
+	* fileio.c:
+	* emacs.c:
+	* editfns.c:
+	* dosfns.c:
+	* doprnt.c:
+	* doc.c:
+	* dispnew.c:
+	* dired.c:
+	* dbusbind.c:
+	* data.c:
+	* composite.c:
+	* coding.c:
+	* cmds.c:
+	* cm.c:
+	* chartab.c:
+	* charset.c:
+	* character.c:
+	* ccl.c:
+	* category.c:
+	* casetab.c:
+	* casefiddle.c:
+	* callproc.c:
+	* callint.c:
+	* bytecode.c:
+	* buffer.c:
+	* atimer.c: Include setjmp.h.  (Bug#4643)
+
 2009-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Remove leftover table unibyte_to_multibyte_table.

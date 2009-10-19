@@ -289,6 +289,7 @@ encode_coding_XXX (coding)
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "buffer.h"

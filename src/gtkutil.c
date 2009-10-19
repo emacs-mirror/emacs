@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <signal.h>
 #include <stdio.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "xterm.h"
 #include "blockinput.h"

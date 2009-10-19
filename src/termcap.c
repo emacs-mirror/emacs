@@ -24,6 +24,7 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef emacs
 
+#include <setjmp.h>
 #include <lisp.h>		/* xmalloc is here */
 /* Get the O_* definitions for open et al.  */
 #include <sys/file.h>

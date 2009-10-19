@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <string.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "termchar.h"
 #include "dispextern.h"

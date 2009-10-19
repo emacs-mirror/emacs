@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */

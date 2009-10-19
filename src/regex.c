@@ -117,6 +117,7 @@
    that make sense only in Emacs. */
 #ifdef emacs
 
+# include <setjmp.h>
 # include "lisp.h"
 # include "buffer.h"
 

@@ -27,6 +27,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_PNG
+#if defined HAVE_LIBPNG_PNG_H
+# include <libpng/png.h>
+#else
+# include <png.h>
+#endif
+#endif 
+
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
 #define XLIB_ILLEGAL_ACCESS
@@ -5786,12 +5794,6 @@ png_image_p (object)
 
 
 #ifdef HAVE_PNG
-
-#if defined HAVE_LIBPNG_PNG_H
-# include <libpng/png.h>
-#else
-# include <png.h>
-#endif
 
 #ifdef HAVE_NTGUI
 /* PNG library details.  */

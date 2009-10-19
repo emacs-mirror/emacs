@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"

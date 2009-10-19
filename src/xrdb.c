@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <epaths.h>
 
 #include <stdio.h>
+#include <setjmp.h>
 
 #if 1 /* I'd really appreciate it if this code could go away...  -JimB */
 /* This avoids lossage in the `dual-universe' headers on AT&T SysV

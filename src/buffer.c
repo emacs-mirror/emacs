@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/param.h>
 #include <errno.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #ifndef USE_CRT_DLL
 extern int errno;

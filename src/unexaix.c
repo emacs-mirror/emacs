@@ -104,6 +104,7 @@ static int adjust_lnnoptrs (int, int, char *);
 static int pagemask;
 
 #ifdef emacs
+#include <setjmp.h>
 #include "lisp.h"
 
 static void
