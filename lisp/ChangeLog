@@ -1,5 +1,7 @@
 2009-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bindings.el (function-key-map): Map C-@ to C-SPC if C-@ is unbound.
+
 	* info.el (Info-complete-menu-item): Handle `boundaries' explicitly.
 	(Info-menu): Remove unused vars `last' and `completions'.
 	(Info-index-nodes): Remove unused var `node'.

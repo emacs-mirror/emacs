@@ -970,6 +970,9 @@ language you are using."
 
 ;; X11R6 distinguishes these keys from the non-kp keys.
 ;; Make them behave like the non-kp keys unless otherwise bound.
+;; FIXME: rather than list such mappings for every modifier-combination,
+;;   we should come up with a way to do it generically, something like
+;;   (define-key function-key-map [*-kp-home] [*-home])
 (define-key function-key-map [kp-home] [home])
 (define-key function-key-map [kp-left] [left])
 (define-key function-key-map [kp-up] [up])
@@ -1019,6 +1022,11 @@ language you are using."
 (define-key function-key-map [C-S-kp-7] [C-S-home])
 (define-key function-key-map [C-S-kp-8] [C-S-up])
 (define-key function-key-map [C-S-kp-9] [C-S-prior])
+
+;; Hitting C-SPC on text terminals, usually sends the ascii code 0 (aka C-@),
+;; so we can't distinguish those two keys, but usually we consider C-SPC
+;; (rather than C-@) as the "canonical" binding.
+(define-key function-key-map [?\C-@] [?\C-\s])
 
 (define-key global-map [mouse-movement] 'ignore)
 
