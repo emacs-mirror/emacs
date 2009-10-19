@@ -31,6 +31,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #include <signal.h>
 #include <math.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "blockinput.h"

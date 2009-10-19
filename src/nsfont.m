@@ -23,6 +23,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
 #include "config.h"
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "dispextern.h"

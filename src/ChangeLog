@@ -60,6 +60,12 @@
 	* ralloc.c:
 	* process.c:
 	* print.c:
+	* nsterm.m:
+	* nsselect.m:
+	* nsmenu.m:
+	* nsimage.m:
+	* nsfont.m:
+	* nsfns.m:
 	* msdos.c:
 	* minibuf.c:
 	* menu.c:
