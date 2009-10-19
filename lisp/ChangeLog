@@ -1,5 +1,9 @@
 2009-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* info.el (Info-complete-menu-item): Handle `boundaries' explicitly.
+	(Info-menu): Remove unused vars `last' and `completions'.
+	(Info-index-nodes): Remove unused var `node'.
+
 	* info.el (Info-complete-menu-item): Use complete-with-action.
 
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>

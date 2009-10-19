@@ -2440,12 +2440,16 @@ Because of ambiguities, this should be concatenated with something like
             nextnode)
         (goto-char (point-min))
         (search-forward "\n* Menu:")
-        (if (not (memq action '(nil t)))
-            (re-search-forward
-             (concat "\n\\* +" (regexp-quote string) ":") nil t)
+        (cond
+         ((eq (car-safe action) 'boundaries) nil)
+         ((eq action 'lambda)
+          (re-search-forward
+           (concat "\n\\* +" (regexp-quote string) ":") nil t))
+         (t
           (let ((pattern (concat "\n\\* +\\("
                                  (regexp-quote string)
-                                 Info-menu-entry-name-re "\\):" Info-node-spec-re))
+                                 Info-menu-entry-name-re "\\):"
+                                 Info-node-spec-re))
                 completions
                 (complete-nodes Info-complete-nodes))
             ;; Check the cache.
@@ -2480,7 +2484,7 @@ Because of ambiguities, this should be concatenated with something like
 		   (list Info-current-file Info-current-node
 			 Info-complete-next-re string completions
 			 Info-complete-nodes)))
-            (complete-with-action action completions string predicate)))))))
+            (complete-with-action action completions string predicate))))))))
 
 
 (defun Info-menu (menu-item &optional fork)
@@ -2491,12 +2495,10 @@ If FORK is non-nil (interactively with a prefix arg), show the node in
 a new Info buffer.  If FORK is a string, it is the name to use for the
 new buffer."
   (interactive
-   (let ((completions '())
-	 ;; If point is within a menu item, use that item as the default
+   (let (;; If point is within a menu item, use that item as the default
 	 (default nil)
 	 (p (point))
 	 beg
-	 (last nil)
 	 (case-fold-search t))
      (save-excursion
        (goto-char (point-min))
@@ -2890,7 +2892,7 @@ following nodes whose names also contain the word \"Index\"."
 					      (setq file (Info-find-file file))))
 					default-directory))
 		 Info-history Info-history-list Info-fontify-maximum-menu-size
-		 (main-file file) subfiles nodes node)
+		 (main-file file) subfiles nodes)
 	    (condition-case nil
 		(with-temp-buffer
 		  (while (or main-file subfiles)
@@ -2933,7 +2935,7 @@ following nodes whose names also contain the word \"Index\"."
 		  (Info-goto-node (car nodes))
 		  (while (and (setq node (Info-extract-pointer "next" t))
 			      (string-match "\\<Index\\>" node))
-		    (setq nodes (cons node nodes))
+		    (push node nodes)
 		    (Info-goto-node node))))
 	    (error nil))
 	  (if nodes
