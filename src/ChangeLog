@@ -1,5 +1,8 @@
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xterm.c:
+	* xfns.c: Remove always true condition: XtSpecificationRelease >= 5.
+
 	* alloc.c: Do not define struct catchtag.
 	* eval.c: Move struct catchtag definition ...
 	* lisp.h: ... here.

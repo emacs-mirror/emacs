@@ -98,13 +98,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/FileSB.h>
 #endif
 
-/* Do the EDITRES protocol if running X11R5
-   Exception: HP-UX (at least version A.09.05) has X11R5 without EditRes */
-
-#if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
+#if !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
-#endif /* R5 + Athena */
+#endif /* not defined NO_EDITRES */
 
 /* Unique id counter for widgets created by the Lucid Widget Library.  */
 

@@ -113,7 +113,7 @@ extern void free_frame_menubar P_ ((struct frame *));
 #endif
 
 #ifdef USE_X_TOOLKIT
-#if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
+#if !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
 #endif /* not NO_EDITRES */
