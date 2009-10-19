@@ -4633,18 +4633,26 @@ x_create_toolkit_scroll_bar (f, bar)
   if (f->output_data.x->scroll_bar_top_shadow_pixel == -1)
     {
       pixel = f->output_data.x->scroll_bar_background_pixel;
-      if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-				  &pixel, 1.2, 0x8000))
-	pixel = -1;
-      f->output_data.x->scroll_bar_top_shadow_pixel = pixel;
+      if (pixel != -1) 
+        {
+          if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f),
+                                      FRAME_X_COLORMAP (f),
+                                      &pixel, 1.2, 0x8000))
+            pixel = -1;
+          f->output_data.x->scroll_bar_top_shadow_pixel = pixel;
+        }
     }
   if (f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
     {
       pixel = f->output_data.x->scroll_bar_background_pixel;
-      if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-				  &pixel, 0.6, 0x4000))
-	pixel = -1;
-      f->output_data.x->scroll_bar_bottom_shadow_pixel = pixel;
+      if (pixel != -1) 
+        {
+          if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f),
+                                      FRAME_X_COLORMAP (f),
+                                      &pixel, 0.6, 0x4000))
+            pixel = -1;
+          f->output_data.x->scroll_bar_bottom_shadow_pixel = pixel;
+        }
     }
 
 #ifdef XtNbeNiceToColormap
@@ -10433,6 +10441,7 @@ x_term_init (display_name, xrm_option, resource_name)
 	    || !strcmp (SDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
   }
+  XSynchronize (dpyinfo->display, True);
 
   {
     Lisp_Object value;

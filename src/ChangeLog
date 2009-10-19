@@ -1,3 +1,8 @@
+2009-10-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_create_toolkit_scroll_bar): Don't allocate color for
+	pixel -1 (bug #4742).
+
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* process.c (create_pty): Remove conditionals for no longer
