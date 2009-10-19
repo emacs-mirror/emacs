@@ -2317,12 +2317,12 @@ create_pty (process)
 #endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
-#if defined (RTU) || defined (UNIPLUS) || defined (DONT_REOPEN_PTY)
+#if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
 	 (Emacs) may send some data before the child process completes
 	 tty options setup.  So we setup tty before forking.  */
       child_setup_tty (forkout);
-#endif /* RTU or UNIPLUS or DONT_REOPEN_PTY */
+#endif /* DONT_REOPEN_PTY */
 #else
       forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */

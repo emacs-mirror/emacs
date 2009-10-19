@@ -1,5 +1,8 @@
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c (create_pty): Remove conditionals for no longer
+	supported systems: UNIPLUS and RTU.
+
 	* xterm.c:
 	* xfns.c: Remove always true condition: XtSpecificationRelease >= 5.
 
