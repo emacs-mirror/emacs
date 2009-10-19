@@ -193,6 +193,11 @@ file.
 *** FIXME: add info about the new VC functions: vc-root-diff and
 vc-root-print-log once they stabilize.
 
+*** vc-annotate supports annotations through file copies and renames,
+it displays the old names for the files and it can show logs/diffs for
+the corresponding lines.  Currently only Git and Mercurial take
+advantage of this feature.
+
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
 *** vc-git changes

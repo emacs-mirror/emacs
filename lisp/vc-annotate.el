@@ -430,9 +430,14 @@ revisions after."
 	(vc-annotate-warp-revision warp-rev)))))
 
 (defun vc-annotate-extract-revision-at-line ()
-  "Extract the revision number of the current line."
+  "Extract the revision number of the current line.
+Return a cons (REV . FILENAME)."
   ;; This function must be invoked from a buffer in vc-annotate-mode
-  (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
+  (let ((rev (vc-call-backend vc-annotate-backend
+			      'annotate-extract-revision-at-line)))
+    (if (or (null rev) (consp rev))
+	rev
+      (cons rev vc-annotate-parent-file))))
 
 (defun vc-annotate-revision-at-line ()
   "Visit the annotation of the revision identified in the current line."
@@ -442,9 +447,9 @@ revisions after."
     (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
-	(if (equal rev-at-line vc-annotate-parent-rev)
+	(if (equal (car rev-at-line) vc-annotate-parent-rev)
 	    (message "Already at revision %s" rev-at-line)
-	  (vc-annotate-warp-revision rev-at-line))))))
+	  (vc-annotate-warp-revision (car rev-at-line) (cdr rev-at-line)))))))
 
 (defun vc-annotate-find-revision-at-line ()
   "Visit the revision identified in the current line."
@@ -454,21 +459,24 @@ revisions after."
     (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
-	(vc-revision-other-window rev-at-line)))))
+	(switch-to-buffer-other-window
+	 (vc-find-revision (cdr rev-at-line) (car rev-at-line)))))))
 
 (defun vc-annotate-revision-previous-to-line ()
   "Visit the annotation of the revision before the revision at line."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line))
-	  (prev-rev nil))
+    (let* ((rev-at-line (vc-annotate-extract-revision-at-line))
+	   (prev-rev nil)
+	   (rev (car rev-at-line))
+	   (fname (cdr rev-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               vc-annotate-parent-file rev-at-line))
-	(vc-annotate-warp-revision prev-rev)))))
+                               fname rev))
+	(vc-annotate-warp-revision rev fname)))))
 
 (defun vc-annotate-show-log-revision-at-line ()
   "Visit the log of the revision at line."
@@ -478,33 +486,39 @@ revisions after."
     (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
-	(vc-print-log rev-at-line)))))
+	(vc-print-log-internal
+	 vc-annotate-backend (list (cdr rev-at-line)) (car rev-at-line))))))
 
-(defun vc-annotate-show-diff-revision-at-line-internal (fileset)
+(defun vc-annotate-show-diff-revision-at-line-internal (filediff)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line))
-	  (prev-rev nil))
+    (let* ((rev-at-line (vc-annotate-extract-revision-at-line))
+	  (prev-rev nil)
+	  (rev (car rev-at-line))
+	  (fname (cdr rev-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               vc-annotate-parent-file rev-at-line))
+                               fname rev))
 	(if (not prev-rev)
-	    (message "Cannot diff from any revision prior to %s" rev-at-line)
+	    (message "Cannot diff from any revision prior to %s" rev)
 	  (save-window-excursion
 	    (vc-diff-internal
 	     nil
 	     ;; The value passed here should follow what
 	     ;; `vc-deduce-fileset' returns.
-	     (cons vc-annotate-backend (cons fileset nil))
-	     prev-rev rev-at-line))
+	     (list vc-annotate-backend
+		   (if filediff
+		       (list fname)
+		     nil))
+	     prev-rev rev))
 	  (switch-to-buffer "*vc-diff*"))))))
 
 (defun vc-annotate-show-diff-revision-at-line ()
   "Visit the diff of the revision at line from its previous revision."
   (interactive)
-  (vc-annotate-show-diff-revision-at-line-internal (list vc-annotate-parent-file)))
+  (vc-annotate-show-diff-revision-at-line-internal t))
 
 (defun vc-annotate-show-changeset-diff-revision-at-line ()
   "Visit the diff of the revision at line from its previous revision for all files in the changeset."
@@ -513,7 +527,7 @@ revisions after."
     (error "The %s backend does not support changeset diffs" vc-annotate-backend))
   (vc-annotate-show-diff-revision-at-line-internal nil))
 
-(defun vc-annotate-warp-revision (revspec)
+(defun vc-annotate-warp-revision (revspec &optional file)
   "Annotate the revision described by REVSPEC.
 
 If REVSPEC is a positive integer, warp that many revisions forward,
@@ -532,7 +546,7 @@ describes a revision number, so warp to that revision."
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (> revspec 0) newrev)
           (setq newrev (vc-call-backend vc-annotate-backend 'next-revision
-                                        vc-annotate-parent-file newrev))
+                                        (or file vc-annotate-parent-file) newrev))
           (setq revspec (1- revspec)))
 	(unless newrev
 	  (message "Cannot increment %d revisions from revision %s"
@@ -541,7 +555,7 @@ describes a revision number, so warp to that revision."
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (< revspec 0) newrev)
           (setq newrev (vc-call-backend vc-annotate-backend 'previous-revision
-                                        vc-annotate-parent-file newrev))
+                                        (or file vc-annotate-parent-file) newrev))
           (setq revspec (1+ revspec)))
 	(unless newrev
 	  (message "Cannot decrement %d revisions from revision %s"
@@ -549,7 +563,7 @@ describes a revision number, so warp to that revision."
        ((stringp revspec) (setq newrev revspec))
        (t (error "Invalid argument to vc-annotate-warp-revision")))
       (when newrev
-	(vc-annotate vc-annotate-parent-file newrev
+	(vc-annotate (or file vc-annotate-parent-file) newrev
                      vc-annotate-parent-display-mode
                      buf
 		     ;; Pass the current line so that vc-annotate will

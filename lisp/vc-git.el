@@ -610,7 +610,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-command (file buf &optional rev)
   (let ((name (file-relative-name file)))
-    (vc-git-command buf 'async name "blame" "--date=iso" rev "--")))
+    (vc-git-command buf 'async name "blame" "--date=iso" "-C" "-C" rev)))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
@@ -624,8 +624,11 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion
     (move-beginning-of-line 1)
-    (and (looking-at "[0-9a-f^][0-9a-f]+")
-         (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
+    (when (looking-at "\\([0-9a-f^][0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
+      (let ((revision (match-string-no-properties 1)))
+	(if (match-beginning 2)
+	  (cons revision (expand-file-name (match-string-no-properties 3)))
+	  revision)))))
 
 ;;; TAG SYSTEM
 

@@ -313,12 +313,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n"
-                 (when revision (concat "-r" revision)))
-  (with-current-buffer buffer
-    (goto-char (point-min))
-    (re-search-forward "^[ \t]*[0-9]")
-    (delete-region (point-min) (match-beginning 0))))
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n" "--follow"
+                 (when revision (concat "-r" revision))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
@@ -329,7 +325,7 @@ Optional arg REVISION is a revision to annotate from."
 ;;215 Wed Jun 20 21:22:58 2007 -0700 foo.c: CONTENTS
 ;; i.e. VERSION_NUMBER DATE FILENAME: CONTENTS
 (defconst vc-hg-annotate-re
-  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)[^:\n]*\\(:[^ \n][^:\n]*\\)*: ")
+  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\(.+\\): \\)\\)")
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
@@ -340,7 +336,11 @@ Optional arg REVISION is a revision to annotate from."
 (defun vc-hg-annotate-extract-revision-at-line ()
   (save-excursion
     (beginning-of-line)
-    (when (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
+    (when (looking-at vc-hg-annotate-re)
+      (if (match-beginning 3)
+	  (match-string-no-properties 1)
+	(cons (match-string-no-properties 1)
+	      (expand-file-name (match-string-no-properties 4)))))))
 
 (defun vc-hg-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))

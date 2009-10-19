@@ -1,3 +1,32 @@
+2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make vc-annotate work through copies and renames.
+	* vc-annotate.el (vc-annotate-extract-revision-at-line): Return
+	the file name too.
+	(vc-annotate-revision-at-line)
+	(vc-annotate-find-revision-at-line)
+	(vc-annotate-revision-previous-to-line)
+	(vc-annotate-show-log-revision-at-line): Update to get the file
+	name from vc-annotate-extract-revision-at-line.
+	(vc-annotate-show-diff-revision-at-line-internal): Change the
+	argument to mean whether to show a file diff or not.  Get the file
+	name from vc-annotate-extract-revision-at-line.
+	(vc-annotate-show-diff-revision-at-line): Update
+	vc-annotate-show-diff-revision-at-line call.
+	(vc-annotate-warp-revision): Add an optional file argument.
+
+	* vc-git.el (vc-git-annotate-command): Pass -C -C to the blame command.
+	(vc-git-annotate-extract-revision-at-line): Also return the file
+	name if found.
+
+	* vc-hg.el (vc-hg-annotate-command): Pass --follow to the annotate
+	command.  Remove unused code.
+	(vc-hg-annotate-re): Update to match --follow output.
+	(vc-hg-annotate-extract-revision-at-line): Also return the file
+	name if found.
+
+	* vc.el: Update annotate-extract-revision-at-line documentation.
+
 2009-10-18  Kevin Ryde  <user42@zip.com.au>
 
 	* ibuffer.el (ibuffer-confirm-operation-on): Correction to error

@@ -418,6 +418,9 @@
 ;;   Invoked from a buffer in vc-annotate-mode, return the revision
 ;;   corresponding to the current line, or nil if there is no revision
 ;;   corresponding to the current line.
+;;   If the backend supports annotating through copies and renames,
+;;   and displays a file name and a revision, then return a cons
+;;   (REVISION . FILENAME).
 ;;
 ;; TAG SYSTEM
 ;;
