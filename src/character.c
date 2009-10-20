@@ -127,11 +127,13 @@ char_resolve_modifier_mask (c)
       else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
 	c &= (037 | (~0177 & ~CHAR_CTL));
     }
+#if 0	/* This is outside the scope of this function.  (bug#4751)  */
   if (c & CHAR_META)
     {
       /* Move the meta bit to the right place for a string.  */
       c = (c & ~CHAR_META) | 0x80;
     }
+#endif
 
   return c;
 }
