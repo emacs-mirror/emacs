@@ -1,3 +1,8 @@
+2009-10-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (XTread_socket) [!USE_GTK && HAVE_X_I18N]: Don't quit
+	processing pending events when event is filtered for input method.
+
 2009-10-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fns.c: Add #endif accidentally removed in previous change.
