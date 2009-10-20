@@ -1802,7 +1802,7 @@ Legitimate radix values are 8, 10 and 16."
 
 (defconst read-key-empty-map (make-sparse-keymap))
 
-(defvar read-key-delay 0.1)
+(defvar read-key-delay 0.01) ;Fast enough for 100Hz repeat rate, hopefully.
 
 (defun read-key (&optional prompt)
   "Read a key from the keyboard.
@@ -1838,7 +1838,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
     (unwind-protect
         (progn
 	  (use-global-map read-key-empty-map)
-	  (aref	(catch 'read-key (read-key-sequence prompt nil t)) 0))
+	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
       (use-global-map old-global-map))))
 
