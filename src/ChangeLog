@@ -2,6 +2,7 @@
 
 	* xterm.c (XTread_socket) [!USE_GTK && HAVE_X_I18N]: Don't quit
 	processing pending events when event is filtered for input method.
+	(Bug#3681)
 
 2009-10-20  Juanma Barranquero  <lekktu@gmail.com>
 
