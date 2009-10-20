@@ -1,6 +1,6 @@
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* configure.in (vac-dec-vms): Remove, not supported anymore.
+	* configure.in (vax-dec-vms): Remove, not supported anymore.
 
 2009-10-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -75,7 +75,7 @@
 
 	* Makefile.in (install-arch-indep): Remove .DS_Store files (MacOSX).
 
-2009-08-02  Kevin Ryde <user42@zip.com.au>
+2009-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* INSTALL: Fix free fonts URL.
 
@@ -85,8 +85,8 @@
 
 2009-07-04  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* configure.in (--enable-checking, --enable-profiling): Use
-	AS_HELP_STRING.
+	* configure.in (--enable-checking, --enable-profiling):
+	Use AS_HELP_STRING.
 
 2009-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
