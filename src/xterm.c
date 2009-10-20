@@ -7125,7 +7125,7 @@ XTread_socket (terminal, expected, hold_quit)
 #ifdef HAVE_X_I18N
       /* Filter events for the current X input method.  */
       if (x_filter_event (terminal->display_info.x, &event))
-        break;
+        continue;
 #endif
       event_found = 1;
 
