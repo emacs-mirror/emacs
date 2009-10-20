@@ -1,7 +1,7 @@
 2009-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* character.c (char_resolve_modifier_mask): Don't resolve meta to the
-	8th bit, since that only made since in the ASCII world (bug#4751).
+	8th bit, since that only made sense in the ASCII world (bug#4751).
 
 2009-10-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
