@@ -1,3 +1,7 @@
+2009-10-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c: Add #endif accidentally removed in previous change.
+
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fns.c: Remove code for unsupported system: MAC_OS.

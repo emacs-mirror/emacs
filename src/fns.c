@@ -46,6 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (HAVE_X_WINDOWS)
 #include "xterm.h"
 #endif
+#endif /* HAVE_MENUS */
 
 #ifndef NULL
 #define NULL ((POINTER_TYPE *)0)
