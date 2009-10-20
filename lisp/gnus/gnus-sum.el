@@ -11277,14 +11277,15 @@ If ARG is positive number, turn showing conversation threads on."
     (gnus-message 6 "Threading is now %s" (if gnus-show-threads "on" "off"))
     (gnus-summary-position-point)))
 
-(if (fboundp 'remove-overlays)
-    (defalias 'gnus-remove-overlays 'remove-overlays)
-  (defun gnus-remove-overlays (beg end name val)
-    "Clear BEG and END of overlays whose property NAME has value VAL.
+(eval-and-compile
+  (if (fboundp 'remove-overlays)
+      (defalias 'gnus-remove-overlays 'remove-overlays)
+    (defun gnus-remove-overlays (beg end name val)
+      "Clear BEG and END of overlays whose property NAME has value VAL.
 For compatibility with Emacs 21 and XEmacs."
-    (dolist (ov (gnus-overlays-in beg end))
-      (when (eq (gnus-overlay-get ov name) val)
-	(gnus-delete-overlay ov)))))
+      (dolist (ov (gnus-overlays-in beg end))
+	(when (eq (gnus-overlay-get ov name) val)
+	  (gnus-delete-overlay ov))))))
 
 (defun gnus-summary-show-all-threads ()
   "Show all threads."

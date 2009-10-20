@@ -1,3 +1,7 @@
+2009-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-remove-overlays): eval-and-compile.
+
 2009-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-show-thread): Remove useless goto-char.
