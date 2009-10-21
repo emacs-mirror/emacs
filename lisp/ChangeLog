@@ -1,3 +1,8 @@
+2009-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-deduce-fileset): Undo previous change, do not tell
+	vc-responsible-backend to register, it causes problems.
+
 2009-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el: Don't require help-mode (to avoid bootstrap issues).

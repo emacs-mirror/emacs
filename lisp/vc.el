@@ -933,13 +933,13 @@ current buffer."
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (if state-model-only-files
 	  (list (vc-responsible-backend
-		 (file-name-directory (buffer-file-name)) t)
+		 (file-name-directory (buffer-file-name)))
 		(list buffer-file-name)
 		(list buffer-file-name)
 		(when state-model-only-files 'unregistered)
 		nil)
 	(list (vc-responsible-backend
-	       (file-name-directory (buffer-file-name)) t)
+	       (file-name-directory (buffer-file-name)))
 	      (list buffer-file-name))))
      (t (error "No fileset is available here")))))
 
