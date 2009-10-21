@@ -1,3 +1,7 @@
+2009-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el: Don't require help-mode (to avoid bootstrap issues).
+
 2009-10-21  Eric Ludlam  <zappo@gnu.org>
 
 	* cedet/semantic/bovine/c.el (semantic-c-debug-mode-init)
@@ -14,8 +18,8 @@
 	(tramp-smb-handle-file-attributes): Use it.
 	(tramp-smb-do-file-attributes-with-stat): Don't raise an error.
 	(tramp-smb-handle-insert-directory): Use `mapc' rather than
-	`mapcar'.  Use `tramp-smb-get-stat-capability'.  Add
-	`dired-filename' text properties.
+	`mapcar'.  Use `tramp-smb-get-stat-capability'.
+	Add `dired-filename' text properties.
 	(tramp-smb-get-cifs-capabilities): Apply `save-match-data'.
 	(tramp-smb-maybe-open-connection): Simplify check for smbclient
 	version.

@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(require 'help-mode)
-
 ;; Functions
 
 ;;;###autoload
