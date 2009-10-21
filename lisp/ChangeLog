@@ -5,6 +5,8 @@
 	the first form.  And insert a blank line after ";;; Code" since
 	that's usual style.  (My Bug#4612.)
 
+	* net/dns.el: Add "Keywords: comm", as per net/net-utils.el.
+
 2009-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-table-with-terminator): Properly implement
