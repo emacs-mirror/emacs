@@ -256,6 +256,11 @@ Command*'.
 
 * Lisp changes in Emacs 23.2
 
+** read-file-name-predicate is obsolete.  It was used to pass the predicate
+to read-file-name-internal because read-file-name-internal abused its `pred'
+argument to pass the current directory, but this hack is not needed
+any more.
+
 ** completion-base-size is obsoleted by completion-base-position.
 This change causes a few backward incompatibilities, mostly with
 choose-completion-string-functions where the `mini-p' argument has

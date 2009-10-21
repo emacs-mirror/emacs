@@ -728,8 +728,10 @@ one or more of those symbols."
   "Do completion for file names passed to `locate-file'."
   (cond
    ((file-name-absolute-p string)
-    (let ((read-file-name-predicate pred))
-      (read-file-name-internal string nil action)))
+    ;; FIXME: maybe we should use completion-file-name-table instead,
+    ;; tho at least for `load', the arg is passed through
+    ;; substitute-in-file-name for historical reasons.
+    (read-file-name-internal string pred action))
    ((eq (car-safe action) 'boundaries)
     (let ((suffix (cdr action)))
       (list* 'boundaries
@@ -1603,7 +1605,7 @@ home directory is a root directory) and removes automounter prefixes
       (or abbreviated-home-dir
 	  (setq abbreviated-home-dir
 		(let ((abbreviated-home-dir "$foo"))
-		  (concat "^" (abbreviate-file-name (expand-file-name "~"))
+		  (concat "\\`" (abbreviate-file-name (expand-file-name "~"))
 			  "\\(/\\|\\'\\)"))))
 
       ;; If FILENAME starts with the abbreviated homedir,
@@ -1614,9 +1616,7 @@ home directory is a root directory) and removes automounter prefixes
 			 (= (aref filename 0) ?/)))
 	       ;; MS-DOS root directories can come with a drive letter;
 	       ;; Novell Netware allows drive letters beyond `Z:'.
-	       (not (and (or (eq system-type 'ms-dos)
-			     (eq system-type 'cygwin)
-			     (eq system-type 'windows-nt))
+	       (not (and (memq system-type '(ms-dos windows-nt cygwin))
 			 (save-match-data
 			   (string-match "^[a-zA-`]:/$" filename)))))
 	  (setq filename
@@ -1643,8 +1643,7 @@ If there is no such live buffer, return nil."
           (when (and buf (funcall predicate buf)) buf))
         (let ((list (buffer-list)) found)
           (while (and (not found) list)
-            (save-excursion
-              (set-buffer (car list))
+            (with-current-buffer (car list)
               (if (and buffer-file-name
                        (string= buffer-file-truename truename)
                        (funcall predicate (current-buffer)))
@@ -4834,7 +4833,7 @@ non-nil, it is called instead of rereading visited file contents."
 					file-name)))
 	       (run-hooks 'before-revert-hook)
 	       ;; If file was backed up but has changed since,
-	       ;; we shd make another backup.
+	       ;; we should make another backup.
 	       (and (not auto-save-p)
 		    (not (verify-visited-file-modtime (current-buffer)))
 		    (setq buffer-backed-up nil))

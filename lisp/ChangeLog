@@ -1,3 +1,20 @@
+2009-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-terminator): Properly implement
+	boundaries, in case `terminator' appears in the suffix.
+	(completion--embedded-envvar-table): Don't return boundaries if
+	there's no valid completion.  Simplify.
+	(completion-file-name-table): New completion table extracted from
+	completion--file-name-table.
+	(completion--file-name-table): Use it.
+	(read-file-name-predicate): Declare obsolete.
+	(read-file-name): Use the pred arg i.s.o read-file-name-predicate.
+	* vc-bzr.el (vc-bzr-revision-completion-table): Use the new
+	completion-file-name-table, and use the `pred' argument.
+	* files.el (locate-file-completion-table): Use the `pred' arg rather
+	than read-file-name-predicate.
+	(abbreviate-file-name): Use \` rather than ^ for BOS.
+
 2009-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-deduce-fileset): Undo previous change, do not tell

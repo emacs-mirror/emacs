@@ -37,26 +37,39 @@
 ;;   it should only lists the ones that `try-completion' would consider.
 ;;   E.g.  it should honor completion-ignored-extensions.
 ;; - choose-completion can't automatically figure out the boundaries
-;;   corresponding to the displayed completions.  `base-size' gives the left
-;;   boundary, but not the righthand one.  So we need to add
-;;   completion-extra-size.
+;;   corresponding to the displayed completions because we only
+;;   provide the start info but not the end info in
+;;   completion-base-position.
+;; - choose-completion doesn't know how to quote the text it inserts.
+;;   E.g. it fails to double the dollars in file-name completion, or
+;;   to backslash-escape spaces and other chars in comint completion.
+;; - C-x C-f ~/*/sr ? should not list "~/./src".
+;; - minibuffer-force-complete completes ~/src/emacs/t<!>/lisp/minibuffer.el
+;;   to ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
 
 ;;; Todo:
 
 ;; - make partial-complete-mode obsolete:
 ;;   - (?) <foo.h> style completion for file names.
+;;     This can't be done identically just by tweaking completion,
+;;     because partial-completion-mode's behavior is to expand <string.h>
+;;     to /usr/include/string.h only when exiting the minibuffer, at which
+;;     point the completion code is actually not involved normally.
+;;     Partial-completion-mode does it via a find-file-not-found-function.
+;;   - special code for C-x C-f <> to visit the file ref'd at point
+;;     via (require 'foo) or #include "foo".  ffap seems like a better
+;;     place for this feature (supplemented with major-mode-provided
+;;     functions to find the file ref'd at point).
 
-;; - case-sensitivity is currently confuses two issues:
+;; - case-sensitivity currently confuses two issues:
 ;;   - whether or not a particular completion table should be case-sensitive
-;;     (i.e. whether strings that different only by case are semantically
+;;     (i.e. whether strings that differ only by case are semantically
 ;;     equivalent)
 ;;   - whether the user wants completion to pay attention to case.
 ;;   e.g. we may want to make it possible for the user to say "first try
 ;;   completion case-sensitively, and if that fails, try to ignore case".
 
-;; - make lisp-complete-symbol and sym-comp use it.
 ;; - add support for ** to pcm.
-;; - Make read-file-name-predicate obsolete.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
 ;; - A feature like completing-help.el.
 ;; - make lisp/complete.el obsolete.
@@ -182,12 +195,29 @@ You should give VAR a non-nil `risky-local-variable' property."
        (t comp)))))
 
 (defun completion-table-with-terminator (terminator table string pred action)
+  "Construct a completion table like TABLE but with an extra TERMINATOR.
+This is meant to be called in a curried way by first passing TERMINATOR
+and TABLE only (via `apply-partially').
+TABLE is a completion table, and TERMINATOR is a string appended to TABLE's
+completion if it is complete.  TERMINATOR is also used to determine the
+completion suffix's boundary."
   (cond
+   ((eq (car-safe action) 'boundaries)
+    (let* ((suffix (cdr action))
+           (bounds (completion-boundaries string table pred suffix))
+           (max (string-match (regexp-quote terminator) suffix)))
+      (list* 'boundaries (car bounds)
+             (min (cdr bounds) (or max (length suffix))))))
    ((eq action nil)
     (let ((comp (try-completion string table pred)))
       (if (eq comp t)
           (concat string terminator)
         (if (and (stringp comp)
+                 ;; FIXME: Try to avoid this second call, especially since
+                 ;; it may be very inefficient (because `comp' made us
+                 ;; jump to a new boundary, so we complete in that
+                 ;; boundary with an empty start string).
+                 ;; completion-boundaries might help.
                  (eq (try-completion comp table pred) t))
             (concat comp terminator)
           comp))))
@@ -232,6 +262,8 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
 
 (defun completion-table-in-turn (&rest tables)
   "Create a completion table that tries each table in TABLES in turn."
+  ;; FIXME: the boundaries may come from TABLE1 even when the completion list
+  ;; is returned by TABLE2 (because TABLE1 returned an empty list).
   (lexical-let ((tables tables))
     (lambda (string pred action)
       (completion--some (lambda (table)
@@ -533,6 +565,8 @@ scroll the window of possible completions."
 Repeated uses step through the possible completions."
   (interactive)
   ;; FIXME: Need to deal with the extra-size issue here as well.
+  ;; FIXME: ~/src/emacs/t<M-TAB>/lisp/minibuffer.el completes to
+  ;; ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
   (let* ((start (field-beginning))
          (end (field-end))
          (all (completion-all-sorted-completions)))
@@ -1026,19 +1060,26 @@ variables.")
           "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'"))
 
 (defun completion--embedded-envvar-table (string pred action)
-  (if (eq (car-safe action) 'boundaries)
-      ;; Compute the boundaries of the subfield to which this
-      ;; completion applies.
-      (let ((suffix (cdr action)))
-        (if (string-match completion--embedded-envvar-re string)
-            (list* 'boundaries
-                   (or (match-beginning 2) (match-beginning 1))
-                   (when (string-match "[^[:alnum:]_]" suffix)
-                     (match-beginning 0)))))
-    (when (string-match completion--embedded-envvar-re string)
-      (let* ((beg (or (match-beginning 2) (match-beginning 1)))
-             (table (completion--make-envvar-table))
-             (prefix (substring string 0 beg)))
+  (when (string-match completion--embedded-envvar-re string)
+    (let* ((beg (or (match-beginning 2) (match-beginning 1)))
+           (table (completion--make-envvar-table))
+           (prefix (substring string 0 beg)))
+      (if (eq (car-safe action) 'boundaries)
+          ;; Only return boundaries if there's something to complete,
+          ;; since otherwise when we're used in
+          ;; completion-table-in-turn, we could return boundaries and
+          ;; let some subsequent table return a list of completions.
+          ;; FIXME: Maybe it should rather be fixed in
+          ;; completion-table-in-turn instead, but it's difficult to
+          ;; do it efficiently there.
+          (when (try-completion prefix table pred)
+            ;; Compute the boundaries of the subfield to which this
+            ;; completion applies.
+            (let ((suffix (cdr action)))
+              (list* 'boundaries
+                     (or (match-beginning 2) (match-beginning 1))
+                     (when (string-match "[^[:alnum:]_]" suffix)
+                       (match-beginning 0)))))
         (if (eq (aref string (1- beg)) ?{)
             (setq table (apply-partially 'completion-table-with-terminator
                                          "}" table)))
@@ -1048,75 +1089,102 @@ variables.")
           (completion-table-with-context
            prefix table (substring string beg) pred action))))))
 
-(defun completion--file-name-table (string pred action)
-  "Internal subroutine for `read-file-name'.  Do not call this."
+(defun completion-file-name-table (string pred action)
+  "Completion table for file names."
+  (ignore-errors
   (cond
-   ((and (zerop (length string)) (eq 'lambda action))
-    nil)                                ; FIXME: why?
    ((eq (car-safe action) 'boundaries)
-    ;; FIXME: Actually, this is not always right in the presence of
-    ;; envvars, but there's not much we can do, I think.
     (let ((start (length (file-name-directory string)))
           (end (string-match-p "/" (cdr action))))
       (list* 'boundaries start end)))
 
+     ((eq action 'lambda)
+      (if (zerop (length string))
+          nil    ;Not sure why it's here, but it probably doesn't harm.
+        (funcall (or pred 'file-exists-p) string)))
+
    (t
-    (let* ((dir (if (stringp pred)
-                    ;; It used to be that `pred' was abused to pass `dir'
-                    ;; as an argument.
-                    (prog1 (expand-file-name pred) (setq pred nil))
-                  default-directory))
-           (str (condition-case nil
-                    (substitute-in-file-name string)
-                  (error string)))
-           (name (file-name-nondirectory str))
-           (specdir (file-name-directory str))
-           (realdir (if specdir (expand-file-name specdir dir)
-                      (file-name-as-directory dir))))
+      (let* ((name (file-name-nondirectory string))
+             (specdir (file-name-directory string))
+             (realdir (or specdir default-directory)))
 
       (cond
        ((null action)
-        (let ((comp (file-name-completion name realdir
-                                          read-file-name-predicate)))
-          (cond
-           ((stringp comp)
-            ;; Requote the $s before returning the completion.
-            (minibuffer--double-dollars (concat specdir comp)))
-           (comp
-            ;; Requote the $s before checking for changes.
-            (setq str (minibuffer--double-dollars str))
-            (if (string-equal string str)
-                comp
-              ;; If there's no real completion, but substitute-in-file-name
-              ;; changed the string, then return the new string.
-              str)))))
+          (let ((comp (file-name-completion name realdir pred)))
+            (if (stringp comp)
+                (concat specdir comp)
+              comp)))
 
        ((eq action t)
         (let ((all (file-name-all-completions name realdir)))
 
           ;; Check the predicate, if necessary.
-          (unless (memq read-file-name-predicate '(nil file-exists-p))
+            (unless (memq pred '(nil file-exists-p))
             (let ((comp ())
                   (pred
-                   (if (eq read-file-name-predicate 'file-directory-p)
+                     (if (eq pred 'file-directory-p)
                        ;; Brute-force speed up for directory checking:
                        ;; Discard strings which don't end in a slash.
                        (lambda (s)
                          (let ((len (length s)))
                            (and (> len 0) (eq (aref s (1- len)) ?/))))
                      ;; Must do it the hard (and slow) way.
-                     read-file-name-predicate)))
-              (let ((default-directory realdir))
+                       pred)))
+                (let ((default-directory (expand-file-name realdir)))
                 (dolist (tem all)
                   (if (funcall pred tem) (push tem comp))))
               (setq all (nreverse comp))))
 
-          all))
+            all))))))))
+
+(defvar read-file-name-predicate nil
+  "Current predicate used by `read-file-name-internal'.")
+(make-obsolete-variable 'read-file-name-predicate
+                        "use the regular PRED argument" "23.2")
+
+(defun completion--file-name-table (string pred action)
+  "Internal subroutine for `read-file-name'.  Do not call this.
+This is a completion table for file names, like `completion-file-name-table'
+except that it passes the file name through `substitute-in-file-name'."
+  (cond
+   ((eq (car-safe action) 'boundaries)
+    ;; For the boundaries, we can't really delegate to
+    ;; completion-file-name-table and then fix them up, because it
+    ;; would require us to track the relationship between `str' and
+    ;; `string', which is difficult.  And in any case, if
+    ;; substitute-in-file-name turns "fo-$TO-ba" into "fo-o/b-ba", there's
+    ;; no way for us to return proper boundaries info, because the
+    ;; boundary is not (yet) in `string'.
+    (let ((start (length (file-name-directory string)))
+          (end (string-match-p "/" (cdr action))))
+      (list* 'boundaries start end)))
 
        (t
-        ;; Only other case actually used is ACTION = lambda.
-        (let ((default-directory dir))
-          (funcall (or read-file-name-predicate 'file-exists-p) str))))))))
+    (let* ((default-directory
+             (if (stringp pred)
+                 ;; It used to be that `pred' was abused to pass `dir'
+                 ;; as an argument.
+                 (prog1 (file-name-as-directory (expand-file-name pred))
+                   (setq pred nil))
+               default-directory))
+           (str (condition-case nil
+                    (substitute-in-file-name string)
+                  (error string)))
+           (comp (completion-file-name-table
+                  str (or pred read-file-name-predicate) action)))
+
+      (cond
+       ((stringp comp)
+        ;; Requote the $s before returning the completion.
+        (minibuffer--double-dollars comp))
+       ((and (null action) comp
+             ;; Requote the $s before checking for changes.
+             (setq str (minibuffer--double-dollars str))
+             (not (string-equal string str)))
+        ;; If there's no real completion, but substitute-in-file-name
+        ;; changed the string, then return the new string.
+        str)
+       (t comp))))))
 
 (defalias 'read-file-name-internal
   (completion-table-in-turn 'completion--embedded-envvar-table
@@ -1125,9 +1193,6 @@ variables.")
 
 (defvar read-file-name-function nil
   "If this is non-nil, `read-file-name' does its work by calling this function.")
-
-(defvar read-file-name-predicate nil
-  "Current predicate used by `read-file-name-internal'.")
 
 (defcustom read-file-name-completion-ignore-case
   (if (memq system-type '(ms-dos windows-nt darwin cygwin))
@@ -1227,7 +1292,7 @@ and `read-file-name-function'."
                  prompt dir default-filename mustmatch initial predicate)
       (let ((completion-ignore-case read-file-name-completion-ignore-case)
             (minibuffer-completing-file-name t)
-            (read-file-name-predicate (or predicate 'file-exists-p))
+            (pred (or predicate 'file-exists-p))
             (add-to-history nil))
 
         (let* ((val
@@ -1242,8 +1307,8 @@ and `read-file-name-function'."
                       (minibuffer-with-setup-hook
                           (lambda () (setq default-directory dir))
                         (completing-read prompt 'read-file-name-internal
-                                         nil mustmatch insdef 'file-name-history
-                                         default-filename)))
+                                         pred mustmatch insdef
+                                         'file-name-history default-filename)))
                   ;; If DEFAULT-FILENAME not supplied and DIR contains
                   ;; a file name, split it.
                   (let ((file (file-name-nondirectory dir))
@@ -1253,9 +1318,8 @@ and `read-file-name-function'."
 			;; it is impossible to create new files using
 			;; dialogs with the default settings.
 			(dialog-mustmatch
-			 (and (not (eq mustmatch 'confirm))
-			      (not (eq mustmatch 'confirm-after-completion))
-			      mustmatch)))
+                         (not (memq mustmatch
+                                    '(nil confirm confirm-after-completion)))))
                     (when (and (not default-filename)
 			       (not (zerop (length file))))
                       (setq default-filename file)

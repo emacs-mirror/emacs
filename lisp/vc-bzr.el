@@ -736,14 +736,10 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
                       string)
         (completion-table-with-context (substring string 0 (match-end 0))
-                                       ;; FIXME: only allow directories.
-                                       ;; FIXME: don't allow envvars.
-                                       'read-file-name-internal
+                                       'completion-file-name-table
                                        (substring string (match-end 0))
-                                       ;; Dropping `pred'.   Maybe we should
-                                       ;; just stash it in
-                                       ;; `read-file-name-predicate'?
-                                       nil
+                                       ;; Dropping `pred' for no good reason.
+                                       'file-directory-p
                                        action))
        ((string-match "\\`\\(before\\):" string)
         (completion-table-with-context (substring string 0 (match-end 0))
