@@ -1,3 +1,32 @@
+2009-10-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_wait_for_event): Declare it.
+
+	* xterm.c (pending_event_wait): New variable.
+	(handle_one_xevent): Set pending_event_wait.eventtype to 0 if we
+	see pending_event_wait.eventtype.
+	(handle_one_xevent): Don't change gravity when parent changes.
+	(x_new_font): Call change_frame_size with new rows/columns before we try
+	to resize the frame.
+	(x_wait_for_event): New function.
+	(x_set_window_size_1): Don't change gravity unless change_gravity is set.
+	Call XResizeWindow with FRAME_OUTER_WINDOW.  If we are visible,
+	don't change frame size, instead wait for the ConfigureNotify.
+	(x_set_window_size): Call x_set_window_size_1 for USE_X_TOOLKIT also.
+	(x_wm_set_size_hint): Remove ifdefs for USE_X_TOOLKIT.
+	(x_initialize): Initialize pending_event_wait.
+
+	* xmenu.c (set_frame_menubar): Add internal border width to menu bar
+	size.
+
+	* widget.c (EmacsFrameSetValues): Add comment.
+	(EmacsFrameSetCharSize): Just call x_set_window_size.
+
+	* gtkutil.c (xg_frame_set_char_size): Flush events and call
+	x_wait_for_event.
+	(flush_and_sync): Removed again.
+	(xg_get_font_name): Suggest monospace if no previous font is known.
+
 2009-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* character.c (char_resolve_modifier_mask): Don't resolve meta to the

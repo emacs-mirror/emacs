@@ -86,6 +86,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "font.h"
 #include "fontset.h"
+#include "sysselect.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -199,7 +200,14 @@ extern struct frame *updating_frame;
 
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
-struct frame *pending_autoraise_frame;
+static struct frame *pending_autoraise_frame;
+
+/* This is a frame waiting for an event matching mask, within XTread_socket.  */
+
+static struct {
+  struct frame *f;
+  int eventtype;
+} pending_event_wait;
 
 #ifdef USE_X_TOOLKIT
 /* The application context for Xt use.  */
@@ -5833,7 +5841,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
-
+  
+  if (pending_event_wait.eventtype == event.type)
+    pending_event_wait.eventtype = 0; /* Indicates we got it.  */
+  
   switch (event.type)
     {
     case ClientMessage:
@@ -6779,7 +6790,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
 #ifdef USE_GTK
           /* GTK creates windows but doesn't map them.
-             Only get real positions and check fullscreen when mapped. */
+             Only get real positions when mapped. */
           if (FRAME_GTK_OUTER_WIDGET (f)
               && GTK_WIDGET_MAPPED (FRAME_GTK_OUTER_WIDGET (f)))
 #endif
@@ -6792,15 +6803,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
             xic_set_statusarea (f);
 #endif
 
-#ifndef USE_GTK
-          if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-            {
-              /* Since the WM decorations come below top_pos now,
-                 we must put them below top_pos in the future.  */
-              f->win_gravity = NorthWestGravity;
-              x_wm_set_size_hint (f, (long) 0, 0);
-            }
-#endif
         }
       goto OTHER;
 
@@ -8043,9 +8045,15 @@ x_new_font (f, font_object, fontset)
              turns out to not be a no-op (there is no way to know).
              The size will be adjusted again if the frame gets a
              ConfigureNotify event as a result of x_set_window_size.  */
-          int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f,
-                                                       FRAME_PIXEL_HEIGHT (f));
+          int pixelh = FRAME_PIXEL_HEIGHT (f);
+#ifdef USE_X_TOOLKIT
+          /* The menu bar is not part of text lines.  The tool bar
+             is however.  */
+          pixelh -= FRAME_MENUBAR_HEIGHT (f);
+#endif
+          int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
           int cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
+          
           change_frame_size (f, rows, cols, 0, 1, 0);
           x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
         }
@@ -8810,6 +8818,49 @@ x_sync_with_move (f, left, top, fuzzy)
 }
 
 
+/* Wait for an event on frame F matching EVENTTYPE.  */
+void
+x_wait_for_event (f, eventtype)
+     struct frame *f;
+     int eventtype;
+{
+  int level = interrupt_input_blocked;
+
+  SELECT_TYPE fds;
+  EMACS_TIME tmo, tmo_at, time_now;
+  int fd = ConnectionNumber (FRAME_X_DISPLAY (f));
+
+  pending_event_wait.f = f;
+  pending_event_wait.eventtype = eventtype;
+
+  /* Set timeout to 0.1 second.  Hopefully not noticable.
+     Maybe it should be configurable.  */
+  EMACS_SET_SECS_USECS (tmo, 0, 100000);
+  EMACS_GET_TIME (tmo_at);
+  EMACS_ADD_TIME (tmo_at, tmo_at, tmo);
+
+  while (pending_event_wait.eventtype)
+    {
+      interrupt_input_pending = 1;
+      TOTALLY_UNBLOCK_INPUT;
+      /* XTread_socket is called after unblock.  */
+      BLOCK_INPUT;
+      interrupt_input_blocked = level;
+
+      FD_ZERO (&fds);
+      FD_SET (fd, &fds);
+      
+      EMACS_GET_TIME (time_now);
+      EMACS_SUB_TIME (tmo, tmo_at, time_now);
+
+      if (EMACS_TIME_NEG_P (tmo) || select (fd+1, &fds, NULL, NULL, &tmo) == 0)
+        break; /* Timeout */
+    }
+  pending_event_wait.f = 0;
+  pending_event_wait.eventtype = 0;
+}
+
+
 /* Change the size of frame F's X window to COLS/ROWS in the case F
    doesn't have a widget.  If CHANGE_GRAVITY is 1, we change to
    top-left-corner window gravity for this size change and subsequent
@@ -8833,15 +8884,23 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
-  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols)
+    + 2*f->border_width;
+  pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
+    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f)
+    + 2*f->border_width;
 
-  f->win_gravity = NorthWestGravity;
+  if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
-
-  XSync (FRAME_X_DISPLAY (f), False);
-  XResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+  XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		 pixelwidth, pixelheight);
+
+
+  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
+     receive in the ConfigureNotify event; if we get what we asked
+     for, then the event won't cause the screen to become garbaged, so
+     we have to make sure to do it here.  */
+  SET_FRAME_GARBAGED (f);
 
   /* Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
@@ -8856,17 +8915,19 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
 
      We pass 1 for DELAY since we can't run Lisp code inside of
      a BLOCK_INPUT.  */
-  change_frame_size (f, rows, cols, 0, 1, 0);
-  FRAME_PIXEL_WIDTH (f) = pixelwidth;
-  FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
-  SET_FRAME_GARBAGED (f);
-
-  XFlush (FRAME_X_DISPLAY (f));
+  /* But the ConfigureNotify may in fact never arrive, and then this is
+     not right if the frame is visible.  Instead wait (with timeout)
+     for the ConfigureNotify.  */
+  if (f->async_visible)
+    x_wait_for_event (f, ConfigureNotify);
+  else
+    {
+      change_frame_size (f, rows, cols, 0, 1, 0);
+      FRAME_PIXEL_WIDTH (f) = pixelwidth;
+      FRAME_PIXEL_HEIGHT (f) = pixelheight;
+      x_sync (f);
+    }
 }
 
 
@@ -8888,28 +8949,11 @@ x_set_window_size (f, change_gravity, cols, rows)
     xg_frame_set_char_size (f, cols, rows);
   else
     x_set_window_size_1 (f, change_gravity, cols, rows);
-#elif USE_X_TOOLKIT
-
-  if (f->output_data.x->widget != NULL)
-    {
-      /* The x and y position of the widget is clobbered by the
-	 call to XtSetValues within EmacsFrameSetCharSize.
-	 This is a real kludge, but I don't understand Xt so I can't
-	 figure out a correct fix.  Can anyone else tell me? -- rms.  */
-      int xpos = f->output_data.x->widget->core.x;
-      int ypos = f->output_data.x->widget->core.y;
-      EmacsFrameSetCharSize (f->output_data.x->edit_widget, cols, rows);
-      f->output_data.x->widget->core.x = xpos;
-      f->output_data.x->widget->core.y = ypos;
-    }
-  else
-    x_set_window_size_1 (f, change_gravity, cols, rows);
-
-#else /* not USE_X_TOOLKIT */
+#else /* not USE_GTK */
 
   x_set_window_size_1 (f, change_gravity, cols, rows);
 
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_GTK */
 
   /* If cursor was outside the new size, mark it as off.  */
   mark_window_cursors_off (XWINDOW (f->root_window));
@@ -9611,13 +9655,6 @@ x_wm_set_size_hint (f, flags, user_position)
      int user_position;
 {
   XSizeHints size_hints;
-
-#ifdef USE_X_TOOLKIT
-  Arg al[2];
-  int ac = 0;
-  Dimension widget_width, widget_height;
-#endif
-
   Window window = FRAME_OUTER_WINDOW (f);
 
   /* Setting PMaxSize caused various problems.  */
@@ -9626,16 +9663,8 @@ x_wm_set_size_hint (f, flags, user_position)
   size_hints.x = f->left_pos;
   size_hints.y = f->top_pos;
 
-#ifdef USE_X_TOOLKIT
-  XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
-  XtSetArg (al[ac], XtNheight, &widget_height); ac++;
-  XtGetValues (f->output_data.x->widget, al, ac);
-  size_hints.height = widget_height;
-  size_hints.width = widget_width;
-#else /* not USE_X_TOOLKIT */
   size_hints.height = FRAME_PIXEL_HEIGHT (f);
   size_hints.width = FRAME_PIXEL_WIDTH (f);
-#endif /* not USE_X_TOOLKIT */
 
   size_hints.width_inc = FRAME_COLUMN_WIDTH (f);
   size_hints.height_inc = FRAME_LINE_HEIGHT (f);
@@ -9644,11 +9673,7 @@ x_wm_set_size_hint (f, flags, user_position)
   size_hints.max_height = x_display_pixel_height (FRAME_X_DISPLAY_INFO (f))
     - FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 
-  /* Calculate the base and minimum sizes.
-
-     (When we use the X toolkit, we don't do it here.
-     Instead we copy the values that the widgets are using, below.)  */
-#ifndef USE_X_TOOLKIT
+  /* Calculate the base and minimum sizes.  */
   {
     int base_width, base_height;
     int min_rows = 0, min_cols = 0;
@@ -9670,7 +9695,7 @@ x_wm_set_size_hint (f, flags, user_position)
 
     size_hints.flags |= PBaseSize;
     size_hints.base_width = base_width;
-    size_hints.base_height = base_height;
+    size_hints.base_height = base_height + FRAME_MENUBAR_HEIGHT (f);
     size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
     size_hints.min_height = base_height + min_rows * size_hints.height_inc;
   }
@@ -9681,7 +9706,6 @@ x_wm_set_size_hint (f, flags, user_position)
       size_hints.flags |= flags;
       goto no_read;
     }
-#endif /* not USE_X_TOOLKIT */
 
   {
     XSizeHints hints;		/* Sometimes I hate X Windows... */
@@ -9690,13 +9714,6 @@ x_wm_set_size_hint (f, flags, user_position)
 
     value = XGetWMNormalHints (FRAME_X_DISPLAY (f), window, &hints,
 			       &supplied_return);
-
-#ifdef USE_X_TOOLKIT
-    size_hints.base_height = hints.base_height;
-    size_hints.base_width = hints.base_width;
-    size_hints.min_height = hints.min_height;
-    size_hints.min_width = hints.min_width;
-#endif
 
     if (flags)
       size_hints.flags |= flags;
@@ -9715,9 +9732,7 @@ x_wm_set_size_hint (f, flags, user_position)
       }
   }
 
-#ifndef USE_X_TOOLKIT
  no_read:
-#endif
 
 #ifdef PWinGravity
   size_hints.win_gravity = f->win_gravity;
@@ -10790,6 +10805,10 @@ x_initialize ()
   xaw3d_pick_top = True;
 #endif
 #endif
+
+  pending_autoraise_frame = 0;
+  pending_event_wait.f = 0;
+  pending_event_wait.eventtype = 0;
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */

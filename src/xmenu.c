@@ -1555,8 +1555,10 @@ set_frame_menubar (f, first_time, deep_p)
 	    + f->output_data.x->menubar_widget->core.border_width)
 	 : 0);
 
-#if 0 /* Experimentally, we now get the right results
-	 for -geometry -0-0 without this.  24 Aug 96, rms.  */
+#if 1 /* Experimentally, we now get the right results
+	 for -geometry -0-0 without this.  24 Aug 96, rms.
+         Maybe so, but the menu bar size is missing the pixels so the
+         WM size hints are off by theses pixel.  Jan D, oct 2009.  */
 #ifdef USE_LUCID
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
@@ -1566,7 +1568,7 @@ set_frame_menubar (f, first_time, deep_p)
         menubar_size += ibw;
       }
 #endif /* USE_LUCID */
-#endif /* 0 */
+#endif /* 1 */
 
     f->output_data.x->menubar_height = menubar_size;
   }

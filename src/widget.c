@@ -775,6 +775,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
   Dimension pixel_width;
   Dimension pixel_height;
 
+  /* AFAIK, this function is never called. -- Jan D, Oct 2009.  */
   has_to_recompute_gcs = (cur->emacs_frame.font != new->emacs_frame.font
 			  || (cur->emacs_frame.foreground_pixel
 			      != new->emacs_frame.foreground_pixel)
@@ -872,112 +873,9 @@ EmacsFrameSetCharSize (widget, columns, rows)
      int rows;
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  Dimension pixel_width, pixel_height;
   struct frame *f = ew->emacs_frame.frame;
 
-  if (columns < 3) columns = 3;  /* no way buddy */
-
-  check_frame_size (f, &rows, &columns);
-  f->scroll_bar_actual_width
-    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
-
-  compute_fringe_widths (f, 0);
-
-  char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
-
-#if 0  /* This doesn't seem to be right.  The frame gets too wide. --gerd.  */
-  /* Something is really strange here wrt to the border width:
-     Apparently, XtNwidth and XtNheight include the border, so we have
-     to add it here.  But the XtNborderWidth set for the widgets has
-     no similarity to what f->border_width is set to.  */
-  XtVaGetValues (widget, XtNborderWidth, &border_width, NULL);
-  pixel_height += 2 * border_width;
-  pixel_width += 2 * border_width;
-#endif
-
-  /* Manually change the height and width of all our widgets,
-     adjusting each widget by the same increments.  */
-  if (ew->core.width != pixel_width
-      || ew->core.height != pixel_height)
-    {
-      int hdelta = pixel_height - ew->core.height;
-      int wdelta = pixel_width - ew->core.width;
-      int column_widget_height = f->output_data.x->column_widget->core.height;
-      int column_widget_width = f->output_data.x->column_widget->core.width;
-      int outer_widget_height = f->output_data.x->widget->core.height;
-      int outer_widget_width = f->output_data.x->widget->core.width;
-      int old_left = f->output_data.x->widget->core.x;
-      int old_top = f->output_data.x->widget->core.y;
-
-      /* Input is blocked here, and Xt waits for some event to
-         occur.  */
-
-      lw_refigure_widget (f->output_data.x->column_widget, False);
-      update_hints_inhibit = 1;
-
-      /* Xt waits for a ConfigureNotify event from the window manager
-	 in EmacsFrameSetCharSize when the shell widget is resized.
-	 For some window managers like fvwm2 2.2.5 and KDE 2.1 this
-	 event doesn't arrive for an unknown reason and Emacs hangs in
-	 Xt when the default font is changed.  Tell Xt not to wait,
-	 depending on the value of the frame parameter
-	 `wait-for-wm'.  */
-      x_catch_errors (FRAME_X_DISPLAY (f));
-      XtVaSetValues (f->output_data.x->widget,
-		     XtNwaitForWm, (XtArgVal) f->output_data.x->wait_for_wm,
-		     NULL);
-      x_uncatch_errors ();
-
-      /* Workaround: When a SIGIO or SIGALRM occurs while Xt is
-	 waiting for a ConfigureNotify event (see above), this leads
-	 to Xt waiting indefinitely instead of using its default
-	 timeout (5 seconds).  */
-      turn_on_atimers (0);
-#ifdef SIGIO
-      sigblock (sigmask (SIGIO));
-#endif
-
-      /* Do parents first, otherwise LessTif's geometry management
-	 enters an infinite loop (as of 2000-01-15).  This is fixed in
-	 later versions of LessTif (as of 2001-03-13); I'll leave it
-	 as is because I think it can't do any harm.  */
-      /* In April 2002, simon.marshall@misys.com reports the problem
-	 seems not to occur any longer.  */
-      x_catch_errors (FRAME_X_DISPLAY (f));
-      XtVaSetValues (f->output_data.x->widget,
-      		     XtNheight, (XtArgVal) (outer_widget_height + hdelta),
-		     XtNwidth, (XtArgVal) (outer_widget_width + wdelta),
-		     NULL);
-      XtVaSetValues (f->output_data.x->column_widget,
-      		     XtNheight, (XtArgVal) (column_widget_height + hdelta),
-      		     XtNwidth, (XtArgVal) column_widget_width + wdelta,
-		     NULL);
-      XtVaSetValues ((Widget) ew,
-                     XtNheight, (XtArgVal) pixel_height,
-      		     XtNwidth, (XtArgVal) pixel_width,
-		     NULL);
-      x_uncatch_errors ();
-
-#ifdef SIGIO
-      sigunblock (sigmask (SIGIO));
-#endif
-      turn_on_atimers (1);
-
-      lw_refigure_widget (f->output_data.x->column_widget, True);
-
-      update_hints_inhibit = 0;
-      update_wm_hints (ew);
-
-      /* These seem to get clobbered.  I don't know why. - rms.  */
-      f->output_data.x->widget->core.x = old_left;
-      f->output_data.x->widget->core.y = old_top;
-    }
-
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
-  SET_FRAME_GARBAGED (f);
+  x_set_window_size (f, 0, columns, rows);
 }
 
 

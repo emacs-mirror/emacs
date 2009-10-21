@@ -665,20 +665,6 @@ xg_frame_resized (f, pixelwidth, pixelheight)
     }
 }
 
-static void
-flush_and_sync (f)
-     FRAME_PTR f;
-{
-  gdk_window_process_all_updates ();
-  x_sync (f);
-  while (gtk_events_pending ())
-    {
-      gtk_main_iteration ();
-      gdk_window_process_all_updates ();
-      x_sync (f);
-    }
-}
-
 /* Resize the outer window of frame F after chainging the height.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
@@ -715,6 +701,9 @@ xg_frame_set_char_size (f, cols, rows)
                      pixelwidth, pixelheight);
   x_wm_set_size_hint (f, 0, 0);
 
+  SET_FRAME_GARBAGED (f);
+  cancel_mouse_face (f);
+
   /* We can not call change_frame_size for a mapped frame,
      we can not set pixel width/height either.  The window manager may
      override our resize request, XMonad does this all the time.
@@ -723,14 +712,17 @@ xg_frame_set_char_size (f, cols, rows)
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
   if (f->async_visible)
-      flush_and_sync (f);
+    {
+      /* Must call this to flush out events */
+      (void)gtk_events_pending ();
+      gdk_flush ();
+      x_wait_for_event (f, ConfigureNotify);
+    }
   else
     {
+      change_frame_size (f, rows, cols, 0, 1, 0);
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
-      change_frame_size (f, rows, cols, 0, 1, 0);
-      SET_FRAME_GARBAGED (f);
-      cancel_mouse_face (f);
      }
 }
 
@@ -1640,9 +1632,10 @@ xg_get_font_name (f, default_name)
 #endif /* HAVE_GTK_AND_PTHREAD */
 
   w = gtk_font_selection_dialog_new ("Pick a font");
-  if (default_name)
-    gtk_font_selection_dialog_set_font_name (GTK_FONT_SELECTION_DIALOG (w),
-                                             default_name);
+  if (!default_name)
+    default_name = "Monospace 10";
+  gtk_font_selection_dialog_set_font_name (GTK_FONT_SELECTION_DIALOG (w),
+                                           default_name);
 
   xg_set_screen (w, f);
   gtk_widget_set_name (w, "emacs-fontdialog");
