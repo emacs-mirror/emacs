@@ -10456,7 +10456,6 @@ x_term_init (display_name, xrm_option, resource_name)
 	    || !strcmp (SDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
   }
-  XSynchronize (dpyinfo->display, True);
 
   {
     Lisp_Object value;

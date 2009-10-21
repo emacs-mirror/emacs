@@ -1,5 +1,7 @@
 2009-10-21  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_term_init): Remove XSynchronize call done for debugging.
+
 	* xterm.h (x_wait_for_event): Declare it.
 
 	* xterm.c (pending_event_wait): New variable.
