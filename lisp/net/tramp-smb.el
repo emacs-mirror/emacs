@@ -481,7 +481,7 @@ PRESERVE-UID-GID is completely ignored."
   (unless id-format (setq id-format 'integer))
   (with-parsed-tramp-file-name filename nil
     (with-file-property v localname (format "file-attributes-%s" id-format)
-      (if (and (tramp-smb-get-share v) (tramp-smb-get-cifs-capabilities v))
+      (if (and (tramp-smb-get-share v) (tramp-smb-get-stat-capability v))
 	  (tramp-smb-do-file-attributes-with-stat v id-format)
 	;; Reading just the filename entry via "dir localname" is not
 	;; possible, because when filename is a directory, some
@@ -519,71 +519,64 @@ PRESERVE-UID-GID is completely ignored."
    vec 5 "file attributes with stat: %s" (tramp-file-name-localname vec))
   (with-current-buffer (tramp-get-buffer vec)
     (let* (size id link uid gid atime mtime ctime mode inode)
-      (unless
-	  (tramp-smb-send-command
-	   vec (format "stat \"%s\"" (tramp-smb-get-localname vec)))
-	;; Error.
-	(with-current-buffer (tramp-get-connection-buffer vec)
-	  (goto-char (point-min))
-	  (search-forward-regexp tramp-smb-errors nil t)
-	  (tramp-error
-	   vec 'file-error "%s" (match-string 0))))
+      (when (tramp-smb-send-command
+	     vec (format "stat \"%s\"" (tramp-smb-get-localname vec)))
 
-      ;; Loop the listing.
-      (goto-char (point-min))
-      (unless (re-search-forward tramp-smb-errors nil t)
-	(while (not (eobp))
-	  (cond
-	   ((looking-at
-	     "Size:\\s-+\\([0-9]+\\)\\s-+Blocks:\\s-+[0-9]+\\s-+\\(\\w+\\)")
-	    (setq size (string-to-number (match-string 1))
-		  id (if (string-equal "directory" (match-string 2)) t
-		       (if (string-equal "symbolic" (match-string 2)) ""))))
-	   ((looking-at
-	     "Inode:\\s-+\\([0-9]+\\)\\s-+Links:\\s-+\\([0-9]+\\)")
-	    (setq inode (string-to-number (match-string 1))
-		  link (string-to-number (match-string 2))))
-	   ((looking-at
-	     "Access:\\s-+([0-9]+/\\(\\S-+\\))\\s-+Uid:\\s-+\\([0-9]+\\)\\s-+Gid:\\s-+\\([0-9]+\\)")
-	    (setq mode (match-string 1)
-		  uid (if (equal id-format 'string) (match-string 2)
-			(string-to-number (match-string 2)))
-		  gid (if (equal id-format 'string) (match-string 3)
-			(string-to-number (match-string 3)))))
-	   ((looking-at
-	     "Access:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
-	    (setq atime
-		  (encode-time
-		   (string-to-number (match-string 6)) ;; sec
-		   (string-to-number (match-string 5)) ;; min
-		   (string-to-number (match-string 4)) ;; hour
-		   (string-to-number (match-string 3)) ;; day
-		   (string-to-number (match-string 2)) ;; month
-		   (string-to-number (match-string 1))))) ;; year
-	   ((looking-at
-	     "Modify:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
-	    (setq mtime
-		  (encode-time
-		   (string-to-number (match-string 6)) ;; sec
-		   (string-to-number (match-string 5)) ;; min
-		   (string-to-number (match-string 4)) ;; hour
-		   (string-to-number (match-string 3)) ;; day
-		   (string-to-number (match-string 2)) ;; month
-		   (string-to-number (match-string 1))))) ;; year
-	   ((looking-at
-	     "Change:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
-	    (setq ctime
-		  (encode-time
-		   (string-to-number (match-string 6)) ;; sec
-		   (string-to-number (match-string 5)) ;; min
-		   (string-to-number (match-string 4)) ;; hour
-		   (string-to-number (match-string 3)) ;; day
-		   (string-to-number (match-string 2)) ;; month
-		   (string-to-number (match-string 1)))))) ;; year
-	  (forward-line))
-	;; Return the result.
-	(list id link uid gid atime mtime ctime size mode nil inode
-	      (tramp-get-device vec))))))
+	;; Loop the listing.
+	(goto-char (point-min))
+	(unless (re-search-forward tramp-smb-errors nil t)
+	  (while (not (eobp))
+	    (cond
+	     ((looking-at
+	       "Size:\\s-+\\([0-9]+\\)\\s-+Blocks:\\s-+[0-9]+\\s-+\\(\\w+\\)")
+	      (setq size (string-to-number (match-string 1))
+		    id (if (string-equal "directory" (match-string 2)) t
+			 (if (string-equal "symbolic" (match-string 2)) ""))))
+	     ((looking-at
+	       "Inode:\\s-+\\([0-9]+\\)\\s-+Links:\\s-+\\([0-9]+\\)")
+	      (setq inode (string-to-number (match-string 1))
+		    link (string-to-number (match-string 2))))
+	     ((looking-at
+	       "Access:\\s-+([0-9]+/\\(\\S-+\\))\\s-+Uid:\\s-+\\([0-9]+\\)\\s-+Gid:\\s-+\\([0-9]+\\)")
+	      (setq mode (match-string 1)
+		    uid (if (equal id-format 'string) (match-string 2)
+			  (string-to-number (match-string 2)))
+		    gid (if (equal id-format 'string) (match-string 3)
+			  (string-to-number (match-string 3)))))
+	     ((looking-at
+	       "Access:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
+	      (setq atime
+		    (encode-time
+		     (string-to-number (match-string 6)) ;; sec
+		     (string-to-number (match-string 5)) ;; min
+		     (string-to-number (match-string 4)) ;; hour
+		     (string-to-number (match-string 3)) ;; day
+		     (string-to-number (match-string 2)) ;; month
+		     (string-to-number (match-string 1))))) ;; year
+	     ((looking-at
+	       "Modify:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
+	      (setq mtime
+		    (encode-time
+		     (string-to-number (match-string 6)) ;; sec
+		     (string-to-number (match-string 5)) ;; min
+		     (string-to-number (match-string 4)) ;; hour
+		     (string-to-number (match-string 3)) ;; day
+		     (string-to-number (match-string 2)) ;; month
+		     (string-to-number (match-string 1))))) ;; year
+	     ((looking-at
+	       "Change:\\s-+\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)\\s-+\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)")
+	      (setq ctime
+		    (encode-time
+		     (string-to-number (match-string 6)) ;; sec
+		     (string-to-number (match-string 5)) ;; min
+		     (string-to-number (match-string 4)) ;; hour
+		     (string-to-number (match-string 3)) ;; day
+		     (string-to-number (match-string 2)) ;; month
+		     (string-to-number (match-string 1)))))) ;; year
+	    (forward-line))
+	  ;; Return the result.
+	  (list id link uid gid atime mtime ctime size mode nil inode
+		(tramp-get-device vec)))))))
 
 (defun tramp-smb-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
@@ -709,30 +702,33 @@ PRESERVE-UID-GID is completely ignored."
 	   entries))
 
 	;; Print entries.
-	(mapcar
+	(mapc
 	 (lambda (x)
 	   (when (not (zerop (length (nth 0 x))))
 	     (let ((attr
-		    (when (tramp-smb-get-cifs-capabilities v)
+		    (when (tramp-smb-get-stat-capability v)
 		      (ignore-errors
 			(file-attributes
 			 (expand-file-name (nth 0 x)) 'string)))))
 	       (insert
 		(format
-		 "%10s %3d %-8s %-8s %8s %s %s\n"
+		 "%10s %3d %-8s %-8s %8s %s "
 		 (or (nth 8 attr) (nth 1 x)) ; mode
-		 (or (nth 1 attr) 1) ; link
+		 (or (nth 1 attr) 1) ; inode
 		 (or (nth 2 attr) "nobody") ; uid
 		 (or (nth 3 attr) "nogroup") ; gid
-		 (nth 2 x) ; size
+		 (or (nth 7 attr) (nth 2 x)) ; size
 		 (format-time-string
 		  (if (tramp-time-less-p
 		       (tramp-time-subtract (current-time) (nth 3 x))
 		       tramp-half-a-year)
 		      "%b %e %R"
 		    "%b %e  %Y")
-		  (nth 3 x)) ; date
-		 (nth 0 x))) ; file name
+		  (nth 3 x)))) ; date
+	       ;; We mark the filename.
+	       (let ((start (point)))
+		 (insert (format "%s\n" (nth 0 x))) ; file name
+		 (put-text-property start (1- (point)) 'dired-filename t))
 	       (forward-line)
 	       (beginning-of-line))))
 	 entries)))))
@@ -1171,15 +1167,26 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 	(and p (processp p) (memq (process-status p) '(run open))))
       (with-connection-property
 	  (tramp-get-connection-process vec) "cifs-capabilities"
-	(when (tramp-smb-send-command vec "posix")
-	  (with-current-buffer (tramp-get-buffer vec)
-	    (goto-char (point-min))
-	    (when (re-search-forward "Server supports CIFS capabilities" nil t)
-	      (member
-	       "pathnames"
-	       (split-string
-		(buffer-substring
-		 (point) (tramp-compat-line-end-position)) nil t))))))))
+	(save-match-data
+	  (when (tramp-smb-send-command vec "posix")
+	    (with-current-buffer (tramp-get-buffer vec)
+	      (goto-char (point-min))
+	      (when
+		  (re-search-forward "Server supports CIFS capabilities" nil t)
+		(member
+		 "pathnames"
+		 (split-string
+		  (buffer-substring
+		   (point) (tramp-compat-line-end-position)) nil t)))))))))
+
+(defun tramp-smb-get-stat-capability (vec)
+  "Check, whether the SMB server supports the STAT command."
+  ;; When we are not logged in yet, we return nil.
+  (if (let ((p (tramp-get-connection-process vec)))
+	(and p (processp p) (memq (process-status p) '(run open))))
+      (with-connection-property
+	  (tramp-get-connection-process vec) "stat-capability"
+	(tramp-smb-send-command vec "stat ."))))
 
 
 ;; Connection functions.
@@ -1204,33 +1211,30 @@ connection if a previous connection has died for some reason."
     ;; Otherwise, we must delete the connection cache, because
     ;; capabilities migh have changed.
     (unless (processp p)
-      (unless (let ((default-directory
-		      (tramp-compat-temporary-file-directory)))
-		(executable-find tramp-smb-program))
-	(tramp-error
-	 vec 'file-error
-	 "Cannot find command %s in %s" tramp-smb-program exec-path))
+      (let ((default-directory (tramp-compat-temporary-file-directory))
+	    (command (concat tramp-smb-program " -V")))
 
-      (let* ((default-directory (tramp-compat-temporary-file-directory))
-	     (smbclient-version tramp-smb-version))
-	(unless smbclient-version
-	  (setq smbclient-version
-		(shell-command-to-string (concat tramp-smb-program " -V")))
-	  (tramp-message vec 6 (concat tramp-smb-program " -V"))
-	  (tramp-message vec 6 "\n%s" smbclient-version)
-	  (if (string-match "[ \t\n\r]+\\'" smbclient-version)
-	      (setq smbclient-version
-		    (replace-match "" nil nil smbclient-version))))
-	(unless
-	    (string-equal
-	     smbclient-version
-	     (tramp-get-connection-property
-	      vec "smbclient-version" smbclient-version))
+	(unless tramp-smb-version
+	  (unless (executable-find tramp-smb-program)
+	    (tramp-error
+	     vec 'file-error
+	     "Cannot find command %s in %s" tramp-smb-program exec-path))
+	  (setq tramp-smb-version (shell-command-to-string command))
+	  (tramp-message vec 6 command)
+	  (tramp-message vec 6 "\n%s" tramp-smb-version)
+	  (if (string-match "[ \t\n\r]+\\'" tramp-smb-version)
+	      (setq tramp-smb-version
+		    (replace-match "" nil nil tramp-smb-version))))
+
+	(unless (string-equal
+		 tramp-smb-version
+		 (tramp-get-connection-property
+		  vec "smbclient-version" tramp-smb-version))
 	  (tramp-flush-directory-property vec "")
 	  (tramp-flush-connection-property vec))
-	(setq tramp-smb-version
-	      (tramp-set-connection-property
-	       vec "smbclient-version" smbclient-version))))
+
+	(tramp-set-connection-property
+	 vec "smbclient-version" tramp-smb-version)))
 
     ;; If too much time has passed since last command was sent, look
     ;; whether there has been an error message; maybe due to
