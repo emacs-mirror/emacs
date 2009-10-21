@@ -1,3 +1,15 @@
+2009-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-get-stat-capability): New defun.
+	(tramp-smb-handle-file-attributes): Use it.
+	(tramp-smb-do-file-attributes-with-stat): Don't raise an error.
+	(tramp-smb-handle-insert-directory): Use `mapc' rather than
+	`mapcar'.  Use `tramp-smb-get-stat-capability'.  Add
+	`dired-filename' text properties.
+	(tramp-smb-get-cifs-capabilities): Apply `save-match-data'.
+	(tramp-smb-maybe-open-connection): Simplify check for smbclient
+	version.
+
 2009-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-key-delay): Reduce to 0.01.
@@ -532,7 +544,7 @@
 
 	* net/tramp.el (tramp-file-name-real-user, tramp-file-name-domain)
 	(tramp-file-name-real-host, tramp-file-name-port):
-	Apply `save-match-data.
+	Apply `save-match-data'.
 
 	* net/tramp-smb.el (tramp-smb-handle-copy-directory): Handle the
 	case both directories are remote.
