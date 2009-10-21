@@ -126,9 +126,9 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 		  unsigned n = *fmt - '0';
 		  while ('0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      if (n * 10 / 10 != n
-			  || (n = n * 10 + (fmt[1] - '0')) < n)
+		      if (n * 10 + fmt[1] - '0' < n)
 			error ("Format width or precision too large");
+		      n = n * 10 + fmt[1] - '0';
 		      *string++ = *++fmt;
 		    }
 
