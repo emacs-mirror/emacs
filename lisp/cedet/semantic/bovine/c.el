@@ -712,19 +712,26 @@ the regular parser."
 	  ;; Protect against user hooks throwing errors.
 	  (condition-case nil
 	      (funcall mode)
-	    (error nil))
+	    (error
+	     (if (y-or-n-p
+		  (format "There was an error initializing %s in buffer \"%s\". Debug your hooks? "
+			  mode (buffer-name)))
+		 (semantic-c-debug-mode-init mode)
+	       (message "Macro parsing state may be broken...")
+	       (sit-for 1))))
+	  ) ; save match data
 
-	  ;; Hack in mode-local
-	  (activate-mode-local-bindings)
-	  ;; CHEATER!  The following 3 lines are from
-	  ;; `semantic-new-buffer-fcn', but we don't want to turn
-	  ;; on all the other annoying modes for this little task.
-	  (setq semantic-new-buffer-fcn-was-run t)
-	  (semantic-lex-init)
-	  (semantic-clear-toplevel-cache)
-	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		       t)
-	  ))
+	;; Hack in mode-local
+	(activate-mode-local-bindings)
+	;; CHEATER!  The following 3 lines are from
+	;; `semantic-new-buffer-fcn', but we don't want to turn
+	;; on all the other annoying modes for this little task.
+	(setq semantic-new-buffer-fcn-was-run t)
+	(semantic-lex-init)
+	(semantic-clear-toplevel-cache)
+	(remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+		     t)
+	)
       ;; Get the macro symbol table right.
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray spp-syms)
       ;; (message "%S" macros)
@@ -750,6 +757,41 @@ the regular parser."
 	  ))
       )
     stream))
+
+(defvar semantic-c-debug-mode-init-last-mode nil
+  "The most recent mode needing debugging.")
+
+(defun semantic-c-debug-mode-init (mm)
+  "Debug mode init for major mode MM after we're done parsing now."
+  (interactive (list semantic-c-debug-mode-init-last-mode))
+  (if (interactive-p)
+      ;; Do the debug.
+      (progn
+	(switch-to-buffer (get-buffer-create "*MODE HACK TEST*"))
+	(let ((debug-on-error t))
+	  (funcall mm)))
+
+    ;; Notify about the debug
+    (setq semantic-c-debug-mode-init-last-mode mm)
+
+    (add-hook 'post-command-hook 'semantic-c-debug-mode-init-pch)))
+
+(defun semantic-c-debug-mode-init-pch ()
+  "Notify user about needing to debug their major mode hooks."
+  (let ((mm semantic-c-debug-mode-init-last-mode))
+    (switch-to-buffer-other-window
+     (get-buffer-create "*MODE HACK TEST*"))
+    (erase-buffer)
+    (insert "A failure occured while parsing your buffers.
+
+The failure occured while attempting to initialize " (symbol-name mm) " in a
+buffer not associated with a file.  To debug this problem, type
+
+M-x semantic-c-debug-mode-init
+
+now.
+")
+    (remove-hook 'post-command-hook 'semantic-c-debug-mode-init-pch)))
 
 (defun semantic-expand-c-tag (tag)
   "Expand TAG into a list of equivalent tags, or nil."

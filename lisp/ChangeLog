@@ -1,3 +1,13 @@
+2009-10-21  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/bovine/c.el (semantic-c-debug-mode-init)
+	(semantic-c-debug-mode-init-pch): New functions.
+	(semantic-c-debug-mode-init-last-mode): New var.
+	(semantic-c-parse-lexical-token): Use them.
+
+	* cedet/semantic/lex-spp.el (semantic-lex-spp-anlyzer-do-replace):
+	When extracting the argument list, limit only by point-max.
+
 2009-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-smb.el (tramp-smb-get-stat-capability): New defun.

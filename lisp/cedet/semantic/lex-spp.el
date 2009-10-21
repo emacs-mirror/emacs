@@ -697,7 +697,14 @@ Argument BEG and END specify the bounds of SYM in the buffer."
 	  (goto-char end)
 	  (setq arg-parsed
 		(semantic-lex-spp-one-token-and-move-for-macro
-		 (point-at-eol)))
+		 ;; NOTE: This used to be (point-at-eol), but
+		 ;;       that was too close for multi-line arguments
+		 ;;       to a macro.  Point max may be too far if there
+		 ;;       is a typo in the buffer.
+		 ;;
+		 ;; Look here for performance issues while a user is typing
+		 ;; incomplete code.
+		 (point-max)))
 	  (setq end (semantic-lex-token-end arg-parsed))
 
 	  (when (and (listp arg-parsed) (eq (car arg-parsed) 'semantic-list))
