@@ -1,3 +1,16 @@
+2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el: Allow the use of completion-tables.
+	(pcomplete-std-complete): New command.
+	(pcomplete-dirs-or-entries): Use a single call to pcomplete-entries.
+	(pcomplete--here): Use a function for `form' rather than an expression,
+	so it can be byte-compiled.
+	(pcomplete-here, pcomplete-here*): Adjust accordingly.
+	Add edebug declaration.
+	(pcomplete-show-completions): Remove unused var `curbuf'.
+	(pcomplete-do-complete, pcomplete-stub):
+	Don't assume `completions' is a list of	strings any more.
+
 2009-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* find-dired.el (find-name-arg): Fix typo in docstring.
