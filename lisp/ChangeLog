@@ -1676,10 +1676,10 @@
 2009-09-26  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1): Correct
-	buggy bracketing.
+	buggy bracketing.  (Bug#4289)
 
 	* progmodes/cc-langs.el (c-nonlabel-token-key): Allow quoted
-	character constants (as case labels).
+	character constants (as case labels).  (Bug#4289)
 
 2009-09-25  Juri Linkov  <juri@jurta.org>
 
