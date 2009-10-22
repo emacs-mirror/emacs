@@ -1,3 +1,7 @@
+2009-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* find-dired.el (find-name-arg): Fix typo in docstring.
+
 2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-linux.el (pcomplete/kill): Don't abuse pcomplete-entries.
@@ -2070,7 +2074,7 @@
 
 	* vc-dispatcher.el (vc-do-command): Return the process object in
 	the asynchronous case.  Use when instead of if.  Do not run
-	vc-exec-after to display a message if not enabled.
+	vc-exec-after to display a message if not enabled.  (Bug#4463)
 
 	* vc-git.el (vc-git-dir-extra-headers): Add keymap and mouse-face
 	properties to the stash strings.

@@ -77,7 +77,7 @@ On other systems, the closest you can come is to use `-l'."
     "-name")
   "Argument used to specify file name pattern.
 If `read-file-name-completion-ignore-case' is non-nil, -iname is used so that
-find also ignores case. Otherwise, -name is used."
+find also ignores case.  Otherwise, -name is used."
   :type 'string
   :group 'find-dired
   :version "22.2")
