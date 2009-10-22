@@ -1,5 +1,10 @@
 2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (normal-erase-is-backspace-mode): Use input-decode-map
+	rather than fiddling with global-map bindings, since it should only
+	affect per-terminal settings.
+	See http://bugs.gentoo.org/show_bug.cgi?id=289709.
+
 	* minibuffer.el (completion-table-with-terminator): Allow to specify
 	the terminator-regexp.
 

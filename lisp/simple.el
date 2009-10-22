@@ -6415,31 +6415,27 @@ See also `normal-erase-is-backspace'."
 	   (let* ((bindings
 		   `(([M-delete] [M-backspace])
 		     ([C-M-delete] [C-M-backspace])
-		     (,esc-map
-		      [C-delete] [C-backspace])))
+		     ([?\e C-delete] [?\e C-backspace])))
 		  (old-state (lookup-key local-function-key-map [delete])))
 
 	     (if enabled
 		 (progn
 		   (define-key local-function-key-map [delete] [?\C-d])
 		   (define-key local-function-key-map [kp-delete] [?\C-d])
-		   (define-key local-function-key-map [backspace] [?\C-?]))
+		   (define-key local-function-key-map [backspace] [?\C-?])
+                   (dolist (b bindings)
+                     ;; Not sure if input-decode-map is really right, but
+                     ;; keyboard-translate-table (used below) only works
+                     ;; for integer events, and key-translation-table is
+                     ;; global (like the global-map, used earlier).
+                     (define-key input-decode-map (car b) nil)
+                     (define-key input-decode-map (cadr b) nil)))
 	       (define-key local-function-key-map [delete] [?\C-?])
 	       (define-key local-function-key-map [kp-delete] [?\C-?])
-	       (define-key local-function-key-map [backspace] [?\C-?]))
-
-	     ;; Maybe swap bindings of C-delete and C-backspace, etc.
-	     (unless (equal old-state (lookup-key local-function-key-map [delete]))
-	       (dolist (binding bindings)
-		 (let ((map global-map))
-		   (when (keymapp (car binding))
-		     (setq map (car binding) binding (cdr binding)))
-		   (let* ((key1 (nth 0 binding))
-			  (key2 (nth 1 binding))
-			  (binding1 (lookup-key map key1))
-			  (binding2 (lookup-key map key2)))
-		     (define-key map key1 binding2)
-		     (define-key map key2 binding1)))))))
+	       (define-key local-function-key-map [backspace] [?\C-?])
+               (dolist (b bindings)
+                 (define-key input-decode-map (car b) (cadr b))
+                 (define-key input-decode-map (cadr b) (car b))))))
 	  (t
 	   (if enabled
 	       (progn
