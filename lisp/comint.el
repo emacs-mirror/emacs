@@ -902,8 +902,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		(size comint-input-ring-size)
 		(ring (make-ring size)))
 	   (unwind-protect
-	       (save-excursion
-		 (set-buffer history-buf)
+	       (with-current-buffer history-buf
 		 (widen)
 		 (erase-buffer)
 		 (insert-file-contents file)
@@ -912,17 +911,22 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 (goto-char (point-max))
 		 (let (start end history)
 		   (while (and (< count size)
-			       (re-search-backward comint-input-ring-separator nil t)
+			       (re-search-backward comint-input-ring-separator
+                                                   nil t)
 			       (setq end (match-beginning 0)))
-		     (if (re-search-backward comint-input-ring-separator nil t)
-			 (setq start (match-end 0))
-		       (setq start (point-min)))
+		     (setq start
+                           (if (re-search-backward comint-input-ring-separator
+                                                   nil t)
+                               (match-end 0)
+                             (point-min)))
 		     (setq history (buffer-substring start end))
 		     (goto-char start)
-		     (if (and (not (string-match comint-input-history-ignore history))
+		     (if (and (not (string-match comint-input-history-ignore
+                                                 history))
 			      (or (null comint-input-ignoredups)
 				  (ring-empty-p ring)
-				  (not (string-equal (ring-ref ring 0) history))))
+				  (not (string-equal (ring-ref ring 0)
+                                                     history))))
 			 (progn
 			   (ring-insert-at-beginning ring history)
 			   (setq count (1+ count)))))))
@@ -952,8 +956,7 @@ See also `comint-read-input-ring'."
 		(index (ring-length ring)))
 	   ;; Write it all out into a buffer first.  Much faster, but messier,
 	   ;; than writing it one line at a time.
-	   (save-excursion
-	     (set-buffer history-buf)
+	   (with-current-buffer history-buf
 	     (erase-buffer)
 	     (while (> index 0)
 	       (setq index (1- index))
@@ -1737,7 +1740,8 @@ Make backspaces delete the previous character."
 	(let ((functions comint-preoutput-filter-functions))
 	  (while (and functions string)
 	    (if (eq (car functions) t)
-		(let ((functions (default-value 'comint-preoutput-filter-functions)))
+		(let ((functions
+                       (default-value 'comint-preoutput-filter-functions)))
 		  (while (and functions string)
 		    (setq string (funcall (car functions) string))
 		    (setq functions (cdr functions))))
@@ -2731,11 +2735,8 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 	      env-var-val)
 	  (save-match-data
 	    (while (string-match "%\\([^\\\\/]*\\)%" name)
-	      (setq env-var-name
-		    (substring name (match-beginning 1) (match-end 1)))
-	      (setq env-var-val (if (getenv env-var-name)
-				    (getenv env-var-name)
-				  ""))
+	      (setq env-var-name (match-string 1 name))
+	      (setq env-var-val (or (getenv env-var-name) ""))
 	      (setq name (replace-match env-var-val t t name))))))
     name))
 
@@ -2836,7 +2837,7 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 (completion (file-name-completion filenondir directory)))
     (cond ((null completion)
 	   (if minibuffer-p
-	       (minibuffer-message (format " [No completions of %s]" filename))
+	       (minibuffer-message "No completions of %s" filename)
 	     (message "No completions of %s" filename))
 	   (setq success nil))
 	  ((eq completion t)            ; Means already completed "file".
@@ -2911,7 +2912,7 @@ See also `comint-dynamic-complete-filename'."
 	 (completions (all-completions stub candidates)))
     (cond ((null completions)
 	   (if minibuffer-p
-	       (minibuffer-message (format " [No completions of %s]" stub))
+	       (minibuffer-message "No completions of %s" stub)
 	     (message "No completions of %s" stub))
 	   nil)
 	  ((= 1 (length completions))	; Gotcha!
@@ -2962,7 +2963,7 @@ See also `comint-dynamic-complete-filename'."
 	 (completions (file-name-all-completions filenondir directory)))
     (if (not completions)
 	(if (window-minibuffer-p (selected-window))
-	    (minibuffer-message (format " [No completions of %s]" filename))
+	    (minibuffer-message "No completions of %s" filename)
 	  (message "No completions of %s" filename))
       (comint-dynamic-list-completions
        (mapcar 'comint-quote-filename completions)
@@ -3012,7 +3013,7 @@ Typing SPC flushes the help buffer."
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list completions common-substring))
       (if (window-minibuffer-p (selected-window))
-	  (minibuffer-message " [Type space to flush; repeat completion command to scroll]")
+	  (minibuffer-message "Type space to flush; repeat completion command to scroll")
 	(message "Type space to flush; repeat completion command to scroll")))
 
     ;; Read the next key, to process SPC.
@@ -3296,13 +3297,15 @@ This function does not need to be invoked by the end user."
 	   (list comint-redirect-output-buffer)))
 	(filtered-input-string input-string))
 
-    ;; If there are any filter functions, give them a chance to modify the string
+    ;; If there are any filter functions, give them a chance to modify
+    ;; the string.
     (let ((functions comint-redirect-filter-functions))
       (while (and functions filtered-input-string)
 	(if (eq (car functions) t)
 	    ;; If a local value says "use the default value too",
 	    ;; do that.
-	    (let ((functions (default-value 'comint-redirect-filter-functions)))
+	    (let ((functions
+                   (default-value 'comint-redirect-filter-functions)))
 	      (while (and functions filtered-input-string)
 		(setq filtered-input-string
 		      (funcall (car functions) filtered-input-string))
@@ -3422,8 +3425,7 @@ Return a list of expressions in the output which match REGEXP.
 REGEXP-GROUP is the regular expression group in REGEXP to use."
   (let ((output-buffer " *Comint Redirect Work Buffer*")
 	results)
-    (save-excursion
-      (set-buffer (get-buffer-create output-buffer))
+    (with-current-buffer (get-buffer-create output-buffer)
       (erase-buffer)
       (comint-redirect-send-command-to-process command
 					       output-buffer process nil t)
@@ -3438,11 +3440,10 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
       (and (looking-at command)
 	   (forward-line))
       (while (re-search-forward regexp nil t)
-	(setq results
-	      (cons (buffer-substring-no-properties
-		     (match-beginning regexp-group)
-		     (match-end regexp-group))
-		    results)))
+	(push (buffer-substring-no-properties
+               (match-beginning regexp-group)
+               (match-end regexp-group))
+              results))
       results)))
 
 (dolist (x '("^Not at command line$"

@@ -1,7 +1,17 @@
+2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-read-input-ring, comint-write-input-ring)
+	(comint-substitute-in-file-name)
+	(comint-dynamic-complete-as-filename)
+	(comint-dynamic-simple-complete)
+	(comint-dynamic-list-filename-completions)
+	(comint-dynamic-list-completions)
+	(comint-redirect-results-list-from-process): Minor simplifications.
+
 2009-10-21  Kevin Ryde  <user42@zip.com.au>
 
-	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine): When
-	inserting ";;; Code" put it before any ";;;###autoload" cookie on
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
+	When inserting ";;; Code" put it before any ";;;###autoload" cookie on
 	the first form.  And insert a blank line after ";;; Code" since
 	that's usual style.  (My Bug#4612.)
 
