@@ -1,5 +1,8 @@
 2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (switch-to-completions): Look for *Completions* in other
+	frames as well.
+
 	* pcomplete.el: Allow the use of completion-tables.
 	(pcomplete-std-complete): New command.
 	(pcomplete-dirs-or-entries): Use a single call to pcomplete-entries.
