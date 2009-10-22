@@ -1,5 +1,8 @@
 2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-table-with-terminator): Allow to specify
+	the terminator-regexp.
+
 	* simple.el (switch-to-completions): Look for *Completions* in other
 	frames as well.
 

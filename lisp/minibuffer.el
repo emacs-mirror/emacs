@@ -200,16 +200,24 @@ This is meant to be called in a curried way by first passing TERMINATOR
 and TABLE only (via `apply-partially').
 TABLE is a completion table, and TERMINATOR is a string appended to TABLE's
 completion if it is complete.  TERMINATOR is also used to determine the
-completion suffix's boundary."
+completion suffix's boundary.
+TERMINATOR can also be a cons cell (TERMINATOR . TERMINATOR-REGEXP)
+in which case TERMINATOR-REGEXP is a regular expression whose submatch
+number 1 should match TERMINATOR.  This is used when there is a need to
+distinguish occurrences of the TERMINATOR strings which are really terminators
+from others (e.g. escaped)."
   (cond
    ((eq (car-safe action) 'boundaries)
     (let* ((suffix (cdr action))
            (bounds (completion-boundaries string table pred suffix))
-           (max (string-match (regexp-quote terminator) suffix)))
+           (terminator-regexp (if (consp terminator)
+                                  (cdr terminator) (regexp-quote terminator)))
+           (max (string-match terminator-regexp suffix)))
       (list* 'boundaries (car bounds)
              (min (cdr bounds) (or max (length suffix))))))
    ((eq action nil)
     (let ((comp (try-completion string table pred)))
+      (if (consp terminator) (setq terminator (car terminator)))
       (if (eq comp t)
           (concat string terminator)
         (if (and (stringp comp)
