@@ -570,6 +570,9 @@
 
 2009-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xdisp.c (Vtruncate_partial_width_windows): Improve docstring.
+	(Bug#4334)
+
 	* keymap.c (where_is_internal): Filter out shadowed remappings.
 	Assume that where_is_internal returns unshadowed bindings to simplify
 	the code and get rid of the gotos.  Use ASIZE.
