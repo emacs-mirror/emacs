@@ -1,5 +1,8 @@
 2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcmpl-gnu.el (pcmpl-gnu-makefile-names): Use a single call to
+	pcomplete-entries.
+
 	* comint.el (comint-read-input-ring, comint-write-input-ring)
 	(comint-substitute-in-file-name)
 	(comint-dynamic-complete-as-filename)
