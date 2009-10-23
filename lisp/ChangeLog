@@ -1,3 +1,8 @@
+2009-10-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number, math-read-number-simple): Use
+	`save-match-data'.
+
 2009-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (normal-erase-is-backspace-mode): Use input-decode-map
