@@ -1,3 +1,8 @@
+2009-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/emacsbug.el (report-emacs-bug): Tweak the sentence pointing
+	to the DEBUG file (Bug#3781).
+
 2009-10-23  Jari Aalto  <jari.aalto@cante.net>
 
 	* textmodes/ispell.el (ispell-dictionary-base-alist): Add finnish

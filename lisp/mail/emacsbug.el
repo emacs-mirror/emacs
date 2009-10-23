@@ -143,8 +143,8 @@ usually do not have translators to read other languages for them.\n\n")
 
     (let ((debug-file (expand-file-name "DEBUG" data-directory)))
       (if (file-readable-p debug-file)
-	  (insert "If you would like to further debug the crash, please read the file\n"
-		  debug-file " for instructions.\n")))
+	  (insert "For information about debugging Emacs, please read the file\n"
+		  debug-file ".\n")))
     (add-text-properties (1+ user-point) (point) prompt-properties)
 
     (insert "\n\nIn " (emacs-version) "\n")
