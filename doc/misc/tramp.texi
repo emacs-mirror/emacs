@@ -849,8 +849,8 @@ transferring files that exist on both hosts, this advantage is lost if
 the file exists only on one side of the connection.  A file can exists
 on both the remote and local host, when you copy a file from/to a
 remote host.  When you just open a file from the remote host (or write
-a file there), this is not the case, because on the local side
-temporary files are used.
+a file there), a temporary file on the local side is kept as long as
+the corresponding buffer, visiting this file, is alive.
 
 This method supports the @samp{-p} argument.
 
