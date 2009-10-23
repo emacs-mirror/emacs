@@ -75,10 +75,10 @@ frame parameter fullscreen makes the Emacs frame maximized.
 ** The pointer now becomes invisible when typing.
 Customize make-pointer-invisible to turn it off.
 
-** Killing a buffer with a running process now asks a confirmation.
-You can remove this query in two ways: either removing
-`process-kill-buffer-query-function' from `kill-buffer-query-functions' or
-setting the appropriate process flag with `set-process-query-on-exit-flag'.
+** Killing a buffer with a running process now asks for confirmation.
+You can remove this query in two ways: either remove
+`process-kill-buffer-query-function' from `kill-buffer-query-functions',
+or set the appropriate process flag with `set-process-query-on-exit-flag'.
 
 ** The variable `load-in-progress' won't get corrupted by binding it
 with `let'.  In certain situations, loading an Emacs Lisp file from
