@@ -1,3 +1,13 @@
+2009-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-common-suffix, pcomplete-table-subvert):
+	New funs.
+	(pcomplete-std-complete): Use them.  Obey pcomplete-termination-string.
+	(pcomplete-comint-setup): Don't modify a global var via
+	accidental side-effects.
+	(pcomplete-shell-setup): Adjust call accordingly.
+	(pcomplete-parse-comint-arguments): Use push.
+
 2009-10-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-region-engine):

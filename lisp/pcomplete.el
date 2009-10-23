@@ -139,6 +139,8 @@
   :group 'pcomplete)
 
 (defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt cygwin))
+  ;; FIXME: the doc mentions file-name completion, but the code
+  ;; seems to apply it to all completions.
   "If non-nil, ignore case when doing filename completion."
   :type 'boolean
   :group 'pcomplete)
@@ -394,6 +396,46 @@ completion functions list (it should occur fairly early in the list)."
 					   '(sole shortest))
 				     pcomplete-last-completion-raw))))))
 
+(defun pcomplete-common-suffix (s1 s2)
+  (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
+  (let ((case-fold-search pcomplete-ignore-case))
+    (string-match ".*?\\(.*\\)\n.*\\1\\'" (concat s1 "\n" s2))
+    (- (match-end 1) (match-beginning 1))))
+
+(defun pcomplete-table-subvert (table s1 s2 string pred action)
+  "Completion table that replaces the prefix S1 with S2 in STRING.
+When TABLE, S1 and S2 are provided by `apply-partially', the result
+is a completion table which completes strings of the form (concat S1 S)
+in the same way as TABLE completes strings of the form (concat S2 S)."
+  (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
+                                         completion-ignore-case))
+                  (concat s2 (substring string (length s1)))))
+         (res (if str (complete-with-action action table str pred))))
+    (when res
+      (cond
+       ((and (eq (car-safe action) 'boundaries))
+        (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
+          (list* 'boundaries
+                 (max (length s1)
+                      (+ beg (- (length s1) (length s2))))
+                 (and (eq (car-safe res) 'boundaries) (cddr res)))))
+       ((stringp res)
+        (if (eq t (compare-strings res 0 (length s2) s2 nil nil
+                                   completion-ignore-case))
+            (concat s1 (substring res (length s2)))))
+       ((eq action t)
+        (let ((bounds (completion-boundaries str table pred "")))
+          (if (>= (car bounds) (length s2))
+              res
+            (let ((re (concat "\\`"
+                              (regexp-quote (substring s2 (car bounds))))))
+              (delq nil
+                    (mapcar (lambda (c)
+                              (if (string-match re c)
+                                  (substring c (match-end 0))))
+                            res))))))))))
+        
+
 (defun pcomplete-std-complete ()
   "Provide standard completion using pcomplete's completion tables.
 Same as `pcomplete' but using the standard completion UI."
@@ -413,21 +455,55 @@ Same as `pcomplete' but using the standard completion UI."
            ;; (returned indirectly in pcomplete-stub) and the set of
            ;; possible completions.
            (completions (pcomplete-completions))
-           ;; The pcomplete code seems to presume that pcomplete-stub
-           ;; is always the text before point.
-           (ol (make-overlay (- (point) (length pcomplete-stub))
-                             (point) nil nil t))
-           (minibuffer-completion-table
-            ;; Add a space at the end of completion.  Use a terminator-regexp
-            ;; that never matches since the terminator cannot appear
-            ;; within the completion field anyway.
-            (apply-partially 'completion-table-with-terminator
-                             '(" " . "\\`a\\`") completions))
-           (minibuffer-completion-predicate nil))
-      (overlay-put ol 'field 'pcomplete)
-      (unwind-protect
-          (call-interactively 'minibuffer-complete)
-        (delete-overlay ol)))))
+           ;; Usually there's some close connection between pcomplete-stub
+           ;; and the text before point.  But depending on what
+           ;; pcomplete-parse-arguments-function does, that connection
+           ;; might not be that close.  E.g. in eshell,
+           ;; pcomplete-parse-arguments-function expands envvars.
+           ;; 
+           ;; Since we use minibuffer-complete, which doesn't know
+           ;; pcomplete-stub and works from the buffer's text instead,
+           ;; we need to trick minibuffer-complete, into using
+           ;; pcomplete-stub without its knowledge.  To that end, we
+           ;; use pcomplete-table-subvert to construct a completion
+           ;; table which expects strings using a prefix from the
+           ;; buffer's text but internally uses the corresponding
+           ;; prefix from pcomplete-stub.
+           (beg (max (- (point) (length pcomplete-stub))
+                     ;; Rather than `point-min' we should use the
+                     ;; beginning position of the current arg.
+                     (point-min)))
+           (buftext (buffer-substring beg (point)))
+           ;; This isn't always strictly right (e.g. if
+           ;; FOO="toto/$FOO", then completion of /$FOO/bar may
+           ;; result in something incorrect), but given the lack of
+           ;; any other info, it's about as good as it gets, and in
+           ;; practice it should work just fine (fingers crossed).
+           (suflen (pcomplete-common-suffix pcomplete-stub buftext)))
+      (unless (= suflen (length pcomplete-stub))
+        (setq completions
+              (apply-partially
+               'pcomplete-table-subvert
+               completions
+               (substring buftext 0 (- (length buftext) suflen))
+               (substring pcomplete-stub
+                          0 (- (length pcomplete-stub) suflen)))))
+      (let ((ol (make-overlay beg (point) nil nil t))
+            (minibuffer-completion-table
+             ;; Add a space at the end of completion.  Use a terminator-regexp
+             ;; that never matches since the terminator cannot appear
+             ;; within the completion field anyway.
+             (if (zerop (length pcomplete-termination-string))
+                 completions
+               (apply-partially 'completion-table-with-terminator
+                                (cons pcomplete-termination-string
+                                      "\\`a\\`")
+                                completions)))
+            (minibuffer-completion-predicate nil))
+        (overlay-put ol 'field 'pcomplete)
+        (unwind-protect
+            (call-interactively 'minibuffer-complete)
+          (delete-overlay ol))))))
 
 ;;;###autoload
 (defun pcomplete-reverse ()
@@ -625,7 +701,8 @@ dynamic-complete-functions are kept.  For comint mode itself,
 this is `comint-dynamic-complete-functions'."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-comint-arguments)
-  (make-local-variable completef-sym)
+  (set (make-local-variable completef-sym)
+       (copy-sequence (symbol-value completef-sym)))
   (let* ((funs (symbol-value completef-sym))
 	 (elem (or (memq 'comint-dynamic-complete-filename funs)
 		   (memq 'shell-dynamic-complete-filename funs))))
@@ -636,7 +713,7 @@ this is `comint-dynamic-complete-functions'."
 ;;;###autoload
 (defun pcomplete-shell-setup ()
   "Setup `shell-mode' to use pcomplete."
-  (pcomplete-comint-setup 'shell-dynamic-complete-functions))
+  (pcomplete-comint-setup 'comint-dynamic-complete-functions))
 
 (declare-function comint-bol "comint" (&optional arg))
 
@@ -649,17 +726,16 @@ this is `comint-dynamic-complete-functions'."
       (goto-char begin)
       (while (< (point) end)
 	(skip-chars-forward " \t\n")
-	(setq begins (cons (point) begins))
+	(push (point) begins)
 	(let ((skip t))
 	  (while skip
 	    (skip-chars-forward "^ \t\n")
 	    (if (eq (char-before) ?\\)
 		(skip-chars-forward " \t\n")
 	      (setq skip nil))))
-	(setq args (cons (buffer-substring-no-properties
-			  (car begins) (point))
-			 args)))
-      (cons (reverse args) (reverse begins)))))
+	(push (buffer-substring-no-properties (car begins) (point))
+              args))
+      (cons (nreverse args) (nreverse begins)))))
 
 (defun pcomplete-parse-arguments (&optional expand-p)
   "Parse the command line arguments.  Most completions need this info."
@@ -672,9 +748,9 @@ this is `comint-dynamic-complete-functions'."
 	    pcomplete-stub (pcomplete-arg 'last))
       (let ((begin (pcomplete-begin 'last)))
 	(if (and pcomplete-cycle-completions
-		 (listp pcomplete-stub)
+		 (listp pcomplete-stub) ;??
 		 (not pcomplete-expand-only-p))
-	    (let* ((completions pcomplete-stub)
+	    (let* ((completions pcomplete-stub) ;??
 		   (common-stub (car completions))
 		   (c completions)
 		   (len (length common-stub)))
@@ -723,9 +799,9 @@ Magic characters are those in `pcomplete-arg-quote-list'."
 	(cond
 	 (replacement
 	  (setq result (concat result replacement)))
-	 ((and (setq char (aref filename index))
-	       (memq char pcomplete-arg-quote-list))
-	  (setq result (concat result "\\" (char-to-string char))))
+	 ((memq (setq char (aref filename index))
+                pcomplete-arg-quote-list)
+	  (setq result (concat result (string "\\" char))))
 	 (t
 	  (setq result (concat result (char-to-string char)))))
 	(setq index (1+ index)))
@@ -1055,6 +1131,9 @@ Returns non-nil if a space was appended at the end."
 			       (substring entry (length stub)))))
       ;; the stub is not quoted at this time, so to determine the
       ;; length of what should be in the buffer, we must quote it
+      ;; FIXME: Here we presume that quoting `stub' gives us the exact
+      ;; text in the buffer before point, which is not guaranteed;
+      ;; e.g. it is not the case in eshell when completing ${FOO}tm[TAB].
       (delete-backward-char (length (pcomplete-quote-argument stub)))
       ;; if there is already a backslash present to handle the first
       ;; character, don't bother quoting it
