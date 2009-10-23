@@ -1,3 +1,9 @@
+2009-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.c (Fwindow_edges, Fwindow_pixel_edges)
+	(Fwindow_inside_edges, Fwindow_inside_pixel_edges): Doc fix
+	(Bug#4775).
+
 2009-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (syms_of_fileio): Initialize Vdirectory_sep_char.
