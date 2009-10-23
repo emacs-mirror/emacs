@@ -1,3 +1,12 @@
+2009-10-23  Jim Meyering  <meyering@redhat.com>
+
+	* configure.in: Invoke $CPP with -P when creating Makefile and
+	src/Makefile.  Without this, gcc 4.4.2 converts each
+	backslash-newline pair in the input to a bare newline, yielding
+	invalid Makefiles.
+
+	* configure: Regenerate.
+
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (vax-dec-vms): Remove, not supported anymore.
