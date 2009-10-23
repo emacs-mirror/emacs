@@ -616,6 +616,10 @@ re-start Emacs."
     ("esperanto-tex"
      "[A-Za-z^\\]" "[^A-Za-z^\\]"
      "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3)
+    ("finnish"
+     "[A-Za-z\345\344\366\305\304\326]"
+     "[^A-Za-z\345\344\366\305\304\326]"
+     "[:]" nil ("-C") "~list" iso-8859-1)
     ("francais7"
      "[A-Za-z]" "[^A-Za-z]" "[`'^-]" t nil nil iso-8859-1)
     ("francais"				; Francais.aff
