@@ -61,6 +61,9 @@
 ;; This is referenced by some code below; it is defined in uniquify.el
 (defvar uniquify-buffer-name-style)
 
+;; From emulation/cua-base.el; used below
+(defvar cua-enable-cua-keys)
+
 
 ;; The "File" menu items
 (define-key menu-bar-file-menu [exit-emacs]

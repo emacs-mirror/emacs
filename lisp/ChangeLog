@@ -1,3 +1,7 @@
+2009-10-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu-bar.el (cua-enable-cua-keys): Declare for the byte-compiler.
+
 2009-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/tty-colors.el (msdos-color-values): Remove declaration, unused.
@@ -44,7 +48,7 @@
 	Add edebug declaration.
 	(pcomplete-show-completions): Remove unused var `curbuf'.
 	(pcomplete-do-complete, pcomplete-stub):
-	Don't assume `completions' is a list of	strings any more.
+	Don't assume `completions' is a list of strings any more.
 
 2009-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -336,7 +340,7 @@
 
 2009-10-17  Ulrich Mueller  <ulm@gentoo.org>
 
-	* play/doctor.el (doctor-adverbp): Exclude some nouns.	(Bug#4565)
+	* play/doctor.el (doctor-adverbp): Exclude some nouns.  (Bug#4565)
 
 2009-10-16  Glenn Morris  <rgm@gnu.org>
 
@@ -1691,7 +1695,7 @@
 
 2009-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* term/ns-win.el: Don't set the region face background. (Bug#4381)
+	* term/ns-win.el: Don't set the region face background.  (Bug#4381)
 
 	* faces.el: Default light-background background for region face to
 	ns_selection_color under NS.
