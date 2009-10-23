@@ -1,3 +1,8 @@
+2009-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Temporary files are kept for
+	`rsync' and `rsyncc' methods.
+
 2009-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eieio.texi: Fix typos.
