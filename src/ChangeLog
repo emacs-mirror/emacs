@@ -1,3 +1,10 @@
+2009-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (syms_of_fileio): Initialize Vdirectory_sep_char.
+	(init_fileio_once):
+	* lisp.h (init_fileio_once): Remove.
+	* emacs.c (main): Don't call init_fileio_once.
+
 2009-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1430000.

@@ -2984,7 +2984,6 @@ extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((const char *, Lisp_Object)) NO_RETURN;
 extern int internal_delete_file P_ ((Lisp_Object));
 extern void syms_of_fileio P_ ((void));
-extern void init_fileio_once P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 EXFUN (Fmake_symbolic_link, 3);
 extern Lisp_Object Qdelete_file;

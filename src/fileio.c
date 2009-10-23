@@ -5458,14 +5458,6 @@ Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
 
 
 void
-init_fileio_once ()
-{
-  /* Must be set before any path manipulation is performed.  */
-  XSETFASTINT (Vdirectory_sep_char, '/');
-}
-
-
-void
 syms_of_fileio ()
 {
   Qoperations = intern ("operations");
@@ -5600,6 +5592,7 @@ of file names regardless of the current language environment.  */);
   DEFVAR_LISP ("directory-sep-char", &Vdirectory_sep_char,
 	       doc: /* Directory separator character for built-in functions that return file names.
 The value is always ?/.  Don't use this variable, just use `/'.  */);
+  XSETFASTINT (Vdirectory_sep_char, '/');
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
