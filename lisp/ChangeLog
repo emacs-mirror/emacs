@@ -1,5 +1,8 @@
 2009-10-23  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-region-engine):
+	Allow uncapitalized info node names (Bug#3921).
+
 	* mail/emacsbug.el (report-emacs-bug): Tweak the sentence pointing
 	to the DEBUG file (Bug#3781).
 

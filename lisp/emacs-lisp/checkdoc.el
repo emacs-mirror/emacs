@@ -2016,7 +2016,12 @@ If the offending word is in a piece of quoted text, then it is skipped."
 			 ;; surrounded by /, as in a URL or filename: /emacs/
 			 (not (and (= ?/ (char-after e))
 				   (= ?/ (char-before b))))
-			 (not (checkdoc-in-example-string-p begin end)))
+			 (not (checkdoc-in-example-string-p begin end))
+			 ;; info node
+			 (not (save-excursion
+				(goto-char b)
+				(looking-back "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+`("
+					      (line-beginning-position)))))
 		    (if (checkdoc-autofix-ask-replace
 			 b e (format "Text %s should be capitalized.  Fix? "
 				     text)
