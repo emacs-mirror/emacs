@@ -1,3 +1,13 @@
+2009-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-responsible-backend): Throw an error if not backend is
+	found.  Remove the REGISTER argument. Move the code dealing with
+	REGISTER ...
+	(vc-get-backend-for-registration): ... here.  New function.
+	(vc-deduce-fileset): Call vc-get-backend-for-registration instead
+	of vc-responsible-backend, pass the file name instead of the
+	directory name.
+
 2009-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el (pcomplete-common-suffix, pcomplete-table-subvert):

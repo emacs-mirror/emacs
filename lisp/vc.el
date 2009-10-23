@@ -552,11 +552,6 @@
 ;; - vc-create-tag and vc-retrieve-tag should update the
 ;;   buffers that might be visiting the affected files.
 ;;
-;;;; Default Behavior:
-;;
-;; - vc-responsible-backend should not return RCS if no backend
-;;   declares itself responsible.
-;;
 ;;;; Internal cleanups:
 ;;
 ;; - backends that care about vc-stay-local should try to take it into
@@ -799,80 +794,66 @@ been updated to their corresponding values."
 
 ;;; Code for deducing what fileset and backend to assume
 
-(defun vc-responsible-backend (file &optional register)
-  "Return the name of a backend system that is responsible for FILE.
-The optional argument REGISTER means that a backend suitable for
-registration should be found.
+(defun vc-get-backend-for-registration (file)
+  "Return a backend that can be used for registering FILE.
 
-If REGISTER is nil, then if FILE is already registered, return the
+If no backend declares itself responsible for FILE, then FILE
+must not be in a version controlled directory, so try to create a
+repository, prompting for the directory and the VC backend to
+use."
+  (catch 'found
+    ;; First try: find a responsible backend, it must be a backend
+    ;; under which FILE is not yet registered.
+    (dolist (backend vc-handled-backends)
+      (and (not (vc-call-backend backend 'registered file))
+	   (vc-call-backend backend 'responsible-p file)
+	   (throw 'found backend)))
+    ;; no responsible backend
+    (let* ((possible-backends
+	    (let (pos)
+	      (dolist (crt vc-handled-backends)
+		(when (vc-find-backend-function crt 'create-repo)
+		  (push crt pos)))
+	      pos))
+	   (bk
+	    (intern
+	     ;; Read the VC backend from the user, only
+	     ;; complete with the backends that have the
+	     ;; 'create-repo method.
+	     (completing-read
+	      (format "%s is not in a version controlled directory.\nUse VC backend: " file)
+	      (mapcar 'symbol-name possible-backends) nil t)))
+	   (repo-dir
+	    (let ((def-dir (file-name-directory file)))
+	      ;; read the directory where to create the
+	      ;; repository, make sure it's a parent of
+	      ;; file.
+	      (read-file-name
+	       (format "create %s repository in: " bk)
+	       default-directory def-dir t nil
+	       (lambda (arg)
+		 (message "arg %s" arg)
+		 (and (file-directory-p arg)
+		      (vc-string-prefix-p (expand-file-name arg) def-dir)))))))
+	   (let ((default-directory repo-dir))
+	(vc-call-backend bk 'create-repo))
+      (throw 'found bk))))
+
+(defun vc-responsible-backend (file)
+  "Return the name of a backend system that is responsible for FILE.
+
+If FILE is already registered, return the
 backend of FILE.  If FILE is not registered, then the
 first backend in `vc-handled-backends' that declares itself
-responsible for FILE is returned.  If no backend declares itself
-responsible, return the first backend.
-
-If REGISTER is non-nil and FILE is a directory, create a VC
-repository that can be used to register FILE.
-
-If REGISTER is non-nil, return the first responsible backend under
-which FILE is not yet registered.  If there is no such backend, return
-the first backend under which FILE is not yet registered, but could
-be registered."
-  (when (not vc-handled-backends)
-    (error "No handled backends"))
-  (or (and (not (file-directory-p file)) (not register) (vc-backend file))
+responsible for FILE is returned."
+  (or (and (not (file-directory-p file)) (vc-backend file))
       (catch 'found
 	;; First try: find a responsible backend.  If this is for registration,
 	;; it must be a backend under which FILE is not yet registered.
 	(dolist (backend vc-handled-backends)
-	  (and (or (not register)
-		   (not (vc-call-backend backend 'registered file)))
-	       (vc-call-backend backend 'responsible-p file)
-	       (throw 'found backend)))
-	;; no responsible backend
-	(if (not register)
-	    ;; if this is not for registration, the first backend must do
-	    (car vc-handled-backends)
-	  (if (file-directory-p file)
-	      (let* ((possible-backends
-		      (let (pos)
-			(dolist (crt vc-handled-backends)
-			  (when (vc-find-backend-function crt 'create-repo)
-			    (push crt pos)))
-			pos))
-		     (bk
-		      (intern
-		       ;; Read the VC backend from the user, only
-		       ;; complete with the backends that have the
-		       ;; 'create-repo method.
-		       (completing-read
-			(format "%s is not in a version controlled directory.\nUse VC backend: " file)
-			(mapcar 'symbol-name possible-backends) nil t)))
-		     (repo-dir
-		      (file-name-as-directory
-		       (let ((def-dir file))
-			 ;; read the directory where to create the
-			 ;; repository, make sure it's a parent of
-			 ;; file.
-			 (read-file-name
-			  (format "create %s repository in: " bk)
-			  default-directory nil t nil
-			  (lambda (arg)
-			    (and (file-directory-p arg)
-				 (vc-string-prefix-p (expand-file-name arg) def-dir))))))))
-		(let ((default-directory repo-dir))
-		  (vc-call-backend bk 'create-repo))
-		(throw 'found bk))
-
-	    ;; FIXME: this case does not happen with the current code.
-	    ;; Should we keep it?
-	    ;;
-	    ;; For registration, we need to find a new backend that
-	    ;; could register FILE.
-	    (dolist (backend vc-handled-backends)
-	      (and (not (vc-call-backend backend 'registered file))
-		   (vc-call-backend backend 'could-register file)
-		   (throw 'found backend))))
-	  (error "no backend that could register")))))
+	  (and (vc-call-backend backend 'responsible-p file)
+	       (throw 'found backend))))
+      (error "No VC backend is responsible for %s" file)))
 
 (defun vc-expand-dirs (file-or-dir-list)
   "Expands directories in a file list specification.
@@ -932,14 +913,12 @@ current buffer."
        (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (if state-model-only-files
-	  (list (vc-responsible-backend
-		 (file-name-directory (buffer-file-name)))
+	  (list (vc-get-backend-for-registration (buffer-file-name))
 		(list buffer-file-name)
 		(list buffer-file-name)
 		(when state-model-only-files 'unregistered)
 		nil)
-	(list (vc-responsible-backend
-	       (file-name-directory (buffer-file-name)))
+	(list (vc-get-backend-for-registration (buffer-file-name))
 	      (list buffer-file-name))))
      (t (error "No fileset is available here")))))
 
