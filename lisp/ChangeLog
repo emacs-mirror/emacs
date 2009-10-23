@@ -1,3 +1,25 @@
+2009-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/tty-colors.el (msdos-color-values): Remove declaration, unused.
+	(color-name-rgb-alist, tty-standard-colors)
+	(tty-color-mode-alist): Change to defconst.
+
+	* simple.el (mark-inactive): Purecopy message.
+
+	* menu-bar.el (menu-bar-make-mm-toggle, menu-bar-make-toggle): Fix macro.
+	(global-map, yank-menu):
+	* textmodes/ispell.el (ispell-menu-map):
+	* net/eudc.el (eudc-tools-menu):
+	* international/mule-cmds.el (describe-language-environment-map)
+	(setup-language-environment-map, set-coding-system-map)
+	(mule-menu-keymap):
+	* vc-hooks.el (vc-menu-entry, vc-menu-map):
+	* replace.el (occur-mode-map):
+	* pcvs-defs.el (cvs-global-menu): Purecopy names and tooltips.
+
+	* bindings.el (propertized-buffer-identification): Purecopy
+	tooltip text.
+
 2009-10-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-read-number, math-read-number-simple): Use

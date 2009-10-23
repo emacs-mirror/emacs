@@ -39,21 +39,21 @@
 ;; help key.
 (setq menu-bar-final-items '(help-menu))
 
-(define-key global-map [menu-bar help-menu] (cons "Help" menu-bar-help-menu))
+(define-key global-map [menu-bar help-menu] (cons (purecopy "Help") menu-bar-help-menu))
 (defvar menu-bar-tools-menu (make-sparse-keymap "Tools"))
-(define-key global-map [menu-bar tools] (cons "Tools" menu-bar-tools-menu))
+(define-key global-map [menu-bar tools] (cons (purecopy "Tools") menu-bar-tools-menu))
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.
 (defvar global-buffers-menu-map (make-sparse-keymap "Buffers"))
 (define-key global-map [menu-bar buffer]
-  (cons "Buffers" global-buffers-menu-map))
+  (cons (purecopy "Buffers") global-buffers-menu-map))
 (defvar menu-bar-options-menu (make-sparse-keymap "Options"))
 (define-key global-map [menu-bar options]
-  (cons "Options" menu-bar-options-menu))
+  (cons (purecopy "Options") menu-bar-options-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
-(define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
+(define-key global-map [menu-bar edit] (cons (purecopy "Edit") menu-bar-edit-menu))
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
-(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
+(define-key global-map [menu-bar file] (cons (purecopy "File") menu-bar-file-menu))
 
 ;; This alias is for compatibility with 19.28 and before.
 (defvar menu-bar-files-menu menu-bar-file-menu)
@@ -447,7 +447,7 @@
 			   (not (mouse-region-match)))
 	      :help
 	      ,(purecopy "Delete the text in region between mark and current position")))
-(defvar yank-menu (cons "Select Yank" nil))
+(defvar yank-menu (cons (purecopy "Select Yank") nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [paste-from-menu]
   `(menu-item ,(purecopy "Paste from Kill Menu") yank-menu
@@ -596,11 +596,11 @@ FNAME is the minor mode's name (variable and function).
 DOC is the text to use for the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
-  `'(menu-item ,(purecopy doc) ,fname
-     ,@props
-     :help ,(purecopy help)
-     :button (:toggle . (and (default-boundp ',fname)
-			     (default-value ',fname)))))
+  `(list 'menu-item  (purecopy ,doc) ',fname
+	 ,@props
+	 ':help (purecopy ,help)
+	 ':button '(:toggle . (and (default-boundp ',fname)
+				   (default-value ',fname)))))
 
 (defmacro menu-bar-make-toggle (name variable doc message help &rest body)
   `(progn
@@ -623,9 +623,9 @@ by \"Save Options\" in Custom buffers.")
        ;; a candidate for "Save Options", and we do not want to save options
        ;; the user have already set explicitly in his init file.
        (if interactively (customize-mark-as-set ',variable)))
-     '(menu-item ,(purecopy doc) ,name
-		 :help ,(purecopy help)
-                 :button (:toggle . (and (default-boundp ',variable)
+     (list 'menu-item (purecopy ,doc) ',name
+		 ':help (purecopy ,help)
+                 ':button '(:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
 
 ;; Function for setting/saving default font.
@@ -1860,7 +1860,7 @@ Buffers menu is regenerated."
 		   ;; bug in keymap.c that I don't understand yet.  -stef
 		   minibuffer-local-completion-map))
   (define-key map [menu-bar minibuf]
-    (cons "Minibuf" (make-sparse-keymap "Minibuf"))))
+    (cons (purecopy "Minibuf") (make-sparse-keymap "Minibuf"))))
 
 (let ((map minibuffer-local-completion-map))
   (define-key map [menu-bar minibuf ?\?]

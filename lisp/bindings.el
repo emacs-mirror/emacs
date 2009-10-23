@@ -450,10 +450,10 @@ Keymap for what is displayed by `mode-line-buffer-identification'.")
   "Return a list suitable for `mode-line-buffer-identification'.
 FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
-  (list (propertize fmt
+  `(list (propertize fmt
 		    'face 'mode-line-buffer-id
 		    'help-echo
-		    (purecopy "Buffer name\n\
+		    ,(purecopy "Buffer name\n\
 mouse-1: previous buffer\n\
 mouse-3: next buffer")
 		    'mouse-face 'mode-line-highlight

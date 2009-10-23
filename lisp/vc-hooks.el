@@ -758,7 +758,7 @@ Before doing that, check if there are any old backups and get rid of them."
       (vc-dir-resynch-file file))))
 
 (defvar vc-menu-entry
-  '(menu-item "Version Control" vc-menu-map
+  `(menu-item ,(purecopy "Version Control") vc-menu-map
     :filter vc-menu-map-filter))
 
 (when (boundp 'menu-bar-tools-menu)
@@ -962,59 +962,59 @@ current, and kill the buffer that visits the link."
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
     (define-key map [vc-retrieve-tag]
-      '(menu-item "Retrieve Tag" vc-retrieve-tag
-		  :help "Retrieve tagged version or branch"))
+      `(menu-item ,(purecopy "Retrieve Tag") vc-retrieve-tag
+		  :help ,(purecopy "Retrieve tagged version or branch")))
     (define-key map [vc-create-tag]
-      '(menu-item "Create Tag" vc-create-tag
-		  :help "Create version tag"))
+      `(menu-item ,(purecopy "Create Tag") vc-create-tag
+		  :help ,(purecopy "Create version tag")))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
+      `(menu-item ,(purecopy "Annotate") vc-annotate
+		  :help ,(purecopy "Display the edit history of the current file using colors")))
     (define-key map [vc-rename-file]
-      '(menu-item "Rename File" vc-rename-file
-		  :help "Rename file"))
+      `(menu-item ,(purecopy "Rename File") vc-rename-file
+		  :help ,(purecopy "Rename file")))
     (define-key map [vc-revision-other-window]
-      '(menu-item "Show Other Version" vc-revision-other-window
-		  :help "Visit another version of the current file in another window"))
+      `(menu-item ,(purecopy "Show Other Version") vc-revision-other-window
+		  :help ,(purecopy "Visit another version of the current file in another window")))
     (define-key map [vc-diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
+      `(menu-item ,(purecopy "Compare with Base Version") vc-diff
+		  :help ,(purecopy "Compare file set with the base version")))
     (define-key map [vc-root-diff]
-      '(menu-item "Compare Tree with Base Version" vc-root-diff
-		  :help "Compare current tree with the base version"))
+      `(menu-item ,(purecopy "Compare Tree with Base Version") vc-root-diff
+		  :help ,(purecopy "Compare current tree with the base version")))
     (define-key map [vc-update-change-log]
-      '(menu-item "Update ChangeLog" vc-update-change-log
-		  :help "Find change log file and add entries from recent version control logs"))
+      `(menu-item ,(purecopy "Update ChangeLog") vc-update-change-log
+		  :help ,(purecopy "Find change log file and add entries from recent version control logs")))
     (define-key map [vc-print-log]
-      '(menu-item "Show History" vc-print-log
-		  :help "List the change log of the current file set in a window"))
+      `(menu-item ,(purecopy "Show History") vc-print-log
+		  :help ,(purecopy "List the change log of the current file set in a window")))
     (define-key map [vc-print-root-log]
-      '(menu-item "Show Top of the Tree History " vc-print-root-log
-		  :help "List the change log for the current tree in a window"))
+      `(menu-item ,(purecopy "Show Top of the Tree History ") vc-print-root-log
+		  :help ,(purecopy "List the change log for the current tree in a window")))
     (define-key map [separator2] '("----"))
     (define-key map [vc-insert-header]
-      '(menu-item "Insert Header" vc-insert-headers
-		  :help "Insert headers into a file for use with a version control system.
-"))
+      `(menu-item ,(purecopy "Insert Header") vc-insert-headers
+		  :help ,(purecopy "Insert headers into a file for use with a version control system.
+")))
     (define-key map [undo]
-      '(menu-item "Undo Last Check-In" vc-rollback
-		  :help "Remove the most recent changeset committed to the repository"))
+      `(menu-item ,(purecopy "Undo Last Check-In") vc-rollback
+		  :help ,(purecopy "Remove the most recent changeset committed to the repository")))
     (define-key map [vc-revert]
-      '(menu-item "Revert to Base Version" vc-revert
-		  :help "Revert working copies of the selected file set to their repository contents"))
+      `(menu-item ,(purecopy "Revert to Base Version") vc-revert
+		  :help ,(purecopy "Revert working copies of the selected file set to their repository contents")))
     (define-key map [vc-update]
-      '(menu-item "Update to Latest Version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
+      `(menu-item ,(purecopy "Update to Latest Version") vc-update
+		  :help ,(purecopy "Update the current fileset's files to their tip revisions")))
     (define-key map [vc-next-action]
-      '(menu-item "Check In/Out"  vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
+      `(menu-item ,(purecopy "Check In/Out")  vc-next-action
+		  :help ,(purecopy "Do the next logical version control operation on the current fileset")))
     (define-key map [vc-register]
-      '(menu-item "Register" vc-register
-		  :help "Register file set into a version control system"))
+      `(menu-item ,(purecopy "Register") vc-register
+		  :help ,(purecopy "Register file set into a version control system")))
     (define-key map [vc-dir]
-      '(menu-item "VC Dir"  vc-dir
-		  :help "Show the VC status of files in a directory"))
+      `(menu-item ,(purecopy "VC Dir")  vc-dir
+		  :help ,(purecopy "Show the VC status of files in a directory")))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)

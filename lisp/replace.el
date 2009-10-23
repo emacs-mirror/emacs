@@ -768,43 +768,43 @@ a previously found match."
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [menu-bar occur]
-      (cons "Occur" map))
+      `(cons ,(purecopy "Occur") map))
     (define-key map [next-error-follow-minor-mode]
       (menu-bar-make-mm-toggle next-error-follow-minor-mode
 			       "Auto Occurrence Display"
 			       "Display another occurrence when moving the cursor"))
     (define-key map [separator-1] '("--"))
     (define-key map [kill-this-buffer]
-      '(menu-item "Kill occur buffer" kill-this-buffer
-		  :help "Kill the current *Occur* buffer"))
+      `(menu-item ,(purecopy "Kill occur buffer") kill-this-buffer
+		  :help ,(purecopy "Kill the current *Occur* buffer")))
     (define-key map [quit-window]
-      '(menu-item "Quit occur window" quit-window
-		  :help "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame"))
+      `(menu-item ,(purecopy "Quit occur window") quit-window
+		  :help ,(purecopy "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame")))
     (define-key map [revert-buffer]
-      '(menu-item "Revert occur buffer" revert-buffer
-		  :help "Replace the text in the *Occur* buffer with the results of rerunning occur"))
+      `(menu-item ,(purecopy "Revert occur buffer") revert-buffer
+		  :help ,(purecopy "Replace the text in the *Occur* buffer with the results of rerunning occur")))
     (define-key map [clone-buffer]
-      '(menu-item "Clone occur buffer" clone-buffer
-		  :help "Create and return a twin copy of the current *Occur* buffer"))
+      `(menu-item ,(purecopy "Clone occur buffer") clone-buffer
+		  :help ,(purecopy "Create and return a twin copy of the current *Occur* buffer")))
     (define-key map [occur-rename-buffer]
-      '(menu-item "Rename occur buffer" occur-rename-buffer
-		  :help "Rename the current *Occur* buffer to *Occur: original-buffer-name*."))
+      `(menu-item ,(purecopy "Rename occur buffer") occur-rename-buffer
+		  :help ,(purecopy "Rename the current *Occur* buffer to *Occur: original-buffer-name*.")))
     (define-key map [separator-2] '("--"))
     (define-key map [occur-mode-goto-occurrence-other-window]
-      '(menu-item "Go To Occurrence Other Window" occur-mode-goto-occurrence-other-window
-		  :help "Go to the occurrence the current line describes, in another window"))
+      `(menu-item ,(purecopy "Go To Occurrence Other Window") occur-mode-goto-occurrence-other-window
+		  :help ,(purecopy "Go to the occurrence the current line describes, in another window")))
     (define-key map [occur-mode-goto-occurrence]
-      '(menu-item "Go To Occurrence" occur-mode-goto-occurrence
-		  :help "Go to the occurrence the current line describes"))
+      `(menu-item ,(purecopy "Go To Occurrence") occur-mode-goto-occurrence
+		  :help ,(purecopy "Go to the occurrence the current line describes")))
     (define-key map [occur-mode-display-occurrence]
-      '(menu-item "Display Occurrence" occur-mode-display-occurrence
-		  :help "Display in another window the occurrence the current line describes"))
+      `(menu-item ,(purecopy "Display Occurrence") occur-mode-display-occurrence
+		  :help ,(purecopy "Display in another window the occurrence the current line describes")))
     (define-key map [occur-next]
-      '(menu-item "Move to next match" occur-next
-		  :help "Move to the Nth (default 1) next match in an Occur mode buffer"))
+      `(menu-item ,(purecopy "Move to next match") occur-next
+		  :help ,(purecopy "Move to the Nth (default 1) next match in an Occur mode buffer")))
     (define-key map [occur-prev]
-      '(menu-item "Move to previous match" occur-prev
-		  :help "Move to the Nth (default 1) previous match in an Occur mode buffer"))
+      `(menu-item ,(purecopy "Move to previous match") occur-prev
+		  :help ,(purecopy "Move to the Nth (default 1) previous match in an Occur mode buffer")))
     map)
   "Keymap for `occur-mode'.")
 

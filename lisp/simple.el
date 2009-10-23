@@ -3508,7 +3508,7 @@ START and END specify the portion of the current buffer to be copied."
 	(insert-buffer-substring oldbuf start end)))))
 
 (put 'mark-inactive 'error-conditions '(mark-inactive error))
-(put 'mark-inactive 'error-message "The mark is not active now")
+(put 'mark-inactive 'error-message (purecopy "The mark is not active now"))
 
 (defvar activate-mark-hook nil
   "Hook run when the mark becomes active.
