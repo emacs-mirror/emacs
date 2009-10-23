@@ -1,3 +1,7 @@
+2009-10-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* puresize.h (PURESIZE_RATIO): Decrease to 11/7.
+
 2009-10-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.c (Fwindow_edges, Fwindow_pixel_edges)
