@@ -17,9 +17,6 @@
 	* replace.el (occur-mode-map):
 	* pcvs-defs.el (cvs-global-menu): Purecopy names and tooltips.
 
-	* bindings.el (propertized-buffer-identification): Purecopy
-	tooltip text.
-
 2009-10-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-read-number, math-read-number-simple): Use
