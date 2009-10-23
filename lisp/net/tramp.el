@@ -386,6 +386,7 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-copy-program         "rsync")
 	     (tramp-copy-args            (("-e" "ssh") ("-t" "%k") ("-r")))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-keep-tmpfile    t)
 	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil))
     ("rsyncc"
@@ -403,6 +404,7 @@ files conditionalize this setup based on the TERM environment variable."
 					     " -o ControlPath=%t.%%r@%%h:%%p"
 					     " -o ControlMaster=auto"))))
 	     (tramp-copy-keep-date       t)
+	     (tramp-copy-keep-tmpfile    t)
 	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil))
     ("remcp" (tramp-login-program        "remsh")
@@ -654,6 +656,11 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-copy-keep-date'
     This specifies whether the copying program when the preserves the
     timestamp of the original file.
+  * `tramp-copy-keep-tmpfile'
+    This specifies whether a temporary local file shall be kept
+    for optimization reasons (useful for \"rsync\" methods).
+  * `tramp-copy-recursive'
+    Whether the operation copies directories recursively.
   * `tramp-default-port'
     The default port of a method is needed in case of gateway connections.
     Additionally, it is used as indication which method is prepared for
@@ -1145,6 +1152,11 @@ part, though."
 (defconst tramp-temp-buffer-name " *tramp temp*"
   "Buffer name for a temporary buffer.
 It shall be used in combination with `generate-new-buffer-name'.")
+
+(defvar tramp-temp-buffer-file-name nil
+  "File name of a persistent local temporary file.
+Useful for \"rsync\" like methods.")
+(make-variable-buffer-local 'tramp-temp-buffer-file-name)
 
 (defcustom tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile"))
   "*Alist specifying extra arguments to pass to the remote shell.
@@ -1942,7 +1954,7 @@ normal Emacs functions.")
 ;; Handlers for foreign methods, like FTP or SMB, shall be plugged here.
 (defvar tramp-foreign-file-name-handler-alist
   ;; (identity . tramp-sh-file-name-handler) should always be the last
-  ;; entry, since `identity' always matches.
+  ;; entry, because `identity' always matches.
   '((identity . tramp-sh-file-name-handler))
   "Alist of elements (FUNCTION . HANDLER) for foreign methods handled specially.
 If (FUNCTION FILENAME) returns non-nil, then all I/O on that file is done by
@@ -2295,7 +2307,11 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 
 (when (boundp 'rfn-eshadow-update-overlay-hook)
   (add-hook 'rfn-eshadow-update-overlay-hook
-	    'tramp-rfn-eshadow-update-overlay))
+	    'tramp-rfn-eshadow-update-overlay)
+  (add-hook 'tramp-unload-hook
+	    (lambda ()
+	      (remove-hook 'rfn-eshadow-update-overlay-hook
+			   'tramp-rfn-eshadow-update-overlay))))
 
 
 ;;; File Name Handler Functions:
@@ -4431,11 +4447,25 @@ coding system might not be determined.  This function repairs it."
 			   (when (eq inhibit-file-name-operation
 				     'insert-file-contents)
 			     'file-local-copy)))
-		      (file-local-copy
-		       (if (stringp remote-copy)
-			   (tramp-make-tramp-file-name
-			    method user host remote-copy)
-			 filename))))
+		      (cond
+		       ((stringp remote-copy)
+			(file-local-copy
+			 (tramp-make-tramp-file-name
+			  method user host remote-copy)))
+		       ((stringp tramp-temp-buffer-file-name)
+			(copy-file filename tramp-temp-buffer-file-name 'ok)
+			tramp-temp-buffer-file-name)
+		       (t (file-local-copy filename)))))
+
+	      (when (and (null remote-copy)
+			 (tramp-get-method-parameter
+			  method 'tramp-copy-keep-tmpfile))
+		;; We keep the local file for performance reasons,
+		;; useful for "rsync".
+		(set-file-modes local-copy (tramp-octal-to-decimal "0600"))
+		(setq tramp-temp-buffer-file-name local-copy)
+		(put 'tramp-temp-buffer-file-name 'permanent-local t))
+
 	      (tramp-message
 	       v 4 "Inserting local temp file `%s'..." local-copy)
 
@@ -4465,7 +4495,8 @@ coding system might not be determined.  This function repairs it."
 	    (setq buffer-read-only (not (file-writable-p filename)))
 	    (set-visited-file-modtime)
 	    (set-buffer-modified-p nil))
-	  (when (stringp local-copy)
+	  (when (and (stringp local-copy)
+		     (or remote-copy (null tramp-temp-buffer-file-name)))
 	    (delete-file local-copy))
 	  (when (stringp remote-copy)
 	    (delete-file
@@ -4585,15 +4616,12 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 (defvar tramp-handle-write-region-hook nil
   "Normal hook to be run at the end of `tramp-handle-write-region'.")
 
-;; CCC grok APPEND, LOCKNAME
+;; CCC grok LOCKNAME
 (defun tramp-handle-write-region
   (start end filename &optional append visit lockname confirm)
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (unless (null append)
-      (tramp-error
-       v 'file-error "Cannot append to file using Tramp (`%s')" filename))
     ;; Following part commented out because we don't know what to do about
     ;; file locking, and it does not appear to be a problem to ignore it.
     ;; Ange-ftp ignores it, too.
@@ -4644,8 +4672,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	      ;; Write region into a tmp file.  This isn't really
 	      ;; needed if we use an encoding function, but currently
 	      ;; we use it always because this makes the logic
-	      ;; simpler.
-	      (tmpfile (tramp-compat-make-temp-file filename)))
+	      ;; simpler.  If `append' is non-nil, we copy the file
+	      ;; locally, and let the native `write-region'
+	      ;; implementation do the job.
+	      (tmpfile (if append
+			   (file-local-copy filename)
+			 (or tramp-temp-buffer-file-name
+			     (tramp-compat-make-temp-file filename)))))
 
 	  ;; We say `no-message' here because we don't want the
 	  ;; visited file modtime data to be clobbered from the temp
@@ -4659,6 +4692,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		 'write-region
 		 (list start end tmpfile append 'no-message lockname confirm))
 	      ((error quit)
+	       (setq tramp-temp-buffer-file-name nil)
 	       (delete-file tmpfile)
 	       (signal (car err) (cdr err))))
 
@@ -4686,8 +4720,19 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		(tramp-method-out-of-band-p
 		 v (- (or end (point-max)) (or start (point-min)))))
 	    (condition-case err
-		(rename-file tmpfile filename t)
+		(if (and (= (or end (point-max)) (point-max))
+			 (= (or start (point-min)) (point-min))
+			 (tramp-get-method-parameter
+			  method 'tramp-copy-keep-tmpfile))
+		    (progn
+		      ;; We keep the local file for performance
+		      ;; reasons, useful for "rsync".
+		      (setq tramp-temp-buffer-file-name tmpfile)
+		      (copy-file tmpfile filename t))
+		  (setq tramp-temp-buffer-file-name nil)
+		  (rename-file tmpfile filename t))
 	      ((error quit)
+	       (setq tramp-temp-buffer-file-name nil)
 	       (delete-file tmpfile)
 	       (signal (car err) (cdr err)))))
 
@@ -5815,6 +5860,19 @@ hosts, or files, disagree."
     (if (not (zerop (length user)))
 	(format "*tramp/%s %s@%s*" method user host)
       (format "*tramp/%s %s*" method host))))
+
+(defun tramp-delete-temp-file-function ()
+  "Remove temporary files related to current buffer."
+  (when (stringp tramp-temp-buffer-file-name)
+    (condition-case nil
+	(delete-file tramp-temp-buffer-file-name)
+      (error nil))))
+
+(add-hook 'kill-buffer-hook 'tramp-delete-temp-file-function)
+(add-hook 'tramp-cache-unload-hook
+	  (lambda ()
+	    (remove-hook 'kill-buffer-hook
+			 'tramp-delete-temp-file-function)))
 
 (defun tramp-get-buffer (vec)
   "Get the connection buffer to be used for VEC."
@@ -8069,14 +8127,11 @@ Only works for Bourne-like shells."
 ;; * `vc-directory' does not work.  It never displays any files, even
 ;;   if it does show files when run locally.
 ;; * How to deal with MULE in `insert-file-contents' and `write-region'?
-;; * Grok `append' parameter for `write-region'.
 ;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
 ;; * abbreviate-file-name
 ;; * Better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)
-;; * Provide a local cache of old versions of remote files for the rsync
-;;   transfer method to use.  (Greg Stark)
 ;; * Remove unneeded parameters from methods.
 ;; * Make it work for different encodings, and for different file name
 ;;   encodings, too.  (Daniel Pittman)
