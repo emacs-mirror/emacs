@@ -1,3 +1,17 @@
+2009-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Remove `tramp-rfn-eshadow-update-overlay'
+	from `rfn-eshadow-update-overlay-hook' when unloading.
+	(tramp-methods): Add `tramp-copy-keep-tmpfile' for "rsync" and
+	"rsyncc".  Adjust doc string.
+	(tramp-temp-buffer-file-name) New buffer-local defvar.
+	(tramp-handle-insert-file-contents, tramp-handle-write-region):
+	Keep temporary file when indicated by method ("rsync" and
+	"rsyncc").
+	(tramp-handle-write-region): Handle APPEND.
+	(tramp-delete-temp-file-function): New defun.  Added to
+	`kill-buffer-hook'.
+
 2009-10-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* menu-bar.el (cua-enable-cua-keys): Declare for the byte-compiler.
