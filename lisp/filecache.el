@@ -1,11 +1,11 @@
 ;;; filecache.el --- find files using a pre-loaded cache
-;;
+
+;; Copyright (C) 1996, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
+
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
 ;; Keywords: convenience
-;;
-;; Copyright (C) 1996, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -260,7 +260,7 @@ Defaults to nil on DOS and Windows, and t on other systems."
 (defvar file-cache-completions-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map completion-list-mode-map)
-    (define-key map [mouse-2] 'file-cache-mouse-choose-completion)
+    (define-key map [mouse-2] 'file-cache-choose-completion)
     (define-key map "\C-m" 'file-cache-choose-completion)
     map)
   "Keymap for file cache completions buffer.")
@@ -655,25 +655,16 @@ the name is considered already unique; only the second substitution
   (with-current-buffer standard-output ;; i.e. file-cache-completions-buffer
     (use-local-map file-cache-completions-keymap)))
 
-(defun file-cache-choose-completion  ()
+(defun file-cache-choose-completion (&optional event)
   "Choose a completion in the `*Completions*' buffer."
-  (interactive)
+  (interactive (list last-nonmenu-event))
   (let ((completion-no-auto-exit t))
-    (choose-completion)
+    (choose-completion event)
     (select-window (active-minibuffer-window))
-    (file-cache-minibuffer-complete nil)
-    )
-  )
+    (file-cache-minibuffer-complete nil)))
 
-(defun file-cache-mouse-choose-completion  (event)
-  "Choose a completion with the mouse."
-  (interactive "e")
-  (let ((completion-no-auto-exit t))
-    (mouse-choose-completion event)
-    (select-window (active-minibuffer-window))
-    (file-cache-minibuffer-complete nil)
-    )
-  )
+(define-obsolete-function-alias 'file-cache-mouse-choose-completion
+  'file-cache-choose-completion "23.2")
 
 (defun file-cache-complete  ()
   "Complete the word at point, using the filecache."

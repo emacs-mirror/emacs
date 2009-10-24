@@ -4,6 +4,11 @@
 	* term.el (term-dynamic-list-completions): Use choose-completion rather
 	than obsolete alias mouse-choose-completion.
 
+	* filecache.el (file-cache-completions-keymap): Bind mouse-2 to
+	file-cache-choose-completion.
+	(file-cache-choose-completion): Handle an optional event argument.
+	(file-cache-mouse-choose-completion): Make it an obsolete alias.
+
 	* progmodes/octave-mod.el (octave-complete-symbol): Use
 	choose-completion if mouse-choose-completion is ever removed.
 
