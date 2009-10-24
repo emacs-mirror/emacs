@@ -234,6 +234,8 @@ with args, toggle notify status of people."
      'notify_list ?l (mapconcat 'identity erc-notify-list " "))))
   t)
 
+(autoload 'pcomplete-erc-all-nicks "erc-pcomplete")
+
 ;;;###autoload
 (defun pcomplete/erc-mode/NOTIFY ()
   (pcomplete-here (pcomplete-erc-all-nicks)))

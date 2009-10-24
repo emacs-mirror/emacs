@@ -1,3 +1,12 @@
+2009-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* erc-dcc.el (pcomplete-erc-all-nicks):
+	* erc-notify.el (pcomplete-erc-all-nicks):
+	Autoload it, to silence compiler.
+
+	* erc-dcc.el (pcomplete/erc-mode/DCC): Replace cl-function
+	remove-duplicates with erc-delete-dups.
+
 2009-09-27  Johan Bockgård  <bojohan@gnu.org>
 
 	* erc-button.el (erc-button-keymap): Bind `follow-link'.
