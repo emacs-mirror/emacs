@@ -1,5 +1,8 @@
 2009-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/checkdoc.el (generate-autoload-cookie): Define for
+	compiler.
+
 	* vc-hooks.el (vc-responsible-backend): Fix declaration.
 
 2009-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>

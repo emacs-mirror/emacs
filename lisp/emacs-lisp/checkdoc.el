@@ -2066,6 +2066,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
 				      (progn
 					(forward-sexp -1)
 					;; piece of an abbreviation
+					;; FIXME etc
 					(looking-at
 					 "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
 				    (error t))))
@@ -2215,6 +2216,8 @@ News agents may remove it"
   ;; a) get symbols for compile and
   ;; b) determine if we have lm-history symbol which doesn't always exist
   (require 'lisp-mnt))
+
+(defvar generate-autoload-cookie)
 
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.
