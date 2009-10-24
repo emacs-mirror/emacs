@@ -1,3 +1,8 @@
+2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_set_name, ns_set_name_as_filename): Don't call
+	FRAME_NS_VIEW on terminal frames (Bug#4765).
+
 2009-10-24  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* dbusbind.c (xd_retrieve_arg): Handle DBUS_TYPE_INTnn and
