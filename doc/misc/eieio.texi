@@ -1909,3 +1909,7 @@ Allow method overloading of method-like functions in Emacs.
 
 @contents
 @bye
+
+@ignore
+   arch-tag: 7225b7c7-2462-4563-99e7-836a20172178
+@end ignore

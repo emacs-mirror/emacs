@@ -80,4 +80,5 @@ COMMAND is a text string representing the thing to be run."
 ;; generated-autoload-load-name: "ede/shell"
 ;; End:
 
+;; arch-tag: 71bb9dc4-ad1c-4ba3-a95e-531a90500ca9
 ;;; ede/shell.el ends here

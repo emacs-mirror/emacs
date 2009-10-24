@@ -3795,3 +3795,7 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @end table
 
 @bye
+
+@ignore
+   arch-tag: c9bfdc6e-e6e9-4e87-97f7-d8348342fbf4
+@end ignore
