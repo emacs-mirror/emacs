@@ -1,5 +1,8 @@
 2009-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/sgml-mode.el (sgml-looking-back-at): Move definition before
+	use.
+
 	* emacs-lisp/checkdoc.el (generate-autoload-cookie): Define for
 	compiler.
 

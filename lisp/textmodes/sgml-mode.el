@@ -873,6 +873,12 @@ Return t if after a closing tag."
 	(setq arg (1- arg)))
       return)))
 
+(defsubst sgml-looking-back-at (str)
+  "Return t if the test before point matches STR."
+  (let ((start (- (point) (length str))))
+    (and (>= start (point-min))
+         (equal str (buffer-substring-no-properties start (point))))))
+
 (defun sgml-delete-tag (arg)
   ;; FIXME: Should be called sgml-kill-tag or should not touch the kill-ring.
   "Delete tag on or after cursor, and matching closing or opening tag.
@@ -1158,12 +1164,6 @@ You might want to turn on `auto-fill-mode' to get better results."
   "Skip past a tag-name, and return the name."
   (buffer-substring-no-properties
    (point) (progn (skip-syntax-forward "w_") (point))))
-
-(defsubst sgml-looking-back-at (str)
-  "Return t if the test before point matches STR."
-  (let ((start (- (point) (length str))))
-    (and (>= start (point-min))
-         (equal str (buffer-substring-no-properties start (point))))))
 
 (defun sgml-tag-text-p (start end)
   "Return non-nil if text between START and END is a tag.
