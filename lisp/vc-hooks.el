@@ -205,7 +205,7 @@ individually should stay local."
 ;; Tell Emacs about this new kind of minor mode
 ;; (add-to-list 'minor-mode-alist '(vc-mode vc-mode))
 
-;; Autoload if this file no longer dumped.
+;;;###autoload
 (put 'vc-mode 'risky-local-variable t)
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
@@ -1019,7 +1019,7 @@ current, and kill the buffer that visits the link."
 
 (defalias 'vc-menu-map vc-menu-map)
 
-(declare-function vc-responsible-backend "vc" (file &optional register))
+(declare-function vc-responsible-backend "vc" (file))
 
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))

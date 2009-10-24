@@ -1,3 +1,7 @@
+2009-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc-hooks.el (vc-responsible-backend): Fix declaration.
+
 2009-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--embedded-envvar-table): Fix last change.
