@@ -1,3 +1,7 @@
+2009-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (help-xref-stack-item): Define for compiler.
+
 2009-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-remove-overlays): eval-and-compile.

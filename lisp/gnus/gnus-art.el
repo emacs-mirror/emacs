@@ -6465,6 +6465,8 @@ KEY is a string or a vector."
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
 (defvar gnus-agent-summary-mode)
 (defvar gnus-draft-mode)
+;; Calling help-buffer will autoload help-mode.
+(defvar help-xref-stack-item)
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
