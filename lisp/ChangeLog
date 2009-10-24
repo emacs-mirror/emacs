@@ -1,5 +1,9 @@
 2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/emacsbug.el (report-emacs-bug): Clarify that the
+	keybindings apply to the mail buffer (Bug#4003).  Shrink help
+	window to buffer.
+
 	* whitespace.el (whitespace-mode, whitespace-newline-mode)
 	(global-whitespace-mode, global-whitespace-newline-mode)
 	(whitespace-toggle-options, global-whitespace-toggle-options): Doc

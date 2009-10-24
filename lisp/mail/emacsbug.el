@@ -225,17 +225,18 @@ usually do not have translators to read other languages for them.\n\n")
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
     (unless report-emacs-bug-no-explanations
       (with-output-to-temp-buffer "*Bug Help*"
+	(princ "While in the mail buffer:\n\n")
 	(if (eq mail-user-agent 'sendmail-user-agent)
 	    (princ (substitute-command-keys
-		    "Type \\[mail-send-and-exit] to send the bug report.\n")))
+		    "  Type \\[mail-send-and-exit] to send the bug report.\n")))
 	(princ (substitute-command-keys
-		"Type \\[kill-buffer] RET to cancel (don't send it).\n"))
+		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
 	(terpri)
 	(princ (substitute-command-keys
-		"Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
-about when and how to write a bug report,
-and what information to supply so that the bug can be fixed.
-Type SPC to scroll through this section and its subsections."))))
+		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
+    about when and how to write a bug report, and what
+    information you should include to help fix the bug.")))
+      (shrink-window-if-larger-than-buffer (get-buffer-window "*Bug Help*")))
     ;; Make it less likely people will send empty messages.
     (make-local-variable 'mail-send-hook)
     (add-hook 'mail-send-hook 'report-emacs-bug-hook)
