@@ -1068,11 +1068,25 @@ variables.")
           "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'"))
 
 (defun completion--embedded-envvar-table (string pred action)
+  "Completion table for envvars embedded in a string.
+The envvar syntax (and escaping) rules followed by this table are the
+same as `substitute-in-file-name'."
+  ;; We ignore `pred', because the predicates passed to us via
+  ;; read-file-name-internal are not 100% correct and fail here:
+  ;; e.g. we get predicates like file-directory-p there, whereas the filename
+  ;; completed needs to be passed through substitute-in-file-name before it
+  ;; can be passed to file-directory-p.
   (when (string-match completion--embedded-envvar-re string)
     (let* ((beg (or (match-beginning 2) (match-beginning 1)))
            (table (completion--make-envvar-table))
            (prefix (substring string 0 beg)))
-      (if (eq (car-safe action) 'boundaries)
+      (cond
+       ((eq action 'lambda)
+        ;; This table is expected to be used in conjunction with some
+        ;; other table that provides the "main" completion.  Let the
+        ;; other table handle the test-completion case.
+        nil)
+       ((eq (car-safe action) 'boundaries)
           ;; Only return boundaries if there's something to complete,
           ;; since otherwise when we're used in
           ;; completion-table-in-turn, we could return boundaries and
@@ -1080,14 +1094,15 @@ variables.")
           ;; FIXME: Maybe it should rather be fixed in
           ;; completion-table-in-turn instead, but it's difficult to
           ;; do it efficiently there.
-          (when (try-completion prefix table pred)
+        (when (try-completion (substring string beg) table nil)
             ;; Compute the boundaries of the subfield to which this
             ;; completion applies.
             (let ((suffix (cdr action)))
               (list* 'boundaries
                      (or (match-beginning 2) (match-beginning 1))
                      (when (string-match "[^[:alnum:]_]" suffix)
-                       (match-beginning 0)))))
+                     (match-beginning 0))))))
+       (t
         (if (eq (aref string (1- beg)) ?{)
             (setq table (apply-partially 'completion-table-with-terminator
                                          "}" table)))
@@ -1095,7 +1110,7 @@ variables.")
         ;; envvar completion to be case-sensitive.
         (let ((completion-ignore-case nil))
           (completion-table-with-context
-           prefix table (substring string beg) pred action))))))
+           prefix table (substring string beg) nil action)))))))
 
 (defun completion-file-name-table (string pred action)
   "Completion table for file names."
