@@ -1,3 +1,8 @@
+2009-10-24  Sven Joachim  <svenjoac@gmx.de>
+
+	* files.el (delete-directory): Delete symlinks to directories with
+	delete-file (Bug#4739).
+
 2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic/util.el (semantic-recursive-find-nonterminal-by-name):

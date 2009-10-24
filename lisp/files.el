@@ -4660,7 +4660,10 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
       (if (and recursive (not (file-symlink-p directory)))
 	  (mapc
 	   (lambda (file)
-	     (if (file-directory-p file)
+	     ;; This test is equivalent to
+	     ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
+	     ;; but more efficient
+	     (if (eq t (car (file-attributes file)))
 		 (delete-directory file recursive)
 	       (delete-file file)))
 	   ;; We do not want to delete "." and "..".
