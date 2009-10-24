@@ -1347,7 +1347,7 @@ interfaces, or abstract classes which are parents of TAG."
 (make-obsolete 'semantic-token-type-parent
 	       "\
 use `semantic-tag-type-superclass' \
-and `semantic-tag-type-interfaces' instead")
+and `semantic-tag-type-interfaces' instead" "23.2")
 
 (semantic-alias-obsolete 'semantic-tag-make-assoc-list
                          'semantic-tag-make-plist)

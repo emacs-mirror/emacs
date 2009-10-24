@@ -174,7 +174,7 @@ THIS ISN'T USED IN SEMANTIC.  DELETE ME SOON."
 	(setq includelist (cdr includelist)))
       found)))
 (make-obsolete 'semantic-recursive-find-nonterminal-by-name
-	       "Do not use this function.")
+	       "Do not use this function." "23.2")
 
 ;;; Completion APIs
 ;;

@@ -1,3 +1,12 @@
+2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/util.el (semantic-recursive-find-nonterminal-by-name):
+	* cedet/semantic/tag.el (semantic-token-type-parent): Add WHEN
+	argument to make-obsolete.
+
+	* cedet/semantic/fw.el (semantic-alias-obsolete)
+	(semantic-varalias-obsolete): Add optional WHEN argument.
+
 2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-backend-for-registration): Rename from
