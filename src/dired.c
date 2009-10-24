@@ -934,29 +934,6 @@ stat_gname (struct stat *st)
 #endif
 }
 
-/* Make an integer or float number for UID and GID, while being
-   careful not to produce negative numbers due to signed integer
-   overflow.  */
-static Lisp_Object
-make_uid (struct stat *st)
-{
-  EMACS_INT uid = st->st_uid;
-
-  if (sizeof (st->st_uid) > sizeof (uid) || uid < 0 || FIXNUM_OVERFLOW_P (uid))
-    return make_float ((double)st->st_uid);
-  return make_number (uid);
-}
-
-static Lisp_Object
-make_gid (struct stat *st)
-{
-  EMACS_INT gid = st->st_gid;
-
-  if (sizeof (st->st_gid) > sizeof (gid) || gid < 0 || FIXNUM_OVERFLOW_P (gid))
-    return make_float ((double)st->st_gid);
-  return make_number (gid);
-}
-
 DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
        doc: /* Return a list of attributes of file FILENAME.
 Value is nil if specified file cannot be opened.
@@ -1013,7 +990,6 @@ so last access time will always be midnight of that day.  */)
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
-  EMACS_INT ino, uid, gid;
   char *uname = NULL, *gname = NULL;
 
   filename = Fexpand_file_name (filename, Qnil);
@@ -1060,19 +1036,16 @@ so last access time will always be midnight of that day.  */)
   if (uname)
     values[2] = DECODE_SYSTEM (build_string (uname));
   else
-    values[2] = make_uid (&s);
+    values[2] = make_fixnum_or_float (s.st_uid);
   if (gname)
     values[3] = DECODE_SYSTEM (build_string (gname));
   else
-    values[3] = make_gid (&s);
+    values[3] = make_fixnum_or_float (s.st_gid);
 
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
-  values[7] = make_number (s.st_size);
-  /* If the size is out of range for an integer, return a float.  */
-  if (XINT (values[7]) != s.st_size)
-    values[7] = make_float ((double)s.st_size);
+  values[7] = make_fixnum_or_float (s.st_size);
   /* If the size is negative, and its type is long, convert it back to
      positive.  */
   if (s.st_size < 0 && sizeof (s.st_size) == sizeof (long))
@@ -1091,17 +1064,10 @@ so last access time will always be midnight of that day.  */)
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
-  /* Shut up GCC warnings in FIXNUM_OVERFLOW_P below.  */
-  if (sizeof (s.st_ino) > sizeof (ino))
-    ino = (EMACS_INT)(s.st_ino & 0xffffffff);
-  else
-    ino = s.st_ino;
-  if (!FIXNUM_OVERFLOW_P (ino)
-      && (sizeof (s.st_ino) <= sizeof (ino) || (s.st_ino & ~INTMASK) == 0))
+  if (!FIXNUM_OVERFLOW_P (s.st_ino))
     /* Keep the most common cases as integers.  */
-    values[10] = make_number (ino);
-  else if (sizeof (s.st_ino) <= sizeof (ino)
-	   || ((s.st_ino >> 16) & ~INTMASK) == 0)
+    values[10] = make_number (s.st_ino);
+  else if (!FIXNUM_OVERFLOW_P (s.st_ino >> 16))
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
     values[10] = Fcons (make_number ((EMACS_INT)(s.st_ino >> 16)),
@@ -1121,11 +1087,8 @@ so last access time will always be midnight of that day.  */)
 				 make_number (low_ino & 0xffff)));
     }
 
-  /* Likewise for device, but don't let it become negative.  We used
-     to use FIXNUM_OVERFLOW_P here, but that won't catch large
-     positive numbers such as 0xFFEEDDCC.  */
-  if ((EMACS_INT)s.st_dev < 0
-      || (EMACS_INT)s.st_dev > MOST_POSITIVE_FIXNUM)
+  /* Likewise for device.  */
+  if (FIXNUM_OVERFLOW_P (s.st_dev))
     values[11] = Fcons (make_number (s.st_dev >> 16),
 			make_number (s.st_dev & 0xffff));
   else
