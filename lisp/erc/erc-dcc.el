@@ -426,6 +426,8 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
         (apropos "erc-dcc-do-.*-command")
         t))))
 
+(autoload 'pcomplete-erc-all-nicks "erc-pcomplete")
+
 ;;;###autoload
 (defun pcomplete/erc-mode/DCC ()
   "Provides completion for the /DCC command."
@@ -438,9 +440,9 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                     #'(lambda (elt)
                         (eq (plist-get elt :type) 'CHAT))
                     erc-dcc-list)))
-     (close (remove-duplicates
+     (close (erc-delete-dups
              (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
-                     erc-dcc-list) :test 'string=))
+                     erc-dcc-list)))
      (get (mapcar #'erc-dcc-nick
                   (erc-remove-if-not
                    #'(lambda (elt)
