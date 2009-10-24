@@ -2096,7 +2096,6 @@ then strings and vectors are not accepted.  */)
     return Qnil;
 }
 
-/* ARGSUSED */
 DEFUN ("autoload", Fautoload, Sautoload, 2, 5, 0,
        doc: /* Define FUNCTION to autoload from FILE.
 FUNCTION is a symbol; FILE is a file name string to pass to `load'.
@@ -2113,9 +2112,7 @@ this does nothing and returns nil.  */)
      (function, file, docstring, interactive, type)
      Lisp_Object function, file, docstring, interactive, type;
 {
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[4];
-#endif
 
   CHECK_SYMBOL (function);
   CHECK_STRING (file);
@@ -2131,16 +2128,15 @@ this does nothing and returns nil.  */)
        not useful and else we get loads of them from the loaddefs.el.  */
     LOADHIST_ATTACH (Fcons (Qautoload, function));
 
-#ifdef NO_ARG_ARRAY
-  args[0] = file;
+  if (NILP (Vpurify_flag))
+    args[0] = file;
+  else
+    args[0] = Fpurecopy (file);
   args[1] = docstring;
   args[2] = interactive;
   args[3] = type;
 
   return Ffset (function, Fcons (Qautoload, Flist (4, &args[0])));
-#else /* NO_ARG_ARRAY */
-  return Ffset (function, Fcons (Qautoload, Flist (4, &file)));
-#endif /* not NO_ARG_ARRAY */
 }
 
 Lisp_Object

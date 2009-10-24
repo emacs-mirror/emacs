@@ -144,7 +144,7 @@
 
   ;; define ediff compare menu
   (define-key menu-bar-ediff-menu [ediff-misc]
-    (list 'menu-item "Ediff Miscellanea" menu-bar-ediff-misc-menu))
+    `(menu-item ,(purecopy "Ediff Miscellanea") menu-bar-ediff-misc-menu))
   (define-key menu-bar-ediff-menu [separator-ediff-misc] '("--"))
   (define-key menu-bar-ediff-menu [window]
     `(menu-item ,(purecopy "This Window and Next Window") compare-windows

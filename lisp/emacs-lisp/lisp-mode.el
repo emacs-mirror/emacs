@@ -285,105 +285,105 @@ font-lock keywords will not be case sensitive."
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map [menu-bar emacs-lisp] (cons "Emacs-Lisp" menu-map))
     (define-key menu-map [eldoc]
-      '(menu-item "Auto-Display Documentation Strings" eldoc-mode
+      `(menu-item ,(purecopy "Auto-Display Documentation Strings") eldoc-mode
 		  :button (:toggle . (bound-and-true-p eldoc-mode))
-		  :help "Display the documentation string for the item under cursor"))
+		  :help ,(purecopy "Display the documentation string for the item under cursor")))
     (define-key menu-map [checkdoc]
-      '(menu-item "Check Documentation Strings" checkdoc
-		  :help "Check documentation strings for style requirements"))
+      `(menu-item ,(purecopy "Check Documentation Strings") checkdoc
+		  :help ,(purecopy "Check documentation strings for style requirements")))
     (define-key menu-map [re-builder]
-      '(menu-item "Construct Regexp" re-builder
-		  :help "Construct a regexp interactively"))
+      `(menu-item ,(purecopy "Construct Regexp") re-builder
+		  :help ,(purecopy "Construct a regexp interactively")))
     (define-key menu-map [tracing] (cons "Tracing" tracing-map))
     (define-key tracing-map [tr-a]
-      '(menu-item "Untrace all" untrace-all
-		  :help "Untrace all currently traced functions"))
+      `(menu-item ,(purecopy "Untrace all") untrace-all
+		  :help ,(purecopy "Untrace all currently traced functions")))
     (define-key tracing-map [tr-uf]
-      '(menu-item "Untrace function..." untrace-function
-		  :help "Untrace function, and possibly activate all remaining advice"))
+      `(menu-item ,(purecopy "Untrace function...") untrace-function
+		  :help ,(purecopy "Untrace function, and possibly activate all remaining advice")))
     (define-key tracing-map [tr-sep] '("--"))
     (define-key tracing-map [tr-q]
-      '(menu-item "Trace function quietly..." trace-function-background
-		  :help "Trace the function with trace output going quietly to a buffer"))
+      `(menu-item ,(purecopy "Trace function quietly...") trace-function-background
+		  :help ,(purecopy "Trace the function with trace output going quietly to a buffer")))
     (define-key tracing-map [tr-f]
-      '(menu-item "Trace function..." trace-function
-		  :help "Trace the function given as an argument"))
+      `(menu-item ,(purecopy "Trace function...") trace-function
+		  :help ,(purecopy "Trace the function given as an argument")))
     (define-key menu-map [profiling] (cons "Profiling" prof-map))
     (define-key prof-map [prof-restall]
-      '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
-		  :help "Restore the original definitions of all functions being profiled"))
+      `(menu-item ,(purecopy "Remove Instrumentation for All Functions") elp-restore-all
+		  :help ,(purecopy "Restore the original definitions of all functions being profiled")))
     (define-key prof-map [prof-restfunc]
-      '(menu-item "Remove Instrumentation for Function..." elp-restore-function
-		  :help "Restore an instrumented function to its original definition"))
+      `(menu-item ,(purecopy "Remove Instrumentation for Function...") elp-restore-function
+		  :help ,(purecopy "Restore an instrumented function to its original definition")))
 
     (define-key prof-map [sep-rem] '("--"))
     (define-key prof-map [prof-resall]
-      '(menu-item "Reset Counters for All Functions" elp-reset-all
-		  :help "Reset the profiling information for all functions being profiled"))
+      `(menu-item ,(purecopy "Reset Counters for All Functions") elp-reset-all
+		  :help ,(purecopy "Reset the profiling information for all functions being profiled")))
     (define-key prof-map [prof-resfunc]
-      '(menu-item "Reset Counters for Function..." elp-reset-function
-		  :help "Reset the profiling information for a function"))
+      `(menu-item ,(purecopy "Reset Counters for Function...") elp-reset-function
+		  :help ,(purecopy "Reset the profiling information for a function")))
     (define-key prof-map [prof-res]
-      '(menu-item "Show Profiling Results" elp-results
-		  :help "Display current profiling results"))
+      `(menu-item ,(purecopy "Show Profiling Results") elp-results
+		  :help ,(purecopy "Display current profiling results")))
     (define-key prof-map [prof-pack]
-      '(menu-item "Instrument Package..." elp-instrument-package
-		  :help "Instrument for profiling all function that start with a prefix"))
+      `(menu-item ,(purecopy "Instrument Package...") elp-instrument-package
+		  :help ,(purecopy "Instrument for profiling all function that start with a prefix")))
     (define-key prof-map [prof-func]
-      '(menu-item "Instrument Function..." elp-instrument-function
-		  :help "Instrument a function for profiling"))
+      `(menu-item ,(purecopy "Instrument Function...") elp-instrument-function
+		  :help ,(purecopy "Instrument a function for profiling")))
     (define-key menu-map [lint] (cons "Linting" lint-map))
     (define-key lint-map [lint-di]
-      '(menu-item "Lint Directory..." elint-directory
-		  :help "Lint a directory"))
+      `(menu-item ,(purecopy "Lint Directory...") elint-directory
+		  :help ,(purecopy "Lint a directory")))
     (define-key lint-map [lint-f]
-      '(menu-item "Lint File..." elint-file
-		  :help "Lint a file"))
+      `(menu-item ,(purecopy "Lint File...") elint-file
+		  :help ,(purecopy "Lint a file")))
     (define-key lint-map [lint-b]
-      '(menu-item "Lint Buffer" elint-current-buffer
-		  :help "Lint the current buffer"))
+      `(menu-item ,(purecopy "Lint Buffer") elint-current-buffer
+		  :help ,(purecopy "Lint the current buffer")))
     (define-key lint-map [lint-d]
-      '(menu-item "Lint Defun" elint-defun
-		  :help "Lint the function at point"))
+      `(menu-item ,(purecopy "Lint Defun") elint-defun
+		  :help ,(purecopy "Lint the function at point")))
     (define-key menu-map [edebug-defun]
-      '(menu-item "Instrument Function for Debugging" edebug-defun
-		  :help "Evaluate the top level form point is in, stepping through with Edebug"
+      `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
+		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
 		  :keys "C-u C-M-x"))
     (define-key menu-map [separator-byte] '("--"))
     (define-key menu-map [disas]
-      '(menu-item "Disassemble byte compiled object..." disassemble
-		  :help "Print disassembled code for OBJECT in a buffer"))
+      `(menu-item ,(purecopy "Disassemble byte compiled object...") disassemble
+		  :help ,(purecopy "Print disassembled code for OBJECT in a buffer")))
     (define-key menu-map [byte-recompile]
-      '(menu-item "Byte-recompile Directory..." byte-recompile-directory
-		  :help "Recompile every `.el' file in DIRECTORY that needs recompilation"))
+      `(menu-item ,(purecopy "Byte-recompile Directory...") byte-recompile-directory
+		  :help ,(purecopy "Recompile every `.el' file in DIRECTORY that needs recompilation")))
     (define-key menu-map [emacs-byte-compile-and-load]
-      '(menu-item "Byte-compile And Load" emacs-lisp-byte-compile-and-load
-		  :help "Byte-compile the current file (if it has changed), then load compiled code"))
+      `(menu-item ,(purecopy "Byte-compile And Load") emacs-lisp-byte-compile-and-load
+		  :help ,(purecopy "Byte-compile the current file (if it has changed), then load compiled code")))
     (define-key menu-map [byte-compile]
-      '(menu-item "Byte-compile This File" emacs-lisp-byte-compile
-		  :help "Byte compile the file containing the current buffer"))
+      `(menu-item ,(purecopy "Byte-compile This File") emacs-lisp-byte-compile
+		  :help ,(purecopy "Byte compile the file containing the current buffer")))
     (define-key menu-map [separator-eval] '("--"))
     (define-key menu-map [ielm]
-      '(menu-item "Interactive Expression Evaluation" ielm
-		  :help "Interactively evaluate Emacs Lisp expressions"))
+      `(menu-item ,(purecopy "Interactive Expression Evaluation") ielm
+		  :help ,(purecopy "Interactively evaluate Emacs Lisp expressions")))
     (define-key menu-map [eval-buffer]
-      '(menu-item "Evaluate Buffer" eval-buffer
-		  :help "Execute the current buffer as Lisp code"))
+      `(menu-item ,(purecopy "Evaluate Buffer") eval-buffer
+		  :help ,(purecopy "Execute the current buffer as Lisp code")))
     (define-key menu-map [eval-region]
-      '(menu-item "Evaluate Region" eval-region
-		  :help "Execute the region as Lisp code"
+      `(menu-item ,(purecopy "Evaluate Region") eval-region
+		  :help ,(purecopy "Execute the region as Lisp code")
 		  :enable mark-active))
     (define-key menu-map [eval-sexp]
-      '(menu-item "Evaluate Last S-expression" eval-last-sexp
-		  :help "Evaluate sexp before point; print value in minibuffer"))
+      `(menu-item ,(purecopy "Evaluate Last S-expression") eval-last-sexp
+		  :help ,(purecopy "Evaluate sexp before point; print value in minibuffer")))
     (define-key menu-map [separator-format] '("--"))
     (define-key menu-map [comment-region]
-      '(menu-item "Comment Out Region" comment-region
-		  :help "Comment or uncomment each line in the region"
+      `(menu-item ,(purecopy "Comment Out Region") comment-region
+		  :help ,(purecopy "Comment or uncomment each line in the region")
 		  :enable mark-active))
     (define-key menu-map [indent-region]
-      '(menu-item "Indent Region" indent-region
-		  :help "Indent each nonblank line in the region"
+      `(menu-item ,(purecopy "Indent Region") indent-region
+		  :help ,(purecopy "Indent each nonblank line in the region")
 		  :enable mark-active))
     (define-key menu-map [indent-line] '("Indent Line" . lisp-indent-line))
     map)
@@ -458,14 +458,14 @@ if that value is non-nil."
     (define-key map "\C-c\C-z" 'run-lisp)
     (define-key map [menu-bar lisp] (cons "Lisp" menu-map))
     (define-key menu-map [run-lisp]
-      '(menu-item "Run inferior Lisp" run-lisp
-		  :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"))
+      `(menu-item ,(purecopy "Run inferior Lisp") run-lisp
+		  :help ,(purecopy "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'")))
     (define-key menu-map [ev-def]
-      '(menu-item "Eval defun" lisp-eval-defun
-		  :help "Send the current defun to the Lisp process made by M-x run-lisp"))
+      `(menu-item ,(purecopy "Eval defun") lisp-eval-defun
+		  :help ,(purecopy "Send the current defun to the Lisp process made by M-x run-lisp")))
     (define-key menu-map [ind-sexp]
-      '(menu-item "Indent sexp" indent-sexp
-		  :help "Indent each line of the list starting just after point"))
+      `(menu-item ,(purecopy "Indent sexp") indent-sexp
+		  :help ,(purecopy "Indent each line of the list starting just after point")))
     map)
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
@@ -522,21 +522,21 @@ if that value is non-nil."
     (define-key map "\n" 'eval-print-last-sexp)
     (define-key map [menu-bar lisp-interaction] (cons "Lisp-Interaction" menu-map))
     (define-key menu-map [eval-defun]
-      '(menu-item "Evaluate Defun" eval-defun
-		  :help "Evaluate the top-level form containing point, or after point"))
+      `(menu-item ,(purecopy "Evaluate Defun") eval-defun
+		  :help ,(purecopy "Evaluate the top-level form containing point, or after point")))
     (define-key menu-map [eval-print-last-sexp]
-      '(menu-item "Evaluate and print" eval-print-last-sexp
-		  :help "Evaluate sexp before point; print value into current buffer"))
+      `(menu-item ,(purecopy "Evaluate and print") eval-print-last-sexp
+		  :help ,(purecopy "Evaluate sexp before point; print value into current buffer")))
     (define-key menu-map [edebug-defun-lisp-interaction]
-      '(menu-item "Instrument Function for Debugging" edebug-defun
-		  :help "Evaluate the top level form point is in, stepping through with Edebug"
+      `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
+		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
 		  :keys "C-u C-M-x"))
     (define-key menu-map [indent-pp-sexp]
-      '(menu-item "Indent or Pretty-Print" indent-pp-sexp
-		  :help "Indent each line of the list starting just after point, or prettyprint it"))
+      `(menu-item ,(purecopy "Indent or Pretty-Print") indent-pp-sexp
+		  :help ,(purecopy "Indent each line of the list starting just after point, or prettyprint it")))
     (define-key menu-map [lisp-complete-symbol]
-      '(menu-item "Complete Lisp Symbol" lisp-complete-symbol
-		  :help "Perform completion on Lisp symbol preceding point"))
+      `(menu-item ,(purecopy "Complete Lisp Symbol") lisp-complete-symbol
+		  :help ,(purecopy "Perform completion on Lisp symbol preceding point")))
     map)
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")

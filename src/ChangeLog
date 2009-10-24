@@ -1,3 +1,11 @@
+2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keymap.c (Fmake_sparse_keymap): Purecopy the name.
+
+	* eval.c (Fautoload): Purecopy the filename.  Simplify.
+
+	* category.c (Fdefine_category): Purecopy docstring.
+
 2009-10-23  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.h (FIXNUM_OVERFLOW_P): Remove cast to avoid overflow.

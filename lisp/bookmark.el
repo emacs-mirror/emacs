@@ -2101,16 +2101,36 @@ strings returned are not."
 ;;;###autoload
 (defvar menu-bar-bookmark-map
   (let ((map (make-sparse-keymap "Bookmark functions")))
-    (define-key map [load]	'("Load a Bookmark File..." . bookmark-load))
-    (define-key map [write]	'("Save Bookmarks As..." . bookmark-write))
-    (define-key map [save]	'("Save Bookmarks" . bookmark-save))
-    (define-key map [edit]	'("Edit Bookmark List" . bookmark-bmenu-list))
-    (define-key map [delete]	'("Delete Bookmark..." . bookmark-delete))
-    (define-key map [rename]	'("Rename Bookmark..." . bookmark-rename))
-    (define-key map [locate]	'("Insert Location..." . bookmark-locate))
-    (define-key map [insert]	'("Insert Contents..." . bookmark-insert))
-    (define-key map [set]	'("Set Bookmark..." . bookmark-set))
-    (define-key map [jump]	'("Jump to Bookmark..." . bookmark-jump))
+    (define-key map [load]
+      `(menu-item ,(purecopy "Load a Bookmark File...") bookmark-load
+		  :help ,(purecopy "Load bookmarks from a bookmark file)")))
+    (define-key map [write]
+      `(menu-item ,(purecopy "Save Bookmarks As...") bookmark-write
+		  :help ,(purecopy "Write bookmarks to a file (reading the file name with the minibuffer)")))
+    (define-key map [save]
+      `(menu-item ,(purecopy "Save Bookmarks") bookmark-save
+		  :help ,(purecopy "Save currently defined bookmarks")))
+    (define-key map [edit]
+      `(menu-item ,(purecopy "Edit Bookmark List") bookmark-bmenu-list
+		  :help ,(purecopy "Display a list of existing bookmarks")))
+    (define-key map [delete]
+      `(menu-item ,(purecopy "Delete Bookmark...") bookmark-delete
+		  :help ,(purecopy "Delete a bookmark from the bookmark list")))
+    (define-key map [rename]
+      `(menu-item ,(purecopy "Rename Bookmark...") bookmark-rename
+		  :help ,(purecopy "Change the name of a bookmark")))
+    (define-key map [locate]
+      `(menu-item ,(purecopy "Insert Location...") bookmark-locate
+		  :help ,(purecopy "Insert the name of the file associated with a bookmark")))
+    (define-key map [insert]
+      `(menu-item ,(purecopy "Insert Contents...") bookmark-insert
+		  :help ,(purecopy "Insert the text of the file pointed to by a bookmark")))
+    (define-key map [set]
+      `(menu-item ,(purecopy "Set Bookmark...") bookmark-set
+		  :help ,(purecopy "Set a bookmark named inside a file.")))
+    (define-key map [jump]
+      `(menu-item ,(purecopy "Jump to Bookmark...") bookmark-jump
+		  :help ,(purecopy "Jump to a bookmark (a point in some file)")))
     map))
 
 ;;;###autoload

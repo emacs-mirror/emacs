@@ -1,3 +1,18 @@
+2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* international/mule-cmds.el (set-language-info-alist): Purecopy lang-env.
+	(leim-list-header, leim-list-entry-regexp): Change defvars to defconst.
+	(charset): Purecopy the name.
+	(define-char-code-property): Purecopy string arguments.
+
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Purecopy string arguments.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map):
+	* ediff-hook.el (menu-bar-ediff-menu):
+	* buff-menu.el (Buffer-menu-mode-map): Purecopy names and tooltips.
+	* bookmark.el (menu-bar-bookmark-map): Add :help and purecopy the name.
+
 2009-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-dynamic-list-completions):
