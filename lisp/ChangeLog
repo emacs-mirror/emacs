@@ -1,5 +1,8 @@
 2009-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/octave-mod.el (octave-complete-symbol): Use
+	choose-completion if mouse-choose-completion is ever removed.
+
 	* textmodes/sgml-mode.el (sgml-looking-back-at): Move definition before
 	use.
 

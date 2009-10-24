@@ -1268,7 +1268,9 @@ variables."
 			      (get-buffer "*Completions*"))
 			  (eq (key-binding key) 'mouse-choose-completion)))
 		   (progn
-		     (mouse-choose-completion first)
+		     (if (fboundp 'mouse-choose-completion)
+			 (mouse-choose-completion first)
+		       (choose-completion first)) ; Emacs >= 23.2
 		     (set-window-configuration conf))
 		 (if (eq first ?\ )
 		     (set-window-configuration conf)
