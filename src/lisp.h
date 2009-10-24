@@ -486,11 +486,13 @@ extern size_t pure_size;
    I.e. (x & INTMASK) == XUINT (make_number (x)).  */
 #define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
 
-/* Value is non-zero if I doesn't fit into a Lisp fixnum.  */
+/* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
+   written this way so that it also works if I is of unsigned
+   type.  */
 
 #define FIXNUM_OVERFLOW_P(i) \
   ((i) > MOST_POSITIVE_FIXNUM \
-   || (i) < MOST_NEGATIVE_FIXNUM)
+   || ((i) < 0 && (i) < MOST_NEGATIVE_FIXNUM))
 
 /* Extract a value or address from a Lisp_Object.  */
 
