@@ -1022,7 +1022,6 @@ Any other value is treated as nil."
 If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1047,7 +1046,6 @@ See also `whitespace-style', `whitespace-newline' and
 If ARG is null, toggle NEWLINE visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 Use `whitespace-newline-mode' only for NEWLINE visualization
 exclusively.  For other visualizations, including NEWLINE
@@ -1076,7 +1074,6 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1133,7 +1130,6 @@ See also `whitespace-style', `whitespace-newline' and
 If ARG is null, toggle NEWLINE visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 Use `global-whitespace-newline-mode' only for NEWLINE
 visualization exclusively.  For other visualizations, including
@@ -1299,8 +1295,6 @@ The valid symbols are:
 
    whitespace-style	restore `whitespace-style' value
 
-Only useful with a windowing system.
-
 See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char t))
   (let ((whitespace-style
@@ -1377,8 +1371,6 @@ The valid symbols are:
    newline-mark		toggle NEWLINE visualization
 
    whitespace-style	restore `whitespace-style' value
-
-Only useful with a windowing system.
 
 See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char nil))
