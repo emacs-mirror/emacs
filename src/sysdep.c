@@ -3303,7 +3303,7 @@ procfs_ttyname (int rdev)
 
 	      if (MINOR (rdev) >= minor_beg && MINOR (rdev) <= minor_end)
 		{
-		  sprintf (name + strlen (name), "%lu", MINOR (rdev));
+		  sprintf (name + strlen (name), "%u", MINOR (rdev));
 		  break;
 		}
 	    }
@@ -3374,7 +3374,7 @@ system_process_attributes (Lisp_Object pid)
 
   CHECK_NUMBER_OR_FLOAT (pid);
   proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
-  sprintf (procfn, "/proc/%lu", proc_id);
+  sprintf (procfn, "/proc/%u", proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
 

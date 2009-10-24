@@ -1,3 +1,9 @@
+2009-10-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sysdep.c (procfs_ttyname): Fix sprintf format to match argument
+	type.
+	(system_process_attributes): Likewise.
+
 2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* keymap.c (Fmake_sparse_keymap): Purecopy the name.
