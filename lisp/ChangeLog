@@ -1,5 +1,8 @@
 2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* nxml/nxml-mode.el (nxml-balanced-close-start-tag): Use the value
+	of xmltok-start before the end tag was inserted (Bug#2840).
+
 	* progmodes/sh-script.el (sh-font-lock-paren): Handle case
 	patterns that are preceded by an open-paren (Bug#1320).
 
