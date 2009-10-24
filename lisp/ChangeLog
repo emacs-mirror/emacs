@@ -1,5 +1,6 @@
 2009-10-24  Glenn Morris  <rgm@gnu.org>
 
+	* comint.el (comint-dynamic-list-completions):
 	* term.el (term-dynamic-list-completions): Use choose-completion rather
 	than obsolete alias mouse-choose-completion.
 

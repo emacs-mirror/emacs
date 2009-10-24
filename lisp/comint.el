@@ -3030,7 +3030,7 @@ Typing SPC flushes the help buffer."
 	  ;; If the user does mouse-choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
 	  (progn
-	    (mouse-choose-completion first)
+	    (choose-completion first)
 	    (set-window-configuration comint-dynamic-list-completions-config))
 	(if (eq first ?\s)
 	    (set-window-configuration comint-dynamic-list-completions-config)
