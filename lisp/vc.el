@@ -794,7 +794,7 @@ been updated to their corresponding values."
 
 ;;; Code for deducing what fileset and backend to assume
 
-(defun vc-get-backend-for-registration (file)
+(defun vc-backend-for-registration (file)
   "Return a backend that can be used for registering FILE.
 
 If no backend declares itself responsible for FILE, then FILE
@@ -913,12 +913,12 @@ current buffer."
        (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (if state-model-only-files
-	  (list (vc-get-backend-for-registration (buffer-file-name))
+	  (list (vc-backend-for-registration (buffer-file-name))
 		(list buffer-file-name)
 		(list buffer-file-name)
 		(when state-model-only-files 'unregistered)
 		nil)
-	(list (vc-get-backend-for-registration (buffer-file-name))
+	(list (vc-backend-for-registration (buffer-file-name))
 	      (list buffer-file-name))))
      (t (error "No fileset is available here")))))
 

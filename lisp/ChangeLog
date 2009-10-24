@@ -1,5 +1,8 @@
 2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-backend-for-registration): Rename from
+	vc-get-backend-for-registration.  Update callers.
+
 	* international/mule-cmds.el (set-language-info-alist): Purecopy lang-env.
 	(leim-list-header, leim-list-entry-regexp): Change defvars to defconst.
 	(charset): Purecopy the name.
