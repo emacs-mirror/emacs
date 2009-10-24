@@ -1,5 +1,8 @@
 2009-10-24  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* dbusbind.c (xd_retrieve_arg): Handle DBUS_TYPE_INTnn and
+	DBUS_TYPE_UINTnn separately to get proper sign extension.
+
 	* dired.c (Ffile_attributes): Simplify now that FIXNUM_OVERFLOW_P
 	can properly handle unsigned types.
 	(make_uid, make_gid): Removed.
