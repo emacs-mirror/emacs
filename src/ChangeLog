@@ -1,3 +1,8 @@
+2009-10-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char_x_menu_prompt): Don't demand a prompt
+	string in menu maps (Bug#4471).
+
 2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsfns.m (ns_set_name, ns_set_name_as_filename): Don't call

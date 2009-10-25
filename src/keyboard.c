@@ -8561,7 +8561,6 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
      int *used_mouse_menu;
 {
   int mapno;
-  register Lisp_Object name = Qnil;
 
   if (used_mouse_menu)
     *used_mouse_menu = 0;
@@ -8577,18 +8576,6 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       maps += (nmaps - 1);
       nmaps = 1;
     }
-
-  /* Get the menu name from the first map that has one (a prompt string).  */
-  for (mapno = 0; mapno < nmaps; mapno++)
-    {
-      name = Fkeymap_prompt (maps[mapno]);
-      if (!NILP (name))
-	break;
-    }
-
-  /* If we don't have any menus, just read a character normally.  */
-  if (!STRINGP (name))
-    return Qnil;
 
 #ifdef HAVE_MENUS
   /* If we got to this point via a mouse click,
