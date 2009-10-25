@@ -1752,17 +1752,17 @@ If there is no error, then the last value of FORMS is returned."
 ;;
 ;; NOTE: DELETE THIS SOMEDAY SOON
 
-(semantic-alias-obsolete 'semantic-flex-start 'semantic-lex-token-start)
-(semantic-alias-obsolete 'semantic-flex-end 'semantic-lex-token-end)
-(semantic-alias-obsolete 'semantic-flex-text 'semantic-lex-token-text)
-(semantic-alias-obsolete 'semantic-flex-make-keyword-table 'semantic-lex-make-keyword-table)
-(semantic-alias-obsolete 'semantic-flex-keyword-p 'semantic-lex-keyword-p)
-(semantic-alias-obsolete 'semantic-flex-keyword-put 'semantic-lex-keyword-put)
-(semantic-alias-obsolete 'semantic-flex-keyword-get 'semantic-lex-keyword-get)
-(semantic-alias-obsolete 'semantic-flex-map-keywords 'semantic-lex-map-keywords)
-(semantic-alias-obsolete 'semantic-flex-keywords 'semantic-lex-keywords)
-(semantic-alias-obsolete 'semantic-flex-buffer 'semantic-lex-buffer)
-(semantic-alias-obsolete 'semantic-flex-list   'semantic-lex-list)
+(semantic-alias-obsolete 'semantic-flex-start 'semantic-lex-token-start "23.2")
+(semantic-alias-obsolete 'semantic-flex-end 'semantic-lex-token-end "23.2")
+(semantic-alias-obsolete 'semantic-flex-text 'semantic-lex-token-text "23.2")
+(semantic-alias-obsolete 'semantic-flex-make-keyword-table 'semantic-lex-make-keyword-table "23.2")
+(semantic-alias-obsolete 'semantic-flex-keyword-p 'semantic-lex-keyword-p "23.2")
+(semantic-alias-obsolete 'semantic-flex-keyword-put 'semantic-lex-keyword-put "23.2")
+(semantic-alias-obsolete 'semantic-flex-keyword-get 'semantic-lex-keyword-get "23.2")
+(semantic-alias-obsolete 'semantic-flex-map-keywords 'semantic-lex-map-keywords "23.2")
+(semantic-alias-obsolete 'semantic-flex-keywords 'semantic-lex-keywords "23.2")
+(semantic-alias-obsolete 'semantic-flex-buffer 'semantic-lex-buffer "23.2")
+(semantic-alias-obsolete 'semantic-flex-list   'semantic-lex-list "23.2")
 
 ;; This simple scanner uses the syntax table to generate a stream of
 ;; simple tokens of the form:

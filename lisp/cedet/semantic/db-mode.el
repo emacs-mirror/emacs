@@ -71,7 +71,7 @@ database, which can be saved for future Emacs sessions."
 (defvaralias 'semanticdb-mode-hook 'global-semanticdb-minor-mode-hook)
 (defvaralias 'semanticdb-global-mode 'global-semanticdb-minor-mode)
 (semantic-varalias-obsolete 'semanticdb-mode-hooks
-			    'global-semanticdb-minor-mode-hook)
+			    'global-semanticdb-minor-mode-hook "23.2")
 
 
 (defun semanticdb-toggle-global-mode ()

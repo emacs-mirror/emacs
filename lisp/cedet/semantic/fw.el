@@ -148,7 +148,7 @@ Remove self from `post-command-hook' if it is empty."
 	(intern (substring sym-name (match-end 0)))
       name)))
 
-(defun semantic-alias-obsolete (oldfnalias newfn &optional when)
+(defun semantic-alias-obsolete (oldfnalias newfn when)
   "Make OLDFNALIAS an alias for NEWFN.
 Mark OLDFNALIAS as obsolete, such that the byte compiler
 will throw a warning when it encounters this symbol."
@@ -169,7 +169,7 @@ will throw a warning when it encounters this symbol."
      (semantic-overload-symbol-from-function oldfnalias))
     ))
 
-(defun semantic-varalias-obsolete (oldvaralias newvar &optional when)
+(defun semantic-varalias-obsolete (oldvaralias newvar when)
   "Make OLDVARALIAS an alias for variable NEWVAR.
 Mark OLDVARALIAS as obsolete, such that the byte compiler
 will throw a warning when it encounters this symbol."
@@ -219,7 +219,7 @@ FUNCTION does not have arguments.  When FUNCTION is entered
 (defalias 'semantic-map-mode-buffers 'mode-local-map-mode-buffers)
 
 (semantic-alias-obsolete 'define-mode-overload-implementation
-                         'define-mode-local-override)
+                         'define-mode-local-override "23.2")
 
 (defun semantic-install-function-overrides (overrides &optional transient mode)
   "Install the function OVERRIDES in the specified environment.

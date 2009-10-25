@@ -493,9 +493,9 @@ If any hook function throws an error, this variable is reset to nil.
 This hook is not protected from lexical errors.")
 
 (semantic-varalias-obsolete 'semantic-before-idle-scheduler-reparse-hooks
-			    'semantic-before-idle-scheduler-reparse-hook)
+			    'semantic-before-idle-scheduler-reparse-hook "23.2")
 (semantic-varalias-obsolete 'semantic-after-idle-scheduler-reparse-hooks
-			    'semantic-after-idle-scheduler-reparse-hook)
+			    'semantic-after-idle-scheduler-reparse-hook "23.2")
 
 (defun semantic-idle-scheduler-refresh-tags ()
   "Refreshes the current buffer's tags.

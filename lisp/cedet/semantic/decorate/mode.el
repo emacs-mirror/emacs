@@ -197,7 +197,7 @@ Also make sure old decorations in the area are completely flushed."
   "Normal hook run to perform pending decoration changes.")
 
 (semantic-varalias-obsolete 'semantic-decorate-pending-decoration-hooks
-			    'semantic-decorate-pending-decoration-hook)
+			    'semantic-decorate-pending-decoration-hook "23.2")
 
 (defun semantic-decorate-add-pending-decoration (fcn &optional buffer)
   "Add a pending decoration change represented by FCN.

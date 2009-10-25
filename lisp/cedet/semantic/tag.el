@@ -1350,10 +1350,10 @@ use `semantic-tag-type-superclass' \
 and `semantic-tag-type-interfaces' instead" "23.2")
 
 (semantic-alias-obsolete 'semantic-tag-make-assoc-list
-                         'semantic-tag-make-plist)
+                         'semantic-tag-make-plist "23.2")
 
 (semantic-varalias-obsolete 'semantic-expand-nonterminal
-                            'semantic-tag-expand-function)
+                            'semantic-tag-expand-function "23.2")
 
 (provide 'semantic/tag)
 

@@ -232,7 +232,7 @@ Optional argument COLOR indicates that color should be mixed in."
              tag parent color)))
 
 (semantic-alias-obsolete 'semantic-java-prototype-nonterminal
-                         'semantic-format-tag-prototype-java-mode)
+                         'semantic-format-tag-prototype-java-mode "23.2")
 
 ;; Include Tag Name
 ;;

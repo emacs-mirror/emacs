@@ -77,7 +77,7 @@ This variable is for internal use only, and its content depends on the
 external parser used.")
 (make-variable-buffer-local 'semantic--parse-table)
 (semantic-varalias-obsolete 'semantic-toplevel-bovine-table
-			    'semantic--parse-table)
+			    'semantic--parse-table "23.2")
 
 (defvar semantic-symbol->name-assoc-list
   '((type     . "Types")
@@ -129,7 +129,7 @@ cached values for some reason, chances are you can, add a hook to
 `semantic-after-toplevel-cache-change-hook'.")
 (make-variable-buffer-local 'semantic--buffer-cache)
 (semantic-varalias-obsolete 'semantic-toplevel-bovine-cache
-			    'semantic--buffer-cache)
+			    'semantic--buffer-cache "23.2")
 
 (defvar semantic-unmatched-syntax-cache nil
   "A cached copy of unmatched syntax tokens.")
@@ -166,7 +166,7 @@ It is called before any request for tags is made via the function
 If any hook returns a nil value, the cached value is returned
 immediately, even if it is empty.")
 (semantic-varalias-obsolete 'semantic-before-toplevel-bovination-hook
-			    'semantic--before-fetch-tags-hook)
+			    'semantic--before-fetch-tags-hook "23.2")
 
 (defvar semantic-after-toplevel-bovinate-hook nil
   "Hooks run after a toplevel parse.
@@ -298,11 +298,11 @@ This guarantees that the DB will go before other modes that require
 a parse of the buffer.")
 
 (semantic-varalias-obsolete 'semantic-init-hooks
-			    'semantic-init-hook)
+			    'semantic-init-hook "23.2")
 (semantic-varalias-obsolete 'semantic-init-mode-hooks
-			    'semantic-init-mode-hook)
+			    'semantic-init-mode-hook "23.2")
 (semantic-varalias-obsolete 'semantic-init-db-hooks
-			    'semantic-init-db-hook)
+			    'semantic-init-db-hook "23.2")
 
 (defvar semantic-new-buffer-fcn-was-run nil
   "Non nil after `semantic-new-buffer-fcn' has been executed.")
@@ -550,7 +550,7 @@ is requested."
 'percent means we are doing a linear parse through the buffer.
 'dynamic means we are reparsing specific tags.")
 (semantic-varalias-obsolete 'semantic-bovination-working-type
-			    'semantic-working-type)
+			    'semantic-working-type "23.2")
 
 (defvar semantic-minimum-working-buffer-size (* 1024 5)
   "*The minimum size of a buffer before working messages are displayed.

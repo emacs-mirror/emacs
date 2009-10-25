@@ -81,7 +81,7 @@ If FILE is not loaded, and semanticdb is not available, find the file
 	  (semantic-fetch-tags))))))
 
 (semantic-alias-obsolete 'semantic-file-token-stream
-			 'semantic-file-tag-table)
+			 'semantic-file-tag-table "23.2")
 
 (defun semantic-something-to-tag-table (something)
   "Convert SOMETHING into a semantic tag table.
@@ -134,7 +134,7 @@ buffer, or a filename.  If SOMETHING is nil return nil."
    (t nil)))
 
 (semantic-alias-obsolete 'semantic-something-to-stream
-			 'semantic-something-to-tag-table)
+			 'semantic-something-to-tag-table "23.2")
 
 ;;; Recursive searching through dependency trees
 ;;
