@@ -1,5 +1,12 @@
 2009-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcomplete.el (pcomplete-unquote-argument-function): New var.
+	(pcomplete-unquote-argument): New function.
+	(pcomplete--common-suffix): Always pay attention to case.
+	(pcomplete--table-subvert): Quote and unquote the text.
+	(pcomplete--common-quoted-suffix): New function.
+	(pcomplete-std-complete): Use it and pcomplete-begin.
+
 	* bookmark.el (bookmark-bmenu-list): Don't use switch-to-buffer if
 	we're inside a dedicated or minibuffer window.
 
