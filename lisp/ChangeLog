@@ -1,3 +1,8 @@
+2009-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-bmenu-list): Don't use switch-to-buffer if
+	we're inside a dedicated or minibuffer window.
+
 2009-10-24  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Update documentation, especially documentation
@@ -12,8 +17,8 @@
 
 	* whitespace.el (whitespace-mode, whitespace-newline-mode)
 	(global-whitespace-mode, global-whitespace-newline-mode)
-	(whitespace-toggle-options, global-whitespace-toggle-options): Doc
-	fix (Bug#3660).
+	(whitespace-toggle-options, global-whitespace-toggle-options):
+	Doc fix (Bug#3660).
 
 	* nxml/nxml-mode.el (nxml-balanced-close-start-tag): Use the value
 	of xmltok-start before the end tag was inserted (Bug#2840).
