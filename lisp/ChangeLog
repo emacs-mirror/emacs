@@ -1,3 +1,9 @@
+2009-10-24  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Update documentation, especially documentation
+	of `bookmark-alist' and of the bookmark file format.
+	Patch by Drew Adams, with minor tweaks from me.  (Bug#4195)
+
 2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/emacsbug.el (report-emacs-bug): Clarify that the
