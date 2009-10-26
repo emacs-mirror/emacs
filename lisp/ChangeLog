@@ -1,5 +1,9 @@
 2009-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcomplete.el (pcomplete-std-complete): Obey pcomplete-use-paring.
+	(pcomplete, pcomplete-parse-buffer-arguments, pcomplete-opt)
+	(pcomplete--here): Use push.
+
 	* subr.el (all-completions): Declare the 4th arg obsolete.
 
 2009-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>

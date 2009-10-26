@@ -135,6 +135,9 @@ For instance, this can complete M-x lch to list-command-history.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** pcomplete provides a new command `pcomplete-std-completion' which
+is similar to `pcomplete' but using the standard completion UI code.
+
 ** .calc.el and .abbrev_defs obey user-emacs-directory.
 
 ** Calc graphing commands (`g f' etc.) now work on MS-Windows,

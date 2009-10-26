@@ -448,7 +448,8 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
   "Provide standard completion using pcomplete's completion tables.
 Same as `pcomplete' but using the standard completion UI."
   (interactive)
-  ;; FIXME: it doesn't implement paring.
+  ;; FIXME: it only completes the text before point, whereas the
+  ;; standard UI may also consider text after point.
   (catch 'pcompleted
     (let* ((pcomplete-stub)
            pcomplete-seen pcomplete-norm-func
@@ -497,7 +498,20 @@ Same as `pcomplete' but using the standard completion UI."
                               action completions string pred)))
                     (if (stringp res)
                         (pcomplete-quote-argument res)
-                      res)))))))
+                      res))))))
+           (pred
+            ;; pare it down, if applicable
+            (when (and pcomplete-use-paring pcomplete-seen)
+              (setq pcomplete-seen
+                    (mapcar (lambda (f)
+                              (funcall pcomplete-norm-func
+                                       (directory-file-name f)))
+                            pcomplete-seen))
+              (lambda (f)
+                (not (member
+                      (funcall pcomplete-norm-func
+                               (directory-file-name f))
+                      pcomplete-seen))))))
 
       (let ((ol (make-overlay beg (point) nil nil t))
             (minibuffer-completion-table
@@ -510,7 +524,7 @@ Same as `pcomplete' but using the standard completion UI."
                                 (cons pcomplete-termination-string
                                       "\\`a\\`")
                                 table)))
-            (minibuffer-completion-predicate nil))
+            (minibuffer-completion-predicate pred))
         (overlay-put ol 'field 'pcomplete)
         (unwind-protect
             (call-interactively 'minibuffer-complete)
@@ -534,9 +548,8 @@ completion functions list (it should occur fairly early in the list)."
 	(delete-backward-char pcomplete-last-completion-length)
 	(if (eq this-command 'pcomplete-reverse)
 	    (progn
-	      (setq pcomplete-current-completions
-		    (cons (car (last pcomplete-current-completions))
-			  pcomplete-current-completions))
+              (push (car (last pcomplete-current-completions))
+                    pcomplete-current-completions)
 	      (setcdr (last pcomplete-current-completions 2) nil))
 	  (nconc pcomplete-current-completions
 		 (list (car pcomplete-current-completions)))
@@ -744,12 +757,12 @@ user actually typed in."
       (goto-char begin)
       (while (< (point) end)
 	(skip-chars-forward " \t\n")
-	(setq begins (cons (point) begins))
+	(push (point) begins)
 	(skip-chars-forward "^ \t\n")
-	(setq args (cons (buffer-substring-no-properties
-			  (car begins) (point))
-			 args)))
-      (cons (reverse args) (reverse begins)))))
+	(push (buffer-substring-no-properties
+               (car begins) (point))
+              args))
+      (cons (nreverse args) (nreverse begins)))))
 
 ;;;###autoload
 (defun pcomplete-comint-setup (completef-sym)
@@ -974,7 +987,7 @@ behaves, for example."
 	      (let ((result (read-from-string options index)))
 		(setq index (cdr result)))
 	    (unless (memq char '(?/ ?* ?? ?.))
-	      (setq choices (cons (char-to-string char) choices)))
+	      (push (char-to-string char) choices))
 	    (setq index (1+ index))))
 	(throw 'pcomplete-completions
 	       (mapcar
@@ -1022,11 +1035,10 @@ See the documentation for `pcomplete-here'."
 	  (unless (eq paring t)
 	    (let ((arg (pcomplete-arg)))
 	      (when (stringp arg)
-		(setq pcomplete-seen
-		      (cons (if paring
-				(funcall paring arg)
-			      (file-truename arg))
-			    pcomplete-seen))))))
+                (push (if paring
+                          (funcall paring arg)
+                        (file-truename arg))
+                      pcomplete-seen)))))
 	(pcomplete-next-arg)
 	t)
     (when pcomplete-show-help
