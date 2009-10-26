@@ -1,3 +1,9 @@
+2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (grow_mini_window): Comment out "delta >= 0" assertion.
+	For delta < 0, skip check that only makes sense when the mini-window
+	is going to be enlarged.  (Bug#4534)
+
 2009-10-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_char_x_menu_prompt): Don't demand a prompt
@@ -20,8 +26,7 @@
 	* lisp.h (FIXNUM_OVERFLOW_P): Fix last change to handle unsigned
 	types again.
 
-	* sysdep.c (procfs_ttyname): Fix sprintf format to match argument
-	type.
+	* sysdep.c (procfs_ttyname): Fix sprintf format to match argument type.
 	(system_process_attributes): Likewise.
 
 2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>

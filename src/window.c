@@ -4648,12 +4648,15 @@ grow_mini_window (w, delta)
   struct window *root;
 
   xassert (MINI_WINDOW_P (w));
-  xassert (delta >= 0);
+  /* Commenting out the following assertion goes against the stated interface
+     of the function, but it currently does not seem to do anything useful.
+     See discussion of this issue in the thread for bug#4534.
+     xassert (delta >= 0); */
 
   /* Compute how much we can enlarge the mini-window without deleting
      other windows.  */
   root = XWINDOW (FRAME_ROOT_WINDOW (f));
-  if (delta)
+  if (delta > 0)
     {
       int min_height = window_min_size (root, 0, 0, 0, 0);
       if (XFASTINT (root->total_lines) - delta < min_height)
