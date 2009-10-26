@@ -1,3 +1,7 @@
+2009-10-26  Andreas Schwab  <schwab@redhat.com>
+
+	* puresize.h (PURESIZE_RATIO): Increase back to 10/6.
+
 2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (grow_mini_window): Comment out "delta >= 0" assertion.
