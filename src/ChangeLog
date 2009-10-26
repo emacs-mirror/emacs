@@ -1,6 +1,6 @@
 2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
-	* minibuf.c (Fall_completions): Fix typo in docstring.
+	* minibuf.c (Fall_completions): Fix typos in docstring.
 
 2009-10-26  Andreas Schwab  <schwab@redhat.com>
 

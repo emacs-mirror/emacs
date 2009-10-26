@@ -1561,7 +1561,7 @@ predicate is called with two arguments: the key and the value.
 Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.
 
-An osbolete optional fourth argument HIDE-SPACES is still accepted for
+An obsolete optional fourth argument HIDE-SPACES is still accepted for
 backward compatibility.  If non-nil, strings in COLLECTION that start
 with a space are ignored unless STRING itself starts with a space.  */)
      (string, collection, predicate, hide_spaces)
