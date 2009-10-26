@@ -1038,6 +1038,8 @@ is converted into a string by expressing it in decimal."
 	       "explicitly check for a frame-parameter instead." "22.2")
 (make-obsolete 'interactive-p 'called-interactively-p "23.2")
 (set-advertised-calling-convention 'called-interactively-p '(kind))
+(set-advertised-calling-convention
+ 'all-completions '(string collection &optional predicate))
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -1885,11 +1887,13 @@ any other non-digit terminates the character code and is then used as input."))
 	     ;; Turn a meta-character into a character with the 0200 bit set.
 	     (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
 		   done t))
-	    ((and (<= ?0 translated) (< translated (+ ?0 (min 10 read-quoted-char-radix))))
+	    ((and (<= ?0 translated)
+                  (< translated (+ ?0 (min 10 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
 	    ((and (<= ?a (downcase translated))
-		  (< (downcase translated) (+ ?a -10 (min 36 read-quoted-char-radix))))
+		  (< (downcase translated)
+                     (+ ?a -10 (min 36 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix)
 			   (+ 10 (- (downcase translated) ?a))))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))

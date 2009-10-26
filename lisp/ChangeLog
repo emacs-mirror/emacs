@@ -1,3 +1,7 @@
+2009-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (all-completions): Declare the 4th arg obsolete.
+
 2009-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el (pcomplete-unquote-argument-function): New var.
@@ -9,6 +13,36 @@
 
 	* bookmark.el (bookmark-bmenu-list): Don't use switch-to-buffer if
 	we're inside a dedicated or minibuffer window.
+
+2009-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cedet/semantic/fw.el (semantic-alias-obsolete)
+	(semantic-varalias-obsolete): Make the `when' arg mandatory.
+	(define-mode-overload-implementation):
+	* cedet/semantic/decorate/mode.el (semantic-decorate-pending-decoration-hooks):
+	* cedet/semantic/wisent.el (wisent-lex-make-token-table):
+	* cedet/semantic/util.el (semantic-file-token-stream)
+	(semantic-something-to-stream):
+	* cedet/semantic/tag.el (semantic-tag-make-assoc-list)
+	(semantic-expand-nonterminal):
+	* cedet/semantic/tag-file.el (semantic-find-nonterminal)
+	(semantic-find-dependency, semantic-find-nonterminal)
+	(semantic-find-dependency):
+	* cedet/semantic/lex.el (semantic-flex-start, semantic-flex-end)
+	(semantic-flex-text, semantic-flex-make-keyword-table)
+	(semantic-flex-keyword-p, semantic-flex-keyword-put)
+	(semantic-flex-keyword-get, semantic-flex-map-keywords)
+	(semantic-flex-keywords, semantic-flex-buffer, semantic-flex-list):
+	* cedet/semantic/java.el (semantic-java-prototype-nonterminal):
+	* cedet/semantic/idle.el (semantic-before-idle-scheduler-reparse-hooks)
+	(semantic-after-idle-scheduler-reparse-hooks):
+	* cedet/semantic/edit.el (semantic-edits-incremental-reparse-failed-hooks):
+	* cedet/semantic/db-mode.el (semanticdb-mode-hooks):
+	* cedet/semantic.el (semantic-toplevel-bovine-table)
+	(semantic-toplevel-bovine-cache)
+	(semantic-before-toplevel-bovination-hook, semantic-init-hooks)
+	(semantic-init-mode-hooks, semantic-init-db-hooks)
+	(semantic-bovination-working-type): Provide the `when' arg.
 
 2009-10-24  Karl Fogel  <kfogel@red-bean.com>
 

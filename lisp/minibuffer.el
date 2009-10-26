@@ -40,9 +40,17 @@
 ;;   corresponding to the displayed completions because we only
 ;;   provide the start info but not the end info in
 ;;   completion-base-position.
+;; - quoting is problematic.  E.g. the double-dollar quoting used in
+;;   substitie-in-file-name (and hence read-file-name-internal) bumps
+;;   into various bugs:
 ;; - choose-completion doesn't know how to quote the text it inserts.
 ;;   E.g. it fails to double the dollars in file-name completion, or
 ;;   to backslash-escape spaces and other chars in comint completion.
+;;   - when completing ~/tmp/fo$$o, the highligting in *Completions*
+;;     is off by one position.
+;;   - all code like PCM which relies on all-completions to match
+;;     its argument gets confused because all-completions returns unquoted
+;;     texts (as desired for *Completions* output).
 ;; - C-x C-f ~/*/sr ? should not list "~/./src".
 ;; - minibuffer-force-complete completes ~/src/emacs/t<!>/lisp/minibuffer.el
 ;;   to ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
@@ -72,8 +80,6 @@
 ;; - add support for ** to pcm.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
 ;; - A feature like completing-help.el.
-;; - make lisp/complete.el obsolete.
-;; - Make the `hide-spaces' arg of all-completions obsolete?
 
 ;;; Code:
 
