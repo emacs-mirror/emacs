@@ -92,6 +92,7 @@
     ;; `access-file' performed by default handler
     (add-name-to-file . ignore)
     ;; `byte-compiler-base-file-name' performed by default handler
+    ;; `copy-directory' performed by default handler
     (copy-file . tramp-imap-handle-copy-file)
     (delete-directory . ignore) ;; tramp-imap-handle-delete-directory)
     (delete-file . tramp-imap-handle-delete-file)
@@ -100,7 +101,7 @@
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-imap-handle-directory-files-and-attributes)
-    ;; `dired-call-process' performed by default handler
+    (dired-call-process . ignore)
     ;; `dired-compress-file' performed by default handler
     ;; `dired-uncache' performed by default handler
     (expand-file-name . tramp-imap-handle-expand-file-name)
@@ -718,16 +719,14 @@ With NEEDED-SUBJECT, alters the imap-hash test accordingly."
 	 (ssl (string-equal method tramp-imaps-method))
 	 (port (or (tramp-file-name-port vec)
 		   (tramp-get-method-parameter method 'tramp-default-port)))
-	 (result (imap-hash-make server port mbox)))
+	 (result (imap-hash-make server port mbox user nil ssl)))
     ;; Return the IHT with a test override to look for the subject
-    ;; marker.  Set also user and ssl tags.
-    (setq result (plist-put result :user user)
-	  result (plist-put result :ssl ssl)
-	  result (plist-put
-		  result
-		  :test (format "^%s%s"
-				tramp-imap-subject-marker
-				(if needed-subject needed-subject ""))))))
+    ;; marker.
+    (plist-put
+     result
+     :test (format "^%s%s"
+		   tramp-imap-subject-marker
+		   (if needed-subject needed-subject "")))))
 
 ;;; TODO:
 
@@ -747,7 +746,22 @@ With NEEDED-SUBJECT, alters the imap-hash test accordingly."
 
 ;; * imaps works for local IMAP servers.  Accessing
 ;;   "/imaps:imap.gmail.com:/INBOX.test/" results in error
-;;   "error in process filter: Internal error, tag 5 status BAD code nil text UNSELECT not allowed now.
+;;   "error in process filter: Internal error, tag 5 status BAD code nil text UNSELECT not allowed now."
+
+;; * Improve `tramp-imap-handle-file-attributes'
+;;   - size
+;;   - modification time
+;;   - user
+;;   - Return info for directories.
+
+;; * Saving a file creates a second one, instead of overwriting.
+
+;; * Backup files: just *one* is kept.
+
+;; * Password requests shall have a descriptive prompt.
+
+;; * Exiting Emacs, there are running IMAP processes.  Make them quiet
+;;   by `set-process-query-on-exit-flag'.
 
 (provide 'tramp-imap)
 ;;; tramp-imap.el ends here
