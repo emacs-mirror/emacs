@@ -1,3 +1,8 @@
+2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (transpose-subr): Give clearer error when the mark
+	is not set.  (Bug#4807)
+
 2009-10-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-perl-file-truename): New defconst.  Perl

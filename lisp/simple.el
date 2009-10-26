@@ -4852,7 +4852,7 @@ With argument 0, interchanges line point is in with line mark is in."
      ((= arg 0)
       (save-excursion
 	(setq pos1 (funcall aux 1))
-	(goto-char (mark))
+	(goto-char (or (mark) (error "No mark set in this buffer")))
 	(setq pos2 (funcall aux 1))
 	(transpose-subr-1 pos1 pos2))
       (exchange-point-and-mark))
