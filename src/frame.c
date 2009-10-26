@@ -892,8 +892,8 @@ The selection of FRAME lasts until the next time the user does
 something to select a different frame, or until the next time
 this function is called.  If you are using a window system, the
 previously selected frame may be restored as the selected frame
-when returning to the command loop, because it still may have 
-the window system's input focus.  On a text-only terminal, the 
+when returning to the command loop, because it still may have
+the window system's input focus.  On a text-only terminal, the
 next redisplay will display FRAME.
 
 This function returns FRAME, or nil if FRAME has been deleted.  */)
@@ -3398,7 +3398,7 @@ x_set_font (f, arg, oldval)
     {
       font_object = arg;
       /* This is to store the XLFD font name in the frame parameter for
-	 backward compatiblity.  We should store the font-object
+	 backward compatibility.  We should store the font-object
 	 itself in the future.  */
       arg = AREF (font_object, FONT_NAME_INDEX);
       fontset = FRAME_FONTSET (f);
@@ -3419,7 +3419,7 @@ x_set_font (f, arg, oldval)
   if (! NILP (Fequal (font_object, oldval)))
     return;
 
-  
+
   x_new_font (f, font_object, fontset);
   store_frame_param (f, Qfont, arg);
   /* Recalculate toolbar height.  */

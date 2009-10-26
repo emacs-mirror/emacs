@@ -1562,7 +1562,7 @@ Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.
 
 An osbolete optional fourth argument HIDE-SPACES is still accepted for
-backward compatiblity.  If non-nil, strings in COLLECTION that start
+backward compatibility.  If non-nil, strings in COLLECTION that start
 with a space are ignored unless STRING itself starts with a space.  */)
      (string, collection, predicate, hide_spaces)
      Lisp_Object string, collection, predicate, hide_spaces;

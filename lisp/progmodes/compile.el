@@ -2339,7 +2339,7 @@ The file-structure looks like this:
   (goto-char limit)
   nil)
 
-;; Beware: this is not only compatiblity code.  New code stil uses it.  --Stef
+;; Beware: this is not only compatibility code.  New code stil uses it.  --Stef
 (defun compilation-forget-errors ()
   ;; In case we hit the same file/line specs, we want to recompute a new
   ;; marker for them, so flush our cache.

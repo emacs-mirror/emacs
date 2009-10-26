@@ -1,3 +1,7 @@
+2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Fall_completions): Fix typo in docstring.
+
 2009-10-26  Andreas Schwab  <schwab@redhat.com>
 
 	* puresize.h (PURESIZE_RATIO): Increase back to 10/6.

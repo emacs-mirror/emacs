@@ -858,7 +858,7 @@ For compatibility with Emacs 20/21, this accepts old-style symbols
 like `mime-charset' as well as the current style like `:mime-charset'."
   (or (plist-get (coding-system-plist coding-system) prop)
       (if (not (keywordp prop))
-	  ;; For backward compatiblity.
+	  ;; For backward compatibility.
 	  (if (eq prop 'ascii-incompatible)
 	      (not (plist-get (coding-system-plist coding-system)
 			      :ascii-compatible-p))
@@ -1023,7 +1023,7 @@ Value is a list of transformed arguments."
 					 eol-type)
   "Define a new coding system CODING-SYSTEM (symbol).
 This function is provided for backward compatibility."
-  ;; For compatiblity with XEmacs, we check the type of TYPE.  If it
+  ;; For compatibility with XEmacs, we check the type of TYPE.  If it
   ;; is a symbol, perhaps, this function is called with XEmacs-style
   ;; arguments.  Here, try to transform that kind of arguments to
   ;; Emacs style.
