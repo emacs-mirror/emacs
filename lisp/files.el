@@ -209,7 +209,7 @@ have fast storage with limited space, such as a RAM disk."
   :type '(choice (const nil) directory))
 
 ;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar null-device "/dev/null" "The system null device.")
+(defvar null-device (purecopy "/dev/null") "The system null device.")
 
 (declare-function msdos-long-file-names "msdos.c")
 (declare-function w32-long-file-name "w32proc.c")
@@ -222,15 +222,17 @@ have fast storage with limited space, such as a RAM disk."
 
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
+	 (purecopy
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
 		 "[+, ;=|<>\"?*]\\|\\[\\|\\]\\|"  ; invalid characters
 		 "[\000-\037]\\|"		  ; control characters
 		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
-		 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
+		 "\\(/[^/.]+\\.[^/.]*\\.\\)")))	  ; more than a single dot
 	((memq system-type '(ms-dos windows-nt cygwin))
+	 (purecopy
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
-		 "[|<>\"?*\000-\037]"))		  ; invalid characters
-	(t "[\000]"))
+		 "[|<>\"?*\000-\037]")))		  ; invalid characters
+	(t (purecopy "[\000]")))
   "Regexp recognizing file names which aren't allowed by the filesystem.")
 
 (defcustom file-precious-flag nil
@@ -766,7 +768,7 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 (make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
 (defvar locate-dominating-stop-dir-regexp
-  "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'"
+  (purecopy "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'")
   "Regexp of directory names which stop the search in `locate-dominating-file'.
 Any directory whose name matches this regexp will be treated like
 a kind of root directory by `locate-dominating-file' which will stop its search
@@ -2359,7 +2361,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
   ;; and pike-mode) are added through autoload directives in that
   ;; file.  That way is discouraged since it spreads out the
   ;; definition of the initial value.
-  (mapc
+  (mapcar
    (lambda (l)
      (cons (purecopy (car l)) (cdr l)))
    '(("perl" . perl-mode)
@@ -2404,7 +2406,7 @@ of a script, mode MODE is enabled.
 
 See also `auto-mode-alist'.")
 
-(defvar inhibit-first-line-modes-regexps '("\\.tar\\'" "\\.tgz\\'")
+(defvar inhibit-first-line-modes-regexps (mapcar 'purecopy '("\\.tar\\'" "\\.tgz\\'"))
   "List of regexps; if one matches a file name, don't look for `-*-'.")
 
 (defvar inhibit-first-line-modes-suffixes nil

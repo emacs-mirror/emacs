@@ -127,7 +127,8 @@ was first made obsolete, for example a date or a release number."
     (if (eq 'byte-compile-obsolete handler)
 	(setq handler (nth 1 (get obsolete-name 'byte-obsolete-info)))
       (put obsolete-name 'byte-compile 'byte-compile-obsolete))
-    (put obsolete-name 'byte-obsolete-info (list current-name handler (purecopy when))))
+    (put obsolete-name 'byte-obsolete-info
+	 (list (purecopy current-name) handler (purecopy when))))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.

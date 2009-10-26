@@ -52,19 +52,19 @@ The default value for this variable is `x-dnd-default-test-function'."
 
 
 (defcustom x-dnd-types-alist
-  '(
-    ("text/uri-list" . x-dnd-handle-uri-list)
-    ("text/x-moz-url" . x-dnd-handle-moz-url)
-    ("_NETSCAPE_URL" . x-dnd-handle-uri-list)
-    ("FILE_NAME" . x-dnd-handle-file-name)
-    ("UTF8_STRING" . x-dnd-insert-utf8-text)
-    ("text/plain;charset=UTF-8" . x-dnd-insert-utf8-text)
-    ("text/plain;charset=utf-8" . x-dnd-insert-utf8-text)
-    ("text/unicode" . x-dnd-insert-utf16-text)
-    ("text/plain" . dnd-insert-text)
-    ("COMPOUND_TEXT" . x-dnd-insert-ctext)
-    ("STRING" . dnd-insert-text)
-    ("TEXT"   . dnd-insert-text)
+  `(
+    (,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
+    (,(purecopy "text/x-moz-url") . x-dnd-handle-moz-url)
+    (,(purecopy "_NETSCAPE_URL") . x-dnd-handle-uri-list)
+    (,(purecopy "FILE_NAME") . x-dnd-handle-file-name)
+    (,(purecopy "UTF8_STRING") . x-dnd-insert-utf8-text)
+    (,(purecopy "text/plain;charset=UTF-8") . x-dnd-insert-utf8-text)
+    (,(purecopy "text/plain;charset=utf-8") . x-dnd-insert-utf8-text)
+    (,(purecopy "text/unicode") . x-dnd-insert-utf16-text)
+    (,(purecopy "text/plain") . dnd-insert-text)
+    (,(purecopy "COMPOUND_TEXT") . x-dnd-insert-ctext)
+    (,(purecopy "STRING") . dnd-insert-text)
+    (,(purecopy "TEXT")   . dnd-insert-text)
     )
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
@@ -372,7 +372,7 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  XDND protocol.
 
-(defvar x-dnd-xdnd-to-action
+(defconst x-dnd-xdnd-to-action
   '(("XdndActionPrivate" . private)
     ("XdndActionCopy" . copy)
     ("XdndActionMove" . move)

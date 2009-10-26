@@ -195,16 +195,16 @@ See Info node `(elisp)Derived Modes' for more details."
     `(progn
        (unless (get ',hook 'variable-documentation)
 	 (put ',hook 'variable-documentation
-	      ,(format "Hook run when entering %s mode.
+	      (purecopy ,(format "Hook run when entering %s mode.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-		       name)))
+		       name))))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
        (defvar ,map (make-sparse-keymap))
        (unless (get ',map 'variable-documentation)
 	 (put ',map 'variable-documentation
-	      ,(format "Keymap for `%s'." child)))
+	      (purecopy ,(format "Keymap for `%s'." child))))
        ,(if declare-syntax
 	    `(progn
 	       (unless (boundp ',syntax)
@@ -212,7 +212,7 @@ No problems result if this variable is not bound.
 	       (defvar ,syntax (make-syntax-table))
 	       (unless (get ',syntax 'variable-documentation)
 		 (put ',syntax 'variable-documentation
-		      ,(format "Syntax table for `%s'." child)))))
+		      (purecopy ,(format "Syntax table for `%s'." child))))))
        ,(if declare-abbrev
 	    `(progn
 	       (put ',abbrev 'definition-name ',child)
@@ -220,7 +220,7 @@ No problems result if this variable is not bound.
 		 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
 	       (unless (get ',abbrev 'variable-documentation)
 		 (put ',abbrev 'variable-documentation
-		      ,(format "Abbrev table for `%s'." child)))))
+		      (purecopy ,(format "Abbrev table for `%s'." child))))))
        (put ',child 'derived-mode-parent ',parent)
        ,(if group `(put ',child 'custom-mode-group ,group))
 

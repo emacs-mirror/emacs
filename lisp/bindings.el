@@ -294,7 +294,7 @@ Menu of mode operations in the mode line.")
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line down-mouse-1]
-      '(menu-item "Menu Bar" ignore
+      `(menu-item ,(purecopy "Menu Bar") ignore
         :filter (lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
@@ -593,11 +593,14 @@ is okay.  See `mode-line-format'.")
 (setq completion-ignored-extensions
       (append
        (cond ((memq system-type '(ms-dos windows-nt))
+	      (mapcar 'purecopy
 	      '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
-		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
+		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386")))
 	     (t
+	      (mapcar 'purecopy
 	      '(".o" "~" ".bin" ".lbin" ".so"
-		".a" ".ln" ".blg" ".bbl")))
+		".a" ".ln" ".blg" ".bbl"))))
+       (mapcar 'purecopy
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
 	 ;; VCS metadata directories
@@ -624,7 +627,7 @@ is okay.  See `mode-line-format'.")
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs"
 	 ;; Python byte-compiled
-	 ".pyc" ".pyo")))
+	 ".pyc" ".pyo"))))
 
 ;; Suffixes used for executables.
 (setq exec-suffixes
@@ -637,24 +640,24 @@ is okay.  See `mode-line-format'.")
 ;; Packages should add to this list appropriately when they are
 ;; loaded, rather than listing everything here.
 (setq debug-ignored-errors
-      '(beginning-of-line beginning-of-buffer end-of-line
+      `(beginning-of-line beginning-of-buffer end-of-line
 	end-of-buffer end-of-file buffer-read-only
 	file-supersession
-      	"^Previous command was not a yank$"
-	"^Minibuffer window is not active$"
-	"^No previous history search regexp$"
-	"^No later matching history item$"
-	"^No earlier matching history item$"
-	"^End of history; no default available$"
-	"^End of defaults; no next item$"
-	"^Beginning of history; no preceding item$"
-	"^No recursive edit is in progress$"
-	"^Changes to be undone are outside visible portion of buffer$"
-	"^No undo information in this buffer$"
-	"^No further undo information"
-	"^Save not confirmed$"
-	"^Recover-file cancelled\\.$"
-	"^Cannot switch buffers in a dedicated window$"
+      	,(purecopy "^Previous command was not a yank$")
+	,(purecopy "^Minibuffer window is not active$")
+	,(purecopy "^No previous history search regexp$")
+	,(purecopy "^No later matching history item$")
+	,(purecopy "^No earlier matching history item$")
+	,(purecopy "^End of history; no default available$")
+	,(purecopy "^End of defaults; no next item$")
+	,(purecopy "^Beginning of history; no preceding item$")
+	,(purecopy "^No recursive edit is in progress$")
+	,(purecopy "^Changes to be undone are outside visible portion of buffer$")
+	,(purecopy "^No undo information in this buffer$")
+	,(purecopy "^No further undo information")
+	,(purecopy "^Save not confirmed$")
+	,(purecopy "^Recover-file cancelled\\.$")
+	,(purecopy "^Cannot switch buffers in a dedicated window$")
         ))
 
 

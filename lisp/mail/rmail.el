@@ -297,7 +297,7 @@ also the To field, unless this would leave an empty To field."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names "\\`info-"
+(defvar rmail-default-dont-reply-to-names (purecopy "\\`info-")
   "Regexp specifying part of the default value of `rmail-dont-reply-to-names'.
 This is used when the user does not set `rmail-dont-reply-to-names'
 explicitly.  (The other part of the default value is the user's
@@ -308,6 +308,7 @@ used for large mailing lists to broadcast announcements.")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
+  (purecopy
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
 	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
 	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
@@ -324,7 +325,7 @@ used for large mailing lists to broadcast announcements.")
 	  "\\|^mbox-line:\\|^cancel-lock:"
 	  "\\|^DomainKey-Signature:\\|^dkim-signature:"
 	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
-	  "\\|^x-.*:")
+	  "\\|^x-.*:"))
   "Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -360,14 +361,14 @@ If nil, display all header fields except those matched by
   :group 'rmail-headers)
 
 ;;;###autoload
-(defcustom rmail-retry-ignored-headers "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:"
+(defcustom rmail-retry-ignored-headers (purecopy "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:")
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
   :group 'rmail-headers
   :version "23.2")	   ; added x-detected-operating-system, x-spam
 
 ;;;###autoload
-(defcustom rmail-highlighted-headers "^From:\\|^Subject:"
+(defcustom rmail-highlighted-headers (purecopy "^From:\\|^Subject:")
   "Regexp to match Header fields that Rmail should normally highlight.
 A value of nil means don't highlight.  Uses the face `rmail-highlight'."
   :type 'regexp
@@ -418,12 +419,12 @@ the frame where you have the RMAIL buffer displayed."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defcustom rmail-secondary-file-directory "~/"
+(defcustom rmail-secondary-file-directory (purecopy "~/")
   "Directory for additional secondary Rmail files."
   :type 'directory
   :group 'rmail-files)
 ;;;###autoload
-(defcustom rmail-secondary-file-regexp "\\.xmail$"
+(defcustom rmail-secondary-file-regexp (purecopy "\\.xmail$")
   "Regexp for which files are secondary Rmail files."
   :type 'regexp
   :group 'rmail-files)

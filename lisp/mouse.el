@@ -1850,6 +1850,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
   :version "20.3")
 
 (defvar mouse-buffer-menu-mode-groups
+  (mapcar (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
   '(("Info\\|Help\\|Apropos\\|Man" . "Help")
     ("\\bVM\\b\\|\\bMH\\b\\|Message\\|Mail\\|Group\\|Score\\|Summary\\|Article"
      . "Mail/News")
@@ -1859,7 +1860,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("Outline" . "Text")
     ("\\(HT\\|SG\\|X\\|XHT\\)ML" . "SGML")
     ("log\\|diff\\|vc\\|cvs\\|Annotate" . "Version Control") ; "Change Management"?
-    ("Lisp" . "Lisp"))
+    ("Lisp" . "Lisp")))
   "How to group various major modes together in \\[mouse-buffer-menu].
 Each element has the form (REGEXP . GROUPNAME).
 If the major mode's name string matches REGEXP, use GROUPNAME instead.")
@@ -2353,10 +2354,14 @@ and selects that window."
 		  (cdr elt)))))
 
 (defvar x-fixed-font-alist
-  '("Font Menu"
-    ("Misc"
+  (list
+   (purecopy "Font Menu")
+   (cons
+    (purecopy "Misc")
+    (mapcar
+     (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
      ;; For these, we specify the pixel height and width.
-     ("fixed" "fixed")
+    '(("fixed" "fixed")
      ("6x10" "-misc-fixed-medium-r-normal--10-*-*-*-c-60-iso8859-1" "6x10")
      ("6x12"
       "-misc-fixed-medium-r-semicondensed--12-*-*-*-c-60-iso8859-1" "6x12")
@@ -2393,10 +2398,14 @@ and selects that window."
       "-b&h-lucidatypewriter-bold-r-normal-sans-*-240-*-*-*-*-iso8859-1")
      ;; ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
      ;; ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
-     )
-    ("Courier"
+     )))
+
+   (cons
+    (purecopy "Courier")
+    (mapcar
+     (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
      ;; For these, we specify the point height.
-     ("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
+     '(("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
      ("10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
      ("12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-iso8859-1")
      ("14" "-adobe-courier-medium-r-normal--*-140-*-*-m-*-iso8859-1")
@@ -2419,8 +2428,8 @@ and selects that window."
      ("12 bold slant" "-adobe-courier-bold-o-normal--*-120-*-*-m-*-iso8859-1")
      ("14 bold slant" "-adobe-courier-bold-o-normal--*-140-*-*-m-*-iso8859-1")
      ("18 bold slant" "-adobe-courier-bold-o-normal--*-180-*-*-m-*-iso8859-1")
-     ("24 bold slant" "-adobe-courier-bold-o-normal--*-240-*-*-m-*-iso8859-1"))
-    )
+     ("24 bold slant" "-adobe-courier-bold-o-normal--*-240-*-*-m-*-iso8859-1")
+    ))))
   "X fonts suitable for use in Emacs.")
 
 (declare-function generate-fontset-menu "fontset" ())

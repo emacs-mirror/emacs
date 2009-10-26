@@ -1240,7 +1240,7 @@ If this is nil, no message will be displayed."
 ;;; Fancy splash screen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar fancy-startup-text
+(defconst fancy-startup-text
   '((:face (variable-pitch (:foreground "red"))
      "Welcome to "
      :link ("GNU Emacs"
@@ -1296,7 +1296,7 @@ If this is nil, no message will be displayed."
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
-(defvar fancy-about-text
+(defconst fancy-about-text
   '((:face (variable-pitch (:foreground "red"))
      "This is "
      :link ("GNU Emacs"

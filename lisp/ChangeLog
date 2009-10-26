@@ -1,3 +1,44 @@
+2009-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/tex-mode.el (tex-dvi-view-command)
+	(tex-show-queue-command, tex-open-quote):
+	* progmodes/ruby-mode.el (auto-mode-alist)
+	(interpreter-mode-alist): Purecopy strings.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Purecopy item names.
+
+	* emacs-lisp/derived.el (define-derived-mode): Purecopy the doc
+	string for the hook, keymap and abbrev table.
+
+	* emacs-lisp/byte-run.el (make-obsolete): Purecopy the current name.
+
+	* x-dnd.el (x-dnd-xdnd-to-action):
+	* startup.el (fancy-startup-text, fancy-about-text): Change to
+	defconst from defvar.
+
+	* ps-print.el (ps-page-dimensions-database): Purecopy initial value.
+
+	* mouse.el (mouse-buffer-menu-mode-groups, x-fixed-font-alist):
+	Purecopy initialization strings.
+
+	* mail/sendmail.el (mail-header-separator)
+	(mail-personal-alias-file):
+	* mail/rmail.el (rmail-default-dont-reply-to-names)
+	(rmail-ignored-headers, rmail-retry-ignored-headers)
+	(rmail-highlighted-headers, rmail-secondary-file-directory)
+	(rmail-secondary-file-regexp):
+	* files.el (null-device, file-name-invalid-regexp)
+	(locate-dominating-stop-dir-regexp)
+	(inhibit-first-line-modes-regexps): Purecopy initialization
+	strings.
+	(interpreter-mode-alist): Use mapcar instead of mapc.
+
+	* buff-menu.el (Buffer-menu-mode-map): Purecopy name.
+
+	* bindings.el (mode-line-major-mode-keymap): Purecopy name.
+	(completion-ignored-extensions):
+	(debug-ignored-errors): Purecopy strings.
+
 2009-10-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el (pcomplete-std-complete): Obey pcomplete-use-paring.

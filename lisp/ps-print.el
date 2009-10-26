@@ -1832,6 +1832,7 @@ If it's nil, automatic feeding takes place."
 
 ;;;###autoload
 (defcustom ps-page-dimensions-database
+ (purecopy
   (list (list 'a4    (/ (* 72 21.0) 2.54)  (/ (* 72 29.7) 2.54) "A4")
 	(list 'a3    (/ (* 72 29.7) 2.54)  (/ (* 72 42.0) 2.54) "A3")
 	(list 'letter       (* 72  8.5)    (* 72 11.0)          "Letter")
@@ -1868,7 +1869,7 @@ If it's nil, automatic feeding takes place."
 	'(topcoatedpaper     396.0     136.0 "TopcoatedPaper150")
 	'(vhsface            205.0     127.0 "VHSFace")
 	'(vhsspine           400.0      50.0 "VHSSpine")
-	'(zipdisk            156.0     136.0 "ZipDisk"))
+	'(zipdisk            156.0     136.0 "ZipDisk")))
   "List associating a symbolic paper type to its width, height and doc media.
 See `ps-paper-type'."
   :type '(repeat (list :tag "Paper Type"

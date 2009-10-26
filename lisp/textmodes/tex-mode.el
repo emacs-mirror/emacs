@@ -199,10 +199,10 @@ use."
 
 ;;;###autoload
 (defcustom tex-dvi-view-command
-  '(cond
-    ((eq window-system 'x) "xdvi")
-    ((eq window-system 'w32) "yap")
-    (t "dvi2tty * | cat -s"))
+  `(cond
+    ((eq window-system 'x) ,(purecopy "xdvi"))
+    ((eq window-system 'w32) ,(purecopy "yap"))
+    (t ,(purecopy "dvi2tty * | cat -s")))
   "*Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
@@ -213,7 +213,7 @@ If the value is a form, it is evaluated to get the command to use."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-show-queue-command "lpq"
+(defcustom tex-show-queue-command (purecopy "lpq")
   "*Command used by \\[tex-show-print-queue] to show the print queue.
 Should show the queue(s) that \\[tex-print] puts jobs on."
   :type 'string
@@ -229,14 +229,14 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
   :group 'tex)
 
 ;;;###autoload
-(defcustom tex-open-quote "``"
+(defcustom tex-open-quote (purecopy "``")
   "*String inserted by typing \\[tex-insert-quote] to open a quotation."
   :type 'string
   :options '("``" "\"<" "\"`" "<<" "«")
   :group 'tex)
 
 ;;;###autoload
-(defcustom tex-close-quote "''"
+(defcustom tex-close-quote (purecopy "''")
   "*String inserted by typing \\[tex-insert-quote] to close a quotation."
   :type 'string
   :options '("''" "\">" "\"'" ">>" "»")

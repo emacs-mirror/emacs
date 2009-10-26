@@ -283,7 +283,7 @@ font-lock keywords will not be case sensitive."
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
-    (define-key map [menu-bar emacs-lisp] (cons "Emacs-Lisp" menu-map))
+    (define-key map [menu-bar emacs-lisp] (cons (purecopy "Emacs-Lisp") menu-map))
     (define-key menu-map [eldoc]
       `(menu-item ,(purecopy "Auto-Display Documentation Strings") eldoc-mode
 		  :button (:toggle . (bound-and-true-p eldoc-mode))
@@ -294,7 +294,7 @@ font-lock keywords will not be case sensitive."
     (define-key menu-map [re-builder]
       `(menu-item ,(purecopy "Construct Regexp") re-builder
 		  :help ,(purecopy "Construct a regexp interactively")))
-    (define-key menu-map [tracing] (cons "Tracing" tracing-map))
+    (define-key menu-map [tracing] (cons (purecopy "Tracing") tracing-map))
     (define-key tracing-map [tr-a]
       `(menu-item ,(purecopy "Untrace all") untrace-all
 		  :help ,(purecopy "Untrace all currently traced functions")))
@@ -308,7 +308,7 @@ font-lock keywords will not be case sensitive."
     (define-key tracing-map [tr-f]
       `(menu-item ,(purecopy "Trace function...") trace-function
 		  :help ,(purecopy "Trace the function given as an argument")))
-    (define-key menu-map [profiling] (cons "Profiling" prof-map))
+    (define-key menu-map [profiling] (cons (purecopy "Profiling") prof-map))
     (define-key prof-map [prof-restall]
       `(menu-item ,(purecopy "Remove Instrumentation for All Functions") elp-restore-all
 		  :help ,(purecopy "Restore the original definitions of all functions being profiled")))
@@ -332,7 +332,7 @@ font-lock keywords will not be case sensitive."
     (define-key prof-map [prof-func]
       `(menu-item ,(purecopy "Instrument Function...") elp-instrument-function
 		  :help ,(purecopy "Instrument a function for profiling")))
-    (define-key menu-map [lint] (cons "Linting" lint-map))
+    (define-key menu-map [lint] (cons (purecopy "Linting") lint-map))
     (define-key lint-map [lint-di]
       `(menu-item ,(purecopy "Lint Directory...") elint-directory
 		  :help ,(purecopy "Lint a directory")))
@@ -456,7 +456,7 @@ if that value is non-nil."
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
-    (define-key map [menu-bar lisp] (cons "Lisp" menu-map))
+    (define-key map [menu-bar lisp] (cons (purecopy "Lisp") menu-map))
     (define-key menu-map [run-lisp]
       `(menu-item ,(purecopy "Run inferior Lisp") run-lisp
 		  :help ,(purecopy "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'")))
@@ -520,7 +520,7 @@ if that value is non-nil."
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\n" 'eval-print-last-sexp)
-    (define-key map [menu-bar lisp-interaction] (cons "Lisp-Interaction" menu-map))
+    (define-key map [menu-bar lisp-interaction] (cons (purecopy "Lisp-Interaction") menu-map))
     (define-key menu-map [eval-defun]
       `(menu-item ,(purecopy "Evaluate Defun") eval-defun
 		  :help ,(purecopy "Evaluate the top-level form containing point, or after point")))
