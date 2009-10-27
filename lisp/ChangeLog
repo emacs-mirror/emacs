@@ -1,3 +1,16 @@
+2009-10-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-imap.el (top): Add `X-Size' to `imap-hash-headers'.
+	(tramp-imap-do-copy-or-rename-file): Don't use the inode, when
+	calling `tramp-imap-put-file'.  Add file size to the call.
+	(tramp-imap-get-file-entries): Compute also user name, file size,
+	and date.
+	(tramp-imap-handle-insert-directory): Insert uid and gid.
+	(tramp-imap-handle-file-attributes): Transform uid and gid
+	according to `id-format'.
+	(tramp-imap-put-file): New optional parameter SIZE.  Encode file
+	size in header X-Size.
+
 2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (transpose-subr): Give clearer error when the mark
