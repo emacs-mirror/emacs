@@ -22,6 +22,8 @@
 srcdir = .
 
 infodir = $(srcdir)/../../info
+# Directory with the (customized) texinfo.tex file.
+texinfodir = $(srcdir)/../misc
 
 INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi
 # The file name eintr must fit within 5 characters, to allow for
@@ -32,9 +34,10 @@ DVI_TARGETS = emacs-lisp-intro.dvi
 MAKEINFO = makeinfo
 INSTALL_INFO = install-info
 TEXI2DVI = texi2dvi
+TEXI2PDF = texi2pdf
 DVIPS = dvips
 ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
-	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
+	 "MAKEINFO=$(MAKEINFO) -I$(srcdir) -I$(texinfodir)" /C
 
 .SUFFIXES: .dvi .ps .texi
 
@@ -50,6 +53,9 @@ $(infodir)/eintr: $(INFO_SOURCES)
 
 emacs-lisp-intro.dvi: $(INFO_SOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-lisp-intro.texi
+
+emacs-lisp-intro.pdf: ${INFO_SOURCES}
+	$(ENVADD) $(TEXI2PDF) $(srcdir)/emacs-lisp-intro.texi
 
 emacs-lisp-intro.html: $(INFO_SOURCES)
 	$(MAKEINFO) --html -o $@ $(srcdir)/emacs-lisp-intro.texi
