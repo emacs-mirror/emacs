@@ -56,6 +56,16 @@ of the Texinfo file 'emacs-lisp-intro.texi'.  Best Wishes!
 2006 Oct 31
 Robert J. Chassell, bob@gnu.org
 
+
+
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+The PostScript images (*.eps) contain copyright and license information
+in their headers.  The PDF versions were automatically generated using
+the epstopdf utility, and are subject to the same conditions as their
+EPS counterparts.
+
+
 
 This file is part of GNU Emacs.
 

@@ -1,3 +1,17 @@
+2009-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* cons-1.pdf, cons-2.pdf, cons-2a.pdf, cons-3.pdf, cons-4.pdf:
+	* cons-5.pdf, drawers.pdf, lambda-1.pdf, lambda-2.pdf, lambda-3.pdf:
+	New files, generated from .eps versions with epstopdf.
+	* README: Add copyright information for PDF images.
+
+	* Makefile.in (TEXI2PDF): New variable.
+	(emacs-lisp-intro.pdf): New target.
+
+	* makefile.w32-in (texinfodir, TEXI2PDF): New variables.
+	(ENVADD): Add -I$texinfodir.
+	(emacs-lisp-intro.pdf): New target.
+
 2009-07-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp-intro.texi (Simple Extension): Bump emacs versions in
