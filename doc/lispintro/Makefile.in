@@ -1,7 +1,7 @@
 #### Makefile for the Emacs Lisp Introduction manual
 
-# Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-#   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
+#   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -36,6 +36,7 @@ DVI_TARGETS = emacs-lisp-intro.dvi
 
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
+TEXI2PDF = texi2pdf
 DVIPS = dvips
 
 .SUFFIXES: .dvi .ps .texi
@@ -49,6 +50,9 @@ ${infodir}/eintr: ${INFO_SOURCES}
 
 emacs-lisp-intro.dvi: ${INFO_SOURCES}
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/emacs-lisp-intro.texi
+
+emacs-lisp-intro.pdf: ${INFO_SOURCES}
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/emacs-lisp-intro.texi
 
 emacs-lisp-intro.html: $(INFO_SOURCES)
 	$(MAKEINFO) --html -o $@ $(srcdir)/emacs-lisp-intro.texi
