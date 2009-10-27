@@ -36,8 +36,9 @@
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
-@set edition-number 3.08
-@set update-date 4 October 2008
+@set edition-number 3.09
+@set update-date 27 October 2009
+
 @ignore
  ## Summary of shell commands to create various output formats:
 
