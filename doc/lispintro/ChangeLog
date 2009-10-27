@@ -1,3 +1,7 @@
+2009-10-27  Robert J. Chassell  <bob@gnu.org>
+
+	* emacs-lisp-intro.texi: Minor change, bump Emacs version
+
 2009-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* cons-1.pdf, cons-2.pdf, cons-2a.pdf, cons-3.pdf, cons-4.pdf:
