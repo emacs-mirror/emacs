@@ -1,3 +1,9 @@
+2009-10-27  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-region-engine): Use
+	help-xref-info-regexp and help-xref-url-regexp to identify links.
+	(Further to Bug#3921).
+
 2009-10-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-imap.el (top): Add `X-Size' to `imap-hash-headers'.
