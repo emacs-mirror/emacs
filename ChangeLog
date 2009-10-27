@@ -1,3 +1,7 @@
+2009-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Make links to doc/lispintro/*.pdf.
+
 2009-10-23  Jim Meyering  <meyering@redhat.com>
 
 	* configure.in: Invoke $CPP with -P when creating Makefile and

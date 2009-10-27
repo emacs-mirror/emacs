@@ -706,7 +706,7 @@ echo "Making links to \`doc/lispref'"
 
 echo "Making links to \`doc/lispintro'"
 (cd doc/lispintro
- ln *.texi *.aux *.fns *.kys *.vrs *.eps ../../${tempdir}/doc/lispintro
+ ln *.texi *.aux *.fns *.kys *.vrs *.eps *.pdf ../../${tempdir}/doc/lispintro
  ln makefile.w32-in ../../${tempdir}/doc/lispintro
  test -f README && ln README ../../${tempdir}/doc/lispintro
  test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispintro
