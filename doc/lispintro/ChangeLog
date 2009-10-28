@@ -1,3 +1,16 @@
+2009-10-28  Robert J. Chassell  <bob@gnu.org>
+
+	* emacs-lisp-intro.texi: removed lines 33 and 34 which said
+	   \global\let\urlcolor=\Black % don't print links in grayscale
+	   \global\let\linkcolor=\Black
+
+	and bumped Emacs version
+
+	* ../../Makefile.in: created new target for PDF of emacs-lisp-intro.pdf
+	  and autoconf'd and configure's the Makefile.in
+
+	* ../misc/texinfo.tex: updated to version 4.13 of 2008-04-18
+
 2009-10-27  Robert J. Chassell  <bob@gnu.org>
 
 	* emacs-lisp-intro.texi: Minor change, bump Emacs version
