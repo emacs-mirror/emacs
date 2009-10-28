@@ -637,8 +637,7 @@
 
 (defun calc-insert-variables (buf)
   (interactive "bBuffer in which to save variable values: ")
-  (save-excursion
-    (set-buffer buf)
+  (with-current-buffer buf
     (mapatoms (function
 	       (lambda (x)
 		 (and (string-match "\\`var-" (symbol-name x))

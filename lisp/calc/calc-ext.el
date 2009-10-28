@@ -1677,8 +1677,8 @@ calc-kill calc-kill-region calc-yank))))
 	     (eq (current-buffer) (aref calc-embedded-info 0)))
 	(progn
 	  (goto-char (aref calc-embedded-info 2))
-	  (if (save-excursion (set-buffer (aref calc-embedded-info 1))
-			      calc-show-plain)
+	  (if (with-current-buffer (aref calc-embedded-info 1)
+                calc-show-plain)
 	      (forward-line 1)))
       (calc-wrapper
        (if (get-buffer-window (current-buffer))

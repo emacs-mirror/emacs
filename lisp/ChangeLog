@@ -1,5 +1,26 @@
 2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calc/calc.el (calc, calc-refresh, calc-trail-buffer, calc-record)
+	(calcDigit-nondigit):
+	* calc/calc-yank.el (calc-copy-to-buffer):
+	* calc/calc-units.el (calc-invalidate-units-table):
+	* calc/calc-trail.el (calc-trail-yank):
+	* calc/calc-store.el (calc-insert-variables):
+	* calc/calc-rewr.el (math-rewrite, math-rewrite-phase):
+	* calc/calc-prog.el (calc-read-parse-table):
+	* calc/calc-keypd.el (calc-do-keypad, calc-keypad-right-click):
+	* calc/calc-help.el (calc-describe-bindings, calc-describe-key):
+	* calc/calc-graph.el (calc-graph-delete, calc-graph-add-curve)
+	(calc-graph-juggle, calc-graph-count-curves, calc-graph-plot)
+	(calc-graph-plot, calc-graph-format-data, calc-graph-set-styles)
+	(calc-graph-name, calc-graph-find-command, calc-graph-view)
+	(calc-graph-view, calc-gnuplot-command, calc-graph-init):
+	* calc/calc-ext.el (calc-realign):
+	* calc/calc-embed.el (calc-do-embedded, calc-do-embedded)
+	(calc-embedded-finish-edit, calc-embedded-make-info)
+	(calc-embedded-finish-command, calc-embedded-stack-change):
+	* calc/calc-aent.el (calcAlg-enter): Use with-current-buffer.
+
 	* cedet/mode-local.el (make-obsolete-overload): Add `when' argument.
 	(overload-docstring-extension): Use that info.
 	* cedet/semantic/fw.el (semantic-alias-obsolete): Pass the `when' info.

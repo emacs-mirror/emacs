@@ -568,8 +568,7 @@
 	  (let ((pos (point)))
 	    (end-of-line)
 	    (let* ((str (buffer-substring pos (point)))
-		   (exp (save-excursion
-			  (set-buffer calc-buf)
+		   (exp (with-current-buffer calc-buf
 			  (let ((calc-user-parse-tables nil)
 				(calc-language nil)
 				(math-expr-opers (math-standard-ops))

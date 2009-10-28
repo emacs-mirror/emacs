@@ -233,8 +233,7 @@
 	     (let* ((info calc-embedded-info)
 		    (mode calc-embedded-modes)
                     (calcbuf (aref calc-embedded-info 1)))
-	       (save-excursion
-		 (set-buffer (aref info 1))
+	       (with-current-buffer (aref info 1)
 		 (if (and (> (calc-stack-size) 0)
 			  (equal (calc-top 1 'full) (aref info 8)))
 		     (let ((calc-no-refresh-evaltos t))
@@ -259,8 +258,7 @@
 
 	    (t
 	     (if (buffer-name (aref calc-embedded-info 0))
-		 (save-excursion
-		   (set-buffer (aref calc-embedded-info 0))
+		 (with-current-buffer (aref calc-embedded-info 0)
 		   (or (y-or-n-p (format "Cancel Calc Embedded mode in buffer %s? "
 					 (buffer-name)))
 		       (keyboard-quit))
@@ -401,8 +399,7 @@
 	(start (point))
 	pos)
     (switch-to-buffer calc-original-buffer)
-    (let ((val (save-excursion
-		 (set-buffer (aref info 1))
+    (let ((val (with-current-buffer (aref info 1)
 		 (let ((calc-language nil)
 		       (math-expr-opers (math-standard-ops)))
 		   (math-read-expr str)))))
@@ -946,8 +943,7 @@ The command \\[yank] can retrieve it from there."
 		 (pref-len (length open-plain))
 		 (calc-embed-vars-used nil)
 		 suff-pos val temp)
-	    (save-excursion
-	      (set-buffer (aref info 1))
+	    (with-current-buffer (aref info 1)
 	      (calc-embedded-set-modes (aref info 15)
 				       (aref info 12) (aref info 14))
 	      (if (and (> (length str) pref-len)
@@ -1204,8 +1200,7 @@ The command \\[yank] can retrieve it from there."
 (defun calc-embedded-finish-command ()
   (let ((buf (current-buffer))
 	horiz vert)
-    (save-excursion
-      (set-buffer (aref calc-embedded-info 1))
+    (with-current-buffer (aref calc-embedded-info 1)
       (if (> (calc-stack-size) 0)
 	  (let ((pt (point))
 		(col (current-column))
@@ -1233,8 +1228,7 @@ The command \\[yank] can retrieve it from there."
 
 (defun calc-embedded-stack-change ()
   (or calc-executing-macro
-      (save-excursion
-	(set-buffer (aref calc-embedded-info 1))
+      (with-current-buffer (aref calc-embedded-info 1)
 	(let* ((info calc-embedded-info)
 	       (extra-line (if (eq calc-language 'big) 1 0))
 	       (the-point (point))

@@ -142,8 +142,7 @@
 		       (search-forward " ")
 		       (let* ((next (save-excursion (forward-line 1) (point)))
 			      (str (buffer-substring (point) (1- next)))
-			      (val (save-excursion
-				     (set-buffer save-buf)
+			      (val (with-current-buffer save-buf
 				     (math-read-plain-expr str))))
 			 (if (eq (car-safe val) 'error)
 			     (error "Can't yank that line: %s" (nth 2 val))

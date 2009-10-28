@@ -1427,8 +1427,7 @@ commands given here will actually operate on the *Calculator* stack."
                       (set-window-buffer w (current-buffer))
                       (select-window w))
                   (pop-to-buffer (current-buffer)))))))
-	(save-excursion
-	  (set-buffer (calc-trail-buffer))
+	(with-current-buffer (calc-trail-buffer)
 	  (and calc-display-trail
 	       (= (window-width) (frame-width))
 	       (calc-trail-display 1 t)))
@@ -1979,8 +1978,7 @@ See calc-keypad for details."
 	   (goto-char save-point))
 	 (if save-mark (set-mark save-mark))))
   (and calc-embedded-info (not (eq major-mode 'calc-mode))
-       (save-excursion
-	 (set-buffer (aref calc-embedded-info 1))
+       (with-current-buffer (aref calc-embedded-info 1)
 	 (calc-refresh align)))
   (setq calc-refresh-count (1+ calc-refresh-count)))
 
@@ -2005,8 +2003,7 @@ See calc-keypad for details."
 	       (calc-trail-mode buf)))))
   (or (and calc-trail-pointer
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
-      (save-excursion
-	(set-buffer calc-trail-buffer)
+      (with-current-buffer calc-trail-buffer
 	(goto-char (point-min))
 	(forward-line 1)
 	(setq calc-trail-pointer (point-marker))))
@@ -2025,8 +2022,7 @@ See calc-keypad for details."
 			 (math-showing-full-precision
 			  (math-format-flat-expr val 0)))
 		     "")))
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (let ((aligned (calc-check-trail-aligned))
 		(buffer-read-only nil))
 	    (goto-char (point-max))
@@ -2262,8 +2258,7 @@ See calc-keypad for details."
   (or (boundp 'calc-buffer)
       (use-local-map minibuffer-local-map))
   (let ((str (minibuffer-contents)))
-    (setq calc-digit-value (save-excursion
-			     (set-buffer calc-buffer)
+    (setq calc-digit-value (with-current-buffer calc-buffer
 			     (math-read-number str))))
   (if (and (null calc-digit-value) (> (calc-minibuffer-size) 0))
       (progn

@@ -414,8 +414,7 @@ The value t means abort and give an error message.")
   (interactive)
   (let* ((str (minibuffer-contents))
 	 (exp (and (> (length str) 0)
-		   (save-excursion
-		     (set-buffer calc-buffer)
+		   (with-current-buffer calc-buffer
 		     (math-read-exprs str)))))
     (if (eq (car-safe exp) 'error)
 	(progn

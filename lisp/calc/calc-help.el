@@ -110,8 +110,7 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-describe-bindings ()
   (interactive)
   (describe-bindings)
-  (save-excursion
-    (set-buffer "*Help*")
+  (with-current-buffer "*Help*"
     (let ((inhibit-read-only t))
       (goto-char (point-min))
       (when (search-forward "Major Mode Bindings:" nil t)
@@ -178,8 +177,7 @@ C-w  Describe how there is no warranty for Calc."
       (if (string-match "\\(DEL\\|\\LFD\\|RET\\|SPC\\|TAB\\)" desc)
           (setq desc (replace-match "<\\&>" nil nil desc)))
       (if briefly
-	  (let ((msg (save-excursion
-		       (set-buffer (get-buffer-create "*Calc Summary*"))
+	  (let ((msg (with-current-buffer (get-buffer-create "*Calc Summary*")
 		       (if (= (buffer-size) 0)
 			   (progn
 			     (message "Reading Calc summary from manual...")

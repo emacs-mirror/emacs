@@ -85,8 +85,7 @@
   (interactive "P")
   (calc-wrapper
    (calc-graph-init)
-   (save-excursion
-     (set-buffer calc-gnuplot-input)
+   (with-current-buffer calc-gnuplot-input
      (and (calc-graph-find-plot t all)
 	  (progn
 	    (if (looking-at "s?plot")
@@ -187,8 +186,7 @@
   (let ((num (calc-graph-count-curves))
 	(pstyle (calc-var-value 'var-PointStyles))
 	(lstyle (calc-var-value 'var-LineStyles)))
-    (save-excursion
-      (set-buffer calc-gnuplot-input)
+    (with-current-buffer calc-gnuplot-input
       (goto-char (point-min))
       (if (re-search-forward (if zdata "^plot[ \t]" "^splot[ \t]")
 			     nil t)
@@ -239,8 +237,7 @@
 (defun calc-graph-juggle (arg)
   (interactive "p")
   (calc-graph-init)
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (if (< arg 0)
 	(let ((num (calc-graph-count-curves)))
 	  (if (> num 0)
@@ -250,8 +247,7 @@
       (calc-graph-do-juggle))))
 
 (defun calc-graph-count-curves ()
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (if (re-search-forward "^s?plot[ \t]" nil t)
 	(let ((num 1))
 	  (goto-char (point-min))
@@ -438,8 +434,7 @@
 	     (forward-char -1))
 	   (if (eq (preceding-char) ?\,)
 	       (delete-backward-char 1))))
-       (save-excursion
-	 (set-buffer calcbuf)
+       (with-current-buffer calcbuf
 	 (setq cache-env (list calc-angle-mode
 			       calc-complex-mode
 			       calc-simplify-mode
@@ -474,8 +469,7 @@
 		filename)
 	   (delete-region (match-beginning 0) (match-end 0))
 	   (setq filename (calc-temp-file-name calc-graph-curve-num))
-	   (save-excursion
-	     (set-buffer calcbuf)
+	   (with-current-buffer calcbuf
 	     (let (tempbuftop
 		   (calc-graph-xp calc-graph-xvalue)
 		   (calc-graph-yp calc-graph-yvalue)
@@ -832,8 +826,7 @@
 	       (= (length calc-graph-yval) 4))
 	  (progn
 	    (or calc-graph-surprise-splot
-		(save-excursion
-		  (set-buffer (get-buffer-create "*Gnuplot Temp*"))
+		(with-current-buffer (get-buffer-create "*Gnuplot Temp*")
 		  (save-excursion
 		    (goto-char (point-max))
 		    (re-search-backward "^plot[ \t]")
@@ -1072,8 +1065,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 
 (defun calc-graph-set-styles (lines points &optional yerr)
   (calc-graph-init)
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (or (calc-graph-find-plot nil nil)
 	(error "No data points have been set!"))
     (let ((base (point))
@@ -1161,8 +1153,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 (defun calc-graph-name (name)
   (interactive "sTitle for current curve: ")
   (calc-graph-init)
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (or (calc-graph-find-plot nil nil)
 	(error "No data points have been set!"))
     (let ((base (point))
@@ -1297,16 +1288,14 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 
 (defun calc-graph-find-command (cmd)
   (calc-graph-init)
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (goto-char (point-min))
     (if (re-search-forward (concat "^set[ \t]+" cmd "[ \t]*\\(.*\\)$") nil t)
 	(buffer-substring (match-beginning 1) (match-end 1)))))
 
 (defun calc-graph-set-command (cmd &rest args)
   (calc-graph-init)
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (goto-char (point-min))
     (if (re-search-forward (concat "^set[ \t]+" cmd "[ \t\n]") nil t)
 	(progn
@@ -1374,8 +1363,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	(if (setq win (get-buffer-window buf))
 	    (or need
 		(and (eq buf calc-gnuplot-buffer)
-		     (save-excursion
-		       (set-buffer buf)
+		     (with-current-buffer buf
 		       (not (pos-visible-in-window-p (point-max) win))))
 		(progn
 		  (bury-buffer buf)
@@ -1391,8 +1379,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 			(not (window-full-height-p)))
 		    (display-buffer buf))
 	      (switch-to-buffer buf)))))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (if (and (eq buf calc-gnuplot-buffer)
 	       (setq win (get-buffer-window buf))
 	       (not (pos-visible-in-window-p (point-max) win)))
@@ -1419,8 +1406,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
   (let ((cmd (concat (mapconcat 'identity args " ") "\n")))
     (or (string= calc-gnuplot-name "pgnuplot")
 	(accept-process-output))
-    (save-excursion
-      (set-buffer calc-gnuplot-buffer)
+    (with-current-buffer calc-gnuplot-buffer
       (calc-gnuplot-check-for-errors)
       (goto-char (point-max))
       (setq calc-gnuplot-trail-mark (point))
@@ -1454,8 +1440,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	      (delete-process calc-gnuplot-process)
 	      (setq calc-gnuplot-process nil)))
 	(calc-graph-init-buffers)
-	(save-excursion
-	  (set-buffer calc-gnuplot-buffer)
+	(with-current-buffer calc-gnuplot-buffer
 	  (insert "\nStarting gnuplot...\n")
 	  (setq origin (point)))
 	(setq calc-graph-last-device nil)
@@ -1489,8 +1474,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (file-error
 	   (error "Sorry, can't find \"%s\" on your system"
 		  calc-gnuplot-name)))
-	(save-excursion
-	  (set-buffer calc-gnuplot-buffer)
+	(with-current-buffer calc-gnuplot-buffer
 	  (while (and (not (string= calc-gnuplot-name "pgnuplot"))
 		      (not (save-excursion
 			     (goto-char origin)
@@ -1510,8 +1494,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 					   (match-end 1))))
 		(setq calc-gnuplot-version 1)))
 	  (goto-char (point-max)))))
-  (save-excursion
-    (set-buffer calc-gnuplot-input)
+  (with-current-buffer calc-gnuplot-input
     (if (= (buffer-size) 0)
 	(insert "# Commands for running gnuplot\n\n\n")
       (or calc-graph-no-auto-view
