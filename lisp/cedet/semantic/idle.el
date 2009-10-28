@@ -795,7 +795,8 @@ specific to a major mode.  For example, in jde mode:
   "Return a string message describing the current context.")
 
 (make-obsolete-overload 'semantic-eldoc-current-symbol-info
-                        'semantic-idle-summary-current-symbol-info)
+                        'semantic-idle-summary-current-symbol-info
+                        "23.2")
 
 (define-semantic-idle-service semantic-idle-summary
   "Display a tag summary of the lexical token under the cursor.

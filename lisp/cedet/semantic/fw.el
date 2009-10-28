@@ -161,7 +161,7 @@ will throw a warning when it encounters this symbol."
              byte-compile-current-file
 	     (not (string-match "cedet" byte-compile-current-file))
 	     )
-    (make-obsolete-overload oldfnalias newfn)
+    (make-obsolete-overload oldfnalias newfn when)
     (semantic-compile-warn
      "%s: `%s' obsoletes overload `%s'"
      byte-compile-current-file

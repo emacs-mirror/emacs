@@ -36,6 +36,7 @@
 ;;
 
 ;;; Code:
+(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'semantic/decorate)
 (require 'semantic/tag-ls)

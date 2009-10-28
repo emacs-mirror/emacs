@@ -1,5 +1,15 @@
 2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* cedet/mode-local.el (make-obsolete-overload): Add `when' argument.
+	(overload-docstring-extension): Use that info.
+	* cedet/semantic/fw.el (semantic-alias-obsolete): Pass the `when' info.
+	* cedet/semantic/idle.el (semantic-eldoc-current-symbol-info):
+	* cedet/semantic/tag-ls.el (semantic-nonterminal-protection)
+	(semantic-nonterminal-abstract, semantic-nonterminal-leaf)
+	(semantic-nonterminal-full-name): Add the new `when' info.
+	* cedet/semantic/decorate/mode.el (semantic/decorate): Require CL for
+	`assert'.
+
 	* pcomplete.el (pcomplete-comint-setup): If there's a choice, replace
 	shell-dynamic-complete-filename in preference to
 	comint-dynamic-complete-filename.

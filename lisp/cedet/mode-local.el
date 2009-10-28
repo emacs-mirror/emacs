@@ -442,9 +442,11 @@ DOCSTRING is optional."
 
 ;;; Function overloading
 ;;
-(defun make-obsolete-overload (old new)
-  "Mark OLD overload as obsoleted by NEW overload."
+(defun make-obsolete-overload (old new when)
+  "Mark OLD overload as obsoleted by NEW overload.
+WHEN is a string describing the first release where it was made obsolete."
   (put old 'overload-obsoleted-by new)
+  (put old 'overload-obsoleted-since when)
   (put old 'mode-local-overload t)
   (put new 'overload-obsolete old))
 
@@ -592,12 +594,12 @@ PROMPT, INITIAL, HIST, and DEFAULT are the same as for `completing-read'."
  with `define-mode-local-override'.")
         (sym (overload-obsoleted-by overload)))
     (when sym
-      (setq doc (format "%s\nIt makes the overload `%s' obsolete."
-                        doc sym)))
+      (setq doc (format "%s\nIt has made the overload `%s' obsolete since %s."
+                        doc sym (get sym 'overload-obsoleted-since))))
     (setq sym (overload-that-obsolete overload))
     (when sym
-      (setq doc (format "%s\nThis overload is obsoletes;\nUse `%s' instead."
-                        doc sym)))
+      (setq doc (format "%s\nThis overload is obsolete since %s;\nUse `%s' instead."
+                        doc (get overload 'overload-obsoleted-since) sym)))
     doc))
 
 (defun mode-local-augment-function-help (symbol)
