@@ -1,7 +1,13 @@
+2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hg.el (vc-hg-state, vc-hg-working-revision): Use process-file so
+	it works on remote files.
+	(vc-hg-diff): Don't pass any `--cwd' argument.
+
 2009-10-27  Kevin Ryde  <user42@zip.com.au>
 
-	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-region-engine): Use
-	help-xref-info-regexp and help-xref-url-regexp to identify links.
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-region-engine):
+	Use help-xref-info-regexp and help-xref-url-regexp to identify links.
 	(Further to Bug#3921).
 
 2009-10-27  Michael Albinus  <michael.albinus@gmx.de>
@@ -24,22 +30,19 @@
 
 2009-10-26  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-perl-file-truename): New defconst.  Perl
-	code contributed by yary <not.com@gmail.com> (tiny change).
+	* net/tramp.el (tramp-perl-file-truename): New defconst.
+	Perl code contributed by yary <not.com@gmail.com> (tiny change).
 	(tramp-handle-file-truename, tramp-get-remote-perl): Use it.
-	Check also for "perl-file-spec" and "perl-cwd-realpath"
-	properties.
-	(tramp-handle-write-region): In case of APPEND, reuse the tmpfile
-	name.
+	Check also for "perl-file-spec" and "perl-cwd-realpath" properties.
+	(tramp-handle-write-region): In case of APPEND, reuse the tmpfile name.
 
-	* net/tramp-imap.el (tramp-imap-file-name-handler-alist): Ignore
-	`dired-call-process'.
+	* net/tramp-imap.el (tramp-imap-file-name-handler-alist):
+	Ignore `dired-call-process'.
 	(tramp-imap-make-iht): Use `user' and `ssl' with `imap-hash-make'.
 
 2009-10-26  Julian Scheid  <julians37@gmail.com>
 
-	* net/tramp.el (tramp-perl-file-name-all-completions): New
-	defconst.
+	* net/tramp.el (tramp-perl-file-name-all-completions): New defconst.
 	(tramp-get-remote-readlink): New defun.
 	(tramp-handle-file-truename): Use it.
 	(tramp-handle-file-exists-p): Check file-attributes cache, assume
@@ -57,8 +60,8 @@
 	remote `cd' or Perl code for local tramp-error.
 	(tramp-do-copy-or-rename-file-directly): Avoid separate
 	tramp-send-command-and-check call.
-	(tramp-handle-process-file): Merge three remote ops into one.  Do
-	not flush all caches when `process-file-side-effects' is set.
+	(tramp-handle-process-file): Merge three remote ops into one.
+	Do not flush all caches when `process-file-side-effects' is set.
 	(tramp-handle-write-region): Avoid tramp-set-file-uid-gid if
 	file-attributes shows uid/gid to be set already.
 
@@ -93,8 +96,7 @@
 	(rmail-secondary-file-regexp):
 	* files.el (null-device, file-name-invalid-regexp)
 	(locate-dominating-stop-dir-regexp)
-	(inhibit-first-line-modes-regexps): Purecopy initialization
-	strings.
+	(inhibit-first-line-modes-regexps): Purecopy initialization strings.
 	(interpreter-mode-alist): Use mapcar instead of mapc.
 
 	* buff-menu.el (Buffer-menu-mode-map): Purecopy name.
@@ -195,7 +197,8 @@
 	* vc.el (vc-backend-for-registration): Rename from
 	vc-get-backend-for-registration.  Update callers.
 
-	* international/mule-cmds.el (set-language-info-alist): Purecopy lang-env.
+	* international/mule-cmds.el (set-language-info-alist):
+	Purecopy lang-env.
 	(leim-list-header, leim-list-entry-regexp): Change defvars to defconst.
 	(charset): Purecopy the name.
 	(define-char-code-property): Purecopy string arguments.
@@ -219,8 +222,8 @@
 	(file-cache-choose-completion): Handle an optional event argument.
 	(file-cache-mouse-choose-completion): Make it an obsolete alias.
 
-	* progmodes/octave-mod.el (octave-complete-symbol): Use
-	choose-completion if mouse-choose-completion is ever removed.
+	* progmodes/octave-mod.el (octave-complete-symbol):
+	Use choose-completion if mouse-choose-completion is ever removed.
 
 	* textmodes/sgml-mode.el (sgml-looking-back-at): Move definition before
 	use.

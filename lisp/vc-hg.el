@@ -159,6 +159,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Hg-specific version of `vc-state'."
   (let*
       ((status nil)
+       (default-directory (file-name-directory file))
        (out
         (with-output-to-string
           (with-current-buffer
@@ -166,9 +167,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
             (setq status
                   (condition-case nil
                       ;; Ignore all errors.
-                      (call-process
-                       "hg" nil t nil "--cwd" (file-name-directory file)
-                       "status" "-A" (file-name-nondirectory file))
+                      (process-file
+                       "hg" nil t nil
+                       "status" "-A" (file-relative-name file))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -190,6 +191,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Hg-specific version of `vc-working-revision'."
   (let*
       ((status nil)
+       (default-directory (file-name-directory file))
        (out
         (with-output-to-string
           (with-current-buffer
@@ -197,9 +199,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
             (setq status
                   (condition-case nil
                       ;; Ignore all errors.
-                      (call-process
-                       "hg" nil t nil "--cwd" (file-name-directory file)
-                       "log" "-l1" (file-name-nondirectory file))
+                      (process-file
+                       "hg" nil t nil
+                       "log" "-l1" (file-relative-name file))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -286,7 +288,6 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       (setq oldvers working))
     (apply #'vc-hg-command (or buffer "*vc-diff*") nil
            (mapcar (lambda (file) (file-relative-name file cwd)) files)
-           "--cwd" cwd
            "diff"
            (append
             (vc-switches 'hg 'diff)
