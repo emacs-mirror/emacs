@@ -775,8 +775,8 @@ this is `comint-dynamic-complete-functions'."
   (set (make-local-variable completef-sym)
        (copy-sequence (symbol-value completef-sym)))
   (let* ((funs (symbol-value completef-sym))
-	 (elem (or (memq 'comint-dynamic-complete-filename funs)
-		   (memq 'shell-dynamic-complete-filename funs))))
+	 (elem (or (memq 'shell-dynamic-complete-filename funs)
+		   (memq 'comint-dynamic-complete-filename funs))))
     (if elem
 	(setcar elem 'pcomplete)
       (add-to-list completef-sym 'pcomplete))))

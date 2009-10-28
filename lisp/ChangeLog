@@ -1,5 +1,9 @@
 2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcomplete.el (pcomplete-comint-setup): If there's a choice, replace
+	shell-dynamic-complete-filename in preference to
+	comint-dynamic-complete-filename.
+
 	* bookmark.el (bookmark-insert-location, bookmark-bmenu-list)
 	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames):
 	Don't consider whether the display supports colors.
