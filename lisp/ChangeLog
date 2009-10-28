@@ -1,3 +1,14 @@
+2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-insert-location, bookmark-bmenu-list)
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames):
+	Don't consider whether the display supports colors.
+	(bookmark-import-new-list): Use dolist.
+	(bookmark-bmenu-mode-map): Move initialization into declaration.
+	(bookmark-bmenu-list): Use dolist, simplify.
+	(bookmark-show-all-annotations): Use save-selected-window and dolist.
+	(menu-bar-final-items): Use push.
+
 2009-10-28  Bernhard Herzog  <bernhard.herzog@intevation.de>  (tiny change)
 
 	* vc-hg.el (vc-hg-state, vc-hg-working-revision): Use process-file so

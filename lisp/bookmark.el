@@ -462,9 +462,9 @@ the empty string."
       (bookmark-menu-popup-paned-menu t prompt (bookmark-all-names))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
 	   (default default)
-	   (prompt (if default
-		       (concat prompt (format " (%s): " default))
-		     (concat prompt ": ")))
+	   (prompt (concat prompt (if default
+                                      (format " (%s): " default)
+                                    ": ")))
 	   (str
 	    (completing-read prompt
 			     bookmark-alist
@@ -1190,12 +1190,12 @@ minibuffer history list `bookmark-history'."
   (let ((start (point)))
     (prog1
 	(insert (bookmark-location bookmark)) ; *Return this line*
-      (if (and (display-color-p) (display-mouse-p))
+      (if (display-mouse-p)
 	  (add-text-properties
 	   start
 	   (save-excursion (re-search-backward
 			    "[^ \t]")
-					       (1+ (point)))
+                           (1+ (point)))
 	   '(mouse-face highlight
 	     follow-link t
 	     help-echo "mouse-2: go to this bookmark in other window"))))))
@@ -1398,14 +1398,11 @@ for a file, defaulting to the file defined by variable
   "Add NEW-LIST of bookmarks to `bookmark-alist'.
 Rename new bookmarks as needed using suffix \"<N>\" (N=1,2,3...), when
 they conflict with existing bookmark names."
-  (let ((lst new-list)
-        (names (bookmark-all-names)))
-    (while lst
-      (let* ((full-record (car lst)))
-        (bookmark-maybe-rename full-record names)
-        (setq bookmark-alist (nconc bookmark-alist (list full-record)))
-        (setq names (cons (bookmark-name-from-full-record full-record) names))
-        (setq lst (cdr lst))))))
+  (let ((names (bookmark-all-names)))
+    (dolist (full-record new-list)
+      (bookmark-maybe-rename full-record names)
+      (setq bookmark-alist (nconc bookmark-alist (list full-record)))
+      (push (bookmark-name-from-full-record full-record) names))))
 
 
 (defun bookmark-maybe-rename (full-record names)
@@ -1491,48 +1488,41 @@ method buffers use to resolve name collisions."
 (defvar bookmark-bmenu-hidden-bookmarks ())
 
 
-(defvar bookmark-bmenu-mode-map nil)
-
-
-(if bookmark-bmenu-mode-map
-    nil
-  (setq bookmark-bmenu-mode-map (make-keymap))
-  (suppress-keymap bookmark-bmenu-mode-map t)
-  (define-key bookmark-bmenu-mode-map "q" 'quit-window)
-  (define-key bookmark-bmenu-mode-map "v" 'bookmark-bmenu-select)
-  (define-key bookmark-bmenu-mode-map "w" 'bookmark-bmenu-locate)
-  (define-key bookmark-bmenu-mode-map "2" 'bookmark-bmenu-2-window)
-  (define-key bookmark-bmenu-mode-map "1" 'bookmark-bmenu-1-window)
-  (define-key bookmark-bmenu-mode-map "j" 'bookmark-bmenu-this-window)
-  (define-key bookmark-bmenu-mode-map "\C-c\C-c" 'bookmark-bmenu-this-window)
-  (define-key bookmark-bmenu-mode-map "f" 'bookmark-bmenu-this-window)
-  (define-key bookmark-bmenu-mode-map "\C-m" 'bookmark-bmenu-this-window)
-  (define-key bookmark-bmenu-mode-map "o" 'bookmark-bmenu-other-window)
-  (define-key bookmark-bmenu-mode-map "\C-o"
-    'bookmark-bmenu-switch-other-window)
-  (define-key bookmark-bmenu-mode-map "s" 'bookmark-bmenu-save)
-  (define-key bookmark-bmenu-mode-map "k" 'bookmark-bmenu-delete)
-  (define-key bookmark-bmenu-mode-map "\C-d" 'bookmark-bmenu-delete-backwards)
-  (define-key bookmark-bmenu-mode-map "x" 'bookmark-bmenu-execute-deletions)
-  (define-key bookmark-bmenu-mode-map "d" 'bookmark-bmenu-delete)
-  (define-key bookmark-bmenu-mode-map " " 'next-line)
-  (define-key bookmark-bmenu-mode-map "n" 'next-line)
-  (define-key bookmark-bmenu-mode-map "p" 'previous-line)
-  (define-key bookmark-bmenu-mode-map "\177" 'bookmark-bmenu-backup-unmark)
-  (define-key bookmark-bmenu-mode-map "?" 'describe-mode)
-  (define-key bookmark-bmenu-mode-map "u" 'bookmark-bmenu-unmark)
-  (define-key bookmark-bmenu-mode-map "m" 'bookmark-bmenu-mark)
-  (define-key bookmark-bmenu-mode-map "l" 'bookmark-bmenu-load)
-  (define-key bookmark-bmenu-mode-map "r" 'bookmark-bmenu-rename)
-  (define-key bookmark-bmenu-mode-map "R" 'bookmark-bmenu-relocate)
-  (define-key bookmark-bmenu-mode-map "t" 'bookmark-bmenu-toggle-filenames)
-  (define-key bookmark-bmenu-mode-map "a" 'bookmark-bmenu-show-annotation)
-  (define-key bookmark-bmenu-mode-map "A" 'bookmark-bmenu-show-all-annotations)
-  (define-key bookmark-bmenu-mode-map "e" 'bookmark-bmenu-edit-annotation)
-  (define-key bookmark-bmenu-mode-map [mouse-2]
-    'bookmark-bmenu-other-window-with-mouse))
-
-
+(defvar bookmark-bmenu-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+    (define-key map "q" 'quit-window)
+    (define-key map "v" 'bookmark-bmenu-select)
+    (define-key map "w" 'bookmark-bmenu-locate)
+    (define-key map "2" 'bookmark-bmenu-2-window)
+    (define-key map "1" 'bookmark-bmenu-1-window)
+    (define-key map "j" 'bookmark-bmenu-this-window)
+    (define-key map "\C-c\C-c" 'bookmark-bmenu-this-window)
+    (define-key map "f" 'bookmark-bmenu-this-window)
+    (define-key map "\C-m" 'bookmark-bmenu-this-window)
+    (define-key map "o" 'bookmark-bmenu-other-window)
+    (define-key map "\C-o" 'bookmark-bmenu-switch-other-window)
+    (define-key map "s" 'bookmark-bmenu-save)
+    (define-key map "k" 'bookmark-bmenu-delete)
+    (define-key map "\C-d" 'bookmark-bmenu-delete-backwards)
+    (define-key map "x" 'bookmark-bmenu-execute-deletions)
+    (define-key map "d" 'bookmark-bmenu-delete)
+    (define-key map " " 'next-line)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "\177" 'bookmark-bmenu-backup-unmark)
+    (define-key map "?" 'describe-mode)
+    (define-key map "u" 'bookmark-bmenu-unmark)
+    (define-key map "m" 'bookmark-bmenu-mark)
+    (define-key map "l" 'bookmark-bmenu-load)
+    (define-key map "r" 'bookmark-bmenu-rename)
+    (define-key map "R" 'bookmark-bmenu-relocate)
+    (define-key map "t" 'bookmark-bmenu-toggle-filenames)
+    (define-key map "a" 'bookmark-bmenu-show-annotation)
+    (define-key map "A" 'bookmark-bmenu-show-all-annotations)
+    (define-key map "e" 'bookmark-bmenu-edit-annotation)
+    (define-key map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
+    map))
 
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
 ;; data.
@@ -1574,29 +1564,25 @@ deletion, or > if it is flagged for displaying."
     (insert "% Bookmark\n- --------\n")
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
-    (mapc
-     (lambda (full-record)
-       ;; if a bookmark has an annotation, prepend a "*"
-       ;; in the list of bookmarks.
-       (let ((annotation (bookmark-get-annotation
-                          (bookmark-name-from-full-record full-record))))
-         (if (and annotation (not (string-equal annotation "")))
-             (insert " *")
-           (insert "  "))
-	 (let ((start (point)))
-	   (insert (bookmark-name-from-full-record full-record))
-	   (if (and (display-color-p) (display-mouse-p))
-	       (add-text-properties
-		start
-		(save-excursion (re-search-backward
-				 "[^ \t]")
-				(1+ (point)))
-		'(mouse-face highlight
-		  follow-link t
-		  help-echo "mouse-2: go to this bookmark in other window")))
-	   (insert "\n")
-	   )))
-     (bookmark-maybe-sort-alist)))
+    (dolist (full-record (bookmark-maybe-sort-alist))
+      ;; if a bookmark has an annotation, prepend a "*"
+      ;; in the list of bookmarks.
+      (let ((annotation (bookmark-get-annotation full-record)))
+        (insert (if (and annotation (not (string-equal annotation "")))
+                    " *" "  "))
+        (let ((start (point)))
+          (insert (bookmark-name-from-full-record full-record))
+          (if (display-mouse-p)
+              (add-text-properties
+               start
+               (save-excursion (re-search-backward
+                                "[^ \t]")
+                               (1+ (point)))
+               '(mouse-face highlight
+                 follow-link t
+                 help-echo "mouse-2: go to this bookmark in other window")))
+          (insert "\n")))))
+
   (goto-char (point-min))
   (forward-line 2)
   (bookmark-bmenu-mode)
@@ -1688,7 +1674,7 @@ mainly for debugging, and should not be necessary in normal use."
 	      (let ((start (save-excursion (end-of-line) (point))))
 		(move-to-column bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
-		(if (and (display-color-p) (display-mouse-p))
+		(if (display-mouse-p)
 		    (remove-text-properties start (point)
 					    '(mouse-face nil help-echo nil))))
 	      (delete-region (point) (progn (end-of-line) (point)))
@@ -1722,7 +1708,7 @@ mainly for debugging, and should not be necessary in normal use."
                 (bookmark-kill-line)
 		(let ((start (point)))
 		  (insert (car bookmark-bmenu-hidden-bookmarks))
-		  (if (and (display-color-p) (display-mouse-p))
+		  (if (display-mouse-p)
 		      (add-text-properties
 		       start
 		       (save-excursion (re-search-backward
@@ -1801,27 +1787,24 @@ if an annotation exists."
 
 (defun bookmark-show-all-annotations ()
   "Display the annotations for all bookmarks in a buffer."
-  (let ((old-buf (current-buffer)))
+  (save-selected-window
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
     (delete-region (point-min) (point-max))
-    (mapc
-     (lambda (full-record)
-       (let* ((name (bookmark-name-from-full-record full-record))
-              (ann  (bookmark-get-annotation name)))
-         (insert (concat name ":\n"))
-         (if (and ann (not (string-equal ann "")))
-             ;; insert the annotation, indented by 4 spaces.
-             (progn
-               (save-excursion (insert ann) (unless (bolp)
-                                              (insert "\n")))
-               (while (< (point) (point-max))
-                 (beginning-of-line) ; paranoia
-                 (insert "    ")
-                 (forward-line)
-                 (end-of-line))))))
-     bookmark-alist)
-    (goto-char (point-min))
-    (pop-to-buffer old-buf)))
+    (dolist (full-record bookmark-alist)
+      (let* ((name (bookmark-name-from-full-record full-record))
+             (ann  (bookmark-get-annotation full-record)))
+        (insert (concat name ":\n"))
+        (if (and ann (not (string-equal ann "")))
+            ;; insert the annotation, indented by 4 spaces.
+            (progn
+              (save-excursion (insert ann) (unless (bolp)
+                                             (insert "\n")))
+              (while (< (point) (point-max))
+                (beginning-of-line)     ; paranoia
+                (insert "    ")
+                (forward-line)
+                (end-of-line))))))
+    (goto-char (point-min))))
 
 
 (defun bookmark-bmenu-mark ()
@@ -2171,8 +2154,7 @@ strings returned are not."
 ;; make bookmarks appear toward the right side of the menu.
 (if (boundp 'menu-bar-final-items)
     (if menu-bar-final-items
-        (setq menu-bar-final-items
-              (cons 'bookmark menu-bar-final-items)))
+        (push 'bookmark menu-bar-final-items))
   (setq menu-bar-final-items '(bookmark)))
 
 ;;;; end bookmark menu stuff ;;;;
