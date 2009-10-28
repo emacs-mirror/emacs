@@ -30,14 +30,13 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-\global\let\urlcolor=\Black % don't print links in grayscale
-\global\let\linkcolor=\Black
+
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
 @end tex
 
-@set edition-number 3.09
-@set update-date 27 October 2009
+@set edition-number 3.10
+@set update-date 28 October 2009
 
 @ignore
  ## Summary of shell commands to create various output formats:
