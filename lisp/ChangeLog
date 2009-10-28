@@ -1,4 +1,4 @@
-2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+2009-10-28  Bernhard Herzog  <bernhard.herzog@intevation.de>  (tiny change)
 
 	* vc-hg.el (vc-hg-state, vc-hg-working-revision): Use process-file so
 	it works on remote files.
