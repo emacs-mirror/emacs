@@ -1,3 +1,8 @@
+2009-10-29  Jason Rumney  <jasonr@wanchan.jasonrumney.net>
+
+	* w32fns.c (syms_of_w32fns): Change default value of
+	w32-scroll-lock-modifier to nil.  (Bug#2827)
+
 2009-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Fall_completions): Fix typos in docstring.

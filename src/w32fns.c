@@ -7055,7 +7055,7 @@ Set to nil to handle Caps Lock as the `capslock' key.  */);
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to handle Scroll Lock as the `scroll' key.
 Any other value will cause the Scroll Lock key to be ignored.  */);
-  Vw32_scroll_lock_modifier = Qt;
+  Vw32_scroll_lock_modifier = Qnil;
 
   DEFVAR_LISP ("w32-lwindow-modifier",
 	       &Vw32_lwindow_modifier,
