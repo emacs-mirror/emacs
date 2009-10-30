@@ -4,6 +4,74 @@
 	(vc-bzr-revision-completion-table): Use it to fix completion of "s:"
 	to "submit:".
 
+	* cedet/srecode/srt-mode.el (semantic-analyze-possible-completions):
+	* cedet/semantic/symref/list.el (semantic-symref-rb-toggle-expand-tag):
+	* cedet/semantic/symref/grep.el (semantic-symref-perform-search):
+	* cedet/semantic/bovine/gcc.el (semantic-gcc-query):
+	* cedet/semantic/bovine/c.el (semantic-c-parse-lexical-token):
+	* cedet/semantic/analyze/debug.el (semantic-analyzer-debug-add-buttons)
+	(semantic-analyzer-debug-global-symbol)
+	(semantic-analyzer-debug-missing-innertype)
+	(semantic-analyzer-debug-insert-include-summary):
+	* cedet/semantic/util.el (semantic-file-tag-table):
+	(semantic-describe-buffer-var-helper, semantic-something-to-tag-table)
+	(semantic-recursive-find-nonterminal-by-name):
+	* cedet/semantic/tag-ls.el (semantic-tag-calculate-parent-default):
+	* cedet/semantic/tag-file.el (semantic-prototype-file):
+	* cedet/semantic/symref.el (semantic-symref-parse-tool-output):
+	* cedet/semantic/sb.el (semantic-sb-fetch-tag-table):
+	* cedet/semantic/lex-spp.el (semantic-lex-spp-lex-text-string):
+	* cedet/semantic/idle.el (semantic-idle-work-for-one-buffer):
+	(semantic-idle-summary-maybe-highlight):
+	* cedet/semantic/ia-sb.el (semantic-ia-speedbar)
+	(semantic-ia-sb-tag-info):
+	* cedet/semantic/grammar.el (semantic-analyze-possible-completions):
+	* cedet/semantic/find.el (semantic-brute-find-tag-by-position):
+	* cedet/semantic/ede-grammar.el (project-compile-target):
+	(ede-proj-makefile-insert-variables):
+	* cedet/semantic/debug.el (semantic-debug-set-parser-location):
+	(semantic-debug-set-source-location, semantic-debug-interface-layout)
+	(semantic-debug-mode, semantic-debug):
+	* cedet/semantic/db.el (semanticdb-needs-refresh-p):
+	* cedet/semantic/db-typecache.el (semanticdb-typecache-refresh-for-buffer):
+	* cedet/semantic/db-javascript.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db-find.el (semanticdb-find-log-new-search)
+	(semanticdb-find-translate-path-includes--internal)
+	(semanticdb-reset-log, semanticdb-find-log-activity):
+	* cedet/semantic/db-file.el (object-write):
+	* cedet/semantic/db-el.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db-ebrowse.el (semanticdb-ebrowse-C-file-p)
+	(semanticdb-create-ebrowse-database):
+	* cedet/semantic/db-debug.el (semanticdb-table-sanity-check):
+	* cedet/semantic/complete.el (semantic-displayor-focus-request)
+	(semantic-collector-calculate-completions-raw)
+	(semantic-complete-read-tag-analyzer):
+	* cedet/semantic/analyze.el (semantic-analyze-pulse):
+	* cedet/ede/util.el (ede-update-version-in-source):
+	* cedet/ede/proj.el (project-delete-target):
+	* cedet/ede/proj-elisp.el (ede-update-version-in-source)
+	(ede-proj-flush-autoconf):
+	* cedet/ede/pconf.el (ede-proj-configure-synchronize)
+	(ede-proj-configure-synchronize):
+	* cedet/ede/locate.el (ede-locate-file-in-project-impl):
+	* cedet/ede/linux.el (ede-linux-version):
+	* cedet/ede/emacs.el (ede-emacs-version):
+	* cedet/ede/dired.el (ede-dired-add-to-target):
+	* cedet/ede.el (ede-buffer-header-file, ede-find-target)
+	(ede-buffer-documentation-files, ede-project-buffers, ede-set)
+	(ede-target-buffers, ede-buffers, ede-make-project-local-variable):
+	* cedet/cedet-idutils.el (cedet-idutils-fnid-call):
+	(cedet-idutils-lid-call, cedet-idutils-expand-filename)
+	(cedet-idutils-version-check):
+	* cedet/cedet-global.el (cedet-gnu-global-call):
+	(cedet-gnu-global-expand-filename, cedet-gnu-global-root)
+	(cedet-gnu-global-version-check, cedet-gnu-global-scan-hits):
+	* cedet/cedet-cscope.el (cedet-cscope-call)
+	(cedet-cscope-expand-filename, cedet-cscope-version-check):
+	Use with-current-buffer.
+	* cedet/ede.el (ede-make-project-local-variable)
+	(ede-set-project-variables, ede-set): Use dolist.
+
 2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/ispell.el (ispell-skip-region-alist):
