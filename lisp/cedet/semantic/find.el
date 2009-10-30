@@ -640,8 +640,7 @@ the median calculation, and return nil."
   (save-excursion
     (if (markerp position) (set-buffer (marker-buffer position)))
     (let* ((stream (if (bufferp streamorbuffer)
-		       (save-excursion
-			 (set-buffer streamorbuffer)
+		       (with-current-buffer streamorbuffer
 			 (semantic-fetch-tags))
 		     streamorbuffer))
 	   (prev nil)

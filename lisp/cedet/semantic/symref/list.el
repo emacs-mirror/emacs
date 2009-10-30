@@ -217,8 +217,7 @@ BUTTON is the button that was clicked."
     (cond
      ((eq state 'closed)
       (toggle-read-only -1)
-      (save-excursion
-	(set-buffer buff)
+      (with-current-buffer buff
 	(dolist (H hits)
 	  (goto-char (point-min))
 	  (forward-line (1- H))

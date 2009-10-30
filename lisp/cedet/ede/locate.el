@@ -190,15 +190,13 @@ that crated this ede locat object."
 	 (b (get-buffer-create "*LOCATE*"))
 	 (cd default-directory)
 	 )
-    (save-excursion
-      (set-buffer b)
+    (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
     (apply 'call-process locate-command
 	   nil b nil
 	   searchstr nil)
-    (save-excursion
-      (set-buffer b)
+    (with-current-buffer b
       (split-string (buffer-string) "\n" t))
     )
   )

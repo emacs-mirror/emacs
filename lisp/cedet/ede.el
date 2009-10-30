@@ -1467,8 +1467,7 @@ Not all buffers need headers, so return nil if no applicable."
 (defmethod ede-buffer-header-file ((this ede-target) buffer)
   "There are no default header files in EDE.
 Do a quick check to see if there is a Header tag in this buffer."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (if (re-search-forward "::Header:: \\([a-zA-Z0-9.]+\\)" nil t)
 	(buffer-substring-no-properties (match-beginning 1)
 					(match-end 1))
@@ -1495,8 +1494,7 @@ Some projects may have multiple documentation files, so return a list."
 (defmethod ede-buffer-documentation-files ((this ede-target) buffer)
   "Check for some documentation files for THIS.
 Also do a quick check to see if there is a Documentation tag in this BUFFER."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (if (re-search-forward "::Documentation:: \\([a-zA-Z0-9.]+\\)" nil t)
 	(buffer-substring-no-properties (match-beginning 1)
 					(match-end 1))
@@ -1743,8 +1741,7 @@ could become slow in time."
 
 (defmethod ede-find-target ((proj ede-project) buffer)
   "Fetch the target in PROJ belonging to BUFFER or nil."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (or ede-object
 	(if (ede-buffer-mine proj buffer)
 	    proj
@@ -1781,8 +1778,7 @@ This includes buffers controlled by a specific target of PROJECT."
   (let ((bl (buffer-list))
 	(pl nil))
     (while bl
-      (save-excursion
-	(set-buffer (car bl))
+      (with-current-buffer (car bl)
 	(if (and ede-object (eq (ede-current-project) project))
 	    (setq pl (cons (car bl) pl))))
       (setq bl (cdr bl)))
@@ -1793,8 +1789,7 @@ This includes buffers controlled by a specific target of PROJECT."
   (let ((bl (buffer-list))
 	(pl nil))
     (while bl
-      (save-excursion
-	(set-buffer (car bl))
+      (with-current-buffer (car bl)
 	(if (if (listp ede-object)
 		(memq target ede-object)
 	      (eq ede-object target))
@@ -1807,8 +1802,7 @@ This includes buffers controlled by a specific target of PROJECT."
   (let ((bl (buffer-list))
 	(pl nil))
     (while bl
-      (save-excursion
-	(set-buffer (car bl))
+      (with-current-buffer (car bl)
 	(if ede-object
 	    (setq pl (cons (car bl) pl))))
       (setq bl (cdr bl)))
@@ -1897,22 +1891,18 @@ Return the first non-nil value returned by PROC."
       nil
     (oset project local-variables (cons (list variable)
 					(oref project local-variables)))
-    (mapcar (lambda (b) (save-excursion
-			  (set-buffer  b)
-			  (make-local-variable variable)))
-	    (ede-project-buffers project))))
+    (dolist (b (ede-project-buffers project))
+      (with-current-buffer b
+        (make-local-variable variable)))))
 
 (defmethod ede-set-project-variables ((project ede-project) &optional buffer)
   "Set variables local to PROJECT in BUFFER."
   (if (not buffer) (setq buffer (current-buffer)))
-  (save-excursion
-   (set-buffer buffer)
-   (mapcar (lambda (v)
-	     (make-local-variable (car v))
-	     ;; set it's value here?
-	     (set (car v) (cdr v))
-	     )
-	   (oref project local-variables))))
+  (with-current-buffer buffer
+    (dolist (v (oref project local-variables))
+      (make-local-variable (car v))
+      ;; set it's value here?
+      (set (car v) (cdr v)))))
 
 (defun ede-set (variable value &optional proj)
   "Set the project local VARIABLE to VALUE.
@@ -1923,10 +1913,9 @@ is the project to use, instead of `ede-current-project'."
     (if (and p (setq a (assoc variable (oref p local-variables))))
 	(progn
 	  (setcdr a value)
-	  (mapc (lambda (b) (save-excursion
-			      (set-buffer b)
-			      (set variable value)))
-		(ede-project-buffers p)))
+	  (dolist (b (ede-project-buffers p))
+            (with-current-buffer b
+              (set variable value))))
       (set variable value))
     (ede-commit-local-variables p))
   value)

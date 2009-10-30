@@ -88,8 +88,7 @@
   (let* ((full-filename (semanticdb-full-filename table))
 	 (buff (find-buffer-visiting full-filename)))
     (if buff
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  (semantic-sanity-check))
       ;; We can't use the usual semantic validity check, so hack our own.
       (semanticdb-table-oob-sanity-check (semanticdb-get-tags table)))))

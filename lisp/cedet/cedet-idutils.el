@@ -82,8 +82,7 @@ Return the created buffer with with program output."
   (let ((b (get-buffer-create "*CEDET fnid*"))
 	(cd default-directory)
 	)
-    (save-excursion
-      (set-buffer b)
+    (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
     (apply 'call-process cedet-idutils-file-command
@@ -97,8 +96,7 @@ Return the created buffer with with program output."
   (let ((b (get-buffer-create "*CEDET lid*"))
 	(cd default-directory)
 	)
-    (save-excursion
-      (set-buffer b)
+    (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
     (apply 'call-process cedet-idutils-token-command
@@ -112,8 +110,7 @@ Return the created buffer with with program output."
   "Expand the FILENAME with ID Utils.
 Return a filename relative to the default directory."
   (interactive "sFile: ")
-  (let ((ans (save-excursion
-	       (set-buffer (cedet-idutils-fnid-call (list filename)))
+  (let ((ans (with-current-buffer (cedet-idutils-fnid-call (list filename))
 	       (goto-char (point-min))
 	       (if (looking-at "[^ \n]*fnid: ")
 		   (error "ID Utils not available")
@@ -160,8 +157,7 @@ return nil."
 	  (when (interactive-p)
 	    (message "ID Utils not found."))
 	  nil)
-      (save-excursion
-	(set-buffer b)
+      (with-current-buffer b
 	(goto-char (point-min))
 	(re-search-forward "fnid - \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))

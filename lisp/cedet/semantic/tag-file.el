@@ -193,12 +193,10 @@ file prototypes belong in."
   (:override
    ;; Perform some default behaviors
    (if (and (fboundp 'ede-header-file) ede-minor-mode)
-       (save-excursion
-         (set-buffer buffer)
+       (with-current-buffer buffer
          (ede-header-file))
      ;; No EDE options for a quick answer.  Search.
-     (save-excursion
-       (set-buffer buffer)
+     (with-current-buffer buffer
        (if (re-search-forward "::Header:: \\([a-zA-Z0-9.]+\\)" nil t)
            (match-string 1))))))
 

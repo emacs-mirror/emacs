@@ -350,8 +350,7 @@ Disable to prevent lots of excessive parsing in idle time."
   "Do long-processing work for for BUFFER.
 Uses `semantic-safe' and returns the output.
 Returns t of all processing succeeded."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (not (and
 	  ;; Just in case
 	  (semantic-safe "Idle Work Parse Error: %S"
@@ -845,8 +844,7 @@ visible, then highlight it."
 	 (pulse-flag nil)
 	 )
     (cond ((semantic-overlay-p region)
-	   (save-excursion
-	     (set-buffer (semantic-overlay-buffer region))
+	   (with-current-buffer (semantic-overlay-buffer region)
 	     (goto-char (semantic-overlay-start region))
 	     (when (pos-visible-in-window-p
 		    (point) (get-buffer-window (current-buffer) 'visible))

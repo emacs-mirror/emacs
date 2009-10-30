@@ -72,8 +72,7 @@ DIR is the directory to search from."
 (defun ede-linux-version (dir)
   "Find the Linux version for the Linux src in DIR."
   (let ((buff (get-buffer-create " *linux-query*")))
-    (save-excursion
-      (set-buffer buff)
+    (with-current-buffer buff
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
       (insert-file-contents "Makefile" nil 0 512)

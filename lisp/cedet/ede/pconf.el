@@ -112,10 +112,10 @@ don't do it.  A value of nil means to just do it.")
     ;; Verify that we have a make system.
     (if (or (not (ede-expand-filename (ede-toplevel this) "Makefile"))
 	    ;; Now is this one of our old Makefiles?
-	    (save-excursion
-	      (set-buffer (find-file-noselect
-			   (ede-expand-filename (ede-toplevel this)
-						"Makefile" t) t))
+	    (with-current-buffer
+                (find-file-noselect
+                 (ede-expand-filename (ede-toplevel this)
+                                      "Makefile" t) t)
 	      (goto-char (point-min))
 	      ;; Here is the unique piece for our makefiles.
 	      (re-search-forward "For use with: make" nil t)))
@@ -128,8 +128,7 @@ don't do it.  A value of nil means to just do it.")
 	    (accept-process-output)
 	    (sit-for 1))
 
-	  (save-excursion
-	    (set-buffer "*compilation*")
+	  (with-current-buffer "*compilation*"
 	    (goto-char (point-max))
 
 	    (when (not (string= mode-line-process ":exit [0]"))

@@ -476,8 +476,7 @@ The symref TOOL should already contain the search criteria."
   "Parse the entire OUTPUTBUFFER of a symref tool.
 Calls the method `semantic-symref-parse-tool-output-one-line' over and
 over until it returns nil."
-  (save-excursion
-    (set-buffer outputbuffer)
+  (with-current-buffer outputbuffer
     (goto-char (point-min))
     (let ((result nil)
 	  (hit nil))

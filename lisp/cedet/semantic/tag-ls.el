@@ -49,8 +49,7 @@ search locally, then semanticdb for that tag (when enabled.)")
 (defun semantic-tag-calculate-parent-default (tag)
   "Attempt to calculate the parent of TAG."
   (when (semantic-tag-in-buffer-p tag)
-    (save-excursion
-      (set-buffer (semantic-tag-buffer tag))
+    (with-current-buffer (semantic-tag-buffer tag)
       (save-excursion
 	(goto-char (semantic-tag-start tag))
 	(semantic-current-tag-parent))

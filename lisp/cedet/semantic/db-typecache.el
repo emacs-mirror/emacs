@@ -540,8 +540,7 @@ If there isn't one, create it.
 
 (defun semanticdb-typecache-refresh-for-buffer (buffer)
   "Refresh the typecache for BUFFER."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let* ((tab semanticdb-current-table)
 	   ;(idx (semanticdb-get-table-index tab))
 	   (tc (semanticdb-get-typecache tab)))

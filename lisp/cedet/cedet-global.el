@@ -67,8 +67,7 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
   "Call GNU Global with the list of FLAGS."
   (let ((b (get-buffer-create "*CEDET Global*"))
 	(cd default-directory))
-    (save-excursion
-      (set-buffer b)
+    (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
     (apply 'call-process cedet-global-command
@@ -80,8 +79,7 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
   "Expand the FILENAME with GNU Global.
 Return a fully qualified filename."
   (interactive "sFile: ")
-  (let ((ans (save-excursion
-	       (set-buffer (cedet-gnu-global-call (list "-Pa" filename)))
+  (let ((ans (with-current-buffer (cedet-gnu-global-call (list "-Pa" filename))
 	       (goto-char (point-min))
 	       (if (looking-at "global: ")
 		   (error "GNU Global not available")
@@ -105,8 +103,7 @@ Return a fully qualified filename."
 If a default starting DIR is not specified, the current buffer's
 `default-directory' is used."
   (let ((default-directory (or dir default-directory)))
-    (save-excursion
-      (set-buffer (cedet-gnu-global-call (list "-pq")))
+    (with-current-buffer (cedet-gnu-global-call (list "-pq"))
       (goto-char (point-min))
       (when (not (eobp))
 	(file-name-as-directory
@@ -128,8 +125,7 @@ return nil."
 	  (when (interactive-p)
 	    (message "GNU Global not found."))
 	  nil)
-      (save-excursion
-	(set-buffer b)
+      (with-current-buffer b
 	(goto-char (point-min))
 	(re-search-forward "GNU GLOBAL \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))
@@ -147,8 +143,7 @@ return nil."
   "Scan all the hits from the GNU Global output BUFFER."
   (let ((hits nil)
 	(r1 "^\\([^ ]+\\) +\\([0-9]+\\) \\([^ ]+\\) "))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-min))
       (while (re-search-forward r1 nil t)
 	(setq hits (cons (cons (string-to-number (match-string 2))

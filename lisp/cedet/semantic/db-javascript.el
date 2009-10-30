@@ -147,8 +147,7 @@ Create one of our special tables that can act as an intermediary."
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
 Equivalent modes are specified by by `semantic-equivalent-major-modes'
 local variable."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (eq (or mode-local-active-mode major-mode) 'javascript-mode)))
 
 ;;; Usage

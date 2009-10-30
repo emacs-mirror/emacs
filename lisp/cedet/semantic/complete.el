@@ -947,8 +947,7 @@ Calculate the cache if there isn't one."
   "Calculate the completions for prefix from completionlist.
 Output must be in semanticdb Find result format."
   ;; Must output in semanticdb format
-  (let ((table (save-excursion
-		 (set-buffer (oref obj buffer))
+  (let ((table (with-current-buffer (oref obj buffer)
 		 semanticdb-current-table))
 	(result (semantic-find-tags-for-completion
 		 prefix
@@ -1227,8 +1226,7 @@ inserted into the current context.")
 	    (semantic-analyze-possible-completions (oref obj context))))
   ;; search our cached completion list.  make it look like a semanticdb
   ;; results type.
-  (list (cons (save-excursion
-		(set-buffer (oref (oref obj context) buffer))
+  (list (cons (with-current-buffer (oref (oref obj context) buffer)
 		semanticdb-current-table)
 	      (semantic-find-tags-for-completion
 	       prefix
@@ -1463,8 +1461,7 @@ one in the source buffer."
 		   (and table (semanticdb-get-buffer table)))))
       ;; If no buffer is provided, then we can make up a summary buffer.
       (when (not buf)
-	(save-excursion
-	  (set-buffer (get-buffer-create "*Completion Focus*"))
+	(with-current-buffer (get-buffer-create "*Completion Focus*")
 	  (erase-buffer)
 	  (insert "Focus on tag: \n")
 	  (insert (semantic-format-tag-summarize tag nil t) "\n\n")
@@ -1893,8 +1890,7 @@ prompts.  these are calculated from the CONTEXT variable passed in."
       :buffer (oref context buffer)
       :context context)
      (semantic-displayor-traditional-with-focus-highlight "simple")
-     (save-excursion
-       (set-buffer (oref context buffer))
+     (with-current-buffer (oref context buffer)
        (goto-char (cdr (oref context bounds)))
        (concat prompt (mapconcat 'identity syms ".")
 	       (if syms "." "")

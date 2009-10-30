@@ -64,9 +64,8 @@ their sources to VERSION."
 	   (oref this versionsource))
       (let ((vs (oref this versionsource)))
 	(while vs
-	  (save-excursion
-	    (set-buffer (find-file-noselect
-			 (ede-expand-filename this (car vs))))
+	  (with-current-buffer (find-file-noselect
+                                (ede-expand-filename this (car vs)))
 	    (goto-char (point-min))
 	    (let ((case-fold-search t))
 	      (if (re-search-forward "version:\\s-*\\([^ \t\n]+\\)" nil t)

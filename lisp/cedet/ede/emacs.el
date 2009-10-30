@@ -76,8 +76,7 @@ Return a tuple of ( EMACSNAME . VERSION )."
   (let ((buff (get-buffer-create " *emacs-query*"))
 	(emacs "Emacs")
 	(ver ""))
-    (save-excursion
-      (set-buffer buff)
+    (with-current-buffer buff
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
       ;(call-process "egrep" nil buff nil "-n" "-e" "^version=" "Makefile")

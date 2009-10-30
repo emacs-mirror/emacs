@@ -1877,8 +1877,7 @@ Optional argument COLOR determines if color is added to the text."
   (if (semantic-grammar-in-lisp-p)
       (with-mode-local emacs-lisp-mode
 	(semantic-analyze-possible-completions context))
-    (save-excursion
-      (set-buffer (oref context buffer))
+    (with-current-buffer (oref context buffer)
       (let* ((prefix (car (oref context :prefix)))
 	     (completetext (cond ((semantic-tag-p prefix)
 				  (semantic-tag-name prefix))

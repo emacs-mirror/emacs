@@ -151,9 +151,8 @@ is found, such as a `-version' variable, or the standard header."
       (let ((vs (oref this versionsource))
 	    (match nil))
 	(while vs
-	  (save-excursion
-	    (set-buffer (find-file-noselect
-			 (ede-expand-filename this (car vs))))
+	  (with-current-buffer (find-file-noselect
+                                (ede-expand-filename this (car vs)))
 	    (goto-char (point-min))
 	    (let ((case-fold-search t))
 	      (if (re-search-forward "-version\\s-+\"\\([^\"]+\\)\"" nil t)
@@ -244,8 +243,7 @@ is found, such as a `-version' variable, or the standard header."
   (let ((ec (ede-expand-filename this "elisp-comp" 'newfile))
 	)
     (if (and ec (file-exists-p ec))
-	(save-excursion
-	  (set-buffer (find-file-noselect ec t))
+	(with-current-buffer (find-file-noselect ec t)
 	  (goto-char (point-min))
 	  (while (re-search-forward "(cons \\([^ ]+\\) load-path)"
 				    nil t)

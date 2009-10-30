@@ -407,8 +407,7 @@ Argument TARGET is the project we are completing customization on."
       (let* ((default-directory (oref this path))
 	     (b (get-file-buffer (car ts))))
 	(if b
-	    (save-excursion
-	      (set-buffer b)
+	    (with-current-buffer b
 	      (if (eq ede-object this)
 		  (progn
 		    (setq ede-object nil)

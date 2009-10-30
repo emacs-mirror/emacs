@@ -281,8 +281,7 @@ Restore the overlays after writting.
 Argument OBJ is the object to write."
   (when (semanticdb-live-p obj)
     (when (semanticdb-in-buffer-p obj)
-      (save-excursion
-	(set-buffer (semanticdb-in-buffer-p obj))
+      (with-current-buffer (semanticdb-in-buffer-p obj)
 
 	;; Make sure all our tag lists are up to date.
 	(semantic-fetch-tags)

@@ -90,8 +90,7 @@ negative, force off."
       (project-add-file target (car files))
       ;; Find the buffer for this files, and set it's ede-object
       (if (get-file-buffer (car files))
-	  (save-excursion
-	    (set-buffer (get-file-buffer (car files)))
+	  (with-current-buffer (get-file-buffer (car files))
 	    (setq ede-object nil)
 	    (setq ede-object (ede-buffer-object (current-buffer)))))
       ;; Increment.

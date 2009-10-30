@@ -864,8 +864,7 @@ and variable state from the current buffer."
 			   semantic-lex-spp-expanded-macro-stack
 			   ))
 	 )
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (erase-buffer)
       ;; Below is a painful hack to make sure everything is setup correctly.
       (when (not (eq major-mode mode))

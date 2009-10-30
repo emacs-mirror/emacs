@@ -391,8 +391,7 @@ Returns the tag list, or t for an error."
 	;; Successful DB query.
 	nil
       ;; No database, do it the old way.
-      (save-excursion
-	(set-buffer (find-file-noselect file))
+      (with-current-buffer (find-file-noselect file)
 	(if (or (not (featurep 'semantic))
 		(not semantic--parse-table))
 	    (setq out t)

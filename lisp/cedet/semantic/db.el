@@ -552,8 +552,7 @@ The file associated with OBJ does not need to be in a buffer."
 	 (buff (semanticdb-in-buffer-p obj))
 	 )
     (if buff
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  ;; Use semantic's magic tracker to determine of the buffer is up
 	  ;; to date or not.
 	  (not (semantic-parse-tree-up-to-date-p))

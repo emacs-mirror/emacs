@@ -129,8 +129,7 @@ Lays claim to all -by.el, and -wy.el files."
 	 (proj (ede-target-parent obj))
 	 (default-directory (oref proj directory)))
     (mapc (lambda (src)
-	    (save-excursion
-	      (set-buffer (find-file-noselect src))
+	    (with-current-buffer (find-file-noselect src)
 	      (save-excursion
 		(semantic-grammar-create-package))
 	      (save-buffer)
@@ -162,8 +161,7 @@ Lays claim to all -by.el, and -wy.el files."
       (concat (ede-pmake-varname this) "_SEMANTIC_GRAMMAR_EL")
     (insert
      (mapconcat (lambda (src)
-		  (save-excursion
-		    (set-buffer (find-file-noselect src))
+		  (with-current-buffer (find-file-noselect src)
 		    (concat (semantic-grammar-package) ".el")))
 		(oref this source)
 		" ")))

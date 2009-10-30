@@ -469,12 +469,11 @@ a new path from the provided PATH."
 		 incfname (semanticdb-full-filename path))
 	   )
 	  ((bufferp path)
-	   (save-excursion
-	     (set-buffer path)
+	   (with-current-buffer path
 	     (semantic-refresh-tags-safe))
 	   (setq includetags (semantic-find-tags-included path)
-		 curtable (save-excursion (set-buffer path)
-					  semanticdb-current-table)
+		 curtable (with-current-buffer path
+                            semanticdb-current-table)
 		 incfname (buffer-file-name path)))
 	  (t
 	   (setq includetags (semantic-find-tags-included path))
@@ -1048,8 +1047,7 @@ Returns result."
   "Reset the log buffer."
   (interactive)
   (when semanticdb-find-log-flag
-    (save-excursion
-      (set-buffer (get-buffer-create semanticdb-find-log-buffer-name))
+    (with-current-buffer (get-buffer-create semanticdb-find-log-buffer-name)
       (erase-buffer)
       )))
 
@@ -1069,8 +1067,7 @@ Returns result."
 (defun semanticdb-find-log-new-search (forwhat)
   "Start a new search FORWHAT."
   (when semanticdb-find-log-flag
-    (save-excursion
-      (set-buffer (get-buffer-create semanticdb-find-log-buffer-name))
+    (with-current-buffer (get-buffer-create semanticdb-find-log-buffer-name)
       (insert (format "New Search: %S\n" forwhat))
       )
     (semanticdb-find-log-move-to-end)))
@@ -1078,8 +1075,7 @@ Returns result."
 (defun semanticdb-find-log-activity (table result)
   "Log that TABLE has been searched and RESULT was found."
   (when semanticdb-find-log-flag
-    (save-excursion
-      (set-buffer semanticdb-find-log-buffer-name)
+    (with-current-buffer semanticdb-find-log-buffer-name
       (insert "Table: " (object-print table)
 	      " Result: " (int-to-string (length result)) " tags"
 	      "\n")

@@ -40,8 +40,7 @@ to give to the program."
   ;;
   (let ((buff (get-buffer-create " *gcc-query*"))
         (old-lc-messages (getenv "LC_ALL")))
-    (save-excursion
-      (set-buffer buff)
+    (with-current-buffer buff
       (erase-buffer)
       (setenv "LC_ALL" "C")
       (condition-case nil

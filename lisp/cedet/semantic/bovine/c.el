@@ -703,8 +703,7 @@ the regular parser."
 	 (symtext (semantic-lex-token-text lexicaltoken))
 	 (macros (get-text-property 0 'macros symtext))
 	 )
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (erase-buffer)
       (when (not (eq major-mode mode))
 	(save-match-data

@@ -104,8 +104,7 @@ DIRECTORY is the current directory, which is ignored, and ZERO is 0."
 	    ))
       (error nil))
     (select-frame cf)
-    (save-excursion
-      (set-buffer speedbar-buffer)
+    (with-current-buffer speedbar-buffer
       ;; If we have something, do something spiff with it.
       (erase-buffer)
       (speedbar-insert-separator "Buffer/Function")
@@ -288,16 +287,14 @@ TEXT, TAG, and INDENT are speedbar function arguments."
 	  (setq ob (current-buffer))
 	  (with-output-to-temp-buffer "*Tag Information*"
 	    ;; Output something about this tag:
-	    (save-excursion
-	      (set-buffer "*Tag Information*")
+	    (with-current-buffer "*Tag Information*"
 	      (goto-char (point-max))
 	      (insert
 	       (semantic-format-tag-prototype tag nil t)
 	       "\n")
 	      (let ((typetok
 		     (condition-case nil
-			 (save-excursion
-			   (set-buffer ob)
+			 (with-current-buffer ob
 			   ;; @todo - We need a context to derive a scope from.
 			   (semantic-analyze-tag-type tag nil))
 		       (error nil))))

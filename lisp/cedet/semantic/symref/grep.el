@@ -156,8 +156,7 @@ GREPPATTERN is the pattern used by grep."
 	 (ans nil)
 	 )
 
-    (save-excursion
-      (set-buffer b)
+    (with-current-buffer b
       (erase-buffer)
       (setq default-directory rootdir)
 
