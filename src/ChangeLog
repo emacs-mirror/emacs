@@ -1,3 +1,8 @@
+2009-10-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Redefine to waste less pure
+	space.
+
 2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1470000.
