@@ -193,14 +193,22 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS
-/* We need a little extra space, see ../../lisp/loadup.el.  */
-#define SYSTEM_PURESIZE_EXTRA 15000
+/* We need a little extra space, see ../../lisp/loadup.el and the
+   commentary below, in the non-X branch.  The 140KB number was
+   measured on GNU/Linux and on MS-WIndows.  */
+#define SYSTEM_PURESIZE_EXTRA (-170000+140000)
 #define LIBX11_SYSTEM -lxext -lsys
 #else
-/* We may need a little extra space, see ../../lisp/loadup.el.  As of
-   20081010, 1193600 bytes are used at dump time, which is even less
-   than BASE_PURESIZE.  So the extra below is just paranoia.  */
-#define SYSTEM_PURESIZE_EXTRA 10000
+/* We need a little extra space, see ../../lisp/loadup.el.
+   As of 20091024, DOS-specific files use up 62KB of pure space.  But
+   overall, we end up wasting 130KB of pure space, because
+   BASE_PURESIZE starts at 1.47MB, while we need only 1.3MB (including
+   non-DOS specific files and load history; the latter is about 55K,
+   but depends on the depth of the top-level Emacs directory in the
+   directory tree).  Given the unknown policy of different DPMI
+   hosts regarding loading of untouched pages, I'm not going to risk
+   enlarging Emacs footprint by another 100+ KBytes.  */
+#define SYSTEM_PURESIZE_EXTRA (-170000+65000)
 #endif
 
 /* Tell the garbage collector that setjmp is known to save all
