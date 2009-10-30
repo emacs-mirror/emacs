@@ -728,6 +728,11 @@ stream.  Standard error output is discarded."
 
 ;;; Revision completion
 
+(eval-and-compile
+  (defconst vc-bzr-revision-keywords
+    '("revno" "revid" "last" "before"
+      "tag" "date" "ancestor" "branch" "submit")))
+
 (defun vc-bzr-revision-completion-table (files)
   (lexical-let ((files files))
     ;; What about using `files'?!?  --Stef
@@ -762,20 +767,25 @@ stream.  Standard error output is discarded."
               (push (match-string-no-properties 1) table)))
           (completion-table-with-context prefix table tag pred action)))
 
-       ((string-match "\\`\\(revid\\):" string)
-        ;; FIXME: How can I get a list of revision ids?
-        )
-       ((eq (car-safe action) 'boundaries)
-        (list* 'boundaries
-               (string-match "[^:]*\\'" string)
-               (string-match ":" (cdr action))))
+       ((string-match "\\`\\([a-z]+\\):" string)
+        ;; no actual completion for the remaining keywords.
+        (completion-table-with-context (substring string 0 (match-end 0))
+                                       (if (member (match-string 1 string)
+                                                   vc-bzr-revision-keywords)
+                                           ;; If it's a valid keyword,
+                                           ;; use a non-empty table to
+                                           ;; indicate it.
+                                           '("") nil)
+                                       (substring string (match-end 0))
+                                       pred
+                                       action))
        (t
         ;; Could use completion-table-with-terminator, except that it
         ;; currently doesn't work right w.r.t pcm and doesn't give
         ;; the *Completions* output we want.
-        (complete-with-action action '("revno:" "revid:" "last:" "before:"
-                                       "tag:" "date:" "ancestor:" "branch:"
-                                       "submit:")
+        (complete-with-action action (eval-when-compile
+                                       (mapcar (lambda (s) (concat s ":"))
+                                               vc-bzr-revision-keywords))
                               string pred))))))
 
 (eval-after-load "vc"

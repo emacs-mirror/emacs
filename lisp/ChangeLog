@@ -1,3 +1,9 @@
+2009-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-revision-keywords): New var.
+	(vc-bzr-revision-completion-table): Use it to fix completion of "s:"
+	to "submit:".
+
 2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/ispell.el (ispell-skip-region-alist):
