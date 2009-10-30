@@ -308,7 +308,7 @@ of `inferior-lisp-program').  Runs the hooks from
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
   (pop-to-buffer "*inferior-lisp*"))
-;;;###autoload (add-hook 'same-window-buffer-names "*inferior-lisp*")
+;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*inferior-lisp*"))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)

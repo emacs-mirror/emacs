@@ -248,7 +248,7 @@ is run).
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
   (pop-to-buffer "*scheme*"))
-;;;###autoload (add-hook 'same-window-buffer-names "*scheme*")
+;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*scheme*"))
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.

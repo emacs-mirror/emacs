@@ -87,8 +87,8 @@
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("python" . python-mode))
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
-(add-to-list 'same-window-buffer-names "*Python*")
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.py\\'")  'python-mode))
+(add-to-list 'same-window-buffer-names (purecopy "*Python*"))
 
 ;;;; Font lock
 

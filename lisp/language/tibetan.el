@@ -568,6 +568,7 @@ The result of matching is to be used for indexing alists at conversion
 from a roman transcription to the corresponding Tibetan character.")
 
 (defvar tibetan-precomposed-regexp
+  (purecopy
   (let ((l tibetan-precomposed-transcription-alist)
 	temp)
     (setq temp "^\\(")
@@ -578,12 +579,13 @@ from a roman transcription to the corresponding Tibetan character.")
       (setq temp
 	    (concat temp "\\|" (car (car l))))
       (setq l (cdr l)))
-    (concat temp "\\)"))
+    (concat temp "\\)")))
   "Regexp string to match a romanized Tibetan complex consonant.
 The result of matching is to be used for indexing alists when the input key
 from an input method is converted to the corresponding precomposed glyph.")
 
 (defvar tibetan-precomposition-rule-regexp
+  (purecopy
   (let ((l tibetan-precomposition-rule-alist)
 	temp)
     (setq temp "\\(")
@@ -592,7 +594,7 @@ from an input method is converted to the corresponding precomposed glyph.")
     (while l
       (setq temp (concat temp "\\|" (car (car l))))
       (setq l (cdr l)))
-    (concat temp "\\)"))
+    (concat temp "\\)")))
   "Regexp string to match a sequence of Tibetan consonantic components, i.e.,
 one base consonant and one or more subjoined consonants.
 The result of matching is to be used for indexing alist when the component

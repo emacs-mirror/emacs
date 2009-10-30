@@ -382,9 +382,9 @@ from being initialized."
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 
-(defvar pure-space-overflow-message "\
+(defvar pure-space-overflow-message (purecopy "\
 Warning Warning!!!  Pure space overflow    !!!Warning Warning
-\(See the node Pure Storage in the Lisp manual for details.)\n")
+\(See the node Pure Storage in the Lisp manual for details.)\n"))
 
 (defcustom tutorial-directory
   (file-name-as-directory (expand-file-name "tutorials" data-directory))

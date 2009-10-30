@@ -1,3 +1,9 @@
+2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1470000.
+
+	* lread.c (Fload): Purecopy the file name when building Vpreloaded_file_list.
+
 2009-10-29  Jason Rumney  <jasonr@wanchan.jasonrumney.net>
 
 	* w32fns.c (syms_of_w32fns): Change default value of

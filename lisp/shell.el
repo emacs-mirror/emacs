@@ -575,7 +575,7 @@ Otherwise, one argument `-i' is passed to the shell.
   buffer)
 
 ;; Don't do this when shell.el is loaded, only while dumping.
-;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
+;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*shell*"))
 
 ;;; Directory tracking
 ;;

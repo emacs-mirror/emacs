@@ -4400,7 +4400,7 @@ This requires the external program `diff' to be in your `exec-path'."
           (recursive-edit))
         ;; Return nil to ask about BUF again.
         nil)
-     "view this buffer")
+     ,(purecopy "view this buffer"))
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
@@ -4413,7 +4413,7 @@ This requires the external program `diff' to be in your `exec-path'."
                (recursive-edit)))
            ;; Return nil to ask about BUF again.
            nil)
-	"view changes in this buffer"))
+	,(purecopy "view changes in this buffer")))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 

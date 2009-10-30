@@ -5228,9 +5228,9 @@ if long lines are truncated."
   (message "Word wrapping %s"
 	   (if word-wrap "enabled" "disabled")))
 
-(defvar overwrite-mode-textual " Ovwrt"
+(defvar overwrite-mode-textual (purecopy " Ovwrt")
   "The string displayed in the mode line when in overwrite mode.")
-(defvar overwrite-mode-binary " Bin Ovwrt"
+(defvar overwrite-mode-binary (purecopy " Bin Ovwrt")
   "The string displayed in the mode line when in binary overwrite mode.")
 
 (defun overwrite-mode (arg)

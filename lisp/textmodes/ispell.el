@@ -1393,16 +1393,16 @@ The last occurring definition in the buffer will be used.")
 
 ;;;###autoload
 (defvar ispell-skip-region-alist
-  '((ispell-words-keyword	   forward-line)
+  `((ispell-words-keyword	   forward-line)
     (ispell-dictionary-keyword	   forward-line)
     (ispell-pdict-keyword	   forward-line)
     (ispell-parsing-keyword	   forward-line)
-    ("^---*BEGIN PGP [A-Z ]*--*" . "^---*END PGP [A-Z ]*--*")
+    (,(purecopy "^---*BEGIN PGP [A-Z ]*--*") . ,(purecopy "^---*END PGP [A-Z ]*--*"))
     ;; assume multiline uuencoded file? "\nM.*$"?
-    ("^begin [0-9][0-9][0-9] [^ \t]+$" . "\nend\n")
-    ("^%!PS-Adobe-[123].0"	 . "\n%%EOF\n")
-    ("^---* \\(Start of \\)?[Ff]orwarded [Mm]essage"
-     . "^---* End of [Ff]orwarded [Mm]essage")
+    (,(purecopy "^begin [0-9][0-9][0-9] [^ \t]+$") . ,(purecopy "\nend\n"))
+    (,(purecopy "^%!PS-Adobe-[123].0")	 . ,(purecopy "\n%%EOF\n"))
+    (,(purecopy "^---* \\(Start of \\)?[Ff]orwarded [Mm]essage")
+     . ,(purecopy "^---* End of [Ff]orwarded [Mm]essage"))
     ;; Matches e-mail addresses, file names, http addresses, etc.  The
     ;; `-+' `_+' patterns are necessary for performance reasons when
     ;; `-' or `_' part of word syntax.

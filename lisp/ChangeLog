@@ -1,3 +1,23 @@
+2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/ispell.el (ispell-skip-region-alist):
+	* international/mule-conf.el (eight-bit):
+	* international/fontset.el (font-encoding-alist):
+	* startup.el (pure-space-overflow-message):
+	* simple.el (overwrite-mode-textual, overwrite-mode-binary):
+	* paths.el (gnus-nntp-service, rmail-spool-directory)
+	(term-file-prefix):
+	* files.el (save-some-buffers-action-alist):
+	* cmuscheme.el (same-window-buffer-names):
+	* ielm.el (same-window-buffer-names):
+	* shell.el (same-window-buffer-names):
+	* mail/sendmail.el (same-window-buffer-names):
+	* progmodes/inf-lisp.el (same-window-buffer-names):
+	* bindings.el (mode-line-client)
+	(mode-line-column-line-number-mode-map):
+	* language/tibetan.el (tibetan-precomposition-rule-regexp)
+	(tibetan-precomposed-regexp): Purecopy string arguments.
+
 2009-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calc/calc.el (calc, calc-refresh, calc-trail-buffer, calc-record)

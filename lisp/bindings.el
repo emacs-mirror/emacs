@@ -151,7 +151,7 @@ corresponding to the mode line clicked."
 (defvar mode-line-client
   `(""
     (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
-		 help-echo "emacsclient frame"))
+		 help-echo ,(purecopy "emacsclient frame")))
   "Mode-line control for identifying emacsclient frames.")
 ;;;###autoload
 (put 'mode-line-client 'risky-local-variable t)
@@ -315,11 +315,11 @@ Keymap to display on minor modes.")
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
     (define-key menu-map [line-number-mode]
       `(menu-item ,(purecopy "Display Line Numbers") line-number-mode
-		  :help "Toggle displaying line numbers in the mode-line"
+		  :help ,(purecopy "Toggle displaying line numbers in the mode-line")
 		  :button (:toggle . line-number-mode)))
     (define-key menu-map [column-number-mode]
       `(menu-item ,(purecopy "Display Column Numbers") column-number-mode
-		  :help "Toggle displaying column numbers in the mode-line"
+		  :help ,(purecopy "Toggle displaying column numbers in the mode-line")
 		  :button (:toggle . column-number-mode)))
     (define-key map [mode-line down-mouse-1] menu-map)
     map) "\
