@@ -1,3 +1,8 @@
+2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mule.texi (Charsets): Numerous copyedits.  Don't discuss the
+	`charset' property, which is irrelevant to the user manual (Bug#3526).
+
 2009-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* trouble.texi (DEL Does Not Delete): Fix typo.
