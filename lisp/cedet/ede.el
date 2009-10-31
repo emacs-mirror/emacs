@@ -585,27 +585,31 @@ Argument LIST-O-O is the list of objects to choose from."
 ;; Activate the EDE items in cedet-menu-map
 
 (define-key cedet-menu-map [ede-find-file]
-  '(menu-item "Find File in Project..." ede-find-file :enable ede-object))
+  '(menu-item "Find File in Project..." ede-find-file :enable ede-object
+	      :visible global-ede-mode))
 (define-key cedet-menu-map [ede-speedbar]
-  '(menu-item "View Project Tree" ede-speedbar :enable ede-object))
+  '(menu-item "View Project Tree" ede-speedbar :enable ede-object
+	      :visible global-ede-mode))
 (define-key cedet-menu-map [ede]
-  '(menu-item "Load Project" ede))
+  '(menu-item "Load Project" ede
+	      :visible global-ede-mode))
 (define-key cedet-menu-map [ede-new]
   '(menu-item "Create Project" ede-new
-	      :enable (not ede-object)))
+	      :enable (not ede-object)
+	      :visible global-ede-mode))
 (define-key cedet-menu-map [ede-target-options]
   '(menu-item "Target Options" ede-target-options
-	      :filter ede-target-forms-menu))
+	      :filter ede-target-forms-menu
+	      :visible global-ede-mode))
 (define-key cedet-menu-map [ede-project-options]
   '(menu-item "Project Options" ede-project-options
-	      :filter ede-project-forms-menu))
+	      :filter ede-project-forms-menu
+	      :visible global-ede-mode))
 (define-key cedet-menu-map [ede-build-forms-menu]
   '(menu-item "Build Project" ede-build-forms-menu
 	      :filter ede-build-forms-menu
-	      :enable ede-object))
-(define-key cedet-menu-map [semantic-menu-separator] 'undefined)
-(define-key cedet-menu-map [cedet-menu-separator] 'undefined)
-(define-key cedet-menu-map [ede-menu-separator] '("--"))
+	      :enable ede-object
+	      :visible global-ede-mode))
 
 (defun ede-menu-obj-of-class-p (class)
   "Return non-nil if some member of `ede-object' is a child of CLASS."
@@ -841,6 +845,8 @@ an EDE controlled project."
   (if global-ede-mode
       ;; Turn on global-ede-mode
       (progn
+	(if semantic-mode
+	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
 	(add-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
 	(add-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
 	(add-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
@@ -850,6 +856,7 @@ an EDE controlled project."
 	(ede-load-cache)
 	(ede-reset-all-buffers 1))
     ;; Turn off global-ede-mode
+    (define-key cedet-menu-map [cedet-menu-separator] nil)
     (remove-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
     (remove-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
     (remove-hook 'ecb-source-path-functions 'ede-ecb-project-paths)

@@ -1,3 +1,14 @@
+2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-tools-menu): Add Semantic and EDE menu
+	items.
+
+	* cedet/cedet.el (cedet-menu-map): Remove Semantic and EDE menu
+	items.
+
+	* cedet/ede.el (ede-minor-mode):
+	* cedet/semantic.el (semantic-mode): Toggle menu separators.
+
 2009-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/two-column.el (2C-split):

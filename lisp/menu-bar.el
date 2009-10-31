@@ -1326,6 +1326,18 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [separator-prog]
   '("--"))
 
+(define-key menu-bar-tools-menu [semantic]
+  `(menu-item ,(purecopy "Source Code Parsers (Semantic)")
+	      semantic-mode
+	      :help ,(purecopy "Toggle automatic parsing in source code buffers (Semantic mode)")
+	      :button (:toggle . (bound-and-true-p semantic-mode))))
+
+(define-key menu-bar-tools-menu [ede]
+  `(menu-item ,(purecopy "Project support (EDE)")
+	      global-ede-mode
+	      :help ,(purecopy "Toggle the Emacs Development Environment (Global EDE mode)")
+	      :button (:toggle . (bound-and-true-p global-ede-mode))))
+
 (define-key menu-bar-tools-menu [gdb]
   `(menu-item ,(purecopy "Debugger (GDB)...") gdb
 	      :help ,(purecopy "Debug a program from within Emacs with GDB")))

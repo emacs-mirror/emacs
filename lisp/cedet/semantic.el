@@ -1002,10 +1002,7 @@ Throw away all the old tags, and recreate the tag database."
     '(menu-item "Reparse When Idle" global-semantic-idle-scheduler-mode
 		:help "Keep a buffer's parse tree up to date when idle"
 		:visible semantic-mode
-		:button (:toggle . global-semantic-idle-scheduler-mode)))
-  (define-key cedet-menu-map [ede-menu-separator] 'undefined)
-  (define-key cedet-menu-map [cedet-menu-separator] 'undefined)
-  (define-key cedet-menu-map [semantic-menu-separator] '("--")))
+		:button (:toggle . global-semantic-idle-scheduler-mode))))
 
 ;; The `semantic-mode' command, in conjuction with the
 ;; `semantic-default-submodes' variable, toggles Semantic's various
@@ -1076,11 +1073,15 @@ Semantic mode.
 	    (require 'semantic/db-ebrowse)
 	    (semanticdb-load-ebrowse-caches)))
 	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+	(if global-ede-mode
+	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
 	(dolist (b (buffer-list))
 	  (with-current-buffer b
 	    (semantic-new-buffer-fcn))))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+    (define-key cedet-menu-map [cedet-menu-separator] nil)
+    (define-key cedet-menu-map [semantic-options-separator] nil)
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
       (if (and (boundp mode) (eval mode))
