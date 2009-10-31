@@ -499,7 +499,11 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
 	;; to get the right value of window-width in list-colors-print
 	;; after the buffer is displayed.
 	(add-hook 'temp-buffer-show-hook
-		  (lambda () (list-colors-print list)) nil t)))))
+		  (lambda ()
+		    (set-buffer-modified-p
+		     (prog1 (buffer-modified-p)
+		       (list-colors-print list))))
+		  nil t)))))
 
 (defun list-colors-print (list)
   (dolist (color list)
