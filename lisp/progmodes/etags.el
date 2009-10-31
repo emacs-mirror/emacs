@@ -1402,7 +1402,8 @@ hits the start of file."
 				      (tag-find-file-of-tag (button-get button 'file-path))
 				      (widen)
 				      (funcall goto-func tag-info)))
-			  'face 'tags-tag-face
+			  'follow-link t
+			  'face tags-tag-face
 			  'type 'button))
       (terpri)
       (forward-line 1))
@@ -1436,6 +1437,7 @@ hits the start of file."
 								    (button-get button 'item)))
 					  'item sn
 					  'face tags-tag-face
+					  'follow-link t
 					  'type 'button)
                              (terpri))))))
         (when (symbolp symbs)
@@ -1491,7 +1493,8 @@ hits the start of file."
 					      (tag-find-file-of-tag (button-get button 'file-path))
 					      (widen)
 					      (funcall goto-func tag-info)))
-				  'face 'tags-tag-face
+				  'follow-link t
+				  'face tags-tag-face
 				  'type 'button)))
 	  (princ (format "- %s" file-label))
 	  (with-current-buffer standard-output
@@ -1502,9 +1505,9 @@ hits the start of file."
 					;; Get the local value in the tags table
 					;; buffer before switching buffers.
 					(goto-char (point-min)))
-			      'face 'tags-tag-face
-			      'type 'button))
-	  ))
+			      'follow-link t
+			      'face tags-tag-face
+			      'type 'button))))
       (terpri)
       (forward-line 1))
     (message nil))
@@ -1933,6 +1936,7 @@ directory specification."
 
 (define-button-type 'tags-select-tags-table
   'action 'select-tags-table-select
+  'follow-link t
   'help-echo "RET, t or mouse-2: select tags table")
 
 ;; XXX If a file is in multiple tables, selection may get the wrong one.

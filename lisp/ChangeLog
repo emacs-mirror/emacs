@@ -1,5 +1,11 @@
 2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/etags.el (etags-list-tags, etags-tags-apropos): Fix
+	face property (Bug#4834).
+	(etags-list-tags, etags-tags-apropos-additional)
+	(etags-tags-apropos, tags-select-tags-table): Add follow-link
+	property.
+
 	* menu-bar.el (menu-bar-tools-menu): Add Semantic and EDE menu
 	items.
 
