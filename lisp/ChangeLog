@@ -1,5 +1,7 @@
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug): Request `emacs -Q' recipes.
+
 	* emacs-lisp/bytecomp.el (byte-compile-warning-types)
 	(byte-compile-warnings): Add `constants' as an option.
 	(byte-compile-callargs-warn, byte-compile-arglist-warn)

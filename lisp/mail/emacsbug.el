@@ -7,7 +7,6 @@
 ;; Maintainer: FSF
 ;; Keywords: maint mail
 
-;; Not fully installed because it can work only on Internet hosts.
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -130,7 +129,8 @@ usually do not have translators to read other languages for them.\n\n")
 	(insert ",\nand to the gnu.emacs.bug news group.\n\n")))
 
     (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug:\n\n")
+	    "and the precise symptoms of the bug.  If you can, give\n"
+	    "a recipe starting from `emacs -Q':\n\n")
     (add-text-properties (point) (save-excursion (mail-text) (point))
                          prompt-properties)
 
