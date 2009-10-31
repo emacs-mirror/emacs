@@ -39,6 +39,9 @@
       ans)
     ))
 
+;; In semantic-imenu.el, not part of Emacs.
+(defvar semantic-imenu-summary-function)
+
 ;;;###autoload
 (defun srecode-template-setup-parser ()
   "Setup buffer for parse."

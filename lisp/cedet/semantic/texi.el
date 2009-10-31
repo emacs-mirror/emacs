@@ -447,6 +447,11 @@ that start with that symbol."
 
 ;;; Parser Setup
 ;;
+;; In semantic-imenu.el, not part of Emacs.
+(defvar semantic-imenu-expandable-tag-classes)
+(defvar semantic-imenu-bucketize-file)
+(defvar semantic-imenu-bucketize-type-members)
+
 (defun semantic-default-texi-setup ()
   "Set up a buffer for parsing of Texinfo files."
   ;; This will use our parser.

@@ -1,3 +1,11 @@
+2009-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* cedet/srecode/template.el, cedet/semantic/wisent/javascript.el:
+	* cedet/semantic/wisent/java-tags.el, cedet/semantic/texi.el:
+	* cedet/semantic/html.el:
+	Suppress harmless warnings about setting up semantic-imenu (not
+	part of Emacs) variables.
+
 2009-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-revision-keywords): New var.

@@ -75,6 +75,9 @@ This function overrides `get-local-variables'."
 ;;
 ;; This sets up the javascript parser
 
+;; In semantic-imenu.el, not part of Emacs.
+(defvar semantic-imenu-summary-function)
+
 ;;;###autoload
 (defun wisent-javascript-setup-parser ()
   "Setup buffer for parse."

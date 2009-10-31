@@ -222,6 +222,11 @@ tag with greater section value than LEVEL is found."
   "The children TAG expands to."
   (semantic-html-components tag))
 
+;; In semantic-imenu.el, not part of Emacs.
+(defvar semantic-imenu-expandable-tag-classes)
+(defvar semantic-imenu-bucketize-file)
+(defvar semantic-imenu-bucketize-type-members)
+
 ;;;###autoload
 (defun semantic-default-html-setup ()
   "Set up a buffer for parsing of HTML files."

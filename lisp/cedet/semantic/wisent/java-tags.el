@@ -1,7 +1,7 @@
 ;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs
 
-;;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -77,6 +77,9 @@ This function override `get-local-variables'."
 ;;;;
 ;;;; Semantic integration of the Java LALR parser
 ;;;;
+
+;; In semantic-imenu.el, not part of Emacs.
+(defvar semantic-imenu-summary-function)
 
 ;;;###autoload
 (defun wisent-java-default-setup ()
