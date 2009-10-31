@@ -505,14 +505,16 @@ Use `todo-categories' instead.")
 (defun todo-edit-item ()
   "Edit current TODO list entry."
   (interactive)
-  (let ((item (todo-item-string)))
-    (if (todo-string-multiline-p item)
-        (todo-edit-multiline)
-      (let ((new (read-from-minibuffer "Edit: " item)))
-        (todo-remove-item)
-        (insert new "\n")
-        (todo-backward-item)
-        (message "")))))
+  (if (< (point-min) (point-max))
+      (let ((item (todo-item-string)))
+	(if (todo-string-multiline-p item)
+	    (todo-edit-multiline)
+	  (let ((new (read-from-minibuffer "Edit: " item)))
+	    (todo-remove-item)
+	    (insert new "\n")
+	    (todo-backward-item)
+	    (message ""))))
+    (error "No TODO list entry to edit")))
 (defalias 'todo-cmd-edit 'todo-edit-item)
 
 (defun todo-edit-multiline ()
@@ -745,34 +747,35 @@ between each category."
                       (regexp-quote todo-prefix) " " todo-category-sep "\n")
             (concat todo-category-end "\n"))))
         beg end)
-    (todo-show)
     (save-excursion
+      (todo-show)
       (save-restriction
-        (widen)
-        (copy-to-buffer todo-print-buffer-name (point-min) (point-max))
-        (set-buffer todo-print-buffer-name)
-        (goto-char (point-min))
-        (when (re-search-forward (regexp-quote todo-header) nil t)
-	  (beginning-of-line 1)
-	  (delete-region (point) (line-end-position)))
-        (while (re-search-forward       ;Find category start
-                (regexp-quote (concat todo-prefix todo-category-beg))
-                nil t)
-          (setq beg (+ (line-end-position) 1)) ;Start of first entry.
-          (re-search-forward cat-end nil t)
-          (setq end (match-beginning 0))
-          (replace-match todo-category-break)
-          (narrow-to-region beg end)    ;In case we have too few entries.
-          (goto-char (point-min))
-          (if (zerop nof-priorities)      ;Traverse entries.
-              (goto-char end)            ;All entries
-            (todo-forward-item nof-priorities))
-          (setq beg (point))
-          (delete-region beg end)
-          (widen))
-        (and (looking-at "") (replace-match "")) ;Remove trailing form-feed.
-        (goto-char (point-min))         ;Due to display buffer
-        ))
+	(save-current-buffer
+	  (widen)
+	  (copy-to-buffer todo-print-buffer-name (point-min) (point-max))
+	  (set-buffer todo-print-buffer-name)
+	  (goto-char (point-min))
+	  (when (re-search-forward (regexp-quote todo-header) nil t)
+	    (beginning-of-line 1)
+	    (delete-region (point) (line-end-position)))
+	  (while (re-search-forward       ;Find category start
+		  (regexp-quote (concat todo-prefix todo-category-beg))
+		  nil t)
+	    (setq beg (+ (line-end-position) 1)) ;Start of first entry.
+	    (re-search-forward cat-end nil t)
+	    (setq end (match-beginning 0))
+	    (replace-match todo-category-break)
+	    (narrow-to-region beg end)    ;In case we have too few entries.
+	    (goto-char (point-min))
+	    (if (zerop nof-priorities)      ;Traverse entries.
+		(goto-char end)            ;All entries
+	      (todo-forward-item nof-priorities))
+	    (setq beg (point))
+	    (delete-region beg end)
+	    (widen))
+	  (and (looking-at "") (replace-match "")) ;Remove trailing form-feed.
+	  (goto-char (point-min))         ;Due to display buffer
+	  )))
     ;; Could have used switch-to-buffer as it has a norecord argument,
     ;; which is nice when we are called from e.g. todo-print.
     ;; Else we could have used pop-to-buffer.

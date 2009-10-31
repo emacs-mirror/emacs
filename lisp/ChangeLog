@@ -1,3 +1,10 @@
+2009-10-31  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-edit-item): Signal an error if there
+	is no item to edit. (Bug#4820)
+	(todo-top-priorities): Restore point and restore narrowing in Todo
+	buffer. (Bug#4820)
+
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* net/ange-ftp.el (top-level): Don't require dired when compiling.
