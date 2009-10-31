@@ -1,5 +1,8 @@
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* pcmpl-rpm.el (top-level): Move provide statement to end.
+	(pcmpl-rpm): Remove unused custom group.
+
 	* pcmpl-gnu.el (tar-parse-info, tar-header-name): Declare for compiler.
 
 	* mail/emacsbug.el (report-emacs-bug): Request `emacs -Q' recipes.
