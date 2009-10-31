@@ -1,5 +1,13 @@
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types)
+	(byte-compile-warnings): Add `constants' as an option.
+	(byte-compile-callargs-warn, byte-compile-arglist-warn)
+	(display-call-tree): Update for byte-compile-fdefinition possibly
+	returning `(macro lambda ...)'.  (Bug#4778)
+	(byte-compile-variable-ref, byte-compile-setq-default):
+	Respect `constants' member of byte-compile-warnings.
+
 	* cedet/semantic/tag.el (semantic--tag-link-list-to-buffer):
 	Use mapc rather than mapcar because the return value is never used.
 

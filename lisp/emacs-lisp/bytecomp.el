@@ -66,47 +66,7 @@
 ;;  + correct compilation of top-level uses of macros;
 ;;  + the ability to generate a histogram of functions called.
 
-;; User customization variables:
-;;
-;; byte-compile-verbose	Whether to report the function currently being
-;;				compiled in the echo area;
-;; byte-optimize		Whether to do optimizations; this may be
-;;				t, nil, 'source, or 'byte;
-;; byte-optimize-log		Whether to report (in excruciating detail)
-;;				exactly which optimizations have been made.
-;;				This may be t, nil, 'source, or 'byte;
-;; byte-compile-error-on-warn	Whether to stop compilation when a warning is
-;;				produced;
-;; byte-compile-delete-errors	Whether the optimizer may delete calls or
-;;				variable references that are side-effect-free
-;;				except that they may return an error.
-;; byte-compile-generate-call-tree	Whether to generate a histogram of
-;;				function calls.  This can be useful for
-;;				finding unused functions, as well as simple
-;;				performance metering.
-;; byte-compile-warnings	List of warnings to issue, or t.  May contain
-;;				`free-vars' (references to variables not in the
-;;					     current lexical scope)
-;;				`unresolved' (calls to unknown functions)
-;;				`callargs'  (lambda calls with args that don't
-;;					     match the lambda's definition)
-;;				`redefine'  (function cell redefined from
-;;					     a macro to a lambda or vice versa,
-;;					     or redefined to take other args)
-;;				`obsolete'  (obsolete variables and functions)
-;;				`noruntime' (calls to functions only defined
-;;					     within `eval-when-compile')
-;;				`cl-functions' (calls to CL functions)
-;;				`interactive-only' (calls to commands that are
-;;						   not good to call from Lisp)
-;;				`make-local' (dubious calls to
-;;					      `make-variable-buffer-local')
-;;                              `mapcar'     (mapcar called for effect)
-;; byte-compile-compatibility	Whether the compiler should
-;;				generate .elc files which can be loaded into
-;;				generic emacs 18.
-;; emacs-lisp-file-regexp	Regexp for the extension of source-files;
-;;				see also the function byte-compile-dest-file.
+;; User customization variables: M-x customize-group bytecomp
 
 ;; New Features:
 ;;
@@ -349,7 +309,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
 	     obsolete noruntime cl-functions interactive-only
-	     make-local mapcar)
+	     make-local mapcar constants)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for all).
@@ -370,6 +330,7 @@ Elements of the list may be:
 	      commands that normally shouldn't be called from Lisp code.
   make-local  calls to make-variable-buffer-local that may be incorrect.
   mapcar      mapcar called for effect.
+  constants   let-binding of, or assignment to, constants/nonvariables.
 
 If the list begins with `not', then the remaining elements specify warnings to
 suppress.  For example, (not mapcar) will suppress warnings about mapcar."
@@ -380,7 +341,7 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime)
 		      (const cl-functions) (const interactive-only)
-		      (const make-local) (const mapcar))))
+		      (const make-local) (const mapcar) (const constants))))
 ;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 
 ;;;###autoload
@@ -1306,12 +1267,16 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   (let* ((def (or (byte-compile-fdefinition (car form) nil)
 		  (byte-compile-fdefinition (car form) t)))
 	 (sig (if (and def (not (eq def t)))
-		  (byte-compile-arglist-signature
-		   (if (memq (car-safe def) '(declared lambda))
-		       (nth 1 def)
-		     (if (byte-code-function-p def)
-			 (aref def 0)
-		       '(&rest def))))
+		  (progn
+		    (and (eq (car-safe def) 'macro)
+			 (eq (car-safe (cdr-safe def)) 'lambda)
+			 (setq def (cdr def)))
+		    (byte-compile-arglist-signature
+		     (if (memq (car-safe def) '(declared lambda))
+			 (nth 1 def)
+		       (if (byte-code-function-p def)
+			   (aref def 0)
+			 '(&rest def)))))
 		(if (and (fboundp (car form))
 			 (subrp (symbol-function (car form))))
 		    (subr-arity (symbol-function (car form))))))
@@ -1406,22 +1371,26 @@ extra args."
 (defun byte-compile-arglist-warn (form macrop)
   (let ((old (byte-compile-fdefinition (nth 1 form) macrop)))
     (if (and old (not (eq old t)))
-	(let ((sig1 (byte-compile-arglist-signature
-		      (if (eq 'lambda (car-safe old))
-			  (nth 1 old)
-			(if (byte-code-function-p old)
-			    (aref old 0)
-			  '(&rest def)))))
-	      (sig2 (byte-compile-arglist-signature (nth 2 form))))
-	  (unless (byte-compile-arglist-signatures-congruent-p sig1 sig2)
-	    (byte-compile-set-symbol-position (nth 1 form))
-	    (byte-compile-warn
-	     "%s %s used to take %s %s, now takes %s"
-	     (if (eq (car form) 'defun) "function" "macro")
-	     (nth 1 form)
-	     (byte-compile-arglist-signature-string sig1)
-	     (if (equal sig1 '(1 . 1)) "argument" "arguments")
-	     (byte-compile-arglist-signature-string sig2))))
+	(progn
+	  (and (eq 'macro (car-safe old))
+	       (eq 'lambda (car-safe (cdr-safe old)))
+	       (setq old (cdr old)))
+	  (let ((sig1 (byte-compile-arglist-signature
+		       (if (eq 'lambda (car-safe old))
+			   (nth 1 old)
+			 (if (byte-code-function-p old)
+			     (aref old 0)
+			   '(&rest def)))))
+		(sig2 (byte-compile-arglist-signature (nth 2 form))))
+	    (unless (byte-compile-arglist-signatures-congruent-p sig1 sig2)
+	      (byte-compile-set-symbol-position (nth 1 form))
+	      (byte-compile-warn
+	       "%s %s used to take %s %s, now takes %s"
+	       (if (eq (car form) 'defun) "function" "macro")
+	       (nth 1 form)
+	       (byte-compile-arglist-signature-string sig1)
+	       (if (equal sig1 '(1 . 1)) "argument" "arguments")
+	       (byte-compile-arglist-signature-string sig2)))))
       ;; This is the first definition.  See if previous calls are compatible.
       (let ((calls (assq (nth 1 form) byte-compile-unresolved-functions))
 	    nums sig min max)
@@ -3046,12 +3015,13 @@ That command is designed for interactive use only" bytecomp-fn))
   (if (or (not (symbolp bytecomp-var))
 	  (byte-compile-const-symbol-p bytecomp-var
 				       (not (eq base-op 'byte-varref))))
-      (byte-compile-warn
-       (cond ((eq base-op 'byte-varbind) "attempt to let-bind %s `%s'")
-	     ((eq base-op 'byte-varset) "variable assignment to %s `%s'")
-	     (t "variable reference to %s `%s'"))
-       (if (symbolp bytecomp-var) "constant" "nonvariable")
-       (prin1-to-string bytecomp-var))
+      (if (byte-compile-warning-enabled-p 'constants)
+	  (byte-compile-warn
+	   (cond ((eq base-op 'byte-varbind) "attempt to let-bind %s `%s'")
+		 ((eq base-op 'byte-varset) "variable assignment to %s `%s'")
+		 (t "variable reference to %s `%s'"))
+	   (if (symbolp bytecomp-var) "constant" "nonvariable")
+	   (prin1-to-string bytecomp-var)))
     (and (get bytecomp-var 'byte-obsolete-variable)
 	 (not (memq bytecomp-var byte-compile-not-obsolete-vars))
 	 (byte-compile-warn-obsolete bytecomp-var))
@@ -3582,12 +3552,13 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 	setters)
     (while bytecomp-args
       (let ((var (car bytecomp-args)))
-	(if (or (not (symbolp var))
-		(byte-compile-const-symbol-p var t))
-	    (byte-compile-warn
-	     "variable assignment to %s `%s'"
-	     (if (symbolp var) "constant" "nonvariable")
-	     (prin1-to-string var)))
+	(and (or (not (symbolp var))
+		 (byte-compile-const-symbol-p var t))
+	     (byte-compile-warning-enabled-p 'constants)
+	     (byte-compile-warn
+	      "variable assignment to %s `%s'"
+	      (if (symbolp var) "constant" "nonvariable")
+	      (prin1-to-string var)))
 	(push (list 'set-default (list 'quote var) (car (cdr bytecomp-args)))
 	      setters))
       (setq bytecomp-args (cdr (cdr bytecomp-args))))
@@ -4329,12 +4300,22 @@ invoked interactively."
 
       (message "Generating call tree...(finding uncalled functions...)")
       (setq rest byte-compile-call-tree)
-      (let ((uncalled nil))
+      (let (uncalled def)
 	(while rest
 	  (or (nth 1 (car rest))
-	      (null (setq f (car (car rest))))
-	      (functionp (byte-compile-fdefinition f t))
-	      (commandp (byte-compile-fdefinition f nil))
+	      (null (setq f (caar rest)))
+	      (progn
+		(setq def (byte-compile-fdefinition f t))
+		(and (eq (car-safe def) 'macro)
+		     (eq (car-safe (cdr-safe def)) 'lambda)
+		     (setq def (cdr def)))
+		(functionp def))
+	      (progn
+		(setq def (byte-compile-fdefinition f nil))
+		(and (eq (car-safe def) 'macro)
+		     (eq (car-safe (cdr-safe def)) 'lambda)
+		     (setq def (cdr def)))
+		(commandp def))
 	      (setq uncalled (cons f uncalled)))
 	  (setq rest (cdr rest)))
 	(if uncalled
@@ -4342,10 +4323,8 @@ invoked interactively."
 	      (insert "Noninteractive functions not known to be called:\n  ")
 	      (setq p (point))
 	      (insert (mapconcat 'symbol-name (nreverse uncalled) ", "))
-	      (fill-region-as-paragraph p (point)))))
-      )
-    (message "Generating call tree...done.")
-    ))
+	      (fill-region-as-paragraph p (point))))))
+    (message "Generating call tree...done.")))
 
 
 ;;;###autoload
