@@ -1,5 +1,7 @@
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* pcmpl-gnu.el (tar-parse-info, tar-header-name): Declare for compiler.
+
 	* mail/emacsbug.el (report-emacs-bug): Request `emacs -Q' recipes.
 
 	* emacs-lisp/bytecomp.el (byte-compile-warning-types)

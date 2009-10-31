@@ -129,6 +129,10 @@
 
 (defvar pcmpl-gnu-tar-buffer nil)
 
+;; Only used in tar-mode buffers.
+(defvar tar-parse-info)
+(declare-function tar-header-name "tar-mode" t t)
+
 ;;;###autoload
 (defun pcomplete/tar ()
   "Completion for the GNU tar utility."
