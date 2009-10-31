@@ -667,12 +667,6 @@
 ;;; Code:
 
 (require 'comint)
-;; Silence compiler:
-(eval-when-compile
-  (require 'dired)
-  (defvar comint-last-output-start nil)
-  (defvar comint-last-input-start nil)
-  (defvar comint-last-input-end nil))
 
 ;;;; ------------------------------------------------------------
 ;;;; User customization variables.
@@ -4580,7 +4574,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; Can't use ange-ftp-dired-host-type here because the current
       ;; buffer is *dired-check-process output*
       (condition-case oops
-	  (cond ((equal dired-chmod-program program)
+	  (cond ((equal (or (bound-and-true-p dired-chmod-program) "chmod")
+			program)
 		 (ange-ftp-call-chmod arguments))
 		;; ((equal "chgrp" program))
 		;; ((equal dired-chown-program program))

@@ -1,5 +1,10 @@
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* net/ange-ftp.el (top-level): Don't require dired when compiling.
+	(comint-last-output-start, comint-last-input-start)
+	(comint-last-input-end): Don't defvar when compiling.
+	(ange-ftp-process-file): Use bound-and-true-p.
+
 	* pcmpl-rpm.el (top-level): Move provide statement to end.
 	(pcmpl-rpm): Remove unused custom group.
 
