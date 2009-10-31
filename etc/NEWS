@@ -323,6 +323,9 @@ for completions displayed in *Completions*.
 the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
 Instead, customize byte-compile-dest-file-function.
 
+---
+** `byte-compile-warnings' can have a new member, `constants'.
+
 ** Several obsolete functions removed.
 The functions have been obsolete since Emacs 19, and are unlikely to
 be in use:
