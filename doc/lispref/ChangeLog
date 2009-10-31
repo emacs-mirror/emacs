@@ -1,3 +1,7 @@
+2009-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* nonascii.texi (User-Chosen Coding Systems): Minor reword.  (Bug#4817)
+
 2009-10-16  Kevin Ryde  <user42@zip.com.au>
 
 	* files.texi (Magic File Names): Add @vindex file-name-handler-alist,
