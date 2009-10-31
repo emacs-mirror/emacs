@@ -159,7 +159,7 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 				'type 'help-info
 				'help-args '("(emacs)Charsets"))
 	    (insert " --------------
-Character sets for defining another charset or obsolete now
+Character sets for defining other charsets, or for backward compatibility
 "))
 	(insert-text-button (symbol-name (car elt)) ; NAME
 			    :type 'list-charset-chars

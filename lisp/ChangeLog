@@ -1,5 +1,8 @@
 2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
+	* international/mule-diag.el (list-character-sets-1): Minor
+	message fix (Bug#3526).
+
 	* progmodes/etags.el (etags-list-tags, etags-tags-apropos): Fix
 	face property (Bug#4834).
 	(etags-list-tags, etags-tags-apropos-additional)
