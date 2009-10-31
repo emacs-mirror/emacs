@@ -1,3 +1,15 @@
+2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/sgml-mode.el (sgml-mode-facemenu-add-face-function):
+	Support face colors.
+
+	* textmodes/tex-mode.el (tex-facemenu-add-face-function): New
+	function.  Support face colors (Bug#1168).
+	(tex-common-initialization): Use it.
+
+	* facemenu.el (facemenu-enable-faces-p): Enable facemenu if the
+	mode allows it (Bug#1168).
+
 2009-10-31  Juri Linkov  <juri@jurta.org>
 
 	* facemenu.el (list-colors-display): Don't mark buffer as

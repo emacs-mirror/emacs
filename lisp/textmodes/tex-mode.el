@@ -860,6 +860,19 @@ Inherits `shell-mode-map' with a few additions.")
     ,@tex-face-alist)
   "Alist of face and LaTeX font name for facemenu.")
 
+(defun tex-facemenu-add-face-function (face end)
+  (or (cdr (assq face tex-face-alist))
+      (or (and (consp face)
+	       (consp (car face))
+	       (null  (cdr face))
+	       (eq major-mode 'latex-mode)
+	       ;; This actually requires the `color' LaTeX package.
+	       (cond ((eq (caar face) :foreground)
+		      (format "{\\color{%s} " (cadr (car face))))
+		     ((eq (caar face) :background)
+		      (format "\\colorbox{%s}{" (cadr (car face))))))
+	  (error "Face %s not configured for %s mode" face mode-name))))
+
 ;; This would be a lot simpler if we just used a regexp search,
 ;; but then it would be too slow.
 (defun tex-guess-mode ()
@@ -1131,9 +1144,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (set (make-local-variable 'compare-windows-whitespace)
        'tex-categorize-whitespace)
   (set (make-local-variable 'facemenu-add-face-function)
-       (lambda (face end)
-	 (or (cdr (assq face tex-face-alist))
-	     (error "Face %s not configured for %s mode" face mode-name))))
+       'tex-facemenu-add-face-function)
   (set (make-local-variable 'facemenu-end-add-face) "}")
   (set (make-local-variable 'facemenu-remove-face-function) t)
   (set (make-local-variable 'font-lock-defaults)

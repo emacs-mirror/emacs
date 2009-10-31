@@ -397,12 +397,24 @@ a DOCTYPE or an XML declaration."
     (comment-indent-new-line soft)))
 
 (defun sgml-mode-facemenu-add-face-function (face end)
-  (if (setq face (cdr (assq face sgml-face-tag-alist)))
-      (progn
-	(setq face (funcall skeleton-transformation-function face))
-	(setq facemenu-end-add-face (concat "</" face ">"))
-	(concat "<" face ">"))
-    (error "Face not configured for %s mode" (format-mode-line mode-name))))
+  (let ((tag-face (cdr (assq face sgml-face-tag-alist))))
+    (cond (tag-face
+	   (setq tag-face (funcall skeleton-transformation-function tag-face))
+	   (setq facemenu-end-add-face (concat "</" tag-face ">"))
+	   (concat "<" tag-face ">"))
+	  ((and (consp face)
+		(consp (car face))
+		(null  (cdr face))
+		(memq (caar face) '(:foreground :background)))
+	   (setq facemenu-end-add-face "</span>")
+	   (format "<span style=\"%s:%s\">"
+		   (if (eq (caar face) :foreground)
+		       "color"
+		     "background-color")
+		   (cadr (car face))))
+	  (t
+	   (error "Face not configured for %s mode"
+		  (format-mode-line mode-name))))))
 
 (defun sgml-fill-nobreak ()
   ;; Don't break between a tag name and its first argument.

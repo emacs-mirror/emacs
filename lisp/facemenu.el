@@ -187,7 +187,10 @@ it will remove any faces not explicitly in the list."
 
 ;;; Condition for enabling menu items that set faces.
 (defun facemenu-enable-faces-p ()
-  (not (and font-lock-mode font-lock-defaults)))
+  ;; Enable the facemenu if facemenu-add-face-function is defined
+  ;; (e.g. in Tex-mode and SGML mode), or if font-lock is off.
+  (or (not (and font-lock-mode font-lock-defaults))
+      facemenu-add-face-function))
 
 (defvar facemenu-special-menu
   (let ((map (make-sparse-keymap "Special")))
