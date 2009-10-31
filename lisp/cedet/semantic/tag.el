@@ -1135,7 +1135,7 @@ This function is for internal use only."
 (defsubst semantic--tag-link-list-to-buffer (tags)
   "Convert TAGS from using an overlay proxy to using an overlay.
 This function is for internal use only."
-  (mapcar 'semantic--tag-link-to-buffer tags))
+  (mapc 'semantic--tag-link-to-buffer tags))
 
 (defun semantic--tag-link-to-buffer (tag)
   "Convert TAG from using an overlay proxy to using an overlay.

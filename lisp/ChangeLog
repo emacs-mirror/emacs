@@ -1,5 +1,8 @@
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/tag.el (semantic--tag-link-list-to-buffer):
+	Use mapc rather than mapcar because the return value is never used.
+
 	* cedet/srecode/template.el, cedet/semantic/wisent/javascript.el:
 	* cedet/semantic/wisent/java-tags.el, cedet/semantic/texi.el:
 	* cedet/semantic/html.el:
