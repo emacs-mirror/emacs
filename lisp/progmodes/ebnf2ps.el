@@ -4565,8 +4565,7 @@ end
 		    horizontal  (memq (ebnf-node-action prod)
 				      ebnf-action-list))
 	      ;; generate production in EPS buffer
-	      (save-excursion
-		(set-buffer eps-buffer)
+	      (with-current-buffer eps-buffer
 		(setq ebnf-eps-upper-x    0.0
 		      ebnf-eps-upper-y    0.0
 		      ebnf-eps-max-width  prod-width
@@ -4581,8 +4580,7 @@ end
 		(ebnf-eps-finish-and-write eps-buffer
 					   (ebnf-eps-filename prod-name)))
 	      ;; prepare for next loop
-	      (save-excursion
-		(set-buffer eps-buffer)
+	      (with-current-buffer eps-buffer
 		(erase-buffer))
 	      (setq ebnf-tree (cdr ebnf-tree)))
 	    ;; write and kill temporary buffers
@@ -4617,8 +4615,7 @@ end
 					   prod-width prod-height eps-buffer)
   (while prod-list
     (add-to-list file-list-sym (car prod-list))
-    (save-excursion
-      (set-buffer (get-buffer-create (concat " *" (car prod-list) "*")))
+    (with-current-buffer (get-buffer-create (concat " *" (car prod-list) "*"))
       (goto-char (point-max))
       (cond
        ;; first production
@@ -5278,8 +5275,7 @@ killed after process termination."
 
 (defun ebnf-begin-file ()
   (ps-flush-output)
-  (save-excursion
-    (set-buffer ps-spool-buffer)
+  (with-current-buffer ps-spool-buffer
     (goto-char (point-min))
     (and (search-forward "%%Creator: " nil t)
 	 (not (search-forward "& ebnf2ps v"
@@ -5299,8 +5295,7 @@ killed after process termination."
 
 (defun ebnf-eps-finish-and-write (buffer filename)
   (when (buffer-modified-p buffer)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (ebnf-eps-header-footer-set filename)
       (setq ebnf-eps-upper-x (max ebnf-eps-upper-x ebnf-eps-max-width)
 	    ebnf-eps-upper-y (if (zerop ebnf-eps-upper-y)
@@ -6349,8 +6344,7 @@ killed after process termination."
 
 (defun ebnf-log (format-str &rest args)
   (when ebnf-log
-    (save-excursion
-      (set-buffer (get-buffer-create "*Ebnf2ps Log*"))
+    (with-current-buffer (get-buffer-create "*Ebnf2ps Log*")
       (goto-char (point-max))
       (insert (apply 'format format-str args) "\n"))))
 

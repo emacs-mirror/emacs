@@ -2465,8 +2465,7 @@ If not in a source or disassembly buffer just set point."
 	 obj)
     (when (numberp pos)
       (with-selected-window (posn-window posn)
-	(save-excursion
-	  (set-buffer (window-buffer (selected-window)))
+	(with-current-buffer (window-buffer (selected-window))
 	  (goto-char pos)
 	  (dolist (overlay (overlays-in pos pos))
 	    (when (overlay-get overlay 'put-break)

@@ -1700,8 +1700,7 @@ In the tex shell buffer this command behaves like `comint-send-input'."
   (setq directory (file-name-as-directory (expand-file-name directory)))
   (if (not (file-directory-p directory))
       (error "%s is not a directory" directory)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (setq default-directory directory))))
 
 (defvar tex-send-command-modified-tick 0)

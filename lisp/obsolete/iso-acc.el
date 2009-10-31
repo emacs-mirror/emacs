@@ -482,8 +482,7 @@ Noninteractively, this operates on text from START to END."
 ;; if it was in use in the previous buffer.
 (defun iso-acc-minibuf-setup ()
   (setq iso-accents-mode
-	(save-excursion
-	  (set-buffer (window-buffer minibuffer-scroll-window))
+	(with-current-buffer (window-buffer minibuffer-scroll-window)
 	  iso-accents-mode)))
 
 (add-hook 'minibuffer-setup-hook 'iso-acc-minibuf-setup)

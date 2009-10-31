@@ -1822,9 +1822,8 @@ When DIE is non-nil, throw an error if file not found."
     (let ((buffer-read-only nil)) (erase-buffer)))
    ((setq buffer (get-buffer buffer))
     ;; buffer exists
-    (save-excursion
-      (set-buffer buffer)
-      (let ((buffer-read-only nil)) (erase-buffer))))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t)) (erase-buffer))))))
 
 (defun reftex-this-word (&optional class)
   ;; Grab the word around point.
@@ -2072,8 +2071,7 @@ When DIE is non-nil, throw an error if file not found."
 
              ;; Is there a hook to run?
              (when (listp reftex-initialize-temporary-buffers)
-               (save-excursion
-                 (set-buffer buf)
+               (with-current-buffer buf
                  (run-hooks 'reftex-initialize-temporary-buffers))))
 
            ;; Lets see if we got a license to kill :-|
@@ -2100,8 +2098,7 @@ When DIE is non-nil, throw an error if file not found."
         (and (buffer-modified-p buffer)
              (y-or-n-p (format "Save file %s? "
                                (buffer-file-name buffer)))
-             (save-excursion
-               (set-buffer buffer)
+             (with-current-buffer buffer
                (save-buffer)))
         (kill-buffer buffer))
       (pop reftex-buffers-to-kill)))))

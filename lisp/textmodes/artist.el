@@ -1801,8 +1801,7 @@ info-variant-part."
 
 (defun artist-clear-buffer (buf)
   "Clear contents of buffer BUF."
-  (save-excursion
-    (set-buffer buf)
+  (with-current-buffer buf
     (goto-char (point-min))
     (delete-char (- (point-max) (point-min)) nil)))
 
@@ -1848,10 +1847,8 @@ Return a list (RETURN-CODE STDOUT STDERR)."
 
 	    ;; the return value
 	    (list res
-		  (save-excursion
-		    (set-buffer tmp-stdout-buffer)
-		    (copy-sequence (buffer-substring (point-min)
-						     (point-max))))
+		  (with-current-buffer tmp-stdout-buffer
+                    (buffer-substring (point-min) (point-max)))
 		  (artist-file-to-string tmp-stderr-file-name)))
 
 	;; Unwind: remove temporary files and buffers

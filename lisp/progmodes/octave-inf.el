@@ -178,8 +178,7 @@ startup file, `~/.emacs-octave'."
     (get-buffer-create buffer)
     (if (comint-check-proc buffer)
 	()
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(comint-mode)
 	(inferior-octave-startup)
 	(inferior-octave-mode)))

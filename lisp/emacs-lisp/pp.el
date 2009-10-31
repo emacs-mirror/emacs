@@ -42,8 +42,7 @@
   "Return a string containing the pretty-printed representation of OBJECT.
 OBJECT can be any Lisp object.  Quoting characters are used as needed
 to make output that `read' can handle, whenever this is possible."
-  (save-excursion
-    (set-buffer (generate-new-buffer " pp-to-string"))
+  (with-current-buffer (generate-new-buffer " pp-to-string")
     (unwind-protect
 	(progn
 	  (lisp-mode-variables nil)
@@ -105,8 +104,7 @@ after OUT-BUFFER-NAME."
 	 (temp-buffer-show-function
 	  (function
 	   (lambda (buf)
-	     (save-excursion
-	       (set-buffer buf)
+	     (with-current-buffer buf
 	       (goto-char (point-min))
 	       (end-of-line 1)
 	       (if (or (< (1+ (point)) (point-max))

@@ -230,8 +230,7 @@ a file.  Optional argument NAME specifies a default file name."
 	(buffstr nil))
     (unwind-protect
 	(progn
-	  (save-excursion
-	    (set-buffer (get-buffer-create " *tmp eieio read*"))
+	  (with-current-buffer (get-buffer-create " *tmp eieio read*")
 	    (insert-file-contents filename nil nil nil t)
 	    (goto-char (point-min))
 	    (setq buffstr (buffer-string)))

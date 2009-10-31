@@ -1469,8 +1469,7 @@ non-nil, a caret is prepended to invert the set."
 	  parse-sexp-lookup-properties
 	  parse-sexp-ignore-comments
 	  lookup-syntax-properties)
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(set-syntax-table (make-syntax-table))
 
 	;; For some reason we have to set some of these after the

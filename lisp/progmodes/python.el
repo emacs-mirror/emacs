@@ -2654,8 +2654,7 @@ problem."
                  ;; Add in number of lines for leading '##' comments:
                  (setq lineno
                        (+ lineno
-                          (save-excursion
-                            (set-buffer funcbuffer)
+                          (with-current-buffer funcbuffer
                             (if (equal (point-min)(point-max))
                                 0
                               (count-lines
@@ -2683,13 +2682,12 @@ problem."
     (while (and buffers (not got))
       (setq buf (car buffers)
             buffers (cdr buffers))
-      (if (and (save-excursion (set-buffer buf)
-                               (string= major-mode "python-mode"))
+      (if (and (with-current-buffer buf
+                 (string= major-mode "python-mode"))
                (or (string-match funcname (buffer-name buf))
                    (string-match (concat "^\\s-*\\(def\\|class\\)\\s-+"
                                          funcname "\\s-*(")
-                                 (save-excursion
-                                   (set-buffer buf)
+                                 (with-current-buffer buf
                                    (buffer-substring (point-min)
                                                      (point-max))))))
           (setq got buf)))
@@ -2747,8 +2745,7 @@ comint believe the user typed this string so that
         ;; add some comment, so that we can filter it out of history
 	(cmd (format "execfile(r'%s') # PYTHON-MODE\n" filename)))
     (unwind-protect
-	(save-excursion
-	  (set-buffer procbuf)
+	(with-current-buffer procbuf
 	  (goto-char (point-max))
 	  (move-marker (process-mark proc) (point))
 	  (funcall (process-filter proc) proc msg))

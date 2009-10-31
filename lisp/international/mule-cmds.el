@@ -2070,8 +2070,7 @@ See `set-language-info-alist' for use in programs."
     (help-setup-xref (list #'describe-language-environment language-name)
 		     (called-interactively-p 'interactive))
     (with-output-to-temp-buffer (help-buffer)
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(insert language-name " language environment\n\n")
 	(if (stringp doc)
 	    (insert doc "\n\n"))

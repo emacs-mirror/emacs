@@ -134,8 +134,7 @@ Useful if new Emacs is used on B&W display.")
 (defun chart-new-buffer (obj)
   "Create a new buffer NAME in which the chart OBJ is displayed.
 Returns the newly created buffer."
-  (save-excursion
-    (set-buffer (get-buffer-create (format "*%s*" (oref obj title))))
+  (with-current-buffer (get-buffer-create (format "*%s*" (oref obj title)))
     (chart-mode)
     (setq chart-local-object obj)
     (current-buffer)))

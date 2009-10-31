@@ -1087,8 +1087,7 @@ Used for `antlr-slow-syntactic-context'.")
 ;; checkdoc-params: (dummies)
   "Invalidate context cache for syntactical context information."
   :XEMACS				; XEmacs bug workaround
-  (save-excursion
-    (set-buffer (get-buffer-create " ANTLR XEmacs bug workaround"))
+  (with-current-buffer (get-buffer-create " ANTLR XEmacs bug workaround")
     (buffer-syntactic-context-depth)
     nil)
   :EMACS
@@ -2182,8 +2181,7 @@ export vocabulary specified in that file."
 				     "\\'"))
 	    classes dependencies)
 	(unwind-protect
-	    (save-excursion
-	      (set-buffer temp-buffer)
+	    (with-current-buffer temp-buffer
 	      (widen)			; just in case...
 	      (dolist (file grammar)
 		(when (and (file-regular-p file)

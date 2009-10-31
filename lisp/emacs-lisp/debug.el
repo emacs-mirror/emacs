@@ -329,8 +329,7 @@ That buffer should be current already."
 (defun debugger-make-xrefs (&optional buffer)
   "Attach cross-references to function names in the `*Backtrace*' buffer."
   (interactive "b")
-  (save-excursion
-    (set-buffer (or buffer (current-buffer)))
+  (with-current-buffer (or buffer (current-buffer))
     (setq buffer (current-buffer))
     (let ((inhibit-read-only t)
 	  (old-end (point-min)) (new-end (point-min)))

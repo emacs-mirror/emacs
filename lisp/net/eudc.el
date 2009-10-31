@@ -1036,8 +1036,7 @@ queries the server for the existing fields and displays a corresponding form."
 (defun eudc-save-options ()
   "Save options to `eudc-options-file'."
   (interactive)
-  (save-excursion
-    (set-buffer (find-file-noselect eudc-options-file t))
+  (with-current-buffer (find-file-noselect eudc-options-file t)
     (goto-char (point-min))
     ;; delete the previous setq
     (let ((standard-output (current-buffer))

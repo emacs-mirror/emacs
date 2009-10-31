@@ -170,12 +170,11 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defun r2b-capitalize-title (s)
    "Like `capitalize', but don't capitalize stop words, except the first."
-   (save-excursion
-      (set-buffer (get-buffer-create "$$$Scratch$$$"))
-      (erase-buffer)
-      (insert s)
-      (r2b-capitalize-title-region (point-min) (point-max))
-      (buffer-string)))
+   (with-current-buffer (get-buffer-create "$$$Scratch$$$")
+     (erase-buffer)
+     (insert s)
+     (r2b-capitalize-title-region (point-min) (point-max))
+     (buffer-string)))
 
 ;*********************************************************
 (defun r2b-reset ()
@@ -681,22 +680,19 @@ Do `\\[r2b-help]' for more info."
 
 
 (defun r2b-convert-buffer (output)
-   "Transform current buffer and append to buffer OUTPUT.
+  "Transform current buffer and append to buffer OUTPUT.
 Do `\\[r2b-help]' for more info."
-   (interactive
-      (list (read-string "Output to buffer: " r2b-out-buf-name)))
-   (save-excursion
-      (setq r2b-log (get-buffer-create r2b-log-name))
-      (set-buffer r2b-log)
-      (erase-buffer))
-   (widen)
-   (goto-char (point-min))
-   (message "Working, please be patient...")
-   (sit-for 0)
-   (while (r2b-convert-record output) t)
-   (message "Done, results in %s, errors in %s"
-      r2b-out-buf-name r2b-log-name)
-   )
+  (interactive
+   (list (read-string "Output to buffer: " r2b-out-buf-name)))
+  (with-current-buffer (setq r2b-log (get-buffer-create r2b-log-name))
+    (erase-buffer))
+  (widen)
+  (goto-char (point-min))
+  (message "Working, please be patient...")
+  (sit-for 0)
+  (while (r2b-convert-record output) t)
+  (message "Done, results in %s, errors in %s"
+           r2b-out-buf-name r2b-log-name))
 
 (defvar r2b-help-message
 "                   Refer to Bibtex Bibliography Conversion
@@ -740,13 +736,12 @@ Please send bug reports and suggestions to
 
 
 (defun r2b-help ()
-   "Print help describing the `refbib' package."
-   (interactive)
-   (with-output-to-temp-buffer "*Help*"
-      (princ r2b-help-message)
-      (save-excursion
-	(set-buffer standard-output)
-	(help-mode))))
+  "Print help describing the `refbib' package."
+  (interactive)
+  (with-output-to-temp-buffer "*Help*"
+    (princ r2b-help-message)
+    (with-current-buffer standard-output
+      (help-mode))))
 
 (provide 'refbib)
 (provide 'refer-to-bibtex)

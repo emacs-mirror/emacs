@@ -228,12 +228,11 @@ named by variable `unread-bib-file'."
 
 (defun bib-capitalize-title (s)
    "Like `capitalize', but don't capitalize stop words, except the first."
-   (save-excursion
-      (set-buffer (get-buffer-create "$$$Scratch$$$"))
-      (erase-buffer)
-      (insert s)
-      (bib-capitalize-title-region (point-min) (point-max))
-      (buffer-string)))
+   (with-current-buffer (get-buffer-create "$$$Scratch$$$")
+     (erase-buffer)
+     (insert s)
+     (bib-capitalize-title-region (point-min) (point-max))
+     (buffer-string)))
 
 (provide 'bib-mode)
 

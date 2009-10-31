@@ -113,8 +113,7 @@ Also store it in `find-gc-unsafe'."
 	(call-process "csh" nil nil nil "-c"
 		      (format "ln -s %s/*.[ch] /tmp/esrc"
 			      find-gc-source-directory))))
-  (save-excursion
-    (set-buffer (get-buffer-create "*Trace Call Tree*"))
+  (with-current-buffer (get-buffer-create "*Trace Call Tree*")
     (setq find-gc-subrs-called nil)
     (let ((case-fold-search nil)
 	  (files find-gc-source-files)

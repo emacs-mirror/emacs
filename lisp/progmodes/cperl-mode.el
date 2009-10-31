@@ -8571,8 +8571,7 @@ the appropriate statement modifier."
   (let* ((pod2man-args (concat buffer-file-name " | nroff -man "))
 	 (bufname (concat "Man " buffer-file-name))
 	 (buffer (generate-new-buffer bufname)))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (let ((process-environment (copy-sequence process-environment)))
         ;; Prevent any attempt to use display terminal fanciness.
         (setenv "TERM" "dumb")

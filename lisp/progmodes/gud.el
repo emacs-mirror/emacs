@@ -2831,8 +2831,7 @@ Obeying it means displaying in another window the specified file and line."
   (let ((proc (get-buffer-process gud-comint-buffer)))
     (or proc (error "Current buffer has no process"))
     ;; Arrange for the current prompt to get deleted.
-    (save-excursion
-      (set-buffer gud-comint-buffer)
+    (with-current-buffer gud-comint-buffer
       (save-restriction
 	(widen)
 	(if (marker-position gud-delete-prompt-marker)
@@ -3062,8 +3061,7 @@ class of the file (using s to separate nested class ids)."
           ;; symbols until 'topmost-intro is reached to find out if
           ;; point is within a nested class
           (if (and fbuffer (equal (symbol-file 'java-mode) "cc-mode"))
-              (save-excursion
-                (set-buffer fbuffer)
+              (with-current-buffer fbuffer
                 (let ((nclass) (syntax))
                   ;; While the c-syntactic information does not start
                   ;; with the 'topmost-intro symbol, there may be
@@ -3327,8 +3325,7 @@ only tooltips in the buffer containing the overlay arrow."
   (remove-hook 'post-command-hook
 	       'gud-tooltip-activate-mouse-motions-if-enabled)
   (dolist (buffer (buffer-list))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (if (and gud-tooltip-mode
 	       (memq major-mode gud-tooltip-modes))
 	  (gud-tooltip-activate-mouse-motions t)

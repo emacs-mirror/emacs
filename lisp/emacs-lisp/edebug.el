@@ -3605,8 +3605,7 @@ Return the result of the last expression."
 	   )
        (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
        (unwind-protect
-	   (save-excursion		; of edebug-buffer
-	     (set-buffer edebug-outside-buffer)
+	   (with-current-buffer edebug-outside-buffer ; of edebug-buffer
 	     (goto-char edebug-outside-point)
 	     (if (marker-buffer (edebug-mark-marker))
 		 (set-marker (edebug-mark-marker) edebug-outside-mark))

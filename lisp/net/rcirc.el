@@ -564,8 +564,7 @@ last ping."
 Debug text is written to `rcirc-debug-buffer' if `rcirc-debug-flag'
 is non-nil."
   (when rcirc-debug-flag
-    (save-excursion
-      (set-buffer (get-buffer-create rcirc-debug-buffer))
+    (with-current-buffer (get-buffer-create rcirc-debug-buffer)
       (goto-char (point-max))
       (insert (concat
 	       "["

@@ -10748,8 +10748,7 @@ the current word list."
 	(coding-system-for-read 'thai-tis620)
 	(table (if append thai-word-table (list 'thai-words))))
     (unwind-protect
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (insert-file-contents file)
 	  (goto-char (point-min))
 	  (while (re-search-forward "\\ct+" nil t)

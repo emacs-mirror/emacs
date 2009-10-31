@@ -453,8 +453,7 @@ to a list (a . b)"
   "Display all the news groups to which you belong."
   (interactive)
   (with-output-to-temp-buffer "*Newsgroups*"
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (insert
 	"News Group        Msg No.       News Group        Msg No.\n")
       (insert

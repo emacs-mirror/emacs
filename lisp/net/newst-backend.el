@@ -726,8 +726,7 @@ If URL is nil it is searched at point."
   "Get news for the site FEED-NAME by calling FUNCTION.
 See `newsticker-get-news'."
   (let ((buffername (concat " *newsticker-funcall-" feed-name "*")))
-    (save-excursion
-      (set-buffer (get-buffer-create buffername))
+    (with-current-buffer (get-buffer-create buffername)
       (erase-buffer)
       (insert (string-to-multibyte (funcall function feed-name)))
       (newsticker--sentinel-work nil t feed-name function
@@ -777,8 +776,7 @@ from."
 WGET-ARGUMENTS is a list of arguments for wget.
 See `newsticker-get-news'."
   (let ((buffername (concat " *newsticker-wget-" feed-name "*")))
-    (save-excursion
-      (set-buffer (get-buffer-create buffername))
+    (with-current-buffer (get-buffer-create buffername)
       (erase-buffer)
       ;; throw an error if there is an old wget-process around
       (if (get-process feed-name)
@@ -1756,8 +1754,7 @@ If the image has been downloaded in the last 24h do nothing."
                         feed-name)))
              (wget-arguments (or (car (cdr (cdr (cdr (cdr item)))))
                                  newsticker-wget-arguments)))
-        (save-excursion
-          (set-buffer (get-buffer-create buffername))
+        (with-current-buffer (get-buffer-create buffername)
           (erase-buffer)
           ;; throw an error if there is an old wget-process around
           (if (get-process feed-name)
@@ -1785,8 +1782,7 @@ If the image has been downloaded in the last 24h do nothing."
                  feed-name)
         (throw 'oops nil))
       (let (image-name)
-        (save-excursion
-          (set-buffer (process-buffer process))
+        (with-current-buffer (process-buffer process)
           (setq image-name (concat (newsticker--images-dir) feed-name))
           (set-buffer-file-coding-system 'no-conversion)
           ;; make sure the cache dir exists

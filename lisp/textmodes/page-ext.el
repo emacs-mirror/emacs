@@ -580,8 +580,7 @@ directory for only the accessible portion of the buffer."
     ;; `standard-output' to the buffer named as its first argument,
     ;; but does not switch to that buffer.
     (with-output-to-temp-buffer pages-directory-buffer
-      (save-excursion
-        (set-buffer standard-output)
+      (with-current-buffer standard-output
         (pages-directory-mode)
         (insert
          "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
@@ -736,8 +735,7 @@ to the same line in the pages buffer."
 (defun pages-directory-goto-with-mouse  (event)
   "Go to the corresponding line under the mouse pointer in the pages buffer."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-end event))))
+  (with-current-buffer (window-buffer (posn-window (event-end event)))
     (save-excursion
       (goto-char (posn-point (event-end event)))
       (pages-directory-goto))))

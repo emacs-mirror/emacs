@@ -40,8 +40,7 @@ The TAGS file is also immediately visited with `visit-tags-table'."
          (files  (reftex-all-document-files))
          (cmd    (format "etags %s" (mapconcat 'shell-quote-argument
 					       files " "))))
-    (save-excursion
-      (set-buffer (reftex-get-file-buffer-force master))
+    (with-current-buffer (reftex-get-file-buffer-force master)
       (message "Running etags to create TAGS file...")
       (shell-command cmd)
       (visit-tags-table "TAGS"))))
@@ -314,7 +313,7 @@ labels."
   (interactive)
   (let ((files (reftex-all-document-files))
         file buffer)
-    (save-excursion
+    (save-current-buffer
       (while (setq file (pop files))
         (setq buffer (reftex-get-buffer-visiting file))
         (when buffer
@@ -335,8 +334,7 @@ Also checks if buffers visiting the files are in read-only mode."
         (or (y-or-n-p (format "No write access to %s. Continue? " file))
             (error "Abort")))
       (when (and (setq buf (reftex-get-buffer-visiting file))
-                 (save-excursion
-                   (set-buffer buf)
+                 (with-current-buffer buf
                    buffer-read-only))
         (ding)
         (or (y-or-n-p (format "Buffer %s is read-only. Continue? "
@@ -345,11 +343,11 @@ Also checks if buffers visiting the files are in read-only mode."
 
 ;;; Multi-file RefTeX Isearch
 
-;;; `reftex-isearch-wrap-function', `reftex-isearch-push-state-function',
-;;; `reftex-isearch-pop-state-function', `reftex-isearch-isearch-search'
-;;; functions remain here only for backward-compatibility with Emacs 22
-;;; and are obsolete since Emacs 23 that supports a single function
-;;; variable `multi-isearch-next-buffer-function'.
+;; `reftex-isearch-wrap-function', `reftex-isearch-push-state-function',
+;; `reftex-isearch-pop-state-function', `reftex-isearch-isearch-search'
+;; functions remain here only for backward-compatibility with Emacs 22
+;; and are obsolete since Emacs 23 that supports a single function
+;; variable `multi-isearch-next-buffer-function'.
 
 (defun reftex-isearch-wrap-function ()
   (if (not isearch-word)
@@ -402,14 +400,14 @@ Also checks if buffers visiting the files are in read-only mode."
 	     (point))
 	 (error nil))))))
 
-;;; This function is called when isearch reaches the end of a
-;;; buffer. For reftex what we want to do is not wrap to the
-;;; beginning, but switch to the next buffer in the logical order of
-;;; the document.  This function looks through list of files in the
-;;; document (reftex-all-document-files), searches for the current
-;;; buffer and switches to the next/previous one in the logical order
-;;; of the document.  If WRAPP is true then wrap the search to the
-;;; beginning/end of the file list, depending of the search direction.
+;; This function is called when isearch reaches the end of a
+;; buffer. For reftex what we want to do is not wrap to the
+;; beginning, but switch to the next buffer in the logical order of
+;; the document.  This function looks through list of files in the
+;; document (reftex-all-document-files), searches for the current
+;; buffer and switches to the next/previous one in the logical order
+;; of the document.  If WRAPP is true then wrap the search to the
+;; beginning/end of the file list, depending of the search direction.
 (defun reftex-isearch-switch-to-next-file (crt-buf &optional wrapp)
   (reftex-access-scan-info)
   (let ((cb (buffer-file-name crt-buf))

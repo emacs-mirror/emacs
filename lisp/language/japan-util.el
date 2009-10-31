@@ -162,8 +162,7 @@ belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 ;; Convert string STR by FUNC and return a resulting string.
 (defun japanese-string-conversion (str func &rest args)
   (let ((buf (get-buffer-create " *Japanese work*")))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (erase-buffer)
       (insert str)
       (apply func 1 (point) args)

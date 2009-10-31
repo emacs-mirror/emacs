@@ -355,8 +355,7 @@ Return new value of PLIST.
 GPR_FILE must be full path to file, normalized.
 src_dir, obj_dir will include compiler runtime.
 Assumes environment variable ADA_PROJECT_PATH is set properly."
-  (save-excursion
-    (set-buffer (get-buffer-create "*gnatls*"))
+  (with-current-buffer (get-buffer-create "*gnatls*")
     (erase-buffer)
 
     ;; this can take a long time; let the user know what's up
@@ -1041,16 +1040,14 @@ existing buffer `*gnatfind*', if there is one."
 	  (setq command (concat command " -p\"" ada-prj-default-project-file "\""))))
 
     (if (and append (get-buffer ada-gnatfind-buffer-name))
-	(save-excursion
-	  (set-buffer "*gnatfind*")
+	(with-current-buffer "*gnatfind*"
 	  (setq old-contents (buffer-string))))
 
     (let ((compilation-error "reference"))
       (compilation-start command 'compilation-mode (lambda (mode) ada-gnatfind-buffer-name)))
 
     ;;  Hide the "Compilation" menu
-    (save-excursion
-      (set-buffer ada-gnatfind-buffer-name)
+    (with-current-buffer ada-gnatfind-buffer-name
       (local-unset-key [menu-bar compilation-menu])
 
       (if old-contents
@@ -1318,8 +1315,7 @@ If ARG is non-nil, ask for user confirmation."
 					    command)))
 
     ;; Run the command
-    (save-excursion
-      (set-buffer (get-buffer-create "*run*"))
+    (with-current-buffer (get-buffer-create "*run*")
       (set 'buffer-read-only nil)
 
       (erase-buffer)
@@ -1547,8 +1543,7 @@ the project file."
   ;;      the 'D' lines.  This is done repeatedly, in case the direct parent is
   ;;      also a separate.
 
-  (save-excursion
-    (set-buffer (get-file-buffer file))
+  (with-current-buffer (get-file-buffer file)
     (let ((short-ali-file-name
 	   (concat (file-name-sans-extension (file-name-nondirectory file))
 		   ".ali"))
@@ -2044,13 +2039,11 @@ the declaration and documentation of the subprograms one is using."
 	choice
 	file)
 
-    (save-excursion
+    ;;  Do the grep in all the directories.  We do multiple shell
+    ;;  commands instead of one in case there is no .ali file in one
+    ;;  of the directory and the shell stops because of that.
 
-      ;;  Do the grep in all the directories.  We do multiple shell
-      ;;  commands instead of one in case there is no .ali file in one
-      ;;  of the directory and the shell stops because of that.
-
-      (set-buffer (get-buffer-create "*grep*"))
+    (with-current-buffer (get-buffer-create "*grep*")
       (while dirs
 	(insert (shell-command-to-string
 		 (concat
@@ -2234,8 +2227,7 @@ Return the position of the declaration in the buffer, or nil if not found."
 	(unit-name nil)
 	(body-name nil)
 	(ali-name nil))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-min))
       (re-search-forward "^U \\([^ \t%]+\\)%[bs][ \t]+\\([^ \t]+\\)")
       (setq unit-name (match-string 1))
@@ -2280,8 +2272,7 @@ Return the position of the declaration in the buffer, or nil if not found."
 This is a GNAT specific function that uses gnatkrunch."
   (let ((krunch-buf (generate-new-buffer "*gkrunch*"))
         (cross-prefix (plist-get (cdr (ada-xref-current-project)) 'cross_prefix)))
-    (save-excursion
-      (set-buffer krunch-buf)
+    (with-current-buffer krunch-buf
       ;; send adaname to external process `gnatkr'.
       ;; Add a dummy extension, since gnatkr versions have two different
       ;; behaviors depending on the version:
@@ -2340,8 +2331,7 @@ If INTERACTIVE is nil, assume this is called from `ff-file-created-hook'."
 				" " gnatstub-opts " " filename))
 	 (buffer        (get-buffer-create "*gnat stub*")))
 
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (compilation-minor-mode 1)
       (erase-buffer)
       (insert gnatstub-cmd)

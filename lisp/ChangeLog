@@ -1,3 +1,127 @@
+2009-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/two-column.el (2C-split):
+	* textmodes/texnfo-upd.el (texinfo-multi-file-included-list):
+	* textmodes/tex-mode.el (tex-set-buffer-directory):
+	* textmodes/spell.el (spell-region, spell-string):
+	* textmodes/reftex.el (reftex-erase-buffer):
+	(reftex-get-file-buffer-force, reftex-kill-temporary-buffers):
+	* textmodes/reftex-toc.el (reftex-toc-promote-action):
+	* textmodes/reftex-sel.el (reftex-get-offset, reftex-insert-docstruct)
+	(reftex-select-item):
+	* textmodes/reftex-ref.el (reftex-label-info-update)
+	(reftex-offer-label-menu):
+	* textmodes/reftex-index.el (reftex-index-change-entry)
+	(reftex-index-phrases-info):
+	* textmodes/reftex-global.el (reftex-create-tags-file)
+	(reftex-save-all-document-buffers, reftex-ensure-write-access):
+	* textmodes/reftex-dcr.el (reftex-echo-ref, reftex-echo-cite)
+	(reftex-view-crossref-from-bibtex):
+	* textmodes/reftex-cite.el (reftex-bibtex-selection-callback)
+	(reftex-extract-bib-entries-from-thebibliography)
+	(reftex-all-used-citation-keys, reftex-create-bibtex-file):
+	* textmodes/refbib.el (r2b-capitalize-title):
+	(r2b-convert-buffer, r2b-help):
+	* textmodes/page-ext.el (pages-directory)
+	(pages-directory-goto-with-mouse):
+	* textmodes/bibtex.el (bibtex-validate-globally):
+	* textmodes/bib-mode.el (bib-capitalize-title):
+	* textmodes/artist.el (artist-clear-buffer, artist-system):
+	* progmodes/xscheme.el (global-set-scheme-interaction-buffer):
+	(local-set-scheme-interaction-buffer, xscheme-process-filter)
+	(verify-xscheme-buffer, xscheme-enter-interaction-mode)
+	(xscheme-enter-debugger-mode, xscheme-debugger-mode-p)
+	(xscheme-send-control-g-interrupt, xscheme-start-process)
+	(xscheme-process-sentinel, xscheme-cd):
+	* progmodes/verilog-mode.el (verilog-read-always-signals)
+	(verilog-set-define, verilog-getopt-file)
+	(verilog-module-inside-filename-p):
+	* progmodes/sh-script.el:
+	* progmodes/python.el (python-pdbtrack-get-source-buffer)
+	(python-pdbtrack-grub-for-buffer, python-execute-file):
+	* progmodes/octave-inf.el (inferior-octave):
+	* progmodes/idlwave.el (idlwave-scan-user-lib-files)
+	(idlwave-shell-compile-helper-routines, idlwave-set-local)
+	(idlwave-display-completion-list-xemacs, idlwave-list-abbrevs)
+	(idlwave-display-completion-list-emacs, idlwave-list-load-path-shadows)
+	(idlwave-completion-fontify-classes, idlwave-display-calling-sequence):
+	* progmodes/idlw-shell.el (idlwave-shell-examine-display-clear)
+	(idlwave-shell-filter, idlwave-shell-examine-highlight)
+	(idlwave-shell-sentinel, idlwave-shell-filter-directory)
+	(idlwave-shell-display-line, idlwave-shell-set-bp-in-module)
+	(idlwave-shell-examine-display, idlwave-shell-run-region)
+	(idlwave-shell-filter-bp, idlwave-shell-save-and-action)
+	(idlwave-shell-sources-filter, idlwave-shell-goto-next-error):
+	* progmodes/idlw-help.el (idlwave-help-get-special-help)
+	(idlwave-help-get-help-buffer):
+	* progmodes/gud.el (gud-basic-call, gud-find-class)
+	(gud-tooltip-activate-mouse-motions-if-enabled):
+	* progmodes/gdb-mi.el (gdb-mouse-toggle-breakpoint-fringe):
+	* progmodes/ebrowse.el (ebrowse-member-table, ebrowse-save-tree-as)
+	(ebrowse-view-exit-fn, ebrowse-tags-list-members-in-file)
+	(ebrowse-tags-next-file):
+	* progmodes/ebnf2ps.el (ebnf-generate-eps, ebnf-generate-eps)
+	(ebnf-eps-production-list, ebnf-begin-file, ebnf-log)
+	(ebnf-eps-finish-and-write):
+	* progmodes/cpp.el (cpp-edit-save):
+	* progmodes/cperl-mode.el (cperl-pod-to-manpage):
+	* progmodes/cc-defs.el (c-emacs-features):
+	* progmodes/antlr-mode.el (antlr-invalidate-context-cache)
+	(antlr-directory-dependencies):
+	* progmodes/ada-xref.el (ada-gnat-parse-gpr, ada-get-ali-file-name)
+	(ada-run-application, ada-find-in-src-path, ada-goto-parent)
+	(ada-find-any-references, ada-make-filename-from-adaname)
+	(ada-make-body-gnatstub):
+	* obsolete/rnews.el (news-list-news-groups):
+	* obsolete/resume.el (resume-suspend-hook,resume-write-buffer-to-file):
+	* obsolete/iso-acc.el (iso-acc-minibuf-setup):
+	* net/rcirc.el (rcirc-debug):
+	* net/newst-treeview.el (newsticker--treeview-list-add-item)
+	(newsticker--treeview-list-clear, newsticker-treeview-browse-url)
+	(newsticker--treeview-list-update-faces, newsticker-treeview-save)
+	(newsticker--treeview-item-show-text, newsticker--treeview-item-show)
+	(newsticker--treeview-tree-update-tag,newsticker--treeview-buffer-init)
+	(newsticker-treeview-show-item, newsticker--treeview-unfold-node)
+	(newsticker--treeview-list-clear-highlight)
+	(newsticker--treeview-list-update-highlight)
+	(newsticker--treeview-list-highlight-start)
+	(newsticker--treeview-tree-update-highlight)
+	(newsticker--treeview-get-selected-item)
+	(newsticker-treeview-mark-list-items-old)
+	(newsticker--treeview-set-current-node):
+	* net/newst-plainview.el (newsticker--buffer-set-uptodate):
+	* net/newst-backend.el (newsticker--get-news-by-funcall)
+	(newsticker--get-news-by-wget, newsticker--image-get)
+	(newsticker--image-sentinel):
+	* net/mairix.el (mairix-rmail-fetch-field, mairix-gnus-fetch-field):
+	* net/eudcb-ph.el (eudc-ph-do-request, eudc-ph-open-session):
+	(eudc-ph-close-session):
+	* net/eudc.el (eudc-save-options):
+	* language/thai-word.el (thai-update-word-table):
+	* language/japan-util.el (japanese-string-conversion):
+	* international/titdic-cnv.el (tsang-quick-converter)
+	(ziranma-converter, ctlau-converter):
+	* international/mule-cmds.el (describe-language-environment):
+	* international/ja-dic-cnv.el (skkdic-convert-okuri-ari)
+	(skkdic-convert-postfix, skkdic-convert-prefix):
+	(skkdic-convert-okuri-nasi, skkdic-convert):
+	* emacs-lisp/re-builder.el (reb-update-overlays):
+	* emacs-lisp/pp.el (pp-to-string, pp-display-expression):
+	* emacs-lisp/gulp.el (gulp-send-requests):
+	* emacs-lisp/find-gc.el (trace-call-tree):
+	* emacs-lisp/eieio-opt.el (eieio-browse, eieio-describe-class)
+	(eieio-describe-generic):
+	* emacs-lisp/eieio-base.el (eieio-persistent-read):
+	* emacs-lisp/edebug.el (edebug-outside-excursion):
+	* emacs-lisp/debug.el (debugger-make-xrefs):
+	* emacs-lisp/cust-print.el (custom-prin1-to-string):
+	* emacs-lisp/chart.el (chart-new-buffer):
+	* emacs-lisp/authors.el (authors-scan-el, authors-scan-change-log):
+	Use with-current-buffer.
+	* textmodes/artist.el (artist-system): Don't call
+	copy-sequence on a fresh string.
+	* progmodes/idlw-shell.el (easymenu setup): Use dolist.
+
 2009-10-31  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-edit-item): Signal an error if there

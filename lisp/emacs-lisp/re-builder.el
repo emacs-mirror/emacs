@@ -658,8 +658,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 	 (matches 0)
 	 (submatches 0)
 	 firstmatch)
-    (save-excursion
-      (set-buffer reb-target-buffer)
+    (with-current-buffer reb-target-buffer
       (reb-delete-overlays)
       (goto-char (point-min))
       (while (and (not (eobp))

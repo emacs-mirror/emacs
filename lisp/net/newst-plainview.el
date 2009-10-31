@@ -1210,11 +1210,10 @@ The mode-line is changed accordingly."
   (setq newsticker--buffer-uptodate-p value)
   (let ((b (get-buffer "*newsticker*")))
     (when b
-      (save-excursion
-       (set-buffer b)
-       (if value
-           (setq mode-name "Newsticker -- up to date -- ")
-         (setq mode-name "Newsticker -- NEED UPDATE -- ")))
+      (with-current-buffer b
+        (setq mode-name (if value
+                            "Newsticker -- up to date -- "
+                          "Newsticker -- NEED UPDATE -- ")))
       (force-mode-line-update 0))))
 
 (defun newsticker--buffer-redraw ()

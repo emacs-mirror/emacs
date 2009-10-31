@@ -260,8 +260,7 @@ Currently there are 'threads and 'flags.")
   ;; At this point, we are in rmail mode, so the rmail funcs are loaded.
   (if (fboundp 'rmail-get-header)	; Emacs 23
       (rmail-get-header field)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (save-restriction
 	;; Don't warn about this when compiling Emacs 23.
 	(with-no-warnings (rmail-narrow-to-non-pruned-header))
@@ -294,10 +293,9 @@ Currently there are 'threads and 'flags.")
   "Get mail header FIELD for current message using Gnus."
   (unless (gnus-alive-p)
     (error "Gnus is not running"))
-  (save-excursion
-    (unless (gnus-buffer-exists-p gnus-article-buffer)
-      (error "No article buffer available"))
-    (set-buffer gnus-article-buffer)
+  (unless (gnus-buffer-exists-p gnus-article-buffer)
+    (error "No article buffer available"))
+  (with-current-buffer gnus-article-buffer
     (gnus-summary-toggle-header 1)
     (message-field-value field)))
 

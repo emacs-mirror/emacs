@@ -1723,8 +1723,7 @@ node names in pre-existing `@node' lines that lack names."
   "Return a list of the included files in OUTER-FILE."
   (let ((included-file-list (list outer-file))
 	start)
-    (save-excursion
-      (set-buffer (find-file-noselect outer-file))
+    (with-current-buffer (find-file-noselect outer-file)
       (widen)
       (goto-char (point-min))
       (while (re-search-forward "^@include" nil t)

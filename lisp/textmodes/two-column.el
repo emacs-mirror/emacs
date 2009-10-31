@@ -407,8 +407,7 @@ First column's text    sSs  Second column's text
        (if (y-or-n-p (concat "Overwrite associated buffer `"
 			     (buffer-name (2C-other))
 			     "'? "))
-	   (save-excursion
-	     (set-buffer (2C-other))
+	   (with-current-buffer (2C-other)
 	     (erase-buffer))
 	 (signal 'quit nil)))
   (let ((point (point))

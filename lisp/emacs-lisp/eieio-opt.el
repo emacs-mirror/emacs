@@ -43,8 +43,7 @@ variable `eieio-default-superclass'."
   (if (not root-class) (setq root-class 'eieio-default-superclass))
   (if (not (class-p root-class)) (signal 'wrong-type-argument (list 'class-p root-class)))
   (display-buffer (get-buffer-create "*EIEIO OBJECT BROWSE*") t)
-  (save-excursion
-    (set-buffer (get-buffer "*EIEIO OBJECT BROWSE*"))
+  (with-current-buffer (get-buffer "*EIEIO OBJECT BROWSE*")
     (erase-buffer)
     (goto-char 0)
     (eieio-browse-tree root-class "" "")
@@ -161,8 +160,7 @@ Optional HEADERFCN should be called to insert a few bits of info first."
 	    (terpri)
 	    (terpri))
 	  (setq methods (cdr methods))))))
-  (save-excursion
-    (set-buffer (help-buffer))
+  (with-current-buffer (help-buffer)
     (buffer-string)))
 
 (defun eieio-describe-class-slots (class)
@@ -376,8 +374,7 @@ Also extracts information about all methods specific to this generic."
 	    (terpri)
 	    (terpri)))
 	(setq i (1+ i)))))
-  (save-excursion
-    (set-buffer (help-buffer))
+  (with-current-buffer (help-buffer)
     (buffer-string)))
 
 (defun eieio-lambda-arglist (func)

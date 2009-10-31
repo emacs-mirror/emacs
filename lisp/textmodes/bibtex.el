@@ -3863,8 +3863,7 @@ Return t if test was successful, nil otherwise."
         buffer-key-list current-buf current-keys error-list)
     ;; Check for duplicate keys within BibTeX buffer
     (dolist (buffer buffer-list)
-      (save-excursion
-        (set-buffer buffer)
+      (with-current-buffer buffer
         (let (entry-type key key-list)
           (goto-char (point-min))
           (while (re-search-forward bibtex-entry-head nil t)

@@ -706,8 +706,7 @@ with the file and the number of each action:
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
 	 authors file pos)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-restriction
 	(widen)
 	(goto-char (point-min))
@@ -758,8 +757,7 @@ TABLE is a hash table to add author information to."
 	 (enable-local-eval nil)
 	 (buffer (find-file-noselect file)))
     (setq file (file-name-nondirectory file))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-restriction
 	(widen)
 	(goto-char (point-min))

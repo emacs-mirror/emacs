@@ -2978,8 +2978,7 @@ so that `occur-next' and `occur-prev' will work."
 ;;
 ;; (defun what-i-learned (list)
 ;;   (let ((p list))
-;;     (save-excursion
-;;       (set-buffer "*scratch*")
+;;     (with-current-buffer "*scratch*"
 ;;       (goto-char (point-max))
 ;;       (insert "(setq\n")
 ;;       (while p
