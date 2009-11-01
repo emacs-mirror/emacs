@@ -1,3 +1,8 @@
+2009-11-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* view.el (view-mode-exit): If OLD-BUF is dead bury the buffer
+	instead of deleting the window or frame.
+
 2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/sgml-mode.el (sgml-mode-facemenu-add-face-function):

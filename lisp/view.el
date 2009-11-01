@@ -660,11 +660,13 @@ OLD-WINDOW."
 		(old-buf-info (cdr (cdr (car alist)))))
 	    (if all-win (select-window window))
 	    (cond
-	     ((and (consp old-buf-info)		; Case 3.
-		   (buffer-live-p (car old-buf-info)))
-	      (set-window-buffer window (car old-buf-info)) ; old-buf
-	      (set-window-start window (car (cdr old-buf-info)))
-	      (set-window-point window (car (cdr (cdr old-buf-info)))))
+	     ((consp old-buf-info)		; Case 3.
+	      (if (buffer-live-p (car old-buf-info))
+		  (progn
+		    (set-window-buffer window (car old-buf-info)) ; old-buf
+		    (set-window-start window (car (cdr old-buf-info)))
+		    (set-window-point window (car (cdr (cdr old-buf-info)))))
+		(bury-buffer)))
 	     ((eq old-buf-info 'quit-window)
 	      (quit-window))			; Case 4.
 	     (old-buf-info			; Case 2 or 5.
