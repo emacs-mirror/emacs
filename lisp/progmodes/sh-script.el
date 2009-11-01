@@ -1110,7 +1110,7 @@ subshells can nest."
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
 	  ;; Patterns can be preceded by an open-paren (Bug#1320).
-	  (if (= (char-before (point)) ?\()
+	  (if (eq (char-before (point)) ?\()
 	      (backward-char 1))
           (while (progn
                    (forward-comment (- (point-max)))

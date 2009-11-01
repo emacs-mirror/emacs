@@ -1,3 +1,7 @@
+2009-11-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Fix last change.
+
 2009-11-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* view.el (view-mode-exit): If OLD-BUF is dead bury the buffer
