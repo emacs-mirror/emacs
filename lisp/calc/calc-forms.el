@@ -81,7 +81,7 @@
 (defun calc-date-notation (fmt arg)
   (interactive "sDate format (e.g., M/D/YY h:mm:ss): \nP")
   (calc-wrapper
-   (if (equal fmt "")
+   (if (string-match-p "\\`\\s-*\\'" fmt)
        (setq fmt "1"))
    (if (string-match "\\` *[0-9] *\\'" fmt)
        (setq fmt (nth (string-to-number fmt) calc-standard-date-formats)))
