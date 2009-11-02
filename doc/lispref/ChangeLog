@@ -1,3 +1,8 @@
+2009-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Reading File Names): Note that read-file-name may
+	use a graphical file dialog.
+
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* nonascii.texi (User-Chosen Coding Systems): Minor reword.  (Bug#4817)

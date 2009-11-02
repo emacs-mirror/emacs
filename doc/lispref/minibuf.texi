@@ -1337,8 +1337,19 @@ They provide special features, including automatic insertion of the
 default directory.
 
 @defun read-file-name prompt &optional directory default require-match initial predicate
-This function reads a file name in the minibuffer, prompting with
-@var{prompt} and providing completion.
+This function reads a file name, prompting with @var{prompt} and
+providing completion.
+
+As an exception, this function reads a file name using a graphical
+file dialog instead of the minibuffer, if (i) it is invoked via a
+mouse command, and (ii) the selected frame is on a graphical display
+supporting such dialogs, and (iii) the variable @code{use-dialog-box}
+is non-@code{nil} (@pxref{Dialog Boxes,, Dialog Boxes, emacs, The GNU
+Emacs Manual}), and (iv) the @var{directory} argument, described
+below, does not specify a remote file (@pxref{Remote Files,, Remote
+Files, emacs, The GNU Emacs Manual}).  The exact behavior when using a
+graphical file dialog is platform-dependent.  Here, we simply document
+the behavior when using the minibuffer.
 
 The optional argument @var{require-match} has the same meaning as in
 @code{completing-read}.  @xref{Minibuffer Completion}.
@@ -1355,7 +1366,6 @@ name.  If @code{insert-default-directory} is non-@code{nil},
 @var{directory} is also inserted in the minibuffer as initial input.
 It defaults to the current buffer's value of @code{default-directory}.
 
-@c Emacs 19 feature
 If you specify @var{initial}, that is an initial file name to insert
 in the buffer (after @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
