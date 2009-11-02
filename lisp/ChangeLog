@@ -1,3 +1,8 @@
+2009-11-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (calc-date-notation): Allow a "blank string"
+	to be made up of whitespace.
+
 2009-11-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (read-file-name): Don't use file dialogs for
