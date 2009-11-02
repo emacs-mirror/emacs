@@ -1292,9 +1292,10 @@ DIR should be an absolute directory name.  It defaults to the value of
 
 If this command was invoked with the mouse, use a graphical file
 dialog if `use-dialog-box' is non-nil, and the window system or X
-toolkit in use provides a file dialog box.  For graphical file
-dialogs, any the special values of MUSTMATCH; `confirm' and
-`confirm-after-completion' are treated as equivalent to nil.
+toolkit in use provides a file dialog box, and DIR is not a
+remote file.  For graphical file dialogs, any the special values
+of MUSTMATCH; `confirm' and `confirm-after-completion' are
+treated as equivalent to nil.
 
 See also `read-file-name-completion-ignore-case'
 and `read-file-name-function'."
@@ -1325,7 +1326,10 @@ and `read-file-name-function'."
             (add-to-history nil))
 
         (let* ((val
-                (if (not (next-read-file-uses-dialog-p))
+                (if (or (not (next-read-file-uses-dialog-p))
+			;; Graphical file dialogs can't handle remote
+			;; files (Bug#99).
+			(file-remote-p dir))
                     ;; We used to pass `dir' to `read-file-name-internal' by
                     ;; abusing the `predicate' argument.  It's better to
                     ;; just use `default-directory', but in order to avoid

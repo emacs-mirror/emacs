@@ -1,3 +1,8 @@
+2009-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (read-file-name): Don't use file dialogs for
+	remote directories (Bug#99).
+
 2009-11-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/sh-script.el (sh-font-lock-paren): Fix last change.
