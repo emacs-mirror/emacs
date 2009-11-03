@@ -1,5 +1,8 @@
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* editfns.c (save_restriction_restore): Update the (pt/begv/vz)_markers
+	when applicable (bug#4851).
+
 	* lisp.h: Make USE_LSB_TAG work with USE_LISP_UNION_TYPE.
 	(P_): Support for prototypes is now required.
 
@@ -10,14 +13,14 @@
 
 2009-10-30  Eli Zaretskii  <eliz@gnu.org>
 
-	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Redefine to waste less pure
-	space.
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Redefine to waste less pure space.
 
 2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1470000.
 
-	* lread.c (Fload): Purecopy the file name when building Vpreloaded_file_list.
+	* lread.c (Fload): Purecopy the file name when building
+	Vpreloaded_file_list.
 
 2009-10-29  Jason Rumney  <jasonr@wanchan.jasonrumney.net>
 
@@ -55,7 +58,7 @@
 
 	* dired.c (Ffile_attributes): Simplify now that FIXNUM_OVERFLOW_P
 	can properly handle unsigned types.
-	(make_uid, make_gid): Removed.
+	(make_uid, make_gid): Remove.
 
 	* lisp.h (FIXNUM_OVERFLOW_P): Fix last change to handle unsigned
 	types again.
@@ -108,10 +111,11 @@
 	(handle_one_xevent): Set pending_event_wait.eventtype to 0 if we
 	see pending_event_wait.eventtype.
 	(handle_one_xevent): Don't change gravity when parent changes.
-	(x_new_font): Call change_frame_size with new rows/columns before we try
-	to resize the frame.
+	(x_new_font): Call change_frame_size with new rows/columns before we
+	try to resize the frame.
 	(x_wait_for_event): New function.
-	(x_set_window_size_1): Don't change gravity unless change_gravity is set.
+	(x_set_window_size_1): Don't change gravity unless change_gravity
+	is set.
 	Call XResizeWindow with FRAME_OUTER_WINDOW.  If we are visible,
 	don't change frame size, instead wait for the ConfigureNotify.
 	(x_set_window_size): Call x_set_window_size_1 for USE_X_TOOLKIT also.
@@ -126,7 +130,7 @@
 
 	* gtkutil.c (xg_frame_set_char_size): Flush events and call
 	x_wait_for_event.
-	(flush_and_sync): Removed again.
+	(flush_and_sync): Remove again.
 	(xg_get_font_name): Suggest monospace if no previous font is known.
 
 2009-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -329,8 +333,7 @@
 	(ns_findfonts, nsfont_list_family): Use long format in printf, and
 	cast argument.
 	(nsfont_open): Use ns_char_width() everywhere.
-	(ns_uni_to_glyphs, NSGlyphStorage): Use NS[U]Integer where
-	appropriate.
+	(ns_uni_to_glyphs, NSGlyphStorage): Use NS[U]Integer where appropriate.
 
 	* nsgui.h (NSPoint, NSSize) [!__OBJC__]: Define and use CGFloat.
 
@@ -399,7 +402,7 @@
 
 2009-10-02  Michael Albinus  <michael.albinus@gmx.de>
 
-	* lisp.h (Qdelete_directory_internal): Removed, because it is not
+	* lisp.h (Qdelete_directory_internal): Remove, because it is not
 	used anymore outside fileio.c.
 
 	* w32fns.c (Fsystem_move_file_to_trash): Use delete-directory.
@@ -474,8 +477,8 @@
 2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.c (xrdb_get_resource): Return nil for empty string resources;
-	some parts of Emacs code (like font selection) don't grok them.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2009-09/msg00528.html
+	some parts of Emacs code (like font selection) don't grok them.
+	See http://lists.gnu.org/archive/html/emacs-devel/2009-09/msg00528.html
 
 2009-09-24  Andreas Schwab  <schwab@redhat.com>
 
