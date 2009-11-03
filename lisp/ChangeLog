@@ -1,3 +1,13 @@
+2009-11-03  Juri Linkov  <juri@jurta.org>
+
+	* menu-bar.el (menu-bar-make-mm-toggle, menu-bar-make-toggle)
+	(menu-bar-options-menu): Fix list quoting (Bug#4429).
+
+	* buff-menu.el (Buffer-menu-mode-map): Add hyphen between "Buffer"
+	and "Menu" to make top-level menu item visually one unit (like
+	it's done for "Lisp-Interaction", "Emacs-Lisp" and other
+	multi-word menu items).  Fix :help string for quit-window.
+
 2009-11-03  Glenn Morris  <rgm@gnu.org>
 
 	* cedet/mode-local.el (with-mode-local): Doc fix.
