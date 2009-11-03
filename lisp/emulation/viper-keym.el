@@ -165,8 +165,7 @@ Enter as a sexp.  Examples: \"\\C-z\", [(control ?z)]."
 			    [(control ?z)])))
 	   (mapc
 	    (lambda (buf)
-	      (save-excursion
-		(set-buffer buf)
+	      (with-current-buffer buf
 		(when (and (boundp 'viper-insert-basic-map)
 			   (keymapp viper-insert-basic-map))
 		  (when old-value

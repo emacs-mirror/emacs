@@ -1085,8 +1085,7 @@ On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
   (let* ((pos (event-end event))
          (window (nth 0 pos))
          (scale (nth 2 pos)))
-    (save-excursion
-      (set-buffer (window-buffer window))
+    (with-current-buffer (window-buffer window)
       (cond
        ((eq (car scale) (cdr scale))
 	(goto-char (point-max)))
@@ -1169,8 +1168,7 @@ the operating system.")
      ((eq window-pos 'vertical-line)
       'default)
      ((consp window-pos)
-      (save-excursion
-        (set-buffer buffer)
+      (with-current-buffer buffer
         (let ((p (car (compute-motion (window-start window)
                                       (cons (nth 0 edges) (nth 1 edges))
                                       (window-end window)

@@ -409,8 +409,7 @@ Otherwise return the normal value."
 	(command (cond (viper-ms-style-os-p (format "\"ls -1 -d %s\"" filespec))
 		       (t (format "ls -1 -d %s" filespec))))
 	status)
-    (save-excursion
-      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+    (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
       (erase-buffer)
       (setq status
 	    (if gshell-options
@@ -467,8 +466,7 @@ Otherwise return the normal value."
 
 ;; convert MS-DOS wildcards to regexp
 (defun viper-wildcard-to-regexp (wcard)
-  (save-excursion
-    (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+  (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
     (erase-buffer)
     (insert wcard)
     (goto-char (point-min))
@@ -488,8 +486,7 @@ Otherwise return the normal value."
 (defun viper-glob-mswindows-files (filespec)
   (let ((case-fold-search t)
 	tmp tmp2)
-    (save-excursion
-      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+    (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
       (erase-buffer)
       (insert filespec)
       (goto-char (point-min))
@@ -654,8 +651,7 @@ Otherwise return the normal value."
 	 (buf (find-file-noselect (substitute-in-file-name custom-file)))
 	)
     (message "%s" (or message ""))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (goto-char (point-min))
       (if (re-search-forward regexp nil t)
 	  (let ((reg-end (1- (match-end 0))))
@@ -678,8 +674,7 @@ Otherwise return the normal value."
 ;; match this pattern.
 (defun viper-save-string-in-file (string custom-file &optional pattern)
   (let ((buf (find-file-noselect (substitute-in-file-name custom-file))))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (let (buffer-read-only)
 	(goto-char (point-min))
 	(if pattern (delete-matching-lines pattern))
@@ -889,8 +884,7 @@ Otherwise return the normal value."
   (if (and (markerp marker) (marker-buffer marker))
       (let ((buf (marker-buffer marker))
 	    (pos (marker-position marker)))
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (and (<= pos (point-max)) (<= (point-min) pos))))))
 
 (defsubst viper-mark-marker ()

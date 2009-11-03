@@ -643,8 +643,7 @@ non-deleted messages."
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
   (let (msg)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (rmail-next-labeled-message n labels)
       (setq msg rmail-current-message))
     (rmail-summary-goto-msg msg)))
@@ -654,8 +653,7 @@ With prefix argument N moves forward N messages with these labels."
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
   (let (msg)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (rmail-previous-labeled-message n labels)
       (setq msg rmail-current-message))
     (rmail-summary-goto-msg msg)))
@@ -809,8 +807,7 @@ Optional prefix ARG means undelete ARG previous messages."
 (defun rmail-summary-undelete-many (&optional n)
   "Undelete all deleted msgs, optional prefix arg N means undelete N prev msgs."
   (interactive "P")
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (let* ((init-msg (if n rmail-current-message rmail-total-messages))
 	   (rmail-current-message init-msg)
 	   (n (or n rmail-total-messages))
@@ -967,8 +964,7 @@ Search, the `unseen' attribute is restored.")
 			(rmail-show-message msg-num t))
 		    (select-window owin))
 		(if (buffer-name rmail-buffer)
-		    (save-excursion
-		      (set-buffer rmail-buffer)
+		    (with-current-buffer rmail-buffer
 		      (rmail-show-message msg-num t))))))
 	(rmail-summary-update-highlight nil)))))
 
@@ -1206,7 +1202,7 @@ Returns non-nil if message N was found."
 	 (curmsg (string-to-number
 		  (buffer-substring (point)
 				    (min (point-max) (+ 6 (point))))))
-	 (total (save-excursion (set-buffer buf) rmail-total-messages)))
+	 (total (with-current-buffer buf rmail-total-messages)))
     ;; If message number N was specified, find that message's line
     ;; or set message-not-found.
     ;; If N wasn't specified or that message can't be found.
@@ -1368,7 +1364,7 @@ Position it according to WHERE which can be BEG or END"
 (defun rmail-summary-wipe ()
   "Kill and wipe away Rmail summary, remaining within Rmail."
   (interactive)
-  (save-excursion (set-buffer rmail-buffer) (setq rmail-summary-buffer nil))
+  (with-current-buffer rmail-buffer (setq rmail-summary-buffer nil))
   (let ((local-rmail-buffer rmail-buffer))
     (kill-buffer (current-buffer))
     ;; Delete window if not only one.
@@ -1380,8 +1376,7 @@ Position it according to WHERE which can be BEG or END"
 (defun rmail-summary-expunge ()
   "Actually erase all deleted messages and recompute summary headers."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (when (rmail-expunge-confirmed)
       (rmail-only-expunge)))
   (rmail-update-summary))
@@ -1405,8 +1400,7 @@ argument says to read a file name and use that file as the inbox."
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
   (let (msg)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (rmail-get-new-mail file-name)
       ;; Get the proper new message number.
       (setq msg rmail-current-message))
@@ -1493,12 +1487,8 @@ Interactively, empty argument means use same regexp used last time."
 	    (prefix-numeric-value current-prefix-arg))))
   ;; Don't use save-excursion because that prevents point from moving
   ;; properly in the summary buffer.
-  (let ((buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (set-buffer rmail-buffer)
-	  (rmail-search regexp (- n)))
-      (set-buffer buffer))))
+  (with-current-buffer rmail-buffer
+    (rmail-search regexp (- n))))
 
 (defun rmail-summary-search (regexp &optional n)
   "Show message containing next match for REGEXP.
@@ -1556,21 +1546,17 @@ Interactively, empty argument means use same regexp used last time."
 (defun rmail-summary-add-label (label)
   "Add LABEL to labels associated with current Rmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (save-excursion
-		       (set-buffer rmail-buffer)
+  (interactive (list (with-current-buffer rmail-buffer
 		       (rmail-read-label "Add label"))))
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (rmail-add-label label)))
 
 (defun rmail-summary-kill-label (label)
   "Remove LABEL from labels associated with current Rmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (save-excursion
-		       (set-buffer rmail-buffer)
+  (interactive (list (with-current-buffer rmail-buffer
 		       (rmail-read-label "Kill label"))))
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (rmail-set-label label nil)))
 
 ;;;; *** Rmail Summary Mailing Commands ***
@@ -1737,8 +1723,7 @@ Also set the default for subsequent \\[rmail-output-to-babyl-file] commands.
 The variables `rmail-secondary-file-directory' and
 `rmail-secondary-file-regexp' control which files are offered in the menu."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (let ((rmail-delete-after-output nil))
       (call-interactively 'rmail-output-menu)))
   (if rmail-delete-after-output
@@ -1767,8 +1752,7 @@ The variables `rmail-secondary-file-directory' and
   "Write this message body to the file FILE-NAME.
 FILE-NAME defaults, interactively, from the Subject field of the message."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (let ((rmail-delete-after-output nil))
       (if file-name
 	  (rmail-output-body-to-file file-name)

@@ -194,10 +194,8 @@ causing the user to wonder if anything's really going on..."
 			 (mapconcat 'shell-quote-argument
 				    (append (list command) args) " ")
 			 outbuf errbuf))
-	  (eshell-print (save-excursion (set-buffer outbuf)
-					(buffer-string)))
-	  (eshell-error (save-excursion (set-buffer errbuf)
-					(buffer-string))))
+	  (eshell-print (with-current-buffer outbuf (buffer-string)))
+	  (eshell-error (with-current-buffer errbuf (buffer-string))))
       (eshell-close-handles exitcode 'nil)
       (kill-buffer outbuf)
       (kill-buffer errbuf))))

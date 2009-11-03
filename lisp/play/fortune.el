@@ -293,8 +293,7 @@ when supplied, specifies the file to choose the fortune from."
 	(fort-file (expand-file-name
 		    (substitute-in-file-name
 		     (or file fortune-file)))))
-    (save-excursion
-      (set-buffer fortune-buffer)
+    (with-current-buffer fortune-buffer
       (toggle-read-only 0)
       (erase-buffer)
 

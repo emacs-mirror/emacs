@@ -939,6 +939,7 @@ If the game is finished, this command requests for another game."
 	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
+  ;; FIXME: this can't be right!!  --Stef
   (save-excursion (set-buffer (other-buffer))))
 
 (defun gomoku-prompt-for-other-game ()

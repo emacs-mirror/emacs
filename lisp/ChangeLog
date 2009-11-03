@@ -1,3 +1,58 @@
+2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/ns-win.el (ns-scroll-bar-move, ns-face-at-pos):
+	* play/mpuz.el (mpuz-create-buffer):
+	* play/landmark.el (lm-prompt-for-move, lm-print-wts, lm-print-smell)
+	(lm-print-y,s,noise, lm-print-w0, lm-init):
+	* play/gomoku.el (gomoku-prompt-for-move):
+	* play/fortune.el (fortune-in-buffer):
+	* play/dissociate.el (dissociated-press):
+	* play/decipher.el (decipher-adjacency-list, decipher-display-regexp)
+	(decipher-analyze-buffer, decipher-stats-buffer,decipher-stats-buffer):
+	* mail/supercite.el (sc-eref-show):
+	* mail/smtpmail.el (smtpmail-send-it):
+	* mail/rmailsum.el (rmail-summary-next-labeled-message)
+	(rmail-summary-previous-labeled-message, rmail-summary-wipe)
+	(rmail-summary-undelete-many, rmail-summary-rmail-update)
+	(rmail-summary-goto-msg, rmail-summary-expunge)
+	(rmail-summary-get-new-mail, rmail-summary-search-backward)
+	(rmail-summary-add-label, rmail-summary-output-menu)
+	(rmail-summary-output-body):
+	* mail/rfc822.el (rfc822-addresses):
+	* mail/reporter.el (reporter-dump-variable, reporter-dump-state):
+	* mail/mailpost.el (post-mail-send-it):
+	* mail/hashcash.el (hashcash-generate-payment):
+	* mail/feedmail.el (feedmail-run-the-queue)
+	(feedmail-queue-send-edit-prompt-help-first)
+	(feedmail-send-it-immediately, feedmail-give-it-to-buffer-eater)
+	(feedmail-deduce-address-list):
+	* eshell/esh-ext.el (eshell-remote-command):
+	* eshell/em-unix.el (eshell-occur-mode-mouse-goto):
+	* emulation/viper-util.el (viper-glob-unix-files, viper-save-setting)
+	(viper-wildcard-to-regexp, viper-glob-mswindows-files)
+	(viper-save-string-in-file, viper-valid-marker):
+	* emulation/viper-keym.el (viper-toggle-key):
+	* emulation/viper-ex.el (ex-expand-filsyms, viper-get-ex-file)
+	(ex-edit, ex-global, ex-mark, ex-next-related-buffer, ex-quit)
+	(ex-get-inline-cmd-args, ex-tag, ex-command, ex-compile):
+	* emulation/viper-cmd.el (viper-exec-form-in-vi)
+	(viper-exec-form-in-emacs, viper-brac-function):
+	* emulation/viper.el (viper-delocalize-var):
+	* emulation/vip.el (vip-mode, vip-get-ex-token, vip-ex, vip-get-ex-pat)
+	(vip-get-ex-command, vip-get-ex-opt-gc, vip-get-ex-buffer)
+	(vip-get-ex-count, vip-get-ex-file, ex-edit, ex-global, ex-mark)
+	(ex-map, ex-unmap, ex-quit, ex-read, ex-tag, ex-command):
+	* emulation/vi.el (vi-switch-mode, vi-ex-cmd):
+	* emulation/edt.el (edt-electric-helpify):
+	* emulation/cua-rect.el (cua--rectangle-aux-replace):
+	* emulation/cua-gmrk.el (cua--insert-at-global-mark)
+	(cua--delete-at-global-mark, cua--copy-rectangle-to-global-mark)
+	(cua-indent-to-global-mark-column):
+	* calendar/diary-lib.el (calendar-mark-1):
+	* calendar/cal-hebrew.el (calendar-hebrew-mark-date-pattern):
+	Use with-current-buffer.
+	* emulation/viper.el (viper-delocalize-var): Use dolist.
+
 2009-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* comint.el (comint-replace-by-expanded-history-before-point):
@@ -27,8 +82,8 @@
 	* textmodes/sgml-mode.el (sgml-mode-facemenu-add-face-function):
 	Support face colors.
 
-	* textmodes/tex-mode.el (tex-facemenu-add-face-function): New
-	function.  Support face colors (Bug#1168).
+	* textmodes/tex-mode.el (tex-facemenu-add-face-function):
+	New function.  Support face colors (Bug#1168).
 	(tex-common-initialization): Use it.
 
 	* facemenu.el (facemenu-enable-faces-p): Enable facemenu if the

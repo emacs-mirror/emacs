@@ -647,10 +647,9 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 ;; Remove local value in all existing buffers
 ;; This doesn't delocalize vars (which would have been desirable)
 (defun viper-delocalize-var (symbol)
-  (mapcar (lambda (buf) (save-excursion
-			  (set-buffer buf)
-			  (kill-local-variable symbol)))
-	  (buffer-list)))
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (kill-local-variable symbol))))
 
 
 (defun viper-go-away ()

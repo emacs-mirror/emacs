@@ -903,8 +903,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
        (signal 'quit nil)))
 
     (if (not (equal buff (current-buffer))) ; cmd switched buffer
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  (viper-set-mode-vars-for viper-current-state)))
     (viper-set-mode-vars-for viper-current-state)
     result))
@@ -917,8 +916,7 @@ Similar to viper-escape-to-emacs, but accepts forms rather than keystrokes."
     (viper-set-mode-vars-for 'emacs-state)
     (setq result (eval form))
     (if (not (equal buff (current-buffer))) ; cmd switched buffer
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  (viper-set-mode-vars-for viper-current-state)))
     (viper-set-mode-vars-for viper-current-state)
     result))
@@ -4697,8 +4695,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	     (with-output-to-temp-buffer " *viper-info*"
 	       (if (and buf pos)
 		   (progn
-		     (save-excursion
-		       (set-buffer buf)
+		     (with-current-buffer buf
 		       (setq line-no (1+ (count-lines (point-min) val)))
 		       (goto-char pos)
 		       (beginning-of-line)

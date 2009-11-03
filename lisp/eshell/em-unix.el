@@ -667,8 +667,7 @@ Concatenate FILE(s), or standard input, to standard output.")
   "In Occur mode, go to the occurrence whose line you click on."
   (interactive "e")
   (let (pos)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
+    (with-current-buffer (window-buffer (posn-window (event-end event)))
       (save-excursion
 	(goto-char (posn-point (event-end event)))
 	(setq pos (occur-mode-find-occurrence))))

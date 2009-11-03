@@ -419,10 +419,9 @@ Type `n' to quit this window for now.\n")
 	(goto-char (point-min))
 	(if (y-or-n-p "Inhibit VIP startup message? ")
 	    (progn
-	      (save-excursion
-		(set-buffer
-		 (find-file-noselect
-		  (substitute-in-file-name vip-startup-file)))
+	      (with-current-buffer 
+                  (find-file-noselect
+                   (substitute-in-file-name vip-startup-file))
 		(goto-char (point-max))
 		(insert "\n(setq vip-inhibit-startup-message t)\n")
 		(save-buffer)
@@ -2158,8 +2157,7 @@ is a command.")
 (defun vip-get-ex-token ()
   "get an ex-token which is either an address or a command.
 a token has type \(command, address, end-mark\) and value."
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (skip-chars-forward " \t")
     (cond ((looking-at "[k#]")
 	   (setq ex-token-type "command")
@@ -2262,8 +2260,7 @@ a token has type \(command, address, end-mark\) and value."
 	    ex-g-variant nil))
   (let ((com-str (or string (vip-read-string ":")))
 	(address nil) (cont t) (dot (point)))
-    (save-window-excursion
-      (set-buffer (get-buffer-create " *ex-working-space*"))
+    (with-current-buffer (get-buffer-create " *ex-working-space*")
       (delete-region (point-min) (point-max))
       (insert com-str "\n")
       (goto-char (point-min)))
@@ -2282,8 +2279,7 @@ a token has type \(command, address, end-mark\) and value."
 		    (setq cont nil))
 		   (t
 		    (vip-execute-ex-command)
-		    (save-window-excursion
-		      (set-buffer " *ex-working-space*")
+		    (with-current-buffer " *ex-working-space*"
 		      (skip-chars-forward " \t")
 		      (cond ((looking-at "|")
 			     (forward-char 1))
@@ -2307,8 +2303,7 @@ a token has type \(command, address, end-mark\) and value."
 
 (defun vip-get-ex-pat ()
   "get a regular expression and set ex-variant if found"
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (skip-chars-forward " \t")
     (if (looking-at "!")
 	(progn
@@ -2334,8 +2329,7 @@ a token has type \(command, address, end-mark\) and value."
 
 (defun vip-get-ex-command ()
   "get an ex command"
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (if (looking-at "/") (forward-char 1))
     (skip-chars-forward " \t")
     (cond ((looking-at "[a-z]")
@@ -2349,8 +2343,7 @@ a token has type \(command, address, end-mark\) and value."
 
 (defun vip-get-ex-opt-gc ()
   "get an ex option g or c"
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (if (looking-at "/") (forward-char 1))
     (skip-chars-forward " \t")
     (cond ((looking-at "g")
@@ -2458,8 +2451,7 @@ a token has type \(command, address, end-mark\) and value."
   (setq ex-buffer nil)
   (setq ex-count nil)
   (setq ex-flag nil)
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (skip-chars-forward " \t")
     (if (looking-at "[a-zA-Z]")
 	(progn
@@ -2483,8 +2475,7 @@ a token has type \(command, address, end-mark\) and value."
   (setq ex-variant nil
 	ex-count nil
 	ex-flag nil)
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (skip-chars-forward " \t")
     (if (looking-at "!")
 	(progn
@@ -2510,8 +2501,7 @@ a token has type \(command, address, end-mark\) and value."
 	ex-variant nil
 	ex-append nil
 	ex-offset nil)
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
+  (with-current-buffer " *ex-working-space*"
     (skip-chars-forward " \t")
     (if (looking-at "!")
 	(progn
@@ -2680,8 +2670,7 @@ a token has type \(command, address, end-mark\) and value."
   (goto-char (point-min))
   (if ex-offset
       (progn
-	(save-window-excursion
-	  (set-buffer " *ex-working-space*")
+	(with-current-buffer " *ex-working-space*"
 	  (delete-region (point-min) (point-max))
 	  (insert ex-offset "\n")
 	  (goto-char (point-min)))
@@ -2733,19 +2722,18 @@ a token has type \(command, address, end-mark\) and value."
 	  (if (bobp) (setq cont nil)
 	    (forward-line -1)
 	    (end-of-line)))))
-  (save-window-excursion
-    (set-buffer " *ex-working-space*")
-    (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
-  (while marks
-    (goto-char (car marks))
-    ; report progress of execution on a slow machine.
-    ;(message "Executing global command...")
-    ;(if (zerop (% mark-count 10))
-	;(message "Executing global command...%d" mark-count))
-    (vip-ex com-str)
-    (setq mark-count (1- mark-count))
-    (setq marks (cdr marks)))))
-  ;(message "Executing global command...done")))
+    (with-current-buffer " *ex-working-space*"
+      (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
+    (while marks
+      (goto-char (car marks))
+      ;; report progress of execution on a slow machine.
+      ;;(message "Executing global command...")
+      ;;(if (zerop (% mark-count 10))
+      ;;    (message "Executing global command...%d" mark-count))
+      (vip-ex com-str)
+      (setq mark-count (1- mark-count))
+      (setq marks (cdr marks)))))
+;;(message "Executing global command...done")))
 
 (defun ex-line (com)
   "ex line commands.  COM is join, shift-right or shift-left."
@@ -2801,8 +2789,7 @@ a token has type \(command, address, end-mark\) and value."
     (if (null ex-addresses)
 	(setq ex-addresses
 	      (cons (point) nil)))
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (if (looking-at "[a-z]")
 	  (progn
@@ -2821,8 +2808,7 @@ a token has type \(command, address, end-mark\) and value."
 (defun ex-map ()
   "ex map"
   (let (char string)
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (setq char (char-to-string (following-char)))
       (forward-char 1)
@@ -2847,8 +2833,7 @@ a token has type \(command, address, end-mark\) and value."
 (defun ex-unmap ()
   "ex unmap"
   (let (char)
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (setq char (char-to-string (following-char)))
       (forward-char 1)
@@ -2870,8 +2855,7 @@ a token has type \(command, address, end-mark\) and value."
 (defun ex-quit ()
   "ex quit"
   (let (char)
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (setq char (following-char)))
     (if (= char ?!) (kill-emacs t) (save-buffers-kill-emacs))))
@@ -2883,8 +2867,7 @@ a token has type \(command, address, end-mark\) and value."
     (goto-char point)
     (if (not (= point 0)) (with-no-warnings (next-line 1)))
     (beginning-of-line)
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (if (looking-at "!")
 	  (progn
@@ -2981,8 +2964,7 @@ vip-s-string"
 (defun ex-tag ()
   "ex tag"
   (let (tag)
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (set-mark (point))
       (skip-chars-forward "^ |\t\n")
@@ -3045,8 +3027,7 @@ vip-s-string"
 (defun ex-command ()
   "execute shell command"
   (let (command)
-    (save-window-excursion
-      (set-buffer " *ex-working-space*")
+    (with-current-buffer " *ex-working-space*"
       (skip-chars-forward " \t")
       (set-mark (point))
       (end-of-line)

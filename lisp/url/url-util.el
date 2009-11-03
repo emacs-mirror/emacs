@@ -140,8 +140,7 @@ Also replaces the \" character, so that the result may be safely used as
     >  ==>  &gt;
     \"  ==>  &quot;"
   (if (string-match "[&<>\"]" string)
-      (save-excursion
-	(set-buffer (get-buffer-create " *entity*"))
+      (with-current-buffer (get-buffer-create " *entity*")
 	(erase-buffer)
 	(buffer-disable-undo (current-buffer))
 	(insert string)

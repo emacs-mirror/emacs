@@ -1669,23 +1669,22 @@ header style to use, unless not supplied or invalid, in which case
 	    (if sc-electric-circular-p
 		0
 	      (progn (error msg "follow") (1- last))))))
-    (save-excursion
-     (set-buffer sc-electric-bufname)
-     (let ((buffer-read-only nil))
-       (erase-buffer)
-       (goto-char (point-min))
-       (sc-eref-insert-selected)
-       ;; now shrink the window to just contain the electric reference
-       ;; header.
-       (let ((hdrlines (count-lines (point-min) (point-max)))
-	     (winlines (1- (window-height))))
-	 (if (/= hdrlines winlines)
-	     (if (> hdrlines winlines)
-		 ;; we have to enlarge the window
-		 (enlarge-window (- hdrlines winlines))
-	       ;; we have to shrink the window
-	       (shrink-window (- winlines (max hdrlines
-					       window-min-height))))))))))
+    (with-current-buffer sc-electric-bufname
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (goto-char (point-min))
+        (sc-eref-insert-selected)
+        ;; now shrink the window to just contain the electric reference
+        ;; header.
+        (let ((hdrlines (count-lines (point-min) (point-max)))
+              (winlines (1- (window-height))))
+          (if (/= hdrlines winlines)
+              (if (> hdrlines winlines)
+                  ;; we have to enlarge the window
+                  (enlarge-window (- hdrlines winlines))
+                ;; we have to shrink the window
+                (shrink-window (- winlines (max hdrlines
+                                                window-min-height))))))))))
 
 (defun sc-eref-next ()
   "Display next reference in other buffer."

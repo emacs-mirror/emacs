@@ -2358,8 +2358,7 @@ If `erc-insert-this' is still t, STRING gets inserted into the buffer.
 Afterwards, `erc-insert-modify' and `erc-insert-post-hook' get called.
 If STRING is nil, the function does nothing."
   (when string
-    (save-excursion
-      (set-buffer (or buffer (process-buffer erc-server-process)))
+    (with-current-buffer (or buffer (process-buffer erc-server-process))
       (let ((insert-position (or (marker-position erc-insert-marker)
 				 (point-max))))
 	(let ((string string) ;; FIXME! Can this be removed?
@@ -4513,8 +4512,7 @@ If non-nil, return from being away."
 	    ;; away must be set to NIL BEFORE sending anything to prevent
 	    ;; an infinite recursion
 	    (setq erc-away nil)
-	    (save-excursion
-	      (set-buffer (erc-active-buffer))
+	    (with-current-buffer (erc-active-buffer)
 	      (when erc-public-away-p
 		(erc-send-action
 		 (erc-default-target)

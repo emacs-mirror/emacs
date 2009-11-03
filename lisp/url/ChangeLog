@@ -1,3 +1,11 @@
+2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-util.el (url-insert-entities-in-string):
+	* url-nfs.el (url-nfs-unescape):
+	* url-ldap.el (url-ldap):
+	* url-imap.el (url-imap):
+	* url-cid.el (url-cid-gnus, url-cid): Use with-current-buffer.
+
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* url-http.el (url-dav-file-attributes): Fix declaration.

@@ -66,8 +66,7 @@ region is logged if `erc-logging-enabled' returns non-nil."
     (unless (get-buffer buffer)
       (error "erc-truncate-buffer-to-size: %S is not a buffer" buffer)))
   (when (> (buffer-size buffer) (+ size 512))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       ;; Note that when erc-insert-post-hook runs, the buffer is
       ;; narrowed to the new message.  So do this delicate widening.
       ;; I am not sure, I think this was not recommended behavior in

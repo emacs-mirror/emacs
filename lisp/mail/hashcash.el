@@ -161,8 +161,7 @@ For example, you may want to set this to '(\"-Z2\") to reduce header length."
   "Generate a hashcash payment by finding a VAL-bit collison on STR."
   (if (and (> val 0)
 	   hashcash-path)
-      (save-excursion
-	(set-buffer (get-buffer-create " *hashcash*"))
+      (with-current-buffer (get-buffer-create " *hashcash*")
 	(erase-buffer)
 	(apply 'call-process hashcash-path nil t nil
 	       "-m" "-q" "-b" (number-to-string val) str

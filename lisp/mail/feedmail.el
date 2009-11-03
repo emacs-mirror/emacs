@@ -1628,8 +1628,7 @@ backup file names and the like)."
 		      (if (and already-buffer (not (file-exists-p maybe-file)))
 			  ;; we have gotten rid of the file associated with the
 			  ;; buffer, so update the buffer's notion of that
-			  (save-excursion
-			    (set-buffer already-buffer)
+			  (with-current-buffer already-buffer
 			    (setq buffer-file-name nil)))))
 		(error (setq messages-skipped (1+ messages-skipped))))
 	      (kill-buffer blobby-buffer)
@@ -1801,7 +1800,8 @@ see the variable feedmail-prompt-before-queue-user-alist.
 ")
     (and (stringp feedmail-prompt-before-queue-help-supplement)
 	 (princ feedmail-prompt-before-queue-help-supplement))
-    (save-excursion (set-buffer standard-output) (if (fboundp 'help-mode) (help-mode)))))
+    (with-current-buffer standard-output
+      (if (fboundp 'help-mode) (help-mode)))))
 
 (defun feedmail-look-at-queue-directory (queue-directory)
   "Find out some things about a queue directory.
@@ -1970,7 +1970,7 @@ mapped to mostly alphanumerics for safety."
 	 (mail-header-separator mail-header-separator)
 	 )
     (unwind-protect
-	(save-excursion
+	(save-current-buffer
 	  (set-buffer feedmail-error-buffer) (erase-buffer)
 	  (set-buffer feedmail-prepped-text-buffer) (erase-buffer)
 
@@ -2075,18 +2075,17 @@ mapped to mostly alphanumerics for safety."
 		  (if (and (not feedmail-queue-runner-is-active) (setq also-file (buffer-file-name feedmail-raw-text-buffer)))
 		      (progn		; if a file but not running the queue, offer to delete it
 			(setq also-file (expand-file-name also-file))
-			(if (or feedmail-queue-auto-file-nuke
-				(y-or-n-p (format "FQM: Delete message file %s? " also-file)))
-			    (save-excursion
-			      ;; if we delete the affiliated file, get rid
-			      ;; of the file name association and make sure we
-			      ;; don't annoy people with a prompt on exit
-			      (delete-file also-file)
-			      (set-buffer feedmail-raw-text-buffer)
-			      (setq buffer-offer-save nil)
-			      (setq buffer-file-name nil)
-			      )
-			  )))
+			(when (or feedmail-queue-auto-file-nuke
+                                  (y-or-n-p
+                                   (format "FQM: Delete message file %s? "
+                                           also-file)))
+                          ;; if we delete the affiliated file, get rid
+                          ;; of the file name association and make sure we
+                          ;; don't annoy people with a prompt on exit
+                          (delete-file also-file)
+                          (with-current-buffer feedmail-raw-text-buffer
+                            (setq buffer-offer-save nil)
+                            (setq buffer-file-name nil)))))
 		  (goto-char (point-min))
 		  ;; re-insert and handle any Fcc fields (and, optionally, any Bcc).
 		  (if fcc (letf (((default-value 'buffer-file-type)
@@ -2197,18 +2196,19 @@ fiddle-plex, as described in the documentation for the variable
 	(mapcar
 	 '(lambda (feedmail-spray-this-address)
 	    (let ((spray-buffer (get-buffer-create " *FQM Outgoing Email Spray*")))
-	      (save-excursion
-		(set-buffer spray-buffer)
+	      (with-current-buffer spray-buffer
 		(erase-buffer)
 		;; not life's most efficient methodology, but spraying isn't
 		;; an every-5-minutes event either
 		(insert-buffer-substring feedmail-prepped-text-buffer)
-		;; There's a good case to me made that each separate transmission of
-		;; a message in the spray should have a distinct Message-Id:.  There
-		;; is also a less compelling argument in the other direction.  I think
-		;; they technically should have distinct Message-Id:s, but I doubt that
-		;; anyone cares, practically.  If someone complains about it, I'll add
-		;; it.
+		;; There's a good case to me made that each separate
+		;; transmission of a message in the spray should
+		;; have a distinct Message-Id:.  There is also a less
+		;; compelling argument in the other direction.
+		;; I think they technically should have distinct
+		;; Message-Id:s, but I doubt that anyone cares,
+		;; practically.  If someone complains about it, I'll
+		;; add it.
 		(feedmail-fiddle-list-of-spray-fiddle-plexes feedmail-spray-address-fiddle-plex-list)
 		;; this (let ) is just in case some buffer eater
 		;; is cheating and using the global variable name instead
@@ -2593,8 +2593,8 @@ been weeded out."
 	(this-line)
 	(this-line-end))
     (unwind-protect
-	(save-excursion
-	  (set-buffer (get-buffer-create " *FQM scratch*")) (erase-buffer)
+	(with-current-buffer (get-buffer-create " *FQM scratch*")
+          (erase-buffer)
 	  (insert-buffer-substring message-buffer header-start header-end)
 	  (goto-char (point-min))
 	  (let ((case-fold-search t))
