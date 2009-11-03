@@ -1277,10 +1277,7 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
-	       (replace-match
-		(comint-args (comint-previous-input-string 0)
-			     (match-beginning 1) (match-end 1))
-		t t)
+	       (replace-match (comint-previous-input-string 0) t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
