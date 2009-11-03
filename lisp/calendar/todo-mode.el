@@ -48,7 +48,7 @@
 ;;
 ;;  Preface, Quickstart Installation
 ;;
-;;      To get this to work, make emacs execute the line
+;;      To get this to work, make Emacs execute the line
 ;;
 ;;          (autoload 'todo-mode "todo-mode"
 ;;                    "Major mode for editing TODO lists." t)
@@ -237,7 +237,7 @@
 ;;	o   GNATS support
 ;;	o   elide multiline (as in bbdb, or, to a lesser degree, in
 ;;          outline mode)
-;;	o   rewrite complete package to store data as lisp objects
+;;	o   rewrite complete package to store data as Lisp objects
 ;;          and have display modes for display, for diary export,
 ;;          etc.  (Richard Stallman pointed out this is a bad idea)
 ;;      o   so base todo-mode.el on generic-mode.el instead
@@ -554,7 +554,7 @@ Use `todo-categories' instead.")
       (setq todo-categories (cons cat todo-categories))
       (widen)
       (goto-char (point-min))
-      (if (search-forward "-*- mode: todo; " 17 t)
+      (if (search-forward "-*- mode: todo; " (+ (point-min) 16) t)
 	  (kill-line)
 	(insert "-*- mode: todo; \n")
 	(forward-char -1))
@@ -605,7 +605,7 @@ Use `todo-categories' instead.")
 ;;;###autoload
 (defun todo-insert-item (arg)
   "Insert new TODO list entry.
-With a prefix argument solicit the category, otherwise use the current
+With a prefix argument ARG solicit the category, otherwise use the current
 category."
   (interactive "P")
   (save-excursion
@@ -631,11 +631,11 @@ If point is on an empty line, insert the entry there."
 			   "New TODO entry: "
 			   (if todo-entry-prefix-function
 			       (funcall todo-entry-prefix-function))))))
-    (unless (and (bolp) (eolp)) (goto-char (todo-item-start)))
+    (unless (and (bolp) (eolp)) (todo-item-start))
     (insert (concat new-item "\n"))
     (backward-char)
     ;; put point at start of new entry
-    (goto-char (todo-item-start))))
+    (todo-item-start)))
 
 (defun todo-more-important-p (line)
   "Ask whether entry is more important than the one at LINE."
@@ -706,15 +706,15 @@ If point is on an empty line, insert the entry there."
        "(" comment ")"))
     (goto-char (todo-item-end))
     (insert " [" (nth todo-category-number todo-categories) "]")
-    (goto-char (todo-item-start))
+    (todo-item-start)
     (let ((temp-point (point)))
       (if (looking-at (regexp-quote todo-prefix))
 	  (replace-match (time-stamp-string))
 	;; Standard prefix -> timestamp
 	;; Else prefix non-standard item start with timestamp
 	(insert (time-stamp-string)))
-      (append-to-file temp-point (1+ (todo-item-end)) todo-file-done)
-      (delete-region temp-point (1+ (todo-item-end))))
+      (append-to-file temp-point (todo-item-end 'include-sep) todo-file-done)
+      (delete-region temp-point (todo-item-end 'include-sep)))
     (todo-backward-item)
     (message "")))
 
@@ -724,16 +724,18 @@ If point is on an empty line, insert the entry there."
 
 
 ;;;###autoload
-(defun todo-top-priorities (&optional nof-priorities category-pr-page)
+(defun todo-top-priorities (&optional nof-priorities category-pr-page
+                                      interactive)
   "List top priorities for each category.
 
 Number of entries for each category is given by NOF-PRIORITIES which
-defaults to \'todo-show-priorities\'.
+defaults to `todo-show-priorities'.
 
 If CATEGORY-PR-PAGE is non-nil, a page separator \'^L\' is inserted
-between each category."
+between each category.
+INTERACTIVE should be non-nil if this function is called interactively."
 
-  (interactive "P")
+  (interactive "P\ni\nP")
   (or nof-priorities (setq nof-priorities todo-show-priorities))
   (if (listp nof-priorities)            ;universal argument
       (setq nof-priorities (car nof-priorities)))
@@ -776,10 +778,7 @@ between each category."
 	  (and (looking-at "") (replace-match "")) ;Remove trailing form-feed.
 	  (goto-char (point-min))         ;Due to display buffer
 	  )))
-    ;; Could have used switch-to-buffer as it has a norecord argument,
-    ;; which is nice when we are called from e.g. todo-print.
-    ;; Else we could have used pop-to-buffer.
-    (display-buffer todo-print-buffer-name)
+    (when interactive (display-buffer todo-print-buffer-name))
     (message "Type C-x 1 to remove %s window.  M-C-v to scroll the help."
              todo-print-buffer-name)))
 
@@ -841,25 +840,27 @@ Number of entries for each category is given by `todo-print-priorities'."
     item))
 
 (defun todo-item-start ()
-  "Return point at start of current TODO list item."
-  (save-excursion
-    (beginning-of-line)
-    (if (not (looking-at (regexp-quote todo-prefix)))
-        (search-backward-regexp
-         (concat "^" (regexp-quote todo-prefix)) nil t))
-    (point)))
+  "Go to start of current TODO list item and return point."
+  (beginning-of-line)
+  (if (not (looking-at (regexp-quote todo-prefix)))
+      (search-backward-regexp
+       (concat "^" (regexp-quote todo-prefix)) nil t))
+  (point))
 
-(defun todo-item-end ()
-  "Return point at end of current TODO list item."
+(defun todo-item-end (&optional include-sep)
+  "Return point at end of current TODO list item.
+If INCLUDE-SEP is non-nil, return point after the separator."
   (save-excursion
     (end-of-line)
-    (search-forward-regexp
-     (concat "^" (regexp-quote todo-prefix)) nil 'goto-end)
-    (1- (line-beginning-position))))
+    (if (search-forward-regexp
+         (concat "^" (regexp-quote todo-prefix)) nil 'goto-end)
+        (goto-char (match-beginning 0)))
+    (unless include-sep (skip-chars-backward "\n"))
+    (point)))
 
 (defun todo-remove-item ()
   "Delete the current entry from the TODO list."
-  (delete-region (todo-item-start) (1+ (todo-item-end))))
+  (delete-region (todo-item-start) (todo-item-end 'include-sep)))
 
 (defun todo-item-string ()
   "Return current TODO list entry as a string."

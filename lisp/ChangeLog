@@ -1,5 +1,12 @@
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/todo-mode.el (todo-add-category): Don't hardcode point-min==1.
+	(todo-top-priorities): Only display-buffer when called interactively.
+	(todo-item-start): Don't save excursion point.
+	(todo-item-end): Be slightly more careful.  Add `include-sep' arg.
+	(todo-insert-item-here, todo-file-item, todo-remove-item):
+	Adjust uses of todo-item-start and todo-item-end.
+
 	* emacs-lisp/autoload.el (generated-autoload-feature): Remove.
 	(autoload-rubric): Don't use any more.
 	* cedet/semantic/fw.el (semantic/loaddefs):
