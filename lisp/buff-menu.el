@@ -151,10 +151,10 @@ Auto Revert Mode.")
     (define-key map [follow-link] 'mouse-face)
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
-    (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer Menu") menu-map))
+    (define-key map [menu-bar Buffer-menu-mode] (cons (purecopy "Buffer-Menu") menu-map))
     (define-key menu-map [quit]
       `(menu-item ,(purecopy "Quit") quit-window
-		 :help ,(purecopy "Mark buffer on this line to be deleted by x command")))
+		 :help ,(purecopy "Remove the buffer menu from the display")))
     (define-key menu-map [rev]
       `(menu-item ,(purecopy "Refresh") revert-buffer
 		 :help ,(purecopy "Refresh the *Buffer List* buffer contents")))
