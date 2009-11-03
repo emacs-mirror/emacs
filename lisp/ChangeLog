@@ -1,5 +1,7 @@
 2009-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/mode-local.el (with-mode-local): Doc fix.
+
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar)
 	(byte-compile-file-form-define-abbrev-table)
 	(byte-compile-file-form-custom-declare-variable)

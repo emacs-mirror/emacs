@@ -70,6 +70,9 @@ Return nil if MODE has no parent."
   (or (get mode 'mode-local-parent)
       (get mode 'derived-mode-parent)))
 
+;; FIXME doc (and function name) seems wrong.
+;; Return a list of MODE and all its parent modes, if any.
+;; Lists parent modes first.
 (defun mode-local-equivalent-mode-p (mode)
   "Is the major-mode in the current buffer equivalent to a mode in MODES."
   (let ((modes nil))
@@ -377,7 +380,7 @@ To use the symbol MODE (quoted), use `with-mode-local'."
 The current mode bindings are saved, BODY is evaluated, and the saved
 bindings are restored, even in case of an abnormal exit.
 Value is what BODY returns.
-This lis like `with-mode-local-symbol', except that MODE is quoted
+This is like `with-mode-local-symbol', except that MODE is quoted
 and is note evaluated."
    `(with-mode-local-symbol ',mode ,@body))
 (put 'with-mode-local 'lisp-indent-function 1)
