@@ -142,7 +142,6 @@ special behavior for tag of classes include, using and function."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/cpp"
 ;; End:
 

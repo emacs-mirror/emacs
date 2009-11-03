@@ -406,7 +406,6 @@ Return non-nil if the map changed."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/map"
 ;; End:
 

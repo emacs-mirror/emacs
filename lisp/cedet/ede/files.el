@@ -509,7 +509,6 @@ Argument DIR is the directory to trim upwards."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/files"
 ;; End:
 

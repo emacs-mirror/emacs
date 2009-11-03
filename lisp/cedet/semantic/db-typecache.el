@@ -598,7 +598,6 @@ If there isn't one, create it.
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/db-typecache"
 ;; End:
 

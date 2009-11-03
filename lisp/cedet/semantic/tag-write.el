@@ -172,7 +172,6 @@ The VALUE is a list of tags."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/tag-write"
 ;; End:
 

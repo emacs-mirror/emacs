@@ -449,7 +449,6 @@ Optional NOERROR prevents errors from being displayed."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/db-file"
 ;; End:
 

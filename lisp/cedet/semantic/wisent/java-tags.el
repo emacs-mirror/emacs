@@ -118,7 +118,6 @@ Use the alternate LALR(1) parser."
 
 ;; Local variables:
 ;; generated-autoload-file: "../loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/wisent/java-tags"
 ;; End:
 

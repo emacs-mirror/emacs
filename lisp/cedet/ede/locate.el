@@ -319,7 +319,6 @@ that crated this ede locat object."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/locate"
 ;; End:
 

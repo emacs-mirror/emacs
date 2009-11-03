@@ -1359,7 +1359,6 @@ and `semantic-tag-type-interfaces' instead" "23.2")
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/tag"
 ;; End:
 

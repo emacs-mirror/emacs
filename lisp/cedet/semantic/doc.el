@@ -123,7 +123,6 @@ If NOSNARF is 'lex, then return the lex token."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/doc"
 ;; End:
 

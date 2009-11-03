@@ -359,7 +359,6 @@ Base selection on the field related to POINT."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/getset"
 ;; End:
 

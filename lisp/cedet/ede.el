@@ -43,7 +43,7 @@
 (require 'eieio)
 (require 'eieio-speedbar)
 (require 'ede/source)
-(require 'ede/loaddefs)
+(load "ede/loaddefs" nil 'nomessage)
 
 (declare-function ede-convert-path "ede/files")
 (declare-function ede-directory-get-open-project "ede/files")

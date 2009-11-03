@@ -355,7 +355,6 @@ INDENT is the current indentation level."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/speedbar"
 ;; End:
 

@@ -76,7 +76,6 @@ COMMAND is a text string representing the thing to be run."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/shell"
 ;; End:
 

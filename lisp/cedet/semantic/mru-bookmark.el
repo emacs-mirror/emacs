@@ -429,7 +429,6 @@ Useful for debugging mrub problems."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/mru-bookmark"
 ;; End:
 

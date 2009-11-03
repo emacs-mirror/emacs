@@ -1,5 +1,81 @@
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (generated-autoload-feature): Remove.
+	(autoload-rubric): Don't use any more.
+	* cedet/semantic/fw.el (semantic/loaddefs):
+	* cedet/srecode.el (srecode/loaddefs):
+	* cedet/ede.el (ede/loaddefs): Load rather than require.
+	* lisp/cedet/ede/cpp-root.el:
+	* lisp/cedet/ede/emacs.el:
+	* lisp/cedet/ede/files.el:
+	* lisp/cedet/ede/linux.el:
+	* lisp/cedet/ede/locate.el:
+	* lisp/cedet/ede/make.el:
+	* lisp/cedet/ede/shell.el:
+	* lisp/cedet/ede/speedbar.el:
+	* lisp/cedet/ede/system.el:
+	* lisp/cedet/ede/util.el:
+	* lisp/cedet/semantic/analyze.el:
+	* lisp/cedet/semantic/bovine.el:
+	* lisp/cedet/semantic/complete.el:
+	* lisp/cedet/semantic/ctxt.el:
+	* lisp/cedet/semantic/db-file.el:
+	* lisp/cedet/semantic/db-find.el:
+	* lisp/cedet/semantic/db-global.el:
+	* lisp/cedet/semantic/db-mode.el:
+	* lisp/cedet/semantic/db-typecache.el:
+	* lisp/cedet/semantic/db.el:
+	* lisp/cedet/semantic/debug.el:
+	* lisp/cedet/semantic/dep.el:
+	* lisp/cedet/semantic/doc.el:
+	* lisp/cedet/semantic/edit.el:
+	* lisp/cedet/semantic/find.el:
+	* lisp/cedet/semantic/format.el:
+	* lisp/cedet/semantic/html.el:
+	* lisp/cedet/semantic/ia-sb.el:
+	* lisp/cedet/semantic/ia.el:
+	* lisp/cedet/semantic/idle.el:
+	* lisp/cedet/semantic/lex-spp.el:
+	* lisp/cedet/semantic/lex.el:
+	* lisp/cedet/semantic/mru-bookmark.el:
+	* lisp/cedet/semantic/scope.el:
+	* lisp/cedet/semantic/senator.el:
+	* lisp/cedet/semantic/sort.el:
+	* lisp/cedet/semantic/symref.el:
+	* lisp/cedet/semantic/tag-file.el:
+	* lisp/cedet/semantic/tag-ls.el:
+	* lisp/cedet/semantic/tag-write.el:
+	* lisp/cedet/semantic/tag.el:
+	* lisp/cedet/semantic/util-modes.el:
+	* lisp/cedet/semantic/analyze/complete.el:
+	* lisp/cedet/semantic/analyze/refs.el:
+	* lisp/cedet/semantic/bovine/c.el:
+	* lisp/cedet/semantic/bovine/gcc.el:
+	* lisp/cedet/semantic/bovine/make.el:
+	* lisp/cedet/semantic/bovine/scm.el:
+	* lisp/cedet/semantic/decorate/include.el:
+	* lisp/cedet/semantic/decorate/mode.el:
+	* lisp/cedet/semantic/symref/cscope.el:
+	* lisp/cedet/semantic/symref/global.el:
+	* lisp/cedet/semantic/symref/grep.el:
+	* lisp/cedet/semantic/symref/idutils.el:
+	* lisp/cedet/semantic/symref/list.el:
+	* lisp/cedet/semantic/wisent/java-tags.el:
+	* lisp/cedet/semantic/wisent/javascript.el:
+	* lisp/cedet/srecode/compile.el:
+	* lisp/cedet/srecode/cpp.el:
+	* lisp/cedet/srecode/document.el:
+	* lisp/cedet/srecode/el.el:
+	* lisp/cedet/srecode/expandproto.el:
+	* lisp/cedet/srecode/getset.el:
+	* lisp/cedet/srecode/insert.el:
+	* lisp/cedet/srecode/java.el:
+	* lisp/cedet/srecode/map.el:
+	* lisp/cedet/srecode/mode.el:
+	* lisp/cedet/srecode/template.el:
+	* lisp/cedet/srecode/texi.el: Remove the file-local setting of
+	generated-autoload-feature.
+
 	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Use dolist,
 	and only put a prop if it is non-nil.
 

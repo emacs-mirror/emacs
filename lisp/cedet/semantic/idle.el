@@ -949,7 +949,6 @@ Call `semantic-symref-hits-in-region' to identify local references."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/idle"
 ;; End:
 

@@ -98,7 +98,6 @@ If BUFFER isn't specified, use the current buffer."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/util"
 ;; End:
 

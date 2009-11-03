@@ -227,7 +227,6 @@ provided mode, not from the current major mode."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/dep"
 ;; End:
 

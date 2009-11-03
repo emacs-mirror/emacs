@@ -42,12 +42,6 @@ trailer starting with a FormFeed character.")
 ;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
-(defvar generated-autoload-feature nil
-  "Feature for `generated-autoload-file' to provide.
-If nil, this defaults to `generated-autoload-file', sans extension.")
-;;;###autoload
-(put 'generated-autoload-feature 'safe-local-variable 'symbolp)
-
 (defvar generated-autoload-load-name nil
   "Load name for `autoload' statements generated from autoload cookies.
 If nil, this defaults to the file name, sans extension.")
@@ -269,12 +263,6 @@ information contained in FILE."
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    "\n"
-	    "(provide '"
-	    (if (and generated-autoload-feature
-		     (symbolp generated-autoload-feature))
-		(format "%s" generated-autoload-feature)
-	      (file-name-sans-extension basename))
-	    ")\n"
 	    ";; Local Variables:\n"
 	    ";; version-control: never\n"
 	    ";; no-byte-compile: t\n"

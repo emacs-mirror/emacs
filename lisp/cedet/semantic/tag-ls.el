@@ -248,7 +248,6 @@ Return the name of TAG found in the toplevel STREAM."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/tag-ls"
 ;; End:
 

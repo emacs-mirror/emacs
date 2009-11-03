@@ -638,7 +638,6 @@ Argument INDENT specifies the indentation level for the list."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/compile"
 ;; End:
 

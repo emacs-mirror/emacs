@@ -717,7 +717,6 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/format"
 ;; End:
 

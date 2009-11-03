@@ -412,7 +412,6 @@ programming modes."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/mode"
 ;; End:
 

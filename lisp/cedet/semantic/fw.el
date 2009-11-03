@@ -31,7 +31,7 @@
 ;;
 (require 'mode-local)
 (require 'eieio)
-(require 'semantic/loaddefs)
+(load "semantic/loaddefs" nil 'nomessage)
 
 ;;; Compatibility
 

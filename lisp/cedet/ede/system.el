@@ -140,7 +140,6 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/system"
 ;; End:
 

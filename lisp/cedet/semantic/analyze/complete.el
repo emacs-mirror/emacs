@@ -256,7 +256,6 @@ Argument CONTEXT is an object specifying the locally derived context."
 
 ;; Local variables:
 ;; generated-autoload-file: "../loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/analyze/complete"
 ;; End:
 

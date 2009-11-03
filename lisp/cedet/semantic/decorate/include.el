@@ -767,7 +767,6 @@ If TABLE is not in a buffer, do nothing."
 
 ;; Local variables:
 ;; generated-autoload-file: "../loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/decorate/include"
 ;; End:
 

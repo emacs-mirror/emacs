@@ -508,7 +508,6 @@ Also set up the lexical preprocessor map."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/cpp-root"
 ;; End:
 

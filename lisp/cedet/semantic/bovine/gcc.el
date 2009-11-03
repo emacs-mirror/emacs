@@ -218,7 +218,6 @@ It should also include other symbols GCC was compiled with.")
 
 ;; Local variables:
 ;; generated-autoload-file: "../loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/bovine/gcc"
 ;; End:
 

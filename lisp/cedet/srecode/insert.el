@@ -977,7 +977,6 @@ template where  a ^ inserter occurs."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/insert"
 ;; End:
 

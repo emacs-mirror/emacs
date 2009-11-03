@@ -1362,7 +1362,6 @@ Return a table of all matching tags."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/db-find"
 ;; End:
 

@@ -563,7 +563,6 @@ See `semantic-tag-external-class' for details."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/sort"
 ;; End:
 

@@ -230,7 +230,6 @@ Knows about how the Linux source tree is organized."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/linux"
 ;; End:
 

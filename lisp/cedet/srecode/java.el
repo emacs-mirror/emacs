@@ -55,7 +55,6 @@ FILENAME_AS_CLASS - file converted to a Java class name."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: srecode/loaddefs
 ;; generated-autoload-load-name: "srecode/java"
 ;; End:
 

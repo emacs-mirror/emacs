@@ -103,7 +103,6 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: ede/loaddefs
 ;; generated-autoload-load-name: "ede/make"
 ;; End:
 

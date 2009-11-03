@@ -2092,7 +2092,6 @@ use `semantic-complete-analyze-inline' to complete."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/complete"
 ;; End:
 

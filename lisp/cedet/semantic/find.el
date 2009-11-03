@@ -697,7 +697,6 @@ details are available of findable."
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
-;; generated-autoload-feature: semantic/loaddefs
 ;; generated-autoload-load-name: "semantic/find"
 ;; End:
 
