@@ -1,3 +1,8 @@
+2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Use dolist,
+	and only put a prop if it is non-nil.
+
 2009-11-03  Juri Linkov  <juri@jurta.org>
 
 	* menu-bar.el (menu-bar-make-mm-toggle, menu-bar-make-toggle)

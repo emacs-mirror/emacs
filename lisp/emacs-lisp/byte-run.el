@@ -202,10 +202,10 @@ CURRENT-NAME, if it does not already have them:
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
      ;; See Bug#4706.
-     (mapc (lambda (prop) (or (get ,current-name prop)
-                              (put ,current-name prop
-                                   (get ,obsolete-name prop))))
-           '(saved-value saved-variable-comment))
+     (dolist (prop '(saved-value saved-variable-comment))
+       (and (get ,obsolete-name prop)
+            (null (get ,current-name prop))
+            (put ,current-name prop (get ,obsolete-name prop))))
      (make-obsolete-variable ,obsolete-name ,current-name ,when)))
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
