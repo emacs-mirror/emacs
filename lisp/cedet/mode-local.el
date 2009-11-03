@@ -381,7 +381,7 @@ The current mode bindings are saved, BODY is evaluated, and the saved
 bindings are restored, even in case of an abnormal exit.
 Value is what BODY returns.
 This is like `with-mode-local-symbol', except that MODE is quoted
-and is note evaluated."
+and is not evaluated."
    `(with-mode-local-symbol ',mode ,@body))
 (put 'with-mode-local 'lisp-indent-function 1)
 
