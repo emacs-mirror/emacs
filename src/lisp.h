@@ -427,7 +427,10 @@ enum pvec_type
    (var).u.val = ((EMACS_UINT) (ptr)) >> GCTYPEBITS,			\
    (var).u.type = ((char) (vartype)))
 
-# define XPNTR(v) (((v).s.val) << GCTYPEBITS)
+/* Some versions of gcc seem to consider the bitfield width when issuing
+   the "cast to pointer from integer of different size" warning, so the
+   cast is here to widen the value back to its natural size.  */
+# define XPNTR(v) ((EMACS_INT)((v).s.val) << GCTYPEBITS)
 
 #else  /* !USE_LSB_TAG */
 
