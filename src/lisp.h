@@ -22,11 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_LISP_H
 
 /* Declare the prototype for a general external function.  */
-#if defined (PROTOTYPES) || defined (WINDOWSNT)
 #define P_(proto) proto
-#else
-#define P_(proto) ()
-#endif
 
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
@@ -139,10 +135,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined DARWIN_OS
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
-#  ifndef USE_LISP_UNION_TYPE
-#   define USE_LSB_TAG
-#  endif
+#  define USE_LSB_TAG
 # endif
 #endif
 
@@ -367,12 +360,6 @@ enum pvec_type
      (var) = ((EMACS_INT) (type)) | ((EMACS_INT) (ptr)))
 #define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
 
-/* XFASTINT and XSETFASTINT are for use when the integer is known to be
-   positive, in which case the implementation can sometimes be faster
-   depending on the tagging scheme.  With USE_LSB_TAG, there's no benefit.  */
-#define XFASTINT(a) XINT (a)
-#define XSETFASTINT(a, b) ((a) = make_number (b))
-
 #define XPNTR(a) ((EMACS_INT) ((a) & ~TYPEMASK))
 
 #else  /* not USE_LSB_TAG */
@@ -423,12 +410,6 @@ enum pvec_type
 
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
 
-/* For integers known to be positive, XFASTINT provides fast retrieval
-   and XSETFASTINT provides fast storage.  This takes advantage of the
-   fact that Lisp_Int is 0.  */
-#define XFASTINT(a) ((a).i + 0)
-#define XSETFASTINT(a, b) ((a).i = (b))
-
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
 #define XINT(a) (((a).s.val << (BITS_PER_EMACS_INT - VALBITS)) \
@@ -439,8 +420,27 @@ enum pvec_type
 
 #define XUINT(a) ((a).u.val)
 
-#define XSET(var, vartype, ptr) \
+#ifdef USE_LSB_TAG
+
+# define XSET(var, vartype, ptr) \
+  (eassert ((((EMACS_UINT) (ptr)) & ((1 << GCTYPEBITS) - 1)) == 0),	\
+   (var).u.val = ((EMACS_UINT) (ptr)) >> GCTYPEBITS,			\
+   (var).u.type = ((char) (vartype)))
+
+# define XPNTR(v) (((v).s.val) << GCTYPEBITS)
+
+#else  /* !USE_LSB_TAG */
+
+/* For integers known to be positive, XFASTINT provides fast retrieval
+   and XSETFASTINT provides fast storage.  This takes advantage of the
+   fact that Lisp_Int is 0.  */
+# define XFASTINT(a) ((a).i + 0)
+# define XSETFASTINT(a, b) ((a).i = (b))
+
+# define XSET(var, vartype, ptr) \
    (((var).s.val = ((EMACS_INT) (ptr))), ((var).s.type = ((char) (vartype))))
+
+#endif	/* !USE_LSB_TAG */
 
 #if __GNUC__ >= 2 && defined (__OPTIMIZE__)
 #define make_number(N) \
@@ -450,6 +450,14 @@ extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
 #endif /* USE_LISP_UNION_TYPE */
+
+/* For integers known to be positive, XFASTINT sometimes provides
+   faster retrieval and XSETFASTINT provides faster storage.
+   If not, fallback on the non-accelerated path.  */
+#ifndef XFASTINT
+# define XFASTINT(a) (XINT (a))
+# define XSETFASTINT(a, b) (XSETINT (a, b))
+#endif
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 

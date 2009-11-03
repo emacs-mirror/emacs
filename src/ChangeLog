@@ -1,3 +1,8 @@
+2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h: Make USE_LSB_TAG work with USE_LISP_UNION_TYPE.
+	(P_): Support for prototypes is now required.
+
 2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Fmake_frame_invisible, Fframe_visible_p): Doc fix
