@@ -2313,10 +2313,9 @@ list that represents a doc string reference.
       ;; Since there is no doc string, we can compile this as a normal form,
       ;; and not do a file-boundary.
       (byte-compile-keep-pending form)
-    (when (byte-compile-warning-enabled-p 'free-vars)
-      (push (nth 1 form) byte-compile-bound-variables)
-      (if (eq (car form) 'defconst)
-	  (push (nth 1 form) byte-compile-const-variables)))
+    (push (nth 1 form) byte-compile-bound-variables)
+    (if (eq (car form) 'defconst)
+	(push (nth 1 form) byte-compile-const-variables))
     (cond ((consp (nth 2 form))
 	   (setq form (copy-sequence form))
 	   (setcar (cdr (cdr form))
@@ -2325,9 +2324,8 @@ list that represents a doc string reference.
 
 (put 'define-abbrev-table 'byte-hunk-handler 'byte-compile-file-form-define-abbrev-table)
 (defun byte-compile-file-form-define-abbrev-table (form)
-  (when (and (byte-compile-warning-enabled-p 'free-vars)
-             (eq 'quote (car-safe (car-safe (cdr form)))))
-    (push (car-safe (cdr (cadr form))) byte-compile-bound-variables))
+  (if (eq 'quote (car-safe (car-safe (cdr form))))
+      (push (car-safe (cdr (cadr form))) byte-compile-bound-variables))
   (byte-compile-keep-pending form))
 
 (put 'custom-declare-variable 'byte-hunk-handler
@@ -2335,8 +2333,7 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-custom-declare-variable (form)
   (when (byte-compile-warning-enabled-p 'callargs)
     (byte-compile-nogroup-warn form))
-  (when (byte-compile-warning-enabled-p 'free-vars)
-    (push (nth 1 (nth 1 form)) byte-compile-bound-variables))
+  (push (nth 1 (nth 1 form)) byte-compile-bound-variables)
   ;; Don't compile the expression because it may be displayed to the user.
   ;; (when (eq (car-safe (nth 2 form)) 'quote)
   ;;   ;; (nth 2 form) is meant to evaluate to an expression, so if we have the
@@ -3025,22 +3022,22 @@ That command is designed for interactive use only" bytecomp-fn))
     (and (get bytecomp-var 'byte-obsolete-variable)
 	 (not (memq bytecomp-var byte-compile-not-obsolete-vars))
 	 (byte-compile-warn-obsolete bytecomp-var))
-    (if (byte-compile-warning-enabled-p 'free-vars)
-	(if (eq base-op 'byte-varbind)
-	    (push bytecomp-var byte-compile-bound-variables)
-	  (or (boundp bytecomp-var)
-	      (memq bytecomp-var byte-compile-bound-variables)
-	      (if (eq base-op 'byte-varset)
-		  (or (memq bytecomp-var byte-compile-free-assignments)
-		      (progn
-			(byte-compile-warn "assignment to free variable `%s'"
-					   bytecomp-var)
-			(push bytecomp-var byte-compile-free-assignments)))
-		(or (memq bytecomp-var byte-compile-free-references)
-		    (progn
-		      (byte-compile-warn "reference to free variable `%s'"
-					 bytecomp-var)
-		      (push bytecomp-var byte-compile-free-references))))))))
+    (if (eq base-op 'byte-varbind)
+	(push bytecomp-var byte-compile-bound-variables)
+      (or (not (byte-compile-warning-enabled-p 'free-vars))
+	  (boundp bytecomp-var)
+	  (memq bytecomp-var byte-compile-bound-variables)
+	  (if (eq base-op 'byte-varset)
+	      (or (memq bytecomp-var byte-compile-free-assignments)
+		  (progn
+		    (byte-compile-warn "assignment to free variable `%s'"
+				       bytecomp-var)
+		    (push bytecomp-var byte-compile-free-assignments)))
+	    (or (memq bytecomp-var byte-compile-free-references)
+		(progn
+		  (byte-compile-warn "reference to free variable `%s'"
+				     bytecomp-var)
+		  (push bytecomp-var byte-compile-free-references)))))))
   (let ((tmp (assq bytecomp-var byte-compile-variables)))
     (unless tmp
       (setq tmp (list bytecomp-var))
@@ -4015,10 +4012,9 @@ that suppresses all warnings during execution of BODY."
 	 (if (= 1 ncall) "" "s")
 	 (if (< ncall 2) "requires" "accepts only")
 	 "2-3")))
-    (when (byte-compile-warning-enabled-p 'free-vars)
-      (push var byte-compile-bound-variables)
-      (if (eq fun 'defconst)
-	  (push var byte-compile-const-variables)))
+    (push var byte-compile-bound-variables)
+    (if (eq fun 'defconst)
+	(push var byte-compile-const-variables))
     (byte-compile-body-do-effect
      (list
       ;; Put the defined variable in this library's load-history entry

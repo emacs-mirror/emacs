@@ -1,5 +1,13 @@
 2009-11-03  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar)
+	(byte-compile-file-form-define-abbrev-table)
+	(byte-compile-file-form-custom-declare-variable)
+	(byte-compile-variable-ref, byte-compile-defvar):
+	Whether or not a warning is enabled should only affect whether we issue
+	the warning, not whether or not we collect the relevant data.
+	Eg warnings can be turned on and off throughout the course of a file.
+
 	* eshell/esh-mode.el (ansi-color-apply-on-region): Autoload it...
 	(eshell-handle-ansi-color): ... Rather than requiring ansi-color.
 
