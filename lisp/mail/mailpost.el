@@ -1,7 +1,7 @@
 ;;; mailpost.el --- RMAIL coupler to /usr/uci/post mailer
 
 ;; This is in the public domain
-;; since Delp distributed it without a copyright notice in 1986.
+;; since Delp distributed it in 1986 without a copyright notice.
 
 ;; This file is part of GNU Emacs.
 
