@@ -1073,9 +1073,10 @@ This function could be in the list `eshell-output-filter-functions'."
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-control-codes)
 
+(autoload 'ansi-color-apply-on-region "ansi-color")
+
 (defun eshell-handle-ansi-color ()
   "Handle ANSI color codes."
-  (eval-and-compile (require 'ansi-color))
   (ansi-color-apply-on-region eshell-last-output-start
                               eshell-last-output-end))
 

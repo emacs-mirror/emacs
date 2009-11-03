@@ -1,3 +1,8 @@
+2009-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-mode.el (ansi-color-apply-on-region): Autoload it...
+	(eshell-handle-ansi-color): ... Rather than requiring ansi-color.
+
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/ns-win.el (ns-scroll-bar-move, ns-face-at-pos):
