@@ -600,7 +600,7 @@ DOC is the text to use for the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
   `(list 'menu-item  (purecopy ,doc) ',fname
-	 ,@props
+	 ,@(mapcar (lambda (p) (list 'quote p)) props)
 	 :help (purecopy ,help)
 	 :button '(:toggle . (and (default-boundp ',fname)
 				  (default-value ',fname)))))
@@ -1039,15 +1039,15 @@ mail status in mode line"))
   (menu-bar-make-mm-toggle cua-mode
 			   "C-x/C-c/C-v Cut and Paste (CUA)"
 			   "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
-			   (:visible '(or (not (boundp 'cua-enable-cua-keys))
-					  cua-enable-cua-keys))))
+			   (:visible (or (not (boundp 'cua-enable-cua-keys))
+					 cua-enable-cua-keys))))
 
 (define-key menu-bar-options-menu [cua-emulation-mode]
   (menu-bar-make-mm-toggle cua-mode
 			   "Shift movement mark region (CUA)"
 			   "Use shifted movement keys to set and extend the region."
-			   (:visible '(and (boundp 'cua-enable-cua-keys)
-					   (not cua-enable-cua-keys)))))
+			   (:visible (and (boundp 'cua-enable-cua-keys)
+					  (not cua-enable-cua-keys)))))
 
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
@@ -1127,7 +1127,7 @@ mail status in mode line"))
   (menu-bar-make-mm-toggle transient-mark-mode
 			   "Active Region Highlighting"
 			   "Make text in active region stand out in color (Transient Mark mode)"
-			   (:enable '(not cua-mode))))
+			   (:enable (not cua-mode))))
 
 
 ;; The "Tools" menu items
