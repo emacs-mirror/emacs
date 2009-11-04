@@ -9,6 +9,9 @@
 	(byte-compile-list, byte-compile-concat, byte-compile-function-form)
 	(byte-compile-insert, byte-compile-defun):
 	Remove support for byte-compile-compatibility and Emacs 18.  (Bug#4571)
+	(byte-defop-compiler19): Remove.
+	Without byte-compile-compatibility, the 'emacs19-opcode property is not
+	used by anything.  Replace all calls with byte-defop-compiler.
 
 2009-11-04  Juri Linkov  <juri@jurta.org>
 
