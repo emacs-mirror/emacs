@@ -257,6 +257,22 @@ Command*'.
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
 
 
+* Incompatible Lisp Changes in Emacs 23.2
+
+** Several obsolete functions removed.
+The functions have been obsolete since Emacs 19, and are unlikely to
+be in use:
+
+  time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy
+  time-stamp-dd-mon-yy, time-stamp-yy/mm/dd, time-stamp-yyyy/mm/dd,
+  time-stamp-yyyy-mm-dd, time-stamp-yymmdd, time-stamp-hh:mm:ss,
+  time-stamp-hhmm, baud-rate
+
+---
+** Support for generating Emacs 18 compatible bytecode (by setting
+the variable `byte-compile-compatibility') has been removed.
+
+
 * Lisp changes in Emacs 23.2
 
 ** The 4th arg to all-completions (aka hide-spaces) is declared obsolete.
@@ -325,15 +341,6 @@ Instead, customize byte-compile-dest-file-function.
 
 ---
 ** `byte-compile-warnings' can have a new member, `constants'.
-
-** Several obsolete functions removed.
-The functions have been obsolete since Emacs 19, and are unlikely to
-be in use:
-
-  time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy
-  time-stamp-dd-mon-yy, time-stamp-yy/mm/dd, time-stamp-yyyy/mm/dd,
-  time-stamp-yyyy-mm-dd, time-stamp-yymmdd, time-stamp-hh:mm:ss,
-  time-stamp-hhmm, baud-rate
 
 ** `delete-directory' has an optional parameter RECURSIVE.
 
