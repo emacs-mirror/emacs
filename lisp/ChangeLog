@@ -1,3 +1,9 @@
+2009-11-04  Juri Linkov  <juri@jurta.org>
+
+	* menu-bar.el (menu-bar-make-mm-toggle): Quote each element of `props'.
+	(menu-bar-options-menu): Don't quote the `prop' arg of
+	`menu-bar-make-mm-toggle'.
+
 2009-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calendar/calendar.el (cal-loaddefs):
