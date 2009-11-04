@@ -125,7 +125,6 @@
 ;; The feature of compiling in a specific target Emacs version
 ;; has been turned off because compile time options are a bad idea.
 (defmacro byte-compile-single-version () nil)
-(defmacro byte-compile-version-cond (cond) cond)
 
 ;; The crud you see scattered through this file of the form
 ;;   (or (and (boundp 'epoch::version) epoch::version)
@@ -219,13 +218,6 @@ adds `c' to it; otherwise adds `.elc'."
 (defcustom byte-compile-verbose
   (and (not noninteractive) (> baud-rate search-slow-speed))
   "Non-nil means print messages describing progress of byte-compiler."
-  :group 'bytecomp
-  :type 'boolean)
-
-(defcustom byte-compile-compatibility nil
-  "Non-nil means generate output that can run in Emacs 18.
-This only means that it can run in principle, if it doesn't require
-facilities that have been added more recently."
   :group 'bytecomp
   :type 'boolean)
 
@@ -1551,7 +1543,6 @@ symbol itself."
 		;;
 		(byte-compile-verbose byte-compile-verbose)
 		(byte-optimize byte-optimize)
-		(byte-compile-compatibility byte-compile-compatibility)
 		(byte-compile-dynamic byte-compile-dynamic)
 		(byte-compile-dynamic-docstrings
 		 byte-compile-dynamic-docstrings)
@@ -1975,8 +1966,6 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
   (with-current-buffer outbuffer
     ;; See if the buffer has any multibyte characters.
     (when (< (point-max) (position-bytes (point-max)))
-      (when (byte-compile-version-cond byte-compile-compatibility)
-	(error "Version-18 compatibility not valid with multibyte characters"))
       (goto-char (point-min))
       ;; Find the comment that describes the version test.
       (search-forward "\n;;; This file")
@@ -2024,11 +2013,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
       ;; >4	byte		x		version %d
 
-      (insert
-       ";ELC"
-       (if (byte-compile-version-cond byte-compile-compatibility) 18 23)
-       "\000\000\000\n"
-       )
+      (insert ";ELC" 23 "\000\000\000\n")
       (insert ";;; Compiled by "
 	      (or (and (boundp 'user-mail-address) user-mail-address)
 		  (concat (user-login-name) "@" (system-name)))
@@ -2041,55 +2026,45 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	       ((eq byte-optimize 'byte) "with byte-level optimization only")
 	       (byte-optimize "with all optimizations")
 	       (t "without optimization"))
-	      (if (byte-compile-version-cond byte-compile-compatibility)
-		  "; compiled with Emacs 18 compatibility.\n"
-		".\n"))
+		".\n")
       (if dynamic
 	  (insert ";;; Function definitions are lazy-loaded.\n"))
-      (if (not (byte-compile-version-cond byte-compile-compatibility))
-	  (let (intro-string minimum-version)
-	    ;; Figure out which Emacs version to require,
-	    ;; and what comment to use to explain why.
-	    ;; Note that this fails to take account of whether
-	    ;; the buffer contains multibyte characters.  We may have to
-	    ;; compensate at the end in byte-compile-fix-header.
-	    (if dynamic-docstrings
-	      (setq intro-string
-		    ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
-		    minimum-version "19.29")
+      (let (intro-string minimum-version)
+	;; Figure out which Emacs version to require,
+	;; and what comment to use to explain why.
+	;; Note that this fails to take account of whether
+	;; the buffer contains multibyte characters.  We may have to
+	;; compensate at the end in byte-compile-fix-header.
+	(if dynamic-docstrings
 	    (setq intro-string
-		  ";;; This file uses opcodes which do not exist in Emacs 18.\n"
-		  minimum-version "19"))
-	  ;; Now insert the comment and the error check.
-	  (insert
-	   "\n"
-	   intro-string
-	   ;; Have to check if emacs-version is bound so that this works
-	   ;; in files loaded early in loadup.el.
-	   "(if (and (boundp 'emacs-version)\n"
-	   ;; If there is a name at the end of emacs-version,
-	   ;; don't try to check the version number.
-	   "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-	   "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	   (format "\t     (string-lessp emacs-version \"%s\")))\n"
-		   minimum-version)
-	   "    (error \"`"
-	   ;; prin1-to-string is used to quote backslashes.
-	   (substring (prin1-to-string (file-name-nondirectory filename))
-		      1 -1)
-	   (format "' was compiled for Emacs %s or later\"))\n\n"
-		   minimum-version)
-	   ;; Insert semicolons as ballast, so that byte-compile-fix-header
-	   ;; can delete them so as to keep the buffer positions
-	   ;; constant for the actual compiled code.
-	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
-      ;; Here if we want Emacs 18 compatibility.
-      (when dynamic-docstrings
-	(error "Version-18 compatibility doesn't support dynamic doc strings"))
-      (when byte-compile-dynamic
-	(error "Version-18 compatibility doesn't support dynamic byte code"))
-      (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
-		"\n")))))
+		  ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
+		  minimum-version "19.29")
+	  (setq intro-string
+		";;; This file uses opcodes which do not exist in Emacs 18.\n"
+		minimum-version "19"))
+	;; Now insert the comment and the error check.
+	(insert
+	 "\n"
+	 intro-string
+	 ;; Have to check if emacs-version is bound so that this works
+	 ;; in files loaded early in loadup.el.
+	 "(if (and (boundp 'emacs-version)\n"
+	 ;; If there is a name at the end of emacs-version,
+	 ;; don't try to check the version number.
+	 "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+	 "\t (or (and (boundp 'epoch::version) epoch::version)\n"
+	 (format "\t     (string-lessp emacs-version \"%s\")))\n"
+		 minimum-version)
+	 "    (error \"`"
+	 ;; prin1-to-string is used to quote backslashes.
+	 (substring (prin1-to-string (file-name-nondirectory filename))
+		    1 -1)
+	 (format "' was compiled for Emacs %s or later\"))\n\n"
+		 minimum-version)
+	 ;; Insert semicolons as ballast, so that byte-compile-fix-header
+	 ;; can delete them so as to keep the buffer positions
+	 ;; constant for the actual compiled code.
+	 ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n")))))
 
 ;; Dynamically bound in byte-compile-from-buffer.
 ;; NB also used in cl.el and cl-macs.el.
@@ -2141,7 +2116,6 @@ list that represents a doc string reference.
         ;; Insert the doc string, and make it a comment with #@LENGTH.
         (and (>= (nth 1 info) 0)
              dynamic-docstrings
-             (not byte-compile-compatibility)
              (progn
                ;; Make the doc string start at beginning of line
                ;; for make-docfile's sake.
@@ -2508,8 +2482,7 @@ by side-effects."
 	    ;; No doc string.  Provide -1 as the "doc string index"
 	    ;; so that no element will be treated as a doc string.
 	    (byte-compile-output-docform
-	     (if (byte-compile-version-cond byte-compile-compatibility)
-		 "\n(fset '" "\n(defalias '")
+	     "\n(defalias '"
 	     bytecomp-name
 	     (cond ((atom code)
 		    (if macrop '(" '(macro . #[" -1 "])") '(" #[" -1 "]")))
@@ -2524,8 +2497,7 @@ by side-effects."
 	  ;; Output the form by hand, that's much simpler than having
 	  ;; b-c-output-file-form analyze the defalias.
 	  (byte-compile-output-docform
-	   (if (byte-compile-version-cond byte-compile-compatibility)
-	       "\n(fset '" "\n(defalias '")
+	   "\n(defalias '"
 	   bytecomp-name
 	   (cond ((atom code)
 		  (if macrop '(" '(macro . #[" 4 "])") '(" #[" 4 "]")))
@@ -2609,9 +2581,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 ;; Given a function made by byte-compile-lambda, make a form which produces it.
 (defun byte-compile-byte-code-maker (fun)
   (cond
-   ((byte-compile-version-cond byte-compile-compatibility)
-    ;; Return (quote (lambda ...)).
-    (list 'quote (byte-compile-byte-code-unmake fun)))
    ;; ## atom is faster than compiled-func-p.
    ((atom fun)				; compiled function.
     ;; generate-emacs19-bytecodes must be on, otherwise byte-compile-lambda
@@ -2742,9 +2711,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (let ((compiled (byte-compile-top-level
 		     (cons 'progn bytecomp-body) nil 'lambda)))
       ;; Build the actual byte-coded function.
-      (if (and (eq 'byte-code (car-safe compiled))
-	       (not (byte-compile-version-cond
-		     byte-compile-compatibility)))
+      (if (eq 'byte-code (car-safe compiled))
 	  (apply 'make-byte-code
 		 (append (list bytecomp-arglist)
 			 ;; byte-string, constants-vector, stack depth
@@ -2974,11 +2941,7 @@ That command is designed for interactive use only" bytecomp-fn))
                     ;; loaded, this function doesn't exist.
                     (or (not (memq bytecomp-handler
 				   '(cl-byte-compile-compiler-macro)))
-                        (functionp bytecomp-handler))
-		    (not (and (byte-compile-version-cond
-                               byte-compile-compatibility)
-                              (get (get bytecomp-fn 'byte-opcode)
-				   'emacs19-opcode))))
+                        (functionp bytecomp-handler)))
                (funcall bytecomp-handler form)
 	     (byte-compile-normal-call form))
 	   (if (byte-compile-warning-enabled-p 'cl-functions)
@@ -3112,22 +3075,17 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 	fnform))))
 
 (defmacro byte-defop-compiler19 (function &optional compile-handler)
-  ;; Just like byte-defop-compiler, but defines an opcode that will only
-  ;; be used when byte-compile-compatibility is false.
-  (if (and (byte-compile-single-version)
-	   byte-compile-compatibility)
-      ;; #### instead of doing nothing, this should do some remprops,
-      ;; #### to protect against the case where a single-version compiler
-      ;; #### is loaded into a world that has contained a multi-version one.
-      nil
-    (list 'progn
-      (list 'put
-	(list 'quote
-	  (or (car (cdr-safe function))
-	      (intern (concat "byte-"
-		        (symbol-name (or (car-safe function) function))))))
-	''emacs19-opcode t)
-      (list 'byte-defop-compiler function compile-handler))))
+  ;; Just like byte-defop-compiler, but used to define an opcode to only
+  ;; be used when byte-compile-compatibility was false.
+  (list 'progn
+	(list 'put
+	      (list 'quote
+		    (or (car (cdr-safe function))
+			(intern (concat "byte-"
+					(symbol-name (or (car-safe function)
+							 function))))))
+	      ''emacs19-opcode t)
+	(list 'byte-defop-compiler function compile-handler)))
 
 (defmacro byte-defop-compiler-1 (function &optional compile-handler)
   (list 'byte-defop-compiler (list function nil) compile-handler))
@@ -3373,8 +3331,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out
 	    (aref [byte-list1 byte-list2 byte-list3 byte-list4] (1- count)) 0))
-	  ((and (< count 256) (not (byte-compile-version-cond
-				    byte-compile-compatibility)))
+	  ((< count 256)
 	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out 'byte-listN count))
 	  (t (byte-compile-normal-call form)))))
@@ -3389,8 +3346,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 	  ;; Concat of one arg is not a no-op if arg is not a string.
 	  ((= count 0)
 	   (byte-compile-form ""))
-	  ((and (< count 256) (not (byte-compile-version-cond
-				    byte-compile-compatibility)))
+	  ((< count 256)
 	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out 'byte-concatN count))
 	  ((byte-compile-normal-call form)))))
@@ -3486,12 +3442,6 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
   (byte-compile-constant
    (cond ((symbolp (nth 1 form))
 	  (nth 1 form))
-	 ;; If we're not allowed to use #[] syntax, then output a form like
-	 ;; '(lambda (..) (byte-code ..)) instead of a call to make-byte-code.
-	 ;; In this situation, calling make-byte-code at run-time will usually
-	 ;; be less efficient than processing a call to byte-code.
-	 ((byte-compile-version-cond byte-compile-compatibility)
-	  (byte-compile-byte-code-unmake (byte-compile-lambda (nth 1 form))))
 	 ((byte-compile-lambda (nth 1 form))))))
 
 (defun byte-compile-indent-to (form)
@@ -3508,9 +3458,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (defun byte-compile-insert (form)
   (cond ((null (cdr form))
 	 (byte-compile-constant nil))
-	((and (not (byte-compile-version-cond
-		    byte-compile-compatibility))
-	      (<= (length form) 256))
+	((<= (length form) 256)
 	 (mapc 'byte-compile-form (cdr form))
 	 (if (cdr (cdr form))
 	     (byte-compile-out 'byte-insertN (length (cdr form)))
@@ -3965,22 +3913,14 @@ that suppresses all warnings during execution of BODY."
       (byte-compile-set-symbol-position (car form))
     (byte-compile-set-symbol-position 'defun)
     (error "defun name must be a symbol, not %s" (car form)))
-  (if (byte-compile-version-cond byte-compile-compatibility)
-      (progn
-	(byte-compile-two-args ; Use this to avoid byte-compile-fset's warning.
-	 (list 'fset
-	       (list 'quote (nth 1 form))
-	       (byte-compile-byte-code-maker
-		(byte-compile-lambda (cdr (cdr form)) t))))
-	(byte-compile-discard))
-    ;; We prefer to generate a defalias form so it will record the function
-    ;; definition just like interpreting a defun.
-    (byte-compile-form
-     (list 'defalias
-	   (list 'quote (nth 1 form))
-	   (byte-compile-byte-code-maker
-	    (byte-compile-lambda (cdr (cdr form)) t)))
-     t))
+  ;; We prefer to generate a defalias form so it will record the function
+  ;; definition just like interpreting a defun.
+  (byte-compile-form
+   (list 'defalias
+	 (list 'quote (nth 1 form))
+	 (byte-compile-byte-code-maker
+	  (byte-compile-lambda (cdr (cdr form)) t)))
+   t)
   (byte-compile-constant (nth 1 form)))
 
 (defun byte-compile-defmacro (form)

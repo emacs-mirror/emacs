@@ -1,3 +1,15 @@
+2009-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-version-cond): Remove macro.
+	(byte-compile-compatibility): Remove option.
+	(byte-compile-close-variables, byte-compile-fix-header)
+	(byte-compile-insert-header, byte-compile-output-docform)
+	(byte-compile-file-form-defmumble, byte-compile-byte-code-maker)
+	(byte-compile-lambda, byte-compile-form, byte-defop-compiler19)
+	(byte-compile-list, byte-compile-concat, byte-compile-function-form)
+	(byte-compile-insert, byte-compile-defun):
+	Remove support for byte-compile-compatibility and Emacs 18.  (Bug#4571)
+
 2009-11-04  Juri Linkov  <juri@jurta.org>
 
 	* menu-bar.el (menu-bar-make-mm-toggle): Quote each element of `props'.
