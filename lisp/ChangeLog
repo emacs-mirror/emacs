@@ -1,5 +1,8 @@
 2009-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* international/mule.el (load-with-code-conversion): Call
+	do-after-load-evaluation unconditionally.
+
 	* emacs-lisp/bytecomp.el (byte-compile-output-file-form): Handle defvaralias.
 
 2009-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>

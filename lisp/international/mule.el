@@ -353,8 +353,7 @@ Return t if file exists."
 			 ))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
-      (unless purify-flag
- 	(do-after-load-evaluation fullname))
+      (do-after-load-evaluation fullname)
 
       (unless (or nomessage noninteractive)
 	(if source
