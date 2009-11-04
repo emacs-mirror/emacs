@@ -1,3 +1,7 @@
+2009-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1620000.
+
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (save_restriction_restore): Update the (pt/begv/vz)_markers
