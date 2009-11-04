@@ -29,7 +29,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'quail))
-(require 'help-fns)
+(require 'help-mode)
 
 ;;; Describe-Text Utilities.
 
