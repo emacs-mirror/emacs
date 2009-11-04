@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'calendar)
-(require 'diary-loaddefs)
+(load "diary-loaddefs" nil 'nomessage)
 
 (defgroup diary nil
   "Emacs diary."

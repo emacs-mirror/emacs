@@ -92,7 +92,7 @@
 ;; Provide functions to the rest of MH-E. However, mh-e.el must not
 ;; use any definitions in files that require mh-e from mh-loaddefs,
 ;; for if it does it will introduce a require loop.
-(require 'mh-loaddefs)
+(load "mh-loaddefs" nil 'nomessage)
 
 (mh-require-cl)
 

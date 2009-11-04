@@ -38,7 +38,7 @@ customizing the variable `eshell-modules-list'."
 ;; load the defgroup's for the standard extension modules, so that
 ;; documentation can be provided when the user customize's
 ;; `eshell-modules-list'.
-(require 'esh-groups)
+(load "esh-groups" nil 'nomessage)
 
 ;;; User Variables:
 

@@ -114,7 +114,7 @@
 
 ;;; Code:
 
-(require 'cal-loaddefs)
+(load "cal-loaddefs" nil 'nomessage)
 
 ;; Avoid recursive load of calendar when loading cal-menu.  Yuck.
 (provide 'calendar)

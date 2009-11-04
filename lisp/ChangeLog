@@ -1,3 +1,10 @@
+2009-11-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar/calendar.el (cal-loaddefs):
+	* calendar/diary-lib.el (diary-loaddefs):
+	* calendar/holidays.el (hol-loaddefs):
+	* eshell/esh-module.el (esh-groups): Load rather than require.
+
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/todo-mode.el (todo-add-category): Don't hardcode point-min==1.
