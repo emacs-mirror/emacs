@@ -1007,7 +1007,9 @@ scan_lisp_file (filename, mode)
 	    }
 	}
 
-      else if (! strcmp (buffer, "custom-declare-variable"))
+      else if (! strcmp (buffer, "custom-declare-variable")
+	       || ! strcmp (buffer, "defvaralias")
+	       )
 	{
 	  char c1 = 0, c2 = 0;
 	  type = 'V';
