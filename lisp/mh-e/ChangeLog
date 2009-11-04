@@ -1,3 +1,7 @@
+2009-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-e.el: Load mh-loaddefs during compilation as well.
+
 2009-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-e.el (mh-loaddefs): Load rather than require.
