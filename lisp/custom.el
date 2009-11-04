@@ -131,7 +131,7 @@ not the default value itself.
 DEFAULT is stored as SYMBOL's standard value, in SYMBOL's property
 `standard-value'.  At the same time, SYMBOL's property `force-value' is
 set to nil, as the value is no longer rogue."
-  (put symbol 'standard-value (list default))
+  (put symbol 'standard-value (purecopy (list default)))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
     (put symbol 'force-value nil))
@@ -407,7 +407,7 @@ for more information."
 	  (error "Keyword %s is missing an argument" keyword))
 	(setq args (cdr args))
 	(cond ((eq keyword :prefix)
-	       (put symbol 'custom-prefix value))
+	       (put symbol 'custom-prefix (purecopy value)))
 	      (t
 	       (custom-handle-keyword symbol keyword value
 				      'custom-group))))))

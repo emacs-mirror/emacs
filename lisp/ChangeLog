@@ -1,5 +1,8 @@
 2009-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* custom.el (custom-declare-group): Purecopy standard-value.
+	(custom-declare-group): Purecopy custom-prefix.
+
 	* international/mule.el (load-with-code-conversion): Call
 	do-after-load-evaluation unconditionally.
 
