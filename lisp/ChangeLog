@@ -1,3 +1,45 @@
+2009-11-05  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-getopt-file, verilog-set-define):
+	Remove extra save-excursions and make-variable-buffer-local's.
+	Suggested by Stefan Monnier.
+
+	(verilog-getopt-file, verilog-module-inside-filename-p)
+	(verilog-set-define): Merge GNU 1.35 and repair changes from
+	switching to using with-current-buffer.
+
+	(verilog-read-always-signals-recurse): Fix "a == 2'b00 ? b : c"
+	being treated as a number and confusing AUTORESET.
+	Reported by Dan Dever.
+
+	(verilog-auto-ignore-concat, verilog-read-sub-decls-expr):
+	Add verilog-auto-ignore-concat to fix backward compatibility with
+	older verilog-modes.  Reported by Dan Katz.
+
+	(verilog-read-auto-template): Fix AUTO_TEMPLATEs with regexps
+	containing closing anchors "...$".
+
+	(verilog-read-decls): Fix AUTOREG not detecting "assign {a,b}".
+	Reported by Wade Smith.
+
+	(verilog-batch-execute-func) Comment on function usage.
+
+2009-11-05  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-label-re): Fix regular expression for
+	labels.
+
+	(verilog-label-re, verilog-calc-1): Support proper indent of named
+	asserts.
+
+	(verilog-backward-token, verilog-basic-complete-re)
+	(verilog-beg-of-statement, verilog-indent-re): Support proper
+	indent of the assert statement at the beginning of a block of text.
+
+	(verilog-beg-block-re, verilog-ovm-begin-re): Support the
+	`ovm_object_param_utils_begin and `ovm_component_param_utils_begin
+	tokens as begins.
+
 2009-11-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Drop test for
