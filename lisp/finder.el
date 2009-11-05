@@ -141,7 +141,7 @@ no arguments compiles from `load-path'."
     (setq buffer-undo-list t)
     (erase-buffer)
     (insert (autoload-rubric generated-finder-keywords-file
-                             "keyword-to-package mapping"))
+                             "keyword-to-package mapping" t))
     (search-backward "")
     (insert "(setq finder-package-info '(\n")
     (let (processed summary keywords)

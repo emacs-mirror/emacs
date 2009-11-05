@@ -87,7 +87,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (setq buffer-undo-list t)
   (erase-buffer)
   (insert (autoload-rubric generated-custom-dependencies-file
-                           "custom dependencies"))
+                           "custom dependencies" t))
   (search-backward "")
   (mapatoms (lambda (symbol)
 	      (let ((members (get symbol 'custom-group))

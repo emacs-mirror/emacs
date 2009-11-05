@@ -1,6 +1,9 @@
 2009-11-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (autoload-rubric): Add optional feature arg.
+	* cus-dep.el (custom-make-dependencies):
+	* finder.el (finder-compile-keywords):
+	Use autoload-rubric's feature argument.
 
 	* calendar/diary-lib.el (top-level): Make load behave more like require.
 
