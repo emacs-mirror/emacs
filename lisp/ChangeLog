@@ -7,6 +7,8 @@
 
 	* calendar/diary-lib.el (top-level): Make load behave more like require.
 
+	* vc-git.el (vc-git-stash-map): Move definition before use.
+
 2009-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* custom.el (custom-declare-group): Purecopy standard-value.

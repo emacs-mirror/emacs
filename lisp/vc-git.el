@@ -399,6 +399,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Return a list of (FILE STATE EXTRA) entries for FILES in DIR."
   (vc-git-dir-status-goto-stage 'update-index files update-function))
 
+(defvar vc-git-stash-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-k" 'vc-git-stash-delete-at-point)
+    (define-key map "=" 'vc-git-stash-show-at-point)
+    (define-key map "\C-m" 'vc-git-stash-show-at-point)
+    map))
+
 (defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
@@ -830,13 +837,6 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (defun vc-git-stash-show-at-point ()
   (interactive)
   (vc-git-stash-show (format "stash@%s" (vc-git-stash-get-at-point (point)))))
-
-(defvar vc-git-stash-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-k" 'vc-git-stash-delete-at-point)
-    (define-key map "=" 'vc-git-stash-show-at-point)
-    (define-key map "\C-m" 'vc-git-stash-show-at-point)
-    map))
 
 
 ;;; Internal commands
