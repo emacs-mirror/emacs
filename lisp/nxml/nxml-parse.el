@@ -98,16 +98,14 @@ modified buffer currently visiting FILE.
 If the variable `nxml-validate-function' is non-nil, it will be called
 twice for each element, and any reported error will be signaled in the
 same way as well-formedness error."
-  (save-excursion
-    (set-buffer (nxml-parse-find-file file))
+  (with-current-buffer (nxml-parse-find-file file)
     (unwind-protect
 	(let ((nxml-parse-file-name file))
 	  (nxml-parse-instance))
       (kill-buffer nil))))
 
 (defun nxml-parse-find-file (file)
-  (save-excursion
-    (set-buffer (get-buffer-create " *nXML Parse*"))
+  (with-current-buffer (get-buffer-create " *nXML Parse*")
     (erase-buffer)
     (let ((set-auto-coding-function 'nxml-set-xml-coding))
       (insert-file-contents file))

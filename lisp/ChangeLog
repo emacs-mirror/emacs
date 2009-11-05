@@ -1,3 +1,15 @@
+2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nxml/xsd-regexp.el (xsdre-gen-categories):
+	* nxml/xmltok.el (xmltok-parse-entity):
+	* nxml/rng-parse.el (rng-parse-validate-file):
+	* nxml/rng-maint.el (rng-format-manual)
+	(rng-manual-output-force-new-line):
+	* nxml/rng-loc.el (rng-save-schema-location-1):
+	* nxml/rng-cmpct.el (rng-c-parse-file):
+	* nxml/nxml-maint.el (nxml-insert-target-repertoire-glyph-set):
+	* nxml/nxml-parse.el (nxml-parse-file): Use with-current-buffer.
+
 2009-11-05  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-getopt-file, verilog-set-define):

@@ -40,8 +40,7 @@ The returned list has the same form as that returned by
 for validation, such as returned by the function `rng-c-load-schema'.
 If the XML document is invalid with respect to schema, an error will
 be signaled in the same way as when it is not well-formed."
-  (save-excursion
-    (set-buffer (nxml-parse-find-file file))
+  (with-current-buffer (nxml-parse-find-file file)
     (unwind-protect
 	(let ((nxml-parse-file-name file)
 	      (nxml-validate-function 'rng-parse-do-validate)

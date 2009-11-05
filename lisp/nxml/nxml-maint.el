@@ -74,8 +74,7 @@
 (defun nxml-insert-target-repertoire-glyph-set (file var)
   (interactive "fTarget file: \nSVariable name: ")
   (let (lst head)
-    (save-excursion
-      (set-buffer (find-file-noselect file))
+    (with-current-buffer (find-file-noselect file)
       (goto-char (point-min))
       (while (re-search-forward "^ *\\([a-FA-F0-9]\\{2\\}\\)[ \t]+" nil t)
 	(let ((row (match-string 1))

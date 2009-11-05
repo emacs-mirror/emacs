@@ -508,8 +508,7 @@ saved to the first writable file in `rng-schema-locating-files'."
 					 "schema location")
 				       file)))))
 	  (t
-	   (save-excursion
-	     (set-buffer (find-file-noselect file))
+	   (with-current-buffer (find-file-noselect file)
 	     (let ((modified (buffer-modified-p)))
 	       (if (> (buffer-size) 0)
 		   (let (xmltok-dtd)

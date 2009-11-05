@@ -348,8 +348,7 @@ OVERRIDE is either nil, require or t."
 (defvar rng-c-file-index nil)
 
 (defun rng-c-parse-file (filename &optional context)
-  (save-excursion
-    (set-buffer (get-buffer-create (rng-c-buffer-name context)))
+  (with-current-buffer (get-buffer-create (rng-c-buffer-name context))
     (erase-buffer)
     (rng-c-init-buffer)
     (setq rng-c-file-name
