@@ -1,4 +1,4 @@
-2009-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
+2009-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* custom.el (custom-declare-group): Purecopy standard-value.
 	(custom-declare-group): Purecopy custom-prefix.
@@ -5377,7 +5377,7 @@
 	(gdb-locals-handler-custom, gdb-registers-handler-custom)
 	(gdb-changed-registers-handler): Rewritten without regexps.
 
-	* progmodes/gdb-mi.el Basic thread selection support.
+	* progmodes/gdb-mi.el: Basic thread selection support.
 	(gdb-thread-number): New variable.
 	(gdb-current-context-command): New macro which adds --thread
 	option to command.
