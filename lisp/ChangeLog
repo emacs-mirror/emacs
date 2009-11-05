@@ -1,5 +1,10 @@
 2009-11-05  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Drop test for
+	Emacs 19.  (Bug#1531)
+	(byte-compile-fix-header): Update for the above change.
+	Drop test for epoch::version.
+
 	* emacs-lisp/autoload.el (autoload-rubric): Add optional feature arg.
 	* cus-dep.el (custom-make-dependencies):
 	* finder.el (finder-compile-keywords):

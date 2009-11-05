@@ -1922,10 +1922,9 @@ With argument ARG, insert value in current buffer after the form."
        ;; need to be written carefully.
        (setq overwrite-mode 'overwrite-mode-binary))
      (displaying-byte-compile-warnings
-      (and bytecomp-filename
-	   (byte-compile-insert-header bytecomp-filename bytecomp-inbuffer
-				       bytecomp-outbuffer))
       (with-current-buffer bytecomp-inbuffer
+	(and bytecomp-filename
+	     (byte-compile-insert-header bytecomp-filename bytecomp-outbuffer))
 	(goto-char (point-min))
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have been
@@ -1958,49 +1957,55 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       ;; Fix up the header at the front of the output
       ;; if the buffer contains multibyte characters.
       (and bytecomp-filename
-	   (byte-compile-fix-header bytecomp-filename bytecomp-inbuffer
-				    bytecomp-outbuffer))))
+	   (with-current-buffer bytecomp-outbuffer
+	     (byte-compile-fix-header bytecomp-filename)))))
     bytecomp-outbuffer))
 
-(defun byte-compile-fix-header (filename inbuffer outbuffer)
-  (with-current-buffer outbuffer
-    ;; See if the buffer has any multibyte characters.
-    (when (< (point-max) (position-bytes (point-max)))
-      (goto-char (point-min))
-      ;; Find the comment that describes the version test.
-      (search-forward "\n;;; This file")
-      (beginning-of-line)
-      (narrow-to-region (point) (point-max))
-      ;; Find the line of ballast semicolons.
-      (search-forward ";;;;;;;;;;")
-      (beginning-of-line)
+(defun byte-compile-fix-header (filename)
+  "If the current buffer has any multibyte characters, insert a version test."
+  (when (< (point-max) (position-bytes (point-max)))
+    (goto-char (point-min))
+    ;; Find the comment that describes the version condition.
+    (search-forward "\n;;; This file uses")
+    (narrow-to-region (line-beginning-position) (point-max))
+    ;; Find the first line of ballast semicolons.
+    (search-forward ";;;;;;;;;;")
+    (beginning-of-line)
+    (narrow-to-region (point-min) (point))
+    (let ((old-header-end (point))
+	  (minimum-version "23")
+	  delta)
+      (delete-region (point-min) (point-max))
+      (insert
+       ";;; This file contains utf-8 non-ASCII characters,\n"
+       ";;; and so cannot be loaded into Emacs 22 or earlier.\n"
+       ;; Have to check if emacs-version is bound so that this works
+       ;; in files loaded early in loadup.el.
+       "(and (boundp 'emacs-version)\n"
+       ;; If there is a name at the end of emacs-version,
+       ;; don't try to check the version number.
+       "     (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+       (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
+       "     (error \"`"
+       ;; prin1-to-string is used to quote backslashes.
+       (substring (prin1-to-string (file-name-nondirectory filename))
+		  1 -1)
+       (format "' was compiled for Emacs %s or later\"))\n\n"
+	       minimum-version))
+      ;; Now compensate for any change in size, to make sure all
+      ;; positions in the file remain valid.
+      (setq delta (- (point-max) old-header-end))
+      (goto-char (point-max))
+      (widen)
+      (delete-char delta))))
 
-      (narrow-to-region (point-min) (point))
-      (let ((old-header-end (point))
-	    delta)
-	(goto-char (point-min))
-	(delete-region (point) (progn (re-search-forward "^(")
-				      (beginning-of-line)
-				      (point)))
-	(insert ";;; This file contains utf-8 non-ASCII characters\n"
-		";;; and therefore cannot be loaded into Emacs 22 or earlier.\n")
-	;; Replace "19" or "19.29" with "23", twice.
-	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "23")
-	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "23")
-	;; Now compensate for the change in size,
-	;; to make sure all positions in the file remain valid.
-	(setq delta (- (point-max) old-header-end))
-	(goto-char (point-max))
-	(widen)
-	(delete-char delta)))))
-
-(defun byte-compile-insert-header (filename inbuffer outbuffer)
-  (with-current-buffer inbuffer
-    (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
-	  (dynamic byte-compile-dynamic))
-      (set-buffer outbuffer)
+(defun byte-compile-insert-header (filename outbuffer)
+  "Insert a header at the start of OUTBUFFER.
+Call from the source buffer."
+  (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
+	(dynamic byte-compile-dynamic)
+	(optimize byte-optimize))
+    (with-current-buffer outbuffer
       (goto-char (point-min))
       ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
       ;; that is the file-format version number (18, 19, 20, or 23) as a
@@ -2009,62 +2014,37 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       ;; the file so that `diff' will simply say "Binary files differ"
       ;; instead of actually doing a diff of two .elc files.  An extra
       ;; benefit is that you can add this to /etc/magic:
-
       ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
       ;; >4	byte		x		version %d
-
-      (insert ";ELC" 23 "\000\000\000\n")
-      (insert ";;; Compiled by "
-	      (or (and (boundp 'user-mail-address) user-mail-address)
-		  (concat (user-login-name) "@" (system-name)))
-	      " on "
-	      (current-time-string) "\n;;; from file " filename "\n")
-      (insert ";;; in Emacs version " emacs-version "\n")
-      (insert ";;; "
-	      (cond
-	       ((eq byte-optimize 'source) "with source-level optimization only")
-	       ((eq byte-optimize 'byte) "with byte-level optimization only")
-	       (byte-optimize "with all optimizations")
-	       (t "without optimization"))
-		".\n")
-      (if dynamic
-	  (insert ";;; Function definitions are lazy-loaded.\n"))
-      (let (intro-string minimum-version)
-	;; Figure out which Emacs version to require,
-	;; and what comment to use to explain why.
-	;; Note that this fails to take account of whether
-	;; the buffer contains multibyte characters.  We may have to
-	;; compensate at the end in byte-compile-fix-header.
-	(if dynamic-docstrings
-	    (setq intro-string
-		  ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
-		  minimum-version "19.29")
-	  (setq intro-string
-		";;; This file uses opcodes which do not exist in Emacs 18.\n"
-		minimum-version "19"))
-	;; Now insert the comment and the error check.
-	(insert
-	 "\n"
-	 intro-string
-	 ;; Have to check if emacs-version is bound so that this works
-	 ;; in files loaded early in loadup.el.
-	 "(if (and (boundp 'emacs-version)\n"
-	 ;; If there is a name at the end of emacs-version,
-	 ;; don't try to check the version number.
-	 "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-	 "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	 (format "\t     (string-lessp emacs-version \"%s\")))\n"
-		 minimum-version)
-	 "    (error \"`"
-	 ;; prin1-to-string is used to quote backslashes.
-	 (substring (prin1-to-string (file-name-nondirectory filename))
-		    1 -1)
-	 (format "' was compiled for Emacs %s or later\"))\n\n"
-		 minimum-version)
-	 ;; Insert semicolons as ballast, so that byte-compile-fix-header
-	 ;; can delete them so as to keep the buffer positions
-	 ;; constant for the actual compiled code.
-	 ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n")))))
+      (insert
+       ";ELC" 23 "\000\000\000\n"
+       ";;; Compiled by "
+       (or (and (boundp 'user-mail-address) user-mail-address)
+	   (concat (user-login-name) "@" (system-name)))
+       " on " (current-time-string) "\n"
+       ";;; from file " filename "\n"
+       ";;; in Emacs version " emacs-version ", with"
+       (cond
+	((eq optimize 'source) " source-level optimization only")
+	((eq optimize 'byte) " byte-level optimization only")
+	(optimize " all optimizations")
+	(t "out optimization"))
+       ".\n"
+       (if dynamic ";;; Function definitions are lazy-loaded.\n"
+	 "")
+       "\n;;; This file uses "
+       (if dynamic-docstrings
+	   "dynamic docstrings, first added in Emacs 19.29"
+	 "opcodes that do not exist in Emacs 18")
+       ".\n\n"
+       ;; Note that byte-compile-fix-header may change this.
+       ";;; This file does not contain utf-8 non-ASCII characters,\n"
+       ";;; and so can be loaded in Emacs versions earlier than 23.\n\n"
+       ;; Insert semicolons as ballast, so that byte-compile-fix-header
+       ;; can delete them so as to keep the buffer positions
+       ;; constant for the actual compiled code.
+       ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+       ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))))
 
 ;; Dynamically bound in byte-compile-from-buffer.
 ;; NB also used in cl.el and cl-macs.el.
