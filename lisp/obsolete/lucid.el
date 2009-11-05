@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
+;; Obsolete-since: 23.2
 
 ;; This file is part of GNU Emacs.
 

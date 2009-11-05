@@ -1,5 +1,8 @@
 2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lucid.el: Move to obsolete/lucid.el.
+	* emacs-lisp/levents.el: Move to obsolete/levents.el.
+
 	* nxml/xsd-regexp.el (xsdre-gen-categories):
 	* nxml/xmltok.el (xmltok-parse-entity):
 	* nxml/rng-parse.el (rng-parse-validate-file):

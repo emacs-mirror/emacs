@@ -135,6 +135,8 @@ For instance, this can complete M-x lch to list-command-history.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** lucid.el and levents.el are now declared obsolete.
+
 ** pcomplete provides a new command `pcomplete-std-completion' which
 is similar to `pcomplete' but using the standard completion UI code.
 
