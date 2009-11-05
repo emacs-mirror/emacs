@@ -410,8 +410,7 @@ do the work."
         (message "No directory specified")
       (if (equal nil mh-mime-save-parts-default-directory)
           (setq mh-mime-save-parts-directory directory))
-      (save-excursion
-        (set-buffer (get-buffer-create mh-log-buffer))
+      (with-current-buffer (get-buffer-create mh-log-buffer)
         (cd directory)
         (setq mh-mime-save-parts-directory directory)
         (let ((initial-size (mh-truncate-log-buffer)))
@@ -1073,8 +1072,7 @@ HANDLE is associated with the undisplayer FUNCTION."
       (let ((new-handle (copy-sequence handle)))
         (mm-handle-set-undisplayer new-handle function)
         (mm-handle-set-undisplayer handle nil)
-        (save-excursion
-          (set-buffer folder)
+        (with-current-buffer folder
           (push new-handle (mh-mime-handles (mh-buffer-data)))))
     (mm-handle-set-undisplayer handle function)))
 
@@ -1729,9 +1727,8 @@ Returns nil if file command not on system."
               (file-readable-p filename)))
     nil)                               ;no file or not readable, ditto
    (t
-    (save-excursion
-      (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
-        (set-buffer tmp-buffer)
+    (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
+      (with-current-buffer tmp-buffer
         (unwind-protect
             (progn
               (call-process "file" nil '(t nil) nil "-b" "-i"

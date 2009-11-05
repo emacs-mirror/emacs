@@ -1463,8 +1463,7 @@ user has marked in the index buffer."
              ;; If source folder not open, just delete the messages...
              (apply #'mh-exec-cmd "rmm" folder (mh-coalesce-msg-list msgs))
            ;; Otherwise delete the messages in the source buffer...
-           (save-excursion
-             (set-buffer folder)
+           (with-current-buffer folder
              (let ((old-refile-list mh-refile-list)
                    (old-delete-list mh-delete-list))
                (setq mh-refile-list nil
@@ -1642,8 +1641,7 @@ attempt to update the source folder buffer if we have it open."
                                   (mh-coalesce-msg-list msgs)))
                    ;; Update source folder buffer if we have it open...
                    (when (get-buffer folder)
-                     (save-excursion
-                       (set-buffer folder)
+                     (with-current-buffer folder
                        (mh-put-msg-in-seq msgs seq))))
                  (mh-index-matching-source-msgs msgs))
         folders))))
@@ -1667,8 +1665,7 @@ attempt to update the source folder buffer if present."
                                   (mh-coalesce-msg-list msgs)))
                    ;; Update source folder buffer if we have it open...
                    (when (get-buffer folder)
-                     (save-excursion
-                       (set-buffer folder)
+                     (with-current-buffer folder
                        (mh-delete-msg-from-seq msgs seq t))))
                  (mh-index-matching-source-msgs msgs))
         folders))))
@@ -1853,9 +1850,8 @@ index folder to the original folder and message from whence it
 was copied. If present the checksum -> (origin-folder,
 origin-index) map is updated too."
   (clrhash mh-index-msg-checksum-map)
-  (save-excursion
-    ;; Clear temp buffer
-    (set-buffer (get-buffer-create mh-temp-checksum-buffer))
+  ;; Clear temp buffer
+  (with-current-buffer (get-buffer-create mh-temp-checksum-buffer)
     (erase-buffer)
     ;; Run scan to check if any messages needs MD5 annotations at all
     (with-temp-buffer
@@ -1895,8 +1891,7 @@ origin-index) map is updated too."
             (mh-exec-cmd "anno" folder msg "-component" "X-MHE-Checksum"
                          "-nodate" "-text" checksum "-inplace")
             ;; update maps
-            (save-excursion
-              (set-buffer folder)
+            (with-current-buffer folder
               (mh-index-update-single-msg msg checksum origin-map)))
           (forward-line)))))
   (mh-index-write-data))

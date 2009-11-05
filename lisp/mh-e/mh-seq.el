@@ -146,8 +146,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
         (seq-list mh-seq-list)
         (max-len 0))
     (with-output-to-temp-buffer temp-buffer
-      (save-excursion
-        (set-buffer temp-buffer)
+      (with-current-buffer temp-buffer
         (erase-buffer)
         (message "Listing sequences ...")
         (insert "Sequences in folder " folder ":\n")

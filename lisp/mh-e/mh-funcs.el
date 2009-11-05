@@ -145,8 +145,7 @@ Display the results only if something went wrong."
   (interactive)
   (let ((temp-buffer mh-folders-buffer))
     (with-output-to-temp-buffer temp-buffer
-      (save-excursion
-        (set-buffer temp-buffer)
+      (with-current-buffer temp-buffer
         (erase-buffer)
         (message "Listing folders...")
         (mh-exec-cmd-output "folders" t (if mh-recursive-folders-flag
@@ -246,8 +245,7 @@ to the command."
    (list (read-string "Shell command on message: ") current-prefix-arg))
   (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
         (message-directory default-directory))
-    (save-excursion
-      (set-buffer (get-buffer-create mh-temp-buffer))
+    (with-current-buffer (get-buffer-create mh-temp-buffer)
       (erase-buffer)
       (insert-file-contents msg-file-to-pipe)
       (goto-char (point-min))
@@ -293,8 +291,7 @@ storing the content of these messages."
                        (read-file-name "Store message in directory: "
                                        udir udir nil))))
   (let ((msg-file-to-store (mh-msg-filename (mh-get-msg-num t))))
-    (save-excursion
-      (set-buffer (get-buffer-create mh-temp-buffer))
+    (with-current-buffer (get-buffer-create mh-temp-buffer)
       (erase-buffer)
       (insert-file-contents msg-file-to-store)
       (mh-store-buffer directory))))
@@ -332,8 +329,7 @@ See `mh-store-msg' for a description of DIRECTORY."
               (setq uudecode-filename
                     (buffer-substring (point)
                                       (progn (end-of-line) (point)))))))
-    (save-excursion
-      (set-buffer (get-buffer-create mh-log-buffer))
+    (with-current-buffer (get-buffer-create mh-log-buffer)
       (setq log-begin (mh-truncate-log-buffer))
       (if (not (file-directory-p store-directory))
           (progn
@@ -350,8 +346,7 @@ See `mh-store-msg' for a description of DIRECTORY."
       (if (equal (call-process-region sh-start (point-max) command
                                       nil mh-log-buffer t)
                  0)
-          (save-excursion
-            (set-buffer mh-log-buffer)
+          (with-current-buffer mh-log-buffer
             (insert "\n(mh-store finished)\n"))
         (error "Error occurred during execution of %s" command)))))
 

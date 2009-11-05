@@ -105,8 +105,7 @@ If FILE is nil, then the messages are spooled to the printer."
 
 (defun mh-ps-spool-buffer (buffer)
   "Spool BUFFER."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let ((ps-print-color-p mh-ps-print-color-option)
           (ps-left-header
            (list

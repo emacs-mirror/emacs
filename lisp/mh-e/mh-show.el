@@ -326,8 +326,7 @@ ignored if VISIBLE-HEADERS is non-nil."
 (defun mh-invalidate-show-buffer ()
   "Invalidate the show buffer so we must update it to use it."
   (if (get-buffer mh-show-buffer)
-      (save-excursion
-        (set-buffer mh-show-buffer)
+      (with-current-buffer mh-show-buffer
         (mh-unvisit-file))))
 
 (defun mh-unvisit-file ()
@@ -511,8 +510,7 @@ still visible.\n")
     "--"
     ["Narrow to Subject Sequence"       mh-show-narrow-to-subject t]
     ["Narrow to Tick Sequence"          mh-show-narrow-to-tick
-     (save-excursion
-       (set-buffer mh-show-folder-buffer)
+     (with-current-buffer mh-show-folder-buffer
        (and mh-tick-seq (mh-seq-msgs (mh-find-seq mh-tick-seq))))]
     ["Delete Rest of Same Subject"      mh-show-delete-subject t]
     ["Toggle Tick Mark"                 mh-show-toggle-tick t]

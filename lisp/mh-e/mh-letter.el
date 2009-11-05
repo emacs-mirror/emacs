@@ -706,9 +706,9 @@ the supercite flavors, the hook `mail-citation-hook' is ignored
 and `mh-ins-buf-prefix' is not inserted."
   (interactive)
   (if (and mh-sent-from-folder
-           (save-excursion (set-buffer mh-sent-from-folder) mh-show-buffer)
-           (save-excursion (set-buffer mh-sent-from-folder)
-                           (get-buffer mh-show-buffer))
+           (with-current-buffer mh-sent-from-folder mh-show-buffer)
+           (with-current-buffer mh-sent-from-folder
+             (get-buffer mh-show-buffer))
            mh-sent-from-msg)
       (let ((to-point (point))
             (to-buffer (current-buffer)))

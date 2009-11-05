@@ -1,3 +1,28 @@
+2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-thread.el (mh-thread-set-tables):
+	* mh-speed.el (mh-folder-speedbar-menu-items, mh-speed-stealth-update):
+	(mh-speed-extract-folder-name, mh-speed-parse-flists-output):
+	(mh-speed-invalidate-map, mh-speed-add-folder):
+	* mh-show.el (mh-invalidate-show-buffer, mh-show-sequence-menu):
+	* mh-seq.el (mh-list-sequences):
+	* mh-search.el (mh-index-execute-commands, mh-index-add-to-sequence)
+	(mh-index-delete-from-sequence, mh-index-update-maps):
+	* mh-scan.el (mh-msg-num-width):
+	* mh-print.el (mh-ps-spool-buffer):
+	* mh-mime.el (mh-mime-save-parts, mh-handle-set-external-undisplayer)
+	(mh-file-mime-type):
+	* mh-letter.el (mh-yank-cur-msg):
+	* mh-funcs.el (mh-list-folders, mh-pipe-msg, mh-store-msg)
+	(mh-store-buffer):
+	* mh-folder.el (mh-modify, mh-visit-folder, mh-write-msg-to-file)
+	(mh-prompt-for-refile-folder):
+	* mh-e.el (mh-exec-cmd, mh-exec-cmd-error, mh-exec-cmd-daemon)
+	(mh-handle-process-error, mh-variant-info):
+	* mh-comp.el (mh-forward):
+	* mh-alias.el (mh-alias-local-users, mh-alias-which-file-has-alias):
+	(mh-alias-add-alias-to-file): Use with-current-buffer.
+
 2009-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-e.el: Load mh-loaddefs during compilation as well.
