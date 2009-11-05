@@ -253,16 +253,25 @@ put the output in."
 	      (print-escape-nonascii t))
 	  (print form outbuf)))))))
 
-(defun autoload-rubric (file &optional type)
+(defun autoload-rubric (file &optional type feature)
   "Return a string giving the appropriate autoload rubric for FILE.
 TYPE (default \"autoloads\") is a string stating the type of
-information contained in FILE."
+information contained in FILE.  If FEATURE is non-nil, FILE
+will provide a feature.  FEATURE may be a string naming the
+feature, otherwise it will be based on FILE's name."
   (let ((basename (file-name-nondirectory file)))
     (concat ";;; " basename
 	    " --- automatically extracted " (or type "autoloads") "\n"
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    "\n"
+	    ;; This is used outside of autoload.el.
+	    (if feature
+		(concat "(provide '"
+			(if (stringp feature) feature
+			  (file-name-sans-extension basename))
+			")\n")
+	      "")
 	    ";; Local Variables:\n"
 	    ";; version-control: never\n"
 	    ";; no-byte-compile: t\n"
