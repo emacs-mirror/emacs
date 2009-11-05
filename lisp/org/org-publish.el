@@ -607,8 +607,7 @@ Default for INDEX-FILENAME is 'sitemap.org'."
   (let* ((visiting (find-buffer-visiting file))
 	 (buffer (or visiting (find-file-noselect file)))
 	 title)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (let* ((opt-plist (org-combine-plists (org-default-export-plist)
 					    (org-infile-export-plist))))
 	(setq title

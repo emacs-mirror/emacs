@@ -1042,8 +1042,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	   (org-mouse-direct nil)
 	   (org-mouse-main-buffer (current-buffer)))
       (when (eq (with-current-buffer buffer major-mode) 'org-mode)
-	(let ((endmarker (save-excursion
-			  (set-buffer buffer)
+	(let ((endmarker (with-current-buffer buffer
 			  (outline-end-of-subtree)
 			  (forward-char 1)
 			  (copy-marker (point)))))

@@ -188,8 +188,9 @@
 	(let ((b (current-buffer)) (p (point)))
 	  ;; Restore the window configuration because we just use the web link
 	  (set-window-configuration org-window-config-before-follow-link)
-	  (save-excursion (set-buffer b) (goto-char p)
-	    (bibtex-url)))
+	  (with-current-buffer b
+            (goto-char p)
+            (bibtex-url)))
       (recenter 0))  ; Move entry start to beginning of window
   ;; return t to indicate that the search is done.
     t))

@@ -391,8 +391,7 @@ If nothing new has beed added, return nil."
 					   org-mobile-directory)))
 	(insertion-point (make-marker))
 	not-empty content)
-    (save-excursion
-      (set-buffer capture-buffer)
+    (with-current-buffer capture-buffer
       (setq content (buffer-string))
       (setq not-empty (string-match "\\S-" content))
       (when not-empty

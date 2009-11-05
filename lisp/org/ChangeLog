@@ -1,3 +1,19 @@
+2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org.el (org-version, org-get-refile-targets, org-refile)
+	(org-store-log-note, org-diary-to-ical-string)
+	(org-speedbar-set-agenda-restriction):
+	* org-publish.el (org-publish-find-title):
+	* org-plot.el (org-plot/gnuplot):
+	* org-mouse.el (org-mouse-do-remotely):
+	* org-mobile.el (org-mobile-move-capture):
+	* org-mac-message.el (org-mac-message-insert-flagged):
+	* org-latex.el (org-replace-region-by-latex):
+	* org-docbook.el (org-replace-region-by-docbook):
+	* org-clock.el (org-clock-out, org-clock-cancel):
+	* org-bibtex.el (org-execute-file-search-in-bibtex):
+	Use with-current-buffer.
+
 2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-directory, org-map-entries):

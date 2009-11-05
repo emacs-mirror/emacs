@@ -285,8 +285,7 @@ then use this command to convert it."
 			 beg end t 'string))
 	(setq reg (buffer-substring beg end)
 	      buf (get-buffer-create "*Org tmp*"))
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (erase-buffer)
 	  (insert reg)
 	  (org-mode)

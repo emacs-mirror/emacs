@@ -193,8 +193,7 @@ If heading exists, delete all message:// links within heading's first
 level.  If heading doesn't exist, create it at point-max.  Insert
 list of message:// links to flagged mail after heading."
   (interactive "bBuffer in which to insert links: \nsHeading after which to insert links: ")
-  (save-excursion
-    (set-buffer org-buffer)
+  (with-current-buffer org-buffer
     (goto-char (point-min))
     (let ((isearch-forward t)
 	  (message-re "\\[\\[\\(message:\\)\\([^]]+\\)\\]\\(\\[\\([^]]+\\)\\]\\)?\\]"))
