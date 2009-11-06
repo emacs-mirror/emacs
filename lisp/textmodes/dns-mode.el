@@ -222,7 +222,7 @@ This function is run from `before-save-hook'."
 	   ;; We return nil in case this is used in write-contents-functions.
 	   nil)))
 
-;;;###autoload(add-to-list 'auto-mode-alist '("\\.soa\\'" . dns-mode))
+;;;###autoload(add-to-list 'auto-mode-alist (purecopy '("\\.soa\\'" . dns-mode)))
 
 (provide 'dns-mode)
 

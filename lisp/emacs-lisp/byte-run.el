@@ -224,7 +224,7 @@ obsolete."
   `(progn
      (put ,obsolete-face 'face-alias ,current-face)
      ;; Used by M-x describe-face.
-     (put ,obsolete-face 'obsolete-face (or ,when t))))
+     (put ,obsolete-face 'obsolete-face (or (purecopy ,when) t))))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).

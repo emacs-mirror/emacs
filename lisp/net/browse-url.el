@@ -313,7 +313,7 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :group 'browse-url)
 
 ;;;###autoload
-(defcustom browse-url-firefox-program "firefox"
+(defcustom browse-url-firefox-program (purecopy "firefox")
   "The name by which to invoke Firefox."
   :type 'string
   :group 'browse-url)
@@ -331,7 +331,7 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :group 'browse-url)
 
 ;;;###autoload
-(defcustom browse-url-galeon-program "galeon"
+(defcustom browse-url-galeon-program (purecopy "galeon")
   "The name by which to invoke Galeon."
   :type 'string
   :group 'browse-url)

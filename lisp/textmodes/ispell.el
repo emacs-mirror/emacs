@@ -1429,6 +1429,7 @@ Valid forms include:
 
 ;;;###autoload
 (defvar ispell-tex-skip-alists
+  (purecopy
   '((;;("%\\[" . "%\\]") ; AMStex block comment...
      ;; All the standard LaTeX keywords from L. Lamport's guide:
      ;; \cite, \hspace, \hspace*, \hyphenation, \include, \includeonly, \input,
@@ -1447,7 +1448,7 @@ Valid forms include:
      ("\\(figure\\|table\\)\\*?"	 ispell-tex-arg-end 0)
      ("list"				 ispell-tex-arg-end 2)
      ("program"		. "\\\\end[ \t\n]*{[ \t\n]*program[ \t\n]*}")
-     ("verbatim\\*?"	. "\\\\end[ \t\n]*{[ \t\n]*verbatim\\*?[ \t\n]*}")))
+     ("verbatim\\*?"	. "\\\\end[ \t\n]*{[ \t\n]*verbatim\\*?[ \t\n]*}"))))
   "*Lists of regions to be skipped in TeX mode.
 First list is used raw.
 Second list has key placed inside \\begin{}.
@@ -1458,7 +1459,7 @@ for skipping in latex mode.")
 
 
 ;;;###autoload
-(defvar ispell-html-skip-alists
+(defconst ispell-html-skip-alists
   '(("<[cC][oO][dD][eE]\\>[^>]*>"	  "</[cC][oO][dD][eE]*>")
     ("<[sS][cC][rR][iI][pP][tT]\\>[^>]*>" "</[sS][cC][rR][iI][pP][tT]>")
     ("<[aA][pP][pP][lL][eE][tT]\\>[^>]*>" "</[aA][pP][pP][lL][eE][tT]>")

@@ -195,6 +195,7 @@ options through Custom does this automatically."
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
   ;; can-append strip-extension-flag file-magic-bytes]
+  (mapcar 'purecopy
   '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "compressing"    "compress"     ("-c")
      ;; gzip is more common than uncompress. It can only read, not write.
@@ -229,7 +230,7 @@ options through Custom does this automatically."
     ["\\.dz\\'"
      nil              nil            nil
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     nil t "\037\213"])
+     nil t "\037\213"]))
 
   "List of vectors that describe available compression techniques.
 Each element, which describes a compression technique, is a vector of
@@ -290,7 +291,7 @@ variables.  Setting this through Custom does that automatically."
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
-  (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz2?\\'" 'tar-mode))
+  (list (cons (purecopy "\\.tgz\\'") 'tar-mode) (cons (purecopy "\\.tbz2?\\'") 'tar-mode))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.
@@ -303,7 +304,7 @@ variables.  Setting this through Custom does that automatically."
   :set 'jka-compr-set
   :group 'jka-compr)
 
-(defcustom jka-compr-load-suffixes '(".gz")
+(defcustom jka-compr-load-suffixes (list (purecopy ".gz"))
   "List of compression related suffixes to try when loading files.
 Enabling Auto Compression mode appends this list to `load-file-rep-suffixes',
 which see.  Disabling Auto Compression mode removes all suffixes

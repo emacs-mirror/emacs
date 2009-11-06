@@ -284,7 +284,7 @@ This enables the hook functions to see the whole message header
 regardless of what part of it (if any) is included in the cited text.")
 
 ;;;###autoload
-(defcustom mail-citation-prefix-regexp "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|[ \t]*"
+(defcustom mail-citation-prefix-regexp (purecopy "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|[ \t]*")
   "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
 with whitespace before and after; it should also match just whitespace.
@@ -409,13 +409,13 @@ and should insert whatever you want to insert."
 (put 'mail-signature 'risky-local-variable t)
 
 ;;;###autoload
-(defcustom mail-signature-file "~/.signature"
+(defcustom mail-signature-file (purecopy "~/.signature")
   "File containing the text inserted at end of mail buffer."
   :type 'file
   :group 'sendmail)
 
 ;;;###autoload
-(defcustom mail-default-directory "~/"
+(defcustom mail-default-directory (purecopy "~/")
   "Directory for mail buffers.
 Value of `default-directory' for mail buffers.
 This directory is used for auto-save files of mail buffers."

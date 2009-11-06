@@ -796,15 +796,15 @@ Internal use only.  Should be called at startup time."
 
 ;; Setting for suppressing XLoadQueryFont on big fonts.
 (setq x-pixel-size-width-font-regexp
-      "gb2312\\|gbk\\|gb18030\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
+      (purecopy "gb2312\\|gbk\\|gb18030\\|jisx0208\\|ksc5601\\|cns11643\\|big5"))
 
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
-      "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
+      (purecopy "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5"))
 
 ;; CDAC fonts are actually smaller than their design sizes.
 (setq face-font-rescale-alist
-      '(("-cdac$" . 1.3)))
+      (list (cons (purecopy "-cdac$")  1.3)))
 
 (defvar x-font-name-charset-alist nil
   "This variable has no meaning now.  Just kept for backward compatibility.")

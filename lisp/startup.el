@@ -305,7 +305,7 @@ looked for.
 Setting `init-file-user' does not prevent Emacs from loading
 `site-start.el'.  The only way to do that is to use `--no-site-file'.")
 
-(defcustom site-run-file "site-start"
+(defcustom site-run-file (purecopy "site-start")
   "File containing site-wide run-time initializations.
 This file is loaded at run-time before `~/.emacs'.  It contains inits
 that need to be in place for the entire site, but which, due to their
@@ -327,7 +327,7 @@ this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization
   :initialize 'custom-initialize-default
-  :set '(lambda (variable value)
+  :set (lambda (variable value)
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil

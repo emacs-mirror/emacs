@@ -70,10 +70,11 @@ a font height that isn't optimal."
 ;; unavailable, and we fall back on the courier and helv families,
 ;; which are generally available.
 (defcustom face-font-family-alternatives
+  (mapcar (lambda (arg) (mapcar 'purecopy arg))
   '(("Monospace" "courier" "fixed")
     ("courier" "CMU Typewriter Text" "fixed")
     ("Sans Serif" "helv" "helvetica" "arial" "fixed")
-    ("helv" "helvetica" "arial" "fixed"))
+    ("helv" "helvetica" "arial" "fixed")))
   "Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
@@ -88,6 +89,7 @@ ALTERNATIVE2 etc."
 
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
+  (mapcar (lambda (arg) (mapcar 'purecopy arg))
   (if (eq system-type 'windows-nt)
       '(("iso8859-1" "ms-oemlatin")
 	("gb2312.1980" "gb2312" "gbk" "gb18030")
@@ -97,7 +99,7 @@ ALTERNATIVE2 etc."
     '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk" "gb18030")
       ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
-      ("muletibetan-2" "muletibetan-0")))
+      ("muletibetan-2" "muletibetan-0"))))
   "Alist of alternative font registry names.
 Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
@@ -284,6 +286,11 @@ If FRAME is omitted or nil, use the selected frame."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom face-x-resources
+  (mapcar
+   (lambda (arg)
+     ;; FIXME; can we purecopy some of the conses too?
+     (cons (car arg)
+	   (cons (purecopy (car (cdr arg))) (purecopy (cdr (cdr arg))))))
   '((:family (".attributeFamily" . "Face.AttributeFamily"))
     (:foundry (".attributeFoundry" . "Face.AttributeFoundry"))
     (:width (".attributeWidth" . "Face.AttributeWidth"))
@@ -303,7 +310,7 @@ If FRAME is omitted or nil, use the selected frame."
     (:bold (".attributeBold" . "Face.AttributeBold"))
     (:italic (".attributeItalic" . "Face.AttributeItalic"))
     (:font (".attributeFont" . "Face.AttributeFont"))
-    (:inherit (".attributeInherit" . "Face.AttributeInherit")))
+    (:inherit (".attributeInherit" . "Face.AttributeInherit"))))
   "List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
@@ -2578,16 +2585,16 @@ Note: Other faces cannot inherit from the cursor face."
       (encoding		"[^-]+")
       )
   (setq x-font-regexp
-	(concat "\\`\\*?[-?*]"
+	(purecopy (concat "\\`\\*?[-?*]"
 		foundry - family - weight\? - slant\? - swidth - adstyle -
 		pixelsize - pointsize - resx - resy - spacing - avgwidth -
 		registry - encoding "\\*?\\'"
-		))
+		)))
   (setq x-font-regexp-head
-	(concat "\\`[-?*]" foundry - family - weight\? - slant\?
-		"\\([-*?]\\|\\'\\)"))
-  (setq x-font-regexp-slant (concat - slant -))
-  (setq x-font-regexp-weight (concat - weight -))
+	(purecopy (concat "\\`[-?*]" foundry - family - weight\? - slant\?
+		"\\([-*?]\\|\\'\\)")))
+  (setq x-font-regexp-slant (purecopy (concat - slant -)))
+  (setq x-font-regexp-weight (purecopy (concat - weight -)))
   nil)
 
 

@@ -38,8 +38,8 @@
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
 ;;;###autoload
 (defcustom find-ls-option
-  (if (eq system-type 'berkeley-unix) '("-ls" . "-gilsb")
-    '("-exec ls -ld {} \\;" . "-ld"))
+  (if (eq system-type 'berkeley-unix) (purecopy '("-ls" . "-gilsb"))
+    (purecopy '("-exec ls -ld {} \\;" . "-ld")))
   "Description of the option to `find' to produce an `ls -l'-type listing.
 This is a cons of two strings (FIND-OPTION . LS-SWITCHES).  FIND-OPTION
 gives the option (or options) to `find' that produce the desired output.

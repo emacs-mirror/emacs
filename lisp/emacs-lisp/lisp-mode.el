@@ -348,7 +348,7 @@ font-lock keywords will not be case sensitive."
     (define-key menu-map [edebug-defun]
       `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
 		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
-		  :keys "C-u C-M-x"))
+		  :keys ,(purecopy "C-u C-M-x")))
     (define-key menu-map [separator-byte] '("--"))
     (define-key menu-map [disas]
       `(menu-item ,(purecopy "Disassemble byte compiled object...") disassemble
@@ -530,7 +530,7 @@ if that value is non-nil."
     (define-key menu-map [edebug-defun-lisp-interaction]
       `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
 		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
-		  :keys "C-u C-M-x"))
+		  :keys ,(purecopy "C-u C-M-x")))
     (define-key menu-map [indent-pp-sexp]
       `(menu-item ,(purecopy "Indent or Pretty-Print") indent-pp-sexp
 		  :help ,(purecopy "Indent each line of the list starting just after point, or prettyprint it")))

@@ -35,10 +35,10 @@
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
-  '(("^file:///"  . dnd-open-local-file)	; XDND format.
-    ("^file://"   . dnd-open-file)		; URL with host
-    ("^file:"     . dnd-open-local-file)	; Old KDE, Motif, Sun
-    ("^\\(https?\\|ftp\\|file\\|nfs\\)://" . dnd-open-file)
+  `((,(purecopy "^file:///")  . dnd-open-local-file)	; XDND format.
+    (,(purecopy "^file://")   . dnd-open-file)		; URL with host
+    (,(purecopy "^file:")     . dnd-open-local-file)	; Old KDE, Motif, Sun
+    (,(purecopy "^\\(https?\\|ftp\\|file\\|nfs\\)://") . dnd-open-file)
    )
 
   "The functions to call for different protocols when a drop is made.

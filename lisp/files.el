@@ -1567,7 +1567,7 @@ Spaces at the start of FILENAME (sans directory) are removed."
 Choose the buffer's name using `generate-new-buffer-name'."
   (get-buffer-create (generate-new-buffer-name name)))
 
-(defcustom automount-dir-prefix "^/tmp_mnt/"
+(defcustom automount-dir-prefix (purecopy "^/tmp_mnt/")
   "Regexp to match the automounter prefix in a directory name."
   :group 'files
   :type 'regexp)
@@ -2415,8 +2415,8 @@ When checking `inhibit-first-line-modes-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
 
 (defvar auto-mode-interpreter-regexp
-  "#![ \t]?\\([^ \t\n]*\
-/bin/env[ \t]\\)?\\([^ \t\n]+\\)"
+  (purecopy "#![ \t]?\\([^ \t\n]*\
+/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
   "Regexp matching interpreters, for file mode determination.
 This regular expression is matched against the first line of a file
 to determine the file's mode in `set-auto-mode'.  If it matches, the file
@@ -2437,6 +2437,7 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 (put 'magic-mode-alist 'risky-local-variable t)
 
 (defvar magic-fallback-mode-alist
+  (purecopy
   `((image-type-auto-detected-p . image-mode)
     ("\\(PK00\\)?[P]K\003\004" . archive-mode) ; zip
     ;; The < comes before the groups (but the first) to reduce backtracking.
@@ -2457,7 +2458,7 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 	(concat "[ \t\r\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
     ("%!PS" . ps-mode)
-    ("# xmcd " . conf-unix-mode))
+    ("# xmcd " . conf-unix-mode)))
   "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
 After visiting a file, if REGEXP matches the text at the beginning of the
@@ -5333,13 +5334,13 @@ by `sh' are supported."
     (concat "\\`" result "\\'")))
 
 (defcustom list-directory-brief-switches
-  "-CF"
+  (purecopy "-CF")
   "Switches for `list-directory' to pass to `ls' for brief listing."
   :type 'string
   :group 'dired)
 
 (defcustom list-directory-verbose-switches
-    "-l"
+    (purecopy "-l")
   "Switches for `list-directory' to pass to `ls' for verbose listing."
   :type 'string
   :group 'dired)
@@ -5469,10 +5470,10 @@ need to be passed verbatim to shell commands."
       pattern))))
 
 
-(defvar insert-directory-program "ls"
+(defvar insert-directory-program (purecopy "ls")
   "Absolute or relative name of the `ls' program used by `insert-directory'.")
 
-(defcustom directory-free-space-program "df"
+(defcustom directory-free-space-program (purecopy "df")
   "Program to get the amount of free space on a file system.
 We assume the output has the format of `df'.
 The value of this variable must be just a command name or file name;
@@ -5486,7 +5487,7 @@ preference to the program given by this variable."
   :group 'dired)
 
 (defcustom directory-free-space-args
-  (if (eq system-type 'darwin) "-k" "-Pk")
+  (purecopy (if (eq system-type 'darwin) "-k" "-Pk"))
   "Options to use when running `directory-free-space-program'."
   :type 'string
   :group 'dired)
@@ -5577,9 +5578,9 @@ program specified by `directory-free-space-program' if that is non-nil."
          ;; parantheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
-    (concat ".*[0-9][BkKMGTPEZY]?" s
+    (purecopy (concat ".*[0-9][BkKMGTPEZY]?" s
 	    "\\(" western "\\|" western-comma "\\|" east-asian "\\|" iso "\\)"
-	    s "+"))
+	    s "+")))
   "Regular expression to match up to the file name in a directory listing.
 The default value is designed to recognize dates and times
 regardless of the language.")

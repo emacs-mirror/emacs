@@ -109,7 +109,7 @@ string, and RET terminates editing and does a nonincremental search."
   :type 'boolean
   :group 'isearch)
 
-(defcustom search-whitespace-regexp "\\s-+"
+(defcustom search-whitespace-regexp (purecopy "\\s-+")
   "If non-nil, regular expression to match a sequence of whitespace chars.
 This applies to regular expression incremental search.
 When you put a space or spaces in the incremental regexp, it stands for

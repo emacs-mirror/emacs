@@ -163,7 +163,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-face-menu
   (let ((map (make-sparse-keymap "Face")))
-    (define-key map "o" (cons "Other..." 'facemenu-set-face))
+    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
     map)
   "Menu keymap for faces.")
 (defalias 'facemenu-face-menu facemenu-face-menu)
@@ -171,7 +171,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-foreground-menu
   (let ((map (make-sparse-keymap "Foreground Color")))
-    (define-key map "o" (cons "Other..." 'facemenu-set-foreground))
+    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-foreground))
     map)
   "Menu keymap for foreground colors.")
 (defalias 'facemenu-foreground-menu facemenu-foreground-menu)
@@ -179,7 +179,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-background-menu
   (let ((map (make-sparse-keymap "Background Color")))
-    (define-key map "o" (cons "Other..." 'facemenu-set-background))
+    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-background))
     map)
   "Menu keymap for background colors.")
 (defalias 'facemenu-background-menu facemenu-background-menu)
@@ -674,11 +674,11 @@ This is called whenever you create a new face, and at other times."
 	    symbol (intern name)))
     (setq menu 'facemenu-face-menu)
     (setq docstring
-	  (format "Select face `%s' for subsequent insertion.
+	  (purecopy (format "Select face `%s' for subsequent insertion.
 If the mark is active and there is no prefix argument,
 apply face `%s' to the region instead.
 This command was defined by `facemenu-add-new-face'."
-		  name name))
+		  name name)))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))

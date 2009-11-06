@@ -109,8 +109,8 @@
 (put-charset-property
  'emacs :long-name "Emacs")
 
-(put-charset-property 'eight-bit :docstring (purecopy "Raw bytes 128-255"))
-(put-charset-property 'eight-bit :short-name (purecopy "Raw bytes"))
+(put-charset-property 'eight-bit :docstring "Raw bytes 128-255")
+(put-charset-property 'eight-bit :short-name "Raw bytes")
 
 (define-charset-alias 'ucs 'unicode)
 

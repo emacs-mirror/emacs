@@ -102,23 +102,24 @@ for initializing `Info-directory-list' when Info is started, unless
 the environment variable INFOPATH is set.")
 
 (defvar news-directory
-  (if (file-exists-p "/usr/spool/news/")
+  (purecopy (if (file-exists-p "/usr/spool/news/")
       "/usr/spool/news/"
-    "/var/spool/news/")
+    "/var/spool/news/"))
   "The root directory below which all news files are stored.")
 (defvaralias 'news-path 'news-directory)
 
 (defvar news-inews-program
+  (purecopy
   (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")
 	((file-exists-p "/usr/local/inews") "/usr/local/inews")
 	((file-exists-p "/usr/local/bin/inews") "/usr/local/bin/inews")
 	((file-exists-p "/usr/contrib/lib/news/inews") "/usr/contrib/lib/news/inews")
 	((file-exists-p "/usr/lib/news/inews") "/usr/lib/news/inews")
-	(t "inews"))
+	(t "inews")))
   "Program to post news.")
 
 ;; set this to your local server
-(defvar gnus-default-nntp-server "" "\
+(defvar gnus-default-nntp-server (purecopy "") "\
 The name of the host running an NNTP server.
 The null string means use the local host as the server site.")
 
@@ -154,6 +155,7 @@ Name of user's primary mail file."
 Its name should end with a slash.")
 
 (defcustom remote-shell-program
+  (purecopy
   (cond
    ;; Some systems use rsh for the remote shell; others use that name for the
    ;; restricted shell and use remsh for the remote shell.  Let's try to guess
@@ -173,7 +175,7 @@ Its name should end with a slash.")
    ((file-exists-p "/bin/rcmd") "/bin/rcmd")
    ((file-exists-p "/bin/rsh") "/bin/rsh")
    ((file-exists-p "/usr/bin/rsh") "/usr/bin/rsh")
-   (t "rsh"))
+   (t "rsh")))
   "File name for remote-shell program (often rsh or remsh)."
   :group 'environment
   :type 'file)

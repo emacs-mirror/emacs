@@ -115,7 +115,7 @@
   :group 'shell)
 
 ;;;###autoload
-(defcustom shell-dumb-shell-regexp "cmd\\(proxy\\)?\\.exe"
+(defcustom shell-dumb-shell-regexp (purecopy "cmd\\(proxy\\)?\\.exe")
   "Regexp to match shells that don't save their command history, and
 don't handle the backslash as a quote character.  For shells that
 match this regexp, Emacs will write out the command history when the

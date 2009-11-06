@@ -2573,7 +2573,7 @@ choose a font."
     (global-set-key [S-down-mouse-1] 'mouse-appearance-menu))
 ;; C-down-mouse-2 is bound in facemenu.el.
 (global-set-key [C-down-mouse-3]
-  '(menu-item "Menu Bar" ignore
+  `(menu-item ,(purecopy "Menu Bar") ignore
     :filter (lambda (_)
               (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
                   (mouse-menu-bar-map)

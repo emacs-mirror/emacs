@@ -1283,11 +1283,11 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [directory-search]
   `(menu-item ,(purecopy "Directory Search") eudc-tools-menu))
 (define-key menu-bar-tools-menu [compose-mail]
-  `(menu-item (format "Send Mail (with %s)" (send-mail-item-name)) compose-mail
+  `(menu-item ,(purecopy (format "Send Mail (with %s)" (send-mail-item-name))) compose-mail
 	      :visible (and mail-user-agent (not (eq mail-user-agent 'ignore)))
 	      :help ,(purecopy "Send a mail message")))
 (define-key menu-bar-tools-menu [rmail]
-  `(menu-item (format "Read Mail (with %s)" (read-mail-item-name)) menu-bar-read-mail
+  `(menu-item ,(purecopy (format "Read Mail (with %s)" (read-mail-item-name))) menu-bar-read-mail
 	      :visible (and read-mail-command (not (eq read-mail-command 'ignore)))
 	      :help ,(purecopy "Read your mail and reply to it")))
 
@@ -1894,7 +1894,7 @@ Buffers menu is regenerated."
 		:help ,(purecopy "Abort input and exit minibuffer")))
   (define-key map [menu-bar minibuf return]
     `(menu-item ,(purecopy "Enter") exit-minibuffer
-		:key-sequence "\r"
+		:key-sequence ,(purecopy "\r")
 		:help ,(purecopy "Terminate input and exit minibuffer")))
   (define-key map [menu-bar minibuf isearch-forward]
     `(menu-item ,(purecopy "Isearch History Forward") isearch-forward

@@ -90,7 +90,7 @@ See `tool-bar-mode' for more information."
 Define this locally to override the global tool bar.")
 
 (global-set-key [tool-bar]
-		'(menu-item "tool bar" ignore
+		`(menu-item ,(purecopy "tool bar") ignore
 			    :filter tool-bar-make-keymap))
 
 (declare-function image-mask-p "image.c" (spec &optional frame))

@@ -79,6 +79,7 @@ if drop is successful, nil if not."
   :group 'x)
 
 (defcustom x-dnd-known-types
+  (mapcar 'purecopy
   '("text/uri-list"
     "text/x-moz-url"
     "_NETSCAPE_URL"
@@ -91,7 +92,7 @@ if drop is successful, nil if not."
     "COMPOUND_TEXT"
     "STRING"
     "TEXT"
-    )
+    ))
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
   :version "22.1"
