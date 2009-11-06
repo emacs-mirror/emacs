@@ -1,5 +1,7 @@
 2009-11-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* keymap.c (syms_of_keymap): Construct exclude_keys in pure memory.
+
 	* xterm.c (syms_of_xterm):
 	* xselect.c (syms_of_xselect):
 	* xmenu.c (syms_of_xmenu):

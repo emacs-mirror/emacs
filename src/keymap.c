@@ -3945,11 +3945,11 @@ syms_of_keymap ()
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys
-    = Fcons (Fcons (build_string ("DEL"), build_string ("\\d")),
-	     Fcons (Fcons (build_string ("TAB"), build_string ("\\t")),
-		    Fcons (Fcons (build_string ("RET"), build_string ("\\r")),
-			   Fcons (Fcons (build_string ("ESC"), build_string ("\\e")),
-				  Fcons (Fcons (build_string ("SPC"), build_string (" ")),
+    = pure_cons (pure_cons (make_pure_c_string ("DEL"), make_pure_c_string ("\\d")),
+		 pure_cons (pure_cons (make_pure_c_string ("TAB"), make_pure_c_string ("\\t")),
+		    pure_cons (pure_cons (make_pure_c_string ("RET"), make_pure_c_string ("\\r")),
+			   pure_cons (pure_cons (make_pure_c_string ("ESC"), make_pure_c_string ("\\e")),
+				  pure_cons (pure_cons (make_pure_c_string ("SPC"), make_pure_c_string (" ")),
 					 Qnil)))));
   staticpro (&exclude_keys);
 
