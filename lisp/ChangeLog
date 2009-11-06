@@ -1,3 +1,7 @@
+2009-11-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
 2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lucid.el: Move to obsolete/lucid.el.

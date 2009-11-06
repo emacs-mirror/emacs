@@ -538,12 +538,10 @@ ELCFILES = \
 	$(lisp)/emacs-lisp/generic.elc \
 	$(lisp)/emacs-lisp/gulp.elc \
 	$(lisp)/emacs-lisp/helper.elc \
-	$(lisp)/emacs-lisp/levents.elc \
 	$(lisp)/emacs-lisp/lisp-mnt.elc \
 	$(lisp)/emacs-lisp/lisp-mode.elc \
 	$(lisp)/emacs-lisp/lisp.elc \
 	$(lisp)/emacs-lisp/lmenu.elc \
-	$(lisp)/emacs-lisp/lucid.elc \
 	$(lisp)/emacs-lisp/macroexp.elc \
 	$(lisp)/emacs-lisp/map-ynp.elc \
 	$(lisp)/emacs-lisp/pp.elc \
@@ -1073,6 +1071,8 @@ ELCFILES = \
 	$(lisp)/obsolete/iso-insert.elc \
 	$(lisp)/obsolete/iso-swed.elc \
 	$(lisp)/obsolete/lazy-lock.elc \
+	$(lisp)/obsolete/levents.elc \
+	$(lisp)/obsolete/lucid.elc \
 	$(lisp)/obsolete/old-whitespace.elc \
 	$(lisp)/obsolete/options.elc \
 	$(lisp)/obsolete/resume.elc \
