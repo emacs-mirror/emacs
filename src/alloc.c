@@ -4832,7 +4832,7 @@ make_pure_c_string (const char *data)
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
   s->size = nchars;
   s->size_byte = -1;
-  s->data = data;
+  s->data = (unsigned char *) data;
   s->intervals = NULL_INTERVAL;
   XSETSTRING (string, s);
   return string;
