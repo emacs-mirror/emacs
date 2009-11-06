@@ -1,5 +1,7 @@
 2009-11-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce by further 30K.
+
 	* alloc.c (make_pure_c_string): Fix last change to avoid compiler
 	warning.
 
