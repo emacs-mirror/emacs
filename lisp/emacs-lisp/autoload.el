@@ -266,12 +266,11 @@ feature, otherwise it will be based on FILE's name."
 	    ";;; Code:\n\n"
 	    "\n"
 	    ;; This is used outside of autoload.el.
-	    (if feature
-		(concat "(provide '"
-			(if (stringp feature) feature
-			  (file-name-sans-extension basename))
-			")\n")
-	      "")
+	    "(provide '"
+	    (if (stringp feature)
+		feature
+	      (file-name-sans-extension basename))
+	    ")\n"
 	    ";; Local Variables:\n"
 	    ";; version-control: never\n"
 	    ";; no-byte-compile: t\n"

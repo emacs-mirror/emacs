@@ -1,3 +1,8 @@
+2009-11-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (autoload-rubric): Always issue a provide
+	statement.
+
 2009-11-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/ld-script.el (auto-mode-alist):
