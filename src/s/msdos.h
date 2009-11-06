@@ -196,7 +196,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* We need a little extra space, see ../../lisp/loadup.el and the
    commentary below, in the non-X branch.  The 140KB number was
    measured on GNU/Linux and on MS-WIndows.  */
-#define SYSTEM_PURESIZE_EXTRA (-170000+140000)
+#define SYSTEM_PURESIZE_EXTRA (-200000+140000)
 #define LIBX11_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el.
@@ -208,7 +208,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    directory tree).  Given the unknown policy of different DPMI
    hosts regarding loading of untouched pages, I'm not going to risk
    enlarging Emacs footprint by another 100+ KBytes.  */
-#define SYSTEM_PURESIZE_EXTRA (-170000+65000)
+#define SYSTEM_PURESIZE_EXTRA (-200000+65000)
 #endif
 
 /* Tell the garbage collector that setjmp is known to save all
