@@ -1,3 +1,10 @@
+2009-11-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/ld-script.el (auto-mode-alist):
+	* vc-hooks.el (vc-directory-exclusion-list): Purecopy strings.
+
+	* cus-face.el (custom-declare-face): Purecopy face spec.
+
 2009-11-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-bidi.el: Re-generated.
