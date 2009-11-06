@@ -108,10 +108,12 @@ Lisp_Object
 wrong_type_argument (predicate, value)
      register Lisp_Object predicate, value;
 {
-  /* If VALUE is not even a valid Lisp object, abort here
-     where we can get a backtrace showing where it came from.  */
-  if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
-    abort ();
+  /* If VALUE is not even a valid Lisp object, we'd want to abort here
+     where we can get a backtrace showing where it came from.  We used
+     to try and do that by checking the tagbits, but nowadays all
+     tagbits are potentially valid.  */
+  /* if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
+   *   abort (); */
 
   xsignal2 (Qwrong_type_argument, predicate, value);
 }
@@ -184,7 +186,7 @@ for example, (type-of 1) returns `integer'.  */)
 {
   switch (XTYPE (object))
     {
-    case Lisp_Int:
+    case_Lisp_Int:
       return Qinteger;
 
     case Lisp_Symbol:
@@ -975,8 +977,10 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
 
-	    if (! NILP (type) && ! NILP (newval)
-		&& XTYPE (newval) != XINT (type))
+	    if (!(NILP (type) || NILP (newval)
+		  || (XINT (type) == LISP_INT_TAG
+		      ? INTEGERP (newval)
+		      : XTYPE (newval) == XINT (type))))
 	      buffer_slot_type_mismatch (newval, XINT (type));
 
 	    if (buf == NULL)

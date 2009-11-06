@@ -1588,7 +1588,7 @@ print_object (obj, printcharfun, escapeflag)
 
   switch (XTYPE (obj))
     {
-    case Lisp_Int:
+    case_Lisp_Int:
       if (sizeof (int) == sizeof (EMACS_INT))
 	sprintf (buf, "%d", (int) XINT (obj));
       else if (sizeof (long) == sizeof (EMACS_INT))

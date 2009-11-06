@@ -150,37 +150,68 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 /* Define the fundamental Lisp data structures.  */
 
+/* If USE_2_TAGBITS_FOR_INTS is defined, then Lisp integers use
+   2 tags, to give them one extra bit, thus extending their range from
+   e.g -2^28..2^28-1 to -2^29..2^29-1.  */
+#define USE_2_TAGS_FOR_INTS
+
+/* Making it work for the union case is too much trouble.  */
+#ifdef USE_LISP_UNION_TYPE
+# undef USE_2_TAGS_FOR_INTS
+#endif
+
 /* This is the set of Lisp data types.  */
+
+#if !defined USE_2_TAGS_FOR_INTS
+# define LISP_INT_TAG Lisp_Int
+# define case_Lisp_Int case Lisp_Int
+# define LISP_STRING_TAG 4
+# define LISP_INT_TAG_P(x) ((x) == Lisp_Int)
+#else
+# define LISP_INT_TAG Lisp_Int0
+# define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
+# ifdef USE_LSB_TAG
+#  define LISP_INT1_TAG 4
+#  define LISP_STRING_TAG 1
+#  define LISP_INT_TAG_P(x) (((x) & 3) == 0)
+# else
+#  define LISP_INT1_TAG 1
+#  define LISP_STRING_TAG 4
+#  define LISP_INT_TAG_P(x) (((x) & 6) == 0)
+# endif
+#endif
 
 enum Lisp_Type
   {
     /* Integer.  XINT (obj) is the integer value.  */
-    Lisp_Int,
+#ifdef USE_2_TAGS_FOR_INTS
+    Lisp_Int0 = 0,
+    Lisp_Int1 = LISP_INT1_TAG,
+#else
+    Lisp_Int = 0,
+#endif
 
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
-    Lisp_Symbol,
+    Lisp_Symbol = 2,
 
     /* Miscellaneous.  XMISC (object) points to a union Lisp_Misc,
        whose first member indicates the subtype.  */
-    Lisp_Misc,
+    Lisp_Misc = 3,
 
     /* String.  XSTRING (object) points to a struct Lisp_String.
        The length of the string, and its contents, are stored therein.  */
-    Lisp_String,
+    Lisp_String = LISP_STRING_TAG,
 
     /* Vector of Lisp objects, or something resembling it.
        XVECTOR (object) points to a struct Lisp_Vector, which contains
        the size and contents.  The size field also contains the type
        information, if it's not a real vector object.  */
-    Lisp_Vectorlike,
+    Lisp_Vectorlike = 5,
 
     /* Cons.  XCONS (object) points to a struct Lisp_Cons.  */
-    Lisp_Cons,
+    Lisp_Cons = 6,
 
-    Lisp_Float,
-
-    /* This is not a type code.  It is for range checking.  */
-    Lisp_Type_Limit
+    Lisp_Float = 7,
   };
 
 /* This is the set of data types that share a common structure.
@@ -353,12 +384,18 @@ enum pvec_type
 
 #define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
 #define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) & TYPEMASK))
-#define XINT(a) (((EMACS_INT) (a)) >> GCTYPEBITS)
-#define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
+#ifdef USE_2_TAGS_FOR_INTS
+# define XINT(a) (((EMACS_INT) (a)) >> (GCTYPEBITS - 1))
+# define XUINT(a) (((EMACS_UINT) (a)) >> (GCTYPEBITS - 1))
+# define make_number(N) (((EMACS_INT) (N)) << (GCTYPEBITS - 1))
+#else
+# define XINT(a) (((EMACS_INT) (a)) >> GCTYPEBITS)
+# define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
+# define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
+#endif
 #define XSET(var, type, ptr)					\
     (eassert (XTYPE (ptr) == 0), /* Check alignment.  */	\
      (var) = ((EMACS_INT) (type)) | ((EMACS_INT) (ptr)))
-#define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
 
 #define XPNTR(a) ((EMACS_INT) ((a) & ~TYPEMASK))
 
@@ -378,41 +415,43 @@ enum pvec_type
 #define XFASTINT(a) ((a) + 0)
 #define XSETFASTINT(a, b) ((a) = (b))
 
-/* Extract the value of a Lisp_Object as a signed integer.  */
+/* Extract the value of a Lisp_Object as a (un)signed integer.  */
 
-#ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) ((((EMACS_INT) (a)) << (BITS_PER_EMACS_INT - VALBITS))	\
+#ifdef USE_2_TAGS_FOR_INTS
+# define XINT(a) ((((EMACS_INT) (a)) << (GCTYPEBITS - 1)) >> (GCTYPEBITS - 1))
+# define XUINT(a) ((EMACS_UINT) ((a) & (1 + (VALMASK << 1))))
+# define make_number(N) ((((EMACS_INT) (N)) & (1 + (VALMASK << 1))))
+#else
+# define XINT(a) ((((EMACS_INT) (a)) << (BITS_PER_EMACS_INT - VALBITS))	\
 		 >> (BITS_PER_EMACS_INT - VALBITS))
+# define XUINT(a) ((EMACS_UINT) ((a) & VALMASK))
+# define make_number(N)		\
+  ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 #endif
 
-/* Extract the value as an unsigned integer.  This is a basis
-   for extracting it as a pointer to a structure in storage.  */
-
-#ifndef XUINT
-#define XUINT(a) ((EMACS_UINT) ((a) & VALMASK))
-#endif
-
-#ifndef XSET
 #define XSET(var, type, ptr) \
    ((var) = ((EMACS_INT)(type) << VALBITS) + ((EMACS_INT) (ptr) & VALMASK))
-#endif
 
-/* Convert a C integer into a Lisp_Object integer.  */
-
-#define make_number(N)		\
-  ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
+#define XPNTR(a) ((EMACS_UINT) ((a) & VALMASK))
 
 #endif /* not USE_LSB_TAG */
 
 #else /* USE_LISP_UNION_TYPE */
+
+#ifdef USE_2_TAGS_FOR_INTS
+# error "USE_2_TAGS_FOR_INTS is not supported with USE_LISP_UNION_TYPE"
+#endif
 
 #define XHASH(a) ((a).i)
 
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
 
 #ifdef EXPLICIT_SIGN_EXTEND
-/* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).s.val << (BITS_PER_EMACS_INT - VALBITS)) \
+/* Make sure we sign-extend; compilers have been known to fail to do so.
+   We additionally cast to EMACS_INT since it seems that some compilers
+   have been known to fail to do so, even though the bitfield is declared
+   as EMACS_INT already.  */
+#define XINT(a) ((((EMACS_INT) (a).s.val) << (BITS_PER_EMACS_INT - VALBITS)) \
 		 >> (BITS_PER_EMACS_INT - VALBITS))
 #else
 #define XINT(a) ((a).s.val)
@@ -491,11 +530,19 @@ extern size_t pure_size;
 /* Largest and smallest representable fixnum values.  These are the C
    values.  */
 
-#define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << (VALBITS - 1))
-#define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << (VALBITS - 1)) - 1)
+#ifdef USE_2_TAGS_FOR_INTS
+# define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << VALBITS)
+# define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << VALBITS) - 1)
 /* Mask indicating the significant bits of a Lisp_Int.
    I.e. (x & INTMASK) == XUINT (make_number (x)).  */
-#define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
+# define INTMASK ((((EMACS_INT) 1) << (VALBITS + 1)) - 1)
+#else
+# define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << (VALBITS - 1))
+# define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << (VALBITS - 1)) - 1)
+/* Mask indicating the significant bits of a Lisp_Int.
+   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
+# define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
+#endif
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
@@ -1506,7 +1553,7 @@ typedef struct {
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
 #define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
 
-#define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
+#define INTEGERP(x) (LISP_INT_TAG_P (XTYPE ((x))))
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
 #define VECTORLIKEP(x) (XTYPE ((x)) == Lisp_Vectorlike)

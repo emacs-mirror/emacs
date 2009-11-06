@@ -2267,9 +2267,7 @@ internal_equal (o1, o2, depth, props)
 	return 0;
       return 1;
 
-    case Lisp_Int:
-    case Lisp_Symbol:
-    case Lisp_Type_Limit:
+    default:
       break;
     }
 
@@ -4565,7 +4563,7 @@ sxhash (obj, depth)
 
   switch (XTYPE (obj))
     {
-    case Lisp_Int:
+    case_Lisp_Int:
       hash = XUINT (obj);
       break;
 

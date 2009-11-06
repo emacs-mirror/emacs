@@ -4573,7 +4573,7 @@ buffer_slot_type_mismatch (newval, type)
 
   switch (type)
     {
-    case Lisp_Int:    predicate = Qintegerp; break;
+    case_Lisp_Int:    predicate = Qintegerp; break;
     case Lisp_String: predicate = Qstringp;  break;
     case Lisp_Symbol: predicate = Qsymbolp;  break;
     default: abort ();
@@ -5738,17 +5738,17 @@ Format with `format-mode-line' to produce a string value.  */);
 		     doc: /* *Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* *Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* *Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow, Qnil,
@@ -5859,7 +5859,7 @@ If it is nil, that means don't auto-save this buffer.  */);
 Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.
 -1 means auto-saving turned off until next real save.

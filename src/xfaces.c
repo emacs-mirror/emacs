@@ -4085,7 +4085,7 @@ face_attr_equal_p (v1, v2)
 
       return bcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
 
-    case Lisp_Int:
+    case_Lisp_Int:
     case Lisp_Symbol:
       return 0;
 

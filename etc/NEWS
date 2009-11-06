@@ -49,6 +49,9 @@ were loaded.
 
 * Changes in Emacs 23.2
 
+** The maximum size of buffers (as well as the largest fixnum) is doubled.
+On typical 32bit systems, buffers can now be up to 512MB.
+
 ** Function arguments in *Help* buffers are now in uppercase by default.
 You can customize the new variable `help-downcase-arguments' to change it.
 

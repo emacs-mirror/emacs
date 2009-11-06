@@ -4149,8 +4149,7 @@ mark_maybe_object (obj)
 	  mark_p = (live_misc_p (m, po) && !XMISCANY (obj)->gcmarkbit);
 	  break;
 
-	case Lisp_Int:
-	case Lisp_Type_Limit:
+	default:
 	  break;
 	}
 
@@ -5713,7 +5712,7 @@ mark_object (arg)
       FLOAT_MARK (XFLOAT (obj));
       break;
 
-    case Lisp_Int:
+    case_Lisp_Int:
       break;
 
     default:
@@ -5799,7 +5798,7 @@ survives_gc_p (obj)
 
   switch (XTYPE (obj))
     {
-    case Lisp_Int:
+    case_Lisp_Int:
       survives_p = 1;
       break;
 

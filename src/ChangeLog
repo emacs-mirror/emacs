@@ -1,3 +1,31 @@
+2009-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Let integers use up 2 tags to give them one extra bit and thus double
+	their range.
+	* lisp.h (USE_2_TAGS_FOR_INTS): New macro.
+	(LISP_INT_TAG, case_Lisp_Int, LISP_STRING_TAG, LISP_INT_TAG_P):
+	New macros.
+	(enum Lisp_Type): Use them.  Give explicit values.
+	(Lisp_Type_Limit): Remove.
+	(XINT, XUINT, make_number) [!USE_LISP_UNION_TYPE]:
+	(MOST_NEGATIVE_FIXNUM, MOST_POSITIVE_FIXNUM, INTMASK):
+	Pay attention to USE_2_TAGS_FOR_INTS.
+	(INTEGERP): Use LISP_INT_TAG_P.
+	* fns.c (internal_equal): Simplify the default case.
+	(sxhash): Use case_Lisp_Int.
+	* data.c (wrong_type_argument): Don't check against Lisp_Type_Limit
+	any more.
+	(Ftype_of): Use case_Lisp_Int.
+	(store_symval_forwarding): Take into account the fact that Ints can
+	now have more than one tag.
+	* buffer.c (syms_of_buffer): Use LISP_INT_TAG.
+	buffer_slot_type_mismatch):
+	* xfaces.c (face_attr_equal_p):
+	* print.c (print_object):
+	* alloc.c (mark_maybe_object, mark_object, survives_gc_p):
+	Use case_Lisp_Int.
+
+
 2009-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce by further 30K.
