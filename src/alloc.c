@@ -4821,6 +4821,24 @@ make_pure_string (data, nchars, nbytes, multibyte)
   return string;
 }
 
+/* Return a string a string allocated in pure space.  Do not allocate
+   the string data, just point to DATA.  */
+
+Lisp_Object
+make_pure_c_string (const char *data)
+{
+  Lisp_Object string;
+  struct Lisp_String *s;
+  int nchars = strlen (data);
+
+  s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
+  s->size = nchars;
+  s->size_byte = -1;
+  s->data = data;
+  s->intervals = NULL_INTERVAL;
+  XSETSTRING (string, s);
+  return string;
+}
 
 /* Return a cons allocated from pure space.  Give it pure copies
    of CAR as car and CDR as cdr.  */

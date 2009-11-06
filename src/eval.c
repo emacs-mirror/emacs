@@ -2127,16 +2127,13 @@ this does nothing and returns nil.  */)
     /* Only add entries after dumping, because the ones before are
        not useful and else we get loads of them from the loaddefs.el.  */
     LOADHIST_ATTACH (Fcons (Qautoload, function));
-
-  if (NILP (Vpurify_flag))
-    args[0] = file;
   else
-    args[0] = Fpurecopy (file);
-  args[1] = docstring;
-  args[2] = interactive;
-  args[3] = type;
-
-  return Ffset (function, Fcons (Qautoload, Flist (4, &args[0])));
+    /* We don't want the docstring in purespace (instead,
+       Snarf-documentation should (hopefully) overwrite it).  */
+    docstring = make_number (0);
+  return Ffset (function,
+		Fpurecopy (list5 (Qautoload, file, docstring,
+				  interactive, type)));
 }
 
 Lisp_Object

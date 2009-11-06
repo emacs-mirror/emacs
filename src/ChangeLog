@@ -1,3 +1,9 @@
+2009-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (make_pure_c_string): New function.
+
+	* eval.c (Fautoload): Purecopy all arguments.
+
 2009-11-05  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Be sure set coding-system of
