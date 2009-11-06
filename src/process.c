@@ -2607,7 +2607,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
 #endif
 
 
-static struct socket_options {
+static const struct socket_options {
   /* The name of this option.  Should be lowercase version of option
      name without SO_ prefix. */
   char *name;
@@ -2658,7 +2658,7 @@ set_socket_option (s, opt, val)
      Lisp_Object opt, val;
 {
   char *name;
-  struct socket_options *sopt;
+  const struct socket_options *sopt;
   int ret = 0;
 
   CHECK_SYMBOL (opt);
@@ -7314,7 +7314,7 @@ init_process ()
 #ifdef HAVE_SOCKETS
  {
    Lisp_Object subfeatures = Qnil;
-   struct socket_options *sopt;
+   const struct socket_options *sopt;
 
 #define ADD_SUBFEATURE(key, val) \
   subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)

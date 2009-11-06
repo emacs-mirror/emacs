@@ -672,7 +672,7 @@ extern Lisp_Object Vscript_representative_chars;
   } while (0)
 
 #define DEFSYM(sym, name)	\
-  do { (sym) = intern ((name)); staticpro (&(sym)); } while (0)
+  do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 
 #endif /* EMACS_CHARACTER_H */
 

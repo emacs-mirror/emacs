@@ -1,3 +1,26 @@
+2009-11-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* process.c (socket_options): Make it const.
+	(set_socket_option, init_process): Use a const pointer.
+
+	* lread.c (intern_c_string): New function.
+	(defvar_kboard, defvar_lisp, defvar_lisp_nopro, defvar_bool)
+	(defvar_int): Uset it.  Make the name const char*.
+
+	* lisp.h (defvar_kboard, defvar_lisp, defvar_lisp_nopro, defvar_bool)
+	(defvar_int): Update prototypes.
+	(DEFUN, EXFUN): Support for prototypes is now required.
+	(intern_c_string): New prototype.
+	(struct Lisp_Subr): Make symbol_name constant.
+
+	* font.c (struct table_entry): Remove unused member.  Make NAMES
+	constant.
+	(weight_table, slant_table, width_table): Make constant.
+
+	* emacs.c (struct standard_args): Make name and longname constant.
+
+	* character.h (DEFSYM): Use intern_c_string.
+
 2009-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (make_pure_c_string): New function.

@@ -922,7 +922,7 @@ struct Lisp_Subr
     EMACS_UINT size;
     Lisp_Object (*function) ();
     short min_args, max_args;
-    char *symbol_name;
+    const char *symbol_name;
     char *intspec;
     char *doc;
   };
@@ -1701,17 +1701,6 @@ typedef struct {
     A null string means call interactively with no arguments.
  `doc' is documentation for the user.  */
 
-#if (!defined (__STDC__) && !defined (PROTOTYPES))
-
-#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
-  Lisp_Object fnname ();						\
-  DECL_ALIGN (struct Lisp_Subr, sname) =				\
-    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, intspec, 0};			\
-  Lisp_Object fnname
-
-#else
-
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
@@ -1738,8 +1727,6 @@ typedef struct {
 			 Lisp_Object, Lisp_Object, Lisp_Object)
 #define DEFUN_ARGS_8	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
-#endif
-
 /* Non-zero if OBJ is a Lisp function.  */
 
 #define FUNCTIONP(OBJ)					\
@@ -1755,11 +1742,11 @@ extern void defsubr P_ ((struct Lisp_Subr *));
 #define MANY -2
 #define UNEVALLED -1
 
-extern void defvar_lisp P_ ((char *, Lisp_Object *));
-extern void defvar_lisp_nopro P_ ((char *, Lisp_Object *));
-extern void defvar_bool P_ ((char *, int *));
-extern void defvar_int P_ ((char *, EMACS_INT *));
-extern void defvar_kboard P_ ((char *, int));
+extern void defvar_lisp (const char *, Lisp_Object *);
+extern void defvar_lisp_nopro (const char *, Lisp_Object *);
+extern void defvar_bool (const char *, int *);
+extern void defvar_int (const char *, EMACS_INT *);
+extern void defvar_kboard (const char *, int);
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.  */
@@ -2185,15 +2172,10 @@ void staticpro P_ ((Lisp_Object *));
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
-#if (!defined (__STDC__) &&  !defined (PROTOTYPES))
-#define EXFUN(fnname, maxargs) \
-  extern Lisp_Object fnname ()
-#else
 /* We can use the same trick as in the DEFUN macro to generate the
    appropriate prototype.  */
 #define EXFUN(fnname, maxargs) \
   extern Lisp_Object fnname DEFUN_ARGS_ ## maxargs
-#endif
 
 /* Forward declarations for prototypes.  */
 struct window;
@@ -2654,6 +2636,7 @@ extern Lisp_Object make_string_from_bytes P_ ((const char *, int, int));
 extern Lisp_Object make_specified_string P_ ((const char *, int, int, int));
 EXFUN (Fpurecopy, 1);
 extern Lisp_Object make_pure_string P_ ((char *, int, int, int));
+extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object make_pure_vector P_ ((EMACS_INT));
 EXFUN (Fgarbage_collect, 0);
@@ -2752,6 +2735,7 @@ extern Lisp_Object read_filtered_event P_ ((int, int, int, int, Lisp_Object));
 EXFUN (Feval_region, 4);
 extern Lisp_Object check_obarray P_ ((Lisp_Object));
 extern Lisp_Object intern P_ ((const char *));
+extern Lisp_Object intern_c_string (const char *);
 extern Lisp_Object make_symbol P_ ((char *));
 extern Lisp_Object oblookup P_ ((Lisp_Object, const char *, int, int));
 #define LOADHIST_ATTACH(x) \

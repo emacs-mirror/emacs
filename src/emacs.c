@@ -1836,13 +1836,13 @@ main (int argc, char **argv)
 
 struct standard_args
 {
-  char *name;
-  char *longname;
+  const char *name;
+  const char *longname;
   int priority;
   int nargs;
 };
 
-struct standard_args standard_args[] =
+const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
 #ifdef HAVE_SHM

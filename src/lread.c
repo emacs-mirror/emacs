@@ -3622,6 +3622,29 @@ intern (str)
   return Fintern (make_string (str, len), obarray);
 }
 
+Lisp_Object
+intern_c_string (const char *str)
+{
+  Lisp_Object tem;
+  int len = strlen (str);
+  Lisp_Object obarray;
+
+  obarray = Vobarray;
+  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+    obarray = check_obarray (obarray);
+  tem = oblookup (obarray, str, len, len);
+  if (SYMBOLP (tem))
+    return tem;
+
+  if (NILP (Vpurify_flag))
+    /* Creating a non-pure string from a string literal not
+       implemented yet.  We could just use make_string here and live
+       with the extra copy.  */
+    abort ();
+
+  return Fintern (make_pure_c_string (str), obarray);
+}
+
 /* Create an uninterned symbol with name STR.  */
 
 Lisp_Object
@@ -3956,12 +3979,10 @@ defalias (sname, string)
    to a C variable of type int.  Sample call:
    DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
-defvar_int (namestring, address)
-     char *namestring;
-     EMACS_INT *address;
+defvar_int (const char *namestring, EMACS_INT *address)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Intfwd;
   XINTFWD (val)->intvar = address;
@@ -3971,12 +3992,10 @@ defvar_int (namestring, address)
 /* Similar but define a variable whose value is t if address contains 1,
    nil if address contains 0.  */
 void
-defvar_bool (namestring, address)
-     char *namestring;
-     int *address;
+defvar_bool (const char *namestring, int *address)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Boolfwd;
   XBOOLFWD (val)->boolvar = address;
@@ -3990,12 +4009,10 @@ defvar_bool (namestring, address)
    gc-marked for some other reason, since marking the same slot twice
    can cause trouble with strings.  */
 void
-defvar_lisp_nopro (namestring, address)
-     char *namestring;
-     Lisp_Object *address;
+defvar_lisp_nopro (const char *namestring, Lisp_Object *address)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Objfwd;
   XOBJFWD (val)->objvar = address;
@@ -4003,9 +4020,7 @@ defvar_lisp_nopro (namestring, address)
 }
 
 void
-defvar_lisp (namestring, address)
-     char *namestring;
-     Lisp_Object *address;
+defvar_lisp (const char *namestring, Lisp_Object *address)
 {
   defvar_lisp_nopro (namestring, address);
   staticpro (address);
@@ -4015,12 +4030,10 @@ defvar_lisp (namestring, address)
    at a particular offset in the current kboard object.  */
 
 void
-defvar_kboard (namestring, offset)
-     char *namestring;
-     int offset;
+defvar_kboard (const char *namestring, int offset)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Kboard_Objfwd;
   XKBOARD_OBJFWD (val)->offset = offset;
