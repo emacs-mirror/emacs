@@ -1,3 +1,12 @@
+2009-11-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_scrollbar): New function (bug#4870).
+
+	* gtkutil.h: Declare xg_event_is_for_scrollbar (bug#4870).
+
+	* xterm.c (handle_one_xevent): Call xg_event_is_for_scrollbar for
+	ButtonPressRelease and MotionNotify (bug#4870).
+
 2009-11-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* keymap.c (syms_of_keymap): Construct exclude_keys in pure memory.

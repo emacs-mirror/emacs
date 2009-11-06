@@ -3371,6 +3371,38 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
     }
 }
 
+/* Return non-zero if EVENT is for a scroll bar in frame F.
+   When the same X window is used for several Gtk+ widgets, we cannot
+   say for sure based on the X window alone if an event is for the
+   frame.  This function does additional checks.
+
+   Return non-zero if the event is for a scroll bar, zero otherwise.  */
+
+int
+xg_event_is_for_scrollbar (f, event)
+     FRAME_PTR f;
+     XEvent *event;
+{
+  int retval = 0;
+
+  if (f && event->type == ButtonPress)
+    {
+      /* Check if press occurred outside the edit widget.  */
+      GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+      retval = gdk_display_get_window_at_pointer (gdpy, NULL, NULL)
+        != f->output_data.x->edit_widget->window;
+    }
+  else if (f && (event->type != ButtonRelease || event->type != MotionNotify))
+    {
+      /* If we are releasing or moving the scroll bar, it has the grab.  */
+      retval = gtk_grab_get_current () != 0
+        && gtk_grab_get_current () != f->output_data.x->edit_widget;
+    }
+
+  return retval;
+}
+
+
 
 /***********************************************************************
                       Tool bar functions

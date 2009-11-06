@@ -6688,6 +6688,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
             clear_mouse_face (dpyinfo);
           }
 
+#ifdef USE_GTK
+        if (f && xg_event_is_for_scrollbar (f, &event))
+          f = 0;
+#endif
         if (f)
           {
 
@@ -6824,6 +6828,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         else
           f = x_window_to_frame (dpyinfo, event.xbutton.window);
 
+#ifdef USE_GTK
+        if (f && xg_event_is_for_scrollbar (f, &event))
+          f = 0;
+#endif
         if (f)
           {
             /* Is this in the tool-bar?  */

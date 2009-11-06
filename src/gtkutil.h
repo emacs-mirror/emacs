@@ -179,7 +179,7 @@ extern void xg_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *bar,
                                                  int portion,
                                                  int position,
                                                  int whole));
-
+extern int xg_event_is_for_scrollbar P_ ((FRAME_PTR f, XEvent *event));
 
 extern void update_frame_tool_bar P_ ((FRAME_PTR f));
 extern void free_frame_tool_bar P_ ((FRAME_PTR f));
