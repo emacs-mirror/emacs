@@ -3332,13 +3332,13 @@ init_syntax_once ()
   Lisp_Object temp;
 
   /* This has to be done here, before we call Fmake_char_table.  */
-  Qsyntax_table = intern ("syntax-table");
+  Qsyntax_table = intern_c_string ("syntax-table");
   staticpro (&Qsyntax_table);
 
-  /* Intern this now in case it isn't already done.
+  /* Intern_C_String this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
@@ -3418,7 +3418,7 @@ init_syntax_once ()
 void
 syms_of_syntax ()
 {
-  Qsyntax_table_p = intern ("syntax-table-p");
+  Qsyntax_table_p = intern_c_string ("syntax-table-p");
   staticpro (&Qsyntax_table_p);
 
   staticpro (&Vsyntax_code_object);
@@ -3431,12 +3431,12 @@ syms_of_syntax ()
   /* Defined in regex.c */
   staticpro (&re_match_object);
 
-  Qscan_error = intern ("scan-error");
+  Qscan_error = intern_c_string ("scan-error");
   staticpro (&Qscan_error);
   Fput (Qscan_error, Qerror_conditions,
-	Fcons (Qscan_error, Fcons (Qerror, Qnil)));
+	pure_cons (Qscan_error, pure_cons (Qerror, Qnil)));
   Fput (Qscan_error, Qerror_message,
-	build_string ("Scan error"));
+	make_pure_c_string ("Scan error"));
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);

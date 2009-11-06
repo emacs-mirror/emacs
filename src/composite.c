@@ -1711,7 +1711,7 @@ syms_of_composite ()
 {
   int i;
 
-  Qcomposition = intern ("composition");
+  Qcomposition = intern_c_string ("composition");
   staticpro (&Qcomposition);
 
   /* Make a hash table for static composition.  */
@@ -1772,12 +1772,12 @@ inserted or deleted to keep `composition' property of buffer text
 valid.
 
 The default value is the function `compose-chars-after'.  */);
-  Vcompose_chars_after_function = intern ("compose-chars-after");
+  Vcompose_chars_after_function = intern_c_string ("compose-chars-after");
 
-  Qauto_composed = intern ("auto-composed");
+  Qauto_composed = intern_c_string ("auto-composed");
   staticpro (&Qauto_composed);
 
-  Qauto_composition_function = intern ("auto-composition-function");
+  Qauto_composition_function = intern_c_string ("auto-composition-function");
   staticpro (&Qauto_composition_function);
 
   DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,

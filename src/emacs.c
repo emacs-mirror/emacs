@@ -846,8 +846,8 @@ main (int argc, char **argv)
       && initialized)
     {
       Lisp_Object tem, tem2;
-      tem = Fsymbol_value (intern ("emacs-version"));
-      tem2 = Fsymbol_value (intern ("emacs-copyright"));
+      tem = Fsymbol_value (intern_c_string ("emacs-version"));
+      tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
       if (!STRINGP (tem))
 	{
 	  fprintf (stderr, "Invalid value of `emacs-version'\n");
@@ -1436,7 +1436,7 @@ main (int argc, char **argv)
 	  Lisp_Object old_log_max;
 	  Lisp_Object symbol, tail;
 
-	  symbol = intern ("enable-multibyte-characters");
+	  symbol = intern_c_string ("enable-multibyte-characters");
 	  Fset_default (symbol, Qnil);
 
 	  if (initialized)
@@ -1755,11 +1755,11 @@ main (int argc, char **argv)
       char *file;
       /* Handle -l loadup, args passed by Makefile.  */
       if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
-	Vtop_level = Fcons (intern ("load"),
+	Vtop_level = Fcons (intern_c_string ("load"),
 			    Fcons (build_string (file), Qnil));
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
-	Vtop_level = Fcons (intern ("load"),
+	Vtop_level = Fcons (intern_c_string ("load"),
 			    Fcons (build_string ("loadup.el"), Qnil));
     }
 
@@ -2541,7 +2541,7 @@ from the parent process and its tty file descriptors.  */)
 void
 syms_of_emacs ()
 {
-  Qfile_name_handler_alist = intern ("file-name-handler-alist");
+  Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);
 
 #ifndef CANNOT_DUMP
@@ -2575,7 +2575,7 @@ Special values:
   `cygwin'       compiled using the Cygwin library.
 Anything else (in Emacs 23.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, lynxos 3.0.1, usg-unix-v) indicates some sort of Unix system.  */);
-  Vsystem_type = intern (SYSTEM_TYPE);
+  Vsystem_type = intern_c_string (SYSTEM_TYPE);
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.

@@ -667,10 +667,10 @@ Return what remains of the list.  */)
 void
 syms_of_undo ()
 {
-  Qinhibit_read_only = intern ("inhibit-read-only");
+  Qinhibit_read_only = intern_c_string ("inhibit-read-only");
   staticpro (&Qinhibit_read_only);
 
-  Qapply = intern ("apply");
+  Qapply = intern_c_string ("apply");
   staticpro (&Qapply);
 
   pending_boundary = Qnil;

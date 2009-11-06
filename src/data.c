@@ -2860,208 +2860,208 @@ syms_of_data ()
 {
   Lisp_Object error_tail, arith_tail;
 
-  Qquote = intern ("quote");
-  Qlambda = intern ("lambda");
-  Qsubr = intern ("subr");
-  Qerror_conditions = intern ("error-conditions");
-  Qerror_message = intern ("error-message");
-  Qtop_level = intern ("top-level");
+  Qquote = intern_c_string ("quote");
+  Qlambda = intern_c_string ("lambda");
+  Qsubr = intern_c_string ("subr");
+  Qerror_conditions = intern_c_string ("error-conditions");
+  Qerror_message = intern_c_string ("error-message");
+  Qtop_level = intern_c_string ("top-level");
 
-  Qerror = intern ("error");
-  Qquit = intern ("quit");
-  Qwrong_type_argument = intern ("wrong-type-argument");
-  Qargs_out_of_range = intern ("args-out-of-range");
-  Qvoid_function = intern ("void-function");
-  Qcyclic_function_indirection = intern ("cyclic-function-indirection");
-  Qcyclic_variable_indirection = intern ("cyclic-variable-indirection");
-  Qvoid_variable = intern ("void-variable");
-  Qsetting_constant = intern ("setting-constant");
-  Qinvalid_read_syntax = intern ("invalid-read-syntax");
+  Qerror = intern_c_string ("error");
+  Qquit = intern_c_string ("quit");
+  Qwrong_type_argument = intern_c_string ("wrong-type-argument");
+  Qargs_out_of_range = intern_c_string ("args-out-of-range");
+  Qvoid_function = intern_c_string ("void-function");
+  Qcyclic_function_indirection = intern_c_string ("cyclic-function-indirection");
+  Qcyclic_variable_indirection = intern_c_string ("cyclic-variable-indirection");
+  Qvoid_variable = intern_c_string ("void-variable");
+  Qsetting_constant = intern_c_string ("setting-constant");
+  Qinvalid_read_syntax = intern_c_string ("invalid-read-syntax");
 
-  Qinvalid_function = intern ("invalid-function");
-  Qwrong_number_of_arguments = intern ("wrong-number-of-arguments");
-  Qno_catch = intern ("no-catch");
-  Qend_of_file = intern ("end-of-file");
-  Qarith_error = intern ("arith-error");
-  Qbeginning_of_buffer = intern ("beginning-of-buffer");
-  Qend_of_buffer = intern ("end-of-buffer");
-  Qbuffer_read_only = intern ("buffer-read-only");
-  Qtext_read_only = intern ("text-read-only");
-  Qmark_inactive = intern ("mark-inactive");
+  Qinvalid_function = intern_c_string ("invalid-function");
+  Qwrong_number_of_arguments = intern_c_string ("wrong-number-of-arguments");
+  Qno_catch = intern_c_string ("no-catch");
+  Qend_of_file = intern_c_string ("end-of-file");
+  Qarith_error = intern_c_string ("arith-error");
+  Qbeginning_of_buffer = intern_c_string ("beginning-of-buffer");
+  Qend_of_buffer = intern_c_string ("end-of-buffer");
+  Qbuffer_read_only = intern_c_string ("buffer-read-only");
+  Qtext_read_only = intern_c_string ("text-read-only");
+  Qmark_inactive = intern_c_string ("mark-inactive");
 
-  Qlistp = intern ("listp");
-  Qconsp = intern ("consp");
-  Qsymbolp = intern ("symbolp");
-  Qkeywordp = intern ("keywordp");
-  Qintegerp = intern ("integerp");
-  Qnatnump = intern ("natnump");
-  Qwholenump = intern ("wholenump");
-  Qstringp = intern ("stringp");
-  Qarrayp = intern ("arrayp");
-  Qsequencep = intern ("sequencep");
-  Qbufferp = intern ("bufferp");
-  Qvectorp = intern ("vectorp");
-  Qchar_or_string_p = intern ("char-or-string-p");
-  Qmarkerp = intern ("markerp");
-  Qbuffer_or_string_p = intern ("buffer-or-string-p");
-  Qinteger_or_marker_p = intern ("integer-or-marker-p");
-  Qboundp = intern ("boundp");
-  Qfboundp = intern ("fboundp");
+  Qlistp = intern_c_string ("listp");
+  Qconsp = intern_c_string ("consp");
+  Qsymbolp = intern_c_string ("symbolp");
+  Qkeywordp = intern_c_string ("keywordp");
+  Qintegerp = intern_c_string ("integerp");
+  Qnatnump = intern_c_string ("natnump");
+  Qwholenump = intern_c_string ("wholenump");
+  Qstringp = intern_c_string ("stringp");
+  Qarrayp = intern_c_string ("arrayp");
+  Qsequencep = intern_c_string ("sequencep");
+  Qbufferp = intern_c_string ("bufferp");
+  Qvectorp = intern_c_string ("vectorp");
+  Qchar_or_string_p = intern_c_string ("char-or-string-p");
+  Qmarkerp = intern_c_string ("markerp");
+  Qbuffer_or_string_p = intern_c_string ("buffer-or-string-p");
+  Qinteger_or_marker_p = intern_c_string ("integer-or-marker-p");
+  Qboundp = intern_c_string ("boundp");
+  Qfboundp = intern_c_string ("fboundp");
 
-  Qfloatp = intern ("floatp");
-  Qnumberp = intern ("numberp");
-  Qnumber_or_marker_p = intern ("number-or-marker-p");
+  Qfloatp = intern_c_string ("floatp");
+  Qnumberp = intern_c_string ("numberp");
+  Qnumber_or_marker_p = intern_c_string ("number-or-marker-p");
 
-  Qchar_table_p = intern ("char-table-p");
-  Qvector_or_char_table_p = intern ("vector-or-char-table-p");
+  Qchar_table_p = intern_c_string ("char-table-p");
+  Qvector_or_char_table_p = intern_c_string ("vector-or-char-table-p");
 
-  Qsubrp = intern ("subrp");
-  Qunevalled = intern ("unevalled");
-  Qmany = intern ("many");
+  Qsubrp = intern_c_string ("subrp");
+  Qunevalled = intern_c_string ("unevalled");
+  Qmany = intern_c_string ("many");
 
-  Qcdr = intern ("cdr");
+  Qcdr = intern_c_string ("cdr");
 
   /* Handle automatic advice activation */
-  Qad_advice_info = intern ("ad-advice-info");
-  Qad_activate_internal = intern ("ad-activate-internal");
+  Qad_advice_info = intern_c_string ("ad-advice-info");
+  Qad_activate_internal = intern_c_string ("ad-activate-internal");
 
-  error_tail = Fcons (Qerror, Qnil);
+  error_tail = pure_cons (Qerror, Qnil);
 
   /* ERROR is used as a signaler for random errors for which nothing else is right */
 
   Fput (Qerror, Qerror_conditions,
 	error_tail);
   Fput (Qerror, Qerror_message,
-	build_string ("error"));
+	make_pure_c_string ("error"));
 
   Fput (Qquit, Qerror_conditions,
-	Fcons (Qquit, Qnil));
+	pure_cons (Qquit, Qnil));
   Fput (Qquit, Qerror_message,
-	build_string ("Quit"));
+	make_pure_c_string ("Quit"));
 
   Fput (Qwrong_type_argument, Qerror_conditions,
-	Fcons (Qwrong_type_argument, error_tail));
+	pure_cons (Qwrong_type_argument, error_tail));
   Fput (Qwrong_type_argument, Qerror_message,
-	build_string ("Wrong type argument"));
+	make_pure_c_string ("Wrong type argument"));
 
   Fput (Qargs_out_of_range, Qerror_conditions,
-	Fcons (Qargs_out_of_range, error_tail));
+	pure_cons (Qargs_out_of_range, error_tail));
   Fput (Qargs_out_of_range, Qerror_message,
-	build_string ("Args out of range"));
+	make_pure_c_string ("Args out of range"));
 
   Fput (Qvoid_function, Qerror_conditions,
-	Fcons (Qvoid_function, error_tail));
+	pure_cons (Qvoid_function, error_tail));
   Fput (Qvoid_function, Qerror_message,
-	build_string ("Symbol's function definition is void"));
+	make_pure_c_string ("Symbol's function definition is void"));
 
   Fput (Qcyclic_function_indirection, Qerror_conditions,
-	Fcons (Qcyclic_function_indirection, error_tail));
+	pure_cons (Qcyclic_function_indirection, error_tail));
   Fput (Qcyclic_function_indirection, Qerror_message,
-	build_string ("Symbol's chain of function indirections contains a loop"));
+	make_pure_c_string ("Symbol's chain of function indirections contains a loop"));
 
   Fput (Qcyclic_variable_indirection, Qerror_conditions,
-	Fcons (Qcyclic_variable_indirection, error_tail));
+	pure_cons (Qcyclic_variable_indirection, error_tail));
   Fput (Qcyclic_variable_indirection, Qerror_message,
-	build_string ("Symbol's chain of variable indirections contains a loop"));
+	make_pure_c_string ("Symbol's chain of variable indirections contains a loop"));
 
-  Qcircular_list = intern ("circular-list");
+  Qcircular_list = intern_c_string ("circular-list");
   staticpro (&Qcircular_list);
   Fput (Qcircular_list, Qerror_conditions,
-	Fcons (Qcircular_list, error_tail));
+	pure_cons (Qcircular_list, error_tail));
   Fput (Qcircular_list, Qerror_message,
-	build_string ("List contains a loop"));
+	make_pure_c_string ("List contains a loop"));
 
   Fput (Qvoid_variable, Qerror_conditions,
-	Fcons (Qvoid_variable, error_tail));
+	pure_cons (Qvoid_variable, error_tail));
   Fput (Qvoid_variable, Qerror_message,
-	build_string ("Symbol's value as variable is void"));
+	make_pure_c_string ("Symbol's value as variable is void"));
 
   Fput (Qsetting_constant, Qerror_conditions,
-	Fcons (Qsetting_constant, error_tail));
+	pure_cons (Qsetting_constant, error_tail));
   Fput (Qsetting_constant, Qerror_message,
-	build_string ("Attempt to set a constant symbol"));
+	make_pure_c_string ("Attempt to set a constant symbol"));
 
   Fput (Qinvalid_read_syntax, Qerror_conditions,
-	Fcons (Qinvalid_read_syntax, error_tail));
+	pure_cons (Qinvalid_read_syntax, error_tail));
   Fput (Qinvalid_read_syntax, Qerror_message,
-	build_string ("Invalid read syntax"));
+	make_pure_c_string ("Invalid read syntax"));
 
   Fput (Qinvalid_function, Qerror_conditions,
-	Fcons (Qinvalid_function, error_tail));
+	pure_cons (Qinvalid_function, error_tail));
   Fput (Qinvalid_function, Qerror_message,
-	build_string ("Invalid function"));
+	make_pure_c_string ("Invalid function"));
 
   Fput (Qwrong_number_of_arguments, Qerror_conditions,
-	Fcons (Qwrong_number_of_arguments, error_tail));
+	pure_cons (Qwrong_number_of_arguments, error_tail));
   Fput (Qwrong_number_of_arguments, Qerror_message,
-	build_string ("Wrong number of arguments"));
+	make_pure_c_string ("Wrong number of arguments"));
 
   Fput (Qno_catch, Qerror_conditions,
-	Fcons (Qno_catch, error_tail));
+	pure_cons (Qno_catch, error_tail));
   Fput (Qno_catch, Qerror_message,
-	build_string ("No catch for tag"));
+	make_pure_c_string ("No catch for tag"));
 
   Fput (Qend_of_file, Qerror_conditions,
-	Fcons (Qend_of_file, error_tail));
+	pure_cons (Qend_of_file, error_tail));
   Fput (Qend_of_file, Qerror_message,
-	build_string ("End of file during parsing"));
+	make_pure_c_string ("End of file during parsing"));
 
-  arith_tail = Fcons (Qarith_error, error_tail);
+  arith_tail = pure_cons (Qarith_error, error_tail);
   Fput (Qarith_error, Qerror_conditions,
 	arith_tail);
   Fput (Qarith_error, Qerror_message,
-	build_string ("Arithmetic error"));
+	make_pure_c_string ("Arithmetic error"));
 
   Fput (Qbeginning_of_buffer, Qerror_conditions,
-	Fcons (Qbeginning_of_buffer, error_tail));
+	pure_cons (Qbeginning_of_buffer, error_tail));
   Fput (Qbeginning_of_buffer, Qerror_message,
-	build_string ("Beginning of buffer"));
+	make_pure_c_string ("Beginning of buffer"));
 
   Fput (Qend_of_buffer, Qerror_conditions,
-	Fcons (Qend_of_buffer, error_tail));
+	pure_cons (Qend_of_buffer, error_tail));
   Fput (Qend_of_buffer, Qerror_message,
-	build_string ("End of buffer"));
+	make_pure_c_string ("End of buffer"));
 
   Fput (Qbuffer_read_only, Qerror_conditions,
-	Fcons (Qbuffer_read_only, error_tail));
+	pure_cons (Qbuffer_read_only, error_tail));
   Fput (Qbuffer_read_only, Qerror_message,
-	build_string ("Buffer is read-only"));
+	make_pure_c_string ("Buffer is read-only"));
 
   Fput (Qtext_read_only, Qerror_conditions,
-	Fcons (Qtext_read_only, error_tail));
+	pure_cons (Qtext_read_only, error_tail));
   Fput (Qtext_read_only, Qerror_message,
-	build_string ("Text is read-only"));
+	make_pure_c_string ("Text is read-only"));
 
-  Qrange_error = intern ("range-error");
-  Qdomain_error = intern ("domain-error");
-  Qsingularity_error = intern ("singularity-error");
-  Qoverflow_error = intern ("overflow-error");
-  Qunderflow_error = intern ("underflow-error");
+  Qrange_error = intern_c_string ("range-error");
+  Qdomain_error = intern_c_string ("domain-error");
+  Qsingularity_error = intern_c_string ("singularity-error");
+  Qoverflow_error = intern_c_string ("overflow-error");
+  Qunderflow_error = intern_c_string ("underflow-error");
 
   Fput (Qdomain_error, Qerror_conditions,
-	Fcons (Qdomain_error, arith_tail));
+	pure_cons (Qdomain_error, arith_tail));
   Fput (Qdomain_error, Qerror_message,
-	build_string ("Arithmetic domain error"));
+	make_pure_c_string ("Arithmetic domain error"));
 
   Fput (Qrange_error, Qerror_conditions,
-	Fcons (Qrange_error, arith_tail));
+	pure_cons (Qrange_error, arith_tail));
   Fput (Qrange_error, Qerror_message,
-	build_string ("Arithmetic range error"));
+	make_pure_c_string ("Arithmetic range error"));
 
   Fput (Qsingularity_error, Qerror_conditions,
-	Fcons (Qsingularity_error, Fcons (Qdomain_error, arith_tail)));
+	pure_cons (Qsingularity_error, Fcons (Qdomain_error, arith_tail)));
   Fput (Qsingularity_error, Qerror_message,
-	build_string ("Arithmetic singularity error"));
+	make_pure_c_string ("Arithmetic singularity error"));
 
   Fput (Qoverflow_error, Qerror_conditions,
-	Fcons (Qoverflow_error, Fcons (Qdomain_error, arith_tail)));
+	pure_cons (Qoverflow_error, Fcons (Qdomain_error, arith_tail)));
   Fput (Qoverflow_error, Qerror_message,
-	build_string ("Arithmetic overflow error"));
+	make_pure_c_string ("Arithmetic overflow error"));
 
   Fput (Qunderflow_error, Qerror_conditions,
-	Fcons (Qunderflow_error, Fcons (Qdomain_error, arith_tail)));
+	pure_cons (Qunderflow_error, Fcons (Qdomain_error, arith_tail)));
   Fput (Qunderflow_error, Qerror_message,
-	build_string ("Arithmetic underflow error"));
+	make_pure_c_string ("Arithmetic underflow error"));
 
   staticpro (&Qrange_error);
   staticpro (&Qdomain_error);
@@ -3132,24 +3132,24 @@ syms_of_data ()
   staticpro (&Qad_activate_internal);
 
   /* Types that type-of returns.  */
-  Qinteger = intern ("integer");
-  Qsymbol = intern ("symbol");
-  Qstring = intern ("string");
-  Qcons = intern ("cons");
-  Qmarker = intern ("marker");
-  Qoverlay = intern ("overlay");
-  Qfloat = intern ("float");
-  Qwindow_configuration = intern ("window-configuration");
-  Qprocess = intern ("process");
-  Qwindow = intern ("window");
-  /* Qsubr = intern ("subr"); */
-  Qcompiled_function = intern ("compiled-function");
-  Qbuffer = intern ("buffer");
-  Qframe = intern ("frame");
-  Qvector = intern ("vector");
-  Qchar_table = intern ("char-table");
-  Qbool_vector = intern ("bool-vector");
-  Qhash_table = intern ("hash-table");
+  Qinteger = intern_c_string ("integer");
+  Qsymbol = intern_c_string ("symbol");
+  Qstring = intern_c_string ("string");
+  Qcons = intern_c_string ("cons");
+  Qmarker = intern_c_string ("marker");
+  Qoverlay = intern_c_string ("overlay");
+  Qfloat = intern_c_string ("float");
+  Qwindow_configuration = intern_c_string ("window-configuration");
+  Qprocess = intern_c_string ("process");
+  Qwindow = intern_c_string ("window");
+  /* Qsubr = intern_c_string ("subr"); */
+  Qcompiled_function = intern_c_string ("compiled-function");
+  Qbuffer = intern_c_string ("buffer");
+  Qframe = intern_c_string ("frame");
+  Qvector = intern_c_string ("vector");
+  Qchar_table = intern_c_string ("char-table");
+  Qbool_vector = intern_c_string ("bool-vector");
+  Qhash_table = intern_c_string ("hash-table");
 
   DEFSYM (Qfont_spec, "font-spec");
   DEFSYM (Qfont_entity, "font-entity");
@@ -3276,12 +3276,12 @@ syms_of_data ()
   DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
-  XSYMBOL (intern ("most-positive-fixnum"))->constant = 1;
+  XSYMBOL (intern_c_string ("most-positive-fixnum"))->constant = 1;
 
   DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
-  XSYMBOL (intern ("most-negative-fixnum"))->constant = 1;
+  XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
 SIGTYPE

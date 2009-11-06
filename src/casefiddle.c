@@ -429,7 +429,7 @@ With negative argument, capitalize previous words but do not move.  */)
 void
 syms_of_casefiddle ()
 {
-  Qidentity = intern ("identity");
+  Qidentity = intern_c_string ("identity");
   staticpro (&Qidentity);
   defsubr (&Supcase);
   defsubr (&Sdowncase);

@@ -5162,7 +5162,7 @@ init_buffer_once ()
   /* Must do these before making the first buffer! */
 
   /* real setup is done in bindings.el */
-  buffer_defaults.mode_line_format = build_string ("%-");
+  buffer_defaults.mode_line_format = make_pure_c_string ("%-");
   buffer_defaults.header_line_format = Qnil;
   buffer_defaults.abbrev_mode = Qnil;
   buffer_defaults.overwrite_mode = Qnil;
@@ -5304,25 +5304,25 @@ init_buffer_once ()
 
   QSFundamental = build_string ("Fundamental");
 
-  Qfundamental_mode = intern ("fundamental-mode");
+  Qfundamental_mode = intern_c_string ("fundamental-mode");
   buffer_defaults.major_mode = Qfundamental_mode;
 
-  Qmode_class = intern ("mode-class");
+  Qmode_class = intern_c_string ("mode-class");
 
-  Qprotected_field = intern ("protected-field");
+  Qprotected_field = intern_c_string ("protected-field");
 
-  Qpermanent_local = intern ("permanent-local");
+  Qpermanent_local = intern_c_string ("permanent-local");
 
-  Qkill_buffer_hook = intern ("kill-buffer-hook");
+  Qkill_buffer_hook = intern_c_string ("kill-buffer-hook");
   Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
-  Qucs_set_table_for_input = intern ("ucs-set-table-for-input");
+  Qucs_set_table_for_input = intern_c_string ("ucs-set-table-for-input");
 
   /* super-magic invisible buffer */
-  Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
+  Vprin1_to_string_buffer = Fget_buffer_create (make_pure_c_string (" prin1"));
   Vbuffer_alist = Qnil;
 
-  Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
+  Fset_buffer (Fget_buffer_create (make_pure_c_string ("*scratch*")));
 
   inhibit_modification_hooks = 0;
 }
@@ -5451,45 +5451,45 @@ syms_of_buffer ()
   staticpro (&Vbuffer_alist);
   staticpro (&Qprotected_field);
   staticpro (&Qpermanent_local);
-  Qpermanent_local_hook = intern ("permanent-local-hook");
+  Qpermanent_local_hook = intern_c_string ("permanent-local-hook");
   staticpro (&Qpermanent_local_hook);
   staticpro (&Qkill_buffer_hook);
-  Qoverlayp = intern ("overlayp");
+  Qoverlayp = intern_c_string ("overlayp");
   staticpro (&Qoverlayp);
-  Qevaporate = intern ("evaporate");
+  Qevaporate = intern_c_string ("evaporate");
   staticpro (&Qevaporate);
-  Qmodification_hooks = intern ("modification-hooks");
+  Qmodification_hooks = intern_c_string ("modification-hooks");
   staticpro (&Qmodification_hooks);
-  Qinsert_in_front_hooks = intern ("insert-in-front-hooks");
+  Qinsert_in_front_hooks = intern_c_string ("insert-in-front-hooks");
   staticpro (&Qinsert_in_front_hooks);
-  Qinsert_behind_hooks = intern ("insert-behind-hooks");
+  Qinsert_behind_hooks = intern_c_string ("insert-behind-hooks");
   staticpro (&Qinsert_behind_hooks);
-  Qget_file_buffer = intern ("get-file-buffer");
+  Qget_file_buffer = intern_c_string ("get-file-buffer");
   staticpro (&Qget_file_buffer);
-  Qpriority = intern ("priority");
+  Qpriority = intern_c_string ("priority");
   staticpro (&Qpriority);
-  Qwindow = intern ("window");
+  Qwindow = intern_c_string ("window");
   staticpro (&Qwindow);
-  Qbefore_string = intern ("before-string");
+  Qbefore_string = intern_c_string ("before-string");
   staticpro (&Qbefore_string);
-  Qafter_string = intern ("after-string");
+  Qafter_string = intern_c_string ("after-string");
   staticpro (&Qafter_string);
-  Qfirst_change_hook = intern ("first-change-hook");
+  Qfirst_change_hook = intern_c_string ("first-change-hook");
   staticpro (&Qfirst_change_hook);
-  Qbefore_change_functions = intern ("before-change-functions");
+  Qbefore_change_functions = intern_c_string ("before-change-functions");
   staticpro (&Qbefore_change_functions);
-  Qafter_change_functions = intern ("after-change-functions");
+  Qafter_change_functions = intern_c_string ("after-change-functions");
   staticpro (&Qafter_change_functions);
   /* The next one is initialized in init_buffer_once.  */
   staticpro (&Qucs_set_table_for_input);
 
-  Qkill_buffer_query_functions = intern ("kill-buffer-query-functions");
+  Qkill_buffer_query_functions = intern_c_string ("kill-buffer-query-functions");
   staticpro (&Qkill_buffer_query_functions);
 
   Fput (Qprotected_field, Qerror_conditions,
-	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
+	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
   Fput (Qprotected_field, Qerror_message,
-	build_string ("Attempt to modify a protected field"));
+	make_pure_c_string ("Attempt to modify a protected field"));
 
   /* All these use DEFVAR_LISP_NOPRO because the slots in
      buffer_defaults will all be marked via Vbuffer_defaults.  */
@@ -5769,7 +5769,7 @@ use the function `set-buffer-multibyte' to change a buffer's representation.
 Changing its default value with `setq-default' is supported.
 See also variable `default-enable-multibyte-characters' and Info node
 `(elisp)Text Representations'.  */);
-  XSYMBOL (intern ("enable-multibyte-characters"))->constant = 1;
+  XSYMBOL (intern_c_string ("enable-multibyte-characters"))->constant = 1;
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
 		     &current_buffer->buffer_file_coding_system, Qnil,
@@ -6278,7 +6278,7 @@ If any of them returns nil, the buffer is not killed.  */);
 	       doc: /* Normal hook run before changing the major mode of a buffer.
 The function `kill-all-local-variables' runs this before doing anything else.  */);
   Vchange_major_mode_hook = Qnil;
-  Qchange_major_mode_hook = intern ("change-major-mode-hook");
+  Qchange_major_mode_hook = intern_c_string ("change-major-mode-hook");
   staticpro (&Qchange_major_mode_hook);
 
   defsubr (&Sbuffer_live_p);
@@ -6340,7 +6340,7 @@ keys_of_buffer ()
 
   /* This must not be in syms_of_buffer, because Qdisabled is not
      initialized when that function gets called.  */
-  Fput (intern ("erase-buffer"), Qdisabled, Qt);
+  Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }
 
 /* arch-tag: e48569bf-69a9-4b65-a23b-8e68769436e1

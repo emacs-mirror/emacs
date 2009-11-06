@@ -1,5 +1,59 @@
 2009-11-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xterm.c (syms_of_xterm):
+	* xselect.c (syms_of_xselect):
+	* xmenu.c (syms_of_xmenu):
+	* xfns.c (syms_of_xfns):
+	* xfaces.c (syms_of_xfaces):
+	* xdisp.c (syms_of_xdisp):
+	* window.c (syms_of_window):
+	* w32fns.c (syms_of_w32fns):
+	* undo.c (syms_of_undo):
+	* textprop.c (syms_of_textprop):
+	* terminal.c (syms_of_terminal):
+	* syntax.c (syms_of_syntax):
+	* sound.c (syms_of_sound):
+	* search.c (syms_of_search):
+	* print.c (syms_of_print):
+	* minibuf.c (syms_of_minibuf):
+	* macros.c (syms_of_macros):
+	* keymap.c (syms_of_keymap, initial_define_key)
+	(initial_define_lispy_key):
+	* keyboard.c (syms_of_keyboard):
+	* insdel.c (syms_of_insdel):
+	* image.c (syms_of_image):
+	* fringe.c (syms_of_fringe):
+	* frame.c (syms_of_frame):
+	* fontset.c (syms_of_fontset):
+	* fns.c (syms_of_fns):
+	* fns.c (syms_of_fns):
+	* fileio.c (syms_of_fileio):
+	* fileio.c (syms_of_fileio):
+	* eval.c (syms_of_eval):
+	* doc.c (syms_of_doc):
+	* dispnew.c (syms_of_display):
+	* dired.c (syms_of_dired):
+	* dbusbind.c (syms_of_dbusbind):
+	* data.c (syms_of_data):
+	* composite.c (syms_of_composite):
+	* coding.c (syms_of_coding):
+	* cmds.c (syms_of_cmds):
+	* charset.c (define_charset_internal, syms_of_character):
+	* ccl.c (syms_of_ccl):
+	* category.c (syms_of_category, init_category_once):
+	* casetab.c (syms_of_casetab):
+	* casefiddle.c (syms_of_casefiddle):
+	* callint.c (syms_of_callint):
+	* bytecode.c (syms_of_bytecode):
+	* buffer.c (keys_of_buffer, syms_of_buffer):
+	* alloc.c (syms_of_alloc):
+	* process.c (syms_of_process, init_process):
+	* lread.c (syms_of_lread, init_obarray):
+	* font.c (build_style_table):
+	* emacs.c (syms_of_emacs, main): Replace calls to intern with
+	intern_c_string, calls to make_pure_string with
+	make_pure_c_string.  Use pure_cons instead of Fcons.
+
 	* process.c (socket_options): Make it const.
 	(set_socket_option, init_process): Use a const pointer.
 

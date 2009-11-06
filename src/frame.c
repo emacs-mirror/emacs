@@ -4405,101 +4405,101 @@ frame_make_pointer_visible ()
 void
 syms_of_frame ()
 {
-  Qframep = intern ("framep");
+  Qframep = intern_c_string ("framep");
   staticpro (&Qframep);
-  Qframe_live_p = intern ("frame-live-p");
+  Qframe_live_p = intern_c_string ("frame-live-p");
   staticpro (&Qframe_live_p);
-  Qexplicit_name = intern ("explicit-name");
+  Qexplicit_name = intern_c_string ("explicit-name");
   staticpro (&Qexplicit_name);
-  Qheight = intern ("height");
+  Qheight = intern_c_string ("height");
   staticpro (&Qheight);
-  Qicon = intern ("icon");
+  Qicon = intern_c_string ("icon");
   staticpro (&Qicon);
-  Qminibuffer = intern ("minibuffer");
+  Qminibuffer = intern_c_string ("minibuffer");
   staticpro (&Qminibuffer);
-  Qmodeline = intern ("modeline");
+  Qmodeline = intern_c_string ("modeline");
   staticpro (&Qmodeline);
-  Qonly = intern ("only");
+  Qonly = intern_c_string ("only");
   staticpro (&Qonly);
-  Qwidth = intern ("width");
+  Qwidth = intern_c_string ("width");
   staticpro (&Qwidth);
-  Qgeometry = intern ("geometry");
+  Qgeometry = intern_c_string ("geometry");
   staticpro (&Qgeometry);
-  Qicon_left = intern ("icon-left");
+  Qicon_left = intern_c_string ("icon-left");
   staticpro (&Qicon_left);
-  Qicon_top = intern ("icon-top");
+  Qicon_top = intern_c_string ("icon-top");
   staticpro (&Qicon_top);
-  Qleft = intern ("left");
+  Qleft = intern_c_string ("left");
   staticpro (&Qleft);
-  Qright = intern ("right");
+  Qright = intern_c_string ("right");
   staticpro (&Qright);
-  Quser_position = intern ("user-position");
+  Quser_position = intern_c_string ("user-position");
   staticpro (&Quser_position);
-  Quser_size = intern ("user-size");
+  Quser_size = intern_c_string ("user-size");
   staticpro (&Quser_size);
-  Qwindow_id = intern ("window-id");
+  Qwindow_id = intern_c_string ("window-id");
   staticpro (&Qwindow_id);
 #ifdef HAVE_X_WINDOWS
-  Qouter_window_id = intern ("outer-window-id");
+  Qouter_window_id = intern_c_string ("outer-window-id");
   staticpro (&Qouter_window_id);
 #endif
-  Qparent_id = intern ("parent-id");
+  Qparent_id = intern_c_string ("parent-id");
   staticpro (&Qparent_id);
-  Qx = intern ("x");
+  Qx = intern_c_string ("x");
   staticpro (&Qx);
-  Qw32 = intern ("w32");
+  Qw32 = intern_c_string ("w32");
   staticpro (&Qw32);
-  Qpc = intern ("pc");
+  Qpc = intern_c_string ("pc");
   staticpro (&Qpc);
-  Qmac = intern ("mac");
+  Qmac = intern_c_string ("mac");
   staticpro (&Qmac);
-  Qns = intern ("ns");
+  Qns = intern_c_string ("ns");
   staticpro (&Qns);
-  Qvisible = intern ("visible");
+  Qvisible = intern_c_string ("visible");
   staticpro (&Qvisible);
-  Qbuffer_predicate = intern ("buffer-predicate");
+  Qbuffer_predicate = intern_c_string ("buffer-predicate");
   staticpro (&Qbuffer_predicate);
-  Qbuffer_list = intern ("buffer-list");
+  Qbuffer_list = intern_c_string ("buffer-list");
   staticpro (&Qbuffer_list);
-  Qburied_buffer_list = intern ("buried-buffer-list");
+  Qburied_buffer_list = intern_c_string ("buried-buffer-list");
   staticpro (&Qburied_buffer_list);
-  Qdisplay_type = intern ("display-type");
+  Qdisplay_type = intern_c_string ("display-type");
   staticpro (&Qdisplay_type);
-  Qbackground_mode = intern ("background-mode");
+  Qbackground_mode = intern_c_string ("background-mode");
   staticpro (&Qbackground_mode);
-  Qnoelisp = intern ("noelisp");
+  Qnoelisp = intern_c_string ("noelisp");
   staticpro (&Qnoelisp);
-  Qtty_color_mode = intern ("tty-color-mode");
+  Qtty_color_mode = intern_c_string ("tty-color-mode");
   staticpro (&Qtty_color_mode);
-  Qtty = intern ("tty");
+  Qtty = intern_c_string ("tty");
   staticpro (&Qtty);
-  Qtty_type = intern ("tty-type");
+  Qtty_type = intern_c_string ("tty-type");
   staticpro (&Qtty_type);
 
-  Qface_set_after_frame_default = intern ("face-set-after-frame-default");
+  Qface_set_after_frame_default = intern_c_string ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
 
-  Qfullwidth = intern ("fullwidth");
+  Qfullwidth = intern_c_string ("fullwidth");
   staticpro (&Qfullwidth);
-  Qfullheight = intern ("fullheight");
+  Qfullheight = intern_c_string ("fullheight");
   staticpro (&Qfullheight);
-  Qfullboth = intern ("fullboth");
+  Qfullboth = intern_c_string ("fullboth");
   staticpro (&Qfullboth);
-  Qmaximized = intern ("maximized");
+  Qmaximized = intern_c_string ("maximized");
   staticpro (&Qmaximized);
-  Qx_resource_name = intern ("x-resource-name");
+  Qx_resource_name = intern_c_string ("x-resource-name");
   staticpro (&Qx_resource_name);
 
-  Qx_frame_parameter = intern ("x-frame-parameter");
+  Qx_frame_parameter = intern_c_string ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
 
-  Qterminal = intern ("terminal");
+  Qterminal = intern_c_string ("terminal");
   staticpro (&Qterminal);
-  Qterminal_live_p = intern ("terminal-live-p");
+  Qterminal_live_p = intern_c_string ("terminal-live-p");
   staticpro (&Qterminal_live_p);
 
 #ifdef HAVE_NS
-  Qns_parse_geometry = intern ("ns-parse-geometry");
+  Qns_parse_geometry = intern_c_string ("ns-parse-geometry");
   staticpro (&Qns_parse_geometry);
 #endif
 
@@ -4508,7 +4508,7 @@ syms_of_frame ()
 
     for (i = 0; i < sizeof (frame_parms) / sizeof (frame_parms[0]); i++)
       {
-	Lisp_Object v = intern (frame_parms[i].name);
+	Lisp_Object v = intern_c_string (frame_parms[i].name);
 	if (frame_parms[i].variable)
 	  {
 	    *frame_parms[i].variable = v;
@@ -4613,7 +4613,7 @@ actually deleted, or some time later (or even both when an earlier function
 in `delete-frame-functions' (indirectly) calls `delete-frame'
 recursively).  */);
   Vdelete_frame_functions = Qnil;
-  Qdelete_frame_functions = intern ("delete-frame-functions");
+  Qdelete_frame_functions = intern_c_string ("delete-frame-functions");
   staticpro (&Qdelete_frame_functions);
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,

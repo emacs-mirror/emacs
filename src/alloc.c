@@ -31,8 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef INLINE
 #endif
 
-/* Note that this declares bzero on OSF/1.  How dumb.  */
-
 #include <signal.h>
 
 #ifdef HAVE_GTK_AND_PTHREAD
@@ -6396,7 +6394,7 @@ This means that certain objects should be allocated in shared (pure) space.  */)
   DEFVAR_LISP ("post-gc-hook", &Vpost_gc_hook,
 	       doc: /* Hook run after garbage collection has finished.  */);
   Vpost_gc_hook = Qnil;
-  Qpost_gc_hook = intern ("post-gc-hook");
+  Qpost_gc_hook = intern_c_string ("post-gc-hook");
   staticpro (&Qpost_gc_hook);
 
   DEFVAR_LISP ("memory-signal-data", &Vmemory_signal_data,
@@ -6412,10 +6410,10 @@ This means that certain objects should be allocated in shared (pure) space.  */)
   Vmemory_full = Qnil;
 
   staticpro (&Qgc_cons_threshold);
-  Qgc_cons_threshold = intern ("gc-cons-threshold");
+  Qgc_cons_threshold = intern_c_string ("gc-cons-threshold");
 
   staticpro (&Qchar_table_extra_slots);
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   DEFVAR_LISP ("gc-elapsed", &Vgc_elapsed,
 	       doc: /* Accumulated time elapsed in garbage collections.

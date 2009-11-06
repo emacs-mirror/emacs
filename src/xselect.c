@@ -3010,38 +3010,38 @@ A value of 0 means wait as long as necessary.  This is initialized from the
 \"*selectionTimeout\" resource.  */);
   x_selection_timeout = 0;
 
-  QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
-  QSECONDARY = intern ("SECONDARY");	staticpro (&QSECONDARY);
-  QSTRING    = intern ("STRING");	staticpro (&QSTRING);
-  QINTEGER   = intern ("INTEGER");	staticpro (&QINTEGER);
-  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
-  QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
-  QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
-  QCOMPOUND_TEXT = intern ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
-  QUTF8_STRING = intern ("UTF8_STRING"); staticpro (&QUTF8_STRING);
-  QDELETE    = intern ("DELETE");	staticpro (&QDELETE);
-  QMULTIPLE  = intern ("MULTIPLE");	staticpro (&QMULTIPLE);
-  QINCR      = intern ("INCR");		staticpro (&QINCR);
-  QEMACS_TMP = intern ("_EMACS_TMP_");	staticpro (&QEMACS_TMP);
-  QTARGETS   = intern ("TARGETS");	staticpro (&QTARGETS);
-  QATOM	     = intern ("ATOM");		staticpro (&QATOM);
-  QATOM_PAIR = intern ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
-  QNULL	     = intern ("NULL");		staticpro (&QNULL);
-  Qcompound_text_with_extensions = intern ("compound-text-with-extensions");
+  QPRIMARY   = intern_c_string ("PRIMARY");	staticpro (&QPRIMARY);
+  QSECONDARY = intern_c_string ("SECONDARY");	staticpro (&QSECONDARY);
+  QSTRING    = intern_c_string ("STRING");	staticpro (&QSTRING);
+  QINTEGER   = intern_c_string ("INTEGER");	staticpro (&QINTEGER);
+  QCLIPBOARD = intern_c_string ("CLIPBOARD");	staticpro (&QCLIPBOARD);
+  QTIMESTAMP = intern_c_string ("TIMESTAMP");	staticpro (&QTIMESTAMP);
+  QTEXT      = intern_c_string ("TEXT"); 	staticpro (&QTEXT);
+  QCOMPOUND_TEXT = intern_c_string ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
+  QUTF8_STRING = intern_c_string ("UTF8_STRING"); staticpro (&QUTF8_STRING);
+  QDELETE    = intern_c_string ("DELETE");	staticpro (&QDELETE);
+  QMULTIPLE  = intern_c_string ("MULTIPLE");	staticpro (&QMULTIPLE);
+  QINCR      = intern_c_string ("INCR");		staticpro (&QINCR);
+  QEMACS_TMP = intern_c_string ("_EMACS_TMP_");	staticpro (&QEMACS_TMP);
+  QTARGETS   = intern_c_string ("TARGETS");	staticpro (&QTARGETS);
+  QATOM	     = intern_c_string ("ATOM");		staticpro (&QATOM);
+  QATOM_PAIR = intern_c_string ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
+  QNULL	     = intern_c_string ("NULL");		staticpro (&QNULL);
+  Qcompound_text_with_extensions = intern_c_string ("compound-text-with-extensions");
   staticpro (&Qcompound_text_with_extensions);
 
 #ifdef CUT_BUFFER_SUPPORT
-  QCUT_BUFFER0 = intern ("CUT_BUFFER0"); staticpro (&QCUT_BUFFER0);
-  QCUT_BUFFER1 = intern ("CUT_BUFFER1"); staticpro (&QCUT_BUFFER1);
-  QCUT_BUFFER2 = intern ("CUT_BUFFER2"); staticpro (&QCUT_BUFFER2);
-  QCUT_BUFFER3 = intern ("CUT_BUFFER3"); staticpro (&QCUT_BUFFER3);
-  QCUT_BUFFER4 = intern ("CUT_BUFFER4"); staticpro (&QCUT_BUFFER4);
-  QCUT_BUFFER5 = intern ("CUT_BUFFER5"); staticpro (&QCUT_BUFFER5);
-  QCUT_BUFFER6 = intern ("CUT_BUFFER6"); staticpro (&QCUT_BUFFER6);
-  QCUT_BUFFER7 = intern ("CUT_BUFFER7"); staticpro (&QCUT_BUFFER7);
+  QCUT_BUFFER0 = intern_c_string ("CUT_BUFFER0"); staticpro (&QCUT_BUFFER0);
+  QCUT_BUFFER1 = intern_c_string ("CUT_BUFFER1"); staticpro (&QCUT_BUFFER1);
+  QCUT_BUFFER2 = intern_c_string ("CUT_BUFFER2"); staticpro (&QCUT_BUFFER2);
+  QCUT_BUFFER3 = intern_c_string ("CUT_BUFFER3"); staticpro (&QCUT_BUFFER3);
+  QCUT_BUFFER4 = intern_c_string ("CUT_BUFFER4"); staticpro (&QCUT_BUFFER4);
+  QCUT_BUFFER5 = intern_c_string ("CUT_BUFFER5"); staticpro (&QCUT_BUFFER5);
+  QCUT_BUFFER6 = intern_c_string ("CUT_BUFFER6"); staticpro (&QCUT_BUFFER6);
+  QCUT_BUFFER7 = intern_c_string ("CUT_BUFFER7"); staticpro (&QCUT_BUFFER7);
 #endif
 
-  Qforeign_selection = intern ("foreign-selection");
+  Qforeign_selection = intern_c_string ("foreign-selection");
   staticpro (&Qforeign_selection);
 }
 

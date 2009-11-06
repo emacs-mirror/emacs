@@ -467,13 +467,13 @@ void
 init_category_once ()
 {
   /* This has to be done here, before we call Fmake_char_table.  */
-  Qcategory_table = intern ("category-table");
+  Qcategory_table = intern_c_string ("category-table");
   staticpro (&Qcategory_table);
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   /* Now we are ready to set up this property, so we can
      create category tables.  */
@@ -489,11 +489,11 @@ init_category_once ()
 void
 syms_of_category ()
 {
-  Qcategoryp = intern ("categoryp");
+  Qcategoryp = intern_c_string ("categoryp");
   staticpro (&Qcategoryp);
-  Qcategorysetp = intern ("categorysetp");
+  Qcategorysetp = intern_c_string ("categorysetp");
   staticpro (&Qcategorysetp);
-  Qcategory_table_p = intern ("category-table-p");
+  Qcategory_table_p = intern_c_string ("category-table-p");
   staticpro (&Qcategory_table_p);
 
   DEFVAR_LISP ("word-combining-categories", &Vword_combining_categories,

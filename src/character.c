@@ -1142,7 +1142,7 @@ It has one extra slot whose value is a list of script symbols.  */);
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
   DEFSYM (Qchar_script_table, "char-script-table");
   Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);

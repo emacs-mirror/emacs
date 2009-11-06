@@ -3917,7 +3917,7 @@ init_obarray ()
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
-  Qnil = Fmake_symbol (make_pure_string ("nil", 3, 3, 0));
+  Qnil = Fmake_symbol (make_pure_c_string ("nil"));
   Vobarray = Fmake_vector (oblength, make_number (0));
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
@@ -3932,12 +3932,12 @@ init_obarray ()
   tem = &XVECTOR (Vobarray)->contents[hash];
   *tem = Qnil;
 
-  Qunbound = Fmake_symbol (make_pure_string ("unbound", 7, 7, 0));
+  Qunbound = Fmake_symbol (make_pure_c_string ("unbound"));
   XSYMBOL (Qnil)->function = Qunbound;
   XSYMBOL (Qunbound)->value = Qunbound;
   XSYMBOL (Qunbound)->function = Qunbound;
 
-  Qt = intern ("t");
+  Qt = intern_c_string ("t");
   XSYMBOL (Qnil)->value = Qnil;
   XSYMBOL (Qnil)->plist = Qnil;
   XSYMBOL (Qt)->value = Qt;
@@ -3946,7 +3946,7 @@ init_obarray ()
   /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */
   Vpurify_flag = Qt;
 
-  Qvariable_documentation = intern ("variable-documentation");
+  Qvariable_documentation = intern_c_string ("variable-documentation");
   staticpro (&Qvariable_documentation);
 
   read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
@@ -3958,7 +3958,7 @@ defsubr (sname)
      struct Lisp_Subr *sname;
 {
   Lisp_Object sym;
-  sym = intern (sname->symbol_name);
+  sym = intern_c_string (sname->symbol_name);
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (XSYMBOL (sym)->function, sname);
 }
@@ -4349,7 +4349,7 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
-  Qload_in_progress = intern ("load-in-progress");
+  Qload_in_progress = intern_c_string ("load-in-progress");
   staticpro (&Qload_in_progress);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
@@ -4463,7 +4463,7 @@ from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
 to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
-    = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+    = make_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
   DEFVAR_LISP ("eval-buffer-list", &Veval_buffer_list,
 	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
@@ -4472,7 +4472,7 @@ to load.  See also `load-dangerous-libraries'.  */);
   DEFVAR_LISP ("old-style-backquotes", &Vold_style_backquotes,
 	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
   Vold_style_backquotes = Qnil;
-  Qold_style_backquotes = intern ("old-style-backquotes");
+  Qold_style_backquotes = intern_c_string ("old-style-backquotes");
   staticpro (&Qold_style_backquotes);
 
   /* Vsource_directory was initialized in init_lread.  */
@@ -4480,55 +4480,55 @@ to load.  See also `load-dangerous-libraries'.  */);
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
 
-  Qcurrent_load_list = intern ("current-load-list");
+  Qcurrent_load_list = intern_c_string ("current-load-list");
   staticpro (&Qcurrent_load_list);
 
-  Qstandard_input = intern ("standard-input");
+  Qstandard_input = intern_c_string ("standard-input");
   staticpro (&Qstandard_input);
 
-  Qread_char = intern ("read-char");
+  Qread_char = intern_c_string ("read-char");
   staticpro (&Qread_char);
 
-  Qget_file_char = intern ("get-file-char");
+  Qget_file_char = intern_c_string ("get-file-char");
   staticpro (&Qget_file_char);
 
-  Qget_emacs_mule_file_char = intern ("get-emacs-mule-file-char");
+  Qget_emacs_mule_file_char = intern_c_string ("get-emacs-mule-file-char");
   staticpro (&Qget_emacs_mule_file_char);
 
-  Qload_force_doc_strings = intern ("load-force-doc-strings");
+  Qload_force_doc_strings = intern_c_string ("load-force-doc-strings");
   staticpro (&Qload_force_doc_strings);
 
-  Qbackquote = intern ("`");
+  Qbackquote = intern_c_string ("`");
   staticpro (&Qbackquote);
-  Qcomma = intern (",");
+  Qcomma = intern_c_string (",");
   staticpro (&Qcomma);
-  Qcomma_at = intern (",@");
+  Qcomma_at = intern_c_string (",@");
   staticpro (&Qcomma_at);
-  Qcomma_dot = intern (",.");
+  Qcomma_dot = intern_c_string (",.");
   staticpro (&Qcomma_dot);
 
-  Qinhibit_file_name_operation = intern ("inhibit-file-name-operation");
+  Qinhibit_file_name_operation = intern_c_string ("inhibit-file-name-operation");
   staticpro (&Qinhibit_file_name_operation);
 
-  Qascii_character = intern ("ascii-character");
+  Qascii_character = intern_c_string ("ascii-character");
   staticpro (&Qascii_character);
 
-  Qfunction = intern ("function");
+  Qfunction = intern_c_string ("function");
   staticpro (&Qfunction);
 
-  Qload = intern ("load");
+  Qload = intern_c_string ("load");
   staticpro (&Qload);
 
-  Qload_file_name = intern ("load-file-name");
+  Qload_file_name = intern_c_string ("load-file-name");
   staticpro (&Qload_file_name);
 
-  Qeval_buffer_list = intern ("eval-buffer-list");
+  Qeval_buffer_list = intern_c_string ("eval-buffer-list");
   staticpro (&Qeval_buffer_list);
 
-  Qfile_truename = intern ("file-truename");
+  Qfile_truename = intern_c_string ("file-truename");
   staticpro (&Qfile_truename) ;
 
-  Qdo_after_load_evaluation = intern ("do-after-load-evaluation");
+  Qdo_after_load_evaluation = intern_c_string ("do-after-load-evaluation");
   staticpro (&Qdo_after_load_evaluation) ;
 
   staticpro (&dump_path);
@@ -4541,19 +4541,19 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
 
-  Qhash_table = intern ("hash-table");
+  Qhash_table = intern_c_string ("hash-table");
   staticpro (&Qhash_table);
-  Qdata = intern ("data");
+  Qdata = intern_c_string ("data");
   staticpro (&Qdata);
-  Qtest = intern ("test");
+  Qtest = intern_c_string ("test");
   staticpro (&Qtest);
-  Qsize = intern ("size");
+  Qsize = intern_c_string ("size");
   staticpro (&Qsize);
-  Qweakness = intern ("weakness");
+  Qweakness = intern_c_string ("weakness");
   staticpro (&Qweakness);
-  Qrehash_size = intern ("rehash-size");
+  Qrehash_size = intern_c_string ("rehash-size");
   staticpro (&Qrehash_size);
-  Qrehash_threshold = intern ("rehash-threshold");
+  Qrehash_threshold = intern_c_string ("rehash-threshold");
   staticpro (&Qrehash_threshold);
 }
 

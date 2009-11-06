@@ -4626,7 +4626,7 @@ syms_of_editfns ()
   initial_tz = 0;
 
   Qbuffer_access_fontify_functions
-    = intern ("buffer-access-fontify-functions");
+    = intern_c_string ("buffer-access-fontify-functions");
   staticpro (&Qbuffer_access_fontify_functions);
 
   DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion,
@@ -4647,7 +4647,7 @@ of the buffer being accessed.  */);
     /* Do this here, because init_buffer_once is too early--it won't work.  */
     Fset_buffer (Vprin1_to_string_buffer);
     /* Make sure buffer-access-fontify-functions is nil in this buffer.  */
-    Fset (Fmake_local_variable (intern ("buffer-access-fontify-functions")),
+    Fset (Fmake_local_variable (intern_c_string ("buffer-access-fontify-functions")),
 	  Qnil);
     Fset_buffer (obuf);
   }
@@ -4690,9 +4690,9 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sregion_end);
 
   staticpro (&Qfield);
-  Qfield = intern ("field");
+  Qfield = intern_c_string ("field");
   staticpro (&Qboundary);
-  Qboundary = intern ("boundary");
+  Qboundary = intern_c_string ("boundary");
   defsubr (&Sfield_beginning);
   defsubr (&Sfield_end);
   defsubr (&Sfield_string);

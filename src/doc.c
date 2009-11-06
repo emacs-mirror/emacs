@@ -954,7 +954,7 @@ a new string, without any text properties, is returned.  */)
 void
 syms_of_doc ()
 {
-  Qfunction_documentation = intern ("function-documentation");
+  Qfunction_documentation = intern_c_string ("function-documentation");
   staticpro (&Qfunction_documentation);
 
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,

@@ -1972,104 +1972,104 @@ void
 syms_of_dbusbind ()
 {
 
-  Qdbus_init_bus = intern ("dbus-init-bus");
+  Qdbus_init_bus = intern_c_string ("dbus-init-bus");
   staticpro (&Qdbus_init_bus);
   defsubr (&Sdbus_init_bus);
 
-  Qdbus_get_unique_name = intern ("dbus-get-unique-name");
+  Qdbus_get_unique_name = intern_c_string ("dbus-get-unique-name");
   staticpro (&Qdbus_get_unique_name);
   defsubr (&Sdbus_get_unique_name);
 
-  Qdbus_call_method = intern ("dbus-call-method");
+  Qdbus_call_method = intern_c_string ("dbus-call-method");
   staticpro (&Qdbus_call_method);
   defsubr (&Sdbus_call_method);
 
-  Qdbus_call_method_asynchronously = intern ("dbus-call-method-asynchronously");
+  Qdbus_call_method_asynchronously = intern_c_string ("dbus-call-method-asynchronously");
   staticpro (&Qdbus_call_method_asynchronously);
   defsubr (&Sdbus_call_method_asynchronously);
 
-  Qdbus_method_return_internal = intern ("dbus-method-return-internal");
+  Qdbus_method_return_internal = intern_c_string ("dbus-method-return-internal");
   staticpro (&Qdbus_method_return_internal);
   defsubr (&Sdbus_method_return_internal);
 
-  Qdbus_method_error_internal = intern ("dbus-method-error-internal");
+  Qdbus_method_error_internal = intern_c_string ("dbus-method-error-internal");
   staticpro (&Qdbus_method_error_internal);
   defsubr (&Sdbus_method_error_internal);
 
-  Qdbus_send_signal = intern ("dbus-send-signal");
+  Qdbus_send_signal = intern_c_string ("dbus-send-signal");
   staticpro (&Qdbus_send_signal);
   defsubr (&Sdbus_send_signal);
 
-  Qdbus_register_signal = intern ("dbus-register-signal");
+  Qdbus_register_signal = intern_c_string ("dbus-register-signal");
   staticpro (&Qdbus_register_signal);
   defsubr (&Sdbus_register_signal);
 
-  Qdbus_register_method = intern ("dbus-register-method");
+  Qdbus_register_method = intern_c_string ("dbus-register-method");
   staticpro (&Qdbus_register_method);
   defsubr (&Sdbus_register_method);
 
-  Qdbus_error = intern ("dbus-error");
+  Qdbus_error = intern_c_string ("dbus-error");
   staticpro (&Qdbus_error);
   Fput (Qdbus_error, Qerror_conditions,
 	list2 (Qdbus_error, Qerror));
   Fput (Qdbus_error, Qerror_message,
-	build_string ("D-Bus error"));
+	make_pure_c_string ("D-Bus error"));
 
-  QCdbus_system_bus = intern (":system");
+  QCdbus_system_bus = intern_c_string (":system");
   staticpro (&QCdbus_system_bus);
 
-  QCdbus_session_bus = intern (":session");
+  QCdbus_session_bus = intern_c_string (":session");
   staticpro (&QCdbus_session_bus);
 
-  QCdbus_timeout = intern (":timeout");
+  QCdbus_timeout = intern_c_string (":timeout");
   staticpro (&QCdbus_timeout);
 
-  QCdbus_type_byte = intern (":byte");
+  QCdbus_type_byte = intern_c_string (":byte");
   staticpro (&QCdbus_type_byte);
 
-  QCdbus_type_boolean = intern (":boolean");
+  QCdbus_type_boolean = intern_c_string (":boolean");
   staticpro (&QCdbus_type_boolean);
 
-  QCdbus_type_int16 = intern (":int16");
+  QCdbus_type_int16 = intern_c_string (":int16");
   staticpro (&QCdbus_type_int16);
 
-  QCdbus_type_uint16 = intern (":uint16");
+  QCdbus_type_uint16 = intern_c_string (":uint16");
   staticpro (&QCdbus_type_uint16);
 
-  QCdbus_type_int32 = intern (":int32");
+  QCdbus_type_int32 = intern_c_string (":int32");
   staticpro (&QCdbus_type_int32);
 
-  QCdbus_type_uint32 = intern (":uint32");
+  QCdbus_type_uint32 = intern_c_string (":uint32");
   staticpro (&QCdbus_type_uint32);
 
-  QCdbus_type_int64 = intern (":int64");
+  QCdbus_type_int64 = intern_c_string (":int64");
   staticpro (&QCdbus_type_int64);
 
-  QCdbus_type_uint64 = intern (":uint64");
+  QCdbus_type_uint64 = intern_c_string (":uint64");
   staticpro (&QCdbus_type_uint64);
 
-  QCdbus_type_double = intern (":double");
+  QCdbus_type_double = intern_c_string (":double");
   staticpro (&QCdbus_type_double);
 
-  QCdbus_type_string = intern (":string");
+  QCdbus_type_string = intern_c_string (":string");
   staticpro (&QCdbus_type_string);
 
-  QCdbus_type_object_path = intern (":object-path");
+  QCdbus_type_object_path = intern_c_string (":object-path");
   staticpro (&QCdbus_type_object_path);
 
-  QCdbus_type_signature = intern (":signature");
+  QCdbus_type_signature = intern_c_string (":signature");
   staticpro (&QCdbus_type_signature);
 
-  QCdbus_type_array = intern (":array");
+  QCdbus_type_array = intern_c_string (":array");
   staticpro (&QCdbus_type_array);
 
-  QCdbus_type_variant = intern (":variant");
+  QCdbus_type_variant = intern_c_string (":variant");
   staticpro (&QCdbus_type_variant);
 
-  QCdbus_type_struct = intern (":struct");
+  QCdbus_type_struct = intern_c_string (":struct");
   staticpro (&QCdbus_type_struct);
 
-  QCdbus_type_dict_entry = intern (":dict-entry");
+  QCdbus_type_dict_entry = intern_c_string (":dict-entry");
   staticpro (&QCdbus_type_dict_entry);
 
   DEFVAR_LISP ("dbus-registered-functions-table",
@@ -2111,7 +2111,7 @@ message arrives.  */);
   Vdbus_debug = Qnil;
 #endif
 
-  Fprovide (intern ("dbusbind"), Qnil);
+  Fprovide (intern_c_string ("dbusbind"), Qnil);
 
 }
 

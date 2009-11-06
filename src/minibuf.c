@@ -2074,57 +2074,57 @@ syms_of_minibuf ()
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
 
-  Qcompletion_ignore_case = intern ("completion-ignore-case");
+  Qcompletion_ignore_case = intern_c_string ("completion-ignore-case");
   staticpro (&Qcompletion_ignore_case);
 
-  Qread_file_name_internal = intern ("read-file-name-internal");
+  Qread_file_name_internal = intern_c_string ("read-file-name-internal");
   staticpro (&Qread_file_name_internal);
 
-  Qminibuffer_default = intern ("minibuffer-default");
+  Qminibuffer_default = intern_c_string ("minibuffer-default");
   staticpro (&Qminibuffer_default);
   Fset (Qminibuffer_default, Qnil);
 
-  Qminibuffer_completion_table = intern ("minibuffer-completion-table");
+  Qminibuffer_completion_table = intern_c_string ("minibuffer-completion-table");
   staticpro (&Qminibuffer_completion_table);
 
-  Qminibuffer_completion_confirm = intern ("minibuffer-completion-confirm");
+  Qminibuffer_completion_confirm = intern_c_string ("minibuffer-completion-confirm");
   staticpro (&Qminibuffer_completion_confirm);
 
-  Qminibuffer_completion_predicate = intern ("minibuffer-completion-predicate");
+  Qminibuffer_completion_predicate = intern_c_string ("minibuffer-completion-predicate");
   staticpro (&Qminibuffer_completion_predicate);
 
   staticpro (&last_minibuf_string);
   last_minibuf_string = Qnil;
 
-  Quser_variable_p = intern ("user-variable-p");
+  Quser_variable_p = intern_c_string ("user-variable-p");
   staticpro (&Quser_variable_p);
 
-  Qminibuffer_history = intern ("minibuffer-history");
+  Qminibuffer_history = intern_c_string ("minibuffer-history");
   staticpro (&Qminibuffer_history);
 
-  Qbuffer_name_history = intern ("buffer-name-history");
+  Qbuffer_name_history = intern_c_string ("buffer-name-history");
   staticpro (&Qbuffer_name_history);
   Fset (Qbuffer_name_history, Qnil);
 
-  Qminibuffer_setup_hook = intern ("minibuffer-setup-hook");
+  Qminibuffer_setup_hook = intern_c_string ("minibuffer-setup-hook");
   staticpro (&Qminibuffer_setup_hook);
 
-  Qminibuffer_exit_hook = intern ("minibuffer-exit-hook");
+  Qminibuffer_exit_hook = intern_c_string ("minibuffer-exit-hook");
   staticpro (&Qminibuffer_exit_hook);
 
-  Qhistory_length = intern ("history-length");
+  Qhistory_length = intern_c_string ("history-length");
   staticpro (&Qhistory_length);
 
-  Qcurrent_input_method = intern ("current-input-method");
+  Qcurrent_input_method = intern_c_string ("current-input-method");
   staticpro (&Qcurrent_input_method);
 
-  Qactivate_input_method = intern ("activate-input-method");
+  Qactivate_input_method = intern_c_string ("activate-input-method");
   staticpro (&Qactivate_input_method);
 
-  Qcase_fold_search = intern ("case-fold-search");
+  Qcase_fold_search = intern_c_string ("case-fold-search");
   staticpro (&Qcase_fold_search);
 
-  Qread_expression_history = intern ("read-expression-history");
+  Qread_expression_history = intern_c_string ("read-expression-history");
   staticpro (&Qread_expression_history);
 
   DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function,
@@ -2257,7 +2257,7 @@ properties.  */);
   /* We use `intern' here instead of Qread_only to avoid
      initialization-order problems.  */
   Vminibuffer_prompt_properties
-    = Fcons (intern ("read-only"), Fcons (Qt, Qnil));
+    = Fcons (intern_c_string ("read-only"), Fcons (Qt, Qnil));
 
   DEFVAR_LISP ("read-expression-map", &Vread_expression_map,
 	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);

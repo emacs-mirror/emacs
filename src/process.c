@@ -7317,7 +7317,7 @@ init_process ()
    const struct socket_options *sopt;
 
 #define ADD_SUBFEATURE(key, val) \
-  subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
+  subfeatures = pure_cons (pure_cons (key, pure_cons (val, Qnil)), subfeatures)
 
 #ifdef NON_BLOCKING_CONNECT
    ADD_SUBFEATURE (QCnowait, Qt);
@@ -7340,9 +7340,9 @@ init_process ()
 #endif
 
    for (sopt = socket_options; sopt->name; sopt++)
-     subfeatures = Fcons (intern (sopt->name), subfeatures);
+     subfeatures = pure_cons (intern_c_string (sopt->name), subfeatures);
 
-   Fprovide (intern ("make-network-process"), subfeatures);
+   Fprovide (intern_c_string ("make-network-process"), subfeatures);
  }
 #endif /* HAVE_SOCKETS */
 
@@ -7363,109 +7363,109 @@ init_process ()
 void
 syms_of_process ()
 {
-  Qprocessp = intern ("processp");
+  Qprocessp = intern_c_string ("processp");
   staticpro (&Qprocessp);
-  Qrun = intern ("run");
+  Qrun = intern_c_string ("run");
   staticpro (&Qrun);
-  Qstop = intern ("stop");
+  Qstop = intern_c_string ("stop");
   staticpro (&Qstop);
-  Qsignal = intern ("signal");
+  Qsignal = intern_c_string ("signal");
   staticpro (&Qsignal);
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.
 
-     Qexit = intern ("exit");
+     Qexit = intern_c_string ("exit");
      staticpro (&Qexit); */
 
-  Qopen = intern ("open");
+  Qopen = intern_c_string ("open");
   staticpro (&Qopen);
-  Qclosed = intern ("closed");
+  Qclosed = intern_c_string ("closed");
   staticpro (&Qclosed);
-  Qconnect = intern ("connect");
+  Qconnect = intern_c_string ("connect");
   staticpro (&Qconnect);
-  Qfailed = intern ("failed");
+  Qfailed = intern_c_string ("failed");
   staticpro (&Qfailed);
-  Qlisten = intern ("listen");
+  Qlisten = intern_c_string ("listen");
   staticpro (&Qlisten);
-  Qlocal = intern ("local");
+  Qlocal = intern_c_string ("local");
   staticpro (&Qlocal);
-  Qipv4 = intern ("ipv4");
+  Qipv4 = intern_c_string ("ipv4");
   staticpro (&Qipv4);
 #ifdef AF_INET6
-  Qipv6 = intern ("ipv6");
+  Qipv6 = intern_c_string ("ipv6");
   staticpro (&Qipv6);
 #endif
-  Qdatagram = intern ("datagram");
+  Qdatagram = intern_c_string ("datagram");
   staticpro (&Qdatagram);
 
-  QCport = intern (":port");
+  QCport = intern_c_string (":port");
   staticpro (&QCport);
-  QCspeed = intern (":speed");
+  QCspeed = intern_c_string (":speed");
   staticpro (&QCspeed);
-  QCprocess = intern (":process");
+  QCprocess = intern_c_string (":process");
   staticpro (&QCprocess);
 
-  QCbytesize = intern (":bytesize");
+  QCbytesize = intern_c_string (":bytesize");
   staticpro (&QCbytesize);
-  QCstopbits = intern (":stopbits");
+  QCstopbits = intern_c_string (":stopbits");
   staticpro (&QCstopbits);
-  QCparity = intern (":parity");
+  QCparity = intern_c_string (":parity");
   staticpro (&QCparity);
-  Qodd = intern ("odd");
+  Qodd = intern_c_string ("odd");
   staticpro (&Qodd);
-  Qeven = intern ("even");
+  Qeven = intern_c_string ("even");
   staticpro (&Qeven);
-  QCflowcontrol = intern (":flowcontrol");
+  QCflowcontrol = intern_c_string (":flowcontrol");
   staticpro (&QCflowcontrol);
-  Qhw = intern ("hw");
+  Qhw = intern_c_string ("hw");
   staticpro (&Qhw);
-  Qsw = intern ("sw");
+  Qsw = intern_c_string ("sw");
   staticpro (&Qsw);
-  QCsummary = intern (":summary");
+  QCsummary = intern_c_string (":summary");
   staticpro (&QCsummary);
 
-  Qreal = intern ("real");
+  Qreal = intern_c_string ("real");
   staticpro (&Qreal);
-  Qnetwork = intern ("network");
+  Qnetwork = intern_c_string ("network");
   staticpro (&Qnetwork);
-  Qserial = intern ("serial");
+  Qserial = intern_c_string ("serial");
   staticpro (&Qserial);
 
-  QCname = intern (":name");
+  QCname = intern_c_string (":name");
   staticpro (&QCname);
-  QCbuffer = intern (":buffer");
+  QCbuffer = intern_c_string (":buffer");
   staticpro (&QCbuffer);
-  QChost = intern (":host");
+  QChost = intern_c_string (":host");
   staticpro (&QChost);
-  QCservice = intern (":service");
+  QCservice = intern_c_string (":service");
   staticpro (&QCservice);
-  QCtype = intern (":type");
+  QCtype = intern_c_string (":type");
   staticpro (&QCtype);
-  QClocal = intern (":local");
+  QClocal = intern_c_string (":local");
   staticpro (&QClocal);
-  QCremote = intern (":remote");
+  QCremote = intern_c_string (":remote");
   staticpro (&QCremote);
-  QCcoding = intern (":coding");
+  QCcoding = intern_c_string (":coding");
   staticpro (&QCcoding);
-  QCserver = intern (":server");
+  QCserver = intern_c_string (":server");
   staticpro (&QCserver);
-  QCnowait = intern (":nowait");
+  QCnowait = intern_c_string (":nowait");
   staticpro (&QCnowait);
-  QCsentinel = intern (":sentinel");
+  QCsentinel = intern_c_string (":sentinel");
   staticpro (&QCsentinel);
-  QClog = intern (":log");
+  QClog = intern_c_string (":log");
   staticpro (&QClog);
-  QCnoquery = intern (":noquery");
+  QCnoquery = intern_c_string (":noquery");
   staticpro (&QCnoquery);
-  QCstop = intern (":stop");
+  QCstop = intern_c_string (":stop");
   staticpro (&QCstop);
-  QCoptions = intern (":options");
+  QCoptions = intern_c_string (":options");
   staticpro (&QCoptions);
-  QCplist = intern (":plist");
+  QCplist = intern_c_string (":plist");
   staticpro (&QCplist);
 
-  Qlast_nonmenu_event = intern ("last-nonmenu-event");
+  Qlast_nonmenu_event = intern_c_string ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
 
   staticpro (&Vprocess_alist);
@@ -7473,67 +7473,67 @@ syms_of_process ()
   staticpro (&deleted_pid_list);
 #endif
 
-  Qeuid = intern ("euid");
+  Qeuid = intern_c_string ("euid");
   staticpro (&Qeuid);
-  Qegid = intern ("egid");
+  Qegid = intern_c_string ("egid");
   staticpro (&Qegid);
-  Quser = intern ("user");
+  Quser = intern_c_string ("user");
   staticpro (&Quser);
-  Qgroup = intern ("group");
+  Qgroup = intern_c_string ("group");
   staticpro (&Qgroup);
-  Qcomm = intern ("comm");
+  Qcomm = intern_c_string ("comm");
   staticpro (&Qcomm);
-  Qstate = intern ("state");
+  Qstate = intern_c_string ("state");
   staticpro (&Qstate);
-  Qppid = intern ("ppid");
+  Qppid = intern_c_string ("ppid");
   staticpro (&Qppid);
-  Qpgrp = intern ("pgrp");
+  Qpgrp = intern_c_string ("pgrp");
   staticpro (&Qpgrp);
-  Qsess = intern ("sess");
+  Qsess = intern_c_string ("sess");
   staticpro (&Qsess);
-  Qttname = intern ("ttname");
+  Qttname = intern_c_string ("ttname");
   staticpro (&Qttname);
-  Qtpgid = intern ("tpgid");
+  Qtpgid = intern_c_string ("tpgid");
   staticpro (&Qtpgid);
-  Qminflt = intern ("minflt");
+  Qminflt = intern_c_string ("minflt");
   staticpro (&Qminflt);
-  Qmajflt = intern ("majflt");
+  Qmajflt = intern_c_string ("majflt");
   staticpro (&Qmajflt);
-  Qcminflt = intern ("cminflt");
+  Qcminflt = intern_c_string ("cminflt");
   staticpro (&Qcminflt);
-  Qcmajflt = intern ("cmajflt");
+  Qcmajflt = intern_c_string ("cmajflt");
   staticpro (&Qcmajflt);
-  Qutime = intern ("utime");
+  Qutime = intern_c_string ("utime");
   staticpro (&Qutime);
-  Qstime = intern ("stime");
+  Qstime = intern_c_string ("stime");
   staticpro (&Qstime);
-  Qtime = intern ("time");
+  Qtime = intern_c_string ("time");
   staticpro (&Qtime);
-  Qcutime = intern ("cutime");
+  Qcutime = intern_c_string ("cutime");
   staticpro (&Qcutime);
-  Qcstime = intern ("cstime");
+  Qcstime = intern_c_string ("cstime");
   staticpro (&Qcstime);
-  Qctime = intern ("ctime");
+  Qctime = intern_c_string ("ctime");
   staticpro (&Qctime);
-  Qpri = intern ("pri");
+  Qpri = intern_c_string ("pri");
   staticpro (&Qpri);
-  Qnice = intern ("nice");
+  Qnice = intern_c_string ("nice");
   staticpro (&Qnice);
-  Qthcount = intern ("thcount");
+  Qthcount = intern_c_string ("thcount");
   staticpro (&Qthcount);
-  Qstart = intern ("start");
+  Qstart = intern_c_string ("start");
   staticpro (&Qstart);
-  Qvsize = intern ("vsize");
+  Qvsize = intern_c_string ("vsize");
   staticpro (&Qvsize);
-  Qrss = intern ("rss");
+  Qrss = intern_c_string ("rss");
   staticpro (&Qrss);
-  Qetime = intern ("etime");
+  Qetime = intern_c_string ("etime");
   staticpro (&Qetime);
-  Qpcpu = intern ("pcpu");
+  Qpcpu = intern_c_string ("pcpu");
   staticpro (&Qpcpu);
-  Qpmem = intern ("pmem");
+  Qpmem = intern_c_string ("pmem");
   staticpro (&Qpmem);
-  Qargs = intern ("args");
+  Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
@@ -8003,75 +8003,75 @@ init_process ()
 void
 syms_of_process ()
 {
-  QCtype = intern (":type");
+  QCtype = intern_c_string (":type");
   staticpro (&QCtype);
-  QCname = intern (":name");
+  QCname = intern_c_string (":name");
   staticpro (&QCname);
-  QCtype = intern (":type");
+  QCtype = intern_c_string (":type");
   staticpro (&QCtype);
-  QCname = intern (":name");
+  QCname = intern_c_string (":name");
   staticpro (&QCname);
-  Qeuid = intern ("euid");
+  Qeuid = intern_c_string ("euid");
   staticpro (&Qeuid);
-  Qegid = intern ("egid");
+  Qegid = intern_c_string ("egid");
   staticpro (&Qegid);
-  Quser = intern ("user");
+  Quser = intern_c_string ("user");
   staticpro (&Quser);
-  Qgroup = intern ("group");
+  Qgroup = intern_c_string ("group");
   staticpro (&Qgroup);
-  Qcomm = intern ("comm");
+  Qcomm = intern_c_string ("comm");
   staticpro (&Qcomm);
-  Qstate = intern ("state");
+  Qstate = intern_c_string ("state");
   staticpro (&Qstate);
-  Qppid = intern ("ppid");
+  Qppid = intern_c_string ("ppid");
   staticpro (&Qppid);
-  Qpgrp = intern ("pgrp");
+  Qpgrp = intern_c_string ("pgrp");
   staticpro (&Qpgrp);
-  Qsess = intern ("sess");
+  Qsess = intern_c_string ("sess");
   staticpro (&Qsess);
-  Qttname = intern ("ttname");
+  Qttname = intern_c_string ("ttname");
   staticpro (&Qttname);
-  Qtpgid = intern ("tpgid");
+  Qtpgid = intern_c_string ("tpgid");
   staticpro (&Qtpgid);
-  Qminflt = intern ("minflt");
+  Qminflt = intern_c_string ("minflt");
   staticpro (&Qminflt);
-  Qmajflt = intern ("majflt");
+  Qmajflt = intern_c_string ("majflt");
   staticpro (&Qmajflt);
-  Qcminflt = intern ("cminflt");
+  Qcminflt = intern_c_string ("cminflt");
   staticpro (&Qcminflt);
-  Qcmajflt = intern ("cmajflt");
+  Qcmajflt = intern_c_string ("cmajflt");
   staticpro (&Qcmajflt);
-  Qutime = intern ("utime");
+  Qutime = intern_c_string ("utime");
   staticpro (&Qutime);
-  Qstime = intern ("stime");
+  Qstime = intern_c_string ("stime");
   staticpro (&Qstime);
-  Qtime = intern ("time");
+  Qtime = intern_c_string ("time");
   staticpro (&Qtime);
-  Qcutime = intern ("cutime");
+  Qcutime = intern_c_string ("cutime");
   staticpro (&Qcutime);
-  Qcstime = intern ("cstime");
+  Qcstime = intern_c_string ("cstime");
   staticpro (&Qcstime);
-  Qctime = intern ("ctime");
+  Qctime = intern_c_string ("ctime");
   staticpro (&Qctime);
-  Qpri = intern ("pri");
+  Qpri = intern_c_string ("pri");
   staticpro (&Qpri);
-  Qnice = intern ("nice");
+  Qnice = intern_c_string ("nice");
   staticpro (&Qnice);
-  Qthcount = intern ("thcount");
+  Qthcount = intern_c_string ("thcount");
   staticpro (&Qthcount);
-  Qstart = intern ("start");
+  Qstart = intern_c_string ("start");
   staticpro (&Qstart);
-  Qvsize = intern ("vsize");
+  Qvsize = intern_c_string ("vsize");
   staticpro (&Qvsize);
-  Qrss = intern ("rss");
+  Qrss = intern_c_string ("rss");
   staticpro (&Qrss);
-  Qetime = intern ("etime");
+  Qetime = intern_c_string ("etime");
   staticpro (&Qetime);
-  Qpcpu = intern ("pcpu");
+  Qpcpu = intern_c_string ("pcpu");
   staticpro (&Qpcpu);
-  Qpmem = intern ("pmem");
+  Qpmem = intern_c_string ("pmem");
   staticpro (&Qpmem);
-  Qargs = intern ("args");
+  Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
   defsubr (&Sget_buffer_process);

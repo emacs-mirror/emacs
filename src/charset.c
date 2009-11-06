@@ -1323,19 +1323,19 @@ define_charset_internal (name, dimension, code_space, min_code, max_code,
   args[charset_arg_superset] = Qnil;
   args[charset_arg_unify_map] = Qnil;
 
-  plist[0] = intern (":name");
+  plist[0] = intern_c_string (":name");
   plist[1] = args[charset_arg_name];
-  plist[2] = intern (":dimension");
+  plist[2] = intern_c_string (":dimension");
   plist[3] = args[charset_arg_dimension];
-  plist[4] = intern (":code-space");
+  plist[4] = intern_c_string (":code-space");
   plist[5] = args[charset_arg_code_space];
-  plist[6] = intern (":iso-final-char");
+  plist[6] = intern_c_string (":iso-final-char");
   plist[7] = args[charset_arg_iso_final];
-  plist[8] = intern (":emacs-mule-id");
+  plist[8] = intern_c_string (":emacs-mule-id");
   plist[9] = args[charset_arg_emacs_mule_id];
-  plist[10] = intern (":ascii-compatible-p");
+  plist[10] = intern_c_string (":ascii-compatible-p");
   plist[11] = args[charset_arg_ascii_compatible_p];
-  plist[12] = intern (":code-offset");
+  plist[12] = intern_c_string (":code-offset");
   plist[13] = args[charset_arg_code_offset];
 
   args[charset_arg_plist] = Flist (14, plist);

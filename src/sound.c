@@ -1526,13 +1526,13 @@ Internal use only, use `play-sound' instead.  */)
 void
 syms_of_sound ()
 {
-  QCdevice = intern (":device");
+  QCdevice = intern_c_string(":device");
   staticpro (&QCdevice);
-  QCvolume = intern (":volume");
+  QCvolume = intern_c_string (":volume");
   staticpro (&QCvolume);
-  Qsound = intern ("sound");
+  Qsound = intern_c_string ("sound");
   staticpro (&Qsound);
-  Qplay_sound_functions = intern ("play-sound-functions");
+  Qplay_sound_functions = intern_c_string ("play-sound-functions");
   staticpro (&Qplay_sound_functions);
 
   defsubr (&Splay_sound_internal);

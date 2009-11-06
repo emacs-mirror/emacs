@@ -3583,42 +3583,42 @@ To prevent this happening, set `quit-flag' to nil
 before making `inhibit-quit' nil.  */);
   Vinhibit_quit = Qnil;
 
-  Qinhibit_quit = intern ("inhibit-quit");
+  Qinhibit_quit = intern_c_string ("inhibit-quit");
   staticpro (&Qinhibit_quit);
 
-  Qautoload = intern ("autoload");
+  Qautoload = intern_c_string ("autoload");
   staticpro (&Qautoload);
 
-  Qdebug_on_error = intern ("debug-on-error");
+  Qdebug_on_error = intern_c_string ("debug-on-error");
   staticpro (&Qdebug_on_error);
 
-  Qmacro = intern ("macro");
+  Qmacro = intern_c_string ("macro");
   staticpro (&Qmacro);
 
-  Qdeclare = intern ("declare");
+  Qdeclare = intern_c_string ("declare");
   staticpro (&Qdeclare);
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
-  Qexit = intern ("exit");
+  Qexit = intern_c_string ("exit");
   staticpro (&Qexit);
 
-  Qinteractive = intern ("interactive");
+  Qinteractive = intern_c_string ("interactive");
   staticpro (&Qinteractive);
 
-  Qcommandp = intern ("commandp");
+  Qcommandp = intern_c_string ("commandp");
   staticpro (&Qcommandp);
 
-  Qdefun = intern ("defun");
+  Qdefun = intern_c_string ("defun");
   staticpro (&Qdefun);
 
-  Qand_rest = intern ("&rest");
+  Qand_rest = intern_c_string ("&rest");
   staticpro (&Qand_rest);
 
-  Qand_optional = intern ("&optional");
+  Qand_optional = intern_c_string ("&optional");
   staticpro (&Qand_optional);
 
-  Qdebug = intern ("debug");
+  Qdebug = intern_c_string ("debug");
   staticpro (&Qdebug);
 
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
@@ -3693,7 +3693,7 @@ DECL is a list `(declare ...)' containing the declarations.
 The value the function returns is not used.  */);
   Vmacro_declaration_function = Qnil;
 
-  Vrun_hooks = intern ("run-hooks");
+  Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);
 
   staticpro (&Vautoload_queue);

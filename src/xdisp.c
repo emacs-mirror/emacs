@@ -24619,7 +24619,7 @@ syms_of_xdisp ()
   Vmessage_stack = Qnil;
   staticpro (&Vmessage_stack);
 
-  Qinhibit_redisplay = intern ("inhibit-redisplay");
+  Qinhibit_redisplay = intern_c_string ("inhibit-redisplay");
   staticpro (&Qinhibit_redisplay);
 
   message_dolog_marker1 = Fmake_marker ();
@@ -24645,133 +24645,133 @@ syms_of_xdisp ()
   defsubr (&Sinvisible_p);
 
   staticpro (&Qmenu_bar_update_hook);
-  Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
+  Qmenu_bar_update_hook = intern_c_string ("menu-bar-update-hook");
 
   staticpro (&Qoverriding_terminal_local_map);
-  Qoverriding_terminal_local_map = intern ("overriding-terminal-local-map");
+  Qoverriding_terminal_local_map = intern_c_string ("overriding-terminal-local-map");
 
   staticpro (&Qoverriding_local_map);
-  Qoverriding_local_map = intern ("overriding-local-map");
+  Qoverriding_local_map = intern_c_string ("overriding-local-map");
 
   staticpro (&Qwindow_scroll_functions);
-  Qwindow_scroll_functions = intern ("window-scroll-functions");
+  Qwindow_scroll_functions = intern_c_string ("window-scroll-functions");
 
   staticpro (&Qwindow_text_change_functions);
-  Qwindow_text_change_functions = intern ("window-text-change-functions");
+  Qwindow_text_change_functions = intern_c_string ("window-text-change-functions");
 
   staticpro (&Qredisplay_end_trigger_functions);
-  Qredisplay_end_trigger_functions = intern ("redisplay-end-trigger-functions");
+  Qredisplay_end_trigger_functions = intern_c_string ("redisplay-end-trigger-functions");
 
   staticpro (&Qinhibit_point_motion_hooks);
-  Qinhibit_point_motion_hooks = intern ("inhibit-point-motion-hooks");
+  Qinhibit_point_motion_hooks = intern_c_string ("inhibit-point-motion-hooks");
 
-  Qeval = intern ("eval");
+  Qeval = intern_c_string ("eval");
   staticpro (&Qeval);
 
-  QCdata = intern (":data");
+  QCdata = intern_c_string (":data");
   staticpro (&QCdata);
-  Qdisplay = intern ("display");
+  Qdisplay = intern_c_string ("display");
   staticpro (&Qdisplay);
-  Qspace_width = intern ("space-width");
+  Qspace_width = intern_c_string ("space-width");
   staticpro (&Qspace_width);
-  Qraise = intern ("raise");
+  Qraise = intern_c_string ("raise");
   staticpro (&Qraise);
-  Qslice = intern ("slice");
+  Qslice = intern_c_string ("slice");
   staticpro (&Qslice);
-  Qspace = intern ("space");
+  Qspace = intern_c_string ("space");
   staticpro (&Qspace);
-  Qmargin = intern ("margin");
+  Qmargin = intern_c_string ("margin");
   staticpro (&Qmargin);
-  Qpointer = intern ("pointer");
+  Qpointer = intern_c_string ("pointer");
   staticpro (&Qpointer);
-  Qleft_margin = intern ("left-margin");
+  Qleft_margin = intern_c_string ("left-margin");
   staticpro (&Qleft_margin);
-  Qright_margin = intern ("right-margin");
+  Qright_margin = intern_c_string ("right-margin");
   staticpro (&Qright_margin);
-  Qcenter = intern ("center");
+  Qcenter = intern_c_string ("center");
   staticpro (&Qcenter);
-  Qline_height = intern ("line-height");
+  Qline_height = intern_c_string ("line-height");
   staticpro (&Qline_height);
-  QCalign_to = intern (":align-to");
+  QCalign_to = intern_c_string (":align-to");
   staticpro (&QCalign_to);
-  QCrelative_width = intern (":relative-width");
+  QCrelative_width = intern_c_string (":relative-width");
   staticpro (&QCrelative_width);
-  QCrelative_height = intern (":relative-height");
+  QCrelative_height = intern_c_string (":relative-height");
   staticpro (&QCrelative_height);
-  QCeval = intern (":eval");
+  QCeval = intern_c_string (":eval");
   staticpro (&QCeval);
-  QCpropertize = intern (":propertize");
+  QCpropertize = intern_c_string (":propertize");
   staticpro (&QCpropertize);
-  QCfile = intern (":file");
+  QCfile = intern_c_string (":file");
   staticpro (&QCfile);
-  Qfontified = intern ("fontified");
+  Qfontified = intern_c_string ("fontified");
   staticpro (&Qfontified);
-  Qfontification_functions = intern ("fontification-functions");
+  Qfontification_functions = intern_c_string ("fontification-functions");
   staticpro (&Qfontification_functions);
-  Qtrailing_whitespace = intern ("trailing-whitespace");
+  Qtrailing_whitespace = intern_c_string ("trailing-whitespace");
   staticpro (&Qtrailing_whitespace);
-  Qescape_glyph = intern ("escape-glyph");
+  Qescape_glyph = intern_c_string ("escape-glyph");
   staticpro (&Qescape_glyph);
-  Qnobreak_space = intern ("nobreak-space");
+  Qnobreak_space = intern_c_string ("nobreak-space");
   staticpro (&Qnobreak_space);
-  Qimage = intern ("image");
+  Qimage = intern_c_string ("image");
   staticpro (&Qimage);
-  QCmap = intern (":map");
+  QCmap = intern_c_string (":map");
   staticpro (&QCmap);
-  QCpointer = intern (":pointer");
+  QCpointer = intern_c_string (":pointer");
   staticpro (&QCpointer);
-  Qrect = intern ("rect");
+  Qrect = intern_c_string ("rect");
   staticpro (&Qrect);
-  Qcircle = intern ("circle");
+  Qcircle = intern_c_string ("circle");
   staticpro (&Qcircle);
-  Qpoly = intern ("poly");
+  Qpoly = intern_c_string ("poly");
   staticpro (&Qpoly);
-  Qmessage_truncate_lines = intern ("message-truncate-lines");
+  Qmessage_truncate_lines = intern_c_string ("message-truncate-lines");
   staticpro (&Qmessage_truncate_lines);
-  Qgrow_only = intern ("grow-only");
+  Qgrow_only = intern_c_string ("grow-only");
   staticpro (&Qgrow_only);
-  Qinhibit_menubar_update = intern ("inhibit-menubar-update");
+  Qinhibit_menubar_update = intern_c_string ("inhibit-menubar-update");
   staticpro (&Qinhibit_menubar_update);
-  Qinhibit_eval_during_redisplay = intern ("inhibit-eval-during-redisplay");
+  Qinhibit_eval_during_redisplay = intern_c_string ("inhibit-eval-during-redisplay");
   staticpro (&Qinhibit_eval_during_redisplay);
-  Qposition = intern ("position");
+  Qposition = intern_c_string ("position");
   staticpro (&Qposition);
-  Qbuffer_position = intern ("buffer-position");
+  Qbuffer_position = intern_c_string ("buffer-position");
   staticpro (&Qbuffer_position);
-  Qobject = intern ("object");
+  Qobject = intern_c_string ("object");
   staticpro (&Qobject);
-  Qbar = intern ("bar");
+  Qbar = intern_c_string ("bar");
   staticpro (&Qbar);
-  Qhbar = intern ("hbar");
+  Qhbar = intern_c_string ("hbar");
   staticpro (&Qhbar);
-  Qbox = intern ("box");
+  Qbox = intern_c_string ("box");
   staticpro (&Qbox);
-  Qhollow = intern ("hollow");
+  Qhollow = intern_c_string ("hollow");
   staticpro (&Qhollow);
-  Qhand = intern ("hand");
+  Qhand = intern_c_string ("hand");
   staticpro (&Qhand);
-  Qarrow = intern ("arrow");
+  Qarrow = intern_c_string ("arrow");
   staticpro (&Qarrow);
-  Qtext = intern ("text");
+  Qtext = intern_c_string ("text");
   staticpro (&Qtext);
-  Qrisky_local_variable = intern ("risky-local-variable");
+  Qrisky_local_variable = intern_c_string ("risky-local-variable");
   staticpro (&Qrisky_local_variable);
-  Qinhibit_free_realized_faces = intern ("inhibit-free-realized-faces");
+  Qinhibit_free_realized_faces = intern_c_string ("inhibit-free-realized-faces");
   staticpro (&Qinhibit_free_realized_faces);
 
-  list_of_error = Fcons (Fcons (intern ("error"),
-				Fcons (intern ("void-variable"), Qnil)),
+  list_of_error = Fcons (Fcons (intern_c_string ("error"),
+				Fcons (intern_c_string ("void-variable"), Qnil)),
 			 Qnil);
   staticpro (&list_of_error);
 
-  Qlast_arrow_position = intern ("last-arrow-position");
+  Qlast_arrow_position = intern_c_string ("last-arrow-position");
   staticpro (&Qlast_arrow_position);
-  Qlast_arrow_string = intern ("last-arrow-string");
+  Qlast_arrow_string = intern_c_string ("last-arrow-string");
   staticpro (&Qlast_arrow_string);
 
-  Qoverlay_arrow_string = intern ("overlay-arrow-string");
+  Qoverlay_arrow_string = intern_c_string ("overlay-arrow-string");
   staticpro (&Qoverlay_arrow_string);
-  Qoverlay_arrow_bitmap = intern ("overlay-arrow-bitmap");
+  Qoverlay_arrow_bitmap = intern_c_string ("overlay-arrow-bitmap");
   staticpro (&Qoverlay_arrow_bitmap);
 
   echo_buffer[0] = echo_buffer[1] = Qnil;
@@ -24859,7 +24859,7 @@ See also `overlay-arrow-position'.  */);
 The symbols on this list are examined during redisplay to determine
 where to display overlay arrows.  */);
   Voverlay_arrow_variable_list
-    = Fcons (intern ("overlay-arrow-position"), Qnil);
+    = Fcons (intern_c_string ("overlay-arrow-position"), Qnil);
 
   DEFVAR_INT ("scroll-step", &scroll_step,
     doc: /* *The number of lines to try scrolling a window by when point moves out.
@@ -24953,12 +24953,12 @@ and is used only on frames for which no explicit name has been set
 \(see `modify-frame-parameters').  */);
   Vicon_title_format
     = Vframe_title_format
-    = Fcons (intern ("multiple-frames"),
+    = Fcons (intern_c_string ("multiple-frames"),
 	     Fcons (build_string ("%b"),
 		    Fcons (Fcons (empty_unibyte_string,
-				  Fcons (intern ("invocation-name"),
+				  Fcons (intern_c_string ("invocation-name"),
 					 Fcons (build_string ("@"),
-						Fcons (intern ("system-name"),
+						Fcons (intern_c_string ("system-name"),
 							       Qnil)))),
 			   Qnil)));
 
@@ -25101,7 +25101,7 @@ the frame's other specifications determine how to blink the cursor off.  */);
   DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
     doc: /* *Non-nil means scroll the display automatically to make point visible.  */);
   automatic_hscrolling_p = 1;
-  Qauto_hscroll_mode = intern ("auto-hscroll-mode");
+  Qauto_hscroll_mode = intern_c_string ("auto-hscroll-mode");
   staticpro (&Qauto_hscroll_mode);
 
   DEFVAR_INT ("hscroll-margin", &hscroll_margin,
@@ -25159,7 +25159,7 @@ property.
 To add a prefix to non-continuation lines, use `line-prefix'.  */);
   Vwrap_prefix = Qnil;
   staticpro (&Qwrap_prefix);
-  Qwrap_prefix = intern ("wrap-prefix");
+  Qwrap_prefix = intern_c_string ("wrap-prefix");
   Fmake_variable_buffer_local (Qwrap_prefix);
 
   DEFVAR_LISP ("line-prefix", &Vline_prefix,
@@ -25173,7 +25173,7 @@ property.
 To add a prefix to continuation lines, use `wrap-prefix'.  */);
   Vline_prefix = Qnil;
   staticpro (&Qline_prefix);
-  Qline_prefix = intern ("line-prefix");
+  Qline_prefix = intern_c_string ("line-prefix");
   Fmake_variable_buffer_local (Qline_prefix);
 
   DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,

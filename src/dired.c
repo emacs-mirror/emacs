@@ -1109,13 +1109,13 @@ Comparison is in lexicographic order and case is significant.  */)
 void
 syms_of_dired ()
 {
-  Qdirectory_files = intern ("directory-files");
-  Qdirectory_files_and_attributes = intern ("directory-files-and-attributes");
-  Qfile_name_completion = intern ("file-name-completion");
-  Qfile_name_all_completions = intern ("file-name-all-completions");
-  Qfile_attributes = intern ("file-attributes");
-  Qfile_attributes_lessp = intern ("file-attributes-lessp");
-  Qdefault_directory = intern ("default-directory");
+  Qdirectory_files = intern_c_string ("directory-files");
+  Qdirectory_files_and_attributes = intern_c_string ("directory-files-and-attributes");
+  Qfile_name_completion = intern_c_string ("file-name-completion");
+  Qfile_name_all_completions = intern_c_string ("file-name-all-completions");
+  Qfile_attributes = intern_c_string ("file-attributes");
+  Qfile_attributes_lessp = intern_c_string ("file-attributes-lessp");
+  Qdefault_directory = intern_c_string ("default-directory");
 
   staticpro (&Qdirectory_files);
   staticpro (&Qdirectory_files_and_attributes);

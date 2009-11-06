@@ -5062,7 +5062,7 @@ build_style_table (entry, nelement)
       elt = Fmake_vector (make_number (j + 1), Qnil);
       ASET (elt, 0, make_number (entry[i].numeric));
       for (j = 0; entry[i].names[j]; j++)
-	ASET (elt, j + 1, intern (entry[i].names[j]));
+	ASET (elt, j + 1, intern_c_string (entry[i].names[j]));
       ASET (table, i, elt);
     }
   return table;

@@ -2323,22 +2323,22 @@ syms_of_ccl ()
   staticpro (&Vccl_program_table);
   Vccl_program_table = Fmake_vector (make_number (32), Qnil);
 
-  Qccl = intern ("ccl");
+  Qccl = intern_c_string ("ccl");
   staticpro (&Qccl);
 
-  Qcclp = intern ("cclp");
+  Qcclp = intern_c_string ("cclp");
   staticpro (&Qcclp);
 
-  Qccl_program = intern ("ccl-program");
+  Qccl_program = intern_c_string ("ccl-program");
   staticpro (&Qccl_program);
 
-  Qccl_program_idx = intern ("ccl-program-idx");
+  Qccl_program_idx = intern_c_string ("ccl-program-idx");
   staticpro (&Qccl_program_idx);
 
-  Qcode_conversion_map = intern ("code-conversion-map");
+  Qcode_conversion_map = intern_c_string ("code-conversion-map");
   staticpro (&Qcode_conversion_map);
 
-  Qcode_conversion_map_id = intern ("code-conversion-map-id");
+  Qcode_conversion_map_id = intern_c_string ("code-conversion-map-id");
   staticpro (&Qcode_conversion_map_id);
 
   DEFVAR_LISP ("code-conversion-map-vector", &Vcode_conversion_map_vector,

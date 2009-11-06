@@ -10415,7 +10415,7 @@ syms_of_coding ()
   Vcode_conversion_reused_workbuf = Qnil;
 
   staticpro (&Vcode_conversion_workbuf_name);
-  Vcode_conversion_workbuf_name = build_string (" *code-conversion-work*");
+  Vcode_conversion_workbuf_name = make_pure_c_string (" *code-conversion-work*");
 
   reused_workbuf_in_use = 0;
 
@@ -10476,14 +10476,14 @@ syms_of_coding ()
 
   DEFSYM (Qcoding_system_error, "coding-system-error");
   Fput (Qcoding_system_error, Qerror_conditions,
-	Fcons (Qcoding_system_error, Fcons (Qerror, Qnil)));
+	pure_cons (Qcoding_system_error, pure_cons (Qerror, Qnil)));
   Fput (Qcoding_system_error, Qerror_message,
-	build_string ("Invalid coding system"));
+	make_pure_c_string ("Invalid coding system"));
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   DEFSYM (Qtranslation_table, "translation-table");
   Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));
@@ -10509,48 +10509,48 @@ syms_of_coding ()
   staticpro (&Vcoding_category_table);
   /* Followings are target of code detection.  */
   ASET (Vcoding_category_table, coding_category_iso_7,
-	intern ("coding-category-iso-7"));
+	intern_c_string ("coding-category-iso-7"));
   ASET (Vcoding_category_table, coding_category_iso_7_tight,
-	intern ("coding-category-iso-7-tight"));
+	intern_c_string ("coding-category-iso-7-tight"));
   ASET (Vcoding_category_table, coding_category_iso_8_1,
-	intern ("coding-category-iso-8-1"));
+	intern_c_string ("coding-category-iso-8-1"));
   ASET (Vcoding_category_table, coding_category_iso_8_2,
-	intern ("coding-category-iso-8-2"));
+	intern_c_string ("coding-category-iso-8-2"));
   ASET (Vcoding_category_table, coding_category_iso_7_else,
-	intern ("coding-category-iso-7-else"));
+	intern_c_string ("coding-category-iso-7-else"));
   ASET (Vcoding_category_table, coding_category_iso_8_else,
-	intern ("coding-category-iso-8-else"));
+	intern_c_string ("coding-category-iso-8-else"));
   ASET (Vcoding_category_table, coding_category_utf_8_auto,
-	intern ("coding-category-utf-8-auto"));
+	intern_c_string ("coding-category-utf-8-auto"));
   ASET (Vcoding_category_table, coding_category_utf_8_nosig,
-	intern ("coding-category-utf-8"));
+	intern_c_string ("coding-category-utf-8"));
   ASET (Vcoding_category_table, coding_category_utf_8_sig,
-	intern ("coding-category-utf-8-sig"));
+	intern_c_string ("coding-category-utf-8-sig"));
   ASET (Vcoding_category_table, coding_category_utf_16_be,
-	intern ("coding-category-utf-16-be"));
+	intern_c_string ("coding-category-utf-16-be"));
   ASET (Vcoding_category_table, coding_category_utf_16_auto,
-	intern ("coding-category-utf-16-auto"));
+	intern_c_string ("coding-category-utf-16-auto"));
   ASET (Vcoding_category_table, coding_category_utf_16_le,
-	intern ("coding-category-utf-16-le"));
+	intern_c_string ("coding-category-utf-16-le"));
   ASET (Vcoding_category_table, coding_category_utf_16_be_nosig,
-	intern ("coding-category-utf-16-be-nosig"));
+	intern_c_string ("coding-category-utf-16-be-nosig"));
   ASET (Vcoding_category_table, coding_category_utf_16_le_nosig,
-	intern ("coding-category-utf-16-le-nosig"));
+	intern_c_string ("coding-category-utf-16-le-nosig"));
   ASET (Vcoding_category_table, coding_category_charset,
-	intern ("coding-category-charset"));
+	intern_c_string ("coding-category-charset"));
   ASET (Vcoding_category_table, coding_category_sjis,
-	intern ("coding-category-sjis"));
+	intern_c_string ("coding-category-sjis"));
   ASET (Vcoding_category_table, coding_category_big5,
-	intern ("coding-category-big5"));
+	intern_c_string ("coding-category-big5"));
   ASET (Vcoding_category_table, coding_category_ccl,
-	intern ("coding-category-ccl"));
+	intern_c_string ("coding-category-ccl"));
   ASET (Vcoding_category_table, coding_category_emacs_mule,
-	intern ("coding-category-emacs-mule"));
+	intern_c_string ("coding-category-emacs-mule"));
   /* Followings are NOT target of code detection.  */
   ASET (Vcoding_category_table, coding_category_raw_text,
-	intern ("coding-category-raw-text"));
+	intern_c_string ("coding-category-raw-text"));
   ASET (Vcoding_category_table, coding_category_undecided,
-	intern ("coding-category-undecided"));
+	intern_c_string ("coding-category-undecided"));
 
   DEFSYM (Qinsufficient_source, "insufficient-source");
   DEFSYM (Qinconsistent_eol, "inconsistent-eol");
@@ -10751,22 +10751,22 @@ Also used for decoding keyboard input on X Window system.  */);
   DEFVAR_LISP ("eol-mnemonic-unix", &eol_mnemonic_unix,
 	       doc: /*
 *String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
-  eol_mnemonic_unix = build_string (":");
+  eol_mnemonic_unix = make_pure_c_string (":");
 
   DEFVAR_LISP ("eol-mnemonic-dos", &eol_mnemonic_dos,
 	       doc: /*
 *String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
-  eol_mnemonic_dos = build_string ("\\");
+  eol_mnemonic_dos = make_pure_c_string ("\\");
 
   DEFVAR_LISP ("eol-mnemonic-mac", &eol_mnemonic_mac,
 	       doc: /*
 *String displayed in mode line for MAC-like (CR) end-of-line format.  */);
-  eol_mnemonic_mac = build_string ("/");
+  eol_mnemonic_mac = make_pure_c_string ("/");
 
   DEFVAR_LISP ("eol-mnemonic-undecided", &eol_mnemonic_undecided,
 	       doc: /*
 *String displayed in mode line when end-of-line format is not yet determined.  */);
-  eol_mnemonic_undecided = build_string (":");
+  eol_mnemonic_undecided = make_pure_c_string (":");
 
   DEFVAR_LISP ("enable-character-translation", &Venable_character_translation,
 	       doc: /*
@@ -10891,25 +10891,25 @@ internal character representation.  */);
     for (i = 0; i < coding_arg_max; i++)
       args[i] = Qnil;
 
-    plist[0] = intern (":name");
+    plist[0] = intern_c_string (":name");
     plist[1] = args[coding_arg_name] = Qno_conversion;
-    plist[2] = intern (":mnemonic");
+    plist[2] = intern_c_string (":mnemonic");
     plist[3] = args[coding_arg_mnemonic] = make_number ('=');
-    plist[4] = intern (":coding-type");
+    plist[4] = intern_c_string (":coding-type");
     plist[5] = args[coding_arg_coding_type] = Qraw_text;
-    plist[6] = intern (":ascii-compatible-p");
+    plist[6] = intern_c_string (":ascii-compatible-p");
     plist[7] = args[coding_arg_ascii_compatible_p] = Qt;
-    plist[8] = intern (":default-char");
+    plist[8] = intern_c_string (":default-char");
     plist[9] = args[coding_arg_default_char] = make_number (0);
-    plist[10] = intern (":for-unibyte");
+    plist[10] = intern_c_string (":for-unibyte");
     plist[11] = args[coding_arg_for_unibyte] = Qt;
-    plist[12] = intern (":docstring");
-    plist[13] = build_string ("Do no conversion.\n\
+    plist[12] = intern_c_string (":docstring");
+    plist[13] = make_pure_c_string ("Do no conversion.\n\
 \n\
 When you visit a file with this coding, the file is read into a\n\
 unibyte buffer as is, thus each byte of a file is treated as a\n\
 character.");
-    plist[14] = intern (":eol-type");
+    plist[14] = intern_c_string (":eol-type");
     plist[15] = args[coding_arg_eol_type] = Qunix;
     args[coding_arg_plist] = Flist (16, plist);
     Fdefine_coding_system_internal (coding_arg_max, args);
@@ -10919,10 +10919,10 @@ character.");
     plist[5] = args[coding_arg_coding_type] = Qundecided;
     /* This is already set.
        plist[7] = args[coding_arg_ascii_compatible_p] = Qt; */
-    plist[8] = intern (":charset-list");
+    plist[8] = intern_c_string (":charset-list");
     plist[9] = args[coding_arg_charset_list] = Fcons (Qascii, Qnil);
     plist[11] = args[coding_arg_for_unibyte] = Qnil;
-    plist[13] = build_string ("No conversion on encoding, automatic conversion on decoding.");
+    plist[13] = make_pure_c_string ("No conversion on encoding, automatic conversion on decoding.");
     plist[15] = args[coding_arg_eol_type] = Qnil;
     args[coding_arg_plist] = Flist (16, plist);
     Fdefine_coding_system_internal (coding_arg_max, args);

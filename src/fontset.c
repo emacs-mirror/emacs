@@ -2245,7 +2245,7 @@ syms_of_fontset ()
   staticpro (&Vdefault_fontset);
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
-    = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
+    = make_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 
@@ -2291,7 +2291,7 @@ alternate fontnames (if any) are tried instead.  */);
   DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
 	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
-				       build_string ("fontset-default")),
+				       make_pure_c_string ("fontset-default")),
 				Qnil);
 
   DEFVAR_LISP ("vertical-centering-font-regexp",

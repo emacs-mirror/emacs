@@ -5461,40 +5461,40 @@ Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
 void
 syms_of_fileio ()
 {
-  Qoperations = intern ("operations");
-  Qexpand_file_name = intern ("expand-file-name");
-  Qsubstitute_in_file_name = intern ("substitute-in-file-name");
-  Qdirectory_file_name = intern ("directory-file-name");
-  Qfile_name_directory = intern ("file-name-directory");
-  Qfile_name_nondirectory = intern ("file-name-nondirectory");
-  Qunhandled_file_name_directory = intern ("unhandled-file-name-directory");
-  Qfile_name_as_directory = intern ("file-name-as-directory");
-  Qcopy_file = intern ("copy-file");
-  Qmake_directory_internal = intern ("make-directory-internal");
-  Qmake_directory = intern ("make-directory");
-  Qdelete_directory_internal = intern ("delete-directory-internal");
-  Qdelete_file = intern ("delete-file");
-  Qrename_file = intern ("rename-file");
-  Qadd_name_to_file = intern ("add-name-to-file");
-  Qmake_symbolic_link = intern ("make-symbolic-link");
-  Qfile_exists_p = intern ("file-exists-p");
-  Qfile_executable_p = intern ("file-executable-p");
-  Qfile_readable_p = intern ("file-readable-p");
-  Qfile_writable_p = intern ("file-writable-p");
-  Qfile_symlink_p = intern ("file-symlink-p");
-  Qaccess_file = intern ("access-file");
-  Qfile_directory_p = intern ("file-directory-p");
-  Qfile_regular_p = intern ("file-regular-p");
-  Qfile_accessible_directory_p = intern ("file-accessible-directory-p");
-  Qfile_modes = intern ("file-modes");
-  Qset_file_modes = intern ("set-file-modes");
-  Qset_file_times = intern ("set-file-times");
-  Qfile_newer_than_file_p = intern ("file-newer-than-file-p");
-  Qinsert_file_contents = intern ("insert-file-contents");
-  Qwrite_region = intern ("write-region");
-  Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
-  Qset_visited_file_modtime = intern ("set-visited-file-modtime");
-  Qauto_save_coding = intern ("auto-save-coding");
+  Qoperations = intern_c_string ("operations");
+  Qexpand_file_name = intern_c_string ("expand-file-name");
+  Qsubstitute_in_file_name = intern_c_string ("substitute-in-file-name");
+  Qdirectory_file_name = intern_c_string ("directory-file-name");
+  Qfile_name_directory = intern_c_string ("file-name-directory");
+  Qfile_name_nondirectory = intern_c_string ("file-name-nondirectory");
+  Qunhandled_file_name_directory = intern_c_string ("unhandled-file-name-directory");
+  Qfile_name_as_directory = intern_c_string ("file-name-as-directory");
+  Qcopy_file = intern_c_string ("copy-file");
+  Qmake_directory_internal = intern_c_string ("make-directory-internal");
+  Qmake_directory = intern_c_string ("make-directory");
+  Qdelete_directory_internal = intern_c_string ("delete-directory-internal");
+  Qdelete_file = intern_c_string ("delete-file");
+  Qrename_file = intern_c_string ("rename-file");
+  Qadd_name_to_file = intern_c_string ("add-name-to-file");
+  Qmake_symbolic_link = intern_c_string ("make-symbolic-link");
+  Qfile_exists_p = intern_c_string ("file-exists-p");
+  Qfile_executable_p = intern_c_string ("file-executable-p");
+  Qfile_readable_p = intern_c_string ("file-readable-p");
+  Qfile_writable_p = intern_c_string ("file-writable-p");
+  Qfile_symlink_p = intern_c_string ("file-symlink-p");
+  Qaccess_file = intern_c_string ("access-file");
+  Qfile_directory_p = intern_c_string ("file-directory-p");
+  Qfile_regular_p = intern_c_string ("file-regular-p");
+  Qfile_accessible_directory_p = intern_c_string ("file-accessible-directory-p");
+  Qfile_modes = intern_c_string ("file-modes");
+  Qset_file_modes = intern_c_string ("set-file-modes");
+  Qset_file_times = intern_c_string ("set-file-times");
+  Qfile_newer_than_file_p = intern_c_string ("file-newer-than-file-p");
+  Qinsert_file_contents = intern_c_string ("insert-file-contents");
+  Qwrite_region = intern_c_string ("write-region");
+  Qverify_visited_file_modtime = intern_c_string ("verify-visited-file-modtime");
+  Qset_visited_file_modtime = intern_c_string ("set-visited-file-modtime");
+  Qauto_save_coding = intern_c_string ("auto-save-coding");
 
   staticpro (&Qoperations);
   staticpro (&Qexpand_file_name);
@@ -5531,21 +5531,21 @@ syms_of_fileio ()
   staticpro (&Qset_visited_file_modtime);
   staticpro (&Qauto_save_coding);
 
-  Qfile_name_history = intern ("file-name-history");
+  Qfile_name_history = intern_c_string ("file-name-history");
   Fset (Qfile_name_history, Qnil);
   staticpro (&Qfile_name_history);
 
-  Qfile_error = intern ("file-error");
+  Qfile_error = intern_c_string ("file-error");
   staticpro (&Qfile_error);
-  Qfile_already_exists = intern ("file-already-exists");
+  Qfile_already_exists = intern_c_string ("file-already-exists");
   staticpro (&Qfile_already_exists);
-  Qfile_date_error = intern ("file-date-error");
+  Qfile_date_error = intern_c_string ("file-date-error");
   staticpro (&Qfile_date_error);
-  Qexcl = intern ("excl");
+  Qexcl = intern_c_string ("excl");
   staticpro (&Qexcl);
 
 #ifdef DOS_NT
-  Qfind_buffer_file_type = intern ("find-buffer-file-type");
+  Qfind_buffer_file_type = intern_c_string ("find-buffer-file-type");
   staticpro (&Qfind_buffer_file_type);
 #endif /* DOS_NT */
 
@@ -5565,30 +5565,30 @@ instead use `file-name-coding-system' to get a constant encoding
 of file names regardless of the current language environment.  */);
   Vdefault_file_name_coding_system = Qnil;
 
-  Qformat_decode = intern ("format-decode");
+  Qformat_decode = intern_c_string ("format-decode");
   staticpro (&Qformat_decode);
-  Qformat_annotate_function = intern ("format-annotate-function");
+  Qformat_annotate_function = intern_c_string ("format-annotate-function");
   staticpro (&Qformat_annotate_function);
-  Qafter_insert_file_set_coding = intern ("after-insert-file-set-coding");
+  Qafter_insert_file_set_coding = intern_c_string ("after-insert-file-set-coding");
   staticpro (&Qafter_insert_file_set_coding);
 
-  Qcar_less_than_car = intern ("car-less-than-car");
+  Qcar_less_than_car = intern_c_string ("car-less-than-car");
   staticpro (&Qcar_less_than_car);
 
   Fput (Qfile_error, Qerror_conditions,
-	list2 (Qfile_error, Qerror));
+	Fpurecopy (list2 (Qfile_error, Qerror)));
   Fput (Qfile_error, Qerror_message,
-	build_string ("File error"));
+	make_pure_c_string ("File error"));
 
   Fput (Qfile_already_exists, Qerror_conditions,
-	list3 (Qfile_already_exists, Qfile_error, Qerror));
+	Fpurecopy (list3 (Qfile_already_exists, Qfile_error, Qerror)));
   Fput (Qfile_already_exists, Qerror_message,
-	build_string ("File already exists"));
+	make_pure_c_string ("File already exists"));
 
   Fput (Qfile_date_error, Qerror_conditions,
-	list3 (Qfile_date_error, Qfile_error, Qerror));
+	Fpurecopy (list3 (Qfile_date_error, Qfile_error, Qerror)));
   Fput (Qfile_date_error, Qerror_message,
-	build_string ("Cannot set file date"));
+	make_pure_c_string ("Cannot set file date"));
 
   DEFVAR_LISP ("directory-sep-char", &Vdirectory_sep_char,
 	       doc: /* Directory separator character for built-in functions that return file names.
@@ -5659,7 +5659,7 @@ buffer current.  */);
   Vwrite_region_annotate_functions = Qnil;
   staticpro (&Qwrite_region_annotate_functions);
   Qwrite_region_annotate_functions
-    = intern ("write-region-annotate-functions");
+    = intern_c_string ("write-region-annotate-functions");
 
   DEFVAR_LISP ("write-region-post-annotation-function",
 	       &Vwrite_region_post_annotation_function,
@@ -5720,8 +5720,8 @@ A non-nil value may result in data loss!  */);
 When non-nil, the function `move-file-to-trash' will be used by
 `delete-file' and `delete-directory'.  */);
   delete_by_moving_to_trash = 0;
-  Qdelete_by_moving_to_trash = intern ("delete-by-moving-to-trash");
-  Qmove_file_to_trash = intern ("move-file-to-trash");
+  Qdelete_by_moving_to_trash = intern_c_string ("delete-by-moving-to-trash");
+  Qmove_file_to_trash = intern_c_string ("move-file-to-trash");
   staticpro (&Qmove_file_to_trash);
 
   defsubr (&Sfind_file_name_handler);

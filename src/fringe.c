@@ -1618,17 +1618,17 @@ Return nil if POS is not visible in WINDOW.  */)
 void
 syms_of_fringe ()
 {
-  Qtruncation = intern ("truncation");
+  Qtruncation = intern_c_string ("truncation");
   staticpro (&Qtruncation);
-  Qcontinuation = intern ("continuation");
+  Qcontinuation = intern_c_string ("continuation");
   staticpro (&Qcontinuation);
-  Qoverlay_arrow = intern ("overlay-arrow");
+  Qoverlay_arrow = intern_c_string ("overlay-arrow");
   staticpro (&Qoverlay_arrow);
-  Qempty_line = intern ("empty-line");
+  Qempty_line = intern_c_string ("empty-line");
   staticpro (&Qempty_line);
-  Qtop_bottom = intern ("top-bottom");
+  Qtop_bottom = intern_c_string ("top-bottom");
   staticpro (&Qtop_bottom);
-  Qhollow_small = intern ("hollow-small");
+  Qhollow_small = intern_c_string ("hollow-small");
   staticpro (&Qhollow_small);
 
   defsubr (&Sdestroy_fringe_bitmap);

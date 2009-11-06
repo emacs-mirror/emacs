@@ -7170,33 +7170,33 @@ init_window ()
 void
 syms_of_window ()
 {
-  Qscroll_up = intern ("scroll-up");
+  Qscroll_up = intern_c_string ("scroll-up");
   staticpro (&Qscroll_up);
 
-  Qscroll_down = intern ("scroll-down");
+  Qscroll_down = intern_c_string ("scroll-down");
   staticpro (&Qscroll_down);
 
-  Qwindow_size_fixed = intern ("window-size-fixed");
+  Qwindow_size_fixed = intern_c_string ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
   Fset (Qwindow_size_fixed, Qnil);
 
   staticpro (&Qwindow_configuration_change_hook);
   Qwindow_configuration_change_hook
-    = intern ("window-configuration-change-hook");
+    = intern_c_string ("window-configuration-change-hook");
 
-  Qwindowp = intern ("windowp");
+  Qwindowp = intern_c_string ("windowp");
   staticpro (&Qwindowp);
 
-  Qwindow_configuration_p = intern ("window-configuration-p");
+  Qwindow_configuration_p = intern_c_string ("window-configuration-p");
   staticpro (&Qwindow_configuration_p);
 
-  Qwindow_live_p = intern ("window-live-p");
+  Qwindow_live_p = intern_c_string ("window-live-p");
   staticpro (&Qwindow_live_p);
 
-  Qdisplay_buffer = intern ("display-buffer");
+  Qdisplay_buffer = intern_c_string ("display-buffer");
   staticpro (&Qdisplay_buffer);
 
-  Qtemp_buffer_show_hook = intern ("temp-buffer-show-hook");
+  Qtemp_buffer_show_hook = intern_c_string ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);
 
   staticpro (&Vwindow_list);

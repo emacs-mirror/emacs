@@ -2300,7 +2300,7 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 `rear-nonsticky' properties of the character override NONSTICKINESS.  */);
   /* Text property `syntax-table' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
-    = Fcons (Fcons (intern ("syntax-table"), Qt), Qnil);
+    = Fcons (Fcons (intern_c_string ("syntax-table"), Qt), Qnil);
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);
@@ -2311,44 +2311,44 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   /* Common attributes one might give text */
 
   staticpro (&Qforeground);
-  Qforeground = intern ("foreground");
+  Qforeground = intern_c_string ("foreground");
   staticpro (&Qbackground);
-  Qbackground = intern ("background");
+  Qbackground = intern_c_string ("background");
   staticpro (&Qfont);
-  Qfont = intern ("font");
+  Qfont = intern_c_string ("font");
   staticpro (&Qstipple);
-  Qstipple = intern ("stipple");
+  Qstipple = intern_c_string ("stipple");
   staticpro (&Qunderline);
-  Qunderline = intern ("underline");
+  Qunderline = intern_c_string ("underline");
   staticpro (&Qread_only);
-  Qread_only = intern ("read-only");
+  Qread_only = intern_c_string ("read-only");
   staticpro (&Qinvisible);
-  Qinvisible = intern ("invisible");
+  Qinvisible = intern_c_string ("invisible");
   staticpro (&Qintangible);
-  Qintangible = intern ("intangible");
+  Qintangible = intern_c_string ("intangible");
   staticpro (&Qcategory);
-  Qcategory = intern ("category");
+  Qcategory = intern_c_string ("category");
   staticpro (&Qlocal_map);
-  Qlocal_map = intern ("local-map");
+  Qlocal_map = intern_c_string ("local-map");
   staticpro (&Qfront_sticky);
-  Qfront_sticky = intern ("front-sticky");
+  Qfront_sticky = intern_c_string ("front-sticky");
   staticpro (&Qrear_nonsticky);
-  Qrear_nonsticky = intern ("rear-nonsticky");
+  Qrear_nonsticky = intern_c_string ("rear-nonsticky");
   staticpro (&Qmouse_face);
-  Qmouse_face = intern ("mouse-face");
+  Qmouse_face = intern_c_string ("mouse-face");
   staticpro (&Qminibuffer_prompt);
-  Qminibuffer_prompt = intern ("minibuffer-prompt");
+  Qminibuffer_prompt = intern_c_string ("minibuffer-prompt");
 
   /* Properties that text might use to specify certain actions */
 
   staticpro (&Qmouse_left);
-  Qmouse_left = intern ("mouse-left");
+  Qmouse_left = intern_c_string ("mouse-left");
   staticpro (&Qmouse_entered);
-  Qmouse_entered = intern ("mouse-entered");
+  Qmouse_entered = intern_c_string ("mouse-entered");
   staticpro (&Qpoint_left);
-  Qpoint_left = intern ("point-left");
+  Qpoint_left = intern_c_string ("point-left");
   staticpro (&Qpoint_entered);
-  Qpoint_entered = intern ("point-entered");
+  Qpoint_entered = intern_c_string ("point-entered");
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);

@@ -10830,10 +10830,10 @@ syms_of_xterm ()
   last_mouse_scroll_bar = Qnil;
 
   staticpro (&Qvendor_specific_keysyms);
-  Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
+  Qvendor_specific_keysyms = intern_c_string ("vendor-specific-keysyms");
 
   staticpro (&Qlatin_1);
-  Qlatin_1 = intern ("latin-1");
+  Qlatin_1 = intern_c_string ("latin-1");
 
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
@@ -10842,7 +10842,7 @@ syms_of_xterm ()
   xg_default_icon_file = build_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
-  Qx_gtk_map_stock = intern ("x-gtk-map-stock");
+  Qx_gtk_map_stock = intern_c_string ("x-gtk-map-stock");
   staticpro (&Qx_gtk_map_stock);
 #endif
 
@@ -10880,13 +10880,13 @@ A value of nil means Emacs doesn't use X toolkit scroll bars.
 Otherwise, value is a symbol describing the X toolkit.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
-  Vx_toolkit_scroll_bars = intern ("motif");
+  Vx_toolkit_scroll_bars = intern_c_string ("motif");
 #elif defined HAVE_XAW3D
-  Vx_toolkit_scroll_bars = intern ("xaw3d");
+  Vx_toolkit_scroll_bars = intern_c_string ("xaw3d");
 #elif USE_GTK
-  Vx_toolkit_scroll_bars = intern ("gtk");
+  Vx_toolkit_scroll_bars = intern_c_string ("gtk");
 #else
-  Vx_toolkit_scroll_bars = intern ("xaw");
+  Vx_toolkit_scroll_bars = intern_c_string ("xaw");
 #endif
 #else
   Vx_toolkit_scroll_bars = Qnil;
@@ -10895,14 +10895,14 @@ Otherwise, value is a symbol describing the X toolkit.  */);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  Qmodifier_value = intern ("modifier-value");
-  Qalt = intern ("alt");
+  Qmodifier_value = intern_c_string ("modifier-value");
+  Qalt = intern_c_string ("alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
+  Qhyper = intern_c_string ("hyper");
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern ("meta");
+  Qmeta = intern_c_string ("meta");
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern ("super");
+  Qsuper = intern_c_string ("super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
 
   DEFVAR_LISP ("x-alt-keysym", &Vx_alt_keysym,

@@ -3290,20 +3290,20 @@ syms_of_search ()
     }
   searchbuf_head = &searchbufs[0];
 
-  Qsearch_failed = intern ("search-failed");
+  Qsearch_failed = intern_c_string ("search-failed");
   staticpro (&Qsearch_failed);
-  Qinvalid_regexp = intern ("invalid-regexp");
+  Qinvalid_regexp = intern_c_string ("invalid-regexp");
   staticpro (&Qinvalid_regexp);
 
   Fput (Qsearch_failed, Qerror_conditions,
-	Fcons (Qsearch_failed, Fcons (Qerror, Qnil)));
+	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
   Fput (Qsearch_failed, Qerror_message,
-	build_string ("Search failed"));
+	make_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
-	Fcons (Qinvalid_regexp, Fcons (Qerror, Qnil)));
+	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
-	build_string ("Invalid regexp"));
+	make_pure_c_string ("Invalid regexp"));
 
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);
