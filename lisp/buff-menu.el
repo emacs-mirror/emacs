@@ -678,12 +678,13 @@ For more information, see the function `buffer-menu'."
     (setq name (copy-sequence name)))
   (add-text-properties 0 (length name) name-props name)
   (add-text-properties 0 (length size) size-props size)
-  (concat name
-	  (make-string (- Buffer-menu-buffer+size-width
-			  (string-width name)
-			  (string-width size))
-		       ?\s)
-	  size))
+  (let ((name+space-width (- Buffer-menu-buffer+size-width
+			     (string-width size))))
+    (concat name
+	    (propertize (make-string (- name+space-width (string-width name))
+				     ?\s)
+			'display `(space :align-to ,(+ 4 name+space-width)))
+	    size)))
 
 (defun Buffer-menu-sort (column)
   "Sort the buffer menu by COLUMN."
@@ -889,7 +890,7 @@ For more information, see the function `buffer-menu'."
 		;; This way we avoid problems with unusual buffer names.
 		(let ((name (nth 2 buffer))
 		      (size (int-to-string (nth 3 buffer))))
-		      (Buffer-menu-buffer+size name size
+		  (Buffer-menu-buffer+size name size
 		         `(buffer-name ,name
 				       buffer ,(car buffer)
 				       font-lock-face buffer-menu-buffer

@@ -1,5 +1,8 @@
 2009-11-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* buff-menu.el (Buffer-menu-buffer+size): Use display property to
+	align size column (Bug#4839).
+
 	* emacs-lisp/autoload.el (autoload-rubric): Always issue a provide
 	statement.
 
