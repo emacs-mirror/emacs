@@ -1,3 +1,9 @@
+2009-11-06  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-gen-table): Fix for the case
+	that the block data and the following per-char data fall into the
+	same char-table leaf.
+
 2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/UnicodeData.txt: Update to Unicode 5.2.0.
