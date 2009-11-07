@@ -1,3 +1,8 @@
+2009-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmailsum.el (rmail-summary-rmail-update): Call linum-update
+	by hand, if necessary (Bug#4878).
+
 2009-11-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buff-menu.el (Buffer-menu-buffer+size): Use display property to

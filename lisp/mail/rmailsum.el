@@ -965,7 +965,12 @@ Search, the `unseen' attribute is restored.")
 		    (select-window owin))
 		(if (buffer-name rmail-buffer)
 		    (with-current-buffer rmail-buffer
-		      (rmail-show-message msg-num t))))))
+		      (rmail-show-message msg-num t))))
+	      ;; In linum mode, the message buffer must be specially
+	      ;; updated (Bug#4878).
+	      (and (fboundp 'linum-update)
+		   (buffer-name rmail-buffer)
+		   (linum-update rmail-buffer))))
 	(rmail-summary-update-highlight nil)))))
 
 (defun rmail-summary-save-buffer ()
