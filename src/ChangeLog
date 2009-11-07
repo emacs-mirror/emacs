@@ -1,3 +1,10 @@
+2009-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xmenu.c (Fx_popup_menu): Extract event timestamp.  Pass it to
+	xmenu_show.
+	(xmenu_show): New arg.  Pass it to create_and_show_popup_menu.
+	(create_and_show_popup_menu): New arg.  Pass it to gtk_menu_popup.
+
 2009-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Let integers use up 2 tags to give them one extra bit and thus double

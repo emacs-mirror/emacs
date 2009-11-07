@@ -139,7 +139,7 @@ static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
 
 static int update_frame_menubar P_ ((struct frame *));
 static Lisp_Object xmenu_show P_ ((struct frame *, int, int, int, int,
-				   Lisp_Object, char **));
+				   Lisp_Object, char **, EMACS_UINT));
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
@@ -296,6 +296,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   int keymaps = 0;
   int for_click = 0;
   int specpdl_count = SPECPDL_INDEX ();
+  Lisp_Object timestamp = Qnil;
   struct gcpro gcpro1;
 
 #ifdef HAVE_MENUS
@@ -325,9 +326,10 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	      for_click = 1;
 	      tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
 	      window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-	      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
-	      x = Fcar (tem);
-	      y = Fcdr (tem);
+	      tem = Fcdr (Fcdr (tem));
+	      x = Fcar (Fcar (tem));
+	      y = Fcdr (Fcar (tem));
+	      timestamp = Fcar (Fcdr (tem));
 	    }
 
           /* If a click happens in an external tool bar or a detached
@@ -504,7 +506,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   BLOCK_INPUT;
 
   selection = xmenu_show (f, xpos, ypos, for_click,
-			  keymaps, title, &error_name);
+			  keymaps, title, &error_name,
+			  INTEGERP (timestamp) ? XUINT (timestamp) : 0);
   UNBLOCK_INPUT;
 
   discard_menu_items ();
@@ -1754,12 +1757,13 @@ pop_down_menu (arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (f, first_wv, x, y, for_click)
+create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
      FRAME_PTR f;
      widget_value *first_wv;
      int x;
      int y;
      int for_click;
+     EMACS_UINT timestamp;
 {
   int i;
   GtkWidget *menu;
@@ -1801,7 +1805,8 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
 
   /* Display the menu.  */
   gtk_widget_show_all (menu);
-  gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
+  gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
+		  timestamp);
 
   record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
@@ -1864,12 +1869,13 @@ pop_down_menu (arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (f, first_wv, x, y, for_click)
+create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
      FRAME_PTR f;
      widget_value *first_wv;
      int x;
      int y;
      int for_click;
+     EMACS_UINT timestamp;
 {
   int i;
   Arg av[2];
@@ -1938,7 +1944,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
 #endif /* not USE_GTK */
 
 static Lisp_Object
-xmenu_show (f, x, y, for_click, keymaps, title, error)
+xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
      FRAME_PTR f;
      int x;
      int y;
@@ -1946,6 +1952,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
      int keymaps;
      Lisp_Object title;
      char **error;
+     EMACS_UINT timestamp;
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -2152,7 +2159,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   menu_item_selection = 0;
 
   /* Actually create and show the menu until popped down.  */
-  create_and_show_popup_menu (f, first_wv, x, y, for_click);
+  create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp);
 
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
@@ -2598,13 +2605,14 @@ pop_down_menu (arg)
 
 
 static Lisp_Object
-xmenu_show (f, x, y, for_click, keymaps, title, error)
+xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
      FRAME_PTR f;
      int x, y;
      int for_click;
      int keymaps;
      Lisp_Object title;
      char **error;
+     EMACS_UINT timestamp;
 {
   Window root;
   XMenu *menu;
