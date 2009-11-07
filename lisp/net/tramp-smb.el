@@ -276,9 +276,9 @@ pass to the OPERATION."
 		 (tramp-compat-temporary-file-directory)))))
 	  (unwind-protect
 	      (progn
-		(copy-directory dirname tmpdir keep-date parents)
-		(copy-directory tmpdir newname keep-date parents))
-	    (delete-directory tmpdir 'recursive))))
+		(tramp-compat-copy-directory dirname tmpdir keep-date parents)
+		(tramp-compat-copy-directory tmpdir newname keep-date parents))
+	    (tramp-compat-delete-directory tmpdir 'recursive))))
 
        ;; We can copy recursively.
        ((or t1 t2)
@@ -371,7 +371,7 @@ PRESERVE-UID-GID is completely ignored."
 	(mapc
 	 (lambda (file)
 	   (if (file-directory-p file)
-	       (delete-directory file recursive)
+	       (tramp-compat-delete-directory file recursive)
 	     (delete-file file)))
 	 ;; We do not want to delete "." and "..".
 	 (directory-files
