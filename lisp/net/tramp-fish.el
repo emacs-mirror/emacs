@@ -319,7 +319,7 @@ pass to the OPERATION."
 	(mapc
 	 (lambda (file)
 	   (if (file-directory-p file)
-	       (delete-directory file recursive)
+	       (tramp-compat-delete-directory file recursive)
 	     (delete-file file)))
 	 ;; We do not want to delete "." and "..".
 	 (directory-files
