@@ -3404,8 +3404,9 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	       ;; When DIRNAME and NEWNAME are remote, they must have
 	       ;; the same method.
 	       (or (null t1) (null t2)
-		   (string-equal (file-remote-p dirname 'method)
-				 (file-remote-p newname 'method))))
+		   (string-equal
+		    (tramp-file-name-method (tramp-dissect-file-name dirname))
+		    (tramp-file-name-method (tramp-dissect-file-name newname)))))
 	  ;; scp or rsync DTRT.
 	  (progn
 	    (setq dirname (directory-file-name (expand-file-name dirname))
