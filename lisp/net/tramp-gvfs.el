@@ -522,7 +522,8 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
-  (delete-directory (tramp-gvfs-fuse-file-name directory) recursive))
+  (tramp-compat-delete-directory
+   (tramp-gvfs-fuse-file-name directory) recursive))
 
 (defun tramp-gvfs-handle-delete-file (filename)
   "Like `delete-file' for Tramp files."
