@@ -1,5 +1,63 @@
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Comment out time-stamp require; require
+	calendar and diary-lib.
+	(todos-prefix): Change default value and doc string to reflect new
+	meaning; add :initialize and :set functions.
+	(todos-time-string-format, todos-entry-prefix-function)
+	(todos-initials, todos-entry-timestamp-initials)
+	(todos-prefix-face, todos-category-sep, todos-category-end)
+	(todos-cp): Comment out.
+	(todos-prefix-string): Inherit from font-lock-comment-face.
+	(todos-item-header, todos-item-header-face): Remove.
+	(todos-date, todos-time): New faces.
+	(todos-date-face, todos-time-face): Corresponding new variables.
+	(todos-add-time-string, todos-include-in-diary)
+	(todos-exclusion-start, todos-exclusion-end, todos-number-prefix):
+	New defcustoms.
+	(todos-item-end, todos-item-start-overlays)
+	(todos-item-end-overlays): New variables.
+	(todos-date-string-match, todos-time-string-match): New functions.
+	(todos-font-lock-keywords): Use them.
+	(todos-current-date, todos-date-string, todos-time-string)
+	(todos-toggle-item-diary-inclusion, todos-toggle-diary-inclusion)
+	(todos-reset-prefix, todos-update-numbered-prefix)
+	(todos-check-overlay, todos-item-overlays)
+	(todos-insert-with-overlays, todos-show-paren-hack): New functions.
+	(todos-highlight-item): New command.
+	(todos-category-beg): Change value.
+	(todos-category-select): Use todos-category-beg and todos-item-overlays.
+	(todos-backward-item): Add optional count argument; use it and
+	todos-item-start.
+	(todos-forward-item): Use todos-check-overlay, todos-item-start
+	and variable todos-item-end.
+	(todos-edit-item, todos-delete-item): Use todos-number-prefix,
+	todos-update-numbered-prefix, todos-item-overlays.
+	(todos-add-category, todos-rename-category)
+	(todos-list-categories): Use new category format.
+	(todos-delete-category): Allow deleting non-empty category;
+	use new category format.
+	(todos-add-item-non-interactively): Comment out unnecessary
+	save-excursion; use todos-insert-with-overlays.
+	(todos-insert-item): Comment out unnecessary save-excursion; use
+	new item format for date/time header and diary inclusion marking.
+	(todos-insert-item-here): Use new item format for date/time header
+	and diary inclusion marking; use todos-insert-with-overlays.
+	(todos-raise-item): Make a no-op if point is on an empty line; use
+	todos-insert-with-overlays.
+	(todos-lower-item): Use todos-insert-with-overlays.
+	(todos-top-priorities): Move call to todos-show inside
+	save-excursion; add save-current-buffer after save-restriction.
+	(todos-item-start): Use variable todos-item-end.
+	(todos-item-end): Use todos-check-overlay and variable todos-item-end.
+	(todos-remove-item): Take item overlays into account.
+	(todos-mode): Change calculation of wrap-prefix; make
+	hl-line-range-function a local variable and set it to highlight
+	todo item.
+	(todos-show): Ensure point stays at top of category.
+
+2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-window-configuration): Comment out.
 	(todos-display-categories): Comment out use of
 	todos-window-configuration; use switch-to-buffer instead of
