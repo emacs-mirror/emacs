@@ -1,5 +1,8 @@
 2009-11-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* tar-mode.el (tar-copy): Call write-region on the right buffer
+	(Bug#4857).
+
 	* mail/rmailsum.el (rmail-summary-rmail-update): Call linum-update
 	by hand, if necessary (Bug#4878).
 

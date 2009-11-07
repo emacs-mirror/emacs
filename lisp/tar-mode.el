@@ -909,12 +909,14 @@ the current tar-entry."
 	 (end (+ start size))
 	 (inhibit-file-name-handlers inhibit-file-name-handlers)
 	 (inhibit-file-name-operation inhibit-file-name-operation))
-    (save-restriction
-      (widen)
+    (with-current-buffer
+	(if (tar-data-swapped-p) tar-data-buffer (current-buffer))
       ;; Inhibit compressing a subfile again if *both* name and
       ;; to-file are handled by jka-compr
-      (if (and (eq (find-file-name-handler name 'write-region) 'jka-compr-handler)
-	       (eq (find-file-name-handler to-file 'write-region) 'jka-compr-handler))
+      (if (and (eq (find-file-name-handler name 'write-region)
+		   'jka-compr-handler)
+	       (eq (find-file-name-handler to-file 'write-region)
+		   'jka-compr-handler))
 	  (setq inhibit-file-name-handlers
 		(cons 'jka-compr-handler
 		      (and (eq inhibit-file-name-operation 'write-region)
