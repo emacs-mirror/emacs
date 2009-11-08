@@ -8,6 +8,9 @@
 	* cedet/semantic/ctxt.el (semantic-get-local-variables): Disable
 	the progress reporter entirely.
 
+	* emulation/cua-base.el: Add CUA property to some CC mode commands
+	(Bug#4100).
+
 2009-11-08  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-regexp): Match noun
