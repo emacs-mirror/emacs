@@ -1,3 +1,8 @@
+2009-11-08  Kai Tetzlaff  <kai.tetzlaff@web.de>  (tiny change)
+
+	* url-http.el (url-http-handle-authentication): Use proxy server,
+	if any, for authentication (Bug#4883).
+
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-util.el (url-insert-entities-in-string):

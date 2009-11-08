@@ -315,12 +315,16 @@ This allows us to use `mail-fetch-field', etc."
 		  '("basic")))
 	(type nil)
 	(url (url-recreate-url url-current-object))
-	(url-basic-auth-storage 'url-http-real-basic-auth-storage)
+	(auth-url (url-recreate-url
+		   (if (and proxy (boundp 'url-http-proxy))
+		       url-http-proxy
+		     url-current-object)))
+	(url-basic-auth-storage (if proxy
+				    ;; Cheating, but who cares? :)
+				    'url-http-proxy-basic-auth-storage
+				  'url-http-real-basic-auth-storage))
 	auth
 	(strength 0))
-    ;; Cheating, but who cares? :)
-    (if proxy
-	(setq url-basic-auth-storage 'url-http-proxy-basic-auth-storage))
 
     ;; find strongest supported auth
     (dolist (this-auth auths)
@@ -347,7 +351,8 @@ This allows us to use `mail-fetch-field', etc."
 		  " send it to " url-bug-address ".<hr>")
 	  (setq status t))
       (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
-	     (auth (url-get-authentication url (cdr-safe (assoc "realm" args))
+	     (auth (url-get-authentication auth-url
+					   (cdr-safe (assoc "realm" args))
 					   type t args)))
 	(if (not auth)
 	    (setq success t)
