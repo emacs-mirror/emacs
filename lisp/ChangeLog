@@ -1,7 +1,12 @@
+2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/ctxt.el (semantic-get-local-variables): Disable
+	the progress reporter entirely.
+
 2009-11-08  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-regexp): Match noun
-	at end of sentence (my Bug#4818).
+	at end of sentence (Bug#4818).
 
 2009-11-08  Jared Finder  <jfinder@crypticstudios.com>
 
