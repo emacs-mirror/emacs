@@ -1,3 +1,8 @@
+2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Char Classes): Note that [:upper:] and [:lower:]
+	are affected by case-fold-search (Bug#4483).
+
 2009-11-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Reading File Names): Note that read-file-name may
