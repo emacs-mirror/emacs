@@ -1,7 +1,7 @@
-2009-11-07  Chong Yidong  <cyd@stupidchicken.com>
+2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xmenu.c (Fx_popup_menu): Extract event timestamp.  Pass it to
-	xmenu_show.
+	xmenu_show.  Hide any tooltip before opening a menu.
 	(xmenu_show): New arg.  Pass it to create_and_show_popup_menu.
 	(create_and_show_popup_menu): New arg.  Pass it to gtk_menu_popup.
 

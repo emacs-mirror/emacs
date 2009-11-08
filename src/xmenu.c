@@ -502,6 +502,9 @@ no quit occurs and `x-popup-menu' returns nil.  */)
     }
 
 #ifdef HAVE_MENUS
+  /* Hide a previous tip, if any.  */
+  Fx_hide_tip ();
+
   /* Display them in a menu.  */
   BLOCK_INPUT;
 
@@ -1805,6 +1808,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
 
   /* Display the menu.  */
   gtk_widget_show_all (menu);
+
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
 		  timestamp > 0 ? timestamp : gtk_get_current_event_time());
 
