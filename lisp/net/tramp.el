@@ -4927,22 +4927,25 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	   ((or (tramp-local-host-p v)
 		(tramp-method-out-of-band-p
 		 v (- (or end (point-max)) (or start (point-min)))))
-	    (condition-case err
-		(if (and (= (or end (point-max)) (point-max))
-			 (= (or start (point-min)) (point-min))
-			 (tramp-get-method-parameter
-			  method 'tramp-copy-keep-tmpfile))
-		    (progn
+	    (if (and (= (or end (point-max)) (point-max))
+		     (= (or start (point-min)) (point-min))
+		     (tramp-get-method-parameter
+		      method 'tramp-copy-keep-tmpfile))
+		(progn
+		  (setq tramp-temp-buffer-file-name tmpfile)
+		  (condition-case err
 		      ;; We keep the local file for performance
 		      ;; reasons, useful for "rsync".
-		      (setq tramp-temp-buffer-file-name tmpfile)
-		      (copy-file tmpfile filename t))
-		  (setq tramp-temp-buffer-file-name nil)
-		  (rename-file tmpfile filename t))
-	      ((error quit)
-	       (setq tramp-temp-buffer-file-name nil)
-	       (delete-file tmpfile)
-	       (signal (car err) (cdr err)))))
+		      (copy-file tmpfile filename t)
+		    ((error quit)
+		     (setq tramp-temp-buffer-file-name nil)
+		     (delete-file tmpfile)
+		     (signal (car err) (cdr err)))))
+	      (setq tramp-temp-buffer-file-name nil)
+	      ;; Don't rename, in order to keep context in SELinux.
+	      (unwind-protect
+		  (copy-file tmpfile filename t)
+		(delete-file tmpfile))))
 
 	   ;; Use inline file transfer.
 	   (rem-dec
@@ -8123,8 +8126,12 @@ If the `tramp-methods' entry does not exist, return NIL."
 	(setq ad-return-value
 	      (tramp-file-name-handler 'make-auto-save-file-name))
       ad-do-it))
-  (add-hook 'tramp-unload-hook
-	    (lambda () (ad-unadvise 'make-auto-save-file-name))))
+  (add-hook
+   'tramp-unload-hook
+   (lambda ()
+     (ad-remove-advice
+      'make-auto-save-file-name
+      'around 'tramp-advice-make-auto-save-file-name))))
 
 ;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
 ;; permission 0666 minus umask. This is a security threat.
@@ -8356,12 +8363,20 @@ Only works for Bourne-like shells."
 	  (if (string-match
 	       "[[*?]"
 	       (tramp-file-name-localname (tramp-dissect-file-name name)))
-	      (setq ad-return-value (or ad-do-it (list name)))
+	      (progn
+		ad-do-it
+		(unless ad-return-value
+		  (setq ad-return-value (list name))))
 	    (setq ad-return-value (list name)))
 	;; If it is not a Tramp file, just run the original function.
-	(setq ad-return-value (or ad-do-it (list name))))))
-  (add-hook 'tramp-unload-hook
-	    (lambda () (ad-unadvise 'file-expand-wildcards))))
+	ad-do-it
+	(unless ad-return-value
+	  (setq ad-return-value (list name))))))
+  (add-hook
+   'tramp-unload-hook
+   (lambda ()
+     (ad-remove-advice
+      'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards))))
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages
