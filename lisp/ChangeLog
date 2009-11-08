@@ -1,3 +1,8 @@
+2009-11-08  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-regexp): Match noun
+	at end of sentence (my Bug#4818).
+
 2009-11-08  Jared Finder  <jfinder@crypticstudios.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
