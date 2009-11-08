@@ -331,12 +331,15 @@ This should be set in an Emacs Lisp file's local variables."
   "List of words (not capitalized) which should be capitalized.")
 
 (defvar checkdoc-proper-noun-regexp
+  ;; "[.!?]" is for noun at end of a sentence, since those chars
+  ;; are symbol syntax in emacs-lisp-mode and so don't match \\_>.
+  ;; The \" allows it to be the last sentence in a docstring too.
   (let ((expr "\\_<\\(")
 	(l checkdoc-proper-noun-list))
     (while l
       (setq expr (concat expr (car l) (if (cdr l) "\\|" ""))
 	    l (cdr l)))
-    (concat expr "\\)\\_>"))
+    (concat expr "\\)\\(\\_>\\|[.!?][ \t\n\"]\\)"))
   "Regular expression derived from `checkdoc-proper-noun-regexp'.")
 
 (defvar checkdoc-common-verbs-regexp nil
