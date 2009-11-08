@@ -1,3 +1,8 @@
+2009-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (parse_menu_item): Handle `notreal' a bit earlier.
+	Use `tem' less.  Make sure KEYEQ holds a string or nil (bug#4879).
+
 2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xmenu.c (Fx_popup_menu): Extract event timestamp.  Pass it to

@@ -8068,65 +8068,70 @@ parse_menu_item (item, notreal, inmenubar)
   if (inmenubar > 0)
     return 1;
 
-  /* This is a command.  See if there is an equivalent key binding. */
-  tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
-  /* The previous code preferred :key-sequence to :keys, so we
-     preserve this behavior.  */
-  if (STRINGP (tem) && !CONSP (keyhint))
-    tem = Fsubstitute_command_keys (tem);
-  else
-    {
-      Lisp_Object prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
-      Lisp_Object keys = Qnil;
-
-      if (CONSP (prefix))
-	{
-	  def = XCAR (prefix);
-	  prefix = XCDR (prefix);
-	}
-      else
-	def = AREF (item_properties, ITEM_PROPERTY_DEF);
-
-      if (CONSP (keyhint) && !NILP (XCAR (keyhint)))
-	{
-	  keys = XCAR (keyhint);
-	  tem = Fkey_binding (keys, Qnil, Qnil, Qnil);
-
-	  /* We have a suggested key.  Is it bound to the command?  */
-	  if (NILP (tem)
-	      || (!EQ (tem, def)
-		  /* If the command is an alias for another
-		     (such as lmenu.el set it up), check if the
-		     original command matches the cached command.  */
-		  && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
-	    keys = Qnil;
-	}
-      
-      if (NILP (keys))
-	keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
-	  
-      if (!NILP (keys))
-	{
-	  tem = Fkey_description (keys, Qnil);
-	  if (CONSP (prefix))
-	    {
-	      if (STRINGP (XCAR (prefix)))
-		tem = concat2 (XCAR (prefix), tem);
-	      if (STRINGP (XCDR (prefix)))
-		tem = concat2 (tem, XCDR (prefix));
-	    }
-	  tem = concat2 (build_string ("  "), tem);
-	  /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
-	}
-    }
   
-
-  /* If we only want to precompute equivalent key bindings, stop here. */
+  /* If we only want to precompute equivalent key bindings (which we
+     don't even do any more anyway), stop here.  */
   if (notreal)
     return 1;
 
-  /* If we have an equivalent key binding, use that.  */
-  ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
+  { /* This is a command.  See if there is an equivalent key binding. */
+    Lisp_Object keyeq = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+
+    /* The previous code preferred :key-sequence to :keys, so we
+       preserve this behavior.  */
+    if (STRINGP (keyeq) && !CONSP (keyhint))
+      keyeq = Fsubstitute_command_keys (keyeq);
+    else
+      {
+	Lisp_Object prefix = keyeq;
+	Lisp_Object keys = Qnil;
+
+	if (CONSP (prefix))
+	  {
+	    def = XCAR (prefix);
+	    prefix = XCDR (prefix);
+	  }
+	else
+	  def = AREF (item_properties, ITEM_PROPERTY_DEF);
+
+	if (CONSP (keyhint) && !NILP (XCAR (keyhint)))
+	  {
+	    keys = XCAR (keyhint);
+	    tem = Fkey_binding (keys, Qnil, Qnil, Qnil);
+
+	    /* We have a suggested key.  Is it bound to the command?  */
+	    if (NILP (tem)
+		|| (!EQ (tem, def)
+		    /* If the command is an alias for another
+		       (such as lmenu.el set it up), check if the
+		       original command matches the cached command.  */
+		    && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
+	      keys = Qnil;
+	  }
+      
+	if (NILP (keys))
+	  keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
+	  
+	if (!NILP (keys))
+	  {
+	    tem = Fkey_description (keys, Qnil);
+	    if (CONSP (prefix))
+	      {
+		if (STRINGP (XCAR (prefix)))
+		  tem = concat2 (XCAR (prefix), tem);
+		if (STRINGP (XCDR (prefix)))
+		  tem = concat2 (tem, XCDR (prefix));
+	      }
+	    keyeq = concat2 (build_string ("  "), tem);
+	    /* keyeq = concat3(build_string("  ("),tem,build_string(")")); */
+	  }
+	else
+	  keyeq = Qnil;
+      }
+
+    /* If we have an equivalent key binding, use that.  */
+    ASET (item_properties, ITEM_PROPERTY_KEYEQ, keyeq);
+  }  
 
   /* Include this when menu help is implemented.
   tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
