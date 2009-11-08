@@ -459,7 +459,11 @@ Optional second arg DEFAULT is a string to return if the user enters
 the empty string."
   (bookmark-maybe-load-default-file) ; paranoia
   (if (listp last-nonmenu-event)
-      (bookmark-menu-popup-paned-menu t prompt (bookmark-all-names))
+      (bookmark-menu-popup-paned-menu t prompt
+				      (if bookmark-sort-flag
+					  (sort (bookmark-all-names)
+						'string-lessp)
+					(bookmark-all-names)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
 	   (default default)
 	   (prompt (concat prompt (if default

@@ -1,3 +1,8 @@
+2009-11-08  Markus Rost <rost@math.uni-bielefeld.de>
+
+	* bookmark.el (bookmark-completing-read): Sort bookmark names if
+	bookmark-sort-flag is non-nil (Bug#4653).
+
 2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic/ctxt.el (semantic-get-local-variables): Disable
