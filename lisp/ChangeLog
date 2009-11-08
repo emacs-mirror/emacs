@@ -1,6 +1,6 @@
 2009-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
-	Sync with Tramp 2.1.16.
+	Sync with Tramp 2.1.17.
 
 	* net/tramp.el (tramp-handle-copy-directory): Don't use
 	`file-remote-p' (due to compatibility).
