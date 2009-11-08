@@ -2057,6 +2057,23 @@ for @value{tramp} files:
 @end lisp
 @end ifset
 
+@ifset emacs
+It is also possible to disable backups depending on the used method.
+The following code disables backups for the @option{su} and
+@option{sudo} methods:
+
+@lisp
+(setq backup-enable-predicate
+      (lambda (name)
+        (and (normal-backup-enable-predicate name)
+             (not
+              (let ((method (file-remote-p name 'method)))
+                (when (stringp method)
+                  (member method '("su" "sudo"))))))))
+@end lisp
+@end ifset
+
+
 Another possibility is to use the @value{tramp} variable
 @ifset emacs
 @code{tramp-backup-directory-alist}.
