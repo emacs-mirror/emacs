@@ -8068,7 +8068,6 @@ parse_menu_item (item, notreal, inmenubar)
   if (inmenubar > 0)
     return 1;
 
-  
   /* If we only want to precompute equivalent key bindings (which we
      don't even do any more anyway), stop here.  */
   if (notreal)
@@ -8108,10 +8107,10 @@ parse_menu_item (item, notreal, inmenubar)
 		    && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
 	      keys = Qnil;
 	  }
-      
+
 	if (NILP (keys))
 	  keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
-	  
+
 	if (!NILP (keys))
 	  {
 	    tem = Fkey_description (keys, Qnil);
@@ -8131,7 +8130,7 @@ parse_menu_item (item, notreal, inmenubar)
 
     /* If we have an equivalent key binding, use that.  */
     ASET (item_properties, ITEM_PROPERTY_KEYEQ, keyeq);
-  }  
+  }
 
   /* Include this when menu help is implemented.
   tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
