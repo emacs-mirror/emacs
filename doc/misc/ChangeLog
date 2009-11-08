@@ -1,3 +1,10 @@
+2009-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Auto-save and Backup): Disable backups just for a
+	method.
+
+	* trampver.texi: Update release number.
+
 2009-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.17.
