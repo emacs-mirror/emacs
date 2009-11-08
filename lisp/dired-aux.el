@@ -887,25 +887,33 @@ Binding variable `help-form' will help the user who types the help key."
 	  ((eq 'no action)
 	   nil)				; skip, and don't ask again
 	  (t;; no lasting effects from last time we asked - ask now
-	   (let ((qprompt (concat qs-prompt
+	   (let ((cursor-in-echo-area t)
+		 (executing-kbd-macro executing-kbd-macro)
+		 (qprompt (concat qs-prompt
 				  (if help-form
 				      (format " [Type yn!q or %s] "
 					      (key-description
 					       (char-to-string help-char)))
 				    " [Type y, n, q or !] ")))
-		 result elt)
-	     ;; Actually it looks nicer without cursor-in-echo-area - you can
-	     ;; look at the dired buffer instead of at the prompt to decide.
-	     (apply 'message qprompt qs-args)
-	     (while (progn (setq char (set qs-var (read-key)))
-                           (not (setq elt (assoc char dired-query-alist))))
-	       (message "Invalid key - type %c for help." help-char)
-	       (ding)
-	       (sit-for 1)
-	       (apply 'message qprompt qs-args))
+		 done result elt)
+	     (while (not done)
+	       (apply 'message qprompt qs-args)
+	       (setq char (set qs-var (read-event)))
+	       (if (numberp char)
+		   (cond ((and executing-kbd-macro (= char -1))
+			  ;; read-event returns -1 if we are in a kbd
+			  ;; macro and there are no more events in the
+			  ;; macro.  Attempt to get an event
+			  ;; interactively.
+			  (setq executing-kbd-macro nil))
+			 ((eq (key-binding (vector char)) 'keyboard-quit)
+			  (keyboard-quit))
+			 (t
+			  (setq done (setq elt (assoc char
+						      dired-query-alist)))))))
 	     ;; Display the question with the answer.
 	     (message "%s" (concat (apply 'format qprompt qs-args)
-			      (char-to-string char)))
+				   (char-to-string char)))
 	     (memq (cdr elt) '(t y yes)))))))
 
 ;;;###autoload

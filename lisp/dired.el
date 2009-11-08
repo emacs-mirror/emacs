@@ -1388,8 +1388,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 		  :help "Move to previous directory-file line"))
     (define-key map [menu-bar subdir insert]
       '(menu-item "Insert This Subdir" dired-maybe-insert-subdir
-		  :help "Insert contents of subdirectory"))
-
+		  :help "Insert contents of subdirectory"
+		  :enable (let ((f (dired-get-filename nil t)))
+			    (and f (file-directory-p f)))))
     (define-key map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
@@ -3454,7 +3455,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "6c7ccd455c2cd50d48164ebd5c52e216")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "e207e02ac395d10ee4a09e208081a0ce")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

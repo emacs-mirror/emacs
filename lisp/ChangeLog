@@ -1,3 +1,11 @@
+2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-query): Place cursor in echo area and allow
+	C-g.
+
+	* dired.el (dired-mode-map): Disable dired-maybe-insert-subdir
+	menu item if not on a directory (Bug#4701).
+
 2009-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.17.
