@@ -1,3 +1,7 @@
+2009-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu.c [HAVE_NTGUI]: Declare current_popup_menu.
+
 2009-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* menu.c (Fx_popup_menu): Consolidate versions from xmenu.c,

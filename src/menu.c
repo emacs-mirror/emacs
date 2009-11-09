@@ -50,6 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 
 extern AppendMenuW_Proc unicode_append_menu;
+extern HMENU current_popup_menu;
 
 #endif /* HAVE_NTGUI  */
 
