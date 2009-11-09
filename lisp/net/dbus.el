@@ -166,8 +166,8 @@ been unregistered, `nil' otherwise."
 	   (dolist (val v)
 	     (ignore-errors
 	       (when (and (equal bus (car k))
-			  (string-equal service (cadr val))))
-	       (setq found t))))
+			  (string-equal service (cadr val)))
+		 (setq found t)))))
 	 dbus-registered-functions-table)
 	(unless found
 	  (dbus-call-method
