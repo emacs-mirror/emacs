@@ -7797,7 +7797,7 @@ menu_bar_item (key, item, dummy1, dummy2)
      parse_menu_item, so that if it turns out it wasn't a menu item,
      it still correctly hides any further menu item.  */
   GCPRO1 (key);
-  i = parse_menu_item (item, 0, 1);
+  i = parse_menu_item (item, 1);
   UNGCPRO;
   if (!i)
     return;
@@ -7865,8 +7865,6 @@ menu_item_eval_property (sexpr)
 /* This function parses a menu item and leaves the result in the
    vector item_properties.
    ITEM is a key binding, a possible menu item.
-   If NOTREAL is nonzero, only check for equivalent key bindings, don't
-   evaluate dynamic expressions in the menu item.
    INMENUBAR is > 0 when this is considered for an entry in a menu bar
    top level.
    INMENUBAR is < 0 when this is considered for an entry in a keyboard menu.
@@ -7874,9 +7872,9 @@ menu_item_eval_property (sexpr)
    otherwise.  */
 
 int
-parse_menu_item (item, notreal, inmenubar)
+parse_menu_item (item, inmenubar)
      Lisp_Object item;
-     int notreal, inmenubar;
+     int inmenubar;
 {
   Lisp_Object def, tem, item_string, start;
   Lisp_Object filter;
@@ -7966,7 +7964,7 @@ parse_menu_item (item, notreal, inmenubar)
 		  else
 		    ASET (item_properties, ITEM_PROPERTY_ENABLE, XCAR (item));
 		}
-	      else if (EQ (tem, QCvisible) && !notreal)
+	      else if (EQ (tem, QCvisible))
 		{
 		  /* If got a visible property and that evaluates to nil
 		     then ignore this item.  */
@@ -8015,7 +8013,7 @@ parse_menu_item (item, notreal, inmenubar)
   /* If item string is not a string, evaluate it to get string.
      If we don't get a string, skip this item.  */
   item_string = AREF (item_properties, ITEM_PROPERTY_NAME);
-  if (!(STRINGP (item_string) || notreal))
+  if (!(STRINGP (item_string)))
     {
       item_string = menu_item_eval_property (item_string);
       if (!STRINGP (item_string))
@@ -8037,10 +8035,7 @@ parse_menu_item (item, notreal, inmenubar)
   tem = AREF (item_properties, ITEM_PROPERTY_ENABLE);
   if (!EQ (tem, Qt))
     {
-      if (notreal)
-	tem = Qt;
-      else
-	tem = menu_item_eval_property (tem);
+      tem = menu_item_eval_property (tem);
       if (inmenubar && NILP (tem))
 	return 0;		/* Ignore disabled items in menu bar.  */
       ASET (item_properties, ITEM_PROPERTY_ENABLE, tem);
@@ -8066,11 +8061,6 @@ parse_menu_item (item, notreal, inmenubar)
      The menu bar does not display equivalent key bindings anyway.
      ITEM_PROPERTY_DEF is already set up properly.  */
   if (inmenubar > 0)
-    return 1;
-
-  /* If we only want to precompute equivalent key bindings (which we
-     don't even do any more anyway), stop here.  */
-  if (notreal)
     return 1;
 
   { /* This is a command.  See if there is an equivalent key binding. */
@@ -8763,7 +8753,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		}
 
 	      /* Ignore the element if it has no prompt string.  */
-	      if (INTEGERP (event) && parse_menu_item (elt, 0, -1))
+	      if (INTEGERP (event) && parse_menu_item (elt, -1))
 		{
 		  /* 1 if the char to type matches the string.  */
 		  int char_matches;

@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
+#include "window.h"
 #include "termhooks.h"
 #include "blockinput.h"
 #include "dispextern.h"
@@ -126,6 +127,13 @@ discard_menu_items ()
       menu_items_allocated = 0;
     }
   xassert (NILP (menu_items_inuse));
+}
+
+static Lisp_Object
+cleanup_popup_menu (Lisp_Object arg)
+{
+  discard_menu_items ();
+  return Qnil;
 }
 
 /* This undoes save_menu_items, and it is called by the specpdl unwind
@@ -253,7 +261,7 @@ push_menu_item (name, enable, key, def, equiv, type, selected, help)
 struct skp
   {
      Lisp_Object pending_maps;
-     int maxdepth, notreal;
+     int maxdepth;
      int notbuttons;
   };
 
@@ -264,25 +272,18 @@ static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
    It handles one keymap, KEYMAP.
    The other arguments are passed along
    or point to local variables of the previous function.
-   If NOTREAL is nonzero, only check for equivalent key bindings, don't
-   evaluate expressions in menu items and don't make any menu.
 
    If we encounter submenus deeper than MAXDEPTH levels, ignore them.  */
 
 static void
-single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
-     Lisp_Object keymap;
-     Lisp_Object pane_name;
-     Lisp_Object prefix;
-     int notreal;
-     int maxdepth;
+single_keymap_panes (Lisp_Object keymap, Lisp_Object pane_name,
+		     Lisp_Object prefix, int maxdepth)
 {
   struct skp skp;
   struct gcpro gcpro1;
 
   skp.pending_maps = Qnil;
   skp.maxdepth = maxdepth;
-  skp.notreal = notreal;
   skp.notbuttons = 0;
 
   if (maxdepth <= 0)
@@ -311,8 +312,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
       string = XCAR (eltcdr);
       /* We no longer discard the @ from the beginning of the string here.
 	 Instead, we do this in *menu_show.  */
-      single_keymap_panes (Fcar (elt), string,
-			   XCDR (eltcdr), notreal, maxdepth - 1);
+      single_keymap_panes (Fcar (elt), string, XCDR (eltcdr), maxdepth - 1);
       skp.pending_maps = XCDR (skp.pending_maps);
     }
 }
@@ -322,8 +322,6 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
    KEY is a key in a keymap and ITEM is its binding.
    SKP->PENDING_MAPS_PTR is a list of keymaps waiting to be made into
    separate panes.
-   If SKP->NOTREAL is nonzero, only check for equivalent key bindings, don't
-   evaluate expressions in menu items and don't make any menu.
    If we encounter submenus deeper than SKP->MAXDEPTH levels, ignore them.  */
 
 static void
@@ -338,21 +336,12 @@ single_menu_item (key, item, dummy, skp_v)
 
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
-  res = parse_menu_item (item, skp->notreal, 0);
+  res = parse_menu_item (item, 0);
   UNGCPRO;
   if (!res)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-
-  if (skp->notreal)
-    {
-      /* We don't want to make a menu, just traverse the keymaps to
-	 precompute equivalent key bindings.  */
-      if (!NILP (map))
-	single_keymap_panes (map, Qnil, key, 1, skp->maxdepth - 1);
-      return;
-    }
 
   enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
   item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
@@ -450,22 +439,19 @@ single_menu_item (key, item, dummy, skp_v)
   if (! (NILP (map) || NILP (enabled)))
     {
       push_submenu_start ();
-      single_keymap_panes (map, Qnil, key, 0, skp->maxdepth - 1);
+      single_keymap_panes (map, Qnil, key, skp->maxdepth - 1);
       push_submenu_end ();
     }
 #endif
 }
 
 /* Look through KEYMAPS, a vector of keymaps that is NMAPS long,
-   and generate menu panes for them in menu_items.
-   If NOTREAL is nonzero,
-   don't bother really computing whether an item is enabled.  */
+   and generate menu panes for them in menu_items.  */
 
-void
-keymap_panes (keymaps, nmaps, notreal)
+static void
+keymap_panes (keymaps, nmaps)
      Lisp_Object *keymaps;
      int nmaps;
-     int notreal;
 {
   int mapno;
 
@@ -476,7 +462,7 @@ keymap_panes (keymaps, nmaps, notreal)
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
     single_keymap_panes (keymaps[mapno],
-			 Fkeymap_prompt (keymaps[mapno]), Qnil, notreal, 10);
+			 Fkeymap_prompt (keymaps[mapno]), Qnil, 10);
 
   finish_menu_items ();
 }
@@ -577,7 +563,7 @@ parse_single_submenu (item_key, item_name, maps)
 	  prompt = Fkeymap_prompt (mapvec[i]);
 	  single_keymap_panes (mapvec[i],
 			       !NILP (prompt) ? prompt : item_name,
-			       item_key, 0, 10);
+			       item_key, 10);
 	}
     }
 
@@ -1028,12 +1014,352 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
 }
 #endif  /* HAVE_NS */
 
+DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
+       doc: /* Pop up a deck-of-cards menu and return user's selection.
+POSITION is a position specification.  This is either a mouse button event
+or a list ((XOFFSET YOFFSET) WINDOW)
+where XOFFSET and YOFFSET are positions in pixels from the top left
+corner of WINDOW.  (WINDOW may be a window or a frame object.)
+This controls the position of the top left of the menu as a whole.
+If POSITION is t, it means to use the current mouse position.
+
+MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
+The menu items come from key bindings that have a menu string as well as
+a definition; actually, the "definition" in such a key binding looks like
+\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
+the keymap as a top-level element.
+
+If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
+Otherwise, REAL-DEFINITION should be a valid key binding definition.
+
+You can also use a list of keymaps as MENU.
+  Then each keymap makes a separate pane.
+
+When MENU is a keymap or a list of keymaps, the return value is the
+list of events corresponding to the user's choice. Note that
+`x-popup-menu' does not actually execute the command bound to that
+sequence of events.
+
+Alternatively, you can specify a menu of multiple panes
+  with a list of the form (TITLE PANE1 PANE2...),
+where each pane is a list of form (TITLE ITEM1 ITEM2...).
+Each ITEM is normally a cons cell (STRING . VALUE);
+but a string can appear as an item--that makes a nonselectable line
+in the menu.
+With this form of menu, the return value is VALUE from the chosen item.
+
+If POSITION is nil, don't display the menu at all, just precalculate the
+cached information about equivalent key sequences.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+`x-popup-menu' does not return.  But if POSITION is a mouse button
+event (indicating that the user invoked the menu with the mouse) then
+no quit occurs and `x-popup-menu' returns nil.  */)
+  (position, menu)
+     Lisp_Object position, menu;
+{
+  Lisp_Object keymap, tem;
+  int xpos = 0, ypos = 0;
+  Lisp_Object title;
+  char *error_name = NULL;
+  Lisp_Object selection = Qnil;
+  FRAME_PTR f = NULL;
+  Lisp_Object x, y, window;
+  int keymaps = 0;
+  int for_click = 0;
+  int specpdl_count = SPECPDL_INDEX ();
+  Lisp_Object timestamp = Qnil;
+  struct gcpro gcpro1;
+#ifdef HAVE_NS
+  EmacsMenu *pmenu;
+  int specpdl_count2;
+  widget_value *wv, *first_wv = 0;
+#endif
+
+#ifdef HAVE_NS
+  NSTRACE (ns_popup_menu);
+#endif
+
+  if (NILP (position))
+    /* This is an obsolete call, which wants us to precompute the
+       keybinding equivalents, but we don't do that any more anyway.  */
+    return Qnil;
+
+#ifdef HAVE_MENUS
+  {
+    int get_current_pos_p = 0;
+    /* FIXME!!  check_w32 (); or check_x (); or check_ns (); */
+
+    /* Decode the first argument: find the window and the coordinates.  */
+    if (EQ (position, Qt)
+	|| (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+				 || EQ (XCAR (position), Qtool_bar))))
+      {
+	get_current_pos_p = 1;
+      }
+    else
+      {
+	tem = Fcar (position);
+	if (CONSP (tem))
+	  {
+	    window = Fcar (Fcdr (position));
+	    x = XCAR (tem);
+	    y = Fcar (XCDR (tem));
+	  }
+	else
+	  {
+	    for_click = 1;
+	    tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
+	    tem = Fcdr (Fcdr (tem));
+	    x = Fcar (Fcar (tem));
+	    y = Fcdr (Fcar (tem));
+	    timestamp = Fcar (Fcdr (tem));
+	  }
+
+	/* If a click happens in an external tool bar or a detached
+	   tool bar, x and y is NIL.  In that case, use the current
+	   mouse position.  This happens for the help button in the
+	   tool bar.  Ideally popup-menu should pass NIL to
+	   this function, but it doesn't.  */
+	if (NILP (x) && NILP (y))
+	  get_current_pos_p = 1;
+      }
+
+    if (get_current_pos_p)
+      {
+	/* Use the mouse's current position.  */
+	FRAME_PTR new_f = SELECTED_FRAME ();
+#ifdef HAVE_X_WINDOWS
+	/* Can't use mouse_position_hook for X since it returns
+	   coordinates relative to the window the mouse is in,
+	   we need coordinates relative to the edit widget always.  */
+	if (new_f != 0)
+	  {
+	    int cur_x, cur_y;
+
+	    mouse_position_for_popup (new_f, &cur_x, &cur_y);
+	    /* cur_x/y may be negative, so use make_number.  */
+	    x = make_number (cur_x);
+	    y = make_number (cur_y);
+	  }
+
+#else /* not HAVE_X_WINDOWS */
+	Lisp_Object bar_window;
+	enum scroll_bar_part part;
+	unsigned long time;
+	void (*mouse_position_hook) P_ ((struct frame **, int,
+					 Lisp_Object *,
+					 enum scroll_bar_part *,
+					 Lisp_Object *,
+					 Lisp_Object *,
+					 unsigned long *)) =
+	  FRAME_TERMINAL (new_f)->mouse_position_hook;
+
+	if (mouse_position_hook)
+	  (*mouse_position_hook) (&new_f, 1, &bar_window,
+				  &part, &x, &y, &time);
+#endif /* not HAVE_X_WINDOWS */
+
+	if (new_f != 0)
+	  XSETFRAME (window, new_f);
+	else
+	  {
+	    window = selected_window;
+	    XSETFASTINT (x, 0);
+	    XSETFASTINT (y, 0);
+	  }
+      }
+
+    CHECK_NUMBER (x);
+    CHECK_NUMBER (y);
+
+    /* Decode where to put the menu.  */
+
+    if (FRAMEP (window))
+      {
+	f = XFRAME (window);
+	xpos = 0;
+	ypos = 0;
+      }
+    else if (WINDOWP (window))
+      {
+	struct window *win = XWINDOW (window);
+	CHECK_LIVE_WINDOW (window);
+	f = XFRAME (WINDOW_FRAME (win));
+
+#ifdef HAVE_NS		     /* FIXME: Is this necessary??  --Stef  */
+	p.x = FRAME_COLUMN_WIDTH (f) * WINDOW_LEFT_EDGE_COL (win);
+	p.y = FRAME_LINE_HEIGHT (f) * WINDOW_TOP_EDGE_LINE (win);
+#else
+	xpos = WINDOW_LEFT_EDGE_X (win);
+	ypos = WINDOW_TOP_EDGE_Y (win);
+#endif
+      }
+    else
+      /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
+	 but I don't want to make one now.  */
+      CHECK_WINDOW (window);
+
+    xpos += XINT (x);
+    ypos += XINT (y);
+
+    /* FIXME: Find a more general check!  */
+    if (!(FRAME_X_P (f) || FRAME_MSDOS_P (f)
+	  || FRAME_W32_P (f) || FRAME_NS_P (f)))
+      error ("Can not put GUI menu on this terminal");
+
+    XSETFRAME (Vmenu_updating_frame, f);
+  }
+#endif /* HAVE_MENUS */
+
+  /* Now parse the lisp menus.  */
+  record_unwind_protect (unuse_menu_items, Qnil);
+
+  title = Qnil;
+  GCPRO1 (title);
+
+  /* Decode the menu items from what was specified.  */
+
+  keymap = get_keymap (menu, 0, 0);
+  if (CONSP (keymap))
+    {
+      /* We were given a keymap.  Extract menu info from the keymap.  */
+      Lisp_Object prompt;
+
+      /* Extract the detailed info to make one pane.  */
+      keymap_panes (&menu, 1);
+
+      /* Search for a string appearing directly as an element of the keymap.
+	 That string is the title of the menu.  */
+      prompt = Fkeymap_prompt (keymap);
+      if (!NILP (prompt))
+	title = prompt;
+#ifdef HAVE_NS		/* Is that needed and NS-specific?  --Stef  */
+      else
+	title = build_string ("Select");
+#endif
+
+      /* Make that be the pane title of the first pane.  */
+      if (!NILP (prompt) && menu_items_n_panes >= 0)
+	ASET (menu_items, MENU_ITEMS_PANE_NAME, prompt);
+
+      keymaps = 1;
+    }
+  else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
+    {
+      /* We were given a list of keymaps.  */
+      int nmaps = XFASTINT (Flength (menu));
+      Lisp_Object *maps
+	= (Lisp_Object *) alloca (nmaps * sizeof (Lisp_Object));
+      int i;
+
+      title = Qnil;
+
+      /* The first keymap that has a prompt string
+	 supplies the menu title.  */
+      for (tem = menu, i = 0; CONSP (tem); tem = XCDR (tem))
+	{
+	  Lisp_Object prompt;
+
+	  maps[i++] = keymap = get_keymap (XCAR (tem), 1, 0);
+
+	  prompt = Fkeymap_prompt (keymap);
+	  if (NILP (title) && !NILP (prompt))
+	    title = prompt;
+	}
+
+      /* Extract the detailed info to make one pane.  */
+      keymap_panes (maps, nmaps);
+
+      /* Make the title be the pane title of the first pane.  */
+      if (!NILP (title) && menu_items_n_panes >= 0)
+	ASET (menu_items, MENU_ITEMS_PANE_NAME, title);
+
+      keymaps = 1;
+    }
+  else
+    {
+      /* We were given an old-fashioned menu.  */
+      title = Fcar (menu);
+      CHECK_STRING (title);
+
+      list_of_panes (Fcdr (menu));
+
+      keymaps = 0;
+    }
+
+  unbind_to (specpdl_count, Qnil);
+
+#ifdef HAVE_MENUS
+  /* Hide a previous tip, if any.  */
+  Fx_hide_tip ();
+
+#ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
+  /* If resources from a previous popup menu still exist, does nothing
+     until the `menu_free_timer' has freed them (see w32fns.c). This
+     can occur if you press ESC or click outside a menu without selecting
+     a menu item.
+  */
+  if (current_popup_menu)
+    {
+      discard_menu_items ();
+      FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+      UNGCPRO;
+      return Qnil;
+    }
+#endif
+
+#ifdef HAVE_NS			/* FIXME: ns-specific, why? --Stef  */
+  record_unwind_protect (cleanup_popup_menu, Qnil);
+#endif
+
+  /* Display them in a menu.  */
+  BLOCK_INPUT;
+
+  /* FIXME: Use a terminal hook!  */
+#if defined HAVE_NTGUI
+  selection = w32_menu_show (f, xpos, ypos, for_click,
+			     keymaps, title, &error_name);
+#elif defined HAVE_NS
+  selection = ns_menu_show (f, xpos, ypos, for_click,
+			    keymaps, title, &error_name);
+#else /* MSDOS and X11 */
+  selection = xmenu_show (f, xpos, ypos, for_click,
+			  keymaps, title, &error_name,
+			  INTEGERP (timestamp) ? XUINT (timestamp) : 0);
+#endif
+
+  UNBLOCK_INPUT;
+
+#ifdef HAVE_NS
+  unbind_to (specpdl_count, Qnil);
+#else
+  discard_menu_items ();
+#endif
+
+#ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+#endif
+
+#endif /* HAVE_MENUS */
+
+  UNGCPRO;
+
+  if (error_name) error (error_name);
+  return selection;
+}
+
 void
 syms_of_menu ()
 {
   staticpro (&menu_items);
   menu_items = Qnil;
   menu_items_inuse = Qnil;
+
+  defsubr (&Sx_popup_menu);
 }
 
 /* arch-tag: 78bbc7cf-8025-4156-aa8a-6c7fd99bf51d

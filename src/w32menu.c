@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "charset.h"
 #include "character.h"
 #include "coding.h"
+#include "menu.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -78,8 +79,6 @@ AppendMenuW_Proc unicode_append_menu = NULL;
 
 Lisp_Object Qdebug_on_next_call;
 
-extern Lisp_Object Vmenu_updating_frame;
-
 extern Lisp_Object Qmenu_bar;
 
 extern Lisp_Object QCtoggle, QCradio;
@@ -99,8 +98,6 @@ static Lisp_Object w32_dialog_show P_ ((FRAME_PTR, int, Lisp_Object, char**));
 static int is_simple_dialog P_ ((Lisp_Object));
 static Lisp_Object simple_dialog_show P_ ((FRAME_PTR, Lisp_Object, Lisp_Object));
 #endif
-static Lisp_Object w32_menu_show P_ ((FRAME_PTR, int, int, int, int,
-				      Lisp_Object, char **));
 
 void w32_free_menu_strings P_((HWND));
 
@@ -139,247 +136,6 @@ menubar_id_to_frame (id)
   return 0;
 }
 
-DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
-       doc: /* Pop up a deck-of-cards menu and return user's selection.
-POSITION is a position specification.  This is either a mouse button
-event or a list ((XOFFSET YOFFSET) WINDOW) where XOFFSET and YOFFSET
-are positions in pixels from the top left corner of WINDOW's frame
-\(WINDOW may be a frame object instead of a window).  This controls the
-position of the center of the first line in the first pane of the
-menu, not the top left of the menu as a whole.  If POSITION is t, it
-means to use the current mouse position.
-
-MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
-The menu items come from key bindings that have a menu string as well as
-a definition; actually, the \"definition\" in such a key binding looks like
-\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
-the keymap as a top-level element.
-
-If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
-Otherwise, REAL-DEFINITION should be a valid key binding definition.
-
-You can also use a list of keymaps as MENU.  Then each keymap makes a
-separate pane.  When MENU is a keymap or a list of keymaps, the return
-value is a list of events.
-
-Alternatively, you can specify a menu of multiple panes with a list of
-the form (TITLE PANE1 PANE2...), where each pane is a list of
-form (TITLE ITEM1 ITEM2...).
-Each ITEM is normally a cons cell (STRING . VALUE); but a string can
-appear as an item--that makes a nonselectable line in the menu.
-With this form of menu, the return value is VALUE from the chosen item.
-
-If POSITION is nil, don't display the menu at all, just precalculate the
-cached information about equivalent key sequences.  */)
-  (position, menu)
-     Lisp_Object position, menu;
-{
-  Lisp_Object keymap, tem;
-  int xpos = 0, ypos = 0;
-  Lisp_Object title;
-  char *error_name;
-  Lisp_Object selection;
-  FRAME_PTR f = NULL;
-  Lisp_Object x, y, window;
-  int keymaps = 0;
-  int for_click = 0;
-  int specpdl_count = SPECPDL_INDEX ();
-  struct gcpro gcpro1;
-
-#ifdef HAVE_MENUS
-  if (! NILP (position))
-    {
-      check_w32 ();
-
-      /* Decode the first argument: find the window and the coordinates.  */
-      if (EQ (position, Qt)
-	  || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-                                   || EQ (XCAR (position), Qtool_bar))))
-	{
-	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f = SELECTED_FRAME ();
-	  Lisp_Object bar_window;
-	  enum scroll_bar_part part;
-	  unsigned long time;
-
-	  if (FRAME_TERMINAL (new_f)->mouse_position_hook)
-	    (*FRAME_TERMINAL (new_f)->mouse_position_hook) (&new_f, 1, &bar_window,
-				    &part, &x, &y, &time);
-	  if (new_f != 0)
-	    XSETFRAME (window, new_f);
-	  else
-	    {
-	      window = selected_window;
-	      XSETFASTINT (x, 0);
-	      XSETFASTINT (y, 0);
-	    }
-	}
-      else
-	{
-	  tem = Fcar (position);
-	  if (CONSP (tem))
-	    {
-	      window = Fcar (Fcdr (position));
-	      x = Fcar (tem);
-	      y = Fcar (Fcdr (tem));
-	    }
-	  else
-	    {
-	      for_click = 1;
-	      tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
-	      window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-	      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
-	      x = Fcar (tem);
-	      y = Fcdr (tem);
-	    }
-	}
-
-      CHECK_NUMBER (x);
-      CHECK_NUMBER (y);
-
-      /* Decode where to put the menu.  */
-
-      if (FRAMEP (window))
-	{
-	  f = XFRAME (window);
-	  xpos = 0;
-	  ypos = 0;
-	}
-      else if (WINDOWP (window))
-	{
-	  CHECK_LIVE_WINDOW (window);
-	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-
-	  xpos = WINDOW_LEFT_EDGE_X (XWINDOW (window));
-	  ypos = WINDOW_TOP_EDGE_Y (XWINDOW (window));
-	}
-      else
-	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
-	   but I don't want to make one now.  */
-	CHECK_WINDOW (window);
-
-      xpos += XINT (x);
-      ypos += XINT (y);
-
-      XSETFRAME (Vmenu_updating_frame, f);
-    }
-  else
-    Vmenu_updating_frame = Qnil;
-#endif /* HAVE_MENUS */
-
-  record_unwind_protect (unuse_menu_items, Qnil);
-
-  title = Qnil;
-  GCPRO1 (title);
-
-  /* Decode the menu items from what was specified.  */
-
-  keymap = get_keymap (menu, 0, 0);
-  if (CONSP (keymap))
-    {
-      /* We were given a keymap.  Extract menu info from the keymap.  */
-      Lisp_Object prompt;
-
-      /* Extract the detailed info to make one pane.  */
-      keymap_panes (&menu, 1, NILP (position));
-
-      /* Search for a string appearing directly as an element of the keymap.
-	 That string is the title of the menu.  */
-      prompt = Fkeymap_prompt (keymap);
-      if (NILP (title) && !NILP (prompt))
-	title = prompt;
-
-      /* Make that be the pane title of the first pane.  */
-      if (!NILP (prompt) && menu_items_n_panes >= 0)
-	ASET (menu_items, MENU_ITEMS_PANE_NAME, prompt);
-
-      keymaps = 1;
-    }
-  else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
-    {
-      /* We were given a list of keymaps.  */
-      int nmaps = XFASTINT (Flength (menu));
-      Lisp_Object *maps
-	= (Lisp_Object *) alloca (nmaps * sizeof (Lisp_Object));
-      int i;
-
-      title = Qnil;
-
-      /* The first keymap that has a prompt string
-	 supplies the menu title.  */
-      for (tem = menu, i = 0; CONSP (tem); tem = Fcdr (tem))
-	{
-	  Lisp_Object prompt;
-
-	  maps[i++] = keymap = get_keymap (Fcar (tem), 1, 0);
-
-	  prompt = Fkeymap_prompt (keymap);
-	  if (NILP (title) && !NILP (prompt))
-	    title = prompt;
-	}
-
-      /* Extract the detailed info to make one pane.  */
-      keymap_panes (maps, nmaps, NILP (position));
-
-      /* Make the title be the pane title of the first pane.  */
-      if (!NILP (title) && menu_items_n_panes >= 0)
-	ASET (menu_items, MENU_ITEMS_PANE_NAME, title);
-
-      keymaps = 1;
-    }
-  else
-    {
-      /* We were given an old-fashioned menu.  */
-      title = Fcar (menu);
-      CHECK_STRING (title);
-
-      list_of_panes (Fcdr (menu));
-
-      keymaps = 0;
-    }
-
-  unbind_to (specpdl_count, Qnil);
-
-  if (NILP (position))
-    {
-      discard_menu_items ();
-      FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
-      UNGCPRO;
-      return Qnil;
-    }
-
-#ifdef HAVE_MENUS
-  /* If resources from a previous popup menu still exist, does nothing
-     until the `menu_free_timer' has freed them (see w32fns.c). This
-     can occur if you press ESC or click outside a menu without selecting
-     a menu item.
-  */
-  if (current_popup_menu)
-    {
-      discard_menu_items ();
-      FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
-      UNGCPRO;
-      return Qnil;
-    }
-
-  /* Display them in a menu.  */
-  BLOCK_INPUT;
-
-  selection = w32_menu_show (f, xpos, ypos, for_click,
-			     keymaps, title, &error_name);
-  UNBLOCK_INPUT;
-
-  discard_menu_items ();
-  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
-
-#endif /* HAVE_MENUS */
-
-  UNGCPRO;
-
-  if (error_name) error (error_name);
-  return selection;
-}
-
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
@@ -936,15 +692,9 @@ free_frame_menubar (f)
    ERROR is a place to store an error message string in case of failure.
    (We return nil on failure, but the value doesn't actually matter.)  */
 
-static Lisp_Object
-w32_menu_show (f, x, y, for_click, keymaps, title, error)
-     FRAME_PTR f;
-     int x;
-     int y;
-     int for_click;
-     int keymaps;
-     Lisp_Object title;
-     char **error;
+Lisp_Object
+w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+	       Lisp_Object title, char **error)
 {
   int i;
   int menu_item_selection;
@@ -1970,7 +1720,6 @@ void syms_of_w32menu ()
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
 
-  defsubr (&Sx_popup_menu);
   defsubr (&Smenu_or_popup_active_p);
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);

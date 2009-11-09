@@ -443,7 +443,7 @@ extern Lisp_Object Vfunction_key_map;
 /* Keymap of key translations that can override keymaps.  */
 extern Lisp_Object Vkey_translation_map;
 
-extern int parse_menu_item P_ ((Lisp_Object, int, int));
+extern int parse_menu_item (Lisp_Object, int);
 
 extern void echo_now P_ ((void));
 extern void init_kboard P_ ((KBOARD *));

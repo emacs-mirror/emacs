@@ -19,12 +19,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MENU_H
 #define MENU_H
 
+extern Lisp_Object Vmenu_updating_frame;
+
 extern void init_menu_items P_ ((void));
 extern void finish_menu_items P_ ((void));
 extern void discard_menu_items P_ ((void));
 extern void save_menu_items P_ ((void));
 extern int parse_single_submenu P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-extern void keymap_panes P_ ((Lisp_Object *, int, int));
 extern void list_of_panes P_ ((Lisp_Object));
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
 extern void free_menubar_widget_value_tree P_ ((widget_value *));
@@ -33,6 +34,16 @@ extern void find_and_call_menu_selection P_ ((FRAME_PTR, int,
 					      Lisp_Object, void *));
 #endif
 
+#ifdef HAVE_X_WINDOWS
+extern void mouse_position_for_popup (FRAME_PTR f, int *x, int *y);
+#endif
+
+extern Lisp_Object w32_menu_show (FRAME_PTR, int, int, int, int,
+				  Lisp_Object, char **);
+extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
+				 Lisp_Object, char **);
+extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
+			       Lisp_Object, char **, EMACS_UINT);
 #endif /* MENU_H */
 
 /* arch-tag: c32b2778-724d-4e85-81d7-45f98530a988

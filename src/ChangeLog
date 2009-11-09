@@ -1,3 +1,32 @@
+2009-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu.c (Fx_popup_menu): Consolidate versions from xmenu.c,
+	w32menu.c, and nsmenu.m.
+	Simplify the obsolete case where position is nil.
+	(cleanup_popup_menu): New function, moved from nsmenu.m.
+	(struct skp): Remove slot `notreal'.
+	(single_keymap_panes, keymap_panes): Remove arg `notreal' and
+	adjust callers.
+	(single_menu_item): Adjust call to parse_menu_item.
+	(syms_of_menu): Defsubr x-popup-menu.
+	* menu.h (Vmenu_updating_frame): Consolidate declarations from *menu.c.
+	(keymap_panes): Don't export any more.
+	(mouse_position_for_popup, w32_menu_show, ns_menu_show)
+	(xmenu_show): Declare.
+	* keyboard.c (parse_menu_item): Remove arg `notreal'.
+	(menu_bar_item, read_char_minibuf_menu_prompt): Adjust callers.
+	* keyboard.h (parse_menu_item): Update declaration.
+	* xmenu.c (Fx_popup_menu): Remove.
+	(syms_of_xmenu): Don't defsubr x-popup-menu.
+	* w32menu.c (Fx_popup_menu): Remove.
+	(syms_of_w32menu): Don't defsubr x-popup-menu.
+	* nsmenu.m (cleanup_popup_menu): Remove.
+	(ns_menu_show): Rename from ns_popup_menu and remove all the code
+	moved to menu.c's Fx_popup_menu.
+	(Fx_popup_menu): Remove.
+	(syms_of_nsmenu): Don't defsubr x-popup-menu, and don't initialize
+	menu_items (it's done in menu.c already).
+
 2009-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (parse_menu_item): Handle `notreal' a bit earlier.
