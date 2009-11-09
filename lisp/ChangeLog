@@ -1,3 +1,8 @@
+2009-11-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-object): Release service, if no
+	other method is registered for it.
+
 2009-11-08  Markus Rost <rost@math.uni-bielefeld.de>
 
 	* bookmark.el (bookmark-completing-read): Sort bookmark names if
