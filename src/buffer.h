@@ -799,13 +799,7 @@ struct buffer
   /* *Cursor type to display in non-selected windows.
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
-  Lisp_Object cursor_in_non_selected_windows_;
-
-  /* If non-nil, the thread holding a lock on this buffer.  */
-  Lisp_Object owner;
-
-  /* If non-nil, the previous thread holding a lock on this buffer.  */
-  Lisp_Object prev_owner;
+  Lisp_Object cursor_in_non_selected_windows;
 };
 
 #define BUF_CURSOR_IN_NON_SELECTED_WINDOWS(BUF) *find_variable_location (&((BUF)->cursor_in_non_selected_windows_))

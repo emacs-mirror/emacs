@@ -111,9 +111,6 @@ struct thread_state
 
   pthread_t pthread_id;
 
-  /* If nonzero the thread access a buffer without lock it.  */
-  int nolock;
-
   /* Used internally by the scheduler, the buffer that the thread wants a lock
      for.  */
   struct buffer *desired_buffer;
@@ -145,7 +142,5 @@ extern int user_thread_p P_ ((void));
 EXFUN (Finhibit_yield, 1);
 
 extern int thread_inhibit_yield_p  P_ ((void));
-
-extern void thread_acquire_buffer (char *, void *);
 
 extern Lisp_Object thread_notify_kill_buffer (register struct buffer *b);

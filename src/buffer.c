@@ -415,9 +415,7 @@ b->width_table_ = Qnil;
 
   b->mark_ = Fmake_marker ();
   BUF_MARKERS (b) = NULL;
-  b->name_ = name;
-  b->owner = Qnil;
-  b->prev_owner = Qnil;
+  b->name = name;
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
@@ -599,7 +597,6 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   BUF_MARK (b) = Fmake_marker ();
   BUF_NAME (b) = name;
-  b->owner = Qnil;
 
   /* The multibyte status belongs to the base buffer.  */
   BUF_ENABLE_MULTIBYTE_CHARACTERS (b) = BUF_ENABLE_MULTIBYTE_CHARACTERS (b->base_buffer);
@@ -1444,10 +1441,6 @@ with SIGHUP.  */)
   if (NILP (BUF_NAME (b)))
     return Qnil;
 
-  tem = get_current_thread ();
-  if (!EQ (b->owner, Qnil) && !EQ (b->owner, tem))
-    error ("Buffer locked by another thread");
-
   /* Query if the buffer is still modified.  */
   if (INTERACTIVE && !NILP (BUF_FILENAME (b))
       && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
@@ -1877,7 +1870,6 @@ set_buffer_internal_1 (b)
     return;
 
   old_buf = current_buffer;
-  flush_stack_call_func (thread_acquire_buffer, b);
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
 
@@ -5208,16 +5200,14 @@ init_buffer_once ()
   buffer_defaults.overlays_after = NULL;
   buffer_defaults.overlay_center = BEG;
 
-  XSETFASTINT (BUF_TAB_WIDTH (&buffer_defaults), 8);
-  BUF_TRUNCATE_LINES (&buffer_defaults) = Qnil;
-  BUF_WORD_WRAP (&buffer_defaults) = Qnil;
-  BUF_CTL_ARROW (&buffer_defaults) = Qt;
-  BUF_DIRECTION_REVERSED (&buffer_defaults) = Qnil;
-  BUF_CURSOR_TYPE (&buffer_defaults) = Qt;
-  BUF_EXTRA_LINE_SPACING (&buffer_defaults) = Qnil;
-  BUF_CURSOR_IN_NON_SELECTED_WINDOWS (&buffer_defaults) = Qt;
-  buffer_defaults.owner = Qnil;
-  buffer_defaults.prev_owner = Qnil;
+  XSETFASTINT (buffer_defaults.tab_width, 8);
+  buffer_defaults.truncate_lines = Qnil;
+  buffer_defaults.word_wrap = Qnil;
+  buffer_defaults.ctl_arrow = Qt;
+  buffer_defaults.direction_reversed = Qnil;
+  buffer_defaults.cursor_type = Qt;
+  buffer_defaults.extra_line_spacing = Qnil;
+  buffer_defaults.cursor_in_non_selected_windows = Qt;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */

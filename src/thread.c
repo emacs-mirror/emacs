@@ -37,43 +37,7 @@ static pthread_t next_thread;
 static void
 thread_schedule ()
 {
-  struct thread_state *it, *begin = NEXT_THREAD (current_thread);
-
-#define CHECK_THREAD(T,B)                                       \
-  if ((!other_threads_p ()					\
-       || ((struct thread_state *)T)->nolock			\
-       || EQ (((struct thread_state *)T)->desired_buffer,	\
-	      ((struct thread_state *)T)->m_current_buffer)	\
-       || EQ (B->owner, Qnil)					\
-      /* We set the owner to Qt to mean it is being killed.  */ \
-       || EQ (B->owner, Qt))					\
-      && !((struct thread_state *)T)->blocked)			\
-    {                                                           \
-      next_thread = ((struct thread_state *)T)->pthread_id;     \
-      return;                                                   \
-    }                                                           \
-
-  /* Try to wake up the thread holding the desired buffer.  */
-  if (current_thread->desired_buffer)
-    {
-      struct buffer *db = current_thread->desired_buffer;
-      if (!EQ (db->owner, Qnil) && !EQ (db, current_buffer))
-        CHECK_THREAD (XVECTOR (db->owner), db);
-    }
-
-  /* A simple round-robin.  We can't just check for it != current_thread
-     because current_thread could be already unlinked from all_threads.   */
-  it = begin;
-  while (1)
-    {
-      struct buffer *new_buffer = it->desired_buffer;
-      if (new_buffer)
-	CHECK_THREAD (it, new_buffer);
-
-      it = NEXT_THREAD (it);
-      if (it == current_thread)
-        break;
-    }
+  next_thread = NEXT_THREAD (current_thread)->pthread_id;
 }
 
 /* Schedule a new thread and block the caller until it is not scheduled
@@ -180,29 +144,6 @@ unmark_threads (void)
       unmark_byte_stack (iter->m_byte_stack_list);
 }
 
-void
-thread_acquire_buffer (char *end, void *nb)
-{
-  struct buffer *new_buffer = nb;
-  current_thread->desired_buffer = new_buffer;
-  if (current_buffer)
-    {
-      current_buffer->owner = current_buffer->prev_owner;
-      current_buffer->prev_owner = Qnil;
-    }
-
-  reschedule (end, 1);
-
-  /* FIXME: if buffer is killed */
-  new_buffer->prev_owner = new_buffer->owner;
-  if (current_thread->nolock)
-    new_buffer->owner = Qnil;
-  else
-    new_buffer->owner = get_current_thread ();
-
-  current_buffer = new_buffer;
-}
-
 int
 thread_inhibit_yield_p  ()
 {
@@ -303,9 +244,6 @@ run_thread (void *state)
     ;
   *iter = (*iter)->next_thread;
 
-  if (!EQ (self->m_current_buffer->owner, Qt))
-    self->m_current_buffer->owner = self->m_current_buffer->prev_owner;
-
   thread_schedule ();
   pthread_cond_broadcast (&buffer_cond);
 
@@ -316,13 +254,11 @@ run_thread (void *state)
   return NULL;
 }
 
-DEFUN ("run-in-thread", Frun_in_thread, Srun_in_thread, 1, 2, 0,
+DEFUN ("run-in-thread", Frun_in_thread, Srun_in_thread, 1, 1, 0,
        doc: /* Start a new thread and run FUNCTION in it.
-When the function exits, the thread dies.  When NOLOCK is no-nil the thread
-does not try to get a lock on the current buffer.  */)
-     (function, nolock)
+When the function exits, the thread dies.  */)
+     (function)
      Lisp_Object function;
-     Lisp_Object nolock;
 {
   char stack_pos;
   pthread_t thr;
@@ -341,7 +277,6 @@ does not try to get a lock on the current buffer.  */)
 
   new_thread->func = function;
   new_thread->blocked = 0;
-  new_thread->nolock = !EQ (nolock, Qnil);
   new_thread->initial_specpdl = Qnil;
   new_thread->m_last_thing_searched = Qnil; /* copy from parent? */
   new_thread->m_saved_last_thing_searched = Qnil;
@@ -509,7 +444,6 @@ init_threads (void)
   pthread_mutex_lock (&global_lock);
 
   primary_thread.pthread_id = pthread_self ();
-  primary_thread.nolock = 0;
   primary_thread.blocked = 0;
   primary_thread.m_last_thing_searched = Qnil;
   next_thread = primary_thread.pthread_id;
