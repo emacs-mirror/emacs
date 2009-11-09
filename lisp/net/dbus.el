@@ -139,23 +139,42 @@ been unregistered, `nil' otherwise."
 
   ;; Find the corresponding entry in the hash table.
   (let* ((key (car object))
-	 (value (gethash key dbus-registered-functions-table)))
+	 (value (gethash key dbus-registered-functions-table))
+	 (bus (car key))
+	 ret)
     ;; Loop over the registered functions.
-    (while (consp value)
-      ;; (car value) has the structure (UNAME SERVICE PATH HANDLER).
+    (dolist (val value)
+      ;; val has the structure (UNAME SERVICE PATH HANDLER).
       ;; (cdr object) has the structure ((SERVICE PATH HANDLER) ...).
-      (if (not (equal (cdr (car value)) (car (cdr object))))
-	  (setq value (cdr value))
+      (when (equal (cdr val) (car (cdr object)))
 	;; Compute new hash value.  If it is empty, remove it from
 	;; hash table.
 	(unless
 	    (puthash
 	     key
-	     (delete (car value) (gethash key dbus-registered-functions-table))
+	     (delete val (gethash key dbus-registered-functions-table))
 	     dbus-registered-functions-table)
 	  (remhash key dbus-registered-functions-table))
-	(setq value t)))
-    value))
+	(setq ret t)))
+    ;; Check, whether there is still a registered function for the
+    ;; given service.  If not, unregister the service from the bus.
+    (dolist (val value)
+      (let ((service (cadr val))
+	    found)
+	(maphash
+	 (lambda (k v)
+	   (dolist (val v)
+	     (ignore-errors
+	       (when (and (equal bus (car k))
+			  (string-equal service (cadr val))))
+	       (setq found t))))
+	 dbus-registered-functions-table)
+	(unless found
+	  (dbus-call-method
+	   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+	   "ReleaseName" service))))
+    ;; Return.
+    ret))
 
 (defun dbus-call-method-non-blocking-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
