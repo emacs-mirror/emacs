@@ -70,7 +70,6 @@
 	* alloc.c (mark_maybe_object, mark_object, survives_gc_p):
 	Use case_Lisp_Int.
 
-
 2009-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce by further 30K.
@@ -749,8 +748,8 @@
 
 2009-09-17  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (MSDOS_SUPPORT, SOME_MACHINE_LISP): Add
-	lisp/term/internal.elc.
+	* Makefile.in (MSDOS_SUPPORT, SOME_MACHINE_LISP):
+	Add lisp/term/internal.elc.
 
 2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3868,8 +3867,8 @@
 
 	* process.h (w32_list_system_processes)
 	(w32_system_process_attributes): Remove.
-	(list_system_processes, system_process_attributes): New
-	prototypes.
+	(list_system_processes, system_process_attributes):
+	New prototypes.
 
 2008-12-19  Kenichi Handa  <handa@m17n.org>
 
@@ -6864,7 +6863,7 @@
 2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in: Replace emacsapp, emacsbindir, emacsappsrc variables
-	set here with ns_appdir, ns_appresdir, ns_appbindir, ns_appsrc) set
+	set here with ns_appdir, ns_appresdir, ns_appbindir, ns_appsrc set
 	from configure.
 
 2008-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -16170,15 +16169,14 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* charset.c (Fcharset_priority_list, Fset_charset_priority): New
-	functions.
+	* charset.c (Fcharset_priority_list, Fset_charset_priority):
+	New functions.
 
 	* character.c (Fstring): Doc fix.
 
 	* charset.c (Fdefine_charset_alias): Update Vcharset_list.
 
-	* fontset.c (Ffontset_info): Doc fix.  Return charset names, not
-	ids.
+	* fontset.c (Ffontset_info): Doc fix.  Return charset names, not ids.
 	(font-encoding-alist): Doc fix.
 
 2008-02-01  Dave Love  <fx@gnu.org>
