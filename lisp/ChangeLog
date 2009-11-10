@@ -1,3 +1,9 @@
+2009-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (find-emacs-lisp-shadows)
+	(list-load-path-shadows): Use dolist.
+	(list-load-path-shadows): Use with-current-buffer.
+
 2009-11-10  Juri Linkov  <juri@jurta.org>
 
 	* minibuffer.el (read-file-name): Support a list of default values

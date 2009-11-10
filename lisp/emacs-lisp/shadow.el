@@ -72,9 +72,6 @@ the file in position 2i+1.  Emacs Lisp file suffixes \(.el and .elc\)
 are stripped from the file names in the list.
 
 See the documentation for `list-load-path-shadows' for further information."
-
-  (or path (setq path load-path))
-
   (let (true-names			; List of dirs considered.
 	shadows				; List of shadowings, to be returned.
 	files				; File names ever seen, with dirs.
@@ -83,11 +80,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	orig-dir			; Where the file was first seen.
 	files-seen-this-dir		; Files seen so far in this dir.
 	file)				; The current file.
-
-
-    (while path
-
-      (setq dir (directory-file-name (file-truename (or (car path) "."))))
+    (dolist (pp (or path load-path))
+      (setq dir (directory-file-name (file-truename (or pp "."))))
       (if (member dir true-names)
 	  ;; We have already considered this PATH redundant directory.
 	  ;; Show the redundancy if we are interactive, unless the PATH
@@ -95,12 +89,12 @@ See the documentation for `list-load-path-shadows' for further information."
 	  ;; result of the current working directory, and are therefore
 	  ;; not always redundant).
 	  (or noninteractive
-	      (and (car path)
-		   (not (string= (car path) "."))
-		   (message "Ignoring redundant directory %s" (car path))))
+	      (and pp
+		   (not (string= pp "."))
+		   (message "Ignoring redundant directory %s" pp)))
 
 	(setq true-names (append true-names (list dir)))
-	(setq dir (directory-file-name (or (car path) ".")))
+	(setq dir (directory-file-name (or pp ".")))
 	(setq curr-files (if (file-accessible-directory-p dir)
 			     (directory-files dir nil ".\\.elc?\\(\\.gz\\)?$" t)))
 	(and curr-files
@@ -109,9 +103,8 @@ See the documentation for `list-load-path-shadows' for further information."
 
 	(setq files-seen-this-dir nil)
 
-	(while curr-files
+	(dolist (file curr-files)
 
-	  (setq file (car curr-files))
 	  (if (string-match "\\.gz$" file)
 	      (setq file (substring file 0 -3)))
 	  (setq file (substring
@@ -141,11 +134,7 @@ See the documentation for `list-load-path-shadows' for further information."
 			    (append shadows (list base1 base2)))))
 
 	      ;; Not seen before, add it to the list of seen files.
-	      (setq files (cons (cons file dir) files))))
-
-	  (setq curr-files (cdr curr-files))))
-	(setq path (cdr path)))
-
+	      (setq files (cons (cons file dir) files)))))))
     ;; Return the list of shadowings.
     shadows))
 
@@ -210,11 +199,10 @@ function, `find-emacs-lisp-shadows'."
 	(tem path)
 	toplevs)
     ;; If we can find simple.el in two places,
-    (while tem
-      (if (or (file-exists-p (expand-file-name "simple.el" (car tem)))
-	      (file-exists-p (expand-file-name "simple.el.gz" (car tem))))
-	  (setq toplevs (cons (car tem) toplevs)))
-      (setq tem (cdr tem)))
+    (dolist (tt tem)
+      (if (or (file-exists-p (expand-file-name "simple.el" tt))
+	      (file-exists-p (expand-file-name "simple.el.gz" tt)))
+	  (setq toplevs (cons tt toplevs))))
     (if (> (length toplevs) 1)
 	;; Cut off our copy of load-path right before
 	;; the last directory which has simple.el in it.
@@ -242,16 +230,17 @@ function, `find-emacs-lisp-shadows'."
 	(if stringp
 	    (buffer-string)
 	  (if (called-interactively-p 'interactive)
-	      (save-excursion
-		;; We are interactive.
-		;; Create the *Shadows* buffer and display shadowings there.
-		(let ((string (buffer-string))
-		      (output-buffer (get-buffer-create "*Shadows*")))
-		  (display-buffer output-buffer)
-		  (set-buffer output-buffer)
+	      ;; We are interactive.
+	      ;; Create the *Shadows* buffer and display shadowings there.
+	      (let ((string (buffer-string)))
+		(with-current-buffer (get-buffer-create "*Shadows*")
+		  (display-buffer (current-buffer))
+		  (setq buffer-undo-list t
+			buffer-read-only nil)
 		  (erase-buffer)
 		  (insert string)
-		  (insert msg "\n")))
+		  (insert msg "\n")
+		  (setq buffer-read-only t)))
 	    ;; We are non-interactive, print shadows via message.
 	    (unless (zerop n)
 	      (message "This site has duplicate Lisp libraries with the same name.
