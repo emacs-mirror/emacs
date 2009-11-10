@@ -1,3 +1,9 @@
+2009-11-10  Juri Linkov  <juri@jurta.org>
+
+	* minibuffer.el (read-file-name): Support a list of default values
+	in `default-filename'.  Use the first file name where only one
+	element is required.  Doc fix.
+
 2009-11-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-object): Release service, if no

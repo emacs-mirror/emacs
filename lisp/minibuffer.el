@@ -1265,7 +1265,8 @@ Value is not expanded---you must call `expand-file-name' yourself.
 Default name to DEFAULT-FILENAME if user exits the minibuffer with
 the same non-empty string that was inserted by this function.
  (If DEFAULT-FILENAME is omitted, the visited file name is used,
-  except that if INITIAL is specified, that combined with DIR is used.)
+  except that if INITIAL is specified, that combined with DIR is used.
+  If DEFAULT-FILENAME is a list of file names, the first file name is used.)
 If the user exits with an empty minibuffer, this function returns
 an empty string.  (This can only happen if the user erased the
 pre-inserted contents or if `insert-default-directory' is nil.)
@@ -1308,7 +1309,10 @@ and `read-file-name-function'."
   (setq dir (abbreviate-file-name dir))
   ;; Likewise for default-filename.
   (if default-filename
-      (setq default-filename (abbreviate-file-name default-filename)))
+      (setq default-filename
+	    (if (consp default-filename)
+		(mapcar 'abbreviate-file-name default-filename)
+	      (abbreviate-file-name default-filename))))
   (let ((insdef (cond
                  ((and insert-default-directory (stringp dir))
                   (if initial
@@ -1357,9 +1361,12 @@ and `read-file-name-function'."
 			       (not (zerop (length file))))
                       (setq default-filename file)
                       (setq dir (file-name-directory dir)))
-                    (if default-filename
-                        (setq default-filename
-                              (expand-file-name default-filename dir)))
+                    (when default-filename
+		      (setq default-filename
+			    (expand-file-name (if (consp default-filename)
+						  (car default-filename)
+						default-filename)
+					      dir)))
                     (setq add-to-history t)
                     (x-file-dialog prompt dir default-filename
 				   dialog-mustmatch
@@ -1371,6 +1378,8 @@ and `read-file-name-function'."
           ;; it has to mean that the user typed RET with the minibuffer empty.
           ;; In that case, we really want to return ""
           ;; so that commands such as set-visited-file-name can distinguish.
+	  (when (consp default-filename)
+	    (setq default-filename (car default-filename)))
           (when (eq val default-filename)
             ;; In this case, completing-read has not added an element
             ;; to the history.  Maybe we should.
