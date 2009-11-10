@@ -14,8 +14,8 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+2008, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1835,11 +1835,12 @@ steps:
 @enumerate
 @item
 Insert the original message, including the mail headers into the reply
-buffer. At this point you should not modify the raw text in any way, and
+buffer. At this point you should not modify the raw text in any way
+(except for any necessary decoding, e.g. of quoted-printable text), and
 you should place all the original headers into the body of the reply.
 This means that many of the mail headers will be duplicated, one copy
-above the @code{mail-header-separator} line and one copy below,
-however there will probably be more headers below this line.@refill
+above the @code{mail-header-separator} line and one copy below, however
+there will probably be more headers below this line.@refill
 
 @item
 Set @samp{point} to the beginning of the line containing the first mail
