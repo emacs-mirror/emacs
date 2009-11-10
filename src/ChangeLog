@@ -1,3 +1,7 @@
+2009-11-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (xmenu_show): Must not be static after 2009-11-09 changes.
+
 2009-11-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* menu.c [HAVE_NTGUI]: Declare current_popup_menu.

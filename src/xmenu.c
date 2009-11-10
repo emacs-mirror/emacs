@@ -2315,7 +2315,7 @@ pop_down_menu (arg)
 }
 
 
-static Lisp_Object
+Lisp_Object
 xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
      FRAME_PTR f;
      int x, y;
