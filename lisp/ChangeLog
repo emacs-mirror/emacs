@@ -3,7 +3,7 @@
 	* net/dbus.el (dbus-unregister-object): Release service, if no
 	other method is registered for it.
 
-2009-11-08  Markus Rost <rost@math.uni-bielefeld.de>
+2009-11-08  Markus Rost  <rost@math.uni-bielefeld.de>
 
 	* bookmark.el (bookmark-completing-read): Sort bookmark names if
 	bookmark-sort-flag is non-nil (Bug#4653).
@@ -34,12 +34,12 @@
 
 	* net/trampver.el: Update release number.
 
-2009-11-08  Kevin Ryde <user42@zip.com.au>
+2009-11-08  Kevin Ryde  <user42@zip.com.au>
 
 	* net/tramp.el (tramp-advice-file-expand-wildcards): Don't rely on
 	`ad-do-it'.
 
-2009-11-08  Andr <m00naticus@gmail.com>  (tiny change)
+2009-11-08  Andr  <m00naticus@gmail.com>  (tiny change)
 
 	* net/tramp.el (tramp-handle-write-region): Copy but rename temp file,
 	in order to keep context in SELinux.
@@ -162,7 +162,7 @@
 	* epa-hook.el (epa-file-name-regexp):
 	* dnd.el (dnd-protocol-alist):
 	* textmodes/rst.el (auto-mode-alist):
-	* button.el (default-button):  Purecopy strings.
+	* button.el (default-button): Purecopy strings.
 
 2009-11-06  Glenn Morris  <rgm@gnu.org>
 
@@ -297,75 +297,75 @@
 	* cedet/semantic/fw.el (semantic/loaddefs):
 	* cedet/srecode.el (srecode/loaddefs):
 	* cedet/ede.el (ede/loaddefs): Load rather than require.
-	* lisp/cedet/ede/cpp-root.el:
-	* lisp/cedet/ede/emacs.el:
-	* lisp/cedet/ede/files.el:
-	* lisp/cedet/ede/linux.el:
-	* lisp/cedet/ede/locate.el:
-	* lisp/cedet/ede/make.el:
-	* lisp/cedet/ede/shell.el:
-	* lisp/cedet/ede/speedbar.el:
-	* lisp/cedet/ede/system.el:
-	* lisp/cedet/ede/util.el:
-	* lisp/cedet/semantic/analyze.el:
-	* lisp/cedet/semantic/bovine.el:
-	* lisp/cedet/semantic/complete.el:
-	* lisp/cedet/semantic/ctxt.el:
-	* lisp/cedet/semantic/db-file.el:
-	* lisp/cedet/semantic/db-find.el:
-	* lisp/cedet/semantic/db-global.el:
-	* lisp/cedet/semantic/db-mode.el:
-	* lisp/cedet/semantic/db-typecache.el:
-	* lisp/cedet/semantic/db.el:
-	* lisp/cedet/semantic/debug.el:
-	* lisp/cedet/semantic/dep.el:
-	* lisp/cedet/semantic/doc.el:
-	* lisp/cedet/semantic/edit.el:
-	* lisp/cedet/semantic/find.el:
-	* lisp/cedet/semantic/format.el:
-	* lisp/cedet/semantic/html.el:
-	* lisp/cedet/semantic/ia-sb.el:
-	* lisp/cedet/semantic/ia.el:
-	* lisp/cedet/semantic/idle.el:
-	* lisp/cedet/semantic/lex-spp.el:
-	* lisp/cedet/semantic/lex.el:
-	* lisp/cedet/semantic/mru-bookmark.el:
-	* lisp/cedet/semantic/scope.el:
-	* lisp/cedet/semantic/senator.el:
-	* lisp/cedet/semantic/sort.el:
-	* lisp/cedet/semantic/symref.el:
-	* lisp/cedet/semantic/tag-file.el:
-	* lisp/cedet/semantic/tag-ls.el:
-	* lisp/cedet/semantic/tag-write.el:
-	* lisp/cedet/semantic/tag.el:
-	* lisp/cedet/semantic/util-modes.el:
-	* lisp/cedet/semantic/analyze/complete.el:
-	* lisp/cedet/semantic/analyze/refs.el:
-	* lisp/cedet/semantic/bovine/c.el:
-	* lisp/cedet/semantic/bovine/gcc.el:
-	* lisp/cedet/semantic/bovine/make.el:
-	* lisp/cedet/semantic/bovine/scm.el:
-	* lisp/cedet/semantic/decorate/include.el:
-	* lisp/cedet/semantic/decorate/mode.el:
-	* lisp/cedet/semantic/symref/cscope.el:
-	* lisp/cedet/semantic/symref/global.el:
-	* lisp/cedet/semantic/symref/grep.el:
-	* lisp/cedet/semantic/symref/idutils.el:
-	* lisp/cedet/semantic/symref/list.el:
-	* lisp/cedet/semantic/wisent/java-tags.el:
-	* lisp/cedet/semantic/wisent/javascript.el:
-	* lisp/cedet/srecode/compile.el:
-	* lisp/cedet/srecode/cpp.el:
-	* lisp/cedet/srecode/document.el:
-	* lisp/cedet/srecode/el.el:
-	* lisp/cedet/srecode/expandproto.el:
-	* lisp/cedet/srecode/getset.el:
-	* lisp/cedet/srecode/insert.el:
-	* lisp/cedet/srecode/java.el:
-	* lisp/cedet/srecode/map.el:
-	* lisp/cedet/srecode/mode.el:
-	* lisp/cedet/srecode/template.el:
-	* lisp/cedet/srecode/texi.el: Remove the file-local setting of
+	* cedet/ede/cpp-root.el:
+	* cedet/ede/emacs.el:
+	* cedet/ede/files.el:
+	* cedet/ede/linux.el:
+	* cedet/ede/locate.el:
+	* cedet/ede/make.el:
+	* cedet/ede/shell.el:
+	* cedet/ede/speedbar.el:
+	* cedet/ede/system.el:
+	* cedet/ede/util.el:
+	* cedet/semantic/analyze.el:
+	* cedet/semantic/bovine.el:
+	* cedet/semantic/complete.el:
+	* cedet/semantic/ctxt.el:
+	* cedet/semantic/db-file.el:
+	* cedet/semantic/db-find.el:
+	* cedet/semantic/db-global.el:
+	* cedet/semantic/db-mode.el:
+	* cedet/semantic/db-typecache.el:
+	* cedet/semantic/db.el:
+	* cedet/semantic/debug.el:
+	* cedet/semantic/dep.el:
+	* cedet/semantic/doc.el:
+	* cedet/semantic/edit.el:
+	* cedet/semantic/find.el:
+	* cedet/semantic/format.el:
+	* cedet/semantic/html.el:
+	* cedet/semantic/ia-sb.el:
+	* cedet/semantic/ia.el:
+	* cedet/semantic/idle.el:
+	* cedet/semantic/lex-spp.el:
+	* cedet/semantic/lex.el:
+	* cedet/semantic/mru-bookmark.el:
+	* cedet/semantic/scope.el:
+	* cedet/semantic/senator.el:
+	* cedet/semantic/sort.el:
+	* cedet/semantic/symref.el:
+	* cedet/semantic/tag-file.el:
+	* cedet/semantic/tag-ls.el:
+	* cedet/semantic/tag-write.el:
+	* cedet/semantic/tag.el:
+	* cedet/semantic/util-modes.el:
+	* cedet/semantic/analyze/complete.el:
+	* cedet/semantic/analyze/refs.el:
+	* cedet/semantic/bovine/c.el:
+	* cedet/semantic/bovine/gcc.el:
+	* cedet/semantic/bovine/make.el:
+	* cedet/semantic/bovine/scm.el:
+	* cedet/semantic/decorate/include.el:
+	* cedet/semantic/decorate/mode.el:
+	* cedet/semantic/symref/cscope.el:
+	* cedet/semantic/symref/global.el:
+	* cedet/semantic/symref/grep.el:
+	* cedet/semantic/symref/idutils.el:
+	* cedet/semantic/symref/list.el:
+	* cedet/semantic/wisent/java-tags.el:
+	* cedet/semantic/wisent/javascript.el:
+	* cedet/srecode/compile.el:
+	* cedet/srecode/cpp.el:
+	* cedet/srecode/document.el:
+	* cedet/srecode/el.el:
+	* cedet/srecode/expandproto.el:
+	* cedet/srecode/getset.el:
+	* cedet/srecode/insert.el:
+	* cedet/srecode/java.el:
+	* cedet/srecode/map.el:
+	* cedet/srecode/mode.el:
+	* cedet/srecode/template.el:
+	* cedet/srecode/texi.el: Remove the file-local setting of
 	generated-autoload-feature.
 
 	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Use dolist,
@@ -1833,7 +1833,7 @@
 	* calendar/calendar.el (calendar-basic-setup): In the wide frame case,
 	show the original buffer rather than a random one.
 
-2009-10-07  Markus Rost <rost@math.uni-bielefeld.de>
+2009-10-07  Markus Rost  <rost@math.uni-bielefeld.de>
 
 	* help.el (describe-no-warranty): Place point in a slightly better
 	position in the GPLv3 text.
