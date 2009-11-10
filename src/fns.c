@@ -1927,38 +1927,6 @@ merge (org_l1, org_l2, pred)
 }
 
 
-#if 0 /* Unsafe version.  */
-DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
-       doc: /* Extract a value from a property list.
-PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
-corresponding to the given PROP, or nil if PROP is not
-one of the properties on the list.  */)
-     (plist, prop)
-     Lisp_Object plist;
-     Lisp_Object prop;
-{
-  Lisp_Object tail;
-
-  for (tail = plist;
-       CONSP (tail) && CONSP (XCDR (tail));
-       tail = XCDR (XCDR (tail)))
-    {
-      if (EQ (prop, XCAR (tail)))
-	return XCAR (XCDR (tail));
-
-      /* This function can be called asynchronously
-	 (setup_coding_system).  Don't QUIT in that case.  */
-      if (!interrupt_input_blocked)
-	QUIT;
-    }
-
-  CHECK_LIST_END (tail, prop);
-
-  return Qnil;
-}
-#endif
-
 /* This does not check for quits.  That is safe since it must terminate.  */
 
 DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
@@ -1984,6 +1952,13 @@ properties on the list.  This function never signals an error.  */)
       halftail = XCDR (halftail);
       if (EQ (tail, halftail))
 	break;
+
+#if 0 /* Unsafe version.  */
+      /* This function can be called asynchronously
+	 (setup_coding_system).  Don't QUIT in that case.  */
+      if (!interrupt_input_blocked)
+	QUIT;
+#endif
     }
 
   return Qnil;

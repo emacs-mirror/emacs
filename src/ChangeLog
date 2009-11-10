@@ -1,3 +1,7 @@
+2009-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fplist_get): Merge the active and the uncommented code.
+
 2009-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.h: Declare timer_check.
@@ -12,7 +16,8 @@
 	* xmenu.c (x_menu_wait_for_event): Remove code that did a timeout
 	even if timer_check returned -1.
 
-	* gtkutil.c (xg_dialog_response_cb): data is now a struct xg_dialog_data
+	* gtkutil.c (xg_dialog_response_cb): Data is now a struct
+	xg_dialog_data.
 	(pop_down_dialog): Destroy widget (if any), cancel timer and unref
 	the event loop.
 	(xg_maybe_add_timer, xg_dialog_run): New functions (bug #4574).
