@@ -4509,19 +4509,16 @@ extern Lisp_Object Qapply;
    disregard elements that are not proper timers.  Do not make a circular
    timer list for the time being.
 
-   Returns the number of seconds to wait until the next timer fires.  If a
-   timer is triggering now, return zero seconds.
-   If no timer is active, return -1 seconds.
+   Returns the time to wait until the next timer fires.  If a
+   timer is triggering now, return zero.
+   If no timer is active, return -1.
 
    If a timer is ripe, we run it, with quitting turned off.
+   In that case we return 0 to indicate that a new timer_check_2 call
+   should be done.  */
 
-   DO_IT_NOW is now ignored.  It used to mean that we should
-   run the timer directly instead of queueing a timer-event.
-   Now we always run timers directly.  */
-
-EMACS_TIME
-timer_check (do_it_now)
-     int do_it_now;
+static EMACS_TIME
+timer_check_2 ()
 {
   EMACS_TIME nexttime;
   EMACS_TIME now, idleness_now;
@@ -4685,7 +4682,12 @@ timer_check (do_it_now)
 
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
+              /* But the caller must still wait for the next timer, so
+                 return 0 to indicate that.  */
 	    }
+
+          EMACS_SET_SECS (nexttime, 0);
+          EMACS_SET_USECS (nexttime, 0);
 	}
       else
 	/* When we encounter a timer that is still waiting,
@@ -4699,6 +4701,35 @@ timer_check (do_it_now)
   /* No timers are pending in the future.  */
   /* Return 0 if we generated an event, and -1 if not.  */
   UNGCPRO;
+  return nexttime;
+}
+
+
+/* Check whether a timer has fired.  To prevent larger problems we simply
+   disregard elements that are not proper timers.  Do not make a circular
+   timer list for the time being.
+
+   Returns the time to wait until the next timer fires.
+   If no timer is active, return -1.
+
+   As long as any timer is ripe, we run it.
+
+   DO_IT_NOW is now ignored.  It used to mean that we should
+   run the timer directly instead of queueing a timer-event.
+   Now we always run timers directly.  */
+
+EMACS_TIME
+timer_check (do_it_now)
+     int do_it_now;
+{
+  EMACS_TIME nexttime;
+
+  do 
+    {
+      nexttime = timer_check_2 ();
+    }
+  while (EMACS_SECS (nexttime) == 0 && EMACS_USECS (nexttime) == 0);
+
   return nexttime;
 }
 

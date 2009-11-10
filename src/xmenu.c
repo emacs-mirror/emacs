@@ -405,8 +405,6 @@ x_menu_set_in_use (in_use)
 void
 x_menu_wait_for_event (void *data)
 {
-  extern EMACS_TIME timer_check P_ ((int));
-
   /* Another way to do this is to register a timer callback, that can be
      done in GTK and Xt.  But we have to do it like this when using only X
      anyway, and with callbacks we would have three variants for timer handling
@@ -422,7 +420,7 @@ x_menu_wait_for_event (void *data)
 #endif
          )
     {
-      EMACS_TIME next_time = timer_check (1);
+      EMACS_TIME next_time = timer_check (1), *ntp;
       long secs = EMACS_SECS (next_time);
       long usecs = EMACS_USECS (next_time);
       SELECT_TYPE read_fds;
@@ -437,15 +435,12 @@ x_menu_wait_for_event (void *data)
           if (fd > n) n = fd;
         }
 
-      if (secs < 0 || (secs == 0 && usecs == 0))
-        {
-          /* Sometimes timer_check returns -1 (no timers) even if there are
-             timers.  So do a timeout anyway.  */
-          EMACS_SET_SECS (next_time, 1);
-          EMACS_SET_USECS (next_time, 0);
-        }
+      if (secs < 0 && usecs < 0)
+        ntp = 0;
+      else
+        ntp = &next_time;
 
-      select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, &next_time);
+      select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
     }
 }
 #endif /* ! MSDOS */

@@ -296,7 +296,6 @@ static void create_pty P_ ((Lisp_Object));
 static Lisp_Object get_process ();
 static void exec_sentinel ();
 
-extern EMACS_TIME timer_check ();
 extern int timers_run;
 
 /* Mask of bits indicating the descriptors that we wait for input on.  */

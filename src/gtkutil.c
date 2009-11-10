@@ -1224,6 +1224,119 @@ create_dialog (wv, select_cb, deactivate_cb)
   return wdialog;
 }
 
+struct xg_dialog_data
+{
+  GMainLoop *loop;
+  int response;
+  GtkWidget *w;
+  guint timerid;
+};
+
+/* Function that is called when the file or font dialogs pop down.
+   W is the dialog widget, RESPONSE is the response code.
+   USER_DATA is what we passed in to g_signal_connect.  */
+
+static void
+xg_dialog_response_cb (w,
+                       response,
+                       user_data)
+     GtkDialog *w;
+     gint response;
+     gpointer user_data;
+{
+  struct xg_dialog_data *dd = (struct xg_dialog_data *)user_data;
+  dd->response = response;
+  g_main_loop_quit (dd->loop);
+}
+
+
+/*  Destroy the dialog.  This makes it pop down.  */
+
+static Lisp_Object
+pop_down_dialog (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  struct xg_dialog_data *dd = (struct xg_dialog_data *) p->pointer;
+
+  BLOCK_INPUT;
+  if (dd->w) gtk_widget_destroy (dd->w);
+  if (dd->timerid != 0) g_source_remove (dd->timerid);
+
+  g_main_loop_quit (dd->loop);
+  g_main_loop_unref (dd->loop);
+  
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
+/* If there are any emacs timers pending, add a timeout to main loop in DATA.
+    We pass in DATA as gpointer* so we can use this as a callback.  */
+
+static gboolean
+xg_maybe_add_timer (data)
+     gpointer data;
+{
+  struct xg_dialog_data *dd = (struct xg_dialog_data *) data;
+  EMACS_TIME next_time = timer_check (1);
+  long secs = EMACS_SECS (next_time);
+  long usecs = EMACS_USECS (next_time);
+
+  dd->timerid = 0;
+
+  if (secs >= 0 && usecs >= 0 && secs < ((guint)-1)/1000)
+    {
+      dd->timerid = g_timeout_add (secs * 1000 + usecs/1000,
+                                   xg_maybe_add_timer,
+                                   dd);
+    }
+  return FALSE;
+}
+
+     
+/* Pops up a modal dialog W and waits for response.
+   We don't use gtk_dialog_run because we want to process emacs timers.
+   The dialog W is not destroyed when this function returns.  */
+
+static int
+xg_dialog_run (f, w)
+     FRAME_PTR f;
+     GtkWidget *w;
+
+{
+  int count = SPECPDL_INDEX ();
+  struct xg_dialog_data dd;
+
+  xg_set_screen (w, f);
+  gtk_window_set_transient_for (GTK_WINDOW (w),
+                                GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+  gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
+  gtk_window_set_modal (GTK_WINDOW (w), TRUE);
+
+  dd.loop = g_main_loop_new (NULL, FALSE);
+  dd.response = GTK_RESPONSE_CANCEL;
+  dd.w = w;
+  dd.timerid = 0;
+
+  g_signal_connect (G_OBJECT (w),
+                    "response",
+                    G_CALLBACK (xg_dialog_response_cb),
+                    &dd);
+  /* Don't destroy the widget if closed by the window manager close button.  */
+  g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
+  gtk_widget_show (w);
+
+  record_unwind_protect (pop_down_dialog, make_save_value (&dd, 0));
+
+  (void) xg_maybe_add_timer (&dd);
+  g_main_loop_run (dd.loop);
+  
+  dd.w = 0;
+  unbind_to (count, Qnil);
+
+  return dd.response;
+}
 
 
 /***********************************************************************
@@ -1249,36 +1362,6 @@ xg_uses_old_file_dialog ()
 #endif /* ! HAVE_GTK_FILE_BOTH */
 }
 
-
-/* Function that is called when the file or font dialogs pop down.
-   W is the dialog widget, RESPONSE is the response code.
-   USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
-
-static void
-xg_dialog_response_cb (w,
-                     response,
-                     user_data)
-     GtkDialog *w;
-     gint response;
-     gpointer user_data;
-{
-  int *ptr = (int *) user_data;
-  *ptr = response;
-}
-
-
-/*  Destroy the dialog.  This makes it pop down.  */
-
-static Lisp_Object
-pop_down_dialog (arg)
-     Lisp_Object arg;
-{
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  BLOCK_INPUT;
-  gtk_widget_destroy (GTK_WIDGET (p->pointer));
-  UNBLOCK_INPUT;
-  return Qnil;
-}
 
 typedef char * (*xg_get_file_func) P_ ((GtkWidget *));
 
@@ -1537,7 +1620,6 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
      int mustmatch_p, only_dir_p;
 {
   GtkWidget *w = 0;
-  int count = SPECPDL_INDEX ();
   char *fn = 0;
   int filesel_done = 0;
   xg_get_file_func func;
@@ -1571,29 +1653,9 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
 #endif /* HAVE_GTK_FILE_BOTH */
 
-  xg_set_screen (w, f);
   gtk_widget_set_name (w, "emacs-filedialog");
-  gtk_window_set_transient_for (GTK_WINDOW (w),
-                                GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-  gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
-  gtk_window_set_modal (GTK_WINDOW (w), TRUE);
 
-  g_signal_connect (G_OBJECT (w),
-                    "response",
-                    G_CALLBACK (xg_dialog_response_cb),
-                    &filesel_done);
-
-  /* Don't destroy the widget if closed by the window manager close button.  */
-  g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
-
-  gtk_widget_show (w);
-
-  record_unwind_protect (pop_down_dialog, make_save_value (w, 0));
-  while (! filesel_done)
-    {
-      x_menu_wait_for_event (0);
-      gtk_main_iteration ();
-    }
+  filesel_done = xg_dialog_run (f, w);
 
 #if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
@@ -1602,8 +1664,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   if (filesel_done == GTK_RESPONSE_OK)
     fn = (*func) (w);
 
-  unbind_to (count, Qnil);
-
+  gtk_widget_destroy (w);
   return fn;
 }
 
@@ -1622,8 +1683,7 @@ xg_get_font_name (f, default_name)
      FRAME_PTR f;
      char *default_name;
 {
-  GtkWidget *w = 0;
-  int count = SPECPDL_INDEX ();
+  GtkWidget *w;
   char *fontname = NULL;
   int done = 0;
 
@@ -1637,27 +1697,9 @@ xg_get_font_name (f, default_name)
   gtk_font_selection_dialog_set_font_name (GTK_FONT_SELECTION_DIALOG (w),
                                            default_name);
 
-  xg_set_screen (w, f);
   gtk_widget_set_name (w, "emacs-fontdialog");
-  gtk_window_set_transient_for (GTK_WINDOW (w),
-                                GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-  gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
-  gtk_window_set_modal (GTK_WINDOW (w), TRUE);
 
-  g_signal_connect (G_OBJECT (w), "response",
-		    G_CALLBACK (xg_dialog_response_cb), &done);
-
-  /* Don't destroy the widget if closed by the window manager close button.  */
-  g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
-
-  gtk_widget_show (w);
-
-  record_unwind_protect (pop_down_dialog, make_save_value (w, 0));
-  while (!done)
-    {
-      x_menu_wait_for_event (0);
-      gtk_main_iteration ();
-    }
+  done = xg_dialog_run (f, w);
 
 #if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
@@ -1665,10 +1707,9 @@ xg_get_font_name (f, default_name)
 
   if (done == GTK_RESPONSE_OK)
     fontname = gtk_font_selection_dialog_get_font_name
-      ((GtkFontSelectionDialog *) w);
+      (GTK_FONT_SELECTION_DIALOG (w));
 
-  unbind_to (count, Qnil);
-
+  gtk_widget_destroy (w);
   return fontname;
 }
 #endif /* HAVE_FREETYPE */
