@@ -447,7 +447,7 @@ lower-case letters made case insensitive."
   (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
 
-(declare-function x-popup-menu "xmenu.c" (position menu))
+(declare-function x-popup-menu "menu.c" (position menu))
 
 ;;;###autoload
 (defalias 'unhighlight-regexp 'hi-lock-unface-buffer)

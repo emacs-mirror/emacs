@@ -1,5 +1,9 @@
 2009-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el, hi-lock.el, calendar/cal-menu.el, calendar/calendar.el:
+	* calendar/holidays.el, progmodes/cperl-mode.el:
+	Update x-popup-menu declarations.
+
 	* emacs-lisp/shadow.el (find-emacs-lisp-shadows)
 	(list-load-path-shadows): Use dolist.
 	(list-load-path-shadows): Use with-current-buffer.

@@ -114,7 +114,7 @@
 
 ;;; Code:
 
-(load "cal-loaddefs" nil 'nomessage)
+(load "cal-loaddefs" nil t)
 
 ;; Avoid recursive load of calendar when loading cal-menu.  Yuck.
 (provide 'calendar)
@@ -2510,7 +2510,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (format "Mayan date: %s"
                    (calendar-mayan-date-string date))))))
 
-(declare-function x-popup-menu "xmenu.c" (position menu))
+(declare-function x-popup-menu "menu.c" (position menu))
 
 (defun calendar-print-other-dates (&optional event)
   "Show dates on other calendars for date under the cursor.

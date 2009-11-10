@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'calendar)
-(load "hol-loaddefs" nil 'nomessage)
+(load "hol-loaddefs" nil t)
 
 (defgroup holidays nil
   "Holidays support in calendar."
@@ -643,7 +643,7 @@ The holidays are those in the list `calendar-holidays'."
 (define-obsolete-function-alias
   'check-calendar-holidays 'calendar-check-holidays "23.1")
 
-(declare-function x-popup-menu "xmenu.c" (position menu))
+(declare-function x-popup-menu "menu.c" (position menu))
 
 ;;;###cal-autoload
 (defun calendar-cursor-holidays (&optional date event)
