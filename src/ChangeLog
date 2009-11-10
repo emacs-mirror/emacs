@@ -1,3 +1,7 @@
+2009-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu.c (Fx_popup_menu) [HAVE_NS]: Remove unused vars.
+
 2009-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (xmenu_show): Must not be static after 2009-11-09 changes.

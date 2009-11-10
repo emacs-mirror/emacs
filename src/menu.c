@@ -1073,11 +1073,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   int specpdl_count = SPECPDL_INDEX ();
   Lisp_Object timestamp = Qnil;
   struct gcpro gcpro1;
-#ifdef HAVE_NS
-  EmacsMenu *pmenu;
-  int specpdl_count2;
-  widget_value *wv, *first_wv = 0;
-#endif
 
 #ifdef HAVE_NS
   NSTRACE (ns_popup_menu);
