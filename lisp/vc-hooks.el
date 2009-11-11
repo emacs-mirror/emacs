@@ -967,7 +967,7 @@ current, and kill the buffer that visits the link."
     (define-key map [vc-create-tag]
       `(menu-item ,(purecopy "Create Tag") vc-create-tag
 		  :help ,(purecopy "Create version tag")))
-    (define-key map [separator1] '("----"))
+    (define-key map [separator1] menu-bar-separator)
     (define-key map [vc-annotate]
       `(menu-item ,(purecopy "Annotate") vc-annotate
 		  :help ,(purecopy "Display the edit history of the current file using colors")))
@@ -992,7 +992,7 @@ current, and kill the buffer that visits the link."
     (define-key map [vc-print-root-log]
       `(menu-item ,(purecopy "Show Top of the Tree History ") vc-print-root-log
 		  :help ,(purecopy "List the change log for the current tree in a window")))
-    (define-key map [separator2] '("----"))
+    (define-key map [separator2] menu-bar-separator)
     (define-key map [vc-insert-header]
       `(menu-item ,(purecopy "Insert Header") vc-insert-headers
 		  :help ,(purecopy "Insert headers into a file for use with a version control system.
@@ -1036,7 +1036,7 @@ current, and kill the buffer that visits the link."
     (if (null ext-binding)
         orig-binding
       (append orig-binding
-	      '((ext-menu-separator "---"))
+	      '((ext-menu-separator "--"))
               ext-binding))))
 
 (defun vc-default-extra-menu (backend)

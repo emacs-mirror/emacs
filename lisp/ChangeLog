@@ -1,6 +1,11 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* subr.el (menu-bar-separator): New defconst.
+	* net/eudc.el (eudc-tools-menu):
+	* international/mule-cmds.el (set-coding-system-map)
+	(mule-menu-keymap):
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map):
+	* vc-hooks.el (vc-menu-map):
 	* replace.el (occur-mode-map):
 	* menu-bar.el (menu-bar-file-menu, menu-bar-search-menu)
 	(menu-bar-edit-menu, menu-bar-goto-menu, menu-bar-edit-menu)

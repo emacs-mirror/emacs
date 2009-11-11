@@ -301,7 +301,7 @@ font-lock keywords will not be case sensitive."
     (define-key tracing-map [tr-uf]
       `(menu-item ,(purecopy "Untrace function...") untrace-function
 		  :help ,(purecopy "Untrace function, and possibly activate all remaining advice")))
-    (define-key tracing-map [tr-sep] '("--"))
+    (define-key tracing-map [tr-sep] menu-bar-separator)
     (define-key tracing-map [tr-q]
       `(menu-item ,(purecopy "Trace function quietly...") trace-function-background
 		  :help ,(purecopy "Trace the function with trace output going quietly to a buffer")))
@@ -316,7 +316,7 @@ font-lock keywords will not be case sensitive."
       `(menu-item ,(purecopy "Remove Instrumentation for Function...") elp-restore-function
 		  :help ,(purecopy "Restore an instrumented function to its original definition")))
 
-    (define-key prof-map [sep-rem] '("--"))
+    (define-key prof-map [sep-rem] menu-bar-separator)
     (define-key prof-map [prof-resall]
       `(menu-item ,(purecopy "Reset Counters for All Functions") elp-reset-all
 		  :help ,(purecopy "Reset the profiling information for all functions being profiled")))
@@ -349,7 +349,7 @@ font-lock keywords will not be case sensitive."
       `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun
 		  :help ,(purecopy "Evaluate the top level form point is in, stepping through with Edebug")
 		  :keys ,(purecopy "C-u C-M-x")))
-    (define-key menu-map [separator-byte] '("--"))
+    (define-key menu-map [separator-byte] menu-bar-separator)
     (define-key menu-map [disas]
       `(menu-item ,(purecopy "Disassemble byte compiled object...") disassemble
 		  :help ,(purecopy "Print disassembled code for OBJECT in a buffer")))
@@ -362,7 +362,7 @@ font-lock keywords will not be case sensitive."
     (define-key menu-map [byte-compile]
       `(menu-item ,(purecopy "Byte-compile This File") emacs-lisp-byte-compile
 		  :help ,(purecopy "Byte compile the file containing the current buffer")))
-    (define-key menu-map [separator-eval] '("--"))
+    (define-key menu-map [separator-eval] menu-bar-separator)
     (define-key menu-map [ielm]
       `(menu-item ,(purecopy "Interactive Expression Evaluation") ielm
 		  :help ,(purecopy "Interactively evaluate Emacs Lisp expressions")))
@@ -376,7 +376,7 @@ font-lock keywords will not be case sensitive."
     (define-key menu-map [eval-sexp]
       `(menu-item ,(purecopy "Evaluate Last S-expression") eval-last-sexp
 		  :help ,(purecopy "Evaluate sexp before point; print value in minibuffer")))
-    (define-key menu-map [separator-format] '("--"))
+    (define-key menu-map [separator-format] menu-bar-separator)
     (define-key menu-map [comment-region]
       `(menu-item ,(purecopy "Comment Out Region") comment-region
 		  :help ,(purecopy "Comment or uncomment each line in the region")
@@ -385,7 +385,8 @@ font-lock keywords will not be case sensitive."
       `(menu-item ,(purecopy "Indent Region") indent-region
 		  :help ,(purecopy "Indent each nonblank line in the region")
 		  :enable mark-active))
-    (define-key menu-map [indent-line] '("Indent Line" . lisp-indent-line))
+    (define-key menu-map [indent-line]
+      `(menu-item ,(purecopy "Indent Line") lisp-indent-line))
     map)
   "Keymap for Emacs Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
