@@ -1,3 +1,21 @@
+2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* widget.el (define-widget): Purecopy the docstring.
+	* international/mule-cmds.el (charset): Do not purecopy the
+	docstring here, define-widget does it.
+
+	* textmodes/texinfo.el (texinfo-open-quote, texinfo-close-quote):
+	* textmodes/bibtex-style.el (auto-mode-alist):
+	* progmodes/inf-lisp.el (inferior-lisp-prompt):
+	* progmodes/compile.el (compile-command):
+	* language/korea-util.el (default-korean-keyboard):
+	* international/mule-conf.el (file-coding-system-alist):
+	* emacs-lisp/eldoc.el (eldoc-minor-mode-string):
+	* tooltip.el (tooltip-frame-parameters):
+	* newcomment.el (comment-end, comment-padding):
+	* dired.el (dired-trivial-filenames):
+	* comint.el (comint-file-name-prefix): Purecopy initial values.
+
 2009-11-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-advice-minibuffer-electric-separator)

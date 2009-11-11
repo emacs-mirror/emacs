@@ -159,7 +159,7 @@ but it works only in Common Lisp."
   :group 'inferior-lisp)
 
 ;;;###autoload
-(defcustom inferior-lisp-prompt "^[^> \n]*>+:? *"
+(defcustom inferior-lisp-prompt (purecopy "^[^> \n]*>+:? *")
   "Regexp to recognize prompts in the Inferior Lisp mode.
 Defaults to \"^[^> \\n]*>+:? *\", which works pretty good for Lucid, kcl,
 and franz.  This variable is used to initialize `comint-prompt-regexp' in the

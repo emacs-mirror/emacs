@@ -2669,7 +2669,7 @@ Note that this applies to `comint-dynamic-complete-filename' only."
   :group 'comint-completion)
 
 ;;;###autoload
-(defvar comint-file-name-prefix ""
+(defvar comint-file-name-prefix (purecopy "")
   "Prefix prepended to absolute file names taken from process input.
 This is used by Comint's and shell's completion functions, and by shell's
 directory tracking functions.")

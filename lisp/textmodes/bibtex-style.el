@@ -63,7 +63,7 @@
     ("\\<\\(FUNCTION\\|MACRO\\)\\s-+{\\([^}\n]+\\)}"
      (2 font-lock-function-name-face))))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.bst\\'" . bibtex-style-mode))
+;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.bst\\'") 'bibtex-style-mode))
 
 ;;;###autoload
 (define-derived-mode bibtex-style-mode nil "BibStyle"

@@ -122,7 +122,7 @@ at the place matched by the close of the first pair.")
 ;;;###autoload(put 'comment-end-skip 'safe-local-variable 'string-or-null-p)
 
 ;;;###autoload
-(defvar comment-end ""
+(defvar comment-end (purecopy "")
   "*String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 ;;;###autoload(put 'comment-end 'safe-local-variable 'string-or-null-p)
@@ -218,7 +218,7 @@ See `comment-styles' for a list of available styles."
   :group 'comment)
 
 ;;;###autoload
-(defcustom comment-padding " "
+(defcustom comment-padding (purecopy " ")
   "Padding string that `comment-region' puts between comment chars and text.
 Can also be an integer which will be automatically turned into a string
 of the corresponding number of spaces.

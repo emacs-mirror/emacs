@@ -85,7 +85,7 @@ create identical widgets:
 
 The third argument DOC is a documentation string for the widget."
   (put name 'widget-type (cons class args))
-  (put name 'widget-documentation doc)
+  (put name 'widget-documentation (purecopy doc))
   name)
 
 ;; This is used by external widget code (in W3, at least).

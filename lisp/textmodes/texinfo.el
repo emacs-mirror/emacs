@@ -42,13 +42,13 @@
   :group 'docs)
 
 ;;;###autoload
-(defcustom texinfo-open-quote "``"
+(defcustom texinfo-open-quote (purecopy "``")
   "String inserted by typing \\[texinfo-insert-quote] to open a quotation."
   :type 'string
   :group 'texinfo)
 
 ;;;###autoload
-(defcustom texinfo-close-quote "''"
+(defcustom texinfo-close-quote (purecopy "''")
   "String inserted by typing \\[texinfo-insert-quote] to close a quotation."
   :type 'string
   :group 'texinfo)

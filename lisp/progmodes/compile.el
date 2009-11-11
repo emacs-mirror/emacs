@@ -588,7 +588,7 @@ The value nil as an element means to try the default directory."
   :group 'compilation)
 
 ;;;###autoload
-(defcustom compile-command "make -k "
+(defcustom compile-command (purecopy "make -k ")
   "Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.

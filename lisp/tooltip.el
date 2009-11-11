@@ -115,7 +115,7 @@ the value of `tooltip-y-offset' is ignored."
   :group 'tooltip)
 
 (defcustom tooltip-frame-parameters
-  '((name . "tooltip")
+  `((name . (purecopy "tooltip"))
     (internal-border-width . 2)
     (border-width . 1))
   "Frame parameters used for tooltips.

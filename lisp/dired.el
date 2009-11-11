@@ -105,7 +105,7 @@ always set this variable to t."
   :group 'dired-mark)
 
 ;;;###autoload
-(defcustom dired-trivial-filenames "^\\.\\.?$\\|^#"
+(defcustom dired-trivial-filenames (purecopy "^\\.\\.?$\\|^#")
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file."

@@ -64,7 +64,7 @@ If this variable is set to 0, no idle time is required."
   :group 'eldoc)
 
 ;;;###autoload
-(defcustom eldoc-minor-mode-string " ElDoc"
+(defcustom eldoc-minor-mode-string (purecopy " ElDoc")
   "String to display in mode line when ElDoc Mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil))
   :group 'eldoc)
