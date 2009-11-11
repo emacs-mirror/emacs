@@ -543,7 +543,7 @@ make_initial_frame (void)
   Vframe_list = Fcons (frame, Vframe_list);
 
   tty_frame_count = 1;
-  f->name = build_string ("F1");
+  f->name = make_pure_c_string ("F1");
 
   f->visible = 1;
   f->async_visible = 1;

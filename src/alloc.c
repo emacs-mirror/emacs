@@ -6401,8 +6401,8 @@ This means that certain objects should be allocated in shared (pure) space.  */)
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
   Vmemory_signal_data
-    = list2 (Qerror,
-	     build_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
+    = pure_cons (Qerror,
+		 pure_cons (make_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
 
   DEFVAR_LISP ("memory-full", &Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);

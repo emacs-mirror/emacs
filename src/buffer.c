@@ -5302,7 +5302,7 @@ init_buffer_once ()
   current_buffer = 0;
   all_buffers = 0;
 
-  QSFundamental = build_string ("Fundamental");
+  QSFundamental = make_pure_c_string ("Fundamental");
 
   Qfundamental_mode = intern_c_string ("fundamental-mode");
   buffer_defaults.major_mode = Qfundamental_mode;

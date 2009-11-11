@@ -1,5 +1,10 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* frame.c (make_initial_frame):
+	* buffer.c (init_buffer_once): Use make_pure_c_string instead of
+	build_string.
+	* alloc.c (syms_of_alloc): Build Vmemory_signal_data in pure memory.
+
 	* s/freebsd.h:
 	* s/netbsd.h: Remove code referring to non-existent file: unexsunos4.o.
 
