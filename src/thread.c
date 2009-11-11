@@ -229,7 +229,7 @@ run_thread (void *state)
      typically wait for the parent thread to release it first.  */
   XSETBUFFER (buffer, self->m_current_buffer);
   GCPRO1 (buffer);
-  self->m_current_buffer = (struct buffer *) buffer;
+  self->m_current_buffer = 0;
 
   pthread_mutex_lock (&global_lock);
 
