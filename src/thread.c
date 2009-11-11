@@ -18,7 +18,7 @@ void flush_stack_call_func P_ ((void (*) (char *, void *), void *));
 
 /* condition var .. w/ global lock */
 
-static pthread_cond_t buffer_cond;
+static pthread_cond_t thread_cond;
 
 static struct thread_state primary_thread;
 
@@ -50,7 +50,7 @@ reschedule (char *end, int wait)
     thread_schedule ();
 
   if (next_thread != current_thread->pthread_id)
-    pthread_cond_broadcast (&buffer_cond);
+    pthread_cond_broadcast (&thread_cond);
 
   if (!wait)
     return;
@@ -60,7 +60,7 @@ reschedule (char *end, int wait)
   pthread_mutex_lock (&global_lock);
 
   while (current_thread->pthread_id != next_thread)
-    pthread_cond_wait (&buffer_cond, &global_lock);
+    pthread_cond_wait (&thread_cond, &global_lock);
 }
 
 static void
@@ -245,7 +245,7 @@ run_thread (void *state)
   *iter = (*iter)->next_thread;
 
   thread_schedule ();
-  pthread_cond_broadcast (&buffer_cond);
+  pthread_cond_broadcast (&thread_cond);
 
   xfree (self->m_specpdl);
 
@@ -375,10 +375,10 @@ thread_select (n, rfd, wfd, xfd, tmo)
   current_thread->blocked = 0;
 
   pthread_mutex_lock (&global_lock);
-  pthread_cond_broadcast (&buffer_cond);
+  pthread_cond_broadcast (&thread_cond);
 
   while (current_thread->pthread_id != next_thread)
-    pthread_cond_wait (&buffer_cond, &global_lock);
+    pthread_cond_wait (&thread_cond, &global_lock);
 
   return ret;
 }
@@ -440,7 +440,7 @@ void
 init_threads (void)
 {
   pthread_mutex_init (&global_lock, NULL);
-  pthread_cond_init (&buffer_cond, NULL);
+  pthread_cond_init (&thread_cond, NULL);
   pthread_mutex_lock (&global_lock);
 
   primary_thread.pthread_id = pthread_self ();
