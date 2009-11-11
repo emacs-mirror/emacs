@@ -2038,7 +2038,7 @@ Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS and `default-frame-alist'."
-  (dolist (face (nreverse (face-list)))
+  (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
     (condition-case ()
 	(progn
 	  ;; Initialize faces from face spec and custom theme.
