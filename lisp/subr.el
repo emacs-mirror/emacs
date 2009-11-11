@@ -3759,6 +3759,8 @@ is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 
 
 ;;; Misc.
+(defconst menu-bar-separator '("--")
+  "Separator for menus.")
 
 ;; The following statement ought to be in print.c, but `provide' can't
 ;; be used there.

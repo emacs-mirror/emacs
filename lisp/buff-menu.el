@@ -158,12 +158,12 @@ Auto Revert Mode.")
     (define-key menu-map [rev]
       `(menu-item ,(purecopy "Refresh") revert-buffer
 		 :help ,(purecopy "Refresh the *Buffer List* buffer contents")))
-    (define-key menu-map [s0] '("--"))
+    (define-key menu-map [s0] menu-bar-separator)
     (define-key menu-map [tf]
       `(menu-item ,(purecopy "Show only file buffers") Buffer-menu-toggle-files-only
 		  :button (:toggle . Buffer-menu-files-only)
 		  :help ,(purecopy "Toggle whether the current buffer-menu displays only file buffers")))
-    (define-key menu-map [s1] '("--"))
+    (define-key menu-map [s1] menu-bar-separator)
     ;; FIXME: The "Select" entries could use better names...
     (define-key menu-map [sel]
       `(menu-item ,(purecopy "Select marked") Buffer-menu-select
@@ -180,14 +180,14 @@ Auto Revert Mode.")
     (define-key menu-map [tw]
       `(menu-item ,(purecopy "Select in current window") Buffer-menu-this-window
 		 :help ,(purecopy "Select this line's buffer in this window")))
-    (define-key menu-map [s2] '("--"))
+    (define-key menu-map [s2] menu-bar-separator)
     (define-key menu-map [is]
       `(menu-item ,(purecopy "Regexp Isearch marked buffers") Buffer-menu-isearch-buffers-regexp
 		 :help ,(purecopy "Search for a regexp through all marked buffers using Isearch")))
     (define-key menu-map [ir]
       `(menu-item ,(purecopy "Isearch marked buffers") Buffer-menu-isearch-buffers
 		 :help ,(purecopy "Search for a string through all marked buffers using Isearch")))
-    (define-key menu-map [s3] '("--"))
+    (define-key menu-map [s3] menu-bar-separator)
     (define-key menu-map [by]
       `(menu-item ,(purecopy "Bury") Buffer-menu-bury
 		 :help ,(purecopy "Bury the buffer listed on this line")))
@@ -197,7 +197,7 @@ Auto Revert Mode.")
     (define-key menu-map [ex]
       `(menu-item ,(purecopy "Execute") Buffer-menu-execute
 		 :help ,(purecopy "Save and/or delete buffers marked with s or k commands")))
-    (define-key menu-map [s4] '("--"))
+    (define-key menu-map [s4] menu-bar-separator)
     (define-key menu-map [delb]
       `(menu-item ,(purecopy "Mark for delete and move backwards") Buffer-menu-delete-backwards
 		 :help ,(purecopy "Mark buffer on this line to be deleted by x command and move up one line")))

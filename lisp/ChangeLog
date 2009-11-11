@@ -1,5 +1,17 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* subr.el (menu-bar-separator): New defconst.
+	* replace.el (occur-mode-map):
+	* menu-bar.el (menu-bar-file-menu, menu-bar-search-menu)
+	(menu-bar-edit-menu, menu-bar-goto-menu, menu-bar-edit-menu)
+	(menu-bar-custom-menu, menu-bar-showhide-menu)
+	(menu-bar-options-menu, menu-bar-tools-menu)
+	(menu-bar-encryption-decryption-menu, menu-bar-describe-menu)
+	(menu-bar-search-documentation-menu, menu-bar-manuals-menu)
+	(menu-bar-help-menu):
+	* ediff-hook.el (menu-bar-ediff-menu, menu-bar-ediff-merge-menu):
+	* buff-menu.el (Buffer-menu-mode-map): Use menu-bar-separator.
+
 	* term/x-win.el (x-gtk-stock-map):
 	* progmodes/vera-mode.el (auto-mode-alist):
 	* progmodes/inf-lisp.el (inferior-lisp-filter-regexp)

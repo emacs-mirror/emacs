@@ -71,7 +71,7 @@
 	      :help ,(purecopy "Save unsaved buffers, then exit")))
 
 (define-key menu-bar-file-menu [separator-exit]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 ;; Don't use delete-frame as event name because that is a special
 ;; event.
@@ -101,7 +101,7 @@
 	      :help ,(purecopy "Split selected window in two windows")))
 
 (define-key menu-bar-file-menu [separator-window]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-file-menu [ps-print-region]
   `(menu-item ,(purecopy "Postscript Print Region (B+W)") ps-print-region
@@ -129,7 +129,7 @@
 	      :help ,(purecopy "Print current buffer with page headings")))
 
 (define-key menu-bar-file-menu [separator-print]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-file-menu [recover-session]
   `(menu-item ,(purecopy "Recover Crashed Session") recover-session
@@ -167,7 +167,7 @@
 	      :help ,(purecopy "Save current buffer to its file")))
 
 (define-key menu-bar-file-menu [separator-save]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (defun menu-find-file-existing ()
   "Edit the existing file FILENAME."
@@ -292,7 +292,7 @@
 (define-key menu-bar-search-menu [i-search]
   `(menu-item ,(purecopy "Incremental Search") ,menu-bar-i-search-menu))
 (define-key menu-bar-search-menu [separator-tag-isearch]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-search-menu [tags-continue]
   `(menu-item ,(purecopy "Continue Tags Search") tags-loop-continue
@@ -301,7 +301,7 @@
   `(menu-item ,(purecopy "Search Tagged Files...") tags-search
 	      :help ,(purecopy "Search for a regexp in all tagged files")))
 (define-key menu-bar-search-menu [separator-tag-search]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-search-menu [repeat-search-back]
   `(menu-item ,(purecopy "Repeat Backwards") nonincremental-repeat-search-backward
@@ -318,7 +318,7 @@
 			       regexp-search-ring))
 	      :help ,(purecopy "Repeat last search forward")))
 (define-key menu-bar-search-menu [separator-repeat-search]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-search-menu [re-search-backward]
   `(menu-item ,(purecopy "Regexp Backwards...") nonincremental-re-search-backward
@@ -345,7 +345,7 @@
   `(menu-item ,(purecopy "Replace in Tagged Files...") tags-query-replace
 	      :help ,(purecopy "Interactively replace a regexp in all tagged files")))
 (define-key menu-bar-replace-menu [separator-replace-tags]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-replace-menu [query-replace-regexp]
   `(menu-item ,(purecopy "Replace Regexp...") query-replace-regexp
@@ -367,7 +367,7 @@
 	      ,(purecopy "Fill text in region to fit between left and right margin")))
 
 (define-key menu-bar-edit-menu [separator-bookmark]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-edit-menu [bookmark]
   `(menu-item ,(purecopy "Bookmarks") menu-bar-bookmark-map))
@@ -379,7 +379,7 @@
 	      :help ,(purecopy "Tell Tags commands which tag table file to use")))
 
 (define-key menu-bar-goto-menu [separator-tag-file]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-goto-menu [apropos-tags]
   `(menu-item ,(purecopy "Tags Apropos...") tags-apropos
@@ -415,7 +415,7 @@
 	      :help ,(purecopy "Find definition of function or variable")))
 
 (define-key menu-bar-goto-menu [separator-tags]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-goto-menu [end-of-buf]
   `(menu-item ,(purecopy "Goto End of Buffer") end-of-buffer))
@@ -438,7 +438,7 @@
   `(menu-item ,(purecopy "Search") ,menu-bar-search-menu))
 
 (define-key menu-bar-edit-menu [separator-search]
-  `(menu-item ,(purecopy "--")))
+  menu-bar-separator)
 
 (define-key menu-bar-edit-menu [mark-whole-buffer]
   `(menu-item ,(purecopy "Select All") mark-whole-buffer
@@ -470,7 +470,7 @@
   `(menu-item ,(purecopy "Copy") menu-bar-kill-ring-save
 	      :enable mark-active
 	      :help ,(purecopy "Copy text in region between mark and current position")
-	      :keys "\\[kill-ring-save]"))
+	      :keys ,(purecopy "\\[kill-ring-save]")))
 (define-key menu-bar-edit-menu [cut]
   `(menu-item ,(purecopy "Cut") kill-region
 	      :enable (and mark-active (not buffer-read-only))
@@ -564,7 +564,7 @@ Do the same for the keys of the same name."
   `(menu-item ,(purecopy "Settings Matching Regexp...") customize-apropos
 	      :help ,(purecopy "Browse customizable settings whose names match regexp")))
 (define-key menu-bar-custom-menu [separator-1]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-custom-menu [customize-group]
   `(menu-item ,(purecopy "Specific Group...") customize-group
 	      :help ,(purecopy "Customize settings of specific group")))
@@ -575,7 +575,7 @@ Do the same for the keys of the same name."
   `(menu-item ,(purecopy "Specific Option...") customize-option
 	      :help ,(purecopy "Customize value of specific option")))
 (define-key menu-bar-custom-menu [separator-2]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-custom-menu [customize-changed-options]
   `(menu-item ,(purecopy "New Options...") customize-changed-options
 	      :help ,(purecopy "Options added or changed in recent Emacs versions")))
@@ -583,7 +583,7 @@ Do the same for the keys of the same name."
   `(menu-item ,(purecopy "Saved Options") customize-saved
 	      :help ,(purecopy "Customize previously saved options")))
 (define-key menu-bar-custom-menu [separator-3]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-custom-menu [customize-browse]
   `(menu-item ,(purecopy "Browse Customization Groups") customize-browse
 	      :help ,(purecopy "Browse all customization groups")))
@@ -706,7 +706,7 @@ by \"Save Options\" in Custom buffers.")
 	      :help ,(purecopy "Save options set from the menu above")))
 
 (define-key menu-bar-options-menu [custom-separator]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-options-menu [menu-set-font]
   `(menu-item ,(purecopy "Set Default Font...") menu-set-font
@@ -733,7 +733,7 @@ by \"Save Options\" in Custom buffers.")
 			   "Show the size of the buffer in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-showhide-menu [showhide-battery]
   (menu-bar-make-mm-toggle display-battery-mode
@@ -747,7 +747,7 @@ by \"Save Options\" in Custom buffers.")
 mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [datetime-separator]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-showhide-menu [showhide-speedbar]
   `(menu-item ,(purecopy "Speedbar") speedbar-frame-mode
@@ -975,7 +975,7 @@ mail status in mode line"))
   `(menu-item ,(purecopy "Show/Hide") ,menu-bar-showhide-menu))
 
 (define-key menu-bar-options-menu [showhide-separator]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-options-menu [mule]
   ;; It is better not to use backquote here,
@@ -992,7 +992,7 @@ mail status in mode line"))
 ;	      :help ,(purecopy "Toggle important global options")))
 
 (define-key menu-bar-options-menu [mule-separator]
-  '("--"))
+   menu-bar-separator)
 
 (define-key menu-bar-options-menu [debug-on-quit]
   (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
@@ -1003,14 +1003,14 @@ mail status in mode line"))
 			"Enter Debugger on Error" "Debug on Error %s"
 			"Enter Lisp debugger when an error is signaled"))
 (define-key menu-bar-options-menu [debugger-separator]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-options-menu [blink-cursor-mode]
   (menu-bar-make-mm-toggle blink-cursor-mode
 			   "Blinking Cursor"
 			   "Whether the cursor blinks (Blink Cursor mode)"))
 (define-key menu-bar-options-menu [cursor-separator]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
@@ -1034,7 +1034,7 @@ mail status in mode line"))
 				  'forward))))
 
 (define-key menu-bar-options-menu [edit-options-separator]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-options-menu [cua-mode]
   (menu-bar-make-mm-toggle cua-mode
 			   "C-x/C-c/C-v Cut and Paste (CUA)"
@@ -1080,7 +1080,7 @@ mail status in mode line"))
 		(interactive)
 		(unless visual-line-mode
 		  (visual-line-mode 1))
-		(message "Visual-Line mode enabled"))
+		(message ,(purecopy "Visual-Line mode enabled")))
 	      :help ,(purecopy "Wrap long lines at word boundaries")
 	      :button (:radio . (and (null truncate-lines)
 				     (not (truncated-partial-width-window-p))
@@ -1118,7 +1118,7 @@ mail status in mode line"))
 
 
 (define-key menu-bar-options-menu [highlight-separator]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-options-menu [highlight-paren-mode]
   (menu-bar-make-mm-toggle show-paren-mode
 			   "Paren Match Highlighting"
@@ -1158,7 +1158,7 @@ mail status in mode line"))
   `(menu-item ,(purecopy "Games") ,menu-bar-games-menu))
 
 (define-key menu-bar-tools-menu [separator-games]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-games-menu [zone]
   `(menu-item ,(purecopy "Zone Out")  zone
@@ -1207,7 +1207,7 @@ mail status in mode line"))
   `(menu-item ,(purecopy "Encryption/Decryption") ,menu-bar-encryption-decryption-menu))
 
 (define-key menu-bar-tools-menu [separator-encryption-decryption]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-encryption-decryption-menu [insert-keys]
   `(menu-item ,(purecopy "Insert Keys") epa-insert-keys
@@ -1230,7 +1230,7 @@ mail status in mode line"))
 	      :help ,(purecopy "Browse your public keyring")))
 
 (define-key menu-bar-encryption-decryption-menu [separator-keys]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-encryption-decryption-menu [sign-region]
   `(menu-item ,(purecopy "Sign Region") epa-sign-region
@@ -1249,7 +1249,7 @@ mail status in mode line"))
 	      :help ,(purecopy "Decrypt the current region")))
 
 (define-key menu-bar-encryption-decryption-menu [separator-file]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-encryption-decryption-menu [sign-file]
   `(menu-item ,(purecopy "Sign File...") epa-sign-file
@@ -1278,7 +1278,7 @@ mail status in mode line"))
 	      :help ,(purecopy "Invoke the Emacs built-in calendar")))
 
 (define-key menu-bar-tools-menu [separator-net]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-tools-menu [directory-search]
   `(menu-item ,(purecopy "Directory Search") eudc-tools-menu))
@@ -1301,14 +1301,14 @@ mail status in mode line"))
 	      :help ,(purecopy "Read network news groups")))
 
 (define-key menu-bar-tools-menu [separator-vc]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-tools-menu [pcl-cvs]
   `(menu-item ,(purecopy "PCL-CVS") cvs-global-menu))
 (define-key menu-bar-tools-menu [vc] nil) ;Create the place for the VC menu.
 
 (define-key menu-bar-tools-menu [separator-compare]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-tools-menu [epatch]
   `(menu-item ,(purecopy "Apply Patch") menu-bar-epatch-menu))
@@ -1318,13 +1318,13 @@ mail status in mode line"))
   `(menu-item ,(purecopy "Compare (Ediff)") menu-bar-ediff-menu))
 
 (define-key menu-bar-tools-menu [separator-spell]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-tools-menu [spell]
   `(menu-item ,(purecopy "Spell Checking") ispell-menu-map))
 
 (define-key menu-bar-tools-menu [separator-prog]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-tools-menu [semantic]
   `(menu-item ,(purecopy "Source Code Parsers (Semantic)")
@@ -1380,7 +1380,7 @@ mail status in mode line"))
 	      ,describe-language-environment-map))
 
 (define-key menu-bar-describe-menu [separator-desc-mule]
-  '("--"))
+  menu-bar-separator)
 
 (define-key menu-bar-describe-menu [list-keybindings]
   `(menu-item ,(purecopy "List Key Bindings") describe-bindings
@@ -1452,7 +1452,7 @@ key, a click, or a menu-item")))
   `(menu-item ,(purecopy "Find Commands by Name...") apropos-command
 	      :help ,(purecopy "Find commands whose names match a regexp")))
 (define-key menu-bar-search-documentation-menu [sep1]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-search-documentation-menu [lookup-command-in-manual]
   `(menu-item ,(purecopy "Look Up Command in User Manual...") Info-goto-emacs-command-node
 	      :help ,(purecopy "Display manual section that describes a command")))
@@ -1475,7 +1475,7 @@ key, a click, or a menu-item")))
   `(menu-item ,(purecopy "Read Man Page...") manual-entry
 	      :help ,(purecopy "Man-page docs for external commands and libraries")))
 (define-key menu-bar-manuals-menu [sep2]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-manuals-menu [order-emacs-manuals]
   `(menu-item ,(purecopy "Ordering Manuals") view-order-manuals
 	      :help ,(purecopy "How to order manuals from the Free Software Foundation")))
@@ -1499,7 +1499,7 @@ key, a click, or a menu-item")))
   `(menu-item ,(purecopy "About Emacs") about-emacs
 	      :help ,(purecopy "Display version number, copyright info, and basic help")))
 (define-key menu-bar-help-menu [sep4]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-help-menu [describe-no-warranty]
   `(menu-item ,(purecopy "(Non)Warranty") describe-no-warranty
 	      :help ,(purecopy "Explain that Emacs has NO WARRANTY")))
@@ -1517,7 +1517,7 @@ key, a click, or a menu-item")))
 				 data-directory))
     (goto-address-mode 1)))
 (define-key menu-bar-help-menu [sep2]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-help-menu [external-packages]
   `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
 	      :help ,(purecopy "Lisp packages distributed separately for use in Emacs")))
@@ -1534,7 +1534,7 @@ key, a click, or a menu-item")))
 (define-key menu-bar-help-menu [search-documentation]
   `(menu-item ,(purecopy "Search Documentation") ,menu-bar-search-documentation-menu))
 (define-key menu-bar-help-menu [sep1]
-  '("--"))
+  menu-bar-separator)
 (define-key menu-bar-help-menu [emacs-psychotherapist]
   `(menu-item ,(purecopy "Emacs Psychotherapist") doctor
 	      :help ,(purecopy "Our doctor will help you feel better")))
