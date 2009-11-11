@@ -4209,7 +4209,13 @@ beginning of local filename are not substituted."
 	       (delete-region (point-min) (point))
 	       (insert (substitute-in-file-name s))
 	       (setq ad-return-value last-command-char))
-	   ad-do-it))))
+	   ad-do-it)))
+     (eval
+      `(add-hook
+	'tramp-unload-hook
+	(lambda ()
+	  (ad-remove-advice ',x 'around ',(intern (format "tramp-advice-%s" x)))
+	  (ad-activate ',x)))))
 
    '(minibuffer-electric-separator
      minibuffer-electric-tilde)))
@@ -8131,7 +8137,8 @@ If the `tramp-methods' entry does not exist, return NIL."
    (lambda ()
      (ad-remove-advice
       'make-auto-save-file-name
-      'around 'tramp-advice-make-auto-save-file-name))))
+      'around 'tramp-advice-make-auto-save-file-name)
+     (ad-activate 'make-auto-save-file-name))))
 
 ;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
 ;; permission 0666 minus umask. This is a security threat.
@@ -8376,7 +8383,8 @@ Only works for Bourne-like shells."
    'tramp-unload-hook
    (lambda ()
      (ad-remove-advice
-      'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards))))
+      'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
+     (ad-activate 'file-expand-wildcards))))
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages
