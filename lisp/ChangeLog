@@ -1,5 +1,7 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Purecopy :lighter.
+
 	* subr.el (add-hook): Purecopy strings.
 	(eval-after-load): Purecopy load-history-regexp and the form.
 

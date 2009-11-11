@@ -158,7 +158,7 @@ For example, you could write
       (setq body (cdr body))
       (case keyw
 	(:init-value (setq init-value (pop body)))
-	(:lighter (setq lighter (pop body)))
+	(:lighter (setq lighter (purecopy (pop body))))
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
 	(:set (setq set (list :set (pop body))))
