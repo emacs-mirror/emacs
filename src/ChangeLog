@@ -1,5 +1,8 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/freebsd.h:
+	* s/netbsd.h: Remove code referring to non-existent file: unexsunos4.o.
+
 	* Makefile.in: Add dependencies to lisp.h.  Remove dependencies
 	for non-existent files: unexmips.c, unexnext.c, abbrev.c, malloc.c.
 
