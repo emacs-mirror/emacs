@@ -72,7 +72,7 @@
 
 ;;;###autoload
 (defcustom inferior-lisp-filter-regexp
-  "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
+  (purecopy "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'")
   "*What not to save on inferior Lisp's input history.
 Input matching this regexp is not saved on the input history in Inferior Lisp
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
@@ -141,13 +141,13 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     'lisp-show-variable-documentation))
 
 ;;;###autoload
-(defcustom inferior-lisp-program "lisp"
+(defcustom inferior-lisp-program (purecopy "lisp")
   "*Program name for invoking an inferior Lisp in Inferior Lisp mode."
   :type 'string
   :group 'inferior-lisp)
 
 ;;;###autoload
-(defcustom inferior-lisp-load-command "(load \"%s\")\n"
+(defcustom inferior-lisp-load-command (purecopy "(load \"%s\")\n")
   "*Format-string for building a Lisp expression to load a file.
 This format string should use `%s' to substitute a file name
 and should result in a Lisp expression that will command the inferior Lisp

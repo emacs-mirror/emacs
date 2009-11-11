@@ -91,7 +91,7 @@ to use --brief and sets this variable to remember whether it worked."
 
 ;;;###autoload
 (defcustom vc-rcs-master-templates
-  '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s")
+  (purecopy '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
   "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"

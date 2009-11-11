@@ -97,13 +97,14 @@ This switch is used in conjunction with `printer-name'."
 
 ;;;###autoload
 (defcustom lpr-command
+ (purecopy
   (cond
    (lpr-windows-system
     "")
    (lpr-lp-system
     "lp")
    (t
-    "lpr"))
+    "lpr")))
   "Name of program for printing a file.
 
 On MS-DOS and MS-Windows systems, if the value is an empty string then

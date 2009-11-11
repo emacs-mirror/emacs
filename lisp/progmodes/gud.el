@@ -2446,7 +2446,7 @@ comint mode, which see."
 
 ;; Cause our buffers to be displayed, by default,
 ;; in the selected window.
-;;;###autoload (add-hook 'same-window-regexps "\\*gud-.*\\*\\(\\|<[0-9]+>\\)")
+;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*gud-.*\\*\\(\\|<[0-9]+>\\)"))
 
 (defcustom gud-chdir-before-run t
   "Non-nil if GUD should `cd' to the debugged executable."
@@ -3220,7 +3220,7 @@ Treats actions as defuns."
 ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
 ;; don't interfere with each other.
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "/\\.[a-z0-9-]*gdbinit") 'gdb-script-mode))
 
 ;;;###autoload
 (define-derived-mode gdb-script-mode nil "GDB-Script"

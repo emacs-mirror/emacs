@@ -49,7 +49,7 @@ LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
   :group 'find-dired)
 
 ;;;###autoload
-(defcustom find-ls-subdir-switches "-al"
+(defcustom find-ls-subdir-switches (purecopy "-al")
   "`ls' switches for inserting subdirectories in `*Find*' buffers.
 This should contain the \"-l\" switch.
 Use the \"-F\" or \"-b\" switches if and only if you also use
@@ -60,10 +60,10 @@ them for `find-ls-option'."
 
 ;;;###autoload
 (defcustom find-grep-options
-  (if (or (eq system-type 'berkeley-unix)
+  (purecopy (if (or (eq system-type 'berkeley-unix)
 	  (string-match "solaris2" system-configuration)
 	  (string-match "irix" system-configuration))
-      "-s" "-q")
+      "-s" "-q"))
   "Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
 On other systems, the closest you can come is to use `-l'."
@@ -72,9 +72,9 @@ On other systems, the closest you can come is to use `-l'."
 
 ;;;###autoload
 (defcustom find-name-arg
-  (if read-file-name-completion-ignore-case
+  (purecopy (if read-file-name-completion-ignore-case
       "-iname"
-    "-name")
+    "-name"))
   "Argument used to specify file name pattern.
 If `read-file-name-completion-ignore-case' is non-nil, -iname is used so that
 find also ignores case.  Otherwise, -name is used."

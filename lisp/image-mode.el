@@ -35,17 +35,17 @@
 (require 'image)
 (eval-when-compile (require 'cl))
 
-;;;###autoload (push '("\\.jpe?g\\'"    . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.png\\'"      . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.gif\\'"      . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.tiff?\\'"    . image-mode) auto-mode-alist)
-;;;###autoload (push '("\\.p[bpgn]m\\'" . image-mode) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.jpe?g\\'")    'image-mode) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.png\\'")      'image-mode) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.gif\\'")      'image-mode) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.tiff?\\'")    'image-mode) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.p[bpgn]m\\'") 'image-mode) auto-mode-alist)
 
-;;;###autoload (push '("\\.x[bp]m\\'"   . c-mode)     auto-mode-alist)
-;;;###autoload (push '("\\.x[bp]m\\'"   . image-mode-maybe) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'c-mode)     auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'image-mode-maybe) auto-mode-alist)
 
-;;;###autoload (push '("\\.svgz?\\'"    . xml-mode)   auto-mode-alist)
-;;;###autoload (push '("\\.svgz?\\'"    . image-mode-maybe) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'xml-mode)   auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'image-mode-maybe) auto-mode-alist)
 
 ;;; Image mode window-info management.
 

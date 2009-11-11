@@ -251,7 +251,7 @@ If nil, all buffers are searched."
   :group 'hippie-expand)
 
 ;;;###autoload
-(defcustom hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
+(defcustom hippie-expand-ignore-buffers (list (purecopy "^ \\*.*\\*$") 'dired-mode)
   "A list specifying which buffers not to search (if not current).
 Can contain both regexps matching buffer names (as strings) and major modes
 \(as atoms)"

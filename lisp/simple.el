@@ -165,7 +165,7 @@ If non-nil, the value is passed directly to `recenter'."
 (defvar next-error-highlight-timer nil)
 
 (defvar next-error-overlay-arrow-position nil)
-(put 'next-error-overlay-arrow-position 'overlay-arrow-string "=>")
+(put 'next-error-overlay-arrow-position 'overlay-arrow-string (purecopy "=>"))
 (add-to-list 'overlay-arrow-variable-list 'next-error-overlay-arrow-position)
 
 (defvar next-error-last-buffer nil

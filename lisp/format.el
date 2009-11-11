@@ -64,35 +64,37 @@
 (put 'buffer-auto-save-file-format 'permanent-local t)
 
 (defvar format-alist
-  '((text/enriched "Extended MIME text/enriched format."
-		   "Content-[Tt]ype:[ \t]*text/enriched"
+  ;; FIXME: maybe each item can be purecopied instead of just the strings.
+  `((text/enriched ,(purecopy "Extended MIME text/enriched format.")
+		   ,(purecopy "Content-[Tt]ype:[ \t]*text/enriched")
 		   enriched-decode enriched-encode t enriched-mode)
-    (plain "ISO 8859-1 standard format, no text properties."
+    (plain ,(purecopy "ISO 8859-1 standard format, no text properties.")
 	   ;; Plain only exists so that there is an obvious neutral choice in
 	   ;; the completion list.
 	   nil nil nil nil nil)
-    (TeX   "TeX (encoding)"
+    (TeX   ,(purecopy "TeX (encoding)")
 	   nil
 	   iso-tex2iso iso-iso2tex t nil)
-    (gtex  "German TeX (encoding)"
+    (gtex  ,(purecopy "German TeX (encoding)")
 	   nil
 	   iso-gtex2iso iso-iso2gtex t nil)
-    (html  "HTML/SGML \"ISO 8879:1986//ENTITIES Added Latin 1//EN\" (encoding)"
+    (html  ,(purecopy "HTML/SGML \"ISO 8879:1986//ENTITIES Added Latin 1//EN\" (encoding)")
 	   nil
 	   iso-sgml2iso iso-iso2sgml t nil)
-    (rot13 "rot13"
+    (rot13 ,(purecopy "rot13")
 	   nil
-	   "tr a-mn-z n-za-m" "tr a-mn-z n-za-m" t nil)
-    (duden "Duden Ersatzdarstellung"
+	   ,(purecopy "tr a-mn-z n-za-m") ,(purecopy "tr a-mn-z n-za-m") t nil)
+    (duden ,(purecopy "Duden Ersatzdarstellung")
 	   nil
-	   "diac" iso-iso2duden t nil)
-    (de646 "German ASCII (ISO 646)"
+	   ,(purecopy "diac") iso-iso2duden t nil)
+    (de646 ,(purecopy "German ASCII (ISO 646)")
 	   nil
-	   "recode -f iso646-ge:latin1" "recode -f latin1:iso646-ge" t nil)
-    (denet "net German"
+	   ,(purecopy "recode -f iso646-ge:latin1") 
+	   ,(purecopy "recode -f latin1:iso646-ge") t nil)
+    (denet ,(purecopy "net German")
 	   nil
 	   iso-german iso-cvt-read-only t nil)
-    (esnet "net Spanish"
+    (esnet ,(purecopy "net Spanish")
 	   nil
 	   iso-spanish iso-cvt-read-only t nil))
   "List of information about understood file formats.

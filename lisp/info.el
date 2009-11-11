@@ -607,9 +607,9 @@ in `Info-file-supports-index-cookies-list'."
   (let (same-window-buffer-names same-window-regexps)
     (info file-or-node)))
 
-;;;###autoload (add-hook 'same-window-regexps "\\*info\\*\\(\\|<[0-9]+>\\)")
+;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*info\\*\\(\\|<[0-9]+>\\)"))
 
-;;;###autoload (put 'info 'info-file "emacs")
+;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
 (defun info (&optional file-or-node buffer)
   "Enter Info, the documentation browser.
@@ -4038,7 +4038,7 @@ in the first element of the returned list (which is treated specially in
 	      (cdr where))
       where)))
 
-;;;###autoload (put 'Info-goto-emacs-command-node 'info-file "emacs")
+;;;###autoload (put 'Info-goto-emacs-command-node 'info-file (purecopy "emacs"))
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
   "Go to the Info node in the Emacs manual for command COMMAND.
@@ -4080,7 +4080,7 @@ COMMAND must be a symbol or string."
 			 (if (> num-matches 2) "them" "it")))))
       (error "Couldn't find documentation for %s" command))))
 
-;;;###autoload (put 'Info-goto-emacs-key-command-node 'info-file "emacs")
+;;;###autoload (put 'Info-goto-emacs-key-command-node 'info-file (purecopy "emacs"))
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
   "Go to the node in the Emacs manual which describes the command bound to KEY.

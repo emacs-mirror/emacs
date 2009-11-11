@@ -1,3 +1,35 @@
+2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/x-win.el (x-gtk-stock-map):
+	* progmodes/vera-mode.el (auto-mode-alist):
+	* progmodes/inf-lisp.el (inferior-lisp-filter-regexp)
+	(inferior-lisp-program, inferior-lisp-load-command):
+	* progmodes/hideshow.el (hs-special-modes-alist):
+	* progmodes/gud.el (same-window-regexps):
+	* progmodes/grep.el (grep-program, find-program, xargs-program):
+	* net/telnet.el (same-window-regexps):
+	* net/rlogin.el (same-window-regexps):
+	* language/ethiopic.el (font-ccl-encoder-alist):
+	* vc-sccs.el (vc-sccs-master-templates):
+	* vc-rcs.el (vc-rcs-master-templates):
+	* subr.el (cl-assertion-failed):
+	* simple.el (next-error-overlay-arrow-position):
+	* lpr.el (lpr-command):
+	* locate.el (locate-ls-subdir-switches):
+	* info.el (same-window-regexps, info)
+	(Info-goto-emacs-command-node, Info-goto-emacs-key-command-node):
+	* image-mode.el (image-mode, auto-mode-alist):
+	* hippie-exp.el (hippie-expand-ignore-buffers):
+	* format.el (format-alist):
+	* find-dired.el (find-ls-subdir-switches, find-grep-options)
+	(find-name-arg):
+	* facemenu.el (facemenu-keybindings):
+	* dired.el (dired-listing-switches, dired-chown-program):
+	* diff.el (diff-switches, diff-command):
+	* cus-edit.el (same-window-regexps):
+	* bindings.el (mode-line-mule-info)
+	(mode-line-buffer-identification): Purecopy strings.
+
 2009-11-11  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (dired-get-filename)<declare-function>:

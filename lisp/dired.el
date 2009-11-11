@@ -50,7 +50,7 @@
 
 
 ;;;###autoload
-(defcustom dired-listing-switches "-al"
+(defcustom dired-listing-switches (purecopy "-al")
   "Switches passed to `ls' for Dired.  MUST contain the `l' option.
 May contain all other options that don't contradict `-l';
 may contain even `F', `b', `i' and `s'.  See also the variable
@@ -71,11 +71,12 @@ If nil, `dired-listing-switches' is used.")
 
 ;;;###autoload
 (defvar dired-chown-program
+  (purecopy
   (if (memq system-type '(hpux usg-unix-v irix linux gnu/linux cygwin))
       "chown"
     (if (file-exists-p "/usr/sbin/chown")
 	"/usr/sbin/chown"
-      "/etc/chown"))
+      "/etc/chown")))
   "Name of chown command (usually `chown' or `/etc/chown').")
 
 (defvar dired-use-ls-dired (not (not (string-match "gnu" system-configuration)))

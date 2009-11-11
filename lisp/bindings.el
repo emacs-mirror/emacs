@@ -161,11 +161,11 @@ corresponding to the mode line clicked."
     (current-input-method
      (:propertize ("" current-input-method-title)
 		  help-echo (concat
-			     "Current input method: "
+			     ,(purecopy "Current input method: ")
 			     current-input-method
-			     "\n\
+			     ,(purecopy "\n\
 mouse-2: Disable input method\n\
-mouse-3: Describe current input method")
+mouse-3: Describe current input method"))
 		  local-map ,mode-line-input-method-map
 		  mouse-face mode-line-highlight))
     ,(propertize
@@ -459,7 +459,7 @@ mouse-3: next buffer")
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
-(defvar mode-line-buffer-identification (propertized-buffer-identification "%12b") "\
+(defvar mode-line-buffer-identification (purecopy (propertized-buffer-identification "%12b")) "\
 Mode-line control for identifying the buffer being displayed.
 Its default value is (\"%12b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
