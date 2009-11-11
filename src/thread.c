@@ -229,8 +229,7 @@ run_thread (void *state)
      typically wait for the parent thread to release it first.  */
   XSETBUFFER (buffer, self->m_current_buffer);
   GCPRO1 (buffer);
-  self->desired_buffer = (struct buffer *) buffer;
-  self->m_current_buffer = 0;
+  self->m_current_buffer = (struct buffer *) buffer;
 
   pthread_mutex_lock (&global_lock);
 
@@ -402,16 +401,6 @@ thread_notify_kill_buffer (register struct buffer *b)
   struct thread_state *it = all_threads;
   for (; it; it = it->next_thread)
     {
-      if (b == it->desired_buffer)
-        {
-          register Lisp_Object buf;
-          XSETBUFFER (buf, it->desired_buffer);
-          tem = Fother_buffer (buf, Qnil, Qnil);
-          it->desired_buffer = XBUFFER (tem);
-          if (b == it->desired_buffer)
-            return Qnil;
-        }
-
       if (b == it->m_current_buffer)
         {
           register Lisp_Object buf;
