@@ -1047,7 +1047,7 @@ an integer value."
       valid)))
 
 
-(defvar face-attribute-name-alist
+(defconst face-attribute-name-alist
   '((:family . "font family")
     (:foundry . "font foundry")
     (:width . "character set width")
@@ -1235,7 +1235,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 ;;; Listing faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar list-faces-sample-text
+(defconst list-faces-sample-text
   "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   "*Text string to display as the sample text for `list-faces-display'.")
 

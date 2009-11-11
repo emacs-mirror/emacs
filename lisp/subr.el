@@ -3546,13 +3546,13 @@ convenience wrapper around `make-progress-reporter' and friends.
 
 ;;;; Comparing version strings.
 
-(defvar version-separator "."
+(defconst version-separator "."
   "*Specify the string used to separate the version elements.
 
 Usually the separator is \".\", but it can be any other string.")
 
 
-(defvar version-regexp-alist
+(defconst version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
     ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release

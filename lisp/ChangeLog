@@ -1,5 +1,13 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/grep.el (grep-regexp-alist):
+	* international/mule-cmds.el (iso-2022-control-alist):
+	* emacs-lisp/timer.el (timer-duration-words):
+	* subr.el (version-separator, version-regexp-alist):
+	* minibuffer.el (completion-styles-alist):
+	* faces.el (face-attribute-name-alist, list-faces-sample-text):
+	Change defvars to defconsts.
+
 	* Makefile.in (ELCFILES): Add international/mule-conf.elc.
 	* loadup.el ("international/mule-conf"): Load the byte compiled version.
 	* international/mule-conf.el: Allow to be byte compiled.

@@ -2815,7 +2815,7 @@ If there's no description string for VALUE, return nil."
 ;; Pretty description of encoded string
 
 ;; Alist of ISO 2022 control code vs the corresponding mnemonic string.
-(defvar iso-2022-control-alist
+(defconst iso-2022-control-alist
   '((?\x1b . "ESC")
     (?\x0e . "SO")
     (?\x0f . "SI")

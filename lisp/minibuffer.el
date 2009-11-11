@@ -358,7 +358,7 @@ the second failed attempt to complete."
   :type '(choice (const nil) (const t) (const lazy))
   :group 'minibuffer)
 
-(defvar completion-styles-alist
+(defconst completion-styles-alist
   '((emacs21
      completion-emacs21-try-completion completion-emacs21-all-completions
      "Simple prefix-based completion.")

@@ -329,7 +329,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `complation-last-buffer' rather than `grep-last-buffer'.")
 
 ;;;###autoload
-(defvar grep-regexp-alist
+(defconst grep-regexp-alist
   '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
      1 3)
     ;; Rule to match column numbers is commented out since no known grep
