@@ -1,5 +1,9 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in (ELCFILES): Add international/mule-conf.elc.
+	* loadup.el ("international/mule-conf"): Load the byte compiled version.
+	* international/mule-conf.el: Allow to be byte compiled.
+
 	* international/mule.el (define-charset): Purecopy props.
 	(load-with-code-conversion): Purecopy doc string and file name.
 	(put-charset-property): Purecopy strings.

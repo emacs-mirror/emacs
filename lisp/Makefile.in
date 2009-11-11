@@ -861,6 +861,7 @@ ELCFILES = \
 	$(lisp)/international/latexenc.elc \
 	$(lisp)/international/latin1-disp.elc \
 	$(lisp)/international/mule-cmds.elc \
+	$(lisp)/international/mule-conf.elc \
 	$(lisp)/international/mule-diag.elc \
 	$(lisp)/international/mule-util.elc \
 	$(lisp)/international/mule.elc \

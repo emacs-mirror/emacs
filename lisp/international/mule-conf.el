@@ -1552,9 +1552,5 @@ for decoding and encoding files, process I/O, etc."
 ;; code.
 (provide 'code-pages)
 
-;; Local variables:
-;; no-byte-compile: t
-;; End:
-
 ;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here
