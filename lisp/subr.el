@@ -1818,34 +1818,34 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (let ((overriding-terminal-local-map read-key-empty-map)
 	(overriding-local-map nil)
 	(old-global-map (current-global-map))
-	(with-no-threads
-	 (timer (run-with-idle-timer
-		 ;; Wait long enough that Emacs has the time to receive and
-		 ;; process all the raw events associated with the single-key.
-		 ;; But don't wait too long, or the user may find the delay
-		 ;; annoying (or keep hitting more keys which may then get
-		 ;; lost or misinterpreted).
-		 ;; This is only relevant for keys which Emacs perceives as
-		 ;; "prefixes", such as C-x (because of the C-x 8 map in
-		 ;; key-translate-table and the C-x @ map in function-key-map)
-		 ;; or ESC (because of terminal escape sequences in
-		 ;; input-decode-map).
-		 read-key-delay t
-		 (lambda ()
-		   (let ((keys (this-command-keys-vector)))
-		     (unless (zerop (length keys))
-		       ;; `keys' is non-empty, so the user has hit at least
-		       ;; one key; there's no point waiting any longer, even
-		       ;; though read-key-sequence thinks we should wait
-		       ;; for more input to decide how to interpret the
-		       ;; current input.
-		       (throw 'read-key keys))))))))
-    (unwind-protect
-        (progn
-	  (use-global-map read-key-empty-map)
-	  (aref	(catch 'read-key (read-key-sequence prompt nil t)) 0))
-      (cancel-timer timer)
-      (use-global-map old-global-map))))
+        (timer (run-with-idle-timer
+                ;; Wait long enough that Emacs has the time to receive and
+                ;; process all the raw events associated with the single-key.
+                ;; But don't wait too long, or the user may find the delay
+                ;; annoying (or keep hitting more keys which may then get
+                ;; lost or misinterpreted).
+                ;; This is only relevant for keys which Emacs perceives as
+                ;; "prefixes", such as C-x (because of the C-x 8 map in
+                ;; key-translate-table and the C-x @ map in function-key-map)
+                ;; or ESC (because of terminal escape sequences in
+                ;; input-decode-map).
+                read-key-delay t
+                (lambda ()
+                  (let ((keys (this-command-keys-vector)))
+                    (unless (zerop (length keys))
+                      ;; `keys' is non-empty, so the user has hit at least
+                      ;; one key; there's no point waiting any longer, even
+                      ;; though read-key-sequence thinks we should wait
+                      ;; for more input to decide how to interpret the
+                      ;; current input.
+                      (throw 'read-key keys)))))))
+    (with-no-threads
+     (unwind-protect
+         (progn
+           (use-global-map read-key-empty-map)
+	     (aref (catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
+       (cancel-timer timer)
+       (use-global-map old-global-map)))))
 
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
@@ -1858,56 +1858,58 @@ any other terminator is used itself as input.
 The optional argument PROMPT specifies a string to use to prompt the user.
 The variable `read-quoted-char-radix' controls which radix to use
 for numeric input."
-  (with-no-threads
-   (let ((message-log-max nil) done (first t) (code 0) char translated)
-     (while (not done)
-       (let ((inhibit-quit first)
-             ;; Don't let C-h get the help message--only help function keys.
-             (help-char nil)
-             (help-form
-              "Type the special character you want to use,
+  (let ((message-log-max nil) done (first t) (code 0) char translated)
+    (while (not done)
+      (let ((inhibit-quit first)
+	    ;; Don't let C-h get the help message--only help function keys.
+	    (help-char nil)
+	    (help-form
+	     "Type the special character you want to use,
 or the octal character code.
 RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
-         (setq char (read-event (and prompt (format "%s-" prompt)) t))
-         (if inhibit-quit (setq quit-flag nil)))
-       ;; Translate TAB key into control-I ASCII character, and so on.
-       ;; Note: `read-char' does it using the `ascii-character' property.
-       ;; We could try and use read-key-sequence instead, but then C-q ESC
-       ;; or C-q C-x might not return immediately since ESC or C-x might be
-       ;; bound to some prefix in function-key-map or key-translation-map.
-       (setq translated
-             (if (integerp char)
-                 (char-resolve-modifiers char)
-               char))
-       (let ((translation (lookup-key local-function-key-map (vector char))))
-         (if (arrayp translation)
-             (setq translated (aref translation 0))))
-       (cond ((null translated))
-             ((not (integerp translated))
-              (setq unread-command-events (list char)
-                    done t))
-             ((/= (logand translated ?\M-\^@) 0)
-              ;; Turn a meta-character into a character with the 0200 bit set.
-              (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
-                    done t))
-             ((and (<= ?0 translated) (< translated (+ ?0 (min 10 read-quoted-char-radix))))
-              (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
-              (and prompt (setq prompt (message "%s %c" prompt translated))))
-             ((and (<= ?a (downcase translated))
-                   (< (downcase translated) (+ ?a -10 (min 36 read-quoted-char-radix))))
-              (setq code (+ (* code read-quoted-char-radix)
-                            (+ 10 (- (downcase translated) ?a))))
-              (and prompt (setq prompt (message "%s %c" prompt translated))))
-             ((and (not first) (eq translated ?\C-m))
-              (setq done t))
-             ((not first)
-              (setq unread-command-events (list char)
-                    done t))
-             (t (setq code translated
-                      done t)))
-       (setq first nil))
-     code)))
+        (with-no-threads
+         (setq char (read-event (and prompt (format "%s-" prompt)) t)))
+	(if inhibit-quit (setq quit-flag nil)))
+      ;; Translate TAB key into control-I ASCII character, and so on.
+      ;; Note: `read-char' does it using the `ascii-character' property.
+      ;; We could try and use read-key-sequence instead, but then C-q ESC
+      ;; or C-q C-x might not return immediately since ESC or C-x might be
+      ;; bound to some prefix in function-key-map or key-translation-map.
+      (setq translated
+	    (if (integerp char)
+		(char-resolve-modifiers char)
+	      char))
+      (let ((translation (lookup-key local-function-key-map (vector char))))
+	(if (arrayp translation)
+	    (setq translated (aref translation 0))))
+      (cond ((null translated))
+	    ((not (integerp translated))
+	     (setq unread-command-events (list char)
+		   done t))
+	    ((/= (logand translated ?\M-\^@) 0)
+	     ;; Turn a meta-character into a character with the 0200 bit set.
+	     (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
+		   done t))
+	    ((and (<= ?0 translated)
+                  (< translated (+ ?0 (min 10 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
+	     (and prompt (setq prompt (message "%s %c" prompt translated))))
+	    ((and (<= ?a (downcase translated))
+		  (< (downcase translated)
+                     (+ ?a -10 (min 36 read-quoted-char-radix))))
+	     (setq code (+ (* code read-quoted-char-radix)
+			   (+ 10 (- (downcase translated) ?a))))
+	     (and prompt (setq prompt (message "%s %c" prompt translated))))
+	    ((and (not first) (eq translated ?\C-m))
+	     (setq done t))
+	    ((not first)
+	     (setq unread-command-events (list char)
+		   done t))
+	    (t (setq code translated
+		     done t)))
+      (setq first nil))
+    code))
 
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
@@ -1923,8 +1925,8 @@ then it returns nil if the user types C-g, but quit-flag remains set.
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
-  (with-no-threads
-   (with-local-quit
+  (with-local-quit
+    (with-no-threads
      (if confirm
          (let (success)
            (while (not success)
