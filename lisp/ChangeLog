@@ -1,5 +1,8 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* international/mule-cmds.el (register-input-method); Purecopy arguments.
+	(define-char-code-property): Correctly purecopy the table.
+
 	* international/ccl.el (define-ccl-program): Purecopy the docstring.
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Purecopy :lighter.

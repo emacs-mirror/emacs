@@ -1370,9 +1370,12 @@ these duplicated values to show some information about input methods
 without loading the relevant Quail packages.
 \n(fn INPUT-METHOD LANG-ENV ACTIVATE-FUNC TITLE DESCRIPTION &rest ARGS)"
   (if (symbolp lang-env)
-      (setq lang-env (symbol-name lang-env)))
+      (setq lang-env (symbol-name lang-env))
+    (setq lang-env (purecopy lang-env)))
   (if (symbolp input-method)
-      (setq input-method (symbol-name input-method)))
+      (setq input-method (symbol-name input-method))
+    (setq input-method (purecopy input-method)))
+  (setq args (mapcar 'purecopy args))
   (let ((info (cons lang-env args))
 	(slot (assoc input-method input-method-alist)))
     (if slot
@@ -2746,7 +2749,7 @@ See also the documentation of `get-char-code-property' and
 	  (error "Invalid char-table: %s" table))
     (or (stringp table)
 	(error "Not a char-table nor a file name: %s" table)))
-  (if (stringp table) (purecopy table))
+  (if (stringp table) (setq table (purecopy table)))
   (let ((slot (assq name char-code-property-alist)))
     (if slot
 	(setcdr slot table)
