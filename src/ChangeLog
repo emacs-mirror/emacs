@@ -1,5 +1,8 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in: Add dependencies to lisp.h.  Remove dependencies
+	for non-existent files: unexmips.c, unexnext.c, abbrev.c, malloc.c.
+
 	* xfns.c (syms_of_xfns): Use make_pure_string instead of build_string.
 	* xterm.c (syms_of_xterm):
 	* xfaces.c (syms_of_xfaces):
