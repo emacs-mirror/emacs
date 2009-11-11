@@ -1,5 +1,10 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* international/mule.el (define-charset): Purecopy props.
+	(load-with-code-conversion): Purecopy doc string and file name.
+	(put-charset-property): Purecopy strings.
+	(auto-coding-alist, auto-coding-regexp-alist): Purecopy initial value.
+
 	* international/mule-cmds.el (register-input-method); Purecopy arguments.
 	(define-char-code-property): Correctly purecopy the table.
 

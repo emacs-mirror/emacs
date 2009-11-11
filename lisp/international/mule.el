@@ -264,7 +264,7 @@ attribute."
 	  (aset emacs-mule-charset-table emacs-mule-id name)))
 
     (dolist (slot attrs)
-      (setcdr slot (plist-get props (car slot))))
+      (setcdr slot (purecopy (plist-get props (car slot)))))
 
     ;; Make sure that the value of :code-space is a vector of 8
     ;; elements.
@@ -277,7 +277,7 @@ attribute."
 
     ;; Add :name and :docstring properties to PROPS.
     (setq props
-	  (cons :name (cons name (cons :docstring (cons docstring props)))))
+	  (cons :name (cons name (cons :docstring (cons (purecopy docstring) props)))))
     (or (plist-get props :short-name)
 	(plist-put props :short-name (symbol-name name)))
     (or (plist-get props :long-name)
@@ -317,7 +317,7 @@ Return t if file exists."
 	    (message "Loading %s (source)..." file)
 	  (message "Loading %s..." file)))
       (when purify-flag
-	(push file preloaded-file-list))
+	(push (purecopy file) preloaded-file-list))
       (unwind-protect
 	  (let ((load-file-name fullname)
 		(set-auto-coding-for-load t)
@@ -433,7 +433,10 @@ This is the last value stored with
   "Set CHARSETS's PROPNAME property to value VALUE.
 It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   (set-charset-plist charset
-		     (plist-put (charset-plist charset) propname value)))
+		     (plist-put (charset-plist charset) propname
+				(if (stringp value)
+				    (purecopy value)
+				  value))))
 
 (defun charset-description (charset)
   "Return description string of CHARSET."
@@ -1620,7 +1623,7 @@ and convert it in the temporary buffer.  Otherwise, convert in-place."
 (defcustom auto-coding-alist
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
-  '(("\\.\\(\
+  (purecopy '(("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'"
      . no-conversion-multibyte)
@@ -1629,7 +1632,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'"
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("\\.pdf\\'" . no-conversion)
-    ("/#[^/]+#\\'" . emacs-mule))
+    ("/#[^/]+#\\'" . emacs-mule)))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
@@ -1643,11 +1646,12 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
+  (purecopy
   '(("\\`BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
     ("\\`\xFE\xFF" . utf-16be-with-signature)
     ("\\`\xFF\xFE" . utf-16le-with-signature)
     ("\\`\xEF\xBB\xBF" . utf-8-with-signature)
-    ("\\`;ELC\024\0\0\0" . emacs-mule))	; Emacs 20-compiled
+    ("\\`;ELC\024\0\0\0" . emacs-mule)))	; Emacs 20-compiled
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose first bytes match REGEXP is decoded by CODING-SYSTEM on reading.
