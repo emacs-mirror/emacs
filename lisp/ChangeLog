@@ -1,3 +1,12 @@
+2009-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-advice-minibuffer-electric-separator)
+	(tramp-advice-minibuffer-electric-tilde): Unload advices via
+	`tramp-unload'.
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-advice-file-expand-wildcards): Apply also `ad-activate'
+	after removing the advice.
+
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/grep.el (grep-regexp-alist):
