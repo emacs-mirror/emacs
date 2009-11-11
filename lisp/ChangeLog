@@ -1,3 +1,10 @@
+2009-11-11  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (dired-get-filename)<declare-function>:
+	Tell the byte-compiler about dired-get-filename.
+	(shell-command): In Dired mode, get filename from the current line
+	as the default value.
+
 2009-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el, hi-lock.el, calendar/cal-menu.el, calendar/calendar.el:

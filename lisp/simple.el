@@ -2013,6 +2013,7 @@ is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
 (declare-function mailcap-file-default-commands "mailcap" (files))
+(declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
 (defun minibuffer-default-add-shell-commands ()
   "Return a list of all commands associated with the current file.
@@ -2136,8 +2137,12 @@ specifies the value of ERROR-BUFFER."
   (interactive
    (list
     (read-shell-command "Shell command: " nil nil
-			(and buffer-file-name
-			     (file-relative-name buffer-file-name)))
+			(let ((filename
+			       (cond
+				(buffer-file-name)
+				((eq major-mode 'dired-mode)
+				 (dired-get-filename nil t)))))
+			  (and filename (file-relative-name filename))))
     current-prefix-arg
     shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
