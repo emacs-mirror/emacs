@@ -1,5 +1,8 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* subr.el (add-hook): Purecopy strings.
+	(eval-after-load): Purecopy load-history-regexp and the form.
+
 	* custom.el (custom-declare-group): Purecopy load-file-name.
 
 	* subr.el (menu-bar-separator): New defconst.

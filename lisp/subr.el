@@ -1218,6 +1218,8 @@ function, it is changed to a list of functions."
       (setq hook-value (list hook-value)))
     ;; Do the actual addition if necessary
     (unless (member function hook-value)
+      (when (stringp function)
+	(setq function (purecopy function)))
       (setq hook-value
 	    (if append
 		(append hook-value (list function))
@@ -1660,14 +1662,14 @@ This function makes or adds to an entry on `after-load-alist'."
   ;; Add this FORM into after-load-alist (regardless of whether we'll be
   ;; evaluating it now).
   (let* ((regexp-or-feature
-	  (if (stringp file) (load-history-regexp file) file))
+	  (if (stringp file) (setq file (purecopy (load-history-regexp file))) file))
 	 (elt (assoc regexp-or-feature after-load-alist)))
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
     ;; Add FORM to the element unless it's already there.
     (unless (member form (cdr elt))
-      (nconc elt (list form)))
+      (nconc elt (purecopy (list form))))
 
     ;; Is there an already loaded file whose name (or `provide' name)
     ;; matches FILE?
