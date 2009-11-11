@@ -1,5 +1,7 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* custom.el (custom-declare-group): Purecopy load-file-name.
+
 	* subr.el (menu-bar-separator): New defconst.
 	* net/eudc.el (eudc-tools-menu):
 	* international/mule-cmds.el (set-coding-system-map)

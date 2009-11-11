@@ -414,7 +414,8 @@ for more information."
   ;; Record the group on the `current' list.
   (let ((elt (assoc load-file-name custom-current-group-alist)))
     (if elt (setcdr elt symbol)
-      (push (cons load-file-name symbol) custom-current-group-alist)))
+      (push (cons (purecopy load-file-name) symbol)
+	    custom-current-group-alist)))
   (run-hooks 'custom-define-hook)
   symbol)
 
