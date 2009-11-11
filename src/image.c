@@ -2338,7 +2338,7 @@ enum xbm_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid XBM image specifications.  */
 
-static struct image_keyword xbm_format[XBM_LAST] =
+static const struct image_keyword xbm_format[XBM_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
@@ -3138,7 +3138,7 @@ enum xpm_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid XPM image specifications.  */
 
-static struct image_keyword xpm_format[XPM_LAST] =
+static const struct image_keyword xpm_format[XPM_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
@@ -5087,7 +5087,7 @@ enum pbm_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword pbm_format[PBM_LAST] =
+static const struct image_keyword pbm_format[PBM_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":file",		IMAGE_STRING_VALUE,			0},
@@ -5509,7 +5509,7 @@ enum png_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword png_format[PNG_LAST] =
+static const struct image_keyword png_format[PNG_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
@@ -6111,7 +6111,7 @@ enum jpeg_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword jpeg_format[JPEG_LAST] =
+static const struct image_keyword jpeg_format[JPEG_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
@@ -6684,7 +6684,7 @@ enum tiff_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword tiff_format[TIFF_LAST] =
+static const struct image_keyword tiff_format[TIFF_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
@@ -7136,7 +7136,7 @@ enum gif_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword gif_format[GIF_LAST] =
+static const struct image_keyword gif_format[GIF_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
@@ -7280,8 +7280,8 @@ gif_read_from_memory (file, buf, len)
 /* Load GIF image IMG for use on frame F.  Value is non-zero if
    successful.  */
 
-static int interlace_start[] = {0, 4, 2, 1};
-static int interlace_increment[] = {8, 8, 4, 2};
+static const int interlace_start[] = {0, 4, 2, 1};
+static const int interlace_increment[] = {8, 8, 4, 2};
 
 static int
 gif_load (f, img)
@@ -7575,7 +7575,7 @@ enum svg_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword svg_format[SVG_LAST] =
+static const struct image_keyword svg_format[SVG_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":data",		IMAGE_STRING_VALUE,			0},
@@ -7982,7 +7982,7 @@ enum gs_keyword_index
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
-static struct image_keyword gs_format[GS_LAST] =
+static const struct image_keyword gs_format[GS_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
   {":pt-width",		IMAGE_POSITIVE_INTEGER_VALUE,		1},

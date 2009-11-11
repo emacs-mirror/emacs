@@ -3980,10 +3980,10 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 
 struct ifflag_def {
   int flag_bit;
-  char *flag_sym;
+  const char *flag_sym;
 };
 
-static struct ifflag_def ifflag_table[] = {
+static const struct ifflag_def ifflag_table[] = {
 #ifdef IFF_UP
   { IFF_UP,		"up" },
 #endif
@@ -4079,7 +4079,7 @@ FLAGS is the current flags of the interface.  */)
   if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
     {
       int flags = rq.ifr_flags;
-      struct ifflag_def *fp;
+      const struct ifflag_def *fp;
       int fnum;
 
       any++;

@@ -1,5 +1,22 @@
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c (ifflag_def): Make flag_sym constant.
+	(Fnetwork_interface_info): Use a constant pointer.
+	(ifflag_table):
+	* xfns.c (cursor_bits):
+	* xdisp.c (power_letter):
+	* termcap.c (speeds, esctab):
+	* sysdep.c (baud_convert):
+	* keyboard.c (lispy_accent_codes, modifier_names):
+	* image.c (xbm_format, xpm_format, pbm_format, png_format)
+	(jpeg_format, tiff_format, gif_format, svg_format)
+	(interlace_start, interlace_increment, gs_format):
+	* gtkutil.c (separator_names):
+	* fringe.c (swap_nibble):
+	* fns.c (base64_value_to_char, base64_char_to_value):
+	* fileio.c (make_temp_name_tbl):
+	* coding.c (suffixes): Make constant.
+
 	* frame.c (make_initial_frame):
 	* buffer.c (init_buffer_once): Use make_pure_c_string instead of
 	build_string.
@@ -18,6 +35,7 @@
 	* lread.c (syms_of_lread):
 	* keyboard.c (syms_of_keyboard): Use make_pure_c_string instead of
 	build_string.
+
 	* doc.c (Fsnarf_documentation): Purecopy Vbuild_files.
 
 2009-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>

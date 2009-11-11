@@ -184,7 +184,7 @@ tgetstr (cap, area)
    gives meaning of character following \, or a space if no special meaning.
    Sixteen characters per line within the string.  */
 
-static char esctab[]
+static const char esctab[]
   = " \057\026  \047\014         \
      \025   \015      \
    \005 \013          \
@@ -194,7 +194,7 @@ static char esctab[]
    gives meaning of character following \, or a space if no special meaning.
    Eight characters per line within the string.  */
 
-static char esctab[]
+static const char esctab[]
   = " \007\010  \033\014 \
       \012 \
   \015 \011 \013 \
@@ -348,7 +348,7 @@ char PC;
 /* Actual baud rate if positive;
    - baud rate / 100 if negative.  */
 
-static int speeds[] =
+static const int speeds[] =
   {
     0, 50, 75, 110, 135, 150, -2, -3, -6, -12,
     -18, -24, -48, -96, -192, -288, -384, -576, -1152

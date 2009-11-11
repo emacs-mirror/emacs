@@ -168,7 +168,7 @@ struct utimbuf {
 #define LPASS8 0
 #endif
 
-static int baud_convert[] =
+static const int baud_convert[] =
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400

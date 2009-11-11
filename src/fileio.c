@@ -657,7 +657,7 @@ In Unix-syntax, this function just removes the final slash.  */)
 				STRING_MULTIBYTE (directory));
 }
 
-static char make_temp_name_tbl[64] =
+static const char make_temp_name_tbl[64] =
 {
   'A','B','C','D','E','F','G','H',
   'I','J','K','L','M','N','O','P',

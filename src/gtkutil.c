@@ -2013,7 +2013,7 @@ make_menu_item (utf8_label, utf8_key, item, group)
 /* Return non-zero if LABEL specifies a separator (GTK only has one
    separator type)  */
 
-static char* separator_names[] = {
+static const char* separator_names[] = {
   "space",
   "no-line",
   "single-line",

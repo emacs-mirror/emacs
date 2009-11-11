@@ -4770,7 +4770,7 @@ static Lisp_Object drag_n_drop_syms;
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
 
-static int lispy_accent_codes[] =
+static const int lispy_accent_codes[] =
 {
 #ifdef XK_dead_circumflex
   XK_dead_circumflex,
@@ -6484,7 +6484,7 @@ apply_modifiers_uncached (modifiers, base, base_len, base_len_byte)
 }
 
 
-static char *modifier_names[] =
+static const char *modifier_names[] =
 {
   "up", "down", "drag", "click", "double", "triple", 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

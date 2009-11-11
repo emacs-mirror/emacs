@@ -9621,7 +9621,7 @@ HIGHESTP non-nil means just return the highest priority one.  */)
   return Fnreverse (val);
 }
 
-static char *suffixes[] = { "-unix", "-dos", "-mac" };
+static const char *const suffixes[] = { "-unix", "-dos", "-mac" };
 
 static Lisp_Object
 make_subsidiaries (base)
