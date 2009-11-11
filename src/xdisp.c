@@ -24782,7 +24782,7 @@ syms_of_xdisp ()
   staticpro (&echo_area_buffer[0]);
   staticpro (&echo_area_buffer[1]);
 
-  Vmessages_buffer_name = build_string ("*Messages*");
+  Vmessages_buffer_name = make_pure_c_string ("*Messages*");
   staticpro (&Vmessages_buffer_name);
 
   mode_line_proptrans_alist = Qnil;
@@ -24852,7 +24852,7 @@ See also `overlay-arrow-string'.  */);
   DEFVAR_LISP ("overlay-arrow-string", &Voverlay_arrow_string,
     doc: /* String to display as an arrow in non-window frames.
 See also `overlay-arrow-position'.  */);
-  Voverlay_arrow_string = build_string ("=>");
+  Voverlay_arrow_string = make_pure_c_string ("=>");
 
   DEFVAR_LISP ("overlay-arrow-variable-list", &Voverlay_arrow_variable_list,
     doc: /* List of variables (symbols) which hold markers for overlay arrows.
@@ -24953,14 +24953,14 @@ and is used only on frames for which no explicit name has been set
 \(see `modify-frame-parameters').  */);
   Vicon_title_format
     = Vframe_title_format
-    = Fcons (intern_c_string ("multiple-frames"),
-	     Fcons (build_string ("%b"),
-		    Fcons (Fcons (empty_unibyte_string,
-				  Fcons (intern_c_string ("invocation-name"),
-					 Fcons (build_string ("@"),
-						Fcons (intern_c_string ("system-name"),
-							       Qnil)))),
-			   Qnil)));
+    = pure_cons (make_pure_c_string ("multiple-frames"),
+		 pure_cons (make_pure_c_string ("%b"),
+			    pure_cons (pure_cons (empty_unibyte_string,
+						  pure_cons (intern_c_string ("invocation-name"),
+							     pure_cons (make_pure_c_string ("@"),
+									pure_cons (intern_c_string ("system-name"),
+										   Qnil)))),
+				       Qnil)));
 
   DEFVAR_LISP ("message-log-max", &Vmessage_log_max,
     doc: /* Maximum number of lines to keep in the message log buffer.

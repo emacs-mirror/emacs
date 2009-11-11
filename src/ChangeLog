@@ -1,3 +1,14 @@
+2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xfns.c (syms_of_xfns): Use make_pure_string instead of build_string.
+	* xterm.c (syms_of_xterm):
+	* xfaces.c (syms_of_xfaces):
+	* xdisp.c (syms_of_xdisp):
+	* lread.c (syms_of_lread):
+	* keyboard.c (syms_of_keyboard): Use make_pure_c_string instead of
+	build_string.
+	* doc.c (Fsnarf_documentation): Purecopy Vbuild_files.
+
 2009-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (Fplist_get): Merge the active and the uncommented code.

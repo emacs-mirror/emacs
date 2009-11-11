@@ -5932,7 +5932,7 @@ the tool bar buttons.  */);
     char gtk_version[40];
     g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
                 GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = build_string (gtk_version);
+    Vgtk_version_string = make_pure_string (gtk_version, strlen (gtk_version), strlen (gtk_version), 0);
   }
 #endif /* USE_GTK */
 

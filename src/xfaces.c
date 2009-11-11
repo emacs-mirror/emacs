@@ -6952,7 +6952,7 @@ that number of fonts when searching for a matching font.  */);
 This stipple pattern is used on monochrome displays
 instead of shades of gray for a face background color.
 See `set-face-stipple' for possible values for this variable.  */);
-  Vface_default_stipple = build_string ("gray3");
+  Vface_default_stipple = make_pure_c_string ("gray3");
 
   DEFVAR_LISP ("tty-defined-color-alist", &Vtty_defined_color_alist,
    doc: /* An alist of defined terminal colors and their RGB values.  */);

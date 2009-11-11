@@ -10847,7 +10847,7 @@ syms_of_xterm ()
   last_mouse_press_frame = Qnil;
 
 #ifdef USE_GTK
-  xg_default_icon_file = build_string ("icons/hicolor/scalable/apps/emacs.svg");
+  xg_default_icon_file = make_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   Qx_gtk_map_stock = intern_c_string ("x-gtk-map-stock");

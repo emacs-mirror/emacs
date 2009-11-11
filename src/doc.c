@@ -619,6 +619,7 @@ the same file name is found in the `doc-directory'.  */)
         if (len > 0)
           Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
       }
+    Vbuild_files = Fpurecopy (Vbuild_files);
   }
 
   fd = emacs_open (name, O_RDONLY, 0);

@@ -4330,8 +4330,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
-  Vload_suffixes = Fcons (build_string (".elc"),
-			  Fcons (build_string (".el"), Qnil));
+  Vload_suffixes = Fcons (make_pure_c_string (".elc"),
+			  Fcons (make_pure_c_string (".el"), Qnil));
   DEFVAR_LISP ("load-file-rep-suffixes", &Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
