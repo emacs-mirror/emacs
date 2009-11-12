@@ -1,3 +1,7 @@
+2009-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* tooltip.el (tooltip-frame-parameters): Undo previous change.
+
 2009-11-12  Juri Linkov  <juri@jurta.org>
 
 	* ffap.el (ffap-alternate-file-other-window, ffap-literally):
