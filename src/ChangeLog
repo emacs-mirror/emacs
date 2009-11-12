@@ -1,3 +1,8 @@
+2009-11-11  David Reitter  <david.reitter@gmail.com>
+
+	* menu.c (Fx_popup_menu): Remove left-over debugging code and rename
+	variables to fix 2009-11-09 change.
+
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* process.c (ifflag_def): Make flag_sym constant.

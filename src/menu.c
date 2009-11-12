@@ -1074,10 +1074,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object timestamp = Qnil;
   struct gcpro gcpro1;
 
-#ifdef HAVE_NS
-  NSTRACE (ns_popup_menu);
-#endif
-
   if (NILP (position))
     /* This is an obsolete call, which wants us to precompute the
        keybinding equivalents, but we don't do that any more anyway.  */
@@ -1187,8 +1183,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	f = XFRAME (WINDOW_FRAME (win));
 
 #ifdef HAVE_NS		     /* FIXME: Is this necessary??  --Stef  */
-	p.x = FRAME_COLUMN_WIDTH (f) * WINDOW_LEFT_EDGE_COL (win);
-	p.y = FRAME_LINE_HEIGHT (f) * WINDOW_TOP_EDGE_LINE (win);
+        xpos = FRAME_COLUMN_WIDTH (f) * WINDOW_LEFT_EDGE_COL (win);
+	ypos = FRAME_LINE_HEIGHT (f) * WINDOW_TOP_EDGE_LINE (win);
 #else
 	xpos = WINDOW_LEFT_EDGE_X (win);
 	ypos = WINDOW_TOP_EDGE_Y (win);
