@@ -1,3 +1,8 @@
+2009-11-12  Per Starbäck  <per@starback.se>  (tiny change)
+
+	* dired.el (dired-save-positions, dired-restore-positions): New funs.
+	(dired-revert): Use them (bug#4880).
+
 2009-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* tooltip.el (tooltip-frame-parameters): Undo previous change.

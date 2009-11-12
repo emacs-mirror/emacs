@@ -1104,8 +1104,7 @@ Should not fail even on completely garbaged buffers.
 Preserves old cursor, marks/flags, hidden-p."
   (widen)				; just in case user narrowed
   (let ((modflag (buffer-modified-p))
-	(opoint (point))
-	(ofile (dired-get-filename nil t))
+	(positions (dired-save-positions))
 	(mark-alist nil)		; save marked files
 	(hidden-subdirs (dired-remember-hidden))
 	(old-subdir-alist (cdr (reverse dired-subdir-alist))) ; except pwd
@@ -1125,9 +1124,7 @@ Preserves old cursor, marks/flags, hidden-p."
     ;; ... run the hook for the whole buffer, and only after markers
     ;; have been reinserted (else omitting in dired-x would omit marked files)
     (run-hooks 'dired-after-readin-hook)	; no need to narrow
-    (or (and ofile (dired-goto-file ofile)) ; move cursor to where it
-	(goto-char opoint))		; was before
-    (dired-move-to-filename)
+    (dired-restore-positions positions)
     (save-excursion			; hide subdirs that were hidden
       (dolist (dir hidden-subdirs)
 	(if (dired-goto-subdir dir)
@@ -1140,6 +1137,25 @@ Preserves old cursor, marks/flags, hidden-p."
 
 ;; Subroutines of dired-revert
 ;; Some of these are also used when inserting subdirs.
+
+(defun dired-save-positions ()
+  "Return the current positions in all windows displaying this dired buffer.
+The positions have the form (WINDOW FILENAME POINT)."
+  (mapcar (lambda (w)
+	    (list w
+		  (with-selected-window w
+		    (dired-get-filename nil t))
+		  (window-point w)))
+	  (get-buffer-window-list nil 0 t)))
+
+(defun dired-restore-positions (positions)
+  "Restore POSITIONS saved with `dired-save-positions'."
+  (dolist (win-file-pos positions)
+    (with-selected-window (car win-file-pos)
+      (unless (and (nth 1 win-file-pos)
+		   (dired-goto-file (nth 1 win-file-pos)))
+	(goto-char (nth 2 win-file-pos))
+	(dired-move-to-filename)))))
 
 (defun dired-remember-marks (beg end)
   "Return alist of files and their marks, from BEG to END."
