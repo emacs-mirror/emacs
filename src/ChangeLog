@@ -1,3 +1,7 @@
+2009-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies; add dependencies to lisp.h.
+
 2009-11-11  David Reitter  <david.reitter@gmail.com>
 
 	* menu.c (Fx_popup_menu): Remove left-over debugging code and rename
