@@ -1,3 +1,9 @@
+2009-11-12  Juri Linkov  <juri@jurta.org>
+
+	* ffap.el (ffap-alternate-file-other-window, ffap-literally):
+	New functions.
+	(find-file-literally-at-point): Alias of `ffap-literally'.
+
 2009-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/ispell.el (ispell-skip-region-alist):

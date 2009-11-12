@@ -1708,6 +1708,22 @@ Only intended for interactive use."
   (let ((ffap-file-finder 'find-alternate-file))
     (call-interactively 'ffap)))
 
+(defun ffap-alternate-file-other-window ()
+  "Like `ffap' and `find-alternate-file-other-window'.
+Only intended for interactive use."
+  (interactive)
+  (let ((ffap-file-finder 'find-alternate-file-other-window))
+    (call-interactively 'ffap)))
+
+(defun ffap-literally ()
+  "Like `ffap' and `find-file-literally'.
+Only intended for interactive use."
+  (interactive)
+  (let ((ffap-file-finder 'find-file-literally))
+    (call-interactively 'ffap)))
+
+(defalias 'find-file-literally-at-point 'ffap-literally)
+
 
 ;;; Bug Reporter:
 
