@@ -1,3 +1,8 @@
+2009-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-completion-help):
+	Use minibuffer-hide-completions.
+
 2009-11-12  Per Starbäck  <per@starback.se>  (tiny change)
 
 	* dired.el (dired-save-positions, dired-restore-positions): New funs.

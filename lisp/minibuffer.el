@@ -989,12 +989,7 @@ variables.")
 
       ;; If there are no completions, or if the current input is already the
       ;; only possible completion, then hide (previous&stale) completions.
-      (let ((window (and (get-buffer "*Completions*")
-                         (get-buffer-window "*Completions*" 0))))
-        (when (and (window-live-p window) (window-dedicated-p window))
-          (condition-case ()
-              (delete-window window)
-            (error (iconify-frame (window-frame window))))))
+      (minibuffer-hide-completions)
       (ding)
       (minibuffer-message
        (if completions "Sole completion" "No completions")))
