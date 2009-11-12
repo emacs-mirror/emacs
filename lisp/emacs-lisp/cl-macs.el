@@ -2565,7 +2565,7 @@ and then returning foo."
 			  (list 'if 'file
 				(list 'put (list 'quote func)
 				      '(quote compiler-macro-file)
-				      '(file-name-nondirectory file))))))))
+				      '(purecopy (file-name-nondirectory file)))))))))
 
 ;;;###autoload
 (defun compiler-macroexpand (form)

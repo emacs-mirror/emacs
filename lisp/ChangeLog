@@ -1,3 +1,7 @@
+2009-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/cl-macs.el (define-compiler-macro): Purecopy the file name.
+
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* widget.el (define-widget): Purecopy the docstring.
