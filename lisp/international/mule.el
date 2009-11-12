@@ -1404,10 +1404,11 @@ This function is provided for backward compatibility."
 ;;; X selections
 
 (defvar ctext-non-standard-encodings-alist
+  (mapcar 'purecopy
   '(("big5-0" big5 2 big5)
     ("ISO8859-14" iso-8859-14 1 latin-iso8859-14)
     ("ISO8859-15" iso-8859-15 1 latin-iso8859-15)
-    ("gbk-0" gbk 2 chinese-gbk))
+    ("gbk-0" gbk 2 chinese-gbk)))
   "Alist of non-standard encoding names vs the corresponding usages in CTEXT.
 
 It controls how extended segments of a compound text are handled
@@ -1440,13 +1441,14 @@ Each element must be one of the names listed in the variable
 `ctext-non-standard-encodings-alist' (which see).")
 
 (defvar ctext-non-standard-encodings-regexp
+  (purecopy
   (string-to-multibyte
    (concat
     ;; For non-standard encodings.
     "\\(\e%/[0-4][\200-\377][\200-\377]\\([^\002]+\\)\002\\)"
     "\\|"
     ;; For UTF-8 encoding.
-    "\\(\e%G[^\e]*\e%@\\)")))
+    "\\(\e%G[^\e]*\e%@\\)"))))
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
 ;; by the COMPOUND-TEXT spec.  They also support "The UTF-8 encoding"

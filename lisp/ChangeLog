@@ -1,5 +1,18 @@
 2009-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* textmodes/ispell.el (ispell-skip-region-alist):
+	* textmodes/css-mode.el (auto-mode-alist):
+	* progmodes/compile.el (auto-mode-alist):
+	* international/mule.el (ctext-non-standard-encodings-alist)
+	(ctext-non-standard-encodings-regexp):
+	* simple.el (shell-command-switch, text-read-only):
+	* replace.el (occur-mode-map):
+	* paths.el (rmail-file-name):
+	* jka-cmpr-hook.el (jka-compr-build-file-regexp):
+	* find-file.el (ff-special-constructs):
+	* files.el (file-name-handler-alist):
+	* composite.el: Purecopy strings.
+
 	* emacs-lisp/cl-macs.el (define-compiler-macro): Purecopy the file name.
 
 2009-11-11  Dan Nicolaescu  <dann@ics.uci.edu>

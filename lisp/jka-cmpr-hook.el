@@ -71,10 +71,11 @@ Otherwise, it is nil.")
 
 
 (defun jka-compr-build-file-regexp ()
+  (purecopy
   (mapconcat
    'jka-compr-info-regexp
    jka-compr-compression-info-list
-   "\\|"))
+   "\\|")))
 
 ;; Functions for accessing the return value of jka-compr-get-compression-info
 (defun jka-compr-info-regexp               (info)  (aref info 0))

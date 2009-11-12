@@ -132,7 +132,7 @@ should be set to `(system-name)'.")
 *The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
 
-(defcustom rmail-file-name "~/RMAIL" "\
+(defcustom rmail-file-name (purecopy "~/RMAIL") "\
 Name of user's primary mail file."
   :type 'string
   :group 'rmail

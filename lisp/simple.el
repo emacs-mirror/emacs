@@ -2003,7 +2003,7 @@ which is defined in the `warnings' library.\n")
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
-(defvar shell-command-switch "-c"
+(defvar shell-command-switch (purecopy "-c")
   "Switch used to have the shell execute its command line argument.")
 
 (defvar shell-command-default-error-buffer nil
@@ -2945,7 +2945,7 @@ move the yanking point; just return the Nth kill forward."
 
 (put 'text-read-only 'error-conditions
      '(text-read-only buffer-read-only error))
-(put 'text-read-only 'error-message "Text is read-only")
+(put 'text-read-only 'error-message (purecopy "Text is read-only"))
 
 (defun kill-region (beg end &optional yank-handler)
   "Kill (\"cut\") text between point and mark.

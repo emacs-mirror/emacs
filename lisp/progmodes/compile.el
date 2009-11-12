@@ -2377,7 +2377,7 @@ The file-structure looks like this:
 	   (eq compilation-scroll-output 'first-error))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.gcov\\'" . compilation-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.gcov\\'") 'compilation-mode))
 
 (provide 'compile)
 

@@ -5945,7 +5945,7 @@ only these files will be asked to be saved."
 ;; so that magic file name handlers will not apply to it.
 
 (setq file-name-handler-alist
-      (cons '("\\`/:" . file-name-non-special)
+      (cons (cons (purecopy "\\`/:") 'file-name-non-special)
 	    file-name-handler-alist))
 
 ;; We depend on being the last handler on the list,

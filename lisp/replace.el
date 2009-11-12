@@ -773,7 +773,7 @@ a previously found match."
       (menu-bar-make-mm-toggle next-error-follow-minor-mode
 			       "Auto Occurrence Display"
 			       "Display another occurrence when moving the cursor"))
-    (define-key map [separator-1] '("--"))
+    (define-key map [separator-1] menu-bar-separator)
     (define-key map [kill-this-buffer]
       `(menu-item ,(purecopy "Kill occur buffer") kill-this-buffer
 		  :help ,(purecopy "Kill the current *Occur* buffer")))

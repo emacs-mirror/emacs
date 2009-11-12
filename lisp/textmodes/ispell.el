@@ -1406,7 +1406,7 @@ The last occurring definition in the buffer will be used.")
     ;; Matches e-mail addresses, file names, http addresses, etc.  The
     ;; `-+' `_+' patterns are necessary for performance reasons when
     ;; `-' or `_' part of word syntax.
-    ("\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
+    (,(purecopy "\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)"))
     ;; above checks /.\w sequences
     ;;("\\(--+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
     ;; This is a pretty complex regexp.  It can be simplified to the following:
