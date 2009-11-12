@@ -44,7 +44,7 @@
 	(put-charset-property): Purecopy strings.
 	(auto-coding-alist, auto-coding-regexp-alist): Purecopy initial value.
 
-	* international/mule-cmds.el (register-input-method); Purecopy arguments.
+	* international/mule-cmds.el (register-input-method): Purecopy arguments.
 	(define-char-code-property): Correctly purecopy the table.
 
 	* international/ccl.el (define-ccl-program): Purecopy the docstring.
@@ -64,7 +64,7 @@
 	* vc-hooks.el (vc-menu-map):
 	* replace.el (occur-mode-map):
 	* menu-bar.el (menu-bar-file-menu, menu-bar-search-menu)
-	(menu-bar-edit-menu, menu-bar-goto-menu, menu-bar-edit-menu)
+	(menu-bar-edit-menu, menu-bar-goto-menu)
 	(menu-bar-custom-menu, menu-bar-showhide-menu)
 	(menu-bar-options-menu, menu-bar-tools-menu)
 	(menu-bar-encryption-decryption-menu, menu-bar-describe-menu)
@@ -767,9 +767,9 @@
 2009-10-31  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-edit-item): Signal an error if there
-	is no item to edit. (Bug#4820)
+	is no item to edit.  (Bug#4820)
 	(todo-top-priorities): Restore point and restore narrowing in Todo
-	buffer. (Bug#4820)
+	buffer.  (Bug#4820)
 
 2009-10-31  Glenn Morris  <rgm@gnu.org>
 
@@ -1186,7 +1186,7 @@
 2009-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-responsible-backend): Throw an error if not backend is
-	found.  Remove the REGISTER argument. Move the code dealing with
+	found.  Remove the REGISTER argument.  Move the code dealing with
 	REGISTER ...
 	(vc-get-backend-for-registration): ... here.  New function.
 	(vc-deduce-fileset): Call vc-get-backend-for-registration instead
