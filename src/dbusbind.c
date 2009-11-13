@@ -60,7 +60,7 @@ Lisp_Object QCdbus_type_array, QCdbus_type_variant;
 Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
 
 /* Hash table which keeps function definitions.  */
-Lisp_Object Vdbus_registered_functions_table;
+Lisp_Object Vdbus_registered_objects_table;
 
 /* Whether to debug D-Bus.  */
 Lisp_Object Vdbus_debug;
@@ -870,7 +870,7 @@ object path SERVICE is registered at.  INTERFACE is an interface
 offered by SERVICE.  It must provide METHOD.
 
 If the parameter `:timeout' is given, the following integer TIMEOUT
-specifies the maximun number of milliseconds the method call must
+specifies the maximum number of milliseconds the method call must
 return.  The default value is 25,000.  If the method call doesn't
 return in time, a D-Bus error is raised.
 
@@ -1078,7 +1078,7 @@ return message has arrived.  If HANDLER is nil, no return message will
 be expected.
 
 If the parameter `:timeout' is given, the following integer TIMEOUT
-specifies the maximun number of milliseconds the method call must
+specifies the maximum number of milliseconds the method call must
 return.  The default value is 25,000.  If the method call doesn't
 return in time, a D-Bus error is raised.
 
@@ -1096,8 +1096,8 @@ All arguments can be preceded by a type symbol.  For details about
 type symbols, see Info node `(dbus)Type Conversion'.
 
 Unless HANDLER is nil, the function returns a key into the hash table
-`dbus-registered-functions-table'.  The corresponding entry in the
-hash table is removed, when the return message has been arrived, and
+`dbus-registered-objects-table'.  The corresponding entry in the hash
+table is removed, when the return message has been arrived, and
 HANDLER is called.
 
 Example:
@@ -1207,11 +1207,11 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 					    NULL, timeout))
 	XD_SIGNAL1 (build_string ("Cannot send message"));
 
-      /* The result is the key in Vdbus_registered_functions_table.  */
+      /* The result is the key in Vdbus_registered_objects_table.  */
       result = (list2 (bus, make_number (dbus_message_get_serial (dmessage))));
 
       /* Create a hash table entry.  */
-      Fputhash (result, handler, Vdbus_registered_functions_table);
+      Fputhash (result, handler, Vdbus_registered_objects_table);
     }
   else
     {
@@ -1570,10 +1570,10 @@ int
 xd_pending_messages ()
 {
 
-  /* Vdbus_registered_functions_table will be initialized as hash
-     table in dbus.el.  When this package isn't loaded yet, it doesn't
-     make sense to handle D-Bus messages.  */
-  return (HASH_TABLE_P (Vdbus_registered_functions_table)
+  /* Vdbus_registered_objects_table will be initialized as hash table
+     in dbus.el.  When this package isn't loaded yet, it doesn't make
+     sense to handle D-Bus messages.  */
+  return (HASH_TABLE_P (Vdbus_registered_objects_table)
 	  ? (xd_get_dispatch_status (QCdbus_system_bus)
 	     || ((getenv ("DBUS_SESSION_BUS_ADDRESS") != NULL)
 		 ? xd_get_dispatch_status (QCdbus_session_bus)
@@ -1656,14 +1656,14 @@ xd_read_message (bus)
     {
       /* Search for a registered function of the message.  */
       key = list2 (bus, make_number (serial));
-      value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
+      value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
       /* There shall be exactly one entry.  Construct an event.  */
       if (NILP (value))
 	goto cleanup;
 
       /* Remove the entry.  */
-      Fremhash (key, Vdbus_registered_functions_table);
+      Fremhash (key, Vdbus_registered_objects_table);
 
       /* Construct an event.  */
       EVENT_INIT (event);
@@ -1674,14 +1674,14 @@ xd_read_message (bus)
 
   else /* (mtype != DBUS_MESSAGE_TYPE_METHOD_RETURN)  */
     {
-      /* Vdbus_registered_functions_table requires non-nil interface
-	 and member.  */
+      /* Vdbus_registered_objects_table requires non-nil interface and
+	 member.  */
       if ((interface == NULL) || (member == NULL))
 	goto cleanup;
 
       /* Search for a registered function of the message.  */
       key = list3 (bus, build_string (interface), build_string (member));
-      value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
+      value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
       /* Loop over the registered functions.  Construct an event.  */
       while (!NILP (value))
@@ -1745,11 +1745,11 @@ void
 xd_read_queued_messages ()
 {
 
-  /* Vdbus_registered_functions_table will be initialized as hash
-     table in dbus.el.  When this package isn't loaded yet, it doesn't
-     make sense to handle D-Bus messages.  Furthermore, we ignore all
-     Lisp errors during the call.  */
-  if (HASH_TABLE_P (Vdbus_registered_functions_table))
+  /* Vdbus_registered_objects_table will be initialized as hash table
+     in dbus.el.  When this package isn't loaded yet, it doesn't make
+     sense to handle D-Bus messages.  Furthermore, we ignore all Lisp
+     errors during the call.  */
+  if (HASH_TABLE_P (Vdbus_registered_objects_table))
     {
       xd_in_read_queued_messages = 1;
       internal_catch (Qdbus_error, xd_read_message, QCdbus_system_bus);
@@ -1898,10 +1898,10 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
   /* Create a hash table entry.  */
   key = list3 (bus, interface, signal);
   key1 = list4 (uname, service, path, handler);
-  value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
+  value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
   if (NILP (Fmember (key1, value)))
-    Fputhash (key, Fcons (key1, value), Vdbus_registered_functions_table);
+    Fputhash (key, Fcons (key1, value), Vdbus_registered_objects_table);
 
   /* Return object.  */
   RETURN_UNGCPRO (list2 (key, list3 (service, path, handler)));
@@ -1950,15 +1950,14 @@ used for composing the returning D-Bus message.  */)
   if (dbus_error_is_set (&derror))
     XD_ERROR (derror);
 
-  /* Create a hash table entry.  */
+  /* Create a hash table entry.  We use nil for the unique name,
+     because the method might be called from anybody.  */
   key = list3 (bus, interface, method);
   key1 = list4 (Qnil, service, path, handler);
-  value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
+  value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
-  /* We use nil for the unique name, because the method might be
-     called from everybody.  */
   if (NILP (Fmember (key1, value)))
-    Fputhash (key, Fcons (key1, value), Vdbus_registered_functions_table);
+    Fputhash (key, Fcons (key1, value), Vdbus_registered_objects_table);
 
   /* Cleanup.  */
   dbus_error_free (&derror);
@@ -2072,26 +2071,28 @@ syms_of_dbusbind ()
   QCdbus_type_dict_entry = intern_c_string (":dict-entry");
   staticpro (&QCdbus_type_dict_entry);
 
-  DEFVAR_LISP ("dbus-registered-functions-table",
-	       &Vdbus_registered_functions_table,
+  DEFVAR_LISP ("dbus-registered-objects-table",
+	       &Vdbus_registered_objects_table,
     doc: /* Hash table of registered functions for D-Bus.
-There are two different uses of the hash table: for calling registered
-functions, targeted by signals or method calls, and for calling
-handlers in case of non-blocking method call returns.
+There are two different uses of the hash table: for accessing
+registered interfaces properties, targeted by signals or method calls,
+and for calling handlers in case of non-blocking method call returns.
 
 In the first case, the key in the hash table is the list (BUS
 INTERFACE MEMBER).  BUS is either the symbol `:system' or the symbol
 `:session'.  INTERFACE is a string which denotes a D-Bus interface,
-and MEMBER, also a string, is either a method or a signal INTERFACE is
-offering.  All arguments but BUS must not be nil.
+and MEMBER, also a string, is either a method, a signal or a property
+INTERFACE is offering.  All arguments but BUS must not be nil.
 
 The value in the hash table is a list of quadruple lists
-\((UNAME SERVICE PATH HANDLER) (UNAME SERVICE PATH HANDLER) ...).
+\((UNAME SERVICE PATH OBJECT) (UNAME SERVICE PATH OBJECT) ...).
 SERVICE is the service name as registered, UNAME is the corresponding
-unique name.  PATH is the object path of the sending object.  All of
-them can be nil, which means a wildcard then.  HANDLER is the function
-to be called when a D-Bus message, which matches the key criteria,
-arrives.
+unique name.  In case of registered methods and properties, UNAME is
+nil.  PATH is the object path of the sending object.  All of them can
+be nil, which means a wildcard then.  OBJECT is either the handler to
+be called when a D-Bus message, which matches the key criteria,
+arrives (methods and signals), or a cons cell containing the value of
+the property.
 
 In the second case, the key in the hash table is the list (BUS SERIAL).
 BUS is either the symbol `:system' or the symbol `:session'.  SERIAL
@@ -2099,9 +2100,9 @@ is the serial number of the non-blocking method call, a reply is
 expected.  Both arguments must not be nil.  The value in the hash
 table is HANDLER, the function to be called when the D-Bus reply
 message arrives.  */);
-  /* We initialize Vdbus_registered_functions_table in dbus.el,
-     because we need to define a hash table function first.  */
-  Vdbus_registered_functions_table = Qnil;
+  /* We initialize Vdbus_registered_objects_table in dbus.el, because
+     we need to define a hash table function first.  */
+  Vdbus_registered_objects_table = Qnil;
 
   DEFVAR_LISP ("dbus-debug", &Vdbus_debug,
     doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
