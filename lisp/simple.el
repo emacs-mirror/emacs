@@ -1374,8 +1374,7 @@ the end of the list of defaults just after the default value."
   (let ((def minibuffer-default)
 	(all (all-completions ""
 			      minibuffer-completion-table
-			      minibuffer-completion-predicate
-			      t)))
+			      minibuffer-completion-predicate)))
     (if (listp def)
 	(append def all)
       (cons def (delete def all)))))

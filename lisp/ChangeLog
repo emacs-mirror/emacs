@@ -1,7 +1,12 @@
+2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (minibuffer-default-add-completions): Drop deprecated
+	4th arg.
+
 2009-11-13  Tomas Abrahamsson  <tab@lysator.liu.se>
 
-	* textmodes/artist.el (artist-mouse-choose-operation): Call
-	`tmm-prompt' instead of `x-popup-menu' if we cannot popup
+	* textmodes/artist.el (artist-mouse-choose-operation):
+	Call `tmm-prompt' instead of `x-popup-menu' if we cannot popup
 	menus. Bug noticed by Eli Zaretskii <eliz@gnu.org>.
 	(artist-compute-up-event-key): New function.
 	(artist-mouse-choose-operation, artist-down-mouse-1): Call it.
@@ -468,7 +473,8 @@
 
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* calendar/todo-mode.el (todo-add-category): Don't hardcode point-min==1.
+	* calendar/todo-mode.el (todo-add-category): Don't hardcode
+	point-min==1.
 	(todo-top-priorities): Only display-buffer when called interactively.
 	(todo-item-start): Don't save excursion point.
 	(todo-item-end): Be slightly more careful.  Add `include-sep' arg.
