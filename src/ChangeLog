@@ -1,3 +1,10 @@
+2009-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* category.c (word_boundary_p): Adjusted for the change of the
+	semantics of Vword_combining_categories.
+	(Vword_combining_categories): Describe the slight change of the
+	semantics.
+
 2009-11-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu.c (Fx_popup_menu): Call Fx_hide_tip only if HAVE_WINDOW_SYSTEM.
