@@ -453,9 +453,11 @@ word_boundary_p (c1, c2)
       if (CONSP (elt)
 	  && (NILP (XCAR (elt))
 	      || (CATEGORYP (XCAR (elt))
-		  && CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set1)))
+		  && CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set1)
+		  && ! CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set2)))
 	  && (NILP (XCDR (elt))
 	      || (CATEGORYP (XCDR (elt))
+		  && ! CATEGORY_MEMBER (XFASTINT (XCDR (elt)), category_set1)
 		  && CATEGORY_MEMBER (XFASTINT (XCDR (elt)), category_set2))))
 	return !default_result;
     }
@@ -524,8 +526,9 @@ Emacs finds a word boundary between characters of the same script
 if they have categories matching some element of this list.
 
 More precisely, if an element of this list is a cons of category CAT1
-and CAT2, and a multibyte character C1 which has CAT1 is followed by
-C2 which has CAT2, there's a word boundary between C1 and C2.
+and CAT2, and a multibyte character C1 which has CAT1 but not CAT2 is
+followed by C2 which has CAT2 but not CAT1, there's a word boundary
+between C1 and C2.
 
 For instance, to tell that there's a word boundary between Hiragana
 and Katakana (both are in the same script `kana'),
