@@ -1286,8 +1286,10 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   unbind_to (specpdl_count, Qnil);
 
 #ifdef HAVE_MENUS
+#ifdef HAVE_WINDOW_SYSTEM
   /* Hide a previous tip, if any.  */
   Fx_hide_tip ();
+#endif
 
 #ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
   /* If resources from a previous popup menu still exist, does nothing
