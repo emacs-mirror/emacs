@@ -1,3 +1,11 @@
+2009-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Fix typo.
+	(Asynchronous Methods): Rename `dbus-registered-functions-table' to
+	`dbus-registered-objects-table'.
+	(Receiving Method Calls): New defun `dbus-register-property'.  Move
+	`dbus-unregister-object' here.
+
 2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi: Removed @Ie, @ie, @Eg, @eg macros.
