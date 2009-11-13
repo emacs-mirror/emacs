@@ -5357,16 +5357,14 @@ int last_marked_index;
    Normally this is zero and the check never goes off.  */
 static int mark_object_loop_halt;
 
-/* Return non-zero if the object was not yet marked.  */
-static int
+static void
 mark_vectorlike (ptr)
      struct Lisp_Vector *ptr;
 {
   register EMACS_INT size = ptr->size;
   register int i;
 
-  if (VECTOR_MARKED_P (ptr))
-    return 0;			/* Already marked */
+  eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);		/* Else mark it */
   if (size & PSEUDOVECTOR_FLAG)
     size &= PSEUDOVECTOR_SIZE_MASK;
@@ -5377,7 +5375,6 @@ mark_vectorlike (ptr)
      non-Lisp_Object fields at the end of the structure.  */
   for (i = 0; i < size; i++) /* and then mark its elements */
     mark_object (ptr->contents[i]);
-  return 1;
 }
 
 /* Like mark_vectorlike but optimized for char-tables (and
@@ -5391,6 +5388,7 @@ mark_char_table (ptr)
   register EMACS_INT size = ptr->size & PSEUDOVECTOR_SIZE_MASK;
   register int i;
 
+  eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);
   for (i = 0; i < size; i++)
     {
@@ -5472,6 +5470,8 @@ mark_object (arg)
     case Lisp_String:
       {
 	register struct Lisp_String *ptr = XSTRING (obj);
+	if (STRING_MARKED_P (ptr))
+	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_string_p);
 	MARK_INTERVAL_TREE (ptr->intervals);
 	MARK_STRING (ptr);
@@ -5484,6 +5484,8 @@ mark_object (arg)
       break;
 
     case Lisp_Vectorlike:
+      if (VECTOR_MARKED_P (XVECTOR (obj)))
+	break;
 #ifdef GC_CHECK_MARKED_OBJECTS
       m = mem_find (po);
       if (m == MEM_NIL && !SUBRP (obj)
@@ -5494,20 +5496,17 @@ mark_object (arg)
 
       if (BUFFERP (obj))
 	{
-	  if (!VECTOR_MARKED_P (XBUFFER (obj)))
-	    {
 #ifdef GC_CHECK_MARKED_OBJECTS
-	      if (po != &buffer_defaults && po != &buffer_local_symbols)
-		{
-		  struct buffer *b;
-		  for (b = all_buffers; b && b != po; b = b->next)
-		    ;
-		  if (b == NULL)
-		    abort ();
-		}
-#endif /* GC_CHECK_MARKED_OBJECTS */
-	      mark_buffer (obj);
+	  if (po != &buffer_defaults && po != &buffer_local_symbols)
+	    {
+	      struct buffer *b;
+	      for (b = all_buffers; b && b != po; b = b->next)
+		;
+	      if (b == NULL)
+		abort ();
 	    }
+#endif /* GC_CHECK_MARKED_OBJECTS */
+	  mark_buffer (obj);
 	}
       else if (SUBRP (obj))
 	break;
@@ -5519,9 +5518,6 @@ mark_object (arg)
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  register EMACS_INT size = ptr->size;
 	  register int i;
-
-	  if (VECTOR_MARKED_P (ptr))
-	    break;   /* Already marked */
 
 	  CHECK_LIVE (live_vector_p);
 	  VECTOR_MARK (ptr);	/* Else mark it */
@@ -5537,44 +5533,38 @@ mark_object (arg)
       else if (FRAMEP (obj))
 	{
 	  register struct frame *ptr = XFRAME (obj);
-	  if (mark_vectorlike (XVECTOR (obj)))
-	    mark_face_cache (ptr->face_cache);
+	  mark_vectorlike (XVECTOR (obj));
+	  mark_face_cache (ptr->face_cache);
 	}
       else if (WINDOWP (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  struct window *w = XWINDOW (obj);
-	  if (mark_vectorlike (ptr))
+	  mark_vectorlike (ptr);
+	  /* Mark glyphs for leaf windows.  Marking window matrices is
+	     sufficient because frame matrices use the same glyph
+	     memory.  */
+	  if (NILP (w->hchild)
+	      && NILP (w->vchild)
+	      && w->current_matrix)
 	    {
-	      /* Mark glyphs for leaf windows.  Marking window matrices is
-		 sufficient because frame matrices use the same glyph
-		 memory.  */
-	      if (NILP (w->hchild)
-		  && NILP (w->vchild)
-		  && w->current_matrix)
-		{
-		  mark_glyph_matrix (w->current_matrix);
-		  mark_glyph_matrix (w->desired_matrix);
-		}
+	      mark_glyph_matrix (w->current_matrix);
+	      mark_glyph_matrix (w->desired_matrix);
 	    }
 	}
       else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-	  if (mark_vectorlike ((struct Lisp_Vector *)h))
-	    { /* If hash table is not weak, mark all keys and values.
-		 For weak tables, mark only the vector.  */
-	      if (NILP (h->weak))
-		mark_object (h->key_and_value);
-	      else
-		VECTOR_MARK (XVECTOR (h->key_and_value));
-	    }
+	  mark_vectorlike ((struct Lisp_Vector *)h);
+	  /* If hash table is not weak, mark all keys and values.
+	     For weak tables, mark only the vector.  */
+	  if (NILP (h->weak))
+	    mark_object (h->key_and_value);
+	  else
+	    VECTOR_MARK (XVECTOR (h->key_and_value));
 	}
       else if (CHAR_TABLE_P (obj))
-	{
-	  if (! VECTOR_MARKED_P (XVECTOR (obj)))
-	    mark_char_table (XVECTOR (obj));
-	}
+	mark_char_table (XVECTOR (obj));
       else
 	mark_vectorlike (XVECTOR (obj));
       break;
@@ -5584,7 +5574,8 @@ mark_object (arg)
 	register struct Lisp_Symbol *ptr = XSYMBOL (obj);
 	struct Lisp_Symbol *ptrx;
 
-	if (ptr->gcmarkbit) break;
+	if (ptr->gcmarkbit)
+	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
 	mark_object (ptr->value);
@@ -5689,7 +5680,8 @@ mark_object (arg)
     case Lisp_Cons:
       {
 	register struct Lisp_Cons *ptr = XCONS (obj);
-	if (CONS_MARKED_P (ptr)) break;
+	if (CONS_MARKED_P (ptr))
+	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
@@ -5734,6 +5726,7 @@ mark_buffer (buf)
   register Lisp_Object *ptr, tmp;
   Lisp_Object base_buffer;
 
+  eassert (!VECTOR_MARKED_P (buffer));
   VECTOR_MARK (buffer);
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
@@ -5778,10 +5771,13 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
+      if (!VECTOR_MARKED_P (t))
+	{
 #ifdef HAVE_WINDOW_SYSTEM
-      mark_image_cache (t->image_cache);
+	  mark_image_cache (t->image_cache);
 #endif /* HAVE_WINDOW_SYSTEM */
-      mark_vectorlike ((struct Lisp_Vector *)t);
+	  mark_vectorlike ((struct Lisp_Vector *)t);
+	}
     }
 }
 

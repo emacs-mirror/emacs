@@ -1,6 +1,12 @@
+2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (mark_object): Don't reprocess marked strings.
+	Check vector's markbit earlier.  Adjust calls to mark_vectorlike.
+	(mark_vectorlike, mark_char_table): Assume the object is unmarked.
+
 2009-11-13  Kenichi Handa  <handa@m17n.org>
 
-	* category.c (word_boundary_p): Adjusted for the change of the
+	* category.c (word_boundary_p): Adjust for the change of the
 	semantics of Vword_combining_categories.
 	(Vword_combining_categories): Describe the slight change of the
 	semantics.
