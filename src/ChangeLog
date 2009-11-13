@@ -1,3 +1,9 @@
+2009-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu): Call Fx_hide_tip only if HAVE_WINDOW_SYSTEM.
+
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Revert last change.
+
 2009-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (syms_of_xdisp): Fix typo in last change.
