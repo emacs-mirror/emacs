@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 ;;
 ;;       #+DRAWERS: PROPERTIES LOGBOOK FEEDSTATUS
 ;;
-;;  Acknowledgments
+;;  Acknowledgements
 ;;  ----------------
 ;;
 ;;  org-feed.el is based on ideas by Brad Bozarth who implemented a
@@ -542,7 +542,7 @@ If that property is already present, nothing changes."
 	(buffer-string)))))
 
 (defun org-feed-make-indented-block (s n)
-  "Add indentaton of N spaces to a multiline string S."
+  "Add indentation of N spaces to a multiline string S."
   (if (not (string-match "\n" s))
       s
     (mapconcat 'identity
@@ -613,7 +613,7 @@ containing the properties `:guid' and `:item-full-text'."
 
 (defun org-feed-parse-atom-feed (buffer)
   "Parse BUFFER for Atom feed entries.
-Returns a list of enttries, with each entry a property list,
+Returns a list of entries, with each entry a property list,
 containing the properties `:guid' and `:item-full-text'.
 
 The `:item-full-text' property actually contains the sexp

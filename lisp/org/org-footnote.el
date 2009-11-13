@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -46,6 +46,7 @@
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-end-of-subtree "org"  (&optional invisible-ok to-heading))
+(declare-function org-in-verbatim-emphasis "org" ())
 (defvar org-odd-levels-only) ;; defined in org.el
 
 (defconst org-footnote-re
@@ -75,7 +76,7 @@ If this is a string, during export, all subtrees starting with this
 heading will be removed after extracting footnote definitions."
   :group 'org-footnotes
   :type '(choice
-	  (string :tag "Collect fotnotes under heading")
+	  (string :tag "Collect footnotes under heading")
 	  (const :tag "Define footnotes locally" nil)))
 
 (defcustom org-footnote-tag-for-non-org-mode-files "Footnotes:"
@@ -108,7 +109,7 @@ confirm    like t, but let the user edit the created value.  In particular,
 plain      Automatically create plain number labels like [1]"
   :group 'org-footnote
   :type '(choice
-	  (const :tag "Frompt for label" nil)
+	  (const :tag "Prompt for label" nil)
 	  (const :tag "Create automatic [fn:N]" t)
 	  (const :tag "Offer automatic [fn:N] for editing" confirm)
 	  (const :tag "Create automatic [N]" plain)))
@@ -310,7 +311,7 @@ or new, let the user edit the definition of the footnote."
 (defun org-footnote-action (&optional special)
   "Do the right thing for footnotes.
 When at a footnote reference, jump to the definition.  When at a definition,
-jump to the refernces.  When neither at definition or reference,
+jump to the references.  When neither at definition or reference,
 create a new footnote, interactively.
 With prefix arg SPECIAL, offer additional commands in a menu."
   (interactive "P")
@@ -365,7 +366,7 @@ referenced sequence."
       ;; Now find footnote references, and extract the definitions
       (goto-char (point-min))
       (while (re-search-forward org-footnote-re nil t)
-	(unless (org-in-commented-line)
+	(unless (or (org-in-commented-line) (org-in-verbatim-emphasis))
 	  (org-if-unprotected
 	   (setq def (match-string 4)
 		 idef def

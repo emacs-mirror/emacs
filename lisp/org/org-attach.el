@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.31a
+;; Version: 6.33
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -209,7 +209,7 @@ the directory and (if necessary) the corresponding ID will be created."
 	   attach-dir))))
 
 (defun org-attach-check-absolute-path (dir)
-  "Check if we have enough information to root the atachment directory.
+  "Check if we have enough information to root the attachment directory.
 When DIR is given, check also if it is already absolute.  Otherwise,
 assume that it will be relative, and check if `org-attach-directory' is
 absolute, or if at least the current buffer has a file name.
@@ -365,11 +365,11 @@ This ignores files starting with a \".\", and files ending in \"~\"."
 	(mapcar (lambda (x) (if (string-match "^\\." x) nil x))
 		(directory-files dir nil "[^~]\\'"))))
 
-(defun org-attach-reveal ()
+(defun org-attach-reveal (&optional if-exists)
   "Show the attachment directory of the current task in dired."
-  (interactive)
-  (let ((attach-dir (org-attach-dir t)))
-    (org-open-file attach-dir)))
+  (interactive "P")
+  (let ((attach-dir (org-attach-dir (not if-exists))))
+    (and attach-dir (org-open-file attach-dir))))
 
 (defun org-attach-reveal-in-emacs ()
   "Show the attachment directory of the current task.

@@ -4,7 +4,7 @@
 
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-crypt.el
-;; Version: 6.31a
+;; Version: 6.33
 ;; Keywords: org-mode
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: Peter Jones <pjones@pmade.com>
@@ -94,7 +94,7 @@ heading.  This can also be overridden in the CRYPTKEY property."
   "Returns the encryption key for the current heading."
   (save-excursion
     (org-back-to-heading t)
-    (or (org-entry-get nil "CRYPTKEY" 'selective)
+    (or (org-entry-get nil "CRYPTKEY" 'selective) 
         org-crypt-key
         (and (boundp 'epa-file-encrypt-to) epa-file-encrypt-to)
         (error "No crypt key set"))))
@@ -116,7 +116,7 @@ heading.  This can also be overridden in the CRYPTKEY property."
 	(org-back-over-empty-lines)
         (setq end (point)
               encrypted-text
-              (epg-encrypt-string
+              (epg-encrypt-string 
                epg-context
                (buffer-substring-no-properties beg end)
                (epg-list-keys epg-context crypt-key)))
@@ -136,12 +136,12 @@ heading.  This can also be overridden in the CRYPTKEY property."
     (forward-line)
     (when (looking-at "-----BEGIN PGP MESSAGE-----")
       (let* ((beg (point))
-             (end (save-excursion
+             (end (save-excursion 
                     (search-forward "-----END PGP MESSAGE-----")
                     (forward-line)
                     (point)))
              (epg-context (epg-make-context nil t t))
-             (decrypted-text
+             (decrypted-text 
 	      (decode-coding-string
 	       (epg-decrypt-string
 		epg-context
@@ -159,17 +159,17 @@ heading.  This can also be overridden in the CRYPTKEY property."
 
 (defun org-decrypt-entries ()
   (interactive)
-  (org-scan-tags
+  (org-scan-tags 
    'org-decrypt-entry
    (cdr (org-make-tags-matcher org-crypt-tag-matcher))))
 
 (defun org-crypt-use-before-save-magic ()
   "Adds a hook that will automatically encrypt entries before a
 file is saved to disk."
-  (add-hook
-   'org-mode-hook
+  (add-hook 
+   'org-mode-hook 
    (lambda () (add-hook 'before-save-hook 'org-encrypt-entries nil t))))
-
+  
 (provide 'org-crypt)
 
 ;; arch-tag: 8202ed2c-221e-4001-9e4b-54674a7e846e

@@ -7,7 +7,7 @@
 ;;         Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -64,7 +64,7 @@
 ;;
 ;;  - an identifier for a class of anniversaries (eg. birthday or
 ;;    wedding) from `org-bbdb-anniversary-format-alist' which then
-;;    defines the format tring for this class
+;;    defines the format string for this class
 ;;  - the (format) string displayed in the diary.
 ;;
 ;; You can enter multiple anniversaries for a single BBDB record by

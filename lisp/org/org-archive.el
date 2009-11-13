@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -35,8 +35,7 @@
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 
 (defcustom org-archive-default-command 'org-archive-subtree
-  "The default archiving command.
-Currently this is only used by org-mobile.el."
+  "The default archiving command."
   :group 'org-archive
   :type '(choice
 	  (const org-archive-subtree)
@@ -50,7 +49,7 @@ See `org-archive-to-archive-sibling' for more information."
   :group 'org-archive
   :type 'string)
 
-(defcustom org-archive-mark-done t
+(defcustom org-archive-mark-done nil
   "Non-nil means, mark entries as DONE when they are moved to the archive file.
 This can be a string to set the keyword to use.  When t, Org-mode will
 use the first keyword in its list that means done."
@@ -304,12 +303,7 @@ this heading."
 
 	  ;; Save and kill the buffer, if it is not the same buffer.
 	  (when (not (eq this-buffer buffer))
-	    (save-buffer)
-	    ;; Check if it is OK to kill the buffer
-	    (unless
-		(or visiting
-		    (equal (marker-buffer org-clock-marker) (current-buffer)))
-	      (kill-buffer buffer)))
+	    (save-buffer))
 	  ))
       ;; Here we are back in the original buffer.  Everything seems to have
       ;; worked.  So now cut the tree and finish up.
@@ -447,7 +441,15 @@ the children that do not contain any open TODO items."
   "Archive the current subtree with the default command.
 This command is set with the variable `org-archive-default-command'."
   (interactive)
-  (call-interactively 'org-archive-default-command))
+  (call-interactively org-archive-default-command))
+
+(defun org-archive-subtree-default-with-confirmation ()
+  "Archive the current subtree with the default command.
+This command is set with the variable `org-archive-default-command'."
+  (interactive)
+  (if (y-or-n-p "Archive this subtree or entry? ")
+      (call-interactively org-archive-default-command)
+    (error "Abort")))
 
 (provide 'org-archive)
 

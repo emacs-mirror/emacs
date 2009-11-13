@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -121,6 +121,8 @@ We use a macro so that the test can happen at compilation time."
   "Execute BODY if there is no `org-protected' text property at POS."
   `(unless (get-text-property ,pos 'org-protected)
      ,@body))
+(put 'org-if-unprotected-at 'lisp-indent-function 1)
+
 
 (defmacro org-with-remote-undo (_buffer &rest _body)
   "Execute BODY while recording undo information in two buffers."
@@ -173,7 +175,7 @@ We use a macro so that the test can happen at compilation time."
 	(t (cdr (assq 'default option)))))
 
 (defsubst org-check-external-command (cmd &optional use no-error)
-  "Check if external progam CMD for USE exists, error if not.
+  "Check if external program CMD for USE exists, error if not.
 When the program does exist, return its path.
 When it does not exist and NO-ERROR is set, return nil.
 Otherwise, throw an error.  The optional argument USE can describe what this

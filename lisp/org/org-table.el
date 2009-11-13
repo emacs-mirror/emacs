@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -252,14 +252,14 @@ Automatically means, when TAB or RET or C-c C-c are pressed in the line."
   :type 'boolean)
 
 (defcustom org-table-relative-ref-may-cross-hline t
-  "Non-nil means, reltive formula references may cross hlines.
+  "Non-nil means, relative formula references may cross hlines.
 Here are the allowed values:
 
 nil    Relative references may not cross hlines.  They will reference the
        field next to the hline instead.  Coming from below, the reference
        will be to the field below the hline.  Coming from above, it will be
        to the field above.
-t      Relative references may cros hlines.
+t      Relative references may cross hlines.
 error  An attempt to cross a hline will throw an error.
 
 It is probably good to never set this variable to nil, for the sake of
@@ -424,17 +424,28 @@ nil      When nil, the command tries to be smart and figure out the
 	     ((not (re-search-forward "^[^\n\t]+$" end t)) '(16))
 	     ((not (re-search-forward "^[^\n,]+$" end t)) '(4))
 	     (t 1))))
-    (setq re (cond
-	      ((equal separator '(4)) "^\\|\"?[ \t]*,[ \t]*\"?")
-	      ((equal separator '(16)) "^\\|\t")
-	      ((integerp separator)
-	       (format "^ *\\| *\t *\\| \\{%d,\\}" separator))
-	      (t (error "This should not happen"))))
     (goto-char beg)
-    (while (re-search-forward re end t)
-      (replace-match "| " t t))
+    (if (equal separator '(4))
+	(while (<= (point) end)
+	  ;; parse the csv stuff
+	  (cond
+	   ((looking-at "^") (insert "| "))
+	   ((looking-at "[ \t]*$") (replace-match " |") (beginning-of-line 2))
+	   ((looking-at "[ \t]*\"\\([^\"\n]*\\)\"")
+	    (replace-match "\\1")
+	    (if (looking-at "\"") (insert "\"")))
+	   ((looking-at "[^,\n]+") (goto-char (match-end 0)))
+	   ((looking-at "[ \t]*,") (replace-match " | "))
+	   (t (beginning-of-line 2))))
+      (setq re (cond
+		((equal separator '(4)) "^\\|\"?[ \t]*,[ \t]*\"?")
+		((equal separator '(16)) "^\\|\t")
+		((integerp separator)
+		 (format "^ *\\| *\t *\\| \\{%d,\\}" separator))
+		(t (error "This should not happen"))))
+      (while (re-search-forward re end t)
+	(replace-match "| " t t)))
     (goto-char beg)
-    (insert " ")
     (org-table-align)))
 
 (defun org-table-import (file arg)
@@ -2136,7 +2147,7 @@ installed in order to use this function.
 In a table, this command replaces the value in the current field with the
 result of a formula.  It also installs the formula as the \"current\" column
 formula, by storing it in a special line below the table.  When called
-with a `C-u' prefix, the current field must ba a named field, and the
+with a `C-u' prefix, the current field must be a named field, and the
 formula is installed as valid in only this specific field.
 
 When called with two `C-u' prefixes, insert the active equation
@@ -2556,7 +2567,7 @@ known that the table will be realigned a little later anyway."
 	  (push (append a (list (cdr eq))) eqlname1)
 	  (org-table-put-field-property :org-untouchable t)))
 
-      ;; Now evauluate the column formulas, but skip fields covered by
+      ;; Now evaluate the column formulas, but skip fields covered by
       ;; field formulas
       (goto-char beg)
       (while (re-search-forward line-re end t)
@@ -3499,10 +3510,12 @@ to execute outside of tables."
       (orgtbl-make-binding 'org-table-previous-field 104
 			   [(shift tab)] [(tab)] "\C-i"))
 
-    (org-defkey orgtbl-mode-map [S-iso-lefttab]
-      (orgtbl-make-binding 'org-table-previous-field 107
-			   [S-iso-lefttab] [backtab] [(shift tab)]
-			   [(tab)] "\C-i"))
+
+    (unless (featurep 'xemacs)
+      (org-defkey orgtbl-mode-map [S-iso-lefttab]
+         (orgtbl-make-binding 'org-table-previous-field 107
+			      [S-iso-lefttab] [backtab] [(shift tab)]
+			      [(tab)] "\C-i")))
 
     (org-defkey orgtbl-mode-map [backtab]
       (orgtbl-make-binding 'org-table-previous-field 108
@@ -4202,7 +4215,7 @@ NAME-OR-ID may be the name of a table in the current file as set by
 a \"#+TBLNAME:\" directive.  The first table following this line
 will then be used.  Alternatively, it may be an ID referring to
 any entry, also in a different file.  In this case, the first table
-in that netry will be referenced.
+in that entry will be referenced.
 FORM is a field or range descriptor like \"@2$3\" or or \"B3\" or
 \"@I$2..@II$2\".  All the references must be absolute, not relative.
 

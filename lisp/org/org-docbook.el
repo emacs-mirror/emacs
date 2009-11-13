@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-docbook.el
-;; Version: 6.31a
+;; Version: 6.33
 ;; Author: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
@@ -119,7 +119,7 @@ entities, you can set this variable to:
 ]>
 \"
 
-If you want to process DocBook documents without internet
+If you want to process DocBook documents without an Internet
 connection, it is suggested that you download the required entity
 file(s) and use system identifier(s) (external files) in the
 DOCTYPE declaration."
@@ -410,7 +410,7 @@ publishing directory."
 	 (rbeg (and region-p (region-beginning)))
 	 (rend (and region-p (region-end)))
 	 (subtree-p
-	  (if (plist-get opt-plist :ignore-subree-p)
+	  (if (plist-get opt-plist :ignore-subtree-p)
 	      nil
 	    (when region-p
 	      (save-excursion
@@ -736,8 +736,12 @@ publishing directory."
 	  ;; Make targets to anchors.  Note that currently FOP does not
 	  ;; seem to support <anchor> tags when generating PDF output,
 	  ;; but this can be used in DocBook --> HTML conversion.
-	  (while (string-match "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
+	  (setq start 0)
+	  (while (string-match
+		  "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line start)
 	    (cond
+	     ((get-text-property (match-beginning 1) 'org-protected line)
+	      (setq start (match-end 1)))
 	     ((match-end 2)
 	      (setq line (replace-match
 			  (format "@<anchor xml:id=\"%s\"/>"

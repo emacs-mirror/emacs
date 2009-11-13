@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -30,6 +30,7 @@
 (require 'org-macs)
 (require 'org-agenda)
 (require 'org-exp-blocks)
+(require 'org-src)
 (eval-when-compile
   (require 'cl))
 
@@ -40,6 +41,7 @@
 (declare-function org-infojs-options-inbuffer-template "org-jsinfo" ())
 (declare-function org-export-htmlize-region-for-paste "org-html" (beg end))
 (declare-function htmlize-buffer "ext:htmlize" (&optional buffer))
+(declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 (autoload 'org-export-generic "org-export-generic" "Export using the generic exporter" t)
 (defgroup org-export nil
   "Options for exporting org-listings."
@@ -848,6 +850,8 @@ value of `org-export-run-in-background'."
 \[D] export as DocBook
 \[V] export as DocBook, process to PDF, and open the resulting PDF document
 
+\[m] export as Freemind mind map
+
 \[x] export as XOXO
 \[g] export using Wes Hardaker's generic exporter
 
@@ -870,6 +874,7 @@ value of `org-export-run-in-background'."
 	    (?g org-export-generic t)
 	    (?D org-export-as-docbook t)
 	    (?V org-export-as-docbook-pdf-and-open t)
+	    (?m org-export-as-freemind t)
 	    (?l org-export-as-latex t)
 	    (?p org-export-as-pdf t)
 	    (?d org-export-as-pdf-and-open t)
@@ -1305,8 +1310,8 @@ on this string to produce the exported version."
       (setq target-alist (org-export-define-heading-targets target-alist))
 
       ;; Get rid of drawers
-      (org-export-remove-or-extract-drawers drawers
-					    (plist-get parameters :drawers))
+      (org-export-remove-or-extract-drawers
+       drawers (plist-get parameters :drawers) backend)
 
       ;; Get the correct stuff before the first headline
       (when (plist-get parameters :skip-before-1st-heading)
@@ -1530,33 +1535,61 @@ the current file."
 	 (unless desc (insert "][" link))
 	 (add-text-properties pos (point) props))))))
 
-(defun org-export-remove-or-extract-drawers (all-drawers exp-drawers)
-  "Remove drawers, or extract the content.
+(defvar org-export-format-drawer-function nil
+  "Function to be called to format the contents of a drawer.
+The function must accept three parameters:
+  BACKEND  one of the symbols html, docbook, latex, ascii, xoxo
+  NAME     the drawer name, like \"PROPERTIES\"
+  CONTENT  the content of the drawer.
+The function should return the text to be inserted into the buffer.
+If this is nil, `org-export-format-drawer' is used as a default.")
+
+(defun org-export-remove-or-extract-drawers (all-drawers exp-drawers backend)
+  "Remove drawers, or extract and format the content.
 ALL-DRAWERS is a list of all drawer names valid in the current buffer.
 EXP-DRAWERS can be t to keep all drawer contents, or a list of drawers
-whose content to keep."
-  (unless (eq t exp-drawers)
-    (goto-char (point-min))
-    (let ((re (concat "^[ \t]*:\\("
-		      (mapconcat
-		       'identity
-		       (org-delete-all exp-drawers
-				       (copy-sequence all-drawers))
-		       "\\|")
-		      "\\):[ \t]*$"))
-	  beg eol)
-      (while (re-search-forward re nil t)
-	(org-if-unprotected
-	 (setq beg (match-beginning 0)
-	       eol (match-end 0))
-	 (if (re-search-forward "^\\([ \t]*:END:[ \t]*\n?\\)\\|^\\*+[ \t]"
-				nil t)
-	     (if (match-end 1)
-		 ;; terminated in this entry
-		 (progn
-		   (delete-region beg (match-end 1))
-		   (goto-char beg))
-	       (goto-char eol))))))))
+whose content to keep.  Any drawers that are in ALL-DRAWERS but not in
+EXP-DRAWERS will be removed.
+BACKEND is the current export backend."
+  (goto-char (point-min))
+  (let ((re (concat "^[ \t]*:\\("
+		    (mapconcat 'identity all-drawers "\\|")
+		    "\\):[ \t]*$"))
+	name beg beg-content eol content)
+    (while (re-search-forward re nil t)
+      (org-if-unprotected
+       (setq name (match-string 1))
+       (setq beg (match-beginning 0)
+	     beg-content (1+ (point-at-eol))
+	     eol (point-at-eol))
+       (if (not (and (re-search-forward
+		      "^\\([ \t]*:END:[ \t]*\n?\\)\\|^\\*+[ \t]" nil t)
+		     (match-end 1)))
+	   (goto-char eol)
+	 (goto-char (match-beginning 0))
+	 (and (looking-at ".*\n?") (replace-match ""))
+	 (setq content (buffer-substring beg-content (point)))
+	 (delete-region beg (point))
+	 (when (or (eq exp-drawers t)
+		   (member name exp-drawers))
+	   (setq content (funcall (or org-export-format-drawer-function
+				      'org-export-format-drawer)
+				  name content backend))
+	   (insert content)))))))
+
+(defun org-export-format-drawer (name content backend)
+  "Format the content of a drawer as a colon example."
+  (if (string-match "[ \t]+\\'" content)
+      (setq content (substring content (match-beginning 0))))
+  (while (string-match "\\`[ \t]*\n" content)
+    (setq content (substring content (match-end 0))))
+  (setq content (org-remove-indentation content))
+  (setq content (concat ": " (mapconcat 'identity
+					(org-split-string content "\n")
+					"\n: ")
+			"\n"))
+  (setq content (concat " : " (upcase name) "\n" content))
+  (org-add-props content nil 'org-protected t))
 
 (defun org-export-handle-export-tags (select-tags exclude-tags)
   "Modify the buffer, honoring SELECT-TAGS and EXCLUDE-TAGS.
@@ -1603,8 +1636,10 @@ removed as well."
 	(when (org-at-heading-p)
 	  (org-back-to-heading t)
 	  (setq beg (point))
-	  (org-end-of-subtree t)
-	  (delete-region beg (point)))))
+	  (org-end-of-subtree t t)
+	  (delete-region beg (point))
+	  (when (featurep 'org-inlinetask)
+	    (org-inlinetask-remove-END-maybe)))))
     ;; Remove everything that is now still marked for deletion
     (goto-char (point-min))
     (while (setq beg (text-property-any (point-min) (point-max) :org-delete t))
@@ -1682,9 +1717,10 @@ from the buffer."
   "Mark verbatim snippets with the protection property."
   (goto-char (point-min))
   (while (re-search-forward org-verbatim-re nil t)
-    (add-text-properties (match-beginning 4) (match-end 4)
-			 '(org-protected t))
-    (goto-char (1+ (match-end 4)))))
+    (org-if-unprotected
+     (add-text-properties (match-beginning 4) (match-end 4)
+			  '(org-protected t org-verbatim-emph t))
+     (goto-char (1+ (match-end 4))))))
 
 (defun org-export-protect-colon-examples ()
   "Protect lines starting with a colon."
@@ -1728,7 +1764,12 @@ from the buffer."
 	  (setq end (match-end 0) end-content (match-beginning 0))
 	  (if (eq (car fmt) backend)
 	      ;; yes, keep this
-	      (add-text-properties beg-content end-content '(org-protected t))
+	      (progn
+		(add-text-properties beg-content end-content '(org-protected t))
+		(delete-region (match-beginning 0) (match-end 0))
+		(save-excursion
+		  (goto-char beg)
+		  (delete-region (point) (1+ (point-at-eol)))))
 	    ;; No, this is for a different backend, kill it
 	    (delete-region beg end)))))))
 
@@ -2252,19 +2293,21 @@ in the list) and remove property and value from the list in LISTVAR."
   (backend lang code &optional opts indent)
   "Format CODE from language LANG and return it formatted for export.
 If LANG is nil, do not add any fontification.
-OPTS contains formatting optons, like `-n' for triggering numbering lines,
-and `+n' for continuing previous numering.
+OPTS contains formatting options, like `-n' for triggering numbering lines,
+and `+n' for continuing previous numbering.
 Code formatting according to language currently only works for HTML.
 Numbering lines works for all three major backends (html, latex, and ascii).
 INDENT was the original indentation of the block."
   (save-match-data
-    (let (num cont rtn rpllbl keepp textareap cols rows fmt)
+    (let (num cont rtn rpllbl keepp textareap preserve-indentp cols rows fmt)
       (setq opts (or opts "")
 	    num (string-match "[-+]n\\>" opts)
 	    cont (string-match "\\+n\\>" opts)
 	    rpllbl (string-match "-r\\>" opts)
 	    keepp (string-match "-k\\>" opts)
 	    textareap (string-match "-t\\>" opts)
+	    preserve-indentp (or org-src-preserve-indentation
+				 (string-match "-i\\>" opts))
 	    cols (if (string-match "-w[ \t]+\\([0-9]+\\)" opts)
 		     (string-to-number (match-string 1 opts))
 		   80)
@@ -2277,7 +2320,7 @@ INDENT was the original indentation of the block."
 	;; we cannot use numbering or highlighting.
 	(setq num nil cont nil lang nil))
       (if keepp (setq rpllbl 'keep))
-      (setq rtn (org-remove-indentation code))
+      (setq rtn (if preserve-indentp code (org-remove-indentation code)))
       (when (string-match "^," rtn)
 	(setq rtn (with-temp-buffer
 		    (insert rtn)
@@ -2736,8 +2779,9 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 	 ((not org-log-done) "nologdone"))
    (or (mapconcat (lambda (x)
 		    (cond
-		     ((equal '(:startgroup) x) "{")
-		     ((equal '(:endgroup) x) "}")
+		     ((equal :startgroup (car x)) "{")
+		     ((equal :endgroup (car x)) "}")
+		     ((equal :newline (car x)) "")
 		     ((cdr x) (format "%s(%c)" (car x) (cdr x)))
 		     (t (car x))))
 		  (or org-tag-alist (org-get-buffer-tags)) " ") "")
@@ -2889,3 +2933,4 @@ The depends on the variable `org-export-copy-to-kill'."
 ;; arch-tag: 65985fe9-095c-49c7-a7b6-cb4ee15c0a95
 
 ;;; org-exp.el ends here
+

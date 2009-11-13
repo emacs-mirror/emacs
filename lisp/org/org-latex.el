@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
-;; Version: 6.31a
+;; Version: 6.33
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -94,7 +94,10 @@
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
 \\usepackage{longtable}
+\\usepackage{float}
+\\usepackage{wrapfig}
 \\usepackage{soul}
+\\usepackage{amssymb}
 \\usepackage{hyperref}"
      ("\\section{%s}" . "\\section*{%s}")
      ("\\subsection{%s}" . "\\subsection*{%s}")
@@ -107,7 +110,10 @@
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
 \\usepackage{longtable}
+\\usepackage{float}
+\\usepackage{wrapfig}
 \\usepackage{soul}
+\\usepackage{amssymb}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -120,7 +126,10 @@
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
 \\usepackage{longtable}
+\\usepackage{float}
+\\usepackage{wrapfig}
 \\usepackage{soul}
+\\usepackage{amssymb}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -177,7 +186,7 @@ to represent the section title."
 Each element of the list is a list of three elements.
 The first element is the character used as a marker for fontification.
 The second element is a formatting string to wrap fontified text with.
-If it is \"\\verb\", Org will automatically select a deimiter
+If it is \"\\verb\", Org will automatically select a delimiter
 character that is not in the string.
 The third element decides whether to protect converted text from other
 conversions."
@@ -269,7 +278,7 @@ the %s stands here for the inserted headline and is mandatory.
 It may also be a list of three string to define a user-defined environment
 that should be used.  The first string should be the like
 \"\\begin{itemize}\", the second should be like \"\\item %s %s\" with up
-to two occurrences of %s for the title and a lable, respectively.  The third
+to two occurrences of %s for the title and a label, respectively.  The third
 string should be like \"\\end{itemize\"."
   :group 'org-export-latex
   :type '(choice (const :tag "Ignore" nil)
@@ -284,7 +293,7 @@ string should be like \"\\end{itemize\"."
 		 (string :tag "Use a section string" :value "\\subparagraph{%s}")))
 
 (defcustom org-export-latex-list-parameters
-  '(:cbon "\\texttt{[X]}" :cboff "\\texttt{[ ]}")
+  '(:cbon "$\\boxtimes$" :cboff "$\\Box$")
   "Parameters for the LaTeX list exporter.
 These parameters will be passed on to `org-list-to-latex', which in turn
 will pass them (combined with the LaTeX default list parameters) to
@@ -389,12 +398,12 @@ as a command.  %s in the command will be replaced by the full file name, %b
 by the file base name (i.e. without extension).
 The reason why this is a list is that it usually takes several runs of
 pdflatex, maybe mixed with a call to bibtex.  Org does not have a clever
-mechanism to detect whihc of these commands have to be run to get to a stable
+mechanism to detect which of these commands have to be run to get to a stable
 result, and it also does not do any error checking.
 
 Alternatively, this may be a Lisp function that does the processing, so you
 could use this to apply the machinery of AUCTeX or the Emacs LaTeX mode.
-THis function should accept the file name as its single argument."
+This function should accept the file name as its single argument."
   :group 'org-export-latex
   :type '(choice (repeat :tag "Shell command sequence"
 		  (string :tag "Shell command"))
@@ -481,7 +490,7 @@ in a window.  A non-interactive call will only return the buffer."
     (setq buffer "*Org LaTeX Export*"))
   (let ((transient-mark-mode t) (zmacs-regions t)
 	ext-plist rtn)
-    (setq ext-plist (plist-put ext-plist :ignore-subree-p t))
+    (setq ext-plist (plist-put ext-plist :ignore-subtree-p t))
     (goto-char end)
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
@@ -535,7 +544,7 @@ when PUB-DIR is set, use this as the publishing directory."
 	 (rbeg (and region-p (region-beginning)))
 	 (rend (and region-p (region-end)))
 	 (subtree-p
-	  (if (plist-get opt-plist :ignore-subree-p)
+	  (if (plist-get opt-plist :ignore-subtree-p)
 	      nil
 	    (when region-p
 	      (save-excursion
@@ -977,7 +986,7 @@ OPT-PLIST is the options plist for current buffer."
      ;; insert author info
      (if (plist-get opt-plist :author-info)
 	 (format "\\author{%s}\n"
-		 (org-export-latex-fontify-headline (or author user-full-name)));????????????????????
+		 (org-export-latex-fontify-headline (or author user-full-name)))
        (format "%%\\author{%s}\n"
 	       (or author user-full-name)))
      ;; insert the date
@@ -1000,7 +1009,9 @@ OPT-PLIST is the options plist for current buffer."
 	      (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\\vspace*{1cm}\n"
 		      (min toc (plist-get opt-plist :headline-levels))))
 	     (toc (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\\vspace*{1cm}\n"
-			  (plist-get opt-plist :headline-levels))))))))
+			  (plist-get opt-plist :headline-levels)))))
+     (when (plist-get opt-plist :preserve-breaks)
+       "\\obeylines\n"))))
 
 (defun org-export-latex-first-lines (opt-plist &optional beg end)
   "Export the first lines before first headline.
@@ -1124,6 +1135,15 @@ links, keywords, lists, tables, fixed-width"
     ;; the beginning of the buffer - inserting "\n" is safe here though.
     (insert "\n" string)
     (goto-char (point-min))
+    (let ((re (concat "\\\\[a-zA-Z]+\\(?:"
+		      "\\[.*\\]"
+		      "\\)?"
+		      (org-create-multibrace-regexp "{" "}" 3))))
+      (while (re-search-forward re nil t)
+	(unless (save-excursion (goto-char (match-beginning 0))
+				(equal (char-after (point-at-bol)) ?#))
+	  (add-text-properties (match-beginning 0) (match-end 0)
+			       '(org-protected t)))))
     (when (plist-get org-export-latex-options-plist :emphasize)
       (org-export-latex-fontify))
     (org-export-latex-keywords-maybe)
@@ -1151,13 +1171,14 @@ links, keywords, lists, tables, fixed-width"
 			'(("\\(\\s-\\)\"" "«~")
 			  ("\\(\\S-\\)\"" "~»")
 			  ("\\(\\s-\\)'" "`"))
-		      '(("\\(\\s-\\|(\\)\"" "``")
+		      '(("\\(\\s-\\|[[(]\\)\"" "``")
 			("\\(\\S-\\)\"" "''")
 			("\\(\\s-\\|(\\)'" "`")))))
     (mapc (lambda(l) (goto-char (point-min))
 	    (while (re-search-forward (car l) nil t)
-	      (let ((rpl (concat (match-string 1) (cadr l))))
-		(org-export-latex-protect-string rpl)
+	      (let ((rpl (concat (match-string 1)
+				 (org-export-latex-protect-string
+				  (copy-sequence (cadr l))))))
 		(org-if-unprotected-1
 		 (replace-match rpl t t))))) quote-rpl)))
 
@@ -1329,114 +1350,115 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
   "Convert tables to LaTeX and INSERT it."
   (goto-char (point-min))
   (while (re-search-forward "^\\([ \t]*\\)|" nil t)
-    (org-table-align)
-    (let* ((beg (org-table-begin))
-	   (end (org-table-end))
-	   (raw-table (buffer-substring beg end))
-	   (org-table-last-alignment (copy-sequence org-table-last-alignment))
-	   (org-table-last-column-widths (copy-sequence
-					  org-table-last-column-widths))
-	   fnum fields line lines olines gr colgropen line-fmt align
-	   caption label attr floatp longtblp)
-      (if org-export-latex-tables-verbatim
-	  (let* ((tbl (concat "\\begin{verbatim}\n" raw-table
-			      "\\end{verbatim}\n")))
-	    (apply 'delete-region (list beg end))
-	    (insert (org-export-latex-protect-string tbl)))
-	(progn
-	  (setq caption (org-find-text-property-in-string
-			 'org-caption raw-table)
-		attr (org-find-text-property-in-string
-		      'org-attributes raw-table)
-		label (org-find-text-property-in-string
-		       'org-label raw-table)
-		longtblp (and attr (stringp attr)
-			      (string-match "\\<longtable\\>" attr))
-		align (and attr (stringp attr)
-			   (string-match "\\<align=\\([^ \t\n\r,]+\\)" attr)
-			   (match-string 1 attr))
-		floatp (or caption label))
-	  (setq lines (org-split-string raw-table "\n"))
-	  (apply 'delete-region (list beg end))
-	  (when org-export-table-remove-special-lines
-	    (setq lines (org-table-clean-before-export lines 'maybe-quoted)))
-	  (when org-table-clean-did-remove-column
+    (org-if-unprotected-at (1- (point))
+      (org-table-align)
+      (let* ((beg (org-table-begin))
+             (end (org-table-end))
+             (raw-table (buffer-substring beg end))
+             (org-table-last-alignment (copy-sequence org-table-last-alignment))
+             (org-table-last-column-widths (copy-sequence
+                                            org-table-last-column-widths))
+             fnum fields line lines olines gr colgropen line-fmt align
+             caption label attr floatp longtblp)
+        (if org-export-latex-tables-verbatim
+            (let* ((tbl (concat "\\begin{verbatim}\n" raw-table
+                                "\\end{verbatim}\n")))
+              (apply 'delete-region (list beg end))
+              (insert (org-export-latex-protect-string tbl)))
+          (progn
+            (setq caption (org-find-text-property-in-string
+                           'org-caption raw-table)
+                  attr (org-find-text-property-in-string
+                        'org-attributes raw-table)
+                  label (org-find-text-property-in-string
+                         'org-label raw-table)
+                  longtblp (and attr (stringp attr)
+                                (string-match "\\<longtable\\>" attr))
+                  align (and attr (stringp attr)
+                             (string-match "\\<align=\\([^ \t\n\r,]+\\)" attr)
+                             (match-string 1 attr))
+                  floatp (or caption label))
+            (setq lines (org-split-string raw-table "\n"))
+            (apply 'delete-region (list beg end))
+            (when org-export-table-remove-special-lines
+              (setq lines (org-table-clean-before-export lines 'maybe-quoted)))
+            (when org-table-clean-did-remove-column
 	      (pop org-table-last-alignment)
 	      (pop org-table-last-column-widths))
-	  ;; make a formatting string to reflect aligment
-	  (setq olines lines)
-	  (while (and (not line-fmt) (setq line (pop olines)))
-	    (unless (string-match "^[ \t]*|-" line)
-	      (setq fields (org-split-string line "[ \t]*|[ \t]*"))
-	      (setq fnum (make-vector (length fields) 0))
-	      (setq line-fmt
-		    (mapconcat
-		     (lambda (x)
-		       (setq gr (pop org-table-colgroup-info))
-		       (format "%s%%s%s"
-			       (cond ((eq gr :start)
-				      (prog1 (if colgropen "|" "|")
-					(setq colgropen t)))
-				     ((eq gr :startend)
-				      (prog1 (if colgropen "|" "|")
-					(setq colgropen nil)))
-				     (t ""))
-			       (if (memq gr '(:end :startend))
-				   (progn (setq colgropen nil) "|")
-				 "")))
-		     fnum ""))))
-	  ;; fix double || in line-fmt
-	  (setq line-fmt (replace-regexp-in-string "||" "|" line-fmt))
-	  ;; maybe remove the first and last "|"
-	  (when (and (not org-export-latex-tables-column-borders)
-		     (string-match "^\\(|\\)?\\(.+\\)|$" line-fmt))
-	    (setq line-fmt (match-string 2 line-fmt)))
-	  ;; format alignment
-	  (unless align
-	    (setq align (apply 'format
-			       (cons line-fmt
-				     (mapcar (lambda (x) (if x "r" "l"))
-					     org-table-last-alignment)))))
-	  ;; prepare the table to send to orgtbl-to-latex
-	  (setq lines
-		(mapcar
-		 (lambda(elem)
-		   (or (and (string-match "[ \t]*|-+" elem) 'hline)
-		       (org-split-string (org-trim elem) "|")))
-		 lines))
-	  (when insert
-	    (insert (org-export-latex-protect-string
-		     (concat
-		      (if longtblp
-			  (concat "\\begin{longtable}{" align "}\n")
-			(if floatp "\\begin{table}[htb]\n"))
-		      (if (or floatp longtblp)
-			  (format
-			   "\\caption{%s%s}"
-			   (if label (concat "\\\label{" label "}") "")
-			   (or caption "")))
-		      (if longtblp "\\\\\n" "\n")
-		      (if (and org-export-latex-tables-centered (not longtblp))
-			  "\\begin{center}\n")
-		      (if (not longtblp) (concat "\\begin{tabular}{" align "}\n"))
-		      (orgtbl-to-latex
-		       lines
-		       `(:tstart nil :tend nil
-				 :hlend ,(if longtblp
-					     (format "\\\\
+            ;; make a formatting string to reflect alignment
+            (setq olines lines)
+            (while (and (not line-fmt) (setq line (pop olines)))
+              (unless (string-match "^[ \t]*|-" line)
+                (setq fields (org-split-string line "[ \t]*|[ \t]*"))
+                (setq fnum (make-vector (length fields) 0))
+                (setq line-fmt
+                      (mapconcat
+                       (lambda (x)
+                         (setq gr (pop org-table-colgroup-info))
+                         (format "%s%%s%s"
+                                 (cond ((eq gr :start)
+                                        (prog1 (if colgropen "|" "|")
+                                          (setq colgropen t)))
+                                       ((eq gr :startend)
+                                        (prog1 (if colgropen "|" "|")
+                                          (setq colgropen nil)))
+                                       (t ""))
+                                 (if (memq gr '(:end :startend))
+                                     (progn (setq colgropen nil) "|")
+                                   "")))
+                       fnum ""))))
+            ;; fix double || in line-fmt
+            (setq line-fmt (replace-regexp-in-string "||" "|" line-fmt))
+            ;; maybe remove the first and last "|"
+            (when (and (not org-export-latex-tables-column-borders)
+                       (string-match "^\\(|\\)?\\(.+\\)|$" line-fmt))
+              (setq line-fmt (match-string 2 line-fmt)))
+            ;; format alignment
+            (unless align
+              (setq align (apply 'format
+                                 (cons line-fmt
+                                       (mapcar (lambda (x) (if x "r" "l"))
+                                               org-table-last-alignment)))))
+            ;; prepare the table to send to orgtbl-to-latex
+            (setq lines
+                  (mapcar
+                   (lambda(elem)
+                     (or (and (string-match "[ \t]*|-+" elem) 'hline)
+                         (org-split-string (org-trim elem) "|")))
+                   lines))
+            (when insert
+              (insert (org-export-latex-protect-string
+                       (concat
+                        (if longtblp
+                            (concat "\\begin{longtable}{" align "}\n")
+                          (if floatp "\\begin{table}[htb]\n"))
+                        (if (or floatp longtblp)
+                            (format
+                             "\\caption{%s%s}"
+                             (if label (concat "\\\label{" label "}") "")
+                             (or caption "")))
+                        (if longtblp "\\\\\n" "\n")
+                        (if (and org-export-latex-tables-centered (not longtblp))
+                            "\\begin{center}\n")
+                        (if (not longtblp) (concat "\\begin{tabular}{" align "}\n"))
+                        (orgtbl-to-latex
+                         lines
+                         `(:tstart nil :tend nil
+                                   :hlend ,(if longtblp
+                                               (format "\\\\
 \\hline
 \\endhead
 \\hline\\multicolumn{%d}{r}{Continued on next page}\\
 \\endfoot
 \\endlastfoot" (length org-table-last-alignment))
-					   nil)))
-		      (if (not longtblp) (concat "\n\\end{tabular}"))
-		      (if longtblp "\n" (if org-export-latex-tables-centered
-					    "\n\\end{center}\n" "\n"))
-		      (if longtblp
-			  "\\end{longtable}"
-			(if floatp "\\end{table}"))))
-		    "\n\n")))))))
+                                             nil)))
+                        (if (not longtblp) (concat "\n\\end{tabular}"))
+                        (if longtblp "\n" (if org-export-latex-tables-centered
+                                              "\n\\end{center}\n" "\n"))
+                        (if longtblp
+                            "\\end{longtable}"
+                          (if floatp "\\end{table}"))))
+                      "\n\n"))))))))
 
 (defun org-export-latex-fontify ()
   "Convert fontification to LaTeX."
@@ -1447,23 +1469,33 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		       org-export-latex-emphasis-alist))
 	  (beg (match-beginning 0))
 	  (end (match-end 0))
-	  rpl)
+	  rpl s)
       (unless emph
 	(message "`org-export-latex-emphasis-alist' has no entry for formatting triggered by \"%s\""
 		 (match-string 3)))
-      (unless (or (get-text-property (1- (point)) 'org-protected)
+      (unless (or (and (get-text-property (- (point) 2) 'org-protected)
+		       (not (get-text-property
+			     (- (point) 2) 'org-verbatim-emph)))
 		  (save-excursion
 		    (goto-char (match-beginning 1))
 		    (save-match-data
 		      (and (org-at-table-p)
 			   (string-match
 			    "[|\n]" (buffer-substring beg end))))))
+	(setq s (match-string 4))
 	(setq rpl (concat (match-string 1)
 			  (org-export-latex-emph-format (cadr emph)
 							(match-string 4))
 			  (match-string 5)))
 	(if (caddr emph)
-	    (setq rpl (org-export-latex-protect-string rpl)))
+	    (setq rpl (org-export-latex-protect-string rpl))
+	  (save-match-data
+	    (if (string-match "\\`.\\(\\\\[a-z]+{\\)\\(.*\\)\\(}\\).\\'" rpl)
+		(progn
+		  (add-text-properties (match-beginning 1) (match-end 1)
+				       '(org-protected t) rpl)
+		  (add-text-properties (match-beginning 3) (match-end 3)
+				       '(org-protected t) rpl)))))
 	(replace-match rpl t t)))
     (backward-char)))
 
@@ -1496,8 +1528,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	    (setq char (or (cdr (assoc char trans)) (concat "\\" char))
 		  rtn (concat rtn char)))
 	  (setq string (concat rtn string) format "\\texttt{%s}")))))
-  (setq string (org-export-latex-protect-string
-		(format format string))))
+  (format format string))
 
 (defun org-export-latex-links ()
   ;; Make sure to use the LaTeX hyperref and graphicx package
@@ -1505,7 +1536,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
   "Convert links to LaTeX."
   (goto-char (point-min))
   (while (re-search-forward org-bracket-link-analytic-regexp++ nil t)
-    (org-if-unprotected
+    (org-if-unprotected-1
      (goto-char (match-beginning 0))
      (let* ((re-radio org-export-latex-all-targets-re)
 	    (remove (list (match-beginning 0) (match-end 0)))
@@ -1521,7 +1552,6 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	    (attr (or (org-find-text-property-in-string 'org-attributes raw-path)
 		      (plist-get org-export-latex-options-plist :latex-image-options)))
 	    (label (org-find-text-property-in-string 'org-label raw-path))
-	    (floatp (or label caption))
 	    imgp radiop
 	    ;; define the path of the link
 	    (path (cond
@@ -1551,20 +1581,11 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 				       raw-path))))))))
        ;; process with link inserting
        (apply 'delete-region remove)
-       (cond ((and imgp (plist-get org-export-latex-options-plist :inline-images))
+       (cond ((and imgp
+		   (plist-get org-export-latex-options-plist :inline-images))
+	      ;; OK, we need to inline an image
 	      (insert
-	       (concat
-		(if floatp "\\begin{figure}[htb]\n\\centering\n")
-		(format "\\includegraphics[%s]{%s}\n"
-			attr
-			(if (file-name-absolute-p raw-path)
-			    (expand-file-name raw-path)
-			  raw-path))
-		(if floatp
-		    (format "\\caption{%s%s}\n"
-			    (if label (concat "\\label{" label "}") "")
-			    (or caption "")))
-		(if floatp "\\end{figure}"))))
+	       (org-export-latex-format-image raw-path caption label attr)))
 	     (coderefp
 	      (insert (format
 		       (org-export-get-coderef-format path desc)
@@ -1585,6 +1606,61 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		      desc (org-export-latex-protect-amp desc)))
 	      (insert (format "\\href{%s}{%s}" path desc)))
 	     (t (insert "\\texttt{" desc "}")))))))
+
+
+(defun org-export-latex-format-image (path caption label attr)
+  "Format the image element, depending on user settings."
+  (let (floatp wrapp placement figenv)
+    (setq floatp (or caption label))
+    (when (and attr (stringp attr))
+      (if (string-match "[ \t]*\\<wrap\\>" attr)
+	  (setq wrapp t floatp nil attr (replace-match "" t t attr)))
+      (if (string-match "[ \t]*\\<float\\>" attr)
+	  (setq wrapp nil floatp t attr (replace-match "" t t attr))))
+    
+    (setq placement
+	  (cond
+	   (wrapp "{l}{0.5\\textwidth}")
+	   (floatp "[htb]")
+	   (t "")))
+
+    (when (and attr (stringp attr)
+	       (string-match "[ \t]*\\<placement=\\(\\S-+\\)" attr))
+      (setq placement (match-string 1 attr)
+	    attr (replace-match "" t t attr)))
+    (setq attr (and attr (org-trim attr)))
+    (when (or (not attr) (= (length attr) 0))
+      (setq attr (cond (floatp "width=0.7\\textwidth")
+		       (wrapp "width=0.48\\textwidth")
+		       (t attr))))
+    (setq figenv
+	  (cond
+	   (wrapp "\\begin{wrapfigure}%placement
+\\centering
+\\includegraphics[%attr]{%path}
+\\caption{%labelcmd%caption}
+\\end{wrapfigure}")
+	   (floatp "\\begin{figure}%placement
+\\centering
+\\includegraphics[%attr]{%path}
+\\caption{%labelcmd%caption}
+\\end{figure}")
+	   (t "\\includegraphics[%attr]{%path}")))
+
+    (if (and (not label) (not caption)
+	     (string-match "^\\\\caption{.*\n" figenv))
+	(setq figenv (replace-match "" t t figenv)))
+    (org-fill-template
+     figenv
+     (list (cons "path"
+		 (if (file-name-absolute-p path)
+		     (expand-file-name path)
+		   path))
+	   (cons "attr" attr)
+	   (cons "labelcmd" (if label (format "\\label{%s}"
+					      label)""))
+	   (cons "caption" (or caption ""))
+	   (cons "placement" (or placement ""))))))
 
 (defun org-export-latex-protect-amp (s)
   (while (string-match "\\([^\\\\]\\)\\(&\\)" s)
@@ -1666,7 +1742,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	  (concat "\\hspace*{1cm}" (match-string 2))) t t)
 	(beginning-of-line 1))
       (if (looking-at "[ \t]*$")
-	  (insert "\\vspace*{1em}")
+	  (insert (org-export-latex-protect-string "\\vspace*{1em}"))
 	(unless (looking-at ".*?[^ \t\n].*?\\\\\\\\[ \t]*$")
 	  (end-of-line 1)
 	  (insert "\\\\")))
@@ -1716,7 +1792,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
   (while (re-search-forward
 	  (concat "<<<?" org-export-latex-all-targets-re
 		  ">>>?\\((INVISIBLE)\\)?") nil t)
-    (org-if-unprotected
+    (org-if-unprotected-at (+ (match-beginning 0) 2)
      (replace-match
       (org-export-latex-protect-string
        (format "\\label{%s}%s" (save-match-data (org-solidify-link-text
@@ -1736,9 +1812,10 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
     (goto-char (point-min))
     (while (re-search-forward "\\[\\([0-9]+\\)\\]" nil t)
       (org-if-unprotected
-       (when (save-match-data
-	       (save-excursion (beginning-of-line)
-			       (looking-at "[^:|#]")))
+       (when (and (save-match-data
+		    (save-excursion (beginning-of-line)
+				    (looking-at "[^:|#]")))
+		  (not (org-in-verbatim-emphasis)))
 	 (let ((foot-beg (match-beginning 0))
 	       (foot-end (match-end 0))
 	       (foot-prefix (match-string 0))
@@ -1969,7 +2046,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
       (when (consp x)
 	(add-to-list 'org-latex-entities-exceptions x)
 	(setq x (car x)))
-      (if (string-match "[a-z][A-Z]$" x)
+      (if (string-match "[a-zA-Z]$" x)
 	  (push x names)
 	(push x rest)))
     (concat "\\(" (regexp-opt (nreverse names)) "\\>\\)"

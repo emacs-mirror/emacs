@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1043,9 +1043,9 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	   (org-mouse-main-buffer (current-buffer)))
       (when (eq (with-current-buffer buffer major-mode) 'org-mode)
 	(let ((endmarker (with-current-buffer buffer
-			  (outline-end-of-subtree)
-			  (forward-char 1)
-			  (copy-marker (point)))))
+			   (outline-end-of-subtree)
+			   (forward-char 1)
+			   (copy-marker (point)))))
 	  (org-with-remote-undo buffer
 	    (with-current-buffer buffer
 	      (widen)
@@ -1131,13 +1131,13 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 (add-hook 'org-agenda-mode-hook
    '(lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
-     (define-key org-agenda-keymap
+     (define-key org-agenda-mode-map
        (if (featurep 'xemacs) [button3] [mouse-3])
        'org-mouse-show-context-menu)
-     (define-key org-agenda-keymap [down-mouse-3] 'org-mouse-move-tree-start)
-     (define-key org-agenda-keymap (if (featurep 'xemacs) [(control mouse-4)] [C-mouse-4]) 'org-agenda-earlier)
-     (define-key org-agenda-keymap (if (featurep 'xemacs) [(control mouse-5)] [C-mouse-5]) 'org-agenda-later)
-     (define-key org-agenda-keymap [drag-mouse-3]
+     (define-key org-agenda-mode-map [down-mouse-3] 'org-mouse-move-tree-start)
+     (define-key org-agenda-mode-map (if (featurep 'xemacs) [(control mouse-4)] [C-mouse-4]) 'org-agenda-earlier)
+     (define-key org-agenda-mode-map (if (featurep 'xemacs) [(control mouse-5)] [C-mouse-5]) 'org-agenda-later)
+     (define-key org-agenda-mode-map [drag-mouse-3]
        '(lambda (event) (interactive "e")
 	  (case (org-mouse-get-gesture event)
 	    (:left (org-agenda-earlier 1))

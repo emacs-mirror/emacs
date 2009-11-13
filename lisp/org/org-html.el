@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -507,7 +507,7 @@ in a window.  A non-interactive call will only return the buffer."
     (setq buffer "*Org HTML Export*"))
   (let ((transient-mark-mode t) (zmacs-regions t)
 	ext-plist rtn)
-    (setq ext-plist (plist-put ext-plist :ignore-subree-p t))
+    (setq ext-plist (plist-put ext-plist :ignore-subtree-p t))
     (goto-char end)
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
@@ -575,7 +575,7 @@ PUB-DIR is set, use this as the publishing directory."
 	 (rbeg (and region-p (region-beginning)))
 	 (rend (and region-p (region-end)))
 	 (subtree-p
-	  (if (plist-get opt-plist :ignore-subree-p)
+	  (if (plist-get opt-plist :ignore-subtree-p)
 	      nil
 	    (when region-p
 	      (save-excursion
@@ -972,9 +972,12 @@ lang=\"%s\" xml:lang=\"%s\">
 		(setq line (concat line "\\\\")))))
 
 	  ;; make targets to anchors
+	  (setq start 0)
 	  (while (string-match
-		  "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
+		  "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line start)
 	    (cond
+	     ((get-text-property (match-beginning 1) 'org-protected line)
+	      (setq start (match-end 1)))
 	     ((match-end 2)
 	      (setq line (replace-match
 			  (format
@@ -985,16 +988,18 @@ lang=\"%s\" xml:lang=\"%s\">
 	     ((and org-export-with-toc (equal (string-to-char line) ?*))
 	      ;; FIXME: NOT DEPENDENT on TOC?????????????????????
 	      (setq line (replace-match
-			  (concat "@<span class=\"target\">" (match-string 1 line) "@</span> ")
-;			  (concat "@<i>" (match-string 1 line) "@</i> ")
+			  (concat "@<span class=\"target\">"
+				  (match-string 1 line) "@</span> ")
+			  ;; (concat "@<i>" (match-string 1 line) "@</i> ")
 			  t t line)))
 	     (t
 	      (setq line (replace-match
 			  (concat "@<a name=\""
 				  (org-solidify-link-text (match-string 1 line))
-				  "\" class=\"target\">" (match-string 1 line) "@</a> ")
+				  "\" class=\"target\">" (match-string 1 line)
+				  "@</a> ")
 			  t t line)))))
-
+	    
 	  (setq line (org-html-handle-time-stamps line))
 
 	  ;; replace "&" by "&amp;", "<" and ">" by "&lt;" and "&gt;"
@@ -1505,17 +1510,22 @@ lang=\"%s\" xml:lang=\"%s\">
       (let* ((caption (org-find-text-property-in-string 'org-caption src))
 	     (attr (org-find-text-property-in-string 'org-attributes src))
 	     (label (org-find-text-property-in-string 'org-label src)))
-	(format "%s<div %sclass=\"figure\">
-<p><img src=\"%s\"%s /></p>%s
-</div>%s"
-		(if org-par-open "</p>\n" "")
-		(if label (format "id=\"%s\" " label) "")
+	(concat
+	(if caption
+	    (format "%s<div %sclass=\"figure\">
+<p>"
+		    (if org-par-open "</p>\n" "")
+		    (if label (format "id=\"%s\" " label) "")))
+	(format "<img src=\"%s\"%s />"
 		src
 		(if (string-match "\\<alt=" (or attr ""))
 		    (concat " " attr )
-		  (concat " " attr " alt=\"" src "\""))
-		(if caption (concat "\n<p>" caption "</p>") "")
-		(if org-par-open "\n<p>" ""))))))
+		  (concat " " attr " alt=\"" src "\"")))
+	(if caption
+	    (format "</p>%s
+</div>%s"
+		(concat "\n<p>" caption "</p>")
+		(if org-par-open "\n<p>" ""))))))))
 
 (defun org-export-html-get-bibliography ()
   "Find bibliography, cut it out and return it."
@@ -1641,7 +1651,7 @@ lang=\"%s\" xml:lang=\"%s\">
     (unless splice (push "</table>\n" html))
     (setq html (nreverse html))
     (unless splice
-      ;; Put in col tags with the alignment (unfortuntely often ignored...)
+      ;; Put in col tags with the alignment (unfortunately often ignored...)
       (unless (car org-table-colgroup-info)
 	(setq org-table-colgroup-info
 	      (cons :start (cdr org-table-colgroup-info))))

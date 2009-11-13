@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -46,6 +46,11 @@ The file name should be absolute, the file will be overwritten without warning."
   "Calendar name for the combined iCalendar representing all agenda files."
   :group 'org-export-icalendar
   :type 'string)
+
+(defcustom org-icalendar-use-plain-timestamp t
+  "Non-nil means, make an event from every plain time stamp."
+  :group 'org-export-icalendar
+  :type 'boolean)
 
 (defcustom org-icalendar-use-deadline '(event-if-not-todo todo-due)
   "Contexts where iCalendar export should use a deadline time stamp.
@@ -101,9 +106,9 @@ all-tags    All tags, including inherited ones."
 (defcustom org-icalendar-include-todo nil
   "Non-nil means, export to iCalendar files should also cover TODO items.
 Valid values are:
-nil         don't inlcude any TODO items
+nil         don't include any TODO items
 t           include all TODO items that are not in a DONE state
-unblocked   include all TODO idems that are not blocked
+unblocked   include all TODO items that are not blocked
 all         include both done and not done items."
   :group 'org-export-icalendar
   :type '(choice
@@ -111,6 +116,17 @@ all         include both done and not done items."
 	  (const :tag "Unfinished" t)
 	  (const :tag "Unblocked" unblocked)
 	  (const :tag "All" all)))
+
+(defvar org-icalendar-verify-function nil
+  "Function to verify entries for iCalendar export.
+This can be set to a function that will be called at each entry that
+is considered for export to iCalendar.  When the function returns nil,
+the entry will be skipped.  When it returns a non-nil value, the entry
+will be considered for export.
+This is used internally when an agenda buffer is exported to an ics file,
+to make sure that only entries currently listed in the agenda will end
+up in the ics file.  But for normal iCalendar export, you can use this
+for whatever you need.")
 
 (defcustom org-icalendar-include-bbdb-anniversaries nil
   "Non-nil means, a combined iCalendar files should include anniversaries.
@@ -264,8 +280,8 @@ When COMBINE is non nil, add the category to each line."
       (while (re-search-forward re1 nil t)
 	(catch :skip
 	  (org-agenda-skip)
-	  (when (boundp 'org-icalendar-verify-function)
-	    (unless (funcall org-icalendar-verify-function)
+	  (when org-icalendar-verify-function
+	    (unless (save-match-data (funcall org-icalendar-verify-function))
 	      (outline-next-heading)
 	      (backward-char 1)
 	      (throw :skip nil)))
@@ -307,6 +323,9 @@ When COMBINE is non nil, add the category to each line."
 		  todo (org-get-todo-state)
 		  ;; donep (org-entry-is-done-p)
 		  ))
+	  (when (and (not org-icalendar-use-plain-timestamp)
+		     (not deadlinep) (not scheduledp))
+	    (throw :skip t))
 	  (when (and
 		 deadlinep
 		 (if todo
@@ -368,6 +387,11 @@ END:VEVENT\n"
 	(while (re-search-forward "^&?%%(" nil t)
 	  (catch :skip
 	    (org-agenda-skip)
+	    (when org-icalendar-verify-function
+	      (unless (save-match-data (funcall org-icalendar-verify-function))
+		(outline-next-heading)
+		(backward-char 1)
+		(throw :skip nil)))
 	    (setq b (match-beginning 0))
 	    (goto-char (1- (match-end 0)))
 	    (forward-sexp 1)
@@ -384,7 +408,7 @@ END:VEVENT\n"
 	(while (re-search-forward org-todo-line-regexp nil t)
 	  (catch :skip
 	    (org-agenda-skip)
-	    (when (boundp 'org-icalendar-verify-function)
+	    (when org-icalendar-verify-function
 	      (unless (save-match-data
 			(funcall org-icalendar-verify-function))
 		(outline-next-heading)

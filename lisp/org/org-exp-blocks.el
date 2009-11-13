@@ -60,11 +60,6 @@
 ;;            their own divs with author-specific ids allowing for css
 ;;            coloring of comments based on the author.
 ;;
-;; R :: Implements Sweave type exporting, evaluates blocks of R code,
-;;      and also replaces \R{} chunks in the file with their result
-;;      when passed to R.  This require the `R' command which is
-;;      provided by ESS (Emacs Speaks Statistics).
-;;
 ;;; Adding new blocks
 ;;
 ;; When adding a new block type first define a formatting function
@@ -76,16 +71,10 @@
   (require 'cl))
 (require 'org)
 
-(defvar comint-last-input-end)
-(defvar comint-prompt-regexp)
-(defvar comint-last-input-end)
 (defvar htmlp)
 (defvar latexp)
 (defvar docbookp)
 (defvar asciip)
-
-(declare-function comint-send-input "comint" (&optional no-newline artificial))
-(declare-function R "ext:ess" nil)
 
 (defun org-export-blocks-set (var value)
   "Set the value of `org-export-blocks' and install fontification."
@@ -102,9 +91,7 @@
 (defcustom org-export-blocks
   '((comment org-export-blocks-format-comment t)
     (ditaa org-export-blocks-format-ditaa nil)
-    (dot org-export-blocks-format-dot nil)
-    (r org-export-blocks-format-R nil)
-    (R org-export-blocks-format-R nil))
+    (dot org-export-blocks-format-dot nil))
   "Use this a-list to associate block types with block exporting
 functions.  The type of a block is determined by the text
 immediately following the '#+BEGIN_' portion of the block header.
@@ -133,8 +120,7 @@ blocks is as follows...
     (org-export-blocks-set 'org-export-blocks org-export-blocks)))
 
 (defcustom org-export-interblocks
-  '((r org-export-interblocks-format-R)
-    (R org-export-interblocks-format-R))
+  '()
   "Use this a-list to associate block types with block exporting
 functions.  The type of a block is determined by the text
 immediately following the '#+BEGIN_' portion of the block header.
@@ -172,43 +158,40 @@ CLOSE tags will be inserted around BODY."
    "#+END_LaTeX\n"))
 
 (defun org-export-blocks-preprocess ()
-  "Export all blocks acording to the `org-export-blocks' block
+  "Export all blocks according to the `org-export-blocks' block
 exportation alist.  Does not export block types specified in
 specified in BLOCKS which default to the value of
 `org-export-blocks-witheld'."
   (interactive)
   (save-window-excursion
-    (let ((count 0)
-	  (blocks org-export-blocks-witheld)
-	  (case-fold-search t)
+    (let ((case-fold-search t)
 	  (types '())
-	  indentation type func start end)
-      (flet ((interblock (start end type)
-			 (save-match-data
-			   (when (setf func (cadr (assoc type org-export-interblocks)))
-			     (funcall func start end)))))
+	  indentation type func start body headers preserve-indent)
+      (flet ((interblock (start end)
+			 (mapcar (lambda (pair) (funcall (second pair) start end))
+				 org-export-interblocks)))
 	(goto-char (point-min))
-	(setf start (point))
+	(setq start (point))
 	(while (re-search-forward
 		"^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]\\([^\000]*?\\)[\r\n][ \t]*#\\+end_\\S-+.*" nil t)
-          (save-match-data (setq indentation (length (match-string 1))))
-	  (save-match-data (setf type (intern (match-string 2))))
-	  (unless (memq type types) (setf types (cons type types)))
-	  (setf end (save-match-data (match-beginning 0)))
-	  (interblock start end type)
-	  (if (setf func (cadr (assoc type org-export-blocks)))
+          (setq indentation (length (match-string 1)))
+	  (setq type (intern (downcase (match-string 2))))
+	  (setq headers (save-match-data (org-split-string (match-string 3) "[ \t]+")))
+	  (setq body (match-string 4))
+	  (setq preserve-indent (or org-src-preserve-indentation (member "-i" headers)))
+	  (unless preserve-indent
+	    (setq body (save-match-data (org-remove-indentation body))))
+	  (unless (memq type types) (setq types (cons type types)))
+	  (save-match-data (interblock start (match-beginning 0)))
+	  (if (setq func (cadr (assoc type org-export-blocks)))
 	      (progn
                 (replace-match (save-match-data
-                                 (if (memq type blocks)
-                                     ""
-                                   (apply func (save-match-data (org-remove-indentation (match-string 4)))
-                                          (split-string (match-string 3) " ")))) t t)
-                ;; indent block
-                (indent-code-rigidly (match-beginning 0) (match-end 0) indentation)))
-	  (setf start (save-match-data (match-end 0))))
-	(mapcar (lambda (type)
-		  (interblock start (point-max) type))
-		types)))))
+                                 (if (memq type org-export-blocks-witheld) ""
+                                   (apply func body headers))) t t)
+                (unless preserve-indent
+		  (indent-code-rigidly (match-beginning 0) (match-end 0) indentation))))
+	  (setq start (match-end 0)))
+	(interblock start (point-max))))))
 
 (add-hook 'org-export-preprocess-hook 'org-export-blocks-preprocess)
 
@@ -320,119 +303,6 @@ other backends, it converts the comment into an EXAMPLE segment."
 	      body
 	      (if (string-match "\n\\'" body) "" "\n")
 	      "#+END_EXAMPLE\n")))))
-
-;;--------------------------------------------------------------------------------
-;; R: Sweave-type functionality
-(defvar interblock-R-buffer nil
-  "Holds the buffer for the current R process")
-
-(defvar count) ; dynamicaly scoped from `org-export-blocks-preprocess'?
-(defun org-export-blocks-format-R (body &rest headers)
-  "Process R blocks and replace \R{} forms outside the blocks
-with their values as determined by R."
-  (interactive)
-  (message "R processing...")
-  (let ((image-path (or (and (car headers)
-			     (string-match "\\(.?\\)\.\\(EPS\\|eps\\)" (car headers))
-			     (match-string 1 (car headers)))
-			(and (> (length (car headers)) 0)
-			     (car headers))
-			;; create the default filename
-			(format "Rplot-%03d" count)))
-	(plot (string-match "plot" body))
-	R-proc)
-    (setf count (+ count 1))
-    (interblock-initiate-R-buffer)
-    (setf R-proc (get-buffer-process interblock-R-buffer))
-    ;; send strings to the ESS process using `comint-send-string'
-    (setf body (mapconcat (lambda (line)
-			    (interblock-R-input-command line) (concat "> " line))
-			  (butlast (split-string body "[\r\n]"))
-			  "\n"))
-    ;; if there is a plot command, then create the images
-    (when plot
-      (interblock-R-input-command (format "dev.copy2eps(file=\"%s.eps\")" image-path)))
-    (concat (cond
-	     (htmlp (org-export-blocks-html-quote body
-						  (format "<div id=\"R-%d\">\n<pre>\n" count)
-						  "</pre>\n</div>\n"))
-	     (latexp (org-export-blocks-latex-quote body
-						    "\\begin{Schunk}\n\\begin{Sinput}\n"
-						    "\\end{Sinput}\n\\end{Schunk}\n"))
-	     (t (insert ;; default export
-		 "#+begin_R " (mapconcat 'identity headers " ") "\n"
-		 body (if (string-match "\n$" body) "" "\n")
-		 "#+end_R\n")))
-	    (if plot
-		(format "[[file:%s.eps]]\n" image-path)
-	      ""))))
-
-(defun org-export-interblocks-format-R (start end)
-  "This is run over parts of the org-file which are between R
-blocks.  Its main use is to expand the \R{stuff} chunks for
-export."
-  (save-excursion
-    (goto-char start)
-    (interblock-initiate-R-buffer)
-    (let (code replacement)
-      (while (and (< (point) end) (re-search-forward "\\\\R{\\(.*\\)}" end t))
-	(save-match-data (setf code (match-string 1)))
-	(setf replacement (interblock-R-command-to-string code))
-	(setf replacement (cond
-			   (htmlp replacement)
-			   (latexp replacement)
-			   (t replacement)))
-	(setf end (+ end (- (length replacement) (length code))))
-	(replace-match replacement t t)))))
-
-(defun interblock-initiate-R-buffer ()
-  "If there is not a current R process then create one."
-  (unless (and (buffer-live-p interblock-R-buffer) (get-buffer interblock-R-buffer))
-    (save-excursion
-      (R)
-      (setf interblock-R-buffer (current-buffer))
-      (interblock-R-wait-for-output)
-      (interblock-R-input-command ""))))
-
-(defun interblock-R-command-to-string (command)
-  "Send a command to R, and return the results as a string."
-  (interblock-R-input-command command)
-  (interblock-R-last-output))
-
-(defun interblock-R-input-command (command)
-  "Pass COMMAND to the R process running in `interblock-R-buffer'."
-  (save-excursion
-    (save-match-data
-      (set-buffer interblock-R-buffer)
-      (goto-char (process-mark (get-buffer-process (current-buffer))))
-      (insert command)
-      (comint-send-input)
-      (interblock-R-wait-for-output))))
-
-(defun interblock-R-wait-for-output ()
-  "Wait until output arrives"
-  (save-excursion
-    (save-match-data
-      (set-buffer interblock-R-buffer)
-      (while (progn
-	       (goto-char comint-last-input-end)
-	       (not (re-search-forward comint-prompt-regexp nil t)))
-	(accept-process-output (get-buffer-process (current-buffer)))))))
-
-(defun interblock-R-last-output ()
-  "Return the last R output as a string"
-  (save-excursion
-    (save-match-data
-      (set-buffer interblock-R-buffer)
-      (goto-char (process-mark (get-buffer-process (current-buffer))))
-      (forward-line 0)
-      (let ((raw (buffer-substring comint-last-input-end (- (point) 1))))
-	(if (string-match "\n" raw)
-	    raw
-	  (and (string-match "\\[[[:digit:]+]\\] *\\(.*\\)$" raw)
-	       (message raw)
-	       (message (match-string 1 raw))
-	       (match-string 1 raw)))))))
 
 (provide 'org-exp-blocks)
 

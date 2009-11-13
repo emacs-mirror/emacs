@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -171,7 +171,7 @@ FIXME:  How to update when broken?"
   (org-compatible-face nil nil)
   "Face for outline indentation.
 The default is to make it look like whitespace.  But you may find it
-useful to make it evver so slightly different."
+useful to make it ever so slightly different."
   :group 'org-faces)
 
 (defun org-indent-indent-buffer ()

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.31a
+;; Version: 6.33
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -217,7 +217,7 @@ If the integer is negative, the string will start with \"-\"."
 (defvar org-timer-mode-line-string nil)
 
 (defun org-timer-set-mode-line (value)
-  "Set the mode-line dispay of the relative timer.
+  "Set the mode-line display of the relative timer.
 VALUE can be `on', `off', or `pause'."
   (or global-mode-string (setq global-mode-string '("")))
   (or (memq 'org-timer-mode-line-string global-mode-string)
@@ -284,7 +284,7 @@ VALUE can be `on', `off', or `pause'."
 				  (current-time))))
 	   (rsecs (nth 0 rtime))
 	   (rmins (nth 1 rtime)))
-      (message "%d minutes %d secondes left before next time out"
+      (message "%d minutes %d seconds left before next time out"
 	       rmins rsecs))))
 
 ;;;###autoload
@@ -312,12 +312,12 @@ VALUE can be `on', `off', or `pause'."
 		(t (error "Not in an Org buffer"))))
 	   timer-set)
       (mapcar (lambda(timer)
-		(if (not (or (eval timer) timer-set))
-		    (setq timer-set t
-			  timer
-			  (run-with-timer
-			   secs nil 'org-notify (format "%s: time out" hl) t)
-			  org-timer-last-timer timer)))
+		(when (not (or (eval timer) timer-set))
+		  (setq timer-set t)
+		  (setq org-timer-last-timer
+			(run-with-timer
+			secs nil 'org-notify (format "%s: time out" hl) t))
+		  (set timer org-timer-last-timer)))
 	      '(org-timer-timer1
 		org-timer-timer2
 		org-timer-timer3)))))

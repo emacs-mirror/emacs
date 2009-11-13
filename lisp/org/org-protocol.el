@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 6.31a
+;; Version: 6.33
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -88,7 +88,7 @@
 ;;     triggered through the sub-protocol \"store-link\".
 ;;
 ;;   * Call `org-protocol-remember' by using the sub-protocol \"remember\".  If
-;;     Org-mode is loaded, emacs will popup a remember buffer and fill the
+;;     Org-mode is loaded, emacs will pop-up a remember buffer and fill the
 ;;     template with the data provided. I.e. the browser's URL is inserted as an
 ;;     Org-link of which the page title will be the description part. If text
 ;;     was select in the browser, that text will be the body of the entry.
@@ -109,8 +109,8 @@
 ;;
 ;;  use template ?x.
 ;;
-;; Note, that using double shlashes is optional from org-protocol.el's point of
-;; view because emacsclient sqashes the slashes to one.
+;; Note, that using double slashes is optional from org-protocol.el's point of
+;; view because emacsclient squashes the slashes to one.
 ;;
 ;;
 ;; provides: 'org-protocol
@@ -231,7 +231,7 @@ function - function that handles requests with protocol and takes exactly one
            `org-protocol-protocol-alist-default'. See `org-protocol-split-data'.
 
 kill-client - If t, kill the client immediately, once the sub-protocol is
-           detected. This is neccessary for actions that can be interupted by
+           detected. This is necessary for actions that can be interrupted by
            `C-g' to avoid dangeling emacsclients. Note, that all other command
            line arguments but the this one will be discarded, greedy handlers
            still receive the whole list of arguments though.
@@ -279,6 +279,17 @@ decode each split part."
 	    (mapcar unhexify split-parts)
 	  (mapcar 'org-protocol-unhex-string split-parts))
       split-parts)))
+
+;; This inline function is needed in org-protocol-unhex-compound to do
+;; the right thing to decode UTF-8 char integer values.
+(eval-when-compile
+  (if (>= emacs-major-version 23)
+      (defsubst org-protocol-char-to-string(c)
+	"Defsubst to decode UTF-8 character values in emacs 23 and beyond."
+	(char-to-string c))
+    (defsubst org-protocol-char-to-string (c)
+      "Defsubst to decode UTF-8 character values in emacs 22."
+      (string (decode-char 'ucs c)))))
 
 (defun org-protocol-unhex-string(str)
   "Unhex hexified unicode strings as returned from the JavaScript function
@@ -331,7 +342,7 @@ encodeURIComponent. E.g. `%C3%B6' is the german Umlaut `ü'."
 	(setq sum (+ (lsh sum shift) val))
 	(if (> eat 0) (setq eat (- eat 1)))
 	(when (= 0 eat)
-	  (setq ret (concat ret (char-to-string sum)))
+	  (setq ret (concat ret (org-protocol-char-to-string sum)))
 	  (setq sum 0))
 	)) ;; end (while bytes
     ret ))
@@ -428,7 +439,7 @@ The sub-protocol used to reach this function is set in
 The sub-protocol used to reach this function is set in
 `org-protocol-protocol-alist'.
 
-This function detects an URL, title and optinal text, separated by '/'
+This function detects an URL, title and optional text, separated by '/'
 The location for a browser's bookmark has to look like this:
 
   javascript:location.href='org-protocol://remember://'+ \\
