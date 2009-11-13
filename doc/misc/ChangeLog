@@ -1,3 +1,53 @@
+2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi: Removed @Ie, @ie, @Eg, @eg macros.
+
+2009-11-13  James TD Smith  <ahktenzero@mohorovi.cc>
+
+	* org.texi (Column attributes): Add the new age summary operators.
+	Also, mention the fact you can only use one summary operator per
+	property.
+
+2009-11-13  John Wiegley  <johnw@newartisans.com>
+
+	* org.texi (Tracking your habits): Added a new section in the
+	manual about how to track habits.
+	(Resolving idle time): Added a section on how idle and
+	dangling clocks are resolved.
+
+2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Agenda commands): Document the new `i' command.
+	(Inserting deadline/schedule): Document logging changes
+	of scheduling and deadline times stamps.
+	(In-buffer settings): Document the in-buffer keywords for logging
+	changes of scheduling and deadline times stamps.
+	(Structure editing, Plain lists): Document indentation
+	cycling in empty entries with TAB.
+	(Archiving): Document the default archiving command.
+	(Moving subtrees): Document the new keys for archiving.
+	(Internal archiving): Fix incorrect key.
+	(Agenda commands): Document the TODO set switching commands.
+	(Agenda commands): Document the new archiving keys.
+	(Clocking work time): Better description on how to save
+	and restore a clock.
+	(Resolving idle time): Mention the x11idle program to get true
+	idleness also under X11.
+	(Resolving idle time): Use @kbd instead of @key for normal
+	letters, because this is how he rest of the manual does this.
+	(Pushing to MobileOrg): Mention that `org-directory'
+	should be set.
+	(Agenda commands): Document that SPC is a filter for
+	any tag.
+	(Search view): Renamed from "Keyword search".
+	(Capure): New chapter.
+	(Markup): New chapter.
+	(Links in HTML export, Images in HTML export): Extend
+	the section titles.
+	(Images in HTML export): Document the align option.
+	(Text areas in HTML export): Extend the section title.
+	(Images in LaTeX export): Explain image placement in LaTeX.
+
 2009-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* sc.texi (Hints to MUA Authors): MUA should do any decoding.
