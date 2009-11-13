@@ -1,3 +1,7 @@
+2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document the new archiving keys.
+
 2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* compilation.txt: Add one more error message for msft (Bug#4100).
