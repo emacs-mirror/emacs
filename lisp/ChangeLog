@@ -1,3 +1,8 @@
+2009-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* international/mule.el (auto-coding-regexp-alist): Only purecopy
+	car or each item, not the whole list.
+
 2009-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-completion-help):

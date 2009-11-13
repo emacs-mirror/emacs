@@ -1648,7 +1648,7 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  (purecopy
+  (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
   '(("\\`BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
     ("\\`\xFE\xFF" . utf-16be-with-signature)
     ("\\`\xFF\xFE" . utf-16le-with-signature)
