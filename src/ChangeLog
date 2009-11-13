@@ -1,3 +1,11 @@
+2009-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Vdbus_registered_objects_table): Renamed from
+	Vdbus_registered_functions_table, because it contains also
+	properties.  Fix docstring.
+	(Fdbus_call_method, Fdbus_call_method_asynchronously): Fix
+	docstring.
+
 2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (mark_object): Don't reprocess marked strings.
