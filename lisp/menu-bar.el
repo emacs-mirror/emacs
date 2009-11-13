@@ -1857,8 +1857,7 @@ Buffers menu is regenerated."
 ;;nil means the buffer shouldn't be listed.  You can redefine this."
 ;;  (if (string-match "\\` " (buffer-name buffer))
 ;;      nil
-;;    (save-excursion
-;;     (set-buffer buffer)
+;;    (with-current-buffer buffer
 ;;     (let ((size (buffer-size)))
 ;;       (format "%s%s %-19s %6s %-15s %s"
 ;;	       (if (buffer-modified-p) "*" " ")

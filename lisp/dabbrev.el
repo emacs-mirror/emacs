@@ -62,8 +62,7 @@
 ;; the article for expansion):
 ;; (set (make-local-variable 'dabbrev-friend-buffer-function)
 ;;      (lambda (buffer)
-;;         (save-excursion
-;;           (set-buffer buffer)
+;;         (with-current-buffer buffer
 ;;           (memq major-mode '(news-reply-mode gnus-article-mode)))))
 
 
@@ -594,8 +593,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 ;;; Checks if OTHER-BUFFER has the same major mode as current buffer.
 (defun dabbrev--same-major-mode-p (other-buffer)
   (eq major-mode
-      (save-excursion
-	(set-buffer other-buffer)
+      (with-current-buffer other-buffer
 	major-mode)))
 
 ;;; Back over all abbrev type characters and then moves forward over

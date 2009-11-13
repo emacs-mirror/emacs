@@ -91,8 +91,7 @@ You can <s>teal the file; the other user becomes the
   intruder if (s)he ever unmodifies the file and then changes it again.
 You can <p>roceed; you edit at your own (and the other user's) risk.
 You can <q>uit; don't modify this file.")
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (help-mode))))
 
 (put
@@ -155,8 +154,7 @@ If you say `n', the change you started to make will be aborted.
 
 Usually, you should type `n' and then `M-x revert-buffer',
 to get the latest version of the file, then make the change again.")
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (help-mode))))
 
 ;; arch-tag: a61c5b60-e1c8-44fd-894a-c617f4dfc639

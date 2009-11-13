@@ -463,8 +463,7 @@ If ARG is non-nil, mark the key."
   (apply #'epa--list-keys epa-list-keys-arguments))
 
 (defun epa--marked-keys ()
-  (or (save-excursion
-	(set-buffer epa-keys-buffer)
+  (or (with-current-buffer epa-keys-buffer
 	(goto-char (point-min))
 	(let (keys key)
 	  (while (re-search-forward "^\\*" nil t)
@@ -479,11 +478,10 @@ If ARG is non-nil, mark the key."
 	      (list key))))))
 
 (defun epa--select-keys (prompt keys)
-  (save-excursion
-    (unless (and epa-keys-buffer
-		 (buffer-live-p epa-keys-buffer))
-      (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
-    (set-buffer epa-keys-buffer)
+  (unless (and epa-keys-buffer
+               (buffer-live-p epa-keys-buffer))
+    (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
+  (with-current-buffer epa-keys-buffer
     (epa-key-list-mode)
     (let ((inhibit-read-only t)
 	  buffer-read-only)
@@ -615,8 +613,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	  (setq epa-info-buffer (generate-new-buffer "*Info*")))
 	(if (get-buffer-window epa-info-buffer)
 	    (delete-window (get-buffer-window epa-info-buffer)))
-	(save-excursion
-	  (set-buffer epa-info-buffer)
+	(with-current-buffer epa-info-buffer
 	  (let ((inhibit-read-only t)
 		buffer-read-only)
 	    (erase-buffer)
@@ -716,8 +713,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	     (setq type 'detached))
 	    ((eq c ??)
 	     (with-output-to-temp-buffer "*Help*"
-	       (save-excursion
-		 (set-buffer standard-output)
+	       (with-current-buffer standard-output
 		 (insert "\
 n - Create a normal signature
 c - Create a cleartext signature

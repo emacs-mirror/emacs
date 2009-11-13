@@ -1942,8 +1942,7 @@ cleaning up these problems."
   (unless (get-buffer whitespace-help-buffer-name)
     (delete-other-windows)
     (let ((buffer (get-buffer-create whitespace-help-buffer-name)))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(erase-buffer)
 	(insert whitespace-help-text)
 	(whitespace-insert-option-mark

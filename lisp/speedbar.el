@@ -1173,8 +1173,7 @@ frame and window to be the currently active frame and window."
 	       (with-no-warnings
 		 (specifier-instance has-modeline-p)))
 	   speedbar-buffer)
-      (save-excursion
-	(set-buffer speedbar-buffer)
+      (with-current-buffer speedbar-buffer
 	(let* ((w (or (speedbar-frame-width) 20))
 	       (p1 "<<")
 	       (p5 ">>")
@@ -1246,8 +1245,7 @@ and the existence of packages."
 			       (current-buffer))
 			      speedbar-special-mode-key-map)
 			(select-frame cf))))))
-    (save-excursion
-      (set-buffer speedbar-buffer)
+    (with-current-buffer speedbar-buffer
       (use-local-map (or localmap
 			 (speedbar-initial-keymap)
 			 ;; This creates a small keymap we can glom the
@@ -1859,8 +1857,7 @@ of the special mode functions."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
   (if (not (buffer-live-p buffer))
       nil
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-match-data
 	(let ((ms (symbol-name major-mode)) v)
 	  (if (not (string-match "-mode$" ms))
@@ -1893,8 +1890,7 @@ of the special mode functions."
 
 (defun speedbar-remove-localized-speedbar-support (buffer)
   "Remove any traces that BUFFER supports speedbar in a specialized way."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (kill-local-variable 'speedbar-special-mode-expansion-list)
     (kill-local-variable 'speedbar-special-mode-key-map)
     (kill-local-variable 'speedbar-easymenu-definition-special)))
@@ -2383,8 +2379,8 @@ the list."
 	      (or (speedbar-line-file)
 		  (speedbar-line-directory))))
 	 (methods (if (get-file-buffer f)
-		      (save-excursion (set-buffer (get-file-buffer f))
-				      speedbar-tag-hierarchy-method)
+		      (with-current-buffer (get-file-buffer f)
+                        speedbar-tag-hierarchy-method)
 		    speedbar-tag-hierarchy-method))
 	 (lst (if (fboundp 'copy-tree)
 		  (copy-tree lst)
@@ -2612,9 +2608,8 @@ name will have the function FIND-FUN and not token."
 This should only be used by modes classified as special."
   (let ((funclst speedbar-special-mode-expansion-list)
 	(specialbuff (current-buffer)))
-    (save-excursion
-      (setq speedbar-desired-buffer specialbuff)
-      (set-buffer speedbar-buffer)
+    (setq speedbar-desired-buffer specialbuff)
+    (with-current-buffer speedbar-buffer
       ;; If we are leaving a directory, cache it.
       (if (not speedbar-shown-directories)
 	  ;; Do nothing
@@ -3887,8 +3882,8 @@ If TEMP is non-nil, then clicking on a buffer restores the previous display."
 				    (buffer-name (car bl))))
 	       (expchar (if known ?+ ??))
 	       (fn (if known 'speedbar-tag-file nil))
-	       (fname (save-excursion (set-buffer (car bl))
-				      (buffer-file-name))))
+	       (fname (with-current-buffer (car bl)
+                        (buffer-file-name))))
 	  (speedbar-make-tag-line 'bracket expchar fn
 				  (if fname (file-name-nondirectory fname))
 				  (buffer-name (car bl))
@@ -3928,8 +3923,7 @@ If TEMP is non-nil, then clicking on a buffer restores the previous display."
   "Add a note to the end of the last tag line.
 Argument BUFFER is the buffer being tested."
   (let (mod ro)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (setq mod (buffer-modified-p)
 	    ro buffer-read-only))
     (if ro (speedbar-insert-button "%" nil nil nil nil t))))
@@ -3943,9 +3937,8 @@ Argument BUFFER is the buffer being tested."
 	     (speedbar-message "%s%s %S %d %s"
 			       (if (buffer-modified-p buffer) "* " "")
 			       item
-			       (save-excursion (set-buffer buffer) major-mode)
-			       (save-excursion (set-buffer buffer)
-					       (buffer-size))
+			       (with-current-buffer buffer major-mode)
+			       (with-current-buffer buffer (buffer-size))
 			       (or (buffer-file-name buffer) "<No file>"))))))
 
 (defun speedbar-buffers-line-directory (&optional depth)
@@ -3963,8 +3956,7 @@ Optional argument DEPTH specifies the current depth of the back search."
 	      (if (save-excursion
 		    (end-of-line)
 		    (eq start (point)))
-		  (or (save-excursion (set-buffer buffer)
-				      default-directory)
+		  (or (with-current-buffer buffer default-directory)
 		      "")
 		(buffer-file-name buffer))))))))
 

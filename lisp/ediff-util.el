@@ -343,8 +343,7 @@ to invocation.")
 	    (setq buffer-C
 		  (get-buffer-create
 		   (ediff-unique-buffer-name "*ediff-merge" "*")))
-	    (save-excursion
-	      (set-buffer buffer-C)
+	    (with-current-buffer buffer-C
 	      (insert-buffer-substring buf)
 	      (goto-char (point-min))
 	      (funcall (ediff-with-current-buffer buf major-mode))

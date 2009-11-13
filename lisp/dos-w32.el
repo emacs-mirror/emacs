@@ -197,8 +197,7 @@ set to the appropriate coding system, and the value of
     (find-file filename)))
 
 (defun find-file-not-found-set-buffer-file-coding-system ()
-  (save-excursion
-    (set-buffer (current-buffer))
+  (with-current-buffer (current-buffer)
     (let ((coding buffer-file-coding-system))
       ;; buffer-file-coding-system is already set by
       ;; find-operation-coding-system, which was called from

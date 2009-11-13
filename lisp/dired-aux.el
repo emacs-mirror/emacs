@@ -1251,8 +1251,7 @@ Special value `always' suppresses confirmation."
   (let ((expanded-from-dir (expand-file-name from-dir))
 	(blist (buffer-list)))
     (while blist
-      (save-excursion
-	(set-buffer (car blist))
+      (with-current-buffer (car blist)
 	(if (and buffer-file-name
 		 (dired-in-this-tree buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
@@ -1530,8 +1529,7 @@ Optional arg HOW-TO determiness how to treat the target.
     ;; non-dired buffer may want to profit from this function, e.g. vm-uudecode
     (if dired-dwim-target
 	(let* ((other-buf (window-buffer (next-window)))
-	       (other-dir (save-excursion
-			    (set-buffer other-buf)
+	       (other-dir (with-current-buffer other-buf
 			    (and (eq major-mode 'dired-mode)
 				 (dired-current-directory)))))
 	  (or other-dir this-dir))

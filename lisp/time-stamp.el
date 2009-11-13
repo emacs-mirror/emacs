@@ -660,8 +660,7 @@ The new forms being recommended now will continue to work then.")
 Suggests replacing OLD-FORM with NEW-FORM."
   (cond
    (time-stamp-conversion-warn
-    (save-excursion
-      (set-buffer (get-buffer-create "*Time-stamp-compatibility*"))
+    (with-current-buffer (get-buffer-create "*Time-stamp-compatibility*")
       (goto-char (point-max))
       (if (bobp)
 	  (progn

@@ -5605,7 +5605,7 @@ alternate presentation format for the outline:
 				   (goto-char beg)
 				   (allout-topic-flat-index))
 			   '(1))))
-    (save-excursion (set-buffer tobuf)(erase-buffer))
+    (with-current-buffer tobuf (erase-buffer))
     (allout-process-exposed 'allout-insert-listified
 			     beg
 			     end
@@ -6283,8 +6283,7 @@ of the availability of a cached copy."
 
     ;; Symmetric hereon:
 
-    (save-excursion
-      (set-buffer allout-buffer)
+    (with-current-buffer allout-buffer
       (let* ((hint (if (and (not (string= allout-passphrase-hint-string ""))
                             (or (equal allout-passphrase-hint-handling 'always)
                                 (and (equal allout-passphrase-hint-handling
@@ -6481,8 +6480,7 @@ Derived from value of `allout-passphrase-verifier-string'."
   "True if passphrase successfully decrypts verifier, nil otherwise.
 
 \"Otherwise\" includes absence of passphrase verifier."
-  (save-excursion
-    (set-buffer allout-buffer)
+  (with-current-buffer allout-buffer
     (and (boundp 'allout-passphrase-verifier-string)
          allout-passphrase-verifier-string
          (allout-encrypt-string (allout-get-encryption-passphrase-verifier)

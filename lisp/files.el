@@ -5411,8 +5411,7 @@ and `list-directory-verbose-switches'."
       (princ "Directory ")
       (princ dirname)
       (terpri)
-      (save-excursion
-	(set-buffer "*Directory*")
+      (with-current-buffer "*Directory*"
 	(let ((wildcard (not (file-directory-p dirname))))
 	  (insert-directory dirname switches wildcard (not wildcard)))))
     ;; Finishing with-output-to-temp-buffer seems to clobber default-directory.

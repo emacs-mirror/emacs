@@ -1000,8 +1000,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (while (and (not (equal he-search-string ""))
 		(marker-position he-search-loc)
 		(not expansion))
-      (save-excursion
-	(set-buffer (marker-buffer he-search-loc))
+      (with-current-buffer (marker-buffer he-search-loc)
 	(goto-char he-search-loc)
 	(setq expansion (he-dabbrev-search he-search-string ()
 					   (window-end he-search-window)))

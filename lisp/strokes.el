@@ -1536,8 +1536,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 (defun strokes-xpm-to-compressed-string (&optional xpm-buffer)
   "Convert XPM in XPM-BUFFER to compressed string representing the stroke.
 XPM-BUFFER defaults to ` *strokes-xpm*'."
-  (save-excursion
-    (set-buffer (setq xpm-buffer (or xpm-buffer " *strokes-xpm*")))
+  (with-current-buffer (setq xpm-buffer (or xpm-buffer " *strokes-xpm*"))
     (goto-char (point-min))
     (search-forward "/* pixels */")	; skip past header junk
     (forward-char 2)
@@ -1620,8 +1619,7 @@ Optional BUFFER defaults to the current buffer.
 Optional FORCE non-nil will ignore the buffer's read-only status."
   (interactive)
   ;;  (interactive "*bStrokify buffer: ")
-  (save-excursion
-    (set-buffer (setq buffer (get-buffer (or buffer (current-buffer)))))
+  (with-current-buffer (setq buffer (get-buffer (or buffer (current-buffer))))
     (when (or (not buffer-read-only)
 	      force
 	      inhibit-read-only
@@ -1669,8 +1667,7 @@ Optional FORCE non-nil will ignore the buffer's read-only status."
   ;; buffer is killed?
   ;;  (interactive "*bUnstrokify buffer: ")
   (interactive)
-  (save-excursion
-    (set-buffer (setq buffer (or buffer (current-buffer))))
+  (with-current-buffer (setq buffer (or buffer (current-buffer)))
     (when (or (not buffer-read-only)
 	      force
 	      inhibit-read-only
@@ -1706,9 +1703,8 @@ Optional FORCE non-nil will ignore the buffer's read-only status."
 (defun strokes-xpm-for-compressed-string (compressed-string &optional bufname)
   "Convert the stroke represented by COMPRESSED-STRING into an XPM.
 Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
-  (save-excursion
-    (or bufname (setq bufname " *strokes-xpm*"))
-    (set-buffer (get-buffer-create bufname))
+  (or bufname (setq bufname " *strokes-xpm*"))
+  (with-current-buffer (get-buffer-create bufname)
     (erase-buffer)
     (insert compressed-string)
     (goto-char (point-min))

@@ -1094,7 +1094,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
 (defun type-break-force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
 With optional non-nil ALL, force redisplay of all mode-lines."
-  (and all (save-excursion (set-buffer (other-buffer))))
+  (and all (with-current-buffer (other-buffer)))
   (set-buffer-modified-p (buffer-modified-p)))
 
 ;; If an exception occurs in Emacs while running the post command hook, the
@@ -1108,9 +1108,9 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 
 
 ;;; Timer wrapper functions
-;;;
-;;; These shield type-break from variations in the interval timer packages
-;;; for different versions of Emacs.
+;;
+;; These shield type-break from variations in the interval timer packages
+;; for different versions of Emacs.
 
 (defun type-break-run-at-time (time repeat function)
   (condition-case nil (or (require 'timer) (require 'itimer)) (error nil))

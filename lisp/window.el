@@ -1270,8 +1270,7 @@ window."
 	 (setq size (+ (window-height) size)))
     (setq new-window (split-window nil size))
     (unless split-window-keep-point
-      (save-excursion
-	(set-buffer (window-buffer))
+      (with-current-buffer (window-buffer)
 	(goto-char (window-start))
 	(setq moved (vertical-motion (window-height)))
 	(set-window-start new-window (point))

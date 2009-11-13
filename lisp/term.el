@@ -1347,8 +1347,7 @@ the process.  Any more args are arguments to PROGRAM."
     ;; If no process, or nuked process, crank up a new one and put buffer in
     ;; term mode.  Otherwise, leave buffer and existing process alone.
     (cond ((not (term-check-proc buffer))
-	   (save-excursion
-	     (set-buffer buffer)
+	   (with-current-buffer buffer
 	     (term-mode)) ; Install local vars, mode, keymap, ...
 	   (term-exec buffer name program startfile switches)))
     buffer))
@@ -1375,8 +1374,7 @@ commands to use in that buffer.
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same term
 buffer.  The hook `term-exec-hook' is run after each exec."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
       (when proc (delete-process proc)))
     ;; Crank up a new process
@@ -1412,24 +1410,16 @@ The main purpose is to get rid of the local keymap."
       (if (null (buffer-name buffer))
 	  ;; buffer killed
 	  (set-process-buffer proc nil)
-	(let ((obuf (current-buffer)))
-	  ;; save-excursion isn't the right thing if
-	  ;; process-buffer is current-buffer
-	  (unwind-protect
-	      (progn
-		;; Write something in the compilation buffer
-		;; and hack its mode line.
-		(set-buffer buffer)
-		;; Get rid of local keymap.
-		(use-local-map nil)
-		(term-handle-exit (process-name proc)
-				  msg)
-		;; Since the buffer and mode line will show that the
-		;; process is dead, we can delete it now.  Otherwise it
-		;; will stay around until M-x list-processes.
-		(delete-process proc))
-	    (set-buffer obuf)))
-	))))
+	(with-current-buffer buffer
+          ;; Write something in the compilation buffer
+          ;; and hack its mode line.
+          ;; Get rid of local keymap.
+          (use-local-map nil)
+          (term-handle-exit (process-name proc) msg)
+          ;; Since the buffer and mode line will show that the
+          ;; process is dead, we can delete it now.  Otherwise it
+          ;; will stay around until M-x list-processes.
+          (delete-process proc))))))
 
 (defun term-handle-exit (process-name msg)
   "Write process exit (or other change) message MSG in the current buffer."
@@ -1557,8 +1547,7 @@ See also `term-input-ignoredups' and `term-write-input-ring'."
 	       (count 0)
 	       (ring (make-ring term-input-ring-size)))
 	   (unwind-protect
-	       (save-excursion
-		 (set-buffer history-buf)
+	       (with-current-buffer history-buf
 		 (widen)
 		 (erase-buffer)
 		 (insert-file-contents file)
@@ -1601,8 +1590,7 @@ See also `term-read-input-ring'."
 		(index (ring-length ring)))
 	   ;; Write it all out into a buffer first.  Much faster, but messier,
 	   ;; than writing it one line at a time.
-	   (save-excursion
-	     (set-buffer history-buf)
+	   (with-current-buffer history-buf
 	     (erase-buffer)
 	     (while (> index 0)
 	       (setq index (1- index))
@@ -2460,10 +2448,8 @@ See `term-prompt-regexp'."
 	       (y-or-n-p (format "Save buffer %s first? "
 				 (buffer-name buff))))
       ;; save BUFF.
-      (let ((old-buffer (current-buffer)))
-	(set-buffer buff)
-	(save-buffer)
-	(set-buffer old-buffer)))))
+      (with-current-buffer buff
+	(save-buffer)))))
 
 
 ;; (TERM-GET-SOURCE prompt prev-dir/file source-modes mustmatch-p)
@@ -3453,8 +3439,7 @@ The top-most line is line 0."
 (defun term-display-buffer-line (buffer line)
   (let* ((window (display-buffer buffer t))
 	 (pos))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-restriction
 	(widen)
 	(goto-char (point-min))
@@ -3896,8 +3881,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
 	     (message "Output logging off."))
     (if (get-buffer name)
 	nil
-      (save-excursion
-	(set-buffer (get-buffer-create name))
+      (with-current-buffer (get-buffer-create name)
 	(fundamental-mode)
 	(buffer-disable-undo (current-buffer))
 	(erase-buffer)))
@@ -4169,8 +4153,7 @@ Typing SPC flushes the help buffer."
       (display-completion-list (sort completions 'string-lessp)))
     (message "Hit space to flush")
     (let (key first)
-      (if (save-excursion
-	    (set-buffer (get-buffer "*Completions*"))
+      (if (with-current-buffer (get-buffer "*Completions*")
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))
 	    (and (consp first)
@@ -4197,8 +4180,7 @@ the process.  Any more args are arguments to PROGRAM."
     ;; If no process, or nuked process, crank up a new one and put buffer in
     ;; term mode.  Otherwise, leave buffer and existing process alone.
     (cond ((not (term-check-proc buffer))
-	   (save-excursion
-	     (set-buffer buffer)
+	   (with-current-buffer buffer
 	     (term-mode)) ; Install local vars, mode, keymap, ...
 	   (term-exec buffer name program startfile switches)))
     buffer))
@@ -4383,8 +4365,7 @@ use in that buffer.
                    :coding 'no-conversion
                    :noquery t))
          (buffer (process-buffer process)))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (term-mode)
       (term-char-mode)
       (goto-char (point-max))

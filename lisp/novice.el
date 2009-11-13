@@ -85,8 +85,7 @@ y   to try it and enable it (no questions if you use it again).
 n   to cancel--don't try the command, and it remains disabled.
 SPC to try the command just this once, but leave it disabled.
 !   to try it, and enable all disabled commands for this session only.")
-       (save-excursion
-	 (set-buffer standard-output)
+       (with-current-buffer standard-output
 	 (help-mode)))
      (fit-window-to-buffer (get-buffer-window "*Disabled Command*"))
      (message "Type y, n, ! or SPC (the space bar): ")
@@ -135,9 +134,8 @@ to future sessions."
 	       (eq system-type 'windows-nt)
 	       (file-exists-p "~/_emacs"))
 	  (setq init-file "~/_emacs")))
-    (save-excursion
-      (set-buffer (find-file-noselect
-		   (substitute-in-file-name init-file)))
+    (with-current-buffer (find-file-noselect
+                          (substitute-in-file-name init-file))
       (goto-char (point-min))
       (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
 	  (delete-region
@@ -175,9 +173,8 @@ to future sessions."
 	       (eq system-type 'windows-nt)
 	       (file-exists-p "~/_emacs"))
 	  (setq init-file "~/_emacs")))
-    (save-excursion
-      (set-buffer (find-file-noselect
-		   (substitute-in-file-name init-file)))
+    (with-current-buffer (find-file-noselect
+                          (substitute-in-file-name init-file))
       (goto-char (point-min))
       (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
 	  (delete-region

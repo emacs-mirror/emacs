@@ -3953,8 +3953,7 @@ If BUFFER is nil, the current buffer is used for printing.
 
 For more information, type \\[pr-interface-help]."
   (interactive)
-  (save-excursion
-    (set-buffer (or buffer (current-buffer)))
+  (with-current-buffer (or buffer (current-buffer))
     (pr-create-interface)))
 
 
@@ -4457,8 +4456,7 @@ image in a file with that name."
 	 (if (string= pr-ps-command "")
 	     ;; default action
 	     (let ((ps-spool-buffer (get-buffer-create ps-spool-buffer-name)))
-	       (save-excursion
-		 (set-buffer ps-spool-buffer)
+	       (with-current-buffer ps-spool-buffer
 		 (erase-buffer)
 		 (insert-file-contents-literally file))
 	       (pr-despool-print))
@@ -5028,8 +5026,7 @@ Return only the dayname, if present, weekday, month, and year."
 		      (symbol-value summary-buffer))
 		 (symbol-value summary-default))))
     (and (get-buffer buf)
-	 (save-excursion
-	   (set-buffer buf)
+	 (with-current-buffer buf
 	   (pr-mode-print n-up filename header-list)))))
 
 
@@ -5039,8 +5036,7 @@ Return only the dayname, if present, weekday, month, and year."
 		      (symbol-value summary-buffer))
 		 (symbol-value summary-default))))
     (and (get-buffer buf)
-	 (save-excursion
-	   (set-buffer buf)
+	 (with-current-buffer buf
 	   (pr-mode-lpr header-list)))))
 
 
@@ -5633,8 +5629,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 	status)
     (setq args (pr-remove-nil-from-list args))
     ;; *Printing Command Output* == show command & args
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-max))
       (insert (format "%s %S\n" cmd args)))
     ;; *Printing Command Output* == show any return message from command
@@ -5645,8 +5640,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 	     ((quit error)
 	      (error-message-string data)))))
     ;; *Printing Command Output* == show exit status
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-max))
       (insert (format "Exit status: %s\n\n" status)))
     ;; message if error status
@@ -5839,8 +5833,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 	  (blist (buffer-list))
 	  found)
       (while (and (not found) blist)
-	(save-excursion
-	  (set-buffer (car blist))
+	(with-current-buffer (car blist)
 	  (and (eq major-mode 'dired-mode)
 	       (save-excursion
 		 (goto-char (point-min))
@@ -5864,9 +5857,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 			 pop-up-frames)
 		     (and (or buffer
 			      (file-readable-p file))
-			  (save-excursion
-			    (set-buffer (or buffer
-					    (find-file-noselect file)))
+			  (with-current-buffer (or buffer
+                                                   (find-file-noselect file))
 			    (funcall fun)
 			    (or buffer
 				(kill-buffer (current-buffer))))))))
@@ -6047,8 +6039,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 (defmacro pr-interface-save (&rest body)
-  `(save-excursion
-     (set-buffer pr-i-buffer)
+  `(with-current-buffer pr-i-buffer
      ,@body))
 
 

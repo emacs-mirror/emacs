@@ -977,8 +977,7 @@ lines.  For large regions, use `ediff-regions-linewise'."
 	(buffer-B
          (ediff-clone-buffer-for-region-comparison buffer-B "-Region.B-"))
         reg-A-beg reg-A-end reg-B-beg reg-B-end)
-    (save-excursion
-      (set-buffer buffer-A)
+    (with-current-buffer buffer-A
       (setq reg-A-beg (region-beginning)
 	    reg-A-end (region-end))
       (set-buffer buffer-B)
@@ -1018,8 +1017,7 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 	(buffer-B
          (ediff-clone-buffer-for-region-comparison buffer-B "-Region.B-"))
         reg-A-beg reg-A-end reg-B-beg reg-B-end)
-    (save-excursion
-      (set-buffer buffer-A)
+    (with-current-buffer buffer-A
       (setq reg-A-beg (region-beginning)
 	    reg-A-end (region-end))
       ;; enlarge the region to hold full lines

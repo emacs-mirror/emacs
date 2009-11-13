@@ -1273,8 +1273,7 @@ arg, prompt for a regular expression."
     (setq max-length (1+ max-length)
 	  line-format (format "%%-%ds" max-length))
     (with-help-window "*Faces*"
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(setq truncate-lines t)
 	(insert
 	 (substitute-command-keys
@@ -1362,8 +1361,7 @@ If FRAME is omitted or nil, use the selected frame."
     (if (not (listp face))
 	(setq face (list face)))
     (with-help-window (help-buffer)
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(dolist (f face)
 	  (if (stringp f) (setq f (intern f)))
 	  ;; We may get called for anonymous faces (i.e., faces

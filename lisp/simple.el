@@ -2423,8 +2423,7 @@ specifies the value of ERROR-BUFFER."
 	      ;; Clear the output buffer, then run the command with
 	      ;; output there.
 	      (let ((directory default-directory))
-		(save-excursion
-		  (set-buffer buffer)
+		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
 		  (if (not output-buffer)
 		      (setq default-directory directory))
@@ -3469,11 +3468,10 @@ START and END specify the portion of the current buffer to be copied."
    (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
 	 (region-beginning) (region-end)))
   (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (let* ((append-to (get-buffer-create buffer))
-	     (windows (get-buffer-window-list append-to t t))
-	     point)
-	(set-buffer append-to)
+    (let* ((append-to (get-buffer-create buffer))
+           (windows (get-buffer-window-list append-to t t))
+           point)
+      (with-current-buffer append-to
 	(setq point (point))
 	(barf-if-buffer-read-only)
 	(insert-buffer-substring oldbuf start end)
@@ -3490,8 +3488,7 @@ BUFFER (or buffer name), START and END.
 START and END specify the portion of the current buffer to be copied."
   (interactive "BPrepend to buffer: \nr")
   (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (set-buffer (get-buffer-create buffer))
+    (with-current-buffer (get-buffer-create buffer)
       (barf-if-buffer-read-only)
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))

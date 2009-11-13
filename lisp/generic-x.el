@@ -546,9 +546,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (require 'comint)
   (let* ((file (buffer-file-name))
 	 (buf-name (concat "*" file "*")))
-    (save-excursion
-      (set-buffer
-       (get-buffer-create buf-name))
+    (with-current-buffer (get-buffer-create buf-name)
       (erase-buffer)
       (comint-mode)
       (comint-exec

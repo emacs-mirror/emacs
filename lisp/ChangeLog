@@ -1,12 +1,94 @@
+2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* x-dnd.el (x-dnd-maybe-call-test-function):
+	* window.el (split-window-vertically):
+	* whitespace.el (whitespace-help-on):
+	* vc-rcs.el (vc-rcs-consult-headers):
+	* userlock.el (ask-user-about-lock-help)
+	(ask-user-about-supersession-help):
+	* type-break.el (type-break-force-mode-line-update):
+	* time-stamp.el (time-stamp-conv-warn):
+	* terminal.el (te-set-output-log, te-more-break, te-filter)
+	(te-sentinel,terminal-emulator):
+	* term.el (make-term, term-exec, term-sentinel, term-read-input-ring)
+	(term-write-input-ring, term-check-source, term-start-output-log):
+	(term-display-buffer-line, term-dynamic-list-completions):
+	(term-ansi-make-term, serial-term):
+	* subr.el (selective-display):
+	* strokes.el (strokes-xpm-to-compressed-string, strokes-decode-buffer)
+	(strokes-encode-buffer, strokes-xpm-for-compressed-string):
+	* speedbar.el (speedbar-buffers-tail-notes, speedbar-buffers-item-info)
+	(speedbar-reconfigure-keymaps, speedbar-add-localized-speedbar-support)
+	(speedbar-remove-localized-speedbar-support)
+	(speedbar-set-mode-line-format, speedbar-create-tag-hierarchy)
+	(speedbar-update-special-contents, speedbar-buffer-buttons-engine)
+	(speedbar-buffers-line-directory):
+	* simple.el (shell-command-on-region, append-to-buffer)
+	(prepend-to-buffer):
+	* shadowfile.el (shadow-save-todo-file):
+	* scroll-bar.el (scroll-bar-set-window-start, scroll-bar-drag-1)
+	(scroll-bar-maybe-set-window-start):
+	* sb-image.el (speedbar-image-dump):
+	* saveplace.el (save-place-alist-to-file, save-places-to-alist)
+	(load-save-place-alist-from-file):
+	* ps-samp.el (ps-print-message-from-summary):
+	* ps-print.el (ps-flush-output, ps-insert-file, ps-get-boundingbox)
+	(ps-background-image, ps-begin-job, ps-do-despool):
+	* ps-bdf.el (bdf-find-file, bdf-read-font-info):
+	* printing.el (pr-interface, pr-ps-file-print, pr-find-buffer-visiting)
+	(pr-ps-message-from-summary, pr-lpr-message-from-summary):
+	(pr-call-process, pr-file-list, pr-interface-save):
+	* novice.el (disabled-command-function)
+	(enable-command, disable-command):
+	* mouse.el (mouse-buffer-menu-alist):
+	* mouse-copy.el (mouse-kill-preserving-secondary):
+	* macros.el (kbd-macro-query):
+	* ledit.el (ledit-go-to-lisp, ledit-go-to-liszt):
+	* informat.el (batch-info-validate):
+	* ido.el (ido-copy-current-word, ido-initiate-auto-merge):
+	* hippie-exp.el (try-expand-dabbrev-visible):
+	* help-mode.el (help-make-xrefs):
+	* help-fns.el (describe-variable):
+	* generic-x.el (bat-generic-mode-run-as-comint):
+	* finder.el (finder-mouse-select):
+	* find-dired.el (find-dired-sentinel):
+	* filesets.el (filesets-file-close):
+	* files.el (list-directory):
+	* faces.el (list-faces-display, describe-face):
+	* facemenu.el (list-colors-display):
+	* ezimage.el (ezimage-image-association-dump, ezimage-image-dump):
+	* epg.el (epg--process-filter, epg-cancel):
+	* epa.el (epa--marked-keys, epa--select-keys, epa-display-info)
+	(epa--read-signature-type):
+	* emerge.el (emerge-copy-as-kill-A, emerge-copy-as-kill-B)
+	(emerge-file-names):
+	* ehelp.el (electric-helpify):
+	* ediff.el (ediff-regions-wordwise, ediff-regions-linewise):
+	* ediff-vers.el (rcs-ediff-view-revision):
+	* ediff-util.el (ediff-setup):
+	* ediff-mult.el (ediff-append-custom-diff):
+	* ediff-diff.el (ediff-exec-process, ediff-process-sentinel)
+	(ediff-wordify):
+	* echistory.el (Electric-command-history-redo-expression):
+	* dos-w32.el (find-file-not-found-set-buffer-file-coding-system):
+	* disp-table.el (describe-display-table):
+	* dired.el (dired-find-buffer-nocreate):
+	* dired-aux.el (dired-rename-subdir, dired-dwim-target-directory):
+	* dabbrev.el (dabbrev--same-major-mode-p):
+	* chistory.el (list-command-history):
+	* apropos.el (apropos-documentation):
+	* allout.el (allout-obtain-passphrase):
+	(allout-copy-exposed-to-buffer):
+	(allout-verify-passphrase): Use with-current-buffer.
+
 2009-11-13  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Regenerate.
 
 2009-11-13  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (dbus-registered-objects-table): Renamed from
-	`dbus-registered-functions-table', because it contains also
-	properties.
+	* net/dbus.el (dbus-registered-objects-table): Rename from
+	`dbus-registered-functions-table', because it contains also properties.
 	(dbus-unregister-object): Unregister also properties.
 	(dbus-get-property, dbus-set-property, dbus-get-all-properties):
 	Use a timeout of 500 msec, in order to not block.
@@ -448,8 +530,8 @@
 	* custom.el (custom-declare-group): Purecopy standard-value.
 	(custom-declare-group): Purecopy custom-prefix.
 
-	* international/mule.el (load-with-code-conversion): Call
-	do-after-load-evaluation unconditionally.
+	* international/mule.el (load-with-code-conversion):
+	Call do-after-load-evaluation unconditionally.
 
 	* emacs-lisp/bytecomp.el (byte-compile-output-file-form): Handle defvaralias.
 

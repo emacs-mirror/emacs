@@ -209,8 +209,7 @@ Possibilities: \\<query-replace-map>
 \\[exit]	Stop the macro entirely right now.
 \\[recenter]	Redisplay the screen, then ask again.
 \\[edit]	Enter recursive edit; ask again when you exit from that."))
-		     (save-excursion
-		       (set-buffer standard-output)
+		     (with-current-buffer standard-output
 		       (help-mode)))))))))))
 
 ;;;###autoload

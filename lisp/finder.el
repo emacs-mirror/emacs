@@ -332,8 +332,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 (defun finder-mouse-select (event)
   "Select item in a finder buffer with the mouse."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-start event))))
+  (with-current-buffer (window-buffer (posn-window (event-start event)))
     (goto-char (posn-point (event-start event)))
     (finder-select)))
 

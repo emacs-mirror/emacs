@@ -326,8 +326,7 @@ Very poor man's file transfer protocol."
 	     (message "Output logging off."))
     (if (get-buffer name)
 	nil
-      (save-excursion
-	(set-buffer (get-buffer-create name))
+      (with-current-buffer (get-buffer-create name)
 	(fundamental-mode)
 	(buffer-disable-undo (current-buffer))
 	(erase-buffer)))
@@ -610,8 +609,7 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
 			       "%-"))
   (set-process-filter te-process
     (function (lambda (process string)
-		(save-excursion
-		  (set-buffer (process-buffer process))
+		(with-current-buffer (process-buffer process)
 		  (setq te-pending-output (nconc te-pending-output
 						 (list string))))
 		  (te-update-pending-output-display))))
@@ -874,27 +872,22 @@ move to start of new line, clear to end of line."
 
 
 (defun te-filter (process string)
-  (let* ((obuf (current-buffer)))
-    ;; can't use save-excursion, as that preserves point, which we don't want
-    (unwind-protect
-	(progn
-	  (set-buffer (process-buffer process))
-	  (goto-char te-saved-point)
-	  (and (bufferp te-log-buffer)
-	       (if (null (buffer-name te-log-buffer))
-		   ;; killed
-		   (setq te-log-buffer nil)
-		 (set-buffer te-log-buffer)
-		 (goto-char (point-max))
-		 (insert-before-markers string)
-		 (set-buffer (process-buffer process))))
-	  (setq te-pending-output (nconc te-pending-output (list string)))
-	  (te-update-pending-output-display)
-	  (te-process-output (eq (current-buffer)
-				 (window-buffer (selected-window))))
-	  (set-buffer (process-buffer process))
-	  (setq te-saved-point (point)))
-      (set-buffer obuf))))
+  (with-current-buffer (process-buffer process)
+    (goto-char te-saved-point)
+    (and (bufferp te-log-buffer)
+         (if (null (buffer-name te-log-buffer))
+             ;; killed
+             (setq te-log-buffer nil)
+           (set-buffer te-log-buffer)
+           (goto-char (point-max))
+           (insert-before-markers string)
+           (set-buffer (process-buffer process))))
+    (setq te-pending-output (nconc te-pending-output (list string)))
+    (te-update-pending-output-display)
+    (te-process-output (eq (current-buffer)
+                           (window-buffer (selected-window))))
+    (set-buffer (process-buffer process))
+    (setq te-saved-point (point))))
 
 ;; (A version of the following comment which might be distractingly offensive
 ;; to some readers has been moved to term-nasty.el.)
@@ -1043,8 +1036,7 @@ move to start of new line, clear to end of line."
   (cond ((eq (process-status process) 'run))
 	((null (buffer-name (process-buffer process)))) ;deleted
 	(t (let ((b (current-buffer)))
-	     (save-excursion
-	       (set-buffer (process-buffer process))
+	     (with-current-buffer (process-buffer process)
 	       (setq buffer-read-only nil)
 	       (fundamental-mode)
 	       (goto-char (point-max))
@@ -1097,27 +1089,26 @@ This function calls the value of terminal-mode-hook if that exists
 and is non-nil after the terminal buffer has been set up and the
 subprocess started."
   (interactive
-    (cons (save-excursion
-	    (set-buffer (get-buffer-create "*terminal*"))
-	    (buffer-name (if (or (not (boundp 'te-process))
-				 (null te-process)
-				 (not (eq (process-status te-process)
-					  'run)))
-			     (current-buffer)
-			   (generate-new-buffer "*terminal*"))))
-	  (append
-	    (let* ((default-s
-		     ;; Default shell is same thing M-x shell uses.
-		     (or explicit-shell-file-name
-			 (getenv "ESHELL")
-			 (getenv "SHELL")
-			 "/bin/sh"))
-		   (s (read-string
-		       (format "Run program in emulator (default %s): "
-			       default-s))))
-	      (if (equal s "")
-		  (list default-s '())
-		(te-parse-program-and-args s))))))
+   (cons (with-current-buffer (get-buffer-create "*terminal*")
+           (buffer-name (if (or (not (boundp 'te-process))
+                                (null te-process)
+                                (not (eq (process-status te-process)
+                                         'run)))
+                            (current-buffer)
+                          (generate-new-buffer "*terminal*"))))
+         (append
+          (let* ((default-s
+                   ;; Default shell is same thing M-x shell uses.
+                   (or explicit-shell-file-name
+                       (getenv "ESHELL")
+                       (getenv "SHELL")
+                       "/bin/sh"))
+                 (s (read-string
+                     (format "Run program in emulator (default %s): "
+                             default-s))))
+            (if (equal s "")
+                (list default-s '())
+              (te-parse-program-and-args s))))))
   (switch-to-buffer buffer)
   (if (null width) (setq width (- (window-width (selected-window)) 1)))
   (if (null height) (setq height (- (window-height (selected-window)) 1)))

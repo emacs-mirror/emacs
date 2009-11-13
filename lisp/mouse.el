@@ -1975,12 +1975,10 @@ and selects that window."
 		     (format "%%-%ds  %%s%%s  %%s" maxlen)
 		     (buffer-name elt)
 		     (if (buffer-modified-p elt) "*" " ")
-		     (save-excursion
-		       (set-buffer elt)
+		     (with-current-buffer elt
 		       (if buffer-read-only "%" " "))
 		     (or (buffer-file-name elt)
-			 (save-excursion
-			   (set-buffer elt)
+			 (with-current-buffer elt
 			   (if list-buffers-directory
 			       (expand-file-name
 				list-buffers-directory)))

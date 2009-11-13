@@ -175,10 +175,10 @@ action and type we got from `x-dnd-test-function'."
   (let ((buffer (when (window-live-p window)
 		  (window-buffer window)))
 	(current-state (x-dnd-get-state-for-frame window)))
-    (when (or (not (equal buffer (aref current-state 0)))
-	      (not (equal window (aref current-state 1)))
-	      (not (equal action (aref current-state 3))))
-      (save-excursion
+    (unless (and (equal buffer (aref current-state 0))
+                 (equal window (aref current-state 1))
+                 (equal action (aref current-state 3)))
+      (save-current-buffer
 	(when buffer (set-buffer buffer))
 	(let* ((action-type (funcall x-dnd-test-function
 				     window

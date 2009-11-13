@@ -72,8 +72,7 @@
 			 (symbol-value summary-buffer))
 		    summary-default)))
     (and (get-buffer ps-buf)
-	 (save-excursion
-	   (set-buffer ps-buf)
+	 (with-current-buffer ps-buf
 	   (ps-spool-buffer-with-faces)))))
 
 ;; Look in an article or mail message for the Subject: line.  To be

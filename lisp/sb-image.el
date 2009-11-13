@@ -85,8 +85,7 @@ If we have an image associated with it, use that image."
 See `speedbar-expand-image-button-alist' for details."
   (interactive)
   (with-output-to-temp-buffer "*Speedbar Images*"
-    (save-excursion
-      (set-buffer "*Speedbar Images*")
+    (with-current-buffer "*Speedbar Images*"
       (goto-char (point-max))
       (insert "Speedbar image cache.\n\n")
       (let ((start (point)) (end nil))

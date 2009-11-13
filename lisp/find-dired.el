@@ -291,8 +291,7 @@ Thus ARG can also contain additional grep options."
   (let ((buf (process-buffer proc))
 	(inhibit-read-only t))
     (if (buffer-name buf)
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (let ((buffer-read-only nil))
 	    (save-excursion
 	      (goto-char (point-max))

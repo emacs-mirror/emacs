@@ -789,8 +789,7 @@ file local variable.\n")
 		  (terpri)
 		  (princ output))))
 
-	    (save-excursion
-	      (set-buffer standard-output)
+	    (with-current-buffer standard-output
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
 

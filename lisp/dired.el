@@ -819,8 +819,7 @@ for a remote directory.  This feature is used by Auto Revert Mode."
     (while blist
       (if (null (buffer-name (cdr (car blist))))
 	  (setq blist (cdr blist))
-	(save-excursion
-	  (set-buffer (cdr (car blist)))
+	(with-current-buffer (cdr (car blist))
 	  (if (and (eq major-mode mode)
 		   dired-directory  ;; nil during find-alternate-file
 		   (equal dirname

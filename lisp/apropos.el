@@ -736,8 +736,7 @@ Returns list of symbols and documentation found."
 	(apropos-sort-by-scores apropos-documentation-sort-by-scores)
 	f v sf sv)
     (unwind-protect
-	(save-excursion
-	  (set-buffer standard-input)
+	(with-current-buffer standard-input
 	  (apropos-documentation-check-doc-file)
 	  (if do-all
 	      (mapatoms

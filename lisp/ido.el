@@ -2975,8 +2975,7 @@ If repeated, insert text from buffer instead."
 (defun ido-copy-current-word (all)
   "Insert current word (file or directory name) from current buffer."
   (interactive "P")
-  (let ((word (save-excursion
-		(set-buffer ido-entry-buffer)
+  (let ((word (with-current-buffer ido-entry-buffer
 		(let ((p (point)) start-line end-line start-name name)
 		  (if (and mark-active (/= p (mark)))
 		      (setq start-name (mark))
@@ -4184,8 +4183,7 @@ For details of keybindings, see `ido-find-file'."
 	    ido-text-init contents
 	    ido-rotate-temp t
 	    ido-exit 'refresh)
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(ido-tidy))
       (throw 'ido contents))))
 

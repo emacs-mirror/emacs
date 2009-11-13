@@ -494,8 +494,7 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
 	(if lc
 	    (setcdr lc nil)))))
   (with-help-window (or buffer-name "*Colors*")
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (setq truncate-lines t)
       (if temp-buffer-show-function
 	  (list-colors-print list)

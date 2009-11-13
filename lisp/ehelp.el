@@ -321,8 +321,7 @@ will select it.)"
 		  ;;>>      suspend updating of the tick in order to allow
 		  ;;>>      things like momentary-string-display)
 		  (and b
-		       (save-excursion
-			 (set-buffer b)
+		       (with-current-buffer b
 			 (set-buffer-modified-p t)))
 		  (fset 'help-print-return-message 'ignore)
 		  (call-interactively fun)
@@ -333,8 +332,7 @@ will select it.)"
 			   (not (buffer-modified-p b)))))
 	      (fset 'help-print-return-message p)
 	      (and b (buffer-name b)
-		   (save-excursion
-		     (set-buffer b)
+		   (with-current-buffer b
 		     (set-buffer-modified-p m))))))
 	(with-electric-help 'ignore name t))))
 

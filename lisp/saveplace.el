@@ -205,8 +205,7 @@ may have changed\) back to `save-place-alist'."
 (defun save-place-alist-to-file ()
   (let ((file (expand-file-name save-place-file))
         (coding-system-for-write 'utf-8))
-    (save-excursion
-      (set-buffer (get-buffer-create " *Saved Places*"))
+    (with-current-buffer (get-buffer-create " *Saved Places*")
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
 	(save-place-forget-unreadable-files))
@@ -236,10 +235,9 @@ may have changed\) back to `save-place-alist'."
           ;; make sure that the alist does not get overwritten, and then
           ;; load it if it exists:
           (if (file-readable-p file)
-              (save-excursion
-                ;; don't want to use find-file because we have been
-                ;; adding hooks to it.
-                (set-buffer (get-buffer-create " *Saved Places*"))
+              ;; don't want to use find-file because we have been
+              ;; adding hooks to it.
+              (with-current-buffer (get-buffer-create " *Saved Places*")
                 (delete-region (point-min) (point-max))
                 (insert-file-contents file)
                 (goto-char (point-min))
@@ -275,8 +273,7 @@ may have changed\) back to `save-place-alist'."
       ;; put this into a save-excursion in case someone is counting on
       ;; another function in kill-emacs-hook to act on the last buffer
       ;; they were in:
-      (save-excursion
-	(set-buffer (car buf-list))
+      (with-current-buffer (car buf-list)
 	;; save-place checks buffer-file-name too, but we can avoid
 	;; overhead of function call by checking here too.
 	(and buffer-file-name (save-place-to-alist))
