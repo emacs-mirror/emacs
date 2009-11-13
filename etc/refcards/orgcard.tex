@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.31a}
+\def\orgversionnumber{6.33}
 \def\versionyear{2009}          % latest update
 \def\year{2009}                 % latest copyright year
 
@@ -322,27 +322,17 @@ are preserved on all copies.
 
 \section{Archiving}
 
-\key{toggle ARCHIVE tag}{C-c C-x a}
-\key{force cycling of an ARCHIVEd tree}{C-TAB}
-\key{move to Attic Sibling}{C-c C-x A}
-%\metax{mark fully done children}{C-u C-c C-x C-a}
+\key{archive subtree using the default command}{C-c C-x C-a}
 \key{move subtree to archive file}{C-c C-x C-s}
-%\metax{move all fully done children}{C-u C-c C-x C-s}
-%To set archive location for current file, add a line like$^2$:
-%\vskip -1mm
-%\beginexample%
-%\#+ARCHIVE: archfile::* Archived Tasks
-%\endexample
+\key{toggle ARCHIVE tag / to ARCHIVE sibling}{C-c C-x a/A}
+\key{force cycling of an ARCHIVEd tree}{C-TAB}
 
 \section{Filtering and Sparse Trees}
 
-% FIXME: this is garbage
 \key{construct a sparse tree by various criteria}{C-c /}
 \key{view TODO's in sparse tree}{C-c C-v}
 \key{global TODO list in agenda mode}{C-c a t$^1$}
 \key{time sorted view of current org file}{C-c a L}
-%\key{agenda for the week}{C-c a$^1$}
-%\key{agenda for date at cursor}{C-c C-o}
 
 \section{Tables}
 
@@ -585,7 +575,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 %\key{... scroll calendar back/forward one month}{< / >}
 %\key{... forward/backward one day}{S-LEFT/RIGHT}
 %\key{... forward/backward one week}{S-UP/DOWN}
-%\key{... forward/backward one month}{M-S-LEFT/RIGT}
+%\key{... forward/backward one month}{M-S-LEFT/RIGHT}
 \key{toggle custom format display for dates/times}{C-c C-x C-t}
 
 \newcolumn
@@ -632,14 +622,14 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 {\bf Change display}
 
 \key{delete other windows}{o}
-\key{view mode dipatcher}{v}
+\key{view mode dispatcher}{v}
 \key{switch to day/week/month/year view}{d w vm vy}
-\key{toggle diary entries / time grid}{D / G}
+\key{toggle diary entries / time grid / habits}{D / G / K}
 \key{toggle entry text / clock report}{E / R}
 \key{toggle display of logbook entries}{l / v l/L}
 \key{toggle inclusion of archived trees/files}{v a/A}
 \key{refresh agenda buffer with any changes}{r / g}
-\key{filter with repect to a tag}{/}
+\key{filter with respect to a tag}{/}
 \key{save all org-mode buffers}{s}
 \key{display next/previous day,week,...}{f / b}
 \key{goto today / some date (prompt)}{. / j}
@@ -649,7 +639,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{digit argument}{0-9}
 \key{change state of current TODO item}{t}
 \key{kill item and source}{C-k}
-\key{archive the subtree (file/tag/sibling)}{\$ / a / A}
+\key{archive default}{\$ / a}
 \key{refile the subtree}{C-c C-w}
 \key{set/show tags of current headline}{: / T}
 \key{set effort property (prefix=nth)}{e}
