@@ -1,3 +1,8 @@
+2009-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* language/japan-util.el: Make sure that the value of jisx0208
+	property is jisx0208 character.
+
 2009-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* international/mule.el (auto-coding-regexp-alist): Only purecopy
