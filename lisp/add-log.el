@@ -807,9 +807,15 @@ non-nil, otherwise in local time."
 	 (item (add-log-file-name buffer-file file-name)))
 
     (unless (equal file-name buffer-file-name)
-      (if (or other-window (window-dedicated-p (selected-window)))
-	  (find-file-other-window file-name)
-	(find-file file-name)))
+      (cond
+       ((equal file-name (buffer-file-name (window-buffer (selected-window))))
+        ;; If the selected window already shows the desired buffer don't show
+        ;; it again (particularly important if other-window is true).
+        ;; This is important for diff-add-change-log-entries-other-window.
+        (set-buffer (window-buffer (selected-window))))
+       ((or other-window (window-dedicated-p (selected-window)))
+        (find-file-other-window file-name))
+       (t (find-file file-name))))
     (or (derived-mode-p 'change-log-mode)
 	(change-log-mode))
     (undo-boundary)

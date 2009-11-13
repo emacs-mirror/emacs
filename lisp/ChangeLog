@@ -1,5 +1,8 @@
 2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* add-log.el (add-change-log-entry): Avoid displaying the changelog
+	a second time.
+
 	* x-dnd.el (x-dnd-maybe-call-test-function):
 	* window.el (split-window-vertically):
 	* whitespace.el (whitespace-help-on):
