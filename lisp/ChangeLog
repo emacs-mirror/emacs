@@ -1,3 +1,11 @@
+2009-11-13  Tomas Abrahamsson  <tab@lysator.liu.se>
+
+	* textmodes/artist.el (artist-mouse-choose-operation): Call
+	`tmm-prompt' instead of `x-popup-menu' if we cannot popup
+	menus. Bug noticed by Eli Zaretskii <eliz@gnu.org>.
+	(artist-compute-up-event-key): New function.
+	(artist-mouse-choose-operation, artist-down-mouse-1): Call it.
+
 2009-11-13  Kenichi Handa  <handa@m17n.org>
 
 	* language/japan-util.el: Make sure that the value of jisx0208
