@@ -109,10 +109,10 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     (?＠ ?@)
     ;; cp932-2-byte
     (#x2015 ?-) (#xFF5E ?~) (#xFF0D ?-))
-  "Japanese JISX0208 symbol character table.
+  "Japanese JISX0208 and CP932 symbol character table.
   Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
-belongs to `japanese-jisx0208', ASCII belongs to `ascii', and HANKAKU
-belongs to `japanese-jisx0201-kana'.")
+belongs to `japanese-jisx0208' or `cp932', ASCII belongs to `ascii',
+and HANKAKU belongs to `japanese-jisx0201-kana'.")
 
 ;; Put properties 'jisx0208, 'jisx0201, and 'ascii to each Japanese
 ;; symbol and ASCII characters for conversion among them.
@@ -125,11 +125,13 @@ belongs to `japanese-jisx0201-kana'.")
     (if ascii
 	(progn
 	  (put-char-code-property jisx0208 'ascii ascii)
-	  (put-char-code-property ascii 'jisx0208 jisx0208)))
+	  (if (encode-char jisx0208 'japanese-jisx0208)
+	      (put-char-code-property ascii 'jisx0208 jisx0208))))
     (if jisx0201
 	(progn
 	  (put-char-code-property jisx0208 'jisx0201 jisx0201)
-	  (put-char-code-property jisx0201 'jisx0208 jisx0208)))))
+	  (if (encode-char jisx0208 'japanese-jisx0208)
+	      (put-char-code-property jisx0201 'jisx0208 jisx0208))))))
 
 (defconst japanese-alpha-numeric-table
   '((?０ . ?0) (?１ . ?1) (?２ . ?2) (?３ . ?3) (?４ . ?4)
