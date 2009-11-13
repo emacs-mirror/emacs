@@ -1094,13 +1094,16 @@ ELCFILES = \
 	$(lisp)/org/org-colview.elc \
 	$(lisp)/org/org-compat.elc \
 	$(lisp)/org/org-crypt.elc \
+	$(lisp)/org/org-datetree.elc \
 	$(lisp)/org/org-docbook.elc \
 	$(lisp)/org/org-exp-blocks.elc \
 	$(lisp)/org/org-exp.elc \
 	$(lisp)/org/org-faces.elc \
 	$(lisp)/org/org-feed.elc \
 	$(lisp)/org/org-footnote.elc \
+	$(lisp)/org/org-freemind.elc \
 	$(lisp)/org/org-gnus.elc \
+	$(lisp)/org/org-habit.elc \
 	$(lisp)/org/org-html.elc \
 	$(lisp)/org/org-icalendar.elc \
 	$(lisp)/org/org-id.elc \
