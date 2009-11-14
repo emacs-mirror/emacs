@@ -119,7 +119,11 @@ are as follows, and suppress messages about the indicated features:
 ;;;
 
 ;; FIXME does this serve any useful purpose now elint-builtin-variables exists?
-(defconst elint-standard-variables '(local-write-file-hooks vc-mode)
+(defconst elint-standard-variables
+  '(vc-mode local-write-file-hooks activate-menubar-hook buffer-name-history
+	    coding-system-history extended-command-history
+	    kbd-macro-termination-hook read-expression-history
+	    yes-or-no-p-history)
   "Standard buffer local variables, excluding `elint-builtin-variables'.")
 
 (defvar elint-builtin-variables nil

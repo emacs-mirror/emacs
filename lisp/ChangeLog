@@ -1,3 +1,8 @@
+2009-11-14  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
+
+	* emacs-lisp/elint.el (elint-standard-variables): Add some variables
+	defined in C that have no doc-strings.  (Bug#1063)
+
 2009-11-14  Francis Wright  <F.J.Wright@qmul.ac.uk>
 
 	* cus-edit.el (data, files):
