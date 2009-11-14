@@ -1,3 +1,7 @@
+2009-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/elint.el (elint-standard-variables): Doc fix.
+
 2009-11-14  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
 	* emacs-lisp/elint.el (elint-standard-variables): Add some variables

@@ -118,13 +118,15 @@ are as follows, and suppress messages about the indicated features:
 ;;; Data
 ;;;
 
-;; FIXME does this serve any useful purpose now elint-builtin-variables exists?
 (defconst elint-standard-variables
+  ;; Most of these are defined in C with no documentation.
+  ;; FIXME I don't see why they shouldn't just get doc-strings.
   '(vc-mode local-write-file-hooks activate-menubar-hook buffer-name-history
 	    coding-system-history extended-command-history
 	    kbd-macro-termination-hook read-expression-history
 	    yes-or-no-p-history)
-  "Standard buffer local variables, excluding `elint-builtin-variables'.")
+  "Standard variables, excluding `elint-builtin-variables'.
+These are variables that we cannot detect automatically for some reason.")
 
 (defvar elint-builtin-variables nil
   "List of built-in variables.  Set by `elint-initialize'.
@@ -638,6 +640,13 @@ Returns the environment created by the form."
 
 (defun elint-unbound-variable (var env)
   "T if VAR is unbound in ENV."
+  ;; #1063 suggests adding (symbol-file var) here, but I don't think
+  ;; this is right, because it depends on what files you happen to have
+  ;; loaded at the time, which might not be the same when the code runs.
+  ;; It also suggests adding:
+  ;; (numberp (get var 'variable-documentation))
+  ;; (numberp (cdr-safe (get var 'variable-documentation)))
+  ;; but this is not needed now elint-scan-doc-file exists.
   (not (or (memq var '(nil t))
 	   (eq var elint-bound-variable)
 	   (elint-env-find-var env var)
