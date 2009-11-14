@@ -1,3 +1,7 @@
+2009-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-mode.el (help-make-xrefs): Revert 2009-11-13 change.
+
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/viper.el (viper-set-hooks): Remove duplicate advice

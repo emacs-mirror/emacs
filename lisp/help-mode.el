@@ -413,7 +413,8 @@ A special reference `back' is made to return back through a stack of
 help buffers.  Variable `help-back-label' specifies the text for
 that."
   (interactive "b")
-  (with-current-buffer (or buffer (current-buffer))
+  (save-excursion
+    (set-buffer (or buffer (current-buffer)))
     (goto-char (point-min))
     ;; Skip the header-type info, though it might be useful to parse
     ;; it at some stage (e.g. "function in `library'").
