@@ -1523,7 +1523,7 @@ MAP-ID := integer
 		      (fset 'charset-id 'charset-id-internal)
 		      (ccl-compile (eval ccl-program)))
 		  (fmakunbound 'charset-id))))
-     (defconst ,name prog (purecopy ,doc))
+     (defconst ,name prog ,doc)
      (put ',name 'ccl-program-idx (register-ccl-program ',name prog))
      nil))
 

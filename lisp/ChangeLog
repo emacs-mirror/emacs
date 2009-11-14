@@ -1,3 +1,9 @@
+2009-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-buffer-identification): Purecopy only the string.
+	* international/ccl.el (define-ccl-program): Do not purecopy the
+	docstring, defconst does it anyway.
+
 2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (add-change-log-entry): Avoid displaying the changelog
