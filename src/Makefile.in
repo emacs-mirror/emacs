@@ -267,12 +267,12 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 .SUFFIXES: .m
 .c.o:
 #ifdef AUTO_DEPEND
-	@test -d deps || mkdir deps
+	@-test -d deps || mkdir deps
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 .m.o:
 #ifdef AUTO_DEPEND
-	@test -d deps || mkdir deps
+	@-test -d deps || mkdir deps
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 

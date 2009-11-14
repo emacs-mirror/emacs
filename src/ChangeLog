@@ -1,3 +1,8 @@
+2009-11-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in: Ignore errors from mkdir when creating deps
+	directory.
+
 2009-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_update_frame_menubar): Do nothing if menubar already
