@@ -1,7 +1,7 @@
 ;;; menu-bar.el --- define a default menu bar
 
-;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -1283,12 +1283,14 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [directory-search]
   `(menu-item ,(purecopy "Directory Search") eudc-tools-menu))
 (define-key menu-bar-tools-menu [compose-mail]
-  `(menu-item ,(purecopy (format "Send Mail (with %s)" (send-mail-item-name))) compose-mail
+  `(menu-item (format "Send Mail (with %s)" (send-mail-item-name)) compose-mail
 	      :visible (and mail-user-agent (not (eq mail-user-agent 'ignore)))
 	      :help ,(purecopy "Send a mail message")))
 (define-key menu-bar-tools-menu [rmail]
-  `(menu-item ,(purecopy (format "Read Mail (with %s)" (read-mail-item-name))) menu-bar-read-mail
-	      :visible (and read-mail-command (not (eq read-mail-command 'ignore)))
+  `(menu-item (format "Read Mail (with %s)" (read-mail-item-name))
+              menu-bar-read-mail
+	      :visible (and read-mail-command
+                            (not (eq read-mail-command 'ignore)))
 	      :help ,(purecopy "Read your mail and reply to it")))
 
 (defun menu-bar-read-mail ()

@@ -1,5 +1,8 @@
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* menu-bar.el (menu-bar-tools-menu): Read and send mail entries are not
+	constants.  (Bug#4913)
+
 	* emacs-lisp/elint.el (elint-standard-variables): Doc fix.
 
 2009-11-14  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
