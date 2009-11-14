@@ -1535,7 +1535,7 @@ of the mouse without any button activity.  Mouse motion events are
 represented by lists that look like this:
 
 @example
-(mouse-movement (POSITION))
+(mouse-movement POSITION)
 @end example
 
 The second element of the list describes the current position of the

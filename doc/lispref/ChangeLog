@@ -1,3 +1,7 @@
+2009-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Motion Events): Fix typo (Bug#4907).
+
 2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* searching.texi (Char Classes): Note that [:upper:] and [:lower:]
