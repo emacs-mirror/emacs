@@ -1494,7 +1494,7 @@ Please send all bug fixes and enhancements to
 ;;; Interface to the command system
 
 (defgroup postscript nil
-  "PostScript Group."
+  "Support for printing and PostScript."
   :tag "PostScript"
   :version "20"
   :group 'emacs)
