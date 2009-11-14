@@ -122,37 +122,6 @@
     ;; This really ought to be loaded already!
     (load "byte-run"))
 
-;; The feature of compiling in a specific target Emacs version
-;; has been turned off because compile time options are a bad idea.
-(defmacro byte-compile-single-version () nil)
-
-;; The crud you see scattered through this file of the form
-;;   (or (and (boundp 'epoch::version) epoch::version)
-;;	  (string-lessp emacs-version "19"))
-;; is because the Epoch folks couldn't be bothered to follow the
-;; normal emacs version numbering convention.
-
-;; (if (byte-compile-version-cond
-;;      (or (and (boundp 'epoch::version) epoch::version)
-;; 	 (string-lessp emacs-version "19")))
-;;     (progn
-;;       ;; emacs-18 compatibility.
-;;       (defvar baud-rate (baud-rate))	;Define baud-rate if it's undefined
-;;
-;;       (if (byte-compile-single-version)
-;; 	  (defmacro byte-code-function-p (x) "Emacs 18 doesn't have these." nil)
-;; 	(defun byte-code-function-p (x) "Emacs 18 doesn't have these." nil))
-;;
-;;       (or (and (fboundp 'member)
-;; 	       ;; avoid using someone else's possibly bogus definition of this.
-;; 	       (subrp (symbol-function 'member)))
-;; 	  (defun member (elt list)
-;; 	    "like memq, but uses equal instead of eq.  In v19, this is a subr."
-;; 	    (while (and list (not (equal elt (car list))))
-;; 	      (setq list (cdr list)))
-;; 	    list))))
-
-
 (defgroup bytecomp nil
   "Emacs Lisp byte-compiler."
   :group 'lisp)
@@ -220,13 +189,6 @@ adds `c' to it; otherwise adds `.elc'."
   "Non-nil means print messages describing progress of byte-compiler."
   :group 'bytecomp
   :type 'boolean)
-
-;; (defvar byte-compile-generate-emacs19-bytecodes
-;;         (not (or (and (boundp 'epoch::version) epoch::version)
-;; 		 (string-lessp emacs-version "19")))
-;;   "*If this is true, then the byte-compiler will generate bytecode which
-;; makes use of byte-ops which are present only in Emacs 19.  Code generated
-;; this way can never be run in Emacs 18, and may even cause it to crash.")
 
 (defcustom byte-optimize t
   "Enable optimization in the byte compiler.
@@ -439,15 +401,6 @@ specify different fields to sort on."
 		 (const calls+callers) (const nil)))
 
 (defvar byte-compile-debug nil)
-
-;; (defvar byte-compile-overwrite-file t
-;;   "If nil, old .elc files are deleted before the new is saved, and .elc
-;; files will have the same modes as the corresponding .el file.  Otherwise,
-;; existing .elc files will simply be overwritten, and the existing modes
-;; will not be changed.  If this variable is nil, then an .elc file which
-;; is a symbolic link will be turned into a normal file, instead of the file
-;; which the link points to being overwritten.")
-
 (defvar byte-compile-constants nil
   "List of all constants encountered during compilation of this form.")
 (defvar byte-compile-variables nil
@@ -1123,64 +1076,6 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   (funcall (or (cadr (get (car form) 'byte-obsolete-info)) ; handler
 	       'byte-compile-normal-call) form))
 
-;; Compiler options
-
-;; (defvar byte-compiler-valid-options
-;;   '((optimize byte-optimize (t nil source byte) val)
-;;     (file-format byte-compile-compatibility (emacs18 emacs19)
-;; 		 (eq val 'emacs18))
-;; ;;     (new-bytecodes byte-compile-generate-emacs19-bytecodes (t nil) val)
-;;     (delete-errors byte-compile-delete-errors (t nil) val)
-;;     (verbose byte-compile-verbose (t nil) val)
-;;     (warnings byte-compile-warnings ((callargs redefine free-vars unresolved))
-;; 	      val)))
-
-;; Inhibit v18/v19 selectors if the version is hardcoded.
-;; #### This should print a warning if the user tries to change something
-;; than can't be changed because the running compiler doesn't support it.
-;; (cond
-;;  ((byte-compile-single-version)
-;;   (setcar (cdr (cdr (assq 'new-bytecodes byte-compiler-valid-options)))
-;; 	  (list (byte-compile-version-cond
-;; 		 byte-compile-generate-emacs19-bytecodes)))
-;;   (setcar (cdr (cdr (assq 'file-format byte-compiler-valid-options)))
-;; 	  (if (byte-compile-version-cond byte-compile-compatibility)
-;; 	      '(emacs18) '(emacs19)))))
-
-;; (defun byte-compiler-options-handler (&rest args)
-;;   (let (key val desc choices)
-;;     (while args
-;;       (if (or (atom (car args)) (nthcdr 2 (car args)) (null (cdr (car args))))
-;; 	  (error "Malformed byte-compiler option `%s'" (car args)))
-;;       (setq key (car (car args))
-;; 	    val (car (cdr (car args)))
-;; 	    desc (assq key byte-compiler-valid-options))
-;;       (or desc
-;; 	  (error "Unknown byte-compiler option `%s'" key))
-;;       (setq choices (nth 2 desc))
-;;       (if (consp (car choices))
-;; 	  (let (this
-;; 		(handler 'cons)
-;; 		(ret (and (memq (car val) '(+ -))
-;; 			  (copy-sequence (if (eq t (symbol-value (nth 1 desc)))
-;; 					     choices
-;; 					   (symbol-value (nth 1 desc)))))))
-;; 	    (setq choices (car  choices))
-;; 	    (while val
-;; 	      (setq this (car val))
-;; 	      (cond ((memq this choices)
-;; 		     (setq ret (funcall handler this ret)))
-;; 		    ((eq this '+) (setq handler 'cons))
-;; 		    ((eq this '-) (setq handler 'delq))
-;; 		    ((error "`%s' only accepts %s" key choices)))
-;; 	      (setq val (cdr val)))
-;; 	    (set (nth 1 desc) ret))
-;; 	(or (memq val choices)
-;; 	    (error "`%s' must be one of `%s'" key choices))
-;; 	(set (nth 1 desc) (eval (nth 3 desc))))
-;;       (setq args (cdr args)))
-;;     nil))
-
 ;;; sanity-checking arglists
 
 (defun byte-compile-fdefinition (name macro-p)
@@ -1828,28 +1723,6 @@ The value is non-nil if there were no errors, nil if errors."
 	(if load
 	    (load target-file))
 	t))))
-
-;;(defun byte-compile-and-load-file (&optional filename)
-;;  "Compile a file of Lisp code named FILENAME into a file of byte code,
-;;and then load it.  The output file's name is made by appending \"c\" to
-;;the end of FILENAME."
-;;  (interactive)
-;;  (if filename ; I don't get it, (interactive-p) doesn't always work
-;;      (byte-compile-file filename t)
-;;    (let ((current-prefix-arg '(4)))
-;;      (call-interactively 'byte-compile-file))))
-
-;;(defun byte-compile-buffer (&optional buffer)
-;;  "Byte-compile and evaluate contents of BUFFER (default: the current buffer)."
-;;  (interactive "bByte compile buffer: ")
-;;  (setq buffer (if buffer (get-buffer buffer) (current-buffer)))
-;;  (message "Compiling %s..." (buffer-name buffer))
-;;  (let* ((filename (or (buffer-file-name buffer)
-;;		       (concat "#<buffer " (buffer-name buffer) ">")))
-;;	 (byte-compile-current-file buffer))
-;;    (byte-compile-from-buffer buffer nil))
-;;  (message "Compiling %s...done" (buffer-name buffer))
-;;  t)
 
 ;;; compiling a single function
 ;;;###autoload
@@ -3930,8 +3803,8 @@ that suppresses all warnings during execution of BODY."
 	`(push ',var current-load-list))
       (when (> (length form) 3)
 	(when (and string (not (stringp string)))
-	  (byte-compile-warn "third arg to `%s %s' is not a string: %s"
-			     fun var string))
+	    (byte-compile-warn "third arg to `%s %s' is not a string: %s"
+			       fun var string))
 	`(put ',var 'variable-documentation ,string))
       (if (cddr form)		; `value' provided
 	  (let ((byte-compile-not-obsolete-vars (list var)))

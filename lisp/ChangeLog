@@ -1,5 +1,7 @@
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-single-version): Remove, unused.
+
 	* simple.el (x-selection-owner-p): Declare.
 	(read-mail-command): Use custom radio type rather than choice.
 	(completion-no-auto-exit): Doc fix.
