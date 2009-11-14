@@ -1,5 +1,7 @@
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* cal-xtra.texi (Holiday Customizing): Replace obsolete alias.
+
 	* ack.texi (Acknowledgments):
 	* emacs.texi (Acknowledgments): Update for recent Org changes.
 

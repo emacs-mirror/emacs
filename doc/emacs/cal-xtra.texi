@@ -185,7 +185,7 @@ France on July 14 (i.e., the fourteenth day of the seventh month).  You
 can do this as follows:
 
 @smallexample
-(setq other-holidays '((holiday-fixed 7 14 "Bastille Day")))
+(setq holiday-other-holidays '((holiday-fixed 7 14 "Bastille Day")))
 @end smallexample
 
   Many holidays occur on a specific day of the week, at a specific time
@@ -207,7 +207,7 @@ so on).
 Chinese, Hebrew, Islamic, and Julian calendars too.  For example,
 
 @smallexample
-(setq other-holidays
+(setq holiday-other-holidays
       '((holiday-hebrew 10 2 "Last day of Hanukkah")
         (holiday-islamic 3 12 "Mohammed's Birthday")
         (holiday-julian 4 2 "Jefferson's Birthday")))
