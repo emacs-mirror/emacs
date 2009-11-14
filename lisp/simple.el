@@ -3539,6 +3539,8 @@ a mistake; see the documentation of `set-mark'."
   :group 'killing
   :version "23.1")
 
+(declare-function x-selection-owner-p "xselect.c" (&optional selection))
+
 ;; Many places set mark-active directly, and several of them failed to also
 ;; run deactivate-mark-hook.  This shorthand should simplify.
 (defsubst deactivate-mark (&optional force)
@@ -5500,10 +5502,11 @@ specification for `play-sound'."
   "Your preference for a mail reading package.
 This is used by some keybindings which support reading mail.
 See also `mail-user-agent' concerning sending mail."
-  :type '(choice (function-item rmail)
-		 (function-item gnus)
-		 (function-item mh-rmail)
-		 (function :tag "Other"))
+  :type '(radio (function-item :tag "Rmail" :format "%t\n" rmail)
+                (function-item :tag "Gnus" :format "%t\n" gnus)
+                (function-item :tag "Emacs interface to MH"
+                               :format "%t\n" mh-rmail)
+                (function :tag "Other"))
   :version "21.1"
   :group 'mail)
 
@@ -5736,8 +5739,7 @@ Initial value is nil to avoid some compiler warnings.")
 
 (defvar completion-no-auto-exit nil
   "Non-nil means `choose-completion-string' should never exit the minibuffer.
-This also applies to other functions such as `choose-completion'
-and `mouse-choose-completion'.")
+This also applies to other functions such as `choose-completion'.")
 
 (defvar completion-base-position nil
   "Position of the base of the text corresponding to the shown completions.
@@ -5840,7 +5842,7 @@ With prefix argument N, move N items (negative N means move backward)."
        (or (and (buffer-live-p buffer)
 		(get-buffer-window buffer 0))
 	   owindow)))
-    
+
     (choose-completion-string
      choice buffer
      (or base-position

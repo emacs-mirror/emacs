@@ -1,5 +1,9 @@
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (x-selection-owner-p): Declare.
+	(read-mail-command): Use custom radio type rather than choice.
+	(completion-no-auto-exit): Doc fix.
+
 	* custom.el (defgroup):
 	* epg-config.el (epg):
 	* ps-print.el (postscript): Doc fixes.
