@@ -3001,6 +3001,9 @@ xg_update_frame_menubar (f)
   if (!x->menubar_widget || GTK_WIDGET_MAPPED (x->menubar_widget))
     return 0;
 
+  if (x->menubar_widget && gtk_widget_get_parent (x->menubar_widget))
+    return 0; /* Already done this, happens for frames created invisible.  */
+
   BLOCK_INPUT;
 
   gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->menubar_widget,

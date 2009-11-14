@@ -1,5 +1,8 @@
 2009-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_update_frame_menubar): Do nothing if menubar already
+	has a parent.
+
 	* Makefile.in: If AUTO_DEPEND is defined, make gcc generate
 	dependency files in deps/. Include those files into Makefile.
 
