@@ -247,11 +247,11 @@ Jan Dj@"{a}rv added support for the GTK+ toolkit and X drag-and-drop.
 Carsten Dominik wrote Ref@TeX{}, a package for setting up labels and
 cross-references in La@TeX{} documents; and co-wrote IDLWAVE mode
 (q.v.@:).  He was the main author of Org mode, for maintaining notes,
-todo lists, and project planning.  Thomas Baumann, Baoqiu Cui, Daniel
-German, Bastien Guerry, Tassilo Horn, Philip Jackson, Tokuya Kameshima,
-Ross Patterson, Sebastian Rose, Eric Schulte, Andy Stewart, David
-O'Toole, John Wiegley, and Piotr Zielinski also wrote various Org mode
-components.
+todo lists, and project planning.  Thomas Baumann, Lennart Borgman,
+Baoqiu Cui, Daniel German, Bastien Guerry, Tassilo Horn, Philip Jackson,
+Tokuya Kameshima, Ross Patterson, Sebastian Rose, Eric Schulte, Andy
+Stewart, David O'Toole, John Wiegley, and Piotr Zielinski also wrote
+various Org mode components.
 
 @item
 Scott Draves wrote @file{tq.el}, help functions for maintaining
