@@ -1,5 +1,9 @@
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/viper.el (viper-set-hooks): Remove duplicate advice
+	statements for vc-diff, emerge-quit, and rmail-cease-edit.
+	If they are already loaded, eval-after-load will do the right thing.
+
 	* speedbar.el (top-level): Remove unnecessary load of ange-ftp when
 	compiling.
 
