@@ -134,6 +134,9 @@ reporting a new bug.
 To: 123-done@emacsbugs.donarmstrong.com
 
 with a brief explanation in the body as to why the bug was closed.
+There is no need to cc the address without the "-done" part or the
+submitter; they get copies anyway so this will just result in more
+duplicate mail.
 
 ** Setting bug parameters.
 There are two ways to set the parameters of bugs in the database
