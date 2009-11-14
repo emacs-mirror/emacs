@@ -1,5 +1,8 @@
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
+	* speedbar.el (top-level): Remove unnecessary load of ange-ftp when
+	compiling.
+
 	* emacs-lisp/bytecomp.el (byte-compile-single-version): Remove, unused.
 
 	* simple.el (x-selection-owner-p): Declare.

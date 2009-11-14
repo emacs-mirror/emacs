@@ -2895,12 +2895,6 @@ indicator, then do not add a space."
 	    t))
       t)))
 
-;; Load efs/ange-ftp only if compiling to remove byte-compiler warnings.
-;; Steven L Baur <steve@xemacs.org> said this was important:
-(eval-when-compile (or (featurep 'xemacs)
-		       (condition-case () (require 'efs)
-			 (error (require 'ange-ftp)))))
-
 (defun speedbar-check-vc ()
   "Scan all files in a directory, and for each see if it's checked out.
 See `speedbar-this-file-in-vc' and `speedbar-vc-check-dir-p' for how
