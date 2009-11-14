@@ -1,5 +1,7 @@
 2009-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el (shell-command): Doc fix (Bug#4891).
+
 	* help-mode.el (help-make-xrefs): Revert 2009-11-13 change.
 
 2009-11-14  Glenn Morris  <rgm@gnu.org>

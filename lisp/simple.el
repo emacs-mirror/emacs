@@ -2110,7 +2110,8 @@ says to put the output in some other buffer.
 If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
 If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in current buffer.  (This cannot be done asynchronously.)
-In either case, the output is inserted after point (leaving mark after it).
+In either case, the buffer is first erased, and the output is
+inserted after point (leaving mark after it).
 
 If the command terminates without error, but generates output,
 and you did not specify \"insert it in the current buffer\",
