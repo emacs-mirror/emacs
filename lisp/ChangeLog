@@ -1,3 +1,9 @@
+2009-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* custom.el (defgroup):
+	* epg-config.el (epg):
+	* ps-print.el (postscript): Doc fixes.
+
 2009-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* bindings.el (mode-line-buffer-identification): Purecopy only the string.

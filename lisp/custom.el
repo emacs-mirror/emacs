@@ -423,7 +423,10 @@ for more information."
   "Declare SYMBOL as a customization group containing MEMBERS.
 SYMBOL does not need to be quoted.
 
-Third arg DOC is the group documentation.
+Third argument DOC is the group documentation.  This should be a short
+description of the group, beginning with a capital and ending with
+a period.  Words other than the first should not be capitalized, if they
+are not usually written so.
 
 MEMBERS should be an alist of the form ((NAME WIDGET)...) where
 NAME is a symbol and WIDGET is a widget for editing that symbol.
