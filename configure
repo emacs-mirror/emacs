@@ -802,6 +802,7 @@ enable_maintainer_mode
 enable_locallisppath
 enable_checking
 enable_profiling
+enable_autodepend
 enable_largefile
 with_x
 '
@@ -1465,6 +1466,9 @@ Optional Features:
                           stringfreelist, xmallocoverrun, conslist
   --enable-profiling      build emacs with profiling support. This might not
                           work on all platforms
+  --enable-autodepend     automatically generate dependencies to .h-files.
+                          Requires GNU Make and Gcc. Enabled if GNU Make and
+                          Gcc is found
   --disable-largefile     omit support for large files
 
 Optional Packages:
@@ -2423,6 +2427,14 @@ else
    PROFILING_CFLAGS=
    PROFILING_LDFLAGS=
 fi
+
+# Check whether --enable-autodepend was given.
+if test "${enable_autodepend+set}" = set; then
+  enableval=$enable_autodepend; ac_enable_autodepend="${enableval}"
+else
+  ac_enable_autodepend=yes
+fi
+
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
@@ -9123,6 +9135,80 @@ $as_echo "no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
 fi
 
+
+if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
+   { $as_echo "$as_me:$LINENO: checking whether we are using GNU Make" >&5
+$as_echo_n "checking whether we are using GNU Make... " >&6; }
+   HAVE_GNU_MAKE=no
+   testval=`make --version 2>/dev/null | grep 'GNU Make'`
+   if test "x$testval" != x; then
+      HAVE_GNU_MAKE=yes
+   else
+      ac_enable_autodepend=no
+   fi
+   { $as_echo "$as_me:$LINENO: result: $HAVE_GNU_MAKE" >&5
+$as_echo "$HAVE_GNU_MAKE" >&6; }
+   if test $HAVE_GNU_MAKE = yes; then
+      { $as_echo "$as_me:$LINENO: checking whether gcc understands -MMD -MF" >&5
+$as_echo_n "checking whether gcc understands -MMD -MF... " >&6; }
+      SAVE_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS -MMD -MF deps.d"
+      cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  :
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_enable_autodepend=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+      CFLAGS="$SAVE_CFLAGS"
+      test -f deps.d || ac_enable_autodepend=no
+      rm -rf deps.d
+      { $as_echo "$as_me:$LINENO: result: $ac_enable_autodepend" >&5
+$as_echo "$ac_enable_autodepend" >&6; }
+   fi
+   if test $ac_enable_autodepend = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define AUTO_DEPEND 1
+_ACEOF
+
+   fi
+fi
 
 { $as_echo "$as_me:$LINENO: checking for long file names" >&5
 $as_echo_n "checking for long file names... " >&6; }

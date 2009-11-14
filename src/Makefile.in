@@ -79,6 +79,10 @@ SHELL=/bin/sh
 #define NOT_C_CODE
 #include "config.h"
 
+#ifdef AUTO_DEPEND
+DEPFLAGS = -MMD -MF deps/$*.d
+#endif
+
 /* Do not let the file name mktime.c get messed up.  */
 #ifdef mktime
 #undef mktime
@@ -257,13 +261,19 @@ DBUS_OBJ = dbusbind.o
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
 .c.o:
+#ifdef AUTO_DEPEND
+	@test -d deps || mkdir deps
+#endif
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 .m.o:
+#ifdef AUTO_DEPEND
+	@test -d deps || mkdir deps
+#endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifndef LIBX11_SYSTEM
@@ -958,7 +968,7 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} pre
 /* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs''s crt0,
    which are only good with temacs.  */
-prefix-args${EXEEXT}: prefix-args.c $(config_h)
+prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (USE_GTK)
@@ -1024,6 +1034,11 @@ stamp-oldxmenu:
 	@echo "Please run the `configure' script again."
 	exit 1
 
+ecrt0.o: ecrt0.c $(config_h)
+	CRT0_COMPILE ${srcdir}/ecrt0.c
+doc.o: buildobj.h
+
+#ifndef AUTO_DEPEND
 /* Nearly all the following files depend on lisp.h,
    but it is not included as a dependency because
    it is so often changed in ways that do not require any recompilation
@@ -1056,8 +1071,6 @@ cm.o: cm.c frame.h cm.h termhooks.h termchar.h lisp.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h lisp.h $(config_h) \
 	msdos.h dispextern.h keyboard.h keymap.h
 pre-crt0.o: pre-crt0.c
-ecrt0.o: ecrt0.c $(config_h)
-	CRT0_COMPILE ${srcdir}/ecrt0.c
 dbusbind.o: dbusbind.c termhooks.h frame.h keyboard.h lisp.h $(config_h)
 dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
    coding.h regex.h systime.h blockinput.h atimer.h
@@ -1066,8 +1079,7 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    disptab.h indent.h $(INTERVALS_H) \
    xterm.h blockinput.h atimer.h character.h msdos.h composite.h keyboard.h \
    syssignal.h lisp.h $(config_h)
-doc.o: doc.c lisp.h $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h \
-   buildobj.h
+doc.o: doc.c lisp.h $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h
 doprnt.o: doprnt.c character.h lisp.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
@@ -1252,6 +1264,8 @@ intervals.o: intervals.c buffer.h $(INTERVALS_H) keyboard.h puresize.h \
 textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVALS_H) \
 	lisp.h $(config_h)
 
+#endif /* ! AUTO_DEPEND */
+
 /* System-specific programs to be made.
    OTHER_FILES
    select which of these should be compiled.  */
@@ -1287,6 +1301,7 @@ mostlyclean:
 	rm -f buildobj.h
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
+	-rm -rf deps
 #ifdef HAVE_NS
 	rm -fr ${ns_appdir}
 #endif
@@ -1385,3 +1400,8 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	@: Compile some files earlier to speed up further compilation.
 	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
+
+#ifdef AUTO_DEPEND
+ALLOBJS=$(STARTFILES) ${obj} ${otherobj} prefix-args.o
+-include $(ALLOBJS:%.o=deps/%.d)
+#endif

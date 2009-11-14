@@ -1,3 +1,9 @@
+2009-11-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: --enable-autodepend is new.  Check for GNU Make
+	and that gcc supports -MMD -MF. Define AUTO_DEPEND if we can use
+	gcc and GNU make to generate dependencies.
+
 2009-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Make links to doc/lispintro/*.pdf.
