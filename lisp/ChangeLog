@@ -1,3 +1,8 @@
+2009-11-14  Francis Wright  <F.J.Wright@qmul.ac.uk>
+
+	* cus-edit.el (data, files):
+	* ps-print.el (postscript): Doc fixes for custom groups.  (Bug#3327)
+
 2009-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (shell-command): Doc fix (Bug#4891).
@@ -20,8 +25,7 @@
 	(completion-no-auto-exit): Doc fix.
 
 	* custom.el (defgroup):
-	* epg-config.el (epg):
-	* ps-print.el (postscript): Doc fixes.
+	* epg-config.el (epg): Doc fixes.
 
 2009-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
 

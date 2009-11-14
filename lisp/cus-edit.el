@@ -307,11 +307,11 @@
   :group 'environment)
 
 (defgroup data nil
-  "Support editing files of data."
+  "Support for editing files of data."
   :group 'emacs)
 
 (defgroup files nil
-  "Support editing files."
+  "Support for editing files."
   :group 'emacs)
 
 (defgroup wp nil
