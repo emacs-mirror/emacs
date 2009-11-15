@@ -1,5 +1,8 @@
 2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* strokes.el (strokes-update-window-configuration): Make strokes
+	buffer current before erasing (Bug#4906).
+
 	* cedet/semantic/idle.el (semantic-idle-summary-mode)
 	(semantic-idle-summary-mode): Define using define-minor-mode
 	instead of define-semantic-idle-service.

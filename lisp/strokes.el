@@ -1061,13 +1061,12 @@ This is based on the last time `strokes-window-configuration' was updated."
 	   ;; create `strokes-window-configuration' from scratch...
 	   (save-excursion
 	     (save-window-excursion
-	       (get-buffer-create strokes-buffer-name)
+	       (set-buffer (get-buffer-create strokes-buffer-name))
 	       (set-window-buffer current-window strokes-buffer-name)
 	       (delete-other-windows)
 	       (fundamental-mode)
 	       (auto-save-mode 0)
-	       (if (featurep 'font-lock)
-		   (font-lock-mode 0))
+	       (font-lock-mode 0)
 	       (abbrev-mode 0)
 	       (buffer-disable-undo (current-buffer))
 	       (setq truncate-lines nil)
