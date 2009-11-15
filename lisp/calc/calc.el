@@ -153,6 +153,7 @@
 (declare-function calcFunc-unixtime "calc-forms" (date &optional zone))
 (declare-function math-parse-date "calc-forms" (math-pd-str))
 (declare-function math-lessp "calc-ext" (a b))
+(declare-function math-compare "calc-ext" (a b))
 (declare-function calc-embedded-finish-command "calc-embed" ())
 (declare-function calc-embedded-select-buffer "calc-embed" ())
 (declare-function calc-embedded-mode-line-change "calc-embed" ())
@@ -207,6 +208,7 @@
 (declare-function math-adjust-fraction "calc-ext" (a))
 (declare-function math-format-binary "calc-bin" (a))
 (declare-function math-format-radix "calc-bin" (a))
+(declare-function math-format-complement-signed "calc-bin" (a))
 (declare-function math-group-float "calc-ext" (str))
 (declare-function math-mod "calc-misc" (a b))
 (declare-function math-format-number-fancy "calc-ext" (a prec))
@@ -687,6 +689,10 @@ If a number, variables are assumed to be NxN matrices.
 If `sqmatrix', variables are assumed to be square matrices of an unspecified size.
 If `scalar', variables are assumed to be scalar-valued.
 If nil, symbolic math routines make no assumptions about variables.")
+
+(defcalcmodevar calc-complement-signed-mode nil
+  "If non-nil, display integers in complement signed mode.")
+
 
 (defcalcmodevar calc-shift-prefix nil
   "If non-nil, shifted letter keys are prefix keys rather than normal meanings.")
@@ -1704,6 +1710,7 @@ See calc-keypad for details."
 			   ((= calc-number-radix 8) "Oct ")
 			   ((= calc-number-radix 16) "Hex ")
 			   (t (format "Radix%d " calc-number-radix)))
+                     (if calc-complement-signed-mode "CompSign " "")
 		     (if calc-leading-zeros "Zero " "")
 		     (cond ((null calc-language) "")
                            ((get calc-language 'math-lang-name)
@@ -2350,7 +2357,7 @@ See calc-keypad for details."
 	  (insert "mod "))))
      (t
       (insert (char-to-string last-command-event))
-      (if (or (and (calc-minibuffer-contains "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9][0-9]?\\)#[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\)?\\|.[0-9a-zA-Z]*\\(e[-+]?[0-9]*\\)?\\)?\\'")
+      (if (or (and (calc-minibuffer-contains "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9][0-9]?\\)#[#&]?[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\)?\\|.[0-9a-zA-Z]*\\(e[-+]?[0-9]*\\)?\\)?\\'")
 		   (let ((radix (string-to-number
 				 (buffer-substring
 				  (match-beginning 2) (match-end 2)))))
@@ -3382,9 +3389,24 @@ largest Emacs integer.")
 
 
 ;;; Format a number as a string.
+(defvar math-half-2-word-size)
 (defun math-format-number (a &optional prec)   ; [X N]   [Public]
   (cond
    ((eq calc-display-raw t) (format "%s" a))
+   ((and calc-complement-signed-mode
+         math-radix-explicit-format
+         (Math-integerp a)
+         (or (eq a 0)
+             (and (Math-integer-posp a)
+                  (Math-lessp a math-half-2-word-size))
+             (and (Math-integer-negp a)
+                  (require 'calc-ext)
+                  (let ((comparison 
+                         (math-compare (Math-integer-neg a) math-half-2-word-size)))
+                    (or (= comparison 0)
+                        (= comparison -1))))))
+    (require 'calc-bin)
+    (math-format-complement-signed a))
    ((and (nth 1 calc-frac-format) (Math-integerp a))
     (require 'calc-ext)
     (math-format-number (math-adjust-fraction a)))
@@ -3766,6 +3788,14 @@ See Info node `(calc)Defining Functions'."
   (if (featurep 'xemacs)
       (setq unread-command-event nil)
     (setq unread-command-events nil)))
+
+(defcalcmodevar math-2-word-size 
+  (math-read-number-simple "4294967296")
+  "Two to the power of `calc-word-size'.")
+
+(defcalcmodevar math-half-2-word-size
+  (math-read-number-simple "2147483648")
+  "One-half of two to the power of `calc-word-size'.")
 
 (when calc-always-load-extensions
   (require 'calc-ext)
