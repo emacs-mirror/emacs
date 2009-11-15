@@ -818,15 +818,22 @@ If FNAME is something our underlying filesystem can't grok, or if another
 file by that name already exists in DIR, a unique new name is generated
 using `make-temp-file', and the generated name is returned."
   (let ((fullname (expand-file-name fname dir))
-	(alien (string-match file-name-invalid-regexp fname)))
-    (if (or alien (file-exists-p fullname))
-	(make-temp-file
+	(alien (string-match file-name-invalid-regexp fname))
+	(tmpfile
 	 (expand-file-name
 	  (if (if (fboundp 'msdos-long-file-names)
 		  (not (msdos-long-file-names)))
 	      "am"
 	    "arc-mode.")
-	  dir))
+	  dir)))
+    (if (or alien (file-exists-p fullname))
+	(progn
+	  ;; Maked sure all the leading directories in
+	  ;; archive-local-name exist under archive-tmpdir, so that
+	  ;; the directory structure recorded in the archive is
+	  ;; reconstructed in the temporary directory.
+	  (make-directory (file-name-directory tmpfile) t)
+	  (make-temp-file tmpfile))
       fullname)))
 
 (defun archive-maybe-copy (archive)
@@ -843,11 +850,6 @@ using `make-temp-file', and the generated name is returned."
 		   archive)))
 	  (setq archive-local-name
 		(archive-unique-fname archive-name archive-tmpdir))
-	  ;; Maked sure all the leading directories in
-	  ;; archive-local-name exist under archive-tmpdir, so that
-	  ;; the directory structure recorded in the archive is
-	  ;; reconstructed in the temporary directory.
-	  (make-directory (file-name-directory archive-local-name) t)
 	  (save-restriction
 	    (widen)
 	    (write-region start (point-max) archive-local-name nil 'nomessage))
