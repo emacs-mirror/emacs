@@ -462,7 +462,7 @@ or svn+ssh://."
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
-(defun vc-svn-print-log (files &optional buffer shortlog)
+(defun vc-svn-print-log (files buffer &optional shortlog limit)
   "Get change log(s) associated with FILES."
   (save-current-buffer
     (vc-setup-buffer buffer)
@@ -471,7 +471,8 @@ or svn+ssh://."
       (if files
 	  (dolist (file files)
 		  (insert "Working file: " file "\n")
-		  (vc-svn-command
+		  (apply
+		   'vc-svn-command
 		   buffer
 		   'async
 		   ;; (if (and (= (length files) 1) (vc-stay-local-p file 'SVN)) 'async 0)
@@ -481,9 +482,11 @@ or svn+ssh://."
 		   ;; working revision, whereas we also want the log of the
 		   ;; subsequent commits.  At least that's what the
 		   ;; vc-cvs.el code does.
-		   "-rHEAD:0"))
+		   "-rHEAD:0"
+		   (when limit (list "-l" (format "%s" limit)))))
 	;; Dump log for the entire directory.
-	(vc-svn-command buffer 0 nil "log" "-rHEAD:0")))))
+	(apply vc-svn-command buffer 0 nil "log" "-rHEAD:0"
+	       (when limit (list "-l" (format "%s" limit))))))))
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."

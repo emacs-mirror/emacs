@@ -1,5 +1,23 @@
 2009-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-log-show-limit): New variable.
+	(vc-print-log, vc-print-root-log): Add new argument LIMIT.  Set it
+	when using a prefix argument.
+	(vc-print-log-internal): Add new argument LIMIT.
+
+	* vc-svn.el (vc-svn-print-log):
+	* vc-mtn.el (vc-mtn-print-log):
+	* vc-hg.el (vc-hg-print-log):
+	* vc-bzr.el (vc-bzr-print-log): Add new optional argument LIMIT,
+	pass it to the log command when set. Make the BUFFER argument
+	non-optional.
+
+	* vc-sccs.el (vc-sccs-print-log):
+	* vc-rcs.el (vc-rcs-print-log):
+	* vc-git.el (vc-git-print-log):
+	* vc-cvs.el (vc-cvs-print-log): Add new optional argument LIMIT,
+	ignore it.  Make the BUFFER argument non-optional
+
 	* bindings.el (mode-line-buffer-identification): Do not purecopy.
 
 2009-11-15  Chong Yidong  <cyd@stupidchicken.com>

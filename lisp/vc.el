@@ -333,12 +333,11 @@
 ;;
 ;; HISTORY FUNCTIONS
 ;;
-;; * print-log (files &optional buffer shortlog)
+;; * print-log (files buffer &optional shortlog limit)
 ;;
-;;   Insert the revision log for FILES into BUFFER, or the *vc* buffer
-;;   if BUFFER is nil.  (Note: older versions of this function expected
-;;   only a single file argument.)
+;;   Insert the revision log for FILES into BUFFER.
 ;;   If SHORTLOG is true insert a short version of the log.
+;;   If LIMIT is true insert only insert LIMIT log entries.
 ;;
 ;; - log-view-mode ()
 ;;
@@ -693,6 +692,13 @@ not specific to any particular backend."
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use -L and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
+  :group 'vc)
+
+(defcustom vc-log-show-limit 0
+  "Limit the number of items shown by the VC log commands.
+Zero means unlimited.
+Not all VC backends are able to support this feature."
+  :type 'integer
   :group 'vc)
 
 (defcustom vc-allow-async-revert nil
@@ -1839,7 +1845,7 @@ If it contains `directory' then if the fileset contains a directory show a short
 If it contains `file' then show short logs for files.
 Not all VC backends support short logs!")
 
-(defun vc-print-log-internal (backend files working-revision)
+(defun vc-print-log-internal (backend files working-revision limit)
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
@@ -1852,7 +1858,7 @@ Not all VC backends support short logs!")
 	  (not (null (if dir-present
 			 (memq 'directory vc-log-short-style)
 		       (memq 'file vc-log-short-style)))))
-    (vc-call-backend backend 'print-log files "*vc-change-log*" vc-short-log)
+    (vc-call-backend backend 'print-log files "*vc-change-log*" vc-short-log limit)
     (pop-to-buffer "*vc-change-log*")
     (vc-exec-after
      `(let ((inhibit-read-only t)
@@ -1868,20 +1874,45 @@ Not all VC backends support short logs!")
 	(set-buffer-modified-p nil)))))
 
 ;;;###autoload
-(defun vc-print-log (&optional working-revision)
+(defun vc-print-log (&optional working-revision limit)
   "List the change log of the current fileset in a window.
 If WORKING-REVISION is non-nil, leave the point at that revision."
-  (interactive)
+  (interactive
+   (cond
+    (current-prefix-arg
+     (let ((rev (read-from-minibuffer "Log from revision (default: last revision): " nil
+				      nil nil nil))
+	   (lim (string-to-number
+		 (read-from-minibuffer
+		  "Limit display (unlimited: 0): "
+		  (format "%s" vc-log-show-limit)
+		  nil nil nil))))
+       (when (string= rev "") (setq rev nil))
+       (when (<= lim 0) (setq lim nil))
+       (list rev lim)))
+    (t
+     (list nil nil))))
   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
-    (vc-print-log-internal backend files working-revision)))
+    (vc-print-log-internal backend files working-revision limit)))
 
 ;;;###autoload
-(defun vc-print-root-log ()
+(defun vc-print-root-log (&optional limit)
   "List the change log of for the current VC controlled tree in a window."
-  (interactive)
+  (interactive
+   (cond
+    (current-prefix-arg
+     (let ((lim (string-to-number
+		 (read-from-minibuffer
+		  "Limit display (unlimited: 0): "
+		  (format "%s" vc-log-show-limit)
+		  nil nil nil))))
+       (when (<= lim 0) (setq lim nil))
+       (list lim)))
+    (t
+     (list nil))))
   (let ((backend
 	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
 	       (vc-mode (vc-backend buffer-file-name))))
@@ -1890,7 +1921,7 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
       (error "Buffer is not version controlled"))
     (setq rootdir (vc-call-backend backend 'root default-directory))
     (setq working-revision (vc-working-revision rootdir))
-    (vc-print-log-internal backend (list rootdir) working-revision)))
+    (vc-print-log-internal backend (list rootdir) working-revision limit)))
 
 ;;;###autoload
 (defun vc-revert ()

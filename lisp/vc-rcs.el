@@ -559,7 +559,7 @@ directory the operation is applied to all registered files beneath it."
     (when (looking-at "[\b\t\n\v\f\r ]+")
       (delete-char (- (match-end 0) (match-beginning 0))))))
 
-(defun vc-rcs-print-log (files &optional buffer shortlog)
+(defun vc-rcs-print-log (files buffer &optional shortlog limit)
   "Get change log associated with FILE.  If FILE is a
 directory the operation is applied to all registered files beneath it."
   (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))

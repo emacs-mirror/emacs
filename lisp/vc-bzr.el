@@ -481,7 +481,7 @@ REV non-nil gets an error."
 		    (2 'change-log-email))
 		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
-(defun vc-bzr-print-log (files &optional buffer shortlog) ; get buffer arg in Emacs 22
+(defun vc-bzr-print-log (files buffer &optional shortlog limit)
   "Get bzr change log for FILES into specified BUFFER."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
@@ -493,7 +493,8 @@ REV non-nil gets an error."
   ;; way of getting the above regexps working.
   (with-current-buffer buffer
     (apply 'vc-bzr-command "log" buffer 'async files
-	   (if shortlog "--short")
+	   (when shortlog "--short")
+	   (when limit (list "-l" (format "%s" limit)))
 	   (if (stringp vc-bzr-log-switches)
 	       (list vc-bzr-log-switches)
 	     vc-bzr-log-switches))))

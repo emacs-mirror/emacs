@@ -77,7 +77,7 @@
 ;; - merge-news (file)                     see `merge'
 ;; - steal-lock (file &optional revision)          NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files &optional buffer shortlog)   OK
+;; * print-log (files buffer &optional shortlog limit)   OK
 ;; - log-view-mode ()                              OK
 ;; - show-log-entry (revision)                     OK
 ;; - comment-history (file)                        ??
@@ -508,7 +508,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;; HISTORY FUNCTIONS
 
-(defun vc-git-print-log (files &optional buffer shortlog)
+(defun vc-git-print-log (files buffer &optional shortlog limit)
   "Get change log associated with FILES."
   (let ((coding-system-for-read git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
