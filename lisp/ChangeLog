@@ -1,3 +1,8 @@
+2009-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* arc-mode.el (archive-maybe-copy): Move creation of directory ...
+	(archive-unique-fname): ... here.  (Bug#4929)
+
 2009-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-mode.el (help-make-xrefs): Undo the last revert, and replace it
