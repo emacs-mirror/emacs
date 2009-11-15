@@ -1,3 +1,12 @@
+2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/idle.el (semantic-idle-summary-mode)
+	(semantic-idle-summary-mode): Define using define-minor-mode
+	instead of define-semantic-idle-service.
+	(semantic-idle-summary-mode): New function.
+	(semantic-idle-summary-mode-setup): Use pre-command-hook to ensure
+	that mouse motion does not reset the echo area.
+
 2009-11-15  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (set-mark-default-inactive): Add :type, :group

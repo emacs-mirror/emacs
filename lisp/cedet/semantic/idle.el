@@ -46,6 +46,7 @@
 ;; For the semantic-find-tags-by-name macro.
 (eval-when-compile (require 'semantic/find))
 
+(defvar eldoc-last-message)
 (declare-function eldoc-message "eldoc")
 (declare-function semantic-analyze-interesting-tag "semantic/analyze")
 (declare-function semantic-complete-analyze-inline-idle "semantic/complete")
@@ -151,7 +152,7 @@ If ARG is nil, then toggle."
          'semantic-idle-scheduler-mode arg)))
 
 (defcustom semantic-idle-scheduler-mode-hook nil
-  "*Hook run at the end of function `semantic-idle-scheduler-mode'."
+  "Hook run at the end of function `semantic-idle-scheduler-mode'."
   :group 'semantic
   :type 'hook)
 
@@ -695,7 +696,9 @@ minor mode is enabled.")
 
 (defcustom semantic-idle-summary-function
   'semantic-format-tag-summarize-with-file
-  "*Function to use when displaying tag information during idle time.
+  "Function to call when displaying tag information during idle time.
+This function should take a single argument, a Semantic tag, and
+return a string to display.
 Some useful functions are found in `semantic-format-tag-functions'."
   :group 'semantic
   :type semantic-format-tag-custom-list)
@@ -797,7 +800,12 @@ specific to a major mode.  For example, in jde mode:
                         'semantic-idle-summary-current-symbol-info
                         "23.2")
 
-(define-semantic-idle-service semantic-idle-summary
+(defcustom semantic-idle-summary-mode-hook nil
+  "Hook run at the end of `semantic-idle-summary'."
+  :group 'semantic
+  :type 'hook)
+
+(defun semantic-idle-summary-idle-function ()
   "Display a tag summary of the lexical token under the cursor.
 Call `semantic-idle-summary-current-symbol-info' for getting the
 current tag to display information."
@@ -807,16 +815,64 @@ current tag to display information."
              (str (cond ((stringp found) found)
                         ((semantic-tag-p found)
                          (funcall semantic-idle-summary-function
-                                  found nil t))))
-	     )
+                                  found nil t)))))
 	;; Show the message with eldoc functions
-        (require 'eldoc)
         (unless (and str (boundp 'eldoc-echo-area-use-multiline-p)
                      eldoc-echo-area-use-multiline-p)
           (let ((w (1- (window-width (minibuffer-window)))))
             (if (> (length str) w)
                 (setq str (substring str 0 w)))))
         (eldoc-message str))))
+
+(define-minor-mode semantic-idle-summary-mode
+  "Toggle Semantic Idle Summary mode.
+When Semantic Idle Summary mode is enabled, the echo area
+displays a summary of the lexical token under the cursor whenever
+Emacs is idle."
+  :group 'semantic
+  :group 'semantic-modes
+  (semantic-idle-summary-mode-setup)
+  (semantic-mode-line-update))
+
+(defun semantic-idle-summary-refresh-echo-area ()
+  (and semantic-idle-summary-mode
+       eldoc-last-message
+       (if (and (not executing-kbd-macro)
+		(not (and (boundp 'edebug-active) edebug-active))
+		(not cursor-in-echo-area)
+		(not (eq (selected-window) (minibuffer-window))))
+           (eldoc-message eldoc-last-message)
+         (setq eldoc-last-message nil))))
+
+(defun semantic-idle-summary-mode-setup ()
+  "Set up `semantic-idle-summary-mode'."
+  (if semantic-idle-summary-mode
+      ;; Enable the mode
+      (progn
+	(unless (and (featurep 'semantic) (semantic-active-p))
+	  ;; Disable minor mode if semantic stuff not available
+	  (setq semantic-idle-summary-mode nil)
+	  (error "Buffer %s was not set up for parsing"
+		 (buffer-name)))
+	(require 'eldoc)
+	(semantic-idle-scheduler-add 'semantic-idle-summary-idle-function)
+	(add-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t))
+    ;; Disable the mode
+    (semantic-idle-scheduler-remove 'semantic-idle-summary-idle-function)
+    (remove-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t))
+  semantic-idle-summary-mode)
+
+(semantic-add-minor-mode 'semantic-idle-summary-mode "")
+
+(define-minor-mode global-semantic-idle-summary-mode
+  "Toggle global use of `semantic-idle-summary-mode'."
+  :global t
+  :group 'semantic
+  :group 'semantic-modes
+  (semantic-toggle-minor-mode-globally
+   'semantic-idle-summary-mode
+   (if global-semantic-idle-summary-mode 1 -1)))
+
 
 ;;; Current symbol highlight
 ;;
