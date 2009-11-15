@@ -1,3 +1,8 @@
+2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* register.el (jump-to-register, insert-register): Handle Semantic
+	tags.  From commented-out advice in semantic/senator.el.
+
 2009-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-log-show-limit): New variable.

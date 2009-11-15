@@ -857,26 +857,6 @@ Use a senator search function when semantic isearch mode is enabled."
 ;;   [(control ?,)]
 ;;   'senator-isearch-toggle-semantic-mode)
 
-;; (defadvice insert-register (around senator activate)
-;;   "Insert contents of register REGISTER as a tag.
-;; If senator is not active, use the original mechanism."
-;;   (let ((val (get-register (ad-get-arg 0))))
-;;     (if (and senator-minor-mode (interactive-p)
-;;              (semantic-foreign-tag-p val))
-;;         (semantic-insert-foreign-tag val)
-;;       ad-do-it)))
-
-;; (defadvice jump-to-register (around senator activate)
-;;   "Insert contents of register REGISTER as a tag.
-;; If senator is not active, use the original mechanism."
-;;   (let ((val (get-register (ad-get-arg 0))))
-;;     (if (and senator-minor-mode (interactive-p)
-;;              (semantic-foreign-tag-p val))
-;;         (progn
-;;           (switch-to-buffer (semantic-tag-buffer val))
-;;           (goto-char (semantic-tag-start val)))
-;;       ad-do-it)))
-
 (provide 'semantic/senator)
 
 ;; Local variables:
