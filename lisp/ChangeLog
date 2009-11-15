@@ -1,5 +1,8 @@
 2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.el (dired-mode-map): Move encryption items to "Operate"
+	menu (Bug#4703).
+
 	* strokes.el (strokes-update-window-configuration): Make strokes
 	buffer current before erasing (Bug#4906).
 

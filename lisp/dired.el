@@ -1411,29 +1411,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
     (define-key map
-      [menu-bar immediate epa-dired-do-decrypt]
-      '(menu-item "Decrypt" epa-dired-do-decrypt
-		  :help "Decrypt file at cursor"))
-
-    (define-key map
-      [menu-bar immediate epa-dired-do-verify]
-      '(menu-item "Verify" epa-dired-do-verify
-		  :help "Verify digital signature of file at cursor"))
-
-    (define-key map
-      [menu-bar immediate epa-dired-do-sign]
-      '(menu-item "Sign" epa-dired-do-sign
-		  :help "Create digital signature of file at cursor"))
-
-    (define-key map
-      [menu-bar immediate epa-dired-do-encrypt]
-      '(menu-item "Encrypt" epa-dired-do-encrypt
-		  :help "Encrypt file at cursor"))
-
-    (define-key map [menu-bar immediate dashes-4]
-      '("--"))
-
-    (define-key map
       [menu-bar immediate image-dired-dired-display-external]
       '(menu-item "Display Image Externally" image-dired-dired-display-external
                   :help "Display image in external viewer"))
@@ -1441,9 +1418,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       [menu-bar immediate image-dired-dired-display-image]
       '(menu-item "Display Image" image-dired-dired-display-image
                   :help "Display sized image in a separate window"))
-
-    (define-key map [menu-bar immediate dashes-4]
-      '("--"))
 
     (define-key map [menu-bar immediate revert-buffer]
       '(menu-item "Refresh" revert-buffer
@@ -1602,6 +1576,29 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       [menu-bar operate image-dired-display-thumbs]
       '(menu-item "Display image thumbnails" image-dired-display-thumbs
                   :help "Display image thumbnails for current or marked image files"))
+
+    (define-key map [menu-bar operate dashes-4]
+      '("--"))
+
+    (define-key map
+      [menu-bar operate epa-dired-do-decrypt]
+      '(menu-item "Decrypt" epa-dired-do-decrypt
+		  :help "Decrypt file at cursor"))
+
+    (define-key map
+      [menu-bar operate epa-dired-do-verify]
+      '(menu-item "Verify" epa-dired-do-verify
+		  :help "Verify digital signature of file at cursor"))
+
+    (define-key map
+      [menu-bar operate epa-dired-do-sign]
+      '(menu-item "Sign" epa-dired-do-sign
+		  :help "Create digital signature of file at cursor"))
+
+    (define-key map
+      [menu-bar operate epa-dired-do-encrypt]
+      '(menu-item "Encrypt" epa-dired-do-encrypt
+		  :help "Encrypt file at cursor"))
 
     (define-key map [menu-bar operate dashes-3]
       '("--"))
@@ -3471,7 +3468,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "e207e02ac395d10ee4a09e208081a0ce")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "87433c3c284e8cef58102a1583e29438")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
