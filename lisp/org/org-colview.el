@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33
+;; Version: 6.33c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,7 +34,7 @@
 (require 'org)
 
 (declare-function org-agenda-redo "org-agenda" ())
-(declare-function org-agenda-show "org-agenda" (&optional full-entry))
+(declare-function org-agenda-do-context-action "org-agenda" ())
 
 ;;; Column View
 
@@ -93,10 +93,8 @@ This is the compiled version of the format.")
 		(while (and (org-invisible-p2) (not (eobp)))
 		  (beginning-of-line 2))
 		(move-to-column col)
-		(if (and (eq major-mode 'org-agenda-mode)
-			 (org-bound-and-true-p org-agenda-follow-mode)
-			 (org-get-at-bol 'org-marker))
-		    (org-agenda-show)))))		
+		(if (eq major-mode 'org-agenda-mode)
+		    (org-agenda-do-context-action)))))
 (org-defkey org-columns-map [up]
 	    (lambda () (interactive)
 	      (let ((col (current-column)))
@@ -104,10 +102,8 @@ This is the compiled version of the format.")
 		(while (and (org-invisible-p2) (not (bobp)))
 		  (beginning-of-line 0))
 		(move-to-column col)
-		(if (and (eq major-mode 'org-agenda-mode)
-			 (org-bound-and-true-p org-agenda-follow-mode)
-			 (org-get-at-bol 'org-marker))
-		    (org-agenda-show)))))
+		(if (eq major-mode 'org-agenda-mode)
+		    (org-agenda-do-context-action)))))
 (org-defkey org-columns-map [(shift right)] 'org-columns-next-allowed-value)
 (org-defkey org-columns-map "n" 'org-columns-next-allowed-value)
 (org-defkey org-columns-map [(shift left)] 'org-columns-previous-allowed-value)

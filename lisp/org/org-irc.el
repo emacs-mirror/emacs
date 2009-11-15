@@ -4,7 +4,7 @@
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
-;; Version: 6.33
+;; Version: 6.33c
 ;;
 ;; This file is part of GNU Emacs.
 ;;

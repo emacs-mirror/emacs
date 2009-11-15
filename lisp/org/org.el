@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33
+;; Version: 6.33c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -95,7 +95,7 @@
 
 ;;; Version
 
-(defconst org-version "6.33"
+(defconst org-version "6.33c"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -594,9 +594,14 @@ new-frame        Make a new frame each time.  Note that in this case
 	  (const :tag "One dedicated frame" dedicated-frame)))
 
 (defcustom org-use-speed-commands nil
-  "Non-nil means, activate single letter commands at beginning of a headline."
+  "Non-nil means, activate single letter commands at beginning of a headline.
+This may also be a function to test for appropriate locations where speed
+commands should be active."
   :group 'org-structure
-  :type 'boolean)
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "At beginning of headline stars" t)
+	  (function)))
 
 (defcustom org-speed-commands-user nil
     "Alist of additional speed commands.
@@ -606,14 +611,19 @@ and when the cursor is at the beginning of a headline.
 The car if each entry is a string with a single letter, which must
 be assigned to `self-insert-command' in the global map.
 The cdr is either a command to be called interactively, a function
-to be called, or a form to be evaluated."
+to be called, or a form to be evaluated.
+An entry that is just a list with a single string will be interpreted
+as a descriptive headline that will be added when listing the speed
+copmmands in the Help buffer using the `?' speed command."
     :group 'org-structure
-    :type '(repeat
-	    (cons
-	     (string "Command letter")
-	     (choice
-	      (function)
-	      (sexp)))))
+    :type '(repeat :value ("k" . ignore)
+	    (choice :value ("k" . ignore)
+	     (list :tag "Descriptive Headline" (string :tag "Headline"))
+	     (cons :tag "Letter and Command"
+	      (string :tag "Command letter")
+	      (choice
+	       (function)
+	       (sexp))))))
 
 (defgroup org-cycle nil
   "Options concerning visibility cycling in Org-mode."
@@ -3090,8 +3100,9 @@ Normal means, no org-mode-specific context."
 (declare-function org-gnus-follow-link "org-gnus" (&optional group article))
 (defvar org-agenda-tags-todo-honor-ignore-options)
 (declare-function org-agenda-skip "org-agenda" ())
-(declare-function org-format-agenda-item "org-agenda"
-                  (extra txt &optional category tags dotime noprefix remove-re habitp))
+(declare-function
+ org-format-agenda-item "org-agenda"
+ (extra txt &optional category tags dotime noprefix remove-re habitp))
 (declare-function org-agenda-new-marker "org-agenda" (&optional pos))
 (declare-function org-agenda-change-all-lines "org-agenda"
 		  (newhead hdmarker &optional fixface just-this))
@@ -8980,7 +8991,10 @@ on the system \"/user@host:\"."
 (defvar org-olpa (make-vector 20 nil))
 
 (defun org-get-outline-path (&optional fastp level heading)
-  "Return the outline path to the current entry, as a list."
+  "Return the outline path to the current entry, as a list.
+The parameters FASTP, LEVEL, and HEADING are for use be a scanner
+routine which makes outline path derivations for an entire file,
+avoiding backtracing."
   (if fastp
       (progn
 	(if (> level 19)
@@ -8996,6 +9010,59 @@ on the system \"/user@host:\"."
 	  (when (looking-at org-complex-heading-regexp)
 	    (push (org-match-string-no-properties 4) rtn)))
 	rtn))))
+
+(defun org-format-outline-path (path &optional width prefix)
+  "Format the outlie path PATH for display.
+Width is the maximum number of characters that is available.
+Prefix is a prefix to be included in the returned string,
+such as the file name."
+  (setq width (or width 79))
+  (if prefix (setq width (- width (length prefix))))
+  (if (not path)
+      (or prefix "")
+    (let* ((nsteps (length path))
+	   (total-width (+ nsteps (apply '+ (mapcar 'length path))))
+	   (maxwidth (if (<= total-width width)
+			 10000  ;; everything fits
+		       ;; we need to shorten the level headings
+		       (/ (- width nsteps) nsteps)))
+	   (org-odd-levels-only nil)
+	   (n 0)
+	   (total (1+ (length prefix))))
+      (setq maxwidth (max maxwidth 10))
+      (concat prefix
+	      (mapconcat
+	       (lambda (h)
+		 (setq n (1+ n))
+		 (if (and (= n nsteps) (< maxwidth 10000))
+		     (setq maxwidth (- total-width total)))
+		 (if (< (length h) maxwidth)
+		     (progn (setq total (+ total (length h) 1)) h)
+		   (setq h (substring h 0 (- maxwidth 2))
+			 total (+ total maxwidth 1))
+		   (if (string-match "[ \t]+\\'" h)
+		       (setq h (substring h 0 (match-beginning 0))))
+		   (setq h (concat  h "..")))
+		 (org-add-props h nil 'face
+				(nth (% (1- n) org-n-level-faces)
+				     org-level-faces))
+		 h)
+	       path "/")))))
+
+(defun org-display-outline-path (&optional file current)
+  "Display the current outline path in the echo area."
+  (interactive "P")
+  (let ((bfn (buffer-file-name (buffer-base-buffer)))
+	(path (and (org-mode-p) (org-get-outline-path))))
+    (if current (setq path (append path
+				   (save-excursion
+				     (org-back-to-heading t)
+				     (if (looking-at org-complex-heading-regexp)
+					 (list (match-string 4)))))))
+    (message (org-format-outline-path
+	      path
+	      (1- (frame-width))
+	      (and file bfn (concat (file-name-nondirectory bfn) "/"))))))
 
 (defvar org-refile-history nil
   "History for refiling operations.")
@@ -9037,6 +9104,7 @@ See also `org-refile-use-outline-path' and `org-completion-use-ido'"
 	 (region-length (and regionp (- region-end region-start)))
 	 (filename (buffer-file-name (buffer-base-buffer cbuf)))
 	 pos it nbuf file re level reversed)
+    (setq last-command nil)
     (when regionp
       (goto-char region-start)
       (or (bolp) (goto-char (point-at-bol)))
@@ -14829,14 +14897,19 @@ Some of the options can be changed using the variable
 
 (defconst org-speed-commands-default
   '(
-    ("n" . outline-next-visible-heading)
-    ("p" . outline-previous-visible-heading)
-    ("f" . org-forward-same-level)
-    ("b" . org-backward-same-level)
-    ("u" . outline-up-heading)
-
+    ("Outline Navigation")
+    ("n" . (org-speed-move-safe 'outline-next-visible-heading))
+    ("p" . (org-speed-move-safe 'outline-previous-visible-heading))
+    ("f" . (org-speed-move-safe 'org-forward-same-level))
+    ("b" . (org-speed-move-safe 'org-backward-same-level))
+    ("u" . (org-speed-move-safe 'outline-up-heading))
+    ("j" . org-goto)
+    ("g" . (org-refile t))
+    ("Outline Visibility")
     ("c" . org-cycle)
     ("C" . org-shifttab)
+    (" " . org-display-outline-path)
+    ("Outline Structure Editing")
     ("U" . org-shiftmetaup)
     ("D" . org-shiftmetadown)
     ("r" . org-metaright)
@@ -14845,37 +14918,45 @@ Some of the options can be changed using the variable
     ("L" . org-shiftmetaleft)
     ("i" . (progn (forward-char 1) (call-interactively
 				    'org-insert-heading-respect-content)))
-
-    ("a" . org-agenda)
-    ("/" . org-sparse-tree)
-    (";" . org-set-tags-command)
+    ("^" . org-sort)
+    ("w" . org-refile)
+    ("a" . org-archive-subtree-default-with-confirmation)
+    ("." . outline-mark-subtree)
+    ("Clock Commands")
     ("I" . org-clock-in)
     ("O" . org-clock-out)
-    ("o" . org-open-at-point)
+    ("Meta Data Editing")
     ("t" . org-todo)
-    ("j" . org-goto)
-    ("g" . (org-refile t))
-    ("e" . org-set-effort)
     ("0" . (org-priority ?\ ))
     ("1" . (org-priority ?A))
     ("2" . (org-priority ?B))
     ("3" . (org-priority ?C))
-    ("." . outline-mark-subtree)
-    ("^" . org-sort)
-    ("w" . org-refile)
-    ("a" . org-archive-subtree-default-with-confirmation)
+    (";" . org-set-tags-command)
+    ("e" . org-set-effort)
+    ("Agenda Views etc")
+    ("v" . org-agenda)
     ("/" . org-sparse-tree)
+    ("/" . org-sparse-tree)
+    ("Misc")
+    ("o" . org-open-at-point)
     ("?" . org-speed-command-help)
     )
   "The default speed commands.")
 
 (defun org-print-speed-command (e)
-  (princ (car e))
-  (princ "   ")
-  (if (symbolp (cdr e))
-      (princ (symbol-name (cdr e)))
-    (prin1 (cdr e)))
-  (princ "\n"))
+  (if (> (length (car e)) 1)
+      (progn
+	(princ "\n")
+	(princ (car e))
+	(princ "\n")
+	(princ (make-string (length (car e)) ?-))
+	(princ "\n"))
+    (princ (car e))
+    (princ "   ")
+    (if (symbolp (cdr e))
+	(princ (symbol-name (cdr e)))
+      (prin1 (cdr e)))
+    (princ "\n")))
 
 (defun org-speed-command-help ()
   "Show the available speed commands."
@@ -14883,10 +14964,23 @@ Some of the options can be changed using the variable
   (if (not org-use-speed-commands)
       (error "Speed commands are not activated, customize `org-use-speed-commands'.")
     (with-output-to-temp-buffer "*Help*"
-      (princ "Speed commands\n==============\n")
+      (princ "User-defined Speed commands\n===========================\n")
       (mapc 'org-print-speed-command org-speed-commands-user)
       (princ "\n")
-      (mapc 'org-print-speed-command org-speed-commands-default))))
+      (princ "Built-in Speed commands\n=======================\n")
+      (mapc 'org-print-speed-command org-speed-commands-default))
+    (with-current-buffer "*Help*"
+      (setq truncate-lines t))))
+
+(defun org-speed-move-safe (cmd)
+  "Execute CMD, but make sure that the cursor always ends up in a headline.
+If not, return to the original position and throw an error."
+  (interactive)
+  (let ((pos (point)))
+    (call-interactively cmd)
+    (unless (and (bolp) (org-on-heading-p))
+      (goto-char pos)
+      (error "Boundary reached while executing %s" cmd))))
 
 (defvar org-self-insert-command-undo-counter 0)
 
@@ -14899,8 +14993,9 @@ overwritten, and the table is not marked as requiring realignment."
   (interactive "p")
   (cond
    ((and org-use-speed-commands
-	 (bolp)
-	 (looking-at outline-regexp)
+	 (or (and (bolp) (looking-at outline-regexp))
+	     (and (functionp org-use-speed-commands)
+		  (funcall org-use-speed-commands)))
 	 (setq
 	  org-speed-command
 	  (or (cdr (assoc (this-command-keys) org-speed-commands-user))
@@ -16066,7 +16161,11 @@ what in fact did happen.  You don't know how to make a good report?  See
      http://orgmode.org/manual/Feedback.html#Feedback
 
 Your bug report will be posted to the Org-mode mailing list.
-------------------------------------------------------------------------")))
+------------------------------------------------------------------------")
+    (save-excursion
+      (if (re-search-backward "^\\(Subject: \\)Org-mode version \\(.*?\\);[ \t]*\\(.*\\)" nil t)
+	  (replace-match "\\1Bug: \\3 [\\2]")))))
+    
 
 (defun org-install-agenda-files-menu ()
   (let ((bl (buffer-list)))

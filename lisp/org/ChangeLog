@@ -1,3 +1,37 @@
+2009-11-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-as-latex): Add the :drawers property.
+
+2009-11-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-speed-commands-user): Allow documentation headlines.
+	(org-speed-commands-default): Organize the value of this constant
+	with descriptive headlines.
+	(org-print-speed-command): Output the headlines.
+
+2009-11-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-show-outline-path): New option.
+	(org-agenda-do-context-action): New function.
+	(org-agenda-next-line, org-agenda-previous-line): Use
+	`org-agenda-do-context-action'.
+
+	* org.el (org-use-speed-commands): Allow function value.
+	(org-speed-commands-default): Make headline motion safe, so that
+	these commands always end on a headline.
+	(org-speed-commands-default): New key `v' for `org-agenda'.
+	(org-speed-move-safe): New function.
+	(org-self-insert-command): Use the function value of
+	`org-use-speed-commands'.
+	(org-get-outline-path): Improve docstring.
+	(org-format-outline-path): New function.
+	(org-display-outline-path): New function.
+
+2009-11-15  John Wiegley  <jwiegley@gmail.com>
+
+	* org-clock.el (org-clock-resolve): If `org-clock-into-string' is
+	a string, use that to find the LOGBOOK drawer.
+
 2009-11-15  Glenn Morris  <rgm@gnu.org>
 
 	* org-agenda.el (org-datetree-find-date-create)
