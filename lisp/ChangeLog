@@ -1,3 +1,8 @@
+2009-11-15  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (set-mark-default-inactive): Add :type, :group
+	and :version.  (Bug#4876)
+
 2009-11-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* arc-mode.el (archive-maybe-copy): Move creation of directory ...

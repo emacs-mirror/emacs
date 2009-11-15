@@ -3705,7 +3705,10 @@ after C-u \\[set-mark-command]."
 (defcustom set-mark-default-inactive nil
   "If non-nil, setting the mark does not activate it.
 This causes \\[set-mark-command] and \\[exchange-point-and-mark] to
-behave the same whether or not `transient-mark-mode' is enabled.")
+behave the same whether or not `transient-mark-mode' is enabled."
+  :type 'boolean
+  :group 'editing-basics
+  :version "23.1")
 
 (defun set-mark-command (arg)
   "Set the mark where point is, or jump to the mark.
