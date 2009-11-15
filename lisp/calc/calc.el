@@ -2357,7 +2357,7 @@ See calc-keypad for details."
 	  (insert "mod "))))
      (t
       (insert (char-to-string last-command-event))
-      (if (or (and (calc-minibuffer-contains "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9][0-9]?\\)#[#&]?[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\)?\\|.[0-9a-zA-Z]*\\(e[-+]?[0-9]*\\)?\\)?\\'")
+      (if (or (and (calc-minibuffer-contains "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9][0-9]?\\)#[#]?[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\)?\\|.[0-9a-zA-Z]*\\(e[-+]?[0-9]*\\)?\\)?\\'")
 		   (let ((radix (string-to-number
 				 (buffer-substring
 				  (match-beginning 2) (match-end 2)))))
