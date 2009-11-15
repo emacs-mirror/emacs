@@ -1,3 +1,7 @@
+2009-11-15  Carsten Dominik  <dominik@u016822.science.uva.nl>
+
+	* refcards/orgcard.tex: Push version number to 6.33a.
+
 2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Document the new archiving keys.
