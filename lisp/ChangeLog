@@ -1,5 +1,8 @@
 2009-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help-mode.el (help-make-xrefs): Undo the last revert, and replace it
+	with a real fix.
+
 	* novice.el (disabled-command-function): Add useful args.
 	Setup the help buffer so that [back] works.
 	Remove redundant call to help-mode.
