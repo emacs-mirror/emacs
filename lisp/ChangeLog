@@ -1,3 +1,12 @@
+2009-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* novice.el (disabled-command-function): Add useful args.
+	Setup the help buffer so that [back] works.
+	Remove redundant call to help-mode.
+	(disabled-command-function): Use `case'.
+	(en/disable-command): New function extracted from enable-command.
+	(enable-command, disable-command): Use it.
+
 2009-11-14  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-tools-menu): Read and send mail entries are not
