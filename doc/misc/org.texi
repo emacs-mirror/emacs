@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.33
+@set VERSION 6.33c
 @set DATE November 2009
 
 @c Version and Contact Info
@@ -394,6 +394,7 @@ Sample configuration
 Miscellaneous
 
 * Completion::                  M-TAB knows what you need
+* Speed keys::                  Electic commands at the beginning of a headline
 * Customization::               Adapting Org to your taste
 * In-buffer settings::          Overview of the #+KEYWORDS
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
@@ -10323,6 +10324,7 @@ This may be necessary in particular if files include other files via
 
 @menu
 * Completion::                  M-TAB knows what you need
+* Speed keys::                  Electic commands at the beginning of a headline
 * Customization::               Adapting Org to your taste
 * In-buffer settings::          Overview of the #+KEYWORDS
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
@@ -10332,7 +10334,7 @@ This may be necessary in particular if files include other files via
 @end menu
 
 
-@node Completion, Customization, Miscellaneous, Miscellaneous
+@node Completion, Speed keys, Miscellaneous, Miscellaneous
 @section Completion
 @cindex completion, of @TeX{} symbols
 @cindex completion, of TODO keywords
@@ -10394,7 +10396,25 @@ Elsewhere, complete dictionary words using Ispell.
 @end itemize
 @end table
 
-@node Customization, In-buffer settings, Completion, Miscellaneous
+@node Speed keys, Customization, Completion, Miscellaneous
+@section Speed keys
+@cindex speed keys
+@vindex org-use-speed-commands
+@vindex org-speed-commands-user
+
+Single keys can be made to execute commands when the cursor is at the
+beginning of a headline, i.e. before the first star.  Configure the variable
+@code{org-use-speed-commands} to activate this feature.  There is a
+pre-defined list of commands, and you can add more such commands using the
+variable @code{org-speed-commands-user}.  Speed keys do not only speed up
+navigation and other commands, but they also provide an alternative way to
+execute commands bound to keys that are not or not easily available on a tty,
+or on a small mobile device with a limited keyboard.
+
+To see which commands are available, activate the feature and press @kbd{?}
+with the cursor at the beginning of a headline.
+
+@node Customization, In-buffer settings, Speed keys, Miscellaneous
 @section Customization
 @cindex customization
 @cindex options, for customization
@@ -10836,26 +10856,26 @@ customized workaround suits you better.  For example, changing a timestamp
 is really only fun with @kbd{S-@key{cursor}} keys, whereas on a
 tty you would rather use @kbd{C-c .} to re-insert the timestamp.
 
-@multitable @columnfractions 0.15 0.2 0.2
-@item @b{Default} @tab @b{Alternative 1} @tab @b{Alternative 2}
-@item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab
-@item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{@key{Esc} @key{left}}
-@item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab
-@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{@key{Esc} @key{right}}
-@item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab
-@item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{@key{Esc} @key{up}}
-@item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab
-@item @kbd{M-@key{down}}    @tab @kbd{C-c C-x d}           @tab @kbd{@key{Esc} @key{down}}
-@item @kbd{M-S-@key{down}}  @tab @kbd{C-c C-x D}           @tab
-@item @kbd{S-@key{RET}}     @tab @kbd{C-c C-x c}           @tab
-@item @kbd{M-@key{RET}}     @tab @kbd{C-c C-x m}           @tab @kbd{@key{Esc} @key{RET}}
-@item @kbd{M-S-@key{RET}}   @tab @kbd{C-c C-x M}           @tab
-@item @kbd{S-@key{left}}    @tab @kbd{C-c @key{left}}      @tab
-@item @kbd{S-@key{right}}   @tab @kbd{C-c @key{right}}     @tab
-@item @kbd{S-@key{up}}      @tab @kbd{C-c @key{up}}        @tab
-@item @kbd{S-@key{down}}    @tab @kbd{C-c @key{down}}      @tab
-@item @kbd{C-S-@key{left}}  @tab @kbd{C-c C-x @key{left}}  @tab
-@item @kbd{C-S-@key{right}} @tab @kbd{C-c C-x @key{right}} @tab
+@multitable @columnfractions 0.15 0.2 0.1 0.2
+@item @b{Default} @tab @b{Alternative 1} @tab @b{Speed key} @tab @b{Alternative 2} 
+@item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab @kbd{C} @tab                            
+@item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{l} @tab @kbd{@key{Esc} @key{left}} 
+@item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab @kbd{L} @tab                            
+@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{r} @tab @kbd{@key{Esc} @key{right}}
+@item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab @kbd{R} @tab                           
+@item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{up}}  
+@item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab @kbd{U} @tab                           
+@item @kbd{M-@key{down}}    @tab @kbd{C-c C-x d}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{down}}
+@item @kbd{M-S-@key{down}}  @tab @kbd{C-c C-x D}           @tab @kbd{D} @tab                            
+@item @kbd{S-@key{RET}}     @tab @kbd{C-c C-x c}           @tab @kbd{ } @tab
+@item @kbd{M-@key{RET}}     @tab @kbd{C-c C-x m}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{RET}}
+@item @kbd{M-S-@key{RET}}   @tab @kbd{C-c C-x M}           @tab @kbd{ } @tab
+@item @kbd{S-@key{left}}    @tab @kbd{C-c @key{left}}      @tab @kbd{ } @tab
+@item @kbd{S-@key{right}}   @tab @kbd{C-c @key{right}}     @tab @kbd{ } @tab
+@item @kbd{S-@key{up}}      @tab @kbd{C-c @key{up}}        @tab @kbd{ } @tab
+@item @kbd{S-@key{down}}    @tab @kbd{C-c @key{down}}      @tab @kbd{ } @tab
+@item @kbd{C-S-@key{left}}  @tab @kbd{C-c C-x @key{left}}  @tab @kbd{ } @tab
+@item @kbd{C-S-@key{right}} @tab @kbd{C-c C-x @key{right}} @tab @kbd{ } @tab
 @end multitable
 
 
