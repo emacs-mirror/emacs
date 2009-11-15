@@ -1,3 +1,7 @@
+2009-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-buffer-identification): Do not purecopy.
+
 2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-mode-map): Move encryption items to "Operate"
