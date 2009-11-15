@@ -1033,7 +1033,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 		  b = XBUFFER (buf);
 
 		  if (! PER_BUFFER_VALUE_P (b, idx))
-		    PER_BUFFER_VALUE (b, offset) = newval;
+		    SET_PER_BUFFER_VALUE_RAW (b, offset, newval);
 		}
 	    }
 	  break;

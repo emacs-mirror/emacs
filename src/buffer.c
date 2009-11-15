@@ -517,7 +517,7 @@ clone_per_buffer_values (from, to)
 	  set_marker_both (obj, to_buffer, m->charpos, m->bytepos);
 	}
 
-      PER_BUFFER_VALUE (to, offset) = obj;
+      SET_PER_BUFFER_VALUE_RAW (to, offset, obj);
     }
 
   bcopy (from->local_flags, to->local_flags, sizeof to->local_flags);
@@ -826,7 +826,7 @@ reset_buffer_local_variables (b, permanent_too)
 	       || buffer_permanent_local_flags[idx] == 0))
 	  /* Is -2 used anywhere?  */
 	  || idx == -2)
-	PER_BUFFER_VALUE (b, offset) = PER_BUFFER_DEFAULT (offset);
+	SET_PER_BUFFER_VALUE_RAW (b, offset, PER_BUFFER_DEFAULT (offset));
     }
 }
 

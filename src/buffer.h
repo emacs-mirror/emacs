@@ -1066,7 +1066,10 @@ extern int last_per_buffer_idx;
    OFFSET in the buffer structure.  */
 
 #define PER_BUFFER_VALUE(BUFFER, OFFSET) \
-      (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
+      (*find_variable_location ((Lisp_Object *)((OFFSET) + (char *) (BUFFER))))
+
+#define SET_PER_BUFFER_VALUE_RAW(BUFFER, OFFSET, VALUE) \
+      ((*((Lisp_Object *)((OFFSET) + (char *) (BUFFER)))) = (VALUE))
 
 /* Return the symbol of the per-buffer variable at offset OFFSET in
    the buffer structure.  */
