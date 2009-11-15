@@ -52,7 +52,8 @@
 (declare-function calendar-julian-date-string   "cal-julian" (&optional date))
 (declare-function calendar-mayan-date-string    "cal-mayan"  (&optional date))
 (declare-function calendar-persian-date-string  "cal-persia" (&optional date))
-(declare-function org-datetree-find-date-create "org-datetree" (date))
+(declare-function org-datetree-find-date-create "org-datetree"
+		  (date &optional keep-restriction))
 (declare-function org-columns-quit              "org-colview" ())
 (declare-function diary-date-display-form       "diary-lib"  (&optional type))
 (declare-function org-mobile-write-agenda-for-mobile "org-mobile" (file))
@@ -60,7 +61,7 @@
 		  "org-habit" (&optional line))
 (declare-function org-is-habit-p "org-habit" (&optional pom))
 (declare-function org-habit-parse-todo "org-habit" (&optional pom))
-(declare-function org-habit-get-priority "org-habit" (habit))
+(declare-function org-habit-get-priority "org-habit" (habit &optional moment))
 (defvar calendar-mode-map)
 (defvar org-mobile-force-id-on-agenda-items) ; defined in org-mobile.el
 (defvar org-habit-show-habits)

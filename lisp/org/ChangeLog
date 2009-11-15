@@ -1,3 +1,9 @@
+2009-11-15  Glenn Morris  <rgm@gnu.org>
+
+	* org-agenda.el (org-datetree-find-date-create)
+	(org-habit-get-priority):
+	* org.el (org-format-agenda-item): Fix declarations.
+
 2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-clone-subtree-with-time-shift): Make it work at the
