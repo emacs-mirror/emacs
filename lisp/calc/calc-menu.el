@@ -165,6 +165,13 @@
                :keys "b c"
                :active (>= (calc-stack-size) 1)
                :help "Reduce (1:) modulo 2^wordsize"]
+              ["Clip (1:) to [-2^(w-1),2^(w-1))"
+               (progn
+                 (require 'calc-bin)
+                 (call-interactively 'calc-symclip))
+               :keys "b s"
+               :active (>= (calc-stack-size) 1)
+               :help "Reduce (1:) to [-2^(w-1),2^w)"]
               ["(2:) and (1:)"    
                (progn
                  (require 'calc-bin)
@@ -1133,6 +1140,14 @@
                :keys "d 2"
                :style radio
                :selected (= calc-number-radix 2)]
+              ["Twos complement"
+               (progn
+                 (require 'calc-bin)
+                 (call-interactively 
+                  (lambda () (interactive) (calc-binary-radix t))))
+               :keys "C-u d 2"
+               :style radio
+               :selected calc-complement-signed-mode]
               ["Octal"
                (progn
                  (require 'calc-bin)
