@@ -1,3 +1,7 @@
+2009-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-rcs.el (vc-rcs-consult-headers): Add missing save-excursion.
+
 2009-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-service): New defun.
@@ -20,28 +24,27 @@
 
 	* calc/calc-bin.el (calc-word-size): Reset the variables
 	`math-2-word-size' and `math-half-2-word-size'.
-        (math-format-complement-signed, math-symclip, calcFunc-symclip)
-        (calc-symclip): New functions.
+	(math-format-complement-signed, math-symclip, calcFunc-symclip)
+	(calc-symclip): New functions.
 
 	* calc/calc-aent.el (math-read-token): Read complement signed numbers.
 
-	* calc/calc-embed.el (calc-embedded-mode-vars): Add
-	`calc-complement-signed-mode' to the list of modes.
+	* calc/calc-embed.el (calc-embedded-mode-vars):
+	Add `calc-complement-signed-mode' to the list of modes.
 
 	* calc/calc-map.el (calc-get-operator): Add `calc-symclip'.
-        (calc-b-oper-keys): Add `calc-symclip' to list.
+	(calc-b-oper-keys): Add `calc-symclip' to list.
 
 	* calc/calc-ext.el (math-read-number-fancy): Read complement
 	signed numbers.
-        (calc-init-extensions): Add binding for `calc-symclip'.
-        Add autoload for `calcFunc-symclip' and `calc-symclip'.
+	(calc-init-extensions): Add binding for `calc-symclip'.
+	Add autoload for `calcFunc-symclip' and `calc-symclip'.
 
 	* calc/calc-menu.el (calc-arithmetic-menu): Add item for
 	`calc-symclip'.
-        (calc-modes-menu): Add item for twos complement mode.
+	(calc-modes-menu): Add item for twos complement mode.
 
-	* calc/calc-help.el (calc-b-prefix-help):  Add help for
-	`calc-symclip'.
+	* calc/calc-help.el (calc-b-prefix-help):  Add help for `calc-symclip'.
 
 2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
 

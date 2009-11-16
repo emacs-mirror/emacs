@@ -1056,63 +1056,64 @@ Returns: nil            if no headers were found
    ((not (get-file-buffer file)) nil)
    ((let (status version locking-user)
       (with-current-buffer (get-file-buffer file)
-        (goto-char (point-min))
-        (cond
-         ;; search for $Id or $Header
-         ;; -------------------------
-         ;; The `\ 's below avoid an RCS 5.7 bug when checking in this file.
-         ((or (and (search-forward "$Id\ : " nil t)
-                   (looking-at "[^ ]+ \\([0-9.]+\\) "))
-              (and (progn (goto-char (point-min))
-                          (search-forward "$Header\ : " nil t))
-                   (looking-at "[^ ]+ \\([0-9.]+\\) ")))
-          (goto-char (match-end 0))
-          ;; if found, store the revision number ...
-          (setq version (match-string-no-properties 1))
-          ;; ... and check for the locking state
-          (cond
-           ((looking-at
-             (concat "[0-9]+[/-][01][0-9][/-][0-3][0-9] "             ; date
-              "[0-2][0-9]:[0-5][0-9]+:[0-6][0-9]+\\([+-][0-9:]+\\)? " ; time
-                     "[^ ]+ [^ ]+ "))                       ; author & state
-            (goto-char (match-end 0)) ; [0-6] in regexp handles leap seconds
-            (cond
-             ;; unlocked revision
-             ((looking-at "\\$")
-              (setq locking-user 'none)
-              (setq status 'rev-and-lock))
-             ;; revision is locked by some user
-             ((looking-at "\\([^ ]+\\) \\$")
-              (setq locking-user (match-string-no-properties 1))
-              (setq status 'rev-and-lock))
-             ;; everything else: false
-             (nil)))
-           ;; unexpected information in
-           ;; keyword string --> quit
-           (nil)))
-         ;; search for $Revision
-         ;; --------------------
-         ((re-search-forward (concat "\\$"
-                                     "Revision: \\([0-9.]+\\) \\$")
-                             nil t)
-          ;; if found, store the revision number ...
-          (setq version (match-string-no-properties 1))
-          ;; and see if there's any lock information
+        (save-excursion
           (goto-char (point-min))
-          (if (re-search-forward (concat "\\$" "Locker:") nil t)
-              (cond ((looking-at " \\([^ ]+\\) \\$")
-                     (setq locking-user (match-string-no-properties 1))
-                     (setq status 'rev-and-lock))
-                    ((looking-at " *\\$")
-                     (setq locking-user 'none)
-                     (setq status 'rev-and-lock))
-                    (t
-                     (setq locking-user 'none)
-                     (setq status 'rev-and-lock)))
-            (setq status 'rev)))
-         ;; else: nothing found
-         ;; -------------------
-         (t nil)))
+          (cond
+           ;; search for $Id or $Header
+           ;; -------------------------
+           ;; The `\ 's below avoid an RCS 5.7 bug when checking in this file.
+           ((or (and (search-forward "$Id\ : " nil t)
+                     (looking-at "[^ ]+ \\([0-9.]+\\) "))
+                (and (progn (goto-char (point-min))
+                            (search-forward "$Header\ : " nil t))
+                     (looking-at "[^ ]+ \\([0-9.]+\\) ")))
+            (goto-char (match-end 0))
+            ;; if found, store the revision number ...
+            (setq version (match-string-no-properties 1))
+            ;; ... and check for the locking state
+            (cond
+             ((looking-at
+               (concat "[0-9]+[/-][01][0-9][/-][0-3][0-9] "              ; date
+                 "[0-2][0-9]:[0-5][0-9]+:[0-6][0-9]+\\([+-][0-9:]+\\)? " ; time
+                       "[^ ]+ [^ ]+ "))                        ; author & state
+              (goto-char (match-end 0)) ; [0-6] in regexp handles leap seconds
+              (cond
+               ;; unlocked revision
+               ((looking-at "\\$")
+                (setq locking-user 'none)
+                (setq status 'rev-and-lock))
+               ;; revision is locked by some user
+               ((looking-at "\\([^ ]+\\) \\$")
+                (setq locking-user (match-string-no-properties 1))
+                (setq status 'rev-and-lock))
+               ;; everything else: false
+               (nil)))
+             ;; unexpected information in
+             ;; keyword string --> quit
+             (nil)))
+           ;; search for $Revision
+           ;; --------------------
+           ((re-search-forward (concat "\\$"
+                                       "Revision: \\([0-9.]+\\) \\$")
+                               nil t)
+            ;; if found, store the revision number ...
+            (setq version (match-string-no-properties 1))
+            ;; and see if there's any lock information
+            (goto-char (point-min))
+            (if (re-search-forward (concat "\\$" "Locker:") nil t)
+                (cond ((looking-at " \\([^ ]+\\) \\$")
+                       (setq locking-user (match-string-no-properties 1))
+                       (setq status 'rev-and-lock))
+                      ((looking-at " *\\$")
+                       (setq locking-user 'none)
+                       (setq status 'rev-and-lock))
+                      (t
+                       (setq locking-user 'none)
+                       (setq status 'rev-and-lock)))
+              (setq status 'rev)))
+           ;; else: nothing found
+           ;; -------------------
+           (t nil))))
      (if status (vc-file-setprop file 'vc-working-revision version))
      (and (eq status 'rev-and-lock)
 	  (vc-file-setprop file 'vc-state
