@@ -850,33 +850,6 @@ the size of a Calc bignum digit.")
      "##"
      num)))
 
-(defun math-symclip (a)
-  "Reduce A to between -2^(w-1) and 2^(w-1)-1."
-  (if (not (Math-num-integerp a))
-      (math-reject-arg a 'integerp)
-    (if (and (Math-lessp a math-half-2-word-size)
-             (let 
-                 ((comparison (math-compare (Math-integer-neg a) math-half-2-word-size)))
-               (or (= comparison 0)
-                   (= comparison -1))))
-        a
-      (let ((smalla (math-clip a)))
-        (if (Math-lessp smalla math-half-2-word-size)
-            smalla
-          (math-sub smalla math-2-word-size))))))
-
-(defalias 'calcFunc-symclip 'math-symclip)
-
-(defun calc-symclip (n)
-  "Reduce N to between -2^(w-1) and 2^(w-1)-1."
-  (interactive "P")
-  (calc-slow-wrapper
-   (calc-enter-result 1 "sclp"
-		      (append '(calcFunc-symclip)
-			      (calc-top-list-n 1)
-			      (and n (list (prefix-numeric-value n)))))))
-
-
 (provide 'calc-bin)
 
 ;; arch-tag: f6dba7bc-53b2-41ae-919c-c266ab0ca8b3
