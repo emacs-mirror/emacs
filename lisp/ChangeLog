@@ -1,3 +1,9 @@
+2009-11-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs-lisp/bytecomp.el (byte-compile-output-file-form):
+	Quote doc string reference in defvaralias as it is not in special form.
+	(byte-compile-output-docform): Doc fix.
+
 2009-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-2-word-size, math-half-2-word-size)
