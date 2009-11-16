@@ -183,6 +183,23 @@ association to the service from D-Bus."
     ;; Return.
     ret))
 
+(defun dbus-unregister-service (bus service)
+  "Unregister all objects related to SERVICE from D-Bus BUS.
+BUS must be either the symbol `:system' or the symbol `:session'.
+SERVICE must be a known service name."
+  (maphash
+   (lambda (key value)
+     (dolist (elt value)
+       (ignore-errors
+	 (when (and (equal bus (car key)) (string-equal service (cadr elt)))
+	   (unless
+	       (puthash key (delete elt value) dbus-registered-objects-table)
+	     (remhash key dbus-registered-objects-table))))))
+   dbus-registered-objects-table)
+  (dbus-call-method
+   bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+   "ReleaseName" service))
+
 (defun dbus-call-method-non-blocking-handler (&rest args)
   "Handler for reply messages of asynchronous D-Bus message calls.
 It calls the function stored in `dbus-registered-objects-table'.
@@ -883,14 +900,11 @@ PATH, including a default handler for the \"Get\", \"GetAll\" and
   ;; Add the handler.  We use `dbus-service-emacs' as service name, in
   ;; order to let unregister SERVICE despite of this default handler.
   (dbus-register-method
-   bus dbus-service-emacs path dbus-interface-properties
-   "Get" 'dbus-property-handler)
+   bus service path dbus-interface-properties "Get" 'dbus-property-handler)
   (dbus-register-method
-   bus dbus-service-emacs path dbus-interface-properties
-   "GetAll" 'dbus-property-handler)
+   bus service path dbus-interface-properties "GetAll" 'dbus-property-handler)
   (dbus-register-method
-   bus dbus-service-emacs path dbus-interface-properties
-   "Set" 'dbus-property-handler)
+   bus service path dbus-interface-properties "Set" 'dbus-property-handler)
 
   ;; Create a hash table entry.  We use nil for the unique name,
   ;; because the property might be accessed from anybody.
@@ -902,9 +916,8 @@ PATH, including a default handler for the \"Get\", \"GetAll\" and
     (list key (list service path))))
 
 (defun dbus-property-handler (&rest args)
-  "Handler for reply messages of asynchronous D-Bus message calls.
-It calls the function stored in `dbus-registered-objects-table'.
-The result will be made available in `dbus-return-values-table'."
+  "Default Handler for the \"org.freedesktop.DBus.Properties\" interface.
+It will be registered for all objects created by `dbus-register-object'."
   (let ((bus (dbus-event-bus-name last-input-event))
 	(path (dbus-event-path-name last-input-event))
 	(method (dbus-event-member-name last-input-event))
