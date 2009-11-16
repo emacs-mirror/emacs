@@ -42,8 +42,6 @@
 
 ;; (eval-when-compile (require 'hippie-exp))
 
-(declare-function semanticdb-fast-strip-find-results "semantic/db-find")
-(declare-function semanticdb-deep-find-tags-for-completion "semantic/db-find")
 (declare-function semantic-analyze-tag-references "semantic/analyze/refs")
 (declare-function semantic-analyze-refs-impl "semantic/analyze/refs")
 (declare-function semantic-analyze-find-tag "semantic/analyze")
