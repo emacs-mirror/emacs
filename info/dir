@@ -71,7 +71,8 @@ Emacs misc features
                           by filling in forms.
 * PCL-CVS: (pcl-cvs).   Emacs front-end to CVS.
 * RefTeX: (reftex).     Emacs support for LaTeX cross-references and citations.
-* Remember: (remember). Simple information manager for Emacs
+* Remember: (remember). Simple information manager for Emacs.
+* Semantic: (semantic). Source code parsing utilities for Emacs.
 * SES: (ses).       Simple Emacs Spreadsheet
 * Speedbar: (speedbar). File/Tag summarizing utility.
 * VIP: (vip).           An older VI-emulation for Emacs.
