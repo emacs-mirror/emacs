@@ -360,13 +360,14 @@ property of the major mode name.")
 (put 'nxml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 
 (defun sgml-mode-flyspell-verify ()
-  "Function used for `flyspell-generic-check-word-predicate' in SGML mode."
-  (not (save-excursion
-	 (or (looking-at "[^<\n]*>")
-	     (ispell-looking-back "<[^>\n]*" (line-beginning-position))
-	     (and (looking-at "[^&\n]*;")
-		  (ispell-looking-back "&[^;\n]*"
-                                       (line-beginning-position)))))))
+  "Function used for `flyspell-generic-check-word-predicate' in SGML mode.
+Tag and attribute names are not spell checked, everything else is.
+
+String values of attributes are checked because they can be text
+like <img alt=\"Some thing.\">."
+
+  (not (memq (car (sgml-lexical-context))
+	     '(tag pi))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    Programming mode                                                 */
