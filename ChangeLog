@@ -1,3 +1,8 @@
+2009-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Use a more restrictive Makefile
+	pattern, so as not to exclude makefile*.el.  (Bug#4912)
+
 2009-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: --enable-autodepend is new.  Check for GNU Make

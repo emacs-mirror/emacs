@@ -495,7 +495,8 @@ install-arch-indep: mkdir info install-etc
 		rm -f  $${subdir}/*~ ; \
 		rm -f  $${subdir}/*.orig ; \
 		[ "$${dir}" != "${srcdir}/etc" ] && \
-			rm -f  $${subdir}/[mM]akefile* ; \
+		 rm -f $${subdir}/[mM]akefile*.c $${subdir}/[mM]akefile*[.-]in \
+		   $${subdir}/[mM]akefile ; \
 		rm -f  $${subdir}/ChangeLog* ; \
 		rm -f  $${subdir}/dired.todo ; \
 	      done) ; \
