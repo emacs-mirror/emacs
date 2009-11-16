@@ -1,3 +1,8 @@
+2009-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add semantic.
+	($(infodir)/semantic, semantic.dvi): New targets.
+
 2009-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in: Build the Semantic manual.
@@ -201,7 +206,7 @@
 2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Version Control): Remove.
-	(Obtaining Tramp): Update cvs checkout command. Remove nightly tarballs
+	(Obtaining Tramp): Update cvs checkout command.  Remove nightly tarballs
 	reference.
 	(External methods): Correct `scpc' concept index entries.  New method
 	`rsyncc'.
@@ -914,7 +919,7 @@
 2008-12-04  David Engster  <dengste@eml.cc>
 
 	* gnus.texi (nnmairix): Mention mairix.el.  Point out the importance
-	  of nnml-get-new-mail.  Change URL for mairix patch.
+	of nnml-get-new-mail.  Change URL for mairix patch.
 
 2008-12-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -5115,7 +5120,7 @@
 
 	* url.texi: Correct typos.
 	(Retrieving URLs): @var{nil}->@code{nil}.
-	(HTTP language/coding, mailto): Replace  "GNU Emacs Manual" with
+	(HTTP language/coding, mailto): Replace "GNU Emacs Manual" with
 	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
 	(Dealing with HTTP documents): @inforef->@xref.
 

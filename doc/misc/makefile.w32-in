@@ -45,7 +45,8 @@ INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/flymake $(infodir)/newsticker $(infodir)/rcirc \
 		$(infodir)/erc $(infodir)/remember $(infodir)/nxml-mode \
 		$(infodir)/epa $(infodir)/mairix-el $(infodir)/sasl \
-		$(infodir)/auth $(infodir)/eieio $(infodir)/ede
+		$(infodir)/auth $(infodir)/eieio $(infodir)/ede \
+		$(infodir)/semantic
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
 		sieve.dvi pgg.dvi mh-e.dvi \
@@ -54,7 +55,8 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
 		newsticker.dvi rcirc.dvi erc.dvi remember.dvi nxml-mode.dvi \
-		epa.dvi mairix-el.dvi sasl.dvi auth.dvi eieio.dvi ede.dvi
+		epa.dvi mairix-el.dvi sasl.dvi auth.dvi eieio.dvi ede.dvi \
+		semantic.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -324,6 +326,11 @@ $(infodir)/ede: ede.texi
 ede.dvi: ede.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ede.texi
 
+$(infodir)/semantic: semantic.texi
+	$(MAKEINFO) semantic.texi
+semantic.dvi: semantic.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/semantic.texi
+
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -350,7 +357,8 @@ clean: mostlyclean
 		 $(infodir)/remember* $(infodir)/nxml-mode* \
 		 $(infodir)/epa* $(infodir)/sasl* \
 		 $(infodir)/mairix-el* $(infodir)/auth* \
-		 $(infodir)/eieio* $(infodir)/ede*
+		 $(infodir)/eieio* $(infodir)/ede* \
+		 $(infodir)/semantic*
 
 distclean: clean
 	- $(DEL) makefile
