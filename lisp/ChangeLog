@@ -1,3 +1,9 @@
+2009-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-dbus-event-error): Raise only an
+	error when `tramp-gvfs-dbus-event-vector' is set.
+	(tramp-gvfs-maybe-open-connection): Loop over `read-event'.
+
 2009-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-rcs.el (vc-rcs-consult-headers): Add missing save-excursion.
@@ -5,7 +11,7 @@
 2009-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-service): New defun.
-	(dbus-register-property): Register the handlers for
+	(dbus-register-property): Register the handlers of
 	"org.freedesktop.DBus.Properties" for SERVICE.
 	(dbus-property-handler): Fix docstring.
 
