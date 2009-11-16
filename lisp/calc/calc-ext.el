@@ -198,7 +198,6 @@
   (define-key calc-mode-map "bo" 'calc-or)
   (define-key calc-mode-map "bp" 'calc-pack-bits)
   (define-key calc-mode-map "br" 'calc-rshift-binary)
-  (define-key calc-mode-map "bs" 'calc-symclip)
   (define-key calc-mode-map "bt" 'calc-rotate-binary)
   (define-key calc-mode-map "bu" 'calc-unpack-bits)
   (define-key calc-mode-map "bw" 'calc-word-size)
@@ -763,7 +762,7 @@ math-quarter-integer math-round math-setup-declarations math-sqr
 math-sqr-float math-trunc-fancy math-trunc-special)
 
  ("calc-bin" calcFunc-and calcFunc-ash
-calcFunc-clip calcFunc-diff calcFunc-symclip calcFunc-lsh calcFunc-not calcFunc-or
+calcFunc-clip calcFunc-diff calcFunc-lsh calcFunc-not calcFunc-or
 calcFunc-rash calcFunc-rot calcFunc-rsh calcFunc-xor math-clip
 math-compute-max-digits math-convert-radix-digits math-float-parts
 math-format-bignum-binary math-format-bignum-hex
@@ -989,7 +988,7 @@ calc-floor calc-idiv calc-increment calc-mant-part calc-max calc-min
 calc-round calc-scale-float calc-sign calc-trunc calc-xpon-part)
 
  ("calc-bin" calc-and calc-binary-radix calc-clip calc-complement-signed-mode
-calc-decimal-radix calc-diff calc-hex-radix calc-symclip calc-leading-zeros 
+calc-decimal-radix calc-diff calc-hex-radix calc-leading-zeros 
 calc-lshift-arith calc-lshift-binary calc-not calc-octal-radix calc-or calc-radix
 calc-rotate-binary calc-rshift-arith calc-rshift-binary calc-word-size
 calc-xor)
