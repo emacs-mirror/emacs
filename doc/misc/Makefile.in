@@ -74,6 +74,7 @@ INFO_TARGETS = \
 	$(infodir)/reftex \
 	$(infodir)/sasl \
 	$(infodir)/sc \
+	$(infodir)/semantic \
 	$(infodir)/ses \
 	$(infodir)/sieve \
 	$(infodir)/smtpmail \
@@ -122,6 +123,7 @@ DVI_TARGETS = \
 	remember.dvi \
 	sasl.dvi \
 	sc.dvi \
+	semantic.dvi \
 	ses.dvi \
 	sieve.dvi \
 	smtpmail.dvi \
@@ -382,6 +384,12 @@ $(infodir)/sc: sc.texi
 	cd $(srcdir); $(MAKEINFO) sc.texi
 sc.dvi: sc.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sc.texi
+
+semantic : $(infodir)/semantic
+$(infodir)/semantic: semantic.texi sem-user.texi
+	cd $(srcdir); $(MAKEINFO) semantic.texi
+semantic.dvi: semantic.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/semantic.texi
 
 ses : $(infodir)/ses
 $(infodir)/ses: ses.texi

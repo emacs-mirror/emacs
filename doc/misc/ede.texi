@@ -132,9 +132,9 @@ information.
 @node EDE Mode, Creating a project, EDE Project Concepts, top
 @chapter @ede{} Mode
 
-@ede{} is implemented as a minor-mode, which augments other modes such as C
-mode, and Texinfo mode.  You can turn @ede{} on for all buffers by running
-the command @code{global-ede-mode}, or by putting this in your
+@ede{} is implemented as a minor-mode, which augments other modes such
+as C mode, and Texinfo mode.  You can enable @ede{} for all buffers by
+running the command @code{global-ede-mode}, or by putting this in your
 @file{~/.emacs} file:
 
 @example

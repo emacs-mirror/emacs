@@ -1,3 +1,10 @@
+2009-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Build the Semantic manual.
+
+	* semantic.texi, sem-user.texi: New files, adapted from the Semantic
+	repository.
+
 2009-11-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Receiving Method Calls): New defun
