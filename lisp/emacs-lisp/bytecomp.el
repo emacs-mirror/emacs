@@ -1925,7 +1925,7 @@ Call from the source buffer."
 
 (defun byte-compile-output-file-form (form)
   ;; writes the given form to the output buffer, being careful of docstrings
-  ;; in defun, defmacro, defvar, defconst, autoload and
+  ;; in defun, defmacro, defvar, defvaralias, defconst, autoload and
   ;; custom-declare-variable because make-docfile is so amazingly stupid.
   ;; defalias calls are output directly by byte-compile-file-form-defmumble;
   ;; it does not pay to first build the defalias in defmumble and then parse
@@ -1935,7 +1935,8 @@ Call from the source buffer."
 	   (stringp (nth 3 form)))
       (byte-compile-output-docform nil nil '("\n(" 3 ")") form nil
 				   (memq (car form)
-					 '(autoload custom-declare-variable)))
+					 '(defvaralias autoload
+					   custom-declare-variable)))
     (let ((print-escape-newlines t)
 	  (print-length nil)
 	  (print-level nil)
@@ -1959,7 +1960,7 @@ we output that argument and the following argument
 \(the constants vector) together, for lazy loading.
 QUOTED says that we have to put a quote before the
 list that represents a doc string reference.
-`autoload' and `custom-declare-variable' need that."
+`defvaralias', `autoload' and `custom-declare-variable' need that."
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
