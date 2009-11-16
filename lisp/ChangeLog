@@ -1,3 +1,10 @@
+2009-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-unregister-service): New defun.
+	(dbus-register-property): Register the handlers for
+	"org.freedesktop.DBus.Properties" for SERVICE.
+	(dbus-property-handler): Fix docstring.
+
 2009-11-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs-lisp/bytecomp.el (byte-compile-output-file-form):
