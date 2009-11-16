@@ -337,7 +337,9 @@
 ;;
 ;;   Insert the revision log for FILES into BUFFER.
 ;;   If SHORTLOG is true insert a short version of the log.
-;;   If LIMIT is true insert only insert LIMIT log entries.
+;;   If LIMIT is true insert only insert LIMIT log entries.  If the
+;;   backend does not support limiting the number of entries to show
+;;   it should return `limit-unsupported'.
 ;;
 ;; - log-view-mode ()
 ;;
@@ -694,7 +696,7 @@ to use -L and sets this variable to remember whether it worked."
   :type '(choice (const :tag "Work out" nil) (const yes) (const no))
   :group 'vc)
 
-(defcustom vc-log-show-limit 0
+(defcustom vc-log-show-limit 2000
   "Limit the number of items shown by the VC log commands.
 Zero means unlimited.
 Not all VC backends are able to support this feature."
@@ -1850,7 +1852,8 @@ Not all VC backends support short logs!")
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
   (let ((dir-present nil)
-	(vc-short-log nil))
+	(vc-short-log nil)
+	pl-return)
     (dolist (file files)
       (when (file-directory-p file)
 	(setq dir-present t)))
@@ -1858,7 +1861,9 @@ Not all VC backends support short logs!")
 	  (not (null (if dir-present
 			 (memq 'directory vc-log-short-style)
 		       (memq 'file vc-log-short-style)))))
-    (vc-call-backend backend 'print-log files "*vc-change-log*" vc-short-log limit)
+
+    (setq pl-return (vc-call-backend backend 'print-log files "*vc-change-log*"
+				     vc-short-log limit))
     (pop-to-buffer "*vc-change-log*")
     (vc-exec-after
      `(let ((inhibit-read-only t)
@@ -1866,6 +1871,23 @@ Not all VC backends support short logs!")
 	(vc-call-backend ',backend 'log-view-mode)
 	(set (make-local-variable 'log-view-vc-backend) ',backend)
 	(set (make-local-variable 'log-view-vc-fileset) ',files)
+
+	(when (and ,limit (not (eq 'limit-unsupported pl-return)))
+	  (goto-char (point-max))
+	  (widget-create 'push-button
+			 :notify (lambda (&rest ignore)
+				   (vc-print-log-internal
+				    ',backend ',files ',working-revision (* 2 ,limit)))
+			 :help-echo "Show the log again, and double the number of log entries shown"
+			 "Show 2X entries")
+	  (widget-insert "    ")
+	  (widget-create 'push-button
+			 :notify (lambda (&rest ignore)
+				   (vc-print-log-internal
+				    ',backend ',files ',working-revision nil))
+			 :help-echo "Show the log again, showing all entries"
+			 "Show unlimited entries")
+	  (widget-setup))
 
 	(shrink-window-if-larger-than-buffer)
 	;; move point to the log entry for the working revision

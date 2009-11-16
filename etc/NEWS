@@ -201,6 +201,13 @@ file.
 *** FIXME: add info about the new VC functions: vc-root-diff and
 vc-root-print-log once they stabilize.
 
+*** The log functions (C-x v l and C-x v L) do not show the full log
+by default anymore.  The number of entries shown can be chosen
+interactively with a prefix argument, by customizing
+vc-log-show-limit.  The log buffer display buttons that can be used
+to change the number of entries shown.
+RCS, SCCS, CVS and Git do not support this feature.
+
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take

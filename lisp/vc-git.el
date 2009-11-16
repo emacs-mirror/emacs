@@ -526,7 +526,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 			    "--")
 	  (vc-git-command buffer 'async files
 			  "rev-list" ;; "--graph"
-			  "--pretty" "HEAD" "--"))))))
+			  "--pretty" "HEAD" "--")))
+        (when limit 'limit-unsupported))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)

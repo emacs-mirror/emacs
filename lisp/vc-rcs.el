@@ -564,7 +564,8 @@ directory the operation is applied to all registered files beneath it."
 directory the operation is applied to all registered files beneath it."
   (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
   (with-current-buffer (or buffer "*vc*")
-    (vc-rcs-print-log-cleanup)))
+    (vc-rcs-print-log-cleanup))
+  (when limit 'limit-unsupported))
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."

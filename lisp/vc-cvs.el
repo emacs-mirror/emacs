@@ -505,7 +505,8 @@ Will fail unless you have administrative privileges on the repo."
    (if (vc-stay-local-p files 'CVS) 'async 0)
    files "log")
   (with-current-buffer buffer
-    (vc-exec-after (vc-rcs-print-log-cleanup))))
+    (vc-exec-after (vc-rcs-print-log-cleanup)))
+  (when limit 'limit-unsupported))
 
 (defun vc-cvs-comment-history (file)
   "Get comment history of a file."
