@@ -575,7 +575,7 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-b-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("And, Or, Xor, Diff, Not; Wordsize, Clip"
+   '("And, Or, Xor, Diff, Not; Wordsize, Clip, Symclip"
      "Lshift, Rshift, roTate; SHIFT + signed Lshift, Rshift"
      "SHIFT + business: Pv, Npv, Fv, pMt, #pmts, raTe, Irr"
      "SHIFT + business: Sln, sYd, Ddb; %ch")
