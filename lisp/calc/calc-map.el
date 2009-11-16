@@ -308,6 +308,7 @@
 				( ?d 2 calcFunc-diff )
 				( ?n 1 calcFunc-not )
 				( ?c 1 calcFunc-clip )
+				( ?s 1 calcFunc-symclip )
 				( ?l 2 calcFunc-lsh )
 				( ?r 2 calcFunc-rsh )
 				( ?L 2 calcFunc-ash )
@@ -508,7 +509,7 @@
 		 "SHIFT + Abs, conJ, arG; maX, miN; Floor, Round; sQrt"
 		 "SHIFT + Inv, Hyp; Sin, Cos, Tan; Exp, Ln, logB"
 		 "Algebra + Simp, Esimp, Deriv, Integ, !, =, etc."
-		 "Binary + And, Or, Xor, Diff; l/r/t/L/R shifts; Not, Clip"
+		 "Binary + And, Or, Xor, Diff; l/r/t/L/R shifts; Not, Clip, Symclip"
 		 "Conversions + Deg, Rad, HMS; Float; SHIFT + Fraction"
 		 "Functions + Re, Im; Hypot; Mant, Expon, Scale; etc."
 		 "Kombinatorics + Dfact, Lcm, Gcd, Choose; Random; etc."
