@@ -1,3 +1,7 @@
+2009-11-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_menu_wait_for_event): Call XFlush before select.
+
 2009-11-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in: Ignore errors from mkdir when creating deps

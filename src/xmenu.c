@@ -440,6 +440,7 @@ x_menu_wait_for_event (void *data)
       else
         ntp = &next_time;
 
+      XFlush ((Display*) data);
       select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
     }
 }
