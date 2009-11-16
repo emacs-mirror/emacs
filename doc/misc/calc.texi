@@ -13173,6 +13173,42 @@ are displayed with at least enough digits to represent
 in the current radix.  (Larger integers will still be displayed in their
 entirety.) 
 
+With the command @kbd{C-u d 2}, Calc will display integers using
+twos-complement notation, using the current word-size to determine
+the number of bits.  When using twos-complement notation, a negative
+word size might be appropriate (@pxref{Binary Functions}).  If the
+absolute value of the word size is @expr{w}, then twos-complement
+notation will represent the integers in the symmetric interval from
+@texline @math{-2^{w-1}}
+@infoline @expr{-2^(w-1)}
+to
+@texline @math{2^{w-1}-1}
+@infoline @expr{2^(w-1)-1}
+using the binary numbers from @expr{0} to @expr{2^w}; the
+integers from @expr{0} to 
+@texline @math{2^{w-1}-1}
+@infoline @expr{2^(w-1)-1}
+will be represented by their usual binary form and the integers
+from 
+@texline @math{-2^{w-1}}
+@infoline @expr{-2^(w-1)}
+to @expr{-1} will be represented by first adding @expr{2^w} to them
+and then using the usual binary form (so they will be represented by
+the integers from
+@texline @math{2^{w-1}}
+@infoline @expr{2^(w-1)}
+to @expr{2^w}).  Calc will represent a twos-complement integer
+by the radix @expr{2}, two @kbd{#} symbols, and the @expr{w} binary
+digits (including any necessary leading zeros).  Numbers that are not
+displayed in twos-complement notation (i.e., that aren't integers from 
+@texline @math{-2^{w-1}}
+@infoline @expr{-2^(w-1)}
+to 
+@c (
+@texline @math{2^{w-1}-1})
+@infoline @expr{2^(w-1)-1})
+will be represented using Calc's usual binary notation.
+
 @node Grouping Digits, Float Formats, Radix Modes, Display Modes
 @subsection Grouping Digits
 
@@ -17969,7 +18005,7 @@ of the binary operations described here operate modulo @expr{2^w}.  In
 particular, negative arguments are converted to positive integers modulo
 @expr{2^w} by all binary functions.
 
-If the word size is negative, binary operations produce 2's complement
+If the word size is negative, binary operations produce twos-complement
 integers from 
 @texline @math{-2^{-w-1}}
 @infoline @expr{-(2^(-w-1))} 
