@@ -1,3 +1,8 @@
+2009-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): New defun
+	`dbus-unregister-service'.
+
 2009-11-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Speed keys): New section.
