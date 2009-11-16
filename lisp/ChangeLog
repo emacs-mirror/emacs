@@ -4,6 +4,12 @@
 	`sgml-lexical-context' instead of own parse for tag.  (Further to
 	Bug#4511).
 
+	* emacs-lisp/lisp-mnt.el (lm-keywords): Allow multi-line keywords.
+	(lm-keywords-list): Allow comma-only separator like "foo,bar".
+	Ignore trailing spaces by omit-nulls to split-string (fixing
+	regression from Emacs 21 due to the incompatible split-string
+	change).  (Bug #4928.)  
+
 2009-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el	(vc-log-show-limit): Default to 2000.
