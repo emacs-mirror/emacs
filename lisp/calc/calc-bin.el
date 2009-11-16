@@ -154,6 +154,10 @@ the size of a Calc bignum digit.")
 	 (calc-change-mode '(calc-word-size calc-previous-modulo)
 			   (list n (math-power-of-2 (math-abs n)))
 			   calc-leading-zeros)))
+   (setq math-2-word-size (math-power-of-2 (math-abs n)))
+   (setq math-half-2-word-size (math-power-of-2 (1- (math-abs n))))
+   (calc-do-refresh)
+   (calc-refresh-evaltos)
    (if (< n 0)
        (message "Binary word size is %d bits (2's complement)" (- n))
      (message "Binary word size is %d bits" n))))
@@ -164,24 +168,28 @@ the size of a Calc bignum digit.")
 
 ;;; d-prefix mode commands.
 
-(defun calc-radix (n)
+(defun calc-radix (n &optional arg)
   (interactive "NDisplay radix (2-36): ")
   (calc-wrapper
    (if (and (>= n 2) (<= n 36))
        (progn
-	 (calc-change-mode 'calc-number-radix n t)
+	 (calc-change-mode 
+          (list 'calc-number-radix 'calc-complement-signed-mode)
+          (list n (and (= n 2) arg)) t)
 	 ;; also change global value so minibuffer sees it
 	 (setq-default calc-number-radix calc-number-radix))
      (setq n calc-number-radix))
-   (message "Number radix is %d" n)))
+   (if calc-complement-signed-mode
+       (message "Number radix is %d, complement signed mode is on." n)
+     (message "Number radix is %d" n))))
 
 (defun calc-decimal-radix ()
   (interactive)
   (calc-radix 10))
 
-(defun calc-binary-radix ()
-  (interactive)
-  (calc-radix 2))
+(defun calc-binary-radix (&optional arg)
+  (interactive "P")
+  (calc-radix 2 arg))
 
 (defun calc-octal-radix ()
   (interactive)
@@ -811,6 +819,63 @@ the size of a Calc bignum digit.")
 						      (math-float
 						       calc-number-radix))))))
 			       math-radix-float-cache))))))))
+
+;;; Complement signed mode
+
+(defun math-format-complement-signed (a)
+  "Format an integer in complement signed mode."
+  (let* (;(calc-leading-zeros t)
+         (overflow nil)
+         (negative nil)
+         (num
+          (cond
+           ((or (eq a 0)
+                (and (Math-integer-posp a)))
+            (if (integerp a)
+                (math-format-radix a)
+              (math-format-bignum-radix (cdr a))))
+           ((Math-integer-negp a)
+            (let ((newa (math-add a math-2-word-size)))
+              (if (integerp newa)
+                  (math-format-radix newa)
+                (math-format-bignum-radix (cdr newa))))))))
+    (let* ((calc-internal-prec 6)
+           (digs (math-compute-max-digits (math-abs calc-word-size)
+                                          calc-number-radix))
+           (len (length num)))
+      (if (< len digs)
+          (setq num (concat (make-string (- digs len) ?0) num))))
+    (concat 
+     (number-to-string calc-number-radix)
+     "##"
+     num)))
+
+(defun math-symclip (a)
+  "Reduce A to between -2^(w-1) and 2^(w-1)-1."
+  (if (not (Math-num-integerp a))
+      (math-reject-arg a 'integerp)
+    (if (and (Math-lessp a math-half-2-word-size)
+             (let 
+                 ((comparison (math-compare (Math-integer-neg a) math-half-2-word-size)))
+               (or (= comparison 0)
+                   (= comparison -1))))
+        a
+      (let ((smalla (math-clip a)))
+        (if (Math-lessp smalla math-half-2-word-size)
+            smalla
+          (math-sub smalla math-2-word-size))))))
+
+(defalias 'calcFunc-symclip 'math-symclip)
+
+(defun calc-symclip (n)
+  "Reduce N to between -2^(w-1) and 2^(w-1)-1."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-enter-result 1 "sclp"
+		      (append '(calcFunc-symclip)
+			      (calc-top-list-n 1)
+			      (and n (list (prefix-numeric-value n)))))))
+
 
 (provide 'calc-bin)
 
