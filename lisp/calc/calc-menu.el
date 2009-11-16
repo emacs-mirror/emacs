@@ -165,13 +165,6 @@
                :keys "b c"
                :active (>= (calc-stack-size) 1)
                :help "Reduce (1:) modulo 2^wordsize"]
-              ["Clip (1:) to [-2^(w-1),2^(w-1))"
-               (progn
-                 (require 'calc-bin)
-                 (call-interactively 'calc-symclip))
-               :keys "b s"
-               :active (>= (calc-stack-size) 1)
-               :help "Reduce (1:) to [-2^(w-1),2^w)"]
               ["(2:) and (1:)"    
                (progn
                  (require 'calc-bin)
