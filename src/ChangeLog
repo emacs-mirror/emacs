@@ -1,3 +1,9 @@
+2009-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu.c (Fx_popup_menu) [HAVE_NS]: Use generic code for window edge.
+	Suggested by Chad Brown <yandros@mit.edu>.
+	(push_menu_item): Use MENU_ITEMS_ITEM_* names.
+
 2009-11-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (x_menu_wait_for_event): Call XFlush before select.
@@ -19,11 +25,10 @@
 
 2009-11-13  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c (Vdbus_registered_objects_table): Renamed from
+	* dbusbind.c (Vdbus_registered_objects_table): Rename from
 	Vdbus_registered_functions_table, because it contains also
 	properties.  Fix docstring.
-	(Fdbus_call_method, Fdbus_call_method_asynchronously): Fix
-	docstring.
+	(Fdbus_call_method, Fdbus_call_method_asynchronously): Fix docstring.
 
 2009-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 

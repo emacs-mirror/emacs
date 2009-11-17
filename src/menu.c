@@ -248,14 +248,16 @@ push_menu_item (name, enable, key, def, equiv, type, selected, help)
   if (menu_items_used + MENU_ITEMS_ITEM_LENGTH > menu_items_allocated)
     grow_menu_items ();
 
-  XVECTOR (menu_items)->contents[menu_items_used++] = name;
-  XVECTOR (menu_items)->contents[menu_items_used++] = enable;
-  XVECTOR (menu_items)->contents[menu_items_used++] = key;
-  XVECTOR (menu_items)->contents[menu_items_used++] = equiv;
-  XVECTOR (menu_items)->contents[menu_items_used++] = def;
-  XVECTOR (menu_items)->contents[menu_items_used++] = type;
-  XVECTOR (menu_items)->contents[menu_items_used++] = selected;
-  XVECTOR (menu_items)->contents[menu_items_used++] = help;
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_NAME,	name);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_ENABLE,	enable);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_VALUE,	key);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_EQUIV_KEY, equiv);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_DEFINITION, def);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_TYPE,	type);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_SELECTED,	selected);
+  ASET (menu_items, menu_items_used + MENU_ITEMS_ITEM_HELP,	help);
+
+  menu_items_used += MENU_ITEMS_ITEM_LENGTH;
 }
 
 /* Args passed between single_keymap_panes and single_menu_item.  */
@@ -1182,13 +1184,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	CHECK_LIVE_WINDOW (window);
 	f = XFRAME (WINDOW_FRAME (win));
 
-#ifdef HAVE_NS		     /* FIXME: Is this necessary??  --Stef  */
-        xpos = FRAME_COLUMN_WIDTH (f) * WINDOW_LEFT_EDGE_COL (win);
-	ypos = FRAME_LINE_HEIGHT (f) * WINDOW_TOP_EDGE_LINE (win);
-#else
 	xpos = WINDOW_LEFT_EDGE_X (win);
 	ypos = WINDOW_TOP_EDGE_Y (win);
-#endif
       }
     else
       /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
