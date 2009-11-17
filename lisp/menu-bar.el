@@ -683,7 +683,7 @@ by \"Save Options\" in Custom buffers.")
 		   tooltip-mode menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
-		   case-fold-search
+		   case-fold-search font-use-system-font
 		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
 		   ;; as we might get more than we bargain for, if
