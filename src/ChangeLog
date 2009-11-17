@@ -1,3 +1,8 @@
+2009-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (x_produce_glyphs): Consider face-remapping when falling
+	back to the default font in case that no suitable font is found.
+
 2009-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* menu.c (Fx_popup_menu) [HAVE_NS]: Use generic code for window edge.
