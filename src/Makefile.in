@@ -658,7 +658,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
  ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
- ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc
+ ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc \
+ ${lispsource}font-setting.elc
 #else
 #define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
@@ -893,7 +894,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/tooltip.elc ../lisp/image.elc \
   ../lisp/fringe.elc ../lisp/dnd.elc \
   ../lisp/mwheel.elc ../lisp/tool-bar.elc \
-  ../lisp/x-dnd.elc \
+  ../lisp/x-dnd.elc ../lisp/font-setting.elc \
   ../lisp/international/ccl.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
