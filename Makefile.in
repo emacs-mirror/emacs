@@ -143,8 +143,8 @@ INFO_FILES=ada-mode auth autotype calc ccmode cl dbus dired-x ebrowse	\
            ede ediff eieio efaq eintr elisp emacs emacs-mime epa erc	\
 	   eshell eudc flymake forms gnus idlwave info mairix-el	\
 	   message mh-e newsticker nxml-mode org pcl-cvs pgg rcirc	\
-	   reftex remember sasl sc ses sieve smtpmail speedbar tramp	\
-	   url vip viper widget woman
+	   reftex remember sasl sc semantic ses sieve smtpmail speedbar \
+	   tramp url vip viper widget woman
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
