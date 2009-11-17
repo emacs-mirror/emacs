@@ -3032,7 +3032,6 @@ x_default_font_parameter (f, parms)
   int got_from_gconf = 0;
   if (EQ (font_param, Qunbound))
     {
-      font_param = Qnil;
       font_param = Ffont_get_system_font();
       got_from_gconf = !NILP (font_param);
     }
