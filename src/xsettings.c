@@ -310,6 +310,8 @@ parse_xft_settings (prop, bytes, settings)
             }
           else if (strcmp (name, "Xft/DPI") == 0)
             settings->dpi = (double)ival/1024.0;
+#ifdef FC_LCD_FILTER
+          /* Older fontconfig versions don't have FC_LCD_FILTER. */
           else if (strcmp (name, "Xft/lcdfilter") == 0)
             {
               if (strcmp (sval, "none") == 0)
@@ -317,6 +319,7 @@ parse_xft_settings (prop, bytes, settings)
               else if (strcmp (sval, "lcddefault") == 0)
                 settings->lcdfilter = FC_LCD_DEFAULT;
             }
+#endif
         }
     }
 
@@ -376,7 +379,10 @@ apply_xft_settings (dpyinfo, send_event_p)
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &oldsettings.aa);
   FcPatternGetBool (pat, FC_HINTING, 0, &oldsettings.hinting);
   FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &oldsettings.hintstyle);
+#ifdef FC_LCD_FILTER
+  /* Older fontconfig versions don't have FC_LCD_FILTER. */
   FcPatternGetInteger (pat, FC_LCD_FILTER, 0, &oldsettings.lcdfilter);
+#endif
   FcPatternGetInteger (pat, FC_RGBA, 0, &oldsettings.rgba);
   FcPatternGetDouble (pat, FC_DPI, 0, &oldsettings.dpi);
 
@@ -398,12 +404,15 @@ apply_xft_settings (dpyinfo, send_event_p)
       FcPatternAddInteger (pat, FC_RGBA, settings.rgba);
       ++changed;
     }
+#ifdef FC_LCD_FILTER
+  /* Older fontconfig versions don't have FC_LCD_FILTER. */
   if (oldsettings.lcdfilter != settings.lcdfilter)
     {
       FcPatternDel (pat, FC_LCD_FILTER);
       FcPatternAddInteger (pat, FC_LCD_FILTER, settings.lcdfilter);
       ++changed;
     }
+#endif
   if (oldsettings.hintstyle != settings.hintstyle)
     {
       FcPatternDel (pat, FC_HINT_STYLE);

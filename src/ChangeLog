@@ -1,5 +1,10 @@
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xftfont.c (xftfont_fix_match): Older versions of fontconfig does
+	not have FC_LCD_FILTER.  #ifdef it.
+
+	* xsettings.c (parse_xft_settings, apply_xft_settings): Ditto
+
 	* xterm.h (struct x_display_info): Add atoms and Window for xsettings.
 
 	* xterm.c (handle_one_xevent): Call xft_settings_event for
