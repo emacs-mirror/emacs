@@ -1669,6 +1669,7 @@ main (int argc, char **argv)
       syms_of_xfns ();
       syms_of_xmenu ();
       syms_of_fontset ();
+      syms_of_xsettings ();
 #ifdef HAVE_X_SM
       syms_of_xsmfns ();
 #endif
@@ -1749,7 +1750,7 @@ main (int argc, char **argv)
 #endif
   init_window ();
   init_font ();
-
+  
   if (!initialized)
     {
       char *file;

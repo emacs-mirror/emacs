@@ -718,8 +718,6 @@ font_put_extra (font, prop, val)
     {
       Lisp_Object prev = Qnil;
 
-      if (NILP (val))
-	return val;
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
 	prev = extra, extra = XCDR (extra);
@@ -1431,6 +1429,8 @@ font_parse_fcname (name, font)
 
   if (family_end)
     {
+      Lisp_Object extra_props = Qnil;
+
       /* A fontconfig name with size and/or property data.  */
       if (family_end > name)
 	{
@@ -1504,13 +1504,25 @@ font_parse_fcname (name, font)
 
 		  if (prop >= FONT_FOUNDRY_INDEX
 		      && prop < FONT_EXTRA_INDEX)
-		    ASET (font, prop, font_prop_validate (prop, Qnil, val));
-		  else
-		    Ffont_put (font, key, val);
+                    ASET (font, prop, font_prop_validate (prop, Qnil, val));
+		  else 
+                    {
+                      extra_props = nconc2 (extra_props,
+                                            Fcons (Fcons (key, val), Qnil));
+                    }
 		}
 	      p = q;
 	    }
 	}
+
+      if (! NILP (extra_props))
+        {
+          struct font_driver_list *driver_list = font_driver_list;
+          for ( ; driver_list; driver_list = driver_list->next)
+            if (driver_list->driver->filter_properties)
+              (*driver_list->driver->filter_properties) (font, extra_props);
+        }
+      
     }
   else
     {
@@ -2975,11 +2987,15 @@ font_open_entity (f, entity, pixel_size)
   else if (CONSP (Vface_font_rescale_alist))
     scaled_pixel_size = pixel_size * font_rescale_ratio (entity);
 
+#if 0
+  /* This doesn't work if you have changed hinting or any other parameter.
+     We need to make a new object in every case to be sure. */
   for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
        objlist = XCDR (objlist))
     if (! NILP (AREF (XCAR (objlist), FONT_TYPE_INDEX))
 	&& XFONT_OBJECT (XCAR (objlist))->pixel_size == pixel_size)
       return  XCAR (objlist);
+#endif
 
   val = AREF (entity, FONT_TYPE_INDEX);
   for (driver_list = f->font_driver_list;
@@ -3155,12 +3171,14 @@ font_clear_prop (attrs, prop)
 
   if (! FONTP (font))
     return;
+#if 0
   if (! NILP (Ffont_get (font, QCname)))
     {
       font = Fcopy_font_spec (font);
       font_put_extra (font, QCname, Qnil);
     }
 
+#endif
   if (NILP (AREF (font, prop))
       && prop != FONT_FAMILY_INDEX
       && prop != FONT_FOUNDRY_INDEX
@@ -3438,7 +3456,7 @@ font_find_for_lface (f, attrs, spec, c)
 		      val = font_select_entity (frame, entities,
 						attrs, pixel_size, c);
 		      if (! NILP (val))
-			return val;
+                        return val;
 		    }
 		}
 	    }
@@ -3500,7 +3518,7 @@ font_load_for_lface (f, attrs, spec)
      FRAME_PTR f;
      Lisp_Object *attrs, spec;
 {
-  Lisp_Object entity;
+  Lisp_Object entity, name;
 
   entity = font_find_for_lface (f, attrs, spec, -1);
   if (NILP (entity))
@@ -3512,7 +3530,13 @@ font_load_for_lface (f, attrs, spec)
       if (NILP (entity))
 	return Qnil;
     }
-  return font_open_for_lface (f, entity, attrs, spec);
+  /* Don't loose the original name that was put in initially.  We need
+     it to re-apply the font when font parameters (like hinting or dpi) have
+     changed.  */
+  entity = font_open_for_lface (f, entity, attrs, spec);
+  name = Ffont_get (spec, QCname);
+  if (STRINGP (name)) font_put_extra (entity, QCname, name);
+  return entity;
 }
 
 

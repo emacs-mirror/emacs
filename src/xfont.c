@@ -151,7 +151,9 @@ struct font_driver xfont_driver =
     xfont_text_extents,
     xfont_draw,
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    xfont_check
+    xfont_check,
+    NULL, /* get_variation_glyphs */
+    NULL, /* filter_properties */
   };
 
 extern Lisp_Object QCname;

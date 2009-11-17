@@ -716,6 +716,8 @@ GTK_CFLAGS
 GTK_LIBS
 DBUS_CFLAGS
 DBUS_LIBS
+GCONF_CFLAGS
+GCONF_LIBS
 FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
 XFT_CFLAGS
@@ -791,6 +793,7 @@ with_xim
 with_ns
 with_gpm
 with_dbus
+with_gconf
 with_makeinfo
 with_gtk
 with_gcc
@@ -1499,6 +1502,7 @@ Optional Packages:
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --without-dbus          don't compile with D-Bus support
+  --without-gconf         don't compile with GConf support
   --without-makeinfo      don't require makeinfo for building manuals
 
   --with-pkg-config-prog=PATH
@@ -2237,6 +2241,14 @@ if test "${with_dbus+set}" = set; then
   withval=$with_dbus;
 else
      with_dbus=yes
+fi
+
+
+# Check whether --with-gconf was given.
+if test "${with_gconf+set}" = set; then
+  withval=$with_gconf;
+else
+     with_gconf=yes
 fi
 
 
@@ -12515,6 +12527,111 @@ _ACEOF
 
 fi
 done
+
+   fi
+fi
+
+HAVE_GCONF=no
+if test "${with_gconf}" = "yes"; then
+
+  succeeded=no
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GCONF=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:$LINENO: checking for gconf-2.0 >= 2.13" >&5
+$as_echo_n "checking for gconf-2.0 >= 2.13... " >&6; }
+
+        if $PKG_CONFIG --exists "gconf-2.0 >= 2.13" 2>&5; then
+            { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:$LINENO: checking GCONF_CFLAGS" >&5
+$as_echo_n "checking GCONF_CFLAGS... " >&6; }
+            GCONF_CFLAGS=`$PKG_CONFIG --cflags "gconf-2.0 >= 2.13"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:$LINENO: result: $GCONF_CFLAGS" >&5
+$as_echo "$GCONF_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:$LINENO: checking GCONF_LIBS" >&5
+$as_echo_n "checking GCONF_LIBS... " >&6; }
+            GCONF_LIBS=`$PKG_CONFIG --libs "gconf-2.0 >= 2.13"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:$LINENO: result: $GCONF_LIBS" >&5
+$as_echo "$GCONF_LIBS" >&6; }
+        else
+            { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+            GCONF_CFLAGS=""
+            GCONF_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GCONF_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gconf-2.0 >= 2.13"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GCONF=yes
+  else
+     HAVE_GCONF=no
+  fi
+
+   if test "$HAVE_GCONF" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GCONF 1
+_ACEOF
 
    fi
 fi
@@ -25513,6 +25630,7 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
+echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"

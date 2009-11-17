@@ -3359,7 +3359,7 @@ x_set_font (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Lisp_Object frame, font_object, lval;
+  Lisp_Object frame, font_object;
   int fontset = -1;
 
   /* Set the frame parameter back to the old value because we may
@@ -3426,7 +3426,6 @@ x_set_font (f, arg, oldval)
 
   if (! NILP (Fequal (font_object, oldval)))
     return;
-
 
   x_new_font (f, font_object, fontset);
   store_frame_param (f, Qfont, arg);

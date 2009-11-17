@@ -364,6 +364,10 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen_atom,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky;
+
+  /* XSettings atoms and windows.  */
+  Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
+  Window xsettings_window;
 };
 
 #ifdef HAVE_X_I18N

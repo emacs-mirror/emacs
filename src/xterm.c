@@ -86,6 +86,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "font.h"
 #include "fontset.h"
+#include "xsettings.h"
 #include "sysselect.h"
 
 #ifdef USE_X_TOOLKIT
@@ -6026,6 +6027,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
             goto done;
           }
 
+        xft_settings_event (dpyinfo, &event);
+
 	f = x_any_window_to_frame (dpyinfo, event.xclient.window);
 	if (!f)
 	  goto OTHER;
@@ -6088,6 +6091,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         x_handle_net_wm_state (f, &event.xproperty);
 
       x_handle_property_notify (&event.xproperty);
+      xft_settings_event (dpyinfo, &event);
       goto OTHER;
 
     case ReparentNotify:
@@ -6990,6 +6994,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           XRefreshKeyboardMapping (&event.xmapping);
         }
       goto OTHER;
+
+    case DestroyNotify:
+      xft_settings_event (dpyinfo, &event);
+      break;
 
     default:
     OTHER:
@@ -10300,17 +10308,33 @@ x_term_init (display_name, xrm_option, resource_name)
     dpyinfo->cmap = XCreateColormap (dpyinfo->display, dpyinfo->root_window,
 				     dpyinfo->visual, AllocNone);
 
+#ifdef HAVE_XFT
   {
-    int screen_number = XScreenNumberOfScreen (dpyinfo->screen);
-    double pixels = DisplayHeight (dpyinfo->display, screen_number);
-    double mm = DisplayHeightMM (dpyinfo->display, screen_number);
-    /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
-    dpyinfo->resy = (mm < 1) ? 100 : pixels * 25.4 / mm;
-    pixels = DisplayWidth (dpyinfo->display, screen_number);
-    mm = DisplayWidthMM (dpyinfo->display, screen_number);
-    /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
-    dpyinfo->resx = (mm < 1) ? 100 : pixels * 25.4 / mm;
+    /* If we are using Xft, check dpi value in X resources.
+       It is better we use it as well, since Xft will use it, as will all
+       Gnome applications.  If our real DPI is smaller or larger than the
+       one Xft uses, our font will look smaller or larger than other
+       for other applications, even if it is the same font name (monospace-10
+       for example).  */
+    char *v = XGetDefault (dpyinfo->display, "Xft", "dpi");
+    double d;
+    if (v != NULL && sscanf (v, "%lf", &d) == 1)
+      dpyinfo->resy = dpyinfo->resx = d;
   }
+#endif
+
+  if (dpyinfo->resy < 1)
+    {
+      int screen_number = XScreenNumberOfScreen (dpyinfo->screen);
+      double pixels = DisplayHeight (dpyinfo->display, screen_number);
+      double mm = DisplayHeightMM (dpyinfo->display, screen_number);
+      /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
+      dpyinfo->resy = (mm < 1) ? 100 : pixels * 25.4 / mm;
+      pixels = DisplayWidth (dpyinfo->display, screen_number);
+      mm = DisplayWidthMM (dpyinfo->display, screen_number);
+      /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
+      dpyinfo->resx = (mm < 1) ? 100 : pixels * 25.4 / mm;
+    }
 
   dpyinfo->Xatom_wm_protocols
     = XInternAtom (dpyinfo->display, "WM_PROTOCOLS", False);
@@ -10414,6 +10438,8 @@ x_term_init (display_name, xrm_option, resource_name)
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
 #endif
+
+  xsettings_initialize (dpyinfo);
 
 #ifdef subprocesses
   /* This is only needed for distinguishing keyboard and process input.  */

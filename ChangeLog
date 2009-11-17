@@ -1,3 +1,8 @@
+2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: New option: --with(out)-gconf.
+	Set HAVE_GCONF if we find gconf.
+
 2009-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_FILES): Add semantic.

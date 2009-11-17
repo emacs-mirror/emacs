@@ -184,6 +184,53 @@ extern Lisp_Object QCantialias;
 
 static FcChar8 ascii_printable[95];
 
+static void
+xftfont_fix_match (pat, match)
+     FcPattern *pat, *match;
+{
+  /*  These values are not used for matching (except antialias), but for
+      rendering, so make sure they are carried over to the match.
+      We also put antialias here because most fonts are antialiased, so
+      the match will have antialias true.  */
+
+  FcBool b = FcTrue;
+  int i;
+  double dpi;
+
+  FcPatternGetBool (pat, FC_ANTIALIAS, 0, &b);
+  if (! b) 
+    {
+      FcPatternDel (match, FC_ANTIALIAS);
+      FcPatternAddBool (match, FC_ANTIALIAS, FcFalse);
+    }
+  FcPatternGetBool (pat, FC_HINTING, 0, &b);
+  if (! b) 
+    {
+      FcPatternDel (match, FC_HINTING);
+      FcPatternAddBool (match, FC_HINTING, FcFalse);
+    }
+  if (FcResultMatch == FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &i))
+    {
+      FcPatternDel (match, FC_HINT_STYLE);
+      FcPatternAddInteger (match, FC_HINT_STYLE, i);
+    }
+  if (FcResultMatch == FcPatternGetInteger (pat, FC_LCD_FILTER, 0, &i))
+    {
+      FcPatternDel (match, FC_LCD_FILTER);
+      FcPatternAddInteger (match, FC_LCD_FILTER, i);
+    }
+  if (FcResultMatch == FcPatternGetInteger (pat, FC_RGBA, 0, &i))
+    {
+      FcPatternDel (match, FC_RGBA);
+      FcPatternAddInteger (match, FC_RGBA, i);
+    }
+  if (FcResultMatch == FcPatternGetDouble (pat, FC_DPI, 0, &dpi))
+    {
+      FcPatternDel (match, FC_DPI);
+      FcPatternAddDouble (match, FC_DPI, dpi);
+    }
+}
+
 static Lisp_Object
 xftfont_open (f, entity, pixel_size)
      FRAME_PTR f;
@@ -249,7 +296,7 @@ xftfont_open (f, entity, pixel_size)
 
       key = XCAR (XCAR (tail)), val = XCDR (XCAR (tail));
       if (EQ (key, QCantialias))
-	FcPatternAddBool (pat, FC_ANTIALIAS, NILP (val) ? FcFalse : FcTrue);
+          FcPatternAddBool (pat, FC_ANTIALIAS, NILP (val) ? FcFalse : FcTrue);
       else if (EQ (key, QChinting))
 	FcPatternAddBool (pat, FC_HINTING, NILP (val) ? FcFalse : FcTrue);
       else if (EQ (key, QCautohint))
@@ -285,7 +332,12 @@ xftfont_open (f, entity, pixel_size)
     int event_base, error_base;
     XRenderQueryExtension (display, &event_base, &error_base);
   }
+
+  /* Substitute in values from X resources and XftDefaultSet.  */
+  XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
   match = XftFontMatch (display, FRAME_X_SCREEN_NUMBER (f), pat, &result);
+  xftfont_fix_match (pat, match);
+  
   FcPatternDestroy (pat);
   xftfont = XftFontOpenPattern (display, match);
   if (!xftfont)

@@ -86,6 +86,8 @@ static Lisp_Object ftfont_resolve_generic_family P_ ((Lisp_Object,
 static Lisp_Object ftfont_lookup_cache P_ ((Lisp_Object,
 					    enum ftfont_cache_for));
 
+static void ftfont_filter_properties P_ ((Lisp_Object font, Lisp_Object alist));
+                                                
 Lisp_Object ftfont_font_format P_ ((FcPattern *, Lisp_Object));
 
 #define SYMBOL_FcChar8(SYM) (FcChar8 *) SDATA (SYMBOL_NAME (SYM))
@@ -545,10 +547,12 @@ struct font_driver ftfont_driver =
     NULL,			/* check */
 
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
-    ftfont_variation_glyphs
+    ftfont_variation_glyphs,
 #else
-    NULL
+    NULL,
 #endif
+
+    ftfont_filter_properties, /* filter_properties */
   };
 
 extern Lisp_Object QCname;
@@ -2226,7 +2230,94 @@ ftfont_font_format (FcPattern *pattern, Lisp_Object filename)
   return intern ("unknown");
 }
 
-
+static const char *ftfont_booleans [] = {
+  ":antialias",
+  ":hinting",
+  ":verticallayout",
+  ":autohint",
+  ":globaladvance",
+  ":outline",
+  ":scalable",
+  ":minspace",
+  ":embolden",
+  NULL,
+};
+
+static const char *ftfont_non_booleans [] = {
+  ":family",
+  ":familylang",
+  ":style",
+  ":stylelang",
+  ":fullname",
+  ":fullnamelang",
+  ":slant",
+  ":weight",
+  ":size",
+  ":width",
+  ":aspect",
+  ":pixelsize",
+  ":spacing",
+  ":foundry",
+  ":hintstyle",
+  ":file",
+  ":index",
+  ":ftface",
+  ":rasterizer",
+  ":scale",
+  ":dpi",
+  ":rgba",
+  ":lcdfilter",
+  ":charset",
+  ":lang",
+  ":fontversion",
+  ":capability",
+  NULL,
+};
+
+static void
+ftfont_filter_properties (font, alist)
+     Lisp_Object font;
+     Lisp_Object alist;
+{
+  Lisp_Object it;
+  int i;
+
+  /* Set boolean values to Qt or Qnil */
+  for (i = 0; ftfont_booleans[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+
+        if (strcmp (ftfont_booleans[i], keystr) == 0)
+          {
+            char *str = SYMBOLP (val) ? SDATA (SYMBOL_NAME (val)) : NULL;
+            if (INTEGERP (val)) str = XINT (val) != 0 ? "true" : "false";
+            if (str == NULL) str = "true";
+
+            val = Qt;
+            if (strcmp ("false", str) == 0 || strcmp ("False", str) == 0
+                || strcmp ("FALSE", str) == 0 || strcmp ("FcFalse", str) == 0
+                || strcmp ("off", str) == 0 || strcmp ("OFF", str) == 0
+                || strcmp ("Off", str) == 0)
+              val = Qnil;
+            Ffont_put (font, key, val);
+          }
+      }
+
+  for (i = 0; ftfont_non_booleans[i] != NULL; ++i)
+    for (it = alist; ! NILP (it); it = XCDR (it))
+      {
+        Lisp_Object key = XCAR (XCAR (it));
+        Lisp_Object val = XCDR (XCAR (it));
+        char *keystr = SDATA (SYMBOL_NAME (key));
+        if (strcmp (ftfont_non_booleans[i], keystr) == 0)
+          Ffont_put (font, key, val);
+      }
+}
+
+
 void
 syms_of_ftfont ()
 {

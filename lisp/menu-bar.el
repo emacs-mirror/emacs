@@ -660,6 +660,8 @@ by \"Save Options\" in Custom buffers.")
       (custom-push-theme 'theme-face 'default 'user 'set spec)
       (put 'default 'face-modified nil))))
 
+
+
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
   `(menu-item ,(purecopy "Customize Emacs") ,menu-bar-custom-menu))
@@ -712,6 +714,14 @@ by \"Save Options\" in Custom buffers.")
   `(menu-item ,(purecopy "Set Default Font...") menu-set-font
 	      :visible (display-multi-font-p)
 	      :help ,(purecopy "Select a default font")))
+
+(if (featurep 'system-font-setting)
+    (define-key menu-bar-options-menu [menu-system-font]
+      (menu-bar-make-toggle toggle-use-system-font font-use-system-font
+			    "Use system font"
+			    "Use system font: %s"
+			    "Use the monospaced font defined by the system")))
+
 
 ;; The "Show/Hide" submenu of menu "Options"
 

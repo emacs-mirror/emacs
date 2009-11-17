@@ -98,6 +98,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/FileSB.h>
 #endif
 
+#include "xsettings.h"
+
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
@@ -3025,13 +3027,19 @@ x_default_font_parameter (f, parms)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
-				RES_TYPE_STRING);
+                                      RES_TYPE_STRING);
   Lisp_Object font;
+  int got_from_gconf = 0;
   if (EQ (font_param, Qunbound))
-    font_param = Qnil;
+    {
+      font_param = Qnil;
+      font_param = Ffont_get_system_font();
+      got_from_gconf = !NILP (font_param);
+    }
+
   font = !NILP (font_param) ? font_param
     : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
-
+  
   if (! STRINGP (font))
     {
       char *names[]
@@ -3068,7 +3076,11 @@ x_default_font_parameter (f, parms)
 	 we've applied the `default' face settings.  */
       x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
     }
-  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
+
+  x_default_parameter (f, parms, Qfont, font,
+                       got_from_gconf ? NULL : "font",
+                       got_from_gconf ? NULL : "Font",
+                       RES_TYPE_STRING);
 }
 
 
@@ -5569,10 +5581,10 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 {
   FRAME_PTR f = check_x_frame (frame);
   char *name;
-  Lisp_Object default_font, font = Qnil;
+  Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   int count = SPECPDL_INDEX ();
 
   check_x ();
@@ -5586,20 +5598,21 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  GCPRO1(font_param);
-  font_param = Fframe_parameter (frame, Qfont_param);
+  GCPRO2(font_param, font);
 
-  if (x_last_font_name != NULL)
-    default_name = x_last_font_name;
-  else if (STRINGP (font_param))
+  XSETFONT (font, FRAME_FONT (f));
+  font_param = Ffont_get (font, intern_c_string (":name"));
+  if (STRINGP (font_param))
     default_name = SDATA (font_param);
-  else if (FONTP (default_font))
+  else 
     {
-      XSETFONT (default_font, FRAME_FONT (f));
-      default_name = alloca (256);
-      if (font_unparse_gtkname (default_font, f, default_name, 256) < 0)
-	default_name = NULL;
+      font_param = Fframe_parameter (frame, Qfont_param);
+      if (STRINGP (font_param))
+        default_name = SDATA (font_param);
     }
+
+  if (default_name == NULL && x_last_font_name != NULL)
+    default_name = x_last_font_name;
 
   name = xg_get_font_name (f, default_name);
 

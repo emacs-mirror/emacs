@@ -1,3 +1,54 @@
+2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): Add atoms and Window for xsettings.
+
+	* xterm.c (handle_one_xevent): Call xft_settings_event for
+	ClientMessage, PropertyNotify and DestroyNotify.
+	(x_term_init): If we have XFT, get DPI from Xft.dpi.
+	Call xsettings_initialize.
+
+	* xftfont.c (xftfont_fix_match): New function.
+	(xftfont_open): Call XftDefaultSubstitute before XftFontMatch.
+	Call xftfont_fix_match after XftFontMatch.
+
+	* xfont.c (xfont_driver): Initialize all members.
+
+	* xfns.c (x_default_font_parameter): Try font from Ffont_get_system_font.
+	Do not get font from x_default_parameter if we got one from
+	Ffont_get_system_font.
+	(Fx_select_font): Get the defaut font name from :name of FRAME_FONT (f).
+
+	* w32font.c (w32font_driver): Initialize all members.
+
+	* termhooks.h (enum event_kind): CONFIG_CHANGED_EVENT is new.
+
+	* lisp.h: Declare syms_of_xsettings.
+
+	* keyboard.c (kbd_buffer_get_event, make_lispy_event): Handle 
+	CONFIG_CHANGED_EVENT.
+
+	* ftfont.c (ftfont_filter_properties): New function.
+
+	* frame.c (x_set_font): Remove unused variable lval.
+
+	* font.h (struct font_driver): filter_properties is new.
+
+	* font.c (font_put_extra): Don't return if val is nil, it means
+	boolean option is off.
+	(font_parse_fcname): Collect all extra properties in extra_props
+	and call filter_properties for all drivers with extra_props and
+	font as parameter.
+	(font_open_entity): Do not use cache, it does not pick up new fontconfig
+	settings like hinting.
+	(font_load_for_lface): If spec had a name in it, store it in entity.
+
+	* emacs.c (main): Call syms_of_xsettings
+
+	* config.in: HAVE_GCONF is new.
+
+	* Makefile.in (GCONF_CFLAGS, GCONF_LIBS): New variables for HAVE_GCONF.
+	xsettings.o is new.
+
 2009-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (x_produce_glyphs): Consider face-remapping when falling

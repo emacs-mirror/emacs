@@ -687,6 +687,8 @@ struct font_driver
      the (N-1)th element of VARIATIONS.  */
   int (*get_variation_glyphs) P_ ((struct font *font,
 				   int c, unsigned variations[256]));
+
+  void (*filter_properties) P_ ((Lisp_Object font, Lisp_Object properties));
 };
 
 

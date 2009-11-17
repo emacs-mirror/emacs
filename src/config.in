@@ -201,6 +201,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gai_strerror' function. */
 #undef HAVE_GAI_STRERROR
 
+/* Define to 1 if using GConf. */
+#undef HAVE_GCONF
+
 /* Define to 1 if you have the `gdk_display_open' function. */
 #undef HAVE_GDK_DISPLAY_OPEN
 

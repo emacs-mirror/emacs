@@ -680,6 +680,7 @@ ELCFILES = \
 	$(lisp)/follow.elc \
 	$(lisp)/font-core.elc \
 	$(lisp)/font-lock.elc \
+	$(lisp)/font-setting.elc \
 	$(lisp)/format-spec.elc \
 	$(lisp)/format.elc \
 	$(lisp)/forms.elc \

@@ -1,3 +1,13 @@
+2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el: Put "Use system font" in Option-menu.
+
+	* loadup.el: If feature system-font-setting or font-render-setting is
+	there, load font-setting.
+
+	* Makefile.in (ELCFILES): font-settings.el is new.
+	* font-setting.el: New file.
+
 2009-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* vc-svn.el (vc-svn-print-log): Fix typo in previous.

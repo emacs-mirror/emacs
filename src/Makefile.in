@@ -248,6 +248,11 @@ DBUS_LIBS = @DBUS_LIBS@
 DBUS_OBJ = dbusbind.o
 #endif
 
+#ifdef HAVE_GCONF
+GCONF_CFLAGS = @GCONF_CFLAGS@
+GCONF_LIBS = @GCONF_LIBS@
+#endif
+
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
    at initial startup, then labeled as part of the text area when
@@ -261,7 +266,7 @@ DBUS_OBJ = dbusbind.o
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -286,7 +291,8 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 #ifdef HAVE_X_WINDOWS
 XMENU_OBJ = xmenu.o
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o \
+      xsettings.o
 
 #ifdef HAVE_MENUS
 
@@ -904,7 +910,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    LIBGPM LIBRESOLV LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   LIBS_DEBUG $(GETLOADAVG_LIBS) \
+   LIBS_DEBUG $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
@@ -1212,7 +1218,7 @@ xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    character.h charset.h coding.h gtkutil.h lisp.h $(config_h) termhooks.h \
-   fontset.h termchar.h font.h
+   fontset.h termchar.h font.h xsettings.h
 xfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
    font.h lisp.h $(config_h)
 xftfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
@@ -1228,13 +1234,13 @@ xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h emacs-icon.h character.h charset.h ccl.h fontset.h composite.h \
-   coding.h process.h gtkutil.h font.h fontset.h lisp.h $(config_h)
+   coding.h process.h gtkutil.h font.h fontset.h lisp.h $(config_h) xsettings.h
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h termhooks.h lisp.h $(config_h)
 xrdb.o: xrdb.c lisp.h $(config_h) epaths.h
 xsmfns.o: xsmfns.c lisp.h $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
-
+xsettings.o: xterm.h xsettings.h lisp.h frame.h termhooks.h $(config_h) 
 /* The files of Lisp proper */
 
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \

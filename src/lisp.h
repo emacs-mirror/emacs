@@ -2643,6 +2643,9 @@ extern Lisp_Object safe_eval P_ ((Lisp_Object));
 extern int pos_visible_p P_ ((struct window *, int, int *,
 			      int *, int *, int *, int *, int *));
 
+/* Defined in xsettings.c */
+extern void syms_of_xsettings P_ ((void));
+
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
 

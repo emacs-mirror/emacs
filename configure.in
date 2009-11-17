@@ -144,6 +144,7 @@ OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
+OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -1739,6 +1740,16 @@ if test "${with_dbus}" = "yes"; then
    fi
 fi
 
+dnl GConf has been tested under GNU/Linux only.
+dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
+HAVE_GCONF=no
+if test "${with_gconf}" = "yes"; then
+   PKG_CHECK_MODULES(GCONF, gconf-2.0 >= 2.13, HAVE_GCONF=yes, HAVE_GCONF=no)
+   if test "$HAVE_GCONF" = yes; then
+      AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
+   fi
+fi
+
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
@@ -2985,6 +2996,7 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
+echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"

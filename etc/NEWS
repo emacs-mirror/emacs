@@ -78,6 +78,18 @@ frame parameter fullscreen makes the Emacs frame maximized.
 ** The pointer now becomes invisible when typing.
 Customize make-pointer-invisible to turn it off.
 
+** Emacs can use the system default monospaced font in Gnome.
+The use of the system default font can be turned on or off by customizing
+the variable 'font-use-system-font'.  It is off by default.
+If the system default is changed, Emacs changes also.
+This requires that gconf-support is built in.  If configure finds the
+gconf-libraries, that support is included. Gconf-support can be
+turned off with the configure option --without-gconf.
+
+** Emacs now reacts to Xft-changes made by configuration tools on X11.
+Changes to antialias, hinting, hintstyle, RGBA, DPI and lcdfilter are
+handeled.  The XSETTINGS mechanism is used to implement this.
+
 ** Killing a buffer with a running process now asks for confirmation.
 You can remove this query in two ways: either remove
 `process-kill-buffer-query-function' from `kill-buffer-query-functions',
