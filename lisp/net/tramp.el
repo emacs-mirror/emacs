@@ -8364,21 +8364,16 @@ Only works for Bourne-like shells."
   (defadvice file-expand-wildcards
     (around tramp-advice-file-expand-wildcards activate)
     (let ((name (ad-get-arg 0)))
-      (if (tramp-tramp-file-p name)
-	  ;; If it's a Tramp file, dissect it and look if wildcards
-	  ;; need to be expanded at all.
-	  (if (string-match
-	       "[[*?]"
-	       (tramp-file-name-localname (tramp-dissect-file-name name)))
-	      (progn
-		ad-do-it
-		(unless ad-return-value
-		  (setq ad-return-value (list name))))
-	    (setq ad-return-value (list name)))
-	;; If it is not a Tramp file, just run the original function.
-	ad-do-it
-	(unless ad-return-value
-	  (setq ad-return-value (list name))))))
+      ;; If it's a Tramp file, dissect it and look if wildcards need
+      ;; to be expanded at all.
+      (if (and
+	   (tramp-tramp-file-p name)
+	   (not	(string-match
+		 "[[*?]"
+		 (tramp-file-name-localname (tramp-dissect-file-name name)))))
+	  (setq ad-return-value (list name))
+	;; Otherwise, just run the original function.
+	ad-do-it)))
   (add-hook
    'tramp-unload-hook
    (lambda ()
