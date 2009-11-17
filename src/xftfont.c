@@ -214,14 +214,15 @@ xftfont_fix_match (pat, match)
       FcPatternDel (match, FC_HINT_STYLE);
       FcPatternAddInteger (match, FC_HINT_STYLE, i);
     }
-#ifdef FC_LCD_FILTER
+#ifndef FC_LCD_FILTER
   /* Older fontconfig versions don't have FC_LCD_FILTER. */
+#define FC_LCD_FILTER "lcdfilter"
+#endif
   if (FcResultMatch == FcPatternGetInteger (pat, FC_LCD_FILTER, 0, &i))
     {
       FcPatternDel (match, FC_LCD_FILTER);
       FcPatternAddInteger (match, FC_LCD_FILTER, i);
     }
-#endif
   if (FcResultMatch == FcPatternGetInteger (pat, FC_RGBA, 0, &i))
     {
       FcPatternDel (match, FC_RGBA);
