@@ -1,3 +1,7 @@
+2009-11-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h (Fbyteorder, init_font, Ffont_get_system_font): Declare.
+
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xftfont.c (xftfont_fix_match): Older versions of fontconfig does

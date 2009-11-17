@@ -2260,6 +2260,7 @@ extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
 extern void circular_list_error P_ ((Lisp_Object)) NO_RETURN;
 EXFUN (Finteractive_form, 1);
+EXFUN (Fbyteorder, 0);
 
 /* Defined in frame.c */
 extern Lisp_Object Qframep;
@@ -3403,6 +3404,7 @@ extern void syms_of_terminal P_ ((void));
 
 /* Defined in font.c */
 extern void syms_of_font P_ ((void));
+extern void init_font P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Defined in fontset.c */
@@ -3439,6 +3441,9 @@ extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */
 extern void syms_of_xterm P_ ((void));
+
+/* Defined in xsettings.c */
+EXFUN (Ffont_get_system_font, 0);
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
