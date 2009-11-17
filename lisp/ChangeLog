@@ -3,6 +3,9 @@
 	* net/tramp.el (tramp-advice-file-expand-wildcards): Simplify.
 	Don't set `ad-return-value' if `ad-do-it' doesn't.
 
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Set file
+	modification time.
+
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el: Put "Use system font" in Option-menu.
