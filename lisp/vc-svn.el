@@ -485,7 +485,7 @@ or svn+ssh://."
 		   "-rHEAD:0"
 		   (when limit (list "-l" (format "%s" limit)))))
 	;; Dump log for the entire directory.
-	(apply vc-svn-command buffer 0 nil "log" "-rHEAD:0"
+	(apply 'vc-svn-command buffer 0 nil "log" "-rHEAD:0"
 	       (when limit (list "-l" (format "%s" limit))))))))
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)

@@ -1,3 +1,7 @@
+2009-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* vc-svn.el (vc-svn-print-log): Fix typo in previous.
+
 2009-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-bin.el (math-symclip, calcFunc-symclip, calc-symclip):
