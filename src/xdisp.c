@@ -21149,12 +21149,18 @@ x_produce_glyphs (it)
 				  &char2b, it->multibyte_p, 0);
       font = face->font;
 
-      /* When no suitable font found, use the default font.  */
       font_not_found_p = font == NULL;
       if (font_not_found_p)
 	{
-	  font = FRAME_FONT (it->f);
-	  boff = FRAME_BASELINE_OFFSET (it->f);
+	  /* When no suitable font found, display an empty box based
+	     on the metrics of the font of the default face (or what
+	     remapped).  */
+	  struct face *no_font_face
+	    = FACE_FROM_ID (it->f,
+			    NILP (Vface_remapping_alist) ? DEFAULT_FACE_ID
+			    : lookup_basic_face (it->f, DEFAULT_FACE_ID));
+	  font = no_font_face->font;
+	  boff = font->baseline_offset;
 	}
       else
 	{
@@ -21425,7 +21431,7 @@ x_produce_glyphs (it)
 		   at least one column.  */
 		char_width = 1;
 	      it->glyph_not_available_p = 1;
-	      it->pixel_width = FRAME_COLUMN_WIDTH (it->f) * char_width;
+	      it->pixel_width = font->space_width * char_width;
 	      it->phys_ascent = FONT_BASE (font) + boff;
 	      it->phys_descent = FONT_DESCENT (font) - boff;
 	    }
