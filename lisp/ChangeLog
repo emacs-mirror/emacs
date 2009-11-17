@@ -1,6 +1,7 @@
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el: Put "Use system font" in Option-menu.
+	(menu-bar-options-save): Add font-use-system-font.
 
 	* loadup.el: If feature system-font-setting or font-render-setting is
 	there, load font-setting.
