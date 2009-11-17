@@ -727,6 +727,10 @@ is no information where to trace the message.")
 	       (signal (car err) (cdr err)))
 	   (delete-file tmpfile)))))
 
+    ;; Set file modification time.
+    (when (or (eq visit t) (stringp visit))
+      (set-visited-file-modtime (nth 5 (file-attributes filename))))
+
     ;; The end.
     (when (or (eq visit t) (null visit) (stringp visit))
       (tramp-message v 0 "Wrote %s" filename))
