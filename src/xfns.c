@@ -63,6 +63,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/bitmaps/gray>
 #endif
 
+#include "xsettings.h"
+
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
@@ -97,8 +99,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/DialogS.h>
 #include <Xm/FileSB.h>
 #endif
-
-#include "xsettings.h"
 
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES

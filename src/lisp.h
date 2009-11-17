@@ -3441,9 +3441,6 @@ extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */
 extern void syms_of_xterm P_ ((void));
-
-/* Defined in xsettings.c */
-EXFUN (Ffont_get_system_font, 0);
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS

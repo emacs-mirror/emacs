@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef XSETTINGS_H
 #define XSETTINGS_H
 
-extern Lisp_Object Ffont_get_system_font P_ ((void));
+EXFUN (Ffont_get_system_font, 0);
 extern void xsettings_initialize P_ ((struct x_display_info *dpyinfo));
 extern void xft_settings_event P_ ((struct x_display_info *dpyinfo,
                                     XEvent *));

@@ -1,3 +1,9 @@
+2009-11-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h: Remove declaration of Ffont_get_system_font.
+	* xfns.c: Move include of "xsettings.h".
+	* xsettings.h: Use EXFUN to declare Ffont_get_system_font.
+
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (something_changedCB, Ffont_get_system_font): Check
