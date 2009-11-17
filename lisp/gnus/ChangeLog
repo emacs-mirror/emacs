@@ -1,3 +1,8 @@
+2009-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-decode-region): Don't quote decoded words
+	containing tspecial characters if they have been already quoted.
+
 2009-10-24  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (help-xref-stack-item): Define for compiler.
