@@ -1,3 +1,9 @@
+2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (something_changedCB, Ffont_get_system_font): Check
+	use_system_font.
+	(syms_of_xsettings): DEFVAR font-use-system-font.
+
 2009-11-17  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xfns.c (x_default_font_parameter): Remove dead assignment.

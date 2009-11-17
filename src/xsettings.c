@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static char *current_mono_font;
 static struct x_display_info *first_dpyinfo;
 static Lisp_Object Qfont_name, Qfont_render;
+static int use_system_font;
 
 #ifdef HAVE_GCONF
 static GConfClient *gconf_client;
@@ -96,7 +97,7 @@ something_changedCB (client, cnxn_id, entry, user_data)
       for (dpyinfo = x_display_list; !found && dpyinfo; dpyinfo = dpyinfo->next)
         found = dpyinfo == first_dpyinfo;
 
-      if (found)
+      if (found && use_system_font)
         store_font_changed_event (Qfont_name,
                                   XCAR (first_dpyinfo->name_list_element));
     }
@@ -610,7 +611,7 @@ DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        doc: /* Get the system default monospaced font. */)
   ()
 {
-  return current_mono_font
+  return current_mono_font && use_system_font
     ? make_string (current_mono_font, strlen (current_mono_font))
     : Qnil;
 }
@@ -629,6 +630,10 @@ syms_of_xsettings ()
   Qfont_render = intern_c_string ("font-render");
   staticpro (&Qfont_render);
   defsubr (&Sfont_get_system_font);
+
+  DEFVAR_BOOL ("font-use-system-font", &use_system_font,
+    doc: /* *Non-nil means to use the system defined font.  */);
+  use_system_font = 0;
 
 #ifdef HAVE_GCONF
   Fprovide (intern_c_string ("system-font-setting"), Qnil);

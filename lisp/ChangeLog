@@ -1,3 +1,9 @@
+2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* font-setting.el (font-use-system-font): Moved ...
+
+	* cus-start.el (all): ... to here.
+
 2009-11-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-advice-file-expand-wildcards): Simplify.

@@ -31,20 +31,6 @@
 
 ;;; Customizable variables
 
-(defun font-setting-set-system-font (symbol value)
-  (set-default symbol value)
-  (if (symbol-value symbol)
-      (let ((f (selected-frame)))
-	(if (display-graphic-p f)
-	    (font-setting-change-default-font f t)))))
-
-(defcustom font-use-system-font nil
-  "If non-nil, use the system monospaced font"
-  :version "23.2"
-  :type 'boolean
-  :group 'font-selection
-  :set 'font-setting-set-system-font)
-
 (declare-function font-get-system-font "xsettings.c" ())
 
 (defun font-setting-change-default-font (display-or-frame set-font)
@@ -75,13 +61,15 @@ current form for the frame (i.e. hinting or somesuch changed)."
 		    (if set-font new-font
 		      ;; else set font again, hinting etc. may have changed.
 		      frame-font)))
-	      (progn
-		(set-frame-parameter f 'font-parameter font-to-set)
-		(set-face-attribute 'default f 
-				    :width 'normal
-				    :weight 'normal
-				    :slant 'normal
-				    :font font-to-set)))))
+	      (if font-to-set
+		  (progn
+		    (message "setting %s" font-to-set)
+		    (set-frame-parameter f 'font-parameter font-to-set)
+		    (set-face-attribute 'default f 
+					:width 'normal
+					:weight 'normal
+					:slant 'normal
+					:font font-to-set))))))
     
       ;; Set for future frames.
       (set-face-attribute 'default t :font new-font)
