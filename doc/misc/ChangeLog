@@ -1,6 +1,12 @@
+2009-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic.texi (Semantic Internals, Glossary):
+	* sem-user.texi (Semantic mode, Include paths, Idle Scheduler)
+	(Semanticdb search debugging commands): Fix typos.
+
 2009-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (Radix modes):  Mention twos-complement notation.
+	* calc.texi (Radix modes): Mention twos-complement notation.
 
 2009-11-16  Juanma Barranquero  <lekktu@gmail.com>
 

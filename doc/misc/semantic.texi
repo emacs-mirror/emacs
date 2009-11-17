@@ -242,8 +242,8 @@ more about how @semantic{} works.
 * Tag handling ::	  Code used for manipulating tags
 * Semanticdb internals :: Code used in the semantic database
 * Analyzer ::             Code used in the code analyzer
-* Tools ::                Code used in user tools.
-* Tests ::                Code used for testing.
+* Tools ::                Code used in user tools
+* Tests ::                Code used for testing
 @end menu
 
 @node Parser code
@@ -566,7 +566,7 @@ keywords and punctuation, and strip whitespaces and comments.
 
 @item nonterminal
 A nonterminal symbol or simply a nonterminal stands for a class of
-syntactically equivalent groupings. A nonterminal symbol name is used
+syntactically equivalent groupings.  A nonterminal symbol name is used
 in writing grammar rules.
 
 @item overloadable

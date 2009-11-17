@@ -46,14 +46,14 @@ available for navigating, querying, and editing source code.
 installs a @samp{Development} menu on the menu-bar, with many of these
 commands.
 
-In addition, enabling Semantic mode turns on certain auxilliary global
+In addition, enabling Semantic mode turns on certain auxiliary global
 minor modes, as specified by the variable
-@code{semantic-default-submodes}.  The default auxilliary modes are
+@code{semantic-default-submodes}.  The default auxiliary modes are
 SemanticDB mode (@pxref{SemanticDB}) and Global Semantic Idle
-Scheduler mode.  You can also toggle the auxilliary minor modes
+Scheduler mode.  You can also toggle the auxiliary minor modes
 separately, using their mode functions (e.g. @kbd{M-x
 semanticdb-minor-mode}), or via the @samp{Development} menu.  These
-auxilliary minor modes are described in the following sections.
+auxiliary minor modes are described in the following sections.
 
 @defvar semantic-new-buffer-setup-functions
 The value of this variable is an alist of functions to call for
@@ -72,7 +72,7 @@ you can remove modes from this list if you don't want to use
 
 @defvar semantic-default-submodes
 The value of this variable is a list of symbols, specifying the
-auxilliary minor modes to enable when enabling Semantic mode.  The
+auxiliary minor modes to enable when enabling Semantic mode.  The
 valid mode symbols are:
 
 @itemize
@@ -372,7 +372,7 @@ the system include path for the current major mode (or @var{mode}).
 @anchor{semantic-customize-system-include-path}
 @deffn Command semantic-customize-system-include-path &optional mode
 Customize the system include path for the current major mode (or
-@code{mode}).
+@var{mode}).
 @end deffn
 
 @anchor{semanticdb-implied-include-tags}
@@ -457,7 +457,7 @@ encountered, but could not find on disk using
 Once you have used the below functions to debug the problem, you may
 need to reconfigure how @semantic{} finds include files.
 See @ref{Semanticdb Search Configuration}.  If the search config is
-ok, you may need to configure the search throttle. See @ref{Search Throttle}.
+ok, you may need to configure the search throttle.  See @ref{Search Throttle}.
 
 @deffn Command semanticdb-dump-all-table-summary
 @anchor{semanticdb-dump-all-table-summary}
@@ -582,9 +582,9 @@ Application Developers Guide
 @menu
 * Reparsing Options::           Reparsing the current buffer in idle time
 * Idle Working Options::        Options for extra work done at idle time
-* Debugging Idle Time Issues::  How to produce good bug reports.
+* Debugging Idle Time Issues::  How to produce good bug reports
 * Idle Summary Mode::           Display prototype of symbol under cursor
-* Idle Completions Mode::       Smart completion pop-up help.
+* Idle Completions Mode::       Smart completion pop-up help
 @end menu
 
 @node Reparsing Options
