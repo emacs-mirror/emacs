@@ -548,31 +548,32 @@ The sort function is chosen according to the value of
   "Update faces in the treeview list buffer."
   (let (pos-sel)
     (with-current-buffer (newsticker--treeview-list-buffer)
-      (let ((inhibit-read-only t))
-        (goto-char (point-min))
-        (while (not (eobp))
-          (let* ((pos (save-excursion (end-of-line) (point)))
-                 (item (get-text-property (point) :nt-item))
-                 (age (newsticker--age item))
-                 (selected (get-text-property (point) :nt-selected))
-                 (face (cond ((eq age 'new)
-                              'newsticker-treeview-new-face)
-                             ((eq age 'old)
-                              'newsticker-treeview-old-face)
-                             ((eq age 'immortal)
-                              'newsticker-treeview-immortal-face)
-                             ((eq age 'obsolete)
-                              'newsticker-treeview-obsolete-face)
-                             (t
-                              'bold))))
-            (put-text-property (point) pos 'face face)
-            (if selected
-                (move-overlay newsticker--selection-overlay (point)
-                              (1+ pos) ;include newline
-                              (current-buffer)))
-            (if selected (setq pos-sel (point)))
-            (forward-line 1)
-            (beginning-of-line))))) ;; FIXME!?
+      (save-excursion
+        (let ((inhibit-read-only t))
+          (goto-char (point-min))
+          (while (not (eobp))
+            (let* ((pos (point-at-eol))
+                   (item (get-text-property (point) :nt-item))
+                   (age (newsticker--age item))
+                   (selected (get-text-property (point) :nt-selected))
+                   (face (cond ((eq age 'new)
+                                'newsticker-treeview-new-face)
+                               ((eq age 'old)
+                                'newsticker-treeview-old-face)
+                               ((eq age 'immortal)
+                                'newsticker-treeview-immortal-face)
+                               ((eq age 'obsolete)
+                                'newsticker-treeview-obsolete-face)
+                               (t
+                                'bold))))
+              (put-text-property (point) pos 'face face)
+              (if selected
+                  (move-overlay newsticker--selection-overlay (point)
+                                (1+ pos) ;include newline
+                                (current-buffer)))
+              (if selected (setq pos-sel (point)))
+              (forward-line 1)
+              (beginning-of-line)))))) ;; FIXME!?
     (when pos-sel
       (if (window-live-p (newsticker--treeview-list-window))
           (set-window-point (newsticker--treeview-list-window) pos-sel)))))
@@ -590,9 +591,7 @@ The sort function is chosen according to the value of
     (let (pos num-lines)
       (with-current-buffer (newsticker--treeview-list-buffer)
         (let ((inhibit-read-only t))
-          (put-text-property (save-excursion (beginning-of-line) (point))
-                             (save-excursion (end-of-line) (point))
-                             :nt-selected t))
+          (put-text-property (point-at-bol) (point-at-eol) :nt-selected t))
         (newsticker--treeview-list-update-faces))))
 
 (defun newsticker--treeview-list-highlight-start ()
@@ -1039,8 +1038,7 @@ Arguments IGNORE are ignored."
       (with-current-buffer (newsticker--treeview-tree-buffer)
         (goto-char pos)
         (move-overlay newsticker--tree-selection-overlay
-                      (save-excursion (beginning-of-line) (point))
-                      (save-excursion (end-of-line) (1+ (point)))
+                      (point-at-bol) (1+ (point-at-eol))
                       (current-buffer)))
       (if (window-live-p (newsticker--treeview-tree-window))
           (set-window-point (newsticker--treeview-tree-window) pos)))))
