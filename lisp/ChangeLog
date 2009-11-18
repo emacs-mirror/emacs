@@ -1,3 +1,7 @@
+2009-11-18  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Bump to 5.31.8.
+
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* font-setting.el (font-use-system-font): Moved ...
