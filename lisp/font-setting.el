@@ -1,4 +1,4 @@
-;;; xsettings.el --- Support dynamic font changes
+;;; font-setting.el --- Support dynamic font changes
 
 ;; Copyright (C) 2009 Free Software Foundation, Inc.
 
@@ -33,14 +33,16 @@
 
 (declare-function font-get-system-font "xsettings.c" ())
 
+(defvar font-use-system-font)
+
 (defun font-setting-change-default-font (display-or-frame set-font)
   "Change font and/or font settings for frames on display DISPLAY-OR-FRAME.
 If DISPLAY-OR-FRAME is a frame, the display is the one for that frame.
 
-If set-font is non-nil, change the font for frames.  Otherwise re-apply the
+If SET-FONT is non-nil, change the font for frames.  Otherwise re-apply the
 current form for the frame (i.e. hinting or somesuch changed)."
 
-  (let ((new-font (and (fboundp 'font-get-system-font) 
+  (let ((new-font (and (fboundp 'font-get-system-font)
 		       (font-get-system-font))))
     (when new-font
       ;; Be careful here: when set-face-attribute is called for the
@@ -53,7 +55,7 @@ current form for the frame (i.e. hinting or somesuch changed)."
       ;; probably changed it.
       (dolist (f (frames-on-display-list display-or-frame))
 	(if (display-graphic-p f)
-	    (let* ((frame-font 
+	    (let* ((frame-font
 		    (or (font-get (face-attribute 'default :font f
 						  'default) :name)
 			(frame-parameter f 'font-parameter)))
@@ -65,12 +67,12 @@ current form for the frame (i.e. hinting or somesuch changed)."
 		  (progn
 		    (message "setting %s" font-to-set)
 		    (set-frame-parameter f 'font-parameter font-to-set)
-		    (set-face-attribute 'default f 
+		    (set-face-attribute 'default f
 					:width 'normal
 					:weight 'normal
 					:slant 'normal
 					:font font-to-set))))))
-    
+
       ;; Set for future frames.
       (set-face-attribute 'default t :font new-font)
       (let ((spec (list (list t (face-attr-construct 'default)))))
@@ -91,7 +93,7 @@ If `font-use-system-font' is nil, the font is not changed."
 					  (eq type 'font-name)))))
 
 (if (or (featurep 'system-font-setting) (featurep 'font-render-setting))
-  (define-key special-event-map [config-changed-event] 
+  (define-key special-event-map [config-changed-event]
     'font-setting-handle-config-changed-event))
 
 (provide 'font-setting)

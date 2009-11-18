@@ -1,3 +1,8 @@
+2009-11-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font-setting.el (font-use-system-font): Declare for byte-compiler.
+	(font-setting-change-default-font): Fix typo in docstring.
+
 2009-11-18  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-version): Bump to 5.31.8.
