@@ -276,16 +276,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
-         (cwd (if firstfile (file-name-directory firstfile)
-                (expand-file-name default-directory)))
          (working (and firstfile (vc-working-revision firstfile))))
     (when (and (equal oldvers working) (not newvers))
       (setq oldvers nil))
     (when (and (not oldvers) newvers)
       (setq oldvers working))
-    (apply #'vc-hg-command (or buffer "*vc-diff*") nil
-           (mapcar (lambda (file) (file-relative-name file cwd)) files)
-           "diff"
+    (apply #'vc-hg-command (or buffer "*vc-diff*") nil files "diff"
            (append
             (vc-switches 'hg 'diff)
             (when oldvers
