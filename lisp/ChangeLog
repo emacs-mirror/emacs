@@ -1,3 +1,9 @@
+2009-11-18  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): A new,
+	more accurate version of the regexp.  Contributed by Nathaniel
+	Flath.
+
 2009-11-18  Bernhard Herzog  <bernhard.herzog@intevation.de>
 
 	* vc-hg.el (vc-hg-diff): Fix last patch: do not change directory.
