@@ -147,6 +147,9 @@ kills are not duplicated in the `kill-ring'.
 ** The new completion-style `initials' is available.
 For instance, this can complete M-x lch to list-command-history.
 
+** Completions in the *Completions* buffer are sorted vertically
+when the value of the new variable `completions-format' is `vertical'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
