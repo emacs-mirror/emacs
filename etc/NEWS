@@ -277,6 +277,8 @@ Command*'.
 
 * New Modes and Packages in Emacs 23.2
 
+** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
+
 ** FIXME CEDET
 
 ** js.el is a new major mode for JavaScript files.
