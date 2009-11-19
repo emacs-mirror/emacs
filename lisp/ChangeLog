@@ -1,5 +1,7 @@
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (with-wrapper-hook): Fix thinko.
+
 	* hfy-cmap.el (hfy-rgb-file): Use locate-file.
 	(htmlfontify-load-rgb-file): Remove unnused var `ff'.
 	Use with-current-buffer and string-to-number.

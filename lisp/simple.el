@@ -6520,11 +6520,11 @@ expects to receive when called."
                                (global ,global))
                    (if (consp funs)
                        (if (eq t (car funs))
-                           (apply 'runrestofhook
-                                  (append global (cdr funs)) nil ,argssym)
+                           (runrestofhook
+                            (append global (cdr funs)) nil ,argssym)
                          (apply (car funs)
-                                (lambda (&rest args)
-                                    (runrestofhook (cdr funs) global args))
+                                (lambda (&rest ,argssym)
+				  (runrestofhook (cdr funs) global ,argssym))
                                 ,argssym))
                      ;; Once there are no more functions on the hook, run
                      ;; the original body.
