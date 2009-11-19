@@ -306,6 +306,10 @@ can see eaxctly what the fix was.
 Activate `bug-reference-mode' in ChangeLogs to get clickable links to
 the bug web-pages.
 
+*** Debian stuff
+
+http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
+
 ** Gnus-specific voodoo
 
 *** Put point on a bug-number and try: M-x gnus-read-ephemeral-emacs-bug-group
