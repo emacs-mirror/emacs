@@ -1,5 +1,7 @@
 2009-11-19  Glenn Morris  <rgm@gnu.org>
 
+	* dired-aux.el (dired-compress-file-suffixes): Add ".xz".  (Bug#4953)
+
 	* textmodes/flyspell.el (sgml-lexical-context): Declare.
 
 	* net/newst-treeview.el (newsticker-treeview-treewindow-width)

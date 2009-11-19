@@ -752,6 +752,7 @@ command with a prefix argument (the value does not matter)."
     ("\\.dz\\'" "" "dictunzip")
     ("\\.tbz\\'" ".tar" "bunzip2")
     ("\\.bz2\\'" "" "bunzip2")
+    ("\\.xz\\'" "" "unxz")
     ;; This item controls naming for compression.
     ("\\.tar\\'" ".tgz" nil))
   "Control changes in file name suffixes for compression and uncompression.
