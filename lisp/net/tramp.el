@@ -3804,6 +3804,12 @@ The method used must be an out-of-band method."
 	  (tramp-error
 	   v 'file-error "Cannot find copy program: %s" copy-program))
 
+	;; Set variables for computing the prompt for reading
+	;; password.
+	(setq tramp-current-method (tramp-file-name-method v)
+	      tramp-current-user   (tramp-file-name-user v)
+	      tramp-current-host   (tramp-file-name-host v))
+
 	(unwind-protect
 	    (with-temp-buffer
 	      ;; The default directory must be remote.
