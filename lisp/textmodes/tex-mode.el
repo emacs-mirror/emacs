@@ -1420,6 +1420,116 @@ Puts point on a blank line between them."
   \n "\\item " >)
 
 
+;;;; LaTeX completion.
+
+(defvar latex-complete-bibtex-cache nil)
+
+(defun latex-string-prefix-p (str1 str2)
+  (eq t (compare-strings str1 nil nil str2 0 (length str1))))
+
+(defvar bibtex-reference-key)
+(declare-function reftex-get-bibfile-list "reftex-cite.el" ())
+
+(defun latex-complete-bibtex-keys ()
+  (when (bound-and-true-p reftex-mode)
+    (lambda (key pred action)
+      (let ((re (concat "^[ \t]*@\\([a-zA-Z]+\\)[ \t\n]*\\([{(][ \t\n]*\\)"
+                        (regexp-quote key)))
+            (files (reftex-get-bibfile-list))
+            keys)
+        (if (and (eq (car latex-complete-bibtex-cache)
+                     (reftex-get-bibfile-list))
+                 (latex-string-prefix-p (nth 1 latex-complete-bibtex-cache)
+                                        key))
+            ;; Use the cache.
+            (setq keys (nth 2 latex-complete-bibtex-cache))
+          (dolist (file files)
+            (with-current-buffer (find-file-noselect file)
+              (goto-char (point-min))
+              (while (re-search-forward re nil t)
+                (goto-char (match-end 2))
+                (when (and (not (member-ignore-case (match-string 1)
+                                                    '("c" "comment" "string")))
+                           (looking-at bibtex-reference-key))
+                  (push (match-string-no-properties 0) keys)))))
+          ;; Fill the cache.
+          (set (make-local-variable 'latex-complete-bibtex-cache)
+               (list files key keys)))
+        (complete-with-action action keys key pred)))))
+
+(defun latex-complete-envnames ()
+  (append latex-block-names latex-standard-block-names))
+
+(defun latex-complete-refkeys ()
+  (when (boundp 'reftex-docstruct-symbol)
+    (symbol-value reftex-docstruct-symbol)))
+
+(defvar latex-complete-alist
+  ;; TODO: Add \begin, \end, \ref, ...
+  '(("\\`\\\\\\(short\\)?cite\\'" . latex-complete-bibtex-keys)
+    ("\\`\\\\\\(begin\\|end\\)\\'" . latex-complete-envnames)
+    ("\\`\\\\[vf]?ref\\'" . latex-complete-refkeys)))
+
+(defun latex-complete-data ()
+  "Get completion-data at point."
+  (save-excursion
+    (let ((pt (point)))
+      (skip-chars-backward "^ {}\n\t\\\\")
+      (case (char-before)
+        ((nil ?\s ?\n ?\t ?\}) nil)
+        (?\\
+         ;; TODO: Complete commands.
+         nil)
+        (?\{
+         ;; Complete args to commands.
+         (let* ((cmd
+                 (save-excursion
+                   (forward-char -1)
+                   (skip-chars-backward " \n")
+                   (buffer-substring (point)
+                                     (progn
+                                       (skip-chars-backward "a-zA-Z@*")
+                                       (let ((n (skip-chars-backward "\\\\")))
+                                         (forward-char (* 2 (/ n 2))))
+                                       (point)))))
+                (start (point))
+                (_ (progn (goto-char pt) (skip-chars-backward "^," start)))
+                (comp-beg (point))
+                (_ (progn (goto-char pt) (skip-chars-forward "^, {}\n\t\\\\")))
+                (comp-end (point))
+                (table
+                 (funcall
+                  (let ((f (lambda () t)))
+                    (dolist (comp latex-complete-alist)
+                      (if (string-match (car comp) cmd)
+                          (setq f (cdr comp))))
+                    f))))
+           (if (eq table t)
+               ;; Unknown command.
+               nil
+             (list comp-beg comp-end table))))))))
+
+(defun latex-complete ()
+  "Perform completion at point for LaTeX mode.
+Return non-nil if we found what to complete."
+  (interactive)
+  (let ((data (latex-complete-data)))
+    (when data
+      (apply 'completion-in-region data)
+      t)))
+
+(defun latex-indent-or-complete ()
+  "Perform completion at point or indentation, according to DWIM.
+The heuristic is to try indentation, if that fails try completion,
+if that fails insert a tab."
+  (interactive)
+  (let ((undo buffer-undo-list)
+	(pos (point)))
+    (indent-according-to-mode)
+    (or (not (and (eq pos (point)) (eq undo buffer-undo-list)))
+        (latex-complete)
+        (insert-tab))))
+
 ;;;;
 ;;;; LaTeX syntax navigation
 ;;;;
