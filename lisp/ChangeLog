@@ -1,3 +1,8 @@
+2009-11-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
+	variables for computing the prompt for reading password.
+
 2009-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* dired-aux.el (dired-compress-file-suffixes): Add ".xz".  (Bug#4953)
