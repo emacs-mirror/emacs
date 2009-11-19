@@ -6032,14 +6032,15 @@ select the completion near point.\n\n"))))))
   "Select the completion list window."
   (interactive)
   (let ((window (or (get-buffer-window "*Completions*" 0)
-  ;; Make sure we have a completions window.
+		    ;; Make sure we have a completions window.
                     (progn (minibuffer-completion-help)
                            (get-buffer-window "*Completions*" 0)))))
     (when window
       (select-window window)
-      (goto-char (point-min))
-      (search-forward "\n\n" nil t)
-      (forward-line 1))))
+      ;; In the new buffer, go to the first completion.
+      ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
+      (when (bobp)
+	(next-completion 1)))))
 
 ;;; Support keyboard commands to turn on various modifiers.
 
