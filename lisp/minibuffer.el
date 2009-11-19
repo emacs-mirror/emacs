@@ -778,6 +778,16 @@ Return nil if there is no valid completion, else t."
 (defface completions-annotations '((t :inherit italic))
   "Face to use for annotations in the *Completions* buffer.")
 
+(defcustom completions-format nil
+  "Define the appearance and sorting of completions.
+If the value is `vertical', display completions sorted vertically
+in columns in the *Completions* buffer.
+If the value is `horizontal' or nil, display completions sorted
+horizontally in alphabetical order, rather than down the screen."
+  :type '(choice (const nil) (const horizontal) (const vertical))
+  :group 'minibuffer
+  :version "23.2")
+
 (defun completion--insert-strings (strings)
   "Insert a list of STRINGS into the current buffer.
 Uses columns to keep the listing readable but compact.
@@ -800,6 +810,8 @@ It also eliminates runs of equal strings."
 		     (max 1 (/ (length strings) 2))))
 	   (colwidth (/ wwidth columns))
            (column 0)
+	   (rows (/ (length strings) columns))
+	   (row 0)
 	   (laststring nil))
       ;; The insertion should be "sensible" no matter what choices were made
       ;; for the parameters above.
@@ -810,20 +822,38 @@ It also eliminates runs of equal strings."
                             (+ (string-width (car str))
                                (string-width (cadr str)))
                           (string-width str))))
-            (unless (bolp)
-              (if (< wwidth (+ (max colwidth length) column))
-                  ;; No space for `str' at point, move to next line.
-                  (progn (insert "\n") (setq column 0))
-                (insert " \t")
-                ;; Leave the space unpropertized so that in the case we're
-                ;; already past the goal column, there is still
-                ;; a space displayed.
-                (set-text-properties (- (point) 1) (point)
-                                     ;; We can't just set tab-width, because
-                                     ;; completion-setup-function will kill all
-                                     ;; local variables :-(
-                                     `(display (space :align-to ,column)))
-                nil))
+            (cond
+	     ((eq completions-format 'vertical)
+	      ;; Vertical format
+	      (when (> row rows)
+		(forward-line (- -1 rows))
+		(setq row 0 column (+ column colwidth)))
+	      (when (> column 0)
+		(end-of-line)
+		(while (> (current-column) column)
+		  (if (eobp)
+		      (insert "\n")
+		    (forward-line 1)
+		    (end-of-line)))
+		(insert " \t")
+		(set-text-properties (- (point) 1) (point)
+				     `(display (space :align-to ,column)))))
+	     (t
+	      ;; Horizontal format
+	      (unless (bolp)
+		(if (< wwidth (+ (max colwidth length) column))
+		    ;; No space for `str' at point, move to next line.
+		    (progn (insert "\n") (setq column 0))
+		  (insert " \t")
+		  ;; Leave the space unpropertized so that in the case we're
+		  ;; already past the goal column, there is still
+		  ;; a space displayed.
+		  (set-text-properties (- (point) 1) (point)
+				       ;; We can't just set tab-width, because
+				       ;; completion-setup-function will kill all
+				       ;; local variables :-(
+				       `(display (space :align-to ,column)))
+		  nil))))
             (if (not (consp str))
                 (put-text-property (point) (progn (insert str) (point))
                                    'mouse-face 'highlight)
@@ -831,11 +861,20 @@ It also eliminates runs of equal strings."
                                  'mouse-face 'highlight)
               (add-text-properties (point) (progn (insert (cadr str)) (point))
                                    '(mouse-face nil
-                                     face completions-annotations)))
-            ;; Next column to align to.
-            (setq column (+ column
-                            ;; Round up to a whole number of columns.
-                            (* colwidth (ceiling length colwidth))))))))))
+						face completions-annotations)))
+	    (cond
+	     ((eq completions-format 'vertical)
+	      ;; Vertical format
+	      (if (> column 0)
+		  (forward-line)
+		(insert "\n"))
+	      (setq row (1+ row)))
+	     (t
+	      ;; Horizontal format
+	      ;; Next column to align to.
+	      (setq column (+ column
+			      ;; Round up to a whole number of columns.
+			      (* colwidth (ceiling length colwidth))))))))))))
 
 (defvar completion-common-substring nil)
 (make-obsolete-variable 'completion-common-substring nil "23.1")
