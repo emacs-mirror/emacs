@@ -1,3 +1,9 @@
+2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (make_gap_larger): Don't make as many assumptions about the
+	representation of Lisp integers.
+	Reported by MJ Chan <mjchan.inbox@gmail.com>.
+
 2009-11-17  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lisp.h: Remove declaration of Ffont_get_system_font.
@@ -6,8 +12,8 @@
 
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xsettings.c (something_changedCB, Ffont_get_system_font): Check
-	use_system_font.
+	* xsettings.c (something_changedCB, Ffont_get_system_font):
+	Check use_system_font.
 	(syms_of_xsettings): DEFVAR font-use-system-font.
 
 2009-11-17  Andreas Schwab  <schwab@linux-m68k.org>
@@ -18,10 +24,10 @@
 
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xftfont.c (xftfont_fix_match): Older versions of fontconfig does
+	* xftfont.c (xftfont_fix_match): Older versions of fontconfig do
 	not have FC_LCD_*.  #define them if not there.
 
-	* xsettings.c (parse_xft_settings, apply_xft_settings): Ditto
+	* xsettings.c (parse_xft_settings, apply_xft_settings): Ditto.
 
 	* xterm.h (struct x_display_info): Add atoms and Window for xsettings.
 
@@ -36,10 +42,11 @@
 
 	* xfont.c (xfont_driver): Initialize all members.
 
-	* xfns.c (x_default_font_parameter): Try font from Ffont_get_system_font.
+	* xfns.c (x_default_font_parameter):
+	Try font from Ffont_get_system_font.
 	Do not get font from x_default_parameter if we got one from
 	Ffont_get_system_font.
-	(Fx_select_font): Get the defaut font name from :name of FRAME_FONT (f).
+	(Fx_select_font): Get the defaut font name from :name of FRAME_FONT(f).
 
 	* w32font.c (w32font_driver): Initialize all members.
 
@@ -47,22 +54,22 @@
 
 	* lisp.h: Declare syms_of_xsettings.
 
-	* keyboard.c (kbd_buffer_get_event, make_lispy_event): Handle 
-	CONFIG_CHANGED_EVENT.
+	* keyboard.c (kbd_buffer_get_event, make_lispy_event):
+	Handle CONFIG_CHANGED_EVENT.
 
 	* ftfont.c (ftfont_filter_properties): New function.
 
 	* frame.c (x_set_font): Remove unused variable lval.
 
-	* font.h (struct font_driver): filter_properties is new.
+	* font.h (struct font_driver): Add filter_properties.
 
 	* font.c (font_put_extra): Don't return if val is nil, it means
 	boolean option is off.
 	(font_parse_fcname): Collect all extra properties in extra_props
 	and call filter_properties for all drivers with extra_props and
 	font as parameter.
-	(font_open_entity): Do not use cache, it does not pick up new fontconfig
-	settings like hinting.
+	(font_open_entity): Do not use cache, it does not pick up new
+	fontconfig settings like hinting.
 	(font_load_for_lface): If spec had a name in it, store it in entity.
 
 	* emacs.c (main): Call syms_of_xsettings
@@ -89,8 +96,7 @@
 
 2009-11-14  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* Makefile.in: Ignore errors from mkdir when creating deps
-	directory.
+	* Makefile.in: Ignore errors from mkdir when creating deps directory.
 
 2009-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
