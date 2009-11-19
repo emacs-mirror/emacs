@@ -1,3 +1,14 @@
+2009-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-yank-prefix): Change default to "> ".
+	(mail-signature): Change default to t.
+	(mail-from-style): Deprecate `system-default' value.
+	(mail-insert-from-field): For default value of mail-from-style,
+	default to `angles' unless `angles' needs quoting and `parens'
+	does not.
+	(mail-citation-prefix-regexp): Use citation regexp from
+	message-mode.
+
 2009-11-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set

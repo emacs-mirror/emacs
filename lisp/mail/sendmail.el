@@ -58,7 +58,7 @@
   :type 'file)
 
 ;;;###autoload
-(defcustom mail-from-style 'angles
+(defcustom mail-from-style 'default
   "Specifies how \"From:\" fields look.
 
 If `nil', they contain just the return address like:
@@ -67,15 +67,14 @@ If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
 If `angles', they look like:
 	Elvis Parsley <king@grassland.com>
-If `system-default', allows the mailer to insert its default From field
-derived from the envelope-from address.
 
-In old versions of Emacs, the `system-default' setting also caused
-Emacs to pass the proper email address from `user-mail-address'
-to the mailer to specify the envelope-from address.  But that is now
-controlled by a separate variable, `mail-specify-envelope-from'."
-  :type '(choice (const nil) (const parens) (const angles)
-		 (const system-default))
+Otherwise, most addresses look like `angles', but they look like
+`parens' if `angles' would need quoting and `parens' would not."
+  ;; The value `system-default' is now deprecated.
+  :type '(choice (const :tag "simple" nil)
+		 (const parens)
+		 (const angles)
+		 (const default))
   :version "20.3"
   :group 'sendmail)
 
@@ -241,7 +240,7 @@ The alias definitions in the file have this form:
   "The modification time of your mail alias file when it was last examined.")
 
 ;;;###autoload
-(defcustom mail-yank-prefix nil
+(defcustom mail-yank-prefix "> "
   "Prefix insert on lines of yanked message being replied to.
 If this is nil, use indentation, as specified by `mail-indentation-spaces'."
   :type '(choice (const nil) string)
@@ -284,7 +283,8 @@ This enables the hook functions to see the whole message header
 regardless of what part of it (if any) is included in the cited text.")
 
 ;;;###autoload
-(defcustom mail-citation-prefix-regexp (purecopy "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|[ \t]*")
+(defcustom mail-citation-prefix-regexp
+  (purecopy "\\([ \t]*\\(\\w\\|[_.]\\)+>+\\|[ \t]*[]>|}]\\)+")
   "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
 with whitespace before and after; it should also match just whitespace.
@@ -393,7 +393,7 @@ removed from alias expansions."
   nil)
 
 ;;;###autoload
-(defcustom mail-signature nil
+(defcustom mail-signature t
   "Text inserted at end of mail buffer when a message is initialized.
 If t, it means to insert the contents of the file `mail-signature-file'.
 If a string, that string is inserted.
@@ -955,7 +955,21 @@ See also the function `select-message-coding-system'.")
     (if (string-match "[^\0-\177]" fullname)
 	(setq fullname (rfc2047-encode-string fullname)
 	      quote-fullname t))
-    (cond ((eq mail-from-style 'angles)
+    (cond ((null mail-from-style)
+	   (insert "From: " login "\n"))
+	  ;; This is deprecated.
+	  ((eq mail-from-style 'system-default)
+	   nil)
+	  ((or (eq mail-from-style 'angles)
+	       (and (not (eq mail-from-style 'parens))
+		    ;; Use angles if no quoting is needed, or if
+		    ;; parens would need quoting too.
+		    (or (not (string-match "[^- !#-'*+/-9=?A-Z^-~]" fullname))
+			(let ((tmp (concat fullname nil)))
+			  (while (string-match "([^()]*)" tmp)
+			    (aset tmp (match-beginning 0) ?-)
+			    (aset tmp (1- (match-end 0)) ?-))
+			  (string-match "[\\()]" tmp)))))
 	   (insert "From: " fullname)
 	   (let ((fullname-start (+ (point-min) 6))
 		 (fullname-end (point-marker)))
@@ -974,7 +988,8 @@ See also the function `select-message-coding-system'.")
 		     (replace-match "\\\\\\&" t))
 		   (insert "\""))))
 	   (insert " <" login ">\n"))
-	  ((eq mail-from-style 'parens)
+	  ;; 'parens or default
+	  (t
 	   (insert "From: " login " (")
 	   (let ((fullname-start (point)))
 	     (if quote-fullname
@@ -997,12 +1012,7 @@ See also the function `select-message-coding-system'.")
 		       fullname-end 1)
 		 (replace-match "\\1(\\3)" t)
 		 (goto-char fullname-start))))
-	   (insert ")\n"))
-	  ((null mail-from-style)
-	   (insert "From: " login "\n"))
-	  ((eq mail-from-style 'system-default)
-	   nil)
-	  (t (error "Invalid value for `mail-from-style'")))))
+	   (insert ")\n")))))
 
 ;; Normally you will not need to modify these options unless you are
 ;; using some non-genuine substitute for sendmail which does not
