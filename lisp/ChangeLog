@@ -1,3 +1,10 @@
+2009-11-19  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-padded-string): Compose with TAB
+	only if there's a font for CH.
+	(describe-char): Fix the condition for detecting a trivial
+	composition.
+
 2009-11-18  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): A new,
