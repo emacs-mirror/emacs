@@ -1004,9 +1004,14 @@ variables.")
     (if (and completions
              (or (consp (cdr completions))
                  (not (equal (car completions) string))))
-        (with-output-to-temp-buffer "*Completions*"
-          (let* ((last (last completions))
-                 (base-size (cdr last)))
+        (let* ((last (last completions))
+               (base-size (cdr last))
+               ;; If the *Completions* buffer is shown in a new
+               ;; window, mark it as softly-dedicated, so bury-buffer in
+               ;; minibuffer-hide-completions will know whether to
+               ;; delete the window or not.
+               (display-buffer-mark-dedicated 'soft))
+          (with-output-to-temp-buffer "*Completions*"
             ;; Remove the base-size tail because `sort' requires a properly
             ;; nil-terminated list.
             (when last (setcdr last nil))
@@ -1019,11 +1024,11 @@ variables.")
                                 (if ann (list s ann) s)))
                             completions)))
             (with-current-buffer standard-output
-	      (set (make-local-variable 'completion-base-position)
-		   ;; FIXME: We should provide the END part as well, but
-		   ;; currently completion-all-completions does not give
-		   ;; us the necessary information.
-		   (list (+ start base-size) nil)))
+              (set (make-local-variable 'completion-base-position)
+                   ;; FIXME: We should provide the END part as well, but
+                   ;; currently completion-all-completions does not give
+                   ;; us the necessary information.
+                   (list (+ start base-size) nil)))
             (display-completion-list completions)))
 
       ;; If there are no completions, or if the current input is already the

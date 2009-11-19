@@ -1,5 +1,9 @@
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (display-buffer-mark-dedicated): New var.
+	(display-buffer): Obey it.
+	* minibuffer.el (minibuffer-completion-help): Use it.
+
 	* progmodes/sym-comp.el (symbol-complete): Use completion-in-region.
 
 	* filecache.el (file-cache-add-file): Use push and cons.
