@@ -3765,8 +3765,12 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   if (SYMBOLP (name) && !EQ (name, tem))
     return Qnil;
 
-  if (EQ (tem, Qnil) || EQ (tem, Qt))
-    error ("Attempt to unintern t or nil");
+  /* There are plenty of other symbols which will screw up the Emacs
+     session if we unintern them, as well as even more ways to use
+     `setq' or `fset' or whatnot to make the Emacs session
+     unusable.  Let's not go down this silly road.  --Stef  */
+  /* if (EQ (tem, Qnil) || EQ (tem, Qt))
+       error ("Attempt to unintern t or nil"); */
 
   XSYMBOL (tem)->interned = SYMBOL_UNINTERNED;
   XSYMBOL (tem)->constant = 0;

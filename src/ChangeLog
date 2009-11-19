@@ -1,3 +1,7 @@
+2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (Funintern): Comment out last change.
+
 2009-11-19  Richard Stallman  <rms@gnu.org>
 
 	* lread.c (Funintern): Error if symbol is t or nil.
@@ -193,7 +197,7 @@
 
 2009-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* fns.c (Fplist_get): Merge the active and the uncommented code.
+	* fns.c (Fplist_get): Merge the active and the commented out code.
 
 2009-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
