@@ -1,3 +1,7 @@
+2009-11-19  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* htmlfontify.el, hfy-cmap.el: New files.
+
 2009-11-19  Juri Linkov  <juri@jurta.org>
 
 	* minibuffer.el (completions-format): New defcustom.
@@ -25,8 +29,8 @@
 
 2009-11-19  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Set
-	variables for computing the prompt for reading password.
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band):
+	Set variables for computing the prompt for reading password.
 
 2009-11-19  Glenn Morris  <rgm@gnu.org>
 
