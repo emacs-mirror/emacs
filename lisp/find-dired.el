@@ -70,7 +70,7 @@ On other systems, the closest you can come is to use `-l'."
   :type 'string
   :group 'find-dired)
 
-;;;###autoload
+;; This used to be autoloaded (see bug#4387).
 (defcustom find-name-arg
   (purecopy (if read-file-name-completion-ignore-case
       "-iname"

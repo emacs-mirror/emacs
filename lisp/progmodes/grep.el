@@ -876,7 +876,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	    (setq default-directory dir))))))
 
 
-(defvar find-name-arg)                  ; autoloaded
+(defvar find-name-arg)	    ; not autoloaded but defined in find-dired
 
 ;;;###autoload
 (defun rgrep (regexp &optional files dir confirm)
@@ -917,6 +917,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 	(if (not (string= regexp grep-find-command))
 	    (compilation-start regexp 'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
+      (require 'find-dired)		; for `find-name-arg'
       (let ((command (grep-expand-template
 		      grep-find-template
 		      regexp

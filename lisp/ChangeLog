@@ -1,3 +1,9 @@
+2009-11-19  Juri Linkov  <juri@jurta.org>
+
+	* find-dired.el (find-name-arg): Remove autoload.  (Bug#4387)
+
+	* progmodes/grep.el (rgrep): Require `find-dired' for `find-name-arg'.
+
 2009-11-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/sendmail.el (mail-yank-prefix): Change default to "> ".
