@@ -1,3 +1,7 @@
+2009-11-19  Richard Stallman  <rms@gnu.org>
+
+	* lread.c (Funintern): Error if symbol is t or nil.
+
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* insdel.c (make_gap_larger): Don't make as many assumptions about the

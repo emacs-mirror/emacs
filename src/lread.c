@@ -3765,6 +3765,9 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   if (SYMBOLP (name) && !EQ (name, tem))
     return Qnil;
 
+  if (EQ (tem, Qnil) || EQ (tem, Qt))
+    error ("Attempt to unintern t or nil");
+
   XSYMBOL (tem)->interned = SYMBOL_UNINTERNED;
   XSYMBOL (tem)->constant = 0;
   XSYMBOL (tem)->indirect_variable = 0;
