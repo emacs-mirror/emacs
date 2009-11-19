@@ -353,7 +353,9 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; Return a string of CH with composition for padding on both sides.
 ;; It is displayed without overlapping with the left/right columns.
 (defsubst describe-char-padded-string (ch)
-  (compose-string (string ch) 0 1 (format "\t%c\t" ch)))
+  (if (internal-char-font nil ch)
+      (compose-string (string ch) 0 1 (format "\t%c\t" ch))
+    (string ch)))
 
 ;; Return a nicely formated list of categories; extended category
 ;; description is added to the category name as a tooltip
@@ -446,7 +448,8 @@ as well as widgets, buttons, overlays, and text properties."
 				(setq glyph (lgstring-glyph components j))
 				(= (lglyph-from glyph) glyph-from))
 		      (setq j (1+ j)))
-		    (if (and (= i (1- j))
+		    (if (and (= to (1+ from))
+			     (= i (1- j))
 			     (setq glyph (lgstring-glyph components i))
 			     (= char (lglyph-char glyph)))
 			;; The composition is trivial.
