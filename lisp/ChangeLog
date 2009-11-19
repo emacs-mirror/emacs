@@ -1,3 +1,18 @@
+2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hfy-cmap.el (hfy-rgb-file): Use locate-file.
+	(htmlfontify-load-rgb-file): Remove unnused var `ff'.
+	Use with-current-buffer and string-to-number.
+	(hfy-fallback-colour-values): Use assoc-string.
+	* htmlfontify.el (hfy-face-to-css): Remove unused var `style'.
+	(hfy-face-at): Remove unused var `found-face'.
+	(hfy-compile-stylesheet): Remove unused var `css'.
+	(hfy-fontify-buffer): Remove unused vars `in-style', `invis-button',
+	and `orig-buffer'.
+	(hfy-buffer, hfy-copy-and-fontify-file, hfy-parse-tags-buffer):
+	Use with-current-buffer.
+	(hfy-text-p): Use expand-file-name and fewer setq.
+
 2009-11-19  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* htmlfontify.el, hfy-cmap.el: New files.

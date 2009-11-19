@@ -813,6 +813,7 @@ regular specifiers."
 TAG is an Emacs font attribute key (eg :underline).
 VAL is ignored."
   (list
+   ;; FIXME: Why not '("text-decoration" . "underline")?  --Stef
    (cond ((eq tag :underline     ) (cons "text-decoration" "underline"   ))
          ((eq tag :overline      ) (cons "text-decoration" "overline"    ))
          ((eq tag :strike-through) (cons "text-decoration" "line-through")))))
@@ -1085,7 +1086,6 @@ See also: `hfy-face-to-style'"
   ;;(message "hfy-face-to-css");;DBUG
   (let ((css-list nil)
         (css-text nil)
-        (style    nil)
         (seen     nil))
     ;;(message "(hfy-face-to-style %S)" fn)
     (setq css-list (hfy-face-to-style fn))
@@ -1206,7 +1206,6 @@ return a defface style list of face properties instead of a face symbol."
           (face-name   (hfy-p-to-face (text-properties-at p)))
           ;; (face-name    (hfy-get-face-at p))
           (prop-seen    nil)
-          (found-face   nil)
           (extra-props  nil)
           (text-props   (text-properties-at p)))
       ;;(message "face-name: %S" face-name)
@@ -1315,7 +1314,6 @@ return a defface style list of face properties instead of a face symbol."
                                (t                 p)))
                      (if (memq p prop-seen) nil ;; noop
                        (setq prop-seen   (cons p prop-seen)
-                             found-face  t
                              extra-props (cons p (cons v extra-props)))) ))))))
          overlay-data)
         ;;(message "+ %d: %s; %S" p face-name extra-props)
@@ -1340,7 +1338,6 @@ The plists are returned in descending priority order."
         ;; Make the font stack stay:
         ;;(hfy-tmpfont-stack nil)
         (fn         nil)
-        (css        nil)
         (style      nil))
     (save-excursion
       (goto-char pt)
@@ -1459,13 +1456,12 @@ Otherwise a plausible filename is constructed from `default-directory',
   (let* ((name (concat (buffer-name) hfy-extn))
          (src               (buffer-file-name))
          (buf  (get-buffer-create        name)))
-    (save-excursion
-      (set-buffer buf)
-      (if src (setq buffer-file-name (concat src hfy-extn))
-        (if (string-match "^.*/\\([^/]*\\)$" name)
-            (setq buffer-file-name
-                  (concat default-directory "/" (match-string 1 name)))
-          (setq buffer-file-name (concat default-directory "/" name) )))
+    (with-current-buffer buf
+      (setq buffer-file-name
+            (if src (concat src hfy-extn)
+              (expand-file-name (if (string-match "^.*/\\([^/]*\\)$" name)
+                                    (match-string 1 name)
+                                  name))))
       buf)))
 
 (defun hfy-lookup (face style)
@@ -1602,10 +1598,7 @@ Do not record undo information during evaluation of BODY."
 SRCDIR, if set, is the directory being htmlfontified.
 FILE, if set, is the file name."
   (if srcdir (setq srcdir (directory-file-name srcdir)))
-  (let* ( (in-style                    nil)
-          (invis-buttons               nil)
-          (orig-buffer    (current-buffer))
-          (html-buffer        (hfy-buffer))
+  (let* ( (html-buffer        (hfy-buffer))
           (css-sheet                   nil)
           (css-map                     nil)
           (invis-ranges                nil)
@@ -1848,9 +1841,8 @@ bombproof, but good enough in the context in which it is being used."
 
 (defun hfy-text-p (srcdir file)
   "Is SRCDIR/FILE text? Uses `hfy-istext-command' to determine this."
-  (let (cmd rsp)
-    (setq cmd (format hfy-istext-command (concat srcdir "/" file))
-          rsp (shell-command-to-string    cmd))
+  (let* ((cmd (format hfy-istext-command (expand-file-name file srcdir)))
+         (rsp (shell-command-to-string    cmd)))
     (if (string-match "text" rsp) t nil)))
 
 ;; open a file, check fontification, if fontified, write a fontified copy
@@ -1867,9 +1859,8 @@ adding an extension of `hfy-extn'.  Fontification is actually done by
         (source nil)
         (html   nil))
     (cd srcdir)
-    (save-excursion
-      (setq source (find-file-noselect file))
-      (set-buffer   source)
+    (with-current-buffer (setq source (find-file-noselect file))
+      ;; FIXME: Shouldn't this use expand-file-name?  --Stef
       (setq target (concat dstdir "/" file))
       (hfy-make-directory (hfy-dirname target))
       (if (not (hfy-opt 'skip-refontification)) (hfy-force-fontification))
@@ -1942,6 +1933,8 @@ a source file, append a .X to `hfy-index-file', where X is the uppercased
 first character of TAG.\n
 See also: `hfy-relstub', `hfy-index-file'`'."
   ;;(message "hfy-href-stub");;DBUG
+  ;; FIXME: Why not use something like
+  ;; (file-relative-name (if ...) (file-name-directory this-file)) ?  --Stef
   (concat
    (hfy-relstub this-file)
    (if (= 1 (length def-files)) (car def-files)
@@ -1965,6 +1958,7 @@ TAG-MAP is the entry in `hfy-tags-cache'."
 (defun hfy-word-regex (string)
   "Return a regex that matches STRING as the first `match-string', with non
 word characters on either side."
+  ;; FIXME: Should this use [^$[:alnum:]_] instead?  --Stef
   (concat "[^$A-Za-z_0-9]\\(" (regexp-quote string) "\\)[^A-Za-z_0-9]"))
 
 ;; mark all tags for hyperlinking, except the tags at
@@ -2092,8 +2086,7 @@ FILE is the specific file we are rendering."
     (clrhash cache-hash)
 
     ;; cache the TAG => ((file line point) (file line point) ... ) entries:
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-min))
 
       (while (and (looking-at "^\x0c") (= 0 (forward-line 1)))

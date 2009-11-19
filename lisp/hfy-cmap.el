@@ -798,12 +798,7 @@
 
 (defun hfy-rgb-file ()
   "Return a fully qualified path to the X11 style rgb.txt file."
-  (catch 'rgb-file
-    (mapcar
-     (lambda (DIR)
-       (let ((rgb-file (concat DIR "/rgb.txt")))
-	 (if (file-readable-p rgb-file)
-	     (throw 'rgb-file rgb-file) nil)) ) hfy-rgb-load-path) nil))
+  (locate-file "rgb.txt" hfy-rgb-load-path))
 
 (defconst hfy-rgb-regex
   "^\\s-*\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\(.+\\)\\s-*$")
@@ -818,36 +813,31 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
     (read-file-name "rgb.txt \(equivalent\) file: " "" nil t (hfy-rgb-file))))
   (let ((rgb-buffer   nil)
 	(end-of-rgb     0)
-	(rgb-txt      nil)
-	(ff         255.0))
+	(rgb-txt      nil))
     (if (and (setq rgb-txt (or file (hfy-rgb-file)))
 	     (file-readable-p rgb-txt))
-	(save-excursion
-	  (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
-	  (set-buffer rgb-buffer)
-	  (goto-char (point-min))
+	(with-current-buffer
+            (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
+          (goto-char (point-min))
 	  (htmlfontify-unload-rgb-file)
 	  (while (/= end-of-rgb 1)
 	    (if (looking-at hfy-rgb-regex)
 		(setq hfy-rgb-txt-colour-map
 		      (cons (list (match-string 4)
-				  (string-to-int (match-string 1))
-				  (string-to-int (match-string 2))
-				  (string-to-int (match-string 3)))
+				  (string-to-number (match-string 1))
+				  (string-to-number (match-string 2))
+				  (string-to-number (match-string 3)))
 			    hfy-rgb-txt-colour-map)) )
 	    (setq end-of-rgb (forward-line)))
-	  (kill-buffer rgb-buffer))
-      )
-    )
-  )
+	  (kill-buffer rgb-buffer)))))
 
 (defun htmlfontify-unload-rgb-file ()
   (interactive)
   (setq hfy-rgb-txt-colour-map nil))
 
 (defun hfy-fallback-colour-values (colour-string)
-  (cdr (assoc-ignore-case colour-string (or hfy-rgb-txt-colour-map
-					    hfy-fallback-colour-map))) )
+  (cdr (assoc-string colour-string (or hfy-rgb-txt-colour-map
+                                       hfy-fallback-colour-map))) )
 
 (provide 'hfy-cmap)
 ;;; hfy-cmap.el ends here
