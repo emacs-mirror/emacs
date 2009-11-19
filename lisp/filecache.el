@@ -255,7 +255,10 @@ Defaults to nil on DOS and Windows, and t on other systems."
 (defvar file-cache-last-completion nil)
 
 (defvar file-cache-alist nil
-  "Internal data structure to hold cache of file names.")
+  "Internal data structure to hold cache of file names.
+It is a list of entries of the form (FILENAME DIRNAME1 DIRNAME2 ...)
+where FILENAME is a file name component and the entry represents N
+files of names DIRNAME1/FILENAME, DIRNAME2/FILENAME, ...")
 
 (defvar file-cache-completions-keymap
   (let ((map (make-sparse-keymap)))
@@ -332,13 +335,9 @@ in each directory, not to the directory list itself."
 		  (and (listp (cdr the-entry))
 		       (member dir-name (cdr the-entry))))
 	      nil
-	    (setcdr the-entry (append (list dir-name) (cdr the-entry)))
-	    )
+	    (setcdr the-entry (cons dir-name (cdr the-entry))))
 	;; If not, add it to the cache
-	(setq file-cache-alist
-	      (cons (cons file-name (list dir-name))
-		    file-cache-alist)))
-      )))
+	(push (list file-name dir-name) file-cache-alist)))))
 
 ;;;###autoload
 (defun file-cache-add-directory-using-find (directory)
@@ -446,9 +445,9 @@ or the optional REGEXP argument."
   "Delete files matching REGEXP from the file cache."
   (interactive "sRegexp: ")
   (let ((delete-list))
-    (mapc '(lambda (elt)
+    (mapc (lambda (elt)
 	     (and (string-match regexp (car elt))
-		  (setq delete-list (cons (car elt) delete-list))))
+                 (push (car elt) delete-list)))
 	  file-cache-alist)
     (file-cache-delete-file-list delete-list)
     (message "Filecache: deleted %d files from file cache"
@@ -460,7 +459,7 @@ or the optional REGEXP argument."
   (let ((dir (expand-file-name directory))
 	(result 0))
     (mapc
-     '(lambda (entry)
+     (lambda (entry)
 	(if (file-cache-do-delete-directory dir entry)
 	    (setq result (1+ result))))
      file-cache-alist)
@@ -669,26 +668,11 @@ the name is considered already unique; only the second substitution
 (defun file-cache-complete  ()
   "Complete the word at point, using the filecache."
   (interactive)
-  (let (start pattern completion all)
+  (let ((start
     (save-excursion
       (skip-syntax-backward "^\"")
-      (setq start (point)))
-    (setq pattern    (buffer-substring-no-properties start (point)))
-    (setq completion (try-completion  pattern file-cache-alist))
-    (setq all        (all-completions pattern file-cache-alist nil))
-    (cond ((eq completion t))
-	  ((null completion)
-	   (message "Can't find completion for \"%s\"" pattern)
-	   (ding))
-	  ((not (string= pattern completion))
-	   (delete-region start (point))
-	   (insert completion)
-	   )
-	  (t
-	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list all pattern))
-	   ))
-    ))
+           (point))))
+    (completion-in-region start (point) file-cache-alist)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Show parts of the cache

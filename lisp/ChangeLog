@@ -1,5 +1,9 @@
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* filecache.el (file-cache-add-file): Use push and cons.
+	(file-cache-delete-file-regexp): Use push.
+	(file-cache-complete): Use completion-in-region.
+
 	* simple.el (with-wrapper-hook): Fix thinko.
 
 	* hfy-cmap.el (hfy-rgb-file): Use locate-file.
