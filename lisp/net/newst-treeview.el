@@ -108,14 +108,14 @@
   30
   "Width of tree window in treeview layout.
 See also `newsticker-treeview-listwindow-height'."
-  :type 'int
+  :type 'integer
   :group 'newsticker-treeview)
 
 (defcustom newsticker-treeview-listwindow-height
   10
   "Height of list window in treeview layout.
 See also `newsticker-treeview-treewindow-width'."
-  :type 'int
+  :type 'integer
   :group 'newsticker-treeview)
 
 (defcustom newsticker-treeview-automatically-mark-displayed-items-as-old

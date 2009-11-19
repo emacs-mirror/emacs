@@ -1,3 +1,8 @@
+2009-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* net/newst-treeview.el (newsticker-treeview-treewindow-width)
+	(newsticker-treeview-listwindow-height): Fix custom type.
+
 2009-11-19  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char-padded-string): Compose with TAB
