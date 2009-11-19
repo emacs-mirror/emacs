@@ -1,5 +1,13 @@
 2009-11-19  Juri Linkov  <juri@jurta.org>
 
+	* minibuffer.el (completions-format): New defcustom.
+	(completion--insert-strings): Implement vertical format.
+
+	* simple.el (switch-to-completions): Move point to the first
+	completion when point was at the beginning of the buffer.
+
+2009-11-19  Juri Linkov  <juri@jurta.org>
+
 	* find-dired.el (find-name-arg): Remove autoload.  (Bug#4387)
 
 	* progmodes/grep.el (rgrep): Require `find-dired' for `find-name-arg'.
