@@ -1,3 +1,13 @@
+2009-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-from-style, message-interactive)
+	(message-cite-prefix-regexp, message-sendmail-envelope-from)
+	(message-yank-prefix, message-indentation-spaces, message-signature)
+	(message-signature-file, message-default-headers): For GNU Emacs, set
+	default values from the corresponding mail-* variables.
+	(message-send-mail-with-sendmail): Use envelope-from only if
+	mail-specify-envelope-from is non-nil.
+
 2009-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-decode-region): Don't quote decoded words

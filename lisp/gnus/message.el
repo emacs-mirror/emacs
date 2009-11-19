@@ -159,7 +159,8 @@ If this variable is nil, no such courtesy message will be added."
   :group 'message-interface
   :type 'regexp)
 
-(defcustom message-from-style 'default
+(defcustom message-from-style
+  (if (featurep 'xemacs) 'default mail-from-style)
   "*Specifies how \"From\" headers look.
 
 If nil, they contain just the return address like:
@@ -433,7 +434,7 @@ whitespace)."
   :link '(custom-manual "(message)Various Commands")
   :group 'message-various)
 
-(defcustom message-interactive t
+(defcustom message-interactive (if (featurep 'xemacs) t mail-interactive)
   "Non-nil means when sending a message wait for and display errors.
 nil means let mailer mail back a message to report errors."
   :group 'message-sending
@@ -610,21 +611,24 @@ Done before generating the new subject of a forward."
   :type 'regexp)
 
 (defcustom message-cite-prefix-regexp
-  (if (string-match "[[:digit:]]" "1")
-      ;; Support POSIX?  XEmacs 21.5.27 doesn't.
-      "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|}]\\)+"
-    ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
-    (let (non-word-constituents)
-      (with-syntax-table text-mode-syntax-table
-	(setq non-word-constituents
-	      (concat
-	       (if (string-match "\\w" "_")  "" "_")
-	       (if (string-match "\\w" ".")  "" "."))))
-      (if (equal non-word-constituents "")
-	  "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}]\\)+"
-	(concat "\\([ \t]*\\(\\w\\|["
-		non-word-constituents
-		"]\\)+>+\\|[ \t]*[]>|}]\\)+"))))
+  (cond ((not (featurep 'xemacs))
+	 mail-citation-prefix-regexp)
+	((string-match "[[:digit:]]" "1")
+	 ;; Support POSIX?  XEmacs 21.5.27 doesn't.
+	 "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|}]\\)+")
+	(t
+	 ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
+	 (let (non-word-constituents)
+	   (with-syntax-table text-mode-syntax-table
+	     (setq non-word-constituents
+		   (concat
+		    (if (string-match "\\w" "_")  "" "_")
+		    (if (string-match "\\w" ".")  "" "."))))
+	   (if (equal non-word-constituents "")
+	       "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}]\\)+"
+	     (concat "\\([ \t]*\\(\\w\\|["
+		     non-word-constituents
+		     "]\\)+>+\\|[ \t]*[]>|}]\\)+")))))
   "*Regexp matching the longest possible citation prefix on a line."
   :version "22.1"
   :group 'message-insertion
@@ -815,8 +819,10 @@ Doing so would be even more evil than leaving it out."
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
 
-(defcustom message-sendmail-envelope-from nil
+(defcustom message-sendmail-envelope-from
+  (if (featurep 'xemacs) nil mail-envelope-from)
   "*Envelope-from when sending mail with sendmail.
+This only has an effect if `mail-specify-envelope-from' is non-nil.
 If this is nil, use `user-mail-address'.  If it is the symbol
 `header', use the From: header of the message."
   :version "22.1"
@@ -992,7 +998,7 @@ Please also read the note in the documentation of
   :version "23.1" ;; No Gnus
   :group 'message-insertion)
 
-(defcustom message-yank-prefix "> "
+(defcustom message-yank-prefix (if (featurep 'xemacs) "> " mail-yank-prefix)
   "*Prefix inserted on the lines of yanked messages.
 Fix `message-cite-prefix-regexp' if it is set to an abnormal value.
 See also `message-yank-cited-prefix' and `message-yank-empty-prefix'."
@@ -1017,7 +1023,8 @@ See also `message-yank-prefix' and `message-yank-cited-prefix'."
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
-(defcustom message-indentation-spaces 3
+(defcustom message-indentation-spaces
+  (if (featurep 'xemacs) 3 mail-indentation-spaces)
   "*Number of spaces to insert at the beginning of each cited line.
 Used by `message-yank-original' via `message-yank-cite'."
   :group 'message-insertion
@@ -1046,7 +1053,7 @@ point and mark around the citation text as modified."
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
-(defcustom message-signature t
+(defcustom message-signature (if (featurep 'xemacs) t mail-signature)
   "*String to be inserted at the end of the message buffer.
 If t, the `message-signature-file' file will be inserted instead.
 If a function, the result from the function will be used instead.
@@ -1055,7 +1062,8 @@ If a form, the result from the form will be used instead."
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
-(defcustom message-signature-file "~/.signature"
+(defcustom message-signature-file
+  (if (featurep 'xemacs) "~/.signature" mail-signature-file)
   "*Name of file containing the text inserted at end of message buffer.
 Ignored if the named file doesn't exist.
 If nil, don't insert a signature.
@@ -1130,7 +1138,8 @@ It is a vector of the following headers:
   :valid-regexp "^\\'"
   :error "All header lines must be newline terminated")
 
-(defcustom message-default-headers ""
+(defcustom message-default-headers
+  (if (featurep 'xemacs) "" mail-default-headers)
   "*A string containing header lines to be inserted in outgoing messages.
 It is inserted before you edit the message, so you can edit or delete
 these lines."
@@ -4531,8 +4540,9 @@ If you always want Gnus to send messages in one piece, set
 			;; since some systems have broken sendmails.
 			;; But some systems are more broken with -f, so
 			;; we'll let users override this.
-			(if (null message-sendmail-f-is-evil)
-			    (list "-f" (message-sendmail-envelope-from)))
+			(and (null message-sendmail-f-is-evil)
+			     mail-specify-envelope-from
+			     (list "-f" (message-sendmail-envelope-from)))
 			;; These mean "report errors by mail"
 			;; and "deliver in background".
 			(if (null message-interactive) '("-oem" "-odb"))
