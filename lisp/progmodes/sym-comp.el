@@ -143,14 +143,9 @@ to be set buffer-locally.  Variables `symbol-completion-symbol-function',
               (lambda (str)
                 (car-safe (cdr-safe
                            (funcall symbol-completion-transform-function
-                                    str))))))
-         (minibuffer-completion-table completions)
-         (minibuffer-completion-predicate predicate)
-         (ol (make-overlay (- (point) (length pattern)) (point) nil nil t)))
-      (overlay-put ol 'field 'sym-comp)
-      (unwind-protect
-          (call-interactively 'minibuffer-complete)
-        (delete-overlay ol))))
+                                    str)))))))
+    (completion-in-region (- (point) (length pattern)) (point)
+                          completions predicate)))
 
 (eval-when-compile (require 'hippie-exp))
 

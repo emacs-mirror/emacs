@@ -1,5 +1,7 @@
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sym-comp.el (symbol-complete): Use completion-in-region.
+
 	* filecache.el (file-cache-add-file): Use push and cons.
 	(file-cache-delete-file-regexp): Use push.
 	(file-cache-complete): Use completion-in-region.
