@@ -5,13 +5,12 @@
 	(describe-char): Fix the condition for detecting a trivial
 	composition.
 
-2009-11-18  Alan Mackenzie  <acm@muc.de>
+2009-11-18  Nathaniel Flath  <flat0103@gmail.com>
 
 	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): A new,
-	more accurate version of the regexp.  Contributed by Nathaniel
-	Flath.
+	more accurate version of the regexp.  (Bug#3910)
 
-2009-11-18  Bernhard Herzog  <bernhard.herzog@intevation.de>
+2009-11-18  Bernhard Herzog  <bernhard.herzog@intevation.de>  (tiny change)
 
 	* vc-hg.el (vc-hg-diff): Fix last patch: do not change directory.
 
