@@ -1,5 +1,7 @@
 2009-11-19  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/flyspell.el (sgml-lexical-context): Declare.
+
 	* net/newst-treeview.el (newsticker-treeview-treewindow-width)
 	(newsticker-treeview-listwindow-height): Fix custom type.
 

@@ -359,6 +359,8 @@ property of the major mode name.")
 (put 'html-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 (put 'nxml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 
+(declare-function sgml-lexical-context "sgml-mode" &optional limit)
+
 (defun sgml-mode-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate' in SGML mode.
 Tag and attribute names are not spell checked, everything else is.
