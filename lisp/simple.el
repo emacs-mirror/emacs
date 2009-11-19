@@ -6479,6 +6479,7 @@ saving the value of `buffer-invisibility-spec' and setting it to nil."
     (setq buffer-invisibility-spec nil)))
 
 ;; Partial application of functions (similar to "currying").
+;; This function is here rather than in subr.el because it uses CL.
 (defun apply-partially (fun &rest args)
   "Return a function that is a partial application of FUN to ARGS.
 ARGS is a list of the first N arguments to pass to FUN.
@@ -6487,6 +6488,52 @@ the first N arguments are fixed at the values with which this function
 was called."
   (lexical-let ((fun fun) (args1 args))
     (lambda (&rest args2) (apply fun (append args1 args2)))))
+
+;; This function is here rather than in subr.el because it uses CL.
+(defmacro with-wrapper-hook (var args &rest body)
+  "Run BODY wrapped with the VAR hook.
+VAR is a special hook: its functions are called with a first argument
+which is the \"original\" code (the BODY), so the hook function can wrap
+the original function, or call it any number of times (including not calling
+it at all).  This is similar to an `around' advice.
+VAR is normally a symbol (a variable) in which case it is treated like
+a hook, with a buffer-local and a global part.  But it can also be an
+arbitrary expression.
+ARGS is a list of variables which will be passed as additional arguments
+to each function, after the inital argument, and which the first argument
+expects to receive when called."
+  (declare (indent 2) (debug t))
+  ;; We need those two gensyms because CL's lexical scoping is not available
+  ;; for function arguments :-(
+  (let ((funs (make-symbol "funs"))
+        (global (make-symbol "global"))
+        (argssym (make-symbol "args")))
+    ;; Since the hook is a wrapper, the loop has to be done via
+    ;; recursion: a given hook function will call its parameter in order to
+    ;; continue looping.
+    `(labels ((runrestofhook (,funs ,global ,argssym)
+                 ;; `funs' holds the functions left on the hook and `global'
+                 ;; holds the functions left on the global part of the hook
+                 ;; (in case the hook is local).
+                 (lexical-let ((funs ,funs)
+                               (global ,global))
+                   (if (consp funs)
+                       (if (eq t (car funs))
+                           (apply 'runrestofhook
+                                  (append global (cdr funs)) nil ,argssym)
+                         (apply (car funs)
+                                (lambda (&rest args)
+                                    (runrestofhook (cdr funs) global args))
+                                ,argssym))
+                     ;; Once there are no more functions on the hook, run
+                     ;; the original body.
+                     (apply (lambda ,args ,@body) ,argssym)))))
+       (runrestofhook ,var
+                      ;; The global part of the hook, if any.
+                      ,(if (symbolp var)
+                           `(if (local-variable-p ',var)
+                                (default-value ',var)))
+                      (list ,@args)))))
 
 ;; Minibuffer prompt stuff.
 

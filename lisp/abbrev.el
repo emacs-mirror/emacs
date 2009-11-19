@@ -392,43 +392,6 @@ See `define-abbrev' for the effect of some special properties.
 
 \(fn ABBREV PROP VAL)")
 
-(defmacro abbrev-with-wrapper-hook (var &rest body)
-  "Run BODY wrapped with the VAR hook.
-VAR is a special hook: its functions are called with one argument which
-is the \"original\" code (the BODY), so the hook function can wrap the
-original function, can call it several times, or even not call it at all.
-VAR is normally a symbol (a variable) in which case it is treated like a hook,
-with a buffer-local and a global part.  But it can also be an arbitrary expression.
-This is similar to an `around' advice."
-  (declare (indent 1) (debug t))
-  ;; We need those two gensyms because CL's lexical scoping is not available
-  ;; for function arguments :-(
-  (let ((funs (make-symbol "funs"))
-        (global (make-symbol "global")))
-    ;; Since the hook is a wrapper, the loop has to be done via
-    ;; recursion: a given hook function will call its parameter in order to
-    ;; continue looping.
-    `(labels ((runrestofhook (,funs ,global)
-                 ;; `funs' holds the functions left on the hook and `global'
-                 ;; holds the functions left on the global part of the hook
-                 ;; (in case the hook is local).
-                 (lexical-let ((funs ,funs)
-                               (global ,global))
-                   (if (consp funs)
-                       (if (eq t (car funs))
-                           (runrestofhook (append global (cdr funs)) nil)
-                         (funcall (car funs)
-                                  (lambda () (runrestofhook (cdr funs) global))))
-                     ;; Once there are no more functions on the hook, run
-                     ;; the original body.
-                     ,@body))))
-       (runrestofhook ,var
-                      ;; The global part of the hook, if any.
-                      ,(if (symbolp var)
-                           `(if (local-variable-p ',var)
-                                (default-value ',var)))))))
-
-
 ;;; Code that used to be implemented in src/abbrev.c
 
 (defvar abbrev-table-name-list '(fundamental-mode-abbrev-table
@@ -799,7 +762,7 @@ Effective when explicitly called even when `abbrev-mode' is nil.
 Returns the abbrev symbol, if expansion took place."
   (interactive)
   (run-hooks 'pre-abbrev-expand-hook)
-  (abbrev-with-wrapper-hook abbrev-expand-functions
+  (with-wrapper-hook abbrev-expand-functions ()
     (destructuring-bind (&optional sym name wordstart wordend)
         (abbrev--before-point)
       (when sym

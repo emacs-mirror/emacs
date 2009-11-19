@@ -647,17 +647,11 @@ considered."
                       ;; Maybe a `let' varlist or something.
                       nil
                     ;; Else, we assume that a function name is expected.
-                    'fboundp)))))
-         (ol (make-overlay beg end nil nil t)))
-    (overlay-put ol 'field 'completion)
+                    'fboundp))))))
     (let ((completion-annotate-function
            (unless (eq predicate 'fboundp)
-             (lambda (str) (if (fboundp (intern-soft str)) " <f>"))))
-          (minibuffer-completion-table obarray)
-          (minibuffer-completion-predicate predicate))
-      (unwind-protect
-          (call-interactively 'minibuffer-complete)
-        (delete-overlay ol)))))
+             (lambda (str) (if (fboundp (intern-soft str)) " <f>")))))
+      (completion-in-region beg end obarray predicate))))
 
 ;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

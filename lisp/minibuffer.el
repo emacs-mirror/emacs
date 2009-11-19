@@ -1022,10 +1022,33 @@ variables.")
     (ding))
   (exit-minibuffer))
 
-;;; Key bindings.
+(defvar completion-in-region-functions nil
+  "Wrapper hook around `complete-in-region'.
+The functions on this special hook are called with 5 arguments:
+  NEXT-FUN START END COLLECTION PREDICATE.
+NEXT-FUN is a function of four arguments (START END COLLECTION PREDICATE)
+that performs the default operation.  The other four argument are like
+the ones passed to `complete-in-region'.  The functions on this hook
+are expected to perform completion on START..END using COLLECTION
+and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
 
-(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
-  'minibuffer-local-filename-must-match-map "23.1")
+(defun completion-in-region (start end collection &optional predicate)
+  "Complete the text between START and END using COLLECTION.
+Point needs to be somewhere between START and END."
+  ;; FIXME: some callers need to setup completion-ignore-case,
+  ;; completion-ignored-extensions.  The latter can be embedded in the
+  ;; completion tables, but the first cannot (actually, maybe it should).
+  (assert (<= start (point)) (<= (point) end))
+  ;; FIXME: undisplay the *Completions* buffer once the completion is done.
+  (with-wrapper-hook
+      completion-in-region-functions (start end collection predicate)
+    (let ((minibuffer-completion-table collection)
+          (minibuffer-completion-predicate predicate)
+          (ol (make-overlay start end nil nil t)))
+      (overlay-put ol 'field 'completion)
+      (unwind-protect
+          (call-interactively 'minibuffer-complete)
+        (delete-overlay ol)))))
 
 (let ((map minibuffer-local-map))
   (define-key map "\C-g" 'abort-recursive-edit)

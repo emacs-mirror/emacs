@@ -299,6 +299,9 @@ the variable `byte-compile-compatibility') has been removed.
 
 * Lisp changes in Emacs 23.2
 
+** New function `completion-in-region' to use the standard completion
+facilities on a particular region of text.
+
 ** The 4th arg to all-completions (aka hide-spaces) is declared obsolete.
 
 ** read-file-name-predicate is obsolete.  It was used to pass the predicate

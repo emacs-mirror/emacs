@@ -513,22 +513,18 @@ Same as `pcomplete' but using the standard completion UI."
                                (directory-file-name f))
                       pcomplete-seen))))))
 
-      (let ((ol (make-overlay beg (point) nil nil t))
-            (minibuffer-completion-table
-             ;; Add a space at the end of completion.  Use a terminator-regexp
-             ;; that never matches since the terminator cannot appear
-             ;; within the completion field anyway.
-             (if (zerop (length pcomplete-termination-string))
-                 table
-               (apply-partially 'completion-table-with-terminator
-                                (cons pcomplete-termination-string
-                                      "\\`a\\`")
-                                table)))
-            (minibuffer-completion-predicate pred))
-        (overlay-put ol 'field 'pcomplete)
-        (unwind-protect
-            (call-interactively 'minibuffer-complete)
-          (delete-overlay ol))))))
+      (completion-in-region
+       beg (point)
+       ;; Add a space at the end of completion.  Use a terminator-regexp
+       ;; that never matches since the terminator cannot appear
+       ;; within the completion field anyway.
+       (if (zerop (length pcomplete-termination-string))
+           table
+         (apply-partially 'completion-table-with-terminator
+                          (cons pcomplete-termination-string
+                                "\\`a\\`")
+                          table))
+       pred))))
 
 ;;; Pcomplete's native UI.
 
