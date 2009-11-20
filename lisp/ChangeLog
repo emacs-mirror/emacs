@@ -1,3 +1,30 @@
+2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/cc-cmds.el (c-update-modeline)
+	(c-forward-into-nomenclature, c-backward-into-nomenclature): Refer
+	to subword.el functions instead of cc-subword.el.
+
+	* progmodes/cc-mode.el (subword-mode, c-mode-base-map): Refer to
+	subword.el functions instead of cc-subword.el.
+
+	* progmodes/cc-subword.el: Renamed to subword.el.
+	* subword.el: Renamed from progmodes/cc-subword.el.
+	(subword-mode-map): Renamed from c-subword-mode-map.
+	(subword-mode): Renamed from c-subword-mode.
+	(global-subword-mode): New global minor mode.
+	(forward-subword): Renamed from c-forward-subword.
+	(backward-subword): Renamed from c-backward-subword.
+	(mark-subword): Renamed from c-mark-subword.
+	(kill-subword): Renamed from c-kill-subword.
+	(backward-kill-subword): Renamed from c-backward-kill-subword.
+	(transpose-subwords): Renamed from c-tranpose-subword.
+	(downcase-subword): Renamed from c-downcase-subword.
+	(capitalize-subword): Renamed from c-capitalize-subword.
+	(forward-subword-internal): Renamed from
+	c-forward-subword-internal.
+	(backward-subword-internal): Renamed from
+	c-backward-subword-internal.
+
 2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-deduce-fileset): Allow non-state changing operations
