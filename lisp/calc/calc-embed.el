@@ -63,7 +63,7 @@
 (defvar calc-embedded-close-mode)
 (defvar calc-embedded-word-regexp)
 
-(defconst calc-embedded-mode-vars '(("complement-signed" . calc-complement-signed-mode)
+(defconst calc-embedded-mode-vars '(("twos-complement" . calc-twos-complement-mode)
                                     ("precision" . calc-internal-prec)
 				    ("word-size" . calc-word-size)
 				    ("angles" . calc-angle-mode)
