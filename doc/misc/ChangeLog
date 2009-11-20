@@ -1,3 +1,7 @@
+2009-11-20  Carsten Dominik  <dominik@u016822.science.uva.nl>
+
+	* org.texi: (Column attributes): Fix documentaion of new operators.
+
 2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* sem-user.texi (Semanticdb Search Configuration): Rearrange nodes.
