@@ -1,5 +1,9 @@
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* makefile.w32-in: Don't refer cc-subword.elc but subword.elc.
+
+	* Makefile.in: Don't refer cc-subword.elc but subword.elc.
+
 	* progmodes/cc-cmds.el (c-update-modeline)
 	(c-forward-into-nomenclature, c-backward-into-nomenclature): Refer
 	to subword.el functions instead of cc-subword.el.

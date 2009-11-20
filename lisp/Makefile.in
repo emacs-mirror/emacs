@@ -1208,7 +1208,6 @@ ELCFILES = \
 	$(lisp)/progmodes/cc-menus.elc \
 	$(lisp)/progmodes/cc-mode.elc \
 	$(lisp)/progmodes/cc-styles.elc \
-	$(lisp)/progmodes/cc-subword.elc \
 	$(lisp)/progmodes/cc-vars.elc \
 	$(lisp)/progmodes/cfengine.elc \
 	$(lisp)/progmodes/cmacexp.elc \
@@ -1309,6 +1308,7 @@ ELCFILES = \
 	$(lisp)/startup.elc \
 	$(lisp)/strokes.elc \
 	$(lisp)/subr.elc \
+	$(lisp)/subword.elc \
 	$(lisp)/t-mouse.elc \
 	$(lisp)/tabify.elc \
 	$(lisp)/talk.elc \
@@ -1657,7 +1657,7 @@ $(lisp)/progmodes/cc-align.elc $(lisp)/progmodes/cc-awk.elc\
  $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-fonts.elc\
  $(lisp)/progmodes/cc-langs.elc $(lisp)/progmodes/cc-menus.elc\
  $(lisp)/progmodes/cc-mode.elc $(lisp)/progmodes/cc-styles.elc\
- $(lisp)/progmodes/cc-subword.elc $(lisp)/progmodes/cc-vars.elc: \
+ $(lisp)/progmodes/cc-vars.elc: \
    $(lisp)/progmodes/cc-bytecomp.elc $(lisp)/progmodes/cc-defs.elc
 
 $(lisp)/progmodes/cc-align.elc: \
@@ -1690,8 +1690,6 @@ $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
 
 $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
    $(lisp)/progmodes/cc-align.elc
-
-$(lisp)/progmodes/cc-subword.elc: $(lisp)/progmodes/cc-cmds.elc
 
 $(lisp)/progmodes/cc-vars.elc: $(lisp)/custom.elc $(lisp)/widget.elc
 
