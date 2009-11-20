@@ -987,7 +987,7 @@ calc-find-root calc-poly-interp)
 calc-floor calc-idiv calc-increment calc-mant-part calc-max calc-min
 calc-round calc-scale-float calc-sign calc-trunc calc-xpon-part)
 
- ("calc-bin" calc-and calc-binary-radix calc-clip calc-complement-signed-mode
+ ("calc-bin" calc-and calc-binary-radix calc-clip calc-twos-complement-mode
 calc-decimal-radix calc-diff calc-hex-radix calc-leading-zeros 
 calc-lshift-arith calc-lshift-binary calc-not calc-octal-radix calc-or calc-radix
 calc-rotate-binary calc-rshift-arith calc-rshift-binary calc-word-size
@@ -2998,7 +2998,7 @@ If X is not an error form, return 1."
     (math-read-radix (math-match-substring s 3)
 		     (string-to-number (math-match-substring s 1))))
 
-   ;; Complement signed with explicit radix
+   ;; Two's complement with explicit radix
    ((string-match "^\\([0-9]+\\)\\(##\\)\\([0-9a-zA-Z]+\\)$" s)
     (let ((num (math-read-radix (math-match-substring s 3)
                                 (string-to-number (math-match-substring s 1)))))
@@ -3354,6 +3354,7 @@ If X is not an error form, return 1."
     (if (math-negp a)
 	(concat "-" (math-format-number (math-neg a)))
       (let ((calc-number-radix 10)
+            (calc-twos-complement-mode nil)
 	    (calc-leading-zeros nil)
 	    (calc-group-digits nil))
 	(format calc-hms-format
