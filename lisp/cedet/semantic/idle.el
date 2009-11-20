@@ -147,12 +147,18 @@ and then schedule other jobs setup with `semantic-idle-scheduler-add'.
 If ARG is positive, enable, if it is negative, disable.
 If ARG is nil, then toggle."
   (interactive "P")
+  ;; When turning off, disable other idle modes.
+  (when (or (and (numberp arg) (< arg 0))
+	    (and (null arg) global-semantic-idle-scheduler-mode))
+    (global-semantic-idle-summary-mode -1)
+    (global-semantic-idle-tag-highlight-mode -1)
+    (global-semantic-idle-completions-mode -1))
   (setq global-semantic-idle-scheduler-mode
         (semantic-toggle-minor-mode-globally
          'semantic-idle-scheduler-mode arg)))
 
 (defcustom semantic-idle-scheduler-mode-hook nil
-  "Hook run at the end of function `semantic-idle-scheduler-mode'."
+  "Hook run at the end of the function `semantic-idle-scheduler-mode'."
   :group 'semantic
   :type 'hook)
 

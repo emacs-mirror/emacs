@@ -1,3 +1,14 @@
+2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/cedet.el (cedet-menu-map): Re-order menu items.
+
+	* cedet/semantic.el: Enable idle-mode menu items only if
+	global-semantic-idle-scheduler-mode is enabled.
+	(semantic-default-submodes): Doc fix.
+
+	* cedet/semantic/idle.el (global-semantic-idle-scheduler-mode):
+	When turning off, disable other idle modes.
+
 2009-11-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-set-mode-line): Rename

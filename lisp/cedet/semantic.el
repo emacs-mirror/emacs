@@ -987,22 +987,24 @@ Throw away all the old tags, and recreate the tag database."
     '(menu-item "Show Tag Completions" global-semantic-idle-completions-mode
 		:help "Show tag completions when idle"
 		:visible semantic-mode
+		:enable global-semantic-idle-scheduler-mode
 		:button (:toggle . global-semantic-idle-completions-mode)))
   (define-key cedet-menu-map [global-semantic-idle-summary-mode]
     '(menu-item "Show Tag Summaries" global-semantic-idle-summary-mode
 		:help "Show tag summaries when idle"
 		:visible semantic-mode
+		:enable global-semantic-idle-scheduler-mode
 		:button (:toggle . global-semantic-idle-summary-mode)))
-  (define-key cedet-menu-map [global-semanticdb-minor-mode]
-    '(menu-item "Semantic Database" global-semanticdb-minor-mode
-		:help "Store tag information in a database"
-		:visible semantic-mode
-		:button (:toggle . global-semanticdb-minor-mode)))
   (define-key cedet-menu-map [global-semantic-idle-scheduler-mode]
     '(menu-item "Reparse When Idle" global-semantic-idle-scheduler-mode
 		:help "Keep a buffer's parse tree up to date when idle"
 		:visible semantic-mode
-		:button (:toggle . global-semantic-idle-scheduler-mode))))
+		:button (:toggle . global-semantic-idle-scheduler-mode)))
+  (define-key cedet-menu-map [global-semanticdb-minor-mode]
+    '(menu-item "Semantic Database" global-semanticdb-minor-mode
+		:help "Store tag information in a database"
+		:visible semantic-mode
+		:button (:toggle . global-semanticdb-minor-mode))))
 
 ;; The `semantic-mode' command, in conjuction with the
 ;; `semantic-default-submodes' variable, toggles Semantic's various
@@ -1029,15 +1031,14 @@ Prevent this load system from loading files in twice.")
   "List of auxiliary Semantic minor modes enabled by `semantic-mode'.
 The possible elements of this list include the following:
 
- `semantic-highlight-func-mode'   - Highlight the current tag.
- `semantic-decoration-mode' - Decorate tags based on various attributes.
- `semantic-stickyfunc-mode' - Track current function in the header-line.
- `semantic-idle-completions-mode' - Provide smart symbol completion
-                                    automatically when idle.
- `semantic-idle-scheduler-mode'   - Keep a buffer's parse tree up to date.
- `semanticdb-minor-mode'    - Store tags when a buffer is not in memory.
- `semantic-idle-summary-mode'     - Show a summary for the code at point.
- `semantic-mru-bookmark-mode'     - Provide `switch-to-buffer'-like
+ `global-semanticdb-minor-mode'        - Maintain tag database.
+ `global-semantic-idle-scheduler-mode' - Reparse buffer when idle.
+ `global-semantic-idle-summary-mode'   - Show summary of tag at point.
+ `global-semantic-idle-completions-mode' - Show completions when idle.
+ `global-semantic-decoration-mode'     - Additional tag decorations.
+ `global-semantic-highlight-func-mode' - Highlight the current tag.
+ `global-semantic-stickyfunc-mode'     - Show current fun in header line.
+ `global-semantic-mru-bookmark-mode'   - Provide `switch-to-buffer'-like
                                     keybinding for tag names."
   :group 'semantic
   :type `(set ,@(mapcar (lambda (c) (list 'const c))
