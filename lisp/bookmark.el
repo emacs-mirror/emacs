@@ -198,7 +198,7 @@ following in your `.emacs' file:
 
 
 (defcustom bookmark-search-delay 0.2
-  "*Display when searching bookmarks is updated all `bookmark-search-delay' seconds."
+  "*When searching bookmarks, redisplay every `bookmark-search-delay' seconds."
   :group 'bookmark
   :type  'integer)
 
@@ -2102,7 +2102,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-read-search-input ()
   "Read each keyboard input and add it to `bookmark-search-pattern'."
   (setq bookmark-search-pattern "")    ; Always reset pattern to empty string
-  (let ((prompt       (propertize bookmark-search-prompt 'face '((:foreground "cyan"))))
+  (let ((prompt       (propertize bookmark-search-prompt
+                                  'face '((:foreground "cyan"))))
         (inhibit-quit t)
         (tmp-list     ())
         char)
@@ -2113,14 +2114,17 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
               (setq char (read-char (concat prompt bookmark-search-pattern)))
             (error (throw 'break nil)))
           (case char
-            ((or ?\e ?\r) (throw 'break nil))    ; RET or ESC break search loop and lead to [1].
-            (?\d (pop tmp-list)         ; Delete last char of `bookmark-search-pattern' with DEL
-                 (setq bookmark-search-pattern (mapconcat 'identity (reverse tmp-list) ""))
+            ((or ?\e ?\r) ; RET or ESC break search loop and lead to [1].
+             (throw 'break nil)) 
+            (?\d (pop tmp-list) ; Delete last char of `bookmark-search-pattern'
+                 (setq bookmark-search-pattern
+                       (mapconcat 'identity (reverse tmp-list) ""))
                  (throw 'continue nil))
             (?\C-g (setq bookmark-quit-flag t) (throw 'break nil))
             (t
              (push (text-char-description char) tmp-list)
-             (setq bookmark-search-pattern (mapconcat 'identity (reverse tmp-list) ""))
+             (setq bookmark-search-pattern
+                   (mapconcat 'identity (reverse tmp-list) ""))
              (throw 'continue nil))))))))
 
 
@@ -2138,17 +2142,20 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 
 ;;;###autoload
 (defun bookmark-bmenu-search ()
-  "Incremental search of bookmarks matching `bookmark-search-pattern'.
-`bookmark-search-pattern' is build incrementally with `bookmark-read-search-input'"
+  "Incrementally search bookmarks matching `bookmark-search-pattern'.
+`bookmark-search-pattern' is built incrementally with
+`bookmark-read-search-input'."
   (interactive)
   (when (string= (buffer-name (current-buffer)) "*Bookmark List*")
     (let ((bmk (bookmark-bmenu-bookmark)))
       (unwind-protect
            (progn
              (setq bookmark-search-timer
-                   (run-with-idle-timer bookmark-search-delay 'repeat
-                                        #'(lambda ()
-                                            (bookmark-bmenu-filter-alist-by-regexp bookmark-search-pattern))))
+                   (run-with-idle-timer
+                    bookmark-search-delay 'repeat
+                    #'(lambda ()
+                        (bookmark-bmenu-filter-alist-by-regexp
+                         bookmark-search-pattern))))
              (bookmark-read-search-input))
         (progn ; [1] Stop timer.
           (bookmark-bmenu-cancel-search)

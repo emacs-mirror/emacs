@@ -1,3 +1,11 @@
+2009-11-20  Karl Fogel  <karl.fogel@red-bean.com>
+
+	* bookmark.el Formatting and doc fixes only:
+	(bookmark-search-delay): Shorten doc string to fit in 80 columns.
+	(bookmark-bmenu-search): Wrap to fit within 80 columns.
+	  Minor grammar and punctuation fixes in doc string.
+	(bookmark-read-search-input): Adjust to fit within 80 columns.
+
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/cc-cmds.el (c-forward-into-nomenclature)
