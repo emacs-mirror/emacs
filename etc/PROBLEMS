@@ -252,8 +252,19 @@ A typical error message is
 
 Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on
 Cygwin, that becomes the Cygwin supplied memalign.  As malloc is not the
-Cygwin malloc, the Cygwin memalign always returns ENOSYS.  A fix for this
-problem would be welcome.
+Cygwin malloc, the Cygwin memalign always returns ENOSYS.
+
+One workaround is to set G_SLICE=always-malloc before starting emacs.
+For example, in bash,
+
+  G_SLICE=always-malloc emacs
+
+or put
+
+  export G_SLICE=always-malloc
+
+in one of the bash startup files.  This also has to be done before
+building emacs on Cygwin with Gtk+.
 
 * General runtime problems
 

@@ -1,3 +1,7 @@
+2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* PROBLEMS (http): Add workaround for Cygwin crash.
+
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention dynamic font changes (font-use-system-font).
