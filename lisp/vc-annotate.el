@@ -487,7 +487,7 @@ Return a cons (REV . FILENAME)."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(vc-print-log-internal
-	 vc-annotate-backend (list (cdr rev-at-line)) (car rev-at-line))))))
+	 vc-annotate-backend (list (cdr rev-at-line)) (car rev-at-line) nil)))))
 
 (defun vc-annotate-show-diff-revision-at-line-internal (filediff)
   (if (not (equal major-mode 'vc-annotate-mode))

@@ -1,3 +1,8 @@
+2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-annotate.el (vc-annotate-show-log-revision-at-line): Pass a
+	nil LIMIT argument to vc-print-log-internal.
+
 2009-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Regenerate.
