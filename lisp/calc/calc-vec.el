@@ -1338,6 +1338,7 @@
   (if w (setq a (math-clip a w)))
   (if (math-messy-integerp a) (setq a (math-trunc a)))
   (let* ((calc-number-radix 2)
+         (calc-twos-complement-mode nil)
 	 (neg (math-negp a))
 	 (aa (if neg (math-sub -1 a) a))
 	 (str (if (eq aa 0)
