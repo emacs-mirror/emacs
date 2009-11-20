@@ -582,50 +582,47 @@ This hook is not protected from lexical errors.
 @node Idle Working Options
 @subsection Idle Working Options
 
-Similiar to the reparsing that occurs at short intervals in idle
-time, there is extra work that can be controlled to occur in idle time
-also.
+In addition to reparsing buffers, the Semantic idle scheduler performs
+additional operations, including the following:
 
-Idle work occurs after a longer delay, and can be very time
-consuming.  The work done includes:
+@itemize
+@item
+Creating the include path caches required for symbol lookup.
+@item
+Create data type caches.
+@item
+Saving SemanticDB caches to disk.
+@item
+Speculatively parsing the files in the same directory as the current
+buffer.
+@end itemize
 
-@table @asis
-@item Create Include Path Caches
-Create the optimized search caches needed for symbol lookup.
-@item Create Type Cache
-Create the datatype caches needed for intellisense features.
-@item Save Databases
-All file-based @semantic{} databases are saved to disk.
-@item Parse neighboring files
-All files in the same directory as the current buffer are
-speculatively parsed.
-@end table
+Because this extra work is quite time-consuming, it is only carried
+out after a longer idle delay.  The following features control how the
+idle work is performed.
 
-These features can be controlled with the following variables:
-
-@deffn Option semantic-idle-scheduler-work-idle-time
 @anchor{semantic-idle-scheduler-work-idle-time}
-Time in seconds of idle before scheduling big work.
-This time should be long enough that once any big work is started, it is
-unlikely the user would be ready to type again right away.
+@deffn Option semantic-idle-scheduler-work-idle-time
+The value of this variable is the amount of idle time, in seconds,
+before commencing idle work.  The default is 60.
 @end deffn
 
-@deffn Option semantic-idle-work-parse-neighboring-files-flag
 @anchor{semantic-idle-work-parse-neighboring-files-flag}
-Non-@code{nil} means to parse files in the same dir as the current buffer.
-Disable to prevent lots of excessive parsing in idle time.
+@deffn Option semantic-idle-work-parse-neighboring-files-flag
+If the value of this variable is non-@code{nil}, the Semantic idle
+scheduler uses idle work time to parse files in the same directory as
+the current buffer.  This improves the accuracy of tag searches and
+saves time when visiting those files later, at the cost of doing a lot
+of parsing.  The default is @code{t}.
 @end deffn
 
 @node Debugging Idle Time Issues
 @subsection Debugging Idle Time Issues
 
-If you see errors produced in idle time, it could be an indication of a
-more serious issue elsewhere.  It is not enough to enable
-@code{debug-on-error}, as the idle timer tries to keep errors under
-wraps.
-
-Instead, there are two commands you can use whenever you see an idle
-error.
+If you see an error signalled during idle time, it could be an
+indication of a more serious issue elsewhere.  It is not enough to
+enable @code{debug-on-error}, because the idle scheduler inhibits the
+debugger.  Instead, use the following commands to debug the error:
 
 @deffn Command semantic-debug-idle-function
 @anchor{semantic-debug-idle-function}
@@ -637,103 +634,130 @@ Run the Semantic idle function with debugging turned on.
 Run the Semantic idle work function with debugging turned on.
 @end deffn
 
-Once you identify the general location of the idle error, you can send
-the stack trace to the mailing list, or perhaps find a more focused
-way to reproduce the issue.
-
 @node Idle Summary Mode
 @subsection Idle Summary Mode
 
-Similar to the Emacs Lisp facility eldoc,
-@code{semantic-idle-summary-mode} will display the prototype, or other
-helpful doc about the symbol currently under point.
+Semantic Idle Summary mode is a minor mode that displays a short
+summary of the symbol at point, such as its function prototype, in the
+echo area.  Its functionality is similar to what ElDoc mode provides
+for Emacs Lisp (@pxref{Lisp Doc,,,emacs,Emacs manual}).
 
-
-@deffn semantic-idle-summary-mode &optional arg
+@anchor{global-semantic-idle-summary-mode}
 @anchor{semantic-idle-summary-mode}
-Display a tag summary of the lexical token under the cursor.
-This means for getting the current tag to display information can
-be overriden with @code{idle-summary-current-symbol-info}.
-This is a minor mode which performs actions during idle time.
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled
+@deffn global-semantic-idle-summary-mode &optional arg
+This command toggles Semantic Idle Summary mode in all
+@semantic{}-enabled buffers.  You can also toggle it via the
+@samp{Show Tag Summaries} menu item in the @samp{Development} menu.
 @end deffn
 
-@obsolete{semantic-summary-mode, semantic-idle-summary-mode}
+When Semantic Idle Summary mode is active, a summary of the tag at
+point is displayed in the echo area.  This display takes place during
+the idle time, as given by @code{semantic-idle-scheduler-idle-time}
+(@pxref{Idle Scheduler}).
 
-@deffn Option semantic-idle-summary-function
+You can override the method for getting the current tag to display by
+setting @code{idle-summary-current-symbol-info}.
+
 @anchor{semantic-idle-summary-function}
-Function to use when displaying tag information during idle time.
-Some useful functions are found in @code{semantic-format-tag-functions}.
+@deffn Option semantic-idle-summary-function
+The value of this variable should be a function to call to display tag
+information during idle time.  See the variable
+@code{semantic-format-tag-functions} for a list of useful functions.
 @end deffn
 
-@defvar semantic-idle-summary-out-of-context-faces
 @anchor{semantic-idle-summary-out-of-context-faces}
-List of font-lock faces that indicate a useless summary context.
-Those are generally faces used to highlight comments or strings.
-
-It might be useful to override this variable to add comment faces
-specific to a major mode.  For example, in jde mode:
-
-@example
-(defvar-mode-local jde-mode semantic-idle-summary-out-of-context-faces
-   (append (default-value 'semantic-idle-summary-out-of-context-faces)
-	   '(jde-java-font-lock-doc-tag-face
-	     jde-java-font-lock-link-face
-	     jde-java-font-lock-bold-face
-	     jde-java-font-lock-underline-face
-	     jde-java-font-lock-pre-face
-	     jde-java-font-lock-code-face)))
-@end example
-
+@defvar semantic-idle-summary-out-of-context-faces
+The value of this variable is a list of font-lock faces indicating
+useless summary contexts.  These are generally faces used to highlight
+comments or strings.  Semantic Idle Summary mode does not display its
+usual summary if the text at point has one of these faces.
 @end defvar
 
 @node Idle Completions Mode
 @subsection Idle Completions Mode
 
-The definition of smart completion is described in the Analyzer
-section @ref{Analyzer}.
+Semantic Idle Completions mode is a minor mode for performing
+@dfn{code completions} during idle time.  The completions are
+displayed inline, with keybindings that allow you to cycle through
+different alternatives.
 
-The Idle Completions mode will calculate the list of possible
-completions in idle time, and display them in a popup list, or other
-inline completion mechanism.
+@c   @xref{Analyzer}, for information about code
+@c completion.
 
-@deffn semantic-idle-completions-mode &optional arg
+@anchor{global-semantic-idle-completions-mode}
 @anchor{semantic-idle-completions-mode}
-Display a tooltip with a list of possible completions near the cursor.
-There is no convenience for performing a completion replacement.  For
-that you should bind @code{semantic-ia-complete-symbol}.
-This is a minor mode which performs actions during idle time.
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled
+@deffn global-semantic-idle-completions-mode &optional arg
+This command toggles Semantic Idle Completions mode in every
+@semantic{}-enabled buffer.  You can also toggle it via the @samp{Show
+Tag Completions} menu item in the @samp{Development} menu.
 @end deffn
 
-This mode operates by using the command
-@code{semantic-complete-inline-analyzer}.
+If the tag at point has at least one completion, Semantic Idle
+Completions mode displays that completion inline---i.e., as part of
+the buffer text (you can change the display method by customizing
+@code{semantic-complete-inline-analyzer-idle-displayor-class}, as
+described below).  The completed part is highlighted, to indicate that
+it is not yet properly inserted into the buffer.  The echo area shows
+the completion, and whether there are other possible completions, like
+this:
 
-Idle completion uses the completion function
-@code{semantic-complete-analyze-inline-idle}.  Changing the behavior of
-the idle completion popups should be done through those utilities.
+@example
+besselj [1 of 6 matches]
+@end example
 
-@deffn Command semantic-complete-analyze-inline-idle
+@noindent
+While the completion is being displayed, the following keybindings
+take effect:
+
+@table @kbd
+@item @key{RET}
+@itemx C-m
+Accept the current completion (@code{semantic-complete-inline-done}),
+placing it in the buffer and moving point to the end of the completed
+tag.
+@item M-n
+Select the next possible completion
+(@code{semantic-complete-inline-down}).  The new completion is shown
+inline, replacing the old completion.
+@item M-p
+Select the previous possible completion
+(@code{semantic-complete-inline-up}).
+@item @key{TAB}
+@item C-i
+Accept as much of the completion as possible.  If no additional
+completion can be accepted without ambiguity, select the next possible
+completion (@code{semantic-complete-inline-TAB}).
+@item C-g
+Quit without completing (@code{semantic-complete-inline-quit}).
+@end table
+
+@noindent
+You can also exit inline completion by issuing any other Emacs
+command.  The completion text then disappears from the buffer.
+
 @anchor{semantic-complete-analyze-inline-idle}
-Perform prompt completion to do in buffer completion.
-@dfn{semantic-analyze-possible-completions} is used to determine the
-possible values.
-The function returns immediately, leaving the buffer in a mode that
-will perform the completion.
-Configure @code{semantic-complete-inline-analyzer-idle-displayor-class}
-to change how completion options are displayed.
+@deffn Command semantic-complete-analyze-inline-idle
+This is the command for performing inline code completion.  It is
+called by Semantic Idle Completions mode during idle time, but you can
+also call it yourself.  It returns immediately, leaving the buffer in
+a state for inline completion.
 @end deffn
 
-@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
 @anchor{semantic-complete-inline-analyzer-idle-displayor-class}
-Class for displayor to use with inline completion at idle time.
+@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
+The value of this variable determines how
+@code{semantic-complete-analyze-inline-idle} shows its completions.
+Possible values include:
 
-Customize this variable to get a list of options, such as popup
-tooltips, ghosting text, or traditional completion tools.
+@table @code
+@item semantic-displayor-ghost
+Display completions ``inline'' with the buffer text, as described
+above.  This is the default value.
+
+@item semantic-displayor-tooltip
+Display completions in a tooltip.
+
+@item semantic-displayor-traditional
+Display completions in a separate window.
+@end table
 @end deffn

@@ -1,8 +1,8 @@
 2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* sem-user.texi (Semanticdb Search Configuration): Rearrange nodes.
-	(Search Throttle, Semanticdb Roots, Include paths, Idle Scheduler):
-	Numerous copyedits.
+	(Search Throttle, Semanticdb Roots, Include paths, Idle Scheduler)
+	(Idle Completions Mode): Numerous copyedits.
 
 2009-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
