@@ -823,7 +823,7 @@ the size of a Calc bignum digit.")
 ;;; Two's complement mode
 
 (defun math-format-twos-complement (a)
-  "Format an integer in complement signed mode."
+  "Format an integer in two's complement mode."
   (let* (;(calc-leading-zeros t)
          (overflow nil)
          (negative nil)
