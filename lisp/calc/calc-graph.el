@@ -505,6 +505,7 @@
 		 (let ((calc-group-digits nil)
 		       (calc-leading-zeros nil)
 		       (calc-number-radix 10)
+                       (calc-twos-complement-mode nil)
 		       (entry (and (not calc-graph-is-splot)
 				   (list calc-graph-xp calc-graph-yp calc-graph-xhigh calc-graph-numsteps))))
 		   (or (equal entry
