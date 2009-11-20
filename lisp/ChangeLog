@@ -1,3 +1,37 @@
+2009-11-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-set-mode-line): Rename
+	`calc-complement-signed-mode' to `calc-twos-complement-mode'.
+	(math-format-number): Rename `math-format-complement-signed' to
+	`math-format-twos-complement'.
+
+	* calc/calc-bin.el (math-format-twos-complement): Renamed from
+	math-format-complement-signed.
+	(calc-radix): Rename `calc-complement-signed-mode' to
+	`calc-twos-complement-mode'.
+	(calc-octal-radix, calc-hex-radix): Add an argument for two's complement.
+
+	* calc/calc-embed.el (calc-embedded-mode-vars): Rename
+	`calc-complement-signed-mode' to `calc-twos-complement-mode'.
+
+	* calc/calc-ext.el (calc-init-extensions): Rename
+	`calc-complement-signed-mode' to `calc-twos-complement-mode'.
+	(math-format-number-fancy): Let `calc-twos-complement-mode' be nil.
+
+	* calc/calc-units.el (math-build-units-table-buffer): Let
+	`calc-twos-complement-mode' be nil.
+
+	* calc/calc-menu.el (calc-modes-menu): Clean up two's complement
+	entries.
+
+	* calc/calc-vec.el (calcFunc-vunpack):
+	* calc/calc-aent.el (calc-do-calc-eval):
+	* calc/calc-forms.el (math-format-date):
+	* calc/calc-graph.el (calc-graph-plot):
+	* calc/calc-math.el (math-use-emacs-fn):
+	* calc/calccomp.el (math-compose-expr): Let
+	`calc-twos-complement-mode' be nil.
+
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (latex-complete-bibtex-cache)
