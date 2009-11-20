@@ -1456,6 +1456,7 @@ If EXPR is nil, return nil."
 	    (calc-float-format '(float 0))
 	    (calc-group-digits nil)
 	    (calc-number-radix 10)
+            (calc-twos-complement-mode nil)
 	    (calc-point-char ".")
 	    (std nil)
 	    u name shadowed)
