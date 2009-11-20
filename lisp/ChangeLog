@@ -1,3 +1,8 @@
+2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* net/browse-url.el (browse-url-default-windows-browser): Use
+	cygstart for cygwin.
+
 2009-11-20  Karl Fogel  <karl.fogel@red-bean.com>
 
 	* bookmark.el Formatting and doc fixes only:

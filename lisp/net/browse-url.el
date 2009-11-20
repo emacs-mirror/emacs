@@ -830,11 +830,13 @@ to use."
 
 (defun browse-url-default-windows-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (if (eq system-type 'ms-dos)
-      (if dos-windows-version
-	  (shell-command (concat "start " (shell-quote-argument url)))
-	(error "Browsing URLs is not supported on this system"))
-    (w32-shell-execute "open" url)))
+  (cond ((eq system-type 'ms-dos)
+	 (if dos-windows-version
+	     (shell-command (concat "start " (shell-quote-argument url)))
+	   (error "Browsing URLs is not supported on this system")))
+	((eq system-type 'cygwin)
+	 (shell-command (concat "cygstart " (shell-quote-argument url))))
+	(t (w32-shell-execute "open" url))))
 
 (defun browse-url-default-macosx-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
