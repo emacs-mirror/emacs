@@ -129,6 +129,7 @@
 	      (calc-matrix-mode nil)
 	      (calc-angle-mode 'deg)
 	      (calc-number-radix 10)
+              (calc-twos-complement-mode nil)
 	      (calc-leading-zeros nil)
 	      (calc-group-digits nil)
 	      (calc-point-char ".")
