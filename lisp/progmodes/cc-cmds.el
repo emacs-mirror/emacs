@@ -1323,23 +1323,23 @@ keyword on the line, the keyword is not inserted inside a literal, and
 
 
 
-(declare-function forward-subword "subword" (&optional arg))
-(declare-function backward-subword "subword" (&optional arg))
+(declare-function subword-forward "subword" (&optional arg))
+(declare-function subword-backward "subword" (&optional arg))
 
 ;; "nomenclature" functions + c-scope-operator.
 (defun c-forward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-forward-subword'."
   (interactive "p")
   (require 'subword)
-  (forward-subword arg))
-(make-obsolete 'c-forward-into-nomenclature 'forward-subword "23.2")
+  (subword-forward arg))
+(make-obsolete 'c-forward-into-nomenclature 'subword-forward "23.2")
 
 (defun c-backward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-backward-subword'."
   (interactive "p")
   (require 'subword)
-  (backward-subword arg))
-(make-obsolete 'c-backward-into-nomenclature 'backward-subword "23.2")
+  (subword-backward arg))
+(make-obsolete 'c-backward-into-nomenclature 'subword-backward "23.2")
 
 (defun c-scope-operator ()
   "Insert a double colon scope operator at point.

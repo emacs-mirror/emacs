@@ -1,7 +1,21 @@
+2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/cc-cmds.el (c-forward-into-nomenclature)
+	(c-backward-into-nomenclature): Adapt to subword renaming.
+
+	* subword.el (subword-forward, subword-backward, subword-mark)
+	(subword-kill, subword-backward-kill, subword-transpose)
+	(subword-downcase, subword-upcase, subword-capitalize)
+	(subword-forward-internal, subword-backward-internal): Renamed
+	from forward-subword, backward-subword, mark-subword kill-subword,
+	backward-kill-subword, transpose-subwords, downcase-subword,
+	upcase-subword, capitalize-subword forward-subword-internal,
+	backward-subword-internal.
+
 2009-11-20  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* bookmark.el (bookmark-search-delay, bookmark-search-prompt):
-	New options.
+	* bookmark.el (bookmark-search-delay, bookmark-search-prompt): New
+	options.
 	(bookmark-search-pattern, bookmark-search-timer, bookmark-quit-flag):
 	New vars.
 	(bookmark-read-search-input, bookmark-filtered-alist-by-regexp-only)

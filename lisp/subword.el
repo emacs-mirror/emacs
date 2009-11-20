@@ -50,15 +50,15 @@
 
 ;; Key     Word oriented command      Subword oriented command
 ;; ============================================================
-;; M-f     `forward-word'             `forward-subword'
-;; M-b     `backward-word'            `backward-subword'
-;; M-@     `mark-word'                `mark-subword'
-;; M-d     `kill-word'                `kill-subword'
-;; M-DEL   `backward-kill-word'       `backward-kill-subword'
-;; M-t     `transpose-words'          `transpose-subwords'
-;; M-c     `capitalize-word'          `capitalize-subword'
-;; M-u     `upcase-word'              `upcase-subword'
-;; M-l     `downcase-word'            `downcase-subword'
+;; M-f     `forward-word'             `subword-forward'
+;; M-b     `backward-word'            `subword-backward'
+;; M-@     `mark-word'                `subword-mark'
+;; M-d     `kill-word'                `subword-kill'
+;; M-DEL   `backward-kill-word'       `subword-backward-kill'
+;; M-t     `transpose-words'          `subword-transpose'
+;; M-c     `capitalize-word'          `subword-capitalize'
+;; M-u     `upcase-word'              `subword-upcase'
+;; M-l     `downcase-word'            `subword-downcase'
 ;;
 ;; Note: If you have changed the key bindings for the word oriented
 ;; commands in your .emacs or a similar place, the keys you've changed
@@ -125,7 +125,7 @@ as words.
 (define-global-minor-mode global-subword-mode subword-mode
   (lambda () (subword-mode 1)))
 
-(defun forward-subword (&optional arg)
+(defun subword-forward (&optional arg)
   "Do the same as `forward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `forward-word'."
@@ -134,23 +134,23 @@ Optional argument ARG is the same as for `forward-word'."
   (cond
    ((< 0 arg)
     (dotimes (i arg (point))
-      (forward-subword-internal)))
+      (subword-forward-internal)))
    ((> 0 arg)
     (dotimes (i (- arg) (point))
-      (backward-subword-internal)))
+      (subword-backward-internal)))
    (t
     (point))))
 
-(put 'forward-subword 'CUA 'move)
+(put 'subword-forward 'CUA 'move)
 
-(defun backward-subword (&optional arg)
+(defun subword-backward (&optional arg)
   "Do the same as `backward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `backward-word'."
   (interactive "p")
-  (forward-subword (- (or arg 1))))
+  (subword-forward (- (or arg 1))))
 
-(defun mark-subword (arg)
+(defun subword-mark (arg)
   "Do the same as `mark-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `mark-word'."
@@ -160,59 +160,59 @@ Optional argument ARG is the same as for `mark-word'."
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))
-	    (forward-subword arg)
+	    (subword-forward arg)
 	    (point))))
 	(t
 	 (push-mark
 	  (save-excursion
-	    (forward-subword arg)
+	    (subword-forward arg)
 	    (point))
 	  nil t))))
 
-(put 'backward-subword 'CUA 'move)
+(put 'subword-backward 'CUA 'move)
 
-(defun kill-subword (arg)
+(defun subword-kill (arg)
   "Do the same as `kill-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `kill-word'."
   (interactive "p")
-  (kill-region (point) (forward-subword arg)))
+  (kill-region (point) (subword-forward arg)))
 
-(defun backward-kill-subword (arg)
+(defun subword-backward-kill (arg)
   "Do the same as `backward-kill-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `backward-kill-word'."
   (interactive "p")
-  (kill-subword (- arg)))
+  (subword-kill (- arg)))
 
-(defun transpose-subwords (arg)
+(defun subword-transpose (arg)
   "Do the same as `transpose-words' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `transpose-words'."
   (interactive "*p")
-  (transpose-subr 'forward-subword arg))
+  (transpose-subr 'subword-forward arg))
 
-(defun downcase-subword (arg)
+(defun subword-downcase (arg)
   "Do the same as `downcase-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `downcase-word'."
   (interactive "p")
   (let ((start (point)))
-    (downcase-region (point) (forward-subword arg))
+    (downcase-region (point) (subword-forward arg))
     (when (< arg 0)
       (goto-char start))))
 
-(defun upcase-subword (arg)
+(defun subword-upcase (arg)
   "Do the same as `upcase-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `upcase-word'."
   (interactive "p")
   (let ((start (point)))
-    (upcase-region (point) (forward-subword arg))
+    (upcase-region (point) (subword-forward arg))
     (when (< arg 0)
       (goto-char start))))
 
-(defun capitalize-subword (arg)
+(defun subword-capitalize (arg)
   "Do the same as `capitalize-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
 Optional argument ARG is the same as for `capitalize-word'."
@@ -226,10 +226,10 @@ Optional argument ARG is the same as for `capitalize-word'."
 		  (concat "[[:alpha:]]")
 		  nil t)
 		 (goto-char (match-beginning 0)))
-	(backward-subword))
+	(subword-backward))
       (let* ((p (point))
 	     (pp (1+ p))
-	     (np (forward-subword)))
+	     (np (subword-forward)))
 	(upcase-region p pp)
 	(downcase-region pp np)
 	(goto-char (if advance np p))))
@@ -241,7 +241,7 @@ Optional argument ARG is the same as for `capitalize-word'."
 ;;
 ;; Internal functions
 ;;
-(defun forward-subword-internal ()
+(defun subword-forward-internal ()
   (if (and
        (save-excursion
 	 (let ((case-fold-search nil))
@@ -258,7 +258,7 @@ Optional argument ARG is the same as for `capitalize-word'."
     (forward-word 1)))
 
 
-(defun backward-subword-internal ()
+(defun subword-backward-internal ()
   (if (save-excursion
 	(let ((case-fold-search nil))
 	  (re-search-backward
