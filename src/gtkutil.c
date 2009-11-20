@@ -2477,6 +2477,10 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
       /* Item(s) have been removed.  Remove all remaining items.  */
       xg_destroy_widgets (iter);
 
+      /* Add a blank entry so the menubar doesn't collapse to nothing. */
+      gtk_menu_shell_insert (GTK_MENU_SHELL (menubar),
+                             gtk_menu_item_new_with_label (""),
+                             0);
       /* All updated.  */
       val = 0;
       iter = 0;

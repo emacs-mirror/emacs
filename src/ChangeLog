@@ -1,3 +1,8 @@
+2009-11-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_modify_menubar_widgets): If menubar is totally empty
+	add a blank entry so it doesn't collapse into nothing.
+
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (Funintern): Comment out last change.
