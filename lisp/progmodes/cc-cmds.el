@@ -1322,6 +1322,10 @@ keyword on the line, the keyword is not inserted inside a literal, and
 	(delete-char -2)))))
 
 
+
+(declare-function forward-subword "subword" (&optional arg))
+(declare-function backward-subword "subword" (&optional arg))
+
 ;; "nomenclature" functions + c-scope-operator.
 (defun c-forward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-forward-subword'."

@@ -1,5 +1,8 @@
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* progmodes/cc-cmds.el: declare-functioned forward-subword and
+	backward-subword to quit the byte-compiler.
+
 	* makefile.w32-in: Don't refer cc-subword.elc but subword.elc.
 
 	* Makefile.in: Don't refer cc-subword.elc but subword.elc.
