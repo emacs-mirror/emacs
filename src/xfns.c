@@ -3031,14 +3031,21 @@ x_default_font_parameter (f, parms)
   Lisp_Object font;
   int got_from_gconf = 0;
   if (EQ (font_param, Qunbound))
-    {
-      font_param = Ffont_get_system_font();
-      got_from_gconf = !NILP (font_param);
-    }
+    font_param = Qnil;
 
+  if (NILP (font_param))
+    {
+      /* System font takes precedendce over X resources.  We must suggest this
+         regardless of font-use-system-font because .emacs may not have been
+         read yet.  */
+      const char *system_font = xsettings_get_system_font ();
+      if (system_font) font_param = make_string (system_font,
+                                                 strlen (system_font));
+    }
+  
   font = !NILP (font_param) ? font_param
     : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
-  
+
   if (! STRINGP (font))
     {
       char *names[]

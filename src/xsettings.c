@@ -498,7 +498,7 @@ xft_settings_event (dpyinfo, event)
 static void
 init_gconf ()
 {
-#ifdef HAVE_GCONF
+#if defined (HAVE_GCONF) && defined (HAVE_XFT)
   int i;
   char *s;
   /* Should be enough, this is called at startup */
@@ -556,7 +556,7 @@ init_gconf ()
           init_sigio (i);
 #endif /* ! defined (SIGIO) */
       }
-#endif /* HAVE_GCONF */
+#endif /* HAVE_GCONF && HAVE_XFT */
 }
 
 static void
@@ -605,6 +605,11 @@ xsettings_initialize (dpyinfo)
   init_xfd_settings (dpyinfo);
 }
 
+const char *
+xsettings_get_system_font ()
+{
+  return current_mono_font;
+}
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
@@ -635,10 +640,10 @@ syms_of_xsettings ()
     doc: /* *Non-nil means to use the system defined font.  */);
   use_system_font = 0;
 
+#ifdef HAVE_XFT
+  Fprovide (intern_c_string ("font-render-setting"), Qnil);
 #ifdef HAVE_GCONF
   Fprovide (intern_c_string ("system-font-setting"), Qnil);
 #endif
-#ifdef HAVE_XFT
-  Fprovide (intern_c_string ("font-render-setting"), Qnil);
 #endif
 }

@@ -24,6 +24,7 @@ EXFUN (Ffont_get_system_font, 0);
 extern void xsettings_initialize P_ ((struct x_display_info *dpyinfo));
 extern void xft_settings_event P_ ((struct x_display_info *dpyinfo,
                                     XEvent *));
+extern const char *xsettings_get_system_font P_ ((void));
 
 
 #endif /* XSETTINGS_H */

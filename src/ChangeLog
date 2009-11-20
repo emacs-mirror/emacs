@@ -1,5 +1,14 @@
 2009-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfns.c (x_default_font_parameter): Call xsettings_get_system_font.
+
+	* xsettings.h: Declare xsettings_get_system_font.
+
+	* xsettings.c (xsettings_get_system_font): New function.
+	(init_gconf): No use initiating gconf unless we have Xft also.
+	(syms_of_xsettings): Only provide system-font-setting if HAVE_XFT and
+	HAVE_GCONF.
+
 	* gtkutil.c (xg_modify_menubar_widgets): If menubar is totally empty
 	add a blank entry so it doesn't collapse into nothing.
 
