@@ -822,7 +822,6 @@ Doing so would be even more evil than leaving it out."
 (defcustom message-sendmail-envelope-from
   (if (featurep 'xemacs) nil mail-envelope-from)
   "*Envelope-from when sending mail with sendmail.
-This only has an effect if `mail-specify-envelope-from' is non-nil.
 If this is nil, use `user-mail-address'.  If it is the symbol
 `header', use the From: header of the message."
   :version "22.1"
@@ -4541,7 +4540,6 @@ If you always want Gnus to send messages in one piece, set
 			;; But some systems are more broken with -f, so
 			;; we'll let users override this.
 			(and (null message-sendmail-f-is-evil)
-			     mail-specify-envelope-from
 			     (list "-f" (message-sendmail-envelope-from)))
 			;; These mean "report errors by mail"
 			;; and "deliver in background".
