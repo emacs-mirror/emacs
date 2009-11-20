@@ -827,10 +827,12 @@ ELCFILES = \
 	$(lisp)/help.elc \
 	$(lisp)/hex-util.elc \
 	$(lisp)/hexl.elc \
+	$(lisp)/hfy-cmap.elc \
 	$(lisp)/hi-lock.elc \
 	$(lisp)/hilit-chg.elc \
 	$(lisp)/hippie-exp.elc \
 	$(lisp)/hl-line.elc \
+	$(lisp)/htmlfontify.elc \
 	$(lisp)/ibuf-ext.elc \
 	$(lisp)/ibuf-macs.elc \
 	$(lisp)/ibuffer.elc \

@@ -1,3 +1,7 @@
+2009-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Regenerate.
+
 2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/cedet.el (cedet-menu-map): Re-order menu items.
