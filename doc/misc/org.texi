@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.33c
+@set VERSION 6.33x
 @set DATE November 2009
 
 @c Version and Contact Info
@@ -4587,29 +4587,31 @@ optional.  The individual parts have the following meaning:
 
 @example
 @var{width}           @r{An integer specifying the width of the column in characters.}
-		@r{If omitted, the width will be determined automatically.}
+                @r{If omitted, the width will be determined automatically.}
 @var{property}        @r{The property that should be edited in this column.}
+                @r{Special properties representing meta data are allowed here}
+                @r{as well (@pxref{Special properties})}
 (title)         @r{The header text for the column. If omitted, the}
-		@r{property name is used.}
+                @r{property name is used.}
 @{@var{summary-type}@}  @r{The summary type.  If specified, the column values for}
-		@r{parent nodes are computed from the children.}
-		@r{Supported summary types are:}
-		@{+@}       @r{Sum numbers in this column.}
-		@{+;%.1f@}  @r{Like @samp{+}, but format result with @samp{%.1f}.}
-		@{$@}       @r{Currency, short for @samp{+;%.2f}.}
-		@{:@}       @r{Sum times, HH:MM:SS, plain numbers are hours.}
-		@{X@}       @r{Checkbox status, @samp{[X]} if all children are @samp{[X]}.}
-		@{X/@}      @r{Checkbox status, @samp{[n/m]}.}
-		@{X%@}      @r{Checkbox status, @samp{[n%]}.}
-		@{min@}     @r{Smallest number in column.}
-		@{max@}     @r{Largest number.}
-		@{mean@}    @r{Arithmetic mean of numbers.}
-		@{:min@}    @r{Smallest time value in column.}
-		@{:max@}    @r{Largest time value.}
-		@{:mean@}   @r{Arithmetic mean of time values.}
-		@{@@min@}   @r{Minimum age (in days/hours/mins/seconds).}
-		@{@@max@}   @r{Maximum age (in days/hours/mins/seconds).}
-		@{@@mean@}  @r{Arithmetic mean of ages (in days/hours/mins/seconds).}
+                @r{parent nodes are computed from the children.}
+                @r{Supported summary types are:}
+                @{+@}       @r{Sum numbers in this column.}
+                @{+;%.1f@}  @r{Like @samp{+}, but format result with @samp{%.1f}.}
+                @{$@}       @r{Currency, short for @samp{+;%.2f}.}
+                @{:@}       @r{Sum times, HH:MM:SS, plain numbers are hours.}
+                @{X@}       @r{Checkbox status, @samp{[X]} if all children are @samp{[X]}.}
+                @{X/@}      @r{Checkbox status, @samp{[n/m]}.}
+                @{X%@}      @r{Checkbox status, @samp{[n%]}.}
+                @{min@}     @r{Smallest number in column.}
+                @{max@}     @r{Largest number.}
+                @{mean@}    @r{Arithmetic mean of numbers.}
+                @{:min@}    @r{Smallest time value in column.}
+                @{:max@}    @r{Largest time value.}
+                @{:mean@}   @r{Arithmetic mean of time values.}
+                @{@@min@}   @r{Minimum age (in days/hours/mins/seconds).}
+                @{@@max@}   @r{Maximum age (in days/hours/mins/seconds).}
+                @{@@mean@}  @r{Arithmetic mean of ages (in days/hours/mins/seconds).}
 @end example
 
 @noindent
@@ -9373,7 +9375,7 @@ pages, configure the variable @code{org-export-html-use-infojs}.
 @section La@TeX{} and PDF export
 @cindex La@TeX{} export
 @cindex PDF export
-@cindex Guerry, Bastian
+@cindex Guerry, Bastien
 
 Org mode contains a La@TeX{} exporter written by Bastien Guerry.  With
 further processing, this backend is also used to produce PDF output.  Since
