@@ -1,3 +1,7 @@
+2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* s/cygwin.h: Remove unneeded linker flags.
+
 2009-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_default_font_parameter): Call xsettings_get_system_font.

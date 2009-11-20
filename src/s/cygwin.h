@@ -105,10 +105,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSV_SYSTEM_DIR 1
 #define UNEXEC unexcw.o
 #define POSIX_SIGNALS 1
-/* force the emacs image to start high in memory, so dll relocation
-   can put things in low memory without causing all sorts of grief for
-   emacs lisp pointers */
-#define DATA_SEG_BITS 0x20000000
+#define LINKER $(CC)
+
 #define LINKER $(CC) -Wl,--image-base,DATA_SEG_BITS
 
 /* Use terminfo instead of termcap.  Fewer environment variables to
