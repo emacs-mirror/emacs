@@ -1,3 +1,7 @@
+2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Use -Wdeclaration-after-statement if available.
+
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: New option: --with(out)-gconf.

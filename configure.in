@@ -757,6 +757,19 @@ CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
 
+### Use -Wdeclaration-after-statement if the compiler supports it
+AC_MSG_CHECKING([whether gcc understands -Wdeclaration-after-statement])
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wdeclaration-after-statement"
+AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wdeclaration-after-statement $C_WARNINGS_SWITCH"
+fi
+AC_MSG_RESULT($has_option)
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
 #### Some other nice autoconf tests.
 
 dnl checks for programs

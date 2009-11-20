@@ -4896,6 +4896,62 @@ CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
 
+### Use -Wdeclaration-after-statement if the compiler supports it
+{ $as_echo "$as_me:$LINENO: checking whether gcc understands -Wdeclaration-after-statement" >&5
+$as_echo_n "checking whether gcc understands -Wdeclaration-after-statement... " >&6; }
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wdeclaration-after-statement"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  has_option=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	has_option=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wdeclaration-after-statement $C_WARNINGS_SWITCH"
+fi
+{ $as_echo "$as_me:$LINENO: result: $has_option" >&5
+$as_echo "$has_option" >&6; }
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
 #### Some other nice autoconf tests.
 
 { $as_echo "$as_me:$LINENO: checking whether ln -s works" >&5
