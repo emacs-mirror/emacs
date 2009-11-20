@@ -226,6 +226,10 @@ Mathias Dahl wrote @file{image-dired.el}, a package for viewing image
 files as ``thumbnails.''
 
 @item
+Vivek Dasmohapatra wrote @file{htmlfontify.el}, to convert a buffer or
+source tree to HTML.
+
+@item
 Michael DeCorte wrote @file{emacs.csh}, a C-shell script that starts a
 new Emacs job, or restarts a paused Emacs if one exists.
 

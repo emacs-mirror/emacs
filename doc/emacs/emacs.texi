@@ -1349,17 +1349,17 @@ Vincent Broman, David M.@: Brown, Georges Brun-Cottan, Joe Buehler,
 W@l{}odek Bzyl, Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chong
 Yidong, Chris Chase, Bob Chassell, Andrew Choi, Sacha Chua, James Clark,
 Mike Clarkson, Glynn Clements, Daniel Colascione, Andrew Csillag, Baoqiu
-Cui, Doug Cutting, Mathias Dahl, Satyaki Das, Michael DeCorte, Gary
-Delp, Matthieu Devin, Eri Ding, Jan Dj@"{a}rv, Carsten Dominik, Scott
-Draves, Benjamin Drieu, Viktor Dukhovni, Dmitry Dzhus, John Eaton, Rolf
-Ebert, Paul Eggert, Stephen Eglen, Torbj@"orn Einarsson, Tsugutomo
-Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
-Farnbach, Oscar Figueiredo, Fred Fish, Karl Fogel, Gary Foster, Romain
-Francoise, Noah Friedman, Andreas Fuchs, Hallvard Furuseth, Keith
-Gabryelski, Peter S.@: Galbraith, Kevin Gallagher, Kevin Gallo, Juan
-Le@'{o}n Lahoz Garc@'{@dotless{i}}a, Howard Gayle, Daniel German,
-Stephen Gildea, Julien Gilles, David Gillespie, Bob Glickstein, Deepak
-Goel, Boris Goldowsky, Michelangelo Grigni, Odd Gripenstam, Kai
+Cui, Doug Cutting, Mathias Dahl, Satyaki Das, Vivek Dasmohapatra,
+Michael DeCorte, Gary Delp, Matthieu Devin, Eri Ding, Jan Dj@"{a}rv,
+Carsten Dominik, Scott Draves, Benjamin Drieu, Viktor Dukhovni, Dmitry
+Dzhus, John Eaton, Rolf Ebert, Paul Eggert, Stephen Eglen, Torbj@"orn
+Einarsson, Tsugutomo Enami, Hans Henrik Eriksen, Michael Ernst, Ata
+Etemadi, Frederick Farnbach, Oscar Figueiredo, Fred Fish, Karl Fogel,
+Gary Foster, Romain Francoise, Noah Friedman, Andreas Fuchs, Hallvard
+Furuseth, Keith Gabryelski, Peter S.@: Galbraith, Kevin Gallagher, Kevin
+Gallo, Juan Le@'{o}n Lahoz Garc@'{@dotless{i}}a, Howard Gayle, Daniel
+German, Stephen Gildea, Julien Gilles, David Gillespie, Bob Glickstein,
+Deepak Goel, Boris Goldowsky, Michelangelo Grigni, Odd Gripenstam, Kai
 Gro@ss{}johann, Michael Gschwind, Bastien Guerry, Henry Guillaume, Doug
 Gwyn, Ken'ichi Handa, Lars Hansen, Chris Hanson, K. Shane Hartman, John
 Heidemann, Jon K.@: Hellan, Jesper Harder, Magnus Henoch, Markus
