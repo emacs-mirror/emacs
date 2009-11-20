@@ -197,6 +197,18 @@ following in your `.emacs' file:
   :group 'bookmark)
 
 
+(defcustom bookmark-search-delay 0.2
+  "*Display when searching bookmarks is updated all `bookmark-search-delay' seconds."
+  :group 'bookmark
+  :type  'integer)
+
+
+(defcustom bookmark-search-prompt "Pattern: "
+  "*Prompt used for `bookmark-bmenu-search'."
+  :group 'bookmark
+  :type  'string)
+
+
 (defface bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))
   "Face used to highlight the heading in bookmark menu buffers."
@@ -318,6 +330,18 @@ the source buffer for that information; see `bookmark-yank-word' and
 (defvar bookmark-yank-point 0
   "The next point from which to pull source text for `bookmark-yank-word'.
 This point is in `bookmark-curent-buffer'.")
+
+
+(defvar bookmark-search-pattern ""
+  "Store keyboard input for incremental search.")
+
+
+(defvar bookmark-search-timer nil
+  "Timer used for searching")
+
+
+(defvar bookmark-quit-flag nil
+  "Non nil make `bookmark-bmenu-search' quit immediately.")
 
 
 
@@ -1525,6 +1549,7 @@ method buffers use to resolve name collisions."
     (define-key map "a" 'bookmark-bmenu-show-annotation)
     (define-key map "A" 'bookmark-bmenu-show-all-annotations)
     (define-key map "e" 'bookmark-bmenu-edit-annotation)
+    (define-key map "\M-g" 'bookmark-bmenu-search)
     (define-key map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
     map))
 
@@ -2071,6 +2096,79 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
             (thispoint (point)))
         (bookmark-relocate bmrk)
         (goto-char thispoint))))
+
+;;; Bookmark-bmenu search
+
+(defun bookmark-read-search-input ()
+  "Read each keyboard input and add it to `bookmark-search-pattern'."
+  (setq bookmark-search-pattern "")    ; Always reset pattern to empty string
+  (let ((prompt       (propertize bookmark-search-prompt 'face '((:foreground "cyan"))))
+        (inhibit-quit t)
+        (tmp-list     ())
+        char)
+    (catch 'break
+      (while 1
+        (catch 'continue
+          (condition-case nil
+              (setq char (read-char (concat prompt bookmark-search-pattern)))
+            (error (throw 'break nil)))
+          (case char
+            ((or ?\e ?\r) (throw 'break nil))    ; RET or ESC break search loop and lead to [1].
+            (?\d (pop tmp-list)         ; Delete last char of `bookmark-search-pattern' with DEL
+                 (setq bookmark-search-pattern (mapconcat 'identity (reverse tmp-list) ""))
+                 (throw 'continue nil))
+            (?\C-g (setq bookmark-quit-flag t) (throw 'break nil))
+            (t
+             (push (text-char-description char) tmp-list)
+             (setq bookmark-search-pattern (mapconcat 'identity (reverse tmp-list) ""))
+             (throw 'continue nil))))))))
+
+
+(defun bookmark-filtered-alist-by-regexp-only (regexp)
+  "Return a filtered `bookmark-alist' with bookmarks matching REGEXP."
+  (loop for i in bookmark-alist
+     when (string-match regexp (car i)) collect i into new
+     finally return new))
+
+
+(defun bookmark-bmenu-filter-alist-by-regexp (regexp)
+  "Filter `bookmark-alist' with bookmarks matching REGEXP and rebuild list."
+  (let ((bookmark-alist (bookmark-filtered-alist-by-regexp-only regexp)))
+    (bookmark-bmenu-list)))
+
+;;;###autoload
+(defun bookmark-bmenu-search ()
+  "Incremental search of bookmarks matching `bookmark-search-pattern'.
+`bookmark-search-pattern' is build incrementally with `bookmark-read-search-input'"
+  (interactive)
+  (when (string= (buffer-name (current-buffer)) "*Bookmark List*")
+    (let ((bmk (bookmark-bmenu-bookmark)))
+      (unwind-protect
+           (progn
+             (setq bookmark-search-timer
+                   (run-with-idle-timer bookmark-search-delay 'repeat
+                                        #'(lambda ()
+                                            (bookmark-bmenu-filter-alist-by-regexp bookmark-search-pattern))))
+             (bookmark-read-search-input))
+        (progn ; [1] Stop timer.
+          (bookmark-bmenu-cancel-search)
+          (when bookmark-quit-flag ; C-g hit restore menu list.
+            (bookmark-bmenu-list) (bookmark-bmenu-goto-bookmark bmk))
+          (setq bookmark-quit-flag nil))))))
+      
+(defun bookmark-bmenu-goto-bookmark (name)
+  "Move point to bookmark with name NAME."
+  (goto-char (point-min))
+  (bookmark-bmenu-check-position)
+  (while (not (equal name (bookmark-bmenu-bookmark)))
+    (forward-line 1))
+  (forward-line 0))
+          
+
+(defun bookmark-bmenu-cancel-search ()
+  "Cancel timer used for searching in bookmarks."
+  (cancel-timer bookmark-search-timer)
+  (setq bookmark-search-timer nil))
 
 
 ;;; Menu bar stuff.  Prefix is "bookmark-menu".

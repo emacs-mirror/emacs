@@ -1,7 +1,18 @@
+2009-11-20  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* bookmark.el (bookmark-search-delay, bookmark-search-prompt):
+	New options.
+	(bookmark-search-pattern, bookmark-search-timer, bookmark-quit-flag):
+	New vars.
+	(bookmark-read-search-input, bookmark-filtered-alist-by-regexp-only)
+	(bookmark-bmenu-filter-alist-by-regexp)
+	(bookmark-bmenu-goto-bookmark, bookmark-bmenu-cancel-search): New funs.
+	(bookmark-bmenu-search): New command.
+	(bookmark-bmenu-mode-map): Bind it.
+
 2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/semantic/complete.el (semantic-complete-inline-map): Doc
-	fix.
+	* cedet/semantic/complete.el (semantic-complete-inline-map): Doc fix.
 
 	* cedet/semantic/idle.el (define-semantic-idle-service)
 	(semantic-idle-summary-mode, semantic-idle-completions): Doc fix.
@@ -16,29 +27,27 @@
 	* Makefile.in: Don't refer cc-subword.elc but subword.elc.
 
 	* progmodes/cc-cmds.el (c-update-modeline)
-	(c-forward-into-nomenclature, c-backward-into-nomenclature): Refer
-	to subword.el functions instead of cc-subword.el.
+	(c-forward-into-nomenclature, c-backward-into-nomenclature):
+	Refer to subword.el functions instead of cc-subword.el.
 
 	* progmodes/cc-mode.el (subword-mode, c-mode-base-map): Refer to
 	subword.el functions instead of cc-subword.el.
 
-	* progmodes/cc-subword.el: Renamed to subword.el.
-	* subword.el: Renamed from progmodes/cc-subword.el.
-	(subword-mode-map): Renamed from c-subword-mode-map.
-	(subword-mode): Renamed from c-subword-mode.
+	* progmodes/cc-subword.el: Rename to subword.el.
+	* subword.el: Rename from progmodes/cc-subword.el.
+	(subword-mode-map): Rename from c-subword-mode-map.
+	(subword-mode): Rename from c-subword-mode.
 	(global-subword-mode): New global minor mode.
-	(forward-subword): Renamed from c-forward-subword.
-	(backward-subword): Renamed from c-backward-subword.
-	(mark-subword): Renamed from c-mark-subword.
-	(kill-subword): Renamed from c-kill-subword.
-	(backward-kill-subword): Renamed from c-backward-kill-subword.
-	(transpose-subwords): Renamed from c-tranpose-subword.
-	(downcase-subword): Renamed from c-downcase-subword.
-	(capitalize-subword): Renamed from c-capitalize-subword.
-	(forward-subword-internal): Renamed from
-	c-forward-subword-internal.
-	(backward-subword-internal): Renamed from
-	c-backward-subword-internal.
+	(forward-subword): Rename from c-forward-subword.
+	(backward-subword): Rename from c-backward-subword.
+	(mark-subword): Rename from c-mark-subword.
+	(kill-subword): Rename from c-kill-subword.
+	(backward-kill-subword): Rename from c-backward-kill-subword.
+	(transpose-subwords): Rename from c-tranpose-subword.
+	(downcase-subword): Rename from c-downcase-subword.
+	(capitalize-subword): Rename from c-capitalize-subword.
+	(forward-subword-internal): Rename from c-forward-subword-internal.
+	(backward-subword-internal): Rename from c-backward-subword-internal.
 
 2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -352,7 +361,7 @@
 	* vc-mtn.el (vc-mtn-print-log):
 	* vc-hg.el (vc-hg-print-log):
 	* vc-bzr.el (vc-bzr-print-log): Add new optional argument LIMIT,
-	pass it to the log command when set. Make the BUFFER argument
+	pass it to the log command when set.  Make the BUFFER argument
 	non-optional.
 
 	* vc-sccs.el (vc-sccs-print-log):

@@ -153,6 +153,11 @@ when the value of the new variable `completions-format' is `vertical'.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** The bookmark menu has a narrowing search via bookmark-bmenu-search.
+
+** LaTeX mode now provides completion via latex-complete and
+latex-indent-or-complete.
+
 ** lucid.el and levents.el are now declared obsolete.
 
 ** pcomplete provides a new command `pcomplete-std-completion' which
