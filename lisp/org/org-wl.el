@@ -6,7 +6,7 @@
 ;; Author: Tokuya Kameshima <kames at fa2 dot so-net dot ne dot jp>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -91,7 +91,11 @@
 		 wl-summary-buffer-elmo-folder msgnum)
 	      (elmo-msgdb-overview-get-entity
 	       msgnum (wl-summary-buffer-msgdb))))
-	   (from (wl-summary-line-from))
+	   (from (let ((from-field (elmo-message-entity-field wl-message-entity
+							      'from)))
+		   (if (listp from-field)
+		       (car from-field)
+		     from-field)))
 	   (to (let ((to-field (elmo-message-entity-field wl-message-entity
 							  'to)))
 		 (if (listp to-field)

@@ -5,7 +5,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -240,7 +240,7 @@ The characters \"&<> will be escaped."
                       ;; file is utf-8:
                       ;;
                       ;; (format "&#x%x;" (- cc ;; ?\x800))
-                      (char-to-string cc)
+		      (format "&#x%x" (encode-char cc 'ucs))
                       ))))
     fm-str))
 

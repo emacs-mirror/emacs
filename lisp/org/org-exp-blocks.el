@@ -217,9 +217,15 @@ Specify the path at which the image should be saved as the first
 element of headers, any additional elements of headers will be
 passed to the ditaa utility as command line arguments."
   (message "ditaa-formatting...")
-  (let ((out-file (if headers (car headers)))
-	(args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
-	(data-file (make-temp-file "org-ditaa")))
+  (let* ((args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
+         (data-file (make-temp-file "org-ditaa"))
+         (hash (sha1 (prin1-to-string (list body args))))
+         (raw-out-file (if headers (car headers)))
+         (out-file-parts (if (string-match "\\(.+\\)\\.\\([^\\.]+\\)$" raw-out-file)
+                             (cons (match-string 1 raw-out-file)
+                                   (match-string 2 raw-out-file))
+                           (cons raw-out-file "png")))
+         (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
     (unless (file-exists-p org-ditaa-jar-path)
       (error (format "Could not find ditaa.jar at %s" org-ditaa-jar-path)))
     (setq body (if (string-match "^\\([^:\\|:[^ ]\\)" body)
@@ -229,9 +235,21 @@ passed to the ditaa utility as command line arguments."
 			    "\n")))
     (cond
      ((or htmlp latexp docbookp)
-      (with-temp-file data-file (insert body))
-      (message (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file))
-      (shell-command (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file))
+      (unless (file-exists-p out-file)
+        (mapc ;; remove old hashed versions of this file
+         (lambda (file)
+           (when (and (string-match (concat (regexp-quote (car out-file-parts))
+                                            "_\\([[:alnum:]]+\\)\\."
+                                            (regexp-quote (cdr out-file-parts)))
+                                    file)
+                      (= (length (match-string 1 out-file)) 40))
+             (delete-file (expand-file-name file
+                                            (file-name-directory out-file)))))
+         (directory-files (or (file-name-directory out-file)
+                              default-directory)))
+        (with-temp-file data-file (insert body))
+        (message (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file))
+        (shell-command (concat "java -jar " org-ditaa-jar-path " " args " " data-file " " out-file)))
       (format "\n[[file:%s]]\n" out-file))
      (t (concat
 	 "\n#+BEGIN_EXAMPLE\n"
@@ -259,14 +277,32 @@ digraph data_relationships {
 }
 #+end_dot"
   (message "dot-formatting...")
-  (let ((out-file (if headers (car headers)))
-	(args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
-	(data-file (make-temp-file "org-ditaa")))
+  (let* ((args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
+         (data-file (make-temp-file "org-ditaa"))
+         (hash (sha1 (prin1-to-string (list body args))))
+         (raw-out-file (if headers (car headers)))
+         (out-file-parts (if (string-match "\\(.+\\)\\.\\([^\\.]+\\)$" raw-out-file)
+                             (cons (match-string 1 raw-out-file)
+                                   (match-string 2 raw-out-file))
+                           (cons raw-out-file "png")))
+         (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
     (cond
      ((or htmlp latexp docbookp)
-      (with-temp-file data-file (insert body))
-      (message (concat "dot " data-file " " args " -o " out-file))
-      (shell-command (concat "dot " data-file " " args " -o " out-file))
+      (unless (file-exists-p out-file)
+        (mapc ;; remove old hashed versions of this file
+         (lambda (file)
+           (when (and (string-match (concat (regexp-quote (car out-file-parts))
+                                            "_\\([[:alnum:]]+\\)\\."
+                                            (regexp-quote (cdr out-file-parts)))
+                                    file)
+                      (= (length (match-string 1 out-file)) 40))
+             (delete-file (expand-file-name file
+                                            (file-name-directory out-file)))))
+         (directory-files (or (file-name-directory out-file)
+                              default-directory)))
+        (with-temp-file data-file (insert body))
+        (message (concat "dot " data-file " " args " -o " out-file))
+        (shell-command (concat "dot " data-file " " args " -o " out-file)))
       (format "\n[[file:%s]]\n" out-file))
      (t (concat
 	 "\n#+BEGIN_EXAMPLE\n"

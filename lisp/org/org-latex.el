@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
-;; Version: 6.33c
+;; Version: 6.33x
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -255,15 +255,6 @@ markup defined, the first one in the association list will be used."
 When nil, grouping causes only separation lines between groups."
   :group 'org-export-latex
   :type 'boolean)
-
-(defcustom org-export-latex-packages-alist nil
-  "Alist of packages to be inserted in the header.
-Each cell is of the format \( \"option\" . \"package\" \)."
-  :group 'org-export-latex
-  :type '(repeat
-	  (list
-	   (string :tag "option")
-	   (string :tag "package"))))
 
 (defcustom org-export-latex-low-levels 'itemize
   "How to convert sections below the current level of sectioning.
@@ -1465,7 +1456,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
   "Convert fontification to LaTeX."
   (goto-char (point-min))
   (while (re-search-forward org-emph-re nil t)
-    ;; The match goes one char after the *string*
+    ;; The match goes one char after the *string*, except at the end of a line
     (let ((emph (assoc (match-string 3)
 		       org-export-latex-emphasis-alist))
 	  (beg (match-beginning 0))
@@ -1491,7 +1482,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	(if (caddr emph)
 	    (setq rpl (org-export-latex-protect-string rpl))
 	  (save-match-data
-	    (if (string-match "\\`.\\(\\\\[a-z]+{\\)\\(.*\\)\\(}\\).\\'" rpl)
+	    (if (string-match "\\`.\\(\\\\[a-z]+{\\)\\(.*\\)\\(}\\).?\\'" rpl)
 		(progn
 		  (add-text-properties (match-beginning 1) (match-end 1)
 				       '(org-protected t) rpl)
@@ -1824,7 +1815,8 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	   (save-excursion
 	     (if (not (re-search-forward (concat "^" (regexp-quote foot-prefix))
 					 nil t))
-		 (replace-match "$^{\\1}$")
+		 (replace-match (org-export-latex-protect-string
+				 (concat "$^{" (match-string 1) "}$")))
 	       (replace-match "")
 	       (let ((end (save-excursion
 			    (if (re-search-forward "^$\\|^#.*$\\|\\[[0-9]+\\]" nil t)

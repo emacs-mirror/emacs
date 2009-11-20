@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -443,6 +443,7 @@ This command is set with the variable `org-archive-default-command'."
   (interactive)
   (call-interactively org-archive-default-command))
 
+;;;###autoload
 (defun org-archive-subtree-default-with-confirmation ()
   "Archive the current subtree with the default command.
 This command is set with the variable `org-archive-default-command'."

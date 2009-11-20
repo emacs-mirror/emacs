@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -101,7 +101,7 @@ tree can be found."
 
 (defun org-datetree-find-day-create (year month day)
   (org-narrow-to-subtree)
-  (let ((re (format "^\\*+[ \t]+%d-%02d-\\([01][0-9]\\)[ \t\n]" year month))
+  (let ((re (format "^\\*+[ \t]+%d-%02d-\\([0123][0-9]\\)[ \t\n]" year month))
 	match)
     (goto-char (point-min))
     (while (and (setq match (re-search-forward re nil t))

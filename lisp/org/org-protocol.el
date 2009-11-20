@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 6.33c
+;; Version: 6.33x
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -185,6 +185,8 @@ Possible properties are:
                        Last slash required.
   :working-directory - the local working directory. This is, what base-url will
                        be replaced with.
+  :redirects         - A list of cons cells, each of which maps a regular
+                       expression to match to a path relative to :working-directory.
 
 Example:
 
@@ -198,7 +200,12 @@ Example:
           :online-suffix \".html\"
           :working-suffix \".org\"
           :base-url \"http://localhost/org/\"
-          :working-directory \"/home/user/org/\")))
+          :working-directory \"/home/user/org/\"
+          :rewrites ((\"org/?$\" . \"index.php\")))))
+
+   The last line tells `org-protocol-open-source' to open
+   /home/user/org/index.php, if the URL cannot be mapped to an existing
+   file, and ends with either \"org\" or \"org/\".
 
 Consider using the interactive functions `org-protocol-create' and
 `org-protocol-create-for-org' to help you filling this variable with valid contents."
@@ -504,10 +511,35 @@ The location for a browser's bookmark should look like this:
             (let* ((wdir (plist-get (cdr prolist) :working-directory))
                    (strip-suffix (plist-get (cdr prolist) :online-suffix))
                    (add-suffix (plist-get (cdr prolist) :working-suffix))
-                   (start-pos (+ (string-match wsearch f) (length base-url)))
+		   ;; Strip "[?#].*$" if `f' is a redirect with another
+		   ;; ending than strip-suffix here:
+		   (f1 (substring f 0 (string-match "\\([\\?#].*\\)?$" f)))
+                   (start-pos (+ (string-match wsearch f1) (length base-url)))
                    (end-pos (string-match
-                             (concat (regexp-quote strip-suffix) "\\([?#].*\\)?$") f))
-                   (the-file (concat wdir (substring f start-pos end-pos) add-suffix)))
+			     (regexp-quote strip-suffix) f1))
+		   ;; We have to compare redirects without suffix below:
+		   (f2 (concat wdir (substring f1 start-pos end-pos)))
+                   (the-file (concat f2 add-suffix)))
+
+	      ;; Note: the-file may still contain `%C3' et al here because browsers
+	      ;; tend to encode `&auml;' in URLs to `%25C3' - `%25' being `%'.
+	      ;; So the results may vary.
+
+	      ;; -- start redirects --
+	      (unless (file-exists-p the-file)
+		(message "File %s does not exist.\nTesting for rewritten URLs." the-file)
+		(let ((rewrites (plist-get (cdr prolist) :rewrites)))
+		  (when rewrites
+		    (message "Rewrites found: %S" rewrites)
+		    (mapc
+		     (lambda (rewrite)
+		       "Try to match a rewritten URL and map it to a real file."
+		       ;; Compare redirects without suffix:
+		       (if (string-match (car rewrite) f2)
+			   (throw 'result (concat wdir (cdr rewrite)))))
+		     rewrites))))
+	      ;; -- end of redirects --
+
               (if (file-readable-p the-file)
                   (throw 'result the-file))
               (if (file-exists-p the-file)
@@ -596,7 +628,7 @@ most of the work."
   "Create a new org-protocol project interactively.
 An org-protocol project is an entry in `org-protocol-project-alist'
 which is used by `org-protocol-open-source'.
-Optionally use project-plist to initialize the defaults for this worglet. If
+Optionally use project-plist to initialize the defaults for this project. If
 project-plist is the CDR of an element in `org-publish-project-alist', reuse
 :base-directory, :html-extension and :base-extension."
   (interactive)
@@ -632,7 +664,7 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
            (concat "Extension of editable files ("working-suffix"): ")
                    working-suffix nil working-suffix t))
 
-    (when (yes-or-no-p "Save the new worglet to your init file? ")
+    (when (yes-or-no-p "Save the new org-protocol-project to your init file? ")
       (setq org-protocol-project-alist
             (cons `(,base-url . (:base-url ,base-url
                                  :working-directory ,working-dir

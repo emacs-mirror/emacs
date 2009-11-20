@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1207,6 +1207,16 @@ When non-nil, this must be the number of minutes, e.g. 60 for one hour."
   "Non-nil means, show inherited tags in each agenda line."
   :group 'org-agenda-line-format
   :type 'boolean)
+
+(defcustom org-agenda-hide-tags-regexp nil
+  "Regular expression used to filter away specific tags in agenda views.
+This means that these tags will be present, but not be shown in the agenda
+line.  Secondayt filltering will still work on the hidden tags.
+Nil means don't hide any tags."
+  :group 'org-agenda-line-format
+  :type '(choice
+	  (const  :tag "Hide none" nil)
+	  (string :tag "Regexp   ")))
 
 (defcustom org-agenda-remove-tags nil
   "Non-nil means, remove the tags from the headline copy in the agenda.
@@ -2970,7 +2980,6 @@ When EMPTY is non-nil, also include days without any entries."
 (defvar org-starting-day nil) ; local variable in the agenda buffer
 (defvar org-agenda-span nil) ; local variable in the agenda buffer
 (defvar org-include-all-loc nil) ; local variable
-(defvar org-agenda-remove-date nil) ; dynamically scoped FIXME: not used???
 
 ;;;###autoload
 (defun org-agenda-list (&optional include-all start-day ndays)
@@ -4513,9 +4522,12 @@ Any match of REMOVE-RE will be removed from TXT."
   (save-match-data
     ;; Diary entries sometimes have extra whitespace at the beginning
     (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
-    (when org-agenda-show-inherited-tags
-      ;; Fix the tags part in txt
-      (setq txt (org-agenda-add-inherited-tags txt tags)))
+
+    ;; Fix the tags part in txt
+    (setq txt (org-agenda-fix-displayed-tags
+	       txt tags
+	       org-agenda-show-inherited-tags
+	       org-agenda-hide-tags-regexp))
     (let* ((category (or category
 			 org-category
 			 (if buffer-file-name
@@ -4646,27 +4658,37 @@ Any match of REMOVE-RE will be removed from TXT."
 	'extra extra
 	'dotime dotime))))
 
-(defun org-agenda-add-inherited-tags (txt tags)
-  "Remove tags string from TXT, and add complete list of tags.
-The new list includes inherited tags.  If any inherited tags are present,
-a double colon separates inherited tags from local tags."
-  (if (string-match (org-re "\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$") txt)
-      (setq txt (substring txt 0 (match-beginning 0))))
-  (when tags
-    (let ((have-i (get-text-property 0 'inherited (car tags)))
-	  i)
-      (setq txt (concat txt " :"
-			(mapconcat
-			 (lambda (x)
-			   (setq i (get-text-property 0 'inherited x))
-			   (if (and have-i (not i))
-			       (progn
-				 (setq have-i nil)
-				 (concat ":" x))
-			     x))
-			 tags ":")
-			(if have-i "::" ":")))))
-  txt)
+(defun org-agenda-fix-displayed-tags (txt tags add-inherited hide-re)
+  "Remove tags string from TXT, and add a modified list of tags.
+The modified list may contain inherited tags, and tags matched by
+`org-agenda-hide-tags-regexp' will be removed."
+  (when (or add-inherited hide-re)
+    (if (string-match (org-re "\\([ \t]+\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$") txt)
+	(setq txt (substring txt 0 (match-beginning 0))))
+    (when tags
+      (setq tags
+	    (delq nil
+		  (mapcar (lambda (tg)
+			    (if (or (and hide-re (string-match hide-re tg))
+				    (and (not add-inherited)
+					 (get-text-property 0 'inherited tg)))
+				nil
+			      tg))
+			  tags)))
+      (let ((have-i (get-text-property 0 'inherited (car tags)))
+	    i)
+	(setq txt (concat txt " :"
+			  (mapconcat
+			   (lambda (x)
+			     (setq i (get-text-property 0 'inherited x))
+			     (if (and have-i (not i))
+				 (progn
+				   (setq have-i nil)
+				   (concat ":" x))
+			       x))
+			   tags ":")
+			  (if have-i "::" ":"))))))
+    txt)
 
 (defun org-downcase-keep-props (s)
   (let ((props (text-properties-at 0 s)))
@@ -5693,8 +5715,8 @@ When called with a prefix argument, include all archive files as well."
     (if (and org-agenda-follow-mode m)
 	(org-agenda-show))
     (if (and m org-agenda-show-outline-path)
-	(message (org-with-point-at m
-		   (org-display-outline-path t))))))
+	(org-with-point-at m
+	  (org-display-outline-path t)))))
 
 (defun org-agenda-show-priority ()
   "Show the priority of the current item.
@@ -6662,38 +6684,55 @@ The cursor may be at a date in the calendar, or in the Org agenda."
 
 (defun org-agenda-diary-entry-in-org-file ()
   "Make a diary entry in the file `org-agenda-diary-file'."
-  (let (d1 d2 char (text ""))
+  (let (d1 d2 char (text "") dp1 dp2)
     (if (equal (buffer-name) "*Calendar*")
 	(setq d1 (calendar-cursor-to-date t)
 	      d2 (car calendar-mark-ring))
-      (setq d1 (calendar-gregorian-from-absolute
-		(get-text-property (point) 'day))
-	    d2 (and (mark) (get-text-property (mark) 'day)
-		    (calendar-gregorian-from-absolute
-		     (get-text-property (mark) 'day)))))
+      (setq dp1 (get-text-property (point-at-bol) 'day))
+      (unless dp1 (error "No date defined in current line"))
+      (setq d1 (calendar-gregorian-from-absolute dp1)
+	    d2 (and (ignore-errors (mark))
+		    (save-excursion
+		      (goto-char (mark))
+		      (setq dp2 (get-text-property (point-at-bol) 'day)))
+		    (calendar-gregorian-from-absolute dp2))))
     (message "Diary entry: [d]ay [a]nniversary [b]lock [j]ump to date tree")
     (setq char (read-char-exclusive))
     (cond
      ((equal char ?d)
       (setq text (read-string "Day entry: "))
-      (org-agenda-add-entry-to-org-agenda-diary-file 'day text d1))
+      (org-agenda-add-entry-to-org-agenda-diary-file 'day text d1)
+      (and (equal (buffer-name) org-agenda-buffer-name) (org-agenda-redo)))
      ((equal char ?a)
       (setq d1 (list (car d1) (nth 1 d1)
 		     (read-number (format "Reference year [%d]: " (nth 2 d1))
 				  (nth 2 d1))))
       (setq text (read-string "Anniversary (use %d to show years): "))
-      (org-agenda-add-entry-to-org-agenda-diary-file 'anniversary text d1))
+      (org-agenda-add-entry-to-org-agenda-diary-file 'anniversary text d1)
+      (and (equal (buffer-name) org-agenda-buffer-name) (org-agenda-redo)))
      ((equal char ?b)
       (setq text (read-string "Block entry: "))
       (unless (and d1 d2 (not (equal d1 d2)))
 	(error "No block of days selected"))
-      (org-agenda-add-entry-to-org-agenda-diary-file 'block text d1 d2))
+      (org-agenda-add-entry-to-org-agenda-diary-file 'block text d1 d2)
+      (and (equal (buffer-name) org-agenda-buffer-name) (org-agenda-redo)))
      ((equal char ?j)
       (org-switch-to-buffer-other-window
        (find-file-noselect org-agenda-diary-file))
       (org-datetree-find-date-create d1)
       (org-reveal t))
      (t (error "Invalid selection character `%c'" char)))))
+
+(defcustom org-agenda-insert-diary-strategy 'date-tree
+  "Where in `org-agenda-diary-file' should new entries be added?
+Valid values:
+
+date-tree    in the date tree, as child of the date
+top-level    as top-level entries at the end of the file."
+  :group 'org-agenda
+  :type '(choice
+	  (const :tag "in a date tree" date-tree)
+	  (const :tag "as top level at end of file" top-level)))
 
 (defun org-agenda-add-entry-to-org-agenda-diary-file (type text &optional d1 d2)
   "Add a diary entry with TYPE to `org-agenda-diary-file'.
@@ -6729,9 +6768,11 @@ the resulting entry will not be shown.  When TEXT is empty, switch to
 	(insert (format "%%%%(diary-anniversary %s) %s"
 			(calendar-date-string d1 nil t) text))))
      ((eq type 'day)
-      (require 'org-datetree)
-      (org-datetree-find-date-create d1)
-      (org-agenda-insert-diary-make-new-entry text)
+      (if (eq org-agenda-insert-diary-strategy 'top-level)
+	  (org-agenda-insert-diary-as-top-level text)
+	(require 'org-datetree)
+	(org-datetree-find-date-create d1)
+	(org-agenda-insert-diary-make-new-entry text))
       (org-insert-time-stamp (org-time-from-absolute
 			      (calendar-absolute-from-gregorian d1)))
       (end-of-line 0))
@@ -6739,9 +6780,11 @@ the resulting entry will not be shown.  When TEXT is empty, switch to
       (if (> (calendar-absolute-from-gregorian d1)
 	     (calendar-absolute-from-gregorian d2))
 	  (setq d1 (prog1 d2 (setq d2 d1))))
-      (require 'org-datetree)
-      (org-datetree-find-date-create d1)
-      (org-agenda-insert-diary-make-new-entry text)
+      (if (eq org-agenda-insert-diary-strategy 'top-level)
+	  (org-agenda-insert-diary-as-top-level text)
+	(require 'org-datetree)
+	(org-datetree-find-date-create d1)
+	(org-agenda-insert-diary-make-new-entry text))
       (org-insert-time-stamp (org-time-from-absolute
 			      (calendar-absolute-from-gregorian d1)))
       (insert "--")
@@ -6756,6 +6799,16 @@ the resulting entry will not be shown.  When TEXT is empty, switch to
 		   (abbreviate-file-name org-agenda-diary-file)))
       (org-reveal t)
       (message "Please finish entry here"))))
+
+(defun org-agenda-insert-diary-as-top-level (text)
+  "Make new entry as a top-level entry at the end of the file.
+Add TEXT as headline, and position the cursor in the second line so that
+a timestamp can be added there."
+  (widen)
+  (goto-char (point-max))
+  (or (bolp) (insert "\n"))
+  (insert "* " text "\n")
+  (if org-adapt-indentation (org-indent-to-column 2)))
 
 (defun org-agenda-insert-diary-make-new-entry (text)
   "Make new entry as last child of current entry.

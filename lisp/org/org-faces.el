@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -44,6 +44,7 @@
       (copy-face old-face new-face)
       (if (fboundp 'set-face-doc-string)
 	  (set-face-doc-string new-face docstring)))))
+(put 'org-copy-face 'lisp-indent-function 2)
 
 (defgroup org-faces nil
   "Faces in Org-mode."
@@ -467,6 +468,11 @@ changes."
   "Face for fixed-with text like code snippets."
   :group 'org-faces
   :version "22.1")
+
+(org-copy-face 'org-block 'org-quote
+   "Face for #+BEGIN_QUOTE ... #+END_QUOTE blocks.")
+(org-copy-face 'org-block 'org-verse
+   "Face for #+BEGIN_VERSE ... #+END_VERSE blocks.")
 
 (defface org-clock-overlay ;; copied from secondary-selection
   (org-compatible-face nil

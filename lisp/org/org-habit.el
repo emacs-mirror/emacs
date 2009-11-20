@@ -5,7 +5,7 @@
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -128,6 +128,7 @@ relative to the current effective date."
     (error "Invalid duration string: %s" ts)))
 
 (defun org-is-habit-p (&optional pom)
+  "Is the task at POM or point a habit?"
   (string= "habit" (org-entry-get (or pom (point)) "STYLE")))
 
 (defun org-habit-parse-todo (&optional pom)

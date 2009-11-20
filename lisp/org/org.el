@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -95,7 +95,7 @@
 
 ;;; Version
 
-(defconst org-version "6.33c"
+(defconst org-version "6.33x"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -2858,6 +2858,17 @@ appears on the page."
   :group 'org-latex
   :type 'string)
 
+;; The following variable is defined here because is it also used
+;; when formatting latex fragments.  Originally it was part of the
+;; LaTeX exporter, which is why the name includes "export".
+(defcustom org-export-latex-packages-alist nil
+  "Alist of packages to be inserted in the header.
+Each cell is of the format \( \"option\" . \"package\" \)."
+  :group 'org-export-latex
+  :type '(repeat
+	  (list
+	   (string :tag "option")
+	   (string :tag "package"))))
 
 (defgroup org-font-lock nil
   "Font-lock settings for highlighting in Org-mode."
@@ -3550,7 +3561,9 @@ collapsed state."
 (eval-and-compile
   (org-autoload "org-archive"
    '(org-add-archive-files org-archive-subtree
-     org-archive-to-archive-sibling org-toggle-archive-tag)))
+     org-archive-to-archive-sibling org-toggle-archive-tag
+     org-archive-subtree-default
+     org-archive-subtree-default-with-confirmation)))
 
 ;; Autoload Column View Code
 
@@ -4507,6 +4520,7 @@ will be prompted for."
 		nil
 	      (add-text-properties (match-beginning 0) (match-end 0)
 				   (list 'mouse-face 'highlight
+					 'face 'org-link
 					 'keymap org-mouse-map))
 	      (org-rear-nonsticky-at (match-end 0)))
 	    t)))))
@@ -4529,7 +4543,7 @@ will be prompted for."
 	      (beg1 (line-beginning-position 2))
 	      (dc1 (downcase (match-string 2)))
 	      (dc3 (downcase (match-string 3)))
-	      end end1 quoting)
+	      end end1 quoting block-type)
 	  (cond
 	   ((member dc1 '("html:" "ascii:" "latex:" "docbook:"))
 	    ;; a single line of backend-specific content
@@ -4543,8 +4557,8 @@ will be prompted for."
 	    t)
 	   ((and (match-end 4) (equal dc3 "begin"))
 	    ;; Truely a block
-	    (setq quoting (member (downcase (match-string 5))
-				  org-protecting-blocks))
+	    (setq block-type (downcase (match-string 5))
+		  quoting (member block-type org-protecting-blocks))
 	    (when (re-search-forward
 		   (concat "^[ \t]*#\\+end" (match-string 4) "\\>.*")
 		   nil t)  ;; on purpose, we look further than LIMIT
@@ -4557,8 +4571,13 @@ will be prompted for."
 	       '(font-lock-fontified t font-lock-multiline t))
 	      (add-text-properties beg beg1 '(face org-meta-line))
 	      (add-text-properties end1 end '(face org-meta-line))
-	      (when quoting
+	      (cond
+	       (quoting
 		(add-text-properties beg1 end1 '(face org-block)))
+	       ((string= block-type "quote")
+		(add-text-properties beg1 end1 '(face org-quote)))
+	       ((string= block-type "verse")
+		(add-text-properties beg1 end1 '(face org-verse))))
 	      t))
 	   ((not (member (char-after beg) '(?\  ?\t)))
 	    ;; just any other in-buffer setting, but not indented
@@ -4887,7 +4906,7 @@ For plain list items, if they are matched by `outline-regexp', this returns
 	   ;; Links
 	   (if (memq 'tag lk) '(org-activate-tags (1 'org-tag prepend)))
 	   (if (memq 'angle lk) '(org-activate-angle-links (0 'org-link t)))
-	   (if (memq 'plain lk) '(org-activate-plain-links (0 'org-link t)))
+	   (if (memq 'plain lk) '(org-activate-plain-links))
 	   (if (memq 'bracket lk) '(org-activate-bracket-links (0 'org-link t)))
 	   (if (memq 'radio lk) '(org-activate-target-links (0 'org-link t)))
 	   (if (memq 'date lk) '(org-activate-dates (0 'org-date t)))
@@ -5412,19 +5431,6 @@ This function is the default value of the hook `org-cycle-hook'."
      ((eq state 'folded)   nil)
      ((eq state 'children) (or (org-subtree-end-visible-p) (recenter 1)))
      ((eq state 'subtree)  (or (org-subtree-end-visible-p) (recenter 1))))))
-
-;; FIXME: no longer in use
-(defun org-compact-display-after-subtree-move ()
-  "Show a compacter version of the tree of the entry's parent."
-  (save-excursion
-    (if (org-up-heading-safe)
-	(progn
-	  (hide-subtree)
-	  (show-entry)
-	  (show-children)
-	  (org-cycle-show-empty-lines 'children)
-	  (org-cycle-hide-drawers 'children))
-      (org-overview))))
 
 (defun org-remove-empty-overlays-at (pos)
   "Remove outline overlays that do not contain non-white stuff."
@@ -6855,7 +6861,9 @@ WITH-CASE, the sorting considers case as well."
      ((org-at-item-p)
       ;; we will sort this plain list
       (org-beginning-of-item-list) (setq start (point))
-      (org-end-of-item-list) (setq end (point))
+      (org-end-of-item-list)
+      (or (bolp) (insert "\n"))
+      (setq end (point))
       (goto-char start)
       (setq plain-list-p t
 	    what "plain list"))
@@ -6865,6 +6873,7 @@ WITH-CASE, the sorting considers case as well."
       (org-back-to-heading)
       (setq start (point)
 	    end (progn (org-end-of-subtree t t)
+		       (or (bolp) (insert "\n"))
 		       (org-back-over-empty-lines)
 		       (point))
 	    what "children")
@@ -6875,7 +6884,15 @@ WITH-CASE, the sorting considers case as well."
       ;; we will sort the top-level entries in this file
       (goto-char (point-min))
       (or (org-on-heading-p) (outline-next-heading))
-      (setq start (point) end (point-max) what "top-level")
+      (setq start (point))
+      (goto-char (point-max))
+      (beginning-of-line 1)
+      (when (looking-at ".*?\\S-")
+	;; File ends in a non-white line
+	(end-of-line 1)
+	(insert "\n"))
+      (setq end (point-max))
+      (setq what "top-level")
       (goto-char start)
       (show-all)))
 
@@ -7703,6 +7720,10 @@ according to FMT (default from `org-email-link-description-format')."
   "Make a link with brackets, consisting of LINK and DESCRIPTION."
   (unless (string-match "\\S-" link)
     (error "Empty link"))
+  (when (and description
+	     (stringp description)
+	     (not (string-match "\\S-" description)))
+    (setq description nil))
   (when (stringp description)
     ;; Remove brackets from the description, they are fatal.
     (while (string-match "\\[" description)
@@ -9006,10 +9027,12 @@ avoiding backtracing."
 	  (aset org-olpa level heading)))
     (let (rtn)
       (save-excursion
-	(while (org-up-heading-safe)
-	  (when (looking-at org-complex-heading-regexp)
-	    (push (org-match-string-no-properties 4) rtn)))
-	rtn))))
+	(save-restriction
+	  (widen)
+	  (while (org-up-heading-safe)
+	    (when (looking-at org-complex-heading-regexp)
+	      (push (org-match-string-no-properties 4) rtn)))
+	  rtn)))))
 
 (defun org-format-outline-path (path &optional width prefix)
   "Format the outlie path PATH for display.
@@ -9059,7 +9082,8 @@ such as the file name."
 				     (org-back-to-heading t)
 				     (if (looking-at org-complex-heading-regexp)
 					 (list (match-string 4)))))))
-    (message (org-format-outline-path
+    (message "%s"
+	     (org-format-outline-path
 	      path
 	      (1- (frame-width))
 	      (and file bfn (concat (file-name-nondirectory bfn) "/"))))))
@@ -12219,11 +12243,11 @@ allowed value."
 		  (if (equal rpl 0) (setq rpl 10))
 		  (if (and (> rpl 0) (<= rpl (length allowed)))
 		      (car (nth (1- rpl) allowed))
-		    (org-completing-read "Value: " allowed nil))))
+		    (org-completing-read "Effort: " allowed nil))))
 	       (t
 		(let (org-completion-use-ido org-completion-use-iswitchb)
 		  (org-completing-read
-		   (concat "Value " (if (and cur (string-match "\\S-" cur))
+		   (concat "Effort " (if (and cur (string-match "\\S-" cur))
 					(concat "[" cur "]") "")
 			   ": ")
 		   existing nil nil "" nil cur))))))
@@ -13122,7 +13146,7 @@ user."
             deltadef (nth 2 delta)))
 
     ;; Check if there is an iso week date in there
-    ;; If yes, sore the info and postpone interpreting it until the rest
+    ;; If yes, store the info and postpone interpreting it until the rest
     ;; of the parsing is done
     (when (string-match "\\<\\(?:\\([0-9]+\\)-\\)?[wW]\\([0-9]\\{1,2\\}\\)\\(?:-\\([0-6]\\)\\)?\\([ \t]\\|$\\)" ans)
       (setq iso-year (if (match-end 1) (org-small-year-to-year (string-to-number (match-string 1 ans))))
@@ -14561,15 +14585,9 @@ Some of the options can be changed using the variable
 	 (opt org-format-latex-options)
 	 (matchers (plist-get opt :matchers))
 	 (re-list org-latex-regexps)
-	 (cnt 0) txt link beg end re e checkdir
+	 (cnt 0) txt hash link beg end re e checkdir
 	 executables-checked
 	 m n block linkfile movefile ov)
-    ;; Check if there are old images files with this prefix, and remove them
-    (when (file-directory-p todir)
-      (mapc 'delete-file
-	    (directory-files
-	     todir 'full
-	     (concat (regexp-quote prefixnodir) "_[0-9]+\\.png$"))))
     ;; Check the different regular expressions
     (while (setq e (pop re-list))
       (setq m (car e) re (nth 1 e) n (nth 2 e)
@@ -14587,9 +14605,15 @@ Some of the options can be changed using the variable
 	    (setq txt (match-string n)
 		  beg (match-beginning n) end (match-end n)
 		  cnt (1+ cnt)
-		  linkfile (format "%s_%04d.png" prefix cnt)
-		  movefile (format "%s_%04d.png" absprefix cnt)
 		  link (concat block "[[file:" linkfile "]]" block))
+	    (let (print-length print-level) ; make sure full list is printed
+	      (setq hash (sha1 (prin1-to-string
+				(list org-format-latex-header
+				      org-export-latex-packages-alist
+				      org-format-latex-options
+				      forbuffer txt)))
+		    linkfile (format "%s_%s.png" prefix hash)
+		    movefile (format "%s_%s.png" absprefix hash)))
 	    (if msg (message msg cnt))
 	    (goto-char beg)
 	    (unless checkdir ; make sure the directory exists
@@ -14603,8 +14627,9 @@ Some of the options can be changed using the variable
 	       "dvipng" "needed to convert LaTeX fragments to images")
 	      (setq executables-checked t))
 
-	    (org-create-formula-image
-	     txt movefile opt forbuffer)
+            (unless (file-exists-p movefile)
+              (org-create-formula-image
+               txt movefile opt forbuffer))
 	    (if overlays
 		(progn
 		  (mapc (lambda (o)
@@ -14628,7 +14653,6 @@ Some of the options can be changed using the variable
 	      (delete-region beg end)
 	      (insert link))))))))
 
-(defvar org-export-latex-packages-alist) ;; defined in org-latex.el
 ;; This function borrows from Ganesh Swami's latex2png.el
 (defun org-create-formula-image (string tofile options buffer)
   "This calls dvipng."
@@ -14935,7 +14959,6 @@ Some of the options can be changed using the variable
     ("e" . org-set-effort)
     ("Agenda Views etc")
     ("v" . org-agenda)
-    ("/" . org-sparse-tree)
     ("/" . org-sparse-tree)
     ("Misc")
     ("o" . org-open-at-point)
@@ -16656,7 +16679,12 @@ really on, so that the block visually is on the match."
 	(add-to-list 'files f 'append)
 	(add-to-list 'tnames (file-truename f) 'append)))
     (multi-occur
-     (mapcar (lambda (x) (or (get-file-buffer x) (find-file-noselect x))) files)
+     (mapcar (lambda (x)
+	       (with-current-buffer
+		   (or (get-file-buffer x) (find-file-noselect x))
+		 (widen)
+		 (current-buffer)))
+	     files)
      regexp)))
 
 (if (boundp 'occur-mode-find-occurrence-hook)
