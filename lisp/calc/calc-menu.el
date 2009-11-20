@@ -1125,48 +1125,77 @@
                  (call-interactively 'calc-decimal-radix))
                :keys "d 0"
                :style radio
-               :selected (= calc-number-radix 10)]
+               :selected (and (= calc-number-radix 10)
+                              (not calc-twos-complement-mode))]
               ["Binary"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-binary-radix))
                :keys "d 2"
                :style radio
-               :selected (= calc-number-radix 2)]
-              ["Twos complement"
-               (progn
-                 (require 'calc-bin)
-                 (call-interactively 
-                  (lambda () (interactive) (calc-binary-radix t))))
-               :keys "C-u d 2"
-               :style radio
-               :selected calc-complement-signed-mode]
+               :selected (and (= calc-number-radix 2)
+                              (not calc-twos-complement-mode))]
               ["Octal"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-octal-radix))
                :keys "d 8"
                :style radio
-               :selected (= calc-number-radix 8)]
+               :selected (and (= calc-number-radix 8)
+                              (not calc-twos-complement-mode))]
               ["Hexadecimal"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-hex-radix))
                :keys "d 6"
                :style radio
-               :selected (= calc-number-radix 16)]
+               :selected (and (= calc-number-radix 16)
+                              (not calc-twos-complement-mode))]
               ["Other"
                (progn
                  (require 'calc-bin)
                  (call-interactively 'calc-radix))
                :keys "d r"
                :style radio
-               :selected (not
-                          (or
-                           (= calc-number-radix 10)
-                           (= calc-number-radix 2)
-                           (= calc-number-radix 8)
-                           (= calc-number-radix 16)))])
+               :selected (and
+                          (not calc-twos-complement-mode)
+                          (not
+                           (or
+                            (= calc-number-radix 10)
+                            (= calc-number-radix 2)
+                            (= calc-number-radix 8)
+                            (= calc-number-radix 16))))]
+              ["--Two's Complement--"
+               (lambda () ())
+               :style radio
+               :selected nil]
+              ["Binary"
+               (progn
+                 (require 'calc-bin)
+                 (call-interactively 
+                  (lambda () (interactive) (calc-binary-radix t))))
+               :keys "C-u d 2"
+               :style radio
+               :selected (and (= calc-number-radix 2)
+                              calc-twos-complement-mode)]
+              ["Octal"
+               (progn
+                 (require 'calc-bin)
+                 (call-interactively
+                  (lambda () (interactive) (calc-octal-radix t))))
+               :keys "C-u d 8"
+               :style radio
+               :selected (and (= calc-number-radix 8)
+                              calc-twos-complement-mode)]
+              ["Hexadecimal"
+               (progn
+                 (require 'calc-bin)
+                 (call-interactively
+                  (lambda () (interactive) (calc-hex-radix t))))
+               :keys "C-u d 6"
+               :style radio
+               :selected (and (= calc-number-radix 16)
+                              calc-twos-complement-mode)])
         (list "Float Format"
               ["Normal"
                (progn
