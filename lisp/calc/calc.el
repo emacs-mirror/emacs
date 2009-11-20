@@ -208,7 +208,7 @@
 (declare-function math-adjust-fraction "calc-ext" (a))
 (declare-function math-format-binary "calc-bin" (a))
 (declare-function math-format-radix "calc-bin" (a))
-(declare-function math-format-complement-signed "calc-bin" (a))
+(declare-function math-format-twos-complement "calc-bin" (a))
 (declare-function math-group-float "calc-ext" (str))
 (declare-function math-mod "calc-misc" (a b))
 (declare-function math-format-number-fancy "calc-ext" (a prec))
@@ -690,8 +690,8 @@ If `sqmatrix', variables are assumed to be square matrices of an unspecified siz
 If `scalar', variables are assumed to be scalar-valued.
 If nil, symbolic math routines make no assumptions about variables.")
 
-(defcalcmodevar calc-complement-signed-mode nil
-  "If non-nil, display integers in complement signed mode.")
+(defcalcmodevar calc-twos-complement-mode nil
+  "If non-nil, display integers in two's complement mode.")
 
 
 (defcalcmodevar calc-shift-prefix nil
@@ -1710,7 +1710,7 @@ See calc-keypad for details."
 			   ((= calc-number-radix 8) "Oct ")
 			   ((= calc-number-radix 16) "Hex ")
 			   (t (format "Radix%d " calc-number-radix)))
-                     (if calc-complement-signed-mode "CompSign " "")
+                     (if calc-twos-complement-mode "TwosComp " "")
 		     (if calc-leading-zeros "Zero " "")
 		     (cond ((null calc-language) "")
                            ((get calc-language 'math-lang-name)
@@ -3393,7 +3393,7 @@ largest Emacs integer.")
 (defun math-format-number (a &optional prec)   ; [X N]   [Public]
   (cond
    ((eq calc-display-raw t) (format "%s" a))
-   ((and calc-complement-signed-mode
+   ((and calc-twos-complement-mode
          math-radix-explicit-format
          (Math-integerp a)
          (or (eq a 0)
@@ -3406,7 +3406,7 @@ largest Emacs integer.")
                     (or (= comparison 0)
                         (= comparison -1))))))
     (require 'calc-bin)
-    (math-format-complement-signed a))
+    (math-format-twos-complement a))
    ((and (nth 1 calc-frac-format) (Math-integerp a))
     (require 'calc-ext)
     (math-format-number (math-adjust-fraction a)))
