@@ -1,3 +1,11 @@
+2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/complete.el (semantic-complete-inline-map): Doc
+	fix.
+
+	* cedet/semantic/idle.el (define-semantic-idle-service)
+	(semantic-idle-summary-mode, semantic-idle-completions): Doc fix.
+
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/cc-cmds.el: declare-functioned forward-subword and

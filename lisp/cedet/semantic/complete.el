@@ -553,8 +553,7 @@ if INLINE, then completion is happening inline in a buffer."
       (lambda () (interactive)
 	(describe-variable 'semantic-complete-inline-map)))
     km)
-  "Keymap used while performing Semantic inline completion.
-\\{semantic-complete-inline-map}")
+  "Keymap used while performing Semantic inline completion.")
 
 (defface semantic-complete-inline-face
   '((((class color) (background dark))
