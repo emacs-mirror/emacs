@@ -159,7 +159,7 @@ the size of a Calc bignum digit.")
    (calc-do-refresh)
    (calc-refresh-evaltos)
    (if (< n 0)
-       (message "Binary word size is %d bits (2's complement)" (- n))
+       (message "Binary word size is %d bits (two's complement)" (- n))
      (message "Binary word size is %d bits" n))))
 
 
@@ -174,13 +174,13 @@ the size of a Calc bignum digit.")
    (if (and (>= n 2) (<= n 36))
        (progn
 	 (calc-change-mode 
-          (list 'calc-number-radix 'calc-complement-signed-mode)
-          (list n (and (= n 2) arg)) t)
+          (list 'calc-number-radix 'calc-twos-complement-mode)
+          (list n (and (or (= n 2) (= n 8) (= n 16)) arg)) t)
 	 ;; also change global value so minibuffer sees it
 	 (setq-default calc-number-radix calc-number-radix))
      (setq n calc-number-radix))
-   (if calc-complement-signed-mode
-       (message "Number radix is %d, complement signed mode is on." n)
+   (if calc-twos-complement-mode
+       (message "Number radix is %d, two's complement mode is on." n)
      (message "Number radix is %d" n))))
 
 (defun calc-decimal-radix ()
@@ -191,13 +191,13 @@ the size of a Calc bignum digit.")
   (interactive "P")
   (calc-radix 2 arg))
 
-(defun calc-octal-radix ()
-  (interactive)
-  (calc-radix 8))
+(defun calc-octal-radix (&optional arg)
+  (interactive "P")
+  (calc-radix 8 arg))
 
-(defun calc-hex-radix ()
-  (interactive)
-  (calc-radix 16))
+(defun calc-hex-radix (&optional arg)
+  (interactive "P")
+  (calc-radix 16 arg))
 
 (defun calc-leading-zeros (n)
   (interactive "P")
@@ -820,9 +820,9 @@ the size of a Calc bignum digit.")
 						       calc-number-radix))))))
 			       math-radix-float-cache))))))))
 
-;;; Complement signed mode
+;;; Two's complement mode
 
-(defun math-format-complement-signed (a)
+(defun math-format-twos-complement (a)
   "Format an integer in complement signed mode."
   (let* (;(calc-leading-zeros t)
          (overflow nil)
