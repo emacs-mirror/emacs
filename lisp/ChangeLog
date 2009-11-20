@@ -15,26 +15,27 @@
 
 2009-11-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-set-mode-line): Rename
-	`calc-complement-signed-mode' to `calc-twos-complement-mode'.
+	* calc/calc.el (calc-set-mode-line):
+	Rename `calc-complement-signed-mode' to `calc-twos-complement-mode'.
 	(math-format-number): Rename `math-format-complement-signed' to
 	`math-format-twos-complement'.
 
-	* calc/calc-bin.el (math-format-twos-complement): Renamed from
+	* calc/calc-bin.el (math-format-twos-complement): Rename from
 	math-format-complement-signed.
 	(calc-radix): Rename `calc-complement-signed-mode' to
 	`calc-twos-complement-mode'.
-	(calc-octal-radix, calc-hex-radix): Add an argument for two's complement.
+	(calc-octal-radix, calc-hex-radix): Add an argument for
+	two's complement.
 
-	* calc/calc-embed.el (calc-embedded-mode-vars): Rename
-	`calc-complement-signed-mode' to `calc-twos-complement-mode'.
+	* calc/calc-embed.el (calc-embedded-mode-vars):
+	Rename `calc-complement-signed-mode' to `calc-twos-complement-mode'.
 
-	* calc/calc-ext.el (calc-init-extensions): Rename
-	`calc-complement-signed-mode' to `calc-twos-complement-mode'.
+	* calc/calc-ext.el (calc-init-extensions):
+	Rename `calc-complement-signed-mode' to `calc-twos-complement-mode'.
 	(math-format-number-fancy): Let `calc-twos-complement-mode' be nil.
 
-	* calc/calc-units.el (math-build-units-table-buffer): Let
-	`calc-twos-complement-mode' be nil.
+	* calc/calc-units.el (math-build-units-table-buffer):
+	Let `calc-twos-complement-mode' be nil.
 
 	* calc/calc-menu.el (calc-modes-menu): Clean up two's complement
 	entries.
@@ -44,8 +45,17 @@
 	* calc/calc-forms.el (math-format-date):
 	* calc/calc-graph.el (calc-graph-plot):
 	* calc/calc-math.el (math-use-emacs-fn):
-	* calc/calccomp.el (math-compose-expr): Let
-	`calc-twos-complement-mode' be nil.
+	* calc/calccomp.el (math-compose-expr):
+	Let `calc-twos-complement-mode' be nil.
+
+2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (abbrev-with-wrapper-hook): (re)move...
+	* simple.el (with-wrapper-hook): ...to here.  Add argument `args'.
+	* minibuffer.el (completion-in-region-functions): New hook.
+	(completion-in-region): New function.
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	* pcomplete.el (pcomplete-std-complete): Use it.
 
 2009-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -128,8 +138,7 @@
 
 	* descr-text.el (describe-char-padded-string): Compose with TAB
 	only if there's a font for CH.
-	(describe-char): Fix the condition for detecting a trivial
-	composition.
+	(describe-char): Fix the condition for detecting a trivial composition.
 
 2009-11-18  Nathaniel Flath  <flat0103@gmail.com>
 
@@ -151,7 +160,7 @@
 
 2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* font-setting.el (font-use-system-font): Moved ...
+	* font-setting.el (font-use-system-font): Move ...
 
 	* cus-start.el (all): ... to here.
 
@@ -171,7 +180,7 @@
 	* loadup.el: If feature system-font-setting or font-render-setting is
 	there, load font-setting.
 
-	* Makefile.in (ELCFILES): font-settings.el is new.
+	* Makefile.in (ELCFILES): Add font-settings.el.
 	* font-setting.el: New file.
 
 2009-11-17  Glenn Morris  <rgm@gnu.org>
@@ -200,9 +209,8 @@
 
 2009-11-16  Kevin Ryde  <user42@zip.com.au>
 
-	* textmodes/flyspell.el (sgml-mode-flyspell-verify): Use
-	`sgml-lexical-context' instead of own parse for tag.  (Further to
-	Bug#4511).
+	* textmodes/flyspell.el (sgml-mode-flyspell-verify):
+	Use `sgml-lexical-context' instead of own parse for tag	(Bug#4511).
 
 	* emacs-lisp/lisp-mnt.el (lm-keywords): Allow multi-line keywords.
 	(lm-keywords-list): Allow comma-only separator like "foo,bar".
