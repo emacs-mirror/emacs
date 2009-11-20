@@ -230,6 +230,8 @@ advantage of this feature.
 
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
+*** Diff and log operations can be used from dired buffers.
+
 *** vc-git changes
 
 **** The new variable vc-git-add-signoff can be used to add a

@@ -1,5 +1,10 @@
 2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-deduce-fileset): Allow non-state changing operations
+	from a dired buffer.
+	(vc-dired-deduce-fileset): New function.
+	(vc-root-diff, vc-print-root-log): Use it.
+
 	* vc-annotate.el (vc-annotate-show-log-revision-at-line): Pass a
 	nil LIMIT argument to vc-print-log-internal.
 

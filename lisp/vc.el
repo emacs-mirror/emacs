@@ -617,7 +617,8 @@
 (require 'vc-dispatcher)
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (require 'dired))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
   (setq minor-mode-alist
@@ -902,6 +903,10 @@ current buffer."
     (cond
      ((derived-mode-p 'vc-dir-mode)
       (vc-dir-deduce-fileset state-model-only-files))
+     ((derived-mode-p 'dired-mode)
+      (if observer
+	  (vc-dired-deduce-fileset)
+	(error "State changing VC operations not supported in `dired-mode'")))
      ((setq backend (vc-backend buffer-file-name))
       (if state-model-only-files
 	(list backend (list buffer-file-name)
@@ -929,6 +934,12 @@ current buffer."
 	(list (vc-backend-for-registration (buffer-file-name))
 	      (list buffer-file-name))))
      (t (error "No fileset is available here")))))
+
+(defun vc-dired-deduce-fileset ()
+  (let ((backend (vc-responsible-backend default-directory)))
+    (unless backend (error "Directory not under VC"))
+    (list backend
+       (dired-map-over-marks (dired-get-filename nil t) nil))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1601,6 +1612,7 @@ saving the buffer."
     (when buffer-file-name (vc-buffer-sync not-urgent))
     (let ((backend
 	   (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
+		 ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
 		 (vc-mode (vc-backend buffer-file-name))))
 	  rootdir working-revision)
       (unless backend
@@ -1937,6 +1949,7 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
      (list nil))))
   (let ((backend
 	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
+	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
 	       (vc-mode (vc-backend buffer-file-name))))
 	rootdir working-revision)
     (unless backend
