@@ -537,6 +537,7 @@
 	       (calc-group-digits nil)
 	       (calc-leading-zeros nil)
 	       (calc-number-radix 10)
+               (calc-twos-complement nil)
 	       math-fd-year math-fd-month math-fd-day math-fd-weekday
                math-fd-hour math-fd-minute math-fd-second
 	       (math-fd-bc-flag nil)
