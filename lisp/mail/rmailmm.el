@@ -451,10 +451,14 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
     (set-buffer buf)
     (setq buffer-undo-list t)
     (let ((inhibit-read-only t))
+      ;; Decoding the message in fundamental mode for speed, only
+      ;; switching to rmail-mime-mode at the end for display.  Eg
+      ;; quoted-printable-decode-region gets very slow otherwise (Bug#4993).
+      (fundamental-mode)
       (erase-buffer)
       (insert data)
-      (rmail-mime-mode)
       (rmail-mime-show t)
+      (rmail-mime-mode)
       (set-buffer-modified-p nil))
     (view-buffer buf)))
 

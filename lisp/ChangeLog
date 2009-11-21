@@ -1,3 +1,7 @@
+2009-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime): Decode in fundamental-mode.  (Bug#4993)
+
 2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* net/browse-url.el (browse-url-default-windows-browser): Use
