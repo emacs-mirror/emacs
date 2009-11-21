@@ -1,3 +1,15 @@
+2009-11-21  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-bmenu-bookmark-column): Remove var.
+	(bookmark-bmenu-list): Save name on `bookmark-name-prop' text-prop.
+	(bookmark-bmenu-show-filenames): Use push.
+	(bookmark-bmenu-hide-filenames): Use local var instead of
+	bookmark-bmenu-bookmark-column.  Use pop.  Don't save window-excursion.
+	(bookmark-bmenu-bookmark): Use the new `bookmark-name-prop' text-prop.
+	(bookmark-bmenu-execute-deletions): Don't bother adding/removing the
+	filenames now that the bookmark names are always available.
+
 2009-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bookmark.el (bookmark-search-prompt, bookmark-search-timer): Remove.
