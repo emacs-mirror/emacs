@@ -29,7 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "syssignal.h"
 #include "window.h"
-#include "atimer.h"
 #include "gtkutil.h"
 #include "termhooks.h"
 #include "keyboard.h"
@@ -181,11 +180,6 @@ xg_display_close (Display *dpy)
 /***********************************************************************
                       Utility functions
  ***********************************************************************/
-/* The timer for scroll bar repetition and menu bar timeouts.
-   NULL if no timer is started.  */
-static struct atimer *xg_timer;
-
-
 /* The next two variables and functions are taken from lwlib.  */
 static widget_value *widget_value_free_list;
 static int malloc_cpt;
@@ -424,58 +418,6 @@ xg_set_cursor (w, cursor)
 
   for ( ; children; children = g_list_next (children))
     gdk_window_set_cursor (GDK_WINDOW (children->data), cursor);
-}
-
-/*  Timer function called when a timeout occurs for xg_timer.
-    This function processes all GTK events in a recursive event loop.
-    This is done because GTK timer events are not seen by Emacs event
-    detection, Emacs only looks for X events.  When a scroll bar has the
-    pointer (detected by button press/release events below) an Emacs
-    timer is started, and this function can then check if the GTK timer
-    has expired by calling the GTK event loop.
-    Also, when a menu is active, it has a small timeout before it
-    pops down the sub menu under it.  */
-
-static void
-xg_process_timeouts (timer)
-     struct atimer *timer;
-{
-  BLOCK_INPUT;
-  /* Ideally we would like to just handle timer events, like the Xt version
-     of this does in xterm.c, but there is no such feature in GTK.  */
-  while (gtk_events_pending ())
-    gtk_main_iteration ();
-  UNBLOCK_INPUT;
-}
-
-/* Start the xg_timer with an interval of 0.1 seconds, if not already started.
-   xg_process_timeouts is called when the timer expires.  The timer
-   started is continuous, i.e. runs until xg_stop_timer is called.  */
-
-static void
-xg_start_timer ()
-{
-  if (! xg_timer)
-    {
-      EMACS_TIME interval;
-      EMACS_SET_SECS_USECS (interval, 0, 100000);
-      xg_timer = start_atimer (ATIMER_CONTINUOUS,
-                               interval,
-                               xg_process_timeouts,
-                               0);
-    }
-}
-
-/* Stop the xg_timer if started.  */
-
-static void
-xg_stop_timer ()
-{
-  if (xg_timer)
-    {
-      cancel_atimer (xg_timer);
-      xg_timer = 0;
-    }
 }
 
 /* Insert NODE into linked LIST.  */
@@ -1895,29 +1837,6 @@ menu_destroy_callback (w, client_data)
   unref_cl_data ((xg_menu_cb_data*) client_data);
 }
 
-/* Callback called when a menu does a grab or ungrab.  That means the
-   menu has been activated or deactivated.
-   Used to start a timer so the small timeout the menus in GTK uses before
-   popping down a menu is seen by Emacs (see xg_process_timeouts above).
-   W is the widget that does the grab (not used).
-   UNGRAB_P is TRUE if this is an ungrab, FALSE if it is a grab.
-   CLIENT_DATA is NULL (not used).  */
-
-/* Keep track of total number of grabs.  */
-static int menu_grab_callback_cnt;
-
-static void
-menu_grab_callback (GtkWidget *widget,
-                    gboolean ungrab_p,
-                    gpointer client_data)
-{
-  if (ungrab_p) menu_grab_callback_cnt--;
-  else menu_grab_callback_cnt++;
-
-  if (menu_grab_callback_cnt > 0 && ! xg_timer) xg_start_timer ();
-  else if (menu_grab_callback_cnt == 0 && xg_timer) xg_stop_timer ();
-}
-
 /* Make a GTK widget that contains both UTF8_LABEL and UTF8_KEY (both
    must be non-NULL) and can be inserted into a menu item.
 
@@ -2232,10 +2151,10 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
       else
         {
           wmenu = gtk_menu_bar_new ();
-          // Set width of menu bar to a small value so it doesn't enlarge
-          // a small initial frame size.  The width will be set to the
-          // width of the frame later on when it is added to a container.
-          // height -1: Natural height.
+          /* Set width of menu bar to a small value so it doesn't enlarge
+             a small initial frame size.  The width will be set to the
+             width of the frame later on when it is added to a container.
+             height -1: Natural height.  */
           gtk_widget_set_size_request (wmenu, 1, -1);
         }
 
@@ -2251,9 +2170,6 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
       if (deactivate_cb)
         g_signal_connect (G_OBJECT (wmenu),
                           "selection-done", deactivate_cb, 0);
-
-      g_signal_connect (G_OBJECT (wmenu),
-                        "grab-notify", G_CALLBACK (menu_grab_callback), 0);
     }
 
   if (! menu_bar_p && add_tearoff_p)
@@ -3177,34 +3093,6 @@ xg_gtk_scroll_destroy (widget, data)
   xg_remove_widget_from_map (id);
 }
 
-/* Callback for button press/release events.  Used to start timer so that
-   the scroll bar repetition timer in GTK gets handled.
-   Also, sets bar->dragging to Qnil when dragging (button release) is done.
-   WIDGET is the scroll bar widget the event is for (not used).
-   EVENT contains the event.
-   USER_DATA points to the struct scrollbar structure.
-
-   Returns FALSE to tell GTK that it shall continue propagate the event
-   to widgets.  */
-
-static gboolean
-scroll_bar_button_cb (widget, event, user_data)
-     GtkWidget *widget;
-     GdkEventButton *event;
-     gpointer user_data;
-{
-  if (event->type == GDK_BUTTON_PRESS && ! xg_timer)
-    xg_start_timer ();
-  else if (event->type == GDK_BUTTON_RELEASE)
-    {
-      struct scroll_bar *bar = (struct scroll_bar *) user_data;
-      if (xg_timer) xg_stop_timer ();
-      bar->dragging = Qnil;
-    }
-
-  return FALSE;
-}
-
 /* Create a scroll bar widget for frame F.  Store the scroll bar
    in BAR.
    SCROLL_CALLBACK is the callback to invoke when the value of the
@@ -3245,17 +3133,6 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
                     (gpointer) (EMACS_INT) scroll_id);
-
-  /* Connect to button press and button release to detect if any scroll bar
-     has the pointer.  */
-  g_signal_connect (G_OBJECT (wscroll),
-                    "button-press-event",
-                    G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer) bar);
-  g_signal_connect (G_OBJECT (wscroll),
-                    "button-release-event",
-                    G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer) bar);
 
   /* The scroll bar widget does not draw on a window of its own.  Instead
      it draws on the parent window, in this case the edit widget.  So

@@ -292,7 +292,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 #ifdef HAVE_X_WINDOWS
 XMENU_OBJ = xmenu.o
 XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o \
-      xsettings.o
+      xsettings.o xgselect.o
 
 #ifdef HAVE_MENUS
 

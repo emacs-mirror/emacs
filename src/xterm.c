@@ -87,6 +87,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "fontset.h"
 #include "xsettings.h"
+#include "xgselect.h"
 #include "sysselect.h"
 
 #ifdef USE_X_TOOLKIT
@@ -10850,6 +10851,8 @@ x_initialize ()
   XSetIOErrorHandler (x_io_error_quitter);
 
   signal (SIGPIPE, x_connection_signal);
+
+  xgselect_initialize ();
 }
 
 

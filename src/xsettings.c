@@ -82,7 +82,7 @@ something_changedCB (client, cnxn_id, entry, user_data)
       const char *value = gconf_value_get_string (v);
       int i;
       if (current_mono_font != NULL && strcmp (value, current_mono_font) == 0)
-        return; // No change.
+        return; /* No change. */
 
       xfree (current_mono_font);
       current_mono_font = xstrdup (value);
@@ -501,24 +501,6 @@ init_gconf ()
 #if defined (HAVE_GCONF) && defined (HAVE_XFT)
   int i;
   char *s;
-  /* Should be enough, this is called at startup */
-#define N_FDS 1024
-  int fd_before[N_FDS], fd_before1[N_FDS];
-  int dummy, n_fds;
-  GPollFD gfds[N_FDS];
-
-  /* To find out which filedecriptors GConf uses, check before and after.
-     If we do not do this, GConf changes will only happen when Emacs gets
-     an X event.  */
-  memset (fd_before, 0, sizeof (fd_before));
-  n_fds = g_main_context_query (g_main_context_default (),
-                                G_PRIORITY_LOW,
-                                &dummy,
-                                gfds,
-                                N_FDS);
-  for (i = 0; i < n_fds; ++i)
-    if (gfds[i].fd < N_FDS && gfds[i].fd > 0 && gfds[i].events > 0)
-      fd_before[gfds[i].fd] = 1;
 
   g_type_init ();
   gconf_client = gconf_client_get_default ();
@@ -537,25 +519,6 @@ init_gconf ()
                            SYSTEM_MONO_FONT,
                            something_changedCB,
                            NULL, NULL, NULL);
-  n_fds = g_main_context_query (g_main_context_default (),
-                                G_PRIORITY_LOW,
-                                &dummy,
-                                gfds,
-                                N_FDS);
-
-  for (i = 0; i < n_fds; ++i)
-    if (gfds[i].fd < N_FDS && gfds[i].fd > 0 && gfds[i].events > 0
-        && !fd_before[gfds[i].fd])
-      {
-#ifdef F_SETOWN
-        fcntl (i, F_SETOWN, getpid ());
-#endif /* ! defined (F_SETOWN) */
-
-#ifdef SIGIO
-        if (interrupt_input)
-          init_sigio (i);
-#endif /* ! defined (SIGIO) */
-      }
 #endif /* HAVE_GCONF && HAVE_XFT */
 }
 
