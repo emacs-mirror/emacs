@@ -1,3 +1,9 @@
+2009-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
+	(semantic-complete-jump-local, semantic-complete-jump): Improve
+	prompt string.
+
 2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add native condition for font-use-system-font.

@@ -224,7 +224,7 @@ HISTORY is a symbol representing a variable to story the history in."
       (if (string-match ":" prompt)
 	  (setq prompt (concat
 			(substring prompt 0 (match-beginning 0))
-			" (" default-as-string ")"
+			" (default " default-as-string ")"
 			(substring prompt (match-beginning 0))))
 	(setq prompt (concat prompt " (" default-as-string "): "))))
     ;;
@@ -1976,7 +1976,7 @@ completion works."
 (defun semantic-complete-jump-local ()
   "Jump to a semantic symbol."
   (interactive)
-  (let ((tag (semantic-complete-read-tag-buffer-deep "Symbol: ")))
+  (let ((tag (semantic-complete-read-tag-buffer-deep "Jump to symbol: ")))
     (when (semantic-tag-p tag)
       (push-mark)
       (goto-char (semantic-tag-start tag))
@@ -1989,7 +1989,7 @@ completion works."
 (defun semantic-complete-jump ()
   "Jump to a semantic symbol."
   (interactive)
-  (let* ((tag (semantic-complete-read-tag-project "Symbol: ")))
+  (let* ((tag (semantic-complete-read-tag-project "Jump to symbol: ")))
     (when (semantic-tag-p tag)
       (push-mark)
       (semantic-go-to-tag tag)
