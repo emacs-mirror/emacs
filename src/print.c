@@ -2034,6 +2034,7 @@ print_object (obj, printcharfun, escapeflag)
       else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	  int i, real_size, size;
 #if 0
 	  strout ("#<hash-table", -1, -1, printcharfun, 0);
 	  if (SYMBOLP (h->test))
@@ -2086,10 +2087,8 @@ print_object (obj, printcharfun, escapeflag)
 	  strout (" data ", -1, -1, printcharfun, 0);
 
 	  /* Print the data here as a plist. */
-	  int i;
-
-	  int real_size = HASH_TABLE_SIZE (h);
-	  int size = real_size;
+	  real_size = HASH_TABLE_SIZE (h);
+	  size = real_size;
 
 	  /* Don't print more elements than the specified maximum.  */
 	  if (NATNUMP (Vprint_length)

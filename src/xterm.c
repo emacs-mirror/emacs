@@ -8054,7 +8054,9 @@ x_new_font (f, font_object, fontset)
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
         {
-          /* When the frame is maximized/fullscreen or running under for
+	  int rows, cols;
+	  
+	  /* When the frame is maximized/fullscreen or running under for
              example Xmonad, x_set_window_size will be a no-op.
              In that case, the right thing to do is extend rows/cols to
              the current frame size.  We do that first if x_set_window_size
@@ -8067,8 +8069,8 @@ x_new_font (f, font_object, fontset)
              is however.  */
           pixelh -= FRAME_MENUBAR_HEIGHT (f);
 #endif
-          int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
-          int cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
+          rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
+          cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
           
           change_frame_size (f, rows, cols, 0, 1, 0);
           x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));

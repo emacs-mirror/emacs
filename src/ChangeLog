@@ -1,3 +1,9 @@
+2009-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_new_font):
+	* print.c (print_object):
+	* cmds.c (Fself_insert_command): Move declarations before statements.
+
 2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* s/cygwin.h: Remove unneeded linker flags.

@@ -330,8 +330,8 @@ After insertion, the value of `auto-fill-function' is called if the
      (n)
      Lisp_Object n;
 {
-  CHECK_NUMBER (n);
   int remove_boundary = 1;
+  CHECK_NUMBER (n);
 
   if (!EQ (Vthis_command, current_kboard->Vlast_command))
     nonundocount = 0;
