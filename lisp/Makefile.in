@@ -1264,6 +1264,7 @@ ELCFILES = \
 	$(lisp)/progmodes/sh-script.elc \
 	$(lisp)/progmodes/simula.elc \
 	$(lisp)/progmodes/sql.elc \
+	$(lisp)/progmodes/subword.elc \
 	$(lisp)/progmodes/sym-comp.elc \
 	$(lisp)/progmodes/tcl.elc \
 	$(lisp)/progmodes/vera-mode.elc \
@@ -1308,7 +1309,6 @@ ELCFILES = \
 	$(lisp)/startup.elc \
 	$(lisp)/strokes.elc \
 	$(lisp)/subr.elc \
-	$(lisp)/subword.elc \
 	$(lisp)/t-mouse.elc \
 	$(lisp)/tabify.elc \
 	$(lisp)/talk.elc \

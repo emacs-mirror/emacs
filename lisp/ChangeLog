@@ -1,3 +1,11 @@
+2009-11-21  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/subword.el: Rename from lisp/subword.el.
+
+	* subword.el: Rename to progmodes/subword.el.
+
+	* Makefile.in (ELCFILES): Adapt to subword.el move.
+
 2009-11-21  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
