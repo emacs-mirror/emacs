@@ -405,7 +405,7 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
     {
       int bytes, thiswidth;
       Lisp_Object val;
-      int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+      int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
 
       if (dp)
 	{
@@ -495,7 +495,7 @@ lisp_string_width (string, precision, nchars, nbytes)
 	  int c;
 
 	  if (multibyte)
-	    c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+	    c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
 	  else
 	    c = str[i_byte], bytes = 1;
 	  chars = 1;
@@ -1061,7 +1061,7 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
       if (! STRING_MULTIBYTE (string))
 	return make_number (*p);
     }
-  c = STRING_CHAR (p, 0);
+  c = STRING_CHAR (p);
   if (CHAR_BYTE8_P (c))
     c = CHAR_TO_BYTE8 (c);
   else if (! ASCII_CHAR_P (c))

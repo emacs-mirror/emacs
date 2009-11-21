@@ -231,7 +231,7 @@ A multibyte character is handled correctly.  */)
   if (SCHARS (string))
     {
       if (STRING_MULTIBYTE (string))
-	XSETFASTINT (val, STRING_CHAR (SDATA (string), SBYTES (string)));
+	XSETFASTINT (val, STRING_CHAR (SDATA (string)));
       else
 	XSETFASTINT (val, SREF (string, 0));
     }
@@ -2983,7 +2983,7 @@ check_translation (pos, pos_byte, end, val)
 		      memcpy (newbuf, buf, sizeof (int) * buf_used);
 		      buf = newbuf;
 		    }
-		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, 0, len);
+		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len);
 		  pos_byte += len;
 		}
 	      if (XINT (AREF (elt, i)) != buf[i])
@@ -3052,7 +3052,7 @@ It returns the number of characters changed.  */)
       Lisp_Object val;
 
       if (multibyte)
-	oc = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
+	oc = STRING_CHAR_AND_LENGTH (p, len);
       else
 	oc = *p, len = 1;
       if (oc < size)
@@ -3064,8 +3064,7 @@ It returns the number of characters changed.  */)
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH,
-					       str_len);
+		  nc = STRING_CHAR_AND_LENGTH (str, str_len);
 		}
 	      else
 		{

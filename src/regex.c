@@ -147,10 +147,10 @@
 
 # define RE_MULTIBYTE_P(bufp) ((bufp)->multibyte)
 # define RE_TARGET_MULTIBYTE_P(bufp) ((bufp)->target_multibyte)
-# define RE_STRING_CHAR(p, s, multibyte) \
-  (multibyte ? (STRING_CHAR (p, s)) : (*(p)))
-# define RE_STRING_CHAR_AND_LENGTH(p, s, len, multibyte) \
-  (multibyte ? (STRING_CHAR_AND_LENGTH (p, s, len)) : ((len) = 1, *(p)))
+# define RE_STRING_CHAR(p, multibyte) \
+  (multibyte ? (STRING_CHAR (p)) : (*(p)))
+# define RE_STRING_CHAR_AND_LENGTH(p, len, multibyte) \
+  (multibyte ? (STRING_CHAR_AND_LENGTH (p, len)) : ((len) = 1, *(p)))
 
 # define RE_CHAR_TO_MULTIBYTE(c) UNIBYTE_TO_CHAR (c)
 
@@ -166,7 +166,7 @@
 	re_char *dtemp = (p) == (str2) ? (end1) : (p);			     \
 	re_char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
 	while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp));		     \
-	c = STRING_CHAR (dtemp, (p) - dtemp);				     \
+	c = STRING_CHAR (dtemp);					     \
       }									     \
     else								     \
       {									     \
@@ -180,7 +180,7 @@
 # define GET_CHAR_AFTER(c, p, len)		\
   do {						\
     if (target_multibyte)			\
-      (c) = STRING_CHAR_AND_LENGTH (p, 0, len);	\
+      (c) = STRING_CHAR_AND_LENGTH (p, len);	\
     else					\
       {						\
 	(c) = *p;				\
@@ -302,11 +302,11 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define SAME_CHARSET_P(c1, c2) (1)
 # define MULTIBYTE_FORM_LENGTH(p, s) (1)
 # define PREV_CHAR_BOUNDARY(p, limit) ((p)--)
-# define STRING_CHAR(p, s) (*(p))
-# define RE_STRING_CHAR(p, s, multibyte) STRING_CHAR ((p), (s))
+# define STRING_CHAR(p) (*(p))
+# define RE_STRING_CHAR(p, multibyte) STRING_CHAR (p)
 # define CHAR_STRING(c, s) (*(s) = (c), 1)
-# define STRING_CHAR_AND_LENGTH(p, s, actual_len) ((actual_len) = 1, *(p))
-# define RE_STRING_CHAR_AND_LENGTH(p, s, len, multibyte) STRING_CHAR_AND_LENGTH ((p), (s), (len))
+# define STRING_CHAR_AND_LENGTH(p, actual_len) ((actual_len) = 1, *(p))
+# define RE_STRING_CHAR_AND_LENGTH(p, len, multibyte) STRING_CHAR_AND_LENGTH (p, len)
 # define RE_CHAR_TO_MULTIBYTE(c) (c)
 # define RE_CHAR_TO_UNIBYTE(c) (c)
 # define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2) \
@@ -1757,7 +1757,7 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
   do {									\
     int len;								\
     if (p == pend) return REG_EEND;					\
-    c = RE_STRING_CHAR_AND_LENGTH (p, pend - p, len, multibyte);	\
+    c = RE_STRING_CHAR_AND_LENGTH (p, len, multibyte);			\
     p += len;								\
   } while (0)
 
@@ -4541,8 +4541,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 		      {
 			int buf_charlen;
 
-			buf_ch = STRING_CHAR_AND_LENGTH (d, range - lim,
-							 buf_charlen);
+			buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
 			buf_ch = RE_TRANSLATE (translate, buf_ch);
 			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
 			  break;
@@ -4574,8 +4573,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 		      {
 			int buf_charlen;
 
-			buf_ch = STRING_CHAR_AND_LENGTH (d, range - lim,
-							 buf_charlen);
+			buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
 			if (fastmap[CHAR_LEADING_CODE (buf_ch)])
 			  break;
 			range -= buf_charlen;
@@ -4592,12 +4590,9 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	    }
 	  else				/* Searching backwards.  */
 	    {
-	      int room = (startpos >= size1
-			  ? size2 + size1 - startpos
-			  : size1 - startpos);
 	      if (multibyte)
 		{
-		  buf_ch = STRING_CHAR (d, room);
+		  buf_ch = STRING_CHAR (d);
 		  buf_ch = TRANSLATE (buf_ch);
 		  if (! fastmap[CHAR_LEADING_CODE (buf_ch)])
 		    goto advance;
@@ -4888,11 +4883,11 @@ mutually_exclusive_p (bufp, p1, p2)
       {
 	register re_wchar_t c
 	  = (re_opcode_t) *p2 == endline ? '\n'
-	  : RE_STRING_CHAR (p2 + 2, pend - p2 - 2, multibyte);
+	  : RE_STRING_CHAR (p2 + 2, multibyte);
 
 	if ((re_opcode_t) *p1 == exactn)
 	  {
-	    if (c != RE_STRING_CHAR (p1 + 2, pend - p1 - 2, multibyte))
+	    if (c != RE_STRING_CHAR (p1 + 2, multibyte))
 	      {
 		DEBUG_PRINT3 ("  '%c' != '%c' => fast loop.\n", c, p1[2]);
 		return 1;
@@ -5543,13 +5538,13 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 		PREFETCH ();
 		if (multibyte)
-		  pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
+		  pat_ch = STRING_CHAR_AND_LENGTH (p, pat_charlen);
 		else
 		  {
 		    pat_ch = RE_CHAR_TO_MULTIBYTE (*p);
 		    pat_charlen = 1;
 		  }
-		buf_ch = STRING_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
+		buf_ch = STRING_CHAR_AND_LENGTH (d, buf_charlen);
 
 		if (TRANSLATE (buf_ch) != pat_ch)
 		  {
@@ -5571,7 +5566,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		PREFETCH ();
 		if (multibyte)
 		  {
-		    pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
+		    pat_ch = STRING_CHAR_AND_LENGTH (p, pat_charlen);
 		    pat_ch = RE_CHAR_TO_UNIBYTE (pat_ch);
 		  }
 		else
@@ -5611,7 +5606,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    DEBUG_PRINT1 ("EXECUTING anychar.\n");
 
 	    PREFETCH ();
-	    buf_ch = RE_STRING_CHAR_AND_LENGTH (d, dend - d, buf_charlen,
+	    buf_ch = RE_STRING_CHAR_AND_LENGTH (d, buf_charlen,
 						target_multibyte);
 	    buf_ch = TRANSLATE (buf_ch);
 
@@ -5659,7 +5654,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      }
 
 	    PREFETCH ();
-	    c = RE_STRING_CHAR_AND_LENGTH (d, dend - d, len, target_multibyte);
+	    c = RE_STRING_CHAR_AND_LENGTH (d, len, target_multibyte);
 	    if (target_multibyte)
 	      {
 		int c1;
@@ -6257,7 +6252,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      PREFETCH ();
-	      c2 = RE_STRING_CHAR (d, dend - d, target_multibyte);
+	      c2 = RE_STRING_CHAR (d, target_multibyte);
 	      s2 = SYNTAX (c2);
 
 	      /* Case 2: S2 is neither Sword nor Ssymbol. */
@@ -6310,7 +6305,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      if (!AT_STRINGS_END (d))
 		{
 		  PREFETCH_NOLIMIT ();
-		  c2 = RE_STRING_CHAR (d, dend - d, target_multibyte);
+		  c2 = RE_STRING_CHAR (d, target_multibyte);
 #ifdef emacs
 		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif

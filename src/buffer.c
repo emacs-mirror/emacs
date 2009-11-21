@@ -2409,7 +2409,7 @@ current buffer is cleared.  */)
 	    p++, pos++;
 	  else if (CHAR_BYTE8_HEAD_P (*p))
 	    {
-	      c = STRING_CHAR_AND_LENGTH (p, stop - pos, bytes);
+	      c = STRING_CHAR_AND_LENGTH (p, bytes);
 	      /* Delete all bytes for this 8-bit character but the
 		 last one, and change the last one to the charcter
 		 code.  */

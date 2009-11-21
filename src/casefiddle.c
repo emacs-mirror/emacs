@@ -133,7 +133,7 @@ casify_object (flag, obj)
 	      bcopy (old_dst, dst, o - old_dst);
 	      o = dst + (o - old_dst);
 	    }
-	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
+	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)
 	    c = DOWNCASE (c);
 	  else if (!UPPERCASEP (c)

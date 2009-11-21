@@ -3863,7 +3863,7 @@ font_at (c, pos, face, w, string)
 	      EMACS_INT pos_byte = string_char_to_byte (string, pos);
 
 	      str = SDATA (string) + pos_byte;
-	      c = STRING_CHAR (str, 0);
+	      c = STRING_CHAR (str);
 	    }
 	  else
 	    c = SDATA (string)[pos];

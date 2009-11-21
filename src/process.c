@@ -477,7 +477,7 @@ status_message (p)
 	  if (! NILP (Vlocale_coding_system))
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
-	  c1 = STRING_CHAR ((char *) SDATA (string), 0);
+	  c1 = STRING_CHAR ((char *) SDATA (string));
 	  c2 = DOWNCASE (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));

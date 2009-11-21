@@ -330,7 +330,7 @@ extern unsigned char *_fetch_multibyte_char_p;
 #define FETCH_MULTIBYTE_CHAR(pos)				 	\
   (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
 			       + (pos) + BEG_ADDR - BEG_BYTE),	 	\
-   STRING_CHAR (_fetch_multibyte_char_p, 0))
+   STRING_CHAR (_fetch_multibyte_char_p))
 
 /* Return character at position POS.  If the current buffer is unibyte
    and the character is not ASCII, make the returning character
@@ -389,7 +389,7 @@ extern unsigned char *_fetch_multibyte_char_p;
   (_fetch_multibyte_char_p						\
      = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)		\
         + (pos) + BUF_BEG_ADDR (buf) - BEG_BYTE),			\
-   STRING_CHAR (_fetch_multibyte_char_p, 0))
+   STRING_CHAR (_fetch_multibyte_char_p))
 
 /* Define the actual buffer data structures.  */
 

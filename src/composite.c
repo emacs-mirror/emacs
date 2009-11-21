@@ -1321,7 +1321,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
  retry:
   check_val = Qnil;
   /* At first, check if POS is composable.  */
-  c = STRING_CHAR (cur.p, 0);
+  c = STRING_CHAR (cur.p);
   if (! CHAR_COMPOSABLE_P (c))
     {
       if (limit < 0)
@@ -1347,7 +1347,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 		fore_check_limit = cur.pos;
 		break;
 	      }
-	    c = STRING_CHAR (cur.p, 0);
+	    c = STRING_CHAR (cur.p);
 	    if (! CHAR_COMPOSABLE_P (c))
 	      break;
 	    val = CHAR_TABLE_REF (Vcomposition_function_table, c);
@@ -1368,7 +1368,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
       if (get_property_and_range (cur.pos, Qcomposition, &val, &b, &e, Qnil)
 	  && COMPOSITION_VALID_P (b, e, val))
 	break;
-      c = STRING_CHAR (cur.p, 0);
+      c = STRING_CHAR (cur.p);
       if (! CHAR_COMPOSABLE_P (c))
 	break;
       val = CHAR_TABLE_REF (Vcomposition_function_table, c);
@@ -1391,7 +1391,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 
 	  if (NILP (check_val))
 	    {
-	      c = STRING_CHAR (cur.p, 0);
+	      c = STRING_CHAR (cur.p);
 	      check_val = CHAR_TABLE_REF (Vcomposition_function_table, c);
 	    }
 	  for (; CONSP (check_val); check_val = XCDR (check_val))

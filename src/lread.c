@@ -303,7 +303,7 @@ readchar (readcharfun, multibyte)
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
 	  BUF_INC_POS (inbuffer, pt_byte);
-	  c = STRING_CHAR (p, pt_byte - orig_pt_byte);
+	  c = STRING_CHAR (p);
 	  if (multibyte)
 	    *multibyte = 1;
 	}
@@ -332,7 +332,7 @@ readchar (readcharfun, multibyte)
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
 	  BUF_INC_POS (inbuffer, bytepos);
-	  c = STRING_CHAR (p, bytepos - orig_bytepos);
+	  c = STRING_CHAR (p);
 	  if (multibyte)
 	    *multibyte = 1;
 	}
@@ -439,7 +439,7 @@ readchar (readcharfun, multibyte)
 	}
       buf[i++] = c;
     }
-  return STRING_CHAR (buf, i);
+  return STRING_CHAR (buf);
 }
 
 /* Unread the character C in the way appropriate for the stream READCHARFUN.

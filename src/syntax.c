@@ -911,8 +911,7 @@ text property.  */)
   if (*p)
     {
       int len;
-      int character = (STRING_CHAR_AND_LENGTH
-		       (p, SBYTES (string) - 1, len));
+      int character = STRING_CHAR_AND_LENGTH (p, len);
       XSETINT (match, character);
       if (XFASTINT (match) == ' ')
 	match = Qnil;
@@ -1588,12 +1587,12 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 	  unsigned char leading_code;
 
 	  leading_code = str[i_byte];
-	  c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+	  c = STRING_CHAR_AND_LENGTH (str + i_byte, len);
 	  i_byte += len;
 
 	  if (handle_iso_classes && c == '['
 	      && i_byte < size_byte
-	      && STRING_CHAR (str + i_byte, size_byte - i_byte) == ':')
+	      && STRING_CHAR (str + i_byte) == ':')
 	    {
 	      const unsigned char *class_beg = str + i_byte + 1;
 	      const unsigned char *class_end = class_beg;
@@ -1633,8 +1632,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 		break;
 
 	      leading_code = str[i_byte];
-	      c = STRING_CHAR_AND_LENGTH (str + i_byte,
-					  size_byte - i_byte, len);
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte, len);
 	      i_byte += len;
 	    }
 	  /* Treat `-' as range character only if another character
@@ -1650,15 +1648,14 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 
 	      /* Get the end of the range.  */
 	      leading_code2 = str[i_byte];
-	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte,
-					   size_byte - i_byte, len);
+	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte, len);
 	      i_byte += len;
 
 	      if (c2 == '\\'
 		  && i_byte < size_byte)
 		{
 		  leading_code2 = str[i_byte];
-		  c2 =STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+		  c2 =STRING_CHAR_AND_LENGTH (str + i_byte, len);
 		  i_byte += len;
 		}
 
@@ -1764,7 +1761,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 		  p = GAP_END_ADDR;
 		  stop = endp;
 		}
-	      c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+	      c = STRING_CHAR_AND_LENGTH (p, nbytes);
 	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
 		{
 		  if (negate)
@@ -1835,7 +1832,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 		}
 	      prev_p = p;
 	      while (--p >= stop && ! CHAR_HEAD_P (*p));
-	      c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+	      c = STRING_CHAR (p);
 
 	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
 		{
@@ -1989,7 +1986,7 @@ skip_syntaxes (forwardp, string, lim)
 		    p = GAP_END_ADDR;
 		    stop = endp;
 		  }
-		c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		c = STRING_CHAR_AND_LENGTH (p, nbytes);
 		if (! fastmap[(int) SYNTAX (c)])
 		  break;
 		p += nbytes, pos++, pos_byte += nbytes;
@@ -2032,7 +2029,7 @@ skip_syntaxes (forwardp, string, lim)
 		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		prev_p = p;
 		while (--p >= stop && ! CHAR_HEAD_P (*p));
-		c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+		c = STRING_CHAR (p);
 		if (! fastmap[(int) SYNTAX (c)])
 		  break;
 		pos--, pos_byte -= prev_p - p;

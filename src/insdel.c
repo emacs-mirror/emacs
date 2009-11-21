@@ -648,7 +648,7 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
       while (bytes_left > 0)
 	{
 	  int thislen, c;
-	  c = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
+	  c = STRING_CHAR_AND_LENGTH (from_addr, thislen);
 	  if (! ASCII_CHAR_P (c))
 	    c &= 0xFF;
 	  *to_addr++ = c;

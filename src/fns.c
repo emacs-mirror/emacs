@@ -1711,8 +1711,7 @@ to be sure of changing the value of `foo'.  */)
 	{
 	  if (STRING_MULTIBYTE (seq))
 	    {
-	      c = STRING_CHAR (SDATA (seq) + ibyte,
-			       SBYTES (seq) - ibyte);
+	      c = STRING_CHAR (SDATA (seq) + ibyte);
 	      cbytes = CHAR_BYTES (c);
 	    }
 	  else
@@ -1742,8 +1741,7 @@ to be sure of changing the value of `foo'.  */)
 	    {
 	      if (STRING_MULTIBYTE (seq))
 		{
-		  c = STRING_CHAR (SDATA (seq) + ibyte,
-				   SBYTES (seq) - ibyte);
+		  c = STRING_CHAR (SDATA (seq) + ibyte);
 		  cbytes = CHAR_BYTES (c);
 		}
 	      else
@@ -3363,7 +3361,7 @@ base64_encode_1 (from, to, length, line_break, multibyte)
     {
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
+	  c = STRING_CHAR_AND_LENGTH (from + i, bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3403,7 +3401,7 @@ base64_encode_1 (from, to, length, line_break, multibyte)
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
+	  c = STRING_CHAR_AND_LENGTH (from + i, bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)
@@ -3427,7 +3425,7 @@ base64_encode_1 (from, to, length, line_break, multibyte)
 
       if (multibyte)
 	{
-	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
+	  c = STRING_CHAR_AND_LENGTH (from + i, bytes);
 	  if (CHAR_BYTE8_P (c))
 	    c = CHAR_TO_BYTE8 (c);
 	  else if (c >= 256)

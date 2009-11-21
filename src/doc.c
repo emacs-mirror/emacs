@@ -767,9 +767,8 @@ a new string, without any text properties, is returned.  */)
 	  if (multibyte)
 	    {
 	      int len;
-	      int maxlen = SDATA (string) + SBYTES (string) - strp;
 
-	      STRING_CHAR_AND_LENGTH (strp, maxlen, len);
+	      STRING_CHAR_AND_LENGTH (strp, len);
 	      if (len == 1)
 		*bufp = *strp;
 	      else
@@ -931,9 +930,8 @@ a new string, without any text properties, is returned.  */)
       else
 	{
 	  int len;
-	  int maxlen = SDATA (string) + SBYTES (string) - strp;
 
-	  STRING_CHAR_AND_LENGTH (strp, maxlen, len);
+	  STRING_CHAR_AND_LENGTH (strp, len);
 	  if (len == 1)
 	    *bufp = *strp;
 	  else

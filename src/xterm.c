@@ -6578,8 +6578,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 		if (nchars == nbytes)
 		  c = copy_bufptr[i], len = 1;
 		else
-		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
-					      nbytes - i, len);
+		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i, len);
 		inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
 				? ASCII_KEYSTROKE_EVENT
 				: MULTIBYTE_CHAR_KEYSTROKE_EVENT);

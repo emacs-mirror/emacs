@@ -1387,7 +1387,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  base_pat++;
 		}
 
-	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
+	      c = STRING_CHAR_AND_LENGTH (base_pat, in_charlen);
 
 	      if (NILP (trt))
 		{
@@ -1527,7 +1527,6 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    EMACS_INT this_pos = pos;
 	    EMACS_INT this_pos_byte = pos_byte;
 	    int this_len = len;
-	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
 	    if (pos + len > lim || pos_byte + len_byte > lim_byte)
 	      goto stop;
@@ -1537,16 +1536,14 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 		int charlen, buf_charlen;
 		int pat_ch, buf_ch;
 
-		pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
+		pat_ch = STRING_CHAR_AND_LENGTH (p, charlen);
 		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 ZV_BYTE - this_pos_byte,
 						 buf_charlen);
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
 
-		this_len_byte -= charlen;
 		this_len--;
 		p += charlen;
 
@@ -1615,7 +1612,6 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    EMACS_INT this_pos = pos - len;
 	    EMACS_INT this_pos_byte;
 	    int this_len = len;
-	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
 
 	    if (this_pos < lim || (pos_byte - len_byte) < lim_byte)
@@ -1628,16 +1624,14 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 		int charlen, buf_charlen;
 		int pat_ch, buf_ch;
 
-		pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
+		pat_ch = STRING_CHAR_AND_LENGTH (p, charlen);
 		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 ZV_BYTE - this_pos_byte,
 						 buf_charlen);
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
 
-		this_len_byte -= charlen;
 		this_len--;
 		p += charlen;
 		this_pos_byte += buf_charlen;
@@ -1841,7 +1835,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
 	      while (! (CHAR_HEAD_P (*charstart)))
 		charstart--;
-	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
+	      ch = STRING_CHAR (charstart);
 	      if (char_base != (ch & ~0x3F))
 		ch = -1;
 	    }

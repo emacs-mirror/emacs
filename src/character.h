@@ -311,10 +311,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 
 /* Return the character code of character whose multibyte form is at
-   P.  The argument LEN is ignored.  It will be removed in the
-   future.  */
+   P.  */
 
-#define STRING_CHAR(p, len)					\
+#define STRING_CHAR(p)						\
   (!((p)[0] & 0x80)						\
    ? (p)[0]							\
    : ! ((p)[0] & 0x20)						\
@@ -329,10 +328,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Like STRING_CHAR, but set ACTUAL_LEN to the length of multibyte
-   form.  The argument LEN is ignored.  It will be removed in the
-   future.  */
+   form.  */
 
-#define STRING_CHAR_AND_LENGTH(p, len, actual_len)		\
+#define STRING_CHAR_AND_LENGTH(p, actual_len)			\
   (!((p)[0] & 0x80)						\
    ? ((actual_len) = 1, (p)[0])					\
    : ! ((p)[0] & 0x20)						\
@@ -382,7 +380,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		\
 	  int len;							\
 									\
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		\
+	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			\
 	  BYTEIDX += len;						\
 	}								\
       else								\
@@ -405,7 +403,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		      \
 	  int len;							      \
 									      \
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		      \
+	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			      \
 	  BYTEIDX += len;						      \
 	}								      \
       else								      \
@@ -426,7 +424,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       unsigned char *ptr = &SDATA (STRING)[BYTEIDX];			     \
       int len;								     \
 									     \
-      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);			     \
+      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			     \
       BYTEIDX += len;							     \
       CHARIDX++;							     \
     }									     \
@@ -445,7 +443,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	  unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
 	  int len;						\
 								\
-	  OUTPUT= STRING_CHAR_AND_LENGTH (ptr, 0, len);		\
+	  OUTPUT= STRING_CHAR_AND_LENGTH (ptr, len);		\
 	  BYTEIDX += len;					\
 	}							\
       else							\
@@ -465,7 +463,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
       int len;							\
 								\
-      OUTPUT= STRING_CHAR_AND_LENGTH (ptr, 0, len);		\
+      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);		\
       BYTEIDX += len;						\
       CHARIDX++;						\
     }								\

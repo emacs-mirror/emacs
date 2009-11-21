@@ -2007,8 +2007,7 @@ or a byte-code object.  IDX starts at 0.  */)
 	return make_number ((unsigned char) SREF (array, idxval));
       idxval_byte = string_char_to_byte (array, idxval);
 
-      c = STRING_CHAR (SDATA (array) + idxval_byte,
-		       SBYTES (array) - idxval_byte);
+      c = STRING_CHAR (SDATA (array) + idxval_byte);
       return make_number (c);
     }
   else if (BOOL_VECTOR_P (array))
