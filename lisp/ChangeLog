@@ -1,3 +1,7 @@
+2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add native condition for font-use-system-font.
+
 2009-11-21  Nathaniel Flath  <flat0103@gmail.com>
 
 	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): A

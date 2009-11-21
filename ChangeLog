@@ -1,3 +1,7 @@
+2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Don't check for GConf unless X is used.
+
 2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Use -Wdeclaration-after-statement if available.

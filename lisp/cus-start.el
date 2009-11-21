@@ -397,6 +397,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (fboundp 'x-selection-exists-p))
 		      ((string-match "fringe" (symbol-name symbol))
 		       (fboundp 'define-fringe-bitmap))
+		      ((equal "font-use-system-font" (symbol-name symbol))
+		       (featurep 'system-font-setting))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

@@ -12588,7 +12588,7 @@ done
 fi
 
 HAVE_GCONF=no
-if test "${with_gconf}" = "yes"; then
+if test "X$with_x" != "Xno" && test "${with_gconf}" = "yes"; then
 
   succeeded=no
 
