@@ -107,8 +107,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define POSIX_SIGNALS 1
 #define LINKER $(CC)
 
-#define LINKER $(CC) -Wl,--image-base,DATA_SEG_BITS
-
 /* Use terminfo instead of termcap.  Fewer environment variables to
    go wrong, more terminal types. */
 #define TERMINFO
