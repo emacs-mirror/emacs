@@ -150,7 +150,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
   `((nil
      ,(concat
        "[" c-alpha "_][\]\[." c-alnum "_<> ]+[ \t\n\r]+" ; type spec
-       "\\([" c-alpha "_][" c-alnum "_]+\\)" ; method name
+       "\\([" c-alpha "_][" c-alnum "_]*\\)" ; method name
        "[ \t\n\r]*"
        ;; An argument list htat is either empty or contains any number
        ;; of arguments.  An argument is any number of annotations
@@ -159,33 +159,34 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        ;; by < typespec > possibly followed by [].
        (concat "("
                "\\("
-                  "[ \t\n\r]*"
-                  "\\("
-                     "@"
-                     "[" c-alpha "_]"
-                     "[" c-alnum "._]""*"
-                     "[ \t\n\r]+"
-                  "\\)*"
-                  "\\("
-                     "[" c-alpha "_]"
-                     "[\]\[" c-alnum "_.]*"
-                     "\\("
-                        "<"
-                        "[ \t\n\r]*"
-                        "[\]\[.," c-alnum "_<> \t\n\r]*"
-                        ">"
-                     "\\)?"
-                     "\\(\\[\\]\\)?"
-                     "[ \t\n\r]+"
-                  "\\)"
-                 "[" c-alpha "_]"
-                 "[" c-alnum "_]*"
-                 "[ \t\n\r,]*"
+               "[ \t\n\r]*"
+               "\\("
+               "@"
+               "[" c-alpha "_]"
+               "[" c-alnum "._]""*"
+               "[ \t\n\r]+"
                "\\)*"
-              ")"
-           "[ \t\n\r]*"
-       "{"
-       )) 1))
+               "\\("
+               "[" c-alpha "_]"
+               "[\]\[" c-alnum "_.]*"
+               "\\("
+
+               "<"
+               "[ \t\n\r]*"
+               "[\]\[.," c-alnum "_<> \t\n\r]*"
+               ">"
+               "\\)?"
+               "\\(\\[\\]\\)?"
+               "[ \t\n\r]+"
+               "\\)"
+               "[" c-alpha "_]"
+               "[" c-alnum "_]*"
+               "[ \t\n\r,]*"
+               "\\)*"
+               ")"
+               "[.," c-alnum " \t\n\r]*"
+               "{"
+               )) 1))
   "Imenu generic expression for Java mode.  See
 `imenu-generic-expression'.")
 
