@@ -1,3 +1,13 @@
+2009-11-21  Nathaniel Flath  <flat0103@gmail.com>
+
+	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): A
+	corrected version of the patch from 2009-11-18.  (Bug#3910)
+
+2009-11-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): Update
+	to deal with modern Java constructs.
+
 2009-11-21  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/subword.el: Rename from lisp/subword.el.
