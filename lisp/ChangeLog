@@ -1,11 +1,25 @@
+2009-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-search-prompt, bookmark-search-timer): Remove.
+	(bookmark-search-pattern): Move and leave unbound.
+	(bookmark-bmenu-mode-map): Change binding.
+	(bookmark-read-search-input): Simplify.
+	Don't use text-char-description.  Don't error on non-char events.
+	(bookmark-filtered-alist-by-regexp-only): Remove by folding into the
+	only caller (i.e. bookmark-bmenu-filter-alist-by-regexp).
+	(bookmark-bmenu-search): Don't check we're in a bookmark-list buffer.
+	Use a local var for the timer.
+	(bookmark-bmenu-cancel-search): Remove by folding into the only caller
+	(i.e. bookmark-bmenu-search).
+
 2009-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime): Decode in fundamental-mode.  (Bug#4993)
 
 2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
-	* net/browse-url.el (browse-url-default-windows-browser): Use
-	cygstart for cygwin.
+	* net/browse-url.el (browse-url-default-windows-browser):
+	Use cygstart for cygwin.
 
 2009-11-20  Karl Fogel  <karl.fogel@red-bean.com>
 
@@ -23,16 +37,16 @@
 	* subword.el (subword-forward, subword-backward, subword-mark)
 	(subword-kill, subword-backward-kill, subword-transpose)
 	(subword-downcase, subword-upcase, subword-capitalize)
-	(subword-forward-internal, subword-backward-internal): Renamed
-	from forward-subword, backward-subword, mark-subword kill-subword,
-	backward-kill-subword, transpose-subwords, downcase-subword,
-	upcase-subword, capitalize-subword forward-subword-internal,
-	backward-subword-internal.
+	(subword-forward-internal, subword-backward-internal):
+	Rename from forward-subword, backward-subword, mark-subword,
+	kill-subword, backward-kill-subword, transpose-subwords,
+	downcase-subword, upcase-subword, capitalize-subword,
+	forward-subword-internal, backward-subword-internal.
 
 2009-11-20  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* bookmark.el (bookmark-search-delay, bookmark-search-prompt): New
-	options.
+	* bookmark.el (bookmark-search-delay, bookmark-search-prompt):
+	New options.
 	(bookmark-search-pattern, bookmark-search-timer, bookmark-quit-flag):
 	New vars.
 	(bookmark-read-search-input, bookmark-filtered-alist-by-regexp-only)
