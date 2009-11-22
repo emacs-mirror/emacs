@@ -1,3 +1,8 @@
+2009-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Radix modes): Discuss alternate bases for two's complement
+	notations.
+
 2009-11-20  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
 	* org.texi: (Column attributes): Fix documentaion of new operators.
