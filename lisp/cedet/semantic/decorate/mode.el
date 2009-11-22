@@ -316,7 +316,7 @@ minor mode is enabled."
           (not semantic-decoration-mode)))
   (semantic-decoration-mode-setup)
   (run-hooks 'semantic-decoration-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "decoration-mode minor mode %sabled"
                (if semantic-decoration-mode "en" "dis")))
   (semantic-mode-line-update)
@@ -375,7 +375,7 @@ Return non-nil if the decoration style is enabled."
         (when semantic-decoration-mode
           (semantic-decoration-mode -1)
           (semantic-decoration-mode 1))
-        (when (interactive-p)
+        (when (called-interactively-p 'interactive)
           (message "Decoration style %s turned %s" (car style)
                    (if flag "on" "off"))))
       flag)))

@@ -1,5 +1,50 @@
 2009-11-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/srecode/map.el (srecode-get-maps):
+	* cedet/semantic/wisent/wisent.el (wisent-parse-toggle-verbose-flag):
+	* cedet/semantic/wisent/comp.el (wisent-toggle-verbose-flag):
+	* cedet/semantic/decorate/mode.el (semantic-decoration-mode)
+	(semantic-toggle-decoration-style):
+	* cedet/semantic/decorate/include.el
+	(semantic-decoration-include-describe)
+	(semantic-decoration-unknown-include-describe)
+	(semantic-decoration-unparsed-include-describe)
+	(semantic-decoration-all-include-summary):
+	* cedet/semantic/bovine/c.el (semantic-c-debug-mode-init):
+	* cedet/semantic/analyze/complete.el
+	(semantic-analyze-possible-completions):
+	* cedet/semantic/util-modes.el (semantic-highlight-edits-mode)
+	(semantic-show-unmatched-syntax-mode)
+	(semantic-show-parser-state-mode, semantic-stickyfunc-mode)
+	(semantic-highlight-func-mode):
+	* cedet/semantic/util.el (semantic-describe-buffer):
+	* cedet/semantic/symref.el (semantic-symref-find-references-by-name)
+	(semantic-symref-find-tags-by-name)
+	(semantic-symref-find-tags-by-regexp)
+	(semantic-symref-find-tags-by-completion)
+	(semantic-symref-find-file-references-by-name)
+	(semantic-symref-find-text):
+	* cedet/semantic/senator.el (senator-copy-tag, senator-kill-tag)
+	(senator-yank-tag):
+	* cedet/semantic/scope.el (semantic-calculate-scope):
+	* cedet/semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
+	* cedet/semantic/idle.el (semantic-idle-scheduler-mode)
+	(define-semantic-idle-service):
+	* cedet/semantic/complete.el (semantic-complete-analyze-inline)
+	(semantic-complete-analyze-inline-idle):
+	* cedet/semantic/analyze.el (semantic-analyze-current-context):
+	* cedet/mode-local.el (describe-mode-local-bindings)
+	(describe-mode-local-bindings-in-mode):
+	* cedet/ede/make.el (ede-make-check-version):
+	* cedet/ede/locate.el (ede-enable-locate-on-project):
+	* cedet/cedet-idutils.el (cedet-idutils-expand-filename)
+	(cedet-idutils-version-check):
+	* cedet/cedet-global.el (cedet-gnu-global-expand-filename)
+	(cedet-gnu-global-version-check):
+	* cedet/cedet-cscope.el (cedet-cscope-expand-filename)
+	(cedet-cscope-version-check): Use called-interactively-p instead
+	of interactive-p.
+
 	* cedet/semantic/ia.el (semantic-ia-completion-format-tag-function):
 	Use semantic-format-tag-prototype.
 

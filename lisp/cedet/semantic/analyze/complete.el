@@ -91,7 +91,7 @@ in a buffer."
 		    (error "Nothing to complete")
 		  (:override))))
       ;; If interactive, display them.
-      (when (interactive-p)
+      (when (called-interactively-p 'any)
 	(with-output-to-temp-buffer "*Possible Completions*"
 	  (semantic-analyze-princ-sequence ans "" (current-buffer)))
 	(shrink-window-if-larger-than-buffer

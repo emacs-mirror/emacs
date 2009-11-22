@@ -288,7 +288,7 @@ minor mode is enabled."
           (not semantic-highlight-edits-mode)))
   (semantic-highlight-edits-mode-setup)
   (run-hooks 'semantic-highlight-edits-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "highlight-edits minor mode %sabled"
                (if semantic-highlight-edits-mode "en" "dis")))
   (semantic-mode-line-update)
@@ -496,7 +496,7 @@ minor mode is enabled.
           (not semantic-show-unmatched-syntax-mode)))
   (semantic-show-unmatched-syntax-mode-setup)
   (run-hooks 'semantic-show-unmatched-syntax-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "show-unmatched-syntax minor mode %sabled"
                (if semantic-show-unmatched-syntax-mode "en" "dis")))
   (semantic-mode-line-update)
@@ -656,7 +656,7 @@ minor mode is enabled."
           (not semantic-show-parser-state-mode)))
   (semantic-show-parser-state-mode-setup)
   (run-hooks 'semantic-show-parser-state-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "show-parser-state minor mode %sabled"
                (if semantic-show-parser-state-mode "en" "dis")))
   (semantic-mode-line-update)
@@ -928,7 +928,7 @@ minor mode is enabled."
           (not semantic-stickyfunc-mode)))
   (semantic-stickyfunc-mode-setup)
   (run-hooks 'semantic-stickyfunc-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Stickyfunc minor mode %sabled"
                (if semantic-stickyfunc-mode "en" "dis")))
   (semantic-mode-line-update)
@@ -1173,7 +1173,7 @@ minor mode is enabled."
           (not semantic-highlight-func-mode)))
   (semantic-highlight-func-mode-setup)
   (run-hooks 'semantic-highlight-func-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Highlight-Func minor mode %sabled"
                (if semantic-highlight-func-mode "en" "dis")))
   semantic-highlight-func-mode)

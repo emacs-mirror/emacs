@@ -116,7 +116,7 @@ Return a filename relative to the default directory."
 		   (error "ID Utils not available")
 		 (split-string (buffer-string) "\n" t)))))
     (setq ans (mapcar 'expand-file-name ans))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (if ans
 	  (if (= (length ans) 1)
 	      (message "%s" (car ans))
@@ -154,7 +154,7 @@ return nil."
 	(rev nil))
     (if (not b)
 	(progn
-	  (when (interactive-p)
+	  (when (called-interactively-p 'interactive)
 	    (message "ID Utils not found."))
 	  nil)
       (with-current-buffer b
@@ -167,7 +167,7 @@ return nil."
 	      (error "Version of ID Utils is %s.  Need at least %s"
 		     rev cedet-idutils-min-version))
 	  ;; Else, return TRUE, as in good enough.
-	  (when (interactive-p)
+	  (when (called-interactively-p 'interactive)
 	    (message "ID Utils %s  - Good enough for CEDET." rev))
 	  t)))))
 

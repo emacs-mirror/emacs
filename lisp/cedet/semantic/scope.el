@@ -663,10 +663,9 @@ The class returned from the scope calculation is variable
       nil ;; Don't do anything...
     (require 'semantic/db-typecache)
     (if (not point) (setq point (point)))
-    (when (interactive-p)
+    (when (called-interactively-p 'any)
       (semantic-fetch-tags)
-      (semantic-scope-reset-cache)
-      )
+      (semantic-scope-reset-cache))
     (save-excursion
       (goto-char point)
       (let* ((TAG  (semantic-current-tag))
@@ -726,10 +725,9 @@ The class returned from the scope calculation is variable
 	;; Make sure we become dependant on the typecache.
 	(semanticdb-typecache-add-dependant scopecache)
 	;; Handy debug output.
-	(when (interactive-p)
+	(when (called-interactively-p 'any)
 	  (require 'eieio-datadebug)
-	  (data-debug-show scopecache)
-	  )
+	  (data-debug-show scopecache))
 	;; Return ourselves
 	scopecache))))
 

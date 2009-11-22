@@ -224,7 +224,7 @@ minor mode is enabled."
           (not semantic-idle-scheduler-mode)))
   (semantic-idle-scheduler-mode-setup)
   (run-hooks 'semantic-idle-scheduler-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "idle-scheduler minor mode %sabled"
                (if semantic-idle-scheduler-mode "en" "dis")))
   (semantic-mode-line-update)
@@ -670,7 +670,7 @@ Return non-nil if the minor mode is enabled.")
 		 (not ,mode)))
 	 (,setup)
 	 (run-hooks ,hook)
-	 (if (interactive-p)
+	 (if (called-interactively-p 'interactive)
 	     (message "%s %sabled"
 		      (symbol-name ',mode)
 		      (if ,mode "en" "dis")))

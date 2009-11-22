@@ -84,7 +84,7 @@ Return a fully qualified filename."
 	       (if (looking-at "global: ")
 		   (error "GNU Global not available")
 		 (split-string (buffer-string) "\n" t)))))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (if ans
 	  (if (= (length ans) 1)
 	      (message "%s" (car ans))
@@ -122,7 +122,7 @@ return nil."
 	(rev nil))
     (if (not b)
 	(progn
-	  (when (interactive-p)
+	  (when (called-interactively-p 'interactive)
 	    (message "GNU Global not found."))
 	  nil)
       (with-current-buffer b
@@ -135,7 +135,7 @@ return nil."
 	      (error "Version of GNU Global is %s.  Need at least %s"
 		     rev cedet-global-min-version))
 	  ;; Else, return TRUE, as in good enough.
-	  (when (interactive-p)
+	  (when (called-interactively-p 'interactive)
 	    (message "GNU Global %s  - Good enough for CEDET." rev))
 	  t)))))
 

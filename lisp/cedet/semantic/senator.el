@@ -684,9 +684,9 @@ Use semantic tags to navigate."
     (when ft
       (ring-insert senator-tag-ring ft)
       (kill-ring-save (semantic-tag-start ft) (semantic-tag-end ft))
-      (when (interactive-p)
-        (message "Use C-y to yank text.  Use `senator-yank-tag' for prototype insert."))
-      )
+      (when (called-interactively-p 'interactive)
+        (message "Use C-y to yank text.  \
+Use `senator-yank-tag' for prototype insert.")))
     ft))
 
 ;;;###autoload
@@ -698,9 +698,9 @@ the kill ring.  Retrieve that text with \\[yank]."
   (let ((ct (senator-copy-tag))) ;; this handles the reparse for us.
     (kill-region (semantic-tag-start ct)
                  (semantic-tag-end ct))
-    (when (interactive-p)
-      (message "Use C-y to yank text.  Use `senator-yank-tag' for prototype insert."))
-    ))
+    (when (called-interactively-p 'interactive)
+      (message "Use C-y to yank text.  \
+Use `senator-yank-tag' for prototype insert."))))
 
 ;;;###autoload
 (defun senator-yank-tag ()
@@ -712,10 +712,9 @@ yanked to."
       (let ((ft (ring-ref senator-tag-ring 0)))
           (semantic-foreign-tag-check ft)
           (semantic-insert-foreign-tag ft)
-          (when (interactive-p)
+          (when (called-interactively-p 'interactive)
             (message "Use C-y to recover the yank the text of %s."
-                     (semantic-tag-name ft)))
-          )))
+                     (semantic-tag-name ft))))))
 
 ;;;###autoload
 (defun senator-copy-tag-to-register (register &optional kill-flag)

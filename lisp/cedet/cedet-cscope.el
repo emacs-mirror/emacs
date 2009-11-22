@@ -98,7 +98,7 @@ Return a fully qualified filename."
 	 (ans2 (mapcar (lambda (hit)
 			 (expand-file-name (car (split-string hit " "))))
 		       ans1)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (if ans2
 	  (if (= (length ans2) 1)
 	      (message "%s" (car ans2))
@@ -133,7 +133,7 @@ return nil."
 	(rev nil))
     (if (not b)
 	(progn
-	  (when (interactive-p)
+	  (when (called-interactively-p 'interactive)
 	    (message "CScope not found."))
 	  nil)
       (with-current-buffer b
@@ -146,7 +146,7 @@ return nil."
 	      (error "Version of CScope is %s.  Need at least %s"
 		     rev cedet-cscope-min-version))
 	  ;; Else, return TRUE, as in good enough.
-	  (when (interactive-p)
+	  (when (called-interactively-p 'interactive)
 	    (message "CScope %s  - Good enough for CEDET." rev))
 	  t)))))
 

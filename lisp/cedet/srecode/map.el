@@ -196,7 +196,7 @@ Optional argument RESET forces a reset of the current map."
   ;; the user asks for one.
   (srecode-map-update-map (not reset))
 
-  (if (interactive-p)
+  (if (called-interactively-p 'any)
       ;; Dump this map.
       (with-output-to-temp-buffer "*SRECODE MAP*"
 	(princ "   -- SRecode Global map --\n")

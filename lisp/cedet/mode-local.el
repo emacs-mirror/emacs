@@ -728,7 +728,7 @@ invoked interactively."
   "Display mode local bindings active in BUFFER."
   (interactive "b")
   (when (setq buffer (get-buffer buffer))
-    (mode-local-describe-bindings-1 buffer (interactive-p))))
+    (mode-local-describe-bindings-1 buffer (called-interactively-p 'any))))
 
 (defun describe-mode-local-bindings-in-mode (mode)
   "Display mode local bindings active in MODE hierarchy."
@@ -738,7 +738,7 @@ invoked interactively."
           #'(lambda (s) (get s 'mode-local-symbol-table))
           t (symbol-name major-mode))))
   (when (setq mode (intern-soft mode))
-    (mode-local-describe-bindings-1 mode (interactive-p))))
+    (mode-local-describe-bindings-1 mode (called-interactively-p 'any))))
 
 ;; ;;; find-func support (Emacs 21.4, or perhaps 22.1)
 ;; ;;

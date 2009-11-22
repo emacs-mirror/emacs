@@ -167,7 +167,7 @@ to perform the search.  This was added for use by a test harness."
       (set tool-return inst))
     (prog1
 	(setq semantic-symref-last-result result)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
 
@@ -187,7 +187,7 @@ Returns an object of class `semantic-symref-result'."
 	 (result (semantic-symref-get-result inst)))
     (prog1
 	(setq semantic-symref-last-result result)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
 
@@ -207,7 +207,7 @@ Returns an object of class `semantic-symref-result'."
 	 (result (semantic-symref-get-result inst)))
     (prog1
 	(setq semantic-symref-last-result result)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
 
@@ -227,7 +227,7 @@ Returns an object of class `semantic-symref-result'."
 	 (result (semantic-symref-get-result inst)))
     (prog1
 	(setq semantic-symref-last-result result)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
 
@@ -247,7 +247,7 @@ Returns an object of class `semantic-symref-result'."
 	 (result (semantic-symref-get-result inst)))
     (prog1
 	(setq semantic-symref-last-result result)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
 
@@ -268,7 +268,7 @@ Returns an object of class `semantic-symref-result'."
 	 (result (semantic-symref-get-result inst)))
     (prog1
 	(setq semantic-symref-last-result result)
-      (when (interactive-p)
+      (when (called-interactively-p 'interactive)
 	(semantic-symref-data-debug-last-result))))
   )
 

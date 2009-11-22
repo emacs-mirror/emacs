@@ -326,7 +326,7 @@ minor mode is enabled."
           (not semantic-mru-bookmark-mode)))
   (semantic-mru-bookmark-mode-setup)
   (run-hooks 'semantic-mru-bookmark-mode-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "mru-bookmark minor mode %sabled"
                (if semantic-mru-bookmark-mode "en" "dis")))
   (semantic-mode-line-update)
