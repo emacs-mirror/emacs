@@ -1,3 +1,8 @@
+2009-11-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* search.c (simple_search): Avoid CHAR_TO_BYTE in inner loop when
+	searching backwards through multibyte buffer.
+
 2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c: #include xgselect.h.

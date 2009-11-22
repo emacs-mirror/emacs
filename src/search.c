@@ -1609,39 +1609,36 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	while (1)
 	  {
 	    /* Try matching at position POS.  */
-	    EMACS_INT this_pos = pos - len;
-	    EMACS_INT this_pos_byte;
+	    EMACS_INT this_pos = pos;
+	    EMACS_INT this_pos_byte = pos_byte;
 	    int this_len = len;
-	    unsigned char *p = pat;
+	    unsigned char *p = pat + len_byte;
 
-	    if (this_pos < lim || (pos_byte - len_byte) < lim_byte)
+	    if (this_pos - len < lim || (pos_byte - len_byte) < lim_byte)
 	      goto stop;
-	    this_pos_byte = CHAR_TO_BYTE (this_pos);
-	    match_byte = pos_byte - this_pos_byte;
 
 	    while (this_len > 0)
 	      {
-		int charlen, buf_charlen;
+		int charlen;
 		int pat_ch, buf_ch;
 
-		pat_ch = STRING_CHAR_AND_LENGTH (p, charlen);
-		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 buf_charlen);
+		DEC_BOTH (this_pos, this_pos_byte);
+		PREV_CHAR_BOUNDARY (p, pat);
+		pat_ch = STRING_CHAR (p);
+		buf_ch = STRING_CHAR (BYTE_POS_ADDR (this_pos_byte));
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
 
 		this_len--;
-		p += charlen;
-		this_pos_byte += buf_charlen;
-		this_pos++;
 	      }
 
 	    if (this_len == 0)
 	      {
-		pos -= len;
-		pos_byte -= match_byte;
+		match_byte = pos_byte - this_pos_byte;
+		pos = this_pos;
+		pos_byte = this_pos_byte;
 		break;
 	      }
 
