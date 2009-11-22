@@ -174,12 +174,14 @@ Otherwise return the normal value."
 	  (viper-frame-value viper-vi-state-cursor-color)
 	  frame))))
 
-;; By default, saves current frame cursor color in the
-;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
+;; By default, saves current frame cursor color before changing viper state
 (defun viper-save-cursor-color (before-which-mode)
   (if (and (viper-window-display-p) (viper-color-display-p))
       (let ((color (viper-get-cursor-color)))
 	(if (and (stringp color) (viper-color-defined-p color)
+		 ;; there is something fishy in that the color is not saved if
+		 ;; it is the same as frames default cursor color. need to be
+		 ;; checked.
 		 (not (string= color
 			       (viper-frame-value
 				viper-replace-overlay-cursor-color))))
@@ -1046,6 +1048,11 @@ Otherwise return the normal value."
       (if mod
 	  (append mod (list basis))
 	basis))))
+
+(defun viper-last-command-char ()
+  (if (featurep 'xemacs)
+      (event-to-character last-command-event)
+    last-command-event))
 
 (defun viper-key-to-emacs-key (key)
   (let (key-name char-p modifiers mod-char-list base-key base-key-name)

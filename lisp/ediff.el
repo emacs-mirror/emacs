@@ -1451,7 +1451,9 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   "Return string describing the version of Ediff.
 When called interactively, displays the version."
   (interactive)
-  (if (called-interactively-p 'interactive)
+  ;; called-interactively-p - not in XEmacs
+  ;; (if (called-interactively-p 'interactive)
+  (if (interactive-p)
       (message "%s" (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 

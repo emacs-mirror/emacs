@@ -2342,10 +2342,10 @@ If this is a session registry buffer then just bury it."
 This is used only for sessions that involve 2 or 3 files at the same time.
 ACTION is an optional argument that can be ?h, ?m, ?=, to mark for hiding, mark
 for operation, or simply indicate which are equal files.  If it is nil, then
-`last-command-event' is used to decide which action to take."
+`(ediff-last-command-char)' is used to decide which action to take."
   (interactive)
   (if (null action)
-      (setq action last-command-event))
+      (setq action (ediff-last-command-char)))
   (let ((list (cdr ediff-meta-list))
 	marked1 marked2 marked3
 	fileinfo1 fileinfo2 fileinfo3 elt)

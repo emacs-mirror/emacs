@@ -1551,6 +1551,9 @@ This default should work without changes."
       (if (eventp event-or-key) (event-key event-or-key) event-or-key)
     event-or-key))
 
+(defun ediff-last-command-char ()
+  (ediff-event-key last-command-event))
+
 
 (defsubst ediff-frame-iconified-p (frame)
   (and (ediff-window-display-p) (frame-live-p frame)
