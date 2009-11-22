@@ -1,22 +1,3 @@
-2009-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-cmd.el: use viper-last-command-char instead of
-	last-command-char/last-command-event.
-	(viper-prefix-arg-value): do correct conversion of event-char for
-	XEmacs.
-	
-	* viper-util.el, viper.el: use viper-last-command-char instead of
-	last-command-char/last-command-event.
-
-	* ediff-init.el, ediff-mult.el, ediff-util.el: relpace
-	last-command-char and last-command-event with (ediff-last-command-char) everywhere.
-	
-	* ediff-vers.el (ediff-rcs-get-output-buffer): make sure the buffer is
-	created in fundamental mode.
-	
-	* ediff.el (ediff-version): revert the change of interactive-p to
-	called-interactively-p.
-	
 2009-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Radix modes): Discuss alternate bases for two's complement

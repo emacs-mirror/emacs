@@ -1,3 +1,23 @@
+2009-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* emulation/viper-cmd.el: Use viper-last-command-char instead of
+	last-command-char/last-command-event.
+	(viper-prefix-arg-value): Do correct conversion of event-char for
+	XEmacs.
+
+	* emulation/viper-util.el, emulation/viper.el: Use
+	viper-last-command-char instead of last-command-char/last-command-event.
+
+	* ediff-init.el, ediff-mult.el, ediff-util.el: Replace
+	last-command-char and last-command-event with (ediff-last-command-char)
+	everywhere.
+
+	* ediff-vers.el (ediff-rcs-get-output-buffer): Make sure the buffer is
+	created in fundamental mode.
+
+	* ediff.el (ediff-version): Revert the change of interactive-p to
+	called-interactively-p.
+
 2009-11-22  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/subword.el (subword-mode-map): Fix subword-mode-map
@@ -6006,7 +6026,7 @@
 
 2009-08-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-insert-isearch-string): New function.
+	* emulation/viper-cmd.el (viper-insert-isearch-string): New function.
 	(viper-if-string): Redefine C-s in the minibuffer to insert the last
 	incremental search string.
 
