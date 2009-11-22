@@ -1,3 +1,8 @@
+2009-11-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/ia.el (semantic-ia-completion-format-tag-function):
+	Use semantic-format-tag-prototype.
+
 2009-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* emulation/viper-cmd.el: Use viper-last-command-char instead of

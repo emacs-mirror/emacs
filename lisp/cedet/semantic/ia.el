@@ -52,8 +52,8 @@
 ;; functions.
 
 (defcustom semantic-ia-completion-format-tag-function
-  'semantic-prototype-nonterminal
-  "*Function used to convert a tag to a string during completion."
+  'semantic-format-tag-prototype
+  "Function used to convert a tag to a string during completion."
   :group 'semantic
   :type semantic-format-tag-custom-list)
 
