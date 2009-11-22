@@ -86,10 +86,8 @@
 				backward-kill-word transpose-words
                                 capitalize-word upcase-word downcase-word))
       (let ((othercmd (let ((name (symbol-name cmd)))
-                        (string-match "\\(.*-\\)\\(word.*\\)" name)
-                        (intern (concat (match-string 1 name)
-                                        "sub"
-                                        (match-string 2 name))))))
+                        (string-match "\\([[:alpha:]-]+\\)-word[s]?" name)
+                        (intern (concat "subword-" (match-string 1 name))))))
         (define-key map (vector 'remap cmd) othercmd)))
     map)
   "Keymap used in `subword-mode' minor mode.")

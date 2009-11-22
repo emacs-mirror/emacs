@@ -1,3 +1,8 @@
+2009-11-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* progmodes/subword.el (subword-mode-map): Fix subword-mode-map
+	generation from word-movement command names.
+
 2009-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
