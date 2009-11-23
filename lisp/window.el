@@ -1653,34 +1653,30 @@ Top and bottom destinations are actually `scroll-margin' lines
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 
-(defvar move-to-window-line-last-op nil
-  "Indicates the last move-to-window-line operation performed.
-Possible values: `top', `middle', `bottom'.")
-
 (defun move-to-window-line-top-bottom (&optional arg)
   "Position point relative to window.
 
-With an argument, acts like `move-to-window-line'.
+With a prefix argument ARG, acts like `move-to-window-line'.
 
 With no argument, positions point at center of window.
-Successive calls positions point at the top, the bottom and again
+Successive calls position point at the top, the bottom and again
 at the center of the window."
   (interactive "P")
   (cond
    (arg (move-to-window-line arg)) ; Always respect ARG.
    ((or (not (eq this-command last-command))
-	(eq move-to-window-line-last-op 'bottom))
-    (setq move-to-window-line-last-op 'middle)
+	(eq recenter-last-op 'bottom))
+    (setq recenter-last-op 'middle)
     (call-interactively 'move-to-window-line))
    (t
     (let ((this-scroll-margin
 	   (min (max 0 scroll-margin)
 		(truncate (/ (window-body-height) 4.0)))))
-      (cond ((eq move-to-window-line-last-op 'middle)
-	     (setq move-to-window-line-last-op 'top)
+      (cond ((eq recenter-last-op 'middle)
+	     (setq recenter-last-op 'top)
 	     (move-to-window-line this-scroll-margin))
-	    ((eq move-to-window-line-last-op 'top)
-	     (setq move-to-window-line-last-op 'bottom)
+	    ((eq recenter-last-op 'top)
+	     (setq recenter-last-op 'bottom)
 	     (move-to-window-line (- -1 this-scroll-margin))))))))
 
 (define-key global-map [?\M-r] 'move-to-window-line-top-bottom)

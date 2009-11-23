@@ -1,5 +1,11 @@
+2009-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (move-to-window-line-last-op): Remove.
+	(move-to-window-line-top-bottom): Reuse recenter-last-op instead.
+
 2009-11-23  Deniz Dogan  <deniz.a.m.dogan@gmail.com>  (tiny change)
 
+	Make M-r mirror the new cycling behavior of C-l.
 	* window.el (move-to-window-line-last-op): New var.
 	(move-to-window-line-top-bottom): New command.
 	(global-map): Bind M-r move-to-window-line-top-bottom.
