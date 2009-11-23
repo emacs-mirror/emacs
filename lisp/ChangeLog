@@ -1,3 +1,8 @@
+2009-11-23  Sven Joachim  <svenjoac@gmx.de>
+
+	* dired-x.el (dired-guess-shell-alist-default):
+	Support xz format.  (Bug#4953)
+
 2009-11-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/srecode/map.el (srecode-get-maps):

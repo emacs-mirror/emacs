@@ -1017,6 +1017,16 @@ dired."
 	 ;; Optional decompression.
 	 "bunzip2")
 
+   ;; xz'ed archives
+   (list "\\.t\\(ar\\.\\)?xz$"
+	 "unxz -c * | tar xvf -"
+	 ;; Extract files into a separate subdirectory
+	 '(concat "mkdir " (file-name-sans-extension file)
+		  "; unxz -c * | tar -C "
+		  (file-name-sans-extension file) " -xvf -")
+	 ;; Optional decompression.
+	 "unxz")
+
    '("\\.shar\\.Z$" "zcat * | unshar")
    '("\\.shar\\.g?z$" "gunzip -qc * | unshar")
 
@@ -1098,6 +1108,7 @@ dired."
    (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
    (list "\\.dz$" "dictunzip")
    (list "\\.bz2$" "bunzip2")
+   (list "\\.xz$" "unxz")
    (list "\\.Z$" "uncompress"
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
