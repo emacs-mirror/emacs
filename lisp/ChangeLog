@@ -1,3 +1,11 @@
+2009-11-23  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* net/browse-url.el (browse-url-filename-alist): On Windows, add
+	two slashes to the "file:" prefix.
+	(browse-url-file-url): De-munge Cygwin filenames before passing
+	them to Windows browser.
+	(browse-url-default-windows-browser): Use call-process.
+
 2009-11-23  Juri Linkov  <juri@jurta.org>
 
 	Implement DocView Continuous mode.  (Bug#4896)

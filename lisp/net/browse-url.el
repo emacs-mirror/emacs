@@ -444,7 +444,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
     ,@(if (memq system-type '(windows-nt ms-dos cygwin))
-          '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/")
+          '(("^\\([a-zA-Z]:\\)[\\/]" . "file:///\\1/")
             ("^[\\/][\\/]+" . "file://")))
     ("^/+" . "file:///"))
   "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
@@ -699,6 +699,12 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
+  ;; De-munge Cygwin filenames before passing them to Windows browser.
+  (if (eq system-type 'cygwin)
+      (let ((winfile (with-output-to-string
+		       (call-process "cygpath" nil standard-output
+				     nil "-m" file))))
+	(setq file (substring winfile 0 -1))))
   (let ((coding (and (default-value 'enable-multibyte-characters)
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
@@ -835,7 +841,7 @@ to use."
 	     (shell-command (concat "start " (shell-quote-argument url)))
 	   (error "Browsing URLs is not supported on this system")))
 	((eq system-type 'cygwin)
-	 (shell-command (concat "cygstart " (shell-quote-argument url))))
+	 (call-process "cygstart" nil nil nil url))
 	(t (w32-shell-execute "open" url))))
 
 (defun browse-url-default-macosx-browser (url &optional new-window)
