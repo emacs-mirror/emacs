@@ -310,6 +310,7 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
+;; FIXME: this should be defcustom
 (defvar comint-input-ring-size 150
   "Size of input history ring.")
 
@@ -446,6 +447,8 @@ executed once when the buffer is created."
     (define-key map [C-up] 	  'comint-previous-input)
     (define-key map [C-down] 	  'comint-next-input)
     (define-key map "\er" 	  'comint-previous-matching-input)
+    ;; FIXME: maybe M-r better to be bound to Isearch comint history?
+    ;; (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
     (define-key map "\es" 	  'comint-next-matching-input)
     (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
     (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
@@ -668,6 +671,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -1325,6 +1329,198 @@ A useful command to bind to SPC.  See `comint-replace-by-expanded-history'."
   (interactive "p")
   (comint-replace-by-expanded-history)
   (self-insert-command arg))
+
+;; Isearch in comint input history
+
+(defcustom comint-history-isearch nil
+  "Non-nil to Isearch in input history only, not in comint buffer output.
+If t, usual Isearch keys like `C-r' and `C-M-r' in comint mode search
+in the input history.
+If `dwim', Isearch keys search in the input history only when initial
+point position is at the comint command line.  When starting Isearch
+from other parts of the comint buffer, they search in the comint buffer.
+If nil, Isearch operates on the whole comint buffer."
+  :type '(choice (const :tag "Don't search in input history" nil)
+		 (const :tag "When point is on command line initially, search history" dwim)
+		 (const :tag "Always search in input history" t))
+  :group 'comint
+  :version "23.2")
+
+(defun comint-history-isearch-backward ()
+  "Search for a string backward in input history using Isearch."
+  (interactive)
+  (let ((comint-history-isearch t))
+    (isearch-backward)))
+
+(defun comint-history-isearch-backward-regexp ()
+  "Search for a regular expression backward in input history using Isearch."
+  (interactive)
+  (let ((comint-history-isearch t))
+    (isearch-backward-regexp)))
+
+(defvar comint-history-isearch-message-overlay nil)
+(make-variable-buffer-local 'comint-history-isearch-message-overlay)
+
+(defun comint-history-isearch-setup ()
+  "Set up a comint for using Isearch to search the input history.
+Intended to be added to `isearch-mode-hook' in `comint-mode'."
+  (when (or (eq comint-history-isearch t)
+	    (and (eq comint-history-isearch 'dwim)
+		 ;; Point is at command line.
+		 (comint-after-pmark-p)))
+    (setq isearch-message-prefix-add "history ")
+    (set (make-local-variable 'isearch-search-fun-function)
+	 'comint-history-isearch-search)
+    (set (make-local-variable 'isearch-message-function)
+	 'comint-history-isearch-message)
+    (set (make-local-variable 'isearch-wrap-function)
+	 'comint-history-isearch-wrap)
+    (set (make-local-variable 'isearch-push-state-function)
+	 'comint-history-isearch-push-state)
+    (add-hook 'isearch-mode-end-hook 'comint-history-isearch-end nil t)))
+
+(defun comint-history-isearch-end ()
+  "Clean up the comint after terminating Isearch in comint."
+  (if comint-history-isearch-message-overlay
+      (delete-overlay comint-history-isearch-message-overlay))
+  (setq isearch-message-prefix-add nil)
+  (setq isearch-search-fun-function nil)
+  (setq isearch-message-function nil)
+  (setq isearch-wrap-function nil)
+  (setq isearch-push-state-function nil)
+  (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t))
+
+(defun comint-goto-input (pos)
+  "Put input history item of the absolute history position POS."
+  ;; If leaving the edit line, save partial unfinished input.
+  (if (null comint-input-ring-index)
+      (setq comint-stored-incomplete-input
+	    (funcall comint-get-old-input)))
+  (setq comint-input-ring-index pos)
+  (comint-delete-input)
+  (if (and pos (not (ring-empty-p comint-input-ring)))
+      (insert (ring-ref comint-input-ring pos))
+    ;; Restore partial unfinished input.
+    (when (> (length comint-stored-incomplete-input) 0)
+      (insert comint-stored-incomplete-input))))
+
+(defun comint-history-isearch-search ()
+  "Return the proper search function, for Isearch in input history."
+  (cond
+   (isearch-word
+    (if isearch-forward 'word-search-forward 'word-search-backward))
+   (t
+    (lambda (string bound noerror)
+      (let ((search-fun
+	     ;; Use standard functions to search within comint text
+             (cond
+              (isearch-regexp
+               (if isearch-forward 're-search-forward 're-search-backward))
+              (t
+               (if isearch-forward 'search-forward 'search-backward))))
+	    found)
+	;; Avoid lazy-highlighting matches in the comint prompt when
+	;; searching forward.  Lazy-highlight calls this lambda with the
+	;; bound arg, so skip the comint prompt.
+	(if (and bound isearch-forward (< (point) (comint-line-beginning-position)))
+	    (goto-char (comint-line-beginning-position)))
+        (or
+	 ;; 1. First try searching in the initial comint text
+	 (funcall search-fun string
+		  (if isearch-forward bound (comint-line-beginning-position))
+		  noerror)
+	 ;; 2. If the above search fails, start putting next/prev history
+	 ;; elements in the comint successively, and search the string
+	 ;; in them.  Do this only when bound is nil (i.e. not while
+	 ;; lazy-highlighting search strings in the current comint text).
+	 (unless bound
+	   (condition-case nil
+	       (progn
+		 (while (not found)
+		   (cond (isearch-forward
+			  ;; Signal an error here explicitly, because
+			  ;; `comint-next-input' doesn't signal an error.
+			  (when (null comint-input-ring-index)
+			    (error "End of history; no next item"))
+			  (comint-next-input 1)
+			  (goto-char (comint-line-beginning-position)))
+			 (t
+			  ;; Signal an error here explicitly, because
+			  ;; `comint-previous-input' doesn't signal an error.
+			  (when (eq comint-input-ring-index
+				    (1- (ring-length comint-input-ring)))
+			    (error "Beginning of history; no preceding item"))
+			  (comint-previous-input 1)
+			  (goto-char (point-max))))
+		   (setq isearch-barrier (point) isearch-opoint (point))
+		   ;; After putting the next/prev history element, search
+		   ;; the string in them again, until comint-next-input
+		   ;; or comint-previous-input raises an error at the
+		   ;; beginning/end of history.
+		   (setq found (funcall search-fun string
+					(unless isearch-forward
+					  ;; For backward search, don't search
+					  ;; in the comint prompt
+					  (comint-line-beginning-position))
+					noerror)))
+		 ;; Return point of the new search result
+		 (point))
+	     ;; Return nil on the error "no next/preceding item"
+	     (error nil)))))))))
+
+(defun comint-history-isearch-message (&optional c-q-hack ellipsis)
+  "Display the input history search prompt.
+If there are no search errors, this function displays an overlay with
+the Isearch prompt which replaces the original comint prompt.
+Otherwise, it displays the standard Isearch message returned from
+`isearch-message'."
+  (if (not (and isearch-success (not isearch-error)))
+      ;; Use standard function `isearch-message' when not in comint prompt,
+      ;; or search fails, or has an error (like incomplete regexp).
+      ;; This function displays isearch message in the echo area,
+      ;; so it's possible to see what is wrong in the search string.
+      (isearch-message c-q-hack ellipsis)
+    ;; Otherwise, put the overlay with the standard isearch prompt over
+    ;; the initial comint prompt.
+    (if (overlayp comint-history-isearch-message-overlay)
+	(move-overlay comint-history-isearch-message-overlay
+		      (save-excursion (forward-line 0) (point))
+                      (comint-line-beginning-position))
+      (setq comint-history-isearch-message-overlay
+	    (make-overlay (save-excursion (forward-line 0) (point))
+                          (comint-line-beginning-position)))
+      (overlay-put comint-history-isearch-message-overlay 'evaporate t))
+    (overlay-put comint-history-isearch-message-overlay
+		 'display (isearch-message-prefix c-q-hack ellipsis))
+    ;; And clear any previous isearch message.
+    (message "")))
+
+(defun comint-history-isearch-wrap ()
+  "Wrap the input history search when search fails.
+Move point to the first history element for a forward search,
+or to the last history element for a backward search."
+  (unless isearch-word
+    ;; When `comint-history-isearch-search' fails on reaching the
+    ;; beginning/end of the history, wrap the search to the first/last
+    ;; input history element.
+    (if isearch-forward
+	(comint-goto-input (1- (ring-length comint-input-ring)))
+      (comint-goto-input nil))
+    (setq isearch-success t))
+  (goto-char (if isearch-forward (comint-line-beginning-position) (point-max))))
+
+(defun comint-history-isearch-push-state ()
+  "Save a function restoring the state of input history search.
+Save `comint-input-ring-index' to the additional state parameter
+in the search status stack."
+  `(lambda (cmd)
+     (comint-history-isearch-pop-state cmd ,comint-input-ring-index)))
+
+(defun comint-history-isearch-pop-state (cmd hist-pos)
+  "Restore the input history search state.
+Go to the history element by the absolute history position HIST-POS."
+  (comint-goto-input hist-pos))
+
 
 (defun comint-within-quotes (beg end)
   "Return t if the number of quotes between BEG and END is odd.

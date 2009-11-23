@@ -1,3 +1,18 @@
+2009-11-23  Juri Linkov  <juri@jurta.org>
+
+	Implement Isearch in comint input history.  (Bug#3746)
+	* comint.el (comint-mode): Add `comint-history-isearch-setup' to
+	`isearch-mode-hook'.
+	(comint-history-isearch): New defcustom.
+	(comint-history-isearch-backward)
+	(comint-history-isearch-backward-regexp): New commands.
+	(comint-history-isearch-message-overlay): New buffer-local variable.
+	(comint-history-isearch-setup, comint-history-isearch-end)
+	(comint-goto-input, comint-history-isearch-search)
+	(comint-history-isearch-message, comint-history-isearch-wrap)
+	(comint-history-isearch-push-state)
+	(comint-history-isearch-pop-state): New functions.
+
 2009-11-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-shell-prompt-pattern): Use \r for carriage

@@ -281,6 +281,11 @@ the command asynchronously without the need to manually add ampersand to
 the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
 
+*** Isearch searches in the comint/shell input history when the new variable
+`comint-history-isearch' is non-nil.  New commands `comint-history-isearch-backward'
+and `comint-history-isearch-backward-regexp' start Isearch in the input history
+regardless of the value of `comint-history-isearch'.
+
 +++
 *** Autorevert Tail mode now works now for remote files.
 
