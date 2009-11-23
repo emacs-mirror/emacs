@@ -6695,13 +6695,22 @@ absolute_filename (file, dir)
 	      else if (cp[0] != '/')
 		cp = slashp;
 #endif
+#ifdef HAVE_MEMMOVE
+              memmove (cp, slashp + 3, strlen (slashp + 2));
+#else
+              /* Overlapping copy isn't really okay */
 	      strcpy (cp, slashp + 3);
+#endif
 	      slashp = cp;
 	      continue;
 	    }
 	  else if (slashp[2] == '/' || slashp[2] == '\0')
 	    {
-	      strcpy (slashp, slashp + 2);
+#ifdef HAVE_MEMMOVE
+	      memmove (slashp, slashp + 2, strlen (slashp + 1));
+#else
+              strcpy (slashp, slashp + 2);
+#endif
 	      continue;
 	    }
 	}
