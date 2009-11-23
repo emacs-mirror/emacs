@@ -205,6 +205,8 @@ extern Lisp_Object get_minibuffer ();
 extern Lisp_Object Fhandle_switch_frame ();
 extern Lisp_Object Fredirect_frame_focus ();
 extern Lisp_Object x_get_focus_frame ();
+extern Lisp_Object QCname, Qfont_param;
+
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame.
@@ -3359,7 +3361,7 @@ x_set_font (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Lisp_Object frame, font_object;
+  Lisp_Object frame, font_object, font_param = Qnil;
   int fontset = -1;
 
   /* Set the frame parameter back to the old value because we may
@@ -3371,6 +3373,7 @@ x_set_font (f, arg, oldval)
      never fail.  */
   if (STRINGP (arg))
     {
+      font_param = arg;
       fontset = fs_query_fontset (arg, 0);
       if (fontset < 0)
 	{
@@ -3401,10 +3404,12 @@ x_set_font (f, arg, oldval)
 	error ("Unknown fontset: %s", SDATA (XCAR (arg)));
       font_object = XCDR (arg);
       arg = AREF (font_object, FONT_NAME_INDEX);
+      font_param = Ffont_get (font_object, QCname);
     }
   else if (FONT_OBJECT_P (arg))
     {
       font_object = arg;
+      font_param = Ffont_get (font_object, QCname);
       /* This is to store the XLFD font name in the frame parameter for
 	 backward compatibility.  We should store the font-object
 	 itself in the future.  */
@@ -3429,6 +3434,9 @@ x_set_font (f, arg, oldval)
 
   x_new_font (f, font_object, fontset);
   store_frame_param (f, Qfont, arg);
+#ifdef HAVE_X_WINDOWS
+  store_frame_param (f, Qfont_param, font_param);
+#endif
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
   /* Ensure we redraw it.  */

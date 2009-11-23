@@ -218,7 +218,7 @@ font_make_object (size, entity, pixelsize)
 	font->props[i] = AREF (entity, i);
       if (! NILP (AREF (entity, FONT_EXTRA_INDEX)))
 	font->props[FONT_EXTRA_INDEX]
-	  = Fcopy_sequence (AREF (entity, FONT_EXTRA_INDEX));
+	  = Fcopy_alist (AREF (entity, FONT_EXTRA_INDEX));
     }
   if (size > 0)
     font->props[FONT_SIZE_INDEX] = make_number (pixelsize);
@@ -721,10 +721,12 @@ font_put_extra (font, prop, val)
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
 	prev = extra, extra = XCDR (extra);
-      if (NILP (prev))
-	ASET (font, FONT_EXTRA_INDEX, Fcons (Fcons (prop, val), extra));
-      else
-	XSETCDR (prev, Fcons (Fcons (prop, val), extra));
+
+      if (NILP (prev)) 
+        ASET (font, FONT_EXTRA_INDEX, Fcons (Fcons (prop, val), extra));
+      else 
+        XSETCDR (prev, Fcons (Fcons (prop, val), extra));
+      
       return val;
     }
   XSETCDR (slot, val);
@@ -3600,12 +3602,16 @@ font_open_by_name (f, name)
      char *name;
 {
   Lisp_Object args[2];
-  Lisp_Object spec;
+  Lisp_Object spec, ret;
 
   args[0] = QCname;
   args[1] = make_unibyte_string (name, strlen (name));
   spec = Ffont_spec (2, args);
-  return font_open_by_spec (f, spec);
+  ret = font_open_by_spec (f, spec);
+  /* Do not loose name originally put in.  */
+  font_put_extra (ret, QCname, args[1]);
+
+  return ret;
 }
 
 
@@ -4137,7 +4143,7 @@ DEFUN ("copy-font-spec", Fcopy_font_spec, Scopy_font_spec, 1, 1, 0,
   new_spec = font_make_spec ();
   for (i = 1; i < FONT_EXTRA_INDEX; i++)
     ASET (new_spec, i, AREF (font, i));
-  extra = Fcopy_sequence (AREF (font, FONT_EXTRA_INDEX));
+  extra = Fcopy_alist (AREF (font, FONT_EXTRA_INDEX));
   /* We must remove :font-entity property.  */
   for (prev = Qnil, tail = extra; CONSP (tail); prev = tail, tail = XCDR (tail))
     if (EQ (XCAR (XCAR (tail)), QCfont_entity))

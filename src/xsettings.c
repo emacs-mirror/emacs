@@ -368,6 +368,25 @@ read_xft_settings (dpyinfo, settings)
 }
 
 static void
+set_default_xft_settings (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+  FcPattern *pat;
+  pat = FcPatternCreate ();
+  XftDefaultSubstitute (dpyinfo->display,
+                        XScreenNumberOfScreen (dpyinfo->screen),
+                        pat);
+
+  FcPatternDel (pat, FC_ANTIALIAS);
+  FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);
+  FcPatternDel (pat, FC_HINTING);
+  FcPatternAddBool (pat, FC_HINTING, FcTrue);
+  FcPatternDel (pat, FC_HINT_STYLE);
+  FcPatternAddInteger (pat, FC_HINT_STYLE,FC_HINT_MEDIUM);
+  XftDefaultSet (dpyinfo->display, pat);
+}
+
+static void
 apply_xft_settings (dpyinfo, send_event_p)
      struct x_display_info *dpyinfo;
      int send_event_p;
@@ -546,6 +565,8 @@ init_xfd_settings (dpyinfo)
   get_prop_window (dpyinfo);
   if (dpyinfo->xsettings_window != None)
     apply_xft_settings (dpyinfo, False);
+  else
+    set_default_xft_settings (dpyinfo);
 
   UNBLOCK_INPUT;
 

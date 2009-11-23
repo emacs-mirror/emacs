@@ -1,3 +1,19 @@
+2009-11-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_select_font): Try to convert Fontconfig name to Gtk name
+	because that is what Gtk+ font dialog understands.
+
+	* font.c (font_make_object, Fcopy_font_spec): Use Fcopy_alist instead
+	of Fcopy_sequence.
+	(font_open_by_name): Put name given into QCname for font-object returned.
+
+	* frame.c (x_set_font): Save original font name as frame parameter
+	font-parameter.
+
+	* xsettings.c (set_default_xft_settings): New function.
+	(init_xfd_settings): Call set_default_xft_settings if no XSETTINGS window
+	is found.
+
 2009-11-22  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* search.c (simple_search): Avoid CHAR_TO_BYTE in inner loop when

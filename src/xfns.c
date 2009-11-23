@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <math.h>
 #include <setjmp.h>
+#include <ctype.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -196,7 +197,7 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
-static Lisp_Object Qfont_param;
+Lisp_Object Qfont_param;
 
 /* In dispnew.c */
 
@@ -5607,20 +5608,34 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   GCPRO2(font_param, font);
 
   XSETFONT (font, FRAME_FONT (f));
-  font_param = Ffont_get (font, intern_c_string (":name"));
+  font_param = Ffont_get (font, intern (":name"));
   if (STRINGP (font_param))
-    default_name = SDATA (font_param);
+    default_name = xstrdup (SDATA (font_param));
   else 
     {
       font_param = Fframe_parameter (frame, Qfont_param);
       if (STRINGP (font_param))
-        default_name = SDATA (font_param);
+        default_name = xstrdup (SDATA (font_param));
     }
 
   if (default_name == NULL && x_last_font_name != NULL)
-    default_name = x_last_font_name;
+    default_name = xstrdup (x_last_font_name);
+
+  /* Convert fontconfig names to Gtk names, i.e. remove - before number */
+  if (default_name) 
+    {
+      char *p = strrchr (default_name, '-');
+      if (p)
+        {
+          char *ep = p+1;
+          while (isdigit (*ep))
+            ++ep;
+          if (*ep == '\0') *p = ' ';
+        }
+    }
 
   name = xg_get_font_name (f, default_name);
+  xfree (default_name);
 
   if (name)
     {
