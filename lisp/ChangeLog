@@ -1,3 +1,13 @@
+2009-11-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-shell-prompt-pattern): Use \r for carriage
+	return.
+	(tramp-handle-make-symbolic-link)
+	(tramp-handle-dired-compress-file, tramp-handle-expand-file-name):
+	Quote file names.
+	(tramp-send-command-and-check): New argument DONT-SUPPRESS-ERR.
+	(tramp-handle-process-file): Use it.
+
 2009-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (move-to-window-line-last-op): Remove.
