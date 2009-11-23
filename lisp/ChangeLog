@@ -1,5 +1,14 @@
 2009-11-23  Juri Linkov  <juri@jurta.org>
 
+	Implement DocView Continuous mode.  (Bug#4896)
+	* doc-view.el (doc-view-continuous-mode): New defcustom.
+	(doc-view-mode-map): Bind C-n/<down> to `doc-view-next-line-or-next-page',
+	C-p/<up> to `doc-view-previous-line-or-previous-page'.
+	(doc-view-next-line-or-next-page)
+	(doc-view-previous-line-or-previous-page): New commands.
+
+2009-11-23  Juri Linkov  <juri@jurta.org>
+
 	Implement Isearch in comint input history.  (Bug#3746)
 	* comint.el (comint-mode): Add `comint-history-isearch-setup' to
 	`isearch-mode-hook'.

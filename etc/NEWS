@@ -192,6 +192,11 @@ effective for buffers that have no associated file.  If you want to
 exempt buffers that do correspond to files, customize the value of
 `desktop-files-not-to-save' instead.
 
+** DocView
+
+*** When `doc-view-continuous-mode' is non-nil, scrolling a line
+on the page edge advances to the next/previous page.
+
 ** FIXME mail-user-agent change
 This probably affects a lot of documentation.
 
