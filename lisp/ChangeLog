@@ -1,3 +1,9 @@
+2009-11-23  Deniz Dogan  <deniz.a.m.dogan@gmail.com>  (tiny change)
+
+	* window.el (move-to-window-line-last-op): New var.
+	(move-to-window-line-top-bottom): New command.
+	(global-map): Bind M-r move-to-window-line-top-bottom.
+
 2009-11-23  Sven Joachim  <svenjoac@gmx.de>
 
 	* dired-x.el (dired-guess-shell-alist-default):
