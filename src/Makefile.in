@@ -1042,6 +1042,9 @@ stamp-oldxmenu:
 	exit 1
 
 ecrt0.o: ecrt0.c $(config_h)
+#ifdef AUTO_DEPEND
+	@-test -d deps || mkdir deps
+#endif
 	CRT0_COMPILE ${srcdir}/ecrt0.c
 doc.o: buildobj.h
 

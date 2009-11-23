@@ -1,5 +1,7 @@
 2009-11-23  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* Makefile.in: Must create deps for ecrt0.o in its rule.
+
 	* xfns.c (Fx_select_font): Try to convert Fontconfig name to Gtk name
 	because that is what Gtk+ font dialog understands.
 
