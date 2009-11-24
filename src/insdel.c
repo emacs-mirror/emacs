@@ -370,14 +370,14 @@ adjust_markers_for_delete (EMACS_INT from, EMACS_INT from_byte,
 	       re-inserted text after undoing a deletion, and must be
 	       adjusted to move them to the correct place.  */
 	      XSETMISC (marker, m);
-	    record_marker_adjustment (marker, from - charpos);
+	      record_marker_adjustment (marker, from - charpos);
 	    }
 	  else if (charpos < to)
 	    { /* Before-insertion markers will automatically move forward
 	       upon re-inserting the deleted text, so we have to arrange
 	       for them to move backward to the correct position.  */
 	      XSETMISC (marker, m);
-	    record_marker_adjustment (marker, charpos - to);
+	      record_marker_adjustment (marker, to - charpos);
 	    }
 	  m->charpos = from;
 	  m->bytepos = from_byte;

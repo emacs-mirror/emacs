@@ -1,3 +1,8 @@
+2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (adjust_markers_for_delete): Move it in the
+	right direction!  (bug#4803)
+
 2009-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* font.c (font_open_entity): Don't use ASET if font_object is Qnil.
