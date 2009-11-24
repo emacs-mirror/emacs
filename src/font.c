@@ -3007,7 +3007,8 @@ font_open_entity (f, entity, pixel_size)
     return Qnil;
 
   font_object = driver_list->driver->open (f, entity, scaled_pixel_size);
-  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
+  if (!NILP (font_object))
+    ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
   FONT_ADD_LOG ("open", entity, font_object);
   if (NILP (font_object))
     return Qnil;
