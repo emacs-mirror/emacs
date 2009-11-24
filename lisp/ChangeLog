@@ -3,6 +3,9 @@
 	* bookmark.el (bookmark-bmenu-hide-filenames): Remove assignment to
 	deleted variable bookmark-bmenu-bookmark-column.
 
+	* cedet/semantic/idle.el (global-semantic-idle-scheduler-mode):
+	Move after definition of global-semantic-idle-tag-highlight-mode.
+
 2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bookmark.el (bookmark-bmenu-search): Clear echo area when exiting.

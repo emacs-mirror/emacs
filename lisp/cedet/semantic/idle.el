@@ -139,24 +139,6 @@ unlikely the user would be ready to type again right away."
   :set (lambda (sym val)
          (global-semantic-idle-scheduler-mode (if val 1 -1))))
 
-;;;###autoload
-(defun global-semantic-idle-scheduler-mode (&optional arg)
-  "Toggle global use of option `semantic-idle-scheduler-mode'.
-The idle scheduler with automatically reparse buffers in idle time,
-and then schedule other jobs setup with `semantic-idle-scheduler-add'.
-If ARG is positive, enable, if it is negative, disable.
-If ARG is nil, then toggle."
-  (interactive "P")
-  ;; When turning off, disable other idle modes.
-  (when (or (and (numberp arg) (< arg 0))
-	    (and (null arg) global-semantic-idle-scheduler-mode))
-    (global-semantic-idle-summary-mode -1)
-    (global-semantic-idle-tag-highlight-mode -1)
-    (global-semantic-idle-completions-mode -1))
-  (setq global-semantic-idle-scheduler-mode
-        (semantic-toggle-minor-mode-globally
-         'semantic-idle-scheduler-mode arg)))
-
 (defcustom semantic-idle-scheduler-mode-hook nil
   "Hook run at the end of the function `semantic-idle-scheduler-mode'."
   :group 'semantic
@@ -589,6 +571,7 @@ Does nothing if the current buffer doesn't need reparsing."
 ;; needed to create the minor mode that will enable or disable
 ;; a services.  The services must provide a single function.
 
+;; FIXME doc is incomplete.
 (defmacro define-semantic-idle-service (name doc &rest forms)
   "Create a new idle services with NAME.
 DOC will be a documentation string describing FORMS.
@@ -971,6 +954,25 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	   (semantic-tag-start tag)
 	   (semantic-tag-end tag)))
 	))))
+
+
+;;;###autoload
+(defun global-semantic-idle-scheduler-mode (&optional arg)
+  "Toggle global use of option `semantic-idle-scheduler-mode'.
+The idle scheduler with automatically reparse buffers in idle time,
+and then schedule other jobs setup with `semantic-idle-scheduler-add'.
+If ARG is positive, enable, if it is negative, disable.
+If ARG is nil, then toggle."
+  (interactive "P")
+  ;; When turning off, disable other idle modes.
+  (when (or (and (numberp arg) (< arg 0))
+	    (and (null arg) global-semantic-idle-scheduler-mode))
+    (global-semantic-idle-summary-mode -1)
+    (global-semantic-idle-tag-highlight-mode -1)
+    (global-semantic-idle-completions-mode -1))
+  (setq global-semantic-idle-scheduler-mode
+        (semantic-toggle-minor-mode-globally
+         'semantic-idle-scheduler-mode arg)))
 
 
 ;;; Completion Popup Mode
