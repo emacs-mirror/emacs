@@ -1254,6 +1254,11 @@ toggle between displaying the document or editing it as text.
 	  buffer-read-only t
 	  major-mode 'doc-view-mode)
     (doc-view-initiate-display)
+    ;; Switch off view-mode explicitly, because doc-view-mode is the
+    ;; canonical view mode for PDF/PS/DVI files.  This could be
+    ;; switched on automatically depending on the value of
+    ;; `view-read-only'.
+    (view-mode -1)
     (run-mode-hooks 'doc-view-mode-hook)))
 
 ;;;###autoload

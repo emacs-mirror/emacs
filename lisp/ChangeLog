@@ -1,8 +1,14 @@
+2009-11-24  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Switch off view-mode explicitly,
+	because it could be enabled automatically if view-read-only is
+	non-nil.
+
 2009-11-24  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-vers.el (ediff-rcs-get-output-buffer): Revert the change
 	made on 2009-11-22.
-	
+
 2009-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* bookmark.el (bookmark-bmenu-hide-filenames): Remove assignment to
