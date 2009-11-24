@@ -859,9 +859,8 @@ external command."
     (if (and ext-du
 	     (not (catch 'have-ange-path
 		    (eshell-for arg args
-		      (if (eq (find-file-name-handler (expand-file-name arg)
-						      'directory-files)
-			      'ange-ftp-hook-function)
+		      (if (string-equal
+			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
 	(throw 'eshell-replace-command
 	       (eshell-parse-command ext-du args))

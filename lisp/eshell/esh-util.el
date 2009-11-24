@@ -237,6 +237,21 @@ If N or M is nil, it means the end of the list."
 	    a (last a)))
     a))
 
+(defvar eshell-path-env (getenv "PATH")
+  "Content of $PATH.
+It might be different from \(getenv \"PATH\"\), when
+`default-directory' points to a remote host.")
+
+(defun eshell-parse-colon-path (path-env)
+  "Split string with `parse-colon-path'.
+Prepend remote identification of `default-directory', if any."
+  (let ((remote (file-remote-p default-directory)))
+    (if remote
+	(mapcar
+	 (lambda (x) (concat remote x))
+	 (parse-colon-path path-env))
+      (parse-colon-path path-env))))
+
 (defun eshell-split-path (path)
   "Split a path into multiple subparts."
   (let ((len (length path))
@@ -682,29 +697,24 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun eshell-file-attributes (file)
   "Return the attributes of FILE, playing tricks if it's over ange-ftp."
   (let* ((file (expand-file-name file))
-	 (handler (find-file-name-handler file 'file-attributes))
 	 entry)
-    (if (not handler)
-	(file-attributes file)
-      (if (eq (find-file-name-handler (file-name-directory file)
-				      'directory-files)
-	      'ange-ftp-hook-function)
-	  (let ((base (file-name-nondirectory file))
-		(dir (file-name-directory file)))
+    (if (string-equal (file-remote-p file 'method) "ftp")
+	(let ((base (file-name-nondirectory file))
+	      (dir (file-name-directory file)))
+	  (if (boundp 'ange-cache)
+	      (setq entry (cdr (assoc base (cdr (assoc dir ange-cache))))))
+	  (unless entry
+	    (setq entry (eshell-parse-ange-ls dir))
 	    (if (boundp 'ange-cache)
-		(setq entry (cdr (assoc base (cdr (assoc dir ange-cache))))))
-	    (unless entry
-	      (setq entry (eshell-parse-ange-ls dir))
-	      (if (boundp 'ange-cache)
-		  (setq ange-cache
-			(cons (cons dir entry)
-			      ange-cache)))
-	      (if entry
-		  (let ((fentry (assoc base (cdr entry))))
-		    (if fentry
-			(setq entry (cdr fentry))
-		      (setq entry nil)))))))
-      (or entry (funcall handler 'file-attributes file)))))
+		(setq ange-cache
+		      (cons (cons dir entry)
+			    ange-cache)))
+	    (if entry
+		(let ((fentry (assoc base (cdr entry))))
+		  (if fentry
+		      (setq entry (cdr fentry))
+		    (setq entry nil))))))
+      (file-attributes file))))
 
 (defalias 'eshell-copy-tree 'copy-tree)
 

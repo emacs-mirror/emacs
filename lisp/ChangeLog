@@ -1,3 +1,29 @@
+2009-11-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve handling of processes on remote hosts.
+
+	* eshell/esh-util.el (eshell-path-env): New defvar.
+	(eshell-parse-colon-path): New defun.
+	(eshell-file-attributes): Use `eshell-parse-colon-path'.
+
+	* eshell/esh-ext.el (eshell-search-path): Use
+	`eshell-parse-colon-path'.
+	(eshell-remote-command): Remove argument HANDLER.
+	(eshell-external-command): Check for FTP remote connection.
+
+	* eshell/esh-proc.el (eshell-gather-process-output): Use
+	`file-truename', in order to start also symlinked files. Apply
+	`start-file-process' instead of `start-process'. Shorten `command'
+	to the local file name part.
+
+	* eshell/em-cmpl.el (eshell-complete-commands-list): Use
+	`eshell-parse-colon-path'.
+
+	* eshell/em-unix.el (eshell/du): Check for FTP remote connection.
+
+	* net/tramp.el (tramp-eshell-directory-change): New defun.  Add it
+	to `eshell-directory-change-hook'.
+
 2009-11-24  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode): Switch off view-mode explicitly,

@@ -73,7 +73,7 @@ since nothing else but Eshell will be able to understand
   "Search the environment path for NAME."
   (if (file-name-absolute-p name)
       name
-    (let ((list (parse-colon-path (getenv "PATH")))
+    (let ((list (eshell-parse-colon-path eshell-path-env))
 	  suffixes n1 n2 file)
       (while list
 	(setq n1 (concat (car list) name))
@@ -176,7 +176,7 @@ This bypasses all Lisp functions and aliases."
 	(error "%s: external command not found"
 	       (substring command 1))))))
 
-(defun eshell-remote-command (handler command args)
+(defun eshell-remote-command (command args)
   "Insert output from a remote COMMAND, using ARGS.
 A remote command is something that executes on a different machine.
 An external command simply means external to Emacs.
@@ -190,10 +190,10 @@ causing the user to wonder if anything's really going on..."
     (unwind-protect
 	(progn
 	  (setq exitcode
-		(funcall handler 'shell-command
-			 (mapconcat 'shell-quote-argument
-				    (append (list command) args) " ")
-			 outbuf errbuf))
+		(shell-command
+		 (mapconcat 'shell-quote-argument
+			    (append (list command) args) " ")
+		 outbuf errbuf))
 	  (eshell-print (with-current-buffer outbuf (buffer-string)))
 	  (eshell-error (with-current-buffer errbuf (buffer-string))))
       (eshell-close-handles exitcode 'nil)
@@ -203,23 +203,14 @@ causing the user to wonder if anything's really going on..."
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let ((handler
-	 (unless (or (equal default-directory "/")
-		     (and (eshell-under-windows-p)
-			  (string-match "\\`[A-Za-z]:[/\\\\]\\'"
-					default-directory)))
-	   (find-file-name-handler default-directory
-				   'shell-command))))
-    (if (and handler
-	     (not (and (featurep 'xemacs)
-		       (eq handler 'dired-handler-fn))))
-	(eshell-remote-command handler command args))
-    (let ((interp (eshell-find-interpreter command)))
-      (assert interp)
-      (if (functionp (car interp))
-	  (apply (car interp) (append (cdr interp) args))
-	(eshell-gather-process-output
-	 (car interp) (append (cdr interp) args))))))
+  (if (string-equal (file-remote-p default-directory 'method) "ftp")
+      (eshell-remote-command command args))
+  (let ((interp (eshell-find-interpreter command)))
+    (assert interp)
+    (if (functionp (car interp))
+	(apply (car interp) (append (cdr interp) args))
+      (eshell-gather-process-output
+       (car interp) (append (cdr interp) args)))))
 
 (defun eshell/addpath (&rest args)
   "Add a set of paths to PATH."

@@ -261,7 +261,7 @@ See `eshell-needs-pipe'."
 (defun eshell-gather-process-output (command args)
   "Gather the output from COMMAND + ARGS."
   (unless (and (file-executable-p command)
-	       (file-regular-p command))
+	       (file-regular-p (file-truename command)))
     (error "%s: not an executable file" command))
   (let* ((delete-exited-processes
 	  (if eshell-current-subjob-p
@@ -270,12 +270,13 @@ See `eshell-needs-pipe'."
 	 (process-environment (eshell-environment-variables))
 	 proc decoding encoding changed)
     (cond
-     ((fboundp 'start-process)
+     ((fboundp 'start-file-process)
       (setq proc
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
-		     process-connection-type)))
-	      (apply 'start-process
+		     process-connection-type))
+		  (command (or (file-remote-p command 'localname) command)))
+	      (apply 'start-file-process
 		     (file-name-nondirectory command) nil
 		     ;; `start-process' can't deal with relative filenames.
 		     (append (list (expand-file-name command)) args))))

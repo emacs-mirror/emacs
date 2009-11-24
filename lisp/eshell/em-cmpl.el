@@ -402,7 +402,7 @@ to writing a completion function."
 	  (setq filename (substring filename 1)
 		pcomplete-stub filename
 		glob-name t))
-      (let* ((paths (split-string (getenv "PATH") path-separator))
+      (let* ((paths (eshell-parse-colon-path eshell-path-env))
 	     (cwd (file-name-as-directory
 		   (expand-file-name default-directory)))
 	     (path "") (comps-in-path ())
