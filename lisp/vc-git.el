@@ -147,7 +147,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (when (vc-git-root file)
     (with-temp-buffer
       (let* (process-file-side-effects
-	     (dir (file-name-directory file))
+	     ;; do not use the `file-name-directory' here: git-ls-files
+	     ;; sometimes fails to return the correct status for relative
+	     ;; path specs. 
+	     ;; see also: http://marc.info/?l=git&m=125787684318129&w=2
+	     (dir (vc-git-root file))
              (name (file-relative-name file dir))
              (str (ignore-errors
                     (when dir (cd dir))

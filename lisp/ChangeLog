@@ -1,3 +1,9 @@
+2009-11-24  David Reitter  <david.reitter@gmail.com>
+
+	* vc-git.el (vc-git-registered): use checkout directory (where
+	.git is) rather than the file's directory and a relative path spec
+	to work around a bug in git.
+
 2009-11-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	Improve handling of processes on remote hosts.
