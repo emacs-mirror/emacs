@@ -103,39 +103,41 @@ into help buttons that call `describe-text-category' or
   (interactive "SCategory: ")
   (help-setup-xref (list #'describe-text-category category)
 		   (called-interactively-p 'interactive))
-  (save-excursion
-    (with-output-to-temp-buffer "*Help*"
-      (set-buffer standard-output)
+  (with-help-window (help-buffer)
+    (with-current-buffer standard-output
       (insert "Category " (format "%S" category) ":\n\n")
       (describe-property-list (symbol-plist category))
       (goto-char (point-min)))))
 
 ;;;###autoload
-(defun describe-text-properties (pos &optional output-buffer)
-  "Describe widgets, buttons, overlays and text properties at POS.
+(defun describe-text-properties (pos &optional output-buffer buffer)
+  "Describe widgets, buttons, overlays, and text properties at POS.
+POS is taken to be in BUFFER or in current buffer if nil.
 Interactively, describe them for the character after point.
 If optional second argument OUTPUT-BUFFER is non-nil,
 insert the output into that buffer, and don't initialize or clear it
 otherwise."
   (interactive "d")
+  (let ((src-buf (current-buffer)))
+    (if buffer (set-buffer buffer) (setq buffer (current-buffer)))
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (if output-buffer
       (describe-text-properties-1 pos output-buffer)
     (if (not (or (text-properties-at pos) (overlays-at pos)))
 	(message "This is plain text.")
-      (let ((buffer (current-buffer))
-	    (target-buffer "*Help*"))
-	(when (eq buffer (get-buffer target-buffer))
-	  (setq target-buffer "*Help*<2>"))
-	(save-excursion
-	  (with-output-to-temp-buffer target-buffer
-	    (set-buffer standard-output)
+        (with-temp-buffer
 	    (setq output-buffer (current-buffer))
 	    (insert "Text content at position " (format "%d" pos) ":\n\n")
-	    (with-current-buffer buffer
-	      (describe-text-properties-1 pos output-buffer))
-	    (goto-char (point-min))))))))
+          (set-buffer buffer)
+          (describe-text-properties-1 pos output-buffer)
+          (set-buffer src-buf)
+          (help-setup-xref (list 'describe-text-properties pos nil buffer)
+                           (called-interactively-p 'interactive))
+          (with-help-window (help-buffer)
+            (with-current-buffer standard-output
+              (buffer-swap-text output-buffer)
+              (goto-char (point-min)))))))))
 
 (defun describe-text-properties-1 (pos output-buffer)
   (let* ((properties (text-properties-at pos))
@@ -373,383 +375,394 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 	     mnemonics ", ")))))
 
 ;;;###autoload
-(defun describe-char (pos)
+(defun describe-char (pos &optional buffer)
   "Describe the character after POS (interactively, the character after point).
+Is POS is taken to be in buffer BUFFER or current buffer if nil.
 The information includes character code, charset and code points in it,
 syntax, category, how the character is encoded in a file,
 character composition information (if relevant),
 as well as widgets, buttons, overlays, and text properties."
   (interactive "d")
-  (if (>= pos (point-max))
-      (error "No character follows specified position"))
-  (let* ((char (char-after pos))
-	 (eight-bit-p (and (not enable-multibyte-characters) (>= char 128)))
-	 (charset (if eight-bit-p 'eight-bit
-		    (or (get-text-property pos 'charset) (char-charset char))))
-	 (composition (find-composition pos nil nil t))
-	 (component-chars nil)
-	 (display-table (or (window-display-table)
-			    buffer-display-table
-			    standard-display-table))
-	 (disp-vector (and display-table (aref display-table char)))
-	 (multibyte-p enable-multibyte-characters)
-	 (overlays (mapcar #'(lambda (o) (overlay-properties o))
-			   (overlays-at pos)))
-	 (char-description (if (not multibyte-p)
-			       (single-key-description char)
-			     (if (< char 128)
-				 (single-key-description char)
-			       (string-to-multibyte
-				(char-to-string char)))))
-	 (text-props-desc
-	  (let ((tmp-buf (generate-new-buffer " *text-props*")))
-	    (unwind-protect
-		(progn
-		  (describe-text-properties pos tmp-buf)
-		  (with-current-buffer tmp-buf (buffer-string)))
-	      (kill-buffer tmp-buf))))
-	 item-list max-width code)
+  (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
+  (let ((src-buf (current-buffer)))
+    (set-buffer buffer)
+    (if (>= pos (point-max))
+        (error "No character follows specified position"))
+    (let* ((char (char-after pos))
+           (eight-bit-p (and (not enable-multibyte-characters) (>= char 128)))
+           (charset (if eight-bit-p 'eight-bit
+                      (or (get-text-property pos 'charset)
+                          (char-charset char))))
+           (composition (find-composition pos nil nil t))
+           (component-chars nil)
+           (display-table (or (window-display-table)
+                              buffer-display-table
+                              standard-display-table))
+           (disp-vector (and display-table (aref display-table char)))
+           (multibyte-p enable-multibyte-characters)
+           (overlays (mapcar #'(lambda (o) (overlay-properties o))
+                             (overlays-at pos)))
+           (char-description (if (not multibyte-p)
+                                 (single-key-description char)
+                               (if (< char 128)
+                                   (single-key-description char)
+                                 (string-to-multibyte
+                                  (char-to-string char)))))
+           (text-props-desc
+            (let ((tmp-buf (generate-new-buffer " *text-props*")))
+              (unwind-protect
+                  (progn
+                    (describe-text-properties pos tmp-buf)
+                    (with-current-buffer tmp-buf (buffer-string)))
+                (kill-buffer tmp-buf))))
+           item-list max-width code)
 
-    (if multibyte-p
-	(or (setq code (encode-char char charset))
-	    (setq charset (char-charset char)
-		  code (encode-char char charset)))
-      (setq code char))
-    (when composition
-      ;; When the composition is trivial (i.e. composed only with the
-      ;; current character itself without any alternate characters),
-      ;; we don't show the composition information.  Otherwise, store
-      ;; two descriptive strings in the first two elments of
-      ;; COMPOSITION.
-      (or (catch 'tag
-	    (let ((from (car composition))
-		  (to (nth 1 composition))
-		  (next (1+ pos))
-		  (components (nth 2 composition))
-		  ch)
-	      (if (and (vectorp components) (vectorp (aref components 0)))
-		  (let ((idx (- pos from))
-			(nglyphs (lgstring-glyph-len components))
-			(i 0) j glyph glyph-from)
-		    ;; COMPONENTS is a gstring.  Find a grapheme
-		    ;; cluster containing the current character.
-		    (while (and (< i nglyphs)
-				(setq glyph (lgstring-glyph components i))
-				(< (lglyph-to glyph) idx))
-		      (setq i (1+ i)))
-		    (if (or (not glyph) (= i nglyphs))
-			;; The composition is broken.
-			(throw 'tag nil))
-		    (setq glyph-from (lglyph-from glyph)
-			  to (+ from (lglyph-to glyph) 1)
-			  from (+ from glyph-from)
-			  j i)
-		    (while (and (< j nglyphs)
-				(setq glyph (lgstring-glyph components j))
-				(= (lglyph-from glyph) glyph-from))
-		      (setq j (1+ j)))
-		    (if (and (= to (1+ from))
-			     (= i (1- j))
-			     (setq glyph (lgstring-glyph components i))
-			     (= char (lglyph-char glyph)))
-			;; The composition is trivial.
-			(throw 'tag nil))
-		    (nconc composition (list i (1- j))))
-		(dotimes (i (length components))
-		  (if (integerp (setq ch (aref components i)))
-		      (push (cons ch (describe-char-display pos ch))
-			    component-chars)))
-		(setq component-chars (nreverse component-chars)))
-	      (if (< from pos)
-		  (if (< (1+ pos) to)
-		      (setcar composition
-			      (concat
-			       " with the surrounding characters \""
-			       (mapconcat 'describe-char-padded-string
-					  (buffer-substring from pos) "")
-			       "\" and \""
-			       (mapconcat 'describe-char-padded-string
-					  (buffer-substring (1+ pos) to) "")
-			       "\""))
-		    (setcar composition
-			    (concat
-			     " with the preceding character(s) \""
-			     (mapconcat 'describe-char-padded-string
-					(buffer-substring from pos) "")
-			     "\"")))
-		(if (< (1+ pos) to)
-		    (setcar composition
-			    (concat
-			     " with the following character(s) \""
-			     (mapconcat 'describe-char-padded-string
-					(buffer-substring (1+ pos) to) "")
-			     "\""))
-		  (setcar composition nil)))
-	      (setcar (cdr composition)
-		      (format "composed to form \"%s\" (see below)"
-			      (buffer-substring from to)))))
-	  (setq composition nil)))
+      (if multibyte-p
+          (or (setq code (encode-char char charset))
+              (setq charset (char-charset char)
+                    code (encode-char char charset)))
+        (setq code char))
+      (when composition
+        ;; When the composition is trivial (i.e. composed only with the
+        ;; current character itself without any alternate characters),
+        ;; we don't show the composition information.  Otherwise, store
+        ;; two descriptive strings in the first two elments of
+        ;; COMPOSITION.
+        (or (catch 'tag
+              (let ((from (car composition))
+                    (to (nth 1 composition))
+                    (components (nth 2 composition))
+                    ch)
+                (if (and (vectorp components) (vectorp (aref components 0)))
+                    (let ((idx (- pos from))
+                          (nglyphs (lgstring-glyph-len components))
+                          (i 0) j glyph glyph-from)
+                      ;; COMPONENTS is a gstring.  Find a grapheme
+                      ;; cluster containing the current character.
+                      (while (and (< i nglyphs)
+                                  (setq glyph (lgstring-glyph components i))
+                                  (< (lglyph-to glyph) idx))
+                        (setq i (1+ i)))
+                      (if (or (not glyph) (= i nglyphs))
+                          ;; The composition is broken.
+                          (throw 'tag nil))
+                      (setq glyph-from (lglyph-from glyph)
+                            to (+ from (lglyph-to glyph) 1)
+                            from (+ from glyph-from)
+                            j i)
+                      (while (and (< j nglyphs)
+                                  (setq glyph (lgstring-glyph components j))
+                                  (= (lglyph-from glyph) glyph-from))
+                        (setq j (1+ j)))
+                      (if (and (= to (1+ from))
+                               (= i (1- j))
+                               (setq glyph (lgstring-glyph components i))
+                               (= char (lglyph-char glyph)))
+                          ;; The composition is trivial.
+                          (throw 'tag nil))
+                      (nconc composition (list i (1- j))))
+                  (dotimes (i (length components))
+                    (if (integerp (setq ch (aref components i)))
+                        (push (cons ch (describe-char-display pos ch))
+                              component-chars)))
+                  (setq component-chars (nreverse component-chars)))
+                (if (< from pos)
+                    (if (< (1+ pos) to)
+                        (setcar composition
+                                (concat
+                                 " with the surrounding characters \""
+                                 (mapconcat 'describe-char-padded-string
+                                            (buffer-substring from pos) "")
+                                 "\" and \""
+                                 (mapconcat 'describe-char-padded-string
+                                            (buffer-substring (1+ pos) to) "")
+                                 "\""))
+                      (setcar composition
+                              (concat
+                               " with the preceding character(s) \""
+                               (mapconcat 'describe-char-padded-string
+                                          (buffer-substring from pos) "")
+                               "\"")))
+                  (if (< (1+ pos) to)
+                      (setcar composition
+                              (concat
+                               " with the following character(s) \""
+                               (mapconcat 'describe-char-padded-string
+                                          (buffer-substring (1+ pos) to) "")
+                               "\""))
+                    (setcar composition nil)))
+                (setcar (cdr composition)
+                        (format "composed to form \"%s\" (see below)"
+                                (buffer-substring from to)))))
+            (setq composition nil)))
 
-    (setq item-list
-	  `(("character"
-	     ,(format "%s (%d, #o%o, #x%x)"
-		      (apply 'propertize char-description
-			     (text-properties-at pos))
-		      char char char))
-	    ("preferred charset"
-	     ,`(insert-text-button
-		,(symbol-name charset)
-		'type 'help-character-set 'help-args '(,charset))
-	     ,(format "(%s)" (charset-description charset)))
-	    ("code point"
-	     ,(let ((str (if (integerp code)
-			     (format (if (< code 256) "0x%02X" "0x%04X") code)
-			   (format "0x%04X%04X" (car code) (cdr code)))))
-		(if (<= (charset-dimension charset) 2)
-		    `(insert-text-button
-		      ,str
-		      'action (lambda (&rest ignore)
-				(list-charset-chars ',charset)
-				(with-selected-window
-				    (get-buffer-window "*Character List*" 0)
-				  (goto-char (point-min))
-				  (forward-line 2) ;Skip the header.
-				  (let ((case-fold-search nil))
-				    (if (search-forward ,(char-to-string char)
-							nil t)
-					(goto-char (match-beginning 0))))))
-		      'follow-link t
-		      'help-echo
-		      "mouse-2, RET: show this character in its character set")
-		  str)))
-	    ("syntax"
-	     ,(let ((syntax (syntax-after pos)))
-		(with-temp-buffer
-		  (internal-describe-syntax-value syntax)
-		  (buffer-string))))
-	    ("category"
-	     ,@(if (not eight-bit-p)
-		   (let ((category-set (char-category-set char)))
-		     (if category-set
-			 (describe-char-categories category-set)
-		       '("-- none --")))))
-	    ("to input"
-	     ,@(if (not eight-bit-p)
-		   (let ((key-list (and (eq input-method-function
-					    'quail-input-method)
-					(quail-find-key char))))
-		     (if (consp key-list)
-			 (list "type"
-			       (mapconcat #'(lambda (x) (concat "\"" x "\""))
-					  key-list " or ")
-			       "with"
-			       `(insert-text-button
-				 ,current-input-method
-				 'type 'help-input-method
-				 'help-args '(,current-input-method)))))))
-	    ("buffer code"
-	     ,(if multibyte-p
-		  (encoded-string-description
-		   (string-as-unibyte (char-to-string char)) nil)
-		(format "#x%02X" char)))
-	    ("file code"
-	     ,@(if multibyte-p
-		   (let* ((coding buffer-file-coding-system)
-			  (encoded (encode-coding-char char coding charset)))
-		     (if encoded
-			 (list (encoded-string-description encoded coding)
-			       (format "(encoded by coding system %S)" coding))
-		       (list "not encodable by coding system"
-			     (symbol-name coding))))
-		 (list (format "#x%02X" char))))
-	    ("display"
-	     ,(cond
-	       (disp-vector
-		(setq disp-vector (copy-sequence disp-vector))
-		(dotimes (i (length disp-vector))
-		  (aset disp-vector i
-			(cons (aref disp-vector i)
-			      (describe-char-display
-			       pos (glyph-char (aref disp-vector i))))))
-		(format "by display table entry [%s] (see below)"
-			(mapconcat
-			 #'(lambda (x)
-			     (format "?%c" (glyph-char (car x))))
-			 disp-vector " ")))
-	       (composition
-		(cadr composition))
-	       (t
-		(let ((display (describe-char-display pos char)))
-		  (if (display-graphic-p (selected-frame))
-		      (if display
-			  (concat "by this font (glyph code)\n    " display)
-			"no font available")
-		    (if display
-			(format "terminal code %s" display)
-		      "not encodable for terminal"))))))
-	    ,@(let ((face
-		     (if (not (or disp-vector composition))
-			 (cond
-			  ((and show-trailing-whitespace
-				(save-excursion (goto-char pos)
-						(looking-at-p "[ \t]+$")))
-			   'trailing-whitespace)
-			  ((and nobreak-char-display char (eq char '#xa0))
-			   'nobreak-space)
-			  ((and nobreak-char-display char (eq char '#xad))
-			   'escape-glyph)
-			  ((and (< char 32) (not (memq char '(9 10))))
-			   'escape-glyph)))))
-		(if face (list (list "hardcoded face"
-				     `(insert-text-button
-				       ,(symbol-name face)
-				       'type 'help-face 'help-args '(,face))))))
-	    ,@(if (not eight-bit-p)
-		  (let ((unicodedata (describe-char-unicode-data char)))
-		    (if unicodedata
-			(cons (list "Unicode data" " ") unicodedata))))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x)
-					     (if (cadr x) (length (car x)) 0))
-					 item-list)))
-    (help-setup-xref nil (called-interactively-p 'interactive))
-    (with-help-window (help-buffer)
-      (with-current-buffer standard-output
-	(set-buffer-multibyte multibyte-p)
-	(let ((formatter (format "%%%ds:" max-width)))
-	  (dolist (elt item-list)
-	    (when (cadr elt)
-	      (insert (format formatter (car elt)))
-	      (dolist (clm (cdr elt))
-		(if (eq (car-safe clm) 'insert-text-button)
-		    (progn (insert " ") (eval clm))
-		  (when (>= (+ (current-column)
-			       (or (string-match-p "\n" clm)
-				   (string-width clm))
-			       1)
-			    (window-width))
-		    (insert "\n")
-		    (indent-to (1+ max-width)))
-		  (insert " " clm)))
-	      (insert "\n"))))
+      (setq item-list
+            `(("character"
+               ,(format "%s (%d, #o%o, #x%x)"
+                        (apply 'propertize char-description
+                               (text-properties-at pos))
+                        char char char))
+              ("preferred charset"
+               ,`(insert-text-button
+                  ,(symbol-name charset)
+                  'type 'help-character-set 'help-args '(,charset))
+               ,(format "(%s)" (charset-description charset)))
+              ("code point"
+               ,(let ((str (if (integerp code)
+                               (format (if (< code 256) "0x%02X" "0x%04X")
+                                       code)
+                             (format "0x%04X%04X" (car code) (cdr code)))))
+                  (if (<= (charset-dimension charset) 2)
+                      `(insert-text-button
+                        ,str
+                        'action (lambda (&rest ignore)
+                                  (list-charset-chars ',charset)
+                                  (with-selected-window
+                                      (get-buffer-window "*Character List*" 0)
+                                    (goto-char (point-min))
+                                    (forward-line 2) ;Skip the header.
+                                    (let ((case-fold-search nil))
+                                      (if (search-forward
+                                           ,(char-to-string char) nil t)
+                                          (goto-char (match-beginning 0))))))
+                        'follow-link t
+                        'help-echo
+                        "mouse-2, RET: show this character in its character set")
+                    str)))
+              ("syntax"
+               ,(let ((syntax (syntax-after pos)))
+                  (with-temp-buffer
+                    (internal-describe-syntax-value syntax)
+                    (buffer-string))))
+              ("category"
+               ,@(if (not eight-bit-p)
+                     (let ((category-set (char-category-set char)))
+                       (if category-set
+                           (describe-char-categories category-set)
+                         '("-- none --")))))
+              ("to input"
+               ,@(if (not eight-bit-p)
+                     (let ((key-list (and (eq input-method-function
+                                              'quail-input-method)
+                                          (quail-find-key char))))
+                       (if (consp key-list)
+                           (list "type"
+                                 (concat "\""
+                                         (mapconcat 'identity
+                                                    key-list "\" or \"")
+                                         "\"")
+                                 "with"
+                                 `(insert-text-button
+                                   ,current-input-method
+                                   'type 'help-input-method
+                                   'help-args '(,current-input-method)))))))
+              ("buffer code"
+               ,(if multibyte-p
+                    (encoded-string-description
+                     (string-as-unibyte (char-to-string char)) nil)
+                  (format "#x%02X" char)))
+              ("file code"
+               ,@(if multibyte-p
+                     (let* ((coding buffer-file-coding-system)
+                            (encoded (encode-coding-char char coding charset)))
+                       (if encoded
+                           (list (encoded-string-description encoded coding)
+                                 (format "(encoded by coding system %S)"
+                                         coding))
+                         (list "not encodable by coding system"
+                               (symbol-name coding))))
+                   (list (format "#x%02X" char))))
+              ("display"
+               ,(cond
+                 (disp-vector
+                  (setq disp-vector (copy-sequence disp-vector))
+                  (dotimes (i (length disp-vector))
+                    (aset disp-vector i
+                          (cons (aref disp-vector i)
+                                (describe-char-display
+                                 pos (glyph-char (aref disp-vector i))))))
+                  (format "by display table entry [%s] (see below)"
+                          (mapconcat
+                           #'(lambda (x)
+                               (format "?%c" (glyph-char (car x))))
+                           disp-vector " ")))
+                 (composition
+                  (cadr composition))
+                 (t
+                  (let ((display (describe-char-display pos char)))
+                    (if (display-graphic-p (selected-frame))
+                        (if display
+                            (concat "by this font (glyph code)\n    " display)
+                          "no font available")
+                      (if display
+                          (format "terminal code %s" display)
+                        "not encodable for terminal"))))))
+              ,@(let ((face
+                       (if (not (or disp-vector composition))
+                           (cond
+                            ((and show-trailing-whitespace
+                                  (save-excursion (goto-char pos)
+                                                  (looking-at-p "[ \t]+$")))
+                             'trailing-whitespace)
+                            ((and nobreak-char-display char (eq char '#xa0))
+                             'nobreak-space)
+                            ((and nobreak-char-display char (eq char '#xad))
+                             'escape-glyph)
+                            ((and (< char 32) (not (memq char '(9 10))))
+                             'escape-glyph)))))
+                  (if face (list (list "hardcoded face"
+                                       `(insert-text-button
+                                         ,(symbol-name face)
+                                         'type 'help-face
+                                         'help-args '(,face))))))
+              ,@(if (not eight-bit-p)
+                    (let ((unicodedata (describe-char-unicode-data char)))
+                      (if unicodedata
+                          (cons (list "Unicode data" " ") unicodedata))))))
+      (setq max-width (apply 'max (mapcar (lambda (x)
+                                            (if (cadr x) (length (car x)) 0))
+                                          item-list)))
+      (set-buffer src-buf)
+      (help-setup-xref (list 'describe-char pos buffer)
+                       (called-interactively-p 'interactive))
+      (with-help-window (help-buffer)
+        (with-current-buffer standard-output
+          (set-buffer-multibyte multibyte-p)
+          (let ((formatter (format "%%%ds:" max-width)))
+            (dolist (elt item-list)
+              (when (cadr elt)
+                (insert (format formatter (car elt)))
+                (dolist (clm (cdr elt))
+                  (if (eq (car-safe clm) 'insert-text-button)
+                      (progn (insert " ") (eval clm))
+                    (when (>= (+ (current-column)
+                                 (or (string-match-p "\n" clm)
+                                     (string-width clm))
+                                 1)
+                              (window-width))
+                      (insert "\n")
+                      (indent-to (1+ max-width)))
+                    (insert " " clm)))
+                (insert "\n"))))
 
-	(when overlays
-	  (save-excursion
-	    (goto-char (point-min))
-	    (re-search-forward "character:[ \t\n]+")
-	    (let ((end (+ (point) (length char-description))))
-	      (mapc #'(lambda (props)
-			(let ((o (make-overlay (point) end)))
-			  (while props
-			    (overlay-put o (car props) (nth 1 props))
-			    (setq props (cddr props)))))
-		    overlays))))
+          (when overlays
+            (save-excursion
+              (goto-char (point-min))
+              (re-search-forward "character:[ \t\n]+")
+              (let ((end (+ (point) (length char-description))))
+                (mapc #'(lambda (props)
+                          (let ((o (make-overlay (point) end)))
+                            (while props
+                              (overlay-put o (car props) (nth 1 props))
+                              (setq props (cddr props)))))
+                      overlays))))
 
-	(when disp-vector
-	  (insert
-	   "\nThe display table entry is displayed by ")
-	  (if (display-graphic-p (selected-frame))
-	      (progn
-		(insert "these fonts (glyph codes):\n")
-		(dotimes (i (length disp-vector))
-		  (insert (glyph-char (car (aref disp-vector i))) ?:
-			  (propertize " " 'display '(space :align-to 5))
-			  (or (cdr (aref disp-vector i)) "-- no font --")
-			  "\n")
-		  (let ((face (glyph-face (car (aref disp-vector i)))))
-		    (when face
-		      (insert (propertize " " 'display '(space :align-to 5))
-			      "face: ")
-		      (insert (concat "`" (symbol-name face) "'"))
-		      (insert "\n")))))
-	    (insert "these terminal codes:\n")
-	    (dotimes (i (length disp-vector))
-	      (insert (car (aref disp-vector i))
-		      (propertize " " 'display '(space :align-to 5))
-		      (or (cdr (aref disp-vector i)) "-- not encodable --")
-		      "\n"))))
+          (when disp-vector
+            (insert
+             "\nThe display table entry is displayed by ")
+            (if (display-graphic-p (selected-frame))
+                (progn
+                  (insert "these fonts (glyph codes):\n")
+                  (dotimes (i (length disp-vector))
+                    (insert (glyph-char (car (aref disp-vector i))) ?:
+                            (propertize " " 'display '(space :align-to 5))
+                            (or (cdr (aref disp-vector i)) "-- no font --")
+                            "\n")
+                    (let ((face (glyph-face (car (aref disp-vector i)))))
+                      (when face
+                        (insert (propertize " " 'display '(space :align-to 5))
+                                "face: ")
+                        (insert (concat "`" (symbol-name face) "'"))
+                        (insert "\n")))))
+              (insert "these terminal codes:\n")
+              (dotimes (i (length disp-vector))
+                (insert (car (aref disp-vector i))
+                        (propertize " " 'display '(space :align-to 5))
+                        (or (cdr (aref disp-vector i)) "-- not encodable --")
+                        "\n"))))
 
-	(when composition
-	  (insert "\nComposed")
-	  (if (car composition)
-	      (insert (car composition)))
-	  (if (and (vectorp (nth 2 composition))
-		   (vectorp (aref (nth 2 composition) 0)))
-	      (let* ((gstring (nth 2 composition))
-		     (font (lgstring-font gstring))
-		     (from (nth 3 composition))
-		     (to (nth 4 composition))
-		     glyph)
-		(if (fontp font)
-		    (progn
-		      (insert " using this font:\n  "
-			      (symbol-name (font-get font :type))
-			      ?:
-			      (aref (query-font font) 0)
-			      "\nby these glyphs:\n")
-		      (while (and (<= from to)
-				  (setq glyph (lgstring-glyph gstring from)))
-			(insert (format "  %S\n" glyph))
-			(setq from (1+ from))))
-		  (insert " by these characters:\n")
-		  (while (and (<= from to)
-			      (setq glyph (lgstring-glyph gstring from)))
-		    (insert (format " %c (#x%d)\n"
-				    (lglyph-char glyph) (lglyph-char glyph)))
-		    (setq from (1+ from)))))
-	    (insert " by the rule:\n\t(")
-	    (let ((first t))
-	      (mapc (lambda (x)
-		      (if first (setq first nil)
-			(insert " "))
-		      (if (consp x) (insert (format "%S" x))
-			(if (= x ?\t) (insert (single-key-description x))
-			  (insert ??)
-			  (insert (describe-char-padded-string x)))))
-		    (nth 2 composition)))
-	    (insert  ")\nThe component character(s) are displayed by ")
-	    (if (display-graphic-p (selected-frame))
-		(progn
-		  (insert "these fonts (glyph codes):")
-		  (dolist (elt component-chars)
-		    (if (/= (car elt) ?\t)
-			(insert "\n "
-				(describe-char-padded-string (car elt))
-				?:
-				(propertize " " 'display '(space :align-to 5))
-				(or (cdr elt) "-- no font --")))))
-	      (insert "these terminal codes:")
-	      (dolist (elt component-chars)
-		(insert "\n  " (car elt) ":"
-			(propertize " " 'display '(space :align-to 4))
-			(or (cdr elt) "-- not encodable --"))))
-	    (insert "\nSee the variable `reference-point-alist' for "
-		    "the meaning of the rule.\n")))
+          (when composition
+            (insert "\nComposed")
+            (if (car composition)
+                (insert (car composition)))
+            (if (and (vectorp (nth 2 composition))
+                     (vectorp (aref (nth 2 composition) 0)))
+                (let* ((gstring (nth 2 composition))
+                       (font (lgstring-font gstring))
+                       (from (nth 3 composition))
+                       (to (nth 4 composition))
+                       glyph)
+                  (if (fontp font)
+                      (progn
+                        (insert " using this font:\n  "
+                                (symbol-name (font-get font :type))
+                                ?:
+                                (aref (query-font font) 0)
+                                "\nby these glyphs:\n")
+                        (while (and (<= from to)
+                                    (setq glyph (lgstring-glyph gstring from)))
+                          (insert (format "  %S\n" glyph))
+                          (setq from (1+ from))))
+                    (insert " by these characters:\n")
+                    (while (and (<= from to)
+                                (setq glyph (lgstring-glyph gstring from)))
+                      (insert (format " %c (#x%d)\n"
+                                      (lglyph-char glyph) (lglyph-char glyph)))
+                      (setq from (1+ from)))))
+              (insert " by the rule:\n\t(")
+              (let ((first t))
+                (mapc (lambda (x)
+                        (if first (setq first nil)
+                          (insert " "))
+                        (if (consp x) (insert (format "%S" x))
+                          (if (= x ?\t) (insert (single-key-description x))
+                            (insert ??)
+                            (insert (describe-char-padded-string x)))))
+                      (nth 2 composition)))
+              (insert  ")\nThe component character(s) are displayed by ")
+              (if (display-graphic-p (selected-frame))
+                  (progn
+                    (insert "these fonts (glyph codes):")
+                    (dolist (elt component-chars)
+                      (if (/= (car elt) ?\t)
+                          (insert "\n "
+                                  (describe-char-padded-string (car elt))
+                                  ?:
+                                  (propertize " "
+                                              'display '(space :align-to 5))
+                                  (or (cdr elt) "-- no font --")))))
+                (insert "these terminal codes:")
+                (dolist (elt component-chars)
+                  (insert "\n  " (car elt) ":"
+                          (propertize " " 'display '(space :align-to 4))
+                          (or (cdr elt) "-- not encodable --"))))
+              (insert "\nSee the variable `reference-point-alist' for "
+                      "the meaning of the rule.\n")))
 
-	(unless eight-bit-p
-	  (insert (if (not describe-char-unidata-list)
-		      "\nCharacter code properties are not shown: "
-		    "\nCharacter code properties: "))
-	  (insert-text-button
-	   "customize what to show"
-	   'action (lambda (&rest ignore)
-		     (customize-variable
-		      'describe-char-unidata-list))
-	   'follow-link t)
-	  (insert "\n")
-	  (dolist (elt (if (eq describe-char-unidata-list t)
-			   (nreverse (mapcar 'car char-code-property-alist))
-			 describe-char-unidata-list))
-	    (let ((val (get-char-code-property char elt))
-		  description)
-	      (when val
-		(setq description (char-code-property-description elt val))
-		(insert (if description
-			    (format "  %s: %s (%s)\n" elt val description)
-			  (format "  %s: %s\n" elt val)))))))
+          (unless eight-bit-p
+            (insert (if (not describe-char-unidata-list)
+                        "\nCharacter code properties are not shown: "
+                      "\nCharacter code properties: "))
+            (insert-text-button
+             "customize what to show"
+             'action (lambda (&rest ignore)
+                       (customize-variable
+                        'describe-char-unidata-list))
+             'follow-link t)
+            (insert "\n")
+            (dolist (elt (if (eq describe-char-unidata-list t)
+                             (nreverse (mapcar 'car char-code-property-alist))
+                           describe-char-unidata-list))
+              (let ((val (get-char-code-property char elt))
+                    description)
+                (when val
+                  (setq description (char-code-property-description elt val))
+                  (insert (if description
+                              (format "  %s: %s (%s)\n" elt val description)
+                            (format "  %s: %s\n" elt val)))))))
 
-        (if text-props-desc (insert text-props-desc))
-	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
-	(toggle-read-only 1)))))
+          (if text-props-desc (insert text-props-desc))
+          (toggle-read-only 1))))))
 
 (define-obsolete-function-alias 'describe-char-after 'describe-char "22.1")
 

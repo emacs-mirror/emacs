@@ -1,5 +1,13 @@
 2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Handle the [back] button properly (bug#4979).
+	* descr-text.el (describe-text-properties): Add a `buffer' argument.
+	Use help-setup-xref, help-buffer, and with-help-window.
+	(describe-char): Add `buffer' argument.
+	Pass proper command to help-setup-xref.  Don't meddle with
+	help-xref-stack-item directly.
+	(describe-text-category): Use with-help-window and help-buffer.
+
 	* emacs-lisp/shadow.el (list-load-path-shadows): Setup a major mode
 	for the displayed buffer (bug#4887).
 
