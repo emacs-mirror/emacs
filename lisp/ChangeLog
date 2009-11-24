@@ -1,3 +1,7 @@
+2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-bmenu-search): Clear echo area when exiting.
+
 2009-11-23  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* net/browse-url.el (browse-url-filename-alist): On Windows, add
@@ -10,8 +14,9 @@
 
 	Implement DocView Continuous mode.  (Bug#4896)
 	* doc-view.el (doc-view-continuous-mode): New defcustom.
-	(doc-view-mode-map): Bind C-n/<down> to `doc-view-next-line-or-next-page',
-	C-p/<up> to `doc-view-previous-line-or-previous-page'.
+	(doc-view-mode-map): Bind C-n/<down> to
+	`doc-view-next-line-or-next-page', C-p/<up> to
+	`doc-view-previous-line-or-previous-page'.
 	(doc-view-next-line-or-next-page)
 	(doc-view-previous-line-or-previous-page): New commands.
 
@@ -114,12 +119,13 @@
 	(viper-prefix-arg-value): Do correct conversion of event-char for
 	XEmacs.
 
-	* emulation/viper-util.el, emulation/viper.el: Use
-	viper-last-command-char instead of last-command-char/last-command-event.
+	* emulation/viper-util.el, emulation/viper.el:
+	Use viper-last-command-char instead of
+	last-command-char/last-command-event.
 
-	* ediff-init.el, ediff-mult.el, ediff-util.el: Replace
-	last-command-char and last-command-event with (ediff-last-command-char)
-	everywhere.
+	* ediff-init.el, ediff-mult.el, ediff-util.el:
+	Replace last-command-char and last-command-event
+	with (ediff-last-command-char) everywhere.
 
 	* ediff-vers.el (ediff-rcs-get-output-buffer): Make sure the buffer is
 	created in fundamental mode.
@@ -135,8 +141,8 @@
 2009-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
-	(semantic-complete-jump-local, semantic-complete-jump): Improve
-	prompt string.
+	(semantic-complete-jump-local, semantic-complete-jump):
+	Improve prompt string.
 
 2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -144,13 +150,13 @@
 
 2009-11-21  Nathaniel Flath  <flat0103@gmail.com>
 
-	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): A
-	corrected version of the patch from 2009-11-18.  (Bug#3910)
+	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
+	Correct the patch from 2009-11-18.  (Bug#3910)
 
 2009-11-21  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-menus.el (cc-imenu-java-generic-expression): Update
-	to deal with modern Java constructs.
+	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
+	Update to deal with modern Java constructs.
 
 2009-11-21  Tassilo Horn  <tassilo@member.fsf.org>
 
