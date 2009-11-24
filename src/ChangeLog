@@ -1,3 +1,7 @@
+2009-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* frame.c (focus-follows-mouse): Mention mouse-autoselect-window.
+
 2009-11-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in: Must create deps for ecrt0.o in its rule.
