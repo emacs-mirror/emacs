@@ -8070,6 +8070,10 @@ x_new_font (f, font_object, fontset)
           pixelh -= FRAME_MENUBAR_HEIGHT (f);
 #endif
           rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
+	  /* Update f->scroll_bar_actual_width because it is used in
+	     FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
+	  f->scroll_bar_actual_width
+	    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
           cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
           
           change_frame_size (f, rows, cols, 0, 1, 0);
