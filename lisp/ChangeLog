@@ -1,5 +1,9 @@
 2009-11-24  Kevin Ryde  <user42@zip.com.au>
 
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-regexp): Build
+	value with regexp-opt instead of explicit joining loop.  (My
+	Bug#4927.)
+
 	* emacs-lisp/elint.el (elint-add-required-env): Better error message
 	when .el source file not found or other error.
 
