@@ -493,7 +493,7 @@ Return nil if there are no more forms, t otherwise."
 
 (defun elint-add-required-env (env name file)
   "Augment ENV with the variables defined by feature NAME in FILE."
-  (condition-case nil
+  (condition-case err
       (let* ((libname (if (stringp file)
 			  file
 			(symbol-name name)))
@@ -518,9 +518,10 @@ Return nil if there are no more forms, t otherwise."
 	      ;;; 	  (elint-update-env))
 	      ;;; 	(setq env (elint-env-add-env env elint-buffer-env))))
 	      ;;(message "Elint processed (require '%s)" name))
-	  (error "Unable to find require'd library %s" name)))
+	  (error "%s.el not found in load-path" libname)))
     (error
-     (message "Can't get variables from require'd library %s" name)))
+     (message "Can't get variables from require'd library %s: %s"
+              name (error-message-string err))))
   env)
 
 (defvar elint-top-form nil
