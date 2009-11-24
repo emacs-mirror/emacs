@@ -234,6 +234,7 @@ function, `find-emacs-lisp-shadows'."
 	      ;; Create the *Shadows* buffer and display shadowings there.
 	      (let ((string (buffer-string)))
 		(with-current-buffer (get-buffer-create "*Shadows*")
+                  (fundamental-mode)    ;run after-change-major-mode-hook.
 		  (display-buffer (current-buffer))
 		  (setq buffer-undo-list t
 			buffer-read-only nil)

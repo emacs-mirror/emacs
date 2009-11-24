@@ -1,5 +1,8 @@
 2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/shadow.el (list-load-path-shadows): Setup a major mode
+	for the displayed buffer (bug#4887).
+
 	* man.el (Man-completion-table): New function.
 	(man): Use it.
 
