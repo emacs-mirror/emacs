@@ -1,3 +1,7 @@
+2009-11-24  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el (linum-update-window): Ignore intangible (bug#4996).
+
 2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Handle the [back] button properly (bug#4979).
