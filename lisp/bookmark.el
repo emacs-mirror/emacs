@@ -1710,7 +1710,7 @@ mainly for debugging, and should not be necessary in normal use."
                       (goto-char (point-min))
                       (search-forward "Bookmark")
                       (backward-word 1)
-                      (setq bookmark-bmenu-bookmark-column (current-column)))))
+                      (current-column))))
         (while bookmark-bmenu-hidden-bookmarks
           (move-to-column column t)
           (bookmark-kill-line)
