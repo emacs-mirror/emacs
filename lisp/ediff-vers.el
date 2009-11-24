@@ -136,8 +136,7 @@ comparison or merge operations are being performed."
   ;; Optional NAME is name to use instead of `*RCS-output*'.
   ;; This is a modified version from rcs.el v1.1.  I use it here to make
   ;; Ediff immune to changes in rcs.el
-  (let* ((default-major-mode 'fundamental-mode) ; no frills!
-	 (buf (get-buffer-create name)))
+  (let ((buf (get-buffer-create name)))
     (with-current-buffer buf
       (setq buffer-read-only nil
 	    default-directory (file-name-directory (expand-file-name file)))

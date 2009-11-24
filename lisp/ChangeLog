@@ -1,3 +1,8 @@
+2009-11-24  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-vers.el (ediff-rcs-get-output-buffer): Revert the change
+	made on 2009-11-22.
+	
 2009-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* bookmark.el (bookmark-bmenu-hide-filenames): Remove assignment to
