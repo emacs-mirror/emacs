@@ -159,8 +159,9 @@ If this variable is nil, no such courtesy message will be added."
   :group 'message-interface
   :type 'regexp)
 
-(defcustom message-from-style
-  (if (featurep 'xemacs) 'default mail-from-style)
+(defcustom message-from-style mail-from-style
+;; Default to the value of `mail-from-style', available in all Emacsen
+;; that Gnus supports.
   "*Specifies how \"From\" headers look.
 
 If nil, they contain just the return address like:
@@ -172,6 +173,7 @@ If `angles', they look like:
 
 Otherwise, most addresses look like `angles', but they look like
 `parens' if `angles' would need quoting and `parens' would not."
+  :version "23.2"
   :type '(choice (const :tag "simple" nil)
 		 (const parens)
 		 (const angles)
@@ -434,9 +436,12 @@ whitespace)."
   :link '(custom-manual "(message)Various Commands")
   :group 'message-various)
 
-(defcustom message-interactive (if (featurep 'xemacs) t mail-interactive)
+(defcustom message-interactive mail-interactive
+;; Default to the value of `mail-interactive', available in all Emacsen
+;; that Gnus supports.
   "Non-nil means when sending a message wait for and display errors.
 nil means let mailer mail back a message to report errors."
+  :version "23.2"
   :group 'message-sending
   :group 'message-mail
   :link '(custom-manual "(message)Sending Variables")
@@ -611,7 +616,10 @@ Done before generating the new subject of a forward."
   :type 'regexp)
 
 (defcustom message-cite-prefix-regexp
-  (cond ((not (featurep 'xemacs))
+  ;; Default to the value of `mail-citation-prefix-regexp' if available.
+  ;; Note: as for Emacs 21, XEmacs 21.4 and 21.5, it is unavailable
+  ;; unless sendmail.el is loaded.
+  (cond ((boundp 'mail-citation-prefix-regexp)
 	 mail-citation-prefix-regexp)
 	((string-match "[[:digit:]]" "1")
 	 ;; Support POSIX?  XEmacs 21.5.27 doesn't.
@@ -630,7 +638,7 @@ Done before generating the new subject of a forward."
 		     non-word-constituents
 		     "]\\)+>+\\|[ \t]*[]>|}]\\)+")))))
   "*Regexp matching the longest possible citation prefix on a line."
-  :version "22.1"
+  :version "23.2"
   :group 'message-insertion
   :link '(custom-manual "(message)Insertion Variables")
   :type 'regexp
@@ -820,11 +828,14 @@ Doing so would be even more evil than leaving it out."
   :type 'boolean)
 
 (defcustom message-sendmail-envelope-from
-  (if (featurep 'xemacs) nil mail-envelope-from)
+  ;; Default to the value of `mail-envelope-from' if available.
+  ;; Note: as for Emacsen that Gnus supports, except for SXEmacs, it is
+  ;; unavailable unless sendmail.el is loaded.
+  (if (boundp 'mail-envelope-from) mail-envelope-from)
   "*Envelope-from when sending mail with sendmail.
 If this is nil, use `user-mail-address'.  If it is the symbol
 `header', use the From: header of the message."
-  :version "22.1"
+  :version "23.2"
   :type '(choice (string :tag "From name")
 		 (const :tag "Use From: header from message" header)
 		 (const :tag "Use `user-mail-address'" nil))
@@ -997,10 +1008,14 @@ Please also read the note in the documentation of
   :version "23.1" ;; No Gnus
   :group 'message-insertion)
 
-(defcustom message-yank-prefix (if (featurep 'xemacs) "> " mail-yank-prefix)
+(defcustom message-yank-prefix
+  ;; Default to the value of `mail-yank-prefix' if available.
+  ;; Note: as for Emacs 21, it is unavailable unless sendmail.el is loaded.
+  (if (boundp 'mail-yank-prefix) mail-yank-prefix "> ")
   "*Prefix inserted on the lines of yanked messages.
 Fix `message-cite-prefix-regexp' if it is set to an abnormal value.
 See also `message-yank-cited-prefix' and `message-yank-empty-prefix'."
+  :version "23.2"
   :type 'string
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
@@ -1023,9 +1038,13 @@ See also `message-yank-prefix' and `message-yank-cited-prefix'."
   :group 'message-insertion)
 
 (defcustom message-indentation-spaces
-  (if (featurep 'xemacs) 3 mail-indentation-spaces)
+  ;; Default to the value of `mail-indentation-spaces' if available.
+  ;; Note: as for Emacs 21, XEmacs 21.4 and 21.5, it is unavailable
+  ;; unless sendmail.el is loaded.
+  (if (boundp 'mail-indentation-spaces) mail-indentation-spaces 3)
   "*Number of spaces to insert at the beginning of each cited line.
 Used by `message-yank-original' via `message-yank-cite'."
+  :version "23.2"
   :group 'message-insertion
   :link '(custom-manual "(message)Insertion Variables")
   :type 'integer)
@@ -1052,22 +1071,29 @@ point and mark around the citation text as modified."
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
-(defcustom message-signature (if (featurep 'xemacs) t mail-signature)
+(defcustom message-signature mail-signature
+  ;; Default to the value of `mail-signature', available in all Emacsen
+  ;; that Gnus supports.
   "*String to be inserted at the end of the message buffer.
 If t, the `message-signature-file' file will be inserted instead.
 If a function, the result from the function will be used instead.
 If a form, the result from the form will be used instead."
+  :version "23.2"
   :type 'sexp
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
 (defcustom message-signature-file
-  (if (featurep 'xemacs) "~/.signature" mail-signature-file)
+  ;; Default to the value of `mail-signature-file' if available.
+  ;; Note: as for Emacs 21, XEmacs 21.4 and 21.5, it is unavailable
+  ;; unless sendmail.el is loaded.
+  (if (boundp 'mail-signature-file) mail-signature-file "~/.signature")
   "*Name of file containing the text inserted at end of message buffer.
 Ignored if the named file doesn't exist.
 If nil, don't insert a signature.
 If a path is specified, the value of `message-signature-directory' is ignored,
 even if set."
+  :version "23.2"
   :type '(choice file (const :tags "None" nil))
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
@@ -1138,10 +1164,14 @@ It is a vector of the following headers:
   :error "All header lines must be newline terminated")
 
 (defcustom message-default-headers
-  (if (featurep 'xemacs) "" mail-default-headers)
+  ;; Default to the value of `mail-default-headers' if available.
+  ;; Note: as for Emacs 21, XEmacs 21.4 and 21.5, it is unavailable
+  ;; unless sendmail.el is loaded.
+  (if (boundp 'mail-default-headers) mail-default-headers "")
   "*A string containing header lines to be inserted in outgoing messages.
 It is inserted before you edit the message, so you can edit or delete
 these lines."
+  :version "23.2"
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
   :type 'message-header-lines)

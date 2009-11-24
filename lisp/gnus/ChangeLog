@@ -1,3 +1,14 @@
+2009-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-from-style, message-interactive)
+	(message-signature): Always set default values from the corresponding
+	mail-* variables.
+	(message-cite-prefix-regexp, message-sendmail-envelope-from)
+	(message-yank-prefix, message-indentation-spaces)
+	(message-signature-file, message-default-headers): Use boundp rather
+	than (featurep 'xemacs) to check if the corresponding mail-* variables
+	exist.
+
 2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el (message-send-mail-with-sendmail): Revert last change.
