@@ -1,3 +1,9 @@
+2009-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* font.c (font_open_entity): Don't use ASET if font_object is Qnil.
+
+	* xterm.c (x_new_font): Update f->scroll_bar_actual_width.
+
 2009-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (focus-follows-mouse): Mention mouse-autoselect-window.
