@@ -1,6 +1,11 @@
+2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): New function.
+	(man): Use it.
+
 2009-11-24  David Reitter  <david.reitter@gmail.com>
 
-	* vc-git.el (vc-git-registered): use checkout directory (where
+	* vc-git.el (vc-git-registered): Use checkout directory (where
 	.git is) rather than the file's directory and a relative path spec
 	to work around a bug in git.
 
@@ -12,18 +17,18 @@
 	(eshell-parse-colon-path): New defun.
 	(eshell-file-attributes): Use `eshell-parse-colon-path'.
 
-	* eshell/esh-ext.el (eshell-search-path): Use
-	`eshell-parse-colon-path'.
+	* eshell/esh-ext.el (eshell-search-path):
+	Use `eshell-parse-colon-path'.
 	(eshell-remote-command): Remove argument HANDLER.
 	(eshell-external-command): Check for FTP remote connection.
 
-	* eshell/esh-proc.el (eshell-gather-process-output): Use
-	`file-truename', in order to start also symlinked files. Apply
-	`start-file-process' instead of `start-process'. Shorten `command'
-	to the local file name part.
+	* eshell/esh-proc.el (eshell-gather-process-output):
+	Use `file-truename', in order to start also symlinked files.
+	Apply `start-file-process' instead of `start-process'.
+	Shorten `command' to the local file name part.
 
-	* eshell/em-cmpl.el (eshell-complete-commands-list): Use
-	`eshell-parse-colon-path'.
+	* eshell/em-cmpl.el (eshell-complete-commands-list):
+	Use `eshell-parse-colon-path'.
 
 	* eshell/em-unix.el (eshell/du): Check for FTP remote connection.
 
@@ -33,8 +38,7 @@
 2009-11-24  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode): Switch off view-mode explicitly,
-	because it could be enabled automatically if view-read-only is
-	non-nil.
+	because it could be enabled automatically if view-read-only is non-nil.
 
 2009-11-24  Michael Kifer  <kifer@cs.stonybrook.edu>
 

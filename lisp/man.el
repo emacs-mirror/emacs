@@ -749,6 +749,26 @@ POS defaults to `point'."
 ;;;###autoload
 (defalias 'manual-entry 'man)
 
+(defun Man-completion-table (string pred action)
+  (cond
+   ((memq action '(t nil))
+    (let ((table '()))
+      (with-temp-buffer
+        ;; Actually for my `man' the arg is a regexp.  Don't know how
+        ;; standard that is.  Also, it's not clear what kind of
+        ;; regexp are accepted: under GNU/Linux it seems it's ERE-style,
+        ;; whereas under MacOSX it seems to be BRE-style and
+        ;; doesn't accept backslashes at all.  Let's not bother to
+        ;; quote anything.
+        (call-process "man" nil '(t nil) nil "-k" (concat "^" string))
+        (goto-char (point-min))
+        (while (re-search-forward "^[^ \t\n]+" nil t)
+          (push (match-string 0) table)))
+      ;; The table may contain false positives since the match is made
+      ;; by "man -k" not just on the manpage's name.
+      (complete-with-action action table string pred)))
+   ((eq action 'lambda) t)
+   ((eq (car-safe action) 'boundaries) nil)))
 
 ;;;###autoload
 (defun man (man-args)
@@ -765,12 +785,13 @@ all sections related to a subject, put something appropriate into the
 `Man-switches' variable, which see."
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
-		(input (read-string
+		(input (completing-read
 			(format "Manual entry%s"
 				(if (string= default-entry "")
 				    ": "
 				  (format " (default %s): " default-entry)))
-			nil 'Man-topic-history default-entry)))
+                        'Man-completion-table
+			nil nil nil 'Man-topic-history default-entry)))
 	   (if (string= input "")
 	       (error "No man args given")
 	     input))))
