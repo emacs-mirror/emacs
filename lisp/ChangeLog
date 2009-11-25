@@ -3,8 +3,10 @@
 	* man.el (Man-completion-table): default-directory "/" in case
 	doesn't otherwise exist.  process-environment COLUMNS=999 so as
 	not to truncate long names.  process-connection-type pipe to avoid
-	any chance of hitting the pseudo-tty TIOCGWINSZ.  (Further to
-	Bug#3717.)
+	any chance of hitting the pseudo-tty TIOCGWINSZ.
+	(man): completion-ignore-case t for friendliness and since man
+	itself is case-insensitive on the command line.
+	Further to Bug#3717.
 
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
