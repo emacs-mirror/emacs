@@ -749,10 +749,17 @@ POS defaults to `point'."
 ;;;###autoload
 (defalias 'manual-entry 'man)
 
+(defvar Man-completion-cache nil
+  ;; On my machine, "man -k" is so fast that a cache makes no sense,
+  ;; but apparently that's not the case in all cases, so let's add a cache.
+  "Cache of completion table of the form (PREFIX . TABLE).")
+
 (defun Man-completion-table (string pred action)
   (cond
    ((memq action '(t nil))
-    (let ((table '()))
+    (let ((table (cdr Man-completion-cache)))
+      (unless (and Man-completion-cache
+                   (string-prefix-p (car Man-completion-cache) string))
       (with-temp-buffer
         ;; Actually for my `man' the arg is a regexp.  Don't know how
         ;; standard that is.  Also, it's not clear what kind of
@@ -760,10 +767,13 @@ POS defaults to `point'."
         ;; whereas under MacOSX it seems to be BRE-style and
         ;; doesn't accept backslashes at all.  Let's not bother to
         ;; quote anything.
-        (call-process "man" nil '(t nil) nil "-k" (concat "^" string))
+          (call-process manual-program nil '(t nil) nil
+                        "-k" (concat "^" string))
         (goto-char (point-min))
         (while (re-search-forward "^[^ \t\n]+" nil t)
           (push (match-string 0) table)))
+        ;; Cache the table for later reuse.
+        (setq Man-completion-cache (cons string table)))
       ;; The table may contain false positives since the match is made
       ;; by "man -k" not just on the manpage's name.
       (complete-with-action action table string pred)))

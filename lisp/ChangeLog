@@ -1,5 +1,8 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* man.el (Man-completion-cache): New var.
+	(Man-completion-table): Use it.
+
 	* vc.el (vc-print-log-internal): Make `limit' optional for better
 	compatibility (e.g. with vc-annotate.el).
 
