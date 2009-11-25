@@ -1035,11 +1035,14 @@ Do not raise the selected frame.  Return WINDOW."
       (raise-frame frame))
     window))
 
-(defun window--display-buffer-2 (buffer window)
+(defun window--display-buffer-2 (buffer window &optional dedicated)
   "Display BUFFER in WINDOW and make its frame visible.
+Set `window-dedicated-p' to DEDICATED if non-nil.
 Return WINDOW."
   (when (and (buffer-live-p buffer) (window-live-p window))
     (set-window-buffer window buffer)
+    (when dedicated
+      (set-window-dedicated-p window-to-use dedicated))
     (window--display-buffer-1 window)))
 
 (defvar display-buffer-mark-dedicated nil
@@ -1139,9 +1142,7 @@ consider all visible or iconified frames."
      ((or use-pop-up-frames (not frame-to-use))
       ;; We want or need a new frame.
       (let ((win (frame-selected-window (funcall pop-up-frame-function))))
-        (when display-buffer-mark-dedicated
-          (set-window-dedicated-p win display-buffer-mark-dedicated))
-        (window--display-buffer-2 buffer win)))
+        (window--display-buffer-2 buffer win display-buffer-mark-dedicated)))
      ((and pop-up-windows
 	   ;; Make a new window.
 	   (or (not (frame-parameter frame-to-use 'unsplittable))
@@ -1157,9 +1158,8 @@ consider all visible or iconified frames."
 		      (get-largest-window frame-to-use t))
 		     (window--try-to-split-window
 		      (get-lru-window frame-to-use t)))))
-      (when display-buffer-mark-dedicated
-        (set-window-dedicated-p window-to-use display-buffer-mark-dedicated))
-      (window--display-buffer-2 buffer window-to-use))
+      (window--display-buffer-2 buffer window-to-use
+                                display-buffer-mark-dedicated))
      ((let ((window-to-undedicate
 	     ;; When NOT-THIS-WINDOW is non-nil, temporarily dedicate
 	     ;; the selected window to its buffer, to avoid that some of

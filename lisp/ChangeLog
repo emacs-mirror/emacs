@@ -1,5 +1,12 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Really make the *Completions* window soft-dedicated (bug#5030).
+	* window.el (window--display-buffer-2): Add `dedicated' argument.
+	(display-buffer): Pass it when needed so the dedicated flag is set
+	after calling set-window-buffer, which would otherwise reset it.
+
+2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/meta-mode.el (meta-complete-symbol):
 	* progmodes/etags.el (complete-tag):
 	* mail/mailabbrev.el (mail-abbrev-complete-alias):
