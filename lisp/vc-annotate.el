@@ -476,7 +476,7 @@ Return a cons (REV . FILENAME)."
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
                                fname rev))
-	(vc-annotate-warp-revision rev fname)))))
+	(vc-annotate-warp-revision prev-rev fname)))))
 
 (defun vc-annotate-show-log-revision-at-line ()
   "Visit the log of the revision at line."

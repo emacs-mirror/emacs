@@ -1,3 +1,8 @@
+2009-11-25  Johan Bockgård  <bojohan@gnu.org>
+
+	* vc-annotate.el (vc-annotate-revision-previous-to-line):
+	Really use previous revision.
+
 2009-11-25  Kevin Ryde  <user42@zip.com.au>
 
 	* man.el (Man-completion-table): default-directory "/" in case
