@@ -1,5 +1,8 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* abbrev.el (abbrev--before-point): Use word-motion functions
+	if :regexp is not specified (bug#5031).
+
 	* subr.el (string-prefix-p): New function.
 
 	* man.el (Man-completion-cache): New var.

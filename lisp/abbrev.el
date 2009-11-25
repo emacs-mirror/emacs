@@ -671,11 +671,19 @@ then ABBREV is looked up in that table only."
           (setq tables (append (abbrev-table-get table :parents) tables))
           (setq res
                 (and (or (not enable-fun) (funcall enable-fun))
-                     (looking-back (or (abbrev-table-get table :regexp)
-                                       "\\<\\(\\w+\\)\\W*")
-                                   (line-beginning-position))
-                     (setq start (match-beginning 1))
-                     (setq end   (match-end 1))
+                     (let ((re (abbrev-table-get table :regexp)))
+                       (if (null re)
+                           ;; We used to default `re' to "\\<\\(\\w+\\)\\W*"
+                           ;; but when words-include-escapes is set, that
+                           ;; is not right and fixing it is boring.
+                           (let ((lim (point)))
+                             (backward-word 1)
+                             (setq start (point))
+                             (forward-word 1)
+                             (setq end (min (point) lim)))
+                         (when (looking-back re (line-beginning-position))
+                           (setq start (match-beginning 1))
+                           (setq end   (match-end 1)))))
                      (setq name  (buffer-substring start end))
                      (let ((abbrev (abbrev-symbol name table)))
                        (when abbrev
