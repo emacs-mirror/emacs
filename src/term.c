@@ -3951,8 +3951,6 @@ static void
 delete_tty (struct terminal *terminal)
 {
   struct tty_display_info *tty;
-  Lisp_Object tail, frame;
-  int last_terminal;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -3963,19 +3961,6 @@ delete_tty (struct terminal *terminal)
     abort ();
 
   tty = terminal->display_info.tty;
-
-  last_terminal = 1;
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && (!FRAME_TERMCAP_P (f) || FRAME_TTY (f) != tty))
-        {
-          last_terminal = 0;
-          break;
-        }
-    }
-  if (last_terminal)
-      error ("Attempt to delete the sole terminal device with live frames");
 
   if (tty == tty_list)
     tty_list = tty->next;
