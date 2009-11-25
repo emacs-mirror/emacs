@@ -1859,7 +1859,8 @@ If it contains `directory' then if the fileset contains a directory show a short
 If it contains `file' then show short logs for files.
 Not all VC backends support short logs!")
 
-(defun vc-print-log-internal (backend files working-revision limit)
+(defun vc-print-log-internal (backend files working-revision
+                                      &optional limit)
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
