@@ -13,6 +13,10 @@
 	itself is case-insensitive on the command line.
 	Further to Bug#3717.
 
+	* textmodes/dns-mode.el: Add "Keywords: comm".  It's only an
+	editing mode, but it's comms related and sgml-mode.el has "comm"
+	on that basis too.
+
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
 	* man.el (Man-completion-table): Modify regexp to include
