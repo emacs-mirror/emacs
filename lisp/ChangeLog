@@ -1,5 +1,9 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dabbrev.el (dabbrev--minibuffer-origin): Use minibuffer-selected-window.
+	(dabbrev-completion): Use completion-in-region.
+	(dabbrev--abbrev-at-point): Simplify regexp.
+
 	* abbrev.el (abbrev--before-point): Use word-motion functions
 	if :regexp is not specified (bug#5031).
 

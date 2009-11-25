@@ -341,9 +341,9 @@ this list."
 ;; Macros
 ;;----------------------------------------------------------------
 
-;;; Get the buffer that mini-buffer was activated from
 (defsubst dabbrev--minibuffer-origin ()
-  (car (cdr (buffer-list))))
+  "Get the buffer from which mini-buffer."
+  (window-buffer (minibuffer-selected-window)))
 
 ;; Make a list of some of the elements of LIST.
 ;; Check each element of LIST, storing it temporarily in the
@@ -364,7 +364,7 @@ this list."
 ;;----------------------------------------------------------------
 
 ;;;###autoload (define-key esc-map "/" 'dabbrev-expand)
-;;;??? Do we want this?
+;;??? Do we want this?
 ;;;###autoload (define-key esc-map [?\C-/] 'dabbrev-completion)
 
 ;;;###autoload
@@ -373,11 +373,11 @@ this list."
 Like \\[dabbrev-expand] but finds all expansions in the current buffer
 and presents suggestions for completion.
 
-With a prefix argument, it searches all buffers accepted by the
+With a prefix argument ARG, it searches all buffers accepted by the
 function pointed out by `dabbrev-friend-buffer-function' to find the
 completions.
 
-If the prefix argument is 16 (which comes from C-u C-u),
+If the prefix argument is 16 (which comes from \\[prefix-argument] \\[prefix-argument]),
 then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)
@@ -385,6 +385,8 @@ then it searches *all* buffers."
 	 (dabbrev-check-all-buffers
 	  (and arg (= (prefix-numeric-value arg) 16)))
 	 (abbrev (dabbrev--abbrev-at-point))
+         (beg (progn (search-backward abbrev) (point)))
+         (end (progn (search-forward abbrev) (point)))
 	 (ignore-case-p (and (if (eq dabbrev-case-fold-search 'case-fold-search)
 				 case-fold-search
 			       dabbrev-case-fold-search)
@@ -427,32 +429,8 @@ then it searches *all* buffers."
 			    (intern (downcase string) my-obarray)))
 		completion-list)))
 	(setq dabbrev--last-obarray my-obarray)
-	(setq dabbrev--last-completion-buffer (current-buffer))
-	;; Find the longest common string.
-	(setq init (try-completion abbrev my-obarray))))
-    ;;--------------------------------
-    ;; Let the user choose between the expansions
-    ;;--------------------------------
-    (or (stringp init)
-	(setq init abbrev))
-    (cond
-     ;; * Replace string fragment with matched common substring completion.
-     ((and (not (string-equal init ""))
-	   (not (string-equal (downcase init) (downcase abbrev))))
-      (if (> (length (all-completions init my-obarray)) 1)
-	  (message "Repeat `%s' to see all completions"
-		   (key-description (this-command-keys)))
-	(message "The only possible completion"))
-      (dabbrev--substitute-expansion nil abbrev init nil))
-     (t
-      ;; * String is a common substring completion already.  Make list.
-      (message "Making completion list...")
-      (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list (all-completions init my-obarray)
-				 init))
-      (message "Making completion list...done")))
-    (and (window-minibuffer-p (selected-window))
-	 (message nil))))
+	(setq dabbrev--last-completion-buffer (current-buffer))))
+    (completion-in-region beg end my-obarray)))
 
 ;;;###autoload
 (defun dabbrev-expand (arg)
@@ -590,15 +568,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 ;; Local functions
 ;;----------------------------------------------------------------
 
-;;; Checks if OTHER-BUFFER has the same major mode as current buffer.
 (defun dabbrev--same-major-mode-p (other-buffer)
+  "Check if OTHER-BUFFER has the same major mode as current buffer."
   (eq major-mode
       (with-current-buffer other-buffer
 	major-mode)))
 
-;;; Back over all abbrev type characters and then moves forward over
-;;; all skip characters.
 (defun dabbrev--goto-start-of-abbrev ()
+  "Back over all abbrev type characters and then moves forward over
+all skip characters."
   ;; Move backwards over abbrev chars
   (save-match-data
     (when (> (point) (minibuffer-prompt-end))
@@ -614,8 +592,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	 (while (looking-at dabbrev-abbrev-skip-leading-regexp)
 	   (forward-char 1)))))
 
-;;; Extract the symbol at point to serve as abbreviation.
 (defun dabbrev--abbrev-at-point ()
+  "Extract the symbol at point to serve as abbreviation."
   ;; Check for error
   (if (bobp)
       (error "No possible abbreviation preceding point"))
@@ -630,10 +608,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (save-match-data
       (if (save-excursion
 	    (forward-char -1)
-	    (not (looking-at (concat "\\("
-				     (or dabbrev-abbrev-char-regexp
-					 "\\sw\\|\\s_")
-				     "\\)+"))))
+	    (not (looking-at (or dabbrev-abbrev-char-regexp
+                                 "\\sw\\|\\s_"))))
 	  (if (re-search-backward (or dabbrev-abbrev-char-regexp
 				      "\\sw\\|\\s_")
 				  nil t)
@@ -644,8 +620,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (buffer-substring-no-properties
      dabbrev--last-abbrev-location (point))))
 
-;;; Initializes all global variables
 (defun dabbrev--reset-global-variables ()
+  "Initialize all global variables."
   ;; dabbrev--last-obarray and dabbrev--last-completion-buffer
   ;; must not be reset here.
   (setq dabbrev--last-table nil
