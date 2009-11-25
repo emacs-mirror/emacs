@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
-;; Keywords: DNS master zone file SOA
+;; Keywords: DNS master zone file SOA comm
 
 ;; This file is part of GNU Emacs.
 
