@@ -1,5 +1,21 @@
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
+	Search recursively in gzipped files.  (Bug#4982)
+
+	* progmodes/grep.el (grep-highlight-matches): Add new options
+	`always' and `auto'.  Doc fix.
+	(grep-process-setup): Check `grep-highlight-matches' for
+	`auto-detect' to determine the need to compute grep defaults.
+	Move Windows/DOS specific --colors settings handling
+	to `grep-compute-defaults'.  Check `grep-highlight-matches'
+	to get the value of "--color=".
+	(grep-compute-defaults): Compute `grep-highlight-matches' when it
+	has the value `auto-detect'.  Move Windows/DOS specific settings
+	from `grep-process-setup'.
+	(zrgrep): New command with alias `rzgrep'.
+
+2009-11-25  Juri Linkov  <juri@jurta.org>
+
 	* doc-view.el (doc-view-mode): Set buffer-local `view-read-only'
 	to nil instead of switching off view-mode.  (Bug#4896)
 

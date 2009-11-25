@@ -208,6 +208,10 @@ This probably affects a lot of documentation.
 
 ** FIXME gdb-mi
 
+** Grep
+
+A new command `zrgrep' searches recursively in gzipped files.
+
 ** Info
 
 *** The new command `Info-virtual-index' bound to "I" displays a menu of

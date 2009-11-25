@@ -69,22 +69,34 @@ SYMBOL should be one of `grep-command', `grep-template',
   :group 'grep)
 
 (defcustom grep-highlight-matches 'auto-detect
-  "If t, use special markers to highlight grep matches.
+  "Use special markers to highlight grep matches.
 
 Some grep programs are able to surround matches with special
 markers in grep output.  Such markers can be used to highlight
 matches in grep mode.
 
-This option sets the environment variable GREP_COLOR to specify
+This option sets the environment variable GREP_COLORS to specify
 markers for highlighting and GREP_OPTIONS to add the --color
 option in front of any explicit grep options before starting
 the grep.
 
+When this option is `auto', grep uses `--color=auto' to highlight
+matches only when it outputs to a terminal (when `grep' is the last
+command in the pipe), thus avoiding the use of any potentially-harmful
+escape sequences when standard output goes to a file or pipe.
+
+To make grep highlight matches even into a pipe, you need the option
+`always' that forces grep to use `--color=always' to unconditionally
+output escape sequences.
+
 In interactive usage, the actual value of this variable is set up
-by `grep-compute-defaults'; to change the default value, use
-Customize or call the function `grep-apply-setting'."
+by `grep-compute-defaults' when the default value is `auto-detect'.
+To change the default value, use Customize or call the function
+`grep-apply-setting'."
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
+		 (const :tag "Use --color=always" always)
+		 (const :tag "Use --color=auto" auto)
 		 (other :tag "Not Set" auto-detect))
   :set 'grep-apply-setting
   :version "22.1"
@@ -442,19 +454,16 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defun grep-process-setup ()
   "Setup compilation variables and buffer for `grep'.
 Set up `compilation-exit-message-function' and run `grep-setup-hook'."
-  (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
+  (when (eq grep-highlight-matches 'auto-detect)
     (grep-compute-defaults))
-  (when (eq grep-highlight-matches t)
+  (unless (or (eq grep-highlight-matches 'auto-detect)
+	      (null grep-highlight-matches))
     ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
     ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'
     (setenv "TERM" "emacs-grep")
-    ;; `--color=auto' emits escape sequences on a tty rather than on a pipe,
-    ;; thus allowing to use multiple grep filters on the command line
-    ;; and to output escape sequences only on the final grep output
     (setenv "GREP_OPTIONS"
 	    (concat (getenv "GREP_OPTIONS")
-		    ;; Windows and DOS pipes fail `isatty' detection in Grep.
-		    " --color=" (if (memq system-type '(windows-nt ms-dos))
+		    " --color=" (if (eq grep-highlight-matches 'always)
 				    "always" "auto")))
     ;; GREP_COLOR is used in GNU grep 2.5.1, but deprecated in later versions
     (setenv "GREP_COLOR" "01;31")
@@ -579,14 +588,16 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 			(t
 			 (format "%s . <X> -type f <F> -print | %s %s"
 				 find-program xargs-program gcmd))))))))
-    (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
+    (when (eq grep-highlight-matches 'auto-detect)
       (setq grep-highlight-matches
 	    (with-temp-buffer
 	      (and (grep-probe grep-program '(nil t nil "--help"))
 		   (progn
 		     (goto-char (point-min))
 		     (search-forward "--color" nil t))
-		   t))))
+		   ;; Windows and DOS pipes fail `isatty' detection in Grep.
+		   (if (memq system-type '(windows-nt ms-dos))
+		       'always 'auto)))))
 
     ;; Save defaults for this host.
     (setq grep-host-defaults-alist
@@ -978,6 +989,42 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 	  (if (eq next-error-last-buffer (current-buffer))
 	      (setq default-directory dir)))))))
 
+;;;###autoload
+(defun zrgrep (regexp &optional files dir confirm grep-find-template)
+  "Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
+Like `rgrep' but uses `zgrep' for `grep-program', sets the default
+file name to `*.gz', and sets `grep-highlight-matches' to `always'."
+  (interactive
+   (let ((grep-program "zgrep")
+	 (grep-find-template nil)  ; output of `grep-compute-defaults'
+	 (grep-find-command nil)
+	 (grep-host-defaults-alist nil)
+	 (grep-files-aliases '(("*.gz" . "*.gz") ; for `grep-read-files'
+			       ("all" . "* .*"))))
+     ;; Recompute defaults using let-bound values above.
+     (grep-compute-defaults)
+     (cond
+      ((and grep-find-command (equal current-prefix-arg '(16)))
+       (list (read-from-minibuffer "Run: " grep-find-command
+				   nil nil 'grep-find-history)))
+      ((not grep-find-template)
+       (error "grep.el: No `grep-find-template' available"))
+      (t (let* ((regexp (grep-read-regexp))
+		(files (grep-read-files regexp))
+		(dir (read-directory-name "Base directory: "
+					  nil default-directory t))
+		(confirm (equal current-prefix-arg '(4))))
+	   (list regexp files dir confirm grep-find-template))))))
+  ;; Set `grep-highlight-matches' to `always'
+  ;; since `zgrep' puts filters in the grep output.
+  (let ((grep-highlight-matches 'always))
+    ;; `rgrep' uses the dynamically bound value `grep-find-template'
+    ;; from the argument `grep-find-template' whose value is computed
+    ;; in the `interactive' spec.
+    (rgrep regexp files dir confirm)))
+
+;;;###autoload
+(defalias 'rzgrep 'zrgrep)
 
 (provide 'grep)
 
