@@ -411,6 +411,14 @@ and should return either a buffer or nil."
   :type '(hook :options (cvs-dired-noselect dired-noselect))
   :group 'find-file)
 
+;; FIXME: also add a hook for `(thing-at-point 'filename)'
+(defcustom file-name-at-point-functions '(ffap-guess-file-name-at-point)
+  "List of functions to try in sequence to get a file name at point.
+Each function should return either nil or a file name found at the
+location of point in the current buffer."
+  :type '(hook :options (ffap-guess-file-name-at-point))
+  :group 'find-file)
+
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
 (defvar find-file-not-found-functions nil
@@ -1275,9 +1283,6 @@ its documentation for additional customization information."
     ;;(make-frame-visible (window-frame old-window))
     ))
 
-(defvar find-file-default nil
-  "Used within `find-file-read-args'.")
-
 (defmacro minibuffer-with-setup-hook (fun &rest body)
   "Add FUN to `minibuffer-setup-hook' while executing BODY.
 BODY should use the minibuffer at most once.
@@ -1298,12 +1303,7 @@ Recursive uses of the minibuffer will not be affected."
 	 (remove-hook 'minibuffer-setup-hook ,hook)))))
 
 (defun find-file-read-args (prompt mustmatch)
-  (list (let ((find-file-default
-	       (and buffer-file-name
-		    (abbreviate-file-name buffer-file-name))))
-	  (minibuffer-with-setup-hook
-	      (lambda () (setq minibuffer-default find-file-default))
-	    (read-file-name prompt nil default-directory mustmatch)))
+  (list (read-file-name prompt nil default-directory mustmatch)
 	t))
 
 (defun find-file (filename &optional wildcards)
@@ -2020,7 +2020,10 @@ regardless of whether it was created literally or not.
 In a Lisp program, if you want to be sure of accessing a file's
 contents literally, you should create a temporary buffer and then read
 the file contents into it using `insert-file-contents-literally'."
-  (interactive "FFind file literally: ")
+  (interactive
+   (list (read-file-name
+  	  "Find file literally: " nil default-directory
+  	  (confirm-nonexistent-file-or-buffer))))
   (switch-to-buffer (find-file-noselect filename nil t)))
 
 (defvar after-find-file-from-revert-buffer nil)

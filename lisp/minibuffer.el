@@ -1321,6 +1321,32 @@ such as making the current buffer visit no file in the case of
 (declare-function x-file-dialog "xfns.c"
                   (prompt dir &optional default-filename mustmatch only-dir-p))
 
+(defun read-file-name-defaults (&optional dir initial)
+  (let ((default
+	  (cond
+	   ;; With non-nil `initial', use `dir' as the first default.
+	   ;; Essentially, this mean reversing the normal order of the
+	   ;; current directory name and the current file name, i.e.
+	   ;; 1. with normal file reading:
+	   ;; 1.1. initial input is the current directory
+	   ;; 1.2. the first default is the current file name
+	   ;; 2. with non-nil `initial' (e.g. for `find-alternate-file'):
+	   ;; 2.2. initial input is the current file name
+	   ;; 2.1. the first default is the current directory
+	   (initial (abbreviate-file-name dir))
+	   ;; In file buffers, try to get the current file name
+	   (buffer-file-name
+	    (abbreviate-file-name buffer-file-name))))
+	(file-name-at-point
+	 (run-hook-with-args-until-success 'file-name-at-point-functions)))
+    (when file-name-at-point
+      (setq default (delete-dups
+		     (delete "" (delq nil (list file-name-at-point default))))))
+    ;; Append new defaults to the end of existing `minibuffer-default'.
+    (append
+     (if (listp minibuffer-default) minibuffer-default (list minibuffer-default))
+     (if (listp default) default (list default)))))
+
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
@@ -1404,7 +1430,24 @@ and `read-file-name-function'."
                     (lexical-let ((dir (file-name-as-directory
                                         (expand-file-name dir))))
                       (minibuffer-with-setup-hook
-                          (lambda () (setq default-directory dir))
+                          (lambda ()
+			    (setq default-directory dir)
+			    ;; When the first default in `minibuffer-default'
+			    ;; duplicates initial input `insdef',
+			    ;; reset `minibuffer-default' to nil.
+			    (when (equal (or (car-safe insdef) insdef)
+					 (or (car-safe minibuffer-default)
+					     minibuffer-default))
+			      (setq minibuffer-default
+				    (cdr-safe minibuffer-default)))
+			    ;; On the first request on `M-n' fill
+			    ;; `minibuffer-default' with a list of defaults
+			    ;; relevant for file-name reading.
+			    (set (make-local-variable 'minibuffer-default-add-function)
+				 (lambda ()
+				   (with-current-buffer
+				       (window-buffer (minibuffer-selected-window))
+				     (read-file-name-defaults dir initial)))))
                         (completing-read prompt 'read-file-name-internal
                                          pred mustmatch insdef
                                          'file-name-history default-filename)))
@@ -1997,6 +2040,17 @@ filter out additional entries (because TABLE migth not obey PRED)."
     (when newstr
       (completion-pcm-try-completion newstr table pred (length newstr)))))
 
+
+;; Miscellaneous
+
+(defun minibuffer-insert-file-name-at-point ()
+  "Get a file name at point in original buffer and insert it to minibuffer."
+  (interactive)
+  (let ((file-name-at-point
+	 (with-current-buffer (window-buffer (minibuffer-selected-window))
+	   (run-hook-with-args-until-success 'file-name-at-point-functions))))
+    (when file-name-at-point
+      (insert file-name-at-point))))
 
 (provide 'minibuffer)
 

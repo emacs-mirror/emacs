@@ -1893,6 +1893,29 @@ Only intended for interactive use."
     (call-interactively 'dired-at-point)))
 
 
+;;; Hooks to put in `file-name-at-point-functions':
+
+;;;###autoload
+(progn (defun ffap-guess-file-name-at-point ()
+  "Try to get a file name at point.
+This hook is inteneded to be put in `file-name-at-point-functions'."
+  (when (fboundp 'ffap-guesser)
+    ;; Logic from `ffap-read-file-or-url' and `dired-at-point-prompter'.
+    (let ((guess (ffap-guesser)))
+      (setq guess
+	    (if (or (not guess)
+		    (and (fboundp 'ffap-url-p)
+			 (ffap-url-p guess))
+		    (and (fboundp 'ffap-file-remote-p)
+			 (ffap-file-remote-p guess)))
+		guess
+	      (abbreviate-file-name (expand-file-name guess))))
+      (when guess
+	(if (file-directory-p guess)
+	    (file-name-as-directory guess)
+	  guess))))))
+
+
 ;;; Offer default global bindings (`ffap-bindings'):
 
 (defvar ffap-bindings

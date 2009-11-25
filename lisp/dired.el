@@ -599,12 +599,8 @@ Don't use that together with FILTER."
 	    (if (next-read-file-uses-dialog-p)
 		(read-directory-name (format "Dired %s(directory): " str)
 				     nil default-directory nil)
-	      (let ((default (and buffer-file-name
-				  (abbreviate-file-name buffer-file-name))))
-		(minibuffer-with-setup-hook
-		    (lambda () (setq minibuffer-default default))
-		  (read-file-name (format "Dired %s(directory): " str)
-				  nil default-directory nil)))))))
+	      (read-file-name (format "Dired %s(directory): " str)
+			      nil default-directory nil)))))
 
 ;; We want to switch to a more sophisticated version of
 ;; dired-read-dir-and-switches like the following, if there is a way
@@ -658,6 +654,15 @@ Don't use that together with FILTER."
 ;;                 (setq minibuffer-completion-table completion-table))
 ;;             (read-file-name (format "Dired %s(directory): " str)
 ;;                             nil default-directory nil))))))))
+
+(defun dired-file-name-at-point ()
+  "Try to get a file name at point in the current dired buffer.
+This hook is inteneded to be put in `file-name-at-point-functions'."
+  (let ((filename (dired-get-filename nil t)))
+    (when filename
+      (if (file-directory-p filename)
+	  (file-name-as-directory (abbreviate-file-name filename))
+	(abbreviate-file-name filename)))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -1772,6 +1777,7 @@ Keybindings:
   (when (featurep 'dnd)
     (set (make-local-variable 'dnd-protocol-alist)
 	 (append dired-dnd-protocol-alist dnd-protocol-alist)))
+  (add-hook 'file-name-at-point-functions 'dired-file-name-at-point nil t)
   (add-hook 'isearch-mode-hook 'dired-isearch-filenames-setup nil t)
   (run-mode-hooks 'dired-mode-hook))
 

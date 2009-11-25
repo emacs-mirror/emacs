@@ -1,3 +1,32 @@
+2009-11-25  Juri Linkov  <juri@jurta.org>
+
+	Provide additional default values (file name at point or at the
+	current Dired line) via M-n for file reading minibuffers.  (Bug#5010)
+
+	* minibuffer.el (read-file-name-defaults): New function.
+	(read-file-name): Reset `minibuffer-default' to nil when
+	it duplicates initial input `insdef'.
+	Bind `minibuffer-default-add-function' to lambda that
+	calls `read-file-name-defaults' in `minibuffer-selected-window'.
+	(minibuffer-insert-file-name-at-point): New command.
+
+	* files.el (file-name-at-point-functions): New defcustom.
+	(find-file-default): Remove defvar.
+	(find-file-read-args): Don't use `find-file-default'.
+	Move `minibuffer-with-setup-hook' that sets `minibuffer-default'
+	to `read-file-name'.
+	(find-file-literally): Use `read-file-name' with
+	`confirm-nonexistent-file-or-buffer'.
+
+	* ffap.el (ffap-guess-file-name-at-point): New autoloaded function.
+
+	* dired.el (dired-read-dir-and-switches):
+	Move `minibuffer-with-setup-hook' that sets `minibuffer-default'
+	to `read-file-name'.
+	(dired-file-name-at-point): New function.
+	(dired-mode): Add hook `dired-file-name-at-point' to
+	`file-name-at-point-functions'.
+
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Really make the *Completions* window soft-dedicated (bug#5030).
