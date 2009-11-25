@@ -1,5 +1,10 @@
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
+	* doc-view.el (doc-view-mode): Set buffer-local `view-read-only'
+	to nil instead of switching off view-mode.  (Bug#4896)
+
+2009-11-25  Juri Linkov  <juri@jurta.org>
+
 	Mouse-wheel scrolling for DocView Continuous mode.  (Bug#4896)
 
 	* mwheel.el (mwheel-scroll-up-function)

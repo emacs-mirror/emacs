@@ -1272,7 +1272,7 @@ toggle between displaying the document or editing it as text.
     ;; canonical view mode for PDF/PS/DVI files.  This could be
     ;; switched on automatically depending on the value of
     ;; `view-read-only'.
-    (view-mode -1)
+    (set (make-local-variable 'view-read-only) nil)
     (run-mode-hooks 'doc-view-mode-hook)))
 
 ;;;###autoload
