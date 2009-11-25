@@ -1,5 +1,7 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (string-prefix-p): New function.
+
 	* man.el (Man-completion-cache): New var.
 	(Man-completion-table): Use it.
 
