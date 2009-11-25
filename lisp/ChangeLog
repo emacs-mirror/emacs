@@ -1,5 +1,29 @@
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
+	Mouse-wheel scrolling for DocView Continuous mode.  (Bug#4896)
+
+	* mwheel.el (mwheel-scroll-up-function)
+	(mwheel-scroll-down-function): New defvars.
+	(mwheel-scroll): Funcall `mwheel-scroll-up-function' instead of
+	`scroll-up', and `mwheel-scroll-down-function' instead of
+	`scroll-down'.
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page): Add optional ARG.
+	Use this ARG in the call to image-scroll-up/image-scroll-down.
+	Change `interactive' spec to "P".  Goto next/previous page only
+	when `doc-view-continuous-mode' is non-nil or ARG is nil (for the
+	SPC/DEL case).  Doc fix.
+	(doc-view-next-line-or-next-page)
+	(doc-view-previous-line-or-previous-page): Rename arg to ARG
+	for consistency.
+	(doc-view-mode): Set buffer-local `mwheel-scroll-up-function' to
+	`doc-view-scroll-up-or-next-page', and buffer-local
+	`mwheel-scroll-down-function' to
+	`doc-view-scroll-down-or-previous-page'.
+
+2009-11-25  Juri Linkov  <juri@jurta.org>
+
 	Provide additional default values (directories at other Dired
 	windows) via M-n in the minibuffer of some Dired commands.
 

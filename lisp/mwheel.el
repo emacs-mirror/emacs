@@ -179,6 +179,12 @@ This can be slightly disconcerting, but some people prefer it."
   (if (eq (event-basic-type last-input-event) mouse-wheel-click-event)
       (setq this-command 'ignore)))
 
+(defvar mwheel-scroll-up-function 'scroll-up
+  "Function that does the job of scrolling upward.")
+
+(defvar mwheel-scroll-down-function 'scroll-down
+  "Function that does the job of scrolling downward.")
+
 (defun mwheel-scroll (event)
   "Scroll up or down according to the EVENT.
 This should only be bound to mouse buttons 4 and 5."
@@ -206,12 +212,12 @@ This should only be bound to mouse buttons 4 and 5."
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
 	  (cond ((eq button mouse-wheel-down-event)
-                 (condition-case nil (scroll-down amt)
+                 (condition-case nil (funcall mwheel-scroll-down-function amt)
                    ;; Make sure we do indeed scroll to the beginning of
                    ;; the buffer.
                    (beginning-of-buffer
                     (unwind-protect
-                        (scroll-down)
+                        (funcall mwheel-scroll-down-function)
                       ;; If the first scroll succeeded, then some scrolling
                       ;; is possible: keep scrolling til the beginning but
                       ;; do not signal an error.  For some reason, we have
@@ -221,9 +227,9 @@ This should only be bound to mouse buttons 4 and 5."
                       ;; to only affect scroll-down.  --Stef
                       (set-window-start (selected-window) (point-min))))))
 		((eq button mouse-wheel-up-event)
-                 (condition-case nil (scroll-up amt)
+                 (condition-case nil (funcall mwheel-scroll-up-function amt)
                    ;; Make sure we do indeed scroll to the end of the buffer.
-                   (end-of-buffer (while t (scroll-up)))))
+                   (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
 		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin)))
     ;; If there is a temporarily active region, deactivate it iff
