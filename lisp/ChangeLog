@@ -1,5 +1,7 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/meta-mode.el (meta-complete-symbol):
+	* progmodes/etags.el (complete-tag):
 	* mail/mailabbrev.el (mail-abbrev-complete-alias):
 	Use completion-in-region.
 
