@@ -1,5 +1,8 @@
 2009-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/mailabbrev.el (mail-abbrev-complete-alias):
+	Use completion-in-region.
+
 	* dabbrev.el (dabbrev--minibuffer-origin): Use minibuffer-selected-window.
 	(dabbrev-completion): Use completion-in-region.
 	(dabbrev--abbrev-at-point): Simplify regexp.
