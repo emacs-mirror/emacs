@@ -770,7 +770,7 @@ POS defaults to `point'."
           (call-process manual-program nil '(t nil) nil
                         "-k" (concat "^" string))
         (goto-char (point-min))
-        (while (re-search-forward "^[^ \t\n]+" nil t)
+        (while (re-search-forward "^[^ \t\n]+\\(?: (.+?)\\)?" nil t)
           (push (match-string 0) table)))
         ;; Cache the table for later reuse.
         (setq Man-completion-cache (cons string table)))

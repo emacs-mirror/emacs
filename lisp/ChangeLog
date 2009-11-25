@@ -1,5 +1,10 @@
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
+	* man.el (Man-completion-table): Modify regexp to include
+	section names to completion strings.  (Bug#3717)
+
+2009-11-25  Juri Linkov  <juri@jurta.org>
+
 	Search recursively in gzipped files.  (Bug#4982)
 
 	* progmodes/grep.el (grep-highlight-matches): Add new options
