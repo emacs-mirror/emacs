@@ -59,30 +59,27 @@ The prompted-for file is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
 which is options for `diff'."
   (interactive
-   (let ((current (dired-get-filename t))
-	 (default (if (mark t)
-		      (save-excursion (goto-char (mark t))
-				      (dired-get-filename t t)))))
-     (if (or (equal default current)
-	     (and (not (equal (dired-dwim-target-directory)
-			      (dired-current-directory)))
-		  (not mark-active)))
-	 (setq default nil))
+   (let* ((current (dired-get-filename t))
+	  (target-dir (dired-dwim-target-directory))
+	  (marked (and (mark t) (save-excursion
+				  (goto-char (mark t))
+				  (dired-get-filename nil t))))
+	  (defaults
+	    (append (dired-dwim-target-defaults nil target-dir)
+		    ;; Additional file with the mark.
+		    (and marked (list marked)))))
      (require 'diff)
-     (list (read-file-name (format "Diff %s with%s: "
-				   current
-				   (if default
-				       (concat " (default " default ")")
-				     ""))
-			   (if default
-			       (dired-current-directory)
-			     (dired-dwim-target-directory))
-			   default t)
-	   (if current-prefix-arg
-	       (read-string "Options for diff: "
-			    (if (stringp diff-switches)
-				diff-switches
-			      (mapconcat 'identity diff-switches " ")))))))
+     (list
+      (minibuffer-with-setup-hook
+	  (lambda ()
+	    (set (make-local-variable 'minibuffer-default-add-function) nil)
+	    (setq minibuffer-default defaults))
+	(read-file-name (format "Diff %s with: " current) target-dir nil t))
+      (if current-prefix-arg
+	  (read-string "Options for diff: "
+		       (if (stringp diff-switches)
+			   diff-switches
+			 (mapconcat 'identity diff-switches " ")))))))
   (diff file (dired-get-filename t) switches))
 
 ;;;###autoload
@@ -128,11 +125,17 @@ Examples of PREDICATE:
     (not (and (= (nth 2 fa1) (nth 2 fa2))   - mark files with different UID
               (= (nth 3 fa1) (nth 3 fa2))))   and GID."
   (interactive
-   (list (read-directory-name (format "Compare %s with: "
-				      (dired-current-directory))
-			      (dired-dwim-target-directory)
-			      (dired-dwim-target-directory))
-         (read-from-minibuffer "Mark if (lisp expr or RET): " nil nil t nil "nil")))
+   (list
+    (let* ((target-dir (dired-dwim-target-directory))
+	   (defaults (dired-dwim-target-defaults nil target-dir)))
+      (minibuffer-with-setup-hook
+	  (lambda ()
+	    (set (make-local-variable 'minibuffer-default-add-function) nil)
+	    (setq minibuffer-default defaults))
+	(read-directory-name (format "Compare %s with: "
+				     (dired-current-directory))
+			     target-dir target-dir t)))
+    (read-from-minibuffer "Mark if (lisp expr or RET): " nil nil t nil "nil")))
   (let* ((dir1 (dired-current-directory))
          (file-alist1 (dired-files-attributes dir1))
          (file-alist2 (dired-files-attributes dir2))
@@ -1463,10 +1466,15 @@ Optional arg HOW-TO determiness how to treat the target.
 	 (default (and dired-one-file
 		       (expand-file-name (file-name-nondirectory (car fn-list))
 					 target-dir)))
+	 (defaults (dired-dwim-target-defaults fn-list target-dir))
 	 (target (expand-file-name ; fluid variable inside dired-create-files
-		   (dired-mark-read-file-name
-		    (concat (if dired-one-file op1 operation) " %s to: ")
-		    target-dir op-symbol arg rfn-list default)))
+		  (minibuffer-with-setup-hook
+		      (lambda ()
+			(set (make-local-variable 'minibuffer-default-add-function) nil)
+			(setq minibuffer-default defaults))
+		    (dired-mark-read-file-name
+		     (concat (if dired-one-file op1 operation) " %s to: ")
+		     target-dir op-symbol arg rfn-list default))))
 	 (into-dir (cond ((null how-to)
 			  ;; Allow DOS/Windows users to change the letter
 			  ;; case of a directory.  If we don't test these
@@ -1523,18 +1531,69 @@ Optional arg HOW-TO determiness how to treat the target.
 
 (defun dired-dwim-target-directory ()
   ;; Try to guess which target directory the user may want.
-  ;; If there is a dired buffer displayed in the next window, use
-  ;; its current subdir, else use current subdir of this dired buffer.
+  ;; If there is a dired buffer displayed in one of the next windows,
+  ;; use its current subdir, else use current subdir of this dired buffer.
   (let ((this-dir (and (eq major-mode 'dired-mode)
 		       (dired-current-directory))))
     ;; non-dired buffer may want to profit from this function, e.g. vm-uudecode
     (if dired-dwim-target
-	(let* ((other-buf (window-buffer (next-window)))
-	       (other-dir (with-current-buffer other-buf
-			    (and (eq major-mode 'dired-mode)
-				 (dired-current-directory)))))
+	(let* ((other-win (get-window-with-predicate
+			   (lambda (window)
+			     (with-current-buffer (window-buffer window)
+			       (eq major-mode 'dired-mode)))))
+	       (other-dir (and other-win
+			       (with-current-buffer (window-buffer other-win)
+				 (and (eq major-mode 'dired-mode)
+				      (dired-current-directory))))))
 	  (or other-dir this-dir))
       this-dir)))
+
+(defun dired-dwim-target-defaults (fn-list target-dir)
+  ;; Return a list of default values for file-reading functions in Dired.
+  ;; This list may contain directories from Dired buffers in other windows.
+  ;; `fn-list' is a list of file names used to build a list of defaults.
+  ;; When nil or more than one element, a list of defaults will
+  ;; contain only directory names.  `target-dir' is a directory name
+  ;; to exclude from the returned list, for the case when this
+  ;; directory name is already presented in initial input.
+  ;; For Dired operations that support `dired-dwim-target',
+  ;; the argument `target-dir' should have the value returned
+  ;; from `dired-dwim-target-directory'.
+  (let ((dired-one-file
+	 (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
+	(current-dir (and (eq major-mode 'dired-mode)
+			  (dired-current-directory)))
+	dired-dirs)
+    ;; Get a list of directories of visible buffers in dired-mode.
+    (walk-windows (lambda (w)
+		    (with-current-buffer (window-buffer w)
+		      (and (eq major-mode 'dired-mode)
+			   (push (dired-current-directory) dired-dirs)))))
+    ;; Force the current dir to be the first in the list.
+    (setq dired-dirs
+	  (delete-dups (delq nil (cons current-dir (nreverse dired-dirs)))))
+    ;; Remove the target dir (if specified) or the current dir from
+    ;; default values, because it should be already in initial input.
+    (setq dired-dirs (delete (or target-dir current-dir) dired-dirs))
+    ;; Return a list of default values.
+    (if dired-one-file
+	;; For one file operation, provide a list that contains
+	;; other directories, other directories with the appended filename
+	;; and the current directory with the appended filename, e.g.
+	;; 1. /TARGET-DIR/
+	;; 2. /TARGET-DIR/FILENAME
+	;; 3. /CURRENT-DIR/FILENAME
+	(append dired-dirs
+		(mapcar (lambda (dir)
+			  (expand-file-name
+			   (file-name-nondirectory (car fn-list)) dir))
+			(reverse dired-dirs))
+		(list (expand-file-name
+		       (file-name-nondirectory (car fn-list))
+		       (or target-dir current-dir))))
+      ;; For multi-file operation, return only a list of other directories.
+      dired-dirs)))
+
 
 ;;;###autoload
 (defun dired-create-directory (directory)

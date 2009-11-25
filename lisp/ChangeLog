@@ -1,5 +1,22 @@
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
+	Provide additional default values (directories at other Dired
+	windows) via M-n in the minibuffer of some Dired commands.
+
+	* dired-aux.el (dired-diff, dired-compare-directories)
+	(dired-do-create-files): Use `dired-dwim-target-defaults' to set
+	`minibuffer-default' in `minibuffer-with-setup-hook'.
+	(dired-dwim-target-directory): Find a window that displays Dired
+	buffer instead of failing when the next window is not Dired.
+	Use `get-window-with-predicate' to find for the next Dired window.
+	(dired-dwim-target-defaults): New function.
+
+	* ediff-util.el (ediff-read-file-name):
+	Use `dired-dwim-target-defaults' to set `minibuffer-default'
+	in `minibuffer-with-setup-hook'.
+
+2009-11-25  Juri Linkov  <juri@jurta.org>
+
 	Provide additional default values (file name at point or at the
 	current Dired line) via M-n for file reading minibuffers.  (Bug#5010)
 
