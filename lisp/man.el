@@ -799,6 +799,13 @@ all sections related to a subject, put something appropriate into the
 `Man-switches' variable, which see."
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
+		;; ignore case because that's friendly for bizarre
+		;; caps things like the X11 function names and because
+		;; "man" itself is case-sensitive on the command line
+		;; so you're accustomed not to bother about the case
+		;; ("man -k" is case-insensitive similarly, so the
+		;; table has everything available to complete)
+		(completion-ignore-case t)
 		(input (completing-read
 			(format "Manual entry%s"
 				(if (string= default-entry "")
