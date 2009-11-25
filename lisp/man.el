@@ -761,14 +761,18 @@ POS defaults to `point'."
       (unless (and Man-completion-cache
                    (string-prefix-p (car Man-completion-cache) string))
       (with-temp-buffer
+	(setq default-directory "/") ;; in case inherited doesn't exist
         ;; Actually for my `man' the arg is a regexp.  Don't know how
         ;; standard that is.  Also, it's not clear what kind of
         ;; regexp are accepted: under GNU/Linux it seems it's ERE-style,
         ;; whereas under MacOSX it seems to be BRE-style and
         ;; doesn't accept backslashes at all.  Let's not bother to
         ;; quote anything.
+ 	(let ((process-connection-type nil) ;; pipe
+	      (process-environment (copy-sequence process-environment)))
+	  (setenv "COLUMNS" "999") ;; don't truncate long names
           (call-process manual-program nil '(t nil) nil
-                        "-k" (concat "^" string))
+                        "-k" (concat "^" string)))
         (goto-char (point-min))
         (while (re-search-forward "^[^ \t\n]+\\(?: (.+?)\\)?" nil t)
           (push (match-string 0) table)))
