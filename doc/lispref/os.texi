@@ -201,6 +201,8 @@ Do not set this variable in the init file of a new user, or in a way
 that affects more than one user, as that would prevent new users from
 receiving information about copyleft and basic Emacs usage.
 
+@vindex inhibit-startup-message
+@vindex inhibit-splash-screen
 @code{inhibit-startup-message} and @code{inhibit-splash-screen} are
 aliases for this variable.
 @end defopt
@@ -489,6 +491,7 @@ to Emacs.
 @end defvar
 
 @defvar command-line-args-left
+@vindex argv
 The value of this variable is the list of command-line arguments that
 have not yet been processed.  @code{argv} is an alias for this.
 @end defvar
@@ -697,6 +700,7 @@ the terminal for the selected frame).  @xref{Multiple Terminals}.
 
 If @var{tty} is already suspended, this function does nothing.
 
+@vindex suspend-tty-functions
 This function runs the hook @code{suspend-tty-functions}, passing the
 terminal object as an argument to each function.
 @end defun
@@ -707,6 +711,7 @@ This function resumes the previously suspended terminal device
 terminal for that frame), or @code{nil} (meaning the terminal for the
 selected frame).
 
+@vindex resume-tty-functions
 This function reopens the terminal device, re-initializes it, and
 redraws its with that terminal's selected frame.  It then runs the
 hook @code{resume-tty-functions}, passing the terminal object as an
