@@ -118,9 +118,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "547"
+(defconst verilog-mode-version "552"
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date "2009-11-05-GNU"
+(defconst verilog-mode-release-date "2009-11-25-GNU"
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -4640,7 +4640,13 @@ Jump from end to matching begin, from endcase to matching case, and so on."
 		(while (verilog-re-search-backward reg nil 'move)
 		  (cond
 		   ((match-end 1) ; begin
-		    (setq nest (1- nest))
+		    (if (looking-at "fork")
+			(let ((here (point)))
+			  (verilog-beg-of-statement)
+			  (unless (looking-at verilog-disable-fork-re)
+			    (goto-char here)
+			    (setq nest (1- nest))))
+		      (setq nest (1- nest)))
 		    (if (= 0 nest)
 			;; Now previous line describes syntax
 			(throw 'skip 1))
@@ -4760,6 +4766,8 @@ Set point to where line starts."
    (;-- any of begin|initial|while are complete statements; 'begin : foo' is also complete
     t
     (forward-word -1)
+    (while (= (preceding-char) ?\_)
+      (forward-word -1))
     (cond
      ((looking-at "\\<else\\>")
       t)
@@ -4971,7 +4979,7 @@ Optional BOUND limits search."
   (save-excursion
     (if (and (equal (char-after) ?\{)
              (verilog-backward-token))
-        (looking-at "\\<struct\\|union\\|packed\\>")
+        (looking-at "\\<struct\\|union\\|packed\\|\\(un\\)?signed\\>")
       nil)))
 
 (defun verilog-parenthesis-depth ()
@@ -5388,7 +5396,7 @@ Be verbose about progress unless optional QUIET set."
           (unless quiet (message ""))))))
 
 (defun verilog-pretty-expr (&optional quiet myre)
-  "Line up expressions around point, or optional regexp MYRE."
+  "Line up expressions around point, optionally QUIET with regexp MYRE."
   (interactive "sRegular Expression: ((<|:)?=) ")
   (save-excursion
     (if (or (eq myre nil)
@@ -5661,13 +5669,13 @@ it displays a list of all possible completions.")
     "triand" "trior" "trireg" "wand" "wire" "wor" "xnor" "xor"
     )
   "*Keywords for types used when completing a word in a declaration or parmlist.
-\(Eg. integer, real, reg...)")
+\(integer, real, reg...)")
 
 (defvar verilog-cpp-keywords
   '("module" "macromodule" "primitive" "timescale" "define" "ifdef" "ifndef" "else"
     "endif")
   "*Keywords to complete when at first word of a line in declarative scope.
-\(Eg. initial, always, begin, assign.)
+\(initial, always, begin, assign...)
 The procedures and variables defined within the Verilog program
 will be completed at runtime and should not be added to this list.")
 
@@ -5681,7 +5689,7 @@ will be completed at runtime and should not be added to this list.")
      )
    verilog-type-keywords)
   "*Keywords to complete when at first word of a line in declarative scope.
-\(Eg. initial, always, begin, assign.)
+\(initial, always, begin, assign...)
 The procedures and variables defined within the Verilog program
 will be completed at runtime and should not be added to this list.")
 
@@ -5692,28 +5700,28 @@ will be completed at runtime and should not be added to this list.")
     "for" "fork" "if" "join" "join_any" "join_none" "repeat" "return"
     "while")
   "*Keywords to complete when at first word of a line in behavioral scope.
-\(Eg. begin, if, then, else, for, fork.)
+\(begin, if, then, else, for, fork...)
 The procedures and variables defined within the Verilog program
 will be completed at runtime and should not be added to this list.")
 
 (defvar verilog-tf-keywords
   '("begin" "break" "fork" "join" "join_any" "join_none" "case" "end" "endtask" "endfunction" "if" "else" "for" "while" "repeat")
   "*Keywords to complete when at first word of a line in a task or function.
-\(Eg. begin, if, then, else, for, fork.)
+\(begin, if, then, else, for, fork.)
 The procedures and variables defined within the Verilog program
 will be completed at runtime and should not be added to this list.")
 
 (defvar verilog-case-keywords
   '("begin" "fork" "join" "join_any" "join_none" "case" "end" "endcase" "if" "else" "for" "repeat")
   "*Keywords to complete when at first word of a line in case scope.
-\(Eg. begin, if, then, else, for, fork.)
+\(begin, if, then, else, for, fork...)
 The procedures and variables defined within the Verilog program
 will be completed at runtime and should not be added to this list.")
 
 (defvar verilog-separator-keywords
   '("else" "then" "begin")
   "*Keywords to complete when NOT standing at the first word of a statement.
-\(Eg. else, then.)
+\(else, then, begin...)
 Variables and function names defined within the Verilog program
 will be completed at runtime and should not be added to this list.")
 
@@ -6927,10 +6935,10 @@ Outputs comments above subcell signals, for example:
 		(while (re-search-forward "\\s *(?\\s *// Outputs" end-inst-point t)
 		  (verilog-read-sub-decls-line submoddecls comment)) ;; Modifies sigs-out
 		(goto-char st-point)
-		(while (re-search-forward "\\s *// Inouts" end-inst-point t)
+		(while (re-search-forward "\\s *(?\\s *// Inouts" end-inst-point t)
 		  (verilog-read-sub-decls-line submoddecls comment)) ;; Modifies sigs-inout
 		(goto-char st-point)
-		(while (re-search-forward "\\s *// Inputs" end-inst-point t)
+		(while (re-search-forward "\\s *(?\\s *// Inputs" end-inst-point t)
 		  (verilog-read-sub-decls-line submoddecls comment)) ;; Modifies sigs-in
 		)))))
       ;; Combine duplicate bits
@@ -7730,11 +7738,13 @@ Or, just the existing dirnames themselves if there are no wildcards."
     dirlist))
 ;;(verilog-expand-dirnames (list "." ".." "nonexist" "../*" "/home/wsnyder/*/v"))
 
-(defun verilog-library-filenames (filename current &optional check-ext)
+(defun verilog-library-filenames (filename &optional current check-ext)
   "Return a search path to find the given FILENAME or module name.
-Uses the CURRENT filename, `verilog-library-directories' and
-`verilog-library-extensions' variables to build the path.
-With optional CHECK-EXT also check `verilog-library-extensions'."
+Uses the optional CURRENT filename or buffer-file-name, plus
+`verilog-library-directories' and `verilog-library-extensions'
+variables to build the path.  With optional CHECK-EXT also check
+`verilog-library-extensions'."
+  (unless current (setq current (buffer-file-name)))
   (unless verilog-dir-cache-preserving
     (setq verilog-dir-cache-lib-filenames nil))
   (let* ((cache-key (list filename current check-ext))
@@ -7987,7 +7997,7 @@ and invalidating the cache."
       (nreverse out-list))))
 
 (defun verilog-signals-matching-dir-re (in-list decl-type regexp)
-  "Return all signals in IN-LIST matching the given directional REGEXP,
+  "Return all signals in IN-LIST matching the given DECL-TYPE and REGEXP,
 if non-nil."
   (if (or (not regexp) (equal regexp ""))
       in-list
@@ -8221,6 +8231,13 @@ This repairs those mis-inserted by a AUTOARG."
       (delete-region pt (point))
       (forward-line 1))))
 
+(defun verilog-delete-empty-auto-pair ()
+  "Delete begin/end auto pair at point, if empty."
+  (forward-line 0)
+  (when (looking-at (concat "\\s-*// Beginning of automatic.*\n"
+			    "\\s-*// End of automatics\n"))
+    (delete-region (point) (save-excursion (forward-line 2) (point)))))
+
 (defun verilog-forward-close-paren ()
   "Find the close parenthesis that match the current point.
 Ignore other close parenthesis with matching open parens."
@@ -8271,7 +8288,7 @@ Deletion stops at the matching end parenthesis."
   "Return if a .* AUTOINST is safe to delete or expand.
 It was created by the AUTOS themselves, or by the user."
   (and verilog-auto-star-expand
-       (looking-at "[ \t\n\f,]*\\([)]\\|// \\(Outputs\\|Inouts\\|Inputs\\)\\)")))
+       (looking-at "[ \t\n\f,]*\\([)]\\|// \\(Outputs\\|Inouts\\|Inputs\\|Interfaces\\)\\)")))
 
 (defun verilog-delete-auto-star-all ()
   "Delete a .* AUTOINST, if it is safe."
@@ -8303,7 +8320,7 @@ removed."
 	  (save-excursion
 	    (while (progn
 		     (forward-line -1)
-		     (looking-at "\\s *//\\s *\\(Outputs\\|Inouts\\|Inputs\\)\n"))
+		     (looking-at "\\s *//\\s *\\(Outputs\\|Inouts\\|Inputs\\|Interfaces\\)\n"))
 	      (delete-region (match-beginning 0) (match-end 0))))
 	  ;; If it is simple, we can put the ); on the same line as the last text
 	  (let ((rtn-pt (point)))
@@ -8343,7 +8360,7 @@ called before and after this function, respectively."
 		  "AUTOREG" "AUTOREGINPUT" "AUTORESET" "AUTOTIEOFF"
 		  "AUTOUNUSED" "AUTOWIRE")))
 	     ;; Optional parens or quoted parameter or .* for (((...)))
-	     "\\(\\|([^)]*)\\|(\"[^\"]*\")\\|.*?\\)"
+	     "\\(\\|([^)]*)\\|(\"[^\"]*\")\\).*?"
 	     "\\*/")
      'verilog-delete-autos-lined)
     ;; Remove those that are in parenthesis
@@ -8975,7 +8992,7 @@ Regexp Templates:
   inside the first set of \\( \\).  Thus pci_req2_l becomes pci_req_jtag_[2].
 
   Since \\([0-9]+\\) is so common and ugly to read, a @ in the port name
-  does the same thing. (Note a @ in the connection/replacement text is
+  does the same thing.  (Note a @ in the connection/replacement text is
   completely different -- still use \\1 there!)  Thus this is the same as
   the above template:
 
@@ -8995,8 +9012,11 @@ Lisp Templates:
   quotes will be evaluated as a Lisp expression, with @ replaced by the
   instantiation number.  The MAPVALIDP1X example above would put @+1 modulo
   4 into the brackets.  Quote all double-quotes inside the expression with
-  a leading backslash (\\\").  There are special variables defined that are
-  useful in these Lisp functions:
+  a leading backslash (\\\"...\\\"); or if the Lisp template is also a
+  regexp template backslash the backslash quote (\\\\\"...\\\\\").
+
+  There are special variables defined that are useful in these
+  Lisp functions:
 
 	vl-name        Name portion of the input/output port.
 	vl-bits        Bus bits portion of the input/output port ('[2:0]').
@@ -9024,7 +9044,10 @@ Lisp Templates:
   `number-to-string' and `string-to-number'.
 
   After the evaluation is completed, @ substitution and [] substitution
-  occur."
+  occur.
+
+For more information see the \\[verilog-faq] and forums at URL
+`http://www.veripool.org'."
   (save-excursion
     ;; Find beginning
     (let* ((pt (point))
@@ -9917,17 +9940,14 @@ text:
 				       (point))) ;; Beginning paren
 	   (cmd (buffer-substring-no-properties cmd-beg-pt cmd-end-pt)))
       (forward-line 1)
-      (let ((pre-eval-pt (point)))
-	;;Debug: (insert cmd)
-	;; Don't use eval-region as Xemacs has a bug where it goto-char's begin-pt
-	(eval (read cmd))
-	;; If inserted something add the begin/end blocks
-	(when (not (equal pre-eval-pt (point)))
-	  (when (not (bolp)) (insert "\n"))  ;; If user forgot final newline, add it
-	  (save-excursion
-	    (goto-char pre-eval-pt)
-	    (verilog-insert-indent "// Beginning of automatic insert lisp\n"))
-	  (verilog-insert-indent "// End of automatics\n"))))))
+      ;; Some commands don't move point (like insert-file) so we always
+      ;; add the begin/end comments, then delete it if not needed
+      (verilog-insert-indent "// Beginning of automatic insert lisp\n")
+      (verilog-insert-indent "// End of automatics\n")
+      (forward-line -1)
+      (eval (read cmd))
+      (forward-line -1)
+      (verilog-delete-empty-auto-pair))))
 
 (defun verilog-auto-sense-sigs (moddecls presense-sigs)
   "Return list of signals for current AUTOSENSE block."

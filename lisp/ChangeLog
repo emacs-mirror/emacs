@@ -1,3 +1,22 @@
+2009-11-26  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-at-struct-p): Support "signed" and
+	"unsigned" structs.
+
+	(verilog-leap-to-head, verilog-backward-token): Handle "disable
+	fork" statement better.
+
+2009-11-26  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-auto-insert-lisp, verilog-delete-auto)
+	(verilog-delete-empty-auto-pair, verilog-library-filenames): Fix
+	AUTOINSERTLISP to support insert-file.  Reported by Clay Douglass.
+
+	(verilog-auto-inst, verilog-auto-star-safe)
+	(verilog-delete-auto-star-implicit, verilog-read-sub-decls): Fix
+	removing "// Interfaces" when saving .* expansions.  Reported by
+	Pierre-David Pfister.
+
 2009-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-dirs.el (eshell/cd): Don't throw to a tag outside the scope.
