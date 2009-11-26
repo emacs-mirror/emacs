@@ -1,3 +1,10 @@
+2009-11-26  Kevin Ryde  <user42@zip.com.au>
+
+	* MORE.STUFF: emacswiki ElispArea url "wiki.pl" -> "wiki".
+	Aubrey Jaffer's texinfo R5RS moved to
+	http://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz
+	(per http://people.csail.mit.edu/jaffer/Scheme.html).
+
 2009-11-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Mention Metacity hang on Emacs resize.
