@@ -7,7 +7,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Keywords: multilingual, isearch
+;; Keywords: i18n, multilingual, isearch
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;; Maintainer: Kenichi HANDA <handa@etl.go.jp>
