@@ -13,6 +13,8 @@
 	itself is case-insensitive on the command line.
 	Further to Bug#3717.
 
+	* arc-mode.el: Add "Keywords: files", so the details in its
+	commentary can be reached from finder-by-keyword.
 	* textmodes/dns-mode.el: Add "Keywords: comm".  It's only an
 	editing mode, but it's comms related and sgml-mode.el has "comm"
 	on that basis too.
