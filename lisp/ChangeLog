@@ -1,3 +1,24 @@
+2009-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Misc coding convention cleanups.
+	* htmlfontify.el (hfy-init-kludge-hook): Rename from
+	hfy-init-kludge-hooks.
+	(hfy-etags-cmd, hfy-flatten-style, hfy-invisible-name, hfy-face-at)
+	(hfy-fontify-buffer, hfy-prepare-index-i, hfy-subtract-maps)
+	(hfy-save-kill-buffers, htmlfontify-copy-and-link-dir): Use dolist
+	and push.
+	(hfy-slant, hfy-weight): Use tables rather than code.
+	(hfy-box-to-border-assoc, hfy-box-to-style, hfy-decor)
+	(hfy-face-to-style-i, hfy-fontify-buffer): Use `case'.
+	(hfy-face-attr-for-class): Initialize `face-spec' directly.
+	(hfy-face-to-css): Remove `nconc' with single arg.
+	(hfy-p-to-face-lennart): Use `or'.
+	(hfy-face-at): Hoist common code.  Remove spurious quotes in `case'.
+	(hfy-overlay-props-at, hfy-mark-tag-hrefs): Eta-reduce.
+	(hfy-compile-stylesheet, hfy-merge-adjacent-spans)
+	(hfy-compile-face-map, hfy-parse-tags-buffer): Use push.
+	(hfy-force-fontification): Use run-hooks.
+
 2009-11-26  Vivek Dasmohapatra  <vivek@etla.org>
 
 	Various minor fixes.

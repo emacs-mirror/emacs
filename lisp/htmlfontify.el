@@ -183,17 +183,19 @@ See: `htmlfontify-manual'"
   :prefix "hfy-")
 
 (defcustom hfy-page-header 'hfy-default-header
-  "*Function called with two arguments \(the filename relative to the top
+  "Function called with two arguments \(the filename relative to the top
 level source directory being etag\'d and fontified), and a string containing
 the <style>...</style> text to embed in the document- the string returned will
 be used as the header for the htmlfontified version of the source file.\n
 See also: `hfy-page-footer'"
   :group 'htmlfontify
+  ;; FIXME: Why place such a :tag everywhere?  Isn't it imposing your
+  ;; own Custom preference on your users?  --Stef
   :tag   "page-header"
   :type  '(function))
 
 (defcustom hfy-split-index nil
-  "*Whether or not to split the index `hfy-index-file' alphabetically
+  "Whether or not to split the index `hfy-index-file' alphabetically
 on the first letter of each tag.  Useful when the index would otherwise
 be large and take a long time to render or be difficult to navigate."
   :group 'htmlfontify
@@ -201,32 +203,32 @@ be large and take a long time to render or be difficult to navigate."
   :type  '(boolean))
 
 (defcustom hfy-page-footer 'hfy-default-footer
-  "*As `hfy-page-header', but generates the output footer
+  "As `hfy-page-header', but generates the output footer
 \(and takes only 1 argument, the filename\)."
   :group 'htmlfontify
   :tag   "page-footer"
   :type  '(function))
 
 (defcustom hfy-extn        ".html"
-  "*File extension used for output files."
+  "File extension used for output files."
   :group 'htmlfontify
   :tag   "extension"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-style "text-decoration: underline;"
-  "*String to add to the \'<style> a\' variant of an htmlfontify css class."
+  "String to add to the \'<style> a\' variant of an htmlfontify css class."
   :group 'htmlfontify
   :tag   "src-doc-link-style"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-unstyle " text-decoration: none;"
-  "*Regex to remove from the <style> a variant of an htmlfontify css class."
+  "Regex to remove from the <style> a variant of an htmlfontify css class."
   :group 'htmlfontify
   :tag   "src-doc-link-unstyle"
   :type  '(string))
 
 (defcustom hfy-link-extn nil
-  "*File extension used for href links - Useful where the htmlfontify
+  "File extension used for href links - Useful where the htmlfontify
 output files are going to be processed again, with a resulting change
 in file extension.  If nil, then any code using this should fall back
 to `hfy-extn'."
@@ -235,7 +237,7 @@ to `hfy-extn'."
   :type  '(choice string (const nil)))
 
 (defcustom hfy-link-style-fun 'hfy-link-style-string
-  "*Set this to a function, which will be called with one argument
+  "Set this to a function, which will be called with one argument
 \(a \"{ foo: bar; ...}\" css style-string\) - it should return a copy of
 its argument, altered so as to make any changes you want made for text which
 is a hyperlink, in addition to being in the class to which that style would
@@ -245,29 +247,31 @@ normally be applied."
   :type  '(function))
 
 (defcustom hfy-index-file  "hfy-index"
-  "*Name \(sans extension\) of the tag definition index file produced during
+  "Name \(sans extension\) of the tag definition index file produced during
 fontification-and-hyperlinking."
   :group 'htmlfontify
   :tag   "index-file"
   :type  '(string))
 
 (defcustom hfy-instance-file  "hfy-instance"
-  "*Name \(sans extension\) of the tag usage index file produced during
+  "Name \(sans extension\) of the tag usage index file produced during
 fontification-and-hyperlinking."
   :group 'htmlfontify
   :tag   "instance-file"
   :type  '(string))
 
 (defcustom hfy-html-quote-regex "\\(<\\|\"\\|&\\|>\\)"
-  "*Regex to match \(with a single back-reference per match\) strings in HTML
+  "Regex to match \(with a single back-reference per match\) strings in HTML
 which should be quoted with `hfy-html-quote' \(and `hfy-html-quote-map'\)
 to make them safe."
   :group 'htmlfontify
   :tag   "html-quote-regex"
   :type  '(regexp))
 
-(defcustom hfy-init-kludge-hooks '(hfy-kludge-cperl-mode)
-  "*List of functions to call when starting htmlfontify-buffer to do any
+(define-obsolete-variable-alias 'hfy-init-kludge-hooks 'hfy-init-kludge-hook
+  "23.2")
+(defcustom hfy-init-kludge-hook '(hfy-kludge-cperl-mode)
+  "List of functions to call when starting htmlfontify-buffer to do any
 kludging necessary to get highlighting modes to bahave as you want, even
 when not running under a window system."
   :group 'htmlfontify
@@ -275,7 +279,7 @@ when not running under a window system."
   :type  '(hook))
 
 (defcustom hfy-post-html-hooks nil
-  "*List of functions to call after creating and filling the html buffer.
+  "List of functions to call after creating and filling the html buffer.
 These functions will be called with the html buffer as the current buffer"
   :group   'htmlfontify
   :tag     "post-html-hooks"
@@ -283,7 +287,7 @@ These functions will be called with the html buffer as the current buffer"
   :type    '(hook))
 
 (defcustom hfy-default-face-def nil
-  "*Fallback `defface' specification for the face \'default, used when
+  "Fallback `defface' specification for the face \'default, used when
 `hfy-display-class' has been set \(the normal htmlfontify way of extracting
 potentially non-current face information doesn\'t necessarily work for
 \'default\).\n
@@ -298,7 +302,7 @@ Example: I customise this to:\n
                                   "\x01" "\\([0-9]+\\)"
                                   ","    "\\([0-9]+\\)$"
                                   "\\|"  ".*\x7f[0-9]+,[0-9]+$")
-  "*Regex used to parse an etags entry: must have 3 subexps, corresponding,
+  "Regex used to parse an etags entry: must have 3 subexps, corresponding,
 in order, to:\n
    1 - The tag
    2 - The line
@@ -311,7 +315,7 @@ in order, to:\n
                                 ("<"  "&lt;"  )
                                 ("&"  "&amp;" )
                                 (">"  "&gt;"  ))
-  "*Alist of char -> entity mappings used to make the text html-safe."
+  "Alist of char -> entity mappings used to make the text html-safe."
   :group 'htmlfontify
   :tag   "html-quote-map"
   :type  '(alist :key-type (string)))
@@ -353,14 +357,14 @@ done;")
 
   (defcustom hfy-etags-cmd-alist
     hfy-etags-cmd-alist-default
-    "*Alist of possible shell commands that will generate etags output that
+    "Alist of possible shell commands that will generate etags output that
 `htmlfontify' can use.  \'%s\' will be replaced by `hfy-etags-bin'."
     :group 'htmlfontify
     :tag   "etags-cmd-alist"
     :type  '(alist :key-type (string) :value-type (string)) ))
 
 (defcustom hfy-etags-bin "etags"
-  "*Location of etags binary (we begin by assuming it\'s in your path).\n
+  "Location of etags binary (we begin by assuming it\'s in your path).\n
 Note that if etags is not in your path, you will need to alter the shell
 commands in `hfy-etags-cmd-alist'."
   :group 'htmlfontify
@@ -368,7 +372,7 @@ commands in `hfy-etags-cmd-alist'."
   :type  '(file))
 
 (defcustom hfy-shell-file-name "/bin/sh"
-  "*Shell (bourne or compatible) to invoke for complex shell operations."
+  "Shell (bourne or compatible) to invoke for complex shell operations."
   :group 'htmlfontify
   :tag   "shell-file-name"
   :type  '(file))
@@ -381,7 +385,7 @@ commands in `hfy-etags-cmd-alist'."
 
 (defcustom hfy-etags-cmd
   (eval-and-compile (cdr (assoc (hfy-which-etags) hfy-etags-cmd-alist)))
-  "*The etags equivalent command to run in a source directory to generate a tags
+  "The etags equivalent command to run in a source directory to generate a tags
 file for the whole source tree from there on down.  The command should emit
 the etags output on stdout.\n
 Two canned commands are provided - they drive Emacs\' etags and
@@ -390,15 +394,12 @@ exuberant-ctags\' etags respectively."
   :tag   "etags-command"
   :type (eval-and-compile
           (let ((clist (list '(string))))
-            (mapc
-             (lambda (C)
-               (setq clist
-                     (cons (list 'const :tag (car C) (cdr C)) clist)))
-             hfy-etags-cmd-alist)
+            (dolist (C hfy-etags-cmd-alist)
+              (push (list 'const :tag (car C) (cdr C)) clist))
             (cons 'choice clist)) ))
 
 (defcustom hfy-istext-command "file %s | sed -e 's@^[^:]*:[ \t]*@@'"
-  "*Command to run with the name of a file, to see whether it is a text file
+  "Command to run with the name of a file, to see whether it is a text file
 or not.  The command should emit a string containing the word \'text\' if
 the file is a text file, and a string not containing \'text\' otherwise."
   :group 'htmlfontify
@@ -407,13 +408,13 @@ the file is a text file, and a string not containing \'text\' otherwise."
 
 (defcustom hfy-find-cmd
   "find . -type f \\! -name \\*~ \\! -name \\*.flc \\! -path \\*/CVS/\\*"
-  "*Find command used to harvest a list of files to attempt to fontify."
+  "Find command used to harvest a list of files to attempt to fontify."
   :group 'htmlfontify
   :tag   "find-command"
   :type  '(string))
 
 (defcustom hfy-display-class nil
-  "*Display class to use to determine which display class to use when
+  "Display class to use to determine which display class to use when
 calculating a face\'s attributes.  This is useful when, for example, you
 are running Emacs on a tty or in batch mode, and want htmlfontify to have
 access to the face spec you would use if you were connected to an X display.\n
@@ -451,7 +452,7 @@ and so on."
                                  (const :tag "Bright"        light    ))) ))
 
 (defcustom hfy-optimisations (list 'keep-overlays)
-  "*Optimisations to turn on: So far, the following have been implemented:\n
+  "Optimisations to turn on: So far, the following have been implemented:\n
   merge-adjacent-tags: If two (or more) span tags are adjacent, identical and
                        separated by nothing more than whitespace, they will
                        be merged into one span.
@@ -583,8 +584,8 @@ list of 3 (16 bit) rgb values for said colour.\n
 If a window system is unavailable, calls `hfy-fallback-colour-values'."
   (if (string-match hfy-triplet-regex colour)
       (mapcar
-       (lambda (x)
-         (* (string-to-number (match-string x colour) 16) 257)) '(1 2 3))
+       (lambda (x) (* (string-to-number (match-string x colour) 16) 257))
+       '(1 2 3))
     ;;(message ">> %s" colour)
     (if window-system
         (if (fboundp 'color-values)
@@ -756,7 +757,8 @@ may happen\)."
         (apply 'format "#%02x%02x%02x"
                (mapcar (lambda (X)
                          (* (/ (nth X rgb16)
-                               (nth X white)) 255)) '(0 1 2))))) )
+                               (nth X white)) 255))
+                       '(0 1 2))))))
 
 (defun hfy-family (family) (list (cons "font-family"  family)))
 (defun hfy-bgcol  (colour) (list (cons "background"   (hfy-triplet colour))))
@@ -784,32 +786,34 @@ the height of the underlying font."
   "Derive a font-style css specifier from the Emacs :slant attribute SLANT:
 CSS does not define the reverse-* styles, so just maps those to the
 regular specifiers."
-  (list (cons "font-style" (cond ((eq 'italic          slant) "italic" )
-                                 ((eq 'reverse-italic  slant) "italic" )
-                                 ((eq 'oblique         slant) "oblique")
-                                 ((eq 'reverse-oblique slant) "oblique")
-                                 (t                           "normal" )))) )
+  (list (cons "font-style"
+              (or (cdr (assq slant '((italic          . "italic")
+                                     (reverse-italic  . "italic" )
+                                     (oblique         . "oblique")
+                                     (reverse-oblique . "oblique"))))
+                  "normal"))))
 
 (defun hfy-weight (weight)
   "Derive a font-weight css specifier from an Emacs weight spec symbol WEIGHT."
-  (list (cons "font-weight" (cond ((eq 'ultra-bold  weight) "900")
-                                  ((eq 'extra-bold  weight) "800")
-                                  ((eq 'bold        weight) "700")
-                                  ((eq 'semi-bold   weight) "600")
-                                  ((eq 'normal      weight) "500")
-                                  ((eq 'semi-light  weight) "400")
-                                  ((eq 'light       weight) "300")
-                                  ((eq 'extra-light weight) "200")
-                                  ((eq 'ultra-light weight) "100")))) )
-
+  (list (cons "font-weight" (cdr (assq weight '((ultra-bold  . "900")
+                                                (extra-bold  . "800")
+                                                (bold        . "700")
+                                                (semi-bold   . "600")
+                                                (normal      . "500")
+                                                (semi-light  . "400")
+                                                (light       . "300")
+                                                (extra-light . "200")
+                                                (ultra-light . "100")))))))
+        
 (defun hfy-box-to-border-assoc (spec)
   (if spec
       (let ((tag (car  spec))
             (val (cadr spec)))
-        (cons (cond ((eq tag :color) (cons "colour" val))
-                    ((eq tag :width) (cons "width"  val))
-                    ((eq tag :style) (cons "style"  val)))
-              (hfy-box-to-border-assoc (cddr spec))))) )
+        (cons (case tag
+                (:color (cons "colour" val))
+                (:width (cons "width"  val))
+                (:style (cons "style"  val)))
+              (hfy-box-to-border-assoc (cddr spec))))))
 
 (defun hfy-box-to-style (spec)
   (let* ((css (hfy-box-to-border-assoc  spec))
@@ -818,9 +822,10 @@ regular specifiers."
     (list
      (if col (cons "border-color" (cdr (assoc "colour" css))))
      (cons "border-width" (format "%dpx" (or (cdr (assoc "width" css)) 1)))
-     (cons "border-style" (cond ((eq s 'released-button) "outset")
-                                ((eq s 'pressed-button ) "inset" )
-                                (t                       "solid" ))))) )
+     (cons "border-style" (case s
+                            (released-button "outset")
+                            (pressed-button  "inset" )
+                            (t               "solid" ))))))
 
 (defun hfy-box (box)
   "Derive CSS border-* attributes from the Emacs :box attribute BOX."
@@ -836,9 +841,10 @@ TAG is an Emacs font attribute key (eg :underline).
 VAL is ignored."
   (list
    ;; FIXME: Why not '("text-decoration" . "underline")?  --Stef
-   (cond ((eq tag :underline     ) (cons "text-decoration" "underline"   ))
-         ((eq tag :overline      ) (cons "text-decoration" "overline"    ))
-         ((eq tag :strike-through) (cons "text-decoration" "line-through")))))
+   (case tag
+     (:underline      (cons "text-decoration" "underline"   ))
+     (:overline       (cons "text-decoration" "overline"    ))
+     (:strike-through (cons "text-decoration" "line-through")))))
 
 (defun hfy-invisible (&optional val)
   "This text should be invisible.
@@ -871,75 +877,75 @@ no :inherit property to inherit from \'default \( this is because \'default
 is magical in that Emacs' fonts behave as if they inherit implicitly from
 \'default, but no such behaviour exists in HTML/CSS \).\n
 See `hfy-display-class' for details of valid values for CLASS."
-  (let ((face-spec nil))
-    (setq
-     face-spec
-     (if class
-         (let ((face-props (hfy-combined-face-spec face))
-               (face-specn nil)
-               (face-class nil)
-               (face-attrs nil)
-               (face-score  -1)
-               (face-match nil))
-           (while face-props
-             (setq face-specn (car face-props)
-                   face-class (car face-specn)
-                   face-attrs (cdr face-specn)
-                   face-props (cdr face-props))
-             ;; if the current element CEL of CLASS is t we match
-             ;; if the current face-class is t, we match
-             ;; if the cdr of CEL has a non-nil
-             ;;   intersection with the cdr of the first member of
-             ;;   the current face-class with the same car as CEL, we match
-             ;; if we actually clash, then we can't match
-             (let ((cbuf class)
-                   (cel    nil)
-                   (key    nil)
-                   (val    nil)
-                   (x      nil)
-                   (next   nil)
-                   (score    0))
-               (while (and cbuf (not next))
-                 (setq cel  (car cbuf)
-                       cbuf (cdr cbuf)
-                       key  (car  cel)
-                       val  (cdr  cel)
-                       val  (if (listp val) val (list val)))
-                 (cond
-                  ((or (eq cel t) (memq face-class '(t default)));;default match
-                   (setq score 0) (ignore "t match"))
-                  ((not (cdr (assq key face-class))) ;; neither good nor bad
-                   nil (ignore "non match, non collision"))
-                  ((setq x (hfy-interq val (cdr (assq key face-class))))
-                   (setq score (+ score (length x)))
-                   (ignore "intersection"))
-                  (t                                 ;; nope.
-                   (setq next t score -10) (ignore "collision")) ))
-               (if (> score face-score)
-                   (progn
-                     (setq face-match face-attrs
-                           face-score score     )
-                     (ignore "%d << %S/%S" score face-class class))
-                 (ignore "--- %d ---- (insufficient)" score)) ))
-           ;; matched ? last attrs : nil
-           (if face-match
-               (if (listp (car face-match)) (car face-match) face-match) nil))
-       ;; Unfortunately the default face returns a
-       ;; :background. Fortunately we can remove it, but how do we do
-       ;; that in a non-system specific way?
-       (let ((spec (face-attr-construct face))
-             (new-spec nil))
-         (if (not (memq :background spec))
-             spec
-           (while spec
-             (let ((a (nth 0 spec))
-                   (b (nth 1 spec)))
-               (unless (and (eq a :background)
-                            (stringp b)
-                            (string= b "SystemWindow"))
-                 (setq new-spec (cons a (cons b new-spec)))))
-             (setq spec (cddr spec)))
-           new-spec)) ))
+  (let ((face-spec
+         (if class
+             (let ((face-props (hfy-combined-face-spec face))
+                   (face-specn nil)
+                   (face-class nil)
+                   (face-attrs nil)
+                   (face-score  -1)
+                   (face-match nil))
+               (while face-props
+                 (setq face-specn (car face-props)
+                       face-class (car face-specn)
+                       face-attrs (cdr face-specn)
+                       face-props (cdr face-props))
+                 ;; if the current element CEL of CLASS is t we match
+                 ;; if the current face-class is t, we match
+                 ;; if the cdr of CEL has a non-nil
+                 ;;   intersection with the cdr of the first member of
+                 ;;   the current face-class with the same car as CEL, we match
+                 ;; if we actually clash, then we can't match
+                 (let ((cbuf class)
+                       (cel    nil)
+                       (key    nil)
+                       (val    nil)
+                       (x      nil)
+                       (next   nil)
+                       (score    0))
+                   (while (and cbuf (not next))
+                     (setq cel  (car cbuf)
+                           cbuf (cdr cbuf)
+                           key  (car  cel)
+                           val  (cdr  cel)
+                           val  (if (listp val) val (list val)))
+                     (cond
+                      ((or (eq cel t)
+                           (memq face-class '(t default))) ;Default match.
+                       (setq score 0) (ignore "t match"))
+                      ((not (cdr (assq key face-class))) ;Neither good nor bad.
+                       nil (ignore "non match, non collision"))
+                      ((setq x (hfy-interq val (cdr (assq key face-class))))
+                       (setq score (+ score (length x)))
+                       (ignore "intersection"))
+                      (t ;; nope.
+                       (setq next t score -10) (ignore "collision")) ))
+                   (if (> score face-score)
+                       (progn
+                         (setq face-match face-attrs
+                               face-score score     )
+                         (ignore "%d << %S/%S" score face-class class))
+                     (ignore "--- %d ---- (insufficient)" score)) ))
+               ;; matched ? last attrs : nil
+               (if face-match
+                   (if (listp (car face-match)) (car face-match) face-match)
+                 nil))
+           ;; Unfortunately the default face returns a
+           ;; :background. Fortunately we can remove it, but how do we do
+           ;; that in a non-system specific way?
+           (let ((spec (face-attr-construct face))
+                 (new-spec nil))
+             (if (not (memq :background spec))
+                 spec
+               (while spec
+                 (let ((a (nth 0 spec))
+                       (b (nth 1 spec)))
+                   (unless (and (eq a :background)
+                                (stringp b)
+                                (string= b "SystemWindow"))
+                     (setq new-spec (cons a (cons b new-spec)))))
+                 (setq spec (cddr spec)))
+               new-spec)))))
     (if (or (memq :inherit face-spec) (eq 'default face))
         face-spec
       (nconc face-spec (list :inherit 'default))) ))
@@ -988,21 +994,21 @@ merged by the user - `hfy-flatten-style' should do this."
                    (hfy-face-to-style-i
                     (hfy-face-attr-for-class v hfy-display-class)) ))))
         (setq this
-              (if val (cond
-                       ((eq key :family        ) (hfy-family    val))
-                       ((eq key :width         ) (hfy-width     val))
-                       ((eq key :weight        ) (hfy-weight    val))
-                       ((eq key :slant         ) (hfy-slant     val))
-                       ((eq key :foreground    ) (hfy-colour    val))
-                       ((eq key :background    ) (hfy-bgcol     val))
-                       ((eq key :box           ) (hfy-box       val))
-                       ((eq key :height        ) (hfy-size      val))
-                       ((eq key :underline     ) (hfy-decor key val))
-                       ((eq key :overline      ) (hfy-decor key val))
-                       ((eq key :strike-through) (hfy-decor key val))
-                       ((eq key :invisible     ) (hfy-invisible val))
-                       ((eq key :bold          ) (hfy-weight  'bold))
-                       ((eq key :italic        ) (hfy-slant 'italic))))))
+              (if val (case key
+                       (:family         (hfy-family    val))
+                       (:width          (hfy-width     val))
+                       (:weight         (hfy-weight    val))
+                       (:slant          (hfy-slant     val))
+                       (:foreground     (hfy-colour    val))
+                       (:background     (hfy-bgcol     val))
+                       (:box            (hfy-box       val))
+                       (:height         (hfy-size      val))
+                       (:underline      (hfy-decor key val))
+                       (:overline       (hfy-decor key val))
+                       (:strike-through (hfy-decor key val))
+                       (:invisible      (hfy-invisible val))
+                       (:bold           (hfy-weight  'bold))
+                       (:italic         (hfy-slant 'italic))))))
       (setq that (hfy-face-to-style-i next))
       ;;(lwarn t :warning "%S => %S" fn (nconc this that parent))
       (nconc this that parent))) )
@@ -1032,13 +1038,12 @@ haven\'t encountered them yet.  Returns a `hfy-style-assoc'."
         (m (list 1))
         (x      nil)
         (r      nil))
-    (mapc
-     (lambda (css)
-       (if (string= (car css) "font-size")
-           (progn
-             (when (not x) (setq m (nconc m (hfy-size-to-int (cdr css)))))
-             (when (string-match "pt" (cdr css)) (setq x t)))
-         (setq r (nconc r (list css))) )) style)
+    (dolist (css style)
+      (if (string= (car css) "font-size")
+          (progn
+            (when (not x) (setq m (nconc m (hfy-size-to-int (cdr css)))))
+            (when (string-match "pt" (cdr css)) (setq x t)))
+        (setq r (nconc r (list css)))))
     ;;(message "r: %S" r)
     (setq  n (apply '* m))
     (nconc r (hfy-size (if x (round n) (* n 1.0)))) ))
@@ -1112,14 +1117,13 @@ See also: `hfy-face-to-style'"
     ;;(message "(hfy-face-to-style %S)" fn)
     (setq css-list (hfy-face-to-style fn))
     (setq css-text
-          (nconc
-           (mapcar
-            (lambda (E)
-              (if (car E)
-                    (if (not (member (car E) seen))
-                        (progn
-                          (setq seen (cons (car E) seen))
-                          (format " %s: %s; " (car E) (cdr E)))))) css-list)))
+          (mapcar
+           (lambda (E)
+             (if (car E)
+                 (unless (member (car E) seen)
+                   (push (car E) seen)
+                   (format " %s: %s; " (car E) (cdr E)))))
+           css-list))
     (cons (hfy-css-name fn) (format "{%s}" (apply 'concat css-text)))) )
 
 ;; extract a face from a list of char properties, if there is one:
@@ -1149,9 +1153,8 @@ property, or nil."
           (let* ((category (plist-get props 'category))
                  (face (when category (plist-get (symbol-plist category) 'face))))
             face)
-        (if font-lock-face
-            font-lock-face
-          face)))))
+        (or font-lock-face
+            face)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (defun hfy-get-face-at (pos)
@@ -1200,11 +1203,10 @@ POINT is the point inside the invisible region.
 MAP is the invisibility map as returned by `hfy-find-invisible-ranges'."
   ;;(message "(hfy-invisible-name %S %S)" point map)
   (let (name)
-    (mapc
-     (lambda (range)
-       (when (and (>= point (car range))
-                  (<  point (cdr range)))
-         (setq name (format "invisible-%S-%S" (car range) (cdr range))))) map)
+    (dolist (range map)
+      (when (and (>= point (car range))
+                 (<  point (cdr range)))
+        (setq name (format "invisible-%S-%S" (car range) (cdr range)))))
     name))
 
 ;; Fix-me: This function needs some cleanup by someone who understand
@@ -1221,137 +1223,137 @@ return a defface style list of face properties instead of a face symbol."
   ;;(message "hfy-face-at");;DBUG
   ;; Fix-me: clean up, remove face-name etc
   ;; not sure why we'd want to remove face-name? -- v
-    (let ((overlay-data nil)
-          (base-face    nil)
-          ;; restored hfy-p-to-face as it handles faces like (bold) as
-          ;; well as face like 'bold - hfy-get-face-at doesn't dtrt -- v
-          (face-name   (hfy-p-to-face (text-properties-at p)))
-          ;; (face-name    (hfy-get-face-at p))
-          (prop-seen    nil)
-          (extra-props  nil)
-          (text-props   (text-properties-at p)))
-      ;;(message "face-name: %S" face-name)
-      (when (and face-name (listp face-name) (facep (car face-name)))
-        ;;(message "face-name is a list %S" face-name)
-        ;;(setq text-props (cons 'face face-name))
-        (dolist (f face-name)
-          (if (listp f) ;; for things like (variable-pitch (:foreground "red"))
-              (setq extra-props (cons f extra-props))
-            (setq extra-props (cons :inherit (cons f extra-props)))))
-        (setq base-face (car face-name)
-              face-name nil))
-      ;; text-properties-at => (face (:foreground "red" ...))
-      ;;                 or => (face (compilation-info underline)) list of faces
-      ;; overlay-properties
-      ;;   format= (evaporate t face ((foreground-color . "red")))
+  (let ((overlay-data nil)
+        (base-face    nil)
+        ;; restored hfy-p-to-face as it handles faces like (bold) as
+        ;; well as face like 'bold - hfy-get-face-at doesn't dtrt -- v
+        (face-name   (hfy-p-to-face (text-properties-at p)))
+        ;; (face-name    (hfy-get-face-at p))
+        (prop-seen    nil)
+        (extra-props  nil)
+        (text-props   (text-properties-at p)))
+    ;;(message "face-name: %S" face-name)
+    (when (and face-name (listp face-name) (facep (car face-name)))
+      ;;(message "face-name is a list %S" face-name)
+      ;;(setq text-props (cons 'face face-name))
+      (dolist (f face-name)
+        (setq extra-props (if (listp f)
+                              ;; for things like (variable-pitch
+                              ;; (:foreground "red"))
+                              (cons f extra-props)
+                            (cons :inherit (cons f extra-props)))))
+      (setq base-face (car face-name)
+            face-name nil))
+    ;; text-properties-at => (face (:foreground "red" ...))
+    ;;                 or => (face (compilation-info underline)) list of faces
+    ;; overlay-properties
+    ;;   format= (evaporate t face ((foreground-color . "red")))
 
-      ;; SO:    if we have turned overlays off,
-      ;;     or if there's no overlay data
-      ;; just bail out and return whatever face data we've accumulated so far
-      (if (or (not (hfy-opt                      'keep-overlays))
-              (not (setq overlay-data  (hfy-overlay-props-at p))))
-          (progn
-            ;;(message "· %d: %s; %S; %s"
-            ;;         p face-name extra-props text-props)
-            (or face-name base-face)) ;; no overlays or extra properties
-        ;; collect any face data and any overlay data for processing:
-        (when text-props
-          (setq overlay-data (cons text-props overlay-data)))
-        (setq overlay-data (nreverse overlay-data))
-        ;;(message "- %d: %s; %S; %s; %s"
-        ;;         p face-name extra-props text-props overlay-data)
-        ;; remember the basic face name so we don't keep repeating its specs:
-        (when face-name (setq base-face face-name))
-        (mapc
-         (lambda (P)
-           (let ((iprops (cadr (memq 'invisible P))))
-             ;;(message "(hfy-prop-invisible-p %S)" iprops)
-             (when (and iprops (hfy-prop-invisible-p iprops))
-               (setq extra-props
-                     (cons :invisible (cons t extra-props))) ))
-           (let ((fprops (cadr (or (memq 'face P)
-                                   (memq 'font-lock-face P)))))
-             ;;(message "overlay face: %s" fprops)
-             (if (not (listp fprops))
-                 (let ((this-face (if (stringp fprops) (intern fprops) fprops)))
-                   (when (not (eq this-face base-face))
-                     (setq extra-props
-                           (cons :inherit
-                                 (cons this-face extra-props))) ))
-               (while fprops
-                 (if (facep (car fprops))
-                     (let ((face (car fprops)))
-                       (when (stringp face) (setq face (intern fprops)))
-                       (setq extra-props
-                             (cons :inherit
-                                   (cons face
-                                         extra-props)))
-                       (setq fprops (cdr fprops)))
-                   (let (p v)
-                   ;; Sigh.
-                     (if (listp (car fprops))
-                         (if (nlistp (cdr (car fprops)))
-                             (progn
-                               ;; ((prop . val))
-                               (setq p (caar fprops))
-                               (setq v (cdar fprops))
-                               (setq fprops (cdr fprops)))
-                           ;; ((prop val))
-                           (setq p (caar fprops))
-                           (setq v (cadar fprops))
-                           (setq fprops (cdr fprops)))
-                       (if (listp (cdr fprops))
-                           (progn
-                             ;; (:prop val :prop val ...)
-                             (setq p (car fprops))
-                             (setq v (cadr fprops))
-                             (setq fprops (cddr fprops)))
-                         (if (and (listp fprops)
-                                  (not (listp (cdr fprops))))
-                             ;;(and (consp x) (cdr (last x)))
-                             (progn
-                               ;; (prop . val)
-                               (setq p (car fprops))
-                               (setq v (cdr fprops))
-                               (setq fprops nil))
-                           (error "Eh... another format! fprops=%s" fprops) )))
-                     (setq p (case p
-                               ;; These are all the properties handled
-                               ;; in `hfy-face-to-style-i'.
-                               ;;
-                               ;; Are these translations right?
-                               ;; yes, they are -- v
-                               ('family           :family    )
-                               ('width            :width     )
-                               ('height           :height    )
-                               ('weight           :weight    )
-                               ('slant            :slant     )
-                               ('underline        :underline )
-                               ('overline         :overline  )
-                               ('strike-through   :strike-through)
-                               ('box              :box       )
-                               ('foreground-color :foreground)
-                               ('background-color :background)
-                               ('bold             :bold      )
-                               ('italic           :italic    )
-                               (t                 p)))
-                     (if (memq p prop-seen) nil ;; noop
-                       (setq prop-seen   (cons p prop-seen)
-                             extra-props (cons p (cons v extra-props)))) ))))))
-         overlay-data)
-        ;;(message "+ %d: %s; %S" p face-name extra-props)
-        (if extra-props
-            (if (listp face-name)
-                (nconc extra-props face-name)
-              (nconc extra-props (face-attr-construct face-name)))
-          face-name)) ))
+    ;; SO:    if we have turned overlays off,
+    ;;     or if there's no overlay data
+    ;; just bail out and return whatever face data we've accumulated so far
+    (if (or (not (hfy-opt                      'keep-overlays))
+            (not (setq overlay-data  (hfy-overlay-props-at p))))
+        (progn
+          ;;(message "· %d: %s; %S; %s"
+          ;;         p face-name extra-props text-props)
+          (or face-name base-face)) ;; no overlays or extra properties
+      ;; collect any face data and any overlay data for processing:
+      (when text-props
+        (push text-props overlay-data))
+      (setq overlay-data (nreverse overlay-data))
+      ;;(message "- %d: %s; %S; %s; %s"
+      ;;         p face-name extra-props text-props overlay-data)
+      ;; remember the basic face name so we don't keep repeating its specs:
+      (when face-name (setq base-face face-name))
+      (dolist (P overlay-data)
+        (let ((iprops (cadr (memq 'invisible P)))) ;FIXME: plist-get?
+          ;;(message "(hfy-prop-invisible-p %S)" iprops)
+          (when (and iprops (hfy-prop-invisible-p iprops))
+            (setq extra-props
+                  (cons :invisible (cons t extra-props))) ))
+        (let ((fprops (cadr (or (memq 'face P)
+                                (memq 'font-lock-face P)))))
+          ;;(message "overlay face: %s" fprops)
+          (if (not (listp fprops))
+              (let ((this-face (if (stringp fprops) (intern fprops) fprops)))
+                (when (not (eq this-face base-face))
+                  (setq extra-props
+                        (cons :inherit
+                              (cons this-face extra-props))) ))
+            (while fprops
+              (if (facep (car fprops))
+                  (let ((face (car fprops)))
+                    (when (stringp face) (setq face (intern fprops)))
+                    (setq extra-props
+                          (cons :inherit
+                                (cons face
+                                      extra-props)))
+                    (setq fprops (cdr fprops)))
+                (let (p v)
+                  ;; Sigh.
+                  (if (listp (car fprops))
+                      (if (nlistp (cdr (car fprops)))
+                          (progn
+                            ;; ((prop . val))
+                            (setq p (caar fprops))
+                            (setq v (cdar fprops))
+                            (setq fprops (cdr fprops)))
+                        ;; ((prop val))
+                        (setq p (caar fprops))
+                        (setq v (cadar fprops))
+                        (setq fprops (cdr fprops)))
+                    (if (listp (cdr fprops))
+                        (progn
+                          ;; (:prop val :prop val ...)
+                          (setq p (car fprops))
+                          (setq v (cadr fprops))
+                          (setq fprops (cddr fprops)))
+                      (if (and (listp fprops)
+                               (not (listp (cdr fprops))))
+                          ;;(and (consp x) (cdr (last x)))
+                          (progn
+                            ;; (prop . val)
+                            (setq p (car fprops))
+                            (setq v (cdr fprops))
+                            (setq fprops nil))
+                        (error "Eh... another format! fprops=%s" fprops) )))
+                  (setq p (case p
+                            ;; These are all the properties handled
+                            ;; in `hfy-face-to-style-i'.
+                            ;;
+                            ;; Are these translations right?
+                            ;; yes, they are -- v
+                            (family           :family    )
+                            (width            :width     )
+                            (height           :height    )
+                            (weight           :weight    )
+                            (slant            :slant     )
+                            (underline        :underline )
+                            (overline         :overline  )
+                            (strike-through   :strike-through)
+                            (box              :box       )
+                            (foreground-color :foreground)
+                            (background-color :background)
+                            (bold             :bold      )
+                            (italic           :italic    )
+                            (t                 p)))
+                  (if (memq p prop-seen) nil ;; noop
+                    (setq prop-seen   (cons p prop-seen)
+                          extra-props (cons p (cons v extra-props))))))))))
+      ;;(message "+ %d: %s; %S" p face-name extra-props)
+      (if extra-props
+          (if (listp face-name)
+              (nconc extra-props face-name)
+            (nconc extra-props (face-attr-construct face-name)))
+        face-name)) ))
 
 (defun hfy-overlay-props-at (p)
   "Grab overlay properties at point P.
 The plists are returned in descending priority order."
-  (sort (mapcar (lambda (O) (overlay-properties O)) (overlays-at p))
-        (lambda (A B) (> (or (cadr (memq 'priority A)) 0)
-                         (or (cadr (memq 'priority B)) 0)) ) ) )
+  (sort (mapcar #'overlay-properties (overlays-at p))
+        (lambda (A B) (> (or (cadr (memq 'priority A)) 0) ;FIXME: plist-get?
+                    (or (cadr (memq 'priority B)) 0)))))
 
 ;; construct an assoc of (face-name . (css-name . "{ css-style }")) elements:
 (defun hfy-compile-stylesheet ()
@@ -1366,9 +1368,9 @@ The plists are returned in descending priority order."
       (goto-char pt)
       (while (< pt (point-max))
         (if (and (setq fn (hfy-face-at pt)) (not (assoc fn style)))
-            (setq style (cons (cons fn (hfy-face-to-css fn)) style)))
+            (push (cons fn (hfy-face-to-css fn)) style))
         (setq pt (next-char-property-change pt))) )
-    (setq style (cons (cons 'default (hfy-face-to-css 'default)) style))) )
+    (push (cons 'default (hfy-face-to-css 'default)) style)))
 
 (defun hfy-fontified-p ()
   "`font-lock' doesn't like to say it\'s been fontified when in batch
@@ -1410,8 +1412,8 @@ Returns a modified copy of FACE-MAP."
         (span-stop    nil)
         (span-start   nil)
         (reduced-map  nil))
-    ;;(setq reduced-map (cons (car  tmp-map) reduced-map))
-    ;;(setq reduced-map (cons (cadr tmp-map) reduced-map))
+    ;;(push (car  tmp-map) reduced-map)
+    ;;(push (cadr tmp-map) reduced-map)
     (while tmp-map
       (setq first-start (cadddr tmp-map)
             first-stop  (caddr  tmp-map)
@@ -1431,8 +1433,8 @@ Returns a modified copy of FACE-MAP."
               first-stop  (caddr  map-buf)
               last-start  (cadr   map-buf)
               last-stop   (car    map-buf)))
-      (setq reduced-map (cons span-stop  reduced-map))
-      (setq reduced-map (cons span-start reduced-map))
+      (push span-stop  reduced-map)
+      (push span-start reduced-map)
       (setq tmp-map (memq last-start tmp-map))
       (setq tmp-map (cdr tmp-map)))
     (setq reduced-map (nreverse reduced-map))))
@@ -1459,15 +1461,15 @@ Returns a modified copy of FACE-MAP."
       (goto-char pt)
       (while (< pt (point-max))
         (if (setq fn (hfy-face-at pt))
-            (progn (if prev-tag (setq map (cons (cons pt-narrow 'end) map)))
-                   (setq map (cons (cons pt-narrow fn) map))
+            (progn (if prev-tag (push (cons pt-narrow 'end) map))
+                   (push (cons pt-narrow fn) map)
                    (setq prev-tag t))
-          (if prev-tag (setq map (cons (cons pt-narrow 'end) map)))
+          (if prev-tag (push (cons pt-narrow 'end) map))
           (setq prev-tag nil))
         (setq pt (next-char-property-change pt))
         (setq pt-narrow (1+ (- pt (point-min)))))
       (if (and map (not (eq 'end (cdar map))))
-          (setq map (cons (cons (- (point-max) (point-min)) 'end) map))))
+          (push (cons (- (point-max) (point-min)) 'end) map)))
     (if (hfy-opt 'merge-adjacent-tags) (hfy-merge-adjacent-spans map) map)))
 
 (defun hfy-buffer ()
@@ -1514,7 +1516,8 @@ Uses `hfy-link-style-fun' to do this."
                      (format
                       "span.%s   %s\nspan.%s a %s\n"
                       (cadr style) (cddr style)
-                      (cadr style) (hfy-link-style (cddr style)))) css))
+                      (cadr style) (hfy-link-style (cddr style))))
+                   css))
            " --></style>\n"))
     (funcall hfy-page-header file stylesheet)))
 
@@ -1665,38 +1668,36 @@ FILE, if set, is the file name."
     ;; property has already served its main purpose by this point.
     ;;(message "mapcar over the CSS-MAP")
     (message "invis-ranges:\n%S" invis-ranges)
-    (mapc
-     (lambda (point-face)
-       (let ((pt (car point-face))
-             (fn (cdr point-face))
-             (move-link       nil))
-         (goto-char pt)
-         (setq move-link
-               (or (get-text-property pt 'hfy-linkp)
-                   (get-text-property pt 'hfy-endl )))
-         (if (eq 'end fn)
-             (insert "</span>")
-           (if (not (and srcdir file))
-               nil
-             (when move-link
-               (remove-text-properties (point) (1+ (point)) '(hfy-endl nil))
-               (put-text-property pt (1+ pt) 'hfy-endl t) ))
-           ;; if we have invisible blocks, we need to do some extra magic:
-           (if invis-ranges
-               (let ((iname (hfy-invisible-name pt invis-ranges))
-                     (fname (hfy-lookup         fn css-sheet   )))
-                 (when (assq pt invis-ranges)
-                   (insert
-                    (format "<span onclick=\"toggle_invis('%s');\">" iname))
-                   (insert "…</span>"))
-                 (insert
-                  (format "<span class=\"%s\" id=\"%s-%d\">" fname iname pt)))
-             (insert (format "<span class=\"%s\">" (hfy-lookup fn css-sheet))))
-           (if (not move-link) nil
-             ;;(message "removing prop2 @ %d" (point))
-             (if (remove-text-properties (point) (1+ (point)) '(hfy-endl nil))
-                 (put-text-property pt (1+ pt) 'hfy-endl t))) )))
-     css-map)
+    (dolist (point-face css-map)
+      (let ((pt (car point-face))
+            (fn (cdr point-face))
+            (move-link       nil))
+        (goto-char pt)
+        (setq move-link
+              (or (get-text-property pt 'hfy-linkp)
+                  (get-text-property pt 'hfy-endl )))
+        (if (eq 'end fn)
+            (insert "</span>")
+          (if (not (and srcdir file))
+              nil
+            (when move-link
+              (remove-text-properties (point) (1+ (point)) '(hfy-endl nil))
+              (put-text-property pt (1+ pt) 'hfy-endl t) ))
+          ;; if we have invisible blocks, we need to do some extra magic:
+          (if invis-ranges
+              (let ((iname (hfy-invisible-name pt invis-ranges))
+                    (fname (hfy-lookup         fn css-sheet   )))
+                (when (assq pt invis-ranges)
+                  (insert
+                   (format "<span onclick=\"toggle_invis('%s');\">" iname))
+                  (insert "…</span>"))
+                (insert
+                 (format "<span class=\"%s\" id=\"%s-%d\">" fname iname pt)))
+            (insert (format "<span class=\"%s\">" (hfy-lookup fn css-sheet))))
+          (if (not move-link) nil
+            ;;(message "removing prop2 @ %d" (point))
+            (if (remove-text-properties (point) (1+ (point)) '(hfy-endl nil))
+                (put-text-property pt (1+ pt) 'hfy-endl t))))))
     ;; #####################################################################
     ;; Invisibility
     ;; Maybe just make the text invisible in XHTML?
@@ -1724,13 +1725,13 @@ FILE, if set, is the file name."
               (if (not (setq pr (get-text-property pt lp))) nil
                 (goto-char pt)
                 (remove-text-properties pt (1+ pt) (list lp nil))
-                (cond
-                 ((eq lp 'hfy-link)
+                (case lp
+                 (hfy-link
                   (if (setq rr (get-text-property pt 'hfy-inst))
                       (insert (format "<a name=\"%s\"></a>" rr)))
                   (insert (format "<a href=\"%s\">" pr))
                   (setq lp 'hfy-endl))
-                 ((eq lp 'hfy-endl)
+                 (hfy-endl
                   (insert "</a>") (setq lp 'hfy-link)) ))) ))
 
     ;; #####################################################################
@@ -1760,7 +1761,7 @@ FILE, if set, is the file name."
 
 (defun hfy-force-fontification ()
   "Try to force font-locking even when it is optimised away."
-  (mapc (lambda (fun) (funcall fun)) hfy-init-kludge-hooks)
+  (run-hooks 'hfy-init-kludge-hook)
   (eval-and-compile (require 'font-lock))
   (if (boundp 'font-lock-cache-position)
       (or font-lock-cache-position
@@ -1811,6 +1812,7 @@ hyperlinks as appropriate."
   "Return a list of files under DIRECTORY.
 Strips any leading \"./\" from each filename."
   ;;(message "hfy-list-files");;DBUG
+  ;; FIXME: this changes the dir of the currrent buffer.  Is that right??
   (cd directory)
   (mapcar (lambda (F) (if (string-match "^./\\(.*\\)" F) (match-string 1 F) F))
           (split-string (shell-command-to-string hfy-find-cmd))) )
@@ -1995,7 +1997,7 @@ FILE is the specific file we are rendering."
                   (rmap-line        nil)
                   (tag-regex       (hfy-word-regex TAG))
                   (tag-map         (gethash TAG cache-hash))
-                  (tag-files       (mapcar (lambda (X) (car X))  tag-map)))
+                  (tag-files       (mapcar #'car tag-map)))
              ;; find instances of TAG and do what needs to be done:
              (goto-char (point-min))
              (while (search-forward TAG nil 'NOERROR)
@@ -2098,17 +2100,17 @@ FILE is the specific file we are rendering."
                   (setq tag-point  (round (string-to-number (match-string 3))))
                   (setq hash-entry (gethash tag-string  cache-hash))
                   (setq new-entry  (list etags-file tag-line tag-point))
-                  (setq hash-entry (cons new-entry hash-entry))
+                  (push new-entry hash-entry)
                   ;;(message "HASH-ENTRY %s %S" tag-string new-entry)
                   (puthash tag-string hash-entry cache-hash)))) )))
 
     ;; cache a list of tags in descending length order:
-    (maphash (lambda (K V) (setq tags-list (cons K tags-list))) cache-hash)
+    (maphash (lambda (K V) (push K tags-list)) cache-hash)
     (setq tags-list (sort tags-list (lambda (A B) (< (length B) (length A)))))
 
     ;; put the tag list into the cache:
     (if tlist-cache (setcar (cdr tlist-cache) tags-list)
-      (setq hfy-tags-sortl (cons (list srcdir tags-list) hfy-tags-sortl)))
+      (push (list srcdir tags-list) hfy-tags-sortl))
 
     ;; return the number of tags found:
     (length tags-list) ))
@@ -2134,36 +2136,33 @@ DSTDIR is the output directory, where files will be written."
                   (setq cache-hash (cadr cache-entry))
                   (setq index-buf  (get-buffer-create index-file))))
         nil ;; noop
-      (maphash (lambda (K V) (setq tag-list (cons K tag-list))) cache-hash)
+      (maphash (lambda (K V) (push K tag-list)) cache-hash)
       (setq tag-list (sort tag-list 'string<))
       (set-buffer index-buf)
       (erase-buffer)
       (insert (funcall hfy-page-header filename "<!-- CSS -->"))
       (insert "<table class=\"index\">\n")
 
-      (mapc
-       (lambda (TAG)
-         (let ((tag-started nil))
-           (mapc
-            (lambda (DEF)
-              (if (and stub (not (string-match (concat "^" stub) TAG)))
-                  nil ;; we have a stub and it didn't match: NOOP
-                (let ((file (car  DEF))
-                      (line (cadr DEF)))
-                  (insert
-                   (format
-                    (concat
-                     "  <tr>                                   \n"
-                     "   <td>%s</td>                           \n"
-                     "   <td><a href=\"%s%s\">%s</a></td>      \n"
-                     "   <td><a href=\"%s%s#%s.%d\">%d</a></td>\n"
-                     "  </tr>                                  \n")
-                        (if (string= TAG tag-started) "&nbsp;"
-                          (format "<a name=\"%s\">%s</a>" TAG TAG))
-                        file (or hfy-link-extn hfy-extn) file
-                        file (or hfy-link-extn hfy-extn) TAG line line))
-                  (setq tag-started TAG))))
-            (gethash TAG cache-hash)))) tag-list)
+      (dolist (TAG tag-list)
+        (let ((tag-started nil))
+          (dolist (DEF (gethash TAG cache-hash))
+            (if (and stub (not (string-match (concat "^" stub) TAG)))
+                nil ;; we have a stub and it didn't match: NOOP
+              (let ((file (car  DEF))
+                    (line (cadr DEF)))
+                (insert
+                 (format
+                  (concat
+                   "  <tr>                                   \n"
+                   "   <td>%s</td>                           \n"
+                   "   <td><a href=\"%s%s\">%s</a></td>      \n"
+                   "   <td><a href=\"%s%s#%s.%d\">%d</a></td>\n"
+                   "  </tr>                                  \n")
+                  (if (string= TAG tag-started) "&nbsp;"
+                    (format "<a name=\"%s\">%s</a>" TAG TAG))
+                  file (or hfy-link-extn hfy-extn) file
+                  file (or hfy-link-extn hfy-extn) TAG line line))
+                (setq tag-started TAG))))))
       (insert "</table>\n")
       (insert (funcall hfy-page-footer filename))
       (and dstdir (cd dstdir))
@@ -2237,20 +2236,15 @@ See: `hfy-tags-cache' and `hfy-tags-rmap'"
         (fwd-map (cadr (assoc srcdir hfy-tags-cache)))
         (rev-map (cadr (assoc srcdir hfy-tags-rmap )))
         (taglist (cadr (assoc srcdir hfy-tags-sortl))))
-    (mapc
-     (lambda (TAG)
-       (setq def-list (gethash TAG fwd-map)
-             old-list (gethash TAG rev-map)
-             new-list  nil
-             exc-list  nil)
-       (mapc
-        (lambda (P)
-          (setq exc-list (cons (list (car P) (cadr P)) exc-list))) def-list)
-       (mapc
-        (lambda (P)
-          (or (member (list (car P) (cadr P)) exc-list)
-              (setq new-list (cons P new-list)))) old-list)
-       (puthash TAG new-list rev-map)) taglist) ))
+    (dolist (TAG taglist)
+      (setq def-list (gethash TAG fwd-map)
+            old-list (gethash TAG rev-map)
+            exc-list (mapcar (lambda (P) (list (car P) (cadr P))) def-list)
+            new-list  nil)
+      (dolist (P old-list)
+        (or (member (list (car P) (cadr P)) exc-list)
+            (push P new-list)))
+      (puthash TAG new-list rev-map))))
 
 (defun htmlfontify-run-etags (srcdir)
   "Load the etags cache for SRCDIR.
@@ -2264,11 +2258,11 @@ See `hfy-load-tags-cache'."
 ;;  (message "foo: %S\nbar: %S" foo bar))
 
 (defun hfy-save-kill-buffers (buffer-list &optional dstdir)
-  (mapc (lambda (B)
-          (set-buffer B)
-          (and dstdir (file-directory-p dstdir) (cd dstdir))
-          (save-buffer)
-          (kill-buffer B)) buffer-list) )
+  (dolist (B buffer-list)
+    (set-buffer B)
+    (and dstdir (file-directory-p dstdir) (cd dstdir))
+    (save-buffer)
+    (kill-buffer B)))
 
 (defun htmlfontify-copy-and-link-dir (srcdir dstdir &optional f-ext l-ext)
   "Trawl SRCDIR and write fontified-and-hyperlinked output in DSTDIR.
@@ -2291,8 +2285,8 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
     (clrhash   (cadr tr-cache))
     (hfy-make-directory dstdir)
     (setq source-files (hfy-list-files srcdir))
-    (mapc (lambda (file)
-            (hfy-copy-and-fontify-file srcdir dstdir file)) source-files)
+    (dolist (file source-files)
+      (hfy-copy-and-fontify-file srcdir dstdir file))
     (hfy-subtract-maps srcdir)
     (hfy-save-kill-buffers (hfy-prepare-index   srcdir dstdir) dstdir)
     (hfy-save-kill-buffers (hfy-prepare-tag-map srcdir dstdir) dstdir) ))
@@ -2345,8 +2339,11 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
       (custom-save-delete 'hfy-init-progn)
       (setq start-pos (point))
       (princ "(hfy-init-progn\n;;auto-generated, only one copy allowed\n")
+      ;; FIXME: This saving&restoring of global customization
+      ;; variables can interfere with other customization settings for
+      ;; those vars (in .emacs or in Customize).
       (mapc 'hfy-save-initvar
-            (list 'auto-mode-alist 'interpreter-mode-alist))
+            '(auto-mode-alist interpreter-mode-alist))
       (princ ")\n")
       (indent-region start-pos (point) nil))
     (custom-save-all) ))
