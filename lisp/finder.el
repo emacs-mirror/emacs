@@ -87,7 +87,8 @@
     ))
 
 (defvar finder-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Finder")))
     (define-key map " "	'finder-select)
     (define-key map "f"	'finder-select)
     (define-key map [follow-link] 'mouse-face)
@@ -98,6 +99,21 @@
     (define-key map "p" 'previous-line)
     (define-key map "q"	'finder-exit)
     (define-key map "d"	'finder-list-keywords)
+
+    (define-key map [menu-bar finder-mode]
+      (cons "Finder" menu-map))
+    (define-key menu-map [finder-exit]
+      '(menu-item "Quit" finder-exit
+		  :help "Exit Finder mode"))
+    (define-key menu-map [finder-summary]
+      '(menu-item "Summary" finder-summary
+		  :help "Summary item on current line in a finder buffer"))
+    (define-key menu-map [finder-list-keywords]
+      '(menu-item "List keywords" finder-list-keywords
+		  :help "Display descriptions of the keywords in the Finder buffer"))
+    (define-key menu-map [finder-select]
+      '(menu-item "Select" finder-select
+		  :help "Select item on current line in a finder buffer"))
     map))
 
 (defvar finder-mode-syntax-table
