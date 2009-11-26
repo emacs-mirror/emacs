@@ -1,3 +1,7 @@
+2009-11-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Mention Metacity hang on Emacs resize.
+
 2009-11-20  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* PROBLEMS: Add workaround for Cygwin crash and remove fixed

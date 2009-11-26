@@ -1110,6 +1110,15 @@ into Meta.  This is because of the great importance of Meta in Emacs.
 
 ** Window-manager and toolkit-related problems
 
+*** Metacity: Resizing Emacs or ALT-Tab causes X to be unresponsive.
+
+This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
+makes the system unresponsive to the mouse or the keyboard.  Killing Emacs
+or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1 
+and then Alt-F7).  A bug for it is here:
+https://bugs.launchpad.net/ubuntu/+source/metacity/+bug/231034.
+Note that a permanent fix seems to be to disable "assistive technologies".
+
 *** Gnome: Emacs receives input directly from the keyboard, bypassing XIM.
 
 This seems to happen when gnome-settings-daemon version 2.12 or later
