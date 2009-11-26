@@ -16,6 +16,10 @@
 	* textmodes/dns-mode.el: Add "Keywords: comm".  It's only an
 	editing mode, but it's comms related and sgml-mode.el has "comm"
 	on that basis too.
+	* textmodes/bibtex-style.el: Add "Keywords: tex".
+	* international/isearch-x.el, international/ja-dic-cnv.el,
+	international/ja-dic-utl.el, international/kkc.el:
+	Add "Keywords: i18n", so they can be reached from finder-by-keyword.
 
 2009-11-25  Juri Linkov  <juri@jurta.org>
 
