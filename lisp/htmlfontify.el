@@ -693,6 +693,28 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
           }
       }
   }
+
+  function toggle_invis( name )
+  {
+      var filter =
+        { acceptNode:
+          function( node )
+          { var classname = node.id;
+            if( classname )
+            { var classbase = classname.substr( 0, name.length );
+              if( classbase == name ) { return NodeFilter.FILTER_ACCEPT; } }
+            return NodeFilter.FILTER_SKIP; } };
+      var walker = document.createTreeWalker( document.body           ,
+                                              NodeFilter.SHOW_ELEMENT ,
+                                              filter                  ,
+                                              false                   );
+      while( walker.nextNode() )
+      {
+          var e = walker.currentNode;
+          if( e.style.display == \"none\" ) { e.style.display = \"inline\"; }
+          else                            { e.style.display = \"none\";   }
+      }
+  }
 --> </script>
   </head>
   <body onload=\"stripe('index'); return true;\">\n"
@@ -1216,7 +1238,8 @@ return a defface style list of face properties instead of a face symbol."
           (if (listp f) ;; for things like (variable-pitch (:foreground "red"))
               (setq extra-props (cons f extra-props))
             (setq extra-props (cons :inherit (cons f extra-props)))))
-        (setq face-name nil))
+        (setq base-face (car face-name)
+              face-name nil))
       ;; text-properties-at => (face (:foreground "red" ...))
       ;;                 or => (face (compilation-info underline)) list of faces
       ;; overlay-properties
@@ -1230,7 +1253,7 @@ return a defface style list of face properties instead of a face symbol."
           (progn
             ;;(message "· %d: %s; %S; %s"
             ;;         p face-name extra-props text-props)
-            face-name) ;; no overlays or extra properties
+            (or face-name base-face)) ;; no overlays or extra properties
         ;; collect any face data and any overlay data for processing:
         (when text-props
           (setq overlay-data (cons text-props overlay-data)))
@@ -1243,7 +1266,7 @@ return a defface style list of face properties instead of a face symbol."
          (lambda (P)
            (let ((iprops (cadr (memq 'invisible P))))
              ;;(message "(hfy-prop-invisible-p %S)" iprops)
-             (when (hfy-prop-invisible-p iprops)
+             (when (and iprops (hfy-prop-invisible-p iprops))
                (setq extra-props
                      (cons :invisible (cons t extra-props))) ))
            (let ((fprops (cadr (or (memq 'face P)
@@ -1495,33 +1518,6 @@ Uses `hfy-link-style-fun' to do this."
            " --></style>\n"))
     (funcall hfy-page-header file stylesheet)))
 
-(defconst hfy-javascript "
-    <script type=\"text/javascript\">
-      // <![CDATA[
-function toggle_invis( name )
-{
-    var filter =
-      { acceptNode:
-        function( node )
-        { var classname = node.id;
-          if( classname )
-          { var classbase = classname.substr( 0, name.length );
-            if( classbase == name ) { return NodeFilter.FILTER_ACCEPT; } }
-          return NodeFilter.FILTER_SKIP; } };
-    var walker = document.createTreeWalker( document.body           ,
-                                            NodeFilter.SHOW_ELEMENT ,
-                                            filter                  ,
-                                            false                   );
-    while( walker.nextNode() )
-    {
-        var e = walker.currentNode;
-        if( e.style.display == \"none\" ) { e.style.display = \"inline\"; }
-        else                            { e.style.display = \"none\";   }
-    }
-}
-      // ]]>
-    </script>\n")
-
 ;; tag all the dangerous characters we want to escape
 ;; (ie any "<> chars we _didn't_ put there explicitly for css markup)
 (defun hfy-html-enkludge-buffer ()
@@ -1749,7 +1745,6 @@ FILE, if set, is the file name."
     (goto-char (point-min))
     ;;(message "inserting stylesheet")
     (insert (hfy-sprintf-stylesheet css-sheet file))
-    (insert hfy-javascript)
     (if (hfy-opt 'div-wrapper) (insert "<div class=\"default\">"))
     (insert "\n<pre>")
     (goto-char (point-max))

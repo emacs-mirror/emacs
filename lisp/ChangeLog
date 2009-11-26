@@ -1,3 +1,13 @@
+2009-11-26  Vivek Dasmohapatra  <vivek@etla.org>
+
+	Various minor fixes.
+	* htmlfontify.el (hfy-default-header): Add toggle_invis since
+	Javascript belongs in the header, not the body.
+	(hfy-javascript): Remove.
+	(hfy-fontify-buffer): Don't insert it any more.
+	(hfy-face-at): Handle (face0 face1 face2) style face properties.
+	Fix bug in invis handling when there were no invis props in a chunk.
+
 2009-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-annotate-command): Make operation asynchronous.
