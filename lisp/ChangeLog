@@ -3,6 +3,10 @@
 	* log-view.el: Add "Keywords: tools", since its other keywords
 	aren't in finder-known-keywords, and following vc.el.
 
+	* sha1.el (sha1-string-external): default-directory "/" in case
+	otherwise non-existent.  process-connection-type pipe for touch of
+	efficiency recommended by elisp manual.  (An aside in Bug#3911.)
+
 2009-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Misc coding convention cleanups.
