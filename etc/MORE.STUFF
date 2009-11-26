@@ -32,7 +32,7 @@ engine) or retrievable from general Usenet archive services.
 * emacswiki.org
 
 The Emacs Wiki has an area for storing elisp files
-<URL:http://www.emacswiki.org/cgi-bin/wiki.pl/ElispArea>.
+<URL:http://www.emacswiki.org/cgi-bin/wiki/ElispArea>.
 
 * Emacs tutorials and manuals
 
@@ -99,7 +99,7 @@ You might find bug-fixes or enhancements in these places.
 
  * (Tex)info files for use with Info-look that don't come from GNU
    packages:
-   * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
+   * Scheme: <URL:http://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz>
    * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
        latex2e.texi> (or CTAN mirrors)
    * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/>
