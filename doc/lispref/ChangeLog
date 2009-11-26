@@ -1,3 +1,14 @@
+2009-11-26  Kevin Ryde  <user42@zip.com.au>
+
+	* commands.texi (Misc Events): vindex mouse-wheel-up-event and
+	mouse-wheel-down-event, the closest thing to a definition for them.
+	* os.texi (Startup Summary): vindex inhibit-startup-message and
+	inhibit-splash-screen.
+	(Command-Line Arguments): vindex argv.
+	(Suspending Emacs): vindex suspend-tty-functions and
+	resume-tty-functions.  Don't want to index every hook, but having
+	the programming ones is helpful.
+
 2009-11-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Motion Events): Fix typo (Bug#4907).
