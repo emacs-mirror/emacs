@@ -551,27 +551,34 @@ REV non-nil gets an error."
   "Prepare BUFFER for `vc-annotate' on FILE.
 Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
-  (apply #'vc-bzr-command "annotate" buffer 0 file "--long" "--all"
+  (apply #'vc-bzr-command "annotate" buffer 'async file "--long" "--all"
          (if revision (list "-r" revision)))
-  (with-current-buffer buffer
-    ;; Store the tags for the annotated source lines in a hash table
-    ;; to allow saving space by sharing the text properties.
-    (setq vc-bzr-annotation-table (make-hash-table :test 'equal))
-    (goto-char (point-min))
-    (while (re-search-forward "^\\( *[0-9.]+ *\\) \\([^\n ]+\\) +\\([0-9]\\{8\\}\\) |"
-                              nil t)
-      (let* ((rev (match-string 1))
-             (author (match-string 2))
-             (date (match-string 3))
-             (key (match-string 0))
-             (tag (gethash key vc-bzr-annotation-table)))
+  (lexical-let ((table (make-hash-table :test 'equal)))
+    (set-process-filter
+     (get-buffer-process buffer)
+     (lambda (proc string)
+       (when (process-buffer proc)
+         (with-current-buffer (process-buffer proc)
+           (setq string (concat (process-get proc :vc-left-over) string))
+           (while (string-match "^\\( *[0-9.]+ *\\) \\([^\n ]+\\) +\\([0-9]\\{8\\}\\)\\( |.*\n\\)" string)
+             (let* ((rev (match-string 1 string))
+                    (author (match-string 2 string))
+                    (date (match-string 3 string))
+                    (key (substring string (match-beginning 0)
+                                    (match-beginning 4)))
+                    (line (match-string 4 string))
+                    (tag (gethash key table))
+                    (inhibit-read-only t))
+               (setq string (substring string (match-end 0)))
         (unless tag
           (setq tag (propertize rev 'help-echo (concat "Author: " author
                                                        ", date: " date)
                                 'mouse-face 'highlight))
-          (puthash key tag vc-bzr-annotation-table))
-        (replace-match "")
-        (insert tag " |")))))
+                 (puthash key tag table))
+               (goto-char (process-mark proc))
+               (insert tag line)
+               (move-marker (process-mark proc) (point))))
+           (process-put proc :vc-left-over string)))))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
