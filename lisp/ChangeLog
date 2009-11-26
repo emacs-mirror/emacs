@@ -1,3 +1,8 @@
+2009-11-26  Kevin Ryde  <user42@zip.com.au>
+
+	* log-view.el: Add "Keywords: tools", since its other keywords
+	aren't in finder-known-keywords, and following vc.el.
+
 2009-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Misc coding convention cleanups.
