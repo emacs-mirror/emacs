@@ -1618,6 +1618,8 @@ usual meaning is a kind of scroll or zoom.
 The element @var{position} is a list describing the position of the
 event, in the same format as used in a mouse-click event.
 
+@vindex mouse-wheel-up-event
+@vindex mouse-wheel-down-event
 This kind of event is generated only on some kinds of systems. On some
 systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
 portable code, use the variables @code{mouse-wheel-up-event} and
