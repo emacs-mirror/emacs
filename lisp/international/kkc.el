@@ -7,7 +7,7 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Keywords: mule, multilingual, Japanese
+;; Keywords: i18n, mule, multilingual, Japanese
 
 ;; This file is part of GNU Emacs.
 
