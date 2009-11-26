@@ -4,7 +4,7 @@
 ;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: rcs sccs cvs log version-control
+;; Keywords: rcs sccs cvs log version-control tools
 
 ;; This file is part of GNU Emacs.
 
