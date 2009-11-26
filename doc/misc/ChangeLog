@@ -1,3 +1,10 @@
+2009-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Latest version of Emacs): Mention stability of development
+	version.
+	(Problems with very large files): Max buffer size increase in 23.2.
+	(VM): VM has moved house again.
+
 2009-11-22  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Radix modes): Discuss alternate bases for two's complement
