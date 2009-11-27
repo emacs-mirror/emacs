@@ -1,3 +1,9 @@
+2009-11-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* net/socks.el (socks-send-command): Convert binary request to
+	unibyte before sending.  This fixes mishandling of some port
+	numbers such as 129.
+
 2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (describe-bindings-internal): Remove `interactive'.

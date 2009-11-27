@@ -435,27 +435,29 @@ version.")
 			      (error "Unsupported address type for HTTP: %d" atype)))
 			    port)))
      ((equal version 4)
-      (setq request (format
-		     "%c%c%c%c%s%s%c"
-		     version		; version
-		     command		; command
-		     (lsh port -8)	; port, high byte
-		     (- port (lsh (lsh port -8) 8)) ; port, low byte
-		     addr		; address
-		     (user-full-name)	; username
-		     0			; terminate username
-		     )))
+      (setq request (string-make-unibyte
+		     (format
+		      "%c%c%c%c%s%s%c"
+		      version		; version
+		      command		; command
+		      (lsh port -8)	; port, high byte
+		      (- port (lsh (lsh port -8) 8)) ; port, low byte
+		      addr		; address
+		      (user-full-name)	; username
+		      0			; terminate username
+		      ))))
      ((equal version 5)
-      (setq request (format
-		     "%c%c%c%c%s%c%c"
-		     version		; version
-		     command		; command
-		     0			; reserved
-		     atype		; address type
-		     addr		; address
-		     (lsh port -8)	; port, high byte
-		     (- port (lsh (lsh port -8) 8)) ; port, low byte
-		     )))
+      (setq request (string-make-unibyte
+		     (format
+		      "%c%c%c%c%s%c%c"
+		      version		; version
+		      command		; command
+		      0			; reserved
+		      atype		; address type
+		      addr		; address
+		      (lsh port -8)	; port, high byte
+		      (- port (lsh (lsh port -8) 8)) ; port, low byte
+		      ))))
      (t
       (error "Unknown protocol version: %d" version)))
     (process-send-string proc request)
