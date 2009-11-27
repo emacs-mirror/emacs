@@ -263,7 +263,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
 	     obsolete noruntime cl-functions interactive-only
-	     make-local mapcar constants)
+	     make-local mapcar constants suspicious)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for all).
@@ -285,17 +285,15 @@ Elements of the list may be:
   make-local  calls to make-variable-buffer-local that may be incorrect.
   mapcar      mapcar called for effect.
   constants   let-binding of, or assignment to, constants/nonvariables.
+  suspicious  constructs that usually don't do what the coder wanted.
 
 If the list begins with `not', then the remaining elements specify warnings to
 suppress.  For example, (not mapcar) will suppress warnings about mapcar."
   :group 'bytecomp
   :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
-		      (const free-vars) (const unresolved)
-		      (const callargs) (const redefine)
-		      (const obsolete) (const noruntime)
-		      (const cl-functions) (const interactive-only)
-		      (const make-local) (const mapcar) (const constants))))
+                      ,@(mapcar (lambda (x) `(const ,x))
+                                byte-compile-warning-types))))
 ;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 
 ;;;###autoload
@@ -3714,6 +3712,9 @@ that suppresses all warnings during execution of BODY."
 
 
 (defun byte-compile-save-excursion (form)
+  (if (and (eq 'set-buffer (car-safe (car-safe (cdr form))))
+           (byte-compile-warning-enabled-p 'suspicious))
+      (byte-compile-warn "`save-excursion' defeated by `set-buffer'."))
   (byte-compile-out 'byte-save-excursion 0)
   (byte-compile-body-do-effect (cdr form))
   (byte-compile-out 'byte-unbind 1))

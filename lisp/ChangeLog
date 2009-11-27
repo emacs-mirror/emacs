@@ -1,5 +1,11 @@
 2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types): New type
+	`suspicious'.
+	(byte-compile-warnings): Use byte-compile-warning-types.
+	(byte-compile-save-excursion): Warn about use of set-buffer right
+	after save-excursion.
+
 	* progmodes/gud.el (gud-basic-call): Don't only save the buffer but
 	the excursion as well.
 
