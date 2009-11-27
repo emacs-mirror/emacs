@@ -302,7 +302,12 @@ and `comint-history-isearch-backward-regexp' start Isearch in the input history
 regardless of the value of `comint-history-isearch'.
 
 +++
-*** Autorevert Tail mode now works now for remote files.
+*** Autorevert Tail mode now works also for remote files.
+
+*** The new commands `eshell/su' and `eshell/sudo' support Tramp.
+That means, they change `default-directory' to the new users value,
+and let commands run under that user permissions.  It works even when
+`default-directory' is already remote.
 
 
 * New Modes and Packages in Emacs 23.2
