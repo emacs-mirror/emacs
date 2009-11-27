@@ -1,5 +1,7 @@
 2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help.el (describe-bindings-internal): Remove `interactive'.
+
 	* man.el (Man-completion-table): Trim a terminating "(".
 	Remove the space between name page a section.
 	Add the command's description on the `help-echo' property.

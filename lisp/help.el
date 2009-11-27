@@ -508,7 +508,6 @@ The optional argument MENUS, if non-nil, says to mention menu bindings.
 \(Ordinarily these are omitted from the output.)
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
-  (interactive)
   (let ((buf (current-buffer)))
     (with-help-window "*Help*"
       (with-current-buffer standard-output
