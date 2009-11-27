@@ -2832,18 +2832,19 @@ Obeying it means displaying in another window the specified file and line."
     (or proc (error "Current buffer has no process"))
     ;; Arrange for the current prompt to get deleted.
     (with-current-buffer gud-comint-buffer
-      (save-restriction
-	(widen)
-	(if (marker-position gud-delete-prompt-marker)
-	    ;; We get here when printing an expression.
-	    (goto-char gud-delete-prompt-marker)
-	  (goto-char (process-mark proc))
-	  (forward-line 0))
-	(if (looking-at comint-prompt-regexp)
-	    (set-marker gud-delete-prompt-marker (point)))
-	(if (eq gud-minor-mode 'gdbmi)
-	    (apply comint-input-sender (list proc command))
-	  (process-send-string proc (concat command "\n")))))))
+      (save-excursion
+        (save-restriction
+          (widen)
+          (if (marker-position gud-delete-prompt-marker)
+              ;; We get here when printing an expression.
+              (goto-char gud-delete-prompt-marker)
+            (goto-char (process-mark proc))
+            (forward-line 0))
+          (if (looking-at comint-prompt-regexp)
+              (set-marker gud-delete-prompt-marker (point)))
+          (if (eq gud-minor-mode 'gdbmi)
+              (apply comint-input-sender (list proc command))
+            (process-send-string proc (concat command "\n"))))))))
 
 (defun gud-refresh (&optional arg)
   "Fix up a possibly garbled display, and redraw the arrow."

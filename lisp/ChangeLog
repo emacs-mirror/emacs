@@ -1,3 +1,8 @@
+2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gud-basic-call): Don't only save the buffer but
+	the excursion as well.
+
 2009-11-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell/em-unix.el (eshell/su, eshell/sudo): New defuns,
@@ -17,7 +22,8 @@
 	* man.el (Man-completion-table): Trim a terminating "(".
 	Remove the space between name page a section.
 	Add the command's description on the `help-echo' property.
-	Remove `process-connection-type' binding since it's unused by call-process.
+	Remove `process-connection-type' binding since it's unused by
+	call-process.
 	Provide completion for the "<section> <name>" format as well.
 	(Man-default-man-entry): Remove spurious var shadowing the argument.
 
