@@ -1612,7 +1612,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    EMACS_INT this_pos = pos;
 	    EMACS_INT this_pos_byte = pos_byte;
 	    int this_len = len;
-	    unsigned char *p = pat + len_byte;
+	    const unsigned char *p = pat + len_byte;
 
 	    if (this_pos - len < lim || (pos_byte - len_byte) < lim_byte)
 	      goto stop;

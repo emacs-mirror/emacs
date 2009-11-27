@@ -1,3 +1,7 @@
+2009-11-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* search.c (simple_search): Remove warning by making *p const.
+
 2009-11-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xdisp.c (power_letter): Remove duplicate const.
