@@ -1,3 +1,9 @@
+2009-11-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/em-unix.el (eshell/su, eshell/sudo): New defuns,
+	providing a Tramp related implementation of "su" and "sudo".
+	(eshell-unix-initialize): Add "su" and "sudo".
+
 2009-11-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* net/socks.el (socks-send-command): Convert binary request to
