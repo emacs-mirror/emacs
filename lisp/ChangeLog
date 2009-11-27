@@ -1,3 +1,12 @@
+2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Trim a terminating "(".
+	Remove the space between name page a section.
+	Add the command's description on the `help-echo' property.
+	Remove `process-connection-type' binding since it's unused by call-process.
+	Provide completion for the "<section> <name>" format as well.
+	(Man-default-man-entry): Remove spurious var shadowing the argument.
+
 2009-11-26  Kevin Ryde  <user42@zip.com.au>
 
 	* log-view.el: Add "Keywords: tools", since its other keywords

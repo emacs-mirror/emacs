@@ -84,11 +84,6 @@
 ;;   only.  Is it worth doing?
 ;; - Allow a user option to mean that all the manpages should go in
 ;;   the same buffer, where they can be browsed with M-n and M-p.
-;; - Allow completion on the manpage name when calling man.  This
-;;   requires a reliable list of places where manpages can be found.  The
-;;   drawback would be that if the list is not complete, the user might
-;;   be led to believe that the manpages in the missing directories do
-;;   not exist.
 
 
 ;;; Code:
@@ -660,7 +655,7 @@ a new value."
 (defun Man-default-man-entry (&optional pos)
   "Guess default manual entry based on the text near position POS.
 POS defaults to `point'."
-  (let (word start pos column distance)
+  (let (word start column distance)
     (save-excursion
       (when pos (goto-char pos))
       (setq pos (point))
@@ -756,33 +751,54 @@ POS defaults to `point'."
 
 (defun Man-completion-table (string pred action)
   (cond
-   ((memq action '(t nil))
-    (let ((table (cdr Man-completion-cache)))
+   ((eq action 'lambda)
+    (not (string-match "([^)]*\\'" string)))
+   (t
+    (let ((table (cdr Man-completion-cache))
+          (section nil)
+          (prefix string))
+      (when (string-match "\\`\\([[:digit:]].*?\\) " string)
+        (setq section (match-string 1 string))
+        (setq prefix (substring string (match-end 0))))
       (unless (and Man-completion-cache
-                   (string-prefix-p (car Man-completion-cache) string))
-      (with-temp-buffer
-	(setq default-directory "/") ;; in case inherited doesn't exist
-        ;; Actually for my `man' the arg is a regexp.  Don't know how
-        ;; standard that is.  Also, it's not clear what kind of
-        ;; regexp are accepted: under GNU/Linux it seems it's ERE-style,
-        ;; whereas under MacOSX it seems to be BRE-style and
-        ;; doesn't accept backslashes at all.  Let's not bother to
-        ;; quote anything.
- 	(let ((process-connection-type nil) ;; pipe
-	      (process-environment (copy-sequence process-environment)))
-	  (setenv "COLUMNS" "999") ;; don't truncate long names
-          (call-process manual-program nil '(t nil) nil
-                        "-k" (concat "^" string)))
-        (goto-char (point-min))
-        (while (re-search-forward "^[^ \t\n]+\\(?: (.+?)\\)?" nil t)
-          (push (match-string 0) table)))
+                   (string-prefix-p (car Man-completion-cache) prefix))
+        (with-temp-buffer
+          (setq default-directory "/") ;; in case inherited doesn't
+          ;; exist Actually for my `man' the arg is a regexp.
+          ;; POSIX says it must be ERE and GNU/Linux seems to agree,
+          ;; whereas under MacOSX it seems to be BRE-style and doesn't
+          ;; accept backslashes at all.  Let's not bother to
+          ;; quote anything.
+          (let ((process-environment (copy-sequence process-environment)))
+            (setenv "COLUMNS" "999") ;; don't truncate long names
+            (call-process manual-program nil '(t nil) nil
+                          "-k" (concat "^" prefix)))
+          (goto-char (point-min))
+          (while (re-search-forward "^\\([^ \t\n]+\\)\\(?: ?\\((.+?)\\)\\(?:[ \t]+- \\(.*\\)\\)?\\)?" nil t)
+            (push (propertize (concat (match-string 1) (match-string 2))
+                              'help-echo (match-string 3))
+                  table)))
         ;; Cache the table for later reuse.
-        (setq Man-completion-cache (cons string table)))
+        (setq Man-completion-cache (cons prefix table)))
       ;; The table may contain false positives since the match is made
       ;; by "man -k" not just on the manpage's name.
-      (complete-with-action action table string pred)))
-   ((eq action 'lambda) t)
-   ((eq (car-safe action) 'boundaries) nil)))
+      (if section
+          (let ((re (concat "(" (regexp-quote section) ")\\'")))
+            (dolist (comp (prog1 table (setq table nil)))
+              (if (string-match re comp)
+                  (push (substring comp 0 (match-beginning 0)) table)))
+            (completion-table-with-context (concat section " ") table
+                                           prefix pred action))
+        (let ((res (complete-with-action action table string pred)))
+          ;; In case we're completing to a single name that exists in
+          ;; several sections, the longest prefix will look like "foo(".
+          (if (and (stringp res)
+                   (string-match "([^(]*\\'" res)
+                   ;; In case the paren was already in `prefix', don't
+                   ;; remove it.
+                   (> (match-beginning 0) (length prefix)))
+              (substring res 0 (match-beginning 0))
+            res)))))))
 
 ;;;###autoload
 (defun man (man-args)
