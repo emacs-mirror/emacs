@@ -91,86 +91,88 @@ TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
     (url-parse-make-urlobj nil nil nil nil nil url))
    (t
     (with-temp-buffer
-      (set-syntax-table url-parse-syntax-table)
-      (let ((save-pos nil)
-	    (prot nil)
-	    (user nil)
-	    (pass nil)
-	    (host nil)
-	    (port nil)
-	    (file nil)
-	    (refs nil)
-	    (attr nil)
-	    (full nil)
-	    (inhibit-read-only t))
-	(erase-buffer)
-	(insert url)
-	(goto-char (point-min))
-	(setq save-pos (point))
+      ;; Don't let those temp-buffer modifications accidentally
+      ;; deactivate the mark of the current-buffer.
+      (let ((deactivate-mark nil))
+        (set-syntax-table url-parse-syntax-table)
+        (let ((save-pos nil)
+              (prot nil)
+              (user nil)
+              (pass nil)
+              (host nil)
+              (port nil)
+              (file nil)
+              (refs nil)
+              (attr nil)
+              (full nil)
+              (inhibit-read-only t))
+          (erase-buffer)
+          (insert url)
+          (goto-char (point-min))
+          (setq save-pos (point))
 
-	;; 3.1. Scheme
-	(if (not (looking-at "//"))
-	    (progn
-	      (skip-chars-forward "a-zA-Z+.\\-")
-	      (downcase-region save-pos (point))
-	      (setq prot (buffer-substring save-pos (point)))
-	      (skip-chars-forward ":")
-	      (setq save-pos (point))))
+          ;; 3.1. Scheme
+          (unless (looking-at "//")
+            (skip-chars-forward "a-zA-Z+.\\-")
+            (downcase-region save-pos (point))
+            (setq prot (buffer-substring save-pos (point)))
+            (skip-chars-forward ":")
+            (setq save-pos (point)))
 
-	;; 3.2. Authority
-	(if (looking-at "//")
-	    (progn
-	      (setq full t)
-	      (forward-char 2)
-	      (setq save-pos (point))
-	      (skip-chars-forward "^/")
-	      (setq host (buffer-substring save-pos (point)))
-	      (if (string-match "^\\([^@]+\\)@" host)
-		  (setq user (match-string 1 host)
-			host (substring host (match-end 0) nil)))
-	      (if (and user (string-match "\\([^:]+\\):\\(.*\\)" user))
-		  (setq pass (match-string 2 user)
-			user (match-string 1 user)))
-	      ;; This gives wrong results for IPv6 literal addresses.
-	      (if (string-match ":\\([0-9+]+\\)" host)
-		  (setq port (string-to-number (match-string 1 host))
-			host (substring host 0 (match-beginning 0))))
-	      (if (string-match ":$" host)
-		  (setq host (substring host 0 (match-beginning 0))))
-	      (setq host (downcase host)
-		    save-pos (point))))
+          ;; 3.2. Authority
+          (when (looking-at "//")
+            (setq full t)
+            (forward-char 2)
+            (setq save-pos (point))
+            (skip-chars-forward "^/")
+            (setq host (buffer-substring save-pos (point)))
+            (if (string-match "^\\([^@]+\\)@" host)
+                (setq user (match-string 1 host)
+                      host (substring host (match-end 0) nil)))
+            (if (and user (string-match "\\([^:]+\\):\\(.*\\)" user))
+                (setq pass (match-string 2 user)
+                      user (match-string 1 user)))
+            ;; This gives wrong results for IPv6 literal addresses.
+            (if (string-match ":\\([0-9+]+\\)" host)
+                (setq port (string-to-number (match-string 1 host))
+                      host (substring host 0 (match-beginning 0))))
+            (if (string-match ":$" host)
+                (setq host (substring host 0 (match-beginning 0))))
+            (setq host (downcase host)
+                  save-pos (point)))
 
-	(if (not port)
-	    (setq port (url-scheme-get-property prot 'default-port)))
+          (if (not port)
+              (setq port (url-scheme-get-property prot 'default-port)))
 
-	;; 3.3. Path
-	;; Gross hack to preserve ';' in data URLs
-	(setq save-pos (point))
+          ;; 3.3. Path
+          ;; Gross hack to preserve ';' in data URLs
+          (setq save-pos (point))
 
-	;; 3.4. Query
-	(if (string= "data" prot)
-	    (goto-char (point-max))
-	  ;; Now check for references
-	  (skip-chars-forward "^#")
-	  (if (eobp)
-	      nil
-	    (delete-region
-	     (point)
-	     (progn
-	       (skip-chars-forward "#")
-	       (setq refs (buffer-substring (point) (point-max)))
-	       (point-max))))
-	  (goto-char save-pos)
-	  (skip-chars-forward "^;")
-	  (if (not (eobp))
-	      (setq attr (url-parse-args (buffer-substring (point) (point-max)) t)
+          ;; 3.4. Query
+          (if (string= "data" prot)
+              (goto-char (point-max))
+            ;; Now check for references
+            (skip-chars-forward "^#")
+            (if (eobp)
+                nil
+              (delete-region
+               (point)
+               (progn
+                 (skip-chars-forward "#")
+                 (setq refs (buffer-substring (point) (point-max)))
+                 (point-max))))
+            (goto-char save-pos)
+            (skip-chars-forward "^;")
+            (unless (eobp)
+              (setq attr (url-parse-args (buffer-substring (point) (point-max))
+                                         t)
 		    attr (nreverse attr))))
 
-	(setq file (buffer-substring save-pos (point)))
-	(if (and host (string-match "%[0-9][0-9]" host))
-	    (setq host (url-unhex-string host)))
-	(url-parse-make-urlobj
-         prot user pass host port file refs attr full))))))
+          (setq file (buffer-substring save-pos (point)))
+          (if (and host (string-match "%[0-9][0-9]" host))
+              (setq host (url-unhex-string host)))
+          (url-parse-make-urlobj
+           prot user pass host port file refs attr full)))))))
 
 (provide 'url-parse)
 

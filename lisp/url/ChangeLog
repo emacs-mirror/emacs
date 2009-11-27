@@ -1,3 +1,7 @@
+2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-parse.el (url-generic-parse-url): Bind deactivate-mark.
+
 2009-11-08  Kai Tetzlaff  <kai.tetzlaff@web.de>  (tiny change)
 
 	* url-http.el (url-http-handle-authentication): Use proxy server,
