@@ -1,3 +1,7 @@
+2009-11-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: New functions eshell/su and eshell/sudo.
+
 2009-11-26  Kevin Ryde  <user42@zip.com.au>
 
 	* MORE.STUFF: emacswiki ElispArea url "wiki.pl" -> "wiki".
