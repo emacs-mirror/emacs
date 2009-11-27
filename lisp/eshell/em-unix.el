@@ -145,7 +145,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (make-local-variable 'eshell-complex-commands)
   (setq eshell-complex-commands
 	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
-		  "cat" "time" "cp" "mv" "make" "du" "diff")
+		  "cat" "time" "cp" "mv" "make" "du" "diff" "su" "sudo")
 		eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
@@ -1040,6 +1040,66 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (apply 'occur args))))
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
+
+;; Pacify the byte-compiler.
+(defvar tramp-default-proxies-alist)
+
+(defun eshell/su (&rest args)
+  "Alias \"su\" to call Tramp."
+  (let ((-login (member "-" args)) ;; not handled by `eshell-eval-using-options'
+	login)
+    (eshell-eval-using-options
+     "sudo" args
+     '((?h "help" nil nil "show this usage screen")
+       (?l "login" nil login "provide a login environment")
+       (?  nil nil login "provide a login environment")
+       :usage "[- | -l | --login] [USER]
+Become another USER during a login session.")
+     (throw 'eshell-replace-command
+	    (let ((user "root")
+		  (host (or (file-remote-p default-directory 'host)
+			    "localhost"))
+		  (dir (or (file-remote-p default-directory 'localname)
+			   default-directory)))
+	      (if (or login -login) (setq dir "~/"))
+	      (if (stringp (car args)) (setq user (car args)))
+	      (if (and (file-remote-p default-directory)
+		       (not (string-equal
+			     user (file-remote-p default-directory 'user))))
+		  (add-to-list
+		   'tramp-default-proxies-alist
+		   (list host user (file-remote-p default-directory))))
+	      (eshell-parse-command
+	       "eshell/cd" (list (format "/su:%s@%s:%s" user host dir))))))))
+
+(put 'eshell/su 'eshell-no-numeric-conversions t)
+
+(defun eshell/sudo (&rest args)
+  "Alias \"sudo\" to call Tramp."
+  (let (user)
+    (eshell-eval-using-options
+     "sudo" args
+     '((?h "help" nil nil "show this usage screen")
+       (?u "user" t user "execute a command as another USER")
+       :show-usage
+       :usage "[(-u | --user) USER] COMMAND
+Execute a COMMAND as the superuser or another USER.")
+     (throw 'eshell-external
+	    (let* ((user (or user "root"))
+		   (host (or (file-remote-p default-directory 'host)
+			     "localhost"))
+		   (dir (or (file-remote-p default-directory 'localname)
+			    default-directory))
+		   (default-directory (format "/sudo:%s@%s:%s" user host dir)))
+	      (if (and (file-remote-p default-directory)
+		       (not (string-equal
+			     user (file-remote-p default-directory 'user))))
+		  (add-to-list
+		   'tramp-default-proxies-alist
+		   (list host user (file-remote-p default-directory))))
+	      (eshell-named-command (car args) (cdr args)))))))
+
+(put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
 (provide 'em-unix)
 
