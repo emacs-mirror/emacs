@@ -1,5 +1,14 @@
 2009-11-27  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xftfont.c (xftfont_end_for_frame): Just return if dpyinfo->display
+	is NULL.
+
+	* xterm.c (x_delete_terminal): Set dpyinfo->display to NULL.
+
+	* frame.c (frame_make_pointer_invisible)
+	(frame_make_pointer_visible): Just return if there isn't any selected 
+	frame.
+
 	* search.c (simple_search): Remove warning by making *p const.
 
 2009-11-26  Dan Nicolaescu  <dann@ics.uci.edu>

@@ -4377,6 +4377,9 @@ frame_make_pointer_invisible ()
 {
   if (! NILP (Vmake_pointer_invisible))
     {
+      if (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
+        return;
+
       struct frame *f = SELECTED_FRAME ();
       if (f && !f->pointer_invisible
           && FRAME_TERMINAL (f)->toggle_invisible_pointer_hook)
@@ -4393,6 +4396,9 @@ frame_make_pointer_visible ()
 {
   /* We don't check Vmake_pointer_invisible here in case the
      pointer was invisible when Vmake_pointer_invisible was set to nil.  */
+
+  if (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
+    return;
 
   struct frame *f = SELECTED_FRAME ();
   if (f && f->pointer_invisible && f->mouse_moved

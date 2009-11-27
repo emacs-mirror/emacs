@@ -10747,6 +10747,8 @@ x_delete_terminal (struct terminal *terminal)
 #endif /* ! USE_GTK */
     }
 
+  /* Mark as dead. */
+  dpyinfo->display = NULL;
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;
 }

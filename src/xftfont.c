@@ -668,7 +668,12 @@ static int
 xftfont_end_for_frame (f)
      FRAME_PTR f;
 {
-  XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);
+  XftDraw *xft_draw;
+
+  /* Don't do anything if display is dead */
+  if (FRAME_X_DISPLAY (f) == NULL) return 0;
+
+  xft_draw = font_get_frame_data (f, &xftfont_driver);
 
   if (xft_draw)
     {
