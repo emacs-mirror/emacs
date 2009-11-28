@@ -3166,13 +3166,20 @@ Consecutive characters with the same @code{field} property constitute a
 @item cursor
 @kindex cursor @r{(text property)}
 Normally, the cursor is displayed at the end of any overlay and text
-property strings present at the current window position.  You can
+property strings present at the current buffer position.  You can
 place the cursor on any desired character of these strings by giving
-that character a non-@code{nil} @code{cursor} text property.  If the
-value of the @code{cursor} property is an integer number, it specifies
-the number of buffer's character positions associated with the overlay
-or text property string; this helps Emacs display the cursor correctly
-when point moves across these character positions.
+that character a non-@code{nil} @code{cursor} text property.  In
+addition, if the value of the @code{cursor} property of an overlay
+string is an integer number, it specifies the number of buffer's
+character positions associated with the overlay string; this way,
+Emacs will display the cursor on the character with that property
+regardless of whether the current buffer position is actually covered
+by the overlay.  Specifically, if the value of the @code{cursor}
+property of a character is the number @var{n}, the cursor will be
+displayed on this character for any buffer position in the range
+@code{[@var{ovpos}..@var{ovpos}+@var{n}]}, where @var{ovpos} is the
+starting buffer position covered by the overlay (@pxref{Managing
+Overlays}).
 
 @item pointer
 @kindex pointer @r{(text property)}
