@@ -253,7 +253,7 @@ skip_invisible (pos, next_boundary_p, to, window)
     {
       /* Don't scan terribly far.  */
       XSETFASTINT (proplimit, min (pos + 100, to));
-      /* No matter what. don't go past next overlay change.  */
+      /* No matter what, don't go past next overlay change.  */
       if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
 	proplimit = overlay_limit;
       tmp = Fnext_single_property_change (position, Qinvisible,
