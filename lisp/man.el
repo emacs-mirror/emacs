@@ -789,6 +789,11 @@ POS defaults to `point'."
                   (push (substring comp 0 (match-beginning 0)) table)))
             (completion-table-with-context (concat section " ") table
                                            prefix pred action))
+        ;; If the current text looks like a possible section name,
+        ;; then add a completion entry that just adds a space so SPC
+        ;; can be used to insert a space.
+        (if (string-match "\\`[[:digit:]]" string)
+            (push (concat string " ") table))
         (let ((res (complete-with-action action table string pred)))
           ;; In case we're completing to a single name that exists in
           ;; several sections, the longest prefix will look like "foo(".

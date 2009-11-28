@@ -1,5 +1,7 @@
 2009-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* man.el (Man-completion-table): Make it easier to enter "<sec> <name>".
+
 	* eshell/em-prompt.el (eshell-prompt-function): Abbreviate pwd, since
 	`cd' doesn't always do it for us (bug#5067).
 
