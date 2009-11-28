@@ -1,3 +1,8 @@
+2009-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in [!AUTO_DEPEND]: Remove outdated comment about
+	omitted dependencies on lisp.h.
+
 2009-11-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xftfont.c (xftfont_end_for_frame): Just return if dpyinfo->display
