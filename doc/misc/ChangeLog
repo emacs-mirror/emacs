@@ -8,6 +8,7 @@
 	(Analyzer, Smart Completion, Smart Summary, Smart Jump)
 	(Analyzer Debug) New nodes, adapted from the upstream Semantic user
 	manual.
+	(Semantic mode): Link to Idle Scheduler.
 
 2009-11-28  Kevin Ryde  <user42@zip.com.au>
 

@@ -51,10 +51,11 @@ In addition, enabling Semantic mode turns on certain auxiliary global
 minor modes, as specified by the variable
 @code{semantic-default-submodes}.  The default auxiliary modes are
 SemanticDB mode (@pxref{SemanticDB}) and Global Semantic Idle
-Scheduler mode.  You can also toggle the auxiliary minor modes
-separately, using their mode functions (e.g. @kbd{M-x
-semanticdb-minor-mode}), or via the @samp{Development} menu.  These
-auxiliary minor modes are described in the following sections.
+Scheduler mode (@pxref{Idle Scheduler}).  You can also toggle the
+auxiliary minor modes separately, using their mode functions
+(e.g. @kbd{M-x semanticdb-minor-mode}), or via the @samp{Development}
+menu.  These auxiliary minor modes are described in the following
+sections.
 
 @defvar semantic-new-buffer-setup-functions
 The value of this variable is an alist of functions to call for
