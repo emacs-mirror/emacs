@@ -1,3 +1,8 @@
+2009-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): More accurate description of
+	what the `cursor' property does.
+
 2009-11-26  Kevin Ryde  <user42@zip.com.au>
 
 	* commands.texi (Misc Events): vindex mouse-wheel-up-event and
