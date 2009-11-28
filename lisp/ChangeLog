@@ -1,5 +1,14 @@
 2009-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Try and remove assumptions about point-min==1.
+	* nxml/rng-valid.el (rng-validate-mode): Don't hardcode point-min==1.
+	(rng-compute-mode-line-string): Show the validation percentage in
+	terms of the narrowed text, not the widened text.
+	(rng-do-some-validation): Don't catch internal errors when debugging.
+	(rng-first-error): Simplify.
+	(rng-after-change-function): Remove work around.  AFAIK the bug has
+	been fixed a while ago.
+
 	* image-mode.el (image-minor-mode): Exit more gracefully when the image
 	cannot be displayed (e.g. when doing C-x C-f some-new-file.svg RET).
 

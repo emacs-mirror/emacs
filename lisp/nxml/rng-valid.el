@@ -247,8 +247,8 @@ to use for finding the schema."
     (nxml-with-unmodifying-text-property-changes
       (rng-clear-cached-state (point-min) (point-max)))
     ;; 1+ to clear empty overlays at (point-max)
-    (rng-clear-overlays (point-min) (1+ (point-max))))
-  (setq rng-validate-up-to-date-end 1)
+    (rng-clear-overlays (point-min) (1+ (point-max)))
+    (setq rng-validate-up-to-date-end (point-min)))
   (rng-clear-conditional-region)
   (setq rng-error-count 0)
   ;; do this here to avoid infinite loop if we set the schema
@@ -304,10 +304,6 @@ The schema is set like `rng-auto-set-schema'."
   (or rng-validate-mode (rng-validate-mode)))
 
 (defun rng-after-change-function (start end pre-change-len)
-  ;; Work around bug in insert-file-contents.
-  (when (> end (1+ (buffer-size)))
-    (setq start 1)
-    (setq end (1+ (buffer-size))))
   (setq rng-message-overlay-inhibit-point nil)
   (nxml-with-unmodifying-text-property-changes
     (rng-clear-cached-state start end))
@@ -335,11 +331,13 @@ The schema is set like `rng-auto-set-schema'."
       (setq rng-validate-up-to-date-end start))
   ;; Must make rng-validate-up-to-date-end < point-max
   ;; (unless the buffer is empty).
-  ;; otherwise validate-prepare will say there's nothing to do.
-  ;; Don't use (point-max) because we may be narrowed.
-  (if (> rng-validate-up-to-date-end (buffer-size))
-      (setq rng-validate-up-to-date-end
-	    (max 1 (1- rng-validate-up-to-date-end))))
+  ;; otherwise rng-validate-prepare will say there's nothing to do.
+  (when (>= rng-validate-up-to-date-end (point-max))
+    (setq rng-validate-up-to-date-end
+          (if (< (point-min) (point-max))
+              (1- (point-max))
+            ;; Only widen if really necessary.
+            (save-restriction (widen) (max (point-min) (1- (point-max)))))))
   ;; Arrange to revalidate
   (rng-activate-timers)
   ;; Need to do this after activating the timer
@@ -354,8 +352,9 @@ The schema is set like `rng-auto-set-schema'."
 		  ;; the end.
 		  (floor (if (eq (buffer-size) 0)
 			     0.0
-			   (/ (* (- rng-validate-up-to-date-end 1) 100.0)
-			      (buffer-size)))))
+			   (/ (* (- rng-validate-up-to-date-end (point-min))
+                                 100.0)
+			      (- (point-max) (point-min))))))
 		 "%%"))
 	((> rng-error-count 0)
 	 (concat " "
@@ -476,7 +475,7 @@ The schema is set like `rng-auto-set-schema'."
     (save-restriction
       (widen)
       (nxml-with-invisible-motion
-	(condition-case err
+	(condition-case-no-debug err
 	    (and (rng-validate-prepare)
 		 (let ((rng-dt-namespace-context-getter '(nxml-ns-get-context)))
 		   (nxml-with-unmodifying-text-property-changes
@@ -809,9 +808,7 @@ Return t if there is work to do, nil otherwise."
 Turn on `rng-validate-mode' if it is not already on."
   (interactive)
   (or rng-validate-mode (rng-validate-mode))
-  (when (and (eq rng-validate-up-to-date-end 1)
-	     (< rng-validate-up-to-date-end (point-max)))
-    (rng-do-some-validation))
+  (rng-do-some-validation)
   (let ((err (rng-find-next-error-overlay (1- (point-min)))))
     (if err
 	(rng-goto-error-overlay err)
