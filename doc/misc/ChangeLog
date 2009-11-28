@@ -1,3 +1,8 @@
+2009-11-28  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (Porting Common Lisp): Update EIEIO dead ftp link to a
+	@pxref, now eieio is in emacs.
+
 2009-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Latest version of Emacs): Mention stability of development
