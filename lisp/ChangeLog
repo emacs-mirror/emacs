@@ -1,5 +1,8 @@
 2009-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* image-mode.el (image-minor-mode): Exit more gracefully when the image
+	cannot be displayed (e.g. when doing C-x C-f some-new-file.svg RET).
+
 	* man.el (Man-completion-table): Make it easier to enter "<sec> <name>".
 
 	* eshell/em-prompt.el (eshell-prompt-function): Abbreviate pwd, since

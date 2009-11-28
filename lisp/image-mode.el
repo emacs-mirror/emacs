@@ -362,18 +362,26 @@ See the command `image-mode' for more information on this mode."
     (image-mode-setup-winprops)
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
     (if (display-images-p)
-	(if (not (image-get-display-property))
-	    (image-toggle-display)
-	  (setq cursor-type nil truncate-lines t
-		image-type (plist-get (cdr (image-get-display-property)) :type)))
+        (condition-case err
+            (progn
+              (if (not (image-get-display-property))
+                  (image-toggle-display)
+                (setq cursor-type nil truncate-lines t
+                      image-type (plist-get (cdr (image-get-display-property))
+                                            :type)))
+              (message "%s"
+                       (concat
+                        (substitute-command-keys
+                         "Type \\[image-toggle-display] to view the image as ")
+                        (if (image-get-display-property)
+                            "text" "an image") ".")))
+          (error
+           (image-toggle-display-text)
+           (funcall
+            (if (called-interactively-p 'any) 'error 'message)
+            "Cannot display image: %s" (cdr err))))
       (setq image-type "text")
-      (use-local-map image-mode-text-map))
-    (if (display-images-p)
-	(message "%s" (concat
-		       (substitute-command-keys
-			"Type \\[image-toggle-display] to view the image as ")
-		       (if (image-get-display-property)
-			   "text" "an image") ".")))))
+      (use-local-map image-mode-text-map))))
 
 ;;;###autoload
 (defun image-mode-maybe ()
