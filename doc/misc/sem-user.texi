@@ -28,6 +28,7 @@ File,,,emacs,Emacs manual}.
 * Semantic mode::   Global minor mode for @semantic{}.
 * SemanticDB::      Caching parsed buffers between sessions.
 * Idle Scheduler::  Performing @semantic{} operations when idle.
+* Analyzer::        Semantic tools for analyzing code.
 @end menu
 
 @node Semantic mode
@@ -107,64 +108,70 @@ Others act on the @dfn{current tag}, meaning the tag at (or around)
 point.
 
 @table @kbd
-@item \C-c , j
+@item C-c , j
 Prompt for a tag defined in the current file, and move point to it
 (@code{semantic-complete-jump-local}).
 
-@item \C-c , J
+@item C-c , J
 Prompt for a tag defined in any file that Emacs has parsed, and move
 point to it (@code{semantic-complete-jump}).
 
-@item \C-c , l
+@item C-c , l
 Display a list of the possible completions of the current tag
 (@code{semantic-analyze-possible-completions}).
 
-@item \C-c , g
+@item C-c , g
 Prompt for a tag, and display a list of tags that call it
 (@code{semantic-symref-symbol}).
 
-@item \C-c , G
+@item C-c , G
 Display a list of tags that call the current tag
 (@code{semantic-symref}).
 
-@item \C-c , p
+@item C-c , p
 Move point to the previous tag (@code{senator-previous-tag}).
 
-@item \C-c , n
+@item C-c , n
 Move point to the next tag (@code{senator-next-tag}).
 
-@item \C-c , u
+@item C-c , u
 Move point ``up'' one reference (@code{senator-go-to-up-reference}).
 The meaning of ``up'' is language-dependent; in C++, for instance,
 this means moving to the parent of the current tag.
 
-@item \C-c, @key{SPC}
-(@code{semantic-complete-analyze-inline})
+@item C-c, @key{SPC}
+Display a list of possible completions for the symbol at point
+(@code{semantic-complete-analyze-inline}).  This also activates a
+special set of keybindings for choosing a completion: @key{RET}
+accepts the current completion, @kbd{M-n} and @kbd{M-p} cycle through
+possible completions, @key{TAB} completes as far as possible and then
+cycles, and @kbd{C-g} or any other key aborts the completion.
+@xref{Smart Completion}.
 
-@item \C-c,\C-w
+@item C-c , C-w
 Kill the current tag (@code{senator-kill-tag}).  This removes the text
 for that tag, placing it in the kill ring.  You can retrieve the text
 with @kbd{C-y}.  This also places the tag in the @dfn{tag ring}, so
 that you can yank it with @kbd{\C-c,\C-y}, below.
 
-@item \C-c,\M-w
+@item C-c , M-w
 Copy the current tag into the kill ring as well as the tag ring
 (@code{senator-copy-tag}).
 
-@item \C-c,\C-y
+@item C-c , C-y
 Yank a tag from the tag ring (@code{senator-yank-tag}).
 
-@item \C-c,r
+@item C-c , r
 Copy the current tag into a register
 (@code{senator-copy-tag-to-register}).  With an optional argument,
 kill it as well.  This allows you to insert or jump to that tag with
 the usual register commands.  @xref{Registers,,,emacs,Emacs manual}.
 
-@item ?\C-c , @kbd{up}
+@item \C-c , @kbd{up}
 Transpose the current tag with the previous one
 (@code{senator-transpose-tags-up}).
 
-@item ?\C-c ?, @kbd{down}
+@item C-c , @kbd{down}
 Transpose the current tag with the next one
 (@code{senator-transpose-tags-down}).
 @end table
@@ -433,7 +440,6 @@ You can use @kbd{M-x semanticdb-dump-all-table-summary} to see the
 list of databases that will be searched from a given buffer.  You can
 follow up with @kbd{M-x semanticdb-find-test-translate-path} to then
 make sure specific tables from the path are discovered correctly.
-
 Alternately, you can get a list of include files @semantic{}
 encountered, but could not find on disk using @kbd{M-x
 semanticdb-find-adebug-lost-includes}.
@@ -443,10 +449,11 @@ semanticdb-find-adebug-lost-includes}.
 Dump a list of all databases in Emacs memory.
 @end deffn
 
-@deffn Command semanticdb-find-test-translate-path &optional arg
 @anchor{semanticdb-find-test-translate-path}
-Call and output results of @dfn{semanticdb-find-translate-path}
-With @var{arg} non-@code{nil}, specify a @var{brutish} translation.
+@deffn Command semanticdb-find-test-translate-path &optional arg
+Call and output results of @dfn{semanticdb-find-translate-path}.  In
+the displayed buffer, you can type @key{SPC} to expand items.  With
+@var{arg} non-@code{nil}, specify a @var{brutish} translation.
 @end deffn
 
 @deffn Command semanticdb-find-adebug-lost-includes
@@ -681,8 +688,8 @@ Semantic Idle Completions mode is a minor mode for performing
 displayed inline, with keybindings that allow you to cycle through
 different alternatives.
 
-@c   @xref{Analyzer}, for information about code
-@c completion.
+Semantic Idle Completions mode performs completion based on the
+Semantic Analyzer (@pxref{Analyzer}).
 
 @anchor{global-semantic-idle-completions-mode}
 @anchor{semantic-idle-completions-mode}
@@ -761,3 +768,337 @@ Display completions in a tooltip.
 Display completions in a separate window.
 @end table
 @end deffn
+
+@node Analyzer
+@section Analyzer
+@cindex Analyzer
+
+The Semantic Analyzer is a library for performing context analysis on
+source code.  It provides user commands for displaying, completing,
+and navigating through source code.
+
+@menu
+* Smart Completion::       Performing code completion.
+* Smart Summary::          Displaying help on a symbol.
+* Smart Jump::             Jumping to the definition of a tag.
+* Analyzer Debug::         Debugging problems with the analyzer.
+@end menu
+
+@node Smart Completion
+@subsection Smart Completion
+
+The Semantic Analyzer can be used to perform code completion in a
+manner that takes the local context into account.
+
+In addition to the user commands documented in this section, the
+completions performed by Semantic Idle Completions mode also uses the
+Semantic Analyzer.  @xref{Idle Completions Mode}.
+
+@deffn Command semantic-analyze-possible-completions context
+This is the most basic command for Semantic Analyzer-based completion.
+Called interactively, it displays in another window a list of the
+possible completions for the symbol at point.
+
+When called from a Lisp program,
+@code{semantic-analyze-possible-completions} does not display a
+completions list.  The argument @var{context} should be either a
+buffer position, or a context object.  The return value is a list of
+@semantic{} tag objects that complete the symbol for @var{context},
+based on the following criteria:
+
+@itemize
+@item Elements currently in scope.
+@item Constants currently in scope.
+@item Elements matching the context's @code{:prefix}.
+@item Type of the completion matching the type of the context.
+@end itemize
+
+Most of the other commands documented in this section call
+@code{semantic-analyze-possible-completions} internally.
+@end deffn
+
+@anchor{semantic-complete-analyze-inline}
+@deffn Command semantic-complete-analyze-inline
+This command is bound to @kbd{C-c , @key{SPC}} when Semantic mode is
+enabled (@pxref{Semantic mode user commands}).  It displays a list of
+possible completions for the symbol at point, and activates a special
+set of keybindings for choosing a completion.
+
+You can type @key{RET} to accept the current completion, @kbd{M-n} and
+@kbd{M-p} to cycle through the possible completions, @key{TAB} to
+complete as far as possible and then cycle through completions, and
+either @kbd{C-g} or any other key to abort the completion.
+
+This command is similar to the completion performed by Semantic Idle
+Completions mode.  The main difference is that it is called
+explicitly, whereas Semantic Idle Completions mode completes during
+idle time (@pxref{Idle Completions Mode}).
+@end deffn
+
+@anchor{semantic-complete-inline-analyzer-displayor-class}
+@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
+The value of this variable determines how
+@code{semantic-complete-analyze-inline} shows its completions.
+Possible values include:
+
+@table @code
+@item semantic-displayor-traditional
+Display completions in a separate window.  This is the default value.
+
+@item semantic-displayor-ghost
+Display completions ``inline'' with the buffer text, similar to the
+default behavior of Semantic Idle Completions mode (@pxref{Idle
+Completions Mode}).
+
+@item semantic-displayor-tooltip
+Display completions in a tooltip.
+@end table
+@end deffn
+
+In addition to @code{semantic-complete-analyze-inline}, you can use
+the simpler command @code{semantic-ia-complete-symbol point}.  This
+behaves like the usual @kbd{M-@key{TAB}} (@code{complete-symbol})
+command (@pxref{Symbol Completion,,,emacs,Emacs manual}), except it
+uses Semantic Analyzer.
+
+@anchor{semantic-ia-complete-symbol}
+@deffn Command semantic-ia-complete-symbol point
+Complete the current symbol at @var{point}.
+@end deffn
+
+@node Smart Summary
+@subsection Smart Summary
+
+You can use the commands in this section to find information about the
+code at point:
+
+@anchor{semantic-ia-show-summary}
+@deffn Command semantic-ia-show-summary pos
+Display a summary for the symbol at @var{pos}.  Called interactively,
+@var{pos} defaults to point.
+@end deffn
+
+@anchor{semantic-ia-show-doc}
+@deffn Command semantic-ia-show-doc pos
+Display the code-level documentation for the symbol at @var{pos}.
+Called interactively, @var{pos} defaults to point.
+@end deffn
+
+@anchor{semantic-ia-describe-class}
+@deffn Command semantic-ia-describe-class typename
+Prompt for the name of a data type, @var{typename}, and display its
+components.  For instance, if the type in question is a class, this
+displays the methods and member variables.
+@end deffn
+
+You can also use Semantic Idle Summary mode to show information about
+the current symbol in the echo area during idle time.  @xref{Idle
+Summary Mode}.
+
+@node Smart Jump
+@subsection Smart Jump
+
+The Semantic Analyzer can be used to jump directly to the definition
+for a code symbol.  Because it is based on code analysis, its behavior
+is often more accurate than than the @code{find-tag} command
+(@pxref{Tags,,,emacs,Emacs manual}).
+
+@anchor{semantic-ia-fast-jump}
+@deffn Command semantic-ia-fast-jump pos
+Jump to the definition for the symbol at @var{pos}.  Called
+interactively, @var{pos} defaults to point.
+@end deffn
+
+@anchor{semantic-ia-fast-mouse-jump}
+@defun semantic-ia-fast-mouse-jump event
+Jump to the definition for the symbol at the position of the mouse
+event @var{event}.  This command is meant to be bound to a mouse
+command, like this:
+
+@example
+(global-set-key '[(S-mouse-1)] semantic-ia-fast-mouse-jump)
+@end example
+@end defun
+
+You can also use @kbd{C-c , j} (@code{semantic-complete-jump-local})
+and @kbd{C-c , J} (@code{semantic-complete-jump}) to navigate tags.
+@xref{Semantic mode user commands}.  Those commands do not make use of
+the Semantic Analyzer.
+
+@node Analyzer Debug
+@subsection Debugging the Semantic Analyzer
+
+In the event that the Semantic Analyzer does not analyze your code
+properly, you can take steps to identify and solve the problem.  This
+section was written with C/C++ in mind, but should be relevant for any
+typed language.
+
+@subsubsection Step 1: Check the context
+
+The first thing to do is check the current context.  You can do this
+with @kbd{M-x semantic-analyze-current-context}.
+
+@deffn Command semantic-analyze-current-context pos
+Analyze the context at @var{pos}.  This function is used by most of
+the other Semantic Analyzer commands to obtain the context of the code
+at a given buffer position.  The return value is an EIEIO object
+describing the context at @var{pos} (@pxref{Top,,,eieio,EIEIO
+manual}).
+
+When called interactively, this displays a @samp{*Semantic Context
+Analysis*} buffer in a separate window.  This buffer contains a
+summary of the context at point.
+@end deffn
+
+The Prefix section of the @samp{*Semantic Context Analysis*} buffer
+lists the tags based on the text at point.  If it shows only a simple
+string, the Semantic was unable to identify what the data type was.
+
+The first item in the list of the prefix is the first lookup failure
+in the chain, and that is the item to focus debugging effort on.  For
+example:
+
+@example
+Context Type: #<semantic-analyze-context context>
+Bounds: (182 . 185)
+Prefix: Foo* bar
+        int bbb (const char* y)
+Prefix Types: class Foo @{@}
+--------
+-> Local Vars: int argc
+               char** argv
+@end example
+
+In this example you can see that the prefix has two fully found tags.
+In the following example, the symbol ``bbb'' is incomplete, and could
+not be found:
+
+@example
+Context Type: #<semantic-analyze-context context>
+Bounds: (182 . 184)
+Prefix: Foo* bar
+        "bb"
+Prefix Classes: 'function
+                'variable
+Prefix Types: class Foo @{@}
+--------
+-> Local Vars: int argc
+               char** argv
+@end example
+
+@subsubsection Step 2 : Check your include path
+
+Once you know what symbol can't be found, the next thing to check is
+your include path.  Is the header or include file that has the
+definitions you need actually in the list of headers @semantic{} is
+searching through?  To get a basic list, you can use @kbd{M-x
+semanticdb-find-test-translate-path}.  @xref{Semanticdb search
+debugging commands}.
+
+For C++, check to make sure that your project level include files are
+in quotes, and not angle brackets.  Items in angle brackets are system
+includes.
+
+If items should be loaded but aren't, you may need to update the
+search throttle.  @xref{Search Throttle}.  If you see some tables that
+have 0 tags in them, then you you may have an incorrectly set
+throttle.  For example,
+
+@example
+*#<semanticdb-table main.cpp (4 tags DIRTY)>
+*#<semanticdb-table foo.hh (0 tags DIRTY)>
+@end example
+
+Here, @semantic{} found @file{foo.hh}, but there are 0 tags.  This may
+be because the throttle was set to not read in and parse files that
+Emacs has not yet loaded in.  To fix this case, visit the file, and
+let @semantic{} parse and save the tags table.
+
+@subsubsection Step 3: Check the local scope
+
+If your data type is somehow abbreviated based on scope, such as from
+a @code{using} statement, you should make sure that the symbol you
+want is in the local scope.  Examine the scope with @kbd{M-x
+semantic-calculate-scope}.  The scope structure is displayed in ADEBUG
+mode, so use @kbd{SPC} to expand different elements and looking for
+your symbol.
+
+If your symbol should be in the scope, but you cannot find it, then
+you may have found a language support bug in the local-variable
+parser, or using statement parser.
+
+Calling @kbd{M-x bovinte} should force a reset on the scope in case
+there is merely some bad state.
+
+@example
+ ] Name: Cache
+ ] Class: #'semantic-scope-cache
+ ] :table #<semanticdb-table testsubclass.cpp (13 tags DIRTY)>
+ ] tag createMoose : class moose
+ ] scopetypes 'nil
+ ] parents #<TAG LIST: 1 entries>
+ ] scope #<TAG LIST: 22 entries>
+ ] fullscope #<TAG LIST: 23 entries>
+ ] localvar #<TAG LIST: 6 entries>
+@end example
+
+In the above sample output, the @code{tag} slot specifies where within
+you source this scope is relevant.  @code{Parents} should contain any
+in scope parents, such as the class a method belongs to.
+@code{Localvar} should contain your local variables.  @code{Scope}
+should contain datatypes in scope due to a @code{using} statement or
+the like.
+
+@subsubsection Step 4: Check the typecache
+
+For complex typed languages like C++, @semantic{} creates a typecache,
+or an optimized search table with all the various data types in it.
+Elements in the typecache do not obey local scope.  It only contains
+fully qualified names.  You can examine the typecache with
+@kbd{M-x semanticdb-typecache-dump}.
+
+If your data types are not in the typecache, there may be some parsing
+error or other bug.  Calling @kbd{M-x bovinte} should force a reset on
+the typecache in case there is merely some bad state.
+
+@example
+]#<semanticdb-typecache /home/zappo/cedet/semantic/tests/testsubclass.cpp>
+   ] Name: /home/zappo/cedet/semantic/tests/testsubclass.cpp
+   ] Class: #'semanticdb-typecache
+   ] filestream 'nil
+   ] includestream #<TAG LIST: 84 entries>
+   ] stream 'nil
+   ] dependants 'nil
+@end example
+
+In the above example, the output of @kbd{M-x semanticdb-typecache-dump}
+was expanded one level.  The @code{filestream} slot should contain
+datatypes in the current file.  The @code{includestream} should
+contain all the datatypes in all included header files.
+
+The @code{dependants} slot will specify other files that depend on
+this one.
+
+@section Step 5: Check the parser
+
+Go to the location where your unfound tag should be.  You can call
+@kbd{M-x bovinate}, and see a dump of the raw tag structure.  To see a
+navigable tree, use @kbd{M-x semantic-adebug-bovinate} instead.  You
+can then look to make sure your tag has been properly parsed.
+
+If it has not, then you may have found a parser bug.  To get a feel
+how @semantic{} treats your file, type @kbd{M-x
+global-semantic-show-unmatched-syntax-mode}.  This causes any syntax
+it cannot parse to be underlined in red.
+
+If your type is not parsable, it could be for a couple of reasons:
+
+@enumerate
+@item
+If there is a MACRO keyword used in the definition of the type, you
+may need to update the @code{semantic-lex-c-preprocessor-symbol-map}
+to account for it.
+
+@item
+Or perhaps the parser needs to be fixed.
+@end enumerate

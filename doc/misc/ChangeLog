@@ -1,3 +1,14 @@
+2009-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* semantic.texi (Analyzer Internals): Rename from Analyzer.
+
+	* sem-user.texi (Semantic mode user commands): Fix key syntax.
+	Document semantic-complete-analyze-inline.
+	(Semanticdb search debugging commands): Minor clarification.
+	(Analyzer, Smart Completion, Smart Summary, Smart Jump)
+	(Analyzer Debug) New nodes, adapted from the upstream Semantic user
+	manual.
+
 2009-11-28  Kevin Ryde  <user42@zip.com.au>
 
 	* cl.texi (Porting Common Lisp): Update EIEIO dead ftp link to a

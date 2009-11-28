@@ -240,8 +240,8 @@ more about how @semantic{} works.
 @menu
 * Parser code ::	  Code used for the parsers
 * Tag handling ::	  Code used for manipulating tags
-* Semanticdb internals :: Code used in the semantic database
-* Analyzer ::             Code used in the code analyzer
+* Semanticdb Internals :: Code used in the semantic database
+* Analyzer Internals ::   Code used in the code analyzer
 * Tools ::                Code used in user tools
 * Tests ::                Code used for testing
 @end menu
@@ -349,8 +349,8 @@ Capture documentation comments from near a tag.
 
 @end table
 
-@node Semanticdb internals
-@section Semanticdb internals
+@node Semanticdb Internals
+@section Semanticdb Internals
 
 @acronym{Semanticdb} complexity is certainly an issue.  It is a rather
 hairy problem to try and solve.
@@ -400,8 +400,8 @@ need to be flushed.  References are in the form of include files.
 
 @end table
 
-@node Analyzer
-@section Analyzer
+@node Analyzer Internals
+@section Analyzer Internals
 
 The @semantic{} analyzer is a complex engine which has been broken
 down across several modules.  When the @semantic{} analyzer fails,
