@@ -1,3 +1,11 @@
+2009-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/em-prompt.el (eshell-prompt-function): Abbreviate pwd, since
+	`cd' doesn't always do it for us (bug#5067).
+
+	* pcomplete.el (pcomplete-entries): Revert change installed mistakenly
+	on 2009-10-25 as part of some other change (bug#5067).
+
 2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warning-types): New type

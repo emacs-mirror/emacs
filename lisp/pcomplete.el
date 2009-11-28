@@ -891,46 +891,65 @@ If PREDICATE is non-nil, it will also be used to refine the match
 \(files for which the PREDICATE returns nil will be excluded).
 If no directory information can be extracted from the completed
 component, `default-directory' is used as the basis for completion."
-  ;; FIXME: obey pcomplete-file-ignore and pcomplete-dir-ignore.
-  ;; FIXME: obey pcomplete-compare-entry-function (tho only if there
-  ;; are less than pcomplete-cycle-cutoff-length completions).
-  ;; FIXME: expand envvars?  shouldn't this be done globally instead?
-  (let* ((reg-pred (when regexp
-                     (lexical-let ((re regexp))
-                       (lambda (f)
-                         ;; (let ((name (file-name-nondirectory f)))
-                         ;;   (if (zerop (length name))
-                         ;;       (setq name (file-name-as-directory
-                         ;;                   (file-name-nondirectory
-                         ;;                    (directory-file-name f)))))
-                         ;;   (string-match re name))
-                         (string-match re f)))))
-         (pred (cond
-                ((null predicate) reg-pred)
-                ((null reg-pred) predicate)
-                (t (lexical-let ((predicate predicate)
-                                 (reg-pred reg-pred))
-                     (lambda (f)
-                       (and (funcall predicate f)
-                            (funcall reg-pred f)))))))
-         (fun
-          (lexical-let ((pred pred)
-                        (dir default-directory))
-            (lambda (s p a)
-              ;; Remember the default-directory that was active when we built
-              ;; the completion table.
-              (let ((default-directory dir)
-                    ;; The old code used only file-name-all-completions
-                    ;; which ignores completion-ignored-extensions.
-                    (completion-ignored-extensions nil))
-                (completion-table-with-predicate
-                 'completion-file-name-table pred 'strict s p a)))))
-         ;; Indirect through a symbol rather than returning a lambda
-         ;; expression, so as to help catch bugs where the caller
-         ;; might treat the lambda expression as a list of completions.
-         (sym (make-symbol "pcomplete-read-file-name-internal")))
-    (fset sym fun)
-    sym))
+  (let* ((name (substitute-env-vars pcomplete-stub))
+         (completion-ignore-case pcomplete-ignore-case)
+	 (default-directory (expand-file-name
+			     (or (file-name-directory name)
+				 default-directory)))
+	 above-cutoff)
+    (setq name (file-name-nondirectory name)
+	  pcomplete-stub name)
+    (let ((completions
+	   (file-name-all-completions name default-directory)))
+      (if regexp
+	  (setq completions
+		(pcomplete-pare-list
+		 completions nil
+		 (function
+		  (lambda (file)
+		    (not (string-match regexp file)))))))
+      (if predicate
+	  (setq completions
+		(pcomplete-pare-list
+		 completions nil
+		 (function
+		  (lambda (file)
+		    (not (funcall predicate file)))))))
+      (if (or pcomplete-file-ignore pcomplete-dir-ignore)
+	  (setq completions
+		(pcomplete-pare-list
+		 completions nil
+		 (function
+		  (lambda (file)
+		    (if (eq (aref file (1- (length file)))
+			    ?/)
+			(and pcomplete-dir-ignore
+			     (string-match pcomplete-dir-ignore file))
+		      (and pcomplete-file-ignore
+			   (string-match pcomplete-file-ignore file))))))))
+      (setq above-cutoff (and pcomplete-cycle-cutoff-length
+			     (> (length completions)
+				pcomplete-cycle-cutoff-length)))
+      (sort completions
+	    (function
+	     (lambda (l r)
+	       ;; for the purposes of comparison, remove the
+	       ;; trailing slash from directory names.
+	       ;; Otherwise, "foo.old/" will come before "foo/",
+	       ;; since . is earlier in the ASCII alphabet than
+	       ;; /
+	       (let ((left (if (eq (aref l (1- (length l)))
+				   ?/)
+			       (substring l 0 (1- (length l)))
+			     l))
+		     (right (if (eq (aref r (1- (length r)))
+				    ?/)
+				(substring r 0 (1- (length r)))
+			      r)))
+		 (if above-cutoff
+		     (string-lessp left right)
+		   (funcall pcomplete-compare-entry-function
+			    left right)))))))))
 
 (defsubst pcomplete-all-entries (&optional regexp predicate)
   "Like `pcomplete-entries', but doesn't ignore any entries."
