@@ -5284,7 +5284,7 @@ than being distinct types.
 @item
 The Common Lisp Object System (CLOS) is not implemented,
 nor is the Common Lisp Condition System.  However, the EIEIO package
-from @uref{ftp://ftp.ultranet.com/pub/zappo} does implement some
+(@pxref{Top, , Introduction, eieio, EIEIO}) does implement some
 CLOS functionality.
 
 @item
