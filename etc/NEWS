@@ -159,6 +159,9 @@ operate on several directories (copy, rename, diff).
 ** M-r is bound to the new `move-to-window-line-top-bottom'
 to mirror the new behavior of C-l in Emacs-23.1.
 
+** `recenter-positions' can redefine the default cycling order
+of `recenter-top-bottom'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 

@@ -1618,38 +1618,59 @@ Otherwise, bury WINDOW's buffer, see `bury-buffer'."
 
 (defvar recenter-last-op nil
   "Indicates the last recenter operation performed.
-Possible values: `top', `middle', `bottom'.")
+Possible values: `top', `middle', `bottom', integer or float numbers.")
+
+(defcustom recenter-positions '(middle top bottom)
+  "Cycling order for `recenter-top-bottom'.
+A list of elements with possible values `top', `middle', `bottom',
+integer or float numbers that define the cycling order for
+the command `recenter-top-bottom'.
+
+Top and bottom destinations are `scroll-margin' lines the from true
+window top and bottom.  Middle redraws the frame and centers point
+vertically within the window.  Integer number moves current line to
+the specified absolute window-line.  Float number between 0.0 and 1.0
+means the percentage of the screen space from the top.  The default
+cycling order is middle -> top -> bottom."
+  :type '(repeat (choice
+		  (const :tag "Top" top)
+		  (const :tag "Middle" middle)
+		  (const :tag "Bottom" bottom)
+		  (integer :tag "Line number")
+		  (float :tag "Percentage")))
+  :version "23.2"
+  :group 'windows)
 
 (defun recenter-top-bottom (&optional arg)
-  "Move current line to window center, top, and bottom, successively.
-With no prefix argument, the first call redraws the frame and
- centers point vertically within the window.  Successive calls
- scroll the window, placing point on the top, bottom, and middle
- consecutively.  The cycling order is middle -> top -> bottom.
+  "Move current buffer line to the specified window line.
+With no prefix argument, successive calls place point according
+to the cycling order defined by `recenter-positions'.
 
 A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center.
-
-Top and bottom destinations are actually `scroll-margin' lines
- the from true window top and bottom."
+ With plain `C-u', move current line to window center."
   (interactive "P")
   (cond
-   (arg (recenter arg))                 ; Always respect ARG.
-   ((or (not (eq this-command last-command))
-	(eq recenter-last-op 'bottom))
-    (setq recenter-last-op 'middle)
-    (recenter))
+   (arg (recenter arg))			; Always respect ARG.
    (t
+    (setq recenter-last-op
+	  (if (eq this-command last-command)
+	      (car (or (cdr (member recenter-last-op recenter-positions))
+		       recenter-positions))
+	    (car recenter-positions)))
     (let ((this-scroll-margin
 	   (min (max 0 scroll-margin)
 		(truncate (/ (window-body-height) 4.0)))))
       (cond ((eq recenter-last-op 'middle)
-	     (setq recenter-last-op 'top)
-	     (recenter this-scroll-margin))
+	     (recenter))
 	    ((eq recenter-last-op 'top)
-	     (setq recenter-last-op 'bottom)
-	     (recenter (- -1 this-scroll-margin))))))))
+	     (recenter this-scroll-margin))
+	    ((eq recenter-last-op 'bottom)
+	     (recenter (- -1 this-scroll-margin)))
+	    ((integerp recenter-last-op)
+	     (recenter recenter-last-op))
+	    ((floatp recenter-last-op)
+	     (recenter (round (* recenter-last-op (window-height))))))))))
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 
@@ -1659,25 +1680,30 @@ Top and bottom destinations are actually `scroll-margin' lines
 With a prefix argument ARG, acts like `move-to-window-line'.
 
 With no argument, positions point at center of window.
-Successive calls position point at the top, the bottom and again
-at the center of the window."
+Successive calls position point at positions defined
+by `recenter-positions'."
   (interactive "P")
   (cond
-   (arg (move-to-window-line arg)) ; Always respect ARG.
-   ((or (not (eq this-command last-command))
-	(eq recenter-last-op 'bottom))
-    (setq recenter-last-op 'middle)
-    (call-interactively 'move-to-window-line))
+   (arg (move-to-window-line arg))	; Always respect ARG.
    (t
+    (setq recenter-last-op
+	  (if (eq this-command last-command)
+	      (car (or (cdr (member recenter-last-op recenter-positions))
+		       recenter-positions))
+	    (car recenter-positions)))
     (let ((this-scroll-margin
 	   (min (max 0 scroll-margin)
 		(truncate (/ (window-body-height) 4.0)))))
       (cond ((eq recenter-last-op 'middle)
-	     (setq recenter-last-op 'top)
-	     (move-to-window-line this-scroll-margin))
+	     (call-interactively 'move-to-window-line))
 	    ((eq recenter-last-op 'top)
-	     (setq recenter-last-op 'bottom)
-	     (move-to-window-line (- -1 this-scroll-margin))))))))
+	     (move-to-window-line this-scroll-margin))
+	    ((eq recenter-last-op 'bottom)
+	     (move-to-window-line (- -1 this-scroll-margin)))
+	    ((integerp recenter-last-op)
+	     (move-to-window-line recenter-last-op))
+	    ((floatp recenter-last-op)
+	     (move-to-window-line (round (* recenter-last-op (window-height))))))))))
 
 (define-key global-map [?\M-r] 'move-to-window-line-top-bottom)
 
