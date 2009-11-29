@@ -613,20 +613,14 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 
 (defun eshell-directory-files-and-attributes (dir &optional full match nosort id-format)
   "Make sure to use the handler for `directory-file-and-attributes'."
-  (let* ((dir (expand-file-name dir))
-	 (dfh (find-file-name-handler dir 'directory-files)))
-    (if (not dfh)
-	(directory-files-and-attributes dir full match nosort id-format)
-      (let ((files (funcall dfh 'directory-files dir full match nosort))
-	    (fah (find-file-name-handler dir 'file-attributes)))
-	(mapcar
-	 (function
-	  (lambda (file)
-	    (cons file (if fah
-			   (eshell-file-attributes
-			    (expand-file-name file dir))
-			 (file-attributes (expand-file-name file dir))))))
-	 files)))))
+  (let* ((dir (expand-file-name dir)))
+    (if (string-equal (file-remote-p dir 'method) "ftp")
+	(let ((files (directory-files dir full match nosort)))
+	  (mapcar
+	   (lambda (file)
+	     (cons file (eshell-file-attributes (expand-file-name file dir))))
+	   files))
+      (directory-files-and-attributes dir full match nosort id-format))))
 
 (defun eshell-current-ange-uids ()
   (if (string-match "/\\([^@]+\\)@\\([^:]+\\):" default-directory)
@@ -643,10 +637,23 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (autoload 'parse-time-string "parse-time"))
 
 (eval-when-compile
-  (require 'ange-ftp nil t))
+  (require 'ange-ftp nil t)
+  (require 'tramp nil t))
 
 (defun eshell-parse-ange-ls (dir)
-  (let (entry)
+  (let ((ange-ftp-name-format
+	 (list (nth 0 tramp-file-name-structure)
+	       (nth 3 tramp-file-name-structure)
+	       (nth 2 tramp-file-name-structure)
+	       (nth 4 tramp-file-name-structure)))
+	;; ange-ftp uses `ange-ftp-ftp-name-arg' and `ange-ftp-ftp-name-res'
+	;; for optimization in `ange-ftp-ftp-name'. If Tramp wasn't active,
+	;; there could be incorrect values from previous calls in case the
+	;; "ftp" method is used in the Tramp file name. So we unset
+	;; those values.
+	(ange-ftp-ftp-name-arg "")
+	(ange-ftp-ftp-name-res nil)
+	entry)
     (with-temp-buffer
       (insert (ange-ftp-ls dir "-la" nil))
       (goto-char (point-min))
@@ -701,6 +708,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (if (string-equal (file-remote-p file 'method) "ftp")
 	(let ((base (file-name-nondirectory file))
 	      (dir (file-name-directory file)))
+	  (if (string-equal "" base) (setq base "."))
 	  (if (boundp 'ange-cache)
 	      (setq entry (cdr (assoc base (cdr (assoc dir ange-cache))))))
 	  (unless entry
@@ -713,7 +721,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 		(let ((fentry (assoc base (cdr entry))))
 		  (if fentry
 		      (setq entry (cdr fentry))
-		    (setq entry nil))))))
+		    (setq entry nil)))))
+	  entry)
       (file-attributes file))))
 
 (defalias 'eshell-copy-tree 'copy-tree)
