@@ -2584,6 +2584,27 @@ uid=0(root) gid=0(root) groups=0(root)
 @b{@trampfn{sudo, root, host, /etc} $}
 @end example
 
+@ifset emacs
+Since @value{emacsname} 23.2, @code{eshell} has also an own
+implementation of the @code{su} and @code{sudo} commands.  Both
+commands change the default directory of the @file{*eshell*} buffer to
+the value related to the user the command has switched to.  This works
+even on remote hosts, adding silently a corresponding entry to the
+variable @code{tramp-default-proxies-alist} (@pxref{Multi-hops}):
+
+@example
+@b{~ $} cd @trampfn{ssh, user, remotehost, /etc} @key{RET}
+@b{@trampfn{ssh, user, remotehost, /etc} $} find-file shadow
+File is not readable: @trampfn{ssh, user, remotehost, /etc/shadow}
+@b{@trampfn{ssh, user, remotehost, /etc} $} sudo find-file shadow
+#<buffer shadow>
+@b{@trampfn{ssh, user, remotehost, /etc} $} su - @key{RET}
+@b{@trampfn{su, root, remotehost, /root} $} id @key{RET}
+uid=0(root) gid=0(root) groups=0(root)
+@b{@trampfn{su, root, remotehost, /root} $}
+@end example
+@end ifset
+
 
 @anchor{Running a debugger on a remote host}
 @subsection Running a debugger on a remote host
