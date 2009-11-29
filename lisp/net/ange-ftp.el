@@ -2672,10 +2672,11 @@ The main reason for this alist is to deal with file versions in VMS.")
 
 (defmacro ange-ftp-parse-filename ()
   ;;Extract the filename from the current line of a dired-like listing.
-  `(let ((eol (progn (end-of-line) (point))))
-     (beginning-of-line)
-     (if (re-search-forward directory-listing-before-filename-regexp eol t)
-	 (buffer-substring (point) eol))))
+  `(save-match-data
+     (let ((eol (progn (end-of-line) (point))))
+       (beginning-of-line)
+       (if (re-search-forward directory-listing-before-filename-regexp eol t)
+	   (buffer-substring (point) eol)))))
 
 ;; This deals with the F switch. Should also do something about
 ;; unquoting names obtained with the SysV b switch and the GNU Q
@@ -3420,6 +3421,17 @@ system TYPE.")
 		      (cons (if full (concat directory f) f) files))))
 	  (nreverse files)))
     (apply 'ange-ftp-real-directory-files directory full match v19-args)))
+
+(defun ange-ftp-directory-files-and-attributes
+  (directory &optional full match nosort id-format)
+  (setq directory (expand-file-name directory))
+  (if (ange-ftp-ftp-name directory)
+      (mapcar
+       (lambda (file)
+	 (cons file (file-attributes (expand-file-name file directory))))
+       (ange-ftp-directory-files directory full match nosort))
+    (ange-ftp-real-directory-files-and-attributes
+     directory full match nosort id-format)))
 
 (defun ange-ftp-file-attributes (file &optional id-format)
   (setq file (expand-file-name file))
@@ -4359,6 +4371,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'delete-directory 'ange-ftp 'ange-ftp-delete-directory)
 (put 'insert-file-contents 'ange-ftp 'ange-ftp-insert-file-contents)
 (put 'directory-files 'ange-ftp 'ange-ftp-directory-files)
+(put 'directory-files-and-attributes 'ange-ftp
+     'ange-ftp-directory-files-and-attributes)
 (put 'file-directory-p 'ange-ftp 'ange-ftp-file-directory-p)
 (put 'file-writable-p 'ange-ftp 'ange-ftp-file-writable-p)
 (put 'file-readable-p 'ange-ftp 'ange-ftp-file-readable-p)
@@ -4436,6 +4450,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'insert-file-contents args))
 (defun ange-ftp-real-directory-files (&rest args)
   (ange-ftp-run-real-handler 'directory-files args))
+(defun ange-ftp-real-directory-files-and-attributes (&rest args)
+  (ange-ftp-run-real-handler 'directory-files-and-attributes args))
 (defun ange-ftp-real-file-directory-p (&rest args)
   (ange-ftp-run-real-handler 'file-directory-p args))
 (defun ange-ftp-real-file-writable-p (&rest args)
