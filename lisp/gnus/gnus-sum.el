@@ -6721,7 +6721,11 @@ Also do horizontal recentering."
   (when (and gnus-auto-center-summary
 	     (not (eq gnus-auto-center-summary 'vertical)))
     (gnus-horizontal-recenter))
-  (recenter n))
+  (if (fboundp 'recenter-top-bottom)
+      (recenter-top-bottom n)
+    (recenter n)))
+
+(put 'gnus-recenter 'isearch-scroll t)
 
 (defun gnus-summary-recenter ()
   "Center point in the summary window.

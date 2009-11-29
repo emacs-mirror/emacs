@@ -1,3 +1,9 @@
+2009-11-29  Juri Linkov  <juri@jurta.org>
+
+	* gnus-sum.el (gnus-recenter): Use `recenter-top-bottom'
+	when it is fboundp in GNU Emacs 23.1.  Put `isearch-scroll' property
+	on `gnus-recenter'. (Bug#4981)
+
 2009-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-from-style, message-interactive)
