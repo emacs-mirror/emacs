@@ -1,3 +1,8 @@
+2009-11-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (frame_make_pointer_invisible)
+	(frame_make_pointer_visible): Declare f before statements.
+
 2009-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in [!AUTO_DEPEND]: Remove outdated comment about
