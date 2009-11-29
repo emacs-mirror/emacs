@@ -1,3 +1,26 @@
+2009-11-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve integration of Tramp and ange-ftp in eshell.
+
+	* eshell/em-unix (eshell/whoami): Make it a defun but a defalias.
+	(eshell/su): Flatten args.  Apply better args parsing.  Use "cd".
+	(eshell/sudo): Flatten args.  Let-bind `default-directory'.
+
+	* eshell/esh-util.el (top): Require also Tramp when compiling.
+	(eshell-directory-files-and-attributes): Check for FTP remote
+	connection.
+	(eshell-parse-ange-ls): Let-bind `ange-ftp-name-format',
+	`ange-ftp-ftp-name-arg', `ange-ftp-ftp-name-res'.
+	(eshell-file-attributes): Handle ".".  Return `entry'.
+
+	* net/ange-ftp.el (ange-ftp-parse-filename): Use `save-match-data'.
+	(ange-ftp-directory-files-and-attributes)
+	(ange-ftp-real-directory-files-and-attributes): New defuns.
+
+	* net/tramp.el (tramp-maybe-open-connection): Open the remote
+	shell with "exec" when possible.  This prevents trailing prompts
+	in `start-file-process'.
+
 2009-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Try and remove assumptions about point-min==1.
