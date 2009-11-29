@@ -7227,6 +7227,9 @@ connection if a previous connection has died for some reason."
 		      (?t . ,tmpfile))
 	       command
 	       (concat
+		;; We do not want to see the trailing local prompt in
+		;; `start-file-process'.
+		(unless (memq system-type '(windows-nt)) "exec ")
 		command " "
 		(mapconcat
 		 (lambda (x)
@@ -7236,7 +7239,7 @@ connection if a previous connection has died for some reason."
 		;; Local shell could be a Windows COMSPEC.  It doesn't
 		;; know the ";" syntax, but we must exit always for
 		;; `start-file-process'.  "exec" does not work either.
-		" && exit || exit"))
+		(if (memq system-type '(windows-nt)) " && exit || exit")))
 
 	      ;; Send the command.
 	      (tramp-message vec 3 "Sending command `%s'" command)
