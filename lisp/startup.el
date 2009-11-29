@@ -1371,7 +1371,7 @@ Each element in the list should be a list of strings or pairs
      :link ("Emacs Guided Tour"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
-     "\tSee an overview of the many facilities of GNU Emacs"
+     "\tSee an overview of Emacs features at gnu.org"
      ))
   "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
