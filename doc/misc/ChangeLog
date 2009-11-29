@@ -1,3 +1,8 @@
+2009-11-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Improve eshell example with "su"
+	and "sudo" commands.
+
 2009-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* semantic.texi (Analyzer Internals): Rename from Analyzer.
