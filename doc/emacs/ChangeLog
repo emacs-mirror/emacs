@@ -1,3 +1,9 @@
+2009-11-29  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Actually a list of
+	default faces is pre-loaded into a list of default values
+	instead of the history.
+
 2009-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
