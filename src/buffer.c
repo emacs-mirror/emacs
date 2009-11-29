@@ -980,7 +980,7 @@ is the default binding of the variable. */)
       /* What binding is loaded right now?  */
       valcontents = sym->value;
       current_alist_element
-	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
+	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)->cdrs));
 
       /* The value of the currently loaded binding is not
 	 stored in it, but rather in the realvalue slot.
@@ -2688,7 +2688,7 @@ swap_out_buffer_local_variables (b)
 	  && (sym = XCAR (XCAR (alist)), SYMBOLP (sym))
 	  /* Need not do anything if some other buffer's binding is
 	     now encached.  */
-	  && EQ (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer,
+	  && EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->cdrs),
 		 buffer))
 	{
 	  /* Symbol is set up for this buffer's old local value:

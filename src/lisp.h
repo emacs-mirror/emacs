@@ -1335,17 +1335,17 @@ struct Lisp_Buffer_Local_Value
     unsigned int check_frame : 1;
     /* 1 means that the binding now loaded was found
        as a local binding for the buffer in the `buffer' slot.  */
-    unsigned int found_for_buffer : 1;
+    /* unsigned int found_for_buffer : 1; */
     /* 1 means that the binding now loaded was found
        as a local binding for the frame in the `frame' slot.  */
-    unsigned int found_for_frame : 1;
+    /* unsigned int found_for_frame : 1; */
     Lisp_Object realvalue;
     /* The buffer and frame for which the loaded binding was found.  */
     /* Having both is only needed if we want to allow variables that are
        both buffer local and frame local (in which case, we currently give
        precedence to the buffer-local binding).  I don't think such
        a combination is desirable.  --Stef  */
-    Lisp_Object buffer, frame;
+    /* Lisp_Object buffer, frame; */
 
     /* A cons cell, (LOADED-BINDING . DEFAULT-VALUE).
 
@@ -1359,8 +1359,19 @@ struct Lisp_Buffer_Local_Value
        bindings for the variable.  When the default binding is loaded,
        LOADED-BINDING is actually this very cons cell; thus, its car
        points to itself.  */
-    Lisp_Object cdr;
+    /* Lisp_Object cdr; */
+
+    Lisp_Object cdrs;
   };
+
+#define BLOCAL_CLEAR_FLAGS(VEC) XSETFASTINT (AREF ((VEC), 0), 0)
+#define BLOCAL_FOUND_FOR_BUFFER(VEC) ((XFASTINT (AREF ((VEC), 0))) == 1)
+#define BLOCAL_SET_FOUND_FOR_BUFFER(VEC) XSETFASTINT (AREF ((VEC), 0), 1)
+#define BLOCAL_FOUND_FOR_FRAME(VEC) ((XFASTINT (AREF ((VEC), 0))) == 2)
+#define BLOCAL_SET_FOUND_FOR_FRAME(VEC) XSETFASTINT (AREF ((VEC), 0), 2)
+#define BLOCAL_BUFFER(VEC) (AREF ((VEC), 1))
+#define BLOCAL_FRAME(VEC) (AREF ((VEC), 2))
+#define BLOCAL_CDR(VEC) (AREF ((VEC), 3))
 
 /* START and END are markers in the overlay's buffer, and
    PLIST is the overlay's property list.  */

@@ -5577,16 +5577,8 @@ mark_object (arg)
 	  {
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
-	    /* If the cdr is nil, avoid recursion for the car.  */
-	    if (EQ (ptr->cdr, Qnil))
-	      {
-		obj = ptr->realvalue;
-		goto loop;
-	      }
 	    mark_object (ptr->realvalue);
-	    mark_object (ptr->buffer);
-	    mark_object (ptr->frame);
-	    obj = ptr->cdr;
+	    obj = ptr->cdrs;
 	    goto loop;
 	  }
 
