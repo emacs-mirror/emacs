@@ -1,5 +1,13 @@
 2009-11-29  Juri Linkov  <juri@jurta.org>
 
+	* startup.el (fancy-about-text): Fix wording of Guided Tour.
+	(Bug#4960)
+
+	* descr-text.el (describe-char-unidata-list): Use lowercase name
+	for "Unicode name" like in other tags.
+
+2009-11-29  Juri Linkov  <juri@jurta.org>
+
 	* ediff-util.el (ediff-minibuffer-with-setup-hook):
 	New compatibility macro.
 	(ediff-read-file-name): Use it instead of
