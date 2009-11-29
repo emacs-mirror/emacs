@@ -190,7 +190,7 @@ otherwise."
   :version "23.1"
   :type '(choice (const :tag "All properties" t)
           (set
-           (const :tag "Unicode Name" name)
+           (const :tag "Unicode name" name)
            (const :tag "Unicode old name" old-name)
            (const :tag "Unicode general category " general-category)
            (const :tag "Unicode canonical combining class"
