@@ -955,7 +955,9 @@ Show wall-clock time elapsed during execution of COMMAND.")
 				  (eshell-stringify-list
 				   (eshell-flatten-list (cdr time-args))))))))
 
-(defalias 'eshell/whoami 'user-login-name)
+(defun eshell/whoami (&rest args)
+  "Make \"whoami\" Tramp aware."
+  (or (file-remote-p default-directory 'user) (user-login-name)))
 
 (defvar eshell-diff-window-config nil)
 
@@ -1046,8 +1048,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/su (&rest args)
   "Alias \"su\" to call Tramp."
-  (let ((-login (member "-" args)) ;; not handled by `eshell-eval-using-options'
-	login)
+  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (let (login)
     (eshell-eval-using-options
      "sudo" args
      '((?h "help" nil nil "show this usage screen")
@@ -1061,8 +1063,9 @@ Become another USER during a login session.")
 			    "localhost"))
 		  (dir (or (file-remote-p default-directory 'localname)
 			   default-directory)))
-	      (if (or login -login) (setq dir "~/"))
-	      (if (stringp (car args)) (setq user (car args)))
+	      (eshell-for arg args
+		(if (string-equal arg "-") (setq login t) (setq user arg)))
+	      (if login (setq dir "~/"))
 	      (if (and (file-remote-p default-directory)
 		       (not (string-equal
 			     user (file-remote-p default-directory 'user))))
@@ -1070,12 +1073,13 @@ Become another USER during a login session.")
 		   'tramp-default-proxies-alist
 		   (list host user (file-remote-p default-directory))))
 	      (eshell-parse-command
-	       "eshell/cd" (list (format "/su:%s@%s:%s" user host dir))))))))
+	       "cd" (list (format "/su:%s@%s:%s" user host dir))))))))
 
 (put 'eshell/su 'eshell-no-numeric-conversions t)
 
 (defun eshell/sudo (&rest args)
   "Alias \"sudo\" to call Tramp."
+  (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (let (user)
     (eshell-eval-using-options
      "sudo" args
@@ -1089,15 +1093,15 @@ Execute a COMMAND as the superuser or another USER.")
 		   (host (or (file-remote-p default-directory 'host)
 			     "localhost"))
 		   (dir (or (file-remote-p default-directory 'localname)
-			    default-directory))
-		   (default-directory (format "/sudo:%s@%s:%s" user host dir)))
+			    default-directory)))
 	      (if (and (file-remote-p default-directory)
 		       (not (string-equal
 			     user (file-remote-p default-directory 'user))))
 		  (add-to-list
 		   'tramp-default-proxies-alist
 		   (list host user (file-remote-p default-directory))))
-	      (eshell-named-command (car args) (cdr args)))))))
+	      (let ((default-directory (format "/sudo:%s@%s:%s" user host dir)))
+		(eshell-named-command (car args) (cdr args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
