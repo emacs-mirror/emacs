@@ -1,5 +1,12 @@
 2009-11-29  Juri Linkov  <juri@jurta.org>
 
+	* ediff-util.el (ediff-minibuffer-with-setup-hook):
+	New compatibility macro.
+	(ediff-read-file-name): Use it instead of
+	`minibuffer-with-setup-hook'.
+
+2009-11-29  Juri Linkov  <juri@jurta.org>
+
 	Add defcustom to define the cycling order of `recenter-top-bottom'.
 	(Bug#4981)
 
