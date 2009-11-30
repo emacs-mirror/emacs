@@ -1,3 +1,8 @@
+2009-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_preprocess): Preprocess the key_and_value table of
+	hashtables, even tho they're "hidden" (bug#5082).
+
 2009-11-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (frame_make_pointer_invisible)
@@ -16,7 +21,7 @@
 	* xterm.c (x_delete_terminal): Set dpyinfo->display to NULL.
 
 	* frame.c (frame_make_pointer_invisible)
-	(frame_make_pointer_visible): Just return if there isn't any selected 
+	(frame_make_pointer_visible): Just return if there isn't any selected
 	frame.
 
 	* search.c (simple_search): Remove warning by making *p const.

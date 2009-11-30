@@ -1416,6 +1416,13 @@ print_preprocess (obj)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
+	  if (HASH_TABLE_P (obj))
+	    { /* For hash tables, the key_and_value slot is past
+	        `size' because it needs to be marked specially in case
+	        the table is weak.  */
+	      struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	      print_preprocess (h->key_and_value);
+	    }
 	  break;
 
 	default:
