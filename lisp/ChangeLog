@@ -1,3 +1,8 @@
+2009-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-special-syntactic-constructs):
+	Don't signal an error when bumping into EOB in tr, s, or y.
+
 2009-11-29  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (fancy-about-text): Fix wording of Guided Tour.
@@ -10,8 +15,7 @@
 
 	* ediff-util.el (ediff-minibuffer-with-setup-hook):
 	New compatibility macro.
-	(ediff-read-file-name): Use it instead of
-	`minibuffer-with-setup-hook'.
+	(ediff-read-file-name): Use it instead of `minibuffer-with-setup-hook'.
 
 2009-11-29  Juri Linkov  <juri@jurta.org>
 
