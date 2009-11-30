@@ -144,26 +144,26 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
-  (when (vc-git-root file)
-    (with-temp-buffer
-      (let* (process-file-side-effects
-	     ;; do not use the `file-name-directory' here: git-ls-files
-	     ;; sometimes fails to return the correct status for relative
-	     ;; path specs. 
-	     ;; see also: http://marc.info/?l=git&m=125787684318129&w=2
-	     (dir (vc-git-root file))
-             (name (file-relative-name file dir))
-             (str (ignore-errors
-                    (when dir (cd dir))
-                    (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
-                    ;; if result is empty, use ls-tree to check for deleted file
-                    (when (eq (point-min) (point-max))
-                      (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD" "--" name))
-                    (buffer-string))))
-        (and str
-             (> (length str) (length name))
-             (string= (substring str 0 (1+ (length name)))
-                      (concat name "\0")))))))
+  (let ((dir (vc-git-root file)))
+    (when dir
+      (with-temp-buffer
+	(let* (process-file-side-effects
+	       ;; Do not use the `file-name-directory' here: git-ls-files
+	       ;; sometimes fails to return the correct status for relative
+	       ;; path specs.
+	       ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
+	       (name (file-relative-name file dir))
+	       (str (ignore-errors
+		     (cd dir)
+		     (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
+		     ;; if result is empty, use ls-tree to check for deleted file
+		     (when (eq (point-min) (point-max))
+		       (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD" "--" name))
+		     (buffer-string))))
+	  (and str
+	       (> (length str) (length name))
+	       (string= (substring str 0 (1+ (length name)))
+			(concat name "\0"))))))))
 
 (defun vc-git--state-code (code)
   "Convert from a string to a added/deleted/modified state."
