@@ -1,5 +1,15 @@
 2009-11-30  Juri Linkov  <juri@jurta.org>
 
+	* misearch.el (multi-isearch-read-buffers): Move canonicalization
+	of buffers with `get-buffer' to `multi-isearch-buffers'.
+	(multi-isearch-buffers, multi-isearch-buffers-regexp):
+	Canonicalize BUFFERS with `get-buffer'.  Doc fix.
+	(multi-isearch-files, multi-isearch-files-regexp): Canonicalize
+	FILES with `expand-file-name' converting relative file names
+	to absolute.  Doc fix.  (Bug#4727)
+
+2009-11-30  Juri Linkov  <juri@jurta.org>
+
 	* misearch.el (multi-isearch-read-buffers)
 	(multi-isearch-read-matching-buffers): New functions.
 	(multi-isearch-buffers, multi-isearch-buffers-regexp):
