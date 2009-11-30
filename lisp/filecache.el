@@ -155,6 +155,8 @@
 
 ;; User-modifiable variables
 (defcustom file-cache-filter-regexps
+  ;; These are also used in buffers containing lines of file names,
+  ;; so the end-of-name is matched with $ rather than \\'.
   (list "~$" "\\.o$" "\\.exe$" "\\.a$" "\\.elc$" ",v$" "\\.output$"
 	"\\.$" "#$" "\\.class$")
   "List of regular expressions used as filters by the file cache.
@@ -210,9 +212,8 @@ should be t."
      completion-ignore-case)
   "If non-nil, file-cache completion should ignore case.
 Defaults to the value of `completion-ignore-case'."
-  :type 'sexp
-  :group 'file-cache
-  )
+  :type 'boolean
+  :group 'file-cache)
 
 (defcustom file-cache-case-fold-search
   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
@@ -220,17 +221,15 @@ Defaults to the value of `completion-ignore-case'."
     case-fold-search)
   "If non-nil, file-cache completion should ignore case.
 Defaults to the value of `case-fold-search'."
-  :type 'sexp
-  :group 'file-cache
-  )
+  :type 'boolean
+  :group 'file-cache)
 
 (defcustom file-cache-ignore-case
   (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
   "Non-nil means ignore case when checking completions in the file cache.
 Defaults to nil on DOS and Windows, and t on other systems."
-  :type 'sexp
-  :group 'file-cache
-  )
+  :type 'boolean
+  :group 'file-cache)
 
 (defvar file-cache-multiple-directory-message nil)
 
@@ -283,19 +282,14 @@ be added to the cache."
   (if (not (file-accessible-directory-p directory))
       (message "Directory %s does not exist" directory)
     (let* ((dir       (expand-file-name directory))
-	   (dir-files (directory-files dir t regexp))
-	   )
+	   (dir-files (directory-files dir t regexp)))
       ;; Filter out files we don't want to see
-      (mapc
-       '(lambda (file)
-          (if (file-directory-p file)
-              (setq dir-files (delq file dir-files))
-	    (mapc
-	     '(lambda (regexp)
-		(if (string-match regexp file)
-		    (setq dir-files (delq file dir-files))))
-	     file-cache-filter-regexps)))
-       dir-files)
+      (dolist (file dir-files)
+        (if (file-directory-p file)
+            (setq dir-files (delq file dir-files))
+          (dolist (regexp file-cache-filter-regexps)
+            (if (string-match regexp file)
+                (setq dir-files (delq file dir-files))))))
       (file-cache-add-file-list dir-files))))
 
 ;;;###autoload
@@ -306,7 +300,7 @@ will be added to the cache. Note that the REGEXP is applied to the files
 in each directory, not to the directory list itself."
   (interactive "XAdd files from directory list: ")
   (mapcar
-   '(lambda (dir) (file-cache-add-directory dir regexp))
+   (lambda (dir) (file-cache-add-directory dir regexp))
    directory-list))
 
 (defun file-cache-add-file-list  (file-list)
@@ -326,8 +320,7 @@ in each directory, not to the directory list itself."
 	   (dir-name  (file-name-directory    file))
 	   (the-entry (assoc-string
 		       file-name file-cache-alist
-		       file-cache-ignore-case))
-	   )
+		       file-cache-ignore-case)))
       ;; Does the entry exist already?
       (if the-entry
 	  (if (or (and (stringp (cdr the-entry))
@@ -385,17 +378,13 @@ in each directory, not to the directory list itself."
   (require 'find-lisp)
   (mapcar
    (function
-    (lambda(file)
+    (lambda (file)
       (or (file-directory-p file)
 	  (let (filtered)
-	    (mapc
-	     (function
-	      (lambda(regexp)
-		(and (string-match regexp file)
-		     (setq filtered t))
-		))
-	     file-cache-filter-regexps)
-	    filtered)
+	    (dolist (regexp file-cache-filter-regexps)
+              (and (string-match regexp file)
+                   (setq filtered t)))
+            filtered)
 	  (file-cache-add-file file))))
    (find-lisp-find-files dir (if regexp regexp "^"))))
 
@@ -404,11 +393,9 @@ in each directory, not to the directory list itself."
 Each entry matches the regular expression `file-cache-buffer-default-regexp'
 or the optional REGEXP argument."
   (set-buffer file-cache-buffer)
-  (mapc
-   (function (lambda (elt)
-	       (goto-char (point-min))
-	       (delete-matching-lines elt)))
-   file-cache-filter-regexps)
+  (dolist (elt file-cache-filter-regexps)
+    (goto-char (point-min))
+    (delete-matching-lines elt))
   (goto-char (point-min))
   (let ((full-filename))
     (while (re-search-forward
@@ -445,10 +432,9 @@ or the optional REGEXP argument."
   "Delete files matching REGEXP from the file cache."
   (interactive "sRegexp: ")
   (let ((delete-list))
-    (mapc (lambda (elt)
-	     (and (string-match regexp (car elt))
-                 (push (car elt) delete-list)))
-	  file-cache-alist)
+    (dolist (elt file-cache-alist)
+      (and (string-match regexp (car elt))
+           (push (car elt) delete-list)))
     (file-cache-delete-file-list delete-list)
     (message "Filecache: deleted %d files from file cache"
              (length delete-list))))
@@ -458,26 +444,21 @@ or the optional REGEXP argument."
   (interactive "DDelete directory from file cache: ")
   (let ((dir (expand-file-name directory))
 	(result 0))
-    (mapc
-     (lambda (entry)
-	(if (file-cache-do-delete-directory dir entry)
-	    (setq result (1+ result))))
-     file-cache-alist)
+    (dolist (entry file-cache-alist)
+      (if (file-cache-do-delete-directory dir entry)
+          (setq result (1+ result))))
     (if (zerop result)
 	(error "Filecache: no entries containing %s found in cache" directory)
       (message "Filecache: deleted %d entries" result))))
 
 (defun file-cache-do-delete-directory (dir entry)
   (let ((directory-list (cdr entry))
-	(directory (file-cache-canonical-directory dir))
-	)
+	(directory (file-cache-canonical-directory dir)))
     (and (member directory directory-list)
 	 (if (equal 1 (length directory-list))
 	     (setq file-cache-alist
 		   (delq entry file-cache-alist))
-	   (setcdr entry (delete directory directory-list)))
-	 )
-    ))
+	   (setcdr entry (delete directory directory-list))))))
 
 (defun file-cache-delete-directory-list (directory-list)
   "Delete DIRECTORY-LIST (a list of directories) from the file cache."
@@ -495,8 +476,7 @@ or the optional REGEXP argument."
 			       file-cache-ignore-case)))
 	 (len            (length directory-list))
 	 (directory)
-	 (num)
-	 )
+	 (num))
     (if (not (listp directory-list))
 	(error "Filecache: unknown type in file-cache-alist for key %s" file))
     (cond
@@ -509,8 +489,7 @@ or the optional REGEXP argument."
      ;; Multiple elements
      (t
       (let* ((minibuffer-dir (file-name-directory (minibuffer-contents)))
-	     (dir-list       (member minibuffer-dir directory-list))
-	     )
+	     (dir-list       (member minibuffer-dir directory-list)))
 	(setq directory
 	      ;; If the directory is in the list, return the next element
 	      ;; Otherwise, return the first element
@@ -518,10 +497,7 @@ or the optional REGEXP argument."
 		  (or (elt directory-list
 			   (setq num (1+ (- len (length dir-list)))))
 		      (elt directory-list (setq num 0)))
-		(elt directory-list (setq num 0))))
-	)
-      )
-     )
+		(elt directory-list (setq num 0)))))))
     ;; If there were multiple directories, set up a minibuffer message
     (setq file-cache-multiple-directory-message
 	  (and num (format " [%d of %d]" (1+ num) len)))
@@ -569,20 +545,17 @@ the name is considered already unique; only the second substitution
        (completion-string      (try-completion string file-cache-alist))
        (completion-list)
        (len)
-       (file-cache-string)
-       )
+       (file-cache-string))
     (cond
      ;; If it's the only match, replace the original contents
      ((or arg (eq completion-string t))
       (setq file-cache-string (file-cache-file-name string))
       (if (string= file-cache-string (minibuffer-contents))
-	  (file-cache-temp-minibuffer-message file-cache-sole-match-message)
+	  (minibuffer-message file-cache-sole-match-message)
 	(delete-minibuffer-contents)
 	(insert file-cache-string)
 	(if file-cache-multiple-directory-message
-	    (file-cache-temp-minibuffer-message
-	     file-cache-multiple-directory-message))
-      ))
+	    (minibuffer-message file-cache-multiple-directory-message))))
 
      ;; If it's the longest match, insert it
      ((stringp completion-string)
@@ -596,11 +569,9 @@ the name is considered already unique; only the second substitution
 	      (progn
 		(delete-minibuffer-contents)
 		(insert (file-cache-file-name completion-string))
-		(setq file-cache-last-completion nil)
-		)
-	    (file-cache-temp-minibuffer-message file-cache-non-unique-message)
-	    (setq file-cache-last-completion string)
-	    )
+		(setq file-cache-last-completion nil))
+	    (minibuffer-message file-cache-non-unique-message)
+	    (setq file-cache-last-completion string))
 	(setq file-cache-last-completion string)
 	(setq completion-list (all-completions string file-cache-alist)
 	      len             (length completion-list))
@@ -617,34 +588,16 @@ the name is considered already unique; only the second substitution
 		  (display-completion-list completion-list string))))
 	  (setq file-cache-string (file-cache-file-name completion-string))
 	  (if (string= file-cache-string (minibuffer-contents))
-	      (file-cache-temp-minibuffer-message
-	       file-cache-sole-match-message)
+	      (minibuffer-message file-cache-sole-match-message)
 	    (delete-minibuffer-contents)
 	    (insert file-cache-string)
 	    (if file-cache-multiple-directory-message
-		(file-cache-temp-minibuffer-message
-		 file-cache-multiple-directory-message)))
+		(minibuffer-message file-cache-multiple-directory-message)))
 	  )))
 
      ;; No match
      ((eq completion-string nil)
-      (file-cache-temp-minibuffer-message file-cache-no-match-message))
-     )
-))
-
-;; Lifted from "complete.el"
-(defun file-cache-temp-minibuffer-message (msg)
-  "A Lisp version of `temp_minibuffer_message' from minibuf.c."
-  (let ((savemax (point-max)))
-    (save-excursion
-      (goto-char (point-max))
-      (insert msg))
-    (let ((inhibit-quit t))
-      (sit-for 2)
-      (delete-region savemax (point-max))
-      (if quit-flag
-	  (setq quit-flag nil
-		unread-command-events (list 7))))))
+      (minibuffer-message file-cache-no-match-message)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Completion functions
@@ -682,16 +635,10 @@ the name is considered already unique; only the second substitution
   "Output a list of files whose names (not including directories)
 match REGEXP."
   (let ((results))
-    (mapc
-     (function
-      (lambda(cache-element)
-	(and (string-match regexp
-			   (elt cache-element 0))
-	     (if results
-		 (nconc results (list (elt cache-element 0)))
-	       (setq results (list (elt cache-element 0)))))))
-     file-cache-alist)
-    results))
+    (dolist (cache-element file-cache-alist)
+      (and (string-match regexp (elt cache-element 0))
+           (push (elt cache-element 0) results)))
+    (nreverse results)))
 
 (defun file-cache-files-matching (regexp)
   "Output a list of files whose names (not including directories)
@@ -721,8 +668,7 @@ match REGEXP."
   (interactive
    (list (completing-read "File Cache: " file-cache-alist)))
   (message "%s" (assoc-string file file-cache-alist
-			      file-cache-ignore-case))
-  )
+			      file-cache-ignore-case)))
 
 (defun file-cache-display  ()
   "Display the file cache."
@@ -731,13 +677,9 @@ match REGEXP."
     (with-current-buffer
 	(get-buffer-create buf)
       (erase-buffer)
-      (mapc
-       (function
-	(lambda(item)
-	 (insert (nth 1 item) (nth 0 item) "\n")))
-       file-cache-alist)
-      (pop-to-buffer buf)
-    )))
+      (dolist (item file-cache-alist)
+        (insert (nth 1 item) (nth 0 item) "\n"))
+      (pop-to-buffer buf))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Keybindings

@@ -1,5 +1,14 @@
 2009-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Minor cleanup and simplification.
+	* filecache.el (file-cache-add-directory)
+	(file-cache-add-directory-recursively)
+	(file-cache-add-from-file-cache-buffer)
+	(file-cache-delete-file-regexp, file-cache-delete-directory)
+	(file-cache-files-matching-internal, file-cache-display): Use dolist.
+	(file-cache-temp-minibuffer-message): Delete function.
+	(file-cache-minibuffer-complete): Use minibuffer-message instead.
+
 	* progmodes/perl-mode.el (perl-font-lock-special-syntactic-constructs):
 	Don't signal an error when bumping into EOB in tr, s, or y.
 
