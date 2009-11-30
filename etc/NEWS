@@ -301,8 +301,8 @@ Command*'.
 
 *** Isearch searches in the comint/shell input history when the new variable
 `comint-history-isearch' is non-nil.  New commands `comint-history-isearch-backward'
-and `comint-history-isearch-backward-regexp' start Isearch in the input history
-regardless of the value of `comint-history-isearch'.
+and `comint-history-isearch-backward-regexp' (bound to M-r) start Isearch
+in the input history regardless of the value of `comint-history-isearch'.
 
 +++
 *** Autorevert Tail mode now works also for remote files.

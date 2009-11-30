@@ -62,8 +62,7 @@
 ;;
 ;; M-p	   comint-previous-input	   Cycle backwards in input history
 ;; M-n	   comint-next-input		   Cycle forwards
-;; M-r     comint-previous-matching-input  Previous input matching a regexp
-;; M-s     comint-next-matching-input      Next input that matches
+;; M-r     comint-history-isearch-backward-regexp  Isearch input regexp backward
 ;; M-C-l   comint-show-output		   Show last batch of process output
 ;; RET	   comint-send-input
 ;; C-d	   comint-delchar-or-maybe-eof     Delete char unless at end of buff
@@ -446,10 +445,7 @@ executed once when the buffer is created."
     (define-key map "\en" 	  'comint-next-input)
     (define-key map [C-up] 	  'comint-previous-input)
     (define-key map [C-down] 	  'comint-next-input)
-    (define-key map "\er" 	  'comint-previous-matching-input)
-    ;; FIXME: maybe M-r better to be bound to Isearch comint history?
-    ;; (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
-    (define-key map "\es" 	  'comint-next-matching-input)
+    (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
     (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
     (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
     (define-key map "\e\C-l" 	  'comint-show-output)
@@ -512,6 +508,10 @@ executed once when the buffer is created."
       '("Kill Current Input" . comint-kill-input))
     (define-key map [menu-bar inout copy-input]
       '("Copy Old Input" . comint-copy-old-input))
+    (define-key map [menu-bar inout history-isearch-backward-regexp]
+      '("Isearch Input Regexp Backward..." . comint-history-isearch-backward-regexp))
+    (define-key map [menu-bar inout history-isearch-backward]
+      '("Isearch Input String Backward..." . comint-history-isearch-backward))
     (define-key map [menu-bar inout forward-matching-history]
       '("Forward Matching Input..." . comint-forward-matching-input))
     (define-key map [menu-bar inout backward-matching-history]

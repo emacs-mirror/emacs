@@ -1,5 +1,14 @@
 2009-11-30  Juri Linkov  <juri@jurta.org>
 
+	* comint.el (comint-mode-map): Rebind `M-r' from
+	`comint-previous-matching-input' to
+	`comint-history-isearch-backward-regexp'.
+	Unbind `M-s' to allow global key binding `M-s'.
+	Add menu items for `comint-history-isearch-backward' and
+	`comint-history-isearch-backward-regexp'.  (Bug#3746)
+
+2009-11-30  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (perform-replace): Let-bind recenter-last-op to nil.
 	For def=recenter, replace `recenter' with `recenter-top-bottom'
 	that is called with `this-command' and `last-command' let-bound
