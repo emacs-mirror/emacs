@@ -1,3 +1,11 @@
+2009-11-30  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (perform-replace): Let-bind recenter-last-op to nil.
+	For def=recenter, replace `recenter' with `recenter-top-bottom'
+	that is called with `this-command' and `last-command' let-bound
+	to `recenter-top-bottom'.  When the last `def' was not `recenter',
+	set `recenter-last-op' to nil.  (Bug#4981)
+
 2009-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Minor cleanup and simplification.

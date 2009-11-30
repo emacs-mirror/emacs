@@ -1549,6 +1549,7 @@ make, or the user didn't cancel the call."
          (replace-count 0)
          (nonempty-match nil)
 	 (multi-buffer nil)
+	 (recenter-last-op nil)	; Start cycling order with initial position.
 
          ;; If non-nil, it is marker saying where in the buffer to stop.
          (limit nil)
@@ -1785,7 +1786,12 @@ make, or the user didn't cancel the call."
 			((eq def 'skip)
 			 (setq done t))
 			((eq def 'recenter)
-			 (recenter nil))
+			 ;; `this-command' has the value `query-replace',
+			 ;; so we need to bind it to `recenter-top-bottom'
+			 ;; to allow it to detect a sequence of `C-l'.
+			 (let ((this-command 'recenter-top-bottom)
+			       (last-command 'recenter-top-bottom))
+			   (recenter-top-bottom)))
 			((eq def 'edit)
 			 (let ((opos (point-marker)))
 			   (setq real-match-data (replace-match-data
@@ -1839,9 +1845,12 @@ make, or the user didn't cancel the call."
 				       unread-command-events))
 			 (setq done t)))
 		  (when query-replace-lazy-highlight
-		    ;; Force lazy rehighlighting only after replacements
+		    ;; Force lazy rehighlighting only after replacements.
 		    (if (not (memq def '(skip backup)))
-			(setq isearch-lazy-highlight-last-string nil))))
+			(setq isearch-lazy-highlight-last-string nil)))
+		  (unless (eq def 'recenter)
+		    ;; Reset recenter cycling order to initial position.
+		    (setq recenter-last-op nil)))
 		;; Record previous position for ^ when we move on.
 		;; Change markers to numbers in the match data
 		;; since lots of markers slow down editing.
