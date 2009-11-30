@@ -2,7 +2,7 @@
 
 	* gnus-sum.el (gnus-recenter): Use `recenter-top-bottom'
 	when it is fboundp in GNU Emacs 23.1.  Put `isearch-scroll' property
-	on `gnus-recenter'. (Bug#4981)
+	on `gnus-recenter'. (Bug#4698, Bug#4981)
 
 2009-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
