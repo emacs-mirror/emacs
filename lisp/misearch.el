@@ -158,7 +158,7 @@ Intended to be added to `isearch-mode-hook'."
 		   (while (not found)
 		     ;; Find the next buffer to search
 		     (setq buffer (funcall multi-isearch-next-buffer-current-function
-					   buffer nil))
+					   (or buffer (current-buffer)) nil))
 		     (with-current-buffer buffer
 		       (goto-char (if isearch-forward (point-min) (point-max)))
 		       (setq isearch-barrier (point) isearch-opoint (point))
@@ -222,7 +222,7 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
 		   (reverse multi-isearch-buffer-list))))
     (if wrap
 	(car buffers)
-      (cadr (member (or buffer (current-buffer)) buffers)))))
+      (cadr (member buffer buffers)))))
 
 (defun multi-isearch-read-buffers ()
   "Return a list of buffers specified interactively, one by one."

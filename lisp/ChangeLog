@@ -4,6 +4,14 @@
 
 2009-11-30  Juri Linkov  <juri@jurta.org>
 
+	* misearch.el (multi-isearch-search-fun): Always provide a non-nil
+	value `buffer' of `multi-isearch-next-buffer-current-function'.
+	Use `(current-buffer)' when `buffer' is nil.
+	(multi-isearch-next-buffer-from-list): Don't fallback to
+	`(current-buffer)' when `buffer' is nil.  (Bug#4947)
+
+2009-11-30  Juri Linkov  <juri@jurta.org>
+
 	* misearch.el (multi-isearch-read-buffers): Move canonicalization
 	of buffers with `get-buffer' to `multi-isearch-buffers'.
 	(multi-isearch-buffers, multi-isearch-buffers-regexp):
