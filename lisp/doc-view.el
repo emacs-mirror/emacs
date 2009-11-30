@@ -222,7 +222,7 @@ has finished."
   :type 'integer
   :group 'doc-view)
 
-(defcustom doc-view-continuous-mode nil
+(defcustom doc-view-continuous nil
   "In Continuous mode reaching the page edge advances to next/previous page.
 When non-nil, scrolling a line upward at the bottom edge of the page
 moves to the next page, and scrolling a line downward at the top edge
@@ -332,13 +332,23 @@ Can be `dvi', `pdf', or `ps'.")
 (easy-menu-define doc-view-menu doc-view-mode-map
   "Menu for Doc View mode."
   '("DocView"
+    ["Toggle display"		doc-view-toggle-display]
+    ("Continuous"
+     ["Off"                     (setq doc-view-continuous nil)
+      :style radio :selected    (eq doc-view-continuous nil)]
+     ["On"		        (setq doc-view-continuous t)
+      :style radio :selected    (eq doc-view-continuous t)]
+     "---"
+     ["Save as Default"
+      (customize-save-variable 'doc-view-continuous doc-view-continuous) t]
+     )
+    "---"
     ["Set Slice"		doc-view-set-slice-using-mouse]
     ["Set Slice (manual)"	doc-view-set-slice]
     ["Reset Slice"		doc-view-reset-slice]
     "---"
     ["Search"			doc-view-search]
     ["Search Backwards"         doc-view-search-backward]
-    ["Toggle display"		doc-view-toggle-display]
     ))
 
 (defvar doc-view-minor-mode-map
@@ -433,11 +443,11 @@ Can be `dvi', `pdf', or `ps'.")
 
 (defun doc-view-scroll-up-or-next-page (&optional arg)
   "Scroll page up ARG lines if possible, else goto next page.
-When `doc-view-continuous-mode' is non-nil, scrolling upward
+When `doc-view-continuous' is non-nil, scrolling upward
 at the bottom edge of the page moves to the next page.
 Otherwise, goto next page only on typing SPC (ARG is nil)."
   (interactive "P")
-  (if (or doc-view-continuous-mode (null arg))
+  (if (or doc-view-continuous (null arg))
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
 	(when (= (window-vscroll) (image-scroll-up arg))
@@ -450,11 +460,11 @@ Otherwise, goto next page only on typing SPC (ARG is nil)."
 
 (defun doc-view-scroll-down-or-previous-page (&optional arg)
   "Scroll page down ARG lines if possible, else goto previous page.
-When `doc-view-continuous-mode' is non-nil, scrolling downward
+When `doc-view-continuous' is non-nil, scrolling downward
 at the top edge of the page moves to the previous page.
 Otherwise, goto previous page only on typing DEL (ARG is nil)."
   (interactive "P")
-  (if (or doc-view-continuous-mode (null arg))
+  (if (or doc-view-continuous (null arg))
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
 	(when (= (window-vscroll) (image-scroll-down arg))
@@ -467,10 +477,10 @@ Otherwise, goto previous page only on typing DEL (ARG is nil)."
 
 (defun doc-view-next-line-or-next-page (&optional arg)
   "Scroll upward by ARG lines if possible, else goto next page.
-When `doc-view-continuous-mode' is non-nil, scrolling a line upward
+When `doc-view-continuous' is non-nil, scrolling a line upward
 at the bottom edge of the page moves to the next page."
   (interactive "p")
-  (if doc-view-continuous-mode
+  (if doc-view-continuous
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
 	(when (= (window-vscroll) (image-next-line arg))
@@ -483,10 +493,10 @@ at the bottom edge of the page moves to the next page."
 
 (defun doc-view-previous-line-or-previous-page (&optional arg)
   "Scroll downward by ARG lines if possible, else goto previous page.
-When `doc-view-continuous-mode' is non-nil, scrolling a line downward
+When `doc-view-continuous' is non-nil, scrolling a line downward
 at the top edge of the page moves to the previous page."
   (interactive "p")
-  (if doc-view-continuous-mode
+  (if doc-view-continuous
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
 	(when (= (window-vscroll) (image-previous-line arg))

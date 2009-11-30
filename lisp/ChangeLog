@@ -1,5 +1,18 @@
 2009-11-30  Juri Linkov  <juri@jurta.org>
 
+	* doc-view.el (doc-view-continuous):
+	Rename from `doc-view-continuous-mode'.
+	(doc-view-menu): Move "Toggle display" to the top.
+	Add submenu "Continuous" with radio buttons "Off"/"On"
+	and "Save as Default".
+	(doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page)
+	(doc-view-next-line-or-next-page)
+	(doc-view-previous-line-or-previous-page): Rename
+	`doc-view-continuous-mode' to `doc-view-continuous'.  (Bug#4896)
+
+2009-11-30  Juri Linkov  <juri@jurta.org>
+
 	* comint.el (comint-mode-map): Rebind `M-r' from
 	`comint-previous-matching-input' to
 	`comint-history-isearch-backward-regexp'.

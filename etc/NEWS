@@ -203,7 +203,7 @@ exempt buffers that do correspond to files, customize the value of
 
 ** DocView
 
-*** When `doc-view-continuous-mode' is non-nil, scrolling a line
+*** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 
 ** FIXME mail-user-agent change
