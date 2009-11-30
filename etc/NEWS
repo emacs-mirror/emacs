@@ -304,6 +304,14 @@ Command*'.
 and `comint-history-isearch-backward-regexp' (bound to M-r) start Isearch
 in the input history regardless of the value of `comint-history-isearch'.
 
+*** Interactively `multi-isearch-buffers' and `multi-isearch-buffers-regexp'
+read buffer names to search, one by one, ended with RET.  With a prefix
+argument, they ask for a regexp, and search in buffers whose names match
+the specified regexp.  Interactively `multi-isearch-files' and
+`multi-isearch-files-regexp' read file names to search, one by one,
+ended with RET.  With a prefix argument, they ask for a wildcard, and
+search in file buffers whose file names match the specified wildcard.
+
 +++
 *** Autorevert Tail mode now works also for remote files.
 

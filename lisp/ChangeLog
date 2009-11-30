@@ -1,5 +1,16 @@
 2009-11-30  Juri Linkov  <juri@jurta.org>
 
+	* misearch.el (multi-isearch-read-buffers)
+	(multi-isearch-read-matching-buffers): New functions.
+	(multi-isearch-buffers, multi-isearch-buffers-regexp):
+	Use them in the `interactive' spec.  Doc fix.
+	(multi-isearch-read-files, multi-isearch-read-matching-files):
+	New functions.
+	(multi-isearch-files, multi-isearch-files-regexp):
+	Use them in the `interactive' spec.  Doc fix.  (Bug#4725)
+
+2009-11-30  Juri Linkov  <juri@jurta.org>
+
 	* doc-view.el (doc-view-continuous):
 	Rename from `doc-view-continuous-mode'.
 	(doc-view-menu): Move "Toggle display" to the top.

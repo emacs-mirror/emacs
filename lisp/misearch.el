@@ -224,9 +224,46 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
 	(car buffers)
       (cadr (member (or buffer (current-buffer)) buffers)))))
 
+(defun multi-isearch-read-buffers ()
+  "Return a list of buffers specified interactively, one by one."
+  ;; Most code from `multi-occur'.
+  (let* ((bufs (list (read-buffer "First buffer to search: "
+				  (current-buffer) t)))
+	 (buf nil)
+	 (ido-ignore-item-temp-list bufs))
+    (while (not (string-equal
+		 (setq buf (read-buffer
+			    (if (eq read-buffer-function 'ido-read-buffer)
+				"Next buffer to search (C-j to end): "
+			      "Next buffer to search (RET to end): ")
+			    nil t))
+		 ""))
+      (add-to-list 'bufs buf)
+      (setq ido-ignore-item-temp-list bufs))
+    (nreverse (mapcar #'get-buffer bufs))))
+
+(defun multi-isearch-read-matching-buffers ()
+  "Return a list of buffers whose names match specified regexp."
+  ;; Most code from `multi-occur-in-matching-buffers'
+  ;; and `kill-matching-buffers'.
+  (let ((bufregexp
+	 (read-regexp "Search in buffers whose names match regexp")))
+    (when bufregexp
+      (delq nil (mapcar (lambda (buf)
+			  (when (string-match bufregexp (buffer-name buf))
+			    buf))
+			(buffer-list))))))
+
 ;;;###autoload
 (defun multi-isearch-buffers (buffers)
-  "Start multi-buffer Isearch on a list of BUFFERS."
+  "Start multi-buffer Isearch on a list of BUFFERS.
+Interactively read buffer names to search, one by one, ended with RET.
+With a prefix argument, ask for a regexp, and search in buffers
+whose names match the specified regexp."
+  (interactive
+   (list (if current-prefix-arg
+	     (multi-isearch-read-matching-buffers)
+	   (multi-isearch-read-buffers))))
   (let ((multi-isearch-next-buffer-function
 	 'multi-isearch-next-buffer-from-list)
 	(multi-isearch-buffer-list buffers))
@@ -236,7 +273,14 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
 
 ;;;###autoload
 (defun multi-isearch-buffers-regexp (buffers)
-  "Start multi-buffer regexp Isearch on a list of BUFFERS."
+  "Start multi-buffer regexp Isearch on a list of BUFFERS.
+Interactively read buffer names to search, one by one, ended with RET.
+With a prefix argument, ask for a regexp, and search in buffers
+whose names match the specified regexp."
+  (interactive
+   (list (if current-prefix-arg
+	     (multi-isearch-read-matching-buffers)
+	   (multi-isearch-read-buffers))))
   (let ((multi-isearch-next-buffer-function
 	 'multi-isearch-next-buffer-from-list)
 	(multi-isearch-buffer-list buffers))
@@ -264,9 +308,43 @@ Every next/previous file in the defined sequence is visited by
 	 (car files)
        (cadr (member (buffer-file-name buffer) files))))))
 
+(defun multi-isearch-read-files ()
+  "Return a list of files specified interactively, one by one."
+  ;; Most code from `multi-occur'.
+  (let* ((files (list (read-file-name "First file to search: "
+				      default-directory
+				      buffer-file-name)))
+	 (file nil))
+    (while (not (string-equal
+		 (setq file (read-file-name
+			     "Next file to search (RET to end): "
+			     default-directory
+			     default-directory))
+		 default-directory))
+      (add-to-list 'files file))
+    (nreverse files)))
+
+(defun multi-isearch-read-matching-files ()
+  "Return a list of files whose names match specified wildcard."
+  ;; Most wildcard code from `find-file-noselect'.
+  (let ((filename (read-regexp "Search in files whose names match wildcard")))
+    (when (and filename
+	       (not (string-match "\\`/:" filename))
+	       (string-match "[[*?]" filename))
+      (condition-case nil
+	  (file-expand-wildcards filename t)
+	(error (list filename))))))
+
 ;;;###autoload
 (defun multi-isearch-files (files)
-  "Start multi-buffer Isearch on a list of FILES."
+  "Start multi-buffer Isearch on a list of FILES.
+Interactively read file names to search, one by one, ended with RET.
+With a prefix argument, ask for a wildcard, and search in file buffers
+whose file names match the specified wildcard."
+  (interactive
+   (list (if current-prefix-arg
+	     (multi-isearch-read-matching-files)
+	   (multi-isearch-read-files))))
   (let ((multi-isearch-next-buffer-function
 	 'multi-isearch-next-file-buffer-from-list)
 	(multi-isearch-file-list files))
@@ -276,7 +354,14 @@ Every next/previous file in the defined sequence is visited by
 
 ;;;###autoload
 (defun multi-isearch-files-regexp (files)
-  "Start multi-buffer regexp Isearch on a list of FILES."
+  "Start multi-buffer regexp Isearch on a list of FILES.
+Interactively read file names to search, one by one, ended with RET.
+With a prefix argument, ask for a wildcard, and search in file buffers
+whose file names match the specified wildcard."
+  (interactive
+   (list (if current-prefix-arg
+	     (multi-isearch-read-matching-files)
+	   (multi-isearch-read-files))))
   (let ((multi-isearch-next-buffer-function
 	 'multi-isearch-next-file-buffer-from-list)
 	(multi-isearch-file-list files))
