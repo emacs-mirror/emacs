@@ -287,7 +287,7 @@ The expansion is entirely correct because it uses the C preprocessor."
                    ;; the syntax-table before point, but better than nothing.
                    (forward-comment (- (point-max)))
                    (put-text-property (point) (match-end 2)
-                                      'jit-lock-multiline t)
+                                      'jit-lock-defer-multiline t)
                    (not (memq (char-before)
                               '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[)))))
             nil ;; A division sign instead of a regexp-match.
@@ -387,7 +387,7 @@ The expansion is entirely correct because it uses the C preprocessor."
                                         (perl-quote-syntax-table (char-after))
                                       (forward-sexp 1))
                                     (put-text-property pos (line-end-position)
-                                                    jit-lock-defer-multiline t)
+                                                       'jit-lock-defer-multiline t)
                                     (looking-at "\\s-*\\sw*e")))
                             (put-text-property (point) (1+ (point))
                                                'syntax-table

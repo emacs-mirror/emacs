@@ -1,3 +1,11 @@
+2009-11-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix references to jit-lock properties.
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Refer to jit-lock-defer-multiline, not jit-lock-multiline.
+	(perl-font-lock-special-syntactic-constructs):
+	Quote jit-lock-defer-multiline property.
+
 2009-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-registered): Call vc-git-root only once.
@@ -972,13 +980,13 @@
 	* calc/calc-menu.el (calc-arithmetic-menu): Remove `calc-symclip'.
 
 	* calc/calc-map.el (calc-get-operator, calc-b-oper-keys):
-	* calc/calc-help.el (calc-b-prefix-help):  Remove references to
+	* calc/calc-help.el (calc-b-prefix-help): Remove references to
 	`calc-symclip'.
 
 2009-11-16  Kevin Ryde  <user42@zip.com.au>
 
 	* textmodes/flyspell.el (sgml-mode-flyspell-verify):
-	Use `sgml-lexical-context' instead of own parse for tag	(Bug#4511).
+	Use `sgml-lexical-context' instead of own parse for tag (Bug#4511).
 
 	* emacs-lisp/lisp-mnt.el (lm-keywords): Allow multi-line keywords.
 	(lm-keywords-list): Allow comma-only separator like "foo,bar".
@@ -988,7 +996,7 @@
 
 2009-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc.el	(vc-log-show-limit): Default to 2000.
+	* vc.el (vc-log-show-limit): Default to 2000.
 	(vc-print-log-internal): Insert buttons to request more entries
 	when limiting the output.
 
@@ -1050,7 +1058,7 @@
 	`calc-symclip'.
 	(calc-modes-menu): Add item for twos complement mode.
 
-	* calc/calc-help.el (calc-b-prefix-help):  Add help for `calc-symclip'.
+	* calc/calc-help.el (calc-b-prefix-help): Add help for `calc-symclip'.
 
 2009-11-15  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1271,7 +1279,7 @@
 
 	* textmodes/artist.el (artist-mouse-choose-operation):
 	Call `tmm-prompt' instead of `x-popup-menu' if we cannot popup
-	menus. Bug noticed by Eli Zaretskii <eliz@gnu.org>.
+	menus.  Bug noticed by Eli Zaretskii <eliz@gnu.org>.
 	(artist-compute-up-event-key): New function.
 	(artist-mouse-choose-operation, artist-down-mouse-1): Call it.
 
