@@ -120,7 +120,8 @@ the user's privacy."
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
 If set to nil, disables timer-based autosaving."
-  :type 'integer
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Seconds"))
   :group 'savehist)
 
 (defcustom savehist-mode-hook nil
