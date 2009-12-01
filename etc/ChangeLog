@@ -1,3 +1,10 @@
+2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* images/mpc/add.xpm, images/mpc/ffwd.xpm, images/mpc/next.xpm:
+	* images/mpc/pause.xpm, images/mpc/play.xpm, images/mpc/prev.xpm:
+	* images/mpc/rewind.xpm, images/mpc/stop.xpm:
+	New images.
+
 2009-11-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: New functions eshell/su and eshell/sudo.
