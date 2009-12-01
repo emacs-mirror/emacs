@@ -1,5 +1,8 @@
 2009-12-01  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-save-excursion): Make message
+	consistent with others (no final period).
+
 	* mail/rmailmm.el (rmail-mime-handle): Doc fix.
 	(rmail-mime-show): Downcase the encoding.  (Bug#5070)
 
