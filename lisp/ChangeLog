@@ -1,3 +1,8 @@
+2009-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-handle): Doc fix.
+	(rmail-mime-show): Downcase the encoding.  (Bug#5070)
+
 2009-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make vc-print-log buttons work.

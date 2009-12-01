@@ -329,8 +329,9 @@ The current buffer should be narrowed to the respective body, and
 point should be at the beginning of the body.
 
 CONTENT-TYPE, CONTENT-DISPOSITION, and CONTENT-TRANSFER-ENCODING
-are the values of the respective parsed headers.  The parsed
-headers for CONTENT-TYPE and CONTENT-DISPOSITION have the form
+are the values of the respective parsed headers.  The latter should
+be downcased.  The parsed headers for CONTENT-TYPE and CONTENT-DISPOSITION
+have the form
 
   \(VALUE . ALIST)
 
@@ -408,12 +409,16 @@ modified."
 		(mail-fetch-field "Content-Transfer-Encoding")
 		content-disposition
 		(mail-fetch-field "Content-Disposition")))))
-    (if content-type
-	(setq content-type (mail-header-parse-content-type
-			    content-type))
-      ;; FIXME: Default "message/rfc822" in a "multipart/digest"
-      ;; according to RFC 2046.
-      (setq content-type '("text/plain")))
+    ;; Per RFC 2045, C-T-E is case insensitive (bug#5070), but the others
+    ;; are not completely so.  Hopefully mail-header-parse-* DTRT.
+    (if content-transfer-encoding
+	(setq content-transfer-encoding (downcase content-transfer-encoding)))
+    (setq content-type
+	  (if content-type
+	      (mail-header-parse-content-type content-type)
+	    ;; FIXME: Default "message/rfc822" in a "multipart/digest"
+	    ;; according to RFC 2046.
+	    '("text/plain")))
     (setq content-disposition
 	  (if content-disposition
 	      (mail-header-parse-content-disposition content-disposition)
