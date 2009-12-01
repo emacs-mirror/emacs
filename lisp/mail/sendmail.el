@@ -221,8 +221,7 @@ This file need not actually exist."
 
 ;;;###autoload
 (defcustom mail-setup-hook nil
-  "Normal hook, run each time a new outgoing mail message is initialized.
-The function `mail-setup' runs this hook."
+  "Normal hook, run each time a new outgoing message is initialized."
   :type 'hook
   :options '(fortune-to-signature spook mail-abbrevs-setup)
   :group 'sendmail)
@@ -816,7 +815,7 @@ Prefix arg means don't delete this window."
 	  (switch-to-buffer newbuf))))))
 
 (defcustom mail-send-hook nil
-  "Hook run just before sending mail with `mail-send'."
+  "Hook run just before sending a message."
   :type 'hook
   :options '(flyspell-mode-off)
   :group 'sendmail)
