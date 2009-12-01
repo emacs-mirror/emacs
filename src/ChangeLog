@@ -1,3 +1,8 @@
+2009-12-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* font.c (font_load_for_lface, font_open_by_name): Don't store name
+	if entity is Qnil.
+
 2009-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* print.c (print_preprocess): Preprocess the key_and_value table of
