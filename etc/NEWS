@@ -323,6 +323,7 @@ and let commands run under that user permissions.  It works even when
 
 * New Modes and Packages in Emacs 23.2
 
+** mpc.el is a front end for the Music Player Daemon.  Run it with M-x mpc.
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
 
 ** FIXME CEDET

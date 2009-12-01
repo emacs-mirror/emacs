@@ -1,3 +1,7 @@
+2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el: New file.
+
 2009-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* window.el (window-to-use): Define for compiler.
