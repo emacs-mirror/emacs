@@ -180,6 +180,68 @@ default), remove, or reset the tags. E.g.:
 
 tags 123 + wontfix
 
+** Usertags
+
+See <http://wiki.debian.org/bugs.debian.org/usertags>
+
+"Usertags" are very similar to tags: a set of labels that can be added
+to a bug.  There are two differences between normal tags and user
+tags:
+
+1) Anyone can define any valid usertag they like.  In contrast, only a
+limited, predefined set of normal tags are available (see above).
+
+2) A usertag is associated with a specific email address.
+
+You set usertags in the same way as tags, by talking to the control
+server.  One difference is that you can also specify the associated
+email address.  If you don't explicitly specify an address, then it
+will use the one from which you send the control message. The address
+must have the form of an email address (with an "@" sign and least 4
+characters after the "@").
+
+*** Setting usertags
+
+a) In a control message:
+
+user bug-gnu-emacs@gnu.org
+usertags 1234 any-tag-you-like
+
+This will add a usertag "any-tag-you-like" to bug 1234.  The tag will
+be associated with the address "bug-gnu-emacs@gnu.org".  If you omit
+the first line, the tag will be associated with your email address.
+
+The syntax of the usertags command is the same as that of tags (eg wrt
+the optional [=+-] argument).
+
+b) In an initial submission, in the pseudo-header:
+
+User: bug-gnu-emacs@gnu.org
+Usertags: a-new-tag
+
+Again, the "User" is optional.
+
+*** Searching by usertags
+
+The search interface is not as advanced as for normal tags.  You need
+to construct the relevant url yourself rather than just typing in a
+search box.  The only piece you really need to add is the "users"
+portion, the rest has the same syntax as normal.
+
+**** To find all bugs usertagged by a given email address:
+
+http://debbugs.gnu.org/cgi/pkgreport.cgi?users=bug-gnu-emacs@gnu.org
+
+(Supposedly, the "users" field can be a comma-separated list of more
+than one email address, but it does not seem to work for me.)
+
+**** To find bugs tagged with a specific usertag:
+
+This works just like a normal tags search, but with the addition of a
+"users" field.  Eg:
+
+http://debbugs.gnu.org/cgi/pkgreport.cgi?users=bug-gnu-emacs@gnu.org;tag=calendar
+
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
 Bugs must all be in the same state (e.g. same package(s) and severity
