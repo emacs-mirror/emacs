@@ -1,3 +1,7 @@
+2009-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add etc/images/mpc directory.
+
 2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Don't check for GConf unless X is used.
