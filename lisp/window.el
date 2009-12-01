@@ -1036,8 +1036,6 @@ Do not raise the selected frame.  Return WINDOW."
       (raise-frame frame))
     window))
 
-(defvar window-to-use)           ; dynamically bound in display-buffer
-
 (defun window--display-buffer-2 (buffer window &optional dedicated)
   "Display BUFFER in WINDOW and make its frame visible.
 Set `window-dedicated-p' to DEDICATED if non-nil.
@@ -1045,7 +1043,7 @@ Return WINDOW."
   (when (and (buffer-live-p buffer) (window-live-p window))
     (set-window-buffer window buffer)
     (when dedicated
-      (set-window-dedicated-p window-to-use dedicated))
+      (set-window-dedicated-p window dedicated))
     (window--display-buffer-1 window)))
 
 (defvar display-buffer-mark-dedicated nil
