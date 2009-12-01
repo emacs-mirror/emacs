@@ -1,5 +1,8 @@
 2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcomplete.el (pcomplete-std-complete): Don't try to complete past
+	the last element.
+
 	* simple.el (normal-erase-is-backspace-mode): Fix thinko in message.
 
 2009-12-01  Glenn Morris  <rgm@gnu.org>

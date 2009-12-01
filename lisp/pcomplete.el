@@ -480,28 +480,31 @@ Same as `pcomplete' but using the standard completion UI."
                      (pcomplete-begin)))
            (buftext (buffer-substring beg (point)))
            (table
-            (if (not (equal pcomplete-stub buftext))
-                ;; This isn't always strictly right (e.g. if
-                ;; FOO="toto/$FOO", then completion of /$FOO/bar may
-                ;; result in something incorrect), but given the lack of
-                ;; any other info, it's about as good as it gets, and in
-                ;; practice it should work just fine (fingers crossed).
-                (let ((prefixes (pcomplete--common-quoted-suffix
-                                 pcomplete-stub buftext)))
-                  (apply-partially
-                   'pcomplete--table-subvert
-                   completions
-                   (cdr prefixes) (car prefixes)))
+            (cond
+             ((null completions) nil)
+             ((not (equal pcomplete-stub buftext))
+              ;; This isn't always strictly right (e.g. if
+              ;; FOO="toto/$FOO", then completion of /$FOO/bar may
+              ;; result in something incorrect), but given the lack of
+              ;; any other info, it's about as good as it gets, and in
+              ;; practice it should work just fine (fingers crossed).
+              (let ((prefixes (pcomplete--common-quoted-suffix
+                               pcomplete-stub buftext)))
+                (apply-partially
+                 'pcomplete--table-subvert
+                 completions
+                 (cdr prefixes) (car prefixes))))
+             (t
               (lexical-let ((completions completions))
                 (lambda (string pred action)
                   (let ((res (complete-with-action
                               action completions string pred)))
                     (if (stringp res)
                         (pcomplete-quote-argument res)
-                      res))))))
+                      res)))))))
            (pred
             ;; pare it down, if applicable
-            (when (and pcomplete-use-paring pcomplete-seen)
+            (when (and table pcomplete-use-paring pcomplete-seen)
               (setq pcomplete-seen
                     (mapcar (lambda (f)
                               (funcall pcomplete-norm-func
