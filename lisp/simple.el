@@ -6455,7 +6455,7 @@ See also `normal-erase-is-backspace'."
     (run-hooks 'normal-erase-is-backspace-hook)
     (if (called-interactively-p 'interactive)
 	(message "Delete key deletes %s"
-		 (if (terminal-parameter nil 'normal-erase-is-backspace)
+		 (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
 		     "forward" "backward")))))
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
