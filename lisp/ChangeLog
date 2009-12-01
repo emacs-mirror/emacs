@@ -1,5 +1,8 @@
 2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcmpl-unix.el (pcomplete/cd): Complete more than one argument, just
+	in case.
+
 	* pcomplete.el (pcomplete-std-complete): Don't try to complete past
 	the last element.
 
