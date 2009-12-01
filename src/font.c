@@ -3537,8 +3537,11 @@ font_load_for_lface (f, attrs, spec)
      it to re-apply the font when font parameters (like hinting or dpi) have
      changed.  */
   entity = font_open_for_lface (f, entity, attrs, spec);
-  name = Ffont_get (spec, QCname);
-  if (STRINGP (name)) font_put_extra (entity, QCname, name);
+  if (!NILP (entity))
+    {
+      name = Ffont_get (spec, QCname);
+      if (STRINGP (name)) font_put_extra (entity, QCname, name);
+    }
   return entity;
 }
 
@@ -3610,7 +3613,8 @@ font_open_by_name (f, name)
   spec = Ffont_spec (2, args);
   ret = font_open_by_spec (f, spec);
   /* Do not loose name originally put in.  */
-  font_put_extra (ret, QCname, args[1]);
+  if (!NILP (ret))
+    font_put_extra (ret, QCname, args[1]);
 
   return ret;
 }
