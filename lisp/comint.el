@@ -828,7 +828,10 @@ by the global keymap (usually `mouse-yank-at-click')."
   (let ((pos (posn-point (event-end event)))
 	field input)
     (with-selected-window (posn-window (event-end event))
-      (and (setq field (field-at-pos pos))
+      ;; If pos is at the very end of a field, the mouse-click was
+      ;; probably outside (to the right) of the field.
+      (and (< pos (field-end pos))
+           (setq field (field-at-pos pos))
 	   (setq input (field-string-no-properties pos))))
     (if (or (null comint-accum-marker)
 	    (not (eq field 'input)))
