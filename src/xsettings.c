@@ -611,3 +611,6 @@ syms_of_xsettings ()
 #endif
 #endif
 }
+
+/* arch-tag: 541716ed-2e6b-42e1-8212-3197e01ea61d
+   (do not change this comment) */

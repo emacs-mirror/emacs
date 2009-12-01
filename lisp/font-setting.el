@@ -97,3 +97,5 @@ If `font-use-system-font' is nil, the font is not changed."
     'font-setting-handle-config-changed-event))
 
 (provide 'font-setting)
+
+;; arch-tag: 3a57e78f-1cd6-48b6-ab75-98f160dcc017

@@ -2357,3 +2357,4 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 (provide 'htmlfontify)
 ;;; htmlfontify.el ends here
 
+;; arch-tag: 944e5e63-c81d-4baa-a82a-0275f9c30e61

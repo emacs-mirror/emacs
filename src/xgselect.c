@@ -155,3 +155,5 @@ xgselect_initialize ()
 #endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
 }
 
+/* arch-tag: c5873ee3-d1f6-44f9-9f3b-b14f70fd0e6a
+   (do not change this comment) */

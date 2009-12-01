@@ -842,3 +842,4 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
 (provide 'hfy-cmap)
 ;;; hfy-cmap.el ends here
 
+;; arch-tag: dff7feea-add4-48ba-937c-e79ac40cec9b

@@ -232,4 +232,5 @@ Either remove headline and meta data, or do special formatting."
 
 (provide 'org-inlinetask)
 
+;; arch-tag: 59fdac51-8bcc-469e-a21e-6897dd6697bb
 ;;; org-inlinetask.el ends here

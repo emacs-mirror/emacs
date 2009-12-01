@@ -636,3 +636,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c LocalWords: subsubsection sw sym texi texinfo titlefont titlepage
 @c LocalWords: tok TOKEN's toplevel typemodifiers uml unset untar
 @c LocalWords: uref usedb var vskip xref yak
+
+@ignore
+   arch-tag: cbc6e78c-4ff1-410e-9fc7-936487e39bbf
+@end ignore
