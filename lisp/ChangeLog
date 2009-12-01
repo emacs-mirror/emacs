@@ -1,5 +1,7 @@
 2009-12-01  Glenn Morris  <rgm@gnu.org>
 
+	* window.el (window-to-use): Define for compiler.
+
 	* emacs-lisp/bytecomp.el (byte-compile-save-excursion): Make message
 	consistent with others (no final period).
 
