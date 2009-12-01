@@ -1,3 +1,10 @@
+2009-12-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (mh-mairix-execute-search): Use mh vfolder_format.
+	Fix typo in database path.
+	(mh-namazu-execute-search): Specify -q in example since namazu is
+	excessively garrulous.
+
 2009-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-thread.el (mh-thread-set-tables):
