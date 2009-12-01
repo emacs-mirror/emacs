@@ -918,14 +918,12 @@ auto-fill in message buffers."
   :type '(choice (const :tag "Don't turn on auto fill" nil)
 		 (integer)))
 
-;; (defcustom message-setup-hook nil
-;;   "Normal hook, run each time a new outgoing message is initialized.
-;; The function `message-setup' runs this hook."
-;;   :group 'message-various
-;;   :link '(custom-manual "(message)Various Message Variables")
-;;   :type 'hook)
-
-(defvaralias 'message-setup-hook 'mail-setup-hook)
+(defcustom message-setup-hook nil
+  "Normal hook, run each time a new outgoing message is initialized.
+The function `message-setup' runs this hook."
+  :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
+  :type 'hook)
 
 (defcustom message-cancel-hook nil
   "Hook run when cancelling articles."
@@ -1567,15 +1565,13 @@ starting with `not' and followed by regexps."
   "Alist of mail and news faces for facemenu.
 The cdr of each entry is a function for applying the face to a region.")
 
-;; (defcustom message-send-hook nil
-;;   "Hook run before sending messages.
-;; This hook is run quite early when sending."
-;;   :group 'message-various
-;;   :options '(ispell-message)
-;;   :link '(custom-manual "(message)Various Message Variables")
-;;   :type 'hook)
-
-(defvaralias 'message-send-hook 'mail-send-hook)
+(defcustom message-send-hook nil
+  "Hook run before sending messages.
+This hook is run quite early when sending."
+  :group 'message-various
+  :options '(ispell-message)
+  :link '(custom-manual "(message)Various Message Variables")
+  :type 'hook)
 
 (defcustom message-send-mail-hook nil
   "Hook run before sending mail messages.
