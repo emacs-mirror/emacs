@@ -139,6 +139,7 @@
     ("\M-n" . log-view-file-next)
     ("\M-p" . log-view-file-prev))
   "Log-View's keymap."
+  :inherit widget-keymap
   :group 'log-view)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
