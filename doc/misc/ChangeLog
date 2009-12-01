@@ -1,3 +1,9 @@
+2009-12-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Searching): Use mh vfolder_format and fix typo in database
+	path for mairix example. Specify -q in namazu example since namazu is
+	excessively garrulous.
+
 2009-11-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote processes): Improve eshell example with "su"
