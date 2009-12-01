@@ -129,7 +129,7 @@
 (unless (fboundp 'buffer-local-value)
   (defun buffer-local-value (var buf)
     (with-current-buffer buf (symbol-value var))))
-      
+
 
 ;;; Main code starts here.
 
@@ -152,7 +152,7 @@
                (not (member (setq val (cdr elem)) res)))
           (push val res)))
     (nreverse res)))
-  
+
 (defun mpc-union (&rest lists)
   (let ((res (nreverse (pop lists))))
     (dolist (list lists)
@@ -817,7 +817,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                          (sort song-poss '>))))
     (if (stringp playlist)
         (puthash (cons 'Playlist playlist) nil mpc--find-memoize)))
-  
+
 
 (defun mpc-cmd-move (song-poss dest-pos &optional playlist)
   (let ((i 0))
@@ -1056,7 +1056,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
             (setq col (+ col size))))))
     (put-text-property start (point) 'mpc-pred
                        `(lambda (info) (and ,@(nreverse pred))))))
-                  
+
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar mpc-mode-map
@@ -1503,7 +1503,7 @@ when constructing the set of constraints."
           (overlay-put ol 'face 'region)
           (overlay-put ol 'evaporate t)
           (set (make-local-variable 'mpc-tagbrowser-all-ol) ol))))))
-  
+
 ;; (defvar mpc-constraints nil)
 (defun mpc-separator (active)
   ;; Place a separator mark.
@@ -1555,7 +1555,7 @@ when constructing the set of constraints."
                        (cond
                         ((member name active) (concat "1" name))
                         (t (concat "2" "name"))))))))))
-    
+
 (defvar mpc--changed-selection)
 
 (defun mpc-reorder (&optional nodeactivate)
@@ -1576,7 +1576,7 @@ Return non-nil if a selection was deactivated."
                                    (cdr cst)))))
           (setq active
                 (if (listp active) (mpc-intersection active vals) vals))))
-     
+
       (when (and (listp active))
         ;; Remove the selections if they are all in conflict with
         ;; other constraints.
@@ -1664,7 +1664,7 @@ Return non-nil if a selection was deactivated."
                                          nil x))
                                    new)))))
     (mpc-tagbrowser-refresh)))
-    
+
 
 ;;; Playlist management ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1925,7 +1925,7 @@ This is used so that they can be compared with `eq', which is needed for
         (when (buffer-local-value 'mpc-tag buf)
           (with-current-buffer buf (mpc-reorder))))
       (mpc-songs-refresh))))
-  
+
 (defun mpc-songs-kill-search ()
   "Turn off the current search restriction."
   (interactive)
@@ -2052,7 +2052,7 @@ This is used so that they can be compared with `eq', which is needed for
            follow-link t
            mouse-face mode-line-highlight
            keymap (keymap (mode-line keymap (mouse-2 . mpc-songs-search)))))))
-           
+
   ;; (set (make-local-variable 'mode-line-process)
   ;;      '("" ;; mpc-volume " "
   ;;        mpc-songs-totaltime
@@ -2244,7 +2244,7 @@ This is used so that they can be compared with `eq', which is needed for
     (mapc 'kill-buffer bufs)
     (mpc-status-stop)
     (if proc (delete-process proc))))
-      
+
 (defun mpc-stop ()
   "Stop playing the current queue of songs."
   (interactive)
@@ -2386,13 +2386,13 @@ This is used so that they can be compared with `eq', which is needed for
              (lambda ()
                (let ((newsongid (cdr (assq 'songid mpc-status)))
                      (newsongnb (cdr (assq 'song mpc-status))))
-                 
+
                  (if (and (equal prevsongid newsongid)
                           (not (equal prevsongid songid)))
                      ;; We left prevsongid and came back to it.  Pretend it
                      ;; didn't happen.
                      (setq newsongid songid))
-                 
+
                  (cond
                   ((null newsongid) (mpc--faster-stop))
                   ((not (equal songid newsongid))
@@ -2452,14 +2452,14 @@ This is used so that they can be compared with `eq', which is needed for
   (interactive (list last-nonmenu-event))
   ;; (mpc--faster event 4.0 1)
   (mpc--faster-toggle mpc-faster-speedup 1))
-      
+
 (defun mpc-rewind (event)
   "Fast rewind."
   (interactive (list last-nonmenu-event))
   ;; (mpc--faster event 4.0 -1)
   (mpc--faster-toggle mpc-faster-speedup -1))
-      
-      
+
+
 (defun mpc-play-at-point (&optional event)
   (interactive (list last-nonmenu-event))
   (mpc-select event)
