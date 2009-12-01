@@ -1,5 +1,8 @@
 2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-print-log-internal): Don't wait for the prcess to
+	terminate before setting up the major mode.
+
 	* pcmpl-unix.el (pcomplete/cd): Complete more than one argument, just
 	in case.
 

@@ -1878,13 +1878,15 @@ Not all VC backends support short logs!")
     (setq pl-return (vc-call-backend backend 'print-log files "*vc-change-log*"
 				     vc-short-log limit))
     (pop-to-buffer "*vc-change-log*")
-    (vc-exec-after
-     `(let ((inhibit-read-only t)
-	    (vc-short-log ,vc-short-log))
-	(vc-call-backend ',backend 'log-view-mode)
-	(set (make-local-variable 'log-view-vc-backend) ',backend)
-	(set (make-local-variable 'log-view-vc-fileset) ',files)
+    (let ((inhibit-read-only t))
+      ;; log-view-mode used to be called with inhibit-read-only bound
+      ;; to t, so let's keep doing it, just in case.
+      (vc-call-backend backend 'log-view-mode))
+    (set (make-local-variable 'log-view-vc-backend) ',backend)
+    (set (make-local-variable 'log-view-vc-fileset) ',files)
 
+    (vc-exec-after
+     `(let ((inhibit-read-only t))
 	(when (and ,limit (not (eq 'limit-unsupported pl-return)))
 	  (goto-char (point-max))
 	  (widget-create 'push-button
