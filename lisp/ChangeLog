@@ -1,3 +1,9 @@
+2009-12-01  Rob Riepel  <riepel@networking.Stanford.EDU>
+
+	* emulation/tpu-extras.el (tpu-cursor-free-mode): Emit message.
+	(tpu-set-cursor-free, tpu-set-cursor-bound): Don't emit a message
+	any more.
+
 2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-insert-input): Ignore clicks to the right of

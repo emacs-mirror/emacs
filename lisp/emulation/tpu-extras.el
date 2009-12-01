@@ -135,7 +135,10 @@ the previous line when starting from a line beginning."
   "Minor mode to allow the cursor to move freely about the screen."
   :init-value nil
   (if (not tpu-cursor-free-mode)
-      (tpu-trim-line-ends)))
+      (tpu-trim-line-ends))
+  (if (not tpu-cursor-free-mode)
+      (message "The cursor is now bound to the flow of your text.")
+    (message "The cursor will now move freely about the screen.")))
 
 
 ;;;  Hooks  --  Set cursor free in picture mode.
@@ -447,15 +450,13 @@ A repeat count means scroll that many sections."
 (defun tpu-set-cursor-free ()
   "Allow the cursor to move freely about the screen."
   (interactive)
-  (tpu-cursor-free-mode 1)
-  (message "The cursor will now move freely about the screen."))
+  (tpu-cursor-free-mode 1))
 
 ;;;###autoload
 (defun tpu-set-cursor-bound ()
   "Constrain the cursor to the flow of the text."
   (interactive)
-  (tpu-cursor-free-mode -1)
-  (message "The cursor is now bound to the flow of your text."))
+  (tpu-cursor-free-mode -1))
 
 ;; Local Variables:
 ;; generated-autoload-file: "tpu-edt.el"
