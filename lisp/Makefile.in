@@ -984,6 +984,7 @@ ELCFILES = \
 	$(lisp)/mouse-drag.elc \
 	$(lisp)/mouse-sel.elc \
 	$(lisp)/mouse.elc \
+	$(lisp)/mpc.elc \
 	$(lisp)/msb.elc \
 	$(lisp)/mwheel.elc \
 	$(lisp)/net/ange-ftp.elc \
