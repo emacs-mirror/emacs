@@ -1024,8 +1024,8 @@ following contents:
      # are subfolders within the folder
      mh=archive...:inbox:drafts:news:sent:trash
 
-     vfolder_format=raw
-     database=/home/user/Mail/mairix/database
+     vfolder_format=mh
+     database=/home/user/Mail/.mairix/database
 
 Use the following command line to generate the mairix index. Run
 this daily from cron:
@@ -1172,7 +1172,7 @@ Use the following command line to generate the namazu index. Run this
 daily from cron:
 
      mknmz -f /home/user/Mail/.namazu/mknmzrc -O /home/user/Mail/.namazu \\
-              /home/user/Mail
+           -q /home/user/Mail
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
