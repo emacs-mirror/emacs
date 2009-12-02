@@ -1372,7 +1372,8 @@ if it is a string, only list groups matching REGEXP."
 	  (setq not-in-list (delete group not-in-list)))
 	(when (gnus-group-prepare-logic
 	       group
-	       (and unread		; This group might be unchecked
+	       (and (or unread		; This group might be unchecked
+			predicate)	; Check if this group should be listed
 		    (or (not (stringp regexp))
 			(string-match regexp group))
 		    (<= (setq clevel (gnus-info-level info)) level)
@@ -1386,7 +1387,7 @@ if it is a string, only list groups matching REGEXP."
 		       (if (eq unread t) ; Unactivated?
 			   gnus-group-list-inactive-groups
 					; We list unactivated
-			 (> unread 0))
+			 (and (numberp unread) (> unread 0)))
 					; We list groups with unread articles
 		       (and gnus-list-groups-with-ticked-articles
 			    (cdr (assq 'tick (gnus-info-marks info))))

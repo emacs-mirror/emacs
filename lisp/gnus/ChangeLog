@@ -1,3 +1,9 @@
+2009-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-prepare-flat): Check also whether groups
+	with no unread article should be listed if the 2nd arg `predicate' is
+	given.
+
 2009-11-29  Juri Linkov  <juri@jurta.org>
 
 	* gnus-sum.el (gnus-recenter): Use `recenter-top-bottom'
