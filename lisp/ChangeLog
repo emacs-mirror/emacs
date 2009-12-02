@@ -1,3 +1,8 @@
+2009-12-02  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* ido.el (ido-file-internal): Handle filenames at point that do
+	not have a directory part.  (Bug#5049)
+
 2009-12-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mpc.el (mpc-intersection, mpc-host, mpc-songs-playlist)

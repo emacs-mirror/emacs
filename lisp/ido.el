@@ -2288,7 +2288,7 @@ If cursor is not at the end of the user input, move to end of input."
 			      (ffap-guesser)
 			    (ffap-string-at-point))))
 	       (not (string-match "^http:/" fn))
-	       (setq d (file-name-directory fn))
+	       (setq d (file-name-directory (expand-file-name fn)))
 	       (file-directory-p d))
 	  (setq ido-current-directory d)
 	  (setq initial (file-name-nondirectory fn))))))
