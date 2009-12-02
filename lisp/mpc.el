@@ -42,7 +42,7 @@
 ;; - add bindings/buttons/menuentries for the various commands.
 ;; - mpc-undo
 ;; - visual feedback for drag'n'drop
-;; - display/set `repeat' and `random' state (and  maybe also `crossfade').
+;; - display/set `repeat' and `random' state (and maybe also `crossfade').
 ;; - allow multiple *mpc* sessions in the same Emacs to control different mpds.
 ;; - look for .folder.png (freedesktop) or folder.jpg (XP) as well.
 ;; - fetch album covers and lyrics from the web?
@@ -163,8 +163,8 @@
 
 (defun mpc-intersection (l1 l2 &optional selectfun)
   "Return L1 after removing all elements not found in L2.
-SELECTFUN if non-nil elements aren't compared directly, but instead they
-are passed through SELECTFUN before comparison."
+If SELECTFUN is non-nil, elements aren't compared directly, but instead
+they are passed through SELECTFUN before comparison."
   (let ((res ()))
     (if selectfun (setq l2 (mapcar selectfun l2)))
     (dolist (elem l1)
@@ -241,7 +241,7 @@ numerically rather than lexicographically."
           (if (getenv "MPD_PORT") (concat ":" (getenv "MPD_PORT"))))
   "Host (and port) where the Music Player Daemon is running.
 The format is \"HOST\" or \"HOST:PORT\" where PORT defaults to 6600
-and HOST default to localhost."
+and HOST defaults to localhost."
   :type 'string)
 
 (defvar mpc-proc nil)
@@ -1670,7 +1670,7 @@ Return non-nil if a selection was deactivated."
 
 (defvar mpc-songs-playlist nil
   "Name of the currently selected playlist, if any.
-t means the main playlist.")
+A value of t means the main playlist.")
 (make-variable-buffer-local 'mpc-songs-playlist)
 
 (defun mpc-playlist-create (name)
@@ -1954,7 +1954,7 @@ This is used so that they can be compared with `eq', which is needed for
             (nreverse files)))))))
 
 (defun mpc-songs-jump-to (song-file &optional posn)
-  "Jump to song SONG-FILE, interactively, this is the song at point."
+  "Jump to song SONG-FILE; interactively, this is the song at point."
   (interactive
    (let* ((event last-nonmenu-event)
           (posn (event-end event)))
@@ -2258,7 +2258,7 @@ This is used so that they can be compared with `eq', which is needed for
   (mpc-cmd-pause "1"))
 
 (defun mpc-resume ()
-  "Pause playing."
+  "Resume playing."
   (interactive)
   (mpc-cmd-pause "0"))
 

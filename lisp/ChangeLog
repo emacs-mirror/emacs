@@ -1,3 +1,8 @@
+2009-12-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mpc.el (mpc-intersection, mpc-host, mpc-songs-playlist)
+	(mpc-songs-jump-to, mpc-resume): Doc fixes.
+
 2009-12-01  Rob Riepel  <riepel@networking.Stanford.EDU>
 
 	* emulation/tpu-extras.el (tpu-cursor-free-mode): Emit message.
@@ -49,7 +54,7 @@
 2009-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make vc-print-log buttons work.
-	* log-view.el (log-view-mode-map):  Inherit from from widget-keymap.
+	* log-view.el (log-view-mode-map): Inherit from from widget-keymap.
 
 2009-11-30  Ryan C. Thompson  <rct@thompsonclan.org>  (tiny change)
 
