@@ -1649,6 +1649,8 @@ decompress the file if appropriate.  See the documentation for the
 
 (defun woman-make-bufname (bufname)
   "Create an unambiguous buffer name from BUFNAME."
+  ;; See Bug#5038.  Any compression extension has already been removed.
+  ;; Go from eg "host.conf.5" to "5 host.conf".
   (let ((dot (string-match "\\.[^.]*\\'" bufname)))
     (if dot (setq bufname (concat
 			   (substring bufname (1+ dot)) " "
