@@ -1,3 +1,12 @@
+2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use completion-in-buffer.
+	* wid-edit.el (widget-field-text-end): New function.
+	(widget-field-value-get): Use it.
+	(widget-string-complete, widget-file-complete)
+	(widget-color-complete): Use it and completion-in-region.
+	(widget-complete): Don't narrow the buffer.
+
 2009-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-pop-to-buffer): New function.  (Bug#2282)

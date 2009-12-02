@@ -1160,11 +1160,9 @@ the field."
 When not inside a field, move to the previous button or field."
   (interactive)
   (let ((field (widget-field-find (point))))
-    (if field
-	(save-restriction
-	  (widget-narrow-to-field)
-	  (widget-apply field :complete))
-	  (error "Not in an editable field"))))
+    (when field
+      (widget-apply field :complete))
+    (error "Not in an editable field")))
 
 ;;; Setting up the buffer.
 
@@ -1256,6 +1254,19 @@ When not inside a field, move to the previous button or field."
               (1- (overlay-end overlay))
             (overlay-end overlay)))
       (cdr overlay))))
+
+(defun widget-field-text-end (widget)
+  (let ((to   (widget-field-end widget))
+	(size (widget-get widget :size)))
+    (if (or (null size) (zerop size))
+        to
+      (let ((from (widget-field-start widget)))
+        (if (and from to)
+            (with-current-buffer (widget-field-buffer widget)
+              (while (and (> to from)
+                          (eq (char-after (1- to)) ?\s))
+                (setq to (1- to)))
+              to))))))
 
 (defun widget-field-find (pos)
   "Return the field at POS.
@@ -1935,7 +1946,7 @@ the earlier input."
 (defun widget-field-value-get (widget)
   "Return current text in editing field."
   (let ((from (widget-field-start widget))
-	(to (widget-field-end widget))
+	(to (widget-field-text-end widget))
 	(buffer (widget-field-buffer widget))
 	(size (widget-get widget :size))
 	(secret (widget-get widget :secret))
@@ -1943,11 +1954,6 @@ the earlier input."
     (if (and from to)
 	(progn
 	  (set-buffer buffer)
-	  (while (and size
-		      (not (zerop size))
-		      (> to from)
-		      (eq (char-after (1- to)) ?\s))
-	    (setq to (1- to)))
 	  (let ((result (buffer-substring-no-properties from to)))
 	    (when secret
 	      (let ((index 0))
@@ -3029,35 +3035,13 @@ as the value."
 Completions are taken from the :completion-alist property of the
 widget.  If that isn't a list, it's evalled and expected to yield a list."
   (interactive)
-  (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
-						 (point)))
-	 (completion-ignore-case (widget-get widget :completion-ignore-case))
+  (let* ((completion-ignore-case (widget-get widget :completion-ignore-case))
 	 (alist (widget-get widget :completion-alist))
 	 (_ (unless (listp alist)
-	      (setq alist (eval alist))))
-	 (completion (try-completion prefix alist)))
-    (cond ((eq completion t)
-	   (when completion-ignore-case
-	     ;; Replace field with completion in case its case is different.
-	     (delete-region (widget-field-start widget)
-			    (widget-field-end widget))
-	     (insert-and-inherit (car (assoc-string prefix alist t))))
-	   (message "Only match"))
-	  ((null completion)
-	   (error "No match"))
-	  ((not (eq t (compare-strings prefix nil nil completion nil nil
-				       completion-ignore-case)))
-	   (when completion-ignore-case
-	     ;; Replace field with completion in case its case is different.
-	     (delete-region (widget-field-start widget)
-			    (widget-field-end widget))
-	     (insert-and-inherit completion)))
-	  (t
-	   (message "Making completion list...")
-	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list
-	      (all-completions prefix alist nil)))
-	   (message "Making completion list...done")))))
+	      (setq alist (eval alist)))))
+    (completion-in-region (widget-field-start widget)
+                          (max (point) (widget-field-text-end widget))
+                          alist)))
 
 (define-widget 'regexp 'string
   "A regular expression."
@@ -3096,29 +3080,9 @@ It reads a file name from an editable text field."
 (defun widget-file-complete ()
   "Perform completion on file name preceding point."
   (interactive)
-  (let* ((end (point))
-	 (beg (widget-field-start widget))
-	 (pattern (buffer-substring beg end))
-	 (name-part (file-name-nondirectory pattern))
-	 ;; I think defaulting to root is right
-	 ;; because these really should be absolute file names.
-	 (directory (or (file-name-directory pattern) "/"))
-	 (completion (file-name-completion name-part directory)))
-    (cond ((eq completion t))
-	  ((null completion)
-	   (message "Can't find completion for \"%s\"" pattern)
-	   (ding))
-	  ((not (string= name-part completion))
-	   (delete-region beg end)
-	   (insert (expand-file-name completion directory)))
-	  (t
-	   (message "Making completion list...")
-	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list
-	      (sort (file-name-all-completions name-part directory)
-		    'string<)
-	      name-part))
-	   (message "Making completion list...%s" "done")))))
+  (completion-in-region (widget-field-start widget)
+                        (max (point) (widget-field-text-end widget))
+                        'completion-file-name-table))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
   ;; Read file from minibuffer.
@@ -3738,23 +3702,10 @@ example:
 (defun widget-color-complete (widget)
   "Complete the color in WIDGET."
   (require 'facemenu)			; for facemenu-color-alist
-  (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
-						 (point)))
-	 (list (or facemenu-color-alist
-		   (sort (defined-colors) 'string-lessp)))
-	 (completion (try-completion prefix list)))
-    (cond ((eq completion t)
-	   (message "Exact match."))
-	  ((null completion)
-	   (error "Can't find completion for \"%s\"" prefix))
-	  ((not (string-equal prefix completion))
-	   (insert-and-inherit (substring completion (length prefix))))
-	  (t
-	   (message "Making completion list...")
-	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list (all-completions prefix list nil)
-				      prefix))
-	   (message "Making completion list...done")))))
+  (completion-in-region (widget-field-start widget)
+                        (max (point) (widget-field-text-end widget))
+                        (or facemenu-color-alist
+                            (sort (defined-colors) 'string-lessp))))
 
 (defun widget-color-sample-face-get (widget)
   (let* ((value (condition-case nil
