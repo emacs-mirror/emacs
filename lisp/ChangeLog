@@ -1,3 +1,8 @@
+2009-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el: Include ZWJ and ZWNJ in the patterns to
+	shape for all Indic scripts.
+
 2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use completion-in-buffer.
