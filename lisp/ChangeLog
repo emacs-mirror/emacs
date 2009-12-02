@@ -1,3 +1,10 @@
+2009-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries): Replace superfluous
+	save-excursion with save-current-buffer.
+	Widen before searching.  (Bug#5093)
+	(diary-list-sexp-entries): Remove superfluous save-excursion.
+
 2009-12-02  Michael Welsh Duggan  <mwd@cert.org>
 
 	* woman.el (woman-make-bufname): Handle man-pages with "." in the
