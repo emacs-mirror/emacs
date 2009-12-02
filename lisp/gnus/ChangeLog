@@ -1,3 +1,8 @@
+2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-completion-in-region): New compatibility function.
+	(message-expand-group): Use it.
+
 2009-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-group.el (gnus-group-prepare-flat): Check also whether groups
