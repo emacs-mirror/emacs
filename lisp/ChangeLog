@@ -1,5 +1,8 @@
 2009-12-02  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-pop-to-buffer): New function.  (Bug#2282)
+	(rmail-select-summary): Use rmail-pop-to-buffer.
+
 	* calendar/diary-lib.el (diary-list-entries): Replace superfluous
 	save-excursion with save-current-buffer.
 	Widen before searching.  (Bug#5093)

@@ -792,6 +792,12 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	      . 'rmail-header-name))))
   "Additional expressions to highlight in Rmail mode.")
 
+;; Rmail does not expect horizontal splitting.  (Bug#2282)
+(defun rmail-pop-to-buffer (&rest args)
+  "Like `pop-to-buffer', but with `split-width-threshold' set to nil."
+  (let (split-width-threshold)
+    (apply 'pop-to-buffer args)))
+
 ;; Perform BODY in the summary buffer
 ;; in such a way that its cursor is properly updated in its own window.
 (defmacro rmail-select-summary (&rest body)
@@ -801,7 +807,7 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	   (save-excursion
 	     (unwind-protect
 		 (progn
-		   (pop-to-buffer rmail-summary-buffer)
+		   (rmail-pop-to-buffer rmail-summary-buffer)
 		   ;; rmail-total-messages is a buffer-local var
 		   ;; in the rmail buffer.
 		   ;; This way we make it available for the body
