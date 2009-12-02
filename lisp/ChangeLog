@@ -1,3 +1,28 @@
+2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use completion-in-buffer and remove uses of dynamic scoping.
+	* progmodes/pascal.el (pascal-str, pascal-all, pascal-pred)
+	(pascal-buffer-to-use, pascal-flag): Don't declare.
+	(pascal-func-completion, pascal-type-completion, pascal-var-completion)
+	(pascal-get-completion-decl, pascal-keyword-completion):
+	Add `pascal-str' argument, save-excursion,
+	return the found completions, and don't filter with pascal-pred.
+	(pascal-completion-cache): New var.
+	(pascal-completion): Don't switch buffer any more (it was never
+	necessary).  Don't save-excursion any more (it's done by the called
+	subroutines).  Use a cache to avoid redundant computations.
+	Use complete-with-action rather than pascal-completion-response and
+	let it apply the predicate as well.
+	(pascal-complete-word): Use completion-in-buffer when
+	pascal-toggle-completions is nil.
+	(pascal-show-completions): Don't bind pascal-buffer-to-use since it's
+	not used any more.
+	(pascal-comp-defun): Don't change buffer any more.
+	Use complete-with-action rather than pascal-completion-response and
+	let it apply the predicate as well.
+	(pascal-goto-defun): Change buffer before calling pascal-comp-defun
+	when neded.
+
 2009-12-02  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el: Include ZWJ and ZWNJ in the patterns to
