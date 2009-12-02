@@ -2,6 +2,8 @@
 
 	* mail/rmail.el (rmail-pop-to-buffer): New function.  (Bug#2282)
 	(rmail-select-summary): Use rmail-pop-to-buffer.
+	* mail/rmailsum.el: Replace all pop-to-buffer calls with
+	rmail-pop-to-buffer, to prevent horizontal splits.
 
 	* calendar/diary-lib.el (diary-list-entries): Replace superfluous
 	save-excursion with save-current-buffer.
