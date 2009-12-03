@@ -1,5 +1,14 @@
 2009-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Add support for bzr shelve/unshelve.
+	* vc-bzr.el (vc-bzr-shelve-map, vc-bzr-shelve-menu-map)
+	(vc-bzr-extra-menu-map): New variables.
+	(vc-bzr-extra-menu, vc-bzr-extra-status-menu, vc-bzr-shelve)
+	(vc-bzr-shelve-apply, vc-bzr-shelve-list)
+	(vc-bzr-shelve-get-at-point, vc-bzr-shelve-delete-at-point)
+	(vc-bzr-shelve-apply-at-point, vc-bzr-shelve-menu): New functions.
+	(vc-bzr-dir-extra-headers): Display shelves.
+
 	* vc-bzr.el (vc-bzr-print-log): Deal with nil arguments better.
 
 2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>

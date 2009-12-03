@@ -269,6 +269,9 @@ their content displayed.
 
 **** vc-dir displays the stash status
 
+*** vc-bzr supports operating with shelves: the shelve list is
+displayed in the *vc-dir* header, shelves can be created, removed and applied.
+
 *** log-edit-strip-single-file-name controls whether or not single filenames
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
