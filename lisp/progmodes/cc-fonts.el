@@ -426,7 +426,8 @@ stuff.  Used on level 1 and higher."
 				   (progn
 				     (c-mark-<-as-paren beg)
 				     (c-mark->-as-paren end))
-				 (c-clear-char-property beg 'syntax-table)))
+				 ;; (c-clear-char-property beg 'syntax-table)
+				 (c-clear-char-property beg 'category)))
 			     nil)))))))
 
 	      ;; #define.

@@ -1145,23 +1145,115 @@ been put there by c-put-char-property.  POINT remains unchanged."
 	(goto-char (point-max)))))
 
 (defconst c-<-as-paren-syntax '(4 . ?>))
+(put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
 
 (defsubst c-mark-<-as-paren (pos)
-  ;; Mark the "<" character at POS as an sexp list opener using the
-  ;; syntax-table property.
+  ;; Mark the "<" character at POS as a template opener using the
+  ;; `syntax-table' property via the `category' property.
   ;;
-  ;; This function does a hidden buffer change.
-  (c-put-char-property pos 'syntax-table c-<-as-paren-syntax))
+  ;; This function does a hidden buffer change.  Note that we use
+  ;; indirection through the `category' text property.  This allows us to
+  ;; toggle the property in all template brackets simultaneously and
+  ;; cheaply.  We use this, for instance, in `c-parse-state'.
+  (c-put-char-property pos 'category 'c-<-as-paren-syntax))
 
 (defconst c->-as-paren-syntax '(5 . ?<))
+(put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax)
 
 (defsubst c-mark->-as-paren (pos)
   ;; Mark the ">" character at POS as an sexp list closer using the
   ;; syntax-table property.
   ;;
-  ;; This function does a hidden buffer change.
-  (c-put-char-property pos 'syntax-table c->-as-paren-syntax))
+  ;; This function does a hidden buffer change.  Note that we use
+  ;; indirection through the `category' text property.  This allows us to
+  ;; toggle the property in all template brackets simultaneously and
+  ;; cheaply.  We use this, for instance, in `c-parse-state'.
+  (c-put-char-property pos 'category 'c->-as-paren-syntax))
 
+(defsubst c-unmark-<->-as-paren (pos)
+  ;; Unmark the "<" or "<" character at POS as an sexp list opener using
+  ;; the syntax-table property indirectly through the `category' text
+  ;; property.
+  ;;
+  ;; This function does a hidden buffer change.  Note that we use
+  ;; indirection through the `category' text property.  This allows us to
+  ;; toggle the property in all template brackets simultaneously and
+  ;; cheaply.  We use this, for instance, in `c-parse-state'.
+  (c-clear-char-property pos 'category))
+
+(defsubst c-suppress-<->-as-parens ()
+  ;; Suppress the syntactic effect of all marked < and > as parens.  Note
+  ;; that this effect is NOT buffer local.  You should probably not use
+  ;; this directly, but only through the macro
+  ;; `c-with-<->-as-parens-suppressed'
+  (put 'c-<-as-paren-syntax 'syntax-table nil)
+  (put 'c->-as-paren-syntax 'syntax-table nil))
+
+(defsubst c-restore-<->-as-parens ()
+  ;; Restore the syntactic effect of all marked <s and >s as parens.  This
+  ;; has no effect on unmarked <s and >s
+  (put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
+  (put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax))
+
+(defmacro c-with-<->-as-parens-suppressed (&rest forms)
+  ;; Like progn, except that the paren property is suppressed on all
+  ;; template brackets whilst they are running.  This macro does a hidden
+  ;; buffer change.
+  `(unwind-protect
+       (progn
+	 (c-suppress-<->-as-parens)
+	 ,@forms)
+     (c-restore-<->-as-parens)))
+
+;;;;;;;;;;;;;;;
+
+(defconst c-cpp-delimiter '(14)) ; generic comment syntax
+;; This is the value of the `category' text property placed on every #
+;; which introduces a CPP construct and every EOL (or EOB, or character
+;; preceding //, etc.) which terminates it.  We can instantly "comment
+;; out" all CPP constructs by giving `c-cpp-delimiter' a syntax-table
+;; propery '(14) (generic comment delimiter).
+(defmacro c-set-cpp-delimiters (beg end)
+  ;; This macro does a hidden buffer change.
+  `(progn
+     (c-put-char-property ,beg 'category 'c-cpp-delimiter)
+     (c-put-char-property ,end 'category 'c-cpp-delimiter)))
+(defmacro c-clear-cpp-delimiters (beg end)
+  ;; This macro does a hidden buffer change.
+  `(progn
+     (c-clear-char-property ,beg 'category)
+     (c-clear-char-property ,end 'category)))
+
+(defsubst c-comment-out-cpps ()
+  ;; Render all preprocessor constructs syntactically commented out.
+  (put 'c-cpp-delimiter 'syntax-table c-cpp-delimiter))
+(defsubst c-uncomment-out-cpps ()
+  ;; Restore the syntactic visibility of preprocessor constructs.
+  (put 'c-cpp-delimiter 'syntax-table nil))
+
+(defmacro c-with-cpps-commented-out (&rest forms)
+  ;; Execute FORMS... whilst the syntactic effect of all characters in
+  ;; all CPP regions is suppressed.  In particular, this is to suppress
+  ;; the syntactic significance of parens/braces/brackets to functions
+  ;; such as `scan-lists' and `parse-partial-sexp'.
+  `(unwind-protect
+       (c-save-buffer-state ()
+	   (c-comment-out-cpps)
+	   ,@forms)
+     (c-save-buffer-state ()
+       (c-uncomment-out-cpps))))
+
+(defmacro c-with-all-but-one-cpps-commented-out (beg end &rest forms)
+  ;; Execute FORMS... whilst the syntactic effect of all characters in
+  ;; every CPP region APART FROM THE ONE BETWEEN BEG and END is
+  ;; suppressed.
+  `(unwind-protect
+       (c-save-buffer-state ()
+	 (c-clear-cpp-delimiters ,beg ,end)
+	 ,`(c-with-cpps-commented-out ,@forms))
+     (c-save-buffer-state ()
+       (c-set-cpp-delimiters ,beg ,end))))
+
 (defsubst c-intersect-lists (list alist)
   ;; return the element of ALIST that matches the first element found
   ;; in LIST.  Uses assq.
