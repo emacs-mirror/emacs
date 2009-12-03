@@ -1,3 +1,7 @@
+2009-12-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-filter-alist): Use regexp-quote.
+
 2009-12-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	Cleanup.
