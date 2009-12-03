@@ -1,5 +1,9 @@
 2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/make-mode.el (makefile-special-targets-list): No need for
+	it to be an alist any more.
+	(makefile-complete): Use completion-in-region.
+
 	* progmodes/octave-mod.el (octave-complete-symbol):
 	Use completion-in-region.
 
