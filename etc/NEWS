@@ -264,7 +264,7 @@ advantage of this feature.
 Signed-off-by line when committing.
 
 **** Support for operating with stashes has been added to vc-dir: the stash list is
-displayed in the *vc-dir* header, stashes can be created, removed and
+displayed in the *vc-dir* header, stashes can be created, removed, applied and
 their content displayed.
 
 **** vc-dir displays the stash status

@@ -405,9 +405,31 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defvar vc-git-stash-map
   (let ((map (make-sparse-keymap)))
+    ;; Turn off vc-dir marking
+    (define-key map [mouse-2] 'ignore)
+
+    (define-key map [down-mouse-3] 'vc-git-stash-menu)
     (define-key map "\C-k" 'vc-git-stash-delete-at-point)
     (define-key map "=" 'vc-git-stash-show-at-point)
     (define-key map "\C-m" 'vc-git-stash-show-at-point)
+    (define-key map "A" 'vc-git-stash-apply-at-point)
+    (define-key map "P" 'vc-git-stash-pop-at-point)
+    map))
+
+(defvar vc-git-stash-menu-map
+  (let ((map (make-sparse-keymap "Git Stash")))
+    (define-key map [de]
+      '(menu-item "Delete stash" vc-git-stash-delete-at-point
+		  :help "Delete the current stash"))
+    (define-key map [ap]
+      '(menu-item "Apply stash" vc-git-stash-apply-at-point
+		  :help "Apply the current stash and keep it in the stash list"))
+    (define-key map [po]
+      '(menu-item "Apply and remove stash (pop)" vc-git-stash-pop-at-point
+		  :help "Apply the current stash and remove it"))
+    (define-key map [sh]
+      '(menu-item "Show stash" vc-git-stash-show-at-point
+		  :help "Show the contents of the current stash"))
     map))
 
 (defun vc-git-dir-extra-headers (dir)
@@ -415,6 +437,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
 	(stash (vc-git-stash-list))
+	(stash-help-echo "Use M-x vc-git-stash to create stashes.")
 	branch remote remote-url)
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
 	(progn
@@ -447,17 +470,21 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      "\n"
      (if stash
        (concat
-	(propertize "Stash      :\n" 'face 'font-lock-type-face)
+	(propertize "Stash      :\n" 'face 'font-lock-type-face
+		    'help-echo stash-help-echo)
 	(mapconcat
 	 (lambda (x)
 	   (propertize x
 		       'face 'font-lock-variable-name-face
 		       'mouse-face 'highlight
+		       'help-echo "mouse-3: Show stash menu\nRET: Show stash\nA: Apply stash\nP: Apply and remove stash (pop)\nC-k: Delete stash"
 		       'keymap vc-git-stash-map))
 	 stash "\n"))
        (concat
-	(propertize "Stash      : " 'face 'font-lock-type-face)
+	(propertize "Stash      : " 'face 'font-lock-type-face
+		    'help-echo stash-help-echo)
 	(propertize "Nothing stashed"
+		    'help-echo stash-help-echo
 		    'face 'font-lock-variable-name-face))))))
 
 ;;; STATE-CHANGING FUNCTIONS
@@ -816,6 +843,18 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (setq buffer-read-only t)
   (pop-to-buffer (current-buffer)))
 
+(defun vc-git-stash-apply (name)
+  "Apply stash NAME."
+  (interactive "sApply stash: ")
+  (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" name)
+  (vc-resynch-buffer (vc-git-root default-directory) t t))
+
+(defun vc-git-stash-pop (name)
+  "Pop stash NAME."
+  (interactive "sPop stash: ")
+  (vc-git-command "*vc-git-stash*" 0 nil "stash" "pop" "-q" name)
+  (vc-resynch-buffer (vc-git-root default-directory) t t))
+
 (defun vc-git-stash-list ()
   (delete
    ""
@@ -842,6 +881,18 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (defun vc-git-stash-show-at-point ()
   (interactive)
   (vc-git-stash-show (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+
+(defun vc-git-stash-apply-at-point ()
+  (interactive)
+  (vc-git-stash-apply (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+
+(defun vc-git-stash-pop-at-point ()
+  (interactive)
+  (vc-git-stash-pop (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+
+(defun vc-git-stash-menu (e)
+  (interactive "e")
+  (vc-dir-at-event e (popup-menu vc-git-stash-menu-map e)))
 
 
 ;;; Internal commands

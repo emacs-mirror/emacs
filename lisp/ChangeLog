@@ -1,3 +1,13 @@
+2009-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Support applying stashes.  Improve UI.
+	* vc-git.el (vc-git-dir-extra-headers): Add tooltips.
+	(vc-git-stash-apply, vc-git-stash-pop)
+	(vc-git-stash-apply-at-point, vc-git-stash-pop-at-point)
+	(vc-git-stash-menu): New functions.
+	(vc-git-stash-menu-map): New variable.
+	(vc-git-stash-map): Add bindings to popup a menu and to apply stashes.
+
 2009-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* vc.el (log-view-vc-backend, log-view-vc-fileset): Declare.
