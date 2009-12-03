@@ -80,8 +80,8 @@
 ;;      in all buffers (except the current).  (This may be a little
 ;;      slow, don't use it unless you are really fond of `hippie-expand'.)
 ;;    `try-expand-list' : Tries to expand the text back to the nearest
-;;      open delimiter, to a whole list from the buffer. Convenient for
-;;      example when writing lisp or TeX.
+;;      open delimiter, to a whole list from the buffer.  Convenient for
+;;      example when writing Lisp or TeX.
 ;;    `try-expand-list-all-buffers' : Like `try-expand-list' but searches
 ;;      in all buffers (except the current).
 ;;    `try-expand-dabbrev' : works exactly as dabbrev-expand (but of
@@ -116,7 +116,7 @@
 ;;  variable with all kinds of try-functions above, it might be an
 ;;  idea to use `make-hippie-expand-function' to construct different
 ;;  `hippie-expand'-like functions, with different try-lists and bound
-;;  to different keys. It is also possible to make
+;;  to different keys.  It is also possible to make
 ;;  `hippie-expand-try-functions-list' a buffer local variable, and
 ;;  let it depend on the mode (by setting it in the mode-hooks).
 ;;
@@ -928,7 +928,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	  t))))
 
 (defun try-expand-dabbrev-all-buffers (old)
-  "Tries to expand word \"dynamically\", searching all other buffers.
+  "Try to expand word \"dynamically\", searching all other buffers.
 The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible expansions of the same
 string).  It returns t if a new expansion is found, nil otherwise."
@@ -986,39 +986,37 @@ The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible expansions of the same
 string).  It returns t if a new expansion is found, nil otherwise."
   (let ((expansion ())
-	(buf (current-buffer))
 	(flag (if (frame-visible-p (window-frame (selected-window)))
 		  'visible t)))
-    (if (not old)
-	(progn
-	   (he-init-string (he-dabbrev-beg) (point))
-	   (setq he-search-window (selected-window))
-	   (set-marker he-search-loc
-		       (window-start he-search-window)
-		       (window-buffer he-search-window))))
+    (unless old
+      (he-init-string (he-dabbrev-beg) (point))
+      (setq he-search-window (selected-window))
+      (set-marker he-search-loc
+                  (window-start he-search-window)
+                  (window-buffer he-search-window)))
 
     (while (and (not (equal he-search-string ""))
-		(marker-position he-search-loc)
-		(not expansion))
+                (marker-position he-search-loc)
+                (not expansion))
       (with-current-buffer (marker-buffer he-search-loc)
-	(goto-char he-search-loc)
-	(setq expansion (he-dabbrev-search he-search-string ()
-					   (window-end he-search-window)))
-	(if (and expansion
-		 (eq (marker-buffer he-string-beg) (current-buffer))
-		 (eq (marker-position he-string-beg) (match-beginning 0)))
-	    (setq expansion (he-dabbrev-search he-search-string ()
-					       (window-end he-search-window))))
-	(set-marker he-search-loc (point) (current-buffer)))
-      (if (not expansion)
-	  (progn
-	    (setq he-search-window (next-window he-search-window nil flag))
-	    (if (eq he-search-window (selected-window))
-		(set-marker he-search-loc nil)
-	      (set-marker he-search-loc (window-start he-search-window)
-			  (window-buffer he-search-window))))))
+        (save-excursion
+          (goto-char he-search-loc)
+          (setq expansion (he-dabbrev-search he-search-string ()
+                                             (window-end he-search-window)))
+          (if (and expansion
+                   (eq (marker-buffer he-string-beg) (current-buffer))
+                   (eq (marker-position he-string-beg) (match-beginning 0)))
+              (setq expansion
+                    (he-dabbrev-search he-search-string ()
+                                       (window-end he-search-window))))
+          (set-marker he-search-loc (point) (current-buffer))))
+      (unless expansion
+        (setq he-search-window (next-window he-search-window nil flag))
+        (if (eq he-search-window (selected-window))
+            (set-marker he-search-loc nil)
+          (set-marker he-search-loc (window-start he-search-window)
+                      (window-buffer he-search-window)))))
 
-    (set-buffer buf)
     (if (not expansion)
 	(progn
 	  (if old (he-reset-string))

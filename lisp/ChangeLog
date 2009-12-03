@@ -1,3 +1,8 @@
+2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hippie-exp.el (try-expand-dabbrev-visible): Preserve point in the
+	buffers visited.  Remove redundant current-buffer-saving.
+
 2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use completion-in-buffer and remove uses of dynamic scoping.
