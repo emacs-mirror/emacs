@@ -265,8 +265,8 @@ It can also be a list of keys appearing in `proced-grammar-alist'."
 ;; FIXME: is there a better name for filter `user' that does not coincide
 ;; with an attribute key?
 (defcustom proced-filter-alist
-  `((user (user . ,(concat "\\`" (user-real-login-name) "\\'")))
-    (user-running (user . ,(concat "\\`" (user-real-login-name) "\\'"))
+  `((user (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'")))
+    (user-running (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'"))
                   (state . "\\`[Rr]\\'"))
     (all)
     (all-running (state . "\\`[Rr]\\'"))
