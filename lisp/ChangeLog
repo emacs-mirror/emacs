@@ -927,14 +927,6 @@ Enhance `c-parse-state' to run efficiently in "brace desserts".
 	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
 	Correct the patch from 2009-11-18.  (Bug#3910)
 
-<<<<<<< ChangeLog
-=======
-2009-11-21  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
-	Update to deal with modern Java constructs.
-
->>>>>>> 1.16811
 2009-11-21  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/subword.el: Rename from lisp/subword.el.
