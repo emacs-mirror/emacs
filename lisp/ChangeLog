@@ -1,3 +1,10 @@
+2009-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Limit the number of log entries displayed by default.
+	* vc.el (vc-print-log-internal): Fix check for limit-unsupported.
+	(vc-print-log, vc-print-root-log): Use vc-log-show-limit when not
+	using a prefix argument.
+
 2009-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/idlwave.el (class): Restore still useful declaration.

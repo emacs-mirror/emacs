@@ -1890,7 +1890,7 @@ Not all VC backends support short logs!")
 
     (vc-exec-after
      `(let ((inhibit-read-only t))
-	(when (and ,limit (not (eq 'limit-unsupported pl-return)))
+	(when (and ,limit (not ,(eq 'limit-unsupported pl-return)))
 	  (goto-char (point-max))
 	  (widget-create 'push-button
 			 :notify (lambda (&rest ignore)
@@ -1931,7 +1931,7 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
        (when (<= lim 0) (setq lim nil))
        (list rev lim)))
     (t
-     (list nil nil))))
+     (list nil (when (> vc-log-show-limit 0) vc-log-show-limit)))))
   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
@@ -1952,7 +1952,7 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
        (when (<= lim 0) (setq lim nil))
        (list lim)))
     (t
-     (list nil))))
+     (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
   (let ((backend
 	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
 	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
