@@ -493,11 +493,12 @@ REV non-nil gets an error."
   ;; way of getting the above regexps working.
   (with-current-buffer buffer
     (apply 'vc-bzr-command "log" buffer 'async files
-	   (when shortlog "--short")
-	   (when limit (list "-l" (format "%s" limit)))
-	   (if (stringp vc-bzr-log-switches)
-	       (list vc-bzr-log-switches)
-	     vc-bzr-log-switches))))
+	   (append
+	    (when shortlog '("--short"))
+	    (when limit (list "-l" (format "%s" limit)))
+	    (if (stringp vc-bzr-log-switches)
+		(list vc-bzr-log-switches)
+	      vc-bzr-log-switches)))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
