@@ -1859,6 +1859,9 @@ If it contains `directory' then if the fileset contains a directory show a short
 If it contains `file' then show short logs for files.
 Not all VC backends support short logs!")
 
+(defvar log-view-vc-backend)
+(defvar log-view-vc-fileset)
+
 (defun vc-print-log-internal (backend files working-revision
                                       &optional limit)
   ;; Don't switch to the output buffer before running the command,
@@ -1882,8 +1885,8 @@ Not all VC backends support short logs!")
       ;; log-view-mode used to be called with inhibit-read-only bound
       ;; to t, so let's keep doing it, just in case.
       (vc-call-backend backend 'log-view-mode))
-    (set (make-local-variable 'log-view-vc-backend) ',backend)
-    (set (make-local-variable 'log-view-vc-fileset) ',files)
+    (set (make-local-variable 'log-view-vc-backend) backend)
+    (set (make-local-variable 'log-view-vc-fileset) files)
 
     (vc-exec-after
      `(let ((inhibit-read-only t))
@@ -1985,10 +1988,12 @@ to the working revision (except for keyword expansion)."
     (when (vc-diff-internal vc-allow-async-revert vc-fileset nil nil)
       (unless (yes-or-no-p
 	       (format "Discard changes in %s? "
-		       (let ((str (vc-delistify files)))
+		       (let ((str (vc-delistify files))
+			     (nfiles (length files)))
 			 (if (< (length str) 50)
 			     str
-			   (format "%d files" (length files))))))
+			   (format "%d file%s" nfiles
+				   (if (= nfiles 1) "" "s"))))))
 	(error "Revert canceled"))
       (delete-windows-on "*vc-diff*")
       (kill-buffer "*vc-diff*"))

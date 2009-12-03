@@ -1,3 +1,9 @@
+2009-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc.el (log-view-vc-backend, log-view-vc-fileset): Declare.
+	(vc-print-log-internal): Fix previous change.
+	(vc-revert): Correct pluralization.
+
 2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/make-mode.el (makefile-special-targets-list): No need for
