@@ -771,7 +771,7 @@ stream.  Standard error output is discarded."
 	(concat
 	 (propertize "Checkout of branch : " 'face 'font-lock-type-face)
 	 (propertize light-checkout-branch 'face 'font-lock-variable-name-face)
-	 "\n")))))
+	 "\n"))
      (if shelve
 	 (concat
 	  (propertize "Shelves            :\n" 'face 'font-lock-type-face
