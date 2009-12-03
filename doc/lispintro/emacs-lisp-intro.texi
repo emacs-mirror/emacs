@@ -22109,16 +22109,11 @@ so that we cannot use it.
 Given that writing good English is a rare skill among programmers, we
 can ill afford to lose manuals this way.
 
-@c (texinfo)uref
-(The Free Software Foundation
-@uref{http://www.gnu.org/doc/doc.html#DescriptionsOfGNUDocumentation, ,
-sells printed copies} of free @uref{http://www.gnu.org/doc/doc.html,
-GNU manuals}, too.)
-
 Free documentation, like free software, is a matter of freedom, not
 price.  The problem with these manuals was not that O'Reilly Associates
-charged a price for printed copies---that in itself is fine.  (The Free
-Software Foundation sells printed copies of free GNU manuals, too.)
+charged a price for printed copies---that in itself is fine.  The Free
+Software Foundation @uref{http://shop.fsf.org, sells printed copies} of
+free @uref{http://www.gnu.org/doc/doc.html, GNU manuals}, too.
 But GNU manuals are available in source code form, while these manuals
 are available only on paper.  GNU manuals come with permission to copy
 and modify; the Perl manuals do not.  These restrictions are the

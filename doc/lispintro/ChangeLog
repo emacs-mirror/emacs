@@ -1,3 +1,8 @@
+2009-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi (Free Software and Free Manuals):
+	Update URL, and remove duplicate text.
+
 2009-10-28  Robert J. Chassell  <bob@gnu.org>
 
 	* emacs-lisp-intro.texi: Don't change urlcolor or linkcolor in tex
