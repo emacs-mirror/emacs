@@ -127,7 +127,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
-Lisp_Object Qlocal, Qipv4, Qdatagram;
+Lisp_Object Qlocal, Qipv4, Qdatagram, Qseqpacket;
 Lisp_Object Qreal, Qnetwork, Qserial;
 #ifdef AF_INET6
 Lisp_Object Qipv6;
@@ -252,6 +252,10 @@ int update_tick;
 #endif /* HAVE_SOCKETS */
 #endif /* DATAGRAM_SOCKETS */
 #endif /* BROKEN_DATAGRAM_SOCKETS */
+
+#if defined HAVE_LOCAL_SOCKETS && defined DATAGRAM_SOCKETS
+# define HAVE_SEQPACKET
+#endif
 
 #if !defined (ADAPTIVE_READ_BUFFERING) && !defined (NO_ADAPTIVE_READ_BUFFERING)
 #ifdef EMACS_HAS_USECS
@@ -3123,7 +3127,8 @@ compiled with getaddrinfo, a port number can also be specified as a
 string, e.g. "80", as well as an integer.  This is not portable.)
 
 :type TYPE -- TYPE is the type of connection.  The default (nil) is a
-stream type connection, `datagram' creates a datagram type connection.
+stream type connection, `datagram' creates a datagram type connection,
+`seqpacket' creates a reliable datagram connection.
 
 :family FAMILY -- FAMILY is the address (and protocol) family for the
 service specified by HOST and SERVICE.  The default (nil) is to use
@@ -3301,6 +3306,10 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef DATAGRAM_SOCKETS
   else if (EQ (tem, Qdatagram))
     socktype = SOCK_DGRAM;
+#endif
+#ifdef HAVE_SEQPACKET
+  else if (EQ (tem, Qseqpacket))
+    socktype = SOCK_SEQPACKET;
 #endif
   else
     error ("Unsupported connection type");
@@ -6859,7 +6868,7 @@ exec_sentinel (proc, reason)
   record_unwind_protect (exec_sentinel_unwind, Fcons (proc, sentinel));
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
-  specbind (Qlast_nonmenu_event, Qt);
+  specbind (Qlast_nonmenu_event, Qt); /* Why? --Stef  */
 
   /* In case we get recursively called,
      and we already saved the match data nonrecursively,
@@ -7330,6 +7339,9 @@ init_process ()
 #ifdef DATAGRAM_SOCKETS
    ADD_SUBFEATURE (QCtype, Qdatagram);
 #endif
+#ifdef HAVE_SEQPACKET
+   ADD_SUBFEATURE (QCtype, Qseqpacket);
+#endif
 #ifdef HAVE_LOCAL_SOCKETS
    ADD_SUBFEATURE (QCfamily, Qlocal);
 #endif
@@ -7403,6 +7415,8 @@ syms_of_process ()
 #endif
   Qdatagram = intern_c_string ("datagram");
   staticpro (&Qdatagram);
+  Qseqpacket = intern_c_string ("seqpacket");
+  staticpro (&Qseqpacket);
 
   QCport = intern_c_string (":port");
   staticpro (&QCport);
