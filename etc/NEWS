@@ -354,6 +354,8 @@ the variable `byte-compile-compatibility') has been removed.
 
 * Lisp changes in Emacs 23.2
 
+** make-network-socket can now also create `seqpacket' Unix sockets.
+
 ** New function `completion-in-region' to use the standard completion
 facilities on a particular region of text.
 

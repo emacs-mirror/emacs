@@ -1,3 +1,8 @@
+2009-12-03  Daniel Hackney  <dan@haxney.org>  (tiny change)
+
+	* process.c (Fmake_network_process): Fix up the tests for
+	"connectionless socket", so they DTRT for seqpacket sockets as well.
+
 2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Qseqpacket): New symbol.

@@ -3333,7 +3333,7 @@ usage: (make-network-process &rest ARGS)  */)
   QCaddress = is_server ? QClocal : QCremote;
 
   /* :nowait BOOL */
-  if (!is_server && socktype == SOCK_STREAM
+  if (!is_server && socktype != SOCK_DGRAM
       && (tem = Fplist_get (contact, QCnowait), !NILP (tem)))
     {
 #ifndef NON_BLOCKING_CONNECT
@@ -3428,7 +3428,7 @@ usage: (make-network-process &rest ARGS)  */)
      Some kernels have a bug which causes retrying connect to fail
      after a connect.  Polling can interfere with gethostbyname too.  */
 #ifdef POLL_FOR_INPUT
-  if (socktype == SOCK_STREAM)
+  if (socktype != SOCK_DGRAM)
     {
       record_unwind_protect (unwind_stop_other_atimers, Qnil);
       bind_polling_period (10);
@@ -3631,7 +3631,7 @@ usage: (make-network-process &rest ARGS)  */)
 	    }
 #endif
 
-	  if (socktype == SOCK_STREAM && listen (s, backlog))
+	  if (socktype != SOCK_DGRAM && listen (s, backlog))
 	    report_file_error ("Cannot listen on server socket", Qnil);
 
 	  break;
@@ -3794,7 +3794,7 @@ usage: (make-network-process &rest ARGS)  */)
   p->pid = 0;
   p->infd  = inch;
   p->outfd = outch;
-  if (is_server && socktype == SOCK_STREAM)
+  if (is_server && socktype != SOCK_DGRAM)
     p->status = Qlisten;
 
   /* Make the process marker point into the process buffer (if any).  */
