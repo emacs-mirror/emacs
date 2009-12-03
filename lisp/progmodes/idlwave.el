@@ -8918,6 +8918,10 @@ This basically calls `idlwave-routine-twin-compare' with the correct args."
        (list btype bfile (list btype))))
     ))
 
+;; Bound in idlwave-study-twins,idlwave-routine-entry-compare-twins.
+;; FIXME: Dynamically scoped vars need to use the `idlwave-' prefix.
+(defvar class)
+
 (defun idlwave-routine-twin-compare (a b)
   "Compare two routine twin entries for sorting.
 In here, A and B are not normal routine info entries, but special

@@ -1,3 +1,7 @@
+2009-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/idlwave.el (class): Restore still useful declaration.
+
 2009-12-03  Alan Mackenzie  <acm@muc.de>
 
 Enhance `c-parse-state' to run efficiently in "brace desserts".
