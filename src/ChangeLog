@@ -1,3 +1,7 @@
+2009-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): Replace indian.el with indian.elc.
+
 2009-12-03  Daniel Hackney  <dan@haxney.org>  (tiny change)
 
 	* process.c (Fmake_network_process): Fix up the tests for
