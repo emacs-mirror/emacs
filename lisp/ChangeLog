@@ -1,3 +1,67 @@
+2009-12-03  Alan Mackenzie  <acm@muc.de>
+
+Enhance `c-parse-state' to run efficiently in "brace desserts".
+
+	* progmodes/cc-mode.el (c-basic-common-init): Call
+	c-state-cache-init.
+	(c-neutralize-syntax-in-and-mark-CPP):  Renamed from
+	c-extend-and-neutralize-syntax-in-CPP.  Mark each CPP construct by
+	placing `category' properties value 'c-cpp-delimiter at its
+	boundaries.
+
+	* progmodes/cc-langs.el (c-before-font-lock-function):
+	c-extend-and-neutralize-syntax-in-CPP has been renamed
+	c-neutralize-syntax-in-and-mark-CPP.
+
+	* progmodes/cc-fonts.el (c-cpp-matchers): Mark template brackets
+	with `category' properties now, not `syntax-table' ones.
+
+	* progmodes/cc-engine.el (c-syntactic-end-of-macro): A new
+	enhanced (but slower) version of c-end-of-macro that won't land
+	inside a literal or on another awkward character.
+	(c-state-cache-too-far, c-state-cache-start)
+	(c-state-nonlit-pos-interval, c-state-nonlit-pos-cache)
+	(c-state-nonlit-pos-cache-limit, c-state-point-min)
+	(c-state-point-min-lit-type, c-state-point-min-lit-start)
+	(c-state-min-scan-pos, c-state-brace-pair-desert)
+	(c-state-old-cpp-beg, c-state-old-cpp-end): New constants and
+	buffer local variables.
+	(c-state-literal-at, c-state-lit-beg)
+	(c-state-cache-non-literal-place, c-state-get-min-scan-pos)
+	(c-state-mark-point-min-literal, c-state-cache-top-lparen)
+	(c-state-cache-top-paren, c-state-cache-after-top-paren)
+	(c-get-cache-scan-pos, c-get-fallback-scan-pos)
+	(c-state-balance-parens-backwards, c-parse-state-get-strategy)
+	(c-renarrow-state-cache)
+	(c-append-lower-brace-pair-to-state-cache)
+	(c-state-push-any-brace-pair, c-append-to-state-cache)
+	(c-remove-stale-state-cache)
+	(c-remove-stale-state-cache-backwards, c-state-cache-init)
+	(c-invalidate-state-cache-1, c-parse-state-1)
+	(c-invalidate-state-cache): New defuns/defmacros/defsubsts.
+	(c-parse-state): Enhanced and refactored.
+	(c-debug-parse-state): Amended to deal with all the new variables.
+
+	* progmodes/cc-defs.el (c-<-as-paren-syntax, c-mark-<-as-paren)
+	(c->-as-paren-syntax, c-mark->-as-paren, c-unmark-<->-as-paren):
+	modify to use category text properties rather than syntax-table
+	ones.
+	(c-suppress-<->-as-parens, c-restore-<->-as-parens): new defsubsts
+	to switch off/on the syntactic paren property of C++ template
+	delimiters using the category property.
+	(c-with-<->-as-parens-suppressed): Macro to invoke code with
+	template delims suppressed.
+	(c-cpp-delimiter, c-set-cpp-delimiters, c-clear-cpp-delimiters):
+	New constant/macros which apply category properties to the start
+	and end of preprocessor constructs.
+	(c-comment-out-cpps, c-uncomment-out-cpps): defsubsts which
+	"comment out" the syntactic value of characters in preprocessor
+	constructs.
+	(c-with-cpps-commented-out)
+	(c-with-all-but-one-cpps-commented-out): Macros to invoke code
+	with characters in all or all but one preprocessor constructs
+	"commented out".
+
 2009-12-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-filter-alist): Use regexp-quote.
@@ -863,11 +927,14 @@
 	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
 	Correct the patch from 2009-11-18.  (Bug#3910)
 
+<<<<<<< ChangeLog
+=======
 2009-11-21  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
 	Update to deal with modern Java constructs.
 
+>>>>>>> 1.16811
 2009-11-21  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/subword.el: Rename from lisp/subword.el.
