@@ -60,6 +60,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defgroup pascal nil
   "Major mode for editing Pascal source in Emacs."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
@@ -1141,7 +1143,7 @@ indent of the current line in parameterlist."
                               "\\<\\(" pascal-str "[a-zA-Z0-9_.]*\\)\\>"))
           (pascal-all ())
           match)
-      
+
       (if (not (looking-at "\\<\\(function\\|procedure\\)\\>"))
           (re-search-backward "\\<\\(function\\|procedure\\)\\>" nil t))
       (forward-char 1)
@@ -1398,7 +1400,7 @@ With optional second arg non-nil, STR is the complete name of the instruction."
                                                    "[a-zA-Z_]"
                                                  pascal-str))))
         (goto-char (point-min))
-      
+
         ;; Build a list of all possible completions
         (while (re-search-forward pascal-str nil t)
           (push (match-string 2) pascal-all)))
@@ -1413,7 +1415,7 @@ The default is a name found in the buffer around point."
   (let* ((default (pascal-get-default-symbol))
 	 (default (if (pascal-comp-defun default nil 'lambda)
 		      default ""))
-	 (label 
+	 (label
           ;; Do completion with default
           (completing-read (if (not (string= default ""))
                                (concat "Label (default " default "): ")
