@@ -1,3 +1,33 @@
+2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Misc cleanup.
+	* progmodes/idlwave.el (idlwave-comment-hook): Simplify with `or'.
+	(idlwave-code-abbrev, idlwave-display-user-catalog-widget)
+	(idlwave-complete-class): Don't quote lambda.
+	(idlwave-find-symbol-syntax-table, idlwave-mode-syntax-table)
+	(idlwave-mode-map): Move initialization into declaration.
+	(idlwave-action-and-binding): Use backquotes.
+	(idlwave-in-quote, idlwave-reset-sintern, idlwave-complete-in-buffer):
+	Simplify.
+	(idlwave-is-pointer-dereference): Remove unused var `pos'.
+	(idlwave-xml-create-rinfo-list): Remove unused var `entry'.
+	(idlwave-convert-xml-clean-sysvar-aliases): Remove unused vars `new',
+	`parts', and `all-parts'.
+	(idlwave-xml-create-sysvar-alist): Remove unused var `fields'.
+	(idlwave-convert-xml-system-routine-info): Remove unused string
+	`version-string'.
+	(idlwave-display-user-catalog-widget): Use dolist.
+	(idlwave-scanning-lib): Declare dynamically-scoped var.
+	(idlwave-scan-library-catalogs): Remove unused var `flags'.
+	(completion-highlight-first-word-only): Declare to silence bytecomp.
+	(idlwave-popup-select): Tighten scope of `resp'.
+	(idlwave-find-struct-tag): Remove unused var `beg'.
+	(idlwave-after-load-rinfo-hook): Declare.
+	(idlwave-sintern-class-info): Remove unused var `taglist'.
+	(idlwave-find-class-definition): Remove unused var `list'.
+	(idlwave-complete-sysvar-tag-help): Remove unused var `main-base'.
+	(idlwave-what-module-find-class): Remove unused var `classes'.
+
 2009-12-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/pascal.el: Require CL when compiling (for lexical-let).
