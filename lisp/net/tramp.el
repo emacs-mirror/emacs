@@ -4629,7 +4629,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 (defun tramp-handle-file-remote-p (filename &optional identification connected)
   "Like `file-remote-p' for Tramp files."
   (when (tramp-tramp-file-p filename)
-    (with-parsed-tramp-file-name filename nil
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (and (or (not connected)
 	       (let ((p (tramp-get-connection-process v)))
 		 (and p (processp p) (memq (process-status p) '(run open)))))
@@ -7709,9 +7709,9 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	   (string-to-number (match-string 2 host))))))
 
 (defun tramp-tramp-file-p (name)
-  "Return t if NAME is a Tramp file."
+  "Return t if NAME is a string with Tramp file name syntax."
   (save-match-data
-    (string-match tramp-file-name-regexp name)))
+    (and (stringp name) (string-match tramp-file-name-regexp name))))
 
 (defun tramp-find-method (method user host)
   "Return the right method string to use.

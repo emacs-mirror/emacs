@@ -37,6 +37,8 @@
 ;;; Code:
 
 (require 'eshell)
+(require 'esh-opt)
+(require 'pcomplete)
 
 ;;;###autoload
 (eshell-defgroup eshell-unix nil
@@ -1048,10 +1050,11 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (defun eshell/su (&rest args)
   "Alias \"su\" to call Tramp."
+  (require 'tramp)
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let (login)
+  (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
-     "sudo" args
+     "su" args
      '((?h "help" nil nil "show this usage screen")
        (?l "login" nil login "provide a login environment")
        (?  nil nil login "provide a login environment")
@@ -1062,13 +1065,18 @@ Become another USER during a login session.")
 		  (host (or (file-remote-p default-directory 'host)
 			    "localhost"))
 		  (dir (or (file-remote-p default-directory 'localname)
-			   default-directory)))
+			   (expand-file-name default-directory))))
 	      (eshell-for arg args
 		(if (string-equal arg "-") (setq login t) (setq user arg)))
+	      ;; `eshell-eval-using-options' does not handle "-".
+	      (if (member "-" orig-args) (setq login t))
 	      (if login (setq dir "~/"))
 	      (if (and (file-remote-p default-directory)
-		       (not (string-equal
-			     user (file-remote-p default-directory 'user))))
+		       (or
+			(not (string-equal
+			      "su" (file-remote-p default-directory 'method)))
+			(not (string-equal
+			      user (file-remote-p default-directory 'user)))))
 		  (add-to-list
 		   'tramp-default-proxies-alist
 		   (list host user (file-remote-p default-directory))))
@@ -1079,8 +1087,9 @@ Become another USER during a login session.")
 
 (defun eshell/sudo (&rest args)
   "Alias \"sudo\" to call Tramp."
+  (require 'tramp)
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
-  (let (user)
+  (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
      "sudo" args
      '((?h "help" nil nil "show this usage screen")
@@ -1089,19 +1098,26 @@ Become another USER during a login session.")
        :usage "[(-u | --user) USER] COMMAND
 Execute a COMMAND as the superuser or another USER.")
      (throw 'eshell-external
-	    (let* ((user (or user "root"))
-		   (host (or (file-remote-p default-directory 'host)
-			     "localhost"))
-		   (dir (or (file-remote-p default-directory 'localname)
-			    default-directory)))
+	    (let ((user (or user "root"))
+		  (host (or (file-remote-p default-directory 'host)
+			    "localhost"))
+		  (dir (or (file-remote-p default-directory 'localname)
+			   (expand-file-name default-directory))))
+	      ;; `eshell-eval-using-options' reads options of COMMAND.
+	      (while (and (stringp (car orig-args))
+			  (member (car orig-args) '("-u" "--user")))
+		(setq orig-args (cddr orig-args)))
 	      (if (and (file-remote-p default-directory)
-		       (not (string-equal
-			     user (file-remote-p default-directory 'user))))
+		       (or
+			(not (string-equal
+			      "sudo" (file-remote-p default-directory 'method)))
+			(not (string-equal
+			      user (file-remote-p default-directory 'user)))))
 		  (add-to-list
 		   'tramp-default-proxies-alist
 		   (list host user (file-remote-p default-directory))))
 	      (let ((default-directory (format "/sudo:%s@%s:%s" user host dir)))
-		(eshell-named-command (car args) (cdr args))))))))
+		(eshell-named-command (car orig-args) (cdr orig-args))))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)
 

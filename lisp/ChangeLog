@@ -1,3 +1,14 @@
+2009-12-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	Cleanup.
+	* eshell/em-unix.el (top): Require 'esh-opt and 'pcomplete.
+	(eshell/su, eshell/sudo): Require 'tramp.  Fix problems reading
+	arguments.  Expand `default-directory'.
+
+	* net/tramp.el (tramp-handle-file-remote-p): Expand FILENAME for
+	the benefit of returning an expanded localname.
+	(tramp-tramp-file-p): Handle the case NAME is not a string.
+
 2009-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add support for bzr shelve/unshelve.
