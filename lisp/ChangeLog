@@ -1,3 +1,9 @@
+2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-complete-internal):
+	Use completion-in-region.
+	(bibtex-text-in-field-bounds): Remove unused var `opoint'.
+
 2009-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Support applying stashes.  Improve UI.

@@ -1513,8 +1513,8 @@ If `bibtex-expand-strings' is non-nil, also expand BibTeX strings."
       (save-excursion
         (goto-char (bibtex-start-of-text-in-field bounds))
         (let ((epoint (bibtex-end-of-text-in-field bounds))
-              content opoint)
-          (while (< (setq opoint (point)) epoint)
+              content)
+          (while (< (point) epoint)
             (if (looking-at bibtex-field-const)
                 (let ((mtch (match-string-no-properties 0)))
                   (push (or (if bibtex-expand-strings
@@ -2702,35 +2702,13 @@ COMPLETIONS is an alist of strings.  If point is not after the part
 of a word, all strings are listed.  Return completion."
   ;; Return value is used by cleanup functions.
   ;; Code inspired by `lisp-complete-symbol'.
-  (let* ((case-fold-search t)
-         (beg (save-excursion
+  (let ((beg (save-excursion
                 (re-search-backward "[ \t{\"]")
                 (forward-char)
                 (point)))
-         (end (point))
-         (pattern (buffer-substring-no-properties beg end))
-         (completion (try-completion pattern completions)))
-    (cond ((not completion)
-           (error "Can't find completion for `%s'" pattern))
-          ((eq completion t)
-           pattern)
-          ((not (string= pattern completion))
-           (delete-region beg end)
-           (insert completion)
-           ;; Don't leave around a completions buffer that's out of date.
-           (let ((win (get-buffer-window "*Completions*" 0)))
-             (if win (with-selected-window win (bury-buffer))))
-           completion)
-          (t
-           (let ((minibuf-is-in-use
-                  (eq (minibuffer-window) (selected-window))))
-             (unless minibuf-is-in-use (message "Making completion list..."))
-             (with-output-to-temp-buffer "*Completions*"
-               (display-completion-list
-                (sort (all-completions pattern completions) 'string<) pattern))
-             (unless minibuf-is-in-use
-               (message "Making completion list...done")))
-           nil))))
+        (end (point)))
+    (when (completion-in-region beg end completions)
+      (buffer-substring beg (point)))))
 
 (defun bibtex-complete-string-cleanup (str compl)
   "Cleanup after inserting string STR.
