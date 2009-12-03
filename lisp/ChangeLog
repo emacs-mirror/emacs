@@ -1,5 +1,8 @@
 2009-12-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el (octave-complete-symbol):
+	Use completion-in-region.
+
 	Misc cleanup.
 	* progmodes/idlwave.el (idlwave-comment-hook): Simplify with `or'.
 	(idlwave-code-abbrev, idlwave-display-user-catalog-widget)

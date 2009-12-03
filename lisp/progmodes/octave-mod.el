@@ -1237,45 +1237,10 @@ otherwise."
   "Perform completion on Octave symbol preceding point.
 Compare that symbol against Octave's reserved words and builtin
 variables."
-  ;; This code taken from lisp-complete-symbol
   (interactive)
   (let* ((end (point))
-	 (beg (save-excursion (backward-sexp 1) (point)))
-	 (string (buffer-substring-no-properties beg end))
-	 (completion (try-completion string octave-completion-alist)))
-    (cond ((eq completion t))		; ???
-	  ((null completion)
-	   (message "Can't find completion for \"%s\"" string)
-	   (ding))
-	  ((not (string= string completion))
-           (delete-region beg end)
-           (insert completion))
-	  (t
-	   (let ((list (all-completions string octave-completion-alist))
-		 (conf (current-window-configuration)))
-	     ;; Taken from comint.el
-	     (message "Making completion list...")
-	     (with-output-to-temp-buffer "*Completions*"
-	       (display-completion-list list string))
-	     (message "Hit space to flush")
-	     (let (key first)
-	       (if (with-current-buffer (get-buffer "*Completions*")
-		     (setq key (read-key-sequence nil)
-			   first (aref key 0))
-		     (and (consp first) (consp (event-start first))
-			  (eq (window-buffer (posn-window (event-start
-							   first)))
-			      (get-buffer "*Completions*"))
-			  (eq (key-binding key) 'mouse-choose-completion)))
-		   (progn
-		     (if (fboundp 'mouse-choose-completion)
-			 (mouse-choose-completion first)
-		       (choose-completion first)) ; Emacs >= 23.2
-		     (set-window-configuration conf))
-		 (if (eq first ?\ )
-		     (set-window-configuration conf)
-		   (setq unread-command-events
-			 (listify-key-sequence key))))))))))
+	 (beg (save-excursion (backward-sexp 1) (point))))
+    (completion-in-region beg end octave-completion-alist)))
 
 
 ;;; Electric characters && friends
