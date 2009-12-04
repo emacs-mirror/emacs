@@ -1,3 +1,8 @@
+2009-12-04  Sam Steingold  <sds@gnu.org>
+
+	* log-view.el (log-view-mode-map): "q" calls quit-window,
+	like in all the other non-self-insert buffers.
+
 2009-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Minor cleanup.
