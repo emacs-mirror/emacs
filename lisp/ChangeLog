@@ -1,3 +1,16 @@
+2009-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Minor cleanup.
+	* term.el (term-send-raw, term-send-raw-meta): Use read-key-sequence's
+	key decoding rather than do it manually via last-input-event +
+	ascii-character.
+	(term-exec): Use delete-and-extract-region.
+	(term-handle-ansi-terminal-messages): Remove unused var `end'.
+	(term-process-pager): Remove unused var `i'.
+	(term-dynamic-simple-complete): Make obsolete.
+	(serial-update-config-menu): Remove unused vars `y' and `str'.
+	(term-update-mode-line): Remove unused var `temp'.
+
 2009-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Limit the number of log entries displayed by default.
@@ -11,14 +24,13 @@
 
 2009-12-03  Alan Mackenzie  <acm@muc.de>
 
-Enhance `c-parse-state' to run efficiently in "brace desserts".
+	Enhance `c-parse-state' to run efficiently in "brace desserts".
 
-	* progmodes/cc-mode.el (c-basic-common-init): Call
-	c-state-cache-init.
-	(c-neutralize-syntax-in-and-mark-CPP):  Renamed from
+	* progmodes/cc-mode.el (c-basic-common-init):
+	Call c-state-cache-init.
+	(c-neutralize-syntax-in-and-mark-CPP):  Rename from
 	c-extend-and-neutralize-syntax-in-CPP.  Mark each CPP construct by
-	placing `category' properties value 'c-cpp-delimiter at its
-	boundaries.
+	placing `category' properties value 'c-cpp-delimiter at its boundaries.
 
 	* progmodes/cc-langs.el (c-before-font-lock-function):
 	c-extend-and-neutralize-syntax-in-CPP has been renamed
@@ -50,14 +62,13 @@ Enhance `c-parse-state' to run efficiently in "brace desserts".
 	(c-remove-stale-state-cache-backwards, c-state-cache-init)
 	(c-invalidate-state-cache-1, c-parse-state-1)
 	(c-invalidate-state-cache): New defuns/defmacros/defsubsts.
-	(c-parse-state): Enhanced and refactored.
-	(c-debug-parse-state): Amended to deal with all the new variables.
+	(c-parse-state): Enhance and refactor.
+	(c-debug-parse-state): Amend to deal with all the new variables.
 
 	* progmodes/cc-defs.el (c-<-as-paren-syntax, c-mark-<-as-paren)
 	(c->-as-paren-syntax, c-mark->-as-paren, c-unmark-<->-as-paren):
-	modify to use category text properties rather than syntax-table
-	ones.
-	(c-suppress-<->-as-parens, c-restore-<->-as-parens): new defsubsts
+	modify to use category text properties rather than syntax-table ones.
+	(c-suppress-<->-as-parens, c-restore-<->-as-parens): New defsubsts
 	to switch off/on the syntactic paren property of C++ template
 	delimiters using the category property.
 	(c-with-<->-as-parens-suppressed): Macro to invoke code with
@@ -65,7 +76,7 @@ Enhance `c-parse-state' to run efficiently in "brace desserts".
 	(c-cpp-delimiter, c-set-cpp-delimiters, c-clear-cpp-delimiters):
 	New constant/macros which apply category properties to the start
 	and end of preprocessor constructs.
-	(c-comment-out-cpps, c-uncomment-out-cpps): defsubsts which
+	(c-comment-out-cpps, c-uncomment-out-cpps): Defsubsts which
 	"comment out" the syntactic value of characters in preprocessor
 	constructs.
 	(c-with-cpps-commented-out)

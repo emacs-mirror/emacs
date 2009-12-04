@@ -1203,25 +1203,13 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   "Send the last character typed through the terminal-emulator
 without any interpretation."
   (interactive)
-  ;; Convert `return' to C-m, etc.
-  (when (and (symbolp last-input-event)
-	     (get last-input-event 'ascii-character))
-    (setq last-input-event (get last-input-event 'ascii-character)))
-  (term-send-raw-string (make-string 1 last-input-event)))
+  (let ((keys (this-command-keys)))
+    (term-send-raw-string (string (aref keys (1- (length keys)))))))
 
 (defun term-send-raw-meta ()
   (interactive)
-  (let ((char last-input-event))
-    (when (symbolp last-input-event)
-      ;; Convert `return' to C-m, etc.
-      (let ((tmp (get char 'event-symbol-elements)))
-	(when tmp
-	  (setq char (car tmp)))
-	(when (symbolp char)
-	  (setq tmp (get char 'ascii-character))
-	  (when tmp
-	    (setq char tmp)))))
-    (setq char (event-basic-type char))
+  (let* ((keys (this-command-keys))
+         (char (aref keys (1- (length keys)))))
     (term-send-raw-string (if (and (numberp char)
 				   (> char 127)
 				   (< char 256))
@@ -1303,7 +1291,6 @@ you type \\[term-send-input] which sends the current line to the inferior."
         (term-page (when (term-pager-enabled) " page"))
         (serial-item-speed)
         (serial-item-config)
-        (temp)
         (proc (get-buffer-process (current-buffer))))
     (when (and (term-check-proc (current-buffer))
                (equal (process-type nil) 'serial))
@@ -1375,7 +1362,7 @@ Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same term
 buffer.  The hook `term-exec-hook' is run after each exec."
   (with-current-buffer buffer
-    (let ((proc (get-buffer-process buffer)))	; Blast any old process.
+    (let ((proc (get-buffer-process buffer))) ; Blast any old process.
       (when proc (delete-process proc)))
     ;; Crank up a new process
     (let ((proc (term-exec-1 name buffer command switches)))
@@ -1387,20 +1374,19 @@ buffer.  The hook `term-exec-hook' is run after each exec."
       (set-process-filter proc 'term-emulate-terminal)
       (set-process-sentinel proc 'term-sentinel)
       ;; Feed it the startfile.
-      (cond (startfile
-	     ;;This is guaranteed to wait long enough
-	     ;;but has bad results if the term does not prompt at all
-	     ;;	     (while (= size (buffer-size))
-	     ;;	       (sleep-for 1))
-	     ;;I hope 1 second is enough!
-	     (sleep-for 1)
-	     (goto-char (point-max))
-	     (insert-file-contents startfile)
-	     (setq startfile (buffer-substring (point) (point-max)))
-	     (delete-region (point) (point-max))
-	     (term-send-string proc startfile)))
+      (when startfile
+        ;;This is guaranteed to wait long enough
+        ;;but has bad results if the term does not prompt at all
+        ;;	     (while (= size (buffer-size))
+        ;;	       (sleep-for 1))
+        ;;I hope 1 second is enough!
+        (sleep-for 1)
+        (goto-char (point-max))
+        (insert-file-contents startfile)
+	(term-send-string
+	 proc (delete-and-extract-region (point) (point-max)))))
     (run-hooks 'term-exec-hook)
-    buffer)))
+    buffer))
 
 (defun term-sentinel (proc msg)
   "Sentinel for term buffers.
@@ -2668,7 +2654,6 @@ See `term-prompt-regexp'."
   (while (string-match "\eAnSiT.+\n" message)
     ;; Extract the command code and the argument.
     (let* ((start (match-beginning 0))
-	   (end (match-end 0))
 	   (command-code (aref message (+ start 6)))
 	   (argument
 	    (save-match-data
@@ -3482,7 +3467,8 @@ The top-most line is line 0."
 (defun term-process-pager ()
   (when (not term-pager-break-map)
     (let* ((map (make-keymap))
-	   (i 0) tmp)
+           ;; (i 0)
+           tmp)
       ;; (while (< i 128)
       ;;   (define-key map (make-string 1 i) 'term-send-raw)
       ;;   (setq i (1+ i)))
@@ -3920,7 +3906,6 @@ This is a good place to put keybindings.")
 ;; term-dynamic-list-filename-completions List completions in help buffer.
 ;; term-replace-by-expanded-filename	Expand and complete filename at point;
 ;;					replace with expanded/completed name.
-;; term-dynamic-simple-complete		Complete stub given candidates.
 
 ;; These are not installed in the term-mode keymap.  But they are
 ;; available for people who want them.  Shell-mode installs them:
@@ -4129,6 +4114,7 @@ See also `term-dynamic-complete-filename'."
  		   (t
 		    (message "Partially completed")
 		    'partial)))))))
+(make-obsolete 'term-dynamic-simple-complete 'completion-in-region "23.2")
 
 
 (defun term-dynamic-list-filename-completions ()
@@ -4434,9 +4420,7 @@ The return value may be nil for a special serial port."
 (defun serial-update-config-menu ()
   (setq serial-mode-line-config-menu (make-sparse-keymap "Configuration"))
   (let ((config (process-contact
-                 (get-buffer-process (current-buffer)) t))
-        (y)
-        (str))
+                 (get-buffer-process (current-buffer)) t)))
     (dolist (y '((:flowcontrol hw   "Hardware flowcontrol (RTS/CTS)")
                  (:flowcontrol sw   "Software flowcontrol (XON/XOFF)")
                  (:flowcontrol nil  "No flowcontrol")
@@ -4537,7 +4521,7 @@ The return value may be nil for a special serial port."
 ;; For modes that use term-mode, term-dynamic-complete-functions is the
 ;; hook to add completion functions to.  Functions on this list should return
 ;; non-nil if completion occurs (i.e., further completion should not occur).
-;; You could use term-dynamic-simple-complete to do the bulk of the
+;; You could use completion-in-region to do the bulk of the
 ;; completion job.
 
 (provide 'term)
