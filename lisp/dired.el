@@ -752,6 +752,24 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 	 buffer-read-only
 	 (dired-directory-changed-p dirname))))
 
+;;;###autoload
+(defcustom dired-auto-revert-buffer nil
+  "Automatically revert dired buffer on revisiting.
+If t, revisiting an existing dired buffer automatically reverts it.
+If its value is a function, call this function with the directory
+name as single argument and revert the buffer if it returns non-nil.
+Otherwise, a message offering to revert the changed dired buffer
+is displayed.
+Note that this is not the same as `auto-revert-mode' that
+periodically reverts at specified time intervals."
+  :type '(choice
+          (const :tag "Don't revert" nil)
+          (const :tag "Always revert visited dired buffer" t)
+          (const :tag "Revert changed dired buffer" dired-directory-changed-p)
+          (function :tag "Predicate function"))
+  :group 'dired
+  :version "23.2")
+
 (defun dired-internal-noselect (dir-or-list &optional switches mode)
   ;; If there is an existing dired buffer for DIRNAME, just leave
   ;; buffer as it is (don't even call dired-revert).
@@ -779,6 +797,14 @@ for a remote directory.  This feature is used by Auto Revert Mode."
 	       (setq dired-directory dir-or-list)
 	       ;; this calls dired-revert
 	       (dired-sort-other switches))
+	      ;; Always revert regardless of whether it has changed or not.
+	      ((eq dired-auto-revert-buffer t)
+	       (revert-buffer))
+	      ;; Revert when predicate function returns non-nil.
+	      ((functionp dired-auto-revert-buffer)
+	       (when (funcall dired-auto-revert-buffer dirname)
+		 (revert-buffer)
+		 (message "Changed directory automatically updated")))
 	      ;; If directory has changed on disk, offer to revert.
 	      ((when (dired-directory-changed-p dirname)
 		 (message "%s"

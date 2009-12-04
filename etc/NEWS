@@ -201,6 +201,11 @@ effective for buffers that have no associated file.  If you want to
 exempt buffers that do correspond to files, customize the value of
 `desktop-files-not-to-save' instead.
 
+** Dired
+
+*** The new variable `dired-auto-revert-buffer' allows to revert
+dired buffers automatically on revisiting.
+
 ** DocView
 
 *** When `doc-view-continuous' is non-nil, scrolling a line

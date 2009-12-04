@@ -1,5 +1,10 @@
 2009-12-04  Juri Linkov  <juri@jurta.org>
 
+	* dired.el (dired-auto-revert-buffer): New defcustom.
+	(dired-internal-noselect): Use it.
+
+2009-12-04  Juri Linkov  <juri@jurta.org>
+
 	Change roles of modes and functions in image-mode.el (Bug#5062).
 
 	* image-mode.el: Replace `image-mode-maybe' with `image-mode'
