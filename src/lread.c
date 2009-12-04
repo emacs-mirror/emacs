@@ -3026,7 +3026,7 @@ read1 (readcharfun, pch, first_in_list)
 		    }
 		  }
 	      }
-	    if (isfloat_string (read_buffer))
+	    if (isfloat_string (read_buffer, 0))
 	      {
 		/* Compute NaN and infinities using 0.0 in a variable,
 		   to cope with compilers that think they are smarter
@@ -3244,8 +3244,9 @@ substitute_in_interval (interval, arg)
 #define EXP_INT 16
 
 int
-isfloat_string (cp)
+isfloat_string (cp, ignore_trailing)
      register char *cp;
+     int ignore_trailing;
 {
   register int state;
 
@@ -3299,7 +3300,8 @@ isfloat_string (cp)
       cp += 3;
     }
 
-  return (((*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
+  return ((ignore_trailing
+           || (*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
 	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
 	      || state == (DOT_CHAR|TRAIL_INT)
 	      || state == (LEAD_INT|E_CHAR|EXP_INT)

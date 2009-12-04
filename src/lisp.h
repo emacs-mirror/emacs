@@ -2795,7 +2795,7 @@ extern Lisp_Object Vcurrent_load_list;
 extern Lisp_Object Vload_history, Vload_suffixes, Vload_file_rep_suffixes;
 extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 		      Lisp_Object *, Lisp_Object));
-extern int isfloat_string P_ ((char *));
+extern int isfloat_string P_ ((char *, int));
 extern void map_obarray P_ ((Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
 			     Lisp_Object));
 extern void dir_warning P_ ((char *, Lisp_Object));

@@ -1770,7 +1770,7 @@ BUFFER defaults to the current buffer.  */)
   CHECK_SYMBOL (variable);
   sym = indirect_variable (XSYMBOL (variable));
   XSETSYMBOL (variable, sym);
-  
+
   valcontents = sym->value;
   if (BUFFER_LOCAL_VALUEP (valcontents))
     {
@@ -2353,11 +2353,11 @@ digit_to_number (character, base)
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
        doc: /* Parse STRING as a decimal number and return the number.
 This parses both integers and floating point numbers.
-It ignores leading spaces and tabs.
+It ignores leading spaces and tabs, and all trailing chars.
 
 If BASE, interpret STRING as a number in that base.  If BASE isn't
 present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
-If the base used is not 10, floating point is not recognized.  */)
+If the base used is not 10, STRING is always parsed as integer.  */)
      (string, base)
      register Lisp_Object string, base;
 {
@@ -2392,7 +2392,7 @@ If the base used is not 10, floating point is not recognized.  */)
   else if (*p == '+')
     p++;
 
-  if (isfloat_string (p) && b == 10)
+  if (isfloat_string (p, 1) && b == 10)
     val = make_float (sign * atof (p));
   else
     {

@@ -1,3 +1,13 @@
+2009-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix `string-to-number' to deal consistently with integers and floats.
+	* lread.c (isfloat_string): New argument ignore_trailing to accept all
+	trailing characters, not just whitespace.
+	(read1): Pass new arg 0 to keep old behavior.
+	* data.c (Fstring_to_number): Pass 1 to isfloat_string to ignore
+	trailing chars, as it is already done for integers.  Doc fixes.
+	* lisp.h (isfloat_string): Add new arg to declaration of isfloat_string.
+
 2009-12-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (enum prop_idx) <AUTO_COMPOSED_PROP_IDX>: Delete
