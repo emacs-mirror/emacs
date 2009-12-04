@@ -682,9 +682,9 @@ See `proced-mode' for a description of features available in Proced buffers."
         (progn
           (display-buffer buffer)
           (with-current-buffer buffer
-            (run-hooks 'proced-post-display-hook)))
+            (proced-update t)))
       (pop-to-buffer buffer)
-      (run-hooks 'proced-post-display-hook)
+      (proced-update t)
       (message
        (substitute-command-keys
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
@@ -1711,7 +1711,8 @@ After sending the signal, this command runs the normal hook
                          (line-end-position))))))
     (unless signal
       ;; Display marked processes (code taken from `dired-mark-pop-up').
-      (let ((bufname  "*Marked Processes*")
+      (let ((bufname  " *Marked Processes*") ; use leading space in buffer name
+					; to make this buffer ephemeral
             (header-line (substring-no-properties proced-header-line)))
         (with-current-buffer (get-buffer-create bufname)
           (setq truncate-lines t

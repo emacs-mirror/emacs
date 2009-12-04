@@ -1,5 +1,12 @@
 2009-12-04  Juri Linkov  <juri@jurta.org>
 
+	* proced.el (proced): Call `(proced-update t)' to update process
+	information instead of only running proced-post-display-hook.
+	(proced-send-signal): Add a leading space to the buffer name
+	" *Marked Processes*" to make this buffer ephemeral.
+
+2009-12-04  Juri Linkov  <juri@jurta.org>
+
 	* dired.el (dired-auto-revert-buffer): New defcustom.
 	(dired-internal-noselect): Use it.
 
