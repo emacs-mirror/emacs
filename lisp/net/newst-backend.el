@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "23. Januar 2009, 19:39:22 (ulf)"
+;; Time-stamp:  "4. Dezember 2009, 20:08:17 (ulf)"
 
 ;; ======================================================================
 
@@ -717,6 +717,7 @@ If URL is nil it is searched at point."
 (defun newsticker-customize ()
   "Open the newsticker customization group."
   (interactive)
+  (delete-other-windows)
   (customize-group "newsticker"))
 
 ;; ======================================================================

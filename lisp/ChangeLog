@@ -1,3 +1,23 @@
+2009-12-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el
+	(newsticker--treeview-list-highlight-start): Restored call to
+	save-excursion: Selected item was stuck.
+	(newsticker--treeview-list-select): New.
+	(newsticker--treeview-item-show-text)
+	(newsticker--treeview-item-show)
+	(newsticker--treeview-item-update): Use new
+	newsticker-treeview-item-mode.
+	(newsticker-treeview-update): Keep current item.
+	(newsticker-treeview-next-new-or-immortal-item): Doc change.
+	(newsticker--treeview-first-feed): Doc change.
+	(newsticker-treeview-list-menu)
+	(newsticker-treeview-item-menu): Added menu entries.
+	(newsticker-treeview-item-mode): New.
+
+	* net/newst-backend.el (newsticker-customize): delete other
+	windows.
+
 2009-12-04  Sam Steingold  <sds@gnu.org>
 
 	* log-view.el (log-view-mode-map): "q" calls quit-window,
