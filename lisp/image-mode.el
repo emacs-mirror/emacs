@@ -42,10 +42,10 @@
 ;;;###autoload (push (cons (purecopy "\\.p[bpgn]m\\'") 'image-mode) auto-mode-alist)
 
 ;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'c-mode)     auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'image-mode-maybe) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'image-mode) auto-mode-alist)
 
 ;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'xml-mode)   auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'image-mode-maybe) auto-mode-alist)
+;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'image-mode) auto-mode-alist)
 
 ;;; Image mode window-info management.
 
@@ -286,6 +286,9 @@ This function assumes the current frame has only one window."
 This variable is used to display the current image type in the mode line.")
 (make-variable-buffer-local 'image-type)
 
+(defvar image-mode-previous-major-mode nil
+  "Internal variable to keep the previous non-image major mode.")
+
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
@@ -306,11 +309,11 @@ This variable is used to display the current image type in the mode line.")
     map)
   "Major mode keymap for viewing images in Image mode.")
 
-(defvar image-mode-text-map
+(defvar image-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'image-toggle-display)
     map)
-  "Major mode keymap for viewing images as text in Image mode.")
+  "Minor mode keymap for viewing images as text in Image mode.")
 
 (defvar bookmark-make-record-function)
 
@@ -320,168 +323,182 @@ This variable is used to display the current image type in the mode line.")
 You can use \\<image-mode-map>\\[image-toggle-display]
 to toggle between display as an image and display as text."
   (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'image-mode)
-  ;; Use our own bookmarking function for images.
-  (set (make-local-variable 'bookmark-make-record-function)
-       'image-bookmark-make-record)
+  (condition-case err
+      (progn
+	(unless (display-images-p)
+	  (error "Display does not support images"))
 
-  ;; Keep track of [vh]scroll when switching buffers
-  (image-mode-setup-winprops)
+	(kill-all-local-variables)
+	(setq major-mode 'image-mode)
 
-  (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
-  (if (display-images-p)
-      (if (not (image-get-display-property))
-	  (image-toggle-display)
-	;; Set next vars when image is already displayed but local
-	;; variables were cleared by kill-all-local-variables
+	(if (not (image-get-display-property))
+	    (progn
+	      (image-toggle-display-image)
+	      ;; If attempt to display the image fails.
+	      (if (not (image-get-display-property))
+		  (error "Invalid image")))
+	  ;; Set next vars when image is already displayed but local
+	  ;; variables were cleared by kill-all-local-variables
+	  (setq cursor-type nil truncate-lines t
+		image-type (plist-get (cdr (image-get-display-property)) :type)))
+
+	(setq mode-name (if image-type (format "Image[%s]" image-type) "Image"))
 	(use-local-map image-mode-map)
-	(setq cursor-type nil truncate-lines t
-	      image-type (plist-get (cdr (image-get-display-property)) :type)))
-    (setq image-type "text")
-    (use-local-map image-mode-text-map))
-  (setq mode-name (format "Image[%s]" image-type))
-  (run-mode-hooks 'image-mode-hook)
-  (if (display-images-p)
-      (message "%s" (concat
-		     (substitute-command-keys
-		      "Type \\[image-toggle-display] to view as ")
-		     (if (image-get-display-property)
-			 "text" "an image") "."))))
+
+	;; Use our own bookmarking function for images.
+	(set (make-local-variable 'bookmark-make-record-function)
+	     'image-bookmark-make-record)
+
+	;; Keep track of [vh]scroll when switching buffers
+	(image-mode-setup-winprops)
+
+	(add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
+	(run-mode-hooks 'image-mode-hook)
+	(message "%s" (concat
+		       (substitute-command-keys
+			"Type \\[image-toggle-display] to view the image as ")
+		       (if (image-get-display-property)
+			   "text" "an image") ".")))
+    (error
+     (image-mode-as-text)
+     (funcall
+      (if (called-interactively-p 'any) 'error 'message)
+      "Cannot display image: %s" (cdr err)))))
 
 ;;;###autoload
 (define-minor-mode image-minor-mode
   "Toggle Image minor mode.
 With arg, turn Image minor mode on if arg is positive, off otherwise.
-See the command `image-mode' for more information on this mode."
-  nil (:eval (format " Image[%s]" image-type)) image-mode-text-map
+It provides the key \\<image-mode-map>\\[image-toggle-display] \
+to switch back to `image-mode'
+to display an image file as the actual image."
+  nil (:eval (if image-type (format " Image[%s]" image-type) " Image"))
+  image-minor-mode-map
   :group 'image
   :version "22.1"
-  (if (not image-minor-mode)
-      (image-toggle-display-text)
-    (image-mode-setup-winprops)
-    (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
-    (if (display-images-p)
-        (condition-case err
-            (progn
-              (if (not (image-get-display-property))
-                  (image-toggle-display)
-                (setq cursor-type nil truncate-lines t
-                      image-type (plist-get (cdr (image-get-display-property))
-                                            :type)))
-              (message "%s"
-                       (concat
-                        (substitute-command-keys
-                         "Type \\[image-toggle-display] to view the image as ")
-                        (if (image-get-display-property)
-                            "text" "an image") ".")))
-          (error
-           (image-toggle-display-text)
-           (funcall
-            (if (called-interactively-p 'any) 'error 'message)
-            "Cannot display image: %s" (cdr err))))
-      (setq image-type "text")
-      (use-local-map image-mode-text-map))))
+  (if image-minor-mode
+      (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)))
 
 ;;;###autoload
-(defun image-mode-maybe ()
-  "Set major or minor mode for image files.
-Set Image major mode only when there are no other major modes
-associated with a filename in `auto-mode-alist'.  When an image
-filename matches another major mode in `auto-mode-alist' then
-set that major mode and Image minor mode.
+(defun image-mode-as-text ()
+  "Set a non-image mode as major mode in combination with image minor mode.
+A non-image major mode found from `auto-mode-alist' or Fundamental mode
+displays an image file as text.  `image-minor-mode' provides the key
+\\<image-mode-map>\\[image-toggle-display] to switch back to `image-mode'
+to display an image file as the actual image.
 
-See commands `image-mode' and `image-minor-mode' for more
-information on these modes."
+You can use `image-mode-as-text' in `auto-mode-alist' when you want
+to display an image file as text inititally.
+
+See commands `image-mode' and `image-minor-mode' for more information
+on these modes."
   (interactive)
-  (let* ((mode-alist
-	  (delq nil (mapcar
-		     (lambda (elt)
-		       (unless (memq (or (car-safe (cdr elt)) (cdr elt))
-				     '(image-mode image-mode-maybe))
-			 elt))
-		     auto-mode-alist))))
-    (if (assoc-default buffer-file-name mode-alist 'string-match)
-	(let ((auto-mode-alist mode-alist)
-	      (magic-mode-alist nil))
-	  (set-auto-mode)
-	  (image-minor-mode t))
-      (image-mode))))
+  ;; image-mode-as-text = normal-mode + image-minor-mode
+  (let ((previous-image-type image-type)) ; preserve `image-type'
+    (if image-mode-previous-major-mode
+	;; Restore previous major mode that was already found by this
+	;; function and cached in `image-mode-previous-major-mode'
+	(funcall image-mode-previous-major-mode)
+      (let ((auto-mode-alist
+	     (delq nil (mapcar
+			(lambda (elt)
+			  (unless (memq (or (car-safe (cdr elt)) (cdr elt))
+					'(image-mode image-mode-maybe image-mode-as-text))
+			    elt))
+			auto-mode-alist)))
+	    (magic-fallback-mode-alist
+	     (delq nil (mapcar
+			(lambda (elt)
+			  (unless (memq (or (car-safe (cdr elt)) (cdr elt))
+					'(image-mode image-mode-maybe image-mode-as-text))
+			    elt))
+			magic-fallback-mode-alist))))
+	(normal-mode)
+	(set (make-local-variable 'image-mode-previous-major-mode) major-mode)))
+    ;; Restore `image-type' after `kill-all-local-variables' in `normal-mode'.
+    (setq image-type previous-image-type)
+    ;; Enable image minor mode with `C-c C-c'.
+    (image-minor-mode 1)
+    ;; Show the image file as text.
+    (image-toggle-display-text)
+    (message "%s" (concat
+		   (substitute-command-keys
+		    "Type \\[image-toggle-display] to view the image as ")
+		   (if (image-get-display-property)
+		       "text" "an image") "."))))
+
+(define-obsolete-function-alias 'image-mode-maybe 'image-mode "23.2")
 
 (defun image-toggle-display-text ()
-  "Showing the text of the image file."
-  (if (image-get-display-property)
-      (image-toggle-display)))
+  "Show the image file as text.
+Remove text properties that display the image."
+  (let ((inhibit-read-only t)
+	(buffer-undo-list t)
+	(modified (buffer-modified-p)))
+    (remove-list-of-text-properties (point-min) (point-max)
+				    '(display intangible read-nonsticky
+					      read-only front-sticky))
+    (set-buffer-modified-p modified)
+    (if (called-interactively-p 'any)
+	(message "Repeat this command to go back to displaying the image"))))
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
 (declare-function image-refresh "image.c" (spec &optional frame))
 
+(defun image-toggle-display-image ()
+  "Show the image of the image file.
+Turn the image data into a real image, but only if the whole file
+was inserted."
+  (let* ((filename (buffer-file-name))
+	 (data-p (not (and filename
+			   (file-readable-p filename)
+			   (not (file-remote-p filename))
+			   (not (buffer-modified-p))
+			   (not (and (boundp 'archive-superior-buffer)
+				     archive-superior-buffer))
+			   (not (and (boundp 'tar-superior-buffer)
+				     tar-superior-buffer)))))
+	 (file-or-data (if data-p
+			   (string-make-unibyte
+			    (buffer-substring-no-properties (point-min) (point-max)))
+			 filename))
+	 (type (image-type file-or-data nil data-p))
+	 (image (create-image file-or-data type data-p))
+	 (props
+	  `(display ,image
+		    intangible ,image
+		    rear-nonsticky (display intangible)
+		    read-only t front-sticky (read-only)))
+	 (inhibit-read-only t)
+	 (buffer-undo-list t)
+	 (modified (buffer-modified-p)))
+    (image-refresh image)
+    (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
+      (add-text-properties (point-min) (point-max) props)
+      (restore-buffer-modified-p modified))
+    ;; Inhibit the cursor when the buffer contains only an image,
+    ;; because cursors look very strange on top of images.
+    (setq cursor-type nil)
+    ;; This just makes the arrow displayed in the right fringe
+    ;; area look correct when the image is wider than the window.
+    (setq truncate-lines t)
+    ;; Allow navigation of large images
+    (set (make-local-variable 'auto-hscroll-mode) nil)
+    (setq image-type type)
+    (if (eq major-mode 'image-mode)
+	(setq mode-name (format "Image[%s]" type)))
+    (if (called-interactively-p 'any)
+	(message "Repeat this command to go back to displaying the file as text"))))
+
 (defun image-toggle-display ()
   "Start or stop displaying an image file as the actual image.
-This command toggles between showing the text of the image file
-and showing the image as an image."
+This command toggles between `image-mode-as-text' showing the text of
+the image file and `image-mode' showing the image as an image."
   (interactive)
   (if (image-get-display-property)
-      (let ((inhibit-read-only t)
-	    (buffer-undo-list t)
-	    (modified (buffer-modified-p)))
-	(remove-list-of-text-properties (point-min) (point-max)
-					'(display intangible read-nonsticky
-						  read-only front-sticky))
-	(set-buffer-modified-p modified)
-	(kill-local-variable 'cursor-type)
-	(kill-local-variable 'truncate-lines)
-	(kill-local-variable 'auto-hscroll-mode)
-	(use-local-map image-mode-text-map)
-	(setq image-type "text")
-	(if (eq major-mode 'image-mode)
-	    (setq mode-name "Image[text]"))
-	(if (called-interactively-p 'any)
-	    (message "Repeat this command to go back to displaying the image")))
-    ;; Turn the image data into a real image, but only if the whole file
-    ;; was inserted
-    (let* ((filename (buffer-file-name))
-	   (data-p (not (and filename
-			     (file-readable-p filename)
-			     (not (file-remote-p filename))
-			     (not (buffer-modified-p))
-			     (not (and (boundp 'archive-superior-buffer)
-				       archive-superior-buffer))
-			     (not (and (boundp 'tar-superior-buffer)
-				       tar-superior-buffer)))))
-	   (file-or-data (if data-p
-			     (string-make-unibyte
-			      (buffer-substring-no-properties (point-min) (point-max)))
-			   filename))
-	   (type (image-type file-or-data nil data-p))
-	   (image (create-image file-or-data type data-p))
-	   (props
-	    `(display ,image
-		      intangible ,image
-		      rear-nonsticky (display intangible)
-		      read-only t front-sticky (read-only)))
-	   (inhibit-read-only t)
-	   (buffer-undo-list t)
-	   (modified (buffer-modified-p)))
-      (image-refresh image)
-      (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
-	(add-text-properties (point-min) (point-max) props)
-	(restore-buffer-modified-p modified))
-      ;; Inhibit the cursor when the buffer contains only an image,
-      ;; because cursors look very strange on top of images.
-      (setq cursor-type nil)
-      ;; This just makes the arrow displayed in the right fringe
-      ;; area look correct when the image is wider than the window.
-      (setq truncate-lines t)
-      ;; Allow navigation of large images
-      (set (make-local-variable 'auto-hscroll-mode) nil)
-      (use-local-map image-mode-map)
-      (setq image-type type)
-      (if (eq major-mode 'image-mode)
-	  (setq mode-name (format "Image[%s]" type)))
-      (if (called-interactively-p 'any)
-	  (message "Repeat this command to go back to displaying the file as text")))))
+      (image-mode-as-text)
+    (image-mode)))
 
 ;;; Support for bookmark.el
 (declare-function bookmark-make-record-default "bookmark"

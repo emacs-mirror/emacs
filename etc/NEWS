@@ -351,6 +351,17 @@ be in use:
 ** Support for generating Emacs 18 compatible bytecode (by setting
 the variable `byte-compile-compatibility') has been removed.
 
+** In image-mode.el `image-mode-maybe' is obsolete.  Instead, you can
+either use `image-mode' that displays an image file as the actual image
+inititally, or `image-mode-as-text' when you want to display an image file
+as text inititally.  `image-mode-as-text' is a combination of a non-image
+mode from `auto-mode-alist' (or Fundamental mode) and `image-minor-mode'.
+`image-minor-mode' provides `C-c C-c' key binding to toggle image display.
+`image-toggle-display-text' removes image properties.
+`image-toggle-display-image' adds image properties.
+`image-toggle-display' toggles between `image-mode-as-text' and
+`image-mode'.
+
 
 * Lisp changes in Emacs 23.2
 

@@ -1,3 +1,26 @@
+2009-12-04  Juri Linkov  <juri@jurta.org>
+
+	Change roles of modes and functions in image-mode.el (Bug#5062).
+
+	* image-mode.el: Replace `image-mode-maybe' with `image-mode'
+	in `auto-mode-alist'.
+	(image-mode-previous-major-mode): New variable.
+	(image-minor-mode-map): Rename from `image-mode-text-map'.
+	(image-mode): Move graceful error-handling code from
+	`image-minor-mode' to here.  On errors call `image-mode-as-text'.
+	(image-minor-mode): Remove all image-handling code.
+	Replace `image-mode-text-map' with `image-minor-mode-map'.
+	Check for `image-type' in mode-line format string.
+	(image-mode-maybe): Make obsolete with an alias to `image-mode'.
+	(image-mode-as-text): New function with most code from
+	`image-mode-maybe'.
+	(image-toggle-display-text): Move code that removes image
+	properties from `image-toggle-display' to here.
+	(image-toggle-display-image): New function with code that adds
+	image properties copied from `image-toggle-display'.
+	(image-toggle-display): Remove most code with leaving only code
+	that toggles between `image-mode-as-text' and `image-mode'.
+
 2009-12-04  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el
