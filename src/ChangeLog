@@ -1,3 +1,8 @@
+2009-12-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (enum prop_idx) <AUTO_COMPOSED_PROP_IDX>: Delete
+	unused enumeration value.
+
 2009-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): Replace indian.el with indian.elc.
