@@ -163,7 +163,7 @@ The value nil means do no formatting at all."
  "Alist of field regexps that \\[bibtex-clean-entry] encloses by braces.
 Each element has the form (FIELDS REGEXP), where FIELDS is a list
 of BibTeX field names and REGEXP is a regexp.
-Whitespace in REGEXP will be replaced by \"[ \\t\\n]+\"."
+Space characters in REGEXP will be replaced by \"[ \\t\\n]+\"."
   :group 'bibtex
   :type '(repeat (list (repeat (string :tag "field name"))
                        (choice (regexp :tag "regexp")
@@ -174,7 +174,7 @@ Whitespace in REGEXP will be replaced by \"[ \\t\\n]+\"."
 Each element has the form (FIELDS REGEXP TO-STR), where FIELDS is a list
 of BibTeX field names.  In FIELDS search for REGEXP, which are replaced
 by the BibTeX string constant TO-STR.
-Whitespace in REGEXP will be replaced by \"[ \\t\\n]+\"."
+Space characters in REGEXP will be replaced by \"[ \\t\\n]+\"."
   :group 'bibtex
   :type '(repeat (list (repeat (string :tag "field name"))
                        (regexp :tag "From regexp")
@@ -907,6 +907,7 @@ and with the `match-data' properly set.
 Case is always ignored.  Always remove the field delimiters.
 If `bibtex-expand-strings' is non-nil, BibTeX strings are expanded
 for generating the URL.
+Set this variable before loading BibTeX mode.
 
 The following is a complex example, see http://link.aps.org/linkfaq.html.
 
@@ -945,7 +946,8 @@ The following is a complex example, see http://link.aps.org/linkfaq.html.
 Each rule should be of the form (REGEXP . SUBEXP), where SUBEXP
 specifies which parenthesized expression in REGEXP is a cited key.
 Case is significant.
-Used by `bibtex-search-crossref' and for font-locking."
+Used by `bibtex-search-crossref' and for font-locking.
+Set this variable before loading BibTeX mode."
   :group 'bibtex
   :type '(repeat (cons (regexp :tag "Regexp")
                        (integer :tag "Number")))
@@ -1725,13 +1727,18 @@ entry and `match-data' corresponds to the header of the entry,
 see regexp `bibtex-entry-head'.  If `bibtex-sort-ignore-string-entries'
 is non-nil, FUN is not called for @String entries."
   (let ((case-fold-search t)
+        (end-marker (make-marker))
         found)
+    ;; Use marker to keep track of the buffer position of the end of
+    ;; a BibTeX entry as this position may change during reformatting.
+    (set-marker-insertion-type end-marker t)
     (save-excursion
       (goto-char (point-min))
       (while (setq found (bibtex-skip-to-valid-entry))
+        (set-marker end-marker (cdr found))
         (looking-at bibtex-any-entry-maybe-empty-head)
-        (funcall fun (bibtex-key-in-head "") (car found) (cdr found))
-        (goto-char (cdr found))))))
+        (funcall fun (bibtex-key-in-head "") (car found) end-marker)
+        (goto-char end-marker)))))
 
 (defun bibtex-progress-message (&optional flag interval)
   "Echo a message about progress of current buffer.
@@ -1871,7 +1878,14 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
       (bibtex-skip-to-valid-entry)
       (push-mark)
       (insert (funcall fun 'bibtex-entry-kill-ring-yank-pointer
-                       bibtex-entry-kill-ring)))))
+                       bibtex-entry-kill-ring))
+      (unless (functionp bibtex-reference-keys)
+        ;; update `bibtex-reference-keys'
+        (save-excursion
+          (goto-char (mark t))
+          (looking-at bibtex-any-entry-maybe-empty-head)
+          (let ((key (bibtex-key-in-head)))
+            (if key (push (cons key t) bibtex-reference-keys))))))))
 
 (defun bibtex-format-entry ()
   "Helper function for `bibtex-clean-entry'.
@@ -1988,6 +2002,17 @@ Formats current entry according to variable `bibtex-entry-format'."
                   (unless deleted
                     (push field-name field-list)
 
+                    ;; Remove whitespace at beginning and end of field.
+                    ;; We do not look at individual parts of the field
+                    ;; as {foo } # bar # { baz} is a fine field.
+                    (when (memq 'whitespace format)
+                      (goto-char beg-text)
+                      (if (looking-at "\\([{\"]\\)[ \t\n]+")
+                          (replace-match "\\1"))
+                      (goto-char end-text)
+                      (if (looking-back "[ \t\n]+\\([}\"]\\)" beg-text t)
+                          (replace-match "\\1")))
+
                     ;; remove delimiters from purely numerical fields
                     (when (and (memq 'numerical-fields format)
                                (progn (goto-char beg-text)
@@ -2023,17 +2048,6 @@ Formats current entry according to variable `bibtex-entry-format'."
                                     (looking-at
                                      "\\([\"{][0-9]+\\)[ \t\n]*--?[ \t\n]*\\([0-9]+[\"}]\\)")))
                         (replace-match "\\1-\\2"))
-
-                    ;; Remove whitespace at beginning and end of field.
-                    ;; We do not look at individual parts of the field
-                    ;; as {foo } # bar # { baz} is a fine field.
-                    (when (memq 'whitespace format)
-                      (goto-char beg-text)
-                      (if (looking-at "\\([{\"]\\)[ \t\n]+")
-                          (replace-match "\\1"))
-                      (goto-char end-text)
-                      (if (looking-back "[ \t\n]+\\([}\"]\\)" beg-text t)
-                          (replace-match "\\1")))
 
                     ;; enclose field text by braces according to
                     ;; `bibtex-field-braces-alist'.
@@ -2184,7 +2198,7 @@ Return optimized value to be used by `bibtex-format-entry'."
   (setq regexp-alist
         (mapcar (lambda (e)
                   (list (car e)
-                        (replace-regexp-in-string "[ \t\n]+" "[ \t\n]+" (nth 1 e))
+                        (replace-regexp-in-string " +" "[ \t\n]+" (nth 1 e))
                         (nth 2 e))) ; nil for 'braces'.
                 regexp-alist))
   (let (opt-list)
@@ -2684,7 +2698,9 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
     (dolist (buffer buffer-list)
       (with-current-buffer buffer
         (if (or force (functionp bibtex-reference-keys))
-            (bibtex-parse-keys))))
+            (bibtex-parse-keys))
+        (unless (functionp bibtex-strings)
+          (bibtex-parse-strings (bibtex-string-files-init)))))
     ;; select BibTeX buffer
     (if select
         (if buffer-list
@@ -4053,7 +4069,11 @@ but do not actually kill it.  Optional arg COMMA is as in
            (end (bibtex-end-of-field bounds))
            (beg (bibtex-start-of-field bounds)))
       (goto-char end)
-      (skip-chars-forward ",")
+      ;; Preserve white space at end of BibTeX entry
+      (if (looking-at "[ \t\n]*[)}]")
+          (progn (skip-chars-backward " \t\n")
+                 (setq end (point)))
+        (skip-chars-forward ","))
       (push (list (bibtex-name-in-field bounds) nil
                   (bibtex-text-in-field-bounds bounds))
             bibtex-field-kill-ring)
@@ -4081,6 +4101,8 @@ but do not actually kill it."
   (save-excursion
     (let* ((case-fold-search t)
            (beg (bibtex-beginning-of-entry))
+           (key (progn (looking-at bibtex-any-entry-maybe-empty-head)
+                       (bibtex-key-in-head)))
            (end (progn (bibtex-end-of-entry)
                        (if (re-search-forward
                             bibtex-any-entry-maybe-empty-head nil 'move)
@@ -4094,7 +4116,11 @@ but do not actually kill it."
                   nil))
       (setq bibtex-entry-kill-ring-yank-pointer bibtex-entry-kill-ring)
       (unless copy-only
-        (delete-region beg end))))
+        (delete-region beg end)
+        ;; remove key from `bibtex-reference-keys'.
+        (unless (functionp bibtex-reference-keys)
+          (setq bibtex-reference-keys
+                (delete (cons key t) bibtex-reference-keys))))))
   (setq bibtex-last-kill-command 'entry))
 
 (defun bibtex-copy-entry-as-kill ()
@@ -4128,7 +4154,16 @@ comes the newest one."
   (unless (eq last-command 'bibtex-yank)
     (error "Previous command was not a BibTeX yank"))
   (setq this-command 'bibtex-yank)
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t) key)
+    ;; point is at end of yanked entry
+    (unless (functionp bibtex-reference-keys)
+      ;; remove key of yanked entry from `bibtex-reference-keys'
+      (save-excursion
+        (goto-char (mark t))
+        (if (and (looking-at bibtex-any-entry-maybe-empty-head)
+                 (setq key (bibtex-key-in-head)))
+            (setq bibtex-reference-keys
+                  (delete (cons key t) bibtex-reference-keys)))))
     (delete-region (point) (mark t))
     (bibtex-insert-kill n t)))
 
@@ -4390,7 +4425,7 @@ If mark is active reformat entries in region, if not in whole buffer."
                            last-comma page-dashes unify-case inherit-booktitle
                            whitespace braces strings))
                 (t
-                 (remove 'required-fields (push 'realign bibtex-entry-format)))))
+                 (cons 'realign (remove 'required-fields bibtex-entry-format)))))
          (reformat-reference-keys
           (if read-options
               (if use-previous-options
