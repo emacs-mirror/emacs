@@ -11,7 +11,7 @@
 	* progmodes/cc-mode.el (c-before-hack-hook)
 	(c-postprocess-file-styles): Revert change 1.85 to permit
 	`c-file-style' to work again.  This reversion restores the current
-	software to its state in Emacs 23.1.
+	software to its state in Emacs 23.1.  (Bug#4146)
 
 2009-12-05  Kevin Ryde  <user42@zip.com.au>
 
