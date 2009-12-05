@@ -16384,22 +16384,20 @@ cursor_row_p (w, row)
 
 
 /* Push the display property PROP so that it will be rendered at the
-   current position in IT.  */
+   current position in IT.  Return 1 if PROP was successfully pushed,
+   0 otherwise.  */
 
-static void
+static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
   push_it (it);
-
-  /* Never display a cursor on the prefix.  */
-  it->avoid_cursor_p = 1;
 
   if (STRINGP (prop))
     {
       if (SCHARS (prop) == 0)
 	{
 	  pop_it (it);
-	  return;
+	  return 0;
 	}
 
       it->string = prop;
@@ -16426,8 +16424,10 @@ push_display_prop (struct it *it, Lisp_Object prop)
   else
     {
       pop_it (it);		/* bogus display property, give up */
-      return;
+      return 0;
     }
+
+  return 1;
 }
 
 /* Return the character-property PROP at the current position in IT.  */
@@ -16467,13 +16467,13 @@ handle_line_prefix (struct it *it)
       if (NILP (prefix))
 	prefix = Vline_prefix;
     }
-  if (! NILP (prefix))
+  if (! NILP (prefix) && push_display_prop (it, prefix))
     {
-      push_display_prop (it, prefix);
       /* If the prefix is wider than the window, and we try to wrap
 	 it, it would acquire its own wrap prefix, and so on till the
 	 iterator stack overflows.  So, don't wrap the prefix.  */
       it->line_wrap = TRUNCATE;
+      it->avoid_cursor_p = 1;
     }
 }
 
