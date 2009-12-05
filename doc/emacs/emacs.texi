@@ -998,9 +998,9 @@ Customizing the Calendar and Diary
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
 * Non-Gregorian Diary::    Diary entries based on other calendars.
-* Fancy Diary Display::    Enhancing the diary display, sorting entries,
-                             using included diary files.
-* Sexp Diary Entries::     Fancy things you can do.
+* Diary Display::          A choice of ways to display the diary.
+* Fancy Diary Display::    Sorting diary entries, using included diary files.
+* Sexp Diary Entries::     More flexible diary entries.
 
 Document Viewing
 
