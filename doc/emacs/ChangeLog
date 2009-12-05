@@ -1,3 +1,7 @@
+2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Shell Options): ansi-color is now default.
+
 2009-12-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Top): Update menu for cal-xtra node changes.
