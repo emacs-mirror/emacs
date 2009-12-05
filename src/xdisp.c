@@ -6217,8 +6217,8 @@ set_iterator_to_next (it, reseat_p)
    or `\003'.
 
    IT->dpvec holds the glyphs to return as characters.
-   IT->saved_face_id holds the face id before the display vector--
-   it is restored into IT->face_idin set_iterator_to_next.  */
+   IT->saved_face_id holds the face id before the display vector--it
+   is restored into IT->face_id in set_iterator_to_next.  */
 
 static int
 next_element_from_display_vector (it)
