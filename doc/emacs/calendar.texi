@@ -1049,7 +1049,8 @@ entries.
 @subsection Displaying the Diary
 
   Once you have created a diary file, you can use the calendar to view
-it.  You can also view today's events outside of Calendar mode.
+it.  You can also view today's events outside of Calendar mode.  In the
+following, key bindings refer to the Calendar buffer.
 
 @table @kbd
 @item d
