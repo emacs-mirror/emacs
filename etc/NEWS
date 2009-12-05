@@ -36,71 +36,54 @@ This might not work on all platforms.
 ** `make install' now consistently ignores umask, creating a
 world-readable install.
 
+** Emacs compiles with Gconf support by default, if it is detected.
+Use the configure option --without-gconf to disable this.
+
 * Startup Changes in Emacs 23.2
 
-** Command-line option -Q (--quick) now also disables loading X resources.
-Note however that this does not affect Lucid or Motif widgets, if you
-are using those toolkits.  On Windows, this option causes Emacs to
-ignore Registry settings, though environment variables set on the
-Registry are still honored.
+** The command-line option -Q (--quick) also inhibits loading X resources.
+However, if Emacs is compiled with the Lucid or Motif toolkit, X
+resource settings for the graphical widgets are still applied.
+On Windows, the -Q option causes Emacs to ignore Registry settings,
+but environment variables set on the Registry are still honored.
 
 *** The new variable `inhibit-x-resources' shows whether X resources
 were loaded.
 
++++
+** New command-line option -mm (--maximized) maximizes the initial frame.
+
 * Changes in Emacs 23.2
 
-** The maximum size of buffers (as well as the largest fixnum) is doubled.
+** The maximum size of buffers (and the largest fixnum) is doubled.
 On typical 32bit systems, buffers can now be up to 512MB.
 
-** Function arguments in *Help* buffers are now in uppercase by default.
-You can customize the new variable `help-downcase-arguments' to change it.
-
-** Unibyte sessions are now considered obsolete.
-I.e. the use of the environment variable EMACS_UNIBYTE, or command line
-arguments --unibyte, --multibyte, --no-multibyte, and --no-unibyte
-is deprecated.  Similarly for custom-izing enable-multibyte-characters, or
-setting default-enable-multibyte-characters.
-
-** The default value of `trash-directory' has changed to nil, which
-means that `move-file-to-trash' trashes files according to
+** The default value of `trash-directory' is now nil.
+This means that `move-file-to-trash' trashes files according to
 freedesktop.org specifications, the same method used by the Gnome,
 KDE, and XFCE desktops.  (This change has no effect on Windows, which
 uses `system-move-file-to-trash' for trashing.)
 
-+++
-** Emacs frames can be maximized.
-The command line arguments -mm/--maximized and the value maximized to the
-frame parameter fullscreen makes the Emacs frame maximized.
-
-+++
-** New frame parameter sticky makes Emacs frames sticky in virtual desktops.
-
 ** The pointer now becomes invisible when typing.
-Customize make-pointer-invisible to turn it off.
+Customize `make-pointer-invisible' to disable this feature.
 
-** Emacs can use the system default monospaced font in Gnome.
-The use of the system default font can be turned on or off by customizing
-the variable 'font-use-system-font'.  It is off by default.
-If the system default is changed, Emacs changes also.
-This requires that gconf-support is built in.  If configure finds the
-gconf-libraries, that support is included. Gconf-support can be
-turned off with the configure option --without-gconf.
+** Font changes
 
-** Emacs now reacts to Xft-changes made by configuration tools on X11.
-Changes to antialias, hinting, hintstyle, RGBA, DPI and lcdfilter are
-handeled.  The XSETTINGS mechanism is used to implement this.
+*** Emacs can use the system default monospaced font in Gnome.
+To enable this feature, set `font-use-system-font' to non-nil (it is
+nil by default).  If the system default changes, Emacs changes also.
+This feature requires Gconf support, which is automatically included
+at compile-time if configure detects the gconf libraries (you can
+disable this with the configure option --without-gconf).
+
+*** On X11, Emacs reacts to Xft changes made by configuration tools,
+via the XSETTINGS mechanism.  This includes antialias, hinting,
+hintstyle, RGBA, DPI and lcdfilter changes.
 
 ** Killing a buffer with a running process now asks for confirmation.
-You can remove this query in two ways: either remove
-`process-kill-buffer-query-function' from `kill-buffer-query-functions',
-or set the appropriate process flag with `set-process-query-on-exit-flag'.
-
-** The variable `load-in-progress' won't get corrupted by binding it
-with `let'.  In certain situations, loading an Emacs Lisp file from
-source while in the midst of loading another file (e.g., with
-`require' or `autoload') could cause the value of `load-in-progress'
-to be corrupted once the outer load completed.  Most code doesn't care
-about this, but some (like c-mode) may check it.
+To remove this query, remove `process-kill-buffer-query-function' from
+`kill-buffer-query-functions', or set the appropriate process flag
+with `set-process-query-on-exit-flag'.
 
 ** File-local variable changes
 
@@ -120,47 +103,64 @@ and copying them to and from file-local variable lists:
 `copy-dir-locals-to-file-locals-prop-line' and
 `copy-file-locals-to-dir-locals'.
 
-** New coding system `utf-8-hfs' is available in
-international/ucs-normalize.el.  It is suitable for
-default-file-name-coding-system on Mac OS X.
+** Internationalization changes
+
+*** Unibyte sessions are now considered obsolete.
+This refers to the EMACS_UNIBYTE environment variable as well as the
+--unibyte, --multibyte, --no-multibyte, and --no-unibyte command line
+arguments.  Customizing enable-multibyte-characters and setting
+default-enable-multibyte-characters are also deprecated.
+
+*** New coding system `utf-8-hfs'.
+This is suitable for default-file-name-coding-system on Mac OS X; see
+international/ucs-normalize.el.
+
+** Function arguments in *Help* buffers are now shown in upper-case.
+Customize `help-downcase-arguments' to t to show them in lower-case.
 
 
 * Editing Changes in Emacs 23.2
 
-** Selection changes
+** Kill-ring and selection changes
 +++
 *** If `select-active-regions' is t, any active region automatically
 becomes the primary selection (for interaction with other window
 applications).  If you enable this, you might want to bind
 `mouse-yank-primary' to Mouse-2.
 
-*** When `save-interprogram-paste-before-kill' is non-nil, emacs will
-not clobber the the interprogram paste when something is killed in it
-by saving the former in the `kill-ring' before the latter.
+*** When `save-interprogram-paste-before-kill' is non-nil, the kill
+commands save the interprogram-paste selection into the kill ring
+before doing anything else.  This avoids losing the selection.
 
-** When `kill-do-not-save-duplicates' is non-nil, identical subsequent
-kills are not duplicated in the `kill-ring'.
+*** When `kill-do-not-save-duplicates' is non-nil, identical
+subsequent kills are not duplicated in the `kill-ring'.
 
-+++
-** The default value for `blink-matching-paren-distance' has been increased.
+** Completion changes
 
-** The new completion-style `initials' is available.
+*** The new completion-style `initials' is available.
 For instance, this can complete M-x lch to list-command-history.
 
-** Completions in the *Completions* buffer are sorted vertically
-when the value of the new variable `completions-format' is `vertical'.
+*** The new variable `completions-format' determines how completions
+are displayed in the *Completions* buffer.  If you set it to
+`vertical', completions are sorted vertically in columns.
 
-** M-n provides more default values in the minibuffer of commands that
-read a file and directory name: a file name at point (when ffap is loaded
-without ffap-bindings), a file name on the current line in the Dired buffer,
-a directory name of adjacent Dired windows for Dired commands that can
-operate on several directories (copy, rename, diff).
++++
+** The default value of `blink-matching-paren-distance' is increased.
 
-** M-r is bound to the new `move-to-window-line-top-bottom'
-to mirror the new behavior of C-l in Emacs-23.1.
+** M-n provides more default values in the minibuffer for commands
+that read file names.  These include the file name at point (when ffap
+is loaded without ffap-bindings), the file name on the current line
+(in Dired buffers), and the directory names of adjacent Dired windows
+(for Dired commands that operate on several directories, such as copy,
+rename, or diff).
 
-** `recenter-positions' can redefine the default cycling order
-of `recenter-top-bottom'.
+** M-r is bound to the new `move-to-window-line-top-bottom'.
+This moves point to the window center, top and bottom on successive
+invocations, in the same spirit as the C-l (recenter-top-bottom)
+command.
+
+** The new variable `recenter-positions' determines the default
+cycling order of C-l (`recenter-top-bottom').
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
@@ -340,6 +340,7 @@ and let commands run under that user permissions.  It works even when
 * New Modes and Packages in Emacs 23.2
 
 ** mpc.el is a front end for the Music Player Daemon.  Run it with M-x mpc.
+
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
 
 ** FIXME CEDET
@@ -389,6 +390,15 @@ facilities on a particular region of text.
 to read-file-name-internal because read-file-name-internal abused its `pred'
 argument to pass the current directory, but this hack is not needed
 any more.
+
+** Frame parameter changes
+
+*** You can give the `fullscreen' frame parameter the value `maximized'.
+This maximizes the frame.
+
++++
+*** The new frame parameter `sticky' makes Emacs frames sticky in
+virtual desktops.
 
 ** completion-base-size is obsoleted by completion-base-position.
 This change causes a few backward incompatibilities, mostly with
