@@ -2027,7 +2027,6 @@ see the doc of that variable if you want to add names to the list."
   (interactive)
   (quit-window t (selected-window)))
 
-;; Note, there is another definition of this function in bindings.el.
 ;;;###autoload
 (defun complete-tag ()
   "Perform tags completion on the text around point.

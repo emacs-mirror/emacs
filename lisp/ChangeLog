@@ -1,5 +1,11 @@
 2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* bindings.el (complete-symbol): Call semantic-ia-complete-symbol
+	if possible.
+
+	* cedet/semantic/ia.el (semantic-ia-complete-symbol): Make
+	argument optional.
+
 	* shell.el (shell): Require ansi-color (Bug#5113).
 
 	* ansi-color.el (ansi-color-for-comint-mode): Default to t.

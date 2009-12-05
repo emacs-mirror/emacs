@@ -105,19 +105,21 @@ Supports caching."
     symbols))
 
 ;;;###autoload
-(defun semantic-ia-complete-symbol (point)
-  "Complete the current symbol at POINT.
+(defun semantic-ia-complete-symbol (&optional pos)
+  "Complete the current symbol at POS.
+If POS is nil, default to point.
 Completion options are calculated with `semantic-analyze-possible-completions'."
   (interactive "d")
+  (or pos (setq pos (point)))
   ;; Calculating completions is a two step process.
   ;;
   ;; The first analyzer the current context, which finds tags
   ;; for all the stuff that may be references by the code around
-  ;; POINT.
+  ;; POS.
   ;;
   ;; The second step derives completions from that context.
-  (let* ((a (semantic-analyze-current-context point))
-	 (syms (semantic-ia-get-completions a point))
+  (let* ((a (semantic-analyze-current-context pos))
+	 (syms (semantic-ia-get-completions a pos))
 	 (pre (car (reverse (oref a prefix))))
 	 )
     ;; If PRE was actually an already completed symbol, it doesn't
