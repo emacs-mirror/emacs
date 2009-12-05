@@ -6415,7 +6415,7 @@ next_element_from_c_string (it)
 
 /* Set up IT to return characters from an ellipsis, if appropriate.
    The definition of the ellipsis glyphs may come from a display table
-   entry.  This function Fills IT with the first glyph from the
+   entry.  This function fills IT with the first glyph from the
    ellipsis if an ellipsis is to be displayed.  */
 
 static int
