@@ -95,7 +95,7 @@
 
 2009-12-03  Alan Mackenzie  <acm@muc.de>
 
-	Enhance `c-parse-state' to run efficiently in "brace desserts".
+	Enhance `c-parse-state' to run efficiently in "brace deserts".
 
 	* progmodes/cc-mode.el (c-basic-common-init):
 	Call c-state-cache-init.
