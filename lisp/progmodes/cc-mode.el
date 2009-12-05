@@ -673,7 +673,7 @@ This function is called from the hook `before-hack-local-variables-hook'."
 	  (offsets (cdr (assq 'c-file-offsets file-local-variables-alist))))
       (when stile
 	(or (stringp stile) (error "c-file-style is not a string"))
-	(c-set-style stile t))
+	(c-set-style stile))
       (when offsets
 	(mapc
 	 (lambda (langentry)
@@ -744,7 +744,7 @@ Note that the style variables are always made local to the buffer."
     (when c-file-style
       (or (stringp c-file-style)
 	  (error "c-file-style is not a string"))
-      (c-set-style c-file-style t))
+      (c-set-style c-file-style))
 
     (and c-file-offsets
 	 (mapc
