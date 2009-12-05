@@ -1,3 +1,9 @@
+2009-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--merge-try): Also consider placing
+	point after a star, if that's the only place where modifications can
+	make progress.
+
 2009-12-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir): Use the correct markup for showing keymaps
