@@ -1129,7 +1129,7 @@ Interactively, a prefix argument means to ask for the backend.
 
 These are the commands available for use in the file status buffer:
 
-\\<vc-dir-mode-map>"
+\\{vc-dir-mode-map}"
 
   (interactive
    (list

@@ -1,3 +1,8 @@
+2009-12-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir): Use the correct markup for showing keymaps
+	in docstrings.
+
 2009-12-04  Juri Linkov  <juri@jurta.org>
 
 	* proced.el (proced): Call `(proced-update t)' to update process
