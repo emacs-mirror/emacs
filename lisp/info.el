@@ -912,10 +912,12 @@ a case-insensitive match is tried."
 	(cond
 	 ((functionp virtual-fun)
 	  (let ((filename (or filename Info-current-file)))
-	    (setq buffer-file-name nil)
 	    (setq buffer-read-only nil)
+	    (setq Info-current-file filename
+		  Info-current-subfile nil
+		  Info-current-file-completions nil
+		  buffer-file-name nil)
 	    (erase-buffer)
-	    (setq Info-current-file filename)
 	    (Info-virtual-call virtual-fun filename nodename no-going-back)
 	    (set-marker Info-tag-table-marker nil)
 	    (setq buffer-read-only t)
@@ -928,8 +930,11 @@ a case-insensitive match is tried."
 		    (equal Info-current-file filename))))
 	  ;; Switch files if necessary
 	  (let ((inhibit-read-only t))
-	    (if (and Info-current-node-virtual (null filename))
-		(setq filename Info-current-file))
+	    (when Info-current-node-virtual
+	      ;; When moving from a virtual node.
+	      (set (make-local-variable 'Info-current-node-virtual) nil)
+	      (if (null filename)
+		  (setq filename Info-current-file)))
 	    (setq Info-current-file nil
 		  Info-current-subfile nil
 		  Info-current-file-completions nil
@@ -3650,6 +3655,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
      :help "Look for a string in the index items"]
     ["Next Matching Item" Info-index-next :active Info-index-alternatives
      :help "Look for another occurrence of previous item"]
+    ["Lookup a string and display index of results..." Info-virtual-index
+     :help "Look for a string in the index items and display node with results"]
     ["Lookup a string in all indices..." info-apropos
      :help "Look for a string in the indices of all manuals"])
    ["Copy Node Name" Info-copy-current-node-name
@@ -3824,6 +3831,7 @@ Advanced commands:
 \\[isearch-forward], \\[isearch-forward-regexp]	Use Isearch to search through multiple Info nodes.
 \\[Info-index]	Search for a topic in this manual's Index and go to index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
+\\[Info-virtual-index]	Look for a string and display the index node with results.
 \\[info-apropos]	Look for a string in the indices of all manuals.
 \\[Info-goto-node]	Move to node specified by name.
 	  You may include a filename as well, as (FILENAME)NODENAME.
