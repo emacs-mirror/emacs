@@ -1759,6 +1759,24 @@ DO NOT return the list of tags encompassing point."
 	  (princ "\n")
 	  ))
 
+      (when (arrayp semantic-lex-spp-project-macro-symbol-obarray)
+	(princ "\n  Project symbol map:\n")
+	(princ "      Your project symbol map is derived from the EDE object:\n      ")
+	(princ (object-print ede-object))
+	(princ "\n\n")
+	(let ((macros nil))
+	  (mapatoms
+	   #'(lambda (symbol)
+	       (setq macros (cons symbol macros)))
+	   semantic-lex-spp-project-macro-symbol-obarray)
+	  (dolist (S macros)
+	    (princ "    ")
+	    (princ (symbol-name S))
+	    (princ " = ")
+	    (princ (symbol-value S))
+	    (princ "\n")
+	    )))
+
       (princ "\n\n  Use: M-x semantic-lex-spp-describe RET\n")
       (princ "\n  to see the complete macro table.\n")
 

@@ -515,8 +515,13 @@ if INLINE, then completion is happening inline in a buffer."
 	(semantic-displayor-set-completions
 	 displayor
 	 (or
-	  (and (not (eq na 'displayend))
-	       (semantic-collector-current-exact-match collector))
+	  ;; For the below - This caused problems for Chong Yidong
+	  ;; when experimenting with the completion engine.  I don't
+	  ;; remember what the problem was though, and I wasn't sure why
+	  ;; the below two lines were there since they obviously added
+	  ;; some odd behavior.  -EML
+	  ;; (and (not (eq na 'displayend))
+	  ;;      (semantic-collector-current-exact-match collector))
 	  (semantic-collector-all-completions collector contents))
 	 contents)
 	;; Ask the displayor to display them.

@@ -427,9 +427,9 @@ sources variable."
 	(src (oref this source)))
     (while comp
       (ede-compiler-only-once (car comp)
-	(ede-proj-makefile-insert-object-variables (car comp) name src)
 	(ede-proj-makefile-insert-variables (car comp)))
       (setq comp (cdr comp)))
+    (ede-proj-makefile-insert-object-variables (car comp) name src)
     (while link
       (ede-linker-only-once (car link)
 	(ede-proj-makefile-insert-variables (car link)))

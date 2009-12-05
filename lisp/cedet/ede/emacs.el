@@ -219,12 +219,19 @@ All files need the macros from lisp.h!"
 	 (root (ede-project-root proj))
 	 (table (semanticdb-file-table-object
 		 (ede-expand-filename root "lisp.h")))
+	 (config (semanticdb-file-table-object
+		  (ede-expand-filename root "config.h")))
 	 filemap
 	 )
     (when table
       (when (semanticdb-needs-refresh-p table)
 	(semanticdb-refresh-table table))
       (setq filemap (append filemap (oref table lexical-table)))
+      )
+    (when config
+      (when (semanticdb-needs-refresh-p config)
+	(semanticdb-refresh-table config))
+      (setq filemap (append filemap (oref config lexical-table)))
       )
     filemap
     ))

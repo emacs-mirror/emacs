@@ -1,3 +1,21 @@
+2009-12-05  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):
+	Describe project macro symbols.
+
+	* cedet/semantic/complete.el (semantic-complete-do-completion):
+	Don't call semantic-collector-current-exact-match.
+
+	* cedet/ede.el (ede-apply-preprocessor-map): Accept lists of
+	ede-objects as targets.
+
+	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Output
+	a target's object list even if compiler vars are already in the
+	Makefile.
+
+	* cedet/ede/emacs.el (ede-preprocessor-map): Add config.h to the
+	list of headers producing necessary macros.
+
 2009-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-map-entries): Use marker to keep
