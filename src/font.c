@@ -722,11 +722,11 @@ font_put_extra (font, prop, val)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
 	prev = extra, extra = XCDR (extra);
 
-      if (NILP (prev)) 
+      if (NILP (prev))
         ASET (font, FONT_EXTRA_INDEX, Fcons (Fcons (prop, val), extra));
-      else 
+      else
         XSETCDR (prev, Fcons (Fcons (prop, val), extra));
-      
+
       return val;
     }
   XSETCDR (slot, val);
@@ -1507,7 +1507,7 @@ font_parse_fcname (name, font)
 		  if (prop >= FONT_FOUNDRY_INDEX
 		      && prop < FONT_EXTRA_INDEX)
                     ASET (font, prop, font_prop_validate (prop, Qnil, val));
-		  else 
+		  else
                     {
                       extra_props = nconc2 (extra_props,
                                             Fcons (Fcons (key, val), Qnil));
@@ -1524,7 +1524,7 @@ font_parse_fcname (name, font)
             if (driver_list->driver->filter_properties)
               (*driver_list->driver->filter_properties) (font, extra_props);
         }
-      
+
     }
   else
     {
@@ -2403,7 +2403,7 @@ font_sort_entities (list, prefer, frame, best_only)
     {
       int font_driver_preference = 0;
       Lisp_Object current_font_driver;
-      
+
       if (best_only)
 	vec = XCAR (tail);
       len = ASIZE (vec);
@@ -2842,8 +2842,8 @@ font_delete_unmatched (vec, spec, size)
 
 
 /* Return a list of vectors of font-entities matching with SPEC on
-   FRAME.  The elements of the list are in the same of order of
-   font-drivers.  */
+   FRAME.  Each elements in the list is a vector of entities from the
+   same font-driver.  */
 
 Lisp_Object
 font_list_entities (frame, spec)
