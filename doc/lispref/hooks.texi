@@ -112,7 +112,7 @@ not exactly a hook, but does a similar job.
 @xref{Calendar Customizing,,, emacs}.
 @end ifnottex
 
-@item calendar-today-visible-hook
+@item calendar-today-invisible-hook
 @iftex
 @inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
@@ -120,7 +120,7 @@ not exactly a hook, but does a similar job.
 @xref{Calendar Customizing,,, emacs}.
 @end ifnottex
 
-@item calendar-today-invisible-hook
+@item calendar-today-visible-hook
 @iftex
 @inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
