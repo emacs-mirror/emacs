@@ -1,3 +1,8 @@
+2009-12-05  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/sgml-mode.el (sgml-lexical-context): Recognise
+	comment-start-skip to comment-end-skip as comment (Bug#4781).
+
 2009-12-05  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-find-node-2): Set `Info-current-subfile' to nil

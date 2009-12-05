@@ -1066,6 +1066,12 @@ If nil, start from a preceding tag at indentation."
                   (let ((cdata-start (point)))
                     (unless (search-forward "]]>" pos 'move)
                       (list 0 nil nil 'cdata nil nil nil nil cdata-start))))
+		 ((looking-at comment-start-skip)
+		  ;; parse-partial-sexp doesn't handle <!-- comments -->,
+		  ;; or only if ?- is in sgml-specials, so match explicitly
+		  (let ((start (point)))
+		    (unless (re-search-forward comment-end-skip pos 'move)
+		      (list 0 nil nil nil t nil nil nil start))))
                  ((and sgml-xml-mode (looking-at "<\\?"))
                   ;; Processing Instructions.
                   ;; In SGML, it's basically a normal tag of the form
