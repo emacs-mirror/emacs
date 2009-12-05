@@ -1169,23 +1169,40 @@ Preserves old cursor, marks/flags, hidden-p."
 ;; Some of these are also used when inserting subdirs.
 
 (defun dired-save-positions ()
-  "Return the current positions in all windows displaying this dired buffer.
-The positions have the form (WINDOW FILENAME POINT)."
-  (mapcar (lambda (w)
-	    (list w
-		  (with-selected-window w
-		    (dired-get-filename nil t))
-		  (window-point w)))
-	  (get-buffer-window-list nil 0 t)))
+  "Return current positions in the buffer and all windows with this directory.
+The positions have the form (BUFFER-POSITION WINDOW-POSITIONS).
+
+BUFFER-POSITION is the point position in the current dired buffer.
+The buffer position have the form (BUFFER DIRED-FILENAME BUFFER-POINT).
+
+WINDOW-POSITIONS are current positions in all windows displaying
+this dired buffer.  The window positions have the form (WINDOW
+DIRED-FILENAME WINDOW-POINT)."
+  (list
+   (list (current-buffer) (dired-get-filename nil t) (point))
+   (mapcar (lambda (w)
+	     (list w
+		   (with-selected-window w
+		     (dired-get-filename nil t))
+		   (window-point w)))
+	   (get-buffer-window-list nil 0 t))))
 
 (defun dired-restore-positions (positions)
   "Restore POSITIONS saved with `dired-save-positions'."
-  (dolist (win-file-pos positions)
-    (with-selected-window (car win-file-pos)
-      (unless (and (nth 1 win-file-pos)
-		   (dired-goto-file (nth 1 win-file-pos)))
-	(goto-char (nth 2 win-file-pos))
-	(dired-move-to-filename)))))
+  (let* ((buf-file-pos (nth 0 positions))
+	 (buffer (nth 0 buf-file-pos)))
+    (unless (and (nth 1 buf-file-pos)
+		 (dired-goto-file (nth 1 buf-file-pos)))
+      (goto-char (nth 2 buf-file-pos))
+      (dired-move-to-filename))
+    (dolist (win-file-pos (nth 1 positions))
+      ;; Ensure that window still displays the original buffer.
+      (when (eq (window-buffer (nth 0 win-file-pos)) buffer)
+	(with-selected-window (nth 0 win-file-pos)
+	  (unless (and (nth 1 win-file-pos)
+		       (dired-goto-file (nth 1 win-file-pos)))
+	    (goto-char (nth 2 win-file-pos))
+	    (dired-move-to-filename)))))))
 
 (defun dired-remember-marks (beg end)
   "Return alist of files and their marks, from BEG to END."

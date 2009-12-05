@@ -1,3 +1,14 @@
+2009-12-05  Juri Linkov  <juri@jurta.org>
+
+	Save and restore dired buffer's point positions too.  (Bug#4880)
+
+	* dired.el (dired-save-positions): Return in the first element
+	buffer's position in format (BUFFER DIRED-FILENAME BUFFER-POINT).
+	Doc fix.
+	(dired-restore-positions): First restore buffer's position.
+	While restoring window's positions, check if window still displays
+	the original buffer.
+
 2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el (complete-symbol): Call semantic-ia-complete-symbol
