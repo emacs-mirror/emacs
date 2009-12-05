@@ -1,3 +1,22 @@
+2009-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-map-entries): Use marker to keep
+	track of the buffer position of the end of a BibTeX entry as this
+	position may change during reformatting.
+	(bibtex-format-entry): Remove whitespace before processing
+	numerical fields so that we recognize the latter properly.
+	(bibtex-reformat): Do not use push which changes the global value
+	of bibtex-entry-format.
+	(bibtex-field-braces-alist, bibtex-field-strings-alist)
+	(bibtex-field-re-init): Replace only space characters by regexp
+	for whitespace.
+	(bibtex-generate-url-list, bibtex-cite-matcher-alist): Fix
+	docstring.
+	(bibtex-initialize): Also update bibtex-strings.
+	(bibtex-kill-field): Preserve white space at end of entry.
+	(bibtex-kill-entry, bibtex-yank-pop, bibtex-insert-kill): Update
+	bibtex-reference-keys.
+
 2009-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--merge-try): Also consider placing
