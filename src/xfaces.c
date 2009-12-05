@@ -1745,8 +1745,8 @@ the face font sort order.  */)
      (family, frame)
      Lisp_Object family, frame;
 {
-  Lisp_Object font_spec, vec;
-  int i, nfonts;
+  Lisp_Object font_spec, list, *drivers, vec;
+  int i, nfonts, ndrivers;
   Lisp_Object result;
 
   if (NILP (frame))
@@ -1759,32 +1759,38 @@ the face font sort order.  */)
       CHECK_STRING (family);
       font_parse_family_registry (family, Qnil, font_spec);
     }
-  vec = font_list_entities (frame, font_spec);
-  nfonts = ASIZE (vec);
-  if (nfonts == 0)
-    return Qnil;
-  if (nfonts > 1)
-    {
-      for (i = 0; i < 4; i++)
-	switch (font_sort_order[i])
-	  {
-	  case XLFD_SWIDTH:
-	    font_props_for_sorting[i] = FONT_WIDTH_INDEX; break;
-	  case XLFD_POINT_SIZE:
-	    font_props_for_sorting[i] = FONT_SIZE_INDEX; break;
-	  case XLFD_WEIGHT:
-	    font_props_for_sorting[i] = FONT_WEIGHT_INDEX; break;
-	  default:
-	    font_props_for_sorting[i] = FONT_SLANT_INDEX; break;
-	  }
-      font_props_for_sorting[i++] = FONT_FAMILY_INDEX;
-      font_props_for_sorting[i++] = FONT_FOUNDRY_INDEX;
-      font_props_for_sorting[i++] = FONT_ADSTYLE_INDEX;
-      font_props_for_sorting[i++] = FONT_REGISTRY_INDEX;
 
-      qsort (XVECTOR (vec)->contents, nfonts, sizeof (Lisp_Object),
-	     compare_fonts_by_sort_order);
-    }
+  list = font_list_entities (frame, font_spec);
+  if (NILP (list))
+    return Qnil;
+
+  /* Sort the font entities.  */
+  for (i = 0; i < 4; i++)
+    switch (font_sort_order[i])
+      {
+      case XLFD_SWIDTH:
+	font_props_for_sorting[i] = FONT_WIDTH_INDEX; break;
+      case XLFD_POINT_SIZE:
+	font_props_for_sorting[i] = FONT_SIZE_INDEX; break;
+      case XLFD_WEIGHT:
+	font_props_for_sorting[i] = FONT_WEIGHT_INDEX; break;
+      default:
+	font_props_for_sorting[i] = FONT_SLANT_INDEX; break;
+      }
+  font_props_for_sorting[i++] = FONT_FAMILY_INDEX;
+  font_props_for_sorting[i++] = FONT_FOUNDRY_INDEX;
+  font_props_for_sorting[i++] = FONT_ADSTYLE_INDEX;
+  font_props_for_sorting[i++] = FONT_REGISTRY_INDEX;
+
+  ndrivers = XINT (Flength (list));
+  drivers  = alloca (sizeof (Lisp_Object) * ndrivers);
+  for (i = 0; i < ndrivers; i++, list = XCDR (list))
+    drivers[i] = XCAR (list);
+  vec = Fvconcat (ndrivers, drivers);
+  nfonts = ASIZE (vec);
+
+  qsort (XVECTOR (vec)->contents, nfonts, sizeof (Lisp_Object),
+	 compare_fonts_by_sort_order);
 
   result = Qnil;
   for (i = nfonts - 1; i >= 0; --i)

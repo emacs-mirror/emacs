@@ -1,3 +1,8 @@
+2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Fx_family_fonts): Handle 2009-07-14 change to return
+	value of font_list_entities (Bug#5085).
+
 2009-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	Fix `string-to-number' to deal consistently with integers and floats.
