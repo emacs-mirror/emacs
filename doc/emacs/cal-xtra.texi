@@ -20,9 +20,9 @@ diary suit your personal tastes.
 * Time Display Format::    Changing the format.
 * Diary Customizing::      Defaults you can set.
 * Non-Gregorian Diary::    Diary entries based on other calendars.
-* Fancy Diary Display::    Enhancing the diary display, sorting entries,
-                             using included diary files.
-* Sexp Diary Entries::     Fancy things you can do.
+* Diary Display::          A choice of ways to display the diary.
+* Fancy Diary Display::    Sorting diary entries, using included diary files.
+* Sexp Diary Entries::     More flexible diary entries.
 @end menu
 
 @node Calendar Customizing
@@ -332,11 +332,11 @@ solar functions).
 @subsection Customizing the Diary
 
 @vindex diary-show-holidays-flag
-  Ordinarily, the mode line of the diary window indicates any holidays
-that fall on the date of the diary entries.  The process of checking for
-holidays can be slow, depending on the defined holidays.  In that case,
-setting @code{diary-show-holidays-flag} to @code{nil} will speed up the
-diary display.
+  Ordinarily, the diary window indicates any holidays that fall on the
+date of the diary entries, either in the mode line or the buffer itself.
+The process of checking for holidays can be slow, depending on the
+defined holidays.  In that case, setting @code{diary-show-holidays-flag}
+to @code{nil} will speed up the diary display.
 
 @vindex diary-number-of-entries
   The variable @code{diary-number-of-entries} controls the number of
@@ -350,18 +350,6 @@ can also be a vector of seven integers: for example, if the value is
 current date's and the next day's diary entries appear Monday through
 Thursday, Friday through Monday's entries appear on Friday, while on
 Saturday only that day's entries appear.
-
-@vindex diary-print-entries-hook
-@findex diary-print-entries
-  The variable @code{diary-print-entries-hook} is a normal hook run
-after preparation of a temporary buffer containing just the diary
-entries currently visible in the diary buffer.  (The other, irrelevant
-diary entries are really absent from the temporary buffer; in the diary
-buffer, they are merely hidden.)  The default value of this hook does
-the printing with the command @code{lpr-buffer}.  If you want to use a
-different command to do the printing, just change the value of this
-hook.  Other uses might include, for example, rearranging the lines into
-order by day and time.
 
 @vindex diary-date-forms
   You can customize the form of dates in your diary file by setting the
@@ -529,41 +517,85 @@ non-Gregorian date, the @samp{monthly} commands for the given
 non-Gregorian day-within-month in every month, and the @samp{yearly}
 commands for the given non-Gregorian day and month in every year.
 
-@node Fancy Diary Display
-@subsection Fancy Diary Display
+@node Diary Display
+@subsection Diary Display
 @vindex diary-display-function
 @findex diary-simple-display
 @findex diary-fancy-display
 @cindex diary buffer
 
-  Diary display works by preparing the diary buffer and then running the
-function specified by the variable @code{diary-display-function}.  The
-default value (@code{diary-simple-display}) hides the irrelevant diary
-entries and then displays the buffer.  The alternative
+  Diary display works by preparing the list of diary entries and then
+running the function specified by the variable
+@code{diary-display-function}.  The default value
 @code{diary-fancy-display} displays diary entries and holidays by
 copying them into a special buffer that exists only for the sake of
-display.  Copying to a separate buffer provides an opportunity to change
-the displayed text to make it prettier---for example, to sort the
-entries by the dates they apply to.
-
-  As with simple diary display, you can print a hard copy of the buffer
-with @code{diary-print-entries}.  To print a hard copy of a day-by-day
-diary for a week, position point on Sunday of that week, type
-@kbd{7 d}, and then do @kbd{M-x diary-print-entries}.  As usual, the
-inclusion of the holidays slows down the display slightly; you can speed
-things up by setting the variable @code{diary-show-holidays-flag} to
-@code{nil}.
+display.  Copying diary entries to a separate buffer provides an
+opportunity to change the displayed text to make it prettier---for
+example, to sort the entries by the dates they apply to.
 
 @vindex diary-list-include-blanks
-  Ordinarily, the fancy diary buffer does not show days for which there are
-no diary entries, even if that day is a holiday.  If you want such days to be
-shown in the fancy diary buffer, set the variable
+  Ordinarily, the fancy diary buffer does not show days for which there
+are no diary entries, even if that day is a holiday.  If you want such
+days to be shown in the fancy diary buffer, set the variable
 @code{diary-list-include-blanks} to @code{t}.@refill
 
+  The alternative method @code{diary-simple-display} displays the actual
+diary buffer, and uses invisible text to hide entries that don't apply.
+Holidays are shown in the mode line.  The advantage of this method is
+that you can edit the buffer and save your changes directly to the diary
+file.  This method is not as flexible as the fancy method, however.  For
+example, it cannot sort entries.  Another disadvantage is that invisible
+text can be confusing.  For example, if you copy a region of text in
+order to paste it elsewhere, invisible text may be included.  Similarly,
+since the diary buffer as you see it is an illusion, simply printing the
+buffer may not print what you see on your screen.
+
+@vindex diary-print-entries-hook
+@findex diary-print-entries
+  For this reason, there is a special command to print hard copy of the
+diary buffer @emph{as it appears}; this command is @kbd{M-x
+diary-print-entries}.  It works with either display method, although
+with the fancy display you can also print the buffer like any other.  To
+print a hard copy of a day-by-day diary for a week, position point on
+the first day of the week, type @kbd{7 d}, and then do @kbd{M-x
+diary-print-entries}.  As usual, the inclusion of the holidays slows
+down the display slightly; you can speed things up by setting the
+variable @code{diary-show-holidays-flag} to @code{nil}.
+
+  This command prepares a temporary buffer that contains only the diary
+entries currently visible in the diary buffer.  Unlike with the simple
+display, the other irrelevant entries are really absent, not just
+hidden.  After preparing the buffer, it runs the hook
+@code{diary-print-entries-hook}.  The default value of this hook sends
+the data directly to the printer with the command @code{lpr-buffer}
+(@pxref{Printing}).  If you want to use a different command to do the
+printing, just change the value of this hook.  Other uses might include,
+for example, rearranging the lines into order by day and time.
+
+  You can edit the diary entries as they appear in the simple diary
+window, but it is important to remember that the buffer displayed
+contains the @emph{entire} diary file, with portions of it concealed
+from view.  This means, for instance, that the @kbd{C-f}
+(@code{forward-char}) command can put point at what appears to be the
+end of the line, but what is in reality the middle of some concealed
+line.
+
+  @emph{Be careful when editing the diary entries in the simple display!}
+Inserting additional lines or adding/deleting characters in the middle
+of a visible line cannot cause problems, but editing at the end of a
+line may not do what you expect.  Deleting a line may delete other
+invisible entries that follow it.  Before editing the simple diary
+buffer, it is best to display the entire file with @kbd{s}
+(@code{diary-show-all-entries}).
+
+@node Fancy Diary Display
+@subsection Fancy Diary Display
+
+The following features only work with the fancy diary display.
+
 @cindex sorting diary entries
-  If you use the fancy diary display, you can use the normal hook
-@code{diary-list-entries-hook} to sort each day's diary entries by their
-time of day.  Here's how:
+  You can use the normal hook @code{diary-list-entries-hook} to sort
+each day's diary entries by their time of day.  Here's how:
 
 @findex diary-sort-entries
 @example
@@ -576,10 +608,9 @@ time of day according to their times.  Diary entries without times come
 first within each day.
 
 @vindex diary-include-string
-  Fancy diary display also has the ability to process included diary
-files.  This permits a group of people to share a diary file for events
-that apply to all of them.  Lines in the diary file starting with
-@code{diary-include-string}:
+  Your main diary file can include other files.  This permits a group of
+people to share a diary file for events that apply to all of them.
+Lines in the diary file starting with @code{diary-include-string}:
 
 @smallexample
 #include "@var{filename}"
@@ -602,7 +633,7 @@ include facility:
 @end smallexample
 
 The include mechanism works only with the fancy diary display, because
-ordinary diary display shows the entries directly from your diary file.
+simple diary display shows the entries directly from your diary file.
 
 @node Sexp Diary Entries
 @subsection Sexp Entries and the Fancy Diary Display
@@ -612,8 +643,8 @@ ordinary diary display shows the entries directly from your diary file.
   Sexp diary entries allow you to do more than just have complicated
 conditions under which a diary entry applies.  Sexp entries should be
 preceded by @code{diary-sexp-entry-symbol} (default @samp{%%}) in the
-diary file.  If you use the fancy diary display, sexp entries can
-generate the text of the entry depending on the date itself.
+diary file.  With the fancy diary display, sexp entries can generate the
+text of the entry depending on the date itself.
 
 For example, an anniversary diary entry can insert
 the number of years since the anniversary date into the text of the
