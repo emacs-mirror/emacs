@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary, Document View, Dired, Top
 @chapter The Calendar and the Diary
@@ -1076,11 +1077,18 @@ Mail yourself email reminders about upcoming diary entries.
 @vindex calendar-view-diary-initially-flag
   Displaying the diary entries with @kbd{d} shows in a separate window
 the diary entries for the selected date in the calendar.  The mode line
-of the new window shows the date of the diary entries and any holidays
-that fall on that date.  If you specify a numeric argument with @kbd{d},
-it shows all the diary entries for that many successive days.  Thus,
-@kbd{2 d} displays all the entries for the selected date and for the
-following day.
+of the new window shows the date of the diary entries.  Holidays are
+shown either in the buffer or in the mode line, depending on the display
+method you choose
+@iftex
+(@pxref{Diary Display,, emacs-xtra}).
+@end iftex
+@ifnottex
+(@pxref{Diary Display}).
+@end ifnottex
+If you specify a numeric argument with @kbd{d}, it shows all the diary
+entries for that many successive days.  Thus, @kbd{2 d} displays all the
+entries for the selected date and for the following day.
 
   Another way to display the diary entries for a date is to click
 @kbd{Mouse-3} on the date, and then choose @kbd{Diary entries} from
@@ -1093,7 +1101,7 @@ current date is visible).
 @findex diary-mark-entries
 @vindex calendar-mark-diary-entries-flag
   To get a broader view of which days are mentioned in the diary, use
-the @kbd{m} command.  This displays the dates that have diary entries in
+the @kbd{m} command.  This marks the dates that have diary entries in
 a different face.
 @iftex
 @inforef{Calendar Customizing, diary-entry-marker, emacs-xtra}.
@@ -1114,14 +1122,6 @@ updating the calendar marks diary dates automatically.
   To see the full diary file, rather than just some of the entries, use
 the @kbd{s} command.
 
-  Display of selected diary entries uses invisible text to hide entries
-that don't apply.  The diary buffer as you see it is an illusion, so
-simply printing the buffer does not print what you see on your screen.
-There is a special command to print hard copy of the diary buffer
-@emph{as it appears}; this command is @kbd{M-x diary-print-entries}.
-It sends the data directly to the printer.  You can customize it
-like @code{lpr-region} (@pxref{Printing}).
-
 @findex diary
   The command @kbd{M-x diary} displays the diary entries for the current
 date, independently of the calendar display, and optionally for the next
@@ -1136,8 +1136,7 @@ how many days to include.
 
   If you put @code{(diary)} in your @file{.emacs} file, this
 automatically displays a window with the day's diary entries, when you
-enter Emacs.  The mode line of the displayed window shows the date and
-any holidays that fall on that date.
+enter Emacs.
 
 @findex diary-mail-entries
 @vindex diary-mail-days
@@ -1168,19 +1167,9 @@ first must begin with whitespace to indicate they continue a previous
 entry.  Lines that do not begin with valid dates and do not continue a
 preceding entry are ignored.
 
-@vindex diary-nonmarking-symbol
-  You can inhibit the marking of certain diary entries in the calendar
-window; to do this, insert an ampersand @code{diary-nonmarking-symbol}
-(default @samp{&}) at the beginning of the entry, before the date.  This
-has no effect on display of the entry in the diary window; it affects
-only marks on dates in the calendar window.  Nonmarking entries are
-especially useful for generic entries that would otherwise mark many
-different dates.
-
-  If the first line of a diary entry consists only of the date or day
-name with no following blanks or punctuation, then the diary window
-display doesn't include that line; only the continuation lines appear.
-For example, this entry:
+  You can also use a format where the first line of a diary entry
+consists only of the date or day name (with no following blanks or
+punctuation).  For example:
 
 @example
 02/11/1989
@@ -1193,24 +1182,27 @@ For example, this entry:
 @end example
 
 @noindent
-appears in the diary window without the date line at the beginning.
-This style of entry looks neater when you display just a single day's
-entries, but can cause confusion if you ask for more than one day's
-entries.
+This entry will have a different appearance if you use the simple diary
+display
+@iftex
+(@pxref{Diary Display,, emacs-xtra}).
+@end iftex
+@ifnottex
+(@pxref{Diary Display}).
+@end ifnottex
+The simple diary display omits the date line at the beginning; only the
+continuation lines appear.  This style of entry looks neater when you
+display just a single day's entries, but can cause confusion if you ask
+for more than one day's entries.
 
-  You can edit the diary entries as they appear in the window, but it is
-important to remember that the buffer displayed contains the @emph{entire}
-diary file, with portions of it concealed from view.  This means, for
-instance, that the @kbd{C-f} (@code{forward-char}) command can put point
-at what appears to be the end of the line, but what is in reality the
-middle of some concealed line.
-
-  @emph{Be careful when editing the diary entries!}  Inserting
-additional lines or adding/deleting characters in the middle of a
-visible line cannot cause problems, but editing at the end of a line may
-not do what you expect.  Deleting a line may delete other invisible
-entries that follow it.  Before editing the diary, it is best to display
-the entire file with @kbd{s} (@code{diary-show-all-entries}).
+@vindex diary-nonmarking-symbol
+  You can inhibit the marking of certain diary entries in the calendar
+window; to do this, insert an ampersand @code{diary-nonmarking-symbol}
+(default @samp{&}) at the beginning of the entry, before the date.  This
+has no effect on display of the entry in the diary window; it affects
+only marks on dates in the calendar window.  Nonmarking entries are
+especially useful for generic entries that would otherwise mark many
+different dates.
 
 @node Date Formats
 @subsection Date Formats
