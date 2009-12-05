@@ -187,6 +187,7 @@ installed.
 *** Fancy diary display is now the default.
 If you prefer the simple display, customize `diary-display-function'.
 
++++
 *** The diary's fancy display now enables view-mode.
 
 ---
