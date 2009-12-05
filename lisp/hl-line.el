@@ -176,7 +176,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
     (remove-hook 'post-command-hook #'global-hl-line-highlight)))
 
 (defun global-hl-line-highlight ()
-  "Active the Global-Hl-Line overlay on the current line in the current window."
+  "Highlight the current line in the current window."
   (when global-hl-line-mode	; Might be changed outside the mode function.
     (unless (window-minibuffer-p (selected-window))
       (unless global-hl-line-overlay

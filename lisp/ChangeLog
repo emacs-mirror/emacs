@@ -1,3 +1,7 @@
+2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hl-line.el (global-hl-line-highlight): Minor doc fix (Bug#4925).
+
 2009-12-05  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-before-hack-hook)
