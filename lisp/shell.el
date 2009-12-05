@@ -554,6 +554,7 @@ Otherwise, one argument `-i' is passed to the shell.
 		      (read-file-name
 		       "Default directory: " default-directory default-directory
 		       t nil 'file-directory-p))))))))
+  (require 'ansi-color)
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).

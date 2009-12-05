@@ -1,5 +1,9 @@
 2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* shell.el (shell): Require ansi-color (Bug#5113).
+
+	* ansi-color.el (ansi-color-for-comint-mode): Default to t.
+
 	* hl-line.el (global-hl-line-highlight): Minor doc fix (Bug#4925).
 
 2009-12-05  Alan Mackenzie  <acm@muc.de>

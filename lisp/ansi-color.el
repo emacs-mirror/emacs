@@ -157,7 +157,7 @@ map.  This color map is stored in the variable `ansi-color-map'."
 ;; Convenience functions for comint modes (eg. shell-mode)
 
 
-(defcustom ansi-color-for-comint-mode nil
+(defcustom ansi-color-for-comint-mode t
   "Determines what to do with comint output.
 If nil, do nothing.
 If the symbol `filter', then filter all SGR control sequences.
