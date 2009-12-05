@@ -183,6 +183,7 @@ installed.
 
 ** Calendar and diary
 
++++
 *** Fancy diary display is now the default.
 If you prefer the simple display, customize `diary-display-function'.
 
@@ -440,7 +441,7 @@ the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
 Instead, customize byte-compile-dest-file-function.
 
 ---
-** `byte-compile-warnings' can have a new member, `constants'.
+** `byte-compile-warnings' has new members, `constants' and `suspicious'.
 
 ** `delete-directory' has an optional parameter RECURSIVE.
 
