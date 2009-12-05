@@ -14,6 +14,8 @@
 
 	* calendar.texi (Displaying the Diary): Mention keys apply to calendar.
 
+	* cal-xtra.texi (Diary Display): Mention View mode.
+
 2009-11-29  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Highlight Interactively): Actually a list of

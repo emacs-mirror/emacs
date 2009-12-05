@@ -539,16 +539,24 @@ are no diary entries, even if that day is a holiday.  If you want such
 days to be shown in the fancy diary buffer, set the variable
 @code{diary-list-include-blanks} to @code{t}.@refill
 
-  The alternative method @code{diary-simple-display} displays the actual
-diary buffer, and uses invisible text to hide entries that don't apply.
-Holidays are shown in the mode line.  The advantage of this method is
-that you can edit the buffer and save your changes directly to the diary
-file.  This method is not as flexible as the fancy method, however.  For
-example, it cannot sort entries.  Another disadvantage is that invisible
-text can be confusing.  For example, if you copy a region of text in
-order to paste it elsewhere, invisible text may be included.  Similarly,
-since the diary buffer as you see it is an illusion, simply printing the
-buffer may not print what you see on your screen.
+@c View mode does not seem to be described in the manual.
+@c buffers.texi has a brief mention.
+  The fancy diary buffer enables View mode, a minor mode that provides
+commands for scrolling and searching the text.  For example, @key{SPC}
+and @key{DEL} scroll forward and backward, and @key{s} starts an
+incremental search.  See the documentation of the function
+@code{view-mode} for more information.
+
+  The alternative display method @code{diary-simple-display} shows the
+actual diary buffer, and uses invisible text to hide entries that don't
+apply.  Holidays are shown in the mode line.  The advantage of this
+method is that you can edit the buffer and save your changes directly to
+the diary file.  This method is not as flexible as the fancy method,
+however.  For example, it cannot sort entries.  Another disadvantage is
+that invisible text can be confusing.  For example, if you copy a region
+of text in order to paste it elsewhere, invisible text may be included.
+Similarly, since the diary buffer as you see it is an illusion, simply
+printing the buffer may not print what you see on your screen.
 
 @vindex diary-print-entries-hook
 @findex diary-print-entries
