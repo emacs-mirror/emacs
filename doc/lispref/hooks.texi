@@ -104,7 +104,6 @@ not exactly a hook, but does a similar job.
 @xref{Calendar Customizing,,, emacs}.
 @end ifnottex
 
-
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
 
@@ -145,14 +144,6 @@ Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
 Normal hook run before the desktop is saved in a desktop file.  This
 is useful for truncating history lists, for example.  @xref{Saving
 Emacs Sessions,, Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
-
-@item diary-display-hook
-@iftex
-@inforef{Fancy Diary Display,, emacs-xtra}.
-@end iftex
-@ifnottex
-@xref{Fancy Diary Display,,, emacs}.
-@end ifnottex
 
 @item diary-hook
 List of functions called after the display of the diary.  Can be used
@@ -200,7 +191,7 @@ for appointment notification.
 @item font-lock-unfontify-region-function
 @xref{Other Font Lock Variables}.
 
-@item initial-calendar-window-hook
+@item calendar-initial-window-hook
 @iftex
 @inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
@@ -225,7 +216,7 @@ for appointment notification.
 
 @item lisp-indent-function
 
-@item list-diary-entries-hook
+@item diary-list-entries-hook
 @iftex
 @inforef{Fancy Diary Display,, emacs-xtra}.
 @end iftex
@@ -237,7 +228,7 @@ for appointment notification.
 @xref{Mail Mode Misc,, Mail Mode Miscellany, emacs, the GNU Emacs
 Manual}.
 
-@item mark-diary-entries-hook
+@item diary-mark-entries-hook
 @iftex
 @inforef{Fancy Diary Display,, emacs-xtra}.
 @end iftex
@@ -257,7 +248,7 @@ Manual}.
 @item mouse-position-function
 @xref{Mouse Position}.
 
-@item nongregorian-diary-listing-hook
+@item diary-nongregorian-listing-hook
 @iftex
 @inforef{Non-Gregorian Diary,, emacs-xtra}.
 @end iftex
@@ -265,7 +256,7 @@ Manual}.
 @xref{Non-Gregorian Diary,,, emacs}.
 @end ifnottex
 
-@item nongregorian-diary-marking-hook
+@item diary-nongregorian-marking-hook
 @iftex
 @inforef{Non-Gregorian Diary,, emacs-xtra}.
 @end iftex
@@ -281,12 +272,12 @@ Manual}.
 @item pre-command-hook
 @xref{Command Overview}.
 
-@item print-diary-entries-hook
+@item diary-print-entries-hook
 @iftex
-@inforef{Diary Customizing,, emacs-xtra}.
+@inforef{Diary Display,, emacs-xtra}.
 @end iftex
 @ifnottex
-@xref{Diary Customizing,,, emacs}.
+@xref{Diary Display,,, emacs}.
 @end ifnottex
 
 @item resume-tty-functions
@@ -315,7 +306,7 @@ Manual}.
 @item term-setup-hook
 @xref{Terminal-Specific}.
 
-@item today-visible-calendar-hook
+@item calendar-today-visible-hook
 @iftex
 @inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
@@ -323,7 +314,7 @@ Manual}.
 @xref{Calendar Customizing,,, emacs}.
 @end ifnottex
 
-@item today-invisible-calendar-hook
+@item calendar-today-invisible-hook
 @iftex
 @inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex

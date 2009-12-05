@@ -1,3 +1,10 @@
+2009-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Remove diary-display-hook, replaced by
+	diary-display-function, and no longer recommended to be a hook.
+	Update for changes in the names of calendar and diary hooks.
+	diary-print-entries-hook has changed section.
+
 2009-11-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (Special Properties): More accurate description of
