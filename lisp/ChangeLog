@@ -1,3 +1,15 @@
+2009-12-06  Ulf Jasper  <ulf.jasper@web.de>
+
+	* xml.el (xml-substitute-numeric-entities): Moved
+	newsticker--decode-numeric-entities in newst-backend.el to
+	xml-substitute-numeric-entities in xml.el. (Bug#5008)
+
+	* net/newst-backend.el (newsticker--parse-generic-feed)
+	(newsticker--parse-generic-items)
+	(newsticker--decode-numeric-entities): Moved
+	newsticker--decode-numeric-entities in newst-backend.el to
+	xml-substitute-numeric-entities in xml.el. (Bug#5008)
+
 2009-12-06  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* progmodes/js.el (js--js-not): Add null to the list of values.

@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "4. Dezember 2009, 20:08:17 (ulf)"
+;; Time-stamp:  "5. Dezember 2009, 13:21:27 (ulf)"
 
 ;; ======================================================================
 
@@ -1408,9 +1408,9 @@ description, link, and extra elements resp."
         (position 0)
         (something-was-added nil))
     ;; decode numeric entities
-    (setq title (newsticker--decode-numeric-entities title))
-    (setq desc  (newsticker--decode-numeric-entities desc))
-    (setq link  (newsticker--decode-numeric-entities link))
+    (setq title (xml-substitute-numeric-entities title))
+    (setq desc  (xml-substitute-numeric-entities desc))
+    (setq link  (xml-substitute-numeric-entities link))
     ;; remove whitespace from title, desc, and link
     (setq title (newsticker--remove-whitespace title))
     (setq desc (newsticker--remove-whitespace desc))
@@ -1462,10 +1462,10 @@ argument, which is one of the items in ITEMLIST."
             (when (or (> (length title) 0)
                       (> (length desc) 0))
               ;; decode numeric entities
-              (setq title (newsticker--decode-numeric-entities title))
+              (setq title (xml-substitute-numeric-entities title))
               (when desc
-                (setq desc  (newsticker--decode-numeric-entities desc)))
-              (setq link (newsticker--decode-numeric-entities link))
+                (setq desc  (xml-substitute-numeric-entities desc)))
+              (setq link (xml-substitute-numeric-entities link))
               ;; remove whitespace from title, desc, and link
               (setq title (newsticker--remove-whitespace title))
               (setq desc (newsticker--remove-whitespace desc))
@@ -1517,24 +1517,6 @@ argument, which is one of the items in ITEMLIST."
 ;; ======================================================================
 ;;; Misc
 ;; ======================================================================
-(defun newsticker--decode-numeric-entities (string)
-  "Decode SGML numeric entities by their respective utf characters.
-This function replaces numeric entities in the input STRING and
-returns the modified string.  For example \"&#42;\" gets replaced
-by \"*\"."
-  (if (and string (stringp string))
-      (let ((start 0))
-        (while (string-match "&#\\([0-9]+\\);" string start)
-          (condition-case nil
-              (setq string (replace-match
-                            (string (read (substring string
-                                                     (match-beginning 1)
-                                                     (match-end 1))))
-                            nil nil string))
-            (error nil))
-          (setq start (1+ (match-beginning 0))))
-        string)
-    nil))
 
 (defun newsticker--remove-whitespace (string)
   "Remove leading and trailing whitespace from STRING."
