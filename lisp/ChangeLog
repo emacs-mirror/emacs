@@ -1,3 +1,8 @@
+2009-12-06  Kevin Ryde  <user42@zip.com.au>
+
+	* ffap.el (ffap-rfc-path): Make this a defcustom since
+	`ffap-rfc-directories' is also a defcustom.  (My Bug#4514.)
+
 2009-12-05  Juri Linkov  <juri@jurta.org>
 
 	Save and restore dired buffer's point positions too.  (Bug#4880)
