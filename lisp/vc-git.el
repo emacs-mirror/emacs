@@ -535,7 +535,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Revert FILE to the version stored in the git repository."
   (if contents-done
       (vc-git-command nil 0 file "update-index" "--")
-    (vc-git-command nil 0 file "checkout" "HEAD")))
+    (vc-git-command nil 0 file "reset" "-q" "--")
+    (vc-git-command nil nil file "checkout" "-q" "--")))
 
 ;;; HISTORY FUNCTIONS
 
