@@ -571,10 +571,14 @@ property containing author and date information."
                     (tag (gethash key table))
                     (inhibit-read-only t))
                (setq string (substring string (match-end 0)))
-        (unless tag
-          (setq tag (propertize rev 'help-echo (concat "Author: " author
-                                                       ", date: " date)
-                                'mouse-face 'highlight))
+	       (unless tag
+		 (setq tag
+		       (propertize
+			(concat rev " " (substring author 0 7))
+			'help-echo (format "Revision: %d, author: %s, date: %s"
+					   (string-to-number rev)
+					   author date)
+			'mouse-face 'highlight))
                  (puthash key tag table))
                (goto-char (process-mark proc))
                (insert tag line)
@@ -584,7 +588,7 @@ property containing author and date information."
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9.]+ +|" nil t)
+  (when (re-search-forward "^ *[0-9.]+ +[^\n ]* +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
       (let ((str (match-string-no-properties 0 prop)))
@@ -599,7 +603,7 @@ property containing author and date information."
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at " *\\([0-9.]+\\) *| ")
+    (if (looking-at "^ *\\([0-9.]+\\) +[^\n ]* +|")
         (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)

@@ -10,6 +10,11 @@
 
 2009-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc-bzr.el (vc-bzr-annotate-command): Show author in annotation.
+	Handle empty author field (Bug#4144).  Suggested by Óscar Fuentes.
+	(vc-bzr-annotate-time, vc-bzr-annotate-extract-revision-at-line):
+	Update annotation regexp.
+
 	* simple.el (beginning-of-visual-line): Constrain to field
 	boundaries (Bug#5106).
 
