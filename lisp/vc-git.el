@@ -551,15 +551,15 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (let ((inhibit-read-only t))
       (with-current-buffer
           buffer
-	(if shortlog
-	(vc-git-command buffer 'async files
-			    "log" ;; "--graph"
-			    "--date=short" "--pretty=format:%h  %ad  %s" "--abbrev-commit"
-			    "--")
-	  (vc-git-command buffer 'async files
-			  "rev-list" ;; "--graph"
-			  "--pretty" "HEAD" "--")))
-        (when limit 'limit-unsupported))))
+	(apply 'vc-git-command buffer
+	       'async files
+	       (append
+		'("log")
+		(when shortlog
+		  '("--graph" "--decorate"
+		    "--date=short" "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
+		(when limit (list "-n" (format "%s" limit)))
+		'("--")))))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -576,16 +576,19 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
        (if vc-short-log
-	 "^\\(?:[*/\\| ]+ \\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
+	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
 	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        (if vc-short-log
-	   (append
-	    `((,log-view-message-re
-	       (1 'change-log-acknowledgement)
-	       (2 'change-log-date))))
+	   '(
+	     ;; Same as log-view-message-re, except that we don't
+	     ;; want the shy group for the tag name.
+	     ("^\\(?:[*/\\| ]+ \\)?\\( ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
+	      (1 'highlight nil lax)
+	      (2 'change-log-acknowledgement)
+	      (3 'change-log-date)))
        (append
-        `((,log-view-message-re  (1 'change-log-acknowledgement)))
+        `((,log-view-message-re (1 'change-log-acknowledgement)))
         ;; Handle the case:
         ;; user: foo@bar
         '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"

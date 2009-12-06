@@ -1,5 +1,9 @@
 2009-12-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-git.el (vc-git-print-log): Handle a limit argument.  Display
+	the short log in graph form and with labels.
+	(vc-git-log-view-mode): Handle labels.
+
 	Make vc-revert change VC state from 'added to 'unregistered.
 	* vc-git.el (vc-git-revert): Call git reset first.
 
