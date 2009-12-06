@@ -167,7 +167,8 @@ in shell buffers.  You set this variable by calling one of:
   :type '(choice (const :tag "Do nothing" nil)
 		 (const :tag "Filter" filter)
 		 (const :tag "Translate" t))
-  :group 'ansi-colors)
+  :group 'ansi-colors
+  :version "23.2")
 
 ;;;###autoload
 (defun ansi-color-for-comint-mode-on ()
