@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "13. Oktober 2008, 20:34:21 (ulf)"
+;; Time-stamp:  "6. Dezember 2009, 19:17:02 (ulf)"
 
 ;; ======================================================================
 
@@ -33,8 +33,8 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-ticker "newst-ticker")
-(require 'newsticker-reader "newst-reader")
+(require 'newst-ticker)
+(require 'newst-reader)
 (require 'derived)
 (require 'xml)
 
@@ -1797,7 +1797,7 @@ Take care: end of item is at the end of its last line!"
                                     sort-fun)))
           newsticker--cache)))
 
-(provide 'newsticker-plainview)
+(provide 'newst-plainview)
 
 ;; arch-tag: 4e48b683-d48b-48dd-a13e-fe45baf41184
 ;;; newst-plainview.el ends here

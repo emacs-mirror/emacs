@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "4. Dezember 2009, 20:07:40 (ulf)"
+;; Time-stamp:  "6. Dezember 2009, 19:17:28 (ulf)"
 
 ;; ======================================================================
 
@@ -38,7 +38,7 @@
 
 ;; ======================================================================
 ;;; Code:
-(require 'newsticker-reader "newst-reader")
+(require 'newst-reader)
 (require 'widget)
 (require 'tree-widget)
 (require 'wid-edit)
@@ -2073,7 +2073,7 @@ POS gives the position where EVENT occurred."
   (when newsticker--treeview-current-feed
     (newsticker-get-news newsticker--treeview-current-feed)))
 
-(provide 'newsticker-treeview)
+(provide 'newst-treeview)
 
 ;; arch-tag: 5dbaff48-1f3e-4fc6-8ebd-e966fc90d2d4
 ;;; newst-treeview.el ends here
