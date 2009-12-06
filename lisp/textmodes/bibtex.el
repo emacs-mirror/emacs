@@ -909,7 +909,7 @@ If `bibtex-expand-strings' is non-nil, BibTeX strings are expanded
 for generating the URL.
 Set this variable before loading BibTeX mode.
 
-The following is a complex example, see http://link.aps.org/linkfaq.html.
+The following is a complex example, see URL `http://link.aps.org/'.
 
    (((\"journal\" . \"\\\\=<\\(PR[ABCDEL]?\\|RMP\\)\\\\=>\")
      \"http://link.aps.org/abstract/%s/v%s/p%s\"
@@ -1836,13 +1836,16 @@ are ignored.  Return point"
   "Search for BibTeX field enclosing point.
 For `bibtex-mode''s internal algorithms, a field begins at the comma
 following the preceding field.  Usually, this is not what the user expects.
-Thus if COMMA is non-nil, the \"current field\" includes the terminating comma.
+Thus if COMMA is non-nil, the \"current field\" includes the terminating comma
+as well as the entry delimiter if it appears on the same line.
 Unless NOERR is non-nil, signal an error if no enclosing field is found.
 On success return bounds, nil otherwise.  Do not move point."
   (save-excursion
     (when comma
       (end-of-line)
       (skip-chars-backward " \t")
+      ;; Ignore entry delimiter and comma at end of line.
+      (if (memq (preceding-char) '(?} ?\))) (forward-char -1))
       (if (= (preceding-char) ?,) (forward-char -1)))
 
     (let ((bounds (bibtex-search-backward-field bibtex-field-name t)))
