@@ -260,7 +260,7 @@ by default anymore.  The number of entries shown can be chosen
 interactively with a prefix argument, by customizing
 vc-log-show-limit.  The log buffer display buttons that can be used
 to change the number of entries shown.
-RCS, SCCS, CVS and Git do not support this feature.
+RCS, SCCS, CVS do not support this feature.  
 
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
@@ -272,6 +272,9 @@ advantage of this feature.
 *** Diff and log operations can be used from dired buffers.
 
 *** vc-git changes
+
+**** The short log format for git makes use of the graph display, so
+it's not supported on git versions earlier than 1.5.
 
 **** The new variable vc-git-add-signoff can be used to add a
 Signed-off-by line when committing.
