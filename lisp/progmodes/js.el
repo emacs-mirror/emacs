@@ -2603,7 +2603,7 @@ with `js--js-encode-value'."
        js-js-timeout))))
 
 (defsubst js--js-not (value)
-  (memq value '(nil false undefined)))
+  (memq value '(nil null false undefined)))
 
 (defsubst js--js-true (value)
   (not (js--js-not value)))

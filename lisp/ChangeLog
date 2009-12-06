@@ -1,3 +1,7 @@
+2009-12-06  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* progmodes/js.el (js--js-not): Add null to the list of values.
+
 2009-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ansi-color.el (ansi-color-for-comint-mode): Add :version
