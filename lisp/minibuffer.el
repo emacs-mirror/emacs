@@ -1078,6 +1078,7 @@ and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
 
 (defun completion-in-region (start end collection &optional predicate)
   "Complete the text between START and END using COLLECTION.
+Return nil if there is no valid completion, else t.
 Point needs to be somewhere between START and END."
   ;; FIXME: some callers need to setup completion-ignore-case,
   ;; completion-ignored-extensions.  The latter can be embedded in the
