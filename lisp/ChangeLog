@@ -1,3 +1,8 @@
+2009-12-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (beginning-of-visual-line): Constrain to field
+	boundaries (Bug#5106).
+
 2009-12-06  Ulf Jasper  <ulf.jasper@web.de>
 
 	* xml.el (xml-substitute-numeric-entities): Moved

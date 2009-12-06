@@ -4576,6 +4576,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (if (/= n 1)
       (let ((line-move-visual t))
 	(line-move (1- n) t)))
+  ;; Unlike `move-beginning-of-line', `move-end-of-line' doesn't
+  ;; constrain to field boundaries, so we don't either.
   (vertical-motion (cons (window-width) 0)))
 
 (defun beginning-of-visual-line (&optional n)
@@ -4585,10 +4587,13 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "^p")
   (or n (setq n 1))
-  (if (/= n 1)
-      (let ((line-move-visual t))
-	(line-move (1- n) t)))
-  (vertical-motion 0))
+  (let ((opoint (point)))
+    (if (/= n 1)
+	(let ((line-move-visual t))
+	  (line-move (1- n) t)))
+    (vertical-motion 0)
+    ;; Constrain to field boundaries, like `move-beginning-of-line'.
+    (goto-char (constrain-to-field (point) opoint (/= n 1)))))
 
 (defun kill-visual-line (&optional arg)
   "Kill the rest of the visual line.
