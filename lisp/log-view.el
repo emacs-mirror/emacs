@@ -128,6 +128,7 @@
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
+    ("=" . log-view-diff)
     ("D" . log-view-diff-changeset)
     ("a" . log-view-annotate-version)
     ("f" . log-view-find-revision)

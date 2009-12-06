@@ -10,6 +10,8 @@
 
 2009-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* log-view.el (log-view-mode-map): Bind "=" to log-view-diff too.
+
 	* vc-bzr.el (vc-bzr-annotate-command): Show author in annotation.
 	Handle empty author field (Bug#4144).  Suggested by Óscar Fuentes.
 	(vc-bzr-annotate-time, vc-bzr-annotate-extract-revision-at-line):
