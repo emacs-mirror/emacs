@@ -1,3 +1,9 @@
+2009-12-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-enclosing-field): Exclude entry
+	delimiter if it is at the end of the current line.
+	(bibtex-generate-url-list): Fix docstring.
+
 2009-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-complete-and-exit): Don't replace the
