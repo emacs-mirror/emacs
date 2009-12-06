@@ -57,7 +57,25 @@
 
 ;;; Todo:
 
-;; - make partial-complete-mode obsolete:
+;; - extend `boundaries' to provide various other meta-data about the
+;;   output of `all-completions':
+;;   - quoting/unquoting (so we can complete files names with envvars
+;;     and backslashes, and all-completion can list names without
+;;     quoting backslashes and dollars).
+;;   - indicate how to turn all-completion's output into
+;;     try-completion's output: e.g. completion-ignored-extensions.
+;;     maybe that could be merged with the "quote" operation above.
+;;   - completion hook to run when the completion is
+;;     selected/inserted (maybe this should be provided some other
+;;     way, e.g. as text-property, so `try-completion can also return it?)
+;;     both for when it's inserted via TAB or via choose-completion.
+;;   - indicate that `all-completions' doesn't do prefix-completion
+;;     but just returns some list that relates in some other way to
+;;     the provided string (as is the case in filecache.el), in which
+;;     case partial-completion (for example) doesn't make any sense
+;;     and neither does the completions-first-difference highlight.
+
+;; - make partial-completion-mode obsolete:
 ;;   - (?) <foo.h> style completion for file names.
 ;;     This can't be done identically just by tweaking completion,
 ;;     because partial-completion-mode's behavior is to expand <string.h>
@@ -414,8 +432,8 @@ Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
 The return value is a list of completions and may contain the base-size
 in the last `cdr'."
-  ;; FIXME: We need to additionally return completion-extra-size (similar
-  ;; to completion-base-size but for the text after point).
+  ;; FIXME: We need to additionally return the info needed for the
+  ;; second part of completion-base-position.
   (completion--some (lambda (style)
                       (funcall (nth 2 (assq style completion-styles-alist))
                                string table pred point))
@@ -626,6 +644,12 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
      ((test-completion (buffer-substring beg end)
                        minibuffer-completion-table
                        minibuffer-completion-predicate)
+      ;; FIXME: completion-ignore-case has various slightly
+      ;; incompatible meanings.  E.g. it can reflect whether the user
+      ;; wants completion to pay attention to case, or whether the
+      ;; string will be used in a context where case is significant.
+      ;; E.g. usually try-completion should obey the first, whereas
+      ;; test-completion should obey the second.
       (when completion-ignore-case
         ;; Fixup case of the field, if necessary.
         (let* ((string (buffer-substring beg end))
@@ -633,7 +657,7 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
                        string
                        minibuffer-completion-table
                        minibuffer-completion-predicate)))
-          (when (and (stringp compl)
+          (when (and (stringp compl) (not (equal string compl))
                      ;; If it weren't for this piece of paranoia, I'd replace
                      ;; the whole thing with a call to do-completion.
                      ;; This is important, e.g. when the current minibuffer's
@@ -646,21 +670,18 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
             (delete-region beg end))))
       (exit-minibuffer))
 
-     ((eq minibuffer-completion-confirm 'confirm)
+     ((memq minibuffer-completion-confirm '(confirm confirm-after-completion))
       ;; The user is permitted to exit with an input that's rejected
       ;; by test-completion, after confirming her choice.
-      (if (eq last-command this-command)
+      (if (or (eq last-command this-command)
+              ;; For `confirm-after-completion' we only ask for confirmation
+              ;; if trying to exit immediately after typing TAB (this
+              ;; catches most minibuffer typos).
+              (and (eq minibuffer-completion-confirm 'confirm-after-completion)
+                   (not (memq last-command minibuffer-confirm-exit-commands))))
           (exit-minibuffer)
         (minibuffer-message "Confirm")
         nil))
-
-     ((eq minibuffer-completion-confirm 'confirm-after-completion)
-      ;; Similar to the above, but only if trying to exit immediately
-      ;; after typing TAB (this catches most minibuffer typos).
-      (if (memq last-command minibuffer-confirm-exit-commands)
-	  (progn (minibuffer-message "Confirm")
-		 nil)
-	(exit-minibuffer)))
 
      (t
       ;; Call do-completion, but ignore errors.
@@ -1080,9 +1101,6 @@ and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
   "Complete the text between START and END using COLLECTION.
 Return nil if there is no valid completion, else t.
 Point needs to be somewhere between START and END."
-  ;; FIXME: some callers need to setup completion-ignore-case,
-  ;; completion-ignored-extensions.  The latter can be embedded in the
-  ;; completion tables, but the first cannot (actually, maybe it should).
   (assert (<= start (point)) (<= (point) end))
   ;; FIXME: undisplay the *Completions* buffer once the completion is done.
   (with-wrapper-hook
@@ -1247,6 +1265,8 @@ except that it passes the file name through `substitute-in-file-name'."
     ;; substitute-in-file-name turns "fo-$TO-ba" into "fo-o/b-ba", there's
     ;; no way for us to return proper boundaries info, because the
     ;; boundary is not (yet) in `string'.
+    ;; FIXME: Actually there is a way to return correct boundaries info,
+    ;; at the condition of modifying the all-completions return accordingly.
     (let ((start (length (file-name-directory string)))
           (end (string-match-p "/" (cdr action))))
       (list* 'boundaries start end)))
@@ -1644,7 +1664,7 @@ from lowercase to uppercase characters).")
 (defun completion-pcm--prepare-delim-re (delims)
   (setq completion-pcm--delim-wild-regex (concat "[" delims "*]")))
 
-(defcustom completion-pcm-word-delimiters "-_. "
+(defcustom completion-pcm-word-delimiters "-_./: "
   "A string of characters treated as word delimiters for completion.
 Some arcane rules:
 If `]' is in this string, it must come first.

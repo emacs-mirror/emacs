@@ -1,3 +1,10 @@
+2009-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-complete-and-exit): Don't replace the
+	minibuffer's content with itself.
+	Fold the confirm-after-completion case into the `confirm' case.
+	(completion-pcm-word-delimiters): Add : and / to the delimiters.
+
 2009-12-06  Kevin Ryde  <user42@zip.com.au>
 
 	* ffap.el (ffap-rfc-path): Make this a defcustom since
@@ -22,8 +29,8 @@
 	* bindings.el (complete-symbol): Call semantic-ia-complete-symbol
 	if possible.
 
-	* cedet/semantic/ia.el (semantic-ia-complete-symbol): Make
-	argument optional.
+	* cedet/semantic/ia.el (semantic-ia-complete-symbol):
+	Make argument optional.
 
 	* shell.el (shell): Require ansi-color (Bug#5113).
 
@@ -82,12 +89,11 @@
 	(bibtex-field-braces-alist, bibtex-field-strings-alist)
 	(bibtex-field-re-init): Replace only space characters by regexp
 	for whitespace.
-	(bibtex-generate-url-list, bibtex-cite-matcher-alist): Fix
-	docstring.
+	(bibtex-generate-url-list, bibtex-cite-matcher-alist): Fix docstring.
 	(bibtex-initialize): Also update bibtex-strings.
 	(bibtex-kill-field): Preserve white space at end of entry.
-	(bibtex-kill-entry, bibtex-yank-pop, bibtex-insert-kill): Update
-	bibtex-reference-keys.
+	(bibtex-kill-entry, bibtex-yank-pop, bibtex-insert-kill):
+	Update bibtex-reference-keys.
 
 2009-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
