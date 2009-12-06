@@ -1,3 +1,8 @@
+2009-12-06  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* vc-bzr.el (vc-bzr-annotate-command): Handle the case where the
+	author field is too short.
+
 2009-12-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-print-log): Handle a limit argument.  Display
