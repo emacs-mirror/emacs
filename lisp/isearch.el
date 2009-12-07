@@ -798,10 +798,14 @@ It is called by the function `isearch-forward' and other related functions."
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
 
-  (isearch-push-state)
-
   (setq overriding-terminal-local-map isearch-mode-map)
   (run-hooks 'isearch-mode-hook)
+
+  ;; Pushing the initial state used to be before running isearch-mode-hook,
+  ;; but a hook might set `isearch-push-state-function' used in
+  ;; `isearch-push-state' to save mode-specific initial state.  (Bug#4994)
+  (isearch-push-state)
+
   (isearch-update)
 
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
@@ -1212,10 +1216,12 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 (defun isearch-cancel ()
   "Terminate the search and go back to the starting point."
   (interactive)
-  (if (functionp (isearch-pop-fun-state (car (last isearch-cmds))))
-      (funcall (isearch-pop-fun-state (car (last isearch-cmds)))
-               (car (last isearch-cmds))))
-  (goto-char isearch-opoint)
+  (if (and isearch-push-state-function isearch-cmds)
+      ;; For defined push-state function, restore the first state.
+      ;; This calls pop-state function and restores original point.
+      (let ((isearch-cmds (last isearch-cmds)))
+	(isearch-top-state))
+    (goto-char isearch-opoint))
   (isearch-done t)                      ; exit isearch
   (isearch-clean-overlays)
   (signal 'quit nil))                   ; and pass on quit signal
