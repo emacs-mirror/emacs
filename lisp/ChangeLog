@@ -1,3 +1,12 @@
+2009-12-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Get the background mode from the terminal for xterm, and set
+	faces accordingly.
+	* term/xterm.el (xterm-set-background-mode): New function.
+	(terminal-init-xterm): Use it in case xterm supports background
+	color queries.  Recompute faces after getting the background
+	color.
+
 2009-12-07  Ulrich Mueller  <ulm@gentoo.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Put the version

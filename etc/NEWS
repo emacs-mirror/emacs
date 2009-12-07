@@ -339,6 +339,11 @@ That means, they change `default-directory' to the new users value,
 and let commands run under that user permissions.  It works even when
 `default-directory' is already remote.
 
+*** When running in a new enough xterm (newer than version 242), emacs
+asks xterm what the background color is and it sets up faces
+accordingly for a dark background if needed (the current default is to
+consider the background light).
+
 
 * New Modes and Packages in Emacs 23.2
 
