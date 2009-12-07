@@ -1894,7 +1894,8 @@ Call from the source buffer."
 	   (concat (user-login-name) "@" (system-name)))
        " on " (current-time-string) "\n"
        ";;; from file " filename "\n"
-       ";;; in Emacs version " emacs-version ", with"
+       ";;; in Emacs version " emacs-version "\n"
+       ";;; with"
        (cond
 	((eq optimize 'source) " source-level optimization only")
 	((eq optimize 'byte) " byte-level optimization only")

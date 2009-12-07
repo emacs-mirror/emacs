@@ -1,3 +1,8 @@
+2009-12-07  Ulrich Mueller  <ulm@gentoo.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Put the version
+	number comment back on its own line, for easier parsing.
+
 2009-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make it work for non-file buffers (bug#5102).
