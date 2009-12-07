@@ -216,6 +216,13 @@ on the page edge advances to the next/previous page.
 ** FIXME mail-user-agent change
 This probably affects a lot of documentation.
 
+*** If the user has not customized mail-user-agent, the `compose-mail'
+command (C-x m) checks for customizations for Mail mode, the previous
+default mail-user-agent.  It issues a warning if these customizations
+are found, to prevent mail configurations from silently breaking.
+
+To disable this check, set compose-mail-user-agent-warnings to nil.
+
 ** FIXME gdb-mi
 
 ** Grep
