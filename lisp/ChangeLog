@@ -1,3 +1,10 @@
+2009-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make it work for non-file buffers (bug#5102).
+	* doc-view.el (doc-view-current-cache-dir):
+	Use doc-view-buffer-file-name rather than buffer-file-name.
+	(doc-view-mode): Use buffer-name when buffer-file-name is nil.
+
 2009-12-06  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* vc-bzr.el (vc-bzr-annotate-command): Handle the case where the
@@ -5,8 +12,8 @@
 
 2009-12-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-git.el (vc-git-print-log): Handle a limit argument.  Display
-	the short log in graph form and with labels.
+	* vc-git.el (vc-git-print-log): Handle a limit argument.
+	Display the short log in graph form and with labels.
 	(vc-git-log-view-mode): Handle labels.
 
 	Make vc-revert change VC state from 'added to 'unregistered.
