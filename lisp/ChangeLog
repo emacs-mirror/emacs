@@ -1,3 +1,9 @@
+2009-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (ucs-names): Weed out at compile-time the
+	chars that don't have names, so the table can be built much faster at
+	run-time.
+
 2009-12-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (compose-mail): Check for incompatibilities and warn.

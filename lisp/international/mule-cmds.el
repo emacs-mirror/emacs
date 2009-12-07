@@ -2889,21 +2889,48 @@ on encoding."
 (defun ucs-names ()
   "Return alist of (CHAR-NAME . CHAR-CODE) pairs cached in `ucs-names'."
   (or ucs-names
-      (setq ucs-names
-	    (let (name names)
-	      (dotimes-with-progress-reporter (c #xEFFFF)
-		  "Loading Unicode character names..."
-		(unless (or
-			 (and (>= c #x3400 ) (<= c #x4dbf )) ; CJK Ideograph Extension A
-			 (and (>= c #x4e00 ) (<= c #x9fff )) ; CJK Ideograph
-			 (and (>= c #xd800 ) (<= c #xfaff )) ; Private/Surrogate
-			 (and (>= c #x20000) (<= c #x2ffff)) ; CJK Ideograph Extensions B, C
-			 )
-		  (if (setq name (get-char-code-property c 'name))
-		      (setq names (cons (cons name c) names)))
-		  (if (setq name (get-char-code-property c 'old-name))
-		      (setq names (cons (cons name c) names)))))
-	      names))))
+      (let ((ranges
+             (purecopy
+              ;; We precompute at compile-time the ranges of chars
+              ;; that have names, so that at runtime, building the
+              ;; table can be done faster, since most of the time is
+              ;; spent looking for the chars that do have a name.
+              (eval-when-compile
+                (let ((ranges ())
+                      (first 0)
+                      (last 0))
+                  (dotimes-with-progress-reporter (c #xEFFFF)
+                      "Finding Unicode characters with names..."
+                    (unless (or
+                             ;; CJK Ideograph Extension Arch
+                             (and (>= c #x3400 ) (<= c #x4dbf ))
+                             ;; CJK Ideograph
+                             (and (>= c #x4e00 ) (<= c #x9fff ))
+                             ;; Private/Surrogate
+                             (and (>= c #xd800 ) (<= c #xfaff ))
+                             ;; CJK Ideograph Extensions B, C
+                             (and (>= c #x20000) (<= c #x2ffff))
+                             (null (get-char-code-property c 'name)))
+                      ;; This char has a name.
+                      (if (<= c (1+ last))
+                          ;; Extend the current range.
+                          (setq last c)
+                        ;; We have to split the range.
+                        (push (cons first last) ranges)
+                        (setq first (setq last c)))))
+                  (cons (cons first last) ranges))))
+             name names)
+            (dolist (range ranges)
+              (let ((c (car range))
+                    (end (cdr range)))
+                (while (<= c end)
+                  (if (setq name (get-char-code-property c 'name))
+                      (push (cons name c) names)
+                    (error "Wrong range"))
+                  (if (setq name (get-char-code-property c 'old-name))
+                      (push (cons name c) names))
+                  (setq c (1+ c)))))
+            (setq ucs-names names)))))
 
 (defvar ucs-completions (lazy-completion-table ucs-completions ucs-names)
   "Lazy completion table for completing on Unicode character names.")
