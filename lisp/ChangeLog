@@ -1,3 +1,20 @@
+2009-12-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Handle prompt rules of ksh in OpenBSD 4.5.  Reported by Raphaël
+	Berbain <raphael.berbain@gmail.com>.
+
+	* net/tramp.el (tramp-end-of-output): Move up.  Use `#' and `$'
+	characters.
+	(tramp-initial-end-of-output): New defconst.
+	(tramp-methods, tramp-find-shell)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-maybe-open-connection): Use it.
+	(tramp-shell-prompt-pattern, tramp-wait-for-output): Handle
+	existence of `#' and `$'.
+
+	* net/tramp-fish.el (tramp-fish-maybe-open-connection): Use
+	`tramp-initial-end-of-output'.
+
 2009-12-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Get the background mode from the terminal for xterm, and set

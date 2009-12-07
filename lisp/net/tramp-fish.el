@@ -1111,7 +1111,7 @@ connection if a previous connection has died for some reason."
       (when (and p (processp p))
 	(delete-process p))
       (setenv "TERM" tramp-terminal-type)
-      (setenv "PS1" "$ ")
+      (setenv "PS1" tramp-initial-end-of-output)
       (tramp-message
        vec 3 "Opening connection for %s@%s using %s..."
        tramp-current-user tramp-current-host tramp-current-method)

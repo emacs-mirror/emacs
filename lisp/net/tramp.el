@@ -297,6 +297,21 @@ files conditionalize this setup based on the TERM environment variable."
   :group 'tramp
   :type 'string)
 
+;; ksh on OpenBSD 4.5 requires, that PS1 contains a `#' character for
+;; root users.  It uses the `$' character for other users.  In order
+;; to guarantee a proper prompt, we use "#$" for the prompt.
+
+(defvar tramp-end-of-output
+  (format
+   "///%s#$"
+   (md5 (concat (prin1-to-string process-environment) (current-time-string))))
+  "String used to recognize end of output.
+The '$' character at the end is quoted; the string cannot be
+detected as prompt when being sent on echoing hosts, therefore.")
+
+(defconst tramp-initial-end-of-output "#$ "
+  "Prompt when establishing a connection.")
+
 (defvar tramp-methods
   `(("rcp"   (tramp-login-program        "rsh")
              (tramp-login-args           (("%h") ("-l" "%u")))
@@ -585,8 +600,9 @@ files conditionalize this setup based on the TERM environment variable."
 	     ;; `tramp-compute-multi-hops'.
 	     (tramp-login-args           (("-load") ("%h") ("-t")
 					  (,(format
-					     "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=$ '"
-					     tramp-terminal-type))
+					     "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'"
+					     tramp-terminal-type
+					     tramp-initial-end-of-output))
 					  ("/bin/sh")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -1030,7 +1046,7 @@ Sometimes the prompt is reported to look like \"login as:\"."
 (defcustom tramp-shell-prompt-pattern
   ;; Allow a prompt to start right after a ^M since it indeed would be
   ;; displayed at the beginning of the line (and Zsh uses it).
-  "\\(?:^\\|\r\\)[^#$%>\n]*[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*"
+  "\\(?:^\\|\r\\)[^#$%>\n]*#?[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*"
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -1038,7 +1054,10 @@ remote host which sends a different kind of shell prompt.  Therefore,
 Tramp recognizes things matched by `shell-prompt-pattern' as prompt,
 and also things matched by this variable.  The default value of this
 variable is similar to the default value of `shell-prompt-pattern',
-which should work well in many cases."
+which should work well in many cases.
+
+This regexp must match both `tramp-initial-end-of-output' and
+`tramp-end-of-output'."
   :group 'tramp
   :type 'regexp)
 
@@ -1586,14 +1605,6 @@ means to use always cached values for the directory contents."
   :type '(choice (const nil) integer))
 
 ;;; Internal Variables:
-
-(defvar tramp-end-of-output
-  (format
-   "///%s$"
-   (md5 (concat (prin1-to-string process-environment) (current-time-string))))
-  "String used to recognize end of output.
-The '$' character at the end is quoted; the string cannot be
-detected as prompt when being sent on echoing hosts, therefore.")
 
 (defvar tramp-current-method nil
   "Connection method for this *tramp* buffer.")
@@ -6350,7 +6361,7 @@ file exists and nonzero exit status otherwise."
 	    (when extra-args (setq shell (concat shell " " extra-args))))
 	  (tramp-message
 	   vec 5 "Starting remote shell `%s' for tilde expansion..." shell)
-	  (let ((tramp-end-of-output "$ "))
+	  (let ((tramp-end-of-output tramp-initial-end-of-output))
 	    (tramp-send-command
 	     vec
 	     (format "PROMPT_COMMAND='' PS1=%s PS2='' PS3='' exec %s"
@@ -6621,7 +6632,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "Set up an interactive shell.
 Mainly sets the prompt and the echo correctly.  PROC is the shell
 process to set up.  VEC specifies the connection."
-  (let ((tramp-end-of-output "$ "))
+  (let ((tramp-end-of-output tramp-initial-end-of-output))
     ;; It is useful to set the prompt in the following command because
     ;; some people have a setting for $PS1 which /bin/sh doesn't know
     ;; about and thus /bin/sh will display a strange prompt.  For
@@ -7147,7 +7158,7 @@ connection if a previous connection has died for some reason."
 	(setenv "TERM" tramp-terminal-type)
 	(setenv "LC_ALL" "C")
 	(setenv "PROMPT_COMMAND")
-	(setenv "PS1" "$ ")
+	(setenv "PS1" tramp-initial-end-of-output)
 	(let* ((target-alist (tramp-compute-multi-hops vec))
 	       (process-connection-type tramp-process-connection-type)
 	       (process-adaptive-read-buffering nil)
@@ -7271,9 +7282,9 @@ function waits for output unless NOOUTPUT is set."
 (defun tramp-wait-for-output (proc &optional timeout)
   "Wait for output from remote rsh command."
   (with-current-buffer (process-buffer proc)
-    (let* (;; Initially, `tramp-end-of-output' is "$ ".  There might
+    (let* (;; Initially, `tramp-end-of-output' is "#$ ".  There might
 	   ;; be leading escape sequences, which must be ignored.
-	   (regexp (format "[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))
+	   (regexp (format "[^#$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))
 	   ;; Sometimes, the commands do not return a newline but a
 	   ;; null byte before the shell prompt, for example "git
 	   ;; ls-files -c -z ...".
