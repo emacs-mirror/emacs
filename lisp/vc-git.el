@@ -77,7 +77,7 @@
 ;; - merge-news (file)                     see `merge'
 ;; - steal-lock (file &optional revision)          NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files buffer &optional shortlog limit)   OK
+;; * print-log (files buffer &optional shortlog start-revision limit)   OK
 ;; - log-view-mode ()                              OK
 ;; - show-log-entry (revision)                     OK
 ;; - comment-history (file)                        ??
@@ -540,7 +540,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;; HISTORY FUNCTIONS
 
-(defun vc-git-print-log (files buffer &optional shortlog limit)
+(defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Get change log associated with FILES."
   (let ((coding-system-for-read git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
@@ -559,6 +559,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		  '("--graph" "--decorate"
 		    "--date=short" "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
 		(when limit (list "-n" (format "%s" limit)))
+		(when start-revision (list start-revision))
 		'("--")))))))
 
 (defvar log-view-message-re)
@@ -615,14 +616,17 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 REVISION may have the form BRANCH, BRANCH~N,
 or BRANCH^ (where \"^\" can be repeated)."
   (goto-char (point-min))
-  (when revision
-    (search-forward (format "\ncommit %s" revision) nil t
-		    (cond ((string-match "~\\([0-9]\\)$" revision)
-			   (1+ (string-to-number (match-string 1 revision))))
-			  ((string-match "\\^+$" revision)
-			   (1+ (length (match-string 0 revision))))
-			  (t nil))))
-  (beginning-of-line))
+  (let (found)
+    (when revision
+      (setq found
+	    (search-forward (format "\ncommit %s" revision) nil t
+			    (cond ((string-match "~\\([0-9]\\)$" revision)
+				   (1+ (string-to-number (match-string 1 revision))))
+				  ((string-match "\\^+$" revision)
+				   (1+ (length (match-string 0 revision))))
+				  (t nil)))))
+    (beginning-of-line)
+    found))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."

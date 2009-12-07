@@ -267,6 +267,10 @@ it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take
 advantage of this feature.
 
+*** The log command in vc-annotate can display a single log entry
+instead of redisplaying the full log.  The RCS, CVS and SCCS VC
+backends do not support this.
+
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
 *** Diff and log operations can be used from dired buffers.

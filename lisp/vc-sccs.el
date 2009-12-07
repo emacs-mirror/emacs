@@ -335,7 +335,7 @@ revert all subfiles."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (files buffer &optional shortlog limit)
+(defun vc-sccs-print-log (files buffer &optional shortlog start-revision-ignored limit)
   "Get change log associated with FILES."
   (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))

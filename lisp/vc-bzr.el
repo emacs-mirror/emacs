@@ -481,7 +481,7 @@ REV non-nil gets an error."
 		    (2 'change-log-email))
 		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
-(defun vc-bzr-print-log (files buffer &optional shortlog limit)
+(defun vc-bzr-print-log (files buffer &optional shortlog start-revision limit)
   "Get bzr change log for FILES into specified BUFFER."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
@@ -495,6 +495,7 @@ REV non-nil gets an error."
     (apply 'vc-bzr-command "log" buffer 'async files
 	   (append
 	    (when shortlog '("--short"))
+	    (when start-revision (list (format "-r..%s" start-revision)))
 	    (when limit (list "-l" (format "%s" limit)))
 	    (if (stringp vc-bzr-log-switches)
 		(list vc-bzr-log-switches)
@@ -504,7 +505,8 @@ REV non-nil gets an error."
   "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
   (when revision
-    (let (case-fold-search)
+    (let (case-fold-search
+	  found)
       (if (re-search-forward
 	   ;; "revno:" can appear either at the beginning of a line,
 	   ;; or indented.
@@ -512,8 +514,11 @@ REV non-nil gets an error."
 		   ;; The revision can contain ".", quote it so that it
 		   ;; does not interfere with regexp matching.
 		   (regexp-quote revision) "$") nil t)
-	  (beginning-of-line 0)
-	(goto-char (point-min))))))
+	  (progn
+	    (beginning-of-line 0)
+	    (setq found t))
+	(goto-char (point-min)))
+      found)))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."

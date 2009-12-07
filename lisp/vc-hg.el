@@ -68,7 +68,7 @@
 ;; - merge-news (file)                         NEEDED
 ;; - steal-lock (file &optional revision)      NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files buffer &optional shortlog) OK
+;; * print-log (files buffer &optional shortlog start-revision limit) OK
 ;; - log-view-mode ()                          OK
 ;; - show-log-entry (revision)                 NOT NEEDED, DEFAULT IS GOOD
 ;; - comment-history (file)                    NOT NEEDED
@@ -167,9 +167,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
             (setq status
                   (condition-case nil
                       ;; Ignore all errors.
-                      (process-file
+		      (let ((process-environment
+			     ;; Avoid localization of messages so we can parse the output.
+			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=") process-environment)))
+
+		      (process-file
                        "hg" nil t nil
-                       "status" "-A" (file-relative-name file))
+                       "status" "-A" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -219,7 +223,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-hg)
 
-(defun vc-hg-print-log (files buffer &optional shortlog limit)
+(defun vc-hg-print-log (files buffer &optional shortlog limit start-revision)
   "Get change log associated with FILES."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
@@ -231,6 +235,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
 	     (append
+	      (when start-revision (list (format "-r%s:" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
 	      (when shortlog '("--style" "compact"))
 	      vc-hg-log-switches)))))

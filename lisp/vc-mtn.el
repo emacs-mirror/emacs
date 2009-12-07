@@ -188,9 +188,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;; (defun vc-mtn-roolback (files)
 ;;   )
 
-(defun vc-mtn-print-log (files buffer &optional shortlog limit)
+(defun vc-mtn-print-log (files buffer &optional shortlog start-revision limit)
   (apply 'vc-mtn-command buffer 0 files "log"
-	 (when limit (list "--last" (format "%s" limit)))))
+	 (append
+	  (when start-revision (list "--from" (format "%s" start-revision))
+	  (when limit (list "--last" (format "%s" limit)))))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)

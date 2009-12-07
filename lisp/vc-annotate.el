@@ -479,15 +479,37 @@ Return a cons (REV . FILENAME)."
 	(vc-annotate-warp-revision prev-rev fname)))))
 
 (defun vc-annotate-show-log-revision-at-line ()
-  "Visit the log of the revision at line."
+  "Visit the log of the revision at line.
+If the VC backend supports it, only show the log entry for the revision.
+If a *vc-change-log* buffer exists and already shows a log for
+the file in question, search for the log entry required and move point ."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
     (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
-	(vc-print-log-internal
-	 vc-annotate-backend (list (cdr rev-at-line)) (car rev-at-line) nil)))))
+	(let ((backend vc-annotate-backend)
+	      (log-buf (get-buffer "*vc-change-log*"))
+	      pos)
+	  (if (and
+	       log-buf
+	       ;; Look for a log buffer that already displays the correct file.
+	       (with-current-buffer log-buf
+		 (and (eq backend log-view-vc-backend)
+		      (null (cdr log-view-vc-fileset))
+		      (string= (car log-view-vc-fileset) (cdr rev-at-line))
+		      ;; Check if the entry we require can be found.
+		      (vc-call-backend
+		       backend 'show-log-entry (car rev-at-line))
+		      (setq pos (point)))))
+	      (progn
+		(pop-to-buffer log-buf)
+		(goto-char pos))
+	    ;; Ask the backend to display a single log entry.
+	    (vc-print-log-internal
+	     vc-annotate-backend (list (cdr rev-at-line))
+	     (car rev-at-line) t 1)))))))
 
 (defun vc-annotate-show-diff-revision-at-line-internal (filediff)
   (if (not (equal major-mode 'vc-annotate-mode))

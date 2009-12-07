@@ -496,7 +496,7 @@ Will fail unless you have administrative privileges on the repo."
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 
-(defun vc-cvs-print-log (files buffer &optional shortlog limit)
+(defun vc-cvs-print-log (files buffer &optional shortlog start-revision-ignored limit)
   "Get change logs associated with FILES."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.

@@ -1,13 +1,34 @@
+2009-12-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Support showing a single log entry from vc-annotate.
+	* vc.el (print-log): Add a new argument: START-REVISION.
+	(vc-print-log-internal): Add a new optional argument and
+	pass it to the backend.
+	(vc-print-log, vc-print-root-log): Adjust callers.
+	* vc-annotate.el (vc-annotate-show-log-revision-at-line): If a
+	buffer already displays the requested log entry, use it.
+	Otherwise display only the log entry in question.
+	* vc-svn.el (vc-svn-print-log):
+	* vc-mtn.el (log-view-file-re):
+	* vc-hg.el (vc-hg-state):
+	* vc-git.el (vc-git-print-log): Add support for new argument START-REVISION.
+	(vc-git-show-log-entry): Return t on success.
+	* vc-bzr.el (vc-bzr-print-log): Add support new argument START-REVISION.
+	(vc-bzr-show-log-entry): Return t on success.
+	* vc-rcs.el (vc-rcs-print-log):
+	* vc-sccs.el (vc-sccs-print-log):
+	* vc-cvs.el (vc-cvs-print-log): Add new argument, ignore it.
+
 2009-12-07  Michael Kifer <kifer@cs.stonybrook.edu>
-	
-	* ediff-init.el (ediff-event-key): use event-to-character instead of
+
+	* ediff-init.el (ediff-event-key): Use event-to-character instead of
 	event-key.
-	
-	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer): add
+
+	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer): Add
 	menus to the meta mode. (Dan Nicolaescu's <dann@ics.uci.edu> patch.)
-	
-	* ediff.el (ediff-buffers-internal): add unwind-protect.
-	
+
+	* ediff.el (ediff-buffers-internal): Add unwind-protect.
+
 2009-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	Handle prompt rules of ksh in OpenBSD 4.5.  Reported by Raphaël
