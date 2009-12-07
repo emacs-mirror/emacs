@@ -1076,6 +1076,8 @@ subshell is initiated, `tex-shell-hook' is run."
   (add-hook 'fill-nobreak-predicate 'latex-fill-nobreak-predicate nil t)
   (set (make-local-variable 'indent-line-function) 'latex-indent)
   (set (make-local-variable 'fill-indent-according-to-mode) t)
+  (add-hook 'completion-at-point-functions
+            'latex-complete-data nil 'local)
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
   (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
@@ -1508,27 +1510,6 @@ Puts point on a blank line between them."
                ;; Unknown command.
                nil
              (list comp-beg comp-end table))))))))
-
-(defun latex-complete ()
-  "Perform completion at point for LaTeX mode.
-Return non-nil if we found what to complete."
-  (interactive)
-  (let ((data (latex-complete-data)))
-    (when data
-      (apply 'completion-in-region data)
-      t)))
-
-(defun latex-indent-or-complete ()
-  "Perform completion at point or indentation, according to DWIM.
-The heuristic is to try indentation, if that fails try completion,
-if that fails insert a tab."
-  (interactive)
-  (let ((undo buffer-undo-list)
-	(pos (point)))
-    (indent-according-to-mode)
-    (or (not (and (eq pos (point)) (eq undo buffer-undo-list)))
-        (latex-complete)
-        (insert-tab))))
 
 ;;;;
 ;;;; LaTeX syntax navigation
