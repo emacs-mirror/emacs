@@ -6,6 +6,9 @@
 
 2009-12-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc-bzr.el (vc-bzr-annotate-command): More elegant form for last
+	change.  Suggested by David Kastrup.
+
 	* simple.el (compose-mail): Check for incompatibilities and warn.
 	(compose-mail-user-agent-warnings): New option.
 

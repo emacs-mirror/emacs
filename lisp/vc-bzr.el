@@ -579,8 +579,7 @@ property containing author and date information."
 	       (unless tag
 		 (setq tag
 		       (propertize
-			(concat rev " " (substring (concat author "       ")
-						   0 7))
+			(format "%s %-7.7s" rev author)
 			'help-echo (format "Revision: %d, author: %s, date: %s"
 					   (string-to-number rev)
 					   author date)
