@@ -1,3 +1,17 @@
+2009-12-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Prevent save-buffer in Rmail buffers from using the coding-system
+	of the current message, and from clobbering the encoding mnemonics
+	in the mode line (Bug#4623).
+
+	* mail/rmail.el (rmail-swap-buffers): Swap encoding and modified
+	flag, too.
+	(rmail-message-encoding): New variable.
+	(rmail-write-region-annotate): Record the encoding of the current
+	message in rmail-message-encoding.
+	(rmail-after-save-hook): New function, restores the encoding of
+	the current message after the message collection is saved.
+
 2009-12-07  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-read-files): Use `completing-read'
