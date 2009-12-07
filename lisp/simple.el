@@ -5558,6 +5558,15 @@ See also `read-mail-command' concerning reading mail."
   :version "23.2"                       ; sendmail->message
   :group 'mail)
 
+(defcustom compose-mail-user-agent-warnings t
+  "If non-nil, `compose-mail' warns about changes in `mail-user-agent'.
+If the value of `mail-user-agent' is the default, and the user
+appears to have customizations applying to the old default,
+`compose-mail' issues a warning."
+  :type 'boolean
+  :version "23.2"
+  :group 'mail)
+
 (define-mail-user-agent 'sendmail-user-agent
   'sendmail-user-agent-compose
   'mail-send-and-exit)
@@ -5627,6 +5636,32 @@ SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
   (interactive
    (list nil nil nil current-prefix-arg))
+
+  ;; In Emacs 23.2, the default value of `mail-user-agent' changed
+  ;; from sendmail-user-agent to message-user-agent.  Some users may
+  ;; encounter incompatibilities.  This hack tries to detect problems
+  ;; and warn about them.
+  (and compose-mail-user-agent-warnings
+       (eq mail-user-agent 'message-user-agent)
+       (let (warn-vars)
+	 (dolist (var '(mail-mode-hook mail-send-hook mail-setup-hook
+			mail-yank-hooks mail-archive-file-name
+			mail-default-reply-to mail-mailing-lists
+			mail-self-blind mail-setup-with-from))
+	   (and (boundp var)
+		(symbol-value var)
+		(push var warn-vars)))
+	 (when warn-vars
+	   (display-warning 'mail
+			    (format "\
+The default mail mode is now Message mode.
+You have the following Mail mode variable%s customized:
+\n  %s\n\nTo use Mail mode, set `mail-user-agent' to sendmail-user-agent.
+To disable this warning, set `compose-mail-check-user-agent' to nil."
+				    (if (> (length warn-vars) 1) "s" "")
+				    (mapconcat 'symbol-name
+					       warn-vars " "))))))
+
   (let ((function (get mail-user-agent 'composefunc)))
     (funcall function to subject other-headers continue
 	     switch-function yank-action send-actions)))
