@@ -1422,11 +1422,11 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
               (t
                (if isearch-forward 'search-forward 'search-backward))))
 	    found)
-	;; Avoid lazy-highlighting matches in the comint prompt when
-	;; searching forward.  Lazy-highlight calls this lambda with the
-	;; bound arg, so skip the comint prompt.
-	(if (and bound isearch-forward (< (point) (comint-line-beginning-position)))
-	    (goto-char (comint-line-beginning-position)))
+	;; Avoid lazy-highlighting matches in the comint prompt and in the
+	;; output when searching forward.  Lazy-highlight calls this lambda
+	;; with the bound arg, so skip the prompt and the output.
+	(if (and bound isearch-forward (not (comint-after-pmark-p)))
+	    (goto-char (process-mark (get-buffer-process (current-buffer)))))
         (or
 	 ;; 1. First try searching in the initial comint text
 	 (funcall search-fun string

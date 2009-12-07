@@ -1,3 +1,12 @@
+2009-12-07  Juri Linkov  <juri@jurta.org>
+
+	Don't lazy-highlight the comint output in history Isearch mode.
+
+	* comint.el (comint-history-isearch-search): Instead of
+	`comint-line-beginning-position', use `comint-after-pmark-p'
+	to check if point if before the process mark, and go to
+	`process-mark' in this case.
+
 2009-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (latex-complete)
