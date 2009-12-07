@@ -1,5 +1,11 @@
 2009-12-07  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (grep-read-files): Use `completing-read'
+	instead of `read-string'.  Set its `collection' arg to
+	`read-file-name-internal'.  (Bug#4301)
+
+2009-12-07  Juri Linkov  <juri@jurta.org>
+
 	Correctly restore original Isearch point.  (Bug#4994)
 
 	* isearch.el (isearch-mode): Move `isearch-push-state' after

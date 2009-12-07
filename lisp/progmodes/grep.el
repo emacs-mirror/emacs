@@ -799,12 +799,13 @@ substitution string.  Note dynamic scoping of variables.")
 	       default-extension
 	       (car grep-files-history)
 	       (car (car grep-files-aliases))))
-	 (files (read-string
+	 (files (completing-read
 		 (concat "Search for \"" regexp
 			 "\" in files"
 			 (if default (concat " (default " default ")"))
 			 ": ")
-		 nil 'grep-files-history
+		 'read-file-name-internal
+		 nil nil nil 'grep-files-history
 		 (delete-dups
 		  (delq nil (append (list default default-alias default-extension)
 				    (mapcar 'car grep-files-aliases)))))))
