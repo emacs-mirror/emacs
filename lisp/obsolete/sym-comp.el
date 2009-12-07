@@ -5,6 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: extensions
 ;; URL: http://www.loveshack.ukfsn.org/emacs
+;; Obsolete-since: 23.2
 
 ;; This file is part of GNU Emacs.
 

@@ -280,7 +280,7 @@ font-lock keywords will not be case sensitive."
 	(prof-map (make-sparse-keymap))
 	(tracing-map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\e\t" 'lisp-complete-symbol)
+    (define-key map "\e\t" 'completion-at-point)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map [menu-bar emacs-lisp] (cons (purecopy "Emacs-Lisp") menu-map))
@@ -431,7 +431,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :type 'hook
   :group 'lisp)
 
-(defun emacs-lisp-mode ()
+(define-derived-mode emacs-lisp-mode nil "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -440,16 +440,11 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{emacs-lisp-mode-map}
 Entry to this mode calls the value of `emacs-lisp-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map emacs-lisp-mode-map)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (setq major-mode 'emacs-lisp-mode)
-  (setq mode-name "Emacs-Lisp")
+  :group 'lisp
   (lisp-mode-variables)
   (setq imenu-case-fold-search nil)
-  (run-mode-hooks 'emacs-lisp-mode-hook))
-(put 'emacs-lisp-mode 'custom-mode-group 'lisp)
+  (add-hook 'completion-at-point-functions
+            'lisp-completion-at-point nil 'local))
 
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap))
@@ -519,7 +514,7 @@ if that value is non-nil."
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
-    (define-key map "\e\t" 'lisp-complete-symbol)
+    (define-key map "\e\t" 'completion-at-point)
     (define-key map "\n" 'eval-print-last-sexp)
     (define-key map [menu-bar lisp-interaction] (cons (purecopy "Lisp-Interaction") menu-map))
     (define-key menu-map [eval-defun]
@@ -535,8 +530,8 @@ if that value is non-nil."
     (define-key menu-map [indent-pp-sexp]
       `(menu-item ,(purecopy "Indent or Pretty-Print") indent-pp-sexp
 		  :help ,(purecopy "Indent each line of the list starting just after point, or prettyprint it")))
-    (define-key menu-map [lisp-complete-symbol]
-      `(menu-item ,(purecopy "Complete Lisp Symbol") lisp-complete-symbol
+    (define-key menu-map [complete-symbol]
+      `(menu-item ,(purecopy "Complete Lisp Symbol") completion-at-point
 		  :help ,(purecopy "Perform completion on Lisp symbol preceding point")))
     map)
   "Keymap for Lisp Interaction mode.

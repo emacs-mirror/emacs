@@ -172,7 +172,7 @@ This variable is buffer-local.")
     (define-key map "\C-m" 'ielm-return)
     (define-key map "\C-j" 'ielm-send-input)
     (define-key map "\e\C-x" 'eval-defun)         ; for consistency with
-    (define-key map "\e\t" 'lisp-complete-symbol) ; lisp-interaction-mode
+    (define-key map "\e\t" 'completion-at-point)  ; lisp-interaction-mode
     ;; These bindings are from `lisp-mode-shared-map' -- can you inherit
     ;; from more than one keymap??
     (define-key map "\e\C-q" 'indent-sexp)
@@ -493,6 +493,8 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (set (make-local-variable 'indent-line-function) 'ielm-indent-line)
   (set (make-local-variable 'ielm-working-buffer) (current-buffer))
   (set (make-local-variable 'fill-paragraph-function) 'lisp-fill-paragraph)
+  (add-hook 'completion-at-point-functions
+            'lisp-completion-at-point nil 'local)
 
   ;; Value holders
   (set (make-local-variable '*) nil)

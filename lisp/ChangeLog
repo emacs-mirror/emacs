@@ -1,3 +1,23 @@
+2009-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point-functions): New var.
+	(completion-at-point): New command.
+	* indent.el (indent-for-tab-command): Handle the new `complete' behavior.
+	* progmodes/python.el (python-mode-map): Use completion-at-point.
+	(python-completion-at-point): Rename from python-partial-symbol and
+	adjust for use in completion-at-point-functions.
+	(python-mode): Setup completion-at-point for Python completion.
+	* emacs-lisp/lisp.el (lisp-completion-at-point): New function
+	extracted from lisp-complete-symbol.
+	(lisp-complete-symbol): Use it.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode): Use define-derived-mode,
+	setup completion-at-point for Elisp completion.
+	(emacs-lisp-mode-map, lisp-interaction-mode-map): Use completion-at-point.
+	* ielm.el (ielm-map): Use completion-at-point.
+	(inferior-emacs-lisp-mode): Setup completion-at-point for Elisp completion.
+	* progmodes/sym-comp.el: Move to...
+	* obsolete/sym-comp.el: Move from progmodes.
+
 2009-12-07  Eli Zaretskii  <eliz@gnu.org>
 
 	Prevent save-buffer in Rmail buffers from using the coding-system

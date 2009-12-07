@@ -622,6 +622,15 @@ symbols with function definitions are considered.  Otherwise, all
 symbols with function definitions, values or properties are
 considered."
   (interactive)
+  (let* ((data (lisp-completion-at-point predicate))
+         (plist (nthcdr 3 data)))
+    (let ((completion-annotate-function (plist-get plist :annotate-function)))
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
+                            (plist-get plist :predicate)))))
+    
+
+(defun lisp-completion-at-point (&optional predicate)
+  ;; FIXME: the `end' could be after point?
   (let* ((end (point))
          (beg (with-syntax-table emacs-lisp-mode-syntax-table
                 (save-excursion
@@ -648,10 +657,11 @@ considered."
                       nil
                     ;; Else, we assume that a function name is expected.
                     'fboundp))))))
-    (let ((completion-annotate-function
-           (unless (eq predicate 'fboundp)
-             (lambda (str) (if (fboundp (intern-soft str)) " <f>")))))
-      (completion-in-region beg end obarray predicate))))
+    (list beg end obarray
+          :predicate predicate
+          :annotate-function
+            (unless (eq predicate 'fboundp)
+              (lambda (str) (if (fboundp (intern-soft str)) " <f>"))))))
 
 ;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

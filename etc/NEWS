@@ -137,6 +137,10 @@ subsequent kills are not duplicated in the `kill-ring'.
 
 ** Completion changes
 
+*** The new command `completion-at-point' provides mode-sensitive completion.
+
+*** tab-always-indent set to `complete' lets TAB do completion as well.
+
 *** The new completion-style `initials' is available.
 For instance, this can complete M-x lch to list-command-history.
 
@@ -169,6 +173,8 @@ cycling order of C-l (`recenter-top-bottom').
 
 ** LaTeX mode now provides completion via latex-complete and
 latex-indent-or-complete.
+
+** sym-comp.el is now declared obsolete, superceded by completion-at-point.
 
 ** lucid.el and levents.el are now declared obsolete.
 

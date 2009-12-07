@@ -1113,6 +1113,36 @@ Point needs to be somewhere between START and END."
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
 
+(defvar completion-at-point-functions nil
+  "Special hook to find the completion table for the thing at point.
+It is called without any argument and should return either nil,
+or a function of no argument to perform completion (discouraged),
+or a list of the form (START END COLLECTION &rest PROPS) where
+ START and END delimit the entity to complete and should include point,
+ COLLECTION is the completion table to use to complete it, and
+ PROPS is a property list for additional information.
+Currently supported properties are:
+ `:predicate'           a predicate that completion candidates need to satisfy.
+ `:annotation-function' the value to use for `completion-annotate-function'.")
+
+(defun completion-at-point ()
+  "Complete the thing at point according to local mode."
+  (interactive)
+  (let ((res (run-hook-with-args-until-success
+              'completion-at-point-functions)))
+    (cond
+     ((functionp res) (funcall res))
+     (res
+      (let* ((plist (nthcdr 3 res))
+             (start (nth 0 res))
+             (end (nth 1 res))
+             (completion-annotate-function
+              (or (plist-get plist :annotation-function)
+                  completion-annotate-function)))
+        (completion-in-region start end (nth 2 res)
+                              (plist-get plist :predicate)))))))
+
+
 (let ((map minibuffer-local-map))
   (define-key map "\C-g" 'abort-recursive-edit)
   (define-key map "\r" 'exit-minibuffer)

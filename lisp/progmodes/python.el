@@ -268,7 +268,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
     (define-key map "\C-c\C-z" 'python-switch-to-python)
     (define-key map "\C-c\C-m" 'python-load-file)
     (define-key map "\C-c\C-l" 'python-load-file) ; a la cmuscheme
-    (substitute-key-definition 'complete-symbol 'symbol-complete
+    (substitute-key-definition 'complete-symbol 'completion-at-point
 			       map global-map)
     (define-key map "\C-c\C-i" 'python-find-imports)
     (define-key map "\C-c\C-t" 'python-expand-template)
@@ -319,7 +319,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 	"-"
 	["Help on symbol" python-describe-symbol
 	 :help "Use pydoc on symbol at point"]
-	["Complete symbol" symbol-complete
+	["Complete symbol" completion-at-point
 	 :help "Complete (qualified) symbol before point"]
 	["Find function" python-find-function
 	 :help "Try to find source definition of function at point"]
@@ -2159,8 +2159,7 @@ Uses `python-imports' to load modules against which to complete."
        (delete-dups completions)
        #'string<))))
 
-(defun python-partial-symbol ()
-  "Return the partial symbol before point (for completion)."
+(defun python-completion-at-point ()
   (let ((end (point))
 	(start (save-excursion
 		 (and (re-search-backward
@@ -2168,7 +2167,9 @@ Uses `python-imports' to load modules against which to complete."
 			   (group (1+ (regexp "[[:alnum:]._]"))) point)
 		       nil t)
 		      (match-beginning 1)))))
-    (if start (buffer-substring-no-properties start end))))
+    (when start
+      (list start end
+            (completion-table-dynamic 'python-symbol-completions)))))
 
 ;;;; FFAP support
 
@@ -2471,10 +2472,8 @@ with skeleton expansions for compound statement templates.
   (add-hook 'eldoc-mode-hook
 	    (lambda () (run-python nil t)) ; need it running
 	    nil t)
-  (set (make-local-variable 'symbol-completion-symbol-function)
-       'python-partial-symbol)
-  (set (make-local-variable 'symbol-completion-completions-function)
-       'python-symbol-completions)
+  (add-hook 'completion-at-point-functions
+            'python-completion-at-point nil 'local)
   ;; Fixme: should be in hideshow.  This seems to be of limited use
   ;; since it isn't (can't be) indentation-based.  Also hide-level
   ;; doesn't seem to work properly.
@@ -2488,12 +2487,6 @@ with skeleton expansions for compound statement templates.
        '((< '(backward-delete-char-untabify (min python-indent
 						 (current-column))))
 	 (^ '(- (1+ (current-indentation))))))
-  ;; Let's not mess with hippie-expand.  Symbol-completion should rather be
-  ;; bound to another key, since it has different performance requirements.
-  ;; (if (featurep 'hippie-exp)
-  ;;     (set (make-local-variable 'hippie-expand-try-functions-list)
-  ;;          (cons 'symbol-completion-try-complete
-  ;;       	 hippie-expand-try-functions-list)))
   ;; Python defines TABs as being 8-char wide.
   (set (make-local-variable 'tab-width) 8)
   (unless font-lock-mode (font-lock-mode 1))
