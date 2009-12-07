@@ -1,3 +1,13 @@
+2009-12-07  Michael Kifer <kifer@cs.stonybrook.edu>
+	
+	* ediff-init.el (ediff-event-key): use event-to-character instead of
+	event-key.
+	
+	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer): add
+	menus to the meta mode. (Dan Nicolaescu's <dann@ics.uci.edu> patch.)
+	
+	* ediff.el (ediff-buffers-internal): add unwind-protect.
+	
 2009-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	Handle prompt rules of ksh in OpenBSD 4.5.  Reported by Raphaël

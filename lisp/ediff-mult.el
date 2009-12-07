@@ -392,12 +392,40 @@ Toggled by ediff-toggle-verbose-help-meta-buffer" )
   (define-key ediff-meta-buffer-map  "p"  'ediff-previous-meta-item)
   (define-key ediff-meta-buffer-map  [delete]  'ediff-previous-meta-item)
   (define-key ediff-meta-buffer-map  [backspace]  'ediff-previous-meta-item)
-  (or (ediff-one-filegroup-metajob)
-      (progn
-	(define-key ediff-meta-buffer-map "=" nil)
-	(define-key ediff-meta-buffer-map "==" 'ediff-meta-mark-equal-files)
-	(define-key ediff-meta-buffer-map "=m" 'ediff-meta-mark-equal-files)
-	(define-key ediff-meta-buffer-map "=h" 'ediff-meta-mark-equal-files)))
+
+  (let ((menu-map (make-sparse-keymap "Ediff-Meta")))
+    (define-key ediff-meta-buffer-map [menu-bar ediff-meta-mode]
+      (cons "Ediff-Meta" menu-map))
+    (define-key menu-map [ediff-quit-meta-buffer]
+      '(menu-item "Quit" ediff-quit-meta-buffer
+		  :help "Quit the meta buffer"))
+    (define-key menu-map [ediff-toggle-filename-truncation]
+      '(menu-item "Truncate filenames" ediff-toggle-filename-truncation
+	      :help "Toggle truncation of long file names in session group buffers"
+	      :button (:toggle . ediff-meta-truncate-filenames)))
+    (define-key menu-map [ediff-show-registry]
+      '(menu-item "Display Ediff Registry" ediff-show-registry
+		  :help "Display Ediff's registry"))
+    (define-key menu-map [ediff-documentation]
+      '(menu-item "Show Manual" ediff-documentation
+		  :help "Display Ediff's manual"))
+
+    (or (ediff-one-filegroup-metajob)
+	(progn
+	  (define-key ediff-meta-buffer-map "=" nil)
+	  (define-key ediff-meta-buffer-map "==" 'ediff-meta-mark-equal-files)
+	  (define-key ediff-meta-buffer-map "=m" 'ediff-meta-mark-equal-files)
+	  (define-key ediff-meta-buffer-map "=h" 'ediff-meta-mark-equal-files)))
+
+
+    (define-key menu-map [ediff-next-meta-item]
+      '(menu-item "Next" ediff-next-meta-item
+		  :help "Move to the next item in Ediff registry or session group buffer"))
+    (define-key menu-map [ediff-previous-meta-item]
+      '(menu-item "Previous" ediff-previous-meta-item
+		  :help "Move to the previous item in Ediff registry or session group buffer")))
+
+
   (if ediff-no-emacs-help-in-control-buffer
       (define-key ediff-meta-buffer-map  "\C-h"  'ediff-previous-meta-item))
   (if (featurep 'emacs)
@@ -837,14 +865,58 @@ behavior."
 	      ediff-meta-buffer-map "um" 'ediff-unmark-all-for-operation)
 	    (define-key
 	      ediff-meta-buffer-map "uh" 'ediff-unmark-all-for-hiding)
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-hide-marked-sessions]
+	      '(menu-item "Hide marked" ediff-hide-marked-sessions
+		  :help "Hide marked sessions.  With prefix arg, unhide"))
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-mark-for-hiding-at-pos]
+	      '(menu-item "Mark for hiding" ediff-mark-for-hiding-at-pos
+		  :help "Mark session for hiding.  With prefix arg, unmark"))
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-mark-for-operation-at-pos]
+	      '(menu-item "Mark for group operation" ediff-mark-for-operation-at-pos
+		  :help "Mark session for a group operation.  With prefix arg, unmark."))
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-unmark-all-for-hiding]
+	      '(menu-item "Unmark all for hiding" ediff-unmark-all-for-hiding
+		  :help "Unmark all sessions marked for hiding"))
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-unmark-all-for-operation]
+	      '(menu-item "Unmark all for group operation" ediff-unmark-all-for-operation
+		  :help "Unmark all sessions marked for operation"))
+
 	    (cond ((ediff-collect-diffs-metajob jobname)
+		   (define-key ediff-meta-buffer-map
+		     [menu-bar ediff-meta-mode ediff-collect-custom-diffs]
+		     '(menu-item "Collect diffs" ediff-collect-custom-diffs
+				 :help "Collect custom diffs of marked sessions in buffer `*Ediff Multifile Diffs*'"))
 		   (define-key
 		     ediff-meta-buffer-map "P" 'ediff-collect-custom-diffs))
 		  ((ediff-patch-metajob jobname)
+		   (define-key ediff-meta-buffer-map
+		     [menu-bar ediff-meta-mode ediff-meta-show-patch]
+		     '(menu-item "Show multi-file patch" ediff-meta-show-patch
+				 :help "Show the multi-file patch associated with this group session"))
 		   (define-key
 		     ediff-meta-buffer-map "P" 'ediff-meta-show-patch)))
 	    (define-key ediff-meta-buffer-map "^" 'ediff-up-meta-hierarchy)
-	    (define-key ediff-meta-buffer-map "D" 'ediff-show-dir-diffs)))
+	    (define-key ediff-meta-buffer-map "D" 'ediff-show-dir-diffs)
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-up-meta-hierarchy]
+	      '(menu-item "Go to parent session" ediff-up-meta-hierarchy
+			  :help "Go to the parent session group buffer"))
+
+	    (define-key ediff-meta-buffer-map
+	      [menu-bar ediff-meta-mode ediff-show-dir-diffs]
+	      '(menu-item "Diff directories" ediff-show-dir-diffs
+			  :help "Display differences among the directories involved in session group"))))
 
       (if (eq ediff-metajob-name 'ediff-registry)
 	  (run-hooks 'ediff-registry-setup-hook)
