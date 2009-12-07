@@ -922,13 +922,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
      gets its value adjusted.  .bss size becomes zero and new address
      is set.  data2 section header gets added by copying the existing
      .data header and modifying the offset, address and size.  */
-  for (old_data_index = 1; old_data_index < (int) old_file_h->e_shnum;
-       old_data_index++)
-    if (!strcmp (old_section_names + OLD_SECTION_H (old_data_index).sh_name,
-		 ".data"))
-      break;
-  if (old_data_index == old_file_h->e_shnum)
-    fatal ("Can't find .data in %s.\n", old_name, 0);
 
   /* Walk through all section headers, insert the new data2 section right
      before the new bss section. */

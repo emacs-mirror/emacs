@@ -1,3 +1,7 @@
+2009-12-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* unexelf.c (unexec): Don't search for .data twice.
+
 2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (push_display_prop): Don't set avoid_cursor_p.  Return 0
