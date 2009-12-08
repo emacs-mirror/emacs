@@ -414,6 +414,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (define-key map "\C-m" 'vc-git-stash-show-at-point)
     (define-key map "A" 'vc-git-stash-apply-at-point)
     (define-key map "P" 'vc-git-stash-pop-at-point)
+    (define-key map "S" 'vc-git-stash-snapshot)
     map))
 
 (defvar vc-git-stash-menu-map
@@ -756,8 +757,11 @@ or BRANCH^ (where \"^\" can be repeated)."
     (define-key map [git-grep]
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
+    (define-key map [git-sn]
+      '(menu-item "Stash a snapshot" vc-git-stash-snapshot
+		  :help "Stash the current state of the tree and keep the current state"))
     (define-key map [git-st]
-      '(menu-item "Stash..." vc-git-stash
+      '(menu-item "Create Stash..." vc-git-stash
 		  :help "Stash away changes"))
     (define-key map [git-ss]
       '(menu-item "Show Stash..." vc-git-stash-show
@@ -863,6 +867,17 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "pop" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
+(defun vc-git-stash-snapshot ()
+  "Create a stash with the current tree state."
+  (interactive)
+  (vc-git--call nil "stash" "save"
+		(let ((ct (current-time)))
+		  (concat
+		   (format-time-string "Snapshot on %Y-%m-%d" ct)
+		   (format-time-string " at %H:%M" ct))))
+  (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" "stash@{0}")
+  (vc-resynch-buffer (vc-git-root default-directory) t t))
+
 (defun vc-git-stash-list ()
   (delete
    ""
@@ -882,7 +897,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (defun vc-git-stash-delete-at-point ()
   (interactive)
   (let ((stash (vc-git-stash-get-at-point (point))))
-    (when (y-or-n-p (format "Remove stash %s ?" stash))
+    (when (y-or-n-p (format "Remove stash %s ? " stash))
       (vc-git--run-command-string nil "stash" "drop" (format "stash@%s" stash))
       (vc-dir-refresh))))
 

@@ -1,3 +1,9 @@
+2009-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add support for stashing a snapshot of the current tree.
+	* vc-git.el (vc-git-stash-snapshot): New function.
+	(vc-git-stash-map, vc-git-extra-menu-map): Add a mapping for it.
+
 2009-12-08  Jose E. Marchesi  <jemarch@gnu.org>
 
 	* play/gomoku.el (gomoku-mode-map): Remap `move-(beginning|end)-of-line'
