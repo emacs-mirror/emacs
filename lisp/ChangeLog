@@ -1,3 +1,8 @@
+2009-12-08  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* play/gomoku.el (gomoku-mode-map): Remap `move-(beginning|end)-of-line'
+	instead of `(beginning|end)-of-line'.
+
 2009-12-08  Glenn Morris  <rgm@gnu.org>
 
 	* vc-mtn.el (vc-mtn-print-log): Fix typo in previous.

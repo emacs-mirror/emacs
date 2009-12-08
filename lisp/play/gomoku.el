@@ -151,8 +151,8 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 
   (define-key gomoku-mode-map [remap previous-line] 'gomoku-move-up)
   (define-key gomoku-mode-map [remap next-line] 'gomoku-move-down)
-  (define-key gomoku-mode-map [remap beginning-of-line] 'gomoku-beginning-of-line)
-  (define-key gomoku-mode-map [remap end-of-line] 'gomoku-end-of-line)
+  (define-key gomoku-mode-map [remap move-beginning-of-line] 'gomoku-beginning-of-line)
+  (define-key gomoku-mode-map [remap move-end-of-line] 'gomoku-end-of-line)
   (define-key gomoku-mode-map [remap undo] 'gomoku-human-takes-back)
   (define-key gomoku-mode-map [remap advertised-undo] 'gomoku-human-takes-back))
 
