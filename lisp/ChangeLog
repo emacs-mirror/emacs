@@ -1,5 +1,7 @@
 2009-12-08  Glenn Morris  <rgm@gnu.org>
 
+	* vc-mtn.el (vc-mtn-print-log): Fix typo in previous.
+
 	* Makefile.in (ELCFILES): Regenerate.
 
 2009-12-07  Juri Linkov  <juri@jurta.org>
