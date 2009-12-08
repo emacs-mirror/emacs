@@ -305,9 +305,9 @@
 
 2009-08-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff.texi (ediff-current-file): added information about this new function.
+	* ediff.texi (ediff-current-file): Add information about this new function.
 
-	* viper.text: Added information about C-s in viper's search command.
+	* viper.texi: Add information about C-s in viper's search command.
 
 2009-08-09  Colin Williams  <lackita@gmail.com>  (tiny change)
 
