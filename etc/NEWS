@@ -219,16 +219,6 @@ dired buffers automatically on revisiting.
 *** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 
-** FIXME mail-user-agent change
-This probably affects a lot of documentation.
-
-*** If the user has not customized mail-user-agent, the `compose-mail'
-command (C-x m) checks for customizations for Mail mode, the previous
-default mail-user-agent.  It issues a warning if these customizations
-are found, to prevent mail configurations from silently breaking.
-
-To disable this check, set compose-mail-user-agent-warnings to nil.
-
 ** FIXME gdb-mi
 
 ** Grep
@@ -243,6 +233,22 @@ matched topics found in the index.
 *** The new command `info-finder' replaces finder.el with a virtual Info
 manual that generates an Info file which gives the same information
 through a menu structure.
+
+** Message mode is now the default mode for composing mail.
+
+The default for `mail-user-agent' is now message-user-agent, so the
+C-x m (`compose-mail') command uses Message mode instead of Mail mode.
+
+Message mode has been included in Emacs, as part of the Gnus package,
+for several years.  It provides several features that are absent in
+Mail mode, such as MIME handling.
+
+*** If the user has not customized mail-user-agent, `compose-mail'
+checks for Mail mode customizations, and issues a warning if these
+customizations are found.  This alerts users who may otherwise be
+unaware that their mail configuration has changed.
+
+To disable this check, set compose-mail-user-agent-warnings to nil.
 
 ** nXML mode is now the default for editing XML files.
 
@@ -273,7 +279,7 @@ by default anymore.  The number of entries shown can be chosen
 interactively with a prefix argument, by customizing
 vc-log-show-limit.  The log buffer display buttons that can be used
 to change the number of entries shown.
-RCS, SCCS, CVS do not support this feature.  
+RCS, SCCS, CVS do not support this feature.
 
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
@@ -364,11 +370,34 @@ consider the background light).
 
 * New Modes and Packages in Emacs 23.2
 
+** CEDET (the Collection of Emacs Development Tools) is now in Emacs.
+This is a collection of packages to aid with using Emacs as an IDE
+(integrated development environment):
+
+*** The Semantic package allows the use of parsers to intelligently
+edit and navigate source code.  Parsers for C/C++, Java, Javascript,
+and several other languages are included by default, and Semantic can
+also interface with external tools such as GNU Global and GNU Idutils.
+
+To enable Semantic, use the global minor mode `semantic-mode'.
+See the Semantic manual for details.
+
+*** EDE (Emacs Development Environment) is a package for managing code
+projects, including features such as automatic Makefile generation.
+
+To enable EDE, use the minor mode `global-ede-mode'.
+See the EDE manual for details.
+
+*** SRecode is a library for recoding Semantic tags back into source
+code.  It is currently used by some parts of Semantic and EDE; in the
+future, it may be used for code generation features.
+
+*** The EIEIO library implements a subset of the Common Lisp Object
+System (CLOS).  It is used by the other CEDET packages.
+
 ** mpc.el is a front end for the Music Player Daemon.  Run it with M-x mpc.
 
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
-
-** FIXME CEDET
 
 ** js.el is a new major mode for JavaScript files.
 
