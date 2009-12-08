@@ -90,7 +90,7 @@
 	buffer already displays the requested log entry, use it.
 	Otherwise display only the log entry in question.
 	* vc-svn.el (vc-svn-print-log):
-	* vc-mtn.el (log-view-file-re):
+	* vc-mtn.el (vc-mtn-print-log):
 	* vc-hg.el (vc-hg-state):
 	* vc-git.el (vc-git-print-log): Add support for new argument START-REVISION.
 	(vc-git-show-log-entry): Return t on success.
@@ -100,13 +100,15 @@
 	* vc-sccs.el (vc-sccs-print-log):
 	* vc-cvs.el (vc-cvs-print-log): Add new argument, ignore it.
 
+2009-12-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer): Add
+	menus to the meta mode.  (Bug#5043)
+
 2009-12-07  Michael Kifer <kifer@cs.stonybrook.edu>
 
 	* ediff-init.el (ediff-event-key): Use event-to-character instead of
 	event-key.
-
-	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer): Add
-	menus to the meta mode. (Dan Nicolaescu's <dann@ics.uci.edu> patch.)
 
 	* ediff.el (ediff-buffers-internal): Add unwind-protect.
 
@@ -798,7 +800,7 @@
 
 	Improve integration of Tramp and ange-ftp in eshell.
 
-	* eshell/em-unix (eshell/whoami): Make it a defun but a defalias.
+	* eshell/em-unix.el (eshell/whoami): Make it a defun but a defalias.
 	(eshell/su): Flatten args.  Apply better args parsing.  Use "cd".
 	(eshell/sudo): Flatten args.  Let-bind `default-directory'.
 
@@ -1375,7 +1377,7 @@
 
 2009-11-20  Karl Fogel  <karl.fogel@red-bean.com>
 
-	* bookmark.el Formatting and doc fixes only:
+	* bookmark.el: Formatting and doc fixes only:
 	(bookmark-search-delay): Shorten doc string to fit in 80 columns.
 	(bookmark-bmenu-search): Wrap to fit within 80 columns.
 	  Minor grammar and punctuation fixes in doc string.
