@@ -334,6 +334,20 @@ This variable always contains the current working directory.
 This variable always contains the previous working directory (the
 current working directory from before the last @code{cd} command).
 
+@item $_
+@vindex $_
+It refers to the last argument of the last command.
+
+@item $$
+@vindex $$
+This is the result of the last command.  In case of an external
+command, it is @code{t} or @code{nil}.
+
+@item $?
+@vindex $?
+This variable contains the exit code of the last command (0 or 1 for
+Lisp functions, based on successful completion).
+
 @end table
 
 @node Scripts
@@ -343,7 +357,19 @@ current working directory from before the last @code{cd} command).
 @node Built-ins
 @section Built-in commands
 
-Here is a list of built-in commands that Eshell knows about:
+Several commands are built-in in Eshell.  In order to call the
+external variant of a built-in command @code{foo}, you could call
+@code{*foo}.  Usually, this should not be necessary.  You can check
+what will be applied by the @code{which} command:
+
+@example
+~ $ which ls
+eshell/ls is a compiled Lisp function in `em-ls.el'
+~ $ which *ls
+/bin/ls
+@end example
+
+Some of the built-in commands have a special behaviour in Eshell:
 
 @table @code
 
@@ -366,6 +392,48 @@ directory matching the regular expression @samp{foo} and changes to
 that directory.
 
 With @samp{cd -42}, you can access the directory stack by number.
+
+@item history
+@findex history
+The @samp{history} command shows all commands kept in the history ring
+as numbered list.  If the history ring contains
+@code{eshell-history-size} commands, those numbers change after every
+command invocation, therefore the @samp{history} command shall be
+applied before using the expansion mechanism with history numbers.
+
+The n-th entry of the history ring can be applied with the @samp{!n}
+command.  If @code{n} is negative, the entry is counted from the end
+of the history ring.
+
+@samp{!foo} expands to the last command beginning with @code{foo}, and
+@samp{!?foo} to the last command containing @code{foo}.  The n-th
+argument of the last command beginning with @code{foo} is accessible
+by @code{!foo:n}.
+
+@item su
+@findex su
+@itemx sudo
+@findex sudo
+@code{su} and @code{sudo} work as expected: they apply the following
+commands (@code{su}), or the command being an argument (@code{sudo})
+under the permissions of somebody else.
+
+This does not work only on
+the local host, but even on a remote one, when
+@code{default-directory} is a remote file name.  The necessary
+proxy configuration of Tramp is performed
+@ifinfo
+automatically, @ref{Multi-hops, , , tramp}.
+@end ifinfo
+@ifnotinfo
+automatically.
+@end ifnotinfo
+Example:
+
+@example
+~ $ cd /ssh:otherhost:/etc
+/ssh:user@@otherhost:/etc $ sudo find-file shadow
+@end example
 
 @end table
 

@@ -1,3 +1,11 @@
+2009-12-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell.texi (History): Add the other built-in variables.
+	(Built-ins): Explain built-ins, and how to apply the external commands.
+	Add `history', `su' and `sudo'.
+
+	* tramp.texi (Remote processes): Add missing <RET> in the example.
+
 2009-12-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Searching): Use mh vfolder_format and fix typo in database

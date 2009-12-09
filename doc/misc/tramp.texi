@@ -2594,10 +2594,11 @@ variable @code{tramp-default-proxies-alist} (@pxref{Multi-hops}):
 
 @example
 @b{~ $} cd @trampfn{ssh, user, remotehost, /etc} @key{RET}
-@b{@trampfn{ssh, user, remotehost, /etc} $} find-file shadow
+@b{@trampfn{ssh, user, remotehost, /etc} $} find-file shadow @key{RET}
 File is not readable: @trampfn{ssh, user, remotehost, /etc/shadow}
-@b{@trampfn{ssh, user, remotehost, /etc} $} sudo find-file shadow
+@b{@trampfn{ssh, user, remotehost, /etc} $} sudo find-file shadow @key{RET}
 #<buffer shadow>
+
 @b{@trampfn{ssh, user, remotehost, /etc} $} su - @key{RET}
 @b{@trampfn{su, root, remotehost, /root} $} id @key{RET}
 uid=0(root) gid=0(root) groups=0(root)
