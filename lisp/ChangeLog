@@ -1,3 +1,12 @@
+2009-12-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of the ELCFILES abomination.
+	* Makefile.in (update-elclist, ELCFILES, compile-last): Remove.
+	(compile-elcfiles): New phony target.
+	(compile-main): Compute ELCFILES dynamically.
+	(compile-clean): New target to remove left-over elc files.
+	(compile, all): Use it.
+
 2009-12-09  Kenichi Handa  <handa@etlken>
 
 	* international/mule-diag.el: Require help-mode instead of help-fns.
