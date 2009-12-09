@@ -1,5 +1,12 @@
 2009-12-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Minor cleanup.
+	* ffap.el (ffap-symbol-value): Replace ffap-soft-value.
+	Adjust all callers.
+	(ffap-locate-file): Remove unused arg `dir-ok' and make other
+	args compulsory.  Adjust callers.
+	(ffap-gopher-at-point): Remove unused var `name'.
+
 	Get rid of the ELCFILES abomination.
 	* Makefile.in (update-elclist, ELCFILES, compile-last): Remove.
 	(compile-elcfiles): New phony target.
@@ -14,8 +21,8 @@
 2009-12-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (ucs-names): Supply a sufficiently
-	fine ranges instead of pre-calculating accurate ranges.  Iterate
-	with bigger gc-cons-threshold.
+	fine ranges instead of pre-calculating accurate ranges.
+	Iterate with bigger gc-cons-threshold.
 
 2009-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 

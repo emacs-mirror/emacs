@@ -121,12 +121,9 @@
 
 ;;; User Variables:
 
-(defun ffap-soft-value (name &optional default)
-  "Return value of symbol with NAME, if it is interned.
-Otherwise return nil (or the optional DEFAULT value)."
-  ;; Bug: (ffap-soft-value "nil" 5) --> 5
-  (let ((sym (intern-soft name)))
-    (if (and sym (boundp sym)) (symbol-value sym) default)))
+(defun ffap-symbol-value (sym &optional default)
+  "Return value of symbol SYM, if bound, or DEFAULT otherwise."
+  (if (boundp sym) (symbol-value sym) default))
 
 (defcustom ffap-shell-prompt-regexp
   ;; This used to test for some shell prompts that don't have a space
@@ -285,7 +282,7 @@ For a fancy alternative, get `ffap-url.el'."
 ;; See the ftp site for a more general version.  The following
 ;; functions are necessary "leftovers" from the more general version.
 
-(defun ffap-mouse-event nil		; current mouse event, or nil
+(defun ffap-mouse-event ()		; current mouse event, or nil
   (and (listp last-nonmenu-event) last-nonmenu-event))
 (defun ffap-event-buffer (event)
   (window-buffer (car (event-start event))))
@@ -397,8 +394,8 @@ See `mail-extr.el' for the known domains."
 (defun ffap-what-domain (domain)
   ;; Like what-domain in mail-extr.el, returns string or nil.
   (require 'mail-extr)
-  (let ((ob (or (ffap-soft-value "mail-extr-all-top-level-domains")
-		(ffap-soft-value "all-top-level-domains")))) ; XEmacs
+  (let ((ob (or (ffap-symbol-value 'mail-extr-all-top-level-domains)
+		(ffap-symbol-value 'all-top-level-domains)))) ; XEmacs
     (and ob (get (intern-soft (downcase domain) ob) 'domain-name))))
 
 (defun ffap-machine-p (host &optional service quiet strategy)
@@ -538,7 +535,7 @@ The optional NOMODIFY argument suppresses the extra search."
 	   (string-match ffap-rfs-regexp filename)
 	   filename)))
 
-(defun ffap-machine-at-point nil
+(defun ffap-machine-at-point ()
   "Return machine name at point if it exists, or nil."
   (let ((mach (ffap-string-at-point 'machine)))
     (and (ffap-machine-p mach) mach)))
@@ -550,8 +547,8 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
       ""
     (let ((user ffap-ftp-default-user))
       ;; Avoid including the user if it is same as default:
-      (if (or (equal user (ffap-soft-value "ange-ftp-default-user"))
-	      (equal user (ffap-soft-value "efs-default-user")))
+      (if (or (equal user (ffap-symbol-value 'ange-ftp-default-user))
+	      (equal user (ffap-symbol-value 'efs-default-user)))
 	  (setq user nil))
       (concat "/" user (and user "@") host ":"))))
 
@@ -724,27 +721,24 @@ kpathsea, a library used by some versions of TeX."
 	       (list dir))))
 	  path)))
 
-(defun ffap-locate-file (file &optional nosuffix path dir-ok)
+(defun ffap-locate-file (file nosuffix path)
   ;; The current version of locate-library could almost replace this,
   ;; except it does not let us override the suffix list.  The
   ;; compression-suffixes search moved to ffap-file-exists-string.
-  "A generic path-searching function, mimics `load' by default.
-Returns path to file that \(load FILE\) would load, or nil.
+  "A generic path-searching function.
+Returns the name of file in PATH, or nil.
 Optional NOSUFFIX, if nil or t, is like the fourth argument
-for load: whether to try the suffixes (\".elc\" \".el\" \"\").
+for `load': whether to try the suffixes (\".elc\" \".el\" \"\").
 If a nonempty list, it is a list of suffixes to try instead.
-Optional PATH is a list of directories instead of `load-path'.
-Optional DIR-OK means that returning a directory is allowed,
-DIR-OK is already implicit if FILE looks like a directory.
+PATH is a list of directories.
 
-This uses ffap-file-exists-string, which may try adding suffixes from
+This uses `ffap-file-exists-string', which may try adding suffixes from
 `ffap-compression-suffixes'."
-  (or path (setq path load-path))
-  (or dir-ok (setq dir-ok (equal "" (file-name-nondirectory file))))
   (if (file-name-absolute-p file)
       (setq path (list (file-name-directory file))
 	    file (file-name-nondirectory file)))
-  (let ((suffixes-to-try
+  (let ((dir-ok (equal "" (file-name-nondirectory file)))
+        (suffixes-to-try
 	 (cond
 	  ((consp nosuffix) nosuffix)
 	  (nosuffix '(""))
@@ -792,10 +786,10 @@ This uses ffap-file-exists-string, which may try adding suffixes from
     ("\\.bib\\'" . ffap-bib)		; search ffap-bib-path
     ("\\`\\." . ffap-home)		; .emacs, .bashrc, .profile
     ("\\`~/" . ffap-lcd)		; |~/misc/ffap.el.Z|
-    ;; This uses to have a blank, but ffap-string-at-point doesn't
+    ;; This used to have a blank, but ffap-string-at-point doesn't
     ;; handle blanks.
     ;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01058.html
-    ("^[Rr][Ff][Cc][-#]?\\([0-9]+\\)"	; no $
+    ("\\`[Rr][Ff][Cc][-#]?\\([0-9]+\\)"	; no $
      . ffap-rfc)			; "100% RFC2100 compliant"
     (dired-mode . ffap-dired)		; maybe in a subdirectory
     )
@@ -839,8 +833,8 @@ url, or nil. If nil, search the alist for further matches.")
 (defun ffap-info (name)
   (ffap-locate-file
    name '("" ".info")
-   (or (ffap-soft-value "Info-directory-list")
-       (ffap-soft-value "Info-default-directory-list")
+   (or (ffap-symbol-value 'Info-directory-list)
+       (ffap-symbol-value 'Info-default-directory-list)
        )))
 
 (defun ffap-info-2 (name) (ffap-info (substring name 5)))
@@ -849,13 +843,13 @@ url, or nil. If nil, search the alist for further matches.")
   ;; This ignores the node! "(emacs)Top" same as "(emacs)Intro"
   (and (equal (ffap-string-around) "()") (ffap-info name)))
 
-(defun ffap-el (name) (ffap-locate-file name t))
+(defun ffap-el (name) (ffap-locate-file name t load-path))
 
 (defun ffap-el-mode (name)
   ;; If name == "foo.el" we will skip it, since ffap-el already
   ;; searched for it once.  (This assumes the default ffap-alist.)
   (and (not (string-match "\\.el\\'" name))
-       (ffap-locate-file name '(".el"))))
+       (ffap-locate-file name '(".el") load-path)))
 
 (defvar ffap-c-path
   ;; Need smarter defaults here!  Suggestions welcome.
@@ -873,7 +867,7 @@ url, or nil. If nil, search the alist for further matches.")
   "Path where `ffap-tex-mode' looks for tex files.
 If t, `ffap-tex-init' will initialize this when needed.")
 
-(defun ffap-tex-init nil
+(defun ffap-tex-init ()
   ;; Compute ffap-tex-path if it is now t.
   (and (eq t ffap-tex-path)
        ;; this may be slow, so say something
@@ -886,8 +880,8 @@ If t, `ffap-tex-init' will initialize this when needed.")
 		(append
 		 (ffap-list-env "TEXINPUTS")
 		 ;; (ffap-list-env "BIBINPUTS")
-		 (ffap-soft-value
-		  "TeX-macro-global"	; AUCTeX
+		 (ffap-symbol-value
+		  'TeX-macro-global	; AUCTeX
 		  '("/usr/local/lib/tex/macros"
 		    "/usr/local/lib/tex/inputs")))))))))
 
@@ -934,6 +928,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
 
 ;; Maybe a "Lisp Code Directory" reference:
 (defun ffap-lcd (name)
+  ;; FIXME: Is this still in use?
   (and
    (or
     ;; lisp-dir-apropos output buffer:
@@ -944,11 +939,11 @@ If t, `ffap-tex-init' will initialize this when needed.")
    (concat
     ;; lispdir.el may not be loaded yet:
     (ffap-host-to-filename
-     (ffap-soft-value "elisp-archive-host"
-		      "archive.cis.ohio-state.edu"))
+     (ffap-symbol-value 'elisp-archive-host
+                        "archive.cis.ohio-state.edu"))
     (file-name-as-directory
-     (ffap-soft-value "elisp-archive-directory"
-		      "/pub/gnu/emacs/elisp-archive/"))
+     (ffap-symbol-value 'elisp-archive-directory
+                        "/pub/gnu/emacs/elisp-archive/"))
     (substring name 2))))
 
 (defcustom ffap-rfc-path
@@ -1033,7 +1028,7 @@ Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
     (set-text-properties 0 (length str) nil str)
     (setq ffap-string-at-point str)))
 
-(defun ffap-string-around nil
+(defun ffap-string-around ()
   ;; Sometimes useful to decide how to treat a string.
   "Return string of two chars around last `ffap-string-at-point'.
 Assumes the buffer has not changed."
@@ -1061,7 +1056,7 @@ Assumes the buffer has not changed."
 ;; External.
 (declare-function w3-view-this-url "ext:w3" (&optional no-show))
 
-(defun ffap-url-at-point nil
+(defun ffap-url-at-point ()
   "Return url from around point if it exists, or nil."
   ;; Could use w3's url-get-url-at-point instead.  Both handle "URL:",
   ;; ignore non-relative links, trim punctuation.  The other will
@@ -1105,7 +1100,7 @@ Assumes the buffer has not changed."
   "Regexp Matching a line in a gopher bookmark (maybe indented).
 The two subexpressions are the KEY and VALUE.")
 
-(defun ffap-gopher-at-point nil
+(defun ffap-gopher-at-point ()
   "If point is inside a gopher bookmark block, return its url."
   ;; `gopher-parse-bookmark' from gopher.el is not so robust
   (save-excursion
@@ -1115,7 +1110,7 @@ The two subexpressions are the KEY and VALUE.")
 	  (while (and (looking-at ffap-gopher-regexp) (not (bobp)))
 	    (forward-line -1))
 	  (or (looking-at ffap-gopher-regexp) (forward-line 1))
-	  (let ((type "1") name path host (port "70"))
+	  (let ((type "1") path host (port "70"))
 	    (while (looking-at ffap-gopher-regexp)
 	      (let ((var (intern
 			  (downcase
@@ -1145,7 +1140,7 @@ The two subexpressions are the KEY and VALUE.")
   "Strings matching this are coerced to ftp file names by ffap.
 That is, ffap just prepends \"/\".  Set to nil to disable.")
 
-(defun ffap-file-at-point nil
+(defun ffap-file-at-point ()
   "Return filename from around point if it exists, or nil.
 Existence test is skipped for names that look remote.
 If the filename is not obvious, it also tries `ffap-alist',
@@ -1308,7 +1303,7 @@ which may actually result in an url rather than a filename."
 
 (defun ffap-read-url-internal (string pred action)
   "Complete url's from history, treating given string as valid."
-  (let ((hist (ffap-soft-value "url-global-history-hash-table")))
+  (let ((hist (ffap-symbol-value 'url-global-history-hash-table)))
     (cond
      ((not action)
       (or (try-completion string hist pred) string))
@@ -1331,7 +1326,7 @@ which may actually result in an url rather than a filename."
 ;; We must inform complete about whether our completion function
 ;; will do filename style completion.
 
-(defun ffap-complete-as-file-p nil
+(defun ffap-complete-as-file-p ()
   ;; Will `minibuffer-completion-table' complete the minibuffer
   ;; contents as a filename?  Assumes the minibuffer is current.
   ;; Note: t and non-nil mean somewhat different reasons.
@@ -1387,7 +1382,7 @@ Uses the face `ffap' if it is defined, or else `highlight'."
 
 ;;; Main Entrance (`find-file-at-point' == `ffap'):
 
-(defun ffap-guesser nil
+(defun ffap-guesser ()
   "Return file or URL or nil, guessed from text around point."
   (or (and ffap-url-regexp
 	   (ffap-fixup-url (or (ffap-url-at-point)
@@ -1552,7 +1547,7 @@ Function CONT is applied to the entry chosen by the user."
       (message "No choice made!")	; possible with menus
       nil)))
 
-(defun ffap-menu-rescan nil
+(defun ffap-menu-rescan ()
   "Search buffer for `ffap-menu-regexp' to build `ffap-menu-alist'.
 Applies `ffap-menu-text-plist' text properties at all matches."
   (interactive)
@@ -1646,7 +1641,7 @@ Return value:
 ;; at least two new user variables, and there is no w3-fetch-noselect.
 ;; So instead, we just fake it with a slow save-window-excursion.
 
-(defun ffap-other-window nil
+(defun ffap-other-window ()
   "Like `ffap', but put buffer in another window.
 Only intended for interactive use."
   (interactive)
@@ -1659,7 +1654,7 @@ Only intended for interactive use."
        (current-buffer)))
     value))
 
-(defun ffap-other-frame nil
+(defun ffap-other-frame ()
   "Like `ffap', but put buffer in another frame.
 Only intended for interactive use."
   (interactive)
@@ -1743,13 +1738,13 @@ Only intended for interactive use."
 ;; If you do not like these bindings, write versions with whatever
 ;; bindings you would prefer.
 
-(defun ffap-ro-mode-hook nil
+(defun ffap-ro-mode-hook ()
   "Bind `ffap-next' and `ffap-menu' to M-l and M-m, resp."
   (local-set-key "\M-l" 'ffap-next)
   (local-set-key "\M-m" 'ffap-menu)
   )
 
-(defun ffap-gnus-hook nil
+(defun ffap-gnus-hook ()
   "Bind `ffap-gnus-next' and `ffap-gnus-menu' to M-l and M-m, resp."
   (set (make-local-variable 'ffap-foo-at-bar-prefix) "news") ; message-id's
   ;; Note "l", "L", "m", "M" are taken:
@@ -1782,11 +1777,11 @@ Only intended for interactive use."
 	(eval form)
       (pop-to-buffer sb))))
 
-(defun ffap-gnus-next nil
+(defun ffap-gnus-next ()
   "Run `ffap-next' in the gnus article buffer."
   (interactive) (ffap-gnus-wrapper '(ffap-next nil t)))
 
-(defun ffap-gnus-menu nil
+(defun ffap-gnus-menu ()
   "Run `ffap-menu' in the gnus article buffer."
   (interactive) (ffap-gnus-wrapper '(ffap-menu)))
 
@@ -1905,7 +1900,7 @@ Only intended for interactive use."
 ;;;###autoload
 (progn (defun ffap-guess-file-name-at-point ()
   "Try to get a file name at point.
-This hook is inteneded to be put in `file-name-at-point-functions'."
+This hook is intended to be put in `file-name-at-point-functions'."
   (when (fboundp 'ffap-guesser)
     ;; Logic from `ffap-read-file-or-url' and `dired-at-point-prompter'.
     (let ((guess (ffap-guesser)))
@@ -1956,7 +1951,7 @@ A reasonable ffap installation needs just this one line:
 Of course if you do not like these bindings, just roll your own!")
 
 ;;;###autoload
-(defun ffap-bindings nil
+(defun ffap-bindings ()
   "Evaluate the forms in variable `ffap-bindings'."
   (interactive)
   (eval (cons 'progn ffap-bindings)))
