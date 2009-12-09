@@ -54,7 +54,7 @@ $(infodir)/eintr: $(INFO_SOURCES)
 emacs-lisp-intro.dvi: $(INFO_SOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-lisp-intro.texi
 
-emacs-lisp-intro.pdf: ${INFO_SOURCES}
+emacs-lisp-intro.pdf: $(INFO_SOURCES)
 	$(ENVADD) $(TEXI2PDF) $(srcdir)/emacs-lisp-intro.texi
 
 emacs-lisp-intro.html: $(INFO_SOURCES)
