@@ -462,7 +462,7 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
        (if vc-short-log
-	   "^ +\\([0-9]+\\) \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
+	   "^ +\\([0-9.]+\\) \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
@@ -472,7 +472,7 @@ REV non-nil gets an error."
 		    (1 'log-view-message-face)
 		    (2 'change-log-name)
 		    (3 'change-log-date)
-		    (4 'change-log-list))))
+		    (4 'change-log-list nil lax))))
 	 (append `((,log-view-message-re . 'log-view-message-face))
 		 ;; log-view-font-lock-keywords
 		 '(("^ *committer: \
