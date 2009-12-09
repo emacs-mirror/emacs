@@ -4077,7 +4077,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
       (if full-directory-p
 	  (tramp-send-command
 	   v
-	   (format "%s %s %s"
+	   (format "%s %s %s 2>/dev/null"
 		   (tramp-get-ls-command v)
 		   switches
 		   (if wildcard
@@ -4126,13 +4126,13 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 		    (end (+ beg (read (current-buffer)))))
 		(if (memq (char-after end) '(?\n ?\ ))
 		    ;; End is followed by \n or by " -> ".
-		    (put-text-property start end 'dired-filename t)))))
-	  ;; Remove trailing lines.
-	  (goto-char (tramp-compat-line-beginning-position))
-	  (while (looking-at "//")
-	    (forward-line 1)
-	    (delete-region (match-beginning 0) (point)))))
-      (goto-char (point-max)))))
+		    (put-text-property start end 'dired-filename t))))))
+	;; Remove trailing lines.
+	(goto-char (tramp-compat-line-beginning-position))
+	(while (looking-at "//")
+	  (forward-line 1)
+	  (delete-region (match-beginning 0) (point)))
+	(goto-char (point-max))))))
 
 (defun tramp-handle-unhandled-file-name-directory (filename)
   "Like `unhandled-file-name-directory' for Tramp files."

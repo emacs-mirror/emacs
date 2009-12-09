@@ -1,3 +1,7 @@
+2009-12-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-directory): Suppress error messages.
+
 2009-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix short log parsing and fontification.
