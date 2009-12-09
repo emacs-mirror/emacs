@@ -1,3 +1,7 @@
+2009-12-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Point to the external counterparts of su and sudo.
+
 2009-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* images/mpc/add.xpm, images/mpc/ffwd.xpm, images/mpc/next.xpm:
