@@ -1,3 +1,10 @@
+2009-12-09  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* s/cygwin.h (G_SLICE_ALWAYS_MALLOC): New variable.
+
+	* emacs.c (main): Set the G_SLICE environment variable for Cygwin
+	GTK builds.
+
 2009-12-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* unexelf.c (unexec): Don't search for .data twice.

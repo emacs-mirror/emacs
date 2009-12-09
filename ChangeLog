@@ -1,3 +1,7 @@
+2009-12-09  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* configure.in: Allow compiling Emacs with GTK on Cygwin.
+
 2009-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add etc/images/mpc directory.

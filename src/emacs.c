@@ -809,6 +809,11 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
+#if defined (USE_GTK) && defined (G_SLICE_ALWAYS_MALLOC)
+  /* This is used by the Cygwin build.  */
+  setenv ("G_SLICE", "always-malloc", 1);
+#endif
+
   if (!initialized)
     {
       extern char my_endbss[];

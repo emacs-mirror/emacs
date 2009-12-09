@@ -3026,16 +3026,6 @@ fi
 
 echo
 
-if test "$USE_X_TOOLKIT" = GTK; then
-  case "$canonical" in
-  *cygwin*)
-    echo "There are known problems with Emacs and Gtk+ on cygwin, so you
-  will probably get a crash on startup.  If this happens, please use another
-  toolkit for Emacs.  See etc/PROBLEMS for more information."
-  ;;
-  esac
-fi
-
 if test "$HAVE_NS" = "yes"; then
    echo
    echo "You must run \"make install\" in order to test the built application.
