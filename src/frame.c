@@ -43,8 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "dispextern.h"
 #include "window.h"
-#ifdef HAVE_WINDOW_SYSTEM
 #include "font.h"
+#ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
 #endif
 #ifdef MSDOS
