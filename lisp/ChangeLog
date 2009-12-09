@@ -1,3 +1,9 @@
+2009-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (ucs-names): Supply a sufficiently
+	fine ranges instead of pre-calculating accurate ranges.  Iterate
+	with bigger gc-cons-threshold.
+
 2009-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add support for stashing a snapshot of the current tree.
