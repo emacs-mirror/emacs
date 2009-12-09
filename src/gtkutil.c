@@ -3455,7 +3455,7 @@ xg_tool_bar_proxy_help_callback (w, event, client_data)
   GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
                                                       XG_TOOL_BAR_PROXY_BUTTON));
   
-  xg_tool_bar_help_callback (wbutton, event, client_data);
+  return xg_tool_bar_help_callback (wbutton, event, client_data);
 }
 
 

@@ -1,5 +1,7 @@
 2009-12-09  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* gtkutil.c (xg_tool_bar_proxy_help_callback): Fix missing return.
+
 	Fix implicit function declarations.
 	* cmds.c: Include "frame.h".
 	* frame.c: Include "font.h" also if !HAVE_WINDOW_SYSTEM.
