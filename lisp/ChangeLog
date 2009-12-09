@@ -1,3 +1,7 @@
+2009-12-09  Kenichi Handa  <handa@etlken>
+
+	* international/mule-diag.el: Require help-mode instead of help-fns.
+
 2009-12-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (ucs-names): Supply a sufficiently
