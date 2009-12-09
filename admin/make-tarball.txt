@@ -28,10 +28,6 @@ For each step, check for possible errors.
     when preparing a major Emacs release, or branching for it.)
 
 5.   rm configure; autoconf
-
-    Patch configure: See
-    http://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00851.html
-
      make bootstrap
 
 6.  Commit configure, README, doc/emacs/emacs.texi,
