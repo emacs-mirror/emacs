@@ -244,28 +244,6 @@ frame on another X display, then a Gtk+ error happens in the emacs
 server that results in an endless loop.  This is not fixed in any known
 Gtk+ version (2.14.4 being current).
 
-** Emacs compiled with Gtk+ crashes on startup on Cygwin.
-
-A typical error message is
-  ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes
-  (alignment: 512): Function not implemented
-
-Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on
-Cygwin, that becomes the Cygwin supplied memalign.  As malloc is not the
-Cygwin malloc, the Cygwin memalign always returns ENOSYS.
-
-One workaround is to set G_SLICE=always-malloc before starting emacs.
-For example, in bash,
-
-  G_SLICE=always-malloc emacs
-
-or put
-
-  export G_SLICE=always-malloc
-
-in one of the bash startup files.  This also has to be done before
-building emacs on Cygwin with Gtk+.
-
 * General runtime problems
 
 ** Lisp problems
