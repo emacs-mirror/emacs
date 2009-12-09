@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include "xsettings.h"
 #include "frame.h"
+#include "keyboard.h"
 #include "blockinput.h"
 #include "termhooks.h"
 #include "termopts.h"
