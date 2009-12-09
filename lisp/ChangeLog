@@ -1,3 +1,9 @@
+2009-12-09  Vivek Dasmohapatra  <vivek@etla.org>
+
+	Drop some properties to avoid surprises.
+	* htmlfontify.el (hfy-ignored-properties): New defcustom.
+	(hfy-fontify-buffer): Use it.
+
 2009-12-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Minor cleanup.

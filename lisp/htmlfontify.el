@@ -377,6 +377,18 @@ commands in `hfy-etags-cmd-alist'."
   :tag   "shell-file-name"
   :type  '(file))
 
+(defcustom hfy-ignored-properties '(read-only 
+                                    intangible
+                                    modification-hooks
+                                    insert-in-front-hooks
+                                    insert-behind-hooks
+                                    point-entered
+                                    point-left)
+  "Properties to omit when copying a fontified buffer for html transformation."
+  :group 'htmlfontify
+  :tag   "ignored-properties"
+  :type '(repeat symbol))
+
 (defun hfy-which-etags ()
   "Return a string  indicating which flavour of etags we are using."
   (let ((v (shell-command-to-string (concat hfy-etags-bin " --version"))))
@@ -1622,6 +1634,8 @@ FILE, if set, is the file name."
       (delete-overlay rovl))
     (copy-to-buffer html-buffer (point-min) (point-max))
     (set-buffer     html-buffer)
+    ;; rip out props that could interfere with our htmlisation of the buffer:
+    (remove-text-properties (point-min) (point-max) hfy-ignored-properties)
     ;; Apply overlay invisible spec
     (setq orig-ovls
           (sort orig-ovls
