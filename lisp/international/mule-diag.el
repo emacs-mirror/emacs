@@ -32,7 +32,7 @@
 ;;; Code:
 
 ;; Make sure the help-xref button type is defined.
-(require 'help-fns)
+(require 'help-mode)
 
 ;;; General utility function
 
