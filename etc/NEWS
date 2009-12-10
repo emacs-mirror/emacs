@@ -171,8 +171,7 @@ cycling order of C-l (`recenter-top-bottom').
 
 ** The bookmark menu has a narrowing search via bookmark-bmenu-search.
 
-** LaTeX mode now provides completion via latex-complete and
-latex-indent-or-complete.
+** LaTeX mode now provides completion (via completion-at-point)
 
 ** sym-comp.el is now declared obsolete, superceded by completion-at-point.
 
