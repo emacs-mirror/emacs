@@ -90,7 +90,7 @@
 ;;
 ;; To use whitespace, insert in your ~/.emacs:
 ;;
-;;    (require 'whitespace-mode)
+;;    (require 'whitespace)
 ;;
 ;; Or autoload at least one of the commands`whitespace-mode',
 ;; `whitespace-toggle-options', `global-whitespace-mode' or
