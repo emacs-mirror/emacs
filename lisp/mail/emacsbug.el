@@ -226,9 +226,17 @@ usually do not have translators to read other languages for them.\n\n")
     (unless report-emacs-bug-no-explanations
       (with-output-to-temp-buffer "*Bug Help*"
 	(princ "While in the mail buffer:\n\n")
-	(if (eq mail-user-agent 'sendmail-user-agent)
-	    (princ (substitute-command-keys
-		    "  Type \\[mail-send-and-exit] to send the bug report.\n")))
+        (let ((send
+               (cond ((eq mail-user-agent 'sendmail-user-agent)
+                      "mail-send-and-exit")
+                     ((memq mail-user-agent '(message-user-agent
+                                              gnus-user-agent))
+                      "message-send-and-exit")
+                     ((eq mail-user-agent 'mh-e-user-agent)
+                      "mh-send-letter"))))
+          (when send
+            (princ (substitute-command-keys
+                    (format "  Type \\[%s] to send the bug report.\n" send)))))
 	(princ (substitute-command-keys
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
 	(terpri)

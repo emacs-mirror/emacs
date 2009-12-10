@@ -1,3 +1,8 @@
+2009-12-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Use whichever send command is
+	appropriate for the mail-user-agent in use.
+
 2009-12-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-insert-directory): Suppress error messages.
@@ -225,13 +230,10 @@
 
 2009-12-06  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newst-backend.el :
-	* net/newst-plainview.el:
-	* net/newst-reader.el:
-	* net/newst-ticker.el:
-	* net/newst-treeview.el:
-	* net/newsticker.el: Require/provide newst-... (instead of
-	newsticker-...). (Bug#5096)
+	* net/newst-backend.el, net/newst-plainview.el:
+	* net/newst-reader.el, net/newst-ticker.el:
+	* net/newst-treeview.el, net/newsticker.el:
+	Require/provide newst-... (instead of newsticker-...).  (Bug#5096)
 
 2009-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -247,15 +249,14 @@
 
 2009-12-06  Ulf Jasper  <ulf.jasper@web.de>
 
-	* xml.el (xml-substitute-numeric-entities): Moved
+	* xml.el (xml-substitute-numeric-entities): Move
 	newsticker--decode-numeric-entities in newst-backend.el to
-	xml-substitute-numeric-entities in xml.el. (Bug#5008)
-
+	xml-substitute-numeric-entities in xml.el.  (Bug#5008)
 	* net/newst-backend.el (newsticker--parse-generic-feed)
 	(newsticker--parse-generic-items)
-	(newsticker--decode-numeric-entities): Moved
+	(newsticker--decode-numeric-entities): Move
 	newsticker--decode-numeric-entities in newst-backend.el to
-	xml-substitute-numeric-entities in xml.el. (Bug#5008)
+	xml-substitute-numeric-entities in xml.el.  (Bug#5008)
 
 2009-12-06  Daniel Colascione  <dan.colascione@gmail.com>
 
@@ -263,8 +264,7 @@
 
 2009-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* ansi-color.el (ansi-color-for-comint-mode): Add :version
-	keyword.
+	* ansi-color.el (ansi-color-for-comint-mode): Add :version keyword.
 
 2009-12-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -282,10 +282,10 @@
 2009-12-06  Kevin Ryde  <user42@zip.com.au>
 
 	* ffap.el (ffap-rfc-path): Make this a defcustom since
-	`ffap-rfc-directories' is also a defcustom.  (My Bug#4514.)
+	`ffap-rfc-directories' is also a defcustom.  (Bug#4514.)
 
 	* info-look.el: Add setup for apropos-mode to use emacs-lisp-mode
-	manuals, similar to existing setup for help-mode.  (My bug#3913.)
+	manuals, similar to existing setup for help-mode.  (Bug#3913.)
 
 2009-12-05  Juri Linkov  <juri@jurta.org>
 
@@ -1160,8 +1160,7 @@
 2009-11-24  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-regexp):
-	Build value with regexp-opt instead of explicit joining loop.  (My
-	Bug#4927.)
+	Build value with regexp-opt instead of explicit joining loop.  (Bug#4927)
 
 	* emacs-lisp/elint.el (elint-add-required-env): Better error message
 	when .el source file not found or other error.
@@ -3383,7 +3382,7 @@
 	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
 	When inserting ";;; Code" put it before any ";;;###autoload" cookie on
 	the first form.  And insert a blank line after ";;; Code" since
-	that's usual style.  (My Bug#4612.)
+	that's usual style.  (Bug#4612)
 
 	* net/dns.el: Add "Keywords: comm", as per net/net-utils.el.
 
