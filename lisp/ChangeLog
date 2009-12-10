@@ -1,5 +1,8 @@
 2009-12-10  Glenn Morris  <rgm@gnu.org>
 
+	* mail/feedmail.el (top-level): Move require 'mail-utils to start.
+	(expand-mail-aliases): Define for compiler.
+
 	* vc-annotate.el (log-view-vc-backend, log-view-vc-fileset):
 	Define for compiler.
 

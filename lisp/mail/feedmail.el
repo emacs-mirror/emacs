@@ -286,7 +286,12 @@
 
 (defconst feedmail-patch-level "8")
 
-(eval-when-compile (require 'smtpmail) (require 'cl))
+(require 'mail-utils)		     ; pick up mail-strip-quoted-names
+
+(eval-when-compile
+  (require 'smtpmail)
+  (require 'cl))
+
 (autoload 'mail-do-fcc "sendmail")
 
 (defgroup feedmail nil
@@ -1950,6 +1955,7 @@ mapped to mostly alphanumerics for safety."
      (feedmail-rfc822-time-zone time)
      )))
 
+(declare-function expand-mail-aliases "mailalias" (beg end &optional exclude))
 
 (defun feedmail-send-it-immediately ()
   "Handle immediate sending, including during a queue run."
@@ -2582,7 +2588,6 @@ Resent-To:, Resent-Cc:, and Resent-Bcc:."
     ))
 
 
-(require 'mail-utils)			; pick up mail-strip-quoted-names
 (defun feedmail-deduce-address-list (message-buffer header-start header-end addr-regexp address-list)
   "Get address list with all comments and other excitement trimmed.
 Addresses are collected only from headers whose names match the fourth
