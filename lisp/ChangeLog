@@ -1,3 +1,8 @@
+2009-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-rar-summarize): Allow between 6 and 7
+	characters in the Attribute field.
+
 2009-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-svn.el (vc-svn-after-dir-status): Fix regexp.  (Bug#4741)
