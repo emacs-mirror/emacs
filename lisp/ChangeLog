@@ -1,3 +1,7 @@
+2009-12-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp.  (Bug#4741)
+
 2009-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Let loaddefs.el adjust to changes in autoload-excludes (bug#5162).
