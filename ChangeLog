@@ -1,3 +1,7 @@
+2009-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for RSVG if GNUStep is used.
+
 2009-12-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Don't check for RSVG or GConf unless X11 is used.
