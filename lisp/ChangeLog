@@ -1,5 +1,8 @@
 2009-12-10  Glenn Morris  <rgm@gnu.org>
 
+	* vc-annotate.el (log-view-vc-backend, log-view-vc-fileset):
+	Define for compiler.
+
 	* mail/emacsbug.el (report-emacs-bug): Use whichever send command is
 	appropriate for the mail-user-agent in use.
 

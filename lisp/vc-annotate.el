@@ -478,6 +478,9 @@ Return a cons (REV . FILENAME)."
                                fname rev))
 	(vc-annotate-warp-revision prev-rev fname)))))
 
+(defvar log-view-vc-backend)
+(defvar log-view-vc-fileset)
+
 (defun vc-annotate-show-log-revision-at-line ()
   "Visit the log of the revision at line.
 If the VC backend supports it, only show the log entry for the revision.
