@@ -541,19 +541,15 @@ that requires a literal mode spec at compile time."
       (make-local-variable 'lookup-syntax-properties)
       (setq lookup-syntax-properties t)))
 
-  ;; Use this in Emacs 21 to avoid meddling with the rear-nonsticky
+  ;; Use this in Emacs 21+ to avoid meddling with the rear-nonsticky
   ;; property on each character.
   (when (boundp 'text-property-default-nonsticky)
     (make-local-variable 'text-property-default-nonsticky)
-    (let ((elem (assq 'syntax-table text-property-default-nonsticky)))
-      (if elem
-	  (setcdr elem t)
-	(setq text-property-default-nonsticky
-	      (cons '(syntax-table . t)
-		    text-property-default-nonsticky))))
-    (setq text-property-default-nonsticky
-	  (cons '(c-type . t)
-		text-property-default-nonsticky)))
+    (mapc (lambda (tprop)
+	    (unless (assq tprop text-property-default-nonsticky)
+	      (setq text-property-default-nonsticky
+		    (cons `(,tprop . t) text-property-default-nonsticky))))
+	  '(syntax-table category c-type)))
 
   ;; In Emacs 21 and later it's possible to turn off the ad-hoc
   ;; heuristic that open parens in column 0 are defun starters.  Since

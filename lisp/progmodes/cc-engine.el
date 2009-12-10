@@ -3743,6 +3743,57 @@ comment at the start of cc-engine.el for more info."
 	(goto-char bound))
       nil)))
 
+(defsubst c-ssb-lit-begin ()
+  ;; Return the start of the literal point is in, or nil.
+  ;; We read and write the variables `safe-pos', `safe-pos-list', `state'
+  ;; bound in the caller.
+
+  ;; Use `parse-partial-sexp' from a safe position down to the point to check
+  ;; if it's outside comments and strings.
+  (save-excursion
+    (let ((pos (point)) safe-pos state pps-end-pos)
+      ;; Pick a safe position as close to the point as possible.
+      ;;
+      ;; FIXME: Consult `syntax-ppss' here if our cache doesn't give a good
+      ;; position.
+    
+      (while (and safe-pos-list
+		  (> (car safe-pos-list) (point)))
+	(setq safe-pos-list (cdr safe-pos-list)))
+      (unless (setq safe-pos (car-safe safe-pos-list))
+	(setq safe-pos (max (or (c-safe-position
+				 (point) (or c-state-cache
+					     (c-parse-state)))
+				0)
+			    (point-min))
+	      safe-pos-list (list safe-pos)))
+
+      ;; Cache positions along the way to use if we have to back up more.  We
+      ;; cache every closing paren on the same level.  If the paren cache is
+      ;; relevant in this region then we're typically already on the same
+      ;; level as the target position.  Note that we might cache positions
+      ;; after opening parens in case safe-pos is in a nested list.  That's
+      ;; both uncommon and harmless.
+      (while (progn
+	       (setq state (parse-partial-sexp
+			    safe-pos pos 0))
+	       (< (point) pos))
+	(setq safe-pos (point)
+	      safe-pos-list (cons safe-pos safe-pos-list)))
+
+      ;; If the state contains the start of the containing sexp we cache that
+      ;; position too, so that parse-partial-sexp in the next run has a bigger
+      ;; chance of starting at the same level as the target position and thus
+      ;; will get more good safe positions into the list.
+      (if (elt state 1)
+	  (setq safe-pos (1+ (elt state 1))
+		safe-pos-list (cons safe-pos safe-pos-list)))
+
+      (if (or (elt state 3) (elt state 4))
+	  ;; Inside string or comment.  Continue search at the
+	  ;; beginning of it.
+	  (elt state 8)))))
+
 (defun c-syntactic-skip-backward (skip-chars &optional limit paren-level)
   "Like `skip-chars-backward' but only look at syntactically relevant chars,
 i.e. don't stop at positions inside syntactic whitespace or string
@@ -3761,140 +3812,100 @@ Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
 
   (let ((start (point))
-	state
+	state-2
 	;; A list of syntactically relevant positions in descending
 	;; order.  It's used to avoid scanning repeatedly over
 	;; potentially large regions with `parse-partial-sexp' to verify
-	;; each position.
+	;; each position.  Used in `c-ssb-lit-begin'
 	safe-pos-list
-	;; The position at the beginning of `safe-pos-list'.
-	safe-pos
 	;; The result from `c-beginning-of-macro' at the start position or the
 	;; start position itself if it isn't within a macro.  Evaluated on
 	;; demand.
 	start-macro-beg
 	;; The earliest position after the current one with the same paren
 	;; level.  Used only when `paren-level' is set.
+	lit-beg
 	(paren-level-pos (point)))
 
-    (while (progn
-	     (while (and
-		     (< (skip-chars-backward skip-chars limit) 0)
+    (while
+	(progn
+	  ;; The next loop "tries" to find the end point each time round,
+	  ;; loops when it hasn't succeeded.
+	  (while
+	      (and
+	       (< (skip-chars-backward skip-chars limit) 0)
 
-		     ;; Use `parse-partial-sexp' from a safe position down to
-		     ;; the point to check if it's outside comments and
-		     ;; strings.
-		     (let ((pos (point)) state-2 pps-end-pos)
-		       ;; Pick a safe position as close to the point as
-		       ;; possible.
-		       ;;
-		       ;; FIXME: Consult `syntax-ppss' here if our
-		       ;; cache doesn't give a good position.
-		       (while (and safe-pos-list
-				   (> (car safe-pos-list) (point)))
-			 (setq safe-pos-list (cdr safe-pos-list)))
-		       (unless (setq safe-pos (car-safe safe-pos-list))
-			 (setq safe-pos (max (or (c-safe-position
-						  (point) (or c-state-cache
-							      (c-parse-state)))
-						 0)
-					     (point-min))
-			       safe-pos-list (list safe-pos)))
+	       (let ((pos (point)) state-2 pps-end-pos)
 
-		       ;; Cache positions along the way to use if we have to
-		       ;; back up more.  We cache every closing paren on the
-		       ;; same level.  If the paren cache is relevant in this
-		       ;; region then we're typically already on the same
-		       ;; level as the target position.  Note that we might
-		       ;; cache positions after opening parens in case
-		       ;; safe-pos is in a nested list.  That's both uncommon
-		       ;; and harmless.
-		       (while (progn
-				(setq state (parse-partial-sexp
-					     safe-pos pos 0))
-				(< (point) pos))
-			 (setq safe-pos (point)
-			       safe-pos-list (cons safe-pos safe-pos-list)))
+		 (cond
+		  ;; Don't stop inside a literal
+		  ((setq lit-beg (c-ssb-lit-begin))
+		   (goto-char lit-beg)
+		   t)
 
-		       (cond
-			((or (elt state 3) (elt state 4))
-			 ;; Inside string or comment.  Continue search at the
-			 ;; beginning of it.
-			 (goto-char (elt state 8))
-			 t)
+		  ((and paren-level
+			(save-excursion
+			  (setq state-2 (parse-partial-sexp
+					 pos paren-level-pos -1)
+				pps-end-pos (point))
+			  (/= (car state-2) 0)))
+		   ;; Not at the right level.
 
-			((and paren-level
-			      (save-excursion
-				(setq state-2 (parse-partial-sexp
-					       pos paren-level-pos -1)
-				      pps-end-pos (point))
-				(/= (car state-2) 0)))
-			 ;; Not at the right level.
+		   (if (and (< (car state-2) 0)
+			    ;; We stop above if we go out of a paren.
+			    ;; Now check whether it precedes or is
+			    ;; nested in the starting sexp.
+			    (save-excursion
+			      (setq state-2
+				    (parse-partial-sexp
+				     pps-end-pos paren-level-pos
+				     nil nil state-2))
+			      (< (car state-2) 0)))
 
-			 (if (and (< (car state-2) 0)
-				  ;; We stop above if we go out of a paren.
-				  ;; Now check whether it precedes or is
-				  ;; nested in the starting sexp.
-				  (save-excursion
-				    (setq state-2
-					  (parse-partial-sexp
-					   pps-end-pos paren-level-pos
-					   nil nil state-2))
-				    (< (car state-2) 0)))
-
-			     ;; We've stopped short of the starting position
-			     ;; so the hit was inside a nested list.  Go up
-			     ;; until we are at the right level.
-			     (condition-case nil
+		       ;; We've stopped short of the starting position
+		       ;; so the hit was inside a nested list.  Go up
+		       ;; until we are at the right level.
+		       (condition-case nil
+			   (progn
+			     (goto-char (scan-lists pos -1
+						    (- (car state-2))))
+			     (setq paren-level-pos (point))
+			     (if (and limit (>= limit paren-level-pos))
 				 (progn
-				   (goto-char (scan-lists pos -1
-							  (- (car state-2))))
-				   (setq paren-level-pos (point))
-				   (if (and limit (>= limit paren-level-pos))
-				       (progn
-					 (goto-char limit)
-					 nil)
-				     t))
-			       (error
-				(goto-char (or limit (point-min)))
-				nil))
+				   (goto-char limit)
+				   nil)
+			       t))
+			 (error
+			  (goto-char (or limit (point-min)))
+			  nil))
 
-			   ;; The hit was outside the list at the start
-			   ;; position.  Go to the start of the list and exit.
-			   (goto-char (1+ (elt state-2 1)))
-			   nil))
+		     ;; The hit was outside the list at the start
+		     ;; position.  Go to the start of the list and exit.
+		     (goto-char (1+ (elt state-2 1)))
+		     nil))
 
-			((c-beginning-of-macro limit)
-			 ;; Inside a macro.
-			 (if (< (point)
-				(or start-macro-beg
-				    (setq start-macro-beg
-					  (save-excursion
-					    (goto-char start)
-					    (c-beginning-of-macro limit)
-					    (point)))))
-			     t
+		  ((c-beginning-of-macro limit)
+		   ;; Inside a macro.
+		   (if (< (point)
+			  (or start-macro-beg
+			      (setq start-macro-beg
+				    (save-excursion
+				      (goto-char start)
+				      (c-beginning-of-macro limit)
+				      (point)))))
+		       t
 
-			   ;; It's inside the same macro we started in so it's
-			   ;; a relevant match.
-			   (goto-char pos)
-			   nil)))))
-
-	       ;; If the state contains the start of the containing sexp we
-	       ;; cache that position too, so that parse-partial-sexp in the
-	       ;; next run has a bigger chance of starting at the same level
-	       ;; as the target position and thus will get more good safe
-	       ;; positions into the list.
-	       (if (elt state 1)
-		   (setq safe-pos (1+ (elt state 1))
-			 safe-pos-list (cons safe-pos safe-pos-list))))
-
-	     (> (point)
-		(progn
-		  ;; Skip syntactic ws afterwards so that we don't stop at the
-		  ;; end of a comment if `skip-chars' is something like "^/".
-		  (c-backward-syntactic-ws)
-		  (point)))))
+		     ;; It's inside the same macro we started in so it's
+		     ;; a relevant match.
+		     (goto-char pos)
+		     nil))))))
+	     
+	  (> (point)
+	     (progn
+	       ;; Skip syntactic ws afterwards so that we don't stop at the
+	       ;; end of a comment if `skip-chars' is something like "^/".
+	       (c-backward-syntactic-ws)
+	       (point)))))
 
     ;; We might want to extend this with more useful return values in
     ;; the future.
@@ -8426,6 +8437,7 @@ comment at the start of cc-engine.el for more info."
 	   literal char-before-ip before-ws-ip char-after-ip macro-start
 	   in-macro-expr c-syntactic-context placeholder c-in-literal-cache
 	   step-type tmpsymbol keyword injava-inher special-brace-list tmp-pos
+	   containing-<
 	   ;; The following record some positions for the containing
 	   ;; declaration block if we're directly within one:
 	   ;; `containing-decl-open' is the position of the open
@@ -9040,7 +9052,7 @@ comment at the start of cc-engine.el for more info."
 		  (back-to-indentation)))
 	      ;; FIXME: Should use c-add-stmt-syntax, but it's not yet
 	      ;; template aware.
-	      (c-add-syntax 'template-args-cont (point)))
+	      (c-add-syntax 'template-args-cont (point) placeholder))
 
 	     ;; CASE 5D.4: perhaps a multiple inheritance line?
 	     ((and (c-major-mode-is 'c++-mode)
@@ -9252,10 +9264,11 @@ comment at the start of cc-engine.el for more info."
 	   ;; arglist that begins on the previous line.
 	   ((and c-recognize-<>-arglists
 		 (eq (char-before) ?<)
+		 (setq placeholder (1- (point)))
 		 (not (and c-overloadable-operators-regexp
 			   (c-after-special-operator-id lim))))
 	    (c-beginning-of-statement-1 (c-safe-position (point) paren-state))
-	    (c-add-syntax 'template-args-cont (c-point 'boi)))
+	    (c-add-syntax 'template-args-cont (c-point 'boi) placeholder))
 
 	   ;; CASE 5Q: we are at a statement within a macro.
 	   (macro-start
@@ -9277,14 +9290,38 @@ comment at the start of cc-engine.el for more info."
 
 	 ;; (CASE 6 has been removed.)
 
+	 ;; CASE 19: line is an expression, not a statement, and is directly
+	 ;; contained by a template delimiter.  Most likely, we are in a
+	 ;; template arglist within a statement.  This case is based on CASE
+	 ;; 7.  At some point in the future, we may wish to create more
+	 ;; syntactic symbols such as `template-intro',
+	 ;; `template-cont-nonempty', etc., and distinguish between them as we
+	 ;; do for `arglist-intro' etc. (2009-12-07).
+	 ((and c-recognize-<>-arglists
+	       (setq containing-< (c-up-list-backward indent-point containing-sexp))
+	       (eq (char-after containing-<) ?\<))
+	  (setq placeholder (c-point 'boi containing-<))
+	  (goto-char containing-sexp)	; Most nested Lbrace/Lparen (but not
+					; '<') before indent-point.
+	  (if (>= (point) placeholder)
+	      (progn
+		(forward-char)
+		(skip-chars-forward " \t"))
+	    (goto-char placeholder))
+	  (c-add-stmt-syntax 'template-args-cont (list containing-<) t
+			     (c-most-enclosing-brace c-state-cache (point))
+			     paren-state))
+			     
+
 	 ;; CASE 7: line is an expression, not a statement.  Most
 	 ;; likely we are either in a function prototype or a function
-	 ;; call argument list
+	 ;; call argument list, or a template argument list.
 	 ((not (or (and c-special-brace-lists
 			(save-excursion
 			  (goto-char containing-sexp)
 			  (c-looking-at-special-brace-list)))
-		   (eq (char-after containing-sexp) ?{)))
+		   (eq (char-after containing-sexp) ?{)
+		   (eq (char-after containing-sexp) ?<)))
 	  (cond
 
 	   ;; CASE 7A: we are looking at the arglist closing paren.
@@ -9381,7 +9418,7 @@ comment at the start of cc-engine.el for more info."
 		   (c-forward-syntactic-ws)
 		   (point))
 		 (c-point 'bonl)))
-	    (goto-char containing-sexp)
+	    (goto-char containing-sexp)	; paren opening the arglist
 	    (setq placeholder (c-point 'boi))
 	    (if (and (c-safe (backward-up-list 1) t)
 		     (>= (point) placeholder))
