@@ -372,8 +372,6 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           relfile
           ;; nil until we found a cookie.
           output-start)
-      (if (member absfile autoload-excludes)
-      	  (message "Generating autoloads for %s...skipped" file)
       (with-current-buffer (or visited
                                ;; It is faster to avoid visiting the file.
                                (autoload-find-file file))
@@ -482,7 +480,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           (message "Generating autoloads for %s...done" file))
         (or visited
             ;; We created this buffer, so we should kill it.
-            (kill-buffer (current-buffer)))))
+            (kill-buffer (current-buffer))))
       ;; If the entries were added to some other buffer, then the file
       ;; doesn't add entries to OUTFILE.
       (or (not output-start) otherbuf))))
@@ -638,7 +636,9 @@ directory or directories specified."
 		  ((not (stringp file)))
 		  ((or (not (file-exists-p file))
                        ;; Remove duplicates as well, just in case.
-                       (member file done))
+                       (member file done)
+                       ;; If the file is actually excluded.
+                       (member (expand-file-name file) autoload-excludes))
                    ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
 		  ((not (time-less-p (nth 4 form)
@@ -654,8 +654,10 @@ directory or directories specified."
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (dolist (file files)
-        (if (autoload-generate-file-autoloads file nil buffer-file-name)
-            (push file no-autoloads)))
+        (cond
+         ((member (expand-file-name file) autoload-excludes) nil)
+         ((autoload-generate-file-autoloads file nil buffer-file-name)
+          (push file no-autoloads))))
 
       (when no-autoloads
 	;; Sort them for better readability.

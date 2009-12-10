@@ -1,3 +1,12 @@
+2009-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Let loaddefs.el adjust to changes in autoload-excludes (bug#5162).
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	Disregard autoload-excludes.
+	(update-directory-autoloads): Obey autoload-excludes here instead.
+	But don't store its contents in no-autoloads and remove entries that
+	refer to excludes files.
+
 2009-12-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/feedmail.el (top-level): Move require 'mail-utils to start.
