@@ -296,17 +296,17 @@ font-lock keywords will not be case sensitive."
 		  :help ,(purecopy "Construct a regexp interactively")))
     (define-key menu-map [tracing] (cons (purecopy "Tracing") tracing-map))
     (define-key tracing-map [tr-a]
-      `(menu-item ,(purecopy "Untrace all") untrace-all
+      `(menu-item ,(purecopy "Untrace All") untrace-all
 		  :help ,(purecopy "Untrace all currently traced functions")))
     (define-key tracing-map [tr-uf]
       `(menu-item ,(purecopy "Untrace function...") untrace-function
 		  :help ,(purecopy "Untrace function, and possibly activate all remaining advice")))
     (define-key tracing-map [tr-sep] menu-bar-separator)
     (define-key tracing-map [tr-q]
-      `(menu-item ,(purecopy "Trace function quietly...") trace-function-background
+      `(menu-item ,(purecopy "Trace Function Quietly...") trace-function-background
 		  :help ,(purecopy "Trace the function with trace output going quietly to a buffer")))
     (define-key tracing-map [tr-f]
-      `(menu-item ,(purecopy "Trace function...") trace-function
+      `(menu-item ,(purecopy "Trace Function...") trace-function
 		  :help ,(purecopy "Trace the function given as an argument")))
     (define-key menu-map [profiling] (cons (purecopy "Profiling") prof-map))
     (define-key prof-map [prof-restall]
@@ -351,16 +351,16 @@ font-lock keywords will not be case sensitive."
 		  :keys ,(purecopy "C-u C-M-x")))
     (define-key menu-map [separator-byte] menu-bar-separator)
     (define-key menu-map [disas]
-      `(menu-item ,(purecopy "Disassemble byte compiled object...") disassemble
+      `(menu-item ,(purecopy "Disassemble Byte Compiled Object...") disassemble
 		  :help ,(purecopy "Print disassembled code for OBJECT in a buffer")))
     (define-key menu-map [byte-recompile]
       `(menu-item ,(purecopy "Byte-recompile Directory...") byte-recompile-directory
 		  :help ,(purecopy "Recompile every `.el' file in DIRECTORY that needs recompilation")))
     (define-key menu-map [emacs-byte-compile-and-load]
-      `(menu-item ,(purecopy "Byte-compile And Load") emacs-lisp-byte-compile-and-load
+      `(menu-item ,(purecopy "Byte-compile and Load") emacs-lisp-byte-compile-and-load
 		  :help ,(purecopy "Byte-compile the current file (if it has changed), then load compiled code")))
     (define-key menu-map [byte-compile]
-      `(menu-item ,(purecopy "Byte-compile This File") emacs-lisp-byte-compile
+      `(menu-item ,(purecopy "Byte-compile this File") emacs-lisp-byte-compile
 		  :help ,(purecopy "Byte compile the file containing the current buffer")))
     (define-key menu-map [separator-eval] menu-bar-separator)
     (define-key menu-map [ielm]

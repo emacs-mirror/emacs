@@ -1,3 +1,8 @@
+2009-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Standardize the
+	capitalization of some menu entries.
+
 2009-12-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el (whitespace-display-char-on): Asure
