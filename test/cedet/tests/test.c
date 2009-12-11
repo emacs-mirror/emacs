@@ -1,8 +1,5 @@
 /* Test file for C language.
  * Attempt to include as many aspects of the C language as possible.
- *
- * $Id: test.c,v 1.2 2009/09/28 23:23:31 cyd Exp $
- *
  */
 /* types of include files */
 #include "includeme1.h"

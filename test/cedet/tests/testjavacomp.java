@@ -3,7 +3,6 @@
  * Copyright (C) 2009 Eric M. Ludlam
  *
  * Author: Eric M. Ludlam <eric@siege-engine.com>
- * X-RCS: $Id: testjavacomp.java,v 1.1.2.1 2009/09/20 04:00:18 cyd Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
