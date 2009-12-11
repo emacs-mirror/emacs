@@ -3,6 +3,7 @@
 	* whitespace.el (whitespace-display-char-on): Asure
 	`buffer-display-table' is unique when two or more windows are
 	visible.  Reported by Martin Pohlack <mp26@os.inf.tu-dresden.de>.
+	New version 12.1.
 
 2009-12-10  Eli Zaretskii  <eliz@gnu.org>
 
