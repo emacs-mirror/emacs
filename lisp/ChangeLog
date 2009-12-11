@@ -1,5 +1,19 @@
 2009-12-11  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el: No longer require sendmail.
+	Replace sendmail's `mail-text' by `rfc822-goto-eoh'.  (Bug#5174)
+	(report-emacs-bug-orig-text): Doc fix.
+	(report-emacs-bug-send-command, report-emacs-bug-send-hook):
+	New local variables, to adapt to different mail-user-agents.
+	(report-emacs-bug): Fix test for a gnu.org address.
+	Use overlays for emphasis, since font-lock defeats 'face property.
+	Pretest bugs also end up at the newsgroup these days.
+	Stop message-mode stripping text properties.
+	Set and use the new buffer-local variables.
+	(report-emacs-bug-hook): Add doc-string.
+	Remove some unnecessary save-excursions and simplify.
+	Use the appropriate hook and send-command.
+
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Standardize the
 	capitalization of some menu entries.
 
