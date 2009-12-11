@@ -3743,6 +3743,8 @@ comment at the start of cc-engine.el for more info."
 	(goto-char bound))
       nil)))
 
+(defvar safe-pos-list)		  ; bound in c-syntactic-skip-backward
+
 (defsubst c-ssb-lit-begin ()
   ;; Return the start of the literal point is in, or nil.
   ;; We read and write the variables `safe-pos', `safe-pos-list', `state'
@@ -3756,7 +3758,7 @@ comment at the start of cc-engine.el for more info."
       ;;
       ;; FIXME: Consult `syntax-ppss' here if our cache doesn't give a good
       ;; position.
-    
+
       (while (and safe-pos-list
 		  (> (car safe-pos-list) (point)))
 	(setq safe-pos-list (cdr safe-pos-list)))

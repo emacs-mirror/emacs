@@ -1,5 +1,7 @@
 2009-12-11  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cc-engine.el (safe-pos-list): Define for compiler.
+
 	* mail/emacsbug.el: No longer require sendmail.
 	Replace sendmail's `mail-text' by `rfc822-goto-eoh'.  (Bug#5174)
 	(report-emacs-bug-orig-text): Doc fix.
