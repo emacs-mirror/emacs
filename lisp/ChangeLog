@@ -19,7 +19,7 @@
 
 2009-12-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* whitespace.el (whitespace-display-char-on): Asure
+	* whitespace.el (whitespace-display-char-on): Assure
 	`buffer-display-table' is unique when two or more windows are
 	visible.  Reported by Martin Pohlack <mp26@os.inf.tu-dresden.de>.
 	New version 12.1.
