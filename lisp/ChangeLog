@@ -1,3 +1,21 @@
+2009-12-11  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-vmm-begin-re, verilog-vmm-end-re,
+	verilog-vmm-statement-re, verilog-ovm-statement-re,
+	verilog-defun-level-not-generate-re, verilog-calculate-indent,
+	verilog-leap-to-head, verilog-backward-token): Fix
+	indenting VMM macros.  Reported by Jonathan Ashbrook.
+
+2009-12-11  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-auto-lineup, verilog-nameable-item-re):
+	Cleanup user-visible spelling and documentation errors.  One
+	reported by Gary Delp.
+	(verilog-submit-bug-report): Mention bug tracking and CC
+	co-author.
+	(verilog-read-decls): Fix AUTOWIRE with types declared in a
+	package, bug195.  Reported by Pierre-David Pfister.
+
 2009-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-engine.el (safe-pos-list): Define for compiler.
