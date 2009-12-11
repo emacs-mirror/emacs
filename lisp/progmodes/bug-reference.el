@@ -32,7 +32,7 @@
 
 (defvar bug-reference-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [down-mouse-1] 'bug-reference-push-button)
+    (define-key map [mouse-2] 'bug-reference-push-button)
     (define-key map (kbd "C-c RET") 'bug-reference-push-button)
     map)
   "Keymap used by bug reference buttons.")
