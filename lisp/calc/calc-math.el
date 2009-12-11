@@ -108,6 +108,7 @@ If this can't be done, return NIL."
 			 (string-to-number 
 			  (let 
                               ((calc-number-radix 10)
+                               (calc-twos-complement-mode nil)
                                (calc-float-format (list 'float calc-internal-prec))
                                (calc-group-digits nil)
                                (calc-point-char "."))

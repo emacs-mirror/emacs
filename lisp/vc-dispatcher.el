@@ -461,7 +461,7 @@ modifications by the dispatcher client code, rather than user
 editing!"
   (and (string= buffer-file-name file)
        (if keep
-	   (progn
+	   (when (file-exists-p file)
 	     (vc-revert-buffer-internal t noquery)
 
 	     ;; VC operations might toggle the read-only state.  In
@@ -502,7 +502,7 @@ editing!"
 	    (vc-resynch-window file keep noquery))))))
   ;; Try to avoid unnecessary work, a *vc-dir* buffer is only present
   ;; if this is true.
-  (when (memq 'vc-dir-resynch-file after-save-hook)
+  (when vc-dir-buffers
     (vc-dir-resynch-file file)))
 
 (defun vc-buffer-sync (&optional not-urgent)

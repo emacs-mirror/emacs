@@ -575,8 +575,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
   "Save the current cpp configuration in a file."
   (interactive)
   (require 'pp)
-  (save-excursion
-    (set-buffer cpp-edit-buffer)
+  (with-current-buffer cpp-edit-buffer
     (let ((buffer (find-file-noselect cpp-config-file)))
       (set-buffer buffer)
       (erase-buffer)

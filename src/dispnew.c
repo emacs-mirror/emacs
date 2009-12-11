@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <setjmp.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -7110,9 +7111,9 @@ syms_of_display ()
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
 
-  Qdisplay_table = intern ("display-table");
+  Qdisplay_table = intern_c_string ("display-table");
   staticpro (&Qdisplay_table);
-  Qredisplay_dont_pause = intern ("redisplay-dont-pause");
+  Qredisplay_dont_pause = intern_c_string ("redisplay-dont-pause");
   staticpro (&Qredisplay_dont_pause);
 
   DEFVAR_INT ("baud-rate", &baud_rate,

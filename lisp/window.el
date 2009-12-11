@@ -1,7 +1,8 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
 ;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -86,6 +87,16 @@ return value, use `window-text-height' instead."
       (max 1 (- (window-height window)
 		(if mode-line-format 1 0)
 		(if header-line-format 1 0))))))
+
+;; See discussion in bug#4543.
+(defun window-full-height-p (&optional window)
+  "Return non-nil if WINDOW is not the result of a vertical split.
+WINDOW defaults to the selected window.  (This function is not
+appropriate for minibuffers.)"
+  (unless window
+    (setq window (selected-window)))
+  (= (window-height window)
+     (window-height (frame-root-window (window-frame window)))))
 
 (defun one-window-p (&optional nomini all-frames)
   "Return non-nil if the selected window is the only window.
@@ -591,8 +602,6 @@ and `same-window-regexps'.  Those variables take precedence over
 this one.
 
 See also `special-display-regexps'."
-  ;; Autoload if this file no longer dumped.
-  :risky t
   :type '(repeat
 	  (choice :tag "Buffer"
 		  :value ""
@@ -613,6 +622,9 @@ See also `special-display-regexps'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
+
+;;;###autoload
+(put 'special-display-buffer-names 'risky-local-variable t)
 
 (defcustom special-display-regexps nil
   "List of regexps saying which buffers should be displayed specially.
@@ -1024,12 +1036,20 @@ Do not raise the selected frame.  Return WINDOW."
       (raise-frame frame))
     window))
 
-(defun window--display-buffer-2 (buffer window)
+(defun window--display-buffer-2 (buffer window &optional dedicated)
   "Display BUFFER in WINDOW and make its frame visible.
+Set `window-dedicated-p' to DEDICATED if non-nil.
 Return WINDOW."
   (when (and (buffer-live-p buffer) (window-live-p window))
     (set-window-buffer window buffer)
+    (when dedicated
+      (set-window-dedicated-p window dedicated))
     (window--display-buffer-1 window)))
+
+(defvar display-buffer-mark-dedicated nil
+  "If non-nil, `display-buffer' marks the windows it creates as dedicated.
+The actual non-nil value of this variable will be copied to the
+`window-dedicated-p' flag.")
 
 (defun display-buffer (buffer-or-name &optional not-this-window frame)
   "Make buffer BUFFER-OR-NAME appear in some window but don't select it.
@@ -1122,8 +1142,8 @@ consider all visible or iconified frames."
 			buffer (if (listp pars) pars))))))
      ((or use-pop-up-frames (not frame-to-use))
       ;; We want or need a new frame.
-      (window--display-buffer-2
-       buffer (frame-selected-window (funcall pop-up-frame-function))))
+      (let ((win (frame-selected-window (funcall pop-up-frame-function))))
+        (window--display-buffer-2 buffer win display-buffer-mark-dedicated)))
      ((and pop-up-windows
 	   ;; Make a new window.
 	   (or (not (frame-parameter frame-to-use 'unsplittable))
@@ -1138,8 +1158,9 @@ consider all visible or iconified frames."
 		 (or (window--try-to-split-window
 		      (get-largest-window frame-to-use t))
 		     (window--try-to-split-window
-		      (get-lru-window frame-to-use t))))
-	   (window--display-buffer-2 buffer window-to-use)))
+		      (get-lru-window frame-to-use t)))))
+      (window--display-buffer-2 buffer window-to-use
+                                display-buffer-mark-dedicated))
      ((let ((window-to-undedicate
 	     ;; When NOT-THIS-WINDOW is non-nil, temporarily dedicate
 	     ;; the selected window to its buffer, to avoid that some of
@@ -1259,8 +1280,7 @@ window."
 	 (setq size (+ (window-height) size)))
     (setq new-window (split-window nil size))
     (unless split-window-keep-point
-      (save-excursion
-	(set-buffer (window-buffer))
+      (with-current-buffer (window-buffer)
 	(goto-char (window-start))
 	(setq moved (vertical-motion (window-height)))
 	(set-window-start new-window (point))
@@ -1599,40 +1619,95 @@ Otherwise, bury WINDOW's buffer, see `bury-buffer'."
 
 (defvar recenter-last-op nil
   "Indicates the last recenter operation performed.
-Possible values: `top', `middle', `bottom'.")
+Possible values: `top', `middle', `bottom', integer or float numbers.")
+
+(defcustom recenter-positions '(middle top bottom)
+  "Cycling order for `recenter-top-bottom'.
+A list of elements with possible values `top', `middle', `bottom',
+integer or float numbers that define the cycling order for
+the command `recenter-top-bottom'.
+
+Top and bottom destinations are `scroll-margin' lines the from true
+window top and bottom.  Middle redraws the frame and centers point
+vertically within the window.  Integer number moves current line to
+the specified absolute window-line.  Float number between 0.0 and 1.0
+means the percentage of the screen space from the top.  The default
+cycling order is middle -> top -> bottom."
+  :type '(repeat (choice
+		  (const :tag "Top" top)
+		  (const :tag "Middle" middle)
+		  (const :tag "Bottom" bottom)
+		  (integer :tag "Line number")
+		  (float :tag "Percentage")))
+  :version "23.2"
+  :group 'windows)
 
 (defun recenter-top-bottom (&optional arg)
-  "Move current line to window center, top, and bottom, successively.
-With no prefix argument, the first call redraws the frame and
- centers point vertically within the window.  Successive calls
- scroll the window, placing point on the top, bottom, and middle
- consecutively.  The cycling order is middle -> top -> bottom.
+  "Move current buffer line to the specified window line.
+With no prefix argument, successive calls place point according
+to the cycling order defined by `recenter-positions'.
 
 A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center.
-
-Top and bottom destinations are actually `scroll-margin' lines
- the from true window top and bottom."
+ With plain `C-u', move current line to window center."
   (interactive "P")
   (cond
-   (arg (recenter arg))                 ; Always respect ARG.
-   ((or (not (eq this-command last-command))
-	(eq recenter-last-op 'bottom))
-    (setq recenter-last-op 'middle)
-    (recenter))
+   (arg (recenter arg))			; Always respect ARG.
    (t
+    (setq recenter-last-op
+	  (if (eq this-command last-command)
+	      (car (or (cdr (member recenter-last-op recenter-positions))
+		       recenter-positions))
+	    (car recenter-positions)))
     (let ((this-scroll-margin
 	   (min (max 0 scroll-margin)
 		(truncate (/ (window-body-height) 4.0)))))
       (cond ((eq recenter-last-op 'middle)
-	     (setq recenter-last-op 'top)
-	     (recenter this-scroll-margin))
+	     (recenter))
 	    ((eq recenter-last-op 'top)
-	     (setq recenter-last-op 'bottom)
-	     (recenter (- -1 this-scroll-margin))))))))
+	     (recenter this-scroll-margin))
+	    ((eq recenter-last-op 'bottom)
+	     (recenter (- -1 this-scroll-margin)))
+	    ((integerp recenter-last-op)
+	     (recenter recenter-last-op))
+	    ((floatp recenter-last-op)
+	     (recenter (round (* recenter-last-op (window-height))))))))))
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
+
+(defun move-to-window-line-top-bottom (&optional arg)
+  "Position point relative to window.
+
+With a prefix argument ARG, acts like `move-to-window-line'.
+
+With no argument, positions point at center of window.
+Successive calls position point at positions defined
+by `recenter-positions'."
+  (interactive "P")
+  (cond
+   (arg (move-to-window-line arg))	; Always respect ARG.
+   (t
+    (setq recenter-last-op
+	  (if (eq this-command last-command)
+	      (car (or (cdr (member recenter-last-op recenter-positions))
+		       recenter-positions))
+	    (car recenter-positions)))
+    (let ((this-scroll-margin
+	   (min (max 0 scroll-margin)
+		(truncate (/ (window-body-height) 4.0)))))
+      (cond ((eq recenter-last-op 'middle)
+	     (call-interactively 'move-to-window-line))
+	    ((eq recenter-last-op 'top)
+	     (move-to-window-line this-scroll-margin))
+	    ((eq recenter-last-op 'bottom)
+	     (move-to-window-line (- -1 this-scroll-margin)))
+	    ((integerp recenter-last-op)
+	     (move-to-window-line recenter-last-op))
+	    ((floatp recenter-last-op)
+	     (move-to-window-line (round (* recenter-last-op (window-height))))))))))
+
+(define-key global-map [?\M-r] 'move-to-window-line-top-bottom)
+
 
 (defvar mouse-autoselect-window-timer nil
   "Timer used by delayed window autoselection.")

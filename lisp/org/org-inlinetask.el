@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.33x
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@
 ;;
 ;; Visibility cycling exempts these nodes from cycling. So whenever their
 ;; parent is opened, so are these tasks.  This will only work with
-;; `org-cycle', so if you are also using orther commands to show/hide
+;; `org-cycle', so if you are also using other commands to show/hide
 ;; entries, you will occasionally find these tasks to behave like
 ;; all other outline nodes, seemingly splitting the text of the parent
 ;; into children.
@@ -70,7 +70,7 @@
 ;; Also, if you want to use refiling and archiving for inline tasks,
 ;; The END line must be present to make things work properly.
 ;;
-;; This package installs one new comand:
+;; This package installs one new command:
 ;;
 ;; C-c C-x t      Insert a new inline task with END line
 
@@ -93,24 +93,11 @@ the value of this variable."
   :group 'org-inlinetask
   :type 'boolean)
 
-(defcustom org-inlinetask-export 'arrow+content
-  "What should be done with inlinetasks upon export?
-Possible values:
-
-nil            Remove entirely, headline and \"content\"
-arrow          Insert heading in bold, preceeded by an arrow
-arrow+content  Insert arrow and headline, add content below in an
-               #+begin_example box (ugly, but works for now)
-
-The \"content\" of an inline task is the material below the planning
-line and any drawers, up to a lines wit the same number of stars,
-but containing only the word END."
+(defcustom org-inlinetask-export t
+  "Non-nil means, export inline tasks.
+When nil, they will not be exported."
   :group 'org-inlinetask
-  :group 'org-export-general
-  :type '(choice
-	  (const :tag "Remove entirely" nil)
-	  (const :tag "Headline preceeded by arrow" arrow)
-	  (const :tag "Arrow, headline, + content" arrow+content)))
+  :type 'boolean)
 
 (defvar org-odd-levels-only)
 (defvar org-keyword-time-regexp)
@@ -127,6 +114,8 @@ but containing only the word END."
   (end-of-line -1))
 (define-key org-mode-map "\C-c\C-xt" 'org-inlinetask-insert-task)
 
+(defvar htmlp)  ; dynamically scoped into the next function
+(defvar latexp) ; dynamically scoped into the next function
 (defun org-inlinetask-export-handler ()
   "Handle headlines with level larger or equal to `org-inlinetask-min-level'.
 Either remove headline and meta data, or do special formatting."
@@ -136,7 +125,7 @@ Either remove headline and meta data, or do special formatting."
 		   (or org-inlinetask-min-level 200)))
 	 (re1 (format "^\\(\\*\\{%d,\\}\\) .*\n" nstars))
 	 (re2 (concat "^[ \t]*" org-keyword-time-regexp))
-	 headline beg end stars content)
+	 headline beg end stars content indent)
     (while (re-search-forward re1 nil t)
       (setq headline (match-string 0)
 	    stars (match-string 1)
@@ -156,15 +145,42 @@ Either remove headline and meta data, or do special formatting."
 	(setq content (buffer-substring beg (1- (point-at-bol))))
 	(delete-region beg (1+ (match-end 0))))
       (goto-char beg)
-      (when (and org-inlinetask-export
-		 (string-match org-complex-heading-regexp headline))
-	(when (memq org-inlinetask-export '(arrow+content arrow))
-	  (insert "\n\n\\Rightarrow\\Rightarrow\\Rightarrow *"
-		  (if (match-end 2) (concat (match-string 2 headline) " ") "")
-		  (match-string 4 headline) "*\n"))
-	(when (and content (eq org-inlinetask-export 'arrow+content))
-	  (insert "#+BEGIN_EXAMPLE\n" content "\n#+END_EXAMPLE\n"))
-	(insert "\n")))))
+      (when org-inlinetask-export
+	(when (string-match org-complex-heading-regexp headline)
+	  (setq headline (concat
+			  (if (match-end 2)
+			      (concat (match-string 2 headline) " ") "")
+			  (match-string 4 headline)))
+	  (when content
+	    (if (not (string-match "\\S-" content))
+		(setq content nil)
+	      (if (string-match "[ \t\n]+\\'" content)
+		  (setq content (substring content 0 (match-beginning 0))))
+	      (setq content (org-remove-indentation content))
+	      (if latexp (setq content (concat "\\quad \\\\\n" content)))))
+	  (insert (make-string (org-inlinetask-get-current-indentation) ?\ )
+		  "- ")
+	  (setq indent (make-string (current-column) ?\ ))
+	  (insert headline " ::")
+	  (if content
+	      (insert (if htmlp " " (concat "\n" indent))
+		      (mapconcat 'identity (org-split-string content "\n")
+				 (concat "\n" indent)) "\n")
+	    (insert "\n"))
+	  (insert indent)
+	  (backward-delete-char 2)
+	  (insert "THISISTHEINLINELISTTEMINATOR\n"))))))
+
+(defun org-inlinetask-get-current-indentation ()
+  "Get the indentation of the last non-while line above this one."
+  (save-excursion
+    (beginning-of-line 1)
+    (skip-chars-backward " \t\n")
+    (beginning-of-line 1)
+    (or (org-at-item-p)
+	(looking-at "[ \t]*"))
+    (goto-char (match-end 0))
+    (current-column)))
 
 (defun org-inlinetask-fontify (limit)
   "Fontify the inline tasks."
@@ -188,13 +204,33 @@ Either remove headline and meta data, or do special formatting."
 			    org-inlinetask-min-level))
     (replace-match "")))
 
+(defun org-inlinetask-remove-terminator ()
+  (let (beg end)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "THISISTHEINLINELISTTEMINATOR\n" nil t)
+	(setq beg (match-beginning 0) end (match-end 0))
+	(save-excursion
+	  (beginning-of-line 1)
+	  (and (looking-at "<p\\(ara\\)?>THISISTHEINLINELISTTEMINATOR[ \t\n]*</p\\(ara\\)?>")
+	       (setq beg (point) end (match-end 0))))
+	(delete-region beg end)))))
+
 (eval-after-load "org-exp"
   '(add-hook 'org-export-preprocess-after-tree-selection-hook
 	     'org-inlinetask-export-handler))
 (eval-after-load "org"
   '(add-hook 'org-font-lock-hook 'org-inlinetask-fontify))
+(eval-after-load "org-html"
+  '(add-hook 'org-export-html-final-hook 'org-inlinetask-remove-terminator))
+(eval-after-load "org-latex"
+  '(add-hook 'org-export-latex-final-hook 'org-inlinetask-remove-terminator))
+(eval-after-load "org-ascii"
+  '(add-hook 'org-export-ascii-final-hook 'org-inlinetask-remove-terminator))
+(eval-after-load "org-docbook"
+  '(add-hook 'org-export-docbook-final-hook 'org-inlinetask-remove-terminator))
 
 (provide 'org-inlinetask)
 
-;; arch-tag: b76736bc-9f4a-43cd-977c-ecfd6689846a
+;; arch-tag: 59fdac51-8bcc-469e-a21e-6897dd6697bb
 ;;; org-inlinetask.el ends here

@@ -166,7 +166,7 @@ want to force an empty list of arguments, use t."
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
-	(re (if remote "^\\(.\\)..... \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
+	(re (if remote "^\\(.\\)...... \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
 	      ;; Subexp 2 is a dummy in this case, so the numbers match.
 	      "^\\(.\\)....\\(.\\) \\(.*\\)$"))
        result)
@@ -462,7 +462,7 @@ or svn+ssh://."
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
-(defun vc-svn-print-log (files &optional buffer shortlog)
+(defun vc-svn-print-log (files buffer &optional shortlog start-revision limit)
   "Get change log(s) associated with FILES."
   (save-current-buffer
     (vc-setup-buffer buffer)
@@ -471,19 +471,29 @@ or svn+ssh://."
       (if files
 	  (dolist (file files)
 		  (insert "Working file: " file "\n")
-		  (vc-svn-command
+		  (apply
+		   'vc-svn-command
 		   buffer
 		   'async
 		   ;; (if (and (= (length files) 1) (vc-stay-local-p file 'SVN)) 'async 0)
 		   (list file)
 		   "log"
-		   ;; By default Subversion only shows the log up to the
-		   ;; working revision, whereas we also want the log of the
-		   ;; subsequent commits.  At least that's what the
-		   ;; vc-cvs.el code does.
-		   "-rHEAD:0"))
+		   (append
+		    (list
+		     (if start-revision
+			 (format "-r%s" start-revision)
+		       ;; By default Subversion only shows the log up to the
+		       ;; working revision, whereas we also want the log of the
+		       ;; subsequent commits.  At least that's what the
+		       ;; vc-cvs.el code does.
+		       "-rHEAD:0"))
+		    (when limit (list "-l" (format "%s" limit))))))
 	;; Dump log for the entire directory.
-	(vc-svn-command buffer 0 nil "log" "-rHEAD:0")))))
+	(apply 'vc-svn-command buffer 0 nil "log"
+	       (append
+		(list
+		 (if start-revision (format "-r%s" start-revision) "-rHEAD:0"))
+		(when limit (list "-l" (format "%s" limit)))))))))
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."

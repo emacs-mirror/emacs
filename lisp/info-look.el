@@ -861,6 +861,12 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; sort of fallback match scheme existed.
              ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")))
 
+;; docstrings talk about elisp, so have apropos-mode follow emacs-lisp-mode
+(info-lookup-maybe-add-help
+ :mode 'apropos-mode
+ :regexp "[^][()`',\" \t\n]+" ;; same as emacs-lisp-mode above
+ :other-modes '(emacs-lisp-mode))
+
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
  :regexp "[^][()`',\" \t\n]+"

@@ -51,7 +51,7 @@ with the SSH option \"HashKnownHosts no\"."
 ;;;###autoload
 (defun pcomplete/cd ()
   "Completion for `cd'."
-  (pcomplete-here (pcomplete-dirs)))
+  (while (pcomplete-here (pcomplete-dirs))))
 
 ;;;###autoload
 (defalias 'pcomplete/pushd 'pcomplete/cd)

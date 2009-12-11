@@ -34,6 +34,7 @@ by Hallvard:
  */
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
@@ -1794,7 +1795,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 void
 syms_of_bytecode ()
 {
-  Qbytecode = intern ("byte-code");
+  Qbytecode = intern_c_string ("byte-code");
   staticpro (&Qbytecode);
 
   defsubr (&Sbyte_code);
@@ -1817,7 +1818,7 @@ integer, it is incremented each time that symbol's function is called.  */);
 
   byte_metering_on = 0;
   Vbyte_code_meter = Fmake_vector (make_number (256), make_number (0));
-  Qbyte_code_meter = intern ("byte-code-meter");
+  Qbyte_code_meter = intern_c_string ("byte-code-meter");
   staticpro (&Qbyte_code_meter);
   {
     int i = 256;

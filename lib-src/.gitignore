@@ -2,6 +2,7 @@ DOC
 ctags.c
 getopt.h
 stamp_BLD
+echolisp.tmp
 
 oo/
 oo-spd/

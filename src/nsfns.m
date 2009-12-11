@@ -31,6 +31,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #include <signal.h>
 #include <math.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -501,8 +502,7 @@ ns_set_name_iconic (struct frame *f, Lisp_Object name, int explicit)
     name = f->icon_name;
 
   if (NILP (name))
-    name = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    name = build_string([ns_app_name UTF8String]);
   else
     CHECK_STRING (name);
 
@@ -521,7 +521,7 @@ ns_set_name_iconic (struct frame *f, Lisp_Object name, int explicit)
 static void
 ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
-  NSView *view = FRAME_NS_VIEW (f);
+  NSView *view;
   NSTRACE (ns_set_name);
 
   if (ns_in_resize)
@@ -542,8 +542,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
     return;
 
   if (NILP (name))
-    name = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    name = build_string([ns_app_name UTF8String]);
 
   f->name = name;
 
@@ -552,6 +551,8 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
     name = f->title;
 
   CHECK_STRING (name);
+
+  view = FRAME_NS_VIEW (f);
 
   /* Don't change the name if it's already NAME.  */
   if ([[[view window] title]
@@ -616,7 +617,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 void
 ns_set_name_as_filename (struct frame *f)
 {
-  NSView *view = FRAME_NS_VIEW (f);
+  NSView *view;
   Lisp_Object name;
   Lisp_Object buf = XWINDOW (f->selected_window)->buffer;
   const char *title;
@@ -635,10 +636,11 @@ ns_set_name_as_filename (struct frame *f)
     name = f->icon_name;
 
   if (NILP (name))
-    name = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    name = build_string([ns_app_name UTF8String]);
   else
     CHECK_STRING (name);
+
+  view = FRAME_NS_VIEW (f);
 
   title = FRAME_ICONIFIED_P (f) ? [[[view window] miniwindowTitle] UTF8String]
                                 : [[[view window] title] UTF8String];
@@ -1130,8 +1132,7 @@ be shared by the new frame.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || (XTYPE (name) != Lisp_String))
     {
-      f->name
-	 = build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
+      f->name = build_string ([ns_app_name UTF8String]);
       f->explicit_name =0;
     }
   else
@@ -1499,9 +1500,7 @@ If OWNER is nil, Emacs is assumed.  */)
 
   check_ns ();
   if (NILP (owner))
-    owner = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
-  /* CHECK_STRING (owner);  this should be just "Emacs" */
+    owner = build_string([ns_app_name UTF8String]);
   CHECK_STRING (name);
 /*fprintf (stderr, "ns-get-resource checking resource '%s'\n", SDATA (name)); */
 
@@ -1524,9 +1523,7 @@ If VALUE is nil, the default is removed.  */)
 {
   check_ns ();
   if (NILP (owner))
-    owner
-       = build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
-  CHECK_STRING (owner);
+    owner = build_string ([ns_app_name UTF8String]);
   CHECK_STRING (name);
   if (NILP (value))
     {
@@ -2232,7 +2229,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
      Lisp_Object color, frame;
 {
   NSColor * col;
-  float red, green, blue, alpha;
+  CGFloat red, green, blue, alpha;
 
   check_ns ();
   CHECK_STRING (color);

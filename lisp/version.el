@@ -32,7 +32,7 @@
 (defconst emacs-copyright "Copyright (C) 2009 Free Software Foundation, Inc." "\
 Short copyright string for this version of Emacs.")
 
-(defconst emacs-version "23.1.50" "\
+(defconst emacs-version "23.1.90" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version (progn (string-match "^[0-9]+" emacs-version) (string-to-number (match-string 0 emacs-version))) "\
@@ -55,7 +55,7 @@ Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
-         (format (if (not (interactive-p))
+         (format (if (not (called-interactively-p 'interactive))
 		     "GNU Emacs %s (%s%s%s)\n of %s on %s"
 		   "GNU Emacs %s (%s%s%s) of %s on %s")
                  emacs-version
@@ -77,7 +77,7 @@ to the system configuration; look at `system-configuration' instead."
                  emacs-build-system)))
     (if here
         (insert version-string)
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "%s" version-string)
         version-string))))
 

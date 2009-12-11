@@ -496,7 +496,7 @@ Will fail unless you have administrative privileges on the repo."
 
 (declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
 
-(defun vc-cvs-print-log (files &optional buffer shortlog)
+(defun vc-cvs-print-log (files buffer &optional shortlog start-revision-ignored limit)
   "Get change logs associated with FILES."
   (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
@@ -505,7 +505,8 @@ Will fail unless you have administrative privileges on the repo."
    (if (vc-stay-local-p files 'CVS) 'async 0)
    files "log")
   (with-current-buffer buffer
-    (vc-exec-after (vc-rcs-print-log-cleanup))))
+    (vc-exec-after (vc-rcs-print-log-cleanup)))
+  (when limit 'limit-unsupported))
 
 (defun vc-cvs-comment-history (file)
   "Get comment history of a file."
@@ -955,6 +956,7 @@ state."
   )
 
 ;; Based on vc-cvs-dir-state-heuristic from Emacs 22.
+;; FIXME does not mention unregistered files.
 (defun vc-cvs-dir-status-heuristic (dir update-function &optional basedir)
   "Find the CVS state of all files in DIR, using only local information."
   (let (file basename status result dirlist)
@@ -1164,18 +1166,18 @@ is non-nil."
     ;; This is intentionally different from the algorithm that CVS uses
     ;; (which is based on textual comparison), because there can be problems
     ;; generating a time string that looks exactly like the one from CVS.
-    (let ((mtime (nth 5 (file-attributes file))))
-      (require 'parse-time)
-      (let ((parsed-time
-	     (parse-time-string (concat (match-string 2) " +0000"))))
-	(cond ((and (not (string-match "\\+" (match-string 2)))
-		    (car parsed-time)
-		    (equal mtime (apply 'encode-time parsed-time)))
-	       (vc-file-setprop file 'vc-checkout-time mtime)
-	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
-	      (t
-	       (vc-file-setprop file 'vc-checkout-time 0)
-	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
+    (let* ((time (match-string 2))
+           (mtime (nth 5 (file-attributes file)))
+           (parsed-time (progn (require 'parse-time)
+                               (parse-time-string (concat time " +0000")))))
+      (cond ((and (not (string-match "\\+" time))
+                  (car parsed-time)
+                  (equal mtime (apply 'encode-time parsed-time)))
+             (vc-file-setprop file 'vc-checkout-time mtime)
+             (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
+            (t
+             (vc-file-setprop file 'vc-checkout-time 0)
+             (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
 
 ;; Completion of revision names.
 ;; Just so I don't feel like I'm duplicating code from pcl-cvs, I'll use

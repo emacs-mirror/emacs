@@ -1504,6 +1504,7 @@ for decoding and encoding files, process I/O, etc."
 ;; Tar files are not decoded at all, but we treat them as raw bytes.
 
 (setq file-coding-system-alist
+      (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
       '(("\\.elc\\'" . utf-8-emacs)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
 	("\\.xml\\'" . xml-find-file-coding-system)
@@ -1516,7 +1517,7 @@ for decoding and encoding files, process I/O, etc."
 	("\\.tar\\'" . (no-conversion . no-conversion))
 	( "\\.po[tx]?\\'\\|\\.po\\." . po-find-file-coding-system)
 	("\\.\\(tex\\|ltx\\|dtx\\|drv\\)\\'" . latexenc-find-file-coding-system)
-	("" . (undecided . nil))))
+	("" . (undecided . nil)))))
 
 
 ;;; Setting coding categories and their priorities.
@@ -1551,10 +1552,6 @@ for decoding and encoding files, process I/O, etc."
 ;; the charsets defined in this file but might be required by user
 ;; code.
 (provide 'code-pages)
-
-;; Local variables:
-;; no-byte-compile: t
-;; End:
 
 ;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here

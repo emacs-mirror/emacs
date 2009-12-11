@@ -102,12 +102,7 @@
 
 (defun pcmpl-gnu-makefile-names ()
   "Return a list of possible makefile names."
-  (let ((names (list t))
-	(reg pcmpl-gnu-makefile-regexps))
-    (while reg
-      (nconc names (pcomplete-entries (car reg)))
-      (setq reg (cdr reg)))
-    (cdr names)))
+  (pcomplete-entries (mapconcat 'identity pcmpl-gnu-makefile-regexps "\\|")))
 
 (defun pcmpl-gnu-make-rule-names ()
   "Return a list of possible make rule names in MAKEFILE."
@@ -133,6 +128,10 @@
   :group 'pcmpl-gnu)
 
 (defvar pcmpl-gnu-tar-buffer nil)
+
+;; Only used in tar-mode buffers.
+(defvar tar-parse-info)
+(declare-function tar-header-name "tar-mode" t t)
 
 ;;;###autoload
 (defun pcomplete/tar ()

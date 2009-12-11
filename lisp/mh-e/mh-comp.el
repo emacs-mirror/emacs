@@ -473,8 +473,7 @@ See also `mh-compose-forward-as-mime-flag',
                        (mh-read-draft "" draft-name nil)))))
     (let (orig-from
           orig-subject)
-      (save-excursion
-        (set-buffer (get-buffer-create mh-temp-buffer))
+      (with-current-buffer (get-buffer-create mh-temp-buffer)
         (erase-buffer)
         (insert-file-contents fwd-msg-file)
         (setq orig-from (mh-get-header-field "From:"))

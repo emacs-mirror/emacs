@@ -1,7 +1,7 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1027,7 +1027,16 @@ is given and non-nil, the unwanted frames are iconified instead."
 
 (defun frame-height (&optional frame)
   "Return number of lines available for display on FRAME.
-If FRAME is omitted, describe the currently selected frame."
+If FRAME is omitted, describe the currently selected frame.
+Exactly what is included in the return value depends on the
+window-system and toolkit in use - see `frame-pixel-height' for
+more details.  The lines are in units of the default font height.
+
+The result is roughly related to the frame pixel height via
+height in pixels = height in lines * `frame-char-height'.
+However, this is only approximate, and is complicated e.g. by the
+fact that individual window lines and menu bar lines can have
+differing font heights."
   (cdr (assq 'height (frame-parameters frame))))
 
 (defun frame-width (&optional frame)

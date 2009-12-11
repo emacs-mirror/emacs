@@ -118,9 +118,15 @@ are as follows, and suppress messages about the indicated features:
 ;;; Data
 ;;;
 
-;; FIXME does this serve any useful purpose now elint-builtin-variables exists?
-(defconst elint-standard-variables '(local-write-file-hooks vc-mode)
-  "Standard buffer local variables, excluding `elint-builtin-variables'.")
+(defconst elint-standard-variables
+  ;; Most of these are defined in C with no documentation.
+  ;; FIXME I don't see why they shouldn't just get doc-strings.
+  '(vc-mode local-write-file-hooks activate-menubar-hook buffer-name-history
+	    coding-system-history extended-command-history
+	    kbd-macro-termination-hook read-expression-history
+	    yes-or-no-p-history)
+  "Standard variables, excluding `elint-builtin-variables'.
+These are variables that we cannot detect automatically for some reason.")
 
 (defvar elint-builtin-variables nil
   "List of built-in variables.  Set by `elint-initialize'.
@@ -420,11 +426,16 @@ Return nil if there are no more forms, t otherwise."
    ((eq (car form) 'autoload)
     (setq env (elint-env-add-func env (cadr (cadr form)) 'unknown)))
    ((eq (car form) 'declare-function)
-    (setq env (elint-env-add-func env (cadr form)
-				  (if (or (< (length form) 4)
-					  (eq (nth 3 form) t))
-				      'unknown
-				    (nth 3 form)))))
+    (setq env (elint-env-add-func
+	       env (cadr form)
+	       (if (or (< (length form) 4)
+		       (eq (nth 3 form) t)
+		       (unless (stringp (nth 2 form))
+			 (elint-error "Malformed declaration for `%s'"
+				      (cadr form))
+			 t))
+		   'unknown
+		 (nth 3 form)))))
    ((and (eq (car form) 'defalias) (listp (nth 2 form)))
     ;; If the alias points to something already in the environment,
     ;; add the alias to the environment with the same arguments.
@@ -482,7 +493,7 @@ Return nil if there are no more forms, t otherwise."
 
 (defun elint-add-required-env (env name file)
   "Augment ENV with the variables defined by feature NAME in FILE."
-  (condition-case nil
+  (condition-case err
       (let* ((libname (if (stringp file)
 			  file
 			(symbol-name name)))
@@ -507,9 +518,10 @@ Return nil if there are no more forms, t otherwise."
 	      ;;; 	  (elint-update-env))
 	      ;;; 	(setq env (elint-env-add-env env elint-buffer-env))))
 	      ;;(message "Elint processed (require '%s)" name))
-	  (error "Unable to find require'd library %s" name)))
+	  (error "%s.el not found in load-path" libname)))
     (error
-     (message "Can't get variables from require'd library %s" name)))
+     (message "Can't get variables from require'd library %s: %s"
+              name (error-message-string err))))
   env)
 
 (defvar elint-top-form nil
@@ -629,6 +641,13 @@ Returns the environment created by the form."
 
 (defun elint-unbound-variable (var env)
   "T if VAR is unbound in ENV."
+  ;; #1063 suggests adding (symbol-file var) here, but I don't think
+  ;; this is right, because it depends on what files you happen to have
+  ;; loaded at the time, which might not be the same when the code runs.
+  ;; It also suggests adding:
+  ;; (numberp (get var 'variable-documentation))
+  ;; (numberp (cdr-safe (get var 'variable-documentation)))
+  ;; but this is not needed now elint-scan-doc-file exists.
   (not (or (memq var '(nil t))
 	   (eq var elint-bound-variable)
 	   (elint-env-find-var env var)

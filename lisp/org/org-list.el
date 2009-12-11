@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -42,7 +42,6 @@
 (declare-function org-invisible-p "org" ())
 (declare-function org-on-heading-p "org" (&optional invisible-ok))
 (declare-function outline-next-heading "outline" ())
-(declare-function outline-back-to-heading "outline" (&optional invisible-ok))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-back-over-empty-lines "org" ())
 (declare-function org-skip-whitespace "org" ())
@@ -150,7 +149,7 @@ toggle a checkbox with \\[org-ctrl-c-ctrl-c]."
 (defcustom org-hierarchical-checkbox-statistics t
   "Non-nil means, checkbox statistics counts only the state of direct children.
 When nil, all boxes below the cookie are counted.
-This can be set to nil on a per-node basis using a COCKIE_DATA property
+This can be set to nil on a per-node basis using a COOKIE_DATA property
 with the word \"recursive\" in the value."
   :group 'org-plain-lists
   :type 'boolean)
@@ -428,7 +427,7 @@ the whole buffer."
 	  (re "\\(\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)\\)")
 	  (re-box "^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
 	  (re-find (concat re "\\|" re-box))
-	  beg-cookie end-cookie is-percent c-on c-off lim
+	  beg-cookie end-cookie is-percent c-on c-off lim new
 	  eline curr-ind next-ind continue-from startsearch
 	  (recursive
 	   (or (not org-hierarchical-checkbox-statistics)
@@ -489,12 +488,12 @@ the whole buffer."
 	 (goto-char continue-from)
 	 ;; update cookie
 	 (when end-cookie
-	   (delete-region beg-cookie end-cookie)
+	   (setq new (if is-percent
+			 (format "[%d%%]" (/ (* 100 c-on) (max 1 (+ c-on c-off))))
+		       (format "[%d/%d]" c-on (+ c-on c-off))))
 	   (goto-char beg-cookie)
-	   (insert
-	    (if is-percent
-		(format "[%d%%]" (/ (* 100 c-on) (max 1 (+ c-on c-off))))
-	      (format "[%d/%d]" c-on (+ c-on c-off)))))
+	   (insert new)
+	   (delete-region (point) (+ (point) (- end-cookie beg-cookie))))
 	 ;; update items checkbox if it has one
 	 (when (org-at-item-p)
 	   (org-beginning-of-item)
@@ -813,7 +812,7 @@ with something like \"1.\" or \"2)\"."
 	      (buffer-substring (point-at-bol) (match-beginning 3))))
 	;; (term (substring (match-string 3) -1))
 	ind1 (n (1- arg))
-	fmt bobp old new)
+	fmt bobp old new delta)
     ;; find where this list begins
     (org-beginning-of-item-list)
     (setq bobp (bobp))
@@ -835,10 +834,13 @@ with something like \"1.\" or \"2)\"."
 	  (delete-region (match-beginning 2) (match-end 2))
 	  (goto-char (match-beginning 2))
 	  (insert (setq new (format fmt (setq n (1+ n)))))
-	  (org-shift-item-indentation (- (length new) (length old))))))
+	  (setq delta (- (length new) (length old)))
+	  (org-shift-item-indentation delta)
+	  (if (= (org-current-line) line) (setq col (+ col delta))))))
     (org-goto-line line)
     (org-move-to-column col)))
 
+(defvar org-suppress-item-indentation) ; dynamically scoped parameter
 (defun org-fix-bullet-type (&optional force-bullet)
   "Make sure all items in this list have the same bullet as the first item.
 Also, fix the indentation."
@@ -873,7 +875,8 @@ Also, fix the indentation."
 	  (looking-at "\\S-+ *")
 	  (setq oldbullet (match-string 0))
 	  (unless (equal bullet oldbullet) (replace-match bullet))
-	  (org-shift-item-indentation (- (length bullet) (length oldbullet))))))
+	  (org-shift-item-indentation (- (length bullet)
+					 (length oldbullet))))))
     (org-goto-line line)
     (org-move-to-column col)
     (if (string-match "[0-9]" bullet)
@@ -881,19 +884,20 @@ Also, fix the indentation."
 
 (defun org-shift-item-indentation (delta)
   "Shift the indentation in current item by DELTA."
-  (save-excursion
-    (let ((beg (point-at-bol))
-	  (end (progn (org-end-of-item) (point)))
-	  i)
-      (goto-char end)
-      (beginning-of-line 0)
-      (while (> (point) beg)
-	(when (looking-at "[ \t]*\\S-")
-	  ;; this is not an empty line
-	  (setq i (org-get-indentation))
-	  (if (and (> i 0) (> (setq i (+ i delta)) 0))
-	      (indent-line-to i)))
-	(beginning-of-line 0)))))
+  (unless (org-bound-and-true-p org-suppress-item-indentation)
+    (save-excursion
+      (let ((beg (point-at-bol))
+	    (end (progn (org-end-of-item) (point)))
+	    i)
+	(goto-char end)
+	(beginning-of-line 0)
+	(while (> (point) beg)
+	  (when (looking-at "[ \t]*\\S-")
+	    ;; this is not an empty line
+	    (setq i (org-get-indentation))
+	    (if (and (> i 0) (> (setq i (+ i delta)) 0))
+		(indent-line-to i)))
+	  (beginning-of-line 0))))))
 
 (defun org-beginning-of-item-list ()
   "Go to the beginning of the current item list.
@@ -1039,6 +1043,29 @@ Assumes cursor in item line."
 	  (cons ind-up bullet-up)
 	  (cons ind-down bullet-down))))
 
+(defvar org-tab-ind-state) ; defined in org.el
+(defun org-cycle-item-indentation ()
+  (let ((org-suppress-item-indentation t)
+	(org-adapt-indentation nil))
+    (cond
+     ((and (looking-at "[ \t]*$")
+	   (looking-back "^\\([ \t]*\\)\\([-+*]\\|[0-9]+[).]\\)[ \t]+"))
+      (setq this-command 'org-cycle-item-indentation)
+      (if (eq last-command 'org-cycle-item-indentation)
+	  (condition-case nil
+	      (progn (org-outdent-item 1)
+		     (if (equal org-tab-ind-state (org-get-indentation))
+			 (org-outdent-item 1))
+		     (end-of-line 1))
+	    (error
+	     (progn
+	       (while (< (org-get-indentation) org-tab-ind-state)
+		 (progn (org-indent-item 1) (end-of-line 1)))
+	       (setq this-command 'org-cycle))))
+	(setq org-tab-ind-state (org-get-indentation))
+	(org-indent-item 1))
+      t))))
+
 (defun org-get-bullet ()
   (save-excursion
     (goto-char (point-at-bol))
@@ -1171,7 +1198,7 @@ INDENT is the indentation of the list, as a string."
     (goto-char pos)))
 
 (defun org-list-send-list (&optional maybe)
-  "Send a tranformed version of this list to the receiver position.
+  "Send a transformed version of this list to the receiver position.
 With argument MAYBE, fail quietly if no transformation is defined for
 this list."
   (interactive)
@@ -1185,8 +1212,8 @@ this list."
 	    (throw 'exit nil)
 	  (error "Don't know how to transform this list"))))
     (let* ((name (match-string 1))
-	   (item-beginning (org-list-item-beginning))
 	   (transform (intern (match-string 2)))
+	   (item-beginning (org-list-item-beginning))
 	   (txt (buffer-substring-no-properties
 		 (car item-beginning)
 		 (org-list-end (cdr item-beginning))))
@@ -1278,6 +1305,8 @@ Valid parameters PARAMS are
 		   (setq sublist (replace-match cbon t t sublist)))
 	       (if (string-match "\\[CBOFF\\]" sublist)
 		   (setq sublist (replace-match cboff t t sublist)))
+	       (if (string-match "\\[-\\]" sublist)
+		   (setq sublist (replace-match "$\\boxminus$" t t sublist)))
 	       (setq rtn (concat rtn istart term ddstart
 				 sublist ddend iend isep)))
 	      (t (setq rtn (concat rtn	 ;; previous list

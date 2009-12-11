@@ -647,10 +647,9 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 ;; Remove local value in all existing buffers
 ;; This doesn't delocalize vars (which would have been desirable)
 (defun viper-delocalize-var (symbol)
-  (mapcar (lambda (buf) (save-excursion
-			  (set-buffer buf)
-			  (kill-local-variable symbol)))
-	  (buffer-list)))
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (kill-local-variable symbol))))
 
 
 (defun viper-go-away ()
@@ -867,25 +866,17 @@ It also can't undo some Viper settings."
 	       ))
 
   ;; Tell vc-diff to put *vc* in Vi mode
-  (if (featurep 'vc)
-      (defadvice vc-diff (after viper-vc-ad activate)
-	"Force Vi state in VC diff buffer."
-	(viper-change-state-to-vi))
-    (eval-after-load
-     "vc"
-     '(defadvice vc-diff (after viper-vc-ad activate)
-	"Force Vi state in VC diff buffer."
-	(viper-change-state-to-vi))))
+  (eval-after-load
+      "vc"
+    '(defadvice vc-diff (after viper-vc-ad activate)
+       "Force Vi state in VC diff buffer."
+       (viper-change-state-to-vi)))
 
   (eval-after-load
    "emerge"
    '(defadvice emerge-quit (after viper-emerge-advice activate)
       "Run `viper-change-state-to-vi' after quitting emerge."
       (viper-change-state-to-vi)))
-  ;; In case Emerge was loaded before Viper.
-  (defadvice emerge-quit (after viper-emerge-advice activate)
-    "Run `viper-change-state-to-vi' after quitting emerge."
-    (viper-change-state-to-vi))
 
   ;; passwd.el sets up its own buffer, which turns up in Vi mode,
   ;; thus overriding the local map.  We don't need Vi mode here.
@@ -897,7 +888,11 @@ It also can't undo some Viper settings."
 
   (defadvice self-insert-command (around viper-self-insert-ad activate)
     "Ignore all self-inserting keys in the vi-state."
-    (if (and (eq viper-current-state 'vi-state) (interactive-p))
+    (if (and (eq viper-current-state 'vi-state)
+	     ;; Do not use called-interactively-p here. XEmacs does not have it
+	     ;; and interactive-p is just fine.
+	     ;; (called-interactively-p 'interactive))
+	     (interactive-p))
 	(beep 1)
       ad-do-it
       ))
@@ -943,10 +938,6 @@ It also can't undo some Viper settings."
    '(defadvice rmail-cease-edit (after viper-rmail-advice activate)
       "Switch to Emacs state when done editing message."
       (viper-change-state-to-emacs)))
-  ;; In case RMAIL was loaded before Viper.
-  (defadvice rmail-cease-edit (after viper-rmail-advice activate)
-    "Switch to emacs state when done editing message."
-    (viper-change-state-to-emacs))
 
   ;; ISO accents
   ;; Need to do it after loading iso-acc, or else this loading will wipe out

@@ -667,12 +667,6 @@
 ;;; Code:
 
 (require 'comint)
-;; Silence compiler:
-(eval-when-compile
-  (require 'dired)
-  (defvar comint-last-output-start nil)
-  (defvar comint-last-input-start nil)
-  (defvar comint-last-input-end nil))
 
 ;;;; ------------------------------------------------------------
 ;;;; User customization variables.
@@ -1176,7 +1170,7 @@ only return the directory part of FILE."
 ;;;; ------------------------------------------------------------
 
 (defmacro ange-ftp-generate-passwd-key (host user)
-  `(concat (downcase ,host) "/" ,user))
+  `(and (stringp ,host) (stringp ,user) (concat (downcase ,host) "/" ,user)))
 
 (defmacro ange-ftp-lookup-passwd (host user)
   `(gethash (ange-ftp-generate-passwd-key ,host ,user)
@@ -2332,7 +2326,7 @@ and NOWAIT."
 
      ;; Second argument is the remote name
      ((or (memq cmd0 '(append put chmod))
-          (and (eq cmd0 'quote) (string= cmd1 "mdtm")))
+          (and (eq cmd0 'quote) (member cmd1 '("mdtm" "size"))))
       (setq cmd2 (funcall fix-name-func cmd2)))
      ;; Both arguments are remote names
      ((eq cmd0 'rename)
@@ -2678,10 +2672,11 @@ The main reason for this alist is to deal with file versions in VMS.")
 
 (defmacro ange-ftp-parse-filename ()
   ;;Extract the filename from the current line of a dired-like listing.
-  `(let ((eol (progn (end-of-line) (point))))
-     (beginning-of-line)
-     (if (re-search-forward directory-listing-before-filename-regexp eol t)
-	 (buffer-substring (point) eol))))
+  `(save-match-data
+     (let ((eol (progn (end-of-line) (point))))
+       (beginning-of-line)
+       (if (re-search-forward directory-listing-before-filename-regexp eol t)
+	   (buffer-substring (point) eol)))))
 
 ;; This deals with the F switch. Should also do something about
 ;; unquoting names obtained with the SysV b switch and the GNU Q
@@ -2971,6 +2966,8 @@ this also returns nil."
 
 (defun ange-ftp-set-binary-mode (host user)
   "Tell the FTP process for the given HOST & USER to switch to binary mode."
+  ;; FIXME: We should keep track of the current mode, so as to avoid
+  ;; unnecessary roundtrips.
   (let ((result (ange-ftp-send-cmd host user '(type "binary"))))
     (if (not (car result))
 	(ange-ftp-error host user (concat "BINARY failed: " (cdr result)))
@@ -2981,6 +2978,8 @@ this also returns nil."
 
 (defun ange-ftp-set-ascii-mode (host user)
   "Tell the FTP process for the given HOST & USER to switch to ASCII mode."
+  ;; FIXME: We should keep track of the current mode, so as to avoid
+  ;; unnecessary roundtrips.
   (let ((result (ange-ftp-send-cmd host user '(type "ascii"))))
     (if (not (car result))
 	(ange-ftp-error host user (concat "ASCII failed: " (cdr result)))
@@ -3423,6 +3422,17 @@ system TYPE.")
 	  (nreverse files)))
     (apply 'ange-ftp-real-directory-files directory full match v19-args)))
 
+(defun ange-ftp-directory-files-and-attributes
+  (directory &optional full match nosort id-format)
+  (setq directory (expand-file-name directory))
+  (if (ange-ftp-ftp-name directory)
+      (mapcar
+       (lambda (file)
+	 (cons file (file-attributes (expand-file-name file directory))))
+       (ange-ftp-directory-files directory full match nosort))
+    (ange-ftp-real-directory-files-and-attributes
+     directory full match nosort id-format)))
+
 (defun ange-ftp-file-attributes (file &optional id-format)
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
@@ -3449,7 +3459,7 @@ system TYPE.")
 		      '(0 0)		;4 atime
 		      (ange-ftp-file-modtime file) ;5 mtime
 		      '(0 0)		;6 ctime
-		      -1		;7 size
+		      (ange-ftp-file-size file)	;7 size
 		      (concat (if (stringp dirp) "l" (if dirp "d" "-"))
 			      "?????????") ;8 mode
 		      nil		;9 gid weird
@@ -3551,6 +3561,33 @@ Value is (0 0) if the modification time cannot be determined."
           (or (zerop (car file-mdtm))
               (<= (float-time file-mdtm) (float-time buf-mdtm))))
       (ange-ftp-real-verify-visited-file-modtime buf))))
+
+(defun ange-ftp-file-size (file &optional ascii-mode)
+  "Return the size of remote file FILE. Return -1 if can't get it.
+If ascii-mode is non-nil, return the size with the extra octets that
+need to be inserted, one at the end of each line, to provide correct
+end-of-line semantics for a transfer using TYPE=A. The default is nil,
+so return the size on the remote host exactly. See RFC 3659."
+  (let* ((parsed (ange-ftp-ftp-name file))
+	 (host (nth 0 parsed))
+	 (user (nth 1 parsed))
+	 (name (ange-ftp-quote-string (nth 2 parsed)))
+	 ;; At least one FTP server (wu-ftpd) can return a "226
+	 ;; Transfer complete" before the "213 SIZE".  Let's skip
+	 ;; that.
+	 (ange-ftp-skip-msgs (concat ange-ftp-skip-msgs "\\|^226"))
+	 (res (unwind-protect
+                  (progn
+                    (unless ascii-mode
+                      (ange-ftp-set-binary-mode host user))
+                    (ange-ftp-send-cmd host user (list 'quote "size" name)))
+		(unless ascii-mode
+		  (ange-ftp-set-ascii-mode host user))))
+	 (line (cdr res)))
+    (if (string-match "^213 \\([0-9]+\\)$" line)
+	(string-to-number (match-string 1 line))
+      -1)))
+
 
 ;;;; ------------------------------------------------------------
 ;;;; File copying support... totally re-written 6/24/92.
@@ -3797,7 +3834,7 @@ Value is (0 0) if the modification time cannot be determined."
 			       keep-date
 			       nil
 			       nil
-			       (interactive-p)))
+			       (called-interactively-p 'interactive)))
 
 (defun ange-ftp-copy-files-async (okay-p line verbose-p files)
   "Copy some files in the background.
@@ -4064,9 +4101,18 @@ directory, so that Emacs will know its current contents."
 	    (ange-ftp-add-file-entry dir t))
 	(ange-ftp-real-make-directory dir)))))
 
-(defun ange-ftp-delete-directory (dir)
+(defun ange-ftp-delete-directory (dir &optional recursive)
   (if (file-directory-p dir)
       (let ((parsed (ange-ftp-ftp-name dir)))
+	(if recursive
+	    (mapc
+	     (lambda (file)
+	       (if (file-directory-p file)
+		   (ange-ftp-delete-directory file recursive)
+		 (delete-file file)))
+	     ;; We do not want to delete "." and "..".
+	     (directory-files
+	      dir 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
 	(if parsed
 	    (let* ((host (nth 0 parsed))
 		   (user (nth 1 parsed))
@@ -4083,17 +4129,21 @@ directory, so that Emacs will know its current contents."
 			    (ange-ftp-real-file-name-as-directory
 			     (nth 2 parsed)))))
 		   (abbr (ange-ftp-abbreviate-filename dir))
-		   (result (ange-ftp-send-cmd host user
-					      (list 'rmdir name)
-					      (format "Removing directory %s"
-						      abbr))))
+		   (result
+		    (progn
+		      ;; CWD must not in this directory.
+		      (ange-ftp-cd host user "/" 'noerror)
+		      (ange-ftp-send-cmd host user
+					 (list 'rmdir name)
+					 (format "Removing directory %s"
+						 abbr)))))
 	      (or (car result)
 		  (ange-ftp-error host user
 				  (format "Could not remove directory %s: %s"
 					  dir
 					  (cdr result))))
 	      (ange-ftp-delete-file-entry dir t))
-	  (ange-ftp-real-delete-directory dir)))
+	  (ange-ftp-real-delete-directory dir recursive)))
     (error "Not a directory: %s" dir)))
 
 ;; Make a local copy of FILE and return its name.
@@ -4321,6 +4371,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'delete-directory 'ange-ftp 'ange-ftp-delete-directory)
 (put 'insert-file-contents 'ange-ftp 'ange-ftp-insert-file-contents)
 (put 'directory-files 'ange-ftp 'ange-ftp-directory-files)
+(put 'directory-files-and-attributes 'ange-ftp
+     'ange-ftp-directory-files-and-attributes)
 (put 'file-directory-p 'ange-ftp 'ange-ftp-file-directory-p)
 (put 'file-writable-p 'ange-ftp 'ange-ftp-file-writable-p)
 (put 'file-readable-p 'ange-ftp 'ange-ftp-file-readable-p)
@@ -4398,6 +4450,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'insert-file-contents args))
 (defun ange-ftp-real-directory-files (&rest args)
   (ange-ftp-run-real-handler 'directory-files args))
+(defun ange-ftp-real-directory-files-and-attributes (&rest args)
+  (ange-ftp-run-real-handler 'directory-files-and-attributes args))
 (defun ange-ftp-real-file-directory-p (&rest args)
   (ange-ftp-run-real-handler 'file-directory-p args))
 (defun ange-ftp-real-file-writable-p (&rest args)
@@ -4536,7 +4590,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; Can't use ange-ftp-dired-host-type here because the current
       ;; buffer is *dired-check-process output*
       (condition-case oops
-	  (cond ((equal dired-chmod-program program)
+	  (cond ((equal (or (bound-and-true-p dired-chmod-program) "chmod")
+			program)
 		 (ange-ftp-call-chmod arguments))
 		;; ((equal "chgrp" program))
 		;; ((equal dired-chown-program program))

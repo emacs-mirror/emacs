@@ -4,7 +4,7 @@
 ;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
-;; Keywords: archives msdog editing major-mode
+;; Keywords: files archives msdog editing major-mode
 ;; Favourite-brand-of-beer: None, I hate beer.
 
 ;; This file is part of GNU Emacs.
@@ -818,15 +818,22 @@ If FNAME is something our underlying filesystem can't grok, or if another
 file by that name already exists in DIR, a unique new name is generated
 using `make-temp-file', and the generated name is returned."
   (let ((fullname (expand-file-name fname dir))
-	(alien (string-match file-name-invalid-regexp fname)))
-    (if (or alien (file-exists-p fullname))
-	(make-temp-file
+	(alien (string-match file-name-invalid-regexp fname))
+	(tmpfile
 	 (expand-file-name
 	  (if (if (fboundp 'msdos-long-file-names)
 		  (not (msdos-long-file-names)))
 	      "am"
 	    "arc-mode.")
-	  dir))
+	  dir)))
+    (if (or alien (file-exists-p fullname))
+	(progn
+	  ;; Maked sure all the leading directories in
+	  ;; archive-local-name exist under archive-tmpdir, so that
+	  ;; the directory structure recorded in the archive is
+	  ;; reconstructed in the temporary directory.
+	  (make-directory (file-name-directory tmpfile) t)
+	  (make-temp-file tmpfile))
       fullname)))
 
 (defun archive-maybe-copy (archive)
@@ -843,11 +850,6 @@ using `make-temp-file', and the generated name is returned."
 		   archive)))
 	  (setq archive-local-name
 		(archive-unique-fname archive-name archive-tmpdir))
-	  ;; Maked sure all the leading directories in
-	  ;; archive-local-name exist under archive-tmpdir, so that
-	  ;; the directory structure recorded in the archive is
-	  ;; reconstructed in the temporary directory.
-	  (make-directory (file-name-directory archive-local-name) t)
 	  (save-restriction
 	    (widen)
 	    (write-region start (point-max) archive-local-name nil 'nomessage))
@@ -1902,7 +1904,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                                  ;; Ratio ; Date'
                                  " +\\([0-9%]+\\) +\\([-0-9]+\\)"
                                  ;; Time ; Attr.
-                                 " +\\([0-9:]+\\) +......"
+                                 " +\\([0-9:]+\\) +[^ \n]\\{6,7\\}"
                                  ;; CRC; Meth ; Var.
                                  " +[0-9A-F]+ +[^ \n]+ +[0-9.]+\n"))
         (goto-char (match-end 0))

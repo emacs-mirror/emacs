@@ -1,7 +1,7 @@
 More Neat Stuff for your Emacs
 
-Copyright (C) 1993, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-  Free Software Foundation, Inc.
+Copyright (C) 1993, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This file describes GNU Emacs programs and resources that are
@@ -32,7 +32,7 @@ engine) or retrievable from general Usenet archive services.
 * emacswiki.org
 
 The Emacs Wiki has an area for storing elisp files
-<URL:http://www.emacswiki.org/cgi-bin/wiki.pl/ElispArea>.
+<URL:http://www.emacswiki.org/cgi-bin/wiki/ElispArea>.
 
 * Emacs tutorials and manuals
 
@@ -99,7 +99,7 @@ You might find bug-fixes or enhancements in these places.
 
  * (Tex)info files for use with Info-look that don't come from GNU
    packages:
-   * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
+   * Scheme: <URL:http://groups.csail.mit.edu/mac/ftpdir/scm/r5rs.info.tar.gz>
    * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
        latex2e.texi> (or CTAN mirrors)
    * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/>
@@ -235,8 +235,11 @@ Several are for Debian GNU/Linux in particular.
 
  * Tiny Tools: <URL:http://freshmeat.net/projects/emacs-tiny-tools>
 
- * VM (View Mail): <URL:http://www.nongnu.org/viewmail/> Alternative
-   mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
+ * VM (View Mail): Alternative mail reader
+   <URL:http://launchpad.net/vm>
+   Previously hosted at: <URL:http://www.nongnu.org/viewmail/>
+   There are VM newsgroups: <URL:news:gnu.emacs.vm.info>, and
+   <URL:news:gnu.emacs.vm.bug>.
 
  * W3: <URL:http://savannah.gnu.org/projects/w3/>
    Web browser.  There's a W3 mail list/newsgroup

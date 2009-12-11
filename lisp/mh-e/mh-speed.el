@@ -66,8 +66,7 @@
 (defvar mh-folder-speedbar-menu-items
   '("--"
     ["Visit Folder" mh-speed-view
-     (save-excursion
-       (set-buffer speedbar-buffer)
+     (with-current-buffer speedbar-buffer
        (get-text-property (mh-line-beginning-position) 'mh-folder))]
     ["Expand Nested Folders" mh-speed-expand-folder
      (and (get-text-property (mh-line-beginning-position) 'mh-children-p)
@@ -120,8 +119,8 @@ update."
 (defun mh-speed-stealth-update (&optional force)
   "Do stealth update.
 With non-nil FORCE, the update is always carried out."
-  (cond ((save-excursion (set-buffer speedbar-buffer)
-                         (get-text-property (point-min) 'mh-level))
+  (cond ((with-current-buffer speedbar-buffer
+           (get-text-property (point-min) 'mh-level))
          ;; Execute this hook and *don't* run anything else
          (mh-speed-update-current-folder force)
          nil)
@@ -326,8 +325,7 @@ The function will expand out parent folders of FOLDER if needed."
   "Given an MH-E BUFFER find the folder that should be highlighted.
 Do the right thing for the different kinds of buffers that MH-E
 uses."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (cond ((eq major-mode 'mh-folder-mode)
            mh-current-folder)
           ((eq major-mode 'mh-show-mode)
@@ -462,9 +460,8 @@ be handled next."
                        (or (not (equal (car old-pair) unseen))
                            (not (equal (cdr old-pair) total)))))
             (setf (gethash folder mh-speed-flists-cache) (cons unseen total))
-            (save-excursion
-              (when (buffer-live-p (get-buffer speedbar-buffer))
-                (set-buffer speedbar-buffer)
+            (when (buffer-live-p (get-buffer speedbar-buffer))
+              (with-current-buffer speedbar-buffer
                 (speedbar-with-writable
                   (when (get-text-property (point-min) 'mh-level)
                     (let ((pos (gethash folder mh-speed-folder-map))
@@ -501,8 +498,7 @@ be handled next."
 (defun mh-speed-invalidate-map (folder)
   "Remove FOLDER from various optimization caches."
   (interactive (list ""))
-  (save-excursion
-    (set-buffer speedbar-buffer)
+  (with-current-buffer speedbar-buffer
     (let* ((speedbar-update-flag nil)
            (last-slash (mh-search-from-end ?/ folder))
            (parent (if last-slash (substring folder 0 last-slash) nil))
@@ -555,8 +551,7 @@ be handled next."
 (defun mh-speed-add-folder (folder)
   "Add FOLDER since it is being created.
 The function invalidates the latest ancestor that is present."
-  (save-excursion
-    (set-buffer speedbar-buffer)
+  (with-current-buffer speedbar-buffer
     (let ((speedbar-update-flag nil)
           (last-slash (mh-search-from-end ?/ folder))
           (ancestor folder)

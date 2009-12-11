@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "buffer.h"
@@ -608,12 +609,15 @@ Afterwards the end-trigger value is reset to nil.  */)
 
 DEFUN ("window-edges", Fwindow_edges, Swindow_edges, 0, 1, 0,
        doc: /* Return a list of the edge coordinates of WINDOW.
-\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
-RIGHT is one more than the rightmost column occupied by WINDOW,
-and BOTTOM is one more than the bottommost row occupied by WINDOW.
-The edges include the space used by the window's scroll bar,
-display margins, fringes, header line, and mode line, if it has them.
-To get the edges of the actual text area, use `window-inside-edges'.  */)
+The list has the form (LEFT TOP RIGHT BOTTOM).
+TOP and BOTTOM count by lines, and LEFT and RIGHT count by columns,
+all relative to 0, 0 at top left corner of frame.
+
+RIGHT is one more than the rightmost column occupied by WINDOW.
+BOTTOM is one more than the bottommost row occupied by WINDOW.
+The edges include the space used by WINDOW's scroll bar, display
+margins, fringes, header line, and/or mode line.  For the edges of
+just the text area, use `window-inside-edges'.  */)
      (window)
      Lisp_Object window;
 {
@@ -628,12 +632,14 @@ To get the edges of the actual text area, use `window-inside-edges'.  */)
 
 DEFUN ("window-pixel-edges", Fwindow_pixel_edges, Swindow_pixel_edges, 0, 1, 0,
        doc: /* Return a list of the edge pixel coordinates of WINDOW.
-\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
-RIGHT is one more than the rightmost x position occupied by WINDOW,
-and BOTTOM is one more than the bottommost y position occupied by WINDOW.
-The pixel edges include the space used by the window's scroll bar,
-display margins, fringes, header line, and mode line, if it has them.
-To get the edges of the actual text area, use `window-inside-pixel-edges'.  */)
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
+the top left corner of the frame.
+
+RIGHT is one more than the rightmost x position occupied by WINDOW.
+BOTTOM is one more than the bottommost y position occupied by WINDOW.
+The pixel edges include the space used by WINDOW's scroll bar, display
+margins, fringes, header line, and/or mode line.  For the pixel edges
+of just the text area, use `window-inside-pixel-edges'.  */)
      (window)
      Lisp_Object window;
 {
@@ -648,11 +654,14 @@ To get the edges of the actual text area, use `window-inside-pixel-edges'.  */)
 
 DEFUN ("window-inside-edges", Fwindow_inside_edges, Swindow_inside_edges, 0, 1, 0,
        doc: /* Return a list of the edge coordinates of WINDOW.
-\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
-RIGHT is one more than the rightmost column used by text in WINDOW,
-and BOTTOM is one more than the bottommost row used by text in WINDOW.
-The inside edges do not include the space used by the window's scroll bar,
-display margins, fringes, header line, and/or mode line.  */)
+The list has the form (LEFT TOP RIGHT BOTTOM).
+TOP and BOTTOM count by lines, and LEFT and RIGHT count by columns,
+all relative to 0, 0 at top left corner of frame.
+
+RIGHT is one more than the rightmost column of WINDOW's text area.
+BOTTOM is one more than the bottommost row of WINDOW's text area.
+The inside edges do not include the space used by the WINDOW's scroll
+bar, display margins, fringes, header line, and/or mode line.  */)
      (window)
      Lisp_Object window;
 {
@@ -672,10 +681,12 @@ display margins, fringes, header line, and/or mode line.  */)
 
 DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
        doc: /* Return a list of the edge pixel coordinates of WINDOW.
-\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
-RIGHT is one more than the rightmost x position used by text in WINDOW,
-and BOTTOM is one more than the bottommost y position used by text in WINDOW.
-The inside edges do not include the space used by the window's scroll bar,
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
+the top left corner of the frame.
+
+RIGHT is one more than the rightmost x position of WINDOW's text area.
+BOTTOM is one more than the bottommost y position of WINDOW's text area.
+The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
      (window)
      Lisp_Object window;
@@ -1533,6 +1544,9 @@ Signal an error when WINDOW is the only window on its frame.  */)
   struct frame *f;
   if (NILP (window))
     window = selected_window;
+  else
+    CHECK_LIVE_WINDOW (window);
+
   f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   delete_window (window);
 
@@ -4634,12 +4648,15 @@ grow_mini_window (w, delta)
   struct window *root;
 
   xassert (MINI_WINDOW_P (w));
-  xassert (delta >= 0);
+  /* Commenting out the following assertion goes against the stated interface
+     of the function, but it currently does not seem to do anything useful.
+     See discussion of this issue in the thread for bug#4534.
+     xassert (delta >= 0); */
 
   /* Compute how much we can enlarge the mini-window without deleting
      other windows.  */
   root = XWINDOW (FRAME_ROOT_WINDOW (f));
-  if (delta)
+  if (delta > 0)
     {
       int min_height = window_min_size (root, 0, 0, 0, 0);
       if (XFASTINT (root->total_lines) - delta < min_height)
@@ -7153,33 +7170,33 @@ init_window ()
 void
 syms_of_window ()
 {
-  Qscroll_up = intern ("scroll-up");
+  Qscroll_up = intern_c_string ("scroll-up");
   staticpro (&Qscroll_up);
 
-  Qscroll_down = intern ("scroll-down");
+  Qscroll_down = intern_c_string ("scroll-down");
   staticpro (&Qscroll_down);
 
-  Qwindow_size_fixed = intern ("window-size-fixed");
+  Qwindow_size_fixed = intern_c_string ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
   Fset (Qwindow_size_fixed, Qnil);
 
   staticpro (&Qwindow_configuration_change_hook);
   Qwindow_configuration_change_hook
-    = intern ("window-configuration-change-hook");
+    = intern_c_string ("window-configuration-change-hook");
 
-  Qwindowp = intern ("windowp");
+  Qwindowp = intern_c_string ("windowp");
   staticpro (&Qwindowp);
 
-  Qwindow_configuration_p = intern ("window-configuration-p");
+  Qwindow_configuration_p = intern_c_string ("window-configuration-p");
   staticpro (&Qwindow_configuration_p);
 
-  Qwindow_live_p = intern ("window-live-p");
+  Qwindow_live_p = intern_c_string ("window-live-p");
   staticpro (&Qwindow_live_p);
 
-  Qdisplay_buffer = intern ("display-buffer");
+  Qdisplay_buffer = intern_c_string ("display-buffer");
   staticpro (&Qdisplay_buffer);
 
-  Qtemp_buffer_show_hook = intern ("temp-buffer-show-hook");
+  Qtemp_buffer_show_hook = intern_c_string ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);
 
   staticpro (&Vwindow_list);

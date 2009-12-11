@@ -74,7 +74,7 @@ Where
               for the function it is remapped to)"
   (with-output-to-temp-buffer (help-buffer)
     (help-setup-xref (list #'tutorial--describe-nonstandard-key value)
-                     (interactive-p))
+                     (called-interactively-p 'interactive))
     (with-current-buffer (help-buffer)
       (insert
        "Your Emacs customizations override the default binding for this key:"
@@ -323,7 +323,7 @@ LEFT and RIGHT are the elements to compare."
   "Give detailed help about changed keys."
   (with-output-to-temp-buffer (help-buffer)
     (help-setup-xref (list #'tutorial--detailed-help button)
-                     (interactive-p))
+                     (called-interactively-p 'interactive))
     (with-current-buffer (help-buffer)
       (let* ((tutorial-buffer  (button-get button 'tutorial-buffer))
              (explain-key-desc (button-get button 'explain-key-desc))

@@ -244,17 +244,6 @@ frame on another X display, then a Gtk+ error happens in the emacs
 server that results in an endless loop.  This is not fixed in any known
 Gtk+ version (2.14.4 being current).
 
-** Emacs compiled with Gtk+ crashes on startup on Cygwin.
-
-A typical error message is
-  ***MEMORY-ERROR***: emacs[5172]: GSlice: failed to allocate 504 bytes
-  (alignment: 512): Function not implemented
-
-Emacs supplies its own malloc, but glib (part of Gtk+) calls memalign and on
-Cygwin, that becomes the Cygwin supplied memalign.  As malloc is not the
-Cygwin malloc, the Cygwin memalign always returns ENOSYS.  A fix for this
-problem would be welcome.
-
 * General runtime problems
 
 ** Lisp problems
@@ -1098,6 +1087,15 @@ Note that if you have Alt keys but no Meta keys, Emacs translates Alt
 into Meta.  This is because of the great importance of Meta in Emacs.
 
 ** Window-manager and toolkit-related problems
+
+*** Metacity: Resizing Emacs or ALT-Tab causes X to be unresponsive.
+
+This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
+makes the system unresponsive to the mouse or the keyboard.  Killing Emacs
+or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1 
+and then Alt-F7).  A bug for it is here:
+https://bugs.launchpad.net/ubuntu/+source/metacity/+bug/231034.
+Note that a permanent fix seems to be to disable "assistive technologies".
 
 *** Gnome: Emacs receives input directly from the keyboard, bypassing XIM.
 
@@ -2206,34 +2204,6 @@ Control Panel.  (The exact sequence of mouse clicks in the "Regional
 and Language Options" applet needed to find the key combination that
 changes the keyboard layout depends on your Windows version; for XP,
 in the Languages tab, click "Details" and then "Key Settings".)
-
-** Cygwin build of Emacs hangs after rebasing Cygwin DLLs
-
-Usually, on Cygwin, one needs to rebase the DLLs if an application
-aborts with a message like this:
-
-  C:\cygwin\bin\python.exe: *** unable to remap C:\cygwin\bin\cygssl.dll to
-  same address as parent(0xDF0000) != 0xE00000
-
-However, since Cygwin DLL 1.5.17 was released, after such rebasing,
-Emacs hangs.
-
-This was reported to happen for Emacs 21.2 and also for the pretest of
-Emacs 22.1 on Cygwin.
-
-To work around this, build Emacs like this:
-
-  LDFLAGS='-Wl,--enable-auto-import -Wl,--enable-auto-image-base' ./configure
-  make LD='$(CC)'
-  make LD='$(CC)' install
-
-This produces an Emacs binary that is independent of rebasing.
-
-Note that you _must_ use LD='$(CC)' in the last two commands above, to
-prevent GCC from passing the "--image-base 0x20000000" option to the
-linker, which is what it does by default.  That option produces an
-Emacs binary with the base address 0x20000000, which will cause Emacs
-to hang after Cygwin DLLs are rebased.
 
 ** Interrupting Cygwin port of Bash from Emacs doesn't work.
 

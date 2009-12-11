@@ -1231,8 +1231,9 @@ possible candidates.
 
 @vindex select-safe-coding-system-accept-default-p
 If the variable @code{select-safe-coding-system-accept-default-p} is
-non-@code{nil}, its value overrides the value of
-@var{accept-default-p}.
+non-@code{nil}, it should be a function taking a single argument.
+It is used in place of @var{accept-default-p}, overriding any
+value supplied for this argument.
 
 As a final step, before returning the chosen coding system,
 @code{select-safe-coding-system} checks whether that coding system is

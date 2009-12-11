@@ -708,8 +708,7 @@ DELTA and PRO-OR-DE are assumed to be dynamically scoped into this function."
          (name (nth 1 x))
          (newname (nth 2 x))
          (marker (nth 4 data)))
-    (save-excursion
-      (set-buffer (marker-buffer marker))
+    (with-current-buffer (marker-buffer marker)
       (goto-char (marker-position marker))
       (if (looking-at (concat "\\([ \t]*\\\\\\)" (regexp-quote name)))
           (replace-match (concat "\\1" newname))

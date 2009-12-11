@@ -174,8 +174,7 @@ composed.")
 MAILBUF is the mail buffer being composed."
   (reporter-update-status)
   (condition-case nil
-      (let ((val (save-excursion
-		   (set-buffer reporter-eval-buffer)
+      (let ((val (with-current-buffer reporter-eval-buffer
 		   (symbol-value varsym)))
 	    (sym (symbol-name varsym))
 	    (print-escape-newlines t)
@@ -201,8 +200,7 @@ MAILBUF is the mail buffer being composed."
 		(reporter-beautify-list maxwidth compact-p))))
 	(insert "\n"))
     (void-variable
-     (save-excursion
-       (set-buffer mailbuf)
+     (with-current-buffer mailbuf
        (mail-position-on-field "X-Reporter-Void-Vars-Found")
        (end-of-line)
        (insert (symbol-name varsym) " ")))
@@ -247,8 +245,7 @@ dumped."
       (condition-case fault
 	  (let ((mailbuf (current-buffer))
 		(elbuf (get-buffer-create " *tmp-reporter-buffer*")))
-	    (save-excursion
-	      (set-buffer elbuf)
+	    (with-current-buffer elbuf
 	      (emacs-lisp-mode)
 	      (erase-buffer)
 	      (insert "(setq\n")

@@ -56,7 +56,6 @@
 
 (declare-function ibuffer-mark-on-buffer "ibuf-ext"
 		  (func &optional ibuffer-mark-on-buffer-mark group))
-(declare-function ibuffer-format-qualifier "ibuf-ext" (qualifier))
 (declare-function ibuffer-generate-filter-groups "ibuf-ext"
 		  (bmarklist &optional noempty nodefault))
 (declare-function ibuffer-format-filter-group-data "ibuf-ext" (filter))
@@ -1192,7 +1191,7 @@ a new window in the current frame, splitting vertically."
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
 				  (not (string-match "too small" (cadr err)))))
-			 (apply #'signal err)
+			 (signal (car err) (cdr err))
 		       (enlarge-window 3))))))
 	      (select-window (next-window))
 	      (switch-to-buffer buf)

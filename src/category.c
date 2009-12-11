@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <ctype.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
@@ -135,6 +136,8 @@ the current buffer's category table.  */)
 
   if (!NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))
     error ("Category `%c' is already defined", XFASTINT (category));
+  if (!NILP (Vpurify_flag))
+    docstring = Fpurecopy (docstring);
   CATEGORY_DOCSTRING (table, XFASTINT (category)) = docstring;
 
   return Qnil;
@@ -450,9 +453,11 @@ word_boundary_p (c1, c2)
       if (CONSP (elt)
 	  && (NILP (XCAR (elt))
 	      || (CATEGORYP (XCAR (elt))
-		  && CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set1)))
+		  && CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set1)
+		  && ! CATEGORY_MEMBER (XFASTINT (XCAR (elt)), category_set2)))
 	  && (NILP (XCDR (elt))
 	      || (CATEGORYP (XCDR (elt))
+		  && ! CATEGORY_MEMBER (XFASTINT (XCDR (elt)), category_set1)
 		  && CATEGORY_MEMBER (XFASTINT (XCDR (elt)), category_set2))))
 	return !default_result;
     }
@@ -464,13 +469,13 @@ void
 init_category_once ()
 {
   /* This has to be done here, before we call Fmake_char_table.  */
-  Qcategory_table = intern ("category-table");
+  Qcategory_table = intern_c_string ("category-table");
   staticpro (&Qcategory_table);
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   /* Now we are ready to set up this property, so we can
      create category tables.  */
@@ -486,11 +491,11 @@ init_category_once ()
 void
 syms_of_category ()
 {
-  Qcategoryp = intern ("categoryp");
+  Qcategoryp = intern_c_string ("categoryp");
   staticpro (&Qcategoryp);
-  Qcategorysetp = intern ("categorysetp");
+  Qcategorysetp = intern_c_string ("categorysetp");
   staticpro (&Qcategorysetp);
-  Qcategory_table_p = intern ("category-table-p");
+  Qcategory_table_p = intern_c_string ("category-table-p");
   staticpro (&Qcategory_table_p);
 
   DEFVAR_LISP ("word-combining-categories", &Vword_combining_categories,
@@ -521,8 +526,9 @@ Emacs finds a word boundary between characters of the same script
 if they have categories matching some element of this list.
 
 More precisely, if an element of this list is a cons of category CAT1
-and CAT2, and a multibyte character C1 which has CAT1 is followed by
-C2 which has CAT2, there's a word boundary between C1 and C2.
+and CAT2, and a multibyte character C1 which has CAT1 but not CAT2 is
+followed by C2 which has CAT2 but not CAT1, there's a word boundary
+between C1 and C2.
 
 For instance, to tell that there's a word boundary between Hiragana
 and Katakana (both are in the same script `kana'),

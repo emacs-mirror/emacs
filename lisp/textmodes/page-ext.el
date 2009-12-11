@@ -507,7 +507,7 @@ resets the page-delimiter to the original value."
   (if (not reset-p)
       (setq page-delimiter regexp)
     (setq page-delimiter original-page-delimiter))
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "The value of `page-delimiter' is now: %s" page-delimiter)))
 
 
@@ -565,7 +565,7 @@ directory for only the accessible portion of the buffer."
       (setq regexp pages-directory-previous-regexp)
     (setq pages-directory-previous-regexp regexp))
 
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Creating directory for: %s "
                (buffer-name)))
 
@@ -580,8 +580,7 @@ directory for only the accessible portion of the buffer."
     ;; `standard-output' to the buffer named as its first argument,
     ;; but does not switch to that buffer.
     (with-output-to-temp-buffer pages-directory-buffer
-      (save-excursion
-        (set-buffer standard-output)
+      (with-current-buffer standard-output
         (pages-directory-mode)
         (insert
          "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
@@ -633,7 +632,7 @@ directory for only the accessible portion of the buffer."
       (set-buffer standard-output)
       ;; Put positions in increasing order to go with buffer.
       (setq pages-pos-list (nreverse pages-pos-list))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "%d matching lines in: %s"
                    (length pages-pos-list) (buffer-name pages-target-buffer))))
     (pop-to-buffer pages-directory-buffer)
@@ -736,8 +735,7 @@ to the same line in the pages buffer."
 (defun pages-directory-goto-with-mouse  (event)
   "Go to the corresponding line under the mouse pointer in the pages buffer."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-end event))))
+  (with-current-buffer (window-buffer (posn-window (event-end event)))
     (save-excursion
       (goto-char (posn-point (event-end event)))
       (pages-directory-goto))))
@@ -765,7 +763,7 @@ directory."
    (list (if current-prefix-arg
              (read-file-name "Filename: " pages-addresses-file-name))))
 
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Creating directory for: %s "
                (or filename pages-addresses-file-name)))
   (if (file-exists-p (or filename pages-addresses-file-name))

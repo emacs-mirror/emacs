@@ -1419,11 +1419,11 @@ The variable `ruby-indent-level' controls the amount of indentation.
 ;;; Invoke ruby-mode when appropriate
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.rb\\'") 'ruby-mode))
 
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))
-  (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
+  (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
 
 (provide 'ruby-mode)
 

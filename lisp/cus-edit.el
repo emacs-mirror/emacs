@@ -307,11 +307,11 @@
   :group 'environment)
 
 (defgroup data nil
-  "Support editing files of data."
+  "Support for editing files of data."
   :group 'emacs)
 
 (defgroup files nil
-  "Support editing files."
+  "Support for editing files."
   :group 'emacs)
 
 (defgroup wp nil
@@ -709,7 +709,7 @@ If `last', order groups after non-groups."
 		 (const :tag "none" nil))
   :group 'custom-menu)
 
-;;;###autoload (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
+;;;###autoload (add-hook 'same-window-regexps (purecopy "\\`\\*Customiz.*\\*\\'"))
 
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.

@@ -958,7 +958,7 @@
 	property to t.
 
 	* international/mule.el (coding-system-get):
-	Check `ascii-incompatible' for backward compatiblity.
+	Check `ascii-incompatible' for backward compatibility.
 	(set-file-name-coding-system): Signal an error for a coding system
 	not suitable for file name.
 	(set-keyboard-coding-system): Signal an error for a coding system

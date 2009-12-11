@@ -267,11 +267,12 @@ This has effect only if `search-invisible' is set to `open'."
 
 ;;;###autoload
 (defvar hs-special-modes-alist
+  (mapcar 'purecopy
   '((c-mode "{" "}" "/[*/]" nil nil)
     (c++-mode "{" "}" "/[*/]" nil nil)
     (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil nil)
-    (js-mode "{" "}" "/[*/]" nil))
+    (js-mode "{" "}" "/[*/]" nil)))
   "*Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
@@ -304,8 +305,8 @@ whitespace.  Case does not matter.")
 
 (defvar hs-allow-nesting nil
   "*If non-nil, hiding remembers internal blocks.
-This means that when the outer block is shown again, any
-previously hidden internal blocks remain hidden.")
+This means that when the outer block is shown again,
+any previously hidden internal blocks remain hidden.")
 
 (defvar hs-hide-hook nil
   "*Hook called (with `run-hooks') at the end of commands to hide text.
@@ -315,7 +316,7 @@ a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 (defvar hs-show-hook nil
   "*Hook called (with `run-hooks') at the end of commands to show text.
 These commands include the toggling commands (when the result is to show
-a block), `hs-show-all' and `hs-show-block'..")
+a block), `hs-show-all' and `hs-show-block'.")
 
 (defvar hs-set-up-overlay nil
   "*Function called with one arg, OV, a newly initialized overlay.

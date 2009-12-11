@@ -34,6 +34,7 @@
   (require 'cl)
   (require 'mm-util))
 
+(require 'mm-encode)
 (require 'mml-sec)
 
 (defvar mc-pgp-always-sign)
@@ -368,7 +369,7 @@ Whether the passphrase is cached at all is controlled by
 (defun mml1991-epg-sign (cont)
   (let ((context (epg-make-context))
 	headers cte signers signature)
-    (if mml1991-verbose
+    (if (eq mm-sign-option 'guided)
 	(setq signers (epa-select-keys context "Select keys for signing.
 If no one is selected, default secret key is used.  "
 				       mml1991-signers t))
@@ -448,7 +449,7 @@ If no one is selected, default secret key is used.  "
 			       (or (epg-expand-group config recipient)
 				   (list recipient)))
 			     recipients))))
-    (if mml1991-verbose
+    (if (eq mm-encrypt-option 'guided)
 	(setq recipients
 	      (epa-select-keys context "Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
@@ -466,7 +467,7 @@ If no one is selected, symmetric encryption will be performed.  "
 				 mml1991-signers)))
 	  (error "mml1991-signers not set")))
     (when sign
-      (if mml1991-verbose
+      (if (eq mm-sign-option 'guided)
 	  (setq signers (epa-select-keys context "Select keys for signing.
 If no one is selected, default secret key is used.  "
 					 mml1991-signers t))

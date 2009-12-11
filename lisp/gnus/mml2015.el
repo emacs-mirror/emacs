@@ -1187,7 +1187,7 @@ Whether the passphrase is cached at all is controlled by
 	  (or (message-options-get 'mml2015-epg-signers)
 	      (message-options-set
 	       'mml2015-epg-signers
-	       (if mml2015-verbose
+	       (if (eq mm-sign-option 'guided)
 		   (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
@@ -1269,7 +1269,7 @@ If no one is selected, default secret key is used.  "
 	(unless mml2015-signers
 	  (error "mml2015-signers not set"))
 	(setq recipients (nconc recipients mml2015-signers)))
-      (if mml2015-verbose
+      (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\
 Select recipients for encryption.
@@ -1297,7 +1297,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	    (or (message-options-get 'mml2015-epg-signers)
 		(message-options-set
 		 'mml2015-epg-signers
-		 (if mml2015-verbose
+		 (if (eq mm-sign-option 'guided)
 		     (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "

@@ -1026,6 +1026,7 @@ other than `\"' and `\\' in quoted strings."
 	    ;; things essentially must not be there.
 	    (while (re-search-forward "[\n\r]+" nil t)
 	      (replace-match " "))
+	    (setq end (point-max))
 	    ;; Quote decoded words if there are special characters
 	    ;; which might violate RFC2822.
 	    (when (and rfc2047-quote-decoded-words-containing-tspecials
@@ -1035,10 +1036,15 @@ other than `\"' and `\\' in quoted strings."
 			 (when regexp
 			   (save-restriction
 			     (widen)
-			     (beginning-of-line)
-			     (while (and (memq (char-after) '(?  ?\t))
-					 (zerop (forward-line -1))))
-			     (looking-at regexp)))))
+			     (and
+			      ;; Don't quote words if already quoted.
+			      (not (and (eq (char-before e) ?\")
+					(eq (char-after end) ?\")))
+			      (progn
+				(beginning-of-line)
+				(while (and (memq (char-after) '(?  ?\t))
+					    (zerop (forward-line -1))))
+				(looking-at regexp)))))))
 	      (let (quoted)
 		(goto-char e)
 		(skip-chars-forward " \t")

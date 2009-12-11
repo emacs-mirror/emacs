@@ -2044,7 +2044,7 @@ plain text and loses all the table specific features."
   (interactive "i\ni\np")
   (table--make-cell-map)
   (if (or force (not (memq (table--get-last-command) table-command-list)))
-      (let* ((cell (table--probe-cell (interactive-p)))
+      (let* ((cell (table--probe-cell (called-interactively-p 'interactive)))
 	     (cache-buffer (get-buffer-create table-cache-buffer-name))
 	     (modified-flag (buffer-modified-p))
 	     (inhibit-read-only t))
@@ -2953,7 +2953,7 @@ WHERE is provided the cell and table at that location is reported."
 	(setq table-rb (cdr starting-cell))
 	(setq col-list (cons (car (table--get-coordinate (car starting-cell))) nil))
 	(setq row-list (cons (cdr (table--get-coordinate (car starting-cell))) nil))
-	(and (interactive-p)
+	(and (called-interactively-p 'interactive)
 	     (message "Computing cell dimension..."))
 	(while
 	    (progn
@@ -2980,7 +2980,7 @@ WHERE is provided the cell and table at that location is reported."
 	       (th (+ 3 (- (cdr table-rb-coordinate) (cdr table-lu-coordinate))))
 	       (c (length col-list))
 	       (r (length row-list)))
-	  (and (interactive-p)
+	  (and (called-interactively-p 'interactive)
 	       (message "Cell: (%dw, %dh), Table: (%dw, %dh), Dim: (%dc, %dr), Total Cells: %d" cw ch tw th c r cells))
 	  (list cw ch tw th c r cells))))))
 
@@ -3025,7 +3025,8 @@ CALS (DocBook DTD):
       (read-buffer "Destination buffer: " (concat table-dest-buffer-name "." language))
       (table--read-from-minibuffer '("Table Caption" . table-source-caption-history)))))
   (let ((default-buffer-name (concat table-dest-buffer-name "." (symbol-name language))))
-    (unless (or (interactive-p) (table--probe-cell)) (error "Table not found here"))
+    (unless (or (called-interactively-p 'interactive) (table--probe-cell))
+      (error "Table not found here"))
     (unless (bufferp dest-buffer)
       (setq dest-buffer (get-buffer-create (or dest-buffer default-buffer-name))))
     (if (string= (buffer-name dest-buffer) default-buffer-name)
@@ -3047,7 +3048,7 @@ CALS (DocBook DTD):
 	(let ((wheel [?- ?\\ ?| ?/]))
 	  (while
 	      (progn
-		(if (interactive-p)
+		(if (called-interactively-p 'interactive)
 		    (progn
 		      (message "Analyzing table...%c" (aref wheel i))
 		      (if (eq (setq i (1+ i)) (length wheel))
@@ -3084,7 +3085,7 @@ CALS (DocBook DTD):
 	;; insert closing
 	(table--generate-source-epilogue dest-buffer language col-list row-list))
       ;; lastly do some convenience work
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
 	  (save-selected-window
 	    (pop-to-buffer dest-buffer t)
 	    (goto-char (point-min))
@@ -3433,9 +3434,10 @@ Example:
 				(format "Justify (default %s): " default)
 				'(("left") ("center") ("right"))
 				nil t nil 'table-sequence-justify-history default)))))))
-  (unless (or (interactive-p) (table--probe-cell)) (error "Table not found here"))
+  (unless (or (called-interactively-p 'interactive) (table--probe-cell))
+    (error "Table not found here"))
   (string-match "\\([0-9]*\\)\\([]})>]*\\)\\'" str)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Sequencing..."))
   (let* ((prefix (substring str 0 (match-beginning 1)))
 	 (index (match-string 1 str))
@@ -3483,7 +3485,7 @@ Example:
 	       (setq cells (1- cells))
 	       (and (> n 0) (> cells 0)))))
     (table-recognize-cell 'force)
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "Sequencing...done"))
     ))
 
@@ -4966,7 +4968,7 @@ only and must not be specified."
 	   (px (or internal-px (car (if (eq pivot 'left) lu-coordinate rb-coordinate))))
 	   (ty (- (cdr lu-coordinate) 2))
 	   (by (+ (cdr rb-coordinate) 2)))
-      ;; in case of finding the the first cell, get the last adding item on the list
+      ;; in case of finding the first cell, get the last adding item on the list
       (if (and (null internal-dir) first-only) (setq top-to-bottom (null top-to-bottom)))
       ;; travel up and process as recursion traces back (reverse order)
       (and cell
@@ -5006,7 +5008,7 @@ only and must not be specified."
 	   (py (or internal-py (if (eq pivot 'top) (cdr lu-coordinate) (1+ (cdr rb-coordinate)))))
 	   (lx (1- (car lu-coordinate)))
 	   (rx (1+ (car rb-coordinate))))
-      ;; in case of finding the the first cell, get the last adding item on the list
+      ;; in case of finding the first cell, get the last adding item on the list
       (if (and (null internal-dir) first-only) (setq left-to-right (null left-to-right)))
       ;; travel left and process as recursion traces back (reverse order)
       (and cell
@@ -5344,7 +5346,7 @@ Refresh the menu bar."
 This feature is disabled when `table-disable-incompatibility-warning'
 is non-nil.  The warning is done only once per session for each item."
   (unless (and table-disable-incompatibility-warning
-	       (not (interactive-p)))
+	       (not (called-interactively-p 'interactive)))
     (cond ((and (featurep 'xemacs)
 		(not (get 'table-disable-incompatibility-warning 'xemacs)))
 	   (put 'table-disable-incompatibility-warning 'xemacs t)

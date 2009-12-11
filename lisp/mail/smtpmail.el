@@ -242,8 +242,7 @@ The list is in preference order.")
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
 	       (select-message-coding-system)))))
     (unwind-protect
-	(save-excursion
-	  (set-buffer tembuf)
+	(with-current-buffer tembuf
 	  (erase-buffer)
 	  ;; Use the same `buffer-file-coding-system' as in the mail
 	  ;; buffer, otherwise any `write-region' invocations (e.g., in

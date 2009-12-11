@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/windows
 @node Windows, Frames, Buffers, Top
@@ -1945,11 +1946,14 @@ characters that separates side-by-side windows.
   The following three functions return size information about a window:
 
 @defun window-height &optional window
-This function returns the number of lines in @var{window}, including its
-mode line and header line, if any.  If @var{window} fills its entire
-frame except for the echo area, this is typically one less than the
-value of @code{frame-height} on that frame.  The default for
-@var{window} is the selected window.
+This function returns the number of lines in @var{window} (by default
+the selected window), including any mode line and header line.
+The result is almost always less than the value of @code{frame-height}
+for the associated frame, because the latter also includes any echo
+area.  Depending on the toolkit in use, the frame height can also
+include the menu bar and tool bar (@pxref{Size and Position}).
+Therefore in general it is not straightforward to compare window and
+frame heights (see @code{window-full-height-p} below).
 
 @example
 @group
@@ -1970,6 +1974,12 @@ value of @code{frame-height} on that frame.  The default for
 @defun window-body-height &optional window
 Like @code{window-height} but the value does not include the
 mode line (if any) or the header line (if any).
+@end defun
+
+@defun window-full-height-p &optional window
+This function returns non-@code{nil} if @var{window} is as tall as the
+frame that contains it.  The default for @var{window} is the selected
+window.
 @end defun
 
 @defun window-width &optional window

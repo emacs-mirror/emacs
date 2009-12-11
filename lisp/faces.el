@@ -70,10 +70,11 @@ a font height that isn't optimal."
 ;; unavailable, and we fall back on the courier and helv families,
 ;; which are generally available.
 (defcustom face-font-family-alternatives
+  (mapcar (lambda (arg) (mapcar 'purecopy arg))
   '(("Monospace" "courier" "fixed")
     ("courier" "CMU Typewriter Text" "fixed")
     ("Sans Serif" "helv" "helvetica" "arial" "fixed")
-    ("helv" "helvetica" "arial" "fixed"))
+    ("helv" "helvetica" "arial" "fixed")))
   "Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
@@ -88,6 +89,7 @@ ALTERNATIVE2 etc."
 
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
+  (mapcar (lambda (arg) (mapcar 'purecopy arg))
   (if (eq system-type 'windows-nt)
       '(("iso8859-1" "ms-oemlatin")
 	("gb2312.1980" "gb2312" "gbk" "gb18030")
@@ -97,7 +99,7 @@ ALTERNATIVE2 etc."
     '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk" "gb18030")
       ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
-      ("muletibetan-2" "muletibetan-0")))
+      ("muletibetan-2" "muletibetan-0"))))
   "Alist of alternative font registry names.
 Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
@@ -284,6 +286,11 @@ If FRAME is omitted or nil, use the selected frame."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom face-x-resources
+  (mapcar
+   (lambda (arg)
+     ;; FIXME; can we purecopy some of the conses too?
+     (cons (car arg)
+	   (cons (purecopy (car (cdr arg))) (purecopy (cdr (cdr arg))))))
   '((:family (".attributeFamily" . "Face.AttributeFamily"))
     (:foundry (".attributeFoundry" . "Face.AttributeFoundry"))
     (:width (".attributeWidth" . "Face.AttributeWidth"))
@@ -303,7 +310,7 @@ If FRAME is omitted or nil, use the selected frame."
     (:bold (".attributeBold" . "Face.AttributeBold"))
     (:italic (".attributeItalic" . "Face.AttributeItalic"))
     (:font (".attributeFont" . "Face.AttributeFont"))
-    (:inherit (".attributeInherit" . "Face.AttributeInherit")))
+    (:inherit (".attributeInherit" . "Face.AttributeInherit"))))
   "List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
@@ -1040,7 +1047,7 @@ an integer value."
       valid)))
 
 
-(defvar face-attribute-name-alist
+(defconst face-attribute-name-alist
   '((:family . "font family")
     (:foundry . "font foundry")
     (:width . "character set width")
@@ -1228,7 +1235,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 ;;; Listing faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar list-faces-sample-text
+(defconst list-faces-sample-text
   "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   "*Text string to display as the sample text for `list-faces-display'.")
 
@@ -1266,8 +1273,7 @@ arg, prompt for a regular expression."
     (setq max-length (1+ max-length)
 	  line-format (format "%%-%ds" max-length))
     (with-help-window "*Faces*"
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(setq truncate-lines t)
 	(insert
 	 (substitute-command-keys
@@ -1348,14 +1354,14 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:inherit . "Inherit")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
-    (help-setup-xref (list #'describe-face face) (interactive-p))
+    (help-setup-xref (list #'describe-face face)
+		     (called-interactively-p 'interactive))
     (unless face
       (setq face 'default))
     (if (not (listp face))
 	(setq face (list face)))
     (with-help-window (help-buffer)
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(dolist (f face)
 	  (if (stringp f) (setq f (intern f)))
 	  ;; We may get called for anonymous faces (i.e., faces
@@ -2030,7 +2036,7 @@ Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS and `default-frame-alist'."
-  (dolist (face (nreverse (face-list)))
+  (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
     (condition-case ()
 	(progn
 	  ;; Initialize faces from face spec and custom theme.
@@ -2158,7 +2164,7 @@ terminal type to a different value."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Compatiblity with 20.2
+;;; Compatibility with 20.2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Update a frame's faces when we change its default font.
@@ -2278,9 +2284,14 @@ terminal type to a different value."
   "Basic face for highlighting."
   :group 'basic-faces)
 
+;; Region face: under NS, default to the system-defined selection
+;; color (optimized for the fixed white background of other apps),
+;; if background is light.
 (defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3")
+    (((class color) (min-colors 88) (background light) (type ns))
+     :background "ns_selection_color")
     (((class color) (min-colors 88) (background light))
      :background "lightgoldenrod2")
     (((class color) (min-colors 16) (background dark))
@@ -2572,16 +2583,16 @@ Note: Other faces cannot inherit from the cursor face."
       (encoding		"[^-]+")
       )
   (setq x-font-regexp
-	(concat "\\`\\*?[-?*]"
+	(purecopy (concat "\\`\\*?[-?*]"
 		foundry - family - weight\? - slant\? - swidth - adstyle -
 		pixelsize - pointsize - resx - resy - spacing - avgwidth -
 		registry - encoding "\\*?\\'"
-		))
+		)))
   (setq x-font-regexp-head
-	(concat "\\`[-?*]" foundry - family - weight\? - slant\?
-		"\\([-*?]\\|\\'\\)"))
-  (setq x-font-regexp-slant (concat - slant -))
-  (setq x-font-regexp-weight (concat - weight -))
+	(purecopy (concat "\\`[-?*]" foundry - family - weight\? - slant\?
+		"\\([-*?]\\|\\'\\)")))
+  (setq x-font-regexp-slant (purecopy (concat - slant -)))
+  (setq x-font-regexp-weight (purecopy (concat - weight -)))
   nil)
 
 

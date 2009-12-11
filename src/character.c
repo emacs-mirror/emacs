@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 
 #include <sys/types.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -86,10 +87,6 @@ Lisp_Object Vscript_representative_chars;
 static Lisp_Object Qchar_script_table;
 
 Lisp_Object Vunicode_category_table;
-
-/* Mapping table from unibyte chars to multibyte chars.  */
-int unibyte_to_multibyte_table[256];
-
 
 
 /* If character code C has modifier masks, reflect them to the
@@ -130,11 +127,13 @@ char_resolve_modifier_mask (c)
       else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
 	c &= (037 | (~0177 & ~CHAR_CTL));
     }
+#if 0	/* This is outside the scope of this function.  (bug#4751)  */
   if (c & CHAR_META)
     {
       /* Move the meta bit to the right place for a string.  */
       c = (c & ~CHAR_META) | 0x80;
     }
+#endif
 
   return c;
 }
@@ -325,8 +324,7 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
   c = XFASTINT (ch);
   if (c >= 0x100)
     error ("Not a unibyte character: %d", c);
-  if (c >= 0x80)
-    c = BYTE8_TO_CHAR (c);
+  MAKE_CHAR_MULTIBYTE (c);
   return make_number (c);
 }
 
@@ -407,7 +405,7 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
     {
       int bytes, thiswidth;
       Lisp_Object val;
-      int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+      int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
 
       if (dp)
 	{
@@ -497,7 +495,7 @@ lisp_string_width (string, precision, nchars, nbytes)
 	  int c;
 
 	  if (multibyte)
-	    c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+	    c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
 	  else
 	    c = str[i_byte], bytes = 1;
 	  chars = 1;
@@ -1063,7 +1061,7 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
       if (! STRING_MULTIBYTE (string))
 	return make_number (*p);
     }
-  c = STRING_CHAR (p, 0);
+  c = STRING_CHAR (p);
   if (CHAR_BYTE8_P (c))
     c = CHAR_TO_BYTE8 (c);
   else if (! ASCII_CHAR_P (c))
@@ -1144,7 +1142,7 @@ It has one extra slot whose value is a list of script symbols.  */);
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
   DEFSYM (Qchar_script_table, "char-script-table");
   Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);

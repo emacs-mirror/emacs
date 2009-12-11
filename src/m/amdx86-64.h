@@ -106,7 +106,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef START_FILES
 #undef LIB_STANDARD
 
-#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !SOLARIS2 */
+#elif defined(__APPLE__)
+
+/* LIB_STANDARD and START_FILES set correctly in s/darwin.h */
+
+#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !SOLARIS2
+         && !__APPLE__ */
 /* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
    The reason is that some functions in libgcc.a call functions from libc.a,
    and some libc.a functions need functions from libgcc.a.  Since most

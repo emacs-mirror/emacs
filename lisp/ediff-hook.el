@@ -123,7 +123,7 @@
 	   :style toggle
 	   :selected (if (featurep 'ediff-tbar)
 			 (ediff-use-toolbar-p))]))
-      
+
       ;; put these menus before Object-Oriented-Browser in Tools menu
       (if (and (featurep 'menubar) (not (featurep 'infodock))
 	       (not (featurep 'ediff-hook)))
@@ -141,8 +141,11 @@
 	(symbol-value 'menu-bar-ediff-merge-menu))
   (defvar menu-bar-ediff-menu (make-sparse-keymap "Compare"))
   (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
-  
+
   ;; define ediff compare menu
+  (define-key menu-bar-ediff-menu [ediff-misc]
+    `(menu-item ,(purecopy "Ediff Miscellanea") menu-bar-ediff-misc-menu))
+  (define-key menu-bar-ediff-menu [separator-ediff-misc] menu-bar-separator)
   (define-key menu-bar-ediff-menu [window]
     `(menu-item ,(purecopy "This Window and Next Window") compare-windows
 		:help ,(purecopy "Compare the current window and the next window")))
@@ -152,28 +155,28 @@
   (define-key menu-bar-ediff-menu [ediff-windows-wordwise]
     `(menu-item ,(purecopy "Windows Word-by-word...") ediff-windows-wordwise
 		:help ,(purecopy "Compare windows word-wise")))
-  (define-key menu-bar-ediff-menu [separator-ediff-windows] '("--"))
+  (define-key menu-bar-ediff-menu [separator-ediff-windows] menu-bar-separator)
   (define-key menu-bar-ediff-menu [ediff-regions-linewise]
     `(menu-item ,(purecopy "Regions Line-by-line...") ediff-regions-linewise
 		:help ,(purecopy "Compare regions line-wise")))
   (define-key menu-bar-ediff-menu [ediff-regions-wordwise]
     `(menu-item ,(purecopy "Regions Word-by-word...") ediff-regions-wordwise
 		:help ,(purecopy "Compare regions word-wise")))
-  (define-key menu-bar-ediff-menu [separator-ediff-regions] '("--"))
+  (define-key menu-bar-ediff-menu [separator-ediff-regions] menu-bar-separator)
   (define-key menu-bar-ediff-menu [ediff-dir-revision]
     `(menu-item ,(purecopy "Directory Revisions...") ediff-directory-revisions
 		:help ,(purecopy "Compare directory files with their older versions")))
   (define-key menu-bar-ediff-menu [ediff-revision]
     `(menu-item ,(purecopy "File with Revision...") ediff-revision
 		:help ,(purecopy "Compare file with its older versions")))
-  (define-key menu-bar-ediff-menu [separator-ediff-directories] '("--"))
+  (define-key menu-bar-ediff-menu [separator-ediff-directories] menu-bar-separator)
   (define-key menu-bar-ediff-menu [ediff-directories3]
     `(menu-item ,(purecopy "Three Directories...") ediff-directories3
 		:help ,(purecopy "Compare files common to three directories simultaneously")))
   (define-key menu-bar-ediff-menu [ediff-directories]
     `(menu-item ,(purecopy "Two Directories...") ediff-directories
 		:help ,(purecopy "Compare files common to two directories simultaneously")))
-  (define-key menu-bar-ediff-menu [separator-ediff-files] '("--"))
+  (define-key menu-bar-ediff-menu [separator-ediff-files] menu-bar-separator)
   (define-key menu-bar-ediff-menu [ediff-buffers3]
     `(menu-item ,(purecopy "Three Buffers...") ediff-buffers3
 		:help ,(purecopy "Compare three buffers simultaneously")))
@@ -205,7 +208,7 @@
   (define-key menu-bar-ediff-merge-menu [ediff-merge-revisions]
     `(menu-item ,(purecopy "Revisions...") ediff-merge-revisions
       :help ,(purecopy "Merge versions of the same file (without using ancestor information)")))
-  (define-key menu-bar-ediff-merge-menu [separator-ediff-merge] '("--"))
+  (define-key menu-bar-ediff-merge-menu [separator-ediff-merge] menu-bar-separator)
   (define-key
     menu-bar-ediff-merge-menu [ediff-merge-directories-with-ancestor]
     `(menu-item ,(purecopy "Directories with Ancestor...")
@@ -215,7 +218,7 @@
     `(menu-item ,(purecopy "Directories...") ediff-merge-directories
 		:help ,(purecopy "Merge files common to a pair of directories")))
   (define-key
-    menu-bar-ediff-merge-menu [separator-ediff-merge-dirs] '("--"))
+    menu-bar-ediff-merge-menu [separator-ediff-merge-dirs] menu-bar-separator)
   (define-key
     menu-bar-ediff-merge-menu [ediff-merge-buffers-with-ancestor]
     `(menu-item ,(purecopy "Buffers with Ancestor...") ediff-merge-buffers-with-ancestor

@@ -6981,8 +6981,8 @@ base=/home/user/Mail
 # are subfolders within the folder
 mh=archive...:inbox:drafts:news:sent:trash
 
-vfolder_format=raw
-database=/home/user/Mail/mairix/database
+vfolder_format=mh
+database=/home/user/Mail/.mairix/database
 @end group
 @end smallexample
 
@@ -7023,7 +7023,7 @@ daily from cron:
 
 @smallexample
 mknmz -f /home/user/Mail/.namazu/mknmzrc -O /home/user/Mail/.namazu \
-         /home/user/Mail
+      -q /home/user/Mail
 @end smallexample
 
 @subsection pick

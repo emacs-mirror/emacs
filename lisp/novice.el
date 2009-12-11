@@ -34,6 +34,8 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
+(eval-when-compile (require 'cl))
+
 ;;;###autoload
 (defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.
@@ -45,11 +47,13 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 ;; It is ok here to assume that this-command is a symbol
 ;; because we won't get called otherwise.
 ;;;###autoload
-(defun disabled-command-function (&rest ignore)
+(defun disabled-command-function (&optional cmd keys)
+  (unless cmd (setq cmd this-command))
+  (unless keys (setq keys (this-command-keys)))
   (let (char)
     (save-window-excursion
-     (with-output-to-temp-buffer "*Disabled Command*"
-       (let ((keys (this-command-keys)))
+      (help-setup-xref (list 'disabled-command-function cmd keys) nil)
+      (with-output-to-temp-buffer "*Disabled Command*" ;; (help-buffer)
 	 (if (or (eq (aref keys 0)
 		     (if (stringp keys)
 			 (aref "\M-x" 0)
@@ -57,22 +61,21 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 		 (and (>= (length keys) 2)
 		      (eq (aref keys 0) meta-prefix-char)
 		      (eq (aref keys 1) ?x)))
-	     (princ (format "You have invoked the disabled command %s.\n"
-			    (symbol-name this-command)))
+	    (princ (format "You have invoked the disabled command %s.\n" cmd))
 	   (princ (format "You have typed %s, invoking disabled command %s.\n"
-			  (key-description keys) (symbol-name this-command)))))
+			 (key-description keys) cmd)))
        ;; Print any special message saying why the command is disabled.
-       (if (stringp (get this-command 'disabled))
-	   (princ (get this-command 'disabled))
+	(if (stringp (get cmd 'disabled))
+	    (princ (get cmd 'disabled))
 	 (princ "It is disabled because new users often find it confusing.\n")
 	 (princ "Here's the first part of its description:\n\n")
 	 ;; Keep only the first paragraph of the documentation.
-	 (with-current-buffer "*Disabled Command*"
+          (with-current-buffer "*Disabled Command*" ;; standard-output
 	   (goto-char (point-max))
 	   (let ((start (point)))
 	     (save-excursion
 	       (princ (or (condition-case ()
-			      (documentation this-command)
+			       (documentation cmd)
 			    (error nil))
 			  "<< not documented >>")))
 	     (if (search-forward "\n\n" nil t)
@@ -85,9 +88,10 @@ y   to try it and enable it (no questions if you use it again).
 n   to cancel--don't try the command, and it remains disabled.
 SPC to try the command just this once, but leave it disabled.
 !   to try it, and enable all disabled commands for this session only.")
-       (save-excursion
-	 (set-buffer standard-output)
-	 (help-mode)))
+        ;; Redundant since with-output-to-temp-buffer will do it anyway.
+        ;; (with-current-buffer standard-output
+        ;;   (help-mode))
+        )
      (fit-window-to-buffer (get-buffer-window "*Disabled Command*"))
      (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
@@ -98,31 +102,26 @@ SPC to try the command just this once, but leave it disabled.
 	 (ding)
 	 (message "Please type y, n, ! or SPC (the space bar): "))))
     (setq char (downcase char))
-    (if (= char ?\C-g)
-	(setq quit-flag t))
-    (if (= char ?!)
-	(setq disabled-command-function nil))
-    (if (= char ?y)
+    (case char
+     (?\C-g (setq quit-flag t))
+     (?! (setq disabled-command-function nil))
+     (?y
 	(if (and user-init-file
 		 (not (string= "" user-init-file))
 		 (y-or-n-p "Enable command for future editing sessions also? "))
-	    (enable-command this-command)
-	  (put this-command 'disabled nil)))
-    (if (/= char ?n)
-	(call-interactively this-command))))
+	  (enable-command cmd)
+	(put cmd 'disabled nil)))
+     (?n nil)
+     (t (call-interactively cmd)))))
 
-;;;###autoload
-(defun enable-command (command)
-  "Allow COMMAND to be executed without special confirmation from now on.
-COMMAND must be a symbol.
-This command alters the user's .emacs file so that this will apply
-to future sessions."
-  (interactive "CEnable command: ")
-  (put command 'disabled nil)
+(defun en/disable-command (command disable)
+  (unless (commandp command)
+    (error "Invalid command name `%s'" command))
+  (put command 'disabled disable)
   (let ((init-file user-init-file)
 	(default-init-file
 	  (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-    (when (null init-file)
+    (unless init-file
       (if (or (file-exists-p default-init-file)
 	      (and (eq system-type 'windows-nt)
 		   (file-exists-p "~/_emacs")))
@@ -135,9 +134,8 @@ to future sessions."
 	       (eq system-type 'windows-nt)
 	       (file-exists-p "~/_emacs"))
 	  (setq init-file "~/_emacs")))
-    (save-excursion
-      (set-buffer (find-file-noselect
-		   (substitute-in-file-name init-file)))
+    (with-current-buffer (find-file-noselect
+                          (substitute-in-file-name init-file))
       (goto-char (point-min))
       (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
 	  (delete-region
@@ -146,8 +144,19 @@ to future sessions."
       ;; Explicitly enable, in case this command is disabled by default
       ;; or in case the code we deleted was actually a comment.
       (goto-char (point-max))
-      (insert "\n(put '" (symbol-name command) " 'disabled nil)\n")
+      (unless (bolp) (newline))
+      (insert "(put '" (symbol-name command) " 'disabled "
+	      (symbol-name disable) ")\n")
       (save-buffer))))
+
+;;;###autoload
+(defun enable-command (command)
+  "Allow COMMAND to be executed without special confirmation from now on.
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
+to future sessions."
+  (interactive "CEnable command: ")
+  (en/disable-command command nil))
 
 ;;;###autoload
 (defun disable-command (command)
@@ -156,37 +165,7 @@ COMMAND must be a symbol.
 This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CDisable command: ")
-  (if (not (commandp command))
-      (error "Invalid command name `%s'" command))
-  (put command 'disabled t)
-  (let ((init-file user-init-file)
-	(default-init-file
-	  (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-    (when (null init-file)
-      (if (or (file-exists-p default-init-file)
-	      (and (eq system-type 'windows-nt)
-		   (file-exists-p "~/_emacs")))
-	  ;; Started with -q, i.e. the file containing
-	  ;; enabled/disabled commands hasn't been read.  Saving
-	  ;; settings there would overwrite other settings.
-	  (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
-      (setq init-file default-init-file)
-      (if (and (not (file-exists-p init-file))
-	       (eq system-type 'windows-nt)
-	       (file-exists-p "~/_emacs"))
-	  (setq init-file "~/_emacs")))
-    (save-excursion
-      (set-buffer (find-file-noselect
-		   (substitute-in-file-name init-file)))
-      (goto-char (point-min))
-      (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
-	  (delete-region
-	   (progn (beginning-of-line) (point))
-	   (progn (forward-line 1) (point)))
-	(goto-char (point-max))
-	(insert ?\n))
-      (insert "(put '" (symbol-name command) " 'disabled t)\n")
-      (save-buffer))))
+  (en/disable-command command t))
 
 (provide 'novice)
 

@@ -308,7 +308,7 @@ readchar (readcharfun, multibyte)
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
 	  BUF_INC_POS (inbuffer, pt_byte);
-	  c = STRING_CHAR (p, pt_byte - orig_pt_byte);
+	  c = STRING_CHAR (p);
 	  if (multibyte)
 	    *multibyte = 1;
 	}
@@ -337,7 +337,7 @@ readchar (readcharfun, multibyte)
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
 	  BUF_INC_POS (inbuffer, bytepos);
-	  c = STRING_CHAR (p, bytepos - orig_bytepos);
+	  c = STRING_CHAR (p);
 	  if (multibyte)
 	    *multibyte = 1;
 	}
@@ -444,7 +444,7 @@ readchar (readcharfun, multibyte)
 	}
       buf[i++] = c;
     }
-  return STRING_CHAR (buf, i);
+  return STRING_CHAR (buf);
 }
 
 /* Unread the character C in the way appropriate for the stream READCHARFUN.
@@ -1365,7 +1365,7 @@ Return t if the file exists and loads successfully.  */)
     }
 
   if (! NILP (Vpurify_flag))
-    Vpreloaded_file_list = Fcons (file, Vpreloaded_file_list);
+    Vpreloaded_file_list = Fcons (Fpurecopy(file), Vpreloaded_file_list);
 
   if (NILP (nomessage) || force_load_messages)
     {
@@ -3162,7 +3162,7 @@ read1 (readcharfun, pch, first_in_list)
 		    }
 		  }
 	      }
-	    if (isfloat_string (read_buffer))
+	    if (isfloat_string (read_buffer, 0))
 	      {
 		/* Compute NaN and infinities using 0.0 in a variable,
 		   to cope with compilers that think they are smarter
@@ -3380,8 +3380,9 @@ substitute_in_interval (interval, arg)
 #define EXP_INT 16
 
 int
-isfloat_string (cp)
+isfloat_string (cp, ignore_trailing)
      register char *cp;
+     int ignore_trailing;
 {
   register int state;
 
@@ -3435,7 +3436,8 @@ isfloat_string (cp)
       cp += 3;
     }
 
-  return (((*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
+  return ((ignore_trailing
+           || (*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
 	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
 	      || state == (DOT_CHAR|TRAIL_INT)
 	      || state == (LEAD_INT|E_CHAR|EXP_INT)
@@ -3779,6 +3781,29 @@ intern (str)
   return Fintern (make_string (str, len), obarray);
 }
 
+Lisp_Object
+intern_c_string (const char *str)
+{
+  Lisp_Object tem;
+  int len = strlen (str);
+  Lisp_Object obarray;
+
+  obarray = Vobarray;
+  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+    obarray = check_obarray (obarray);
+  tem = oblookup (obarray, str, len, len);
+  if (SYMBOLP (tem))
+    return tem;
+
+  if (NILP (Vpurify_flag))
+    /* Creating a non-pure string from a string literal not
+       implemented yet.  We could just use make_string here and live
+       with the extra copy.  */
+    abort ();
+
+  return Fintern (make_pure_c_string (str), obarray);
+}
+
 /* Create an uninterned symbol with name STR.  */
 
 Lisp_Object
@@ -3898,6 +3923,13 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   /* If arg was a symbol, don't delete anything but that symbol itself.  */
   if (SYMBOLP (name) && !EQ (name, tem))
     return Qnil;
+
+  /* There are plenty of other symbols which will screw up the Emacs
+     session if we unintern them, as well as even more ways to use
+     `setq' or `fset' or whatnot to make the Emacs session
+     unusable.  Let's not go down this silly road.  --Stef  */
+  /* if (EQ (tem, Qnil) || EQ (tem, Qt))
+       error ("Attempt to unintern t or nil"); */
 
   XSYMBOL (tem)->interned = SYMBOL_UNINTERNED;
   XSYMBOL (tem)->constant = 0;
@@ -4051,7 +4083,7 @@ init_obarray ()
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
-  Qnil = Fmake_symbol (make_pure_string ("nil", 3, 3, 0));
+  Qnil = Fmake_symbol (make_pure_c_string ("nil"));
   Vobarray = Fmake_vector (oblength, make_number (0));
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
@@ -4066,12 +4098,12 @@ init_obarray ()
   tem = &XVECTOR (Vobarray)->contents[hash];
   *tem = Qnil;
 
-  Qunbound = Fmake_symbol (make_pure_string ("unbound", 7, 7, 0));
+  Qunbound = Fmake_symbol (make_pure_c_string ("unbound"));
   XSYMBOL (Qnil)->function = Qunbound;
   XSYMBOL (Qunbound)->value = Qunbound;
   XSYMBOL (Qunbound)->function = Qunbound;
 
-  Qt = intern ("t");
+  Qt = intern_c_string ("t");
   XSYMBOL (Qnil)->value = Qnil;
   XSYMBOL (Qnil)->plist = Qnil;
   XSYMBOL (Qt)->value = Qt;
@@ -4080,7 +4112,7 @@ init_obarray ()
   /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */
   Vpurify_flag = Qt;
 
-  Qvariable_documentation = intern ("variable-documentation");
+  Qvariable_documentation = intern_c_string ("variable-documentation");
   staticpro (&Qvariable_documentation);
 
   read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
@@ -4092,7 +4124,7 @@ defsubr (sname)
      struct Lisp_Subr *sname;
 {
   Lisp_Object sym;
-  sym = intern (sname->symbol_name);
+  sym = intern_c_string (sname->symbol_name);
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (XSYMBOL (sym)->function, sname);
 }
@@ -4113,12 +4145,10 @@ defalias (sname, string)
    to a C variable of type int.  Sample call:
    DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
-defvar_int (namestring, address)
-     char *namestring;
-     EMACS_INT *address;
+defvar_int (const char *namestring, EMACS_INT *address)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Intfwd;
   XINTFWD (val)->intvar = address;
@@ -4129,12 +4159,10 @@ defvar_int (namestring, address)
 /* Similar but define a variable whose value is t if address contains 1,
    nil if address contains 0.  */
 void
-defvar_bool (namestring, address)
-     char *namestring;
-     int *address;
+defvar_bool (const char *namestring, int *address)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Boolfwd;
   XBOOLFWD (val)->boolvar = address;
@@ -4149,12 +4177,10 @@ defvar_bool (namestring, address)
    gc-marked for some other reason, since marking the same slot twice
    can cause trouble with strings.  */
 void
-defvar_lisp_nopro (namestring, address)
-     char *namestring;
-     Lisp_Object *address;
+defvar_lisp_nopro (const char *namestring, Lisp_Object *address)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Objfwd;
   XOBJFWD (val)->objvar = address;
@@ -4163,9 +4189,7 @@ defvar_lisp_nopro (namestring, address)
 }
 
 void
-defvar_lisp (namestring, address)
-     char *namestring;
-     Lisp_Object *address;
+defvar_lisp (const char *namestring, Lisp_Object *address)
 {
   defvar_lisp_nopro (namestring, address);
   staticpro (address);
@@ -4176,12 +4200,10 @@ defvar_lisp (namestring, address)
    at a particular offset in the current kboard object.  */
 
 void
-defvar_kboard (namestring, offset)
-     char *namestring;
-     int offset;
+defvar_kboard (const char *namestring, int offset)
 {
   Lisp_Object sym, val;
-  sym = intern (namestring);
+  sym = intern_c_string (namestring);
   val = allocate_misc ();
   XMISCTYPE (val) = Lisp_Misc_Kboard_Objfwd;
   XKBOARD_OBJFWD (val)->offset = offset;
@@ -4479,8 +4501,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
-  Vload_suffixes = Fcons (build_string (".elc"),
-			  Fcons (build_string (".el"), Qnil));
+  Vload_suffixes = Fcons (make_pure_c_string (".elc"),
+			  Fcons (make_pure_c_string (".el"), Qnil));
   DEFVAR_LISP ("load-file-rep-suffixes", &Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
@@ -4498,7 +4520,7 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
-  Qload_in_progress = intern ("load-in-progress");
+  Qload_in_progress = intern_c_string ("load-in-progress");
   staticpro (&Qload_in_progress);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
@@ -4612,7 +4634,7 @@ from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
 to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
-    = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+    = make_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
   Qlexical_binding = intern ("lexical-binding");
   staticpro (&Qlexical_binding);
@@ -4631,7 +4653,7 @@ This variable automatically becomes buffer-local when set.  */);
   DEFVAR_LISP ("old-style-backquotes", &Vold_style_backquotes,
 	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
   Vold_style_backquotes = Qnil;
-  Qold_style_backquotes = intern ("old-style-backquotes");
+  Qold_style_backquotes = intern_c_string ("old-style-backquotes");
   staticpro (&Qold_style_backquotes);
 
   /* Vsource_directory was initialized in init_lread.  */
@@ -4639,55 +4661,55 @@ This variable automatically becomes buffer-local when set.  */);
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
 
-  Qcurrent_load_list = intern ("current-load-list");
+  Qcurrent_load_list = intern_c_string ("current-load-list");
   staticpro (&Qcurrent_load_list);
 
-  Qstandard_input = intern ("standard-input");
+  Qstandard_input = intern_c_string ("standard-input");
   staticpro (&Qstandard_input);
 
-  Qread_char = intern ("read-char");
+  Qread_char = intern_c_string ("read-char");
   staticpro (&Qread_char);
 
-  Qget_file_char = intern ("get-file-char");
+  Qget_file_char = intern_c_string ("get-file-char");
   staticpro (&Qget_file_char);
 
-  Qget_emacs_mule_file_char = intern ("get-emacs-mule-file-char");
+  Qget_emacs_mule_file_char = intern_c_string ("get-emacs-mule-file-char");
   staticpro (&Qget_emacs_mule_file_char);
 
-  Qload_force_doc_strings = intern ("load-force-doc-strings");
+  Qload_force_doc_strings = intern_c_string ("load-force-doc-strings");
   staticpro (&Qload_force_doc_strings);
 
-  Qbackquote = intern ("`");
+  Qbackquote = intern_c_string ("`");
   staticpro (&Qbackquote);
-  Qcomma = intern (",");
+  Qcomma = intern_c_string (",");
   staticpro (&Qcomma);
-  Qcomma_at = intern (",@");
+  Qcomma_at = intern_c_string (",@");
   staticpro (&Qcomma_at);
-  Qcomma_dot = intern (",.");
+  Qcomma_dot = intern_c_string (",.");
   staticpro (&Qcomma_dot);
 
-  Qinhibit_file_name_operation = intern ("inhibit-file-name-operation");
+  Qinhibit_file_name_operation = intern_c_string ("inhibit-file-name-operation");
   staticpro (&Qinhibit_file_name_operation);
 
-  Qascii_character = intern ("ascii-character");
+  Qascii_character = intern_c_string ("ascii-character");
   staticpro (&Qascii_character);
 
-  Qfunction = intern ("function");
+  Qfunction = intern_c_string ("function");
   staticpro (&Qfunction);
 
-  Qload = intern ("load");
+  Qload = intern_c_string ("load");
   staticpro (&Qload);
 
-  Qload_file_name = intern ("load-file-name");
+  Qload_file_name = intern_c_string ("load-file-name");
   staticpro (&Qload_file_name);
 
-  Qeval_buffer_list = intern ("eval-buffer-list");
+  Qeval_buffer_list = intern_c_string ("eval-buffer-list");
   staticpro (&Qeval_buffer_list);
 
-  Qfile_truename = intern ("file-truename");
+  Qfile_truename = intern_c_string ("file-truename");
   staticpro (&Qfile_truename) ;
 
-  Qdo_after_load_evaluation = intern ("do-after-load-evaluation");
+  Qdo_after_load_evaluation = intern_c_string ("do-after-load-evaluation");
   staticpro (&Qdo_after_load_evaluation) ;
 
   staticpro (&dump_path);
@@ -4700,19 +4722,19 @@ This variable automatically becomes buffer-local when set.  */);
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
 
-  Qhash_table = intern ("hash-table");
+  Qhash_table = intern_c_string ("hash-table");
   staticpro (&Qhash_table);
-  Qdata = intern ("data");
+  Qdata = intern_c_string ("data");
   staticpro (&Qdata);
-  Qtest = intern ("test");
+  Qtest = intern_c_string ("test");
   staticpro (&Qtest);
-  Qsize = intern ("size");
+  Qsize = intern_c_string ("size");
   staticpro (&Qsize);
-  Qweakness = intern ("weakness");
+  Qweakness = intern_c_string ("weakness");
   staticpro (&Qweakness);
-  Qrehash_size = intern ("rehash-size");
+  Qrehash_size = intern_c_string ("rehash-size");
   staticpro (&Qrehash_size);
-  Qrehash_threshold = intern ("rehash-threshold");
+  Qrehash_threshold = intern_c_string ("rehash-threshold");
   staticpro (&Qrehash_threshold);
 }
 

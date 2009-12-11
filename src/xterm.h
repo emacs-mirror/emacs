@@ -364,6 +364,10 @@ struct x_display_info
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen_atom,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky;
+
+  /* XSettings atoms and windows.  */
+  Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
+  Window xsettings_window;
 };
 
 #ifdef HAVE_X_I18N
@@ -973,6 +977,7 @@ extern int x_display_pixel_height P_ ((struct x_display_info *));
 extern int x_display_pixel_width P_ ((struct x_display_info *));
 
 extern void x_set_sticky P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_wait_for_event P_ ((struct frame *, int));
 
 /* Defined in xselect.c */
 

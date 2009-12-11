@@ -29,6 +29,7 @@ developing GNU and promoting software freedom.''
 
 @contents
 
+
 @node Top, Overview, (dir), (dir)
 @top D-Bus integration in Emacs
 
@@ -950,7 +951,7 @@ elements of this array.  Example:
   '(:array)                   ;; No actions (empty array of strings).
   '(:array :signature "@{sv@}") ;; No hints
                               ;; (empty array of dictionary entries).
-  ':int32 -1)                 ;; Default timeout.
+  :int32 -1)                 ;; Default timeout.
 
 @result{} 3
 @end lisp
@@ -1210,7 +1211,7 @@ They are converted into D-Bus types as described in @ref{Type
 Conversion}.
 
 Unless @var{handler} is @code{nil}, the function returns a key into
-the hash table @code{dbus-registered-functions-table}.  The
+the hash table @code{dbus-registered-objects-table}.  The
 corresponding entry in the hash table is removed, when the return
 message has been arrived, and @var{handler} is called.  Example:
 
@@ -1316,7 +1317,7 @@ registration for @var{method}.  Example:
 If you invoke the method @samp{org.freedesktop.TextEditor.OpenFile}
 from another D-Bus application with a filename as parameter, the file
 is opened in Emacs, and the method returns either @var{true} or
-@var{false}, indicating the success if the method.  As test tool one
+@var{false}, indicating the success of the method.  As test tool one
 could use the command line tool @code{dbus-send} in a shell:
 
 @example
@@ -1356,6 +1357,120 @@ The test runs then
 @print{} Error org.freedesktop.DBus.Error.Failed:
    Wrong argument list: ("/etc/hosts" "/etc/passwd")
 @end example
+@end defun
+
+@defun dbus-register-property bus service path interface property access value
+With this function, an application declares a @var{property} on the D-Bus
+@var{bus}.
+
+@var{bus} is either the symbol @code{:system} or the symbol
+@code{:session}.
+
+@var{service} is the D-Bus service name of the D-Bus.  It must be a
+known name.
+
+@var{path} is the D-Bus object path @var{service} is
+registered.
+
+@var{interface} is the name of the interface used at @var{path},
+@var{property} is the name of the property of @var{interface}.
+
+@var{access} indicates, whether the property can be changed by other
+services via D-Bus.  It must be either the symbol @code{:read} or
+@code{:readwrite}.  @var{value} is the initial value of the property,
+it can be of any valid type (see @code{dbus-call-method} for details).
+
+If @var{property} already exists on @var{path}, it will be
+overwritten.  For properties with access type @code{:read} this is the
+only way to change their values.  Properties with access type
+@code{:readwrite} can be changed by @code{dbus-set-property}.
+
+The interface @samp{org.freedesktop.DBus.Properties} is added to
+@var{path}, including a default handler for the @samp{Get},
+@samp{GetAll} and @samp{Set} methods of this interface.  Example:
+
+@lisp
+(dbus-register-property
+  :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
+  "org.freedesktop.TextEditor" "name" :read "GNU Emacs")
+
+@result{} ((:session "org.freedesktop.TextEditor" "name")
+    ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"))
+
+(dbus-register-property
+  :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
+  "org.freedesktop.TextEditor" "version" :readwrite emacs-version)
+
+@result{} ((:session "org.freedesktop.TextEditor" "version")
+    ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"))
+@end lisp
+
+Other D-Bus applications can read the property via the default methods
+@samp{org.freedesktop.DBus.Properties.Get} and
+@samp{org.freedesktop.DBus.Properties.GetAll}.  Testing is also
+possible via the command line tool @code{dbus-send} in a shell:
+
+@example
+# dbus-send --session --print-reply \
+    --dest="org.freedesktop.TextEditor" \
+    "/org/freedesktop/TextEditor" \
+    "org.freedesktop.DBus.Properties.GetAll" \
+    string:"org.freedesktop.TextEditor"
+
+@print{} method return sender=:1.22 -> dest=:1.23 reply_serial=3
+      array [
+         dict entry(
+            string "name"
+            variant             string "GNU Emacs"
+         )
+         dict entry(
+            string "version"
+            variant             string "23.1.50.5"
+         )
+      ]
+@end example
+
+It is also possible, to apply the @code{dbus-get-property},
+@code{dbus-get-all-properties} and @code{dbus-set-property} functions
+(@pxref{Properties and Annotations}).
+
+@lisp
+(dbus-set-property
+  :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
+  "org.freedesktop.TextEditor" "version" "23.1.50")
+
+@result{} "23.1.50"
+
+(dbus-get-property
+  :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
+  "org.freedesktop.TextEditor" "version")
+
+@result{} "23.1.50"
+@end lisp
+@end defun
+
+@defun dbus-unregister-object object
+Unregister @var{object} from the D-Bus.  @var{object} must be the
+result of a preceding @code{dbus-register-method},
+@code{dbus-register-property} or @code{dbus-register-signal} call
+(@pxref{Signals}).  It returns @code{t} if @var{object} has been
+unregistered, @code{nil} otherwise.
+
+When @var{object} identifies the last method or property, which is
+registered for the respective service, Emacs releases its association
+to the service from D-Bus.
+@end defun
+
+@defun dbus-unregister-service bus service
+Unregister all objects from D-Bus @var{bus}, registered by Emacs for
+@var{service}.
+
+@var{bus} is either the symbol @code{:system} or the symbol
+@code{:session}.
+
+@var{service} is the D-Bus service name of the D-Bus.  It must be a
+known name.  Emacs releases its association to @var{service} from
+D-Bus.
 @end defun
 
 
@@ -1450,13 +1565,6 @@ The callback function @code{my-dbus-signal-handler} must define one
 single string argument therefore.  Plugging an USB device to your
 machine, when registered for signal @samp{DeviceAdded}, will show you
 which objects the GNU/Linux @code{hal} daemon adds.
-@end defun
-
-@defun dbus-unregister-object object
-Unregister @var{object} from the D-Bus.  @var{object} must be the
-result of a preceding @code{dbus-register-signal} or
-@code{dbus-register-method} call.  It returns @code{t} if @var{object}
-has been unregistered, @code{nil} otherwise.
 @end defun
 
 

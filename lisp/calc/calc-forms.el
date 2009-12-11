@@ -81,7 +81,7 @@
 (defun calc-date-notation (fmt arg)
   (interactive "sDate format (e.g., M/D/YY h:mm:ss): \nP")
   (calc-wrapper
-   (if (equal fmt "")
+   (if (string-match-p "\\`\\s-*\\'" fmt)
        (setq fmt "1"))
    (if (string-match "\\` *[0-9] *\\'" fmt)
        (setq fmt (nth (string-to-number fmt) calc-standard-date-formats)))
@@ -537,6 +537,7 @@
 	       (calc-group-digits nil)
 	       (calc-leading-zeros nil)
 	       (calc-number-radix 10)
+               (calc-twos-complement-mode nil)
 	       math-fd-year math-fd-month math-fd-day math-fd-weekday
                math-fd-hour math-fd-minute math-fd-second
 	       (math-fd-bc-flag nil)

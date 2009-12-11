@@ -1801,8 +1801,7 @@ info-variant-part."
 
 (defun artist-clear-buffer (buf)
   "Clear contents of buffer BUF."
-  (save-excursion
-    (set-buffer buf)
+  (with-current-buffer buf
     (goto-char (point-min))
     (delete-char (- (point-max) (point-min)) nil)))
 
@@ -1848,10 +1847,8 @@ Return a list (RETURN-CODE STDOUT STDERR)."
 
 	    ;; the return value
 	    (list res
-		  (save-excursion
-		    (set-buffer tmp-stdout-buffer)
-		    (copy-sequence (buffer-substring (point-min)
-						     (point-max))))
+		  (with-current-buffer tmp-stdout-buffer
+                    (buffer-substring (point-min) (point-max)))
 		  (artist-file-to-string tmp-stderr-file-name)))
 
 	;; Unwind: remove temporary files and buffers
@@ -4753,6 +4750,15 @@ If optional argument STATE is positive, turn borders on."
   "Function that does nothing."
   (interactive))
 
+(defun artist-compute-up-event-key (ev)
+  "Compute the corresponding up key sequence for event EV."
+ (let* ((basic (event-basic-type ev))
+	(unshifted basic)
+	(shifted (make-symbol (concat "S-" (symbol-name basic)))))
+   (if (artist-event-is-shifted ev)
+       (make-vector 1 shifted)
+     (make-vector 1 unshifted))))
+
 (defun artist-down-mouse-1 (ev)
   "Perform drawing action for event EV."
   (interactive "@e")
@@ -4764,15 +4770,10 @@ If optional argument STATE is positive, turn borders on."
 	 (orig-draw-region-min-y artist-draw-region-min-y)
 	 (orig-draw-region-max-y artist-draw-region-max-y)
 	 (orig-pointer-shape (if (eq window-system 'x) x-pointer-shape nil))
-	 (echo-keystrokes 10000)	; a lot of seconds
+	 (echoq-keystrokes 10000)	; a lot of seconds
 	 ;; Remember original binding for the button-up event to this
 	 ;; button-down event.
-	 (key (let* ((basic (event-basic-type ev))
-		     (unshifted basic)
-		     (shifted (make-symbol (concat "S-" (symbol-name basic)))))
-		(if (artist-event-is-shifted ev)
-		    (make-vector 1 shifted)
-		  (make-vector 1 unshifted))))
+	 (key (artist-compute-up-event-key ev))
 	 (orig-button-up-binding (lookup-key (current-global-map) key)))
 
     (unwind-protect
@@ -4838,7 +4839,21 @@ If optional argument STATE is positive, turn borders on."
    (progn
      (select-window (posn-window (event-start last-input-event)))
      (list last-input-event
-           (x-popup-menu last-nonmenu-event artist-popup-menu-table))))
+	   (if (display-popup-menus-p)
+	       (x-popup-menu last-nonmenu-event artist-popup-menu-table)
+	     'no-popup-menus))))
+
+  (if (eq op 'no-popup-menus)
+      ;; No popup menus. Call `tmm-prompt' instead, but with the
+      ;; up-mouse-button, if any, temporarily disabled, otherwise
+      ;; it'll interfere.
+      (let* ((key (artist-compute-up-event-key ev))
+	     (orig-button-up-binding (lookup-key (current-global-map) key)))
+	(unwind-protect
+	    (define-key (current-global-map) key 'artist-do-nothing)
+	    (setq op (tmm-prompt artist-popup-menu-table))
+	  (if orig-button-up-binding
+	      (define-key (current-global-map) key orig-button-up-binding)))))
 
   (let ((draw-fn (artist-go-get-draw-fn-from-symbol (car op)))
 	(set-fn (artist-fc-get-fn-from-symbol (car op))))

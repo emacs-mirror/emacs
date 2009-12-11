@@ -230,13 +230,13 @@ nil for FUNCTION means all messages."
 	  (progn
 	    (split-window (selected-window) rmail-summary-window-size)
 	    (select-window (next-window (frame-first-window)))
-	    (pop-to-buffer rmail-summary-buffer)
+	    (rmail-pop-to-buffer rmail-summary-buffer)
 	    ;; If pop-to-buffer did not use that window, delete that
 	    ;; window.  (This can happen if it uses another frame.)
 	    (if (not (eq rmail-summary-buffer
 			 (window-buffer (frame-first-window))))
 		(delete-other-windows)))
-	(pop-to-buffer rmail-summary-buffer))
+	(rmail-pop-to-buffer rmail-summary-buffer))
       (set-buffer rmail-buffer)
       ;; This is how rmail makes the summary buffer reappear.
       ;; We do this here to make the window the proper size.
@@ -643,8 +643,7 @@ non-deleted messages."
 With prefix argument N moves forward N messages with these labels."
   (interactive "p\nsMove to next msg with labels: ")
   (let (msg)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (rmail-next-labeled-message n labels)
       (setq msg rmail-current-message))
     (rmail-summary-goto-msg msg)))
@@ -654,8 +653,7 @@ With prefix argument N moves forward N messages with these labels."
 With prefix argument N moves backward N messages with these labels."
   (interactive "p\nsMove to previous msg with labels: ")
   (let (msg)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (rmail-previous-labeled-message n labels)
       (setq msg rmail-current-message))
     (rmail-summary-goto-msg msg)))
@@ -798,19 +796,18 @@ Optional prefix ARG means undelete ARG previous messages."
 	     (rmail-summary-goto-msg)
 	     (if rmail-enable-mime
 		 (set-buffer rmail-buffer)
-	       (pop-to-buffer rmail-buffer))
+	       (rmail-pop-to-buffer rmail-buffer))
 	     (and (rmail-message-deleted-p rmail-current-message)
 		  (rmail-undelete-previous-message))
 	     (if rmail-enable-mime
-		 (pop-to-buffer rmail-buffer))
-	     (pop-to-buffer rmail-summary-buffer))
+		 (rmail-pop-to-buffer rmail-buffer))
+	     (rmail-pop-to-buffer rmail-summary-buffer))
 	    (t (goto-char opoint))))))
 
 (defun rmail-summary-undelete-many (&optional n)
   "Undelete all deleted msgs, optional prefix arg N means undelete N prev msgs."
   (interactive "P")
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (let* ((init-msg (if n rmail-current-message rmail-total-messages))
 	   (rmail-current-message init-msg)
 	   (n (or n rmail-total-messages))
@@ -967,9 +964,13 @@ Search, the `unseen' attribute is restored.")
 			(rmail-show-message msg-num t))
 		    (select-window owin))
 		(if (buffer-name rmail-buffer)
-		    (save-excursion
-		      (set-buffer rmail-buffer)
-		      (rmail-show-message msg-num t))))))
+		    (with-current-buffer rmail-buffer
+		      (rmail-show-message msg-num t))))
+	      ;; In linum mode, the message buffer must be specially
+	      ;; updated (Bug#4878).
+	      (and (fboundp 'linum-update)
+		   (buffer-name rmail-buffer)
+		   (linum-update rmail-buffer))))
 	(rmail-summary-update-highlight nil)))))
 
 (defun rmail-summary-save-buffer ()
@@ -1206,7 +1207,7 @@ Returns non-nil if message N was found."
 	 (curmsg (string-to-number
 		  (buffer-substring (point)
 				    (min (point-max) (+ 6 (point))))))
-	 (total (save-excursion (set-buffer buf) rmail-total-messages)))
+	 (total (with-current-buffer buf rmail-total-messages)))
     ;; If message number N was specified, find that message's line
     ;; or set message-not-found.
     ;; If N wasn't specified or that message can't be found.
@@ -1233,7 +1234,7 @@ Returns non-nil if message N was found."
     (unless skip-rmail
       (let ((selwin (selected-window)))
 	(unwind-protect
-	    (progn (pop-to-buffer buf)
+	    (progn (rmail-pop-to-buffer buf)
 		   (rmail-show-message n))
 	  (select-window selwin)
 	  ;; The actions above can alter the current buffer.  Preserve it.
@@ -1332,12 +1333,12 @@ Position it according to WHERE which can be BEG or END"
       (let ((buffer rmail-buffer))
 	(split-window (selected-window) rmail-summary-window-size)
 	(select-window (frame-first-window))
-	(pop-to-buffer rmail-buffer)
+	(rmail-pop-to-buffer rmail-buffer)
 	;; If pop-to-buffer did not use that window, delete that
 	;; window.  (This can happen if it uses another frame.)
 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
 	    (delete-other-windows)))
-    (pop-to-buffer rmail-buffer))
+    (rmail-pop-to-buffer rmail-buffer))
   (cond
    ((eq where 'BEG)
 	(goto-char (point-min))
@@ -1346,7 +1347,7 @@ Position it according to WHERE which can be BEG or END"
 	(goto-char (point-max))
 	(recenter (1- (window-height))))
    )
-  (pop-to-buffer rmail-summary-buffer))
+  (rmail-pop-to-buffer rmail-summary-buffer))
 
 (defun rmail-summary-bury ()
   "Bury the Rmail buffer and the Rmail summary buffer."
@@ -1368,20 +1369,19 @@ Position it according to WHERE which can be BEG or END"
 (defun rmail-summary-wipe ()
   "Kill and wipe away Rmail summary, remaining within Rmail."
   (interactive)
-  (save-excursion (set-buffer rmail-buffer) (setq rmail-summary-buffer nil))
+  (with-current-buffer rmail-buffer (setq rmail-summary-buffer nil))
   (let ((local-rmail-buffer rmail-buffer))
     (kill-buffer (current-buffer))
     ;; Delete window if not only one.
     (if (not (eq (selected-window) (next-window nil 'no-minibuf)))
 	(delete-window))
     ;; Switch windows to the rmail buffer, or switch to it in this window.
-    (pop-to-buffer local-rmail-buffer)))
+    (rmail-pop-to-buffer local-rmail-buffer)))
 
 (defun rmail-summary-expunge ()
   "Actually erase all deleted messages and recompute summary headers."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (when (rmail-expunge-confirmed)
       (rmail-only-expunge)))
   (rmail-update-summary))
@@ -1405,8 +1405,7 @@ argument says to read a file name and use that file as the inbox."
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
   (let (msg)
-    (save-excursion
-      (set-buffer rmail-buffer)
+    (with-current-buffer rmail-buffer
       (rmail-get-new-mail file-name)
       ;; Get the proper new message number.
       (setq msg rmail-current-message))
@@ -1418,7 +1417,7 @@ argument says to read a file name and use that file as the inbox."
   "Run Rmail on file FILENAME."
   (interactive "FRun rmail on RMAIL file: ")
   ;; We switch windows here, then display the other Rmail file there.
-  (pop-to-buffer rmail-buffer)
+  (rmail-pop-to-buffer rmail-buffer)
   (rmail filename))
 
 (defun rmail-summary-first-message ()
@@ -1451,7 +1450,7 @@ argument says to read a file name and use that file as the inbox."
 (defun rmail-summary-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
-  (pop-to-buffer rmail-buffer)
+  (rmail-pop-to-buffer rmail-buffer)
   (rmail-edit-current-message)
   (use-local-map rmail-summary-edit-map))
 
@@ -1459,14 +1458,14 @@ argument says to read a file name and use that file as the inbox."
   "Finish editing message, then go back to Rmail summary buffer."
   (interactive)
   (rmail-cease-edit)
-  (pop-to-buffer rmail-summary-buffer))
+  (rmail-pop-to-buffer rmail-summary-buffer))
 
 (defun rmail-summary-abort-edit ()
   "Abort edit of current message; restore original contents.
 Go back to summary buffer."
   (interactive)
   (rmail-abort-edit)
-  (pop-to-buffer rmail-summary-buffer))
+  (rmail-pop-to-buffer rmail-summary-buffer))
 
 (defun rmail-summary-search-backward (regexp &optional n)
   "Show message containing next match for REGEXP.
@@ -1493,12 +1492,8 @@ Interactively, empty argument means use same regexp used last time."
 	    (prefix-numeric-value current-prefix-arg))))
   ;; Don't use save-excursion because that prevents point from moving
   ;; properly in the summary buffer.
-  (let ((buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (set-buffer rmail-buffer)
-	  (rmail-search regexp (- n)))
-      (set-buffer buffer))))
+  (with-current-buffer rmail-buffer
+    (rmail-search regexp (- n))))
 
 (defun rmail-summary-search (regexp &optional n)
   "Show message containing next match for REGEXP.
@@ -1529,7 +1524,7 @@ Interactively, empty argument means use same regexp used last time."
 	(selwin (selected-window)))
     (unwind-protect
 	(progn
-	  (pop-to-buffer rmail-buffer)
+	  (rmail-pop-to-buffer rmail-buffer)
 	  (rmail-search regexp n))
       (select-window selwin)
       (set-buffer buffer))))
@@ -1556,21 +1551,17 @@ Interactively, empty argument means use same regexp used last time."
 (defun rmail-summary-add-label (label)
   "Add LABEL to labels associated with current Rmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (save-excursion
-		       (set-buffer rmail-buffer)
+  (interactive (list (with-current-buffer rmail-buffer
 		       (rmail-read-label "Add label"))))
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (rmail-add-label label)))
 
 (defun rmail-summary-kill-label (label)
   "Remove LABEL from labels associated with current Rmail message.
 Completion is performed over known labels when reading."
-  (interactive (list (save-excursion
-		       (set-buffer rmail-buffer)
+  (interactive (list (with-current-buffer rmail-buffer
 		       (rmail-read-label "Kill label"))))
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (rmail-set-label label nil)))
 
 ;;;; *** Rmail Summary Mailing Commands ***
@@ -1737,8 +1728,7 @@ Also set the default for subsequent \\[rmail-output-to-babyl-file] commands.
 The variables `rmail-secondary-file-directory' and
 `rmail-secondary-file-regexp' control which files are offered in the menu."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (let ((rmail-delete-after-output nil))
       (call-interactively 'rmail-output-menu)))
   (if rmail-delete-after-output
@@ -1767,8 +1757,7 @@ The variables `rmail-secondary-file-directory' and
   "Write this message body to the file FILE-NAME.
 FILE-NAME defaults, interactively, from the Subject field of the message."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
+  (with-current-buffer rmail-buffer
     (let ((rmail-delete-after-output nil))
       (if file-name
 	  (rmail-output-body-to-file file-name)
@@ -1837,7 +1826,7 @@ the summary is only showing a subset of messages."
   (require 'rmailsort)
   (let ((selwin (selected-window)))
     (unwind-protect
-	(progn (pop-to-buffer rmail-buffer)
+	(progn (rmail-pop-to-buffer rmail-buffer)
 	       (funcall sortfun reverse))
       (select-window selwin))))
 

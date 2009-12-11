@@ -174,12 +174,14 @@ Otherwise return the normal value."
 	  (viper-frame-value viper-vi-state-cursor-color)
 	  frame))))
 
-;; By default, saves current frame cursor color in the
-;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
+;; By default, saves current frame cursor color before changing viper state
 (defun viper-save-cursor-color (before-which-mode)
   (if (and (viper-window-display-p) (viper-color-display-p))
       (let ((color (viper-get-cursor-color)))
 	(if (and (stringp color) (viper-color-defined-p color)
+		 ;; there is something fishy in that the color is not saved if
+		 ;; it is the same as frames default cursor color. need to be
+		 ;; checked.
 		 (not (string= color
 			       (viper-frame-value
 				viper-replace-overlay-cursor-color))))
@@ -409,8 +411,7 @@ Otherwise return the normal value."
 	(command (cond (viper-ms-style-os-p (format "\"ls -1 -d %s\"" filespec))
 		       (t (format "ls -1 -d %s" filespec))))
 	status)
-    (save-excursion
-      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+    (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
       (erase-buffer)
       (setq status
 	    (if gshell-options
@@ -467,8 +468,7 @@ Otherwise return the normal value."
 
 ;; convert MS-DOS wildcards to regexp
 (defun viper-wildcard-to-regexp (wcard)
-  (save-excursion
-    (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+  (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
     (erase-buffer)
     (insert wcard)
     (goto-char (point-min))
@@ -488,8 +488,7 @@ Otherwise return the normal value."
 (defun viper-glob-mswindows-files (filespec)
   (let ((case-fold-search t)
 	tmp tmp2)
-    (save-excursion
-      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+    (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
       (erase-buffer)
       (insert filespec)
       (goto-char (point-min))
@@ -654,8 +653,7 @@ Otherwise return the normal value."
 	 (buf (find-file-noselect (substitute-in-file-name custom-file)))
 	)
     (message "%s" (or message ""))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (goto-char (point-min))
       (if (re-search-forward regexp nil t)
 	  (let ((reg-end (1- (match-end 0))))
@@ -678,8 +676,7 @@ Otherwise return the normal value."
 ;; match this pattern.
 (defun viper-save-string-in-file (string custom-file &optional pattern)
   (let ((buf (find-file-noselect (substitute-in-file-name custom-file))))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (let (buffer-read-only)
 	(goto-char (point-min))
 	(if pattern (delete-matching-lines pattern))
@@ -889,8 +886,7 @@ Otherwise return the normal value."
   (if (and (markerp marker) (marker-buffer marker))
       (let ((buf (marker-buffer marker))
 	    (pos (marker-position marker)))
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (and (<= pos (point-max)) (<= (point-min) pos))))))
 
 (defsubst viper-mark-marker ()
@@ -1052,6 +1048,11 @@ Otherwise return the normal value."
       (if mod
 	  (append mod (list basis))
 	basis))))
+
+(defun viper-last-command-char ()
+  (if (featurep 'xemacs)
+      (event-to-character last-command-event)
+    last-command-event))
 
 (defun viper-key-to-emacs-key (key)
   (let (key-name char-p modifiers mod-char-list base-key base-key-name)

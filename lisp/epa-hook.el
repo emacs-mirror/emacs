@@ -31,7 +31,7 @@
   (if (fboundp 'epa-file-name-regexp-update)
       (epa-file-name-regexp-update)))
 
-(defcustom epa-file-name-regexp "\\.gpg\\(~\\|\\.~[0-9]+~\\)?\\'"
+(defcustom epa-file-name-regexp (purecopy "\\.gpg\\(~\\|\\.~[0-9]+~\\)?\\'")
   "Regexp which matches filenames to be encrypted with GnuPG.
 
 If you set this outside Custom while epa-file is already enabled, you

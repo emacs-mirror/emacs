@@ -42,8 +42,7 @@
 Each can be used any number of times.")
 
 (defun url-nfs-unescape (format host port user pass file)
-  (save-excursion
-    (set-buffer (get-buffer-create " *nfs-parse*"))
+  (with-current-buffer (get-buffer-create " *nfs-parse*")
     (erase-buffer)
     (insert format)
     (goto-char (point-min))

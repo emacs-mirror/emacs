@@ -2242,13 +2242,15 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 
 (defun quail-mouse-choose-completion (event)
   "Click on an alternative in the `*Quail Completions*' buffer to choose it."
-  (interactive "e")
   ;; This function is an exact copy of the mouse.el function
   ;; `mouse-choose-completion' except that we:
-  ;; 1) add two lines from `choose-completion' in simple.el to give
-  ;;    the `mouse-2' click a little more leeway.
   ;; 2) don't bury *Quail Completions* buffer, so comment a section, and
   ;; 3) delete/terminate the current quail selection here.
+  ;; FIXME: Consolidate with `choose-completion'.  The point number
+  ;; 1 has been done, already.  The point number 3 should be fairly
+  ;; easy to move to a choose-completion-string-function.  So all
+  ;; that's left is point number 2.
+  (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (let ((buffer (window-buffer))
@@ -2288,6 +2290,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 ;; previous implementation.
 (defun quail-choose-completion-string (choice &optional buffer base-size)
   (setq quail-current-str choice)
+  ;; FIXME: We need to pass `base-position' here.
   (choose-completion-string choice buffer))
 
 (defun quail-build-decode-map (map-list key decode-map num

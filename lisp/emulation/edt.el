@@ -1272,7 +1272,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window."
 	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
   ;; report scroll margin settings if running interactively
-  (and (interactive-p)
+  (and (called-interactively-p 'interactive)
        (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
 		edt-top-scroll-margin edt-bottom-scroll-margin)))
 
@@ -2657,8 +2657,7 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
                 (progn
                   (message "%s..." (capitalize (symbol-name fun)))
                   (and b
-                       (save-excursion
-                         (set-buffer b)
+                       (with-current-buffer b
                          (set-buffer-modified-p t)))
                   (fset 'help-print-return-message 'ignore)
                   (call-interactively fun)
@@ -2669,8 +2668,7 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
                            (not (buffer-modified-p b)))))
               (fset 'help-print-return-message p)
               (and b (buffer-name b)
-                   (save-excursion
-                     (set-buffer b)
+                   (with-current-buffer b
                      (set-buffer-modified-p m))))))
         (with-electric-help 'delete-other-windows name t))))
 

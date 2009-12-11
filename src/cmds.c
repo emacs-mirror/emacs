@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
@@ -29,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "keymap.h"
 #include "dispextern.h"
+#include "frame.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
 
@@ -329,8 +331,8 @@ After insertion, the value of `auto-fill-function' is called if the
      (n)
      Lisp_Object n;
 {
-  CHECK_NUMBER (n);
   int remove_boundary = 1;
+  CHECK_NUMBER (n);
 
   if (!EQ (Vthis_command, current_kboard->Vlast_command))
     nonundocount = 0;
@@ -495,8 +497,6 @@ internal_self_insert (c, noautofill)
       hairy = 2;
     }
 
-  if (NILP (current_buffer->enable_multibyte_characters))
-    MAKE_CHAR_MULTIBYTE (c);
   synt = SYNTAX (c);
 
   if (!NILP (current_buffer->abbrev_mode)
@@ -505,7 +505,7 @@ internal_self_insert (c, noautofill)
       && PT > BEGV
       && (!NILP (current_buffer->enable_multibyte_characters)
 	  ? SYNTAX (XFASTINT (Fprevious_char ())) == Sword
-	  : (SYNTAX (unibyte_char_to_multibyte (XFASTINT (Fprevious_char ())))
+	  : (SYNTAX (UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
 	     == Sword)))
     {
       int modiff = MODIFF;
@@ -590,16 +590,16 @@ internal_self_insert (c, noautofill)
 void
 syms_of_cmds ()
 {
-  Qkill_backward_chars = intern ("kill-backward-chars");
+  Qkill_backward_chars = intern_c_string ("kill-backward-chars");
   staticpro (&Qkill_backward_chars);
 
-  Qkill_forward_chars = intern ("kill-forward-chars");
+  Qkill_forward_chars = intern_c_string ("kill-forward-chars");
   staticpro (&Qkill_forward_chars);
 
-  Qoverwrite_mode_binary = intern ("overwrite-mode-binary");
+  Qoverwrite_mode_binary = intern_c_string ("overwrite-mode-binary");
   staticpro (&Qoverwrite_mode_binary);
 
-  Qexpand_abbrev = intern ("expand-abbrev");
+  Qexpand_abbrev = intern_c_string ("expand-abbrev");
   staticpro (&Qexpand_abbrev);
 
   DEFVAR_LISP ("self-insert-face", &Vself_insert_face,

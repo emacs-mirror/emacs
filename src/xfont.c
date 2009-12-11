@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include <X11/Xlib.h>
 
 #include "lisp.h"
@@ -150,7 +151,9 @@ struct font_driver xfont_driver =
     xfont_text_extents,
     xfont_draw,
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    xfont_check
+    xfont_check,
+    NULL, /* get_variation_glyphs */
+    NULL, /* filter_properties */
   };
 
 extern Lisp_Object QCname;

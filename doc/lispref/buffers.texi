@@ -1180,10 +1180,10 @@ two or more buffers are actually a single virtual buffer that holds
 the contents of all the individual buffers together.
 
 @defun buffer-swap-text buffer
-This function swaps text between the current buffer and its argument
-@var{buffer}.  It signals an error if one of the two buffers is an
-indirect buffer (@pxref{Indirect Buffers}) or is a base buffer of an
-indirect buffer.
+This function swaps the text of the current buffer and that of its
+argument @var{buffer}.  It signals an error if one of the two buffers
+is an indirect buffer (@pxref{Indirect Buffers}) or is a base buffer
+of an indirect buffer.
 
 All the buffer properties that are related to the buffer text are
 swapped as well: the positions of point and mark, all the markers, the

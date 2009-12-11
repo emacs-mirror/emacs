@@ -130,7 +130,7 @@ or `cancel-timer'."
 (put 'pgg-save-coding-system 'lisp-indent-function 2)
 
 (defmacro pgg-save-coding-system (start end &rest body)
-  `(if (interactive-p)
+  `(if (called-interactively-p 'interactive)
        (let ((buffer (current-buffer)))
 	 (with-temp-buffer
 	   (let (buffer-undo-list)
@@ -324,7 +324,7 @@ passphrase cache or user."
 	 (pgg-save-coding-system start end
 	   (pgg-invoke "encrypt-region" (or pgg-scheme pgg-default-scheme)
 		       (point-min) (point-max) rcpts sign passphrase))))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -340,7 +340,7 @@ cache or user."
 	   (pgg-invoke "encrypt-symmetric-region"
 		       (or pgg-scheme pgg-default-scheme)
 		       (point-min) (point-max) passphrase))))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -357,7 +357,7 @@ passphrase cache or user."
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
 	 (status (pgg-encrypt-symmetric-region start end passphrase)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -376,7 +376,7 @@ passphrase cache or user."
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
 	 (status (pgg-encrypt-region start end rcpts sign passphrase)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -392,7 +392,7 @@ passphrase cache or user."
 	  (pgg-save-coding-system start end
 	    (pgg-invoke "decrypt-region" (or pgg-scheme pgg-default-scheme)
 			(point-min) (point-max) passphrase))))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -409,7 +409,7 @@ passphrase cache or user."
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
 	 (status (pgg-decrypt-region start end passphrase)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -429,9 +429,10 @@ passphrase cache or user."
   (let ((status (pgg-save-coding-system start end
 		  (pgg-invoke "sign-region" (or pgg-scheme pgg-default-scheme)
 			      (point-min) (point-max)
-			      (or (interactive-p) cleartext)
+			      (or (called-interactively-p 'interactive)
+				  cleartext)
                               passphrase))))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -454,9 +455,10 @@ passphrase cache or user."
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
 	 (status (pgg-sign-region start end
-                                  (or (interactive-p) cleartext)
+                                  (or (called-interactively-p 'interactive)
+				      cleartext)
                                   passphrase)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (pgg-display-output-buffer start end status))
     status))
 
@@ -484,7 +486,7 @@ signer's public key from `pgg-default-keyserver-address'."
 	 pgg-query-keyserver
 	 (setq key (concat "0x" (pgg-truncate-key-identifier key)))
 	 (null (pgg-lookup-key key))
-	 (or fetch (interactive-p))
+	 (or fetch (called-interactively-p 'interactive))
 	 (y-or-n-p (format "Key %s not found; attempt to fetch? " key))
 	 (setq keyserver
 	       (or (cdr (assq 'preferred-key-server packet))
@@ -494,7 +496,7 @@ signer's public key from `pgg-default-keyserver-address'."
 	  (pgg-save-coding-system start end
 	    (pgg-invoke "verify-region" (or pgg-scheme pgg-default-scheme)
 			(point-min) (point-max) signature)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (let ((temp-buffer-show-function
 	     (function pgg-temp-buffer-show-function)))
 	(with-output-to-temp-buffer pgg-echo-buffer
@@ -516,7 +518,7 @@ within the region."
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
 	 (status (pgg-verify-region start end signature fetch)))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (let ((temp-buffer-show-function
 	     (function pgg-temp-buffer-show-function)))
 	(with-output-to-temp-buffer pgg-echo-buffer

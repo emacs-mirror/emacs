@@ -121,8 +121,7 @@ URL can be a URL string, or a URL vector of the type returned by
       (setq url (url-generic-parse-url (url-unhex-string url)))
     (if (not (vectorp url))
         (error "Argument is not a valid URL")))
-  (save-excursion
-    (set-buffer (generate-new-buffer " *url-ldap*"))
+  (with-current-buffer (generate-new-buffer " *url-ldap*")
     (setq url-current-object url)
     (insert "Content-type: text/html\r\n\r\n")
     (if (not (fboundp 'ldap-search-internal))

@@ -807,8 +807,7 @@ see if a link is set for it.  Try extra help functions if necessary."
 (defun idlwave-help-get-special-help (name type class keyword)
   "Call the function given by `idlwave-extra-help-function'."
   (let* ((cw (selected-window))
-	 (help-pos (save-excursion
-		     (set-buffer (idlwave-help-get-help-buffer))
+	 (help-pos (with-current-buffer (idlwave-help-get-help-buffer)
 		     (let ((buffer-read-only nil))
 		       (funcall idlwave-extra-help-function
 				name type class keyword)))))
@@ -1224,8 +1223,7 @@ Useful when source code is displayed as help.  See the option
     (if buf
 	nil
       (setq buf (get-buffer-create "*IDLWAVE Help*"))
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(idlwave-help-mode)))
     buf))
 

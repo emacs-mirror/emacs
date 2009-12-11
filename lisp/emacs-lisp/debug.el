@@ -329,8 +329,7 @@ That buffer should be current already."
 (defun debugger-make-xrefs (&optional buffer)
   "Attach cross-references to function names in the `*Backtrace*' buffer."
   (interactive "b")
-  (save-excursion
-    (set-buffer (or buffer (current-buffer)))
+  (with-current-buffer (or buffer (current-buffer))
     (setq buffer (current-buffer))
     (let ((inhibit-read-only t)
 	  (old-end (point-min)) (new-end (point-min)))
@@ -873,7 +872,8 @@ To specify a nil argument interactively, exit with an empty minibuffer."
   "Display a list of all the functions now set to debug on entry."
   (interactive)
   (require 'help-mode)
-  (help-setup-xref '(debugger-list-functions) (interactive-p))
+  (help-setup-xref '(debugger-list-functions)
+		   (called-interactively-p 'interactive))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
       (if (null debug-function-list)

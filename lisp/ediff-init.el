@@ -1548,8 +1548,12 @@ This default should work without changes."
 
 (defun ediff-event-key (event-or-key)
   (if (featurep 'xemacs)
-      (if (eventp event-or-key) (event-key event-or-key) event-or-key)
+      ;;(if (eventp event-or-key) (event-key event-or-key) event-or-key)
+      (if (eventp event-or-key) (event-to-character event-or-key t t) event-or-key)
     event-or-key))
+
+(defun ediff-last-command-char ()
+  (ediff-event-key last-command-event))
 
 
 (defsubst ediff-frame-iconified-p (frame)

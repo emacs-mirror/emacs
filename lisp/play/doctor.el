@@ -1190,7 +1190,8 @@ the subject noun, and return the portion of the sentence following it."
 (defun doctor-adverbp (xx)
   (let ((xxstr (doctor-make-string xx)))
     (and (>= (length xxstr) 2)
-	 (string-equal (substring (doctor-make-string xx) -2) "ly"))))
+	 (string-equal (substring (doctor-make-string xx) -2) "ly")
+	 (not (memq xx '(family fly jelly rally))))))
 
 (defun doctor-articlep (x)
   (memq x '(the a an)))

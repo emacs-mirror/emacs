@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
 #include <stdarg.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "termchar.h"
@@ -1650,7 +1651,7 @@ produce_glyphs (it)
       if (unibyte_display_via_language_environment
 	  && (it->c >= 0240))
 	{
-	  it->char_to_display = unibyte_char_to_multibyte (it->c);
+	  it->char_to_display = BYTE8_TO_CHAR (it->c);
 	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
 	  it->nglyphs = it->pixel_width;
 	  if (it->glyph_row)
@@ -1808,8 +1809,8 @@ append_composite_glyph (it)
 
 /* Produce a composite glyph for iterator IT.  IT->cmp_id is the ID of
    the composition.  We simply produces components of the composition
-   assuming that that the terminal has a capability to layout/render
-   it correctly.  */
+   assuming that the terminal has a capability to layout/render it
+   correctly.  */
 
 static void
 produce_composite_glyph (it)
@@ -3950,8 +3951,6 @@ static void
 delete_tty (struct terminal *terminal)
 {
   struct tty_display_info *tty;
-  Lisp_Object tail, frame;
-  int last_terminal;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -3962,19 +3961,6 @@ delete_tty (struct terminal *terminal)
     abort ();
 
   tty = terminal->display_info.tty;
-
-  last_terminal = 1;
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && (!FRAME_TERMCAP_P (f) || FRAME_TTY (f) != tty))
-        {
-          last_terminal = 0;
-          break;
-        }
-    }
-  if (last_terminal)
-      error ("Attempt to delete the sole terminal device with live frames");
 
   if (tty == tty_list)
     tty_list = tty->next;

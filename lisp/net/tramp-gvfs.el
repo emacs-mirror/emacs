@@ -196,7 +196,7 @@
 
 ;; <interface name='org.gtk.vfs.MountOperation'>
 ;;   <method name='askPassword'>
-;;     <arg name='message' type='s'  direction='in'/>
+;;     <arg name='message'        type='s' direction='in'/>
 ;;     <arg name='default_user'   type='s' direction='in'/>
 ;;     <arg name='default_domain' type='s' direction='in'/>
 ;;     <arg name='flags'          type='u' direction='in'/>
@@ -499,9 +499,10 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-dbus-event-error (event err)
   "Called when a D-Bus error message arrives, see `dbus-event-error-hooks'."
-;  (tramp-cleanup-connection tramp-gvfs-dbus-event-vector)
-  (tramp-message tramp-gvfs-dbus-event-vector 1 "%S" event)
-  (tramp-error tramp-gvfs-dbus-event-vector 'file-error "%s" (cadr err)))
+  (when tramp-gvfs-dbus-event-vector
+    ;(tramp-cleanup-connection tramp-gvfs-dbus-event-vector)
+    (tramp-message tramp-gvfs-dbus-event-vector 10 "%S" event)
+    (tramp-error tramp-gvfs-dbus-event-vector 'file-error "%s" (cadr err))))
 
 (add-hook 'dbus-event-error-hooks 'tramp-gvfs-dbus-event-error)
 
@@ -520,9 +521,10 @@ is no information where to trace the message.")
      newname)
    ok-if-already-exists keep-date preserve-uid-gid))
 
-(defun tramp-gvfs-handle-delete-directory (directory)
+(defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
-  (delete-directory (tramp-gvfs-fuse-file-name directory)))
+  (tramp-compat-delete-directory
+   (tramp-gvfs-fuse-file-name directory) recursive))
 
 (defun tramp-gvfs-handle-delete-file (filename)
   "Like `delete-file' for Tramp files."
@@ -724,6 +726,10 @@ is no information where to trace the message.")
 		   (tramp-gvfs-url-file-name filename)))
 	       (signal (car err) (cdr err)))
 	   (delete-file tmpfile)))))
+
+    ;; Set file modification time.
+    (when (or (eq visit t) (stringp visit))
+      (set-visited-file-modtime (nth 5 (file-attributes filename))))
 
     ;; The end.
     (when (or (eq visit t) (null visit) (stringp visit))
@@ -1091,7 +1097,7 @@ connection if a previous connection has died for some reason."
 	      vec 'file-error
 	      "Timeout reached mounting %s@%s using %s" user host method)))
 	(while (not (tramp-get-file-property vec "/" "fuse-mountpoint" nil))
-	  (sit-for 0.1)))
+	  (read-event nil nil 0.1)))
 
       ;; We set the connection property "started" in order to put the
       ;; remote location into the cache, which is helpful for further

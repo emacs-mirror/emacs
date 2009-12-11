@@ -1578,6 +1578,8 @@ The value nil is the same as this list:
 (define-key special-event-map [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 (defcustom x-gtk-stock-map
+  (mapcar (lambda (arg)
+	    (cons (purecopy (car arg)) (purecopy (cdr arg))))
   '(
     ("etc/images/new" . "gtk-new")
     ("etc/images/open" . "gtk-open")
@@ -1637,7 +1639,7 @@ The value nil is the same as this list:
     ;; No themed versions available:
     ;; mail/preview (combining stock_mail and stock_zoom)
     ;; mail/save    (combining stock_mail, stock_save and stock_convert)
-    )
+    ))
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
 A value that begins with n: denotes a named icon instead of a stock icon."

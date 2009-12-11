@@ -34,6 +34,8 @@
 ;; Setup font-encoding-alist for all known encodings.
 
 (setq font-encoding-alist
+      (mapcar (lambda (arg)
+		(cons (purecopy (car arg)) (cdr arg)))
       '(("iso8859-1$" . iso-8859-1)
 	("iso8859-2$" . iso-8859-2)
 	("iso8859-3$" . iso-8859-3)
@@ -116,7 +118,7 @@
 	("mulelao-1" . mule-lao)
 	("muletibetan-2" . tibetan)
 	("muletibetan-0" . tibetan)
-	("muletibetan-1" . tibetan-1-column)))
+	("muletibetan-1" . tibetan-1-column))))
 
 (defvar font-encoding-charset-alist)
 
@@ -292,7 +294,7 @@
 ;;	or a string FONT-NAME,
 ;;	or an object created by `font-spec'.
 ;;
-;; FAMILY may be nil, in which case, the the corresponding name of
+;; FAMILY may be nil, in which case, the corresponding name of
 ;; default face is used.  If REGISTRY contains a character `-', the
 ;; string before that is embedded in `CHARSET_REGISTRY' field, and the
 ;; string after that is embedded in `CHARSET_ENCODING' field.  If it
@@ -794,15 +796,15 @@ Internal use only.  Should be called at startup time."
 
 ;; Setting for suppressing XLoadQueryFont on big fonts.
 (setq x-pixel-size-width-font-regexp
-      "gb2312\\|gbk\\|gb18030\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
+      (purecopy "gb2312\\|gbk\\|gb18030\\|jisx0208\\|ksc5601\\|cns11643\\|big5"))
 
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
-      "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
+      (purecopy "gb2312\\|gbk\\|gb18030\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5"))
 
 ;; CDAC fonts are actually smaller than their design sizes.
 (setq face-font-rescale-alist
-      '(("-cdac$" . 1.3)))
+      (list (cons (purecopy "-cdac$")  1.3)))
 
 (defvar x-font-name-charset-alist nil
   "This variable has no meaning now.  Just kept for backward compatibility.")

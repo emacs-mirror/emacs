@@ -37,6 +37,8 @@
 ;;; Code:
 
 (require 'eshell)
+(require 'esh-opt)
+(require 'pcomplete)
 
 ;;;###autoload
 (eshell-defgroup eshell-unix nil
@@ -145,7 +147,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (make-local-variable 'eshell-complex-commands)
   (setq eshell-complex-commands
 	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
-		  "cat" "time" "cp" "mv" "make" "du" "diff")
+		  "cat" "time" "cp" "mv" "make" "du" "diff" "su" "sudo")
 		eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
@@ -667,8 +669,7 @@ Concatenate FILE(s), or standard input, to standard output.")
   "In Occur mode, go to the occurrence whose line you click on."
   (interactive "e")
   (let (pos)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
+    (with-current-buffer (window-buffer (posn-window (event-end event)))
       (save-excursion
 	(goto-char (posn-point (event-end event)))
 	(setq pos (occur-mode-find-occurrence))))
@@ -860,9 +861,8 @@ external command."
     (if (and ext-du
 	     (not (catch 'have-ange-path
 		    (eshell-for arg args
-		      (if (eq (find-file-name-handler (expand-file-name arg)
-						      'directory-files)
-			      'ange-ftp-hook-function)
+		      (if (string-equal
+			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
 	(throw 'eshell-replace-command
 	       (eshell-parse-command ext-du args))
@@ -957,7 +957,9 @@ Show wall-clock time elapsed during execution of COMMAND.")
 				  (eshell-stringify-list
 				   (eshell-flatten-list (cdr time-args))))))))
 
-(defalias 'eshell/whoami 'user-login-name)
+(defun eshell/whoami (&rest args)
+  "Make \"whoami\" Tramp aware."
+  (or (file-remote-p default-directory 'user) (user-login-name)))
 
 (defvar eshell-diff-window-config nil)
 
@@ -1042,6 +1044,82 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (apply 'occur args))))
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
+
+;; Pacify the byte-compiler.
+(defvar tramp-default-proxies-alist)
+
+(defun eshell/su (&rest args)
+  "Alias \"su\" to call Tramp."
+  (require 'tramp)
+  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (let ((orig-args (copy-tree args)))
+    (eshell-eval-using-options
+     "su" args
+     '((?h "help" nil nil "show this usage screen")
+       (?l "login" nil login "provide a login environment")
+       (?  nil nil login "provide a login environment")
+       :usage "[- | -l | --login] [USER]
+Become another USER during a login session.")
+     (throw 'eshell-replace-command
+	    (let ((user "root")
+		  (host (or (file-remote-p default-directory 'host)
+			    "localhost"))
+		  (dir (or (file-remote-p default-directory 'localname)
+			   (expand-file-name default-directory))))
+	      (eshell-for arg args
+		(if (string-equal arg "-") (setq login t) (setq user arg)))
+	      ;; `eshell-eval-using-options' does not handle "-".
+	      (if (member "-" orig-args) (setq login t))
+	      (if login (setq dir "~/"))
+	      (if (and (file-remote-p default-directory)
+		       (or
+			(not (string-equal
+			      "su" (file-remote-p default-directory 'method)))
+			(not (string-equal
+			      user (file-remote-p default-directory 'user)))))
+		  (add-to-list
+		   'tramp-default-proxies-alist
+		   (list host user (file-remote-p default-directory))))
+	      (eshell-parse-command
+	       "cd" (list (format "/su:%s@%s:%s" user host dir))))))))
+
+(put 'eshell/su 'eshell-no-numeric-conversions t)
+
+(defun eshell/sudo (&rest args)
+  "Alias \"sudo\" to call Tramp."
+  (require 'tramp)
+  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (let ((orig-args (copy-tree args)))
+    (eshell-eval-using-options
+     "sudo" args
+     '((?h "help" nil nil "show this usage screen")
+       (?u "user" t user "execute a command as another USER")
+       :show-usage
+       :usage "[(-u | --user) USER] COMMAND
+Execute a COMMAND as the superuser or another USER.")
+     (throw 'eshell-external
+	    (let ((user (or user "root"))
+		  (host (or (file-remote-p default-directory 'host)
+			    "localhost"))
+		  (dir (or (file-remote-p default-directory 'localname)
+			   (expand-file-name default-directory))))
+	      ;; `eshell-eval-using-options' reads options of COMMAND.
+	      (while (and (stringp (car orig-args))
+			  (member (car orig-args) '("-u" "--user")))
+		(setq orig-args (cddr orig-args)))
+	      (if (and (file-remote-p default-directory)
+		       (or
+			(not (string-equal
+			      "sudo" (file-remote-p default-directory 'method)))
+			(not (string-equal
+			      user (file-remote-p default-directory 'user)))))
+		  (add-to-list
+		   'tramp-default-proxies-alist
+		   (list host user (file-remote-p default-directory))))
+	      (let ((default-directory (format "/sudo:%s@%s:%s" user host dir)))
+		(eshell-named-command (car orig-args) (cdr orig-args))))))))
+
+(put 'eshell/sudo 'eshell-no-numeric-conversions t)
 
 (provide 'em-unix)
 

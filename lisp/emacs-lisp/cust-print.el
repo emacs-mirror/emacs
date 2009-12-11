@@ -332,15 +332,13 @@ This is the custom-print replacement for the standard `prin1-to-string'."
   (let ((buf (get-buffer-create " *custom-print-temp*")))
     ;; We must erase the buffer before printing in case an error
     ;; occurred during the last prin1-to-string and we are in debugger.
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (erase-buffer))
     ;; We must be in the current-buffer when the print occurs.
     (if noescape
 	(custom-princ object buf)
       (custom-prin1 object buf))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (buffer-string)
       ;; We could erase the buffer again, but why bother?
       )))

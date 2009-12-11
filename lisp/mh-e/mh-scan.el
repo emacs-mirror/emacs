@@ -451,8 +451,7 @@ with `mh-scan-msg-format-string'."
   (or mh-progs (mh-find-path))
   (let ((tmp-buffer (get-buffer-create mh-temp-buffer))
         (width 0))
-    (save-excursion
-      (set-buffer tmp-buffer)
+    (with-current-buffer tmp-buffer
       (erase-buffer)
       (apply 'call-process
              (expand-file-name mh-scan-prog mh-progs) nil '(t nil) nil

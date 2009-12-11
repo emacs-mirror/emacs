@@ -116,8 +116,7 @@ The buffer is left in Command History mode."
 	  (prin1 (car history))
 	  (terpri))
 	(setq history (cdr history))))
-    (save-excursion
-      (set-buffer "*Command History*")
+    (with-current-buffer "*Command History*"
       (goto-char (point-min))
       (if (eobp)
 	  (error "No command history")

@@ -47,9 +47,7 @@
        (pcomplete-match-string 1 0)))
   (while (pcomplete-here
 	  (if (file-directory-p "/proc")
-	      (let ((default-directory "/proc/"))
-		(mapcar 'directory-file-name
-			(pcomplete-entries "[0-9]+/$"))))
+              (directory-files "/proc" nil "\\`[0-9]+\\'"))
 	  nil 'identity)))
 
 ;;;###autoload
@@ -68,13 +66,8 @@
 (defun pcmpl-linux-fs-types ()
   "Return a list of available fs modules on GNU/Linux systems."
   (let ((kernel-ver (pcomplete-process-result "uname" "-r")))
-    (mapcar
-     (function
-      (lambda (fsobj)
-	(substring fsobj 0 (- (length fsobj) 2))))
-     (let ((default-directory
-	     (concat "/lib/modules/" kernel-ver "/fs/")))
-       (pcomplete-entries "\\.o$")))))
+    (directory-files
+     (concat "/lib/modules/" kernel-ver "/kernel/fs/"))))
 
 (defun pcmpl-linux-mounted-directories ()
   "Return a list of mounted directory names."

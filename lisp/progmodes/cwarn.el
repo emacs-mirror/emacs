@@ -187,6 +187,8 @@ deactivated."
 (define-minor-mode cwarn-mode
   "Minor mode that highlights suspicious C and C++ constructions.
 
+Suspicious constructs are highlighted using `font-lock-warning-face'.
+
 Note, in addition to enabling this minor mode, the major mode must
 be included in the variable `cwarn-configuration'.  By default C and
 C++ modes are included.

@@ -148,9 +148,11 @@ displayed."
             (if (not clean-message-header)
                 (mh-start-of-uncleaned-message)))
         (mh-display-msg msg folder)))
-    (if (not (= (1+ (window-height)) (frame-height))) ;not horizontally split
-        (shrink-window (- (window-height) (or mh-summary-height
-                                              (mh-summary-height)))))
+    (unless (if (fboundp 'window-full-height-p)
+                (window-full-height-p)
+              (= (1+ (window-height)) (frame-height))) ; not vertically split
+      (shrink-window (- (window-height) (or mh-summary-height
+                                            (mh-summary-height)))))
     (mh-recenter nil)
     ;; The following line is a nop which forces update of the scan line so
     ;; that font-lock will update it (if needed)...
@@ -324,8 +326,7 @@ ignored if VISIBLE-HEADERS is non-nil."
 (defun mh-invalidate-show-buffer ()
   "Invalidate the show buffer so we must update it to use it."
   (if (get-buffer mh-show-buffer)
-      (save-excursion
-        (set-buffer mh-show-buffer)
+      (with-current-buffer mh-show-buffer
         (mh-unvisit-file))))
 
 (defun mh-unvisit-file ()
@@ -509,8 +510,7 @@ still visible.\n")
     "--"
     ["Narrow to Subject Sequence"       mh-show-narrow-to-subject t]
     ["Narrow to Tick Sequence"          mh-show-narrow-to-tick
-     (save-excursion
-       (set-buffer mh-show-folder-buffer)
+     (with-current-buffer mh-show-folder-buffer
        (and mh-tick-seq (mh-seq-msgs (mh-find-seq mh-tick-seq))))]
     ["Delete Rest of Same Subject"      mh-show-delete-subject t]
     ["Toggle Tick Mark"                 mh-show-toggle-tick t]

@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,7 +27,8 @@
 ;;; Commentary:
 
 (require 'org-exp)
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl))
 
 (defgroup org-export-ascii nil
   "Options specific for ASCII export of Org-mode files."
@@ -56,6 +57,18 @@ When nil, the link will be exported in place.  If the line becomes long
 in this way, it will be wrapped."
   :group 'org-export-ascii
   :type 'boolean)
+
+(defcustom org-export-ascii-table-keep-all-vertical-lines nil
+  "Non-nil means, keep all vertical lines in ASCII tables.
+When nil, vertical lines will be removed except for those needed
+for column grouping."
+  :group 'org-export-ascii
+  :type 'boolean)
+
+;;; Hooks
+
+(defvar org-export-ascii-final-hook nil
+  "Hook run at the end of ASCII export, in the new buffer.")
 
 ;;; ASCII export
 
@@ -114,7 +127,7 @@ in a window.  A non-interactive call will only return the buffer."
     (setq buffer "*Org ASCII Export*"))
   (let ((transient-mark-mode t) (zmacs-regions t)
 	ext-plist rtn)
-    (setq ext-plist (plist-put ext-plist :ignore-subree-p t))
+    (setq ext-plist (plist-put ext-plist :ignore-subtree-p t))
     (goto-char end)
     (set-mark (point)) ;; to activate the region
     (goto-char beg)
@@ -151,7 +164,7 @@ publishing directory."
 	 (rbeg (and region-p (region-beginning)))
 	 (rend (and region-p (region-end)))
 	 (subtree-p
-	  (if (plist-get opt-plist :ignore-subree-p)
+	  (if (plist-get opt-plist :ignore-subtree-p)
 	      nil
 	    (when region-p
 	      (save-excursion
@@ -456,6 +469,7 @@ publishing directory."
 	(setq end (next-single-property-change beg 'org-cwidth))
 	(delete-region beg end)
 	(goto-char beg)))
+    (run-hooks 'org-export-ascii-final-hook)
     (or to-buffer (save-buffer))
     (goto-char (point-min))
     (or (org-export-push-to-kill-ring "ASCII")
@@ -578,18 +592,20 @@ publishing directory."
       ;; column and the special lines
       (setq lines (org-table-clean-before-export lines)))
     ;; Get rid of the vertical lines except for grouping
-    (let ((vl (org-colgroup-info-to-vline-list org-table-colgroup-info))
-	  rtn line vl1 start)
-      (while (setq line (pop lines))
-	(if (string-match org-table-hline-regexp line)
-	    (and (string-match "|\\(.*\\)|" line)
-		 (setq line (replace-match " \\1" t nil line)))
-	  (setq start 0 vl1 vl)
-	  (while (string-match "|" line start)
-	    (setq start (match-end 0))
-	    (or (pop vl1) (setq line (replace-match " " t t line)))))
-	(push line rtn))
-      (nreverse rtn))))
+    (if org-export-ascii-table-keep-all-vertical-lines
+	lines
+      (let ((vl (org-colgroup-info-to-vline-list org-table-colgroup-info))
+	    rtn line vl1 start)
+	(while (setq line (pop lines))
+	  (if (string-match org-table-hline-regexp line)
+	      (and (string-match "|\\(.*\\)|" line)
+		   (setq line (replace-match " \\1" t nil line)))
+	    (setq start 0 vl1 vl)
+	    (while (string-match "|" line start)
+	      (setq start (match-end 0))
+	      (or (pop vl1) (setq line (replace-match " " t t line)))))
+	  (push line rtn))
+	(nreverse rtn)))))
 
 (defun org-colgroup-info-to-vline-list (info)
   (let (vl new last)

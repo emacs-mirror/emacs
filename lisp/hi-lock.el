@@ -253,7 +253,7 @@ a library is being loaded.")
 
 (define-key-after hi-lock-menu [highlight-lines-matching-regexp]
   '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
-              :help "Highlight lines containing match of PATTERN (a regexp).."))
+              :help "Highlight lines containing match of PATTERN (a regexp)."))
 
 (define-key-after hi-lock-menu [unhighlight-regexp]
   '(menu-item "Remove Highlighting..." unhighlight-regexp
@@ -338,7 +338,7 @@ is found.  A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   :keymap hi-lock-map
   (when (and (equal (buffer-name) "*scratch*")
              load-in-progress
-             (not (interactive-p))
+             (not (called-interactively-p 'interactive))
              (not hi-lock-archaic-interface-message-used))
     (setq hi-lock-archaic-interface-message-used t)
     (if hi-lock-archaic-interface-deduce
@@ -447,7 +447,7 @@ lower-case letters made case insensitive."
   (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
 
-(declare-function x-popup-menu "xmenu.c" (position menu))
+(declare-function x-popup-menu "menu.c" (position menu))
 
 ;;;###autoload
 (defalias 'unhighlight-regexp 'hi-lock-unface-buffer)
@@ -636,7 +636,7 @@ This is used by `hi-lock-set-pattern'.")
                    (y-or-n-p "Add patterns from this buffer to hi-lock? "))
                   (t nil)))
         (hi-lock-set-file-patterns all-patterns)
-        (if (interactive-p)
+        (if (called-interactively-p 'interactive)
             (message "Hi-lock added %d patterns." (length all-patterns)))))))
 
 (defun hi-lock-font-lock-hook ()

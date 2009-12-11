@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
@@ -253,13 +254,13 @@ init_casetab_once ()
 {
   register int i;
   Lisp_Object down, up;
-  Qcase_table = intern ("case-table");
+  Qcase_table = intern_c_string ("case-table");
   staticpro (&Qcase_table);
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
      But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
   /* Now we are ready to set up this property, so we can
      create char tables.  */
@@ -297,7 +298,7 @@ init_casetab_once ()
 void
 syms_of_casetab ()
 {
-  Qcase_table_p = intern ("case-table-p");
+  Qcase_table_p = intern_c_string ("case-table-p");
   staticpro (&Qcase_table_p);
 
   staticpro (&Vascii_canon_table);

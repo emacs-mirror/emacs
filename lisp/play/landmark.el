@@ -827,6 +827,7 @@ If the game is finished, this command requests for another game."
 	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
+  ;; FIXME: this can't be right!!  --Stef
   (save-excursion (set-buffer (other-buffer))))
 
 (defun lm-prompt-for-other-game ()
@@ -1178,15 +1179,13 @@ because it is overwritten by \"One moment please\"."
 
 (defun lm-print-wts ()
   (interactive)
-  (save-excursion
-    (set-buffer "*lm-wts*")
+  (with-current-buffer "*lm-wts*"
     (insert "==============================\n")
     (mapc 'lm-print-wts-int lm-directions)))
 
 (defun lm-print-moves (moves)
   (interactive)
-  (save-excursion
-    (set-buffer "*lm-moves*")
+  (with-current-buffer "*lm-moves*"
     (insert (format "%S\n" moves))))
 
 
@@ -1200,8 +1199,7 @@ because it is overwritten by \"One moment please\"."
 
 (defun lm-print-y,s,noise ()
   (interactive)
-  (save-excursion
-    (set-buffer "*lm-y,s,noise*")
+  (with-current-buffer "*lm-y,s,noise*"
     (insert "==============================\n")
     (mapc 'lm-print-y,s,noise-int lm-directions)))
 
@@ -1212,8 +1210,7 @@ because it is overwritten by \"One moment please\"."
 
 (defun lm-print-smell ()
   (interactive)
-  (save-excursion
-    (set-buffer "*lm-smell*")
+  (with-current-buffer "*lm-smell*"
     (insert "==============================\n")
     (insert (format "tree: %S \n" (get 'z 't)))
     (mapc 'lm-print-smell-int lm-directions)))
@@ -1225,14 +1222,12 @@ because it is overwritten by \"One moment please\"."
 
 (defun lm-print-w0 ()
   (interactive)
-  (save-excursion
-    (set-buffer "*lm-w0*")
+  (with-current-buffer "*lm-w0*"
     (insert "==============================\n")
     (mapc 'lm-print-w0-int lm-directions)))
 
 (defun lm-blackbox ()
-  (save-excursion
-    (set-buffer "*lm-blackbox*")
+  (with-current-buffer "*lm-blackbox*"
     (insert "==============================\n")
     (insert "I smell: ")
     (mapc (lambda (direction)
@@ -1556,35 +1551,32 @@ If the game is finished, this command requests for another game."
   (lm-plot-landmarks)
 
   (if lm-debug
-      (progn
-	(save-excursion
-	  (set-buffer (get-buffer-create "*lm-w0*"))
-    (erase-buffer)
-    (set-buffer (get-buffer-create "*lm-moves*"))
-    (set-buffer (get-buffer-create "*lm-wts*"))
-    (erase-buffer)
-    (set-buffer (get-buffer-create "*lm-y,s,noise*"))
-    (erase-buffer)
-    (set-buffer (get-buffer-create "*lm-smell*"))
-    (erase-buffer)
-    (set-buffer (get-buffer-create "*lm-blackbox*"))
-    (erase-buffer)
-    (set-buffer (get-buffer-create "*lm-distance*"))
-    (erase-buffer))))
+      (save-current-buffer
+        (set-buffer (get-buffer-create "*lm-w0*"))
+        (erase-buffer)
+        (set-buffer (get-buffer-create "*lm-moves*"))
+        (set-buffer (get-buffer-create "*lm-wts*"))
+        (erase-buffer)
+        (set-buffer (get-buffer-create "*lm-y,s,noise*"))
+        (erase-buffer)
+        (set-buffer (get-buffer-create "*lm-smell*"))
+        (erase-buffer)
+        (set-buffer (get-buffer-create "*lm-blackbox*"))
+        (erase-buffer)
+        (set-buffer (get-buffer-create "*lm-distance*"))
+        (erase-buffer)))
 
 
   (lm-set-landmark-signal-strengths)
 
-  (mapc (lambda (direction)
-	     (put direction 'y_t 0.0))
-	  lm-directions)
+  (dolist (direction lm-directions)
+    (put direction 'y_t 0.0))
 
   (if (not save-weights)
       (progn
 	(mapc 'lm-fix-weights-for lm-directions)
-	(mapc (lambda (direction)
-		   (put direction 'w0 lm-initial-w0))
-	lm-directions))
+	(dolist (direction lm-directions)
+          (put direction 'w0 lm-initial-w0)))
     (message "Weights preserved for this run."))
 
   (if auto-start

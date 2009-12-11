@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-docbook.el
-;; Version: 6.30c
+;; Version: 6.33x
 ;; Author: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
@@ -119,7 +119,7 @@ entities, you can set this variable to:
 ]>
 \"
 
-If you want to process DocBook documents without internet
+If you want to process DocBook documents without an Internet
 connection, it is suggested that you download the required entity
 file(s) and use system identifier(s) (external files) in the
 DOCTYPE declaration."
@@ -242,6 +242,11 @@ the variable to
   :group 'org-export-docbook
   :type 'string)
 
+;;; Hooks
+
+(defvar org-export-docbook-final-hook nil
+  "Hook run at the end of DocBook export, in the new buffer.")
+
 ;;; Autoload functions:
 
 ;;;###autoload
@@ -280,8 +285,7 @@ then use this command to convert it."
 			 beg end t 'string))
 	(setq reg (buffer-substring beg end)
 	      buf (get-buffer-create "*Org tmp*"))
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (erase-buffer)
 	  (insert reg)
 	  (org-mode)
@@ -406,7 +410,7 @@ publishing directory."
 	 (rbeg (and region-p (region-beginning)))
 	 (rend (and region-p (region-end)))
 	 (subtree-p
-	  (if (plist-get opt-plist :ignore-subree-p)
+	  (if (plist-get opt-plist :ignore-subtree-p)
 	      nil
 	    (when region-p
 	      (save-excursion
@@ -732,8 +736,12 @@ publishing directory."
 	  ;; Make targets to anchors.  Note that currently FOP does not
 	  ;; seem to support <anchor> tags when generating PDF output,
 	  ;; but this can be used in DocBook --> HTML conversion.
-	  (while (string-match "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
+	  (setq start 0)
+	  (while (string-match
+		  "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line start)
 	    (cond
+	     ((get-text-property (match-beginning 1) 'org-protected line)
+	      (setq start (match-end 1)))
 	     ((match-end 2)
 	      (setq line (replace-match
 			  (format "@<anchor xml:id=\"%s\"/>"
@@ -1123,6 +1131,7 @@ publishing directory."
       (goto-char (point-max))
       (unless body-only
 	(insert "</article>"))
+      (run-hooks 'org-export-docbook-final-hook)
       (or to-buffer (save-buffer))
       (goto-char (point-min))
       (or (org-export-push-to-kill-ring "DocBook")

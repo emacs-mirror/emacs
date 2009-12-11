@@ -60,8 +60,9 @@
 ;;   it means no completions were available.
 ;;
 ;; @ In order to provide completions, they must throw the tag
-;;   `pcomplete-completions'.  The value must be the list of possible
-;;   completions for the final argument.
+;;   `pcomplete-completions'.  The value must be a completion table
+;;   (i.e. a table that can be passed to try-completion and friends)
+;;   for the final argument.
 ;;
 ;; @ To simplify completion function logic, the tag `pcompleted' may
 ;;   be thrown with a value of nil in order to abort the function.  It
@@ -118,7 +119,7 @@
 
 ;;; Code:
 
-(provide 'pcomplete)
+(eval-when-compile (require 'cl))
 
 (defgroup pcomplete nil
   "Programmable completion."
@@ -138,6 +139,8 @@
   :group 'pcomplete)
 
 (defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt cygwin))
+  ;; FIXME: the doc mentions file-name completion, but the code
+  ;; seems to apply it to all completions.
   "If non-nil, ignore case when doing filename completion."
   :type 'boolean
   :group 'pcomplete)
@@ -348,6 +351,186 @@ modified to be an empty string, or the desired separation string."
 
 ;;; User Functions:
 
+;;; Alternative front-end using the standard completion facilities.
+
+;; The way pcomplete-parse-arguments, pcomplete-stub, and
+;; pcomplete-quote-argument work only works because of some deep
+;; hypothesis about the way the completion work.  Basically, it makes
+;; it pretty much impossible to have completion other than
+;; prefix-completion.
+;;
+;; pcomplete--common-quoted-suffix and pcomplete--table-subvert try to
+;; work around this difficulty with heuristics, but it's
+;; really a hack.
+
+(defvar pcomplete-unquote-argument-function nil)
+
+(defun pcomplete-unquote-argument (s)
+  (cond
+   (pcomplete-unquote-argument-function
+    (funcall pcomplete-unquote-argument-function s))
+   ((null pcomplete-arg-quote-list) s)
+   (t
+    (replace-regexp-in-string "\\\\\\(.\\)" "\\1" s t))))
+
+(defun pcomplete--common-suffix (s1 s2)
+  (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
+  ;; Since S2 is expected to be the "unquoted/expanded" version of S1,
+  ;; there shouldn't be any case difference, even if the completion is
+  ;; case-insensitive.
+  (let ((case-fold-search nil)) ;; pcomplete-ignore-case
+    (string-match ".*?\\(.*\\)\n.*\\1\\'" (concat s1 "\n" s2))
+    (- (match-end 1) (match-beginning 1))))
+
+(defun pcomplete--common-quoted-suffix (s1 s2)
+  "Find the common suffix between S1 and S2 where S1 is the expanded S2.
+S1 is expected to be the unquoted and expanded version of S1.
+Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
+S1 = (concat PS1 SS1) and S2 = (concat PS2 SS2) and
+SS1 = (unquote SS2)."
+  (let* ((cs (pcomplete--common-suffix s1 s2))
+         (ss1 (substring s1 (- (length s1) cs)))
+         (qss1 (pcomplete-quote-argument ss1))
+         qc)
+    (if (and (not (equal ss1 qss1))
+             (setq qc (pcomplete-quote-argument (substring ss1 0 1)))
+             (eq t (compare-strings s2 (- (length s2) cs (length qc) -1)
+                                    (- (length s2) cs -1)
+                                    qc nil nil)))
+        ;; The difference found is just that one char is quoted in S2
+        ;; but not in S1, keep looking before this difference.
+        (pcomplete--common-quoted-suffix
+         (substring s1 0 (- (length s1) cs))
+         (substring s2 0 (- (length s2) cs (length qc) -1)))
+      (cons (substring s1 0 (- (length s1) cs))
+            (substring s2 0 (- (length s2) cs))))))
+
+(defun pcomplete--table-subvert (table s1 s2 string pred action)
+  "Completion table that replaces the prefix S1 with S2 in STRING.
+When TABLE, S1 and S2 are provided by `apply-partially', the result
+is a completion table which completes strings of the form (concat S1 S)
+in the same way as TABLE completes strings of the form (concat S2 S)."
+  (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
+                                         completion-ignore-case))
+                  (concat s2 (pcomplete-unquote-argument
+                              (substring string (length s1))))))
+         (res (if str (complete-with-action action table str pred))))
+    (when res
+      (cond
+       ((and (eq (car-safe action) 'boundaries))
+        (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
+          (list* 'boundaries
+                 (max (length s1)
+                      ;; FIXME: Adjust because of quoting/unquoting.
+                      (+ beg (- (length s1) (length s2))))
+                 (and (eq (car-safe res) 'boundaries) (cddr res)))))
+       ((stringp res)
+        (if (eq t (compare-strings res 0 (length s2) s2 nil nil
+                                   completion-ignore-case))
+            (concat s1 (pcomplete-quote-argument
+                        (substring res (length s2))))))
+       ((eq action t)
+        (let ((bounds (completion-boundaries str table pred "")))
+          (if (>= (car bounds) (length s2))
+              res
+            (let ((re (concat "\\`"
+                              (regexp-quote (substring s2 (car bounds))))))
+              (delq nil
+                    (mapcar (lambda (c)
+                              (if (string-match re c)
+                                  (substring c (match-end 0))))
+                            res))))))))))
+        
+;; I don't think such commands are usable before first setting up buffer-local
+;; variables to parse args, so there's no point autoloading it.
+;; ;;;###autoload
+(defun pcomplete-std-complete ()
+  "Provide standard completion using pcomplete's completion tables.
+Same as `pcomplete' but using the standard completion UI."
+  (interactive)
+  ;; FIXME: it only completes the text before point, whereas the
+  ;; standard UI may also consider text after point.
+  (catch 'pcompleted
+    (let* ((pcomplete-stub)
+           pcomplete-seen pcomplete-norm-func
+           pcomplete-args pcomplete-last pcomplete-index
+           (pcomplete-autolist pcomplete-autolist)
+           (pcomplete-suffix-list pcomplete-suffix-list)
+           ;; Apparently the vars above are global vars modified by
+           ;; side-effects, whereas pcomplete-completions is the core
+           ;; function that finds the chunk of text to complete
+           ;; (returned indirectly in pcomplete-stub) and the set of
+           ;; possible completions.
+           (completions (pcomplete-completions))
+           ;; Usually there's some close connection between pcomplete-stub
+           ;; and the text before point.  But depending on what
+           ;; pcomplete-parse-arguments-function does, that connection
+           ;; might not be that close.  E.g. in eshell,
+           ;; pcomplete-parse-arguments-function expands envvars.
+           ;; 
+           ;; Since we use minibuffer-complete, which doesn't know
+           ;; pcomplete-stub and works from the buffer's text instead,
+           ;; we need to trick minibuffer-complete, into using
+           ;; pcomplete-stub without its knowledge.  To that end, we
+           ;; use pcomplete--table-subvert to construct a completion
+           ;; table which expects strings using a prefix from the
+           ;; buffer's text but internally uses the corresponding
+           ;; prefix from pcomplete-stub.
+           (beg (max (- (point) (length pcomplete-stub))
+                     (pcomplete-begin)))
+           (buftext (buffer-substring beg (point)))
+           (table
+            (cond
+             ((null completions) nil)
+             ((not (equal pcomplete-stub buftext))
+              ;; This isn't always strictly right (e.g. if
+              ;; FOO="toto/$FOO", then completion of /$FOO/bar may
+              ;; result in something incorrect), but given the lack of
+              ;; any other info, it's about as good as it gets, and in
+              ;; practice it should work just fine (fingers crossed).
+              (let ((prefixes (pcomplete--common-quoted-suffix
+                               pcomplete-stub buftext)))
+                (apply-partially
+                 'pcomplete--table-subvert
+                 completions
+                 (cdr prefixes) (car prefixes))))
+             (t
+              (lexical-let ((completions completions))
+                (lambda (string pred action)
+                  (let ((res (complete-with-action
+                              action completions string pred)))
+                    (if (stringp res)
+                        (pcomplete-quote-argument res)
+                      res)))))))
+           (pred
+            ;; pare it down, if applicable
+            (when (and table pcomplete-use-paring pcomplete-seen)
+              (setq pcomplete-seen
+                    (mapcar (lambda (f)
+                              (funcall pcomplete-norm-func
+                                       (directory-file-name f)))
+                            pcomplete-seen))
+              (lambda (f)
+                (not (member
+                      (funcall pcomplete-norm-func
+                               (directory-file-name f))
+                      pcomplete-seen))))))
+
+      (completion-in-region
+       beg (point)
+       ;; Add a space at the end of completion.  Use a terminator-regexp
+       ;; that never matches since the terminator cannot appear
+       ;; within the completion field anyway.
+       (if (zerop (length pcomplete-termination-string))
+           table
+         (apply-partially 'completion-table-with-terminator
+                          (cons pcomplete-termination-string
+                                "\\`a\\`")
+                          table))
+       pred))))
+
+;;; Pcomplete's native UI.
+
 ;;;###autoload
 (defun pcomplete (&optional interactively)
   "Support extensible programmable completion.
@@ -364,16 +547,15 @@ completion functions list (it should occur fairly early in the list)."
 	(delete-backward-char pcomplete-last-completion-length)
 	(if (eq this-command 'pcomplete-reverse)
 	    (progn
-	      (setq pcomplete-current-completions
-		    (cons (car (last pcomplete-current-completions))
-			  pcomplete-current-completions))
+              (push (car (last pcomplete-current-completions))
+                    pcomplete-current-completions)
 	      (setcdr (last pcomplete-current-completions 2) nil))
 	  (nconc pcomplete-current-completions
 		 (list (car pcomplete-current-completions)))
 	  (setq pcomplete-current-completions
 		(cdr pcomplete-current-completions)))
 	(pcomplete-insert-entry pcomplete-last-completion-stub
-				(car pcomplete-current-completions)
+                                (car pcomplete-current-completions)
 				nil pcomplete-last-completion-raw))
     (setq pcomplete-current-completions nil
 	  pcomplete-last-completion-raw nil)
@@ -424,12 +606,12 @@ This will modify the current buffer."
 	(pcomplete-expand-only-p t))
     (pcomplete)
     (when (and pcomplete-current-completions
-	       (> (length pcomplete-current-completions) 0))
+	       (> (length pcomplete-current-completions) 0)) ;??
       (delete-backward-char pcomplete-last-completion-length)
       (while pcomplete-current-completions
 	(unless (pcomplete-insert-entry
 		 "" (car pcomplete-current-completions) t
-		 pcomplete-last-completion-raw)
+                 pcomplete-last-completion-raw)
 	  (insert-and-inherit pcomplete-termination-string))
 	(setq pcomplete-current-completions
 	      (cdr pcomplete-current-completions))))))
@@ -574,12 +756,12 @@ user actually typed in."
       (goto-char begin)
       (while (< (point) end)
 	(skip-chars-forward " \t\n")
-	(setq begins (cons (point) begins))
+	(push (point) begins)
 	(skip-chars-forward "^ \t\n")
-	(setq args (cons (buffer-substring-no-properties
-			  (car begins) (point))
-			 args)))
-      (cons (reverse args) (reverse begins)))))
+	(push (buffer-substring-no-properties
+               (car begins) (point))
+              args))
+      (cons (nreverse args) (nreverse begins)))))
 
 ;;;###autoload
 (defun pcomplete-comint-setup (completef-sym)
@@ -589,18 +771,20 @@ dynamic-complete-functions are kept.  For comint mode itself,
 this is `comint-dynamic-complete-functions'."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-comint-arguments)
-  (make-local-variable completef-sym)
+  (set (make-local-variable completef-sym)
+       (copy-sequence (symbol-value completef-sym)))
   (let* ((funs (symbol-value completef-sym))
-	 (elem (or (memq 'comint-dynamic-complete-filename funs)
-		   (memq 'shell-dynamic-complete-filename funs))))
+	 (elem (or (memq 'shell-dynamic-complete-filename funs)
+		   (memq 'comint-dynamic-complete-filename funs))))
     (if elem
 	(setcar elem 'pcomplete)
       (add-to-list completef-sym 'pcomplete))))
 
 ;;;###autoload
 (defun pcomplete-shell-setup ()
-  "Setup shell-mode to use pcomplete."
-  (pcomplete-comint-setup 'shell-dynamic-complete-functions))
+  "Setup `shell-mode' to use pcomplete."
+  ;; FIXME: insufficient
+  (pcomplete-comint-setup 'comint-dynamic-complete-functions))
 
 (declare-function comint-bol "comint" (&optional arg))
 
@@ -613,17 +797,16 @@ this is `comint-dynamic-complete-functions'."
       (goto-char begin)
       (while (< (point) end)
 	(skip-chars-forward " \t\n")
-	(setq begins (cons (point) begins))
+	(push (point) begins)
 	(let ((skip t))
 	  (while skip
 	    (skip-chars-forward "^ \t\n")
 	    (if (eq (char-before) ?\\)
 		(skip-chars-forward " \t\n")
 	      (setq skip nil))))
-	(setq args (cons (buffer-substring-no-properties
-			  (car begins) (point))
-			 args)))
-      (cons (reverse args) (reverse begins)))))
+	(push (buffer-substring-no-properties (car begins) (point))
+              args))
+      (cons (nreverse args) (nreverse begins)))))
 
 (defun pcomplete-parse-arguments (&optional expand-p)
   "Parse the command line arguments.  Most completions need this info."
@@ -636,9 +819,9 @@ this is `comint-dynamic-complete-functions'."
 	    pcomplete-stub (pcomplete-arg 'last))
       (let ((begin (pcomplete-begin 'last)))
 	(if (and pcomplete-cycle-completions
-		 (listp pcomplete-stub)
+		 (listp pcomplete-stub) ;??
 		 (not pcomplete-expand-only-p))
-	    (let* ((completions pcomplete-stub)
+	    (let* ((completions pcomplete-stub) ;??
 		   (common-stub (car completions))
 		   (c completions)
 		   (len (length common-stub)))
@@ -677,35 +860,31 @@ this is `comint-dynamic-complete-functions'."
 Magic characters are those in `pcomplete-arg-quote-list'."
   (if (null pcomplete-arg-quote-list)
       filename
-    (let ((len (length filename))
-	  (index 0)
-	  (result "")
-	  replacement char)
-      (while (< index len)
-	(setq replacement (run-hook-with-args-until-success
-			   'pcomplete-quote-arg-hook filename index))
-	(cond
-	 (replacement
-	  (setq result (concat result replacement)))
-	 ((and (setq char (aref filename index))
-	       (memq char pcomplete-arg-quote-list))
-	  (setq result (concat result "\\" (char-to-string char))))
-	 (t
-	  (setq result (concat result (char-to-string char)))))
-	(setq index (1+ index)))
-      result)))
+    (let ((index 0))
+      (mapconcat (lambda (c)
+                   (prog1
+                       (or (run-hook-with-args-until-success
+                            'pcomplete-quote-arg-hook filename index)
+                           (when (memq c pcomplete-arg-quote-list)
+                             (string "\\" c))
+                           (char-to-string c))
+                     (setq index (1+ index))))
+                 filename
+                 ""))))
 
 ;; file-system completion lists
 
 (defsubst pcomplete-dirs-or-entries (&optional regexp predicate)
   "Return either directories, or qualified entries."
-  (append (let ((pcomplete-stub pcomplete-stub))
-	    (pcomplete-entries
-	     regexp (or predicate
-			(function
-			 (lambda (path)
-			   (not (file-directory-p path)))))))
-	  (pcomplete-entries nil 'file-directory-p)))
+  ;; FIXME: pcomplete-entries doesn't return a list any more.
+  (pcomplete-entries
+   nil
+   (lexical-let ((re regexp)
+                 (pred predicate))
+     (lambda (f)
+       (or (file-directory-p f)
+           (and (if (not re) t (string-match re f))
+                (if (not pred) t (funcall pred f))))))))
 
 (defun pcomplete-entries (&optional regexp predicate)
   "Complete against a list of directory candidates.
@@ -826,7 +1005,7 @@ behaves, for example."
 	      (let ((result (read-from-string options index)))
 		(setq index (cdr result)))
 	    (unless (memq char '(?/ ?* ?? ?.))
-	      (setq choices (cons (char-to-string char) choices)))
+	      (push (char-to-string char) choices))
 	    (setq index (1+ index))))
 	(throw 'pcomplete-completions
 	       (mapcar
@@ -873,12 +1052,11 @@ See the documentation for `pcomplete-here'."
 	    (setq pcomplete-seen nil)
 	  (unless (eq paring t)
 	    (let ((arg (pcomplete-arg)))
-	      (unless (not (stringp arg))
-		(setq pcomplete-seen
-		      (cons (if paring
-				(funcall paring arg)
-			      (file-truename arg))
-			    pcomplete-seen))))))
+	      (when (stringp arg)
+                (push (if paring
+                          (funcall paring arg)
+                        (file-truename arg))
+                      pcomplete-seen)))))
 	(pcomplete-next-arg)
 	t)
     (when pcomplete-show-help
@@ -891,12 +1069,17 @@ See the documentation for `pcomplete-here'."
       (setq pcomplete-norm-func (or paring 'file-truename)))
     (unless form-only
       (run-hooks 'pcomplete-try-first-hook))
-    (throw 'pcomplete-completions (eval form))))
+    (throw 'pcomplete-completions
+           (if (functionp form)
+               (funcall form)
+             ;; Old calling convention, might still be used by files
+             ;; byte-compiled with the older code.
+             (eval form)))))
 
 (defmacro pcomplete-here (&optional form stub paring form-only)
   "Complete against the current argument, if at the end.
-If completion is to be done here, evaluate FORM to generate the list
-of strings which will be used for completion purposes.  If STUB is a
+If completion is to be done here, evaluate FORM to generate the completion
+table which will be used for completion purposes.  If STUB is a
 string, use it as the completion stub instead of the default (which is
 the entire text of the current argument).
 
@@ -904,7 +1087,7 @@ For an example of when you might want to use STUB: if the current
 argument text is 'long-path-name/', you don't want the completions
 list display to be cluttered by 'long-path-name/' appearing at the
 beginning of every alternative.  Not only does this make things less
-intelligle, but it is also inefficient.  Yet, if the completion list
+intelligible, but it is also inefficient.  Yet, if the completion list
 does not begin with this string for every entry, the current argument
 won't complete correctly.
 
@@ -923,11 +1106,14 @@ cleared.
 If FORM-ONLY is non-nil, only the result of FORM will be used to
 generate the completions list.  This means that the hook
 `pcomplete-try-first-hook' will not be run."
-  `(pcomplete--here (quote ,form) ,stub ,paring ,form-only))
+  (declare (debug t))
+  `(pcomplete--here (lambda () ,form) ,stub ,paring ,form-only))
+
 
 (defmacro pcomplete-here* (&optional form stub form-only)
   "An alternate form which does not participate in argument paring."
-  `(pcomplete-here ,form ,stub t ,form-only))
+  (declare (debug t))
+  `(pcomplete-here (lambda () ,form) ,stub t ,form-only))
 
 ;; display support
 
@@ -958,44 +1144,43 @@ generate the completions list.  This means that the hook
 (defun pcomplete-show-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
-  (let* ((curbuf (current-buffer)))
-    (when pcomplete-window-restore-timer
-      (cancel-timer pcomplete-window-restore-timer)
-      (setq pcomplete-window-restore-timer nil))
-    (unless pcomplete-last-window-config
-      (setq pcomplete-last-window-config (current-window-configuration)))
-    (with-output-to-temp-buffer "*Completions*"
-      (display-completion-list completions))
-    (message "Hit space to flush")
-    (let (event)
-      (prog1
-	  (catch 'done
-	    (while (with-current-buffer (get-buffer "*Completions*")
-		     (setq event (pcomplete-read-event)))
-	      (cond
-	       ((pcomplete-event-matches-key-specifier-p event ?\s)
-		(set-window-configuration pcomplete-last-window-config)
-		(setq pcomplete-last-window-config nil)
-		(throw 'done nil))
-	       ((or (pcomplete-event-matches-key-specifier-p event 'tab)
-                    ;; Needed on a terminal
-                    (pcomplete-event-matches-key-specifier-p event 9))
-                (let ((win (or (get-buffer-window "*Completions*" 0)
-                               (display-buffer "*Completions*"
-                                               'not-this-window))))
-                  (with-selected-window win
-                    (if (pos-visible-in-window-p (point-max))
-                        (goto-char (point-min))
-                      (scroll-up))))
-		(message ""))
-	       (t
-		(setq unread-command-events (list event))
-		(throw 'done nil)))))
-	(if (and pcomplete-last-window-config
-		 pcomplete-restore-window-delay)
-	    (setq pcomplete-window-restore-timer
-		  (run-with-timer pcomplete-restore-window-delay nil
-				  'pcomplete-restore-windows)))))))
+  (when pcomplete-window-restore-timer
+    (cancel-timer pcomplete-window-restore-timer)
+    (setq pcomplete-window-restore-timer nil))
+  (unless pcomplete-last-window-config
+    (setq pcomplete-last-window-config (current-window-configuration)))
+  (with-output-to-temp-buffer "*Completions*"
+    (display-completion-list completions))
+  (message "Hit space to flush")
+  (let (event)
+    (prog1
+        (catch 'done
+          (while (with-current-buffer (get-buffer "*Completions*")
+                   (setq event (pcomplete-read-event)))
+            (cond
+             ((pcomplete-event-matches-key-specifier-p event ?\s)
+              (set-window-configuration pcomplete-last-window-config)
+              (setq pcomplete-last-window-config nil)
+              (throw 'done nil))
+             ((or (pcomplete-event-matches-key-specifier-p event 'tab)
+                  ;; Needed on a terminal
+                  (pcomplete-event-matches-key-specifier-p event 9))
+              (let ((win (or (get-buffer-window "*Completions*" 0)
+                             (display-buffer "*Completions*"
+                                             'not-this-window))))
+                (with-selected-window win
+                  (if (pos-visible-in-window-p (point-max))
+                      (goto-char (point-min))
+                    (scroll-up))))
+              (message ""))
+             (t
+              (setq unread-command-events (list event))
+              (throw 'done nil)))))
+      (if (and pcomplete-last-window-config
+               pcomplete-restore-window-delay)
+          (setq pcomplete-window-restore-timer
+                (run-with-timer pcomplete-restore-window-delay nil
+                                'pcomplete-restore-windows))))))
 
 ;; insert completion at point
 
@@ -1010,6 +1195,9 @@ Returns non-nil if a space was appended at the end."
 			       (substring entry (length stub)))))
       ;; the stub is not quoted at this time, so to determine the
       ;; length of what should be in the buffer, we must quote it
+      ;; FIXME: Here we presume that quoting `stub' gives us the exact
+      ;; text in the buffer before point, which is not guaranteed;
+      ;; e.g. it is not the case in eshell when completing ${FOO}tm[TAB].
       (delete-backward-char (length (pcomplete-quote-argument stub)))
       ;; if there is already a backslash present to handle the first
       ;; character, don't bother quoting it
@@ -1043,40 +1231,25 @@ extra checking, and munging of the COMPLETIONS list."
 	   (message "No completions of %s" stub)
 	 (message "No completions")))
     ;; pare it down, if applicable
-    (if (and pcomplete-use-paring pcomplete-seen)
-	(let* ((arg (pcomplete-arg))
-	       (prefix
-		(file-name-as-directory
-		 (funcall pcomplete-norm-func
-			  (substring arg 0 (- (length arg)
-					      (length pcomplete-stub)))))))
-	  (setq pcomplete-seen
-		(mapcar 'directory-file-name pcomplete-seen))
-	  (let ((p pcomplete-seen))
-	    (while p
-	      (add-to-list 'pcomplete-seen
-			   (funcall pcomplete-norm-func (car p)))
-	      (setq p (cdr p))))
-	  (setq completions
-		(mapcar
-		 (function
-		  (lambda (elem)
-		    (file-relative-name elem prefix)))
-		 (pcomplete-pare-list
-		  (mapcar
-		   (function
-		    (lambda (elem)
-		      (expand-file-name elem prefix)))
-		   completions)
-		  pcomplete-seen
-		  (function
-		   (lambda (elem)
-		     (member (directory-file-name
-			      (funcall pcomplete-norm-func elem))
-			     pcomplete-seen))))))))
+    (when (and pcomplete-use-paring pcomplete-seen)
+      (setq pcomplete-seen
+            (mapcar 'directory-file-name pcomplete-seen))
+      (dolist (p pcomplete-seen)
+        (add-to-list 'pcomplete-seen
+                     (funcall pcomplete-norm-func p)))
+      (setq completions
+            (apply-partially 'completion-table-with-predicate
+                             completions
+                             (lambda (f)
+                               (not (member
+                                     (funcall pcomplete-norm-func
+                                              (directory-file-name f))
+                                     pcomplete-seen)))
+                             'strict)))
     ;; OK, we've got a list of completions.
     (if pcomplete-show-list
-	(pcomplete-show-completions completions)
+        ;; FIXME: pay attention to boundaries.
+	(pcomplete-show-completions (all-completions stub completions))
       (pcomplete-stub stub completions))))
 
 (defun pcomplete-stub (stub candidates &optional cycle-p)
@@ -1093,43 +1266,47 @@ Returns `listed' if a completion listing was shown.
 
 See also `pcomplete-filename'."
   (let* ((completion-ignore-case pcomplete-ignore-case)
-	 (candidates (mapcar 'list candidates))
-	 (completions (all-completions stub candidates)))
-    (let (result entry)
-      (cond
-       ((null completions)
-	(if (and stub (> (length stub) 0))
-	    (message "No completions of %s" stub)
-	  (message "No completions")))
-       ((= 1 (length completions))
-	(setq entry (car completions))
-	(if (string-equal entry stub)
-	    (message "Sole completion"))
-	(setq result 'sole))
-       ((and pcomplete-cycle-completions
-	     (or cycle-p
-		 (not pcomplete-cycle-cutoff-length)
-		 (<= (length completions)
-		     pcomplete-cycle-cutoff-length)))
-	(setq entry (car completions)
-	      pcomplete-current-completions completions))
-       (t ; There's no unique completion; use longest substring
-	(setq entry (try-completion stub candidates))
-	(cond ((and pcomplete-recexact
-		    (string-equal stub entry)
-		    (member entry completions))
-	       ;; It's not unique, but user wants shortest match.
-	       (message "Completed shortest")
-	       (setq result 'shortest))
-	      ((or pcomplete-autolist
-		   (string-equal stub entry))
-	       ;; It's not unique, list possible completions.
-	       (pcomplete-show-completions completions)
-	       (setq result 'listed))
-	      (t
-	       (message "Partially completed")
-	       (setq result 'partial)))))
-      (cons result entry))))
+	 (completions (all-completions stub candidates))
+         (entry (try-completion stub candidates))
+         result)
+    (cond
+     ((null entry)
+      (if (and stub (> (length stub) 0))
+          (message "No completions of %s" stub)
+        (message "No completions")))
+     ((eq entry t)
+      (setq entry stub)
+      (message "Sole completion")
+      (setq result 'sole))
+     ((= 1 (length completions))
+      (setq result 'sole))
+     ((and pcomplete-cycle-completions
+           (or cycle-p
+               (not pcomplete-cycle-cutoff-length)
+               (<= (length completions)
+                   pcomplete-cycle-cutoff-length)))
+      (let ((bound (car (completion-boundaries stub candidates nil ""))))
+        (unless (zerop bound)
+          (setq completions (mapcar (lambda (c) (concat (substring stub 0 bound) c))
+                                    completions)))
+        (setq entry (car completions)
+              pcomplete-current-completions completions)))
+     ((and pcomplete-recexact
+           (string-equal stub entry)
+           (member entry completions))
+      ;; It's not unique, but user wants shortest match.
+      (message "Completed shortest")
+      (setq result 'shortest))
+     ((or pcomplete-autolist
+          (string-equal stub entry))
+      ;; It's not unique, list possible completions.
+      ;; FIXME: pay attention to boundaries.
+      (pcomplete-show-completions completions)
+      (setq result 'listed))
+     (t
+      (message "Partially completed")
+      (setq result 'partial)))
+    (cons result entry)))
 
 ;; context sensitive help
 
@@ -1194,14 +1371,16 @@ Returns the resultant list."
 ;; create a set of aliases which allow completion functions to be not
 ;; quite so verbose
 
-;; jww (1999-10-20): are these a good idea?
-; (defalias 'pc-here 'pcomplete-here)
-; (defalias 'pc-test 'pcomplete-test)
-; (defalias 'pc-opt 'pcomplete-opt)
-; (defalias 'pc-match 'pcomplete-match)
-; (defalias 'pc-match-string 'pcomplete-match-string)
-; (defalias 'pc-match-beginning 'pcomplete-match-beginning)
-; (defalias 'pc-match-end 'pcomplete-match-end)
+;;; jww (1999-10-20): are these a good idea?
+;; (defalias 'pc-here 'pcomplete-here)
+;; (defalias 'pc-test 'pcomplete-test)
+;; (defalias 'pc-opt 'pcomplete-opt)
+;; (defalias 'pc-match 'pcomplete-match)
+;; (defalias 'pc-match-string 'pcomplete-match-string)
+;; (defalias 'pc-match-beginning 'pcomplete-match-beginning)
+;; (defalias 'pc-match-end 'pcomplete-match-end)
+
+(provide 'pcomplete)
 
 ;; arch-tag: ae32ef2d-dbed-4244-8b0f-cf5a2a3b07a4
 ;;; pcomplete.el ends here

@@ -1541,11 +1541,11 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		      (concat idlwave-shell-accumulation string)))
 
 
-;;; Test/Debug code
-	      ;(with-current-buffer
-	      ;	  (get-buffer-create "*idlwave-shell-output*")
-	      ;	(goto-char (point-max))
-	      ;	(insert "\nReceived STRING\n===>\n" string "\n<====\n"))
+              ;; ;; Test/Debug code
+	      ;;(with-current-buffer
+	      ;;    (get-buffer-create "*idlwave-shell-output*")
+	      ;;  (goto-char (point-max))
+	      ;;  (insert "\nReceived STRING\n===>\n" string "\n<====\n"))
 
 	      ;; Check for prompt in current accumulating output
 	      (when (setq idlwave-shell-ready
@@ -1553,8 +1553,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 					idlwave-shell-accumulation))
 		;; Gather the command output
 		(if idlwave-shell-hide-output
-		    (save-excursion
-		      (set-buffer idlwave-shell-hidden-output-buffer)
+		    (with-current-buffer idlwave-shell-hidden-output-buffer
 		      (setq full-output (buffer-string))
 		      (goto-char (point-max))
 		      (re-search-backward idlwave-shell-prompt-pattern nil t)
@@ -1618,8 +1617,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
   (let* ((buf (idlwave-shell-buffer))
 	 (win (get-buffer-window buf)))
     (when (get-buffer buf)
-      (save-excursion
-	(set-buffer (idlwave-shell-buffer))
+      (with-current-buffer (idlwave-shell-buffer)
 	(goto-char (point-max))
 	(insert (format "\n\n  Process %s %s" process event))
 	(if (and idlwave-shell-save-command-history
@@ -1639,8 +1637,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
     (idlwave-shell-cleanup)
     ;; Run the hook, if possible in the shell buffer.
     (if (get-buffer buf)
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (run-hooks 'idlwave-shell-sentinel-hook))
       (run-hooks 'idlwave-shell-sentinel-hook))))
 
@@ -2088,13 +2085,12 @@ HEAP_GC, /VERBOSE"
 (defun idlwave-shell-filter-directory ()
   "Get the current directory from `idlwave-shell-command-output'.
 Change the default directory for the process buffer to concur."
-  (save-excursion
-    (set-buffer (idlwave-shell-buffer))
+  (with-current-buffer (idlwave-shell-buffer)
     (if (string-match ",___cur[\n\r ]+\\([^\n\r]+\\)[\n\r]"
 		      idlwave-shell-command-output)
 	(let ((dir (substring idlwave-shell-command-output
 			      (match-beginning 1) (match-end 1))))
-;	  (message "Setting Emacs working dir to %s" dir)
+          ;; (message "Setting Emacs working dir to %s" dir)
 	  (setq idlwave-shell-default-directory dir)
 	  (setq default-directory (file-name-as-directory dir))))))
 
@@ -2363,10 +2359,10 @@ matter what the settings of that variable."
 	;; fixme: errors are dangerous in shell filters.  but i think i
 	;; have never encountered this one.
         (error "invalid frame - unable to access file: %s" (car frame))
-;;;
-;;; buffer : the buffer to display a line in.
-;;; select-shell: current buffer is the shell.
-;;;
+      ;;
+      ;; buffer : the buffer to display a line in.
+      ;; select-shell: current buffer is the shell.
+      ;;
       (setq idlwave-shell-mode-line-info
 	    (if (nth 2 frame)
 		(format "[%d:%s]"
@@ -2385,8 +2381,7 @@ matter what the settings of that variable."
 					     nil (idlwave-shell-source-frame)))
 
 	;; enter the buffer and mark the line
-        (save-excursion
-          (set-buffer buffer)
+        (with-current-buffer buffer
           (save-restriction
             (widen)
             (goto-char (point-min))
@@ -2713,8 +2708,7 @@ Assumes that `idlwave-shell-sources-alist' contains an entry for that module."
 	  (message "The source file for module %s is probably not compiled"
 		   module)
 	  (beep))
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(save-excursion
 	  (goto-char (point-min))
 	  (let ((case-fold-search t))
@@ -2822,8 +2816,8 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
        (idlwave-shell-print (if (idlwave-region-active-p) '(4) nil)
 			    ,help ,ev))))
 
-;;; Begin terrible hack section -- XEmacs tests for button2 explicitly
-;;; on drag events, calling drag-n-drop code if detected.  Ughhh...
+;; Begin terrible hack section -- XEmacs tests for button2 explicitly
+;; on drag events, calling drag-n-drop code if detected.  Ughhh...
 (defun idlwave-default-mouse-track-event-is-with-button (event n)
   t)
 
@@ -3035,8 +3029,7 @@ from `idlwave-shell-examine-alist' via mini-buffer shortcut key."
 (defun idlwave-shell-examine-display ()
   "View the examine command output in a separate buffer."
   (let (win cur-beg cur-end)
-    (save-excursion
-      (set-buffer (get-buffer-create "*Examine*"))
+    (with-current-buffer (get-buffer-create "*Examine*")
       (use-local-map idlwave-shell-examine-map)
       (setq buffer-read-only nil)
       (goto-char (point-max))
@@ -3121,13 +3114,11 @@ from `idlwave-shell-examine-alist' via mini-buffer shortcut key."
 
 (defun idlwave-shell-examine-display-clear ()
   (interactive)
-  (save-excursion
-    (let ((buf (get-buffer "*Examine*")))
-      (when (bufferp buf)
-	(set-buffer buf)
-	(setq buffer-read-only nil)
-	(erase-buffer)
-	(setq buffer-read-only t)))))
+  (let ((buf (get-buffer "*Examine*")))
+    (when (bufferp buf)
+      (with-current-buffer buf
+	(let ((inhibit-read-only t))
+          (erase-buffer))))))
 
 (defun idlwave-retrieve-expression-from-level (expr level)
   "Return IDL command to print the expression EXPR from stack level LEVEL.
@@ -3222,8 +3213,7 @@ size(___,/DIMENSIONS)"
 	 (process (get-buffer-process buffer))
 	 (process-mark (if process (process-mark process)))
 	 output-begin output-end)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char process-mark)
       (beginning-of-line)
       (setq output-end (point))
@@ -3295,9 +3285,8 @@ An END statement is appended to the region if necessary.
 If there is a prefix argument, display IDL process."
   (interactive "r\nP")
   (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (set-buffer (idlwave-find-file-noselect
-		   (idlwave-shell-temp-file 'pro) 'tmp))
+    (with-current-buffer (idlwave-find-file-noselect
+                          (idlwave-shell-temp-file 'pro) 'tmp)
       (set (make-local-variable 'comment-start-skip) ";+[ \t]*")
       (set (make-local-variable 'comment-start) ";")
       (erase-buffer)
@@ -3410,8 +3399,7 @@ of 'count, 'cmd and 'condition.  Defaults to 'index."
 Create `idlwave-shell-bp-alist' updating breakpoint count and command
 data from previous breakpoint list.  If NO-SHOW is set, don't update
 the breakpoint overlays."
-  (save-excursion
-    (set-buffer (get-buffer-create idlwave-shell-bp-buffer))
+  (with-current-buffer (get-buffer-create idlwave-shell-bp-buffer)
     (erase-buffer)
     (insert idlwave-shell-command-output)
     (goto-char (point-min))
@@ -3914,8 +3902,7 @@ handled by this command."
      (idlwave-shell-last-save-and-action-file
       (if (setq buf (idlwave-get-buffer-visiting
 		     idlwave-shell-last-save-and-action-file))
-	  (save-excursion
-	    (set-buffer buf)
+	  (with-current-buffer buf
 	    (save-buffer))))
      (t (setq idlwave-shell-last-save-and-action-file
 	      (read-file-name "File: ")))))
@@ -3995,8 +3982,7 @@ Queries IDL using the string in `idlwave-shell-sources-query'."
 Create `idlwave-shell-sources-alist' consisting of list elements
 of the form:
  (module name . (source-file-truename idlwave-internal-filename))"
-  (save-excursion
-    (set-buffer (get-buffer-create idlwave-shell-bp-buffer))
+  (with-current-buffer (get-buffer-create idlwave-shell-bp-buffer)
     (erase-buffer)
     (insert idlwave-shell-command-output)
     (goto-char (point-min))
@@ -4068,8 +4054,7 @@ of the form:
   "Move point to next IDL syntax error."
   (interactive)
   (let (frame col)
-    (save-excursion
-      (set-buffer idlwave-shell-error-buffer)
+    (with-current-buffer idlwave-shell-error-buffer
       (goto-char idlwave-shell-error-last)
       (if (or
 	   (re-search-forward idlwave-shell-syntax-error nil t)
@@ -4526,14 +4511,13 @@ idlwave-shell-electric-debug-mode-map)
       (easy-menu-define
        idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
        idlwave-shell-menu-def)
-      (save-excursion
-	(mapc (lambda (buf)
-		(set-buffer buf)
-		(if (eq major-mode 'idlwave-mode)
-		    (progn
-		      (easy-menu-remove idlwave-mode-debug-menu)
-		      (easy-menu-add idlwave-mode-debug-menu))))
-	      (buffer-list)))))
+      (save-current-buffer
+	(dolist (buf (buffer-list))
+          (set-buffer buf)
+          (if (eq major-mode 'idlwave-mode)
+              (progn
+                (easy-menu-remove idlwave-mode-debug-menu)
+                (easy-menu-add idlwave-mode-debug-menu)))))))
 
 ;; The Breakpoint Glyph -------------------------------------------------------
 
@@ -4694,7 +4678,7 @@ static char * file[] = {
 (provide 'idlw-shell)
 (provide 'idlwave-shell)
 
-;;; Load the toolbar when wanted by the user.
+;; Load the toolbar when wanted by the user.
 
 (autoload 'idlwave-toolbar-toggle "idlw-toolbar"
   "Toggle the IDLWAVE toolbar.")

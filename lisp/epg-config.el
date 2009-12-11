@@ -1,4 +1,5 @@
 ;;; epg-config.el --- configuration of the EasyPG Library
+
 ;; Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -31,7 +32,7 @@
   "Report bugs to this address.")
 
 (defgroup epg ()
-  "The EasyPG Library"
+  "The EasyPG library."
   :version "23.1"
   :group 'emacs)
 

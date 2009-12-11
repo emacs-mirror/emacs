@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
@@ -90,7 +91,7 @@ casify_object (flag, obj)
       for (i = 0; i < size; i++)
 	{
 	  c = SREF (obj, i);
-	      MAKE_CHAR_MULTIBYTE (c);
+	  MAKE_CHAR_MULTIBYTE (c);
 	  c1 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
 	    c = DOWNCASE (c);
@@ -132,7 +133,7 @@ casify_object (flag, obj)
 	      bcopy (old_dst, dst, o - old_dst);
 	      o = dst + (o - old_dst);
 	    }
-	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
+	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)
 	    c = DOWNCASE (c);
 	  else if (!UPPERCASEP (c)
@@ -428,7 +429,7 @@ With negative argument, capitalize previous words but do not move.  */)
 void
 syms_of_casefiddle ()
 {
-  Qidentity = intern ("identity");
+  Qidentity = intern_c_string ("identity");
   staticpro (&Qidentity);
   defsubr (&Supcase);
   defsubr (&Sdowncase);

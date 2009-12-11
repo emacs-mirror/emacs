@@ -193,15 +193,16 @@ and a method symbol followed by method specific arguments.
 The valid METHOD symbols are `nickserv', `chanserv' and
 `bitlbee'.
 
-The required ARGUMENTS for each METHOD symbol are:
-  `nickserv': NICK PASSWORD
+The ARGUMENTS for each METHOD symbol are:
+  `nickserv': NICK PASSWORD [NICKSERV-NICK]
   `chanserv': NICK CHANNEL PASSWORD
   `bitlbee': NICK PASSWORD
 
-Example:
+Examples:
  ((\"freenode\" nickserv \"bob\" \"p455w0rd\")
   (\"freenode\" chanserv \"bob\" \"#bobland\" \"passwd99\")
-  (\"bitlbee\" bitlbee \"robert\" \"sekrit\"))"
+  (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
+  (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\"))"
   :type '(alist :key-type (string :tag "Server")
 		:value-type (choice (list :tag "NickServ"
 					  (const nickserv)
@@ -563,8 +564,7 @@ last ping."
 Debug text is written to `rcirc-debug-buffer' if `rcirc-debug-flag'
 is non-nil."
   (when rcirc-debug-flag
-    (save-excursion
-      (set-buffer (get-buffer-create rcirc-debug-buffer))
+    (with-current-buffer (get-buffer-create rcirc-debug-buffer)
       (goto-char (point-max))
       (insert (concat
 	       "["
@@ -1538,6 +1538,14 @@ log-files with absolute names (see `rcirc-log-filename-function')."
 	(write-region (point-min) (point-max) filename t 'quiet))))
   (setq rcirc-log-alist nil))
 
+(defun rcirc-view-log-file ()
+  "View logfile corresponding to the current buffer."
+  (interactive)
+  (find-file-other-window 
+   (expand-file-name (funcall rcirc-log-filename-function 
+			      (rcirc-buffer-process) rcirc-target)
+		     rcirc-log-directory)))
+
 (defun rcirc-join-channels (process channels)
   "Join CHANNELS."
   (save-window-excursion
@@ -1628,7 +1636,6 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 (defvar rcirc-track-minor-mode-map (make-sparse-keymap)
   "Keymap for rcirc track minor mode.")
 
-(define-key rcirc-track-minor-mode-map (kbd "C-c `") 'rcirc-next-active-buffer)
 (define-key rcirc-track-minor-mode-map (kbd "C-c C-@") 'rcirc-next-active-buffer)
 (define-key rcirc-track-minor-mode-map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
 
@@ -2014,7 +2021,7 @@ activity.  Only run if the buffer is not visible and
   "Display list of names in CHANNEL or in current channel if CHANNEL is nil.
 If called interactively, prompt for a channel when prefix arg is supplied."
   (interactive "P")
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (if channel
           (setq channel (read-string "List names in channel: " target))))
   (let ((channel (if (> (length channel) 0)
@@ -2026,7 +2033,7 @@ If called interactively, prompt for a channel when prefix arg is supplied."
   "List TOPIC for the TARGET channel.
 With a prefix arg, prompt for new topic."
   (interactive "P")
-  (if (and (interactive-p) topic)
+  (if (and (called-interactively-p 'interactive) topic)
       (setq topic (read-string "New Topic: " rcirc-topic)))
   (rcirc-send-string process (concat "TOPIC " target
                                      (when (> (length topic) 0)
@@ -2555,9 +2562,8 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	  (cond ((equal method 'nickserv)
 		 (rcirc-send-string
 		  process
-		  (concat
-		   "PRIVMSG nickserv :identify "
-		   (car args))))
+		  (concat "PRIVMSG " (or (cadr args) "nickserv")
+                          " :identify " (car args))))
 		((equal method 'chanserv)
 		 (rcirc-send-string
 		  process

@@ -93,6 +93,10 @@
     (or (file-readable-p unidata-text-file)
 	(error "File not readable: %s" unidata-text-file))
     (with-temp-buffer
+      ;; Insert a file of this format:
+      ;;   (CHAR NAME CATEGORY ...)
+      ;; where CHAR is a charater code, the following elements are strings
+      ;; representing character properties.
       (insert-file-contents unidata-text-file)
       (goto-char (point-min))
       (condition-case nil
@@ -103,7 +107,7 @@
 
 	    ;; Check this kind of block.
 	    ;;   4E00;<CJK Ideograph, First>;Lo;0;L;;;;;N;;;;;
-	    ;;   9FA5;<CJK Ideograph, Last>;Lo;0;L;;;;;N;;;;;
+	    ;;   9FCB;<CJK Ideograph, Last>;Lo;0;L;;;;;N;;;;;
 	    (if (and (= (aref name 0) ?<)
 		     (string-match ", First>$" name))
 		(let ((first char)
@@ -224,7 +228,7 @@ Property value is a character."
 ;; a char-table described here to store such values.
 ;;
 ;; If succeeding 128 characters has no property, a char-table has the
-;; symbol t is for them.  Otherwise a char-table has a string of the
+;; symbol t for them.  Otherwise a char-table has a string of the
 ;; following format for them.
 ;;
 ;; The first character of the string is FIRST-INDEX.
@@ -480,7 +484,8 @@ Property value is a character."
 	(prop-idx (unidata-prop-index prop))
 	(val-list (list t))
 	(vec (make-vector 128 0))
-	tail elt range val val-code idx slot)
+	tail elt range val val-code idx slot
+	prev-range-data)
     (set-char-table-range table (cons 0 (max-char)) default-value)
     (setq tail unidata-list)
     (while tail
@@ -489,12 +494,34 @@ Property value is a character."
 	    val (funcall val-func (nth prop-idx elt)))
       (setq val-code (if val (unidata-encode-val val-list val)))
       (if (consp range)
-	  (if val-code
-	      (set-char-table-range table range val))
+	  (when val-code
+	    (set-char-table-range table range val)
+	    (let ((from (car range)) (to (cdr range)))
+	      ;; If RANGE doesn't end at the char-table boundary (each
+	      ;; 128 characters), we may have to carry over the data
+	      ;; for the last several characters (at most 127 chars)
+	      ;; to the next loop.  In that case, set PREV-RANGE-DATA
+	      ;; to ((FROM . TO) . VAL-CODE) where (FROM . TO)
+	      ;; specifies the range of characters handled in the next
+	      ;; loop.
+	      (when (< (logand to #x7F) #x7F)
+		(if (< from (logand to #x1FFF80))
+		    (setq from (logand to #x1FFF80)))
+		(setq prev-range-data (cons (cons from to) val-code)))))
 	(let* ((start (lsh (lsh range -7) 7))
 	       (limit (+ start 127))
 	       str count new-val)
 	  (fillarray vec 0)
+	  ;; See the comment above.
+	  (when (and prev-range-data
+		     (>= (cdr (car prev-range-data)) start))
+	    (let ((from (car (car prev-range-data)))
+		  (to (cdr (car prev-range-data)))
+		  (vcode (cdr prev-range-data)))
+	      (while (<= from to)
+		(aset vec (- from start) vcode)
+		(setq from (1+ from)))))
+	  (setq prev-range-data nil)
 	  (if val-code
 	      (aset vec (- range start) val-code))
 	  (while (and (setq elt (car tail) range (car elt))

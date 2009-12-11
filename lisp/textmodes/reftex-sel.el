@@ -90,28 +90,27 @@ During a selection process, these are the local bindings.
   ;; We do not set a local map - reftex-select-item does this.
   (run-hooks 'reftex-select-bib-mode-hook))
 
-;;; (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
-;;;   ;; Find the correct offset data, like insert-docstruct would, but faster.
-;;;   ;; Buffer BUF knows the correct docstruct to use.
-;;;   ;; Basically this finds the first docstruct entry after HERE-I-AM which
-;;;   ;; is of allowed type.  The optional arguments specify what is allowed.
-;;;   (catch 'exit
-;;;     (save-excursion
-;;;       (set-buffer buf)
-;;;       (reftex-access-scan-info)
-;;;       (let* ((rest (memq here-am-I (symbol-value reftex-docstruct-symbol)))
-;;;          entry)
-;;;     (while (setq entry (pop rest))
-;;;       (if (or (and typekey
-;;;                    (stringp (car entry))
-;;;                    (or (equal typekey " ")
-;;;                        (equal typekey (nth 1 entry))))
-;;;               (and toc (eq (car entry) 'toc))
-;;;               (and index (eq (car entry) 'index))
-;;;               (and file
-;;;                    (memq (car entry) '(bof eof file-error))))
-;;;           (throw 'exit entry)))
-;;;     nil))))
+;; (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
+;;   ;; Find the correct offset data, like insert-docstruct would, but faster.
+;;   ;; Buffer BUF knows the correct docstruct to use.
+;;   ;; Basically this finds the first docstruct entry after HERE-I-AM which
+;;   ;; is of allowed type.  The optional arguments specify what is allowed.
+;;   (catch 'exit
+;;     (with-current-buffer buf
+;;       (reftex-access-scan-info)
+;;       (let* ((rest (memq here-am-I (symbol-value reftex-docstruct-symbol)))
+;;          entry)
+;;     (while (setq entry (pop rest))
+;;       (if (or (and typekey
+;;                    (stringp (car entry))
+;;                    (or (equal typekey " ")
+;;                        (equal typekey (nth 1 entry))))
+;;               (and toc (eq (car entry) 'toc))
+;;               (and index (eq (car entry) 'index))
+;;               (and file
+;;                    (memq (car entry) '(bof eof file-error))))
+;;           (throw 'exit entry)))
+;;     nil))))
 
 (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
   ;; Find the correct offset data, like insert-docstruct would, but faster.
@@ -119,8 +118,7 @@ During a selection process, these are the local bindings.
   ;; Basically this finds the first docstruct entry before HERE-I-AM which
   ;; is of allowed type.  The optional arguments specify what is allowed.
   (catch 'exit
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (reftex-access-scan-info)
       (let* ((rest (symbol-value reftex-docstruct-symbol))
              lastentry entry)
@@ -178,8 +176,7 @@ During a selection process, these are the local bindings.
          prev-inserted offset from to index-tag docstruct-symbol)
 
     ;; Pop to buffer buf to get the correct buffer-local variables
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
 
       ;; Ensure access to scanning info
       (reftex-access-scan-info)
@@ -413,8 +410,7 @@ During a selection process, these are the local bindings.
             (recursive-edit))
 
         (set-marker reftex-recursive-edit-marker nil)
-        (save-excursion
-          (set-buffer selection-buffer)
+        (with-current-buffer selection-buffer
           (use-local-map nil)
           (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
           (remove-hook 'post-command-hook

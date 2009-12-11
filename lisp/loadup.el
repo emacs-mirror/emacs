@@ -92,7 +92,7 @@
 (load "emacs-lisp/map-ynp")
 (load "cus-start")
 (load "international/mule")
-(load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
+(load "international/mule-conf")
 (load "env")
 (load "format")
 (load "bindings")
@@ -198,6 +198,10 @@
       (load "international/fontset")
       (load "dnd")
       (load "tool-bar")))
+
+(if (or (featurep 'system-font-setting) (featurep 'font-render-setting))
+    (load "font-setting"))
+
 (if (featurep 'x)
     (progn
       (load "x-dnd")

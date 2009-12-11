@@ -34,8 +34,7 @@
 With prefix arg NOCONFIRM, execute current line as-is without editing."
   (interactive "P")
   (let (todo)
-    (save-excursion
-      (set-buffer "*Command History*")
+    (with-current-buffer "*Command History*"
       (beginning-of-line)
       (setq todo (read (current-buffer)))
       (if (boundp 'electric-history-in-progress)

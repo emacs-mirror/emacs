@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -488,6 +489,8 @@ Lisp_Object Qsave_session;
 #ifdef HAVE_DBUS
 Lisp_Object Qdbus_event;
 #endif
+Lisp_Object Qconfig_changed_event;
+
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -4282,6 +4285,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
+      else if (event->kind == CONFIG_CHANGED_EVENT)
+	{
+	  obj = make_lispy_event (event);
+	  kbd_fetch_ptr = event + 1;
+	}
       else
 	{
 	  /* If this event is on a different frame, return a switch-frame this
@@ -4508,19 +4516,16 @@ extern Lisp_Object Qapply;
    disregard elements that are not proper timers.  Do not make a circular
    timer list for the time being.
 
-   Returns the number of seconds to wait until the next timer fires.  If a
-   timer is triggering now, return zero seconds.
-   If no timer is active, return -1 seconds.
+   Returns the time to wait until the next timer fires.  If a
+   timer is triggering now, return zero.
+   If no timer is active, return -1.
 
    If a timer is ripe, we run it, with quitting turned off.
+   In that case we return 0 to indicate that a new timer_check_2 call
+   should be done.  */
 
-   DO_IT_NOW is now ignored.  It used to mean that we should
-   run the timer directly instead of queueing a timer-event.
-   Now we always run timers directly.  */
-
-EMACS_TIME
-timer_check (do_it_now)
-     int do_it_now;
+static EMACS_TIME
+timer_check_2 ()
 {
   EMACS_TIME nexttime;
   EMACS_TIME now, idleness_now;
@@ -4684,7 +4689,12 @@ timer_check (do_it_now)
 
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
+              /* But the caller must still wait for the next timer, so
+                 return 0 to indicate that.  */
 	    }
+
+          EMACS_SET_SECS (nexttime, 0);
+          EMACS_SET_USECS (nexttime, 0);
 	}
       else
 	/* When we encounter a timer that is still waiting,
@@ -4698,6 +4708,35 @@ timer_check (do_it_now)
   /* No timers are pending in the future.  */
   /* Return 0 if we generated an event, and -1 if not.  */
   UNGCPRO;
+  return nexttime;
+}
+
+
+/* Check whether a timer has fired.  To prevent larger problems we simply
+   disregard elements that are not proper timers.  Do not make a circular
+   timer list for the time being.
+
+   Returns the time to wait until the next timer fires.
+   If no timer is active, return -1.
+
+   As long as any timer is ripe, we run it.
+
+   DO_IT_NOW is now ignored.  It used to mean that we should
+   run the timer directly instead of queueing a timer-event.
+   Now we always run timers directly.  */
+
+EMACS_TIME
+timer_check (do_it_now)
+     int do_it_now;
+{
+  EMACS_TIME nexttime;
+
+  do 
+    {
+      nexttime = timer_check_2 ();
+    }
+  while (EMACS_SECS (nexttime) == 0 && EMACS_USECS (nexttime) == 0);
+
   return nexttime;
 }
 
@@ -4738,7 +4777,7 @@ static Lisp_Object drag_n_drop_syms;
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
 
-static int lispy_accent_codes[] =
+static const int lispy_accent_codes[] =
 {
 #ifdef XK_dead_circumflex
   XK_dead_circumflex,
@@ -5953,6 +5992,7 @@ make_lispy_event (event)
 	     as a multiple of 1/8 characters.  */
 	  struct frame *f;
 	  int fuzz;
+	  int symbol_num;
 	  int is_double;
 
 	  if (WINDOWP (event->frame_or_window))
@@ -5967,7 +6007,27 @@ make_lispy_event (event)
 	  else
 	    fuzz = double_click_fuzz / 8;
 
-	  is_double = (last_mouse_button < 0
+	  if (event->modifiers & up_modifier)
+	    {
+	      /* Emit a wheel-up event.  */
+	      event->modifiers &= ~up_modifier;
+	      symbol_num = 0;
+	    }
+	  else if (event->modifiers & down_modifier)
+	    {
+	      /* Emit a wheel-down event.  */
+	      event->modifiers &= ~down_modifier;
+	      symbol_num = 1;
+	    }
+	  else
+	    /* Every wheel event should either have the down_modifier or
+	       the up_modifier set.  */
+	    abort ();
+
+          if (event->kind == HORIZ_WHEEL_EVENT)
+            symbol_num += 2;
+
+	  is_double = (last_mouse_button == - (1 + symbol_num)
 		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
@@ -5990,33 +6050,9 @@ make_lispy_event (event)
 
 	  button_down_time = event->timestamp;
 	  /* Use a negative value to distinguish wheel from mouse button.  */
-	  last_mouse_button = -1;
+	  last_mouse_button = - (1 + symbol_num);
 	  last_mouse_x = XINT (event->x);
 	  last_mouse_y = XINT (event->y);
-	}
-
-	{
-	  int symbol_num;
-
-	  if (event->modifiers & up_modifier)
-	    {
-	      /* Emit a wheel-up event.  */
-	      event->modifiers &= ~up_modifier;
-	      symbol_num = 0;
-	    }
-	  else if (event->modifiers & down_modifier)
-	    {
-	      /* Emit a wheel-down event.  */
-	      event->modifiers &= ~down_modifier;
-	      symbol_num = 1;
-	    }
-	  else
-	    /* Every wheel event should either have the down_modifier or
-	       the up_modifier set.  */
-	    abort ();
-
-          if (event->kind == HORIZ_WHEEL_EVENT)
-            symbol_num += 2;
 
 	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
@@ -6167,6 +6203,10 @@ make_lispy_event (event)
       }
 #endif /* HAVE_DBUS */
 
+    case CONFIG_CHANGED_EVENT:
+	return Fcons (Qconfig_changed_event,
+                      Fcons (event->arg,
+                             Fcons (event->frame_or_window, Qnil)));
 #ifdef HAVE_GPM
     case GPM_CLICK_EVENT:
       {
@@ -6455,7 +6495,7 @@ apply_modifiers_uncached (modifiers, base, base_len, base_len_byte)
 }
 
 
-static char *modifier_names[] =
+static const char *modifier_names[] =
 {
   "up", "down", "drag", "click", "double", "triple", 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -7799,7 +7839,7 @@ menu_bar_item (key, item, dummy1, dummy2)
      parse_menu_item, so that if it turns out it wasn't a menu item,
      it still correctly hides any further menu item.  */
   GCPRO1 (key);
-  i = parse_menu_item (item, 0, 1);
+  i = parse_menu_item (item, 1);
   UNGCPRO;
   if (!i)
     return;
@@ -7867,8 +7907,6 @@ menu_item_eval_property (sexpr)
 /* This function parses a menu item and leaves the result in the
    vector item_properties.
    ITEM is a key binding, a possible menu item.
-   If NOTREAL is nonzero, only check for equivalent key bindings, don't
-   evaluate dynamic expressions in the menu item.
    INMENUBAR is > 0 when this is considered for an entry in a menu bar
    top level.
    INMENUBAR is < 0 when this is considered for an entry in a keyboard menu.
@@ -7876,9 +7914,9 @@ menu_item_eval_property (sexpr)
    otherwise.  */
 
 int
-parse_menu_item (item, notreal, inmenubar)
+parse_menu_item (item, inmenubar)
      Lisp_Object item;
-     int notreal, inmenubar;
+     int inmenubar;
 {
   Lisp_Object def, tem, item_string, start;
   Lisp_Object filter;
@@ -7968,7 +8006,7 @@ parse_menu_item (item, notreal, inmenubar)
 		  else
 		    ASET (item_properties, ITEM_PROPERTY_ENABLE, XCAR (item));
 		}
-	      else if (EQ (tem, QCvisible) && !notreal)
+	      else if (EQ (tem, QCvisible))
 		{
 		  /* If got a visible property and that evaluates to nil
 		     then ignore this item.  */
@@ -8017,7 +8055,7 @@ parse_menu_item (item, notreal, inmenubar)
   /* If item string is not a string, evaluate it to get string.
      If we don't get a string, skip this item.  */
   item_string = AREF (item_properties, ITEM_PROPERTY_NAME);
-  if (!(STRINGP (item_string) || notreal))
+  if (!(STRINGP (item_string)))
     {
       item_string = menu_item_eval_property (item_string);
       if (!STRINGP (item_string))
@@ -8039,10 +8077,7 @@ parse_menu_item (item, notreal, inmenubar)
   tem = AREF (item_properties, ITEM_PROPERTY_ENABLE);
   if (!EQ (tem, Qt))
     {
-      if (notreal)
-	tem = Qt;
-      else
-	tem = menu_item_eval_property (tem);
+      tem = menu_item_eval_property (tem);
       if (inmenubar && NILP (tem))
 	return 0;		/* Ignore disabled items in menu bar.  */
       ASET (item_properties, ITEM_PROPERTY_ENABLE, tem);
@@ -8070,65 +8105,64 @@ parse_menu_item (item, notreal, inmenubar)
   if (inmenubar > 0)
     return 1;
 
-  /* This is a command.  See if there is an equivalent key binding. */
-  tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
-  /* The previous code preferred :key-sequence to :keys, so we
-     preserve this behavior.  */
-  if (STRINGP (tem) && !CONSP (keyhint))
-    tem = Fsubstitute_command_keys (tem);
-  else
-    {
-      Lisp_Object prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
-      Lisp_Object keys = Qnil;
+  { /* This is a command.  See if there is an equivalent key binding. */
+    Lisp_Object keyeq = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
 
-      if (CONSP (prefix))
-	{
-	  def = XCAR (prefix);
-	  prefix = XCDR (prefix);
-	}
-      else
-	def = AREF (item_properties, ITEM_PROPERTY_DEF);
+    /* The previous code preferred :key-sequence to :keys, so we
+       preserve this behavior.  */
+    if (STRINGP (keyeq) && !CONSP (keyhint))
+      keyeq = Fsubstitute_command_keys (keyeq);
+    else
+      {
+	Lisp_Object prefix = keyeq;
+	Lisp_Object keys = Qnil;
 
-      if (CONSP (keyhint) && !NILP (XCAR (keyhint)))
-	{
-	  keys = XCAR (keyhint);
-	  tem = Fkey_binding (keys, Qnil, Qnil, Qnil);
+	if (CONSP (prefix))
+	  {
+	    def = XCAR (prefix);
+	    prefix = XCDR (prefix);
+	  }
+	else
+	  def = AREF (item_properties, ITEM_PROPERTY_DEF);
 
-	  /* We have a suggested key.  Is it bound to the command?  */
-	  if (NILP (tem)
-	      || (!EQ (tem, def)
-		  /* If the command is an alias for another
-		     (such as lmenu.el set it up), check if the
-		     original command matches the cached command.  */
-		  && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
-	    keys = Qnil;
-	}
-      
-      if (NILP (keys))
-	keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
-	  
-      if (!NILP (keys))
-	{
-	  tem = Fkey_description (keys, Qnil);
-	  if (CONSP (prefix))
-	    {
-	      if (STRINGP (XCAR (prefix)))
-		tem = concat2 (XCAR (prefix), tem);
-	      if (STRINGP (XCDR (prefix)))
-		tem = concat2 (tem, XCDR (prefix));
-	    }
-	  tem = concat2 (build_string ("  "), tem);
-	  /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
-	}
-    }
-  
+	if (CONSP (keyhint) && !NILP (XCAR (keyhint)))
+	  {
+	    keys = XCAR (keyhint);
+	    tem = Fkey_binding (keys, Qnil, Qnil, Qnil);
 
-  /* If we only want to precompute equivalent key bindings, stop here. */
-  if (notreal)
-    return 1;
+	    /* We have a suggested key.  Is it bound to the command?  */
+	    if (NILP (tem)
+		|| (!EQ (tem, def)
+		    /* If the command is an alias for another
+		       (such as lmenu.el set it up), check if the
+		       original command matches the cached command.  */
+		    && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
+	      keys = Qnil;
+	  }
 
-  /* If we have an equivalent key binding, use that.  */
-  ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
+	if (NILP (keys))
+	  keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
+
+	if (!NILP (keys))
+	  {
+	    tem = Fkey_description (keys, Qnil);
+	    if (CONSP (prefix))
+	      {
+		if (STRINGP (XCAR (prefix)))
+		  tem = concat2 (XCAR (prefix), tem);
+		if (STRINGP (XCDR (prefix)))
+		  tem = concat2 (tem, XCDR (prefix));
+	      }
+	    keyeq = concat2 (build_string ("  "), tem);
+	    /* keyeq = concat3(build_string("  ("),tem,build_string(")")); */
+	  }
+	else
+	  keyeq = Qnil;
+      }
+
+    /* If we have an equivalent key binding, use that.  */
+    ASET (item_properties, ITEM_PROPERTY_KEYEQ, keyeq);
+  }
 
   /* Include this when menu help is implemented.
   tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
@@ -8563,7 +8597,6 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
      int *used_mouse_menu;
 {
   int mapno;
-  register Lisp_Object name = Qnil;
 
   if (used_mouse_menu)
     *used_mouse_menu = 0;
@@ -8579,18 +8612,6 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       maps += (nmaps - 1);
       nmaps = 1;
     }
-
-  /* Get the menu name from the first map that has one (a prompt string).  */
-  for (mapno = 0; mapno < nmaps; mapno++)
-    {
-      name = Fkeymap_prompt (maps[mapno]);
-      if (!NILP (name))
-	break;
-    }
-
-  /* If we don't have any menus, just read a character normally.  */
-  if (!STRINGP (name))
-    return Qnil;
 
 #ifdef HAVE_MENUS
   /* If we got to this point via a mouse click,
@@ -8774,7 +8795,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		}
 
 	      /* Ignore the element if it has no prompt string.  */
-	      if (INTEGERP (event) && parse_menu_item (elt, 0, -1))
+	      if (INTEGERP (event) && parse_menu_item (elt, -1))
 		{
 		  /* 1 if the char to type matches the string.  */
 		  int char_matches;
@@ -11719,18 +11740,18 @@ syms_of_keyboard ()
   pending_funcalls = Qnil;
   staticpro (&pending_funcalls);
 
-  Vlispy_mouse_stem = build_string ("mouse");
+  Vlispy_mouse_stem = make_pure_c_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
 
   /* Tool-bars.  */
-  QCimage = intern (":image");
+  QCimage = intern_c_string (":image");
   staticpro (&QCimage);
 
   staticpro (&Qhelp_echo);
-  Qhelp_echo = intern ("help-echo");
+  Qhelp_echo = intern_c_string ("help-echo");
 
   staticpro (&Qrtl);
-  Qrtl = intern (":rtl");
+  Qrtl = intern_c_string (":rtl");
 
   staticpro (&item_properties);
   item_properties = Qnil;
@@ -11743,135 +11764,138 @@ syms_of_keyboard ()
   staticpro (&real_this_command);
   real_this_command = Qnil;
 
-  Qtimer_event_handler = intern ("timer-event-handler");
+  Qtimer_event_handler = intern_c_string ("timer-event-handler");
   staticpro (&Qtimer_event_handler);
 
-  Qdisabled_command_function = intern ("disabled-command-function");
+  Qdisabled_command_function = intern_c_string ("disabled-command-function");
   staticpro (&Qdisabled_command_function);
 
-  Qself_insert_command = intern ("self-insert-command");
+  Qself_insert_command = intern_c_string ("self-insert-command");
   staticpro (&Qself_insert_command);
 
-  Qforward_char = intern ("forward-char");
+  Qforward_char = intern_c_string ("forward-char");
   staticpro (&Qforward_char);
 
-  Qbackward_char = intern ("backward-char");
+  Qbackward_char = intern_c_string ("backward-char");
   staticpro (&Qbackward_char);
 
-  Qdisabled = intern ("disabled");
+  Qdisabled = intern_c_string ("disabled");
   staticpro (&Qdisabled);
 
-  Qundefined = intern ("undefined");
+  Qundefined = intern_c_string ("undefined");
   staticpro (&Qundefined);
 
-  Qpre_command_hook = intern ("pre-command-hook");
+  Qpre_command_hook = intern_c_string ("pre-command-hook");
   staticpro (&Qpre_command_hook);
 
-  Qpost_command_hook = intern ("post-command-hook");
+  Qpost_command_hook = intern_c_string ("post-command-hook");
   staticpro (&Qpost_command_hook);
 
-  Qdeferred_action_function = intern ("deferred-action-function");
+  Qdeferred_action_function = intern_c_string ("deferred-action-function");
   staticpro (&Qdeferred_action_function);
 
-  Qcommand_hook_internal = intern ("command-hook-internal");
+  Qcommand_hook_internal = intern_c_string ("command-hook-internal");
   staticpro (&Qcommand_hook_internal);
 
-  Qfunction_key = intern ("function-key");
+  Qfunction_key = intern_c_string ("function-key");
   staticpro (&Qfunction_key);
-  Qmouse_click = intern ("mouse-click");
+  Qmouse_click = intern_c_string ("mouse-click");
   staticpro (&Qmouse_click);
 #if defined (WINDOWSNT)
-  Qlanguage_change = intern ("language-change");
+  Qlanguage_change = intern_c_string ("language-change");
   staticpro (&Qlanguage_change);
 #endif
-  Qdrag_n_drop = intern ("drag-n-drop");
+  Qdrag_n_drop = intern_c_string ("drag-n-drop");
   staticpro (&Qdrag_n_drop);
 
-  Qsave_session = intern ("save-session");
+  Qsave_session = intern_c_string ("save-session");
   staticpro (&Qsave_session);
 
 #ifdef HAVE_DBUS
-  Qdbus_event = intern ("dbus-event");
+  Qdbus_event = intern_c_string ("dbus-event");
   staticpro (&Qdbus_event);
 #endif
 
-  Qmenu_enable = intern ("menu-enable");
+  Qconfig_changed_event = intern_c_string ("config-changed-event");
+  staticpro (&Qconfig_changed_event);
+
+  Qmenu_enable = intern_c_string ("menu-enable");
   staticpro (&Qmenu_enable);
-  QCenable = intern (":enable");
+  QCenable = intern_c_string (":enable");
   staticpro (&QCenable);
-  QCvisible = intern (":visible");
+  QCvisible = intern_c_string (":visible");
   staticpro (&QCvisible);
-  QChelp = intern (":help");
+  QChelp = intern_c_string (":help");
   staticpro (&QChelp);
-  QCfilter = intern (":filter");
+  QCfilter = intern_c_string (":filter");
   staticpro (&QCfilter);
-  QCbutton = intern (":button");
+  QCbutton = intern_c_string (":button");
   staticpro (&QCbutton);
-  QCkeys = intern (":keys");
+  QCkeys = intern_c_string (":keys");
   staticpro (&QCkeys);
-  QCkey_sequence = intern (":key-sequence");
+  QCkey_sequence = intern_c_string (":key-sequence");
   staticpro (&QCkey_sequence);
-  QCtoggle = intern (":toggle");
+  QCtoggle = intern_c_string (":toggle");
   staticpro (&QCtoggle);
-  QCradio = intern (":radio");
+  QCradio = intern_c_string (":radio");
   staticpro (&QCradio);
 
-  Qmode_line = intern ("mode-line");
+  Qmode_line = intern_c_string ("mode-line");
   staticpro (&Qmode_line);
-  Qvertical_line = intern ("vertical-line");
+  Qvertical_line = intern_c_string ("vertical-line");
   staticpro (&Qvertical_line);
-  Qvertical_scroll_bar = intern ("vertical-scroll-bar");
+  Qvertical_scroll_bar = intern_c_string ("vertical-scroll-bar");
   staticpro (&Qvertical_scroll_bar);
-  Qmenu_bar = intern ("menu-bar");
+  Qmenu_bar = intern_c_string ("menu-bar");
   staticpro (&Qmenu_bar);
 
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-  Qmouse_fixup_help_message = intern ("mouse-fixup-help-message");
+  Qmouse_fixup_help_message = intern_c_string ("mouse-fixup-help-message");
   staticpro (&Qmouse_fixup_help_message);
 #endif
 
-  Qabove_handle = intern ("above-handle");
+  Qabove_handle = intern_c_string ("above-handle");
   staticpro (&Qabove_handle);
-  Qhandle = intern ("handle");
+  Qhandle = intern_c_string ("handle");
   staticpro (&Qhandle);
-  Qbelow_handle = intern ("below-handle");
+  Qbelow_handle = intern_c_string ("below-handle");
   staticpro (&Qbelow_handle);
-  Qup = intern ("up");
+  Qup = intern_c_string ("up");
   staticpro (&Qup);
-  Qdown = intern ("down");
+  Qdown = intern_c_string ("down");
   staticpro (&Qdown);
-  Qtop = intern ("top");
+  Qtop = intern_c_string ("top");
   staticpro (&Qtop);
-  Qbottom = intern ("bottom");
+  Qbottom = intern_c_string ("bottom");
   staticpro (&Qbottom);
-  Qend_scroll = intern ("end-scroll");
+  Qend_scroll = intern_c_string ("end-scroll");
   staticpro (&Qend_scroll);
-  Qratio = intern ("ratio");
+  Qratio = intern_c_string ("ratio");
   staticpro (&Qratio);
 
-  Qevent_kind = intern ("event-kind");
+  Qevent_kind = intern_c_string ("event-kind");
   staticpro (&Qevent_kind);
-  Qevent_symbol_elements = intern ("event-symbol-elements");
+  Qevent_symbol_elements = intern_c_string ("event-symbol-elements");
   staticpro (&Qevent_symbol_elements);
-  Qevent_symbol_element_mask = intern ("event-symbol-element-mask");
+  Qevent_symbol_element_mask = intern_c_string ("event-symbol-element-mask");
   staticpro (&Qevent_symbol_element_mask);
-  Qmodifier_cache = intern ("modifier-cache");
+  Qmodifier_cache = intern_c_string ("modifier-cache");
   staticpro (&Qmodifier_cache);
 
-  Qrecompute_lucid_menubar = intern ("recompute-lucid-menubar");
+  Qrecompute_lucid_menubar = intern_c_string ("recompute-lucid-menubar");
   staticpro (&Qrecompute_lucid_menubar);
-  Qactivate_menubar_hook = intern ("activate-menubar-hook");
+  Qactivate_menubar_hook = intern_c_string ("activate-menubar-hook");
   staticpro (&Qactivate_menubar_hook);
 
-  Qpolling_period = intern ("polling-period");
+  Qpolling_period = intern_c_string ("polling-period");
   staticpro (&Qpolling_period);
 
-  Qinput_method_function = intern ("input-method-function");
+  Qinput_method_function = intern_c_string ("input-method-function");
   staticpro (&Qinput_method_function);
 
-  Qinput_method_exit_on_first_char = intern ("input-method-exit-on-first-char");
+  Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);
-  Qinput_method_use_echo_area = intern ("input-method-use-echo-area");
+  Qinput_method_use_echo_area = intern_c_string ("input-method-use-echo-area");
   staticpro (&Qinput_method_use_echo_area);
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
@@ -11887,7 +11911,7 @@ syms_of_keyboard ()
 	 p < head_table + (sizeof (head_table) / sizeof (head_table[0]));
 	 p++)
       {
-	*p->var = intern (p->name);
+	*p->var = intern_c_string (p->name);
 	staticpro (p->var);
 	Fput (*p->var, Qevent_kind, *p->kind);
 	Fput (*p->var, Qevent_symbol_elements, Fcons (*p->var, Qnil));
@@ -11898,7 +11922,9 @@ syms_of_keyboard ()
   staticpro (&button_down_location);
   mouse_syms = Fmake_vector (make_number (5), Qnil);
   staticpro (&mouse_syms);
-  wheel_syms = Fmake_vector (make_number (4), Qnil);
+  wheel_syms = Fmake_vector (make_number (sizeof (lispy_wheel_names)
+					  / sizeof (lispy_wheel_names[0])),
+			     Qnil);
   staticpro (&wheel_syms);
 
   {
@@ -11908,7 +11934,7 @@ syms_of_keyboard ()
     modifier_symbols = Fmake_vector (make_number (len), Qnil);
     for (i = 0; i < len; i++)
       if (modifier_names[i])
-	XVECTOR (modifier_symbols)->contents[i] = intern (modifier_names[i]);
+	XVECTOR (modifier_symbols)->contents[i] = intern_c_string (modifier_names[i]);
     staticpro (&modifier_symbols);
   }
 
@@ -11921,7 +11947,7 @@ syms_of_keyboard ()
   raw_keybuf = Fmake_vector (make_number (30), Qnil);
   staticpro (&raw_keybuf);
 
-  Qextended_command_history = intern ("extended-command-history");
+  Qextended_command_history = intern_c_string ("extended-command-history");
   Fset (Qextended_command_history, Qnil);
   staticpro (&Qextended_command_history);
 
@@ -12224,7 +12250,7 @@ The command loop sets this to nil before each command,
 and tests the value when the command returns.
 Buffer modification stores t in this variable.  */);
   Vdeactivate_mark = Qnil;
-  Qdeactivate_mark = intern ("deactivate-mark");
+  Qdeactivate_mark = intern_c_string ("deactivate-mark");
   staticpro (&Qdeactivate_mark);
 
   DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
@@ -12249,7 +12275,7 @@ might happen repeatedly and make Emacs nonfunctional.  */);
   DEFVAR_LISP ("echo-area-clear-hook", ...,
 	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
-  Qecho_area_clear_hook = intern ("echo-area-clear-hook");
+  Qecho_area_clear_hook = intern_c_string ("echo-area-clear-hook");
   staticpro (&Qecho_area_clear_hook);
   Fset (Qecho_area_clear_hook, Qnil);
 
@@ -12290,7 +12316,7 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
 
   DEFVAR_LISP ("special-event-map", &Vspecial_event_map,
 	       doc: /* Keymap defining bindings for special events to execute at low level.  */);
-  Vspecial_event_map = Fcons (intern ("keymap"), Qnil);
+  Vspecial_event_map = Fcons (intern_c_string ("keymap"), Qnil);
 
   DEFVAR_LISP ("track-mouse", &do_mouse_tracking,
 	       doc: /* *Non-nil means generate motion events for mouse motion.  */);
@@ -12535,6 +12561,9 @@ keys_of_keyboard ()
   initial_define_lispy_key (Vspecial_event_map, "dbus-event",
 			    "dbus-handle-event");
 #endif
+
+  initial_define_lispy_key (Vspecial_event_map, "config-changed-event",
+			    "ignore");
 }
 
 /* Mark the pointers in the kboard objects.

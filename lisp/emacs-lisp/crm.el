@@ -228,21 +228,16 @@ This function is modeled after `minibuffer-complete-and-exit'."
       (forward-char 1))
     (if doexit (exit-minibuffer))))
 
-(defun crm--choose-completion-string (choice buffer mini-p base-size)
+(defun crm--choose-completion-string (choice buffer base-position
+                                             &rest ignored)
   "Completion string chooser for `completing-read-multiple'.
 This is called from `choose-completion-string-functions'.
 It replaces the string that is currently being completed, without
 exiting the minibuffer."
-  (let ((ol (crm--select-current-element)))
-    (if base-size
-	(delete-region (+ base-size (field-beginning)) (point))
-      (choose-completion-delete-max-match choice))
-    (insert choice)
-    (remove-text-properties (- (point) (length choice)) (point)
-			    '(mouse-face nil))
-    ;; Update point in the window that BUFFER is showing in.
-    (let ((window (get-buffer-window buffer t)))
-      (set-window-point window (point)))))
+  (let ((completion-no-auto-exit t)
+        (choose-completion-string-functions nil))
+    (choose-completion-string choice buffer base-position)
+    t))
 
 ;; superemulates behavior of completing_read in src/minibuf.c
 ;;;###autoload

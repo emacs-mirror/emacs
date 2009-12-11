@@ -835,6 +835,7 @@ extern struct frame *make_frame_without_minibuffer P_ ((Lisp_Object,
 extern int other_visible_frames P_ ((struct frame *));
 extern void frame_make_pointer_invisible P_ ((void));
 extern void frame_make_pointer_visible P_ ((void));
+extern Lisp_Object delete_frame P_ ((Lisp_Object, Lisp_Object));
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
@@ -1121,8 +1122,6 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object class,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
-
-extern Lisp_Object delete_frame P_ ((Lisp_Object, Lisp_Object));
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 #if HAVE_ALLOCA_H
 # include <alloca.h>
 #endif
@@ -169,7 +170,11 @@ in case you use it as a menu with `x-popup-menu'.  */)
      Lisp_Object string;
 {
   if (!NILP (string))
-    return Fcons (Qkeymap, Fcons (string, Qnil));
+    {
+      if (!NILP (Vpurify_flag))
+	string = Fpurecopy (string);
+      return Fcons (Qkeymap, Fcons (string, Qnil));
+    }
   return Fcons (Qkeymap, Qnil);
 }
 
@@ -186,7 +191,7 @@ initial_define_key (keymap, key, defname)
      int key;
      char *defname;
 {
-  store_in_keymap (keymap, make_number (key), intern (defname));
+  store_in_keymap (keymap, make_number (key), intern_c_string (defname));
 }
 
 void
@@ -195,7 +200,7 @@ initial_define_lispy_key (keymap, keyname, defname)
      char *keyname;
      char *defname;
 {
-  store_in_keymap (keymap, intern (keyname), intern (defname));
+  store_in_keymap (keymap, intern_c_string (keyname), intern_c_string (defname));
 }
 
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
@@ -3906,14 +3911,14 @@ Return list of symbols found.  */)
 void
 syms_of_keymap ()
 {
-  Qkeymap = intern ("keymap");
+  Qkeymap = intern_c_string ("keymap");
   staticpro (&Qkeymap);
   staticpro (&apropos_predicate);
   staticpro (&apropos_accumulate);
   apropos_predicate = Qnil;
   apropos_accumulate = Qnil;
 
-  Qkeymap_canonicalize = intern ("keymap-canonicalize");
+  Qkeymap_canonicalize = intern_c_string ("keymap-canonicalize");
   staticpro (&Qkeymap_canonicalize);
 
   /* Now we are ready to set up this property, so we can
@@ -3925,26 +3930,26 @@ syms_of_keymap ()
      pointed to by a C variable */
 
   global_map = Fmake_keymap (Qnil);
-  Fset (intern ("global-map"), global_map);
+  Fset (intern_c_string ("global-map"), global_map);
 
   current_global_map = global_map;
   staticpro (&global_map);
   staticpro (&current_global_map);
 
   meta_map = Fmake_keymap (Qnil);
-  Fset (intern ("esc-map"), meta_map);
-  Ffset (intern ("ESC-prefix"), meta_map);
+  Fset (intern_c_string ("esc-map"), meta_map);
+  Ffset (intern_c_string ("ESC-prefix"), meta_map);
 
   control_x_map = Fmake_keymap (Qnil);
-  Fset (intern ("ctl-x-map"), control_x_map);
-  Ffset (intern ("Control-X-prefix"), control_x_map);
+  Fset (intern_c_string ("ctl-x-map"), control_x_map);
+  Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys
-    = Fcons (Fcons (build_string ("DEL"), build_string ("\\d")),
-	     Fcons (Fcons (build_string ("TAB"), build_string ("\\t")),
-		    Fcons (Fcons (build_string ("RET"), build_string ("\\r")),
-			   Fcons (Fcons (build_string ("ESC"), build_string ("\\e")),
-				  Fcons (Fcons (build_string ("SPC"), build_string (" ")),
+    = pure_cons (pure_cons (make_pure_c_string ("DEL"), make_pure_c_string ("\\d")),
+		 pure_cons (pure_cons (make_pure_c_string ("TAB"), make_pure_c_string ("\\t")),
+		    pure_cons (pure_cons (make_pure_c_string ("RET"), make_pure_c_string ("\\r")),
+			   pure_cons (pure_cons (make_pure_c_string ("ESC"), make_pure_c_string ("\\e")),
+				  pure_cons (pure_cons (make_pure_c_string ("SPC"), make_pure_c_string (" ")),
 					 Qnil)))));
   staticpro (&exclude_keys);
 
@@ -4023,37 +4028,37 @@ preferred.  */);
   where_is_preferred_modifier = 0;
 
   staticpro (&Vmouse_events);
-  Vmouse_events = Fcons (intern ("menu-bar"),
-		  Fcons (intern ("tool-bar"),
-		  Fcons (intern ("header-line"),
-		  Fcons (intern ("mode-line"),
-		  Fcons (intern ("mouse-1"),
-		  Fcons (intern ("mouse-2"),
-		  Fcons (intern ("mouse-3"),
-		  Fcons (intern ("mouse-4"),
-		  Fcons (intern ("mouse-5"),
-			 Qnil)))))))));
+  Vmouse_events = pure_cons (intern_c_string ("menu-bar"),
+		  pure_cons (intern_c_string ("tool-bar"),
+		  pure_cons (intern_c_string ("header-line"),
+		  pure_cons (intern_c_string ("mode-line"),
+		  pure_cons (intern_c_string ("mouse-1"),
+		  pure_cons (intern_c_string ("mouse-2"),
+		  pure_cons (intern_c_string ("mouse-3"),
+		  pure_cons (intern_c_string ("mouse-4"),
+		  pure_cons (intern_c_string ("mouse-5"),
+			     Qnil)))))))));
 
 
-  Qsingle_key_description = intern ("single-key-description");
+  Qsingle_key_description = intern_c_string ("single-key-description");
   staticpro (&Qsingle_key_description);
 
-  Qkey_description = intern ("key-description");
+  Qkey_description = intern_c_string ("key-description");
   staticpro (&Qkey_description);
 
-  Qkeymapp = intern ("keymapp");
+  Qkeymapp = intern_c_string ("keymapp");
   staticpro (&Qkeymapp);
 
-  Qnon_ascii = intern ("non-ascii");
+  Qnon_ascii = intern_c_string ("non-ascii");
   staticpro (&Qnon_ascii);
 
-  Qmenu_item = intern ("menu-item");
+  Qmenu_item = intern_c_string ("menu-item");
   staticpro (&Qmenu_item);
 
-  Qremap = intern ("remap");
+  Qremap = intern_c_string ("remap");
   staticpro (&Qremap);
 
-  QCadvertised_binding = intern (":advertised-binding");
+  QCadvertised_binding = intern_c_string (":advertised-binding");
   staticpro (&QCadvertised_binding);
 
   command_remapping_vector = Fmake_vector (make_number (2), Qremap);

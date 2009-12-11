@@ -1012,8 +1012,7 @@ When index is restricted, select the previous section as restriction criterion."
     (setq beg (match-beginning 0) end (match-end 0))
     (setq old (nth 2 data))
     (and (equal old new) (error "Entry unchanged"))
-    (save-excursion
-      (set-buffer (get-file-buffer (nth 3 data)))
+    (with-current-buffer (get-file-buffer (nth 3 data))
       (goto-char beg)
       (unless (looking-at (regexp-quote old))
         (error "This should not happen (reftex-index-change-entry)"))
@@ -1594,7 +1593,7 @@ this function repeatedly."
           (while (re-search-forward re2 nil t)
             (push (cons (count-lines 1 (point)) (match-string 1)) superphrases)
             (incf ntimes2))))
-      (save-excursion
+      (save-current-buffer
         (while (setq file (pop files))
           (setq buf (reftex-get-file-buffer-force file))
           (when buf

@@ -568,8 +568,7 @@
 	  (let ((pos (point)))
 	    (end-of-line)
 	    (let* ((str (buffer-substring pos (point)))
-		   (exp (save-excursion
-			  (set-buffer calc-buf)
+		   (exp (with-current-buffer calc-buf
 			  (let ((calc-user-parse-tables nil)
 				(calc-language nil)
 				(math-expr-opers (math-standard-ops))
@@ -1209,7 +1208,7 @@ Redefine the corresponding command."
      (calc-pop-stack 1)
      (if (math-is-true cond)
 	 (if defining-kbd-macro
-	     (message "If true.."))
+	     (message "If true..."))
        (if defining-kbd-macro
 	   (message "Condition is false; skipping to Z: or Z] ..."))
        (calc-kbd-skip-to-else-if t)))))

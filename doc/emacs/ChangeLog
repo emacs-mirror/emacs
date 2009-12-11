@@ -1,3 +1,75 @@
+2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Shell Options): ansi-color is now default.
+
+2009-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top): Update menu for cal-xtra node changes.
+	* calendar.texi (Displaying the Diary): Holidays may be in the buffer
+	or mode line.  Don't mention invisible text or the details of
+	diary-print-entries here, only in cal-xtra.
+	(Format of Diary File): Mention that the "date on first line" format
+	only really affects the simple display.
+	* cal-xtra.texi (Advanced Calendar/Diary Usage): Update menu.
+	(Diary Customizing): Holidays may be in the buffer or mode line.
+	Move diary-print-entries to the "Diary Display" section.
+	(Diary Display): New section, split out from "Fancy Diary Display".
+	Explain the limitations of simple display, and how to print it.
+
+	* calendar.texi (Displaying the Diary): Mention keys apply to calendar.
+
+	* cal-xtra.texi (Diary Display): Mention View mode.
+
+2009-11-29  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Actually a list of
+	default faces is pre-loaded into a list of default values
+	instead of the history.
+
+2009-11-20  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Add htmlfontify.
+
+2009-11-14  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Holiday Customizing): Replace obsolete alias.
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Update for recent Org changes.
+
+2009-10-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mule.texi (Charsets): Numerous copyedits.  Don't discuss the
+	`charset' property, which is irrelevant to the user manual (Bug#3526).
+
+2009-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* trouble.texi (DEL Does Not Delete): Fix typo.
+
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Misc File Ops): Mention copy-directory.
+
+2009-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Unibyte Mode): Emphasize that
+	unibyte-display-via-language-environment affects only the display.
+
+	* display.texi (Horizontal Scrolling): Document cursor behavior under
+	horizontal scrolling when point moves off the screen (Bug#4564).
+	Improve wording.
+
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Directories): delete-directory prompts for recursive
+	deletion.
+
+2009-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): CEDET updates.  Fix Hungarian accent.
+
 2009-09-25  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* dired.texi (Dired Navigation): Use @code instead of @var for
@@ -27,7 +99,7 @@
 2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Threads Buffer, Multithreaded Debugging):
-	Re-organise these two sections,
+	Re-organise these two sections.
 
 2009-08-29  Eli Zaretskii  <eliz@gnu.org>
 
@@ -64,7 +136,7 @@
 	* emacs.texi (Top): Add new menu items for GDB-UI.
 
 	* building.texi (GDB Graphical Interface): Add Multithreaded debugging
-	section. Threads buffer is in separate section now.
+	section.  Threads buffer is in separate section now.
 
 2009-08-08  Glenn Morris  <rgm@gnu.org>
 
@@ -108,30 +180,30 @@
 	* Makefile.in (TEXI2PDF): New.
 	(emacs.pdf, emacs-xtra.pdf): New targets.
 
-        * arevert-xtra.texi (Autorevert): Add menu descriptions.
+	* arevert-xtra.texi (Autorevert): Add menu descriptions.
 
 	* display.texi (Horizontal Scrolling): Re-word to remove widow.
 
 	* emacs.texi (Top): Info can be read from other places than Emacs.
-        Don't print the copying notice twice in the printed version.
-        Update the menu and detailmenu.
-        (Preface): The meaning of "on-line" has changed.
-        Correct name for "Common Problems" chapter.
-        (Distrib): Update FSF shop URL.
-        (Intro): Showing two files at once is not so exciting.
+	Don't print the copying notice twice in the printed version.
+	Update the menu and detailmenu.
+	(Preface): The meaning of "on-line" has changed.
+	Correct name for "Common Problems" chapter.
+	(Distrib): Update FSF shop URL.
+	(Intro): Showing two files at once is not so exciting.
 
-        * macos.texi (Mac OS / GNUstep): Fix spelling and cross-reference.
-        (Mac / GNUstep Basics): Minor grammar changes.
-        (Mac / GNUstep Events): Fix typo.
-        (GNUstep Support): CANNOT_DUMP no longer applies.
+	* macos.texi (Mac OS / GNUstep): Fix spelling and cross-reference.
+	(Mac / GNUstep Basics): Minor grammar changes.
+	(Mac / GNUstep Events): Fix typo.
+	(GNUstep Support): CANNOT_DUMP no longer applies.
 
-        * misc.texi (Document View): Fix typos.
+	* misc.texi (Document View): Fix typos.
 
-        * dired.texi (Dired):
-        * help.texi (Help):
-        * macos.texi (Mac OS / GNUstep):
-        * maintaining.texi (Version Control, Introduction to VC):
-        End menu descriptions with a period.
+	* dired.texi (Dired):
+	* help.texi (Help):
+	* macos.texi (Mac OS / GNUstep):
+	* maintaining.texi (Version Control, Introduction to VC):
+	End menu descriptions with a period.
 
 2009-07-09  Eli Zaretskii  <eliz@gnu.org>
 
@@ -232,10 +304,10 @@
 	* search.texi (Isearch Scroll): Add isearch-allow-scroll to index.
 	(Isearch Scroll): Decapitalize <next> and <prior>.
 
-2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
+2009-06-09  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* fixit.texi (Spelling): Set default dictionary. Improve
-	descriptions (Bug#2554)
+	* fixit.texi (Spelling): Set default dictionary.
+	Improve descriptions (Bug#2554)
 
 2009-06-08  David Reitter  <david.reitter@gmail.com>
 
@@ -723,7 +795,6 @@
 	* anti.texi:
 	* emacs.texi:
 	* msdog.texi: Change reference to Mac OS node to Mac OS / GNUstep.
-
 
 2008-11-28  Richard M Stallman  <rms@gnu.org>
 

@@ -24,6 +24,10 @@
 
 ;;; Commentary:
 
+;; Proper function of the SCCS diff commands requires the shellscript vcdiff
+;; to be installed somewhere on Emacs's path for executables.
+;;
+
 ;;; Code:
 
 (eval-when-compile
@@ -73,7 +77,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;;###autoload
 (defcustom vc-sccs-master-templates
-  '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir)
+  (purecopy '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir))
   "Where to look for SCCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SCCS file names"
@@ -331,10 +335,11 @@ revert all subfiles."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (files &optional buffer shortlog)
+(defun vc-sccs-print-log (files buffer &optional shortlog start-revision-ignored limit)
   "Get change log associated with FILES."
   (setq files (vc-expand-dirs files))
-  (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files)))
+  (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files))
+  (when limit 'limit-unsupported))
 
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."

@@ -1,0 +1,33 @@
+/* XPM */
+static char * pause_xpm[] = {
+"24 24 4 1",
+" 	c None",
+".	s light1	c grey90",
+"X	s main	c grey70",
+"o	s shadow	c grey50",
+"                        ",
+" ...................... ",
+" .XXXXXXXXXXXXXXXXXXXXo ",
+" .XXXXXXXXXXXXXXXXXXXXo ",
+" .XXXXXXXXXXXXXXXXXXXXo ",
+" .XXXX.....XX.....XXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.XXXoXX.XXXoXXXXo ",
+" .XXXX.ooooXX.ooooXXXXo ",
+" .XXXXXXXXXXXXXXXXXXXXo ",
+" .XXXXXXXXXXXXXXXXXXXXo ",
+" .XXXXXXXXXXXXXXXXXXXXo ",
+" .ooooooooooooooooooooo ",
+"                        "};
+
+/* arch-tag: 3fe99afb-7dfd-49dd-b5b3-d8eedf14b362 */

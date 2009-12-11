@@ -1109,6 +1109,9 @@ subshells can nest."
 		  (when (memq (char-before) '(?\" ?\'))
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
+	  ;; Patterns can be preceded by an open-paren (Bug#1320).
+	  (if (eq (char-before (point)) ?\()
+	      (backward-char 1))
           (while (progn
                    (forward-comment (- (point-max)))
                    ;; Maybe we've bumped into an escaped newline.
@@ -2975,8 +2978,7 @@ so that `occur-next' and `occur-prev' will work."
 ;;
 ;; (defun what-i-learned (list)
 ;;   (let ((p list))
-;;     (save-excursion
-;;       (set-buffer "*scratch*")
+;;     (with-current-buffer "*scratch*"
 ;;       (goto-char (point-max))
 ;;       (insert "(setq\n")
 ;;       (while p
@@ -3210,7 +3212,7 @@ This command can often take a long time to run."
 	   )))
       ;; Are abnormal hooks considered bad form?
       (run-hook-with-args 'sh-learned-buffer-hook learned-var-list)
-      (and (called-interactively-p)
+      (and (called-interactively-p 'any)
 	   (or sh-popup-occur-buffer (> num-diffs 0))
 	   (pop-to-buffer out-buffer)))))
 

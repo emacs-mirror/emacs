@@ -107,8 +107,7 @@
 ;;;###autoload
 (defun resume-suspend-hook ()
   "Clear out the file used for transmitting args when Emacs resumes."
-  (save-excursion
-    (set-buffer (get-buffer-create resume-emacs-args-buffer))
+  (with-current-buffer (get-buffer-create resume-emacs-args-buffer)
     (erase-buffer)
     (resume-write-buffer-to-file (current-buffer) resume-emacs-args-file)))
 
@@ -116,8 +115,7 @@
   "Writes the contents of BUFFER into FILE, if permissions allow."
   (if (not (file-writable-p file))
       (error "No permission to write file %s" file))
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (clear-visited-file-modtime)
     (save-restriction
       (widen)

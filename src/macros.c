@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "macros.h"
 #include "commands.h"
@@ -375,9 +376,9 @@ init_macros ()
 void
 syms_of_macros ()
 {
-  Qexecute_kbd_macro = intern ("execute-kbd-macro");
+  Qexecute_kbd_macro = intern_c_string ("execute-kbd-macro");
   staticpro (&Qexecute_kbd_macro);
-  Qkbd_macro_termination_hook = intern ("kbd-macro-termination-hook");
+  Qkbd_macro_termination_hook = intern_c_string ("kbd-macro-termination-hook");
   staticpro (&Qkbd_macro_termination_hook);
 
   defsubr (&Sstart_kbd_macro);

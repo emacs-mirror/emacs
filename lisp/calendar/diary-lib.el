@@ -29,7 +29,7 @@
 ;;; Code:
 
 (require 'calendar)
-(require 'diary-loaddefs)
+(eval-and-compile (load "diary-loaddefs" nil t))
 
 (defgroup diary nil
   "Emacs diary."
@@ -744,7 +744,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
            (diary-buffer (find-buffer-visiting diary-file))
            diary-entries-list file-glob-attrs)
       (message "Preparing diary...")
-      (save-excursion
+      (save-current-buffer
         (if (not diary-buffer)
             (set-buffer (find-file-noselect diary-file t))
           (set-buffer diary-buffer)
@@ -765,37 +765,39 @@ LIST-ONLY is non-nil, in which case it just returns the list."
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
-            (setq file-glob-attrs (cadr (diary-pull-attrs nil "")))
-            (with-syntax-table diary-syntax-table
+            (save-restriction
+              (widen)                   ; bug#5093
+              (setq file-glob-attrs (cadr (diary-pull-attrs nil "")))
+              (with-syntax-table diary-syntax-table
+                (goto-char (point-min))
+                (unless list-only
+                  (let ((ol (make-overlay (point-min) (point-max) nil t nil)))
+                    (set (make-local-variable 'diary-selective-display) t)
+                    (overlay-put ol 'invisible 'diary)
+                    (overlay-put ol 'evaporate t)))
+                (dotimes (idummy number)
+                  (let ((sexp-found (diary-list-sexp-entries date))
+                        (entry-found (diary-list-entries-2
+                                      date diary-nonmarking-symbol
+                                      file-glob-attrs list-only)))
+                    (if diary-list-include-blanks
+                        (or sexp-found entry-found
+                            (diary-add-to-list date "" "" "" "")))
+                    (setq date
+                          (calendar-gregorian-from-absolute
+                           (1+ (calendar-absolute-from-gregorian date)))))))
               (goto-char (point-min))
+              (run-hooks 'diary-nongregorian-listing-hook
+                         'diary-list-entries-hook)
               (unless list-only
-                (let ((ol (make-overlay (point-min) (point-max) nil t nil)))
-                  (set (make-local-variable 'diary-selective-display) t)
-                  (overlay-put ol 'invisible 'diary)
-                  (overlay-put ol 'evaporate t)))
-              (dotimes (idummy number)
-                (let ((sexp-found (diary-list-sexp-entries date))
-                      (entry-found (diary-list-entries-2
-                                    date diary-nonmarking-symbol
-                                    file-glob-attrs list-only)))
-                  (if diary-list-include-blanks
-                      (or sexp-found entry-found
-                          (diary-add-to-list date "" "" "" "")))
-                  (setq date
-                        (calendar-gregorian-from-absolute
-                         (1+ (calendar-absolute-from-gregorian date)))))))
-            (goto-char (point-min))
-            (run-hooks 'diary-nongregorian-listing-hook
-                       'diary-list-entries-hook)
-            (unless list-only
-              (if (and diary-display-function
-                       (listp diary-display-function))
-                  ;; Backwards compatibility.
-                  (run-hooks 'diary-display-function)
-                (funcall (or diary-display-function
-                             'diary-simple-display))))
-            (run-hooks 'diary-hook)
-            diary-entries-list))))))
+                (if (and diary-display-function
+                         (listp diary-display-function))
+                    ;; Backwards compatibility.
+                    (run-hooks 'diary-display-function)
+                  (funcall (or diary-display-function
+                               'diary-simple-display))))
+              (run-hooks 'diary-hook)
+              diary-entries-list)))))))
 
 (define-obsolete-function-alias 'list-diary-entries 'diary-list-entries "22.1")
 
@@ -1084,14 +1086,20 @@ This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
-  (let ((d-file (diary-check-diary-file))
-        (pop-up-frames (or pop-up-frames
-                           (window-dedicated-p (selected-window)))))
+  (let* ((d-file (diary-check-diary-file))
+         (pop-up-frames (or pop-up-frames
+                            (window-dedicated-p (selected-window))))
+         (win (selected-window))
+         (height (window-height)))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
       (when (eq major-mode (default-value 'major-mode)) (diary-mode))
       (diary-unhide-everything)
-      (display-buffer (current-buffer)))))
+      (display-buffer (current-buffer))
+      (when (and (/= height (window-height win))
+                 (with-current-buffer (window-buffer win)
+                   (derived-mode-p 'calendar-mode)))
+        (fit-window-to-buffer win)))))
 
 (define-obsolete-function-alias 'show-all-diary-entries
   'diary-show-all-entries "22.1")
@@ -1500,8 +1508,7 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
 The function FROMABS converts absolute dates to the appropriate date system.
 The function TOABS carries out the inverse operation.  Optional argument
 COLOR is passed to `calendar-mark-visible-date' as MARK."
-  (save-excursion
-    (set-buffer calendar-buffer)
+  (with-current-buffer calendar-buffer
     (if (and (not (zerop month)) (not (zerop day)))
         (if (not (zerop year))
             ;; Fully specified date.
@@ -1689,8 +1696,7 @@ best if they are non-marking."
         sexp-start sexp entry specifier entry-start line-start
         diary-entry temp literal)
     (goto-char (point-min))
-    (save-excursion
-      (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '()))))
+    (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
     (while (re-search-forward s-entry nil t)
       (backward-char 1)
       (setq sexp-start (point))

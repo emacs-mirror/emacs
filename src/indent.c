@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "buffer.h"
@@ -252,7 +253,7 @@ skip_invisible (pos, next_boundary_p, to, window)
     {
       /* Don't scan terribly far.  */
       XSETFASTINT (proplimit, min (pos + 100, to));
-      /* No matter what. don't go past next overlay change.  */
+      /* No matter what, don't go past next overlay change.  */
       if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
 	proplimit = overlay_limit;
       tmp = Fnext_single_property_change (position, Qinvisible,
@@ -294,7 +295,7 @@ skip_invisible (pos, next_boundary_p, to, window)
     int c;								\
     									\
     wide_column = 0;							\
-    c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, bytes);	\
+    c = STRING_CHAR_AND_LENGTH (p, bytes);				\
     if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
       width = bytes * 4;						\
     else								\

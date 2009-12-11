@@ -1,3 +1,97 @@
+2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-completion-in-region): New compatibility function.
+	(message-expand-group): Use it.
+
+2009-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-prepare-flat): Check also whether groups
+	with no unread article should be listed if the 2nd arg `predicate' is
+	given.
+
+2009-11-29  Juri Linkov  <juri@jurta.org>
+
+	* gnus-sum.el (gnus-recenter): Use `recenter-top-bottom'
+	when it is fboundp in GNU Emacs 23.1.  Put `isearch-scroll' property
+	on `gnus-recenter'. (Bug#4698, Bug#4981)
+
+2009-11-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-from-style, message-interactive)
+	(message-signature): Always set default values from the corresponding
+	mail-* variables.
+	(message-cite-prefix-regexp, message-sendmail-envelope-from)
+	(message-yank-prefix, message-indentation-spaces)
+	(message-signature-file, message-default-headers): Use boundp rather
+	than (featurep 'xemacs) to check if the corresponding mail-* variables
+	exist.
+
+2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-send-mail-with-sendmail): Revert last change.
+
+2009-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-from-style, message-interactive)
+	(message-cite-prefix-regexp, message-sendmail-envelope-from)
+	(message-yank-prefix, message-indentation-spaces, message-signature)
+	(message-signature-file, message-default-headers): For GNU Emacs, set
+	default values from the corresponding mail-* variables.
+	(message-send-mail-with-sendmail): Use envelope-from only if
+	mail-specify-envelope-from is non-nil.
+
+2009-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-decode-region): Don't quote decoded words
+	containing tspecial characters if they have been already quoted.
+
+2009-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (help-xref-stack-item): Define for compiler.
+
+2009-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-remove-overlays): eval-and-compile.
+
+2009-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread): Remove useless goto-char.
+	(gnus-summary-show-thread, gnus-summary-hide-thread): Indent.
+
+2009-10-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-overlay-get): New alias to overlay-get.
+	(gnus-overlays-in): New alias to overlays-in.
+
+	* gnus-sum.el (gnus-remove-overlays): Use gnus-overlays-in,
+	gnus-overlay-get, and gnus-delete-overlay.
+	(gnus-summary-show-thread): Make it work as well for systems in which
+	next-single-char-property-change is not available.
+	(gnus-summary-hide-thread): Use gnus-make-overlay and gnus-overlay-put.
+
+2009-10-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-remove-overlays): Add doc string and alias.
+
+2009-10-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* gnus-sum.el (gnus-remove-overlays): Compatibility code for Emacs 21
+	and XEmacs that don't have `remove-overlays'.
+
+2009-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-mode, gnus-summary-show-all-threads)
+	(gnus-summary-show-thread, gnus-summary-hide-thread): Get rid of
+	selective display.  Use overlays instead.
+
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* spam-stat.el (spam-stat-strip-xref): Fix typo in docstring.
+
+2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* spam-stat.el (spam-stat-load): Fix typo in message.
+
 2009-09-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-article-encrypt-body):
@@ -6,6 +100,14 @@
 	* nnir.el (gnus-summary-nnir-goto-thread, nnir-run-waissearch)
 	(nnir-run-swish++, nnir-run-swish-e): Fix typos in error messages.
 
+2009-09-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* mm-encode.el (mm-sign-option, mm-encrypt-option): New user option.
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Let users select
+	keys from the menu if mm-{sign,encrypt}-option is 'guided.
+	* mml-smime.el (mml-smime-epg-sign, mml-smime-epg-encrypt): Ditto.
+	* mml1991.el (mml1991-epg-sign, mml1991-epg-encrypt): Ditto.
+
 2009-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-diary.el (gnus-diary-check-message):
@@ -13,6 +115,18 @@
 	* nnbabyl.el (top-level):
 	* nndiary.el (nndiary-schedule):
 	Fix typos in condition-case handlers.
+
+2009-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-edit-part): Work for the buffer
+	configuration that provides the sole article window in a frame;
+	position point correctly after deleting a part.
+
+2009-09-14  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* spam.el (spam-unregister-on-reregister): Add boolean variable.
+	(spam-resolve-registrations-routine): Use it to unregister articles
+	that change status.
 
 2009-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 

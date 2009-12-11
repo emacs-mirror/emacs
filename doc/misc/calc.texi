@@ -13173,6 +13173,43 @@ are displayed with at least enough digits to represent
 in the current radix.  (Larger integers will still be displayed in their
 entirety.) 
 
+
+Calc can display @expr{w}-bit integers using two's complement notation
+and binary, octal or hexadecimal display radix with the commands
+@kbd{C-u d 2}, @kbd{C-u d 8} or @kbd{C-u d 6}, respectively.  In this
+case a negative word size might be appropriate (@pxref{Binary Functions}).
+The integers in the symmetric interval from
+@texline @math{-2^{w-1}}
+@infoline @expr{-2^(w-1)}
+to
+@texline @math{2^{w-1}-1}
+@infoline @expr{2^(w-1)-1}
+will be represented by using the integers from @expr{0} to @expr{2^w};
+the integers from @expr{0} to
+@texline @math{2^{w-1}-1}
+@infoline @expr{2^(w-1)-1}
+will be represented by themselves and the integers
+from
+@texline @math{-2^{w-1}}
+@infoline @expr{-2^(w-1)}
+to @expr{-1} will have @expr{2^w} added to them, so they will be
+represented by the integers from
+@texline @math{2^{w-1}}
+@infoline @expr{2^(w-1)}
+to @expr{2^w}.  Calc will represent a twos-complement integer
+by the radix (either @expr{2}, @expr{8} or @expr{16}), two @kbd{#}
+symbols, and then the digits (including any necessary leading zeros to
+include all @expr{w} bits).  Numbers that are not displayed in 
+twos-complement notation (i.e., that aren't integers from
+@texline @math{-2^{w-1}}
+@infoline @expr{-2^(w-1)}
+to
+@c (
+@texline @math{2^{w-1}-1})
+@infoline @expr{2^(w-1)-1})
+will be represented using Calc's usual notation (in the appropriate
+radix).
+
 @node Grouping Digits, Float Formats, Radix Modes, Display Modes
 @subsection Grouping Digits
 
@@ -17969,7 +18006,7 @@ of the binary operations described here operate modulo @expr{2^w}.  In
 particular, negative arguments are converted to positive integers modulo
 @expr{2^w} by all binary functions.
 
-If the word size is negative, binary operations produce 2's complement
+If the word size is negative, binary operations produce twos-complement
 integers from 
 @texline @math{-2^{-w-1}}
 @infoline @expr{-(2^(-w-1))} 

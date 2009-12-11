@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "frame.h"
@@ -1329,7 +1330,7 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
 */
 
 #if defined (HAVE_X_WINDOWS)
-static unsigned char swap_nibble[16] = {
+static const unsigned char swap_nibble[16] = {
   0x0, 0x8, 0x4, 0xc,           /* 0000 1000 0100 1100 */
   0x2, 0xa, 0x6, 0xe,           /* 0010 1010 0110 1110 */
   0x1, 0x9, 0x5, 0xd,           /* 0001 1001 0101 1101 */
@@ -1617,17 +1618,17 @@ Return nil if POS is not visible in WINDOW.  */)
 void
 syms_of_fringe ()
 {
-  Qtruncation = intern ("truncation");
+  Qtruncation = intern_c_string ("truncation");
   staticpro (&Qtruncation);
-  Qcontinuation = intern ("continuation");
+  Qcontinuation = intern_c_string ("continuation");
   staticpro (&Qcontinuation);
-  Qoverlay_arrow = intern ("overlay-arrow");
+  Qoverlay_arrow = intern_c_string ("overlay-arrow");
   staticpro (&Qoverlay_arrow);
-  Qempty_line = intern ("empty-line");
+  Qempty_line = intern_c_string ("empty-line");
   staticpro (&Qempty_line);
-  Qtop_bottom = intern ("top-bottom");
+  Qtop_bottom = intern_c_string ("top-bottom");
   staticpro (&Qtop_bottom);
-  Qhollow_small = intern ("hollow-small");
+  Qhollow_small = intern_c_string ("hollow-small");
   staticpro (&Qhollow_small);
 
   defsubr (&Sdestroy_fringe_bitmap);

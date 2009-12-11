@@ -1002,8 +1002,7 @@ HEADER is the tree header structure of the class tree."
     (loop for buffer in (ebrowse-browser-buffer-list)
 	  until (eq header (ebrowse-value-in-buffer 'ebrowse--header buffer))
 	  finally do
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (ebrowse-fill-member-table))))
   (ebrowse-hs-member-table header))
 
@@ -1613,8 +1612,7 @@ and (b) in the directories named in `ebrowse-search-path'."
 Restore frame configuration active before viewing the file,
 and possibly kill the viewed buffer."
   (let (exit-action original-frame-configuration)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (setq original-frame-configuration ebrowse--frame-configuration
 	    exit-action ebrowse--view-exit-action))
     ;; Delete the frame in which we viewed.
@@ -3555,7 +3553,7 @@ The file name is read from the minibuffer."
   (interactive)
   (let* ((buffer (or (ebrowse-choose-from-browser-buffers)
 		     (error "No tree buffer")))
-	 (files (save-excursion (set-buffer buffer) (ebrowse-files-table)))
+	 (files (with-current-buffer buffer (ebrowse-files-table)))
 	 (file (completing-read "List members in file: " files nil t))
 	 (header (ebrowse-value-in-buffer 'ebrowse--header buffer))
 	 temp-buffer-setup-hook
@@ -3733,8 +3731,7 @@ TREE-BUFFER specifies the class tree we operate on."
   ;; on which tree (s)he wants to operate.
   (when initialize
     (let ((buffer (or tree-buffer (ebrowse-choose-from-browser-buffers))))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(setq ebrowse-tags-next-file-list
 	      (ebrowse-files-list (ebrowse-marked-classes-p))
 	      ebrowse-tags-loop-last-file
@@ -4124,8 +4121,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
 	(header (copy-ebrowse-hs ebrowse--header))
 	(tree ebrowse--tree))
     (unwind-protect
-	(save-excursion
-	  (set-buffer (setq standard-output temp-buffer))
+	(with-current-buffer (setq standard-output temp-buffer)
 	  (erase-buffer)
 	  (setf (ebrowse-hs-member-table header) nil)
 	  (insert (prin1-to-string header) " ")
@@ -4210,8 +4206,8 @@ NUMBER-OF-STATIC-VARIABLES:"
 
 ;;; Global key bindings
 
-;;; The following can be used to bind key sequences starting with
-;;; prefix `\C-c\C-m' to browse commands.
+;; The following can be used to bind key sequences starting with
+;; prefix `\C-c\C-m' to browse commands.
 
 (defvar ebrowse-global-map nil
   "*Keymap for Ebrowse commands.")
@@ -4270,14 +4266,14 @@ NUMBER-OF-STATIC-VARIABLES:"
 
 ;;; Electric C++ browser buffer menu
 
-;;; Electric buffer menu customization to display only some buffers
-;;; (in this case Tree buffers).  There is only one problem with this:
-;;; If the very first character typed in the buffer menu is a space,
-;;; this will select the buffer from which the buffer menu was
-;;; invoked.  But this buffer is not displayed in the buffer list if
-;;; it isn't a tree buffer.  I therefore let the buffer menu command
-;;; loop read the command `p' via `unread-command-char'.  This command
-;;; has no effect since we are on the first line of the buffer.
+;; Electric buffer menu customization to display only some buffers
+;; (in this case Tree buffers).  There is only one problem with this:
+;; If the very first character typed in the buffer menu is a space,
+;; this will select the buffer from which the buffer menu was
+;; invoked.  But this buffer is not displayed in the buffer list if
+;; it isn't a tree buffer.  I therefore let the buffer menu command
+;; loop read the command `p' via `unread-command-char'.  This command
+;; has no effect since we are on the first line of the buffer.
 
 (defvar electric-buffer-menu-mode-hook nil)
 

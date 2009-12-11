@@ -180,7 +180,7 @@ no effect when spam-stat is invoked through spam.el."
 
 (defcustom spam-stat-score-buffer-user-functions nil
   "List of additional scoring functions.
-Called  one by one on the buffer. 
+Called  one by one on the buffer.
 
 If all of these functions return non-nil answers, these numerical
 answers are added to the computed spam stat score on the buffer.  If
@@ -442,12 +442,12 @@ spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
                (null spam-stat-last-saved-at)
                (not (equal spam-stat-last-saved-at
                            (nth 5 (file-attributes spam-stat-file)))))
-           (progn 
+           (progn
              (load-file spam-stat-file)
              (setq spam-stat-dirty nil
-                   spam-stat-last-saved-at 
+                   spam-stat-last-saved-at
                    (nth 5 (file-attributes spam-stat-file)))))
-          (t (message "Spam stat file not loaded: no change in disk..")))))
+          (t (message "Spam stat file not loaded: no change in disk.")))))
 
 (defun spam-stat-to-hash-table (entries)
   "Turn list ENTRIES into a hash table and store as `spam-stat'.
@@ -503,11 +503,11 @@ where DIFF is the difference between SCORE and 0.5."
 (defun spam-stat-score-buffer ()
   "Return a score describing the spam-probability for this buffer.
 Add user supplied modifications if supplied."
-  (interactive) ; helps in debugging. 
+  (interactive) ; helps in debugging.
   (setq spam-stat-score-data (spam-stat-buffer-words-with-scores))
   (let* ((probs (mapcar 'cadr spam-stat-score-data))
 	 (prod (apply #'* probs))
-	 (score0 
+	 (score0
 	  (/ prod (+ prod (apply #'* (mapcar #'(lambda (x) (- 1 x))
 					     probs)))))
 	 (score1s
@@ -517,17 +517,17 @@ Add user supplied modifications if supplied."
 	    (error nil)))
 	 (ans
 	  (if score1s (+ score0 score1s) score0)))
-    (when (interactive-p) 
+    (when (interactive-p)
       (message "%S" ans))
     ans))
 
 (defun spam-stat-score-buffer-user (&rest args)
   (let* ((scores
-	  (mapcar 
-	   (lambda (fn) 
+	  (mapcar
+	   (lambda (fn)
 	     (apply fn args))
 	   spam-stat-score-buffer-user-functions)))
-    (if (memq nil scores) nil 
+    (if (memq nil scores) nil
       (apply #'+ scores))))
 
 (defun spam-stat-split-fancy ()
@@ -551,7 +551,7 @@ check the variable `spam-stat-score-data'."
 ;; Testing
 
 (defun spam-stat-strip-xref ()
-  "Strip the the Xref header."
+  "Strip the Xref header."
   (save-restriction
     (mail-narrow-to-head)
     (when (re-search-forward "^Xref:.*\n" nil t)

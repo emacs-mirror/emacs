@@ -130,7 +130,7 @@ this variable is set from that."
   (define-key rlogin-mode-map "\C-i" 'rlogin-tab-or-complete)))
 
 
-;;;###autoload (add-hook 'same-window-regexps "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)")
+;;;###autoload (add-hook 'same-window-regexps (purecopy "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)"))
 
 (defvar rlogin-history nil)
 

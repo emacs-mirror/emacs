@@ -1,7 +1,124 @@
+2009-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Remove diary-display-hook, replaced by
+	diary-display-function, and no longer recommended to be a hook.
+	Update for changes in the names of calendar and diary hooks.
+	diary-print-entries-hook has changed section.
+
+2009-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): More accurate description of
+	what the `cursor' property does.
+
+2009-11-26  Kevin Ryde  <user42@zip.com.au>
+
+	* commands.texi (Misc Events): vindex mouse-wheel-up-event and
+	mouse-wheel-down-event, the closest thing to a definition for them.
+	* os.texi (Startup Summary): vindex inhibit-startup-message and
+	inhibit-splash-screen.
+	(Command-Line Arguments): vindex argv.
+	(Suspending Emacs): vindex suspend-tty-functions and
+	resume-tty-functions.  Don't want to index every hook, but having
+	the programming ones is helpful.
+
+2009-11-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Motion Events): Fix typo (Bug#4907).
+
+2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Char Classes): Note that [:upper:] and [:lower:]
+	are affected by case-fold-search (Bug#4483).
+
+2009-11-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Reading File Names): Note that read-file-name may
+	use a graphical file dialog.
+
+2009-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* nonascii.texi (User-Chosen Coding Systems): Minor reword.  (Bug#4817)
+
+2009-10-16  Kevin Ryde  <user42@zip.com.au>
+
+	* files.texi (Magic File Names): Add @vindex file-name-handler-alist,
+	in particular so `info-lookup-symbol' can find its docs.
+
+2009-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* variables.texi (Constant Variables): Distinguish from defconst
+	variables.
+	(Defining Variables): Add cindex.
+
+2009-10-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Time of Day): Clarify that the microsecond part is
+	ignored (Bug#4637).
+
+2009-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Size and Position): Clarify what is included in the frame
+	height.  (Bug#4535)
+
+2009-10-10  Glenn Morris  <rgm@gnu.org>
+
+	* windows.texi (Size of Window): The relationship between window and
+	frame heights is not so simple.  (Bug#4535)
+	Mention window-full-height-p.
+
+2009-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* positions.texi (Text Lines): Remove goto-line, since it shouldn't be
+	used from Lisp.
+
+2009-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Directory Names) <abbreviate-file-name>:
+	Document that root home directories are not replaced with "~".
+
+2009-10-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Document the meaning of the
+	`cursor' text property whose value is an integer.
+
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add `copy-directory'.
+
+2009-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (File Attributes): Fix description of file
+	attributes.  (Bug#4638) Update attributes of files.texi example to
+	be more representative.
+
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Create/Delete Dirs): New command copy-directory.
+
+2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* anti.texi (Antinews):
+	* macros.texi (Indenting Macros):
+	* strings.texi (Creating Strings, Case Conversion):
+	Remove duplicate words.
+
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Create/Delete Dirs): delete-directory has an
+	optional parameter RECURSIVE.
+
+2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffers.texi (Swapping Text): Minor clarification.
+
+2009-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Declaring Functions): Mention that we also search for
+	".m" files in the src/ directory.
+
 2009-09-25  David Engster  <deng@randomsample.de>
 
-	* display.texi (Managing Overlays): Document
-	copy-overlay (Bug#4549).
+	* display.texi (Managing Overlays): Document copy-overlay (Bug#4549).
 
 2009-09-22  Glenn Morris  <rgm@gnu.org>
 
@@ -19,7 +136,7 @@
 
 2009-09-11  Alan Mackenzie  <acm@muc.de>
 
-	* os.texi (Terminal Output): document `send-string-to-terminal' in
+	* os.texi (Terminal Output): Document `send-string-to-terminal' in
 	batch mode.
 
 2009-09-01  Glenn Morris  <rgm@gnu.org>
@@ -7709,7 +7826,7 @@
 2002-08-05  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* customize.texi (Splicing into Lists): Fixed example.
-	Reported by Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>
+	Reported by Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>.
 
 2002-06-17  Juanma Barranquero  <lektu@terra.es>
 

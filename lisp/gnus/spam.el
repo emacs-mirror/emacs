@@ -660,12 +660,12 @@ order for SpamAssassin to recognize the new registered spam."
   :type 'string
   :group 'spam-crm114)
 
-(defcustom spam-crm114-spam-strong-switch "--UNKNOWN"
+(defcustom spam-crm114-spam-strong-switch "--unlearn"
   "The switch that CRM114 Mailfilter uses to unregister ham messages."
   :type 'string
   :group 'spam-crm114)
 
-(defcustom spam-crm114-ham-strong-switch "--UNKNOWN"
+(defcustom spam-crm114-ham-strong-switch "--unlearn"
   "The switch that CRM114 Mailfilter uses to unregister spam messages."
   :type 'string
   :group 'spam-crm114)
@@ -1152,10 +1152,8 @@ backends)."
 				  'spam-check-crm114
 				  'spam-crm114-register-ham-routine
 				  'spam-crm114-register-spam-routine
-				  ;; does CRM114 Mailfilter support unregistration?
-				  nil
-				  nil)
-
+				  'spam-crm114-unregister-ham-routine
+				  'spam-crm114-unregister-spam-routine)
 ;;}}}
 
 ;;{{{ scoring and summary formatting

@@ -60,6 +60,24 @@ to specify encoding of non-ASCII MIME parts."
 			       (const base64))))
   :group 'mime)
 
+(defcustom mm-sign-option nil
+  "Option how to create signed parts.
+nil, use the default keys without asking;
+`guided', let you select signing keys from the menu."
+  :version "23.1"
+  :type '(choice (item guided)
+		 (item :tag "default" nil))
+  :group 'mime-security)
+
+(defcustom mm-encrypt-option nil
+  "Option how to create encrypted parts.
+nil, use the default keys without asking;
+`guided', let you select recipients' keys from the menu."
+  :version "23.1"
+  :type '(choice (item guided)
+		 (item :tag "default" nil))
+  :group 'mime-security)
+
 (defvar mm-use-ultra-safe-encoding nil
   "If non-nil, use encodings aimed at Procrustean bed survival.
 

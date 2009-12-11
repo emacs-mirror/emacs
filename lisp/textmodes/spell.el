@@ -93,8 +93,7 @@ for example, \"word\"."
   (interactive "r")
   (let ((filter spell-filter)
 	(buf (get-buffer-create " *temp*")))
-    (save-excursion
-     (set-buffer buf)
+    (with-current-buffer buf
      (widen)
      (erase-buffer))
     (message "Checking spelling of %s..." (or description "region"))
@@ -104,41 +103,37 @@ for example, \"word\"."
 	  (call-process-region start end shell-file-name
 			       nil buf nil "-c" spell-command))
       (let ((oldbuf (current-buffer)))
-	(save-excursion
-	 (set-buffer buf)
-	 (insert-buffer-substring oldbuf start end)
-	 (or (bolp) (insert ?\n))
-	 (if filter (funcall filter))
-	 (if (string= "spell" spell-command)
-	     (call-process-region (point-min) (point-max) "spell" t buf)
-	   (call-process-region (point-min) (point-max) shell-file-name
-				t buf nil "-c" spell-command)))))
+	(with-current-buffer buf
+          (insert-buffer-substring oldbuf start end)
+          (or (bolp) (insert ?\n))
+          (if filter (funcall filter))
+          (if (string= "spell" spell-command)
+              (call-process-region (point-min) (point-max) "spell" t buf)
+            (call-process-region (point-min) (point-max) shell-file-name
+                                 t buf nil "-c" spell-command)))))
     (message "Checking spelling of %s...%s"
 	     (or description "region")
-	     (if (save-excursion
-		  (set-buffer buf)
-		  (> (buffer-size) 0))
+	     (if (with-current-buffer buf
+                   (> (buffer-size) 0))
 		 "not correct"
 	       "correct"))
     (let (word newword
 	  (case-fold-search t)
 	  (case-replace t))
-      (while (save-excursion
-	      (set-buffer buf)
-	      (> (buffer-size) 0))
-	(save-excursion
-	 (set-buffer buf)
-	 (goto-char (point-min))
-	 (setq word (downcase
-		     (buffer-substring (point)
-				       (progn (end-of-line) (point)))))
-	 (forward-char 1)
-	 (delete-region (point-min) (point))
-	 (setq newword
-	       (read-string (concat "`" word
-                                    "' not recognized; edit a replacement: ")
-                            word))
-	 (flush-lines (concat "^" (regexp-quote word) "$")))
+      (while (with-current-buffer buf
+               (> (buffer-size) 0))
+	(with-current-buffer buf
+          (goto-char (point-min))
+          (setq word (downcase
+                      (buffer-substring (point)
+                                        (progn (end-of-line) (point)))))
+          (forward-char 1)
+          (delete-region (point-min) (point))
+          (setq newword
+                (read-string (concat "`" word
+                                     "' not recognized; edit a replacement: ")
+                             word))
+          (flush-lines (concat "^" (regexp-quote word) "$")))
 	(if (not (equal word newword))
 	    (progn
 	     (goto-char (point-min))
@@ -152,22 +147,21 @@ for example, \"word\"."
   "Check spelling of string supplied as argument."
   (interactive "sSpell string: ")
   (let ((buf (get-buffer-create " *temp*")))
-    (save-excursion
-     (set-buffer buf)
-     (widen)
-     (erase-buffer)
-     (insert string "\n")
-     (if (string= "spell" spell-command)
-	 (call-process-region (point-min) (point-max) "spell"
-			      t t)
-       (call-process-region (point-min) (point-max) shell-file-name
-			    t t nil "-c" spell-command))
-     (if (= 0 (buffer-size))
-	 (message "%s is correct" string)
-       (goto-char (point-min))
-       (while (search-forward "\n" nil t)
-	 (replace-match " "))
-       (message "%sincorrect" (buffer-substring 1 (point-max)))))))
+    (with-current-buffer buf
+      (widen)
+      (erase-buffer)
+      (insert string "\n")
+      (if (string= "spell" spell-command)
+          (call-process-region (point-min) (point-max) "spell"
+                               t t)
+        (call-process-region (point-min) (point-max) shell-file-name
+                             t t nil "-c" spell-command))
+      (if (= 0 (buffer-size))
+          (message "%s is correct" string)
+        (goto-char (point-min))
+        (while (search-forward "\n" nil t)
+          (replace-match " "))
+        (message "%sincorrect" (buffer-substring 1 (point-max)))))))
 ;;;###autoload
 (make-obsolete 'spell-string "The `spell' package is obsolete - use `ispell'."
                "23.1")

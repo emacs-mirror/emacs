@@ -1,8 +1,10 @@
 ;;; savehist.el --- Save minibuffer history.
 
-;; Copyright (C) 1997, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
+;; Maintainer: FSF
 ;; Keywords: minibuffer
 ;; Version: 24
 
@@ -120,7 +122,8 @@ the user's privacy."
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
 If set to nil, disables timer-based autosaving."
-  :type 'integer
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Seconds"))
   :group 'savehist)
 
 (defcustom savehist-mode-hook nil
@@ -203,7 +206,7 @@ which is probably undesirable."
 	    ;; coding cookie to convey that information.  That way, if
 	    ;; the user changes the value of savehist-coding-system,
 	    ;; we can still correctly load the old file.
-	    (load savehist-file nil (not (interactive-p)))
+	    (load savehist-file nil (not (called-interactively-p 'interactive)))
 	    (setq savehist-loaded t))
 	(error
 	 ;; Don't install the mode if reading failed.  Doing so would
@@ -351,7 +354,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	(let ((file-precious-flag t)
 	      (coding-system-for-write savehist-coding-system))
 	  (write-region (point-min) (point-max) savehist-file nil
-			(unless (interactive-p) 'quiet)))
+			(unless (called-interactively-p 'interactive) 'quiet)))
 	(when savehist-file-modes
 	  (set-file-modes savehist-file savehist-file-modes))
 	(setq savehist-last-checksum checksum)))))

@@ -306,9 +306,9 @@ the evaluated constant value at compile time."
 	:style toggle :selected c-auto-newline]
        ["Hungry delete"         c-toggle-hungry-state
 	:style toggle :selected c-hungry-delete-key]
-       ["Subword mode"          c-subword-mode
-	:style toggle :selected (and (boundp 'c-subword-mode)
-                                     c-subword-mode)])))
+       ["Subword mode"          subword-mode
+	:style toggle :selected (and (boundp 'subword-mode)
+                                     subword-mode)])))
 
 
 ;;; Syntax tables.
@@ -461,7 +461,7 @@ The function is called even when font locking is disabled.
 When the mode is initialized, this function is called with
 parameters \(point-min), \(point-max) and <buffer size>."
   t nil
-  (c c++ objc) 'c-extend-and-neutralize-syntax-in-CPP
+  (c c++ objc) 'c-neutralize-syntax-in-and-mark-CPP
   awk 'c-awk-extend-and-syntax-tablify-region)
 (c-lang-defvar c-before-font-lock-function
 	       (c-lang-const c-before-font-lock-function))

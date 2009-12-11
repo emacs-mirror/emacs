@@ -62,8 +62,7 @@
 ;;
 ;; M-p	   comint-previous-input	   Cycle backwards in input history
 ;; M-n	   comint-next-input		   Cycle forwards
-;; M-r     comint-previous-matching-input  Previous input matching a regexp
-;; M-s     comint-next-matching-input      Next input that matches
+;; M-r     comint-history-isearch-backward-regexp  Isearch input regexp backward
 ;; M-C-l   comint-show-output		   Show last batch of process output
 ;; RET	   comint-send-input
 ;; C-d	   comint-delchar-or-maybe-eof     Delete char unless at end of buff
@@ -310,6 +309,7 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
+;; FIXME: this should be defcustom
 (defvar comint-input-ring-size 150
   "Size of input history ring.")
 
@@ -445,8 +445,7 @@ executed once when the buffer is created."
     (define-key map "\en" 	  'comint-next-input)
     (define-key map [C-up] 	  'comint-previous-input)
     (define-key map [C-down] 	  'comint-next-input)
-    (define-key map "\er" 	  'comint-previous-matching-input)
-    (define-key map "\es" 	  'comint-next-matching-input)
+    (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
     (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
     (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
     (define-key map "\e\C-l" 	  'comint-show-output)
@@ -509,6 +508,10 @@ executed once when the buffer is created."
       '("Kill Current Input" . comint-kill-input))
     (define-key map [menu-bar inout copy-input]
       '("Copy Old Input" . comint-copy-old-input))
+    (define-key map [menu-bar inout history-isearch-backward-regexp]
+      '("Isearch Input Regexp Backward..." . comint-history-isearch-backward-regexp))
+    (define-key map [menu-bar inout history-isearch-backward]
+      '("Isearch Input String Backward..." . comint-history-isearch-backward))
     (define-key map [menu-bar inout forward-matching-history]
       '("Forward Matching Input..." . comint-forward-matching-input))
     (define-key map [menu-bar inout backward-matching-history]
@@ -668,6 +671,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -824,7 +828,10 @@ by the global keymap (usually `mouse-yank-at-click')."
   (let ((pos (posn-point (event-end event)))
 	field input)
     (with-selected-window (posn-window (event-end event))
-      (and (setq field (field-at-pos pos))
+      ;; If pos is at the very end of a field, the mouse-click was
+      ;; probably outside (to the right) of the field.
+      (and (< pos (field-end pos))
+           (setq field (field-at-pos pos))
 	   (setq input (field-string-no-properties pos))))
     (if (or (null comint-accum-marker)
 	    (not (eq field 'input)))
@@ -902,8 +909,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		(size comint-input-ring-size)
 		(ring (make-ring size)))
 	   (unwind-protect
-	       (save-excursion
-		 (set-buffer history-buf)
+	       (with-current-buffer history-buf
 		 (widen)
 		 (erase-buffer)
 		 (insert-file-contents file)
@@ -912,17 +918,22 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 (goto-char (point-max))
 		 (let (start end history)
 		   (while (and (< count size)
-			       (re-search-backward comint-input-ring-separator nil t)
+			       (re-search-backward comint-input-ring-separator
+                                                   nil t)
 			       (setq end (match-beginning 0)))
-		     (if (re-search-backward comint-input-ring-separator nil t)
-			 (setq start (match-end 0))
-		       (setq start (point-min)))
+		     (setq start
+                           (if (re-search-backward comint-input-ring-separator
+                                                   nil t)
+                               (match-end 0)
+                             (point-min)))
 		     (setq history (buffer-substring start end))
 		     (goto-char start)
-		     (if (and (not (string-match comint-input-history-ignore history))
+		     (if (and (not (string-match comint-input-history-ignore
+                                                 history))
 			      (or (null comint-input-ignoredups)
 				  (ring-empty-p ring)
-				  (not (string-equal (ring-ref ring 0) history))))
+				  (not (string-equal (ring-ref ring 0)
+                                                     history))))
 			 (progn
 			   (ring-insert-at-beginning ring history)
 			   (setq count (1+ count)))))))
@@ -952,8 +963,7 @@ See also `comint-read-input-ring'."
 		(index (ring-length ring)))
 	   ;; Write it all out into a buffer first.  Much faster, but messier,
 	   ;; than writing it one line at a time.
-	   (save-excursion
-	     (set-buffer history-buf)
+	   (with-current-buffer history-buf
 	     (erase-buffer)
 	     (while (> index 0)
 	       (setq index (1- index))
@@ -968,7 +978,6 @@ See also `comint-read-input-ring'."
   "Choose the input history entry that point is in or next to."
   (interactive)
   (let ((buffer completion-reference-buffer)
-        (base-size completion-base-size)
         beg end completion)
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
@@ -980,7 +989,7 @@ See also `comint-read-input-ring'."
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
     (setq completion (buffer-substring beg end))
     (set-window-configuration comint-dynamic-list-input-ring-window-conf)
-    (choose-completion-string completion buffer base-size)))
+    (choose-completion-string completion buffer)))
 
 (defun comint-dynamic-list-input-ring ()
   "List in help buffer the buffer's input history."
@@ -993,9 +1002,10 @@ See also `comint-read-input-ring'."
 	  (index (1- (ring-length comint-input-ring)))
 	  (conf (current-window-configuration)))
       ;; We have to build up a list ourselves from the ring vector.
-      (while (>= index 0)
-	(setq history (cons (ring-ref comint-input-ring index) history)
-	      index (1- index)))
+      (dotimes (index (ring-length comint-input-ring))
+	(push (ring-ref comint-input-ring index) history))
+      ;; Show them most-recent-first.
+      (setq history (nreverse history))
       ;; Change "completion" to "history reference"
       ;; to make the display accurate.
       (with-output-to-temp-buffer history-buffer
@@ -1274,10 +1284,7 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
-	       (replace-match
-		(comint-args (comint-previous-input-string 0)
-			     (match-beginning 1) (match-end 1))
-		t t)
+	       (replace-match (comint-previous-input-string 0) t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
@@ -1325,6 +1332,198 @@ A useful command to bind to SPC.  See `comint-replace-by-expanded-history'."
   (interactive "p")
   (comint-replace-by-expanded-history)
   (self-insert-command arg))
+
+;; Isearch in comint input history
+
+(defcustom comint-history-isearch nil
+  "Non-nil to Isearch in input history only, not in comint buffer output.
+If t, usual Isearch keys like `C-r' and `C-M-r' in comint mode search
+in the input history.
+If `dwim', Isearch keys search in the input history only when initial
+point position is at the comint command line.  When starting Isearch
+from other parts of the comint buffer, they search in the comint buffer.
+If nil, Isearch operates on the whole comint buffer."
+  :type '(choice (const :tag "Don't search in input history" nil)
+		 (const :tag "When point is on command line initially, search history" dwim)
+		 (const :tag "Always search in input history" t))
+  :group 'comint
+  :version "23.2")
+
+(defun comint-history-isearch-backward ()
+  "Search for a string backward in input history using Isearch."
+  (interactive)
+  (let ((comint-history-isearch t))
+    (isearch-backward)))
+
+(defun comint-history-isearch-backward-regexp ()
+  "Search for a regular expression backward in input history using Isearch."
+  (interactive)
+  (let ((comint-history-isearch t))
+    (isearch-backward-regexp)))
+
+(defvar comint-history-isearch-message-overlay nil)
+(make-variable-buffer-local 'comint-history-isearch-message-overlay)
+
+(defun comint-history-isearch-setup ()
+  "Set up a comint for using Isearch to search the input history.
+Intended to be added to `isearch-mode-hook' in `comint-mode'."
+  (when (or (eq comint-history-isearch t)
+	    (and (eq comint-history-isearch 'dwim)
+		 ;; Point is at command line.
+		 (comint-after-pmark-p)))
+    (setq isearch-message-prefix-add "history ")
+    (set (make-local-variable 'isearch-search-fun-function)
+	 'comint-history-isearch-search)
+    (set (make-local-variable 'isearch-message-function)
+	 'comint-history-isearch-message)
+    (set (make-local-variable 'isearch-wrap-function)
+	 'comint-history-isearch-wrap)
+    (set (make-local-variable 'isearch-push-state-function)
+	 'comint-history-isearch-push-state)
+    (add-hook 'isearch-mode-end-hook 'comint-history-isearch-end nil t)))
+
+(defun comint-history-isearch-end ()
+  "Clean up the comint after terminating Isearch in comint."
+  (if comint-history-isearch-message-overlay
+      (delete-overlay comint-history-isearch-message-overlay))
+  (setq isearch-message-prefix-add nil)
+  (setq isearch-search-fun-function nil)
+  (setq isearch-message-function nil)
+  (setq isearch-wrap-function nil)
+  (setq isearch-push-state-function nil)
+  (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t))
+
+(defun comint-goto-input (pos)
+  "Put input history item of the absolute history position POS."
+  ;; If leaving the edit line, save partial unfinished input.
+  (if (null comint-input-ring-index)
+      (setq comint-stored-incomplete-input
+	    (funcall comint-get-old-input)))
+  (setq comint-input-ring-index pos)
+  (comint-delete-input)
+  (if (and pos (not (ring-empty-p comint-input-ring)))
+      (insert (ring-ref comint-input-ring pos))
+    ;; Restore partial unfinished input.
+    (when (> (length comint-stored-incomplete-input) 0)
+      (insert comint-stored-incomplete-input))))
+
+(defun comint-history-isearch-search ()
+  "Return the proper search function, for Isearch in input history."
+  (cond
+   (isearch-word
+    (if isearch-forward 'word-search-forward 'word-search-backward))
+   (t
+    (lambda (string bound noerror)
+      (let ((search-fun
+	     ;; Use standard functions to search within comint text
+             (cond
+              (isearch-regexp
+               (if isearch-forward 're-search-forward 're-search-backward))
+              (t
+               (if isearch-forward 'search-forward 'search-backward))))
+	    found)
+	;; Avoid lazy-highlighting matches in the comint prompt and in the
+	;; output when searching forward.  Lazy-highlight calls this lambda
+	;; with the bound arg, so skip the prompt and the output.
+	(if (and bound isearch-forward (not (comint-after-pmark-p)))
+	    (goto-char (process-mark (get-buffer-process (current-buffer)))))
+        (or
+	 ;; 1. First try searching in the initial comint text
+	 (funcall search-fun string
+		  (if isearch-forward bound (comint-line-beginning-position))
+		  noerror)
+	 ;; 2. If the above search fails, start putting next/prev history
+	 ;; elements in the comint successively, and search the string
+	 ;; in them.  Do this only when bound is nil (i.e. not while
+	 ;; lazy-highlighting search strings in the current comint text).
+	 (unless bound
+	   (condition-case nil
+	       (progn
+		 (while (not found)
+		   (cond (isearch-forward
+			  ;; Signal an error here explicitly, because
+			  ;; `comint-next-input' doesn't signal an error.
+			  (when (null comint-input-ring-index)
+			    (error "End of history; no next item"))
+			  (comint-next-input 1)
+			  (goto-char (comint-line-beginning-position)))
+			 (t
+			  ;; Signal an error here explicitly, because
+			  ;; `comint-previous-input' doesn't signal an error.
+			  (when (eq comint-input-ring-index
+				    (1- (ring-length comint-input-ring)))
+			    (error "Beginning of history; no preceding item"))
+			  (comint-previous-input 1)
+			  (goto-char (point-max))))
+		   (setq isearch-barrier (point) isearch-opoint (point))
+		   ;; After putting the next/prev history element, search
+		   ;; the string in them again, until comint-next-input
+		   ;; or comint-previous-input raises an error at the
+		   ;; beginning/end of history.
+		   (setq found (funcall search-fun string
+					(unless isearch-forward
+					  ;; For backward search, don't search
+					  ;; in the comint prompt
+					  (comint-line-beginning-position))
+					noerror)))
+		 ;; Return point of the new search result
+		 (point))
+	     ;; Return nil on the error "no next/preceding item"
+	     (error nil)))))))))
+
+(defun comint-history-isearch-message (&optional c-q-hack ellipsis)
+  "Display the input history search prompt.
+If there are no search errors, this function displays an overlay with
+the Isearch prompt which replaces the original comint prompt.
+Otherwise, it displays the standard Isearch message returned from
+`isearch-message'."
+  (if (not (and isearch-success (not isearch-error)))
+      ;; Use standard function `isearch-message' when not in comint prompt,
+      ;; or search fails, or has an error (like incomplete regexp).
+      ;; This function displays isearch message in the echo area,
+      ;; so it's possible to see what is wrong in the search string.
+      (isearch-message c-q-hack ellipsis)
+    ;; Otherwise, put the overlay with the standard isearch prompt over
+    ;; the initial comint prompt.
+    (if (overlayp comint-history-isearch-message-overlay)
+	(move-overlay comint-history-isearch-message-overlay
+		      (save-excursion (forward-line 0) (point))
+                      (comint-line-beginning-position))
+      (setq comint-history-isearch-message-overlay
+	    (make-overlay (save-excursion (forward-line 0) (point))
+                          (comint-line-beginning-position)))
+      (overlay-put comint-history-isearch-message-overlay 'evaporate t))
+    (overlay-put comint-history-isearch-message-overlay
+		 'display (isearch-message-prefix c-q-hack ellipsis))
+    ;; And clear any previous isearch message.
+    (message "")))
+
+(defun comint-history-isearch-wrap ()
+  "Wrap the input history search when search fails.
+Move point to the first history element for a forward search,
+or to the last history element for a backward search."
+  (unless isearch-word
+    ;; When `comint-history-isearch-search' fails on reaching the
+    ;; beginning/end of the history, wrap the search to the first/last
+    ;; input history element.
+    (if isearch-forward
+	(comint-goto-input (1- (ring-length comint-input-ring)))
+      (comint-goto-input nil))
+    (setq isearch-success t))
+  (goto-char (if isearch-forward (comint-line-beginning-position) (point-max))))
+
+(defun comint-history-isearch-push-state ()
+  "Save a function restoring the state of input history search.
+Save `comint-input-ring-index' to the additional state parameter
+in the search status stack."
+  `(lambda (cmd)
+     (comint-history-isearch-pop-state cmd ,comint-input-ring-index)))
+
+(defun comint-history-isearch-pop-state (cmd hist-pos)
+  "Restore the input history search state.
+Go to the history element by the absolute history position HIST-POS."
+  (comint-goto-input hist-pos))
+
 
 (defun comint-within-quotes (beg end)
   "Return t if the number of quotes between BEG and END is odd.
@@ -1737,7 +1936,8 @@ Make backspaces delete the previous character."
 	(let ((functions comint-preoutput-filter-functions))
 	  (while (and functions string)
 	    (if (eq (car functions) t)
-		(let ((functions (default-value 'comint-preoutput-filter-functions)))
+		(let ((functions
+                       (default-value 'comint-preoutput-filter-functions)))
 		  (while (and functions string)
 		    (setq string (funcall (car functions) string))
 		    (setq functions (cdr functions))))
@@ -1899,7 +2099,8 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (save-excursion
       (condition-case nil
 	  (goto-char
-	   (if (interactive-p) comint-last-input-end comint-last-output-start))
+	   (if (called-interactively-p 'interactive)
+	       comint-last-input-end comint-last-output-start))
 	(error nil))
       (while (re-search-forward "\r+$" pmark t)
 	(replace-match "" t t)))))
@@ -2667,7 +2868,7 @@ Note that this applies to `comint-dynamic-complete-filename' only."
   :group 'comint-completion)
 
 ;;;###autoload
-(defvar comint-file-name-prefix ""
+(defvar comint-file-name-prefix (purecopy "")
   "Prefix prepended to absolute file names taken from process input.
 This is used by Comint's and shell's completion functions, and by shell's
 directory tracking functions.")
@@ -2730,11 +2931,8 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 	      env-var-val)
 	  (save-match-data
 	    (while (string-match "%\\([^\\\\/]*\\)%" name)
-	      (setq env-var-name
-		    (substring name (match-beginning 1) (match-end 1)))
-	      (setq env-var-val (if (getenv env-var-name)
-				    (getenv env-var-name)
-				  ""))
+	      (setq env-var-name (match-string 1 name))
+	      (setq env-var-val (or (getenv env-var-name) ""))
 	      (setq name (replace-match env-var-val t t name))))))
     name))
 
@@ -2835,7 +3033,7 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 (completion (file-name-completion filenondir directory)))
     (cond ((null completion)
 	   (if minibuffer-p
-	       (minibuffer-message (format " [No completions of %s]" filename))
+	       (minibuffer-message "No completions of %s" filename)
 	     (message "No completions of %s" filename))
 	   (setq success nil))
 	  ((eq completion t)            ; Means already completed "file".
@@ -2910,7 +3108,7 @@ See also `comint-dynamic-complete-filename'."
 	 (completions (all-completions stub candidates)))
     (cond ((null completions)
 	   (if minibuffer-p
-	       (minibuffer-message (format " [No completions of %s]" stub))
+	       (minibuffer-message "No completions of %s" stub)
 	     (message "No completions of %s" stub))
 	   nil)
 	  ((= 1 (length completions))	; Gotcha!
@@ -2961,7 +3159,7 @@ See also `comint-dynamic-complete-filename'."
 	 (completions (file-name-all-completions filenondir directory)))
     (if (not completions)
 	(if (window-minibuffer-p (selected-window))
-	    (minibuffer-message (format " [No completions of %s]" filename))
+	    (minibuffer-message "No completions of %s" filename)
 	  (message "No completions of %s" filename))
       (comint-dynamic-list-completions
        (mapcar 'comint-quote-filename completions)
@@ -3011,7 +3209,7 @@ Typing SPC flushes the help buffer."
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list completions common-substring))
       (if (window-minibuffer-p (selected-window))
-	  (minibuffer-message " [Type space to flush; repeat completion command to scroll]")
+	  (minibuffer-message "Type space to flush; repeat completion command to scroll")
 	(message "Type space to flush; repeat completion command to scroll")))
 
     ;; Read the next key, to process SPC.
@@ -3028,7 +3226,7 @@ Typing SPC flushes the help buffer."
 	  ;; If the user does mouse-choose-completion with the mouse,
 	  ;; execute the command, then delete the completion window.
 	  (progn
-	    (mouse-choose-completion first)
+	    (choose-completion first)
 	    (set-window-configuration comint-dynamic-list-completions-config))
 	(if (eq first ?\s)
 	    (set-window-configuration comint-dynamic-list-completions-config)
@@ -3068,7 +3266,7 @@ from input that has not yet been sent."
   (let ((proc (or (get-buffer-process (current-buffer))
 		  (error "Current buffer has no process"))))
     (goto-char (process-mark proc))
-    (when (interactive-p)
+    (when (called-interactively-p 'interactive)
       (message "Point is now at the process mark"))))
 
 (defun comint-bol-or-process-mark ()
@@ -3295,13 +3493,15 @@ This function does not need to be invoked by the end user."
 	   (list comint-redirect-output-buffer)))
 	(filtered-input-string input-string))
 
-    ;; If there are any filter functions, give them a chance to modify the string
+    ;; If there are any filter functions, give them a chance to modify
+    ;; the string.
     (let ((functions comint-redirect-filter-functions))
       (while (and functions filtered-input-string)
 	(if (eq (car functions) t)
 	    ;; If a local value says "use the default value too",
 	    ;; do that.
-	    (let ((functions (default-value 'comint-redirect-filter-functions)))
+	    (let ((functions
+                   (default-value 'comint-redirect-filter-functions)))
 	      (while (and functions filtered-input-string)
 		(setq filtered-input-string
 		      (funcall (car functions) filtered-input-string))
@@ -3421,8 +3621,7 @@ Return a list of expressions in the output which match REGEXP.
 REGEXP-GROUP is the regular expression group in REGEXP to use."
   (let ((output-buffer " *Comint Redirect Work Buffer*")
 	results)
-    (save-excursion
-      (set-buffer (get-buffer-create output-buffer))
+    (with-current-buffer (get-buffer-create output-buffer)
       (erase-buffer)
       (comint-redirect-send-command-to-process command
 					       output-buffer process nil t)
@@ -3437,11 +3636,10 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
       (and (looking-at command)
 	   (forward-line))
       (while (re-search-forward regexp nil t)
-	(setq results
-	      (cons (buffer-substring-no-properties
-		     (match-beginning regexp-group)
-		     (match-end regexp-group))
-		    results)))
+	(push (buffer-substring-no-properties
+               (match-beginning regexp-group)
+               (match-end regexp-group))
+              results))
       results)))
 
 (dolist (x '("^Not at command line$"

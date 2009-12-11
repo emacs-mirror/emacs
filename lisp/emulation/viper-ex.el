@@ -946,16 +946,14 @@ reversed."
 ;; Expand \% and \# in ex command
 (defun ex-expand-filsyms (cmd buf)
   (let (cf pf ret)
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (setq cf buffer-file-name)
       (setq pf (ex-next nil t))) ; this finds alternative file name
     (if (and (null cf) (string-match "[^\\]%\\|\\`%" cmd))
 	(error "No current file to substitute for `%%'"))
     (if (and (null pf) (string-match "[^\\]#\\|\\`#" cmd))
 	(error "No alternate file to substitute for `#'"))
-    (save-excursion
-      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+    (with-current-buffer (get-buffer-create viper-ex-tmp-buf-name)
       (erase-buffer)
       (insert cmd)
       (goto-char (point-min))
@@ -984,9 +982,8 @@ reversed."
 	  ex-cmdfile nil
 	  ex-cmdfile-args "")
     (save-excursion
-      (save-window-excursion
-	(setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-	(set-buffer viper-ex-work-buf)
+      (with-current-buffer (setq viper-ex-work-buf
+                                 (get-buffer-create viper-ex-work-buf-name))
 	(skip-chars-forward " \t")
 	(if (looking-at "!")
 	    (if (and (not (viper-looking-back "[ \t]"))
@@ -1289,9 +1286,8 @@ reversed."
     (switch-to-buffer file))
   (if ex-offset
       (progn
-	(save-window-excursion
-	  (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-	  (set-buffer viper-ex-work-buf)
+	(with-current-buffer (setq viper-ex-work-buf
+                                   (get-buffer-create viper-ex-work-buf-name))
 	  (delete-region (point-min) (point-max))
 	  (insert ex-offset "\n")
 	  (goto-char (point-min)))
@@ -1372,9 +1368,8 @@ reversed."
 	  (if (bobp) (setq cont nil)
 	    (forward-line -1)
 	    (end-of-line)))))
-    (save-window-excursion
-      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-      (set-buffer viper-ex-work-buf)
+    (with-current-buffer (setq viper-ex-work-buf
+                               (get-buffer-create viper-ex-work-buf-name))
       ;; com-str is the command string, i.e., g/pattern/ or v/pattern'
       (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
     (while ex-g-marks
@@ -1453,18 +1448,17 @@ reversed."
 	    (setq char (string-to-char name))
 	  (error "`%s': Spurious text \"%s\" after mark name"
 		 name (substring name 1)))
-    (save-window-excursion
-      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-      (set-buffer viper-ex-work-buf)
-      (skip-chars-forward " \t")
-      (if (looking-at "[a-z]")
-	  (progn
-	    (setq char (following-char))
-	    (forward-char 1)
-	    (skip-chars-forward " \t")
-	    (if (not (looking-at "[\n|]"))
-		(error "`%s': %s" ex-token viper-SpuriousText)))
-	(error "`%s' requires a following letter" ex-token))))
+      (with-current-buffer (setq viper-ex-work-buf
+                                 (get-buffer-create viper-ex-work-buf-name))
+        (skip-chars-forward " \t")
+        (if (looking-at "[a-z]")
+            (progn
+              (setq char (following-char))
+              (forward-char 1)
+              (skip-chars-forward " \t")
+              (if (not (looking-at "[\n|]"))
+                  (error "`%s': %s" ex-token viper-SpuriousText)))
+          (error "`%s' requires a following letter" ex-token))))
     (save-excursion
       (goto-char (car ex-addresses))
       (point-to-register (viper-int-to-char (1+ (- char ?a)))))))
@@ -1560,8 +1554,7 @@ reversed."
 	      (select-window wind)))
 	(save-window-excursion (select-window wind) (sit-for 1)))
 
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(setq viper-related-files-and-buffers-ring old-ring))
 
       (setq viper-local-search-start-marker (point-marker))
@@ -1588,9 +1581,8 @@ reversed."
 ;; Ex quit command
 (defun ex-quit ()
   ;; skip "!", if it is q!.  In Viper q!, w!, etc., behave as q, w, etc.
-  (save-excursion
-    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-    (set-buffer viper-ex-work-buf)
+  (with-current-buffer (setq viper-ex-work-buf
+                             (get-buffer-create viper-ex-work-buf-name))
     (if (looking-at "!") (forward-char 1)))
   (if (< viper-expert-level 3)
       (save-buffers-kill-emacs)
@@ -1837,9 +1829,8 @@ reversed."
 ;; Optional 3d arg is a string that should replace ' ' to prevent its
 ;; special meaning
 (defun ex-get-inline-cmd-args (regex-forw &optional chars-back replace-str)
-  (save-excursion
-    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-    (set-buffer viper-ex-work-buf)
+  (with-current-buffer (setq viper-ex-work-buf
+                             (get-buffer-create viper-ex-work-buf-name))
     (goto-char (point-min))
     (re-search-forward regex-forw nil t)
     (let ((beg (point))
@@ -1987,9 +1978,8 @@ Please contact your system administrator. "
 ;; Ex tag command
 (defun ex-tag ()
   (let (tag)
-    (save-window-excursion
-      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-      (set-buffer viper-ex-work-buf)
+    (with-current-buffer (setq viper-ex-work-buf
+                               (get-buffer-create viper-ex-work-buf-name))
       (skip-chars-forward " \t")
       (set-mark (point))
       (skip-chars-forward "^ |\t\n")
@@ -2148,9 +2138,8 @@ Please contact your system administrator. "
 ;; Execute shell command
 (defun ex-command ()
   (let (command)
-    (save-window-excursion
-      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-      (set-buffer viper-ex-work-buf)
+    (with-current-buffer (setq viper-ex-work-buf
+                               (get-buffer-create viper-ex-work-buf-name))
       (skip-chars-forward " \t")
       (setq command (buffer-substring (point) (point-max)))
       (end-of-line))
@@ -2178,9 +2167,8 @@ Please contact your system administrator. "
 If no args are given, then it runs the last compile command.
 Type 'mak ' (including the space) to run make with no args."
   (let (args)
-    (save-window-excursion
-      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
-      (set-buffer viper-ex-work-buf)
+    (with-current-buffer (setq viper-ex-work-buf
+                               (get-buffer-create viper-ex-work-buf-name))
       (setq args (buffer-substring (point) (point-max)))
       (end-of-line))
     ;; Remove the newline that may (will?) be at the end of the args

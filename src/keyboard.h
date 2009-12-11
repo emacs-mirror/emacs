@@ -443,7 +443,7 @@ extern Lisp_Object Vfunction_key_map;
 /* Keymap of key translations that can override keymaps.  */
 extern Lisp_Object Vkey_translation_map;
 
-extern int parse_menu_item P_ ((Lisp_Object, int, int));
+extern int parse_menu_item (Lisp_Object, int);
 
 extern void echo_now P_ ((void));
 extern void init_kboard P_ ((KBOARD *));
@@ -488,6 +488,7 @@ extern void add_user_signal P_ ((int, const char *));
 
 extern int tty_read_avail_input P_ ((struct terminal *, int,
                                      struct input_event *));
+extern EMACS_TIME timer_check P_ ((int));
 
 /* arch-tag: 769cbade-1ba9-4950-b886-db265b061aa3
    (do not change this comment) */

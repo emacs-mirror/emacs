@@ -78,8 +78,7 @@ If optional BOUND is an integer, limit backward searches to that point."
                file (not (eq t reftex-keep-temporary-buffers)))))
     (if (not buf)
         (list label typekey "" file comment "LOST LABEL.  RESCAN TO FIX.")
-      (save-excursion
-        (set-buffer buf)
+      (with-current-buffer buf
         (save-restriction
           (widen)
           (goto-char 1)
@@ -538,8 +537,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
                     reftex-latex-syntax-table (syntax-table))
               (if reftex-use-multiple-selection-buffers
                   (switch-to-buffer-other-window
-                   (save-excursion
-                     (set-buffer buf)
+                   (with-current-buffer buf
                      (reftex-make-selection-buffer-name typekey)))
                 (switch-to-buffer-other-window "*RefTeX Select*")
                 (reftex-erase-buffer))

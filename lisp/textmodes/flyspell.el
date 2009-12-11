@@ -242,7 +242,7 @@ spawned for speed.
 Doubled words are not detected in a large region, because Ispell
 does not check for them.
 
-If `flyspell-large-region' is nil, all regions are treated as small."
+If this variable is nil, all regions are treated as small."
   :group 'flyspell
   :version "21.1"
   :type '(choice number (const :tag "All small" nil)))
@@ -359,14 +359,17 @@ property of the major mode name.")
 (put 'html-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 (put 'nxml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 
+(declare-function sgml-lexical-context "sgml-mode" &optional limit)
+
 (defun sgml-mode-flyspell-verify ()
-  "Function used for `flyspell-generic-check-word-predicate' in SGML mode."
-  (not (save-excursion
-	 (or (looking-at "[^<\n]*>")
-	     (ispell-looking-back "<[^>\n]*" (line-beginning-position))
-	     (and (looking-at "[^&\n]*;")
-		  (ispell-looking-back "&[^;\n]*"
-                                       (line-beginning-position)))))))
+  "Function used for `flyspell-generic-check-word-predicate' in SGML mode.
+Tag and attribute names are not spell checked, everything else is.
+
+String values of attributes are checked because they can be text
+like <img alt=\"Some thing.\">."
+
+  (not (memq (car (sgml-lexical-context))
+	     '(tag pi))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    Programming mode                                                 */
@@ -604,7 +607,7 @@ in your .emacs file.
   ;; the welcome message
   (if (and flyspell-issue-message-flag
 	   flyspell-issue-welcome-flag
-	   (interactive-p))
+	   (called-interactively-p 'interactive))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
 					nil 'non-ascii)))
 	(message "%s"
@@ -986,7 +989,7 @@ Mostly we check word delimiters."
 	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-backward word bound t)))
-	(let ((lw (flyspell-get-word '())))
+	(let ((lw (flyspell-get-word)))
 	  (if (and (consp lw) (string-equal (car lw) word))
 	      (setq r p)
 	    (goto-char p))))
@@ -1001,7 +1004,7 @@ Mostly we check word delimiters."
 	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-forward word bound t)))
-	(let ((lw (flyspell-get-word '())))
+	(let ((lw (flyspell-get-word)))
 	  (if (and (consp lw) (string-equal (car lw) word))
 	      (setq r p)
 	    (goto-char (1+ p)))))
@@ -1011,7 +1014,10 @@ Mostly we check word delimiters."
 ;;*    flyspell-word ...                                                */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-word (&optional following)
-  "Spell check a word."
+  "Spell check a word.
+If the optional argument FOLLOWING, or, when called interactively
+`ispell-following-word', is non-nil, checks the following (rather
+than preceding) word when the cursor is not over a word."
   (interactive (list ispell-following-word))
   (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
   (save-excursion
@@ -1250,15 +1256,12 @@ this function changes the last char of the `ispell-casechars' string."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-get-word ...                                            */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-get-word (following &optional extra-otherchars)
+(defun flyspell-get-word (&optional following extra-otherchars)
   "Return the word for spell-checking according to Ispell syntax.
-If optional argument FOLLOWING is non-nil or if `flyspell-following-word'
-is non-nil when called interactively, then the following word
-\(rather than preceding\) is checked when the cursor is not over a word.
-Optional second argument contains otherchars that can be included in word
-many times.
-
-Word syntax described by `flyspell-dictionary-alist' (which see)."
+Optional argument FOLLOWING non-nil means to get the following
+\(rather than preceding) word when the cursor is not over a word.
+Optional second argument EXTRA-OTHERCHARS is a regexp of characters
+that may be included as part of a word (see `ispell-dictionary-alist')."
   (let* ((flyspell-casechars (flyspell-get-casechars))
 	 (flyspell-not-casechars (flyspell-get-not-casechars))
 	 (ispell-otherchars (ispell-get-otherchars))
@@ -1394,7 +1397,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			      ;; Move back into the match
 			      ;; so flyspell-get-word will find it.
 			      (forward-char -1)
-			      (flyspell-get-word nil)))
+			      (flyspell-get-word)))
 			   (found (car found-list))
 			   (found-length (length found))
 			   (misspell-length (length word)))
@@ -1560,7 +1563,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	      (flyspell-delete-region-overlays beg end)
 	      (flyspell-check-region-doublons beg end))
 	    (flyspell-external-point-words))
-	(error "Can't check region...")))))
+	(error "Can't check region")))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-region ...                                              */
@@ -1887,7 +1890,7 @@ This command proposes various successive corrections for the current word."
 	  (flyspell-ajust-cursor-point pos (point) old-max)
 	  (setq flyspell-auto-correct-pos (point)))
       ;; fetch the word to be checked
-      (let ((word (flyspell-get-word nil)))
+      (let ((word (flyspell-get-word)))
 	(if (consp word)
 	    (let ((start (car (cdr word)))
 		  (end (car (cdr (cdr word))))
@@ -1979,7 +1982,7 @@ Sets `flyspell-auto-correct-previous-pos' to nil"
 ;;*    flyspell-auto-correct-previous-word ...                          */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-auto-correct-previous-word (position)
-  "Auto correct the first mispelled word that occurs before point.
+  "Auto correct the first misspelled word that occurs before point.
 But don't look beyond what's visible on the screen."
   (interactive "d")
 
@@ -2049,7 +2052,7 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
   (flyspell-accept-buffer-local-defs)
   (or opoint (setq opoint (point)))
   (let ((cursor-location (point))
-	(word (flyspell-get-word nil)))
+	(word (flyspell-get-word)))
     (if (consp word)
 	(let ((start (car (cdr word)))
 	      (end (car (cdr (cdr word))))

@@ -92,7 +92,10 @@
 ;; Provide functions to the rest of MH-E. However, mh-e.el must not
 ;; use any definitions in files that require mh-e from mh-loaddefs,
 ;; for if it does it will introduce a require loop.
-(require 'mh-loaddefs)
+(eval-and-compile
+  ;; Load it during compilation as well, since it defines the macro
+  ;; mh-require-cl.
+  (load "mh-loaddefs" nil 'nomessage))
 
 (mh-require-cl)
 
@@ -503,8 +506,7 @@ Adds double-quotes around entire string and quotes the characters
 The side effects are what is desired. Any output is assumed to be
 an error and is shown to the user. The output is not read or
 parsed by MH-E."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-log-buffer))
+  (with-current-buffer (get-buffer-create mh-log-buffer)
     (let* ((initial-size (mh-truncate-log-buffer))
            (start (point))
            (args (mh-list-to-string args)))
@@ -523,8 +525,7 @@ parsed by MH-E."
   "In environment ENV, execute mh-command COMMAND with ARGS.
 ENV is nil or a string of space-separated \"var=value\" elements.
 Signals an error if process does not complete successfully."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-temp-buffer))
+  (with-current-buffer (get-buffer-create mh-temp-buffer)
     (erase-buffer)
     (let ((process-environment process-environment))
       ;; XXX: We should purge the list that split-string returns of empty
@@ -544,8 +545,7 @@ otherwise the default filter `mh-process-daemon' is used. See
 `set-process-filter' for more details of FILTER.
 
 ARGS are passed to COMMAND as command line arguments."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-log-buffer))
+  (with-current-buffer (get-buffer-create mh-log-buffer)
     (mh-truncate-log-buffer))
   (let* ((process-connection-type nil)
          (process (apply 'start-process
@@ -647,9 +647,8 @@ Set mark after inserted text."
     (insert (if (integerp status)
                 (format "%s: exit code %d\n" command status)
               (format "%s: %s\n" command status)))
-    (save-excursion
-      (let ((error-message (buffer-substring (point-min) (point-max))))
-        (set-buffer (get-buffer-create mh-log-buffer))
+    (let ((error-message (buffer-substring (point-min) (point-max))))
+      (with-current-buffer (get-buffer-create mh-log-buffer)
         (mh-truncate-log-buffer)
         (insert error-message)))
     (error "%s failed, check buffer %s for error message"
@@ -740,9 +739,8 @@ is described by the variable `mh-variants'."
 
 (defun mh-variant-info (dir)
   "Return MH variant found in DIR, or nil if none present."
-  (save-excursion
-    (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
-      (set-buffer tmp-buffer)
+  (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
+    (with-current-buffer tmp-buffer
       (cond
        ((mh-variant-mh-info dir))
        ((mh-variant-nmh-info dir))

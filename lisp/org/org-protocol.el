@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 6.30c
+;; Version: 6.33x
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -88,7 +88,7 @@
 ;;     triggered through the sub-protocol \"store-link\".
 ;;
 ;;   * Call `org-protocol-remember' by using the sub-protocol \"remember\".  If
-;;     Org-mode is loaded, emacs will popup a remember buffer and fill the
+;;     Org-mode is loaded, emacs will pop-up a remember buffer and fill the
 ;;     template with the data provided. I.e. the browser's URL is inserted as an
 ;;     Org-link of which the page title will be the description part. If text
 ;;     was select in the browser, that text will be the body of the entry.
@@ -109,8 +109,8 @@
 ;;
 ;;  use template ?x.
 ;;
-;; Note, that using double shlashes is optional from org-protocol.el's point of
-;; view because emacsclient sqashes the slashes to one.
+;; Note, that using double slashes is optional from org-protocol.el's point of
+;; view because emacsclient squashes the slashes to one.
 ;;
 ;;
 ;; provides: 'org-protocol
@@ -125,7 +125,7 @@
 		  (&optional refresh))
 (declare-function org-publish-get-project-from-filename "org-publish"
 		  (filename &optional up))
-(declare-function server-edit "server" ())
+(declare-function server-edit "server" (&optional arg))
 
 
 (defgroup org-protocol nil
@@ -185,6 +185,8 @@ Possible properties are:
                        Last slash required.
   :working-directory - the local working directory. This is, what base-url will
                        be replaced with.
+  :redirects         - A list of cons cells, each of which maps a regular
+                       expression to match to a path relative to :working-directory.
 
 Example:
 
@@ -198,7 +200,12 @@ Example:
           :online-suffix \".html\"
           :working-suffix \".org\"
           :base-url \"http://localhost/org/\"
-          :working-directory \"/home/user/org/\")))
+          :working-directory \"/home/user/org/\"
+          :rewrites ((\"org/?$\" . \"index.php\")))))
+
+   The last line tells `org-protocol-open-source' to open
+   /home/user/org/index.php, if the URL cannot be mapped to an existing
+   file, and ends with either \"org\" or \"org/\".
 
 Consider using the interactive functions `org-protocol-create' and
 `org-protocol-create-for-org' to help you filling this variable with valid contents."
@@ -231,7 +238,7 @@ function - function that handles requests with protocol and takes exactly one
            `org-protocol-protocol-alist-default'. See `org-protocol-split-data'.
 
 kill-client - If t, kill the client immediately, once the sub-protocol is
-           detected. This is neccessary for actions that can be interupted by
+           detected. This is necessary for actions that can be interrupted by
            `C-g' to avoid dangeling emacsclients. Note, that all other command
            line arguments but the this one will be discarded, greedy handlers
            still receive the whole list of arguments though.
@@ -279,6 +286,17 @@ decode each split part."
 	    (mapcar unhexify split-parts)
 	  (mapcar 'org-protocol-unhex-string split-parts))
       split-parts)))
+
+;; This inline function is needed in org-protocol-unhex-compound to do
+;; the right thing to decode UTF-8 char integer values.
+(eval-when-compile
+  (if (>= emacs-major-version 23)
+      (defsubst org-protocol-char-to-string(c)
+	"Defsubst to decode UTF-8 character values in emacs 23 and beyond."
+	(char-to-string c))
+    (defsubst org-protocol-char-to-string (c)
+      "Defsubst to decode UTF-8 character values in emacs 22."
+      (string (decode-char 'ucs c)))))
 
 (defun org-protocol-unhex-string(str)
   "Unhex hexified unicode strings as returned from the JavaScript function
@@ -331,7 +349,7 @@ encodeURIComponent. E.g. `%C3%B6' is the german Umlaut `ü'."
 	(setq sum (+ (lsh sum shift) val))
 	(if (> eat 0) (setq eat (- eat 1)))
 	(when (= 0 eat)
-	  (setq ret (concat ret (char-to-string sum)))
+	  (setq ret (concat ret (org-protocol-char-to-string sum)))
 	  (setq sum 0))
 	)) ;; end (while bytes
     ret ))
@@ -428,7 +446,7 @@ The sub-protocol used to reach this function is set in
 The sub-protocol used to reach this function is set in
 `org-protocol-protocol-alist'.
 
-This function detects an URL, title and optinal text, separated by '/'
+This function detects an URL, title and optional text, separated by '/'
 The location for a browser's bookmark has to look like this:
 
   javascript:location.href='org-protocol://remember://'+ \\
@@ -493,10 +511,35 @@ The location for a browser's bookmark should look like this:
             (let* ((wdir (plist-get (cdr prolist) :working-directory))
                    (strip-suffix (plist-get (cdr prolist) :online-suffix))
                    (add-suffix (plist-get (cdr prolist) :working-suffix))
-                   (start-pos (+ (string-match wsearch f) (length base-url)))
+		   ;; Strip "[?#].*$" if `f' is a redirect with another
+		   ;; ending than strip-suffix here:
+		   (f1 (substring f 0 (string-match "\\([\\?#].*\\)?$" f)))
+                   (start-pos (+ (string-match wsearch f1) (length base-url)))
                    (end-pos (string-match
-                             (concat (regexp-quote strip-suffix) "\\([?#].*\\)?$") f))
-                   (the-file (concat wdir (substring f start-pos end-pos) add-suffix)))
+			     (regexp-quote strip-suffix) f1))
+		   ;; We have to compare redirects without suffix below:
+		   (f2 (concat wdir (substring f1 start-pos end-pos)))
+                   (the-file (concat f2 add-suffix)))
+
+	      ;; Note: the-file may still contain `%C3' et al here because browsers
+	      ;; tend to encode `&auml;' in URLs to `%25C3' - `%25' being `%'.
+	      ;; So the results may vary.
+
+	      ;; -- start redirects --
+	      (unless (file-exists-p the-file)
+		(message "File %s does not exist.\nTesting for rewritten URLs." the-file)
+		(let ((rewrites (plist-get (cdr prolist) :rewrites)))
+		  (when rewrites
+		    (message "Rewrites found: %S" rewrites)
+		    (mapc
+		     (lambda (rewrite)
+		       "Try to match a rewritten URL and map it to a real file."
+		       ;; Compare redirects without suffix:
+		       (if (string-match (car rewrite) f2)
+			   (throw 'result (concat wdir (cdr rewrite)))))
+		     rewrites))))
+	      ;; -- end of redirects --
+
               (if (file-readable-p the-file)
                   (throw 'result the-file))
               (if (file-exists-p the-file)
@@ -585,7 +628,7 @@ most of the work."
   "Create a new org-protocol project interactively.
 An org-protocol project is an entry in `org-protocol-project-alist'
 which is used by `org-protocol-open-source'.
-Optionally use project-plist to initialize the defaults for this worglet. If
+Optionally use project-plist to initialize the defaults for this project. If
 project-plist is the CDR of an element in `org-publish-project-alist', reuse
 :base-directory, :html-extension and :base-extension."
   (interactive)
@@ -621,7 +664,7 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
            (concat "Extension of editable files ("working-suffix"): ")
                    working-suffix nil working-suffix t))
 
-    (when (yes-or-no-p "Save the new worglet to your init file? ")
+    (when (yes-or-no-p "Save the new org-protocol-project to your init file? ")
       (setq org-protocol-project-alist
             (cons `(,base-url . (:base-url ,base-url
                                  :working-directory ,working-dir

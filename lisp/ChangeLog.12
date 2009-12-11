@@ -13270,7 +13270,7 @@
 	(tumme-gallery-generate): Fix typo in `error' message.
 	(tumme-display-window-height-correction)
 	(tumme-display-window-width-correction, tumme-line-up-dynamic)
-	(tumme-line-up-interactive): Dox fixes.
+	(tumme-line-up-interactive): Doc fixes.
 	(tumme-cmd-rotate-original-options, tumme-display-properties-format)
 	(tumme-restore-window-configuration, tumme-format-properties-string)
 	(tumme-create-thumbs, tumme-display-previous-thumbnail-original):

@@ -27,7 +27,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  3.0
-@set EMACSVER 23.1.50
+@set EMACSVER 23.1.90
 @set DATE July 2009
 
 @dircategory Emacs

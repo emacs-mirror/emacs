@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 12
+;; Version: 12.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -60,6 +60,11 @@
 ;; characters over the default mechanism of `nobreak-char-display'
 ;; (which see) and `show-trailing-whitespace' (which see).
 ;;
+;; The trailing spaces are not highlighted while point is at end of line.
+;; Also the spaces at beginning of buffer are not highlighted while point is at
+;; beginning of buffer; and the spaces at end of buffer are not highlighted
+;; while point is at end of buffer.
+;;
 ;; There are two ways of using whitespace: local and global.
 ;;
 ;; * Local whitespace affects only the current buffer.
@@ -85,7 +90,7 @@
 ;;
 ;; To use whitespace, insert in your ~/.emacs:
 ;;
-;;    (require 'whitespace-mode)
+;;    (require 'whitespace)
 ;;
 ;; Or autoload at least one of the commands`whitespace-mode',
 ;; `whitespace-toggle-options', `global-whitespace-mode' or
@@ -1017,7 +1022,6 @@ Any other value is treated as nil."
 If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1042,7 +1046,6 @@ See also `whitespace-style', `whitespace-newline' and
 If ARG is null, toggle NEWLINE visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 Use `whitespace-newline-mode' only for NEWLINE visualization
 exclusively.  For other visualizations, including NEWLINE
@@ -1071,7 +1074,6 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1128,7 +1130,6 @@ See also `whitespace-style', `whitespace-newline' and
 If ARG is null, toggle NEWLINE visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
-Only useful with a windowing system.
 
 Use `global-whitespace-newline-mode' only for NEWLINE
 visualization exclusively.  For other visualizations, including
@@ -1294,8 +1295,6 @@ The valid symbols are:
 
    whitespace-style	restore `whitespace-style' value
 
-Only useful with a windowing system.
-
 See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char t))
   (let ((whitespace-style
@@ -1372,8 +1371,6 @@ The valid symbols are:
    newline-mark		toggle NEWLINE visualization
 
    whitespace-style	restore `whitespace-style' value
-
-Only useful with a windowing system.
 
 See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char nil))
@@ -1945,8 +1942,7 @@ cleaning up these problems."
   (unless (get-buffer whitespace-help-buffer-name)
     (delete-other-windows)
     (let ((buffer (get-buffer-create whitespace-help-buffer-name)))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(erase-buffer)
 	(insert whitespace-help-text)
 	(whitespace-insert-option-mark
@@ -2310,7 +2306,7 @@ resultant list will be returned."
 
 
 (defun whitespace-trailing-regexp (limit)
-  "Match trailing spaces which does not contain the point at end of line."
+  "Match trailing spaces which do not contain the point at end of line."
   (let ((status t))
     (while (if (re-search-forward whitespace-trailing-regexp limit t)
 	       (save-match-data
@@ -2320,14 +2316,14 @@ resultant list will be returned."
 
 
 (defun whitespace-empty-at-bob-regexp (limit)
-  "Match spaces at beginning of buffer which does not contain the point at \
+  "Match spaces at beginning of buffer which do not contain the point at \
 beginning of buffer."
   (and (/= whitespace-point 1)
        (re-search-forward whitespace-empty-at-bob-regexp limit t)))
 
 
 (defun whitespace-empty-at-eob-regexp (limit)
-  "Match spaces at end of buffer which does not contain the point at end of \
+  "Match spaces at end of buffer which do not contain the point at end of \
 buffer."
   (and (/= whitespace-point (1+ (buffer-size)))
        (re-search-forward whitespace-empty-at-eob-regexp limit t)))
@@ -2392,6 +2388,10 @@ Also refontify when necessary."
 	(setq whitespace-display-table-was-local t
 	      whitespace-display-table
 	      (copy-sequence buffer-display-table)))
+      ;; asure `buffer-display-table' is unique
+      ;; when two or more windows are visible.
+      (set (make-local-variable 'buffer-display-table)
+	   (copy-sequence buffer-display-table))
       (unless buffer-display-table
 	(setq buffer-display-table (make-display-table)))
       (dolist (entry whitespace-display-mappings)

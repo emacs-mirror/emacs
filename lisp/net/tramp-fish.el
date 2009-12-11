@@ -312,10 +312,19 @@ pass to the OPERATION."
   (tramp-fish-do-copy-or-rename-file
    'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
 
-(defun tramp-fish-handle-delete-directory (directory)
+(defun tramp-fish-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
   (when (file-exists-p directory)
-    (with-parsed-tramp-file-name
+    (if recursive
+	(mapc
+	 (lambda (file)
+	   (if (file-directory-p file)
+	       (tramp-compat-delete-directory file recursive)
+	     (delete-file file)))
+	 ;; We do not want to delete "." and "..".
+	 (directory-files
+	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+     (with-parsed-tramp-file-name
 	(directory-file-name (expand-file-name directory)) nil
       (tramp-flush-directory-property v localname)
       (tramp-fish-send-command-and-check v (format "#RMD %s" localname)))))
@@ -1102,7 +1111,7 @@ connection if a previous connection has died for some reason."
       (when (and p (processp p))
 	(delete-process p))
       (setenv "TERM" tramp-terminal-type)
-      (setenv "PS1" "$ ")
+      (setenv "PS1" tramp-initial-end-of-output)
       (tramp-message
        vec 3 "Opening connection for %s@%s using %s..."
        tramp-current-user tramp-current-host tramp-current-method)

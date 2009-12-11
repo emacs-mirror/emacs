@@ -34,6 +34,8 @@
 
 ;; 1. Warn about functions marked as obsolete, eg
 ;; password-read-and-add in smime.el.
+;; 2. defmethod, defclass argument checking.
+;; 3. defclass also defines -p and -child-p.
 
 ;;; Code:
 
@@ -54,7 +56,7 @@ the result."
     (setq file
           (if (member (file-name-extension file) '("c" "m"))
               (expand-file-name file (expand-file-name "src" source-directory))
-            (if (setq tfile (locate-library (file-name-nondirectory file)))
+            (if (setq tfile (locate-library file))
                 (progn
                   (setq tfile
                         (replace-regexp-in-string "\\.elc\\'" ".el" tfile))
@@ -79,28 +81,30 @@ defines FN, with ARGLIST.  FILEONLY non-nil means only check that FNFILE
 exists, not that it defines FN.  This is for function definitions that we
 don't know how to recognize (e.g. some macros)."
   (let ((m (format "Scanning %s..." file))
-        alist fnfile fn arglist fileonly)
+        alist form len fn fnfile arglist fileonly)
     (message "%s" m)
     (with-temp-buffer
       (insert-file-contents file)
-      (while (re-search-forward
-              "^[ \t]*(declare-function[ \t]+\\(\\S-+\\)[ \t]+\
-\"\\(\\S-+\\)\"" nil t)
-        (setq fn (match-string 1)
-              fnfile (match-string 2)
-              fnfile (check-declare-locate fnfile (expand-file-name file))
-              arglist (progn
-                        (skip-chars-forward " \t\n")
-                        ;; Use `t' to distinguish no arglist
-                        ;; specified from an empty one.
-                        (if (looking-at "\\((\\|nil\\|t\\)")
-                            (read (current-buffer))
-                          t))
-              fileonly (progn
-                        (skip-chars-forward " \t\n")
-                        (if (looking-at "\\(t\\|'\\sw+\\)")
-                            (match-string 1)))
-              alist (cons (list fnfile fn arglist fileonly) alist))))
+      ;; FIXME we could theoretically be inside a string.
+      (while (re-search-forward "^[ \t]*\\((declare-function\\)[ \t\n]" nil t)
+        (goto-char (match-beginning 1))
+        (if (and (setq form (ignore-errors (read (current-buffer)))
+                       len (length form))
+                 (> len 2) (< len 6)
+                 (symbolp (setq fn (cadr form)))
+                 (setq fn (symbol-name fn)) ; later we use as a search string
+                 (stringp (setq fnfile (nth 2 form)))
+                 (setq fnfile (check-declare-locate fnfile
+                                                    (expand-file-name file)))
+                 ;; Use `t' to distinguish unspecified arglist from empty one.
+                 (or (eq t (setq arglist (if (> len 3)
+                                             (nth 3 form)
+                                           t)))
+                     (listp arglist))
+                 (symbolp (setq fileonly (nth 4 form))))
+            (setq alist (cons (list fnfile fn arglist fileonly) alist))
+          ;; FIXME make this more noticeable.
+          (message "Malformed declaration for `%s'" (cadr form)))))
     (message "%sdone" m)
     alist))
 
@@ -136,16 +140,17 @@ is a string giving details of the error."
     (message "%s" m)
     (if ext
         (setq fnfile (substring fnfile 4)))
-    (if (file-exists-p fnfile)
+    (if (file-regular-p fnfile)
         (with-temp-buffer
           (insert-file-contents fnfile)
           ;; defsubst's don't _have_ to be known at compile time.
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
                              "^[ \t]*(\\(fset[ \t]+'\\|\
-def\\(?:un\\|subst\\|foo\\|\
-ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
-\\|\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\)\\)\
+def\\(?:un\\|subst\\|foo\\|method\\|class\\|\
+ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\\|\
+\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\|\
+ine-overloadable-function\\)\\)\
 \[ \t]*%s\\([ \t;]+\\|$\\)")
                            (regexp-opt (mapcar 'cadr fnlist) t)))
           (while (re-search-forward re nil t)
@@ -158,7 +163,7 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                   ;; sig = 'err means we could not find an arglist.
                   sig (cond (cflag
                              (or
-                              (when (re-search-forward "," nil t 3)
+                              (when (search-forward "," nil t 3)
                                 (skip-chars-forward " \t\n")
                                 ;; Assuming minargs and maxargs on same line.
                                 (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
@@ -185,7 +190,8 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                               type)
                              'obsolete)
                             ;; Can't easily check arguments in these cases.
-                            ((string-match "\\`\\(defalias\\|fset\\)\\>" type)
+                            ((string-match "\\`\\(def\\(alias\\|\
+method\\|class\\)\\|fset\\)\\>" type)
                              t)
                             ((looking-at "\\((\\|nil\\)")
                              (byte-compile-arglist-signature
@@ -287,9 +293,7 @@ See `check-declare-directory' for more information."
 ;;;###autoload
 (defun check-declare-directory (root)
   "Check veracity of all `declare-function' statements under directory ROOT.
-Returns non-nil if any false statements are found.  For this to
-work correctly, the statements must adhere to the format
-described in the documentation of `declare-function'."
+Returns non-nil if any false statements are found."
   (interactive "DDirectory to check: ")
   (or (file-directory-p (setq root (expand-file-name root)))
       (error "Directory `%s' not found" root))

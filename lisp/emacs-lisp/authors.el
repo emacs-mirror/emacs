@@ -243,6 +243,7 @@ listed.")
     "texi/Makefile.in"
     "Imakefile" "icons/sink.ico" "aixcc.lex"
     "nxml/char-name/unicode"
+    "js2-mode.el"      ; only installed very briefly, replaced by js.el
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el"
     ;; Never had any meaningful changes logged, now deleted:
@@ -705,8 +706,7 @@ with the file and the number of each action:
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
 	 authors file pos)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-restriction
 	(widen)
 	(goto-char (point-min))
@@ -757,8 +757,7 @@ TABLE is a hash table to add author information to."
 	 (enable-local-eval nil)
 	 (buffer (find-file-noselect file)))
     (setq file (file-name-nondirectory file))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-restriction
 	(widen)
 	(goto-char (point-min))

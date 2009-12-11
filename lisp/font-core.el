@@ -1,7 +1,8 @@
 ;;; font-core.el --- Core interface to font-lock
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
@@ -75,7 +76,7 @@ Other variables include that for syntactic keyword fontification,
 functions, `font-lock-fontify-buffer-function',
 `font-lock-unfontify-buffer-function', `font-lock-fontify-region-function',
 `font-lock-unfontify-region-function', and `font-lock-inhibit-thing-lock'.")
-;; Autoload if this file no longer dumped.
+;;;###autoload
 (put 'font-lock-defaults 'risky-local-variable t)
 (make-variable-buffer-local 'font-lock-defaults)
 

@@ -397,12 +397,24 @@ a DOCTYPE or an XML declaration."
     (comment-indent-new-line soft)))
 
 (defun sgml-mode-facemenu-add-face-function (face end)
-  (if (setq face (cdr (assq face sgml-face-tag-alist)))
-      (progn
-	(setq face (funcall skeleton-transformation-function face))
-	(setq facemenu-end-add-face (concat "</" face ">"))
-	(concat "<" face ">"))
-    (error "Face not configured for %s mode" (format-mode-line mode-name))))
+  (let ((tag-face (cdr (assq face sgml-face-tag-alist))))
+    (cond (tag-face
+	   (setq tag-face (funcall skeleton-transformation-function tag-face))
+	   (setq facemenu-end-add-face (concat "</" tag-face ">"))
+	   (concat "<" tag-face ">"))
+	  ((and (consp face)
+		(consp (car face))
+		(null  (cdr face))
+		(memq (caar face) '(:foreground :background)))
+	   (setq facemenu-end-add-face "</span>")
+	   (format "<span style=\"%s:%s\">"
+		   (if (eq (caar face) :foreground)
+		       "color"
+		     "background-color")
+		   (cadr (car face))))
+	  (t
+	   (error "Face not configured for %s mode"
+		  (format-mode-line mode-name))))))
 
 (defun sgml-fill-nobreak ()
   ;; Don't break between a tag name and its first argument.
@@ -715,8 +727,16 @@ With prefix argument, only self insert."
 
 (defun sgml-tag-help (&optional tag)
   "Display description of tag TAG.  If TAG is omitted, use the tag at point."
-  (interactive)
-  (or tag
+  (interactive
+   (list (let ((def (save-excursion
+		      (if (eq (following-char) ?<) (forward-char))
+		      (sgml-beginning-of-tag))))
+	   (completing-read (if def
+				(format "Tag (default %s): " def)
+			      "Tag: ")
+			    sgml-tag-alist nil nil nil
+			    'sgml-tag-history def))))
+  (or (and tag (> (length tag) 0))
       (save-excursion
 	(if (eq (following-char) ?<)
 	    (forward-char))
@@ -865,6 +885,12 @@ Return t if after a closing tag."
 	(setq arg (1- arg)))
       return)))
 
+(defsubst sgml-looking-back-at (str)
+  "Return t if the test before point matches STR."
+  (let ((start (- (point) (length str))))
+    (and (>= start (point-min))
+         (equal str (buffer-substring-no-properties start (point))))))
+
 (defun sgml-delete-tag (arg)
   ;; FIXME: Should be called sgml-kill-tag or should not touch the kill-ring.
   "Delete tag on or after cursor, and matching closing or opening tag.
@@ -901,7 +927,7 @@ With prefix argument ARG, repeat this ARG times."
 	      (kill-sexp 1))
 	  (setq open (point))
 	  (when (and (sgml-skip-tag-forward 1)
-		     (not (looking-back "/>")))
+		     (not (sgml-looking-back-at "/>")))
 	    (kill-sexp -1)))
 	;; Delete any resulting empty line.  If we didn't kill-sexp,
 	;; this *should* do nothing, because we're right after the tag.
@@ -1040,6 +1066,12 @@ If nil, start from a preceding tag at indentation."
                   (let ((cdata-start (point)))
                     (unless (search-forward "]]>" pos 'move)
                       (list 0 nil nil 'cdata nil nil nil nil cdata-start))))
+		 ((looking-at comment-start-skip)
+		  ;; parse-partial-sexp doesn't handle <!-- comments -->,
+		  ;; or only if ?- is in sgml-specials, so match explicitly
+		  (let ((start (point)))
+		    (unless (re-search-forward comment-end-skip pos 'move)
+		      (list 0 nil nil nil t nil nil nil start))))
                  ((and sgml-xml-mode (looking-at "<\\?"))
                   ;; Processing Instructions.
                   ;; In SGML, it's basically a normal tag of the form
@@ -1150,12 +1182,6 @@ You might want to turn on `auto-fill-mode' to get better results."
   "Skip past a tag-name, and return the name."
   (buffer-substring-no-properties
    (point) (progn (skip-syntax-forward "w_") (point))))
-
-(defsubst sgml-looking-back-at (str)
-  "Return t if the test before point matches STR."
-  (let ((start (- (point) (length str))))
-    (and (>= start (point-min))
-         (equal str (buffer-substring-no-properties start (point))))))
 
 (defun sgml-tag-text-p (start end)
   "Return non-nil if text between START and END is a tag.
@@ -1750,7 +1776,7 @@ This takes effect when first loading the library.")
       ("dt" (t _ (if sgml-xml-mode "</dt>")
              "<dd>" (if sgml-xml-mode "</dd>") \n))
       ("em")
-      ;("fn" "id" "fn")  ; ???
+      ("fn" "id" "fn")  ;; Footnotes were deprecated in HTML 3.2
       ("head" \n)
       ("html" (\n
 	       "<head>\n"
@@ -1772,7 +1798,7 @@ This takes effect when first loading the library.")
       ("nobr")
       ("option" t ("value") ("label") ("selected" t))
       ("over" t)
-      ("person")
+      ("person") ;; Tag for person's name tag deprecated in HTML 3.2
       ("pre" \n)
       ("q")
       ("rev")
@@ -1804,11 +1830,11 @@ This takes effect when first loading the library.")
 (defvar html-tag-help
   `(,@sgml-tag-help
     ("a" . "Anchor of point or link elsewhere")
-    ("abbrev" . "?")
-    ("acronym" . "?")
+    ("abbrev" . "Abbreviation")
+    ("acronym" . "Acronym")
     ("address" . "Formatted mail address")
     ("array" . "Math array")
-    ("au" . "?")
+    ("au" . "Author")
     ("b" . "Bold face")
     ("base" . "Base address for URLs")
     ("big" . "Font size")
@@ -1823,9 +1849,10 @@ This takes effect when first loading the library.")
     ("cite" . "Citation of a document")
     ("code" . "Formatted source code")
     ("dd" . "Definition of term")
-    ("del" . "?")
-    ("dfn" . "?")
+    ("del" . "Deleted text")
+    ("dfn" . "Defining instance of a term")
     ("dir" . "Directory list (obsolete)")
+    ("div" . "Generic block-level container")
     ("dl" . "Definition list")
     ("dt" . "Term to be definined")
     ("em" . "Emphasized")
@@ -1834,7 +1861,7 @@ This takes effect when first loading the library.")
     ("figa" . "Figure anchor")
     ("figd" . "Figure description")
     ("figt" . "Figure text")
-    ;("fn" . "?")  ; ???
+    ("fn" . "Footnote")  ;; No one supports special footnote rendering.
     ("font" . "Font size")
     ("form" . "Form with input fields")
     ("group" . "Document grouping")
@@ -1850,7 +1877,7 @@ This takes effect when first loading the library.")
     ("i" . "Italic face")
     ("img" . "Graphic image")
     ("input" . "Form input field")
-    ("ins" . "?")
+    ("ins" . "Inserted text")
     ("isindex" . "Input field for index search")
     ("kbd" . "Keybard example face")
     ("lang" . "Natural language")
@@ -1866,15 +1893,16 @@ This takes effect when first loading the library.")
     ("over" . "Math fraction rule")
     ("p" . "Paragraph start")
     ("panel" . "Floating panel")
-    ("person" . "?")
+    ("person" . "Person's name")
     ("pre" . "Preformatted fixed width text")
-    ("q" . "?")
+    ("q" . "Quotation")
     ("rev" . "Reverse video")
-    ("s" . "?")
+    ("s" . "Strikeout")
     ("samp" . "Sample text")
     ("select" . "Selection list")
     ("small" . "Font size")
     ("sp" . "Nobreak space")
+    ("span" . "Generic inline container")
     ("strong" . "Standout text")
     ("sub" . "Subscript")
     ("sup" . "Superscript")

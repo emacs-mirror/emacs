@@ -273,8 +273,8 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; (or some similar separator), or by one of the special keywords
     ;; corresponding to builtin functions that can take their first arg
     ;; without parentheses.  Of course, that presume we're looking at the
-    ;; *opening* slash.  We can mis-match the closing ones, because they are
-    ;; treated separately later in
+    ;; *opening* slash.  We can afford to mis-match the closing ones
+    ;; here, because they will be re-treated separately later in
     ;; perl-font-lock-special-syntactic-constructs.
     (,(concat "\\(?:\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
               (regexp-opt '("split" "if" "unless" "until" "while" "split"
@@ -287,7 +287,7 @@ The expansion is entirely correct because it uses the C preprocessor."
                    ;; the syntax-table before point, but better than nothing.
                    (forward-comment (- (point-max)))
                    (put-text-property (point) (match-end 2)
-                                      'jit-lock-multiline t)
+                                      'jit-lock-defer-multiline t)
                    (not (memq (char-before)
                               '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[)))))
             nil ;; A division sign instead of a regexp-match.
@@ -381,13 +381,14 @@ The expansion is entirely correct because it uses the C preprocessor."
                            'font-lock-multiline t)
                           ;;
                           (unless
-                              (save-excursion
-                                (with-syntax-table
-                                    (perl-quote-syntax-table (char-after))
-                                  (forward-sexp 1))
-                                (put-text-property pos (line-end-position)
-                                                   'jit-lock-defer-multiline t)
-                                (looking-at "\\s-*\\sw*e"))
+                              (or (eobp)
+                                  (save-excursion
+                                    (with-syntax-table
+                                        (perl-quote-syntax-table (char-after))
+                                      (forward-sexp 1))
+                                    (put-text-property pos (line-end-position)
+                                                       'jit-lock-defer-multiline t)
+                                    (looking-at "\\s-*\\sw*e")))
                             (put-text-property (point) (1+ (point))
                                                'syntax-table
                                                (if (assoc (char-after)

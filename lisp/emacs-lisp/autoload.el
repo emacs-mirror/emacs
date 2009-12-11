@@ -42,6 +42,12 @@ trailer starting with a FormFeed character.")
 ;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
+(defvar generated-autoload-load-name nil
+  "Load name for `autoload' statements generated from autoload cookies.
+If nil, this defaults to the file name, sans extension.")
+;;;###autoload
+(put 'generated-autoload-load-name 'safe-local-variable 'stringp)
+
 ;; This feels like it should be a defconst, but MH-E sets it to
 ;; ";;;###mh-autoload" for the autoloads that are to go into mh-loaddefs.el.
 (defvar generate-autoload-cookie ";;;###autoload"
@@ -57,6 +63,9 @@ This string is used:
 If this string appears alone on a line, the following form will be
 read and an autoload made for it.  If there is further text on the line,
 that text will be copied verbatim to `generated-autoload-file'.")
+
+(defvar autoload-excludes nil
+  "If non-nil, list of absolute file names not to scan for autoloads.")
 
 (defconst generate-autoload-section-header "\f\n;;;### "
   "String that marks the form at the start of a new file's autoload section.")
@@ -95,11 +104,12 @@ or macro definition or a defcustom)."
 		   easy-mmode-define-global-mode define-global-minor-mode
 		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
-		   defun* defmacro*))
+		   defun* defmacro* define-overloadable-function))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (case car
-		    ((defun defmacro defun* defmacro*) (nth 2 form))
+		    ((defun defmacro defun* defmacro*
+		       define-overloadable-function) (nth 2 form))
 		    ((define-skeleton) '(&optional str arg))
 		    ((define-generic-mode define-derived-mode
                        define-compilation-mode) nil)
@@ -121,6 +131,14 @@ or macro definition or a defcustom)."
 				    define-minor-mode)) t)
 		  (eq (car-safe (car body)) 'interactive))
 	      (if macrop (list 'quote 'macro) nil))))
+
+     ;; For defclass forms, use `eieio-defclass-autoload'.
+     ((eq car 'defclass)
+      (let ((name (nth 1 form))
+	    (superclasses (nth 2 form))
+	    (doc (nth 4 form)))
+	(list 'eieio-defclass-autoload (list 'quote name)
+	      (list 'quote superclasses) file doc)))
 
      ;; Convert defcustom to less space-consuming data.
      ((eq car 'defcustom)
@@ -235,17 +253,24 @@ put the output in."
 	      (print-escape-nonascii t))
 	  (print form outbuf)))))))
 
-(defun autoload-rubric (file &optional type)
+(defun autoload-rubric (file &optional type feature)
   "Return a string giving the appropriate autoload rubric for FILE.
 TYPE (default \"autoloads\") is a string stating the type of
-information contained in FILE."
+information contained in FILE.  If FEATURE is non-nil, FILE
+will provide a feature.  FEATURE may be a string naming the
+feature, otherwise it will be based on FILE's name."
   (let ((basename (file-name-nondirectory file)))
     (concat ";;; " basename
 	    " --- automatically extracted " (or type "autoloads") "\n"
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    "\n"
-	    "(provide '" (file-name-sans-extension basename) ")\n"
+	    ;; This is used outside of autoload.el.
+	    "(provide '"
+	    (if (stringp feature)
+		feature
+	      (file-name-sans-extension basename))
+	    ")\n"
 	    ";; Local Variables:\n"
 	    ";; version-control: never\n"
 	    ";; no-byte-compile: t\n"
@@ -336,7 +361,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 \(or OUTBUF if OUTFILE is nil)."
   (catch 'done
     (let ((autoloads-done '())
-          (load-name (autoload-file-load-name file))
+	  load-name
           (print-length nil)
 	  (print-level nil)
           (print-readably t)           ; This does something in Lucid Emacs.
@@ -347,13 +372,16 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
           relfile
           ;; nil until we found a cookie.
           output-start)
-
       (with-current-buffer (or visited
                                ;; It is faster to avoid visiting the file.
                                (autoload-find-file file))
         ;; Obey the no-update-autoloads file local variable.
         (unless no-update-autoloads
           (message "Generating autoloads for %s..." file)
+	  (setq load-name
+		(if (stringp generated-autoload-load-name)
+		    generated-autoload-load-name
+		  (autoload-file-load-name file)))
           (save-excursion
             (save-restriction
               (widen)
@@ -475,7 +503,7 @@ Return FILE if there was no autoload cookie in it, else nil."
          (no-autoloads (autoload-generate-file-autoloads file)))
     (if autoload-modified-buffers
         (if save-after (autoload-save-buffers))
-      (if (interactive-p)
+      (if (called-interactively-p 'interactive)
           (message "Autoload section for %s is up to date." file)))
     (if no-autoloads file)))
 
@@ -608,7 +636,9 @@ directory or directories specified."
 		  ((not (stringp file)))
 		  ((or (not (file-exists-p file))
                        ;; Remove duplicates as well, just in case.
-                       (member file done))
+                       (member file done)
+                       ;; If the file is actually excluded.
+                       (member (expand-file-name file) autoload-excludes))
                    ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
 		  ((not (time-less-p (nth 4 form)
@@ -624,8 +654,10 @@ directory or directories specified."
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (dolist (file files)
-        (if (autoload-generate-file-autoloads file nil buffer-file-name)
-            (push file no-autoloads)))
+        (cond
+         ((member (expand-file-name file) autoload-excludes) nil)
+         ((autoload-generate-file-autoloads file nil buffer-file-name)
+          (push file no-autoloads))))
 
       (when no-autoloads
 	;; Sort them for better readability.
@@ -645,10 +677,58 @@ directory or directories specified."
 (define-obsolete-function-alias 'update-autoloads-from-directories
     'update-directory-autoloads "22.1")
 
+(defvar autoload-make-program (or (getenv "MAKE") "make")
+  "Name of the make program in use during the Emacs build process.")
+
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
 Calls `update-directory-autoloads' on the command line arguments."
+  ;; For use during the Emacs build process only.
+  (unless autoload-excludes
+    (let* ((ldir (file-name-directory generated-autoload-file))
+	   (default-directory
+	     (file-name-as-directory
+	      (expand-file-name (if (eq system-type 'windows-nt)
+				    "../lib-src"
+				  "../src") ldir)))
+	   (mfile "Makefile")
+	   (tmpfile "echolisp.tmp")
+	   lim)
+      ;; Windows uses the 'echolisp' approach because:
+      ;; i) It does not have $lisp as a single simple definition, so
+      ;; it would be harder to parse the Makefile.
+      ;; ii) It can, since it already has $lisp broken up into pieces
+      ;; that the command-line can handle.
+      ;; Non-Windows builds do not use the 'echolisp' approach because
+      ;; no-one knows (?) the maximum safe command-line length on all
+      ;; supported systems.  $lisp is much longer there since it uses
+      ;; absolute paths, and it would seem a shame to split it just for this.
+      (when (file-readable-p mfile)
+	(if (eq system-type 'windows-nt)
+	    (when (ignore-errors
+		   (if (file-exists-p tmpfile) (delete-file tmpfile))
+		   ;; FIXME call-process is better, if it works.
+		   (shell-command (format "%s echolisp > %s"
+					  autoload-make-program tmpfile))
+		   (file-readable-p tmpfile))
+	      (with-temp-buffer
+		(insert-file-contents tmpfile)
+		;; FIXME could be a single while loop.
+		(while (not (eobp))
+		  (setq lim (line-end-position))
+		  (while (re-search-forward "\\([^ ]+\\.el\\)c?\\>" lim t)
+		    (push (expand-file-name (match-string 1))
+			  autoload-excludes))
+		  (forward-line 1))))
+	  (with-temp-buffer
+	    (insert-file-contents mfile)
+	    (when (re-search-forward "^lisp= " nil t)
+	      (setq lim (line-end-position))
+	      (while (re-search-forward "\\${lispsource}\\([^ ]+\\.el\\)c?\\>"
+					lim t)
+		(push (expand-file-name (match-string 1) ldir)
+		      autoload-excludes))))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))

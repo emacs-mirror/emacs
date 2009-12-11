@@ -94,7 +94,7 @@ but can be invoked directly in `fast' mode.")
   "Return string describing the version of Emerge.
 When called interactively, displays the version."
   (interactive)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Emerge version %s" emacs-version)
     emacs-version))
 
@@ -2060,8 +2060,7 @@ With a negative argument, turn off Skip-Prefers mode."
 	 (A-end (1- (aref diff-vector 1)))
 	 ;; so further kills don't append
 	 this-command)
-    (save-excursion
-      (set-buffer emerge-A-buffer)
+    (with-current-buffer emerge-A-buffer
       (copy-region-as-kill A-begin A-end))))
 
 (defun emerge-copy-as-kill-B ()
@@ -2074,8 +2073,7 @@ With a negative argument, turn off Skip-Prefers mode."
 	 (B-end (1- (aref diff-vector 3)))
 	 ;; so further kills don't append
 	 this-command)
-    (save-excursion
-      (set-buffer emerge-B-buffer)
+    (with-current-buffer emerge-B-buffer
       (copy-region-as-kill B-begin B-end))))
 
 (defun emerge-insert-A (arg)
@@ -2170,8 +2168,7 @@ Use C-u l to reset the windows afterward."
 				       (princ (buffer-name))))
 				   (princ "\n")))
       (princ emerge-output-description)
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(help-mode)))))
 
 (defun emerge-join-differences (arg)
@@ -3020,8 +3017,7 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 ;;			       minor-mode indicator))
 ;;		(princ (documentation minor-mode)))))
 ;;	(setq minor-modes (cdr minor-modes))))
-;;    (save-excursion
-;;      (set-buffer standard-output)
+;;    (with-current-buffer standard-output
 ;;      (help-mode))
 ;;    (help-print-return-message)))
 
@@ -3103,10 +3099,9 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	  (progn
 	    (erase-buffer)
 	    (insert name)
-	    (if (not (pos-visible-in-window-p))
-		(while (and (not (pos-visible-in-window-p))
-			    (> (1- (frame-height)) (window-height)))
-		  (enlarge-window 1)))
+	    (while (and (not (pos-visible-in-window-p))
+			(not (window-full-height-p)))
+	      (enlarge-window 1))
 	    (let* ((echo-keystrokes 0)
 		   (c (read-event)))
 	      (if (not (eq c 32))

@@ -539,8 +539,9 @@ matches any digit, as well as @samp{+} and @samp{-}.
 This matches graphic characters---everything except @acronym{ASCII} control
 characters, space, and the delete character.
 @item [:lower:]
-This matches any lower-case letter, as determined by
-the current case table (@pxref{Case Tables}).
+This matches any lower-case letter, as determined by the current case
+table (@pxref{Case Tables}).  If @code{case-fold-search} is
+non-@code{nil}, this also matches any upper-case letter.
 @item [:multibyte:]
 This matches any multibyte character (@pxref{Text Representations}).
 @item [:nonascii:]
@@ -557,8 +558,9 @@ This matches any character that has whitespace syntax
 @item [:unibyte:]
 This matches any unibyte character (@pxref{Text Representations}).
 @item [:upper:]
-This matches any upper-case letter, as determined by
-the current case table (@pxref{Case Tables}).
+This matches any upper-case letter, as determined by the current case
+table (@pxref{Case Tables}).  If @code{case-fold-search} is
+non-@code{nil}, this also matches any lower-case letter.
 @item [:word:]
 This matches any character that has word syntax (@pxref{Syntax Class
 Table}).

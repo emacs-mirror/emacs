@@ -168,7 +168,7 @@ struct utimbuf {
 #define LPASS8 0
 #endif
 
-static int baud_convert[] =
+static const int baud_convert[] =
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
@@ -3303,7 +3303,7 @@ procfs_ttyname (int rdev)
 
 	      if (MINOR (rdev) >= minor_beg && MINOR (rdev) <= minor_end)
 		{
-		  sprintf (name + strlen (name), "%lu", MINOR (rdev));
+		  sprintf (name + strlen (name), "%u", MINOR (rdev));
 		  break;
 		}
 	    }
@@ -3374,7 +3374,7 @@ system_process_attributes (Lisp_Object pid)
 
   CHECK_NUMBER_OR_FLOAT (pid);
   proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
-  sprintf (procfn, "/proc/%lu", proc_id);
+  sprintf (procfn, "/proc/%u", proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
 

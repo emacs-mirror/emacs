@@ -269,6 +269,7 @@ made it more strict about the error message that follows.
 
 keyboard handler.c(537) : warning C4005: 'min' : macro redefinition
 d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
+d:\tmp\test.c(1145) : see declaration of 'nsRefPtr'
 
 
 * Open Watcom

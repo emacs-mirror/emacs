@@ -775,8 +775,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
    (\",\" . quail-prev-translation-block))
   nil nil)\n\n")
     (insert "(quail-define-rules\n")
-    (save-excursion
-      (set-buffer dicbuf)
+    (with-current-buffer dicbuf
       ;; Handle double CR line ends, which result when checking out of
       ;; CVS on MS-Windows.
       (goto-char (point-min))
@@ -931,8 +930,7 @@ method `chinese-tonepy' with which you must specify tones by digits
 
 (defun ziranma-converter (dicbuf name title)
   (let (dic)
-    (save-excursion
-      (set-buffer dicbuf)
+    (with-current-buffer dicbuf
       (goto-char (point-min))
       (search-forward "\n%keyname end")
       (forward-line 1)
@@ -1052,8 +1050,7 @@ To input symbols and punctuations, type `/' followed by one of `a' to
   (let (dicbuf-start dicbuf-end key-start key (pos (point)))
     ;; Find the dictionary, which starts below a horizontal rule and
     ;; ends at the second to last line in the HTML file.
-    (save-excursion
-      (set-buffer dicbuf)
+    (with-current-buffer dicbuf
       (goto-char (point-min))
       (re-search-forward "^#<hr>")
       (forward-line 1)

@@ -174,8 +174,9 @@ what happened---Emacs ought to be treating the @key{Backspace} key as
 @key{DEL}, but it isn't.
 
   Some keyboards also have a @key{Delete} key, which is ordinarily
-used to forwards.  If this key deletes backward in Emacs, that too
-suggests Emacs got the wrong information---but in the opposite sense.
+used to delete forwards.  If this key deletes backward in Emacs, that
+too suggests Emacs got the wrong information---but in the opposite
+sense.
 
   On a text-only terminal, if you find the usual erasure key prompts
 for a Help command, like @kbd{Control-h}, instead of deleting a

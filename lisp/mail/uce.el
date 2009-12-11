@@ -219,8 +219,6 @@ These are mostly meant for headers that prevent delivery errors reporting."
 (declare-function rmail-msg-is-pruned "rmail" ())
 (declare-function mail-strip-quoted-names "mail-utils" (address))
 (declare-function rmail-maybe-set-message-counters "rmail" ())
-(declare-function rmail-msgbeg "rmail" (n))
-(declare-function rmail-msgend "rmail" (n))
 (declare-function rmail-toggle-header "rmail" (&optional arg))
 
 ;;;###autoload

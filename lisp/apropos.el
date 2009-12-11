@@ -736,8 +736,7 @@ Returns list of symbols and documentation found."
 	(apropos-sort-by-scores apropos-documentation-sort-by-scores)
 	f v sf sv)
     (unwind-protect
-	(save-excursion
-	  (set-buffer standard-input)
+	(with-current-buffer standard-input
 	  (apropos-documentation-check-doc-file)
 	  (if do-all
 	      (mapatoms
@@ -1121,7 +1120,8 @@ If non-nil TEXT is a string that will be printed as a heading."
 
 (defun apropos-describe-plist (symbol)
   "Display a pretty listing of SYMBOL's plist."
-  (help-setup-xref (list 'apropos-describe-plist symbol) (interactive-p))
+  (help-setup-xref (list 'apropos-describe-plist symbol)
+		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
     (set-buffer standard-output)
     (princ "Symbol ")

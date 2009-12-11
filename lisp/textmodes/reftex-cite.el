@@ -356,8 +356,7 @@
         (error "No such file %s" file))
       (message "Scanning thebibliography environment in %s" file)
 
-      (save-excursion
-        (set-buffer buf)
+      (with-current-buffer buf
         (save-restriction
           (widen)
           (goto-char (point-min))
@@ -1076,8 +1075,7 @@ While entering the regexp, completion on knows citation keys is possible.
         bibfile-list item bibtype)
 
     (catch 'exit
-      (save-excursion
-        (set-buffer reftex-call-back-to-this-buffer)
+      (with-current-buffer reftex-call-back-to-this-buffer
         (setq bibtype (reftex-bib-or-thebib))
         (cond
          ((eq bibtype 'bib)
@@ -1109,7 +1107,7 @@ While entering the regexp, completion on knows citation keys is possible.
 (defun reftex-all-used-citation-keys ()
   (reftex-access-scan-info)
   (let ((files (reftex-all-document-files)) file keys kk k)
-    (save-excursion
+    (save-current-buffer
       (while (setq file (pop files))
         (set-buffer (reftex-get-file-buffer-force file 'mark))
         (save-excursion
@@ -1137,7 +1135,7 @@ The sequence in the new file is the same as it was in the old database."
   (let ((keys (reftex-all-used-citation-keys))
         (files (reftex-get-bibfile-list))
         file key entries beg end entry)
-    (save-excursion
+    (save-current-buffer
       (while (setq file (pop files))
         (set-buffer (reftex-get-file-buffer-force file 'mark))
         (reftex-with-special-syntax-for-bib

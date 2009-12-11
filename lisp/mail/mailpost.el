@@ -1,7 +1,7 @@
 ;;; mailpost.el --- RMAIL coupler to /usr/uci/post mailer
 
 ;; This is in the public domain
-;; since Delp distributed it without a copyright notice in 1986.
+;; since Delp distributed it in 1986 without a copyright notice.
 
 ;; This file is part of GNU Emacs.
 
@@ -36,8 +36,7 @@ site-init."
 	delimline
 	(mailbuf (current-buffer)))
     (unwind-protect
-	(save-excursion
-	  (set-buffer tembuf)
+	(with-current-buffer tembuf
 	  (erase-buffer)
 	  (insert-buffer-substring mailbuf)
 	  (goto-char (point-max))
@@ -73,8 +72,7 @@ site-init."
 	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
 		(replace-match ""))
 	    (if mail-interactive
-		(save-excursion
-		  (set-buffer errbuf)
+		(with-current-buffer errbuf
 		  (erase-buffer))))
 	  (let ((m (default-file-modes)))
 	    (unwind-protect
@@ -91,8 +89,7 @@ site-init."
 			 (if mail-interactive '("-watch") '("-nowatch"))
 			 (list temfile)))
 	  (if mail-interactive
-	      (save-excursion
-		(set-buffer errbuf)
+	      (with-current-buffer errbuf
 		(goto-char (point-min))
 		(while (re-search-forward "\n\n* *" nil t)
 		  (replace-match "; "))

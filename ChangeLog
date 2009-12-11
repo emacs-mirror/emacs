@@ -1,3 +1,89 @@
+2009-12-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for RSVG if GNUStep is used.
+
+2009-12-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Don't check for RSVG or GConf unless X11 is used.
+
+2009-12-09  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* configure.in: Allow compiling Emacs with GTK on Cygwin.
+
+2009-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add etc/images/mpc directory.
+
+2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Don't check for GConf unless X is used.
+
+2009-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Use -Wdeclaration-after-statement if available.
+
+2009-11-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: New option: --with(out)-gconf.
+	Set HAVE_GCONF if we find gconf.
+
+2009-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add semantic.
+
+2009-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info/dir: Add Semantic.
+
+2009-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Use a more restrictive Makefile
+	pattern, so as not to exclude makefile*.el.  (Bug#4912)
+
+2009-11-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: --enable-autodepend is new.  Check for GNU Make
+	and that gcc supports -MMD -MF. Define AUTO_DEPEND if we can use
+	gcc and GNU make to generate dependencies.
+
+2009-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Make links to doc/lispintro/*.pdf.
+
+2009-10-23  Jim Meyering  <meyering@redhat.com>
+
+	* configure.in: Invoke $CPP with -P when creating Makefile and
+	src/Makefile.  Without this, gcc 4.4.2 converts each
+	backslash-newline pair in the input to a bare newline, yielding
+	invalid Makefiles.
+
+	* configure: Regenerate.
+
+2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (vax-dec-vms): Remove, not supported anymore.
+
+2009-10-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (NS_HAVE_NSINTEGER): Back out previous change.
+	(*-apple-darwin*): Add x86_64 architecture.
+
+2009-10-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.guess, config.sub: Updated from master source.
+
+2009-10-11  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (NS_HAVE_NSINTEGER): Remove this test and define.
+
+2009-10-07  Edward Trumbo  <etrumbo@comcast.net>  (tiny change)
+
+	* Makefile.in (INFO_FILES): Add EDE and EIEIO.
+
+2009-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (check): Update for two new levels of subdirectory in lisp/.
+
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.guess, config.sub: Updated from master source.
@@ -50,7 +136,7 @@
 
 	* Makefile.in (install-arch-indep): Remove .DS_Store files (MacOSX).
 
-2009-08-02  Kevin Ryde <user42@zip.com.au>
+2009-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* INSTALL: Fix free fonts URL.
 
@@ -60,8 +146,8 @@
 
 2009-07-04  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* configure.in (--enable-checking, --enable-profiling): Use
-	AS_HELP_STRING.
+	* configure.in (--enable-checking, --enable-profiling):
+	Use AS_HELP_STRING.
 
 2009-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 

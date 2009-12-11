@@ -112,8 +112,6 @@ for users to customize.
 
 ** Add function to redraw the tool bar.
 
-** M-! M-n should fetch the buffer-file-name as the default.
-
 ** Redesign the load-history data structure so it can cope better
   with evaluating definitions of the same function from different files,
   recording which file the latest definition came from.

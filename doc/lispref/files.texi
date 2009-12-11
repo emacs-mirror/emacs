@@ -1176,14 +1176,20 @@ The file's @acronym{GID}, likewise.
 The time of last access, as a list of two integers.
 The first integer has the high-order 16 bits of time,
 the second has the low 16 bits.  (This is similar to the
-value of @code{current-time}; see @ref{Time of Day}.)
+value of @code{current-time}; see @ref{Time of Day}.)  Note that on
+some FAT-based filesystems, only the date of last access is recorded,
+so this time will always hold the midnight of the day of last access.
 
+@cindex modification time of file
 @item
 The time of last modification as a list of two integers (as above).
-@cindex modification time of file
+This is the last time when the file's contents were modified.
 
 @item
 The time of last status change as a list of two integers (as above).
+This is the time of the last change to the file's access mode bits,
+its owner and group, and other information recorded in the filesystem
+for the file, beyond the file's contents.
 
 @item
 The size of the file in bytes.  If the size is too large to fit in a
@@ -1198,18 +1204,22 @@ as in @samp{ls -l}.
 deleted and recreated; @code{nil} otherwise.
 
 @item
-The file's inode number.  If possible, this is an integer.  If the inode
-number is too large to be represented as an integer in Emacs Lisp, then
-the value has the form @code{(@var{high} . @var{low})}, where @var{low}
-holds the low 16 bits.
+The file's inode number.  If possible, this is an integer.  If the
+inode number is too large to be represented as an integer in Emacs
+Lisp, but still fits into a 32-bit integer, then the value has the
+form @code{(@var{high} . @var{low})}, where @var{low} holds the low 16
+bits.  If the inode is wider than 32 bits, the value is of the form
+@code{(@var{high} @var{middle} . @var{low})}, where @code{high} holds
+the high 24 bits, @var{middle} the next 24 bits, and @var{low} the low
+16 bits.
 
 @item
-The file system number of the file system that the file is in.
-Depending on the magnitude of the value, this can be either an integer
-or a cons cell, in the same manner as the inode number.  This element
-and the file's inode number together give enough information to
-distinguish any two files on the system---no two files can have the same
-values for both of these numbers.
+The filesystem number of the device that the file is on.  Depending on
+the magnitude of the value, this can be either an integer or a cons
+cell, in the same manner as the inode number.  This element and the
+file's inode number together give enough information to distinguish
+any two files on the system---no two files can have the same values
+for both of these numbers.
 @end enumerate
 
 For example, here are the file attributes for @file{files.texi}:
@@ -1218,11 +1228,12 @@ For example, here are the file attributes for @file{files.texi}:
 @group
 (file-attributes "files.texi" 'string)
      @result{}  (nil 1 "lh" "users"
-          (8489 20284)
-          (8489 20284)
-          (8489 20285)
-          14906 "-rw-rw-rw-"
-          nil 129500 -32252)
+          (19145 42977)
+          (19141 59576)
+          (18340 17300)
+          122295 "-rw-rw-rw-"
+          nil  (5888 2 . 43978)
+          (15479 . 46724))
 @end group
 @end example
 
@@ -1243,18 +1254,19 @@ is owned by the user with name "lh".
 @item "users"
 is in the group with name "users".
 
-@item (8489 20284)
-was last accessed on Aug 19 00:09.
+@item (19145 42977)
+was last accessed on Oct 5 2009, at 10:01:37.
 
-@item (8489 20284)
-was last modified on Aug 19 00:09.
+@item (19141 59576)
+last had its contents modified on Oct 2 2009, at 13:49:12.
 
-@item (8489 20285)
-last had its inode changed on Aug 19 00:09.
+@item (18340 17300)
+last had its status changed on Feb 2 2008, at 12:19:00.
 
-@item 14906
-is 14906 bytes long.  (It may not contain 14906 characters, though,
-if some of the bytes belong to multibyte sequences.)
+@item 122295
+is 122295 bytes long.  (It may not contain 122295 characters, though,
+if some of the bytes belong to multibyte sequences, and also if the
+end-of-line format is CR-LF.)
 
 @item "-rw-rw-rw-"
 has a mode of read and write access for the owner, group, and world.
@@ -1262,10 +1274,11 @@ has a mode of read and write access for the owner, group, and world.
 @item nil
 would retain the same @acronym{GID} if it were recreated.
 
-@item 129500
-has an inode number of 129500.
-@item -32252
-is on file system number -32252.
+@item (5888 2 . 43978)
+has an inode number of 6473924464520138.
+
+@item (15479 . 46724)
+is on the file-system device whose number is 1014478468.
 @end table
 @end defun
 
@@ -1944,9 +1957,13 @@ function:
 @defun abbreviate-file-name filename
 @anchor{Definition of abbreviate-file-name}
 This function applies abbreviations from @code{directory-abbrev-alist}
-to its argument, and substitutes @samp{~} for the user's home
-directory.  You can use it for directory names and for file names,
-because it recognizes abbreviations even as part of the name.
+to its argument, and also substitutes @samp{~} for the user's home
+directory if the argument names a file in the home directory or one of
+its subdirectories.  (If the home directory is a root directory, it is
+not replaced with @samp{~}, because this does not make the result
+shorter on many systems.)  You can use it for directory names and for
+file names, because it recognizes abbreviations even as part of the
+name.
 @end defun
 
 @node File Name Expansion
@@ -2482,8 +2499,8 @@ which generate the listing with Lisp code.
 @end defvar
 
 @node Create/Delete Dirs
-@section Creating and Deleting Directories
-@cindex creating and deleting directories
+@section Creating, Copying and Deleting Directories
+@cindex creating, copying and deleting directories
 @c Emacs 19 features
 
   Most Emacs Lisp file-manipulation functions get errors when used on
@@ -2501,11 +2518,29 @@ if they don't already exist.
 @code{mkdir} is an alias for this.
 @end deffn
 
-@deffn Command delete-directory dirname
+@deffn Command copy-directory dirname newname &optional keep-time parents
+This command copies the directory named @var{dirname} to
+@var{newname}.  If @var{newname} names an existing directory,
+@var{dirname} will be copied to a subdirectory there.
+
+It always sets the file modes of the copied files to match the
+corresponding original file.
+
+The third arg @var{keep-time} non-@code{nil} means to preserve the
+modification time of the copied files.  A prefix arg makes
+@var{keep-time} non-@code{nil}.
+
+Noninteractively, the last argument @var{parents} says whether to
+create parent directories if they don't exist.  Interactively,
+this happens by default.
+@end deffn
+
+@deffn Command delete-directory dirname &optional recursive
 This command deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
-must use @code{delete-directory} for them.  If the directory contains
-any files, @code{delete-directory} signals an error.
+must use @code{delete-directory} for them.  If @var{recursive} is
+@code{nil}, and the directory contains any files,
+@code{delete-directory} signals an error.
 
 @code{delete-directory} only follows symbolic links at the level of
 parent directories.
@@ -2526,6 +2561,7 @@ expression to define the class of names (all those that match the
 regular expression), plus a handler that implements all the primitive
 Emacs file operations for file names that do match.
 
+@vindex file-name-handler-alist
   The variable @code{file-name-handler-alist} holds a list of handlers,
 together with regular expressions that determine when to apply each
 handler.  Each element has this form:
@@ -2589,8 +2625,8 @@ first, before handlers for jobs such as remote file access.
 @noindent
 @code{access-file}, @code{add-name-to-file},
 @code{byte-compiler-base-file-name},@*
-@code{copy-file}, @code{delete-directory},
-@code{delete-file},
+@code{copy-directory}, @code{copy-file},
+@code{delete-directory}, @code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
 @code{directory-files},
@@ -2636,8 +2672,8 @@ first, before handlers for jobs such as remote file access.
 @flushleft
 @code{access-file}, @code{add-name-to-file},
 @code{byte-com@discretionary{}{}{}piler-base-file-name},
-@code{copy-file}, @code{delete-directory},
-@code{delete-file},
+@code{copy-directory}, @code{copy-file},
+@code{delete-directory}, @code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
 @code{directory-files},

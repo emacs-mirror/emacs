@@ -313,7 +313,7 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :group 'browse-url)
 
 ;;;###autoload
-(defcustom browse-url-firefox-program "firefox"
+(defcustom browse-url-firefox-program (purecopy "firefox")
   "The name by which to invoke Firefox."
   :type 'string
   :group 'browse-url)
@@ -331,7 +331,7 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :group 'browse-url)
 
 ;;;###autoload
-(defcustom browse-url-galeon-program "galeon"
+(defcustom browse-url-galeon-program (purecopy "galeon")
   "The name by which to invoke Galeon."
   :type 'string
   :group 'browse-url)
@@ -444,7 +444,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
     ,@(if (memq system-type '(windows-nt ms-dos cygwin))
-          '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/")
+          '(("^\\([a-zA-Z]:\\)[\\/]" . "file:///\\1/")
             ("^[\\/][\\/]+" . "file://")))
     ("^/+" . "file:///"))
   "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
@@ -669,7 +669,7 @@ for use in `interactive'."
 ;; this macro.  We use that rather than interactive-p because
 ;; use in a keyboard macro should not change this behavior.
 (defmacro browse-url-maybe-new-window (arg)
-  `(if (or noninteractive (not (called-interactively-p)))
+  `(if (or noninteractive (not (called-interactively-p 'any)))
        ,arg
      browse-url-new-window-flag))
 
@@ -699,6 +699,12 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
+  ;; De-munge Cygwin filenames before passing them to Windows browser.
+  (if (eq system-type 'cygwin)
+      (let ((winfile (with-output-to-string
+		       (call-process "cygpath" nil standard-output
+				     nil "-m" file))))
+	(setq file (substring winfile 0 -1))))
   (let ((coding (and (default-value 'enable-multibyte-characters)
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
@@ -770,7 +776,7 @@ narrowed."
 Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
-  (unless (interactive-p)
+  (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
   (let ((process-environment (copy-sequence process-environment)))
     ;; When connected to various displays, be careful to use the display of
@@ -778,17 +784,20 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
     ;; which may not even exist any more.
     (if (stringp (frame-parameter (selected-frame) 'display))
         (setenv "DISPLAY" (frame-parameter (selected-frame) 'display)))
-    (if (functionp browse-url-browser-function)
-        (apply browse-url-browser-function url args)
-      ;; The `function' can be an alist; look down it for first match
-      ;; and apply the function (which might be a lambda).
-      (catch 'done
-        (dolist (bf browse-url-browser-function)
-          (when (string-match (car bf) url)
-            (apply (cdr bf) url args)
-            (throw 'done t)))
-        (error "No browse-url-browser-function matching URL %s"
-               url)))))
+    (if (and (consp browse-url-browser-function)
+	     (not (functionp browse-url-browser-function)))
+	;; The `function' can be an alist; look down it for first match
+	;; and apply the function (which might be a lambda).
+	(catch 'done
+	  (dolist (bf browse-url-browser-function)
+	    (when (string-match (car bf) url)
+	      (apply (cdr bf) url args)
+	      (throw 'done t)))
+	  (error "No browse-url-browser-function matching URL %s"
+		 url))
+      ;; Unbound symbols go down this leg, since void-function from
+      ;; apply is clearer than wrong-type-argument from dolist.
+      (apply browse-url-browser-function url args))))
 
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
@@ -827,11 +836,13 @@ to use."
 
 (defun browse-url-default-windows-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (if (eq system-type 'ms-dos)
-      (if dos-windows-version
-	  (shell-command (concat "start " (shell-quote-argument url)))
-	(error "Browsing URLs is not supported on this system"))
-    (w32-shell-execute "open" url)))
+  (cond ((eq system-type 'ms-dos)
+	 (if dos-windows-version
+	     (shell-command (concat "start " (shell-quote-argument url)))
+	   (error "Browsing URLs is not supported on this system")))
+	((eq system-type 'cygwin)
+	 (call-process "cygstart" nil nil nil url))
+	(t (w32-shell-execute "open" url))))
 
 (defun browse-url-default-macosx-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))

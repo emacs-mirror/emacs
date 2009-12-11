@@ -401,8 +401,8 @@ in the minibuffer:
 	       (eshell-printn result)))
 	(run-hooks 'eshell-directory-change-hook)
 	(if eshell-list-files-after-cd
-	    (throw 'eshell-replace-command
-		   (eshell-parse-command "ls" (cdr args))))
+	    ;; Let-bind eshell-last-command around this?
+	    (eshell-plain-command "ls" (cdr args)))
 	nil))))
 
 (put 'eshell/cd 'eshell-no-numeric-conversions t)

@@ -126,19 +126,23 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (with-current-buffer rmail-summary-buffer
 	(rmail-summary-enable)))
   (widen)
+  (goto-char (point-min))
+  ;; This is far from ideal.  The edit may have inadvertently
+  ;; removed the blank line at the end of the headers, but there
+  ;; are almost certainly other blank lines.
+  (or (search-forward "\n\n" nil t)
+      (error "There must be a blank line at the end of the headers"))
   ;; Disguise any "From " lines so they don't start a new message.
-  (save-excursion
-    (goto-char (point-min))
-    (or rmail-old-pruned (forward-line 1))
-    (while (re-search-forward "^>*From " nil t)
-      (beginning-of-line)
-      (insert ">")
-      (forward-line)))
+  (goto-char (point-min))
+  (or rmail-old-pruned (forward-line 1))
+  (while (re-search-forward "^>*From " nil t)
+    (beginning-of-line)
+    (insert ">")
+    (forward-line))
   ;; Make sure buffer ends with a blank line so as not to run this
   ;; message together with the following one.
-  (save-excursion
-    (goto-char (point-max))
-    (rmail-ensure-blank-line))
+  (goto-char (point-max))
+  (rmail-ensure-blank-line)
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
 	;; People who know what they are doing might have modified the
@@ -168,47 +172,51 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
       (goto-char (point-min))
-      ;; If they changed the message's encoding, rewrite the charset=
-      ;; header for them, so that subsequent rmail-show-message
-      ;; decodes it correctly.
-      (let ((buffer-read-only nil)
-	    (new-coding (coding-system-base edited-coding))
-	    old-coding mime-charset mime-beg mime-end)
-	(when (re-search-forward rmail-mime-charset-pattern
-				 (1- (save-excursion (search-forward "\n\n")))
-				 'move)
-	    (setq mime-beg (match-beginning 1)
-		  mime-end (match-end 1)
-		  old-coding (coding-system-from-name (match-string 1))))
-	(setq mime-charset
-	      (symbol-name
-	       (or (coding-system-get new-coding :mime-charset)
-		   (if (coding-system-equal new-coding 'undecided)
-		       'us-ascii
-		     new-coding))))
-	(cond
-	 ((null old-coding)
-	  ;; If there was no charset= spec, insert one.
-	  (insert "Content-type: text/plain; charset=" mime-charset "\n"))
-	 ((not (coding-system-equal (coding-system-base old-coding)
-				    new-coding))
-	  (delete-region mime-beg mime-end)
-	  (insert mime-charset))))
-      (goto-char (point-min))
       (search-forward "\n\n")
-      (setq headers-end (point))
+      (setq headers-end (point-marker))
+      (goto-char (point-min))
+      (save-restriction
+	(narrow-to-region (point) headers-end)
+	;; If they changed the message's encoding, rewrite the charset=
+	;; header for them, so that subsequent rmail-show-message
+	;; decodes it correctly.
+	(let* ((buffer-read-only nil)
+	       (new-coding (coding-system-base edited-coding))
+	       (mime-charset (symbol-name
+			      (or (coding-system-get new-coding :mime-charset)
+				  (if (coding-system-equal new-coding
+							   'undecided)
+				      'us-ascii
+				    new-coding))))
+	       old-coding mime-beg mime-end content-type)
+	  (if (re-search-forward rmail-mime-charset-pattern nil 'move)
+	      (setq mime-beg (match-beginning 1)
+		    mime-end (match-end 1)
+		    old-coding (coding-system-from-name (match-string 1)))
+	    (setq content-type (mail-fetch-field "Content-Type")))
+	  (cond
+	   ;; No match for rmail-mime-charset-pattern, but there was some
+	   ;; other Content-Type.  We should not insert another.  (Bug#4624)
+	   (content-type)
+	   ((null old-coding)
+	    ;; If there was no charset= spec, insert one.
+	    (backward-char 1)
+	    (insert "Content-type: text/plain; charset=" mime-charset "\n"))
+	   ((not (coding-system-equal (coding-system-base old-coding)
+				      new-coding))
+	    (goto-char mime-end)
+	    (delete-region mime-beg mime-end)
+	    (insert mime-charset)))))
       (setq new-headers (rmail-edit-headers-alist t))
       (rmail-swap-buffers-maybe)
       (narrow-to-region (rmail-msgbeg rmail-current-message)
 			(rmail-msgend rmail-current-message))
+      (goto-char (point-min))
+      (setq limit (search-forward "\n\n"))
       (save-restriction
-	(setq limit
-	      (save-excursion
-		(goto-char (point-min))
-		(search-forward "\n\n" nil t)))
 	;; All 3 of the functions we call below assume the buffer was
 	;; narrowed to just the headers of the message.
-	(narrow-to-region (rmail-msgbeg rmail-current-message) limit)
+	(narrow-to-region (point-min) limit)
 	(setq character-coding
 	      (mail-fetch-field "content-transfer-encoding")
 	      is-text-message (rmail-is-text-p)
@@ -247,9 +255,8 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     ;;??? BROKEN perhaps.
 ;;;    (if (boundp 'rmail-summary-vector)
 ;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
-    (save-excursion
-      (rmail-show-message)
-      (rmail-toggle-header (if pruned 1 0))))
+    (rmail-show-message)
+    (rmail-toggle-header (if pruned 1 0)))
   (run-hooks 'rmail-mode-hook))
 
 (defun rmail-abort-edit ()

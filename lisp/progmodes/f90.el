@@ -1505,7 +1505,8 @@ Return (TYPE NAME), or nil if not found."
         matching-beg
       ;; Note this includes the case of an un-named main program,
       ;; in which case we go to (point-min).
-      (if (interactive-p) (message "No beginning found"))
+      (if (called-interactively-p 'interactive)
+	  (message "No beginning found"))
       nil)))
 
 (defun f90-end-of-subprogram ()
@@ -1530,7 +1531,8 @@ Return (TYPE NAME), or nil if not found."
 ;;;    (forward-line 1)
     (if (zerop count)
         matching-end
-      (if (interactive-p) (message "No end found"))
+      (if (called-interactively-p 'interactive)
+	  (message "No end found"))
       nil)))
 
 
@@ -1542,7 +1544,8 @@ for consistency of block types and labels (if present), and
 completes outermost block if `f90-smart-end' is non-nil.
 Interactively, pushes mark before moving point."
   (interactive "p")
-  (if (interactive-p) (push-mark (point) t)) ; can move some distance
+  ;; Can move some distance.
+  (if (called-interactively-p 'any) (push-mark (point) t))
   (and num (< num 0) (f90-beginning-of-block (- num)))
   (let ((f90-smart-end (if f90-smart-end 'no-blink)) ; for final match-end
         (case-fold-search t)
@@ -1598,7 +1601,7 @@ Checks for consistency of block types and labels (if present).
 Does not check the outermost block, because it may be incomplete.
 Interactively, pushes mark before moving point."
   (interactive "p")
-  (if (interactive-p) (push-mark (point) t))
+  (if (called-interactively-p 'any) (push-mark (point) t))
   (and num (< num 0) (f90-end-of-block (- num)))
   (let ((case-fold-search t)
         (count (or num 1))

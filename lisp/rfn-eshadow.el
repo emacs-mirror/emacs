@@ -92,7 +92,8 @@
 		  (sexp :tag "Value")))))
 
 (defcustom file-name-shadow-properties
-  '(face file-name-shadow field shadow)
+  ;; FIXME: should we purecopy this?
+'(face file-name-shadow field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
 Only used when `file-name-shadow-mode' is active.
 If Emacs is not running under a window system,
@@ -102,7 +103,7 @@ If Emacs is not running under a window system,
   :version "22.1")
 
 (defcustom file-name-shadow-tty-properties
-  '(before-string "{" after-string "} " field shadow)
+  (purecopy '(before-string "{" after-string "} " field shadow))
   "Properties given to the `shadowed' part of a filename in the minibuffer.
 Only used when `file-name-shadow-mode' is active and Emacs
 is not running under a window-system; if Emacs is running under a window

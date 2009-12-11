@@ -151,8 +151,8 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 
   (define-key gomoku-mode-map [remap previous-line] 'gomoku-move-up)
   (define-key gomoku-mode-map [remap next-line] 'gomoku-move-down)
-  (define-key gomoku-mode-map [remap beginning-of-line] 'gomoku-beginning-of-line)
-  (define-key gomoku-mode-map [remap end-of-line] 'gomoku-end-of-line)
+  (define-key gomoku-mode-map [remap move-beginning-of-line] 'gomoku-beginning-of-line)
+  (define-key gomoku-mode-map [remap move-end-of-line] 'gomoku-end-of-line)
   (define-key gomoku-mode-map [remap undo] 'gomoku-human-takes-back)
   (define-key gomoku-mode-map [remap advertised-undo] 'gomoku-human-takes-back))
 
@@ -939,6 +939,7 @@ If the game is finished, this command requests for another game."
 	       "Your move?"))
   ;; This may seem silly, but if one omits the following line (or a similar
   ;; one), the cursor may very well go to some place where POINT is not.
+  ;; FIXME: this can't be right!!  --Stef
   (save-excursion (set-buffer (other-buffer))))
 
 (defun gomoku-prompt-for-other-game ()

@@ -496,7 +496,7 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
   (with-timeout (seconds default-value)
     (y-or-n-p prompt)))
 
-(defvar timer-duration-words
+(defconst timer-duration-words
   (list (cons "microsec" 0.000001)
 	(cons "microsecond" 0.000001)
         (cons "millisec" 0.001)

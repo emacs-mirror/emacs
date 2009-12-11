@@ -297,7 +297,7 @@ also the To field, unless this would leave an empty To field."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names "\\`info-"
+(defvar rmail-default-dont-reply-to-names (purecopy "\\`info-")
   "Regexp specifying part of the default value of `rmail-dont-reply-to-names'.
 This is used when the user does not set `rmail-dont-reply-to-names'
 explicitly.  (The other part of the default value is the user's
@@ -308,6 +308,7 @@ used for large mailing lists to broadcast announcements.")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
+  (purecopy
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
 	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
 	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
@@ -324,7 +325,7 @@ used for large mailing lists to broadcast announcements.")
 	  "\\|^mbox-line:\\|^cancel-lock:"
 	  "\\|^DomainKey-Signature:\\|^dkim-signature:"
 	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
-	  "\\|^x-.*:")
+	  "\\|^x-.*:"))
   "Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -360,14 +361,14 @@ If nil, display all header fields except those matched by
   :group 'rmail-headers)
 
 ;;;###autoload
-(defcustom rmail-retry-ignored-headers "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:"
+(defcustom rmail-retry-ignored-headers (purecopy "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:")
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
   :group 'rmail-headers
   :version "23.2")	   ; added x-detected-operating-system, x-spam
 
 ;;;###autoload
-(defcustom rmail-highlighted-headers "^From:\\|^Subject:"
+(defcustom rmail-highlighted-headers (purecopy "^From:\\|^Subject:")
   "Regexp to match Header fields that Rmail should normally highlight.
 A value of nil means don't highlight.  Uses the face `rmail-highlight'."
   :type 'regexp
@@ -418,12 +419,12 @@ the frame where you have the RMAIL buffer displayed."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defcustom rmail-secondary-file-directory "~/"
+(defcustom rmail-secondary-file-directory (purecopy "~/")
   "Directory for additional secondary Rmail files."
   :type 'directory
   :group 'rmail-files)
 ;;;###autoload
-(defcustom rmail-secondary-file-regexp "\\.xmail$"
+(defcustom rmail-secondary-file-regexp (purecopy "\\.xmail$")
   "Regexp for which files are secondary Rmail files."
   :type 'regexp
   :group 'rmail-files)
@@ -791,6 +792,12 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	      . 'rmail-header-name))))
   "Additional expressions to highlight in Rmail mode.")
 
+;; Rmail does not expect horizontal splitting.  (Bug#2282)
+(defun rmail-pop-to-buffer (&rest args)
+  "Like `pop-to-buffer', but with `split-width-threshold' set to nil."
+  (let (split-width-threshold)
+    (apply 'pop-to-buffer args)))
+
 ;; Perform BODY in the summary buffer
 ;; in such a way that its cursor is properly updated in its own window.
 (defmacro rmail-select-summary (&rest body)
@@ -800,7 +807,7 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	   (save-excursion
 	     (unwind-protect
 		 (progn
-		   (pop-to-buffer rmail-summary-buffer)
+		   (rmail-pop-to-buffer rmail-summary-buffer)
 		   ;; rmail-total-messages is a buffer-local var
 		   ;; in the rmail buffer.
 		   ;; This way we make it available for the body
@@ -1294,24 +1301,34 @@ Instead, these commands are available:
 (defun rmail-generate-viewer-buffer ()
   "Return a reusable buffer suitable for viewing messages.
 Create the buffer if necessary."
-  (let* ((suffix (file-name-nondirectory (or buffer-file-name (buffer-name))))
-	 (name (format " *message-viewer %s*" suffix))
-	 (buf (get-buffer name)))
-    (or buf
-	(generate-new-buffer name))))
+  ;; We want to reuse any existing view buffer, so as not to create an
+  ;; endless number of them.  But we must avoid clashes if we visit
+  ;; two different rmail files with the same basename (Bug#4593).
+  (if (and (local-variable-p 'rmail-view-buffer)
+	   (buffer-live-p rmail-view-buffer))
+      rmail-view-buffer
+    (generate-new-buffer
+     (format " *message-viewer %s*"
+	     (file-name-nondirectory (or buffer-file-name (buffer-name)))))))
 
 (defun rmail-swap-buffers ()
   "Swap text between current buffer and `rmail-view-buffer'.
 This function preserves the current buffer's modified flag, and also
 sets the current buffer's `buffer-file-coding-system' to that of
 `rmail-view-buffer'."
-  (let ((modp (buffer-modified-p))
-	(coding
+  (let ((modp-this (buffer-modified-p))
+	(modp-that
+	 (with-current-buffer rmail-view-buffer (buffer-modified-p)))
+	(coding-this buffer-file-coding-system)
+	(coding-that
 	 (with-current-buffer rmail-view-buffer
 	   buffer-file-coding-system)))
     (buffer-swap-text rmail-view-buffer)
-    (setq buffer-file-coding-system coding)
-    (restore-buffer-modified-p modp)))
+    (setq buffer-file-coding-system coding-that)
+    (with-current-buffer rmail-view-buffer
+      (setq buffer-file-coding-system coding-this)
+      (restore-buffer-modified-p modp-that))
+    (restore-buffer-modified-p modp-this)))
 
 (defun rmail-buffers-swapped-p ()
   "Return non-nil if the message collection is in `rmail-view-buffer'."
@@ -1367,6 +1384,9 @@ If so restore the actual mbox message collection."
   (set-buffer-multibyte nil)
   (with-current-buffer (setq rmail-view-buffer (rmail-generate-viewer-buffer))
     (setq buffer-undo-list t)
+    ;; Note that this does not erase the buffer.  Should it?
+    ;; It depends on how this is called.  If somehow called with the
+    ;; rmail buffers swapped, it would erase the message collection.
     (set (make-local-variable 'rmail-overlay-list) nil)
     (set-buffer-multibyte t)
     ;; Force C-x C-s write Unix EOLs.
@@ -4165,18 +4185,36 @@ encoded string (and the same mask) will decode the string."
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(rmail-mode . rmail-restore-desktop-buffer))
 
+;; We use this to record the encoding of the current message before
+;; saving the message collection.
+(defvar rmail-message-encoding nil)
+
 ;; Used in `write-region-annotate-functions' to write rmail files.
 (defun rmail-write-region-annotate (start end)
   (when (and (null start) (rmail-buffers-swapped-p))
+    (setq rmail-message-encoding buffer-file-coding-system)
     (set-buffer rmail-view-buffer)
     (widen)
     nil))
+
+;; Used to restore the encoding of the buffer where we show the
+;; current message, after we save the message collection.  This is
+;; needed because rmail-write-region-annotate switches buffers behind
+;; save-file's back, with the side effect that last-coding-system-used
+;; is assigned to buffer-file-coding-system of the wrong buffer.
+(defun rmail-after-save-hook ()
+  (if (or (eq rmail-view-buffer (current-buffer))
+	  (eq rmail-buffer (current-buffer)))
+      (with-current-buffer
+	  (if (rmail-buffers-swapped-p) rmail-buffer rmail-view-buffer)
+	(setq buffer-file-coding-system rmail-message-encoding))))
+(add-hook 'after-save-hook 'rmail-after-save-hook)
 
 
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "c70c6c35b8c5bbdb73787a48b83e5adc")
+;;;;;;  "31f0128d57ee5aefe13ec6060a5c63cc")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4231,7 +4269,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "ab34439779d8036dbd5cdc80fb4cea64")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "04becfcbd937ebfb3020515f84e79d0a")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4322,7 +4360,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "60bec0ae88b7ed18dd6845ddb9ccd904")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "d7d82233836cae1295ffa85f7371f857")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

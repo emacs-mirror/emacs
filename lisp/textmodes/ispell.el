@@ -616,6 +616,10 @@ re-start Emacs."
     ("esperanto-tex"
      "[A-Za-z^\\]" "[^A-Za-z^\\]"
      "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3)
+    ("finnish"
+     "[A-Za-z\345\344\366\305\304\326]"
+     "[^A-Za-z\345\344\366\305\304\326]"
+     "[:]" nil ("-C") "~list" iso-8859-1)
     ("francais7"
      "[A-Za-z]" "[^A-Za-z]" "[`'^-]" t nil nil iso-8859-1)
     ("francais"				; Francais.aff
@@ -1135,69 +1139,69 @@ The variable `ispell-library-directory' defines the library location."
     (progn
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       (define-key ispell-menu-map [ispell-change-dictionary]
-	'(menu-item "Change Dictionary..." ispell-change-dictionary
-		    :help "Supply explicit dictionary file name"))
+	`(menu-item ,(purecopy "Change Dictionary...") ispell-change-dictionary
+		    :help ,(purecopy "Supply explicit dictionary file name")))
       (define-key ispell-menu-map [ispell-kill-ispell]
-	'(menu-item "Kill Process" ispell-kill-ispell
+	`(menu-item ,(purecopy "Kill Process") ispell-kill-ispell
 		    :enable (and (boundp 'ispell-process) ispell-process
 				 (eq (ispell-process-status) 'run))
-		    :help "Terminate Ispell subprocess"))
+		    :help ,(purecopy "Terminate Ispell subprocess")))
       (define-key ispell-menu-map [ispell-pdict-save]
-	'(menu-item "Save Dictionary"
+	`(menu-item ,(purecopy "Save Dictionary")
 		    (lambda () (interactive) (ispell-pdict-save t t))
-		    :help "Save personal dictionary"))
+		    :help ,(purecopy "Save personal dictionary")))
       (define-key ispell-menu-map [ispell-customize]
-	'(menu-item "Customize..."
+	`(menu-item ,(purecopy "Customize...")
 		    (lambda () (interactive) (customize-group 'ispell))
-		    :help "Customize spell checking options"))
+		    :help ,(purecopy "Customize spell checking options")))
       (define-key ispell-menu-map [ispell-help]
 	;; use (x-popup-menu last-nonmenu-event(list "" ispell-help-list)) ?
-	'(menu-item "Help"
+	`(menu-item ,(purecopy "Help")
 		    (lambda () (interactive) (describe-function 'ispell-help))
-		    :help "Show standard Ispell keybindings and commands"))
+		    :help ,(purecopy "Show standard Ispell keybindings and commands")))
       (define-key ispell-menu-map [flyspell-mode]
-	'(menu-item "Automatic spell checking (Flyspell)"
+	`(menu-item ,(purecopy "Automatic spell checking (Flyspell)")
 		    flyspell-mode
-		    :help "Check spelling while you edit the text"
+		    :help ,(purecopy "Check spelling while you edit the text")
 		    :button (:toggle . (bound-and-true-p flyspell-mode))))
       (define-key ispell-menu-map [ispell-complete-word]
-	'(menu-item "Complete Word" ispell-complete-word
-		    :help "Complete word at cursor using dictionary"))
+	`(menu-item ,(purecopy "Complete Word") ispell-complete-word
+		    :help ,(purecopy "Complete word at cursor using dictionary")))
       (define-key ispell-menu-map [ispell-complete-word-interior-frag]
-	'(menu-item "Complete Word Fragment" ispell-complete-word-interior-frag
-		    :help "Complete word fragment at cursor"))))
+	`(menu-item ,(purecopy "Complete Word Fragment") ispell-complete-word-interior-frag
+		    :help ,(purecopy "Complete word fragment at cursor")))))
 
 ;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-continue]
-	'(menu-item "Continue Spell-Checking" ispell-continue
+	`(menu-item ,(purecopy "Continue Spell-Checking") ispell-continue
 		    :enable (and (boundp 'ispell-region-end)
 				 (marker-position ispell-region-end)
 				 (equal (marker-buffer ispell-region-end)
 					(current-buffer)))
-		    :help "Continue spell checking last region"))
+		    :help ,(purecopy "Continue spell checking last region")))
       (define-key ispell-menu-map [ispell-word]
-	'(menu-item "Spell-Check Word" ispell-word
-		    :help "Spell-check word at cursor"))
+	`(menu-item ,(purecopy "Spell-Check Word") ispell-word
+		    :help ,(purecopy "Spell-check word at cursor")))
       (define-key ispell-menu-map [ispell-comments-and-strings]
-	'(menu-item "Spell-Check Comments" ispell-comments-and-strings
-		    :help "Spell-check only comments and strings"))))
+	`(menu-item ,(purecopy "Spell-Check Comments") ispell-comments-and-strings
+		    :help ,(purecopy "Spell-check only comments and strings")))))
 
 ;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-region]
-	'(menu-item "Spell-Check Region" ispell-region
+	`(menu-item ,(purecopy "Spell-Check Region") ispell-region
 		    :enable mark-active
-		    :help "Spell-check text in marked region"))
+		    :help ,(purecopy "Spell-check text in marked region")))
       (define-key ispell-menu-map [ispell-message]
-	'(menu-item "Spell-Check Message" ispell-message
+	`(menu-item ,(purecopy "Spell-Check Message") ispell-message
 		    :visible (eq major-mode 'mail-mode)
-		    :help "Skip headers and included message text"))
+		    :help ,(purecopy "Skip headers and included message text")))
       (define-key ispell-menu-map [ispell-buffer]
-	'(menu-item "Spell-Check Buffer" ispell-buffer
-		    :help "Check spelling of selected buffer"))
+	`(menu-item ,(purecopy "Spell-Check Buffer") ispell-buffer
+		    :help ,(purecopy "Check spelling of selected buffer")))
       ;;(put 'ispell-region 'menu-enable 'mark-active)
       (fset 'ispell-menu-map (symbol-value 'ispell-menu-map))))
 
@@ -1289,7 +1293,8 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 (defun ispell-get-decoded-string (n)
   (let* ((slot (or
 		(assoc ispell-current-dictionary ispell-local-dictionary-alist)
-		(assoc ispell-current-dictionary ispell-dictionary-alist)))
+		(assoc ispell-current-dictionary ispell-dictionary-alist)
+		(error "No match for the current dictionary")))
 	 (str (nth n slot)))
     (when (and (> (length str) 0)
 	       (not (multibyte-string-p str)))
@@ -1388,20 +1393,20 @@ The last occurring definition in the buffer will be used.")
 
 ;;;###autoload
 (defvar ispell-skip-region-alist
-  '((ispell-words-keyword	   forward-line)
+  `((ispell-words-keyword	   forward-line)
     (ispell-dictionary-keyword	   forward-line)
     (ispell-pdict-keyword	   forward-line)
     (ispell-parsing-keyword	   forward-line)
-    ("^---*BEGIN PGP [A-Z ]*--*" . "^---*END PGP [A-Z ]*--*")
+    (,(purecopy "^---*BEGIN PGP [A-Z ]*--*") . ,(purecopy "^---*END PGP [A-Z ]*--*"))
     ;; assume multiline uuencoded file? "\nM.*$"?
-    ("^begin [0-9][0-9][0-9] [^ \t]+$" . "\nend\n")
-    ("^%!PS-Adobe-[123].0"	 . "\n%%EOF\n")
-    ("^---* \\(Start of \\)?[Ff]orwarded [Mm]essage"
-     . "^---* End of [Ff]orwarded [Mm]essage")
+    (,(purecopy "^begin [0-9][0-9][0-9] [^ \t]+$") . ,(purecopy "\nend\n"))
+    (,(purecopy "^%!PS-Adobe-[123].0")	 . ,(purecopy "\n%%EOF\n"))
+    (,(purecopy "^---* \\(Start of \\)?[Ff]orwarded [Mm]essage")
+     . ,(purecopy "^---* End of [Ff]orwarded [Mm]essage"))
     ;; Matches e-mail addresses, file names, http addresses, etc.  The
     ;; `-+' `_+' patterns are necessary for performance reasons when
     ;; `-' or `_' part of word syntax.
-    ("\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
+    (,(purecopy "\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)"))
     ;; above checks /.\w sequences
     ;;("\\(--+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
     ;; This is a pretty complex regexp.  It can be simplified to the following:
@@ -1424,6 +1429,7 @@ Valid forms include:
 
 ;;;###autoload
 (defvar ispell-tex-skip-alists
+  (purecopy
   '((;;("%\\[" . "%\\]") ; AMStex block comment...
      ;; All the standard LaTeX keywords from L. Lamport's guide:
      ;; \cite, \hspace, \hspace*, \hyphenation, \include, \includeonly, \input,
@@ -1442,7 +1448,7 @@ Valid forms include:
      ("\\(figure\\|table\\)\\*?"	 ispell-tex-arg-end 0)
      ("list"				 ispell-tex-arg-end 2)
      ("program"		. "\\\\end[ \t\n]*{[ \t\n]*program[ \t\n]*}")
-     ("verbatim\\*?"	. "\\\\end[ \t\n]*{[ \t\n]*verbatim\\*?[ \t\n]*}")))
+     ("verbatim\\*?"	. "\\\\end[ \t\n]*{[ \t\n]*verbatim\\*?[ \t\n]*}"))))
   "*Lists of regions to be skipped in TeX mode.
 First list is used raw.
 Second list has key placed inside \\begin{}.
@@ -1453,7 +1459,7 @@ for skipping in latex mode.")
 
 
 ;;;###autoload
-(defvar ispell-html-skip-alists
+(defconst ispell-html-skip-alists
   '(("<[cC][oO][dD][eE]\\>[^>]*>"	  "</[cC][oO][dD][eE]*>")
     ("<[sS][cC][rR][iI][pP][tT]\\>[^>]*>" "</[sS][cC][rR][iI][pP][tT]>")
     ("<[aA][pP][pP][lL][eE][tT]\\>[^>]*>" "</[aA][pP][pP][lL][eE][tT]>")

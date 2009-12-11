@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Keywords: network
+;; Keywords: network comm
 
 ;; This file is part of GNU Emacs.
 

@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.30c
+;; Version: 6.33x
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -184,7 +184,7 @@ When nil, do no timestamp checking and always publish all files."
 (defcustom org-publish-before-export-hook nil
   "Hook run before export on the Org file.
 The hook may modify the file in arbitrary ways before publishing happens.
-The orgiginal version of the buffer will be restored after publishing."
+The original version of the buffer will be restored after publishing."
   :group 'org-publish
   :type 'hook)
 
@@ -607,8 +607,7 @@ Default for INDEX-FILENAME is 'sitemap.org'."
   (let* ((visiting (find-buffer-visiting file))
 	 (buffer (or visiting (find-file-noselect file)))
 	 title)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (let* ((opt-plist (org-combine-plists (org-default-export-plist)
 					    (org-infile-export-plist))))
 	(setq title

@@ -26,6 +26,16 @@
 
 ;; See vc.el
 
+;; Some features will not work with old RCS versions.  Where
+;; appropriate, VC finds out which version you have, and allows or
+;; disallows those features (stealing locks, for example, works only
+;; from 5.6.2 onwards).
+;; Even initial checkins will fail if your RCS version is so old that ci
+;; doesn't understand -t-; this has been known to happen to people running
+;; NExTSTEP 3.0.
+;;
+;; You can support the RCS -x option by customizing vc-rcs-master-templates.
+
 ;;; Code:
 
 ;;;
@@ -81,7 +91,7 @@ to use --brief and sets this variable to remember whether it worked."
 
 ;;;###autoload
 (defcustom vc-rcs-master-templates
-  '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s")
+  (purecopy '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
   "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
@@ -549,12 +559,13 @@ directory the operation is applied to all registered files beneath it."
     (when (looking-at "[\b\t\n\v\f\r ]+")
       (delete-char (- (match-end 0) (match-beginning 0))))))
 
-(defun vc-rcs-print-log (files &optional buffer shortlog)
+(defun vc-rcs-print-log (files buffer &optional shortlog start-revision-ignored limit)
   "Get change log associated with FILE.  If FILE is a
 directory the operation is applied to all registered files beneath it."
   (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
   (with-current-buffer (or buffer "*vc*")
-    (vc-rcs-print-log-cleanup)))
+    (vc-rcs-print-log-cleanup))
+  (when limit 'limit-unsupported))
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
@@ -1045,65 +1056,65 @@ Returns: nil            if no headers were found
   (cond
    ((not (get-file-buffer file)) nil)
    ((let (status version locking-user)
-     (save-excursion
-      (set-buffer (get-file-buffer file))
-      (goto-char (point-min))
-      (cond
-       ;; search for $Id or $Header
-       ;; -------------------------
-       ;; The `\ 's below avoid an RCS 5.7 bug when checking in this file.
-       ((or (and (search-forward "$Id\ : " nil t)
-		 (looking-at "[^ ]+ \\([0-9.]+\\) "))
-	    (and (progn (goto-char (point-min))
-			(search-forward "$Header\ : " nil t))
-		 (looking-at "[^ ]+ \\([0-9.]+\\) ")))
-	(goto-char (match-end 0))
-	;; if found, store the revision number ...
-	(setq version (match-string-no-properties 1))
-	;; ... and check for the locking state
-	(cond
-	 ((looking-at
-	   (concat "[0-9]+[/-][01][0-9][/-][0-3][0-9] "             ; date
-	    "[0-2][0-9]:[0-5][0-9]+:[0-6][0-9]+\\([+-][0-9:]+\\)? " ; time
-	           "[^ ]+ [^ ]+ "))                       ; author & state
-	  (goto-char (match-end 0)) ; [0-6] in regexp handles leap seconds
-	  (cond
-	   ;; unlocked revision
-	   ((looking-at "\\$")
-	    (setq locking-user 'none)
-	    (setq status 'rev-and-lock))
-	   ;; revision is locked by some user
-	   ((looking-at "\\([^ ]+\\) \\$")
-	    (setq locking-user (match-string-no-properties 1))
-	    (setq status 'rev-and-lock))
-	   ;; everything else: false
-	   (nil)))
-	 ;; unexpected information in
-	 ;; keyword string --> quit
-	 (nil)))
-       ;; search for $Revision
-       ;; --------------------
-       ((re-search-forward (concat "\\$"
-				   "Revision: \\([0-9.]+\\) \\$")
-			   nil t)
-	;; if found, store the revision number ...
-	(setq version (match-string-no-properties 1))
-	;; and see if there's any lock information
-	(goto-char (point-min))
-	(if (re-search-forward (concat "\\$" "Locker:") nil t)
-	    (cond ((looking-at " \\([^ ]+\\) \\$")
-		   (setq locking-user (match-string-no-properties 1))
-		   (setq status 'rev-and-lock))
-		  ((looking-at " *\\$")
-		   (setq locking-user 'none)
-		   (setq status 'rev-and-lock))
-		  (t
-		   (setq locking-user 'none)
-		   (setq status 'rev-and-lock)))
-	  (setq status 'rev)))
-       ;; else: nothing found
-       ;; -------------------
-       (t nil)))
+      (with-current-buffer (get-file-buffer file)
+        (save-excursion
+          (goto-char (point-min))
+          (cond
+           ;; search for $Id or $Header
+           ;; -------------------------
+           ;; The `\ 's below avoid an RCS 5.7 bug when checking in this file.
+           ((or (and (search-forward "$Id\ : " nil t)
+                     (looking-at "[^ ]+ \\([0-9.]+\\) "))
+                (and (progn (goto-char (point-min))
+                            (search-forward "$Header\ : " nil t))
+                     (looking-at "[^ ]+ \\([0-9.]+\\) ")))
+            (goto-char (match-end 0))
+            ;; if found, store the revision number ...
+            (setq version (match-string-no-properties 1))
+            ;; ... and check for the locking state
+            (cond
+             ((looking-at
+               (concat "[0-9]+[/-][01][0-9][/-][0-3][0-9] "              ; date
+                 "[0-2][0-9]:[0-5][0-9]+:[0-6][0-9]+\\([+-][0-9:]+\\)? " ; time
+                       "[^ ]+ [^ ]+ "))                        ; author & state
+              (goto-char (match-end 0)) ; [0-6] in regexp handles leap seconds
+              (cond
+               ;; unlocked revision
+               ((looking-at "\\$")
+                (setq locking-user 'none)
+                (setq status 'rev-and-lock))
+               ;; revision is locked by some user
+               ((looking-at "\\([^ ]+\\) \\$")
+                (setq locking-user (match-string-no-properties 1))
+                (setq status 'rev-and-lock))
+               ;; everything else: false
+               (nil)))
+             ;; unexpected information in
+             ;; keyword string --> quit
+             (nil)))
+           ;; search for $Revision
+           ;; --------------------
+           ((re-search-forward (concat "\\$"
+                                       "Revision: \\([0-9.]+\\) \\$")
+                               nil t)
+            ;; if found, store the revision number ...
+            (setq version (match-string-no-properties 1))
+            ;; and see if there's any lock information
+            (goto-char (point-min))
+            (if (re-search-forward (concat "\\$" "Locker:") nil t)
+                (cond ((looking-at " \\([^ ]+\\) \\$")
+                       (setq locking-user (match-string-no-properties 1))
+                       (setq status 'rev-and-lock))
+                      ((looking-at " *\\$")
+                       (setq locking-user 'none)
+                       (setq status 'rev-and-lock))
+                      (t
+                       (setq locking-user 'none)
+                       (setq status 'rev-and-lock)))
+              (setq status 'rev)))
+           ;; else: nothing found
+           ;; -------------------
+           (t nil))))
      (if status (vc-file-setprop file 'vc-working-revision version))
      (and (eq status 'rev-and-lock)
 	  (vc-file-setprop file 'vc-state

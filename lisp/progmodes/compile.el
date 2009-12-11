@@ -297,9 +297,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " in \\([^()\n ]+\\)(\\([0-9]+\\))$" 1 2)
 
     (msft
-     ;; AFAWK, The message may be a "warning", "error", or "fatal error".
-     "^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
-: \\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:" 2 3 nil (4))
+     ;; The message may be a "warning", "error", or "fatal error" with
+     ;; an error code, or "see declaration of" without an error code.
+     "^ *\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
+: \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
+     2 3 nil (4))
 
     (omake
      ;; "omake -P" reports "file foo changed"
@@ -586,7 +588,7 @@ The value nil as an element means to try the default directory."
   :group 'compilation)
 
 ;;;###autoload
-(defcustom compile-command "make -k "
+(defcustom compile-command (purecopy "make -k ")
   "Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
@@ -989,11 +991,10 @@ FMTS is a list of format specs for transforming the file name.
           ;; another solution is to modify (some?) regexps in
           ;; `compilation-error-regexp-alist'.
           ;; note that omake usage is not limited to ocaml and C (for stubs).
-          (unless (string-match (concat "^" (regexp-quote "^ *")) pat)
-            (setq pat (concat "^ *"
-                              (if (= ?^ (aref pat 0))
-                                  (substring pat 1)
-                                  pat))))
+          (when (and (= ?^ (aref pat 0)) ; anchored: starts with "^"
+                     ;; but does not allow an arbitrary number of leading spaces
+                     (not (and (= ?  (aref pat 1)) (= ?* (aref pat 2)))))
+            (setq pat (concat "^ *" (substring pat 1))))
 	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
 	  (if (consp line)	(setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
@@ -1944,16 +1945,13 @@ This is the value of `next-error-function' in Compilation buffers."
     ;; (`omake -P' polls filesystem for changes and recompiles when needed
     ;;  in the same process and buffer).
     ;; So, recalculate all markers for that file.
-    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc))
-                 ;; There may be no timestamp info if the loc is a `fake-loc'.
-                 ;; So we skip the time-check here, although we should maybe
-                 ;; change `compilation-fake-loc' to add timestamp info.
-                 (or (null (nth 4 loc))
-                     (equal (nth 4 loc)
-                            (setq timestamp
-                                  (with-current-buffer
-                                      (marker-buffer (nth 3 loc))
-                                    (visited-file-modtime))))))
+    (unless (and (nth 3 loc) (marker-buffer (nth 3 loc)) (nthcdr 4 loc)
+                 ;; There may be no timestamp info if the loc is a `fake-loc',
+                 ;; but we just checked that the file has been visited before!
+                 (equal (nth 4 loc)
+                        (setq timestamp
+                              (with-current-buffer (marker-buffer (nth 3 loc))
+                                (visited-file-modtime)))))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (cadr (car (nth 2 loc))))
 	(save-restriction
@@ -2343,7 +2341,7 @@ The file-structure looks like this:
   (goto-char limit)
   nil)
 
-;; Beware: this is not only compatiblity code.  New code stil uses it.  --Stef
+;; Beware: this is not only compatibility code.  New code stil uses it.  --Stef
 (defun compilation-forget-errors ()
   ;; In case we hit the same file/line specs, we want to recompute a new
   ;; marker for them, so flush our cache.
@@ -2379,7 +2377,7 @@ The file-structure looks like this:
 	   (eq compilation-scroll-output 'first-error))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.gcov\\'" . compilation-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.gcov\\'") 'compilation-mode))
 
 (provide 'compile)
 

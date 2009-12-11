@@ -91,8 +91,7 @@ You can't edit the messages, but you can confirm whether to send each one.
 The list of addresses for which you decided not to send mail
 is left in the `*gulp*' buffer at the end."
   (interactive "DRequest updates for Lisp directory: \nP")
-  (save-excursion
-    (set-buffer (get-buffer-create gulp-tmp-buffer))
+  (with-current-buffer (get-buffer-create gulp-tmp-buffer)
     (let ((m-p-alist (gulp-create-m-p-alist
 		      (directory-files dir nil "^[^=].*\\.el$" t)
 		      dir))

@@ -1273,7 +1273,7 @@
 
 	* emacs-lisp/debug.el (debug): Fix call to message.
 
-2003-06-16  Michael Mauger  <mmaug@yahoo.com>  (tiny change)
+2003-06-16  Michael Mauger  <mmaug@yahoo.com>
 
 	* emulation/cua-base.el (cua-mode): Use explicit arg to turn off
 	minor modes.

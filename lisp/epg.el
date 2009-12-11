@@ -1143,8 +1143,7 @@ This function is for internal use only."
 	(goto-char (point-max))
 	(insert input)))
   (if (buffer-live-p (process-buffer process))
-      (save-excursion
-	(set-buffer (process-buffer process))
+      (with-current-buffer (process-buffer process)
 	(goto-char (point-max))
 	(insert input)
 	(unless epg-process-filter-running
@@ -1927,8 +1926,7 @@ You can then use `write-region' to write new data into the file."
 
 (defun epg-cancel (context)
   (if (buffer-live-p (process-buffer (epg-context-process context)))
-      (save-excursion
-	(set-buffer (process-buffer (epg-context-process context)))
+      (with-current-buffer (process-buffer (epg-context-process context))
 	(epg-context-set-result-for
 	 epg-context 'error
 	 (cons '(quit)

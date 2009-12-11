@@ -2446,7 +2446,7 @@ comint mode, which see."
 
 ;; Cause our buffers to be displayed, by default,
 ;; in the selected window.
-;;;###autoload (add-hook 'same-window-regexps "\\*gud-.*\\*\\(\\|<[0-9]+>\\)")
+;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*gud-.*\\*\\(\\|<[0-9]+>\\)"))
 
 (defcustom gud-chdir-before-run t
   "Non-nil if GUD should `cd' to the debugged executable."
@@ -2831,20 +2831,20 @@ Obeying it means displaying in another window the specified file and line."
   (let ((proc (get-buffer-process gud-comint-buffer)))
     (or proc (error "Current buffer has no process"))
     ;; Arrange for the current prompt to get deleted.
-    (save-excursion
-      (set-buffer gud-comint-buffer)
-      (save-restriction
-	(widen)
-	(if (marker-position gud-delete-prompt-marker)
-	    ;; We get here when printing an expression.
-	    (goto-char gud-delete-prompt-marker)
-	  (goto-char (process-mark proc))
-	  (forward-line 0))
-	(if (looking-at comint-prompt-regexp)
-	    (set-marker gud-delete-prompt-marker (point)))
-	(if (eq gud-minor-mode 'gdbmi)
-	    (apply comint-input-sender (list proc command))
-	  (process-send-string proc (concat command "\n")))))))
+    (with-current-buffer gud-comint-buffer
+      (save-excursion
+        (save-restriction
+          (widen)
+          (if (marker-position gud-delete-prompt-marker)
+              ;; We get here when printing an expression.
+              (goto-char gud-delete-prompt-marker)
+            (goto-char (process-mark proc))
+            (forward-line 0))
+          (if (looking-at comint-prompt-regexp)
+              (set-marker gud-delete-prompt-marker (point)))
+          (if (eq gud-minor-mode 'gdbmi)
+              (apply comint-input-sender (list proc command))
+            (process-send-string proc (concat command "\n"))))))))
 
 (defun gud-refresh (&optional arg)
   "Fix up a possibly garbled display, and redraw the arrow."
@@ -3062,8 +3062,7 @@ class of the file (using s to separate nested class ids)."
           ;; symbols until 'topmost-intro is reached to find out if
           ;; point is within a nested class
           (if (and fbuffer (equal (symbol-file 'java-mode) "cc-mode"))
-              (save-excursion
-                (set-buffer fbuffer)
+              (with-current-buffer fbuffer
                 (let ((nclass) (syntax))
                   ;; While the c-syntactic information does not start
                   ;; with the 'topmost-intro symbol, there may be
@@ -3222,7 +3221,7 @@ Treats actions as defuns."
 ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
 ;; don't interfere with each other.
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "/\\.[a-z0-9-]*gdbinit") 'gdb-script-mode))
 
 ;;;###autoload
 (define-derived-mode gdb-script-mode nil "GDB-Script"
@@ -3327,8 +3326,7 @@ only tooltips in the buffer containing the overlay arrow."
   (remove-hook 'post-command-hook
 	       'gud-tooltip-activate-mouse-motions-if-enabled)
   (dolist (buffer (buffer-list))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (if (and gud-tooltip-mode
 	       (memq major-mode gud-tooltip-modes))
 	  (gud-tooltip-activate-mouse-motions t)

@@ -487,29 +487,12 @@ If the list was changed, sort the list and remove duplicates first."
                (close (nth 3 entry))
                (begin (match-beginning sub))
                (end (match-end sub))
-               (pattern (meta-match-buffer 0))
-               (symbol (buffer-substring begin end))
-               (list (funcall (nth 2 entry)))
-               (completion (try-completion symbol list)))
-          (cond ((eq completion t)
-                 (and close
-                      (not (looking-at (regexp-quote close)))
-                      (insert close)))
-                ((null completion)
-                 (error "Can't find completion for \"%s\"" pattern))
-                ((not (string-equal symbol completion))
-                 (delete-region begin end)
-                 (insert completion)
-                 (and close
-                      (eq (try-completion completion list) t)
-                      (not (looking-at (regexp-quote close)))
-                      (insert close)))
-                (t
-                 (message "Making completion list...")
-                 (let ((list (all-completions symbol list nil)))
-                   (with-output-to-temp-buffer "*Completions*"
-                     (display-completion-list list symbol)))
-                 (message "Making completion list... done"))))
+               (list (funcall (nth 2 entry))))
+          (completion-in-region
+           begin end
+           (if (zerop (length close)) list
+             (apply-partially 'completion-table-with-terminator
+                              close list))))
       (funcall (nth 1 entry)))))
 
 

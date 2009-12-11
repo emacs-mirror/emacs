@@ -60,6 +60,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defgroup pascal nil
   "Major mode for editing Pascal source in Emacs."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
@@ -1112,12 +1114,6 @@ indent of the current line in parameterlist."
 
 ;;;
 ;;; Completion
-;;;
-(defvar pascal-str nil)
-(defvar pascal-all nil)
-(defvar pascal-pred nil)
-(defvar pascal-buffer-to-use nil)
-(defvar pascal-flag nil)
 
 (defun pascal-string-diff (str1 str2)
   "Return index of first letter where STR1 and STR2 differs."
@@ -1135,36 +1131,39 @@ indent of the current line in parameterlist."
 ;; completions for procedures if argument is `procedure' or both functions and
 ;; procedures otherwise.
 
-(defun pascal-func-completion (type)
+(defun pascal-func-completion (type pascal-str)
   ;; Build regular expression for function/procedure names
-  (if (string= pascal-str "")
-      (setq pascal-str "[a-zA-Z_]"))
-  (let ((pascal-str (concat (cond
-			     ((eq type 'procedure) "\\<\\(procedure\\)\\s +")
-			     ((eq type 'function) "\\<\\(function\\)\\s +")
-			     (t "\\<\\(function\\|procedure\\)\\s +"))
-			    "\\<\\(" pascal-str "[a-zA-Z0-9_.]*\\)\\>"))
-	match)
+  (save-excursion
+    (if (string= pascal-str "")
+        (setq pascal-str "[a-zA-Z_]"))
+    (let ((pascal-str (concat (cond
+                               ((eq type 'procedure) "\\<\\(procedure\\)\\s +")
+                               ((eq type 'function) "\\<\\(function\\)\\s +")
+                               (t "\\<\\(function\\|procedure\\)\\s +"))
+                              "\\<\\(" pascal-str "[a-zA-Z0-9_.]*\\)\\>"))
+          (pascal-all ())
+          match)
 
-    (if (not (looking-at "\\<\\(function\\|procedure\\)\\>"))
-	(re-search-backward "\\<\\(function\\|procedure\\)\\>" nil t))
-    (forward-char 1)
+      (if (not (looking-at "\\<\\(function\\|procedure\\)\\>"))
+          (re-search-backward "\\<\\(function\\|procedure\\)\\>" nil t))
+      (forward-char 1)
 
-    ;; Search through all reachable functions
-    (while (pascal-beg-of-defun)
-      (if (re-search-forward pascal-str (pascal-get-end-of-line) t)
-	  (progn (setq match (buffer-substring (match-beginning 2)
-					       (match-end 2)))
-		 (if (or (null pascal-pred)
-			 (funcall pascal-pred match))
-		     (setq pascal-all (cons match pascal-all)))))
-      (goto-char (match-beginning 0)))))
+      ;; Search through all reachable functions
+      (while (pascal-beg-of-defun)
+        (if (re-search-forward pascal-str (pascal-get-end-of-line) t)
+            (progn (setq match (buffer-substring (match-beginning 2)
+                                                 (match-end 2)))
+                   (push match pascal-all)))
+        (goto-char (match-beginning 0)))
 
-(defun pascal-get-completion-decl ()
+      pascal-all)))
+
+(defun pascal-get-completion-decl (pascal-str)
   ;; Macro for searching through current declaration (var, type or const)
   ;; for matches of `str' and adding the occurrence to `all'
   (let ((end (save-excursion (pascal-declaration-end)
 			     (point)))
+        (pascal-all ())
 	match)
     ;; Traverse lines
     (while (< (point) end)
@@ -1177,16 +1176,17 @@ indent of the current line in parameterlist."
 		      (not (match-end 1)))
 	    (setq match (buffer-substring (match-beginning 0) (match-end 0)))
 	    (if (string-match (concat "\\<" pascal-str) match)
-		(if (or (null pascal-pred)
-			(funcall pascal-pred match))
-		    (setq pascal-all (cons match pascal-all))))))
+                (push match pascal-all))))
       (if (re-search-forward "\\<record\\>" (pascal-get-end-of-line) t)
 	  (pascal-declaration-end)
-	(forward-line 1)))))
+	(forward-line 1)))
 
-(defun pascal-type-completion ()
+    pascal-all))
+
+(defun pascal-type-completion (pascal-str)
   "Calculate all possible completions for types."
   (let ((start (point))
+        (pascal-all ())
 	goon)
     ;; Search for all reachable type declarations
     (while (or (pascal-beg-of-defun)
@@ -1200,43 +1200,56 @@ indent of the current line in parameterlist."
 		  start t)
 		 (not (match-end 1)))
 	    ;; Check current type declaration
-	    (pascal-get-completion-decl))))))
+            (setq pascal-all
+                  (nconc (pascal-get-completion-decl pascal-str)
+                         pascal-all)))))
 
-(defun pascal-var-completion ()
+    pascal-all))
+
+(defun pascal-var-completion (prefix)
   "Calculate all possible completions for variables (or constants)."
-  (let ((start (point))
-	goon twice)
-    ;; Search for all reachable var declarations
-    (while (or (pascal-beg-of-defun)
-	       (setq goon (not goon)))
-      (save-excursion
-	(if (> start (prog1 (save-excursion (pascal-end-of-defun)
-					    (point))))
-	    () ; Declarations not reachable
-	  (if (search-forward "(" (pascal-get-end-of-line) t)
-	      ;; Check parameterlist
-		(pascal-get-completion-decl))
-	  (setq twice 2)
-	  (while (>= (setq twice (1- twice)) 0)
-	    (cond ((and (re-search-forward
-			 (concat "\\<\\(var\\|const\\)\\>\\|"
-				 "\\<\\(begin\\|function\\|procedure\\)\\>")
-			 start t)
-			(not (match-end 2)))
-		   ;; Check var/const declarations
-		   (pascal-get-completion-decl))
-		  ((match-end 2)
-		   (setq twice 0)))))))))
+  (save-excursion
+    (let ((start (point))
+          (pascal-all ())
+          goon twice)
+      ;; Search for all reachable var declarations
+      (while (or (pascal-beg-of-defun)
+                 (setq goon (not goon)))
+        (save-excursion
+          (if (> start (prog1 (save-excursion (pascal-end-of-defun)
+                                              (point))))
+              ()                        ; Declarations not reachable
+            (if (search-forward "(" (pascal-get-end-of-line) t)
+                ;; Check parameterlist
+                ;; FIXME: pascal-get-completion-decl doesn't understand
+                ;; the var declarations in parameter lists :-(
+                (setq pascal-all
+                      (nconc (pascal-get-completion-decl prefix)
+                             pascal-all)))
+            (setq twice 2)
+            (while (>= (setq twice (1- twice)) 0)
+              (cond
+               ((and (re-search-forward
+                      (concat "\\<\\(var\\|const\\)\\>\\|"
+                              "\\<\\(begin\\|function\\|procedure\\)\\>")
+                      start t)
+                     (not (match-end 2)))
+                ;; Check var/const declarations
+                (setq pascal-all
+                      (nconc (pascal-get-completion-decl prefix)
+                             pascal-all)))
+               ((match-end 2)
+                (setq twice 0)))))))
+      pascal-all)))
 
 
-(defun pascal-keyword-completion (keyword-list)
+(defun pascal-keyword-completion (keyword-list pascal-str)
   "Give list of all possible completions of keywords in KEYWORD-LIST."
-  (mapcar '(lambda (s)
-	     (if (string-match (concat "\\<" pascal-str) s)
-		 (if (or (null pascal-pred)
-			 (funcall pascal-pred s))
-		     (setq pascal-all (cons s pascal-all)))))
-	  keyword-list))
+  (let ((pascal-all ()))
+    (dolist (s keyword-list)
+      (if (string-match (concat "\\<" pascal-str) s)
+          (push s pascal-all)))
+    pascal-all))
 
 ;; Function passed to completing-read, try-completion or
 ;; all-completions to get completion on STR. If predicate is non-nil,
@@ -1247,79 +1260,55 @@ indent of the current line in parameterlist."
 ;; is 'lambda, the function returns t if STR is an exact match, nil
 ;; otherwise.
 
+(defvar pascal-completion-cache nil)
+
 (defun pascal-completion (pascal-str pascal-pred pascal-flag)
-  (save-excursion
-    (let ((pascal-all nil))
-      ;; Set buffer to use for searching labels. This should be set
-      ;; within functions which use pascal-completions
-      (set-buffer pascal-buffer-to-use)
-
-      ;; Determine what should be completed
+  (let ((all (car pascal-completion-cache)))
+    ;; Check the cache's freshness.
+    (unless (and pascal-completion-cache
+                 (string-prefix-p (nth 1 pascal-completion-cache) pascal-str)
+                 (eq (current-buffer) (nth 2 pascal-completion-cache))
+                 (eq (field-beginning) (nth 3 pascal-completion-cache)))
       (let ((state (car (pascal-calculate-indent))))
-	(cond (;--Within a declaration or parameterlist
-	       (or (eq state 'declaration) (eq state 'paramlist)
-		   (and (eq state 'defun)
-			(save-excursion
-			  (re-search-backward ")[ \t]*:"
-					      (pascal-get-beg-of-line) t))))
-	       (if (or (eq state 'paramlist) (eq state 'defun))
-		   (pascal-beg-of-defun))
-	       (pascal-type-completion)
-	       (pascal-keyword-completion pascal-type-keywords))
-	      (;--Starting a new statement
-	       (and (not (eq state 'contexp))
-		    (save-excursion
-		      (skip-chars-backward "a-zA-Z0-9_.")
-		      (backward-sexp 1)
-		      (or (looking-at pascal-nosemi-re)
-			  (progn
-			    (forward-sexp 1)
-			    (looking-at "\\s *\\(;\\|:[^=]\\)")))))
-	       (save-excursion (pascal-var-completion))
-	       (pascal-func-completion 'procedure)
-	       (pascal-keyword-completion pascal-start-keywords))
-	      (t;--Anywhere else
-	       (save-excursion (pascal-var-completion))
-	       (pascal-func-completion 'function)
-	       (pascal-keyword-completion pascal-separator-keywords))))
+        (setq all
+              ;; Determine what should be completed
+              (cond
+               (              ;--Within a declaration or parameterlist
+                (or (eq state 'declaration) (eq state 'paramlist)
+                    (and (eq state 'defun)
+                         (save-excursion
+                           (re-search-backward ")[ \t]*:"
+                                               (pascal-get-beg-of-line) t))))
+                (if (or (eq state 'paramlist) (eq state 'defun))
+                    (pascal-beg-of-defun))
+                (nconc
+                 (pascal-type-completion pascal-str)
+                 (pascal-keyword-completion pascal-type-keywords pascal-str)))
+               (                        ;--Starting a new statement
+                (and (not (eq state 'contexp))
+                     (save-excursion
+                       (skip-chars-backward "a-zA-Z0-9_.")
+                       (backward-sexp 1)
+                       (or (looking-at pascal-nosemi-re)
+                           (progn
+                             (forward-sexp 1)
+                             (looking-at "\\s *\\(;\\|:[^=]\\)")))))
+                (nconc
+                 (pascal-var-completion pascal-str)
+                 (pascal-func-completion 'procedure pascal-str)
+                 (pascal-keyword-completion pascal-start-keywords pascal-str)))
+               (t                       ;--Anywhere else
+                (nconc
+                 (pascal-var-completion pascal-str)
+                 (pascal-func-completion 'function pascal-str)
+                 (pascal-keyword-completion pascal-separator-keywords
+                                            pascal-str)))))
 
-      ;; Now we have built a list of all matches. Give response to caller
-      (pascal-completion-response))))
+        (setq pascal-completion-cache
+              (list all pascal-str (current-buffer) (field-beginning)))))
 
-(defun pascal-completion-response ()
-  (cond ((or (equal pascal-flag 'lambda) (null pascal-flag))
-	 ;; This was not called by all-completions
-	 (if (null pascal-all)
-	     ;; Return nil if there was no matching label
-	     nil
-	   ;; Get longest string common in the labels
-	   (let* ((elm (cdr pascal-all))
-		  (match (car pascal-all))
-		  (min (length match))
-		  tmp)
-	     (if (string= match pascal-str)
-		 ;; Return t if first match was an exact match
-		 (setq match t)
-	       (while (not (null elm))
-		 ;; Find longest common string
-		 (if (< (setq tmp (pascal-string-diff match (car elm))) min)
-		     (progn
-		       (setq min tmp)
-		       (setq match (substring match 0 min))))
-		 ;; Terminate with match=t if this is an exact match
-		 (if (string= (car elm) pascal-str)
-		     (progn
-		       (setq match t)
-		       (setq elm nil))
-		   (setq elm (cdr elm)))))
-	     ;; If this is a test just for exact match, return nil ot t
-	     (if (and (equal pascal-flag 'lambda) (not (equal match 't)))
-		 nil
-	       match))))
-	;; If flag is t, this was called by all-completions. Return
-	;; list of all possible completions
-	(pascal-flag
-	 pascal-all)))
+    ;; Now we have built a list of all matches. Give response to caller
+    (complete-with-action pascal-flag all pascal-str pascal-pred)))
 
 (defvar pascal-last-word-numb 0)
 (defvar pascal-last-word-shown nil)
@@ -1331,24 +1320,15 @@ indent of the current line in parameterlist."
 `pascal-start-keywords' and `pascal-separator-keywords'.)"
   (interactive)
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
-	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
-	 (pascal-str (buffer-substring b e))
-	 ;; The following variable is used in pascal-completion
-	 (pascal-buffer-to-use (current-buffer))
-	 (allcomp (if (and pascal-toggle-completions
-			   (string= pascal-last-word-shown pascal-str))
-		      pascal-last-completions
-		    (all-completions pascal-str 'pascal-completion)))
-	 (match (if pascal-toggle-completions
-		    "" (try-completion
-			pascal-str (mapcar '(lambda (elm)
-					      (cons elm 0)) allcomp)))))
-    ;; Delete old string
-    (delete-region b e)
+	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point))))
 
     ;; Toggle-completions inserts whole labels
     (if pascal-toggle-completions
-	(progn
+	(let* ((pascal-str (buffer-substring b e))
+               (allcomp (if (and pascal-toggle-completions
+                                 (string= pascal-last-word-shown pascal-str))
+                            pascal-last-completions
+                          (all-completions pascal-str 'pascal-completion))))
 	  ;; Update entry number in list
 	  (setq pascal-last-completions allcomp
 		pascal-last-word-numb
@@ -1357,32 +1337,14 @@ indent of the current line in parameterlist."
 		  (1+ pascal-last-word-numb)))
 	  (setq pascal-last-word-shown (elt allcomp pascal-last-word-numb))
 	  ;; Display next match or same string if no match was found
-	  (if (not (null allcomp))
-	      (insert "" pascal-last-word-shown)
-	    (insert "" pascal-str)
+	  (if allcomp
+              (progn
+                (goto-char e)
+                (insert-before-markers pascal-last-word-shown)
+                (delete-region b e))
 	    (message "(No match)")))
       ;; The other form of completion does not necessarily do that.
-
-      ;; Insert match if found, or the original string if no match
-      (if (or (null match) (equal match 't))
-	  (progn (insert "" pascal-str)
-		 (message "(No match)"))
-	(insert "" match))
-      ;; Give message about current status of completion
-      (cond ((equal match 't)
-	     (if (not (null (cdr allcomp)))
-		 (message "(Complete but not unique)")
-	       (message "(Sole completion)")))
-	    ;; Display buffer if the current completion didn't help
-	    ;; on completing the label.
-	    ((and (not (null (cdr allcomp))) (= (length pascal-str)
-						(length match)))
-	     (with-output-to-temp-buffer "*Completions*"
-	       (display-completion-list allcomp pascal-str))
-	     ;; Wait for a keypress. Then delete *Completion*  window
-	     (momentary-string-display "" (point))
-	     (delete-window (get-buffer-window (get-buffer "*Completions*")))
-	     )))))
+      (completion-in-region b e 'pascal-completion))))
 
 (defun pascal-show-completions ()
   "Show all possible completions at current point."
@@ -1390,8 +1352,6 @@ indent of the current line in parameterlist."
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
 	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
 	 (pascal-str (buffer-substring b e))
-	 ;; The following variable is used in pascal-completion
-	 (pascal-buffer-to-use (current-buffer))
 	 (allcomp (if (and pascal-toggle-completions
 			   (string= pascal-last-word-shown pascal-str))
 		      pascal-last-completions
@@ -1433,46 +1393,40 @@ With optional second arg non-nil, STR is the complete name of the instruction."
 
 (defun pascal-comp-defun (pascal-str pascal-pred pascal-flag)
   (save-excursion
-    (let ((pascal-all nil)
-	  match)
+    (let ((pascal-all nil))
 
-      ;; Set buffer to use for searching labels. This should be set
-      ;; within functions which use pascal-completions
-      (set-buffer pascal-buffer-to-use)
+      ;; Build regular expression for functions
+      (let ((pascal-str (pascal-build-defun-re (if (string= pascal-str "")
+                                                   "[a-zA-Z_]"
+                                                 pascal-str))))
+        (goto-char (point-min))
 
-      (let ((pascal-str pascal-str))
-	;; Build regular expression for functions
-	(if (string= pascal-str "")
-	    (setq pascal-str (pascal-build-defun-re "[a-zA-Z_]"))
-	  (setq pascal-str (pascal-build-defun-re pascal-str)))
-	(goto-char (point-min))
-
-	;; Build a list of all possible completions
-	(while (re-search-forward pascal-str nil t)
-	  (setq match (buffer-substring (match-beginning 2) (match-end 2)))
-	  (if (or (null pascal-pred)
-		  (funcall pascal-pred match))
-	      (setq pascal-all (cons match pascal-all)))))
+        ;; Build a list of all possible completions
+        (while (re-search-forward pascal-str nil t)
+          (push (match-string 2) pascal-all)))
 
       ;; Now we have built a list of all matches. Give response to caller
-      (pascal-completion-response))))
+      (complete-with-action pascal-flag pascal-all pascal-str pascal-pred))))
 
 (defun pascal-goto-defun ()
   "Move to specified Pascal function/procedure.
 The default is a name found in the buffer around point."
   (interactive)
   (let* ((default (pascal-get-default-symbol))
-	 ;; The following variable is used in pascal-comp-function
-	 (pascal-buffer-to-use (current-buffer))
 	 (default (if (pascal-comp-defun default nil 'lambda)
 		      default ""))
-	 (label (if (not (string= default ""))
-		    ;; Do completion with default
-		    (completing-read (concat "Label (default " default "): ")
-				     'pascal-comp-defun nil t "")
-		  ;; There is no default value. Complete without it
-		  (completing-read "Label: "
-				   'pascal-comp-defun nil t ""))))
+	 (label
+          ;; Do completion with default
+          (completing-read (if (not (string= default ""))
+                               (concat "Label (default " default "): ")
+                             "Label: ")
+                           ;; Complete with the defuns found in the
+                           ;; current-buffer.
+                           (lexical-let ((buf (current-buffer)))
+                             (lambda (s p a)
+                               (with-current-buffer buf
+                                 (pascal-comp-defun s p a))))
+                           nil t "")))
     ;; If there was no response on prompt, use default value
     (if (string= label "")
 	(setq label default))

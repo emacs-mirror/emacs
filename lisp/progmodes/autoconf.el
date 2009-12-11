@@ -107,6 +107,7 @@ searching backwards at another AC_... command."
   (run-mode-hooks 'autoconf-mode-hook))
 
 (provide 'autoconf-mode)
+(provide 'autoconf)
 
 ;; arch-tag: 4f44778f-2ab3-49a1-a103-f0acb9df2de4
 ;;; autoconf.el ends here

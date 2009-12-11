@@ -706,7 +706,7 @@ server for future sessions."
   (setq eudc-server server)
   (eudc-update-local-variables)
   (run-hooks 'eudc-switch-to-server-hook)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (message "Current directory server is now %s (%s)" eudc-server eudc-protocol))
   (if (null no-save)
       (eudc-save-options)))
@@ -753,9 +753,10 @@ When called interactively the list is formatted in a dedicated buffer
 otherwise a list of symbols is returned."
   (interactive)
   (if eudc-list-attributes-function
-      (let ((entries (funcall eudc-list-attributes-function (interactive-p))))
+      (let ((entries (funcall eudc-list-attributes-function
+			      (called-interactively-p 'interactive))))
 	(if entries
-	    (if (interactive-p)
+	    (if (called-interactively-p 'interactive)
 		(eudc-display-records entries t)
 	      entries)))
     (error "The %s protocol has no support for listing attributes" eudc-protocol)))
@@ -1035,8 +1036,7 @@ queries the server for the existing fields and displays a corresponding form."
 (defun eudc-save-options ()
   "Save options to `eudc-options-file'."
   (interactive)
-  (save-excursion
-    (set-buffer (find-file-noselect eudc-options-file t))
+  (with-current-buffer (find-file-noselect eudc-options-file t)
     (goto-char (point-min))
     ;; delete the previous setq
     (let ((standard-output (current-buffer))
@@ -1241,25 +1241,25 @@ This does nothing except loading eudc by autoload side-effect."
   (defvar eudc-tools-menu
     (let ((map (make-sparse-keymap "Directory Search")))
       (define-key map [phone]
-	'(menu-item "Get Phone" eudc-get-phone
-		    :help "Get the phone field of name from the directory server"))
+	`(menu-item ,(purecopy "Get Phone") eudc-get-phone
+		    :help ,(purecopy "Get the phone field of name from the directory server")))
       (define-key map [email]
-	'(menu-item "Get Email" eudc-get-email
-		    :help "Get the email field of NAME from the directory server"))
-      (define-key map [separator-eudc-email] '("--"))
+	`(menu-item ,(purecopy "Get Email") eudc-get-email
+		    :help ,(purecopy "Get the email field of NAME from the directory server")))
+      (define-key map [separator-eudc-email] menu-bar-separator)
       (define-key map [expand-inline]
-	'(menu-item "Expand Inline Query" eudc-expand-inline
-		    :help "Query the directory server, and expand the query string before point"))
+	`(menu-item ,(purecopy "Expand Inline Query") eudc-expand-inline
+		    :help ,(purecopy "Query the directory server, and expand the query string before point")))
       (define-key map [query]
-	'(menu-item "Query with Form" eudc-query-form
-		    :help "Display a form to query the directory server"))
-      (define-key map [separator-eudc-query] '("--"))
+	`(menu-item ,(purecopy "Query with Form") eudc-query-form
+		    :help ,(purecopy "Display a form to query the directory server")))
+      (define-key map [separator-eudc-query] menu-bar-separator)
       (define-key map [new]
-	'(menu-item "New Server" eudc-set-server
-		    :help "Set the directory server to SERVER using PROTOCOL"))
+	`(menu-item ,(purecopy "New Server") eudc-set-server
+		    :help ,(purecopy "Set the directory server to SERVER using PROTOCOL")))
       (define-key map [load]
-	'(menu-item "Load Hotlist of Servers" eudc-load-eudc
-		    :help "Load the Emacs Unified Directory Client"))
+	`(menu-item ,(purecopy "Load Hotlist of Servers") eudc-load-eudc
+		    :help ,(purecopy "Load the Emacs Unified Directory Client")))
       map))
   (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu)))
  (t

@@ -62,8 +62,7 @@ Default is 2."
 		   (setq last-query-point (point-max))
 		   t))))
       (let (start end)
-	(save-excursion
-	 (set-buffer inbuf)
+	(with-current-buffer inbuf
 	 (setq start (point))
 	 (if (eq move-function 'forward-char)
 	     (progn
@@ -81,8 +80,7 @@ Default is 2."
 	   (end-of-line)
 	   (and (> (current-column) fill-column)
 		(do-auto-fill)))))
-      (save-excursion
-       (set-buffer inbuf)
+      (with-current-buffer inbuf
        (if (eobp)
 	   (goto-char (point-min))
 	 (let ((overlap

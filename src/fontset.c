@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -1553,7 +1554,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   if (CHARACTERP (target))
     {
       if (XFASTINT (target) < 0x80)
-	error ("Can't set a font for partial ASCII range.");
+	error ("Can't set a font for partial ASCII range");
       range_list = Fcons (Fcons (target, target), Qnil);
     }
   else if (CONSP (target))
@@ -1567,7 +1568,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
       if (XFASTINT (from) < 0x80)
 	{
 	  if (XFASTINT (from) != 0 || XFASTINT (to) < 0x7F)
-	    error ("Can't set a font for partial ASCII range.");
+	    error ("Can't set a font for partial ASCII range");
 	  ascii_changed = 1;
 	}
       range_list = Fcons (target, Qnil);
@@ -2244,7 +2245,7 @@ syms_of_fontset ()
   staticpro (&Vdefault_fontset);
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
-    = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
+    = make_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 
@@ -2290,7 +2291,7 @@ alternate fontnames (if any) are tried instead.  */);
   DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
 	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
-				       build_string ("fontset-default")),
+				       make_pure_c_string ("fontset-default")),
 				Qnil);
 
   DEFVAR_LISP ("vertical-centering-font-regexp",

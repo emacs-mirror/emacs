@@ -155,9 +155,9 @@ index @var{start} up to (but excluding) the character at the index
 @noindent
 In the above example, the index for @samp{a} is 0, the index for
 @samp{b} is 1, and the index for @samp{c} is 2.  The index 3---which
-is the the fourth character in the string---marks the character
-position up to which the substring is copied.  Thus, @samp{abc} is
-copied from the string @code{"abcdefg"}.
+is the fourth character in the string---marks the character position
+up to which the substring is copied.  Thus, @samp{abc} is copied from
+the string @code{"abcdefg"}.
 
 A negative number counts from the end of the string, so that @minus{}1
 signifies the index of the last character of the string.  For example:
@@ -952,7 +952,7 @@ character or a string, to upper case.
 When @var{string-or-char} is a string, this function returns a new
 string in which each letter in the argument that is lower case is
 converted to upper case.  When @var{string-or-char} is a character,
-this function returns the corresponding upper case character (an an
+this function returns the corresponding upper case character (an
 integer); if the original character is upper case, or is not a letter,
 the return value is equal to the original character.
 

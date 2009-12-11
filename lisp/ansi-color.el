@@ -30,22 +30,14 @@
 ;; known as ANSI escape sequences) and tries to translate these into
 ;; faces.
 ;;
-;; This allows you to run ls --color=yes in shell-mode.  In order to
-;; test this, proceed as follows:
-;;
-;; 1. start a shell: M-x shell
-;; 2. load this file: M-x load-library RET ansi-color RET
-;; 3. activate ansi-color: M-x ansi-color-for-comint-mode-on
-;; 4. test ls --color=yes in the *shell* buffer
+;; This allows you to run ls --color=yes in shell-mode.  It is now
+;; enabled by default; to disable it, set ansi-color-for-comint-mode
+;; to nil.
 ;;
 ;; Note that starting your shell from within Emacs might set the TERM
 ;; environment variable.  The new setting might disable the output of
 ;; SGR control sequences.  Using ls --color=yes forces ls to produce
 ;; these.
-;;
-;; If you decide you like this, add the following to your .emacs file:
-;;
-;; (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; SGR control sequences are defined in section 3.8.117 of the ECMA-48
 ;; standard (identical to ISO/IEC 6429), which is freely available as a
@@ -157,7 +149,7 @@ map.  This color map is stored in the variable `ansi-color-map'."
 ;; Convenience functions for comint modes (eg. shell-mode)
 
 
-(defcustom ansi-color-for-comint-mode nil
+(defcustom ansi-color-for-comint-mode t
   "Determines what to do with comint output.
 If nil, do nothing.
 If the symbol `filter', then filter all SGR control sequences.
@@ -175,7 +167,8 @@ in shell buffers.  You set this variable by calling one of:
   :type '(choice (const :tag "Do nothing" nil)
 		 (const :tag "Filter" filter)
 		 (const :tag "Translate" t))
-  :group 'ansi-colors)
+  :group 'ansi-colors
+  :version "23.2")
 
 ;;;###autoload
 (defun ansi-color-for-comint-mode-on ()

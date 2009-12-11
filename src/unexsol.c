@@ -3,6 +3,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "buffer.h"

@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>
 #include <errno.h>
 #include <math.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -6218,7 +6219,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
   if (!NILP (Ffile_directory_p (filename))
       && NILP (Ffile_symlink_p (filename)))
     {
-      operation = Qdelete_directory;
+      operation = intern ("delete-directory");
       filename = Fdirectory_file_name (filename);
     }
   filename = Fexpand_file_name (filename, Qnil);
@@ -6967,9 +6968,9 @@ syms_of_w32fns ()
 
 
   Fput (Qundefined_color, Qerror_conditions,
-	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
+	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	build_string ("Undefined color"));
+	make_pure_c_string ("Undefined color"));
 
   staticpro (&w32_grabbed_keys);
   w32_grabbed_keys = Qnil;
@@ -7054,7 +7055,7 @@ Set to nil to handle Caps Lock as the `capslock' key.  */);
 The value can be hyper, super, meta, alt, control or shift for the
 respective modifier, or nil to handle Scroll Lock as the `scroll' key.
 Any other value will cause the Scroll Lock key to be ignored.  */);
-  Vw32_scroll_lock_modifier = Qt;
+  Vw32_scroll_lock_modifier = Qnil;
 
   DEFVAR_LISP ("w32-lwindow-modifier",
 	       &Vw32_lwindow_modifier,

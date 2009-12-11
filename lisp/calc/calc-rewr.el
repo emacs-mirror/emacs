@@ -190,15 +190,13 @@
                                   (if trace-buffer
                                       (let ((fmt (math-format-stack-value
                                                   (list result nil nil))))
-                                        (save-excursion
-                                          (set-buffer trace-buffer)
+                                        (with-current-buffer trace-buffer
                                           (insert "\nrewrite to\n" fmt "\n"))))
                                   (setq heads (math-rewrite-heads result heads t))))
                             result)))))
     (if trace-buffer
 	(let ((fmt (math-format-stack-value (list math-rewrite-whole-expr nil nil))))
-	  (save-excursion
-	    (set-buffer trace-buffer)
+	  (with-current-buffer trace-buffer
 	    (setq truncate-lines t)
 	    (goto-char (point-max))
 	    (insert "\n\nBegin rewriting\n" fmt "\n"))))
@@ -209,8 +207,7 @@
     (math-rewrite-phase (nth 3 (car crules)))
     (if trace-buffer
 	(let ((fmt (math-format-stack-value (list math-rewrite-whole-expr nil nil))))
-	  (save-excursion
-	    (set-buffer trace-buffer)
+	  (with-current-buffer trace-buffer
 	    (insert "\nDone rewriting"
 		    (if (= math-mt-many 0) " (reached iteration limit)" "")
 		    ":\n" fmt "\n"))))
@@ -229,15 +226,13 @@
 	    (if trace-buffer
 		(let ((fmt (math-format-stack-value
 			    (list math-rewrite-whole-expr nil nil))))
-		  (save-excursion
-		    (set-buffer trace-buffer)
+		  (with-current-buffer trace-buffer
 		    (insert "\ncall "
 			    (substring (symbol-name (car sched)) 9)
 			    ":\n" fmt "\n")))))
 	(let ((math-rewrite-phase (car sched)))
 	  (if trace-buffer
-	      (save-excursion
-		(set-buffer trace-buffer)
+	      (with-current-buffer trace-buffer
 		(insert (format "\n(Phase %d)\n" math-rewrite-phase))))
 	  (while (let ((save-expr math-rewrite-whole-expr))
 		   (setq math-rewrite-whole-expr (math-normalize
@@ -289,179 +284,179 @@
 
 
 
-;;; A compiled rule set is an a-list of entries whose cars are functors,
-;;; and whose cdrs are lists of rules.  If there are rules with no
-;;; well-defined head functor, they are included on all lists and also
-;;; on an extra list whose car is nil.
-;;;
-;;; The first entry in the a-list is of the form (schedule A B C ...).
-;;;
-;;; Rule list entries take the form (regs prog head phases), where:
-;;;
-;;;   regs   is a vector of match registers.
-;;;
-;;;   prog   is a match program (see below).
-;;;
-;;;   head   is a rare function name appearing in the rule body (but not the
-;;;	     head of the whole rule), or nil if none.
-;;;
-;;;   phases is a list of phase numbers for which the rule is enabled.
-;;;
-;;; A match program is a list of match instructions.
-;;;
-;;; In the following, "part" is a register number that contains the
-;;; subexpression to be operated on.
-;;;
-;;; Register 0 is the whole expression being matched.  The others are
-;;; meta-variables in the pattern, temporaries used for matching and
-;;; backtracking, and constant expressions.
-;;;
-;;; (same part reg)
-;;;         The selected part must be math-equal to the contents of "reg".
-;;;
-;;; (same-neg part reg)
-;;;         The selected part must be math-equal to the negative of "reg".
-;;;
-;;; (copy part reg)
-;;;	    The selected part is copied into "reg".  (Rarely used.)
-;;;
-;;; (copy-neg part reg)
-;;;	    The negative of the selected part is copied into "reg".
-;;;
-;;; (integer part)
-;;;         The selected part must be an integer.
-;;;
-;;; (real part)
-;;;         The selected part must be a real.
-;;;
-;;; (constant part)
-;;;         The selected part must be a constant.
-;;;
-;;; (negative part)
-;;;	    The selected part must "look" negative.
-;;;
-;;; (rel part op reg)
-;;;         The selected part must satisfy "part op reg", where "op"
-;;;	    is one of the 6 relational ops, and "reg" is a register.
-;;;
-;;; (mod part modulo value)
-;;;         The selected part must satisfy "part % modulo = value", where
-;;;         "modulo" and "value" are constants.
-;;;
-;;; (func part head reg1 reg2 ... regn)
-;;;         The selected part must be an n-ary call to function "head".
-;;;         The arguments are stored in "reg1" through "regn".
-;;;
-;;; (func-def part head defs reg1 reg2 ... regn)
-;;;	    The selected part must be an n-ary call to function "head".
-;;;	    "Defs" is a list of value/register number pairs for default args.
-;;;	    If a match, assign default values to registers and then skip
-;;;	    immediately over any following "func-def" instructions and
-;;;	    the following "func" instruction.  If wrong number of arguments,
-;;;	    proceed to the following "func-def" or "func" instruction.
-;;;
-;;; (func-opt part head defs reg1)
-;;;	    Like func-def with "n=1", except that if the selected part is
-;;;	    not a call to "head", then the part itself successfully matches
-;;;	    "reg1" (and the defaults are assigned).
-;;;
-;;; (try part heads mark reg1 [def])
-;;;         The selected part must be a function of the correct type which is
-;;;         associative and/or commutative.  "Heads" is a list of acceptable
-;;;         types.  An initial assignment of arguments to "reg1" is tried.
-;;;	    If the program later fails, it backtracks to this instruction
-;;;	    and tries other assignments of arguments to "reg1".
-;;;	    If "def" exists and normal matching fails, backtrack and assign
-;;;	    "part" to "reg1", and "def" to "reg2" in the following "try2".
-;;;	    The "mark" is a vector of size 5; only "mark[3-4]" are initialized.
-;;;	    "mark[0]" points to the argument list; "mark[1]" points to the
-;;;	    current argument; "mark[2]" is 0 if there are two arguments,
-;;;	    1 if reg1 is matching single arguments, 2 if reg2 is matching
-;;;	    single arguments (a+b+c+d is never split as (a+b)+(c+d)), or
-;;;         3 if reg2 is matching "def"; "mark[3]" is 0 if the function must
-;;;	    have two arguments, 1 if phase-2 can be skipped, 2 if full
-;;;	    backtracking is necessary; "mark[4]" is t if the arguments have
-;;;	    been switched from the order given in the original pattern.
-;;;
-;;; (try2 try reg2)
-;;;         Every "try" will be followed by a "try2" whose "try" field is
-;;;	    a pointer to the corresponding "try".  The arguments which were
-;;;	    not stored in "reg1" by that "try" are now stored in "reg2".
-;;;
-;;; (alt instr nil mark)
-;;;	    Basic backtracking.  Execute the instruction sequence "instr".
-;;;	    If this fails, back up and execute following the "alt" instruction.
-;;;	    The "mark" must be the vector "[nil nil 4]".  The "instr" sequence
-;;;	    should execute "end-alt" at the end.
-;;;
-;;; (end-alt ptr)
-;;; 	    Register success of the first alternative of a previous "alt".
-;;;	    "Ptr" is a pointer to the next instruction following that "alt".
-;;;
-;;; (apply part reg1 reg2)
-;;;         The selected part must be a function call.  The functor
-;;;	    (as a variable name) is stored in "reg1"; the arguments
-;;;	    (as a vector) are stored in "reg2".
-;;;
-;;; (cons part reg1 reg2)
-;;;	    The selected part must be a nonempty vector.  The first element
-;;;	    of the vector is stored in "reg1"; the rest of the vector
-;;;	    (as another vector) is stored in "reg2".
-;;;
-;;; (rcons part reg1 reg2)
-;;;	    The selected part must be a nonempty vector.  The last element
-;;;	    of the vector is stored in "reg2"; the rest of the vector
-;;;	    (as another vector) is stored in "reg1".
-;;;
-;;; (select part reg)
-;;;         If the selected part is a unary call to function "select", its
-;;;         argument is stored in "reg"; otherwise (provided this is an `a r'
-;;;         and not a `g r' command) the selected part is stored in "reg".
-;;;
-;;; (cond expr)
-;;;         The "expr", with registers substituted, must simplify to
-;;;         a non-zero value.
-;;;
-;;; (let reg expr)
-;;;         Evaluate "expr" and store the result in "reg".  Always succeeds.
-;;;
-;;; (done rhs remember)
-;;;         Rewrite the expression to "rhs", with register substituted.
-;;;	    Normalize; if the result is different from the original
-;;;	    expression, the match has succeeded.  This is the last
-;;;	    instruction of every program.  If "remember" is non-nil,
-;;;         record the result of the match as a new literal rule.
+;; A compiled rule set is an a-list of entries whose cars are functors,
+;; and whose cdrs are lists of rules.  If there are rules with no
+;; well-defined head functor, they are included on all lists and also
+;; on an extra list whose car is nil.
+;;
+;; The first entry in the a-list is of the form (schedule A B C ...).
+;;
+;; Rule list entries take the form (regs prog head phases), where:
+;;
+;;   regs   is a vector of match registers.
+;;
+;;   prog   is a match program (see below).
+;;
+;;   head   is a rare function name appearing in the rule body (but not the
+;;	     head of the whole rule), or nil if none.
+;;
+;;   phases is a list of phase numbers for which the rule is enabled.
+;;
+;; A match program is a list of match instructions.
+;;
+;; In the following, "part" is a register number that contains the
+;; subexpression to be operated on.
+;;
+;; Register 0 is the whole expression being matched.  The others are
+;; meta-variables in the pattern, temporaries used for matching and
+;; backtracking, and constant expressions.
+;;
+;; (same part reg)
+;;         The selected part must be math-equal to the contents of "reg".
+;;
+;; (same-neg part reg)
+;;         The selected part must be math-equal to the negative of "reg".
+;;
+;; (copy part reg)
+;;	    The selected part is copied into "reg".  (Rarely used.)
+;;
+;; (copy-neg part reg)
+;;	    The negative of the selected part is copied into "reg".
+;;
+;; (integer part)
+;;         The selected part must be an integer.
+;;
+;; (real part)
+;;         The selected part must be a real.
+;;
+;; (constant part)
+;;         The selected part must be a constant.
+;;
+;; (negative part)
+;;	    The selected part must "look" negative.
+;;
+;; (rel part op reg)
+;;         The selected part must satisfy "part op reg", where "op"
+;;	    is one of the 6 relational ops, and "reg" is a register.
+;;
+;; (mod part modulo value)
+;;         The selected part must satisfy "part % modulo = value", where
+;;         "modulo" and "value" are constants.
+;;
+;; (func part head reg1 reg2 ... regn)
+;;         The selected part must be an n-ary call to function "head".
+;;         The arguments are stored in "reg1" through "regn".
+;;
+;; (func-def part head defs reg1 reg2 ... regn)
+;;	    The selected part must be an n-ary call to function "head".
+;;	    "Defs" is a list of value/register number pairs for default args.
+;;	    If a match, assign default values to registers and then skip
+;;	    immediately over any following "func-def" instructions and
+;;	    the following "func" instruction.  If wrong number of arguments,
+;;	    proceed to the following "func-def" or "func" instruction.
+;;
+;; (func-opt part head defs reg1)
+;;	    Like func-def with "n=1", except that if the selected part is
+;;	    not a call to "head", then the part itself successfully matches
+;;	    "reg1" (and the defaults are assigned).
+;;
+;; (try part heads mark reg1 [def])
+;;         The selected part must be a function of the correct type which is
+;;         associative and/or commutative.  "Heads" is a list of acceptable
+;;         types.  An initial assignment of arguments to "reg1" is tried.
+;;	    If the program later fails, it backtracks to this instruction
+;;	    and tries other assignments of arguments to "reg1".
+;;	    If "def" exists and normal matching fails, backtrack and assign
+;;	    "part" to "reg1", and "def" to "reg2" in the following "try2".
+;;	    The "mark" is a vector of size 5; only "mark[3-4]" are initialized.
+;;	    "mark[0]" points to the argument list; "mark[1]" points to the
+;;	    current argument; "mark[2]" is 0 if there are two arguments,
+;;	    1 if reg1 is matching single arguments, 2 if reg2 is matching
+;;	    single arguments (a+b+c+d is never split as (a+b)+(c+d)), or
+;;         3 if reg2 is matching "def"; "mark[3]" is 0 if the function must
+;;	    have two arguments, 1 if phase-2 can be skipped, 2 if full
+;;	    backtracking is necessary; "mark[4]" is t if the arguments have
+;;	    been switched from the order given in the original pattern.
+;;
+;; (try2 try reg2)
+;;         Every "try" will be followed by a "try2" whose "try" field is
+;;	    a pointer to the corresponding "try".  The arguments which were
+;;	    not stored in "reg1" by that "try" are now stored in "reg2".
+;;
+;; (alt instr nil mark)
+;;	    Basic backtracking.  Execute the instruction sequence "instr".
+;;	    If this fails, back up and execute following the "alt" instruction.
+;;	    The "mark" must be the vector "[nil nil 4]".  The "instr" sequence
+;;	    should execute "end-alt" at the end.
+;;
+;; (end-alt ptr)
+;; 	    Register success of the first alternative of a previous "alt".
+;;	    "Ptr" is a pointer to the next instruction following that "alt".
+;;
+;; (apply part reg1 reg2)
+;;         The selected part must be a function call.  The functor
+;;	    (as a variable name) is stored in "reg1"; the arguments
+;;	    (as a vector) are stored in "reg2".
+;;
+;; (cons part reg1 reg2)
+;;	    The selected part must be a nonempty vector.  The first element
+;;	    of the vector is stored in "reg1"; the rest of the vector
+;;	    (as another vector) is stored in "reg2".
+;;
+;; (rcons part reg1 reg2)
+;;	    The selected part must be a nonempty vector.  The last element
+;;	    of the vector is stored in "reg2"; the rest of the vector
+;;	    (as another vector) is stored in "reg1".
+;;
+;; (select part reg)
+;;         If the selected part is a unary call to function "select", its
+;;         argument is stored in "reg"; otherwise (provided this is an `a r'
+;;         and not a `g r' command) the selected part is stored in "reg".
+;;
+;; (cond expr)
+;;         The "expr", with registers substituted, must simplify to
+;;         a non-zero value.
+;;
+;; (let reg expr)
+;;         Evaluate "expr" and store the result in "reg".  Always succeeds.
+;;
+;; (done rhs remember)
+;;         Rewrite the expression to "rhs", with register substituted.
+;;	    Normalize; if the result is different from the original
+;;	    expression, the match has succeeded.  This is the last
+;;	    instruction of every program.  If "remember" is non-nil,
+;;         record the result of the match as a new literal rule.
 
 
-;;; Pseudo-functions related to rewrites:
-;;;
-;;;  In patterns:  quote, plain, condition, opt, apply, cons, select
-;;;
-;;;  In righthand sides:  quote, plain, eval, evalsimp, evalextsimp,
-;;;                       apply, cons, select
-;;;
-;;;  In conditions:  let + same as for righthand sides
+;; Pseudo-functions related to rewrites:
+;;
+;;  In patterns:  quote, plain, condition, opt, apply, cons, select
+;;
+;;  In righthand sides:  quote, plain, eval, evalsimp, evalextsimp,
+;;                       apply, cons, select
+;;
+;;  In conditions:  let + same as for righthand sides
 
-;;; Some optimizations that would be nice to have:
-;;;
-;;;  * Merge registers with disjoint lifetimes.
-;;;  * Merge constant registers with equivalent values.
-;;;
-;;;  * If an argument of a commutative op math-depends neither on the
-;;;    rest of the pattern nor on any of the conditions, then no backtracking
-;;;    should be done for that argument.  (This won't apply to very many
-;;;    cases.)
-;;;
-;;;  * If top functor is "select", and its argument is a unique function,
-;;;    add the rule to the lists for both "select" and that function.
-;;;    (Currently rules like this go on the "nil" list.)
-;;;    Same for "func-opt" functions.  (Though not urgent for these.)
-;;;
-;;;  * Shouldn't evaluate a "let" condition until the end, or until it
-;;;    would enable another condition to be evaluated.
-;;;
+;; Some optimizations that would be nice to have:
+;;
+;;  * Merge registers with disjoint lifetimes.
+;;  * Merge constant registers with equivalent values.
+;;
+;;  * If an argument of a commutative op math-depends neither on the
+;;    rest of the pattern nor on any of the conditions, then no backtracking
+;;    should be done for that argument.  (This won't apply to very many
+;;    cases.)
+;;
+;;  * If top functor is "select", and its argument is a unique function,
+;;    add the rule to the lists for both "select" and that function.
+;;    (Currently rules like this go on the "nil" list.)
+;;    Same for "func-opt" functions.  (Though not urgent for these.)
+;;
+;;  * Shouldn't evaluate a "let" condition until the end, or until it
+;;    would enable another condition to be evaluated.
+;;
 
-;;; Some additional features to add / things to think about:
+;; Some additional features to add / things to think about:
 ;;;
 ;;;  * Figure out what happens to "a +/- b" and "a +/- opt(b)".
 ;;;
@@ -1331,14 +1326,14 @@
   (< (math-rwcomp-priority (car a))
      (math-rwcomp-priority (car b))))
 
-;;; Order of priority:    0 Constants and other exact matches (first)
-;;;                      10 Functions (except below)
-;;;			 20 Meta-variables which occur more than once
-;;;			 30 Algebraic functions
-;;;			 40 Commutative/associative functions
-;;;			 50 Meta-variables which occur only once
-;;;		       +100 for every "!!!" (pnot) in the pattern
-;;;		      10000 Optional arguments (last)
+;; Order of priority:    0 Constants and other exact matches (first)
+;;			 10 Functions (except below)
+;;			 20 Meta-variables which occur more than once
+;;			 30 Algebraic functions
+;;			 40 Commutative/associative functions
+;;			 50 Meta-variables which occur only once
+;;		       +100 for every "!!!" (pnot) in the pattern
+;;		      10000 Optional arguments (last)
 
 (defun math-rwcomp-priority (expr)
   (+ (math-rwcomp-count-pnots expr)
@@ -1390,8 +1385,8 @@
 	  (setq count (+ count (math-rwcomp-count-pnots (car expr)))))
 	count))))
 
-;;; In the current implementation, all associative functions must
-;;; also be commutative.
+;; In the current implementation, all associative functions must
+;; also be commutative.
 
 (put '+		     'math-rewrite-props '(algebraic assoc commut))
 (put '-		     'math-rewrite-props '(algebraic assoc commut)) ; see below
@@ -1429,8 +1424,8 @@
 (put 'calcFunc-vint  'math-rewrite-props '(assoc commut))
 (put 'calcFunc-vxor  'math-rewrite-props '(assoc commut))
 
-;;; Note: "*" is not commutative for matrix args, but we pretend it is.
-;;; Also, "-" is not commutative but the code tweaks things so that it is.
+;; Note: "*" is not commutative for matrix args, but we pretend it is.
+;; Also, "-" is not commutative but the code tweaks things so that it is.
 
 (put '+		     'math-rewrite-default  0)
 (put '-		     'math-rewrite-default  0)
@@ -1452,8 +1447,8 @@
 		'btrack)
 	      ''((backtrack)))))
 
-;;; This monstrosity is necessary because the use of static vectors of
-;;; registers makes rewrite rules non-reentrant.  Yucko!
+;; This monstrosity is necessary because the use of static vectors of
+;; registers makes rewrite rules non-reentrant.  Yucko!
 (defmacro math-rweval (form)
   (list 'let '((orig (car rules)))
 	'(setcar rules (quote (nil nil nil no-phase)))

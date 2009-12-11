@@ -1504,7 +1504,12 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    forward-sexp backward-sexp
    forward-list backward-list
    forward-sentence backward-sentence
-   forward-paragraph backward-paragraph))
+   forward-paragraph backward-paragraph
+   ;; CC mode motion commands
+   c-forward-conditional c-backward-conditional
+   c-down-conditional c-up-conditional
+   c-down-conditional-with-else c-up-conditional-with-else
+   c-beginning-of-statement c-end-of-statement))
   (put cmd 'CUA 'move))
 
 ;; State prior to enabling cua-mode
@@ -1599,7 +1604,7 @@ shifted movement key, set `cua-highlight-region-shift-only'."
     (if (nth 2 cua--saved-state)
 	(pc-selection-mode 1))
     (setq shift-select-mode (nth 3 cua--saved-state))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
 	(message "CUA mode disabled.%s%s%s%s"
 		 (if (nth 1 cua--saved-state) " Delete-Selection" "")
 		 (if (and (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " and" "")

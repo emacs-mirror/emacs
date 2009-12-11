@@ -166,7 +166,10 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
             (overlay-put ov 'before-string
                          (propertize " " 'display `((margin left-margin) ,str)))
             (overlay-put ov 'linum-str str))))
-      (forward-line)
+      ;; Text may contain those nasty intangible properties, but that
+      ;; shouldn't prevent us from counting those lines.
+      (let ((inhibit-point-motion-hooks t))
+        (forward-line))
       (setq line (1+ line)))
     (set-window-margins win width (cdr (window-margins win)))))
 

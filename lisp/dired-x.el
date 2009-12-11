@@ -595,7 +595,7 @@ This functions works by temporarily binding `dired-marker-char' to
 `dired-omit-marker-char' and calling `dired-do-kill-lines'."
   (interactive "sOmit files (regexp): ")
   (if (and dired-omit-mode
-           (or (interactive-p)
+           (or (called-interactively-p 'interactive)
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
 	       (progn
@@ -1017,6 +1017,16 @@ dired."
 	 ;; Optional decompression.
 	 "bunzip2")
 
+   ;; xz'ed archives
+   (list "\\.t\\(ar\\.\\)?xz$"
+	 "unxz -c * | tar xvf -"
+	 ;; Extract files into a separate subdirectory
+	 '(concat "mkdir " (file-name-sans-extension file)
+		  "; unxz -c * | tar -C "
+		  (file-name-sans-extension file) " -xvf -")
+	 ;; Optional decompression.
+	 "unxz")
+
    '("\\.shar\\.Z$" "zcat * | unshar")
    '("\\.shar\\.g?z$" "gunzip -qc * | unshar")
 
@@ -1098,6 +1108,7 @@ dired."
    (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
    (list "\\.dz$" "dictunzip")
    (list "\\.bz2$" "bunzip2")
+   (list "\\.xz$" "unxz")
    (list "\\.Z$" "uncompress"
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
@@ -1640,7 +1651,7 @@ Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
 Binding direction based on `dired-x-hands-off-my-keys'.
 This function is part of `after-init-hook'."
   (interactive)
-  (if (interactive-p)
+  (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
             (not (y-or-n-p "Bind dired-x-find-file over find-file? "))))
   (cond ((not dired-x-hands-off-my-keys)

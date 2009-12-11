@@ -298,8 +298,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (let ((buf (get-buffer-create "*Mult Puzzle*"))
 	(face '(face mpuz-text))
 	buffer-read-only)
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (erase-buffer)
       (insert mpuz-framework)
       (set-text-properties 13 42 face)

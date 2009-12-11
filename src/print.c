@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
@@ -400,7 +401,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	  int len;
 	  for (i = 0; i < size_byte; i += len)
 	    {
-	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, size_byte - i, len);
+	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, len);
 	      insert_char (ch);
 	    }
 	}
@@ -426,7 +427,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 		 corresponding character code before handing it to
 		 PRINTCHAR.  */
 	      int len;
-	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, size_byte - i, len);
+	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, len);
 	      PRINTCHAR (ch);
 	      i += len;
 	    }
@@ -518,8 +519,7 @@ print_string (string, printcharfun)
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
 	    int len;
-	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i,
-					     size_byte - i, len);
+	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i, len);
 	    PRINTCHAR (ch);
 	    i += len;
 	  }
@@ -1416,6 +1416,13 @@ print_preprocess (obj)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
+	  if (HASH_TABLE_P (obj))
+	    { /* For hash tables, the key_and_value slot is past
+	        `size' because it needs to be marked specially in case
+	        the table is weak.  */
+	      struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	      print_preprocess (h->key_and_value);
+	    }
 	  break;
 
 	default:
@@ -1587,7 +1594,7 @@ print_object (obj, printcharfun, escapeflag)
 
   switch (XTYPE (obj))
     {
-    case Lisp_Int:
+    case_Lisp_Int:
       if (sizeof (int) == sizeof (EMACS_INT))
 	sprintf (buf, "%d", (int) XINT (obj));
       else if (sizeof (long) == sizeof (EMACS_INT))
@@ -1644,8 +1651,7 @@ print_object (obj, printcharfun, escapeflag)
 
 	      if (multibyte)
 		{
-		  c = STRING_CHAR_AND_LENGTH (str + i_byte,
-					      size_byte - i_byte, len);
+		  c = STRING_CHAR_AND_LENGTH (str + i_byte, len);
 		  i_byte += len;
 		}
 	      else
@@ -1753,7 +1759,7 @@ print_object (obj, printcharfun, escapeflag)
 	  {
 	    while (p != end && ((*p >= '0' && *p <= '9')
 				/* Needed for \2e10.  */
-				|| *p == 'e'))
+				|| *p == 'e' || *p == 'E'))
 	      p++;
 	    confusing = (end == p);
 	  }
@@ -2033,6 +2039,7 @@ print_object (obj, printcharfun, escapeflag)
       else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	  int i, real_size, size;
 #if 0
 	  strout ("#<hash-table", -1, -1, printcharfun, 0);
 	  if (SYMBOLP (h->test))
@@ -2085,10 +2092,8 @@ print_object (obj, printcharfun, escapeflag)
 	  strout (" data ", -1, -1, printcharfun, 0);
 
 	  /* Print the data here as a plist. */
-	  int i;
-
-	  int real_size = HASH_TABLE_SIZE (h);
-	  int size = real_size;
+	  real_size = HASH_TABLE_SIZE (h);
+	  size = real_size;
 
 	  /* Don't print more elements than the specified maximum.  */
 	  if (NATNUMP (Vprint_length)
@@ -2385,7 +2390,7 @@ print_interval (interval, printcharfun)
 void
 syms_of_print ()
 {
-  Qtemp_buffer_setup_hook = intern ("temp-buffer-setup-hook");
+  Qtemp_buffer_setup_hook = intern_c_string ("temp-buffer-setup-hook");
   staticpro (&Qtemp_buffer_setup_hook);
 
   DEFVAR_LISP ("standard-output", &Vstandard_output,
@@ -2395,7 +2400,7 @@ It may also be a buffer (output is inserted before point)
 or a marker (output is inserted and the marker is advanced)
 or the symbol t (output appears in the echo area).  */);
   Vstandard_output = Qt;
-  Qstandard_output = intern ("standard-output");
+  Qstandard_output = intern_c_string ("standard-output");
   staticpro (&Qstandard_output);
 
   DEFVAR_LISP ("float-output-format", &Vfloat_output_format,
@@ -2415,7 +2420,7 @@ decimal point.  0 is not allowed with `e' or `g'.
 A value of nil means to use the shortest notation
 that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
-  Qfloat_output_format = intern ("float-output-format");
+  Qfloat_output_format = intern_c_string ("float-output-format");
   staticpro (&Qfloat_output_format);
 
   DEFVAR_LISP ("print-length", &Vprint_length,
@@ -2521,16 +2526,16 @@ priorities.  */);
   defsubr (&Sredirect_debugging_output);
 #endif
 
-  Qexternal_debugging_output = intern ("external-debugging-output");
+  Qexternal_debugging_output = intern_c_string ("external-debugging-output");
   staticpro (&Qexternal_debugging_output);
 
-  Qprint_escape_newlines = intern ("print-escape-newlines");
+  Qprint_escape_newlines = intern_c_string ("print-escape-newlines");
   staticpro (&Qprint_escape_newlines);
 
-  Qprint_escape_multibyte = intern ("print-escape-multibyte");
+  Qprint_escape_multibyte = intern_c_string ("print-escape-multibyte");
   staticpro (&Qprint_escape_multibyte);
 
-  Qprint_escape_nonascii = intern ("print-escape-nonascii");
+  Qprint_escape_nonascii = intern_c_string ("print-escape-nonascii");
   staticpro (&Qprint_escape_nonascii);
 
   print_prune_charset_plist = Qnil;

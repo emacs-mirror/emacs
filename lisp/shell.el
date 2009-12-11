@@ -115,7 +115,7 @@
   :group 'shell)
 
 ;;;###autoload
-(defcustom shell-dumb-shell-regexp "cmd\\(proxy\\)?\\.exe"
+(defcustom shell-dumb-shell-regexp (purecopy "cmd\\(proxy\\)?\\.exe")
   "Regexp to match shells that don't save their command history, and
 don't handle the backslash as a quote character.  For shells that
 match this regexp, Emacs will write out the command history when the
@@ -554,6 +554,7 @@ Otherwise, one argument `-i' is passed to the shell.
 		      (read-file-name
 		       "Default directory: " default-directory default-directory
 		       t nil 'file-directory-p))))))))
+  (require 'ansi-color)
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
@@ -575,7 +576,7 @@ Otherwise, one argument `-i' is passed to the shell.
   buffer)
 
 ;; Don't do this when shell.el is loaded, only while dumping.
-;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
+;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*shell*"))
 
 ;;; Directory tracking
 ;;

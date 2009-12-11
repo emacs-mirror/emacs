@@ -184,6 +184,8 @@ enum event_kind
   , DBUS_EVENT
 #endif
 
+  , CONFIG_CHANGED_EVENT
+
 #ifdef WINDOWSNT
   /* Generated when an APPCOMMAND event is received, in response to
      Multimedia or Internet buttons on some keyboards.

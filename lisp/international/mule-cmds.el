@@ -62,97 +62,97 @@
 (defvar describe-language-environment-map
   (let ((map (make-sparse-keymap "Describe Language Environment")))
     (define-key map
-      [Default] '(menu-item "Default" describe-specified-language-support))
+      [Default] `(menu-item ,(purecopy "Default") describe-specified-language-support))
     map))
 
 (defvar setup-language-environment-map
   (let ((map (make-sparse-keymap "Set Language Environment")))
     (define-key map
-      [Default] '(menu-item "Default" setup-specified-language-environment))
+      [Default] `(menu-item ,(purecopy "Default") setup-specified-language-environment))
     map))
 
 (defvar set-coding-system-map
   (let ((map (make-sparse-keymap "Set Coding System")))
     (define-key-after map [universal-coding-system-argument]
-      '(menu-item "For Next Command" universal-coding-system-argument
-        :help "Coding system to be used by next command"))
-    (define-key-after map [separator-1] '("--"))
+      `(menu-item ,(purecopy "For Next Command") universal-coding-system-argument
+        :help ,(purecopy "Coding system to be used by next command")))
+    (define-key-after map [separator-1] menu-bar-separator)
     (define-key-after map [set-buffer-file-coding-system]
-      '(menu-item "For Saving This Buffer" set-buffer-file-coding-system
-        :help "How to encode this buffer when saved"))
+      `(menu-item ,(purecopy "For Saving This Buffer") set-buffer-file-coding-system
+        :help ,(purecopy "How to encode this buffer when saved")))
     (define-key-after map [revert-buffer-with-coding-system]
-      '(menu-item "For Reverting This File Now"
+      `(menu-item ,(purecopy "For Reverting This File Now")
         revert-buffer-with-coding-system
         :enable buffer-file-name
-        :help "Revisit this file immediately using specified coding system"))
+        :help ,(purecopy "Revisit this file immediately using specified coding system")))
     (define-key-after map [set-file-name-coding-system]
-      '(menu-item "For File Name" set-file-name-coding-system
-        :help "How to decode/encode file names"))
-    (define-key-after map [separator-2] '("--"))
+      `(menu-item ,(purecopy "For File Name") set-file-name-coding-system
+        :help ,(purecopy "How to decode/encode file names")))
+    (define-key-after map [separator-2] menu-bar-separator)
 
     (define-key-after map [set-keyboard-coding-system]
-      '(menu-item "For Keyboard" set-keyboard-coding-system
-        :help "How to decode keyboard input"))
+      `(menu-item ,(purecopy "For Keyboard") set-keyboard-coding-system
+        :help ,(purecopy "How to decode keyboard input")))
     (define-key-after map [set-terminal-coding-system]
-      '(menu-item "For Terminal" set-terminal-coding-system
+      `(menu-item ,(purecopy "For Terminal") set-terminal-coding-system
         :enable (null (memq initial-window-system '(x w32 ns)))
-        :help "How to encode terminal output"))
-    (define-key-after map [separator-3] '("--"))
+        :help ,(purecopy "How to encode terminal output")))
+    (define-key-after map [separator-3] menu-bar-separator)
 
     (define-key-after map [set-selection-coding-system]
-      '(menu-item "For X Selections/Clipboard" set-selection-coding-system
+      `(menu-item ,(purecopy "For X Selections/Clipboard") set-selection-coding-system
         :visible (display-selections-p)
-        :help "How to en/decode data to/from selection/clipboard"))
+        :help ,(purecopy "How to en/decode data to/from selection/clipboard")))
     (define-key-after map [set-next-selection-coding-system]
-      '(menu-item "For Next X Selection" set-next-selection-coding-system
+      `(menu-item ,(purecopy "For Next X Selection") set-next-selection-coding-system
         :visible (display-selections-p)
-        :help "How to en/decode next selection/clipboard operation"))
+        :help ,(purecopy "How to en/decode next selection/clipboard operation")))
     (define-key-after map [set-buffer-process-coding-system]
-      '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
+      `(menu-item ,(purecopy "For I/O with Subprocess") set-buffer-process-coding-system
         :visible (fboundp 'start-process)
         :enable (get-buffer-process (current-buffer))
-        :help "How to en/decode I/O from/to subprocess connected to this buffer"))
+        :help ,(purecopy "How to en/decode I/O from/to subprocess connected to this buffer")))
     map))
 
 (defvar mule-menu-keymap
   (let ((map (make-sparse-keymap "Mule (Multilingual Environment)")))
     (define-key-after map [set-language-environment]
-      `(menu-item  "Set Language Environment" ,setup-language-environment-map))
-    (define-key-after map [separator-mule] '("--"))
+      `(menu-item  ,(purecopy "Set Language Environment") ,setup-language-environment-map))
+    (define-key-after map [separator-mule] menu-bar-separator)
 
     (define-key-after map [toggle-input-method]
-      '(menu-item "Toggle Input Method" toggle-input-method))
+      `(menu-item ,(purecopy "Toggle Input Method") toggle-input-method))
     (define-key-after map [set-input-method]
-      '(menu-item "Select Input Method..." set-input-method))
+      `(menu-item ,(purecopy "Select Input Method...") set-input-method))
     (define-key-after map [describe-input-method]
-      '(menu-item "Describe Input Method"  describe-input-method))
-    (define-key-after map [separator-input-method] '("--"))
+      `(menu-item ,(purecopy "Describe Input Method")  describe-input-method))
+    (define-key-after map [separator-input-method] menu-bar-separator)
 
     (define-key-after map [set-various-coding-system]
-      `(menu-item "Set Coding Systems" ,set-coding-system-map
+      `(menu-item ,(purecopy "Set Coding Systems") ,set-coding-system-map
 		  :enable (default-value 'enable-multibyte-characters)))
     (define-key-after map [view-hello-file]
-      '(menu-item "Show Multi-lingual Text" view-hello-file
+      `(menu-item ,(purecopy "Show Multi-lingual Text") view-hello-file
         :enable (file-readable-p
                  (expand-file-name "HELLO" data-directory))
-        :help "Display file which says HELLO in many languages"))
-    (define-key-after map [separator-coding-system] '("--"))
+        :help ,(purecopy "Display file which says HELLO in many languages")))
+    (define-key-after map [separator-coding-system] menu-bar-separator)
 
     (define-key-after map [describe-language-environment]
-      (list 'menu-item "Describe Language Environment"
+      `(menu-item ,(purecopy "Describe Language Environment")
             describe-language-environment-map
-            :help "Show multilingual settings for a specific language"))
+            :help ,(purecopy "Show multilingual settings for a specific language")))
     (define-key-after map [describe-input-method]
-      '(menu-item "Describe Input Method..." describe-input-method
-        :help "Keyboard layout for a specific input method"))
+      `(menu-item ,(purecopy "Describe Input Method...") describe-input-method
+        :help ,(purecopy "Keyboard layout for a specific input method")))
     (define-key-after map [describe-coding-system]
-      '(menu-item "Describe Coding System..." describe-coding-system))
+      `(menu-item ,(purecopy "Describe Coding System...") describe-coding-system))
     (define-key-after map [list-character-sets]
-      '(menu-item "List Character Sets" list-character-sets
-        :help "Show table of available character sets"))
+      `(menu-item ,(purecopy "List Character Sets") list-character-sets
+        :help ,(purecopy "Show table of available character sets")))
     (define-key-after map [mule-diag]
-      '(menu-item "Show All of Mule Status" mule-diag
-        :help "Display multilingual environment settings"))
+      `(menu-item ,(purecopy "Show All of Mule Status") mule-diag
+        :help ,(purecopy "Display multilingual environment settings")))
     map)
   "Keymap for Mule (Multilingual environment) menu specific commands.")
 
@@ -403,7 +403,7 @@ A coding system that requires automatic detection of text+encoding
   (let ((base (coding-system-base coding-system))
 	(eol-type (coding-system-eol-type coding-system)))
     (set-coding-system-priority base)
-    (and (interactive-p)
+    (and (called-interactively-p 'interactive)
 	 (or (eq base coding-system)
 	     (message "Highest priority is set to %s (base of %s)"
 		      base coding-system)))
@@ -854,7 +854,7 @@ and TO is ignored."
   (let ((no-other-defaults nil)
 	auto-cs)
     (unless (or (stringp from) find-file-literally)
-      ;; Find an auto-coding that is specified for the the current
+      ;; Find an auto-coding that is specified for the current
       ;; buffer and file from the region FROM and TO.
       (save-excursion
 	(save-restriction
@@ -889,13 +889,12 @@ It is highly recommended to fix it before writing to a file."
 		  default-coding-system))
 
     (if (and auto-cs (not no-other-defaults))
-	;; If the file has a coding cookie, try to use it before anything
-	;; else (i.e. before default-coding-system which will typically come
-	;; from file-coding-system-alist).
+	;; If the file has a coding cookie, use it regardless of any
+	;; other setting.
 	(let ((base (coding-system-base auto-cs)))
-	  (or (memq base '(nil undecided))
-	      (rassq base default-coding-system)
-	      (push (cons auto-cs base) default-coding-system))))
+	  (unless (memq base '(nil undecided))
+            (setq default-coding-system (list (cons auto-cs base)))
+            (setq no-other-defaults t))))
 
     (unless no-other-defaults
       ;; If buffer-file-coding-system is not nil nor undecided, append it
@@ -1175,8 +1174,10 @@ where to put this language environment in the
 Describe Language Environment and Set Language Environment menus.
 For example, (\"European\") means to put this language environment
 in the European submenu in each of those two menus."
-  (if (symbolp lang-env)
-      (setq lang-env (symbol-name lang-env)))
+  (cond ((symbolp lang-env)
+	 (setq lang-env (symbol-name lang-env)))
+	((stringp lang-env)
+	 (setq lang-env (purecopy lang-env))))
   (let ((describe-map describe-language-environment-map)
 	(setup-map setup-language-environment-map))
     (if parents
@@ -1250,7 +1251,7 @@ This file contains a list of libraries of Emacs input methods (LEIM)
 in the format of Lisp expression for registering each input method.
 Emacs loads this file at startup time.")
 
-(defvar leim-list-header (format
+(defconst leim-list-header (format
 ";;; %s -- list of LEIM (Library of Emacs Input Method) -*-coding: utf-8;-*-
 ;;
 ;; This file is automatically generated.
@@ -1273,7 +1274,7 @@ Emacs loads this file at startup time.")
 				 leim-list-file-name)
   "Header to be inserted in LEIM list file.")
 
-(defvar leim-list-entry-regexp "^(register-input-method"
+(defconst leim-list-entry-regexp "^(register-input-method"
   "Regexp matching head of each entry in LEIM list file.
 See also the variable `leim-list-header'.")
 
@@ -1342,7 +1343,7 @@ This function is called with no argument.")
 Each element has the form:
    (INPUT-METHOD LANGUAGE-ENV ACTIVATE-FUNC TITLE DESCRIPTION ARGS...)
 See the function `register-input-method' for the meanings of the elements.")
-;; Autoload if this file no longer dumped.
+;;;###autoload
 (put 'input-method-alist 'risky-local-variable t)
 
 (defun register-input-method (input-method lang-env &rest args)
@@ -1369,9 +1370,12 @@ these duplicated values to show some information about input methods
 without loading the relevant Quail packages.
 \n(fn INPUT-METHOD LANG-ENV ACTIVATE-FUNC TITLE DESCRIPTION &rest ARGS)"
   (if (symbolp lang-env)
-      (setq lang-env (symbol-name lang-env)))
+      (setq lang-env (symbol-name lang-env))
+    (setq lang-env (purecopy lang-env)))
   (if (symbolp input-method)
-      (setq input-method (symbol-name input-method)))
+      (setq input-method (symbol-name input-method))
+    (setq input-method (purecopy input-method)))
+  (setq args (mapcar 'purecopy args))
   (let ((info (cons lang-env args))
 	(slot (assoc input-method input-method-alist)))
     (if slot
@@ -1530,7 +1534,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
       (setq input-method (symbol-name input-method)))
   (help-setup-xref (list #'describe-input-method
 			 (or input-method current-input-method))
-		   (interactive-p))
+		   (called-interactively-p 'interactive))
 
   (if (null input-method)
       (describe-current-input-method)
@@ -1544,7 +1548,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
 	(error
 	 (activate-input-method current)
 	 (help-setup-xref (list #'describe-input-method input-method)
-			  (interactive-p))
+			  (called-interactively-p 'interactive))
 	 (with-output-to-temp-buffer (help-buffer)
 	   (let ((elt (assoc input-method input-method-alist)))
 	     (princ (format
@@ -2067,10 +2071,9 @@ See `set-language-info-alist' for use in programs."
     (require feature))
   (let ((doc (get-language-info language-name 'documentation)))
     (help-setup-xref (list #'describe-language-environment language-name)
-		     (interactive-p))
+		     (called-interactively-p 'interactive))
     (with-output-to-temp-buffer (help-buffer)
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(insert language-name " language environment\n\n")
 	(if (stringp doc)
 	    (insert doc "\n\n"))
@@ -2746,12 +2749,13 @@ See also the documentation of `get-char-code-property' and
 	  (error "Invalid char-table: %s" table))
     (or (stringp table)
 	(error "Not a char-table nor a file name: %s" table)))
+  (if (stringp table) (setq table (purecopy table)))
   (let ((slot (assq name char-code-property-alist)))
     (if slot
 	(setcdr slot table)
       (setq char-code-property-alist
 	    (cons (cons name table) char-code-property-alist))))
-  (put name 'char-code-property-documentation docstring))
+  (put name 'char-code-property-documentation (purecopy docstring)))
 
 (defvar char-code-property-table
   (make-char-table 'char-code-property-table)
@@ -2811,7 +2815,7 @@ If there's no description string for VALUE, return nil."
 ;; Pretty description of encoded string
 
 ;; Alist of ISO 2022 control code vs the corresponding mnemonic string.
-(defvar iso-2022-control-alist
+(defconst iso-2022-control-alist
   '((?\x1b . "ESC")
     (?\x0e . "SO")
     (?\x0f . "SI")
@@ -2885,21 +2889,39 @@ on encoding."
 (defun ucs-names ()
   "Return alist of (CHAR-NAME . CHAR-CODE) pairs cached in `ucs-names'."
   (or ucs-names
-      (setq ucs-names
-	    (let (name names)
-	      (dotimes-with-progress-reporter (c #xEFFFF)
-		  "Loading Unicode character names..."
-		(unless (or
-			 (and (>= c #x3400 ) (<= c #x4dbf )) ; CJK Ideograph Extension A
-			 (and (>= c #x4e00 ) (<= c #x9fff )) ; CJK Ideograph
-			 (and (>= c #xd800 ) (<= c #xfaff )) ; Private/Surrogate
-			 (and (>= c #x20000) (<= c #x2ffff)) ; CJK Ideograph Extension B
-			 )
-		  (if (setq name (get-char-code-property c 'name))
-		      (setq names (cons (cons name c) names)))
-		  (if (setq name (get-char-code-property c 'old-name))
-		      (setq names (cons (cons name c) names)))))
-	      names))))
+      (let ((bmp-ranges
+	     '((#x0000 . #x33FF)
+	       ;; (#x3400 . #x4DBF) CJK Ideograph Extension A
+	       (#x4DC0 . #x4DFF)
+	       ;; (#x4E00 . #x9FFF) CJK Ideograph
+	       (#xA000 . #x0D7FF)
+	       ;; (#xD800 . #xFAFF) Surrogate/Private
+	       (#xFB00 . #xFFFD)))
+	    (upper-ranges
+	     '((#x10000 . #x134FF)
+	       ;; (#x13500 . #x1CFFF) unsed
+	       (#x1D000 . #x1FFFF)
+	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unsed
+	       (#xE0000 . #xE01FF)))
+	    (gc-cons-threshold 10000000)
+	    c end name names)
+        (dolist (range bmp-ranges)
+          (setq c (car range)
+                end (cdr range))
+	  (while (<= c end)
+	    (if (setq name (get-char-code-property c 'name))
+		(push (cons name c) names))
+	    (if (setq name (get-char-code-property c 'old-name))
+		(push (cons name c) names))
+	    (setq c (1+ c))))
+        (dolist (range upper-ranges)
+          (setq c (car range)
+                end (cdr range))
+	  (while (<= c end)
+	    (if (setq name (get-char-code-property c 'name))
+		(push (cons name c) names))
+	    (setq c (1+ c))))
+        (setq ucs-names names))))
 
 (defvar ucs-completions (lazy-completion-table ucs-completions ucs-names)
   "Lazy completion table for completing on Unicode character names.")

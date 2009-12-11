@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(require 'help-mode)
-
 ;; Functions
 
 ;;;###autoload
@@ -52,7 +50,8 @@
 	       fn (intern val)))))
   (if (null function)
       (message "You didn't specify a function")
-    (help-setup-xref (list #'describe-function function) (interactive-p))
+    (help-setup-xref (list #'describe-function function)
+		     (called-interactively-p 'interactive))
     (save-excursion
       (with-help-window (help-buffer)
 	(prin1 function)
@@ -463,61 +462,65 @@ suitable file is found, return nil."
 	  (with-current-buffer (help-buffer)
 	    (fill-region-as-paragraph pt2 (point))
 	    (unless (looking-back "\n\n")
-	      (terpri))))))
-    ;; Note that list* etc do not get this property until
-    ;; cl-hack-byte-compiler runs, after bytecomp is loaded.
-    (when (eq (get function 'byte-compile) 'cl-byte-compile-compiler-macro)
-      (princ "This function has a compiler macro")
-      (let ((lib (get function 'compiler-macro-file)))
-	(when (stringp lib)
-	  (princ (format " in `%s'" lib))
-	  (with-current-buffer standard-output
-	    (save-excursion
-	      (re-search-backward "`\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 'help-function-cmacro function lib)))))
-      (princ ".\n\n"))
-    (let* ((arglist (help-function-arglist def))
-	   (doc (documentation function))
-	   (usage (help-split-fundoc doc function)))
-      (with-current-buffer standard-output
-        ;; If definition is a keymap, skip arglist note.
-        (unless (keymapp function)
-          (let* ((use (cond
-                        (usage (setq doc (cdr usage)) (car usage))
-                        ((listp arglist)
-                         (format "%S" (help-make-usage function arglist)))
-                        ((stringp arglist) arglist)
-                        ;; Maybe the arglist is in the docstring of a symbol
-			;; this one is aliased to.
-                        ((let ((fun real-function))
-                           (while (and (symbolp fun)
-                                       (setq fun (symbol-function fun))
-                                       (not (setq usage (help-split-fundoc
-                                                         (documentation fun)
-                                                         function)))))
-                           usage)
-                         (car usage))
-                        ((or (stringp def)
-                             (vectorp def))
-                         (format "\nMacro: %s" (format-kbd-macro def)))
-			((and (funvecp def) (eq (aref def 0) 'curry))
-			 ;; Describe a curried-function's function and args
-			 (let ((slot 0))
-			   (mapconcat (lambda (arg)
-					(setq slot (1+ slot))
-					(cond
-					 ((= slot 1) "")
-					 ((= slot 2)
-					  (format "  Function: %S" arg))
-					 (t
-					  (format "Argument %d: %S"
-						  (- slot 3) arg))))
-				      def
-				      "\n")))
-			((funvecp def) nil)
-                        (t "[Missing arglist.  Please make a bug report.]")))
-                 (high (help-highlight-arguments use doc)))
-	    (when (car high)
+	      (terpri)))))
+      ;; Note that list* etc do not get this property until
+      ;; cl-hack-byte-compiler runs, after bytecomp is loaded.
+      (when (and (symbolp function)
+                 (eq (get function 'byte-compile)
+                     'cl-byte-compile-compiler-macro))
+	(princ "This function has a compiler macro")
+	(let ((lib (get function 'compiler-macro-file)))
+	  (when (stringp lib)
+	    (princ (format " in `%s'" lib))
+	    (with-current-buffer standard-output
+	      (save-excursion
+		(re-search-backward "`\\([^`']+\\)'" nil t)
+		(help-xref-button 1 'help-function-cmacro function lib)))))
+	(princ ".\n\n"))
+      (let* ((advertised (gethash def advertised-signature-table t))
+	     (arglist (if (listp advertised)
+			  advertised (help-function-arglist def)))
+	     (doc (documentation function))
+	     (usage (help-split-fundoc doc function)))
+	(with-current-buffer standard-output
+	  ;; If definition is a keymap, skip arglist note.
+	  (unless (keymapp function)
+	    (if usage (setq doc (cdr usage)))
+	    (let* ((use (cond
+			 ((and usage (not (listp advertised))) (car usage))
+			 ((listp arglist)
+			  (format "%S" (help-make-usage function arglist)))
+			 ((stringp arglist) arglist)
+			 ;; Maybe the arglist is in the docstring of a symbol
+			 ;; this one is aliased to.
+			 ((let ((fun real-function))
+			    (while (and (symbolp fun)
+					(setq fun (symbol-function fun))
+					(not (setq usage (help-split-fundoc
+							  (documentation fun)
+							  function)))))
+			    usage)
+			  (car usage))
+			 ((or (stringp def)
+			      (vectorp def))
+			  (format "\nMacro: %s" (format-kbd-macro def)))
+			 ((and (funvecp def) (eq (aref def 0) 'curry))
+			  ;; Describe a curried-function's function and args
+			  (let ((slot 0))
+			    (mapconcat (lambda (arg)
+					 (setq slot (1+ slot))
+					 (cond
+					  ((= slot 1) "")
+					  ((= slot 2)
+					   (format "  Function: %S" arg))
+					  (t
+					   (format "Argument %d: %S"
+						   (- slot 3) arg))))
+				       def
+				       "\n")))
+			 ((funvecp def) nil)
+			 (t "[Missing arglist.  Please make a bug report.]")))
+		   (high (help-highlight-arguments use doc)))
 	      (let ((fill-begin (point)))
 		(insert (car high) "\n")
 		(fill-region fill-begin (point))))
@@ -630,7 +633,7 @@ it is displayed along with the global value."
 		(setq val (symbol-value variable)
 		      locus (variable-binding-locus variable)))))
 	  (help-setup-xref (list #'describe-variable variable buffer)
-			   (interactive-p))
+			   (called-interactively-p 'interactive))
 	  (with-help-window (help-buffer)
 	    (with-current-buffer buffer
 	      (prin1 variable)
@@ -811,8 +814,7 @@ file local variable.\n")
 		  (terpri)
 		  (princ output))))
 
-	    (save-excursion
-	      (set-buffer standard-output)
+	    (with-current-buffer standard-output
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
 
@@ -824,7 +826,8 @@ The descriptions are inserted in a help buffer, which is then displayed.
 BUFFER defaults to the current buffer."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
-  (help-setup-xref (list #'describe-syntax buffer) (interactive-p))
+  (help-setup-xref (list #'describe-syntax buffer)
+		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
     (let ((table (with-current-buffer buffer (syntax-table))))
       (with-current-buffer standard-output
@@ -849,7 +852,8 @@ If BUFFER is non-nil, then describe BUFFER's category table instead.
 BUFFER should be a buffer or a buffer name."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
-  (help-setup-xref (list #'describe-categories buffer) (interactive-p))
+  (help-setup-xref (list #'describe-categories buffer)
+		   (called-interactively-p 'interactive))
   (with-help-window (help-buffer)
     (let* ((table (with-current-buffer buffer (category-table)))
 	   (docs (char-table-extra-slot table 0)))

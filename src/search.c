@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "syntax.h"
 #include "category.h"
@@ -209,8 +210,8 @@ clear_regexp_cache ()
   int i;
 
   for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
-    /* It's tempting to compare with the syntax-table we've actually changd,
-       but it's not sufficient because char-table inheritance mewans that
+    /* It's tempting to compare with the syntax-table we've actually changed,
+       but it's not sufficient because char-table inheritance means that
        modifying one syntax-table can change others at the same time.  */
     if (!EQ (searchbufs[i].syntax_table, Qt))
       searchbufs[i].regexp = Qnil;
@@ -564,7 +565,7 @@ fast_string_match_ignore_case (regexp, string)
   return val;
 }
 
-/* Match REGEXP atainst the characters after POS to LIMIT, and return
+/* Match REGEXP against the characters after POS to LIMIT, and return
    the number of matched characters.  If STRING is non-nil, match
    against the characters in it.  In that case, POS and LIMIT are
    indices into the string.  This function doesn't modify the match
@@ -1386,7 +1387,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  base_pat++;
 		}
 
-	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
+	      c = STRING_CHAR_AND_LENGTH (base_pat, in_charlen);
 
 	      if (NILP (trt))
 		{
@@ -1526,7 +1527,6 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    EMACS_INT this_pos = pos;
 	    EMACS_INT this_pos_byte = pos_byte;
 	    int this_len = len;
-	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
 	    if (pos + len > lim || pos_byte + len_byte > lim_byte)
 	      goto stop;
@@ -1536,16 +1536,14 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 		int charlen, buf_charlen;
 		int pat_ch, buf_ch;
 
-		pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
+		pat_ch = STRING_CHAR_AND_LENGTH (p, charlen);
 		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 ZV_BYTE - this_pos_byte,
 						 buf_charlen);
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
 
-		this_len_byte -= charlen;
 		this_len--;
 		p += charlen;
 
@@ -1611,42 +1609,36 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	while (1)
 	  {
 	    /* Try matching at position POS.  */
-	    EMACS_INT this_pos = pos - len;
-	    EMACS_INT this_pos_byte;
+	    EMACS_INT this_pos = pos;
+	    EMACS_INT this_pos_byte = pos_byte;
 	    int this_len = len;
-	    int this_len_byte = len_byte;
-	    unsigned char *p = pat;
+	    const unsigned char *p = pat + len_byte;
 
-	    if (this_pos < lim || (pos_byte - len_byte) < lim_byte)
+	    if (this_pos - len < lim || (pos_byte - len_byte) < lim_byte)
 	      goto stop;
-	    this_pos_byte = CHAR_TO_BYTE (this_pos);
-	    match_byte = pos_byte - this_pos_byte;
 
 	    while (this_len > 0)
 	      {
-		int charlen, buf_charlen;
+		int charlen;
 		int pat_ch, buf_ch;
 
-		pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
-		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 ZV_BYTE - this_pos_byte,
-						 buf_charlen);
+		DEC_BOTH (this_pos, this_pos_byte);
+		PREV_CHAR_BOUNDARY (p, pat);
+		pat_ch = STRING_CHAR (p);
+		buf_ch = STRING_CHAR (BYTE_POS_ADDR (this_pos_byte));
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
 
-		this_len_byte -= charlen;
 		this_len--;
-		p += charlen;
-		this_pos_byte += buf_charlen;
-		this_pos++;
 	      }
 
 	    if (this_len == 0)
 	      {
-		pos -= len;
-		pos_byte -= match_byte;
+		match_byte = pos_byte - this_pos_byte;
+		pos = this_pos;
+		pos_byte = this_pos_byte;
 		break;
 	      }
 
@@ -1840,7 +1832,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
 	      while (! (CHAR_HEAD_P (*charstart)))
 		charstart--;
-	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
+	      ch = STRING_CHAR (charstart);
 	      if (char_base != (ch & ~0x3F))
 		ch = -1;
 	    }
@@ -2759,7 +2751,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      /* Note that we don't have to increment POS.  */
 	      c = SREF (newtext, pos_byte++);
 	      if (buf_multibyte)
-		c = unibyte_char_to_multibyte (c);
+		MAKE_CHAR_MULTIBYTE (c);
 	    }
 
 	  /* Either set ADD_STUFF and ADD_LEN to the text to put in SUBSTED,
@@ -2781,7 +2773,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		{
 		  c = SREF (newtext, pos_byte++);
 		  if (buf_multibyte)
-		    c = unibyte_char_to_multibyte (c);
+		    MAKE_CHAR_MULTIBYTE (c);
 		}
 
 	      if (c == '&')
@@ -3289,20 +3281,20 @@ syms_of_search ()
     }
   searchbuf_head = &searchbufs[0];
 
-  Qsearch_failed = intern ("search-failed");
+  Qsearch_failed = intern_c_string ("search-failed");
   staticpro (&Qsearch_failed);
-  Qinvalid_regexp = intern ("invalid-regexp");
+  Qinvalid_regexp = intern_c_string ("invalid-regexp");
   staticpro (&Qinvalid_regexp);
 
   Fput (Qsearch_failed, Qerror_conditions,
-	Fcons (Qsearch_failed, Fcons (Qerror, Qnil)));
+	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
   Fput (Qsearch_failed, Qerror_message,
-	build_string ("Search failed"));
+	make_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
-	Fcons (Qinvalid_regexp, Fcons (Qerror, Qnil)));
+	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
-	build_string ("Invalid regexp"));
+	make_pure_c_string ("Invalid regexp"));
 
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);

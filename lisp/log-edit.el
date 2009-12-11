@@ -470,7 +470,8 @@ If you want to abort the commit, simply delete the buffer."
   "Insert the template specified by the CVS administrator, if any.
 This simply uses the local CVS/Template file."
   (interactive)
-  (when (or (interactive-p) (= (point-min) (point-max)))
+  (when (or (called-interactively-p 'interactive)
+	    (= (point-min) (point-max)))
     (when (file-readable-p "CVS/Template")
       (insert-file-contents "CVS/Template"))))
 
@@ -479,7 +480,8 @@ This simply uses the local CVS/Template file."
 This contacts the repository to get the rcstemplate file and
 can thus take some time."
   (interactive)
-  (when (or (interactive-p) (= (point-min) (point-max)))
+  (when (or (called-interactively-p 'interactive)
+	    (= (point-min) (point-max)))
     (when (file-readable-p "CVS/Root")
       ;; Ignore the stderr stuff, even if it's an error.
       (call-process "cvs" nil '(t nil) nil

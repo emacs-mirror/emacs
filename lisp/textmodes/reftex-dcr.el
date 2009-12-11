@@ -276,8 +276,7 @@ With argument, actually select the window showing the cross reference."
       (message "ref(%s): %s" (nth 1 entry) (nth 2 entry)))
     (let ((buf (get-buffer " *Echo Area*")))
       (when buf
-        (save-excursion
-          (set-buffer buf)
+        (with-current-buffer buf
           (run-hooks 'reftex-display-copied-context-hook)))))))
 
 (defun reftex-echo-cite (key files item)
@@ -313,8 +312,7 @@ With argument, actually select the window showing the cross reference."
     (unless (or (null string) (equal string ""))
       (message "cite: %s" string))
     (when (setq buf (get-buffer " *Echo Area*"))
-      (save-excursion
-        (set-buffer buf)
+      (with-current-buffer buf
         (run-hooks 'reftex-display-copied-context-hook)))))
 
 (defvar reftex-use-itimer-in-xemacs nil
@@ -373,7 +371,7 @@ Calling this function several times find successive citation locations."
     ;; Establish connection to reference buffer
     (unless ref-buffer
       (setq ref-buffer
-            (save-excursion
+            (save-current-buffer
               (completing-read 
                "Reference buffer: "
                (delq nil

@@ -68,7 +68,7 @@
 ;; - merge-news (file)                         NEEDED
 ;; - steal-lock (file &optional revision)      NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files &optional buffer shortlog)OK
+;; * print-log (files buffer &optional shortlog start-revision limit) OK
 ;; - log-view-mode ()                          OK
 ;; - show-log-entry (revision)                 NOT NEEDED, DEFAULT IS GOOD
 ;; - comment-history (file)                    NOT NEEDED
@@ -159,6 +159,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Hg-specific version of `vc-state'."
   (let*
       ((status nil)
+       (default-directory (file-name-directory file))
        (out
         (with-output-to-string
           (with-current-buffer
@@ -166,9 +167,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
             (setq status
                   (condition-case nil
                       ;; Ignore all errors.
-                      (call-process
-                       "hg" nil t nil "--cwd" (file-name-directory file)
-                       "status" "-A" (file-name-nondirectory file))
+		      (let ((process-environment
+			     ;; Avoid localization of messages so we can parse the output.
+			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=") process-environment)))
+
+		      (process-file
+                       "hg" nil t nil
+                       "status" "-A" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -190,6 +195,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Hg-specific version of `vc-working-revision'."
   (let*
       ((status nil)
+       (default-directory (file-name-directory file))
        (out
         (with-output-to-string
           (with-current-buffer
@@ -197,9 +203,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
             (setq status
                   (condition-case nil
                       ;; Ignore all errors.
-                      (call-process
-                       "hg" nil t nil "--cwd" (file-name-directory file)
-                       "log" "-l1" (file-name-nondirectory file))
+                      (process-file
+                       "hg" nil t nil
+                       "log" "-l1" (file-relative-name file))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -217,12 +223,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-hg)
 
-(defun vc-hg-print-log (files &optional buffer shortlog)
+(defun vc-hg-print-log (files buffer &optional shortlog limit start-revision)
   "Get change log associated with FILES."
-  ;; `log-view-mode' needs to have the file names in order to function
-  ;; correctly. "hg log" does not print it, so we insert it here by
-  ;; hand.
-
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
   (vc-setup-buffer buffer)
@@ -232,9 +234,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (with-current-buffer
 	buffer
       (apply 'vc-hg-command buffer 0 files "log"
-	     (if shortlog
-                 (append '("--style" "compact") vc-hg-log-switches)
-                 vc-hg-log-switches)))))
+	     (append
+	      (when start-revision (list (format "-r%s:" start-revision)))
+	      (when limit (list "-l" (format "%s" limit)))
+	      (when shortlog '("--style" "compact"))
+	      vc-hg-log-switches)))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -277,17 +281,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
-         (cwd (if firstfile (file-name-directory firstfile)
-                (expand-file-name default-directory)))
          (working (and firstfile (vc-working-revision firstfile))))
     (when (and (equal oldvers working) (not newvers))
       (setq oldvers nil))
     (when (and (not oldvers) newvers)
       (setq oldvers working))
-    (apply #'vc-hg-command (or buffer "*vc-diff*") nil
-           (mapcar (lambda (file) (file-relative-name file cwd)) files)
-           "--cwd" cwd
-           "diff"
+    (apply #'vc-hg-command (or buffer "*vc-diff*") nil files "diff"
            (append
             (vc-switches 'hg 'diff)
             (when oldvers
@@ -313,12 +312,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n"
-                 (when revision (concat "-r" revision)))
-  (with-current-buffer buffer
-    (goto-char (point-min))
-    (re-search-forward "^[ \t]*[0-9]")
-    (delete-region (point-min) (match-beginning 0))))
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n" "--follow"
+                 (when revision (concat "-r" revision))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
@@ -329,7 +324,7 @@ Optional arg REVISION is a revision to annotate from."
 ;;215 Wed Jun 20 21:22:58 2007 -0700 foo.c: CONTENTS
 ;; i.e. VERSION_NUMBER DATE FILENAME: CONTENTS
 (defconst vc-hg-annotate-re
-  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)[^:\n]*\\(:[^ \n][^:\n]*\\)*: ")
+  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\(.+\\): \\)\\)")
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
@@ -340,7 +335,11 @@ Optional arg REVISION is a revision to annotate from."
 (defun vc-hg-annotate-extract-revision-at-line ()
   (save-excursion
     (beginning-of-line)
-    (when (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
+    (when (looking-at vc-hg-annotate-re)
+      (if (match-beginning 3)
+	  (match-string-no-properties 1)
+	(cons (match-string-no-properties 1)
+	      (expand-file-name (match-string-no-properties 4)))))))
 
 (defun vc-hg-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
@@ -446,9 +445,15 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-extra-status-menu () vc-hg-extra-menu-map)
 
-(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
+(defvar log-view-vc-backend)
 
-(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
+(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing"
+  "Mode for browsing Hg outgoing changes."
+  (set (make-local-variable 'log-view-vc-backend) 'Hg))
+
+(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming"
+  "Mode for browsing Hg incoming changes."
+  (set (make-local-variable 'log-view-vc-backend) 'Hg))
 
 (defstruct (vc-hg-extra-fileinfo
             (:copier nil)
@@ -569,14 +574,16 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-outgoing ()
   (interactive)
-  (let ((bname "*Hg outgoing*") (vc-short-log nil))
+  (let ((bname "*Hg outgoing*")
+	(vc-short-log nil))
     (vc-hg-command bname 1 nil "outgoing" "-n")
     (pop-to-buffer bname)
     (vc-hg-outgoing-mode)))
 
 (defun vc-hg-incoming ()
   (interactive)
-  (let ((bname "*Hg incoming*") (vc-short-log nil))
+  (let ((bname "*Hg incoming*")
+	(vc-short-log nil))
     (vc-hg-command bname 0 nil "incoming" "-n")
     (pop-to-buffer bname)
     (vc-hg-incoming-mode)))

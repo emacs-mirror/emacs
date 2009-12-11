@@ -175,7 +175,7 @@ contribute to ERC development, it is highly recommended that you use
 git.
 
 If you are new to git, you might find this tutorial helpful:
-@uref{http://www.kernel.org/pub/software/scm/git/docs/tutorial.html}.
+@uref{http://www.kernel.org/pub/software/scm/git/docs/gittutorial.html}.
 
 Downloading ERC with git and staying up-to-date involves the following
 steps.

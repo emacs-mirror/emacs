@@ -91,7 +91,7 @@ If called interactively, display a list of matches."
         (setq i (1+ i))))
     (and matches
          (setq matches (sort matches 'string-lessp)))
-    (and (interactive-p)
+    (and (called-interactively-p 'interactive)
          (cond ((null matches)
                 (message "No matches found."))
                (t

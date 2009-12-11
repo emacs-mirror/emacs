@@ -2438,6 +2438,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 
 ;;; Types and assertions.
 
+;;;###autoload
 (defmacro deftype (name arglist &rest body)
   "Define NAME as a new data type.
 The type name can then be used in `typecase', `check-type', etc."
@@ -2564,7 +2565,7 @@ and then returning foo."
 			  (list 'if 'file
 				(list 'put (list 'quote func)
 				      '(quote compiler-macro-file)
-				      '(file-name-nondirectory file))))))))
+				      '(purecopy (file-name-nondirectory file)))))))))
 
 ;;;###autoload
 (defun compiler-macroexpand (form)

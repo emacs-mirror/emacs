@@ -158,7 +158,7 @@ For example, you could write
       (setq body (cdr body))
       (case keyw
 	(:init-value (setq init-value (pop body)))
-	(:lighter (setq lighter (pop body)))
+	(:lighter (setq lighter (purecopy (pop body))))
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
 	(:set (setq set (list :set (pop body))))
@@ -234,7 +234,7 @@ With zero or negative ARG turn mode off.
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
-           (if (called-interactively-p)
+           (if (called-interactively-p 'any)
                (progn
                  ,(if globalp `(customize-mark-as-set ',mode))
                  ;; Avoid overwriting a message shown by the body,
@@ -533,7 +533,7 @@ BODY is executed after moving to the destination location."
                     (error "No next %s" ,name))
                 (goto-char (match-beginning 0))
                 (when (and (eq (current-buffer) (window-buffer (selected-window)))
-                           (interactive-p))
+                           (called-interactively-p 'interactive))
                   (let ((endpt (or (save-excursion
                                      ,(if endfun `(,endfun)
                                         `(re-search-forward ,re nil t 2)))

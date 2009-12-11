@@ -300,8 +300,7 @@ Optional argument STRING is a string upon which to add text properties."
 See `ezimage-expand-image-button-alist' for details."
   (interactive)
   (with-output-to-temp-buffer "*Ezimage Images*"
-    (save-excursion
-      (set-buffer "*Ezimage Images*")
+    (with-current-buffer "*Ezimage Images*"
       (goto-char (point-max))
       (insert "Ezimage image cache.\n\n")
       (let ((start (point)) (end nil))
@@ -324,8 +323,7 @@ See `ezimage-expand-image-button-alist' for details."
 See `ezimage-expand-image-button-alist' for details."
   (interactive)
   (with-output-to-temp-buffer "*Ezimage Images*"
-    (save-excursion
-      (set-buffer "*Ezimage Images*")
+    (with-current-buffer "*Ezimage Images*"
       (goto-char (point-max))
       (insert "Ezimage image cache.\n\n")
       (let ((start (point)) (end nil))

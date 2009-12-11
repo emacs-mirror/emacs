@@ -129,12 +129,17 @@ typedef struct {
 } XRectangle;
 
 #ifndef __OBJC__
-typedef struct _NSPoint { float x, y; } NSPoint;
-typedef struct _NSSize  { float width, height; } NSSize;
-typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
+#if defined(__LP64__) && __LP64__
+typedef double CGFloat;
+#else
+typedef float CGFloat;
 #endif
+typedef struct _NSPoint { CGFloat x, y; } NSPoint;
+typedef struct _NSSize  { CGFloat width, height; } NSSize;
+typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
+#endif  /* NOT OBJC */
 
-#define NativeRectangle struct _NSRect
+#define NativeRectangle NSRect
 
 #define CONVERT_TO_XRECT(xr, nr)		\
   ((xr).x     = (nr).origin.x,			\

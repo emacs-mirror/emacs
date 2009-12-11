@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/utime.h>
 #include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
+#include <setjmp.h>
 
 /* must include CRT headers *before* config.h */
 

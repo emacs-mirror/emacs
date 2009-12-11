@@ -20,12 +20,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "blockinput.h"
 #include "commands.h"
 #include "keyboard.h"
 #include "dispextern.h"
-#include <setjmp.h>
 
 #if HAVE_X_WINDOWS
 #include "xterm.h"
@@ -48,41 +48,6 @@ struct backtrace
 };
 
 struct backtrace *backtrace_list;
-
-/* This structure helps implement the `catch' and `throw' control
-   structure.  A struct catchtag contains all the information needed
-   to restore the state of the interpreter after a non-local jump.
-
-   Handlers for error conditions (represented by `struct handler'
-   structures) just point to a catch tag to do the cleanup required
-   for their jumps.
-
-   catchtag structures are chained together in the C calling stack;
-   the `next' member points to the next outer catchtag.
-
-   A call like (throw TAG VAL) searches for a catchtag whose `tag'
-   member is TAG, and then unbinds to it.  The `val' member is used to
-   hold VAL while the stack is unwound; `val' is returned as the value
-   of the catch form.
-
-   All the other members are concerned with restoring the interpreter
-   state.  */
-
-struct catchtag
-{
-  Lisp_Object tag;
-  Lisp_Object val;
-  struct catchtag *next;
-  struct gcpro *gcpro;
-  jmp_buf jmp;
-  struct backtrace *backlist;
-  struct handler *handlerlist;
-  int lisp_eval_depth;
-  int pdlcount;
-  int poll_suppress_count;
-  int interrupt_input_blocked;
-  struct byte_stack *byte_stack;
-};
 
 struct catchtag *catchlist;
 
@@ -638,19 +603,31 @@ use `called-interactively-p'.  */)
 }
 
 
-DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
+DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 1, 0,
        doc: /* Return t if the containing function was called by `call-interactively'.
-This includes being called as the binding of a key, or called from a
-keyboard macro (unlike `interactive-p').
+If KIND is `interactive', then only return t if the call was made
+interactively by the user, i.e. not in `noninteractive' mode nor
+when `executing-kbd-macro'.
+If KIND is `any', on the other hand, it will return t for any kind of
+interactive call, including being called as the binding of a key, or
+from a keyboard macro, or in `noninteractive' mode.
+
+The only known proper use of `interactive' for KIND is in deciding
+whether to display a helpful message, or how to display it.  If you're
+thinking of using it for any other purpose, it is quite likely that
+you're making a mistake.  Think: what do you want to do when the
+command is called from a keyboard macro?
 
 This function is meant for implementing advice and other
 function-modifying features.  Instead of using this, it is sometimes
 cleaner to give your function an extra optional argument whose
 `interactive' spec specifies non-nil unconditionally (\"p\" is a good
-way to do this).  */)
-     ()
+way to do this), or via (not (or executing-kbd-macro noninteractive)).  */)
+     (kind)
+     Lisp_Object kind;
 {
-  return (INTERACTIVE && interactive_p (1)) ? Qt : Qnil;
+  return ((INTERACTIVE || !EQ (kind, intern ("interactive")))
+	  && interactive_p (1)) ? Qt : Qnil;
 }
 
 
@@ -2193,7 +2170,6 @@ then strings and vectors are not accepted.  */)
     return Qnil;
 }
 
-/* ARGSUSED */
 DEFUN ("autoload", Fautoload, Sautoload, 2, 5, 0,
        doc: /* Define FUNCTION to autoload from FILE.
 FUNCTION is a symbol; FILE is a file name string to pass to `load'.
@@ -2210,9 +2186,7 @@ this does nothing and returns nil.  */)
      (function, file, docstring, interactive, type)
      Lisp_Object function, file, docstring, interactive, type;
 {
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[4];
-#endif
 
   CHECK_SYMBOL (function);
   CHECK_STRING (file);
@@ -2227,17 +2201,13 @@ this does nothing and returns nil.  */)
     /* Only add entries after dumping, because the ones before are
        not useful and else we get loads of them from the loaddefs.el.  */
     LOADHIST_ATTACH (Fcons (Qautoload, function));
-
-#ifdef NO_ARG_ARRAY
-  args[0] = file;
-  args[1] = docstring;
-  args[2] = interactive;
-  args[3] = type;
-
-  return Ffset (function, Fcons (Qautoload, Flist (4, &args[0])));
-#else /* NO_ARG_ARRAY */
-  return Ffset (function, Fcons (Qautoload, Flist (4, &file)));
-#endif /* not NO_ARG_ARRAY */
+  else
+    /* We don't want the docstring in purespace (instead,
+       Snarf-documentation should (hopefully) overwrite it).  */
+    docstring = make_number (0);
+  return Ffset (function,
+		Fpurecopy (list5 (Qautoload, file, docstring,
+				  interactive, type)));
 }
 
 Lisp_Object
@@ -3896,51 +3866,51 @@ To prevent this happening, set `quit-flag' to nil
 before making `inhibit-quit' nil.  */);
   Vinhibit_quit = Qnil;
 
-  Qinhibit_quit = intern ("inhibit-quit");
+  Qinhibit_quit = intern_c_string ("inhibit-quit");
   staticpro (&Qinhibit_quit);
 
-  Qautoload = intern ("autoload");
+  Qautoload = intern_c_string ("autoload");
   staticpro (&Qautoload);
 
-  Qdebug_on_error = intern ("debug-on-error");
+  Qdebug_on_error = intern_c_string ("debug-on-error");
   staticpro (&Qdebug_on_error);
 
-  Qmacro = intern ("macro");
+  Qmacro = intern_c_string ("macro");
   staticpro (&Qmacro);
 
-  Qdeclare = intern ("declare");
+  Qdeclare = intern_c_string ("declare");
   staticpro (&Qdeclare);
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
-  Qexit = intern ("exit");
+  Qexit = intern_c_string ("exit");
   staticpro (&Qexit);
 
-  Qinteractive = intern ("interactive");
+  Qinteractive = intern_c_string ("interactive");
   staticpro (&Qinteractive);
 
-  Qcommandp = intern ("commandp");
+  Qcommandp = intern_c_string ("commandp");
   staticpro (&Qcommandp);
 
-  Qdefun = intern ("defun");
+  Qdefun = intern_c_string ("defun");
   staticpro (&Qdefun);
 
-  Qand_rest = intern ("&rest");
+  Qand_rest = intern_c_string ("&rest");
   staticpro (&Qand_rest);
 
-  Qand_optional = intern ("&optional");
+  Qand_optional = intern_c_string ("&optional");
   staticpro (&Qand_optional);
 
-  Qclosure = intern ("closure");
+  Qclosure = intern_c_string ("closure");
   staticpro (&Qclosure);
 
-  Qcurry = intern ("curry");
+  Qcurry = intern_c_string ("curry");
   staticpro (&Qcurry);
 
-  Qunevalled = intern ("unevalled");
+  Qunevalled = intern_c_string ("unevalled");
   staticpro (&Qunevalled);
 
-  Qdebug = intern ("debug");
+  Qdebug = intern_c_string ("debug");
   staticpro (&Qdebug);
 
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
@@ -4016,7 +3986,7 @@ The value the function returns is not used.  */);
   Vmacro_declaration_function = Qnil;
 
   Qinternal_interpreter_environment
-    = intern ("internal-interpreter-environment");
+    = intern_c_string ("internal-interpreter-environment");
   staticpro (&Qinternal_interpreter_environment);
   DEFVAR_LISP ("internal-interpreter-environment",
 	       &Vinternal_interpreter_environment,
@@ -4026,7 +3996,7 @@ A value of `(t)' indicates an empty environment, otherwise it is an
 alist of active lexical bindings.  */);
   Vinternal_interpreter_environment = Qnil;
 
-  Vrun_hooks = intern ("run-hooks");
+  Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);
 
   staticpro (&Vautoload_queue);

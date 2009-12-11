@@ -50,8 +50,6 @@
 (cc-bytecomp-defun delete-forward-p)	; XEmacs
 (cc-bytecomp-defvar filladapt-mode)	; c-fill-paragraph contains a kludge
 					; which looks at this.
-(cc-bytecomp-defun c-forward-subword)
-(cc-bytecomp-defun c-backward-subword)
 
 ;; Indentation / Display syntax functions
 (defvar c-fix-backslashes t)
@@ -263,9 +261,9 @@ With universal argument, inserts the analysis as a comment on that line."
 			 "a" "")
 		     (if c-hungry-delete-key "h" "")
 		     (if (and
-			  ;; cc-subword might not be loaded.
-			  (boundp 'c-subword-mode)
-			  (symbol-value 'c-subword-mode))
+			  ;; subword might not be loaded.
+			  (boundp 'subword-mode)
+			  (symbol-value 'subword-mode))
 			 "w"
 		       "")))
 	(bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
@@ -1324,20 +1322,24 @@ keyword on the line, the keyword is not inserted inside a literal, and
 	(delete-char -2)))))
 
 
+
+(declare-function subword-forward "subword" (&optional arg))
+(declare-function subword-backward "subword" (&optional arg))
+
 ;; "nomenclature" functions + c-scope-operator.
 (defun c-forward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-forward-subword'."
   (interactive "p")
-  (require 'cc-subword)
-  (c-forward-subword arg))
-(make-obsolete 'c-forward-into-nomenclature 'c-forward-subword "22.1")
+  (require 'subword)
+  (subword-forward arg))
+(make-obsolete 'c-forward-into-nomenclature 'subword-forward "23.2")
 
 (defun c-backward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-backward-subword'."
   (interactive "p")
-  (require 'cc-subword)
-  (c-backward-subword arg))
-(make-obsolete 'c-backward-into-nomenclature 'c-backward-subword "22.1")
+  (require 'subword)
+  (subword-backward arg))
+(make-obsolete 'c-backward-into-nomenclature 'subword-backward "23.2")
 
 (defun c-scope-operator ()
   "Insert a double colon scope operator at point.

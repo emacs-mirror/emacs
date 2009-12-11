@@ -52,8 +52,7 @@
 (defun url-imap (url)
   (unless (vectorp url)
     (signal 'wrong-type-error (list "Need a pre-parsed URL." url)))
-  (save-excursion
-    (set-buffer (generate-new-buffer " *url-imap*"))
+  (with-current-buffer (generate-new-buffer " *url-imap*")
     (mm-disable-multibyte)
     (let* ((host (url-host url))
 	   (port (url-port url))

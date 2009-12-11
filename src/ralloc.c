@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef emacs
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"		/* Needed for VALBITS.  */
 #include "blockinput.h"
 

@@ -670,7 +670,7 @@ The following OPTIONS are accepted:\n\
 			mode and try connecting again\n"
 #endif /* not WINDOWSNT */
 "\n\
-Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
+Report bugs with M-x report-emacs-bug.\n", progname);
   exit (EXIT_SUCCESS);
 }
 

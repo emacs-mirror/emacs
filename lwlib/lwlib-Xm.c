@@ -26,6 +26,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <unistd.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>

@@ -250,7 +250,7 @@ If nil, TAB always indents current line."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode definition
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.vr[hi]?\\'" . vera-mode))
+;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.vr[hi]?\\'")  'vera-mode))
 
 ;;;###autoload
 (defun vera-mode ()

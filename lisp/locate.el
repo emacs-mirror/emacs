@@ -184,7 +184,7 @@ or `locate-make-command-line', determines the database."
   :group 'locate)
 
 ;;;###autoload
-(defcustom locate-ls-subdir-switches "-al"
+(defcustom locate-ls-subdir-switches (purecopy "-al")
   "`ls' switches for inserting subdirectories in `*Locate*' buffers.
 This should contain the \"-l\" switch, but not the \"-F\" or \"-b\" switches."
   :type 'string

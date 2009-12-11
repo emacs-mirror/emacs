@@ -87,8 +87,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
     (princ "\nVertical window border glyph: ")
     (prin1 (display-table-slot dt 'vertical-border))
     (princ "\nCharacter display glyph sequences:\n")
-    (save-excursion
-      (set-buffer standard-output)
+    (with-current-buffer standard-output
       (let ((vector (make-vector 256 nil))
 	    (i 0))
 	(while (< i 256)

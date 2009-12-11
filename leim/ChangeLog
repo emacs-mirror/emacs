@@ -1,3 +1,8 @@
+2009-12-05  Vasily Korytov <vasily@korytov.pp.ru>
+
+	* quail/cyrillic.el (russian-typewriter): Change keyboard layout.
+	(Bug#904)
+
 2009-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install): Set umask to world-readable before creating

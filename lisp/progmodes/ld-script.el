@@ -162,11 +162,12 @@
 ;; eCos uses "ld" and "ldi".
 ;; Netbsd uses "ldscript.*".
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ld[si]?\\>" . ld-script-mode))
-(add-to-list 'auto-mode-alist '("ld\\.?script\\>" . ld-script-mode))
+(add-to-list 'auto-mode-alist (purecopy '("\\.ld[si]?\\>" . ld-script-mode)))
+;;;###autoload
+(add-to-list 'auto-mode-alist (purecopy '("ld\\.?script\\>" . ld-script-mode)))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?\\'" . ld-script-mode))
+(add-to-list 'auto-mode-alist (purecopy '("\\.x[bdsru]?[cn]?\\'" . ld-script-mode)))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"

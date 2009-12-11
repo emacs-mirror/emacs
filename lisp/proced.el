@@ -265,8 +265,8 @@ It can also be a list of keys appearing in `proced-grammar-alist'."
 ;; FIXME: is there a better name for filter `user' that does not coincide
 ;; with an attribute key?
 (defcustom proced-filter-alist
-  `((user (user . ,(concat "\\`" (user-real-login-name) "\\'")))
-    (user-running (user . ,(concat "\\`" (user-real-login-name) "\\'"))
+  `((user (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'")))
+    (user-running (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'"))
                   (state . "\\`[Rr]\\'"))
     (all)
     (all-running (state . "\\`[Rr]\\'"))
@@ -682,9 +682,9 @@ See `proced-mode' for a description of features available in Proced buffers."
         (progn
           (display-buffer buffer)
           (with-current-buffer buffer
-            (run-hooks 'proced-post-display-hook)))
+            (proced-update t)))
       (pop-to-buffer buffer)
-      (run-hooks 'proced-post-display-hook)
+      (proced-update t)
       (message
        (substitute-command-keys
         "Type \\<proced-mode-map>\\[quit-window] to quit, \\[proced-help] for help")))))
@@ -1711,7 +1711,8 @@ After sending the signal, this command runs the normal hook
                          (line-end-position))))))
     (unless signal
       ;; Display marked processes (code taken from `dired-mark-pop-up').
-      (let ((bufname  "*Marked Processes*")
+      (let ((bufname  " *Marked Processes*") ; use leading space in buffer name
+					; to make this buffer ephemeral
             (header-line (substring-no-properties proced-header-line)))
         (with-current-buffer (get-buffer-create bufname)
           (setq truncate-lines t
@@ -1866,6 +1867,16 @@ buffer.  You can use it to recover marks."
     (undo))
   (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
+
+(defun proced-unload-function ()
+  "Unload the Proced library."
+  (save-current-buffer
+    (dolist (buf (buffer-list))
+      (set-buffer buf)
+      (when (eq major-mode 'proced-mode)
+        (funcall (or (default-value 'major-mode) 'fundamental-mode)))))
+  ;; continue standard unloading
+  nil)
 
 (provide 'proced)
 

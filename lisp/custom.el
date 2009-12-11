@@ -131,7 +131,7 @@ not the default value itself.
 DEFAULT is stored as SYMBOL's standard value, in SYMBOL's property
 `standard-value'.  At the same time, SYMBOL's property `force-value' is
 set to nil, as the value is no longer rogue."
-  (put symbol 'standard-value (list default))
+  (put symbol 'standard-value (purecopy (list default)))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
     (put symbol 'force-value nil))
@@ -407,14 +407,15 @@ for more information."
 	  (error "Keyword %s is missing an argument" keyword))
 	(setq args (cdr args))
 	(cond ((eq keyword :prefix)
-	       (put symbol 'custom-prefix value))
+	       (put symbol 'custom-prefix (purecopy value)))
 	      (t
 	       (custom-handle-keyword symbol keyword value
 				      'custom-group))))))
   ;; Record the group on the `current' list.
   (let ((elt (assoc load-file-name custom-current-group-alist)))
     (if elt (setcdr elt symbol)
-      (push (cons load-file-name symbol) custom-current-group-alist)))
+      (push (cons (purecopy load-file-name) symbol)
+	    custom-current-group-alist)))
   (run-hooks 'custom-define-hook)
   symbol)
 
@@ -422,7 +423,10 @@ for more information."
   "Declare SYMBOL as a customization group containing MEMBERS.
 SYMBOL does not need to be quoted.
 
-Third arg DOC is the group documentation.
+Third argument DOC is the group documentation.  This should be a short
+description of the group, beginning with a capital and ending with
+a period.  Words other than the first should not be capitalized, if they
+are not usually written so.
 
 MEMBERS should be an alist of the form ((NAME WIDGET)...) where
 NAME is a symbol and WIDGET is a widget for editing that symbol.

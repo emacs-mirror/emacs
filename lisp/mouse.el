@@ -1850,6 +1850,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
   :version "20.3")
 
 (defvar mouse-buffer-menu-mode-groups
+  (mapcar (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
   '(("Info\\|Help\\|Apropos\\|Man" . "Help")
     ("\\bVM\\b\\|\\bMH\\b\\|Message\\|Mail\\|Group\\|Score\\|Summary\\|Article"
      . "Mail/News")
@@ -1859,7 +1860,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("Outline" . "Text")
     ("\\(HT\\|SG\\|X\\|XHT\\)ML" . "SGML")
     ("log\\|diff\\|vc\\|cvs\\|Annotate" . "Version Control") ; "Change Management"?
-    ("Lisp" . "Lisp"))
+    ("Lisp" . "Lisp")))
   "How to group various major modes together in \\[mouse-buffer-menu].
 Each element has the form (REGEXP . GROUPNAME).
 If the major mode's name string matches REGEXP, use GROUPNAME instead.")
@@ -1974,12 +1975,10 @@ and selects that window."
 		     (format "%%-%ds  %%s%%s  %%s" maxlen)
 		     (buffer-name elt)
 		     (if (buffer-modified-p elt) "*" " ")
-		     (save-excursion
-		       (set-buffer elt)
+		     (with-current-buffer elt
 		       (if buffer-read-only "%" " "))
 		     (or (buffer-file-name elt)
-			 (save-excursion
-			   (set-buffer elt)
+			 (with-current-buffer elt
 			   (if list-buffers-directory
 			       (expand-file-name
 				list-buffers-directory)))
@@ -2337,43 +2336,9 @@ and selects that window."
 ;;!! 		(- (car relative-coordinate) (current-column)) " "))
 ;;!! 	      ((= (current-column) (car relative-coordinate)) (ding))))))
 
-;; Choose a completion with the mouse.
+(define-obsolete-function-alias
+  'mouse-choose-completion 'choose-completion "23.2")
 
-(defun mouse-choose-completion (event)
-  "Click on an alternative in the `*Completions*' buffer to choose it."
-  (interactive "e")
-  ;; Give temporary modes such as isearch a chance to turn off.
-  (run-hooks 'mouse-leave-buffer-hook)
-  (let ((buffer (window-buffer))
-        choice
-	base-size)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-start event))))
-      (if completion-reference-buffer
-	  (setq buffer completion-reference-buffer))
-      (setq base-size completion-base-size)
-      (save-excursion
-	(goto-char (posn-point (event-start event)))
-	(let (beg end)
-	  (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
-	      (setq end (point) beg (1+ (point))))
-	  (if (null beg)
-	      (error "No completion here"))
-	  (setq beg (previous-single-property-change beg 'mouse-face))
-	  (setq end (or (next-single-property-change end 'mouse-face)
-			(point-max)))
-	  (setq choice (buffer-substring-no-properties beg end)))))
-    (let ((owindow (selected-window)))
-      (select-window (posn-window (event-start event)))
-      (if (and (one-window-p t 'selected-frame)
-	       (window-dedicated-p (selected-window)))
-	  ;; This is a special buffer's frame
-	  (iconify-frame (selected-frame))
-	(or (window-dedicated-p (selected-window))
-	    (bury-buffer)))
-      (select-window owindow))
-    (choose-completion-string choice buffer base-size)))
-
 ;; Font selection.
 
 (defun font-menu-add-default ()
@@ -2387,10 +2352,14 @@ and selects that window."
 		  (cdr elt)))))
 
 (defvar x-fixed-font-alist
-  '("Font Menu"
-    ("Misc"
+  (list
+   (purecopy "Font Menu")
+   (cons
+    (purecopy "Misc")
+    (mapcar
+     (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
      ;; For these, we specify the pixel height and width.
-     ("fixed" "fixed")
+    '(("fixed" "fixed")
      ("6x10" "-misc-fixed-medium-r-normal--10-*-*-*-c-60-iso8859-1" "6x10")
      ("6x12"
       "-misc-fixed-medium-r-semicondensed--12-*-*-*-c-60-iso8859-1" "6x12")
@@ -2427,10 +2396,14 @@ and selects that window."
       "-b&h-lucidatypewriter-bold-r-normal-sans-*-240-*-*-*-*-iso8859-1")
      ;; ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
      ;; ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
-     )
-    ("Courier"
+     )))
+
+   (cons
+    (purecopy "Courier")
+    (mapcar
+     (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
      ;; For these, we specify the point height.
-     ("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
+     '(("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
      ("10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
      ("12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-iso8859-1")
      ("14" "-adobe-courier-medium-r-normal--*-140-*-*-m-*-iso8859-1")
@@ -2453,8 +2426,8 @@ and selects that window."
      ("12 bold slant" "-adobe-courier-bold-o-normal--*-120-*-*-m-*-iso8859-1")
      ("14 bold slant" "-adobe-courier-bold-o-normal--*-140-*-*-m-*-iso8859-1")
      ("18 bold slant" "-adobe-courier-bold-o-normal--*-180-*-*-m-*-iso8859-1")
-     ("24 bold slant" "-adobe-courier-bold-o-normal--*-240-*-*-m-*-iso8859-1"))
-    )
+     ("24 bold slant" "-adobe-courier-bold-o-normal--*-240-*-*-m-*-iso8859-1")
+    ))))
   "X fonts suitable for use in Emacs.")
 
 (declare-function generate-fontset-menu "fontset" ())
@@ -2565,7 +2538,8 @@ choose a font."
 					 (if (eq choice 'x-select-font)
 					     (x-select-font)
 					   (symbol-name choice)))
-					t (interactive-p))))))))
+					t
+					(called-interactively-p 'interactive))))))))
 
 
 ;;; Bindings for mouse commands.
@@ -2597,7 +2571,7 @@ choose a font."
     (global-set-key [S-down-mouse-1] 'mouse-appearance-menu))
 ;; C-down-mouse-2 is bound in facemenu.el.
 (global-set-key [C-down-mouse-3]
-  '(menu-item "Menu Bar" ignore
+  `(menu-item ,(purecopy "Menu Bar") ignore
     :filter (lambda (_)
               (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
                   (mouse-menu-bar-map)

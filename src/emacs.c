@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <sys/file.h>
+#include <setjmp.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -808,6 +809,11 @@ main (int argc, char **argv)
   stack_base = &dummy;
 #endif
 
+#if defined (USE_GTK) && defined (G_SLICE_ALWAYS_MALLOC)
+  /* This is used by the Cygwin build.  */
+  setenv ("G_SLICE", "always-malloc", 1);
+#endif
+
   if (!initialized)
     {
       extern char my_endbss[];
@@ -845,8 +851,8 @@ main (int argc, char **argv)
       && initialized)
     {
       Lisp_Object tem, tem2;
-      tem = Fsymbol_value (intern ("emacs-version"));
-      tem2 = Fsymbol_value (intern ("emacs-copyright"));
+      tem = Fsymbol_value (intern_c_string ("emacs-version"));
+      tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
       if (!STRINGP (tem))
 	{
 	  fprintf (stderr, "Invalid value of `emacs-version'\n");
@@ -1383,7 +1389,6 @@ main (int argc, char **argv)
       syms_of_coding ();	/* This should be after syms_of_fileio.  */
 
       init_window_once ();	/* Init the window system.  */
-      init_fileio_once ();	/* Must precede any path manipulation.  */
 #ifdef HAVE_WINDOW_SYSTEM
       init_fringe_once ();	/* Swap bitmaps if necessary. */
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1436,7 +1441,7 @@ main (int argc, char **argv)
 	  Lisp_Object old_log_max;
 	  Lisp_Object symbol, tail;
 
-	  symbol = intern ("enable-multibyte-characters");
+	  symbol = intern_c_string ("enable-multibyte-characters");
 	  Fset_default (symbol, Qnil);
 
 	  if (initialized)
@@ -1669,6 +1674,7 @@ main (int argc, char **argv)
       syms_of_xfns ();
       syms_of_xmenu ();
       syms_of_fontset ();
+      syms_of_xsettings ();
 #ifdef HAVE_X_SM
       syms_of_xsmfns ();
 #endif
@@ -1749,17 +1755,17 @@ main (int argc, char **argv)
 #endif
   init_window ();
   init_font ();
-
+  
   if (!initialized)
     {
       char *file;
       /* Handle -l loadup, args passed by Makefile.  */
       if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
-	Vtop_level = Fcons (intern ("load"),
+	Vtop_level = Fcons (intern_c_string ("load"),
 			    Fcons (build_string (file), Qnil));
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
-	Vtop_level = Fcons (intern ("load"),
+	Vtop_level = Fcons (intern_c_string ("load"),
 			    Fcons (build_string ("loadup.el"), Qnil));
     }
 
@@ -1836,13 +1842,13 @@ main (int argc, char **argv)
 
 struct standard_args
 {
-  char *name;
-  char *longname;
+  const char *name;
+  const char *longname;
   int priority;
   int nargs;
 };
 
-struct standard_args standard_args[] =
+const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
 #ifdef HAVE_SHM
@@ -2541,7 +2547,7 @@ from the parent process and its tty file descriptors.  */)
 void
 syms_of_emacs ()
 {
-  Qfile_name_handler_alist = intern ("file-name-handler-alist");
+  Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);
 
 #ifndef CANNOT_DUMP
@@ -2575,7 +2581,7 @@ Special values:
   `cygwin'       compiled using the Cygwin library.
 Anything else (in Emacs 23.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, lynxos 3.0.1, usg-unix-v) indicates some sort of Unix system.  */);
-  Vsystem_type = intern (SYSTEM_TYPE);
+  Vsystem_type = intern_c_string (SYSTEM_TYPE);
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.

@@ -1198,8 +1198,7 @@ The numbers are formatted according to the FORMAT string."
 	     (- (cua--rectangle-right) (cua--rectangle-left) -1)))
         (r (or setup-fct (cua--extract-rectangle)))
         y z (tr 0))
-    (save-excursion
-      (set-buffer auxbuf)
+    (with-current-buffer auxbuf
       (erase-buffer)
       (if setup-fct
           (funcall setup-fct)

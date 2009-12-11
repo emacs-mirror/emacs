@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>		/* some typedefs are used in sys/file.h */
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <setjmp.h>
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
@@ -119,10 +120,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "atimer.h"
 
+#if defined (USE_GTK) || defined (HAVE_GCONF)
+#include "xgselect.h"
+#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
-Lisp_Object Qlocal, Qipv4, Qdatagram;
+Lisp_Object Qlocal, Qipv4, Qdatagram, Qseqpacket;
 Lisp_Object Qreal, Qnetwork, Qserial;
 #ifdef AF_INET6
 Lisp_Object Qipv6;
@@ -248,6 +253,10 @@ int update_tick;
 #endif /* DATAGRAM_SOCKETS */
 #endif /* BROKEN_DATAGRAM_SOCKETS */
 
+#if defined HAVE_LOCAL_SOCKETS && defined DATAGRAM_SOCKETS
+# define HAVE_SEQPACKET
+#endif
+
 #if !defined (ADAPTIVE_READ_BUFFERING) && !defined (NO_ADAPTIVE_READ_BUFFERING)
 #ifdef EMACS_HAS_USECS
 #define ADAPTIVE_READ_BUFFERING
@@ -295,7 +304,6 @@ static void create_pty P_ ((Lisp_Object));
 static Lisp_Object get_process ();
 static void exec_sentinel ();
 
-extern EMACS_TIME timer_check ();
 extern int timers_run;
 
 /* Mask of bits indicating the descriptors that we wait for input on.  */
@@ -477,7 +485,7 @@ status_message (p)
 	  if (! NILP (Vlocale_coding_system))
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
-	  c1 = STRING_CHAR ((char *) SDATA (string), 0);
+	  c1 = STRING_CHAR ((char *) SDATA (string));
 	  c2 = DOWNCASE (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
@@ -1522,7 +1530,7 @@ list_processes_1 (query_only)
 	    insert_string ("?");
 	  if (INTEGERP (speed))
 	    {
-	      sprintf (tembuf, " at %d b/s", XINT (speed));
+	      sprintf (tembuf, " at %ld b/s", (long) XINT (speed));
 	      insert_string (tembuf);
 	    }
 	  insert_string (")\n");
@@ -2316,12 +2324,12 @@ create_pty (process)
 #endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
-#if defined (RTU) || defined (UNIPLUS) || defined (DONT_REOPEN_PTY)
+#if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
 	 (Emacs) may send some data before the child process completes
 	 tty options setup.  So we setup tty before forking.  */
       child_setup_tty (forkout);
-#endif /* RTU or UNIPLUS or DONT_REOPEN_PTY */
+#endif /* DONT_REOPEN_PTY */
 #else
       forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
@@ -2606,7 +2614,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
 #endif
 
 
-static struct socket_options {
+static const struct socket_options {
   /* The name of this option.  Should be lowercase version of option
      name without SO_ prefix. */
   char *name;
@@ -2657,7 +2665,7 @@ set_socket_option (s, opt, val)
      Lisp_Object opt, val;
 {
   char *name;
-  struct socket_options *sopt;
+  const struct socket_options *sopt;
   int ret = 0;
 
   CHECK_SYMBOL (opt);
@@ -3119,7 +3127,8 @@ compiled with getaddrinfo, a port number can also be specified as a
 string, e.g. "80", as well as an integer.  This is not portable.)
 
 :type TYPE -- TYPE is the type of connection.  The default (nil) is a
-stream type connection, `datagram' creates a datagram type connection.
+stream type connection, `datagram' creates a datagram type connection,
+`seqpacket' creates a reliable datagram connection.
 
 :family FAMILY -- FAMILY is the address (and protocol) family for the
 service specified by HOST and SERVICE.  The default (nil) is to use
@@ -3298,6 +3307,10 @@ usage: (make-network-process &rest ARGS)  */)
   else if (EQ (tem, Qdatagram))
     socktype = SOCK_DGRAM;
 #endif
+#ifdef HAVE_SEQPACKET
+  else if (EQ (tem, Qseqpacket))
+    socktype = SOCK_SEQPACKET;
+#endif
   else
     error ("Unsupported connection type");
 
@@ -3320,7 +3333,7 @@ usage: (make-network-process &rest ARGS)  */)
   QCaddress = is_server ? QClocal : QCremote;
 
   /* :nowait BOOL */
-  if (!is_server && socktype == SOCK_STREAM
+  if (!is_server && socktype != SOCK_DGRAM
       && (tem = Fplist_get (contact, QCnowait), !NILP (tem)))
     {
 #ifndef NON_BLOCKING_CONNECT
@@ -3415,7 +3428,7 @@ usage: (make-network-process &rest ARGS)  */)
      Some kernels have a bug which causes retrying connect to fail
      after a connect.  Polling can interfere with gethostbyname too.  */
 #ifdef POLL_FOR_INPUT
-  if (socktype == SOCK_STREAM)
+  if (socktype != SOCK_DGRAM)
     {
       record_unwind_protect (unwind_stop_other_atimers, Qnil);
       bind_polling_period (10);
@@ -3618,7 +3631,7 @@ usage: (make-network-process &rest ARGS)  */)
 	    }
 #endif
 
-	  if (socktype == SOCK_STREAM && listen (s, backlog))
+	  if (socktype != SOCK_DGRAM && listen (s, backlog))
 	    report_file_error ("Cannot listen on server socket", Qnil);
 
 	  break;
@@ -3781,7 +3794,7 @@ usage: (make-network-process &rest ARGS)  */)
   p->pid = 0;
   p->infd  = inch;
   p->outfd = outch;
-  if (is_server && socktype == SOCK_STREAM)
+  if (is_server && socktype != SOCK_DGRAM)
     p->status = Qlisten;
 
   /* Make the process marker point into the process buffer (if any).  */
@@ -3980,10 +3993,10 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 
 struct ifflag_def {
   int flag_bit;
-  char *flag_sym;
+  const char *flag_sym;
 };
 
-static struct ifflag_def ifflag_table[] = {
+static const struct ifflag_def ifflag_table[] = {
 #ifdef IFF_UP
   { IFF_UP,		"up" },
 #endif
@@ -4079,7 +4092,7 @@ FLAGS is the current flags of the interface.  */)
   if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
     {
       int flags = rq.ifr_flags;
-      struct ifflag_def *fp;
+      const struct ifflag_def *fp;
       int fnum;
 
       any++;
@@ -4922,7 +4935,9 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      process_output_skip = 0;
 	    }
 #endif
-#ifdef HAVE_NS
+#if defined (USE_GTK) || defined (HAVE_GCONF)
+          nfds = xg_select
+#elif defined (HAVE_NS)
 	  nfds = ns_select
 #else
 	  nfds = select
@@ -6853,7 +6868,7 @@ exec_sentinel (proc, reason)
   record_unwind_protect (exec_sentinel_unwind, Fcons (proc, sentinel));
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
-  specbind (Qlast_nonmenu_event, Qt);
+  specbind (Qlast_nonmenu_event, Qt); /* Why? --Stef  */
 
   /* In case we get recursively called,
      and we already saved the match data nonrecursively,
@@ -7313,16 +7328,19 @@ init_process ()
 #ifdef HAVE_SOCKETS
  {
    Lisp_Object subfeatures = Qnil;
-   struct socket_options *sopt;
+   const struct socket_options *sopt;
 
 #define ADD_SUBFEATURE(key, val) \
-  subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
+  subfeatures = pure_cons (pure_cons (key, pure_cons (val, Qnil)), subfeatures)
 
 #ifdef NON_BLOCKING_CONNECT
    ADD_SUBFEATURE (QCnowait, Qt);
 #endif
 #ifdef DATAGRAM_SOCKETS
    ADD_SUBFEATURE (QCtype, Qdatagram);
+#endif
+#ifdef HAVE_SEQPACKET
+   ADD_SUBFEATURE (QCtype, Qseqpacket);
 #endif
 #ifdef HAVE_LOCAL_SOCKETS
    ADD_SUBFEATURE (QCfamily, Qlocal);
@@ -7339,9 +7357,9 @@ init_process ()
 #endif
 
    for (sopt = socket_options; sopt->name; sopt++)
-     subfeatures = Fcons (intern (sopt->name), subfeatures);
+     subfeatures = pure_cons (intern_c_string (sopt->name), subfeatures);
 
-   Fprovide (intern ("make-network-process"), subfeatures);
+   Fprovide (intern_c_string ("make-network-process"), subfeatures);
  }
 #endif /* HAVE_SOCKETS */
 
@@ -7362,109 +7380,111 @@ init_process ()
 void
 syms_of_process ()
 {
-  Qprocessp = intern ("processp");
+  Qprocessp = intern_c_string ("processp");
   staticpro (&Qprocessp);
-  Qrun = intern ("run");
+  Qrun = intern_c_string ("run");
   staticpro (&Qrun);
-  Qstop = intern ("stop");
+  Qstop = intern_c_string ("stop");
   staticpro (&Qstop);
-  Qsignal = intern ("signal");
+  Qsignal = intern_c_string ("signal");
   staticpro (&Qsignal);
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.
 
-     Qexit = intern ("exit");
+     Qexit = intern_c_string ("exit");
      staticpro (&Qexit); */
 
-  Qopen = intern ("open");
+  Qopen = intern_c_string ("open");
   staticpro (&Qopen);
-  Qclosed = intern ("closed");
+  Qclosed = intern_c_string ("closed");
   staticpro (&Qclosed);
-  Qconnect = intern ("connect");
+  Qconnect = intern_c_string ("connect");
   staticpro (&Qconnect);
-  Qfailed = intern ("failed");
+  Qfailed = intern_c_string ("failed");
   staticpro (&Qfailed);
-  Qlisten = intern ("listen");
+  Qlisten = intern_c_string ("listen");
   staticpro (&Qlisten);
-  Qlocal = intern ("local");
+  Qlocal = intern_c_string ("local");
   staticpro (&Qlocal);
-  Qipv4 = intern ("ipv4");
+  Qipv4 = intern_c_string ("ipv4");
   staticpro (&Qipv4);
 #ifdef AF_INET6
-  Qipv6 = intern ("ipv6");
+  Qipv6 = intern_c_string ("ipv6");
   staticpro (&Qipv6);
 #endif
-  Qdatagram = intern ("datagram");
+  Qdatagram = intern_c_string ("datagram");
   staticpro (&Qdatagram);
+  Qseqpacket = intern_c_string ("seqpacket");
+  staticpro (&Qseqpacket);
 
-  QCport = intern (":port");
+  QCport = intern_c_string (":port");
   staticpro (&QCport);
-  QCspeed = intern (":speed");
+  QCspeed = intern_c_string (":speed");
   staticpro (&QCspeed);
-  QCprocess = intern (":process");
+  QCprocess = intern_c_string (":process");
   staticpro (&QCprocess);
 
-  QCbytesize = intern (":bytesize");
+  QCbytesize = intern_c_string (":bytesize");
   staticpro (&QCbytesize);
-  QCstopbits = intern (":stopbits");
+  QCstopbits = intern_c_string (":stopbits");
   staticpro (&QCstopbits);
-  QCparity = intern (":parity");
+  QCparity = intern_c_string (":parity");
   staticpro (&QCparity);
-  Qodd = intern ("odd");
+  Qodd = intern_c_string ("odd");
   staticpro (&Qodd);
-  Qeven = intern ("even");
+  Qeven = intern_c_string ("even");
   staticpro (&Qeven);
-  QCflowcontrol = intern (":flowcontrol");
+  QCflowcontrol = intern_c_string (":flowcontrol");
   staticpro (&QCflowcontrol);
-  Qhw = intern ("hw");
+  Qhw = intern_c_string ("hw");
   staticpro (&Qhw);
-  Qsw = intern ("sw");
+  Qsw = intern_c_string ("sw");
   staticpro (&Qsw);
-  QCsummary = intern (":summary");
+  QCsummary = intern_c_string (":summary");
   staticpro (&QCsummary);
 
-  Qreal = intern ("real");
+  Qreal = intern_c_string ("real");
   staticpro (&Qreal);
-  Qnetwork = intern ("network");
+  Qnetwork = intern_c_string ("network");
   staticpro (&Qnetwork);
-  Qserial = intern ("serial");
+  Qserial = intern_c_string ("serial");
   staticpro (&Qserial);
 
-  QCname = intern (":name");
+  QCname = intern_c_string (":name");
   staticpro (&QCname);
-  QCbuffer = intern (":buffer");
+  QCbuffer = intern_c_string (":buffer");
   staticpro (&QCbuffer);
-  QChost = intern (":host");
+  QChost = intern_c_string (":host");
   staticpro (&QChost);
-  QCservice = intern (":service");
+  QCservice = intern_c_string (":service");
   staticpro (&QCservice);
-  QCtype = intern (":type");
+  QCtype = intern_c_string (":type");
   staticpro (&QCtype);
-  QClocal = intern (":local");
+  QClocal = intern_c_string (":local");
   staticpro (&QClocal);
-  QCremote = intern (":remote");
+  QCremote = intern_c_string (":remote");
   staticpro (&QCremote);
-  QCcoding = intern (":coding");
+  QCcoding = intern_c_string (":coding");
   staticpro (&QCcoding);
-  QCserver = intern (":server");
+  QCserver = intern_c_string (":server");
   staticpro (&QCserver);
-  QCnowait = intern (":nowait");
+  QCnowait = intern_c_string (":nowait");
   staticpro (&QCnowait);
-  QCsentinel = intern (":sentinel");
+  QCsentinel = intern_c_string (":sentinel");
   staticpro (&QCsentinel);
-  QClog = intern (":log");
+  QClog = intern_c_string (":log");
   staticpro (&QClog);
-  QCnoquery = intern (":noquery");
+  QCnoquery = intern_c_string (":noquery");
   staticpro (&QCnoquery);
-  QCstop = intern (":stop");
+  QCstop = intern_c_string (":stop");
   staticpro (&QCstop);
-  QCoptions = intern (":options");
+  QCoptions = intern_c_string (":options");
   staticpro (&QCoptions);
-  QCplist = intern (":plist");
+  QCplist = intern_c_string (":plist");
   staticpro (&QCplist);
 
-  Qlast_nonmenu_event = intern ("last-nonmenu-event");
+  Qlast_nonmenu_event = intern_c_string ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
 
   staticpro (&Vprocess_alist);
@@ -7472,67 +7492,67 @@ syms_of_process ()
   staticpro (&deleted_pid_list);
 #endif
 
-  Qeuid = intern ("euid");
+  Qeuid = intern_c_string ("euid");
   staticpro (&Qeuid);
-  Qegid = intern ("egid");
+  Qegid = intern_c_string ("egid");
   staticpro (&Qegid);
-  Quser = intern ("user");
+  Quser = intern_c_string ("user");
   staticpro (&Quser);
-  Qgroup = intern ("group");
+  Qgroup = intern_c_string ("group");
   staticpro (&Qgroup);
-  Qcomm = intern ("comm");
+  Qcomm = intern_c_string ("comm");
   staticpro (&Qcomm);
-  Qstate = intern ("state");
+  Qstate = intern_c_string ("state");
   staticpro (&Qstate);
-  Qppid = intern ("ppid");
+  Qppid = intern_c_string ("ppid");
   staticpro (&Qppid);
-  Qpgrp = intern ("pgrp");
+  Qpgrp = intern_c_string ("pgrp");
   staticpro (&Qpgrp);
-  Qsess = intern ("sess");
+  Qsess = intern_c_string ("sess");
   staticpro (&Qsess);
-  Qttname = intern ("ttname");
+  Qttname = intern_c_string ("ttname");
   staticpro (&Qttname);
-  Qtpgid = intern ("tpgid");
+  Qtpgid = intern_c_string ("tpgid");
   staticpro (&Qtpgid);
-  Qminflt = intern ("minflt");
+  Qminflt = intern_c_string ("minflt");
   staticpro (&Qminflt);
-  Qmajflt = intern ("majflt");
+  Qmajflt = intern_c_string ("majflt");
   staticpro (&Qmajflt);
-  Qcminflt = intern ("cminflt");
+  Qcminflt = intern_c_string ("cminflt");
   staticpro (&Qcminflt);
-  Qcmajflt = intern ("cmajflt");
+  Qcmajflt = intern_c_string ("cmajflt");
   staticpro (&Qcmajflt);
-  Qutime = intern ("utime");
+  Qutime = intern_c_string ("utime");
   staticpro (&Qutime);
-  Qstime = intern ("stime");
+  Qstime = intern_c_string ("stime");
   staticpro (&Qstime);
-  Qtime = intern ("time");
+  Qtime = intern_c_string ("time");
   staticpro (&Qtime);
-  Qcutime = intern ("cutime");
+  Qcutime = intern_c_string ("cutime");
   staticpro (&Qcutime);
-  Qcstime = intern ("cstime");
+  Qcstime = intern_c_string ("cstime");
   staticpro (&Qcstime);
-  Qctime = intern ("ctime");
+  Qctime = intern_c_string ("ctime");
   staticpro (&Qctime);
-  Qpri = intern ("pri");
+  Qpri = intern_c_string ("pri");
   staticpro (&Qpri);
-  Qnice = intern ("nice");
+  Qnice = intern_c_string ("nice");
   staticpro (&Qnice);
-  Qthcount = intern ("thcount");
+  Qthcount = intern_c_string ("thcount");
   staticpro (&Qthcount);
-  Qstart = intern ("start");
+  Qstart = intern_c_string ("start");
   staticpro (&Qstart);
-  Qvsize = intern ("vsize");
+  Qvsize = intern_c_string ("vsize");
   staticpro (&Qvsize);
-  Qrss = intern ("rss");
+  Qrss = intern_c_string ("rss");
   staticpro (&Qrss);
-  Qetime = intern ("etime");
+  Qetime = intern_c_string ("etime");
   staticpro (&Qetime);
-  Qpcpu = intern ("pcpu");
+  Qpcpu = intern_c_string ("pcpu");
   staticpro (&Qpcpu);
-  Qpmem = intern ("pmem");
+  Qpmem = intern_c_string ("pmem");
   staticpro (&Qpmem);
-  Qargs = intern ("args");
+  Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
@@ -7641,6 +7661,7 @@ The variable takes effect when `start-process' is called.  */);
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <setjmp.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -8001,75 +8022,75 @@ init_process ()
 void
 syms_of_process ()
 {
-  QCtype = intern (":type");
+  QCtype = intern_c_string (":type");
   staticpro (&QCtype);
-  QCname = intern (":name");
+  QCname = intern_c_string (":name");
   staticpro (&QCname);
-  QCtype = intern (":type");
+  QCtype = intern_c_string (":type");
   staticpro (&QCtype);
-  QCname = intern (":name");
+  QCname = intern_c_string (":name");
   staticpro (&QCname);
-  Qeuid = intern ("euid");
+  Qeuid = intern_c_string ("euid");
   staticpro (&Qeuid);
-  Qegid = intern ("egid");
+  Qegid = intern_c_string ("egid");
   staticpro (&Qegid);
-  Quser = intern ("user");
+  Quser = intern_c_string ("user");
   staticpro (&Quser);
-  Qgroup = intern ("group");
+  Qgroup = intern_c_string ("group");
   staticpro (&Qgroup);
-  Qcomm = intern ("comm");
+  Qcomm = intern_c_string ("comm");
   staticpro (&Qcomm);
-  Qstate = intern ("state");
+  Qstate = intern_c_string ("state");
   staticpro (&Qstate);
-  Qppid = intern ("ppid");
+  Qppid = intern_c_string ("ppid");
   staticpro (&Qppid);
-  Qpgrp = intern ("pgrp");
+  Qpgrp = intern_c_string ("pgrp");
   staticpro (&Qpgrp);
-  Qsess = intern ("sess");
+  Qsess = intern_c_string ("sess");
   staticpro (&Qsess);
-  Qttname = intern ("ttname");
+  Qttname = intern_c_string ("ttname");
   staticpro (&Qttname);
-  Qtpgid = intern ("tpgid");
+  Qtpgid = intern_c_string ("tpgid");
   staticpro (&Qtpgid);
-  Qminflt = intern ("minflt");
+  Qminflt = intern_c_string ("minflt");
   staticpro (&Qminflt);
-  Qmajflt = intern ("majflt");
+  Qmajflt = intern_c_string ("majflt");
   staticpro (&Qmajflt);
-  Qcminflt = intern ("cminflt");
+  Qcminflt = intern_c_string ("cminflt");
   staticpro (&Qcminflt);
-  Qcmajflt = intern ("cmajflt");
+  Qcmajflt = intern_c_string ("cmajflt");
   staticpro (&Qcmajflt);
-  Qutime = intern ("utime");
+  Qutime = intern_c_string ("utime");
   staticpro (&Qutime);
-  Qstime = intern ("stime");
+  Qstime = intern_c_string ("stime");
   staticpro (&Qstime);
-  Qtime = intern ("time");
+  Qtime = intern_c_string ("time");
   staticpro (&Qtime);
-  Qcutime = intern ("cutime");
+  Qcutime = intern_c_string ("cutime");
   staticpro (&Qcutime);
-  Qcstime = intern ("cstime");
+  Qcstime = intern_c_string ("cstime");
   staticpro (&Qcstime);
-  Qctime = intern ("ctime");
+  Qctime = intern_c_string ("ctime");
   staticpro (&Qctime);
-  Qpri = intern ("pri");
+  Qpri = intern_c_string ("pri");
   staticpro (&Qpri);
-  Qnice = intern ("nice");
+  Qnice = intern_c_string ("nice");
   staticpro (&Qnice);
-  Qthcount = intern ("thcount");
+  Qthcount = intern_c_string ("thcount");
   staticpro (&Qthcount);
-  Qstart = intern ("start");
+  Qstart = intern_c_string ("start");
   staticpro (&Qstart);
-  Qvsize = intern ("vsize");
+  Qvsize = intern_c_string ("vsize");
   staticpro (&Qvsize);
-  Qrss = intern ("rss");
+  Qrss = intern_c_string ("rss");
   staticpro (&Qrss);
-  Qetime = intern ("etime");
+  Qetime = intern_c_string ("etime");
   staticpro (&Qetime);
-  Qpcpu = intern ("pcpu");
+  Qpcpu = intern_c_string ("pcpu");
   staticpro (&Qpcpu);
-  Qpmem = intern ("pmem");
+  Qpmem = intern_c_string ("pmem");
   staticpro (&Qpmem);
-  Qargs = intern ("args");
+  Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
   defsubr (&Sget_buffer_process);

@@ -95,8 +95,7 @@ If BDFNAME doesn't exist, return nil."
   (and (file-readable-p bdfname)
        (let ((buf (generate-new-buffer " *bdf-work*"))
 	     (coding-system-for-read 'no-conversion))
-	 (save-excursion
-	   (set-buffer buf)
+	 (with-current-buffer buf
 	   (insert-file-contents bdfname)
 	   buf))))
 
@@ -225,8 +224,7 @@ CODE, where N and CODE are in the following relation:
 	(message "Reading %s..." bdfname)
       (error "BDF file %s doesn't exist" bdfname))
     (unwind-protect
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (goto-char (point-min))
 	  (search-forward "\nFONTBOUNDINGBOX")
 	  (setq font-bounding-box

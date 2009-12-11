@@ -695,8 +695,7 @@ If EXPR is nil, return nil."
   (setq math-units-table nil)
   (let ((buf (get-buffer "*Units Table*")))
     (and buf
-	 (save-excursion
-	   (set-buffer buf)
+	 (with-current-buffer buf
 	   (save-excursion
 	     (goto-char (point-min))
 	     (if (looking-at "Calculator Units Table")
@@ -1457,6 +1456,7 @@ If EXPR is nil, return nil."
 	    (calc-float-format '(float 0))
 	    (calc-group-digits nil)
 	    (calc-number-radix 10)
+            (calc-twos-complement-mode nil)
 	    (calc-point-char ".")
 	    (std nil)
 	    u name shadowed)

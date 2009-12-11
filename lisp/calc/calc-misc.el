@@ -140,8 +140,8 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
     (if cwin
 	(setq calc-full-mode
 	      (if kwin
-		  (and twin (eq (window-width twin) (frame-width)))
-		(eq (window-height cwin) (1- (frame-height))))))
+		  (and twin (window-full-width-p twin))
+		(window-full-height-p cwin))))
     (setq calc-full-mode (if arg
 			     (> (prefix-numeric-value arg) 0)
 			   (not calc-full-mode)))

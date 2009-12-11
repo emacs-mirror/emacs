@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <setjmp.h>
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
@@ -230,7 +231,7 @@ A multibyte character is handled correctly.  */)
   if (SCHARS (string))
     {
       if (STRING_MULTIBYTE (string))
-	XSETFASTINT (val, STRING_CHAR (SDATA (string), SBYTES (string)));
+	XSETFASTINT (val, STRING_CHAR (SDATA (string)));
       else
 	XSETFASTINT (val, SREF (string, 0));
     }
@@ -2698,7 +2699,7 @@ determines whether case is significant or ignored.  */)
       else
 	{
 	  c1 = BUF_FETCH_BYTE (bp1, i1);
-	  c1 = unibyte_char_to_multibyte (c1);
+	  MAKE_CHAR_MULTIBYTE (c1);
 	  i1++;
 	}
 
@@ -2711,7 +2712,7 @@ determines whether case is significant or ignored.  */)
       else
 	{
 	  c2 = BUF_FETCH_BYTE (bp2, i2);
-	  c2 = unibyte_char_to_multibyte (c2);
+	  MAKE_CHAR_MULTIBYTE (c2);
 	  i2++;
 	}
 
@@ -2982,7 +2983,7 @@ check_translation (pos, pos_byte, end, val)
 		      memcpy (newbuf, buf, sizeof (int) * buf_used);
 		      buf = newbuf;
 		    }
-		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, 0, len);
+		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len);
 		  pos_byte += len;
 		}
 	      if (XINT (AREF (elt, i)) != buf[i])
@@ -3051,7 +3052,7 @@ It returns the number of characters changed.  */)
       Lisp_Object val;
 
       if (multibyte)
-	oc = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
+	oc = STRING_CHAR_AND_LENGTH (p, len);
       else
 	oc = *p, len = 1;
       if (oc < size)
@@ -3063,8 +3064,7 @@ It returns the number of characters changed.  */)
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH,
-					       str_len);
+		  nc = STRING_CHAR_AND_LENGTH (str, str_len);
 		}
 	      else
 		{
@@ -3274,12 +3274,26 @@ Lisp_Object
 save_restriction_restore (data)
      Lisp_Object data;
 {
+  struct buffer *cur = NULL;
+  struct buffer *buf = (CONSP (data)
+			? XMARKER (XCAR (data))->buffer
+			: XBUFFER (data));
+
+  if (buf && buf != current_buffer && !NILP (buf->pt_marker))
+    { /* If `buf' uses markers to keep track of PT, BEGV, and ZV (as
+	 is the case if it is or has an indirect buffer), then make
+	 sure it is current before we update BEGV, so
+	 set_buffer_internal takes care of managing those markers.  */
+      cur = current_buffer;
+      set_buffer_internal (buf);
+    }
+
   if (CONSP (data))
     /* A pair of marks bounding a saved restriction.  */
     {
       struct Lisp_Marker *beg = XMARKER (XCAR (data));
       struct Lisp_Marker *end = XMARKER (XCDR (data));
-      struct buffer *buf = beg->buffer; /* END should have the same buffer. */
+      eassert (buf == end->buffer);
 
       if (buf /* Verify marker still points to a buffer.  */
 	  && (beg->charpos != BUF_BEGV (buf) || end->charpos != BUF_ZV (buf)))
@@ -3304,8 +3318,6 @@ save_restriction_restore (data)
   else
     /* A buffer, which means that there was no old restriction.  */
     {
-      struct buffer *buf = XBUFFER (data);
-
       if (buf /* Verify marker still points to a buffer.  */
 	  && (BUF_BEGV (buf) != BUF_BEG (buf) || BUF_ZV (buf) != BUF_Z (buf)))
 	/* The buffer has been narrowed, get rid of the narrowing.  */
@@ -3316,6 +3328,9 @@ save_restriction_restore (data)
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
     }
+
+  if (cur)
+    set_buffer_internal (cur);
 
   return Qnil;
 }
@@ -4610,7 +4625,7 @@ syms_of_editfns ()
   initial_tz = 0;
 
   Qbuffer_access_fontify_functions
-    = intern ("buffer-access-fontify-functions");
+    = intern_c_string ("buffer-access-fontify-functions");
   staticpro (&Qbuffer_access_fontify_functions);
 
   DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion,
@@ -4631,7 +4646,7 @@ of the buffer being accessed.  */);
     /* Do this here, because init_buffer_once is too early--it won't work.  */
     Fset_buffer (Vprin1_to_string_buffer);
     /* Make sure buffer-access-fontify-functions is nil in this buffer.  */
-    Fset (Fmake_local_variable (intern ("buffer-access-fontify-functions")),
+    Fset (Fmake_local_variable (intern_c_string ("buffer-access-fontify-functions")),
 	  Qnil);
     Fset_buffer (obuf);
   }
@@ -4674,9 +4689,9 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sregion_end);
 
   staticpro (&Qfield);
-  Qfield = intern ("field");
+  Qfield = intern_c_string ("field");
   staticpro (&Qboundary);
-  Qboundary = intern ("boundary");
+  Qboundary = intern_c_string ("boundary");
   defsubr (&Sfield_beginning);
   defsubr (&Sfield_end);
   defsubr (&Sfield_string);

@@ -211,7 +211,8 @@ Quit current game         \\[5x5-quit-game]"
 (defun 5x5-new-game ()
   "Start a new game of `5x5'."
   (interactive)
-  (when (if (interactive-p) (5x5-y-or-n-p "Start a new game? ") t)
+  (when (if (called-interactively-p 'interactive)
+	    (5x5-y-or-n-p "Start a new game? ") t)
     (setq 5x5-x-pos (/ 5x5-grid-size 2)
           5x5-y-pos (/ 5x5-grid-size 2)
           5x5-moves 0

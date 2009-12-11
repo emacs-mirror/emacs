@@ -444,14 +444,12 @@ With prefix arg, also delete the region."
 		(setq top (point))
 		(calc-cursor-stack-index 0)
 		(setq bot (point))))
-	 (save-excursion
-	   (set-buffer newbuf)
+	 (with-current-buffer newbuf
 	   (if (consp nn)
 	       (kill-region (region-beginning) (region-end)))
 	   (push-mark (point) t)
 	   (if (and overwrite-mode (not (consp nn)))
-	       (calc-overwrite-string (save-excursion
-					(set-buffer oldbuf)
+	       (calc-overwrite-string (with-current-buffer oldbuf
 					(buffer-substring top bot))
 				      eat-lnums)
 	     (or (bolp) (setq eat-lnums nil))

@@ -21,6 +21,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <math.h>
+#include <setjmp.h>
+#include <ctype.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -62,6 +64,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/bitmaps/gray>
 #endif
 
+#include "xsettings.h"
+
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
@@ -97,13 +101,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/FileSB.h>
 #endif
 
-/* Do the EDITRES protocol if running X11R5
-   Exception: HP-UX (at least version A.09.05) has X11R5 without EditRes */
-
-#if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
+#if !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
-#endif /* R5 + Athena */
+#endif /* not defined NO_EDITRES */
 
 /* Unique id counter for widgets created by the Lucid Widget Library.  */
 
@@ -196,7 +197,7 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
-static Lisp_Object Qfont_param;
+Lisp_Object Qfont_param;
 
 /* In dispnew.c */
 
@@ -2887,14 +2888,6 @@ x_icon (f, parms)
    background, border and mouse colors; also create the
    mouse cursor and the gray border tile.  */
 
-static char cursor_bits[] =
-  {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-  };
-
 static void
 x_make_gc (f)
      struct frame *f;
@@ -2953,7 +2946,7 @@ x_make_gc (f)
 }
 
 
-/* Free what was was allocated in x_make_gc.  */
+/* Free what was allocated in x_make_gc.  */
 
 void
 x_free_gcs (f)
@@ -3035,10 +3028,22 @@ x_default_font_parameter (f, parms)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
-				RES_TYPE_STRING);
+                                      RES_TYPE_STRING);
   Lisp_Object font;
+  int got_from_gconf = 0;
   if (EQ (font_param, Qunbound))
     font_param = Qnil;
+
+  if (NILP (font_param))
+    {
+      /* System font takes precedendce over X resources.  We must suggest this
+         regardless of font-use-system-font because .emacs may not have been
+         read yet.  */
+      const char *system_font = xsettings_get_system_font ();
+      if (system_font) font_param = make_string (system_font,
+                                                 strlen (system_font));
+    }
+  
   font = !NILP (font_param) ? font_param
     : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
@@ -3078,7 +3083,11 @@ x_default_font_parameter (f, parms)
 	 we've applied the `default' face settings.  */
       x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
     }
-  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
+
+  x_default_parameter (f, parms, Qfont, font,
+                       got_from_gconf ? NULL : "font",
+                       got_from_gconf ? NULL : "Font",
+                       RES_TYPE_STRING);
 }
 
 
@@ -5579,10 +5588,10 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 {
   FRAME_PTR f = check_x_frame (frame);
   char *name;
-  Lisp_Object default_font, font = Qnil;
+  Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   int count = SPECPDL_INDEX ();
 
   check_x ();
@@ -5596,22 +5605,37 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  GCPRO1(font_param);
-  font_param = Fframe_parameter (frame, Qfont_param);
+  GCPRO2(font_param, font);
 
-  if (x_last_font_name != NULL)
-    default_name = x_last_font_name;
-  else if (STRINGP (font_param))
-    default_name = SDATA (font_param);
-  else if (FONTP (default_font))
+  XSETFONT (font, FRAME_FONT (f));
+  font_param = Ffont_get (font, intern (":name"));
+  if (STRINGP (font_param))
+    default_name = xstrdup (SDATA (font_param));
+  else 
     {
-      XSETFONT (default_font, FRAME_FONT (f));
-      default_name = alloca (256);
-      if (font_unparse_gtkname (default_font, f, default_name, 256) < 0)
-	default_name = NULL;
+      font_param = Fframe_parameter (frame, Qfont_param);
+      if (STRINGP (font_param))
+        default_name = xstrdup (SDATA (font_param));
+    }
+
+  if (default_name == NULL && x_last_font_name != NULL)
+    default_name = xstrdup (x_last_font_name);
+
+  /* Convert fontconfig names to Gtk names, i.e. remove - before number */
+  if (default_name) 
+    {
+      char *p = strrchr (default_name, '-');
+      if (p)
+        {
+          char *ep = p+1;
+          while (isdigit (*ep))
+            ++ep;
+          if (*ep == '\0') *p = ' ';
+        }
     }
 
   name = xg_get_font_name (f, default_name);
+  xfree (default_name);
 
   if (name)
     {
@@ -5788,17 +5812,17 @@ syms_of_xfns ()
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  Qnone = intern ("none");
+  Qnone = intern_c_string ("none");
   staticpro (&Qnone);
-  Qsuppress_icon = intern ("suppress-icon");
+  Qsuppress_icon = intern_c_string ("suppress-icon");
   staticpro (&Qsuppress_icon);
-  Qundefined_color = intern ("undefined-color");
+  Qundefined_color = intern_c_string ("undefined-color");
   staticpro (&Qundefined_color);
-  Qcompound_text = intern ("compound-text");
+  Qcompound_text = intern_c_string ("compound-text");
   staticpro (&Qcompound_text);
-  Qcancel_timer = intern ("cancel-timer");
+  Qcancel_timer = intern_c_string ("cancel-timer");
   staticpro (&Qcancel_timer);
-  Qfont_param = intern ("font-parameter");
+  Qfont_param = intern_c_string ("font-parameter");
   staticpro (&Qfont_param);
   /* This is the end of symbol initialization.  */
 
@@ -5808,9 +5832,9 @@ syms_of_xfns ()
 
 
   Fput (Qundefined_color, Qerror_conditions,
-	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
+	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	build_string ("Undefined color"));
+	make_pure_c_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.
@@ -5907,12 +5931,12 @@ The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
-  Fprovide (intern ("x"), Qnil);
+  Fprovide (intern_c_string ("x"), Qnil);
 
 #ifdef USE_X_TOOLKIT
-  Fprovide (intern ("x-toolkit"), Qnil);
+  Fprovide (intern_c_string ("x-toolkit"), Qnil);
 #ifdef USE_MOTIF
-  Fprovide (intern ("motif"), Qnil);
+  Fprovide (intern_c_string ("motif"), Qnil);
 
   DEFVAR_LISP ("motif-version-string", &Vmotif_version_string,
 	       doc: /* Version info for LessTif/Motif.  */);
@@ -5925,8 +5949,8 @@ the tool bar buttons.  */);
      is not an X toolkit in that sense (USE_X_TOOLKIT is not defined).
      But for a user it is a toolkit for X, and indeed, configure
      accepts --with-x-toolkit=gtk.  */
-  Fprovide (intern ("x-toolkit"), Qnil);
-  Fprovide (intern ("gtk"), Qnil);
+  Fprovide (intern_c_string ("x-toolkit"), Qnil);
+  Fprovide (intern_c_string ("gtk"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
@@ -5934,7 +5958,7 @@ the tool bar buttons.  */);
     char gtk_version[40];
     g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
                 GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = build_string (gtk_version);
+    Vgtk_version_string = make_pure_string (gtk_version, strlen (gtk_version), strlen (gtk_version), 0);
   }
 #endif /* USE_GTK */
 

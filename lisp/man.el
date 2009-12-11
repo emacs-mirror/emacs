@@ -84,11 +84,6 @@
 ;;   only.  Is it worth doing?
 ;; - Allow a user option to mean that all the manpages should go in
 ;;   the same buffer, where they can be browsed with M-n and M-p.
-;; - Allow completion on the manpage name when calling man.  This
-;;   requires a reliable list of places where manpages can be found.  The
-;;   drawback would be that if the list is not complete, the user might
-;;   be led to believe that the manpages in the missing directories do
-;;   not exist.
 
 
 ;;; Code:
@@ -660,7 +655,7 @@ a new value."
 (defun Man-default-man-entry (&optional pos)
   "Guess default manual entry based on the text near position POS.
 POS defaults to `point'."
-  (let (word start pos column distance)
+  (let (word start column distance)
     (save-excursion
       (when pos (goto-char pos))
       (setq pos (point))
@@ -749,6 +744,66 @@ POS defaults to `point'."
 ;;;###autoload
 (defalias 'manual-entry 'man)
 
+(defvar Man-completion-cache nil
+  ;; On my machine, "man -k" is so fast that a cache makes no sense,
+  ;; but apparently that's not the case in all cases, so let's add a cache.
+  "Cache of completion table of the form (PREFIX . TABLE).")
+
+(defun Man-completion-table (string pred action)
+  (cond
+   ((eq action 'lambda)
+    (not (string-match "([^)]*\\'" string)))
+   (t
+    (let ((table (cdr Man-completion-cache))
+          (section nil)
+          (prefix string))
+      (when (string-match "\\`\\([[:digit:]].*?\\) " string)
+        (setq section (match-string 1 string))
+        (setq prefix (substring string (match-end 0))))
+      (unless (and Man-completion-cache
+                   (string-prefix-p (car Man-completion-cache) prefix))
+        (with-temp-buffer
+          (setq default-directory "/") ;; in case inherited doesn't
+          ;; exist Actually for my `man' the arg is a regexp.
+          ;; POSIX says it must be ERE and GNU/Linux seems to agree,
+          ;; whereas under MacOSX it seems to be BRE-style and doesn't
+          ;; accept backslashes at all.  Let's not bother to
+          ;; quote anything.
+          (let ((process-environment (copy-sequence process-environment)))
+            (setenv "COLUMNS" "999") ;; don't truncate long names
+            (call-process manual-program nil '(t nil) nil
+                          "-k" (concat "^" prefix)))
+          (goto-char (point-min))
+          (while (re-search-forward "^\\([^ \t\n]+\\)\\(?: ?\\((.+?)\\)\\(?:[ \t]+- \\(.*\\)\\)?\\)?" nil t)
+            (push (propertize (concat (match-string 1) (match-string 2))
+                              'help-echo (match-string 3))
+                  table)))
+        ;; Cache the table for later reuse.
+        (setq Man-completion-cache (cons prefix table)))
+      ;; The table may contain false positives since the match is made
+      ;; by "man -k" not just on the manpage's name.
+      (if section
+          (let ((re (concat "(" (regexp-quote section) ")\\'")))
+            (dolist (comp (prog1 table (setq table nil)))
+              (if (string-match re comp)
+                  (push (substring comp 0 (match-beginning 0)) table)))
+            (completion-table-with-context (concat section " ") table
+                                           prefix pred action))
+        ;; If the current text looks like a possible section name,
+        ;; then add a completion entry that just adds a space so SPC
+        ;; can be used to insert a space.
+        (if (string-match "\\`[[:digit:]]" string)
+            (push (concat string " ") table))
+        (let ((res (complete-with-action action table string pred)))
+          ;; In case we're completing to a single name that exists in
+          ;; several sections, the longest prefix will look like "foo(".
+          (if (and (stringp res)
+                   (string-match "([^(]*\\'" res)
+                   ;; In case the paren was already in `prefix', don't
+                   ;; remove it.
+                   (> (match-beginning 0) (length prefix)))
+              (substring res 0 (match-beginning 0))
+            res)))))))
 
 ;;;###autoload
 (defun man (man-args)
@@ -765,12 +820,20 @@ all sections related to a subject, put something appropriate into the
 `Man-switches' variable, which see."
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
-		(input (read-string
+		;; ignore case because that's friendly for bizarre
+		;; caps things like the X11 function names and because
+		;; "man" itself is case-sensitive on the command line
+		;; so you're accustomed not to bother about the case
+		;; ("man -k" is case-insensitive similarly, so the
+		;; table has everything available to complete)
+		(completion-ignore-case t)
+		(input (completing-read
 			(format "Manual entry%s"
 				(if (string= default-entry "")
 				    ": "
 				  (format " (default %s): " default-entry)))
-			nil 'Man-topic-history default-entry)))
+                        'Man-completion-table
+			nil nil nil 'Man-topic-history default-entry)))
 	   (if (string= input "")
 	       (error "No man args given")
 	     input))))

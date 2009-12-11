@@ -381,7 +381,7 @@ Whether the passphrase is cached at all is controlled by
 	  (or (message-options-get 'mml-smime-epg-signers)
 	      (message-options-set
 	      'mml-smime-epg-signers
-	      (if mml-smime-verbose
+	      (if (eq mm-sign-option 'guided)
 		  (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
@@ -462,7 +462,7 @@ Content-Disposition: attachment; filename=smime.p7s
 			 (message-options-set 'message-recipients
 					      (read-string "Recipients: ")))
 		     "[ \f\t\n\r\v,]+"))))
-      (if mml-smime-verbose
+      (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\
 Select recipients for encryption.

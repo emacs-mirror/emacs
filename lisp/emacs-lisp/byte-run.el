@@ -106,6 +106,15 @@ The return value of this function is not used."
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
+(defvar advertised-signature-table (make-hash-table :test 'eq :weakness 'key))
+
+(defun set-advertised-calling-convention (function signature)
+  "Set the advertised SIGNATURE of FUNCTION.
+This will allow the byte-compiler to warn the programmer when she uses
+an obsolete calling convention."
+  (puthash (indirect-function function) signature
+           advertised-signature-table))
+
 (defun make-obsolete (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
@@ -118,8 +127,12 @@ was first made obsolete, for example a date or a release number."
     (if (eq 'byte-compile-obsolete handler)
 	(setq handler (nth 1 (get obsolete-name 'byte-obsolete-info)))
       (put obsolete-name 'byte-compile 'byte-compile-obsolete))
-    (put obsolete-name 'byte-obsolete-info (list current-name handler when)))
+    (put obsolete-name 'byte-obsolete-info
+	 (list (purecopy current-name) handler (purecopy when))))
   obsolete-name)
+(set-advertised-calling-convention
+ ;; New code should always provide the `when' argument.
+ 'make-obsolete '(obsolete-name current-name when))
 
 (defmacro define-obsolete-function-alias (obsolete-name current-name
 						   &optional when docstring)
@@ -137,6 +150,10 @@ See the docstrings of `defalias' and `make-obsolete' for more details."
   `(progn
      (defalias ,obsolete-name ,current-name ,docstring)
      (make-obsolete ,obsolete-name ,current-name ,when)))
+(set-advertised-calling-convention
+ ;; New code should always provide the `when' argument.
+ 'define-obsolete-function-alias
+ '(obsolete-name current-name when &optional docstring))
 
 (defun make-obsolete-variable (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
@@ -150,50 +167,64 @@ was first made obsolete, for example a date or a release number."
       (if (equal str "") (error ""))
       (intern str))
     (car (read-from-string (read-string "Obsoletion replacement: ")))))
-  (put obsolete-name 'byte-obsolete-variable (cons current-name when))
+  (put obsolete-name 'byte-obsolete-variable
+       (cons
+	(if (stringp current-name)
+	    (purecopy current-name)
+	  current-name) (purecopy when)))
   obsolete-name)
+(set-advertised-calling-convention
+ ;; New code should always provide the `when' argument.
+ 'make-obsolete-variable '(obsolete-name current-name when))
 
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
   "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.
-
-\(define-obsolete-variable-alias 'old-var 'new-var \"22.1\" \"old-var's doc.\")
-
-is equivalent to the following two lines of code:
-
-\(defvaralias 'old-var 'new-var \"old-var's doc.\")
-\(make-obsolete-variable 'old-var 'new-var \"22.1\")
+This uses `defvaralias' and `make-obsolete-variable' (which see).
+See the Info node `(elisp)Variable Aliases' for more details.
 
 If CURRENT-NAME is a defcustom (more generally, any variable
 where OBSOLETE-NAME may be set, e.g. in a .emacs file, before the
 alias is defined), then the define-obsolete-variable-alias
-statement should be placed before the defcustom.  This is so that
-any user customizations are applied before the defcustom tries to
-initialize the variable (this is due to the way `defvaralias' works).
-Exceptions to this rule occur for define-obsolete-variable-alias
-statements that are autoloaded, or in files dumped with Emacs.
+statement should be evaluated before the defcustom, if user
+customizations are to be respected.  The simplest way to achieve
+this is to place the alias statement before the defcustom (this
+is not necessary for aliases that are autoloaded, or in files
+dumped with Emacs).  This is so that any user customizations are
+applied before the defcustom tries to initialize the
+variable (this is due to the way `defvaralias' works).
 
-See the docstrings of `defvaralias' and `make-obsolete-variable' or
-Info node `(elisp)Variable Aliases' for more details."
+For the benefit of `custom-set-variables', if OBSOLETE-NAME has
+any of the following properties, they are copied to
+CURRENT-NAME, if it does not already have them:
+'saved-value, 'saved-variable-comment."
   (declare (doc-string 4))
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
+     ;; See Bug#4706.
+     (dolist (prop '(saved-value saved-variable-comment))
+       (and (get ,obsolete-name prop)
+            (null (get ,current-name prop))
+            (put ,current-name prop (get ,obsolete-name prop))))
      (make-obsolete-variable ,obsolete-name ,current-name ,when)))
+(set-advertised-calling-convention
+ ;; New code should always provide the `when' argument.
+ 'define-obsolete-variable-alias
+ '(obsolete-name current-name when &optional docstring))
 
 ;; FIXME This is only defined in this file because the variable- and
 ;; function- versions are too.  Unlike those two, this one is not used
 ;; by the byte-compiler (would be nice if it could warn about obsolete
 ;; faces, but it doesn't really do anything special with faces).
 ;; It only really affects M-x describe-face output.
-(defmacro define-obsolete-face-alias (obsolete-face current-face
-						    &optional when)
+(defmacro define-obsolete-face-alias (obsolete-face current-face when)
   "Make OBSOLETE-FACE a face alias for CURRENT-FACE and mark it obsolete.
-The optional string WHEN gives the Emacs version where OBSOLETE-FACE
-became obsolete."
+The string WHEN gives the Emacs version where OBSOLETE-FACE became
+obsolete."
   `(progn
      (put ,obsolete-face 'face-alias ,current-face)
      ;; Used by M-x describe-face.
-     (put ,obsolete-face 'obsolete-face (or ,when t))))
+     (put ,obsolete-face 'obsolete-face (or (purecopy ,when) t))))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).

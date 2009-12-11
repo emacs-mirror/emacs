@@ -719,7 +719,7 @@
 ARG is used as the prefix value for the executed command.  If
 EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
-  (if (viper= last-command-event ?\\)
+  (if (viper= (viper-last-command-char) ?\\)
       (message "Switched to EMACS state for the next command..."))
   (viper-escape-to-state arg events 'emacs-state))
 
@@ -903,8 +903,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
        (signal 'quit nil)))
 
     (if (not (equal buff (current-buffer))) ; cmd switched buffer
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  (viper-set-mode-vars-for viper-current-state)))
     (viper-set-mode-vars-for viper-current-state)
     result))
@@ -917,8 +916,7 @@ Similar to viper-escape-to-emacs, but accepts forms rather than keystrokes."
     (viper-set-mode-vars-for 'emacs-state)
     (setq result (eval form))
     (if (not (equal buff (current-buffer))) ; cmd switched buffer
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  (viper-set-mode-vars-for viper-current-state)))
     (viper-set-mode-vars-for viper-current-state)
     result))
@@ -1183,7 +1181,10 @@ as a Meta key and any number of multiple escapes is allowed."
 		((eq event-char 'delete) (setq event-char ?\C-?))
 		((eq event-char 'backspace) (setq event-char ?\C-h))
 		((eq event-char 'space) (setq event-char ?\ )))
-	  (setq last-command-event (or com event-char))
+	  (setq last-command-event 
+		(if (featurep 'xemacs)
+		    (character-to-event (or com event-char))
+		  (or com event-char)))
 	  (setq func (viper-exec-form-in-vi
 		      `(key-binding (char-to-string ,event-char))))
 	  (funcall func prefix-arg)
@@ -1313,7 +1314,7 @@ as a Meta key and any number of multiple escapes is allowed."
   (interactive "P")
   (viper-leave-region-active)
   (viper-prefix-arg-value
-   last-command-event (if (consp arg) (cdr arg) nil)))
+   (viper-last-command-char) (if (consp arg) (cdr arg) nil)))
 
 (defun viper-command-argument (arg)
   "Accept a motion command as an argument."
@@ -1321,7 +1322,7 @@ as a Meta key and any number of multiple escapes is allowed."
   (let ((viper-intermediate-command 'viper-command-argument))
     (condition-case nil
 	(viper-prefix-arg-com
-	 last-command-event
+	 (viper-last-command-char)
 	 (cond ((null arg) nil)
 	       ((consp arg) (car arg))
 	       ((integerp arg) arg)
@@ -2098,7 +2099,7 @@ Undo previous insertion and inserts new."
   "Exit minibuffer Viper way."
   (interactive)
   (let (command)
-    (setq command (local-key-binding (char-to-string last-command-event)))
+    (setq command (local-key-binding (char-to-string (viper-last-command-char))))
     (run-hooks 'viper-minibuffer-exit-hook)
     (if command
 	(command-execute command)
@@ -3773,6 +3774,8 @@ If MAJOR-MODE is set, set the macros only in that major mode."
 	       "///" 'vi-state
 	       [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	       scope)
+	      ;; XEmacs has no called-interactively-p
+	      ;; (if (called-interactively-p 'interactive)
 	      (if (interactive-p)
 		  (message
 		   "// and /// now toggle case-sensitivity and regexp search")))
@@ -3796,6 +3799,9 @@ With a prefix argument, unsets the macro."
 	     "%%%" 'vi-state
 	     [(meta x) v i p e r - t o g g l e - p a r s e - s e x p - i g n o r e - c o m m e n t s return]
 	     't)
+	    ;; XEmacs has no called-interactively-p. And interactive-p
+	    ;; works fine here.
+	    ;; (if (called-interactively-p 'interactive)
 	    (if (interactive-p)
 		(message
 		 "%%%%%% now toggles whether comments should be parsed for matching parentheses")))
@@ -3825,6 +3831,9 @@ the macros are set in the current major mode.
 	     "///" 'emacs-state
 	     [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
 	     (or arg-majormode major-mode))
+	    ;; called-interactively-p does not work for
+	    ;; XEmacs. interactive-p is ok here.
+	    ;; (if (called-interactively-p 'interactive)
 	    (if (interactive-p)
 		(message
 		 "// and /// now toggle case-sensitivity and regexp search.")))
@@ -4697,8 +4706,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	     (with-output-to-temp-buffer " *viper-info*"
 	       (if (and buf pos)
 		   (progn
-		     (save-excursion
-		       (set-buffer buf)
+		     (with-current-buffer buf
 		       (setq line-no (1+ (count-lines (point-min) val)))
 		       (goto-char pos)
 		       (beginning-of-line)

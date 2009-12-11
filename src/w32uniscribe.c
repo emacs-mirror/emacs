@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _WIN32_WINNT 0x500
 #include <windows.h>
 #include <usp10.h>
+#include <setjmp.h>
 
 #include "lisp.h"
 #include "w32term.h"

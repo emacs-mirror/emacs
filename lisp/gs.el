@@ -1,7 +1,7 @@
 ;;; gs.el --- interface to Ghostscript
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -180,8 +180,8 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
  		;; out even more sluggish.
  		;; (get-buffer-process "*GS*")
  		(not (zerop timeout)))
- 	  (unless (sit-for 0 100 t)
- 	    (sleep-for 0 50))
+ 	  (unless (sit-for 0.1 t)
+ 	    (sleep-for 0.05))
  	  (setq timeout (1- timeout)))
 
  	;; No use waiting longer.  We might want to try killing off

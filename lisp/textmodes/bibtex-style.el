@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: 
+;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
 
@@ -63,7 +63,7 @@
     ("\\<\\(FUNCTION\\|MACRO\\)\\s-+{\\([^}\n]+\\)}"
      (2 font-lock-function-name-face))))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.bst\\'" . bibtex-style-mode))
+;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.bst\\'") 'bibtex-style-mode))
 
 ;;;###autoload
 (define-derived-mode bibtex-style-mode nil "BibStyle"

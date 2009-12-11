@@ -105,7 +105,11 @@ in the current window."
 			     (or hpos
 				 ;; HPOS unspecified, so compute
 				 ;; it so as to center the string.
-				 (max 0 (/ (- (window-width) (length string)) 2))))))
+				 (max 0 (/ (- (window-width) (length string)) 2)))))
+	(show-trailing-whitespace nil)
+	;; Make sure indentation does not use tabs.
+	;; They would confuse things.
+	(indent-tabs-mode nil))
     (dotimes (i animate-n-steps)
       ;; Bind buffer-undo-list so it will be unchanged when we are done.
       ;; (We're going to undo all our changes anyway.)
@@ -145,7 +149,6 @@ Strings will be separated from each other by SPACE lines."
     (switch-to-buffer (get-buffer-create "*Animation*"))
     (erase-buffer)
     (sit-for 0)
-    (setq indent-tabs-mode nil)
     (while list-of-strings
       (animate-string (car list-of-strings) vpos)
       (setq vpos (+ vpos space 1))
@@ -162,9 +165,6 @@ You can specify the one's name by NAME; the default value is \"Sarah\"."
   (erase-buffer)
   ;; Display the empty buffer.
   (sit-for 0)
-  ;; Make sure indentation does not use tabs.
-  ;; They would confuse things.
-  (setq indent-tabs-mode nil)
 
   (animate-string "Happy Birthday," 6)
   (animate-string (format "%s" name) 7)

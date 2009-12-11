@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -37,7 +37,7 @@
 (require 'org-macs)
 
 (declare-function find-library-name "find-func"  (library))
-(declare-function w32-focus-frame   "w32-win" (frame))
+(declare-function w32-focus-frame "term/w32-win" (frame))
 
 (defconst org-xemacs-p (featurep 'xemacs)) ; not used by org.el itself
 (defconst org-format-transports-properties-p

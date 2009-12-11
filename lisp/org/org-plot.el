@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 6.30c
+;; Version: 6.33x
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -279,8 +279,8 @@ line directly before or after the table."
   (save-window-excursion
     (delete-other-windows)
     (when (get-buffer "*gnuplot*") ;; reset *gnuplot* if it already running
-      (save-excursion
-	(set-buffer "*gnuplot*") (goto-char (point-max))
+      (with-current-buffer "*gnuplot*"
+	(goto-char (point-max))
 	(gnuplot-delchar-or-maybe-eof nil)))
     (org-plot/goto-nearest-table)
     ;; set default options

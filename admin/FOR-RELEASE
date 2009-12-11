@@ -81,16 +81,12 @@ and change key bindings where necessary.  The current list of modes:
 2. Minibuffer binds `M-s' to `next-matching-history-element'
    (not useful any more since C-s can now search in the history).
 
-3. Shell mode binds `M-s' to `comint-next-matching-input'.
-   This key binding can be changed later when we will implement
-   incremental search through the shell history.
-
-4. `center-line' in Text mode was already moved to the text formatting
+3. `center-line' in Text mode was already moved to the text formatting
    keymap as `M-o M-s' (thus this binding is not necessary any more
    in `nroff-mode-map' too and can be removed now from the nroff mode
    because it can now use the global key binding `M-o M-s' `center-line').
 
-5. PCL-CVS binds `M-s' to `cvs-status', and log-edit-mode binds it to
+4. PCL-CVS binds `M-s' to `cvs-status', and log-edit-mode binds it to
    `log-edit-comment-search-forward'.  Perhaps search commands
    on the global key binding `M-s' are useless in these modes.
 

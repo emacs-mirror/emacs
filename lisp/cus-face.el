@@ -50,7 +50,7 @@
 	  (if have-window-system
 	      (make-face-x-resource-internal face)))))
     ;; Don't record SPEC until we see it causes no errors.
-    (put face 'face-defface-spec spec)
+    (put face 'face-defface-spec (purecopy spec))
     (push (cons 'defface face) current-load-list)
     (when (and doc (null (face-documentation face)))
       (set-face-documentation face (purecopy doc)))

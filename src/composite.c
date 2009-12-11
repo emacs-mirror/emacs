@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
@@ -1320,7 +1321,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
  retry:
   check_val = Qnil;
   /* At first, check if POS is composable.  */
-  c = STRING_CHAR (cur.p, 0);
+  c = STRING_CHAR (cur.p);
   if (! CHAR_COMPOSABLE_P (c))
     {
       if (limit < 0)
@@ -1346,7 +1347,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 		fore_check_limit = cur.pos;
 		break;
 	      }
-	    c = STRING_CHAR (cur.p, 0);
+	    c = STRING_CHAR (cur.p);
 	    if (! CHAR_COMPOSABLE_P (c))
 	      break;
 	    val = CHAR_TABLE_REF (Vcomposition_function_table, c);
@@ -1367,7 +1368,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
       if (get_property_and_range (cur.pos, Qcomposition, &val, &b, &e, Qnil)
 	  && COMPOSITION_VALID_P (b, e, val))
 	break;
-      c = STRING_CHAR (cur.p, 0);
+      c = STRING_CHAR (cur.p);
       if (! CHAR_COMPOSABLE_P (c))
 	break;
       val = CHAR_TABLE_REF (Vcomposition_function_table, c);
@@ -1390,7 +1391,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 
 	  if (NILP (check_val))
 	    {
-	      c = STRING_CHAR (cur.p, 0);
+	      c = STRING_CHAR (cur.p);
 	      check_val = CHAR_TABLE_REF (Vcomposition_function_table, c);
 	    }
 	  for (; CONSP (check_val); check_val = XCDR (check_val))
@@ -1710,7 +1711,7 @@ syms_of_composite ()
 {
   int i;
 
-  Qcomposition = intern ("composition");
+  Qcomposition = intern_c_string ("composition");
   staticpro (&Qcomposition);
 
   /* Make a hash table for static composition.  */
@@ -1771,12 +1772,12 @@ inserted or deleted to keep `composition' property of buffer text
 valid.
 
 The default value is the function `compose-chars-after'.  */);
-  Vcompose_chars_after_function = intern ("compose-chars-after");
+  Vcompose_chars_after_function = intern_c_string ("compose-chars-after");
 
-  Qauto_composed = intern ("auto-composed");
+  Qauto_composed = intern_c_string ("auto-composed");
   staticpro (&Qauto_composed);
 
-  Qauto_composition_function = intern ("auto-composition-function");
+  Qauto_composition_function = intern_c_string ("auto-composition-function");
   staticpro (&Qauto_composition_function);
 
   DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,

@@ -62,11 +62,7 @@ set ARGLIST to `t'.  This is necessary because `nil' means an
 empty argument list, rather than an unspecified one.
 
 Note that for the purposes of `check-declare', this statement
-must be the first non-whitespace on a line, and everything up to
-the end of FILE must be all on the same line.  For example:
-
-\(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
-                  \(&optional arg))
+must be the first non-whitespace on a line.
 
 For more information, see Info node `(elisp)Declaring Functions'."
   ;; Does nothing - byte-compile-declare-function does the work.
@@ -233,15 +229,15 @@ This function accepts any number of arguments, but ignores them."
   (interactive)
   nil)
 
+;; Signal a compile-error if the first arg is missing.
 (defun error (&rest args)
   "Signal an error, making error message by passing all args to `format'.
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency.
-
-\(fn STRING &rest ARGS)"
+for the sake of consistency."
   (while t
     (signal 'error (list (apply 'format args)))))
+(set-advertised-calling-convention 'error '(string &rest args))
 
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
@@ -1018,6 +1014,41 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
+(define-obsolete-function-alias 'window-dot 'window-point "22.1")
+(define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
+(define-obsolete-function-alias 'read-input 'read-string "22.1")
+(define-obsolete-function-alias 'show-buffer 'set-window-buffer "22.1")
+(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
+(define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
+
+(make-obsolete 'char-bytes "now always returns 1." "20.4")
+(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
+
+(defun insert-string (&rest args)
+  "Mocklisp-compatibility insert function.
+Like the function `insert' except that any argument that is a number
+is converted into a string by expressing it in decimal."
+  (dolist (el args)
+    (insert (if (integerp el) (number-to-string el) el))))
+(make-obsolete 'insert-string 'insert "22.1")
+
+(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
+(make-obsolete 'makehash 'make-hash-table "22.1")
+
+;; These are used by VM and some old programs
+(defalias 'focus-frame 'ignore "")
+(make-obsolete 'focus-frame "it does nothing." "22.1")
+(defalias 'unfocus-frame 'ignore "")
+(make-obsolete 'unfocus-frame "it does nothing." "22.1")
+(make-obsolete 'make-variable-frame-local
+	       "explicitly check for a frame-parameter instead." "22.2")
+(make-obsolete 'interactive-p 'called-interactively-p "23.2")
+(set-advertised-calling-convention 'called-interactively-p '(kind))
+(set-advertised-calling-convention
+ 'all-completions '(string collection &optional predicate))
+
+;;;; Obsolescence declarations for variables, and aliases.
+
 ;; Special "default-FOO" variables which contain the default value of
 ;; the "FOO" variable are nasty.  Their implementation is brittle, and
 ;; slows down several unrelated variable operations; furthermore, they
@@ -1056,37 +1087,6 @@ and `event-end' functions."
 (make-obsolete-variable 'default-major-mode 'major-mode "23.2")
 (make-obsolete-variable 'default-enable-multibyte-characters
       "use enable-multibyte-characters or set-buffer-multibyte instead" "23.2")
-
-(define-obsolete-function-alias 'window-dot 'window-point "22.1")
-(define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
-(define-obsolete-function-alias 'read-input 'read-string "22.1")
-(define-obsolete-function-alias 'show-buffer 'set-window-buffer "22.1")
-(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
-(define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
-
-(make-obsolete 'char-bytes "now always returns 1." "20.4")
-(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
-
-(defun insert-string (&rest args)
-  "Mocklisp-compatibility insert function.
-Like the function `insert' except that any argument that is a number
-is converted into a string by expressing it in decimal."
-  (dolist (el args)
-    (insert (if (integerp el) (number-to-string el) el))))
-(make-obsolete 'insert-string 'insert "22.1")
-
-(defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
-(make-obsolete 'makehash 'make-hash-table "22.1")
-
-;; These are used by VM and some old programs
-(defalias 'focus-frame 'ignore "")
-(make-obsolete 'focus-frame "it does nothing." "22.1")
-(defalias 'unfocus-frame 'ignore "")
-(make-obsolete 'unfocus-frame "it does nothing." "22.1")
-(make-obsolete 'make-variable-frame-local
-	       "explicitly check for a frame-parameter instead." "22.2")
-
-;;;; Obsolescence declarations for variables, and aliases.
 
 (make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
@@ -1224,6 +1224,8 @@ function, it is changed to a list of functions."
       (setq hook-value (list hook-value)))
     ;; Do the actual addition if necessary
     (unless (member function hook-value)
+      (when (stringp function)
+	(setq function (purecopy function)))
       (setq hook-value
 	    (if append
 		(append hook-value (list function))
@@ -1666,14 +1668,14 @@ This function makes or adds to an entry on `after-load-alist'."
   ;; Add this FORM into after-load-alist (regardless of whether we'll be
   ;; evaluating it now).
   (let* ((regexp-or-feature
-	  (if (stringp file) (load-history-regexp file) file))
+	  (if (stringp file) (setq file (purecopy (load-history-regexp file))) file))
 	 (elt (assoc regexp-or-feature after-load-alist)))
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
     ;; Add FORM to the element unless it's already there.
     (unless (member form (cdr elt))
-      (nconc elt (list form)))
+      (nconc elt (purecopy (list form))))
 
     ;; Is there an already loaded file whose name (or `provide' name)
     ;; matches FILE?
@@ -1810,7 +1812,7 @@ Legitimate radix values are 8, 10 and 16."
 
 (defconst read-key-empty-map (make-sparse-keymap))
 
-(defvar read-key-delay 0.1)
+(defvar read-key-delay 0.01) ;Fast enough for 100Hz repeat rate, hopefully.
 
 (defun read-key (&optional prompt)
   "Read a key from the keyboard.
@@ -1846,7 +1848,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
     (unwind-protect
         (progn
 	  (use-global-map read-key-empty-map)
-	  (aref	(catch 'read-key (read-key-sequence prompt nil t)) 0))
+	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
       (use-global-map old-global-map))))
 
@@ -1893,11 +1895,13 @@ any other non-digit terminates the character code and is then used as input."))
 	     ;; Turn a meta-character into a character with the 0200 bit set.
 	     (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
 		   done t))
-	    ((and (<= ?0 translated) (< translated (+ ?0 (min 10 read-quoted-char-radix))))
+	    ((and (<= ?0 translated)
+                  (< translated (+ ?0 (min 10 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
 	    ((and (<= ?a (downcase translated))
-		  (< (downcase translated) (+ ?a -10 (min 36 read-quoted-char-radix))))
+		  (< (downcase translated)
+                     (+ ?a -10 (min 36 read-quoted-char-radix))))
 	     (setq code (+ (* code read-quoted-char-radix)
 			   (+ 10 (- (downcase translated) ?a))))
 	     (and prompt (setq prompt (message "%s %c" prompt translated))))
@@ -2034,9 +2038,7 @@ An obsolete, but still supported form is
 \(sit-for SECONDS &optional MILLISECONDS NODISP)
 where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
-floating point support.
-
-\(fn SECONDS &optional NODISP)"
+floating point support."
   (if (numberp nodisp)
       (setq seconds (+ seconds (* 1e-3 nodisp))
             nodisp obsolete)
@@ -2061,6 +2063,7 @@ floating point support.
 		(setq read (cons t read)))
 	    (push read unread-command-events)
 	    nil))))))
+(set-advertised-calling-convention 'sit-for '(seconds &optional nodisp))
 
 ;;; Atomic change groups.
 
@@ -2301,7 +2304,7 @@ On other systems, this variable is normally always nil.")
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.
 (put 'cl-assertion-failed 'error-conditions '(error))
-(put 'cl-assertion-failed 'error-message "Assertion failed")
+(put 'cl-assertion-failed 'error-message (purecopy "Assertion failed"))
 
 (defconst user-emacs-directory
   (if (eq system-type 'ms-dos)
@@ -2585,24 +2588,24 @@ COMMAND is the shell command to run.
 
 An old calling convention accepted any number of arguments after COMMAND,
 which were just concatenated to COMMAND.  This is still supported but strongly
-discouraged.
-
-\(fn NAME BUFFER COMMAND)"
+discouraged."
    ;; We used to use `exec' to replace the shell with the command,
    ;; but that failed to handle (...) and semicolon, etc.
   (start-process name buffer shell-file-name shell-command-switch
 		 (mapconcat 'identity args " ")))
+(set-advertised-calling-convention 'start-process-shell-command
+                                   '(name buffer command))
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
-Similar to `start-process-shell-command', but calls `start-file-process'.
-
-\(fn NAME BUFFER COMMAND)"
+Similar to `start-process-shell-command', but calls `start-file-process'."
   (start-file-process
    name buffer
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
    (if (file-remote-p default-directory) "-c" shell-command-switch)
    (mapconcat 'identity args " ")))
+(set-advertised-calling-convention 'start-file-process-shell-command
+                                   '(name buffer command))
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -3196,6 +3199,13 @@ and replace a sub-expression, e.g.
       (setq matches (cons (substring string start l) matches)) ; leftover
       (apply #'concat (nreverse matches)))))
 
+(defun string-prefix-p (str1 str2 &optional ignore-case)
+  "Return non-nil if STR1 is a prefix of STR2.
+If IGNORE-CASE is non-nil, the comparison is done without paying attention
+to case differences."
+  (eq t (compare-strings str1 nil nil
+                         str2 0 (length str1) ignore-case)))
+
 ;;;; invisibility specs
 
 (defun add-to-invisibility-spec (element)
@@ -3549,13 +3559,13 @@ convenience wrapper around `make-progress-reporter' and friends.
 
 ;;;; Comparing version strings.
 
-(defvar version-separator "."
+(defconst version-separator "."
   "*Specify the string used to separate the version elements.
 
 Usually the separator is \".\", but it can be any other string.")
 
 
-(defvar version-regexp-alist
+(defconst version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
     ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
@@ -3764,6 +3774,8 @@ is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 
 
 ;;; Misc.
+(defconst menu-bar-separator '("--")
+  "Separator for menus.")
 
 ;; The following statement ought to be in print.c, but `provide' can't
 ;; be used there.

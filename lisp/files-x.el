@@ -49,6 +49,7 @@ Intended to be used in the `interactive' spec of
 	   obarray
 	   (lambda (sym)
 	     (or (user-variable-p sym)
+                 (get sym 'safe-local-variable)
 		 (memq sym '(mode eval coding unibyte))))
 	   nil nil nil default nil))
     (and (stringp variable) (intern variable))))
@@ -68,8 +69,7 @@ Intended to be used in the `interactive' spec of
 	       (format "Add %s with value: " variable))
 	     obarray
 	     (lambda (sym)
-	       (and (string-match-p "-mode\\'" (symbol-name sym))
-		    (not (string-match-p "-minor-mode\\'" (symbol-name sym)))))
+	       (string-match-p "-mode\\'" (symbol-name sym)))
 	     nil nil nil default nil))
       (and (stringp value)
 	   (intern (replace-regexp-in-string "-mode\\'" "" value))))
@@ -91,7 +91,8 @@ Intended to be used in the `interactive' spec of
 			 nil 'set-variable-value-history
 			 (format "%S"
 				 (cond ((eq variable 'unibyte) t)
-				       (t (symbol-value variable))))))))))
+				       ((boundp variable)
+					(symbol-value variable))))))))))
 
 (defun read-file-local-variable-mode ()
   "Read per-directory file-local variable's mode using completion.
@@ -354,7 +355,7 @@ If .dir-locals.el was not found and OP is not `delete' then create
 this file in the current directory.
 
 If OP is `delete' then delete all existing settings of VARIABLE
-from the the MODE alist ignoring the input argument VALUE."
+from the MODE alist ignoring the input argument VALUE."
   (catch 'exit
     (unless enable-local-variables
       (throw 'exit (message "Directory-local variables are disabled")))
@@ -450,7 +451,7 @@ from the the MODE alist ignoring the input argument VALUE."
 
 ;;;###autoload
 (defun copy-dir-locals-to-file-locals-prop-line ()
-  "Copy directory-local variables to the the -*- line."
+  "Copy directory-local variables to the -*- line."
   (interactive)
   (dolist (elt dir-local-variables-alist)
     (add-file-local-variable-prop-line (car elt) (cdr elt))))

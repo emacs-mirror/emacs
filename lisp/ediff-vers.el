@@ -123,8 +123,7 @@ comparison or merge operations are being performed."
 	(fundamental-mode))
       (let ((output-buffer (ediff-rcs-get-output-buffer filename buff)))
 	(delete-windows-on output-buffer)
-	(save-excursion
-	  (set-buffer output-buffer)
+	(with-current-buffer output-buffer
 	  (apply 'call-process "co" nil t nil
 		 ;; -q: quiet (no diagnostics)
 		 (append switches rcs-default-co-switches

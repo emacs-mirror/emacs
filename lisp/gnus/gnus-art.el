@@ -4862,15 +4862,9 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 	 ,gnus-summary-buffer no-highlight))
      t)
     (gnus-article-edit-done)
-    (gnus-summary-expand-window)
-    (gnus-summary-show-article)
+    (gnus-configure-windows 'article)
     (when (and current-id (integerp gnus-auto-select-part))
-      (gnus-article-jump-to-part
-       (if (text-property-any (point-min) (point-max)
-			      'gnus-part (+ current-id gnus-auto-select-part))
-	   (+ current-id gnus-auto-select-part)
-	 (with-current-buffer gnus-article-buffer
-	   (length gnus-article-mime-handle-alist)))))))
+      (gnus-article-jump-to-part (+ current-id gnus-auto-select-part)))))
 
 (defun gnus-mime-replace-part (file)
   "Replace MIME part under point with an external body."
@@ -6471,6 +6465,8 @@ KEY is a string or a vector."
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
 (defvar gnus-agent-summary-mode)
 (defvar gnus-draft-mode)
+;; Calling help-buffer will autoload help-mode.
+(defvar help-xref-stack-item)
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
