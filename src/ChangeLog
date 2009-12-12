@@ -1,3 +1,19 @@
+2009-12-12  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (struct ftfont_info): New member matrix.
+	(ftfont_open): Setup xftfont_info->matrix.
+	(MFLTFontFT): New member matrix.
+	(FLOOR, CEIL, ROUND): New macros.
+	(ftfont_get_metrics): Handle matrix transformation.
+	(ftfont_shape_by_flt): New arg matrix.  Callers changed.
+
+	* xftfont.c (struct xftfont_info): New member matrix.
+	(xftfont_open): Setup xftfont_info->matrix.
+
+2009-12-10  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (append_space_for_newline): Consider face-remapping.
+
 2009-12-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xsettings.c: Include "keyboard.h".
