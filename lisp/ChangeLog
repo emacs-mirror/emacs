@@ -1,3 +1,10 @@
+2009-12-12  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (indian-compose-regexp): New function.
+	(malayalam-composable-pattern): Fix the pattern.
+	(composition-function-table): Set malayalam-composable-pattern for
+	Malayalam characters.
+
 2009-12-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/bug-reference.el (bug-reference-map): Bind mouse-2
