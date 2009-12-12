@@ -2,7 +2,7 @@
 
 	* xsettings.c (struct xsettings): Add member seen.
 	(parse_xft_settings): Update member seen with what we have read.
-	Return 0 if Xft-settings have been parsed, 0 otherwise.
+	Return non-zero if Xft-settings have been parsed, 0 otherwise.
 	(apply_xft_settings): Only update Xft settings with what member seen
 	indicates as new.
 
