@@ -2552,7 +2552,8 @@ Prefixed with one \\[universal-argument], display the Emacs MIME
 manual.  With two \\[universal-argument]'s, display the EasyPG or
 PGG manual, depending on the value of `mml2015-use'."
   (interactive "p")
-  ;; Why not `info', which is in loaddefs.el?
+  ;; Don't use `info' because support for `(filename)nodename' is not
+  ;; available in XEmacs < 21.5.12.
   (Info-goto-node (format "(%s)Top"
 			  (cond ((eq arg 16)
 				 (require 'mml2015)

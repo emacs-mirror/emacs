@@ -1,3 +1,7 @@
+2009-12-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-info): Explain why we use `Info-goto-node'.
+
 2009-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-completion-in-region): New compatibility function.
