@@ -3093,6 +3093,18 @@ xg_gtk_scroll_destroy (widget, data)
   xg_remove_widget_from_map (id);
 }
 
+/* Callback for button release. Sets dragging to Qnil when dragging is done.  */
+
+static gboolean
+scroll_end_callback (GtkWidget *widget,
+                     GdkEventButton *event,
+                     gpointer user_data)
+{
+  struct scroll_bar *bar = (struct scroll_bar *) user_data;
+  bar->dragging = Qnil;
+  return FALSE;
+}
+
 /* Create a scroll bar widget for frame F.  Store the scroll bar
    in BAR.
    SCROLL_CALLBACK is the callback to invoke when the value of the
@@ -3134,6 +3146,11 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                     G_CALLBACK (xg_gtk_scroll_destroy),
                     (gpointer) (EMACS_INT) scroll_id);
 
+  g_signal_connect (G_OBJECT (wscroll),
+                    "button-release-event",
+                    G_CALLBACK (scroll_end_callback),
+                    (gpointer) bar);
+  
   /* The scroll bar widget does not draw on a window of its own.  Instead
      it draws on the parent window, in this case the edit widget.  So
      whenever the edit widget is cleared, the scroll bar needs to redraw
@@ -3317,13 +3334,13 @@ xg_event_is_for_scrollbar (f, event)
       retval = gdk_display_get_window_at_pointer (gdpy, NULL, NULL)
         != f->output_data.x->edit_widget->window;
     }
-  else if (f && (event->type != ButtonRelease || event->type != MotionNotify))
+  else if (f && (event->type == ButtonRelease || event->type == MotionNotify))
     {
       /* If we are releasing or moving the scroll bar, it has the grab.  */
       retval = gtk_grab_get_current () != 0
         && gtk_grab_get_current () != f->output_data.x->edit_widget;
     }
-
+  
   return retval;
 }
 

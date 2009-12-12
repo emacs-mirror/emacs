@@ -1,3 +1,10 @@
+2009-12-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (scroll_end_callback): New function (bug #5177)
+	(xg_create_scroll_bar): Call scroll_end_callback on button release
+	event (bug #5177).
+	(xg_event_is_for_scrollbar): != replaced with ==.
+
 2009-12-12  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (struct ftfont_info): New member matrix.
