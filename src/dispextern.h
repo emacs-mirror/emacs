@@ -173,10 +173,10 @@ extern int trace_redisplay_p;
 struct text_pos
 {
   /* Character position.  */
-  int charpos;
+  EMACS_INT charpos;
 
   /* Corresponding byte position.  */
-  int bytepos;
+  EMACS_INT bytepos;
 };
 
 /* Access character and byte position of POS in a functional form.  */
@@ -311,7 +311,7 @@ struct glyph
      buffer, this is a position in that buffer.  A value of -1
      together with a null object means glyph is a truncation glyph at
      the start of a row.  */
-  int charpos;
+  EMACS_INT charpos;
 
   /* Lisp object source of this glyph.  Currently either a buffer or
      a string, if the glyph was produced from characters which came from
@@ -1900,11 +1900,11 @@ struct it
 
   /* The next position at which to check for face changes, invisible
      text, overlay strings, end of text etc., which see.  */
-  int stop_charpos;
+  EMACS_INT stop_charpos;
 
   /* Maximum string or buffer position + 1.  ZV when iterating over
      current_buffer.  */
-  int end_charpos;
+  EMACS_INT end_charpos;
 
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
@@ -1917,10 +1917,10 @@ struct it
 
   /* Start and end of a visible region; -1 if the region is not
      visible in the window.  */
-  int region_beg_charpos, region_end_charpos;
+  EMACS_INT region_beg_charpos, region_end_charpos;
 
   /* Position at which redisplay end trigger functions should be run.  */
-  int redisplay_end_trigger_charpos;
+  EMACS_INT redisplay_end_trigger_charpos;
 
   /* 1 means multibyte characters are enabled.  */
   unsigned multibyte_p : 1;
@@ -2006,8 +2006,8 @@ struct it
   {
     Lisp_Object string;
     int string_nchars;
-    int end_charpos;
-    int stop_charpos;
+    EMACS_INT end_charpos;
+    EMACS_INT stop_charpos;
     struct composition_it cmp_it;
     int face_id;
 
