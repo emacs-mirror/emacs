@@ -1904,7 +1904,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                                  ;; Ratio ; Date'
                                  " +\\([0-9%]+\\) +\\([-0-9]+\\)"
                                  ;; Time ; Attr.
-                                 " +\\([0-9:]+\\) +[^ \n]\\{6,7\\}"
+                                 " +\\([0-9:]+\\) +[^ \n]\\{6,10\\}"
                                  ;; CRC; Meth ; Var.
                                  " +[0-9A-F]+ +[^ \n]+ +[0-9.]+\n"))
         (goto-char (match-end 0))
