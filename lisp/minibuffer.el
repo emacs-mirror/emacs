@@ -1142,6 +1142,10 @@ Currently supported properties are:
         (completion-in-region start end (nth 2 res)
                               (plist-get plist :predicate)))))))
 
+;;; Key bindings.
+
+(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
+  'minibuffer-local-filename-must-match-map "23.1")
 
 (let ((map minibuffer-local-map))
   (define-key map "\C-g" 'abort-recursive-edit)
