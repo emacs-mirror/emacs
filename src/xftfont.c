@@ -47,7 +47,7 @@ static Lisp_Object QChinting , QCautohint, QChintstyle, QCrgba, QCembolden;
 struct xftfont_info
 {
   struct font font;
-  /* The following four members must be here in this order to be
+  /* The following five members must be here in this order to be
      compatible with struct ftfont_info (in ftfont.c).  */
 #ifdef HAVE_LIBOTF
   int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
@@ -55,6 +55,7 @@ struct xftfont_info
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
   int index;
+  FT_Matrix matrix;
   Display *display;
   int screen;
   XftFont *xftfont;
@@ -254,6 +255,7 @@ xftfont_open (f, entity, pixel_size)
   int len, i;
   XGlyphInfo extents;
   FT_Face ft_face;
+  FcMatrix *matrix;
 
   val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
   if (! CONSP (val))
@@ -378,6 +380,16 @@ xftfont_open (f, entity, pixel_size)
   xftfont_info->display = display;
   xftfont_info->screen = FRAME_X_SCREEN_NUMBER (f);
   xftfont_info->xftfont = xftfont;
+  /* This means that there's no need of transformation.  */
+  xftfont_info->matrix.xx = 0;
+  if (FcPatternGetMatrix (xftfont->pattern, FC_MATRIX, 0, &matrix)
+      == FcResultMatch)
+    {
+      xftfont_info->matrix.xx = 0x10000L * matrix->xx;
+      xftfont_info->matrix.yy = 0x10000L * matrix->yy;
+      xftfont_info->matrix.xy = 0x10000L * matrix->xy;
+      xftfont_info->matrix.yx = 0x10000L * matrix->yx;
+    }
   font->pixel_size = size;
   font->driver = &xftfont_driver;
   if (INTEGERP (AREF (entity, FONT_SPACING_INDEX)))

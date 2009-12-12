@@ -89,9 +89,7 @@ WINS_CEDET=\
 	cedet \
 	cedet/ede \
 	cedet/semantic \
-	cedet/srecode
-
-WINS_CEDET_SUBDIRS=\
+	cedet/srecode \
 	cedet/semantic/analyze \
 	cedet/semantic/bovine \
 	cedet/semantic/decorate \
@@ -118,20 +116,17 @@ WINS_BASIC=\
 	textmodes \
 	url
 
-# Directories with lisp files to compile
-WINS_ALMOST=$(WINS_BASIC) \
+# Directories with lisp files to compile, and to extract data from
+# (customs, autoloads, etc.)
+WINS_UPDATES=$(WINS_BASIC) \
 	$(WINS_CEDET)
-
-# Directories to extract data from (customs, autoloads, etc.)
-WINS_UPDATES=$(WINS_ALMOST) \
-	$(WINS_CEDET_SUBDIRS)
 
 # Directories to add to subdirs.el
 WINS_SUBDIR=$(WINS_BASIC) \
 	obsolete
 
-# All directories, except CEDET subdirs
-WINS= $(WINS_ALMOST) \
+# All directories
+WINS= $(WINS_UPDATES) \
 	term \
 	obsolete
 
@@ -426,12 +421,11 @@ bootstrap-clean:
 bootstrap-clean-CMD:
 #	if exist "$(EMACS)" $(MAKE) $(MFLAGS) autoloads
 	-for %%f in (. $(WINS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
-	-for %%f in ($(WINS_CEDET_SUBDIRS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
 
 bootstrap-clean-SH:
 #	if test -f "$(EMACS)"; then $(MAKE) $(MFLAGS) autoloads; fi
 #	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
-	-for dir in . $(WINS) $(WINS_CEDET_SUBDIRS); do rm -f $$dir/*.elc $$dir/*/*.elc $$dir/*/*/*.elc; done
+	-for dir in . $(WINS); do rm -f $$dir/*.elc $$dir/*/*.elc $$dir/*/*/*.elc; done
 
 # Generate/update files for the bootstrap process.
 # When done, remove bootstrap-emacs from ../bin, so that

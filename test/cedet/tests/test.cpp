@@ -2,9 +2,6 @@
  * Attempt to include as many aspects of the C++ language as possible.
  * Do not include things tested in test.c since that shares the
  * same language.
- *
- * $Id: test.cpp,v 1.3 2009/10/02 10:53:37 miles Exp $
- *
  */
 
 /* An include test */

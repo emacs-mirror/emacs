@@ -70,6 +70,7 @@ struct ftfont_info
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
   int index;
+  FT_Matrix matrix;
 };
 
 enum ftfont_cache_for
@@ -1236,6 +1237,8 @@ ftfont_open (f, entity, pixel_size)
   ftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
   ftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
+  /* This means that there's no need of transformation.  */
+  ftfont_info->matrix.xx = 0;
   font->pixel_size = size;
   font->driver = &ftfont_driver;
   font->encoding_charset = font->repertory_charset = -1;
@@ -1581,6 +1584,7 @@ struct MFLTFontFT
   struct font *font;
   FT_Face ft_face;
   OTF *otf;
+  FT_Matrix *matrix;
 };
 
 static int
@@ -1604,6 +1608,12 @@ ftfont_get_glyph_id (font, gstring, from, to)
   return 0;
 }
 
+/* Operators for 26.6 fixed fractional pixel format */
+
+#define FLOOR(x)    ((x) & -64)
+#define CEIL(x)	    (((x)+63) & -64)
+#define ROUND(x)    (((x)+32) & -64)
+
 static int
 ftfont_get_metrics (font, gstring, from, to)
      MFLTFont *font;
@@ -1620,16 +1630,35 @@ ftfont_get_metrics (font, gstring, from, to)
 	if (g->code != FONT_INVALID_CODE)
 	  {
 	    FT_Glyph_Metrics *m;
+	    int lbearing, rbearing, ascent, descent, xadv;
 
 	    if (FT_Load_Glyph (ft_face, g->code, FT_LOAD_DEFAULT) != 0)
 	      abort ();
 	    m = &ft_face->glyph->metrics;
+	    if (flt_font_ft->matrix)
+	      {
+		FT_Vector v[4];
+		int i;
 
-	    g->lbearing = m->horiBearingX;
-	    g->rbearing = m->horiBearingX + m->width;
-	    g->ascent = m->horiBearingY;
-	    g->descent = m->height - m->horiBearingY;
-	    g->xadv = m->horiAdvance;
+		v[0].x = v[1].x = m->horiBearingX;
+		v[2].x = v[3].x = m->horiBearingX + m->width;
+		v[0].y = v[2].y = m->horiBearingY;
+		v[1].y = v[3].y = m->horiBearingY - m->height;
+		for (i = 0; i < 4; i++)
+		  FT_Vector_Transform (v + i, flt_font_ft->matrix);
+		g->lbearing = v[0].x < v[1].x ? FLOOR (v[0].x) : FLOOR (v[1].x);
+		g->rbearing = v[2].x > v[3].x ? CEIL (v[2].x) : CEIL (v[3].x);
+		g->ascent = v[0].y > v[2].y ? CEIL (v[0].y) : CEIL (v[2].y);
+		g->descent = v[1].y < v[3].y ? - FLOOR (v[1].y) : - FLOOR (v[3].y);
+	      }
+	    else
+	      {
+		g->lbearing = FLOOR (m->horiBearingX);
+		g->rbearing = CEIL (m->horiBearingX + m->width);
+		g->ascent = CEIL (m->horiBearingY);
+		g->descent = - FLOOR (m->horiBearingY - m->height);
+	      }
+	    g->xadv = ROUND (ft_face->glyph->advance.x);
 	  }
 	else
 	  {
@@ -1989,11 +2018,12 @@ static int m17n_flt_initialized;
 extern Lisp_Object QCfamily;
 
 static Lisp_Object
-ftfont_shape_by_flt (lgstring, font, ft_face, otf)
+ftfont_shape_by_flt (lgstring, font, ft_face, otf, matrix)
      Lisp_Object lgstring;
      struct font *font;
      FT_Face ft_face;
      OTF *otf;
+     FT_Matrix *matrix;
 {
   EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
   EMACS_UINT i;
@@ -2095,6 +2125,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
   flt_font_ft.font = font;
   flt_font_ft.ft_face = ft_face;
   flt_font_ft.otf = otf;
+  flt_font_ft.matrix = matrix->xx != 0 ? matrix : 0;
   if (len > 1
       && gstring.glyphs[1].c >= 0x300 && gstring.glyphs[1].c <= 0x36F)
     /* A little bit ad hoc.  Perhaps, shaper must get script and
@@ -2166,7 +2197,8 @@ ftfont_shape (lgstring)
   otf = ftfont_get_otf (ftfont_info);
   if (! otf)
     return make_number (0);
-  return ftfont_shape_by_flt (lgstring, font, ftfont_info->ft_size->face, otf);
+  return ftfont_shape_by_flt (lgstring, font, ftfont_info->ft_size->face, otf,
+			      &ftfont_info->matrix);
 }
 
 #endif	/* HAVE_M17N_FLT */
