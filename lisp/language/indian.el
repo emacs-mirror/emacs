@@ -180,7 +180,7 @@ South Indian language Malayalam is supported in this language environment."))
       ;; consonant-based syllables
       "\\(CJ?HJ?\\)*C\\(H[NJ]?\\|m?b?p?a?\\)\\|"
       ;; syllables with an independent vowel
-      "V\\(J?HC\\)?m?b?p?n?a?\\|"
+      "V\\(J?HC\\)?m?b?p?a?\\|"
       ;; special consonant form
       "JHC\\|"
       ;; any other singleton characters
