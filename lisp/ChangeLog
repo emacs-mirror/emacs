@@ -1,3 +1,8 @@
+2009-12-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (compose-mail): Remove mail-setup-with-from from
+	customization checks.
+
 2009-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* arc-mode.el (archive-rar-summarize): Support Attribute fields in

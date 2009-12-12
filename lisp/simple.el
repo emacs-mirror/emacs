@@ -5647,7 +5647,7 @@ Each action has the form (FUNCTION . ARGS)."
 	 (dolist (var '(mail-mode-hook mail-send-hook mail-setup-hook
 			mail-yank-hooks mail-archive-file-name
 			mail-default-reply-to mail-mailing-lists
-			mail-self-blind mail-setup-with-from))
+			mail-self-blind))
 	   (and (boundp var)
 		(symbol-value var)
 		(push var warn-vars)))
