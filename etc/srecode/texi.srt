@@ -33,11 +33,6 @@ template empty :file :user :time
 "Fill a new texinfo file with some baseline stuff."
 ----
 \input texinfo   @c -*-texinfo-*-
-$#RCS$
-@c
-@c $Id: texi.srt,v 1.1 2009/10/03 19:28:56 cyd Exp $
-@c
-$/RCS$
 @c %**start of header
 @setfilename $FILE$.info
 @set TITLE $?NAME$
