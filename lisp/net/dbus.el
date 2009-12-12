@@ -954,7 +954,7 @@ It will be registered for all objects created by `dbus-register-object'."
 	 (lambda (key val)
 	   (when (and (equal (butlast key) (list bus interface))
 		      (string-equal path (nth 2 (car val)))
-		      (consp (car (last (car val)))))
+		      (not (functionp (car (last (car val))))))
 	     (add-to-list
 	      'result
 	      (list :dict-entry
