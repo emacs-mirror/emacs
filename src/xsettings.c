@@ -138,11 +138,21 @@ get_prop_window (dpyinfo)
   XUngrabServer (dpy);
 }
 
+enum {
+  SEEN_AA         = 0x01,
+  SEEN_HINTING    = 0x02,
+  SEEN_RGBA       = 0x04,
+  SEEN_LCDFILTER  = 0x08,
+  SEEN_HINTSTYLE  = 0x10,
+  SEEN_DPI        = 0x20,
+};
 struct xsettings 
 {
   FcBool aa, hinting;
   int rgba, lcdfilter, hintstyle;
   double dpi;
+
+  unsigned seen;
 };
 
 #define SWAP32(nr) (((nr) << 24) | (((nr) << 8) & 0xff0000)     \
@@ -197,6 +207,7 @@ struct xsettings
    2      CARD16        green
    2      CARD16        alpha
 
+   Returns non-zero if some Xft settings was seen, zero otherwise.
 */
 
 static int
@@ -294,11 +305,18 @@ parse_xft_settings (prop, bytes, settings)
         {
           ++settings_seen;
           if (strcmp (name, "Xft/Antialias") == 0)
-            settings->aa = ival != 0;
+            {
+              settings->seen |= SEEN_AA;
+              settings->aa = ival != 0;
+            }
           else if (strcmp (name, "Xft/Hinting") == 0)
-            settings->hinting = ival != 0;
+            {
+              settings->seen |= SEEN_HINTING;
+              settings->hinting = ival != 0;
+            }
           else if (strcmp (name, "Xft/HintStyle") == 0)
             {
+              settings->seen |= SEEN_HINTSTYLE;
               if (strcmp (sval, "hintnone") == 0)
                 settings->hintstyle = FC_HINT_NONE;
               else if (strcmp (sval, "hintslight") == 0)
@@ -307,9 +325,12 @@ parse_xft_settings (prop, bytes, settings)
                 settings->hintstyle = FC_HINT_MEDIUM;
               else if (strcmp (sval, "hintfull") == 0)
                 settings->hintstyle = FC_HINT_FULL;
+              else
+                settings->seen &= ~SEEN_HINTSTYLE;
             }
           else if (strcmp (name, "Xft/RGBA") == 0)
             {
+              settings->seen |= SEEN_RGBA;
               if (strcmp (sval, "none") == 0)
                 settings->rgba = FC_RGBA_NONE;
               else if (strcmp (sval, "rgb") == 0)
@@ -320,20 +341,28 @@ parse_xft_settings (prop, bytes, settings)
                 settings->rgba = FC_RGBA_VRGB;
               else if (strcmp (sval, "vbgr") == 0)
                 settings->rgba = FC_RGBA_VBGR;
+              else
+                settings->seen &= ~SEEN_RGBA;
             }
           else if (strcmp (name, "Xft/DPI") == 0)
-            settings->dpi = (double)ival/1024.0;
+            {
+              settings->seen |= SEEN_DPI;
+              settings->dpi = (double)ival/1024.0;
+            }
           else if (strcmp (name, "Xft/lcdfilter") == 0)
             {
+              settings->seen |= SEEN_LCDFILTER;
               if (strcmp (sval, "none") == 0)
                 settings->lcdfilter = FC_LCD_NONE;
               else if (strcmp (sval, "lcddefault") == 0)
                 settings->lcdfilter = FC_LCD_DEFAULT;
+              else
+                settings->seen &= ~SEEN_LCDFILTER;
             }
         }
     }
 
-  return Success;
+  return settings_seen;
 }
 
 static int
@@ -365,7 +394,7 @@ read_xft_settings (dpyinfo, settings)
 
   x_uncatch_errors ();
 
-  return rc == Success;
+  return rc != 0;
 }
 
 
@@ -394,38 +423,42 @@ apply_xft_settings (dpyinfo, send_event_p)
   FcPatternGetInteger (pat, FC_RGBA, 0, &oldsettings.rgba);
   FcPatternGetDouble (pat, FC_DPI, 0, &oldsettings.dpi);
 
-  if (oldsettings.aa != settings.aa)
+  if ((settings.seen & SEEN_AA) != 0 && oldsettings.aa != settings.aa)
     {
       FcPatternDel (pat, FC_ANTIALIAS);
       FcPatternAddBool (pat, FC_ANTIALIAS, settings.aa);
       ++changed;
     }
-  if (oldsettings.hinting != settings.hinting)
+  if ((settings.seen & SEEN_HINTING) != 0
+      && oldsettings.hinting != settings.hinting)
     {
       FcPatternDel (pat, FC_HINTING);
       FcPatternAddBool (pat, FC_HINTING, settings.hinting);
       ++changed;
     }
-  if (oldsettings.rgba != settings.rgba)
+  if ((settings.seen & SEEN_RGBA) != 0 && oldsettings.rgba != settings.rgba)
     {
       FcPatternDel (pat, FC_RGBA);
       FcPatternAddInteger (pat, FC_RGBA, settings.rgba);
       ++changed;
     }
   /* Older fontconfig versions don't have FC_LCD_FILTER. */
-  if (oldsettings.lcdfilter != settings.lcdfilter)
+  if ((settings.seen & SEEN_LCDFILTER) != 0
+      && oldsettings.lcdfilter != settings.lcdfilter)
     {
       FcPatternDel (pat, FC_LCD_FILTER);
       FcPatternAddInteger (pat, FC_LCD_FILTER, settings.lcdfilter);
       ++changed;
     }
-  if (oldsettings.hintstyle != settings.hintstyle)
+  if ((settings.seen & SEEN_HINTSTYLE) != 0
+      && oldsettings.hintstyle != settings.hintstyle)
     {
       FcPatternDel (pat, FC_HINT_STYLE);
       FcPatternAddInteger (pat, FC_HINT_STYLE, settings.hintstyle);
       ++changed;
     }
-  if (oldsettings.dpi != settings.dpi)
+  if ((settings.seen & SEEN_DPI) != 0 && oldsettings.dpi != settings.dpi
+      && settings.dpi > 0)
     {
       Lisp_Object frame, tail;
 

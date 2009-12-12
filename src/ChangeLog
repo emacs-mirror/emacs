@@ -1,3 +1,11 @@
+2009-12-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (struct xsettings): Add member seen.
+	(parse_xft_settings): Update member seen with what we have read.
+	Return 0 if Xft-settings have been parsed, 0 otherwise.
+	(apply_xft_settings): Only update Xft settings with what member seen
+	indicates as new.
+
 2009-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct text_pos): Use EMACS_INT;
