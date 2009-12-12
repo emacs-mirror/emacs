@@ -218,7 +218,11 @@ dired buffers automatically on revisiting.
 *** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 
-** FIXME gdb-mi
+** gdb-mi
+
+*** GDB User Interface migrated to GDB Machine Interface and now
+supports multithread non-stop debugging and debugging of several
+threads simultaneously.
 
 ** Grep
 
