@@ -1,3 +1,13 @@
+2009-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct text_pos): Use EMACS_INT;
+	(struct glyph): Use EMACS_INT for charpos.
+	(struct it): Use EMACS_INT for stop_charpos, end_charpos,
+	region_beg_charpos, region_end_charpos,
+	redisplay_end_trigger_charpos, and also for
+	iterator_stack_entry.end_charpos and
+	iterator_stack_entry.stop_charpos.
+
 2009-12-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (scroll_end_callback): New function (bug #5177)
