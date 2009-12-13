@@ -106,11 +106,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
     (compose-mail reporting-address topic)
-    ;; The rest of this does not execute
-    ;; if the user was asked to confirm and said no.
+    ;; The rest of this does not execute if the user was asked to
+    ;; confirm and said no.
+    ;; Message-mode sorts the headers before sending.  We sort now so
+    ;; that report-emacs-bug-orig-text remains valid.  (Bug#5178)
+    (if (eq major-mode 'message-mode)
+        (message-sort-headers))
     (rfc822-goto-eoh)
     (forward-line 1)
-
     (let ((signature (buffer-substring (point) (point-max))))
       (delete-region (point) (point-max))
       (insert signature)
@@ -262,12 +265,11 @@ usually do not have translators to read other languages for them.\n\n")
     ;; Make it less likely people will send empty messages.
     (if report-emacs-bug-send-hook
         (add-hook report-emacs-bug-send-hook 'report-emacs-bug-hook nil t))
-    (save-excursion
-      (goto-char (point-max))
-      (skip-chars-backward " \t\n")
-      (make-local-variable 'report-emacs-bug-orig-text)
-      (setq report-emacs-bug-orig-text
-            (buffer-substring-no-properties (point-min) (point))))
+    (goto-char (point-max))
+    (skip-chars-backward " \t\n")
+    (make-local-variable 'report-emacs-bug-orig-text)
+    (setq report-emacs-bug-orig-text
+          (buffer-substring-no-properties (point-min) (point)))
     (goto-char user-point)))
 
 (defun report-emacs-bug-info ()
