@@ -1,3 +1,7 @@
+2009-12-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-encode.el (mm-sign-option, mm-encrypt-option): Add :version tag.
+
 2009-12-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-info): Explain why we use `Info-goto-node'.

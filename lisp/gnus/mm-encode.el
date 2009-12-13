@@ -64,7 +64,7 @@ to specify encoding of non-ASCII MIME parts."
   "Option how to create signed parts.
 nil, use the default keys without asking;
 `guided', let you select signing keys from the menu."
-  :version "23.1"
+  :version "23.2" ;; No Gnus 0.12
   :type '(choice (item guided)
 		 (item :tag "default" nil))
   :group 'mime-security)
@@ -73,7 +73,7 @@ nil, use the default keys without asking;
   "Option how to create encrypted parts.
 nil, use the default keys without asking;
 `guided', let you select recipients' keys from the menu."
-  :version "23.1"
+  :version "23.2" ;; No Gnus 0.12
   :type '(choice (item guided)
 		 (item :tag "default" nil))
   :group 'mime-security)
