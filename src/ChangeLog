@@ -1,3 +1,9 @@
+2009-12-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xftfont.c (QClcdfilter): New variable.
+	(xftfont_open): Parse constant names for RGBA, HINT_STYLE and LCDFILTER.
+	(syms_of_xftfont): Initialize QClcdfilter.
+
 2009-12-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (struct xsettings): Add member seen.
