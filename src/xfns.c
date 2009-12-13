@@ -4825,6 +4825,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   {
     XSetWindowAttributes attrs;
     unsigned long mask;
+    Atom type = FRAME_X_DISPLAY_INFO (f)->Xatom_net_window_type_tooltip;
 
     BLOCK_INPUT;
     mask = CWBackPixel | CWOverrideRedirect | CWEventMask;
@@ -4849,6 +4850,10 @@ x_create_tip_frame (dpyinfo, parms, text)
 		       f->border_width,
 		       CopyFromParent, InputOutput, CopyFromParent,
 		       mask, &attrs);
+    XChangeProperty (FRAME_X_DISPLAY (f), tip_window,
+                     FRAME_X_DISPLAY_INFO (f)->Xatom_net_window_type,
+                     XA_ATOM, 32, PropModeReplace,
+                     (unsigned char *)&type, 1);
     UNBLOCK_INPUT;
   }
 

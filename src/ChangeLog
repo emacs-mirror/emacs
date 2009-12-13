@@ -1,4 +1,15 @@
+2009-12-13  Pat Thoyts <patthoyts@users.sourceforge.net> (tiny change)
+
+	* xfns.c (x_create_tip_frame): Set the extended window manager hint for
+	tooltip windows.
+
 2009-12-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): Add Xatom_net_window_type_tooltip and
+	Xatom_net_window_type.
+
+	* xterm.c (x_term_init): Initialize Xatom_net_window_type_tooltip and
+	Xatom_net_window_type.
 
 	* xterm.c (my_log_handler): New function.
 	(x_term_init): Set my_log_handler as log handler during gtk_init

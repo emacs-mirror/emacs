@@ -10445,7 +10445,11 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
   dpyinfo->Xatom_net_wm_state_sticky
     = XInternAtom (dpyinfo->display, "_NET_WM_STATE_STICKY", False);
-
+  dpyinfo->Xatom_net_window_type
+    = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
+  dpyinfo->Xatom_net_window_type_tooltip
+    = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
+  
   dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;
