@@ -25,9 +25,14 @@
 ;;
 ;; API for providing the semantic content of a buffer.
 ;;
-;; The semantic API provides an interface to a series of different parser
+;; The Semantic API provides an interface to a series of different parser
 ;; implementations.  Each parser outputs a parse tree in a similar format
 ;; designed to handle typical functional and object oriented languages.
+;;
+;; To enable Semantic, turn on `semantic-mode', a global minor mode
+;; (M-x semantic-mode RET, or "Source Code Parsers" from the Tools
+;; menu).  To enable it at startup, put (semantic-mode 1) in your init
+;; file.
 
 (require 'cedet)
 (require 'semantic/tag)
