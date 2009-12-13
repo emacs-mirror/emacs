@@ -1,5 +1,23 @@
 2009-12-13  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (xg_scroll_callback): Parameter list changed,
+	use parameter GtkScrollType to determine scroll/line/page.
+	Only allow dragging if a button < 4 is grabbed (bug #5177).
+	(xg_end_scroll_callback): New function.
+	(x_create_toolkit_scroll_bar): Pass xg_end_scroll_callback to
+	xg_create_scroll_bar.
+
+	* gtkutil.c (xg_gtk_scroll_destroy): Remove XG_LAST_SB_DATA handling.
+	(scroll_end_callback): Remove.
+	(xg_create_scroll_bar): Add parameter end_callback, bind it to
+	button-release-event.  Replace value-changed event with change-value,
+	bug #5177,
+	(xg_event_is_for_scrollbar): Only return true if button is less than 4,
+	bug #5177.
+
+	* gtkutil.h (XG_LAST_SB_DATA): Remove.
+	(xg_create_scroll_bar): Add GCallback end_callback.
+
 	* xftfont.c (QClcdfilter): New variable.
 	(xftfont_open): Parse constant names for RGBA, HINT_STYLE and LCDFILTER.
 	(syms_of_xftfont): Initialize QClcdfilter.

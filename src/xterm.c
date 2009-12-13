@@ -4374,63 +4374,51 @@ xm_scroll_callback (widget, client_data, call_data)
 /* Scroll bar callback for GTK scroll bars.  WIDGET is the scroll
    bar widget.  DATA is a pointer to the scroll_bar structure. */
 
-static void
-xg_scroll_callback (widget, data)
-     GtkRange *widget;
-     gpointer data;
+static gboolean
+xg_scroll_callback (GtkRange     *range,
+                    GtkScrollType scroll,
+                    gdouble       value,
+                    gpointer      user_data)
 {
-  struct scroll_bar *bar = (struct scroll_bar *) data;
-  gdouble previous;
+  struct scroll_bar *bar = (struct scroll_bar *) user_data;
   gdouble position;
-  gdouble *p;
-  int diff;
-
   int part = -1, whole = 0, portion = 0;
-  GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (widget));
+  GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (range));
+  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (range), XG_FRAME_DATA);
 
+  if (xg_ignore_gtk_scrollbar) return FALSE;
   position = gtk_adjustment_get_value (adj);
 
-  p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
-  if (! p)
+
+  switch (scroll)
     {
-      p = (gdouble*) xmalloc (sizeof (gdouble));
-      *p = XG_SB_MIN;
-      g_object_set_data (G_OBJECT (widget), XG_LAST_SB_DATA, p);
-    }
-
-  previous = *p;
-  *p = position;
-
-  if (xg_ignore_gtk_scrollbar) return;
-
-  diff = (int) (position - previous);
-
-  if (diff == (int) adj->step_increment)
-    {
-      part = scroll_bar_down_arrow;
-      bar->dragging = Qnil;
-    }
-  else if (-diff == (int) adj->step_increment)
-    {
+    case GTK_SCROLL_JUMP:
+      /* Buttons 1 2 or 3 must be grabbed.  */
+      if (FRAME_X_DISPLAY_INFO (f)->grabbed != 0
+          && FRAME_X_DISPLAY_INFO (f)->grabbed < (1 << 4))
+        {
+          part = scroll_bar_handle;
+          whole = adj->upper - adj->page_size;
+          portion = min ((int)position, whole);
+          bar->dragging = make_number ((int)portion);
+        }
+      break;
+    case GTK_SCROLL_STEP_BACKWARD:
       part = scroll_bar_up_arrow;
       bar->dragging = Qnil;
-    }
-  else if (diff == (int) adj->page_increment)
-    {
-      part = scroll_bar_below_handle;
+      break;
+    case GTK_SCROLL_STEP_FORWARD:
+      part = scroll_bar_down_arrow;
       bar->dragging = Qnil;
-    }
-  else if (-diff == (int) adj->page_increment)
-    {
+      break;
+    case GTK_SCROLL_PAGE_BACKWARD:
       part = scroll_bar_above_handle;
       bar->dragging = Qnil;
-    }
-  else
-    {
-      part = scroll_bar_handle;
-      whole = adj->upper - adj->page_size;
-      portion = min ((int)position, whole);
-      bar->dragging = make_number ((int)portion);
+      break;
+    case GTK_SCROLL_PAGE_FORWARD:
+      part = scroll_bar_below_handle;
+      bar->dragging = Qnil;
+      break;
     }
 
   if (part >= 0)
@@ -4439,7 +4427,29 @@ xg_scroll_callback (widget, data)
       last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
     }
+
+  return FALSE;
 }
+
+/* Callback for button release. Sets dragging to Qnil when dragging is done.  */
+
+static gboolean
+xg_end_scroll_callback (GtkWidget *widget,
+                        GdkEventButton *event,
+                        gpointer user_data)
+{
+  struct scroll_bar *bar = (struct scroll_bar *) user_data;
+  bar->dragging = Qnil;
+  if (WINDOWP (window_being_scrolled))
+    {
+      x_send_scroll_bar_event (window_being_scrolled,
+                               scroll_bar_end_scroll, 0, 0);
+      window_being_scrolled = Qnil;
+    }
+
+  return FALSE;
+}
+
 
 #else /* not USE_GTK and not USE_MOTIF */
 
@@ -4541,6 +4551,7 @@ x_create_toolkit_scroll_bar (f, bar)
 
   BLOCK_INPUT;
   xg_create_scroll_bar (f, bar, G_CALLBACK (xg_scroll_callback),
+                        G_CALLBACK (xg_end_scroll_callback),
                         scroll_bar_name);
   UNBLOCK_INPUT;
 }

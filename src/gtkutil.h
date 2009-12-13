@@ -32,11 +32,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define XG_SB_MAX 10000000
 #define XG_SB_RANGE (XG_SB_MAX-XG_SB_MIN)
 
-/* Key for data that is valid for menus in a frame  */
+/* Key for data that is valid for menus and scroll bars in a frame  */
 #define XG_FRAME_DATA "emacs_frame"
-
-/* Key for data that is the last scrollbar value  */
-#define XG_LAST_SB_DATA "emacs_last_sb_value"
 
 /* Key for data that menu items hold.  */
 #define XG_ITEM_DATA "emacs_menuitem"
@@ -164,6 +161,7 @@ extern int xg_get_scroll_id_for_window P_ ((Display *dpy, Window wid));
 extern void xg_create_scroll_bar P_ ((FRAME_PTR f,
                                       struct scroll_bar *bar,
                                       GCallback scroll_callback,
+                                      GCallback end_callback,
                                       char *scroll_bar_name));
 extern void xg_show_scroll_bar P_ ((int scrollbar_id));
 extern void xg_remove_scroll_bar P_ ((FRAME_PTR f, int scrollbar_id));
