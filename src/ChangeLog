@@ -1,5 +1,9 @@
 2009-12-13  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (my_log_handler): New function.
+	(x_term_init): Set my_log_handler as log handler during gtk_init
+	so we can filter out buggy messages. (bug #5120).
+
 	* xterm.c (xg_scroll_callback): Parameter list changed,
 	use parameter GtkScrollType to determine scroll/line/page.
 	Only allow dragging if a button < 4 is grabbed (bug #5177).

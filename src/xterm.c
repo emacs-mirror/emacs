@@ -10020,6 +10020,19 @@ x_display_ok (display)
     return dpy_ok;
 }
 
+#ifdef USE_GTK
+static void
+my_log_handler (log_domain, log_level, message, user_data)
+     const gchar *log_domain;
+     GLogLevelFlags log_level;
+     const gchar *message;
+     gpointer user_data;
+{
+  if (!strstr (message, "g_set_prgname"))
+      fprintf (stderr, "%s-WARNING **: %s\n", log_domain, message);
+}
+#endif
+  
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -10054,7 +10067,7 @@ x_term_init (display_name, xrm_option, resource_name)
     char *argv[NUM_ARGV];
     char **argv2 = argv;
     GdkAtom atom;
-
+    guint id;
 #ifndef HAVE_GTK_MULTIDISPLAY
     if (!EQ (Vinitial_window_system, Qx))
       error ("Sorry, you cannot connect to X servers with the GTK toolkit");
@@ -10089,7 +10102,12 @@ x_term_init (display_name, xrm_option, resource_name)
 
         XSetLocaleModifiers ("");
 
+        /* Work around GLib bug that outputs a faulty warning. See
+           https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */
+        id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
+                                  | G_LOG_FLAG_RECURSION, my_log_handler, NULL);
         gtk_init (&argc, &argv2);
+        g_log_remove_handler ("GLib", id);
 
         /* gtk_init does set_locale.  We must fix locale after calling it.  */
         fixup_locale ();
