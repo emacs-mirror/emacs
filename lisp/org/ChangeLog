@@ -1,3 +1,10 @@
+2009-12-14  Juri Linkov  <juri@jurta.org>
+
+	* org-html.el (org-export-html-style-include-default):
+	Put `safe-local-variable booleanp' on
+	`org-export-html-style-include-default' instead of mistakenly
+	duplicate `org-export-html-style'.
+
 2009-11-20  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-agenda.el (org-agenda-diary-entry-in-org-file): Rebuild

@@ -160,7 +160,7 @@ your own style information."
   :group 'org-export-html
   :type 'boolean)
 ;;;###autoload
-(put 'org-export-html-style 'safe-local-variable 'booleanp)
+(put 'org-export-html-style-include-default 'safe-local-variable 'booleanp)
 
 (defcustom org-export-html-style ""
   "Org-wide style definitions for exported HTML files.
