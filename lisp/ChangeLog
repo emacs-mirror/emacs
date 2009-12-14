@@ -1,3 +1,10 @@
+2009-12-14  David Kastrup  <dak@gnu.org>
+
+	* info.el (Info-hide-cookies-node): Before hiding a cookie,
+	check if it already has the `display' property added by
+	`Info-display-images-node', and not put the `invisible' property
+	in this case.
+
 2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)

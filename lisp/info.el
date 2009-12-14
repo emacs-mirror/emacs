@@ -1446,7 +1446,8 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	      "\\(\0[\0-\37][[][^\0]*\0[\0-\37][]]\n?\\)"
 	      nil t)
 	(let* ((start (match-beginning 1)))
-	  (if (not (get-text-property start 'invisible))
+	  (if (and (not (get-text-property start 'invisible))
+		   (not (get-text-property start 'display)))
 	      (put-text-property start (point) 'invisible t)))))
     (set-buffer-modified-p nil)))
 
