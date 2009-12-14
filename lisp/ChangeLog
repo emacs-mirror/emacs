@@ -1,6 +1,8 @@
 2009-12-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-print-log): Fix argument order.
+	(vc-hg-working-revision): Make sure the command is executed in a
+	known environment so that we can parse the output.  (Bug#4417)
 
 2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
