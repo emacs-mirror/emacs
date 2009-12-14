@@ -73,7 +73,6 @@
   (require 'compile)
   (require 'hippie-exp))
 
-(require 'sym-comp)
 (autoload 'comint-mode "comint")
 
 (defgroup python nil
@@ -2147,12 +2146,14 @@ Uses `python-beginning-of-block', `python-end-of-block'."
   "Return a list of completions of the string SYMBOL from Python process.
 The list is sorted.
 Uses `python-imports' to load modules against which to complete."
-  (when symbol
+  (when (stringp symbol)
     (let ((completions
 	   (condition-case ()
 	       (car (read-from-string
 		     (python-send-receive
-		      (format "emacs.complete(%S,%s)" symbol python-imports))))
+		      (format "emacs.complete(%S,%s)"
+			      (substring-no-properties symbol)
+			      python-imports))))
 	     (error nil))))
       (sort
        ;; We can get duplicates from the above -- don't know why.
