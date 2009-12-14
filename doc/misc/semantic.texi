@@ -153,23 +153,14 @@ distributed along with @semantic{}.
                +---------------+    | COMMON |    | COMMON |<--- SPEEDBAR
       Java --->| JAVA   PARSER |--->| PARSE  |    |        |
                +---------------+    | TREE   |    | PARSE  |<--- SEMANTICDB
-               +---------------+    | FORMAT |    | API    |<--- ecb
-    Scheme --->| SCHEME PARSER |--->|        |    |        |
+               +---------------+    | FORMAT |    | API    |
+    Scheme --->| SCHEME PARSER |--->|        |    |        |<--- ecb
                +---------------+    |        |    |        |
                +---------------+    |        |    |        |
    Texinfo --->| TEXI.  PARSER |--->|        |    |        |
                +---------------+    |        |    |        |
 
                     ...                ...           ...         ...
-
-               +---------------+    |        |    |        |<--- app. 1
-   Lang. A --->| A      Parser |--->|        |    |        |
-               +---------------+    |        |    |        |<--- app. 2
-               +---------------+    |        |    |        |
-   Lang. B --->| B      Parser |--->|        |    |        |<--- app. 3
-               +---------------+    |        |    |        |
-
-                     ...        ...     ...          ...       ...
 
                +---------------+    |        |    |        |
    Lang. Y --->| Y      Parser |--->|        |    |        |<--- app. ?
@@ -231,11 +222,9 @@ time.  @xref{SemanticDB}.
 @chapter Semantic Internals
 
 This chapter provides an overview of the internals of @semantic{}.
-This information would not be needed by neither application developers
-nor grammar developers.
-
-It would be useful mostly for the hackers who would like to learn
-more about how @semantic{} works.
+This information is usually not needed by application developers or
+grammar developers; it is useful mostly for the hackers who would like
+to learn more about how @semantic{} works.
 
 @menu
 * Parser code ::	  Code used for the parsers

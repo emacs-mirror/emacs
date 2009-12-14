@@ -1,3 +1,14 @@
+2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* sem-user.texi (Semantic mode, Idle Scheduler, Smart Completion)
+	(Smart Jump, Analyzer Debug): Copyedits.
+	(Semantic mode user commands): Link to new nodes.
+	(Speedbar, SymRef, MRU Bookmarks, Sticky Func Mode)
+	(Highlight Func Mode, Tag Decoration Mode): New nodes, from the
+	upstream Semantic manual.
+
+	* semantic.texi (Introduction): Minor fix to diagram.
+
 2009-12-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* eshell.texi (History): Add the other built-in variables.
