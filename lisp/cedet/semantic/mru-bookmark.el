@@ -240,9 +240,9 @@ This function pushes tags onto the tag ring."
 ;; Tracking minor mode.
 
 (defcustom global-semantic-mru-bookmark-mode nil
-  "*If non-nil enable global use of variable `semantic-mru-bookmark-mode'.
-When this mode is enabled, changes made to a buffer are highlighted
-until the buffer is reparsed."
+  "If non-nil, enable `semantic-mru-bookmark-mode' globally.
+When this mode is enabled, Emacs keeps track of which tags have
+been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
   :group 'semantic
   :group 'semantic-modes
   :type 'boolean
@@ -306,8 +306,8 @@ minor mode is enabled."
 
 (defun semantic-mru-bookmark-mode (&optional arg)
   "Minor mode for tracking tag-based bookmarks automatically.
-Tag based bookmarks a tracked based on editing and viewing habits
-and can then be navigated via the MRU bookmark keymap.
+When this mode is enabled, Emacs keeps track of which tags have
+been edited, and you can re-visit them with \\[semantic-mrub-switch-tags].
 
 \\{semantic-mru-bookmark-mode-map}
 

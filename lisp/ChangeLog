@@ -1,3 +1,11 @@
+2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)
+	(semantic-mru-bookmark-mode): Doc fixes.
+
+	* cedet/semantic/db.el (semanticdb-cache-get): Use error instead
+	of assert.
+
 2009-12-13  Glenn Morris  <rgm@gnu.org>
 
 	* mail/emacsbug.el (message-sort-headers): Define for compiler.
