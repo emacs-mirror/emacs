@@ -223,7 +223,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-hg)
 
-(defun vc-hg-print-log (files buffer &optional shortlog limit start-revision)
+(defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
   "Get change log associated with FILES."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
