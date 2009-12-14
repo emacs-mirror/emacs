@@ -1,3 +1,7 @@
+2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Revert last change (Bug#5191).
+
 2009-12-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-print-log): Fix argument order.
