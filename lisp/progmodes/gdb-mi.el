@@ -3754,9 +3754,8 @@ overlay arrow in source buffer."
       (setq gdb-frame-number (bindat-get-field frame 'level))
       (setq gdb-frame-address (bindat-get-field frame 'addr))
       (let ((line (bindat-get-field frame 'line)))
-        (setq gdb-selected-line (or (and line (string-to-number line))
-                                    nil)) ; don't fail if line is nil
-        (when line ; obey the current file only if we have line info
+        (setq gdb-selected-line (and line (string-to-number line)))
+        (when (and gdb-selected-file gdb-selected-line)
           (setq gud-last-frame (cons gdb-selected-file gdb-selected-line))
           (gud-display-frame)))
       (if gud-overlay-arrow-position
