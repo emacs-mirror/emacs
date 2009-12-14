@@ -72,6 +72,7 @@
 
 (declare-function x-server-vendor "xfns.c" (&optional terminal))
 (declare-function x-server-version "xfns.c" (&optional terminal))
+(declare-function message-sort-headers "message" ())
 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
