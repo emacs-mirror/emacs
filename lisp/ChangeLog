@@ -1,3 +1,10 @@
+2009-12-14  Juri Linkov  <juri@jurta.org>
+
+	* ediff-ptch.el (ediff-context-diff-label-regexp): Don't match
+	whitespace after the file name of the first line of unified format,
+	because git-diff doesn't output whitespace and file modification time
+	after the file name.
+
 2009-12-14  David Kastrup  <dak@gnu.org>
 
 	* info.el (Info-hide-cookies-node): Before hiding a cookie,
