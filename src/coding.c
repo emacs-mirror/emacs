@@ -3726,6 +3726,8 @@ decode_coding_iso_2022 (coding)
 	  continue;
 
 	case ISO_single_shift_2_7:
+	  if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS))
+	    goto invalid_code;
 	case ISO_single_shift_2:
 	  if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SINGLE_SHIFT))
 	    goto invalid_code;
