@@ -283,14 +283,11 @@ usually do not have translators to read other languages for them.\n\n")
   (save-excursion
     (goto-char (point-max))
     (skip-chars-backward " \t\n")
-    ;; FIXME This check is defeated by message.el, which sorts the
-    ;; headers (!) before running message-send-hook.
     (and (= (- (point) (point-min))
             (length report-emacs-bug-orig-text))
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-
     ;; Check the buffer contents and reject non-English letters.
     ;; FIXME message-mode probably does this anyway.
     (goto-char (point-min))
