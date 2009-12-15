@@ -1,3 +1,13 @@
+2009-12-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add edt.
+	(edt, $(infodir)/edt, edt.dvi): New targets.
+	* edt.texi: New file (etc/edt-user.doc converted to Texinfo).
+
+	* Makefile.in (PDF_TARGETS, pdf): New.
+	(clean): Add *.pdf.
+	Add pdf rules for all manuals.
+
 2009-12-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.texi (Radix Modes): Clarify two's complement notation.
