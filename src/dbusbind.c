@@ -688,10 +688,10 @@ xd_retrieve_arg (dtype, iter)
       {
 	Lisp_Object result;
 	struct gcpro gcpro1;
-	result = Qnil;
-	GCPRO1 (result);
 	DBusMessageIter subiter;
 	int subtype;
+	result = Qnil;
+	GCPRO1 (result);
 	dbus_message_iter_recurse (iter, &subiter);
 	while ((subtype = dbus_message_iter_get_arg_type (&subiter))
 	       != DBUS_TYPE_INVALID)
