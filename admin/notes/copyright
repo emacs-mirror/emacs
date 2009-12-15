@@ -145,9 +145,6 @@ etc/refcards/*.tex
 etc/BABYL, ms-kermit
   no notices (see below).
 
-etc/edt-user.doc
-  - update BOTH notices in this file
-
 etc/emacs.csh
  - written by Michael DeCorte, who has no assignment. But trivial
  enough to not need license.
