@@ -37,7 +37,7 @@ can use it.
 
 Emacs has certain additional style and coding conventions.
 
-Ref: http://www.gnu.org/prep/standards_toc.html
+Ref: http://www.gnu.org/prep/standards/
 Ref: GNU Coding Standards Info Manual
 Ref: The "Tips" Appendix in the Emacs Lisp Reference.
 
@@ -54,11 +54,11 @@ Contact us at emacs-devel@gnu.org to obtain the relevant forms.
 
 * Getting the Source Code
 
-The latest version of Emacs can be downloaded using CVS or Arch from
-the Savannah web site.  It is important to write your patch based on
-this version; if you start from an older version, your patch may be
-outdated when you write it, and maintainers will have a hard time
-applying it.
+The latest version of Emacs can be downloaded using CVS (or other
+version control systems) from the Savannah web site.  It is important
+to write your patch based on this version; if you start from an older
+version, your patch may be outdated when you write it, and maintainers
+will have a hard time applying it.
 
 After you have downloaded the CVS source, you should read the file
 INSTALL.CVS for build instructions (they differ to some extent from a

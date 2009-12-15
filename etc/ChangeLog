@@ -1,5 +1,8 @@
 2009-12-15  Glenn Morris  <rgm@gnu.org>
 
+	* CONTRIBUTE (Coding Standards): Update URL.
+	(Getting the Source Code): Other VCSs are available.
+
 	* ORDERS: Update some URLs.
 
 	* edt-user.el: New file, split out from edt-user.doc.
