@@ -1,5 +1,6 @@
 2009-12-15  Glenn Morris  <rgm@gnu.org>
 
+	* info/dir: Add EDT entry.
 	* Makefile.in (INFO_FILES): Add edt.
 
 2009-12-10  Jan Djärv  <jan.h.d@swipnet.se>
