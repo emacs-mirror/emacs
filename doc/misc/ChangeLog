@@ -1,3 +1,7 @@
+2009-12-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.texi (Radix Modes): Clarify two's complement notation.
+
 2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* sem-user.texi (Semantic mode, Idle Scheduler, Smart Completion)
