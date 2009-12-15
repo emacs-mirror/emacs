@@ -1,3 +1,7 @@
+2009-12-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add edt.
+
 2009-12-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Check for RSVG if GNUStep is used.
