@@ -57,6 +57,7 @@ of DEC's EDT editor.
 * Highlights::              Some highlights, and comparisons to the
                               original Emacs EDT emulation.
 * Customizing::             Customizing emulation.
+* GNU Free Documentation License::  The license for this manual.
 @end menu
 
 @node Overview
@@ -939,6 +940,10 @@ following two variables directly: @code{edt-top-scroll-margin} and
 Enter the Emacs @code{customize} command.  First select the
 @samp{Editing} group and then select the @samp{Emulations} group.
 Finally, select the @samp{Edt} group and follow the directions.
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include doclicense.texi
 
 @bye
 
