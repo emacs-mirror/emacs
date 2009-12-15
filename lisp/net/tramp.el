@@ -948,7 +948,12 @@ the info pages.")
 (defconst tramp-echo-mark-marker "_echo"
   "String marker to surround echoed commands.")
 
-(defconst tramp-echo-mark "_echo\b\b\b\b\b"
+(defconst tramp-echo-mark-marker-length (length tramp-echo-mark-marker)
+  "String length of `tramp-echo-mark-marker'.")
+
+(defconst tramp-echo-mark
+  (concat tramp-echo-mark-marker
+	  (make-string tramp-echo-mark-marker-length ?\b))
   "String mark to be transmitted around shell commands.
 Used to separate their echo from the output they produce.  This
 will only be used if we cannot disable remote echo via stty.
@@ -958,7 +963,9 @@ producing some echo which can later be detected by
 followed by an equal number of backspaces to erase them will
 usually suffice.")
 
-(defconst tramp-echoed-echo-mark-regexp "_echo\\(\b\\( \b\\)?\\)\\{5\\}"
+(defconst tramp-echoed-echo-mark-regexp
+  (format "%s\\(\b\\( \b\\)?\\)\\{%d\\}"
+	  tramp-echo-mark-marker tramp-echo-mark-marker-length)
   "Regexp which matches `tramp-echo-mark' as it gets echoed by
 the remote shell.")
 
@@ -6562,7 +6569,14 @@ Erase echoed commands if exists."
 	  (delete-region begin (point))
 	  (goto-char (point-min)))))
 
-    (when (not (tramp-get-connection-property proc "check-remote-echo" nil))
+    (when (or (not (tramp-get-connection-property proc "check-remote-echo" nil))
+	      ;; Sometimes, the echo string is suppressed on the remote side.
+	      (not (string-equal
+		    (substring-no-properties
+		     tramp-echo-mark-marker
+		     0 (min tramp-echo-mark-marker-length (1- (point-max))))
+		    (buffer-substring-no-properties
+		     1 (min (1+ tramp-echo-mark-marker-length) (point-max))))))
       ;; No echo to be handled, now we can look for the regexp.
       (goto-char (point-min))
       (re-search-forward regexp nil t))))

@@ -1,3 +1,10 @@
+2009-12-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-echo-mark-marker-length): New defconst.
+	(tramp-echo-mark, tramp-echoed-echo-mark-regexp): Use it.
+	(tramp-check-for-regexp): Check also, when an echoing shell stops
+	to echo sent commands.
+
 2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in: Revert last change (Bug#5191).
