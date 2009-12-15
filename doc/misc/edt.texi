@@ -796,7 +796,6 @@ special needs.
 * Words::                Specifying word entities.
 * Control keys::         Enabling EDT control key sequence bindings.
 * Scroll margins::       Setting scroll margins.
-@c * Default keypad::       Default EDT keypad.
 @end menu
 
 @node edt-user.el
@@ -940,76 +939,6 @@ following two variables directly: @code{edt-top-scroll-margin} and
 Enter the Emacs @code{customize} command.  First select the
 @samp{Editing} group and then select the @samp{Emulations} group.
 Finally, select the @samp{Edt} group and follow the directions.
-
-@c This is just `edt-keypad-help'.
-@ignore
-@node Default keypad
-@section Default EDT Keypad
-
-@verbatim
-   F7: Copy Rectangle           +----------+----------+----------+----------+
-   F8: Cut Rect Overstrike      |Prev Line |Next Line |Bkwd Char |Frwd Char |
- G-F8: Paste Rect Overstrike    |   (UP)   |  (DOWN)  |  (LEFT)  | (RIGHT)  |
-   F9: Cut Rect Insert          |Window Top|Window Bot|Bkwd Sent |Frwd Sent |
- G-F9: Paste Rect Insert        +----------+----------+----------+----------+
-  F10: Cut Rectangle
-G-F10: Paste Rectangle
-  F11: ESC
-  F12: Beginning of Line        +----------+----------+----------+----------+
-G-F12: Delete Other Windows     |   GOLD   |   HELP   |  FNDNXT  |  DEL L   |
-  F13: Delete to Begin of Word  |   (PF1)  |   (PF2)  |   (PF3)  |  (PF4)   |
- HELP: Keypad Help              |Mark Wisel|Desc Funct|   FIND   |  UND L   |
-G-HELP: Emacs Help              +----------+----------+----------+----------+
-   DO: Execute extended command |   PAGE   |   SECT   |  APPEND  |  DEL W   |
-  C-g: Keyboard Quit            |    (7)   |    (8)   |    (9)   |   (-)    |
-G-C-g: Keyboard Quit            |Ex Ext Cmd|Fill Regio| REPLACE  |  UND W   |
-  C-h: Beginning of Line        +----------+----------+----------+----------+
-G-C-h: Emacs Help               |  ADVANCE |  BACKUP  |   CUT    |  DEL C   |
-  C-i: Tab Insert               |    (4)   |    (5)   |    (6)   |   (,)    |
-  C-j: Delete to Begin of Word  |   BOTTOM |    TOP   |   Yank   |  UND C   |
-  C-k: Define Key               +----------+----------+----------+----------+
-G-C-k: Restore Key              |   WORD   |    EOL   |   CHAR   |   Next   |
-  C-l: Form Feed Insert         |    (1)   |    (2)   |    (3)   |  Window  |
-  C-n: Set Screen Width 80      | CHNGCASE |  DEL EOL |Quoted Ins|          !
-  C-r: Isearch Backward         +---------------------+----------+  (ENTER) |
-  C-s: Isearch Forward          |         LINE        |  SELECT  |          !
-  C-t: Display the Time         |         (0)         |    (.)   |   Query  |
-  C-u: Delete to Begin of Line  |      Open Line      |  RESET   |  Replace |
-  C-v: Redraw Display           +---------------------+----------+----------+
-  C-w: Set Screen Width 132
-  C-z: Suspend Emacs                    +----------+----------+----------+
-G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
-                                        |  (FIND)  | (INSERT) | (REMOVE) |
-  G-b: Buffer Menu                      |   FIND   |          |   COPY   |
-  G-c: Compile                          +----------+----------+----------+
-  G-d: Delete Window                    |SELECT/RES|SECT BACKW|SECT FORWA|
-  G-e: Exit                             | (SELECT) |(PREVIOUS)|  (NEXT)  |
-  G-f: Find File                        |          |          |          |
-  G-g: Find File Other Window           +----------+----------+----------+
-  G-h: Keypad Help
-  G-i: Insert File
-  G-k: Toggle Capitalization Word
-  G-l: Lowercase Word or Region
-  G-m: Save Some Buffers
-  G-n: Next Error
-  G-o: Switch to Next Window
-  G-q: Quit
-  G-r: Revert File
-  G-s: Save Buffer
-  G-u: Uppercase Word or Region
-  G-v: Find File Other Window
-  G-w: Write file
-  G-y: EDT Emulation OFF
-  G-z: Switch to User EDT Key Bindings
-  G-1: Delete Other Windows
-  G-2: Split Window
-  G-%: Go to Percentage
-  G- : Undo  (GOLD Spacebar)
-  G-=: Go to Line
-  G-`: What line
-  G-/: Query-Replace
-@end verbatim
-@end ignore
 
 @bye
 
