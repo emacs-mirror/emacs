@@ -53,12 +53,13 @@
 ;;
 ;;    (add-hook term-setup-hook 'edt-emulation-on)
 
-;; IMPORTANT: Be sure to read the file, edt-user.doc, located in the
-;; Emacs "etc" directory.  It contains very helpful user information.
+;; IMPORTANT: Be sure to read the Info node `edt' for more details.
+;; It contains very helpful user information.
 
 ;; The EDT emulation consists of the following files:
 ;;
-;; edt-user.doc     - User Instructions and Sample Customization File
+;; edt.texi         - User manual
+;; edt-user.el      - Sample Customization File
 ;; edt.el           - EDT Emulation Functions and Default Configuration
 ;; edt-lk201.el     - Built-in support for DEC LK-201 Keyboards
 ;; edt-vt100.el     - Built-in support for DEC VT-100 (and above) terminals
@@ -102,8 +103,8 @@
 ;;      the Emacs function `query-replace'.  The binding of
 ;;      `query-replace' has been moved to GOLD-/.  If you prefer to
 ;;      restore `query-replace' to GOLD-Enter, then use an EDT user
-;;      customization file, edt-user.el, to do this.  See edt-user.doc
-;;      for details.
+;;      customization file, edt-user.el, to do this.
+;;      See Info node `edt' for more details.
 
 ;;  3.  EDT Emulation now also works in XEmacs, including the
 ;;      highlighting of selected text.
@@ -2235,7 +2236,7 @@ Optional argument USER-SETUP non-nil means  called from function
   (define-prefix-command 'edt-user-gold-map)
   (fset 'edt-user-gold-map (copy-keymap 'edt-default-gold-map))
   ;; This is a function that the user can define for custom bindings.
-  ;; See etc/edt-user.doc.
+  ;; See Info node `edt' for more details, and sample edt-user.el file.
   (if (fboundp 'edt-setup-user-bindings)
       (edt-setup-user-bindings))
   (edt-select-user-global-map))

@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;;  See edt-user.doc in the Emacs etc directory.
+;; See Info node `edt' for more details.
 
 ;; ====================================================================
 
