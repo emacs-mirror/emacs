@@ -1,3 +1,9 @@
+2009-12-15  Glenn Morris  <rgm@gnu.org>
+
+	* edt-user.el: New file, split out from edt-user.doc.
+	* edt-user.doc: Split into edt-user.el and ../doc/misc/edt.texi,
+	and remove.
+
 2009-12-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Point to the external counterparts of su and sudo.
