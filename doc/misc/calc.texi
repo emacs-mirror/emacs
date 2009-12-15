@@ -13175,12 +13175,11 @@ entirety.)
 
 @cindex Two's complements
 With the binary, octal and hexadecimal display modes, Calc can
-display @expr{w}-bit integers using two's complement notation.  These
-versions of the display radices are selected with the key sequences
-@kbd{C-u d 2}, @kbd{C-u d 8} and @kbd{C-u d 6}, respectively.
-In these cases a negative word size might be appropriate
-(@pxref{Binary Functions}). In two's complement notation, the integers 
-in the (nearly) symmetric interval from
+display @expr{w}-bit integers using two's complement notation.  This
+option is selected with the key sequences @kbd{C-u d 2}, @kbd{C-u d 8}
+and @kbd{C-u d 6}, respectively, and a negative word size might be
+appropriate (@pxref{Binary Functions}). In two's complement 
+notation, the integers in the (nearly) symmetric interval from
 @texline @math{-2^{w-1}}
 @infoline @expr{-2^(w-1)}
 to
