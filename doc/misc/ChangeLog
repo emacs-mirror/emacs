@@ -1,3 +1,8 @@
+2009-12-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add edt.
+	($(infodir)/edt, edt.dvi): New targets.
+
 2009-12-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add edt.
@@ -34,7 +39,7 @@
 2009-12-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Searching): Use mh vfolder_format and fix typo in database
-	path for mairix example. Specify -q in namazu example since namazu is
+	path for mairix example.  Specify -q in namazu example since namazu is
 	excessively garrulous.
 
 2009-11-29  Michael Albinus  <michael.albinus@gmx.de>
@@ -50,14 +55,14 @@
 	Document semantic-complete-analyze-inline.
 	(Semanticdb search debugging commands): Minor clarification.
 	(Analyzer, Smart Completion, Smart Summary, Smart Jump)
-	(Analyzer Debug) New nodes, adapted from the upstream Semantic user
+	(Analyzer Debug): New nodes, adapted from the upstream Semantic user
 	manual.
 	(Semantic mode): Link to Idle Scheduler.
 
 2009-11-28  Kevin Ryde  <user42@zip.com.au>
 
 	* cl.texi (Porting Common Lisp): Update EIEIO dead ftp link to a
-	@pxref, now eieio is in emacs.
+	@pxref, now EIEIO is in Emacs.
 
 	* erc.texi (Development): Correction to git tutorial url.
 
@@ -75,7 +80,7 @@
 
 2009-11-20  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
-	* org.texi: (Column attributes): Fix documentaion of new operators.
+	* org.texi (Column attributes): Fix documentation of new operators.
 
 2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
