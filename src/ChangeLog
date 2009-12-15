@@ -1,3 +1,8 @@
+2009-12-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (decode_mode_spec): Inhibit garbage collection when
+	calling file-remote-p.  Reported by Jim Meyering.
+
 2009-12-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_retrieve_arg): Reorder declarations in order to

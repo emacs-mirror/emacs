@@ -18630,7 +18630,10 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
     case '@':
       {
 	Lisp_Object val;
+	int count = inhibit_garbage_collection ();
 	val = call1 (intern ("file-remote-p"), current_buffer->directory);
+	unbind_to (count, Qnil);
+
 	if (NILP (val))
 	  return "-";
 	else
