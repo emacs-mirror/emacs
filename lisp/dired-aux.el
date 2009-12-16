@@ -60,21 +60,31 @@ With prefix arg, prompt for second argument SWITCHES,
 which is options for `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
-	  (target-dir (dired-dwim-target-directory))
-	  (marked (and (mark t) (save-excursion
-				  (goto-char (mark t))
-				  (dired-get-filename nil t))))
-	  (defaults
-	    (append (dired-dwim-target-defaults nil target-dir)
-		    ;; Additional file with the mark.
-		    (and marked (list marked)))))
+	  ;; Get the file at the mark.
+	  (file-at-mark (if (mark t)
+			    (save-excursion (goto-char (mark t))
+					    (dired-get-filename t t))))
+	  ;; Use it as default if it's not the same as the current file,
+	  ;; and the target dir is the current dir or the mark is active.
+	  (default (if (and (not (equal file-at-mark current))
+			    (or (equal (dired-dwim-target-directory)
+				       (dired-current-directory))
+				mark-active))
+		       file-at-mark))
+	  (target-dir (if default
+			  (dired-current-directory)
+			(dired-dwim-target-directory)))
+	  (defaults (dired-dwim-target-defaults (list current) target-dir)))
      (require 'diff)
      (list
       (minibuffer-with-setup-hook
 	  (lambda ()
 	    (set (make-local-variable 'minibuffer-default-add-function) nil)
 	    (setq minibuffer-default defaults))
-	(read-file-name (format "Diff %s with: " current) target-dir nil t))
+	(read-file-name
+	 (format "Diff %s with%s: " current
+		 (if default (format " (default %s)" default) ""))
+	 target-dir default t))
       (if current-prefix-arg
 	  (read-string "Options for diff: "
 		       (if (stringp diff-switches)

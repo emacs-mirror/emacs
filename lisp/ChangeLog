@@ -1,3 +1,12 @@
+2009-12-16  Juri Linkov  <juri@jurta.org>
+
+	Revert to old 23.1 logic of using the file at the mark as default.
+	* dired-aux.el (dired-diff): Use the file at the mark as default
+	if it's not the same as the current file, and the target dir is
+	the current dir or the mark is active.  Add the current file
+	as the arg of `dired-dwim-target-defaults'.  Use the default file
+	in the prompt.  (Bug#5225)
+
 2009-12-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-echo-mark-marker-length): New defconst.
