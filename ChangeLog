@@ -1,3 +1,7 @@
+2009-12-17  Glenn Morris  <rgm@gnu.org>
+
+	* .dir-locals.el (bug-reference-url-format): Change to debbugs.gnu.org.
+
 2009-12-15  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Add EDT entry.
