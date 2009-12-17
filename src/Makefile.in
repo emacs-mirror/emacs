@@ -976,7 +976,7 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} pre
    often contain options that have to do with using Emacs''s crt0,
    which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
+	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (USE_GTK)
 

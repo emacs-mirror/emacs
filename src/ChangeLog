@@ -1,3 +1,8 @@
+2009-12-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (prefix-args${EXEEXT}): Don't compile prefix-args.c
+	twice.
+
 2009-12-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (decode_mode_spec): Inhibit garbage collection when
