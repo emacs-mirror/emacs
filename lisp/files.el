@@ -2978,8 +2978,8 @@ DIR-NAME is a directory name if these settings come from
 		 (or (eq enable-local-eval t)
 		     (hack-one-local-variable-eval-safep (eval (quote val)))
 		     (push elt unsafe-vars))))
-	      ;; Ignore duplicates in the present list.
-	      ((assq var all-vars) nil)
+	      ;; Ignore duplicates (except `mode') in the present list.
+	      ((and (assq var all-vars) (not (eq var 'mode))) nil)
 	      ;; Accept known-safe variables.
 	      ((or (memq var '(mode unibyte coding))
 		   (safe-local-variable-p var val))
@@ -2999,7 +2999,7 @@ DIR-NAME is a directory name if these settings come from
 	     (hack-local-variables-confirm all-vars unsafe-vars
 					   risky-vars dir-name))
 	 (dolist (elt all-vars)
-	   (unless (eq (car elt) 'eval)
+	   (unless (memq (car elt) '(eval mode))
 	     (unless dir-name
 	       (setq dir-local-variables-alist
 		     (assq-delete-all (car elt) dir-local-variables-alist)))
@@ -3427,7 +3427,7 @@ and `file-local-variables-alist', without applying them."
 		(dir-locals-get-class-variables class) dir-name nil)))
 	  (when variables
 	    (dolist (elt variables)
-	      (unless (eq (car elt) 'eval)
+	      (unless (memq (car elt) '(eval mode))
 		(setq dir-local-variables-alist
 		      (assq-delete-all (car elt) dir-local-variables-alist)))
 	      (push elt dir-local-variables-alist))

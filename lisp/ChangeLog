@@ -1,5 +1,14 @@
 2009-12-17  Juri Linkov  <juri@jurta.org>
 
+	Fix regression from 23.1 to allow multiple modes in Local Variables.
+
+	* files.el (hack-local-variables-filter): While ignoring duplicates,
+	don't take `mode' into account.
+	(hack-local-variables-filter, hack-dir-local-variables): Don't
+	remove duplicate `mode' from local-variables-alist (like `eval').
+
+2009-12-17  Juri Linkov  <juri@jurta.org>
+
 	Make `dired-diff' more safe.  (Bug#5225)
 
 	* dired-aux.el (dired-diff): Signal an error when `file' equals to
