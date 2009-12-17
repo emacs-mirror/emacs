@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; With this module you can build up a (hopefully) valid find(1)
-;; string ready for the command line. For example:
+;; string ready for the command line.  For example:
 
 ;; (find-cmd '(prune (name ".svn" ".git" ".CVS"))
 ;;           '(and (or (name "*.pl" "*.pm" "*.t")
@@ -120,22 +120,23 @@
     (ok      . (1 find-command t))
     (execdir . (1 find-command t))
     (okdir   . (1 find-command t)))
-  "Holds details of each of the find options. The car of each
-alist is the name. The cdr is minimum args, the function used
-to join many occurences of the argument together, and whether or
-not to leave quotes off the string (non-nil means the string will
-be quoted).")
+  "Holds details of each of the find options.
+The car of each alist is the name.  The cdr is minimum args, the
+function used to join many occurences of the argument together,
+and whether or not to leave quotes off the string (non-nil means
+the string will be quoted).")
 
 ;;;###autoload
 (defun find-cmd (&rest subfinds)
-  "Initiate the building of a find command. For exmple:
+  "Initiate the building of a find command.
+For example:
 
 \(find-cmd '\(prune \(name \".svn\" \".git\" \".CVS\"\)\)
           '\(and \(or \(name \"*.pl\" \"*.pm\" \"*.t\"\)
                     \(mtime \"+1\"\)\)
                 \(fstype \"nfs\" \"ufs\"\)\)\)\)
 
-`default-directory' is used as the initial search path. The
+`default-directory' is used as the initial search path.  The
 result is a string that should be ready for the command line."
   (concat
    "find " (shell-quote-argument (expand-file-name default-directory)) " "
@@ -178,7 +179,7 @@ suffice:
   (concat "-not " (find-or (mapcar 'find-to-string form))))
 
 (defun find-prune (form)
-  "-or together FORM(s) postfix '-prune' and then -or that with a
+  "-or together FORMs postfix '-prune' and then -or that with a
 -true, so:
   \(prune \(name \".svn\" \".git\"\)\) \(name \"*.pm\"\)
 will produce (unwrapped):
@@ -190,11 +191,12 @@ will produce (unwrapped):
     (find-generic "true"))))
 
 (defun find-generic (option &optional oper argcount args dont-quote)
-  "This function allows an arbitrary string to be used as a
-form. OPTION is the name of the form, OPER is the function used
-to either OR or AND multiple results together. ARGCOUNT is the
-minimum of args that OPTION can receive and ARGS are the
-arguments for OPTION."
+  "Allow an arbitrary string to be used as a form.
+OPTION is the name of the form, OPER is the function used to either
+OR or AND multiple results together.  ARGCOUNT is the minimum of
+args that OPTION can receive and ARGS are the arguments for OPTION.
+If DONT-QUOTE is non-nil, arguments are quoted for passing them to
+the shell."
   (when (and (numberp argcount) (< (length args) argcount))
     (error "'%s' needs at least %d arguments" option argcount))
   (let ((oper (or oper 'find-or)))
@@ -211,7 +213,7 @@ arguments for OPTION."
 
 (defun find-command (form)
   "For each item in FORM add a terminating semi-colon and turn
-them into valid switches. The result is -and(ed) together."
+them into valid switches.  The result is -and(ed) together."
   (find-and (mapcar (lambda (x)
                       (concat (find-to-string x) "\\; "))
                     form)))

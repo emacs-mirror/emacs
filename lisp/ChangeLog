@@ -1,3 +1,11 @@
+2009-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	Some doc fixes (more needed).
+
+	* find-cmd.el (find-constituents): Reflow docstring.
+	(find-cmd, find-prune, find-command): Fix typos in docstrings.
+	(find-generic): Doc fix.
+
 2009-12-17  Juri Linkov  <juri@jurta.org>
 
 	Fix regression from 23.1 to allow multiple modes in Local Variables.
@@ -661,7 +669,7 @@
 
 	* progmodes/cc-mode.el (c-basic-common-init):
 	Call c-state-cache-init.
-	(c-neutralize-syntax-in-and-mark-CPP):  Rename from
+	(c-neutralize-syntax-in-and-mark-CPP): Rename from
 	c-extend-and-neutralize-syntax-in-CPP.  Mark each CPP construct by
 	placing `category' properties value 'c-cpp-delimiter at its boundaries.
 
