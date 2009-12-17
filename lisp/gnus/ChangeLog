@@ -1,3 +1,8 @@
+2009-12-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Change emacs entry to debbugs.gnu.org.  Bump :version.
+
 2009-12-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-encode.el (mm-sign-option, mm-encrypt-option): Add :version tag.
