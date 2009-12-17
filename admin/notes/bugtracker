@@ -1,8 +1,8 @@
 NOTES ON THE EMACS BUG TRACKER   -*- outline -*-
 
-The Emacs Bug Tracker can be found at http://emacsbugs.donarmstrong.com/
+The Emacs Bug Tracker can be found at http://debbugs.gnu.org/
 
-For a list of all bugs, see http://emacsbugs.donarmstrong.com/emacs
+For a list of all bugs, see http://debbugs.gnu.org/emacs
 
 ** How do I report a bug in Emacs now?
 The same way as you always did.  Send mail to bug-gnu-emacs@gnu.org,
@@ -21,10 +21,10 @@ see below).
 Once your report is filed and assigned a number, it is sent out to the
 bug mailing list.  In some cases, it may be appropriate to just file a
 bug, without sending out a copy.  To do this, send mail to
-quiet@emacsbugs.donarmstrong.com.
+quiet@debbugs.gnu.org.
 
 ** How do I reply to an existing bug report?
-Reply to 123@emacsbugs.donarmstrong.com, replacing 123 with the number
+Reply to 123@debbugs.gnu.org, replacing 123 with the number
 of the bug you are interested in.  NB this only sends mail to the
 bug-list, it does NOT (?) send a CC to the original bug submitter.
 So you need to explicitly CC him/her (and anyone else you like).
@@ -40,12 +40,14 @@ new report.
 Gnus users can add the following to message-dont-reply-to-names;
 similarly with Rmail and rmail-dont-reply-to-names:
 
+[FIXME needs updating for debbugs.gnu.org]
+
 "\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org\\|\
 \\(\\(submit\\|control\\|owner\\)@emacsbugs\\.\\|bug-submit-list@\\)\
 donarmstrong\\.com"
 
 The "bug-submit-list@donarmstrong.com" and
-"owner@emacsbugs.donarmstrong.com" entries are there because they can
+"owner@debbugs.gnu.org" entries are there because they can
 appear in the "Resent-To" and "Resent-CC" headers, respectively. For a
 long time Rmail erroneously included these headers in replies.  If you
 correspond with an Rmail user on a bug, these addresses may end up in
@@ -76,10 +78,12 @@ more the way people expect.
 ** How does Debbugs send out mails?
 
 The mails are sent out to the bug list with From: and To: unchanged.
-Eg if you file a bug with "submit@emacsbugs.donarmstrong.com", that
+Eg if you file a bug with "submit@debbugs.gnu.org", that
 remains in the To: address.  They reach the bug list by being resent.
 
 Mails arriving at the bug list have the following Resent-* headers:
+
+[ FIXME needs updating for debbugs.gnu.org ]
 
 Resent-From: person who submitted the bug
 Resent-To:   bug-submit-list@donarmstrong.com
@@ -90,7 +94,7 @@ in most cases.
 
 They also have:
 
-Reply-To:   bug submitter, 123@emacsbugs.donarmstrong.com
+Reply-To:   bug submitter, 123@debbugs.gnu.org
 
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
@@ -106,7 +110,7 @@ This can be useful to make a note of something discussed on
 emacs-devel that needs fixing.  In other words, this can be the
 equivalent of adding something to FOR-RELEASE.
 
-To: quiet@emacsbugs.donarmstrong.com
+To: quiet@debbugs.gnu.org
 [headers end]
 Package: emacs
 Version: 23.0.60
@@ -131,7 +135,7 @@ reporting a new bug.
 
 ** To close bug #123 (for example), send mail
 
-To: 123-done@emacsbugs.donarmstrong.com
+To: 123-done@debbugs.gnu.org
 
 with a brief explanation in the body as to why the bug was closed.
 There is no need to cc the address without the "-done" part or the
@@ -151,7 +155,7 @@ Optionally, add a sub-package, eg Package: emacs,calendar.
 This can include tags.  Some things (e.g. submitter) don't seem to
 work here.
 
-Otherwise, send mail to the control server, control@emacsbugs.donarmstrong.com.
+Otherwise, send mail to the control server, control@debbugs.gnu.org.
 At the start of the message body, supply the desired commands, one per
 line:
 
@@ -173,7 +177,7 @@ reopen 123
 *** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 The available tags are:
 patch wontfix moreinfo unreproducible fixed notabug
-Note that the list at http://emacsbugs.donarmstrong.com/Developer#tags
+Note that the list at http://debbugs.gnu.org/Developer#tags
 is incorrect, at least for Emacs.
 The list of tags can be prefixed with +, - or =, meaning to add (the
 default), remove, or reset the tags. E.g.:
@@ -289,7 +293,7 @@ You must unmerge, clone, then re-merge.
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist
 
-See http://emacsbugs.donarmstrong.com/Developer#severities for the meanings.
+See http://debbugs.gnu.org/Developer#severities for the meanings.
 
 *** To set the owner of a bug:
 owner 123 A Hacker <none@example.com>
@@ -335,7 +339,7 @@ The bug will be re-archived after the next 28 day period of no activity.
 It's a function of the number of displayed bugs.  You can speed things
 up by only looking at the newest 100 bugs:
 
-http://emacsbugs.donarmstrong.com/cgi-bin/pkgreport.cgi?newest=100;package=emacs
+http://debbugs.gnu.org/cgi-bin/pkgreport.cgi?newest=100;package=emacs
 
 The above page is accessible from the "Options" section at the end of
 the "main list of bugs" page. Select bugs "in package" = emacs;
@@ -379,8 +383,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 *** If the above is not available:
 (add-hook 'gnus-article-mode-hook
           (lambda ()
-             (setq bug-reference-url-format
-               "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s")
+             (setq bug-reference-url-format "http://debbugs.gnu.org/%s")
               (bug-reference-mode 1)))
 
 and you can click on the bug number in the subject header.
