@@ -90,7 +90,14 @@ which is options for `diff'."
 		       (if (stringp diff-switches)
 			   diff-switches
 			 (mapconcat 'identity diff-switches " ")))))))
-  (diff file (dired-get-filename t) switches))
+  (let ((current (dired-get-filename t)))
+    (when (or (equal (expand-file-name file)
+		     (expand-file-name current))
+	      (and (file-directory-p file)
+		   (equal (expand-file-name current file)
+			  (expand-file-name current))))
+      (error "Attempt to compare the file to itself"))
+    (diff file current switches)))
 
 ;;;###autoload
 (defun dired-backup-diff (&optional switches)
