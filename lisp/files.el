@@ -5365,7 +5365,10 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	   ;; A list of all dirs that DIRPART specifies.
 	   ;; This can be more than one dir
 	   ;; if DIRPART contains wildcards.
-	   (dirs (if (and dirpart (string-match "[[*?]" dirpart))
+	   (dirs (if (and dirpart
+			  (string-match "[[*?]"
+					(or (file-remote-p dirpart 'localname)
+					    dirpart)))
 		     (mapcar 'file-name-as-directory
 			     (file-expand-wildcards (directory-file-name dirpart)))
 		   (list dirpart)))
@@ -5391,6 +5394,9 @@ default directory.  However, if FULL is non-nil, they are absolute."
 		   contents))))
 	(setq dirs (cdr dirs)))
       contents)))
+
+;; Let Tramp know that `file-expand-wildcards' does not need an advice.
+(provide 'files '(remote-wildcards))
 
 (defun list-directory (dirname &optional verbose)
   "Display a list of files in or matching DIRNAME, a la `ls'.

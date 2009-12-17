@@ -1,3 +1,19 @@
+2009-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Make `file-expand-wildcards' work for remote files.
+
+	* files.el (file-expand-wildcards): In case of remote files, check
+	only local file name part for wildcards.  Provide feature 'files
+	and subfeature 'remote-wildcards.  (Bug#5198)
+
+	* net/tramp.el (tramp-handle-file-remote-p): Expand file name only
+	if there is already an established connection.
+	(tramp-advice-file-expand-wildcards): Remove it.
+
+	* net/tramp-compat.el (top): Autoload `tramp-handle-file-remote-p'.
+	(tramp-advice-file-expand-wildcards): Moved from tramp.el.
+	Activate advice for older GNU Emacs versions.  (Bug#5237)
+
 2009-12-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	Some doc fixes (more needed).

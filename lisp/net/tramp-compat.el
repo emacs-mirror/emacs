@@ -44,6 +44,7 @@
 
   (autoload 'tramp-tramp-file-p "tramp")
   (autoload 'tramp-file-name-handler "tramp")
+  (autoload 'tramp-handle-file-remote-p "tramp")
 
   ;; tramp-util offers integration into other (X)Emacs packages like
   ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
@@ -143,7 +144,35 @@
       (lambda (filename &optional time)
 	(when (tramp-tramp-file-p filename)
 	  (tramp-file-name-handler
-	   'set-file-times filename time))))))
+	   'set-file-times filename time)))))
+
+  ;; We currently use "[" and "]" in the filename format for IPv6
+  ;; hosts of GNU Emacs.  This means, that Emacs wants to expand
+  ;; wildcards if `find-file-wildcards' is non-nil, and then barfs
+  ;; because no expansion could be found.  We detect this situation
+  ;; and do something really awful: we have `file-expand-wildcards'
+  ;; return the original filename if it can't expand anything.  Let's
+  ;; just hope that this doesn't break anything else.
+  ;; It is not needed anymore since GNU Emacs 23.2.
+  (unless (or (featurep 'xemacs) (featurep 'files 'remote-wildcards))
+    (defadvice file-expand-wildcards
+      (around tramp-advice-file-expand-wildcards activate)
+      (let ((name (ad-get-arg 0)))
+	;; If it's a Tramp file, look if wildcards need to be expanded
+	;; at all.
+	(if (and
+	     (tramp-tramp-file-p name)
+	     (not (string-match
+		   "[[*?]" (tramp-handle-file-remote-p name 'localname))))
+	    (setq ad-return-value (list name))
+	  ;; Otherwise, just run the original function.
+	  ad-do-it)))
+    (add-hook
+     'tramp-unload-hook
+     (lambda ()
+       (ad-remove-advice
+	'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
+       (ad-activate 'file-expand-wildcards)))))
 
 (defsubst tramp-compat-line-beginning-position ()
   "Return point at beginning of line (compat function).
