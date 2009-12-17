@@ -723,9 +723,9 @@ Calls `update-directory-autoloads' on the command line arguments."
 		  (forward-line 1))))
 	  (with-temp-buffer
 	    (insert-file-contents mfile)
-	    (when (re-search-forward "^lisp= " nil t)
+	    (when (re-search-forward "^shortlisp= " nil t)
 	      (setq lim (line-end-position))
-	      (while (re-search-forward "\\${lispsource}\\([^ ]+\\.el\\)c?\\>"
+	      (while (re-search-forward "\\.\\./lisp/\\([^ ]+\\.el\\)c?\\>"
 					lim t)
 		(push (expand-file-name (match-string 1) ldir)
 		      autoload-excludes))))))))
