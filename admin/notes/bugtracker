@@ -2,7 +2,8 @@ NOTES ON THE EMACS BUG TRACKER   -*- outline -*-
 
 The Emacs Bug Tracker can be found at http://debbugs.gnu.org/
 
-For a list of all bugs, see http://debbugs.gnu.org/emacs
+For a list of all bugs, see http://debbugs.gnu.org/db/pa/lemacs.html
+(this is a static page, updated once a day)
 
 ** How do I report a bug in Emacs now?
 The same way as you always did.  Send mail to bug-gnu-emacs@gnu.org,
