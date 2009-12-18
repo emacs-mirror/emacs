@@ -1816,13 +1816,13 @@ via telnet.")
 (defun nntp-service-to-port (svc)
   (cond
    ((integerp svc) (number-to-string svc))
-   ((string-match "\\`[[:digit:]]\\'" svc) svc)
+   ((string-match "\\`[0-9]+\\'" svc) svc)
    (t
     (with-temp-buffer
       (ignore-errors (insert-file-contents "/etc/services"))
       (goto-char (point-min))
       (if (re-search-forward (concat "^" (regexp-quote svc)
-                                     "[ \t]+\\([[:digit:]]+\\)/tcp"))
+                                     "[ \t]+\\([0-9]+\\)/tcp"))
           (match-string 1)
         svc)))))
 
