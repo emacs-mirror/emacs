@@ -1,7 +1,7 @@
 2009-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* nntp.el (nntp-service-to-port): Work for port expressed with numeric
-	string; replace [:digit:] with [0-9] for XEmacs.
+	* nntp.el (nntp-service-to-port): Work for service expressed with
+	numeric string; replace [:digit:] with [0-9] for XEmacs.
 
 2009-12-17  Glenn Morris  <rgm@gnu.org>
 
