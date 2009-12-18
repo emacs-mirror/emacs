@@ -14393,7 +14393,7 @@ installed.  You then define a server as follows:
 ;;
 (nntp "snews.bar.com"
       (nntp-open-connection-function nntp-open-tls-stream)
-      (nntp-port-number )
+      (nntp-port-number 563)
       (nntp-address "snews.bar.com"))
 @end lisp
 
