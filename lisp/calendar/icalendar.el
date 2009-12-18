@@ -454,7 +454,7 @@ The strings are suitable for assembling into a TZ variable."
 	    (cons
 	     (concat
 	      ;; Fake a name.
-	      (if dst-p "(DST?)" "(STD?)")
+	      (if dst-p "DST" "STD")
 	      ;; For TZ, OFFSET is added to the local time.  So,
 	      ;; invert the values.
 	      (if (eq (aref offset 0) ?-) "+" "-")
@@ -466,6 +466,10 @@ The strings are suitable for assembling into a TZ variable."
 		    (week (if (eq day -1)
 			      byday
 			    (substring byday 0 -2))))
+               ;; "Translate" the icalendar way to specify the last
+               ;; (sun|mon|...)day in month to the tzset way.
+               (if (string= week "-1")  ; last day as icalendar calls it
+                   (setq week "5"))     ; last day as tzset calls it
 	       (concat "M" bymonth "." week "." (if (eq day -1) "0"
 						  (int-to-string day))
 		       ;; Start time.
@@ -2241,6 +2245,12 @@ the entry."
                    'diary-make-entry
                  'make-diary-entry)
                string non-marking diary-file)))
+  ;; Würgaround to remove the trailing blank char
+  (save-excursion
+    (set-buffer (find-file diary-file))
+    (goto-char (point-max))
+    (if (= (char-before) ? )
+        (delete-char -1)))
   ;; return diary-file in case it has been changed interactively
   diary-file)
 

@@ -1,3 +1,11 @@
+2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--convert-tz-offset): Fixed
+	timezone names.
+	(icalendar--convert-tz-offset): Fixed the "last-day-problem".
+	(icalendar--add-diary-entry): Remove the trailing blank that
+	diary-make-entry inserts.
+
 2009-12-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	Make `file-expand-wildcards' work for remote files.

@@ -1,3 +1,15 @@
+2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar-testsuite.el
+	(icalendar-testsuite--run-function-tests): Added
+	icalendar-testsuite--test-parse-vtimezone.
+	(icalendar-testsuite--test-parse-vtimezone): New.
+	(icalendar-testsuite--do-test-cycle): Doc changes.
+	(icalendar-testsuite--run-real-world-tests): Removed trailing
+	whitespace -- see change of icalendar--add-diary-entry in
+	icalendar.el.
+	(icalendar-testsuite--run-cycle-tests): Re-enabled all tests.
+
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* cedet/semantic-utest-c.el: Relicense under GPLv3+.

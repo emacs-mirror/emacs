@@ -53,7 +53,8 @@
   (icalendar-testsuite--test-datetime-to-diary-date)
   (icalendar-testsuite--test-diarytime-to-isotime)
   (icalendar-testsuite--test-calendar-style)
-  (icalendar-testsuite--test-create-uid))
+  (icalendar-testsuite--test-create-uid)
+  (icalendar-testsuite--test-parse-vtimezone))
 
 (defun icalendar-testsuite--test-format-ical-event ()
   "Test `icalendar--format-ical-event'."
@@ -272,6 +273,48 @@ END:VEVENT
                       (icalendar--create-uid entry-full contents)))
     ))
 
+(defun icalendar-testsuite--test-parse-vtimezone ()
+  (let (vtimezone result)
+    (setq vtimezone (icalendar-testsuite--get-ical-event "BEGIN:VTIMEZONE
+TZID:thename
+BEGIN:STANDARD
+DTSTART:16010101T040000
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010101T030000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0300
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=3
+END:DAYLIGHT
+END:VTIMEZONE
+"))
+    (setq result (icalendar--parse-vtimezone vtimezone))
+    (assert (string= "thename" (car result)))
+    (message (cdr result))
+    (assert (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00" (cdr result)))
+    (setq vtimezone (icalendar-testsuite--get-ical-event "BEGIN:VTIMEZONE
+TZID:anothername
+BEGIN:STANDARD
+DTSTART:16010101T040000
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0200
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=2MO;BYMONTH=10
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010101T030000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0300
+RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=2MO;BYMONTH=3
+END:DAYLIGHT
+END:VTIMEZONE
+"))
+    (setq result (icalendar--parse-vtimezone vtimezone))
+    (assert (string= "anothername" (car result)))
+    (message (cdr result))
+    (assert (string= "STD-02:00DST-03:00,M3.2.1/03:00:00,M10.2.1/04:00:00" (cdr result)))))
 
 ;; ======================================================================
 ;; Test methods for exporting from diary to icalendar
@@ -455,10 +498,16 @@ Argument INPUT icalendar event string."
   (let ((temp-diary (make-temp-file "icalendar-test-diary"))
         (temp-ics (make-temp-file "icalendar-test-ics"))
         (org-input (buffer-substring-no-properties (point-min) (point-max))))
+
+    ;; step 1: import
     (icalendar-import-buffer temp-diary t t)
+
+    ;; step 2: export what was just imported
     (save-excursion
       (find-file temp-diary)
       (icalendar-export-region (point-min) (point-max) temp-ics))
+
+    ;; compare the output of step 2 with the input of step 1
     (save-excursion
       (find-file temp-ics)
       (goto-char (point-min))
@@ -468,6 +517,8 @@ Argument INPUT icalendar event string."
         (unless (string-equal org-input cycled)
           (error "Import test failed! Found `%s'\nbut expected `%s'" cycled
                  org-input))))
+
+    ;; clean up -- Note this is done only if test is passed
     (kill-buffer (find-buffer-visiting temp-diary))
     (save-excursion
       (set-buffer (find-buffer-visiting temp-ics))
@@ -1410,42 +1461,42 @@ END:VCALENDAR
    nil
    "&23/11/2004 14:00-14:30 Jjjjj & Wwwww
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &23/11/2004 14:45-15:45 BB Aaaaaaaa Bbbbb
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &23/11/2004 11:00-12:00 Hhhhhhhh
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &%%(and (diary-cyclic 14 12 11 2004)) 14:00-18:30 MMM Aaaaaaaaa
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &%%(and (diary-block 19 11 2004 19 11 2004)) Rrrr/Cccccc ii Aaaaaaaa
  Desc: Vvvvv Rrrr aaa Cccccc
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &%%(and (diary-cyclic 7 1 11 2004)) Wwww aa hhhh
  Status: TENTATIVE
- Class: PRIVATE "
+ Class: PRIVATE"
    "&11/23/2004 14:00-14:30 Jjjjj & Wwwww
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &11/23/2004 14:45-15:45 BB Aaaaaaaa Bbbbb
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &11/23/2004 11:00-12:00 Hhhhhhhh
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &%%(and (diary-cyclic 14 11 12 2004)) 14:00-18:30 MMM Aaaaaaaaa
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &%%(and (diary-block 11 19 2004 11 19 2004)) Rrrr/Cccccc ii Aaaaaaaa
  Desc: Vvvvv Rrrr aaa Cccccc
  Status: TENTATIVE
- Class: PRIVATE 
+ Class: PRIVATE
 &%%(and (diary-cyclic 7 11 1 2004)) Wwww aa hhhh
  Status: TENTATIVE
- Class: PRIVATE ")
+ Class: PRIVATE")
 
   ;; 2004-09-09 pg
   (icalendar-testsuite--test-export
@@ -1555,13 +1606,12 @@ LOCATION:nowhere
 ORGANIZER:ulf
 ")
 
-  ;; FIXME: does not work
-  ;;  (icalendar-testsuite--test-cycle
-  ;;   "DTSTART;VALUE=DATE:19190909
-  ;;DTEND;VALUE=DATE:19190910
-  ;;RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=09
-  ;;SUMMARY:and diary-anniversary
-  ;;")
+    (icalendar-testsuite--test-cycle
+     "DTSTART;VALUE=DATE:19190909
+DTEND;VALUE=DATE:19190910
+RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=09
+SUMMARY:and diary-anniversary
+")
   )
 
 
