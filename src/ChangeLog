@@ -1,3 +1,87 @@
+2009-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Update dependencies in Makefile.in.
+
+	* Makefile.in (alloc.o): Depend on termhooks.h.
+	(atimer.o): Depend on blockinput.h.
+	(buffer.o): Depend on indent.h, keyboard.h, coding.h, keymap.h,
+	and frame.h.
+	(callint.o): Depend on systime.h, coding.h, and composite.h.
+	(callproc.o): Depend on buffer.h.
+	(casefiddle.o): Don't depend on charset.h.
+	(casetab.o): Depend on character.h.
+	(ccl.o): Depend on composite.h.
+	(chartab.o): Depend on ccl.h.
+	(cm.o): Depend on dispextern.h.
+	(cmds.o): Depend on systime.h, coding.h, frame.h, and composite.h.
+	(coding.o): Don't depend on $(INTERVALS_H).
+	(composite.o): Don't depend on dispextern.h explicitly (it's in
+	$(INTERVALS_H)).  Depend on ccl.h.
+	(data.o): Depend on systime.h, coding.h, composite.h,
+	dispextern.h, font.h, and ccl.h.
+	(dired.o): Depend on composite.h.
+	(dispnew.o): Depend on coding.h.  Don't depend explicitly on
+	composite.h (it's in $(INTERVALS_H)).
+	(doc.o): Depend on systime.h, coding.h, and composite.h.
+	(editfns.o): Don't depend explicitly on dispextern.h.
+	(emacs.o): Depend on frame.h and coding.h.
+	(eval.o): Depend on coding.h, composite.h, and xterm.h.
+	(fileio.o): Depend on frame.h and commands.h.  Don't depend
+	explicitly on dispextern.h.
+	(filelock.o): Don't depend on epaths.h and charset.h.  Depend on
+	composite.h.
+	(fns.o): Don't depend on termhooks.h.
+	(font.o): Depend on buffer.h, composite.h, fontset.h, and xterm.h.
+	(fontset.o): Depend on blockinput.h, atimer.h, systime.h,
+	coding.h, $(INTERVALS_H), window.h, xterm.h.
+	(frame.o): Depend on coding.h, composite.h, termhooks.h, and ccl.h.
+	(fringe.o): Depend on blockinput.h, atimer.h, and systime.h.
+	(ftfont.o): Depend on blockinput.h, atimer.h, systime.h, coding.h,
+	fontset.h, ccl.h, and ftfont.h.
+	(ftxfont.o): Depend on atimer.h, systime.h, fontset.h, and ccl.h.
+	(gtkutil.o): Depend on dispextern.h and composite.h.
+	(image.o): Depend on epaths.h, character.h, coding.h, composite.h,
+	termhooks.h, and ccl.h.
+	(indent.o): Depend on systime.h, coding.h, and $(INTERVALS_H).
+	(intervals.o): Depend on systime.h and coding.h.
+	(keyboard.o): Depend on composite.h and coding.h.
+	(keymap.o): Depend on coding.h and frame.h.
+	(lread.o): Depend on systime.h, frame.h, blockinput.h, and atimer.h.
+	(macros.o): Depend on systime.h, coding.h, and composite.h.
+	(menu.o): Depend on systime.h, coding.h, composite.h, window.h,
+	and atimer.h.
+	(minibuf.o): Depend on systime.h and coding.h.  Don't depend on
+	dispextern.h explicitly.
+	(print.o): Depend on termhooks.h, coding.h, and ccl.h.  Don't
+	depend explicitly on dispextern.h and composite.h.
+	(process.o): Depend on character.h, xgselect.h, and sysselect.h.
+	(regex.o): Don't depend on charset.h.
+	(scroll.o): Depend on systime.h, coding.h, composite.h, and window.h.
+	(search.o): Don't depend explicitly on composite.h.
+	(sound.o): Depend on atimer.h and systime.h.
+	(syntax.o): Don't depend explicitly on composite.h.
+	(sysdep.o): Depend on coding.h and composite.h.
+	(term.o): Depend on xterm.h and buffer.h.
+	(terminal.o): Depend on dispextern.h, composite.h, and systime.h.
+	(textprop.o): Don't depend on dispextern.h explicitly.
+	(undo.o): Depend on dispextern.h.
+	(window.o): Depend on coding.h and termhooks.h.  Don't depend on
+	dispextern.h and composite.h explicitly.
+	(xdisp.o): Depend on ccl.h.
+	(xfaces.o): Depend on coding.h and ccl.h.
+	(xfns.o): Depend on $(INTERVALS_H) and ccl.h.
+	(xfont.o): Depend on atimer.h, systime.h, fontset.h, and ccl.h.
+	(xftfont.o): Depend on atimer.h, systime.h, fontset.h, ccl.h, and
+	ftfont.h.
+	(xgselect.o): New dependency.
+	(xmenu.o): Depend on composite.h, keymap.h, and sysselect.h.
+	(xselect.o): Depend on keyboard.h, coding.h, and composite.h.
+	(xsettings.o): Depend on dispextern.h, keyboard.h, systime.h,
+	coding.h, composite.h, blockinput.h, atimer.h, and termopts.h.
+	(xsmfns.o): Depend on frame.h and dispextern.h.
+	(xterm.o): Depend on intervals.h, keymap.h, xgselect.h, and
+	sysselect.h.
+
 2009-12-19  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* font.c (Fclear_font_cache): Pass correct cache argument to
