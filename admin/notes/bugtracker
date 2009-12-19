@@ -43,20 +43,16 @@ new report.
 Gnus users can add the following to message-dont-reply-to-names;
 similarly with Rmail and rmail-dont-reply-to-names:
 
-[FIXME needs updating for debbugs.gnu.org]
-
 "\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org\\|\
-\\(\\(submit\\|control\\|owner\\)@emacsbugs\\.\\|bug-submit-list@\\)\
-donarmstrong\\.com"
+\\(submit\\|control\\|owner\\)@debbugs\\.gnu\\.org"
 
-The "bug-submit-list@donarmstrong.com" and
-"owner@debbugs.gnu.org" entries are there because they can
-appear in the "Resent-To" and "Resent-CC" headers, respectively. For a
-long time Rmail erroneously included these headers in replies.  If you
-correspond with an Rmail user on a bug, these addresses may end up in
-the Cc.  Mailing to them does nothing but create duplicates and errors.
-(It is possible you might want to have a dialog with the owner
-address, outside of normal bug reporting.)
+The "owner@debbugs.gnu.org" entry is there because it appears in the
+"Resent-To" header.  For a long time Rmail erroneously included such
+headers in replies.  If you correspond with an Rmail user on a bug,
+these addresses may end up in the Cc.  Mailing to them does nothing
+but create duplicates and errors.  (It is possible you might want to
+have a dialog with the owner address, outside of normal bug
+reporting.)
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
@@ -86,18 +82,16 @@ remains in the To: address.  They reach the bug list by being resent.
 
 Mails arriving at the bug list have the following Resent-* headers:
 
-[ FIXME needs updating for debbugs.gnu.org ]
-
 Resent-From: person who submitted the bug
-Resent-To:   bug-submit-list@donarmstrong.com
+Resent-To:   owner@debbugs.gnu.org
 Resent-CC:   maintainer email address, plus any X-Debbugs-CC: entries
 
-The "maintainer email address" is "Emacs Bugs <bug-gnu-emacs@gnu.org>"
-in most cases.
+The "maintainer email address" is "bug-gnu-emacs@gnu.org" in most cases.
 
 They also have:
 
-Reply-To:   bug submitter, 123@debbugs.gnu.org
+Reply-To: bug submitter, 123@debbugs.gnu.org
+Mail-Followup-To: bug submitter, 123@debbugs.gnu.org
 
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
