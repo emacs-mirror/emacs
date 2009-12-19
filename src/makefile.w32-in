@@ -506,6 +506,7 @@ $(BLD)/cmds.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
+	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
