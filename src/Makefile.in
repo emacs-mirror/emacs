@@ -1257,7 +1257,7 @@ xsettings.o: xterm.h xsettings.h lisp.h frame.h termhooks.h $(config_h) \
 
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h \
  keyboard.h blockinput.h atimer.h systime.h character.h lisp.h $(config_h) \
- $(INTERVALS_H) termhooks.o
+ $(INTERVALS_H) termhooks.h
 bytecode.o: bytecode.c buffer.h syntax.h character.h window.h dispextern.h \
   frame.h xterm.h lisp.h $(config_h)
 data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h frame.h \
