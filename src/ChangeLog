@@ -1,3 +1,8 @@
+2009-12-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* font.c (Fclear_font_cache): Pass correct cache argument to
+	font_clear_cache.
+
 2009-12-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (prefix-args${EXEEXT}): Don't compile prefix-args.c
