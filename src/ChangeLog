@@ -1,5 +1,7 @@
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in ($(BLD)/cmds.$(O)): Depend on frame.h.
+
 	Update dependencies in Makefile.in.
 
 	* Makefile.in (alloc.o): Depend on termhooks.h.
