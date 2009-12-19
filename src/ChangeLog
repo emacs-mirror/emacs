@@ -1,5 +1,12 @@
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit (pitx): Don't use enum names, use their values.  Remove
+	reference to non-existing value GET_FROM_COMPOSITION.
+	(pgx): Don't use enum names, use their values.
+	(pitmethod): New helper command.
+	(pitx): Use it to display iteration method.
+	(pgrowit): New command.
+
 	* makefile.w32-in ($(BLD)/cmds.$(O)): Depend on frame.h.
 
 	Update dependencies in Makefile.in.
