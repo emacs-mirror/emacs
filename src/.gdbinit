@@ -163,6 +163,35 @@ Print current buffer's point and boundaries.
 Prints values of point, beg, end, narrow, and gap for current buffer.
 end
 
+define pitmethod
+  set $itmethod = $arg0
+  # output $itmethod
+  if ($itmethod == 0)
+    printf "GET_FROM_BUFFER"
+  end
+  if ($itmethod == 1)
+    printf "GET_FROM_DISPLAY_VECTOR"
+  end
+  if ($itmethod == 2)
+    printf "GET_FROM_STRING"
+  end
+  if ($itmethod == 3)
+    printf "GET_FROM_C_STRING"
+  end
+  if ($itmethod == 4)
+    printf "GET_FROM_IMAGE"
+  end
+  if ($itmethod == 5)
+    printf "GET_FROM_STRETCH"
+  end
+  if ($itmethod < 0 || $itmethod > 5)
+    output $itmethod
+  end
+end
+document pitmethod
+Pretty print it->method given as first arg
+end
+
 # Print out iterator given as first arg
 define pitx
   set $it = $arg0
@@ -193,7 +222,7 @@ define pitx
   if ($it->sp != 0)
     printf " sp=%d", $it->sp
   end
-  if ($it->what == IT_CHARACTER)
+  if ($it->what == 0) # IT_CHARACTER
     if ($it->len == 1 && $it->c >= ' ' && it->c < 255)
       printf " ch='%c'", $it->c
     else
@@ -201,19 +230,40 @@ define pitx
     end
   else
     printf " "
-    output $it->what
+    # output $it->what
+    if ($it->what == 0)
+      printf "IT_CHARACTER"
+    end
+    if ($it->what == 1)
+      printf "IT_COMPOSITION"
+    end
+    if ($it->what == 2)
+      printf "IT_IMAGE"
+    end
+    if ($it->what == 3)
+      printf "IT_STRETCH"
+    end
+    if ($it->what == 4)
+      printf "IT_EOB"
+    end
+    if ($it->what == 5)
+      printf "IT_TRUNCATION"
+    end
+    if ($it->what == 6)
+      printf "IT_CONTINUATION"
+    end
+    if ($it->what < 0 || $it->what > 6)
+      output $it->what
+    end
   end
-  if ($it->method != GET_FROM_BUFFER)
+  if ($it->method != 0) # GET_FROM_BUFFER
     printf " next="
-    output $it->method
-    if ($it->method == GET_FROM_STRING)
+    pitmethod $it->method
+    if ($it->method == 2) # GET_FROM_STRING
       printf "[%d]", $it->current.string_pos.charpos
     end
-    if ($it->method == GET_FROM_IMAGE)
+    if ($it->method == 4) # GET_FROM_IMAGE
       printf "[%d]", $it->image_id
-    end
-    if ($it->method == GET_FROM_COMPOSITION)
-      printf "[%d,%d,%d]", $it->cmp_id, $it->len, $it->cmp_len
     end
   end
   printf "\n"
@@ -231,7 +281,7 @@ define pitx
   while ($i < $it->sp && $i < 4)
     set $e = $it->stack[$i]
     printf "stack[%d]: ", $i
-    output $e->method
+    pitmethod $e->method
     printf "[%d]", $e->position.charpos
     printf "\n"
     set $i = $i + 1
@@ -395,20 +445,24 @@ end
 
 define pgx
   set $g = $arg0
-  if ($g->type == CHAR_GLYPH)
+  # CHAR_GLYPH
+  if ($g->type == 0)
     if ($g->u.ch >= ' ' && $g->u.ch < 127)
       printf "CHAR[%c]", $g->u.ch
     else
       printf "CHAR[0x%x]", $g->u.ch
     end
   end
-  if ($g->type == COMPOSITE_GLYPH)
+  # COMPOSITE_GLYPH
+  if ($g->type == 1)
     printf "COMP[%d]", $g->u.cmp_id
   end
-  if ($g->type == IMAGE_GLYPH)
+  # IMAGE_GLYPH
+  if ($g->type == 2)
     printf "IMAGE[%d]", $g->u.img_id
   end
-  if ($g->type == STRETCH_GLYPH)
+  # STRETCH_GLYPH
+  if ($g->type == 3)
     printf "STRETCH[%d+%d]", $g->u.stretch.height, $g->u.stretch.ascent
   end
   xgettype ($g->object)
@@ -418,7 +472,8 @@ define pgx
     printf " pos=%d", $g->charpos
   end
   printf " w=%d a+d=%d+%d", $g->pixel_width, $g->ascent, $g->descent
-  if ($g->face_id != DEFAULT_FACE_ID)
+  # If not DEFAULT_FACE_ID
+  if ($g->face_id != 0)
     printf " face=%d", $g->face_id
   end
   if ($g->voffset)
@@ -507,6 +562,13 @@ define pgrow
 end
 document pgrow
 Pretty print all glyphs in row structure row.
+end
+
+define pgrowit
+  pgrowx it->glyph_row
+end
+document pgrowit
+Pretty print all glyphs in it->glyph_row.
 end
 
 define xtype
