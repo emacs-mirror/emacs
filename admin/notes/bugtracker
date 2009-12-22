@@ -384,3 +384,73 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
               (bug-reference-mode 1)))
 
 and you can click on the bug number in the subject header.
+
+
+* Technical Notes
+
+The following are technical notes on how it works.  These are just for
+reference, you don't need to read these as a user of the system.
+
+Getting mail from the Emacs bug list into the tracker requires the
+assistance of sysadmin at gnu.org.  The test tracker set-up was, I
+think, [gnu.org #359140]:
+http://lists.gnu.org/archive/html/savannah-hackers/2008-03/msg00074.html
+http://lists.gnu.org/archive/html/savannah-hackers/2008-04/msg00034.html
+
+** The debbugs.gnu.org setup was handled in [gnu.org #510605].
+There are two pieces (replace AT with @ in the following):
+
+i) fencepost has an /etc/aliases entry:
+emacs-pretest-bug: submit AT debbugs.gnu.org
+
+ii) An exim router:
+emacsbugs_router:
+  driver = redirect
+  senders = !Debian-debbugs AT debbugs.gnu.org
+  local_parts = bug-gnu-emacs
+  domains = gnu.org
+  data = submit AT debbugs.gnu.org
+
+This says, for mail arriving at bug-gnu-emacs, only allow it through
+to the list if it was sent from debbugs.gnu.org.  Otherwise, send
+it to the submit address at the bug-tracker.
+
+FIXME There's probably an issue with the mail-news gateway here that
+still needs to be addressed (bug#936).
+
+** fencepost's /etc/exim4/local_domains configuration needs a line
+!debbugs.gnu.org adding [gnu.org #503532].  Otherwise people on
+fencepost can't report bugs, since *.gnu.org addresses are assumed to
+be handled locally on fencepost, unless otherwise specified.
+
+** All mail arriving at debbugs.gnu.org is first run through SpamAssassin.
+Obvious spam is rejected, the rest is sent on to the moderated list
+debbugs-submit.  Approved mail is passed on to the tracker.
+
+NOTE: An alternative to this would be to use listhelper AT nongnu.org
+as a moderator address.  Eg the emacs-bug-tracker list uses this.
+It does basic spam processing on the moderator requests and
+automatically rejects the obviously bogus ones.  Someone still has to
+accept the good ones though.  The advantage of this would not be having
+to run and tune our own spam filter.  See
+http://savannah.nongnu.org/projects/listhelper
+
+An "X-Debbugs-Envelope-To" header is used to keep track of where the
+mail was actually bound for:
+http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg01211.html
+
+** Mailing list recipient/sender filters.
+The following mailman filters are useful to stop messages being
+needlessly held for moderation:
+
+*** debbugs-submit
+(quiet|control|submit)@(debbugs\.gnu\.org|emacsbugs\.donarmstrong\.com)
+[0-9]+(-done|-quiet|-subscribe)?@(debbugs\.gnu\.org|emacsbugs\.donarmstrong\.com)
+(bug-gnu-emacs|emacs-pretest-bug)@gnu\.org
+
+*** emacs-bug-tracker
+sender: bug-gnu-emacs AT gnu.org
+recipient: emacs-bug-tracker AT debbugs\.gnu\.org
+
+The latter is because that is the address that debbugs actually sends to.
+An /etc/aliases entry redirects it to the real emacs-bug-tracker address.
