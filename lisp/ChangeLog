@@ -1,3 +1,10 @@
+2009-12-23  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-face-attributes): It was not returning the
+	attribute face for faces specified as string.  Reported by harven
+	<harven@free.fr>.
+	(ps-print-version): New version 7.3.5.
+
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--convert-tz-offset): Fixed

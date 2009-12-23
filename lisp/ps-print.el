@@ -11,11 +11,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3.4
+;; Version: 7.3.5
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.3.4"
-  "ps-print.el, v 7.3.4 <2009/01/24 vinicius>
+(defconst ps-print-version "7.3.5"
+  "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -6249,6 +6249,7 @@ If FACE is not in `ps-print-face-extension-alist' or in
 return the attribute vector.
 
 If FACE is not a valid face name, use default face."
+  (and (stringp face) (facep face) (setq face (intern face)))
   (cond
    (ps-black-white-faces-alist
     (or (and (symbolp face)
