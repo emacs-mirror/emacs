@@ -426,6 +426,8 @@ be handled locally on fencepost, unless otherwise specified.
 ** All mail arriving at debbugs.gnu.org is first run through SpamAssassin.
 Obvious spam is rejected, the rest is sent on to the moderated list
 debbugs-submit.  Approved mail is passed on to the tracker.
+(Note this means that messages may appear out of sequence in the
+tracker, since mail from whitelisted senders goes straight through.)
 
 NOTE: An alternative to this would be to use listhelper AT nongnu.org
 as a moderator address.  Eg the emacs-bug-tracker list uses this.
