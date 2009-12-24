@@ -997,6 +997,9 @@ functions that change the buffer will still cause deactivation
 of the mark at the end of the command.  To prevent that, bind
 `deactivate-mark' with `let'.
 
+If you only want to save the current buffer but not point nor mark,
+then just use `save-current-buffer', or even `with-current-buffer'.
+
 usage: (save-excursion &rest BODY)  */)
      (args)
      Lisp_Object args;
