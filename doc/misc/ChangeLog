@@ -1,3 +1,9 @@
+2009-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calc.texi (General Mode Commands): Calc file should be in .emacs.d.
+
+	* faq.texi (New in Emacs 22): Max buffer size is now 512 MB.
+
 2009-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Direct Functions): Add missing port number to tls method.

@@ -12134,17 +12134,18 @@ the @emph{appearance} or @emph{interpretation} of the stack's contents.
 @cindex Saving mode settings
 @cindex Permanent mode settings
 @cindex Calc init file, mode settings
-You can save all of the current mode settings in your Calc init file 
+You can save all of the current mode settings in your Calc init file
 (the file given by the variable @code{calc-settings-file}, typically
-@file{~/.calc.el}) with the @kbd{m m} (@code{calc-save-modes}) command.
-This will cause Emacs to reestablish these modes each time it starts up.
-The modes saved in the file include everything controlled by the @kbd{m}
-and @kbd{d} prefix keys, the current precision and binary word size,
-whether or not the trail is displayed, the current height of the Calc
-window, and more.  The current interface (used when you type @kbd{C-x * *}) 
-is also saved.  If there were already saved mode settings in the
-file, they are replaced.  Otherwise, the new mode information is
-appended to the end of the file.
+@file{~/.emacs.d/calc.el}) with the @kbd{m m} (@code{calc-save-modes})
+command.  This will cause Emacs to reestablish these modes each time
+it starts up.  The modes saved in the file include everything
+controlled by the @kbd{m} and @kbd{d} prefix keys, the current
+precision and binary word size, whether or not the trail is displayed,
+the current height of the Calc window, and more.  The current
+interface (used when you type @kbd{C-x * *}) is also saved.  If there
+were already saved mode settings in the file, they are replaced.
+Otherwise, the new mode information is appended to the end of the
+file.
 
 @kindex m R
 @pindex calc-mode-record-mode

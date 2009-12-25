@@ -1124,8 +1124,8 @@ Font Lock mode, Auto Compression mode, and File Name Shadow Mode are
 enabled by default.
 
 @item
-The maximum size of buffers has been doubled and is 256M on 32-bit
-machines.
+The maximum size of buffers is increased: on 32-bit machines, it is
+256 MBytes for Emacs 23.1, and 512 MBytes for Emacs 23.2 and above.
 
 @item
 Links can be followed with @kbd{mouse-1}, in addition to @kbd{mouse-2}.
