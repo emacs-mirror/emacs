@@ -139,12 +139,34 @@ South Indian language Malayalam is supported in this language environment."))
     regexp))
 
 (defconst devanagari-composable-pattern
-  (concat
-   "\\([अ-औॠॡ][ँं]?\\)\\|[ः।]"
-   "\\|\\("
-   "\\(?:\\(?:[क-हक़-य़]्\\)?\\(?:[क-हक़-य़]्\\)?\\(?:[क-हक़-य़]्\\)?[क-हक़-य़]्\\)?"
-   "[क-हक़-य़]\\(?:्\\|[ा-्ॢॣ]?[ंँ]?\\)?"
-   "\\)")
+  (let ((table
+	 '(("V" . "[\u0904-\u0914\u0960-\u0961\u0972]") ; independent vowel
+	   ("C" . "[\u0915-\u0939]")		 ; consonant
+	   ("R" . "\u0930")			 ; RA
+	   ("n" . "\u093C")			 ; NUKTA
+	   ("H" . "\u094D")			 ; HALANT
+	   ("m" . "\u093F")			 ; vowel sign (pre)
+	   ("u" . "[\u0945-\u0948\u0955]")	 ; vowel sign (above)
+	   ("b" . "[\u0941-\u0944\u0962-\u0963]") ; vowel sign (below)
+	   ("p" . "[\u093E\u0940\u0949-\u094C]") ; vowel sign (post)
+	   ("A" . "[\u0900-\u0902\u0953-\u0954]") ; vowel modifier (above)
+	   ("a" . "\u0903")			 ; vowel modifier (post) 
+	   ("S" . "\u0951")			 ; stress sign (above)
+	   ("s" . "\u0952")			 ; stress sign (below)
+	   ("J" . "\u200D")			 ; ZWJ
+	   ("N" . "\u200C")			 ; ZWNJ
+	   ("X" . "[\u0900-\u097F]"))))		 ; all coverage
+    (indian-compose-regexp
+     (concat
+      ;; syllables with an independent vowel, or
+      "\\(?:RH\\)?Vn?m?b?u?p?n?A?s?S?a?\\|"
+      ;; consonant-based syllables, or
+      "\\(?:Cn?J?HJ?\\)*Cn?\\(?:H[NJ]?\\|m?b?u?p?n?A?s?S?a?\\)\\|"
+      ;; special consonant form, or
+      "JHR\\|"
+      ;; any other singleton characters
+      "X")
+     table))
   "Regexp matching a composable sequence of Devanagari characters.")
 
 (defconst tamil-composable-pattern
@@ -165,23 +187,24 @@ South Indian language Malayalam is supported in this language environment."))
   "Regexp matching a composable sequence of Kannada characters.")
 
 (defconst malayalam-composable-pattern
-  (let ((table '(("V" . "[\u0D05-\u0D14\u0D60-\u0D61]") ; independent vowel
-		 ("C" . "[\u0D15-\u0D39]")		; consonant 
-		 ("m" . "[\u0D46-\u0D48\u0D4A-\u0D4C]")	; prebase matra
-		 ("p" . "[\u0D3E-\u0D44\u0D57]") ; postname matra
-		 ("b" . "[\u0D62-\u0D63]")	 ; belowbase matra
-		 ("a" . "[\u0D02-\u0D03]")	 ; abovebase sign
-		 ("H" . "്")			 ; virama sign 
-		 ("N" . "\u200D")		 ; ZWJ
-		 ("J" . "\u200C")		 ; ZWNJ
-		 ("X" . "[\u0D00-\u0D7F]")))) ; all coverage
+  (let ((table
+	 '(("V" . "[\u0D05-\u0D14\u0D60-\u0D61]") ; independent vowel
+	   ("C" . "[\u0D15-\u0D39]")		  ; consonant 
+	   ("m" . "[\u0D46-\u0D48\u0D4A-\u0D4C]") ; prebase matra
+	   ("p" . "[\u0D3E-\u0D44\u0D57]")	  ; postbase matra
+	   ("b" . "[\u0D62-\u0D63]")		  ; belowbase matra
+	   ("a" . "[\u0D02-\u0D03]")		  ; abovebase sign
+	   ("H" . "\u0D4D")			  ; virama sign 
+	   ("N" . "\u200D")			  ; ZWJ
+	   ("J" . "\u200C")			  ; ZWNJ
+	   ("X" . "[\u0D00-\u0D7F]"))))		  ; all coverage
     (indian-compose-regexp
      (concat
-      ;; consonant-based syllables
-      "\\(CJ?HJ?\\)*C\\(H[NJ]?\\|m?b?p?a?\\)\\|"
-      ;; syllables with an independent vowel
-      "V\\(J?HC\\)?m?b?p?a?\\|"
-      ;; special consonant form
+      ;; syllables with an independent vowel, or
+      "V\\(?:J?HC\\)?m?b?p?a?\\|"
+      ;; consonant-based syllables, or
+      "\\(?:CJ?HJ?\\)\\{0,4\\}C\\(?:H[NJ]?\\|m?b?p?a?\\)\\|"
+      ;; special consonant form, or
       "JHC\\|"
       ;; any other singleton characters
       "X")
@@ -189,7 +212,7 @@ South Indian language Malayalam is supported in this language environment."))
   "Regexp matching a composable sequence of Malayalam characters.")
 
 (let ((script-regexp-alist
-       `((devanagari . "[\x900-\x97F\x200C\x200D]+")
+       `((devanagari . ,devanagari-composable-pattern)
 	 (bengali . "[\x980-\x9FF\x200C\x200D]+")
 	 (gurmukhi . "[\xA00-\xA7F\x200C\x200D]+")
 	 (gujarati . "[\xA80-\xAFF\x200C\x200D]+")
