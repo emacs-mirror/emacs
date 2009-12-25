@@ -30,18 +30,13 @@ the way two alists can share a common tail.
 @end itemize
 
   Emacs Lisp provides a general-purpose hash table data type, along
-with a series of functions for operating on them.  Hash tables have no
-read syntax, and print in hash notation, like this:
-
-@example
-(make-hash-table)
-     @result{} #<hash-table 'eql nil 0/65 0x83af980>
-@end example
-
-@noindent
-(The term ``hash notation'' refers to the initial @samp{#}
-character---@pxref{Printed Representation}---and has nothing to do with
-the term ``hash table.'')
+with a series of functions for operating on them.  Hash tables have a
+special printed representation, which consists of @samp{#s} followed
+by a list specifying the hash table properties and contents.
+@xref{Creating Hash}.  (Note that the term ``hash notation'', which
+refers to the initial @samp{#} character used in the printed
+representations of objects with no read representation, has nothing to
+do with the term ``hash table''.  @xref{Printed Representation}.)
 
   Obarrays are also a kind of hash table, but they are a different type
 of object and are used only for recording interned symbols
@@ -163,6 +158,35 @@ of key lookup.
 
 This function is obsolete. Use @code{make-hash-table} instead.
 @end defun
+
+You can also create a new hash table using the printed representation
+for hash tables.  The Lisp reader can read this printed
+representation, provided each element in the specified hash table has
+a valid read syntax (@pxref{Printed Representation}).  For instance,
+the following specifies a new hash table containing the keys
+@code{key1} and @code{key2} (both symbols) associated with @code{val1}
+(a symbol) and @code{300} (a number) respectively.
+
+@example
+#s(hash-table size 30 data (key1 val1 key2 300))
+@end example
+
+@noindent
+The printed representation for a hash table consists of @samp{#s}
+followed by a list beginning with @samp{hash-table}.  The rest of the
+list should consist of zero or more property-value pairs specifying
+the hash table's properties and initial contents.  The properties and
+values are read literally.  Valid property names are @code{size},
+@code{test}, @code{weakness}, @code{rehash-size},
+@code{rehash-threshold}, and @code{data}.  The @code{data} property
+should be a list of key-value pairs for the initial contents; the
+other properties have the same meanings as the matching
+@code{make-hash-table} keywords (@code{:size}, @code{:test}, etc.),
+described above.
+
+Note that you cannot specify a hash table whose initial contents
+include objects that have no read syntax, such as buffers and frames.
+Such objects may be added to the hash table after it is created.
 
 @node Hash Access
 @section Hash Table Access

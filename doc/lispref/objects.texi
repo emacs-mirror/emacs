@@ -1219,13 +1219,17 @@ only the first 3 bits are used:
 
     A hash table is a very fast kind of lookup table, somewhat like an
 alist in that it maps keys to corresponding values, but much faster.
-Hash tables have no read syntax, and print using hash notation.
-@xref{Hash Tables}, for functions that operate on hash tables.
+The printed representation of a hash table specifies its properties
+and contents, like this:
 
 @example
 (make-hash-table)
-     @result{} #<hash-table 'eql nil 0/65 0x83af980>
+     @result{} #s(hash-table size 65 test eql rehash-size 1.5
+                             rehash-threshold 0.8 data ())
 @end example
+
+@noindent
+@xref{Hash Tables}, for more information about hash tables.
 
 @node Function Type
 @subsection Function Type

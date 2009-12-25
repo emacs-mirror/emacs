@@ -1161,6 +1161,14 @@ the output is determined by the @code{process-mark}, which is then
 updated to point to the end of the text just inserted.  Usually, but not
 always, the @code{process-mark} is at the end of the buffer.
 
+@findex process-kill-buffer-query-function
+  Killing the associated buffer of a process also kills the process.
+Emacs asks for confirmation first, if the process's
+@code{process-query-on-exit-flag} is non-@code{nil} (@pxref{Query
+Before Exit}).  This confirmation is done by the function
+@code{process-kill-buffer-query-function}, which is run from
+@code{kill-buffer-query-functions} (@pxref{Killing Buffers}).
+
 @defun process-buffer process
 This function returns the associated buffer of the process
 @var{process}.

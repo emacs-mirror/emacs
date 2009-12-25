@@ -610,15 +610,15 @@ the @code{user-position} parameter (see above) does for the position
 parameters @code{top} and @code{left}.
 
 @item fullscreen
-Specify that width, height or both shall be maximized.
-The value @code{fullwidth} specifies that width shall be as wide as possible.
+Specify that width, height or both shall be maximized.  The value
+@code{fullwidth} specifies that width shall be as wide as possible.
 The value @code{fullheight} specifies that height shall be as tall as
-possible.  The value @code{fullboth} specifies that both the
-width and the height shall be set to the size of the screen.
-The value @code{maximized} specifies that the frame shall be maximized.
-The difference between @code{maximized} and @code{fullboth} is that
-the first does have window manager decorations but the second does not
-and thus really covers the whole screen.
+possible.  The value @code{fullboth} specifies that both the width and
+the height shall be set to the size of the screen.  The value
+@code{maximized} specifies that the frame shall be maximized.  The
+difference between @code{maximized} and @code{fullboth} is that the
+former still has window manager decorations while the latter really
+covers the whole screen.
 @end table
 
 @node Layout Parameters
@@ -2166,6 +2166,11 @@ If the name @var{color} is not defined, the value is @code{nil}.
 @node Resources
 @section X Resources
 
+This section describes some of the functions and variables for
+querying and using X resources, or their equivalent on your operating
+system.  @xref{X Resources,, X Resources, emacs, The GNU Emacs
+Manual}, for more information about X resources.
+
 @defun x-get-resource attribute class &optional component subclass
 The function @code{x-get-resource} retrieves a resource value from the X
 Window defaults database.
@@ -2219,7 +2224,11 @@ or @file{~/.Xresources}).  Then:
 @end group
 @end example
 
-  @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
+@defvar inhibit-x-resources
+If this variable is non-@code{nil}, Emacs does not look up X
+resources, and X resources do not have any effect when creating new
+frames.
+@end defvar
 
 @node Display Feature Testing
 @section Display Feature Testing

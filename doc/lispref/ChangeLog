@@ -1,3 +1,18 @@
+2009-12-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Resources): Describe inhibit-x-resources.
+	(Size Parameters): Copyedit.
+
+	* hash.texi (Creating Hash):
+	* objects.texi (Hash Table Type): Document the new hash table
+	printed representation.
+
+	* minibuf.texi (Basic Completion): 4th arg to all-completions is
+	obsolete.
+
+	* processes.texi (Process Buffers): Document
+	process-kill-buffer-query-function.
+
 2009-12-05  Glenn Morris  <rgm@gnu.org>
 
 	* hooks.texi (Standard Hooks): Remove diary-display-hook, replaced by
