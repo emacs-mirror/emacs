@@ -1976,9 +1976,20 @@ command_loop_1 ()
       if (current_buffer == prev_buffer
 	  && last_point_position != PT
 	  && NILP (Vdisable_point_adjustment)
-	  && NILP (Vglobal_disable_point_adjustment)
-	  && !already_adjusted)
-	adjust_point_for_property (last_point_position, MODIFF != prev_modiff);
+	  && NILP (Vglobal_disable_point_adjustment))
+	{
+	  if (composition_adjust_point (last_point_position,
+					last_point_position)
+	      != last_point_position)
+	    /* The last point was temporarily set within a grapheme
+	       cluster to prevent automatic composition.  To recover
+	       the automatic composition, we must update the
+	       display.  */
+	    windows_or_buffers_changed++;
+	  if (!already_adjusted)
+	    adjust_point_for_property (last_point_position,
+				       MODIFF != prev_modiff);
+	}
 
       /* Install chars successfully executed in kbd macro.  */
 
@@ -2009,7 +2020,11 @@ adjust_point_for_property (last_pt, modified)
 {
   EMACS_INT beg, end;
   Lisp_Object val, overlay, tmp;
-  int check_composition = 1, check_display = 1, check_invisible = 1;
+  /* When called after buffer modification, we should temporarily
+     suppress the point adjustment for automatic composition so that a
+     user can keep inserting another character at point or keep
+     deleting characters around point.  */
+  int check_composition = ! modified, check_display = 1, check_invisible = 1;
   int orig_pt = PT;
 
   /* FIXME: cycling is probably not necessary because these properties
@@ -2019,7 +2034,7 @@ adjust_point_for_property (last_pt, modified)
       /* FIXME: check `intangible'.  */
       if (check_composition
 	  && PT > BEGV && PT < ZV
-	  && (beg = composition_adjust_point (last_pt)) != PT)
+	  && (beg = composition_adjust_point (last_pt, PT)) != PT)
 	{
 	  SET_PT (beg);
 	  check_display = check_invisible = 1;
