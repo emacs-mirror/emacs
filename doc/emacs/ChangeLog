@@ -1,3 +1,28 @@
+2009-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi (Top): Update node listing.
+
+	* abbrevs.texi (Saving Abbrevs): Abbrev file should be in .emacs.d.
+
+	* basic.texi (Moving Point): M-r is now move-to-window-line-top-bottom.
+
+	* cmdargs.texi (Initial Options):
+	* xresources.texi (Resources): Document inhibit-x-resources.
+
+	* custom.texi (Specifying File Variables): Note that minor modes are
+	enabled unconditionally.
+
+	* display.texi (Scrolling): Briefly document the old recenter command,
+	and document recenter-positions.
+
+	* files.texi (Visiting):
+	* buffers.texi (Buffers): Max buffer size is now 512 MB.
+
+	* frames.texi (Cut/Paste Other App): Document
+	save-interprogram-paste-before-kill.
+
+	* killing.texi (Kill Options): New node.
+
 2009-12-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Shell Options): ansi-color is now default.

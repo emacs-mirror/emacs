@@ -53,8 +53,10 @@ commands:
 
 @table @kbd
 @item C-l
-Scroll the selected window to center point vertically within it and
-maybe redisplay the screen (@code{recenter-top-bottom}).
+Scroll the selected window so that the current line is the center-most
+text line; on subsequent consecutive invocations, make the current
+line the top-most line, the bottom-most line, and so forth in cyclic
+order; also, maybe redisplay the screen (@code{recenter-top-bottom}).
 @item C-v
 @itemx @key{next}
 @itemx @key{PageDown}
@@ -70,23 +72,27 @@ Scroll heuristically to bring useful information onto the screen
 
 @kindex C-l
 @findex recenter-top-bottom
-  The most basic scrolling command is @kbd{C-l}
-(@code{recenter-top-bottom}).  This @dfn{recenters} the selected
-window, scrolling it so that the current screen line is exactly in the
-center of the window, or as close to the center as possible.  If the
-variable @var{recenter-redisplay} is non-nil, it also clears the
-screen and redisplays all windows; this is useful in case the screen
-becomes garbled for any reason (@pxref{Screen Garbled}).  If
-@var{recenter-redisplay} has the special value @code{tty} (the
-default), then redisplay only happens on tty frames.
+  @kbd{C-l} (@code{recenter-top-bottom}) is a basic scrolling command.
+It @dfn{recenters} the selected window, scrolling it so that the
+current screen line is exactly in the center of the window, or as
+close to the center as possible.
 
   Typing @kbd{C-l} twice in a row (@kbd{C-l C-l}) scrolls the window
 so that point is on the topmost screen line.  Typing a third @kbd{C-l}
 scrolls the window so that point is on the bottom-most screen line.
 Each successive @kbd{C-l} cycles through these three screen positions.
-(If you change the variable @code{scroll-margin} to a non-zero value
-@var{n}, Emacs leaves @var{n} screen lines between point and the top
-or bottom of the window.  @xref{Auto Scrolling}.)
+
+@vindex recenter-positions
+  You can change the cycling order by customizing the list variable
+@code{recenter-positions}.  Each list element should be the symbol
+@code{top}, @code{middle}, or @code{bottom}, or a number; an integer
+number means to move the line to the specified screen line, while a
+floating-point number between 0.0 and 1.0 specifies a percentage of
+the screen space from the top.  The default, @code{(middle top
+bottom)}, is the cycling order described above.  Furthermore, if you
+change the variable @code{scroll-margin} to a non-zero value @var{n},
+Emacs always leaves @var{n} screen lines between point and the top or
+bottom of the window (@pxref{Auto Scrolling}).
 
   You can also supply @kbd{C-l} with a prefix argument.  With a plain
 prefix argument, @kbd{C-u C-l}, Emacs simply recenters point.  With a
@@ -98,10 +104,17 @@ puts point on the bottom line, and @kbd{C-u - 5 C-l} puts it five
 lines from the bottom.  When given an argument, @kbd{C-l} does not
 clear the screen or cycle through different screen positions.
 
+  The more primitive command @code{recenter} behaves like
+@code{recenter-top-bottom}, but does not cycle among screen positions.
+Prior to Emacs 23, @kbd{C-l} was bound to @code{recenter}.
+
 @vindex recenter-redisplay
-  When the variable @code{recenter-redisplay} is non-nil, the
-@code{recenter} and @code{recenter-top-bottom} commands redisplay the
-selected frame when they are invoked without a prefix argument.
+  If the variable @code{recenter-redisplay} has a non-@code{nil}
+value, Emacs clears and redisplays the screen each time @kbd{C-l}
+recenters the window; the special value @code{tty} (the default) says
+to do this on text-terminal frames only.  Redisplaying is useful in
+case the screen becomes garbled for any reason (@pxref{Screen
+Garbled}).
 
 @kindex C-v
 @kindex M-v
@@ -111,7 +124,7 @@ selected frame when they are invoked without a prefix argument.
 @kindex PageUp
 @findex scroll-up
 @findex scroll-down
-  To read the buffer a windowful at a time, use @kbd{C-v}
+  To read the buffer a windowful at a time, type @kbd{C-v}
 (@code{scroll-up}).  This scrolls forward by nearly the whole window
 height.  The effect is to take the two lines at the bottom of the
 window and put them at the top, followed by lines that were not

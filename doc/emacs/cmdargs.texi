@@ -297,8 +297,10 @@ in your initialization file (@pxref{Entering Emacs}).
 @opindex -Q
 @itemx --quick
 @opindex --quick
-Start emacs with minimum customizations.  This is like using
-@samp{-q}, @samp{--no-site-file}, and @samp{--no-splash} together.
+Start emacs with minimum customizations, similar to using @samp{-q},
+@samp{--no-site-file}, and @samp{--no-splash} together.  This also
+stops Emacs from processing X resources by setting
+@code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
 
 @item -daemon
 @opindex -daemon

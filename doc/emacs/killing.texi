@@ -46,19 +46,6 @@ amounts of nontrivial data generally do a kill operation instead.  The
 commands' names and individual descriptions use the words @samp{kill}
 and @samp{delete} to say which kind of operation they perform.
 
-@vindex kill-read-only-ok
-@cindex read-only text, killing
-  Some specialized buffers contain @dfn{read-only text}, which cannot
-be modified and therefore cannot be killed.  But some users like to
-use the kill commands to copy read-only text into the kill ring,
-without actually changing it.  Therefore, the kill commands work
-specially in a read-only buffer: they move over text, and copy it to
-the kill ring, without actually deleting it from the buffer.
-Normally, kill commands beep and display an error message when this
-happens.  But if you set the variable @code{kill-read-only-ok} to a
-non-@code{nil} value, they just print a message in the echo area to
-explain why the text has not been erased.
-
   You can also use the mouse to kill and yank.  @xref{Cut and Paste}.
 
 @menu
@@ -67,9 +54,9 @@ explain why the text has not been erased.
 * Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
                           syntactic units such as words and sentences.
+* Kill Options::        Options that affect killing.
 @end menu
 
-@need 1500
 @node Deletion
 @subsection Deletion
 @findex delete-backward-char
@@ -223,6 +210,27 @@ searching: it reads a character and kills from point up to (and
 including) the next occurrence of that character in the buffer.  A
 numeric argument acts as a repeat count; a negative argument means to
 search backward and kill text before point.
+
+@node Kill Options
+@subsection Options for Killing
+
+@vindex kill-read-only-ok
+@cindex read-only text, killing
+  Some specialized buffers contain @dfn{read-only text}, which cannot
+be modified and therefore cannot be killed.  But some users like to
+use the kill commands to copy read-only text into the kill ring,
+without actually changing it.  Therefore, the kill commands work
+specially in a read-only buffer: they move over text, and copy it to
+the kill ring, without actually deleting it from the buffer.
+Normally, kill commands beep and display an error message when this
+happens.  But if you set the variable @code{kill-read-only-ok} to a
+non-@code{nil} value, they just print a message in the echo area to
+explain why the text has not been erased.
+
+@vindex kill-do-not-save-duplicates
+  If you change the variable @code{kill-do-not-save-duplicates} to a
+non-@code{nil} value, identical subsequent kills yield a single
+kill-ring entry, without duplication.
 
 @node Yanking, Accumulating Text, Killing, Top
 @section Yanking

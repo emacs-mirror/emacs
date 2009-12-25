@@ -252,25 +252,33 @@ such as @kbd{M-w} (@code{kill-ring-save}), that text is also saved in
 the primary selection.  @xref{Killing}.
 
 @vindex select-active-regions
+  If you set the region using the keyboard---for instance, by typing
+@kbd{C-@key{SPC}} and moving point away from the mark---the text in
+the region is not normally saved to the primary selection.  However,
+if you change the variable @code{select-active-regions} to @code{t},
+the region is saved to the primary selection whenever you activate the
+mark.  Each change to the region also updates the primary selection.
+
 @vindex yank-pop-change-selection
-  If you set the region using the keyboard, the text within the region
-is not normally saved to the primary selection.  However, if you
-change the variable @code{select-active-regions} to @code{t}, the
-region is saved to the primary selection each time you activate the
-mark.  The primary selection is updated if you subsequently change the
-region by moving point.  If you change the variable
-@code{yank-pop-change-selection} to @code{t}, rotating the kill ring
-with @kbd{M-y} (@code{yank-pop}) also saves the new yank to the
-primary selection (@pxref{Yanking}).
+  If you change @code{yank-pop-change-selection} to @code{t}, rotating
+the kill ring with @kbd{M-y} (@code{yank-pop}) also saves the new yank
+to the primary selection (@pxref{Yanking}).
+
+@vindex save-interprogram-paste-before-kill
+  If you change @code{save-interprogram-paste-before-kill} to
+@code{t}, each kill command first saves the existing selection onto
+the kill ring.  This prevents you from losing the existing selection,
+at the risk of large memory consumption if other applications generate
+large selections.
 
 @cindex cut buffer
 @vindex x-cut-buffer-max
   Whenever Emacs saves some text to the primary selection, it may also
 save it to the @dfn{cut buffer}.  The cut buffer is an obsolete
 predecessor to the primary selection; most modern applications do not
-make use of it.  Because saving text to the cut buffer is slow and
-inefficient, Emacs only does it if the text is shorter than the value
-of @code{x-cut-buffer-max} (the default is 20000 characters).
+use it.  Saving text to the cut buffer is slow and inefficient, so
+Emacs only does it if the text is shorter than the value of
+@code{x-cut-buffer-max} (20000 characters by default).
 
   You can yank the primary selection into Emacs using the usual yank
 commands, such as @kbd{C-y} (@code{yank}) and @kbd{Mouse-2}

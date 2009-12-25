@@ -107,11 +107,19 @@ emacs.borderWidth: 4
 @end ifnottex
 
   The order in which the lines appear in the file does not matter.
-Also, command-line options always override the X resources file.
+One way to experiment with the effect of different resource settings
+is to use the @code{editres} program.  See the @code{editres} man page
+for more details.
+
+  Emacs does not process X resources at all if you set the variable
+@code{inhibit-x-resources} to a non-@code{nil} value, or if you
+specify the @samp{-Q} (or @samp{--quick}) command-line argument
+(@pxref{Initial Options}).  (The @samp{-Q} argument automatically sets
+@code{inhibit-x-resources} to @code{t}.)
 
 @ifnottex
-  The following X command-line options affect how X resources are
-processed:
+  In addition, you can use the following command-line options to
+override the X resources file:
 
 @table @samp
 @item -name @var{name}
@@ -149,10 +157,6 @@ Resource values specified with @samp{-xrm} take precedence over all
 other resource specifications.
 @end table
 @end ifnottex
-
-  One way to experiment with the effect of different resource settings
-is to use the @code{editres} program.  See the @code{editres} man page
-for more details.
 
 @node Table of Resources
 @appendixsec Table of X Resources for Emacs

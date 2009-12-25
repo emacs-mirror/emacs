@@ -309,14 +309,14 @@ that, when executed, define the same abbrevs that you currently have.
 and then reads the file, defining abbrevs according to the contents of
 the file.  The function @code{quietly-read-abbrev-file} is similar
 except that it does not display a message in the echo area; you cannot
-invoke it interactively, and it is used primarily in the @file{.emacs}
-file.  If either of these functions is called with @code{nil} as the
-argument, it uses the file name specified in the variable
-@code{abbrev-file-name}, which is by default @code{"~/.abbrev_defs"}.
-That file is your standard abbrev definition file, and Emacs loads
-abbrevs from it automatically when it starts up.  (As an exception,
-Emacs does not load the abbrev file when it is started in batch mode.
-@xref{Initial Options}, for a description of batch mode.)
+invoke it interactively, and it is used primarily in your init file
+(@pxref{Init File}).  If either of these functions is called with
+@code{nil} as the argument, it uses the file given by the variable
+@code{abbrev-file-name}, which is @file{~/.emacs.d/abbrev_defs} by
+default.  This is your standard abbrev definition file, and Emacs
+loads abbrevs from it automatically when it starts up.  (As an
+exception, Emacs does not load the abbrev file when it is started in
+batch mode.  @xref{Initial Options}, for a description of batch mode.)
 
 @vindex save-abbrevs
   Emacs will offer to save abbrevs automatically if you have changed

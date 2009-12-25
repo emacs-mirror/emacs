@@ -1083,46 +1083,48 @@ first line:
 
 @noindent
 You can specify any number of variable/value pairs in this way, each
-pair with a colon and semicolon as shown above.  @code{mode:
-@var{modename};} specifies the major mode; this should come first in the
-line.  The @var{value}s are not evaluated; they are used literally.
-Here is an example that specifies Lisp mode and sets two variables with
-numeric values:
+pair with a colon and semicolon as shown above.  The special
+variable/value pair @code{mode: @var{modename};}, if present,
+specifies a major or minor mode; if you use this to specify a major
+mode, it should come first in the line.  The @var{value}s are are used
+literally, and not evaluated.
+
+  Here is an example that specifies Lisp mode and sets two variables
+with numeric values:
 
 @smallexample
 ;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 @end smallexample
 
-  You can also specify the coding system for a file in this way: just
-specify a value for the ``variable'' named @code{coding}.  The ``value''
-must be a coding system name that Emacs recognizes.  @xref{Coding
-Systems}.  @w{@samp{unibyte: t}} specifies unibyte loading for a
-particular Lisp file.  @xref{Enabling Multibyte}.
-
-  The @code{eval} pseudo-variable, described below, can be specified in
-the first line as well.
+@noindent
+Aside from @code{mode}, other keywords that have special meanings as
+file variables are @code{coding}, @code{unibyte}, and @code{eval}.
+These are described below.
 
 @cindex shell scripts, and local file variables
 @cindex man pages, and local file variables
   In shell scripts, the first line is used to identify the script
 interpreter, so you cannot put any local variables there.  To
 accommodate this, Emacs looks for local variable specifications in the
-@emph{second} line when the first line specifies an interpreter.
-The same is true for man pages which start with the magic string
+@emph{second} line if the first line specifies an interpreter.  The
+same is true for man pages which start with the magic string
 @samp{'\"} to specify a list of troff preprocessors (not all do,
 however).
 
-  A @dfn{local variables list} goes near the end of the file.  It
-starts with a line containing the string @samp{Local Variables:}, and
-ends with a line containing the string @samp{End:}.  In between come
-the variable names and values, one set per line, as
-@samp{@var{variable}:@: @var{value}}.  The @var{value}s are not
-evaluated; they are used literally.  If a file has both a local
-variables list and a @samp{-*-} line, Emacs processes
-@emph{everything} in the @samp{-*-} line first, and @emph{everything}
-in the local variables list afterward.
+  Instead of using a @samp{-*-} line, you can define file local
+variables using a @dfn{local variables list} near the end of the file.
+The start of the local variables list should be no more than 3000
+characters from the end of the file, and must be on the last page if
+the file is divided into pages.
 
-  Here is an example of a local variables list:
+  If a file has both a local variables list and a @samp{-*-} line,
+Emacs processes @emph{everything} in the @samp{-*-} line first, and
+@emph{everything} in the local variables list afterward.
+
+  A local variables list starts with a line containing the string
+@samp{Local Variables:}, and ends with a line containing the string
+@samp{End:}.  In between come the variable names and values, one set
+per line, like this:
 
 @example
 /* Local Variables: */
@@ -1131,25 +1133,24 @@ in the local variables list afterward.
 /* End:             */
 @end example
 
-  In this example, each line starts with the prefix @samp{/*} and each
-line ends with the suffix @samp{*/}.  Emacs recognizes these as the
-prefix and suffix by finding them surrounding the magic string
-@samp{Local Variables:}, on the first line of the list; it then
-automatically discards them from the other lines of the list.
+@noindent
+In this example, each line starts with the prefix @samp{/*} and ends
+with the suffix @samp{*/}.  Emacs recognizes the prefix and suffix by
+finding them surrounding the magic string @samp{Local Variables:}, on
+the first line of the list; it then automatically discards them from
+the other lines of the list.  The usual reason for using a prefix
+and/or suffix is to embed the local variables list in a comment, so it
+won't confuse other programs that the file is intended for.  The
+example above is for the C programming language, where comment lines
+start with @samp{/*} and end with @samp{*/}.
 
-  The usual reason for using a prefix and/or suffix is to embed the
-local variables list in a comment, so it won't confuse other programs
-that the file is intended as input for.  The example above is for the
-C programming language, where comment lines start with @samp{/*} and
-end with @samp{*/}.  Don't use a prefix (or a suffix) if you don't
-need one.
-
-  If you write a multi-line string value, you should put the prefix
-and suffix on each line, even lines that start or end within the
-string.  They will be stripped off for processing the list.  If you
-want to split a long string across multiple lines of the file, you can
-use backslash-newline, which is ignored in Lisp string constants.
-Here's an example of doing this:
+  As with the @samp{-*-} line, the variables in a local variables list
+are used literally, and are not evaluated first.  If you want to split
+a long string across multiple lines of the file, you can use
+backslash-newline, which is ignored in Lisp string constants; you
+should put the prefix and suffix on each line, even lines that start
+or end within the string, as they will be stripped off when processing
+the list.  Here is an example:
 
 @example
 # Local Variables:
@@ -1159,39 +1160,45 @@ Here's an example of doing this:
 @end example
 
   Some ``variable names'' have special meanings in a local variables
-list.  Specifying the ``variable'' @code{mode} really sets the major
-mode, while any value specified for the ``variable'' @code{eval} is
-simply evaluated as an expression (its value is ignored).  A value for
+list:
+
+@itemize
+@item
+@code{mode} enables the specified major or minor mode.
+
+@item
+@code{eval} evaluates the specified Lisp expression (the value
+returned by that expression is ignored).
+
+@item
 @code{coding} specifies the coding system for character code
-conversion of this file, and a value of @code{t} for @code{unibyte}
-says to visit the file in a unibyte buffer.  These four ``variables''
-are not really variables; setting them in any other context has no
-special meaning.
+conversion of this file.  @xref{Coding Systems}.
+
+@item
+@code{unibyte} says to visit the file in a unibyte buffer, if the
+value is @code{t}.  @xref{Enabling Multibyte}.
+@end itemize
+
+@noindent
+These four ``variables'' are not really variables; setting them in any
+other context has no special meaning.
 
   @emph{If @code{mode} is used to set a major mode, it should be the
 first ``variable'' in the list.}  Otherwise, the entries that precede
-it will usually be ignored, since most modes kill all local variables
-as part of their initialization.
+it will usually have no effect, since most major modes kill all local
+variables as part of their initialization.
 
-  You can use the @code{mode} ``variable'' to set minor modes as well
-as the major modes; in fact, you can use it more than once, first to
-set the major mode and then to set minor modes which are specific to
-particular buffers.  But most minor modes should not be specified in
-the file at all, because they represent user preferences.
+  You can use the @code{mode} ``variable'' to enable minor modes as
+well as the major modes; in fact, you can use it more than once, first
+to set the major mode and then to enable minor modes which are
+specific to particular buffers.
 
-  For example, you may be tempted to try to turn on Auto Fill mode with
-a local variable list.  That is a mistake.  The choice of Auto Fill mode
-or not is a matter of individual taste, not a matter of the contents of
-particular files.  If you want to use Auto Fill, set up major mode hooks
-with your @file{.emacs} file to turn it on (when appropriate) for you
-alone (@pxref{Init File}).  Don't use a local variable list to impose
-your taste on everyone.
-
-  The start of the local variables list must be no more than 3000
-characters from the end of the file, and must be in the last page if
-the file is divided into pages.  Otherwise, Emacs will not notice it
-is there.  The purpose of this rule is so that Emacs need not take the
-time to search the whole file.
+  Often, however, it is a mistake to enable minor modes this way.
+Most minor modes, like Auto Fill mode, represent individual user
+preferences.  If you want to use a minor mode, it is better to set up
+major mode hooks with your init file to turn that minor mode on for
+yourself alone (@pxref{Init File}), instead of using a local variable
+list to impose your taste on everyone.
 
   Use the command @code{normal-mode} to reset the local variables and
 major mode of a buffer according to the file name and contents,
@@ -1202,7 +1209,7 @@ including the local variables list if any.  @xref{Choosing Modes}.
 
   File-local variables can be dangerous; when you visit someone else's
 file, there's no telling what its local variables list could do to
-your Emacs.  Improper values of the @code{eval} ``variable,'' and
+your Emacs.  Improper values of the @code{eval} ``variable'', and
 other variables such as @code{load-path}, could execute Lisp code you
 didn't intend to run.
 
@@ -1247,6 +1254,7 @@ query you about each file that has local variables, without trying to
 determine whether the values are known to be safe.
 
 @vindex enable-local-eval
+@vindex safe-local-eval-forms
   The variable @code{enable-local-eval} controls whether Emacs
 processes @code{eval} variables.  The three possibilities for the
 variable's value are @code{t}, @code{nil}, and anything else, just as
@@ -1254,11 +1262,9 @@ for @code{enable-local-variables}.  The default is @code{maybe}, which
 is neither @code{t} nor @code{nil}, so normally Emacs does ask for
 confirmation about processing @code{eval} variables.
 
-@vindex safe-local-eval-forms
-  But there is an exception.  The @code{safe-local-eval-forms} is a
-customizable list of eval forms which are safe.  Emacs does not ask
-for confirmation when it finds these forms for the @code{eval}
-variable.
+  As an exception, Emacs never asks for confirmation to evaluate any
+@code{eval} form if that form occurs within the variable
+@code{safe-local-eval-forms}.
 
 @node Directory Variables
 @subsection Per-Directory Local Variables

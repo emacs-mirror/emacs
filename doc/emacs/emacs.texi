@@ -324,6 +324,7 @@ Killing and Moving Text
 * Killing by Lines::	How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
 			  syntactic units such as words and sentences.
+* Kill Options::        Options that affect killing.
 
 Yanking
 

@@ -182,12 +182,17 @@ middle of one line, you move to the middle of the next.
 Move up one screen line (@code{previous-line}).  This command
 preserves position within the line, like @kbd{C-n}.
 @item M-r
-Move point to left margin, vertically centered in the window
-(@code{move-to-window-line}).  Text does not move on the screen.
+Without moving the text on the screen, reposition point on the left
+margin of the center-most text line of the window; on subsequent
+consecutive invocations, move point to the left margin of the top-most
+line, the bottom-most line, and so forth, in cyclic order
+(@code{move-to-window-line-top-bottom}).
+
 A numeric argument says which screen line to place point on, counting
 downward from the top of the window (zero means the top line).  A
 negative argument counts lines up from the bottom (@minus{}1 means the
 bottom line).
+
 @item M-<
 Move to the top of the buffer (@code{beginning-of-buffer}).  With
 numeric argument @var{n}, move to @var{n}/10 of the way from the top.
