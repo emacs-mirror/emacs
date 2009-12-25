@@ -1364,14 +1364,30 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object cdrs;
   };
 
-#define BLOCAL_CLEAR_FLAGS(VEC) XSETFASTINT (AREF ((VEC), 0), 0)
-#define BLOCAL_FOUND_FOR_BUFFER(VEC) ((XFASTINT (AREF ((VEC), 0))) == 1)
-#define BLOCAL_SET_FOUND_FOR_BUFFER(VEC) XSETFASTINT (AREF ((VEC), 0), 1)
-#define BLOCAL_FOUND_FOR_FRAME(VEC) ((XFASTINT (AREF ((VEC), 0))) == 2)
-#define BLOCAL_SET_FOUND_FOR_FRAME(VEC) XSETFASTINT (AREF ((VEC), 0), 2)
-#define BLOCAL_BUFFER(VEC) (AREF ((VEC), 1))
-#define BLOCAL_FRAME(VEC) (AREF ((VEC), 2))
-#define BLOCAL_CDR(VEC) (AREF ((VEC), 3))
+Lisp_Object blocal_get_cdrs (struct Lisp_Buffer_Local_Value *l);
+Lisp_Object *blocal_get_realvalue (struct Lisp_Buffer_Local_Value *l);
+void blocal_set_cdrs (struct Lisp_Buffer_Local_Value *l, Lisp_Object o);
+
+#define BLOCAL_GET_REALVALUE(A) (*blocal_get_realvalue (A))
+#define BLOCAL_CLEAR_FLAGS_VEC(VEC) XSETFASTINT (AREF ((VEC), 0), 0)
+#define BLOCAL_FOUND_FOR_BUFFER_VEC(VEC) ((XFASTINT (AREF ((VEC), 0))) == 1)
+#define BLOCAL_SET_FOUND_FOR_BUFFER_VEC(VEC) XSETFASTINT (AREF ((VEC), 0), 1)
+#define BLOCAL_FOUND_FOR_FRAME_VEC(VEC) ((XFASTINT (AREF ((VEC), 0))) == 2)
+#define BLOCAL_SET_FOUND_FOR_FRAME_VEC(VEC) XSETFASTINT (AREF ((VEC), 0), 2)
+#define BLOCAL_BUFFER_VEC(VEC) (AREF ((VEC), 1))
+#define BLOCAL_FRAME_VEC(VEC) (AREF ((VEC), 2))
+#define BLOCAL_CDR_VEC(VEC) (AREF ((VEC), 3))
+#define BLOCAL_CDRS(A) (blocal_get_cdrs (A))
+#define BLOCAL_SET_CDRS(A, B) (blocal_set_cdrs (A, B))
+#define BLOCAL_CLEAR_FLAGS(A) (BLOCAL_CLEAR_FLAGS_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_FOUND_FOR_BUFFER(A) (BLOCAL_FOUND_FOR_BUFFER_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_SET_FOUND_FOR_BUFFER(A) (BLOCAL_SET_FOUND_FOR_BUFFER_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_FOUND_FOR_FRAME(A) (BLOCAL_FOUND_FOR_FRAME_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_SET_FOUND_FOR_FRAME(A) (BLOCAL_SET_FOUND_FOR_FRAME_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_BUFFER(A) (BLOCAL_BUFFER_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_FRAME(A) (BLOCAL_FRAME_VEC (BLOCAL_CDRS (A)))
+#define BLOCAL_CDR(A) (BLOCAL_CDR_VEC (BLOCAL_CDRS (A)))
+
 
 /* START and END are markers in the overlay's buffer, and
    PLIST is the overlay's property list.  */

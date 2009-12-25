@@ -3282,8 +3282,8 @@ specbind (symbol, value)
 	  if (!NILP (Flocal_variable_p (symbol, Qnil)))
 	    where = self_buffer;
 	  else if (BUFFER_LOCAL_VALUEP (valcontents)
-		   && BLOCAL_FOUND_FOR_FRAME (XBUFFER_LOCAL_VALUE (valcontents)->cdrs))
-	    where = BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents)->cdrs);
+		   && BLOCAL_FOUND_FOR_FRAME (XBUFFER_LOCAL_VALUE (valcontents)))
+	    where = BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents));
 	  else
 	    where = Qnil;
 

@@ -5578,7 +5578,8 @@ mark_object (arg)
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
 	    mark_object (ptr->realvalue);
-	    obj = ptr->cdrs;
+	    mark_object (ptr->cdrs);
+	    obj = BLOCAL_CDRS (ptr);
 	    goto loop;
 	  }
 

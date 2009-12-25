@@ -980,7 +980,7 @@ is the default binding of the variable. */)
       /* What binding is loaded right now?  */
       valcontents = sym->value;
       current_alist_element
-	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)->cdrs));
+	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
 
       /* The value of the currently loaded binding is not
 	 stored in it, but rather in the realvalue slot.
@@ -988,7 +988,7 @@ is the default binding of the variable. */)
 	 in case that is the one we are about to use.  */
 
       Fsetcdr (current_alist_element,
-	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+	       do_symval_forwarding (BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
 
       /* Now get the (perhaps updated) value out of the binding.  */
       result = XCDR (result);
@@ -1937,7 +1937,7 @@ set_buffer_internal_1 (b)
 	  && SYMBOLP (XCAR (XCAR (tail)))
 	  && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
 	      (BUFFER_LOCAL_VALUEP (valcontents)))
-	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
+	  && (tem = BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable to cause it to become set for
 	   this buffer.  */
@@ -1953,7 +1953,7 @@ set_buffer_internal_1 (b)
 	    && SYMBOLP (XCAR (XCAR (tail)))
 	    && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
 		(BUFFER_LOCAL_VALUEP (valcontents)))
-	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
+	    && (tem = BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable to cause it to become set for
 	     this buffer.  */
@@ -2688,7 +2688,7 @@ swap_out_buffer_local_variables (b)
 	  && (sym = XCAR (XCAR (alist)), SYMBOLP (sym))
 	  /* Need not do anything if some other buffer's binding is
 	     now encached.  */
-	  && EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->cdrs),
+	  && EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))),
 		 buffer))
 	{
 	  /* Symbol is set up for this buffer's old local value:

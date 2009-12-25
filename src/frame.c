@@ -2302,8 +2302,8 @@ store_frame_param (f, prop, val)
       valcontents = SYMBOL_VALUE (prop);
       if ((BUFFER_LOCAL_VALUEP (valcontents))
 	  && XBUFFER_LOCAL_VALUE (valcontents)->check_frame
-	  && BLOCAL_FOUND_FOR_FRAME (XBUFFER_LOCAL_VALUE (valcontents)->cdrs)
- 	  && XFRAME (BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents)->cdrs)) == f)
+	  && BLOCAL_FOUND_FOR_FRAME (XBUFFER_LOCAL_VALUE (valcontents))
+          && XFRAME (BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents))) == f)
  	swap_in_global_binding (prop);
     }
 

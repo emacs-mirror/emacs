@@ -2307,26 +2307,26 @@ print_object (obj, printcharfun, escapeflag)
 	  strout ("[realvalue] ", -1, -1, printcharfun, 0);
 	  print_object (XBUFFER_LOCAL_VALUE (obj)->realvalue,
 			printcharfun, escapeflag);
-	  if (BLOCAL_FOUND_FOR_BUFFER (XBUFFER_LOCAL_VALUE (obj)->cdrs))
+	  if (BLOCAL_FOUND_FOR_BUFFER (XBUFFER_LOCAL_VALUE (obj)))
 	    strout ("[local in buffer] ", -1, -1, printcharfun, 0);
 	  else
 	    strout ("[buffer] ", -1, -1, printcharfun, 0);
-	  print_object (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (obj)->cdrs),
+	  print_object (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (obj)),
 			printcharfun, escapeflag);
 	  if (XBUFFER_LOCAL_VALUE (obj)->check_frame)
 	    {
-	      if (BLOCAL_FOUND_FOR_FRAME (XBUFFER_LOCAL_VALUE (obj)->cdrs))
+	      if (BLOCAL_FOUND_FOR_FRAME (XBUFFER_LOCAL_VALUE (obj)))
 		strout ("[local in frame] ", -1, -1, printcharfun, 0);
 	      else
 		strout ("[frame] ", -1, -1, printcharfun, 0);
-	      print_object (BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (obj)->cdrs),
+	      print_object (BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (obj)),
 			    printcharfun, escapeflag);
 	    }
 	  strout ("[alist-elt] ", -1, -1, printcharfun, 0);
-	  print_object (XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (obj)->cdrs)),
+	  print_object (XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (obj))),
 			printcharfun, escapeflag);
 	  strout ("[default-value] ", -1, -1, printcharfun, 0);
-	  print_object (XCDR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (obj)->cdrs)),
+	  print_object (XCDR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (obj))),
 			printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
