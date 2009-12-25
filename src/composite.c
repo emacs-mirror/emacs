@@ -1104,6 +1104,9 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
      struct face *face;
      Lisp_Object string;
 {
+  if (charpos < PT && PT < endpos)
+    endpos = PT;
+
   if (cmp_it->ch == -2)
     {
       composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string);
@@ -1269,11 +1272,12 @@ static Lisp_Object _work_val;
 static int _work_char;
 
 /* 1 iff the character C is composable.  */
-#define CHAR_COMPOSABLE_P(C)					\
-  (_work_val = CHAR_TABLE_REF (Vunicode_category_table, (C)),	\
-   (SYMBOLP (_work_val)						\
-    && (_work_char = SDATA (SYMBOL_NAME (_work_val))[0]) != 'C'	\
-    && _work_char != 'Z'))
+#define CHAR_COMPOSABLE_P(C)						\
+  ((C) == 0x200C || (C) == 0x200D					\
+   || (_work_val = CHAR_TABLE_REF (Vunicode_category_table, (C)),	\
+       (SYMBOLP (_work_val)						\
+	&& (_work_char = SDATA (SYMBOL_NAME (_work_val))[0]) != 'C'	\
+	&& _work_char != 'Z')))
 
 /* This is like find_composition, but find an automatic composition
    instead.  If found, set *GSTRING to the glyph-string representing
@@ -1449,49 +1453,53 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
   return 0;
 }
 
+/* Return the adjusted point provided that point is moved from LAST_PT
+   to NEW_PT.  */
+
 int
-composition_adjust_point (last_pt)
-     EMACS_INT last_pt;
+composition_adjust_point (last_pt, new_pt)
+     EMACS_INT last_pt, new_pt;
 {
   EMACS_INT charpos, bytepos, startpos, beg, end, pos;
   Lisp_Object val;
   int i;
 
-  if (PT == BEGV || PT == ZV)
-    return PT;
+  if (new_pt == BEGV || new_pt == ZV)
+    return new_pt;
 
   /* At first check the static composition. */
-  if (get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
+  if (get_property_and_range (new_pt, Qcomposition, &val, &beg, &end, Qnil)
       && COMPOSITION_VALID_P (beg, end, val))
     {
-      if (beg < PT /* && end > PT   <- It's always the case.  */
+      if (beg < new_pt /* && end > new_pt   <- It's always the case.  */
 	  && (last_pt <= beg || last_pt >= end))
-	return (PT < last_pt ? beg : end);
-      return PT;
+	return (new_pt < last_pt ? beg : end);
+      return new_pt;
     }
 
   if (NILP (current_buffer->enable_multibyte_characters)
       || ! FUNCTIONP (Vauto_composition_function))
-    return PT;
+    return new_pt;
 
   /* Next check the automatic composition.  */
-  if (! find_automatic_composition (PT, (EMACS_INT) -1, &beg, &end, &val, Qnil)
-      || beg == PT)
-    return PT;
+  if (! find_automatic_composition (new_pt, (EMACS_INT) -1, &beg, &end, &val,
+				    Qnil)
+      || beg == new_pt)
+    return new_pt;
   for (i = 0; i < LGSTRING_GLYPH_LEN (val); i++)
     {
       Lisp_Object glyph = LGSTRING_GLYPH (val, i);
 
       if (NILP (glyph))
 	break;
-      if (beg + LGLYPH_FROM (glyph) == PT)
-	return PT;
-      if (beg + LGLYPH_TO (glyph) >= PT)
-	return (PT < last_pt
+      if (beg + LGLYPH_FROM (glyph) == new_pt)
+	return new_pt;
+      if (beg + LGLYPH_TO (glyph) >= new_pt)
+	return (new_pt < last_pt
 		? beg + LGLYPH_FROM (glyph)
 		: beg + LGLYPH_TO (glyph) + 1);
     }
-  return PT;
+  return new_pt;
 }
 
 DEFUN ("composition-get-gstring", Fcomposition_get_gstring,
