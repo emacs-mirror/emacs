@@ -1978,9 +1978,11 @@ command_loop_1 ()
 	  && NILP (Vdisable_point_adjustment)
 	  && NILP (Vglobal_disable_point_adjustment))
 	{
-	  if (composition_adjust_point (last_point_position,
-					last_point_position)
-	      != last_point_position)
+	  if (last_point_position > BEGV
+	      && last_point_position < ZV
+	      && (composition_adjust_point (last_point_position,
+					    last_point_position)
+		  != last_point_position))
 	    /* The last point was temporarily set within a grapheme
 	       cluster to prevent automatic composition.  To recover
 	       the automatic composition, we must update the
