@@ -936,11 +936,18 @@ Return nil if there is nothing appropriate in the buffer near point."
  :doc-spec '(("(bash)Builtin Index"       nil "^`" "[ .']")
              ("(bash)Reserved Word Index" nil "^`" "[ .']")
              ("(bash)Variable Index"      nil "^`" "[ .']")
+
              ;; coreutils (version 4.5.10) doesn't have a separate program
              ;; index, so exclude extraneous stuff (most of it) by demanding
              ;; "[a-z]+" in the trans-func.
+             ;; coreutils version 8.1 has node "Concept Index" and past
+             ;; versions have node "Index", look for both, whichever is
+             ;; absent is quietly ignored
              ("(coreutils)Index"
               (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+             ("(coreutils)Concept Index"
+              (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+
              ;; diff (version 2.8.1) has only a few programs, index entries
              ;; are things like "foo invocation".
              ("(diff)Index"
