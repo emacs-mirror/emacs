@@ -222,7 +222,8 @@ define pitx
   if ($it->sp != 0)
     printf " sp=%d", $it->sp
   end
-  if ($it->what == 0) # IT_CHARACTER
+  # IT_CHARACTER
+  if ($it->what == 0)
     if ($it->len == 1 && $it->c >= ' ' && it->c < 255)
       printf " ch='%c'", $it->c
     else
@@ -256,13 +257,16 @@ define pitx
       output $it->what
     end
   end
-  if ($it->method != 0) # GET_FROM_BUFFER
+  if ($it->method != 0)
+    # !GET_FROM_BUFFER
     printf " next="
     pitmethod $it->method
-    if ($it->method == 2) # GET_FROM_STRING
+    if ($it->method == 2)
+      # GET_FROM_STRING
       printf "[%d]", $it->current.string_pos.charpos
     end
-    if ($it->method == 4) # GET_FROM_IMAGE
+    if ($it->method == 4)
+      # GET_FROM_IMAGE
       printf "[%d]", $it->image_id
     end
   end
