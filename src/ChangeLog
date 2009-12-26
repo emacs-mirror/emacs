@@ -1,3 +1,8 @@
+2009-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pgx): Fix display of composite glyphs.  Display
+	cmp.from and cmp.to as well.
+
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (pitx): Don't use enum names, use their values.  Remove
