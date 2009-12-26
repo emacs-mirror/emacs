@@ -6,6 +6,10 @@
 	* man.el (man): Revise docstring a bit to show -a and -l as
 	examples.  Add -k description since support for it has otherwise
 	been a secret.  (Further to bug#3717.)
+	(Man-bgproc-sentinel): When "-k foo" produces no output show error
+	"no matches" rather than "Can't find manpage", as the latter reads
+	like -k was interpreted as a page name, which is not so.  (My
+	bug#5431.)
 
 2009-12-26  Michael Albinus  <michael.albinus@gmx.de>
 
