@@ -808,16 +808,39 @@ POS defaults to `point'."
 ;;;###autoload
 (defun man (man-args)
   "Get a Un*x manual page and put it in a buffer.
-This command is the top-level command in the man package.  It runs a Un*x
-command to retrieve and clean a manpage in the background and places the
-results in a Man mode (manpage browsing) buffer.  See variable
-`Man-notify-method' for what happens when the buffer is ready.
-If a buffer already exists for this man page, it will display immediately.
+This command is the top-level command in the man package.  It
+runs a Un*x command to retrieve and clean a manpage in the
+background and places the results in a `Man-mode' browsing
+buffer.  See variable `Man-notify-method' for what happens when
+the buffer is ready.  If a buffer already exists for this man
+page, it will display immediately.
 
-To specify a man page from a certain section, type SUBJECT(SECTION) or
-SECTION SUBJECT when prompted for a manual entry.  To see manpages from
-all sections related to a subject, put something appropriate into the
-`Man-switches' variable, which see."
+For a manpage from a particular section, use either of the
+following.  \"cat(1)\" is how cross-references appear and is
+passed to man as \"1 cat\".
+
+    cat(1)
+    1 cat
+
+To see manpages from all sections related to a subject, use an
+\"all pages\" option (which might be \"-a\" if it's not the
+default), then step through with `Man-next-manpage' (\\<Man-mode-map>\\[Man-next-manpage]) etc.
+Add to `Man-switches' to make this option permanent.
+
+    -a chmod
+
+An explicit filename can be given too.  Use -l if it might
+otherwise look like a page name.
+
+    /my/file/name.1.gz
+    -l somefile.1
+
+An \"apropos\" query with -k gives a buffer of matching page
+names or descriptions.  The pattern argument is usually an
+\"egrep\" style regexp.
+
+    -k pattern"
+
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
 		;; ignore case because that's friendly for bizarre
