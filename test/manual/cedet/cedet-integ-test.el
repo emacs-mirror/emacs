@@ -77,8 +77,10 @@
 ;; @TODO -
 ;; 6) Create a distribution file.
 ;;    a Call "make dist"
-;;    b In a fresh dir, unpack the dist.
-;;    c Compile that dist.
+;;    b update the version number
+;;    c make a new dist.  Verify version number.
+;;    d In a fresh dir, unpack the dist.
+;;    e Compile that dist.
 
 (require 'semantic)
 (require 'ede)
@@ -97,6 +99,7 @@
 (require 'cit-el)
 (require 'cit-texi)
 (require 'cit-gnustep)
+(require 'cit-dist)
 
 (defvar cedet-integ-target (expand-file-name "edeproj" cedet-integ-base)
   "Root of the EDE project integration tests.")
@@ -157,6 +160,10 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
 
   ;; Do some texinfo documentation.
   (cit-srecode-fill-texi)
+
+  ;; Create a distribution
+  (find-file (expand-file-name "README" cedet-integ-target))
+  (cit-make-dist)
 
   (cit-finish-message "PASSED" make-type)
   )
@@ -320,20 +327,27 @@ such as 'clean'."
     ;; 1 g) build the sources.
     (compile (concat ede-make-command (or ARGS "")))
 
-    (while compilation-in-progress
-      (accept-process-output)
-      (sit-for 1))
+    (cit-wait-for-compilation)
 
-    (save-excursion
-      (set-buffer "*compilation*")
-      (goto-char (point-max))
-
-      (when (re-search-backward " Error " nil t)
-	(error "Compilation failed!"))
-
-      )
     (kill-buffer bufftokill)
     ))
+
+(defun cit-wait-for-compilation ()
+  "Wait for a compilation to finish."
+
+  (while compilation-in-progress
+    (accept-process-output)
+    (sit-for 1))
+
+  (save-excursion
+    (set-buffer "*compilation*")
+    (goto-char (point-max))
+
+    (when (re-search-backward " Error " nil t)
+      (error "Compilation failed!"))
+
+    )
+  )
 
 (defun cit-run-target (command)
   "Run the program (or whatever) that is associated w/ the current target.
