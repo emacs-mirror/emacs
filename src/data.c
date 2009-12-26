@@ -96,13 +96,13 @@ static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 Lisp_Object impl_Vmost_positive_fixnum, impl_Vmost_negative_fixnum;
 
 Lisp_Object
-blocal_get_cdrs (struct Lisp_Buffer_Local_Value *l)
+blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
 {
-  Lisp_Object ret = assq_no_quit (get_current_thread (), l->cdrs);
+  Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
   if (NILP (ret))
     {
       /* FIXME: use the parent, not the first element. (or not?)  */
-      Lisp_Object tem, len, parent = XCDR (XCAR (l->cdrs));
+      Lisp_Object tem, len, parent = XCDR (XCAR (l->thread_data));
 
       XSETFASTINT (len, 4);
       ret = Fmake_vector (len, Qnil);
@@ -115,16 +115,16 @@ blocal_get_cdrs (struct Lisp_Buffer_Local_Value *l)
       XSETCAR (tem, tem);
 
       BLOCAL_CDR_VEC (ret) = tem;
-      l->cdrs = Fcons (Fcons (get_current_thread (), ret), l->cdrs);
+      l->thread_data = Fcons (Fcons (get_current_thread (), ret), l->thread_data);
     }
 
   return XCDR (ret);
 }
 
 void
-blocal_set_cdrs (struct Lisp_Buffer_Local_Value *l, Lisp_Object obj)
+blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object obj)
 {
-  l->cdrs = Fcons (Fcons (get_current_thread (), obj), Qnil);
+  l->thread_data = Fcons (Fcons (get_current_thread (), obj), Qnil);
 }
 
 Lisp_Object *
@@ -1631,7 +1631,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
       BLOCAL_FRAME_VEC (val_vec) = Qnil;
       BLOCAL_CDR_VEC (val_vec) = tem;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
-      BLOCAL_SET_CDRS (XBUFFER_LOCAL_VALUE (newval), val_vec);
+      BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
       sym->value = newval;
     }
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 1;
@@ -1702,7 +1702,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       BLOCAL_CDR_VEC (val_vec) = tem;
       XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
-      BLOCAL_SET_CDRS (XBUFFER_LOCAL_VALUE (newval), val_vec);
+      BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
       sym->value = newval;
     }
   /* Make sure this buffer has its own value of symbol.  */
@@ -1863,7 +1863,7 @@ frame-local bindings).  */)
   BLOCAL_CDR_VEC (val_vec) = tem;
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
   XBUFFER_LOCAL_VALUE (newval)->check_frame = 1;
-  BLOCAL_SET_CDRS (XBUFFER_LOCAL_VALUE (newval), val_vec);
+  BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
   sym->value = newval;
   return variable;
 }
