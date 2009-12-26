@@ -455,7 +455,7 @@ define pgx
   end
   # COMPOSITE_GLYPH
   if ($g->type == 1)
-    printf "COMP[%d]", $g->u.cmp_id
+    printf "COMP[%d (%d..%d)]", $g->u.cmp.id, $g->u.cmp.from, $g->u.cmp.to
   end
   # IMAGE_GLYPH
   if ($g->type == 2)
