@@ -763,9 +763,9 @@ POS defaults to `point'."
       (unless (and Man-completion-cache
                    (string-prefix-p (car Man-completion-cache) prefix))
         (with-temp-buffer
-          (setq default-directory "/") ;; in case inherited doesn't
-          ;; exist Actually for my `man' the arg is a regexp.
-          ;; POSIX says it must be ERE and GNU/Linux seems to agree,
+          (setq default-directory "/") ;; in case inherited doesn't exist
+          ;; Actually for my `man' the arg is a regexp.
+          ;; POSIX says it must be ERE and "man-db" seems to agree,
           ;; whereas under MacOSX it seems to be BRE-style and doesn't
           ;; accept backslashes at all.  Let's not bother to
           ;; quote anything.
