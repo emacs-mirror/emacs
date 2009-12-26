@@ -1197,6 +1197,18 @@ manpage command."
 						  (progn
 						    (end-of-line) (point)))
 		       delete-buff t))
+
+		;; "-k foo", successful exit, but no output (from man-db)
+		;; ENHANCE-ME: share the check for -k with
+		;; `Man-highlight-references'.  The \\s- bits here are
+		;; meant to allow for multiple options with -k among them.
+		((and (string-match "\\(\\`\\|\\s-\\)-k\\s-" Man-arguments)
+		      (eq (process-status process) 'exit)
+		      (= (process-exit-status process) 0)
+		      (= (point-min) (point-max)))
+		 (setq err-mess (format "%s: no matches" Man-arguments)
+		       delete-buff t))
+
 		((or (stringp process)
 		     (not (and (eq (process-status process) 'exit)
 			       (= (process-exit-status process) 0))))
