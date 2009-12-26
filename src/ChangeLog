@@ -2,6 +2,7 @@
 
 	* .gdbinit (pgx): Fix display of composite glyphs.  Display
 	cmp.from and cmp.to as well.
+	(pitx) Fix last change.
 
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
