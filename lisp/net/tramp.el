@@ -38,7 +38,7 @@
 ;;
 ;; This package only works for Emacs 21.1 and higher, and for XEmacs 21.4
 ;; and higher.  For XEmacs 21, you need the package `fsf-compat' for
-;; the `with-timeout' macro.)
+;; the `with-timeout' macro.
 ;;
 ;; Also see the todo list at the bottom of this file.
 ;;
@@ -4079,6 +4079,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
         (setq switches (concat "-d " switches)))
       (when wildcard
         (setq switches (concat switches " " wildcard)))
+      (when (string-match "'" switches)
+	(setq switches (replace-match "\\\\'" nil nil switches)))
       ;; If `full-directory-p', we just say `ls -l FILENAME'.
       ;; Else we chdir to the parent directory, then say `ls -ld BASENAME'.
       (if full-directory-p
@@ -4121,6 +4123,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 
 	;; Check for "--dired" output.
 	(forward-line -2)
+	(when (looking-at "//SUBDIRED//")
+	  (forward-line -1))
 	(when (looking-at "//DIRED//")
 	  (let ((end (tramp-compat-line-end-position))
 		(linebeg (point)))
