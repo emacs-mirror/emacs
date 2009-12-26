@@ -988,7 +988,7 @@ is the default binding of the variable. */)
 	 in case that is the one we are about to use.  */
 
       Fsetcdr (current_alist_element,
-	       do_symval_forwarding (BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
+	       do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
 
       /* Now get the (perhaps updated) value out of the binding.  */
       result = XCDR (result);
@@ -1937,7 +1937,7 @@ set_buffer_internal_1 (b)
 	  && SYMBOLP (XCAR (XCAR (tail)))
 	  && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
 	      (BUFFER_LOCAL_VALUEP (valcontents)))
-	  && (tem = BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
+	  && (tem = BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable to cause it to become set for
 	   this buffer.  */
@@ -1953,7 +1953,7 @@ set_buffer_internal_1 (b)
 	    && SYMBOLP (XCAR (XCAR (tail)))
 	    && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
 		(BUFFER_LOCAL_VALUEP (valcontents)))
-	    && (tem = BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
+	    && (tem = BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable to cause it to become set for
 	     this buffer.  */

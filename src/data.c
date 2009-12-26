@@ -95,50 +95,41 @@ static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
 Lisp_Object impl_Vmost_positive_fixnum, impl_Vmost_negative_fixnum;
 
-Lisp_Object
+Lisp_Object *
 blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
 {
   Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
   if (NILP (ret))
     {
-      /* FIXME: use the parent, not the first element. (or not?)  */
-      Lisp_Object tem, len, parent = XCDR (XCAR (l->thread_data));
-
-      XSETFASTINT (len, 4);
+      Lisp_Object len;
+      XSETFASTINT (len, 5);
       ret = Fmake_vector (len, Qnil);
       BLOCAL_CLEAR_FLAGS_VEC (ret);
-      XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
-      BLOCAL_BUFFER_VEC (ret) = BLOCAL_BUFFER_VEC (parent);
-      BLOCAL_FRAME_VEC (ret) = BLOCAL_FRAME_VEC (parent);
 
-      tem = Fcons (Qnil, Qnil);
-      XSETCAR (tem, tem);
+      if (!NILP (l->thread_data))
+        {
+          /* FIXME: use the parent, not the first element. (or not?)  */
+          Lisp_Object tem, parent = XCDR (XCAR (l->thread_data));
+          XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
+          BLOCAL_BUFFER_VEC (ret) = BLOCAL_BUFFER_VEC (parent);
+          BLOCAL_FRAME_VEC (ret) = BLOCAL_FRAME_VEC (parent);
+          tem = Fcons (Qnil, Qnil);
+          XSETCAR (tem, tem);
 
-      BLOCAL_CDR_VEC (ret) = tem;
-      l->thread_data = Fcons (Fcons (get_current_thread (), ret), l->thread_data);
+          BLOCAL_CDR_VEC (ret) = tem;
+        }
+
+      l->thread_data = Fcons (Fcons (get_current_thread (), ret),
+                              l->thread_data);
     }
 
-  return XCDR (ret);
+  return &XCDR_AS_LVALUE (ret);
 }
 
 void
 blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object obj)
 {
   l->thread_data = Fcons (Fcons (get_current_thread (), obj), Qnil);
-}
-
-Lisp_Object *
-blocal_get_realvalue (struct Lisp_Buffer_Local_Value *l)
-{
-  Lisp_Object current_thread = get_current_thread ();
-  Lisp_Object ret = assq_no_quit (current_thread, l->realvalue);
-  if (NILP (ret))
-    {
-      ret = Fcons (current_thread, Qnil);
-      l->realvalue = Fcons (ret, l->realvalue);
-    }
-
-  return &XCDR_AS_LVALUE (ret);
 }
 
 void
@@ -1117,7 +1108,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
     def:
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
-	BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
+	BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
       else if (THREADLOCALP (valcontents))
 	*find_variable_location (&indirect_variable (XSYMBOL (symbol))->value) = newval;
       else
@@ -1138,11 +1129,11 @@ swap_in_global_binding (symbol)
 
   /* Unload the previously loaded binding.  */
   Fsetcdr (XCAR (cdr),
-	   do_symval_forwarding (BLOCAL_GET_REALVALUE (blv)));
+	   do_symval_forwarding (BLOCAL_REALVALUE (blv)));
 
   /* Select the global binding in the symbol.  */
   XSETCAR (cdr, cdr);
-  store_symval_forwarding (symbol, BLOCAL_GET_REALVALUE (blv), XCDR (cdr), NULL);
+  store_symval_forwarding (symbol, BLOCAL_REALVALUE (blv), XCDR (cdr), NULL);
 
   /* Indicate that the global binding is set up now.  */
   BLOCAL_FRAME (blv) = Qnil;
@@ -1180,7 +1171,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       /* Unload the previously loaded binding.  */
       tem1 = XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
       Fsetcdr (tem1,
-	       do_symval_forwarding (BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
+	       do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
       /* Choose the new binding.  */
       tem1 = assq_no_quit (symbol, BUF_LOCAL_VAR_ALIST (current_buffer));
       BLOCAL_CLEAR_FLAGS (XBUFFER_LOCAL_VALUE (valcontents));
@@ -1201,10 +1192,10 @@ swap_in_symval_forwarding (symbol, valcontents)
       XSETBUFFER (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)), current_buffer);
       BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents)) = selected_frame;
       store_symval_forwarding (symbol,
-			       BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
+			       BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 			       Fcdr (tem1), NULL);
     }
-  return BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
+  return BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
 }
 
 /* Find the value of a symbol, returning Qunbound if it's not bound.
@@ -1345,7 +1336,7 @@ set_internal (symbol, newval, buf, bindflag)
 
 	  /* Write out `realvalue' to the old loaded binding.  */
           Fsetcdr (current_alist_element,
-		   do_symval_forwarding (BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
+		   do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
 
 	  /* Find the new binding.  */
 	  tem1 = Fassq (symbol, BUF_LOCAL_VAR_ALIST (buf));
@@ -1395,7 +1386,7 @@ set_internal (symbol, newval, buf, bindflag)
 	  XSETBUFFER (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)), buf);
 	  BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents)) = selected_frame;
 	}
-      innercontents = BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
+      innercontents = BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
 
       /* Store the new value in the cons-cell.  */
       XSETCDR (XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents))), newval);
@@ -1446,7 +1437,7 @@ default_value (symbol)
 	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
       alist_element_car = XCAR (current_alist_element);
       if (EQ (alist_element_car, current_alist_element))
-	return do_symval_forwarding (BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)));
+	return do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)));
       else
 	return XCDR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
     }
@@ -1531,7 +1522,7 @@ for this variable.  */)
   alist_element_buffer = Fcar (current_alist_element);
   if (EQ (alist_element_buffer, current_alist_element))
     store_symval_forwarding (symbol,
-			     BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
+			     BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 			     value, NULL);
 
   return value;
@@ -1616,7 +1607,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
   else
     {
       Lisp_Object len, val_vec;
-      XSETFASTINT (len, 4);
+      XSETFASTINT (len, 5);
       val_vec = Fmake_vector (len, Qnil);
       if (EQ (valcontents, Qunbound))
 	sym->value = Qnil;
@@ -1624,8 +1615,8 @@ The function `default-value' gets the default value and `set-default' sets it.  
       XSETCAR (tem, tem);
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
-      XBUFFER_LOCAL_VALUE (newval)->realvalue = Qnil;
-      BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
+      XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
+      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
       BLOCAL_CLEAR_FLAGS_VEC (val_vec);
       BLOCAL_BUFFER_VEC (val_vec) = Fcurrent_buffer ();
       BLOCAL_FRAME_VEC (val_vec) = Qnil;
@@ -1688,17 +1679,18 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   if (!BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object newval, len, val_vec;
-      XSETFASTINT (len, 4);
+      XSETFASTINT (len, 5);
       val_vec = Fmake_vector (len, Qnil);
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
       XSETCAR (tem, tem);
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
-      XBUFFER_LOCAL_VALUE (newval)->realvalue = Qnil;
-      BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
+      XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
+      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
       BLOCAL_CDR_VEC (val_vec);
       BLOCAL_BUFFER_VEC (val_vec) = Qnil;
       BLOCAL_FRAME_VEC (val_vec) = Qnil;
+      BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
       BLOCAL_CDR_VEC (val_vec) = tem;
       XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
@@ -1737,7 +1729,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
      for this buffer now.  If C code modifies the variable before we
      load the binding in, then that new value will clobber the default
      binding the next time we unload it.  */
-  valcontents = BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (sym->value));
+  valcontents = BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (sym->value));
   if (INTFWDP (valcontents) || BOOLFWDP (valcontents) || OBJFWDP (valcontents))
     swap_in_symval_forwarding (variable, sym->value);
 
@@ -1852,15 +1844,16 @@ frame-local bindings).  */)
   tem = Fcons (Qnil, Fsymbol_value (variable));
   XSETCAR (tem, tem);
   newval = allocate_misc ();
-  XSETFASTINT (len, 4);
+  XSETFASTINT (len, 5);
   val_vec = Fmake_vector (len, Qnil);
   XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
-  XBUFFER_LOCAL_VALUE (newval)->realvalue = Qnil;
-  BLOCAL_GET_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
+  XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
+  BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
   BLOCAL_CLEAR_FLAGS_VEC (val_vec);
   BLOCAL_BUFFER_VEC (val_vec) = Qnil;
   BLOCAL_FRAME_VEC (val_vec) = Qnil;
   BLOCAL_CDR_VEC (val_vec) = tem;
+  BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
   XBUFFER_LOCAL_VALUE (newval)->check_frame = 1;
   BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);

@@ -2304,8 +2304,8 @@ print_object (obj, printcharfun, escapeflag)
 	  strout ("#<buffer_local_value ", -1, -1, printcharfun, 0);
 	  if (XBUFFER_LOCAL_VALUE (obj)->local_if_set)
 	    strout ("[local-if-set] ", -1, -1, printcharfun, 0);
-	  strout ("[realvalue] ", -1, -1, printcharfun, 0);
-	  print_object (XBUFFER_LOCAL_VALUE (obj)->realvalue,
+	  strout ("[thread_data] ", -1, -1, printcharfun, 0);
+	  print_object (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (obj)),
 			printcharfun, escapeflag);
 	  if (BLOCAL_FOUND_FOR_BUFFER (XBUFFER_LOCAL_VALUE (obj)))
 	    strout ("[local in buffer] ", -1, -1, printcharfun, 0);

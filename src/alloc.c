@@ -5577,7 +5577,6 @@ mark_object (arg)
 	  {
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
-	    mark_object (ptr->realvalue);
 	    mark_object (ptr->thread_data);
 	    obj = BLOCAL_THREAD_DATA (ptr);
 	    goto loop;
