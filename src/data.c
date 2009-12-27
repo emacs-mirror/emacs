@@ -101,22 +101,17 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
   Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
   if (NILP (ret))
     {
-      Lisp_Object len;
+      Lisp_Object len, tem, parent = XCDR (XCAR (l->thread_data));
       XSETFASTINT (len, 5);
       ret = Fmake_vector (len, Qnil);
-      BLOCAL_CLEAR_FLAGS_VEC (ret);
 
-      if (!NILP (l->thread_data))
-        {
-          /* FIXME: use the parent, not the first element. (or not?)  */
-          Lisp_Object tem, parent = XCDR (XCAR (l->thread_data));
-          XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
-          BLOCAL_BUFFER_VEC (ret) = BLOCAL_BUFFER_VEC (parent);
-          BLOCAL_FRAME_VEC (ret) = BLOCAL_FRAME_VEC (parent);
-          tem = Fcons (Qnil, Qnil);
-          XSETCAR (tem, tem);
-          BLOCAL_CDR_VEC (ret) = tem;
-        }
+      /* FIXME: use the parent, not the first element. (or not?)  */
+      XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
+      BLOCAL_BUFFER_VEC (ret) = BLOCAL_BUFFER_VEC (parent);
+      BLOCAL_FRAME_VEC (ret) = BLOCAL_FRAME_VEC (parent);
+      tem = Fcons (Qnil, Qnil);
+      XSETCAR (tem, tem);
+      BLOCAL_CDR_VEC (ret) = tem;
 
       ret = Fcons (get_current_thread (), ret);
       l->thread_data = Fcons (ret, l->thread_data);
