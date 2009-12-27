@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-dist.el,v 1.1 2009-12-26 22:36:16 zappo Exp $
+;; X-RCS: $Id: cit-dist.el,v 1.2 2009-12-27 03:37:04 zappo Exp $
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -28,9 +28,18 @@
 
 (defun cit-make-dist ()
   "Create a distribution, and test that it exists."
+  ;; 6.a) Create the distribution
+  (ede-make-dist)
+  (cit-wait-for-compilation)
+
+  ;; Get the version number, then check for that file to exist.
+  (when (not (file-exists-p "CEDET_Integ_Test_Project-1.0.tar.gz"))
+    (error "Failed to create expected .tar.gz file."))
+
+  ;; 6.b) update the version number
   (cit-update-version)
 
-  ;; 6.a) Create the distribution
+  ;; 6.c) make a new dist.  Verify version number.
   (ede-make-dist)
   (cit-wait-for-compilation)
 
@@ -39,6 +48,7 @@
     (error "Failed to create expected .tar.gz file."))
 
   ;; @TODO - test extraction and build somewhere else.
+  ;; 6.d)
 
   )
 
@@ -52,6 +62,10 @@
   (let ((ver (oref (ede-toplevel) :version)))
     (when (not (string= "2.1" ver))
       (error "Version number did not update correctly.")))
+
+  ;; Force a rebuild with the new version number
+  (cit-compile-and-wait " Makefile")
+
   )
 
 (provide 'cit-dist)
