@@ -1,3 +1,7 @@
+2009-12-27  Karl Fogel  <kfogel@red-bean.com>
+
+	* INSTALL: Update for CVS->Bazaar switchover.
+
 2009-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: Add #define PROFILING to config.h.
