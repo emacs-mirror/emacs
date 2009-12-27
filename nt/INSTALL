@@ -46,7 +46,7 @@
      or
        gmake
 
-     (If you are building from CVS, say "make bootstrap" or "nmake
+     (If you are building from Bazaar, say "make bootstrap" or "nmake
      bootstrap" instead, and avoid using Cygwin make.)
 
      With GNU Make, you can use the -j command-line option to have
@@ -60,8 +60,8 @@
      up to 4 simultaneous commands at once in the top-level Make, and
      up to 3 in each one of the recursive Make's.
 
-  4. Generate the Info manuals (only if you are building out of CVS, and
-     if you have makeinfo.exe installed):
+  4. Generate the Info manuals (only if you are building out of Bazaar,
+     and if you have makeinfo.exe installed):
 
      make info
 
@@ -90,12 +90,13 @@
   directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
   site.
 
-  If you are building out of CVS, then some files in this directory
+  If you are building out of Bazaar, then some files in this directory
   (.bat files, nmake.defs and makefile.w32-in) may need the line-ends
   fixing first.  The easiest way to do this and avoid future conflicts
   is to run the following command in this (emacs/nt) directory:
 
-     cvs update -kb
+     ### FIXME: Not sure if Bazaar needs line-ending fixing the   ###
+     ### way CVS did.  Will someone who knows please update this? ###
 
   Alternatively, use programs that convert end-of-line format, such as
   dos2unix and unix2dos available from GnuWin32 or dtou and utod from
@@ -107,13 +108,15 @@
   lisp/international directory you should run the following command, or
   use dos2unix on those files.
 
-     cvs update -kb uni-*.el
+     ### FIXME: Not sure if Bazaar needs line-ending fixing the   ###
+     ### way CVS did.  Will someone who knows please update this? ###
 
   and in the lisp directory, use the command:
 
-     cvs update -kb lisp/ldefs-boot.el
+     ### FIXME: Not sure if Bazaar needs line-ending fixing the   ###
+     ### way CVS did.  Will someone who knows please update this? ###
 
-  In addition to this file, you should also read INSTALL.CVS in the
+  In addition to this file, you should also read INSTALL.BZR in the
   parent directory, and make sure that you have a version of
   "touch.exe" in your path, and that it will create files that do not
   yet exist.
@@ -224,9 +227,11 @@
     http://ourcomments.org/Emacs/w32-build-emacs.html
     http://derekslager.com/blog/posts/2007/01/emacs-hack-3-compile-emacs-from-cvs-on-windows.ashx
 
-  The second URL above includes instructions for building with MSVC,
-  as well as with MinGW, while the first URL covers only MinGW, but
-  has more details about it.
+  Both of those pages were written before Emacs switched from CVS to
+  Bazaar, but the parts about building Emacs still apply in Bazaar.
+  The second URL has instructions for building with MSVC, as well as
+  with MinGW, while the first URL covers only MinGW, but has more
+  details about it.
 
 * Configuring
 
@@ -338,7 +343,7 @@
 
   After running configure, simply run the appropriate `make' program for
   your compiler to build Emacs.  For MSVC, this is nmake; for GCC, it is
-  GNU make.  (If you are building out of CVS, say "make bootstrap" or
+  GNU make.  (If you are building out of Bazaar, say "make bootstrap" or
   "nmake bootstrap" instead.)
 
   As the files are compiled, you will see some warning messages
@@ -359,8 +364,8 @@
   each one of the recursive Make's; you can use other numbers of jobs,
   if you wish.
 
-  If you are building from CVS, the following commands will produce
-  the Info manuals (which are not part of the CVS repository):
+  If you are building from Bazaar, the following commands will produce
+  the Info manuals (which are not part of the Bazaar sources):
 
     make info
   or
@@ -390,7 +395,7 @@
 * Make targets
 
   The following make targets may be used by users building the source
-  distribution, or users who have checked out of CVS after
+  distribution, or users who have checked out of Bazaar after
   an initial bootstrapping.
 
   make
@@ -424,8 +429,7 @@
   the files removed by make cleanall.
 
 
-  The following targets are intended only for users who have checked out
-  of CVS.
+  The following targets are intended only for use with the Bazaar sources.
 
   make bootstrap
   Creates a temporary emacs binary with lisp source files and
@@ -433,7 +437,7 @@
   emacs is redumped with the compiled lisp.
 
   make recompile
-  Recompiles any changed lisp files after a cvs update.  This saves
+  Recompiles any changed lisp files after an update.  This saves
   doing a full bootstrap after every update.  If this or a subsequent
   make fail, you probably need to perform a full bootstrap, though
   running this target multiple times may eventually sort out the
@@ -441,10 +445,10 @@
 
   make maintainer-clean
   Removes everything that can be recreated, including compiled lisp
-  files, to get back to the state of a fresh CVS checkout.  After make
+  files, to get back to the state of a fresh Bazaar tree.  After make
   maintainer-clean, it is necessary to run configure.bat and make
   bootstrap to rebuild.  Occasionally it may be necessary to run this
-  target after a cvs update.
+  target after an update.
 
 
 * Trouble-shooting
