@@ -3,7 +3,7 @@ Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 See the end of the file for license conditions.
 
 
-	      Building and Installing Emacs from CVS
+	      Building and Installing Emacs from Bazaar
 
 If this is the first time you go through it, you'll need to configure
 before bootstrapping:
@@ -11,15 +11,15 @@ before bootstrapping:
   $ ./configure
 
 Some of the files that are included in the Emacs tarball, such as
-byte-compiled Lisp files, are not stored in the CVS repository.
-Therefore, to build from CVS you must run "make bootstrap"
-instead of just "make":
+byte-compiled Lisp files, are not stored in Bazaar.  Therefore, to
+build from Bazaar you must run "make bootstrap" instead of just "make":
 
   $ cvs update -dP
   $ make bootstrap
 
-Normally, it is not necessary to use "make bootstrap" after every CVS
-update.  "make" should work in 90% of the cases and be much quicker.
+Normally, it is not necessary to use "make bootstrap" after every
+update from Bazaar.  "make" should work in 90% of the cases and be
+much quicker.
 
   $ make
 
@@ -33,10 +33,11 @@ updated to reflect new autoloaded functions.  If you see errors (rather
 than warnings) about undefined lisp functions during compilation, that
 may be the reason.  Another symptom may be an error saying that
 "loaddefs.el" could not be found; this is due to a change in the way
-loaddefs.el was handled in CVS, and should only happen once, for users
-that are updating old CVS trees.  Finally, sometimes there can be build
-failures related to *loaddefs.el (e.g. "required feature `esh-groups'
-was not provided").  In that case, follow the instructions below.
+loaddefs.el was handled in version control, and should only happen
+once, for users that are updating old sources.  Finally, sometimes
+there can be build failures related to *loaddefs.el (e.g. "required
+feature `esh-groups' was not provided").  In that case, follow the
+instructions below.
 
 To update loaddefs.el (and similar files), do:
 
@@ -52,42 +53,26 @@ platform-specific configuration scripts (nt/configure.bat, config.bat,
 etc.) before "make bootstrap" or "make"; the rest of the procedure is
 applicable to those systems as well.
 
-Questions, requests, and bug reports about the CVS versions of Emacs
+Questions, requests, and bug reports about the Bazaar versions of Emacs
 should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
 or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
 send it to the proper place.
 
-Because the CVS version of Emacs is a work in progress, it will
+Because the Bazaar version of Emacs is a work in progress, it will
 sometimes fail to build.  Please wait a day or so (and check the bug
 and development mailing list archives) before reporting such problems.
 In most cases, the problem is known about and is just waiting for
 someone to fix it.
 
 
-Note on using SSH to access the CVS repository from inside Emacs
-----------------------------------------------------------------
+Note on accessing the Bazaar repository
+---------------------------------------
 
-Write access to the CVS repository requires using SSH v2.
+Write access to the Bazaar repository is currently done via Bazaar's
+sftp:// protocol; see http://www.emacswiki.org/emacs/BzrForEmacsDevs.
+We plan to offer bzr+ssh:// access later.  More discussion about that
+is at https://savannah.gnu.org/support/?107077.
 
-If you execute cvs commands inside Emacs, specifically if you use
-pcl-cvs, output from CVS may be lost due to a problem in the
-interface between ssh, cvs, and libc.  Corrupted checkins are
-also known to have happened.
-
-To fix the problem, save the following script into a file, make it
-executable, and set CVS_RSH to the file name of the script:
-
-#!/bin/bash
-exec 2> >(exec cat >&2 2>/dev/null)
-exec ssh "$@"
-
-This may be combined with the following entry in ~/.ssh/config to
-simplify accessing the CVS repository:
-
-Host subversions.gnu.org
-     Protocol 2
-     ForwardX11 no
-     User YOUR_USERID
 
 
 This file is part of GNU Emacs.

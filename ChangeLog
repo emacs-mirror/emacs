@@ -1,3 +1,8 @@
+2009-12-27  Karl Fogel  <kfogel@red-bean>
+
+	* INSTALL.BZR: Rename from INSTALL.CVS; edit to talk about Bazaar.
+	* INSTALL, autogen.sh, configure.in, configure: Adjust accordingly.
+
 2009-12-17  Glenn Morris  <rgm@gnu.org>
 
 	* .dir-locals.el (bug-reference-url-format): Change to debbugs.gnu.org.
