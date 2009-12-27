@@ -1,3 +1,7 @@
+2009-12-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fall_completions): Minor optimization.
+
 2009-12-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (pgx): Fix display of composite glyphs.  Display

@@ -1647,10 +1647,10 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	  && SCHARS (string) <= SCHARS (eltstring)
 	  /* If HIDE_SPACES, reject alternatives that start with space
 	     unless the input starts with space.  */
-	  && ((SBYTES (string) > 0
-	       && SREF (string, 0) == ' ')
-	      || SREF (eltstring, 0) != ' '
-	      || NILP (hide_spaces))
+	  && (NILP (hide_spaces)
+	      || (SBYTES (string) > 0
+		  && SREF (string, 0) == ' ')
+	      || SREF (eltstring, 0) != ' ')
 	  && (tem = Fcompare_strings (eltstring, zero,
 				      make_number (SCHARS (string)),
 				      string, zero,
