@@ -1,0 +1,10 @@
+autom4te.cache
+*.elc
+info/*
+lisp/cus-load.el
+lisp/finder-inf.el
+lisp/**/loaddefs.el
+lisp/**/*-loaddefs.el
+lisp/subdirs.el
+lisp/eshell/esh-groups.el
+TAGS
