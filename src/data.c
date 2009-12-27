@@ -115,12 +115,11 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
           BLOCAL_FRAME_VEC (ret) = BLOCAL_FRAME_VEC (parent);
           tem = Fcons (Qnil, Qnil);
           XSETCAR (tem, tem);
-
           BLOCAL_CDR_VEC (ret) = tem;
         }
 
-      l->thread_data = Fcons (Fcons (get_current_thread (), ret),
-                              l->thread_data);
+      ret = Fcons (get_current_thread (), ret);
+      l->thread_data = Fcons (ret, l->thread_data);
     }
 
   return &XCDR_AS_LVALUE (ret);
@@ -129,6 +128,9 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
 void
 blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object obj)
 {
+  if (! NILP (l->thread_data))
+    abort ();
+
   l->thread_data = Fcons (Fcons (get_current_thread (), obj), Qnil);
 }
 
@@ -1616,13 +1618,13 @@ The function `default-value' gets the default value and `set-default' sets it.  
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
-      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
       BLOCAL_CLEAR_FLAGS_VEC (val_vec);
       BLOCAL_BUFFER_VEC (val_vec) = Fcurrent_buffer ();
       BLOCAL_FRAME_VEC (val_vec) = Qnil;
       BLOCAL_CDR_VEC (val_vec) = tem;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
       BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
+      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
       sym->value = newval;
     }
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 1;
@@ -1686,15 +1688,15 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
-      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
       BLOCAL_CDR_VEC (val_vec);
       BLOCAL_BUFFER_VEC (val_vec) = Qnil;
       BLOCAL_FRAME_VEC (val_vec) = Qnil;
-      BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
       BLOCAL_CDR_VEC (val_vec) = tem;
       XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
       BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
+      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
+      BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
       sym->value = newval;
     }
   /* Make sure this buffer has its own value of symbol.  */
@@ -1848,15 +1850,15 @@ frame-local bindings).  */)
   val_vec = Fmake_vector (len, Qnil);
   XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
-  BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
   BLOCAL_CLEAR_FLAGS_VEC (val_vec);
   BLOCAL_BUFFER_VEC (val_vec) = Qnil;
   BLOCAL_FRAME_VEC (val_vec) = Qnil;
   BLOCAL_CDR_VEC (val_vec) = tem;
-  BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
   XBUFFER_LOCAL_VALUE (newval)->check_frame = 1;
   BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
+  BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
+  BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
   sym->value = newval;
   return variable;
 }
