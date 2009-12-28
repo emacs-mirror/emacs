@@ -1,3 +1,11 @@
+2009-12-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	Supersede color.diff settings in git log (bug#5211).
+
+	* vc-git.el (vc-git-print-log): Pass "--no-color" to log to avoid
+	escape chars in its output when the user has color.diff set to `always'.
+	This fix works on git 1.4.2 and newer (released on 2006-08-13).
+
 2009-12-26  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (sh-mode): Look for coreutils new "Concept Index"
