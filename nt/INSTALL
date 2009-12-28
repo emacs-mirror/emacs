@@ -90,32 +90,6 @@
   directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
   site.
 
-  If you are building out of Bazaar, then some files in this directory
-  (.bat files, nmake.defs and makefile.w32-in) may need the line-ends
-  fixing first.  The easiest way to do this and avoid future conflicts
-  is to run the following command in this (emacs/nt) directory:
-
-     ### FIXME: Not sure if Bazaar needs line-ending fixing the   ###
-     ### way CVS did.  Will someone who knows please update this? ###
-
-  Alternatively, use programs that convert end-of-line format, such as
-  dos2unix and unix2dos available from GnuWin32 or dtou and utod from
-  the DJGPP project.
-
-  Additionally, the files lisp/international/uni-*.el and
-  lisp/ldefs-boot.el need Unix line ends due to some embedded ^M
-  characters that are not at the end of the line.  So in the
-  lisp/international directory you should run the following command, or
-  use dos2unix on those files.
-
-     ### FIXME: Not sure if Bazaar needs line-ending fixing the   ###
-     ### way CVS did.  Will someone who knows please update this? ###
-
-  and in the lisp directory, use the command:
-
-     ### FIXME: Not sure if Bazaar needs line-ending fixing the   ###
-     ### way CVS did.  Will someone who knows please update this? ###
-
   In addition to this file, you should also read INSTALL.BZR in the
   parent directory, and make sure that you have a version of
   "touch.exe" in your path, and that it will create files that do not
@@ -146,11 +120,11 @@
   If you use the MinGW port of GCC and GNU Make to build Emacs, there
   are some compatibility issues wrt Make and the shell that is run by
   Make, either the standard COMMAND.COM/CMD.EXE supplied with Windows
-  or sh.exe., a port of a Unixy shell.  For reference, below is a list
+  or sh.exe, a port of a Unixy shell.  For reference, below is a list
   of which builds of GNU Make are known to work or not, and whether
   they work in the presence and/or absence of sh.exe, the Cygwin port
   of Bash.  Note that any version of Make that is compiled with Cygwin
-  will only work with Cygwin tools, due to the use of cygwin style
+  will only work with Cygwin tools, due to the use of Cygwin style
   paths.  This means Cygwin Make is unsuitable for building parts of
   Emacs that need to invoke Emacs itself (leim and "make bootstrap",
   for example).  Also see the Trouble-shooting section below if you
@@ -263,6 +237,7 @@
   In addition to its "native" image formats (pbm and xbm), Emacs can
   handle other image types: xpm, tiff, gif, png, jpeg and experimental
   support for svg.
+
   To build Emacs with support for them, the corresponding headers must
   be in the include path when the configure script is run.  This can
   be setup using environment variables, or by specifying --cflags

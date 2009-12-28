@@ -1,3 +1,7 @@
+2009-12-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Remove obsolete notes about line endings, and fix some typos.
+
 2009-12-27  Karl Fogel  <kfogel@red-bean.com>
 
 	* INSTALL: Update for CVS->Bazaar switchover.
