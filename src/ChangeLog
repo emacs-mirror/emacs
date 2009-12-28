@@ -8,6 +8,21 @@
 	cmp.from and cmp.to as well.
 	(pitx) Fix last change.
 
+2009-12-25  Kenichi Handa  <handa@m17n.org>
+
+	* composite.h (composition_adjust_point): Update prototype.
+
+	* composite.c (composition_reseat_it): Don't make a composition
+	spanning over point.
+	(CHAR_COMPOSABLE_P): Treat U+200C (ZWNJ) and U+200D (ZWJ) as
+	composable characters.
+	(composition_adjust_point): New arg NEW_PT.  Callers changed.
+
+	* keyboard.c (command_loop_1): Force redisplay if the last point
+	was within a composition.
+	(adjust_point_for_property): Don't adjust point for automatic
+	composition when called after buffer modification.
+
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (pitx): Don't use enum names, use their values.  Remove
