@@ -277,6 +277,8 @@ to the RCS command.
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
   (let (subdir name)
+    ;; When REV is specified, we need to force using "-t-".
+    (when rev (unless comment (setq comment "")))
     (dolist (file files)
       (and (not (file-exists-p
 		 (setq subdir (expand-file-name "RCS"
