@@ -555,7 +555,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	(apply 'vc-git-command buffer
 	       'async files
 	       (append
-		'("log")
+		'("log" "--no-color")
 		(when shortlog
 		  '("--graph" "--decorate"
 		    "--date=short" "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
