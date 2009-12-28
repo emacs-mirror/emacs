@@ -1,5 +1,7 @@
 2009-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-rcs.el (vc-rcs-register): Fix registering a specific version.
+
 	* vc-bzr.el (vc-bzr-log-view-mode): Fix short log regexp.
 
 2009-12-28  Juanma Barranquero  <lekktu@gmail.com>
