@@ -1767,6 +1767,23 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
 
 (defvar font-lock-set-defaults nil)	; Whether we have set up defaults.
 
+(defun font-lock-refresh-defaults ()
+  "Restart fontification in current buffer after recomputing from defaults.
+Recompute fontification variables using `font-lock-defaults' (or,
+if nil, using `font-lock-defaults-alist') and
+`font-lock-maximum-decoration'.  Then restart fontification.
+
+Use this function when you have changed any of the above
+variables directly.
+
+Note: This function will erase modifications done by
+`font-lock-add-keywords' or `font-lock-remove-keywords', but will
+preserve `hi-lock-mode' highlighting patterns."
+  (let ((hi-lock--inhibit-font-lock-hook t))
+    (font-lock-mode -1))
+  (kill-local-variable 'font-lock-set-defaults)
+  (font-lock-mode 1))
+
 (defvar font-lock-mode-major-mode)
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
