@@ -1683,15 +1683,13 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->thread_data = Qnil;
-      BLOCAL_CDR_VEC (val_vec);
       BLOCAL_BUFFER_VEC (val_vec) = Qnil;
       BLOCAL_FRAME_VEC (val_vec) = Qnil;
       BLOCAL_CDR_VEC (val_vec) = tem;
       XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
+      BLOCAL_REALVALUE_VEC (val_vec) = sym->value;
       BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
-      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
-      BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
       sym->value = newval;
     }
   /* Make sure this buffer has its own value of symbol.  */
@@ -1851,9 +1849,8 @@ frame-local bindings).  */)
   BLOCAL_CDR_VEC (val_vec) = tem;
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
   XBUFFER_LOCAL_VALUE (newval)->check_frame = 1;
+  BLOCAL_REALVALUE_VEC (val_vec) = sym->value;
   BLOCAL_SET_THREAD_DATA (XBUFFER_LOCAL_VALUE (newval), val_vec);
-  BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
-  BLOCAL_REALVALUE_VEC (val_vec) = Qnil;
   sym->value = newval;
   return variable;
 }
