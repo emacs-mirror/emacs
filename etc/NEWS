@@ -218,11 +218,10 @@ dired buffers automatically on revisiting.
 *** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 
-** gdb-mi
+** GDB-UI
 
-*** GDB User Interface migrated to GDB Machine Interface and now
-supports multithread non-stop debugging and debugging of several
-threads simultaneously.
+*** Toolbar functionality for reverse debugging. Display of STL collections as
+    watch expressions.  These features require GDB 7.0 or later.
 
 ** Grep
 
