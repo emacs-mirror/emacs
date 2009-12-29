@@ -1,3 +1,10 @@
+2009-12-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	Declare some functions for the byte-compiler.
+	* progmodes/gdb-ui.el (speedbar-change-initial-expansion-list)
+	(speedbar-timer-fn, speedbar-change-expand-button-char)
+	(speedbar-delete-subblock, speedbar-center-buffer-smartly): Declare.
+
 2009-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make vc-dir work on subdirectories of the bzr root.

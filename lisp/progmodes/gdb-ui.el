@@ -852,6 +852,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 		`(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
+(declare-function speedbar-change-initial-expansion-list "speedbar" (new-default))
+
 (defun gdb-var-create-handler (expr)
   (let* ((result (gdb-json-partial-output)))
     (if (not (bindat-get-field result 'msg))
@@ -873,6 +875,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 		   speedbar-initial-expansion-list-name "GUD")
 	    (speedbar-change-initial-expansion-list "GUD")))
       (message-box "No symbol \"%s\" in current context." expr))))
+
+(declare-function speedbar-timer-fn "speedbar" ())
 
 (defun gdb-speedbar-update ()
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame)
@@ -1057,6 +1061,10 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :type 'boolean
   :group 'gdb
   :version "22.2")
+
+(declare-function speedbar-change-expand-button-char "speedbar" (char))
+(declare-function speedbar-delete-subblock "speedbar" (indent))
+(declare-function speedbar-center-buffer-smartly "speedbar" ())
 
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
