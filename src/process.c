@@ -4566,7 +4566,7 @@ wait_reading_process_output_1 ()
 }
 
 /* Use a wrapper around select to work around a bug in gdb 5.3.
-   Normally, the wrapper is optimzed away by inlining.
+   Normally, the wrapper is optimized away by inlining.
 
    If emacs is stopped inside select, the gdb backtrace doesn't
    show the function which called select, so it is practically
