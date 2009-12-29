@@ -1,3 +1,11 @@
+2009-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make vc-dir work on subdirectories of the bzr root.
+	* vc-bzr.el (vc-bzr-after-dir-status): Add new argument.  Return
+	file names relative to it.
+	(vc-bzr-dir-status, vc-bzr-dir-status-files): Pass the bzr root
+	relative directory to vc-bzr-after-dir-status.
+
 2009-12-28  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* font-lock.el (font-lock-refresh-defaults): New function, which

@@ -639,7 +639,7 @@ stream.  Standard error output is discarded."
 	       'face 'font-lock-comment-face)))))
 
 ;; FIXME: this needs testing, it's probably incomplete.
-(defun vc-bzr-after-dir-status (update-function)
+(defun vc-bzr-after-dir-status (update-function relative-dir)
   (let ((status-str nil)
 	(translation '(("+N " . added)
 		       ("-D " . removed)
@@ -687,16 +687,17 @@ stream.  Standard error output is discarded."
 	      (setf (nth 1 entry) 'conflict))))
 	 ((eq translated 'renamed)
 	  (re-search-forward "R   \\(.*\\) => \\(.*\\)$" (line-end-position) t)
-	  (let ((new-name (match-string 2))
-		(old-name (match-string 1)))
+	  (let ((new-name (file-relative-name (match-string 2) relative-dir))
+		(old-name (file-relative-name (match-string 1) relative-dir)))
 	    (push (list new-name 'edited
 		      (vc-bzr-create-extra-fileinfo old-name)) result)))
 	 ;; do nothing for non existent files
 	 ((eq translated 'not-found))
 	 (t
-	  (push (list (buffer-substring-no-properties
-		       (+ (point) 4)
-		       (line-end-position))
+	  (push (list (file-relative-name
+		       (buffer-substring-no-properties
+			(+ (point) 4)
+			(line-end-position)) relative-dir)
 		      translated) result)))
 	(forward-line))
       (funcall update-function result)))
@@ -705,13 +706,22 @@ stream.  Standard error output is discarded."
   "Return a list of conses (file . state) for DIR."
   (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
   (vc-exec-after
-   `(vc-bzr-after-dir-status (quote ,update-function))))
+   `(vc-bzr-after-dir-status (quote ,update-function)
+			     ;; "bzr status" results are relative to
+			     ;; the bzr root directory, NOT to the
+			     ;; directory "bzr status" was invoked in.
+			     ;; Ugh.
+			     ;; We pass the relative directory here so
+			     ;; that `vc-bzr-after-dir-status' can
+			     ;; frob the results accordingly.
+			     (file-relative-name ,dir (vc-bzr-root ,dir)))))
 
 (defun vc-bzr-dir-status-files (dir files default-state update-function)
   "Return a list of conses (file . state) for DIR."
   (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
   (vc-exec-after
-   `(vc-bzr-after-dir-status (quote ,update-function))))
+   `(vc-bzr-after-dir-status (quote ,update-function)
+			     (file-relative-name ,dir (vc-bzr-root ,dir)))))
 
 (defvar vc-bzr-shelve-map
   (let ((map (make-sparse-keymap)))
