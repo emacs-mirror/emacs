@@ -138,7 +138,7 @@
 2009-12-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-frame-handler): Only set gud-lat-frame
-	when there are values for both file and line. (Bug#5060)
+	when there are values for both file and line.  (Bug#5060)
 
 2009-12-14  Juri Linkov  <juri@jurta.org>
 
@@ -317,7 +317,7 @@
 
 2009-12-09  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (ucs-names): Supply a sufficiently
+	* international/mule-cmds.el (ucs-names): Supply sufficiently
 	fine ranges instead of pre-calculating accurate ranges.
 	Iterate with bigger gc-cons-threshold.
 
@@ -442,10 +442,10 @@
 
 2009-12-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer): Add
-	menus to the meta mode.  (Bug#5043)
+	* ediff-mult.el (ediff-setup-meta-map, ediff-prepare-meta-buffer):
+	Add menus to the meta mode.  (Bug#5043)
 
-2009-12-07  Michael Kifer <kifer@cs.stonybrook.edu>
+2009-12-07  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* ediff-init.el (ediff-event-key): Use event-to-character instead of
 	event-key.
@@ -708,7 +708,7 @@
 	(newsticker-treeview-item-menu): Added menu entries.
 	(newsticker-treeview-item-mode): New.
 
-	* net/newst-backend.el (newsticker-customize): delete other
+	* net/newst-backend.el (newsticker-customize): Delete other
 	windows.
 
 2009-12-04  Sam Steingold  <sds@gnu.org>
@@ -2203,7 +2203,7 @@
 	* type-break.el (type-break-force-mode-line-update):
 	* time-stamp.el (time-stamp-conv-warn):
 	* terminal.el (te-set-output-log, te-more-break, te-filter)
-	(te-sentinel,terminal-emulator):
+	(te-sentinel, terminal-emulator):
 	* term.el (make-term, term-exec, term-sentinel, term-read-input-ring)
 	(term-write-input-ring, term-check-source, term-start-output-log):
 	(term-display-buffer-line, term-dynamic-list-completions):
@@ -2545,7 +2545,7 @@
 	`tramp-compat-delete-directory'.
 
 	* net/tramp-smb.el (tramp-smb-handle-copy-directory)
-	(tramp-smb-handle-delete-directory ): Use
+	(tramp-smb-handle-delete-directory): Use
 	`tramp-compat-copy-directory' and `tramp-compat-delete-directory'.
 
 	* net/trampver.el: Update release number.
@@ -2885,7 +2885,7 @@
 	* play/fortune.el (fortune-in-buffer):
 	* play/dissociate.el (dissociated-press):
 	* play/decipher.el (decipher-adjacency-list, decipher-display-regexp)
-	(decipher-analyze-buffer, decipher-stats-buffer,decipher-stats-buffer):
+	(decipher-analyze-buffer, decipher-stats-buffer, decipher-stats-buffer):
 	* mail/supercite.el (sc-eref-show):
 	* mail/smtpmail.el (smtpmail-send-it):
 	* mail/rmailsum.el (rmail-summary-next-labeled-message)
@@ -3066,14 +3066,14 @@
 	(ada-find-any-references, ada-make-filename-from-adaname)
 	(ada-make-body-gnatstub):
 	* obsolete/rnews.el (news-list-news-groups):
-	* obsolete/resume.el (resume-suspend-hook,resume-write-buffer-to-file):
+	* obsolete/resume.el (resume-suspend-hook, resume-write-buffer-to-file):
 	* obsolete/iso-acc.el (iso-acc-minibuf-setup):
 	* net/rcirc.el (rcirc-debug):
 	* net/newst-treeview.el (newsticker--treeview-list-add-item)
 	(newsticker--treeview-list-clear, newsticker-treeview-browse-url)
 	(newsticker--treeview-list-update-faces, newsticker-treeview-save)
 	(newsticker--treeview-item-show-text, newsticker--treeview-item-show)
-	(newsticker--treeview-tree-update-tag,newsticker--treeview-buffer-init)
+	(newsticker--treeview-tree-update-tag, newsticker--treeview-buffer-init)
 	(newsticker-treeview-show-item, newsticker--treeview-unfold-node)
 	(newsticker--treeview-list-clear-highlight)
 	(newsticker--treeview-list-update-highlight)
@@ -4752,7 +4752,7 @@
 	* newcomment.el (comment-indent-new-line):
 	* pgg.el (pgg-save-coding-system, pgg-encrypt-region)
 	(pgg-encrypt-symmetric-region, pgg-encrypt-symmetric)
-	(pgg-encrypt, pgg-decrypt-region, pgg-decrypt, )
+	(pgg-encrypt, pgg-decrypt-region, pgg-decrypt)
 	(pgg-sign-region, pgg-sign, pgg-verify-region, pgg-verify):
 	* recentf.el (recentf-mode):
 	* savehist.el (savehist-mode, savehist-save):
@@ -4892,7 +4892,7 @@
 	* dired.el (dired-delete-file): Call `delete-directory' with
 	RECURSIVE parameter.
 
-	* net/ange-ftp.el (ange-ftp-delete-directory ): Add optional
+	* net/ange-ftp.el (ange-ftp-delete-directory): Add optional
 	parameter RECURSIVE.  Implementation is missing.
 
 	* net/tramp.el (tramp-handle-make-directory): Flush upper
@@ -8157,7 +8157,7 @@
 	(tramp-get-debug-buffer): Change `outline-regexp' according to new
 	format.
 
-	* net/tramp-cache.el (tramp-cache-inhibit-cache ): New defvar.
+	* net/tramp-cache.el (tramp-cache-inhibit-cache): New defvar.
 	(tramp-get-file-property): Use it.
 
 	* autorevert.el (auto-revert-handler): Allow

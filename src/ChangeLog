@@ -4,9 +4,9 @@
 
 2009-12-26  Eli Zaretskii  <eliz@gnu.org>
 
-	* .gdbinit (pgx): Fix display of composite glyphs.  Display
-	cmp.from and cmp.to as well.
-	(pitx) Fix last change.
+	* .gdbinit (pgx): Fix display of composite glyphs.
+	Display cmp.from and cmp.to as well.
+	(pitx): Fix last change.
 
 2009-12-25  Kenichi Handa  <handa@m17n.org>
 
@@ -25,8 +25,8 @@
 
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* .gdbinit (pitx): Don't use enum names, use their values.  Remove
-	reference to non-existing value GET_FROM_COMPOSITION.
+	* .gdbinit (pitx): Don't use enum names, use their values.
+	Remove reference to non-existing value GET_FROM_COMPOSITION.
 	(pgx): Don't use enum names, use their values.
 	(pitmethod): New helper command.
 	(pitx): Use it to display iteration method.
@@ -141,7 +141,7 @@
 	* coding.c (decode_coding_iso_2022): Ignore ISO_CODE_SS2_7 (0x19)
 	in 8-bit encoding.
 
-2009-12-13  Pat Thoyts <patthoyts@users.sourceforge.net> (tiny change)
+2009-12-13  Pat Thoyts  <patthoyts@users.sourceforge.net>  (tiny change)
 
 	* xfns.c (x_create_tip_frame): Set the extended window manager hint for
 	tooltip windows.
@@ -156,7 +156,7 @@
 
 	* xterm.c (my_log_handler): New function.
 	(x_term_init): Set my_log_handler as log handler during gtk_init
-	so we can filter out buggy messages. (bug #5120).
+	so we can filter out buggy messages.  (Bug #5120).
 
 	* xterm.c (xg_scroll_callback): Parameter list changed,
 	use parameter GtkScrollType to determine scroll/line/page.
@@ -200,7 +200,7 @@
 
 2009-12-12  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (scroll_end_callback): New function (bug #5177)
+	* gtkutil.c (scroll_end_callback): New function (bug #5177).
 	(xg_create_scroll_bar): Call scroll_end_callback on button release
 	event (bug #5177).
 	(xg_event_is_for_scrollbar): != replaced with ==.
@@ -327,7 +327,7 @@
 
 	* term.c (delete_tty): Remove check for last terminal (bug#4970).
 
-	* xsettings.c: Revert changes from 2009-11-23. Just use Xft
+	* xsettings.c: Revert changes from 2009-11-23.  Just use Xft
 	defaults (bug #5025).
 
 2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -380,7 +380,7 @@
 	* gtkutil.c (xg_timer, xg_process_timeouts, xg_start_timer)
 	(xg_stop_timer, menu_grab_callback_cnt, menu_grab_callback)
 	(scroll_bar_button_cb): Remove.
-	(create_menus): C++ comments => C comments. Don't bind grab-notify
+	(create_menus): C++ comments => C comments.  Don't bind grab-notify
 	event.
 	(xg_create_scroll_bar): Don't bind button-press-event and
 	button-release-event.
@@ -542,7 +542,7 @@
 	has a parent.
 
 	* Makefile.in: If AUTO_DEPEND is defined, make gcc generate
-	dependency files in deps/. Include those files into Makefile.
+	dependency files in deps/.  Include those files into Makefile.
 
 	* config.in: Generated (AUTO_DEPEND).
 

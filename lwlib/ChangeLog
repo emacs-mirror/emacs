@@ -753,7 +753,7 @@
 
 	* lwlib/Makefile.in (lwlib-utils.o, lwlib.o, lwlib-Xlw.o)
 	(lwlib-Xaw.o, lwlib-Xm.o, lwlib-Xol.o, lwlib-Xolmb.o):
-	Add dependencies to corresponding .c files. for Solaris 2.x VPATH make.
+	Add dependencies to corresponding .c files for Solaris 2.x VPATH make.
 
 1998-04-06  Andreas Schwab  <schwab@gnu.org>
 

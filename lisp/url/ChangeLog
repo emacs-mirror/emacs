@@ -51,7 +51,7 @@
 2009-02-21  Jason Rumney  <jasonr@gnu.org>
 
 	* url-expand.el (url-default-expander): Use concat to combine
-	parts. (Bug #1020)
+	parts.  (Bug #1020)
 
 2009-02-10  Glenn Morris  <rgm@gnu.org>
 

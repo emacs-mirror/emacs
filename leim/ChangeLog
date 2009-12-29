@@ -1,4 +1,4 @@
-2009-12-05  Vasily Korytov <vasily@korytov.pp.ru>
+2009-12-05  Vasily Korytov  <vasily@korytov.pp.ru>
 
 	* quail/cyrillic.el (russian-typewriter): Change keyboard layout.
 	(Bug#904)
@@ -35,9 +35,9 @@
 
 	* quail/ipa.el ("kirshenbaum-ipa", "x-sampa-ipa"):
 	Two new input methods, both following widely-used Usenet
-	conventions for mapping ASCII to the IPA. Kirshenbaum is common in
+	conventions for mapping ASCII to the IPA.  Kirshenbaum is common in
 	sci.lang and alt.usage.english, X-SAMPA in various (mostly
-	European) non-English language fora. X-SAMPA is slightly more
+	European) non-English language fora.  X-SAMPA is slightly more
 	complex to support in Quail that Kirshenbaum, whence the two extra
 	function and one extra submap to support it.
 	(x-sampa-prepend-to-keymap-entry): New function.
@@ -1099,7 +1099,7 @@
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* quail/slovak.el, quail/czech.el: Set guidance to t for czech and
-	slovak input methods. New maintainer.  From Pavel Janík
+	slovak input methods.  New maintainer.  From Pavel Janík
 	<Pavel@Janik.cz>.
 
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>

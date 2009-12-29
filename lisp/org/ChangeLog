@@ -502,7 +502,7 @@
 	used are calculated from the underlying property.
 	(org-columns-number-to-string): Handle the 'age' column format
 	(org-columns-string-to-number): Correct the function name (was
-	org-column...). Add support for the 'age' column format.
+	org-column...).  Add support for the 'age' column format.
 	(org-columns-compile-format): Support the additional parameter in
 	org-columns-compile-map.
 
@@ -576,7 +576,7 @@
 2009-11-13  James TD Smith  <ahktenzero@mohorovi.cc>
 
 	* org.el (org-repeat-re): The changed org-repeat-re no longer
-	matched simple +2d type repeaters. Fix it so it does.
+	matched simple +2d type repeaters.  Fix it so it does.
 
 2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -712,7 +712,7 @@
 2009-11-13  James TD Smith  <ahktenzero@mohorovi.cc>
 
 	* org.el (org-fast-tag-selection): Add a way to display a
-	description for a tag group. This is done by adding a string to
+	description for a tag group.  This is done by adding a string to
 	either the startgroup or endgroup cell.
 
 2009-11-13  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -1192,7 +1192,7 @@
 	* org-agenda.el (org-agenda-bulk-mark): Use a slightly soberer
 	prefix for marked entries in the agenda view.
 
-2009-10-01  Andreas Burtzlaff <andy13@gmx.net>  (tiny change)
+2009-10-01  Andreas Burtzlaff  <andy13@gmx.net>  (tiny change)
 
 	* org.el (outline-end-of-subtree): Bugfix: advise this function in
 	a way that prevents any trailing character from being displayed.

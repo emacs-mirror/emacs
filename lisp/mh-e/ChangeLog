@@ -129,7 +129,7 @@
 	docstring.
 
 	* mh-comp.el (mh-reply)
-	* mh-e.el (mh-sys-path, mh-variant-info,mh-variant-mu-mh-info)
+	* mh-e.el (mh-sys-path, mh-variant-info, mh-variant-mu-mh-info)
 	(mh-variant-p, mh-profile-component, mh-variant-set, mh-variant)
 	(mh-scan-format-file)
 	* mh-folder.el (mh-regenerate-headers)
@@ -195,7 +195,7 @@
 2008-05-23  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Remove
-	DKIM-Signature as it is covered by DKIM-. Fully qualify X-EID.
+	DKIM-Signature as it is covered by DKIM-.  Fully qualify X-EID.
 
 2008-05-19  Sergey Poznyakoff  <gray@gnu.org.ua>
 
@@ -205,7 +205,7 @@
 2008-05-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Sort list in a
-	case-insensitive way and add comment about it. Add many header
+	case-insensitive way and add comment about it.  Add many header
 	fields (closes SF #1916032).
 
 2008-05-19  Xavier Maillard  <xma@gnu.org>  (tiny change)
@@ -246,7 +246,7 @@
 2008-01-30  Bill Wohler  <wohler@newt.com>
 
 	* mh-mime.el (mh-mml-to-mime): Don't look up sender if From
-	absent. Fixes "Wrong type argument: stringp, nil" error.
+	absent.  Fixes "Wrong type argument: stringp, nil" error.
 
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
@@ -286,11 +286,11 @@
 	(mh-show-write-message-to-file, mh-show-message-menu)
 	(mh-show-mode-map): Add mh-show-preferred-alternative (bound to
 	":") which will show the message's preferred alternative
-	overriding the users configured preference. Useful for showing
+	overriding the users configured preference.  Useful for showing
 	HTML when text content is lacking (closes SF #1777321).
 
 	* mh-e.el:
-	(mh-invisible-header-fields-internal): Exclude Fax and Phone. Put
+	(mh-invisible-header-fields-internal): Exclude Fax and Phone.  Put
 	known exclusions as comments before the list and move parens to
 	separate lines to aid in sorting (closes SF #1701231).
 
@@ -339,7 +339,7 @@
 	* mh-e.el (mh-invisible-header-fields-internal): Update with all
 	the entries from
 	http://people.dsv.su.se/~jpalme/ietf/mail-headers, plus some of my
-	own. I added attributions to entries we already had that did not
+	own.  I added attributions to entries we already had that did not
 	list an RFC.
 
 2007-08-08  Glenn Morris  <rgm@gnu.org>
