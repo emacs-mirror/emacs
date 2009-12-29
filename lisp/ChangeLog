@@ -2470,7 +2470,7 @@
 
 2009-11-11  Juri Linkov  <juri@jurta.org>
 
-	* simple.el (dired-get-filename)<declare-function>:
+	* simple.el (dired-get-filename) <declare-function>:
 	Tell the byte-compiler about dired-get-filename.
 	(shell-command): In Dired mode, get filename from the current line
 	as the default value.
@@ -8493,7 +8493,7 @@
 	(hack-local-variables-filter): If variable is not dir-local,
 	i.e. `dir-name' is nil, then remove it from `dir-local-variables-alist',
 	because file-local overrides dir-local.
-	(c-postprocess-file-styles)<declare-function>:
+	(c-postprocess-file-styles) <declare-function>:
 	Remove obsolete declaration.
 	(hack-dir-local-variables): Add dir-local variable/value pair to
 	`dir-local-variables-alist' and remove duplicates.  Doc fix.
@@ -8524,7 +8524,7 @@
 2009-07-18  Juri Linkov  <juri@jurta.org>
 
 	* info.el: Virtual Info keyword finder.
-	(add-to-list)<Info-virtual-files>: Add "\\`\\*Finder.*\\*\\'".
+	(add-to-list) <Info-virtual-files>: Add "\\`\\*Finder.*\\*\\'".
 	(Info-finder-file): New variable.
 	(Info-finder-find-file): New function.
 	(finder-known-keywords, finder-package-info)
@@ -9327,7 +9327,7 @@
 2009-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el: Add `ispell-looking-back' XEmacs
-	  compatibility function for `looking-back'.
+	compatibility function for `looking-back'.
 
 	* textmodes/flyspell.el (sgml-mode-flyspell-verify):
 	Use `ispell-looking-back'.
