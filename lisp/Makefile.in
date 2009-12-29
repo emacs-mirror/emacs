@@ -1233,7 +1233,7 @@ ELCFILES = \
 	$(lisp)/progmodes/f90.elc \
 	$(lisp)/progmodes/flymake.elc \
 	$(lisp)/progmodes/fortran.elc \
-	$(lisp)/progmodes/gdb-mi.elc \
+	$(lisp)/progmodes/gdb-ui.elc \
 	$(lisp)/progmodes/glasses.elc \
 	$(lisp)/progmodes/grep.elc \
 	$(lisp)/progmodes/gud.elc \
