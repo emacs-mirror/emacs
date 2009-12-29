@@ -456,12 +456,13 @@ default value is @code{nil}).
 using the variable @code{completion-styles}.  Its value should be a
 list of symbols, each representing a @dfn{completion style}; valid
 style symbols are @code{basic}, @code{partial-completion},
-@code{emacs22}, and @code{emacs21}.  When completing, Emacs attempts
-to use the first completion style in the list; if this does not return
-any completion alternatives, it tries the next completion style in the
-list, and so on.  The completion rules described in @ref{Completion
-Commands} correspond to the default value of @code{completion-styles},
-which is @code{(basic partial-completion emacs22)}.
+@code{emacs22}, @code{emacs21}, and @code{initials}.  When completing,
+Emacs attempts to use the first completion style in the list; if this
+does not return any completion alternatives, it tries the next
+completion style in the list, and so on.  The completion rules
+described in @ref{Completion Commands} correspond to the default value
+of @code{completion-styles}, which is @code{(basic partial-completion
+emacs22)}.
 
 @cindex Icomplete mode
 @findex icomplete-mode

@@ -1,3 +1,11 @@
+2009-12-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Shell): Document async-shell-command.
+
+	* building.texi (Grep Searching): Document zrgrep.
+
+	* mini.texi (Completion Options): Mention `initals' completion style.
+
 2009-12-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.texi (Top): Update node listing.

@@ -1,3 +1,7 @@
+2009-12-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Completion Styles): Document `initials' style.
+
 2009-12-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Resources): Describe inhibit-x-resources.

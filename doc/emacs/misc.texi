@@ -485,6 +485,9 @@ Run the shell command line @var{cmd} and display the output
 Run the shell command line @var{cmd} with region contents as input;
 optionally replace the region with the output
 (@code{shell-command-on-region}).
+@item M-& @var{cmd} @key{RET}
+Run the shell command line @var{cmd} asynchronously, and display the
+output (@code{async-shell-command}).
 @item M-x shell
 Run a subshell with input and output through an Emacs buffer.
 You can then give commands interactively.
@@ -541,6 +544,11 @@ For a synchronous shell command, @code{shell-command} returns the
 command's exit status (0 means success), when it is called from a Lisp
 program.  You do not get any status information for an asynchronous
 command, since it hasn't finished yet when @code{shell-command} returns.
+
+  You can also type @kbd{M-&} (@code{async-shell-command}) to execute
+a shell command asynchronously.  This behaves exactly like calling
+@code{shell-command} with @samp{&}, except that you do not need to add
+the @samp{&} to the shell command line.
 
 @kindex M-|
 @findex shell-command-on-region

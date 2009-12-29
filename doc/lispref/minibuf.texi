@@ -1589,13 +1589,13 @@ procedure is used for listing completions, via the
 @var{all-completions} functions.
 @end defvar
 
-  By default, @code{completion-styles-alist} contains four pre-defined
+  By default, @code{completion-styles-alist} contains five pre-defined
 completion styles: @code{basic}, a basic completion style;
 @code{partial-completion}, which does partial completion (completing
 each word in the input separately); @code{emacs22}, which performs
-completion according to the rules used in Emacs 22; and
-@code{emacs21}, which performs completion according to the rules used
-in Emacs 21.
+completion according to the rules used in Emacs 22; @code{emacs21},
+which performs completion according to the rules used in Emacs 21; and
+@code{initials}, which completes acronyms and initialisms.
 
 @node Programmed Completion
 @subsection Programmed Completion
