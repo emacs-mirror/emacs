@@ -1,3 +1,9 @@
+2009-12-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	Show working revision correctly for mercurial.
+	* vc-hg.el (vc-hg-working-revision): Use hg parent instead of
+	hg log as suggested by Alex Harsanyi <alexharsanyi@gmail.com>,
+
 2009-12-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	Declare some functions for the byte-compiler.

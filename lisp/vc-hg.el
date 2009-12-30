@@ -209,14 +209,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 			;; Ignore all errors.
 			(process-file
 			 "hg" nil t nil
-			 "log" "-l1" (file-relative-name file)))
+			 "parent" "--template" "\"{rev}\"" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
-    (when (eq 0 status)
-      (if (string-match "changeset: *\\([0-9]*\\)" out)
-          (match-string 1 out)
-        "0"))))
+    (when (eq 0 status) (read out))))
 
 ;;; History functions
 
