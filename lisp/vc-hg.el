@@ -209,11 +209,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 			;; Ignore all errors.
 			(process-file
 			 "hg" nil t nil
-			 "parent" "--template" "\"{rev}\"" (file-relative-name file)))
+			 "parent" "--template" "{rev}" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
-    (when (eq 0 status) (read out))))
+    (when (eq 0 status) out)))
 
 ;;; History functions
 
