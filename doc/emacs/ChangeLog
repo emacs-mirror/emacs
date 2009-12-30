@@ -6,6 +6,11 @@
 
 	* mini.texi (Completion Options): Mention `initals' completion style.
 
+2009-12-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Import GDB Graphical Interface description from
+	EMACS_23_1_RC.
+
 2009-12-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.texi (Top): Update node listing.

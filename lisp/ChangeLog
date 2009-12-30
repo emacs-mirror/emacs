@@ -1,3 +1,9 @@
+2009-12-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	Further changes from EMACS_23_1_RC branch (2009-12-29 contd).
+	* term/x-win.el (x-gtk-stock-map): Map some GUD buttons.
+	* progmodes/gud.el (gud-menu-map): Add reverse-execution commands.
+
 2009-12-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	Show working revision correctly for mercurial.
@@ -10,6 +16,11 @@
 	* progmodes/gdb-ui.el (speedbar-change-initial-expansion-list)
 	(speedbar-timer-fn, speedbar-change-expand-button-char)
 	(speedbar-delete-subblock, speedbar-center-buffer-smartly): Declare.
+
+2009-12-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	This changeset reverts GDB Graphical Interface to use annotations.
+	* progmodes/gdb-ui.el, progmodes/gud.el: Import from EMACS_23_1_RC.
 
 2009-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
