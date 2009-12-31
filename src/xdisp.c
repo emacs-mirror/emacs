@@ -12377,7 +12377,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   while (glyph < end
 	 && !INTEGERP (glyph->object)
 	 && (!BUFFERP (glyph->object)
-	     || (last_pos = glyph->charpos) < pt_old
+	     || (last_pos = glyph->charpos) != pt_old
 	     || glyph->avoid_cursor_p))
     {
       if (! STRINGP (glyph->object))
@@ -14497,14 +14497,38 @@ try_window_reusing_current_matrix (w)
 	    {
 	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
 	      struct glyph *end = glyph + row->used[TEXT_AREA];
+	      struct glyph *orig_glyph = glyph;
+	      struct cursor_pos orig_cursor = w->cursor;
 
 	      for (; glyph < end
 		     && (!BUFFERP (glyph->object)
-			 || glyph->charpos < PT);
+			 || glyph->charpos != PT);
 		   glyph++)
 		{
 		  w->cursor.hpos++;
 		  w->cursor.x += glyph->pixel_width;
+		}
+	      /* With bidi reordering, charpos changes non-linearly
+		 with hpos, so the right glyph could be to the
+		 left.  */
+	      if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
+		  && (!BUFFERP (glyph->object) || glyph->charpos != PT))
+		{
+		  struct glyph *start_glyph = row->glyphs[TEXT_AREA];
+
+		  glyph = orig_glyph - 1;
+		  orig_cursor.hpos--;
+		  orig_cursor.x -= glyph->pixel_width;
+		  for (; glyph >= start_glyph
+			 && (!BUFFERP (glyph->object)
+			     || glyph->charpos != PT);
+		       glyph--)
+		    {
+		      w->cursor.hpos--;
+		      w->cursor.x -= glyph->pixel_width;
+		    }
+		  if (BUFFERP (glyph->object) && glyph->charpos == PT)
+		    w->cursor = orig_cursor;
 		}
 	    }
 	}

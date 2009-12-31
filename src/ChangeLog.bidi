@@ -1,3 +1,15 @@
+2009-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't assume glyph->charpos
+	increments linearly.
+	(try_window_reusing_current_matrix): Don't assume glyph->charpos
+	increments linearly.
+
+2009-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c <bidi_overriding_paragraph_direction>: Default to L2R,
+	for now.
+
 2009-08-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_initialize): staticpro bidi_char_table.

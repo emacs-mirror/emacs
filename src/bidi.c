@@ -155,7 +155,8 @@ typedef enum {
 
 int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
-bidi_dir_t bidi_overriding_paragraph_direction = NEUTRAL_DIR;
+/* FIXME: Should be user-definable.  */
+bidi_dir_t bidi_overriding_paragraph_direction = L2R;
 
 /* FIXME: Unused? */
 #define ASCII_BIDI_TYPE_SET(STR, TYPE)			\
