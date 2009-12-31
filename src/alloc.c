@@ -5578,6 +5578,7 @@ mark_object (arg)
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
 	    mark_object (ptr->thread_data);
+            mark_object (ptr->realvalue);
 	    obj = BLOCAL_THREAD_DATA (ptr);
 	    goto loop;
 	  }

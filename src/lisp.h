@@ -1339,7 +1339,7 @@ struct Lisp_Buffer_Local_Value
     /* 1 means that the binding now loaded was found
        as a local binding for the frame in the `frame' slot.  */
     /* unsigned int found_for_frame : 1; */
-    /*Lisp_Object realvalue;*/
+    Lisp_Object realvalue;
 
     /* The buffer and frame for which the loaded binding was found.  */
     /* Having both is only needed if we want to allow variables that are
@@ -1376,7 +1376,6 @@ void blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object o);
 #define BLOCAL_BUFFER_VEC(VEC) (AREF ((VEC), 1))
 #define BLOCAL_FRAME_VEC(VEC) (AREF ((VEC), 2))
 #define BLOCAL_CDR_VEC(VEC) (AREF ((VEC), 3))
-#define BLOCAL_REALVALUE_VEC(VEC) (AREF ((VEC), 4))
 #define BLOCAL_THREAD_DATA(A) (*blocal_get_thread_data (A))
 #define BLOCAL_SET_THREAD_DATA(A, B) (blocal_set_thread_data (A, B))
 #define BLOCAL_CLEAR_FLAGS(A) (BLOCAL_CLEAR_FLAGS_VEC (BLOCAL_THREAD_DATA (A)))
@@ -1387,7 +1386,7 @@ void blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object o);
 #define BLOCAL_BUFFER(A) (BLOCAL_BUFFER_VEC (BLOCAL_THREAD_DATA (A)))
 #define BLOCAL_FRAME(A) (BLOCAL_FRAME_VEC (BLOCAL_THREAD_DATA (A)))
 #define BLOCAL_CDR(A) (BLOCAL_CDR_VEC (BLOCAL_THREAD_DATA (A)))
-#define BLOCAL_REALVALUE(A) (BLOCAL_REALVALUE_VEC (BLOCAL_THREAD_DATA (A)))
+#define BLOCAL_REALVALUE(A) (*find_variable_location(&((A)->realvalue)))
 
 
 /* START and END are markers in the overlay's buffer, and
