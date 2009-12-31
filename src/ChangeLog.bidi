@@ -1,3 +1,13 @@
+2009-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_initialize): staticpro bidi_char_table.
+	(bidi_check_type): New function.
+	(bidi_cache_iterator_state, bidi_remember_char)
+	(bidi_resolve_explicit_1, bidi_resolve_explicit)
+	(bidi_resolve_weak, bidi_resolve_neutral)
+	(bidi_level_of_next_char): Use it to validate the bidi type
+	assigned to the iterator.
+
 2009-08-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_initialize): Fix initialization of bidi_type_table.

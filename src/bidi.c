@@ -19,7 +19,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-/* A sequential implementation of the Unicode Bidirectional algorithm,
+/* Written by Eli Zaretskii <eliz@gnu.org>.
+
+   A sequential implementation of the Unicode Bidirectional algorithm,
    as per UAX#9, a part of the Unicode Standard.
 
    Unlike the reference and most other implementations, this one is
@@ -447,6 +449,7 @@ bidi_initialize ()
   int i;
 
   bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
+  staticpro (&bidi_type_table);
 
   for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
     char_table_set_range (bidi_type_table, bidi_type[i].from,
@@ -470,6 +473,13 @@ bidi_type_t
 bidi_get_type (int ch)
 {
   return (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+}
+
+void
+bidi_check_type (bidi_type_t type)
+{
+  if (type < UNKNOWN_BT || type > NEUTRAL_ON)
+    abort ();
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
@@ -688,7 +698,9 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       /* Copy only the members which could have changed, to avoid
 	 costly copying of the entire struct.  */
       bidi_cache[idx].type = bidi_it->type;
+      bidi_check_type (bidi_it->type);
       bidi_cache[idx].orig_type = bidi_it->orig_type;
+      bidi_check_type (bidi_it->orig_type);
       if (resolved)
 	bidi_cache[idx].resolved_level = bidi_it->resolved_level;
       else
@@ -923,8 +935,11 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
   saved_info->charpos = bidi_it->charpos;
   saved_info->bytepos = bidi_it->bytepos;
   saved_info->type = bidi_it->type;
+  bidi_check_type (bidi_it->type);
   saved_info->orig_type = bidi_it->orig_type;
+  bidi_check_type (bidi_it->orig_type);
   saved_info->pristine_type = bidi_it->pristine_type;
+  bidi_check_type (bidi_it->pristine_type);
 }
 
 /* Resolve the type of a neutral character according to the type of
@@ -988,6 +1003,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 
   type = bidi_get_type (curchar);
   bidi_it->pristine_type = type;
+  bidi_check_type (bidi_it->pristine_type);
 
   if (type != PDF)
     bidi_it->prev_was_pdf = 0;
@@ -999,6 +1015,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       case RLE:	/* X2 */
       case RLO:	/* X4 */
 	bidi_it->orig_type = type;
+	bidi_check_type (bidi_it->orig_type);
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= 0)
 	  {
@@ -1031,6 +1048,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       case LRE:	/* X3 */
       case LRO:	/* X5 */
 	bidi_it->orig_type = type;
+	bidi_check_type (bidi_it->orig_type);
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= 0)
 	  {
@@ -1065,6 +1083,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	break;
       case PDF:	/* X7 */
 	bidi_it->orig_type = type;
+	bidi_check_type (bidi_it->orig_type);
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= 0)
 	  {
@@ -1094,6 +1113,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
     }
 
   bidi_it->type = type;
+  bidi_check_type (bidi_it->type);
 
   return new_level;
 }
@@ -1168,6 +1188,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
     {
       bidi_set_paragraph_end (bidi_it);
       bidi_it->orig_type = bidi_it->type; /* needed below and in L1 */
+      bidi_check_type (bidi_it->orig_type);
     }
 
   return new_level;
@@ -1208,6 +1229,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   else if (type == NEUTRAL_S || type == NEUTRAL_WS
 	   || type == WEAK_BN || type == STRONG_AL)
     bidi_it->orig_type = type;	/* needed in L1 */
+  bidi_check_type (bidi_it->orig_type);
 
   /* Level and directional override status are already recorded in
      bidi_it, and do not need any change; see X6.  */
@@ -1344,6 +1366,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
      them for the L1 clause.  */
   if (bidi_it->orig_type == UNKNOWN_BT)
     bidi_it->orig_type = type;
+  bidi_check_type (bidi_it->orig_type);
 
   if (type == WEAK_EN)	/* W7 */
     {
@@ -1353,6 +1376,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
     }
 
   bidi_it->type = type;
+  bidi_check_type (bidi_it->type);
   return type;
 }
 
@@ -1454,6 +1478,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		  {
 		    next_type = bidi_it->prev_for_neutral.type;
 		    saved_it.next_for_neutral.type = next_type;
+		    bidi_check_type (next_type);
 		  }
 		else
 		  {
@@ -1469,6 +1494,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	  type = bidi_resolve_neutral_1 (saved_it.prev_for_neutral.type,
 					 next_type, current_level);
 	  saved_it.type = type;
+	  bidi_check_type (type);
 	  bidi_copy_it (bidi_it, &saved_it);
 	}
     }
@@ -1601,6 +1627,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	|| type == WEAK_AN))
     abort ();
   bidi_it->type = type;
+  bidi_check_type (bidi_it->type);
 
   /* For L1 below, we need to know, for each WS character, whether
      it belongs to a sequence of WS characters preceeding a newline
@@ -1627,6 +1654,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       } while (chtype == NEUTRAL_WS || chtype == WEAK_BN
 	       || bidi_explicit_dir_char (ch)); /* L1/Retaining */
       bidi_it->next_for_ws.type = chtype;
+      bidi_check_type (bidi_it->next_for_ws.type);
       bidi_it->next_for_ws.charpos = cpos;
       bidi_it->next_for_ws.bytepos = bpos;
     }
