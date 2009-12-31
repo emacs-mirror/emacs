@@ -1,3 +1,29 @@
+2009-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (direct_output_for_insert): Give up if we are
+	reordering bidirectional text.
+
+	* dispextern.h (IT_STACK_SIZE): Enlarge to 5.
+
+	* xdisp.c (display_line): Set row->end and it->start for the next
+	row to the next character in logical order.  If we are reordering
+	bidi text, push and pop the iterator before and after momentarily
+	iterating in logical order.
+
+2009-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_iterator_to_next, reseat, reseat_1)
+	(reseat_at_next_visible_line_start): Accept additional argument
+	force_logical_p; all callers changed.  If force_logical_p is
+	non-zero, force iteration in buffer's logical order even in bidi
+	buffers.
+
+	* dispnew.c (direct_output_for_insert): Call set_iterator_to_next
+	with additional argument zero.
+
+	* dispextern.h (set_iterator_to_next): Now accepts an additional
+	argument.
+
 2009-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't assume glyph->charpos

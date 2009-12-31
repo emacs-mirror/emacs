@@ -1760,6 +1760,8 @@ check_matrix_invariants (w)
 
       /* Check that end position of `row' is equal to start position
 	 of next row.  */
+      /* WARNING: This assumption is blatantly incorrect when we are
+	 reordering bdirectional text for display!!  */
       if (next->enabled_p && MATRIX_ROW_DISPLAYS_TEXT_P (next))
 	{
 	  xassert (MATRIX_ROW_END_CHARPOS (row)
@@ -3500,6 +3502,8 @@ direct_output_for_insert (g)
       || !display_completed
       /* Give up if buffer appears in two places.  */
       || buffer_shared > 1
+      /* Give up if we need to reorder bidirectional text.  */
+      || !NILP (current_buffer->bidi_display_reordering)
       /* Give up if currently displaying a message instead of the
 	 minibuffer contents.  */
       || (EQ (selected_window, minibuf_window)
@@ -3608,7 +3612,7 @@ direct_output_for_insert (g)
 
       delta += 1;
       delta_bytes += it.len;
-      set_iterator_to_next (&it, 1);
+      set_iterator_to_next (&it, 1, 0);
     }
 
   /* Give up if we hit the right edge of the window.  We would have
@@ -3626,7 +3630,7 @@ direct_output_for_insert (g)
     {
       if (it2.c == '\t')
 	return 0;
-      set_iterator_to_next (&it2, 1);
+      set_iterator_to_next (&it2, 1, 0);
     }
 
   /* Number of new glyphs produced.  */
