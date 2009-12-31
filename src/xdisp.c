@@ -963,11 +963,11 @@ static void run_redisplay_end_trigger_hook P_ ((struct it *));
 static int get_overlay_strings P_ ((struct it *, int));
 static int get_overlay_strings_1 P_ ((struct it *, int, int));
 static void next_overlay_string P_ ((struct it *));
-static void reseat P_ ((struct it *, struct text_pos, int, int));
-static void reseat_1 P_ ((struct it *, struct text_pos, int, int));
+static void reseat P_ ((struct it *, struct text_pos, int));
+static void reseat_1 P_ ((struct it *, struct text_pos, int));
 static void back_to_previous_visible_line_start P_ ((struct it *));
 void reseat_at_previous_visible_line_start P_ ((struct it *));
-static void reseat_at_next_visible_line_start P_ ((struct it *, int, int));
+static void reseat_at_next_visible_line_start P_ ((struct it *, int));
 static int next_element_from_ellipsis P_ ((struct it *));
 static int next_element_from_display_vector P_ ((struct it *));
 static int next_element_from_string P_ ((struct it *));
@@ -2823,7 +2823,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
       it->start = it->current;
 
       /* Compute faces etc.  */
-      reseat (it, it->current.pos, 1, 0);
+      reseat (it, it->current.pos, 1);
     }
 
   CHECK_IT (it);
@@ -2883,7 +2883,7 @@ start_display (it, w, pos)
 	      if (it->current.dpvec_index >= 0
 		  || it->current.overlay_string_index >= 0)
 		{
-		  set_iterator_to_next (it, 1, 0);
+		  set_iterator_to_next (it, 1);
 		  move_it_in_display_line_to (it, -1, -1, 0);
 		}
 
@@ -5242,7 +5242,7 @@ forward_to_next_line_start (it, skipped_p)
       && it->c == '\n'
       && CHARPOS (it->position) == IT_CHARPOS (*it))
     {
-      set_iterator_to_next (it, 0, 0);
+      set_iterator_to_next (it, 0);
       it->c = 0;
       return 1;
     }
@@ -5263,7 +5263,7 @@ forward_to_next_line_start (it, skipped_p)
       if (!get_next_display_element (it))
 	return 0;
       newline_found_p = it->what == IT_CHARACTER && it->c == '\n';
-      set_iterator_to_next (it, 0, 0);
+      set_iterator_to_next (it, 0);
     }
 
   /* If we didn't find a newline near enough, see if we can use a
@@ -5296,7 +5296,7 @@ forward_to_next_line_start (it, skipped_p)
 		 && !newline_found_p)
 	    {
 	      newline_found_p = ITERATOR_AT_END_OF_LINE_P (it);
-	      set_iterator_to_next (it, 0, 0);
+	      set_iterator_to_next (it, 0);
 	    }
 	}
     }
@@ -5397,24 +5397,22 @@ reseat_at_previous_visible_line_start (it)
      struct it *it;
 {
   back_to_previous_visible_line_start (it);
-  reseat (it, it->current.pos, 1, 0);
+  reseat (it, it->current.pos, 1);
   CHECK_IT (it);
 }
 
 
 /* Reseat iterator IT on the next visible line start in the current
    buffer.  ON_NEWLINE_P non-zero means position IT on the newline
-   preceding the line start.  FORCE_LOGICAL_P non-zero means force
-   iteration in logical order even if we are reordering bidirectional
-   text.  Skip over invisible text that is so because of selective
-   display.  Compute faces, overlays etc at the new position.  Note
-   that this function does not skip over text that is invisible
-   because of text properties.  */
+   preceding the line start.  Skip over invisible text that is so
+   because of selective display.  Compute faces, overlays etc at the
+   new position.  Note that this function does not skip over text that
+   is invisible because of text properties.  */
 
 static void
-reseat_at_next_visible_line_start (it, on_newline_p, force_logical_p)
+reseat_at_next_visible_line_start (it, on_newline_p)
      struct it *it;
-     int on_newline_p, force_logical_p;
+     int on_newline_p;
 {
   int newline_found_p, skipped_p = 0;
 
@@ -5445,16 +5443,13 @@ reseat_at_next_visible_line_start (it, on_newline_p, force_logical_p)
 	}
       else if (IT_CHARPOS (*it) > BEGV)
 	{
-	  if (on_newline_p
-	      && !(force_logical_p || !it->bidi_p))
-	    abort ();
 	  --IT_CHARPOS (*it);
 	  --IT_BYTEPOS (*it);
-	  reseat (it, it->current.pos, 0, 1);
+	  reseat (it, it->current.pos, 0);
 	}
     }
   else if (skipped_p)
-    reseat (it, it->current.pos, 0, force_logical_p);
+    reseat (it, it->current.pos, 0);
 
   CHECK_IT (it);
 }
@@ -5468,19 +5463,17 @@ reseat_at_next_visible_line_start (it, on_newline_p, force_logical_p)
 /* Change IT's current position to POS in current_buffer.  If FORCE_P
    is non-zero, always check for text properties at the new position.
    Otherwise, text properties are only looked up if POS >=
-   IT->check_charpos of a property.  If FORCE_LOGICAL_P is non-zero,
-   force iteration in logical order even when reordering bidirectional
-   text.  */
+   IT->check_charpos of a property.  */
 
 static void
-reseat (it, pos, force_p, force_logical_p)
+reseat (it, pos, force_p)
      struct it *it;
      struct text_pos pos;
-     int force_p, force_logical_p;
+     int force_p;
 {
   int original_pos = IT_CHARPOS (*it);
 
-  reseat_1 (it, pos, 0, force_logical_p);
+  reseat_1 (it, pos, 0);
 
   /* Determine where to check text properties.  Avoid doing it
      where possible because text property lookup is very expensive.  */
@@ -5494,15 +5487,13 @@ reseat (it, pos, force_p, force_logical_p)
 
 
 /* Change IT's buffer position to POS.  SET_STOP_P non-zero means set
-   IT->stop_pos to POS, also.  FORCE_LOGICAL_P non-zero means force
-   iteration in logical order even when reordering bidirectional
-   text.  */
+   IT->stop_pos to POS, also.  */
 
 static void
-reseat_1 (it, pos, set_stop_p, force_logical_p)
+reseat_1 (it, pos, set_stop_p)
      struct it *it;
      struct text_pos pos;
-     int set_stop_p, force_logical_p;
+     int set_stop_p;
 {
   /* Don't call this function when scanning a C string.  */
   xassert (it->s == NULL);
@@ -5527,7 +5518,7 @@ reseat_1 (it, pos, set_stop_p, force_logical_p)
   it->string_from_display_prop_p = 0;
   it->face_before_selective_p = 0;
 
-  if (it->bidi_p && !force_logical_p)
+  if (it->bidi_p)
     {
       /* FIXME: L2R below is just for easyness of testing, as we
 	 currently support only left-to-right paragraphs.  The value
@@ -5738,7 +5729,7 @@ get_next_display_element (it)
 		}
 	      else
 		{
-		  set_iterator_to_next (it, 0, 0);
+		  set_iterator_to_next (it, 0);
 		}
 	      goto get_next;
 	    }
@@ -6060,9 +6051,6 @@ get_next_display_element (it)
    RESEAT_P non-zero means if called on a newline in buffer text,
    skip to the next visible line start.
 
-   FORCE_LOGICAL_P non-zero means force iteration in logical order
-   even when reordering bidirectional text.
-
    Functions get_next_display_element and set_iterator_to_next are
    separate because I find this arrangement easier to handle than a
    get_next_display_element function that also increments IT's
@@ -6074,9 +6062,9 @@ get_next_display_element (it)
    decrement position function which would not be easy to write.  */
 
 void
-set_iterator_to_next (it, reseat_p, force_logical_p)
+set_iterator_to_next (it, reseat_p)
      struct it *it;
-     int reseat_p, force_logical_p;
+     int reseat_p;
 {
   /* Reset flags indicating start and end of a sequence of characters
      with box.  Reset them at the start of this function because
@@ -6090,7 +6078,7 @@ set_iterator_to_next (it, reseat_p, force_logical_p)
 	 current_buffer.  Advance in the buffer, and maybe skip over
 	 invisible lines that are so because of selective display.  */
       if (ITERATOR_AT_END_OF_LINE_P (it) && reseat_p)
-	reseat_at_next_visible_line_start (it, 0, force_logical_p);
+	reseat_at_next_visible_line_start (it, 0);
       else if (it->cmp_it.id >= 0)
 	{
 	  IT_CHARPOS (*it) += it->cmp_it.nchars;
@@ -6109,7 +6097,7 @@ set_iterator_to_next (it, reseat_p, force_logical_p)
 	{
 	  xassert (it->len != 0);
 
-	  if (!(it->bidi_p && !force_logical_p))
+	  if (!it->bidi_p)
 	    {
 	      IT_BYTEPOS (*it) += it->len;
 	      IT_CHARPOS (*it) += 1;
@@ -6160,14 +6148,14 @@ set_iterator_to_next (it, reseat_p, force_logical_p)
 
 	  /* Skip over characters which were displayed via IT->dpvec.  */
 	  if (it->dpvec_char_len < 0)
-	    reseat_at_next_visible_line_start (it, 1, 1);
+	    reseat_at_next_visible_line_start (it, 1);
 	  else if (it->dpvec_char_len > 0)
 	    {
 	      if (it->method == GET_FROM_STRING
 		  && it->n_overlay_strings > 0)
 		it->ignore_overlay_strings_at_pos_p = 1;
 	      it->len = it->dpvec_char_len;
-	      set_iterator_to_next (it, reseat_p, 0);
+	      set_iterator_to_next (it, reseat_p);
 	    }
 
 	  /* Maybe recheck faces after display vector */
@@ -6473,7 +6461,7 @@ next_element_from_ellipsis (it)
       it->saved_face_id = it->face_id;
       it->method = GET_FROM_BUFFER;
       it->object = it->w->buffer;
-      reseat_at_next_visible_line_start (it, 1, 1);
+      reseat_at_next_visible_line_start (it, 1);
       it->face_before_selective_p = 1;
     }
 
@@ -6861,7 +6849,7 @@ move_it_in_display_line_to (struct it *it,
 
       if (it->area != TEXT_AREA)
 	{
-	  set_iterator_to_next (it, 1, 0);
+	  set_iterator_to_next (it, 1);
 	  continue;
 	}
 
@@ -6969,7 +6957,7 @@ move_it_in_display_line_to (struct it *it,
 				}
 			    }
 
-			  set_iterator_to_next (it, 1, 0);
+			  set_iterator_to_next (it, 1);
 			  /* On graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
@@ -7065,7 +7053,7 @@ move_it_in_display_line_to (struct it *it,
 
       /* The current display element has been consumed.  Advance
 	 to the next.  */
-      set_iterator_to_next (it, 1, 0);
+      set_iterator_to_next (it, 1);
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -7310,13 +7298,13 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  goto out;
 
 	case MOVE_NEWLINE_OR_CR:
-	  set_iterator_to_next (it, 1, 0);
+	  set_iterator_to_next (it, 1);
 	  it->continuation_lines_width = 0;
 	  break;
 
 	case MOVE_LINE_TRUNCATED:
 	  it->continuation_lines_width = 0;
-	  reseat_at_next_visible_line_start (it, 0, 0);
+	  reseat_at_next_visible_line_start (it, 0);
 	  if ((op & MOVE_TO_POS) != 0
 	      && IT_CHARPOS (*it) > to_charpos)
 	    {
@@ -7342,7 +7330,7 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 		{
 		  line_start_x = it->current_x + it->pixel_width
 		    - it->last_visible_x;
-		  set_iterator_to_next (it, 0, 0);
+		  set_iterator_to_next (it, 0);
 		}
 	    }
 	  else
@@ -7428,7 +7416,7 @@ move_it_vertically_backward (it, dy)
      reseat to skip forward over invisible text, set up the iterator
      to deliver from overlay strings at the new position etc.  So,
      use reseat_1 here.  */
-  reseat_1 (it, it->current.pos, 1, 0);
+  reseat_1 (it, it->current.pos, 1);
 
   /* We are now surely at a line start.  */
   it->current_x = it->hpos = 0;
@@ -7558,7 +7546,7 @@ move_it_past_eol (it)
 
   rc = move_it_in_display_line_to (it, Z, 0, MOVE_TO_POS);
   if (rc == MOVE_NEWLINE_OR_CR)
-    set_iterator_to_next (it, 0, 0);
+    set_iterator_to_next (it, 0);
 }
 
 
@@ -7587,7 +7575,7 @@ move_it_by_lines (it, dvpos, need_y_p)
 
       pos = *vmotion (IT_CHARPOS (*it), dvpos, it->w);
       SET_TEXT_POS (textpos, pos.bufpos, pos.bytepos);
-      reseat (it, textpos, 1, 0);
+      reseat (it, textpos, 1);
       it->vpos += pos.vpos;
       it->current_y += pos.vpos;
     }
@@ -7623,7 +7611,7 @@ move_it_by_lines (it, dvpos, need_y_p)
       start_charpos = IT_CHARPOS (*it);
       for (i = -dvpos; i > 0 && IT_CHARPOS (*it) > BEGV; --i)
 	back_to_previous_visible_line_start (it);
-      reseat (it, it->current.pos, 1, 0);
+      reseat (it, it->current.pos, 1);
 
       /* Move further back if we end up in a string or an image.  */
       while (!IT_POS_VALID_AFTER_MOVE_P (it))
@@ -7637,7 +7625,7 @@ move_it_by_lines (it, dvpos, need_y_p)
 	  /* If start of line is still in string or image,
 	     move further back.  */
 	  back_to_previous_visible_line_start (it);
-	  reseat (it, it->current.pos, 1, 0);
+	  reseat (it, it->current.pos, 1);
 	  dvpos--;
 	}
 
@@ -10238,7 +10226,7 @@ display_tool_bar_line (it, height)
       if (ITERATOR_AT_END_OF_LINE_P (it))
 	break;
 
-      set_iterator_to_next (it, 1, 0);
+      set_iterator_to_next (it, 1);
     }
 
  out:;
@@ -16699,7 +16687,7 @@ display_line (it)
 				  it->max_phys_ascent + it->max_phys_descent);
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
-	  set_iterator_to_next (it, 1, 0);
+	  set_iterator_to_next (it, 1);
 	  continue;
 	}
 
@@ -16778,7 +16766,7 @@ display_line (it)
 				  || IT_DISPLAYING_WHITESPACE (it)))
 			    goto back_to_wrap;
 
-			  set_iterator_to_next (it, 1, 0);
+			  set_iterator_to_next (it, 1);
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
 			      if (!get_next_display_element (it))
@@ -16953,11 +16941,13 @@ display_line (it)
 		 next character in logical order, to set row->end
 		 correctly below.  */
 	      push_it (it);
-	      set_iterator_to_next (it, 1, 1);
+	      it->bidi_p = 0;
+	      set_iterator_to_next (it, 1);
 	      row_end = it->current;
 	      pop_it (it);
+	      it->bidi_p = 1;
 	    }
-	  set_iterator_to_next (it, 1, 0);
+	  set_iterator_to_next (it, 1);
 	  it->continuation_lines_width = 0;
 	  if (!it->bidi_p)
 	    row_end = it->current;
@@ -16966,7 +16956,7 @@ display_line (it)
 
       /* Proceed with next display element.  Note that this skips
 	 over lines invisible because of selective display.  */
-      set_iterator_to_next (it, 1, 0);
+      set_iterator_to_next (it, 1);
 
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
@@ -17010,7 +17000,7 @@ display_line (it)
 
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
-	  reseat_at_next_visible_line_start (it, 0, 0);
+	  reseat_at_next_visible_line_start (it, 0);
 	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
 	  it->hpos = hpos_before;
 	  it->current_x = x_before;
@@ -19056,7 +19046,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	  break;
 	}
 
-      set_iterator_to_next (it, 1, 0);
+      set_iterator_to_next (it, 1);
 
       /* Stop if truncating at the right edge.  */
       if (it->line_wrap == TRUNCATE

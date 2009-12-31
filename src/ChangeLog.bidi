@@ -12,6 +12,8 @@
 
 2009-09-11  Eli Zaretskii  <eliz@gnu.org>
 
+	Note: The following changes were undone on 2009-09-12.
+
 	* xdisp.c (set_iterator_to_next, reseat, reseat_1)
 	(reseat_at_next_visible_line_start): Accept additional argument
 	force_logical_p; all callers changed.  If force_logical_p is

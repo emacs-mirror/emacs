@@ -2825,7 +2825,7 @@ void init_iterator P_ ((struct it *, struct window *, int,
 void init_iterator_to_row_start P_ ((struct it *, struct window *,
 				     struct glyph_row *));
 int get_next_display_element P_ ((struct it *));
-void set_iterator_to_next P_ ((struct it *, int, int));
+void set_iterator_to_next P_ ((struct it *, int));
 void start_display P_ ((struct it *, struct window *, struct text_pos));
 void move_it_to P_ ((struct it *, int, int, int, int, int));
 void move_it_vertically P_ ((struct it *, int));
