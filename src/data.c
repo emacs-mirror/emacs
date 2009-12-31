@@ -881,7 +881,7 @@ ensure_thread_local (Lisp_Object *root)
   if (NILP (cons))
     {
       struct Lisp_ThreadLocal *local = XTHREADLOCAL (*root);
-      cons = Fcons (get_current_thread (), Qthread_local_mark);
+      cons = Fcons (get_current_thread (), XTHREADLOCAL (*root)->global);
       local->thread_alist = Fcons (cons, local->thread_alist);
     }
 
@@ -1001,7 +1001,7 @@ do_symval_forwarding (valcontents)
 				+ (char *)FRAME_KBOARD (SELECTED_FRAME ()));
 
       case Lisp_Misc_ThreadLocal:
-	return *find_variable_location (&valcontents);
+	return do_symval_forwarding (*find_variable_location (&valcontents));
       }
   return valcontents;
 }
@@ -1109,7 +1109,11 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       if (BUFFER_LOCAL_VALUEP (valcontents))
 	BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
       else if (THREADLOCALP (valcontents))
-	*find_variable_location (&indirect_variable (XSYMBOL (symbol))->value) = newval;
+        {
+          Lisp_Object val = indirect_variable (XSYMBOL (symbol))->value;
+          ensure_thread_local (&val);
+         *find_variable_location (&val) = newval;
+        }
       else
 	SET_SYMBOL_VALUE (symbol, newval);
     }
@@ -1387,7 +1391,7 @@ set_internal (symbol, newval, buf, bindflag)
 	  XSETBUFFER (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)), buf);
 	  BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents)) = selected_frame;
 	}
-      innercontents = BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
+      innercontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
 
       /* Store the new value in the cons-cell.  */
       XSETCDR (XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents))), newval);
