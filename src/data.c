@@ -1195,7 +1195,7 @@ swap_in_symval_forwarding (symbol, valcontents)
 			       Fcdr (tem1), NULL);
     }
 
-  return XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+  return BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
 }
 
 
