@@ -64,6 +64,7 @@ static int bidi_initialized = 0;
 
 static Lisp_Object bidi_type_table;
 
+/* FIXME: Remove these when bidi_explicit_dir_char uses a lookup table.  */
 #define LRM_CHAR   0x200E
 #define RLM_CHAR   0x200F
 #define LRE_CHAR   0x202A
@@ -72,15 +73,8 @@ static Lisp_Object bidi_type_table;
 #define LRO_CHAR   0x202D
 #define RLO_CHAR   0x202E
 
-#define CHARSET_HEBREW   0x88
-#define CHARSET_ARABIC	 0x87
-#define CHARSET_SYRIAC	 -1	/* these are undefined yet, -1 is invalid */
-#define CHARSET_THAANA	 -1
-
-/* FIXME: need to define wrappers for FETCH_CHAR etc. that return
-   BIDI_EOB when they hit ZV.  */
 #define BIDI_EOB   -1
-#define BIDI_BOB   -2
+#define BIDI_BOB   -2		/* FIXME: Is this needed? */
 
 /* Local data structures.  (Look in dispextern.h for the rest.)  */
 
@@ -416,6 +410,8 @@ bidi_is_arabic_number (int ch)
 bidi_type_t
 bidi_get_type (int ch)
 {
+  if (ch == BIDI_EOB)
+    return NEUTRAL_B;
   return (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
 }
 
@@ -695,11 +691,15 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 int
 bidi_at_paragraph_end (int this_ch, int pos)
 {
-  int next_ch = FETCH_CHAR (pos);
+  int next_ch;
 
+  if (pos >= ZV_BYTE)
+    return 1;
+
+  next_ch = FETCH_CHAR (pos);
   /* FIXME: This should support all Unicode characters that can end a
      paragraph.  */
-  return (this_ch == '\n' && next_ch == '\n') || this_ch == BIDI_EOB;
+  return (this_ch == '\n' && next_ch == '\n');
 }
 
 /* Determine the start-of-run (sor) directional type given the two
@@ -738,24 +738,27 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 {
-  bidi_it->level_stack[0].level = 0;
+  int pos = bidi_it->charpos, bytepos = bidi_it->bytepos;
+  int ch;
+
+  /* We should never be called at EOB.  */
+  if (bytepos >= ZV_BYTE)
+    abort ();
+
+  ch = FETCH_CHAR (bytepos);
+  bidi_it->ch_len = CHAR_BYTES (ch);
+  bidi_it->level_stack[0].level = 0; /* default for L2R */
   if (dir == R2L)
     bidi_it->level_stack[0].level = 1;
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
       bidi_type_t type;
-      int pos = bidi_it->charpos, bytepos = bidi_it->bytepos;
-      int ch;
-
-      ch = FETCH_CHAR (bytepos);
-      pos++;
-      bytepos += CHAR_BYTES (ch);
 
       /* FIXME: should actually go to where the paragraph begins and
 	 start the loop below from there, since UAX#9 says to find the
 	 first strong directional character in the paragraph.  */
 
-      for (type = bidi_get_type (ch);
+      for (type = bidi_get_type (ch), pos++, bytepos += bidi_it->ch_len;
 	   /* NOTE: UAX#9 says to search only for L, AL, or R types of
 	      characters, and ignore RLE, RLO, LRE, and LRO.  However,
 	      I'm not sure it makes sense to omit those 4; should try
@@ -807,7 +810,6 @@ bidi_init_it (int charpos, int bytepos, struct bidi_it *bidi_it)
   bidi_set_paragraph_end (bidi_it);
   bidi_it->charpos = charpos;
   bidi_it->bytepos = bytepos;
-  bidi_it->ch_len = 1;
   bidi_it->type = NEUTRAL_B;
   bidi_it->type_after_w1 = UNKNOWN_BT;
   bidi_it->orig_type = UNKNOWN_BT;
@@ -906,11 +908,16 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   int new_level;
   bidi_dir_t override;
 
-  if (bidi_it->charpos < 0)
-    bidi_it->charpos = bidi_it->bytepos = 0;
-  else
+  if (bidi_it->bytepos < BEGV_BYTE) /* after reseat to BEGV */
+    {
+      bidi_it->charpos = BEGV;
+      bidi_it->bytepos = BEGV_BYTE;
+    }
+  else if (bidi_it->bytepos < ZV_BYTE) /* don't move at ZV */
     {
       bidi_it->charpos++;
+      if (bidi_it->ch_len == 0)
+	abort ();
       bidi_it->bytepos += bidi_it->ch_len;
     }
 
@@ -920,9 +927,17 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 
   /* in case it is a unibyte character (not yet implemented) */
   /* _fetch_multibyte_char_len = 1; */
-  curchar = FETCH_CHAR (bidi_it->bytepos);
+  if (bidi_it->bytepos >= ZV_BYTE)
+    {
+      curchar = BIDI_EOB;
+      bidi_it->ch_len = 1;
+    }
+  else
+    {
+      curchar = FETCH_CHAR (bidi_it->bytepos);
+      bidi_it->ch_len = CHAR_BYTES (curchar);
+    }
   bidi_it->ch = curchar;
-  bidi_it->ch_len = CHAR_BYTES (curchar);
 
   type = bidi_get_type (curchar);
   bidi_it->orig_type = type;
@@ -1055,6 +1070,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   if (prev_level < new_level
       && bidi_it->type == WEAK_BN
       && bidi_it->ignore_bn_limit == 0 /* only if not already known */
+      && bidi_it->ch != BIDI_EOB       /* not already at EOB */
       && bidi_explicit_dir_char (FETCH_CHAR (bidi_it->bytepos
 					     + bidi_it->ch_len)))
     {
@@ -1194,7 +1210,9 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 			|| bidi_it->prev.orig_type == WEAK_NSM)) /* a/W1 */
 		   || bidi_it->prev.type_after_w1 == WEAK_AN)))  /* W4 */
     {
-      next_char = FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
+      next_char =
+	bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
+	? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
       type_of_next = bidi_get_type (next_char);
 
       if (type_of_next == WEAK_BN
@@ -1245,7 +1263,9 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	{
 	  int en_pos = bidi_it->charpos + 1;
 
-	  next_char = FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
+	  next_char =
+	    bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
+	    ? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
 	  type_of_next = bidi_get_type (next_char);
 
 	  if (type_of_next == WEAK_ET
@@ -1568,11 +1588,11 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
       do {
 	/*_fetch_multibyte_char_len = 1;*/
-	ch = FETCH_CHAR (bpos + clen);
+	ch = bpos + clen >= ZV_BYTE ? BIDI_EOB : FETCH_CHAR (bpos + clen);
 	bpos += clen;
 	cpos++;
-	clen = CHAR_BYTES (ch);
-	if (ch == '\n' /* || ch == LINESEP_CHAR */)
+	clen = (ch == BIDI_EOB ? 1 : CHAR_BYTES (ch));
+	if (ch == '\n' || ch == BIDI_EOB /* || ch == LINESEP_CHAR */)
 	  chtype = NEUTRAL_B;
 	else
 	  chtype = bidi_get_type (ch);
@@ -1615,13 +1635,14 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	 ugly side effect does not happen.
 
 	 (This is, of course, only important if the formatting codes
-	 are actually displayed, but Emacs does display them if the
-	 user wants to.)     */
+	 are actually displayed, but Emacs does need to display them
+	 if the user wants to.)  */
       level = prev_level;
     }
   else if (bidi_it->orig_type == NEUTRAL_B /* L1 */
 	   || bidi_it->orig_type == NEUTRAL_S
-	   || bidi_it->ch == '\n' /* || bidi_it->ch == LINESEP_CHAR */
+	   || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
+	   /* || bidi_it->ch == LINESEP_CHAR */
 	   || (bidi_it->orig_type == NEUTRAL_WS
 	       && (bidi_it->next_for_ws.type == NEUTRAL_B
 		   || bidi_it->next_for_ws.type == NEUTRAL_S)))

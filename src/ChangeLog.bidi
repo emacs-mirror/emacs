@@ -1,3 +1,16 @@
+2009-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (reseat_1): Handle position < BEGV.
+
+	* bidi.c (bidi_paragraph_init): Set bidi_it->ch_len.  Handle ZV.
+	(bidi_init_it): Don't initialize bidi_it->ch_len.
+	(bidi_resolve_explicit_1): Abort if bidi_it->ch_len was not
+	initialized.
+	(bidi_at_paragraph_end, bidi_resolve_explicit_1)
+	(bidi_resolve_weak, bidi_level_of_next_char): Handle bytepos at
+	ZV_BYTE.
+	(bidi_resolve_explicit_1): Handle position < BEGV.
+
 2009-09-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (init_iterator): Call bidi_init_it.  Set

@@ -5541,13 +5541,13 @@ reseat_1 (it, pos, set_stop_p)
 	 not be the character at POS.  We need to find the next
 	 character in visual order starting from the preceding
 	 character.  */
-      if ((it->bidi_it.charpos = CHARPOS (pos) - 1) > 1)
+      if ((it->bidi_it.charpos = CHARPOS (pos) - 1) >= BEGV)
 	{
 	  it->bidi_it.bytepos = CHAR_TO_BYTE (CHARPOS (pos) - 1);
-	  it->bidi_it.ch_len = CHAR_BYTES (CHARPOS (pos) - 1);
+	  it->bidi_it.ch_len = CHAR_BYTES (FETCH_CHAR (it->bidi_it.bytepos));
 	}
       else
-	it->bidi_it.bytepos = 0;
+	it->bidi_it.bytepos = 0; /* signal bidi.c not to move */
       bidi_get_next_char_visually (&it->bidi_it);
       SET_TEXT_POS (pos, it->bidi_it.charpos, it->bidi_it.bytepos);
       it->current.pos = it->position = pos;
