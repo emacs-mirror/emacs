@@ -2658,8 +2658,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
-  /* Do we need multibyte processing?  */
-  it->bidi_p = !NILP (current_buffer->enable_bidi_display);
+  /* Do we need to reorded bidirectional text?  */
+  it->bidi_p = !NILP (current_buffer->bidi_display_reordering);
 
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
@@ -5520,6 +5520,11 @@ reseat_1 (it, pos, set_stop_p)
 
   if (it->bidi_p)
     {
+      /* FIXME: L2R below is just for easyness of testing, as we
+	 currently support only left-to-right paragraphs.  The value
+	 should be user-definable and/or come from some ``higher
+	 protocol''. In the absence of any other guidance, the default
+	 for this initialization should be NEUTRAL_DIR.  */
       bidi_init_it (pos.charpos - 1, L2R, &it->bidi_it);
       bidi_get_next_char_visually (&it->bidi_it);
 
@@ -6100,8 +6105,8 @@ set_iterator_to_next (it, reseat_p)
 	  else
 	    {
 	      bidi_get_next_char_visually (&it->bidi_it);
-	      IT_BYTEPOS (*it) = it->bidi_it.charpos;
-	      IT_CHARPOS (*it) = it->bidi_it.bytepos;
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 	    }
 	  xassert (IT_BYTEPOS (*it) == CHAR_TO_BYTE (IT_CHARPOS (*it)));
 	}

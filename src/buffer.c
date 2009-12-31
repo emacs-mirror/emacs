@@ -5186,8 +5186,8 @@ init_buffer_once ()
   buffer_defaults.truncate_lines = Qnil;
   buffer_defaults.word_wrap = Qnil;
   buffer_defaults.ctl_arrow = Qt;
-  buffer_defaults.enable_bidi_display = Qnil;
-  buffer_defaults.orientation_reversed = Qnil;
+  buffer_defaults.bidi_display_reordering = Qnil;
+  buffer_defaults.direction_reversed = Qnil;
   buffer_defaults.cursor_type = Qt;
   buffer_defaults.extra_line_spacing = Qnil;
   buffer_defaults.cursor_in_non_selected_windows = Qt;
@@ -5272,8 +5272,8 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.syntax_table, idx); ++idx;
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, idx); ++idx;
   XSETFASTINT (buffer_local_flags.category_table, idx); ++idx;
-  XSETFASTINT (buffer_local_flags.enable_bidi_display, idx); ++idx;
-  XSETFASTINT (buffer_local_flags.orientation_reversed, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.bidi_display_reordering, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.direction_reversed, idx); ++idx;
   XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
@@ -5530,15 +5530,15 @@ This is the same as (default-value 'abbrev-mode).  */);
 		     doc: /* Default value of `ctl-arrow' for buffers that do not override it.
 This is the same as (default-value 'ctl-arrow).  */);
 
-    DEFVAR_LISP_NOPRO ("default-enable-bidi-display",
-		      &buffer_defaults.enable_bidi_display,
-		      doc: /* *Default value of `enable-bidi-display' for buffers not overriding it.
-This is the same as (default-value 'enable-bidi-display).  */);
+  DEFVAR_LISP_NOPRO ("default-bidi-display-reordering",
+	      &buffer_defaults.bidi_display_reordering,
+	      doc: /* *Default value of `bidi-display-reordering' for buffers not overriding it.
+This is the same as (default-value 'bidi-display-reordering).  */);
 
-  DEFVAR_LISP_NOPRO ("default-orientation-reversed",
-		     &buffer_defaults.orientation_reversed,
-		     doc: /* *Default value of `orientation-reversed' for buffers that do not override it.
-This is the same as (default-value 'orientation-reversed).  */);
+  DEFVAR_LISP_NOPRO ("default-direction-reversed",
+                     &buffer_defaults.direction_reversed,
+                     doc: /* Default value of `direction-reversed' for buffers that do not override it.
+This is the same as (default-value 'direction-reversed).  */);
 
   DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
                      &buffer_defaults.enable_multibyte_characters,
@@ -5796,15 +5796,15 @@ The variable `coding-system-for-write', if non-nil, overrides this variable.
 
 This variable is never applied to a way of decoding a file while reading it.  */);
 
-  DEFVAR_PER_BUFFER ("orientation-reversed",
-		     &current_buffer->orientation_reversed, Qnil,
-		     doc: /* Non-nil means set beginning of lines at the right end of the window.
-See also the variable `enable-bidi-display'.  */);
+  DEFVAR_PER_BUFFER ("direction-reversed",
+		     &current_buffer->direction_reversed, Qnil,
+		     doc: /* Non-nil means set beginning of lines at the right edge of the window.
+See also the variable `bidi-display-reordering'.  */);
 
-  DEFVAR_PER_BUFFER ("enable-bidi-display",
-		     &current_buffer->enable_bidi_display, Qnil,
-		     doc: /*Non-nil means display bidi text in correct visual order.
-See also the variable `orientation-reversed'.  */);
+  DEFVAR_PER_BUFFER ("bidi-display-reordering",
+		     &current_buffer->bidi_display_reordering, Qnil,
+		     doc: /*Non-nil means reorder bidirectional text for display in the visual order.
+See also the variable `direction-reversed'.  */);
 
  DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
 		     doc: /* *Non-nil means do not display continuation lines.

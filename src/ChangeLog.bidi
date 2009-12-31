@@ -1,3 +1,10 @@
+2009-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_initialize): Fix initialization of bidi_type_table.
+
+	* xdisp.c (set_iterator_to_next): Fix position setting after call
+	to bidi_get_next_char_visually.
+
 2005-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c: Include stdio.h unconditionally.  Fix and elaborate
@@ -11,7 +18,8 @@
 
 2004-03-04  Kenichi Handa  <handa@m17n.org>
 
-	The following changes are to support bidirectional text display.
+	The following changes are to support for bi-directional text
+	display.
 
 	* Makefile.in (obj): Include bidi.o.
 	(bidi.o): New target.

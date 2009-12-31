@@ -155,6 +155,7 @@ int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
 bidi_dir_t bidi_overriding_paragraph_direction = NEUTRAL_DIR;
 
+/* FIXME: Unused? */
 #define ASCII_BIDI_TYPE_SET(STR, TYPE)			\
   do {							\
     unsigned char *p;					\
@@ -448,7 +449,8 @@ bidi_initialize ()
   bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
 
   for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
-    char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
+    char_table_set_range (bidi_type_table, bidi_type[i].from,
+			  bidi_type[i].to ? bidi_type[i].to : bidi_type[i].from,
 			  make_number (bidi_type[i].type));
   bidi_initialized = 1;
 }

@@ -2307,10 +2307,11 @@ struct it
   /* Face of the right fringe glyph.  */
   unsigned right_user_fringe_face_id : FACE_ID_BITS;
 
-  /* 1 means we need bidi processing.  */
+  /* Non-zero means we need to reorder bidirectional text for display
+     in the visual order.  */
   int bidi_p;
 
-  /* For iterating over bidi text.  */
+  /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
 };
 
