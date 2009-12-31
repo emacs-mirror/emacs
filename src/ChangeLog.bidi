@@ -1,0 +1,64 @@
+2005-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c: Include stdio.h unconditionally.  Fix and elaborate
+	commentary.  Add Copyright blurb.
+
+2004-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (reseat_1): Call bidi_init_it with a previous position.
+
+	* bidi.c (bidi_init_it): Set bidi_it->ch_len even if POS > 0.
+
+2004-03-04  Kenichi Handa  <handa@m17n.org>
+
+	The following changes are to support bidirectional text display.
+
+	* Makefile.in (obj): Include bidi.o.
+	(bidi.o): New target.
+
+	* bidi.c: New file.
+
+	* buffer.h (struct buffer): New member bidi_display_reordering.
+
+	* buffer.c (init_buffer_once): Initialize bidi_display_reordering.
+	(syms_of_buffer): Declarations of Lisp variables
+	default-bidi-display-reordering and bidi-display-reordering.
+
+	* dispextern.h (BIDI_MAXLEVEL): New macro.
+	(bidi_type_t, bidi_dir_t): New types.
+	(bidi_saved_info, bidi_stack, bidi_it): New structs.
+	(struct it): New members bidi_p and bidi_it.
+	(bidi_init_it): Extern it.
+	(bidi_get_next_char_visually): Extern it.
+
+	* dispnew.c (direct_output_forward_char): Give up if we need bidi
+	processing or buffer's direction is right-to-left.
+
+	* xdisp.c (init_iterator): Initialize it->bidi_p.
+	(reseat_1): Cal bidi_init_it and bidi_get_next_char_visually if
+	necessary.
+	(set_iterator_to_next): Cal bidi_get_next_char_visually if
+	necessary.
+
+
+;; Local Variables:
+;; coding: utf-8
+;; add-log-time-zone-rule: t
+;; End:
+
+    Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
