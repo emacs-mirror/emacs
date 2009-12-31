@@ -115,7 +115,7 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
       ret = Fcons (get_current_thread (), ret);
       l->thread_data = Fcons (ret, l->thread_data);
       XTHREADLOCAL (l->realvalue)->thread_alist =
-        Fcons (Fcons (get_current_thread (), Qnil),
+        Fcons (Fcons (get_current_thread (), Qunbound),
                XTHREADLOCAL (l->realvalue)->thread_alist);
     }
 
@@ -1132,11 +1132,11 @@ swap_in_global_binding (symbol)
 
   /* Unload the previously loaded binding.  */
   Fsetcdr (XCAR (cdr),
-	   do_symval_forwarding (blv->realvalue));
+	   do_symval_forwarding (BLOCAL_REALVALUE (blv)));
 
   /* Select the global binding in the symbol.  */
   XSETCAR (cdr, cdr);
-  store_symval_forwarding (symbol, blv->realvalue, XCDR (cdr), NULL);
+  store_symval_forwarding (symbol, BLOCAL_REALVALUE (blv), XCDR (cdr), NULL);
 
   /* Indicate that the global binding is set up now.  */
   BLOCAL_FRAME (blv) = Qnil;
@@ -1174,7 +1174,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       /* Unload the previously loaded binding.  */
       tem1 = XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
       Fsetcdr (tem1,
-               do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+               do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
       /* Choose the new binding.  */
       tem1 = assq_no_quit (symbol, BUF_LOCAL_VAR_ALIST (current_buffer));
       BLOCAL_CLEAR_FLAGS (XBUFFER_LOCAL_VALUE (valcontents));
@@ -1195,7 +1195,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       XSETBUFFER (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)), current_buffer);
       BLOCAL_FRAME (XBUFFER_LOCAL_VALUE (valcontents)) = selected_frame;
       store_symval_forwarding (symbol,
-                               XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
+                               BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 			       Fcdr (tem1), NULL);
     }
 
@@ -1341,7 +1341,7 @@ set_internal (symbol, newval, buf, bindflag)
 
 	  /* Write out `realvalue' to the old loaded binding.  */
           Fsetcdr (current_alist_element,
-                   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+                   do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
 
 	  /* Find the new binding.  */
 	  tem1 = Fassq (symbol, BUF_LOCAL_VAR_ALIST (buf));
@@ -1442,7 +1442,7 @@ default_value (symbol)
 	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
       alist_element_car = XCAR (current_alist_element);
       if (EQ (alist_element_car, current_alist_element))
-        return do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue);
+        return do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)));
       else
 	return XCDR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
     }
@@ -1527,7 +1527,7 @@ for this variable.  */)
   alist_element_buffer = Fcar (current_alist_element);
   if (EQ (alist_element_buffer, current_alist_element))
     store_symval_forwarding (symbol,
-                             XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
+                             BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)),
 			     value, NULL);
 
   return value;
@@ -1744,7 +1744,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
      for this buffer now.  If C code modifies the variable before we
      load the binding in, then that new value will clobber the default
      binding the next time we unload it.  */
-  valcontents = XBUFFER_LOCAL_VALUE (sym->value)->realvalue;
+  valcontents = BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (sym->value));
   if (INTFWDP (valcontents) || BOOLFWDP (valcontents) || OBJFWDP (valcontents))
     swap_in_symval_forwarding (variable, sym->value);
 
