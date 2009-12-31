@@ -1,3 +1,19 @@
+2009-09-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Call bidi_init_it.  Set
+	bidi_it->bytepos if buffer position specified.
+	(reseat_1): Don't call bidi_init_it.  Call bidi_paragraph_init
+	instead.  Move back to preceding character before the call to
+	bidi_get_next_char_visually.
+
+	* bidi.c: Remove all STANDALONE parts.
+	(bidi_init_it): Init bidi_it->charpos and bidi_it->bytepos to -1.
+	Don't call bidi_paragraph_init.  Change arguments.
+	(bidi_paragraph_init): Remove code for negative pos.
+
+	* dispextern.h <bidi_it>: Rename orig_type to type_after_w1 and
+	pristine_type to orig_type.
+
 2009-09-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (direct_output_for_insert): Give up if we are

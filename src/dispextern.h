@@ -1736,9 +1736,9 @@ typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
    remember.  */
 struct bidi_saved_info {
   int bytepos, charpos;		/* character's buffer position */
-  bidi_type_t type;		/* character bidi type */
-  bidi_type_t orig_type;	/* original type of the character, after W1 */
-  bidi_type_t pristine_type;	/* type as we found it in the buffer */
+  bidi_type_t type;		/* character's resolved bidi type */
+  bidi_type_t type_after_w1;	/* original type of the character, after W1 */
+  bidi_type_t orig_type;	/* type as we found it in the buffer */
 };
 
 /* Data type for keeping track of saved embedding levels and override
@@ -1754,9 +1754,10 @@ struct bidi_it {
   int charpos;
   int ch;			/* the character itself */
   int ch_len;			/* the length of its multibyte sequence */
-  bidi_type_t type;		/* type of this character */
-  bidi_type_t orig_type;	/* original type, after overrides and W1 */
-  bidi_type_t pristine_type;	/* original type, as found in the buffer */
+  bidi_type_t type;		/* bidi type of this character, after
+				   resolving weak and neutral types */
+  bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
+  bidi_type_t orig_type;	/* original type, as found in the buffer */
   int resolved_level;		/* final resolved level of this character */
   int invalid_levels;		/* how many PDFs should we ignore */
   int invalid_rl_levels;	/* how many PDFs from RLE/RLO should ignore */
@@ -2786,9 +2787,9 @@ extern EMACS_INT tool_bar_button_relief;
 
 /* Defined in bidi.c */
 
-extern void bidi_init_it P_ ((int pos, bidi_dir_t dir,
-			      struct bidi_it *bidi_it));
-extern void bidi_get_next_char_visually P_ ((struct bidi_it *bidi_it));
+extern void bidi_init_it P_ ((int, int, struct bidi_it *));
+extern void bidi_get_next_char_visually P_ ((struct bidi_it *));
+extern void bidi_paragraph_init P_ ((bidi_dir_t, struct bidi_it *));
 
 /* Defined in xdisp.c */
 

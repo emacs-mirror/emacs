@@ -2806,6 +2806,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	it->start_of_box_run_p = 1;
     }
 
+  /* If we are to reorder bidirectional text, init the bidi
+     iterator.  */
+  if (it->bidi_p)
+    bidi_init_it (charpos, bytepos, &it->bidi_it);
+
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
@@ -2816,7 +2821,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
       /* Compute byte position if not specified.  */
       if (bytepos < charpos)
-	IT_BYTEPOS (*it) = CHAR_TO_BYTE (charpos);
+	{
+	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (charpos);
+	  if (it->bidi_p)
+	    it->bidi_it.bytepos = IT_BYTEPOS (*it);
+	}
       else
 	IT_BYTEPOS (*it) = bytepos;
 
@@ -5322,8 +5331,8 @@ back_to_previous_visible_line_start (it)
       if (IT_CHARPOS (*it) <= BEGV)
 	break;
 
-      /* If selective > 0, then lines indented more than that values
-	 are invisible.  */
+      /* If selective > 0, then lines indented more than its value are
+	 invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				(double) it->selective)) /* iftc */
@@ -5525,11 +5534,22 @@ reseat_1 (it, pos, set_stop_p)
 	 should be user-definable and/or come from some ``higher
 	 protocol''. In the absence of any other guidance, the default
 	 for this initialization should be NEUTRAL_DIR.  */
-      bidi_init_it (pos.charpos - 1, L2R, &it->bidi_it);
+      it->bidi_it.charpos = CHARPOS (pos);
+      it->bidi_it.bytepos = BYTEPOS (pos);
+      bidi_paragraph_init (L2R, &it->bidi_it);
+      /* With bidi reordering, the first character to display might
+	 not be the character at POS.  We need to find the next
+	 character in visual order starting from the preceding
+	 character.  */
+      if ((it->bidi_it.charpos = CHARPOS (pos) - 1) > 1)
+	{
+	  it->bidi_it.bytepos = CHAR_TO_BYTE (CHARPOS (pos) - 1);
+	  it->bidi_it.ch_len = CHAR_BYTES (CHARPOS (pos) - 1);
+	}
+      else
+	it->bidi_it.bytepos = 0;
       bidi_get_next_char_visually (&it->bidi_it);
-
-      pos.charpos = it->bidi_it.charpos;
-      pos.bytepos = it->bidi_it.bytepos;
+      SET_TEXT_POS (pos, it->bidi_it.charpos, it->bidi_it.bytepos);
       it->current.pos = it->position = pos;
     }
 
@@ -6693,9 +6713,9 @@ next_element_from_composition (it)
    line on the display without producing glyphs.
 
    OP should be a bit mask including some or all of these bits:
-    MOVE_TO_X: Stop on reaching x-position TO_X.
-    MOVE_TO_POS: Stop on reaching buffer or string position TO_CHARPOS.
-   Regardless of OP's value, stop in reaching the end of the display line.
+    MOVE_TO_X: Stop upon reaching x-position TO_X.
+    MOVE_TO_POS: Stop upon reaching buffer or string position TO_CHARPOS.
+   Regardless of OP's value, stop upon reaching the end of the display line.
 
    TO_X is normally a value 0 <= TO_X <= IT->last_visible_x.
    This means, in particular, that TO_X includes window's horizontal

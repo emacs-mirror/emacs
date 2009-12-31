@@ -36,6 +36,10 @@ Boston, MA 02110-1301, USA.  */
    more details about its algorithm that finds the next visual-order
    character by resolving their levels on the fly.
 
+   If you want to understand the code, you will have to read it
+   together with the relevant portions of UAX#9.  The comments include
+   references to UAX#9 rules, for that very reason.
+
    A note about references to UAX#9 rules: if the reference says
    something like "X9/Retaining", it means that you need to refer to
    rule X9 and to its modifications decribed in the "Implementation
@@ -77,63 +81,6 @@ static Lisp_Object bidi_type_table;
    BIDI_EOB when they hit ZV.  */
 #define BIDI_EOB   -1
 #define BIDI_BOB   -2
-
-#ifdef TEST_STANDALONE
-/* Testing.  */
-
-static unsigned char *input_buf;
-static size_t input_buf_size;
-
-int _fetch_multibyte_char_len, _c_c_;
-
-#undef FETCH_CHAR_ADVANCE
-#define FETCH_CHAR_ADVANCE(ch, cp, bp) \
-  do {				       \
-    ch = input_buf[cp];		       \
-    (cp)++;			       \
-    (bp)++;			       \
-    if (ch == '\0')		       \
-      ch = BIDI_EOB;			       \
-  } while (0)
-
-#undef FETCH_CHAR
-#define FETCH_CHAR(n)		((_c_c_ = input_buf[n]) ? _c_c_ : BIDI_EOB)
-
-#undef CHAR_CHARSET
-#define CHAR_CHARSET(c) 					 \
-  (((c) >= 128 || ((c) < 8 && (c)) || ((c) >= 'A' && (c) < 'X')) \
-   ? CHARSET_HEBREW						 \
-   : ((((c) >= 'X' && (c) <= 'Z') || ((c) >= '6' && (c) <= '9')) \
-      ? CHARSET_ARABIC						 \
-      : CHARSET_ASCII))
-
-#undef CHAR_TO_BYTE
-#define CHAR_TO_BYTE(pos) (pos)
-
-#define char_bytes(ch) 1
-
-#undef LRE_CHAR
-#undef LRO_CHAR
-#undef RLE_CHAR
-#undef RLO_CHAR
-#undef PDF_CHAR
-#undef RLM_CHAR
-#undef LRM_CHAR
-
-#define LRE_CHAR   1
-#define LRO_CHAR   2
-#define RLE_CHAR   3
-#define RLO_CHAR   4
-#define PDF_CHAR   5
-#define RLM_CHAR   6
-#define LRM_CHAR   7
-
-static const char *bidi_name[] =
-  {
-    "[???]", "[LRE]", "[LRO]", "[RLE]", "[RLO]", "[PDF]", "[RLM]", "[LRM]"
-  };
-
-#endif	/* TEST_STANDALONE */
 
 /* Local data structures.  (Look in dispextern.h for the rest.)  */
 
@@ -462,11 +409,7 @@ bidi_initialize ()
 static int
 bidi_is_arabic_number (int ch)
 {
-#ifdef TEST_STANDALONE
-  return ch >= '6' && ch <= '9';
-#else
   return 0;	/* FIXME! */
-#endif
 }
 
 /* Return the bidi type of a character CH.  */
@@ -700,8 +643,8 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 	 costly copying of the entire struct.  */
       bidi_cache[idx].type = bidi_it->type;
       bidi_check_type (bidi_it->type);
-      bidi_cache[idx].orig_type = bidi_it->orig_type;
-      bidi_check_type (bidi_it->orig_type);
+      bidi_cache[idx].type_after_w1 = bidi_it->type_after_w1;
+      bidi_check_type (bidi_it->type_after_w1);
       if (resolved)
 	bidi_cache[idx].resolved_level = bidi_it->resolved_level;
       else
@@ -782,13 +725,13 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
     bidi_it->prev_was_pdf = 1;
 
   bidi_it->prev.type = UNKNOWN_BT;
-  bidi_it->last_strong.type = bidi_it->last_strong.orig_type =
-    bidi_it->last_strong.pristine_type = UNKNOWN_BT;
+  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
+    bidi_it->last_strong.orig_type = UNKNOWN_BT;
   bidi_it->prev_for_neutral.type = bidi_it->sor == R2L ? STRONG_R : STRONG_L;
   bidi_it->prev_for_neutral.charpos = bidi_it->charpos;
   bidi_it->prev_for_neutral.bytepos = bidi_it->bytepos;
-  bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.orig_type =
-    bidi_it->next_for_neutral.pristine_type = UNKNOWN_BT;
+  bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_w1 =
+    bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->ignore_bn_limit = 0; /* meaning it's unknown */
 }
 
@@ -803,14 +746,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
       bidi_type_t type;
       int pos = bidi_it->charpos, bytepos = bidi_it->bytepos;
       int ch;
-
-      if (pos < 0)
-	pos = bytepos = 0;
-      else if (bidi_it->ch != BIDI_EOB)
-	{
-	  pos++;
-	  bytepos += bidi_it->ch_len;
-	}
 
       ch = FETCH_CHAR (bytepos);
       pos++;
@@ -863,45 +798,32 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
   bidi_it->new_paragraph = 1;
 }
 
-/* Initialize the bidi iterator from buffer position POS for paragraph
-   direction DIR.  Return the embedding level at POS.  */
+/* Initialize the bidi iterator from buffer position CHARPOS.  */
 void
-bidi_init_it (int pos, bidi_dir_t dir, struct bidi_it *bidi_it)
+bidi_init_it (int charpos, int bytepos, struct bidi_it *bidi_it)
 {
   if (! bidi_initialized)
     bidi_initialize ();
   bidi_set_paragraph_end (bidi_it);
-  bidi_it->charpos = pos;
-  if (pos <= 0)
-    {
-      bidi_it->bytepos = bidi_it->charpos;
-      bidi_it->ch_len = 1;	/* so that incrementing bytepos works */
-    }
-  else
-    {
-      bidi_it->bytepos = CHAR_TO_BYTE (pos);
-      bidi_it->ch_len
-	= MULTIBYTE_FORM_LENGTH (BYTE_POS_ADDR (bidi_it->bytepos),
-				 MAX_MULTIBYTE_LENGTH);
-    }
-  bidi_it->ch = '\x1d';	 /* FIXME: should be U+2029 */
+  bidi_it->charpos = charpos;
+  bidi_it->bytepos = bytepos;
+  bidi_it->ch_len = 1;
   bidi_it->type = NEUTRAL_B;
+  bidi_it->type_after_w1 = UNKNOWN_BT;
   bidi_it->orig_type = UNKNOWN_BT;
-  bidi_it->pristine_type = UNKNOWN_BT;
   bidi_it->prev_was_pdf = 0;
-  bidi_it->prev.type = bidi_it->prev.orig_type = UNKNOWN_BT;
-  bidi_it->last_strong.type = bidi_it->last_strong.orig_type =
-    bidi_it->last_strong.pristine_type = UNKNOWN_BT;
+  bidi_it->prev.type = bidi_it->prev.type_after_w1 = UNKNOWN_BT;
+  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
+    bidi_it->last_strong.orig_type = UNKNOWN_BT;
   bidi_it->next_for_neutral.charpos = -1;
   bidi_it->next_for_neutral.type =
-    bidi_it->next_for_neutral.orig_type =
-    bidi_it->next_for_neutral.pristine_type = UNKNOWN_BT;
+    bidi_it->next_for_neutral.type_after_w1 =
+    bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->prev_for_neutral.charpos = -1;
   bidi_it->prev_for_neutral.type =
-    bidi_it->prev_for_neutral.orig_type =
-    bidi_it->prev_for_neutral.pristine_type = UNKNOWN_BT;
+    bidi_it->prev_for_neutral.type_after_w1 =
+    bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
-  bidi_paragraph_init (dir, bidi_it);
 }
 
 /* Push the current embedding level and override status; reset the
@@ -937,10 +859,10 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
   saved_info->bytepos = bidi_it->bytepos;
   saved_info->type = bidi_it->type;
   bidi_check_type (bidi_it->type);
+  saved_info->type_after_w1 = bidi_it->type_after_w1;
+  bidi_check_type (bidi_it->type_after_w1);
   saved_info->orig_type = bidi_it->orig_type;
   bidi_check_type (bidi_it->orig_type);
-  saved_info->pristine_type = bidi_it->pristine_type;
-  bidi_check_type (bidi_it->pristine_type);
 }
 
 /* Resolve the type of a neutral character according to the type of
@@ -1003,20 +925,20 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   bidi_it->ch_len = CHAR_BYTES (curchar);
 
   type = bidi_get_type (curchar);
-  bidi_it->pristine_type = type;
-  bidi_check_type (bidi_it->pristine_type);
+  bidi_it->orig_type = type;
+  bidi_check_type (bidi_it->orig_type);
 
   if (type != PDF)
     bidi_it->prev_was_pdf = 0;
 
-  bidi_it->orig_type = UNKNOWN_BT;
+  bidi_it->type_after_w1 = UNKNOWN_BT;
 
   switch (type)
     {
       case RLE:	/* X2 */
       case RLO:	/* X4 */
-	bidi_it->orig_type = type;
-	bidi_check_type (bidi_it->orig_type);
+	bidi_it->type_after_w1 = type;
+	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= 0)
 	  {
@@ -1025,7 +947,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		/* Compute the least odd embedding level greater than
 		   the current level.  */
 		new_level = ((current_level + 1) & ~1) + 1;
-		if (bidi_it->orig_type == RLE)
+		if (bidi_it->type_after_w1 == RLE)
 		  override = NEUTRAL_DIR;
 		else
 		  override = R2L;
@@ -1042,14 +964,14 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		bidi_it->invalid_rl_levels++;
 	      }
 	  }
-	else if (bidi_it->prev.orig_type == WEAK_EN /* W5/Retaining */
+	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
 		 || bidi_it->next_en_pos > bidi_it->charpos)
 	  type = WEAK_EN;
 	break;
       case LRE:	/* X3 */
       case LRO:	/* X5 */
-	bidi_it->orig_type = type;
-	bidi_check_type (bidi_it->orig_type);
+	bidi_it->type_after_w1 = type;
+	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= 0)
 	  {
@@ -1058,7 +980,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		/* Compute the least even embedding level greater than
 		   the current level.  */
 		new_level = ((current_level + 2) & ~1);
-		if (bidi_it->orig_type == LRE)
+		if (bidi_it->type_after_w1 == LRE)
 		  override = NEUTRAL_DIR;
 		else
 		  override = L2R;
@@ -1078,13 +1000,13 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		  bidi_it->invalid_rl_levels++;
 	      }
 	  }
-	else if (bidi_it->prev.orig_type == WEAK_EN /* W5/Retaining */
+	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
 		 || bidi_it->next_en_pos > bidi_it->charpos)
 	  type = WEAK_EN;
 	break;
       case PDF:	/* X7 */
-	bidi_it->orig_type = type;
-	bidi_check_type (bidi_it->orig_type);
+	bidi_it->type_after_w1 = type;
+	bidi_check_type (bidi_it->type_after_w1);
 	type = WEAK_BN; /* X9/Retaining */
 	if (bidi_it->ignore_bn_limit <= 0)
 	  {
@@ -1104,7 +1026,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 		bidi_it->invalid_rl_levels--;
 	      }
 	  }
-	else if (bidi_it->prev.orig_type == WEAK_EN /* W5/Retaining */
+	else if (bidi_it->prev.type_after_w1 == WEAK_EN /* W5/Retaining */
 		 || bidi_it->next_en_pos > bidi_it->charpos)
 	  type = WEAK_EN;
 	break;
@@ -1188,8 +1110,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   if (bidi_it->type == NEUTRAL_B)	/* X8 */
     {
       bidi_set_paragraph_end (bidi_it);
-      bidi_it->orig_type = bidi_it->type; /* needed below and in L1 */
-      bidi_check_type (bidi_it->orig_type);
+      bidi_it->type_after_w1 = bidi_it->type; /* needed below and in L1 */
+      bidi_check_type (bidi_it->type_after_w1);
     }
 
   return new_level;
@@ -1229,8 +1151,8 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
     }
   else if (type == NEUTRAL_S || type == NEUTRAL_WS
 	   || type == WEAK_BN || type == STRONG_AL)
-    bidi_it->orig_type = type;	/* needed in L1 */
-  bidi_check_type (bidi_it->orig_type);
+    bidi_it->type_after_w1 = type;	/* needed in L1 */
+  bidi_check_type (bidi_it->type_after_w1);
 
   /* Level and directional override status are already recorded in
      bidi_it, and do not need any change; see X6.  */
@@ -1245,10 +1167,10 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
       /* Note that we don't need to consider the case where the prev
 	 character has its type overridden by an RLO or LRO: such
 	 characters are outside the current level run, and thus not
-	 relevant to this NSM.  Thus, NSM gets the pristine_type of
-	 the previous character.  */
+	 relevant to this NSM.  Thus, NSM gets the orig_type of the
+	 previous character.  */
       if (bidi_it->prev.type != UNKNOWN_BT)
-	type = bidi_it->prev.pristine_type;
+	type = bidi_it->prev.orig_type;
       else if (bidi_it->sor == R2L)
 	type = STRONG_R;
       else if (bidi_it->sor == L2R)
@@ -1256,21 +1178,21 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
       else /* shouldn't happen! */
 	abort ();
       if (type == WEAK_EN	/* W2 after W1 */
-	  && bidi_it->last_strong.orig_type == STRONG_AL)
+	  && bidi_it->last_strong.type_after_w1 == STRONG_AL)
 	type = WEAK_AN;
     }
   else if (type == WEAK_EN	/* W2 */
-	   && bidi_it->last_strong.orig_type == STRONG_AL)
+	   && bidi_it->last_strong.type_after_w1 == STRONG_AL)
     type = WEAK_AN;
   else if ((type == WEAK_ES
-	    && (bidi_it->prev.orig_type == WEAK_EN 		/* W4 */
-		&& (bidi_it->prev.pristine_type == WEAK_EN
-		    || bidi_it->prev.pristine_type == WEAK_NSM))) /* aft W1 */
+	    && (bidi_it->prev.type_after_w1 == WEAK_EN 		 /* W4 */
+		&& (bidi_it->prev.orig_type == WEAK_EN
+		    || bidi_it->prev.orig_type == WEAK_NSM)))	 /* aft W1 */
 	   || (type == WEAK_CS
-	       && ((bidi_it->prev.orig_type == WEAK_EN
-		    && (bidi_it->prev.pristine_type == WEAK_EN  /* W4 */
-			|| bidi_it->prev.pristine_type == WEAK_NSM)) /* a/W1 */
-		   || bidi_it->prev.orig_type == WEAK_AN))) 	/* W4 */
+	       && ((bidi_it->prev.type_after_w1 == WEAK_EN
+		    && (bidi_it->prev.orig_type == WEAK_EN	 /* W4 */
+			|| bidi_it->prev.orig_type == WEAK_NSM)) /* a/W1 */
+		   || bidi_it->prev.type_after_w1 == WEAK_AN)))  /* W4 */
     {
       next_char = FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
       type_of_next = bidi_get_type (next_char);
@@ -1292,11 +1214,11 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	 be changed into EN.  */
       if (type == WEAK_ES
 	  && type_of_next == WEAK_EN
-	  && bidi_it->last_strong.orig_type != STRONG_AL)
+	  && bidi_it->last_strong.type_after_w1 != STRONG_AL)
 	type = WEAK_EN;
       else if (type == WEAK_CS)
 	{
-	  if (bidi_it->prev.orig_type == WEAK_AN
+	  if (bidi_it->prev.type_after_w1 == WEAK_AN
 	      && (type_of_next == WEAK_AN
 		  /* If the next character is EN, but the last
 		     strong-type character is AL, EN will be later
@@ -1304,18 +1226,18 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		     in that case, this ES should not be changed into
 		     EN.  */
 		  || (type_of_next == WEAK_EN
-		      && bidi_it->last_strong.orig_type == STRONG_AL)))
+		      && bidi_it->last_strong.type_after_w1 == STRONG_AL)))
 	    type = WEAK_AN;
-	  else if (bidi_it->prev.orig_type == WEAK_EN
+	  else if (bidi_it->prev.type_after_w1 == WEAK_EN
 		   && type_of_next == WEAK_EN
-		   && bidi_it->last_strong.orig_type != STRONG_AL)
+		   && bidi_it->last_strong.type_after_w1 != STRONG_AL)
 	    type = WEAK_EN;
 	}
     }
   else if (type == WEAK_ET	/* W5: ET with EN before or after it */
 	   || type == WEAK_BN)	/* W5/Retaining */
     {
-      if (bidi_it->prev.orig_type == WEAK_EN /* ET/BN with EN before it */
+      if (bidi_it->prev.type_after_w1 == WEAK_EN /* ET/BN with EN before it */
 	  || bidi_it->next_en_pos > bidi_it->charpos)
 	type = WEAK_EN;
       /* W5: ET with EN after it.  */
@@ -1342,7 +1264,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	    {
 	      /* If the last strong character is AL, the EN we've
 		 found will become AN when we get to it (W2). */
-	      if (bidi_it->last_strong.orig_type != STRONG_AL)
+	      if (bidi_it->last_strong.type_after_w1 != STRONG_AL)
 		{
 		  type = WEAK_EN;
 		  /* Remember this EN position, to speed up processing
@@ -1356,22 +1278,23 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
     }
 
   if (type == WEAK_ES || type == WEAK_ET || type == WEAK_CS /* W6 */
-      || (type == WEAK_BN && (bidi_it->prev.orig_type == WEAK_CS /* W6/Ret. */
-			      || bidi_it->prev.orig_type == WEAK_ES
-			      || bidi_it->prev.orig_type == WEAK_ET)))
+      || (type == WEAK_BN
+	  && (bidi_it->prev.type_after_w1 == WEAK_CS	    /* W6/Retaining */
+	      || bidi_it->prev.type_after_w1 == WEAK_ES
+	      || bidi_it->prev.type_after_w1 == WEAK_ET)))
     type = NEUTRAL_ON;
 
   /* Store the type we've got so far, before we clobber it with strong
      types in W7 and while resolving neutral types.  But leave alone
      the original types that were recorded above, because we will need
      them for the L1 clause.  */
-  if (bidi_it->orig_type == UNKNOWN_BT)
-    bidi_it->orig_type = type;
-  bidi_check_type (bidi_it->orig_type);
+  if (bidi_it->type_after_w1 == UNKNOWN_BT)
+    bidi_it->type_after_w1 = type;
+  bidi_check_type (bidi_it->type_after_w1);
 
   if (type == WEAK_EN)	/* W7 */
     {
-      if ((bidi_it->last_strong.orig_type == STRONG_L)
+      if ((bidi_it->last_strong.type_after_w1 == STRONG_L)
 	  || (bidi_it->last_strong.type == UNKNOWN_BT && bidi_it->sor == L2R))
 	type = STRONG_L;
     }
@@ -1431,7 +1354,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	  do {
 	    /* Record the info about the previous character, so that
 	       it will be cached below with this state.  */
-	    if (bidi_it->orig_type != WEAK_BN /* W1/Retaining */
+	    if (bidi_it->type_after_w1 != WEAK_BN /* W1/Retaining */
 		&& bidi_it->type != WEAK_BN)
 	      bidi_remember_char (&bidi_it->prev, bidi_it);
 	    type = bidi_resolve_weak (bidi_it);
@@ -1475,7 +1398,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 		   stored by bidi_set_sor_type in the prev_for_neutral
 		   member.  */
 		if (saved_it.type != WEAK_BN
-		    || bidi_get_category (bidi_it->prev.orig_type) == NEUTRAL)
+		    || bidi_get_category (bidi_it->prev.type_after_w1) == NEUTRAL)
 		  {
 		    next_type = bidi_it->prev_for_neutral.type;
 		    saved_it.next_for_neutral.type = next_type;
@@ -1545,11 +1468,12 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	return bidi_it->resolved_level;
 
       /* Record the info about the previous character.  */
-      if (bidi_it->orig_type != WEAK_BN /* W1/Retaining */
+      if (bidi_it->type_after_w1 != WEAK_BN /* W1/Retaining */
 	  && bidi_it->type != WEAK_BN)
 	bidi_remember_char (&bidi_it->prev, bidi_it);
-      if (bidi_it->orig_type == STRONG_R || bidi_it->orig_type == STRONG_L
-	  || bidi_it->orig_type == STRONG_AL)
+      if (bidi_it->type_after_w1 == STRONG_R
+	  || bidi_it->type_after_w1 == STRONG_L
+	  || bidi_it->type_after_w1 == STRONG_AL)
 	bidi_remember_char (&bidi_it->last_strong, bidi_it);
       /* FIXME: it sounds like we don't need both prev and
 	 prev_for_neutral members, but I'm leaving them both for now.  */
@@ -1633,7 +1557,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   /* For L1 below, we need to know, for each WS character, whether
      it belongs to a sequence of WS characters preceeding a newline
      or a TAB or a paragraph separator.  */
-  if (bidi_it->pristine_type == NEUTRAL_WS
+  if (bidi_it->orig_type == NEUTRAL_WS
       && bidi_it->next_for_ws.type == UNKNOWN_BT)
     {
       int ch;
@@ -1663,7 +1587,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   /* Resolve implicit levels, with a twist: PDFs get the embedding
      level of the enbedding they terminate.  See below for the
      reason.  */
-  if (bidi_it->pristine_type == PDF
+  if (bidi_it->orig_type == PDF
       /* Don't do this if this formatting code didn't change the
 	 embedding level due to invalid or empty embeddings.  */
       && prev_level != level)
@@ -1695,10 +1619,10 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	 user wants to.)     */
       level = prev_level;
     }
-  else if (bidi_it->pristine_type == NEUTRAL_B /* L1 */
-	   || bidi_it->pristine_type == NEUTRAL_S
+  else if (bidi_it->orig_type == NEUTRAL_B /* L1 */
+	   || bidi_it->orig_type == NEUTRAL_S
 	   || bidi_it->ch == '\n' /* || bidi_it->ch == LINESEP_CHAR */
-	   || (bidi_it->pristine_type == NEUTRAL_WS
+	   || (bidi_it->orig_type == NEUTRAL_WS
 	       && (bidi_it->next_for_ws.type == NEUTRAL_B
 		   || bidi_it->next_for_ws.type == NEUTRAL_S)))
     level = bidi_it->level_stack[0].level;
@@ -1886,280 +1810,3 @@ bidi_dump_cached_states (void)
     fprintf (stderr, "%*d", ndigits, bidi_cache[i].charpos);
   fputs ("\n", stderr);
 }
-
-#ifdef TEST_STANDALONE
-
-#include <sys/stat.h>
-#include <signal.h>
-
-static char display_line[80];
-static int simulate_display;
-static int incr = 1;
-
-void
-signal_catcher (int sig)
-{
-  if (simulate_display)
-    puts (display_line);
-  else
-    {
-      puts ("<");
-      fflush (stdout);
-    }
-  signal (sig, SIG_DFL);
-  raise (sig);
-}
-
-void
-put_line (char *p)
-{
-  if (simulate_display)
-    {
-      if (incr == -1)
-	{
-	  if (p >= display_line)
-	    memset (display_line, ' ', p - display_line + 1);
-	}
-      else
-	*p = '\0';
-      fputs (display_line, stdout);
-    }
-  fflush (stdout);
-}
-
-char *
-init_display_direction (bidi_dir_t default_dir, int base_level)
-{
-  char *p;
-
-  /* To which display margin should we flush the lines?  */
-  switch (default_dir)
-    {
-      case NEUTRAL_DIR:
-	if ((base_level & 1) == 0)
-	  {
-	    p = display_line;
-	    incr = 1;
-	  }
-	else
-	  {
-	    p = display_line + sizeof (display_line) - 1;
-	    *p-- = '\0';
-	    incr = -1;
-	  }
-	break;
-      case L2R:
-	p = display_line;
-	incr = 1;
-	break;
-      case R2L:
-	p = display_line + sizeof (display_line) - 1;
-	*p-- = '\0';
-	incr = -1;
-	break;
-      default:
-	abort ();
-    }
-
-  return p;
-}
-
-static char *
-continuation_line (char *p, int need)
-{
-  if (incr == -1)
-    {
-      if (p < display_line + need)
-	{
-	  *p-- = '/';
-	  put_line (p);
-	  putc ('\n', stdout);
-	  memset (display_line, '>', sizeof(display_line) - 1);
-	  p = display_line + sizeof (display_line) - 1;
-	  *p-- = '\0';
-	}
-    }
-  else
-    {
-      if (p > display_line + sizeof(display_line) - need - 2)
-	{
-	  *p++ = '\\';
-	  put_line (p);
-	  putc ('\n', stdout);
-	  memset (display_line, '<', sizeof(display_line) - 1);
-	  p = display_line;
-	}
-    }
-
-  return p;
-}
-
-int main (int argc, char *argv[])
-{
-  bidi_dir_t default_dir = NEUTRAL_DIR;
-  char lots_of_equals[] = "\n===============================================================================\n";
-
-
-  if (argc > 1 && argv[1][0] == '-')
-    {
-      switch (argv[1][1])
-	{
-	  case 'R':
-	    default_dir = R2L;
-	    simulate_display = 1;
-	    ++argv;
-	    break;
-	  case 'L':
-	    default_dir = L2R;
-	    simulate_display = 1;
-	    ++argv;
-	    break;
-	  case 'N':
-	    simulate_display = 1;
-	    ++argv;
-	    break;
-	  default:
-	    break;
-	}
-      bidi_overriding_paragraph_direction = default_dir;
-    }
-
-  for (argv++; *argv; argv++)
-    {
-      FILE *in = fopen (*argv, "rb");
-      struct stat stat_buf;
-      struct bidi_it iterator;
-      size_t i;
-      char *p = display_line;
-      int base_level;
-      unsigned char *s, *d, *s_end;
-
-      if (!in || stat (*argv, &stat_buf))
-	{
-	  perror (*argv);
-	  continue;
-	}
-
-      if (stat_buf.st_size > input_buf_size)
-	{
-	  input_buf = realloc (input_buf, stat_buf.st_size + 1);
-	  if (!input_buf)
-	    {
-	      perror ("realloc input buffer");
-	      continue;
-	    }
-	  input_buf_size = stat_buf.st_size;
-	}
-      if (fread (input_buf, 1, stat_buf.st_size, in) != stat_buf.st_size)
-	{
-	  perror ("reading input");
-	  continue;
-	}
-      input_buf[stat_buf.st_size] = '\0';
-      for (d = s = input_buf, s_end = s + stat_buf.st_size - 1; *s; s++)
-	{
-	  if (*s != '\r' || s >= s_end || s[1] != '\n')
-	    *d++ = *s;
-	}
-      stat_buf.st_size = d - input_buf;
-      input_buf[stat_buf.st_size] = '\0';
-
-      /* Done with administrivia, now for some real work...  */
-      signal (SIGABRT, signal_catcher);
-      signal (SIGINT, signal_catcher);
-      bidi_init_it (-1, default_dir, &iterator);
-      if (simulate_display)
-	{
-	  p = init_display_direction (default_dir,
-				      iterator.level_stack[0].level);
-	}
-
-      memset (display_line, incr == -1 ? '>' : '<', sizeof (display_line) - 1);
-      display_line[sizeof (display_line) - 1] = '\0';
-      base_level = iterator.level_stack[0].level;
-
-      for (i = 0; i <= stat_buf.st_size; i++)
-	{
-	  int c;
-
-	  bidi_get_next_char_visually (&iterator);
-	  c = iterator.ch;
-
-	  if (c == '\n' || c == BIDI_EOB)
-	    {
-	      if (simulate_display)
-		{
-		  put_line (p);
-		  /* FIXME: if -R or -L, need to init paragraph here.  */
-		}
-	      if (c == BIDI_EOB)
-		break;
-	      putc (c, stdout);
-	    }
-	  else if (c >= LRE_CHAR && c <= LRM_CHAR)
-	    {
-	      if (simulate_display)
-		{
-		  p = continuation_line (p, 5);
-		  if (incr == -1)
-		    {
-		      memcpy (p - 4, bidi_name[c], 5);
-		      p -= 5;
-		    }
-		  else
-		    {
-		      memcpy (p, bidi_name[c], 5);
-		      p += 5;
-		    }
-		}
-	      else
-		fputs (bidi_name[c], stdout);
-	    }
-	  else if (c < ' ')
-	    {
-	      if (simulate_display)
-		{
-		  p = continuation_line (p, 2);
-		  if (incr == -1)
-		    {
-		      *p-- = '@' + c;
-		      *p-- = '^';
-		    }
-		  else
-		    {
-		      *p++ = '^';
-		      *p++ = '@' + c;
-		    }
-		}
-	      else
-		printf ("^%c", (c | 0x40));
-	    }
-	  else
-	    {
-	      int c1 = (iterator.type == STRONG_R) ? bidi_mirror_char (c) : c;
-
-	      if (simulate_display)
-		{
-		  p = continuation_line (p, 1);
-		  *p = c1;
-		  p += incr;
-		}
-	      else
-		putc (c1, stdout);
-	    }
-
-	  if (iterator.ch == '\n')
-	    {
-	      if (base_level != iterator.level_stack[0].level)
-		base_level = iterator.level_stack[0].level;
-	      p = init_display_direction (default_dir, base_level);
-	      memset (display_line, incr == -1 ? '>' : '<',
-		      sizeof (display_line) - 1);
-	    }
-	}
-      fputs (lots_of_equals, stdout);
-      fclose (in);
-    }
-  return 0;
-}
-#endif
