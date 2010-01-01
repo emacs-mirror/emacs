@@ -1284,9 +1284,13 @@ its documentation for additional customization information."
     ))
 
 (defmacro minibuffer-with-setup-hook (fun &rest body)
-  "Add FUN to `minibuffer-setup-hook' while executing BODY.
+  "Temporarily add FUN to `minibuffer-setup-hook' while executing BODY.
 BODY should use the minibuffer at most once.
-Recursive uses of the minibuffer will not be affected."
+Recursive uses of the minibuffer are unaffected (FUN is not
+called additional times).
+
+This macro actually adds an auxilliary function that calls FUN,
+rather than FUN itself, to `minibuffer-setup-hook'."
   (declare (indent 1) (debug t))
   (let ((hook (make-symbol "setup-hook")))
     `(let (,hook)
