@@ -1772,7 +1772,8 @@ struct bidi_it {
   int resolved_level;		/* final resolved level of this character */
   int invalid_levels;		/* how many PDFs to ignore */
   int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
-  int new_paragraph;		/* if non-zero, a new paragraph begins here */
+  int new_paragraph;		/* if non-zero, we expect a new paragraph */
+  EMACS_INT separator_limit;	/* where paragraph separator should end */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   int prev_was_pdf;		/* if non-zero, previous char was PDF */
   struct bidi_saved_info prev;	/* info about previous character */

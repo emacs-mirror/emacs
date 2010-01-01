@@ -733,17 +733,35 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
   return bidi_cache[bidi_cache_last_idx + bidi_it->scan_dir].resolved_level;
 }
 
-/* Return non-zero if buffer's byte position POS is the end of a
-   paragraph.  */
-int
+/* Check if buffer position CHARPOS/BYTEPOS is the end of a paragraph.
+   Value is the non-negative length of the paragraph separator
+   following the buffer position, -1 if position is at the beginning
+   of a new paragraph, or -2 if position is neither at beginning nor
+   at end of a paragraph.  */
+EMACS_INT
 bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
-  Lisp_Object re = XSYMBOL (Qparagraph_separate)->value;
+  Lisp_Object sep_re = Fbuffer_local_value (Qparagraph_separate,
+					    Fcurrent_buffer ());
+  Lisp_Object start_re = Fbuffer_local_value (Qparagraph_start,
+					      Fcurrent_buffer ());
+  EMACS_INT val;
 
-  if (!STRINGP (re))
-    re = fallback_paragraph_separate_re;
+  if (!STRINGP (sep_re))
+    sep_re = fallback_paragraph_separate_re;
+  if (!STRINGP (start_re))
+    start_re = fallback_paragraph_start_re;
 
-  return fast_looking_at (re, charpos, bytepos, ZV, ZV_BYTE, Qnil) > 0;
+  val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
+  if (val < 0)
+    {
+      if (fast_looking_at (start_re, charpos, bytepos, ZV, ZV_BYTE, Qnil) >= 0)
+	val = -1;
+      else
+	val = -2;
+    }
+
+  return val;
 }
 
 /* Determine the start-of-run (sor) directional type given the two
@@ -779,12 +797,28 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
   bidi_it->ignore_bn_limit = 0; /* meaning it's unknown */
 }
 
-/* Find the beginning of this paragraph by looking back in the
-   buffer.  */
 static void
+bidi_line_init (struct bidi_it *bidi_it)
+{
+  bidi_it->scan_dir = 1; /* FIXME: do we need to have control on this? */
+  bidi_it->resolved_level = bidi_it->level_stack[0].level;
+  bidi_it->level_stack[0].override = NEUTRAL_DIR; /* X1 */
+  bidi_it->invalid_levels = 0;
+  bidi_it->invalid_rl_levels = -1;
+  bidi_it->next_en_pos = -1;
+  bidi_it->next_for_ws.type = UNKNOWN_BT;
+  bidi_set_sor_type (bidi_it, bidi_it->paragraph_dir,
+		     bidi_it->level_stack[0].level); /* X10 */
+
+  bidi_cache_reset ();
+}
+
+/* Find the beginning of this paragraph by looking back in the buffer.
+   Value is the byte position of the paragraph's beginning.  */
+static EMACS_INT
 bidi_find_paragraph_start (struct bidi_it *bidi_it)
 {
-  Lisp_Object re = XSYMBOL (Qparagraph_start)->value;
+  Lisp_Object re = Fbuffer_local_value (Qparagraph_start, Fcurrent_buffer ());
   EMACS_INT pos = bidi_it->charpos;
   EMACS_INT pos_byte = bidi_it->bytepos;
   EMACS_INT limit = ZV, limit_byte = ZV_BYTE;
@@ -794,10 +828,14 @@ bidi_find_paragraph_start (struct bidi_it *bidi_it)
   while (pos_byte > BEGV_BYTE
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
     {
-      find_next_newline_no_quit (pos, -1);
+      pos = find_next_newline_no_quit (pos - 1, -1);
+      pos_byte = CHAR_TO_BYTE (pos);
     }
+  return pos_byte;
 }
 
+/* Determine the direction, a.k.a. base embedding level, of the
+   paragraph we are about to iterate through.  */
 void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 {
@@ -807,18 +845,41 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
   if (bytepos >= ZV_BYTE || bytepos < BEGV_BYTE)
     abort ();
 
-  bidi_it->level_stack[0].level = 0; /* default for L2R */
-  bidi_it->paragraph_dir = L2R;
-  if (dir == R2L)
-    bidi_it->level_stack[0].level = 1;
+  if (dir == L2R)
+    {
+      bidi_it->paragraph_dir = L2R;
+      bidi_it->new_paragraph = 0;
+    }
+  else if (dir == R2L)
+    {
+      bidi_it->paragraph_dir = R2L;
+      bidi_it->new_paragraph = 0;
+    }
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
       int ch, ch_len;
       EMACS_INT pos;
       bidi_type_t type;
+      EMACS_INT sep_len;
 
-      /* Search back to where this paragraph starts.  */
-      bidi_find_paragraph_start (bidi_it);
+      /* If we are inside a paragraph separator, we are just waiting
+	 for the separator to be exhausted; use the previous paragraph
+	 direction.  */
+      if (bidi_it->charpos < bidi_it->separator_limit)
+	return;
+
+      /* If we are before another paragraph separator, continue
+	 through that with the previous paragraph direction.  */
+      sep_len = bidi_at_paragraph_end (bidi_it->charpos, bytepos);
+      if (sep_len >= 0)
+	{
+	  bidi_it->separator_limit += sep_len + 1;
+	  return;
+	}
+      else if (sep_len == -2)
+	/* We are in the middle of a paragraph.  Search back to where
+	   this paragraph starts.  */
+	bytepos = bidi_find_paragraph_start (bidi_it);
 
       /* We should always be at the beginning of a new line at this
 	 point.  */
@@ -827,9 +888,11 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	    || FETCH_CHAR (bytepos - 1) == '\n'))
 	abort ();
 
+      bidi_it->separator_limit = -1;
+      bidi_it->new_paragraph = 0;
       ch = FETCH_CHAR (bytepos);
       ch_len = CHAR_BYTES (ch);
-      pos = bidi_it->charpos;
+      pos = BYTE_TO_CHAR (bytepos);
       type = bidi_get_type (ch, NEUTRAL_DIR);
 
       for (pos++, bytepos += ch_len;
@@ -843,27 +906,28 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 		     || type == LRE || type == LRO));
 	   type = bidi_get_type (ch, NEUTRAL_DIR))
 	{
-	  if (type == NEUTRAL_B || bidi_at_paragraph_end (pos, bytepos))
+	  if (type == NEUTRAL_B && bidi_at_paragraph_end (pos, bytepos) >= -1)
 	    break;
 	  FETCH_CHAR_ADVANCE (ch, pos, bytepos);
 	}
       if (type == STRONG_R || type == STRONG_AL) /* P3 */
-	bidi_it->level_stack[0].level = 1;
+	bidi_it->paragraph_dir = R2L;
+      else if (type == STRONG_L)
+	bidi_it->paragraph_dir = L2R;
     }
-  if (bidi_it->level_stack[0].level == 1)
-    bidi_it->paragraph_dir = R2L;
-  bidi_it->scan_dir = 1; /* FIXME: do we need to have control on this? */
-  bidi_it->resolved_level = bidi_it->level_stack[0].level;
-  bidi_it->level_stack[0].override = NEUTRAL_DIR; /* X1 */
-  bidi_it->invalid_levels = 0;
-  bidi_it->invalid_rl_levels = -1;
-  bidi_it->new_paragraph = 0;
-  bidi_it->next_en_pos = -1;
-  bidi_it->next_for_ws.type = UNKNOWN_BT;
-  bidi_set_sor_type (bidi_it, bidi_it->paragraph_dir,
-		     bidi_it->level_stack[0].level); /* X10 */
+  else
+    abort ();
 
-  bidi_cache_reset ();
+  /* Contrary to UAX#9 clause P3, we only default to L2R if we have no
+     previous usable paragraph direction.  */
+  if (bidi_it->paragraph_dir == NEUTRAL_DIR)
+    bidi_it->paragraph_dir = L2R; /* P3 */
+  if (bidi_it->paragraph_dir == R2L)
+    bidi_it->level_stack[0].level == 1;
+  else
+    bidi_it->level_stack[0].level == 0;
+
+  bidi_line_init (bidi_it);
 }
 
 /* Do whatever UAX#9 clause X8 says should be done at paragraph's
@@ -888,6 +952,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
   bidi_it->first_elt = 1;
   bidi_set_paragraph_end (bidi_it);
   bidi_it->new_paragraph = 1;
+  bidi_it->separator_limit = -1;
   bidi_it->type = NEUTRAL_B;
   bidi_it->type_after_w1 = UNKNOWN_BT;
   bidi_it->orig_type = UNKNOWN_BT;
@@ -1802,6 +1867,10 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
       bidi_it->scan_dir = 1;	/* default to logical order */
     }
 
+  /* If we just passed a newline, initialize for the next line.  */
+  if (!bidi_it->first_elt && bidi_it->orig_type == NEUTRAL_B)
+    bidi_line_init (bidi_it);
+
   /* Prepare the sentinel iterator state.  */
   if (bidi_cache_idx == 0)
     {
@@ -1875,14 +1944,23 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
     }
 
   /* Take note when we are at the end of the paragraph.  The next time
-     we are about to be called, next_element_from_buffer will
+     we are about to be called, set_iterator_to_next will
      automatically reinit the paragraph direction, if needed.  */
   if (bidi_it->scan_dir == 1
-      && bidi_it->type == NEUTRAL_B
-      && bidi_it->bytepos < ZV_BYTE
-      && bidi_at_paragraph_end (bidi_it->charpos + 1,
-				bidi_it->bytepos + bidi_it->ch_len))
-    bidi_it->new_paragraph = 1;
+      && bidi_it->orig_type == NEUTRAL_B
+      && bidi_it->bytepos < ZV_BYTE)
+    {
+      EMACS_INT sep_len =
+	bidi_at_paragraph_end (bidi_it->charpos + 1,
+			       bidi_it->bytepos + bidi_it->ch_len);
+      if (sep_len >= 0)
+	{
+	  bidi_it->new_paragraph = 1;
+	  /* Record the buffer position of the first character after
+	     the paragraph separator.  */
+	  bidi_it->separator_limit = bidi_it->charpos + 1 + sep_len + 1;
+	}
+    }
 
   if (bidi_it->scan_dir == 1 && bidi_cache_idx)
     {

@@ -6103,6 +6103,10 @@ set_iterator_to_next (it, reseat_p)
 	    }
 	  else
 	    {
+	      /* If this is a new paragraph, determine its base
+		 direction (a.k.a. its base embedding level).  */
+	      if (it->bidi_it.new_paragraph)
+		bidi_paragraph_init (NEUTRAL_DIR, &it->bidi_it);
 	      bidi_get_next_char_visually (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
@@ -6508,8 +6512,10 @@ next_element_from_buffer (it)
 
   xassert (IT_CHARPOS (*it) >= BEGV);
 
-  /* With bidi reordering, the character to display might not be
-     the character at IT_CHARPOS.  */
+  /* With bidi reordering, the character to display might not be the
+     character at IT_CHARPOS.  BIDI_IT.FIRST_ELT non-zero means that
+     we were reseat()ed to a new buffer position, which is potentially
+     a different paragraph.  */
   if (it->bidi_p && it->bidi_it.first_elt)
     {
       it->bidi_it.charpos = IT_CHARPOS (*it);
@@ -6521,13 +6527,9 @@ next_element_from_buffer (it)
 	  || FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
 	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
 	{
-	  /* FIXME: L2R below is just for easyness of testing, as we
-	     currently support only left-to-right paragraphs.  The
-	     value should be user-definable and/or come from some
-	     ``higher protocol''. In the absence of any other
-	     guidance, the default for this initialization should be
-	     NEUTRAL_DIR.  */
-	  bidi_paragraph_init (L2R, &it->bidi_it);
+	  /* FIXME: NEUTRAL_DIR below should be user-definable and/or
+	     come from some ``higher protocol''.  */
+	  bidi_paragraph_init (NEUTRAL_DIR, &it->bidi_it);
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
       else
@@ -6541,7 +6543,7 @@ next_element_from_buffer (it)
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
-	  bidi_paragraph_init (L2R, &it->bidi_it);
+	  bidi_paragraph_init (NEUTRAL_DIR, &it->bidi_it);
 	  do {
 	    /* Now return to buffer position where we were asked to
 	       get the next display element, and produce that.  */
@@ -16314,6 +16316,7 @@ extend_face_to_end_of_line (it)
       Lisp_Object saved_object;
       enum display_element_type saved_what = it->what;
       int saved_face_id = it->face_id;
+      int text_len = it->glyph_row->used[TEXT_AREA];
 
       saved_object = it->object;
       saved_pos = it->position;
@@ -16329,6 +16332,23 @@ extend_face_to_end_of_line (it)
 
       while (it->current_x <= it->last_visible_x)
 	PRODUCE_GLYPHS (it);
+
+      /* If the paragraph base direction is right to left, reverse the
+	 glyphs of non-empty line.  */
+      if (it->bidi_p && it->bidi_it.level_stack[0].level == 1
+	  && text_len > 0)
+	{
+	  struct glyph *gleft = it->glyph_row->glyphs[TEXT_AREA];
+	  struct glyph *gright = gleft + it->glyph_row->used[TEXT_AREA] - 1;
+	  struct glyph tem;
+
+	  for ( ; gleft < gright; gleft++, gright--)
+	    {
+	      tem = *gleft;
+	      *gleft = *gright;
+	      *gright = tem;
+	    }
+	}
 
       /* Don't count these blanks really.  It would let us insert a left
 	 truncation glyph below and make us set the cursor on them, maybe.  */

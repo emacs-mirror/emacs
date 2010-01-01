@@ -1,3 +1,28 @@
+2009-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_at_paragraph_end): Check for paragraph-start if
+	paragraph-separate failed to match.  Return the length of the
+	matched separator.
+	(bidi_line_init): New function.
+	(bidi_paragraph_init): Use bidi_line_init.  Do nothing if in the
+	middle of a paragraph-separate sequence.  Don't override existing
+	paragraph direction if no strong characters found in this
+	paragraph.  Set separator_limit according to what
+	bidi_at_paragraph_end returns.  Reset new_paragraph flag when a
+	new paragraph is found.
+	(bidi_init_it): Reset separator_limit.
+
+	* dispextern.h (struct bidi_it): New member separator_limit.
+
+	* bidi.c (bidi_find_paragraph_start): Return the byte position of
+	the paragraph beginning.
+
+	* xdisp.c (set_iterator_to_next): Call bidi_paragraph_init if the
+	new_paragraph flag is set in the bidi iterator.
+
+	* bidi.c (bidi_at_paragraph_end, bidi_find_paragraph_start): Use
+	the buffer-local value of paragraph-start and paragraph-separate.
+
 2009-10-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_set_paragraph_end): Don't set the new_paragraph
