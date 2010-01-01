@@ -5188,7 +5188,7 @@ init_buffer_once ()
   buffer_defaults.ctl_arrow = Qt;
   buffer_defaults.bidi_display_reordering = Qnil;
   buffer_defaults.direction_reversed = Qnil;
-  buffer_defaults.paragraph_direction = Qnil;
+  buffer_defaults.bidi_paragraph_direction = Qnil;
   buffer_defaults.cursor_type = Qt;
   buffer_defaults.extra_line_spacing = Qnil;
   buffer_defaults.cursor_in_non_selected_windows = Qt;
@@ -5275,7 +5275,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.category_table, idx); ++idx;
   XSETFASTINT (buffer_local_flags.bidi_display_reordering, idx); ++idx;
   XSETFASTINT (buffer_local_flags.direction_reversed, idx); ++idx;
-  XSETFASTINT (buffer_local_flags.paragraph_direction, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.bidi_paragraph_direction, idx); ++idx;
   XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
@@ -5798,8 +5798,8 @@ See also the variable `bidi-display-reordering'.  */);
 		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.
 See also the variable `direction-reversed'.  */);
 
-  DEFVAR_PER_BUFFER ("paragraph-direction",
-		     &current_buffer->paragraph_direction, Qnil,
+  DEFVAR_PER_BUFFER ("bidi-paragraph-direction",
+		     &current_buffer->bidi_paragraph_direction, Qnil,
 		     doc: /* *If non-nil, forces directionality of text paragraphs in the buffer.
 			     
 If this is nil (the default), the direction of each paragraph is

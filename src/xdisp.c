@@ -2813,9 +2813,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     {
       /* Note the paragraph direction that this buffer wants to
 	 use.  */
-      if (EQ (current_buffer->paragraph_direction, Qleft_to_right))
+      if (EQ (current_buffer->bidi_paragraph_direction, Qleft_to_right))
 	it->paragraph_embedding = L2R;
-      else if (EQ (current_buffer->paragraph_direction, Qright_to_left))
+      else if (EQ (current_buffer->bidi_paragraph_direction, Qright_to_left))
 	it->paragraph_embedding = R2L;
       else
 	it->paragraph_embedding = NEUTRAL_DIR;
@@ -11162,7 +11162,7 @@ text_outside_line_unchanged_p (w, start, end)
 	 to find the paragraph limits and widen the range of redisplayed
 	 lines to that, but for now just give up this optimization.  */
       if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
-	  && NILP (XBUFFER (w->buffer)->paragraph_direction))
+	  && NILP (XBUFFER (w->buffer)->bidi_paragraph_direction))
 	unchanged_p = 0;
     }
 
@@ -12468,6 +12468,11 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* Non-zero means we've seen at least one glyph that came from a
      display string.  */
   int string_seen = 0;
+  /* Largest buffer position seen during scan of glyph row.  */
+  EMACS_INT bpos_max = 0;
+  /* Last buffer position covered by an overlay string with an integer
+     `cursor' property.  */
+  EMACS_INT bpos_covered = 0;
 
   /* Skip over glyphs not having an object at the start and the end of
      the row.  These are special glyphs like truncation marks on
@@ -12548,6 +12553,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  {
 	    EMACS_INT dpos = glyph->charpos - pt_old;
 
+	    if (glyph->charpos > bpos_max)
+	      bpos_max = glyph->charpos;
 	    if (!glyph->avoid_cursor_p)
 	      {
 		/* If we hit point, we've found the glyph on which to
@@ -12577,7 +12584,27 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      match_with_avoid_cursor = 1;
 	  }
 	else if (STRINGP (glyph->object))
-	  string_seen = 1;
+	  {
+	    Lisp_Object chprop;
+	    int glyph_pos = glyph->charpos;
+
+	    chprop = Fget_char_property (make_number (glyph_pos), Qcursor,
+					 glyph->object);
+	    if (INTEGERP (chprop))
+	      {
+		bpos_covered = bpos_max + XINT (chprop);
+		/* If the `cursor' property covers buffer positions up
+		   to and including point, we should display cursor on
+		   this glyph.  */
+		if (bpos_covered >= pt_old)
+		  {
+		    cursor = glyph;
+		    break;
+		  }
+	      }
+
+	    string_seen = 1;
+	  }
 	x += glyph->pixel_width;
 	++glyph;
       }
@@ -12588,6 +12615,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  {
 	    EMACS_INT dpos = glyph->charpos - pt_old;
 
+	    if (glyph->charpos > bpos_max)
+	      bpos_max = glyph->charpos;
 	    if (!glyph->avoid_cursor_p)
 	      {
 		if (dpos == 0)
@@ -12610,7 +12639,26 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      match_with_avoid_cursor = 1;
 	  }
 	else if (STRINGP (glyph->object))
-	  string_seen = 1;
+	  {
+	    Lisp_Object chprop;
+	    int glyph_pos = glyph->charpos;
+
+	    chprop = Fget_char_property (make_number (glyph_pos), Qcursor,
+					 glyph->object);
+	    if (INTEGERP (chprop))
+	      {
+		bpos_covered = bpos_max + XINT (chprop);
+		/* If the `cursor' property covers buffer positions up
+		   to and including point, we should display cursor on
+		   this glyph.  */
+		if (bpos_covered >= pt_old)
+		  {
+		    cursor = glyph;
+		    break;
+		  }
+	      }
+	    string_seen = 1;
+	  }
 	--glyph;
 	if (glyph == end)
 	  break;
@@ -12620,7 +12668,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* Step 2: If we didn't find an exact match for point, we need to
      look for a proper place to put the cursor among glyphs between
      GLYPH_BEFORE and GLYPH_AFTER.  */
-  if (glyph->charpos != pt_old)
+  if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
+      && bpos_covered < pt_old)
     {
       if (row->ends_in_ellipsis_p && pos_after == last_pos)
 	{
@@ -12707,9 +12756,6 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 			      cprop = Fget_char_property (make_number (gpos),
 							  Qcursor,
 							  glyph->object);
-			      /* FIXME: This loses the feature of the
-				 unidirectional redisplay when the
-				 property value was an integer.  */
 			      if (!NILP (cprop))
 				{
 				  cursor = glyph;
@@ -15242,7 +15288,7 @@ try_window_id (w)
      lines to that, but for now just give up this optimization and
      redisplay from scratch.  */
   if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
-      && NILP (XBUFFER (w->buffer)->paragraph_direction))
+      && NILP (XBUFFER (w->buffer)->bidi_paragraph_direction))
     GIVE_UP (22);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it

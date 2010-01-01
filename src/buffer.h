@@ -667,7 +667,7 @@ struct buffer
   /* If non-nil, specifies which direction of text to force in all the
      paragraphs of the buffer.  Nil means determine paragraph
      direction dynamically for each paragraph.  */
-  Lisp_Object paragraph_direction;
+  Lisp_Object bidi_paragraph_direction;
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
   Lisp_Object selective_display;
