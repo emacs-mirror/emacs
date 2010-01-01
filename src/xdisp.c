@@ -5682,6 +5682,13 @@ get_next_display_element (it)
 
   if (it->what == IT_CHARACTER)
     {
+      /* UAX#9, L4: "A character is depicted by a mirrored glyph if
+	 and only if (a) the resolved directionality of that character
+	 is R..."  */
+      /* FIXME: Do we need an exception for characters from display
+	 tables?  */
+      if (it->bidi_p && it->bidi_it.type == STRONG_R)
+	it->c = bidi_mirror_char (it->c);
       /* Map via display table or translate control characters.
 	 IT->c, IT->len etc. have been set to the next character by
 	 the function call above.  If we have a display table, and it
@@ -6505,17 +6512,46 @@ next_element_from_buffer (it)
      the character at IT_CHARPOS.  */
   if (it->bidi_p && it->bidi_it.first_elt)
     {
-      /* FIXME: L2R below is just for easyness of testing, as we
-	 currently support only left-to-right paragraphs.  The value
-	 should be user-definable and/or come from some ``higher
-	 protocol''. In the absence of any other guidance, the default
-	 for this initialization should be NEUTRAL_DIR.  */
       it->bidi_it.charpos = IT_CHARPOS (*it);
       it->bidi_it.bytepos = IT_BYTEPOS (*it);
-      bidi_paragraph_init (L2R, &it->bidi_it);
-      bidi_get_next_char_visually (&it->bidi_it);
-      it->bidi_it.first_elt = 0;
-      /*  Adjust IT's position information to where we moved.  */
+      /* If we are at the beginning of a line, we can produce the next
+	 element right away.  */
+      if (it->bidi_it.bytepos == BEGV_BYTE
+	  /* FIXME: Should support all Unicode line separators.  */
+	  || FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
+	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
+	{
+	  /* FIXME: L2R below is just for easyness of testing, as we
+	     currently support only left-to-right paragraphs.  The
+	     value should be user-definable and/or come from some
+	     ``higher protocol''. In the absence of any other
+	     guidance, the default for this initialization should be
+	     NEUTRAL_DIR.  */
+	  bidi_paragraph_init (L2R, &it->bidi_it);
+	  bidi_get_next_char_visually (&it->bidi_it);
+	}
+      else
+	{
+	  int orig_bytepos = IT_BYTEPOS (*it);
+
+	  /* We need to prime the bidi iterator starting at the line's
+	     beginning, before we will be able to produce the next
+	     element.  */
+	  IT_CHARPOS (*it) = find_next_newline_no_quit (IT_CHARPOS (*it), -1);
+	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
+	  it->bidi_it.charpos = IT_CHARPOS (*it);
+	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
+	  bidi_paragraph_init (L2R, &it->bidi_it);
+	  do {
+	    /* Now return to buffer position where we were asked to
+	       get the next display element, and produce that.  */
+	    bidi_get_next_char_visually (&it->bidi_it);
+	  } while (it->bidi_it.bytepos != orig_bytepos
+		   && it->bidi_it.bytepos < ZV_BYTE);
+	}
+
+      it->bidi_it.first_elt = 0; /* paranoia: bidi.c does this */
+      /*  Adjust IT's position information to where we ended up.  */
       IT_CHARPOS (*it) = it->bidi_it.charpos;
       IT_BYTEPOS (*it) = it->bidi_it.bytepos;
       SET_TEXT_POS (it->position, IT_CHARPOS (*it), IT_BYTEPOS (*it));

@@ -1,3 +1,18 @@
+2009-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (next_element_from_buffer): If called not at line
+	beginning, start bidi iteration from line beginning.
+
+	* bidi.c (bidi_paragraph_init): Use
+	bidi_overriding_paragraph_direction instead of a literal zero.
+	(bidi_initialize): Fix some character types, per Unicode 5.x.
+	(bidi_get_type): Abort if called with invalid character code.
+
+	* dispextern.h: Add prototype of bidi_mirror_char.
+
+	* xdisp.c (get_next_display_element): Mirror characters whose
+	resolved type is STRONG_R.
+
 2009-09-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_paragraph_init): Don't set bidi_it->ch_len.  Abort

@@ -99,14 +99,6 @@ int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 /* FIXME: Should be user-definable.  */
 bidi_dir_t bidi_overriding_paragraph_direction = L2R;
 
-/* FIXME: Unused? */
-#define ASCII_BIDI_TYPE_SET(STR, TYPE)			\
-  do {							\
-    unsigned char *p;					\
-    for (p = (STR); *p; p++)				\
-      CHAR_TABLE_SET (bidi_type_table, *p, (TYPE));	\
-  } while (0)
-
 static void
 bidi_initialize ()
 {
@@ -128,11 +120,10 @@ bidi_initialize ()
 	{ 0x0021, 0x0022, NEUTRAL_ON },
 	{ 0x0023, 0x0025, WEAK_ET },
 	{ 0x0026, 0x002A, NEUTRAL_ON },
-	{ 0x002B, 0x0000, WEAK_ET },
+	{ 0x002B, 0x0000, WEAK_ES },
 	{ 0x002C, 0x0000, WEAK_CS },
-	{ 0x002D, 0x0000, WEAK_ET },
-	{ 0x002E, 0x0000, WEAK_CS },
-	{ 0x002F, 0x0000, WEAK_ES },
+	{ 0x002D, 0x0000, WEAK_ES },
+	{ 0x002E, 0x002F, WEAK_CS },
 	{ 0x0030, 0x0039, WEAK_EN },
 	{ 0x003A, 0x0000, WEAK_CS },
 	{ 0x003B, 0x0040, NEUTRAL_ON },
@@ -145,7 +136,9 @@ bidi_initialize ()
 	{ 0x00A1, 0x0000, NEUTRAL_ON },
 	{ 0x00A2, 0x00A5, WEAK_ET },
 	{ 0x00A6, 0x00A9, NEUTRAL_ON },
-	{ 0x00AB, 0x00AF, NEUTRAL_ON },
+	{ 0x00AB, 0x00AC, NEUTRAL_ON },
+	{ 0x00AD, 0x0000, WEAK_BN },
+	{ 0x00AE, 0x00Af, NEUTRAL_ON },
 	{ 0x00B0, 0x00B1, WEAK_ET },
 	{ 0x00B2, 0x00B3, WEAK_EN },
 	{ 0x00B4, 0x0000, NEUTRAL_ON },
@@ -171,7 +164,9 @@ bidi_initialize ()
 	{ 0x05C0, 0x0000, STRONG_R },
 	{ 0x05C1, 0x05C2, WEAK_NSM },
 	{ 0x05C3, 0x0000, STRONG_R },
-	{ 0x05C4, 0x0000, WEAK_NSM },
+	{ 0x05C4, 0x05C5, WEAK_NSM },
+	{ 0x05C6, 0x0000, STRONG_R },
+	{ 0x05C7, 0x0000, WEAK_NSM },
 	{ 0x05D0, 0x05F4, STRONG_R },
 	{ 0x060C, 0x0000, WEAK_CS },
 	{ 0x061B, 0x064A, STRONG_AL },
@@ -400,18 +395,14 @@ bidi_initialize ()
   bidi_initialized = 1;
 }
 
-static int
-bidi_is_arabic_number (int ch)
-{
-  return 0;	/* FIXME! */
-}
-
 /* Return the bidi type of a character CH.  */
 bidi_type_t
 bidi_get_type (int ch)
 {
   if (ch == BIDI_EOB)
     return NEUTRAL_B;
+  if (ch < 0 || ch > MAX_CHAR)
+    abort ();
   return (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
 }
 
@@ -457,6 +448,10 @@ bidi_get_category (bidi_type_t type)
     }
 }
 
+/* Return the mirrored character of C, if any.
+
+   Note: The conditions in UAX#9 clause L4 must be tested by the
+   caller.  */
 /* FIXME: exceedingly temporary!  Should consult the Unicode database
    of character properties.  */
 int
@@ -722,7 +717,7 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
      that we find on the two sides of the level boundary (see UAX#9,
      clause X10), and so we don't need to know the final embedding
      level to which we descend after processing all the PDFs.  */
-  if (level_before < level_after || !bidi_it->prev_was_pdf)
+  if (!bidi_it->prev_was_pdf || level_before < level_after)
     /* FIXME: should the default sor direction be user selectable?  */
     bidi_it->sor = (higher_level & 1) != 0 ? R2L : L2R;
   if (level_before > level_after)
@@ -742,8 +737,7 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 {
-  int pos = bidi_it->charpos, bytepos = bidi_it->bytepos;
-  int ch, ch_len;
+  int bytepos = bidi_it->bytepos;
 
   /* We should never be called at EOB or before BEGV.  */
   if (bytepos >= ZV_BYTE || bytepos < BEGV_BYTE)
@@ -756,20 +750,16 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	|| FETCH_CHAR (bytepos - 1) == '\n'))
     abort ();
 
-  ch = FETCH_CHAR (bytepos);
-  ch_len = CHAR_BYTES (ch);
   bidi_it->level_stack[0].level = 0; /* default for L2R */
   if (dir == R2L)
     bidi_it->level_stack[0].level = 1;
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
-      bidi_type_t type;
+      int ch = FETCH_CHAR (bytepos), ch_len = CHAR_BYTES (ch);
+      int pos = bidi_it->charpos;
+      bidi_type_t type = bidi_get_type (ch);
 
-      /* FIXME: should actually go to where the paragraph begins and
-	 start the loop below from there, since UAX#9 says to find the
-	 first strong directional character in the paragraph.  */
-
-      for (type = bidi_get_type (ch), pos++, bytepos += ch_len;
+      for (pos++, bytepos += ch_len;
 	   /* NOTE: UAX#9 says to search only for L, AL, or R types of
 	      characters, and ignore RLE, RLO, LRE, and LRO.  However,
 	      I'm not sure it makes sense to omit those 4; should try
@@ -795,7 +785,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
   bidi_it->new_paragraph = 0;
   bidi_it->next_en_pos = -1;
   bidi_it->next_for_ws.type = UNKNOWN_BT;
-  bidi_set_sor_type (bidi_it, bidi_it->level_stack[0].level, 0); /* X10 */
+  bidi_set_sor_type (bidi_it, bidi_overriding_paragraph_direction,
+		     bidi_it->level_stack[0].level); /* X10 */
 
   bidi_cache_reset ();
 }
