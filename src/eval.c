@@ -2620,7 +2620,6 @@ run_hook_with_args (nargs, args, cond)
      enum run_hooks_condition cond;
 {
   Lisp_Object sym, val, ret;
-  Lisp_Object globals;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   /* If we are dying or still initializing,
@@ -2641,7 +2640,7 @@ run_hook_with_args (nargs, args, cond)
     }
   else
     {
-      globals = Qnil;
+      Lisp_Object globals = Qnil;
       GCPRO3 (sym, val, globals);
 
       for (;
@@ -2654,18 +2653,28 @@ run_hook_with_args (nargs, args, cond)
 	    {
 	      /* t indicates this hook has a local binding;
 		 it means to run the global binding too.  */
+	      globals = Fdefault_value (sym);
+	      if (NILP (globals)) continue;
 
-	      for (globals = Fdefault_value (sym);
-		   CONSP (globals) && ((cond == to_completion)
-				       || (cond == until_success ? NILP (ret)
-					   : !NILP (ret)));
-		   globals = XCDR (globals))
+	      if (!CONSP (globals) || EQ (XCAR (globals), Qlambda))
 		{
-		  args[0] = XCAR (globals);
-		  /* In a global value, t should not occur.  If it does, we
-		     must ignore it to avoid an endless loop.  */
-		  if (!EQ (args[0], Qt))
-		    ret = Ffuncall (nargs, args);
+		  args[0] = globals;
+		  ret = Ffuncall (nargs, args);
+		}
+	      else
+		{
+		  for (;
+		       CONSP (globals) && ((cond == to_completion)
+					   || (cond == until_success ? NILP (ret)
+					       : !NILP (ret)));
+		       globals = XCDR (globals))
+		    {
+		      args[0] = XCAR (globals);
+		      /* In a global value, t should not occur.  If it does, we
+			 must ignore it to avoid an endless loop.  */
+		      if (!EQ (args[0], Qt))
+			ret = Ffuncall (nargs, args);
+		    }
 		}
 	    }
 	  else

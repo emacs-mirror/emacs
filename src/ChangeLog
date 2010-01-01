@@ -1,3 +1,8 @@
+2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (run_hook_with_args): Handle the case where the global
+	value has the obsolete single-function form (Bug#5026).
+
 2009-12-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Fall_completions): Minor optimization.
