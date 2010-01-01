@@ -1,7 +1,7 @@
 2010-01-01  Juri Linkov  <juri@jurta.org>
 
 	* comint.el (comint-input-ring-size): Make it a defcustom and
-	increase the default to 500.
+	increase the default to 500 (Bug#5148).
 
 2009-12-31  Nick Roberts  <nickrob@snap.net.nz>
 
