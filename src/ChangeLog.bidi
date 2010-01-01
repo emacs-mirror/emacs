@@ -1,3 +1,9 @@
+2009-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning on empty
+	lines when integer values of `cursor' property is used on display
+	strings.
+
 2009-11-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (init_iterator, text_outside_line_unchanged_p)

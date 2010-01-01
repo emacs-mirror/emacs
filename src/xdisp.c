@@ -12468,8 +12468,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* Non-zero means we've seen at least one glyph that came from a
      display string.  */
   int string_seen = 0;
-  /* Largest buffer position seen during scan of glyph row.  */
-  EMACS_INT bpos_max = 0;
+  /* Largest buffer position seen so far during scan of glyph row.  */
+  EMACS_INT bpos_max = last_pos;
   /* Last buffer position covered by an overlay string with an integer
      `cursor' property.  */
   EMACS_INT bpos_covered = 0;
@@ -12596,7 +12596,10 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		/* If the `cursor' property covers buffer positions up
 		   to and including point, we should display cursor on
 		   this glyph.  */
-		if (bpos_covered >= pt_old)
+		/* Implementation note: bpos_max == pt_old when, e.g.,
+		   we are in an empty line, where bpos_max is set to
+		   MATRIX_ROW_START_CHARPOS, see above.  */
+		if (bpos_max <= pt_old && bpos_covered >= pt_old)
 		  {
 		    cursor = glyph;
 		    break;
@@ -12651,7 +12654,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		/* If the `cursor' property covers buffer positions up
 		   to and including point, we should display cursor on
 		   this glyph.  */
-		if (bpos_covered >= pt_old)
+		if (bpos_max <= pt_old && bpos_covered >= pt_old)
 		  {
 		    cursor = glyph;
 		    break;
