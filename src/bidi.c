@@ -96,8 +96,8 @@ typedef enum {
 
 int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
-/* FIXME: Should be user-definable.  */
-bidi_dir_t bidi_overriding_paragraph_direction = L2R;
+static Lisp_Object fallback_paragraph_start_re, fallback_paragraph_separate_re;
+static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
 static void
 bidi_initialize ()
@@ -392,18 +392,67 @@ bidi_initialize ()
     char_table_set_range (bidi_type_table, bidi_type[i].from,
 			  bidi_type[i].to ? bidi_type[i].to : bidi_type[i].from,
 			  make_number (bidi_type[i].type));
+
+  fallback_paragraph_start_re =
+    XSYMBOL (Fintern_soft (build_string ("paragraph-start"), Qnil))->value;
+  if (!STRINGP (fallback_paragraph_start_re))
+    fallback_paragraph_start_re = build_string ("\f\\|[ \t]*$");
+  staticpro (&fallback_paragraph_start_re);
+  Qparagraph_start = intern ("paragraph-start");
+  staticpro (&Qparagraph_start);
+  fallback_paragraph_separate_re =
+    XSYMBOL (Fintern_soft (build_string ("paragraph-separate"), Qnil))->value;
+  if (!STRINGP (fallback_paragraph_separate_re))
+    fallback_paragraph_separate_re = build_string ("[ \t\f]*$");
+  staticpro (&fallback_paragraph_separate_re);
+  Qparagraph_separate = intern ("paragraph-separate");
+  staticpro (&Qparagraph_separate);
   bidi_initialized = 1;
 }
 
-/* Return the bidi type of a character CH.  */
+/* Return the bidi type of a character CH, subject to the current
+   directional OVERRIDE.  */
 bidi_type_t
-bidi_get_type (int ch)
+bidi_get_type (int ch, bidi_dir_t override)
 {
+  bidi_type_t default_type;
+
   if (ch == BIDI_EOB)
     return NEUTRAL_B;
   if (ch < 0 || ch > MAX_CHAR)
     abort ();
-  return (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+
+  default_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+
+  if (override == NEUTRAL_DIR)
+    return default_type;
+
+  switch (default_type)
+    {
+      /* Although UAX#9 does not tell, it doesn't make sense to
+	 override NEUTRAL_B and LRM/RLM characters.  */
+      case NEUTRAL_B:
+      case LRE:
+      case LRO:
+      case RLE:
+      case RLO:
+      case PDF:
+	return default_type;
+      default:
+	switch (ch)
+	  {
+	    case LRM_CHAR:
+	    case RLM_CHAR:
+	      return default_type;
+	    default:
+	      if (override == L2R) /* X6 */
+		return STRONG_L;
+	      else if (override == R2L)
+		return STRONG_R;
+	      else
+		abort ();	/* can't happen: handled above */
+	  }
+    }
 }
 
 void
@@ -684,21 +733,17 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
   return bidi_cache[bidi_cache_last_idx + bidi_it->scan_dir].resolved_level;
 }
 
-/* Return non-zero if buffer's byte position POS is the last character
-   of a paragraph.  THIS_CH is the character preceding the one at POS in
-   the buffer.  */
+/* Return non-zero if buffer's byte position POS is the end of a
+   paragraph.  */
 int
-bidi_at_paragraph_end (int this_ch, int pos)
+bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
-  int next_ch;
+  Lisp_Object re = XSYMBOL (Qparagraph_separate)->value;
 
-  if (pos >= ZV_BYTE)
-    return 1;
+  if (!STRINGP (re))
+    re = fallback_paragraph_separate_re;
 
-  next_ch = FETCH_CHAR (pos);
-  /* FIXME: This should support all Unicode characters that can end a
-     paragraph.  */
-  return (this_ch == '\n' && next_ch == '\n');
+  return fast_looking_at (re, charpos, bytepos, ZV, ZV_BYTE, Qnil) > 0;
 }
 
 /* Determine the start-of-run (sor) directional type given the two
@@ -734,30 +779,58 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
   bidi_it->ignore_bn_limit = 0; /* meaning it's unknown */
 }
 
+/* Find the beginning of this paragraph by looking back in the
+   buffer.  */
+static void
+bidi_find_paragraph_start (struct bidi_it *bidi_it)
+{
+  Lisp_Object re = XSYMBOL (Qparagraph_start)->value;
+  EMACS_INT pos = bidi_it->charpos;
+  EMACS_INT pos_byte = bidi_it->bytepos;
+  EMACS_INT limit = ZV, limit_byte = ZV_BYTE;
+
+  if (!STRINGP (re))
+    re = fallback_paragraph_start_re;
+  while (pos_byte > BEGV_BYTE
+	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
+    {
+      find_next_newline_no_quit (pos, -1);
+    }
+}
+
 void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 {
-  int bytepos = bidi_it->bytepos;
+  EMACS_INT bytepos = bidi_it->bytepos;
 
   /* We should never be called at EOB or before BEGV.  */
   if (bytepos >= ZV_BYTE || bytepos < BEGV_BYTE)
     abort ();
 
-  /* We should always be called at the beginning of a new
-     paragraph.  */
-  if (!(bytepos == BEGV_BYTE
-	|| FETCH_CHAR (bytepos) == '\n'
-	|| FETCH_CHAR (bytepos - 1) == '\n'))
-    abort ();
-
   bidi_it->level_stack[0].level = 0; /* default for L2R */
+  bidi_it->paragraph_dir = L2R;
   if (dir == R2L)
     bidi_it->level_stack[0].level = 1;
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
-      int ch = FETCH_CHAR (bytepos), ch_len = CHAR_BYTES (ch);
-      int pos = bidi_it->charpos;
-      bidi_type_t type = bidi_get_type (ch);
+      int ch, ch_len;
+      EMACS_INT pos;
+      bidi_type_t type;
+
+      /* Search back to where this paragraph starts.  */
+      bidi_find_paragraph_start (bidi_it);
+
+      /* We should always be at the beginning of a new line at this
+	 point.  */
+      if (!(bytepos == BEGV_BYTE
+	    || FETCH_CHAR (bytepos) == '\n'
+	    || FETCH_CHAR (bytepos - 1) == '\n'))
+	abort ();
+
+      ch = FETCH_CHAR (bytepos);
+      ch_len = CHAR_BYTES (ch);
+      pos = bidi_it->charpos;
+      type = bidi_get_type (ch, NEUTRAL_DIR);
 
       for (pos++, bytepos += ch_len;
 	   /* NOTE: UAX#9 says to search only for L, AL, or R types of
@@ -768,15 +841,17 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	     || (bidi_ignore_explicit_marks_for_paragraph_level
 		 && (type == RLE || type == RLO
 		     || type == LRE || type == LRO));
-	   type = bidi_get_type (ch))
+	   type = bidi_get_type (ch, NEUTRAL_DIR))
 	{
-	  if (type == NEUTRAL_B || bidi_at_paragraph_end (ch, bytepos))
+	  if (type == NEUTRAL_B || bidi_at_paragraph_end (pos, bytepos))
 	    break;
 	  FETCH_CHAR_ADVANCE (ch, pos, bytepos);
 	}
       if (type == STRONG_R || type == STRONG_AL) /* P3 */
 	bidi_it->level_stack[0].level = 1;
     }
+  if (bidi_it->level_stack[0].level == 1)
+    bidi_it->paragraph_dir = R2L;
   bidi_it->scan_dir = 1; /* FIXME: do we need to have control on this? */
   bidi_it->resolved_level = bidi_it->level_stack[0].level;
   bidi_it->level_stack[0].override = NEUTRAL_DIR; /* X1 */
@@ -785,14 +860,14 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
   bidi_it->new_paragraph = 0;
   bidi_it->next_en_pos = -1;
   bidi_it->next_for_ws.type = UNKNOWN_BT;
-  bidi_set_sor_type (bidi_it, bidi_overriding_paragraph_direction,
+  bidi_set_sor_type (bidi_it, bidi_it->paragraph_dir,
 		     bidi_it->level_stack[0].level); /* X10 */
 
   bidi_cache_reset ();
 }
 
-/* Do whatever UAX#9 clause X8 says should be done at paragraph's end,
-   and set the new paragraph flag in the iterator.  */
+/* Do whatever UAX#9 clause X8 says should be done at paragraph's
+   end.  */
 static inline void
 bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
@@ -800,19 +875,19 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
   bidi_it->invalid_rl_levels = -1;
   bidi_it->stack_idx = 0;
   bidi_it->resolved_level = bidi_it->level_stack[0].level;
-  bidi_it->new_paragraph = 1;
 }
 
 /* Initialize the bidi iterator from buffer position CHARPOS.  */
 void
-bidi_init_it (int charpos, int bytepos, struct bidi_it *bidi_it)
+bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
 {
   if (! bidi_initialized)
     bidi_initialize ();
-  bidi_set_paragraph_end (bidi_it);
-  bidi_it->first_elt = 1;
   bidi_it->charpos = charpos;
   bidi_it->bytepos = bytepos;
+  bidi_it->first_elt = 1;
+  bidi_set_paragraph_end (bidi_it);
+  bidi_it->new_paragraph = 1;
   bidi_it->type = NEUTRAL_B;
   bidi_it->type_after_w1 = UNKNOWN_BT;
   bidi_it->orig_type = UNKNOWN_BT;
@@ -945,7 +1020,11 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
     }
   bidi_it->ch = curchar;
 
-  type = bidi_get_type (curchar);
+  /* Don't apply directional override here, as all the types we handle
+     below will not be affected by the override anyway, and we need
+     the original type unaltered.  The override will be applied in
+     bidi_resolve_weak.  */
+  type = bidi_get_type (curchar, NEUTRAL_DIR);
   bidi_it->orig_type = type;
   bidi_check_type (bidi_it->orig_type);
 
@@ -1122,17 +1201,15 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	}
     }
 
-  /* For when the paragraph end is defined by anything other than a
-     special Unicode character (a.k.a. ``higher protocols'').  */
-  if (bidi_it->type != NEUTRAL_B)
-    if (bidi_at_paragraph_end (bidi_it->ch,
-			       bidi_it->bytepos + bidi_it->ch_len))
-      bidi_it->type = NEUTRAL_B;
-
   if (bidi_it->type == NEUTRAL_B)	/* X8 */
     {
-      bidi_set_paragraph_end (bidi_it);
-      bidi_it->type_after_w1 = bidi_it->type; /* needed below and in L1 */
+      /* End of buffer does _not_ indicate a new paragraph is coming.
+	 Otherwise, each character inserted at EOB will be processed
+	 as starting a new paragraph.  */
+      if (bidi_it->bytepos < ZV_BYTE)
+	bidi_set_paragraph_end (bidi_it);
+      /* This is needed by bidi_resolve_weak below, and in L1.  */
+      bidi_it->type_after_w1 = bidi_it->type;
       bidi_check_type (bidi_it->type_after_w1);
     }
 
@@ -1219,7 +1296,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
       next_char =
 	bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
 	? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
-      type_of_next = bidi_get_type (next_char);
+      type_of_next = bidi_get_type (next_char, override);
 
       if (type_of_next == WEAK_BN
 	  || bidi_explicit_dir_char (next_char))
@@ -1267,12 +1344,12 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
       /* W5: ET with EN after it.  */
       else
 	{
-	  int en_pos = bidi_it->charpos + 1;
+	  EMACS_INT en_pos = bidi_it->charpos + 1;
 
 	  next_char =
 	    bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
 	    ? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
-	  type_of_next = bidi_get_type (next_char);
+	  type_of_next = bidi_get_type (next_char, override);
 
 	  if (type_of_next == WEAK_ET
 	      || type_of_next == WEAK_BN
@@ -1588,8 +1665,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     {
       int ch;
       int clen = bidi_it->ch_len;
-      int bpos = bidi_it->bytepos;
-      int cpos = bidi_it->charpos;
+      EMACS_INT bpos = bidi_it->bytepos;
+      EMACS_INT cpos = bidi_it->charpos;
       bidi_type_t chtype;
 
       do {
@@ -1601,7 +1678,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	if (ch == '\n' || ch == BIDI_EOB /* || ch == LINESEP_CHAR */)
 	  chtype = NEUTRAL_B;
 	else
-	  chtype = bidi_get_type (ch);
+	  chtype = bidi_get_type (ch, NEUTRAL_DIR);
       } while (chtype == NEUTRAL_WS || chtype == WEAK_BN
 	       || bidi_explicit_dir_char (ch)); /* L1/Retaining */
       bidi_it->next_for_ws.type = chtype;
@@ -1725,8 +1802,6 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
       bidi_it->scan_dir = 1;	/* default to logical order */
     }
 
-  if (bidi_it->new_paragraph)
-    bidi_paragraph_init (bidi_overriding_paragraph_direction, bidi_it);
   /* Prepare the sentinel iterator state.  */
   if (bidi_cache_idx == 0)
     {
@@ -1798,6 +1873,16 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
       /* Finally, deliver the next character in the new direction.  */
       next_level = bidi_level_of_next_char (bidi_it);
     }
+
+  /* Take note when we are at the end of the paragraph.  The next time
+     we are about to be called, next_element_from_buffer will
+     automatically reinit the paragraph direction, if needed.  */
+  if (bidi_it->scan_dir == 1
+      && bidi_it->type == NEUTRAL_B
+      && bidi_it->bytepos < ZV_BYTE
+      && bidi_at_paragraph_end (bidi_it->charpos + 1,
+				bidi_it->bytepos + bidi_it->ch_len))
+    bidi_it->new_paragraph = 1;
 
   if (bidi_it->scan_dir == 1 && bidi_cache_idx)
     {

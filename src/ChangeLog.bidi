@@ -1,3 +1,35 @@
+2009-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_set_paragraph_end): Don't set the new_paragraph
+	flag in the iterator.
+	(bidi_init_it): Set the new_paragraph flag.
+	(bidi_at_paragraph_end): Arguments are now character and byte
+	position of the next character.  All callers changed.
+	(bidi_resolve_explicit): Don't call bidi_at_paragraph_end, and
+	don't behave as if at paragraph end if it returns true.
+	(bidi_get_next_char_visually): Don't call bidi_paragraph_init if
+	new_paragraph flags is set.  Set new_paragraph flag when at end of
+	a paragraph.
+	<fallback_paragraph_start_re, fallback_paragraph_separate_re>: New
+	variables.
+	<Qparagraph_start, Qparagraph_separate>: New variables.
+	(bidi_initialize): Initialize and staticpro them.
+
+	* dispextern.h <struct bidi_it>: New element paragraph_dir.  Make
+	positional elements EMACS_INT.
+
+	* bidi.c <bidi_overriding_paragraph_direction>: Delete.
+
+2009-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_init_it): Initialize charpos, bytepos, and
+	first_elt before calling bidi_set_paragraph_end.
+	(bidi_resolve_explicit): Don't call bidi_set_paragraph_end at
+	EOB.
+	(bidi_at_paragraph_end): Don't set new_paragraph flag at EOB.
+	(bidi_get_type): Accept an additional argument OVERRIDE, per UAX#9
+	"Explicit Overrides".  All callers changed.
+
 2009-09-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (next_element_from_buffer): If called not at line
@@ -129,8 +161,7 @@
 
 2004-03-04  Kenichi Handa  <handa@m17n.org>
 
-	The following changes are to support for bi-directional text
-	display.
+	The following changes are to support bidirectional text display.
 
 	* Makefile.in (obj): Include bidi.o.
 	(bidi.o): New target.

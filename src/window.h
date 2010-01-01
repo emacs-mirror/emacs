@@ -117,7 +117,10 @@ struct window
     /* The buffer displayed in this window */
     /* Of the fields vchild, hchild and buffer, only one is non-nil.  */
     Lisp_Object buffer;
-    /* A marker pointing to where in the text to start displaying */
+    /* A marker pointing to where in the text to start displaying.
+       BIDI Note: This is the _logical-order_ start, i.e. the smallest
+       buffer position visible in the window, not necessarily the
+       character displayed in the top left corner of the window.  */
     Lisp_Object start;
     /* A marker pointing to where in the text point is in this window,
        used only when the window is not selected.

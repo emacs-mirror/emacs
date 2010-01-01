@@ -1761,8 +1761,8 @@ struct bidi_stack {
 /* Data type for iterating over bidi text.  */
 struct bidi_it {
   int first_elt;		/* if non-zero, examine current char first */
-  int bytepos;			/* iterator's position in buffer */
-  int charpos;
+  EMACS_INT bytepos;		/* iterator's position in buffer */
+  EMACS_INT charpos;
   int ch;			/* character itself */
   int ch_len;			/* length of its multibyte sequence */
   bidi_type_t type;		/* bidi type of this character, after
@@ -1773,14 +1773,15 @@ struct bidi_it {
   int invalid_levels;		/* how many PDFs to ignore */
   int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
   int new_paragraph;		/* if non-zero, a new paragraph begins here */
+  bidi_dir_t paragraph_dir;	/* current paragraph direction */
   int prev_was_pdf;		/* if non-zero, previous char was PDF */
   struct bidi_saved_info prev;	/* info about previous character */
   struct bidi_saved_info last_strong; /* last-seen strong directional char */
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
-  int next_en_pos;		/* position of next EN char for ET */
-  int ignore_bn_limit;		/* position until which to ignore BNs */
+  EMACS_INT next_en_pos;	/* position of next EN char for ET */
+  EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan */
   int stack_idx;		/* index of current data on the stack */
@@ -2798,7 +2799,7 @@ extern EMACS_INT tool_bar_button_relief;
 
 /* Defined in bidi.c */
 
-extern void bidi_init_it P_ ((int, int, struct bidi_it *));
+extern void bidi_init_it P_ ((EMACS_INT, EMACS_INT, struct bidi_it *));
 extern void bidi_get_next_char_visually P_ ((struct bidi_it *));
 extern void bidi_paragraph_init P_ ((bidi_dir_t, struct bidi_it *));
 extern int  bidi_mirror_char P_ ((int));
