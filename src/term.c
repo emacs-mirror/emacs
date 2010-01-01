@@ -1545,6 +1545,26 @@ append_glyph (it)
 	   + it->glyph_row->used[it->area]);
   end = it->glyph_row->glyphs[1 + it->area];
 
+  /* If the glyph row is reversed, we need to prepend the glyph rather
+     than append it.  */
+  if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
+    {
+      struct glyph *g;
+      int move_by = it->pixel_width;
+
+      /* Make room for the new glyphs.  */
+      if (move_by > end - glyph) /* don't overstep end of this area */
+	move_by = end - glyph;
+      for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+	g[move_by] = *g;
+      glyph = it->glyph_row->glyphs[it->area];
+      end = glyph + move_by;
+    }
+
+  /* BIDI Note: we put the glyphs of a "multi-pixel" character left to
+     right, even in the REVERSED_P case, since (a) all of its u.ch are
+     identical, and (b) the PADDING_P flag needs to be set for the
+     leftmost one, because we write to the terminal left-to-right.  */
   for (i = 0;
        i < it->pixel_width && glyph < end;
        ++i)
@@ -1556,6 +1576,11 @@ append_glyph (it)
       glyph->padding_p = i > 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
+      if (it->bidi_p)
+	{
+	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  glyph->bidi_type = it->bidi_it.type;
+	}
 
       ++it->glyph_row->used[it->area];
       ++glyph;

@@ -370,6 +370,13 @@ struct glyph
   /* Non-zero means don't display cursor here.  */
   unsigned avoid_cursor_p : 1;
 
+  /* Resolved bidirection level of the characters [0..63].  */
+  unsigned resolved_level : 6;
+
+  /* Resolved bidirectional type of this character, see enum
+     bidi_type_t below.  */
+  unsigned bidi_type : 5;
+
 #define FACE_ID_BITS	20
 
   /* Face of the glyph.  This is a realized face ID,

@@ -6571,6 +6571,12 @@ next_element_from_buffer (it)
 	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
 	{
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	  /* If the paragraph base direction is R2L, its glyphs should
+	     be reversed.  */
+	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
+	    it->glyph_row->reversed_p = 1;
+	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
+	    it->glyph_row->reversed_p = 1;
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
       else
@@ -6585,6 +6591,8 @@ next_element_from_buffer (it)
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
+	    it->glyph_row->reversed_p = 1;
 	  do {
 	    /* Now return to buffer position where we were asked to
 	       get the next display element, and produce that.  */
@@ -16538,27 +16546,6 @@ extend_face_to_end_of_line (it)
       while (it->current_x <= it->last_visible_x)
 	PRODUCE_GLYPHS (it);
 
-      /* If the paragraph base direction is right to left, reverse the
-	 glyphs of a non-empty glyph row.  */
-      if (it->bidi_p && it->bidi_it.level_stack[0].level == 1)
-	{
-	  if (text_len > 0)
-	    {
-	      struct glyph *gleft = it->glyph_row->glyphs[TEXT_AREA];
-	      struct glyph *gright =
-		gleft + it->glyph_row->used[TEXT_AREA] - 1;
-	      struct glyph tem;
-
-	      for ( ; gleft < gright; gleft++, gright--)
-		{
-		  tem = *gleft;
-		  *gleft = *gright;
-		  *gright = tem;
-		}
-	    }
-	  it->glyph_row->reversed_p = 1;
-	}
-
       /* Don't count these blanks really.  It would let us insert a left
 	 truncation glyph below and make us set the cursor on them, maybe.  */
       it->current_x = saved_x;
@@ -16850,6 +16837,10 @@ display_line (it)
   row->displays_text_p = 1;
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
   it->starts_in_middle_of_char_p = 0;
+  /* If the paragraph base direction is R2L, its glyphs should be
+     reversed.  */
+  if (it->bidi_p && (it->bidi_it.level_stack[0].level & 1) != 0)
+    row->reversed_p = 1;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
      display_line on only one line at a time, in which case this
@@ -20932,6 +20923,11 @@ append_glyph (it)
       glyph->u.ch = it->char_to_display;
       glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
+      if (it->bidi_p)
+	{
+	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  glyph->bidi_type = it->bidi_it.type;
+	}
       ++it->glyph_row->used[area];
     }
   else
@@ -20984,6 +20980,11 @@ append_composite_glyph (it)
       glyph->face_id = it->face_id;
       glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
+      if (it->bidi_p)
+	{
+	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  glyph->bidi_type = it->bidi_it.type;
+	}
       ++it->glyph_row->used[area];
     }
   else
@@ -21158,6 +21159,11 @@ produce_image_glyph (it)
 	  glyph->u.img_id = img->id;
 	  glyph->slice = slice;
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
+	  if (it->bidi_p)
+	    {
+	      glyph->resolved_level = it->bidi_it.resolved_level;
+	      glyph->bidi_type = it->bidi_it.type;
+	    }
 	  ++it->glyph_row->used[area];
 	}
       else
@@ -21204,6 +21210,11 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->u.stretch.height = height;
       glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
+      if (it->bidi_p)
+	{
+	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  glyph->bidi_type = it->bidi_it.type;
+	}
       ++it->glyph_row->used[area];
     }
   else

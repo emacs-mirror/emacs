@@ -853,8 +853,11 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 {
   EMACS_INT bytepos = bidi_it->bytepos;
 
+  /* Special case for an empty buffer. */
+  if (bytepos == BEGV_BYTE && bytepos == ZV_BYTE)
+    dir = L2R;
   /* We should never be called at EOB or before BEGV.  */
-  if (bytepos >= ZV_BYTE || bytepos < BEGV_BYTE)
+  else if (bytepos >= ZV_BYTE || bytepos < BEGV_BYTE)
     abort ();
 
   if (dir == L2R)
@@ -883,9 +886,11 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	return;
 
       /* If we are on a newline, get past it to where the next
-	 paragraph might start.  */
+	 paragraph might start.  But don't do that at BEGV since then
+	 we are potentially in a new paragraph that doesn't yet
+	 exist.  */
       pos = bidi_it->charpos;
-      if (FETCH_CHAR (bytepos) == '\n')
+      if (bytepos > BEGV_BYTE && FETCH_CHAR (bytepos) == '\n')
 	{
 	  bytepos++;
 	  pos++;
@@ -1900,8 +1905,6 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
 
   old_level = bidi_it->resolved_level;
   new_level = bidi_level_of_next_char (bidi_it);
-  if (bidi_it->ch == BIDI_EOB)
-    return;
 
   /* Reordering of resolved levels (clause L2) is implemented by
      jumping to the other edge of the level and flipping direction of
