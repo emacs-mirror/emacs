@@ -876,6 +876,10 @@ struct glyph_row
      the bottom line of the window, but not end of the buffer.  */
   unsigned indicate_bottom_line_p : 1;
 
+  /* Non-zero means the row was reversed to display text in a
+     right-to-left paragraph.  */
+  unsigned reversed_p : 1;
+
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 
@@ -2811,7 +2815,8 @@ extern int  bidi_mirror_char P_ ((int));
 struct glyph_row *row_containing_pos P_ ((struct window *, int,
 					  struct glyph_row *,
 					  struct glyph_row *, int));
-int string_buffer_position P_ ((struct window *, Lisp_Object, int));
+EMACS_INT string_buffer_position P_ ((struct window *, Lisp_Object,
+				      EMACS_INT));
 int line_bottom_y P_ ((struct it *));
 int display_prop_intangible_p P_ ((Lisp_Object));
 void resize_echo_area_exactly P_ ((void));

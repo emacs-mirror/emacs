@@ -4594,43 +4594,46 @@ display_prop_string_p (prop, string)
   return 0;
 }
 
-
-/* Determine which buffer position in W's buffer STRING comes from.
-   AROUND_CHARPOS is an approximate position where it could come from.
-   Value is the buffer position or 0 if it couldn't be determined.
+/* Look for STRING in overlays and text properties in W's buffer,
+   between character positions FROM and TO (excluding TO).
+   BACK_P non-zero means look back (in this case, TO is supposed to be
+   less than FROM).
+   Value is the first character position where STRING was found, or
+   zero if it wasn't found before hitting TO.
 
    W's buffer must be current.
 
-   This function is necessary because we don't record buffer positions
-   in glyphs generated from strings (to keep struct glyph small).
    This function may only use code that doesn't eval because it is
    called asynchronously from note_mouse_highlight.  */
 
-int
-string_buffer_position (w, string, around_charpos)
+static EMACS_INT
+string_buffer_position_lim (w, string, from, to, back_p)
      struct window *w;
      Lisp_Object string;
-     int around_charpos;
+     EMACS_INT from, to;
+     int back_p;
 {
   Lisp_Object limit, prop, pos;
-  const int MAX_DISTANCE = 1000;
   int found = 0;
 
-  pos = make_number (around_charpos);
-  limit = make_number (min (XINT (pos) + MAX_DISTANCE, ZV));
-  while (!found && !EQ (pos, limit))
-    {
-      prop = Fget_char_property (pos, Qdisplay, Qnil);
-      if (!NILP (prop) && display_prop_string_p (prop, string))
-	found = 1;
-      else
-	pos = Fnext_single_char_property_change (pos, Qdisplay, Qnil, limit);
-    }
+  pos = make_number (from);
 
-  if (!found)
+  if (!back_p)	/* looking forward */
     {
-      pos = make_number (around_charpos);
-      limit = make_number (max (XINT (pos) - MAX_DISTANCE, BEGV));
+      limit = make_number (min (to, ZV));
+      while (!found && !EQ (pos, limit))
+	{
+	  prop = Fget_char_property (pos, Qdisplay, Qnil);
+	  if (!NILP (prop) && display_prop_string_p (prop, string))
+	    found = 1;
+	  else
+	    pos = Fnext_single_char_property_change (pos, Qdisplay, Qnil,
+						     limit);
+	}
+    }
+  else		/* looking back */
+    {
+      limit = make_number (max (to, BEGV));
       while (!found && !EQ (pos, limit))
 	{
 	  prop = Fget_char_property (pos, Qdisplay, Qnil);
@@ -4643,6 +4646,35 @@ string_buffer_position (w, string, around_charpos)
     }
 
   return found ? XINT (pos) : 0;
+}
+
+/* Determine which buffer position in W's buffer STRING comes from.
+   AROUND_CHARPOS is an approximate position where it could come from.
+   Value is the buffer position or 0 if it couldn't be determined.
+
+   W's buffer must be current.
+
+   This function is necessary because we don't record buffer positions
+   in glyphs generated from strings (to keep struct glyph small).
+   This function may only use code that doesn't eval because it is
+   called asynchronously from note_mouse_highlight.  */
+
+EMACS_INT
+string_buffer_position (w, string, around_charpos)
+     struct window *w;
+     Lisp_Object string;
+     EMACS_INT around_charpos;
+{
+  Lisp_Object limit, prop, pos;
+  const int MAX_DISTANCE = 1000;
+  EMACS_INT found = string_buffer_position_lim (w, string, around_charpos,
+						around_charpos + MAX_DISTANCE,
+						0);
+
+  if (!found)
+    found = string_buffer_position_lim (w, string, around_charpos,
+					around_charpos - MAX_DISTANCE, 1);
+  return found;
 }
 
 
@@ -12405,160 +12437,299 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   struct glyph *glyph = row->glyphs[TEXT_AREA];
   struct glyph *end = glyph + row->used[TEXT_AREA];
   struct glyph *cursor = NULL;
-  /* The first glyph that starts a sequence of glyphs from a string
-     that is a value of a display property.  */
-  struct glyph *string_start;
-  /* The X coordinate of string_start.  */
-  int string_start_x;
   /* The last known character position in row.  */
   int last_pos = MATRIX_ROW_START_CHARPOS (row) + delta;
-  /* The last known character position before string_start.  */
-  int string_before_pos;
   int x = row->x;
   int cursor_x = x;
-  /* Last buffer position covered by an overlay.  */
-  int cursor_from_overlay_pos = 0;
-  int pt_old = PT - delta;
+  EMACS_INT pt_old = PT - delta;
+  EMACS_INT pos_before = MATRIX_ROW_START_CHARPOS (row) + delta;
+  EMACS_INT pos_after = MATRIX_ROW_END_CHARPOS (row) + delta;
+  struct glyph *glyph_before = glyph - 1, *glyph_after = end;
+  /* Non-zero means we've found a match for cursor position, but that
+     glyph has the avoid_cursor_p flag set.  */
+  int match_with_avoid_cursor = 0;
+  /* Non-zero means we've seen at least one glyph that came from a
+     display string.  */
+  int string_seen = 0;
 
-  /* Skip over glyphs not having an object at the start of the row.
-     These are special glyphs like truncation marks on terminal
-     frames.  */
+  /* Skip over glyphs not having an object at the start and the end of
+     the row.  These are special glyphs like truncation marks on
+     terminal frames.  */
   if (row->displays_text_p)
-    while (glyph < end
-	   && INTEGERP (glyph->object)
-	   && glyph->charpos < 0)
-      {
-	x += glyph->pixel_width;
-	++glyph;
-      }
-
-  string_start = NULL;
-  while (glyph < end
-	 && !INTEGERP (glyph->object)
-	 && (!BUFFERP (glyph->object)
-	     || (last_pos = glyph->charpos) != pt_old
-	     || glyph->avoid_cursor_p))
     {
-      if (! STRINGP (glyph->object))
+      if (!row->reversed_p)
 	{
-	  string_start = NULL;
-	  x += glyph->pixel_width;
-	  ++glyph;
-	  /* If we are beyond the cursor position computed from the
-	     last overlay seen, that overlay is not in effect for
-	     current cursor position.  Reset the cursor information
-	     computed from that overlay.  */
-	  if (cursor_from_overlay_pos
-	      && last_pos >= cursor_from_overlay_pos)
+	  while (glyph < end
+		 && INTEGERP (glyph->object)
+		 && glyph->charpos < 0)
 	    {
-	      cursor_from_overlay_pos = 0;
-	      cursor = NULL;
-	    }
-	}
-      else
-	{
-	  if (string_start == NULL)
-	    {
-	      string_before_pos = last_pos;
-	      string_start = glyph;
-	      string_start_x = x;
-	    }
-	  /* Skip all glyphs from a string.  */
-	  do
-	    {
-	      Lisp_Object cprop;
-	      int pos;
-	      if ((cursor == NULL || glyph > cursor)
-		  && (cprop = Fget_char_property (make_number ((glyph)->charpos),
-						  Qcursor, (glyph)->object),
-		      !NILP (cprop))
-		  && (pos = string_buffer_position (w, glyph->object,
-						    string_before_pos),
-		      (pos == 0	  /* from overlay */
-		       || pos == pt_old)))
-		{
-		  /* Compute the first buffer position after the overlay.
-		     If the `cursor' property tells us how  many positions
-		     are associated with the overlay, use that.  Otherwise,
-		     estimate from the buffer positions of the glyphs
-		     before and after the overlay.  */
-		  cursor_from_overlay_pos = (pos ? 0 : last_pos
-					     + (INTEGERP (cprop) ? XINT (cprop) : 0));
-		  cursor = glyph;
-		  cursor_x = x;
-		}
 	      x += glyph->pixel_width;
 	      ++glyph;
 	    }
-	  while (glyph < end && EQ (glyph->object, string_start->object));
+	  while (end > glyph
+		 && INTEGERP ((end - 1)->object)
+		 && (end - 1)->charpos < 0)
+	    --end;
+	  glyph_before = glyph - 1;
+	  glyph_after = end;
 	}
-    }
-
-  if (cursor != NULL)
-    {
-      glyph = cursor;
-      x = cursor_x;
-    }
-  else if (row->ends_in_ellipsis_p && glyph == end)
-    {
-      /* Scan back over the ellipsis glyphs, decrementing positions.  */
-      while (glyph > row->glyphs[TEXT_AREA]
-	     && (glyph - 1)->charpos == last_pos)
-	glyph--, x -= glyph->pixel_width;
-      /* That loop always goes one position too far, including the
-	 glyph before the ellipsis.  So scan forward over that one.  */
-      x += glyph->pixel_width;
-      glyph++;
-    }
-  else if (string_start
-	   && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
-    {
-      /* We may have skipped over point because the previous glyphs
-	 are from string.  As there's no easy way to know the
-	 character position of the current glyph, find the correct
-	 glyph on point by scanning from string_start again.  */
-      Lisp_Object limit;
-      Lisp_Object string;
-      struct glyph *stop = glyph;
-      int pos;
-
-      limit = make_number (pt_old + 1);
-      glyph = string_start;
-      x = string_start_x;
-      string = glyph->object;
-      pos = string_buffer_position (w, string, string_before_pos);
-      /* If POS == 0, STRING is from overlay.  We skip such glyphs
-	 because we always put the cursor after overlay strings.  */
-      while (pos == 0 && glyph < stop)
+      else
 	{
-	  string = glyph->object;
-	  SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
-	  if (glyph < stop)
-	    pos = string_buffer_position (w, glyph->object, string_before_pos);
-	}
+	  struct glyph *g;
 
-      while (glyph < stop)
-	{
-	  pos = XINT (Fnext_single_char_property_change
-		      (make_number (pos), Qdisplay, Qnil, limit));
-	  if (pos > pt_old)
-	    break;
-	  /* Skip glyphs from the same string.  */
-	  string = glyph->object;
-	  SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
-	  /* Skip glyphs from an overlay.  */
-	  while (glyph < stop
-		 && ! string_buffer_position (w, glyph->object, pos))
+	  /* If the glyph row is reversed, we need to process it from back
+	     to front, so swap the edge pointers.  */
+	  end = glyph - 1;
+	  glyph += row->used[TEXT_AREA] - 1;
+	  /* Reverse the known positions in the row.  */
+	  last_pos = pos_after = MATRIX_ROW_START_CHARPOS (row) + delta;
+	  pos_before = MATRIX_ROW_END_CHARPOS (row) + delta;
+
+	  while (glyph > end + 1
+		 && INTEGERP (glyph->object)
+		 && glyph->charpos < 0)
 	    {
-	      string = glyph->object;
-	      SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
+	      --glyph;
+	      x -= glyph->pixel_width;
+	    }
+	  if (INTEGERP (glyph->object) && glyph->charpos < 0)
+	    --glyph;
+	  /* By default, put the cursor on the rightmost glyph.  */
+	  for (g = end + 1; g < glyph; g++)
+	    x += g->pixel_width;
+	  cursor_x = x;
+	  while (end < glyph
+		 && INTEGERP (end->object)
+		 && end->charpos < 0)
+	    ++end;
+	  glyph_before = glyph + 1;
+	  glyph_after = end;
+	}
+    }
+
+  /* Step 1: Try to find the glyph whose character position
+     corresponds to point.  If that's not possible, find 2 glyphs
+     whose character positions are the closest to point, one before
+     point, the other after it.  */
+  if (!row->reversed_p)
+    while (/* not marched to end of glyph row */
+	   glyph < end
+	   /* glyph was not inserted by redisplay for internal purposes */
+	   && !INTEGERP (glyph->object))
+      {
+	if (BUFFERP (glyph->object))
+	  {
+	    EMACS_INT dpos = glyph->charpos - pt_old;
+
+	    if (!glyph->avoid_cursor_p)
+	      {
+		/* If we hit point, we've found the glyph on which to
+		   display the cursor.  */
+		if (dpos == 0)
+		  {
+		    match_with_avoid_cursor = 0;
+		    break;
+		  }
+		/* See if we've found a better approximation to
+		   POS_BEFORE or to POS_AFTER.  Note that we want the
+		   first (leftmost) glyph of all those that are the
+		   closest from below, and the last (rightmost) of all
+		   those from above.  */
+		if (0 > dpos && dpos > pos_before - pt_old)
+		  {
+		    pos_before = glyph->charpos;
+		    glyph_before = glyph;
+		  }
+		else if (0 < dpos && dpos <= pos_after - pt_old)
+		  {
+		    pos_after = glyph->charpos;
+		    glyph_after = glyph;
+		  }
+	      }
+	    else if (dpos == 0)
+	      match_with_avoid_cursor = 1;
+	  }
+	else if (STRINGP (glyph->object))
+	  string_seen = 1;
+	x += glyph->pixel_width;
+	++glyph;
+      }
+  else if (glyph > end)	/* row is reversed */
+    while (!INTEGERP (glyph->object))
+      {
+	if (BUFFERP (glyph->object))
+	  {
+	    EMACS_INT dpos = glyph->charpos - pt_old;
+
+	    if (!glyph->avoid_cursor_p)
+	      {
+		if (dpos == 0)
+		  {
+		    match_with_avoid_cursor = 0;
+		    break;
+		  }
+		if (0 > dpos && dpos > pos_before - pt_old)
+		  {
+		    pos_before = glyph->charpos;
+		    glyph_before = glyph;
+		  }
+		else if (0 < dpos && dpos <= pos_after - pt_old)
+		  {
+		    pos_after = glyph->charpos;
+		    glyph_after = glyph;
+		  }
+	      }
+	    else if (dpos == 0)
+	      match_with_avoid_cursor = 1;
+	  }
+	else if (STRINGP (glyph->object))
+	  string_seen = 1;
+	--glyph;
+	if (glyph == end)
+	  break;
+	x -= glyph->pixel_width;
+    }
+
+  /* Step 2: If we didn't find an exact match for point, we need to
+     look for a proper place to put the cursor among glyphs between
+     GLYPH_BEFORE and GLYPH_AFTER.  */
+  if (glyph->charpos != pt_old)
+    {
+      if (row->ends_in_ellipsis_p && pos_after == last_pos)
+	{
+	  EMACS_INT ellipsis_pos;
+
+	  /* Scan back over the ellipsis glyphs.  */
+	  if (!row->reversed_p)
+	    {
+	      ellipsis_pos = (glyph - 1)->charpos;
+	      while (glyph > row->glyphs[TEXT_AREA]
+		     && (glyph - 1)->charpos == ellipsis_pos)
+		glyph--, x -= glyph->pixel_width;
+	      /* That loop always goes one position too far, including
+		 the glyph before the ellipsis.  So scan forward over
+		 that one.  */
+	      x += glyph->pixel_width;
+	      glyph++;
+	    }
+	  else	/* row is reversed */
+	    {
+	      ellipsis_pos = (glyph + 1)->charpos;
+	      while (glyph < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1
+		     && (glyph + 1)->charpos == ellipsis_pos)
+		glyph++, x += glyph->pixel_width;
+	      x -= glyph->pixel_width;
+	      glyph--;
 	    }
 	}
+      else if (match_with_avoid_cursor)
+	{
+	  cursor = glyph_after;
+	  x = -1;
+	}
+      else if (string_seen)
+	{
+	  int incr = row->reversed_p ? -1 : +1;
 
-      /* If we reached the end of the line, and END was from a string,
-	 the cursor is not on this line.  */
-      if (glyph == end && row->continued_p)
-	return 0;
+	  /* Need to find the glyph that came out of a string which is
+	     present at point.  That glyph is somewhere between
+	     GLYPH_BEFORE and GLYPH_AFTER, and it came from a string
+	     positioned between POS_BEFORE and POS_AFTER in the
+	     buffer.  */
+	  struct glyph *stop = glyph_after;
+	  EMACS_INT pos = pos_before;
+
+	  x = -1;
+	  for (glyph = glyph_before + incr;
+	       row->reversed_p ? glyph > stop : glyph < stop; )
+	    {
+
+	      /* Any glyphs that come from the buffer are here because
+		 of bidi reordering.  Skip them, and only pay
+		 attention to glyphs that came from some string.  */
+	      if (STRINGP (glyph->object))
+		{
+		  Lisp_Object str;
+		  EMACS_INT tem;
+
+		  str = glyph->object;
+		  tem = string_buffer_position_lim (w, str, pos, pos_after, 0);
+		  if (pos <= tem)
+		    {
+		      /* If the string from which this glyph came is
+			 found in the buffer at point, then we've
+			 found the glyph we've been looking for.  */
+		      if (tem == pt_old)
+			{
+			  /* The glyphs from this string could have
+			     been reordered.  Find the one with the
+			     smallest string position.  Or there could
+			     be a character in the string with the
+			     `cursor' property, which means display
+			     cursor on that character's glyph.  */
+			  int strpos = glyph->charpos;
+
+			  cursor = glyph;
+			  for (glyph += incr;
+			       EQ (glyph->object, str);
+			       glyph += incr)
+			    {
+			      Lisp_Object cprop;
+			      int gpos = glyph->charpos;
+
+			      cprop = Fget_char_property (make_number (gpos),
+							  Qcursor,
+							  glyph->object);
+			      if (!NILP (cprop))
+				{
+				  cursor = glyph;
+				  break;
+				}
+			      if (glyph->charpos < strpos)
+				{
+				  strpos = glyph->charpos;
+				  cursor = glyph;
+				}
+			    }
+
+			  goto compute_x;
+			}
+		      pos = tem + 1; /* don't find previous instances */
+		    }
+		  /* This string is not what we want; skip all of the
+		     glyphs that came from it.  */
+		  do
+		    glyph += incr;
+		  while ((row->reversed_p ? glyph > stop : glyph < stop)
+			 && EQ (glyph->object, str));
+		}
+	      else
+		glyph += incr;
+	    }
+
+	  /* If we reached the end of the line, and END was from a string,
+	     the cursor is not on this line.  */
+	  if (glyph == end
+	      && STRINGP ((glyph - incr)->object)
+	      && row->continued_p)
+	    return 0;
+	}
+    }
+
+ compute_x:
+  if (cursor != NULL)
+    glyph = cursor;
+  if (x < 0)
+    {
+      struct glyph *g;
+
+      /* Need to compute x that corresponds to GLYPH.  */
+      for (g = row->glyphs[TEXT_AREA], x = row->x; g < glyph; g++)
+	{
+	  if (g >= row->glyphs[TEXT_AREA] + row->used[TEXT_AREA])
+	    abort ();
+	  x += g->pixel_width;
+	}
     }
 
   w->cursor.hpos = glyph - row->glyphs[TEXT_AREA];
@@ -16343,20 +16514,24 @@ extend_face_to_end_of_line (it)
 	PRODUCE_GLYPHS (it);
 
       /* If the paragraph base direction is right to left, reverse the
-	 glyphs of non-empty line.  */
-      if (it->bidi_p && it->bidi_it.level_stack[0].level == 1
-	  && text_len > 0)
+	 glyphs of a non-empty glyph row.  */
+      if (it->bidi_p && it->bidi_it.level_stack[0].level == 1)
 	{
-	  struct glyph *gleft = it->glyph_row->glyphs[TEXT_AREA];
-	  struct glyph *gright = gleft + it->glyph_row->used[TEXT_AREA] - 1;
-	  struct glyph tem;
-
-	  for ( ; gleft < gright; gleft++, gright--)
+	  if (text_len > 0)
 	    {
-	      tem = *gleft;
-	      *gleft = *gright;
-	      *gright = tem;
+	      struct glyph *gleft = it->glyph_row->glyphs[TEXT_AREA];
+	      struct glyph *gright =
+		gleft + it->glyph_row->used[TEXT_AREA] - 1;
+	      struct glyph tem;
+
+	      for ( ; gleft < gright; gleft++, gright--)
+		{
+		  tem = *gleft;
+		  *gleft = *gright;
+		  *gright = tem;
+		}
 	    }
+	  it->glyph_row->reversed_p = 1;
 	}
 
       /* Don't count these blanks really.  It would let us insert a left
@@ -23181,7 +23356,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	 associated with the end position, which must not be
 	 highlighted.  */
       Lisp_Object prev_object;
-      int pos;
+      EMACS_INT pos;
 
       while (glyph > row->glyphs[TEXT_AREA])
 	{
@@ -23813,7 +23988,8 @@ note_mouse_highlight (f, x, y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int hpos, vpos, pos, i, dx, dy, area;
+      int hpos, vpos, i, dx, dy, area;
+      EMACS_INT pos;
       struct glyph *glyph;
       Lisp_Object object;
       Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
@@ -24101,7 +24277,7 @@ note_mouse_highlight (f, x, y)
 		    struct glyph_row *r
 		      = MATRIX_ROW (w->current_matrix, vpos);
 		    int start = MATRIX_ROW_START_CHARPOS (r);
-		    int pos = string_buffer_position (w, object, start);
+		    EMACS_INT pos = string_buffer_position (w, object, start);
 		    if (pos > 0)
 		      {
 			help = Fget_char_property (make_number (pos),
@@ -24156,7 +24332,8 @@ note_mouse_highlight (f, x, y)
 		      struct glyph_row *r
 			= MATRIX_ROW (w->current_matrix, vpos);
 		      int start = MATRIX_ROW_START_CHARPOS (r);
-		      int pos = string_buffer_position (w, object, start);
+		      EMACS_INT pos = string_buffer_position (w, object,
+							      start);
 		      if (pos > 0)
 			pointer = Fget_char_property (make_number (pos),
 						      Qpointer, w->buffer);

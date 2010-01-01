@@ -1,5 +1,5 @@
 /* Low-level bidirectional buffer-scanning functions for GNU Emacs.
-   Copyright (C) 2000, 2001, 2004, 2005	Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2004, 2005, 2009	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -875,10 +875,11 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 
       /* If we are on a newline, get past it to where the next
 	 paragraph might start.  */
+      pos = bidi_it->charpos;
       if (FETCH_CHAR (bytepos) == '\n')
 	{
 	  bytepos++;
-	  pos = bidi_it->charpos + 1;
+	  pos++;
 	}
 
       /* We are either at the beginning of a paragraph or in the

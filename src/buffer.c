@@ -5532,25 +5532,10 @@ This is the same as (default-value 'abbrev-mode).  */);
 		     doc: /* Default value of `ctl-arrow' for buffers that do not override it.
 This is the same as (default-value 'ctl-arrow).  */);
 
-  DEFVAR_LISP_NOPRO ("default-bidi-display-reordering",
-	      &buffer_defaults.bidi_display_reordering,
-	      doc: /* *Default value of `bidi-display-reordering' for buffers not overriding it.
-This is the same as (default-value 'bidi-display-reordering).  */);
-
-  DEFVAR_LISP_NOPRO ("default-direction-reversed",
-                     &buffer_defaults.direction_reversed,
-                     doc: /* Default value of `direction-reversed' for buffers that do not override it.
-This is the same as (default-value 'direction-reversed).  */);
-
   DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
                      &buffer_defaults.enable_multibyte_characters,
                      doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
-
-  DEFVAR_LISP_NOPRO ("default-paragraph-direction",
-		     &buffer_defaults.paragraph_direction,
-		     doc: /* Default value of `paragraph-direction' for buffers that do not override it.
-This is the same as (default-value 'paragraph-direction).  */);
 
   DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
                      &buffer_defaults.buffer_file_coding_system,
@@ -5810,7 +5795,7 @@ See also the variable `bidi-display-reordering'.  */);
 
   DEFVAR_PER_BUFFER ("bidi-display-reordering",
 		     &current_buffer->bidi_display_reordering, Qnil,
-		     doc: /*Non-nil means reorder bidirectional text for display in the visual order.
+		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.
 See also the variable `direction-reversed'.  */);
 
   DEFVAR_PER_BUFFER ("paragraph-direction",

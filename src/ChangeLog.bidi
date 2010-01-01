@@ -1,3 +1,26 @@
+2009-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (string_buffer_position_lim): New function.
+	(string_buffer_position): Most of code moved to
+	string_buffer_position_lim.  Last argument and return value are
+	now EMACS_INT; all callers changed.
+	(set_cursor_from_row): Rewritten to support bidirectional text and
+	reversed glyph rows.
+
+	dispextern.h <string_buffer_position>: Update prototype.
+
+2009-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_init): Fix initialization of POS.
+
+	* dispextern.h (struct glyph_row): New member reversed_p.
+
+2009-10-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (syms_of_buffer): Remove DEFVAR_LISP_NOPRO for
+	default-direction-reversed, default-bidi-display-reordering, and
+	default-paragraph-direction.
+
 2009-10-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.h (struct buffer): New member paragraph_direction.
