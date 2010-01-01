@@ -1,5 +1,7 @@
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
+	* nsterm.m (ns_get_color): Fix buffer overflow (Bug#4763).
+
 	* lread.c (syms_of_lread): Make it clearer that these are the
 	names of loaded files (Bug#5068).
 
