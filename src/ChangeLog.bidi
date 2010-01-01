@@ -1,3 +1,19 @@
+2009-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Skip over glyphs near end of row
+	with integer OBJECT even if their CHARPOS is zero.
+
+	* bidi.c (bidi_cache_iterator_state): Don't cache NEW_PARAGRAPH.
+	Abort if someone tries to add a cached state whose position is not
+	the immediate successor to that of the last cached state.
+	(bidi_paragraph_init): Don't bail out too early after a reseat.
+
+2009-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (text_outside_line_unchanged_p, try_window_id): Disable
+	optimizations if we are reordering bidirectional text and the
+	paragraph direction can be affected by the change.
+
 2009-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (string_buffer_position_lim): New function.

@@ -531,6 +531,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 
   /* Copy everything except the level stack.  */
   memcpy (to, from, ((int)&((struct bidi_it *)0)->level_stack[0]));
+  /* Don't copy FIRST_ELT flag.  */
   to->first_elt = save_first_elt;
   if (to->first_elt != 0 && to->first_elt != 1)
     to->first_elt = 0;
@@ -675,11 +676,17 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
   if (idx < 0)
     {
       idx = bidi_cache_idx;
+      /* Don't overrun the cache limit.  */
       if (idx > sizeof (bidi_cache) / sizeof (bidi_cache[0]) - 1)
+	abort ();
+      /* Don't violate cache integrity: character positions should
+	 correspond to cache positions 1:1.  */
+      if (idx > 0 && bidi_it->charpos != bidi_cache[idx - 1].charpos + 1)
 	abort ();
       bidi_copy_it (&bidi_cache[idx], bidi_it);
       if (!resolved)
 	bidi_cache[idx].resolved_level = -1;
+      bidi_cache[idx].new_paragraph = 0;
     }
   else
     {
@@ -869,8 +876,10 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 
       /* If we are inside a paragraph separator, we are just waiting
 	 for the separator to be exhausted; use the previous paragraph
-	 direction.  */
-      if (bidi_it->charpos < bidi_it->separator_limit)
+	 direction.  But don't do that if we have been just reseated,
+	 because we need to reinitialize below in that case.  */
+      if (!bidi_it->first_elt
+	  && bidi_it->charpos < bidi_it->separator_limit)
 	return;
 
       /* If we are on a newline, get past it to where the next

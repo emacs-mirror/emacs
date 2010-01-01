@@ -11147,6 +11147,17 @@ text_outside_line_unchanged_p (w, start, end)
 	      && overlay_touches_p (Z - end))
 	    unchanged_p = 0;
 	}
+
+      /* Under bidi reordering, adding or deleting a character in the
+	 beginning of a paragraph, before the first strong directional
+	 character, can change the base direction of the paragraph (unless
+	 the buffer specifies a fixed paragraph direction), which will
+	 require to redisplay the whole paragraph.  It might be worthwhile
+	 to find the paragraph limits and widen the range of redisplayed
+	 lines to that, but for now just give up this optimization.  */
+      if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
+	  && NILP (XBUFFER (w->buffer)->paragraph_direction))
+	unchanged_p = 0;
     }
 
   return unchanged_p;
@@ -12468,7 +12479,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    }
 	  while (end > glyph
 		 && INTEGERP ((end - 1)->object)
-		 && (end - 1)->charpos < 0)
+		 /* CHARPOS is zero for blanks inserted by
+		    extend_face_to_end_of_line.  */
+		 && (end - 1)->charpos <= 0)
 	    --end;
 	  glyph_before = glyph - 1;
 	  glyph_after = end;
@@ -12500,7 +12513,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  cursor_x = x;
 	  while (end < glyph
 		 && INTEGERP (end->object)
-		 && end->charpos < 0)
+		 && end->charpos <= 0)
 	    ++end;
 	  glyph_before = glyph + 1;
 	  glyph_after = end;
@@ -15202,6 +15215,18 @@ try_window_id (w)
      intelligently, but for now just redisplay from scratch.  */
   if (!NILP (XBUFFER (w->buffer)->word_wrap))
     GIVE_UP (21);
+
+  /* Under bidi reordering, adding or deleting a character in the
+     beginning of a paragraph, before the first strong directional
+     character, can change the base direction of the paragraph (unless
+     the buffer specifies a fixed paragraph direction), which will
+     require to redisplay the whole paragraph.  It might be worthwhile
+     to find the paragraph limits and widen the range of redisplayed
+     lines to that, but for now just give up this optimization and
+     redisplay from scratch.  */
+  if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
+      && NILP (XBUFFER (w->buffer)->paragraph_direction))
+    GIVE_UP (22);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
      only if buffer has really changed.  The reason is that the gap is
