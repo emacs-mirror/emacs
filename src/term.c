@@ -1579,7 +1579,14 @@ append_glyph (it)
       if (it->bidi_p)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	    abort ();
 	  glyph->bidi_type = it->bidi_it.type;
+	}
+      else
+	{
+	  glyph->resolved_level = 0;
+	  glyph->bidi_type = UNKNOWN_BT;
 	}
 
       ++it->glyph_row->used[it->area];

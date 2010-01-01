@@ -1,3 +1,20 @@
+2009-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop_backwards): Call compute_stop_pos in the
+	loop, instead of calling handle_stop.  Call handle_stop only once,
+	after the loop.
+	(next_element_from_buffer): Don't call handle_stop_backwards if at
+	stop position.  If base_level_stop is zero, set it to 1.
+
+	* term.c (append_glyph): Fill resolved_level and bidi_type slots
+	of struct glyph for unidirectional display.
+
+	* xdisp.c (set_cursor_from_row): Handle zero-width characters.
+
+	* bidi.c (bidi_mirror_char): More efficient code (suggested by
+	Ehud Karni <ehud@unix.mvs.co.il>).  Don't even try to mirror
+	non-ASCII characters.
+
 2009-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (Fbuffer_swap_text): Swap the values of

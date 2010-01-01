@@ -448,6 +448,9 @@ Pretty print window structure w.
 end
 
 define pbiditype
+  if ($arg0 == 0)
+    printf "UNDEF"
+  end
   if ($arg0 == 1)
     printf "L"
   end
@@ -466,7 +469,7 @@ define pbiditype
   if ($arg0 == 6)
     printf "B"
   end
-  if ($arg0 < 1 || $arg0 > 6)
+  if ($arg0 < 0 || $arg0 > 6)
     printf "%d??", $arg0
   end
 end

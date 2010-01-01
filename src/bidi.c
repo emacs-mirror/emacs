@@ -509,16 +509,13 @@ int
 bidi_mirror_char (int c)
 {
   static const char mirrored_pairs[] = "()<>[]{}";
-  const char *p = strchr (mirrored_pairs, c);
+  const char *p = c > 0 && c < 128 ? strchr (mirrored_pairs, c) : NULL;
 
   if (p)
     {
       size_t i = p - mirrored_pairs;
 
-      if ((i & 1) == 0)
-	return mirrored_pairs[i + 1];
-      else
-	return mirrored_pairs[i - 1];
+      return mirrored_pairs [(i ^ 1)];
     }
   return c;
 }

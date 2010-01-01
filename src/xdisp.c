@@ -6549,8 +6549,8 @@ next_element_from_stretch (it)
 }
 
 /* Scan forward from CHARPOS in the current buffer, until we find a
-   stop position > current IT's position, handling all the stop
-   positions in between.
+   stop position > current IT's position.  Then handle the stop
+   position before that.
 
    This is called when we are reordering bidirectional text.  The
    caller should save and restore IT and in particular the bidi_p
@@ -6563,6 +6563,7 @@ handle_stop_backwards (it, charpos)
 {
   struct text_pos pos1;
   EMACS_INT where_we_are = IT_CHARPOS (*it);
+  EMACS_INT next_stop;
 
   /* Scan in strict logical order.  */
   it->bidi_p = 0;
@@ -6571,12 +6572,18 @@ handle_stop_backwards (it, charpos)
       it->prev_stop = charpos;
       SET_TEXT_POS (pos1, charpos, CHAR_TO_BYTE (charpos));
       reseat_1 (it, pos1, 0);
-      handle_stop (it);
+      compute_stop_pos (it);
       /* We must advance forward, right?  */
       if (it->stop_charpos <= it->prev_stop)
 	abort ();
+      charpos = it->stop_charpos;
     }
-  while (it->stop_charpos <= where_we_are);
+  while (charpos <= where_we_are);
+
+  next_stop = it->stop_charpos;
+  it->stop_charpos = it->prev_stop;
+  handle_stop (it);
+  it->stop_charpos = next_stop;
 }
 
 /* Load IT with the next display element from current_buffer.  Value
@@ -6668,26 +6675,31 @@ next_element_from_buffer (it)
 	      success_p = 0;
 	    }
 	}
-      else if (it->bidi_p && !BIDI_AT_BASE_LEVEL (it->bidi_it))
+      else if (!(!it->bidi_p
+		 || BIDI_AT_BASE_LEVEL (it->bidi_it)
+		 || IT_CHARPOS (*it) == it->stop_charpos))
 	{
 	  /* With bidi non-linear iteration, we could find ourselves
 	     far beyond the last computed stop_charpos, with several
 	     other stop positions in between that we missed.  Scan
-	     them all now, in buffer's logical order.  */
+	     them all now, in buffer's logical order, until we find
+	     and handle the last stop_charpos that precedes our
+	     current position.  */
 	  struct it save_it = *it;
 
 	  handle_stop_backwards (it, it->stop_charpos);
-	  save_it.stop_charpos = it->stop_charpos;
-	  save_it.prev_stop = it->prev_stop;
-	  *it = save_it;
+	  it->bidi_p = 1;
+	  it->current = save_it.current;
+	  it->position = save_it.position;
 	  return GET_NEXT_DISPLAY_ELEMENT (it);
 	}
       else
 	{
+	  /* If we are at base paragraph embedding level, take note of
+	     the last stop position seen at this level.  */
+	  if (BIDI_AT_BASE_LEVEL (it->bidi_it))
+	    it->base_level_stop = it->stop_charpos;
 	  handle_stop (it);
-	  /* We are at base paragraph embedding level, so take note of
-	     the last stop_pos seen at this level.  */
-	  it->base_level_stop = it->stop_charpos;
 	  return GET_NEXT_DISPLAY_ELEMENT (it);
 	}
     }
@@ -6696,15 +6708,15 @@ next_element_from_buffer (it)
       struct it save_it = *it;
 
       if (it->base_level_stop <= 0)
-	abort ();
+	it->base_level_stop = 1;
       if (IT_CHARPOS (*it) < it->base_level_stop)
 	abort ();
       if (BIDI_AT_BASE_LEVEL (it->bidi_it))
 	abort ();
       handle_stop_backwards (it, it->base_level_stop);
-      save_it.stop_charpos = it->stop_charpos;
-      save_it.prev_stop = it->prev_stop;
-      *it = save_it;
+      it->bidi_p = 1;
+      it->current = save_it.current;
+      it->position = save_it.position;
       return GET_NEXT_DISPLAY_ELEMENT (it);
     }
   else
@@ -12771,7 +12783,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      glyph--;
 	    }
 	}
-      else if (match_with_avoid_cursor)
+      else if (match_with_avoid_cursor
+	       /* zero-width characters produce no glyphs */
+	       || eabs (glyph_after - glyph_before) == 1)
 	{
 	  cursor = glyph_after;
 	  x = -1;
