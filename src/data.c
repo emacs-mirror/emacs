@@ -114,7 +114,7 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
       l->thread_data = Fcons (ret, l->thread_data);
       XTHREADLOCAL (l->realvalue)->thread_alist =
         Fcons (Fcons (get_current_thread (),
-                      XCDR (XCAR (XTHREADLOCAL (l->realvalue)->thread_alist))),
+                      XTHREADLOCAL (l->realvalue)->global),
                XTHREADLOCAL (l->realvalue)->thread_alist);
     }
 
@@ -1644,8 +1644,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
       XBUFFER_LOCAL_VALUE (newval)->realvalue = allocate_misc ();
       XMISCTYPE (XBUFFER_LOCAL_VALUE (newval)->realvalue)
         = Lisp_Misc_ThreadLocal;
-      XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global
-        = Fsymbol_value (variable);
+      XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global = Qnil;
       XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->thread_alist
         = Fcons (Fcons (get_current_thread (), Qnil), Qnil);
       BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
