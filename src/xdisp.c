@@ -6575,8 +6575,6 @@ next_element_from_buffer (it)
 	     be reversed.  */
 	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
 	    it->glyph_row->reversed_p = 1;
-	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
-	    it->glyph_row->reversed_p = 1;
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
       else
@@ -12527,6 +12525,14 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  glyph_after = end;
 	}
     }
+  else if (row->reversed_p)
+    {
+      /* In R2L rows that don't display text, put the cursor on the
+	 rightmost glyph.  Case in point: an empty last line that is
+	 part of an R2L paragraph.  */
+      cursor = end - 1;
+      x = -1;	/* will be computed below, at lable compute_x */
+    }
 
   /* Step 1: Try to find the glyph whose character position
      corresponds to point.  If that's not possible, find 2 glyphs
@@ -12701,6 +12707,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 			      cprop = Fget_char_property (make_number (gpos),
 							  Qcursor,
 							  glyph->object);
+			      /* FIXME: This loses the feature of the
+				 unidirectional redisplay when the
+				 property value was an integer.  */
 			      if (!NILP (cprop))
 				{
 				  cursor = glyph;
@@ -16529,7 +16538,6 @@ extend_face_to_end_of_line (it)
       Lisp_Object saved_object;
       enum display_element_type saved_what = it->what;
       int saved_face_id = it->face_id;
-      int text_len = it->glyph_row->used[TEXT_AREA];
 
       saved_object = it->object;
       saved_pos = it->position;
@@ -16905,6 +16913,11 @@ display_line (it)
 
 	  it->continuation_lines_width = 0;
 	  row->ends_at_zv_p = 1;
+	  /* A row that displays right-to-left text must always have
+	     its last face extended all the way to the end of line,
+	     even if this row ends in ZV.  */
+	  if (row->reversed_p)
+	    extend_face_to_end_of_line (it);
 	  row_end = it->current;
 	  break;
 	}
