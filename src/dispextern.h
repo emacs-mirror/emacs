@@ -370,7 +370,7 @@ struct glyph
   /* Non-zero means don't display cursor here.  */
   unsigned avoid_cursor_p : 1;
 
-  /* Resolved bidirection level of the characters [0..63].  */
+  /* Resolved bidirectional level of this character [0..63].  */
   unsigned resolved_level : 5;
 
   /* Resolved bidirectional type of this character, see enum
@@ -750,8 +750,8 @@ struct glyph_row
      overlay position information etc, where the display of this row
      started, and can thus be less the position of the first glyph
      (e.g. due to invisible text or horizontal scrolling).  BIDI Note:
-     This is the smallest character position in the row, i.e. not
-     necessarily the character that is displayed the leftmost.  */
+     This is the smallest character position in the row, but not
+     necessarily the character that is the leftmost on the display.  */
   struct display_pos start;
 
   /* Text position at the end of this row.  This is the position after
@@ -759,8 +759,8 @@ struct glyph_row
      glyph position + 1, due to truncation, invisible text etc.  In an
      up-to-date display, this should always be equal to the start
      position of the next row.  BIDI Note: this is the character whose
-     buffer position is the largest, not necessarily the one displayed
-     the rightmost.  */
+     buffer position is the largest, but not necessarily the rightmost
+     one on the display.  */
   struct display_pos end;
 
   /* Non-zero means the overlay arrow bitmap is on this line.
@@ -1726,7 +1726,7 @@ struct face_cache
 
 extern int face_change_count;
 
-/* For BIDI */
+/* For reordering of bidirectional text.  */
 #define BIDI_MAXLEVEL 64
 
 /* Data type for describing the bidirectional character types.  The
@@ -1777,7 +1777,6 @@ struct bidi_stack {
 
 /* Data type for iterating over bidi text.  */
 struct bidi_it {
-  int first_elt;		/* if non-zero, examine current char first */
   EMACS_INT bytepos;		/* iterator's position in buffer */
   EMACS_INT charpos;
   int ch;			/* character itself */
@@ -1789,9 +1788,6 @@ struct bidi_it {
   int resolved_level;		/* final resolved level of this character */
   int invalid_levels;		/* how many PDFs to ignore */
   int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
-  int new_paragraph;		/* if non-zero, we expect a new paragraph */
-  EMACS_INT separator_limit;	/* where paragraph separator should end */
-  bidi_dir_t paragraph_dir;	/* current paragraph direction */
   int prev_was_pdf;		/* if non-zero, previous char was PDF */
   struct bidi_saved_info prev;	/* info about previous character */
   struct bidi_saved_info last_strong; /* last-seen strong directional char */
@@ -1803,10 +1799,20 @@ struct bidi_it {
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan */
   int stack_idx;		/* index of current data on the stack */
+  /* Note: Everything from here is not copied/saved when the bidi
+     iterator state is saved, pushed, or popped.  So only put here
+     stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
+  int first_elt;		/* if non-zero, examine current char first */
+  bidi_dir_t paragraph_dir;	/* current paragraph direction */
+  int new_paragraph;		/* if non-zero, we expect a new paragraph */
+  EMACS_INT separator_limit;	/* where paragraph separator should end */
 };
 
-
+/* Value is non-zero when the bidi iterator is at base paragraph
+   embedding level.  */
+#define BIDI_AT_BASE_LEVEL(BIDI_IT) \
+  (BIDI_IT).resolved_level == (BIDI_IT).level_stack[0].level
 
 
 /***********************************************************************
@@ -2006,6 +2012,13 @@ struct it
      text, overlay strings, end of text etc., which see.  */
   EMACS_INT stop_charpos;
 
+  /* Previous stop position, i.e. the last one before the current
+     buffer position.  */
+  EMACS_INT prev_stop;
+
+  /* Last stop_pos at the current paragraph's embedding level.  */
+  EMACS_INT base_level_stop;
+
   /* Maximum string or buffer position + 1.  ZV when iterating over
      current_buffer.  */
   EMACS_INT end_charpos;
@@ -2112,6 +2125,8 @@ struct it
     int string_nchars;
     EMACS_INT end_charpos;
     EMACS_INT stop_charpos;
+    EMACS_INT prev_stop;
+    EMACS_INT base_level_stop;
     struct composition_it cmp_it;
     int face_id;
 

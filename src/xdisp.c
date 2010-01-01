@@ -2659,7 +2659,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
-  /* Do we need to reorded bidirectional text?  */
+  /* Do we need to reorder bidirectional text?  */
   it->bidi_p = !NILP (current_buffer->bidi_display_reordering);
 
   /* Non-zero if we should highlight the region.  */
@@ -5143,6 +5143,8 @@ push_it (it)
   p = it->stack + it->sp;
 
   p->stop_charpos = it->stop_charpos;
+  p->prev_stop = it->prev_stop;
+  p->base_level_stop = it->base_level_stop;
   p->cmp_it = it->cmp_it;
   xassert (it->face_id >= 0);
   p->face_id = it->face_id;
@@ -5193,6 +5195,8 @@ pop_it (it)
   --it->sp;
   p = it->stack + it->sp;
   it->stop_charpos = p->stop_charpos;
+  it->prev_stop = p->prev_stop;
+  it->base_level_stop = p->base_level_stop;
   it->cmp_it = p->cmp_it;
   it->face_id = p->face_id;
   it->current = p->current;
@@ -5569,7 +5573,10 @@ reseat_1 (it, pos, set_stop_p)
     it->bidi_it.first_elt = 1;
 
   if (set_stop_p)
-    it->stop_charpos = CHARPOS (pos);
+    {
+      it->stop_charpos = CHARPOS (pos);
+      it->base_level_stop = CHARPOS (pos);
+    }
 }
 
 
@@ -5673,7 +5680,7 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
 
 /***********************************************************************
 			      Iteration
- ***********************************************************************/
+***********************************************************************/
 
 /* Map enum it_method value to corresponding next_element_from_* function.  */
 
@@ -5746,7 +5753,7 @@ get_next_display_element (it)
 	  Lisp_Object dv;
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
 	  enum { char_is_other = 0, char_is_nbsp, char_is_soft_hyphen }
-	       nbsp_or_shy = char_is_other;
+	  nbsp_or_shy = char_is_other;
 	  int decoded = it->c;
 
 	  if (it->dp
@@ -5964,12 +5971,12 @@ get_next_display_element (it)
 		       happen actually, but due to bugs it may
 		       happen.  Let's print the char as is, there's
 		       not much meaningful we can do with it.  */
-		      str[0] = it->c;
-		      str[1] = it->c >> 8;
-		      str[2] = it->c >> 16;
-		      str[3] = it->c >> 24;
-		      len = 4;
-		    }
+		    str[0] = it->c;
+		    str[1] = it->c >> 8;
+		    str[2] = it->c >> 16;
+		    str[3] = it->c >> 24;
+		    len = 4;
+		  }
 
 		for (i = 0; i < len; i++)
 		  {
@@ -6306,7 +6313,7 @@ next_element_from_display_vector (it)
   it->face_id = it->saved_face_id;
 
   /* KFS: This code used to check ip->dpvec[0] instead of the current element.
-          That seemed totally bogus - so I changed it...  */
+     That seemed totally bogus - so I changed it...  */
   gc = it->dpvec[it->current.dpvec_index];
 
   if (GLYPH_CODE_P (gc) && GLYPH_CODE_CHAR_VALID_P (gc))
@@ -6541,6 +6548,36 @@ next_element_from_stretch (it)
   return 1;
 }
 
+/* Scan forward from CHARPOS in the current buffer, until we find a
+   stop position > current IT's position, handling all the stop
+   positions in between.
+
+   This is called when we are reordering bidirectional text.  The
+   caller should save and restore IT and in particular the bidi_p
+   flag, because this function modifies them.  */
+
+static void
+handle_stop_backwards (it, charpos)
+     struct it *it;
+     EMACS_INT charpos;
+{
+  struct text_pos pos1;
+  EMACS_INT where_we_are = IT_CHARPOS (*it);
+
+  /* Scan in strict logical order.  */
+  it->bidi_p = 0;
+  do
+    {
+      it->prev_stop = charpos;
+      SET_TEXT_POS (pos1, charpos, CHAR_TO_BYTE (charpos));
+      reseat_1 (it, pos1, 0);
+      handle_stop (it);
+      /* We must advance forward, right?  */
+      if (it->stop_charpos <= it->prev_stop)
+	abort ();
+    }
+  while (it->stop_charpos <= where_we_are);
+}
 
 /* Load IT with the next display element from current_buffer.  Value
    is zero if end of buffer reached.  IT->stop_charpos is the next
@@ -6631,11 +6668,44 @@ next_element_from_buffer (it)
 	      success_p = 0;
 	    }
 	}
+      else if (it->bidi_p && !BIDI_AT_BASE_LEVEL (it->bidi_it))
+	{
+	  /* With bidi non-linear iteration, we could find ourselves
+	     far beyond the last computed stop_charpos, with several
+	     other stop positions in between that we missed.  Scan
+	     them all now, in buffer's logical order.  */
+	  struct it save_it = *it;
+
+	  handle_stop_backwards (it, it->stop_charpos);
+	  save_it.stop_charpos = it->stop_charpos;
+	  save_it.prev_stop = it->prev_stop;
+	  *it = save_it;
+	  return GET_NEXT_DISPLAY_ELEMENT (it);
+	}
       else
 	{
 	  handle_stop (it);
+	  /* We are at base paragraph embedding level, so take note of
+	     the last stop_pos seen at this level.  */
+	  it->base_level_stop = it->stop_charpos;
 	  return GET_NEXT_DISPLAY_ELEMENT (it);
 	}
+    }
+  else if (it->bidi_p && IT_CHARPOS (*it) < it->prev_stop)
+    {
+      struct it save_it = *it;
+
+      if (it->base_level_stop <= 0)
+	abort ();
+      if (IT_CHARPOS (*it) < it->base_level_stop)
+	abort ();
+      if (BIDI_AT_BASE_LEVEL (it->bidi_it))
+	abort ();
+      handle_stop_backwards (it, it->base_level_stop);
+      save_it.stop_charpos = it->stop_charpos;
+      save_it.prev_stop = it->prev_stop;
+      *it = save_it;
+      return GET_NEXT_DISPLAY_ELEMENT (it);
     }
   else
     {

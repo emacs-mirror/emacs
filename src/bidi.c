@@ -528,15 +528,10 @@ bidi_mirror_char (int c)
 static inline void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
-  int save_first_elt = to->first_elt;
   int i;
 
-  /* Copy everything except the level stack.  */
-  memcpy (to, from, ((int)&((struct bidi_it *)0)->level_stack[0]));
-  /* Don't copy FIRST_ELT flag.  */
-  to->first_elt = save_first_elt;
-  if (to->first_elt != 0 && to->first_elt != 1)
-    to->first_elt = 0;
+  /* Copy everything except the level stack and beyond.  */
+  memcpy (to, from, ((size_t)&((struct bidi_it *)0)->level_stack[0]));
 
   /* Copy the active part of the level stack.  */
   to->level_stack[0] = from->level_stack[0]; /* level zero is always in use */

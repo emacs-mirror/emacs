@@ -1,3 +1,27 @@
+2009-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct it): New members prev_stop and
+	base_level_stop.
+
+	* xdisp.c (handle_stop_backwards): New function.
+	(next_element_from_buffer): Handle the situation where we
+	overstepped stop_charpos due to non-linearity of the bidi
+	iteration.  Likewise for when we back up beyond the previous
+	stop_charpos.
+	(reseat_1, pop_it, push_it): Set prev_stop and base_level_stop.
+
+	* dispextern.h (BIDI_AT_BASE_LEVEL): New macro.
+
+	* bidi.c (bidi_copy_it): Fix compiler warning due to cast of a
+	pointer to `int'.  Don't preserve the first_elt member, as it is
+	no longer copied, because its position in the structure was
+	changed, see below.
+
+	* dispextern.h (struct bidi_it): Move first_elt, new_paragraph,
+	separator_limit, and paragraph_dir to after bidi_stack.  Add a
+	note that anything beyond the level stack is not preserved when
+	the bidi iterator state is copied/saved.
+
 2009-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Fix cursor positioning on empty
