@@ -1342,123 +1342,121 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
     type = STRONG_R;
   else if (override == L2R)
     type = STRONG_L;
-  else if (type == STRONG_AL)
-    type = STRONG_R;		/* W3 */
-  else if (type == WEAK_NSM)	/* W1 */
+  else
     {
-      /* Note that we don't need to consider the case where the prev
-	 character has its type overridden by an RLO or LRO: such
-	 characters are outside the current level run, and thus not
-	 relevant to this NSM.  Thus, NSM gets the orig_type of the
-	 previous character.  */
-      if (bidi_it->prev.type != UNKNOWN_BT)
-	type = bidi_it->prev.orig_type;
-      else if (bidi_it->sor == R2L)
-	type = STRONG_R;
-      else if (bidi_it->sor == L2R)
-	type = STRONG_L;
-      else /* shouldn't happen! */
-	abort ();
-      if (type == WEAK_EN	/* W2 after W1 */
+      if (type == WEAK_NSM)	/* W1 */
+	{
+	  /* Note that we don't need to consider the case where the
+	     prev character has its type overridden by an RLO or LRO:
+	     such characters are outside the current level run, and
+	     thus not relevant to this NSM.  Thus, NSM gets the
+	     orig_type of the previous character.  */
+	  if (bidi_it->prev.type != UNKNOWN_BT)
+	    type = bidi_it->prev.orig_type;
+	  else if (bidi_it->sor == R2L)
+	    type = STRONG_R;
+	  else if (bidi_it->sor == L2R)
+	    type = STRONG_L;
+	  else /* shouldn't happen! */
+	    abort ();
+	}
+      if (type == WEAK_EN	/* W2 */
 	  && bidi_it->last_strong.type_after_w1 == STRONG_AL)
 	type = WEAK_AN;
-    }
-  else if (type == WEAK_EN	/* W2 */
-	   && bidi_it->last_strong.type_after_w1 == STRONG_AL)
-    type = WEAK_AN;
-  else if ((type == WEAK_ES
-	    && (bidi_it->prev.type_after_w1 == WEAK_EN 		 /* W4 */
-		&& (bidi_it->prev.orig_type == WEAK_EN
-		    || bidi_it->prev.orig_type == WEAK_NSM)))	 /* aft W1 */
-	   || (type == WEAK_CS
-	       && ((bidi_it->prev.type_after_w1 == WEAK_EN
-		    && (bidi_it->prev.orig_type == WEAK_EN	 /* W4 */
-			|| bidi_it->prev.orig_type == WEAK_NSM)) /* a/W1 */
-		   || bidi_it->prev.type_after_w1 == WEAK_AN)))  /* W4 */
-    {
-      next_char =
-	bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
-	? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
-      type_of_next = bidi_get_type (next_char, override);
-
-      if (type_of_next == WEAK_BN
-	  || bidi_explicit_dir_char (next_char))
+      else if (type == STRONG_AL) /* W3 */
+	type = STRONG_R;
+      else if ((type == WEAK_ES	/* W4 */
+		&& bidi_it->prev.type_after_w1 == WEAK_EN
+		&& bidi_it->prev.orig_type == WEAK_EN)
+	       || (type == WEAK_CS
+		   && ((bidi_it->prev.type_after_w1 == WEAK_EN
+			&& bidi_it->prev.orig_type == WEAK_EN)
+		       || bidi_it->prev.type_after_w1 == WEAK_AN)))
 	{
-	  bidi_copy_it (&saved_it, bidi_it);
-	  while (bidi_resolve_explicit (bidi_it) == new_level
-		 && bidi_it->type == WEAK_BN)
-	    ;
-	  type_of_next = bidi_it->type;
-	  bidi_copy_it (bidi_it, &saved_it);
-	}
-
-      /* If the next character is EN, but the last strong-type
-	 character is AL, that next EN will be changed to AN when we
-	 process it in W2 above.  So in that case, this ES should not
-	 be changed into EN.  */
-      if (type == WEAK_ES
-	  && type_of_next == WEAK_EN
-	  && bidi_it->last_strong.type_after_w1 != STRONG_AL)
-	type = WEAK_EN;
-      else if (type == WEAK_CS)
-	{
-	  if (bidi_it->prev.type_after_w1 == WEAK_AN
-	      && (type_of_next == WEAK_AN
-		  /* If the next character is EN, but the last
-		     strong-type character is AL, EN will be later
-		     changed to AN when we process it in W2 above.  So
-		     in that case, this ES should not be changed into
-		     EN.  */
-		  || (type_of_next == WEAK_EN
-		      && bidi_it->last_strong.type_after_w1 == STRONG_AL)))
-	    type = WEAK_AN;
-	  else if (bidi_it->prev.type_after_w1 == WEAK_EN
-		   && type_of_next == WEAK_EN
-		   && bidi_it->last_strong.type_after_w1 != STRONG_AL)
-	    type = WEAK_EN;
-	}
-    }
-  else if (type == WEAK_ET	/* W5: ET with EN before or after it */
-	   || type == WEAK_BN)	/* W5/Retaining */
-    {
-      if (bidi_it->prev.type_after_w1 == WEAK_EN /* ET/BN with EN before it */
-	  || bidi_it->next_en_pos > bidi_it->charpos)
-	type = WEAK_EN;
-      /* W5: ET with EN after it.  */
-      else
-	{
-	  EMACS_INT en_pos = bidi_it->charpos + 1;
-
 	  next_char =
 	    bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
 	    ? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
 	  type_of_next = bidi_get_type (next_char, override);
 
-	  if (type_of_next == WEAK_ET
-	      || type_of_next == WEAK_BN
+	  if (type_of_next == WEAK_BN
 	      || bidi_explicit_dir_char (next_char))
 	    {
 	      bidi_copy_it (&saved_it, bidi_it);
 	      while (bidi_resolve_explicit (bidi_it) == new_level
-		     && (bidi_it->type == WEAK_BN || bidi_it->type == WEAK_ET))
+		     && bidi_it->type == WEAK_BN)
 		;
 	      type_of_next = bidi_it->type;
-	      en_pos = bidi_it->charpos;
 	      bidi_copy_it (bidi_it, &saved_it);
 	    }
-	  if (type_of_next == WEAK_EN)
+
+	  /* If the next character is EN, but the last strong-type
+	     character is AL, that next EN will be changed to AN when
+	     we process it in W2 above.  So in that case, this ES
+	     should not be changed into EN.  */
+	  if (type == WEAK_ES
+	      && type_of_next == WEAK_EN
+	      && bidi_it->last_strong.type_after_w1 != STRONG_AL)
+	    type = WEAK_EN;
+	  else if (type == WEAK_CS)
 	    {
-	      /* If the last strong character is AL, the EN we've
-		 found will become AN when we get to it (W2). */
-	      if (bidi_it->last_strong.type_after_w1 != STRONG_AL)
+	      if (bidi_it->prev.type_after_w1 == WEAK_AN
+		  && (type_of_next == WEAK_AN
+		      /* If the next character is EN, but the last
+			 strong-type character is AL, EN will be later
+			 changed to AN when we process it in W2 above.
+			 So in that case, this ES should not be
+			 changed into EN.  */
+		      || (type_of_next == WEAK_EN
+			  && bidi_it->last_strong.type_after_w1 == STRONG_AL)))
+		type = WEAK_AN;
+	      else if (bidi_it->prev.type_after_w1 == WEAK_EN
+		       && type_of_next == WEAK_EN
+		       && bidi_it->last_strong.type_after_w1 != STRONG_AL)
+		type = WEAK_EN;
+	    }
+	}
+      else if (type == WEAK_ET	/* W5: ET with EN before or after it */
+	       || type == WEAK_BN)	/* W5/Retaining */
+	{
+	  if (bidi_it->prev.type_after_w1 == WEAK_EN /* ET/BN w/EN before it */
+	      || bidi_it->next_en_pos > bidi_it->charpos)
+	    type = WEAK_EN;
+	  else			/* W5: ET/BN with EN after it.  */
+	    {
+	      EMACS_INT en_pos = bidi_it->charpos + 1;
+
+	      next_char =
+		bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
+		? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
+	      type_of_next = bidi_get_type (next_char, override);
+
+	      if (type_of_next == WEAK_ET
+		  || type_of_next == WEAK_BN
+		  || bidi_explicit_dir_char (next_char))
 		{
-		  type = WEAK_EN;
-		  /* Remember this EN position, to speed up processing
-		     of the next ETs.  */
-		  bidi_it->next_en_pos = en_pos;
+		  bidi_copy_it (&saved_it, bidi_it);
+		  while (bidi_resolve_explicit (bidi_it) == new_level
+			 && (bidi_it->type == WEAK_BN
+			     || bidi_it->type == WEAK_ET))
+		    ;
+		  type_of_next = bidi_it->type;
+		  en_pos = bidi_it->charpos;
+		  bidi_copy_it (bidi_it, &saved_it);
 		}
-	      else if (type == WEAK_BN)
-		type = NEUTRAL_ON; /* W6/Retaining */
+	      if (type_of_next == WEAK_EN)
+		{
+		  /* If the last strong character is AL, the EN we've
+		     found will become AN when we get to it (W2). */
+		  if (bidi_it->last_strong.type_after_w1 != STRONG_AL)
+		    {
+		      type = WEAK_EN;
+		      /* Remember this EN position, to speed up processing
+			 of the next ETs.  */
+		      bidi_it->next_en_pos = en_pos;
+		    }
+		  else if (type == WEAK_BN)
+		    type = NEUTRAL_ON; /* W6/Retaining */
+		}
 	    }
 	}
     }

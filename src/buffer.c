@@ -2261,6 +2261,8 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (undo_list, Lisp_Object);
   swapfield (mark, Lisp_Object);
   swapfield (enable_multibyte_characters, Lisp_Object);
+  swapfield (bidi_display_reordering, Lisp_Object);
+  swapfield (bidi_paragraph_direction, Lisp_Object);
   /* FIXME: Not sure what we should do with these *_marker fields.
      Hopefully they're just nil anyway.  */
   swapfield (pt_marker, Lisp_Object);

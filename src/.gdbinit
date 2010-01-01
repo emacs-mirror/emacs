@@ -447,6 +447,33 @@ document pwin
 Pretty print window structure w.
 end
 
+define pbiditype
+  if ($arg0 == 1)
+    printf "L"
+  end
+  if ($arg0 == 2)
+    printf "R"
+  end
+  if ($arg0 == 3)
+    printf "EN"
+  end
+  if ($arg0 == 4)
+    printf "AN"
+  end
+  if ($arg0 == 5)
+    printf "BN"
+  end
+  if ($arg0 == 6)
+    printf "B"
+  end
+  if ($arg0 < 1 || $arg0 > 6)
+    printf "%d??", $arg0
+  end
+end
+document pbiditype
+Print textual description of bidi type given as first argument.
+end
+
 define pgx
   set $g = $arg0
   # CHAR_GLYPH
@@ -474,6 +501,11 @@ define pgx
     printf " str=%x[%d]", $g->object, $g->charpos
   else
     printf " pos=%d", $g->charpos
+  end
+  # For characters, print their resolved level and bidi type
+  if ($g->type == 0)
+    printf " blev=%d,btyp=", $g->resolved_level
+    pbiditype $g->bidi_type
   end
   printf " w=%d a+d=%d+%d", $g->pixel_width, $g->ascent, $g->descent
   # If not DEFAULT_FACE_ID

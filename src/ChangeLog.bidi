@@ -1,3 +1,15 @@
+2009-12-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (Fbuffer_swap_text): Swap the values of
+	bidi_display_reordering and bidi_paragraph_direction.
+
+	* bidi.c (bidi_resolve_weak): Fix nesting of conditions for Wn
+	processing.  Move W3 after W1 and W2.  Simplify W4 because it is
+	now always after W1.
+
+	* .gdbinit (pbiditype): New command.
+	(pgx): Use it to display bidi level and type of the glyph.
+
 2009-12-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct it): New members prev_stop and
