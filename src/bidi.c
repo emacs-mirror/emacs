@@ -55,6 +55,8 @@ Boston, MA 02110-1301, USA.  */
 #include <string.h>
 #endif
 
+#include <setjmp.h>
+
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"

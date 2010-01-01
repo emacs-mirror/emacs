@@ -1,3 +1,17 @@
+2009-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix off-by-one error when
+	skipping over non-character glyphs at end of a reversed row.
+
+	* dispextern.h (struct glyph): The `resolved_level' member needs
+	only 5 bits, not 6.  The `bidi_type' member needs only 3 bits.
+	(bidi_type_t): Rearrange so that types that can appear in the
+	resolved type are at the beginning and have values less than 8.
+
+2009-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c: Include setjmp.h.
+
 2009-10-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct glyph): New members resolved_level and

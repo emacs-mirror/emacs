@@ -371,11 +371,14 @@ struct glyph
   unsigned avoid_cursor_p : 1;
 
   /* Resolved bidirection level of the characters [0..63].  */
-  unsigned resolved_level : 6;
+  unsigned resolved_level : 5;
 
   /* Resolved bidirectional type of this character, see enum
-     bidi_type_t below.  */
-  unsigned bidi_type : 5;
+     bidi_type_t below.  Note that according to UAX#9, only some
+     values (STRONG_L, STRONG_R, WEAK_AN, WEAK_EN, WEAK_BN, and
+     NEUTRAL_B) can appear in the resolved type, so we only reserve
+     space for those that can.  */
+  unsigned bidi_type : 3;
 
 #define FACE_ID_BITS	20
 
@@ -1726,25 +1729,28 @@ extern int face_change_count;
 /* For BIDI */
 #define BIDI_MAXLEVEL 64
 
-/* Data type for describing the bidirectional character types.  */
+/* Data type for describing the bidirectional character types.  The
+   first 7 must be at the beginning, because they are the only values
+   valid in the `bidi_type' member of `struct glyph'; we only reserve
+   3 bits for it, so we cannot use there values larger than 7.  */
 typedef enum {
-  UNKNOWN_BT,
+  UNKNOWN_BT = 0,
   STRONG_L,	/* strong left-to-right */
   STRONG_R,	/* strong right-to-left */
+  WEAK_EN,	/* european number */
+  WEAK_AN,	/* arabic number */
+  WEAK_BN,	/* boundary neutral */
+  NEUTRAL_B,	/* paragraph separator */
   STRONG_AL,	/* arabic right-to-left letter */
   LRE,		/* left-to-right embedding */
   LRO,		/* left-to-right override */
   RLE,		/* right-to-left embedding */
   RLO,		/* right-to-left override */
   PDF,		/* pop directional format */
-  WEAK_EN,	/* european number */
   WEAK_ES,	/* european number separator */
   WEAK_ET,	/* european number terminator */
-  WEAK_AN,	/* arabic number */
   WEAK_CS,	/* common separator */
   WEAK_NSM,	/* non-spacing mark */
-  WEAK_BN,	/* boundary neutral */
-  NEUTRAL_B,	/* paragraph separator */
   NEUTRAL_S,	/* segment separator */
   NEUTRAL_WS,	/* whitespace */
   NEUTRAL_ON	/* other neutrals */

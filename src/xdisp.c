@@ -12520,8 +12520,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    x += g->pixel_width;
 	  cursor_x = x;
 	  while (end < glyph
-		 && INTEGERP (end->object)
-		 && end->charpos <= 0)
+		 && INTEGERP ((end + 1)->object)
+		 && (end + 1)->charpos <= 0)
 	    ++end;
 	  glyph_before = glyph + 1;
 	  glyph_after = end;
@@ -20926,6 +20926,8 @@ append_glyph (it)
       if (it->bidi_p)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	    abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];
@@ -20983,6 +20985,8 @@ append_composite_glyph (it)
       if (it->bidi_p)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	    abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];
@@ -21162,6 +21166,8 @@ produce_image_glyph (it)
 	  if (it->bidi_p)
 	    {
 	      glyph->resolved_level = it->bidi_it.resolved_level;
+	      if ((it->bidi_it.type & 7) != it->bidi_it.type)
+		abort ();
 	      glyph->bidi_type = it->bidi_it.type;
 	    }
 	  ++it->glyph_row->used[area];
@@ -21213,6 +21219,8 @@ append_stretch_glyph (it, object, width, height, ascent)
       if (it->bidi_p)
 	{
 	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	    abort ();
 	  glyph->bidi_type = it->bidi_it.type;
 	}
       ++it->glyph_row->used[area];
