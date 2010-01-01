@@ -1799,7 +1799,7 @@ struct bidi_it {
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan */
   int stack_idx;		/* index of current data on the stack */
-  /* Note: Everything from here is not copied/saved when the bidi
+  /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
      stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */

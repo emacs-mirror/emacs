@@ -1760,8 +1760,6 @@ check_matrix_invariants (w)
 
       /* Check that end position of `row' is equal to start position
 	 of next row.  */
-      /* WARNING: This assumption is blatantly incorrect when we are
-	 reordering bdirectional text for display!!  */
       if (next->enabled_p && MATRIX_ROW_DISPLAYS_TEXT_P (next))
 	{
 	  xassert (MATRIX_ROW_END_CHARPOS (row)
