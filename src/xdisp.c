@@ -2821,11 +2821,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
       /* Compute byte position if not specified.  */
       if (bytepos < charpos)
-	{
-	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (charpos);
-	  if (it->bidi_p)
-	    it->bidi_it.bytepos = IT_BYTEPOS (*it);
-	}
+	IT_BYTEPOS (*it) = CHAR_TO_BYTE (charpos);
       else
 	IT_BYTEPOS (*it) = bytepos;
 
@@ -5526,32 +5522,8 @@ reseat_1 (it, pos, set_stop_p)
   it->sp = 0;
   it->string_from_display_prop_p = 0;
   it->face_before_selective_p = 0;
-
   if (it->bidi_p)
-    {
-      /* FIXME: L2R below is just for easyness of testing, as we
-	 currently support only left-to-right paragraphs.  The value
-	 should be user-definable and/or come from some ``higher
-	 protocol''. In the absence of any other guidance, the default
-	 for this initialization should be NEUTRAL_DIR.  */
-      it->bidi_it.charpos = CHARPOS (pos);
-      it->bidi_it.bytepos = BYTEPOS (pos);
-      bidi_paragraph_init (L2R, &it->bidi_it);
-      /* With bidi reordering, the first character to display might
-	 not be the character at POS.  We need to find the next
-	 character in visual order starting from the preceding
-	 character.  */
-      if ((it->bidi_it.charpos = CHARPOS (pos) - 1) >= BEGV)
-	{
-	  it->bidi_it.bytepos = CHAR_TO_BYTE (CHARPOS (pos) - 1);
-	  it->bidi_it.ch_len = CHAR_BYTES (FETCH_CHAR (it->bidi_it.bytepos));
-	}
-      else
-	it->bidi_it.bytepos = 0; /* signal bidi.c not to move */
-      bidi_get_next_char_visually (&it->bidi_it);
-      SET_TEXT_POS (pos, it->bidi_it.charpos, it->bidi_it.bytepos);
-      it->current.pos = it->position = pos;
-    }
+    it->bidi_it.first_elt = 1;
 
   if (set_stop_p)
     it->stop_charpos = CHARPOS (pos);
@@ -6528,6 +6500,26 @@ next_element_from_buffer (it)
   int success_p = 1;
 
   xassert (IT_CHARPOS (*it) >= BEGV);
+
+  /* With bidi reordering, the character to display might not be
+     the character at IT_CHARPOS.  */
+  if (it->bidi_p && it->bidi_it.first_elt)
+    {
+      /* FIXME: L2R below is just for easyness of testing, as we
+	 currently support only left-to-right paragraphs.  The value
+	 should be user-definable and/or come from some ``higher
+	 protocol''. In the absence of any other guidance, the default
+	 for this initialization should be NEUTRAL_DIR.  */
+      it->bidi_it.charpos = IT_CHARPOS (*it);
+      it->bidi_it.bytepos = IT_BYTEPOS (*it);
+      bidi_paragraph_init (L2R, &it->bidi_it);
+      bidi_get_next_char_visually (&it->bidi_it);
+      it->bidi_it.first_elt = 0;
+      /*  Adjust IT's position information to where we moved.  */
+      IT_CHARPOS (*it) = it->bidi_it.charpos;
+      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+      SET_TEXT_POS (it->position, IT_CHARPOS (*it), IT_BYTEPOS (*it));
+    }
 
   if (IT_CHARPOS (*it) >= it->stop_charpos)
     {

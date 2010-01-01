@@ -739,14 +739,18 @@ struct glyph_row
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
      started, and can thus be less the position of the first glyph
-     (e.g. due to invisible text or horizontal scrolling).  */
+     (e.g. due to invisible text or horizontal scrolling).  BIDI Note:
+     This is the smallest character position in the row, i.e. not
+     necessarily the character that is displayed the leftmost.  */
   struct display_pos start;
 
   /* Text position at the end of this row.  This is the position after
      the last glyph on this row.  It can be greater than the last
      glyph position + 1, due to truncation, invisible text etc.  In an
      up-to-date display, this should always be equal to the start
-     position of the next row.  */
+     position of the next row.  BIDI Note: this is the character whose
+     buffer position is the largest, not necessarily the one displayed
+     the rightmost.  */
   struct display_pos end;
 
   /* Non-zero means the overlay arrow bitmap is on this line.
@@ -924,12 +928,18 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
      (MATRIX_ROW ((MATRIX), (ROW))->used[TEXT_AREA])
 
 /* Return the character/ byte position at which the display of ROW
-   starts.  */
+   starts.  BIDI Note: this is the smallest character/byte position
+   among characters in ROW, i.e. the first logical-order character
+   displayed by ROW, which is not necessarily the smallest horizontal
+   position.  */
 
 #define MATRIX_ROW_START_CHARPOS(ROW) ((ROW)->start.pos.charpos)
 #define MATRIX_ROW_START_BYTEPOS(ROW) ((ROW)->start.pos.bytepos)
 
-/* Return the character/ byte position at which ROW ends.  */
+/* Return the character/ byte position at which ROW ends.  BIDI Note:
+   this is the largest character/byte position among characters in
+   ROW, i.e. the last logical-order character displayed by ROW, which
+   is not necessarily the largest horizontal position.  */
 
 #define MATRIX_ROW_END_CHARPOS(ROW) ((ROW)->end.pos.charpos)
 #define MATRIX_ROW_END_BYTEPOS(ROW) ((ROW)->end.pos.bytepos)
@@ -1750,26 +1760,27 @@ struct bidi_stack {
 
 /* Data type for iterating over bidi text.  */
 struct bidi_it {
+  int first_elt;		/* if non-zero, examine current char first */
   int bytepos;			/* iterator's position in buffer */
   int charpos;
-  int ch;			/* the character itself */
-  int ch_len;			/* the length of its multibyte sequence */
+  int ch;			/* character itself */
+  int ch_len;			/* length of its multibyte sequence */
   bidi_type_t type;		/* bidi type of this character, after
 				   resolving weak and neutral types */
   bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
   bidi_type_t orig_type;	/* original type, as found in the buffer */
   int resolved_level;		/* final resolved level of this character */
-  int invalid_levels;		/* how many PDFs should we ignore */
-  int invalid_rl_levels;	/* how many PDFs from RLE/RLO should ignore */
+  int invalid_levels;		/* how many PDFs to ignore */
+  int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
   int new_paragraph;		/* if non-zero, a new paragraph begins here */
-  int prev_was_pdf;		/* if non-zero, prev char was PDF */
-  struct bidi_saved_info prev;	/* info about the previous character */
+  int prev_was_pdf;		/* if non-zero, previous char was PDF */
+  struct bidi_saved_info prev;	/* info about previous character */
   struct bidi_saved_info last_strong; /* last-seen strong directional char */
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
   int next_en_pos;		/* position of next EN char for ET */
-  int ignore_bn_limit;		/* position until which we should ignore BNs */
+  int ignore_bn_limit;		/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan */
   int stack_idx;		/* index of current data on the stack */

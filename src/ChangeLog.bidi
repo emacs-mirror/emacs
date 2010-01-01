@@ -1,3 +1,20 @@
+2009-09-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_init): Don't set bidi_it->ch_len.  Abort
+	if called not at beginning of a new paragraph.
+	(bidi_get_next_char_visually): Prepare and use a sentinel iterator
+	state when first_elt flag is set.
+
+	* dispextern.h (struct bidi_it): New struct member first_elt.
+
+	* bidi.c (bidi_init_it): Initialize bidi_it->first_elt.
+	(bidi_copy_it): Don't copy the first_elt flag.
+
+	* xdisp.c (reseat_1): Initialize bidi_it.first_elt.  Move bidi
+	scan start code from here...
+	(next_element_from_buffer): ...to here.  Use bidi_it.first_elt
+	flag.
+
 2009-09-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_1): Handle position < BEGV.

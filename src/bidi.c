@@ -482,10 +482,14 @@ bidi_mirror_char (int c)
 static inline void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
+  int save_first_elt = to->first_elt;
   int i;
 
   /* Copy everything except the level stack.  */
   memcpy (to, from, ((int)&((struct bidi_it *)0)->level_stack[0]));
+  to->first_elt = save_first_elt;
+  if (to->first_elt != 0 && to->first_elt != 1)
+    to->first_elt = 0;
 
   /* Copy the active part of the level stack.  */
   to->level_stack[0] = from->level_stack[0]; /* level zero is always in use */
@@ -739,14 +743,21 @@ void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 {
   int pos = bidi_it->charpos, bytepos = bidi_it->bytepos;
-  int ch;
+  int ch, ch_len;
 
-  /* We should never be called at EOB.  */
-  if (bytepos >= ZV_BYTE)
+  /* We should never be called at EOB or before BEGV.  */
+  if (bytepos >= ZV_BYTE || bytepos < BEGV_BYTE)
+    abort ();
+
+  /* We should always be called at the beginning of a new
+     paragraph.  */
+  if (!(bytepos == BEGV_BYTE
+	|| FETCH_CHAR (bytepos) == '\n'
+	|| FETCH_CHAR (bytepos - 1) == '\n'))
     abort ();
 
   ch = FETCH_CHAR (bytepos);
-  bidi_it->ch_len = CHAR_BYTES (ch);
+  ch_len = CHAR_BYTES (ch);
   bidi_it->level_stack[0].level = 0; /* default for L2R */
   if (dir == R2L)
     bidi_it->level_stack[0].level = 1;
@@ -758,7 +769,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	 start the loop below from there, since UAX#9 says to find the
 	 first strong directional character in the paragraph.  */
 
-      for (type = bidi_get_type (ch), pos++, bytepos += bidi_it->ch_len;
+      for (type = bidi_get_type (ch), pos++, bytepos += ch_len;
 	   /* NOTE: UAX#9 says to search only for L, AL, or R types of
 	      characters, and ignore RLE, RLO, LRE, and LRO.  However,
 	      I'm not sure it makes sense to omit those 4; should try
@@ -808,6 +819,7 @@ bidi_init_it (int charpos, int bytepos, struct bidi_it *bidi_it)
   if (! bidi_initialized)
     bidi_initialize ();
   bidi_set_paragraph_end (bidi_it);
+  bidi_it->first_elt = 1;
   bidi_it->charpos = charpos;
   bidi_it->bytepos = bytepos;
   bidi_it->type = NEUTRAL_B;
@@ -908,12 +920,15 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   int new_level;
   bidi_dir_t override;
 
-  if (bidi_it->bytepos < BEGV_BYTE) /* after reseat to BEGV */
+  if (bidi_it->bytepos < BEGV_BYTE	/* after reseat to BEGV? */
+      || bidi_it->first_elt)
     {
-      bidi_it->charpos = BEGV;
-      bidi_it->bytepos = BEGV_BYTE;
+      bidi_it->first_elt = 0;
+      if (bidi_it->charpos < BEGV)
+	bidi_it->charpos = BEGV;
+      bidi_it->bytepos = CHAR_TO_BYTE (bidi_it->charpos);
     }
-  else if (bidi_it->bytepos < ZV_BYTE) /* don't move at ZV */
+  else if (bidi_it->bytepos < ZV_BYTE)	/* don't move at ZV */
     {
       bidi_it->charpos++;
       if (bidi_it->ch_len == 0)
@@ -1712,7 +1727,7 @@ void
 bidi_get_next_char_visually (struct bidi_it *bidi_it)
 {
   int old_level, new_level, next_level;
-  struct bidi_it prev_bidi_it;
+  struct bidi_it sentinel;
 
   if (bidi_it->scan_dir == 0)
     {
@@ -1721,8 +1736,18 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
 
   if (bidi_it->new_paragraph)
     bidi_paragraph_init (bidi_overriding_paragraph_direction, bidi_it);
+  /* Prepare the sentinel iterator state.  */
   if (bidi_cache_idx == 0)
-    bidi_copy_it (&prev_bidi_it, bidi_it);
+    {
+      bidi_copy_it (&sentinel, bidi_it);
+      if (bidi_it->first_elt)
+	{
+	  sentinel.charpos--;	/* cached charpos needs to be monotonic */
+	  sentinel.bytepos--;
+	  sentinel.ch = '\n';	/* doesn't matter, but why not? */
+	  sentinel.ch_len = 1;
+	}
+    }
 
   old_level = bidi_it->resolved_level;
   new_level = bidi_level_of_next_char (bidi_it);
@@ -1740,10 +1765,10 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
       int expected_next_level = old_level + incr;
 
       /* If we don't have anything cached yet, we need to cache the
-	 previous character we've seen, since we'll need it to record
-	 where to jump when the last non-base level is exhausted.  */
+	 sentinel state, since we'll need it to record where to jump
+	 when the last non-base level is exhausted.  */
       if (bidi_cache_idx == 0)
-	bidi_cache_iterator_state (&prev_bidi_it, 1);
+	bidi_cache_iterator_state (&sentinel, 1);
       /* Jump (or walk) to the other edge of this level.  */
       bidi_find_other_level_edge (bidi_it, level_to_search, !ascending);
       /* Switch scan direction and peek at the next character in the
