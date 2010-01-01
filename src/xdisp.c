@@ -248,6 +248,7 @@ Lisp_Object Qfontified;
 Lisp_Object Qgrow_only;
 Lisp_Object Qinhibit_eval_during_redisplay;
 Lisp_Object Qbuffer_position, Qposition, Qobject;
+Lisp_Object Qright_to_left, Qleft_to_right;
 
 /* Cursor shapes */
 Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
@@ -2809,7 +2810,17 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   /* If we are to reorder bidirectional text, init the bidi
      iterator.  */
   if (it->bidi_p)
-    bidi_init_it (charpos, bytepos, &it->bidi_it);
+    {
+      /* Note the paragraph direction that this buffer wants to
+	 use.  */
+      if (EQ (current_buffer->paragraph_direction, Qleft_to_right))
+	it->paragraph_embedding = L2R;
+      else if (EQ (current_buffer->paragraph_direction, Qright_to_left))
+	it->paragraph_embedding = R2L;
+      else
+	it->paragraph_embedding = NEUTRAL_DIR;
+      bidi_init_it (charpos, bytepos, &it->bidi_it);
+    }
 
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
@@ -6106,7 +6117,7 @@ set_iterator_to_next (it, reseat_p)
 	      /* If this is a new paragraph, determine its base
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
-		bidi_paragraph_init (NEUTRAL_DIR, &it->bidi_it);
+		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	      bidi_get_next_char_visually (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
@@ -6527,9 +6538,7 @@ next_element_from_buffer (it)
 	  || FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
 	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
 	{
-	  /* FIXME: NEUTRAL_DIR below should be user-definable and/or
-	     come from some ``higher protocol''.  */
-	  bidi_paragraph_init (NEUTRAL_DIR, &it->bidi_it);
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
       else
@@ -6543,7 +6552,7 @@ next_element_from_buffer (it)
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
-	  bidi_paragraph_init (NEUTRAL_DIR, &it->bidi_it);
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	  do {
 	    /* Now return to buffer position where we were asked to
 	       get the next display element, and produce that.  */
@@ -24955,6 +24964,11 @@ syms_of_xdisp ()
   previous_help_echo_string = Qnil;
   staticpro (&previous_help_echo_string);
   help_echo_pos = -1;
+
+  Qright_to_left = intern ("right-to-left");
+  staticpro (&Qright_to_left);
+  Qleft_to_right = intern ("left-to-right");
+  staticpro (&Qleft_to_right);
 
 #ifdef HAVE_WINDOW_SYSTEM
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,

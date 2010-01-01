@@ -2327,6 +2327,7 @@ struct it
 
   /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
+  bidi_dir_t paragraph_embedding;
 };
 
 

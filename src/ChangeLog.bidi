@@ -1,3 +1,26 @@
+2009-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.h (struct buffer): New member paragraph_direction.
+	* buffer.c (init_buffer_once): Initialize it.
+	(syms_of_buffer): Declare Lisp variables
+	default-paragraph-direction and paragraph-direction.
+
+	* dispextern.h (struct it): New member paragraph_embedding.
+	* xdisp.c (init_iterator): Initialize it from the buffer's value
+	of paragraph-direction.
+	<Qright_to_left, Qleft_to_right>: New variables.
+	(syms_of_xdisp): Initialize and staticpro them.
+	(set_iterator_to_next, next_element_from_buffer): Use the value of
+	paragraph_embedding to determine the paragraph direction.
+
+	* bidi.c (bidi_line_init): Fix second argument to
+	bidi_set_sor_type.
+	(bidi_init_it): Initialize paragraph_dir to NEUTRAL_DIR.
+	(bidi_get_next_char_visually): Record the last character of the
+	separator in separator_limit, not the character after that.
+	(bidi_find_paragraph_start): Accept character and byte positions
+	instead of the whole iterator stricture.  All callers changed.
+
 2009-10-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_at_paragraph_end): Check for paragraph-start if

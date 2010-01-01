@@ -5188,6 +5188,7 @@ init_buffer_once ()
   buffer_defaults.ctl_arrow = Qt;
   buffer_defaults.bidi_display_reordering = Qnil;
   buffer_defaults.direction_reversed = Qnil;
+  buffer_defaults.paragraph_direction = Qnil;
   buffer_defaults.cursor_type = Qt;
   buffer_defaults.extra_line_spacing = Qnil;
   buffer_defaults.cursor_in_non_selected_windows = Qt;
@@ -5274,6 +5275,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.category_table, idx); ++idx;
   XSETFASTINT (buffer_local_flags.bidi_display_reordering, idx); ++idx;
   XSETFASTINT (buffer_local_flags.direction_reversed, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.paragraph_direction, idx); ++idx;
   XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
@@ -5545,6 +5547,11 @@ This is the same as (default-value 'direction-reversed).  */);
                      doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
 
+  DEFVAR_LISP_NOPRO ("default-paragraph-direction",
+		     &buffer_defaults.paragraph_direction,
+		     doc: /* Default value of `paragraph-direction' for buffers that do not override it.
+This is the same as (default-value 'paragraph-direction).  */);
+
   DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
                      &buffer_defaults.buffer_file_coding_system,
                      doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
@@ -5805,6 +5812,18 @@ See also the variable `bidi-display-reordering'.  */);
 		     &current_buffer->bidi_display_reordering, Qnil,
 		     doc: /*Non-nil means reorder bidirectional text for display in the visual order.
 See also the variable `direction-reversed'.  */);
+
+  DEFVAR_PER_BUFFER ("paragraph-direction",
+		     &current_buffer->paragraph_direction, Qnil,
+		     doc: /* *If non-nil, forces directionality of text paragraphs in the buffer.
+			     
+If this is nil (the default), the direction of each paragraph is
+determined by the first strong directional character of its text.
+The values of `right-to-left' and `left-to-right' override that.
+Any other value is treated as nil.
+			     
+This variable has no effect unless the buffer's value of
+\`bidi-display-reordering' is non-nil.  */);
 
  DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
 		     doc: /* *Non-nil means do not display continuation lines.
