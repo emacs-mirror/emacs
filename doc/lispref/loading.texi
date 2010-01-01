@@ -823,13 +823,14 @@ without extension.
 @code{load-history}.
 
 @defvar load-history
-This variable's value is an alist connecting library file names with the
-names of functions and variables they define, the features they provide,
-and the features they require.
+This value of this variable is an alist that associates the names of
+loaded library files with the names of the functions and variables
+they defined, as well as the features they provided or required.
 
-Each element is a list and describes one library.  The @sc{car} of the
-list is the absolute file name of the library, as a string.  The rest
-of the list elements have these forms:
+Each element in this alist describes one loaded library (including
+libraries that are preloaded at startup).  It is a list whose @sc{car}
+is the absolute file name of the library (a string).  The rest of the
+list elements have these forms:
 
 @table @code
 @item @var{var}

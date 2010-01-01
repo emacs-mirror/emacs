@@ -1,3 +1,8 @@
+2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* loading.texi (Where Defined): Make it clearer that these are
+	loaded files (Bug#5068).
+
 2009-12-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Completion Styles): Document `initials' style.
