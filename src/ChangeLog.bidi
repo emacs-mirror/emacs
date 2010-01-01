@@ -1,3 +1,11 @@
+2009-11-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_init): Don't overstep end of buffer.
+	Treat end of buffer as a NEUTRAL_B character.
+	(bidi_resolve_explicit): Don't special-case ZV when bidi_it->type
+	is NEUTRAL_B, since bidi_set_paragraph_end no longer sets the
+	new_paragraph flag.
+
 2009-10-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Always extend reversed_p rows to the end

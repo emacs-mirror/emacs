@@ -927,6 +927,12 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	{
 	  if (type == NEUTRAL_B && bidi_at_paragraph_end (pos, bytepos) >= -1)
 	    break;
+	  if (bytepos >= ZV_BYTE)
+	    {
+	      /* Pretend there's a paragraph separator at end of buffer.  */
+	      type = NEUTRAL_B;
+	      break;
+	    }
 	  FETCH_CHAR_ADVANCE (ch, pos, bytepos);
 	}
       if (type == STRONG_R || type == STRONG_AL) /* P3 */
@@ -1289,11 +1295,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 
   if (bidi_it->type == NEUTRAL_B)	/* X8 */
     {
-      /* End of buffer does _not_ indicate a new paragraph is coming.
-	 Otherwise, each character inserted at EOB will be processed
-	 as starting a new paragraph.  */
-      if (bidi_it->bytepos < ZV_BYTE)
-	bidi_set_paragraph_end (bidi_it);
+      bidi_set_paragraph_end (bidi_it);
       /* This is needed by bidi_resolve_weak below, and in L1.  */
       bidi_it->type_after_w1 = bidi_it->type;
       bidi_check_type (bidi_it->type_after_w1);
