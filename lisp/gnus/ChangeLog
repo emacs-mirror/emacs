@@ -1,3 +1,9 @@
+2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-exchange-point-and-mark): Call
+	exchange-point-and-mark with an argument rather than setting
+	mark-active by hand (Bug#5175).
+
 2009-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nntp.el (nntp-service-to-port): Work for service expressed with
