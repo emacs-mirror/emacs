@@ -1,3 +1,10 @@
+2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations, Character Codes)
+	(Converting Representations, Explicit Encoding)
+	(Translation of Characters): Use hex notation consistently.
+	(Character Sets): Fix map-charset-chars doc (Bug#5197).
+
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* loading.texi (Where Defined): Make it clearer that these are

@@ -46,12 +46,12 @@ in most any known written language.
 follows the @dfn{Unicode Standard}.  The Unicode Standard assigns a
 unique number, called a @dfn{codepoint}, to each and every character.
 The range of codepoints defined by Unicode, or the Unicode
-@dfn{codespace}, is @code{0..10FFFF} (in hex), inclusive.  Emacs
-extends this range with codepoints in the range @code{110000..3FFFFF},
-which it uses for representing characters that are not unified with
-Unicode and raw 8-bit bytes that cannot be interpreted as characters
-(the latter occupy the range @code{3FFF80..3FFFFF}).  Thus, a
-character codepoint in Emacs is a 22-bit integer number.
+@dfn{codespace}, is @code{0..#x10FFFF} (in hexadecimal notation),
+inclusive.  Emacs extends this range with codepoints in the range
+@code{#x110000..#x3FFFFF}, which it uses for representing characters
+that are not unified with Unicode and @dfn{raw 8-bit bytes} that
+cannot be interpreted as characters.  Thus, a character codepoint in
+Emacs is a 22-bit integer number.
 
 @cindex internal representation of characters
 @cindex characters, representation in buffers and strings
@@ -189,8 +189,8 @@ of characters as @var{string}.  If @var{string} is a multibyte string,
 it is returned unchanged.  The function assumes that @var{string}
 includes only @acronym{ASCII} characters and raw 8-bit bytes; the
 latter are converted to their multibyte representation corresponding
-to the codepoints in the @code{3FFF80..3FFFFF} area (@pxref{Text
-Representations, codepoints}).
+to the codepoints @code{#x3FFF80} through @code{#x3FFFFF}, inclusive
+(@pxref{Text Representations, codepoints}).
 @end defun
 
 @defun string-to-unibyte string
@@ -271,15 +271,19 @@ contains no text properties.
 
   The unibyte and multibyte text representations use different
 character codes.  The valid character codes for unibyte representation
-range from 0 to 255---the values that can fit in one byte.  The valid
-character codes for multibyte representation range from 0 to 4194303
-(#x3FFFFF).  In this code space, values 0 through 127 are for
-@acronym{ASCII} characters, and values 128 through 4194175 (#x3FFF7F)
-are for non-@acronym{ASCII} characters.  Values 0 through 1114111
-(#10FFFF) correspond to Unicode characters of the same codepoint;
-values 1114112 (#110000) through 4194175 (#x3FFF7F) represent
-characters that are not unified with Unicode; and values 4194176
-(#x3FFF80) through 4194303 (#x3FFFFF) represent eight-bit raw bytes.
+range from 0 to @code{#xFF} (255)---the values that can fit in one
+byte.  The valid character codes for multibyte representation range
+from 0 to @code{#x3FFFFF}.  In this code space, values 0 through
+@code{#x7F} (127) are for @acronym{ASCII} characters, and values
+@code{#x80} (128) through @code{#x3FFF7F} (4194175) are for
+non-@acronym{ASCII} characters.
+
+  Emacs character codes are a superset of the Unicode standard.
+Values 0 through @code{#x10FFFF} (1114111) correspond to Unicode
+characters of the same codepoint; values @code{#x110000} (1114112)
+through @code{#x3FFF7F} (4194175) represent characters that are not
+unified with Unicode; and values @code{#x3FFF80} (4194176) through
+@code{#x3FFFFF} (4194303) represent eight-bit raw bytes.
 
 @defun characterp charcode
 This returns @code{t} if @var{charcode} is a valid character, and
@@ -540,7 +544,7 @@ and strings.
 @cindex @code{eight-bit}, a charset
   Emacs defines several special character sets.  The character set
 @code{unicode} includes all the characters whose Emacs code points are
-in the range @code{0..10FFFF}.  The character set @code{emacs}
+in the range @code{0..#x10FFFF}.  The character set @code{emacs}
 includes all @acronym{ASCII} and non-@acronym{ASCII} characters.
 Finally, the @code{eight-bit} charset includes the 8-bit raw bytes;
 Emacs uses it to represent raw bytes encountered in text.
@@ -628,12 +632,12 @@ that fits the second argument of @code{decode-char} above.  If
   The following function comes in handy for applying a certain
 function to all or part of the characters in a charset:
 
-@defun map-charset-chars function charset &optional arg from to
+@defun map-charset-chars function charset &optional arg from-code to-code
 Call @var{function} for characters in @var{charset}.  @var{function}
 is called with two arguments.  The first one is a cons cell
 @code{(@var{from} .  @var{to})}, where @var{from} and @var{to}
 indicate a range of characters contained in charset.  The second
-argument is the optional argument @var{arg}.
+argument passed to @var{function} is @var{arg}.
 
 By default, the range of codepoints passed to @var{function} includes
 all the characters in @var{charset}, but optional arguments
@@ -751,7 +755,7 @@ This variable automatically becomes buffer-local when set.
 
 @defun make-translation-table-from-vector vec
 This function returns a translation table made from @var{vec} that is
-an array of 256 elements to map byte values 0 through 255 to
+an array of 256 elements to map bytes (values 0 through #xFF) to
 characters.  Elements may be @code{nil} for untranslated bytes.  The
 returned table has a translation table for reverse mapping in the
 first extra slot, and the value @code{1} in the second extra slot.
@@ -1562,10 +1566,10 @@ in this section.
 text.  They logically consist of a series of byte values; that is, a
 series of @acronym{ASCII} and eight-bit characters.  In unibyte
 buffers and strings, these characters have codes in the range 0
-through 255.  In a multibyte buffer or string, eight-bit characters
-have character codes higher than 255 (@pxref{Text Representations}),
-but Emacs transparently converts them to their single-byte values when
-you encode or decode such text.
+through #xFF (255).  In a multibyte buffer or string, eight-bit
+characters have character codes higher than #xFF (@pxref{Text
+Representations}), but Emacs transparently converts them to their
+single-byte values when you encode or decode such text.
 
   The usual way to read a file into a buffer as a sequence of bytes, so
 you can decode the contents explicitly, is with
