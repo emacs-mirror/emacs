@@ -1,3 +1,8 @@
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Make
+	the lines in the generated doc string shorter.  (Bug#4668)
+
 2010-01-02  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el: Add follow-link binding (Bug#4738).
