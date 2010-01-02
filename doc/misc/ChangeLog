@@ -1,3 +1,8 @@
+2010-01-02  Kevin Ryde  <user42@zip.com.au>
+
+	* eieio.texi (Naming Conventions): Correction to xref on elisp
+	coding conventions, is "Tips" node not "Standards".
+
 2009-12-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calc.texi (General Mode Commands): Calc file should be in .emacs.d.
