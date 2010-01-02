@@ -7505,7 +7505,8 @@ which specify the range to operate on."
 
 (defun message-exchange-point-and-mark ()
   "Exchange point and mark, but don't activate region if it was inactive."
-  (exchange-point-and-mark transient-mark-mode))
+  (goto-char (prog1 (mark t)
+	       (set-marker (mark-marker) (point)))))
 
 (defalias 'message-make-overlay 'make-overlay)
 (defalias 'message-delete-overlay 'delete-overlay)
