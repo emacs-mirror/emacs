@@ -1535,7 +1535,6 @@ deletion, or > if it is flagged for displaying."
   (interactive)
   (bookmark-maybe-load-default-file)
   (let ((buf (get-buffer-create "*Bookmark List*")))
-    ;; fooo
     (if (called-interactively-p 'interactive)
         (if (or (window-dedicated-p) (window-minibuffer-p))
             (pop-to-buffer buf)
