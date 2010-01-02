@@ -1836,13 +1836,40 @@ You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mar
       (other-window 1))))
 
 
+(defun bookmark-bmenu-any-marks ()
+  "Return non-nil if any bookmarks are marked in the marks column."
+  (save-excursion
+    (goto-char (point-min))
+    (bookmark-bmenu-ensure-position)
+    (catch 'found-mark
+      (while (not (eobp))
+        (beginning-of-line)
+        (if (looking-at "^\\S-")
+            (throw 'found-mark t)
+          (forward-line 1)))
+      nil)))
+
+
 (defun bookmark-bmenu-save (parg)
   "Save the current list into a bookmark file.
 With a prefix arg, prompts for a file to save them in."
   (interactive "P")
   (save-excursion
     (save-window-excursion
-      (bookmark-save parg))))
+      (bookmark-save parg)))
+  ;; Show the buffer as unmodified after saving, but only if there are
+  ;; no marks: marks are not saved with the bookmarks, therefore from
+  ;; the user's point of view they are a "modification" in the buffer
+  ;;
+  ;; FIXME: Ideally, if the buffer were unmodified when there are no
+  ;; marks, and then some marks are made and removed without being
+  ;; executed, then the buffer would be restored to unmodified state.
+  ;; But that would require bookmark-specific logic to track buffer
+  ;; modification.  It might be worth it, but it's fine not to have it
+  ;; too -- the worst outcome is that the user might be tempted to
+  ;; save the bookmark list when it technically doesn't need saving.
+  (if (not (bookmark-bmenu-any-marks))
+      (set-buffer-modified-p nil)))
 
 
 (defun bookmark-bmenu-load ()

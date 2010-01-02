@@ -1,6 +1,11 @@
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* lisp/bookmark.el (bookmark-bmenu-marks-width): Define to 1, not 2.
+	* bookmark.el (bookmark-bmenu-any-marks): New function
+	(bookmark-bmenu-save): Clear buffer modification if no marks.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-marks-width): Define to 1, not 2.
 	(bookmark-bmenu-list, bookmark-bmenu-bookmark): Calculate property
 	positions by using `bookmark-bmenu-marks-width', instead of hardcoding.
 	This fixes the `bookmark-bmenu-execute-deletions' bug reported here:
