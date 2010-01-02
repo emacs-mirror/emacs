@@ -177,7 +177,7 @@ recently set ones come first, oldest ones come last)."
 (defconst bookmark-bmenu-header-height 2
   "Number of lines used for the *Bookmark List* header.")
 
-(defconst bookmark-bmenu-marks-width 2
+(defconst bookmark-bmenu-marks-width 1
   "Number of columns (chars) used for the *Bookmark List* marks column.")
 
 (defcustom bookmark-bmenu-file-column 30
@@ -1592,10 +1592,12 @@ deletion, or > if it is flagged for displaying."
                     " *" "  ")
                 name)
         (setq end (point))
-        (put-text-property start (+ 2 start) 'bookmark-name-prop name)
+        (put-text-property start
+                           (+ bookmark-bmenu-marks-width 1 start)
+                           'bookmark-name-prop name)
         (when (display-mouse-p)
           (add-text-properties
-           (+ 2 start) end
+           (+ bookmark-bmenu-marks-width 1 start) end
            '(mouse-face highlight
              follow-link t
              help-echo "mouse-2: go to this bookmark in other window")))
@@ -1747,7 +1749,10 @@ last full line, move to the last full line.  The return value is undefined."
 (defun bookmark-bmenu-bookmark ()
   "Return the bookmark for this line in an interactive bookmark list buffer."
   (bookmark-bmenu-ensure-position)
-  (get-text-property (line-beginning-position) 'bookmark-name-prop))
+  (save-excursion
+    (beginning-of-line)
+    (forward-char bookmark-bmenu-marks-width)
+    (get-text-property (point) 'bookmark-name-prop)))
 
 
 (defun bookmark-show-annotation (bookmark)

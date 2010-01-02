@@ -1,5 +1,19 @@
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
+	* lisp/bookmark.el (bookmark-bmenu-marks-width): Define to 1, not 2.
+	(bookmark-bmenu-list, bookmark-bmenu-bookmark): Calculate property
+	positions by using `bookmark-bmenu-marks-width', instead of hardcoding.
+	This fixes the `bookmark-bmenu-execute-deletions' bug reported here:
+
+	http://lists.gnu.org/archive/html/emacs-devel/2009-12/msg00819.html
+	From: Sun Yijiang <sunyijiang {_AT_} gmail.com>
+	To: emacs-devel {_AT_} gnu.org
+	Subject: bookmark.el bug report
+	Date: Mon, 28 Dec 2009 14:19:16 +0800
+	Message-ID: 5065e2900912272219y3734fc9fsdaee41167ef99ad7@mail.gmail.com
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el: Improvements suggested by Drew Adams:
 	(bookmark-bmenu-ensure-position): New name for
 	`bookmark-bmenu-check-position'.  Just ensure the position,
