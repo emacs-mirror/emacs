@@ -1818,20 +1818,8 @@ With a prefix arg, prompts for a file to save them in."
   (interactive "P")
   (save-excursion
     (save-window-excursion
-      (bookmark-save parg)))
-  ;; Show the buffer as unmodified after saving, but only if there are
-  ;; no marks: marks are not saved with the bookmarks, therefore from
-  ;; the user's point of view they are a "modification" in the buffer
-  ;;
-  ;; FIXME: Ideally, if the buffer were unmodified when there are no
-  ;; marks, and then some marks are made and removed without being
-  ;; executed, then the buffer would be restored to unmodified state.
-  ;; But that would require bookmark-specific logic to track buffer
-  ;; modification.  It might be worth it, but it's fine not to have it
-  ;; too -- the worst outcome is that the user might be tempted to
-  ;; save the bookmark list when it technically doesn't need saving.
-  (if (not (bookmark-bmenu-any-marks))
-      (set-buffer-modified-p nil)))
+      (bookmark-save parg)
+      (set-buffer-modified-p nil))))
 
 
 (defun bookmark-bmenu-load ()
