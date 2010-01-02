@@ -730,12 +730,12 @@ that DVAL has been added on SQUARE."
 (defun gomoku (&optional n m)
   "Start a Gomoku game between you and Emacs.
 
-If a game is in progress, this command allow you to resume it.
+If a game is in progress, this command allows you to resume it.
 If optional arguments N and M are given, an N by M board is used.
 If prefix arg is given for N, M is prompted for.
 
 You and Emacs play in turn by marking a free square.  You mark it with X
-and Emacs marks it with O. The winner is the first to get five contiguous
+and Emacs marks it with O.  The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
 
 You play by moving the cursor over the square you choose and hitting

@@ -1,3 +1,7 @@
+2010-01-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Fix typos.
+
 2009-12-15  Glenn Morris  <rgm@gnu.org>
 
 	* CONTRIBUTE (Coding Standards): Update URL.
@@ -301,8 +305,8 @@
 
 2009-05-15  Sven Joachim  <svenjoac@gmx.de>
 
-        * refcards/de-refcard.tex: Merge changes from refcard.tex.
-        Change `Paragraph' to `Absatz'.
+	* refcards/de-refcard.tex: Merge changes from refcard.tex.
+	Change `Paragraph' to `Absatz'.
 
 2009-04-09  Glenn Morris  <rgm@gnu.org>
 
