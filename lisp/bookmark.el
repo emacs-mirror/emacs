@@ -1763,7 +1763,6 @@ if an annotation exists."
   "Select this line's bookmark; also display bookmarks marked with `>'.
 You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mark] command."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (menu (current-buffer))
         (others ())
@@ -1840,7 +1839,6 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-1-window ()
   "Select this line's bookmark, alone, in full frame."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (bookmark-jump (bookmark-bmenu-bookmark))
   (bury-buffer (other-buffer))
   (delete-other-windows))
@@ -1849,7 +1847,6 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-2-window ()
   "Select this line's bookmark, with previous buffer in second window."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (menu (current-buffer))
         (pop-up-windows t))
@@ -1863,7 +1860,6 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-this-window ()
   "Select this line's bookmark in this window."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (bookmark-jump (bookmark-bmenu-bookmark)))
 
 
@@ -1871,7 +1867,6 @@ With a prefix arg, prompts for a file to save them in."
   "Select this line's bookmark in other window, leaving bookmark menu visible."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark-bmenu-ensure-position)
     (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
       (bookmark--jump-via bookmark 'switch-to-buffer-other-window))))
 
@@ -1884,7 +1879,6 @@ The current window remains selected."
         (pop-up-windows t)
         same-window-buffer-names
         same-window-regexps)
-    (bookmark-bmenu-ensure-position)
     (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
       (bookmark--jump-via bookmark 'display-buffer))))
 
@@ -1901,7 +1895,6 @@ The current window remains selected."
   "Show the annotation for the current bookmark in another window."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark-bmenu-ensure-position)
     (bookmark-show-annotation bookmark)))
 
 
@@ -1915,7 +1908,6 @@ The current window remains selected."
   "Edit the annotation for the current bookmark in another window."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark-bmenu-ensure-position)
     (bookmark-edit-annotation bookmark)))
 
 
@@ -2001,7 +1993,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-rename ()
   "Rename bookmark on current line.  Prompts for a new name."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (thispoint (point)))
     (bookmark-rename bmrk)
@@ -2011,15 +2002,13 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-locate ()
   "Display location of this bookmark.  Displays in the minibuffer."
   (interactive)
- (bookmark-bmenu-ensure-position)
- (let ((bmrk (bookmark-bmenu-bookmark)))
-   (message "%s" (bookmark-location bmrk))))
+  (let ((bmrk (bookmark-bmenu-bookmark)))
+    (message "%s" (bookmark-location bmrk))))
 
 (defun bookmark-bmenu-relocate ()
   "Change the file path of the bookmark on the current line,
   prompting with completion for the new path."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (thispoint (point)))
     (bookmark-relocate bmrk)
@@ -2084,7 +2073,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."
   (goto-char (point-min))
-  (bookmark-bmenu-ensure-position)
   (while (not (equal name (bookmark-bmenu-bookmark)))
     (forward-line 1))
   (forward-line 0))

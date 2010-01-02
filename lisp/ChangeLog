@@ -1,3 +1,13 @@
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window,
+	(bookmark-bmenu-2-window, bookmark-bmenu-this-window)
+	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window)
+	(bookmark-bmenu-show-annotation, bookmark-bmenu-edit-annotation)
+	(bookmark-bmenu-rename, bookmark-bmenu-locate)
+	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark): Remove
+	unnecessary calls to `bookmark-bmenu-ensure-position'.
+
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Make
