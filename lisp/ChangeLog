@@ -1,5 +1,15 @@
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el: Show modified state of bookmark buffer more accurately.
+	(bookmark-bmenu-list): Initialize buffer-modified-p properly.
+	(bookmark-send-edited-annotation): Mark bookmark-alist as modified.
+	(with-buffer-modified-unmodified): New macro.
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
+	(bookmark-bmenu-mark, bookmark-bmenu-unmark, bookmark-bmenu-delete):
+	Use new macro to preserve the buffer-modified state.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window,
 	(bookmark-bmenu-2-window, bookmark-bmenu-this-window)
 	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window)
