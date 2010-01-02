@@ -1812,7 +1812,7 @@ struct bidi_it {
 /* Value is non-zero when the bidi iterator is at base paragraph
    embedding level.  */
 #define BIDI_AT_BASE_LEVEL(BIDI_IT) \
-  (BIDI_IT).resolved_level == (BIDI_IT).level_stack[0].level
+  ((BIDI_IT).resolved_level == (BIDI_IT).level_stack[0].level)
 
 
 /***********************************************************************
@@ -2013,10 +2013,11 @@ struct it
   EMACS_INT stop_charpos;
 
   /* Previous stop position, i.e. the last one before the current
-     buffer position.  */
+     iterator position in `current'.  */
   EMACS_INT prev_stop;
 
-  /* Last stop_pos at the current paragraph's embedding level.  */
+  /* Last stop position iterated across whose embedding level is equal
+     to the current paragraph's embedding level.  */
   EMACS_INT base_level_stop;
 
   /* Maximum string or buffer position + 1.  ZV when iterating over

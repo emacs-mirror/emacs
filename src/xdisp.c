@@ -6550,19 +6550,18 @@ next_element_from_stretch (it)
 
 /* Scan forward from CHARPOS in the current buffer, until we find a
    stop position > current IT's position.  Then handle the stop
-   position before that.
-
-   This is called when we are reordering bidirectional text.  The
-   caller should save and restore IT and in particular the bidi_p
-   flag, because this function modifies them.  */
+   position before that.  This is called when we bump into a stop
+   position while reordering bidirectional text.  */
 
 static void
 handle_stop_backwards (it, charpos)
      struct it *it;
      EMACS_INT charpos;
 {
-  struct text_pos pos1;
   EMACS_INT where_we_are = IT_CHARPOS (*it);
+  struct display_pos save_current = it->current;
+  struct text_pos save_position = it->position;
+  struct text_pos pos1;
   EMACS_INT next_stop;
 
   /* Scan in strict logical order.  */
@@ -6584,6 +6583,9 @@ handle_stop_backwards (it, charpos)
   it->stop_charpos = it->prev_stop;
   handle_stop (it);
   it->stop_charpos = next_stop;
+  it->bidi_p = 1;
+  it->current = save_current;
+  it->position = save_position;
 }
 
 /* Load IT with the next display element from current_buffer.  Value
@@ -6685,38 +6687,39 @@ next_element_from_buffer (it)
 	     them all now, in buffer's logical order, until we find
 	     and handle the last stop_charpos that precedes our
 	     current position.  */
-	  struct it save_it = *it;
-
 	  handle_stop_backwards (it, it->stop_charpos);
-	  it->bidi_p = 1;
-	  it->current = save_it.current;
-	  it->position = save_it.position;
 	  return GET_NEXT_DISPLAY_ELEMENT (it);
 	}
       else
 	{
-	  /* If we are at base paragraph embedding level, take note of
-	     the last stop position seen at this level.  */
-	  if (BIDI_AT_BASE_LEVEL (it->bidi_it))
-	    it->base_level_stop = it->stop_charpos;
+	  if (it->bidi_p)
+	    {
+	      /* Take note of the stop position we just moved across,
+		 for when we will move back across it.  */
+	      it->prev_stop = it->stop_charpos;
+	      /* If we are at base paragraph embedding level, take
+		 note of the last stop position seen at this
+		 level.  */
+	      if (BIDI_AT_BASE_LEVEL (it->bidi_it))
+		it->base_level_stop = it->stop_charpos;
+	    }
 	  handle_stop (it);
 	  return GET_NEXT_DISPLAY_ELEMENT (it);
 	}
     }
-  else if (it->bidi_p && IT_CHARPOS (*it) < it->prev_stop)
+  else if (it->bidi_p
+	   /* We can sometimes back up for reasons that have nothing
+	      to do with bidi reordering.  E.g., compositions.  The
+	      code below is only needed when we are above the base
+	      embedding level, so test for that explicitly.  */
+	   && !BIDI_AT_BASE_LEVEL (it->bidi_it)
+	   && IT_CHARPOS (*it) < it->prev_stop)
     {
-      struct it save_it = *it;
-
       if (it->base_level_stop <= 0)
 	it->base_level_stop = 1;
       if (IT_CHARPOS (*it) < it->base_level_stop)
 	abort ();
-      if (BIDI_AT_BASE_LEVEL (it->bidi_it))
-	abort ();
       handle_stop_backwards (it, it->base_level_stop);
-      it->bidi_p = 1;
-      it->current = save_it.current;
-      it->position = save_it.position;
       return GET_NEXT_DISPLAY_ELEMENT (it);
     }
   else

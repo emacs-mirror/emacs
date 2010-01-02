@@ -271,6 +271,9 @@ define pitx
     end
   end
   printf "\n"
+  if ($it->bidi_p)
+    printf "BIDI: base_stop=%d prev_stop=%d level=%d\n", $it->base_level_stop, $it->prev_stop, $it->bidi_it.resolved_level
+  end
   if ($it->region_beg_charpos >= 0)
     printf "reg=%d-%d ", $it->region_beg_charpos, $it->region_end_charpos
   end

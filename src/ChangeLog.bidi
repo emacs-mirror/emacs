@@ -1,3 +1,18 @@
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pitx): Display some bidi information about the
+	iterator.
+
+	* dispextern.h (BIDI_AT_BASE_LEVEL): Enclose definition in
+	parentheses.
+
+	* xdisp.c (handle_stop_backwards): Save and restore it->current
+	and it->position, instead of expecting the caller to do that.
+	(next_element_from_buffer): When moving across stop_charpos,
+	record it in prev_stop.  When IT_CHARPOS backs up, call
+	handle_stop_backwards only if above the base embedding level.
+	This solves the crash while displaying etc/HELLO in bidi mode.
+
 2009-12-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_stop_backwards): Call compute_stop_pos in the
