@@ -1,3 +1,8 @@
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* .bzrignore: Add more ignored patterns, including for the MS-DOS
+	build.
+
 2009-12-27  Karl Fogel  <kfogel@red-bean>
 
 	* INSTALL.BZR: Rename from INSTALL.CVS; edit to talk about Bazaar.

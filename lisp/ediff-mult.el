@@ -330,7 +330,7 @@ buffers."
 ;; This nil is a placeholder for eq-indicator. It is either nil or =.
 ;; If it is discovered that this file is = to some other
 ;; file in the same session, eq-indicator is changed to `='.
-;; Curently, the eq-indicator is used only for 2 and 3-file jobs.
+;; Currently, the eq-indicator is used only for 2 and 3-file jobs.
 (defun ediff-make-new-meta-list-element (obj1 obj2 obj3)
   (list nil nil (list obj1 nil) (list obj2 nil) (list obj3 nil)))
 
@@ -879,7 +879,7 @@ behavior."
 	    (define-key ediff-meta-buffer-map
 	      [menu-bar ediff-meta-mode ediff-mark-for-operation-at-pos]
 	      '(menu-item "Mark for group operation" ediff-mark-for-operation-at-pos
-		  :help "Mark session for a group operation.  With prefix arg, unmark."))
+		  :help "Mark session for a group operation.  With prefix arg, unmark"))
 
 	    (define-key ediff-meta-buffer-map
 	      [menu-bar ediff-meta-mode ediff-unmark-all-for-hiding]
@@ -1739,7 +1739,7 @@ Useful commands:
 	     (insert "\n")))
 	  (t
 	   (ediff-kill-buffer-carefully meta-diff-buff)
-	   (error "Session %d compares versions of file. Such session must be active to enable multifile patch collection" sessionNum )))
+	   (error "Session %d compares versions of file.  Such session must be active to enable multifile patch collection" sessionNum )))
     ))
 
 (defun ediff-collect-custom-diffs ()
@@ -2421,7 +2421,7 @@ for operation, or simply indicate which are equal files.  If it is nil, then
   (let ((list (cdr ediff-meta-list))
 	marked1 marked2 marked3
 	fileinfo1 fileinfo2 fileinfo3 elt)
-    (message "Comparing files ...")
+    (message "Comparing files...")
     (while (setq elt (car list))
       (setq fileinfo1 (ediff-get-session-objA elt)
 	    fileinfo2 (ediff-get-session-objB elt)
@@ -2448,7 +2448,7 @@ for operation, or simply indicate which are equal files.  If it is nil, then
 		 (ediff-mark-session-for-operation elt 'mark))
 		))
       (setq list (cdr list)))
-    (message "Comparing files ... Done"))
+    (message "Comparing files... Done"))
   (setq ediff-recurse-to-subdirectories nil)
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 

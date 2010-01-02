@@ -140,8 +140,8 @@ address for root variables.")
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
 (defvar gdb-location-alist nil
-  "Alist of breakpoint numbers and full filenames.  Only used for files that
-Emacs can't find.")
+  "Alist of breakpoint numbers and full filenames.
+Only used for files that Emacs can't find.")
 (defvar gdb-active-process nil
   "GUD tooltips display variable values when t, and macro definitions otherwise.")
 (defvar gdb-recording nil
@@ -520,7 +520,7 @@ otherwise do not."
    (not (display-graphic-p)))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
-;; side-effects. Also printing a function within a tooltip generates an
+;; side-effects.  Also printing a function within a tooltip generates an
 ;; unexpected starting annotation (phase error).
 (defun gdb-tooltip-print-1 (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
@@ -1079,7 +1079,7 @@ INDENT is the current indentation depth."
 		 (if (or (<= (string-to-number children) gdb-max-children)
 			  (y-or-n-p
 			   (format
-			    "%s has %s children. Continue? " expr children)))
+			    "%s has %s children.  Continue? " expr children)))
 		     (if (and (eq (buffer-local-value
 				   'gud-minor-mode gud-comint-buffer) 'gdba)
 			      (string-equal gdb-version "pre-6.4"))
@@ -1488,7 +1488,7 @@ not GDB."
 	(let ((gud-running nil))
 	  (gdb-invalidate-frames)
 	  (unless (or gdb-register-names
-		      (string-equal gdb-version "pre-6.4"))		      
+		      (string-equal gdb-version "pre-6.4"))
 	    (gdb-enqueue-input
 	     (list "server interpreter mi -data-list-register-names\n"
 		   'gdb-get-register-names))))
@@ -1815,13 +1815,13 @@ Field names are wrapped in double quotes and equal signs are
 replaced with semicolons.
 
 If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurences from
-partial output. This is used to get rid of useless keys in lists
-in MI messages, e.g.: [key=.., key=..]. -stack-list-frames and
+partial output.  This is used to get rid of useless keys in lists
+in MI messages, e.g.: [key=.., key=..].  -stack-list-frames and
 -break-info are examples of MI commands which issue such
 responses.
 
 If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
-\"FIX-LIST=[..]\" prior to parsing. This is used to fix broken
+\"FIX-LIST=[..]\" prior to parsing.  This is used to fix broken
 -break-info output when it contains breakpoint script field
 incompatible with GDB/MI output syntax."
   (save-excursion
@@ -1897,7 +1897,7 @@ FIX-KEY and FIX-KEY work as in `gdb-jsonify-buffer'."
 ;; annotation rule binding of whatever gdb sends to tell us this command
 ;; might have changed it's output.
 ;;
-;; NAME is the function name. DEMAND-PREDICATE tests if output is really needed.
+;; NAME is the function name.  DEMAND-PREDICATE tests if output is really needed.
 ;; GDB-COMMAND is a string of such.  OUTPUT-HANDLER is the function bound to the
 ;; input in the input queue (see comment about ``gdb communications'' above).
 
@@ -2270,7 +2270,7 @@ corresponding to the mode line clicked."
 
 (defmacro gdb-propertize-header (name buffer help-echo mouse-face face)
   `(propertize ,name
-	       'help-echo ,help-echo 
+	       'help-echo ,help-echo
 	       'mouse-face ',mouse-face
 	       'face ',face
 	       'local-map
@@ -2389,7 +2389,7 @@ corresponding to the mode line clicked."
 		(goto-char (point-min))
 		(forward-line (1- (string-to-number line)))
 		(set-window-point window (point))))))
-      (error "No location specified."))))
+      (error "No location specified"))))
 
 
 ;; Frames buffer.  This displays a perpetually correct backtrace
@@ -3284,7 +3284,7 @@ another GDB command e.g pwd, to see new frames")
 	      :button (:toggle . gdb-use-separate-io-buffer)))
   (define-key menu [gdb-many-windows]
   '(menu-item "Display Other Windows" gdb-many-windows
-	      :help "Toggle display of locals, stack and breakpoint information"
+	      :help "Toggle display of locals, stack and breakpoint information."
 	      :button (:toggle . gdb-many-windows)))
   (define-key menu [gdb-restore-windows]
   '(menu-item "Restore Window Layout" gdb-restore-windows
@@ -4029,7 +4029,7 @@ from=\"\\(.*?\\)\"\\)")
 
 ;; Locals buffer.
 ;;
-;; uses "-stack-list-locals --simple-values". Needs GDB 6.1 onwards.
+;; uses "-stack-list-locals --simple-values".  Needs GDB 6.1 onwards.
 (gdb-set-buffer-rules 'gdb-locals-buffer
 		      'gdb-locals-buffer-name
 		      'gdb-locals-mode)

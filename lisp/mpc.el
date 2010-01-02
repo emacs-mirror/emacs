@@ -1728,7 +1728,7 @@ A value of t means the main playlist.")
   "Remove the selected songs from the playlist."
   (interactive)
   (unless mpc-songs-playlist
-    (error "The selected songs aren't part of a playlist."))
+    (error "The selected songs aren't part of a playlist"))
   (let ((song-poss (mapcar #'cdr (mpc-songs-selection))))
     (mpc-cmd-delete song-poss mpc-songs-playlist)
     (mpc-songs-refresh)
