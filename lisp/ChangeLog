@@ -1,5 +1,9 @@
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el: Remove gratuitous gratitude.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-bmenu-any-marks): New function
 	(bookmark-bmenu-save): Clear buffer modification if no marks.
 

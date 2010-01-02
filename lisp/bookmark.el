@@ -30,51 +30,6 @@
 ;; can navigate your way to that location by providing the string.
 ;; See the "User Variables" section for customizations.
 
-;; Thanks to David Bremner <bremner@cs.sfu.ca> for thinking of and
-;; then implementing the bookmark-current-bookmark idea.  He even
-;; sent *patches*, bless his soul...
-
-;; Thanks to Gregory M. Saunders <saunders@cis.ohio-state.edu> for
-;; fixing and improving bookmark-time-to-save-p.
-
-;; Thanks go to Andrew V. Klein <avk@cig.mot.com> for the code that
-;; sorts the alist before presenting it to the user (in bookmark-bmenu-list
-;; and the menu-bar).
-
-;; And much thanks to David Hughes <djh@harston.cv.com> for many small
-;; suggestions and the code to implement them (like
-;; bookmark-bmenu-ensure-position, and some of the Lucid compatibility
-;; stuff).
-
-;; Kudos (whatever they are) go to Jim Blandy <jimb@red-bean.com>
-;; for his eminently sensible suggestion to separate bookmark-jump
-;; into bookmark-jump and bookmark-jump-noselect, which made many
-;; other things cleaner as well.
-
-;; Thanks to Roland McGrath for encouragement and help with defining
-;; autoloads on the menu-bar.
-
-;; Jonathan Stigelman <stig@hackvan.com> gave patches for default
-;; values in bookmark-jump and bookmark-set.  Everybody please keep
-;; all the keystrokes they save thereby and send them to him at the
-;; end of each year :-)  (No, seriously, thanks Jonathan!)
-
-;; Buckets of gratitude to John Grabowski <johng@media.mit.edu> for
-;; thinking up the annotations feature and implementing it so well.
-
-;; Based on info-bookmark.el, by Karl Fogel and Ken Olstad
-;; <olstad@msc.edu>.
-
-;; Thanks to Mikio Nakajima <PBC01764@niftyserve.or.jp> for many bugs
-;; reported and fixed.
-
-;; Thank you, Michael Kifer, for contributing the XEmacs support.
-
-;; Enough with the credits already, get on to the good stuff:
-
-;; FAVORITE CHINESE RESTAURANT:
-;; Boy, that's a tough one.  Probably Hong Min, or maybe Emperor's
-;; Choice (both in Chicago's Chinatown).  Well, both.  How about you?
 
 ;;; Code:
 
