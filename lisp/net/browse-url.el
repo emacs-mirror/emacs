@@ -613,7 +613,7 @@ down (this *won't* always work)."
 
 (defun browse-url-url-encode-chars (text chars)
   "URL-encode the chars in TEXT that match CHARS.
-CHARS is a regexp-like character alternative (e.g., \"[,)$]\")."
+CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
   (let ((encoded-text (copy-sequence text))
 	(s 0))
     (while (setq s (string-match chars encoded-text s))
@@ -626,10 +626,12 @@ CHARS is a regexp-like character alternative (e.g., \"[,)$]\")."
 
 (defun browse-url-encode-url (url)
   "Escape annoying characters in URL.
-The annoying characters are those that can mislead a webbrowser
-regarding its parameter treatment.  For instance, `,' can
-be misleading because it could be used to separate URLs."
-  (browse-url-url-encode-chars url "[,)$]"))
+The annoying characters are those that can mislead a web browser
+regarding its parameter treatment."
+  ;; FIXME: Is there an actual example of a web browser getting
+  ;; confused?  (This used to encode commas, but at least Firefox
+  ;; handles commas correctly and doesn't accept encoded commas.)
+  (browse-url-url-encode-chars url "[)$]"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input

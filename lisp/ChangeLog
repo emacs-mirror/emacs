@@ -1,3 +1,9 @@
+2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/browse-url.el (browse-url-encode-url): Don't escape commas.
+	They are valid characters in URL paths (rfc3986), and at least
+	Firefox does not understand the encoded version (Bug#3166).
+
 2010-01-02  Daniel Elliott  <danelliottster@gmail.com>  (tiny change)
 
 	* progmodes/octave-mod.el (octave-end-keywords)
