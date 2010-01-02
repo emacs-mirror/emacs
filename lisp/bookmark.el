@@ -43,7 +43,7 @@
 
 ;; And much thanks to David Hughes <djh@harston.cv.com> for many small
 ;; suggestions and the code to implement them (like
-;; bookmark-bmenu-check-position, and some of the Lucid compatibility
+;; bookmark-bmenu-ensure-position, and some of the Lucid compatibility
 ;; stuff).
 
 ;; Kudos (whatever they are) go to Jim Blandy <jimb@red-bean.com>
@@ -173,6 +173,12 @@ recently set ones come first, oldest ones come last)."
   :type 'boolean
   :group 'bookmark)
 
+
+(defconst bookmark-bmenu-header-height 2
+  "Number of lines used for the *Bookmark List* header.")
+
+(defconst bookmark-bmenu-marks-width 2
+  "Number of columns (chars) used for the *Bookmark List* marks column.")
 
 (defcustom bookmark-bmenu-file-column 30
   "Column at which to display filenames in a buffer listing bookmarks.
@@ -1727,32 +1733,21 @@ mainly for debugging, and should not be necessary in normal use."
           (forward-line 1))))))
 
 
-(defun bookmark-bmenu-check-position ()
+(defun bookmark-bmenu-ensure-position ()
   "If point is not on a bookmark line, move it to one.
-If before the first bookmark line, move it to the first.
-If after the last, move it to the last.
-Return `bookmark-alist'."
-  ;; FIXME: The doc string originally implied that this returns nil if
-  ;; not on a bookmark, which is false.  Is there any real reason to
-  ;; return `bookmark-alist'?  This seems to be called in a few places
-  ;; as a check of whether point is on a bookmark line.  Those
-  ;; "checks" are in fact no-ops, since this never returns nil.
-  ;; -dadams, 2009-10-10
-  (cond ((< (count-lines (point-min) (point)) 2)
+If before the first bookmark line, move to the first; if after the
+last full line, move to the last full line.  The return value is undefined."
+  (cond ((< (count-lines (point-min) (point)) bookmark-bmenu-header-height)
          (goto-char (point-min))
-         (forward-line 2)
-         bookmark-alist)
+         (forward-line bookmark-bmenu-header-height))
         ((and (bolp) (eobp))
-         (beginning-of-line 0)
-         bookmark-alist)
-        (t
-         bookmark-alist)))
+         (beginning-of-line 0))))
 
 
 (defun bookmark-bmenu-bookmark ()
   "Return the bookmark for this line in an interactive bookmark list buffer."
-  (when (bookmark-bmenu-check-position)
-    (get-text-property (line-beginning-position) 'bookmark-name-prop)))
+  (bookmark-bmenu-ensure-position)
+  (get-text-property (line-beginning-position) 'bookmark-name-prop))
 
 
 (defun bookmark-show-annotation (bookmark)
@@ -1796,44 +1791,44 @@ if an annotation exists."
   "Mark bookmark on this line to be displayed by \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-select]."
   (interactive)
   (beginning-of-line)
-  (if (bookmark-bmenu-check-position)
-      (let ((inhibit-read-only t))
-        (delete-char 1)
-        (insert ?>)
-        (forward-line 1)
-        (bookmark-bmenu-check-position))))
+  (bookmark-bmenu-ensure-position)
+  (let ((inhibit-read-only t))
+    (delete-char 1)
+    (insert ?>)
+    (forward-line 1)
+    (bookmark-bmenu-ensure-position)))
 
 
 (defun bookmark-bmenu-select ()
   "Select this line's bookmark; also display bookmarks marked with `>'.
 You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mark] command."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (let ((bmrk (bookmark-bmenu-bookmark))
-            (menu (current-buffer))
-            (others ())
-            tem)
-        (goto-char (point-min))
-        (while (re-search-forward "^>" nil t)
-          (setq tem (bookmark-bmenu-bookmark))
-          (let ((inhibit-read-only t))
-            (delete-char -1)
-            (insert ?\s))
-          (or (string-equal tem bmrk)
-              (member tem others)
-              (setq others (cons tem others))))
-        (setq others (nreverse others)
-              tem (/ (1- (frame-height)) (1+ (length others))))
-        (delete-other-windows)
-        (bookmark-jump bmrk)
-        (bury-buffer menu)
-        (if others
-            (while others
-              (split-window nil tem)
-              (other-window 1)
-              (bookmark-jump (car others))
-              (setq others (cdr others)))
-          (other-window 1)))))
+  (bookmark-bmenu-ensure-position)
+  (let ((bmrk (bookmark-bmenu-bookmark))
+        (menu (current-buffer))
+        (others ())
+        tem)
+    (goto-char (point-min))
+    (while (re-search-forward "^>" nil t)
+      (setq tem (bookmark-bmenu-bookmark))
+      (let ((inhibit-read-only t))
+        (delete-char -1)
+        (insert ?\s))
+      (or (string-equal tem bmrk)
+          (member tem others)
+          (setq others (cons tem others))))
+    (setq others (nreverse others)
+          tem (/ (1- (frame-height)) (1+ (length others))))
+    (delete-other-windows)
+    (bookmark-jump bmrk)
+    (bury-buffer menu)
+    (if others
+        (while others
+          (split-window nil tem)
+          (other-window 1)
+          (bookmark-jump (car others))
+          (setq others (cdr others)))
+      (other-window 1))))
 
 
 (defun bookmark-bmenu-save (parg)
@@ -1848,51 +1843,50 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-load ()
   "Load the bookmark file and rebuild the bookmark menu-buffer."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (save-excursion
-        (save-window-excursion
-          ;; This will call `bookmark-bmenu-list'
-          (call-interactively 'bookmark-load)))))
+  (bookmark-bmenu-ensure-position)
+  (save-excursion
+    (save-window-excursion
+      ;; This will call `bookmark-bmenu-list'
+      (call-interactively 'bookmark-load))))
 
 
 (defun bookmark-bmenu-1-window ()
   "Select this line's bookmark, alone, in full frame."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (progn
-        (bookmark-jump (bookmark-bmenu-bookmark))
-        (bury-buffer (other-buffer))
-        (delete-other-windows))))
+  (bookmark-bmenu-ensure-position)
+  (bookmark-jump (bookmark-bmenu-bookmark))
+  (bury-buffer (other-buffer))
+  (delete-other-windows))
 
 
 (defun bookmark-bmenu-2-window ()
   "Select this line's bookmark, with previous buffer in second window."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (let ((bmrk (bookmark-bmenu-bookmark))
-            (menu (current-buffer))
-            (pop-up-windows t))
-        (delete-other-windows)
-        (switch-to-buffer (other-buffer))
-        (let ((bookmark-automatically-show-annotations nil)) ;FIXME: needed?
-          (bookmark--jump-via bmrk 'pop-to-buffer))
-        (bury-buffer menu))))
+  (bookmark-bmenu-ensure-position)
+  (let ((bmrk (bookmark-bmenu-bookmark))
+        (menu (current-buffer))
+        (pop-up-windows t))
+    (delete-other-windows)
+    (switch-to-buffer (other-buffer))
+    (let ((bookmark-automatically-show-annotations nil)) ;FIXME: needed?
+      (bookmark--jump-via bmrk 'pop-to-buffer))
+    (bury-buffer menu)))
 
 
 (defun bookmark-bmenu-this-window ()
   "Select this line's bookmark in this window."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (bookmark-jump (bookmark-bmenu-bookmark))))
+  (bookmark-bmenu-ensure-position)
+  (bookmark-jump (bookmark-bmenu-bookmark)))
 
 
 (defun bookmark-bmenu-other-window ()
   "Select this line's bookmark in other window, leaving bookmark menu visible."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (if (bookmark-bmenu-check-position)
-        (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
-          (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))))
+    (bookmark-bmenu-ensure-position)
+    (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
+      (bookmark--jump-via bookmark 'switch-to-buffer-other-window))))
 
 
 (defun bookmark-bmenu-switch-other-window ()
@@ -1903,9 +1897,9 @@ The current window remains selected."
         (pop-up-windows t)
         same-window-buffer-names
         same-window-regexps)
-    (if (bookmark-bmenu-check-position)
-        (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
-          (bookmark--jump-via bookmark 'display-buffer)))))
+    (bookmark-bmenu-ensure-position)
+    (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
+      (bookmark--jump-via bookmark 'display-buffer))))
 
 (defun bookmark-bmenu-other-window-with-mouse (event)
   "Select bookmark at the mouse pointer in other window, leaving bookmark menu visible."
@@ -1920,8 +1914,8 @@ The current window remains selected."
   "Show the annotation for the current bookmark in another window."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (if (bookmark-bmenu-check-position)
-	(bookmark-show-annotation bookmark))))
+    (bookmark-bmenu-ensure-position)
+    (bookmark-show-annotation bookmark)))
 
 
 (defun bookmark-bmenu-show-all-annotations ()
@@ -1934,8 +1928,8 @@ The current window remains selected."
   "Edit the annotation for the current bookmark in another window."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (if (bookmark-bmenu-check-position)
-	(bookmark-edit-annotation bookmark))))
+    (bookmark-bmenu-ensure-position)
+    (bookmark-edit-annotation bookmark)))
 
 
 (defun bookmark-bmenu-unmark (&optional backup)
@@ -1943,27 +1937,25 @@ The current window remains selected."
 Optional BACKUP means move up."
   (interactive "P")
   (beginning-of-line)
-  (if (bookmark-bmenu-check-position)
-      (progn
-        (let ((inhibit-read-only t))
-          (delete-char 1)
-          ;; any flags to reset according to circumstances?  How about a
-          ;; flag indicating whether this bookmark is being visited?
-          ;; well, we don't have this now, so maybe later.
-          (insert " "))
-        (forward-line (if backup -1 1))
-        (bookmark-bmenu-check-position))))
+  (bookmark-bmenu-ensure-position)
+  (let ((inhibit-read-only t))
+    (delete-char 1)
+    ;; any flags to reset according to circumstances?  How about a
+    ;; flag indicating whether this bookmark is being visited?
+    ;; well, we don't have this now, so maybe later.
+    (insert " "))
+  (forward-line (if backup -1 1))
+  (bookmark-bmenu-ensure-position))
 
 
 (defun bookmark-bmenu-backup-unmark ()
   "Move up and cancel all requested operations on bookmark on line above."
   (interactive)
   (forward-line -1)
-  (if (bookmark-bmenu-check-position)
-      (progn
-        (bookmark-bmenu-unmark)
-        (forward-line -1)
-        (bookmark-bmenu-check-position))))
+  (bookmark-bmenu-ensure-position)
+  (bookmark-bmenu-unmark)
+  (forward-line -1)
+  (bookmark-bmenu-ensure-position))
 
 
 (defun bookmark-bmenu-delete ()
@@ -1971,12 +1963,12 @@ Optional BACKUP means move up."
 To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-execute-deletions]."
   (interactive)
   (beginning-of-line)
-  (if (bookmark-bmenu-check-position)
-      (let ((inhibit-read-only t))
-        (delete-char 1)
-        (insert ?D)
-        (forward-line 1)
-        (bookmark-bmenu-check-position))))
+  (bookmark-bmenu-ensure-position)
+  (let ((inhibit-read-only t))
+    (delete-char 1)
+    (insert ?D)
+    (forward-line 1)
+    (bookmark-bmenu-ensure-position)))
 
 
 (defun bookmark-bmenu-delete-backwards ()
@@ -1985,9 +1977,9 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (interactive)
   (bookmark-bmenu-delete)
   (forward-line -2)
-  (if (bookmark-bmenu-check-position)
-      (forward-line 1))
-  (bookmark-bmenu-check-position))
+  (bookmark-bmenu-ensure-position)
+  (forward-line 1)
+  (bookmark-bmenu-ensure-position))
 
 
 (defun bookmark-bmenu-execute-deletions ()
@@ -2022,29 +2014,29 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-rename ()
   "Rename bookmark on current line.  Prompts for a new name."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (let ((bmrk (bookmark-bmenu-bookmark))
-            (thispoint (point)))
-        (bookmark-rename bmrk)
-        (goto-char thispoint))))
+  (bookmark-bmenu-ensure-position)
+  (let ((bmrk (bookmark-bmenu-bookmark))
+        (thispoint (point)))
+    (bookmark-rename bmrk)
+    (goto-char thispoint)))
 
 
 (defun bookmark-bmenu-locate ()
   "Display location of this bookmark.  Displays in the minibuffer."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (let ((bmrk (bookmark-bmenu-bookmark)))
-        (message "%s" (bookmark-location bmrk)))))
+ (bookmark-bmenu-ensure-position)
+ (let ((bmrk (bookmark-bmenu-bookmark)))
+   (message "%s" (bookmark-location bmrk))))
 
 (defun bookmark-bmenu-relocate ()
   "Change the file path of the bookmark on the current line,
   prompting with completion for the new path."
   (interactive)
-  (if (bookmark-bmenu-check-position)
-      (let ((bmrk (bookmark-bmenu-bookmark))
-            (thispoint (point)))
-        (bookmark-relocate bmrk)
-        (goto-char thispoint))))
+  (bookmark-bmenu-ensure-position)
+  (let ((bmrk (bookmark-bmenu-bookmark))
+        (thispoint (point)))
+    (bookmark-relocate bmrk)
+    (goto-char thispoint)))
 
 ;;; Bookmark-bmenu search
 
@@ -2105,7 +2097,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."
   (goto-char (point-min))
-  (bookmark-bmenu-check-position)
+  (bookmark-bmenu-ensure-position)
   (while (not (equal name (bookmark-bmenu-bookmark)))
     (forward-line 1))
   (forward-line 0))

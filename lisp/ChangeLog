@@ -1,3 +1,12 @@
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Improvements suggested by Drew Adams:
+	(bookmark-bmenu-ensure-position): New name for
+	`bookmark-bmenu-check-position'.  Just ensure the position,
+	don't return any meaningful value.
+	(bookmark-bmenu-header-height, bookmark-bmenu-marks-width):
+	New constants.
+
 2010-01-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bookmark.el (bookmarks-already-loaded): Doc fix (don't use `iff').
