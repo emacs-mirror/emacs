@@ -39,6 +39,7 @@ lib-src/fakemail.exe
 lib-src/hexl
 lib-src/make-docfile
 lib-src/make-docfile.exe
+lib-src/movemail
 lib-src/profile
 lib-src/profile.exe
 lib-src/sorted-doc
@@ -67,3 +68,4 @@ src/prefix-args*
 src/stamp-oldxmenu
 src/temacs
 src/temacs.exe
+src/deps
