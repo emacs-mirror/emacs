@@ -1,3 +1,11 @@
+2010-01-02  Daniel Elliott  <danelliottster@gmail.com>  (tiny change)
+
+	* progmodes/octave-mod.el (octave-end-keywords)
+	(octave-block-begin-or-end-regexp, octave-block-match-alist): Add
+	"end" keyword (Bug#3061).
+	(octave-end-as-array-index-p): New function.
+	(calculate-octave-indent): Use it.
+
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Consistently put the text property on the bookmark name.
