@@ -107,17 +107,17 @@
 (defcustom bookmark-save-flag t
   "Controls when Emacs saves bookmarks to a file.
 --> nil means never save bookmarks, except when `bookmark-save' is
-    explicitly called \(\\[bookmark-save]\).
+    explicitly called (\\[bookmark-save]).
 --> t means save bookmarks when Emacs is killed.
 --> Otherwise, it should be a number that is the frequency with which
-    the bookmark list is saved \(i.e.: the number of times which
+    the bookmark list is saved (i.e.: the number of times which
     Emacs' bookmark list may be modified before it is automatically
-    saved.\).  If it is a number, Emacs will also automatically save
+    saved.).  If it is a number, Emacs will also automatically save
     bookmarks when it is killed.
 
 Therefore, the way to get it to save every time you make or delete a
-bookmark is to set this variable to 1 \(or 0, which produces the same
-behavior.\)
+bookmark is to set this variable to 1 (or 0, which produces the same
+behavior.)
 
 To specify the file in which to save them, modify the variable
 `bookmark-default-file', which is `~/.emacs.bmk' by default."
@@ -186,7 +186,7 @@ You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookma
 This may result in truncated bookmark names.  To disable this, put the
 following in your `.emacs' file:
 
-\(setq bookmark-bmenu-toggle-filenames nil\)"
+\(setq bookmark-bmenu-toggle-filenames nil)"
   :type 'boolean
   :group 'bookmark)
 
@@ -292,7 +292,7 @@ or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
  for instance.  HANDLER must accept a bookmark as argument.")
 
 (defvar bookmarks-already-loaded nil
-  "Non-nil iff bookmarks have been loaded from `bookmark-default-file'.")
+  "Non-nil if and only if bookmarks have been loaded from `bookmark-default-file'.")
 
 
 ;; more stuff added by db.
@@ -322,7 +322,7 @@ the source buffer for that information; see `bookmark-yank-word' and
 
 (defvar bookmark-yank-point 0
   "The next point from which to pull source text for `bookmark-yank-word'.
-This point is in `bookmark-curent-buffer'.")
+This point is in `bookmark-current-buffer'.")
 
 
 (defvar bookmark-quit-flag nil
@@ -336,7 +336,7 @@ This point is in `bookmark-curent-buffer'.")
 
 
 (defun bookmark-name-from-full-record (full-record)
-  "Return name of FULL-RECORD \(an alist element instead of a string\)."
+  "Return name of FULL-RECORD (an alist element instead of a string)."
   (car full-record))
 
 
@@ -414,13 +414,13 @@ BOOKMARK may be a bookmark name (a string) or a bookmark record."
 
 
 (defun bookmark-get-position (bookmark)
-  "Return the position \(i.e.: point\) of BOOKMARK, or nil if none.
+  "Return the position (i.e.: point) of BOOKMARK, or nil if none.
 BOOKMARK may be a bookmark name (a string) or a bookmark record."
   (bookmark-prop-get bookmark 'position))
 
 
 (defun bookmark-set-position (bookmark position)
-  "Set the position \(i.e.: point\) of BOOKMARK to POSITION.
+  "Set the position (i.e.: point) of BOOKMARK to POSITION.
 BOOKMARK may be a bookmark name (a string) or a bookmark record."
   (bookmark-prop-set bookmark 'position position))
 
@@ -800,9 +800,9 @@ this helps you use a single bookmark name to track progress through a
 large document.  If there is no prior bookmark for this document, then
 C-u inserts an appropriate name based on the buffer or file.
 
-Use \\[bookmark-delete] to remove bookmarks \(you give it a name and
+Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
-the list of bookmarks.\)"
+the list of bookmarks.)"
   (interactive (list nil current-prefix-arg))
   (let* ((record (bookmark-make-record))
          (default (car record)))
@@ -953,7 +953,7 @@ If the buffer is associated with a file or directory, use that name."
 (defun bookmark-yank-word ()
   "Get the next word from buffer `bookmark-current-buffer' and append
 it to the name of the bookmark currently being set, advancing
-`bookmark-yank-point' by one word." 
+`bookmark-yank-point' by one word."
   (interactive)
   (let ((string (with-current-buffer bookmark-current-buffer
                   (goto-char bookmark-yank-point)
@@ -1125,7 +1125,7 @@ that file no longer exists, then offer interactively to relocate BOOKMARK."
                                   'bookmark-default-handler)
                               (bookmark-get-bookmark bookmark)))
                  (message
-                  "Bookmark not relocated; consider removing it \(%s\)."
+                  "Bookmark not relocated; consider removing it (%s)."
                   bookmark)
                  (signal (car err) (cdr err))))))))))
   ;; Added by db.
@@ -1248,7 +1248,7 @@ name."
               "New name: "
               nil
               (let ((now-map (copy-keymap minibuffer-local-map)))
-                (define-key now-map  "\C-w" 'bookmark-yank-word)
+                (define-key now-map "\C-w" 'bookmark-yank-word)
                 now-map)
               nil
               'bookmark-history))))
@@ -1290,8 +1290,8 @@ BOOKMARK is a bookmark name (a string), not a bookmark record.
 
 Removes only the first instance of a bookmark with that name.  If
 there are one or more other bookmarks with the same name, they will
-not be deleted.  Defaults to the \"current\" bookmark \(that is, the
-one most recently used in this file, if any\).
+not be deleted.  Defaults to the \"current\" bookmark (that is, the
+one most recently used in this file, if any).
 Optional second arg BATCH means don't update the bookmark list buffer,
 probably because we were called from there."
   (interactive
@@ -1342,7 +1342,7 @@ Don't use this in Lisp programs; use `bookmark-save' instead."
   "Save currently defined bookmarks.
 Saves by default in the file defined by the variable
 `bookmark-default-file'.  With a prefix arg, save it in file FILE
-\(second argument\).
+\(second argument).
 
 If you are calling this from Lisp, the two arguments are PARG and
 FILE, and if you just want it to write to the default file, then
@@ -1351,7 +1351,7 @@ instead.  If you pass in one argument, and it is non-nil, then the
 user will be interactively queried for a file to save in.
 
 When you want to load in the bookmarks from a file, use
-\`bookmark-load\', \\[bookmark-load].  That function will prompt you
+`bookmark-load', \\[bookmark-load].  That function will prompt you
 for a file, defaulting to the file defined by variable
 `bookmark-default-file'."
   (interactive "P")
@@ -1389,7 +1389,7 @@ for a file, defaulting to the file defined by variable
       ;; Rather than a single call to `pp' we make one per bookmark.
       ;; Apparently `pp' has a poor algorithmic complexity, so this
       ;; scales a lot better.  bug#4485.
-      (dolist (i  bookmark-alist) (pp i (current-buffer)))
+      (dolist (i bookmark-alist) (pp i (current-buffer)))
       (insert ")")
       (let ((version-control
              (cond
@@ -1625,8 +1625,8 @@ Bookmark names preceded by a \"*\" have annotations.
 \\[bookmark-bmenu-other-window] -- select this bookmark in another window,
   so the bookmark menu bookmark remains visible in its window.
 \\[bookmark-bmenu-switch-other-window] -- switch the other window to this bookmark.
-\\[bookmark-bmenu-rename] -- rename this bookmark \(prompts for new name\).
-\\[bookmark-bmenu-relocate] -- relocate this bookmark's file \(prompts for new file\).
+\\[bookmark-bmenu-rename] -- rename this bookmark (prompts for new name).
+\\[bookmark-bmenu-relocate] -- relocate this bookmark's file (prompts for new file).
 \\[bookmark-bmenu-delete] -- mark this bookmark to be deleted, and move down.
 \\[bookmark-bmenu-delete-backwards] -- mark this bookmark to be deleted, and move up.
 \\[bookmark-bmenu-execute-deletions] -- delete bookmarks marked with `\\[bookmark-bmenu-delete]'.
@@ -1731,7 +1731,7 @@ mainly for debugging, and should not be necessary in normal use."
   "If point is not on a bookmark line, move it to one.
 If before the first bookmark line, move it to the first.
 If after the last, move it to the last.
-Return `bookmark-alist'"
+Return `bookmark-alist'."
   ;; FIXME: The doc string originally implied that this returns nil if
   ;; not on a bookmark, which is false.  Is there any real reason to
   ;; return `bookmark-alist'?  This seems to be called in a few places
@@ -2101,7 +2101,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
       (when bookmark-quit-flag        ; C-g hit restore menu list.
         (bookmark-bmenu-list) (bookmark-bmenu-goto-bookmark bmk))
       (setq bookmark-quit-flag nil))))
-      
+
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."
   (goto-char (point-min))
@@ -2109,7 +2109,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (while (not (equal name (bookmark-bmenu-bookmark)))
     (forward-line 1))
   (forward-line 0))
-          
+
 
 
 ;;; Menu bar stuff.  Prefix is "bookmark-menu".

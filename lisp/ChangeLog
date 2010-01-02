@@ -1,3 +1,55 @@
+2010-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el (bookmarks-already-loaded): Doc fix (don't use `iff').
+	(bookmark-yank-point, bookmark-bmenu-check-position):
+	Fix typos in docstrings.
+	(bookmark-save-flag, bookmark-bmenu-toggle-filenames)
+	(bookmark-name-from-full-record, bookmark-get-position)
+	(bookmark-set-position, bookmark-set, bookmark-handle-bookmark)
+	(bookmark-delete, bookmark-save, bookmark-save, bookmark-bmenu-mode):
+	Remove useless quoting of parenthesis, etc. in docstrings.
+
+	* ediff-mult.el (ediff-prepare-meta-buffer): Fix typo in help message.
+	(ediff-append-custom-diff): Fix typo in error message.
+	(ediff-meta-mark-equal-files): Fix typos in messages.
+
+	* mpc.el (mpc-playlist-delete): Fix typo in error messages.
+
+	* cedet/semantic/db-typecache.el (semanticdb-typecache-find-default):
+	Fix typo in docstring.
+
+	* net/imap-hash.el (imap-hash-make): Doc fix.
+	(imap-hash-test): Fix typo in error message; reflow docstring.
+	(imap-hash-p, imap-hash-get, imap-hash-put, imap-hash-make-message)
+	(imap-hash-count, imap-hash-server, imap-hash-port, imap-hash-ssl)
+	(imap-hash-mailbox, imap-hash-user, imap-hash-password):
+	Fix typos in docstrings.
+	(imap-hash-open-connection): Fix typo in error message.
+
+	* play/gomoku.el (gomoku): Fix typos in docstring.
+
+	* progmodes/gdb-ui.el (gdb-location-alist): Reflow docstring.
+	(gdb-jsonify-buffer): Fix typos in docstring.
+	(gdb-goto-breakpoint): Fix typo in error message.
+	("Display Other Windows"): Fix typo in help message.
+	(gdb-speedbar-expand-node): Fix typo in question.
+
+	* progmodes/idlw-help.el (idlwave-help-browse-url-available)
+	(idlwave-html-system-help-location, idlwave-html-help-location)
+	(idlwave-help-browser-function, idlwave-help-browser-generic-program)
+	(idlwave-help-browser-generic-args, idlwave-help-directory)
+	(idlwave-html-help-is-available, idlwave-help-mode-line-indicator)
+	(idlwave-help-mode-map, idlwave-help-mode, idlwave-do-context-help)
+	(idlwave-online-help, idlwave-help-html-link)
+	(idlwave-help-show-help-frame, idlwave-help-assistant-command):
+	Fix typos in docstrings.
+	(idlwave-help-with-source, idlwave-help-find-routine-definition):
+	Reflow docstrings.
+	(idlwave-help-assistant-start): Fix typo in error message.
+
+	* progmodes/octave-mod.el (octave-mode, octave-electric-semi)
+	(octave-electric-space): Fix typos in docstrings.
+
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (minibuffer-with-setup-hook): Doc fix (Bug#5149).

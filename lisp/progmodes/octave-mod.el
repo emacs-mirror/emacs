@@ -410,7 +410,7 @@ Non-nil means always go to the next Octave code line after sending."
 
 This mode makes it easier to write Octave code by helping with
 indentation, doing some of the typing for you (with Abbrev mode) and by
-showing keywords, comments, strings, etc.. in different faces (with
+showing keywords, comments, strings, etc. in different faces (with
 Font Lock mode on terminals that support it).
 
 Octave itself is a high-level language, primarily intended for numerical
@@ -1260,7 +1260,7 @@ If Abbrev mode is on, expand abbrevs first."
 (defun octave-electric-semi ()
   "Insert a semicolon in Octave mode.
 Maybe expand abbrevs and blink matching block open keywords.
-Reindent the line of `octave-auto-indent' is non-nil.
+Reindent the line if `octave-auto-indent' is non-nil.
 Insert a newline if `octave-auto-newline' is non-nil."
   (interactive)
   (if (not (octave-not-in-string-or-comment-p))
@@ -1277,7 +1277,7 @@ Insert a newline if `octave-auto-newline' is non-nil."
 (defun octave-electric-space ()
   "Insert a space in Octave mode.
 Maybe expand abbrevs and blink matching block open keywords.
-Reindent the line of `octave-auto-indent' is non-nil."
+Reindent the line if `octave-auto-indent' is non-nil."
   (interactive)
   (setq last-command-event ? )
   (if (and octave-auto-indent

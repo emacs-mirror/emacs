@@ -111,7 +111,7 @@ Said object must support `semantic-reset' methods.")
 	 )
     (object-add-to-list cache 'dependants dep)))
 
-(defun semanticdb-typecache-length(thing)
+(defun semanticdb-typecache-length (thing)
   "How long is THING?
 Debugging function."
   (cond ((semanticdb-typecache-child-p thing)
@@ -383,7 +383,7 @@ FIND-FILE-MATCH is non-nil to force all found tags to be loaded into a buffer.")
 (defun semanticdb-typecache-find-default (type &optional path find-file-match)
   "Default implementation of `semanticdb-typecache-find'.
 TYPE is the datatype to find.
-PATH is the search path.. which should be one table object.
+PATH is the search path, which should be one table object.
 If FIND-FILE-MATCH is non-nil, then force the file belonging to the
 found tag to be loaded."
   (semanticdb-typecache-find-method (or path semanticdb-current-table)
