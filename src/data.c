@@ -95,41 +95,6 @@ static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
 Lisp_Object impl_Vmost_positive_fixnum, impl_Vmost_negative_fixnum;
 
-Lisp_Object *
-blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
-{
-  Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
-  if (NILP (ret))
-    {
-      Lisp_Object len, parent = XCDR (XCAR (l->thread_data));
-      XSETFASTINT (len, 4);
-      ret = Fmake_vector (len, Qnil);
-
-      /* FIXME: use the parent, not the first element. (or not?)  */
-      XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
-      BLOCAL_BUFFER_VEC (ret) = BLOCAL_BUFFER_VEC (ret);
-      BLOCAL_FRAME_VEC (ret) = BLOCAL_FRAME_VEC (ret);
-      BLOCAL_CDR_VEC (ret) = BLOCAL_CDR_VEC (parent);
-      ret = Fcons (get_current_thread (), ret);
-      l->thread_data = Fcons (ret, l->thread_data);
-      XTHREADLOCAL (l->realvalue)->thread_alist =
-        Fcons (Fcons (get_current_thread (),
-                      XTHREADLOCAL (l->realvalue)->global),
-               XTHREADLOCAL (l->realvalue)->thread_alist);
-    }
-
-  return &XCDR_AS_LVALUE (ret);
-}
-
-void
-blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object obj)
-{
-  if (! NILP (l->thread_data))
-    abort ();
-
-  l->thread_data = Fcons (Fcons (get_current_thread (), obj), Qnil);
-}
-
 void
 circular_list_error (list)
      Lisp_Object list;
@@ -843,6 +808,68 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
  ***********************************************************************/
 
 Lisp_Object *
+blocal_getrealvalue (struct Lisp_Buffer_Local_Value *blv)
+{
+  return &XCDR_AS_LVALUE (ensure_thread_local (&(blv->realvalue)));
+}
+
+Lisp_Object *
+blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
+{
+  Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
+  if (NILP (ret))
+    {
+      Lisp_Object tem, val, len, it, parent = Qnil;
+
+      for (it = l->thread_data; !NILP (it); it = XCDR (it))
+        {
+          Lisp_Object head = XCDR (XCAR (it));
+          if (current_buffer && (BLOCAL_BUFFER_VEC (head))
+              && (! l->check_frame
+                  || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
+            {
+              val = XCDR (BLOCAL_CDR_VEC (head));
+              break;
+            }
+
+        }
+
+
+      XSETFASTINT (len, 4);
+      ret = Fmake_vector (len, Qnil);
+      
+      if (NILP (parent))
+        XSETFASTINT (AREF (ret, 0), 0);
+      else
+        XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
+
+      BLOCAL_BUFFER_VEC (ret) = Fcurrent_buffer ();
+      BLOCAL_FRAME_VEC (ret) = Qnil;
+
+      tem = Fcons (Qnil, val);
+      XSETCAR (tem, tem);
+      BLOCAL_CDR_VEC (ret) = tem;
+
+      ret = Fcons (get_current_thread (), ret);
+      l->thread_data = Fcons (ret, l->thread_data);
+      XTHREADLOCAL (l->realvalue)->thread_alist =
+        Fcons (Fcons (get_current_thread (), val),
+               XTHREADLOCAL (l->realvalue)->thread_alist);
+    }
+
+  return &XCDR_AS_LVALUE (ret);
+}
+
+void
+blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object obj)
+{
+  if (! NILP (l->thread_data))
+    abort ();
+
+  l->thread_data = Fcons (Fcons (get_current_thread (), obj), Qnil);
+}
+
+Lisp_Object *
 find_variable_location (Lisp_Object *root)
 {
   if (THREADLOCALP (*root))
@@ -852,6 +879,7 @@ find_variable_location (Lisp_Object *root)
 				       thr->thread_alist);
       if (!EQ (cons, Qnil))
       	return &XCDR_AS_LVALUE (cons);
+
       return &thr->global;
     }
 
@@ -1107,20 +1135,13 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
         {
-          Lisp_Object v = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
-          if (EQ (v, XCAR (v)))
-            BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
-          else
-            {
-              Lisp_Object rv = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
-              XTHREADLOCAL (rv)->global = newval;
-            }
+          BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
         }
       else if (THREADLOCALP (valcontents))
         {
           Lisp_Object val = indirect_variable (XSYMBOL (symbol))->value;
-          ensure_thread_local (&val);
-          *find_variable_location (&val) = newval;
+          val = ensure_thread_local (&val);
+          XSETCDR (val, newval);
         }
       else
 	SET_SYMBOL_VALUE (symbol, newval);
@@ -1183,6 +1204,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       tem1 = XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
       Fsetcdr (tem1,
                do_symval_forwarding (BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents))));
+
       /* Choose the new binding.  */
       tem1 = assq_no_quit (symbol, BUF_LOCAL_VAR_ALIST (current_buffer));
       BLOCAL_CLEAR_FLAGS (XBUFFER_LOCAL_VALUE (valcontents));
@@ -1207,13 +1229,7 @@ swap_in_symval_forwarding (symbol, valcontents)
 			       Fcdr (tem1), NULL);
     }
 
-  {
-    Lisp_Object v = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
-    if (EQ (v, XCAR (v)))
-      return BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
-    else
-      return XTHREADLOCAL (XBUFFER_LOCAL_VALUE (valcontents)->realvalue)->global;
-  }
+  return BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents));
 }
 
 
@@ -1629,8 +1645,8 @@ The function `default-value' gets the default value and `set-default' sets it.  
       XSETFASTINT (len, 4);
       val_vec = Fmake_vector (len, Qnil);
       if (EQ (valcontents, Qunbound))
-	sym->value = Qnil;
-      tem = Fcons (Qnil, Fsymbol_value (variable));
+	valcontents = Qnil;
+      tem = Fcons (Qnil, valcontents);
       XSETCAR (tem, tem);
       newval = allocate_misc ();
       XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
@@ -1644,10 +1660,10 @@ The function `default-value' gets the default value and `set-default' sets it.  
       XBUFFER_LOCAL_VALUE (newval)->realvalue = allocate_misc ();
       XMISCTYPE (XBUFFER_LOCAL_VALUE (newval)->realvalue)
         = Lisp_Misc_ThreadLocal;
-      XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global = Qnil;
+      XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global
+        = valcontents;
       XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->thread_alist
-        = Fcons (Fcons (get_current_thread (), Qnil), Qnil);
-      BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
+        = Fcons (Fcons (get_current_thread (), valcontents), Qnil);
       sym->value = newval;
     }
   XBUFFER_LOCAL_VALUE (newval)->local_if_set = 1;
