@@ -132,8 +132,9 @@ recently set ones come first, oldest ones come last)."
 (defconst bookmark-bmenu-header-height 2
   "Number of lines used for the *Bookmark List* header.")
 
-(defconst bookmark-bmenu-marks-width 1
-  "Number of columns (chars) used for the *Bookmark List* marks column.")
+(defconst bookmark-bmenu-marks-width 2
+  "Number of columns (chars) used for the *Bookmark List* marks column,
+including the annotations column.")
 
 (defcustom bookmark-bmenu-file-column 30
   "Column at which to display filenames in a buffer listing bookmarks.
@@ -1556,12 +1557,11 @@ deletion, or > if it is flagged for displaying."
                     " *" "  ")
                 name)
         (setq end (point))
-        (put-text-property start
-                           (+ bookmark-bmenu-marks-width 1 start)
-                           'bookmark-name-prop name)
+        (put-text-property
+         (+ bookmark-bmenu-marks-width start) end 'bookmark-name-prop name)
         (when (display-mouse-p)
           (add-text-properties
-           (+ bookmark-bmenu-marks-width 1 start) end
+           (+ bookmark-bmenu-marks-width start) end
            '(mouse-face highlight
              follow-link t
              help-echo "mouse-2: go to this bookmark in other window")))
@@ -1682,11 +1682,12 @@ mainly for debugging, and should not be necessary in normal use."
              (nreverse bookmark-bmenu-hidden-bookmarks))
        (let ((inhibit-read-only t))
          (while bookmark-bmenu-hidden-bookmarks
-           (move-to-column (1+ bookmark-bmenu-marks-width) t)
+           (move-to-column bookmark-bmenu-marks-width t)
            (bookmark-kill-line)
            (let ((name  (pop bookmark-bmenu-hidden-bookmarks))
                  (start (point)))
              (insert name)
+             (put-text-property start (point) 'bookmark-name-prop name)
              (if (display-mouse-p)
                  (add-text-properties
                   start (point)

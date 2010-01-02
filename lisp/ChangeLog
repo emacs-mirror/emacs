@@ -1,5 +1,14 @@
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el: Consistently put the text property on the bookmark name.
+	(bookmark-bmenu-marks-width): Bump back to 2, to include
+	annotation marks.
+	(bookmark-bmenu-hide-filenames): Adjust for above, and put the text
+	property on the bookmark name, instead of not putting it at all.
+	(bookmark-bmenu-list): Fix where we put the text property.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-bmenu-save): Just depend on the new logic
 	for showing buffer modified state (as added in the previous change).
 
