@@ -182,7 +182,7 @@ that file exists.
 
 ** The bookmark menu has a narrowing search via bookmark-bmenu-search.
 
-** LaTeX mode now provides completion (via completion-at-point)
+** LaTeX mode now provides completion (via completion-at-point).
 
 ** sym-comp.el is now declared obsolete, superceded by completion-at-point.
 
@@ -235,8 +235,9 @@ on the page edge advances to the next/previous page.
 
 ** GDB-UI
 
-*** Toolbar functionality for reverse debugging. Display of STL collections as
-    watch expressions.  These features require GDB 7.0 or later.
+*** Toolbar functionality for reverse debugging.  Display of STL
+collections as watch expressions.  These features require GDB 7.0
+or later.
 
 ** Grep
 +++
@@ -586,7 +587,7 @@ a GIF library.
 
 *** Emacs now supports multi-page TIFF images.
 
-** New NeXTSTEP-based port
+** New NeXTSTEP-based port.
 This provides support for GNUstep (via the GNUstep libraries) and Mac
 OS X (via the Cocoa libraries).
 
@@ -617,7 +618,7 @@ emacs-devel@gnu.org to inform the Emacs developers.
 *** Old GNU/Linux systems based on libc version 5.
 
 *** Old FreeBSD, NetBSD, and OpenBSD systems based on the COFF
-    executable format.
+executable format.
 
 *** Solaris versions 2.6 and below.
 
@@ -1187,23 +1188,23 @@ specifies what to do when a buffer is visited, killed, or written.
 ** Abbrev has been rewritten in Elisp and extended with more flexibility.
 
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
-    abbrev-table-p, abbrev-insert, abbrev-table-menu.
+abbrev-table-p, abbrev-insert, abbrev-table-menu.
 
 *** Special hook `abbrev-expand-functions' obsoletes `pre-abbrev-expand-hook'.
 
 *** `make-abbrev-table', `define-abbrev', `define-abbrev-table' all take
-    extra arguments for arbitrary properties.
+extra arguments for arbitrary properties.
 
 *** New variable `abbrev-minor-mode-table-alist'.
 
 *** `local-abbrev-table' can hold a list of abbrev-tables.
 
 *** Abbrevs have now the following special properties:
-    `:count', `:system', `:enable-function', `:case-fixed'.
+`:count', `:system', `:enable-function', `:case-fixed'.
 
 *** Abbrev-tables have now the following special properties:
-    `:parents', `:case-fixed', `:enable-function', `:regexp',
-    `abbrev-table-modiff'.
+`:parents', `:case-fixed', `:enable-function', `:regexp',
+`abbrev-table-modiff'.
 
 ** Apropos
 
