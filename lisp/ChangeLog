@@ -1,3 +1,11 @@
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (bzr-update): Renamed from cvs-update.
+	(cvs-update): New target for backward compatibility.
+
+	* makefile.w32-in (bzr-update): Renamed from cvs-update.
+	(cvs-update): New target for backward compatibility.
+
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Remove gratuitous gratitude.
