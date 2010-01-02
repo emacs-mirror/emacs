@@ -1,3 +1,7 @@
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Example Major Modes): Fix indentation.  (Bug#5195)
+
 2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nonascii.texi (Text Representations, Character Codes)

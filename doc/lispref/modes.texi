@@ -1062,8 +1062,8 @@ correspondingly more complicated.  Here are excerpts from
       ;;   @r{part of symbol names but not words.}
       ;;   @r{(The digit @samp{0} is @code{48} in the @acronym{ASCII} character set.)}
       (while (< i ?0)
-	(modify-syntax-entry i "_   " table)
-	(setq i (1+ i)))
+        (modify-syntax-entry i "_   " table)
+        (setq i (1+ i)))
       ;; @r{@dots{} similar code follows for other character ranges.}
 @end group
 @group
