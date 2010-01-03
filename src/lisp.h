@@ -1365,6 +1365,7 @@ struct Lisp_Buffer_Local_Value
     Lisp_Object thread_data;
   };
 
+void blocal_unbind_thread (Lisp_Object thread);
 Lisp_Object *blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l);
 void blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object o);
 Lisp_Object *blocal_getrealvalue (struct Lisp_Buffer_Local_Value *l);

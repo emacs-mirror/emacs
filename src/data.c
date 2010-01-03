@@ -837,7 +837,7 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
 
       XSETFASTINT (len, 4);
       ret = Fmake_vector (len, Qnil);
-      
+
       if (NILP (parent))
         XSETFASTINT (AREF (ret, 0), 0);
       else
@@ -858,6 +858,47 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
     }
 
   return &XCDR_AS_LVALUE (ret);
+}
+
+/* Remove any thread-local data.  */
+void
+blocal_unbind_thread (Lisp_Object thread)
+{
+  struct buffer *b;
+  EMACS_UINT i;
+  struct Lisp_Vector *obarray = XVECTOR (Vobarray);
+  for (i = 0; i < obarray->size; i++)
+    {
+      struct Lisp_Symbol *sym;
+
+      if (!SYMBOLP (obarray->contents[i]))
+        continue;
+
+      sym = XSYMBOL (obarray->contents[i]);
+
+#define UNBIND_LOCAL_VALUE(X) do {                                      \
+        Lisp_Object tem = assq_no_quit (thread, (X));                   \
+        if (!NILP (tem))                                                \
+          (X) = Fdelq (tem, (X));                                       \
+      } while (0)
+
+      if (BUFFER_LOCAL_VALUEP (SYMBOL_VALUE (obarray->contents[i])))
+        {
+          struct Lisp_Buffer_Local_Value *loc
+            = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (obarray->contents[i]));
+
+          UNBIND_LOCAL_VALUE (loc->realvalue);
+          UNBIND_LOCAL_VALUE (loc->thread_data);
+        }
+
+      if (THREADLOCALP (SYMBOL_VALUE (obarray->contents[i])))
+        {
+          struct Lisp_ThreadLocal *val
+            = XTHREADLOCAL (SYMBOL_VALUE (obarray->contents[i]));
+          UNBIND_LOCAL_VALUE (val->thread_alist);
+        }
+    }
+#undef UNBIND_LOCAL_VALUE
 }
 
 void
@@ -1155,7 +1196,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
                         Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
                                                XTHREADLOCAL (rv)->thread_alist),
                                  newval);
-                        XSETCDR (XCAR (BLOCAL_CDR_VEC (head), newval);
+                        XSETCDR (XCAR (BLOCAL_CDR_VEC (head)), newval);
                       }
                   }
               }
