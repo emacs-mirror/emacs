@@ -819,21 +819,21 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
   Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
   if (NILP (ret))
     {
-      Lisp_Object tem, val, len, it, parent = Qnil;
+      Lisp_Object tem, val = Qnil, len, it, parent = Qnil;
 
       for (it = l->thread_data; !NILP (it); it = XCDR (it))
         {
           Lisp_Object head = XCDR (XCAR (it));
-          if (current_buffer && (BLOCAL_BUFFER_VEC (head))
+          if ((EQ (Fcurrent_buffer (), BLOCAL_BUFFER_VEC (head)))
               && (! l->check_frame
                   || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
             {
               val = XCDR (BLOCAL_CDR_VEC (head));
+              parent = head;
               break;
             }
 
         }
-
 
       XSETFASTINT (len, 4);
       ret = Fmake_vector (len, Qnil);
@@ -1135,6 +1135,30 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
         {
+          Lisp_Object v = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
+            if (!EQ (v, XCAR (v)))
+              {
+                Lisp_Object it;
+                for (it = XBUFFER_LOCAL_VALUE (valcontents)->thread_data;
+                     !NILP (it); it = XCDR (it))
+                  {
+                    Lisp_Object head = XCDR (XCAR (it));
+                    if (EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
+                            BLOCAL_BUFFER_VEC (head))
+                        && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+                            || EQ (selected_frame, BLOCAL_FRAME_VEC (head)))
+                        && !EQ (BLOCAL_CDR_VEC (head),
+                                XCAR (BLOCAL_CDR_VEC (head))))
+                      {
+                        Lisp_Object rv
+                          = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+                        Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
+                                               XTHREADLOCAL (rv)->thread_alist),
+                                 newval);
+                        XSETCDR (XCAR (BLOCAL_CDR_VEC (head), newval);
+                      }
+                  }
+              }
           BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
         }
       else if (THREADLOCALP (valcontents))
