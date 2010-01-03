@@ -828,8 +828,15 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
               && (! l->check_frame
                   || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
             {
-              val = XCDR (BLOCAL_CDR_VEC (head));
+              Lisp_Object v = BLOCAL_CDR_VEC (head);
               parent = head;
+
+              if (!EQ (v, XCAR (v)))
+                val = XCDR (assq_no_quit (XCAR (XCAR (it)),
+                                   XTHREADLOCAL (l->realvalue)->thread_alist));
+              else
+                val = XCDR (BLOCAL_CDR_VEC (head));
+
               break;
             }
 
