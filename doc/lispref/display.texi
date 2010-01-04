@@ -4394,8 +4394,7 @@ every 0.1 seconds.
   (when (= idx max)
     (setq idx 0))
   (let ((img (create-image file nil :image idx)))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char (point-min))
       (unless first-time (delete-char 1))
       (insert-image img))

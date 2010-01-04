@@ -2182,7 +2182,7 @@ Emacs is restarted by the session manager.
 
 @group
 (defun save-yourself-test ()
-  (insert "(save-excursion
+  (insert "(save-current-buffer
   (switch-to-buffer \"*scratch*\")
   (insert \"I am restored\"))")
   nil)
