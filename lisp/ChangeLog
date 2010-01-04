@@ -2,6 +2,7 @@
 
 	* vc-bzr.el (vc-bzr-state-heuristic): Make it work for lightweight
 	checkouts.  (Bug#618)
+	(vc-bzr-log-view-mode): Also highlight the author.
 
 2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
 

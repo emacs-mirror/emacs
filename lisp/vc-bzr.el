@@ -484,7 +484,7 @@ REV non-nil gets an error."
 		    (4 'change-log-list nil lax))))
 	 (append `((,log-view-message-re . 'log-view-message-face))
 		 ;; log-view-font-lock-keywords
-		 '(("^ *committer: \
+		 '(("^ *\\(?:committer\\|author\\): \
 \\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.+-]+@[[:alnum:]_.-]+\\)[>)]"
 		    (1 'change-log-name)
 		    (2 'change-log-email))
