@@ -1,3 +1,9 @@
+2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dbusbind.c (xd_remove_watch): Avoid trying to convert a void* to
+	Lisp_Object, preferring to convert a lisp_Object to a void* instead.
+	(Fdbus_init_bus): Use XHASH to get a scalar value from a Lisp_Object.
+
 2010-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_add_watch): Improve debug message.
@@ -21221,7 +21227,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

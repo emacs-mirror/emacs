@@ -805,7 +805,7 @@ xd_remove_watch (watch, data)
 	return;
 
       /* Unset session environment.  */
-      if ((data != NULL) && (EQ ((Lisp_Object) data, QCdbus_session_bus)))
+      if ((data != NULL) && (data == (void*) XHASH (QCdbus_session_bus)))
 	{
 	  XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
 	  unsetenv ("DBUS_SESSION_BUS_ADDRESS");
@@ -838,7 +838,7 @@ This is an internal function, it shall not be used outside dbus.el.  */)
   if (!dbus_connection_set_watch_functions (connection,
 					    xd_add_watch,
 					    xd_remove_watch,
-					    NULL, (void *) bus, NULL))
+					    NULL, (void*) XHASH (bus), NULL))
     XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
   /* Return.  */
