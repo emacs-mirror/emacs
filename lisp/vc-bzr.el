@@ -176,13 +176,13 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                                "\0"
                                "[^\0]*\0"     ;id?
                                "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
-                               "[^\0]*\0" ;sha1 (empty if conflicted)?
-                               "\\([^\0]*\\)\0" ;size?
+                               "\\([^\0]*\\)\0" ;sha1 (empty if conflicted)?
+                               "\\([^\0]*\\)\0" ;size?p
                                "[^\0]*\0"       ;"y/n", executable?
                                "[^\0]*\0"       ;?
                                "\\([^\0]*\\)\0" ;"a/f/d" a=added?
                                "\\([^\0]*\\)\0" ;sha1 again?
-                               "[^\0]*\0"       ;size again?
+                               "\\([^\0]*\\)\0" ;size again?
                                "[^\0]*\0" ;"y/n", executable again?
                                "[^\0]*\0" ;last revid?
                                ;; There are more fields when merges are pending.
@@ -194,11 +194,20 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                       ;; conflict markers).
                       (cond
                        ((eq (char-after (match-beginning 1)) ?a) 'removed)
-                       ((eq (char-after (match-beginning 3)) ?a) 'added)
-                       ((and (eq (string-to-number (match-string 2))
+                       ((eq (char-after (match-beginning 4)) ?a) 'added)
+                       ((or (and (eq (string-to-number (match-string 3))
                                  (nth 7 (file-attributes file)))
-                             (equal (match-string 4)
+                             (equal (match-string 5)
                                     (vc-bzr-sha1 file)))
+			    (and
+			     ;; It looks like for lightweight
+			     ;; checkouts \2 is empty and we need to
+			     ;; look for size in \6.
+			     (eq (match-beginning 2) (match-end 2))
+			     (eq (string-to-number (match-string 6))
+				 (nth 7 (file-attributes file)))
+			     (equal (match-string 5)
+				    (vc-bzr-sha1 file))))
                         'up-to-date)
                        (t 'edited))
                     'unregistered))))
