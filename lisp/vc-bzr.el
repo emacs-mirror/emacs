@@ -741,7 +741,7 @@ stream.  Standard error output is discarded."
     (define-key map "\C-k" 'vc-bzr-shelve-delete-at-point)
     ;; (define-key map "=" 'vc-bzr-shelve-show-at-point)
     ;; (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
-    (define-key map "A" 'vc-bzr-shelve-apply-at-point)
+    (define-key map "P" 'vc-bzr-shelve-apply-at-point)
     map))
 
 (defvar vc-bzr-shelve-menu-map
@@ -749,9 +749,9 @@ stream.  Standard error output is discarded."
     (define-key map [de]
       '(menu-item "Delete shelf" vc-bzr-shelve-delete-at-point
 		  :help "Delete the current shelf"))
-    (define-key map [ap]
-      '(menu-item "Apply shelf" vc-bzr-shelve-apply-at-point
-		  :help "Apply the current shelf"))
+    (define-key map [po]
+      '(menu-item "Apply and remove shelf (pop)" vc-bzr-shelve-apply-at-point
+		  :help "Apply the current shelf and remove it"))
     ;; (define-key map [sh]
     ;;   '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
     ;; 		  :help "Show the contents of the current shelve"))
@@ -809,7 +809,7 @@ stream.  Standard error output is discarded."
 	     (propertize x
 			 'face 'font-lock-variable-name-face
 			 'mouse-face 'highlight
-			 'help-echo "mouse-3: Show shelve menu\nA: Apply shelf\nC-k: Delete shelf"
+			 'help-echo "mouse-3: Show shelve menu\nP: Apply and remove shelf (pop)\nC-k: Delete shelf"
 			 'keymap vc-bzr-shelve-map))
 	   shelve "\n"))
        (concat
@@ -839,8 +839,8 @@ stream.  Standard error output is discarded."
 ;;   (pop-to-buffer (current-buffer)))
 
 (defun vc-bzr-shelve-apply (name)
-  "Apply shelve NAME."
-  (interactive "sApply shelf: ")
+  "Apply shelve NAME and remove it afterwards."
+  (interactive "sApply (and remove) shelf: ")
   (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" name)
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 

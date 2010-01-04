@@ -3,6 +3,10 @@
 	* vc-bzr.el (vc-bzr-state-heuristic): Make it work for lightweight
 	checkouts.  (Bug#618)
 	(vc-bzr-log-view-mode): Also highlight the author.
+	(vc-bzr-shelve-map): Change binding for vc-bzr-shelve-apply-at-point.
+	(vc-bzr-shelve-menu-map):
+	(vc-bzr-dir-extra-headers): Improve menu and tooltip text.
+	(vc-bzr-shelve-apply): Make prompt more explicit.
 
 2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
