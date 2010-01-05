@@ -1,3 +1,8 @@
+2010-01-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus-sum.el (gnus-forward-line-ignore-invisible): New function.
+	(gnus-summary-recenter): Use it instead of forward-line.  (Bug#5257)
+
 2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el (message-exchange-point-and-mark): Rework last change to
@@ -13788,7 +13793,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
