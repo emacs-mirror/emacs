@@ -8975,7 +8975,6 @@ x_set_window_size (f, change_gravity, cols, rows)
       f->scroll_bar_actual_width
         = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
       c = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
-      fprintf (stderr, "1: old %d/%d, new %d/%d\n", rows, cols, r, c);
       change_frame_size (f, r, c, 0, 1, 0);
     }
 
