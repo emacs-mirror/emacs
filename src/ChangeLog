@@ -1,3 +1,7 @@
+2010-01-05  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Fix getting the frame pointer.
+
 2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dbusbind.c (xd_remove_watch): Avoid trying to convert a void* to
