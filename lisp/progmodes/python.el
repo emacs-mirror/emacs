@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -112,7 +112,9 @@
     ;; Top-level assignments are worth highlighting.
     (,(rx line-start (group (1+ (or word ?_))) (0+ space) "=")
      (1 font-lock-variable-name-face))
-    (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_)))) ; decorators
+    ;; Decorators.
+    (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
+					    (0+ "." (1+ (or word ?_)))))
      (1 font-lock-type-face))
     ;; Built-ins.  (The next three blocks are from
     ;; `__builtin__.__dict__.keys()' in Python 2.5.1.)  These patterns

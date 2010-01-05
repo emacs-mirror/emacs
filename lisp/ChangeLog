@@ -1,3 +1,8 @@
+2010-01-05  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Handle
+	qualified decorators (Bug#881).
+
 2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-working-revision): Fix looking for a revision
