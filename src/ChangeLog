@@ -1,3 +1,14 @@
+2010-01-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_new_font): Move code for setting rows/cols before
+	resizing ...
+	(x_set_window_size): ... to here. bug #2568.
+
+	* gtkutil.c (xg_clear_under_internal_border): New function.
+	(xg_frame_resized, xg_frame_set_char_size): Call
+	xg_clear_under_internal_border.
+	(xg_update_scrollbar_pos): Clear under old scroll bar position.
+
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.m (ns_get_color): Fix buffer overflow (Bug#4763).
