@@ -1,3 +1,8 @@
+2010-01-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Catch keyboard switch after
+	making a new tty frame (Bug#5095).
+
 2010-01-05  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): Fix getting the frame pointer.
