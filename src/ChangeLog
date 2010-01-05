@@ -8,6 +8,28 @@
 	(xg_frame_resized, xg_frame_set_char_size): Call
 	xg_clear_under_internal_border.
 	(xg_update_scrollbar_pos): Clear under old scroll bar position.
+2010-01-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Catch keyboard switch after
+	making a new tty frame (Bug#5095).
+
+2010-01-05  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Fix getting the frame pointer.
+
+2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dbusbind.c (xd_remove_watch): Avoid trying to convert a void* to
+	Lisp_Object, preferring to convert a lisp_Object to a void* instead.
+	(Fdbus_init_bus): Use XHASH to get a scalar value from a Lisp_Object.
+
+2010-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_add_watch): Improve debug message.
+	(xd_remove_watch): Improve debug message.  If DATA is the session
+	bus, unset D-Bus session environment.
+	(Fdbus_init_bus): Pass the bus as argument to
+	dbus_connection_set_watch_functions.  (Bug#5283)
 
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -155,7 +177,7 @@
 2009-12-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_retrieve_arg): Reorder declarations in order to
-	avoid compiler warnings.  (Bug #5217).
+	avoid compiler warnings.  (Bug #5217)
 
 2009-12-14  Kenichi Handa  <handa@m17n.org>
 
@@ -5330,7 +5352,7 @@
 	(XD_SIGNAL1, XD_SIGNAL2, XD_SIGNAL3): New macros.  Throw Qdbus_error.
 	(xd_read_queued_messages): Catch Qdbus_error from the macros.
 	(all): Replace xsignal1, xsignal2, xsignal3 by the respective
-	macro.  (Bug#1186).
+	macro.  (Bug#1186)
 
 2008-10-23  Ali Bahrami  <ali_gnu@emvision.com>  (tiny change)
 
@@ -21224,7 +21246,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

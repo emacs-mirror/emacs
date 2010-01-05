@@ -533,8 +533,8 @@ fontset_find_font (fontset, c, face, id, fallback)
 {
   Lisp_Object vec, font_group;
   int i, charset_matched = 0, found_index;
-  FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset)))
-    ? XFRAME (selected_frame) : XFRAME (FONTSET_FRAME (fontset));
+  FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset))
+		 ? XFRAME (FONTSET_FRAME (fontset)) : XFRAME (selected_frame));
   Lisp_Object rfont_def;
 
   font_group = fontset_get_font_group (fontset, fallback ? -1 : c);

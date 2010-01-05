@@ -31968,7 +31968,7 @@ the function with code that looks roughly like this:
 @smallexample
 (let ((calc-command-flags nil))
   (unwind-protect
-      (save-excursion
+      (save-current-buffer
         (calc-select-buffer)
         @emph{body of function}
         @emph{renumber stack}

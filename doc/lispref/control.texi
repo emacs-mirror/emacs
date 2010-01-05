@@ -1255,9 +1255,8 @@ make sure to kill it before finishing:
 
 @smallexample
 @group
-(save-excursion
-  (let ((buffer (get-buffer-create " *temp*")))
-    (set-buffer buffer)
+(let ((buffer (get-buffer-create " *temp*")))
+  (with-current-buffer buffer
     (unwind-protect
         @var{body-form}
       (kill-buffer buffer))))
@@ -1269,7 +1268,7 @@ You might think that we could just as well write @code{(kill-buffer
 (current-buffer))} and dispense with the variable @code{buffer}.
 However, the way shown above is safer, if @var{body-form} happens to
 get an error after switching to a different buffer!  (Alternatively,
-you could write another @code{save-excursion} around @var{body-form},
+you could write a @code{save-current-buffer} around @var{body-form},
 to ensure that the temporary buffer becomes current again in time to
 kill it.)
 

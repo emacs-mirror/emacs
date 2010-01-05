@@ -10,7 +10,7 @@
 
 @copying
 Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -13449,8 +13449,7 @@ So here's a new example:
          (body "You are fired.\n\nSincerely, your boss.")
          (organization "Important Work, Inc"))
         ("nnml:.*"
-         (From (save-excursion
-                 (set-buffer gnus-article-buffer)
+         (From (with-current-buffer gnus-article-buffer
                  (message-fetch-field "to"))))
         ("^nn.+:"
          (signature-file "~/.mail-signature"))))
