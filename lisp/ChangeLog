@@ -1,3 +1,7 @@
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-diff): Obey vc-disable-async-diff.
+
 2010-01-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-state-heuristic): Make it work for lightweight

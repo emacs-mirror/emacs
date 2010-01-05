@@ -532,7 +532,8 @@ REV non-nil gets an error."
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
   ;; `bzr diff' exits with code 1 if diff is non-empty.
-  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 'async files
+  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*")
+	 (if vc-disable-async-diff 1 'async) files
          "--diff-options" (mapconcat 'identity
                                      (vc-switches 'bzr 'diff)
 				     " ")
