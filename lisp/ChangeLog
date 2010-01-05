@@ -1,3 +1,8 @@
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-working-revision): Fix looking for a revision
+	in a lightweight checkout.
+
 2010-01-05  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and
