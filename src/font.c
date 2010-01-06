@@ -2991,22 +2991,25 @@ font_open_entity (f, entity, pixel_size)
   else if (CONSP (Vface_font_rescale_alist))
     scaled_pixel_size = pixel_size * font_rescale_ratio (entity);
 
-#if 0
-  /* This doesn't work if you have changed hinting or any other parameter.
-     We need to make a new object in every case to be sure. */
-  for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
-       objlist = XCDR (objlist))
-    if (! NILP (AREF (XCAR (objlist), FONT_TYPE_INDEX))
-	&& XFONT_OBJECT (XCAR (objlist))->pixel_size == pixel_size)
-      return  XCAR (objlist);
-#endif
-
   val = AREF (entity, FONT_TYPE_INDEX);
   for (driver_list = f->font_driver_list;
        driver_list && ! EQ (driver_list->driver->type, val);
        driver_list = driver_list->next);
   if (! driver_list)
     return Qnil;
+
+  for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
+       objlist = XCDR (objlist))
+    {
+      Lisp_Object fn = XCAR (objlist);
+      if (! NILP (AREF (fn, FONT_TYPE_INDEX))
+          && XFONT_OBJECT (fn)->pixel_size == pixel_size)
+        {
+          if (driver_list->driver->cached_font_ok == NULL
+              || driver_list->driver->cached_font_ok (f, fn, entity))
+            return fn;
+        }
+    }
 
   font_object = driver_list->driver->open (f, entity, scaled_pixel_size);
   if (!NILP (font_object))
