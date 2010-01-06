@@ -6,6 +6,21 @@
 
 2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* font.c (font_open_entity): Enable chache and call cached_font_ok
+	for the driver if defined.
+	(QCuser_spec): New symbol.
+	(font_spec_from_name): Save name as user-spec.
+	(font_load_for_lface): Keep user-spec instead of name.
+	(font_open_by_name): Save name as user-spec.
+	(syms_of_font): Initialize QCuser_spec.
+	(font_clear_prop): Clear name if it exists in font (bug#5157).
+
+	* xftfont.c (xftfont_open): Call xftfont_add_rendering_parameters.
+	(xftfont_add_rendering_parameters, xftfont_cached_font_ok): New.
+	(syms_of_xftfont): Initialize xftfont_driver.cached_font_ok.
+
+	* font.h (struct font_driver): Add cached_font_ok.
+
 	* xterm.c (x_clear_frame): Queue draw for scroll bars.
 
 2010-01-05  Jan Djärv  <jan.h.d@swipnet.se>
