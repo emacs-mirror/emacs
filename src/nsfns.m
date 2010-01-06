@@ -206,30 +206,28 @@ ns_get_window (Lisp_Object maybeFrame)
 static NSScreen *
 ns_get_screen (Lisp_Object screen)
 {
-  struct terminal *terminal = get_terminal (screen, 1);
+  struct frame *f;
+  struct terminal *terminal;
+
+  if (EQ (Qt, screen)) /* not documented */
+    return [NSScreen mainScreen];
+
+  terminal = get_terminal (screen, 1);
   if (terminal->type != output_ns)
-    // Not sure if this special case for nil is needed.  It does seem to be
-    // important in xfns.c for the make-frame call in frame-initialize,
-    // so let's keep it here for now.
-    return (NILP (screen) ? [NSScreen mainScreen] : NULL);
+    return NULL;
+
+  if (NILP (screen))
+    f = SELECTED_FRAME ();
+  else if (FRAMEP (screen))
+    f = XFRAME (screen);
   else
     {
       struct ns_display_info *dpyinfo = terminal->display_info.ns;
-      struct frame *f = dpyinfo->x_focus_frame;
-      if (!f)
-	f = dpyinfo->x_highlight_frame;
-      if (!f)
-	return NULL;
-      else
-	{
-	  id window = nil;
-	  Lisp_Object frame;
-	  eassert (FRAME_NS_P (f));
-	  XSETFRAME (frame, f);
-	  window = ns_get_window (frame);
-	  return window ? [window screen] : NULL;
-	}
+      f = (dpyinfo->x_focus_frame || dpyinfo->x_highlight_frame);
     }
+
+  return ((f && FRAME_NS_P (f)) ? [[FRAME_NS_VIEW (f) window] screen]
+	  : NULL);
 }
 
 
@@ -2325,15 +2323,21 @@ that stands for the selected frame's display. */)
      Lisp_Object display;
 {
   int top;
+  NSScreen *screen;
   NSRect vScreen;
 
   check_ns ();
-  vScreen = [ns_get_screen (display) visibleFrame];
-  top = vScreen.origin.y == 0.0 ?
-    (int) [ns_get_screen (display) frame].size.height - vScreen.size.height : 0;
+  screen = ns_get_screen (display);
+  if (!screen)
+    return Qnil;
 
+  vScreen = [screen visibleFrame];
+
+  /* NS coordinate system is upside-down.
+     Transform to screen-specific coordinates. */
   return list4 (make_number ((int) vScreen.origin.x),
-                make_number (top),
+		make_number ((int) [screen frame].size.height
+			     - vScreen.size.height - vScreen.origin.y),
                 make_number ((int) vScreen.size.width),
                 make_number ((int) vScreen.size.height));
 }
