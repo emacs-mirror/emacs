@@ -1,3 +1,9 @@
+2010-01-06  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m (ns_get_screen): Rewrite, returning NULL for non-NS.
+	(Fns_display_usable_bounds): Rewrite, computing bounds properly
+	(Bug#3233).
+
 2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_clear_frame): Queue draw for scroll bars.
