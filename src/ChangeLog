@@ -7,6 +7,7 @@
 	(font_load_for_lface): Keep user-spec instead of name.
 	(font_open_by_name): Save name as user-spec.
 	(syms_of_font): Initialize QCuser_spec.
+	(font_clear_prop): Clear name if it exists in font (bug#5157).
 
 	* xftfont.c (xftfont_open): Call xftfont_add_rendering_parameters.
 	(xftfont_add_rendering_parameters, xftfont_cached_font_ok): New.
