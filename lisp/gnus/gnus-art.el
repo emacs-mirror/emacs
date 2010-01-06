@@ -6477,10 +6477,17 @@ then we display only bindings that start with that prefix."
   (let ((keymap (copy-keymap gnus-article-mode-map))
 	(map (copy-keymap gnus-article-send-map))
 	(sumkeys (where-is-internal 'gnus-article-read-summary-keys))
-	agent draft)
+	parent agent draft)
     (define-key keymap "S" map)
     (define-key map [t] nil)
     (with-current-buffer gnus-article-current-summary
+      (set-keymap-parent
+       keymap
+       (if (setq parent (keymap-parent gnus-article-mode-map))
+	   (prog1
+	       (setq parent (copy-keymap parent))
+	     (set-keymap-parent parent (current-local-map)))
+	 (current-local-map)))
       (set-keymap-parent map (key-binding "S"))
       (let (key def gnus-pick-mode)
 	(while sumkeys
