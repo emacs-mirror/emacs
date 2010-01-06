@@ -1,3 +1,7 @@
+2010-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Ignore pending merges.
+
 2010-01-05  Tom Tromey  <tromey@redhat.com>
 
 	* progmodes/python.el (python-font-lock-keywords): Handle
