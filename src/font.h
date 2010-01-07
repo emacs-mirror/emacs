@@ -689,6 +689,14 @@ struct font_driver
 				   int c, unsigned variations[256]));
 
   void (*filter_properties) P_ ((Lisp_Object font, Lisp_Object properties));
+
+  /* Optional.
+
+     Return non-zero if FONT_OBJECT can be used as a (cached) font
+     for ENTITY on frame F.  */
+  int (*cached_font_ok) P_ ((struct frame *f,
+                             Lisp_Object font_object,
+                             Lisp_Object entity));
 };
 
 

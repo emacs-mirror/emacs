@@ -143,6 +143,8 @@ Lisp_Object Qc, Qm, Qp, Qd;
    characters; used in xfont.c and ftfont.c.  */
 Lisp_Object Qja, Qko;
 
+Lisp_Object QCuser_spec;
+
 Lisp_Object Vfont_encoding_alist;
 
 /* Alist of font registry symbol and the corresponding charsets
@@ -2989,22 +2991,25 @@ font_open_entity (f, entity, pixel_size)
   else if (CONSP (Vface_font_rescale_alist))
     scaled_pixel_size = pixel_size * font_rescale_ratio (entity);
 
-#if 0
-  /* This doesn't work if you have changed hinting or any other parameter.
-     We need to make a new object in every case to be sure. */
-  for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
-       objlist = XCDR (objlist))
-    if (! NILP (AREF (XCAR (objlist), FONT_TYPE_INDEX))
-	&& XFONT_OBJECT (XCAR (objlist))->pixel_size == pixel_size)
-      return  XCAR (objlist);
-#endif
-
   val = AREF (entity, FONT_TYPE_INDEX);
   for (driver_list = f->font_driver_list;
        driver_list && ! EQ (driver_list->driver->type, val);
        driver_list = driver_list->next);
   if (! driver_list)
     return Qnil;
+
+  for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
+       objlist = XCDR (objlist))
+    {
+      Lisp_Object fn = XCAR (objlist);
+      if (! NILP (AREF (fn, FONT_TYPE_INDEX))
+          && XFONT_OBJECT (fn)->pixel_size == pixel_size)
+        {
+          if (driver_list->driver->cached_font_ok == NULL
+              || driver_list->driver->cached_font_ok (f, fn, entity))
+            return fn;
+        }
+    }
 
   font_object = driver_list->driver->open (f, entity, scaled_pixel_size);
   if (!NILP (font_object))
@@ -3161,6 +3166,7 @@ font_spec_from_name (font_name)
   if (font_parse_name ((char *) SDATA (font_name), spec) == -1)
     return Qnil;
   font_put_extra (spec, QCname, font_name);
+  font_put_extra (spec, QCuser_spec, font_name);
   return spec;
 }
 
@@ -3174,14 +3180,13 @@ font_clear_prop (attrs, prop)
 
   if (! FONTP (font))
     return;
-#if 0
+
   if (! NILP (Ffont_get (font, QCname)))
     {
       font = Fcopy_font_spec (font);
       font_put_extra (font, QCname, Qnil);
     }
 
-#endif
   if (NILP (AREF (font, prop))
       && prop != FONT_FAMILY_INDEX
       && prop != FONT_FOUNDRY_INDEX
@@ -3539,8 +3544,8 @@ font_load_for_lface (f, attrs, spec)
   entity = font_open_for_lface (f, entity, attrs, spec);
   if (!NILP (entity))
     {
-      name = Ffont_get (spec, QCname);
-      if (STRINGP (name)) font_put_extra (entity, QCname, name);
+      name = Ffont_get (spec, QCuser_spec);
+      if (STRINGP (name)) font_put_extra (entity, QCuser_spec, name);
     }
   return entity;
 }
@@ -3614,7 +3619,7 @@ font_open_by_name (f, name)
   ret = font_open_by_spec (f, spec);
   /* Do not loose name originally put in.  */
   if (!NILP (ret))
-    font_put_extra (ret, QCname, args[1]);
+    font_put_extra (ret, QCuser_spec, args[1]);
 
   return ret;
 }
@@ -5268,6 +5273,8 @@ syms_of_font ()
 
   DEFSYM (Qja, "ja");
   DEFSYM (Qko, "ko");
+
+  DEFSYM (QCuser_spec, "user-spec");
 
   staticpro (&null_vector);
   null_vector = Fmake_vector (make_number (0), Qnil);
