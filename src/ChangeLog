@@ -38,6 +38,7 @@
 	(xg_frame_resized, xg_frame_set_char_size): Call
 	xg_clear_under_internal_border.
 	(xg_update_scrollbar_pos): Clear under old scroll bar position.
+
 2010-01-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_key_sequence): Catch keyboard switch after
