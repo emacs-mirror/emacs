@@ -568,6 +568,42 @@ xg_set_geometry (f)
                      f->left_pos, f->top_pos);
 }
 
+/* Clear under internal border if any.  As we use a mix of Gtk+ and X calls
+   and use a GtkFixed widget, this doesn't happen automatically.  */
+
+static void
+xg_clear_under_internal_border (f)
+     FRAME_PTR f;
+{
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+    {
+      GtkWidget *wfixed = f->output_data.x->edit_widget;
+      gtk_widget_queue_draw (wfixed);
+      gdk_window_process_all_updates ();
+      x_clear_area (FRAME_X_DISPLAY (f),
+                    FRAME_X_WINDOW (f),
+                    0, 0,
+                    FRAME_PIXEL_WIDTH (f),
+                    FRAME_INTERNAL_BORDER_WIDTH (f), 0);
+      x_clear_area (FRAME_X_DISPLAY (f),
+                    FRAME_X_WINDOW (f),
+                    0, 0,
+                    FRAME_INTERNAL_BORDER_WIDTH (f),
+                    FRAME_PIXEL_HEIGHT (f), 0);
+      x_clear_area (FRAME_X_DISPLAY (f),
+                    FRAME_X_WINDOW (f),
+                    0, FRAME_PIXEL_HEIGHT (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
+                    FRAME_PIXEL_WIDTH (f),
+                    FRAME_INTERNAL_BORDER_WIDTH (f), 0);
+      x_clear_area (FRAME_X_DISPLAY (f),
+                    FRAME_X_WINDOW (f),
+                    FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
+                    0,
+                    FRAME_INTERNAL_BORDER_WIDTH (f),
+                    FRAME_PIXEL_HEIGHT (f), 0);
+    }
+}
+
 /* Function to handle resize of our frame.  As we have a Gtk+ tool bar
    and a Gtk+ menu bar, we get resize events for the edit part of the
    frame only.  We let Gtk+ deal with the Gtk+ parts.
@@ -584,8 +620,8 @@ xg_frame_resized (f, pixelwidth, pixelheight)
   if (pixelwidth == -1 && pixelheight == -1)
     {
       if (FRAME_GTK_WIDGET (f) && GTK_WIDGET_MAPPED (FRAME_GTK_WIDGET (f)))
-          gdk_window_get_geometry(FRAME_GTK_WIDGET (f)->window, 0, 0,
-                                  &pixelwidth, &pixelheight, 0);
+          gdk_window_get_geometry (FRAME_GTK_WIDGET (f)->window, 0, 0,
+                                   &pixelwidth, &pixelheight, 0);
       else return;
     }
   
@@ -601,6 +637,7 @@ xg_frame_resized (f, pixelwidth, pixelheight)
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
 
+      xg_clear_under_internal_border (f);
       change_frame_size (f, rows, columns, 0, 1, 0);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
@@ -636,6 +673,10 @@ xg_frame_set_char_size (f, cols, rows)
   /* FRAME_TEXT_COLS_TO_PIXEL_WIDTH uses scroll_bar_actual_width, so call it
      after calculating that value.  */
   pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
+
+
+  /* Do this before resize, as we don't know yet if we will be resized.  */
+  xg_clear_under_internal_border (f);
 
   /* Must resize our top level widget.  Font size may have changed,
      but not rows/cols.  */
@@ -3201,15 +3242,43 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
+      GtkFixed *wf = GTK_FIXED (wfixed);
+
+      /* Clear out old position.  */
+      GList *iter;
+      int oldx = -1, oldy = -1, oldw, oldh;
+      for (iter = wf->children; iter; iter = iter->next)
+        if (((GtkFixedChild *)iter->data)->widget == wparent)
+          {
+            GtkFixedChild *ch = (GtkFixedChild *)iter->data;
+            if (ch->x != left || ch->y != top)
+              {
+                oldx = ch->x;
+                oldy = ch->y;
+                gtk_widget_get_size_request (wscroll, &oldw, &oldh);
+              }
+            break;
+          }
 
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
       gtk_widget_set_size_request (wscroll, width, height);
-      gtk_widget_queue_draw (wparent);
+      gtk_widget_queue_draw (wfixed);
       gdk_window_process_all_updates ();
+      if (oldx != -1) 
+        {
+          /* Clear under old scroll bar position.  This must be done after
+             the gtk_widget_queue_draw and gdk_window_process_all_updates
+             above.  */
+          x_clear_area (FRAME_X_DISPLAY (f),
+                        FRAME_X_WINDOW (f),
+                        oldx, oldy, oldw, oldh, 0);
+        }
+      
       /* GTK does not redraw until the main loop is entered again, but
          if there are no X events pending we will not enter it.  So we sync
          here to get some events.  */
+            
       x_sync (f);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);

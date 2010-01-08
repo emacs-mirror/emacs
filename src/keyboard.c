@@ -9502,7 +9502,13 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    key = read_char (NILP (prompt), nmaps,
 			     (Lisp_Object *) submaps, last_nonmenu_event,
 			     &used_mouse_menu, NULL);
-	    if (INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
+	    if ((INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
+		/* When switching to a new tty (with a new keyboard),
+		   read_char returns the new buffer, rather than -2
+		   (Bug#5095).  This is because `terminal-init-xterm'
+		   calls read-char, which eats the wrong_kboard_jmpbuf
+		   return.  Any better way to fix this? -- cyd  */
+		|| (interrupted_kboard != current_kboard))
 	      {
 		int found = 0;
 		struct kboard *k;

@@ -132,8 +132,9 @@ recently set ones come first, oldest ones come last)."
 (defconst bookmark-bmenu-header-height 2
   "Number of lines used for the *Bookmark List* header.")
 
-(defconst bookmark-bmenu-marks-width 1
-  "Number of columns (chars) used for the *Bookmark List* marks column.")
+(defconst bookmark-bmenu-marks-width 2
+  "Number of columns (chars) used for the *Bookmark List* marks column,
+including the annotations column.")
 
 (defcustom bookmark-bmenu-file-column 30
   "Column at which to display filenames in a buffer listing bookmarks.
@@ -289,12 +290,19 @@ This point is in `bookmark-current-buffer'.")
 (defvar bookmark-quit-flag nil
   "Non nil make `bookmark-bmenu-search' quit immediately.")
 
-;; Helper functions.
+;; Helper functions and macros.
 
-;; Only functions on this page and the next one (file formats) need to
-;; know anything about the format of bookmark-alist entries.
+(defmacro with-buffer-modified-unmodified (&rest body)
+  "Run BODY while preserving the buffer's `buffer-modified-p' state."
+  (let ((was-modified (make-symbol "was-modified")))
+    `(let ((,was-modified (buffer-modified-p)))
+       (unwind-protect
+           (progn ,@body)
+         (set-buffer-modified-p ,was-modified)))))
+
+;; Only functions below, in this page and the next one (file formats),
+;; need to know anything about the format of bookmark-alist entries.
 ;; Everyone else should go through them.
-
 
 (defun bookmark-name-from-full-record (full-record)
   "Return name of FULL-RECORD (an alist element instead of a string)."
@@ -866,6 +874,8 @@ Lines beginning with `#' are ignored."
   (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
 	(bookmark bookmark-annotation-name))
     (bookmark-set-annotation bookmark annotation)
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
     (bookmark-bmenu-surreptitiously-rebuild-list))
   (kill-buffer (current-buffer)))
 
@@ -1547,16 +1557,16 @@ deletion, or > if it is flagged for displaying."
                     " *" "  ")
                 name)
         (setq end (point))
-        (put-text-property start
-                           (+ bookmark-bmenu-marks-width 1 start)
-                           'bookmark-name-prop name)
+        (put-text-property
+         (+ bookmark-bmenu-marks-width start) end 'bookmark-name-prop name)
         (when (display-mouse-p)
           (add-text-properties
-           (+ bookmark-bmenu-marks-width 1 start) end
+           (+ bookmark-bmenu-marks-width start) end
            '(mouse-face highlight
              follow-link t
              help-echo "mouse-2: go to this bookmark in other window")))
         (insert "\n")))
+    (set-buffer-modified-p (not (= bookmark-alist-modification-count 0)))
     (goto-char (point-min))
     (forward-line 2)
     (bookmark-bmenu-mode)
@@ -1635,26 +1645,27 @@ Non-nil FORCE forces a redisplay showing the filenames.  FORCE is used
 mainly for debugging, and should not be necessary in normal use."
   (if (and (not force) bookmark-bmenu-toggle-filenames)
       nil ;already shown, so do nothing
-    (save-excursion
-      (save-window-excursion
-        (goto-char (point-min))
-        (forward-line 2)
-        (setq bookmark-bmenu-hidden-bookmarks ())
-        (let ((inhibit-read-only t))
-          (while (< (point) (point-max))
-            (let ((bmrk (bookmark-bmenu-bookmark)))
-              (push bmrk bookmark-bmenu-hidden-bookmarks)
-	      (let ((start (save-excursion (end-of-line) (point))))
-		(move-to-column bookmark-bmenu-file-column t)
-		;; Strip off `mouse-face' from the white spaces region.
-		(if (display-mouse-p)
-		    (remove-text-properties start (point)
-					    '(mouse-face nil help-echo nil))))
-	      (delete-region (point) (progn (end-of-line) (point)))
-              (insert "  ")
-              ;; Pass the NO-HISTORY arg:
-              (bookmark-insert-location bmrk t)
-              (forward-line 1))))))))
+    (with-buffer-modified-unmodified
+     (save-excursion
+       (save-window-excursion
+         (goto-char (point-min))
+         (forward-line 2)
+         (setq bookmark-bmenu-hidden-bookmarks ())
+         (let ((inhibit-read-only t))
+           (while (< (point) (point-max))
+             (let ((bmrk (bookmark-bmenu-bookmark)))
+               (push bmrk bookmark-bmenu-hidden-bookmarks)
+               (let ((start (save-excursion (end-of-line) (point))))
+                 (move-to-column bookmark-bmenu-file-column t)
+                 ;; Strip off `mouse-face' from the white spaces region.
+                 (if (display-mouse-p)
+                     (remove-text-properties start (point)
+                                             '(mouse-face nil help-echo nil))))
+               (delete-region (point) (progn (end-of-line) (point)))
+               (insert "  ")
+               ;; Pass the NO-HISTORY arg:
+               (bookmark-insert-location bmrk t)
+               (forward-line 1)))))))))
 
 
 (defun bookmark-bmenu-hide-filenames (&optional force)
@@ -1663,31 +1674,27 @@ Non-nil FORCE forces a redisplay showing the filenames.  FORCE is used
 mainly for debugging, and should not be necessary in normal use."
   (when (and (not force) bookmark-bmenu-toggle-filenames)
     ;; nothing to hide if above is nil
-    (save-excursion
-      (goto-char (point-min))
-      (forward-line 2)
-      (setq bookmark-bmenu-hidden-bookmarks
-            (nreverse bookmark-bmenu-hidden-bookmarks))
-      (let ((inhibit-read-only t)
-            (column (save-excursion
-                      (goto-char (point-min))
-                      (search-forward "Bookmark")
-                      (backward-word 1)
-                      (current-column))))
-        (while bookmark-bmenu-hidden-bookmarks
-          (move-to-column column t)
-          (bookmark-kill-line)
-          (let ((name  (pop bookmark-bmenu-hidden-bookmarks))
-                (start (point)))
-            (insert name)
-            (if (display-mouse-p)
-                (add-text-properties
-                 start (point)
-                 '(mouse-face highlight
-                   follow-link t
-                   help-echo
-                   "mouse-2: go to this bookmark in other window"))))
-          (forward-line 1))))))
+    (with-buffer-modified-unmodified
+     (save-excursion
+       (goto-char (point-min))
+       (forward-line 2)
+       (setq bookmark-bmenu-hidden-bookmarks
+             (nreverse bookmark-bmenu-hidden-bookmarks))
+       (let ((inhibit-read-only t))
+         (while bookmark-bmenu-hidden-bookmarks
+           (move-to-column bookmark-bmenu-marks-width t)
+           (bookmark-kill-line)
+           (let ((name  (pop bookmark-bmenu-hidden-bookmarks))
+                 (start (point)))
+             (insert name)
+             (put-text-property start (point) 'bookmark-name-prop name)
+             (if (display-mouse-p)
+                 (add-text-properties
+                  start (point)
+                  '(mouse-face
+                    highlight follow-link t help-echo
+                    "mouse-2: go to this bookmark in other window"))))
+           (forward-line 1)))))))
 
 
 (defun bookmark-bmenu-ensure-position ()
@@ -1752,18 +1759,18 @@ if an annotation exists."
   (interactive)
   (beginning-of-line)
   (bookmark-bmenu-ensure-position)
-  (let ((inhibit-read-only t))
-    (delete-char 1)
-    (insert ?>)
-    (forward-line 1)
-    (bookmark-bmenu-ensure-position)))
+  (with-buffer-modified-unmodified
+   (let ((inhibit-read-only t))
+     (delete-char 1)
+     (insert ?>)
+     (forward-line 1)
+     (bookmark-bmenu-ensure-position))))
 
 
 (defun bookmark-bmenu-select ()
   "Select this line's bookmark; also display bookmarks marked with `>'.
 You can mark bookmarks with the \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-mark] command."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (menu (current-buffer))
         (others ())
@@ -1811,20 +1818,8 @@ With a prefix arg, prompts for a file to save them in."
   (interactive "P")
   (save-excursion
     (save-window-excursion
-      (bookmark-save parg)))
-  ;; Show the buffer as unmodified after saving, but only if there are
-  ;; no marks: marks are not saved with the bookmarks, therefore from
-  ;; the user's point of view they are a "modification" in the buffer
-  ;;
-  ;; FIXME: Ideally, if the buffer were unmodified when there are no
-  ;; marks, and then some marks are made and removed without being
-  ;; executed, then the buffer would be restored to unmodified state.
-  ;; But that would require bookmark-specific logic to track buffer
-  ;; modification.  It might be worth it, but it's fine not to have it
-  ;; too -- the worst outcome is that the user might be tempted to
-  ;; save the bookmark list when it technically doesn't need saving.
-  (if (not (bookmark-bmenu-any-marks))
-      (set-buffer-modified-p nil)))
+      (bookmark-save parg)
+      (set-buffer-modified-p nil))))
 
 
 (defun bookmark-bmenu-load ()
@@ -1840,7 +1835,6 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-1-window ()
   "Select this line's bookmark, alone, in full frame."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (bookmark-jump (bookmark-bmenu-bookmark))
   (bury-buffer (other-buffer))
   (delete-other-windows))
@@ -1849,7 +1843,6 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-2-window ()
   "Select this line's bookmark, with previous buffer in second window."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (menu (current-buffer))
         (pop-up-windows t))
@@ -1863,7 +1856,6 @@ With a prefix arg, prompts for a file to save them in."
 (defun bookmark-bmenu-this-window ()
   "Select this line's bookmark in this window."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (bookmark-jump (bookmark-bmenu-bookmark)))
 
 
@@ -1871,7 +1863,6 @@ With a prefix arg, prompts for a file to save them in."
   "Select this line's bookmark in other window, leaving bookmark menu visible."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark-bmenu-ensure-position)
     (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
       (bookmark--jump-via bookmark 'switch-to-buffer-other-window))))
 
@@ -1884,7 +1875,6 @@ The current window remains selected."
         (pop-up-windows t)
         same-window-buffer-names
         same-window-regexps)
-    (bookmark-bmenu-ensure-position)
     (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
       (bookmark--jump-via bookmark 'display-buffer))))
 
@@ -1901,7 +1891,6 @@ The current window remains selected."
   "Show the annotation for the current bookmark in another window."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark-bmenu-ensure-position)
     (bookmark-show-annotation bookmark)))
 
 
@@ -1915,7 +1904,6 @@ The current window remains selected."
   "Edit the annotation for the current bookmark in another window."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark-bmenu-ensure-position)
     (bookmark-edit-annotation bookmark)))
 
 
@@ -1925,14 +1913,15 @@ Optional BACKUP means move up."
   (interactive "P")
   (beginning-of-line)
   (bookmark-bmenu-ensure-position)
-  (let ((inhibit-read-only t))
-    (delete-char 1)
-    ;; any flags to reset according to circumstances?  How about a
-    ;; flag indicating whether this bookmark is being visited?
-    ;; well, we don't have this now, so maybe later.
-    (insert " "))
-  (forward-line (if backup -1 1))
-  (bookmark-bmenu-ensure-position))
+  (with-buffer-modified-unmodified
+   (let ((inhibit-read-only t))
+     (delete-char 1)
+     ;; any flags to reset according to circumstances?  How about a
+     ;; flag indicating whether this bookmark is being visited?
+     ;; well, we don't have this now, so maybe later.
+     (insert " "))
+   (forward-line (if backup -1 1))
+   (bookmark-bmenu-ensure-position)))
 
 
 (defun bookmark-bmenu-backup-unmark ()
@@ -1951,11 +1940,12 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (interactive)
   (beginning-of-line)
   (bookmark-bmenu-ensure-position)
-  (let ((inhibit-read-only t))
-    (delete-char 1)
-    (insert ?D)
-    (forward-line 1)
-    (bookmark-bmenu-ensure-position)))
+  (with-buffer-modified-unmodified
+   (let ((inhibit-read-only t))
+     (delete-char 1)
+     (insert ?D)
+     (forward-line 1)
+     (bookmark-bmenu-ensure-position))))
 
 
 (defun bookmark-bmenu-delete-backwards ()
@@ -2001,7 +1991,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-rename ()
   "Rename bookmark on current line.  Prompts for a new name."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (thispoint (point)))
     (bookmark-rename bmrk)
@@ -2011,15 +2000,13 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-locate ()
   "Display location of this bookmark.  Displays in the minibuffer."
   (interactive)
- (bookmark-bmenu-ensure-position)
- (let ((bmrk (bookmark-bmenu-bookmark)))
-   (message "%s" (bookmark-location bmrk))))
+  (let ((bmrk (bookmark-bmenu-bookmark)))
+    (message "%s" (bookmark-location bmrk))))
 
 (defun bookmark-bmenu-relocate ()
   "Change the file path of the bookmark on the current line,
   prompting with completion for the new path."
   (interactive)
-  (bookmark-bmenu-ensure-position)
   (let ((bmrk (bookmark-bmenu-bookmark))
         (thispoint (point)))
     (bookmark-relocate bmrk)
@@ -2084,7 +2071,6 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."
   (goto-char (point-min))
-  (bookmark-bmenu-ensure-position)
   (while (not (equal name (bookmark-bmenu-bookmark)))
     (forward-line 1))
   (forward-line 0))

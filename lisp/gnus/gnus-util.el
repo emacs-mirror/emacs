@@ -969,6 +969,29 @@ If there's no subdirectory, delete DIRECTORY as well."
 			  (overlay-get overlay 'face))
 			(overlays-at pos)))))))
 
+(if (fboundp 'invisible-p)
+    (defalias 'gnus-invisible-p 'invisible-p)
+  ;; for Emacs < 22.2, and XEmacs.
+  (defun gnus-invisible-p (pos)
+    "Return non-nil if the character after POS is currently invisible."
+    (let ((prop (get-char-property pos 'invisible)))
+      (if (eq buffer-invisibility-spec t)
+	  prop
+	(or (memq prop buffer-invisibility-spec)
+	    (assq prop buffer-invisibility-spec))))))
+
+;; Note: the optional 2nd argument has a different meaning between
+;; Emacs and XEmacs.
+;; (next-char-property-change POSITION &optional LIMIT)
+;; (next-extent-change        POS      &optional OBJECT)
+(defalias 'gnus-next-char-property-change
+  (if (fboundp 'next-extent-change)
+      'next-extent-change 'next-char-property-change))
+
+(defalias 'gnus-previous-char-property-change
+  (if (fboundp 'previous-extent-change)
+      'previous-extent-change 'previous-char-property-change))
+
 ;;; Protected and atomic operations.  dmoore@ucsd.edu 21.11.1996
 ;; The primary idea here is to try to protect internal datastructures
 ;; from becoming corrupted when the user hits C-g, or if a hook or

@@ -176,13 +176,13 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                                "\0"
                                "[^\0]*\0"     ;id?
                                "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
-                               "[^\0]*\0" ;sha1 (empty if conflicted)?
-                               "\\([^\0]*\\)\0" ;size?
+                               "\\([^\0]*\\)\0" ;sha1 (empty if conflicted)?
+                               "\\([^\0]*\\)\0" ;size?p
                                "[^\0]*\0"       ;"y/n", executable?
                                "[^\0]*\0"       ;?
                                "\\([^\0]*\\)\0" ;"a/f/d" a=added?
                                "\\([^\0]*\\)\0" ;sha1 again?
-                               "[^\0]*\0"       ;size again?
+                               "\\([^\0]*\\)\0" ;size again?
                                "[^\0]*\0" ;"y/n", executable again?
                                "[^\0]*\0" ;last revid?
                                ;; There are more fields when merges are pending.
@@ -194,11 +194,20 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                       ;; conflict markers).
                       (cond
                        ((eq (char-after (match-beginning 1)) ?a) 'removed)
-                       ((eq (char-after (match-beginning 3)) ?a) 'added)
-                       ((and (eq (string-to-number (match-string 2))
+                       ((eq (char-after (match-beginning 4)) ?a) 'added)
+                       ((or (and (eq (string-to-number (match-string 3))
                                  (nth 7 (file-attributes file)))
-                             (equal (match-string 4)
+                             (equal (match-string 5)
                                     (vc-bzr-sha1 file)))
+			    (and
+			     ;; It looks like for lightweight
+			     ;; checkouts \2 is empty and we need to
+			     ;; look for size in \6.
+			     (eq (match-beginning 2) (match-end 2))
+			     (eq (string-to-number (match-string 6))
+				 (nth 7 (file-attributes file)))
+			     (equal (match-string 5)
+				    (vc-bzr-sha1 file))))
                         'up-to-date)
                        (t 'edited))
                     'unregistered))))
@@ -347,9 +356,19 @@ If any error occurred in running `bzr status', then return nil."
 	       (if (file-exists-p location-fname)
 		   (with-temp-buffer
 		     (insert-file-contents location-fname)
-		     (when (re-search-forward "file://\(.+\)" nil t)
-		       (setq branch-format-file (match-string 1))
-		       (file-exists-p branch-format-file)))
+		     ;; If the lightweight checkout points to a
+		     ;; location in the local file system, then we can
+		     ;; look there for the version information.
+		     (when (re-search-forward "file://\\(.+\\)" nil t)
+		       (let ((l-c-parent-dir (match-string 1)))
+			 (setq branch-format-file
+			       (expand-file-name vc-bzr-admin-branch-format-file
+						 l-c-parent-dir))
+			 (setq lastrev-file
+			       (expand-file-name vc-bzr-admin-lastrev l-c-parent-dir))
+			 ;; FIXME: maybe it's overkill to check if both these files exist.
+			 (and (file-exists-p branch-format-file)
+			      (file-exists-p lastrev-file)))))
 		 t)))
         (with-temp-buffer
           (insert-file-contents branch-format-file)
@@ -475,7 +494,7 @@ REV non-nil gets an error."
 		    (4 'change-log-list nil lax))))
 	 (append `((,log-view-message-re . 'log-view-message-face))
 		 ;; log-view-font-lock-keywords
-		 '(("^ *committer: \
+		 '(("^ *\\(?:committer\\|author\\): \
 \\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.+-]+@[[:alnum:]_.-]+\\)[>)]"
 		    (1 'change-log-name)
 		    (2 'change-log-email))
@@ -523,7 +542,8 @@ REV non-nil gets an error."
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
   ;; `bzr diff' exits with code 1 if diff is non-empty.
-  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 'async files
+  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*")
+	 (if vc-disable-async-diff 1 'async) files
          "--diff-options" (mapconcat 'identity
                                      (vc-switches 'bzr 'diff)
 				     " ")
@@ -651,7 +671,6 @@ stream.  Standard error output is discarded."
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C  " . conflict)
 		       ("?  " . unregistered)
-		       ("?  " . unregistered)
 		       ;; No such state, but we need to distinguish this case.
 		       ("R  " . renamed)
 		       ;; For a non existent file FOO, the output is:
@@ -663,6 +682,8 @@ stream.  Standard error output is discarded."
 		       ;; FIXME: maybe this warning can be put in the vc-dir header...
 		       ("wor" . not-found)
                        ;; Ignore "P " and "P." for pending patches.
+		       ("P  " . not-found)
+		       ("P. " . not-found)
                        ))
 	(translated nil)
 	(result nil))
@@ -732,7 +753,7 @@ stream.  Standard error output is discarded."
     (define-key map "\C-k" 'vc-bzr-shelve-delete-at-point)
     ;; (define-key map "=" 'vc-bzr-shelve-show-at-point)
     ;; (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
-    (define-key map "A" 'vc-bzr-shelve-apply-at-point)
+    (define-key map "P" 'vc-bzr-shelve-apply-at-point)
     map))
 
 (defvar vc-bzr-shelve-menu-map
@@ -740,9 +761,9 @@ stream.  Standard error output is discarded."
     (define-key map [de]
       '(menu-item "Delete shelf" vc-bzr-shelve-delete-at-point
 		  :help "Delete the current shelf"))
-    (define-key map [ap]
-      '(menu-item "Apply shelf" vc-bzr-shelve-apply-at-point
-		  :help "Apply the current shelf"))
+    (define-key map [po]
+      '(menu-item "Apply and remove shelf (pop)" vc-bzr-shelve-apply-at-point
+		  :help "Apply the current shelf and remove it"))
     ;; (define-key map [sh]
     ;;   '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
     ;; 		  :help "Show the contents of the current shelve"))
@@ -800,7 +821,7 @@ stream.  Standard error output is discarded."
 	     (propertize x
 			 'face 'font-lock-variable-name-face
 			 'mouse-face 'highlight
-			 'help-echo "mouse-3: Show shelve menu\nA: Apply shelf\nC-k: Delete shelf"
+			 'help-echo "mouse-3: Show shelve menu\nP: Apply and remove shelf (pop)\nC-k: Delete shelf"
 			 'keymap vc-bzr-shelve-map))
 	   shelve "\n"))
        (concat
@@ -830,8 +851,8 @@ stream.  Standard error output is discarded."
 ;;   (pop-to-buffer (current-buffer)))
 
 (defun vc-bzr-shelve-apply (name)
-  "Apply shelve NAME."
-  (interactive "sApply shelf: ")
+  "Apply shelve NAME and remove it afterwards."
+  (interactive "sApply (and remove) shelf: ")
   (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" name)
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 

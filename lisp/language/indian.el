@@ -153,8 +153,8 @@ South Indian language Malayalam is supported in this language environment."))
 	   ("a" . "\u0903")			 ; vowel modifier (post) 
 	   ("S" . "\u0951")			 ; stress sign (above)
 	   ("s" . "\u0952")			 ; stress sign (below)
-	   ("J" . "\u200D")			 ; ZWJ
 	   ("N" . "\u200C")			 ; ZWNJ
+	   ("J" . "\u200D")			 ; ZWJ
 	   ("X" . "[\u0900-\u097F]"))))		 ; all coverage
     (indian-compose-regexp
      (concat
@@ -195,8 +195,8 @@ South Indian language Malayalam is supported in this language environment."))
 	   ("b" . "[\u0D62-\u0D63]")		  ; belowbase matra
 	   ("a" . "[\u0D02-\u0D03]")		  ; abovebase sign
 	   ("H" . "\u0D4D")			  ; virama sign 
-	   ("N" . "\u200D")			  ; ZWJ
-	   ("J" . "\u200C")			  ; ZWNJ
+	   ("N" . "\u200C")			  ; ZWNJ
+	   ("J" . "\u200D")			  ; ZWJ
 	   ("X" . "[\u0D00-\u0D7F]"))))		  ; all coverage
     (indian-compose-regexp
      (concat

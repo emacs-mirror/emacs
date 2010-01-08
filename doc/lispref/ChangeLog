@@ -1,3 +1,27 @@
+2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid dubious uses of save-excursions.
+	* positions.texi (Excursions): Recommend the use of
+	save-current-buffer if applicable.
+	* text.texi (Clickable Text): Fix the example code which used
+	save-excursion in a naive way which sometimes preserves point and
+	sometimes not.
+	* variables.texi (Creating Buffer-Local):
+	* os.texi (Session Management):
+	* display.texi (GIF Images):
+	* control.texi (Cleanups): Use (save|with)-current-buffer.
+
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Example Major Modes): Fix indentation.  (Bug#5195)
+
+2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations, Character Codes)
+	(Converting Representations, Explicit Encoding)
+	(Translation of Characters): Use hex notation consistently.
+	(Character Sets): Fix map-charset-chars doc (Bug#5197).
+
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* loading.texi (Where Defined): Make it clearer that these are
@@ -8364,7 +8388,7 @@
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-      2007, 2008, 2009  Free Software Foundation, Inc.
+      2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

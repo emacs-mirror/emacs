@@ -1,3 +1,110 @@
+2010-01-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (build-default-fontset-data): Exclude
+	characters in scripts kana, hangul, han, or cjk-misc.
+
+2010-01-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-dir.el (vc-dir-prepare-status-buffer): Pass a (fake) filename
+	to `create-file-buffer' as it expects, not just a buffer name.
+	(vc-dir-mode): Include the buffer name in `list-buffers-directory',
+	to help uniquify.  (Bug#3224)
+
+2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* font-setting.el (font-setting-change-default-font): Use user-spec
+	instead of name.
+
+2010-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Ignore pending merges.
+
+2010-01-05  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Handle
+	qualified decorators (Bug#881).
+
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-working-revision): Fix looking for a revision
+	in a lightweight checkout.
+
+2010-01-05  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and
+	ZWJ.
+
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-diff): Obey vc-disable-async-diff.
+
+2010-01-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-state-heuristic): Make it work for lightweight
+	checkouts.  (Bug#618)
+	(vc-bzr-log-view-mode): Also highlight the author.
+	(vc-bzr-shelve-map): Change binding for vc-bzr-shelve-apply-at-point.
+	(vc-bzr-shelve-menu-map):
+	(vc-bzr-dir-extra-headers): Improve menu and tooltip text.
+	(vc-bzr-shelve-apply): Make prompt more explicit.
+
+2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/browse-url.el (browse-url-encode-url): Don't escape commas.
+	They are valid characters in URL paths (rfc3986), and at least
+	Firefox does not understand the encoded version (Bug#3166).
+
+2010-01-02  Daniel Elliott  <danelliottster@gmail.com>  (tiny change)
+
+	* progmodes/octave-mod.el (octave-end-keywords)
+	(octave-block-begin-or-end-regexp, octave-block-match-alist): Add
+	"end" keyword (Bug#3061).
+	(octave-end-as-array-index-p): New function.
+	(calculate-octave-indent): Use it.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Consistently put the text property on the bookmark name.
+	(bookmark-bmenu-marks-width): Bump back to 2, to include
+	annotation marks.
+	(bookmark-bmenu-hide-filenames): Adjust for above, and put the text
+	property on the bookmark name, instead of not putting it at all.
+	(bookmark-bmenu-list): Fix where we put the text property.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-save): Just depend on the new logic
+	for showing buffer modified state (as added in the previous change).
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Show modified state of bookmark buffer more accurately.
+	(bookmark-bmenu-list): Initialize buffer-modified-p properly.
+	(bookmark-send-edited-annotation): Mark bookmark-alist as modified.
+	(with-buffer-modified-unmodified): New macro.
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
+	(bookmark-bmenu-mark, bookmark-bmenu-unmark, bookmark-bmenu-delete):
+	Use new macro to preserve the buffer modified state.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window,
+	(bookmark-bmenu-2-window, bookmark-bmenu-this-window)
+	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window)
+	(bookmark-bmenu-show-annotation, bookmark-bmenu-edit-annotation)
+	(bookmark-bmenu-rename, bookmark-bmenu-locate)
+	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark): Remove
+	unnecessary calls to `bookmark-bmenu-ensure-position'.
+
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Make
+	the lines in the generated doc string shorter.  (Bug#4668)
+
+2010-01-02  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el: Add follow-link binding (Bug#4738).
+
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (bzr-update): Renamed from cvs-update.
