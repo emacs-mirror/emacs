@@ -5077,7 +5077,8 @@ Otherwise, generate and save a value for `canlock-password' first."
 	  "Denied posting -- the From looks strange: \"%s\"." from)
 	 nil)
 	((let ((addresses (rfc822-addresses from)))
-	   (while (and addresses
+	   ;; `rfc822-addresses' returns a string if parsing fails.
+	   (while (and (consp addresses)
 		       (not (eq (string-to-char (car addresses)) ?\()))
 	     (setq addresses (cdr addresses)))
 	   addresses)

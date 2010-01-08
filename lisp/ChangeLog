@@ -1,3 +1,22 @@
+2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* font-setting.el (font-setting-change-default-font): Use user-spec
+	instead of name.
+
+2010-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Ignore pending merges.
+
+2010-01-05  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Handle
+	qualified decorators (Bug#881).
+
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-working-revision): Fix looking for a revision
+	in a lightweight checkout.
+
 2010-01-05  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and

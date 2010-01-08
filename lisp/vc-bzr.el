@@ -356,9 +356,19 @@ If any error occurred in running `bzr status', then return nil."
 	       (if (file-exists-p location-fname)
 		   (with-temp-buffer
 		     (insert-file-contents location-fname)
-		     (when (re-search-forward "file://\(.+\)" nil t)
-		       (setq branch-format-file (match-string 1))
-		       (file-exists-p branch-format-file)))
+		     ;; If the lightweight checkout points to a
+		     ;; location in the local file system, then we can
+		     ;; look there for the version information.
+		     (when (re-search-forward "file://\\(.+\\)" nil t)
+		       (let ((l-c-parent-dir (match-string 1)))
+			 (setq branch-format-file
+			       (expand-file-name vc-bzr-admin-branch-format-file
+						 l-c-parent-dir))
+			 (setq lastrev-file
+			       (expand-file-name vc-bzr-admin-lastrev l-c-parent-dir))
+			 ;; FIXME: maybe it's overkill to check if both these files exist.
+			 (and (file-exists-p branch-format-file)
+			      (file-exists-p lastrev-file)))))
 		 t)))
         (with-temp-buffer
           (insert-file-contents branch-format-file)
@@ -661,7 +671,6 @@ stream.  Standard error output is discarded."
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C  " . conflict)
 		       ("?  " . unregistered)
-		       ("?  " . unregistered)
 		       ;; No such state, but we need to distinguish this case.
 		       ("R  " . renamed)
 		       ;; For a non existent file FOO, the output is:
@@ -673,6 +682,8 @@ stream.  Standard error output is discarded."
 		       ;; FIXME: maybe this warning can be put in the vc-dir header...
 		       ("wor" . not-found)
                        ;; Ignore "P " and "P." for pending patches.
+		       ("P  " . not-found)
+		       ("P. " . not-found)
                        ))
 	(translated nil)
 	(result nil))
