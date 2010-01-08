@@ -361,8 +361,10 @@
 	     (let ((from (car range)) (to (cdr range)))
 	       (if (< to #x110000)
 		   (while (<= from to)
-		     (aset cjk-table from
-			   (logior (or (aref cjk-table from) 0) mask))
+		     (or (memq (aref char-script-table from)
+			       '(kana hangul han cjk-misc))
+			 (aset cjk-table from
+			       (logior (or (aref cjk-table from) 0) mask)))
 		     (setq from (1+ from))))))
 	 (nth 1 elt) nil (nth 2 elt) (nth 3 elt)))
       (setq i (1+ i)))

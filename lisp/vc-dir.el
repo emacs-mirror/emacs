@@ -101,7 +101,9 @@ See `run-hooks'."
                       (return buffer))))))))
     (or buf
         ;; Create a new buffer named BNAME.
-        (with-current-buffer (create-file-buffer bname)
+	;; We pass a filename to create-file-buffer because it is what
+	;; the function expects, and also what uniquify needs (if active)
+        (with-current-buffer (create-file-buffer (expand-file-name bname dir))
           (cd dir)
           (vc-setup-buffer (current-buffer))
           ;; Reset the vc-parent-buffer-name so that it does not appear
@@ -928,7 +930,7 @@ the *vc-dir* buffer.
     (set (make-local-variable 'vc-ewoc) (ewoc-create #'vc-dir-printer))
     (set (make-local-variable 'revert-buffer-function)
 	 'vc-dir-revert-buffer-function)
-    (setq list-buffers-directory default-directory)
+    (setq list-buffers-directory (expand-file-name "*vc-dir*" default-directory))
     (add-to-list 'vc-dir-buffers (current-buffer))
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
