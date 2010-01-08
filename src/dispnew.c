@@ -6340,8 +6340,11 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
   check_frame_size (f, &newheight, &newwidth);
 
   /* If we're not changing the frame size, quit now.  */
+  /* Frame width may be unchanged but the text portion may change, for example,
+     fullscreen and remove/add scroll bar.  */
   if (newheight == FRAME_LINES (f)
-      && new_frame_total_cols == FRAME_TOTAL_COLS (f))
+      && newwidth == FRAME_COLS  (f) // text portion unchanged
+      && new_frame_total_cols == FRAME_TOTAL_COLS (f)) // frame width unchanged
     return;
 
   BLOCK_INPUT;

@@ -671,7 +671,6 @@ stream.  Standard error output is discarded."
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C  " . conflict)
 		       ("?  " . unregistered)
-		       ("?  " . unregistered)
 		       ;; No such state, but we need to distinguish this case.
 		       ("R  " . renamed)
 		       ;; For a non existent file FOO, the output is:
@@ -683,6 +682,8 @@ stream.  Standard error output is discarded."
 		       ;; FIXME: maybe this warning can be put in the vc-dir header...
 		       ("wor" . not-found)
                        ;; Ignore "P " and "P." for pending patches.
+		       ("P  " . not-found)
+		       ("P. " . not-found)
                        ))
 	(translated nil)
 	(result nil))

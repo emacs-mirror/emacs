@@ -2951,6 +2951,12 @@ x_clear_frame (struct frame *f)
      colors or something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
 
+#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
+  /* Make sure scroll bars are redrawn.  As they aren't redrawn by
+     redisplay, do it here.  */
+  gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+#endif
+  
   XFlush (FRAME_X_DISPLAY (f));
 
   UNBLOCK_INPUT;
