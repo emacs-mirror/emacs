@@ -1346,13 +1346,15 @@ the designated part of OBJECT.  */)
 /* Replace properties of text from START to END with new list of
    properties PROPERTIES.  OBJECT is the buffer or string containing
    the text.  OBJECT nil means use the current buffer.
-   SIGNAL_AFTER_CHANGE_P nil means don't signal after changes.  Value
-   is nil if the function _detected_ that it did not replace any
-   properties, non-nil otherwise.  */
+   COHERENT_CHANGE_P nil means this is being called as an internal
+   subroutine, rather than as a change primitive with checking of
+   read-only, invoking change hooks, etc..  Value is nil if the
+   function _detected_ that it did not replace any properties, non-nil
+   otherwise.  */
 
 Lisp_Object
-set_text_properties (start, end, properties, object, signal_after_change_p)
-     Lisp_Object start, end, properties, object, signal_after_change_p;
+set_text_properties (start, end, properties, object, coherent_change_p)
+     Lisp_Object start, end, properties, object, coherent_change_p;
 {
   register INTERVAL i;
   Lisp_Object ostart, oend;
@@ -1397,12 +1399,12 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
 	return Qnil;
     }
 
-  if (BUFFERP (object))
+  if (BUFFERP (object) && !NILP (coherent_change_p))
     modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   set_text_properties_1 (start, end, properties, object, i);
 
-  if (BUFFERP (object) && !NILP (signal_after_change_p))
+  if (BUFFERP (object) && !NILP (coherent_change_p))
     signal_after_change (XINT (start), XINT (end) - XINT (start),
 			 XINT (end) - XINT (start));
   return Qt;

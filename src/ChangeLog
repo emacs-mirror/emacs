@@ -1,3 +1,10 @@
+2010-01-08  Alan Mackenzie  <acm@muc.de>
+
+	Fix spurious before-change-functions invocation from (insert ?\n).
+	* textprop.c (set_text_properties): rename parameter
+	`signal_after_change_p' to `coherent_change_p', and make the
+	invocation of `modify_region' conditional on it.
+
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* lread.c (syms_of_lread): Make it clearer that these are the
