@@ -1,3 +1,8 @@
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-goto-section): Signal error if the section is not
+	found (Bug#5317).
+
 2010-01-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-bzr.el (vc-bzr-working-revision): On Windows and MS-DOS, accept

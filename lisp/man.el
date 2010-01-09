@@ -1500,7 +1500,9 @@ Returns t if section is found, nil otherwise."
 		  (string= chosen ""))
 	      default
 	    chosen)))
-  (Man-find-section (aheadsym Man-sections-alist)))
+  (unless (Man-find-section (aheadsym Man-sections-alist))
+    (error "Section not found")))
+
 
 (defun Man-goto-see-also-section ()
   "Move point to the \"SEE ALSO\" section.
