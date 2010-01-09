@@ -905,6 +905,7 @@ static void store_mode_line_noprop_char P_ ((char));
 static int store_mode_line_noprop P_ ((const unsigned char *, int, int));
 static void x_consider_frame_title P_ ((Lisp_Object));
 static void handle_stop P_ ((struct it *));
+static void handle_stop_backwards P_ ((struct it *, EMACS_INT));
 static int tool_bar_lines_needed P_ ((struct frame *, int *));
 static int single_display_spec_intangible_p P_ ((Lisp_Object));
 static void ensure_echo_area_buffers P_ ((void));
@@ -5527,7 +5528,30 @@ reseat (it, pos, force_p)
   if (force_p
       || CHARPOS (pos) > it->stop_charpos
       || CHARPOS (pos) < original_pos)
-    handle_stop (it);
+    {
+      if (it->bidi_p)
+	{
+	  /* For bidi iteration, we need to prime prev_stop and
+	     base_level_stop with our best estimations.  */
+	  if (CHARPOS (pos) < it->prev_stop)
+	    {
+	      handle_stop_backwards (it, BEGV);
+	      if (CHARPOS (pos) < it->base_level_stop)
+		it->base_level_stop = 0;
+	    }
+	  else if (CHARPOS (pos) > it->stop_charpos
+		   && it->stop_charpos >= BEGV)
+	    handle_stop_backwards (it, it->stop_charpos);
+	  else	/* force_p */
+	    handle_stop (it);
+	}
+      else
+	{
+	  handle_stop (it);
+	  it->prev_stop = it->base_level_stop = 0;
+	}
+
+    }
 
   CHECK_IT (it);
 }
@@ -6711,7 +6735,7 @@ next_element_from_buffer (it)
 	   && IT_CHARPOS (*it) < it->prev_stop)
     {
       if (it->base_level_stop <= 0)
-	it->base_level_stop = 1;
+	it->base_level_stop = BEGV;
       if (IT_CHARPOS (*it) < it->base_level_stop)
 	abort ();
       handle_stop_backwards (it, it->base_level_stop);

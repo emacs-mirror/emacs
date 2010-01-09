@@ -1,3 +1,10 @@
+2010-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop_backwards): Add a prototype.
+	(reseat): call handle_stop_backwards to recompute prev_stop and
+	base_level_stop for the new position.  Solves the crash when
+	scrolling backwards.
+
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (pitx): Display some bidi information about the
