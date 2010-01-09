@@ -1,5 +1,11 @@
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* intervals.h, textprop.c (extend_property_ranges): Return value
+	and args changed.  Discard properties that begin at or after the
+	new end (Bug#5306).
+
+	* editfns.c (Fformat): Caller changed.
+
 	* nsterm.m (ns_set_default_prefs): Delete function.
 	(syms_of_nsterm): Initialize ns_command_modifier,
 	ns_control_modifier, ns_function_modifier, ns_antialias_text, and
