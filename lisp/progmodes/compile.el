@@ -567,7 +567,12 @@ especially the TAB character."
 
 (defcustom compilation-read-command t
   "Non-nil means \\[compile] reads the compilation command to use.
-Otherwise, \\[compile] just uses the value of `compile-command'."
+Otherwise, \\[compile] just uses the value of `compile-command'.
+
+Note that changing this to nil may be a security risk, because a
+file might define a malicious `compile-command' as a file local
+variable, and you might not notice.  Therefore, `compile-command'
+is considered unsafe if this variable is nil."
   :type 'boolean
   :group 'compilation)
 
