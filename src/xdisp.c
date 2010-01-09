@@ -1983,12 +1983,6 @@ get_glyph_string_clip_rects (s, rects, n)
 	r.y = WINDOW_HEADER_LINE_HEIGHT (s->w);
       else
 	r.y = max (0, s->row->y);
-
-      /* If drawing a tool-bar window, draw it over the internal border
-	 at the top of the window.  */
-      if (WINDOWP (s->f->tool_bar_window)
-	  && s->w == XWINDOW (s->f->tool_bar_window))
-	r.y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
     }
 
   r.y = WINDOW_TO_FRAME_PIXEL_Y (s->w, r.y);
@@ -19916,12 +19910,6 @@ init_glyph_string (s, OPTIONAL_HDC (hdc) char2b, w, row, area, start, hl)
   s->first_glyph = row->glyphs[area] + start;
   s->height = row->height;
   s->y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-
-  /* Display the internal border below the tool-bar window.  */
-  if (WINDOWP (s->f->tool_bar_window)
-      && s->w == XWINDOW (s->f->tool_bar_window))
-    s->y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
-
   s->ybase = s->y + row->ascent;
 }
 
