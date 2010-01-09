@@ -1,3 +1,25 @@
+2010-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.h (FRAME_TOP_MARGIN_HEIGHT): New macro.
+	(FRAME_LINE_TO_PIXEL_Y, FRAME_PIXEL_Y_TO_LINE): Take account of pseudo
+	windows above internal border.
+
+	* window.h (WINDOW_MENU_BAR_P, WINDOW_TOOL_BAR_P): New macros.
+	(WINDOW_TOP_EDGE_Y, WINDOW_BOTTOM_EDGE_Y): Take account of pseudo
+	windows above internal border.
+
+	* xdisp.c (get_glyph_string_clip_rects, init_glyph_string): Don't treat
+	tool bar windows specially.
+
+	* xfns.c (x_set_tool_bar_lines): Take account of menu bar height.
+
+	* xterm.c (x_after_update_window_line): Don't treat tool bar windows
+	specially.
+	(XTflash): Take account of menu bar height.
+
+	* w32term.c (x_after_update_window_line): Don't treat tool bar windows
+	specially.
+
 2010-01-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dispnew.c (change_frame_size_1): newwidth == FRAME_COLS  (f) must
@@ -38,6 +60,7 @@
 	(xg_frame_resized, xg_frame_set_char_size): Call
 	xg_clear_under_internal_border.
 	(xg_update_scrollbar_pos): Clear under old scroll bar position.
+
 2010-01-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_key_sequence): Catch keyboard switch after
