@@ -3396,6 +3396,45 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
 
+  /* Don't make height higher than display height unless the user asked
+     for it.  */
+  height = FRAME_LINES (f);
+  tem = x_get_arg (dpyinfo, parms, Qheight, 0, 0, RES_TYPE_NUMBER);
+  if (EQ (tem, Qunbound))
+    {
+      int ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+      int dph = DisplayHeight (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      if (ph > dph)
+        {
+          height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, dph) -
+            FRAME_TOOL_BAR_LINES (f) - FRAME_MENU_BAR_LINES (f);
+          if (FRAME_EXTERNAL_TOOL_BAR (f))
+            height -= 2; /* We can't know how big it will be.  */
+          if (FRAME_EXTERNAL_MENU_BAR (f))
+            height -= 2; /* We can't know how big it will be.  */
+        }
+    }
+
+  /* Don't make width wider than display width unless the user asked
+     for it.  */
+  width = FRAME_COLS (f);
+  tem = x_get_arg (dpyinfo, parms, Qwidth, 0, 0, RES_TYPE_NUMBER);
+  if (EQ (tem, Qunbound))
+    {
+      int pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, FRAME_COLS (f));
+      int dpw = DisplayWidth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      if (pw > dpw)
+        width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, dpw);
+    }
+
+  if (height != FRAME_LINES (f) || width != FRAME_COLS (f))
+    {
+      check_frame_size (f, &height, &width);
+      FRAME_LINES (f) = height;
+      SET_FRAME_COLS (f, width);
+    }
+  
+
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
