@@ -603,7 +603,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 			(file-name-sans-extension buffer-file-name))))))"
   :type 'string
   :group 'compilation)
-;;;###autoload(put 'compile-command 'safe-local-variable 'stringp)
+;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command)) compilation-read-command))))
 
 ;;;###autoload
 (defcustom compilation-disable-input nil
