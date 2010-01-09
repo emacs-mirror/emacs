@@ -1,3 +1,8 @@
+2010-01-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-1): Use orig-argi to check for ignored X and
+	NS options.
+
 2010-01-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (build-default-fontset-data): Exclude
