@@ -1574,7 +1574,8 @@ instead of the current time.  The argument should have the form
 have the form (HIGH . LOW), but this is considered obsolete.
 
 WARNING: Since the result is floating point, it may not be exact.
-Do not use this function if precise time stamps are required.  */)
+If precise time stamps are required, use either `current-time',
+or (if you need time as a string) `format-time-string'.  */)
      (specified_time)
      Lisp_Object specified_time;
 {

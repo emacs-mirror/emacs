@@ -1,3 +1,12 @@
+2010-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Ffloat_time): Doc fix.
+
+2010-01-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): Don't create frame larger than display
+	by default bug#3643.
+
 2010-01-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.h (FRAME_TOP_MARGIN_HEIGHT): New macro.
