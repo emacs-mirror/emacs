@@ -1,3 +1,8 @@
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Check for invisible text at the correct
+	position (Bug#4040).
+
 2010-01-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (Ffloat_time): Doc fix.
