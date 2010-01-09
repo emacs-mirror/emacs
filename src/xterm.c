@@ -753,11 +753,6 @@ x_after_update_window_line (desired_row)
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
-      /* Internal border is drawn below the tool bar.  */
-      if (WINDOWP (f->tool_bar_window)
-	  && w == XWINDOW (f->tool_bar_window))
-	y -= width;
-
       BLOCK_INPUT;
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    0, y, width, height, False);
@@ -3062,7 +3057,7 @@ XTflash (f)
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
 			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			   + FRAME_TOP_MARGIN_HEIGHT (f)),
 			  width, flash_height);
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
@@ -3116,7 +3111,7 @@ XTflash (f)
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
 			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			   + FRAME_TOP_MARGIN_HEIGHT (f)),
 			  width, flash_height);
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
 			  flash_left,
