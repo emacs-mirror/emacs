@@ -2184,12 +2184,12 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (setq cl1-line (string-to-number (match-string 1 argi))
 			 cl1-column (string-to-number (match-string 2 argi))))
 
-		  ((setq cl1-tem (assoc argi command-line-x-option-alist))
+		  ((setq cl1-tem (assoc orig-argi command-line-x-option-alist))
 		   ;; Ignore X-windows options and their args if not using X.
 		   (setq command-line-args-left
 			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
 
-		  ((setq cl1-tem (assoc argi command-line-ns-option-alist))
+		  ((setq cl1-tem (assoc orig-argi command-line-ns-option-alist))
 		   ;; Ignore NS-windows options and their args if not using NS.
 		   (setq command-line-args-left
 			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
