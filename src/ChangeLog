@@ -1,5 +1,10 @@
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* nsterm.m (ns_set_default_prefs): Delete function.
+	(syms_of_nsterm): Initialize ns_command_modifier,
+	ns_control_modifier, ns_function_modifier, ns_antialias_text, and
+	ns_antialias_threshold here, not in ns_term_init (Bug#4113).
+
 	* xdisp.c (pos_visible_p): Check for invisible text at the correct
 	position (Bug#4040).
 
