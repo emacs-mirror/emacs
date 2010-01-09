@@ -1,3 +1,8 @@
+2010-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-bzr.el (vc-bzr-working-revision): On Windows and MS-DOS, accept
+	URLs with a leading triple slash in the file: scheme.  (Bug#5345)
+
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el: Don't treat compile-command as safe if
