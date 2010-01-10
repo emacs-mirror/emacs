@@ -419,6 +419,8 @@ ELCFILES = \
 	$(lisp)/cedet/semantic/wisent/javascript.elc \
 	$(lisp)/cedet/semantic/wisent/javat-wy.elc \
 	$(lisp)/cedet/semantic/wisent/js-wy.elc \
+	$(lisp)/cedet/semantic/wisent/python-wy.elc \
+	$(lisp)/cedet/semantic/wisent/python.elc \
 	$(lisp)/cedet/semantic/wisent/wisent.elc \
 	$(lisp)/cedet/srecode.elc \
 	$(lisp)/cedet/srecode/args.elc \

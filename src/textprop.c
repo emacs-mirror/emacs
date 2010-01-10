@@ -2028,24 +2028,41 @@ add_text_properties_from_list (object, list, delta)
 
 
 
-/* Modify end-points of ranges in LIST destructively.  LIST is a list
-   as returned from text_property_list.  Change end-points equal to
-   OLD_END to NEW_END.  */
+/* Modify end-points of ranges in LIST destructively, and return the
+   new list.  LIST is a list as returned from text_property_list.
+   Discard properties that begin at or after NEW_END, and limit
+   end-points to NEW_END.  */
 
-void
-extend_property_ranges (list, old_end, new_end)
-     Lisp_Object list, old_end, new_end;
+Lisp_Object
+extend_property_ranges (list, new_end)
+     Lisp_Object list, new_end;
 {
-  for (; CONSP (list); list = XCDR (list))
+  Lisp_Object prev = Qnil, head = list;
+  int max = XINT (new_end);
+
+  for (; CONSP (list); prev = list, list = XCDR (list))
     {
-      Lisp_Object item, end;
+      Lisp_Object item, beg, end;
 
       item = XCAR (list);
+      beg = XCAR (item);
       end = XCAR (XCDR (item));
 
-      if (EQ (end, old_end))
+      if (XINT (beg) >= max)
+	{
+	  /* The start-point is past the end of the new string.
+	     Discard this property.  */
+	  if (EQ (head, list))
+	    head = XCDR (list);
+	  else
+	    XSETCDR (prev, XCDR (list));
+	}
+      else if (XINT (end) > max)
+	/* The end-point is past the end of the new string.  */
 	XSETCAR (XCDR (item), new_end);
     }
+
+  return head;
 }
 
 

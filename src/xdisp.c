@@ -1363,7 +1363,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
       int top_x = it.current_x;
       int top_y = it.current_y;
       enum it_method it_method = it.method;
-      /* Calling line_bottom_y may change it.method.  */
+      /* Calling line_bottom_y may change it.method, it.position, etc.  */
       int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
@@ -1378,7 +1378,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	      Lisp_Object window, prop;
 
 	      XSETWINDOW (window, w);
-	      prop = Fget_char_property (make_number (it.position.charpos),
+	      prop = Fget_char_property (make_number (charpos),
 					 Qinvisible, window);
 
 	      /* If charpos coincides with invisible text covered with an
@@ -1981,12 +1981,6 @@ get_glyph_string_clip_rects (s, rects, n)
 	r.y = WINDOW_HEADER_LINE_HEIGHT (s->w);
       else
 	r.y = max (0, s->row->y);
-
-      /* If drawing a tool-bar window, draw it over the internal border
-	 at the top of the window.  */
-      if (WINDOWP (s->f->tool_bar_window)
-	  && s->w == XWINDOW (s->f->tool_bar_window))
-	r.y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
     }
 
   r.y = WINDOW_TO_FRAME_PIXEL_Y (s->w, r.y);
@@ -19424,12 +19418,6 @@ init_glyph_string (s, OPTIONAL_HDC (hdc) char2b, w, row, area, start, hl)
   s->first_glyph = row->glyphs[area] + start;
   s->height = row->height;
   s->y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-
-  /* Display the internal border below the tool-bar window.  */
-  if (WINDOWP (s->f->tool_bar_window)
-      && s->w == XWINDOW (s->f->tool_bar_window))
-    s->y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
-
   s->ybase = s->y + row->ascent;
 }
 

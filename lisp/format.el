@@ -222,9 +222,6 @@ For most purposes, consider using `format-encode-region' instead."
 		  (multibyte enable-multibyte-characters)
 		  (coding-system buffer-file-coding-system))
 	      (with-current-buffer copy-buf
-		(set (make-local-variable
-		      'write-region-post-annotation-function)
-		     'kill-buffer)
 		(setq selective-display sel-disp)
 		(set-buffer-multibyte multibyte)
 		(setq buffer-file-coding-system coding-system))
@@ -232,6 +229,15 @@ For most purposes, consider using `format-encode-region' instead."
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
 	      (format-encode-run-method to-fn (point-min) (point-max) orig-buf)
+              (when (buffer-live-p copy-buf)
+                (with-current-buffer copy-buf
+                  ;; Set write-region-post-annotation-function to
+                  ;; delete the buffer once the write is done, but do
+                  ;; it after running to-fn so it doesn't affect
+                  ;; write-region calls in to-fn.
+                  (set (make-local-variable
+                        'write-region-post-annotation-function)
+                       'kill-buffer)))
 	      nil)
 	  ;; Otherwise just call function, it will return annotations.
 	  (funcall to-fn from to orig-buf)))))

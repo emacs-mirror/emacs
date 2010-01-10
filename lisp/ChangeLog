@@ -1,7 +1,46 @@
+2010-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* format.el (format-annotate-function): Only set
+	write-region-post-annotation-function after running to-fn so as not to
+	affect nested write-region calls (bug#5273).
+
+2010-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic.el (semantic-new-buffer-setup-functions):
+	Add python parser.
+
+	* Makefile.in (ELCFILES): Add wisent/python-wy.el and
+	wisent/python.el.
+
+2010-01-10  Richard Kim  <emacs18@gmail.com>
+
+	* cedet/semantic/wisent/python-wy.el:
+	* cedet/semantic/wisent/python.el: New files.
+
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-goto-section): Signal error if the section is not
+	found (Bug#5317).
+
+2010-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-bzr.el (vc-bzr-working-revision): On Windows and MS-DOS, accept
+	URLs with a leading triple slash in the file: scheme.  (Bug#5345)
+
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el: Don't treat compile-command as safe if
+	compilation-read-command might be nil (Bug#4218).
+
+2010-01-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-1): Use orig-argi to check for ignored X and
+	NS options.
+
 2010-01-08  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (build-default-fontset-data): Exclude
-	characters in scripts kana, hangul, han, or cjk-misc.
+	* international/fontset.el (build-default-fontset-data):
+	Exclude characters in scripts kana, hangul, han, or cjk-misc.
 
 2010-01-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -21,8 +60,8 @@
 
 2010-01-05  Tom Tromey  <tromey@redhat.com>
 
-	* progmodes/python.el (python-font-lock-keywords): Handle
-	qualified decorators (Bug#881).
+	* progmodes/python.el (python-font-lock-keywords):
+	Handle qualified decorators (Bug#881).
 
 2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -31,8 +70,7 @@
 
 2010-01-05  Kenichi Handa  <handa@m17n.org>
 
-	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and
-	ZWJ.
+	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and ZWJ.
 
 2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -57,8 +95,8 @@
 2010-01-02  Daniel Elliott  <danelliottster@gmail.com>  (tiny change)
 
 	* progmodes/octave-mod.el (octave-end-keywords)
-	(octave-block-begin-or-end-regexp, octave-block-match-alist): Add
-	"end" keyword (Bug#3061).
+	(octave-block-begin-or-end-regexp, octave-block-match-alist):
+	Add "end" keyword (Bug#3061).
 	(octave-end-as-array-index-p): New function.
 	(calculate-octave-indent): Use it.
 
@@ -88,18 +126,18 @@
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window,
+	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window)
 	(bookmark-bmenu-2-window, bookmark-bmenu-this-window)
 	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window)
 	(bookmark-bmenu-show-annotation, bookmark-bmenu-edit-annotation)
 	(bookmark-bmenu-rename, bookmark-bmenu-locate)
-	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark): Remove
-	unnecessary calls to `bookmark-bmenu-ensure-position'.
+	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark):
+	Remove unnecessary calls to `bookmark-bmenu-ensure-position'.
 
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Make
-	the lines in the generated doc string shorter.  (Bug#4668)
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Make the lines in the generated doc string shorter.  (Bug#4668)
 
 2010-01-02  Ryan Yeske  <rcyeske@gmail.com>
 
@@ -107,10 +145,10 @@
 
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (bzr-update): Renamed from cvs-update.
+	* Makefile.in (bzr-update): Rename from cvs-update.
 	(cvs-update): New target for backward compatibility.
 
-	* makefile.w32-in (bzr-update): Renamed from cvs-update.
+	* makefile.w32-in (bzr-update): Rename from cvs-update.
 	(cvs-update): New target for backward compatibility.
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
@@ -9732,7 +9770,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2009  Free Software Foundation, Inc.
+    Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
