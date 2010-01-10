@@ -3,6 +3,9 @@
 	* cedet/semantic.el (semantic-new-buffer-setup-functions): Add
 	python parser.
 
+	* Makefile.in (ELCFILES): Add wisent/python-wy.el and
+	wisent/python.el.
+
 2010-01-10  Richard Kim  <emacs18@gmail.com>
 
 	* cedet/semantic/wisent/python-wy.el:
