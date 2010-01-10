@@ -1363,7 +1363,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
       int top_x = it.current_x;
       int top_y = it.current_y;
       enum it_method it_method = it.method;
-      /* Calling line_bottom_y may change it.method.  */
+      /* Calling line_bottom_y may change it.method, it.position, etc.  */
       int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
@@ -1378,7 +1378,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	      Lisp_Object window, prop;
 
 	      XSETWINDOW (window, w);
-	      prop = Fget_char_property (make_number (it.position.charpos),
+	      prop = Fget_char_property (make_number (charpos),
 					 Qinvisible, window);
 
 	      /* If charpos coincides with invisible text covered with an
