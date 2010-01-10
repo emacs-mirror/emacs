@@ -266,12 +266,13 @@ setup to use Semantic."
   :type 'hook)
 
 (defcustom semantic-new-buffer-setup-functions
-  '((js-mode . wisent-javascript-setup-parser)
-    (java-mode . wisent-java-default-setup)
-    (scheme-mode . semantic-default-scheme-setup)
-    (c-mode . semantic-default-c-setup)
+  '((c-mode . semantic-default-c-setup)
     (c++-mode . semantic-default-c-setup)
     (html-mode . semantic-default-html-setup)
+    (java-mode . wisent-java-default-setup)
+    (js-mode . wisent-javascript-setup-parser)
+    (python-mode . wisent-python-default-setup)
+    (scheme-mode . semantic-default-scheme-setup)
     (srecode-template-mode . srecode-template-setup-parser)
     (makefile-automake-mode . semantic-default-make-setup)
     (makefile-gmake-mode . semantic-default-make-setup)
