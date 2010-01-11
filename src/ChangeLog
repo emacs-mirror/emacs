@@ -1,3 +1,8 @@
+2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (syms_of_nsterm): Initialize Qcontrol etc. before
+	initializing the Lisp variables that depend on them.
+
 2010-01-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (x_set_menu_bar_lines) [!USE_X_TOOLKIT && !USE_GTK]:

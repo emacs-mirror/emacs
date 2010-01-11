@@ -6144,6 +6144,19 @@ syms_of_nsterm ()
 
   ns_antialias_threshold = 10.0;
 
+  /* from 23+ we need to tell emacs what modifiers there are.. */
+  Qmodifier_value = intern ("modifier-value");
+  Qalt = intern ("alt");
+  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
+  Qhyper = intern ("hyper");
+  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
+  Qmeta = intern ("meta");
+  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
+  Qsuper = intern ("super");
+  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  Qcontrol = intern ("control");
+  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+
   DEFVAR_LISP ("ns-input-file", &ns_input_file,
               "The file specified in the last NS event.");
   ns_input_file =Qnil;
@@ -6217,19 +6230,6 @@ allowing it to be used at a lower level for accented character entry.");
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
-
-  /* from 23+ we need to tell emacs what modifiers there are.. */
-  Qmodifier_value = intern ("modifier-value");
-  Qalt = intern ("alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern ("meta");
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern ("super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
-  Qcontrol = intern ("control");
-  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
   /* TODO: move to common code */
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
