@@ -1,3 +1,30 @@
+2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (htmlfontify-load-rgb-file)
+	(htmlfontify-unload-rgb-file, hfy-fallback-colour-values)
+	(htmlfontify-manual, htmlfontify, hfy-page-header, hfy-page-footer)
+	(hfy-src-doc-link-style, hfy-src-doc-link-unstyle, hfy-link-extn)
+	(hfy-link-style-fun, hfy-index-file, hfy-instance-file)
+	(hfy-html-quote-regex, hfy-init-kludge-hook, hfy-post-html-hooks)
+	(hfy-default-face-def, hfy-etag-regex, hfy-html-quote-map)
+	(hfy-etags-cmd-alist-default, hfy-etags-bin, hfy-ignored-properties)
+	(hfy-which-etags, hfy-etags-cmd, hfy-istext-command, hfy-display-class)
+	(hfy-optimisations, hfy-tags-cache, hfy-tags-sortl, hfy-tags-rmap)
+	(hfy-style-assoc, hfy-sheet-assoc, hfy-facemap-assoc, hfy-interq)
+	(hfy-colour-vals, hfy-default-header, hfy-link-style-string)
+	(hfy-triplet, hfy-slant, hfy-weight, hfy-combined-face-spec)
+	(hfy-face-attr-for-class, hfy-face-to-style-i, hfy-size-to-int)
+	(hfy-flatten-style, hfy-face-to-style, hfy-face-or-def-to-name)
+	(hfy-face-to-css, hfy-p-to-face, hfy-p-to-face-lennart, hfy-face-at)
+	(hfy-fontified-p, hfy-merge-adjacent-spans, hfy-buffer)
+	(hfy-html-enkludge-buffer, hfy-html-quote, hfy-html-dekludge-buffer)
+	(hfy-force-fontification, htmlfontify-buffer, hfy-dirname)
+	(hfy-make-directory, hfy-text-p, hfy-mark-tag-names, hfy-relstub)
+	(hfy-href-stub, hfy-href, hfy-mark-tag-hrefs, hfy-prepare-index-i)
+	(hfy-prepare-index, hfy-prepare-tag-map, hfy-subtract-maps)
+	(htmlfontify-run-etags): Fix typos in docstrings and remove superfluous
+	backslash-quoting from parentheses, etc.
+
 2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/js.el: Autoload javascript-mode alias.
