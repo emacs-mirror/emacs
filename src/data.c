@@ -831,7 +831,7 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
               Lisp_Object v = BLOCAL_CDR_VEC (head);
               parent = head;
 
-              if (!EQ (v, XCAR (v)))
+              if (EQ (v, XCAR (v)))
                 val = XCDR (assq_no_quit (XCAR (XCAR (it)),
                                    XTHREADLOCAL (l->realvalue)->thread_alist));
               else
@@ -1184,7 +1184,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       if (BUFFER_LOCAL_VALUEP (valcontents))
         {
           Lisp_Object v = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
-            if (!EQ (v, XCAR (v)))
+            if (EQ (v, XCAR (v)))
               {
                 Lisp_Object it;
                 for (it = XBUFFER_LOCAL_VALUE (valcontents)->thread_data;
@@ -1194,15 +1194,16 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
                     if (EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
                             BLOCAL_BUFFER_VEC (head))
                         && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
-                            || EQ (selected_frame, BLOCAL_FRAME_VEC (head)))
-                        && !EQ (BLOCAL_CDR_VEC (head),
-                                XCAR (BLOCAL_CDR_VEC (head))))
+                            || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
                       {
                         Lisp_Object rv
                           = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
-                        Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
-                                               XTHREADLOCAL (rv)->thread_alist),
-                                 newval);
+
+                        if (EQ (BLOCAL_CDR_VEC (head),
+                                 XCAR (BLOCAL_CDR_VEC (head))))
+                          Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
+                                                 XTHREADLOCAL (rv)->thread_alist),
+                                   newval);
                         XSETCDR (XCAR (BLOCAL_CDR_VEC (head)), newval);
                       }
                   }
