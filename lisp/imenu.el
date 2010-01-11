@@ -596,7 +596,7 @@ See `imenu--index-alist' for the format of the index alist."
 ;;; Find all markers in alist and makes
 ;;; them point nowhere.
 ;;; The top-level call uses nil as the argument;
-;;; non-nil arguments are in recursivecalls.
+;;; non-nil arguments are in recursive calls.
 (defvar imenu--cleanup-seen)
 
 (defun imenu--cleanup (&optional alist)
@@ -684,12 +684,15 @@ The alternate method, which is the one most often used, is to call
   ;; in these major modes.  But save that change for later.
   (cond ((and imenu-prev-index-position-function
 	      imenu-extract-index-name-function)
-	 (let ((index-alist '())
+	 (let ((index-alist '()) (pos (point))
 	       prev-pos name)
 	   (goto-char (point-max))
 	   (imenu-progress-message prev-pos 0 t)
 	   ;; Search for the function
 	   (while (funcall imenu-prev-index-position-function)
+             (when (= pos (point))
+               (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
+             (setq pos (point))
 	     (imenu-progress-message prev-pos nil t)
 	     (save-excursion
 	       (setq name (funcall imenu-extract-index-name-function)))

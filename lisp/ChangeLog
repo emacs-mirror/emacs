@@ -1,3 +1,8 @@
+2010-01-11  Sam Steingold  <sds@gnu.org>
+
+	* imenu.el (imenu-default-create-index-function): Detect infinite
+	loops caused by imenu-prev-index-position-function.
+
 2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* htmlfontify.el (htmlfontify-load-rgb-file)
