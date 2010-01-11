@@ -839,8 +839,10 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
 
               break;
             }
-
         }
+
+      if (EQ (parent, Qnil))
+        val = XTHREADLOCAL (l->realvalue)->global;
 
       XSETFASTINT (len, 4);
       ret = Fmake_vector (len, Qnil);
@@ -926,7 +928,7 @@ find_variable_location (Lisp_Object *root)
       Lisp_Object cons = assq_no_quit (get_current_thread (),
 				       thr->thread_alist);
       if (!EQ (cons, Qnil))
-      	return &XCDR_AS_LVALUE (cons);
+        return &XCDR_AS_LVALUE (cons);
 
       return &thr->global;
     }
@@ -956,7 +958,7 @@ ensure_thread_local (Lisp_Object *root)
   if (NILP (cons))
     {
       struct Lisp_ThreadLocal *local = XTHREADLOCAL (*root);
-      cons = Fcons (get_current_thread (), XTHREADLOCAL (*root)->global);
+      cons = Fcons (get_current_thread (), Qthread_local_mark);
       local->thread_alist = Fcons (cons, local->thread_alist);
     }
 
@@ -1191,7 +1193,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
                      !NILP (it); it = XCDR (it))
                   {
                     Lisp_Object head = XCDR (XCAR (it));
-                    if (EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
+                    if (1 || EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
                             BLOCAL_BUFFER_VEC (head))
                         && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
                             || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
@@ -1200,15 +1202,16 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
                           = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
 
                         if (EQ (BLOCAL_CDR_VEC (head),
-                                 XCAR (BLOCAL_CDR_VEC (head))))
+                                XCAR (BLOCAL_CDR_VEC (head))))
                           Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
                                                  XTHREADLOCAL (rv)->thread_alist),
                                    newval);
+
                         XSETCDR (XCAR (BLOCAL_CDR_VEC (head)), newval);
                       }
                   }
               }
-          BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
+            BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
         }
       else if (THREADLOCALP (valcontents))
         {
@@ -1809,7 +1812,8 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       XBUFFER_LOCAL_VALUE (newval)->realvalue = allocate_misc ();
       XMISCTYPE (XBUFFER_LOCAL_VALUE (newval)->realvalue)
         = Lisp_Misc_ThreadLocal;
-      XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global = Qnil;
+      XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global
+        = valcontents;
       XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->thread_alist
         = Fcons (Fcons (get_current_thread (), Qnil), Qnil);
       BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
@@ -1976,7 +1980,8 @@ frame-local bindings).  */)
   XBUFFER_LOCAL_VALUE (newval)->realvalue = allocate_misc ();
   XMISCTYPE (XBUFFER_LOCAL_VALUE (newval)->realvalue)
     = Lisp_Misc_ThreadLocal;
-  XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global = Qnil;
+  XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->global
+    = valcontents;
   XTHREADLOCAL (XBUFFER_LOCAL_VALUE (newval)->realvalue)->thread_alist
   = Fcons (Fcons (get_current_thread (), Qnil), Qnil);
   BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (newval)) = sym->value;
