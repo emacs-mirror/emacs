@@ -1,3 +1,29 @@
+2010-01-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (x_set_menu_bar_lines) [!USE_X_TOOLKIT && !USE_GTK]:
+	Clear areas that will not be updated after change of menu bar lines.
+	Clear the menu bar window's current matrix when the window gets empty.
+
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* intervals.h, textprop.c (extend_property_ranges): Return value
+	and args changed.  Discard properties that begin at or after the
+	new end (Bug#5306).
+
+	* editfns.c (Fformat): Caller changed.
+
+	* nsterm.m (ns_set_default_prefs): Delete function.
+	(syms_of_nsterm): Initialize ns_command_modifier,
+	ns_control_modifier, ns_function_modifier, ns_antialias_text, and
+	ns_antialias_threshold here, not in ns_term_init (Bug#4113).
+
+	* xdisp.c (pos_visible_p): Check for invisible text at the correct
+	position (Bug#4040).
+
+2010-01-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Ffloat_time): Doc fix.
+
 2010-01-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): Don't create frame larger than display
