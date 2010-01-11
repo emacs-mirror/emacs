@@ -1574,7 +1574,8 @@ instead of the current time.  The argument should have the form
 have the form (HIGH . LOW), but this is considered obsolete.
 
 WARNING: Since the result is floating point, it may not be exact.
-Do not use this function if precise time stamps are required.  */)
+If precise time stamps are required, use either `current-time',
+or (if you need time as a string) `format-time-string'.  */)
      (specified_time)
      Lisp_Object specified_time;
 {
@@ -4176,8 +4177,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	      len = make_number (SCHARS (args[n]));
 	      new_len = make_number (info[n].end - info[n].start);
 	      props = text_property_list (args[n], make_number (0), len, Qnil);
-	      extend_property_ranges (props, len, new_len);
-	      /* If successive arguments have properites, be sure that
+	      props = extend_property_ranges (props, new_len);
+	      /* If successive arguments have properties, be sure that
 		 the value of `composition' property be the copy.  */
 	      if (n > 1 && info[n - 1].end)
 		make_composition_value_copy (props);

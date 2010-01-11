@@ -1,3 +1,8 @@
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.1: Copyedits.  Update options -Q, -mm and --daemon.  Remove
+	deprecated --unibyte option.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
