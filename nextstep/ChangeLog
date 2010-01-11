@@ -1,3 +1,10 @@
+2010-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* Cocoa/Emacs.base/Contents/Info.plist:
+	* Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Set copyright year to 2010.
+
 2009-09-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* README: Note GNUstep support is now Startup 0.23 or later.
