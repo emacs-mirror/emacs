@@ -1,3 +1,13 @@
+2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ffap.el (ffap-shell-prompt-regexp, ffap-all-subdirs, ffap-url-p)
+	(ffap-alist, ffap-tex-path, ffap-url-at-point, ffap-gopher-regexp)
+	(ffap-gopher-at-point, ffap-file-at-point, ffap-read-file-or-url)
+	(ffap-read-url-internal, ffap-menu, ffap-at-mouse):
+	Fix typos in docstrings.
+	(ffap-url-regexp): Doc fix.
+	(ffap-at-mouse): Fix typo in message.
+
 2010-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright): Set copyright year to 2010.
