@@ -3320,6 +3320,7 @@ Key bindings:
   (let (font-lock-keywords) ; leaves syntactic keywords intact
     (font-lock-fontify-buffer)))
 
+;;;###autoload
 (defalias 'javascript-mode 'js-mode)
 
 (eval-after-load 'folding

@@ -1,3 +1,7 @@
+2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el: Autoload javascript-mode alias.
+
 2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ffap.el (ffap-shell-prompt-regexp, ffap-all-subdirs, ffap-url-p)
