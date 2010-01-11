@@ -6145,16 +6145,16 @@ syms_of_nsterm ()
   ns_antialias_threshold = 10.0;
 
   /* from 23+ we need to tell emacs what modifiers there are.. */
-  Qmodifier_value = intern ("modifier-value");
-  Qalt = intern ("alt");
+  DEFSYM (Qmodifier_value, "modifier-value");
+  DEFSYM (Qalt, "alt");
+  DEFSYM (Qhyper, "hyper");
+  DEFSYM (Qmeta, "meta");
+  DEFSYM (Qsuper, "super");
+  DEFSYM (Qcontrol, "control");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qmeta = intern ("meta");
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qsuper = intern ("super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
-  Qcontrol = intern ("control");
   Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
   DEFVAR_LISP ("ns-input-file", &ns_input_file,
