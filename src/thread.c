@@ -238,7 +238,7 @@ run_thread (void *state)
   /* It might be nice to do something with errors here.  */
   internal_condition_case (invoke_thread_function, Qt, do_nothing);
 
-  blocal_unbind_thread (current_thread);
+  blocal_unbind_thread (get_current_thread ());
 
   /* Unlink this thread from the list of all threads.  */
   for (iter = &all_threads; *iter != self; iter = &(*iter)->next_thread)
