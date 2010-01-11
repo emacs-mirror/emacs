@@ -1317,7 +1317,43 @@ x_set_menu_bar_lines (f, value, oldval)
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
   change_window_heights (f->root_window, nlines - olines);
-#endif /* not USE_X_TOOLKIT */
+
+  /* If the menu bar height gets changed, the internal border below
+     the top margin has to be cleared.  Also, if the menu bar gets
+     larger, the area for the added lines has to be cleared except for
+     the first menu bar line that is to be drawn later.  */
+  if (nlines != olines)
+    {
+      int height = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int y;
+
+      /* height can be zero here. */
+      if (height > 0 && width > 0)
+	{
+	  y = FRAME_TOP_MARGIN_HEIGHT (f);
+
+	  BLOCK_INPUT;
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			0, y, width, height, False);
+	  UNBLOCK_INPUT;
+	}
+
+      if (nlines > 1 && nlines > olines)
+	{
+	  y = (olines == 0 ? 1 : olines) * FRAME_LINE_HEIGHT (f);
+	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
+
+	  BLOCK_INPUT;
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			0, y, width, height, False);
+	  UNBLOCK_INPUT;
+	}
+
+      if (nlines == 0 && WINDOWP (f->menu_bar_window))
+	clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
+    }
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
   adjust_glyphs (f);
 }
 

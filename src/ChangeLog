@@ -1,3 +1,9 @@
+2010-01-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (x_set_menu_bar_lines) [!USE_X_TOOLKIT && !USE_GTK]:
+	Clear areas that will not be updated after change of menu bar lines.
+	Clear the menu bar window's current matrix when the window gets empty.
+
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* intervals.h, textprop.c (extend_property_ranges): Return value
