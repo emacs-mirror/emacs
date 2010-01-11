@@ -1,3 +1,7 @@
+2010-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-copyright): Set copyright year to 2010.
+
 2010-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* format.el (format-annotate-function): Only set
