@@ -3178,7 +3178,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       unbind_to (count, Qnil);
 #endif
 
-      goto retry;
+      /* The command may have changed the keymaps.  Pretend there is input
+         in another keyboard and return.  This will recalculate keymaps.  */
+      c = make_number (-2);
+      goto exit;
     }
 
   /* Handle things that only apply to characters.  */
