@@ -1,3 +1,8 @@
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-pretesters, make-announcement: Use bug-gnu-emacs rather
+	than emacs-pretest-bug for bug reports for development versions.
+
 2009-11-06  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-gen-table): Fix for the case

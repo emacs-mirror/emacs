@@ -130,7 +130,7 @@
   ;; after them. The common root shell prompt (#) is not listed since it
   ;; also doubles up as a valid URL character.
   "[$%><]*"
-  "Paths matching this regexp are stripped off the shell prompt
+  "Paths matching this regexp are stripped off the shell prompt.
 If nil, ffap doesn't do shell prompt stripping."
   :type '(choice (const :tag "Disable" nil)
 		  (const :tag "Standard" "[$%><]*")
@@ -184,7 +184,7 @@ Note this name may be omitted if it equals the default
    "\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://" ; needs host
    "\\)."				; require one more character
    )
-   "Regexp matching URL's.  nil to disable URL features in ffap.")
+   "Regexp matching URLs.  Use nil to disable URL features in ffap.")
 
 (defcustom ffap-foo-at-bar-prefix "mailto"
   "Presumed URL prefix type of strings like \"<foo.9z@bar>\".
@@ -600,7 +600,7 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
      ret)))
 
 (defsubst ffap-url-p (string)
-  "If STRING looks like an url, return it (maybe improved), else nil."
+  "If STRING looks like an URL, return it (maybe improved), else nil."
   (let ((case-fold-search t))
     (and ffap-url-regexp (string-match ffap-url-regexp string)
 	 ;; I lied, no improvement:
@@ -681,7 +681,7 @@ Uses `path-separator' to separate the path into substrings."
     (nreverse ret)))
 
 (defun ffap-all-subdirs (dir &optional depth)
-  "Return list all subdirectories under DIR, starting with itself.
+  "Return list of all subdirectories under DIR, starting with itself.
 Directories beginning with \".\" are ignored, and directory symlinks
 are listed but never searched (to avoid loops).
 Optional DEPTH limits search depth."
@@ -794,12 +794,12 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
     (dired-mode . ffap-dired)		; maybe in a subdirectory
     )
   "Alist of \(KEY . FUNCTION\) pairs parsed by `ffap-file-at-point'.
-If string NAME at point (maybe \"\") is not a file or url, these pairs
+If string NAME at point (maybe \"\") is not a file or URL, these pairs
 specify actions to try creating such a string.  A pair matches if either
   KEY is a symbol, and it equals `major-mode', or
-  KEY is a string, it should matches NAME as a regexp.
+  KEY is a string, it should match NAME as a regexp.
 On a match, \(FUNCTION NAME\) is called and should return a file, an
-url, or nil. If nil, search the alist for further matches.")
+URL, or nil.  If nil, search the alist for further matches.")
 
 (put 'ffap-alist 'risky-local-variable t)
 
@@ -864,7 +864,7 @@ url, or nil. If nil, search the alist for further matches.")
 
 (defvar ffap-tex-path
   t				; delayed initialization
-  "Path where `ffap-tex-mode' looks for tex files.
+  "Path where `ffap-tex-mode' looks for TeX files.
 If t, `ffap-tex-init' will initialize this when needed.")
 
 (defun ffap-tex-init ()
@@ -1057,7 +1057,7 @@ Assumes the buffer has not changed."
 (declare-function w3-view-this-url "ext:w3" (&optional no-show))
 
 (defun ffap-url-at-point ()
-  "Return url from around point if it exists, or nil."
+  "Return URL from around point if it exists, or nil."
   ;; Could use w3's url-get-url-at-point instead.  Both handle "URL:",
   ;; ignore non-relative links, trim punctuation.  The other will
   ;; actually look back if point is in whitespace, but I would rather
@@ -1097,11 +1097,11 @@ Assumes the buffer has not changed."
 
 (defvar ffap-gopher-regexp
   "^.*\\<\\(Type\\|Name\\|Path\\|Host\\|Port\\) *= *\\(.*\\) *$"
-  "Regexp Matching a line in a gopher bookmark (maybe indented).
+  "Regexp matching a line in a gopher bookmark (maybe indented).
 The two subexpressions are the KEY and VALUE.")
 
 (defun ffap-gopher-at-point ()
-  "If point is inside a gopher bookmark block, return its url."
+  "If point is inside a gopher bookmark block, return its URL."
   ;; `gopher-parse-bookmark' from gopher.el is not so robust
   (save-excursion
     (beginning-of-line)
@@ -1144,7 +1144,7 @@ That is, ffap just prepends \"/\".  Set to nil to disable.")
   "Return filename from around point if it exists, or nil.
 Existence test is skipped for names that look remote.
 If the filename is not obvious, it also tries `ffap-alist',
-which may actually result in an url rather than a filename."
+which may actually result in an URL rather than a filename."
   ;; Note: this function does not need to look for url's, just
   ;; filenames.  On the other hand, it is responsible for converting
   ;; a pseudo-url "site.com://dir" to an ftp file name
@@ -1260,7 +1260,7 @@ which may actually result in an url rather than a filename."
 ;; contents before attempting to complete filenames.
 
 (defun ffap-read-file-or-url (prompt guess)
-  "Read file or url from minibuffer, with PROMPT and initial GUESS."
+  "Read file or URL from minibuffer, with PROMPT and initial GUESS."
   (or guess (setq guess default-directory))
   (let (dir)
     ;; Tricky: guess may have or be a local directory, like "w3/w3.elc"
@@ -1302,7 +1302,7 @@ which may actually result in an url rather than a filename."
     guess))
 
 (defun ffap-read-url-internal (string pred action)
-  "Complete url's from history, treating given string as valid."
+  "Complete URLs from history, treating given string as valid."
   (let ((hist (ffap-symbol-value 'url-global-history-hash-table)))
     (cond
      ((not action)
@@ -1475,7 +1475,7 @@ These properties may be used to fontify the menu references.")
 
 ;;;###autoload
 (defun ffap-menu (&optional rescan)
-  "Put up a menu of files and urls mentioned in this buffer.
+  "Put up a menu of files and URLs mentioned in this buffer.
 Then set mark, jump to choice, and try to fetch it.  The menu is
 cached in `ffap-menu-alist', and rebuilt by `ffap-menu-rescan'.
 The optional RESCAN argument \(a prefix, interactively\) forces
@@ -1601,7 +1601,7 @@ Ignored when `ffap-at-mouse' is called programmatically.")
 
 ;;;###autoload
 (defun ffap-at-mouse (e)
-  "Find file or url guessed from text around mouse click.
+  "Find file or URL guessed from text around mouse click.
 Interactively, calls `ffap-at-mouse-fallback' if no guess is found.
 Return value:
   * if a guess string is found, return it (after finding it)
@@ -1629,7 +1629,7 @@ Return value:
      ((called-interactively-p 'interactive)
       (if ffap-at-mouse-fallback
 	  (call-interactively ffap-at-mouse-fallback)
-	(message "No file or url found at mouse click.")
+	(message "No file or URL found at mouse click.")
 	nil))				; no fallback, return nil
      ;; failure: return nil
      )))

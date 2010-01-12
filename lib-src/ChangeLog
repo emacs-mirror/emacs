@@ -1,3 +1,9 @@
+2010-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version):
+	* etags.c (print_version):
+	* rcs2log (Copyright): Set copyright year to 2010.
+
 2009-12-09  David Robinow  <drobinow@gmail.com>  (tiny change)
 
 	* makefile.w32-in: Use parenthesis for macros for nmake
