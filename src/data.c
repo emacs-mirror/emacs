@@ -823,19 +823,19 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
 
       for (it = l->thread_data; !NILP (it); it = XCDR (it))
         {
-          Lisp_Object head = XCDR (XCAR (it));
-          if ((EQ (Fcurrent_buffer (), BLOCAL_BUFFER_VEC (head)))
+          Lisp_Object thread_data = XCDR (XCAR (it));
+          if ((EQ (Fcurrent_buffer (), BLOCAL_BUFFER_VEC (thread_data)))
               && (! l->check_frame
-                  || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
+                  || EQ (selected_frame, BLOCAL_FRAME_VEC (thread_data))))
             {
-              Lisp_Object v = BLOCAL_CDR_VEC (head);
-              parent = head;
-
-              if (EQ (v, XCAR (v)))
+              Lisp_Object cdr = BLOCAL_CDR_VEC (thread_data);
+              parent = thread_data;
+              VECTORP (thread_data) || (abort (), 1);
+              if (EQ (XCAR (cdr), XCAR (XCAR (cdr))))
                 val = XCDR (assq_no_quit (XCAR (XCAR (it)),
                                    XTHREADLOCAL (l->realvalue)->thread_alist));
               else
-                val = XCDR (BLOCAL_CDR_VEC (head));
+                val = XCDR (BLOCAL_CDR_VEC (thread_data));
 
               break;
             }
@@ -1185,33 +1185,33 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
         {
-          Lisp_Object v = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
-            if (EQ (v, XCAR (v)))
-              {
-                Lisp_Object it;
-                for (it = XBUFFER_LOCAL_VALUE (valcontents)->thread_data;
-                     !NILP (it); it = XCDR (it))
-                  {
-                    Lisp_Object head = XCDR (XCAR (it));
-                    if (1 || EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
-                            BLOCAL_BUFFER_VEC (head))
-                        && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
-                            || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
-                      {
-                        Lisp_Object rv
-                          = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+          Lisp_Object cdr = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
+          if (EQ (XCAR (cdr), XCAR (XCAR (cdr))))
+            {
+              Lisp_Object it;
+              for (it = XBUFFER_LOCAL_VALUE (valcontents)->thread_data;
+                   !NILP (it); it = XCDR (it))
+                {
+                  Lisp_Object head = XCDR (XCAR (it));
+                  if (EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
+                          BLOCAL_BUFFER_VEC (head))
+                      && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+                          || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
+                    {
+                      Lisp_Object rv
+                        = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
 
-                        if (EQ (BLOCAL_CDR_VEC (head),
-                                XCAR (BLOCAL_CDR_VEC (head))))
-                          Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
-                                                 XTHREADLOCAL (rv)->thread_alist),
-                                   newval);
+                      if (EQ (XCAR (BLOCAL_CDR_VEC (head)),
+                              XCAR (XCAR (BLOCAL_CDR_VEC (head)))))
+                        Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
+                                               XTHREADLOCAL (rv)->thread_alist),
+                                 newval);
 
-                        XSETCDR (XCAR (BLOCAL_CDR_VEC (head)), newval);
-                      }
-                  }
-              }
-            BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
+                      XSETCDR (XCAR (BLOCAL_CDR_VEC (head)), newval);
+                    }
+                }
+            }
+          BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
         }
       else if (THREADLOCALP (valcontents))
         {
