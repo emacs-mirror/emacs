@@ -636,7 +636,7 @@ password is remembered in the buffer."
 		  sieve-manage-capability))
 	(push (list str) sieve-manage-capability))
       (forward-line)))
-  (when (re-search-forward (concat "^OK" sieve-manage-server-eol) nil t)
+  (when (re-search-forward (concat "^OK.*" sieve-manage-server-eol) nil t)
     (setq sieve-manage-state 'nonauth)))
 
 (defalias 'sieve-manage-parse-greeting-1 'sieve-manage-parse-capability-1)

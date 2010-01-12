@@ -1317,7 +1317,43 @@ x_set_menu_bar_lines (f, value, oldval)
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
   change_window_heights (f->root_window, nlines - olines);
-#endif /* not USE_X_TOOLKIT */
+
+  /* If the menu bar height gets changed, the internal border below
+     the top margin has to be cleared.  Also, if the menu bar gets
+     larger, the area for the added lines has to be cleared except for
+     the first menu bar line that is to be drawn later.  */
+  if (nlines != olines)
+    {
+      int height = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int y;
+
+      /* height can be zero here. */
+      if (height > 0 && width > 0)
+	{
+	  y = FRAME_TOP_MARGIN_HEIGHT (f);
+
+	  BLOCK_INPUT;
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			0, y, width, height, False);
+	  UNBLOCK_INPUT;
+	}
+
+      if (nlines > 1 && nlines > olines)
+	{
+	  y = (olines == 0 ? 1 : olines) * FRAME_LINE_HEIGHT (f);
+	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
+
+	  BLOCK_INPUT;
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			0, y, width, height, False);
+	  UNBLOCK_INPUT;
+	}
+
+      if (nlines == 0 && WINDOWP (f->menu_bar_window))
+	clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
+    }
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
   adjust_glyphs (f);
 }
 
@@ -1403,7 +1439,7 @@ x_set_tool_bar_lines (f, value, oldval)
     {
       int height = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
-      int y = nlines * FRAME_LINE_HEIGHT (f);
+      int y = (FRAME_MENU_BAR_LINES (f) + nlines) * FRAME_LINE_HEIGHT (f);
 
       /* height can be zero here. */
       if (height > 0 && width > 0)
@@ -3395,6 +3431,45 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
+
+  /* Don't make height higher than display height unless the user asked
+     for it.  */
+  height = FRAME_LINES (f);
+  tem = x_get_arg (dpyinfo, parms, Qheight, 0, 0, RES_TYPE_NUMBER);
+  if (EQ (tem, Qunbound))
+    {
+      int ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+      int dph = DisplayHeight (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      if (ph > dph)
+        {
+          height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, dph) -
+            FRAME_TOOL_BAR_LINES (f) - FRAME_MENU_BAR_LINES (f);
+          if (FRAME_EXTERNAL_TOOL_BAR (f))
+            height -= 2; /* We can't know how big it will be.  */
+          if (FRAME_EXTERNAL_MENU_BAR (f))
+            height -= 2; /* We can't know how big it will be.  */
+        }
+    }
+
+  /* Don't make width wider than display width unless the user asked
+     for it.  */
+  width = FRAME_COLS (f);
+  tem = x_get_arg (dpyinfo, parms, Qwidth, 0, 0, RES_TYPE_NUMBER);
+  if (EQ (tem, Qunbound))
+    {
+      int pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, FRAME_COLS (f));
+      int dpw = DisplayWidth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      if (pw > dpw)
+        width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, dpw);
+    }
+
+  if (height != FRAME_LINES (f) || width != FRAME_COLS (f))
+    {
+      check_frame_size (f, &height, &width);
+      FRAME_LINES (f) = height;
+      SET_FRAME_COLS (f, width);
+    }
+  
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
