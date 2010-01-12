@@ -1984,12 +1984,17 @@ if test "${HAVE_X11}" = "yes"; then
     if test "x${with_xft}" != "xno"; then
 
       PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
-      if test "$HAVE_XFT" != no; then
+      ## Because xftfont.c uses XRenderQueryExtension, we also
+      ## need to link to -lXrender.
+      HAVE_XRENDER=no
+      AC_CHECK_LIB(Xrender, XRenderQueryExtension, HAVE_XRENDER=yes)
+      if test "$HAVE_XFT" != no && test "$HAVE_XRENDER" != no; then
 	OLD_CPPFLAGS="$CPPFLAGS"
 	OLD_CFLAGS="$CFLAGS"
 	OLD_LIBS="$LIBS"
 	CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
 	CFLAGS="$CFLAGS $XFT_CFLAGS"
+	XFT_LIBS="-lXrender $XFT_LIBS"
 	LIBS="$XFT_LIBS $LIBS"
 	AC_CHECK_HEADER(X11/Xft/Xft.h,
 	  AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
