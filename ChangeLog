@@ -1,3 +1,12 @@
+2010-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Explicitly check for and link to -lXrender.
+
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL.BZR, README: Use bug-gnu-emacs rather than emacs-pretest-bug
+	for bug reports for development versions.
+
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* .bzrignore: Add more ignored patterns, including for the MS-DOS

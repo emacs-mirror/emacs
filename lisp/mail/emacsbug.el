@@ -1,7 +1,8 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
 ;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -41,10 +42,11 @@
   :group 'emacsbug
   :type 'string)
 
-(defcustom report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.org"
+(defcustom report-emacs-bug-pretest-address "bug-gnu-emacs@gnu.org"
   "Address of mailing list for GNU Emacs pretest bugs."
   :group 'emacsbug
-  :type 'string)
+  :type 'string
+  :version "23.2")                ; emacs-pretest-bug -> bug-gnu-emacs
 
 (defcustom report-emacs-bug-no-confirmation nil
   "If non-nil, suppress the confirmations asked for the sake of novice users."

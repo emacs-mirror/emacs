@@ -3155,6 +3155,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
   if (!NILP (tem))
     {
+      struct buffer *prev_buffer = current_buffer;
 #if 0 /* This shouldn't be necessary anymore. --lorentey  */
       int was_locked = single_kboard;
       int count = SPECPDL_INDEX ();
@@ -3178,7 +3179,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       unbind_to (count, Qnil);
 #endif
 
-      goto retry;
+      if (current_buffer != prev_buffer)
+	{
+	  /* The command may have changed the keymaps.  Pretend there
+	     is input in another keyboard and return.  This will
+	     recalculate keymaps.  */
+	  c = make_number (-2);
+	  goto exit;
+	}
+      else
+	goto retry;
     }
 
   /* Handle things that only apply to characters.  */

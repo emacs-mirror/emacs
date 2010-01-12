@@ -1,3 +1,17 @@
+2010-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (read_char): Don't apply previous change when current
+	buffer is unchanged by command execution.
+
+2010-01-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (read_char): Return after executing from special map.
+
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (REPORT_EMACS_BUG_PRETEST_ADDRESS): Set it to
+	bug-gnu-emacs rather than emacs-pretest-bug.
+
 2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.m (syms_of_nsterm): Initialize Qcontrol etc. before
