@@ -1,3 +1,7 @@
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore: Ignore all .exe, instead of individual files.
+
 2010-01-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Explicitly check for and link to -lXrender.
