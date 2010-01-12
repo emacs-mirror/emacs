@@ -1,5 +1,9 @@
 2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
 
+	* cedet/data-debug.el (data-debug): Fix customization group reference.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
 	* cedet/semantic/analyze.el (semantic-analyze-push-error)
 	(semantic-analyze-context, semantic-analyze-context-assignment)
 	(semantic-analyze-find-tag-sequence, semantic-analyze-find-tag):
