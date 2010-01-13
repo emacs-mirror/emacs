@@ -1960,7 +1960,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 
 
 (defun bookmark-bmenu-execute-deletions ()
-  "Delete bookmarks marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
+  "Delete bookmarks flagged `D'."
   (interactive)
   (message "Deleting bookmarks...")
   (let ((o-point  (point))
