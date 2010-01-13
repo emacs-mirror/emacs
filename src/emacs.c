@@ -1,7 +1,7 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-                 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -747,7 +747,7 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 
 
 #define REPORT_EMACS_BUG_ADDRESS "bug-gnu-emacs@gnu.org"
-#define REPORT_EMACS_BUG_PRETEST_ADDRESS "emacs-pretest-bug@gnu.org"
+#define REPORT_EMACS_BUG_PRETEST_ADDRESS "bug-gnu-emacs@gnu.org"
 
 /* This function is used to determine an address to which bug report should
    be sent.  */

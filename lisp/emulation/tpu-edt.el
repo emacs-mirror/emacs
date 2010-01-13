@@ -1,7 +1,7 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
 ;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -2438,7 +2438,7 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "599e52b6cce2b9a2c2efa3e7d3e7a475")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "d003e4c2f1291eccc629926bb0f88e17")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\

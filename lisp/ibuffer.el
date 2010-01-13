@@ -1,7 +1,7 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009  Free Software Foundation, Inc.
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -2641,7 +2641,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "811ee3bd414f35c6a1966e64e9e597f1")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "4fb4f1a32cf4ecf4669a133a866f4a14")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\

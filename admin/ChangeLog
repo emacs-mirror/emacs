@@ -1,3 +1,8 @@
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-pretesters, make-announcement: Use bug-gnu-emacs rather
+	than emacs-pretest-bug for bug reports for development versions.
+
 2009-11-06  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-gen-table): Fix for the case
@@ -843,7 +848,7 @@
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-	2008, 2009  Free Software Foundation, Inc.
+	2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

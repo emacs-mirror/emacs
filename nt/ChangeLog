@@ -1,3 +1,7 @@
+2010-01-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacsclient.rc: Fix format of "LegalCopyright" value.
+
 2009-12-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* INSTALL: Remove obsolete notes about line endings, and fix some typos.
@@ -1744,7 +1748,7 @@
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-       2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+       2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

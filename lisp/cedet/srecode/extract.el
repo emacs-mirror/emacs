@@ -1,6 +1,6 @@
 ;;; srecode/extract.el --- Extract content from previously inserted macro.
 
-;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -56,7 +56,7 @@
   "The current extraction state.")
 
 (defmethod srecode-extract-state-set ((st srecode-extract-state) ins dict)
-  "Set onto the extract state ST a new inserter INS and dictinary DICT."
+  "Set onto the extract state ST a new inserter INS and dictionary DICT."
   (oset st lastinserter ins)
   (oset st lastdict dict))
 
@@ -98,7 +98,7 @@ the dictionary entries were for that block of text."
 				   state)
   "Extract template ST and store extracted text in DICTIONARY.
 Optional STARTRETURN is a symbol in which the start of the first
-plain-text match occured."
+plain-text match occurred."
   (srecode-extract-code-stream (oref st code) dictionary state))
 
 (defun srecode-extract-code-stream (code dictionary state)

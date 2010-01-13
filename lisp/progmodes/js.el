@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -3320,6 +3320,7 @@ Key bindings:
   (let (font-lock-keywords) ; leaves syntactic keywords intact
     (font-lock-fontify-buffer)))
 
+;;;###autoload
 (defalias 'javascript-mode 'js-mode)
 
 (eval-after-load 'folding
