@@ -2686,6 +2686,8 @@ swap_out_buffer_local_variables (b)
     {
       if (CONSP (XCAR (alist))
 	  && (sym = XCAR (XCAR (alist)), SYMBOLP (sym))
+          && (blocal_get_thread_data (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym)),
+                                      sym), 1)
 	  /* Need not do anything if some other buffer's binding is
 	     now encached.  */
 	  && EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))),

@@ -813,6 +813,10 @@ blocal_getrealvalue (struct Lisp_Buffer_Local_Value *blv)
   return &XCDR_AS_LVALUE (ensure_thread_local (&(blv->realvalue)));
 }
 
+/* Retrieve the buffer local data for the caller thread.  SYMBOL is used only
+   when the specified buffer local value does not have a binding for the thread
+   and a new one must be created.  */
+
 Lisp_Object *
 blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object symbol)
 {
@@ -821,7 +825,7 @@ blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object symbol)
     {
       Lisp_Object tem, val, len;
 
-      if (NILP (symbol))
+      if (NILP (symbol) || !initialized)
         abort ();
 
       XSETFASTINT (len, 4);
@@ -1393,6 +1397,8 @@ set_internal (symbol, newval, buf, bindflag)
       if (XSYMBOL (symbol)->indirect_variable)
 	XSETSYMBOL (symbol, indirect_variable (XSYMBOL (symbol)));
 
+      blocal_get_thread_data (XBUFFER_LOCAL_VALUE (valcontents), symbol);
+
       /* What binding is loaded right now?  */
       current_alist_element
 	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
@@ -1512,6 +1518,9 @@ default_value (symbol)
 	 But the `realvalue' slot may be more up to date, since
 	 ordinary setq stores just that slot.  So use that.  */
       Lisp_Object current_alist_element, alist_element_car;
+
+      blocal_get_thread_data (XBUFFER_LOCAL_VALUE (valcontents), symbol);
+
       current_alist_element
 	= XCAR (BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents)));
       alist_element_car = XCAR (current_alist_element);
