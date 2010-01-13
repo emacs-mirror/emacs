@@ -1,3 +1,8 @@
+2010-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_term_init): Avoid garbage-collecting the new terminal
+	during call to vendor-specific-keysyms (Bug#5365).
+
 2010-01-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (input_available_signal) [SYNC_INPUT]:

@@ -340,7 +340,7 @@ w32_get_resource (predefined, key, type)
 /*
   getenv wrapper for Windows
 
-  This is needed to duplicate Emacs's behavior, which is to look for enviroment
+  This is needed to duplicate Emacs's behavior, which is to look for environment
   variables in the registry if they don't appear in the environment.
 */
 char *
