@@ -1,3 +1,43 @@
+2010-01-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (copy-directory): Compute target for recursive
+	directories with identical names.  (Bug#5343)
+
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-pretest-address): Set
+	it to bug-gnu-emacs rather than emacs-pretest-bug.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/data-debug.el (data-debug): Fix customization group reference.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/analyze.el (semantic-analyze-push-error)
+	(semantic-analyze-context, semantic-analyze-context-assignment)
+	(semantic-analyze-find-tag-sequence, semantic-analyze-find-tag):
+	* cedet/semantic/java.el (java-mode, semantic-tag-include-filename)
+	(semantic-java-doc-keywords-map):
+	* cedet/semantic/bovine/c.el (c-mode, semantic-c-member-of-autocast)
+	(semantic-lex-c-nested-namespace-ignore-second, semantic-parse-region)
+	(semantic-c-parse-lexical-token, semantic-c-debug-mode-init-pch)
+	(semantic-c-classname, semantic-format-tag-uml-prototype)
+	(semantic-c-dereference-namespace, semantic-analyze-type-constants):
+	* cedet/semantic/bovine/el.el (semantic-elisp-form-to-doc-string)
+	(semantic-emacs-lisp-obsoleted-doc, semantic-up-context)
+	(semantic-get-local-variables, semantic-end-of-command)
+	(semantic-beginning-of-command, semantic-ctxt-current-class-list)
+	(lisp-mode):
+	* cedet/semantic/bovine/make.el (makefile-mode):
+	* cedet/semantic/wisent/python.el (wisent-python-string-re)
+	(wisent-python-implicit-line-joining-p, wisent-python-forward-string)
+	(wisent-python-lex-beginning-of-line, wisent-python-lex-end-of-line)
+	(semantic-lex, semantic-get-local-variables, python-mode):
+	* cedet/semantic/wisent/python-wy.el (wisent-python-wy--keyword-table):
+	* cedet/srecode/extract.el (srecode-extract-state-set)
+	(srecode-extract-method): Fix typos in docstrings.
+
 2010-01-11  Sam Steingold  <sds@gnu.org>
 
 	* imenu.el (imenu-default-create-index-function): Detect infinite

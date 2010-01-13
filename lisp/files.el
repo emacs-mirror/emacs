@@ -4714,20 +4714,17 @@ this happens by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-      (if (and (file-directory-p newname)
-	       (not (string-equal (file-name-nondirectory directory)
-				  (file-name-nondirectory newname))))
-	  (setq newname
-		(expand-file-name (file-name-nondirectory directory) newname)))
       (if (not (file-directory-p newname)) (make-directory newname parents))
 
       ;; Copy recursively.
       (mapc
        (lambda (file)
-	 (if (file-directory-p file)
-	     (copy-directory file newname keep-time parents)
-	   (copy-file file newname t keep-time)))
-       ;; We do not want to delete "." and "..".
+	 (let ((target (expand-file-name
+			(file-name-nondirectory file) newname)))
+	   (if (file-directory-p file)
+	       (copy-directory file target keep-time parents)
+	     (copy-file file target t keep-time))))
+       ;; We do not want to copy "." and "..".
        (directory-files	directory 'full directory-files-no-dot-files-regexp))
 
       ;; Set directory attributes.

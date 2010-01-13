@@ -204,7 +204,7 @@ Uses default implementation, and also gets a list of filenames."
 (defcustom-mode-local-semantic-dependency-system-include-path
   makefile-mode semantic-makefile-dependency-system-include-path
   nil
-  "The system include path used by Makefiles langauge.")
+  "The system include path used by Makefiles language.")
 
 ;;;###autoload
 (defun semantic-default-make-setup ()
