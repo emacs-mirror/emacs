@@ -1,3 +1,21 @@
+2010-01-13  Kenichi Handa  <handa@m17n.org>
+
+	Display buffer name, etc. in mode line by composing correctly.
+
+	* xdisp.c (reseat_to_string): Call composition_compute_stop_pos if
+	STRING is not nil.
+	(display_mode_element): Adjusted for the change of
+	decode_mode_spec and display_line.
+	(decode_mode_spec): Change arg MULTIBYTE to STRING.
+	(display_string): Handle the case that STRING is non-null and
+	LISP_STRING is not nil.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Pay
+	attention to s->face->overstrike.
+
+	* composite.c (composition_reseat_it): Don't check PT if STRING is
+	non nil.
+
 2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.m (syms_of_nsterm): Initialize Qcontrol etc. before

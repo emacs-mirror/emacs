@@ -1104,7 +1104,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
      struct face *face;
      Lisp_Object string;
 {
-  if (charpos < PT && PT < endpos)
+  if (NILP (string) && charpos < PT && PT < endpos)
     endpos = PT;
 
   if (cmp_it->ch == -2)
