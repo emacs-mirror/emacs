@@ -1366,7 +1366,8 @@ struct Lisp_Buffer_Local_Value
   };
 
 void blocal_unbind_thread (Lisp_Object thread);
-Lisp_Object *blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l);
+Lisp_Object *blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l,
+                                     Lisp_Object sym);
 void blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object o);
 Lisp_Object *blocal_getrealvalue (struct Lisp_Buffer_Local_Value *l);
 
@@ -1378,7 +1379,7 @@ Lisp_Object *blocal_getrealvalue (struct Lisp_Buffer_Local_Value *l);
 #define BLOCAL_BUFFER_VEC(VEC) (AREF ((VEC), 1))
 #define BLOCAL_FRAME_VEC(VEC) (AREF ((VEC), 2))
 #define BLOCAL_CDR_VEC(VEC) (AREF ((VEC), 3))
-#define BLOCAL_THREAD_DATA(A) (*blocal_get_thread_data (A))
+#define BLOCAL_THREAD_DATA(A) (*blocal_get_thread_data (A, Qnil))
 #define BLOCAL_SET_THREAD_DATA(A, B) (blocal_set_thread_data (A, B))
 #define BLOCAL_CLEAR_FLAGS(A) (BLOCAL_CLEAR_FLAGS_VEC (BLOCAL_THREAD_DATA (A)))
 #define BLOCAL_FOUND_FOR_BUFFER(A) (BLOCAL_FOUND_FOR_BUFFER_VEC (BLOCAL_THREAD_DATA (A)))

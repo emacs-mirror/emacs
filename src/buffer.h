@@ -862,7 +862,7 @@ struct buffer
 #define BUF_MODE_LINE_FORMAT(BUF) *find_variable_location (&((BUF)->mode_line_format_))
 #define BUF_MODE_NAME(BUF) *find_variable_location (&((BUF)->mode_name_))
 #define BUF_MAJOR_MODE(BUF) *find_variable_location (&((BUF)->major_mode_))
-#define BUF_LOCAL_VAR_ALIST(BUF) *find_variable_location (&((BUF)->local_var_alist_))
+#define BUF_LOCAL_VAR_ALIST(BUF) (((BUF)->local_var_alist_))
 #define BUF_MARK(BUF) *find_variable_location (&((BUF)->mark_))
 #define BUF_READ_ONLY(BUF) *find_variable_location (&((BUF)->read_only_))
 #define BUF_AUTO_SAVE_FILE_NAME(BUF) *find_variable_location (&((BUF)->auto_save_file_name_))

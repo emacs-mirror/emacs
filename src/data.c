@@ -814,49 +814,43 @@ blocal_getrealvalue (struct Lisp_Buffer_Local_Value *blv)
 }
 
 Lisp_Object *
-blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l)
+blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object symbol)
 {
   Lisp_Object ret = assq_no_quit (get_current_thread (), l->thread_data);
   if (NILP (ret))
     {
-      Lisp_Object tem, val = Qnil, len, it, parent = Qnil;
+      Lisp_Object tem, val, len;
 
-      for (it = l->thread_data; !NILP (it); it = XCDR (it))
-        {
-          Lisp_Object thread_data = XCDR (XCAR (it));
-          if ((EQ (Fcurrent_buffer (), BLOCAL_BUFFER_VEC (thread_data)))
-              && (! l->check_frame
-                  || EQ (selected_frame, BLOCAL_FRAME_VEC (thread_data))))
-            {
-              Lisp_Object cdr = BLOCAL_CDR_VEC (thread_data);
-              parent = thread_data;
-              VECTORP (thread_data) || (abort (), 1);
-              if (EQ (XCAR (cdr), XCAR (XCAR (cdr))))
-                val = XCDR (assq_no_quit (XCAR (XCAR (it)),
-                                   XTHREADLOCAL (l->realvalue)->thread_alist));
-              else
-                val = XCDR (BLOCAL_CDR_VEC (thread_data));
-
-              break;
-            }
-        }
-
-      if (EQ (parent, Qnil))
-        val = XTHREADLOCAL (l->realvalue)->global;
+      if (NILP (symbol))
+        abort ();
 
       XSETFASTINT (len, 4);
       ret = Fmake_vector (len, Qnil);
 
-      if (NILP (parent))
-        XSETFASTINT (AREF (ret, 0), 0);
+      BLOCAL_CLEAR_FLAGS_VEC (ret);
+      tem = Fcons (Qnil, Qnil);
+      val = assq_no_quit (symbol, BUF_LOCAL_VAR_ALIST (current_buffer));
+      if (NILP (val) || (l->check_frame && ! EQ (selected_frame, Qnil)))
+        {
+          val = assq_no_quit (symbol, XFRAME (selected_frame)->param_alist);
+	  if (! NILP (val))
+	    BLOCAL_SET_FOUND_FOR_FRAME_VEC (ret);
+	  else
+            {
+              val = XTHREADLOCAL (l->realvalue)->global;
+              XSETCAR (tem, tem);
+            }
+	}
       else
-        XSETFASTINT (AREF (ret, 0), AREF (parent, 0));
+        {
+          XSETCAR (tem, val);
+          val = XCDR (val);
+          XSETCDR (tem, XTHREADLOCAL (l->realvalue)->global);
+          BLOCAL_SET_FOUND_FOR_BUFFER_VEC (ret);
+        }
 
       BLOCAL_BUFFER_VEC (ret) = Fcurrent_buffer ();
       BLOCAL_FRAME_VEC (ret) = Qnil;
-
-      tem = Fcons (Qnil, val);
-      XSETCAR (tem, tem);
       BLOCAL_CDR_VEC (ret) = tem;
 
       ret = Fcons (get_current_thread (), ret);
@@ -1184,35 +1178,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
     def:
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
-        {
-          Lisp_Object cdr = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
-          if (EQ (XCAR (cdr), XCAR (XCAR (cdr))))
-            {
-              Lisp_Object it;
-              for (it = XBUFFER_LOCAL_VALUE (valcontents)->thread_data;
-                   !NILP (it); it = XCDR (it))
-                {
-                  Lisp_Object head = XCDR (XCAR (it));
-                  if (EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
-                          BLOCAL_BUFFER_VEC (head))
-                      && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
-                          || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
-                    {
-                      Lisp_Object rv
-                        = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
-
-                      if (EQ (XCAR (BLOCAL_CDR_VEC (head)),
-                              XCAR (XCAR (BLOCAL_CDR_VEC (head)))))
-                        Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
-                                               XTHREADLOCAL (rv)->thread_alist),
-                                 newval);
-
-                      XSETCDR (XCAR (BLOCAL_CDR_VEC (head)), newval);
-                    }
-                }
-            }
-          BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
-        }
+        BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
       else if (THREADLOCALP (valcontents))
         {
           Lisp_Object val = indirect_variable (XSYMBOL (symbol))->value;
@@ -1262,7 +1228,9 @@ swap_in_symval_forwarding (symbol, valcontents)
 {
   register Lisp_Object tem1;
 
-  tem1 = BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents));
+  struct Lisp_Buffer_Local_Value *local = XBUFFER_LOCAL_VALUE (valcontents);
+  blocal_get_thread_data (local, symbol);
+  tem1 = BLOCAL_BUFFER (local);
 
   if (NILP (tem1)
       || current_buffer != XBUFFER (tem1)
