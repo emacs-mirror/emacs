@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7513,11 +7513,11 @@ input_available_signal (signo)
   signal (signo, input_available_signal);
 #endif /* USG */
 
+  SIGNAL_THREAD_CHECK (signo);
+
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
   pending_signals = 1;
-#else
-  SIGNAL_THREAD_CHECK (signo);
 #endif
 
   if (input_available_clear_time)

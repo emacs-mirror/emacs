@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1378,19 +1378,27 @@ x_draw_composite_glyph_string_foreground (s)
 	      if (j < i)
 		{
 		  font->driver->draw (s, j, i, x, y, 0);
+		  if (s->face->overstrike)
+		    font->driver->draw (s, j, i, x + 1, y, 0);
 		  x += width;
 		}
 	      xoff = LGLYPH_XOFF (glyph);
 	      yoff = LGLYPH_YOFF (glyph);
 	      wadjust = LGLYPH_WADJUST (glyph);
 	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
+	      if (s->face->overstrike)
+		font->driver->draw (s, i, i + 1, x + xoff + 1, y + yoff, 0);
 	      x += wadjust;
 	      j = i + 1;
 	      width = 0;
 	    }
 	}
       if (j < i)
-	font->driver->draw (s, j, i, x, y, 0);
+	{
+	  font->driver->draw (s, j, i, x, y, 0);
+	  if (s->face->overstrike)
+	    font->driver->draw (s, j, i, x + 1, y, 0);
+	}
     }
 }
 
