@@ -7513,11 +7513,11 @@ input_available_signal (signo)
   signal (signo, input_available_signal);
 #endif /* USG */
 
+  SIGNAL_THREAD_CHECK (signo);
+
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
   pending_signals = 1;
-#else
-  SIGNAL_THREAD_CHECK (signo);
 #endif
 
   if (input_available_clear_time)

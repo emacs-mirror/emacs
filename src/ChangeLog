@@ -1,3 +1,11 @@
+2010-01-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (input_available_signal) [SYNC_INPUT]:
+	Call SIGNAL_THREAD_CHECK (Bug#5333).
+
+	* atimer.c (alarm_signal_handler) [!SYNC_INPUT]:
+	Call SIGNAL_THREAD_CHECK.
+
 2010-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Try to fix bug#5314.  This is probably not the final word, tho.

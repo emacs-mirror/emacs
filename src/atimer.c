@@ -410,6 +410,10 @@ SIGTYPE
 alarm_signal_handler (signo)
      int signo;
 {
+#ifndef SYNC_INPUT
+  SIGNAL_THREAD_CHECK (signo);
+#endif
+
   pending_atimers = 1;
 #ifdef SYNC_INPUT
   pending_signals = 1;
