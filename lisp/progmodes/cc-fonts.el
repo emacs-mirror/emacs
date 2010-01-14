@@ -1327,7 +1327,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
       ,@(when (c-lang-const c-recognize-<>-arglists)
 	  `(c-font-lock-<>-arglists))
 
-      ;; The first two rules here mostly find occurences that
+      ;; The first two rules here mostly find occurrences that
       ;; `c-font-lock-declarations' has found already, but not
       ;; declarations containing blocks in the type (see note below).
       ;; It's also useful to fontify these everywhere to show e.g. when
@@ -2117,7 +2117,7 @@ need for `pike-font-lock-extra-types'.")
 
 (defun c-find-invalid-doc-markup (regexp limit)
   ;; Used to fontify invalid markup in doc comments after the correct
-  ;; ones have been fontified: Find the first occurence of REGEXP
+  ;; ones have been fontified: Find the first occurrence of REGEXP
   ;; between the point and LIMIT that only is fontified with
   ;; `c-doc-face-name'.  If a match is found then submatch 0 surrounds
   ;; the first char and t is returned, otherwise nil is returned.

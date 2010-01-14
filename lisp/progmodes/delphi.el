@@ -1370,7 +1370,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                      ;; Indent in from the expression.
                      (delphi-indent-of last-token delphi-indent-level))
 
-                    ;; No enclosing expression; use the previous statment's
+                    ;; No enclosing expression; use the previous statement's
                     ;; indent.
                     ((delphi-previous-indent-of token)))))
 

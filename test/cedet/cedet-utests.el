@@ -236,7 +236,7 @@ Argument START and END bound the time being calculated."
 (defun cedet-utest-log-shutdown (title &optional errorcondition)
   "Shut-down a larger test suite.
 TITLE is the section that is done.
-ERRORCONDITION is some error that may have occured durinig testing."
+ERRORCONDITION is some error that may have occurred during testing."
   (let ((endtime (current-time))
 	)
     (cedet-utest-log-shutdown-msg title cedet-utest-log-timer endtime)
@@ -466,7 +466,7 @@ converted into.")
 
 (defun pulse-test (&optional no-error)
   "Test the lightening function for pulsing a line.
-When optional NO-ERROR Don't throw an error if we can't run tests."
+When optional NO-ERROR don't throw an error if we can't run tests."
   (interactive)
   (if (or (not pulse-flag) (not (pulse-available-p)))
       (if no-error

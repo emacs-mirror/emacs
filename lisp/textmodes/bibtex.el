@@ -2181,7 +2181,7 @@ Formats current entry according to variable `bibtex-entry-format'."
               (if (memq 'realign format)
                   (bibtex-fill-entry)))))
 
-      ;; Unwindform: move point to location where error occured if possible
+      ;; Unwindform: move point to location where error occurred if possible
       (if error-field-name
           (let (bounds)
             (when (save-excursion

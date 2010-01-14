@@ -442,7 +442,7 @@ If FORCE equals 'newfile, then the cache is ignored."
 	      (setq ans calc))
 	  ;; If we failed to calculate something, we
 	  ;; should add it to the hash, but ONLY if we are not
-	  ;; going to FORCE the file into existance.
+	  ;; going to FORCE the file into existence.
 	  (when (not force)
 	    (ede-locate-add-file-to-hash loc filename 'nomatch))))
       ))

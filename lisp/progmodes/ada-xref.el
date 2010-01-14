@@ -755,7 +755,7 @@ is non-nil, prompt the user to select one.  If none are found, return
   (let ((file (buffer-file-name nil)))
     (list
      ;; variable name alphabetical order
-     'ada_project_path  ""
+     'ada_project_path (or (getenv "ADA_PROJECT_PATH") "")
      'ada_project_path_sep  ada-prj-ada-project-path-sep
      'bind_opt        ada-prj-default-bind-opt
      'build_dir       default-directory

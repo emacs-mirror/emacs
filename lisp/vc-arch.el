@@ -213,7 +213,7 @@ Only the value `maybe' can be trusted :-(."
 	'names))))
 
 (defun vc-arch-root (file)
-  "Return the root directory of a Arch project, if any."
+  "Return the root directory of an Arch project, if any."
   (or (vc-file-getprop file 'arch-root)
       ;; Check the =tagging-method, in case someone naively manually
       ;; creates a {arch} directory somewhere.
