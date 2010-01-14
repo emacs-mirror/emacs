@@ -1,5 +1,22 @@
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
+	* find-cmd.el (find-constituents):
+	* vc-arch.el (vc-arch-root):
+	* window.el (window-body-height, pop-up-frames):
+	* cedet/semantic/edit.el (semantic-reparse-needed-change-hook)
+	(semantic-no-reparse-needed-change-hook):
+	* cedet/srecode/insert.el (srecode-resolve-argument-list)
+	(srecode-template-inserter-blank, srecode-template-inserter-variable)
+	(srecode-template-inserter-ask, srecode-template-inserter-width)
+	(srecode-template-inserter-section-start)
+	(srecode-template-inserter-section-end, srecode-insert-method):
+	* emacs-lisp/eieio-base.el (eieio-singleton, slot-missing):
+	* progmodes/ada-stmt.el (ada-if):
+	* progmodes/gdb-ui.el (gdb-jsonify-buffer):
+	* textmodes/ispell.el (ispell-grep-options, ispell-dictionary-alist)
+	(ispell-encoding8-command, ispell-aspell-supports-utf8)
+	(ispell-last-program-name, ispell-help): Fix typos in docstrings.
+
 	* progmodes/flymake.el (flymake-post-syntax-check):
 	Fix typo in error message.
 
