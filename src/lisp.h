@@ -1369,7 +1369,6 @@ void blocal_unbind_thread (Lisp_Object thread);
 Lisp_Object *blocal_get_thread_data (struct Lisp_Buffer_Local_Value *l,
                                      Lisp_Object sym);
 void blocal_set_thread_data (struct Lisp_Buffer_Local_Value *l, Lisp_Object o);
-Lisp_Object *blocal_getrealvalue (struct Lisp_Buffer_Local_Value *l);
 
 #define BLOCAL_CLEAR_FLAGS_VEC(VEC) XSETFASTINT (AREF ((VEC), 0), 0)
 #define BLOCAL_FOUND_FOR_BUFFER_VEC(VEC) ((XFASTINT (AREF ((VEC), 0))) == 1)
@@ -1389,7 +1388,7 @@ Lisp_Object *blocal_getrealvalue (struct Lisp_Buffer_Local_Value *l);
 #define BLOCAL_BUFFER(A) (BLOCAL_BUFFER_VEC (BLOCAL_THREAD_DATA (A)))
 #define BLOCAL_FRAME(A) (BLOCAL_FRAME_VEC (BLOCAL_THREAD_DATA (A)))
 #define BLOCAL_CDR(A) (BLOCAL_CDR_VEC (BLOCAL_THREAD_DATA (A)))
-#define BLOCAL_REALVALUE(A) (*blocal_getrealvalue (A))
+#define BLOCAL_REALVALUE(A) (XCDR_AS_LVALUE (ensure_thread_local (&((A)->realvalue))))
 
 /* START and END are markers in the overlay's buffer, and
    PLIST is the overlay's property list.  */

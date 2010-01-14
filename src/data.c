@@ -808,12 +808,6 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 		Getting and Setting Values of Symbols
  ***********************************************************************/
 
-Lisp_Object *
-blocal_getrealvalue (struct Lisp_Buffer_Local_Value *blv)
-{
-  return &XCDR_AS_LVALUE (ensure_thread_local (&(blv->realvalue)));
-}
-
 /* Retrieve the buffer local data for the caller thread.  SYMBOL is used only
    when the specified buffer local value does not have a binding for the thread
    and a new one must be created.  */
