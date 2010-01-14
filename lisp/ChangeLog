@@ -1,5 +1,10 @@
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/flymake.el (flymake-post-syntax-check):
+	Fix typo in error message.
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
 	* hexl.el (hexl-printable-character): Fix check of `hexl-iso',
 	which is always a string.  (Bug#5313)
 
