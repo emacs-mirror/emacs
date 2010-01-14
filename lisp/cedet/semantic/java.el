@@ -1,7 +1,7 @@
 ;;; semantic/java.el --- Semantic functions for Java
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009 Free Software Foundation, Inc.
+;;; 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -149,7 +149,7 @@ corresponding compound declaration."
   java-mode semantic-java-dependency-system-include-path
   ;; @todo - Use JDEE to get at the include path, or something else?
   nil
-  "The system include path used by Java langauge.")
+  "The system include path used by Java language.")
 
 ;; Local context
 ;;
@@ -239,7 +239,7 @@ Optional argument COLOR indicates that color should be mixed in."
 
 ;; Thanks Bruce Stephens
 (define-mode-local-override semantic-tag-include-filename java-mode (tag)
-  "Return a suitable path for (some) Java imports"
+  "Return a suitable path for (some) Java imports."
   (let ((name (semantic-tag-name tag)))
     (concat (mapconcat 'identity (split-string name "\\.") "/") ".java")))
 
@@ -371,9 +371,9 @@ That is TAG `symbol-name' without the leading '@'."
 (defun semantic-java-doc-keywords-map (fun &optional property)
   "Run function FUN for each javadoc keyword.
 Return the list of FUN results.  If optional PROPERTY is non nil only
-call FUN for javadoc keyword which have a value for PROPERTY.  FUN
+call FUN for javadoc keywords which have a value for PROPERTY.  FUN
 receives two arguments: the javadoc keyword and its associated
-'javadoc property list.  It can return any value.  Nil values are
+'javadoc property list.  It can return any value.  All nil values are
 removed from the result list."
   (delq nil
         (mapcar

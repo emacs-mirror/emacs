@@ -1,6 +1,6 @@
 ;;; data-debug.el --- Datastructure Debugger
 
-;; Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Version: 0.2
@@ -842,7 +842,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
 ;;
 (defgroup data-debug nil
   "data-debug group."
-  :group 'langauges)
+  :group 'languages)
 
 (defvar data-debug-mode-syntax-table
   (let ((table (make-syntax-table (standard-syntax-table))))

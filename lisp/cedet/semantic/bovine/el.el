@@ -1,7 +1,7 @@
 ;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
-;;   2009  Free Software Foundation, Inc.
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -139,7 +139,7 @@ syntax as specified by the syntax table."
     (nreverse vars)))
 
 (defun semantic-elisp-form-to-doc-string (form)
-  "After reading a form FORM, covert it to a doc string.
+  "After reading a form FORM, convert it to a doc string.
 For Emacs Lisp, sometimes that string is non-existent.
 Sometimes it is a form which is evaluated at compile time, permitting
 compound strings."
@@ -494,7 +494,7 @@ used to perform the override."
     ""))
 
 (defun semantic-emacs-lisp-obsoleted-doc (tag)
-  "Indicate that TAG is a new name that has obsoleted  some old name.
+  "Indicate that TAG is a new name that has obsoleted some old name.
 Unfortunately, this requires that the tag in question has been loaded
 into Emacs Lisp's memory."
   (let ((obsoletethis (intern-soft (semantic-tag-name tag)))
@@ -600,7 +600,7 @@ Overrides `semantic-nonterminal-static'."
 (define-mode-local-override semantic-up-context emacs-lisp-mode
   (&optional point bounds-type)
   "Move up one context in an Emacs Lisp function.
-A Context in many languages is a block with it's own local variables.
+A Context in many languages is a block with its own local variables.
 In Emacs, we will move up lists and stop when one starts with one of
 the following context specifiers:
   `let', `let*', `defun', `with-slots'
@@ -664,7 +664,7 @@ define-mode-overload\\)\
 (define-mode-local-override semantic-get-local-variables emacs-lisp-mode
   (&optional point)
   "Return a list of local variables for POINT.
-Scan backwards from point at each successive function.  For all occurances
+Scan backwards from point at each successive function.  For all occurrences
 of `let' or `let*', grab those variable names."
   (let* ((vars nil)
 	 (fn nil))
@@ -723,7 +723,7 @@ of `let' or `let*', grab those variable names."
 (define-mode-local-override semantic-end-of-command emacs-lisp-mode
   ()
   "Move cursor to the end of the current command.
-In emacs lisp this is easilly defined by parenthisis bounding."
+In Emacs Lisp this is easily defined by parenthesis bounding."
   (condition-case nil
       (up-list 1)
     (error nil)))
@@ -731,7 +731,7 @@ In emacs lisp this is easilly defined by parenthisis bounding."
 (define-mode-local-override semantic-beginning-of-command emacs-lisp-mode
   ()
   "Move cursor to the beginning of the current command.
-In emacs lisp this is easilly defined by parenthisis bounding."
+In Emacs Lisp this is easily defined by parenthesis bounding."
   (condition-case nil
       (progn
         (up-list -1)
@@ -824,8 +824,8 @@ In emacs lisp this is easilly defined by parenthisis bounding."
   (&optional point)
   "Return a list of tag classes allowed at POINT.
 Emacs Lisp knows much more about the class of the tag needed to perform
-completion than some langauges.  We distincly know if we are to be
-a function name, variable name, or any type of symbol.  We could identify
+completion than some languages.  We distincly know if we are to be a
+function name, variable name, or any type of symbol.  We could identify
 fields and such to, but that is for some other day."
   (save-excursion
     (if point (goto-char point))
@@ -939,7 +939,7 @@ See `semantic-format-tag-prototype' for Emacs Lisp for more details."
 ELisp variables can be pretty long, so track this one too.")
 
 (define-child-mode lisp-mode emacs-lisp-mode
-  "Make `lisp-mode' inherits mode local behavior from `emacs-lisp-mode'.")
+  "Make `lisp-mode' inherit mode local behavior from `emacs-lisp-mode'.")
 
 (defun semantic-default-elisp-setup ()
   "Setup hook function for Emacs Lisp files and Semantic."

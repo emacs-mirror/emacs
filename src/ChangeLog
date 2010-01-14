@@ -1,3 +1,81 @@
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_iso_2022): Fix handling of euc-xx coding
+	systems.
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	Make auto-composition work on all buffers even if they are
+	fundamental mode.
+
+	* composite.c (Vauto_composition_mode): New variable.
+	(composition_compute_stop_pos): Check Vauto_composition_mode
+	instead of Vauto_composition_function.
+	(composition_adjust_point, Ffind_composition_internal): Likewise.
+	(syms_of_composite): Declare Lisp variable
+	"auto-composition-mode" here.
+
+2010-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_term_init): Avoid garbage-collecting the new terminal
+	during call to vendor-specific-keysyms (Bug#5365).
+
+2010-01-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (input_available_signal) [SYNC_INPUT]:
+	Call SIGNAL_THREAD_CHECK (Bug#5333).
+
+	* atimer.c (alarm_signal_handler) [!SYNC_INPUT]:
+	Call SIGNAL_THREAD_CHECK.
+
+2010-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try to fix bug#5314.  This is probably not the final word, tho.
+	* buffer.c (Fset_buffer_modified_p): Try and be careful not to modify
+	recent-auto-save-p as a side-effect.
+	* buffer.h (BUF_AUTOSAVE_MODIFF): New macro.
+	* buffer.c (Fkill_buffer, reset_buffer):
+	* editfns.c (Fsubst_char_in_region):
+	* fileio.c (Finsert_file_contents, Fdo_auto_save)
+	(Fset_buffer_auto_saved, Frecent_auto_save_p): Use it.
+
+2010-01-13  Kenichi Handa  <handa@m17n.org>
+
+	Display buffer name, etc. in mode line by composing correctly.
+
+	* xdisp.c (reseat_to_string): Call composition_compute_stop_pos if
+	STRING is not nil.
+	(display_mode_element): Adjust for the change of
+	decode_mode_spec and display_line.
+	(decode_mode_spec): Change arg MULTIBYTE to STRING.
+	(display_string): Handle the case that STRING is non-null and
+	LISP_STRING is not nil.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground):
+	Pay attention to s->face->overstrike.
+
+	* composite.c (composition_reseat_it): Don't check PT if STRING is
+	non nil.
+
+2010-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (read_char): Don't apply previous change when current
+	buffer is unchanged by command execution.
+
+2010-01-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (read_char): Return after executing from special map.
+
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (REPORT_EMACS_BUG_PRETEST_ADDRESS): Set it to
+	bug-gnu-emacs rather than emacs-pretest-bug.
+
+2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (syms_of_nsterm): Initialize Qcontrol etc. before
+	initializing the Lisp variables that depend on them.
+
 2010-01-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xfns.c (x_set_menu_bar_lines) [!USE_X_TOOLKIT && !USE_GTK]:
@@ -88,8 +166,8 @@
 	(x_set_window_size): ... to here. bug #2568.
 
 	* gtkutil.c (xg_clear_under_internal_border): New function.
-	(xg_frame_resized, xg_frame_set_char_size): Call
-	xg_clear_under_internal_border.
+	(xg_frame_resized, xg_frame_set_char_size):
+	Call xg_clear_under_internal_border.
 	(xg_update_scrollbar_pos): Clear under old scroll bar position.
 
 2010-01-05  Chong Yidong  <cyd@stupidchicken.com>
@@ -213,8 +291,8 @@
 	and atimer.h.
 	(minibuf.o): Depend on systime.h and coding.h.  Don't depend on
 	dispextern.h explicitly.
-	(print.o): Depend on termhooks.h, coding.h, and ccl.h.  Don't
-	depend explicitly on dispextern.h and composite.h.
+	(print.o): Depend on termhooks.h, coding.h, and ccl.h.
+	Don't depend explicitly on dispextern.h and composite.h.
 	(process.o): Depend on character.h, xgselect.h, and sysselect.h.
 	(regex.o): Don't depend on charset.h.
 	(scroll.o): Depend on systime.h, coding.h, composite.h, and window.h.
@@ -393,8 +471,8 @@
 
 2009-12-04  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispextern.h (enum prop_idx) <AUTO_COMPOSED_PROP_IDX>: Delete
-	unused enumeration value.
+	* dispextern.h (enum prop_idx) <AUTO_COMPOSED_PROP_IDX>:
+	Delete unused enumeration value.
 
 2009-12-03  Eli Zaretskii  <eliz@gnu.org>
 
@@ -525,8 +603,8 @@
 
 2009-11-21  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* character.h (STRING_CHAR, STRING_CHAR_AND_LENGTH): Remove
-	ignored second argument.  All callers changed.
+	* character.h (STRING_CHAR, STRING_CHAR_AND_LENGTH):
+	Remove ignored second argument.  All callers changed.
 	* regex.c (STRING_CHAR, STRING_CHAR_AND_LENGTH, RE_STRING_CHAR)
 	(RE_STRING_CHAR_AND_LENGTH): Likewise.
 	* xdisp.c (string_char_and_length): Likewise.

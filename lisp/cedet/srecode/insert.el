@@ -1,6 +1,6 @@
 ;;; srecode/insert --- Insert srecode templates to an output stream.
 
-;; Copyright (C) 2005, 2007, 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

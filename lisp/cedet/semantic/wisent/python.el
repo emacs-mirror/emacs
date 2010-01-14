@@ -48,19 +48,19 @@
 (defconst wisent-python-string-re
   (concat (regexp-opt '("r" "u" "ur" "R" "U" "UR" "Ur" "uR") t)
           "?['\"]")
-  "Regexp matching beginning of a python string.")
+  "Regexp matching beginning of a Python string.")
 
 (defvar wisent-python-EXPANDING-block nil
   "Non-nil when expanding a paren block for Python lexical analyzer.")
 
 (defun wisent-python-implicit-line-joining-p ()
   "Return non-nil if implicit line joining is active.
-That is, if inside an expressions in parentheses, square brackets or
+That is, if inside an expression in parentheses, square brackets or
 curly braces."
   wisent-python-EXPANDING-block)
 
 (defsubst wisent-python-forward-string ()
-  "Move point at the end of the python string at point."
+  "Move point at the end of the Python string at point."
   (when (looking-at wisent-python-string-re)
      ;; skip the prefix
     (and (match-end 1) (goto-char (match-end 1)))
@@ -145,7 +145,7 @@ identation of the current line."
 (defvar wisent-python-indent-stack)
 
 (define-lex-analyzer wisent-python-lex-beginning-of-line
-  "Detect and create python indentation tokens at beginning of line."
+  "Detect and create Python indentation tokens at beginning of line."
   (and
    (bolp) (not (wisent-python-implicit-line-joining-p))
    (let ((last-indent (car wisent-python-indent-stack))
@@ -201,7 +201,7 @@ identation of the current line."
   )
 
 (define-lex-regex-analyzer wisent-python-lex-end-of-line
-  "Detect and create python newline tokens.
+  "Detect and create Python newline tokens.
 Just skip the newline character if the following line is an implicit
 continuation of current line."
   "\\(\n\\|\\s>\\)"
@@ -256,11 +256,11 @@ elsewhere on a line outside a string literal."
 ;;
 (define-mode-local-override semantic-lex python-mode
   (start end &optional depth length)
-  "Lexically analyze python code in current buffer.
+  "Lexically analyze Python code in current buffer.
 See the function `semantic-lex' for the meaning of the START, END,
 DEPTH and LENGTH arguments.
 This function calls `wisent-python-lexer' to actually perform the
-lexical analysis, then emits the necessary python DEDENT tokens from
+lexical analysis, then emits the necessary Python DEDENT tokens from
 what remains in the `wisent-python-indent-stack'."
   (let* ((wisent-python-indent-stack (list 0))
          (stream (wisent-python-lexer start end depth length))
@@ -272,13 +272,13 @@ what remains in the `wisent-python-indent-stack'."
 
 (define-mode-local-override semantic-get-local-variables python-mode ()
   "Get the local variables based on point's context.
-To be implemented for python!  For now just return nil."
+To be implemented for Python!  For now just return nil."
   nil)
 
 (defcustom-mode-local-semantic-dependency-system-include-path
   python-mode semantic-python-dependency-system-include-path
   nil
-  "The system include path used by Python langauge.")
+  "The system include path used by Python language.")
 
 ;;; Enable Semantic in `python-mode'.
 ;;

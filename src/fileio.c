@@ -1,7 +1,7 @@
 /* File IO for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4097,7 +4097,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	}
 
       SAVE_MODIFF = MODIFF;
-      current_buffer->auto_save_modified = MODIFF;
+      BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
       XSETFASTINT (current_buffer->save_length, Z - BEG);
 #ifdef CLASH_DETECTION
       if (NILP (handler))
@@ -5307,7 +5307,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	   and file changed since last real save.  */
 	if (STRINGP (b->auto_save_file_name)
 	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
-	    && b->auto_save_modified < BUF_MODIFF (b)
+	    && BUF_AUTOSAVE_MODIFF (b) < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
 	    && XINT (b->save_length) >= 0
 	    && (do_handled_files
@@ -5349,7 +5349,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	      message1 ("Auto-saving...");
 	    internal_condition_case (auto_save_1, Qt, auto_save_error);
 	    auto_saved++;
-	    b->auto_save_modified = BUF_MODIFF (b);
+	    BUF_AUTOSAVE_MODIFF (b) = BUF_MODIFF (b);
 	    XSETFASTINT (current_buffer->save_length, Z - BEG);
 	    set_buffer_internal (old);
 
@@ -5394,7 +5394,9 @@ DEFUN ("set-buffer-auto-saved", Fset_buffer_auto_saved,
 No auto-save file will be written until the buffer changes again.  */)
      ()
 {
-  current_buffer->auto_save_modified = MODIFF;
+  /* FIXME: This should not be called in indirect buffers, since
+     they're not autosaved.  */
+  BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
   XSETFASTINT (current_buffer->save_length, Z - BEG);
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
@@ -5417,7 +5419,9 @@ in the visited file.  If the buffer has no visited file,
 then any auto-save counts as "recent".  */)
      ()
 {
-  return (SAVE_MODIFF < current_buffer->auto_save_modified) ? Qt : Qnil;
+  /* FIXME: maybe we should return nil for indirect buffers since
+     they're never autosaved.  */
+  return (SAVE_MODIFF < BUF_AUTOSAVE_MODIFF (current_buffer) ? Qt : Qnil);
 }
 
 /* Reading and completing file names */

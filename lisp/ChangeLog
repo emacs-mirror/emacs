@@ -1,3 +1,112 @@
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-clean-buffer-before-saving): Make obsolete.
+	(ada-mode): Don't obey `ada-clean-buffer-before-saving' anymore.
+
+2010-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (show-trailing-whitespace): Safe if boolean.  (Bug#5312)
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-mode): Make it a buffer local
+	variable (permanent-local).
+	(auto-composition-function): Set the default value to
+	auto-compose-chars.
+	(auto-composition-mode): Make it a simple function, not a minor mode.
+	(global-auto-composition-mode): Likewise.
+	(turn-on-auto-composition-if-enabled): Delete it.
+
+2010-01-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-execute-deletions): Doc fix (Bug#5276).
+
+2010-01-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (copy-directory): Compute target for recursive
+	directories with identical names.  (Bug#5343)
+
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-pretest-address): Set
+	it to bug-gnu-emacs rather than emacs-pretest-bug.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/data-debug.el (data-debug): Fix customization group reference.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/analyze.el (semantic-analyze-push-error)
+	(semantic-analyze-context, semantic-analyze-context-assignment)
+	(semantic-analyze-find-tag-sequence, semantic-analyze-find-tag):
+	* cedet/semantic/java.el (java-mode, semantic-tag-include-filename)
+	(semantic-java-doc-keywords-map):
+	* cedet/semantic/bovine/c.el (c-mode, semantic-c-member-of-autocast)
+	(semantic-lex-c-nested-namespace-ignore-second, semantic-parse-region)
+	(semantic-c-parse-lexical-token, semantic-c-debug-mode-init-pch)
+	(semantic-c-classname, semantic-format-tag-uml-prototype)
+	(semantic-c-dereference-namespace, semantic-analyze-type-constants):
+	* cedet/semantic/bovine/el.el (semantic-elisp-form-to-doc-string)
+	(semantic-emacs-lisp-obsoleted-doc, semantic-up-context)
+	(semantic-get-local-variables, semantic-end-of-command)
+	(semantic-beginning-of-command, semantic-ctxt-current-class-list)
+	(lisp-mode):
+	* cedet/semantic/bovine/make.el (makefile-mode):
+	* cedet/semantic/wisent/python.el (wisent-python-string-re)
+	(wisent-python-implicit-line-joining-p, wisent-python-forward-string)
+	(wisent-python-lex-beginning-of-line, wisent-python-lex-end-of-line)
+	(semantic-lex, semantic-get-local-variables, python-mode):
+	* cedet/semantic/wisent/python-wy.el (wisent-python-wy--keyword-table):
+	* cedet/srecode/extract.el (srecode-extract-state-set)
+	(srecode-extract-method): Fix typos in docstrings.
+
+2010-01-11  Sam Steingold  <sds@gnu.org>
+
+	* imenu.el (imenu-default-create-index-function): Detect infinite
+	loops caused by imenu-prev-index-position-function.
+
+2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (htmlfontify-load-rgb-file)
+	(htmlfontify-unload-rgb-file, hfy-fallback-colour-values)
+	(htmlfontify-manual, htmlfontify, hfy-page-header, hfy-page-footer)
+	(hfy-src-doc-link-style, hfy-src-doc-link-unstyle, hfy-link-extn)
+	(hfy-link-style-fun, hfy-index-file, hfy-instance-file)
+	(hfy-html-quote-regex, hfy-init-kludge-hook, hfy-post-html-hooks)
+	(hfy-default-face-def, hfy-etag-regex, hfy-html-quote-map)
+	(hfy-etags-cmd-alist-default, hfy-etags-bin, hfy-ignored-properties)
+	(hfy-which-etags, hfy-etags-cmd, hfy-istext-command, hfy-display-class)
+	(hfy-optimisations, hfy-tags-cache, hfy-tags-sortl, hfy-tags-rmap)
+	(hfy-style-assoc, hfy-sheet-assoc, hfy-facemap-assoc, hfy-interq)
+	(hfy-colour-vals, hfy-default-header, hfy-link-style-string)
+	(hfy-triplet, hfy-slant, hfy-weight, hfy-combined-face-spec)
+	(hfy-face-attr-for-class, hfy-face-to-style-i, hfy-size-to-int)
+	(hfy-flatten-style, hfy-face-to-style, hfy-face-or-def-to-name)
+	(hfy-face-to-css, hfy-p-to-face, hfy-p-to-face-lennart, hfy-face-at)
+	(hfy-fontified-p, hfy-merge-adjacent-spans, hfy-buffer)
+	(hfy-html-enkludge-buffer, hfy-html-quote, hfy-html-dekludge-buffer)
+	(hfy-force-fontification, htmlfontify-buffer, hfy-dirname)
+	(hfy-make-directory, hfy-text-p, hfy-mark-tag-names, hfy-relstub)
+	(hfy-href-stub, hfy-href, hfy-mark-tag-hrefs, hfy-prepare-index-i)
+	(hfy-prepare-index, hfy-prepare-tag-map, hfy-subtract-maps)
+	(htmlfontify-run-etags): Fix typos in docstrings and remove superfluous
+	backslash-quoting from parentheses, etc.
+
+2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el: Autoload javascript-mode alias.
+
+2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ffap.el (ffap-shell-prompt-regexp, ffap-all-subdirs, ffap-url-p)
+	(ffap-alist, ffap-tex-path, ffap-url-at-point, ffap-gopher-regexp)
+	(ffap-gopher-at-point, ffap-file-at-point, ffap-read-file-or-url)
+	(ffap-read-url-internal, ffap-menu, ffap-at-mouse):
+	Fix typos in docstrings.
+	(ffap-url-regexp): Doc fix.
+	(ffap-at-mouse): Fix typo in message.
+
 2010-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright): Set copyright year to 2010.

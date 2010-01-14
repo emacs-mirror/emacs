@@ -1,7 +1,7 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -229,11 +229,13 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
 		 (const ada-no-auto-case))
   :group 'ada)
 
-;; FIXME If this is not something required by the ada language, this
-;; should be removed.
 (defcustom ada-clean-buffer-before-saving t
   "*Non-nil means remove trailing spaces and untabify the buffer before saving."
   :type 'boolean :group 'ada)
+(make-obsolete-variable 'ada-clean-buffer-before-saving
+			"use the `write-file-functions' hook."
+			"23.2")
+
 
 (defcustom ada-indent 3
   "*Size of Ada indentation.
@@ -1302,14 +1304,6 @@ the file name."
   (easy-menu-add ada-mode-menu ada-mode-map)
 
   (set-syntax-table ada-mode-syntax-table)
-
-  (if ada-clean-buffer-before-saving
-      (progn
-	;; remove all spaces at the end of lines in the whole buffer.
-	(add-hook 'local-write-file-hooks 'delete-trailing-whitespace)
-	;; convert all tabs to the correct number of spaces.
-	(add-hook 'local-write-file-hooks
-		  (lambda () (untabify (point-min) (point-max))))))
 
   (set (make-local-variable 'skeleton-further-elements)
        '((< '(backward-delete-char-untabify

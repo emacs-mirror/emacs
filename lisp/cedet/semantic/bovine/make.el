@@ -1,6 +1,6 @@
 ;;; semantic/bovine/make.el --- Makefile parsing rules.
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2008, 2009
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -204,7 +204,7 @@ Uses default implementation, and also gets a list of filenames."
 (defcustom-mode-local-semantic-dependency-system-include-path
   makefile-mode semantic-makefile-dependency-system-include-path
   nil
-  "The system include path used by Makefiles langauge.")
+  "The system include path used by Makefiles language.")
 
 ;;;###autoload
 (defun semantic-default-make-setup ()

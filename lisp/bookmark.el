@@ -1,7 +1,7 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -1960,7 +1960,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 
 
 (defun bookmark-bmenu-execute-deletions ()
-  "Delete bookmarks marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
+  "Delete bookmarks flagged `D'."
   (interactive)
   (message "Deleting bookmarks...")
   (let ((o-point  (point))

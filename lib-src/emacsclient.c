@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
    Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -340,7 +340,7 @@ w32_get_resource (predefined, key, type)
 /*
   getenv wrapper for Windows
 
-  This is needed to duplicate Emacs's behavior, which is to look for enviroment
+  This is needed to duplicate Emacs's behavior, which is to look for environment
   variables in the registry if they don't appear in the environment.
 */
 char *

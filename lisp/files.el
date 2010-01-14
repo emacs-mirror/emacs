@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
 ;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -4714,20 +4714,17 @@ this happens by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-      (if (and (file-directory-p newname)
-	       (not (string-equal (file-name-nondirectory directory)
-				  (file-name-nondirectory newname))))
-	  (setq newname
-		(expand-file-name (file-name-nondirectory directory) newname)))
       (if (not (file-directory-p newname)) (make-directory newname parents))
 
       ;; Copy recursively.
       (mapc
        (lambda (file)
-	 (if (file-directory-p file)
-	     (copy-directory file newname keep-time parents)
-	   (copy-file file newname t keep-time)))
-       ;; We do not want to delete "." and "..".
+	 (let ((target (expand-file-name
+			(file-name-nondirectory file) newname)))
+	   (if (file-directory-p file)
+	       (copy-directory file target keep-time parents)
+	     (copy-file file target t keep-time))))
+       ;; We do not want to copy "." and "..".
        (directory-files	directory 'full directory-files-no-dot-files-regexp))
 
       ;; Set directory attributes.
