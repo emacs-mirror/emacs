@@ -744,10 +744,14 @@ This function is the default value of `auto-composition-function' (which see)."
 	  (setq func 'compose-gstring-for-terminal))
       (funcall func gstring))))
 
+(make-variable-buffer-local 'auto-composition-mode)
+(put 'auto-composition-mode 'permanent-local t)
+
 (make-variable-buffer-local 'auto-composition-function)
+(setq-default auto-composition-function 'auto-compose-chars)
 
 ;;;###autoload
-(define-minor-mode auto-composition-mode
+(defun auto-composition-mode (&optional arg)
   "Toggle Auto Composition mode.
 With ARG, turn Auto Composition mode off if and only if ARG is a non-positive
 number; if ARG is nil, toggle Auto Composition mode; anything else turns Auto
@@ -758,29 +762,23 @@ by functions registered in `composition-function-table' (which see).
 
 You can use `global-auto-composition-mode' to turn on
 Auto Composition mode in all buffers (this is the default)."
-  nil nil nil
-  (if noninteractive
-      (setq auto-composition-mode nil))
-  (cond (auto-composition-mode
-	 (setq auto-composition-function 'auto-compose-chars))
-	(t
-	 (setq auto-composition-function nil))))
-
-(defun turn-on-auto-composition-if-enabled ()
-  (if enable-multibyte-characters
-      (auto-composition-mode 1)))
+  (interactive "P")
+  (setq auto-composition-mode
+	(if arg
+	    (or (not (integerp arg)) (> arg 0))
+	  (not auto-composition-mode))))
 
 ;;;###autoload
-(define-global-minor-mode global-auto-composition-mode
-  auto-composition-mode turn-on-auto-composition-if-enabled
-  ;; This :extra-args' appears to be the result of a naive copy&paste
-  ;; from global-font-lock-mode.
-  ;; :extra-args (dummy)
-  :initialize 'custom-initialize-delay
-  :init-value (not noninteractive)
-  :group 'auto-composition
-  :version "23.1")
-
+(defun global-auto-composition-mode (&optional arg)
+  "Toggle Auto-Composition mode in every possible buffer.
+With prefix arg, turn Global-Auto-Composition mode on if and only if arg
+is positive.
+See `auto-composition-mode' for more information on Auto-Composition mode."
+  (interactive "P")
+  (setq-default auto-composition-mode
+		(if arg
+		    (or (not (integerp arg)) (> arg 0))
+		  (not (default-value 'auto-composition-mode)))))
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 

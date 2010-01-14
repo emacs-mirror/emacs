@@ -1,3 +1,17 @@
+2010-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (show-trailing-whitespace): Safe if boolean.  (Bug#5312)
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-mode): Make it a buffer local
+	variable (permanent-local).
+	(auto-composition-function): Set the default value to
+	auto-compose-chars.
+	(auto-composition-mode): Make it a simple function, not a minor mode.
+	(global-auto-composition-mode): Likewise.
+	(turn-on-auto-composition-if-enabled): Delete it.
+
 2010-01-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-bmenu-execute-deletions): Doc fix (Bug#5276).
