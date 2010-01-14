@@ -28,6 +28,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static GPollFD *gfds;
 static int gfds_size;
 
+int thread_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+		   EMACS_TIME *);
+
 int
 xg_select (max_fds, rfds, wfds, efds, timeout)
      int max_fds;
@@ -99,8 +102,8 @@ xg_select (max_fds, rfds, wfds, efds, timeout)
       if (our_tmo) tmop = &tmo;
     }
 
-  nfds = select (max_fds+1, &all_rfds, have_wfds ? &all_wfds : NULL,
-                 efds, tmop);
+  nfds = thread_select (max_fds+1, &all_rfds, have_wfds ? &all_wfds : NULL,
+                        efds, tmop);
 
   if (nfds < 0)
     retval = nfds;
