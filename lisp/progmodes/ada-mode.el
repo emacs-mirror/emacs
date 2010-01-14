@@ -674,7 +674,7 @@ A new statement starts after these.")
 
 (defvar ada-subprog-start-re
   (eval-when-compile
-    (concat "\\<" (regexp-opt '("accept" "entry" "function" "package" "procedure"
+    (concat "\\<" (regexp-opt '("accept" "entry" "function" "overriding" "package" "procedure"
 				"protected" "task") t) "\\>"))
   "Regexp for the start of a subprogram.")
 
@@ -721,7 +721,7 @@ displaying the menu if point was on an identifier."
 (defconst ada-imenu-comment-re "\\([ \t]*--.*\\)?")
 
 (defconst ada-imenu-subprogram-menu-re
-  (concat "^[ \t]*\\(procedure\\|function\\)[ \t\n]+"
+  (concat "^[ \t]*\\(overriding[ \t]*\\)?\\(procedure\\|function\\)[ \t\n]+"
 	  "\\(\\(\\sw\\|_\\)+\\)[ \t\n]*\\([ \t\n]\\|([^)]+)"
 	  ada-imenu-comment-re
 	  "\\)[ \t\n]*"
@@ -729,7 +729,7 @@ displaying the menu if point was on an identifier."
 
 (defvar ada-imenu-generic-expression
   (list
-   (list nil ada-imenu-subprogram-menu-re 2)
+   (list nil ada-imenu-subprogram-menu-re 3)
    (list "*Specs*"
 	 (concat
 	  "^[ \t]*\\(procedure\\|function\\)[ \t\n]+\\(\\(\\sw\\|_\\)+\\)"
@@ -2477,7 +2477,7 @@ and the offset."
 	    (list (progn (back-to-indentation) (point)) 'ada-indent))
 	(save-excursion
 	  (ada-goto-stmt-start)
-	  (if (looking-at "\\<package\\|procedure\\|function\\>")
+	  (if (looking-at "\\<overriding\\|package\\|procedure\\|function\\>")
 	      (list (progn (back-to-indentation) (point)) 0)
 	    (list (progn (back-to-indentation) (point)) 'ada-indent)))))
 
@@ -2626,20 +2626,23 @@ and the offset."
 	   (looking-at "\\<\\(package\\|function\\|procedure\\)\\>"))
       (save-excursion
 	;;  Go up until we find either a generic section, or the end of the
-	;;  previous subprogram/package
+	;;  previous subprogram/package, or 'overriding' for this function/procedure
 	(let (found)
 	  (while (and (not found)
 		      (ada-search-ignore-string-comment
-	     "\\<\\(generic\\|end\\|begin\\|package\\|procedure\\|function\\)\\>" t))
+	     "\\<\\(generic\\|end\\|begin\\|overriding\\|package\\|procedure\\|function\\)\\>" t))
 
 	    ;;  avoid "with procedure"... in generic parts
 	    (save-excursion
 	      (forward-word -1)
 	      (setq found (not (looking-at "with"))))))
 
-	(if (looking-at "generic")
-	    (list (progn (back-to-indentation) (point)) 0)
-	  (ada-indent-on-previous-lines nil orgpoint orgpoint))))
+	(cond
+	 ((looking-at "\\<generic\\|overriding\\>")
+	  (list (progn (back-to-indentation) (point)) 0))
+
+	 (t
+	  (ada-indent-on-previous-lines nil orgpoint orgpoint)))))
 
      ;;---------------------------------
      ;; label
@@ -5057,7 +5060,7 @@ Since the search can be long, the results are cached."
 
 	  ;; Get the function name, but not the properties, or this changes
 	  ;; the face in the modeline on Emacs 21
-	  (setq func-name (match-string-no-properties 2))
+	  (setq func-name (match-string-no-properties 3))
 	  (if (and (not (ada-in-comment-p))
 		   (not (save-excursion
 			  (goto-char (match-end 0))

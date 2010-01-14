@@ -1,5 +1,12 @@
 2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
 
+	* progmodes/ada-mode.el: Deal with Ada 2005 "overriding" keyword.
+	(ada-subprog-start-re, ada-imenu-subprogram-menu-re): Add keyword.
+	(ada-get-current-indent, ada-imenu-generic-expression)
+	(ada-which-function): Check for it.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
 	* progmodes/ada-mode.el (ada-clean-buffer-before-saving): Make obsolete.
 	(ada-mode): Don't obey `ada-clean-buffer-before-saving' anymore.
 
