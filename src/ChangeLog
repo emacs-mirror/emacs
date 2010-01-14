@@ -1,5 +1,10 @@
 2010-01-14  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (detect_coding_iso_2022): Fix handling of euc-xx coding
+	systems.
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
 	Make auto-composition work on all buffers even if they are
 	fundamental mode.
 
