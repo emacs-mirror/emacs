@@ -1,4 +1,9 @@
-2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>2
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-xref.el (ada-default-prj-properties):
+	Default ada_project_path to $ADA_PROJECT_PATH.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* progmodes/ada-mode.el (ada-create-keymap):
 	Override `narrow-to-defun' with `ada-narrow-to-defun'.
