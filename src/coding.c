@@ -3239,9 +3239,13 @@ detect_coding_iso_2022 (coding, detect_info)
 		  int i = 1;
 		  while (src < src_end)
 		    {
+		      src_base = src;
 		      ONE_MORE_BYTE (c);
 		      if (c < 0xA0)
-			break;
+			{
+			  src = src_base;
+			  break;
+			}
 		      i++;
 		    }
 
