@@ -1,3 +1,8 @@
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-xref.el (ada-default-prj-properties):
+	Simplify previous change.
+
 2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* progmodes/ada-xref.el (ada-default-prj-properties):
