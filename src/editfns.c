@@ -1,7 +1,7 @@
 /* Lisp functions pertaining to editing.
    Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2870,8 +2870,8 @@ Both characters must have the same length of multi-byte form.  */)
 		{
 		  if (MODIFF - 1 == SAVE_MODIFF)
 		    SAVE_MODIFF++;
-		  if (MODIFF - 1 == current_buffer->auto_save_modified)
-		    current_buffer->auto_save_modified++;
+		  if (MODIFF - 1 == BUF_AUTOSAVE_MODIFF (current_buffer))
+		    BUF_AUTOSAVE_MODIFF (current_buffer)++;
 		}
 
 	      /* The before-change-function may have moved the gap

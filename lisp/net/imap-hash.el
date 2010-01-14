@@ -1,6 +1,6 @@
 ;;; imap-hash.el --- Hashtable-like interface to an IMAP mailbox
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: mail

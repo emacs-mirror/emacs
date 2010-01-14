@@ -157,7 +157,7 @@ void *malloc_state_ptr;
 extern void *malloc_get_state ();
 /* From glibc, a routine that overwrites the malloc internal state.  */
 extern int malloc_set_state ();
-/* Non-zero if the MALLOC_CHECK_ enviroment variable was set while
+/* Non-zero if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 int malloc_using_checking;
 #endif

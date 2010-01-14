@@ -8,6 +8,9 @@
 	mode.
 	(global-auto-composition-mode): Likewise.
 	(turn-on-auto-composition-if-enabled): Delete it.
+2010-01-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-execute-deletions): Doc fix (Bug#5276).
 
 2010-01-12  Michael Albinus  <michael.albinus@gmx.de>
 

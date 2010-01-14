@@ -6180,8 +6180,8 @@
 
 1998-04-06  Andreas Schwab  <schwab@gnu.org>
 
-	* Makefile.in (ENVADD): Enviroment vars to pass to texi2dvi.  Use
-	it in dvi targets.
+	* Makefile.in (ENVADD): Environment vars to pass to texi2dvi.
+	Use it in dvi targets.
 	(../etc/GNU): Change to $(srcdir) first.
 
 1998-03-11  Carsten Dominik  <cd@delysid.gnu.org>

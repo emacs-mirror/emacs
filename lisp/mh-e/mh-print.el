@@ -1,6 +1,6 @@
 ;;; mh-print.el --- MH-E printing support
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jeffrey C Honig <jch@honig.net>
