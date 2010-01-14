@@ -447,7 +447,7 @@ comment at the start of cc-engine.el for more info."
   (c-put-char-property pos 'c-type value))
 
 (defun c-clear-c-type-property (from to value)
-  ;; Remove all occurences of the c-type property that has the given
+  ;; Remove all occurrences of the c-type property that has the given
   ;; value in the region between FROM and TO.  VALUE is assumed to not
   ;; be nil.
   ;;
@@ -555,7 +555,7 @@ the previous one if already at the beginning of one.  Only
 statements/declarations on the same level are considered, i.e. don't
 move into or out of sexps (not even normal expression parentheses).
 
-If point is already at the earliest statment within braces or parens,
+If point is already at the earliest statement within braces or parens,
 this function doesn't move back into any whitespace preceding it; it
 returns 'same in this case.
 
@@ -605,7 +605,7 @@ comment at the start of cc-engine.el for more info."
   ;; The bulk of this function is a pushdown automaton that looks at statement
   ;; boundaries and the tokens (such as "while") in c-opt-block-stmt-key.  Its
   ;; purpose is to keep track of nested statements, ensuring that such
-  ;; statments are skipped over in their entirety (somewhat akin to what C-M-p
+  ;; statements are skipped over in their entirety (somewhat akin to what C-M-p
   ;; does with nested braces/brackets/parentheses).
   ;;
   ;; Note: The position of a boundary is the following token.
@@ -4394,7 +4394,7 @@ comment at the start of cc-engine.el for more info."
   ;;    `c-decl-prefix-or-start-re' when that submatch matches.
   ;; o  The start of each `c-decl-prefix-or-start-re' match when
   ;;    submatch 1 doesn't match.
-  ;; o  The first token after the end of each occurence of the
+  ;; o  The first token after the end of each occurrence of the
   ;;    `c-type' text property with the value `c-decl-end', provided
   ;;    `c-type-decl-end-used' is set.
   ;;

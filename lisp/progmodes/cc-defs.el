@@ -1010,7 +1010,7 @@ MODE is either a mode symbol or a list of mode symbols."
 	 `(c-clear-char-property-fun ,pos ',property))))
 
 (defmacro c-clear-char-properties (from to property)
-  ;; Remove all the occurences of the given property in the given
+  ;; Remove all the occurrences of the given property in the given
   ;; region that has been put with `c-put-char-property'.  PROPERTY is
   ;; assumed to be constant.
   ;;
@@ -1035,7 +1035,7 @@ which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
 been put there by c-put-char-property.  POINT remains unchanged."
   (let ((place from) end-place)
-    (while			  ; loop round occurrances of (PROPERTY VALUE)
+    (while			  ; loop round occurrences of (PROPERTY VALUE)
 	(progn
 	  (while	   ; loop round changes in PROPERTY till we find VALUE
 	      (and

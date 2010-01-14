@@ -1197,7 +1197,7 @@ as returned by `x-server-vendor'."
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
 ;; from x-cut-buffer-or-selection-value.  We track all three
-;; seperately in case another X application only sets one of them
+;; separately in case another X application only sets one of them
 ;; (say the cut buffer) we aren't fooled by the PRIMARY or
 ;; CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil
