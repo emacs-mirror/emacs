@@ -4,10 +4,10 @@
 	variable (permanent-local).
 	(auto-composition-function): Set the default value to
 	auto-compose-chars.
-	(auto-composition-mode): Make it a simple function, not a minor
-	mode.
+	(auto-composition-mode): Make it a simple function, not a minor mode.
 	(global-auto-composition-mode): Likewise.
 	(turn-on-auto-composition-if-enabled): Delete it.
+
 2010-01-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-bmenu-execute-deletions): Doc fix (Bug#5276).
