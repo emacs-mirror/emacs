@@ -37,14 +37,14 @@ template section-comment :indent :blank
 ----
 
 template function-comment :tag :indent :blank
-"A comment occuring in front of a function.
+"A comment occurring in front of a function.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:declaration:javadoc-function}}
 ----
 
 template variable-same-line-comment :tag
-"A comment occuring after a veriable declaration.
+"A comment occurring after a veriable declaration.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:declaration:javadoc-variable-same-line}}
@@ -52,14 +52,14 @@ Recycle javadoc comment code from the more general template set."
 
 ;; These happen to be the same as in a classdecl.
 template group-comment-start :blank :indent
-"A comment occuring in front of a group of declarations.
+"A comment occurring in front of a group of declarations.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:classdecl:javadoc-function-group-start}}
 ----
 
 template group-comment-end :blank :indent
-"A comment occuring at the end of a a group of declarations.
+"A comment occurring at the end of a a group of declarations.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:classdecl:javadoc-function-group-end}}
@@ -69,14 +69,14 @@ Recycle javadoc comment code from the more general template set."
 context classdecl
 
 template group-comment-start :blank :indent
-"A comment occuring in front of a group of declarations.
+"A comment occurring in front of a group of declarations.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:classdecl:javadoc-function-group-start}}
 ----
 
 template group-comment-end :blank :indent
-"A comment occuring at the end of a a group of declarations.
+"A comment occurring at the end of a a group of declarations.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:classdecl:javadoc-function-group-end}}

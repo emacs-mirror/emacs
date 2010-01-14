@@ -1312,9 +1312,8 @@ in both directions.  This feature is currently only available in Emacs
 ** erc is switching to global-minor-modes for activation of submodules.
 
 This allows you to customize such a mode and get automatic loading of
-the module.  No longer putting a lot of require statments in .emacs.
-At least this is the long-term plan, not all modules are converted
-yet.
+the module.  No longer putting a lot of require statements in .emacs.
+At least this is the long-term plan, not all modules are converted yet.
 
 ** The most important user visible change is that you now need to activate
 erc-completion-mode, to get TAB completion.  The new completion code

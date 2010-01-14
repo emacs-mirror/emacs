@@ -643,7 +643,7 @@ It's flymake process filter."
 	    (flymake-report-status "" "")	; PASSED
 	  (if (not flymake-check-was-interrupted)
 	      (flymake-report-fatal-status "CFGERR"
-					   (format "Configuration error has occured while running %s" command))
+					   (format "Configuration error has occurred while running %s" command))
 	    (flymake-report-status nil ""))) ; "STOPPED"
       (flymake-report-status (format "%d/%d" err-count warn-count) ""))))
 

@@ -4607,7 +4607,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 
 
 (defun idlwave-shorten-syntax (syntax name &optional class)
-  ;; From a list of syntax statments, shorten with %s and group with "or"
+  ;; From a list of syntax statements, shorten with %s and group with "or"
   (let ((case-fold-search t))
     (mapconcat
      (lambda (x)

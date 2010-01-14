@@ -187,7 +187,7 @@ Indent for the first line of code."
 
 
 (define-skeleton ada-if
-  "Insert skeleton if statment, prompting for a boolean-expression."
+  "Insert skeleton if statement, prompting for a boolean-expression."
   "[condition]: "
   "if " str " then" \n
   > _ \n

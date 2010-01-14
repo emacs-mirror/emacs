@@ -77,9 +77,9 @@ WINDOW defaults to the selected window.
 
 The return value does not include the mode line or the header
 line, if any.  If a line at the bottom of the window is only
-partially visible, that line is included in the return value.  If
-you do not want to include a partially visible bottom line in the
-return value, use `window-text-height' instead."
+partially visible, that line is included in the return value.
+If you do not want to include a partially visible bottom line
+in the return value, use `window-text-height' instead."
   (or window (setq window (selected-window)))
   (if (window-minibuffer-p window)
       (window-height window)
@@ -785,7 +785,7 @@ selected rather than \(as usual\) some other window.  See
 
 (defcustom pop-up-frames nil
   "Whether `display-buffer' should make a separate frame.
-If nil, never make a seperate frame.
+If nil, never make a separate frame.
 If the value is `graphic-only', make a separate frame
 on graphic displays only.
 Any other non-nil value means always make a separate frame."
@@ -1006,7 +1006,7 @@ is higher than WINDOW."
 	     (not (eq window (selected-window)))
 	     ;; Don't resize minibuffer windows.
 	     (not (window-minibuffer-p (selected-window)))
-	     (> (window-height (selected-window)) (window-height window)) 
+	     (> (window-height (selected-window)) (window-height window))
 	     (eq (window-frame window) (window-frame (selected-window)))
 	     (let ((sel-edges (window-edges (selected-window)))
 		   (win-edges (window-edges window)))

@@ -355,9 +355,9 @@ encodeURIComponent. E.g. `%C3%B6' is the german Umlaut `ü'."
     ret ))
 
 (defun org-protocol-flatten-greedy (param-list &optional strip-path replacement)
-  "Greedy handlers might recieve a list like this from emacsclient:
+  "Greedy handlers might receive a list like this from emacsclient:
  '( (\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\")
-where \"/dir/\" is the absolute path to emacsclients working directory. This
+where \"/dir/\" is the absolute path to emacsclients working directory.  This
 function transforms it into a flat list utilizing `org-protocol-flatten' and
 transforms the elements of that list as follows:
 
@@ -400,10 +400,10 @@ returned list."
 
 
 (defun org-protocol-flatten (l)
-  "Greedy handlers might recieve a list like this from emacsclient:
+  "Greedy handlers might receive a list like this from emacsclient:
  '( (\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\")
-where \"/dir/\" is the absolute path to emacsclients working directory. This
-function transforms it into a flat list."
+where \"/dir/\" is the absolute path to emacsclients working directory.
+This function transforms it into a flat list."
   (if (null l) ()
     (if (listp l)
        (append (org-protocol-flatten (car l)) (org-protocol-flatten (cdr l)))
