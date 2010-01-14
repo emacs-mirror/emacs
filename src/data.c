@@ -92,6 +92,7 @@ Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 Lisp_Object Qinteractive_form;
 
 static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
+static int let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
 
 Lisp_Object impl_Vmost_positive_fixnum, impl_Vmost_negative_fixnum;
 
@@ -1182,7 +1183,31 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
     def:
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
-        BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
+        {
+          Lisp_Object v = BLOCAL_CDR (XBUFFER_LOCAL_VALUE (valcontents));
+          if (! let_shadows_buffer_binding_p (XSYMBOL (symbol)))
+            {
+              Lisp_Object it;
+              for (it = XBUFFER_LOCAL_VALUE (valcontents)->thread_data;
+                   !NILP (it); it = XCDR (it))
+                {
+                  Lisp_Object head = XCDR (XCAR (it));
+                  if (EQ (BLOCAL_BUFFER (XBUFFER_LOCAL_VALUE (valcontents)),
+                          BLOCAL_BUFFER_VEC (head))
+                      && (! XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+                          || EQ (selected_frame, BLOCAL_FRAME_VEC (head))))
+                    {
+                      Lisp_Object rv
+                        = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+                      Fsetcdr (assq_no_quit (XCAR (XCAR (it)),
+                                             XTHREADLOCAL (rv)->thread_alist),
+                               newval);
+                      Fsetcdr (XCAR (BLOCAL_CDR_VEC (head)), newval);
+                    }
+                }
+            }
+          BLOCAL_REALVALUE (XBUFFER_LOCAL_VALUE (valcontents)) = newval;
+        }
       else if (THREADLOCALP (valcontents))
         {
           Lisp_Object val = indirect_variable (XSYMBOL (symbol))->value;
