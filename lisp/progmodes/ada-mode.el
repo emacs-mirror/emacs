@@ -4568,6 +4568,8 @@ Moves to 'begin' if in a declarative part."
 
   (define-key ada-mode-extra-map "u"  'ada-prj-edit)
 
+  (define-key ada-mode-map "\C-xnd" 'ada-narrow-to-defun); override narrow-to-defun
+
   ;;  The templates, defined in ada-stmt.el
 
   (let ((map (make-sparse-keymap)))
