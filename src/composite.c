@@ -157,6 +157,7 @@ Lisp_Object composition_hash_table;
 Lisp_Object Vcompose_chars_after_function;
 
 Lisp_Object Qauto_composed;
+Lisp_Object Vauto_composition_mode;
 Lisp_Object Vauto_composition_function;
 Lisp_Object Qauto_composition_function;
 Lisp_Object Vcomposition_function_table;
@@ -1039,7 +1040,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
   if (NILP (string) && PT > charpos && PT < endpos)
     cmp_it->stop_pos = PT;
   if (NILP (current_buffer->enable_multibyte_characters)
-      || ! FUNCTIONP (Vauto_composition_function))
+      || NILP (Vauto_composition_mode))
     return;
   if (bytepos < 0)
     {
@@ -1478,7 +1479,7 @@ composition_adjust_point (last_pt, new_pt)
     }
 
   if (NILP (current_buffer->enable_multibyte_characters)
-      || ! FUNCTIONP (Vauto_composition_function))
+      || NILP (Vauto_composition_mode))
     return new_pt;
 
   /* Next check the automatic composition.  */
@@ -1661,7 +1662,7 @@ See `find-composition' for more details.  */)
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
       if (!NILP (current_buffer->enable_multibyte_characters)
-	  && FUNCTIONP (Vauto_composition_function)
+	  && ! NILP (Vauto_composition_mode)
 	  && find_automatic_composition (from, to, &start, &end, &gstring,
 					 string))
 	return list3 (make_number (start), make_number (end), gstring);
@@ -1787,6 +1788,11 @@ The default value is the function `compose-chars-after'.  */);
 
   Qauto_composition_function = intern_c_string ("auto-composition-function");
   staticpro (&Qauto_composition_function);
+
+  DEFVAR_LISP ("auto-composition-mode", &Vauto_composition_mode,
+	       doc: /* Non-nil if Auto-Composition mode is enabled.
+Use the command `auto-composition-mode' to change this variable. */);
+  Vauto_composition_mode = Qt;
 
   DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,
 	       doc: /* Function to call to compose characters automatically.

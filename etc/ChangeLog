@@ -1,3 +1,7 @@
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Describe the change of auto-composition-mode.
+
 2010-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* CONTRIBUTE, NEWS: Use bug-gnu-emacs rather than emacs-pretest-bug

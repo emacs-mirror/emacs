@@ -1,3 +1,15 @@
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	Make auto-composition work on all buffers even if they are
+	fundamental mode.
+
+	* composite.c (Vauto_composition_mode): New variable.
+	(composition_compute_stop_pos): Check Vauto_composition_mode
+	instead of Vauto_composition_function.
+	(composition_adjust_point, Ffind_composition_internal): Likewise.
+	(syms_of_composite): Declare Lisp variable
+	"auto-composition-mode" here.
+
 2010-01-13  Kenichi Handa  <handa@m17n.org>
 
 	Display buffer name, etc. in mode line by composing correctly.

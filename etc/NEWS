@@ -122,6 +122,11 @@ international/ucs-normalize.el.
 ** Function arguments in *Help* buffers are now shown in upper-case.
 Customize `help-downcase-arguments' to t to show them in lower-case.
 
+** Delete Auto Composition Mode.  Now the variable
+`auto-composition-mode' is simply a buffer local variable.  The
+commands `auto-composition-mode' and `global-auto-composition-mode'
+still works as before.
+
 
 * Editing Changes in Emacs 23.2
 
