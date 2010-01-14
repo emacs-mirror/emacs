@@ -37,7 +37,14 @@ static pthread_t next_thread;
 static void
 thread_schedule ()
 {
-  next_thread = NEXT_THREAD (current_thread)->pthread_id;
+  struct thread_state *it = current_thread;
+  do
+    {
+      it = NEXT_THREAD (it);
+    }
+  while (it->blocked && it != current_thread);
+
+  next_thread = it->pthread_id;
 }
 
 /* Schedule a new thread and block the caller until it is not scheduled
@@ -387,13 +394,7 @@ thread_select (n, rfd, wfd, xfd, tmo)
 int
 other_threads_p (void)
 {
-  int avail = 0;
-  struct thread_state *it = all_threads;
-  for (; it && avail < 2; it = it->next_thread)
-    if (!it->blocked)
-      avail++;
-
-  return avail > 1;
+  return all_threads->next ? 1 : 0;
 }
 
 Lisp_Object
