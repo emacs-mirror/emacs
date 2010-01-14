@@ -276,7 +276,7 @@
 
 2009-06-12  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Use "/" instead of "," to seperate independent words.
+	* HELLO: Use "/" instead of "," to separate independent words.
 
 	* charsets/*.map: All re-generated.
 
