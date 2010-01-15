@@ -1,3 +1,35 @@
+2010-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (CHAR_COMPOSED_P): New arg END_CHARPOS.  Callers changed.
+
+2010-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (Qnone): Define.
+
+	* nsfns.m (Qnone): Move definition to nsterm.m.
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_iso_2022): Fix handling of euc-xx coding
+	systems.
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	Make auto-composition work on all buffers even if they are
+	fundamental mode.
+
+	* composite.c (Vauto_composition_mode): New variable.
+	(composition_compute_stop_pos): Check Vauto_composition_mode
+	instead of Vauto_composition_function.
+	(composition_adjust_point, Ffind_composition_internal): Likewise.
+	(syms_of_composite): Declare Lisp variable
+	"auto-composition-mode" here.
+
+2010-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_term_init): Avoid garbage-collecting the new terminal
+	during call to vendor-specific-keysyms (Bug#5365).
+
 2010-01-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (input_available_signal) [SYNC_INPUT]:

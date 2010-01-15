@@ -1,3 +1,9 @@
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/cedet-utests.el (cedet-utest-log-shutdown, pulse-test):
+	* cedet/semantic-ia-utest.el (semantic-ia-utest-error-log-list)
+	(semantic-ia-utest-buffer-refs): Fix typos in docstrings.
+
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el

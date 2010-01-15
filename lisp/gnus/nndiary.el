@@ -67,7 +67,7 @@
 ;;   IMHO, nnoo is actually badly designed.  A much simpler, and yet more
 ;;   powerful one would be to make *real* functions and variables for a new
 ;;   back end based on another. Lisp is a reflexive language so that's a very
-;;   easy thing to do: inspect the function's form, replace occurences of
+;;   easy thing to do: inspect the function's form, replace occurrences of
 ;;   <nnfrom> (even in strings) with <nnto>, and you're done.
 
 ;; * nndiary-get-new-mail, nndiary-mail-source and nndiary-split-methods:
@@ -1322,7 +1322,7 @@ all.  This may very well take some time.")
     (sort res 'time-less-p)))
 
 (defun nndiary-last-occurence (sched)
-  ;; Returns the last occurence of schedule SCHED as an Emacs time struct, or
+  ;; Returns the last occurrence of schedule SCHED as an Emacs time struct, or
   ;; nil for permanent schedule or errors.
   (let ((minute (nndiary-max (nth 0 sched)))
 	(hour (nndiary-max (nth 1 sched)))
@@ -1393,7 +1393,7 @@ all.  This may very well take some time.")
 			    (encode-time 0 minute hour
 					 (car days) month year time-zone)))
 		   )))))
-	 ;; There's an upper limit, but we didn't find any last occurence.
+	 ;; There's an upper limit, but we didn't find any last occurrence.
 	 ;; This means that the schedule is undecidable. This can happen if
 	 ;; you happen to say something like "each Feb 31 until 2038".
 	 (progn
@@ -1402,8 +1402,8 @@ all.  This may very well take some time.")
 	))))
 
 (defun nndiary-next-occurence (sched now)
-  ;; Returns the next occurence of schedule SCHED, starting from time NOW.
-  ;; If there's no next occurence, returns the last one (if any) which is then
+  ;; Returns the next occurrence of schedule SCHED, starting from time NOW.
+  ;; If there's no next occurrence, returns the last one (if any) which is then
   ;; in the past.
   (let* ((today (decode-time now))
 	 (this-minute (nth 1 today))
@@ -1557,12 +1557,12 @@ all.  This may very well take some time.")
 	;; The article should be re-considered as unread if there's a reminder
 	;; between the group timestamp and the current time.
 	(when (and sched (setq sched (nndiary-next-occurence sched now)))
-	  (let ((reminders ;; add the next occurence itself at the end.
+	  (let ((reminders ;; add the next occurrence itself at the end.
 		 (append (nndiary-compute-reminders sched) (list sched))))
 	    (while (and reminders (time-less-p (car reminders) timestamp))
 	      (pop reminders))
 	    ;; The reminders might be empty if the last date is in the past,
-	    ;; or we've got at least the next occurence itself left. All past
+	    ;; or we've got at least the next occurrence itself left. All past
 	    ;; dates are renewed.
 	    (or (not reminders)
 		(time-less-p (car reminders) now)))

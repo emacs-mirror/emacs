@@ -33,7 +33,7 @@
 ;;
 ;; Using :blank means that the template should force blank lines
 ;; before and after the template, reguardless of where the insertion
-;; is occuring.
+;; is occurring.
 (defun srecode-semantic-handle-:blank (dict)
   "Add macros into the dictionary DICT specifying blank line spacing.
 The wrapgap means make sure the first and last lines of the macro

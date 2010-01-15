@@ -363,8 +363,9 @@ If any error occurred in running `bzr status', then return nil."
 		       (let ((l-c-parent-dir (match-string 1)))
 			 (when (and (memq system-type '(ms-dos windows-nt))
 				    (string-match-p "^/[[:alpha:]]:" l-c-parent-dir))
-			   ;;; On Windows, file:// URLs often have three slashes,
-			   ;;; so we must remove the remaining one (bug#5345)
+			   ;;; The non-Windows code takes a shortcut by using the host/path
+			   ;;; separator slash as the start of the absolute path.  That
+			   ;;; does not work on Windows, so we must remove it (bug#5345)
 			   (setq l-c-parent-dir (substring l-c-parent-dir 1)))
 			 (setq branch-format-file
 			       (expand-file-name vc-bzr-admin-branch-format-file

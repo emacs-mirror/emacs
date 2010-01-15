@@ -1525,6 +1525,7 @@ left untouched.  FRAME nil or omitted means use the selected frame."
   "Non-nil means highlight trailing whitespace.
 This is done in the face `trailing-whitespace'."
   :type 'boolean
+  :safe 'booleanp
   :group 'whitespace-faces)
 
 

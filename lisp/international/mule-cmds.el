@@ -226,19 +226,22 @@ how text is formatted automatically while decoding."
 ;; and delimiter characters.  Support function of
 ;; coding-system-from-name.
 (defun canonicalize-coding-system-name (name)
-  (if (string-match "^iso[-_ ]?[0-9]" name)
-      ;; "iso-8859-1" -> "8859-1", "iso-2022-jp" ->"2022-jp"
-      (setq name (substring name (1- (match-end 0)))))
-  (let ((idx (string-match "[-_ /]" name)))
-    ;; Delete "-", "_", " ", "/" but do distinguish "16-be" and "16be".
-    (while idx
-      (if (and (>= idx 2)
-	       (eq (string-match "16-[lb]e$" name (- idx 2))
-		   (- idx 2)))
-	  (setq idx (string-match "[-_ /]" name (match-end 0)))
-	(setq name (concat (substring name 0 idx) (substring name (1+ idx)))
-	      idx (string-match "[-_ /]" name idx))))
-    name))
+  (if (string-match "^\\(ms\\|ibm\\|windows-\\)\\([0-9]+\\)$" name)
+      ;; "ms950", "ibm950", "windows-950" -> "cp950"
+      (concat "cp" (match-string 2 name))
+    (if (string-match "^iso[-_ ]?[0-9]" name)
+	;; "iso-8859-1" -> "8859-1", "iso-2022-jp" ->"2022-jp"
+	(setq name (substring name (1- (match-end 0)))))
+    (let ((idx (string-match "[-_ /]" name)))
+      ;; Delete "-", "_", " ", "/" but do distinguish "16-be" and "16be".
+      (while idx
+	(if (and (>= idx 2)
+		 (eq (string-match "16-[lb]e$" name (- idx 2))
+		     (- idx 2)))
+	    (setq idx (string-match "[-_ /]" name (match-end 0)))
+	  (setq name (concat (substring name 0 idx) (substring name (1+ idx)))
+		idx (string-match "[-_ /]" name idx))))
+      name)))
 
 (defun coding-system-from-name (name)
   "Return a coding system whose name matches with NAME (string or symbol)."

@@ -1814,7 +1814,7 @@ happens to be appropriate."
 Field names are wrapped in double quotes and equal signs are
 replaced with semicolons.
 
-If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurences from
+If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurrences from
 partial output.  This is used to get rid of useless keys in lists
 in MI messages, e.g.: [key=.., key=..].  -stack-list-frames and
 -break-info are examples of MI commands which issue such
