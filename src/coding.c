@@ -1,8 +1,8 @@
 /* Coding system handler (conversion, detection, etc).
    Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009
+     2005, 2006, 2007, 2008, 2009, 2010
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -3239,9 +3239,13 @@ detect_coding_iso_2022 (coding, detect_info)
 		  int i = 1;
 		  while (src < src_end)
 		    {
+		      src_base = src;
 		      ONE_MORE_BYTE (c);
 		      if (c < 0xA0)
-			break;
+			{
+			  src = src_base;
+			  break;
+			}
 		      i++;
 		    }
 

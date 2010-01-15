@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
-   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008, 2009
+   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008, 2009, 2010
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -141,8 +141,7 @@ Lisp_Object ns_input_color, ns_input_text, ns_working_text;
 Lisp_Object ns_input_spi_name, ns_input_spi_arg;
 Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
-/* TODO: unsure why these defined in term files, anyway we need in keymap.c */
-Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
+Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
 /* Specifies which emacs modifier should be generated when NS receives
@@ -6151,6 +6150,7 @@ syms_of_nsterm ()
   DEFSYM (Qmeta, "meta");
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
+  DEFSYM (Qnone, "none");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));

@@ -1,5 +1,5 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008, 2009
+   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008, 2009, 2010
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -80,8 +80,8 @@ extern Lisp_Object Qface_set_after_frame_default;
 extern Lisp_Object Qunderline, Qundefined;
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
+extern Lisp_Object Qnone;
 
-Lisp_Object Qnone;
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
@@ -2606,8 +2606,6 @@ syms_of_nsfns ()
 {
   int i;
 
-  Qnone = intern ("none");
-  staticpro (&Qnone);
   Qfontsize = intern ("fontsize");
   staticpro (&Qfontsize);
 

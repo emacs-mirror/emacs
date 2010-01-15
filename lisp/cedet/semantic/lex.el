@@ -1,7 +1,7 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009  Free Software Foundation, Inc.
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -900,7 +900,7 @@ START and END define the bounds of the token in the current buffer.
 Optional STR is the string for the token only if the bounds in
 the buffer do not cover the string they represent.  (As from
 macro expansion.)"
-  ;; This if statement checks the existance of a STR argument at
+  ;; This if statement checks the existence of a STR argument at
   ;; compile time, where STR is some symbol or constant.  If the
   ;; variable STr (runtime) is nil, this will make an incorrect decision.
   ;;

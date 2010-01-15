@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "d2000926c438cbd72f37587241cab7ed")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "d93072a26c59f663a92b10df8bc28187")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "efa4be368ff0f44b3144392f14cddfc6")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "3867c0613dfd69780f561012a1dfe67b")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -741,7 +741,7 @@ Not documented
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "b6529074e320e8a9f65b2461474d0c6a")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "ec3ea1c77742734db8496272fe5721be")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\

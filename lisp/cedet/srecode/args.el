@@ -1,6 +1,6 @@
 ;;; srecode/args.el --- Provide some simple template arguments
 
-;; Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -33,7 +33,7 @@
 ;;
 ;; Using :blank means that the template should force blank lines
 ;; before and after the template, reguardless of where the insertion
-;; is occuring.
+;; is occurring.
 (defun srecode-semantic-handle-:blank (dict)
   "Add macros into the dictionary DICT specifying blank line spacing.
 The wrapgap means make sure the first and last lines of the macro

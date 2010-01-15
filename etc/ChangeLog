@@ -1,3 +1,25 @@
+2010-01-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* etc/images/gud/recstart.xpm, etc/images/gud/recstop.xpm:
+	* etc/images/gud/rcont.xpm, etc/images/gud/rnext.xpm:
+	* etc/images/gud/rfinish.xpm, etc/images/gud/rnexti.xpm:
+	* etc/images/gud/rstep.xpm, etc/images/gud/rstepi.xpm:
+	New icons for reverse debugging.
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* srecode/doc-cpp.srt (function-comment, variable-same-line-comment)
+	(group-comment-start, group-comment-end):
+	* srecode/doc-default.srt (section-comment, function-comment)
+	(variable-same-line-comment, group-comment-start, group-comment-end):
+	* srecode/doc-java.srt (function-comment, variable-same-line-comment)
+	(group-comment-start, gropu-comment-end):
+	Fix typos in template docstrings.
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Describe the change of auto-composition-mode.
+
 2010-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* CONTRIBUTE, NEWS: Use bug-gnu-emacs rather than emacs-pretest-bug
@@ -272,7 +294,7 @@
 
 2009-06-12  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Use "/" instead of "," to seperate independent words.
+	* HELLO: Use "/" instead of "," to separate independent words.
 
 	* charsets/*.map: All re-generated.
 
@@ -4822,7 +4844,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+	2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 	Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

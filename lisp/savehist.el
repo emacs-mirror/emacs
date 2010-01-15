@@ -1,6 +1,6 @@
 ;;; savehist.el --- Save minibuffer history.
 
-;; Copyright (C) 1997, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 1997, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>

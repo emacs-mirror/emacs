@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1378,19 +1378,27 @@ x_draw_composite_glyph_string_foreground (s)
 	      if (j < i)
 		{
 		  font->driver->draw (s, j, i, x, y, 0);
+		  if (s->face->overstrike)
+		    font->driver->draw (s, j, i, x + 1, y, 0);
 		  x += width;
 		}
 	      xoff = LGLYPH_XOFF (glyph);
 	      yoff = LGLYPH_YOFF (glyph);
 	      wadjust = LGLYPH_WADJUST (glyph);
 	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
+	      if (s->face->overstrike)
+		font->driver->draw (s, i, i + 1, x + xoff + 1, y + yoff, 0);
 	      x += wadjust;
 	      j = i + 1;
 	      width = 0;
 	    }
 	}
       if (j < i)
-	font->driver->draw (s, j, i, x, y, 0);
+	{
+	  font->driver->draw (s, j, i, x, y, 0);
+	  if (s->face->overstrike)
+	    font->driver->draw (s, j, i, x + 1, y, 0);
+	}
     }
 }
 
@@ -10210,13 +10218,16 @@ x_term_init (display_name, xrm_option, resource_name)
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
-	    /* Temporarily hide the partially initialized terminal */
+	    /* Temporarily hide the partially initialized terminal,
+	       but make sure it doesn't get garbage collected.  */
+	    int count = inhibit_garbage_collection ();
 	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
 	    terminal->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;
+	    unbind_to (count, Qnil);
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
 	  }

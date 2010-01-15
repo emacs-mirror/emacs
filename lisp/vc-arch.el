@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
@@ -213,7 +213,7 @@ Only the value `maybe' can be trusted :-(."
 	'names))))
 
 (defun vc-arch-root (file)
-  "Return the root directory of a Arch project, if any."
+  "Return the root directory of an Arch project, if any."
   (or (vc-file-getprop file 'arch-root)
       ;; Check the =tagging-method, in case someone naively manually
       ;; creates a {arch} directory somewhere.

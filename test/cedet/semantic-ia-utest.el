@@ -1,6 +1,6 @@
 ;;; semantic-ia-utest.el --- Analyzer unit tests
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -54,7 +54,7 @@
   "List of files with analyzer completion test points.")
 
 (defvar semantic-ia-utest-error-log-list nil
-  "List of errors occuring during a run.")
+  "List of errors occurring during a run.")
 
 ;;;###autoload
 (defun semantic-ia-utest (&optional arg)
@@ -211,7 +211,7 @@ Argument ARG specifies which set of tests to run.
     ))
 
 (defun semantic-ia-utest-buffer-refs ()
-  "Run a analyze-refs unit-test pass in the current buffer."
+  "Run an analyze-refs unit-test pass in the current buffer."
 
   (let* ((idx 1)
 	 (regex-p nil)

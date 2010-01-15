@@ -6773,7 +6773,7 @@
 	(ruler-mode-mouse-grab-any-column)
 	(ruler-mode-mouse-drag-any-column-iteration)
 	(ruler-mode-mouse-drag-any-column): New functions.
-	(ruler-mode-map): [header-line down-mouse-2] Bound to
+	(ruler-mode-map) [header-line down-mouse-2]: Bound to
 	`ruler-mode-mouse-grab-any-column' instead of
 	`ruler-mode-mouse-set-fill-column'.
 	(ruler-mode-ruler-help-echo): Update its value.
@@ -23535,7 +23535,7 @@ See ChangeLog.9 for earlier changes.
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
-      2007, 2008, 2009  Free Software Foundation, Inc.
+      2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

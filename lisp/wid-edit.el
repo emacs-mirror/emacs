@@ -1,7 +1,7 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -875,7 +875,8 @@ button end points."
     (define-key map [(control ?m)] 'widget-button-press)
     map)
   "Keymap containing useful binding for buffers containing widgets.
-Recommended as a parent keymap for modes using widgets.")
+Recommended as a parent keymap for modes using widgets.
+Note that such modes will need to require wid-edit.")
 
 (defvar widget-global-map global-map
   "Keymap used for events a widget does not handle itself.")
