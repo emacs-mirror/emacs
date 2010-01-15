@@ -1,3 +1,66 @@
+2010-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* log-view.el (top-level): Require 'wid-edit.  (Bug#5311)
+
+	* wid-edit.el (widget-keymap): Doc fix.
+
+	* vc-svn.el (vc-svn-print-log): Use --limit rather than -l since the
+	former seems to be more widely accepted by various svn versions.
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* find-cmd.el (find-constituents):
+	* vc-arch.el (vc-arch-root):
+	* window.el (window-body-height, pop-up-frames):
+	* cedet/semantic/edit.el (semantic-reparse-needed-change-hook)
+	(semantic-no-reparse-needed-change-hook):
+	* cedet/srecode/insert.el (srecode-resolve-argument-list)
+	(srecode-template-inserter-blank, srecode-template-inserter-variable)
+	(srecode-template-inserter-ask, srecode-template-inserter-width)
+	(srecode-template-inserter-section-start)
+	(srecode-template-inserter-section-end, srecode-insert-method):
+	* emacs-lisp/eieio-base.el (eieio-singleton, slot-missing):
+	* progmodes/ada-stmt.el (ada-if):
+	* progmodes/gdb-ui.el (gdb-jsonify-buffer):
+	* textmodes/ispell.el (ispell-grep-options, ispell-dictionary-alist)
+	(ispell-encoding8-command, ispell-aspell-supports-utf8)
+	(ispell-last-program-name, ispell-help): Fix typos in docstrings.
+
+	* progmodes/flymake.el (flymake-post-syntax-check):
+	Fix typo in error message.
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hexl.el (hexl-printable-character): Fix check of `hexl-iso',
+	which is always a string.  (Bug#5313)
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-xref.el (ada-default-prj-properties):
+	Simplify previous change.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-xref.el (ada-default-prj-properties):
+	Default ada_project_path to $ADA_PROJECT_PATH.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-create-keymap):
+	Override `narrow-to-defun' with `ada-narrow-to-defun'.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el: Deal with Ada 2005 "overriding" keyword.
+	(ada-subprog-start-re, ada-imenu-subprogram-menu-re): Add keyword.
+	(ada-get-current-indent, ada-imenu-generic-expression)
+	(ada-which-function): Check for it.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-clean-buffer-before-saving): Make obsolete.
+	(ada-mode): Don't obey `ada-clean-buffer-before-saving' anymore.
+
 2010-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (show-trailing-whitespace): Safe if boolean.  (Bug#5312)

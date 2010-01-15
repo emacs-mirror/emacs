@@ -5151,7 +5151,7 @@
 	* gnus-agent.el (directory-files-and-attributes): Move all the way
 	forward (the third and final move).
 	(gnus-agent-read-agentview): Trap reconstruction errors due to
-	nonexistant directory.  Handle by returning nil.
+	nonexistent directory.  Handle by returning nil.
 
 2006-05-30  Didier Verna  <didier@xemacs.org>
 
@@ -12206,7 +12206,7 @@
 	(gnus-agent-set-local): Delete stored entry if either min, or max,
 	are nil.
 	(gnus-agent-fetch-session): Reworded error/quit messages.  On
-	quit, use gnus-agent-regenerate-group to record existance of any
+	quit, use gnus-agent-regenerate-group to record existence of any
 	articles fetched to disk before the quit occurred.
 	(gnus-agent-expire-group-1): Use gnus-agent-with-refreshed-group,
 	gnus-agent-update-view-total-fetched-for, and

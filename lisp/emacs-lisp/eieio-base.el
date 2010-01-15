@@ -150,7 +150,7 @@ Returns the first match."
 	      "The only instance of this class that will be instantiated.
 Multiple calls to `make-instance' will return this object."))
   "This special class causes subclasses to be singletons.
-A singleton is a class which will only ever have one instace."
+A singleton is a class which will only ever have one instance."
   :abstract t)
 
 (defmethod constructor :STATIC ((class eieio-singleton) name &rest slots)
@@ -309,7 +309,7 @@ access to it."
 
 (defmethod slot-missing ((obj eieio-named)
 			 slot-name operation &optional new-value)
-  "Called when a on-existant slot is accessed.
+  "Called when a non-existent slot is accessed.
 For variable `eieio-named', provide an imaginary `object-name' slot.
 Argument OBJ is the named object.
 Argument SLOT-NAME is the slot that was attempted to be accessed.

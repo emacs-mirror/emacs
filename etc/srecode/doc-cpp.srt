@@ -36,14 +36,14 @@ template section-comment :indent :blank
 ----
 
 template function-comment :tag :indent :blank
-"A comment occuring in front of a function.
+"A comment occurring in front of a function.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:declaration:doxygen-function}}
 ----
 
 template variable-same-line-comment :tag
-"A comment occuring after a veriable declaration.
+"A comment occurring after a veriable declaration.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:declaration:doxygen-variable-same-line}}
@@ -51,14 +51,14 @@ Recycle doxygen comment code from the more general template set."
 
 ;; These happen to be the same as in a classdecl.
 template group-comment-start :blank :indent
-"A comment occuring in front of a group of declarations.
+"A comment occurring in front of a group of declarations.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:classdecl:doxygen-function-group-start}}
 ----
 
 template group-comment-end :blank :indent
-"A comment occuring at the end of a a group of declarations.
+"A comment occurring at the end of a a group of declarations.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:classdecl:doxygen-function-group-end}}
@@ -68,14 +68,14 @@ Recycle doxygen comment code from the more general template set."
 context classdecl
 
 template group-comment-start :blank :indent
-"A comment occuring in front of a group of declarations.
+"A comment occurring in front of a group of declarations.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:classdecl:doxygen-function-group-start}}
 ----
 
 template group-comment-end :blank :indent
-"A comment occuring at the end of a a group of declarations.
+"A comment occurring at the end of a a group of declarations.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:classdecl:doxygen-function-group-end}}

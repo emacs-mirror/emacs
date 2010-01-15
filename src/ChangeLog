@@ -2,6 +2,12 @@
 
 	* xdisp.c (CHAR_COMPOSED_P): New arg END_CHARPOS.  Callers changed.
 
+2010-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (Qnone): Define.
+
+	* nsfns.m (Qnone): Move definition to nsterm.m.
+
 2010-01-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_iso_2022): Fix handling of euc-xx coding

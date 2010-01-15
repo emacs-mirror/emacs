@@ -1,3 +1,8 @@
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-protocol.el (org-protocol-flatten-greedy, org-protocol-flatten):
+	Fix typos in docstrings.
+
 2010-01-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-get-outline-path, org-speed-command-help):
