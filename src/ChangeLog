@@ -1,3 +1,7 @@
+2010-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (CHAR_COMPOSED_P): New arg END_CHARPOS.  Callers changed.
+
 2010-01-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_iso_2022): Fix handling of euc-xx coding
