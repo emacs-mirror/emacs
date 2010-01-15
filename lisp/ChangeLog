@@ -1,3 +1,8 @@
+2010-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* vc-svn.el (vc-svn-print-log): Use --limit rather than -l since the
+	former seems to be more widely accepted by various svn versions.
+
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* find-cmd.el (find-constituents):
