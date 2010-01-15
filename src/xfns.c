@@ -3145,6 +3145,91 @@ If FRAME is nil, use the selected frame.  */)
   return Qnil;
 }
 
+/* Return current desktop index for the display where frame F is.
+   If we can't find out the current desktop, return 0.  */
+
+static int
+x_get_current_desktop (f)
+     struct frame *f;
+{
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int rc, actual_format;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  long max_len = 10;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  long *data = NULL;
+  int current_desktop;
+
+  BLOCK_INPUT;
+  x_catch_errors (dpy);
+  rc = XGetWindowProperty (dpy, dpyinfo->root_window,
+                           XInternAtom (dpy, "_NET_CURRENT_DESKTOP", False),
+                           0, max_len, False, XA_CARDINAL,
+                           &actual_type, &actual_format, &actual_size,
+                           &bytes_remaining, (unsigned char **)&data);
+
+  if (rc != Success || actual_type != XA_CARDINAL || x_had_errors_p (dpy)
+      || actual_size == 0 || actual_format != 32)
+    current_desktop = 0;
+  else
+    current_desktop = (int)*data;
+
+  if (data) XFree (data);
+  x_uncatch_errors ();
+  UNBLOCK_INPUT;
+  return current_desktop;
+}
+
+/* Return current size for DESKTOP_INDEX on the display where frame F is.
+   If we can't find out the size, return 0, otherwise 1.  */
+
+static int
+x_get_desktop_workarea (f, desktop_index, deskw, deskh)
+     struct frame *f;
+     int desktop_index;
+     int *deskw, *deskh;
+{
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int rc, actual_format;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  long max_len = 1000; /* This handles 250 desktops, who has that many?  */
+  Display *dpy = FRAME_X_DISPLAY (f);
+  long *data = NULL;
+  int retval;
+
+  BLOCK_INPUT;
+  x_catch_errors (dpy);
+  rc = XGetWindowProperty (dpy, dpyinfo->root_window,
+                           XInternAtom (dpy, "_NET_WORKAREA", False),
+                           0, max_len, False, XA_CARDINAL,
+                           &actual_type, &actual_format, &actual_size,
+                           &bytes_remaining, (unsigned char **)&data);
+
+  if (rc != Success || actual_type != XA_CARDINAL || x_had_errors_p (dpy)
+      || actual_size < 3 || actual_format != 32)
+    retval = 0;
+  else
+    {
+      int idx;
+      
+      if (actual_size == 4 /* Only one info for all desktops.  */
+          || desktop_index*4 > actual_size) /* destop_index out of range.  */
+        desktop_index = 0;
+
+      idx = desktop_index*4;
+      *deskw = data[idx+2] - data[idx];
+      *deskh = data[idx+3] - data[idx+1];
+      retval = 1;
+    }
+  
+  if (data) XFree (data);
+  x_uncatch_errors ();
+  UNBLOCK_INPUT;
+  return retval;
+}
+
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
@@ -3164,7 +3249,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object name;
   int minibuffer_only = 0;
   long window_prompting = 0;
-  int width, height;
+  int width, height, deskw = -1, deskh = -1, current_desktop = -1;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
@@ -3440,6 +3525,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       int ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
       int dph = DisplayHeight (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      /* Some desktops have fixed menus above and/or panels below.  Try to
+         figure out the usable size we have for emacs.  */
+      current_desktop = x_get_current_desktop (f);
+      x_get_desktop_workarea (f, current_desktop, &deskw, &deskh);
+      if (deskh > 0 && deskh < dph) dph = deskh;
+      
       if (ph > dph)
         {
           height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, dph) -
@@ -3459,6 +3550,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       int pw = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, FRAME_COLS (f));
       int dpw = DisplayWidth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      if (deskw == -1)
+        {
+          current_desktop = x_get_current_desktop (f);
+          x_get_desktop_workarea (f, current_desktop, &deskw, &deskh);
+        }
+      if (deskw > 0 && deskw < dpw) dpw = deskw;
+      
       if (pw > dpw)
         width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, dpw);
     }

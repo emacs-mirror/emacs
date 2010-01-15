@@ -1,3 +1,10 @@
+2010-01-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_get_current_desktop, x_get_desktop_workarea): New functions.
+	(Fx_create_frame): Call x_get_current_desktop and x_get_desktop_workarea
+	to find out usable size of the desktop.  Don't make frames larger than
+	this. Bug #3643.
+
 2010-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (CHAR_COMPOSED_P): New arg END_CHARPOS.  Callers changed.
