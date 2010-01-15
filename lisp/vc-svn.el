@@ -487,13 +487,13 @@ or svn+ssh://."
 		       ;; subsequent commits.  At least that's what the
 		       ;; vc-cvs.el code does.
 		       "-rHEAD:0"))
-		    (when limit (list "-l" (format "%s" limit))))))
+		    (when limit (list "--limit" (format "%s" limit))))))
 	;; Dump log for the entire directory.
 	(apply 'vc-svn-command buffer 0 nil "log"
 	       (append
 		(list
 		 (if start-revision (format "-r%s" start-revision) "-rHEAD:0"))
-		(when limit (list "-l" (format "%s" limit)))))))))
+		(when limit (list "--limit" (format "%s" limit)))))))))
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."

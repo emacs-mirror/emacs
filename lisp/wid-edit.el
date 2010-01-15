@@ -875,7 +875,8 @@ button end points."
     (define-key map [(control ?m)] 'widget-button-press)
     map)
   "Keymap containing useful binding for buffers containing widgets.
-Recommended as a parent keymap for modes using widgets.")
+Recommended as a parent keymap for modes using widgets.
+Note that such modes will need to require wid-edit.")
 
 (defvar widget-global-map global-map
   "Keymap used for events a widget does not handle itself.")

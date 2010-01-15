@@ -122,6 +122,9 @@
   :group 'pcl-cvs
   :prefix "log-view-")
 
+;; Needed because log-view-mode-map inherits from widget-keymap.  (Bug#5311)
+(require 'wid-edit)
+
 (easy-mmode-defmap log-view-mode-map
   '(("z" . kill-this-buffer)
     ("q" . quit-window)

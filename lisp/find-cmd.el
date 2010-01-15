@@ -122,7 +122,7 @@
     (okdir   . (1 find-command t)))
   "Holds details of each of the find options.
 The car of each alist is the name.  The cdr is minimum args, the
-function used to join many occurences of the argument together,
+function used to join many occurrences of the argument together,
 and whether or not to leave quotes off the string (non-nil means
 the string will be quoted).")
 

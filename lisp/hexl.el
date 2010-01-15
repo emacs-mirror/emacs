@@ -779,11 +779,11 @@ This discards the buffer's undo information."
 
 (defun hexl-printable-character (ch)
   "Return a displayable string for character CH."
-  (format "%c" (if hexl-iso
-		   (if (or (< ch 32) (and (>= ch 127) (< ch 160)))
+  (format "%c" (if (equal hexl-iso "")
+		   (if (or (< ch 32) (>= ch 127))
 		       46
 		     ch)
-		 (if (or (< ch 32) (>= ch 127))
+		 (if (or (< ch 32) (and (>= ch 127) (< ch 160)))
 		     46
 		   ch))))
 
