@@ -81,15 +81,13 @@ common hook `after-change-functions'.")
 
 (defvar semantic-reparse-needed-change-hook nil
   "Hooks run when a user edit is detected as needing a reparse.
-For language specific hooks, make sure you define this as a local
-hook.
-Not used yet; part of the next generation reparse mechanism")
+For language specific hooks, make sure you define this as a local hook.
+Not used yet; part of the next generation reparse mechanism.")
 
 (defvar semantic-no-reparse-needed-change-hook nil
   "Hooks run when a user edit is detected as not needing a reparse.
 If the hook returns non-nil, then declare that a reparse is needed.
-For language specific hooks, make sure you define this as a local
-hook.
+For language specific hooks, make sure you define this as a local hook.
 Not used yet; part of the next generation reparse mechanism.")
 
 (defvar semantic-edits-new-change-hooks nil
@@ -307,7 +305,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		    (semantic-tag-components (car tags)))
 	      ;; Ok, we are completely encompassed within the first tag
 	      ;; entry, AND that tag has children.  This means that change
-	      ;; occured outside of all children, but inside some tag
+	      ;; occurred outside of all children, but inside some tag
 	      ;; with children.
 	      (if (or (not (semantic-tag-with-position-p (car list-to-search)))
 		      (> start (semantic-tag-end
@@ -751,7 +749,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 
 ;;;; Whitespace change
        ((and (not tags) (not newf-tags))
-        ;; A change that occured outside of any existing tags
+        ;; A change that occurred outside of any existing tags
         ;; and there are no new tags to replace it.
 	(when semantic-edits-verbose-flag
 	  (message "White space changes"))
@@ -760,7 +758,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 
 ;;;; New tags in old whitespace area.
        ((and (not tags) newf-tags)
-        ;; A change occured outside existing tags which added
+        ;; A change occurred outside existing tags which added
         ;; a new tag.  We need to splice these tags back
         ;; into the cache at the right place.
         (semantic-edits-splice-insert newf-tags parent-tag cache-list)
@@ -775,7 +773,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 
 ;;;; Old tags removed
        ((and tags (not newf-tags))
-        ;; A change occured where pre-existing tags were
+        ;; A change occurred where pre-existing tags were
         ;; deleted!  Remove the tag from the cache.
         (semantic-edits-splice-remove tags parent-tag cache-list)
 

@@ -88,9 +88,8 @@ Resent-CC:   maintainer email address, plus any X-Debbugs-CC: entries
 
 The "maintainer email address" is "bug-gnu-emacs@gnu.org" in most cases.
 
-They also have:
+A new report also has:
 
-Reply-To: bug submitter, 123@debbugs.gnu.org
 Mail-Followup-To: bug submitter, 123@debbugs.gnu.org
 
 ** To not get acknowledgement mail from the tracker,
@@ -174,12 +173,22 @@ reopen 123
 *** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 The available tags are:
 patch wontfix moreinfo unreproducible fixed notabug
-Note that the list at http://debbugs.gnu.org/Developer#tags
-is incorrect, at least for Emacs.
+See http://debbugs.gnu.org/Developer#tags
 The list of tags can be prefixed with +, - or =, meaning to add (the
 default), remove, or reset the tags. E.g.:
 
 tags 123 + wontfix
+
+** URL shortcuts
+
+http://debbugs.gnu.org/...
+
+123             # given bug number
+123;mbox=yes    # mbox version of given bug
+package         # bugs in given package    (don't use "emacs" - too many bugs!)
+from:submitter@email.address
+severity:severity      # all bugs of given severity
+tag:tag                # all bugs with given tag
 
 ** Usertags
 
@@ -335,19 +344,10 @@ The bug will be re-archived after the next 28 day period of no activity.
 
 It's a function of the number of displayed bugs.  You can speed things
 up by only looking at the newest 100 bugs:
-
 http://debbugs.gnu.org/cgi-bin/pkgreport.cgi?newest=100;package=emacs
 
-The above page is accessible from the "Options" section at the end of
-the "main list of bugs" page. Select bugs "in package" = emacs;
-"newest bugs" = 100.  (I have no idea how you get to that Options
-section without having to go through the bug list page first...)
-
-** Mails to the bug tracker disappear
-
-Apparently it has some kind of spam filter that sometimes silently
-discards valid mails. Adding a subject (pointless in control messages)
-may help.
+Or use the static index:
+http://debbugs.gnu.org/db/ix/full.html
 
 ** ChangeLog issues
 

@@ -529,7 +529,7 @@
 	  (widen)))
       (delete-region p (point-max))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
@@ -658,7 +658,7 @@
 	  (setq p (point))))
       (delete-region p (point-max))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
@@ -835,7 +835,7 @@
 	(setq mime (webmail-netaddress-single-part))
 	(widen))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
@@ -962,7 +962,7 @@
 	(setq mime (webmail-netaddress-single-part))
 	(widen))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")

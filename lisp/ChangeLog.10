@@ -6773,7 +6773,7 @@
 	(ruler-mode-mouse-grab-any-column)
 	(ruler-mode-mouse-drag-any-column-iteration)
 	(ruler-mode-mouse-drag-any-column): New functions.
-	(ruler-mode-map): [header-line down-mouse-2] Bound to
+	(ruler-mode-map) [header-line down-mouse-2]: Bound to
 	`ruler-mode-mouse-grab-any-column' instead of
 	`ruler-mode-mouse-set-fill-column'.
 	(ruler-mode-ruler-help-echo): Update its value.

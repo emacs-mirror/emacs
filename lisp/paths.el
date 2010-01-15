@@ -58,7 +58,7 @@ comparison."
 	  (list config-dir))
 	 (unpruned-prefixes
 	  ;; Directory trees that may not exist at installation time, and
-	  ;; so shouldn't be pruned based on existance.
+	  ;; so shouldn't be pruned based on existence.
 	  '("/usr/local/"))
 	 (prefixes
 	  ;; Directory trees in which to look for info subdirectories
