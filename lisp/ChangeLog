@@ -1,5 +1,9 @@
 2010-01-15  Glenn Morris  <rgm@gnu.org>
 
+	* log-view.el (top-level): Require 'wid-edit.  (Bug#5311)
+
+	* wid-edit.el (widget-keymap): Doc fix.
+
 	* vc-svn.el (vc-svn-print-log): Use --limit rather than -l since the
 	former seems to be more widely accepted by various svn versions.
 
