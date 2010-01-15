@@ -1,3 +1,8 @@
+2010-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (canonicalize-coding-system-name):
+	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX".
+
 2010-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* frame.el (show-trailing-whitespace): Safe if boolean.  (Bug#5312)
