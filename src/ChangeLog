@@ -1,3 +1,7 @@
+2010-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (event_handler_gdk): Block input (Bug#5037).
+
 2010-01-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.c (standard_args): Adjust arg priorities to reflect how
