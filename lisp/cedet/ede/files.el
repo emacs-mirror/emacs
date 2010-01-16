@@ -487,7 +487,7 @@ doesn't exist."
 
 (defmethod ede-expand-filename ((this ede-target) filename &optional force)
   "Return a fully qualified file name based on target THIS.
-FILENAME should a a filename which occurs in a directory in which THIS works.
+FILENAME should be a filename which occurs in a directory in which THIS works.
 Optional argument FORCE forces the default filename to be provided even if it
 doesn't exist."
   (ede-expand-filename (ede-target-parent this) filename force))

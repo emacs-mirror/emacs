@@ -2107,7 +2107,7 @@ created."
       (setq edt-term "pc")
     (if (or (not edt-window-system) (eq edt-window-system 'tty))
 	(setq edt-term (getenv "TERM"))))
-  ;; Look for for terminal configuration file for this terminal type.
+  ;; Look for a terminal configuration file for this terminal type.
   ;; Otherwise, load the user's custom configuration file.
   (if (or (not edt-window-system) (memq edt-window-system '(pc tty)))
       (progn

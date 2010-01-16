@@ -57,7 +57,7 @@ template group-comment-start :blank :indent
 ----
 
 template group-comment-end :indent
-"A comment occurring at the end of a a group of declarations."
+"A comment occurring at the end of a group of declarations."
 ----
 {{comment_start}} End {{?GROUPNAME}} {{comment_end}}
 ----
@@ -72,7 +72,7 @@ template group-comment-start :blank :indent
 ----
 
 template group-comment-end :indent
-"A comment occurring at the end of a a group of declarations."
+"A comment occurring at the end of a group of declarations."
 ----
 {{>:declaration:group-comment-end}}
 ----

@@ -1,3 +1,8 @@
+2010-01-16  Mario Lang  <mlang@delysid.org>
+
+	* ede.texi (ede-target):
+	* org.texi (Refiling notes): Remove duplicated words.
+
 2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus.texi (Posting Styles): Use with-current-buffer.

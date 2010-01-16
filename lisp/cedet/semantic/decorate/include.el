@@ -461,7 +461,7 @@ wrap existing project code for Semantic's benifit.
 
       (when (or (eq mm 'c++-mode) (eq mm 'c-mode))
 	(princ "
-For C/C++ includes located within a a project, you can use a special
+For C/C++ includes located within a project, you can use a special
 EDE project that will wrap an existing build system.  You can do that
 like this in your .emacs file:
 

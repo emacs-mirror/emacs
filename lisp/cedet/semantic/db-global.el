@@ -105,7 +105,7 @@ is not available for this directory."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-global) &optional buffer)
   "Return t, pretend that this table's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   ;; @todo - hack alert!
   t)
