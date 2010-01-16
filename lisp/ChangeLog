@@ -1,3 +1,8 @@
+2010-01-16  Frédéric Perrin  <frederic.perrin@resel.fr>
+
+	* vc-dispatcher.el (vc-do-command): Set LC_MESSAGES, so that we
+	can parse the output of the external commands (Bug#5279).
+
 2010-01-16  Jari Aalto  <jari.aalto@cante.net>
 
 	* pcmpl-unix.el (pcmpl-unix-read-passwd-file): Doc fix.
