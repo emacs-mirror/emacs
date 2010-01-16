@@ -1,3 +1,7 @@
+2010-01-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (lisp, shortlisp): Update.
+
 2010-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_term_init): Instead of inhibiting GC while running Lisp
