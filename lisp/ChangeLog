@@ -1,3 +1,8 @@
+2010-01-16  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* nxml/nxml-mode.el (nxml-extend-after-change-region): Never
+	return t (Bug#3898).
+
 2010-01-16  Frédéric Perrin  <frederic.perrin@resel.fr>  (tiny change)
 
 	* vc-dispatcher.el (vc-do-command): Set LC_MESSAGES, so that we
