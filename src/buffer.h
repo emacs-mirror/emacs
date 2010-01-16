@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
    Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -157,6 +157,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Overlay modification count.  */
 #define BUF_OVERLAY_MODIFF(buf) ((buf)->text->overlay_modiff)
+
+/* Modification count as of last auto-save.  */
+/* FIXME: should we move this into ->text->auto_save_modiff?  */
+#define BUF_AUTOSAVE_MODIFF(buf) ((buf)->auto_save_modified)
 
 /* Interval tree of buffer.  */
 #define BUF_INTERVALS(buf) ((buf)->text->intervals)

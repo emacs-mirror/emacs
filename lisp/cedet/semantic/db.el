@@ -1,7 +1,7 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009  Free Software Foundation, Inc.
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -735,13 +735,13 @@ all files of any type."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-abstract-table) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   nil)
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (save-excursion
     (if buffer (set-buffer buffer))

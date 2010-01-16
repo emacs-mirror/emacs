@@ -1,7 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -1500,7 +1500,9 @@ Returns t if section is found, nil otherwise."
 		  (string= chosen ""))
 	      default
 	    chosen)))
-  (Man-find-section (aheadsym Man-sections-alist)))
+  (unless (Man-find-section (aheadsym Man-sections-alist))
+    (error "Section not found")))
+
 
 (defun Man-goto-see-also-section ()
   "Move point to the \"SEE ALSO\" section.

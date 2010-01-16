@@ -1,7 +1,7 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -1477,7 +1477,7 @@ Keymap summary
 ;
 
 (defun artist-compute-popup-menu-table (menu-table)
-  "Create a menu from from MENU-TABLE data.
+  "Create a menu from MENU-TABLE data.
 The returned value is suitable for the `x-popup-menu' function."
   (cons "Artist menu"
 	(artist-compute-popup-menu-table-sub menu-table)))

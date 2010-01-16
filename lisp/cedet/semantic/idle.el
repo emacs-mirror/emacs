@@ -1,6 +1,6 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009
+;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -336,7 +336,7 @@ Disable to prevent lots of excessive parsing in idle time."
 
 
 (defun semantic-idle-work-for-one-buffer (buffer)
-  "Do long-processing work for for BUFFER.
+  "Do long-processing work for BUFFER.
 Uses `semantic-safe' and returns the output.
 Returns t of all processing succeeded."
   (with-current-buffer buffer

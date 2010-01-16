@@ -1,8 +1,7 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -956,7 +955,8 @@ static int display_mode_lines P_ ((struct window *));
 static int display_mode_line P_ ((struct window *, enum face_id, Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object, Lisp_Object, int));
 static int store_mode_line_string P_ ((char *, Lisp_Object, int, int, int, Lisp_Object));
-static char *decode_mode_spec P_ ((struct window *, int, int, int, int *));
+static char *decode_mode_spec P_ ((struct window *, int, int, int,
+				   Lisp_Object *));
 static void display_menu_bar P_ ((struct window *));
 static int display_count_lines P_ ((int, int, int, int, int *));
 static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
@@ -1366,7 +1366,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
       int top_x = it.current_x;
       int top_y = it.current_y;
       enum it_method it_method = it.method;
-      /* Calling line_bottom_y may change it.method.  */
+      /* Calling line_bottom_y may change it.method, it.position, etc.  */
       int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
 
@@ -1381,7 +1381,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	      Lisp_Object window, prop;
 
 	      XSETWINDOW (window, w);
-	      prop = Fget_char_property (make_number (it.position.charpos),
+	      prop = Fget_char_property (make_number (charpos),
 					 Qinvisible, window);
 
 	      /* If charpos coincides with invisible text covered with an
@@ -5692,6 +5692,9 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
     it->dp = XCHAR_TABLE (Vstandard_display_table);
 
   it->stop_charpos = charpos;
+  if (s == NULL && it->multibyte_p)
+    composition_compute_stop_pos (&it->cmp_it, charpos, -1, it->end_charpos,
+				  it->string);
   CHECK_IT (it);
 }
 
@@ -5719,11 +5722,11 @@ static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
 /* Return 1 iff a character at CHARPOS (and BYTEPOS) is composed
    (possibly with the following characters).  */
 
-#define CHAR_COMPOSED_P(IT,CHARPOS,BYTEPOS)				\
+#define CHAR_COMPOSED_P(IT,CHARPOS,BYTEPOS,END_CHARPOS)			\
   ((IT)->cmp_it.id >= 0							\
    || ((IT)->cmp_it.stop_pos == (CHARPOS)				\
        && composition_reseat_it (&(IT)->cmp_it, CHARPOS, BYTEPOS,	\
-				 (IT)->end_charpos, (IT)->w,		\
+				 END_CHARPOS, (IT)->w,			\
 				 FACE_FROM_ID ((IT)->f, (IT)->face_id),	\
 				 (IT)->string)))
 
@@ -6402,7 +6405,7 @@ next_element_from_string (it)
 	  return 0;
 	}
       else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
-				IT_STRING_BYTEPOS (*it))
+				IT_STRING_BYTEPOS (*it), SCHARS (it->string))
 	       && next_element_from_composition (it))
 	{
 	  return 1;
@@ -6438,7 +6441,7 @@ next_element_from_string (it)
 	  CHARPOS (position) = BYTEPOS (position) = -1;
 	}
       else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
-				IT_STRING_BYTEPOS (*it))
+				IT_STRING_BYTEPOS (*it), it->string_nchars)
 	       && next_element_from_composition (it))
 	{
 	  return 1;
@@ -6754,7 +6757,8 @@ next_element_from_buffer (it)
 	  && IT_CHARPOS (*it) >= it->redisplay_end_trigger_charpos)
 	run_redisplay_end_trigger_hook (it);
 
-      if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it))
+      if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it),
+			   it->end_charpos)
 	  && next_element_from_composition (it))
 	{
 	  return 1;
@@ -18092,13 +18096,14 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    int multibyte;
 		    int bytepos, charpos;
 		    unsigned char *spec;
+		    Lisp_Object string;
 
 		    bytepos = percent_position;
 		    charpos = (STRING_MULTIBYTE (elt)
 			       ? string_byte_to_char (elt, bytepos)
 			       : bytepos);
-		    spec
-		      = decode_mode_spec (it->w, c, field, prec, &multibyte);
+		    spec = decode_mode_spec (it->w, c, field, prec, &string);
+		    multibyte = STRINGP (string) && STRING_MULTIBYTE (string);
 
 		    switch (mode_line_target)
 		      {
@@ -18120,7 +18125,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 			  int nglyphs_before, nwritten;
 
 			  nglyphs_before = it->glyph_row->used[TEXT_AREA];
-			  nwritten = display_string (spec, Qnil, elt,
+			  nwritten = display_string (spec, string, elt,
 						     charpos, 0, it,
 						     field, prec, 0,
 						     multibyte);
@@ -18783,8 +18788,8 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 /* Return a string for the output of a mode line %-spec for window W,
    generated by character C.  PRECISION >= 0 means don't return a
    string longer than that value.  FIELD_WIDTH > 0 means pad the
-   string returned with spaces to that value.  Return 1 in *MULTIBYTE
-   if the result is multibyte text.
+   string returned with spaces to that value.  Return a Lisp string in
+   *STRING if the resulting string is taken from that Lisp string.
 
    Note we operate on the current buffer for most purposes,
    the exception being w->base_line_pos.  */
@@ -18792,11 +18797,11 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 static char lots_of_dashes[] = "--------------------------------------------------------------------------------------------------------------------------------------------";
 
 static char *
-decode_mode_spec (w, c, field_width, precision, multibyte)
+decode_mode_spec (w, c, field_width, precision, string)
      struct window *w;
      register int c;
      int field_width, precision;
-     int *multibyte;
+     Lisp_Object *string;
 {
   Lisp_Object obj;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -18804,7 +18809,7 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
   struct buffer *b = current_buffer;
 
   obj = Qnil;
-  *multibyte = 0;
+  *string = Qnil;
 
   switch (c)
     {
@@ -19198,7 +19203,7 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 
   if (STRINGP (obj))
     {
-      *multibyte = STRING_MULTIBYTE (obj);
+      *string = obj;
       return (char *) SDATA (obj);
     }
   else
@@ -19319,7 +19324,10 @@ display_count_lines (start, start_byte, limit_byte, count, byte_pos_ptr)
 /* Display a NUL-terminated string, starting with index START.
 
    If STRING is non-null, display that C string.  Otherwise, the Lisp
-   string LISP_STRING is displayed.
+   string LISP_STRING is displayed.  There's a case that STRING is
+   non-null and LISP_STRING is not nil.  It means STRING is a string
+   data of LISP_STRING.  In that case, we display LISP_STRING while
+   ignoring its text properties.
 
    If FACE_STRING is not nil, FACE_STRING_POS is a position in
    FACE_STRING.  Display STRING or LISP_STRING with the face at
@@ -19369,8 +19377,12 @@ display_string (string, lisp_string, face_string, face_string_pos,
 
   /* Initialize the iterator IT for iteration over STRING beginning
      with index START.  */
-  reseat_to_string (it, string, lisp_string, start,
+  reseat_to_string (it, NILP (lisp_string) ? string : NULL, lisp_string, start,
 		    precision, field_width, multibyte);
+  if (string && STRINGP (lisp_string)) 
+    /* LISP_STRING is the one returned by decode_mode_spec.  We should
+       ignore its text properties.  */
+    it->stop_charpos = -1;
 
   /* If displaying STRING, set up the face of the iterator
      from LISP_STRING, if that's given.  */

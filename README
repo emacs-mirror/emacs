@@ -1,5 +1,5 @@
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-  Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -19,10 +19,8 @@ occur in building, installing and running Emacs.
 You may encounter bugs in this release.  If you do, please report
 them; your bug reports are valuable contributions to the FSF, since
 they allow us to notice and fix problems on machines we don't have, or
-in code we don't use often.  Please send bug reports for released
-versions of Emacs sent to the mailing list bug-gnu-emacs@gnu.org.
-Please send bug reports for pretest versions of Emacs, and versions
-from the Savannah.gnu.org repository, to emacs-pretest-bug@gnu.org.
+in code we don't use often.  Please send bug reports to the mailing
+list bug-gnu-emacs@gnu.org.  If possible, use M-x report-emacs-bug.
 
 See the "Bugs" section of the Emacs manual for more information on how
 to report bugs.  (The file `BUGS' in this directory explains how you

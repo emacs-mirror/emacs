@@ -1,6 +1,6 @@
 ;;; ede/cpp-root.el --- A simple way to wrap a C++ project with a single root
 
-;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -324,7 +324,7 @@ exist, it should return nil."
 	       )
    )
   "EDE cpp-root project class.
-Each directory needs a a project file to control it.")
+Each directory needs a project file to control it.")
 
 ;;; INIT
 ;;

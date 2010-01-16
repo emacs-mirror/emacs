@@ -22,20 +22,15 @@ is a version of
 written by the author of the original (PDP-10)
 .IR Emacs ,
 Richard Stallman.
-.br
+The user functionality of GNU Emacs encompasses everything other
+editors do, and it is easily extensible since its editing commands are
+written in Lisp.
+.PP
 The primary documentation of GNU Emacs is in the GNU Emacs Manual,
 which you can read using Info, either from Emacs or as a standalone
 program.
 Please look there for complete and up-to-date documentation.
-This man page is updated only when someone volunteers to do so; the
-Emacs maintainers' priority goal is to minimize the amount of time
-this man page takes away from other more useful projects.
-.br
-The user functionality of GNU Emacs encompasses
-everything other
-.I Emacs
-editors do, and it is easily extensible since its
-editing commands are written in Lisp.
+This man page is updated only when someone volunteers to do so.
 .PP
 .I Emacs
 has an extensive interactive help facility,
@@ -43,18 +38,12 @@ but the facility assumes that you know how to manipulate
 .I Emacs
 windows and buffers.
 CTRL-h or F1 enters the Help facility.
-Help Tutorial (CTRL-h t) starts an interactive tutorial which can
+Help Tutorial (CTRL-h t) starts an interactive tutorial to quickly
 teach beginners the fundamentals of
-.I Emacs
-in a few minutes.
-Help Apropos (CTRL-h a) helps you
-find a command given its functionality, Help Character (CTRL-h c)
-describes a given character's effect, and Help Function (CTRL-h f)
-describes a given Lisp function specified by name.
-.PP
-.IR Emacs 's
-Undo can undo several steps of modification to your buffers, so it is
-easy to recover from editing mistakes.
+.I Emacs.
+Help Apropos (CTRL-h a) helps you find a command given its
+functionality, Help Key (CTRL-h k) describes a given key sequence, and
+Help Function (CTRL-h f) describes a given Lisp function.
 .PP
 .IR "GNU Emacs" 's
 many special packages handle mail reading (RMail) and sending (Mail),
@@ -63,16 +52,6 @@ within
 .I Emacs
 windows (Shell), running a Lisp read-eval-print loop
 (Lisp-Interaction-Mode), automated psychotherapy (Doctor), and much more.
-.PP
-There is an extensive reference manual, but
-users of other Emacses
-should have little trouble adapting even
-without a copy.
-Users new to
-.I Emacs
-will be able
-to use basic features fairly rapidly by studying the tutorial and
-using the self-documentation features.
 .
 .SS Emacs Options
 The following options are of general interest:
@@ -109,11 +88,9 @@ Do not load the site-wide startup file.
 .B \-\-no\-desktop
 Do not load a saved desktop.
 .TP
-.BR \-nl ", " \-\-no\-shared\-memory
-Do not use shared memory.
-.TP
 .BR \-Q ", " \-\-quick
-Equivalent to "\-q \-\-no\-site\-file \-\-no\-splash".
+Similar to "\-q \-\-no\-site\-file \-\-no\-splash".  Also, avoid
+processing X resources.
 .TP
 .B \-\-no\-splash
 Do not display a splash screen during start-up.
@@ -136,11 +113,11 @@ Use specified
 as the terminal instead of using stdin/stdout.
 This must be the first argument specified in the command line.
 .TP
-.BR \-\-multibyte ", " \-\-no-unibyte
-Enable multibyte mode (enabled by default).
-.TP
-.BR \-\-unibyte ", " \-\-no-multibyte
-Enable unibyte mode.
+.B \-\-daemon
+Start Emacs as a daemon, enabling the Emacs server and disconnecting
+from the terminal.  You can then use the emacsclient command to
+connect to the server (see
+.BR emacsclient (1)).
 .TP
 .B \-\-version
 Display
@@ -151,7 +128,7 @@ version information and exit.
 Display this help and exit.
 .RE
 .PP
-The following options are lisp-oriented
+The following options are Lisp-oriented
 (these options are processed in the order encountered):
 .RS
 .TP 8
@@ -176,7 +153,6 @@ as a batch editor:
 .B \-\-batch
 Edit in batch mode.
 The editor will send messages to stderr.
-This option must be the first in the argument list.
 You must use \-l and \-f options to specify files to execute
 and functions to call.
 .TP
@@ -309,6 +285,9 @@ Make the first frame fullscreen.
 .BR \-fw ", " \-\-fullwidth
 Make the first frame as wide as the screen.
 .TP
+.BR \-mm ", " \-\-maximized
+Maximize the first frame, like "\-fw \-fh".
+.TP
 .BI \-fg " color\fR,\fP " \-\-foreground\-color " color"
 On color displays, set the color of the text.
 
@@ -349,7 +328,7 @@ Disable blinking cursor.
 .BR \-nw ", " \-\-no\-window\-system
 Tell
 .I Emacs
-not to use its special interface to X.
+not to create a graphical frame.
 If you use this switch when invoking
 .I Emacs
 from an
@@ -547,54 +526,6 @@ where
 .I depth
 is the number of color planes.
 .RE
-.PP
-If you try to set color values while using a black and white display,
-the window's characteristics will default as follows:
-the foreground color will be set to black,
-the background color will be set to white,
-the border color will be set to grey,
-and the text and mouse cursors will be set to black.
-.
-.SS Using the Mouse
-.PP
-The following lists some of the mouse button bindings for the
-.I Emacs
-window under X11.
-.
-.RS
-.TS
-l l
-- -
-l l.
-MOUSE BUTTON	FUNCTION
-left	Set point.
-middle	Paste text.
-right	Cut text into X cut buffer.
-SHIFT-middle	Cut text into X cut buffer.
-SHIFT-right	Paste text.
-CTRL-middle	Cut text into X cut buffer and kill it.
-CTRL-right	T{
-Select this window, then split it into two windows.
-Same as typing CTRL\-x 2.
-T}
-.\" START DELETING HERE IF YOU'RE NOT USING X MENUS
-CTRL-SHIFT-left	T{
-X buffer menu \(em hold the buttons and keys
-down, wait for menu to appear, select buffer, and release.
-Move mouse out of menu and release to cancel.
-T}
-CTRL-SHIFT-middle	T{
-X help menu \(em pop up index card menu for Emacs help.
-T}
-.\" STOP DELETING HERE IF YOU'RE NOT USING X MENUS
-CTRL-SHIFT-right	T{
-Select window with mouse, and delete all other windows.
-Same as typing CTRL\-x 1.
-T}
-.\" STOP DELETING HERE IF YOU'RE NOT USING X
-.TE
-.RE
-.
 .
 .SH MANUALS
 You can order printed copies of the GNU Emacs Manual from the Free
@@ -705,15 +636,17 @@ Everyone will be free to use, copy, study and change the GNU system.
 .SH AUTHORS
 .I Emacs
 was written by Richard Stallman and the Free Software Foundation.
-Joachim Martillo and Robert Krawitz added the X features.
+For detailed credits and acknowledgements, see the GNU Emacs manual.
+.
 .
 .
 .SH COPYING
 Copyright
 .if t \(co
 .if n (C)
-1995, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-      2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+1995, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+2009, 2010
+Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are

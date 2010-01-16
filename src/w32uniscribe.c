@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Windows 2000, though most users of older systems will have it
    since it installs with Internet Explorer 5.0 and other software.
    We only enable the feature if it is available, so there is no chance
-   of calling non-existant functions.  */
+   of calling non-existent functions.  */
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x500
 #include <windows.h>

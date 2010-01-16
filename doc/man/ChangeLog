@@ -1,3 +1,8 @@
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.1: Copyedits.  Update options -Q, -mm and --daemon.  Remove
+	deprecated --unibyte option.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
@@ -73,7 +78,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

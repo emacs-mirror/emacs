@@ -45,7 +45,7 @@ e.g.,
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation
+Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -6181,7 +6181,7 @@ See the variable @code{org-refile-targets} for details.  If you would like to
 select a location via a file-path-like completion along the outline path, see
 the variables @code{org-refile-use-outline-path} and
 @code{org-outline-path-complete-in-steps}.  If you would like to be able to
-create new nodes as new parents for for refiling on the fly, check the
+create new nodes as new parents for refiling on the fly, check the
 variable @code{org-refile-allow-creating-parent-nodes}.
 @kindex C-u C-c C-w
 @item C-u C-c C-w

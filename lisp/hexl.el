@@ -1,7 +1,7 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
 ;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -779,11 +779,11 @@ This discards the buffer's undo information."
 
 (defun hexl-printable-character (ch)
   "Return a displayable string for character CH."
-  (format "%c" (if hexl-iso
-		   (if (or (< ch 32) (and (>= ch 127) (< ch 160)))
+  (format "%c" (if (equal hexl-iso "")
+		   (if (or (< ch 32) (>= ch 127))
 		       46
 		     ch)
-		 (if (or (< ch 32) (>= ch 127))
+		 (if (or (< ch 32) (and (>= ch 127) (< ch 160)))
 		     46
 		   ch))))
 

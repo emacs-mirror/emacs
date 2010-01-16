@@ -1,7 +1,7 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
@@ -1010,7 +1010,7 @@ MODE is either a mode symbol or a list of mode symbols."
 	 `(c-clear-char-property-fun ,pos ',property))))
 
 (defmacro c-clear-char-properties (from to property)
-  ;; Remove all the occurences of the given property in the given
+  ;; Remove all the occurrences of the given property in the given
   ;; region that has been put with `c-put-char-property'.  PROPERTY is
   ;; assumed to be constant.
   ;;
@@ -1035,7 +1035,7 @@ which have the value VALUE, as tested by `equal'.  These
 properties are assumed to be over individual characters, having
 been put there by c-put-char-property.  POINT remains unchanged."
   (let ((place from) end-place)
-    (while			  ; loop round occurrances of (PROPERTY VALUE)
+    (while			  ; loop round occurrences of (PROPERTY VALUE)
 	(progn
 	  (while	   ; loop round changes in PROPERTY till we find VALUE
 	      (and

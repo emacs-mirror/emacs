@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1378,19 +1378,27 @@ x_draw_composite_glyph_string_foreground (s)
 	      if (j < i)
 		{
 		  font->driver->draw (s, j, i, x, y, 0);
+		  if (s->face->overstrike)
+		    font->driver->draw (s, j, i, x + 1, y, 0);
 		  x += width;
 		}
 	      xoff = LGLYPH_XOFF (glyph);
 	      yoff = LGLYPH_YOFF (glyph);
 	      wadjust = LGLYPH_WADJUST (glyph);
 	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
+	      if (s->face->overstrike)
+		font->driver->draw (s, i, i + 1, x + xoff + 1, y + yoff, 0);
 	      x += wadjust;
 	      j = i + 1;
 	      width = 0;
 	    }
 	}
       if (j < i)
-	font->driver->draw (s, j, i, x, y, 0);
+	{
+	  font->driver->draw (s, j, i, x, y, 0);
+	  if (s->face->overstrike)
+	    font->driver->draw (s, j, i, x + 1, y, 0);
+	}
     }
 }
 
@@ -9813,7 +9821,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
 
-#ifndef USE_X_TOOLKIT
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
   Window window = FRAME_OUTER_WINDOW (f);
 #endif
 
@@ -10068,7 +10076,6 @@ x_term_init (display_name, xrm_option, resource_name)
     int argc;
     char *argv[NUM_ARGV];
     char **argv2 = argv;
-    GdkAtom atom;
     guint id;
 #ifndef HAVE_GTK_MULTIDISPLAY
     if (!EQ (Vinitial_window_system, Qx))
@@ -10207,10 +10214,25 @@ x_term_init (display_name, xrm_option, resource_name)
 	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (terminal->kboard);
 	terminal->kboard->Vwindow_system = Qx;
+
+	/* Add the keyboard to the list before running Lisp code (via
+           Qvendor_specific_keysyms below), since these are not traced
+           via terminals but only through all_kboards.  */
+	terminal->kboard->next_kboard = all_kboards;
+	all_kboards = terminal->kboard;
+
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
-	    /* Temporarily hide the partially initialized terminal */
+
+	    /* Protect terminal from GC before removing it from the
+	       list of terminals.  */
+	    struct gcpro gcpro1;
+	    Lisp_Object gcpro_term;
+	    XSETTERMINAL (gcpro_term, terminal);
+	    GCPRO1 (gcpro_term);
+
+	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
 	    terminal->kboard->Vsystem_key_alist
@@ -10219,10 +10241,9 @@ x_term_init (display_name, xrm_option, resource_name)
 	    BLOCK_INPUT;
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
+	    UNGCPRO;
 	  }
 
-	terminal->kboard->next_kboard = all_kboards;
-	all_kboards = terminal->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
 	   That would cause problems if a file loaded on startup tries to
 	   prompt in the mini-buffer.  */
@@ -10571,7 +10592,6 @@ void
 x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-  int i;
   struct terminal *t;
 
   /* Close all frames and delete the generic struct terminal for this
@@ -10723,7 +10743,6 @@ void
 x_delete_terminal (struct terminal *terminal)
 {
   struct x_display_info *dpyinfo = terminal->display_info.x;
-  int i;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */

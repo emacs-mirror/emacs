@@ -89,8 +89,7 @@ The etc/MACHINES file may describe other things that you need to do
 to make Emacs work on your machine.  If so, you should follow these
 recommendations also, for the same reason.
 
-* Send your problem reports to emacs-pretest-bug@gnu.org, not
-bug-gnu-emacs.
+* Send your problem reports to bug-gnu-emacs@gnu.org.
 
 Sometimes we won't know what to do about a system-dependent issue, and
 we may need people to say what happens if you try a certain thing on a

@@ -1,3 +1,8 @@
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-protocol.el (org-protocol-flatten-greedy, org-protocol-flatten):
+	Fix typos in docstrings.
+
 2010-01-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-get-outline-path, org-speed-command-help):
@@ -6266,7 +6271,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008, 2009  Free Software Foundation, Inc.
+    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

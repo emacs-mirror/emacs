@@ -1,4 +1,4 @@
-Copyright (C) 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 See end for license conditions.
 
 
@@ -73,7 +73,7 @@ Every patch must have several pieces of information before we
 can properly evaluate it.
 
 When you have all these pieces, bundle them up in a mail message and
-send it to emacs-pretest-bug@gnu.org or emacs-devel@gnu.org.
+send it to bug-gnu-emacs@gnu.org or emacs-devel@gnu.org.
 
 All subsequent discussion should also be sent to the mailing list.
 
@@ -149,9 +149,7 @@ giving you write access to the CVS repository.
 
 Discussion about Emacs development takes place on emacs-devel@gnu.org.
 
-Bug reports for released versions are sent to bug-gnu-emacs@gnu.org.
-
-Bug reports for development versions are sent to emacs-pretest-bug@gnu.org.
+Bug reports are sent to bug-gnu-emacs@gnu.org.
 
 You can subscribe to the mailing lists at savannah.gnu.org/projects/emacs.
 

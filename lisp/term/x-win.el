@@ -1,7 +1,7 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009 Free Software Foundation, Inc.
+;;   2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -1197,7 +1197,7 @@ as returned by `x-server-vendor'."
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
 ;; from x-cut-buffer-or-selection-value.  We track all three
-;; seperately in case another X application only sets one of them
+;; separately in case another X application only sets one of them
 ;; (say the cut buffer) we aren't fooled by the PRIMARY or
 ;; CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil

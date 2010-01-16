@@ -1,6 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)
 
-;; Copyright (C) 1996, 1998, 1999, 2001, 2004, 2005, 2007, 2008, 2009
+;; Copyright (C) 1996, 1998, 1999, 2001, 2004, 2005, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
@@ -323,7 +323,7 @@ MARGIN, ZONE, START, and END specify restrictions in chart space."
 (defmethod chart-translate-namezone ((c chart) n)
   "Return a dot-pair representing a positional range for a name.
 The name in chart C of the Nth name resides.
-Automatically compensates for for direction."
+Automatically compensates for direction."
   (let* ((dir (oref c direction))
 	 (w (if (eq dir 'vertical) (oref c x-width) (oref c y-width)))
 	 (m (if (eq dir 'vertical) (oref c y-margin) (oref c x-margin)))

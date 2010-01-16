@@ -1,6 +1,6 @@
 ;;; ede/simple.el --- Overlay an EDE structure on an existing project
 
-;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -87,7 +87,7 @@ All directories need at least one target.")
    (file-header-line :initform ";; EDE Simple Project")
    )
   "EDE Simple project class.
-Each directory needs a a project file to control it.")
+Each directory needs a project file to control it.")
 
 (defmethod ede-commit-project ((proj ede-simple-project))
   "Commit any change to PROJ to its file."

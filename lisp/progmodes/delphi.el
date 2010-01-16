@@ -1,7 +1,7 @@
 ;;; delphi.el --- major mode for editing Delphi source (Object Pascal) in Emacs
 
 ;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009  Free Software Foundation, Inc.
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -1370,7 +1370,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                      ;; Indent in from the expression.
                      (delphi-indent-of last-token delphi-indent-level))
 
-                    ;; No enclosing expression; use the previous statment's
+                    ;; No enclosing expression; use the previous statement's
                     ;; indent.
                     ((delphi-previous-indent-of token)))))
 

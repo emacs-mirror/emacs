@@ -1,7 +1,7 @@
 ;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs 19
 
 ;; Copyright (C) 1986, 1992, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -2107,7 +2107,7 @@ created."
       (setq edt-term "pc")
     (if (or (not edt-window-system) (eq edt-window-system 'tty))
 	(setq edt-term (getenv "TERM"))))
-  ;; Look for for terminal configuration file for this terminal type.
+  ;; Look for a terminal configuration file for this terminal type.
   ;; Otherwise, load the user's custom configuration file.
   (if (or (not edt-window-system) (memq edt-window-system '(pc tty)))
       (progn

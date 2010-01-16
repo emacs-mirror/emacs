@@ -1,6 +1,6 @@
 ;;; tramp-imap.el --- Tramp interface to IMAP through imap.el
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: mail, comm

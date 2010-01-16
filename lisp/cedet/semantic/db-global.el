@@ -1,6 +1,6 @@
 ;;; semantic/db-global.el --- Semantic database extensions for GLOBAL
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2008, 2009
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -105,7 +105,7 @@ is not available for this directory."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-global) &optional buffer)
   "Return t, pretend that this table's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   ;; @todo - hack alert!
   t)

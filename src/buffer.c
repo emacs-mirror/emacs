@@ -1,7 +1,7 @@
 /* Buffer manipulation primitives for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994,
                  1995, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -704,7 +704,7 @@ reset_buffer (b)
   b->clip_changed = 0;
   b->prevent_redisplay_optimizations_p = 1;
   b->backed_up = Qnil;
-  b->auto_save_modified = 0;
+  BUF_AUTOSAVE_MODIFF (b) = 0;
   b->auto_save_failure_time = -1;
   b->auto_save_file_name = Qnil;
   b->read_only = Qnil;
@@ -1132,7 +1132,25 @@ A non-nil FLAG means mark the buffer modified.  */)
     }
 #endif /* CLASH_DETECTION */
 
-  SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
+  /* Here we have a problem.  SAVE_MODIFF is used here to encode
+     buffer-modified-p (as SAVE_MODIFF<MODIFF) as well as
+     recent-auto-save-p (as SAVE_MODIFF<auto_save_modified).  So if we
+     modify SAVE_MODIFF to affect one, we may affect the other
+     as well.
+     E.g. if FLAG is nil we need to set SAVE_MODIFF to MODIFF, but
+     if SAVE_MODIFF<auto_save_modified that means we risk changing
+     recent-auto-save-p from t to nil.
+     Vice versa, if FLAG is non-nil and SAVE_MODIFF>=auto_save_modified
+     we risk changing recent-auto-save-p from nil to t.  */
+  SAVE_MODIFF = (NILP (flag)
+		 /* FIXME: This unavoidably sets recent-auto-save-p to nil.  */
+		 ? MODIFF
+		 /* Let's try to preserve recent-auto-save-p.  */
+		 : SAVE_MODIFF < MODIFF ? SAVE_MODIFF
+		 /* If SAVE_MODIFF == auto_save_modified == MODIFF,
+		    we can either decrease SAVE_MODIFF and auto_save_modified
+		    or increase MODIFF.  */
+		 : MODIFF++);
 
   /* Set update_mode_lines only if buffer is displayed in some window.
      Packages like jit-lock or lazy-lock preserve a buffer's modified
@@ -1541,8 +1559,8 @@ with SIGHUP.  */)
   /* Delete any auto-save file, if we saved it in this session.
      But not if the buffer is modified.  */
   if (STRINGP (b->auto_save_file_name)
-      && b->auto_save_modified != 0
-      && BUF_SAVE_MODIFF (b) < b->auto_save_modified
+      && BUF_AUTOSAVE_MODIFF (b) != 0
+      && BUF_SAVE_MODIFF (b) < BUF_AUTOSAVE_MODIFF (b)
       && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
       && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
     {

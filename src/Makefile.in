@@ -1,6 +1,6 @@
 # Makefile for GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
-#               2003, 2004, 2005, 2006, 2007, 2008, 2009
+#               2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 #               Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -736,13 +736,13 @@ lisp= \
 	${lispsource}emacs-lisp/map-ynp.elc \
 	${lispsource}menu-bar.elc \
 	${lispsource}international/mule.elc \
-	${lispsource}international/mule-conf.el \
+	${lispsource}international/mule-conf.elc \
 	${lispsource}international/mule-cmds.elc \
 	${lispsource}international/characters.elc \
 	${lispsource}international/charprop.el \
 	${lispsource}case-table.elc \
-	${lispsource}language/chinese.el \
-	${lispsource}language/cyrillic.el \
+	${lispsource}language/chinese.elc \
+	${lispsource}language/cyrillic.elc \
 	${lispsource}language/indian.elc \
 	${lispsource}language/sinhala.el \
 	${lispsource}language/english.el \
@@ -760,7 +760,7 @@ lisp= \
 	${lispsource}language/tai-viet.el \
 	${lispsource}language/thai.el \
 	${lispsource}language/tibetan.elc \
-	${lispsource}language/vietnamese.el \
+	${lispsource}language/vietnamese.elc \
 	${lispsource}language/misc-lang.el \
 	${lispsource}language/utf-8-lang.el \
 	${lispsource}language/georgian.el \
@@ -829,12 +829,12 @@ shortlisp= \
 	../lisp/emacs-lisp/map-ynp.elc \
 	../lisp/env.elc \
 	../lisp/international/mule.elc \
-	../lisp/international/mule-conf.el \
+	../lisp/international/mule-conf.elc \
 	../lisp/international/mule-cmds.elc \
 	../lisp/international/characters.elc \
 	../lisp/case-table.elc \
-	../lisp/language/chinese.el \
-	../lisp/language/cyrillic.el \
+	../lisp/language/chinese.elc \
+	../lisp/language/cyrillic.elc \
 	../lisp/language/indian.elc \
 	../lisp/language/sinhala.el \
 	../lisp/language/english.el \
@@ -852,7 +852,7 @@ shortlisp= \
 	../lisp/language/tai-viet.el \
 	../lisp/language/thai.el \
 	../lisp/language/tibetan.elc \
-	../lisp/language/vietnamese.el \
+	../lisp/language/vietnamese.elc \
 	../lisp/language/misc-lang.el \
 	../lisp/language/utf-8-lang.el \
 	../lisp/language/georgian.el \

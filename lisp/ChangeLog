@@ -1,3 +1,235 @@
+2010-01-16  Mario Lang  <mlang@delysid.org>
+
+	* cedet/ede/cpp-root.el (ede-cpp-root-project):
+	* cedet/ede/files.el (ede-expand-filename):
+	* cedet/ede/simple.el (ede-simple-project):
+	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
+	(semantic-complete-inline-tag-engine):
+	* cedet/semantic/db-el.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db-global.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db-javascript.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db.el (semanticdb-equivalent-mode):
+	* cedet/semantic/decorate/include.el (semantic-decoration-unknown-include-describe):
+	* cedet/semantic/idle.el (semantic-idle-work-for-one-buffer):
+	* emacs-lisp/chart.el (chart-translate-namezone):
+	* textmodes/artist.el (artist-compute-popup-menu-table):
+	Remove duplicated words in doc-strings.
+
+2010-01-15   David Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
+	to mairix-search to suppress threading (Bug#5342).
+
+2010-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (canonicalize-coding-system-name):
+	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX".
+
+2010-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* log-view.el (top-level): Require 'wid-edit.  (Bug#5311)
+
+	* wid-edit.el (widget-keymap): Doc fix.
+
+	* vc-svn.el (vc-svn-print-log): Use --limit rather than -l since the
+	former seems to be more widely accepted by various svn versions.
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* find-cmd.el (find-constituents):
+	* vc-arch.el (vc-arch-root):
+	* window.el (window-body-height, pop-up-frames):
+	* cedet/semantic/edit.el (semantic-reparse-needed-change-hook)
+	(semantic-no-reparse-needed-change-hook):
+	* cedet/srecode/insert.el (srecode-resolve-argument-list)
+	(srecode-template-inserter-blank, srecode-template-inserter-variable)
+	(srecode-template-inserter-ask, srecode-template-inserter-width)
+	(srecode-template-inserter-section-start)
+	(srecode-template-inserter-section-end, srecode-insert-method):
+	* emacs-lisp/eieio-base.el (eieio-singleton, slot-missing):
+	* progmodes/ada-stmt.el (ada-if):
+	* progmodes/gdb-ui.el (gdb-jsonify-buffer):
+	* textmodes/ispell.el (ispell-grep-options, ispell-dictionary-alist)
+	(ispell-encoding8-command, ispell-aspell-supports-utf8)
+	(ispell-last-program-name, ispell-help): Fix typos in docstrings.
+
+	* progmodes/flymake.el (flymake-post-syntax-check):
+	Fix typo in error message.
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hexl.el (hexl-printable-character): Fix check of `hexl-iso',
+	which is always a string.  (Bug#5313)
+
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-xref.el (ada-default-prj-properties):
+	Simplify previous change.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-xref.el (ada-default-prj-properties):
+	Default ada_project_path to $ADA_PROJECT_PATH.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-create-keymap):
+	Override `narrow-to-defun' with `ada-narrow-to-defun'.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el: Deal with Ada 2005 "overriding" keyword.
+	(ada-subprog-start-re, ada-imenu-subprogram-menu-re): Add keyword.
+	(ada-get-current-indent, ada-imenu-generic-expression)
+	(ada-which-function): Check for it.
+
+2010-01-14  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el (ada-clean-buffer-before-saving): Make obsolete.
+	(ada-mode): Don't obey `ada-clean-buffer-before-saving' anymore.
+
+2010-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* frame.el (show-trailing-whitespace): Safe if boolean.  (Bug#5312)
+
+2010-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-mode): Make it a buffer local
+	variable (permanent-local).
+	(auto-composition-function): Set the default value to
+	auto-compose-chars.
+	(auto-composition-mode): Make it a simple function, not a minor mode.
+	(global-auto-composition-mode): Likewise.
+	(turn-on-auto-composition-if-enabled): Delete it.
+
+2010-01-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-execute-deletions): Doc fix (Bug#5276).
+
+2010-01-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (copy-directory): Compute target for recursive
+	directories with identical names.  (Bug#5343)
+
+2010-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-pretest-address): Set
+	it to bug-gnu-emacs rather than emacs-pretest-bug.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/data-debug.el (data-debug): Fix customization group reference.
+
+2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/analyze.el (semantic-analyze-push-error)
+	(semantic-analyze-context, semantic-analyze-context-assignment)
+	(semantic-analyze-find-tag-sequence, semantic-analyze-find-tag):
+	* cedet/semantic/java.el (java-mode, semantic-tag-include-filename)
+	(semantic-java-doc-keywords-map):
+	* cedet/semantic/bovine/c.el (c-mode, semantic-c-member-of-autocast)
+	(semantic-lex-c-nested-namespace-ignore-second, semantic-parse-region)
+	(semantic-c-parse-lexical-token, semantic-c-debug-mode-init-pch)
+	(semantic-c-classname, semantic-format-tag-uml-prototype)
+	(semantic-c-dereference-namespace, semantic-analyze-type-constants):
+	* cedet/semantic/bovine/el.el (semantic-elisp-form-to-doc-string)
+	(semantic-emacs-lisp-obsoleted-doc, semantic-up-context)
+	(semantic-get-local-variables, semantic-end-of-command)
+	(semantic-beginning-of-command, semantic-ctxt-current-class-list)
+	(lisp-mode):
+	* cedet/semantic/bovine/make.el (makefile-mode):
+	* cedet/semantic/wisent/python.el (wisent-python-string-re)
+	(wisent-python-implicit-line-joining-p, wisent-python-forward-string)
+	(wisent-python-lex-beginning-of-line, wisent-python-lex-end-of-line)
+	(semantic-lex, semantic-get-local-variables, python-mode):
+	* cedet/semantic/wisent/python-wy.el (wisent-python-wy--keyword-table):
+	* cedet/srecode/extract.el (srecode-extract-state-set)
+	(srecode-extract-method): Fix typos in docstrings.
+
+2010-01-11  Sam Steingold  <sds@gnu.org>
+
+	* imenu.el (imenu-default-create-index-function): Detect infinite
+	loops caused by imenu-prev-index-position-function.
+
+2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* htmlfontify.el (htmlfontify-load-rgb-file)
+	(htmlfontify-unload-rgb-file, hfy-fallback-colour-values)
+	(htmlfontify-manual, htmlfontify, hfy-page-header, hfy-page-footer)
+	(hfy-src-doc-link-style, hfy-src-doc-link-unstyle, hfy-link-extn)
+	(hfy-link-style-fun, hfy-index-file, hfy-instance-file)
+	(hfy-html-quote-regex, hfy-init-kludge-hook, hfy-post-html-hooks)
+	(hfy-default-face-def, hfy-etag-regex, hfy-html-quote-map)
+	(hfy-etags-cmd-alist-default, hfy-etags-bin, hfy-ignored-properties)
+	(hfy-which-etags, hfy-etags-cmd, hfy-istext-command, hfy-display-class)
+	(hfy-optimisations, hfy-tags-cache, hfy-tags-sortl, hfy-tags-rmap)
+	(hfy-style-assoc, hfy-sheet-assoc, hfy-facemap-assoc, hfy-interq)
+	(hfy-colour-vals, hfy-default-header, hfy-link-style-string)
+	(hfy-triplet, hfy-slant, hfy-weight, hfy-combined-face-spec)
+	(hfy-face-attr-for-class, hfy-face-to-style-i, hfy-size-to-int)
+	(hfy-flatten-style, hfy-face-to-style, hfy-face-or-def-to-name)
+	(hfy-face-to-css, hfy-p-to-face, hfy-p-to-face-lennart, hfy-face-at)
+	(hfy-fontified-p, hfy-merge-adjacent-spans, hfy-buffer)
+	(hfy-html-enkludge-buffer, hfy-html-quote, hfy-html-dekludge-buffer)
+	(hfy-force-fontification, htmlfontify-buffer, hfy-dirname)
+	(hfy-make-directory, hfy-text-p, hfy-mark-tag-names, hfy-relstub)
+	(hfy-href-stub, hfy-href, hfy-mark-tag-hrefs, hfy-prepare-index-i)
+	(hfy-prepare-index, hfy-prepare-tag-map, hfy-subtract-maps)
+	(htmlfontify-run-etags): Fix typos in docstrings and remove superfluous
+	backslash-quoting from parentheses, etc.
+
+2010-01-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el: Autoload javascript-mode alias.
+
+2010-01-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ffap.el (ffap-shell-prompt-regexp, ffap-all-subdirs, ffap-url-p)
+	(ffap-alist, ffap-tex-path, ffap-url-at-point, ffap-gopher-regexp)
+	(ffap-gopher-at-point, ffap-file-at-point, ffap-read-file-or-url)
+	(ffap-read-url-internal, ffap-menu, ffap-at-mouse):
+	Fix typos in docstrings.
+	(ffap-url-regexp): Doc fix.
+	(ffap-at-mouse): Fix typo in message.
+
+2010-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-copyright): Set copyright year to 2010.
+
+2010-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* format.el (format-annotate-function): Only set
+	write-region-post-annotation-function after running to-fn so as not to
+	affect nested write-region calls (bug#5273).
+
+2010-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic.el (semantic-new-buffer-setup-functions):
+	Add python parser.
+
+	* Makefile.in (ELCFILES): Add wisent/python-wy.el and
+	wisent/python.el.
+
+2010-01-10  Richard Kim  <emacs18@gmail.com>
+
+	* cedet/semantic/wisent/python-wy.el:
+	* cedet/semantic/wisent/python.el: New files.
+
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-goto-section): Signal error if the section is not
+	found (Bug#5317).
+
+2010-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-bzr.el (vc-bzr-working-revision): On Windows and MS-DOS, accept
+	URLs with a leading triple slash in the file: scheme.  (Bug#5345)
+
+2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el: Don't treat compile-command as safe if
+	compilation-read-command might be nil (Bug#4218).
+
 2010-01-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-1): Use orig-argi to check for ignored X and
@@ -5,8 +237,8 @@
 
 2010-01-08  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (build-default-fontset-data): Exclude
-	characters in scripts kana, hangul, han, or cjk-misc.
+	* international/fontset.el (build-default-fontset-data):
+	Exclude characters in scripts kana, hangul, han, or cjk-misc.
 
 2010-01-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -26,8 +258,8 @@
 
 2010-01-05  Tom Tromey  <tromey@redhat.com>
 
-	* progmodes/python.el (python-font-lock-keywords): Handle
-	qualified decorators (Bug#881).
+	* progmodes/python.el (python-font-lock-keywords):
+	Handle qualified decorators (Bug#881).
 
 2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -36,8 +268,7 @@
 
 2010-01-05  Kenichi Handa  <handa@m17n.org>
 
-	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and
-	ZWJ.
+	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and ZWJ.
 
 2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -62,8 +293,8 @@
 2010-01-02  Daniel Elliott  <danelliottster@gmail.com>  (tiny change)
 
 	* progmodes/octave-mod.el (octave-end-keywords)
-	(octave-block-begin-or-end-regexp, octave-block-match-alist): Add
-	"end" keyword (Bug#3061).
+	(octave-block-begin-or-end-regexp, octave-block-match-alist):
+	Add "end" keyword (Bug#3061).
 	(octave-end-as-array-index-p): New function.
 	(calculate-octave-indent): Use it.
 
@@ -93,18 +324,18 @@
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window,
+	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window)
 	(bookmark-bmenu-2-window, bookmark-bmenu-this-window)
 	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window)
 	(bookmark-bmenu-show-annotation, bookmark-bmenu-edit-annotation)
 	(bookmark-bmenu-rename, bookmark-bmenu-locate)
-	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark): Remove
-	unnecessary calls to `bookmark-bmenu-ensure-position'.
+	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark):
+	Remove unnecessary calls to `bookmark-bmenu-ensure-position'.
 
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Make
-	the lines in the generated doc string shorter.  (Bug#4668)
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Make the lines in the generated doc string shorter.  (Bug#4668)
 
 2010-01-02  Ryan Yeske  <rcyeske@gmail.com>
 
@@ -112,10 +343,10 @@
 
 2010-01-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (bzr-update): Renamed from cvs-update.
+	* Makefile.in (bzr-update): Rename from cvs-update.
 	(cvs-update): New target for backward compatibility.
 
-	* makefile.w32-in (bzr-update): Renamed from cvs-update.
+	* makefile.w32-in (bzr-update): Rename from cvs-update.
 	(cvs-update): New target for backward compatibility.
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
@@ -1259,7 +1490,7 @@
 2009-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make vc-print-log buttons work.
-	* log-view.el (log-view-mode-map): Inherit from from widget-keymap.
+	* log-view.el (log-view-mode-map): Inherit from widget-keymap.
 
 2009-11-30  Ryan C. Thompson  <rct@thompsonclan.org>  (tiny change)
 
@@ -9737,7 +9968,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2009  Free Software Foundation, Inc.
+    Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; flymake.el -- a universal on-the-fly syntax checker
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
@@ -643,7 +643,7 @@ It's flymake process filter."
 	    (flymake-report-status "" "")	; PASSED
 	  (if (not flymake-check-was-interrupted)
 	      (flymake-report-fatal-status "CFGERR"
-					   (format "Configuration error has occured while running %s" command))
+					   (format "Configuration error has occurred while running %s" command))
 	    (flymake-report-status nil ""))) ; "STOPPED"
       (flymake-report-status (format "%d/%d" err-count warn-count) ""))))
 

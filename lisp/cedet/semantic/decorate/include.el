@@ -1,6 +1,6 @@
 ;;; semantic/decorate/include.el --- Decoration modes for include statements
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -461,7 +461,7 @@ wrap existing project code for Semantic's benifit.
 
       (when (or (eq mm 'c++-mode) (eq mm 'c-mode))
 	(princ "
-For C/C++ includes located within a a project, you can use a special
+For C/C++ includes located within a project, you can use a special
 EDE project that will wrap an existing build system.  You can do that
 like this in your .emacs file:
 

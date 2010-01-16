@@ -1,7 +1,7 @@
 ;;; sieve-manage.el --- Implementation of the managesive protocol in elisp
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009  Free Software Foundation, Inc.
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -636,7 +636,7 @@ password is remembered in the buffer."
 		  sieve-manage-capability))
 	(push (list str) sieve-manage-capability))
       (forward-line)))
-  (when (re-search-forward (concat "^OK" sieve-manage-server-eol) nil t)
+  (when (re-search-forward (concat "^OK.*" sieve-manage-server-eol) nil t)
     (setq sieve-manage-state 'nonauth)))
 
 (defalias 'sieve-manage-parse-greeting-1 'sieve-manage-parse-capability-1)

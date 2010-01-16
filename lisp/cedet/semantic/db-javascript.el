@@ -1,6 +1,6 @@
 ;;; semantic/db-javascript.el --- Semantic database extensions for javascript
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Joakim Verona
@@ -145,7 +145,7 @@ Create one of our special tables that can act as an intermediary."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-javascript) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (with-current-buffer buffer
     (eq (or mode-local-active-mode major-mode) 'javascript-mode)))

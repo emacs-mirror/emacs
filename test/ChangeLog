@@ -1,3 +1,9 @@
+2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/cedet-utests.el (cedet-utest-log-shutdown, pulse-test):
+	* cedet/semantic-ia-utest.el (semantic-ia-utest-error-log-list)
+	(semantic-ia-utest-buffer-refs): Fix typos in docstrings.
+
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el
@@ -88,7 +94,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008, 2009  Free Software Foundation, Inc.
+    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

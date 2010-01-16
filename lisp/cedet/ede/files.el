@@ -1,6 +1,6 @@
 ;;; ede/files.el --- Associate projects with files and directories.
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -442,7 +442,7 @@ If FORCE equals 'newfile, then the cache is ignored."
 	      (setq ans calc))
 	  ;; If we failed to calculate something, we
 	  ;; should add it to the hash, but ONLY if we are not
-	  ;; going to FORCE the file into existance.
+	  ;; going to FORCE the file into existence.
 	  (when (not force)
 	    (ede-locate-add-file-to-hash loc filename 'nomatch))))
       ))
@@ -487,7 +487,7 @@ doesn't exist."
 
 (defmethod ede-expand-filename ((this ede-target) filename &optional force)
   "Return a fully qualified file name based on target THIS.
-FILENAME should a a filename which occurs in a directory in which THIS works.
+FILENAME should be a filename which occurs in a directory in which THIS works.
 Optional argument FORCE forces the default filename to be provided even if it
 doesn't exist."
   (ede-expand-filename (ede-target-parent this) filename force))

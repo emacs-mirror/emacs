@@ -1,7 +1,7 @@
 /* Lisp functions pertaining to editing.
    Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2870,8 +2870,8 @@ Both characters must have the same length of multi-byte form.  */)
 		{
 		  if (MODIFF - 1 == SAVE_MODIFF)
 		    SAVE_MODIFF++;
-		  if (MODIFF - 1 == current_buffer->auto_save_modified)
-		    current_buffer->auto_save_modified++;
+		  if (MODIFF - 1 == BUF_AUTOSAVE_MODIFF (current_buffer))
+		    BUF_AUTOSAVE_MODIFF (current_buffer)++;
 		}
 
 	      /* The before-change-function may have moved the gap
@@ -4177,8 +4177,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	      len = make_number (SCHARS (args[n]));
 	      new_len = make_number (info[n].end - info[n].start);
 	      props = text_property_list (args[n], make_number (0), len, Qnil);
-	      extend_property_ranges (props, len, new_len);
-	      /* If successive arguments have properites, be sure that
+	      props = extend_property_ranges (props, new_len);
+	      /* If successive arguments have properties, be sure that
 		 the value of `composition' property be the copy.  */
 	      if (n > 1 && info[n - 1].end)
 		make_composition_value_copy (props);

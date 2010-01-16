@@ -1,4 +1,4 @@
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -54,9 +54,8 @@ etc.) before "make bootstrap" or "make"; the rest of the procedure is
 applicable to those systems as well.
 
 Questions, requests, and bug reports about the Bazaar versions of Emacs
-should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
-or gnu.emacs.bug.  Ideally, use M-x report-emacs-bug RET which will
-send it to the proper place.
+should be sent to bug-gnu-emacs@gnu.org rather than gnu.emacs.help.
+Ideally, use M-x report-emacs-bug RET.
 
 Because the Bazaar version of Emacs is a work in progress, it will
 sometimes fail to build.  Please wait a day or so (and check the bug

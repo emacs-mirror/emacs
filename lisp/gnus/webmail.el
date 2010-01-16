@@ -1,7 +1,7 @@
 ;;; webmail.el --- interface of web mail
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: hotmail netaddress my-deja netscape
@@ -529,7 +529,7 @@
 	  (widen)))
       (delete-region p (point-max))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
@@ -658,7 +658,7 @@
 	  (setq p (point))))
       (delete-region p (point-max))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
@@ -835,7 +835,7 @@
 	(setq mime (webmail-netaddress-single-part))
 	(widen))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
@@ -962,7 +962,7 @@
 	(setq mime (webmail-netaddress-single-part))
 	(widen))
       (goto-char (point-min))
-      ;; Some blank line to seperate mails.
+      ;; Some blank line to separate mails.
       (insert "\n\nFrom nobody " (current-time-string) "\n")
       (insert "X-Gnus-Webmail: " (symbol-value 'user)
 	      "@" (symbol-name webmail-type) "\n")
