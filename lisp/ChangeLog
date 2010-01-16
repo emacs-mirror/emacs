@@ -1,5 +1,7 @@
 2010-01-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/cl-macs.el (defstruct): Doc fix (Bug#5267).
+
 	* startup.el (command-line): Remove unused --icon-type arg.
 	Handle --display arg, passing it to command-line-1 (Bug#5392).
 
