@@ -341,7 +341,7 @@ Currently there are 'threads and 'flags.")
 
 (defun mairix-search (search threads)
   "Call Mairix with SEARCH.
-If THREADS is t, also display whole threads of found
+If THREADS is non-nil, also display whole threads of found
 messages.  Results will be put into the default search file."
   (interactive
    (list
@@ -595,9 +595,7 @@ See %s for details" mairix-output-buffer)))
   "Send query from WIDGETS to mairix binary."
   (mairix-search
    (mairix-widget-make-query-from-widgets widgets)
-   (if (widget-value (cadr (assoc "Threads" widgets)))
-       t
-     -1))
+   (if (widget-value (cadr (assoc "Threads" widgets))) t))
   (kill-buffer mairix-customize-query-buffer))
 
 (defun mairix-widget-save-search (widgets)
