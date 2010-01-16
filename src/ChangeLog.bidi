@@ -1,3 +1,11 @@
+2010-01-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Under bidi iteration, skip
+	invisible text using bidi_get_next_char_visually.
+	(handle_stop_backwards): Restore it->bidi_p, it->current and
+	it->position before calling handle_stop.
+	(next_element_from_buffer): Fix formatting.
+
 2010-01-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_stop_backwards): Add a prototype.

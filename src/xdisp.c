@@ -3784,18 +3784,18 @@ handle_invisible_prop (it)
   else
     {
       int invis_p;
-      EMACS_INT newpos, next_stop, start_charpos;
+      EMACS_INT newpos, next_stop, start_charpos, tem;
       Lisp_Object pos, prop, overlay;
 
       /* First of all, is there invisible text at this position?  */
-      start_charpos = IT_CHARPOS (*it);
+      tem = start_charpos = IT_CHARPOS (*it);
       pos = make_number (IT_CHARPOS (*it));
       prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
 					    &overlay);
       invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
 
       /* If we are on invisible text, skip over it.  */
-      if (invis_p && IT_CHARPOS (*it) < it->end_charpos)
+      if (invis_p && start_charpos < it->end_charpos)
 	{
 	  /* Record whether we have to display an ellipsis for the
 	     invisible text.  */
@@ -3808,17 +3808,16 @@ handle_invisible_prop (it)
 	  do
 	    {
 	      /* Try to skip some invisible text.  Return value is the
-		 position reached which can be equal to IT's position
-		 if there is nothing invisible here.  This skips both
+		 position reached which can be equal to where we start
+		 if there is nothing invisible there.  This skips both
 		 over invisible text properties and overlays with
 		 invisible property.  */
-	      newpos = skip_invisible (IT_CHARPOS (*it),
-				       &next_stop, ZV, it->window);
+	      newpos = skip_invisible (tem, &next_stop, ZV, it->window);
 
 	      /* If we skipped nothing at all we weren't at invisible
 		 text in the first place.  If everything to the end of
 		 the buffer was skipped, end the loop.  */
-	      if (newpos == IT_CHARPOS (*it) || newpos >= ZV)
+	      if (newpos == tem || newpos >= ZV)
 		invis_p = 0;
 	      else
 		{
@@ -3836,7 +3835,7 @@ handle_invisible_prop (it)
 	      /* If we ended up on invisible text, proceed to
 		 skip starting with next_stop.  */
 	      if (invis_p)
-		IT_CHARPOS (*it) = next_stop;
+		tem = next_stop;
 
               /* If there are adjacent invisible texts, don't lose the
                  second one's ellipsis. */
@@ -3846,8 +3845,30 @@ handle_invisible_prop (it)
 	  while (invis_p);
 
 	  /* The position newpos is now either ZV or on visible text.  */
-	  IT_CHARPOS (*it) = newpos;
-	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (newpos);
+	  if (it->bidi_p && newpos < ZV)
+	    {
+	      /* With bidi iteration, the region of invisible text
+		 could start and/or end in the middle of a non-base
+		 embedding level.  Therefore, we need to skip
+		 invisible text using the bidi iterator, starting at
+		 IT's current position, until we find ourselves
+		 outside the invisible text.  This avoids affecting
+		 the visual order of the displayed text when invisible
+		 properties are added or removed.  */
+	      do
+		{
+		  bidi_get_next_char_visually (&it->bidi_it);
+		}
+	      while (start_charpos <= it->bidi_it.charpos
+		     && it->bidi_it.charpos < newpos);
+	      IT_CHARPOS (*it) = it->bidi_it.charpos;
+	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (newpos);
+	    }
+	  else
+	    {
+	      IT_CHARPOS (*it) = newpos;
+	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (newpos);
+	    }
 
 	  /* If there are before-strings at the start of invisible
 	     text, and the text is invisible because of a text
@@ -3877,7 +3898,7 @@ handle_invisible_prop (it)
                  first invisible character.  */
 	      if (!STRINGP (it->object))
 		{
-		  it->position.charpos = IT_CHARPOS (*it) - 1;
+		  it->position.charpos = newpos - 1;
 		  it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
 		}
 	      it->ellipsis_p = 1;
@@ -6604,11 +6625,11 @@ handle_stop_backwards (it, charpos)
 
   next_stop = it->stop_charpos;
   it->stop_charpos = it->prev_stop;
-  handle_stop (it);
-  it->stop_charpos = next_stop;
   it->bidi_p = 1;
   it->current = save_current;
   it->position = save_position;
+  handle_stop (it);
+  it->stop_charpos = next_stop;
 }
 
 /* Load IT with the next display element from current_buffer.  Value
@@ -6660,12 +6681,14 @@ next_element_from_buffer (it)
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
 	    it->glyph_row->reversed_p = 1;
-	  do {
-	    /* Now return to buffer position where we were asked to
-	       get the next display element, and produce that.  */
-	    bidi_get_next_char_visually (&it->bidi_it);
-	  } while (it->bidi_it.bytepos != orig_bytepos
-		   && it->bidi_it.bytepos < ZV_BYTE);
+	  do
+	    {
+	      /* Now return to buffer position where we were asked to
+		 get the next display element, and produce that.  */
+	      bidi_get_next_char_visually (&it->bidi_it);
+	    }
+	  while (it->bidi_it.bytepos != orig_bytepos
+		 && it->bidi_it.bytepos < ZV_BYTE);
 	}
 
       it->bidi_it.first_elt = 0; /* paranoia: bidi.c does this */
