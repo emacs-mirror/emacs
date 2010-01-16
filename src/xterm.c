@@ -5797,6 +5797,7 @@ event_handler_gdk (gxev, ev, data)
 {
   XEvent *xev = (XEvent *) gxev;
 
+  BLOCK_INPUT;
   if (current_count >= 0)
     {
       struct x_display_info *dpyinfo;
@@ -5807,22 +5808,26 @@ event_handler_gdk (gxev, ev, data)
       /* Filter events for the current X input method.
          GTK calls XFilterEvent but not for key press and release,
          so we do it here.  */
-      if (xev->type == KeyPress || xev->type == KeyRelease)
-        if (dpyinfo && x_filter_event (dpyinfo, xev))
-          return GDK_FILTER_REMOVE;
+      if ((xev->type == KeyPress || xev->type == KeyRelease)
+	  && dpyinfo
+	  && x_filter_event (dpyinfo, xev))
+	{
+	  UNBLOCK_INPUT;
+	  return GDK_FILTER_REMOVE;
+	}
 #endif
 
       if (! dpyinfo)
         current_finish = X_EVENT_NORMAL;
       else
-	{
-	  current_count +=
-	    handle_one_xevent (dpyinfo, xev, &current_finish,
-			       current_hold_quit);
-	}
+	current_count +=
+	  handle_one_xevent (dpyinfo, xev, &current_finish,
+			     current_hold_quit);
     }
   else
     current_finish = x_dispatch_event (xev, xev->xany.display);
+
+  UNBLOCK_INPUT;
 
   if (current_finish == X_EVENT_GOTO_OUT || current_finish == X_EVENT_DROP)
     return GDK_FILTER_REMOVE;
