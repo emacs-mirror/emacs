@@ -4,6 +4,8 @@
 
 2010-01-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/advice.el (ad-add-advice): Doc fix (Bug#5274)
+
 	* emacs-lisp/cl-macs.el (defstruct): Doc fix (Bug#5267).
 
 	* startup.el (command-line): Remove unused --icon-type arg.
