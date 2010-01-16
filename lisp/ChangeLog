@@ -1,3 +1,7 @@
+2010-01-16  Jari Aalto  <jari.aalto@cante.net>
+
+	* pcmpl-unix.el (pcmpl-unix-read-passwd-file): Doc fix.
+
 2010-01-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/cl-macs.el (defstruct): Doc fix (Bug#5267).
