@@ -1,5 +1,7 @@
 2010-01-17  Glenn Morris  <rgm@gnu.org>
 
+	* calc.texi (Reporting Bugs): Don't mention format of repository.
+
 	* woman.texi (Bugs): Make "Emacs repository" less specific,
 	and the URL for same more specific.
 
