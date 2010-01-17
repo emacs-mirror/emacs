@@ -2191,11 +2191,21 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
 ;;;###autoload
 (defmacro defstruct (struct &rest descs)
   "Define a struct type.
-This macro defines a new Lisp data type called NAME, which contains data
-stored in SLOTs.  This defines a `make-NAME' constructor, a `copy-NAME'
-copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
+This macro defines a new data type called NAME that stores data
+in SLOTs.  It defines a `make-NAME' constructor, a `copy-NAME'
+copier, a `NAME-p' predicate, and slot accessors named `NAME-SLOT'.
+You can use the accessors to set the corresponding slots, via `setf'.
 
-\(fn (NAME OPTIONS...) (SLOT SLOT-OPTS...)...)"
+NAME may instead take the form (NAME OPTIONS...), where each
+OPTION is either a single keyword or (KEYWORD VALUE).
+See Info node `(cl)Structures' for a list of valid keywords.
+
+Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
+SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
+one keyword is supported, `:read-only'.  If this has a non-nil
+value, that slot cannot be set via `setf'.
+
+\(fn NAME SLOTS...)"
   (let* ((name (if (consp struct) (car struct) struct))
 	 (opts (cdr-safe struct))
 	 (slots nil)

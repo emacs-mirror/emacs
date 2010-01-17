@@ -735,13 +735,13 @@ all files of any type."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-abstract-table) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   nil)
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (save-excursion
     (if buffer (set-buffer buffer))

@@ -1477,7 +1477,7 @@ Keymap summary
 ;
 
 (defun artist-compute-popup-menu-table (menu-table)
-  "Create a menu from from MENU-TABLE data.
+  "Create a menu from MENU-TABLE data.
 The returned value is suitable for the `x-popup-menu' function."
   (cons "Artist menu"
 	(artist-compute-popup-menu-table-sub menu-table)))

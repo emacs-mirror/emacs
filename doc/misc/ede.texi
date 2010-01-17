@@ -1968,7 +1968,7 @@ Retrieves the slot @code{sourcetype} from an object of class @code{ede-target}
 
 @deffn Method ede-expand-filename :AFTER this filename &optional force
 Return a fully qualified file name based on target @var{THIS}.
-@var{FILENAME} should a a filename which occurs in a directory in which @var{THIS} works.
+@var{FILENAME} should be a filename which occurs in a directory in which @var{THIS} works.
 Optional argument @var{FORCE} forces the default filename to be provided even if it
 doesn't exist.
 @end deffn

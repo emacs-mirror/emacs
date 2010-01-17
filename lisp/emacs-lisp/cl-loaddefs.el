@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "3867c0613dfd69780f561012a1dfe67b")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "e10a7e42199c08dc39460f67dd2d424b")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -672,11 +672,21 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)
 
 (autoload 'defstruct "cl-macs" "\
 Define a struct type.
-This macro defines a new Lisp data type called NAME, which contains data
-stored in SLOTs.  This defines a `make-NAME' constructor, a `copy-NAME'
-copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
+This macro defines a new data type called NAME that stores data
+in SLOTs.  It defines a `make-NAME' constructor, a `copy-NAME'
+copier, a `NAME-p' predicate, and slot accessors named `NAME-SLOT'.
+You can use the accessors to set the corresponding slots, via `setf'.
 
-\(fn (NAME OPTIONS...) (SLOT SLOT-OPTS...)...)" nil (quote macro))
+NAME may instead take the form (NAME OPTIONS...), where each
+OPTION is either a single keyword or (KEYWORD VALUE).
+See Info node `(cl)Structures' for a list of valid keywords.
+
+Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
+SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
+one keyword is supported, `:read-only'.  If this has a non-nil
+value, that slot cannot be set via `setf'.
+
+\(fn NAME SLOTS...)" nil (quote macro))
 
 (autoload 'cl-struct-setf-expander "cl-macs" "\
 Not documented

@@ -1,3 +1,48 @@
+2010-01-16  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* nxml/nxml-mode.el (nxml-extend-after-change-region): Never
+	return t (Bug#3898).
+
+2010-01-16  Frédéric Perrin  <frederic.perrin@resel.fr>  (tiny change)
+
+	* vc-dispatcher.el (vc-do-command): Set LC_MESSAGES, so that we
+	can parse the output of the external commands (Bug#5279).
+
+2010-01-16  Jari Aalto  <jari.aalto@cante.net>
+
+	* pcmpl-unix.el (pcmpl-unix-read-passwd-file): Doc fix.
+
+2010-01-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/advice.el (ad-add-advice): Doc fix (Bug#5274)
+
+	* emacs-lisp/cl-macs.el (defstruct): Doc fix (Bug#5267).
+
+	* startup.el (command-line): Remove unused --icon-type arg.
+	Handle --display arg, passing it to command-line-1 (Bug#5392).
+
+2010-01-16  Mario Lang  <mlang@delysid.org>
+
+	* cedet/ede/cpp-root.el (ede-cpp-root-project):
+	* cedet/ede/files.el (ede-expand-filename):
+	* cedet/ede/simple.el (ede-simple-project):
+	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
+	(semantic-complete-inline-tag-engine):
+	* cedet/semantic/db-el.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db-global.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db-javascript.el (semanticdb-equivalent-mode):
+	* cedet/semantic/db.el (semanticdb-equivalent-mode):
+	* cedet/semantic/decorate/include.el (semantic-decoration-unknown-include-describe):
+	* cedet/semantic/idle.el (semantic-idle-work-for-one-buffer):
+	* emacs-lisp/chart.el (chart-translate-namezone):
+	* textmodes/artist.el (artist-compute-popup-menu-table):
+	Remove duplicated words in doc-strings.
+
+2010-01-15   David Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
+	to mairix-search to suppress threading (Bug#5342).
+
 2010-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (canonicalize-coding-system-name):
@@ -1468,7 +1513,7 @@
 2009-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make vc-print-log buttons work.
-	* log-view.el (log-view-mode-map): Inherit from from widget-keymap.
+	* log-view.el (log-view-mode-map): Inherit from widget-keymap.
 
 2009-11-30  Ryan C. Thompson  <rct@thompsonclan.org>  (tiny change)
 

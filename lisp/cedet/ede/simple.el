@@ -87,7 +87,7 @@ All directories need at least one target.")
    (file-header-line :initform ";; EDE Simple Project")
    )
   "EDE Simple project class.
-Each directory needs a a project file to control it.")
+Each directory needs a project file to control it.")
 
 (defmethod ede-commit-project ((proj ede-simple-project))
   "Commit any change to PROJ to its file."

@@ -107,7 +107,7 @@ For Emacs Lisp, creates a specialized table."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-emacs-lisp) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (with-current-buffer buffer
     (eq (or mode-local-active-mode major-mode) 'emacs-lisp-mode)))
