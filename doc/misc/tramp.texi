@@ -2562,7 +2562,7 @@ hosts.  Example:
 @end example
 
 You will see the buffer @file{*Async Shell Command*}, containing the
-continous output of the @command{tail} command.
+continuous output of the @command{tail} command.
 
 
 @subsection Running eshell on a remote host
