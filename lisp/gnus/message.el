@@ -6320,7 +6320,11 @@ are not included."
     (condition-case nil
 	(add-to-list 'message-send-actions
 		     `(apply ',(car action) ',(cdr action)))))
-  (setq message-reply-buffer yank-action)
+  (setq message-reply-buffer
+	(if (and (consp yank-action)
+		 (eq (car yank-action) 'insert-buffer))
+	    (nth 1 yank-action)
+	  yank-action))
   (goto-char (point-min))
   ;; Insert all the headers.
   (mail-header-format

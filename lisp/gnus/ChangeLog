@@ -5,6 +5,7 @@
 	(message-with-reply-buffer, message-widen-reply)
 	(message-yank-original): Handle non-buffer values of
 	message-reply-buffer (Bug#4080).
+	(message-setup-1): Prefer to save message-reply-buffer as a buffer.
 
 2010-01-17  Juanma Barranquero  <lekktu@gmail.com>
 
