@@ -1546,7 +1546,7 @@ See calc-keypad for details."
 
 (defvar calc-aborted-prefix nil)
 (defvar calc-start-time nil)
-(defvar calc-command-flags)
+(defvar calc-command-flags nil)
 (defvar calc-final-point-line)
 (defvar calc-final-point-column)
 ;;; Note that modifications to this function may break calc-pass-errors.

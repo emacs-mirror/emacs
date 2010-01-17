@@ -882,16 +882,17 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
 (defun nxml-extend-after-change-region (start end pre-change-length)
   (unless nxml-degraded
     (setq nxml-last-fontify-end nil)
-
-    (nxml-with-degradation-on-error 'nxml-extend-after-change-region
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (save-match-data
-	      (nxml-with-invisible-motion
-		(nxml-with-unmodifying-text-property-changes
-                  (nxml-extend-after-change-region1
-                   start end pre-change-length)))))))))
+    (let ((region (nxml-with-degradation-on-error
+		   'nxml-extend-after-change-region
+		   (save-excursion
+		     (save-restriction
+		       (widen)
+		       (save-match-data
+			 (nxml-with-invisible-motion
+			   (nxml-with-unmodifying-text-property-changes
+			     (nxml-extend-after-change-region1
+			      start end pre-change-length)))))))))
+      (if (consp region) region))))
 
 (defun nxml-extend-after-change-region1 (start end pre-change-length)
   (let* ((region (nxml-after-change1 start end pre-change-length))

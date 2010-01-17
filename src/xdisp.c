@@ -1,7 +1,8 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5638,11 +5639,11 @@ static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
 /* Return 1 iff a character at CHARPOS (and BYTEPOS) is composed
    (possibly with the following characters).  */
 
-#define CHAR_COMPOSED_P(IT,CHARPOS,BYTEPOS)				\
+#define CHAR_COMPOSED_P(IT,CHARPOS,BYTEPOS,END_CHARPOS)			\
   ((IT)->cmp_it.id >= 0							\
    || ((IT)->cmp_it.stop_pos == (CHARPOS)				\
        && composition_reseat_it (&(IT)->cmp_it, CHARPOS, BYTEPOS,	\
-				 (IT)->end_charpos, (IT)->w,		\
+				 END_CHARPOS, (IT)->w,			\
 				 FACE_FROM_ID ((IT)->f, (IT)->face_id),	\
 				 (IT)->string)))
 
@@ -6300,7 +6301,7 @@ next_element_from_string (it)
 	  return 0;
 	}
       else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
-				IT_STRING_BYTEPOS (*it))
+				IT_STRING_BYTEPOS (*it), SCHARS (it->string))
 	       && next_element_from_composition (it))
 	{
 	  return 1;
@@ -6336,7 +6337,7 @@ next_element_from_string (it)
 	  CHARPOS (position) = BYTEPOS (position) = -1;
 	}
       else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
-				IT_STRING_BYTEPOS (*it))
+				IT_STRING_BYTEPOS (*it), it->string_nchars)
 	       && next_element_from_composition (it))
 	{
 	  return 1;
@@ -6523,7 +6524,8 @@ next_element_from_buffer (it)
 	  && IT_CHARPOS (*it) >= it->redisplay_end_trigger_charpos)
 	run_redisplay_end_trigger_hook (it);
 
-      if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it))
+      if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it),
+			   it->end_charpos)
 	  && next_element_from_composition (it))
 	{
 	  return 1;

@@ -1,3 +1,7 @@
+2010-01-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* two.el (volume-header-toc-markup): Fix typos in docstring.
+
 2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Avoid dubious uses of save-excursions.

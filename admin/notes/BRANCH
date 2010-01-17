@@ -1,11 +1,10 @@
-This file describes the CVS branch in which it is maintained.
+This file describes the bzr branch in which it is maintained.
 Everything below the line is branch-specific.
 ________________________________________________________________________
 
 This is the trunk (sometimes mistakenly called "HEAD").
-When people say "use CVS emacs", this is the branch they are talking
-about.  Likewise, a "cvs checkout" without the "-r" option results in
-this branch.
+When people say "use the development version of Emacs" or the
+"bzr version of Emacs", this is the branch they are talking about.
 
 Emacs development takes place on the trunk.  Most of the time, Emacs
 hackers add to it relatively free of constraint (aside from proper

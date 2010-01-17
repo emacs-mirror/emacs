@@ -870,7 +870,7 @@ EXIT-FN is, if non-nil, a function that is called after filling
   is done.  Arguments and return values for this funcion are
   described below.
 DRAW-HOW defines the kind of shape.  The kinds of shapes are:
-  `artist-do-continously'  -- Do drawing operation continously,
+  `artist-do-continously'  -- Do drawing operation continuously,
                               as long as the mouse button is held down.
   `artist-do-poly'         -- Do drawing operation many times.
   1                        -- Do drawing operation only once.
@@ -1477,7 +1477,7 @@ Keymap summary
 ;
 
 (defun artist-compute-popup-menu-table (menu-table)
-  "Create a menu from from MENU-TABLE data.
+  "Create a menu from MENU-TABLE data.
 The returned value is suitable for the `x-popup-menu' function."
   (cons "Artist menu"
 	(artist-compute-popup-menu-table-sub menu-table)))
@@ -3879,8 +3879,8 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;;
 
 (defun artist-key-undraw-continously (x y)
-  "Undraw current continous shape with point at X, Y."
-  ;; No undraw-info for continous shapes
+  "Undraw current continuous shape with point at X, Y."
+  ;; No undraw-info for continuous shapes
   nil)
 
 (defun artist-key-undraw-poly (x y)
@@ -3937,7 +3937,7 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 ;; user has released the button, so the timer will always be cancelled
 ;; at that point.
 (defun artist-key-draw-continously (x y)
-  "Draw current continous shape at X,Y."
+  "Draw current continuous shape at X,Y."
   (let ((draw-fn   (artist-go-get-draw-fn-from-symbol artist-curr-go)))
     (setq artist-key-shape (artist-funcall draw-fn x y))))
 
@@ -4018,7 +4018,7 @@ Trimming here means removing white space at end of a line."
 ;;
 
 (defun artist-key-do-continously-continously (x y)
-  "Update current continous shape at X,Y."
+  "Update current continuous shape at X,Y."
   (let ((draw-fn   (artist-go-get-draw-fn-from-symbol artist-curr-go)))
     (artist-funcall draw-fn x y)))
 
@@ -4045,7 +4045,7 @@ Trimming here means removing white space at end of a line."
 
 (defun artist-key-do-continously-1point (x y)
   "Update current 1-point shape at X,Y."
-  ;; Nothing to do continously for operations
+  ;; Nothing to do continuously for operations
   ;; where we have only one input point
   nil)
 
@@ -4094,8 +4094,8 @@ Trimming here means removing white space at end of a line."
 
 
 (defun artist-key-set-point-continously (x y)
-  "Set point for current continous shape at X,Y."
-  ;; Maybe set arrow-points for continous shapes
+  "Set point for current continuous shape at X,Y."
+  ;; Maybe set arrow-points for continuous shapes
   (let ((arrow-pred   (artist-go-get-arrow-pred-from-symbol artist-curr-go))
 	(arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol artist-curr-go))
 	(init-fn      (artist-go-get-init-fn-from-symbol artist-curr-go))
@@ -4914,7 +4914,7 @@ If optional argument STATE is positive, turn borders on."
 
 (defun artist-mouse-draw-continously (ev)
   "Generic function for shapes that require 1 point as input.
-Operation is done continously while the mouse button is hold down.
+Operation is done continuously while the mouse button is hold down.
 The event, EV, is the mouse event."
   (let* ((unshifted    (artist-go-get-symbol-shift artist-curr-go nil))
 	 (shifted      (artist-go-get-symbol-shift artist-curr-go t))
@@ -5395,8 +5395,8 @@ The event, EV, is the mouse event."
 ;; 1.   If your new drawing mode falls into one of the following
 ;;      categories, goto point 2, otherwise goto point 3.
 ;;
-;;         - Modes where the shapes are drawn continously, as long as
-;;           the mouse button is held down (continous modes).
+;;         - Modes where the shapes are drawn continuously, as long as
+;;           the mouse button is held down (continuous modes).
 ;;           Example: the erase-char mode, the pen and pen-line modes.
 ;;
 ;;         - Modes where the shape is made up of from 2 points to an
@@ -5408,7 +5408,7 @@ The event, EV, is the mouse event."
 ;;           Example: lines, rectangles
 ;;
 ;;         - Modes where the shape is made up of 1 point (1-point
-;;           modes). This mode differs from the continous modes in
+;;           modes). This mode differs from the continuous modes in
 ;;           that the shape is drawn only once when the mouse button
 ;;           is pressed.
 ;;           Examples: paste, a flood-fill, vaporize modes
@@ -5426,7 +5426,7 @@ The event, EV, is the mouse event."
 ;;    For each of the cases below, the arguments given to the init-fn,
 ;;    prep-fill-fn, arrow-set-fn and exit-fn are stated.
 ;;
-;;    If your mode matches the continous mode or the 1-point mode:
+;;    If your mode matches the continuous mode or the 1-point mode:
 ;;
 ;;      a. Create a draw-function that draws your shape. Your function
 ;;         must take x and y as arguments. The return value is not
@@ -5538,8 +5538,8 @@ The event, EV, is the mouse event."
 ;;         - artist-key-set-point-xxx for setting a point in the
 ;;           mode, to be called from `artist-key-set-point-common'.
 ;;
-;;         - artist-key-do-continously-xxx to be called from
-;;           `artist-key-do-continously-common' whenever the user
+;;         - artist-key-do-continuously-xxx to be called from
+;;           `artist-key-do-continuously-common' whenever the user
 ;;           moves around.
 ;;
 ;;         As for the artist-mouse-draw-xxx, these two functions must

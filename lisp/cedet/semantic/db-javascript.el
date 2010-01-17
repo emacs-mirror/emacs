@@ -145,7 +145,7 @@ Create one of our special tables that can act as an intermediary."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-javascript) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (with-current-buffer buffer
     (eq (or mode-local-active-mode major-mode) 'javascript-mode)))

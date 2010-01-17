@@ -1014,7 +1014,7 @@ Throw away all the old tags, and recreate the tag database."
 
 ;; The `semantic-mode' command, in conjuction with the
 ;; `semantic-default-submodes' variable, toggles Semantic's various
-;; auxilliary minor modes.
+;; auxiliary minor modes.
 
 (defvar semantic-load-system-cache-loaded nil
   "Non nil when the Semantic system caches have been loaded.
@@ -1057,7 +1057,7 @@ With ARG, turn Semantic mode on if ARG is positive, off otherwise.
 
 In Semantic mode, Emacs parses the buffers you visit for their
 semantic content.  This information is used by a variety of
-auxilliary minor modes, listed in `semantic-default-submodes';
+auxiliary minor modes, listed in `semantic-default-submodes';
 all the minor modes in this list are also enabled when you enable
 Semantic mode.
 
@@ -1067,7 +1067,7 @@ Semantic mode.
   (if semantic-mode
       ;; Turn on Semantic mode
       (progn
-	;; Enable all the global auxilliary minor modes in
+	;; Enable all the global auxiliary minor modes in
 	;; `semantic-submode-list'.
 	(dolist (mode semantic-submode-list)
 	  (if (memq mode semantic-default-submodes)

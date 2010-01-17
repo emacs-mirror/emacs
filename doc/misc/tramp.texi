@@ -2562,7 +2562,7 @@ hosts.  Example:
 @end example
 
 You will see the buffer @file{*Async Shell Command*}, containing the
-continous output of the @command{tail} command.
+continuous output of the @command{tail} command.
 
 
 @subsection Running eshell on a remote host
@@ -2749,9 +2749,8 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on GNU Emacs 21, GNU Emacs 22
-and XEmacs 21 (starting with 21.4).  Gateway methods are supported for
-GNU Emacs 22 only.
+The package has been used successfully on GNU Emacs 21, GNU Emacs 22,
+GNU Emacs 23, XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
 Unix-like system on the remote end (except the @option{smb} method),
@@ -2762,12 +2761,6 @@ There is some informations on @value{tramp} on NT at the following URL;
 many thanks to Joe Stoy for providing the information:
 @uref{ftp://ftp.comlab.ox.ac.uk/tmp/Joe.Stoy/}
 
-@c The link is broken.  I've contacted Tom for clarification.  Michael.
-@ignore
-The above mostly contains patches to old ssh versions; Tom Roche has a
-Web page with instructions:
-@uref{http://www4.ncsu.edu/~tlroche/plinkTramp.html}
-@end ignore
 
 @item
 How could I speed up @value{tramp}?
@@ -2838,7 +2831,6 @@ the following command:
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
 
-
 @item
 @value{tramp} doesn't transfer strings with more than 500 characters
 correctly
@@ -2867,6 +2859,25 @@ checksum.
 @end lisp
 
 @end itemize
+
+
+@item
+@value{tramp} does not recognize hung @command{ssh} sessions
+
+When your network connection is down, @command{ssh} sessions might
+hang.  @value{tramp} cannot detect it safely, because it still sees a
+running @command{ssh} process.  Timeouts cannot be used as well,
+because it cannot be predicted, how long a remote command will last,
+for example when copying very large files.
+
+Therefore, you must configure the @command{ssh} process to die
+in such a case.  The following entry in @file{~/.ssh/config} would do
+the job:
+
+@example
+Host *
+     ServerAliveInterval 5
+@end example
 
 
 @item

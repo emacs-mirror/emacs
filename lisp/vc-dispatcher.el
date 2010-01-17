@@ -320,11 +320,14 @@ case, and the process object in the asynchronous case."
 	  (setq squeezed (nconc squeezed files)))
 	(let ((exec-path (append vc-path exec-path))
 	      ;; Add vc-path to PATH for the execution of this command.
+	      ;; Also, since some functions need to parse the output
+	      ;; from external commands, set LC_MESSAGES to C.
 	      (process-environment
 	       (cons (concat "PATH=" (getenv "PATH")
 			     path-separator
 			     (mapconcat 'identity vc-path path-separator))
-		     process-environment))
+		     (cons "LC_MESSAGES=C"
+			   process-environment)))
 	      (w32-quote-process-args t))
 	  (if (eq okstatus 'async)
 	      ;; Run asynchronously.
