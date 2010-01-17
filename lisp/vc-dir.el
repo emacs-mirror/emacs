@@ -874,7 +874,10 @@ If it is a file, return the corresponding cons for the file itself."
             (let ((ddir default-directory))
               (when (vc-string-prefix-p ddir file)
                 (if (file-directory-p file)
-                    (vc-dir-resync-directory-files file)
+		    (progn
+		      (vc-dir-resync-directory-files file)
+		      (ewoc-set-hf vc-ewoc
+				   (vc-dir-headers vc-dir-backend default-directory) ""))
                   (let ((state (vc-dir-recompute-file-state file ddir)))
                     (vc-dir-update
                      (list state)

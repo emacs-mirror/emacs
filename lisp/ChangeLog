@@ -1,3 +1,8 @@
+2010-01-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-resynch-file): Update the vc-dir header when
+	resyncing a directory.
+
 2010-01-17  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* progmodes/ada-mode.el: Fix bug#1920, bug#5400.
