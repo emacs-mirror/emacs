@@ -1,5 +1,8 @@
 2010-01-17  Glenn Morris  <rgm@gnu.org>
 
+	* woman.texi (Bugs): Make "Emacs repository" less specific,
+	and the URL for same more specific.
+
 	* faq.texi (Latest version of Emacs): The repository is now Bazaar.
 
 2010-01-17  Juanma Barranquero  <lekktu@gmail.com>
