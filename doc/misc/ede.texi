@@ -1728,7 +1728,7 @@ The variable GNUSTEP_INSTALLATION_DOMAIN is set at this value.
 Type: @code{(or null list)} @*
 Default Value: @code{(quote ("GNUmakefile.preamble"))}
 
-The auxilliary makefile for additional variables.
+The auxiliary makefile for additional variables.
 Included just before the specific target files.
 @refill
 
@@ -1736,7 +1736,7 @@ Included just before the specific target files.
 Type: @code{(or null list)} @*
 Default Value: @code{(quote ("GNUmakefile.postamble"))}
 
-The auxilliary makefile for additional rules.
+The auxiliary makefile for additional rules.
 Included just after the specific target files.
 @refill
 
@@ -2083,7 +2083,7 @@ Relative to the path of the project it belongs to.
 Type: @code{list} @*
 Default Value: @code{nil}
 
-Auxilliary source files included in this target.
+Auxiliary source files included in this target.
 Each of these is considered equivalent to a source file, but it is not
 distributed, and each should have a corresponding rule to build it.
 @refill
