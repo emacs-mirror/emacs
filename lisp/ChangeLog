@@ -1,5 +1,7 @@
 2010-01-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (with-vc-properties): Deal with directory arguments.  (Bug#5298)
+
 	* vc-dir.el (vc-dir-resynch-file): Update the vc-dir header when
 	resyncing a directory.
 
