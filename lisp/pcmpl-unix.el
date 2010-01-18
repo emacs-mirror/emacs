@@ -85,7 +85,10 @@ with the SSH option \"HashKnownHosts no\"."
   (while (pcomplete-here (funcall pcomplete-command-completion-function))))
 
 (defun pcmpl-unix-read-passwd-file (file)
-  "Return an alist correlating gids to group names in FILE."
+  "Return an alist correlating gids to group names in FILE.
+
+If FILE is in hashed format (as described in the OpenSSH
+documentation), this function returns nil."
   (let (names)
     (when (file-readable-p file)
       (with-temp-buffer

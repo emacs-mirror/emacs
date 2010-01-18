@@ -2422,16 +2422,28 @@ in that CLASS."
 ;;;###autoload
 (defun ad-add-advice (function advice class position)
   "Add a piece of ADVICE to FUNCTION's list of advices in CLASS.
-If FUNCTION already has one or more pieces of advice of the specified
-CLASS then POSITION determines where the new piece will go.  The value
-of POSITION can either be `first', `last' or a number where 0 corresponds
-to `first'.  Numbers outside the range will be mapped to the closest
-extreme position.  If there was already a piece of ADVICE with the same
-name, then the position argument will be ignored and the old advice
-will be overwritten with the new one.
-    If the FUNCTION was not advised already, then its advice info will be
-initialized.  Redefining a piece of advice whose name is part of the cache-id
-will clear the cache."
+
+ADVICE has the form (NAME PROTECTED ENABLED DEFINITION), where
+NAME is the advice name; PROTECTED is a flag specifying whether
+to protect against non-local exits; ENABLED is a flag specifying
+whether to initially enable the advice; and DEFINITION has the
+form (advice . LAMBDA), where LAMBDA is a lambda expression.
+
+If FUNCTION already has a piece of advice with the same name,
+then POSITION is ignored, and the old advice is overwritten with
+the new one.
+
+If FUNCTION already has one or more pieces of advice of the
+specified CLASS, then POSITION determines where the new piece
+goes.  POSITION can either be `first', `last' or a number (where
+0 corresponds to `first', and numbers outside the valid range are
+mapped to the closest extremal position).
+
+If FUNCTION was not advised already, its advice info will be
+initialized.  Redefining a piece of advice whose name is part of
+the cache-id will clear the cache.
+
+See Info node `(elisp)Computed Advice' for detailed documentation."
   (cond ((not (ad-is-advised function))
          (ad-initialize-advice-info function)
 	 (ad-set-advice-info-field

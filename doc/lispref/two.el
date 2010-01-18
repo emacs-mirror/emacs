@@ -54,8 +54,8 @@ Then run texindex on that file and save."
 
 (defun volume-header-toc-markup ()
   "Insert Volume I and Volume II text into .toc file.
-NOTE: this auxilary function is file specific.
-This is for the *Elisp Ref Manual*"
+NOTE: this auxiliary function is file specific.
+This is for the *Elisp Ref Manual*."
   (interactive)
   (goto-char (point-min))
   (insert "\\unnumbchapentry {Volume 1}{}\n\\unnumbchapentry {}{}\n")

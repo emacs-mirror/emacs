@@ -1104,7 +1104,7 @@ with `nnmairix-mairix-update-options'."
 
 (defun nnmairix-group-delete-recreate-this-group ()
   "Deletes and recreates group on the back end.
-You can use this function on nnmairix groups which continously
+You can use this function on nnmairix groups which continuously
 show wrong article counts."
   (interactive)
   (let* ((group (gnus-group-group-name))
