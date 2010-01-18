@@ -96,7 +96,7 @@
 2010-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (canonicalize-coding-system-name):
-	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX".
+	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX" (Bug#5387).
 
 2010-01-15  Glenn Morris  <rgm@gnu.org>
 
