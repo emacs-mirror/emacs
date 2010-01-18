@@ -1,3 +1,13 @@
+2010-01-15   David Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* net/mairix.el (mairix-widget-send-query): Send -1 instead of nil
+	to mairix-search to suppress threading (Bug#5342).
+
+2010-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (canonicalize-coding-system-name):
+	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX".
+
 2010-01-15  Glenn Morris  <rgm@gnu.org>
 
 	* log-view.el (top-level): Require 'wid-edit.  (Bug#5311)
