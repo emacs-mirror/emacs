@@ -1,3 +1,7 @@
+2010-01-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* elisp.texi: Remove duplicate edition information (Bug#5407).
+
 2010-01-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* two.el (volume-header-toc-markup): Fix typos in docstring.

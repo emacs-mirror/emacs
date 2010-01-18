@@ -66,7 +66,7 @@ in a GNU Global supported hierarchy."
   )
 
 (defun semanticdb-enable-gnu-global-hook ()
-  "Add support for GNU Global in the current buffer via semantic-init-hook.
+  "Add support for GNU Global in the current buffer via `semantic-init-hook'.
 MODE is the major mode to support."
   (semanticdb-enable-gnu-global-in-buffer t))
 
@@ -78,8 +78,8 @@ MODE is the major mode to support."
 
 (defun semanticdb-enable-gnu-global-in-buffer (&optional dont-err-if-not-available)
   "Enable a GNU Global database in the current buffer.
-Argument DONT-ERR-IF-NOT-AVAILABLE will throw an error if GNU Global
-is not available for this directory."
+When GNU Global is not available for this directory, display a message
+if optional DONT-ERR-IF-NOT-AVAILABLE is non-nil; else throw an error."
   (interactive "P")
   (if (cedet-gnu-global-root)
       (setq
@@ -168,7 +168,7 @@ Return a list of tags."
 
 (defmethod semanticdb-find-tags-for-completion-method
   ((table semanticdb-table-global) prefix &optional tags)
-  "In TABLE, find all occurances of tags matching PREFIX.
+  "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
   (if tags (call-next-method)
@@ -195,7 +195,7 @@ Returns a table of all matching tags."
 (defmethod semanticdb-deep-find-tags-by-name-method
   ((table semanticdb-table-global) name &optional tags)
   "Find all tags name NAME in TABLE.
-Optional argument TAGS is a list of tags t
+Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-by-name-method' for global."
   (semanticdb-find-tags-by-name-method table name tags))
 
@@ -208,7 +208,7 @@ Like `semanticdb-find-tags-by-name-method' for global."
 
 (defmethod semanticdb-deep-find-tags-for-completion-method
   ((table semanticdb-table-global) prefix &optional tags)
-  "In TABLE, find all occurances of tags matching PREFIX.
+  "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-for-completion-method' for global."
   (semanticdb-find-tags-for-completion-method table prefix tags))

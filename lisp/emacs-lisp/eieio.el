@@ -79,7 +79,7 @@
   "*This hook is executed, then cleared each time `defclass' is called.")
 
 (defvar eieio-error-unsupported-class-tags nil
-  "*Non nil to throw an error if an encountered tag us unsupported.
+  "*Non-nil to throw an error if an encountered tag us unsupported.
 This may prevent classes from CLOS applications from being used with EIEIO
 since EIEIO does not support all CLOS tags.")
 
@@ -2021,7 +2021,7 @@ This should only be called from a generic function."
     (run-hook-with-args 'eieio-pre-method-execution-hooks
 			primarymethodlist)
 
-    ;; Now loop through all occurances forms which we must execute
+    ;; Now loop through all occurrences forms which we must execute
     ;; (which are happily sorted now) and execute them all!
     (let ((rval nil) (lastval nil) (rvalever nil) (found nil))
       (while lambdas
@@ -2101,7 +2101,7 @@ for this common case to improve performance."
     (setq primarymethodlist  ;; Re-use even with bad name here
 	  (eieiomt-method-list method method-primary mclass))
 
-    ;; Now loop through all occurances forms which we must execute
+    ;; Now loop through all occurrences forms which we must execute
     ;; (which are happily sorted now) and execute them all!
     (let* ((rval nil) (lastval nil) (rvalever nil)
 	   (scoped-class (cdr lambdas))
@@ -2331,7 +2331,7 @@ nil for superclasses.  This function performs no type checking!"
 If CLASS is not a class then use `generic' instead.  If class has
 no form, but has a parent class, then trace to that parent class.
 The first time a form is requested from a symbol, an optimized path
-is memorized for future faster use."
+is memorized for faster future use."
  (let ((emto (aref (get method 'eieio-method-obarray)
 		   (if class key (+ key 3)))))
    (if (class-p class)
@@ -2814,13 +2814,13 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Autoloading some external symbols, and hooking into the help system
 ;;
 
-(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "For buffers thrown into help mode, augment for eieio.")
-(autoload 'eieio-browse "eieio-opt" "Create an object browser window" t)
+(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "For buffers thrown into help mode, augment for EIEIO.")
+(autoload 'eieio-browse "eieio-opt" "Create an object browser window." t)
 (autoload 'eieio-describe-class "eieio-opt" "Describe CLASS defined by a string or symbol" t)
 (autoload 'eieio-describe-constructor "eieio-opt" "Describe the constructor function FCN." t)
-(autoload 'describe-class "eieio-opt" "Describe CLASS defined by a string or symbol" t)
-(autoload 'eieio-describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol" t)
-(autoload 'describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol" t)
+(autoload 'describe-class "eieio-opt" "Describe CLASS defined by a string or symbol." t)
+(autoload 'eieio-describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
+(autoload 'describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
 
 (autoload 'customize-object "eieio-custom" "Create a custom buffer editing OBJ.")
 

@@ -1,3 +1,116 @@
+2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/ede/locate.el (ede-locate-file-in-project)
+	(ede-locate-file-in-project-impl): Fix typos in docstrings.
+	(ede-enable-locate-on-project): Fix typos in error messages.
+
+	* cedet/semantic/util-modes.el (semantic-unmatched-syntax-face)
+	(semantic-stickyfunc-old-hlf, semantic-stickyfunc-header-line-format)
+	(semantic-stickyfunc-sticky-classes, semantic-highlight-func-mode-setup)
+	(semantic-stickyfunc-fetch-stickyline): Fix typos in docstrings.
+	(semantic-stickyfunc-popup-menu, semantic-highlight-func-popup-menu):
+	Fix typos in menu help.
+
+	* emacs-lisp/chart.el (chart-file-count, chart-rmail-from):
+	Fix typos in chart titles.
+
+	* whitespace.el (whitespace-style, global-whitespace-newline-mode):
+	* cedet/semantic.el (semantic-require-version, semantic--buffer-cache)
+	(semantic-unmatched-syntax-cache-check, semantic-unmatched-syntax-hook)
+	(semantic--before-fetch-tags-hook, semantic-new-buffer-fcn-was-run)
+	(semantic--umatched-syntax-needs-refresh-p, semantic-elapsed-time)
+	(semantic-parse-stream, semantic-parse-region)
+	(semantic-parse-region-default, semantic--set-buffer-cache)
+	(semantic-minimum-working-buffer-size, semantic-refresh-tags-safe)
+	(semantic-bovinate-toplevel, semantic-load-system-cache-loaded)
+	(semantic-default-submodes):
+	* cedet/semantic/db-ebrowse.el (semanticdb-table-ebrowse)
+	(semanticdb-create-ebrowse-database)
+	(semanticdb-find-tags-for-completion-method)
+	(semanticdb-find-tags-by-class-method)
+	(semanticdb-deep-find-tags-by-name-method)
+	(semanticdb-deep-find-tags-for-completion-method):
+	* cedet/semantic/db-el.el (semanticdb-elisp-mapatom-collector)
+	(semanticdb-find-tags-by-name-method, emacs-lisp-mode)
+	(semanticdb-find-tags-for-completion-method)
+	(semanticdb-find-tags-by-class-method)
+	(semanticdb-deep-find-tags-for-completion-method):
+	* cedet/semantic/db-find.el (semanticdb-find-translate-path)
+	(semanticdb-find-need-cache-update-p, semanticdb-find-result-with-nil-p)
+	(semanticdb-find-scanned-include-tags, semanticdb-find-tags-collector)
+	(semanticdb-find-tags-by-name-method)
+	(semanticdb-find-tags-by-name-regexp-method)
+	(semanticdb-find-tags-for-completion-method)
+	(semanticdb-find-tags-by-class-method)
+	(semanticdb-find-tags-external-children-of-type-method)
+	(semanticdb-find-tags-subclasses-of-type-method)
+	(semanticdb-deep-find-tags-by-name-method)
+	(semanticdb-deep-find-tags-by-name-regexp-method)
+	(semanticdb-deep-find-tags-for-completion-method):
+	* cedet/semantic/db-global.el (semanticdb-enable-gnu-global-hook)
+	(semanticdb-enable-gnu-global-in-buffer)
+	(semanticdb-find-tags-for-completion-method)
+	(semanticdb-deep-find-tags-by-name-method)
+	(semanticdb-deep-find-tags-for-completion-method):
+	* cedet/semantic/db-javascript.el (semanticdb-javascript-tags)
+	(javascript-mode, semanticdb-find-translate-path)
+	(semanticdb-find-tags-for-completion-method)
+	(semanticdb-find-tags-by-class-method)
+	(semanticdb-deep-find-tags-by-name-method)
+	(semanticdb-deep-find-tags-for-completion-method)
+	(semanticdb-find-tags-external-children-of-type-method):
+	* cedet/semantic/idle.el (semantic-idle-work-core-handler)
+	(define-semantic-idle-service, semantic-idle-summary-useful-context-p)
+	(global-semantic-idle-scheduler-mode):
+	* cedet/srecode/dictionary.el (srecode-field-value)
+	(srecode-dictionary-add-section-dictionary):
+	* emacs-lisp/eieio.el (eieio-error-unsupported-class-tags)
+	(eieio-generic-form, eieio-help-mode-augmentation-maybee, eieio-browse)
+	(describe-class, eieio-describe-generic, describe-generic):
+	* emacs-lisp/eieio-speedbar.el (eieio-speedbar-handle-click)
+	(eieio-speedbar-expand):
+	* emulation/viper-cmd.el (viper-exec-form-in-vi)
+	(viper-exec-form-in-emacs, viper-harness-minor-mode, viper-ESC)
+	(viper-repeat, viper-replace-state-exit-cmd, viper-toggle-search-style)
+	(viper-del-backward-char-in-replace, viper-backward-indent)
+	(viper-brac-function, viper-register-to-point, viper-submit-report):
+	* net/tramp.el (tramp-remote-coding-commands):
+	* term/x-win.el (emacs-session-save, x-menu-bar-open, icon-map-list):
+	Fix typos in docstrings.
+
+2010-01-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-yank-original): Set the mark if the
+	specified function for yanking does not do it.
+
+2010-01-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (with-vc-properties): Deal with directory arguments.  (Bug#5298)
+
+	* vc-dir.el (vc-dir-resynch-file): Update the vc-dir header when
+	resyncing a directory.
+
+2010-01-17  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* progmodes/ada-mode.el: Fix bug#1920, bug#5400.
+	(ada-ident-re): Delete ., allow multibyte characters.
+	(ada-goto-label-re): New; matches goto labels.
+	(ada-block-label-re): New; matches block labels.
+	(ada-label-re): New; matches both.
+	(ada-named-block-re): Deleted; callers changed to use
+	`ada-block-label-re' instead.
+	(ada-get-current-indent, ada-get-indent-noindent, ada-get-indent-loop):
+	Use `ada-block-label-re'.
+	(ada-indent-on-previous-lines): Improve handling of goto labels.
+	(ada-get-indent-block-start): Special-case block label.
+	(ada-get-indent-label): Split into `ada-indent-block-label' and
+	`ada-indent-goto-label'.
+	(ada-goto-stmt-start, ada-goto-next-non-ws):
+	Optionally ignore goto labels.
+	(ada-goto-next-word): Simplify.
+	(ada-indent-newline-indent-conditional): Insert newline before
+	trying to fix indentation; doc fix.
+
 2010-01-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-command-flags): Give it an initial value.
@@ -63,7 +176,7 @@
 2010-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (canonicalize-coding-system-name):
-	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX".
+	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX" (Bug#5387).
 
 2010-01-15  Glenn Morris  <rgm@gnu.org>
 

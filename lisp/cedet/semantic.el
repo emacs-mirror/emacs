@@ -45,7 +45,7 @@
 (declare-function semanticdb-load-ebrowse-caches "semantic/db-ebrowse")
 
 (defun semantic-require-version (major minor &optional beta)
-  "Non-nil if this version of semantic does not satisfy a specific version.
+  "Non-nil if this version of Semantic does not satisfy a specific version.
 Arguments can be:
 
   (MAJOR MINOR &optional BETA)
@@ -130,7 +130,7 @@ this is returned instead of re-parsing the buffer.
   DO NOT USE THIS VARIABLE IN PROGRAMS.
 
 If you need a tag list, use `semantic-fetch-tags'.  If you need the
-cached values for some reason, chances are you can, add a hook to
+cached values for some reason, chances are you can add a hook to
 `semantic-after-toplevel-cache-change-hook'.")
 (make-variable-buffer-local 'semantic--buffer-cache)
 (semantic-varalias-obsolete 'semantic-toplevel-bovine-cache
@@ -141,7 +141,7 @@ cached values for some reason, chances are you can, add a hook to
 (make-variable-buffer-local 'semantic-unmatched-syntax-cache)
 
 (defvar semantic-unmatched-syntax-cache-check nil
-  "Non nil if the unmatched syntax cache is out of date.
+  "Non-nil if the unmatched syntax cache is out of date.
 This is tracked with `semantic-change-function'.")
 (make-variable-buffer-local 'semantic-unmatched-syntax-cache-check)
 
@@ -154,18 +154,18 @@ will not change the tag structure, such as adding or updating
 `top-level' comments.")
 
 (defvar semantic-unmatched-syntax-hook nil
-  "Hooks run when semantic detects syntax not matched in a grammar.
+  "Hooks run when Semantic detects syntax not matched in a grammar.
 Each individual piece of syntax (such as a symbol or punctuation
 character) is called with this hook when it doesn't match in the
 grammar, and multiple unmatched syntax elements are not grouped
-together.  Each hook is called with one argument, which is a list of
-syntax tokens created by the semantic lexer.  Use the functions
+together.  Each hook is called with one argument, which is a list
+of syntax tokens created by the semantic lexer.  Use the functions
 `semantic-lex-token-start', `semantic-lex-token-end' and
-`semantic-lex-token-text' to get information about these tokens.  The
-current buffer is the buffer these tokens are derived from.")
+`semantic-lex-token-text' to get information about these tokens.
+The current buffer is the buffer these tokens are derived from.")
 
 (defvar semantic--before-fetch-tags-hook nil
-  "Hooks run before a buffer is parses for tags.
+  "Hooks run before a buffer is parsed for tags.
 It is called before any request for tags is made via the function
 `semantic-fetch-tags' by an application.
 If any hook returns a nil value, the cached value is returned
@@ -311,7 +311,7 @@ a parse of the buffer.")
 			    'semantic-init-db-hook "23.2")
 
 (defvar semantic-new-buffer-fcn-was-run nil
-  "Non nil after `semantic-new-buffer-fcn' has been executed.")
+  "Non-nil after `semantic-new-buffer-fcn' has been executed.")
 (make-variable-buffer-local 'semantic-new-buffer-fcn-was-run)
 
 (defsubst semantic-active-p ()
@@ -320,7 +320,7 @@ a parse of the buffer.")
 
 (defsubst semantic--umatched-syntax-needs-refresh-p  ()
   "Return non-nil if the unmatched syntax cache needs a refresh.
-That is if it is dirty or if the current parse tree isn't up to date."
+That is, if it is dirty or if the current parse tree isn't up to date."
   (or semantic-unmatched-syntax-cache-check
       (not (semantic-parse-tree-up-to-date-p))))
 
@@ -377,7 +377,7 @@ to use Semantic, and `semantic-init-hook' is run."
 Do not set this yourself.  Call `semantic-debug'.")
 
 (defun semantic-elapsed-time (start end)
-  "Copied from elp.el.  Was elp-elapsed-time.
+  "Copied from elp.el.  Was `elp-elapsed-time'.
 Argument START and END bound the time being calculated."
   (+ (* (- (car end) (car start)) 65536.0)
      (- (car (cdr end)) (car (cdr start)))
@@ -410,14 +410,14 @@ the output buffer."
 (define-overloadable-function semantic-parse-stream (stream nonterminal)
   "Parse STREAM, starting at the first NONTERMINAL rule.
 For bovine and wisent based parsers, STREAM is from the output of
-`semantic-lex', and NONTERMINAL is a rule in the apropriate language
+`semantic-lex', and NONTERMINAL is a rule in the appropriate language
 specific rules file.
 The default parser table used for bovine or wisent based parsers is
 `semantic--parse-table'.
 
 Must return a list: (STREAM TAGS) where STREAM is the unused elements
-from STREAM, and TAGS is the list of semantic tags found, usually only
-one tag is returned with the exception of compound statements")
+from STREAM, and TAGS is the list of semantic tags found; usually only
+one tag is returned with the exception of compound statements.")
 
 (define-overloadable-function semantic-parse-changes ()
   "Reparse changes in the current buffer.
@@ -433,7 +433,7 @@ will be silently ignored.
 
 Optional arguments:
 NONTERMINAL is the rule to start parsing at.
-DEPTH specifies the lexical depth to decend for parser that use
+DEPTH specifies the lexical depth to descend for parser that use
 lexical analysis as their first step.
 RETURNONERROR specifies that parsing should stop on the first
 unmatched syntax encountered.  When nil, parsing skips the syntax,
@@ -447,8 +447,8 @@ to cook raw tags.")
 (defun semantic-parse-region-default
   (start end &optional nonterminal depth returnonerror)
   "Parse the area between START and END, and return any tags found.
-If END needs to be extended due to a lexical token being too large, it
-will be silently ignored.
+If END needs to be extended due to a lexical token being too large,
+it will be silently ignored.
 Optional arguments:
 NONTERMINAL is the rule to start parsing at if it is known.
 DEPTH specifies the lexical depth to scan.
@@ -532,7 +532,7 @@ is requested."
 (defvar semantic-bovinate-nonterminal-check-obarray)
 
 (defun semantic--set-buffer-cache (tagtable)
-  "Set the toplevel cache cache to TAGTABLE."
+  "Set the toplevel tag cache to TAGTABLE."
   (setq semantic--buffer-cache tagtable
         semantic-unmatched-syntax-cache-check nil)
   ;; This is specific to the bovine parser.
@@ -560,7 +560,7 @@ is requested."
 
 (defvar semantic-minimum-working-buffer-size (* 1024 5)
   "*The minimum size of a buffer before working messages are displayed.
-Buffers smaller than will parse silently.
+Buffers smaller than this will parse silently.
 Buffers larger than this will display the working progress bar.")
 
 (defsubst semantic-parser-working-message (&optional arg)
@@ -652,7 +652,7 @@ was marked unparseable, then do nothing, and return the cache."
   semantic--buffer-cache)
 
 (defun semantic-refresh-tags-safe ()
-  "Refreshes the current buffer's tags safely.
+  "Refresh the current buffer's tags safely.
 
 Return non-nil if the refresh was successful.
 Return nil if there is some sort of syntax error preventing a reparse.
@@ -694,7 +694,7 @@ Does nothing if the current buffer doesn't need reparsing."
       lexically-safe))))
 
 (defun semantic-bovinate-toplevel (&optional ignored)
-  "Backward Compatibility Function."
+  "Backward compatibility function."
   (semantic-fetch-tags))
 (make-obsolete 'semantic-bovinate-toplevel 'semantic-fetch-tags "23.2")
 
@@ -1017,7 +1017,7 @@ Throw away all the old tags, and recreate the tag database."
 ;; auxiliary minor modes.
 
 (defvar semantic-load-system-cache-loaded nil
-  "Non nil when the Semantic system caches have been loaded.
+  "Non-nil when the Semantic system caches have been loaded.
 Prevent this load system from loading files in twice.")
 
 (defconst semantic-submode-list
@@ -1045,7 +1045,7 @@ The possible elements of this list include the following:
  `global-semantic-highlight-func-mode' - Highlight the current tag.
  `global-semantic-stickyfunc-mode'     - Show current fun in header line.
  `global-semantic-mru-bookmark-mode'   - Provide `switch-to-buffer'-like
-                                    keybinding for tag names."
+                                         keybinding for tag names."
   :group 'semantic
   :type `(set ,@(mapcar (lambda (c) (list 'const c))
 			semantic-submode-list)))
