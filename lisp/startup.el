@@ -758,7 +758,8 @@ opening the first frame (e.g. open a connection to an X server).")
       (pop args)))
 
   (let ((done nil)
-	(args (cdr command-line-args)))
+	(args (cdr command-line-args))
+	display-arg)
 
     ;; Figure out which user's init file to load,
     ;; either from the environment or from the options.
@@ -794,6 +795,11 @@ opening the first frame (e.g. open a connection to an X server).")
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
+	 ;; The --display arg is handled partly in C, partly in Lisp.
+	 ;; When it shows up here, we just put it back to be handled
+	 ;; by `command-line-1'.
+	 ((member argi '("-d" "-display"))
+	  (setq display-arg (list argi (pop args))))
 	 ((member argi '("-Q" "-quick"))
 	  (setq init-file-user nil
 		site-run-file nil
@@ -813,8 +819,6 @@ opening the first frame (e.g. open a connection to an X server).")
 	  (setq init-file-debug t))
 	 ((equal argi "-iconic")
 	  (push '(visibility . icon) initial-frame-alist))
-	 ((member argi '("-icon-type" "-i" "-itype"))
-	  (push '(icon-type . t) default-frame-alist))
 	 ((member argi '("-nbc" "-no-blinking-cursor"))
 	  (setq no-blinking-cursor t))
 	 ;; Push the popped arg back on the list of arguments.
@@ -824,6 +828,9 @@ opening the first frame (e.g. open a connection to an X server).")
 	;; Was argval set but not used?
 	(and argval
 	     (error "Option `%s' doesn't allow an argument" argi))))
+
+    ;; Re-attach the --display arg.
+    (and display-arg (setq args (append display-arg args)))
 
     ;; Re-attach the program name to the front of the arg list.
     (and command-line-args

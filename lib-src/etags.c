@@ -6297,7 +6297,7 @@ readline (lbp, stream)
 		  readline (lbp, stream);
 		  return;
 		} /* if a real #line directive */
-	    } /* if #line is followed by a a number */
+	    } /* if #line is followed by a number */
 	} /* if line begins with "#line " */
 
       /* If we are here, no #line directive was found. */

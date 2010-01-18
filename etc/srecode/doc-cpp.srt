@@ -58,7 +58,7 @@ Recycle doxygen comment code from the more general template set."
 ----
 
 template group-comment-end :blank :indent
-"A comment occurring at the end of a a group of declarations.
+"A comment occurring at the end of a group of declarations.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:classdecl:doxygen-function-group-end}}
@@ -75,7 +75,7 @@ Recycle doxygen comment code from the more general template set."
 ----
 
 template group-comment-end :blank :indent
-"A comment occurring at the end of a a group of declarations.
+"A comment occurring at the end of a group of declarations.
 Recycle doxygen comment code from the more general template set."
 ----
 {{>:classdecl:doxygen-function-group-end}}

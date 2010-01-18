@@ -324,7 +324,7 @@ exist, it should return nil."
 	       )
    )
   "EDE cpp-root project class.
-Each directory needs a a project file to control it.")
+Each directory needs a project file to control it.")
 
 ;;; INIT
 ;;

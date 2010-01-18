@@ -336,9 +336,9 @@ Disable to prevent lots of excessive parsing in idle time."
 
 
 (defun semantic-idle-work-for-one-buffer (buffer)
-  "Do long-processing work for for BUFFER.
+  "Do long-processing work for BUFFER.
 Uses `semantic-safe' and returns the output.
-Returns t of all processing succeeded."
+Returns t if all processing succeeded."
   (with-current-buffer buffer
     (not (and
 	  ;; Just in case
