@@ -76,7 +76,7 @@ It does not need refreshing."
 (defvar-mode-local emacs-lisp-mode semanticdb-find-default-throttle
   '(project omniscience)
   "Search project files, then search this omniscience database.
-It is not necessary to to system or recursive searching because of
+It is not necessary to do system or recursive searching because of
 the omniscience database.")
 
 ;;; Filename based methods
@@ -246,12 +246,12 @@ TOKTYPE is a hint to the type of tag desired."
 ;;; Search Overrides
 ;;
 (defvar semanticdb-elisp-mapatom-collector nil
-  "Variable used to collect mapatoms output.")
+  "Variable used to collect `mapatoms' output.")
 
 (defmethod semanticdb-find-tags-by-name-method
   ((table semanticdb-table-emacs-lisp) name &optional tags)
-  "Find all tags name NAME in TABLE.
-Uses `inter-soft' to match NAME to emacs symbols.
+  "Find all tags named NAME in TABLE.
+Uses `intern-soft' to match NAME to Emacs symbols.
 Return a list of tags."
   (if tags (call-next-method)
     ;; No need to search.  Use `intern-soft' which does the same thing for us.
@@ -281,7 +281,7 @@ Return a list of tags."
 
 (defmethod semanticdb-find-tags-for-completion-method
   ((table semanticdb-table-emacs-lisp) prefix &optional tags)
-  "In TABLE, find all occurances of tags matching PREFIX.
+  "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
   (if tags (call-next-method)
@@ -290,7 +290,7 @@ Returns a table of all matching tags."
 
 (defmethod semanticdb-find-tags-by-class-method
   ((table semanticdb-table-emacs-lisp) class &optional tags)
-  "In TABLE, find all occurances of tags of CLASS.
+  "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
   (if tags (call-next-method)
@@ -316,7 +316,7 @@ Like `semanticdb-find-tags-by-name-method' for Emacs Lisp."
 
 (defmethod semanticdb-deep-find-tags-for-completion-method
   ((table semanticdb-table-emacs-lisp) prefix &optional tags)
-  "In TABLE, find all occurances of tags matching PREFIX.
+  "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-for-completion-method' for Emacs Lisp."
   (semanticdb-find-tags-for-completion-method table prefix tags))

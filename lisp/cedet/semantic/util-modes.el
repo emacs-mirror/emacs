@@ -337,7 +337,7 @@ semantic parser cannot match is highlighted with a red underline."
     (((class color) (background light))
      (:underline "red")))
   "Face used to show unmatched syntax in.
-The face is used in  `semantic-show-unmatched-syntax-mode'."
+The face is used in `semantic-show-unmatched-syntax-mode'."
   :group 'semantic-faces)
 
 (defsubst semantic-unmatched-syntax-overlay-p (overlay)
@@ -767,7 +767,7 @@ This makes it appear that the first line of that tag is
       ]
     [ "Narrow To Headerline Tag" senator-narrow-to-defun
       :active (semantic-current-tag)
-      :help "Narrow to the bounds of the current tag."]
+      :help "Narrow to the bounds of the current tag"]
     [ "Fold Headerline Tag" senator-fold-tag-toggle
       :active (semantic-current-tag)
       :style toggle
@@ -854,7 +854,7 @@ when it lands in the sticky line."
   :type 'string)
 
 (defvar semantic-stickyfunc-old-hlf nil
-  "Value of the header line when entering sticky func mode.")
+  "Value of the header line when entering stickyfunc mode.")
 
 (defconst semantic-stickyfunc-header-line-format
   (cond ((featurep 'xemacs)
@@ -868,7 +868,7 @@ when it lands in the sticky line."
 	 '(:eval (list semantic-stickyfunc-indent-string
 		       (semantic-stickyfunc-fetch-stickyline))))
 	(t nil))
-  "The header line format used by sticky func mode.")
+  "The header line format used by stickyfunc mode.")
 
 (defun semantic-stickyfunc-mode-setup ()
   "Setup option `semantic-stickyfunc-mode'.
@@ -936,7 +936,7 @@ minor mode is enabled."
 
 (defvar semantic-stickyfunc-sticky-classes
   '(function type)
-  "List of tag classes which sticky func will display in the header line.")
+  "List of tag classes which stickyfunc will display in the header line.")
 (make-variable-buffer-local 'semantic-stickyfunc-sticky-classes)
 
 (defun semantic-stickyfunc-tag-to-stick ()
@@ -953,7 +953,7 @@ minor mode is enabled."
 
 (defun semantic-stickyfunc-fetch-stickyline ()
   "Make the function at the top of the current window sticky.
-Capture it's function declaration, and place it in the header line.
+Capture its function declaration, and place it in the header line.
 If there is no function, disable the header line."
   (let ((str
 	 (save-excursion
@@ -962,7 +962,7 @@ If there is no function, disable the header line."
 	   (end-of-line)
 	   ;; Capture this function
 	   (let* ((tag (semantic-stickyfunc-tag-to-stick)))
-	     ;; TAG is nil if there was nothing of the apropriate type there.
+	     ;; TAG is nil if there was nothing of the appropriate type there.
 	     (if (not tag)
 		 ;; Set it to be the text under the header line
 		 (buffer-substring (point-at-bol) (point-at-eol))
@@ -1080,7 +1080,7 @@ When enabled, the first line of the current tag is highlighted."
       ]
     [ "Narrow To Tag" senator-narrow-to-defun
       :active (semantic-current-tag)
-      :help "Narrow to the bounds of the current tag."]
+      :help "Narrow to the bounds of the current tag"]
     [ "Fold Tag" senator-fold-tag-toggle
       :active (semantic-current-tag)
       :style toggle
@@ -1129,7 +1129,7 @@ Use the command `semantic-highlight-func-mode' to change this variable.")
 
 (defun semantic-highlight-func-mode-setup ()
   "Setup option `semantic-highlight-func-mode'.
-For semantic enabled buffers, highlight the first line of the
+For Semantic enabled buffers, highlight the first line of the
 current tag declaration."
   (if semantic-highlight-func-mode
       (progn
@@ -1202,7 +1202,7 @@ function was called, move the overlay."
 	(setq semantic-highlight-func-ct-overlay ol)
 	)
 
-      ;; TAG is nil if there was nothing of the apropriate type there.
+      ;; TAG is nil if there was nothing of the appropriate type there.
       (if (or (not tag) disable)
 	  ;; No tag, make the overlay go away.
 	  (progn

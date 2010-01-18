@@ -5528,7 +5528,7 @@ The event, EV, is the mouse event."
 ;;         See `artist-draw-rect' for an example.
 ;;
 ;;         You must call the init-fn, the prep-fill-fn, arrow-set-fn
-;;         and the exit-fn at the apropriate points.
+;;         and the exit-fn at the appropriate points.
 ;;
 ;;         When artist-mouse-draw-xxx ends, the shape for your mode
 ;;         must be completely drawn.
@@ -5561,7 +5561,7 @@ The event, EV, is the mouse event."
 ;;         work.
 ;;
 ;;         You must call the init-fn, the prep-fill-fn, arrow-set-fn
-;;         and the exit-fn at the apropriate points.
+;;         and the exit-fn at the appropriate points.
 ;;
 ;;      e. Add your new mode to the master table, `artist-mt'.
 ;;
