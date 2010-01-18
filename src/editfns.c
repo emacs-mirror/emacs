@@ -1897,7 +1897,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
-       doc: /* Return the current time, as a human-readable string.
+       doc: /* Return the current local time, as a human-readable string.
 Programs can use this function to decode a time,
 since the number of columns in each field is fixed
 if the year is in the range 1000-9999.

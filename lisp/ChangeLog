@@ -1,3 +1,7 @@
+2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar/time-date.el (date-to-time): Doc fix (Bug#5408).
+
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/ede/locate.el (ede-locate-file-in-project)

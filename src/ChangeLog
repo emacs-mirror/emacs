@@ -1,3 +1,7 @@
+2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fcurrent_time_string): Doc fix (Bug#5408).
+
 2010-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (event_handler_gdk): Block input (Bug#5037).
