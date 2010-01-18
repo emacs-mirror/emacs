@@ -1,3 +1,12 @@
+2010-01-18  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* lisp/progmodes/ada-mode.el: Fix bug#5400.
+	(ada-matching-decl-start-re): Move into ada-goto-decl-start.
+	(ada-goto-decl-start): Rename from ada-goto-matching-decl-start; callers
+	changed.  Delete RECURSIVE parameter; never used.  Improve doc string.
+	Improve comments in "is" portion.  Handle null procedure declaration.
+	(ada-move-to-end): Improve doc string.
+
 2010-01-18  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* ido.el (ido-cur-list): Initialize to nil.
@@ -108,7 +117,7 @@
 
 2010-01-17  Stephen Leake  <stephen_leake@member.fsf.org>
 
-	* progmodes/ada-mode.el: Fix bug#1920, bug#5400.
+	* progmodes/ada-mode.el: Fix bug#1920.
 	(ada-ident-re): Delete ., allow multibyte characters.
 	(ada-goto-label-re): New; matches goto labels.
 	(ada-block-label-re): New; matches block labels.

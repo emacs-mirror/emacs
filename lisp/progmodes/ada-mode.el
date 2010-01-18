@@ -677,14 +677,6 @@ A new statement starts after these.")
 	    "\\>"))
   "Regexp used in `ada-goto-matching-start'.")
 
-(defvar ada-matching-decl-start-re
-  (eval-when-compile
-    (concat "\\<"
-	    (regexp-opt
-	     '("is" "separate" "end" "declare" "if" "new" "begin" "generic" "when") t)
-	    "\\>"))
-  "Regexp used in `ada-goto-matching-decl-start'.")
-
 (defvar ada-loop-start-re
   "\\<\\(for\\|while\\|loop\\)\\>"
   "Regexp for the start of a loop.")
@@ -2476,7 +2468,7 @@ and the offset."
      ((and (= (downcase (char-after)) ?b)
 	   (looking-at "begin\\>"))
       (save-excursion
-	(if (ada-goto-matching-decl-start t)
+	(if (ada-goto-decl-start t)
 	    (list (progn (back-to-indentation) (point)) 0)
 	  (ada-indent-on-previous-lines nil orgpoint orgpoint))))
 
@@ -2855,7 +2847,7 @@ ORGPOINT is the limit position used in the calculation."
 	      (if (looking-at "\\<begin\\>")
 		  (progn
 		    (setq indent (list (point) 0))
-		    (if (ada-goto-matching-decl-start t)
+		    (if (ada-goto-decl-start t)
 			(list (progn (back-to-indentation) (point)) 0)
 		      indent))
 		(list (progn (back-to-indentation) (point)) 0)
@@ -3421,7 +3413,6 @@ is the end of the match."
 	match-dat
       nil)))
 
-
 (defun ada-goto-next-non-ws (&optional limit skip-goto-label)
   "Skip to next non-whitespace character.
 Skips spaces, newlines and comments, and possibly goto labels.
@@ -3502,13 +3493,13 @@ Moves point to the beginning of the declaration."
   (if (save-excursion
 	(ada-goto-previous-word)
 	(looking-at (concat "\\<" defun-name "\\> *:")))
-      t                                 ; do nothing
+      t                                 ; name matches
     ;; else
     ;;
     ;; 'accept' or 'package' ?
     ;;
     (unless (looking-at ada-subprog-start-re)
-      (ada-goto-matching-decl-start))
+      (ada-goto-decl-start))
     ;;
     ;; 'begin' of 'procedure'/'function'/'task' or 'declare'
     ;;
@@ -3541,14 +3532,20 @@ Moves point to the beginning of the declaration."
 	       (buffer-substring (point)
 				 (progn (forward-sexp 1) (point))))))))
 
-(defun ada-goto-matching-decl-start (&optional noerror recursive)
-  "Move point to the matching declaration start of the current 'begin'.
-If NOERROR is non-nil, it only returns nil if no match was found."
+(defun ada-goto-decl-start (&optional noerror)
+  "Move point to the declaration start of the current construct.
+If NOERROR is non-nil, return nil if no match was found;
+otherwise throw error."
   (let ((nest-count 1)
+        (regexp (eval-when-compile
+                  (concat "\\<"
+                          (regexp-opt
+                           '("is" "separate" "end" "declare" "if" "new" "begin" "generic" "when") t)
+                          "\\>")))
 
 	;;  first should be set to t if we should stop at the first
 	;;  "begin" we encounter.
-	(first (not recursive))
+	(first t)
 	(count-generic nil)
 	(stop-at-when nil)
 	)
@@ -3572,7 +3569,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
     ;; search backward for interesting keywords
     (while (and
 	    (not (zerop nest-count))
-	    (ada-search-ignore-string-comment ada-matching-decl-start-re t))
+	    (ada-search-ignore-string-comment regexp t))
       ;;
       ;; calculate nest-depth
       ;;
@@ -3605,7 +3602,6 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 
 		  (if (looking-at "end")
 		      (ada-goto-matching-start 1 noerror t)
-		    ;; (ada-goto-matching-decl-start noerror t)
 
 		    (setq loop-again nil)
 		    (unless (looking-at "begin")
@@ -3633,34 +3629,50 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 	(setq first t))
        ;;
        ((looking-at "is")
-	;; check if it is only a type definition, but not a protected
-	;; type definition, which should be handled like a procedure.
-	(if (or (looking-at "is[ \t]+<>")
-		(save-excursion
-		  (forward-comment -10000)
-		  (forward-char -1)
+        ;; look for things to ignore
+        (if
+            (or
+             ;; generic formal parameter
+             (looking-at "is[ t]+<>")
 
-		  ;; Detect if we have a closing parenthesis (Could be
-		  ;; either the end of subprogram parameters or (<>)
-		  ;; in a type definition
-		  (if (= (char-after) ?\))
-		      (progn
-			(forward-char 1)
-			(backward-sexp 1)
-			(forward-comment -10000)
-			))
-		  (skip-chars-backward "a-zA-Z0-9_.'")
-		  (ada-goto-previous-word)
-		  (and
-		   (looking-at "\\<\\(sub\\)?type\\|case\\>")
+             ;; A type definition, or a case statement.  Note that the
+             ;; goto-matching-start above on 'end record' leaves us at
+             ;; 'record', not at 'type'.
+             ;;
+             ;; We get to a case statement here by calling
+             ;; 'ada-move-to-end' from inside a case statement; then
+             ;; we are not ignoring 'when'.
+             (save-excursion
+               ;; Skip type discriminants or case argument function call param list
+               (forward-comment -10000)
+               (forward-char -1)
+               (if (= (char-after) ?\))
+                   (progn
+                     (forward-char 1)
+                     (backward-sexp 1)
+                     (forward-comment -10000)
+                     ))
+               ;; skip type or case argument name
+               (skip-chars-backward "a-zA-Z0-9_.'")
+               (ada-goto-previous-word)
+               (and
+                ;; if it's a protected type, it's the decl start we
+                ;; are looking for; since we didn't see the 'end'
+                ;; above, we are inside it.
+                (looking-at "\\<\\(sub\\)?type\\|case\\>")
 		   (save-match-data
 		     (ada-goto-previous-word)
 		     (not (looking-at "\\<protected\\>"))))
-		  ))                    ; end of `or'
-	    (goto-char (match-beginning 0))
-	  (progn
-	    (setq nest-count (1- nest-count))
-	    (setq first nil))))
+               )                    ; end of type definition p
+
+             ;; null procedure declaration
+             (save-excursion (ada-goto-next-word) (looking-at "\\<null\\>"))
+             );; end or
+            ;; skip this construct
+            nil
+          ;; this is the right "is"
+          (setq nest-count (1- nest-count))
+          (setq first nil)))
 
        ;;
        ((looking-at "new")
@@ -4115,7 +4127,7 @@ Point is moved at the beginning of the SEARCH-RE."
 Assumes point to be at the end of a statement."
   (or (ada-in-paramlist-p)
       (save-excursion
-	(ada-goto-matching-decl-start t))))
+	(ada-goto-decl-start t))))
 
 
 (defun ada-looking-at-semi-or ()
@@ -4409,7 +4421,7 @@ of the region.  Otherwise, operate only on the current line."
 		  ;;
 		  ada-move-to-declaration
 		  (looking-at "\\<begin\\>")
-		  (ada-goto-matching-decl-start)
+		  (ada-goto-decl-start)
 		  (setq pos (point))))
 
 	    )                           ; end of save-excursion
@@ -4421,7 +4433,7 @@ of the region.  Otherwise, operate only on the current line."
       (set-syntax-table previous-syntax-table))))
 
 (defun ada-move-to-end ()
-  "Move point to the matching end of the block around point.
+  "Move point to the end of the block around point.
 Moves to 'begin' if in a declarative part."
   (interactive)
   (let ((pos (point))
@@ -4471,7 +4483,7 @@ Moves to 'begin' if in a declarative part."
 	      (ada-goto-matching-end 0))
 	     ;; package start
 	     ((save-excursion
-		(setq decl-start (and (ada-goto-matching-decl-start t) (point)))
+		(setq decl-start (and (ada-goto-decl-start t) (point)))
 		(and decl-start (looking-at "\\<package\\>")))
 	      (ada-goto-matching-end 1))
 
