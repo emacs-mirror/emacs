@@ -1,3 +1,8 @@
+2010-01-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-yank-original): Set the mark if the
+	specified function for yanking does not do it.
+
 2010-01-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (with-vc-properties): Deal with directory arguments.  (Bug#5298)
@@ -91,7 +96,7 @@
 2010-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (canonicalize-coding-system-name):
-	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX".
+	Convert "msXXX", "ibmXXX", "windows-XXX" to "cpXXX" (Bug#5387).
 
 2010-01-15  Glenn Morris  <rgm@gnu.org>
 
