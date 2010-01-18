@@ -1,14 +1,14 @@
 2010-01-18  Óscar Fuentes  <ofv@wanadoo.es>
 
-	* ido.el (ido-cur-list): Initialize as nil.
+	* ido.el (ido-cur-list): Initialize to nil.
 	Remove obsolete information from commentary.
-        (ido-choice-list): Initialize as nil.
-        (ido-get-bufname): Reject minibuffers.
-        (ido-make-buffer-list): If "default" is a nonexistent
-        buffer, ignore it, as per the docstring.
-        (ido-kill-buffer-internal): New function.
-        (ido-kill-buffer-at-head): Use it.
-        (ido-visit-buffer): Likewise.
+	(ido-choice-list): Initialize to nil.
+	(ido-get-bufname): Reject minibuffers.
+	(ido-make-buffer-list): If "default" is a nonexistent
+	buffer, ignore it, as per the function's comment.
+	(ido-kill-buffer-internal): New function.
+	(ido-kill-buffer-at-head): Use it.
+	(ido-visit-buffer): Likewise.
 
 2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
 
