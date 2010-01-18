@@ -6890,7 +6890,7 @@ input.
 
 If they are variables, this variable is a string containing a Perl
 implementation for this functionality.  This Perl program will be transferred
-to the remote host, and it is avalible as shell function with the same name.")
+to the remote host, and it is available as shell function with the same name.")
 
 (defun tramp-find-inline-encoding (vec)
   "Find an inline transfer encoding that works.

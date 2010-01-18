@@ -98,7 +98,8 @@ and type 2 is the list (HIGH LOW MICRO)."
 
 ;;;###autoload
 (defun date-to-time (date)
-  "Parse a string DATE that represents a date-time and return a time value."
+  "Parse a string DATE that represents a date-time and return a time value.
+If DATE lacks timezone information, GMT is assumed."
   (condition-case ()
       (apply 'encode-time
 	     (parse-time-string

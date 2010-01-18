@@ -397,14 +397,14 @@ It's a list containing some or all of the following values:
    spaces		SPACEs and HARD SPACEs are visualized via
 			faces.
 
-   lines		lines whose have columns beyond
+   lines		lines which have columns beyond
 			`whitespace-line-column' are highlighted via
-			faces .
+			faces.
 			Whole line is highlighted.
 			It has precedence over `lines-tail' (see
 			below).
 
-   lines-tail		lines whose have columns beyond
+   lines-tail		lines which have columns beyond
 			`whitespace-line-column' are highlighted via
 			faces.
 			But only the part of line which goes
@@ -462,7 +462,7 @@ Any other value is ignored.
 If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs via faces and
 via display table.
 
-There is an evaluation order for some values, if some values are
+There is an evaluation order for some values, if they are
 included in `whitespace-style' list.  For example, if
 indentation, indentation::tab and/or indentation::space are
 included in `whitespace-style' list.  The evaluation order for
@@ -1134,7 +1134,7 @@ otherwise, turn off visualization.
 Use `global-whitespace-newline-mode' only for NEWLINE
 visualization exclusively.  For other visualizations, including
 NEWLINE visualization together with (HARD) SPACEs and/or TABs,
-please, use `global-whitespace-mode'.
+please use `global-whitespace-mode'.
 
 See also `whitespace-newline' and `whitespace-display-mappings'."
   :lighter    " NL"
@@ -2046,7 +2046,7 @@ See also `whitespace-toggle-option-alist'."
 	((quit error)
 	 (whitespace-help-off)
 	 (error (error-message-string data)))))
-    (list sym)))			; return the apropriate symbol
+    (list sym)))			; return the appropriate symbol
 
 
 (defun whitespace-toggle-list (local-p arg the-list)

@@ -77,7 +77,7 @@
       (("uriComponent" variable nil nil nil)))
      nil nil))
   "Hard-coded list of javascript tags for semanticdb.
-See bottom of this file for instruction on managing this list.")
+See bottom of this file for instructions on managing this list.")
 
 ;;; Classes:
 (defclass semanticdb-table-javascript (semanticdb-search-results-table)
@@ -87,7 +87,7 @@ See bottom of this file for instruction on managing this list.")
 
 (defclass semanticdb-project-database-javascript
   (semanticdb-project-database
-   eieio-singleton ;this db is for js globals, so singleton is apropriate
+   eieio-singleton ;this db is for js globals, so singleton is appropriate
    )
   ((new-table-class :initform semanticdb-table-javascript
 		    :type class
@@ -107,7 +107,7 @@ See bottom of this file for instruction on managing this list.")
 (defvar-mode-local javascript-mode semanticdb-find-default-throttle
   '(project omniscience)
   "Search project files, then search this omniscience database.
-It is not necessary to to system or recursive searching because of
+It is not necessary to do system or recursive searching because of
 the omniscience database.")
 
 ;;; Filename based methods
@@ -157,7 +157,7 @@ local variable."
 ;; to a search list.
 (define-mode-local-override semanticdb-find-translate-path javascript-mode
   (path brutish)
-  "Return a list of semanticdb tables asociated with PATH.
+  "Return a list of semanticdb tables associated with PATH.
 If brutish, do the default action.
 If not brutish, do the default action, and append the system
 database (if available.)"
@@ -216,7 +216,7 @@ Return a list of tags."
 
 (defmethod semanticdb-find-tags-for-completion-method
   ((table semanticdb-table-javascript) prefix &optional tags)
-  "In TABLE, find all occurances of tags matching PREFIX.
+  "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
   (if tags (call-next-method)
@@ -226,7 +226,7 @@ Returns a table of all matching tags."
 
 (defmethod semanticdb-find-tags-by-class-method
   ((table semanticdb-table-javascript) class &optional tags)
-  "In TABLE, find all occurances of tags of CLASS.
+  "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
   (if tags (call-next-method)
@@ -248,7 +248,7 @@ Returns a table of all matching tags."
 (defmethod semanticdb-deep-find-tags-by-name-method
   ((table semanticdb-table-javascript) name &optional tags)
   "Find all tags name NAME in TABLE.
-Optional argument TAGS is a list of tags t
+Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-by-name-method' for javascript."
   (semanticdb-find-tags-by-name-method table name tags))
 
@@ -261,7 +261,7 @@ Like `semanticdb-find-tags-by-name-method' for javascript."
 
 (defmethod semanticdb-deep-find-tags-for-completion-method
   ((table semanticdb-table-javascript) prefix &optional tags)
-  "In TABLE, find all occurances of tags matching PREFIX.
+  "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-for-completion-method' for javascript."
   (semanticdb-find-tags-for-completion-method table prefix tags))
@@ -270,7 +270,7 @@ Like `semanticdb-find-tags-for-completion-method' for javascript."
 ;;
 (defmethod semanticdb-find-tags-external-children-of-type-method
   ((table semanticdb-table-javascript) type &optional tags)
-  "Find all nonterminals which are child elements of TYPE
+  "Find all nonterminals which are child elements of TYPE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
   (if tags (call-next-method)
