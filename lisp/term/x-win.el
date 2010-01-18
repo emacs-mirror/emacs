@@ -133,9 +133,9 @@ When a session manager tells Emacs that the window system is shutting
 down, this function is called.  It calls the functions in the hook
 `emacs-save-session-functions'.  Functions are called with the current
 buffer set to a temporary buffer.  Functions should use `insert' to insert
-lisp code to save the session state.  The buffer is saved
-in a file in the home directory of the user running Emacs.  The file
-is evaluated when Emacs is restarted by the session manager.
+lisp code to save the session state.  The buffer is saved in a file in the
+home directory of the user running Emacs.  The file is evaluated when
+Emacs is restarted by the session manager.
 
 If any of the functions returns non-nil, no more functions are called
 and this function returns non-nil.  This will inform the session manager
@@ -1286,7 +1286,7 @@ The value nil is the same as this list:
 ")
 
 ;; Get a selection value of type TYPE by calling x-get-selection with
-;; an appropiate DATA-TYPE argument decided by `x-select-request-type'.
+;; an appropriate DATA-TYPE argument decided by `x-select-request-type'.
 ;; The return value is already decoded.  If x-get-selection causes an
 ;; error, this function return nil.
 
@@ -1425,7 +1425,7 @@ The value nil is the same as this list:
 (declare-function accelerate-menu "xmenu.c" (&optional frame) t)
 
 (defun x-menu-bar-open (&optional frame)
-  "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
+  "Open the menu bar if `menu-bar-mode' is on, otherwise call `tmm-menubar'."
   (interactive "i")
   (if (and menu-bar-mode
 	   (fboundp 'accelerate-menu))
@@ -1482,7 +1482,7 @@ The value nil is the same as this list:
   ;; Create the standard fontset.
   (condition-case err
 	(create-fontset-from-fontset-spec standard-fontset-spec t)
-    (error (display-warning 
+    (error (display-warning
 	    'initialization
 	    (format "Creation of the standard fontset failed: %s" err)
 	    :error)))
@@ -1654,7 +1654,7 @@ A value that begins with n: denotes a named icon instead of a stock icon."
   :group 'x)
 
 (defcustom icon-map-list '(x-gtk-stock-map)
-  "A list of alists that maps icon file names to stock/named icons.
+  "A list of alists that map icon file names to stock/named icons.
 The alists are searched in the order they appear.  The first match is used.
 The keys in the alists are file names without extension and with two directory
 components.  For example, to map /usr/share/emacs/22.1.1/etc/images/open.xpm
