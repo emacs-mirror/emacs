@@ -1609,13 +1609,13 @@ hungry-delete feature is enabled.
 
 @table @kbd
 @item C-c C-w
-@itemx M-x c-subword-mode
-@findex c-subword-mode
+@itemx M-x subword-mode
+@findex subword-mode
 Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
 commands recognize upper case letters in
 @samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
 the flag @samp{/w} on the mode line after the mode name
-(e.g. @samp{C/law}).  You can even use @kbd{M-x c-subword-mode} in
+(e.g. @samp{C/law}).  You can even use @kbd{M-x subword-mode} in
 non-CC Mode buffers.
 
 In the GNU project, we recommend using underscores to separate words

@@ -1,3 +1,7 @@
+2010-01-19  Mark A. Hershberger  <mah@everybody.org>
+
+	* progmodes/python.el: Replace reference to obsolete c-subward-mode.
+
 2010-01-18  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* lisp/progmodes/ada-mode.el: Fix bug#5400.
