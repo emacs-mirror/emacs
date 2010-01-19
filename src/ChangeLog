@@ -176,6 +176,13 @@
 	* dispnew.c (change_frame_size_1): newwidth == FRAME_COLS  (f) must
 	also be true before we can return early (bug #5339).
 
+2010-01-08  Alan Mackenzie  <acm@muc.de>
+
+	Fix spurious before-change-functions invocation from (insert ?\n).
+	* textprop.c (set_text_properties): rename parameter
+	`signal_after_change_p' to `coherent_change_p', and make the
+	invocation of `modify_region' conditional on it.
+
 2010-01-06  David Reitter  <david.reitter@gmail.com>
 
 	* nsfns.m (ns_get_screen): Rewrite, returning NULL for non-NS.
