@@ -590,8 +590,25 @@ This variable defines several rules to use to align different lines.")
 ;; FIXME: make this customizable
 
 (defconst ada-ident-re
-  "\\(\\sw\\|[_.]\\)+"
-  "Regexp matching Ada (qualified) identifiers.")
+  "[[:alpha:]]\\(?:[_[:alnum:]]\\)*"
+  ;; [:alnum:] matches any multibyte word constituent, as well as
+  ;; Latin-1 letters and numbers. This allows __ and trailing _;
+  ;; someone (emacs bug#1919) proposed [^\W_] to fix that, but \W does
+  ;; _not_ mean "not word constituent" inside a character alternative.
+  "Regexp matching an Ada identifier.")
+
+(defconst ada-goto-label-re
+  (concat "<<" ada-ident-re ">>")
+  "Regexp matching a goto label.")
+
+(defconst ada-block-label-re
+  (concat ada-ident-re "[ \t\n]*:[^=]")
+  "Regexp matching a block label.
+Note that this also matches a variable declaration.")
+
+(defconst ada-label-re
+  (concat "\\(?:" ada-block-label-re "\\)\\|\\(?:" ada-goto-label-re "\\)")
+  "Regexp matching a goto or block label.")
 
 ;;  "with" needs to be included in the regexp, to match generic subprogram parameters
 ;;  Similarly, we put '[not] overriding' on the same line with 'procedure' etc.
@@ -660,14 +677,6 @@ A new statement starts after these.")
 	    "\\>"))
   "Regexp used in `ada-goto-matching-start'.")
 
-(defvar ada-matching-decl-start-re
-  (eval-when-compile
-    (concat "\\<"
-	    (regexp-opt
-	     '("is" "separate" "end" "declare" "if" "new" "begin" "generic" "when") t)
-	    "\\>"))
-  "Regexp used in `ada-goto-matching-decl-start'.")
-
 (defvar ada-loop-start-re
   "\\<\\(for\\|while\\|loop\\)\\>"
   "Regexp for the start of a loop.")
@@ -677,10 +686,6 @@ A new statement starts after these.")
     (concat "\\<" (regexp-opt '("accept" "entry" "function" "overriding" "package" "procedure"
 				"protected" "task") t) "\\>"))
   "Regexp for the start of a subprogram.")
-
-(defvar ada-named-block-re
-  "[ \t]*\\(\\sw\\|_\\)+[ \t]*:[^=]"
-  "Regexp of the name of a block or loop.")
 
 (defvar ada-contextual-menu-on-identifier nil
   "Set to true when the right mouse button was clicked on an identifier.")
@@ -2108,10 +2113,18 @@ Return the equivalent internal parameter list."
 
 (defun ada-indent-newline-indent-conditional ()
   "Insert a newline and indent it.
-The original line is indented first if `ada-indent-after-return' is non-nil."
+The original line is re-indented if `ada-indent-after-return' is non-nil."
   (interactive "*")
-  (if ada-indent-after-return (ada-indent-current))
+  ;; If at end of buffer (entering brand new code), some indentation
+  ;; fails.  For example, a block label requires whitespace following
+  ;; the : to be recognized.  So we do the newline first, then
+  ;; go back and indent the original line.
   (newline)
+  (if ada-indent-after-return
+      (progn
+        (forward-char -1)
+        (ada-indent-current)
+        (forward-char 1)))
   (ada-indent-current))
 
 (defun ada-justified-indent-current ()
@@ -2335,8 +2348,8 @@ and the offset."
 		      (progn
 			(goto-char (car match-cons))
 			(save-excursion
-			  (beginning-of-line)
-			  (if (looking-at ada-named-block-re)
+			  (back-to-indentation)
+			  (if (looking-at ada-block-label-re)
 			      (setq label (- ada-label-indent))))))))
 
 	    ;; found 'record' =>
@@ -2455,7 +2468,7 @@ and the offset."
      ((and (= (downcase (char-after)) ?b)
 	   (looking-at "begin\\>"))
       (save-excursion
-	(if (ada-goto-matching-decl-start t)
+	(if (ada-goto-decl-start t)
 	    (list (progn (back-to-indentation) (point)) 0)
 	  (ada-indent-on-previous-lines nil orgpoint orgpoint))))
 
@@ -2648,8 +2661,9 @@ and the offset."
      ;; label
      ;;---------------------------------
 
-     ((looking-at "\\(\\sw\\|_\\)+[ \t\n]*:[^=]")
+     ((looking-at ada-label-re)
       (if (ada-in-decl-p)
+          ;; ada-block-label-re matches variable declarations
 	  (ada-indent-on-previous-lines nil orgpoint orgpoint)
 	(append (ada-indent-on-previous-lines nil orgpoint orgpoint)
 		'(ada-label-indent))))
@@ -2674,9 +2688,10 @@ if INITIAL-POS is non-nil, moves point to INITIAL-POS before calculation."
     (if (ada-in-paramlist-p)
 	(ada-get-indent-paramlist)
 
-      ;; move to beginning of current statement
+      ;; Move to beginning of current statement. If already at a
+      ;; statement start, move to beginning of enclosing statement.
       (unless nomove
-	(ada-goto-stmt-start))
+	(ada-goto-stmt-start t))
 
       ;; no beginning found => don't change indentation
       (if (and (eq oldpoint (point))
@@ -2702,6 +2717,12 @@ if INITIAL-POS is non-nil, moves point to INITIAL-POS before calculation."
 	 ((looking-at ada-block-start-re)
 	  (ada-get-indent-block-start orgpoint))
 	 ;;
+	 ((looking-at ada-block-label-re) ; also variable declaration
+	  (ada-get-indent-block-label orgpoint))
+	 ;;
+	 ((looking-at ada-goto-label-re)
+	  (ada-get-indent-goto-label orgpoint))
+	 ;;
 	 ((looking-at "\\(sub\\)?type\\>")
 	  (ada-get-indent-type orgpoint))
 	 ;;
@@ -2717,17 +2738,8 @@ if INITIAL-POS is non-nil, moves point to INITIAL-POS before calculation."
 	 ((looking-at "when\\>")
 	  (ada-get-indent-when orgpoint))
 	 ;;
-	 ((looking-at "\\(\\sw\\|_\\)+[ \t\n]*:[^=]")
-	  (ada-get-indent-label orgpoint))
-	 ;;
 	 ((looking-at "separate\\>")
 	  (ada-get-indent-nochange))
-
-	 ;; A label
-	 ((looking-at "<<")
-	  (list (+ (save-excursion (back-to-indentation) (point))
-		   (- ada-label-indent))))
-
 	 ;;
 	 ((looking-at "with\\>\\|use\\>")
 	  ;;  Are we still in that statement, or are we in fact looking at
@@ -2835,7 +2847,7 @@ ORGPOINT is the limit position used in the calculation."
 	      (if (looking-at "\\<begin\\>")
 		  (progn
 		    (setq indent (list (point) 0))
-		    (if (ada-goto-matching-decl-start t)
+		    (if (ada-goto-decl-start t)
 			(list (progn (back-to-indentation) (point)) 0)
 		      indent))
 		(list (progn (back-to-indentation) (point)) 0)
@@ -2960,6 +2972,10 @@ ORGPOINT is the limit position used in the calculation."
 		(car (ada-search-ignore-string-comment "\\<type\\>" t)))
 	      'ada-indent)))
 
+     ;; Special case for label:
+     ((looking-at ada-block-label-re)
+      (list (- (save-excursion (back-to-indentation) (point)) ada-label-indent) 'ada-indent))
+
      ;; nothing follows the block-start
      (t
       (list (save-excursion (back-to-indentation) (point)) 'ada-indent)))))
@@ -3055,10 +3071,10 @@ ORGPOINT is the limit position used in the calculation."
 	(list (save-excursion (back-to-indentation) (point))
 	      'ada-broken-decl-indent))
 
-       ;;  This one is called in every over case when indenting a line at the
+       ;;  This one is called in every other case when indenting a line at the
        ;;  top level
        (t
-	(if (looking-at ada-named-block-re)
+	(if (looking-at (concat "[ \t]*" ada-block-label-re))
 	    (setq label (- ada-label-indent))
 
 	  (let (p)
@@ -3087,7 +3103,7 @@ ORGPOINT is the limit position used in the calculation."
 	  (list (+ (save-excursion (back-to-indentation) (point)) label)
 		'ada-broken-indent)))))))
 
-(defun ada-get-indent-label (orgpoint)
+(defun ada-get-indent-block-label (orgpoint)
   "Calculate the indentation when before a label or variable declaration.
 ORGPOINT is the limit position used in the calculation."
   (let ((match-cons nil)
@@ -3119,6 +3135,16 @@ ORGPOINT is the limit position used in the calculation."
      (t
       (list cur-indent '(- ada-label-indent))))))
 
+(defun ada-get-indent-goto-label (orgpoint)
+  "Calculate the indentation when at a goto label."
+  (search-forward ">>")
+  (ada-goto-next-non-ws)
+  (if (>= (point) orgpoint)
+      ;; labeled statement is the one we need to indent
+      (list (- (point) ada-label-indent))
+    ;; else indentation is indent for labeled statement
+    (ada-indent-on-previous-lines t orgpoint)))
+
 (defun ada-get-indent-loop (orgpoint)
   "Calculate the indentation when just before a loop or a for ... use.
 ORGPOINT is the limit position used in the calculation."
@@ -3127,8 +3153,8 @@ ORGPOINT is the limit position used in the calculation."
 
 	;; If looking at a named block, skip the label
 	(label (save-excursion
-		 (beginning-of-line)
-		 (if (looking-at ada-named-block-re)
+		 (back-to-indentation)
+		 (if (looking-at ada-block-label-re)
 		     (- ada-label-indent)
 		   0))))
 
@@ -3286,7 +3312,7 @@ ORGPOINT is the limit position used in the calculation."
 ;; -- searching and matching
 ;; -----------------------------------------------------------
 
-(defun ada-goto-stmt-start ()
+(defun ada-goto-stmt-start (&optional ignore-goto-label)
   "Move point to the beginning of the statement that point is in or after.
 Return the new position of point.
 As a special case, if we are looking at a closing parenthesis, skip to the
@@ -3304,7 +3330,7 @@ open parenthesis."
 	  (progn
 	    (unless (save-excursion
 		      (goto-char (cdr match-dat))
-		      (ada-goto-next-non-ws orgpoint))
+		      (ada-goto-next-non-ws orgpoint ignore-goto-label))
 	      ;;
 	      ;; nothing follows => it's the end-statement directly in
 	      ;;                    front of point => search again
@@ -3326,7 +3352,7 @@ open parenthesis."
 	(goto-char (point-min))
 	;;
 	;; skip to the very first statement, if there is one
-	  ;;
+	;;
 	(unless (ada-goto-next-non-ws orgpoint)
 	  (goto-char orgpoint))))
     (point)))
@@ -3387,19 +3413,25 @@ is the end of the match."
 	match-dat
       nil)))
 
-
-(defun ada-goto-next-non-ws (&optional limit)
-  "Skip white spaces, newlines and comments to next non-ws character.
+(defun ada-goto-next-non-ws (&optional limit skip-goto-label)
+  "Skip to next non-whitespace character.
+Skips spaces, newlines and comments, and possibly goto labels.
+Return `point' if moved, nil if not.
 Stop the search at LIMIT.
 Do not call this function from within a string."
   (unless limit
     (setq limit (point-max)))
   (while (and (<= (point) limit)
-	      (progn (forward-comment 10000)
-		     (if (and (not (eobp))
-			      (save-excursion (forward-char 1)
-					      (ada-in-string-p)))
-			 (progn (forward-sexp 1) t)))))
+	      (or (progn (forward-comment 10000)
+                         (if (and (not (eobp))
+                                  (save-excursion (forward-char 1)
+                                                  (ada-in-string-p)))
+                             (progn (forward-sexp 1) t)))
+                  (and skip-goto-label
+                       (looking-at ada-goto-label-re)
+                       (progn
+                         (goto-char (match-end 0))
+                         t)))))
   (if (< (point) limit)
       (point)
     nil)
@@ -3426,9 +3458,7 @@ Return the new position of point or nil if not found."
     (unless backward
       (skip-syntax-forward "w"))
     (if (setq match-cons
-	     (if backward
-		 (ada-search-ignore-string-comment "\\w" t nil t)
-	       (ada-search-ignore-string-comment "\\w" nil nil t)))
+              (ada-search-ignore-string-comment "\\w" backward nil t))
 	;;
 	;; move to the beginning of the word found
 	;;
@@ -3463,13 +3493,13 @@ Moves point to the beginning of the declaration."
   (if (save-excursion
 	(ada-goto-previous-word)
 	(looking-at (concat "\\<" defun-name "\\> *:")))
-      t                                 ; do nothing
+      t                                 ; name matches
     ;; else
     ;;
     ;; 'accept' or 'package' ?
     ;;
     (unless (looking-at ada-subprog-start-re)
-      (ada-goto-matching-decl-start))
+      (ada-goto-decl-start))
     ;;
     ;; 'begin' of 'procedure'/'function'/'task' or 'declare'
     ;;
@@ -3502,14 +3532,20 @@ Moves point to the beginning of the declaration."
 	       (buffer-substring (point)
 				 (progn (forward-sexp 1) (point))))))))
 
-(defun ada-goto-matching-decl-start (&optional noerror recursive)
-  "Move point to the matching declaration start of the current 'begin'.
-If NOERROR is non-nil, it only returns nil if no match was found."
+(defun ada-goto-decl-start (&optional noerror)
+  "Move point to the declaration start of the current construct.
+If NOERROR is non-nil, return nil if no match was found;
+otherwise throw error."
   (let ((nest-count 1)
+        (regexp (eval-when-compile
+                  (concat "\\<"
+                          (regexp-opt
+                           '("is" "separate" "end" "declare" "if" "new" "begin" "generic" "when") t)
+                          "\\>")))
 
 	;;  first should be set to t if we should stop at the first
 	;;  "begin" we encounter.
-	(first (not recursive))
+	(first t)
 	(count-generic nil)
 	(stop-at-when nil)
 	)
@@ -3533,7 +3569,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
     ;; search backward for interesting keywords
     (while (and
 	    (not (zerop nest-count))
-	    (ada-search-ignore-string-comment ada-matching-decl-start-re t))
+	    (ada-search-ignore-string-comment regexp t))
       ;;
       ;; calculate nest-depth
       ;;
@@ -3566,7 +3602,6 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 
 		  (if (looking-at "end")
 		      (ada-goto-matching-start 1 noerror t)
-		    ;; (ada-goto-matching-decl-start noerror t)
 
 		    (setq loop-again nil)
 		    (unless (looking-at "begin")
@@ -3594,34 +3629,50 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 	(setq first t))
        ;;
        ((looking-at "is")
-	;; check if it is only a type definition, but not a protected
-	;; type definition, which should be handled like a procedure.
-	(if (or (looking-at "is[ \t]+<>")
-		(save-excursion
-		  (forward-comment -10000)
-		  (forward-char -1)
+        ;; look for things to ignore
+        (if
+            (or
+             ;; generic formal parameter
+             (looking-at "is[ t]+<>")
 
-		  ;; Detect if we have a closing parenthesis (Could be
-		  ;; either the end of subprogram parameters or (<>)
-		  ;; in a type definition
-		  (if (= (char-after) ?\))
-		      (progn
-			(forward-char 1)
-			(backward-sexp 1)
-			(forward-comment -10000)
-			))
-		  (skip-chars-backward "a-zA-Z0-9_.'")
-		  (ada-goto-previous-word)
-		  (and
-		   (looking-at "\\<\\(sub\\)?type\\|case\\>")
+             ;; A type definition, or a case statement.  Note that the
+             ;; goto-matching-start above on 'end record' leaves us at
+             ;; 'record', not at 'type'.
+             ;;
+             ;; We get to a case statement here by calling
+             ;; 'ada-move-to-end' from inside a case statement; then
+             ;; we are not ignoring 'when'.
+             (save-excursion
+               ;; Skip type discriminants or case argument function call param list
+               (forward-comment -10000)
+               (forward-char -1)
+               (if (= (char-after) ?\))
+                   (progn
+                     (forward-char 1)
+                     (backward-sexp 1)
+                     (forward-comment -10000)
+                     ))
+               ;; skip type or case argument name
+               (skip-chars-backward "a-zA-Z0-9_.'")
+               (ada-goto-previous-word)
+               (and
+                ;; if it's a protected type, it's the decl start we
+                ;; are looking for; since we didn't see the 'end'
+                ;; above, we are inside it.
+                (looking-at "\\<\\(sub\\)?type\\|case\\>")
 		   (save-match-data
 		     (ada-goto-previous-word)
 		     (not (looking-at "\\<protected\\>"))))
-		  ))                    ; end of `or'
-	    (goto-char (match-beginning 0))
-	  (progn
-	    (setq nest-count (1- nest-count))
-	    (setq first nil))))
+               )                    ; end of type definition p
+
+             ;; null procedure declaration
+             (save-excursion (ada-goto-next-word) (looking-at "\\<null\\>"))
+             );; end or
+            ;; skip this construct
+            nil
+          ;; this is the right "is"
+          (setq nest-count (1- nest-count))
+          (setq first nil)))
 
        ;;
        ((looking-at "new")
@@ -4076,7 +4127,7 @@ Point is moved at the beginning of the SEARCH-RE."
 Assumes point to be at the end of a statement."
   (or (ada-in-paramlist-p)
       (save-excursion
-	(ada-goto-matching-decl-start t))))
+	(ada-goto-decl-start t))))
 
 
 (defun ada-looking-at-semi-or ()
@@ -4370,7 +4421,7 @@ of the region.  Otherwise, operate only on the current line."
 		  ;;
 		  ada-move-to-declaration
 		  (looking-at "\\<begin\\>")
-		  (ada-goto-matching-decl-start)
+		  (ada-goto-decl-start)
 		  (setq pos (point))))
 
 	    )                           ; end of save-excursion
@@ -4382,7 +4433,7 @@ of the region.  Otherwise, operate only on the current line."
       (set-syntax-table previous-syntax-table))))
 
 (defun ada-move-to-end ()
-  "Move point to the matching end of the block around point.
+  "Move point to the end of the block around point.
 Moves to 'begin' if in a declarative part."
   (interactive)
   (let ((pos (point))
@@ -4432,7 +4483,7 @@ Moves to 'begin' if in a declarative part."
 	      (ada-goto-matching-end 0))
 	     ;; package start
 	     ((save-excursion
-		(setq decl-start (and (ada-goto-matching-decl-start t) (point)))
+		(setq decl-start (and (ada-goto-decl-start t) (point)))
 		(and decl-start (looking-at "\\<package\\>")))
 	      (ada-goto-matching-end 1))
 

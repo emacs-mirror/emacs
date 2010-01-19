@@ -5797,6 +5797,7 @@ event_handler_gdk (gxev, ev, data)
 {
   XEvent *xev = (XEvent *) gxev;
 
+  BLOCK_INPUT;
   if (current_count >= 0)
     {
       struct x_display_info *dpyinfo;
@@ -5807,22 +5808,26 @@ event_handler_gdk (gxev, ev, data)
       /* Filter events for the current X input method.
          GTK calls XFilterEvent but not for key press and release,
          so we do it here.  */
-      if (xev->type == KeyPress || xev->type == KeyRelease)
-        if (dpyinfo && x_filter_event (dpyinfo, xev))
-          return GDK_FILTER_REMOVE;
+      if ((xev->type == KeyPress || xev->type == KeyRelease)
+	  && dpyinfo
+	  && x_filter_event (dpyinfo, xev))
+	{
+	  UNBLOCK_INPUT;
+	  return GDK_FILTER_REMOVE;
+	}
 #endif
 
       if (! dpyinfo)
         current_finish = X_EVENT_NORMAL;
       else
-	{
-	  current_count +=
-	    handle_one_xevent (dpyinfo, xev, &current_finish,
-			       current_hold_quit);
-	}
+	current_count +=
+	  handle_one_xevent (dpyinfo, xev, &current_finish,
+			     current_hold_quit);
     }
   else
     current_finish = x_dispatch_event (xev, xev->xany.display);
+
+  UNBLOCK_INPUT;
 
   if (current_finish == X_EVENT_GOTO_OUT || current_finish == X_EVENT_DROP)
     return GDK_FILTER_REMOVE;
@@ -9821,7 +9826,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
 
-#ifndef USE_X_TOOLKIT
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
   Window window = FRAME_OUTER_WINDOW (f);
 #endif
 
@@ -10076,7 +10081,6 @@ x_term_init (display_name, xrm_option, resource_name)
     int argc;
     char *argv[NUM_ARGV];
     char **argv2 = argv;
-    GdkAtom atom;
     guint id;
 #ifndef HAVE_GTK_MULTIDISPLAY
     if (!EQ (Vinitial_window_system, Qx))
@@ -10215,25 +10219,36 @@ x_term_init (display_name, xrm_option, resource_name)
 	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (terminal->kboard);
 	terminal->kboard->Vwindow_system = Qx;
+
+	/* Add the keyboard to the list before running Lisp code (via
+           Qvendor_specific_keysyms below), since these are not traced
+           via terminals but only through all_kboards.  */
+	terminal->kboard->next_kboard = all_kboards;
+	all_kboards = terminal->kboard;
+
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
-	    /* Temporarily hide the partially initialized terminal,
-	       but make sure it doesn't get garbage collected.  */
-	    int count = inhibit_garbage_collection ();
+
+	    /* Protect terminal from GC before removing it from the
+	       list of terminals.  */
+	    struct gcpro gcpro1;
+	    Lisp_Object gcpro_term;
+	    XSETTERMINAL (gcpro_term, terminal);
+	    GCPRO1 (gcpro_term);
+
+	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
 	    terminal->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;
-	    unbind_to (count, Qnil);
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
+	    UNGCPRO;
 	  }
 
-	terminal->kboard->next_kboard = all_kboards;
-	all_kboards = terminal->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
 	   That would cause problems if a file loaded on startup tries to
 	   prompt in the mini-buffer.  */
@@ -10582,7 +10597,6 @@ void
 x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-  int i;
   struct terminal *t;
 
   /* Close all frames and delete the generic struct terminal for this
@@ -10734,7 +10748,6 @@ void
 x_delete_terminal (struct terminal *terminal)
 {
   struct x_display_info *dpyinfo = terminal->display_info.x;
-  int i;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */

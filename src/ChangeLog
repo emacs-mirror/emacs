@@ -1,3 +1,28 @@
+2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fcurrent_time_string): Doc fix (Bug#5408).
+
+2010-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (event_handler_gdk): Block input (Bug#5037).
+
+2010-01-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.c (standard_args): Adjust arg priorities to reflect how
+	they are processed in startup.el.
+
+2010-01-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (lisp, shortlisp): Update.
+
+2010-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_term_init): Instead of inhibiting GC while running Lisp
+	code, link the new kboard into all_kboard before running Lisp code,
+	and protect the new terminal with GCPRO (Bug#5365).
+	(x_term_init): Remove unused var `atom'.
+	(x_delete_display, x_delete_terminal): Remove unused var `i'.
+
 2010-01-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_get_current_desktop, x_get_desktop_workarea): New functions.

@@ -323,7 +323,7 @@ MARGIN, ZONE, START, and END specify restrictions in chart space."
 (defmethod chart-translate-namezone ((c chart) n)
   "Return a dot-pair representing a positional range for a name.
 The name in chart C of the Nth name resides.
-Automatically compensates for for direction."
+Automatically compensates for direction."
   (let* ((dir (oref c direction))
 	 (w (if (eq dir 'vertical) (oref c x-width) (oref c y-width)))
 	 (m (if (eq dir 'vertical) (oref c y-margin) (oref c x-margin)))
@@ -644,7 +644,7 @@ SORT-PRED if desired."
     ;; Lets create the chart!
     (chart-bar-quickie 'vertical "Files Extension Distribution"
 		       extlst "File Extensions"
-		       cntlst "# of occurances"
+		       cntlst "# of occurrences"
 		       10
 		       '(lambda (a b) (> (cdr a) (cdr b))))
     ))
@@ -740,9 +740,9 @@ SORT-PRED if desired."
 		(setcar cell (1+ (car cell))))
 	    (setq nmlst (cons nam nmlst)
 		  cntlst (cons 1 cntlst))))))
-    (chart-bar-quickie 'vertical "Username Occurance in RMAIL box"
+    (chart-bar-quickie 'vertical "Username Occurrence in RMAIL box"
 		       nmlst "User Names"
-		       cntlst "# of occurances"
+		       cntlst "# of occurrences"
 		       10
 		       '(lambda (a b) (> (cdr a) (cdr b))))
     ))

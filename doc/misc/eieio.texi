@@ -645,7 +645,7 @@ function of @code{:initform}.
 @comment  node-name,  next,  previous,  up
 @chapter Making New Objects
 
-Suppose we have defined a simple class is defined, such as:
+Suppose we have a simple class is defined, such as:
 
 @example
 (defclass record ()

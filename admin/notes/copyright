@@ -24,9 +24,9 @@ the file.
 
 2. When installing code written by someone else, the ChangeLog entry
 should be in the name of the author of the code, not the person who
-installs it. I think it is helpful to put the author (if not yourself)
-in the CVS log as well; and to not install any of your own changes in
-the same commit.
+installs it.  I think it is helpful to put the author (if not yourself)
+in the commit log as well (you can also use bzr commit's "--author"
+option); and to not install any of your own changes in the same commit.
 
 3. With images, add the legal info to a README file in the directory
 containing the image.
@@ -38,17 +38,17 @@ legal notices, consider if you should add a copyright statement.
 right thing to do.
 
 
-Every non-trivial file distributed through the Emacs CVS should be
+Every non-trivial file distributed through the Emacs repository should be
 self-explanatory in terms of copyright and license. This includes
 files that are not distributed in Emacs releases (for example, the
-admin/ directory), because the whole Emacs CVS is publicly
+admin/ directory), because the whole Emacs repository is publicly
 available.
 
 The definition of triviality is a little vague, but a rule of thumb is
 that any file with less than 15 lines of actual content is trivial. If
 a file is auto-generated (eg ldefs-boot.el) from another one in the
-CVS, then it does not really matter about adding a copyright statement
-to the generated file.
+repository, then it does not really matter about adding a copyright
+statement to the generated file.
 
 Legal advice says that we could, if we wished, put a license notice
 even in trivial files, because copyright law in general looks at the
@@ -67,8 +67,8 @@ file "years" in this directory). The PDF versions of refcards etc
 should display copyright notices (an exception to the rule about
 "generated" files), but these can just display the latest year. The
 full list of years should be kept in comments in the source file. If
-these are distributed in CVS, check in a regenerated version when the
-tex files are updated.
+these are distributed in the repository, check in a regenerated
+version when the tex files are updated.
 
 Copyright changes should be propagated to any associated repositories
 (eg Gnus, MH-E), but I think in every case this happens automatically
@@ -115,7 +115,7 @@ author should be removed and the year(s) transferred to the FSF); or
 else it is possible the file should not be in Emacs at all (please
 report!).
 
-Note that it seems painfully clear that one cannot rely on CVS logs,
+Note that it seems painfully clear that one cannot rely on commit logs,
 or even ChangeLogs, for older changes. People often installed changes
 from others, without recording the true authorship.
 
@@ -555,10 +555,10 @@ system)
     obviously good):
 
 
-Is it OK to just `cvs remove' a file for legal reasons, or is
+Is it OK to just `bzr remove' a file for legal reasons, or is
 something more drastic needed? A removed file is still available from
-CVS, if suitable options are applied. (This CVS issue obviously does
-not affect a release).
+the repository, if suitable options are applied. (This issue obviously
+does not affect a release).
   rms: will ask lawyer
 
 
@@ -600,7 +600,7 @@ The EMACS_22_BASE branch was changed to GPLv3 (or later) 2007/07/25.
 Some notes:
 (see http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg01431.html)
 
-1. There are some files in Emacs CVS which are not part of Emacs (eg
+1. There are some files in the Emacs tree which are not part of Emacs (eg
 those included from Gnulib). These are all copyright FSF and (at time
 of writing) GPL >= 2. rms says may as well leave the licenses of these
 alone (may import them from Gnulib again). These are:

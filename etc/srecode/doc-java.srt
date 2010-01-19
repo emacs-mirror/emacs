@@ -59,7 +59,7 @@ Recycle javadoc comment code from the more general template set."
 ----
 
 template group-comment-end :blank :indent
-"A comment occurring at the end of a a group of declarations.
+"A comment occurring at the end of a group of declarations.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:classdecl:javadoc-function-group-end}}
@@ -76,7 +76,7 @@ Recycle javadoc comment code from the more general template set."
 ----
 
 template group-comment-end :blank :indent
-"A comment occurring at the end of a a group of declarations.
+"A comment occurring at the end of a group of declarations.
 Recycle javadoc comment code from the more general template set."
 ----
 {{>:classdecl:javadoc-function-group-end}}
