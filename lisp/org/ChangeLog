@@ -1,3 +1,8 @@
+2010-01-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-get-outline-path, org-speed-command-help):
+	Fix typos in error messages.
+
 2009-12-14  Juri Linkov  <juri@jurta.org>
 
 	* org-html.el (org-export-html-style-include-default):

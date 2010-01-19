@@ -9019,7 +9019,7 @@ avoiding backtracing."
   (if fastp
       (progn
 	(if (> level 19)
-	    (error "Outline path failure, more than 19 levels."))
+	    (error "Outline path failure, more than 19 levels"))
 	(loop for i from level upto 19 do
 	      (aset org-olpa i nil))
 	(prog1
@@ -10502,7 +10502,7 @@ scheduling will use the corresponding date."
 	  (org-add-log-setup 'redeadline nil old-date 'findpos
 			     org-log-redeadline))
 	(message "Deadline on %s" org-last-inserted-timestamp)))))
-	
+
 (defun org-schedule (&optional remove time)
   "Insert the SCHEDULED: string with a timestamp to schedule a TODO item.
 With argument REMOVE, remove any scheduling date from the item.
@@ -14985,7 +14985,7 @@ Some of the options can be changed using the variable
   "Show the available speed commands."
   (interactive)
   (if (not org-use-speed-commands)
-      (error "Speed commands are not activated, customize `org-use-speed-commands'.")
+      (error "Speed commands are not activated, customize `org-use-speed-commands'")
     (with-output-to-temp-buffer "*Help*"
       (princ "User-defined Speed commands\n===========================\n")
       (mapc 'org-print-speed-command org-speed-commands-user)
@@ -15028,7 +15028,7 @@ overwritten, and the table is not marked as requiring realignment."
       (setq this-command org-speed-command)
       (call-interactively org-speed-command))
      ((functionp org-speed-command)
-      (funcall org-speed-command))     
+      (funcall org-speed-command))
      ((and org-speed-command (listp org-speed-command))
       (eval org-speed-command))
      (t (let (org-use-speed-commands)
@@ -16188,7 +16188,7 @@ Your bug report will be posted to the Org-mode mailing list.
     (save-excursion
       (if (re-search-backward "^\\(Subject: \\)Org-mode version \\(.*?\\);[ \t]*\\(.*\\)" nil t)
 	  (replace-match "\\1Bug: \\3 [\\2]")))))
-    
+
 
 (defun org-install-agenda-files-menu ()
   (let ((bl (buffer-list)))

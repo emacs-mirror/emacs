@@ -2951,6 +2951,12 @@ x_clear_frame (struct frame *f)
      colors or something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
 
+#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
+  /* Make sure scroll bars are redrawn.  As they aren't redrawn by
+     redisplay, do it here.  */
+  gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+#endif
+  
   XFlush (FRAME_X_DISPLAY (f));
 
   UNBLOCK_INPUT;
@@ -8064,32 +8070,7 @@ x_new_font (f, font_object, fontset)
 	 doing it because it's done in Fx_show_tip, and it leads to
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-        {
-	  int rows, cols;
-	  
-	  /* When the frame is maximized/fullscreen or running under for
-             example Xmonad, x_set_window_size will be a no-op.
-             In that case, the right thing to do is extend rows/cols to
-             the current frame size.  We do that first if x_set_window_size
-             turns out to not be a no-op (there is no way to know).
-             The size will be adjusted again if the frame gets a
-             ConfigureNotify event as a result of x_set_window_size.  */
-          int pixelh = FRAME_PIXEL_HEIGHT (f);
-#ifdef USE_X_TOOLKIT
-          /* The menu bar is not part of text lines.  The tool bar
-             is however.  */
-          pixelh -= FRAME_MENUBAR_HEIGHT (f);
-#endif
-          rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
-	  /* Update f->scroll_bar_actual_width because it is used in
-	     FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
-	  f->scroll_bar_actual_width
-	    = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
-          cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
-          
-          change_frame_size (f, rows, cols, 0, 1, 0);
-          x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
-        }
+        x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
 
 #ifdef HAVE_X_I18N
@@ -8976,6 +8957,32 @@ x_set_window_size (f, change_gravity, cols, rows)
      int cols, rows;
 {
   BLOCK_INPUT;
+
+  if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+    {
+      int r, c;
+	  
+      /* When the frame is maximized/fullscreen or running under for
+         example Xmonad, x_set_window_size_1 will be a no-op.
+         In that case, the right thing to do is extend rows/cols to
+         the current frame size.  We do that first if x_set_window_size_1
+         turns out to not be a no-op (there is no way to know).
+         The size will be adjusted again if the frame gets a
+         ConfigureNotify event as a result of x_set_window_size.  */
+      int pixelh = FRAME_PIXEL_HEIGHT (f);
+#ifdef USE_X_TOOLKIT
+      /* The menu bar is not part of text lines.  The tool bar
+         is however.  */
+      pixelh -= FRAME_MENUBAR_HEIGHT (f);
+#endif
+      r = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelh);
+      /* Update f->scroll_bar_actual_width because it is used in
+         FRAME_PIXEL_WIDTH_TO_TEXT_COLS.  */
+      f->scroll_bar_actual_width
+        = FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f);
+      c = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
+      change_frame_size (f, r, c, 0, 1, 0);
+    }
 
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))

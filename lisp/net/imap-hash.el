@@ -67,16 +67,16 @@
       (imap-hash-remove-cr-followed-by-lf))))
 
 (defun imap-hash-make (server port mailbox &optional user password ssl)
-  "Makes a new imap-hash object using SERVER, PORT, and MAILBOX.  
-SSL, USER, PASSWORD are optional.
+  "Make a new imap-hash object using SERVER, PORT, and MAILBOX.
+USER, PASSWORD and SSL are optional.
 The test is set to t, meaning all messages are considered."
   (when (and server port mailbox)
-    (list :server server :port port :mailbox mailbox 
-	  :ssl ssl :user user :password password 
+    (list :server server :port port :mailbox mailbox
+	  :ssl ssl :user user :password password
 	  :test t)))
 
 (defun imap-hash-p (iht)
-  "Checks whether IHT is a valid imap-hash."
+  "Check whether IHT is a valid imap-hash."
   (and
    (imap-hash-server iht)
    (imap-hash-port iht)
@@ -95,7 +95,7 @@ The test is set to t, meaning all messages are considered."
 (defun imap-hash-get (key iht &optional refetch)
   "Get the value for KEY in the imap-hash IHT.
 Requires either `imap-hash-fetch' to be called beforehand
-(e.g. by `imap-hash-map'), or REFETCH to be t.
+\(e.g. by `imap-hash-map'), or REFETCH to be t.
 Returns a list of the headers (an alist, see `imap-hash-map') and
 the body of the message as a string.
 Also see `imap-hash-test'."
@@ -106,13 +106,13 @@ Also see `imap-hash-test'."
       (list
        (imap-hash-get-headers
 	(imap-hash-data-headers details))
-       (imap-hash-get-body 
+       (imap-hash-get-body
 	(imap-hash-data-body details))))))
 
 (defun imap-hash-put (value iht &optional key)
-  "Put VALUE in the imap-hash IHT.  Returns the new key.
+  "Put VALUE in the imap-hash IHT.  Return the new key.
 If KEY is given, removes it.
-VALUE can be a list of the headers (an alist, see `imap-hash-map') 
+VALUE can be a list of the headers (an alist, see `imap-hash-map')
 and the body of the message as a string.  It can also be a uid,
 in which case `imap-hash-get' will be called to get the value.
 Also see `imap-hash-test'."
@@ -121,19 +121,19 @@ Also see `imap-hash-test'."
 	newuid)
       (when value
 	(with-temp-buffer
-	  (funcall 'imap-hash-make-message 
-		   (nth 0 value) 
+	  (funcall 'imap-hash-make-message
+		   (nth 0 value)
 		   (nth 1 value)
 		   nil)
 	  (setq newuid (nth 1 (imap-message-append
-			       (imap-hash-mailbox iht) 
+			       (imap-hash-mailbox iht)
 			       (current-buffer) nil nil server-buffer)))
 	  (when key (imap-hash-rem key iht))))
       newuid))
 
 (defun imap-hash-make-message (headers body &optional overrides)
   "Make a message with HEADERS and BODY suitable for `imap-append',
-using `message-setup'..
+using `message-setup'.
 Look in the alist OVERRIDES for header overrides as per `imap-hash-headers'."
   ;; don't insert a signature no matter what
   (let (message-signature)
@@ -154,7 +154,7 @@ Look in the alist OVERRIDES for header overrides as per `imap-hash-headers'."
 (defun imap-hash-rem (key iht)
   "Remove KEY in the imap-hash IHT.
 Also see `imap-hash-test'.  Requires `imap-hash-fetch' to have
-been called and the imap-hash server buffer to be current, 
+been called and the imap-hash server buffer to be current,
 so it's best to use it inside `imap-hash-map'.
 The key will not be found on the next `imap-hash-map' call."
   (with-current-buffer (imap-hash-get-buffer iht)
@@ -172,7 +172,7 @@ Also see `imap-hash-test'."
   (with-temp-buffer
     (insert (or text-headers ""))
     (imap-hash-remove-cr-followed-by-lf)
-    (mapcar (lambda (header) 
+    (mapcar (lambda (header)
 	      (cons header
 		    (message-fetch-field (format "%s" header))))
 	    imap-hash-headers)))
@@ -199,11 +199,11 @@ Also see `imap-hash-test'."
 				       (headers (imap-hash-data-headers details))
 				       (hlist (imap-hash-get-headers headers))
 				       (runit (cond
-					       ((stringp test) 
+					       ((stringp test)
 						(string-match
-						 test 
+						 test
 						 (format "%s" (aget hlist 'Subject))))
-					       ((functionp test) 
+					       ((functionp test)
 						(funcall test hlist))
 					       ;; otherwise, return test itself
 					       (t test))))
@@ -218,7 +218,7 @@ Also see `imap-hash-test'."
 			      "UID")))))
 
 (defun imap-hash-count (iht)
-  "Counts the number of messages in the imap-hash IHT.
+  "Count the number of messages in the imap-hash IHT.
 Also see `imap-hash-test'.  It uses `imap-hash-map' so just use that
 function if you want to do more than count the elements."
   (length (imap-hash-map (lambda (a b c)) iht t)))
@@ -226,36 +226,36 @@ function if you want to do more than count the elements."
 (defalias 'imap-hash-size 'imap-hash-count)
 
 (defun imap-hash-test (iht)
-  "Returns the test used by `imap-hash-map' for IHT.
+  "Return the test used by `imap-hash-map' for IHT.
 When the test is t, any key will be a candidate.
-When the test is a string, messages will be filtered on that string as a regexp
-against the subject.
-When the test is a function, messages will be filtered with it.  
+When the test is a string, messages will be filtered on that string as a
+regexp against the subject.
+When the test is a function, messages will be filtered with it.
 The function is passed the message headers (see `imap-hash-get-headers')."
   (plist-get iht :test))
 
-(defun imap-hash-server (iht) 
-  "Returns the server used by the imap-hash IHT."
+(defun imap-hash-server (iht)
+  "Return the server used by the imap-hash IHT."
   (plist-get iht :server))
 
-(defun imap-hash-port (iht) 
-  "Returns the port used by the imap-hash IHT."
+(defun imap-hash-port (iht)
+  "Return the port used by the imap-hash IHT."
   (plist-get iht :port))
 
-(defun imap-hash-ssl (iht) 
-  "Returns the SSL need for the imap-hash IHT."
+(defun imap-hash-ssl (iht)
+  "Return the SSL need for the imap-hash IHT."
   (plist-get iht :ssl))
 
 (defun imap-hash-mailbox (iht)
-  "Returns the mailbox used by the imap-hash IHT."
+  "Return the mailbox used by the imap-hash IHT."
   (plist-get iht :mailbox))
 
-(defun imap-hash-user (iht) 
-  "Returns the username used by the imap-hash IHT."
+(defun imap-hash-user (iht)
+  "Return the username used by the imap-hash IHT."
   (plist-get iht :user))
 
-(defun imap-hash-password (iht) 
-  "Returns the password used by the imap-hash IHT."
+(defun imap-hash-password (iht)
+  "Return the password used by the imap-hash IHT."
   (plist-get iht :password))
 
 (defun imap-hash-open-connection (iht)
@@ -263,16 +263,16 @@ The function is passed the message headers (see `imap-hash-get-headers')."
   (let* ((server (imap-hash-server iht))
 	 (port (imap-hash-port iht))
 	 (ssl-need (imap-hash-ssl iht))
-	 (auth-need (not (and (imap-hash-user iht) 
+	 (auth-need (not (and (imap-hash-user iht)
 			      (imap-hash-password iht))))
 	 ;; this will not be needed if auth-need is t
 	 (auth-info (when auth-need
-		      (auth-source-user-or-password 
-		       '("login" "password") 
+		      (auth-source-user-or-password
+		       '("login" "password")
 		       server port)))
-	 (auth-user (or (imap-hash-user iht) 
+	 (auth-user (or (imap-hash-user iht)
 			(nth 0 auth-info)))
-	 (auth-passwd (or (imap-hash-password iht) 
+	 (auth-passwd (or (imap-hash-password iht)
 			  (nth 1 auth-info)))
 	 (imap-logout-timeout nil))
 
@@ -283,7 +283,7 @@ The function is passed the message headers (see `imap-hash-get-headers')."
 	      ;; (debug "after opening server: opened+state" (imap-opened (current-buffer)) imap-state)
 	      ;; (debug "authenticating" auth-user auth-passwd)
 	      (if (not (imap-capability 'IMAP4rev1))
-		  (error "IMAP server does not support IMAP4r1, it won't work, sorry.")
+		  (error "IMAP server does not support IMAP4r1, it won't work, sorry")
 		(imap-authenticate auth-user auth-passwd)
 		(imap-id)
 		;; (debug "after authenticating: opened+state" (imap-opened (current-buffer)) imap-state)
@@ -314,8 +314,8 @@ The function is passed the message headers (see `imap-hash-get-headers')."
   "Fetch all the messages for imap-hash IHT.
 Get only the headers if HEADERS-ONLY is not nil."
   (with-current-buffer (imap-hash-get-buffer iht)
-    (let ((range (if messages 
-		     (list 
+    (let ((range (if messages
+		     (list
 		      (imap-range-to-message-set messages)
 		      (imap-range-to-message-set messages))
 		   '("1:*" . "1,*:*"))))
@@ -329,9 +329,9 @@ Get only the headers if HEADERS-ONLY is not nil."
       (imap-fetch-safe range
 		       (concat (format "(UID RFC822.SIZE BODY %s "
 				       (if headers-only "" "BODY.PEEK[TEXT]"))
-			       (format "BODY.PEEK[HEADER.FIELDS %s])" 
+			       (format "BODY.PEEK[HEADER.FIELDS %s])"
 				     imap-hash-headers))))))
-  
+
 (provide 'imap-hash)
 ;;; imap-hash.el ends here
 

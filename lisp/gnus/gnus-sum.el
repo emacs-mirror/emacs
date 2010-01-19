@@ -6727,6 +6727,26 @@ Also do horizontal recentering."
 
 (put 'gnus-recenter 'isearch-scroll t)
 
+(defun gnus-forward-line-ignore-invisible (n)
+  "Move N lines forward (backward if N is negative).
+Like forward-line, but skip over (and don't count) invisible lines."
+  (let (done)
+    (while (and (> n 0) (not done))
+      ;; If the following character is currently invisible,
+      ;; skip all characters with that same `invisible' property value.
+      (while (gnus-invisible-p (point))
+	(goto-char (gnus-next-char-property-change (point))))
+      (forward-line 1)
+      (if (eobp)
+	  (setq done t)
+	(setq n (1- n))))
+    (while (and (< n 0) (not done))
+      (forward-line -1)
+      (if (bobp) (setq done t)
+	(setq n (1+ n))
+	(while (and (not (bobp)) (gnus-invisible-p (1- (point))))
+	  (goto-char (gnus-previous-char-property-change (point))))))))
+
 (defun gnus-summary-recenter ()
   "Center point in the summary window.
 If `gnus-auto-center-summary' is nil, or the article buffer isn't
@@ -6742,16 +6762,19 @@ displayed, no centering will be performed."
 			     gnus-auto-center-summary
                            (/ (1- (window-height)) 2)))))
 	   (height (1- (window-height)))
-	   (bottom (save-excursion (goto-char (point-max))
-				   (forward-line (- height))
-				   (point)))
+	   (bottom (save-excursion
+		     (goto-char (point-max))
+		     (gnus-forward-line-ignore-invisible (- height))
+		     (point)))
 	   (window (get-buffer-window (current-buffer))))
       (when (get-buffer-window gnus-article-buffer)
 	;; Only do recentering when the article buffer is displayed,
 	;; Set the window start to either `bottom', which is the biggest
 	;; possible valid number, or the second line from the top,
 	;; whichever is the least.
-	(let ((top-pos (save-excursion (forward-line (- top)) (point))))
+	(let ((top-pos (save-excursion
+			 (gnus-forward-line-ignore-invisible (- top))
+			 (point))))
 	  (if (> bottom top-pos)
 	      ;; Keep the second line from the top visible
 	      (set-window-start window top-pos)
@@ -6760,12 +6783,12 @@ displayed, no centering will be performed."
 	    ;; visible, or revert to using TOP-POS.
 	    (save-excursion
 	      (goto-char (point-max))
-	      (forward-line -1)
+	      (gnus-forward-line-ignore-invisible -1)
 	      (let ((last-line-start (point)))
 		(goto-char bottom)
 		(set-window-start window (point) t)
 		(when (not (pos-visible-in-window-p last-line-start window))
-		  (forward-line 1)
+		  (gnus-forward-line-ignore-invisible 1)
 		  (set-window-start window (min (point) top-pos) t)))))))
       ;; Do horizontal recentering while we're at it.
       (when (and (get-buffer-window (current-buffer) t)

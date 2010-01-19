@@ -57,7 +57,7 @@ current form for the frame (i.e. hinting or somesuch changed)."
 	(if (display-graphic-p f)
 	    (let* ((frame-font
 		    (or (font-get (face-attribute 'default :font f
-						  'default) :name)
+						  'default) :user-spec)
 			(frame-parameter f 'font-parameter)))
 		   (font-to-set
 		    (if set-font new-font

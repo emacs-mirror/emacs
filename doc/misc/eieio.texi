@@ -11,7 +11,7 @@
 @copying
 This manual documents EIEIO, an object framework for Emacs Lisp.
 
-Copyright @copyright{} 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright @copyright{} 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1776,11 +1776,11 @@ This signal is called when an attempt to reference @var{slot} in
 @comment  node-name,  next,  previous,  up
 @chapter Naming Conventions
 
-@pxref{Standards,,,elisp,GNU Emacs Lisp Reference Manual}, for a
-description of Emacs Lisp programming conventions.  These conventions
-help ensure that Emacs packages work nicely one another, so an
-@eieio{}-based program should follow them.  Here are some conventions
-that apply specifically to @eieio{}-based programs:
+@xref{Tips,,Tips and Conventions,elisp,GNU Emacs Lisp Reference
+Manual}, for a description of Emacs Lisp programming conventions.
+These conventions help ensure that Emacs packages work nicely one
+another, so an @eieio{}-based program should follow them.  Here are
+some conventions that apply specifically to @eieio{}-based programs:
 
 @itemize
 

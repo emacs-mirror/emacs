@@ -836,6 +836,7 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 
 (define-key rcirc-browse-url-map (kbd "RET") 'rcirc-browse-url-at-point)
 (define-key rcirc-browse-url-map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
+(define-key rcirc-browse-url-map [follow-link] 'mouse-face)
 
 (defvar rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")

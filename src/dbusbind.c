@@ -761,14 +761,14 @@ xd_add_watch (watch, data)
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
     {
 #if HAVE_DBUS_WATCH_GET_UNIX_FD
-      /* TODO: Reverse these on Win32, which prefers the opposite. */
+      /* TODO: Reverse these on Win32, which prefers the opposite.  */
       int fd = dbus_watch_get_unix_fd(watch);
       if (fd == -1)
 	fd = dbus_watch_get_socket(watch);
 #else
       int fd = dbus_watch_get_fd(watch);
 #endif
-      XD_DEBUG_MESSAGE ("%d", fd);
+      XD_DEBUG_MESSAGE ("fd %d", fd);
 
       if (fd == -1)
 	return FALSE;
@@ -781,7 +781,8 @@ xd_add_watch (watch, data)
   return TRUE;
 }
 
-/* Remove connection file descriptor from input_wait_mask.  */
+/* Remove connection file descriptor from input_wait_mask.  DATA is
+   the used bus, either QCdbus_system_bus or QCdbus_session_bus.  */
 void
 xd_remove_watch (watch, data)
      DBusWatch *watch;
@@ -791,17 +792,24 @@ xd_remove_watch (watch, data)
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
     {
 #if HAVE_DBUS_WATCH_GET_UNIX_FD
-      /* TODO: Reverse these on Win32, which prefers the opposite. */
+      /* TODO: Reverse these on Win32, which prefers the opposite.  */
       int fd = dbus_watch_get_unix_fd(watch);
       if (fd == -1)
 	fd = dbus_watch_get_socket(watch);
 #else
       int fd = dbus_watch_get_fd(watch);
 #endif
-      XD_DEBUG_MESSAGE ("%d", fd);
+      XD_DEBUG_MESSAGE ("fd %d", fd);
 
       if (fd == -1)
 	return;
+
+      /* Unset session environment.  */
+      if ((data != NULL) && (data == (void*) XHASH (QCdbus_session_bus)))
+	{
+	  XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
+	  unsetenv ("DBUS_SESSION_BUS_ADDRESS");
+	}
 
       /* Remove the file descriptor from input_wait_mask.  */
       delete_keyboard_wait_descriptor (fd);
@@ -825,11 +833,12 @@ This is an internal function, it shall not be used outside dbus.el.  */)
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
 
-  /* Add the watch functions.  */
+  /* Add the watch functions.  We pass also the bus as data, in order
+     to distinguish between the busses in xd_remove_watch.  */
   if (!dbus_connection_set_watch_functions (connection,
 					    xd_add_watch,
 					    xd_remove_watch,
-					    NULL, NULL, NULL))
+					    NULL, (void*) XHASH (bus), NULL))
     XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
   /* Return.  */

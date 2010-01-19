@@ -5077,7 +5077,8 @@ Otherwise, generate and save a value for `canlock-password' first."
 	  "Denied posting -- the From looks strange: \"%s\"." from)
 	 nil)
 	((let ((addresses (rfc822-addresses from)))
-	   (while (and addresses
+	   ;; `rfc822-addresses' returns a string if parsing fails.
+	   (while (and (consp addresses)
 		       (not (eq (string-to-char (car addresses)) ?\()))
 	     (setq addresses (cdr addresses)))
 	   addresses)
@@ -7505,10 +7506,8 @@ which specify the range to operate on."
 
 (defun message-exchange-point-and-mark ()
   "Exchange point and mark, but don't activate region if it was inactive."
-  (unless (prog1
-	      (message-mark-active-p)
-	    (exchange-point-and-mark))
-    (setq mark-active nil)))
+  (goto-char (prog1 (mark t)
+	       (set-marker (mark-marker) (point)))))
 
 (defalias 'message-make-overlay 'make-overlay)
 (defalias 'message-delete-overlay 'delete-overlay)

@@ -1,3 +1,190 @@
+2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* font-setting.el (font-setting-change-default-font): Use user-spec
+	instead of name.
+
+2010-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Ignore pending merges.
+
+2010-01-05  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Handle
+	qualified decorators (Bug#881).
+
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-working-revision): Fix looking for a revision
+	in a lightweight checkout.
+
+2010-01-05  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (malayalam-composable-pattern): Fix ZWNJ and
+	ZWJ.
+
+2010-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-diff): Obey vc-disable-async-diff.
+
+2010-01-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-state-heuristic): Make it work for lightweight
+	checkouts.  (Bug#618)
+	(vc-bzr-log-view-mode): Also highlight the author.
+	(vc-bzr-shelve-map): Change binding for vc-bzr-shelve-apply-at-point.
+	(vc-bzr-shelve-menu-map):
+	(vc-bzr-dir-extra-headers): Improve menu and tooltip text.
+	(vc-bzr-shelve-apply): Make prompt more explicit.
+
+2010-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/browse-url.el (browse-url-encode-url): Don't escape commas.
+	They are valid characters in URL paths (rfc3986), and at least
+	Firefox does not understand the encoded version (Bug#3166).
+
+2010-01-02  Daniel Elliott  <danelliottster@gmail.com>  (tiny change)
+
+	* progmodes/octave-mod.el (octave-end-keywords)
+	(octave-block-begin-or-end-regexp, octave-block-match-alist): Add
+	"end" keyword (Bug#3061).
+	(octave-end-as-array-index-p): New function.
+	(calculate-octave-indent): Use it.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Consistently put the text property on the bookmark name.
+	(bookmark-bmenu-marks-width): Bump back to 2, to include
+	annotation marks.
+	(bookmark-bmenu-hide-filenames): Adjust for above, and put the text
+	property on the bookmark name, instead of not putting it at all.
+	(bookmark-bmenu-list): Fix where we put the text property.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-save): Just depend on the new logic
+	for showing buffer modified state (as added in the previous change).
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Show modified state of bookmark buffer more accurately.
+	(bookmark-bmenu-list): Initialize buffer-modified-p properly.
+	(bookmark-send-edited-annotation): Mark bookmark-alist as modified.
+	(with-buffer-modified-unmodified): New macro.
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
+	(bookmark-bmenu-mark, bookmark-bmenu-unmark, bookmark-bmenu-delete):
+	Use new macro to preserve the buffer modified state.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-select, bookmark-bmenu-1-window,
+	(bookmark-bmenu-2-window, bookmark-bmenu-this-window)
+	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window)
+	(bookmark-bmenu-show-annotation, bookmark-bmenu-edit-annotation)
+	(bookmark-bmenu-rename, bookmark-bmenu-locate)
+	(bookmark-bmenu-relocate, bookmark-bmenu-goto-bookmark): Remove
+	unnecessary calls to `bookmark-bmenu-ensure-position'.
+
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode): Make
+	the lines in the generated doc string shorter.  (Bug#4668)
+
+2010-01-02  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el: Add follow-link binding (Bug#4738).
+
+2010-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (bzr-update): Renamed from cvs-update.
+	(cvs-update): New target for backward compatibility.
+
+	* makefile.w32-in (bzr-update): Renamed from cvs-update.
+	(cvs-update): New target for backward compatibility.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Remove gratuitous gratitude.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-any-marks): New function
+	(bookmark-bmenu-save): Clear buffer modification if no marks.
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-bmenu-marks-width): Define to 1, not 2.
+	(bookmark-bmenu-list, bookmark-bmenu-bookmark): Calculate property
+	positions by using `bookmark-bmenu-marks-width', instead of hardcoding.
+	This fixes the `bookmark-bmenu-execute-deletions' bug reported here:
+
+	http://lists.gnu.org/archive/html/emacs-devel/2009-12/msg00819.html
+	From: Sun Yijiang <sunyijiang {_AT_} gmail.com>
+	To: emacs-devel {_AT_} gnu.org
+	Subject: bookmark.el bug report
+	Date: Mon, 28 Dec 2009 14:19:16 +0800
+	Message-ID: 5065e2900912272219y3734fc9fsdaee41167ef99ad7@mail.gmail.com
+
+2010-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Improvements suggested by Drew Adams:
+	(bookmark-bmenu-ensure-position): New name for
+	`bookmark-bmenu-check-position'.  Just ensure the position,
+	don't return any meaningful value.
+	(bookmark-bmenu-header-height, bookmark-bmenu-marks-width):
+	New constants.
+
+2010-01-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el (bookmarks-already-loaded): Doc fix (don't use `iff').
+	(bookmark-yank-point, bookmark-bmenu-check-position):
+	Fix typos in docstrings.
+	(bookmark-save-flag, bookmark-bmenu-toggle-filenames)
+	(bookmark-name-from-full-record, bookmark-get-position)
+	(bookmark-set-position, bookmark-set, bookmark-handle-bookmark)
+	(bookmark-delete, bookmark-save, bookmark-save, bookmark-bmenu-mode):
+	Remove useless quoting of parenthesis, etc. in docstrings.
+
+	* ediff-mult.el (ediff-prepare-meta-buffer): Fix typo in help message.
+	(ediff-append-custom-diff): Fix typo in error message.
+	(ediff-meta-mark-equal-files): Fix typos in messages.
+
+	* mpc.el (mpc-playlist-delete): Fix typo in error messages.
+
+	* cedet/semantic/db-typecache.el (semanticdb-typecache-find-default):
+	Fix typo in docstring.
+
+	* net/imap-hash.el (imap-hash-make): Doc fix.
+	(imap-hash-test): Fix typo in error message; reflow docstring.
+	(imap-hash-p, imap-hash-get, imap-hash-put, imap-hash-make-message)
+	(imap-hash-count, imap-hash-server, imap-hash-port, imap-hash-ssl)
+	(imap-hash-mailbox, imap-hash-user, imap-hash-password):
+	Fix typos in docstrings.
+	(imap-hash-open-connection): Fix typo in error message.
+
+	* play/gomoku.el (gomoku): Fix typos in docstring.
+
+	* progmodes/gdb-ui.el (gdb-location-alist): Reflow docstring.
+	(gdb-jsonify-buffer): Fix typos in docstring.
+	(gdb-goto-breakpoint): Fix typo in error message.
+	("Display Other Windows"): Fix typo in help message.
+	(gdb-speedbar-expand-node): Fix typo in question.
+
+	* progmodes/idlw-help.el (idlwave-help-browse-url-available)
+	(idlwave-html-system-help-location, idlwave-html-help-location)
+	(idlwave-help-browser-function, idlwave-help-browser-generic-program)
+	(idlwave-help-browser-generic-args, idlwave-help-directory)
+	(idlwave-html-help-is-available, idlwave-help-mode-line-indicator)
+	(idlwave-help-mode-map, idlwave-help-mode, idlwave-do-context-help)
+	(idlwave-online-help, idlwave-help-html-link)
+	(idlwave-help-show-help-frame, idlwave-help-assistant-command):
+	Fix typos in docstrings.
+	(idlwave-help-with-source, idlwave-help-find-routine-definition):
+	Reflow docstrings.
+	(idlwave-help-assistant-start): Fix typo in error message.
+
+	* progmodes/octave-mod.el (octave-mode, octave-electric-semi)
+	(octave-electric-space): Fix typos in docstrings.
+
 2010-01-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (minibuffer-with-setup-hook): Doc fix (Bug#5149).
@@ -17,7 +204,7 @@
 
 	Show working revision correctly for mercurial.
 	* vc-hg.el (vc-hg-working-revision): Use hg parent instead of
-	hg log as suggested by Alex Harsanyi <alexharsanyi@gmail.com>,
+	hg log as suggested by Alex Harsanyi <alexharsanyi@gmail.com>.
 
 2009-12-29  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -70,8 +257,7 @@
 	been a secret.  (Further to bug#3717.)
 	(Man-bgproc-sentinel): When "-k foo" produces no output show error
 	"no matches" rather than "Can't find manpage", as the latter reads
-	like -k was interpreted as a page name, which is not so.  (My
-	bug#5431.)
+	like -k was interpreted as a page name, which is not so.  (Bug#5431)
 
 2009-12-26  Michael Albinus  <michael.albinus@gmx.de>
 

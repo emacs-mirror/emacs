@@ -165,8 +165,11 @@ update-subdirs: doit
 
 updates: update-subdirs autoloads finder-data custom-deps
 
-# This is useful after "cvs up".
-cvs-update: recompile autoloads finder-data custom-deps
+# This is useful after "bzr up".
+bzr-update: recompile autoloads finder-data custom-deps
+
+# For backwards compatibility:
+cvs-update: bzr-update
 
 # Update the AUTHORS file.
 

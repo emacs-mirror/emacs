@@ -1240,8 +1240,7 @@ foo
 
 @group
 ;; @r{In buffer @samp{b2}, the value hasn't changed.}
-(save-excursion
-  (set-buffer "b2")
+(with-current-buffer "b2"
   foo)
      @result{} 5
 @end group
