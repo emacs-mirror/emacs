@@ -1,3 +1,9 @@
+2010-01-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (apply_xft_settings): Save settings in Vxft_settings
+	for debug purpose.
+	(syms_of_xsettings): Declare xft-settings.
+
 2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Fcurrent_time_string): Doc fix (Bug#5408).
