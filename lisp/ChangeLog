@@ -1,3 +1,14 @@
+2010-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* indent.el (tab-always-indent): Fix custom-type.
+
+2010-01-19  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el: Fix bug#5395: typing '#' in an empty
+	buffer throws "args out of range".
+	(c-set-cpp-delimiters, c-clear-cpp-delimiters): Check for EOB
+	playing the role of delimiter.
+
 2010-01-18  Stephen Leake  <stephen_leake@member.fsf.org>
 
 	* lisp/progmodes/ada-mode.el: Fix bug#5400.
