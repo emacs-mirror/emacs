@@ -1,3 +1,7 @@
+2010-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-send-raw-meta): Revert 2009-12-04 change (Bug#5330).
+
 2010-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* indent.el (tab-always-indent): Fix custom-type.
