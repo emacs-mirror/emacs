@@ -1,7 +1,7 @@
 ;;; indent.el --- indentation commands for Emacs
 
-;; Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -55,7 +55,11 @@ was already indented, then try to complete the thing at point.
 Some programming language modes have their own variable to control this,
 e.g., `c-tab-always-indent', and do not respect this variable."
   :group 'indent
-  :type '(choice (const nil) (const t) (const always)))
+  :type '(choice
+	  (const :tag "Always indent" t)
+	  (const :tag "Indent if inside indentation, else TAB" nil)
+	  (const :tag "Indent, or if already indented complete" complete)))
+
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode.
