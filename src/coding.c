@@ -7417,7 +7417,8 @@ consume_chars (coding, translation_table, max_lookup)
 	{
 	  EMACS_INT bytes;
 
-	  if (coding->encoder == encode_coding_raw_text)
+	  if (coding->encoder == encode_coding_raw_text
+	      || coding->encoder == encode_coding_ccl)
 	    c = *src++, pos++;
 	  else if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
 	    c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos += bytes;

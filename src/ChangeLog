@@ -1,3 +1,8 @@
+2010-01-20  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (consume_chars): If ! multibyte and the encoder is ccl,
+	treat the source as actual byte sequence.
+
 2010-01-19  Alan Mackenzie  <acm@muc.de>
 
 	Fix spurious before-change-functions invocation from (insert ?\n).
