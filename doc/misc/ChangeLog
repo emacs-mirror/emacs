@@ -1,3 +1,37 @@
+2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ada-mode.texi (Project File Overview): Fix typo.
+
+2010-01-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* semantic.texi: Add Richard Y. Kim credit.
+
+	* eieio.texi (Making New Objects): Fix typo (Bug#5406).
+
+2010-01-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Add GNU Emacs 23 and
+	SXEmacs	22 to the supported systems.  New item for hung ssh sessions.
+
+2010-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Reporting Bugs): Don't mention format of repository.
+
+	* woman.texi (Bugs): Make "Emacs repository" less specific,
+	and the URL for same more specific.
+
+	* faq.texi (Latest version of Emacs): The repository is now Bazaar.
+
+2010-01-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede.texi (ede-step-project, ede-proj-target):
+	* tramp.texi (Remote processes): Fix typos.
+
+2010-01-16  Mario Lang  <mlang@delysid.org>
+
+	* ede.texi (ede-target):
+	* org.texi (Refiling notes): Remove duplicated words.
+
 2010-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus.texi (Posting Styles): Use with-current-buffer.

@@ -396,7 +396,7 @@ src_dir=/Projects/my_project/src_1
 src_dir=/Projects/my_project/src_2
 @end example
 
-Some variables (like @code{src_dir}) are lists; multiple occurances
+Some variables (like @code{src_dir}) are lists; multiple occurrences
 are concatenated.
 
 There must be no space between the variable name and ``='', and no

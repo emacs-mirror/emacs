@@ -192,7 +192,7 @@ Keeps STRINGS only in the history.")
 						    default-tag initial-input
 						    history)
   "Read a semantic tag, and return a tag for the selection.
-Argument COLLECTOR is an object which can be used to to calculate
+Argument COLLECTOR is an object which can be used to calculate
 a list of possible hits.  See `semantic-completion-collector-engine'
 for details on COLLECTOR.
 Argument DISPLAYOR is an object used to display a list of possible
@@ -394,7 +394,7 @@ Return value can be:
 
 ;;; Keybindings
 ;;
-;; Keys are bound to to perform completion using our mechanisms.
+;; Keys are bound to perform completion using our mechanisms.
 ;; Do that work here.
 (defun semantic-complete-done ()
   "Accept the current input."
@@ -738,7 +738,7 @@ DO NOT CALL THIS IF THE INLINE COMPLETION ENGINE IS NOT ACTIVE."
 (defun semantic-complete-inline-tag-engine
   (collector displayor buffer start end)
   "Perform completion based on semantic tags in a buffer.
-Argument COLLECTOR is an object which can be used to to calculate
+Argument COLLECTOR is an object which can be used to calculate
 a list of possible hits.  See `semantic-completion-collector-engine'
 for details on COLLECTOR.
 Argument DISPLAYOR is an object used to display a list of possible

@@ -42,6 +42,8 @@ static char *current_mono_font;
 static struct x_display_info *first_dpyinfo;
 static Lisp_Object Qfont_name, Qfont_render;
 static int use_system_font;
+static Lisp_Object Vxft_settings;
+
 
 #ifdef HAVE_GCONF
 static GConfClient *gconf_client;
@@ -406,12 +408,13 @@ apply_xft_settings (dpyinfo, send_event_p)
   FcPattern *pat;
   struct xsettings settings, oldsettings;
   int changed = 0;
+  char buf[256];
 
   if (!read_xft_settings (dpyinfo, &settings))
     return;
 
   memset (&oldsettings, 0, sizeof (oldsettings));
-
+  buf[0] = '\0';
   pat = FcPatternCreate ();
   XftDefaultSubstitute (dpyinfo->display,
                         XScreenNumberOfScreen (dpyinfo->screen),
@@ -428,20 +431,30 @@ apply_xft_settings (dpyinfo, send_event_p)
       FcPatternDel (pat, FC_ANTIALIAS);
       FcPatternAddBool (pat, FC_ANTIALIAS, settings.aa);
       ++changed;
+      oldsettings.aa = settings.aa;
     }
+  sprintf (buf, "Antialias: %d", oldsettings.aa);
+
   if ((settings.seen & SEEN_HINTING) != 0
       && oldsettings.hinting != settings.hinting)
     {
       FcPatternDel (pat, FC_HINTING);
       FcPatternAddBool (pat, FC_HINTING, settings.hinting);
       ++changed;
+      oldsettings.hinting = settings.hinting;
     }
+  if (strlen (buf) > 0) strcat (buf, ", ");
+  sprintf (buf+strlen (buf), "Hinting: %d", oldsettings.hinting);
   if ((settings.seen & SEEN_RGBA) != 0 && oldsettings.rgba != settings.rgba)
     {
       FcPatternDel (pat, FC_RGBA);
       FcPatternAddInteger (pat, FC_RGBA, settings.rgba);
+      oldsettings.rgba = settings.rgba;
       ++changed;
     }
+  if (strlen (buf) > 0) strcat (buf, ", ");
+  sprintf (buf+strlen (buf), "RGBA: %d", oldsettings.rgba);
+
   /* Older fontconfig versions don't have FC_LCD_FILTER. */
   if ((settings.seen & SEEN_LCDFILTER) != 0
       && oldsettings.lcdfilter != settings.lcdfilter)
@@ -449,14 +462,22 @@ apply_xft_settings (dpyinfo, send_event_p)
       FcPatternDel (pat, FC_LCD_FILTER);
       FcPatternAddInteger (pat, FC_LCD_FILTER, settings.lcdfilter);
       ++changed;
+      oldsettings.lcdfilter = settings.lcdfilter;
     }
+  if (strlen (buf) > 0) strcat (buf, ", ");
+  sprintf (buf+strlen (buf), "LCDFilter: %d", oldsettings.lcdfilter);
+
   if ((settings.seen & SEEN_HINTSTYLE) != 0
       && oldsettings.hintstyle != settings.hintstyle)
     {
       FcPatternDel (pat, FC_HINT_STYLE);
       FcPatternAddInteger (pat, FC_HINT_STYLE, settings.hintstyle);
       ++changed;
+      oldsettings.hintstyle = settings.hintstyle;
     }
+  if (strlen (buf) > 0) strcat (buf, ", ");
+  sprintf (buf+strlen (buf), "Hintstyle: %d", oldsettings.hintstyle);
+
   if ((settings.seen & SEEN_DPI) != 0 && oldsettings.dpi != settings.dpi
       && settings.dpi > 0)
     {
@@ -465,7 +486,8 @@ apply_xft_settings (dpyinfo, send_event_p)
       FcPatternDel (pat, FC_DPI);
       FcPatternAddDouble (pat, FC_DPI, settings.dpi);
       ++changed;
-
+      oldsettings.dpi = settings.dpi;
+      
       /* Change the DPI on this display and all frames on the display.  */
       dpyinfo->resy = dpyinfo->resx = settings.dpi;
       FOR_EACH_FRAME (tail, frame)
@@ -474,12 +496,16 @@ apply_xft_settings (dpyinfo, send_event_p)
           XFRAME (frame)->resy = XFRAME (frame)->resx = settings.dpi;
     }
 
+  if (strlen (buf) > 0) strcat (buf, ", ");
+  sprintf (buf+strlen (buf), "DPI: %lf", oldsettings.dpi);
+
   if (changed)
     {
       XftDefaultSet (dpyinfo->display, pat);
       if (send_event_p)
         store_font_changed_event (Qfont_render,
                                   XCAR (dpyinfo->name_list_element));
+      Vxft_settings = make_string (buf, strlen (buf));
     }
   else
     FcPatternDestroy (pat);
@@ -637,6 +663,10 @@ syms_of_xsettings ()
   DEFVAR_BOOL ("font-use-system-font", &use_system_font,
     doc: /* *Non-nil means to use the system defined font.  */);
   use_system_font = 0;
+
+  DEFVAR_LISP ("xft-settings", &Vxft_settings,
+               doc: /* Font settings applied to Xft.  */);
+  Vxft_settings = make_string ("", 0);
 
 #ifdef HAVE_XFT
   Fprovide (intern_c_string ("font-render-setting"), Qnil);

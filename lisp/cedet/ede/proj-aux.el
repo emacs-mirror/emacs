@@ -1,4 +1,4 @@
-;;; ede/proj-aux.el --- EDE Generic Project auxilliary file support
+;;; ede/proj-aux.el --- EDE Generic Project auxiliary file support
 
 ;; Copyright (C) 1998, 1999, 2000, 2007, 2009, 2010  Free Software Foundation, Inc.
 

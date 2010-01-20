@@ -1139,6 +1139,8 @@ If stringp, use this; if non-nil, use no host name (user name only)."
 		 (string :tag "name")
 		 (sexp :tag "none" :format "%t" t)))
 
+;; This can be the name of a buffer, or a cons cell (FUNCTION . ARGS)
+;; for yanking the original buffer.
 (defvar message-reply-buffer nil)
 (defvar message-reply-headers nil
   "The headers of the current replied article.
@@ -1997,7 +1999,7 @@ see `message-narrow-to-headers-or-head'."
 
 (defmacro message-with-reply-buffer (&rest forms)
   "Evaluate FORMS in the reply buffer, if it exists."
-  `(when (and message-reply-buffer
+  `(when (and (bufferp message-reply-buffer)
 	      (buffer-name message-reply-buffer))
      (with-current-buffer message-reply-buffer
        ,@forms)))
@@ -3179,7 +3181,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
   "Widen the reply to include maximum recipients."
   (interactive)
   (let ((follow-to
-	 (and message-reply-buffer
+	 (and (bufferp message-reply-buffer)
 	      (buffer-name message-reply-buffer)
 	      (with-current-buffer message-reply-buffer
 		(message-get-reply-headers t)))))
@@ -3674,9 +3676,16 @@ Really top post? ")))
 				      (point-max)))
 	      (delete-region (message-goto-body) (point-max)))
 	  (set (make-local-variable 'message-cite-reply-above) nil)))
-      (delete-windows-on message-reply-buffer t)
+      (if (bufferp message-reply-buffer)
+	  (delete-windows-on message-reply-buffer t))
       (push-mark (save-excursion
-		   (insert-buffer-substring message-reply-buffer)
+		   (cond
+		    ((bufferp message-reply-buffer)
+		     (insert-buffer-substring message-reply-buffer))
+		    ((and (consp message-reply-buffer)
+			  (functionp (car message-reply-buffer)))
+		     (apply (car message-reply-buffer)
+			    (cdr message-reply-buffer))))
 		   (unless (bolp)
 		     (insert ?\n))
 		   (point)))
@@ -6251,14 +6260,14 @@ between beginning of field and beginning of line."
 	nil
       mua)))
 
-(defun message-setup (headers &optional replybuffer actions
+;; YANK-ACTION, if non-nil, can be a buffer or a yank action of the
+;; form (FUNCTION . ARGS).
+(defun message-setup (headers &optional yank-action actions
 			      continue switch-function)
   (let ((mua (message-mail-user-agent))
-	subject to field yank-action)
+	subject to field)
     (if (not (and message-this-is-mail mua))
-	(message-setup-1 headers replybuffer actions)
-      (if replybuffer
-	  (setq yank-action (list 'insert-buffer replybuffer)))
+	(message-setup-1 headers yank-action actions)
       (setq headers (copy-sequence headers))
       (setq field (assq 'Subject headers))
       (when field
@@ -6275,7 +6284,11 @@ between beginning of field and beginning of line."
 				 (format "%s" (car item))
 				 (cdr item)))
 			      headers)
-		      continue switch-function yank-action actions)))))
+		      continue switch-function
+		      (if (bufferp yank-action)
+			  (list 'insert-buffer yank-action)
+			yank-action)
+		      actions)))))
 
 (defun message-headers-to-generate (headers included-headers excluded-headers)
   "Return a list that includes all headers from HEADERS.
@@ -6302,12 +6315,16 @@ are not included."
 	(push header result)))
     (nreverse result)))
 
-(defun message-setup-1 (headers &optional replybuffer actions)
+(defun message-setup-1 (headers &optional yank-action actions)
   (dolist (action actions)
     (condition-case nil
 	(add-to-list 'message-send-actions
 		     `(apply ',(car action) ',(cdr action)))))
-  (setq message-reply-buffer replybuffer)
+  (setq message-reply-buffer
+	(if (and (consp yank-action)
+		 (eq (car yank-action) 'insert-buffer))
+	    (nth 1 yank-action)
+	  yank-action))
   (goto-char (point-min))
   ;; Insert all the headers.
   (mail-header-format
@@ -6438,7 +6455,7 @@ OTHER-HEADERS is an alist of header/value pairs.  CONTINUE says whether
 to continue editing a message already being composed.  SWITCH-FUNCTION
 is a function used to switch to and display the mail buffer."
   (interactive)
-  (let ((message-this-is-mail t) replybuffer)
+  (let ((message-this-is-mail t))
     (unless (message-mail-user-agent)
       (message-pop-to-buffer
        ;; Search for the existing message buffer if `continue' is non-nil.
@@ -6449,15 +6466,11 @@ is a function used to switch to and display the mail buffer."
 		message-generate-new-buffers)))
 	 (message-buffer-name "mail" to))
        switch-function))
-    ;; FIXME: message-mail should do something if YANK-ACTION is not
-    ;; insert-buffer.
-    (and (consp yank-action) (eq (car yank-action) 'insert-buffer)
-	 (setq replybuffer (nth 1 yank-action)))
     (message-setup
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
       (when other-headers other-headers))
-     replybuffer send-actions continue switch-function)
+     yank-action send-actions continue switch-function)
     ;; FIXME: Should return nil if failure.
     t))
 

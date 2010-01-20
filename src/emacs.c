@@ -1869,7 +1869,7 @@ const struct standard_args standard_args[] =
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
-  /* Now for the options handled in startup.el.  */
+  /* Now for the options handled in `command-line' (startup.el).  */
   { "-Q", "--quick", 55, 0 },
   { "-quick", 0, 55, 0 },
   { "-q", "--no-init-file", 50, 0 },
@@ -1878,10 +1878,12 @@ const struct standard_args standard_args[] =
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
-  { "-nbi", "--no-bitmap-icon", 15, 0 },
   { "-iconic", "--iconic", 15, 0 },
   { "-D", "--basic-display", 12, 0},
   { "-basic-display", 0, 12, 0},
+  { "-nbc", "--no-blinking-cursor", 12, 0 },
+  /* Now for the options handled in `command-line-1' (startup.el).  */
+  { "-nbi", "--no-bitmap-icon", 10, 0 },
   { "-bg", "--background-color", 10, 1 },
   { "-background", 0, 10, 1 },
   { "-fg", "--foreground-color", 10, 1 },
@@ -1891,7 +1893,6 @@ const struct standard_args standard_args[] =
   { "-ib", "--internal-border", 10, 1 },
   { "-ms", "--mouse-color", 10, 1 },
   { "-cr", "--cursor-color", 10, 1 },
-  { "-nbc", "--no-blinking-cursor", 10, 0 },
   { "-fn", "--font", 10, 1 },
   { "-font", 0, 10, 1 },
   { "-fs", "--fullscreen", 10, 0 },

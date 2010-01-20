@@ -479,7 +479,7 @@
 			  (assoc major-mode viper-emacs-state-modifier-alist))
 		       viper-empty-keymap))
 	       ))
-	
+
   ;; This var is not local in Emacs, so we make it local.  It must be local
   ;; because although the stack of minor modes can be the same for all buffers,
   ;; the associated *keymaps* can be different.  In Viper,
@@ -891,7 +891,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 
 
 (defun viper-exec-form-in-vi  (form)
-  "Execute FORM in Vi state, regardless of the Ccurrent Vi state."
+  "Execute FORM in Vi state, regardless of the current Vi state."
   (let ((buff (current-buffer))
 	result)
     (viper-set-mode-vars-for 'vi-state)
@@ -910,7 +910,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 
 (defun viper-exec-form-in-emacs  (form)
   "Execute FORM in Emacs, temporarily disabling Viper's minor modes.
-Similar to viper-escape-to-emacs, but accepts forms rather than keystrokes."
+Similar to `viper-escape-to-emacs', but accepts forms rather than keystrokes."
   (let ((buff (current-buffer))
 	result)
     (viper-set-mode-vars-for 'emacs-state)
@@ -939,7 +939,7 @@ such minor modes.
 Usage:
     (viper-harness-minor-mode load-file)
 
-LOAD-FILE is a name of the file where the specific minor mode is defined.
+LOAD-FILE is the name of the file where the specific minor mode is defined.
 Suffixes such as .el or .elc should be stripped."
 
   (interactive "sEnter name of the load file: ")
@@ -961,9 +961,9 @@ Prevents multiple escape keystrokes if viper-no-multiple-ESC is true.
 If viper-no-multiple-ESC is 'twice double ESC would ding in vi-state.
 Other ESC sequences are emulated via the current Emacs's major mode
 keymap.  This is more convenient on TTYs, since this won't block
-function keys such as up,down, etc.  ESC will also will also work as
-a Meta key in this case.  When viper-no-multiple-ESC is nil, ESC functions
-as a Meta key and any number of multiple escapes is allowed."
+function keys such as up, down, etc.  ESC will also will also work as
+a Meta key in this case.  When viper-no-multiple-ESC is nil, ESC works
+as a Meta key and any number of multiple escapes are allowed."
   (interactive "P")
   (let (char)
     (cond ((and (not viper-no-multiple-ESC) (eq viper-current-state 'vi-state))
@@ -1181,7 +1181,7 @@ as a Meta key and any number of multiple escapes is allowed."
 		((eq event-char 'delete) (setq event-char ?\C-?))
 		((eq event-char 'backspace) (setq event-char ?\C-h))
 		((eq event-char 'space) (setq event-char ?\ )))
-	  (setq last-command-event 
+	  (setq last-command-event
 		(if (featurep 'xemacs)
 		    (character-to-event (or com event-char))
 		  (or com event-char)))
@@ -1257,7 +1257,7 @@ as a Meta key and any number of multiple escapes is allowed."
 
       ;; as com is non-nil, this means that we have a command to execute
       (if (viper-memq-char (car com) '(?r ?R))
-	  ;; execute apropriate region command.
+	  ;; execute appropriate region command.
 	  (let ((char (car com)) (com (cdr com)))
 	    (setq prefix-arg (cons value com))
 	    (if (viper= char ?r)
@@ -1285,7 +1285,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	 ;; gg  acts as G0
 	 ((equal (car com) ?g)   (viper-goto-line 0))
 	 (t (error "Viper bell")))))
-    
+
     (if cmd-to-exec-at-end
 	(progn
 	  (setq last-command-event
@@ -1621,7 +1621,7 @@ Use the info in viper-d-com, which has the form
 where `com' is the command to be re-executed, `val' is the
 argument to `com', `ch' is a flag for repeat, and `reg' is optional;
 if it exists, it is the name of the register for `com'.
-If the prefix argument, ARG, is non-nil, it is used instead of `val'."
+If the prefix argument ARG is non-nil, it is used instead of `val'."
   (interactive "P")
   (let ((save-point (point)) ; save point before repeating prev cmd
 	;; Pass along that we are repeating a destructive command
@@ -1944,7 +1944,7 @@ Undo previous insertion and inserts new."
 		 require-final-newline
 		 ;; add newline only if we actually edited buffer. otherwise it
 		 ;; might unintentionally modify binary buffers
-		 (buffer-modified-p) 
+		 (buffer-modified-p)
 		 (not (viper-is-in-minibuffer))
 		 (not buffer-read-only))
 	    ;; text property may be read-only
@@ -2539,7 +2539,7 @@ problems."
 
 (defun viper-replace-state-exit-cmd ()
   "Binding for keys that cause Replace state to switch to Vi or to Insert.
-These keys are ESC, RET, and LineFeed"
+These keys are ESC, RET, and LineFeed."
   (interactive)
   (if overwrite-mode   ; if in replace mode invoked via 'R'
       (viper-finish-R-mode)
@@ -3711,7 +3711,7 @@ controlled by the sign of prefix numeric value."
 (defun viper-toggle-search-style (arg)
   "Toggle the value of viper-case-fold-search/viper-re-search.
 Without prefix argument, will ask which search style to toggle.  With prefix
-arg 1,toggles viper-case-fold-search; with arg 2 toggles viper-re-search.
+arg 1, toggles viper-case-fold-search; with arg 2 toggles viper-re-search.
 
 Although this function is bound to \\[viper-toggle-search-style], the most
 convenient way to use it is to bind `//' to the macro
@@ -4262,7 +4262,7 @@ Null string will repeat previous search."
 (defun viper-del-backward-char-in-replace ()
   "Delete one character in replace mode.
 If `viper-delete-backwards-in-replace' is t, then DEL key actually deletes
-charecters.  If it is nil, then the cursor just moves backwards, similarly
+characters.  If it is nil, then the cursor just moves backwards, similarly
 to Vi.  The variable `viper-ex-style-editing', if t, doesn't let the
 cursor move past the beginning of line."
   (interactive)
@@ -4614,7 +4614,7 @@ One can use `` and '' to temporarily jump 1 step back."
   (indent-to (+ (current-column) viper-shift-width)))
 
 (defun viper-backward-indent ()
-  "Backtab, C-d in VI"
+  "Backtab, `C-d' in Vi."
   (interactive)
   (if viper-cted
       (let ((p (point)) (c (current-column)) bol (indent t))
@@ -4689,7 +4689,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	      viper-InvalidRegister reg)))))
 
 (defun viper-brac-function (arg)
-  "Function called by \[, the brac.  View textmarkers and call \[\["
+  "Function called by \[, the brac.  View textmarkers and call \[\[."
   (interactive "P")
   (let ((reg (read-char)))
     (cond ((viper= ?\[ reg)
@@ -4922,7 +4922,7 @@ Please, specify your level now: ")
 
 ;; if ENFORCE-BUFFER is not nil, error if CHAR is a marker in another buffer
 (defun viper-register-to-point (char &optional enforce-buffer)
-  "Like jump-to-register, but switches to another buffer in another window."
+  "Like `jump-to-register', but switches to another buffer in another window."
   (interactive "cViper register to point: ")
   (let ((val (get-register char)))
     (cond
@@ -5047,7 +5047,7 @@ PLEASE FOLLOW THESE PROCEDURES
 ------------------------------
 
 Before reporting a bug, please verify that it is related to Viper, and is
-not cause by other packages you are using.
+not caused by other packages you are using.
 
 Don't report compilation warnings, unless you are certain that there is a
 problem.  These warnings are normal and unavoidable.

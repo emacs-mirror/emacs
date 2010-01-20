@@ -43,7 +43,7 @@ enum atimer_type
   /* Timer is ripe at now plus an offset.  */
   ATIMER_RELATIVE,
 
-  /* Timer runs continously.  */
+  /* Timer runs continuously.  */
   ATIMER_CONTINUOUS
 };
 

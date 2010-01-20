@@ -1289,7 +1289,7 @@ BODY should use the minibuffer at most once.
 Recursive uses of the minibuffer are unaffected (FUN is not
 called additional times).
 
-This macro actually adds an auxilliary function that calls FUN,
+This macro actually adds an auxiliary function that calls FUN,
 rather than FUN itself, to `minibuffer-setup-hook'."
   (declare (indent 1) (debug t))
   (let ((hook (make-symbol "setup-hook")))

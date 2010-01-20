@@ -1728,7 +1728,7 @@ The variable GNUSTEP_INSTALLATION_DOMAIN is set at this value.
 Type: @code{(or null list)} @*
 Default Value: @code{(quote ("GNUmakefile.preamble"))}
 
-The auxilliary makefile for additional variables.
+The auxiliary makefile for additional variables.
 Included just before the specific target files.
 @refill
 
@@ -1736,7 +1736,7 @@ Included just before the specific target files.
 Type: @code{(or null list)} @*
 Default Value: @code{(quote ("GNUmakefile.postamble"))}
 
-The auxilliary makefile for additional rules.
+The auxiliary makefile for additional rules.
 Included just after the specific target files.
 @refill
 
@@ -1968,7 +1968,7 @@ Retrieves the slot @code{sourcetype} from an object of class @code{ede-target}
 
 @deffn Method ede-expand-filename :AFTER this filename &optional force
 Return a fully qualified file name based on target @var{THIS}.
-@var{FILENAME} should a a filename which occurs in a directory in which @var{THIS} works.
+@var{FILENAME} should be a filename which occurs in a directory in which @var{THIS} works.
 Optional argument @var{FORCE} forces the default filename to be provided even if it
 doesn't exist.
 @end deffn
@@ -2083,7 +2083,7 @@ Relative to the path of the project it belongs to.
 Type: @code{list} @*
 Default Value: @code{nil}
 
-Auxilliary source files included in this target.
+Auxiliary source files included in this target.
 Each of these is considered equivalent to a source file, but it is not
 distributed, and each should have a corresponding rule to build it.
 @refill
