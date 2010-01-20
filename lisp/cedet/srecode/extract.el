@@ -216,7 +216,7 @@ Return nil if nothing was extracted."
   (srecode-insert-include-lookup ins dict)
   ;; There are two modes for includes.  One is with no dict,
   ;; so it is inserted straight.  If the dict has a name, then
-  ;; we need to run once per dictionary occurance.
+  ;; we need to run once per dictionary occurrence.
   (if (not (string= (oref ins :object-name) ""))
       ;; With a name, do the insertion.
       (let ((subdict (srecode-dictionary-add-section-dictionary

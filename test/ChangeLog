@@ -1,3 +1,10 @@
+2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic-tests.el (semanticdb-test-gnu-global)
+	(semantic-lex-test-full-depth, semantic-symref-test-count-hits-in-tag):
+	Fix typos in docstrings and error messages.
+	(semanticdb-ebrowse-run-tests): Fix typos in error messages.
+
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/cedet-utests.el (cedet-utest-log-shutdown, pulse-test):

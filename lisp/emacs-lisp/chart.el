@@ -644,7 +644,7 @@ SORT-PRED if desired."
     ;; Lets create the chart!
     (chart-bar-quickie 'vertical "Files Extension Distribution"
 		       extlst "File Extensions"
-		       cntlst "# of occurances"
+		       cntlst "# of occurrences"
 		       10
 		       '(lambda (a b) (> (cdr a) (cdr b))))
     ))
@@ -740,9 +740,9 @@ SORT-PRED if desired."
 		(setcar cell (1+ (car cell))))
 	    (setq nmlst (cons nam nmlst)
 		  cntlst (cons 1 cntlst))))))
-    (chart-bar-quickie 'vertical "Username Occurance in RMAIL box"
+    (chart-bar-quickie 'vertical "Username Occurrence in RMAIL box"
 		       nmlst "User Names"
-		       cntlst "# of occurances"
+		       cntlst "# of occurrences"
 		       10
 		       '(lambda (a b) (> (cdr a) (cdr b))))
     ))
