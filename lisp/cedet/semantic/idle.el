@@ -367,7 +367,7 @@ Returns t if all processing succeeded."
 
 (defun semantic-idle-work-core-handler ()
   "Core handler for idle work processing of long running tasks.
-Visits semantic controlled buffers, and makes sure all needed
+Visits Semantic controlled buffers, and makes sure all needed
 include files have been parsed, and that the typecache is up to date.
 Uses `semantic-idle-work-for-on-buffer' to do the work."
   (let ((errbuf nil)
@@ -577,7 +577,7 @@ Does nothing if the current buffer doesn't need reparsing."
 DOC will be a documentation string describing FORMS.
 FORMS will be called during idle time after the current buffer's
 semantic tag information has been updated.
-This routines creates the following functions and variables:"
+This routine creates the following functions and variables:"
   (let ((global (intern (concat "global-" (symbol-name name) "-mode")))
 	(mode 	(intern (concat (symbol-name name) "-mode")))
 	(hook 	(intern (concat (symbol-name name) "-mode-hook")))
@@ -764,7 +764,7 @@ specific to a major mode.  For example, in jde mode:
 	     jde-java-font-lock-code-face)))")
 
 (defun semantic-idle-summary-useful-context-p ()
-  "Non-nil of we should show a summary based on context."
+  "Non-nil if we should show a summary based on context."
   (if (and (boundp 'font-lock-mode)
 	   font-lock-mode
 	   (memq (get-text-property (point) 'face)
@@ -959,7 +959,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 ;;;###autoload
 (defun global-semantic-idle-scheduler-mode (&optional arg)
   "Toggle global use of option `semantic-idle-scheduler-mode'.
-The idle scheduler with automatically reparse buffers in idle time,
+The idle scheduler will automatically reparse buffers in idle time,
 and then schedule other jobs setup with `semantic-idle-scheduler-add'.
 If ARG is positive, enable, if it is negative, disable.
 If ARG is nil, then toggle."

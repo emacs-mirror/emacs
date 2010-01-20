@@ -1,3 +1,20 @@
+2010-01-19  Alan Mackenzie  <acm@muc.de>
+
+	Fix spurious before-change-functions invocation from (insert ?\n).
+	* textprop.c (set_text_properties): rename parameter
+	`signal_after_change_p' to `coherent_change_p', and make the
+	invocation of `modify_region' conditional on it.
+
+2010-01-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (apply_xft_settings): Save settings in Vxft_settings
+	for debug purpose.
+	(syms_of_xsettings): Declare xft-settings.
+
+2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fcurrent_time_string): Doc fix (Bug#5408).
+
 2010-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (event_handler_gdk): Block input (Bug#5037).

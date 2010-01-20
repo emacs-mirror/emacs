@@ -227,7 +227,7 @@ attributes.  These default objects will be pulled up in a custom
 object edit buffer doing an in-place edit.
 
 If your object represents some other item, override this method
-and take the apropriate action."
+and take the appropriate action."
   (require 'eieio-custom)
   (speedbar-with-attached-buffer
    (eieio-customize-object object))
@@ -327,7 +327,7 @@ Argument DEPTH is the depth at which the tag line is inserted."
 
 (defmethod eieio-speedbar-expand ((object eieio-speedbar) depth)
   "Expand OBJECT at indentation DEPTH.
-Inserts a list of new tag lines representing expanded elements withing
+Inserts a list of new tag lines representing expanded elements within
 OBJECT."
   (let ((children (eieio-speedbar-object-children object)))
     (cond ((eieio-object-p (car children))
