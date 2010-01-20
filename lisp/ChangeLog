@@ -1,3 +1,39 @@
+2010-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* indent.el (tab-always-indent): Fix custom-type.
+
+2010-01-19  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el: Fix bug#5395: typing '#' in an empty
+	buffer throws "args out of range".
+	(c-set-cpp-delimiters, c-clear-cpp-delimiters): Check for EOB
+	playing the role of delimiter.
+
+2010-01-18  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* lisp/progmodes/ada-mode.el: Fix bug#5400.
+	(ada-matching-decl-start-re): Move into ada-goto-decl-start.
+	(ada-goto-decl-start): Rename from ada-goto-matching-decl-start; callers
+	changed.  Delete RECURSIVE parameter; never used.  Improve doc string.
+	Improve comments in "is" portion.  Handle null procedure declaration.
+	(ada-move-to-end): Improve doc string.
+
+2010-01-18  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* ido.el (ido-cur-list): Initialize to nil.
+	Remove obsolete information from commentary.
+	(ido-choice-list): Initialize to nil.
+	(ido-get-bufname): Reject minibuffers.
+	(ido-make-buffer-list): If "default" is a nonexistent
+	buffer, ignore it, as per the function's comment.
+	(ido-kill-buffer-internal): New function.
+	(ido-kill-buffer-at-head): Use it.
+	(ido-visit-buffer): Likewise.
+
+2010-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar/time-date.el (date-to-time): Doc fix (Bug#5408).
+
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/ede/locate.el (ede-locate-file-in-project)
@@ -92,7 +128,7 @@
 
 2010-01-17  Stephen Leake  <stephen_leake@member.fsf.org>
 
-	* progmodes/ada-mode.el: Fix bug#1920, bug#5400.
+	* progmodes/ada-mode.el: Fix bug#1920.
 	(ada-ident-re): Delete ., allow multibyte characters.
 	(ada-goto-label-re): New; matches goto labels.
 	(ada-block-label-re): New; matches block labels.
