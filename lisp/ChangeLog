@@ -1,3 +1,11 @@
+2010-01-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix a situation where deletion of a cpp construct throws an error.
+	* progmodes/cc-engine.el (c-invalidate-state-cache): Before
+	invoking c-with-all-but-one-cpps-commented-out, check that the
+	special cpp construct is still in the buffer.
+	(c-parse-state): Record the special cpp with markers, not numbers.
+
 2010-01-21  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/sgml-mode.el (sgml-maybe-name-self): No need to
