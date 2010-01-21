@@ -1,3 +1,7 @@
+2010-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Bugs): Fix PROBLEMS keybinding.
+
 2010-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Checklist): Use bug-gnu-emacs rather than

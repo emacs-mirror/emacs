@@ -1,3 +1,7 @@
+2010-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Score File Format): Fix typo.
+
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ada-mode.texi (Project File Overview): Fix typo.
