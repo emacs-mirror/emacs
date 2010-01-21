@@ -1,3 +1,8 @@
+2010-01-21  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/sgml-mode.el (sgml-maybe-name-self): No need to
+	process last-command-event, as it is now decoded first (Bug#5380).
+
 2010-01-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term.el (term-send-raw-meta): Revert 2009-12-04 change (Bug#5330).
