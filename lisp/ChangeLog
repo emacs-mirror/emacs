@@ -1,3 +1,8 @@
+2010-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* jka-compr.el (jka-compr-load): If load-file is not in
+	load-history, try its file-truename version.  (bug#5447)
+
 2010-01-21  Alan Mackenzie  <acm@muc.de>
 
 	Fix a situation where deletion of a cpp construct throws an error.
