@@ -1,3 +1,10 @@
+2010-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lisp.h (make_pure_string): String pointer arg now points to const.
+
+	* alloc.c (find_string_data_in_pure, make_pure_string): String pointer
+	args now point to const.
+
 2010-01-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* lread.c (Fload): Don't treat files without .elc extension as
