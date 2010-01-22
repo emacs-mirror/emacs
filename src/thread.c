@@ -201,7 +201,7 @@ invoke_thread_function (void)
     }
   current_thread->initial_specpdl = Qnil;
 
-  Feval (current_thread->func);
+  Ffuncall (1, &current_thread->func);
   return unbind_to (count, Qnil);
 }
 
