@@ -55,7 +55,6 @@
 (require 'assoc)
 (require 'tramp)
 (require 'tramp-compat)
-(eval-when-compile (require 'imap-hash))
 
 (autoload 'auth-source-user-or-password "auth-source")
 (autoload 'epg-context-operation "epg")
