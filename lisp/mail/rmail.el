@@ -2727,7 +2727,8 @@ The current mail message becomes the message displayed."
 	    (insert-buffer-substring mbox-buf body-start end)
 	    (cond
 	     ((string= character-coding "quoted-printable")
-	      (mail-unquote-printable-region (point-min) (point-max)))
+	      (mail-unquote-printable-region (point-min) (point-max)
+                                             nil nil 'unibyte))
 	     ((and (string= character-coding "base64") is-text-message)
 	      (base64-decode-region (point-min) (point-max)))
 	     ((eq character-coding 'uuencode)

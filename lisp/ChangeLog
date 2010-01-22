@@ -1,3 +1,9 @@
+2010-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmailmm.el (rmail-mime-handle): Don't set the buffer to unibyte
+	just because we see "encoding: 8bit".
+	* mail/rmail.el (rmail-show-message-1): Decode the body's QP into bytes.
+
 2010-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* isearch.el (isearch-allow-scroll): Doc fix (Bug#5446).
