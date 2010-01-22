@@ -58,7 +58,7 @@ All systems are different.  Ask questions along the way."
   (when (not (or (eq major-mode 'c-mode)
 		 (eq major-mode 'c++-mode)))
     (error "Please make your default buffer be a C or C++ file, then
-run the test again..")))
+run the test again")))
 
 (defun semanticdb-ebrowse-dump ()
   "Find the first loaded ebrowse table, and dump out the contents."
@@ -83,7 +83,7 @@ run the test again..")))
 (defun semanticdb-test-gnu-global (searchfor &optional standardfile)
   "Test the GNU Global semanticdb.
 Argument SEARCHFOR is the text to search for.
-If optional arg STANDARDFILE is non nil, use a standard file w/ global enabled."
+If optional arg STANDARDFILE is non-nil, use a standard file w/ global enabled."
   (interactive "sSearch For Tag: \nP")
 
   (require 'data-debug)
@@ -235,7 +235,7 @@ Optional argument ARG specifies not to use color."
 
 (defun semantic-lex-test-full-depth (arg)
   "Test the semantic lexer in the current buffer parsing through lists.
-Usually the lexer parses
+Usually the lexer parses.
 If universal argument ARG, then try the whole buffer."
   (interactive "P")
   (let* ((start (current-time))
@@ -309,7 +309,7 @@ Analyze the area between BEG and END."
 
 (defun semantic-symref-test-count-hits-in-tag ()
   "Lookup in the current tag the symbol under point.
-the count all the other references to the same symbol within the
+Then count all the other references to the same symbol within the
 tag that contains point, and return that."
   (interactive)
   (let* ((ctxt (semantic-analyze-current-context))
@@ -323,7 +323,7 @@ tag that contains point, and return that."
        (semantic-tag-start tag)
        (semantic-tag-end tag))
       (when (interactive-p)
-	(message "Found %d occurances of %s in %.2f seconds"
+	(message "Found %d occurrences of %s in %.2f seconds"
 		 Lcount (semantic-tag-name target)
 		 (semantic-elapsed-time start (current-time))))
       Lcount)))

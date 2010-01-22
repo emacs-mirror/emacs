@@ -1208,8 +1208,17 @@ without any interpretation."
 
 (defun term-send-raw-meta ()
   (interactive)
-  (let* ((keys (this-command-keys))
-         (char (aref keys (1- (length keys)))))
+  (let ((char last-input-event))
+    (when (symbolp last-input-event)
+      ;; Convert `return' to C-m, etc.
+      (let ((tmp (get char 'event-symbol-elements)))
+	(when tmp
+	  (setq char (car tmp)))
+	(when (symbolp char)
+	  (setq tmp (get char 'ascii-character))
+	  (when tmp
+	    (setq char tmp)))))
+    (setq char (event-basic-type char))
     (term-send-raw-string (if (and (numberp char)
 				   (> char 127)
 				   (< char 256))

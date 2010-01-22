@@ -4,7 +4,7 @@
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c FIXME
 @c Manual last updated:
-@set UPDATED Time-stamp: <2009-02-16 09:25:50 karl>
+@set UPDATED Time-stamp: <Sat 16-Jan-2010 19:18:43 gm on grasmoor>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -18,8 +18,8 @@
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+2009, 2010 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1319,8 +1319,8 @@ inelegantly, then please
 
 @enumerate
 @item
-try the latest version of @file{woman.el} from the Emacs CVS repository
-on @uref{http://savannah.gnu.org/}.  If it still fails, please
+try the latest version of @file{woman.el} from the Emacs repository
+on @uref{http://savannah.gnu.org/projects/emacs/}.  If it still fails, please
 
 @item
 send a bug report to @email{bug-gnu-emacs@@gnu.org} and to

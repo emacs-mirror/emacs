@@ -100,9 +100,6 @@ Cover art by Etienne Suvasa.
 @node Top, Introduction, (dir), (dir)
 @top Emacs Lisp
 
-This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
-
 @insertcopying
 @end ifnottex
 

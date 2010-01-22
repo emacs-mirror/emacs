@@ -2686,7 +2686,7 @@ extern Lisp_Object make_uninit_multibyte_string P_ ((int, int));
 extern Lisp_Object make_string_from_bytes P_ ((const char *, int, int));
 extern Lisp_Object make_specified_string P_ ((const char *, int, int, int));
 EXFUN (Fpurecopy, 1);
-extern Lisp_Object make_pure_string P_ ((char *, int, int, int));
+extern Lisp_Object make_pure_string P_ ((const char *, int, int, int));
 extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object make_pure_vector P_ ((EMACS_INT));

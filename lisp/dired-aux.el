@@ -2308,7 +2308,7 @@ Use \\[dired-hide-all] to (un)hide all directories."
     (restore-buffer-modified-p modflag)))
 
 ;;;###autoload
-(defun dired-hide-all (arg)
+(defun dired-hide-all (&optional ignored)
   "Hide all subdirectories, leaving only their header lines.
 If there is already something hidden, make everything visible again.
 Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."

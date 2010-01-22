@@ -1754,7 +1754,10 @@ Scroll-bar or mode-line events are processed appropriately."
 (put 'digit-argument 'isearch-scroll t)
 
 (defcustom isearch-allow-scroll nil
-  "If non-nil, scrolling commands are allowed during incremental search."
+  "Whether scrolling is allowed during incremental search.
+If non-nil, scrolling commands can be used in Isearch mode.
+However, the current match will never scroll offscreen.
+If nil, scolling commands will first cancel Isearch mode."
   :type 'boolean
   :group 'isearch)
 
