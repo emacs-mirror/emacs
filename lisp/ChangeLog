@@ -1,3 +1,7 @@
+2010-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-imap.el (top): Autoload needed packages.
+
 2010-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/rmailmm.el (rmail-mime-handle): Don't set the buffer to unibyte
