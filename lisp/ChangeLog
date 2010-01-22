@@ -1,3 +1,7 @@
+2010-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-allow-scroll): Doc fix (Bug#5446).
+
 2010-01-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* jka-compr.el (jka-compr-load): If load-file is not in
