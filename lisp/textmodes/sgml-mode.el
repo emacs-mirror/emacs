@@ -608,11 +608,7 @@ Uses `sgml-char-names'."
   "Insert a symbolic character name according to `sgml-char-names'."
   (interactive "*")
   (if sgml-name-8bit-mode
-      (let ((mc last-command-event))
-	(if (< mc 256)
-	    (setq mc (unibyte-char-to-multibyte mc)))
-	(or mc (setq mc last-command-event))
-	(sgml-name-char mc))
+      (sgml-name-char last-command-event)
     (self-insert-command 1)))
 
 (defun sgml-name-8bit-mode ()

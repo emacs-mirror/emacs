@@ -1,3 +1,25 @@
+2010-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* jka-compr.el (jka-compr-load): If load-file is not in
+	load-history, try its file-truename version.  (bug#5447)
+
+2010-01-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix a situation where deletion of a cpp construct throws an error.
+	* progmodes/cc-engine.el (c-invalidate-state-cache): Before
+	invoking c-with-all-but-one-cpps-commented-out, check that the
+	special cpp construct is still in the buffer.
+	(c-parse-state): Record the special cpp with markers, not numbers.
+
+2010-01-21  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/sgml-mode.el (sgml-maybe-name-self): No need to
+	process last-command-event, as it is now decoded first (Bug#5380).
+
+2010-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-send-raw-meta): Revert 2009-12-04 change (Bug#5330).
+
 2010-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* indent.el (tab-always-indent): Fix custom-type.
