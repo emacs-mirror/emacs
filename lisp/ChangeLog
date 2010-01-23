@@ -1,6 +1,11 @@
+2010-01-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-conf): New defcustom.
+	(tramp-smb-maybe-open-connection): Use it.
+
 2010-01-22  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-imap.el (top): Autoload needed packages.
+	* net/tramp-imap.el (top): Autoload needed packages.  (Bug#5448)
 
 2010-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
