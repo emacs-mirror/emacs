@@ -1,7 +1,12 @@
+2010-01-23  Dmitri Paduchikh  <dpaduch@k66.ru>  (tiny change)
+
+	* emacs-lisp/advice.el (ad-set-orig-definition): Fix typo
+	(Bug#3541).
+
 2010-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/assoc.el (aput, adelete, amake): Use lexical-let (Bug#5450).
-	(aelement): Doc fix.
+	* emacs-lisp/assoc.el (aelement): Doc fix.
+	(aput, adelete, amake): Use lexical-let (Bug#5450).
 
 2010-01-23  Stephen Leake  <stephen_leake@member.fsf.org>
 
