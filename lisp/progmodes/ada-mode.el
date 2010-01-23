@@ -257,7 +257,7 @@ Note that indentation is calculated only if `ada-indent-comment-as-code' is t.
 
 For instance:
     A := 1;   --  A multi-line comment
-	      --  aligned if ada-indent-align-comments is t"
+	      --  aligned if `ada-indent-align-comments' is t"
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-comment-as-code t
@@ -4163,8 +4163,7 @@ Return nil if the private is part of the package name, as in
 
 
 (defun ada-in-paramlist-p ()
-  "Return t if point is inside the parameter-list of a declaration,
-but not a subprogram call or aggregate."
+  "Return t if point is inside the parameter-list of a declaration, but not a subprogram call or aggregate."
   (save-excursion
     (and
      (ada-search-ignore-string-comment "(\\|)" t nil t)
