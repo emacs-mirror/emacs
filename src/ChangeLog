@@ -1,3 +1,8 @@
+2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* filelock.c: Include utmp.h only when HAVE_UTMP_H (FreeBSD 9.x
+	lacks this header file).
+
 2010-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (draw_glyphs): Update `start' for left_overwritten case
