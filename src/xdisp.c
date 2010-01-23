@@ -20939,6 +20939,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
 	  j = i;
 	  BUILD_GLYPH_STRINGS (j, start, h, t,
 			       overlap_hl, dummy_x, last_x);
+	  start = i;
 	  compute_overhangs_and_x (t, head->x, 1);
 	  prepend_glyph_string_lists (&head, &tail, h, t);
 	  clip_head = head;
@@ -20988,6 +20989,8 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
 
 	  BUILD_GLYPH_STRINGS (end, i, h, t,
 			       overlap_hl, x, last_x);
+	  /* Because BUILD_GLYPH_STRINGS updates the first argument,
+	     we don't have `end = i;' here.  */
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  append_glyph_string_lists (&head, &tail, h, t);
 	  clip_tail = tail;
