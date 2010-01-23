@@ -1,3 +1,8 @@
+2010-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (draw_glyphs): Update `start' for left_overwritten case
+	as in Emacs 22.
+
 2010-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* lisp.h (make_pure_string): String pointer arg now points to const.
