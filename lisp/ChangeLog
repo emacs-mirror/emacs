@@ -1,3 +1,8 @@
+2010-01-23  Stephen Leake  <stephen_leake@member.fsf.org>
+
+        * progmodes/ada-mode.el (ada-in-paramlist-p): Pragma syntax
+	is the same as subprogram call, not declaration.  (Bug#5435).
+
 2010-01-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-smb.el (tramp-smb-conf): New defcustom.
