@@ -35,6 +35,7 @@ So you need to explicitly CC him/her (and anyone else you like).
 (Many people think the submitter SHOULD be automatically subscribed
 to subsequent discussion, but this does not seem to be implemented.
 See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078)
+See also http://debbugs.gnu.org/5439
 
 Do NOT send a separate copy to the bug list, since this may generate a
 new report. The only time to send mail to the bug list is to create a
@@ -61,18 +62,9 @@ mail with the bug report number in.  If you do not do this, each reply
 in the subsequent discussion will end up creating a new bug.  This is
 annoying.
 
-Note that the way this feature works is perhaps not ideal (Bug#1720).
-If X-Debbugs-CC: was specifed by a real header, that header is removed
-in the mail sent out to the bug list, and the addresses merged into
-the Resent-CC header (see below).  They don't appear as an explicit CC:
-header, nor do they appear in the Reply-To: header.  So people you
-X-Debbugs-CC are not included in any following discussion unless they are
-manually cc'd.  So this feature really only serves to notify them that
-a bug has been filed.  It's then up to them to follow any subsequent
-discussion.
-
-If X-Debbugs-CC were merged into the Reply-To header, this might work
-more the way people expect.
+If a new report contains X-Debbugs-CC in the input, this is
+converted to a real Cc header in the output.  (See Bug#1720).
+It is also merged into the Resent-CC header (see below).
 
 ** How does Debbugs send out mails?
 
@@ -88,9 +80,9 @@ Resent-CC:   maintainer email address, plus any X-Debbugs-CC: entries
 
 The "maintainer email address" is "bug-gnu-emacs@gnu.org" in most cases.
 
-A new report also has:
-
-Mail-Followup-To: bug submitter, 123@debbugs.gnu.org
+In a new report, any "bug-gnu-emacs", "emacs-pretest-bug", or
+"submit@debbugs" address in the original To or Cc is replaced by
+123@debbugs in the mail that gets sent out to the bug list.
 
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
@@ -124,10 +116,10 @@ When you close a bug, you get a message matching:
 ^X-Emacs-PR-Message: closed
 
 ** How to avoid multiple copies of mails.
-When you reply to a bug, respect the Reply-To address, ie send mail
-only to the submitter address and the numbered bug address.  Do not
-send mail direct to bug-gnu-emacs or emacs-pretest-bug unless you are
-reporting a new bug.
+If you reply to reports in the normal way, this should work fine.
+Basically, reply only to the numbered bug address (and any individual
+people's addresses). Do not send mail direct to bug-gnu-emacs or
+emacs-pretest-bug unless you are reporting a new bug.
 
 ** To close bug #123 (for example), send mail
 
@@ -362,7 +354,7 @@ bug number.
 
 Similarly, when you close a bug, it can be helpful to include the
 relevant ChangeLog entry in the message to the bug tracker, so people
-can see eaxctly what the fix was.
+can see exactly what the fix was.
 
 *** bug-reference-mode
 
@@ -372,6 +364,17 @@ the bug web-pages.
 *** Debian stuff
 
 http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
+
+** Bazaar stuff
+
+*** You can use the commit --fixes emacs:123 to mark that a commit fixes
+Emacs bug 123.  You will first need to add a line to your bazaar.conf
+(untested):
+
+bugtracker_emacs_url = http://debbugs.gnu.org/{id}
+
+Note that all this does is add some metadata to the commit, it doesn't
+actually mark the bug as closed in the tracker.
 
 ** Gnus-specific voodoo
 
@@ -456,3 +459,18 @@ recipient: emacs-bug-tracker AT debbugs\.gnu\.org
 
 The latter is because that is the address that debbugs actually sends to.
 An /etc/aliases entry redirects it to the real emacs-bug-tracker address.
+
+** Administrivia
+
+The debbugs-submit list should have the administrivia option off,
+else it can by mistake filter out requests to subscribe to bugs.
+But, this feature doesn't work anyway (see bug#5439).
+
+** How to test changes
+
+Add an entry to /etc/debbugs/Maintainers like:
+
+mytest       my.email.address
+
+Then if you do all your testing with 'Package: mytest', the resulting
+mails should only go to your email address.
