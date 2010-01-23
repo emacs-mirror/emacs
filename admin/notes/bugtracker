@@ -59,8 +59,8 @@ reporting.)
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
 Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
 mail with the bug report number in.  If you do not do this, each reply
-in the subsequent discussion will end up creating a new bug.  This is
-annoying.
+in the subsequent discussion will end up creating a new bug.
+This is annoying.
 
 If a new report contains X-Debbugs-CC in the input, this is
 converted to a real Cc header in the output.  (See Bug#1720).
@@ -188,8 +188,7 @@ tag:tag                # all bugs with given tag
 See <http://wiki.debian.org/bugs.debian.org/usertags>
 
 "Usertags" are very similar to tags: a set of labels that can be added
-to a bug.  There are two differences between normal tags and user
-tags:
+to a bug.  There are two differences between normal tags and user tags:
 
 1) Anyone can define any valid usertag they like.  In contrast, only a
 limited, predefined set of normal tags are available (see above).
@@ -368,7 +367,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 
 ** Bazaar stuff
 
-*** You can use the commit --fixes emacs:123 to mark that a commit fixes
+*** You can use `bzr commit --fixes emacs:123' to mark that a commit fixes
 Emacs bug 123.  You will first need to add a line to your bazaar.conf
 (untested):
 
