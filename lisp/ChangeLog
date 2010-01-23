@@ -1,6 +1,7 @@
 2010-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/assoc.el (aput, adelete, amake): Use lexical-let (Bug#5450).
+	(aelement): Doc fix.
 
 2010-01-23  Stephen Leake  <stephen_leake@member.fsf.org>
 

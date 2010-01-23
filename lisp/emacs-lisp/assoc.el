@@ -42,7 +42,8 @@ sorted list."
 
 (defun aelement (key value)
   "Make a list of a cons cell containing car of KEY and cdr of VALUE.
-The returned list is suitable as an element of an alist."
+The returned list is suitable for concatanating with an existing
+alist, via `nconc'."
   (list (cons key value)))
 
 
