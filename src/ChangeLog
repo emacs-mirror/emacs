@@ -1,3 +1,11 @@
+2010-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (shadow_lookup): Add `remap' arg.
+	(describe_map, describe_vector): Update calls to shadow_lookup.
+	(Fwhere_is_internal): Fix up handling of `remapped_sequences' and
+	`remapped' so this flag is applicable to `sequence'.  Be careful to
+	perform remapping during shadow_lookup check of remapped_equences.
+
 2010-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* lisp.h (make_pure_string): String pointer arg now points to const.
