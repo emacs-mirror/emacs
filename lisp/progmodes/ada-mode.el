@@ -257,7 +257,7 @@ Note that indentation is calculated only if `ada-indent-comment-as-code' is t.
 
 For instance:
     A := 1;   --  A multi-line comment
-	      --  aligned if ada-indent-align-comments is t"
+	      --  aligned if `ada-indent-align-comments' is t"
   :type 'boolean :group 'ada)
 
 (defcustom ada-indent-comment-as-code t
@@ -4163,7 +4163,7 @@ Return nil if the private is part of the package name, as in
 
 
 (defun ada-in-paramlist-p ()
-  "Return t if point is inside a parameter-list."
+  "Return t if point is inside the parameter-list of a declaration, but not a subprogram call or aggregate."
   (save-excursion
     (and
      (ada-search-ignore-string-comment "(\\|)" t nil t)
@@ -4194,13 +4194,13 @@ Return nil if the private is part of the package name, as in
 
      ;; right keyword two words before parenthesis ?
      ;; Type is in this list because of discriminants
+     ;; pragma is not, because the syntax is that of a subprogram call.
      (looking-at (eval-when-compile
 		   (concat "\\<\\("
 			   "procedure\\|function\\|body\\|"
 			   "task\\|entry\\|accept\\|"
 			   "access[ \t]+procedure\\|"
 			   "access[ \t]+function\\|"
-			   "pragma\\|"
 			   "type\\)\\>"))))))
 
 (defun ada-search-ignore-complex-boolean (regexp backwardp)

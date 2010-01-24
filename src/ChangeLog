@@ -1,3 +1,26 @@
+2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* filelock.c: Include utmp.h only when HAVE_UTMP_H (FreeBSD 9.x
+	lacks this header file).
+
+2010-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (draw_glyphs): Update `start' for left_overwritten case
+	as in Emacs 22.
+
+2010-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lisp.h (make_pure_string): String pointer arg now points to const.
+
+	* alloc.c (find_string_data_in_pure, make_pure_string): String pointer
+	args now point to const.
+
+2010-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload): Don't treat files without .elc extension as
+	byte-compiled if they are ``magic'', i.e. `openp' returned -2 for
+	them.  (bug#5303)
+
 2010-01-20  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (consume_chars): If ! multibyte and the encoder is ccl,

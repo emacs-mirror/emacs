@@ -322,9 +322,6 @@ backends do not support this.
 **** The short log format for git makes use of the graph display, so
 it's not supported on git versions earlier than 1.5.
 
-**** The new variable vc-git-add-signoff can be used to add a
-Signed-off-by line when committing.
-
 **** Support for operating with stashes has been added to vc-dir: the stash list is
 displayed in the *vc-dir* header, stashes can be created, removed, applied and
 their content displayed.

@@ -590,7 +590,14 @@ There should be no more than seven characters after the final `/'."
 	  (or nomessage
 	      (message "Loading %s...done." file))
 	  ;; Fix up the load history to point at the right library.
-	  (let ((l (assoc load-file load-history)))
+	  (let ((l (or (assoc load-file load-history)
+		       ;; On MS-Windows, if load-file is in
+		       ;; temporary-file-directory, it will look like
+		       ;; "c:/DOCUME~1/USER/LOCALS~1/foo", whereas
+		       ;; readevalloop will record its truename in
+		       ;; load-history.  Therefore try truename if the
+		       ;; original name is not in load-history.
+		       (assoc (file-truename load-file) load-history))))
 	    ;; Remove .gz and .elc?.
 	    (while (file-name-extension file)
 	      (setq file (file-name-sans-extension file)))

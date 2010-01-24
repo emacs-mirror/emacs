@@ -2191,7 +2191,7 @@ Redefining advices affect the construction of an advised definition."
 
 (defmacro ad-set-orig-definition (function definition)
   `(ad-safe-fset
-    (ad-get-advice-info-field function 'origname) ,definition))
+    (ad-get-advice-info-field ,function 'origname) ,definition))
 
 (defmacro ad-clear-orig-definition (function)
   `(fmakunbound (ad-get-advice-info-field ,function 'origname)))

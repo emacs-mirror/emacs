@@ -1,3 +1,56 @@
+2010-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for adding --signoff on commit.
+	Future support will use an incompatible generic mechanism.
+	* vc-git.el (vc-git-add-signoff): Remove variable.
+	(vc-git-toggle-signoff): Remove function.
+	(vc-git-extra-menu-map): Do not bind vc-git-toggle-signoff.
+
+	* term/xterm.el (xterm-maybe-set-dark-background-mode): Rename
+	from xterm-set-background-mode.  Return t if the background mode
+	was set.
+	(terminal-init-xterm): Move tty-set-up-initial-frame-faces
+	earlier, call it again in case the background mode has changed.
+
+2010-01-23  Dmitri Paduchikh  <dpaduch@k66.ru>  (tiny change)
+
+	* emacs-lisp/advice.el (ad-set-orig-definition): Fix typo
+	(Bug#3541).
+
+2010-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/assoc.el (aelement): Doc fix.
+	(aput, adelete, amake): Use lexical-let (Bug#5450).
+
+2010-01-23  Stephen Leake  <stephen_leake@member.fsf.org>
+
+        * progmodes/ada-mode.el (ada-in-paramlist-p): Pragma syntax
+	is the same as subprogram call, not declaration.  (Bug#5435).
+
+2010-01-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-conf): New defcustom.
+	(tramp-smb-maybe-open-connection): Use it.
+
+2010-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-imap.el (top): Autoload needed packages.  (Bug#5448)
+
+2010-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmailmm.el (rmail-mime-handle): Don't set the buffer to unibyte
+	just because we see "encoding: 8bit".
+	* mail/rmail.el (rmail-show-message-1): Decode the body's QP into bytes.
+
+2010-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-allow-scroll): Doc fix (Bug#5446).
+
+2010-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* jka-compr.el (jka-compr-load): If load-file is not in
+	load-history, try its file-truename version.  (bug#5447)
+
 2010-01-21  Alan Mackenzie  <acm@muc.de>
 
 	Fix a situation where deletion of a cpp construct throws an error.
