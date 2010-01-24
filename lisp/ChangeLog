@@ -1,3 +1,11 @@
+2010-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-maybe-set-dark-background-mode): Rename
+	from xterm-set-background-mode.  Return t if the background mode
+	was set.
+	(terminal-init-xterm): Move tty-set-up-initial-frame-faces
+	earlier, call it again in case the background mode has changed.
+
 2010-01-23  Dmitri Paduchikh  <dpaduch@k66.ru>  (tiny change)
 
 	* emacs-lisp/advice.el (ad-set-orig-definition): Fix typo
