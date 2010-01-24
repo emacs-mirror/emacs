@@ -1,5 +1,11 @@
 2010-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove support for adding --signoff on commit.
+	Future support will use an incompatible generic mechanism.
+	* vc-git.el (vc-git-add-signoff): Remove variable.
+	(vc-git-toggle-signoff): Remove function.
+	(vc-git-extra-menu-map): Do not bind vc-git-toggle-signoff.
+
 	* term/xterm.el (xterm-maybe-set-dark-background-mode): Rename
 	from xterm-set-background-mode.  Return t if the background mode
 	was set.
