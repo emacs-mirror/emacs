@@ -1,7 +1,7 @@
 ;;; assoc.el --- insert/delete/sort functions on association lists
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions
@@ -42,7 +42,7 @@ sorted list."
 
 (defun aelement (key value)
   "Make a list of a cons cell containing car of KEY and cdr of VALUE.
-The returned list is suitable for concatanating with an existing
+The returned list is suitable for concatenating with an existing
 alist, via `nconc'."
   (list (cons key value)))
 
