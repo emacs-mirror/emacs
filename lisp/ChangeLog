@@ -1,3 +1,9 @@
+2010-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-print-log): Use the more compact --line option
+	for the short log.
+	(vc-bzr-log-view-mode): Adjust regexp for the above change.
+
 2010-01-25  Mark A. Hershberger  <mah@everybody.org>
 
 	* progmodes/python.el: Replace reference to obsolete

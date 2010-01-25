@@ -487,7 +487,7 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
        (if vc-short-log
-	   "^ *\\([0-9.]+\\) \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
+	   "^ *\\([0-9.]+\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
@@ -519,7 +519,7 @@ REV non-nil gets an error."
   (with-current-buffer buffer
     (apply 'vc-bzr-command "log" buffer 'async files
 	   (append
-	    (when shortlog '("--short"))
+	    (when shortlog '("--line"))
 	    (when start-revision (list (format "-r..%s" start-revision)))
 	    (when limit (list "-l" (format "%s" limit)))
 	    (if (stringp vc-bzr-log-switches)
