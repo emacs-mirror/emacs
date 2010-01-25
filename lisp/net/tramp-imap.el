@@ -55,13 +55,23 @@
 (require 'assoc)
 (require 'tramp)
 (require 'tramp-compat)
-(require 'message)
-(require 'imap-hash)
-(require 'epa)
+
 (autoload 'auth-source-user-or-password "auth-source")
+(autoload 'epg-context-operation "epg")
+(autoload 'epg-context-set-armor "epg")
+(autoload 'epg-context-set-passphrase-callback "epg")
+(autoload 'epg-context-set-progress-callback "epg")
+(autoload 'epg-decrypt-string "epg")
+(autoload 'epg-encrypt-string "epg")
+(autoload 'imap-hash-get "imap-hash")
+(autoload 'imap-hash-make "imap-hash")
+(autoload 'imap-hash-map "imap-hash")
+(autoload 'imap-hash-put "imap-hash")
+(autoload 'imap-hash-rem "imap-hash")
 
 ;; We use the additional header "X-Size" for encoding the size of a file.
-(add-to-list 'imap-hash-headers 'X-Size 'append)
+(eval-after-load "imap-hash"
+  '(add-to-list 'imap-hash-headers 'X-Size 'append))
 
 ;; Define Tramp IMAP method ...
 (defconst tramp-imap-method "imap"
@@ -662,7 +672,8 @@ KEY-ID can be 'SYM or 'PIN among others."
 		  (read-passwd
 		   (if (eq key-id 'PIN)
 		       "Tramp-IMAP passphrase for PIN: "
-		     (let ((entry (assoc key-id epg-user-id-alist)))
+		     (let ((entry (assoc key-id
+					 (symbol-value 'epg-user-id-alist))))
 		       (if entry
 			   (format "Tramp-IMAP passphrase for %s %s: "
 				   key-id (cdr entry))

@@ -1155,7 +1155,7 @@ Return t if the file exists and loads successfully.  */)
 
   if (!bcmp (SDATA (found) + SBYTES (found) - 4,
 	     ".elc", 4)
-      || (version = safe_to_load_p (fd)) > 0)
+      || (fd >= 0 && (version = safe_to_load_p (fd)) > 0))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
     {

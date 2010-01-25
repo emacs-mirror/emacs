@@ -1217,12 +1217,14 @@ been put there by c-put-char-property.  POINT remains unchanged."
   ;; This macro does a hidden buffer change.
   `(progn
      (c-put-char-property ,beg 'category 'c-cpp-delimiter)
-     (c-put-char-property ,end 'category 'c-cpp-delimiter)))
+     (if (< ,end (point-max))
+	 (c-put-char-property ,end 'category 'c-cpp-delimiter))))
 (defmacro c-clear-cpp-delimiters (beg end)
   ;; This macro does a hidden buffer change.
   `(progn
      (c-clear-char-property ,beg 'category)
-     (c-clear-char-property ,end 'category)))
+     (if (< ,end (point-max))
+	 (c-clear-char-property ,end 'category))))
 
 (defsubst c-comment-out-cpps ()
   ;; Render all preprocessor constructs syntactically commented out.

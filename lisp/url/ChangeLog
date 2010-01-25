@@ -1,3 +1,7 @@
+2010-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-util.el: Require url-vars (Bug#5459).
+
 2009-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-parse.el (url-generic-parse-url): Bind deactivate-mark.
