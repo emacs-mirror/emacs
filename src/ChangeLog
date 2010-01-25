@@ -1,3 +1,8 @@
+2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): If frame height i stoo big, try
+	sizes 24 and 10. Bug #3643.
+
 2010-01-20  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (consume_chars): If ! multibyte and the encoder is ccl,
