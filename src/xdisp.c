@@ -3789,7 +3789,7 @@ handle_invisible_prop (it)
 
       /* First of all, is there invisible text at this position?  */
       tem = start_charpos = IT_CHARPOS (*it);
-      pos = make_number (IT_CHARPOS (*it));
+      pos = make_number (tem);
       prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
 					    &overlay);
       invis_p = TEXT_PROP_MEANS_INVISIBLE (prop);
@@ -3852,17 +3852,43 @@ handle_invisible_prop (it)
 		 embedding level.  Therefore, we need to skip
 		 invisible text using the bidi iterator, starting at
 		 IT's current position, until we find ourselves
-		 outside the invisible text.  This avoids affecting
-		 the visual order of the displayed text when invisible
-		 properties are added or removed.  */
+		 outside the invisible text.  Skipping invisible text
+		 _after_ bidi iteration avoids affecting the visual
+		 order of the displayed text when invisible properties
+		 are added or removed.  */
+	      if (it->bidi_it.first_elt)
+		{
+		  /* If we were `reseat'ed to a new paragraph,
+		     determine the paragraph base direction.  We need
+		     to do it now because next_element_from_buffer may
+		     not have a chance to do it, if we are going to
+		     skip any text at the beginning, which resets the
+		     FIRST_ELT flag.  */
+		  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+		  /* If the paragraph base direction is R2L, its
+		     glyphs should be reversed.  */
+		  if (it->glyph_row)
+		    {
+		      if (it->bidi_it.paragraph_dir == R2L)
+			it->glyph_row->reversed_p = 1;
+		      else
+			it->glyph_row->reversed_p = 0;
+		    }
+		}
 	      do
 		{
 		  bidi_get_next_char_visually (&it->bidi_it);
 		}
-	      while (start_charpos <= it->bidi_it.charpos
+	      while (it->stop_charpos <= it->bidi_it.charpos
 		     && it->bidi_it.charpos < newpos);
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
-	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (newpos);
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      /* If we overstepped NEWPOS, record its position in the
+		 iterator, so that we skip invisible text if later the
+		 bidi iteration lands us in the invisible region
+		 again. */
+	      if (IT_CHARPOS (*it) >= newpos)
+		it->prev_stop = newpos;
 	    }
 	  else
 	    {
@@ -3877,7 +3903,7 @@ handle_invisible_prop (it)
 	     overlay property instead of a text property, this is
 	     already handled in the overlay code.)  */
 	  if (NILP (overlay)
-	      && get_overlay_strings (it, start_charpos))
+	      && get_overlay_strings (it, it->stop_charpos))
 	    {
 	      handled = HANDLED_RECOMPUTE_PROPS;
 	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
@@ -6200,7 +6226,16 @@ set_iterator_to_next (it, reseat_p)
 	      /* If this is a new paragraph, determine its base
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
-		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+		{
+		  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+		  if (it->glyph_row)
+		    {
+		      if (it->bidi_it.paragraph_dir == R2L)
+			it->glyph_row->reversed_p = 1;
+		      else
+			it->glyph_row->reversed_p = 0;
+		    }
+		}
 	      bidi_get_next_char_visually (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
@@ -6663,8 +6698,13 @@ next_element_from_buffer (it)
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	  /* If the paragraph base direction is R2L, its glyphs should
 	     be reversed.  */
-	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
-	    it->glyph_row->reversed_p = 1;
+	  if (it->glyph_row)
+	    {
+	      if (it->bidi_it.paragraph_dir == R2L)
+		it->glyph_row->reversed_p = 1;
+	      else
+		it->glyph_row->reversed_p = 0;
+	    }
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
       else
@@ -6679,8 +6719,13 @@ next_element_from_buffer (it)
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  if (it->glyph_row && (it->bidi_it.level_stack[0].level & 1) != 0)
-	    it->glyph_row->reversed_p = 1;
+	  if (it->glyph_row)
+	    {
+	      if (it->bidi_it.paragraph_dir == R2L)
+		it->glyph_row->reversed_p = 1;
+	      else
+		it->glyph_row->reversed_p = 0;
+	    }
 	  do
 	    {
 	      /* Now return to buffer position where we were asked to
@@ -17028,10 +17073,6 @@ display_line (it)
   row->displays_text_p = 1;
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
   it->starts_in_middle_of_char_p = 0;
-  /* If the paragraph base direction is R2L, its glyphs should be
-     reversed.  */
-  if (it->bidi_p && (it->bidi_it.level_stack[0].level & 1) != 0)
-    row->reversed_p = 1;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
      display_line on only one line at a time, in which case this
@@ -17566,6 +17607,10 @@ display_line (it)
   it->current_y += row->height;
   ++it->vpos;
   ++it->glyph_row;
+  /* The next row should use same value of the reversed_p flag as this
+     one.  set_iterator_to_next decides when it's a new paragraph and
+     recomputes the value of the flag accordingly.  */
+  it->glyph_row->reversed_p = row->reversed_p;
   it->start = row_end;
   return row->displays_text_p;
 }

@@ -1,3 +1,27 @@
+2010-01-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Clean up the mess with setting the glyph row reversed_p flag.
+	* dispnew.c (prepare_desired_row): Preserve the reversed_p flag.
+
+	* bidi.c (bidi_cache_find): Use bidi_copy_it instead of copying
+	the whole struct (which includes uninitialized parts).
+	(bidi_init_it): Don't initialize bidi_it->paragraph_dir.
+
+	* xdisp.c (display_line): Remove misplaced setting of
+	row->reversed_p flags.  Copy the reversed_p flag to the next glyph
+	row.
+	(next_element_from_buffer): Check bidi_it.paragraph_dir rather
+	than level_stack[0].level.  Reset the reversed_p flag for non-R2L
+	paragraphs.
+
+	Fix display of invisible text.
+	* xdisp.c (handle_invisible_prop): If we are `reseat'ed, init the
+	paragraph direction and set the `reversed_p' flag in the IT's
+	glyph row.  Fix exit conditions of the loop that skips invisible
+	text.  Update IT->prev_stop after skipping invisible text.  Check
+	for additional overlays at IT->stop_charpos, not at start_pos.
+	(next_element_from_buffer):
+
 2010-01-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_invisible_prop): Under bidi iteration, skip

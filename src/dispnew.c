@@ -1388,8 +1388,11 @@ prepare_desired_row (row)
 {
   if (!row->enabled_p)
     {
+      unsigned rp = row->reversed_p;
+
       clear_glyph_row (row);
       row->enabled_p = 1;
+      row->reversed_p = rp;
     }
 }
 

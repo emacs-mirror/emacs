@@ -715,7 +715,7 @@ bidi_cache_find (int charpos, int level, struct bidi_it *bidi_it)
     {
       bidi_dir_t current_scan_dir = bidi_it->scan_dir;
 
-      *bidi_it = bidi_cache[i];
+      bidi_copy_it (bidi_it, &bidi_cache[i]);
       bidi_cache_last_idx = i;
       /* Don't let scan direction from from the cached state override
 	 the current scan direction.  */
@@ -971,7 +971,6 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
   bidi_set_paragraph_end (bidi_it);
   bidi_it->new_paragraph = 1;
   bidi_it->separator_limit = -1;
-  bidi_it->paragraph_dir = NEUTRAL_DIR;
   bidi_it->type = NEUTRAL_B;
   bidi_it->type_after_w1 = UNKNOWN_BT;
   bidi_it->orig_type = UNKNOWN_BT;
