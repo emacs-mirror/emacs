@@ -20,7 +20,6 @@
 	glyph row.  Fix exit conditions of the loop that skips invisible
 	text.  Update IT->prev_stop after skipping invisible text.  Check
 	for additional overlays at IT->stop_charpos, not at start_pos.
-	(next_element_from_buffer):
 
 2010-01-16  Eli Zaretskii  <eliz@gnu.org>
 
