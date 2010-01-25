@@ -21803,7 +21803,7 @@ not be loaded, even though they would normally be so, for some reason or
 other.
 
 @item eval
-The value of this entry will be @code{eval}el.  This element will be
+The value of this entry will be @code{eval}ed.  This element will be
 ignored when handling global score files.
 
 @item read-only

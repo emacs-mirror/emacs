@@ -361,7 +361,10 @@ The parsed header value:
 	 (setq content-transfer-encoding nil))
 	((string= content-transfer-encoding "8bit")
 	 ;; FIXME: Is this the correct way?
-	 (set-buffer-multibyte nil)))
+         ;; No, of course not, it just means there's no decoding to do.
+	 ;; (set-buffer-multibyte nil)
+         (setq content-transfer-encoding nil)
+         ))
   ;; Inline stuff requires work.  Attachments are handled by the bulk
   ;; handler.
   (if (string= "inline" (car content-disposition))

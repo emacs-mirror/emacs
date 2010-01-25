@@ -462,6 +462,7 @@
       (set-keymap-parent input-decode-map map)))
 
     (xterm-register-default-colors)
+    (tty-set-up-initial-frame-faces)
 
     ;; Try to turn on the modifyOtherKeys feature on modern xterms.
     ;; When it is turned on many more key bindings work: things like
@@ -471,6 +472,7 @@
     (let ((coding-system-for-read 'binary)
 	  (chr nil)
 	  (str nil)
+	  (recompute-faces nil)
 	  version)
       ;; Pending input can be mistakenly returned by the calls to
       ;; read-event below.  Discard it.
@@ -502,10 +504,11 @@
 		  (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
 		    (setq str (concat str (string chr))))
 		  (when (string-match "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
-		    (xterm-set-background-mode
-		     (string-to-number (match-string 1 str) 16)
-		     (string-to-number (match-string 2 str) 16)
-		     (string-to-number (match-string 3 str) 16))))))
+		    (setq recompute-faces
+			  (xterm-maybe-set-dark-background-mode
+			   (string-to-number (match-string 1 str) 16)
+			   (string-to-number (match-string 2 str) 16)
+			   (string-to-number (match-string 3 str) 16)))))))
 	    ;; NUMBER2 is the xterm version number, look for something
 	    ;; greater than 216, the version when modifyOtherKeys was
 	    ;; introduced.
@@ -520,10 +523,16 @@
 	      ;; need to deal with modify-other-keys.
 	      (push (frame-terminal (selected-frame))
 		    xterm-modify-other-keys-terminal-list)
-	      (xterm-turn-on-modify-other-keys))))))
+	      (xterm-turn-on-modify-other-keys))
 
-    ;; This recomputes all the default faces given the colors we've just set up.
-    (tty-set-up-initial-frame-faces)
+	    ;; Recompute faces here in case the background mode was
+	    ;; set to dark.  We used to call
+	    ;; `tty-set-up-initial-frame-faces' only once, but that
+	    ;; caused the light background faces to be computed
+	    ;; incorrectly.  See:
+	    ;; http://permalink.gmane.org/gmane.emacs.devel/119627
+	    (when recompute-faces
+	      (tty-set-up-initial-frame-faces))))))
 
     (run-hooks 'terminal-init-xterm-hook))
 
@@ -666,11 +675,13 @@ versions of xterm."
 	  (delq terminal xterm-modify-other-keys-terminal-list))
     (send-string-to-terminal "\e[>4m" terminal)))
 
-(defun xterm-set-background-mode (redc greenc bluec)
+(defun xterm-maybe-set-dark-background-mode (redc greenc bluec)
   ;; Use the heuristic in `frame-set-background-mode' to decide if a
   ;; frame is dark.
   (when (< (+ redc greenc bluec) (* .6 (+ 65535 65535 65535)))
-    (set-terminal-parameter nil 'background-mode 'dark)))
+    (setq xterm-background-mode-changed t)
+    (set-terminal-parameter nil 'background-mode 'dark)
+    t))
 
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

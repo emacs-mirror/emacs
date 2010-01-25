@@ -3518,27 +3518,35 @@ This function is an internal primitive--use `make-frame' instead.  */)
   window_prompting = x_figure_window_size (f, parms, 1);
 
   /* Don't make height higher than display height unless the user asked
-     for it.  */
+     for it.  Try sizes 24 and 10 if current is too large.  */
   height = FRAME_LINES (f);
   tem = x_get_arg (dpyinfo, parms, Qheight, 0, 0, RES_TYPE_NUMBER);
   if (EQ (tem, Qunbound))
     {
-      int ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+      int h = FRAME_LINES (f) + FRAME_TOOL_BAR_LINES (f)
+        + FRAME_MENU_BAR_LINES (f) + 2;
+      int ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, h);
       int dph = DisplayHeight (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+      static int tryheight[] = { 24, 10, 0 } ;
+      int i;
+
+      ph += (FRAME_EXTERNAL_TOOL_BAR (f) ? 32 : 0) /* Gtk toolbar size */
+        + (FRAME_EXTERNAL_MENU_BAR (f) ? 24 : 0); /* Arbitrary */
+
       /* Some desktops have fixed menus above and/or panels below.  Try to
          figure out the usable size we have for emacs.  */
       current_desktop = x_get_current_desktop (f);
       x_get_desktop_workarea (f, current_desktop, &deskw, &deskh);
       if (deskh > 0 && deskh < dph) dph = deskh;
       
-      if (ph > dph)
+      /* Allow 40 pixels for manager decorations.  */
+      for (i = 0; ph+40 > dph && tryheight[i] != 0; ++i)
         {
-          height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, dph) -
-            FRAME_TOOL_BAR_LINES (f) - FRAME_MENU_BAR_LINES (f);
-          if (FRAME_EXTERNAL_TOOL_BAR (f))
-            height -= 2; /* We can't know how big it will be.  */
-          if (FRAME_EXTERNAL_MENU_BAR (f))
-            height -= 2; /* We can't know how big it will be.  */
+          height = tryheight[i];
+          h = height + FRAME_TOOL_BAR_LINES (f) + FRAME_MENU_BAR_LINES (f) + 2;
+          ph = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, h)
+            + (FRAME_EXTERNAL_TOOL_BAR (f) ? 32 : 0)
+            + (FRAME_EXTERNAL_MENU_BAR (f) ? 24 : 0);
         }
     }
 

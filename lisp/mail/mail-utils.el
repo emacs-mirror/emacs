@@ -133,6 +133,8 @@ If NOERROR is non-nil, return t if successful.
 If UNIBYTE is non-nil, insert converted characters as unibyte.
 That is useful if you are going to character code decoding afterward,
 as Rmail does."
+  ;; FIXME: `unibyte' should always be non-nil, and the iso-latin-1
+  ;; specific handling should be removed (or moved elsewhere and generalized).
   (interactive "r\nP")
   (let (failed)
     (save-match-data

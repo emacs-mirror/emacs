@@ -1,3 +1,8 @@
+2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* configure.in: Check for utmp.h availability (FreeBSD 9.x lacks
+	this header file).
+
 2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .bzrignore: Ignore all .exe, instead of individual files.
