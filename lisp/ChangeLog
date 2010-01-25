@@ -1,6 +1,9 @@
 2010-01-24  Mark A. Hershberger  <mah@everybody.org>
 
-	* progmodes/python.el: Replace reference to obsolete c-subward-mode.
+	* progmodes/python.el: Replace reference to obsolete
+	c-subward-mode.
+
+	* vc-bzr.el: (vc-bzr-revision-table) New function.
 
 2010-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 

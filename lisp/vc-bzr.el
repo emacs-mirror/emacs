@@ -898,6 +898,19 @@ stream.  Standard error output is discarded."
   (interactive "e")
   (vc-dir-at-event e (popup-menu vc-bzr-shelve-menu-map e)))
 
+(defun vc-bzr-revision-table (files)
+  (let ((vc-bzr-revisions '())
+        (default-directory (file-name-directory (car files))))
+    (with-temp-buffer
+      (vc-bzr-command "log" t 0 files "--line")
+      (let ((start (point-min))
+            (loglines (buffer-substring-no-properties (point-min) (point-max))))
+        (while (string-match "^\\([0-9]+\\):" loglines)
+          (push (match-string 1 loglines) vc-bzr-revisions)
+          (setq start (+ start (match-end 0)))
+          (setq loglines (buffer-substring-no-properties start (point-max))))))
+    vc-bzr-revisions))
+
 ;;; Revision completion
 
 (eval-and-compile
