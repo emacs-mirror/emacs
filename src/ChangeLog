@@ -1,3 +1,22 @@
+2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): If frame height is too big, try
+	sizes 24 and 10. Bug #3643.
+
+2010-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try and fix bug#788, hopefully for real this time.
+	* keymap.c (shadow_lookup): Add `remap' arg.
+	(describe_map, describe_vector): Update calls to shadow_lookup.
+	(Fwhere_is_internal): Fix up handling of `remapped_sequences' and
+	`remapped' so this flag is applicable to `sequence'.  Be careful to
+	perform remapping during shadow_lookup check of remapped_sequences.
+
+2010-01-24  Eric Bélanger  <snowmaniscool@gmail.com>  (tiny change)
+
+	* image.c (png_load): Use png_sig_cmp instead of the obsolete
+	png_check_sig, which has been removed in libpng 1.4.
+
 2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* filelock.c: Include utmp.h only when HAVE_UTMP_H (FreeBSD 9.x

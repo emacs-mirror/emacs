@@ -1,3 +1,24 @@
+2010-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-annotate.el (vc-annotate-revision-at-line): Compare file
+	names too.
+
+	* vc-bzr.el (vc-bzr-print-log): Use the more compact --line option
+	for the short log.
+	(vc-bzr-log-view-mode): Adjust regexp for the above change.
+
+2010-01-25  Mark A. Hershberger  <mah@everybody.org>
+
+	* progmodes/python.el: Replace reference to obsolete
+	c-subward-mode.
+
+	* vc-bzr.el: (vc-bzr-revision-table) New function.
+
+2010-01-25  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
+
+	* vc-git.el (vc-git-dir-status-goto-stage): Pass --relative to the
+	diff-index command.  This requires at least git-1.5.5.  (Bug#1589).
+
 2010-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove support for adding --signoff on commit.
