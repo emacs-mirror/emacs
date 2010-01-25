@@ -1,3 +1,8 @@
+2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): If frame height is too big, try
+	sizes 24 and 10. Bug #3643.
+
 2010-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Try and fix bug#788, hopefully for real this time.
