@@ -1,3 +1,12 @@
+2010-01-25  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc-backend.el (erc-session-connector): New var.
+	(erc-server-reconnect): Use it to reconnect via old
+	connector (Bug#4958).
+
+	* erc.el (erc-determine-parameters): Save
+	erc-server-connect-function to erc-session-connector.
+
 2009-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-display-line-1, erc-process-away):
