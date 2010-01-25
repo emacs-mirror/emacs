@@ -381,7 +381,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-o" "-i"
                      "--directory" "--no-empty-directory" "--exclude-standard" "--"))
     ('diff-index
-     (vc-git-command (current-buffer) 'async files "diff-index" "-z" "-M" "HEAD" "--")))
+     (vc-git-command (current-buffer) 'async files "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
   (vc-exec-after
    `(vc-git-after-dir-status-stage (quote ,stage) (quote ,files) (quote ,update-function))))
 
