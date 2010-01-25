@@ -2650,11 +2650,13 @@ static void where_is_internal_1 P_ ((Lisp_Object key, Lisp_Object binding,
 				     Lisp_Object args, void *data));
 
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
-   Returns the first non-nil binding found in any of those maps.  */
+   Returns the first non-nil binding found in any of those maps.
+   If REMAP is true, pass the result of the lookup through command
+   remapping before returning it.  */
 
 static Lisp_Object
-shadow_lookup (shadow, key, flag)
-     Lisp_Object shadow, key, flag;
+shadow_lookup (Lisp_Object shadow, Lisp_Object key, Lisp_Object flag,
+	       int remap)
 {
   Lisp_Object tail, value;
 
@@ -2669,7 +2671,15 @@ shadow_lookup (shadow, key, flag)
 	    return Qnil;
 	}
       else if (!NILP (value))
-	return value;
+	{
+	  Lisp_Object remapping;
+	  if (remap && SYMBOLP (value)
+	      && (remapping = Fcommand_remapping (value, Qnil, shadow),
+		  !NILP (remapping)))
+	    return remapping;
+	  else
+	    return value;
+	}
     }
   return Qnil;
 }
@@ -2860,29 +2870,29 @@ remapped command in the returned list.  */)
     {
       /* We have a list of advertized bindings.  */
       while (CONSP (tem))
-	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil), definition))
+	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil, 0), definition))
 	  return XCAR (tem);
 	else
 	  tem = XCDR (tem);
-      if (EQ (shadow_lookup (keymaps, tem, Qnil), definition))
+      if (EQ (shadow_lookup (keymaps, tem, Qnil, 0), definition))
 	return tem;
     }
 
   sequences = Freverse (where_is_internal (definition, keymaps,
 					   !NILP (noindirect), nomenus));
 
-  while (CONSP (sequences))
+  while (CONSP (sequences)
+	 /* If we're at the end of the `sequences' list and we haven't
+	    considered remapped sequences yet, copy them over and
+	    process them.  */
+	 || (!remapped && (sequences = remapped_sequences,
+			   remapped = 1),
+	     CONSP (sequences)))
     {
       Lisp_Object sequence, function;
 	  
       sequence = XCAR (sequences);
       sequences = XCDR (sequences);
-
-      if (NILP (sequences) && !remapped)
-	{
-	  sequences = remapped_sequences;
-	  remapped = 1;
-	}
 
       /* Verify that this key binding is not shadowed by another
 	 binding for the same key, before we say it exists.
@@ -2893,7 +2903,8 @@ remapped command in the returned list.  */)
 
 	 Either nil or number as value from Flookup_key
 	 means undefined.  */
-      if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
+      if (!EQ (shadow_lookup (keymaps, sequence, Qnil, remapped),
+	       definition))
 	continue;
 
       /* If the current sequence is a command remapping with
@@ -3506,7 +3517,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	  ASET (kludge, 0, event);
 	  if (!NILP (shadow))
 	    {
-	      tem = shadow_lookup (shadow, kludge, Qt);
+	      tem = shadow_lookup (shadow, kludge, Qt, 0);
 	      if (!NILP (tem))
 		{
 		  /* If both bindings are keymaps, this key is a prefix key,
@@ -3776,7 +3787,7 @@ describe_vector (vector, prefix, args, elt_describer,
 	{
 	  Lisp_Object tem;
 
-	  tem = shadow_lookup (shadow, kludge, Qt);
+	  tem = shadow_lookup (shadow, kludge, Qt, 0);
 
 	  if (!NILP (tem))
 	    {

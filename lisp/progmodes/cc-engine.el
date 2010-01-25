@@ -2996,9 +2996,11 @@ comment at the start of cc-engine.el for more info."
   ;; containing point.  We can then call `c-invalidate-state-cache-1' without
   ;; worrying further about macros and template delimiters.
   (c-with-<->-as-parens-suppressed
-   (if c-state-old-cpp-beg
+   (if (and c-state-old-cpp-beg
+	    (< c-state-old-cpp-beg here))
        (c-with-all-but-one-cpps-commented-out
-	c-state-old-cpp-beg c-state-old-cpp-end
+	c-state-old-cpp-beg
+	(min c-state-old-cpp-end here)
 	(c-invalidate-state-cache-1 here))
      (c-with-cpps-commented-out
       (c-invalidate-state-cache-1 here)))))
@@ -3029,8 +3031,9 @@ comment at the start of cc-engine.el for more info."
 	      (c-parse-state-1))
 	   (c-with-cpps-commented-out
 	    (c-parse-state-1))))
-      (setq c-state-old-cpp-beg here-cpp-beg
-	    c-state-old-cpp-end here-cpp-end))))
+      (setq c-state-old-cpp-beg (and here-cpp-beg (copy-marker here-cpp-beg t))
+	    c-state-old-cpp-end (and here-cpp-end (copy-marker here-cpp-end t)))
+      )))
 
 ;; Debug tool to catch cache inconsistencies.  This is called from
 ;; 000tests.el.

@@ -63,7 +63,9 @@ Lisp_Object Vtemporary_file_directory;
 
 #ifdef CLASH_DETECTION
 
+#ifdef HAVE_UTMP_H
 #include <utmp.h>
+#endif
 
 #if !defined (S_ISLNK) && defined (S_IFLNK)
 #define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
