@@ -118,13 +118,6 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
-(defcustom vc-git-add-signoff nil
-  "Add a Signed-off-by line when committing."
-  :type 'boolean
-  :version "23.2"
-  :group 'vc)
-
-
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
@@ -388,7 +381,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-o" "-i"
                      "--directory" "--no-empty-directory" "--exclude-standard" "--"))
     ('diff-index
-     (vc-git-command (current-buffer) 'async files "diff-index" "-z" "-M" "HEAD" "--")))
+     (vc-git-command (current-buffer) 'async files "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
   (vc-exec-after
    `(vc-git-after-dir-status-stage (quote ,stage) (quote ,files) (quote ,update-function))))
 
@@ -515,7 +508,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
     (vc-git-command nil 0 files "commit"
-		    (if vc-git-add-signoff "-s") "-m" comment "--only" "--")))
+		    "-m" comment "--only" "--")))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -766,10 +759,6 @@ or BRANCH^ (where \"^\" can be repeated)."
     (define-key map [git-ss]
       '(menu-item "Show Stash..." vc-git-stash-show
 		  :help "Show stash contents"))
-    (define-key map [git-sig]
-      '(menu-item "Add Signed-off-by on commit" vc-git-toggle-signoff
-	      :help "Add Add Signed-off-by when commiting (i.e. add the -s flag)"
-	      :button (:toggle . vc-git-add-signoff)))
     map))
 
 (defun vc-git-extra-menu () vc-git-extra-menu-map)
@@ -778,10 +767,6 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-root (file)
   (vc-find-root file ".git"))
-
-(defun vc-git-toggle-signoff ()
-  (interactive)
-  (setq vc-git-add-signoff (not vc-git-add-signoff)))
 
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)

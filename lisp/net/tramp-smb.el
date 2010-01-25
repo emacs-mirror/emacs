@@ -61,6 +61,13 @@
   :group 'tramp
   :type 'string)
 
+(defcustom tramp-smb-conf "/dev/null"
+  "*Path of the smb.conf file.
+If it is nil, no smb.conf will be added to the `tramp-smb-program'
+call, letting the SMB client use the default one."
+  :group 'tramp
+  :type '(choice (const nil) (file :must-match t)))
+
 (defvar tramp-smb-version nil
   "*Version string of the SMB client.")
 
@@ -1281,7 +1288,8 @@ connection if a previous connection has died for some reason."
 
 	  (when domain (setq args (append args (list "-W" domain))))
 	  (when port   (setq args (append args (list "-p" port))))
-	  (setq args (append args (list "-s" "/dev/null")))
+	  (when tramp-smb-conf
+	    (setq args (append args (list "-s" tramp-smb-conf))))
 
 	  ;; OK, let's go.
 	  (tramp-message

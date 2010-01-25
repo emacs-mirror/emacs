@@ -1,6 +1,61 @@
+2010-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-annotate.el (vc-annotate-revision-at-line): Compare file
+	names too.
+
+	* vc-bzr.el (vc-bzr-print-log): Use the more compact --line option
+	for the short log.
+	(vc-bzr-log-view-mode): Adjust regexp for the above change.
+
+2010-01-25  Mark A. Hershberger  <mah@everybody.org>
+
+	* progmodes/python.el: Replace reference to obsolete
+	c-subward-mode.
+
+	* vc-bzr.el: (vc-bzr-revision-table) New function.
+
+2010-01-25  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
+
+	* vc-git.el (vc-git-dir-status-goto-stage): Pass --relative to the
+	diff-index command.  This requires at least git-1.5.5.  (Bug#1589).
+
+2010-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for adding --signoff on commit.
+	Future support will use an incompatible generic mechanism.
+	* vc-git.el (vc-git-add-signoff): Remove variable.
+	(vc-git-toggle-signoff): Remove function.
+	(vc-git-extra-menu-map): Do not bind vc-git-toggle-signoff.
+
+	* term/xterm.el (xterm-maybe-set-dark-background-mode): Rename
+	from xterm-set-background-mode.  Return t if the background mode
+	was set.
+	(terminal-init-xterm): Move tty-set-up-initial-frame-faces
+	earlier, call it again in case the background mode has changed.
+
+2010-01-23  Dmitri Paduchikh  <dpaduch@k66.ru>  (tiny change)
+
+	* emacs-lisp/advice.el (ad-set-orig-definition): Fix typo
+	(Bug#3541).
+
+2010-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/assoc.el (aelement): Doc fix.
+	(aput, adelete, amake): Use lexical-let (Bug#5450).
+
+2010-01-23  Stephen Leake  <stephen_leake@member.fsf.org>
+
+        * progmodes/ada-mode.el (ada-in-paramlist-p): Pragma syntax
+	is the same as subprogram call, not declaration.  (Bug#5435).
+
+2010-01-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-conf): New defcustom.
+	(tramp-smb-maybe-open-connection): Use it.
+
 2010-01-22  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-imap.el (top): Autoload needed packages.
+	* net/tramp-imap.el (top): Autoload needed packages.  (Bug#5448)
 
 2010-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
