@@ -1,3 +1,7 @@
+2010-01-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-path): Mark as obsolete.
+
 2010-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-annotate.el (vc-annotate-revision-at-line): Compare file
