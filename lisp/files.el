@@ -4692,8 +4692,8 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 		    (delete-file file)))
 		;; We do not want to delete "." and "..".
 		(directory-files
-		 directory 'full directory-files-no-dot-files-regexp))
-	(delete-directory-internal directory))))))
+		 directory 'full directory-files-no-dot-files-regexp)))
+      (delete-directory-internal directory)))))
 
 (defun copy-directory (directory newname &optional keep-time parents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
