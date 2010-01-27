@@ -45,7 +45,7 @@
 ;; `forward-into-nomenclature' should be done separately, since it's
 ;; not specific to Python, and I've installed a minor mode to do the
 ;; job properly in Emacs 23.  [CC mode 5.31 contains an incompatible
-;; feature, `c-subword-mode' which is intended to have a similar
+;; feature, `subword-mode' which is intended to have a similar
 ;; effect, but actually only affects word-oriented keybindings.]
 
 ;; Other things seem more natural or canonical here, e.g. the

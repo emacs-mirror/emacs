@@ -1,3 +1,56 @@
+2010-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (analyse_first): Fix setting of fastmap for unibyte
+	pattern string (Bug#4209).
+
+2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
+
+	* fileio.c (Frename_file): Call copy-directory and
+	delete-directory for directories, in order to handle cross-device
+	renaming (Bug#3353).
+
+2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): If frame height is too big, try
+	sizes 24 and 10. Bug #3643.
+
+2010-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try and fix bug#788, hopefully for real this time.
+	* keymap.c (shadow_lookup): Add `remap' arg.
+	(describe_map, describe_vector): Update calls to shadow_lookup.
+	(Fwhere_is_internal): Fix up handling of `remapped_sequences' and
+	`remapped' so this flag is applicable to `sequence'.  Be careful to
+	perform remapping during shadow_lookup check of remapped_sequences.
+
+2010-01-24  Eric Bélanger  <snowmaniscool@gmail.com>  (tiny change)
+
+	* image.c (png_load): Use png_sig_cmp instead of the obsolete
+	png_check_sig, which has been removed in libpng 1.4.
+
+2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* filelock.c: Include utmp.h only when HAVE_UTMP_H (FreeBSD 9.x
+	lacks this header file).
+
+2010-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (draw_glyphs): Update `start' for left_overwritten case
+	as in Emacs 22.
+
+2010-01-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lisp.h (make_pure_string): String pointer arg now points to const.
+
+	* alloc.c (find_string_data_in_pure, make_pure_string): String pointer
+	args now point to const.
+
+2010-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload): Don't treat files without .elc extension as
+	byte-compiled if they are ``magic'', i.e. `openp' returned -2 for
+	them.  (bug#5303)
+
 2010-01-20  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (consume_chars): If ! multibyte and the encoder is ccl,
@@ -9281,7 +9334,7 @@
 	(syms_of_xterm): Don't declare it any more.
 	(x_draw_glyph_string): Adjust to the new name.
 
-2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>
 
 	* xterm.c (x_underline_minimum_display_offset): New var.
 	(x_draw_glyph_string): Use it.

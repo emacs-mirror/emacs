@@ -1,6 +1,10 @@
-2010-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+2010-01-24  Mark A. Hershberger  <mah@everybody.org>
 
 	* gnus.texi (Score File Format): Fix typo.
+
+2010-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cc-mode.texi: Replace references to obsolete c-subword-mode.
 
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
