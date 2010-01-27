@@ -1,3 +1,8 @@
+2010-01-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/diary-lib.el (diary-unhide-everything): Handle narrowed
+	buffers.  (Bug#5477)
+
 2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
 
 	* files.el (delete-directory): Handle moving to trash without
