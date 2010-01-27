@@ -1,3 +1,8 @@
+2010-01-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32inevt.c (w32_kbd_patch_key): Save the unicode character.
+	(key_event): Use unicode for characters 128 and higher.
+
 2010-01-27  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (analyse_first): Fix setting of fastmap for unibyte
