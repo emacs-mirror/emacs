@@ -470,7 +470,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	  emacs_ev->kind = NO_EVENT;
 	  return 0;
 	}
-      else if (event->uChar.AsciiChar < 128)
+      else if (event->uChar.AsciiChar > 0 && event->uChar.AsciiChar < 128)
 	{
 	  emacs_ev->kind = ASCII_KEYSTROKE_EVENT;
 	  emacs_ev->code = event->uChar.AsciiChar;
@@ -503,13 +503,13 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 		  /* Garbage  */
 		  DebPrint (("Invalid DBCS sequence: %d %d\n",
 			     dbcs[0], dbcs[1]));
-		  emacs_ev.kind = NO_EVENT;
+		  emacs_ev->kind = NO_EVENT;
 		}
 	    }
 	  else if (IsDBCSLeadByteEx (cpId, dbcs[1]))
 	    {
 	      dbcs_lead = dbcs[1];
-	      emacs_ev.kind = NO_EVENT;
+	      emacs_ev->kind = NO_EVENT;
 	    }
 	  else
 	    {
@@ -517,7 +517,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 		{
 		  /* Garbage  */
 		  DebPrint (("Invalid character: %d\n", dbcs[1]));
-		  emacs_ev.kind = NO_EVENT;
+		  emacs_ev->kind = NO_EVENT;
 		}
 	    }
 	  emacs_ev->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
