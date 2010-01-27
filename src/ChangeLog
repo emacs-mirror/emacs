@@ -1,7 +1,7 @@
 2010-01-27  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (analyse_first): Fix setting of fastmap for unibyte
-	pattern string.
+	pattern string (Bug#4209).
 
 2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
 
