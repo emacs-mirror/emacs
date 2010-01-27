@@ -447,7 +447,8 @@ Return a cons (REV . FILENAME)."
     (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
-	(if (equal (car rev-at-line) vc-annotate-parent-rev)
+	(if (and (equal (car rev-at-line) vc-annotate-parent-rev)
+		 (string= (cdr rev-at-line) vc-annotate-parent-file))
 	    (message "Already at revision %s" rev-at-line)
 	  (vc-annotate-warp-revision (car rev-at-line) (cdr rev-at-line)))))))
 

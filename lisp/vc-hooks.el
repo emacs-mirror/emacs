@@ -89,6 +89,8 @@ An empty list disables VC altogether."
   :type '(repeat directory)
   :group 'vc)
 
+(make-obsolete 'vc-path "should not be necessary anymore." "23.2")
+
 (defcustom vc-make-backup-files nil
   "If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups."

@@ -1,3 +1,8 @@
+2010-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (analyse_first): Fix setting of fastmap for unibyte
+	pattern string.
+
 2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): If frame height is too big, try
