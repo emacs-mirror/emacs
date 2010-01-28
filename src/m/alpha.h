@@ -95,7 +95,7 @@ NOTE-END
 
 #undef UNEXEC
 #define UNEXEC unexelf.o
-#ifndef GNU_LINUX
+#if !defined(GNU_LINUX) && !defined(__NetBSD__)
 #define DATA_START    0x140000000
 #endif
 

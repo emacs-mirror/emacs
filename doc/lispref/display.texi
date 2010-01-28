@@ -2654,23 +2654,25 @@ Font-Lock.
 
 @defvar fontification-functions
 This variable holds a list of functions that are called by Emacs
-redisplay as needed to assign faces automatically to text in the buffer.
+redisplay as needed, just before doing redisplay.  They are called even
+when Font Lock Mode isn't enabled.  When Font Lock Mode is enabled, this
+variable usually holds just one function, @code{jit-lock-function}.
 
 The functions are called in the order listed, with one argument, a
-buffer position @var{pos}.  Each function should attempt to assign faces
-to the text in the current buffer starting at @var{pos}.
+buffer position @var{pos}.  Collectively they should attempt to assign
+faces to the text in the current buffer starting at @var{pos}.
 
-Each function should record the faces they assign by setting the
-@code{face} property.  It should also add a non-@code{nil}
-@code{fontified} property for all the text it has assigned faces to.
+The functions should record the faces they assign by setting the
+@code{face} property.  They should also add a non-@code{nil}
+@code{fontified} property to all the text they have assigned faces to.
 That property tells redisplay that faces have been assigned to that text
 already.
 
-It is probably a good idea for each function to do nothing if the
+It is probably a good idea for the functions to do nothing if the
 character after @var{pos} already has a non-@code{nil} @code{fontified}
 property, but this is not required.  If one function overrides the
-assignments made by a previous one, the properties as they are
-after the last function finishes are the ones that really matter.
+assignments made by a previous one, the properties after the last
+function finishes are the ones that really matter.
 
 For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.

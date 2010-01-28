@@ -1,3 +1,11 @@
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Frename_file): Fix last change (Bug#5487).
+
+	* m/mips.h: Remove DATA_START.  Suggested by Dan Nicolaescu.
+
+	* m/alpha.h: Don't define DATA_START on NetBSD (Bug#4629).
+
 2010-01-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): Remove window size matching code from
@@ -7,7 +15,7 @@
 2010-01-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32inevt.c (w32_kbd_patch_key): Save the unicode character.
-	(key_event): Use unicode for characters 128 and higher.
+	(key_event): Use unicode for characters 128 and higher (Bug#4567).
 
 2010-01-27  Kenichi Handa  <handa@m17n.org>
 

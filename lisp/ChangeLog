@@ -1,5 +1,27 @@
 2010-01-28  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/ange-ftp.el (ange-ftp-insert-directory): Handle the case,
+	FILENAME is not in `default-directory'.  (Bug#5478)
+
+	* net/tramp.el (tramp-handle-insert-directory): Simplify handling
+	of SWITCHES.  Handle the case, FILENAME is not in
+	`default-directory'.  (Bug#5478)
+	(tramp-register-file-name-handlers): Add safe-magic property.
+
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* arc-mode.el (archive-zip-extract): Quote the argument passed to
+	unzip (Bug#5475).
+
+2010-01-28  Nil Geisweiller  <ngeiswei@googlemail.com>  (tiny change)
+
+	* progmodes/flymake.el (flymake-allowed-file-name-masks)
+	(flymake-master-make-header-init): Add other C++ filename masks.
+	(flymake-find-possible-master-files)
+	(flymake-check-patch-master-file-buffer): Doc fixes (Bug#5488).
+
+2010-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
 	Fix some busybox annoyances.
 
 	* net/tramp.el (tramp-wrong-passwd-regexp): Add "Timeout, server
