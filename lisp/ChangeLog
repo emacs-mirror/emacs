@@ -1,3 +1,8 @@
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* arc-mode.el (archive-zip-extract): Quote the argument passed to
+	unzip (Bug#5475).
+
 2010-01-28  Nil Geisweiller  <ngeiswei@googlemail.com>  (tiny change)
 
 	* progmodes/flymake.el (flymake-allowed-file-name-masks)
