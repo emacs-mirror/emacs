@@ -1,5 +1,7 @@
 2010-01-28  Glenn Morris  <rgm@gnu.org>
 
+	* vc-svn.el (vc-svn-update): Use "svn --non-interactive".  (Bug#4280)
+
 	* log-edit.el (log-edit-strip-single-file-name): Add missing
 	:safe, :group, and :version tags.
 
