@@ -1,3 +1,10 @@
+2010-01-28  Nil Geisweiller  <ngeiswei@googlemail.com>  (tiny change)
+
+	* progmodes/flymake.el (flymake-allowed-file-name-masks)
+	(flymake-master-make-header-init): Add other C++ filename masks.
+	(flymake-find-possible-master-files)
+	(flymake-check-patch-master-file-buffer): Doc fixes (Bug#5488).
+
 2010-01-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	Fix some busybox annoyances.
