@@ -1,7 +1,7 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log
@@ -150,7 +150,10 @@ can be obtained from `log-edit-files'."
 
 (defcustom log-edit-strip-single-file-name t
   "If non-nil, remove file name from single-file log entries."
-  :type 'boolean)
+  :type 'boolean
+  :safe 'booleanp
+  :group 'log-edit
+  :version "23.2")
 
 (defvar cvs-changelog-full-paragraphs t)
 (make-obsolete-variable 'cvs-changelog-full-paragraphs
