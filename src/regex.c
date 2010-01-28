@@ -4083,8 +4083,7 @@ analyse_first (p, pend, fastmap, multibyte)
 		     the corresponding multibyte character.  */
 		  int c = RE_CHAR_TO_MULTIBYTE (p[1]);
 
-		  if (! CHAR_BYTE8_P (c))
-		    fastmap[CHAR_LEADING_CODE (c)] = 1;
+		  fastmap[CHAR_LEADING_CODE (c)] = 1;
 		}
 	    }
 	  break;

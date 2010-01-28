@@ -1,3 +1,13 @@
+2010-01-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/diary-lib.el (diary-unhide-everything): Handle narrowed
+	buffers.  (Bug#5477)
+
+2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
+
+	* files.el (delete-directory): Handle moving to trash without
+	first doing recursion (Bug#5436).
+
 2010-01-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-path): Mark as obsolete.
