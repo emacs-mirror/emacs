@@ -1,3 +1,8 @@
+2010-01-28  Alan Mackenzie  <acm@muc.de>
+
+	* display.texi (Auto Faces): Say fontification-functions is called
+	whether or not Font Lock is enabled.  Tidy up the wording a bit.
+
 2010-01-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* elisp.texi: Remove duplicate edition information (Bug#5407).
