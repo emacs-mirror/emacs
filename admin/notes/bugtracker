@@ -178,7 +178,7 @@ same way as if you had sent mail to "123" (sans -done). This mail has
 headers:
 
 X-Emacs-PR-Message: cc-closed 123
-Mail-Followup-To: 123@debbugs.gnu.org, ...
+Mail-Followup-To: 123@debbugs.gnu.org, person-who-closed
 
 (This is Emacs-specific.  Normally the bug list gets the same mail as in 3).
 
@@ -419,13 +419,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 ** Bazaar stuff
 
 *** You can use `bzr commit --fixes emacs:123' to mark that a commit fixes
-Emacs bug 123.  You will first need to add a line to your bazaar.conf
-(untested):
+Emacs bug 123.  You will first need to add a line to your bazaar.conf:
 
 bugtracker_emacs_url = http://debbugs.gnu.org/{id}
 
 Note that all this does is add some metadata to the commit, it doesn't
-actually mark the bug as closed in the tracker.
+actually mark the bug as closed in the tracker.  There seems to be no
+way to see this "metadata" with `bzr log', which is rather poor, but
+it will show up as a link in a recent loggerhead installation, or with
+some of the graphical frontends to bzr log.
 
 ** Gnus-specific voodoo
 
