@@ -1,3 +1,9 @@
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/mips.h: Remove DATA_START.  Suggested by Dan Nicolaescu.
+
+	* m/alpha.h: Don't define DATA_START on NetBSD (Bug#4629).
+
 2010-01-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): Remove window size matching code from
