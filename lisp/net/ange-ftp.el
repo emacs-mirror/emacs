@@ -4542,7 +4542,18 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
          (if (string-match (concat "^.+[^ ] " (regexp-quote filename)
                                    "\\( -> .*\\)?[@/*=]?\n") dirlist)
              (match-string 0 dirlist)
-           "")))))))
+           "")))))
+
+    ;; The inserted file could be from somewhere else.
+    (when (and (not wildcard) (not full)
+	       (search-backward
+		(if (zerop (length (file-name-nondirectory
+				    (expand-file-name file))))
+		    "."
+		  (file-name-nondirectory file))
+		nil 'noerror))
+      (replace-match (file-relative-name (expand-file-name file)) t)
+      (goto-char (point-max)))))
 
 (defun ange-ftp-dired-uncache (dir)
   (if (ange-ftp-ftp-name (expand-file-name dir))
