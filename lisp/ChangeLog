@@ -1,3 +1,8 @@
+2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dirtrack.el (dirtrack): Warn instead of signalling error if the
+	regexp is incorrect (Bug#5476).
+
 2010-01-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-insert-directory): Handle also
