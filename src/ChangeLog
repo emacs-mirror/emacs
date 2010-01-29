@@ -1,3 +1,8 @@
+2010-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32inevt.c (key_event): Remove unnecessary comparison of
+	event->uChar.AsciiChar with 128.
+
 2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Frename_file): Fix last change (Bug#5487).
