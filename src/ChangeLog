@@ -1,3 +1,33 @@
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Frename_file): Fix last change (Bug#5487).
+
+	* m/mips.h: Remove DATA_START.  Suggested by Dan Nicolaescu.
+
+	* m/alpha.h: Don't define DATA_START on NetBSD (Bug#4629).
+
+2010-01-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): Remove window size matching code from
+	2010-01-15.
+	(x_get_current_desktop, x_get_desktop_workarea): Remove
+
+2010-01-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32inevt.c (w32_kbd_patch_key): Save the unicode character.
+	(key_event): Use unicode for characters 128 and higher (Bug#4567).
+
+2010-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (analyse_first): Fix setting of fastmap for unibyte
+	pattern string (Bug#4209).
+
+2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
+
+	* fileio.c (Frename_file): Call copy-directory and
+	delete-directory for directories, in order to handle cross-device
+	renaming (Bug#3353).
+
 2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): If frame height is too big, try
@@ -9323,7 +9353,7 @@
 	(syms_of_xterm): Don't declare it any more.
 	(x_draw_glyph_string): Adjust to the new name.
 
-2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>
 
 	* xterm.c (x_underline_minimum_display_offset): New var.
 	(x_draw_glyph_string): Use it.

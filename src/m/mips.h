@@ -50,10 +50,6 @@ NOTE-END  */
 
 #define TEXT_START      0x00400000
 
-#ifndef GNU_LINUX
-#define DATA_START      0x10000000
-#endif
-
 
 #if 0 /* These definitions were advantageous when not using
 	 USE_LSB_TAG.  With that, they get ignored but cause errors.  */

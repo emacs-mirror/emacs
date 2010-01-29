@@ -1,3 +1,61 @@
+2010-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Handle the case,
+	FILENAME is not in `default-directory'.  (Bug#5478)
+
+	* net/tramp.el (tramp-handle-insert-directory): Simplify handling
+	of SWITCHES.  Handle the case, FILENAME is not in
+	`default-directory'.  (Bug#5478)
+	(tramp-register-file-name-handlers): Add safe-magic property.
+
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* arc-mode.el (archive-zip-extract): Quote the argument passed to
+	unzip (Bug#5475).
+
+2010-01-28  Nil Geisweiller  <ngeiswei@googlemail.com>  (tiny change)
+
+	* progmodes/flymake.el (flymake-allowed-file-name-masks)
+	(flymake-master-make-header-init): Add other C++ filename masks.
+	(flymake-find-possible-master-files)
+	(flymake-check-patch-master-file-buffer): Doc fixes (Bug#5488).
+
+2010-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix some busybox annoyances.
+
+	* net/tramp.el (tramp-wrong-passwd-regexp): Add "Timeout, server
+	not responding." string.
+	(tramp-open-connection-setup-interactive-shell): Dump stty
+	settings.  Enable "neveropen" arg for all `tramp-send-command'
+	calls.  Handle "=" in variable values properly.
+	(tramp-find-inline-encoding): Raise an error, when no encoding is
+	found.
+	(tramp-wait-for-output): Check, whether PROC buffer is available.
+	Remove spurious " ^H" sequences, sent by busybox.
+	(tramp-get-ls-command): Suppress coloring, if possible.
+
+2010-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* vc-svn.el (vc-svn-update): Use "svn --non-interactive".  (Bug#4280)
+
+	* log-edit.el (log-edit-strip-single-file-name): Add missing
+	:safe, :group, and :version tags.
+
+2010-01-27  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/diary-lib.el (diary-unhide-everything): Handle narrowed
+	buffers.  (Bug#5477)
+
+2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
+
+	* files.el (delete-directory): Handle moving to trash without
+	first doing recursion (Bug#5436).
+
+2010-01-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-path): Mark as obsolete.
+
 2010-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-annotate.el (vc-annotate-revision-at-line): Compare file

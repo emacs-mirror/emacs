@@ -1784,7 +1784,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-zip-extract (archive name)
   (if (equal (car archive-zip-extract) "pkzip")
       (archive-*-extract archive name archive-zip-extract)
-    (archive-extract-by-stdout archive name archive-zip-extract)))
+    ;; unzip expands wildcards in NAME, so we need to quote it.
+    ;; FIXME: Does pkzip need similar treatment?
+    (archive-extract-by-stdout archive (shell-quote-argument name)
+			       archive-zip-extract)))
 
 (defun archive-zip-write-file-member (archive descr)
   (archive-*-write-file-member
