@@ -1,4 +1,4 @@
-2010-01-29  Kester Habermann <kester@linuxtag.org>
+2010-01-29  Kester Habermann  <kester@linuxtag.org>  (tiny change)
 
 	* etags.c (Fortran_functions): Handle recursive keyword
 	(Bug#5484).
