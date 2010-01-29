@@ -1,3 +1,10 @@
+2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (DEFAULT_ROWS): Change default to 35.
+
+	* xfns.c (x_default_font_parameter): Change default XFT font to
+	monospace-10 (Bug#3643).
+
 2010-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32inevt.c (key_event): Remove unnecessary comparison of
