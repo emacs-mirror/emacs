@@ -1012,7 +1012,7 @@ capitalized word.  With prefix argument @var{n}, move @var{n} times.
 If @var{n} is negative, move in the opposite direction.
 
 Note that these two commands have been superseded by
-@code{c-subword-mode}, which you should use instead.  @xref{Subword
+@code{subword-mode}, which you should use instead.  @xref{Subword
 Movement}.  They might be removed from a future release of @ccmode{}.
 @end table
 
@@ -1194,10 +1194,9 @@ Toggle hungry-delete minor mode.
 @findex toggle-auto-hungry-state (c-)
 Toggle both auto-newline and hungry delete minor modes.
 
-@item @kbd{C-c C-w} (@code{M-x c-subword-mode})
+@item @kbd{C-c C-w} (@code{M-x subword-mode})
 @kindex C-c C-w
-@findex c-subword-mode
-@findex subword-mode (c-)
+@findex subword-mode
 Toggle subword mode.
 
 @item @kbd{M-x c-toggle-syntactic-indentation}
@@ -1694,11 +1693,11 @@ mode turn on automatically, put the following code in your
 
 @example
 (add-hook 'c-mode-common-hook
-          (lambda () (c-subword-mode 1)))
+          (lambda () (subword-mode 1)))
 @end example
 
-As a bonus, you can also use @code{c-subword-mode} in non-@ccmode{}
-buffers by typing @kbd{M-x c-subword-mode}.
+As a bonus, you can also use @code{subword-mode} in non-@ccmode{}
+buffers by typing @kbd{M-x subword-mode}.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Other Commands,  , Subword Movement, Commands

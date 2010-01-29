@@ -269,8 +269,7 @@ are the string substitutions (see `format')."
   :group 'tools)
 
 (defcustom flymake-allowed-file-name-masks
-  '(("\\.c\\'" flymake-simple-make-init)
-    ("\\.cpp\\'" flymake-simple-make-init)
+  '(("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'" flymake-simple-make-init)
     ("\\.xml\\'" flymake-xml-init)
     ("\\.html?\\'" flymake-xml-init)
     ("\\.cs\\'" flymake-simple-make-init)
@@ -291,7 +290,7 @@ are the string substitutions (see `format')."
     ;; ("[ \t]*\\input[ \t]*{\\(.*\\)\\(%s\\)}" 1 2 ))
     ;; ("\\.tex\\'" 1)
     )
-  "*Files syntax checking is allowed for."
+  "Files syntax checking is allowed for."
   :group 'flymake
   :type '(repeat (string symbol symbol symbol)))
 
@@ -384,7 +383,7 @@ Return t if so, nil if not."
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
   "Find (by name and location) all possible master files.
-Master files are .cpp and .c for and .h.  Files are searched for
+Master files include .cpp and .c for .h.  Files are searched for
 starting from the .h directory and max max-level parent dirs.
 File contents are not checked."
   (let* ((dirs master-file-dirs)
@@ -434,9 +433,11 @@ to the beginning of the list (File.h -> File.cpp moved to top)."
         source-file-name patched-source-file-name
         include-dirs regexp)
   "Check if MASTER-FILE-NAME is a master file for SOURCE-FILE-NAME.
-For .cpp master file this means it includes SOURCE-FILE-NAME (.h).
 If yes, patch a copy of MASTER-FILE-NAME to include PATCHED-SOURCE-FILE-NAME
 instead of SOURCE-FILE-NAME.
+
+For example, foo.cpp is a master file if it includes foo.h.
+
 Whether a buffer for MATER-FILE-NAME exists, use it as a source
 instead of reading master file from disk."
   (let* ((source-file-nondir (file-name-nondirectory source-file-name))
@@ -1700,9 +1701,10 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; .h/make specific
 (defun flymake-master-make-header-init ()
-  (flymake-master-make-init 'flymake-get-include-dirs
-			    '("\\.cpp\\'" "\\.c\\'")
-			    "[ \t]*#[ \t]*include[ \t]*\"\\([[:word:]0-9/\\_.]*%s\\)\""))
+  (flymake-master-make-init
+   'flymake-get-include-dirs
+   '("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'")
+   "[ \t]*#[ \t]*include[ \t]*\"\\([[:word:]0-9/\\_.]*%s\\)\""))
 
 ;;;; .java/make specific
 (defun flymake-simple-make-java-init ()

@@ -1,3 +1,8 @@
+2010-01-24  Mark A. Hershberger  <mah@everybody.org>
+
+	* programs.texi (Other C Commands): Replace reference to obsolete
+	c-subword-mode.
+
 2010-01-21  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Bugs): Fix PROBLEMS keybinding.

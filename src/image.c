@@ -33,7 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 # include <png.h>
 #endif
-#endif 
+#endif
 
 #include <setjmp.h>
 
@@ -3051,7 +3051,7 @@ xbm_load (f, img)
             int nbytes, i;
             /* Windows mono bitmaps are reversed compared with X.  */
             invertedBits = bits;
-            nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR 
+            nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR
               * img->height;
             bits = (char *) alloca(nbytes);
             for (i = 0; i < nbytes; i++)
@@ -5559,7 +5559,7 @@ png_image_p (object)
 /* PNG library details.  */
 
 DEF_IMGLIB_FN (png_get_io_ptr);
-DEF_IMGLIB_FN (png_check_sig);
+DEF_IMGLIB_FN (png_sig_cmp);
 DEF_IMGLIB_FN (png_create_read_struct);
 DEF_IMGLIB_FN (png_create_info_struct);
 DEF_IMGLIB_FN (png_destroy_read_struct);
@@ -5590,7 +5590,7 @@ init_png_functions (Lisp_Object libraries)
     return 0;
 
   LOAD_IMGLIB_FN (library, png_get_io_ptr);
-  LOAD_IMGLIB_FN (library, png_check_sig);
+  LOAD_IMGLIB_FN (library, png_sig_cmp);
   LOAD_IMGLIB_FN (library, png_create_read_struct);
   LOAD_IMGLIB_FN (library, png_create_info_struct);
   LOAD_IMGLIB_FN (library, png_destroy_read_struct);
@@ -5615,7 +5615,7 @@ init_png_functions (Lisp_Object libraries)
 #else
 
 #define fn_png_get_io_ptr		png_get_io_ptr
-#define fn_png_check_sig		png_check_sig
+#define fn_png_sig_cmp			png_sig_cmp
 #define fn_png_create_read_struct	png_create_read_struct
 #define fn_png_create_info_struct	png_create_info_struct
 #define fn_png_destroy_read_struct	png_destroy_read_struct
@@ -5762,7 +5762,7 @@ png_load (f, img)
 
       /* Check PNG signature.  */
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
-	  || !fn_png_check_sig (sig, sizeof sig))
+	  || fn_png_sig_cmp (sig, 0, sizeof sig))
 	{
 	  image_error ("Not a PNG file: `%s'", file, Qnil);
 	  UNGCPRO;
@@ -5779,7 +5779,7 @@ png_load (f, img)
 
       /* Check PNG signature.  */
       if (tbr.len < sizeof sig
-	  || !fn_png_check_sig (tbr.bytes, sizeof sig))
+	  || fn_png_sig_cmp (tbr.bytes, 0, sizeof sig))
 	{
 	  image_error ("Not a PNG image: `%s'", img->spec, Qnil);
 	  UNGCPRO;

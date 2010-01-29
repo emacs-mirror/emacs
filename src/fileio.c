@@ -215,6 +215,12 @@ Lisp_Object Qdelete_by_moving_to_trash;
 /* Lisp function for moving files to trash.  */
 Lisp_Object Qmove_file_to_trash;
 
+/* Lisp function for recursively copying directories.  */
+Lisp_Object Qcopy_directory;
+
+/* Lisp function for recursively deleting directories.  */
+Lisp_Object Qdelete_directory;
+
 extern Lisp_Object Vuser_login_name;
 
 #ifdef WINDOWSNT
@@ -2241,7 +2247,11 @@ This is what happens in interactive use with M-x.  */)
       && (NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname))))
 #endif
       )
-    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
+    {
+      Lisp_Object fname = NILP (Ffile_directory_p (file))
+	? file : Fdirectory_file_name (file);
+      newname = Fexpand_file_name (Ffile_name_nondirectory (fname), newname);
+    }
   else
     newname = Fexpand_file_name (newname, Qnil);
 
@@ -2279,15 +2289,21 @@ This is what happens in interactive use with M-x.  */)
                                  NILP (ok_if_already_exists) ? Qnil : Qt);
           else
 #endif
+	  if (!NILP (Ffile_directory_p (file)))
+	    call4 (Qcopy_directory, file, newname, Qt, Qnil);
+	  else
+	    /* We have already prompted if it was an integer, so don't
+	       have copy-file prompt again.  */
 	    Fcopy_file (file, newname,
-			/* We have already prompted if it was an integer,
-			   so don't have copy-file prompt again.  */
 			NILP (ok_if_already_exists) ? Qnil : Qt,
 			Qt, Qt);
 
 	  count = SPECPDL_INDEX ();
 	  specbind (Qdelete_by_moving_to_trash, Qnil);
-	  Fdelete_file (file);
+	  if (!NILP (Ffile_directory_p (file)))
+	    call2 (Qdelete_directory, file, Qt);
+	  else
+	    Fdelete_file (file);
 	  unbind_to (count, Qnil);
 	}
       else
@@ -5727,6 +5743,10 @@ When non-nil, the function `move-file-to-trash' will be used by
   Qdelete_by_moving_to_trash = intern_c_string ("delete-by-moving-to-trash");
   Qmove_file_to_trash = intern_c_string ("move-file-to-trash");
   staticpro (&Qmove_file_to_trash);
+  Qcopy_directory = intern_c_string ("copy-directory");
+  staticpro (&Qcopy_directory);
+  Qdelete_directory = intern_c_string ("delete-directory");
+  staticpro (&Qdelete_directory);
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);

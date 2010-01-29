@@ -804,7 +804,9 @@ LIST-ONLY is non-nil, in which case it just returns the list."
 (defun diary-unhide-everything ()
   "Show all invisible text in the diary."
   (kill-local-variable 'diary-selective-display)
-  (remove-overlays (point-min) (point-max) 'invisible 'diary)
+  (save-restriction                     ; bug#5477
+    (widen)
+    (remove-overlays (point-min) (point-max) 'invisible 'diary))
   (kill-local-variable 'mode-line-format))
 
 (defvar original-date)                  ; bound in diary-list-entries

@@ -1,3 +1,62 @@
+2010-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32inevt.c (key_event): Remove unnecessary comparison of
+	event->uChar.AsciiChar with 128.
+
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Frename_file): Fix last change (Bug#5487).
+
+	* m/mips.h: Remove DATA_START.  Suggested by Dan Nicolaescu.
+
+	* m/alpha.h: Don't define DATA_START on NetBSD (Bug#4629).
+
+2010-01-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): Remove window size matching code from
+	2010-01-15.
+	(x_get_current_desktop, x_get_desktop_workarea): Remove
+
+2010-01-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32inevt.c (w32_kbd_patch_key): Save the unicode character.
+	(key_event): Use unicode for characters 128 and higher (Bug#4567).
+
+2010-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* regex.c (analyse_first): Fix setting of fastmap for unibyte
+	pattern string (Bug#4209).
+
+2010-01-27  David De La Harpe Golden  <david@harpegolden.net>
+
+	* fileio.c (Frename_file): Call copy-directory and
+	delete-directory for directories, in order to handle cross-device
+	renaming (Bug#3353).
+
+2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame): If frame height is too big, try
+	sizes 24 and 10. Bug #3643.
+
+2010-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try and fix bug#788, hopefully for real this time.
+	* keymap.c (shadow_lookup): Add `remap' arg.
+	(describe_map, describe_vector): Update calls to shadow_lookup.
+	(Fwhere_is_internal): Fix up handling of `remapped_sequences' and
+	`remapped' so this flag is applicable to `sequence'.  Be careful to
+	perform remapping during shadow_lookup check of remapped_sequences.
+
+2010-01-24  Eric Bélanger  <snowmaniscool@gmail.com>  (tiny change)
+
+	* image.c (png_load): Use png_sig_cmp instead of the obsolete
+	png_check_sig, which has been removed in libpng 1.4.
+
+2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* filelock.c: Include utmp.h only when HAVE_UTMP_H (FreeBSD 9.x
+	lacks this header file).
+
 2010-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (draw_glyphs): Update `start' for left_overwritten case
@@ -9299,7 +9358,7 @@
 	(syms_of_xterm): Don't declare it any more.
 	(x_draw_glyph_string): Adjust to the new name.
 
-2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>
 
 	* xterm.c (x_underline_minimum_display_offset): New var.
 	(x_draw_glyph_string): Use it.

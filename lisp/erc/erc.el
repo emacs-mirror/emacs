@@ -5654,11 +5654,13 @@ user input."
   "Determine the connection and authentication parameters.
 Sets the buffer local variables:
 
+- `erc-session-connector'
 - `erc-session-server'
 - `erc-session-port'
 - `erc-session-full-name'
 - `erc-server-current-nick'"
-  (setq erc-session-server (erc-compute-server server)
+  (setq erc-session-connector erc-server-connect-function
+        erc-session-server (erc-compute-server server)
 	erc-session-port (or port erc-default-port)
 	erc-session-user-full-name (erc-compute-full-name name))
   (erc-set-current-nick (erc-compute-nick nick)))

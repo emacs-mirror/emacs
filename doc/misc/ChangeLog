@@ -2,6 +2,10 @@
 
 	* gnus.texi (Score File Format): Fix typo.
 
+2010-01-19  Mark A. Hershberger  <mah@everybody.org>
+
+	* cc-mode.texi: Replace references to obsolete c-subword-mode.
+
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ada-mode.texi (Project File Overview): Fix typo.
