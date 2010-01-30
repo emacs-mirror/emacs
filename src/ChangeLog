@@ -1,3 +1,19 @@
+2010-01-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* character.h (CHAR_PRINTABLE_P): Reparenthesize to avoid warning.
+
+2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (DEFAULT_ROWS): Change default to 35.
+
+	* xfns.c (x_default_font_parameter): Change default XFT font to
+	monospace-10 (Bug#3643).
+
+2010-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32inevt.c (key_event): Remove unnecessary comparison of
+	event->uChar.AsciiChar with 128.
+
 2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Frename_file): Fix last change (Bug#5487).

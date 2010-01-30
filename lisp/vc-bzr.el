@@ -679,6 +679,7 @@ stream.  Standard error output is discarded."
 		       ("?  " . unregistered)
 		       ;; No such state, but we need to distinguish this case.
 		       ("R  " . renamed)
+		       ("RM " . renamed)
 		       ;; For a non existent file FOO, the output is:
 		       ;; bzr: ERROR: Path(s) do not exist: FOO
 		       ("bzr" . not-found)
@@ -713,7 +714,7 @@ stream.  Standard error output is discarded."
 	    (when entry
 	      (setf (nth 1 entry) 'conflict))))
 	 ((eq translated 'renamed)
-	  (re-search-forward "R   \\(.*\\) => \\(.*\\)$" (line-end-position) t)
+	  (re-search-forward "R[ M]  \\(.*\\) => \\(.*\\)$" (line-end-position) t)
 	  (let ((new-name (file-relative-name (match-string 2) relative-dir))
 		(old-name (file-relative-name (match-string 1) relative-dir)))
 	    (push (list new-name 'edited

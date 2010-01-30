@@ -3089,7 +3089,7 @@ x_default_font_parameter (f, parms)
 	= {
 #ifdef HAVE_XFT
 	    /* This will find the normal Xft font.  */
- 	    "monospace-12",
+ 	    "monospace-10",
 #endif
 	    "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
 	    "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
