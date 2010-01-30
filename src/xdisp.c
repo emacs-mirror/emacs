@@ -2749,6 +2749,10 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->glyph_row = row;
   it->area = TEXT_AREA;
 
+  /* Forget any previous info about this row being reversed.  */
+  if (it->glyph_row)
+    it->glyph_row->reversed_p = 0;
+
   /* Get the dimensions of the display area.  The display area
      consists of the visible window area plus a horizontally scrolled
      part to the left of the window.  All x-values are relative to the

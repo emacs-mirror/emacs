@@ -1,3 +1,9 @@
+2010-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix fallout from changes to managing glyph row reversed_p flag.
+	* xdisp.c (init_iterator): Initialize it->glyph_row->reversed_p
+	flag.
+
 2010-01-25  Eli Zaretskii  <eliz@gnu.org>
 
 	Clean up the mess with setting the glyph row reversed_p flag.
