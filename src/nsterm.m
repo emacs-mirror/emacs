@@ -808,23 +808,58 @@ ns_ring_bell ()
       view = FRAME_NS_VIEW (frame);
       if (view != nil)
         {
-          NSRect r, surr;
-          NSPoint dim = NSMakePoint (128, 128);
+          /* Get the bounds of our NSView */
+          NSRect viewBounds = [view bounds];
 
-          r = [view bounds];
-          r.origin.x += (r.size.width - dim.x) / 2;
-          r.origin.y += (r.size.height - dim.y) / 2;
-          r.size.width = dim.x;
-          r.size.height = dim.y;
-          surr = NSInsetRect (r, -2, -2);
-          ns_focus (frame, &surr, 1);
-          [[view window] cacheImageInRect: [view convertRect: surr toView:nil]];
-          [ns_lookup_indexed_color (NS_FACE_FOREGROUND
-                                      (FRAME_DEFAULT_FACE (frame)), frame) set];
-          NSRectFill (r);
+          /* Height of each line to flash.  */
+          int flash_height = FRAME_LINE_HEIGHT (frame);
+          int width = FRAME_PIXEL_WIDTH (frame)
+                    - NS_SCROLL_BAR_WIDTH (frame);
+
+          /* Get the GraphicsContext */
+          CGContextRef ctxt = [[NSGraphicsContext currentContext] graphicsPort];
+          CGRect lowerLine, upperLine;
+          lowerLine =
+          CGRectMake(viewBounds.origin.x, viewBounds.origin.y,
+                     width + NS_SCROLL_BAR_WIDTH(frame),
+                     flash_height + FRAME_INTERNAL_BORDER_WIDTH (frame));
+          upperLine =
+          CGRectMake(viewBounds.origin.x,
+                     viewBounds.origin.y + viewBounds.size.height
+                     - (flash_height + FRAME_INTERNAL_BORDER_WIDTH (frame)),
+                     width,
+                     flash_height + FRAME_INTERNAL_BORDER_WIDTH (frame));
+
+          /* Invert the colors using a difference blend.  */
+          CGContextSetBlendMode(ctxt, kCGBlendModeDifference);
+          CGContextSetGrayFillColor(ctxt, 1, 1);
+
+          /* If window is tall, flash top and bottom line.  */
+          if (viewBounds.size.height > 3 * FRAME_LINE_HEIGHT (frame))
+            {
+              CGContextFillRect(ctxt, upperLine);
+              CGContextFillRect(ctxt, lowerLine);
+            }
+          else
+            /* If it is short, flash it all.  */
+            CGContextFillRect(ctxt, NSRectToCGRect([view bounds]));
+
+          /* Bounce Dock icon. Maybe we can allow some configuration here.  */
+          [NSApp requestUserAttention: NSInformationalRequest];
+
           [[view window] flushWindow];
           ns_timeout (150000);
-          [[view window] restoreCachedImage];
+
+          /* If window is tall, flash top and bottom line.  */
+          if (viewBounds.size.height > 3 * FRAME_LINE_HEIGHT (frame))
+            {
+              CGContextFillRect(ctxt, upperLine);
+              CGContextFillRect(ctxt, lowerLine);
+            }
+          else
+            /* If it is short, flash it all.  */
+            CGContextFillRect(ctxt, NSRectToCGRect([view bounds]));
+
           [[view window] flushWindow];
           ns_unfocus (frame);
         }
