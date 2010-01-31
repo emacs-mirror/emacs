@@ -1,3 +1,22 @@
+2010-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): If FONT is a font-entity and pixel
+	size in NAME is invalid, return -1 (Bug#5396).
+
+2010-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_defined_color): Block input.  Suggested by Mike
+	<deactivated@gmail.com> (Bug#3605).
+
+2010-01-31  David De La Harpe Golden  <david@harpegolden.net>
+
+	* fileio.c (Frename_file): Correctly rename symlinks to
+	directories (Bug#5496).
+
+2010-01-31  Filipe Cabecinhas  <filcab@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_ring_bell): Handle visible bell like X.
+
 2010-01-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* character.h (CHAR_PRINTABLE_P): Reparenthesize to avoid warning.

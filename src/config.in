@@ -741,6 +741,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
 
+/* Define to 1 if you have the <utmp.h> header file. */
+#undef HAVE_UTMP_H
+
 /* Define to 1 if you have the `vfork' function. */
 #undef HAVE_VFORK
 
