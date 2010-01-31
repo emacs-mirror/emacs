@@ -1,7 +1,7 @@
 2010-01-31  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_parse_xlfd): If FONT is a font-entity and pixel
-	size in NAME is invalid, return -1.
+	size in NAME is invalid, return -1 (Bug#5396).
 
 2010-01-31  Chong Yidong  <cyd@stupidchicken.com>
 
