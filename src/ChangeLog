@@ -1,3 +1,8 @@
+2010-01-31  David De La Harpe Golden  <david@harpegolden.net>
+
+	* fileio.c (Frename_file): Correctly rename symlinks to
+	directories (Bug#5496).
+
 2010-01-31  Filipe Cabecinhas  <filcab@gmail.com>  (tiny change)
 
 	* nsterm.m (ns_ring_bell): Handle visible bell like X.
