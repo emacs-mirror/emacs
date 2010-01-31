@@ -1552,19 +1552,19 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
          Return 0 if not found
    -------------------------------------------------------------------------- */
 {
-  NSColor *temp;
-  int notFound = ns_get_color (name, &temp);
-
+  NSColor *col;
   NSTRACE (ns_defined_color);
 
-  if (notFound)
-    return 0;
-
+  BLOCK_INPUT;
+  if (ns_get_color (name, &col) != 0) /* Color not found  */
+    {
+      UNBLOCK_INPUT;
+      return 0;
+    }
   if (makeIndex && alloc)
-      color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
-
-  ns_query_color (temp, color_def, !makeIndex);
-
+    color_def->pixel = ns_index_color (col, f);
+  ns_query_color (col, color_def, !makeIndex);
+  UNBLOCK_INPUT;
   return 1;
 }
 

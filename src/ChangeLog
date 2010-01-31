@@ -3,6 +3,11 @@
 	* font.c (font_parse_xlfd): If FONT is a font-entity and pixel
 	size in NAME is invalid, return -1.
 
+2010-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_defined_color): Block input.  Suggested by Mike
+	<deactivated@gmail.com> (Bug#3605).
+
 2010-01-31  David De La Harpe Golden  <david@harpegolden.net>
 
 	* fileio.c (Frename_file): Correctly rename symlinks to
