@@ -136,8 +136,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Nonzero if character C has a printable glyph.  */
 #define CHAR_PRINTABLE_P(c)	\
-  (((c) >= 32 && ((c) < 127)	\
-    || ! NILP (CHAR_TABLE_REF (Vprintable_chars, (c)))))
+  (((c) >= 32 && (c) < 127)	\
+   || ! NILP (CHAR_TABLE_REF (Vprintable_chars, (c))))
 
 /* Return byte length of multibyte form for character C.  */
 #define CHAR_BYTES(c)			\

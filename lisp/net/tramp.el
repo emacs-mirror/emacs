@@ -4147,6 +4147,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	;; The inserted file could be from somewhere else.
 	(when (and (not wildcard) (not full-directory-p))
 	  (goto-char (point-max))
+	  (when (file-symlink-p filename)
+	    (goto-char (search-backward "->" beg 'noerror)))
 	  (search-backward
 	   (if (zerop (length (file-name-nondirectory filename)))
 	       "."

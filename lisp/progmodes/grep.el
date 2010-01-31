@@ -996,26 +996,34 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 Like `rgrep' but uses `zgrep' for `grep-program', sets the default
 file name to `*.gz', and sets `grep-highlight-matches' to `always'."
   (interactive
-   (let ((grep-program "zgrep")
-	 (grep-find-template nil)  ; output of `grep-compute-defaults'
-	 (grep-find-command nil)
-	 (grep-host-defaults-alist nil)
-	 (grep-files-aliases '(("*.gz" . "*.gz") ; for `grep-read-files'
-			       ("all" . "* .*"))))
-     ;; Recompute defaults using let-bound values above.
+   (progn
+     ;; Compute standard default values.
      (grep-compute-defaults)
-     (cond
-      ((and grep-find-command (equal current-prefix-arg '(16)))
-       (list (read-from-minibuffer "Run: " grep-find-command
-				   nil nil 'grep-find-history)))
-      ((not grep-find-template)
-       (error "grep.el: No `grep-find-template' available"))
-      (t (let* ((regexp (grep-read-regexp))
-		(files (grep-read-files regexp))
-		(dir (read-directory-name "Base directory: "
-					  nil default-directory t))
-		(confirm (equal current-prefix-arg '(4))))
-	   (list regexp files dir confirm grep-find-template))))))
+     ;; Compute the default zrgrep command by running `grep-compute-defaults'
+     ;; for grep program "zgrep", but not changing global values.
+     (let ((grep-program "zgrep")
+	   ;; Don't change global values for variables computed
+	   ;; by `grep-compute-defaults'.
+	   (grep-find-template nil)
+	   (grep-find-command nil)
+	   (grep-host-defaults-alist nil)
+	   ;; Use for `grep-read-files'
+	   (grep-files-aliases '(("all" . "* .*")
+				 ("gz"  . "*.gz"))))
+       ;; Recompute defaults using let-bound values above.
+       (grep-compute-defaults)
+       (cond
+	((and grep-find-command (equal current-prefix-arg '(16)))
+	 (list (read-from-minibuffer "Run: " grep-find-command
+				     nil nil 'grep-find-history)))
+	((not grep-find-template)
+	 (error "grep.el: No `grep-find-template' available"))
+	(t (let* ((regexp (grep-read-regexp))
+		  (files (grep-read-files regexp))
+		  (dir (read-directory-name "Base directory: "
+					    nil default-directory t))
+		  (confirm (equal current-prefix-arg '(4))))
+	     (list regexp files dir confirm grep-find-template)))))))
   ;; Set `grep-highlight-matches' to `always'
   ;; since `zgrep' puts filters in the grep output.
   (let ((grep-highlight-matches 'always))

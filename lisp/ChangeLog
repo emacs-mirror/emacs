@@ -1,7 +1,27 @@
+2010-01-31  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (zrgrep): Call `grep-compute-defaults' at the
+	beginning of interactive spec like all other grep commands do.
+	Put "all" in front of "gz".  (Bug#5260)
+
+2010-01-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Match another renaming indicator.
+
+2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dirtrack.el (dirtrack): Warn instead of signalling error if the
+	regexp is incorrect (Bug#5476).
+
+2010-01-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-directory): Handle also
+	symlinks, when FILENAME is not in `default-directory'.
+
 2010-01-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Handle the case,
-	FILENAME is not in `default-directory'.  (Bug#5478)
+	FILE is not in `default-directory'.  (Bug#5478)
 
 	* net/tramp.el (tramp-handle-insert-directory): Simplify handling
 	of SWITCHES.  Handle the case, FILENAME is not in
@@ -160,7 +180,7 @@
 
 2010-01-18  Stephen Leake  <stephen_leake@member.fsf.org>
 
-	* lisp/progmodes/ada-mode.el: Fix bug#5400.
+	* progmodes/ada-mode.el: Fix bug#5400.
 	(ada-matching-decl-start-re): Move into ada-goto-decl-start.
 	(ada-goto-decl-start): Rename from ada-goto-matching-decl-start; callers
 	changed.  Delete RECURSIVE parameter; never used.  Improve doc string.
@@ -1020,7 +1040,7 @@
 
 2009-12-11  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-vmm-begin-re, verilog-vmm-end-re)
+	* progmodes/verilog-mode.el (verilog-vmm-begin-re, verilog-vmm-end-re)
 	(verilog-vmm-statement-re, verilog-ovm-statement-re)
 	(verilog-defun-level-not-generate-re, verilog-calculate-indent)
 	(verilog-leap-to-head, verilog-backward-token):
@@ -1028,9 +1048,9 @@
 
 2009-12-11  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-auto-lineup, verilog-nameable-item-re):
-	Cleanup user-visible spelling and documentation errors.
-	One reported by Gary Delp.
+	* progmodes/verilog-mode.el (verilog-auto-lineup)
+	(verilog-nameable-item-re): Cleanup user-visible spelling and
+	documentation errors.  One reported by Gary Delp.
 	(verilog-submit-bug-report): Mention bug tracking and CC co-author.
 	(verilog-read-decls): Fix AUTOWIRE with types declared in a
 	package, bug195.  Reported by Pierre-David Pfister.
@@ -2074,7 +2094,7 @@
 
 2009-11-26  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-at-struct-p): Support "signed" and
+	* progmodes/verilog-mode.el (verilog-at-struct-p): Support "signed" and
 	"unsigned" structs.
 
 	(verilog-leap-to-head, verilog-backward-token): Handle "disable
@@ -2082,9 +2102,10 @@
 
 2009-11-26  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-auto-insert-lisp, verilog-delete-auto)
-	(verilog-delete-empty-auto-pair, verilog-library-filenames):
-	Fix AUTOINSERTLISP to support insert-file.  Reported by Clay Douglass.
+	* progmodes/verilog-mode.el (verilog-auto-insert-lisp)
+	(verilog-delete-auto, verilog-delete-empty-auto-pair)
+	(verilog-library-filenames): Fix AUTOINSERTLISP to support insert-file.
+	Reported by Clay Douglass.
 
 	(verilog-auto-inst, verilog-auto-star-safe)
 	(verilog-delete-auto-star-implicit, verilog-read-sub-decls):
@@ -3476,7 +3497,7 @@
 
 2009-11-05  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-getopt-file, verilog-set-define):
+	* progmodes/verilog-mode.el (verilog-getopt-file, verilog-set-define):
 	Remove extra save-excursions and make-variable-buffer-local's.
 	Suggested by Stefan Monnier.
 
@@ -3502,8 +3523,8 @@
 
 2009-11-05  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-label-re): Fix regular expression for
-	labels.
+	* progmodes/verilog-mode.el (verilog-label-re): Fix regular expression
+	for labels.
 
 	(verilog-label-re, verilog-calc-1): Support proper indent of named
 	asserts.
@@ -9707,9 +9728,9 @@
 
 2009-07-06  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-error-regexp-emacs-alist): Coded custom
-	representation of verilog error regular expressions to work with
-	Emacs-22's new format.
+	* progmodes/verilog-mode.el (verilog-error-regexp-emacs-alist):
+	Coded custom representation of verilog error regular expressions
+	to work with Emacs-22's new format.
 	(verilog-error-regexp-xemacs-alist): Coded custom representation
 	of verilog error regular expressions to work with XEmacs format.
 	(verilog-error-regexp-add-xemacs): Hook routine to install verilog
@@ -9780,7 +9801,7 @@
 
 2009-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-math.el (math-use-emacs-fn): Make sure that the number is
+	* calc/calc-math.el (math-use-emacs-fn): Make sure that the number is
 	formatted correctly.
 
 2009-07-02  Juri Linkov  <juri@jurta.org>
@@ -9946,7 +9967,7 @@
 
 2009-06-28  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-beg-of-statement)
+	* progmodes/verilog-mode.el (verilog-beg-of-statement)
 	(verilog-endcomment-reason-re): Support unique case and priority case.
 	(verilog-basic-complete-re): Support localparam lineup.
 	(verilog-beg-of-statement-1): Fix for robustness, unique case.
@@ -10011,7 +10032,7 @@
 
 2009-06-28  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-auto-arg, verilog-auto-arg-sort):
+	* progmodes/verilog-mode.el (verilog-auto-arg, verilog-auto-arg-sort):
 	Allow sorting AUTOARG lists.  Suggested by Andrea Fedeli.
 	(verilog-read-sub-decls-line): Fix AUTOWIRE signals getting lost
 	in concatenations.  Reported by Yishay Belkind.

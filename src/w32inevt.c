@@ -470,7 +470,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	  emacs_ev->kind = NO_EVENT;
 	  return 0;
 	}
-      else if (event->uChar.AsciiChar > 0 && event->uChar.AsciiChar < 128)
+      else if (event->uChar.AsciiChar > 0)
 	{
 	  emacs_ev->kind = ASCII_KEYSTROKE_EVENT;
 	  emacs_ev->code = event->uChar.AsciiChar;
