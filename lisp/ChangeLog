@@ -1,3 +1,10 @@
+2010-02-01  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-extract): Use `member-ignore-case' to
+	compare with "pkunzip" and "pkzip" instead of only "pkzip".
+	In the `archive-extract-by-stdout' branch use `shell-quote-argument'
+	only when (car archive-zip-extract) is "unzip".  (Bug#5475)
+
 2010-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-new-window-function): Be a bit more defensive.
