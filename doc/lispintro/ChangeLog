@@ -1,3 +1,8 @@
+2010-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp-intro.texi (Text and Auto-fill, Mode Line):
+	Avoid obsolete special default variables like default-major-mode.
+
 2009-12-09  David Robinow  <drobinow@gmail.com>  (tiny change)
 
 	* makefile.w32-in: Use parenthesis for macros for nmake

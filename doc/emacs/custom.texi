@@ -2275,7 +2275,7 @@ Various Emacs packages that need your own email address use the value of
 Make Text mode the default mode for new buffers.
 
 @example
-(setq default-major-mode 'text-mode)
+(setq-default major-mode 'text-mode)
 @end example
 
 Note that @code{text-mode} is used because it is the command for

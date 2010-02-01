@@ -235,8 +235,15 @@ of the page moves to the previous page."
 
 (defun doc-view-new-window-function (winprops)
   (let ((ol (image-mode-window-get 'overlay winprops)))
+    (when (and ol (not (overlay-buffer ol)))
+      ;; I've seen `ol' be a dead overlay.  I do not yet know how this
+      ;; happened, so maybe the bug is elsewhere, but in the mean time,
+      ;; this seems like a safe approach.
+      (setq ol nil))
     (if ol
-        (setq ol (copy-overlay ol))
+        (progn
+          (assert (eq (overlay-buffer ol) (current-buffer)))
+          (setq ol (copy-overlay ol)))
       (assert (not (get-char-property (point-min) 'display)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
@@ -323,11 +330,20 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
     ;; Open a new buffer with doc's text contents
     (define-key map (kbd "C-c C-t")   'doc-view-open-text)
-    ;; Reconvert the current document
-    (define-key map (kbd "g")         'revert-buffer)
-    (define-key map (kbd "r")         'revert-buffer)
+    ;; Reconvert the current document.  Don't just use revert-buffer
+    ;; because that resets the scale factor, the page number, ...
+    (define-key map (kbd "g")         'doc-view-revert-buffer)
+    (define-key map (kbd "r")         'doc-view-revert-buffer)
     map)
   "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+
+(defun doc-view-revert-buffer (&optional ignore-auto noconfirm)
+  "Like `revert-buffer', but preserves the buffer's current modes."
+  ;; FIXME: this should probably be moved to files.el and used for
+  ;; most/all "g" bindings to revert-buffer.
+  (interactive (list (not current-prefix-arg)))
+  (revert-buffer ignore-auto noconfirm 'preserve-modes))
+
 
 (easy-menu-define doc-view-menu doc-view-mode-map
   "Menu for Doc View mode."
