@@ -1,3 +1,14 @@
+2010-02-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-dir-extra-headers): Add a header when a
+	pending merge is detected.
+
+2010-01-31  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (zrgrep): Call `grep-compute-defaults' at the
+	beginning of interactive spec like all other grep commands do.
+	Put "all" in front of "gz".  (Bug#5260)
+
 2010-01-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-after-dir-status): Match another renaming indicator.

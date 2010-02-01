@@ -794,6 +794,12 @@ stream.  Standard error output is discarded."
 	      (buffer-string)))
        (shelve (vc-bzr-shelve-list))
        (shelve-help-echo "Use M-x vc-bzr-shelve to create shelves")
+       (root-dir (vc-bzr-root dir))
+       (pending-merge
+	(file-exists-p
+	 (expand-file-name ".bzr/checkout/merge-hashes" root-dir)))
+       (pending-merge-help-echo
+	(format "A merge has been performed.\nA commit from the top-level directory (%s)\nis required before being able to check in anything else" root-dir))
        (light-checkout
 	(when (string-match ".+light checkout root: \\(.+\\)$" str)
 	  (match-string 1 str)))
@@ -819,24 +825,32 @@ stream.  Standard error output is discarded."
 	 (propertize "Checkout of branch : " 'face 'font-lock-type-face)
 	 (propertize light-checkout-branch 'face 'font-lock-variable-name-face)
 	 "\n"))
-     (if shelve
-	 (concat
-	  (propertize "Shelves            :\n" 'face 'font-lock-type-face
-		      'help-echo shelve-help-echo)
-	  (mapconcat
-	   (lambda (x)
-	     (propertize x
-			 'face 'font-lock-variable-name-face
-			 'mouse-face 'highlight
-			 'help-echo "mouse-3: Show shelve menu\nP: Apply and remove shelf (pop)\nC-k: Delete shelf"
-			 'keymap vc-bzr-shelve-map))
-	   shelve "\n"))
-       (concat
-	(propertize "Shelves            : " 'face 'font-lock-type-face
-		    'help-echo shelve-help-echo)
-	(propertize "No shelved changes"
-		    'help-echo shelve-help-echo
-		    'face 'font-lock-variable-name-face))))))
+      (when pending-merge
+	(concat
+	 (propertize "Warning            : " 'face 'font-lock-warning-face
+		     'help-echo pending-merge-help-echo)
+	 (propertize "Pending merges, commit recommended before any other action"
+		     'help-echo pending-merge-help-echo
+		     'face 'font-lock-warning-face)
+	 "\n"))
+      (if shelve
+	  (concat
+	   (propertize "Shelves            :\n" 'face 'font-lock-type-face
+		       'help-echo shelve-help-echo)
+	   (mapconcat
+	    (lambda (x)
+	      (propertize x
+			  'face 'font-lock-variable-name-face
+			  'mouse-face 'highlight
+			  'help-echo "mouse-3: Show shelve menu\nA: Apply and keep shelf\nP: Apply and remove shelf (pop)\nS: Snapshot to a shelf\nC-k: Delete shelf"
+			  'keymap vc-bzr-shelve-map))
+	    shelve "\n"))
+	(concat
+	 (propertize "Shelves            : " 'face 'font-lock-type-face
+		     'help-echo shelve-help-echo)
+	 (propertize "No shelved changes"
+		     'help-echo shelve-help-echo
+		     'face 'font-lock-variable-name-face))))))
 
 (defun vc-bzr-shelve (name)
   "Create a shelve."
