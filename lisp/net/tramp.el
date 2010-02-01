@@ -4062,26 +4062,25 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
 	(tramp-run-real-handler
 	 'insert-directory (list filename switches wildcard full-directory-p))
-      (when (and (string-match "^--dired\\s-+" switches)
+      (when (stringp switches)
+        (setq switches (split-string switches)))
+      (when (and (member "--dired" switches)
 		 (not (tramp-get-ls-command-with-dired v)))
-	(setq switches (replace-match "" nil t switches)))
-      (tramp-message
-       v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
-       switches filename (if wildcard "yes" "no")
-       (if full-directory-p "yes" "no"))
+	(setq switches (delete "--dired" switches)))
       (when wildcard
         (setq wildcard (tramp-run-real-handler
 			'file-name-nondirectory (list localname)))
         (setq localname (tramp-run-real-handler
 			 'file-name-directory (list localname))))
-      (when (listp switches)
-        (setq switches (mapconcat 'identity switches " ")))
       (unless full-directory-p
-        (setq switches (concat "-d " switches)))
+        (setq switches (add-to-list 'switches "-d" 'append)))
+      (setq switches (mapconcat 'tramp-shell-quote-argument switches " "))
       (when wildcard
-        (setq switches (concat switches " " wildcard)))
-      (when (string-match "'" switches)
-	(setq switches (replace-match "\\\\'" nil nil switches)))
+	(setq switches (concat switches " " wildcard)))
+      (tramp-message
+       v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
+       switches filename (if wildcard "yes" "no")
+       (if full-directory-p "yes" "no"))
       ;; If `full-directory-p', we just say `ls -l FILENAME'.
       ;; Else we chdir to the parent directory, then say `ls -ld BASENAME'.
       (if full-directory-p
@@ -4144,6 +4143,19 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	(while (looking-at "//")
 	  (forward-line 1)
 	  (delete-region (match-beginning 0) (point)))
+
+	;; The inserted file could be from somewhere else.
+	(when (and (not wildcard) (not full-directory-p))
+	  (goto-char (point-max))
+	  (when (file-symlink-p filename)
+	    (goto-char (search-backward "->" beg 'noerror)))
+	  (search-backward
+	   (if (zerop (length (file-name-nondirectory filename)))
+	       "."
+	     (file-name-nondirectory filename))
+	   beg 'noerror)
+	  (replace-match (file-relative-name filename) t))
+
 	(goto-char (point-max))))))
 
 (defun tramp-handle-unhandled-file-name-directory (filename)
@@ -5481,6 +5493,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   ;; Add the handlers.
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
+  (put 'tramp-file-name-handler 'safe-magic t)
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-completion-file-name-regexp
 		     'tramp-completion-file-name-handler))

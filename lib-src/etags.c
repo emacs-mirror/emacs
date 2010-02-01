@@ -4108,6 +4108,10 @@ Fortran_functions (inf)
       dbp = skip_spaces (dbp);
       if (*dbp == '\0')
 	continue;
+
+      if (LOOKING_AT_NOCASE (dbp, "recursive"))
+	dbp = skip_spaces (dbp);
+
       switch (lowcase (*dbp))
 	{
 	case 'i':

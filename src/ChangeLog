@@ -1,3 +1,46 @@
+2010-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): If FONT is a font-entity and pixel
+	size in NAME is invalid, return -1 (Bug#5396).
+
+2010-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_defined_color): Block input.  Suggested by Mike
+	<deactivated@gmail.com> (Bug#3605).
+
+2010-01-31  David De La Harpe Golden  <david@harpegolden.net>
+
+	* fileio.c (Frename_file): Correctly rename symlinks to
+	directories (Bug#5496).
+
+2010-01-31  Filipe Cabecinhas  <filcab@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_ring_bell): Handle visible bell like X.
+
+2010-01-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* character.h (CHAR_PRINTABLE_P): Reparenthesize to avoid warning.
+
+2010-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (DEFAULT_ROWS): Change default to 35.
+
+	* xfns.c (x_default_font_parameter): Change default XFT font to
+	monospace-10 (Bug#3643).
+
+2010-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32inevt.c (key_event): Remove unnecessary comparison of
+	event->uChar.AsciiChar with 128.
+
+2010-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Frename_file): Fix last change (Bug#5487).
+
+	* m/mips.h: Remove DATA_START.  Suggested by Dan Nicolaescu.
+
+	* m/alpha.h: Don't define DATA_START on NetBSD (Bug#4629).
+
 2010-01-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): Remove window size matching code from
@@ -7,7 +50,7 @@
 2010-01-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32inevt.c (w32_kbd_patch_key): Save the unicode character.
-	(key_event): Use unicode for characters 128 and higher.
+	(key_event): Use unicode for characters 128 and higher (Bug#4567).
 
 2010-01-27  Kenichi Handa  <handa@m17n.org>
 

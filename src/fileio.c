@@ -2289,7 +2289,7 @@ This is what happens in interactive use with M-x.  */)
                                  NILP (ok_if_already_exists) ? Qnil : Qt);
           else
 #endif
-	  if (Ffile_directory_p (file))
+	  if (!NILP (Ffile_directory_p (file)))
 	    call4 (Qcopy_directory, file, newname, Qt, Qnil);
 	  else
 	    /* We have already prompted if it was an integer, so don't
@@ -2300,7 +2300,12 @@ This is what happens in interactive use with M-x.  */)
 
 	  count = SPECPDL_INDEX ();
 	  specbind (Qdelete_by_moving_to_trash, Qnil);
-	  if (Ffile_directory_p (file))
+
+	  if (!NILP (Ffile_directory_p (file))
+#ifdef S_IFLNK
+	      && NILP (symlink_target)
+#endif
+	      )
 	    call2 (Qdelete_directory, file, Qt);
 	  else
 	    Fdelete_file (file);

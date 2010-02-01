@@ -392,6 +392,17 @@ http://debbugs.gnu.org/cgi-bin/pkgreport.cgi?newest=100;package=emacs
 Or use the static index:
 http://debbugs.gnu.org/db/ix/full.html
 
+** What are those "mbox folder" links on the bug report pages?
+
+"mbox folder" = messages as they arrived at the tracker
+
+"status mbox" = as above, but with a fake message at the start
+    summarizing the bug status
+
+"maintainer mbox" = messages as sent out from the tracker to the
+    maintainers (ie, bug-gnu-emacs).  These have some changed headers
+    (Resent-*, Subject, etc).
+
 ** ChangeLog issues
 
 *** When you fix a bug, it can be helpful to put the bug number in the
