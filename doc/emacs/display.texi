@@ -877,7 +877,6 @@ portion (@pxref{Narrowing}), type @kbd{M-x delete-trailing-whitespace
 @key{RET}}.  This command does not remove newline characters.
 
 @vindex indicate-empty-lines
-@vindex default-indicate-empty-lines
 @cindex unused lines
 @cindex fringes, and unused line indication
   Emacs can indicate unused lines at the end of the window with a
@@ -887,11 +886,11 @@ lines at the end of the buffer then stand out because they do not have
 this image in the fringe.
 
   To enable this feature, set the buffer-local variable
-@code{indicate-empty-lines} to a non-@code{nil} value.  The default
-value of this variable is controlled by the variable
-@code{default-indicate-empty-lines}; by setting that variable, you
-can enable or disable this feature for all new buffers.  (This feature
-currently doesn't work on text-only terminals.)
+@code{indicate-empty-lines} to a non-@code{nil} value.  You can enable
+or disable this feature for all new buffers by setting the default
+value of this variable, e.g.@: @code{(setq-default
+indicate-empty-lines t)};.  (This feature currently doesn't work on
+text-only terminals.)
 
 @node Selective Display
 @section Selective Display
@@ -1083,17 +1082,15 @@ buffers are displayed with their graphics, as are non-@acronym{ASCII} multibyte
 printing characters (octal codes above 0400).
 
 @vindex tab-width
-@vindex default-tab-width
   Some @acronym{ASCII} control characters are displayed in special
 ways.  The newline character (octal code 012) is displayed by starting
 a new line.  The tab character (octal code 011) is displayed by moving
 to the next tab stop column (normally every 8 columns).  The number of
 spaces per tab is controlled by the variable @code{tab-width}, which
 must have an integer value between 1 and 1000, inclusive, and is made
-local by changing it.  Note that how the tab character in the buffer
+buffer-local by changing it.  Note that how the tab character in the buffer
 is displayed has nothing to do with the definition of @key{TAB} as a
-command.  The variable @code{default-tab-width} controls the default
-value of this variable for buffers where you have not set it locally.
+command.
 
   Other @acronym{ASCII} control characters are normally displayed as a caret
 (@samp{^}) followed by the non-control version of the character; thus,
