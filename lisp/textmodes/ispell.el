@@ -3459,7 +3459,7 @@ Don't read buffer-local settings or word lists."
 	       ;; Matches context difference listing
 	       "\\(\\(^cd .*\n\\)?diff -c .*\\)?\n\\*\\*\\* .*\n--- .*\n\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*"
 	       ;; Matches unidiff difference listing
-	       "\\(diff -u .*\\)?\n--- .*\n\\+\\+\\+ .*\n@@ [-+][0-9]+,[0-9]+ [-+][0-9]+,[0-9]+ @@\n"
+	       "\\(diff -u .*\\)?\n--- .*\n\\+\\+\\+ .*\n@@ [-+][0-9]+,[0-9]+ [-+][0-9]+,[0-9]+ @@"
 	       ;; Matches reporter.el bug report
 	       "^current state:\n==============\n"
 	       ;; Matches commonly used "cut" boundaries

@@ -1,5 +1,10 @@
 2010-02-02  Juri Linkov  <juri@jurta.org>
 
+	* textmodes/ispell.el (ispell-message-text-end): Remove final newline
+	from unidiff to allow function-line after @@.
+
+2010-02-02  Juri Linkov  <juri@jurta.org>
+
 	* ediff-util.el (ediff-file-checked-in-p): Replace '(nil CVS) by
 	'(RCS SCCS) with inverted condition.
 
