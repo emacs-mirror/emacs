@@ -1085,6 +1085,7 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 			"Login Incorrect"
 			"Connection refused"
 			"Connection closed"
+			"Timeout, server not responding."
 			"Sorry, try again."
 			"Name or service not known"
 			"Host key verification failed."
@@ -4061,26 +4062,25 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
 	(tramp-run-real-handler
 	 'insert-directory (list filename switches wildcard full-directory-p))
-      (when (and (string-match "^--dired\\s-+" switches)
+      (when (stringp switches)
+        (setq switches (split-string switches)))
+      (when (and (member "--dired" switches)
 		 (not (tramp-get-ls-command-with-dired v)))
-	(setq switches (replace-match "" nil t switches)))
-      (tramp-message
-       v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
-       switches filename (if wildcard "yes" "no")
-       (if full-directory-p "yes" "no"))
+	(setq switches (delete "--dired" switches)))
       (when wildcard
         (setq wildcard (tramp-run-real-handler
 			'file-name-nondirectory (list localname)))
         (setq localname (tramp-run-real-handler
 			 'file-name-directory (list localname))))
-      (when (listp switches)
-        (setq switches (mapconcat 'identity switches " ")))
       (unless full-directory-p
-        (setq switches (concat "-d " switches)))
+        (setq switches (add-to-list 'switches "-d" 'append)))
+      (setq switches (mapconcat 'tramp-shell-quote-argument switches " "))
       (when wildcard
-        (setq switches (concat switches " " wildcard)))
-      (when (string-match "'" switches)
-	(setq switches (replace-match "\\\\'" nil nil switches)))
+	(setq switches (concat switches " " wildcard)))
+      (tramp-message
+       v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
+       switches filename (if wildcard "yes" "no")
+       (if full-directory-p "yes" "no"))
       ;; If `full-directory-p', we just say `ls -l FILENAME'.
       ;; Else we chdir to the parent directory, then say `ls -ld BASENAME'.
       (if full-directory-p
@@ -4143,6 +4143,19 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	(while (looking-at "//")
 	  (forward-line 1)
 	  (delete-region (match-beginning 0) (point)))
+
+	;; The inserted file could be from somewhere else.
+	(when (and (not wildcard) (not full-directory-p))
+	  (goto-char (point-max))
+	  (when (file-symlink-p filename)
+	    (goto-char (search-backward "->" beg 'noerror)))
+	  (search-backward
+	   (if (zerop (length (file-name-nondirectory filename)))
+	       "."
+	     (file-name-nondirectory filename))
+	   beg 'noerror)
+	  (replace-match (file-relative-name filename) t))
+
 	(goto-char (point-max))))))
 
 (defun tramp-handle-unhandled-file-name-directory (filename)
@@ -5480,6 +5493,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   ;; Add the handlers.
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
+  (put 'tramp-file-name-handler 'safe-magic t)
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-completion-file-name-regexp
 		     'tramp-completion-file-name-handler))
@@ -6732,6 +6746,9 @@ process to set up.  VEC specifies the connection."
 	;; because we're running on a non-MULE Emacs.  Let's try
 	;; stty, instead.
 	(tramp-send-command vec "stty -onlcr" t))))
+  ;; Dump stty settings in the traces.
+  (when (>= tramp-verbose 10)
+    (tramp-send-command vec "stty -a" t))
   (tramp-send-command vec "set +o vi +o emacs" t)
 
   ;; Check whether the output of "uname -sr" has been changed.  If
@@ -6801,15 +6818,16 @@ process to set up.  VEC specifies the connection."
   ;; <http://bugs.opensolaris.org/view_bug.do?bug_id=6834184>.  We
   ;; apply the workaround.
   (if (string-equal (tramp-get-connection-property vec "uname" "") "SunOS 5.11")
-      (tramp-send-command vec "unset HISTFILE"))
+      (tramp-send-command vec "unset HISTFILE" t))
 
   (let ((env (copy-sequence tramp-remote-process-environment))
 	unset item)
     (while env
       (setq item (tramp-compat-split-string (car env) "="))
-      (if (and (stringp (cadr item)) (not (string-equal (cadr item) "")))
+      (setcdr item (mapconcat 'identity (cdr item) "="))
+      (if (and (stringp (cdr item)) (not (string-equal (cdr item) "")))
 	  (tramp-send-command
-	   vec (format "%s=%s; export %s" (car item) (cadr item) (car item)) t)
+	   vec (format "%s=%s; export %s" (car item) (cdr item) (car item)) t)
 	(push (car item) unset))
       (setq env (cdr env)))
     (when unset
@@ -6981,7 +6999,8 @@ Goes through the list `tramp-local-coding-commands' and
 
       ;; Did we find something?
       (unless found
-	(tramp-message vec 2 "Couldn't find an inline transfer encoding"))
+	(tramp-error
+	 vec 'file-error "Couldn't find an inline transfer encoding"))
 
       ;; Set connection properties.
       (tramp-message vec 5 "Using local encoding `%s'" loc-enc)
@@ -7301,7 +7320,10 @@ function waits for output unless NOOUTPUT is set."
     (unless nooutput (tramp-wait-for-output p))))
 
 (defun tramp-wait-for-output (proc &optional timeout)
-  "Wait for output from remote rsh command."
+  "Wait for output from remote command."
+  (unless (buffer-live-p (process-buffer proc))
+    (delete-process proc)
+    (tramp-error proc 'file-error "Process `%s' not available, try again" proc))
   (with-current-buffer (process-buffer proc)
     (let* (;; Initially, `tramp-end-of-output' is "#$ ".  There might
 	   ;; be leading escape sequences, which must be ignored.
@@ -7313,6 +7335,14 @@ function waits for output unless NOOUTPUT is set."
 	   (found (tramp-wait-for-regexp proc timeout regexp1)))
       (if found
 	  (let (buffer-read-only)
+	    ;; A simple-minded busybox has sent " ^H" sequences.
+	    ;; Delete them.
+	    (goto-char (point-min))
+	    (when (re-search-forward
+		   "^\\(.\b\\)+$" (tramp-compat-line-end-position) t)
+	      (forward-line 1)
+	      (delete-region (point-min) (point)))
+	    ;; Delete the prompt.
 	    (goto-char (point-max))
 	    (re-search-backward regexp nil t)
 	    (delete-region (point) (point-max)))
@@ -8002,9 +8032,14 @@ necessary only.  This function will be used in file name completion."
 	 (let ((dl (tramp-get-remote-path vec))
 	       result)
 	   (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
-	     ;; Check parameter.
+	     ;; Check parameters.  On busybox, "ls" output coloring is
+	     ;; enabled by default sometimes.  So we try to disable it
+	     ;; when possible.  $LS_COLORING is not supported there.
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -lnd /" result)))
+	       (when (zerop (tramp-send-command-and-check
+			     vec (format "%s --color=never /" result)))
+		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
      (tramp-error vec 'file-error "Couldn't find a proper `ls' command"))))
@@ -8481,8 +8516,6 @@ Only works for Bourne-like shells."
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
-;; * `vc-directory' does not work.  It never displays any files, even
-;;   if it does show files when run locally.
 ;; * How to deal with MULE in `insert-file-contents' and `write-region'?
 ;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
 ;; * abbreviate-file-name
@@ -8529,8 +8562,6 @@ Only works for Bourne-like shells."
 ;; * Reconnect directly to a compliant shell without first going
 ;;   through the user's default shell. (Pete Forman)
 ;; * Make `tramp-default-user' obsolete.
-;; * Tramp shall reconnect automatically to its ssh connection when it
-;;   detects that the process "has died". (David Reitter)
 ;; * How can I interrupt the remote process with a signal
 ;;   (interrupt-process seems not to work)? (Markus Triska)
 ;; * Avoid the local shell entirely for starting remote processes.  If
@@ -8552,6 +8583,16 @@ Only works for Bourne-like shells."
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
 ;; * Support ptys in `tramp-handle-start-file-process'.
+;; * IMHO, it's a drawback that currently Tramp doesn't support
+;;   Unicode in Dired file names by default.  Is it possible to
+;;   improve Tramp to set LC_ALL to "C" only for commands where Tramp
+;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
+;;   expects only English messages? (Juri Linkov)
+;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
+;; * Do not handle files with drive letter as remote.  (Bug#5447)
+;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448)
+;; * Try telnet+curl as new method.  It might be useful for busybox,
+;;   without built-in uuencode/uudecode.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

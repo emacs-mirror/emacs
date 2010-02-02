@@ -270,7 +270,7 @@ function `dirtrack-debug-mode' to turn on debugging output."
                        (run-hooks 'dirtrack-directory-change-hook)
                        (dirtrack-debug-message
                         (format "Changing directory to %s" prompt-path)))
-                (error "Directory %s does not exist" prompt-path)))
+                (warn "Directory %s does not exist" prompt-path)))
             )))))
   input)
 

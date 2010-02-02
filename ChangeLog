@@ -1,3 +1,7 @@
+2010-01-31  Juri Linkov  <juri@jurta.org>
+
+	* .bzrignore: Add TAGS-LISP.
+
 2010-01-23  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* configure.in: Check for utmp.h availability (FreeBSD 9.x lacks

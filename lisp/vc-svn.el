@@ -330,6 +330,7 @@ This is only possible if SVN is responsible for FILE's directory.")
     ;; Check out a particular version (or recreate the file).
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-svn-command nil 0 file
+	   "--non-interactive"		; bug#4280
 	   "update"
 	   (cond
 	    ((null rev) "-rBASE")

@@ -1122,6 +1122,8 @@ font_parse_xlfd (name, font)
 	  val = INTERN_FIELD (XLFD_PIXEL_INDEX);
 	  if (INTEGERP (val))
 	    ASET (font, FONT_SIZE_INDEX, val);
+	  else if (FONT_ENTITY_P (font))
+	    return -1;
 	  else
 	    {
 	      double point_size = -1;
