@@ -1274,7 +1274,7 @@ Modified from `icomplete-completions'."
     ;; consult the list of past visited files, to see if we can find
     ;; the file which the user might thought was still open.
     (when (and iswitchb-use-virtual-buffers (null comps)
-	       recentf-list)
+	       (or recentf-list bookmark-alist))
       (setq iswitchb-virtual-buffers nil)
       (let ((head recentf-list) name)
 	(while head
@@ -1289,15 +1289,30 @@ Modified from `icomplete-completions'."
 	      (setq iswitchb-virtual-buffers
 		    (cons (cons name (car head))
 			  iswitchb-virtual-buffers)))
-	  (setq head (cdr head)))
-	(setq iswitchb-virtual-buffers (nreverse iswitchb-virtual-buffers)
-	      comps (mapcar 'car iswitchb-virtual-buffers))
+	  (setq head (cdr head))))
+      (let ((head bookmark-alist) name path)
+	(while head
+	  (if (and (setq path (cdr (assq 'filename (cdar head))))
+		   (setq name (file-name-nondirectory path))
+		   (string-match (if iswitchb-regexp
+				     iswitchb-text
+				   (regexp-quote iswitchb-text)) name)
+		   (null (get-file-buffer path))
+		   (not (assoc name iswitchb-virtual-buffers))
+		   (not (iswitchb-ignore-buffername-p name))
+		   (file-exists-p path))
+	      (setq iswitchb-virtual-buffers
+		    (cons (cons name path)
+			  iswitchb-virtual-buffers)))
+	  (setq head (cdr head))))
+      (setq iswitchb-virtual-buffers (nreverse iswitchb-virtual-buffers)
+	    comps (mapcar 'car iswitchb-virtual-buffers))
 	(let ((comp comps))
 	  (while comp
 	    (put-text-property 0 (length (car comp))
 			       'face 'iswitchb-virtual-matches
 			       (car comp))
-	    (setq comp (cdr comp))))))
+	    (setq comp (cdr comp)))))
 
     (cond ((null comps) (format " %sNo match%s"
 				open-bracket-determined
