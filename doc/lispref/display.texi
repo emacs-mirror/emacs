@@ -1768,7 +1768,6 @@ height consists of the contents' height plus the line spacing.
 There are several ways to specify the line spacing for different
 parts of Emacs text.
 
-@vindex default-line-spacing
   On graphical terminals, you can specify the line spacing for all
 lines in a frame, using the @code{line-spacing} frame parameter
 (@pxref{Layout Parameters}).  However, if the default value of

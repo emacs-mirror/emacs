@@ -17346,10 +17346,10 @@ Auto Fill mode.
 @smallexample
 @group
 ;;; Text mode and Auto Fill mode
-; The next two lines put Emacs into Text mode
-; and Auto Fill mode, and are for writers who
-; want to start writing prose rather than code.
-(setq default-major-mode 'text-mode)
+;; The next two lines put Emacs into Text mode
+;; and Auto Fill mode, and are for writers who
+;; want to start writing prose rather than code.
+(setq-default major-mode 'text-mode)
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 @end group
 @end smallexample
@@ -18257,7 +18257,7 @@ xmodmap -e "keysym Alt_L = Meta_L Alt_L"
 @need 1700
 @node Mode Line,  , Miscellaneous, Emacs Initialization
 @section A Modified Mode Line
-@vindex default-mode-line-format
+@vindex mode-line-format
 @cindex Mode line format
 
 Finally, a feature I really like: a modified mode line.
@@ -18282,7 +18282,7 @@ My @file{.emacs} file has a section that looks like this:
 @group
 ;; Set a Mode Line that tells me which machine, which directory,
 ;; and which line I am on, plus the other customary information.
-(setq default-mode-line-format
+(setq-default mode-line-format
  (quote
   (#("-" 0 1
      (help-echo

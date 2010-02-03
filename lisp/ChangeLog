@@ -1,3 +1,42 @@
+2010-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Parse directory
+	also in case of (and (not full) (not wildcard)). This is needed,
+	when dired is called with a list of files, which are not in
+	`default-directory'.  (Bug#5478)
+
+2010-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-path): Make it an obsolete var, rather than function.
+
+2010-02-02  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/ispell.el (ispell-message-text-end): Remove final newline
+	from unidiff to allow function-line after @@.
+
+2010-02-02  Juri Linkov  <juri@jurta.org>
+
+	* ediff-util.el (ediff-file-checked-in-p): Replace '(nil CVS) by
+	'(RCS SCCS) with inverted condition.
+
+2010-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Ignore all ""^500 .*AUTH"
+	messages.
+
+2010-02-01  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-extract): Use `member-ignore-case' to
+	compare with "pkunzip" and "pkzip" instead of only "pkzip".
+	In the `archive-extract-by-stdout' branch use `shell-quote-argument'
+	only when (car archive-zip-extract) is "unzip".  (Bug#5475)
+
+2010-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-new-window-function): Be a bit more defensive.
+	(doc-view-revert-buffer): New command.
+	(doc-view-mode-map): Use it.
+
 2010-02-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-dir-extra-headers): Add a header when a
