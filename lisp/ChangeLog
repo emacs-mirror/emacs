@@ -1,3 +1,10 @@
+2010-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Parse directory
+	also in case of (and (not full) (not wildcard)). This is needed,
+	when dired is called with a list of files, which are not in
+	`default-directory'.  (Bug#5478)
+
 2010-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-path): Make it an obsolete var, rather than function.
