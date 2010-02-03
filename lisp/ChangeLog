@@ -1,3 +1,7 @@
+2010-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-path): Make it an obsolete var, rather than function.
+
 2010-02-02  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/ispell.el (ispell-message-text-end): Remove final newline
