@@ -1,3 +1,7 @@
+2010-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (visual-line-mode): Capitalize lighter.
+
 2010-02-03  John Wiegley  <jwiegley@gmail.com>
 
 	* iswitchb.el (iswitchb-completions): Add bookmark files to the
