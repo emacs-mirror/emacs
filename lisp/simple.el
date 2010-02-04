@@ -4700,7 +4700,7 @@ other purposes."
 This also turns on `word-wrap' in the buffer."
   :keymap visual-line-mode-map
   :group 'visual-line
-  :lighter " wrap"
+  :lighter " Wrap"
   (if visual-line-mode
       (progn
 	(set (make-local-variable 'visual-line--saved-state) nil)

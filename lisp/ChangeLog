@@ -1,3 +1,58 @@
+2010-02-04  Alan Mackenzie  <acm@muc.de>
+
+	Change strategy for marking < and > as template delimiters: mark
+	them strictly in matching pairs.
+
+	* cc-mode.el (c-before-change): Use
+	c-get-state-before-change-functions.
+	(c-common-init): Adapt to use
+	c-get-state-before-change-functions (note plural).
+
+	* cc-langs.el (c-no-parens-syntax-table): New syntax table, used
+	for searching syntactically for matching <s and >s.
+	(c-get-state-before-change-functions): New language variable (note
+	the plural) which supersedes c-get-state-before-change-function.
+
+	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
+	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
+	(c-clear->-pair-props-if-match-before)
+	(c-before-change-check-<>-operators): new functions.
+	(c-after-change-check-<>-operators): Use macro
+	c-unmark-<->-as-paren.
+
+	* cc-defs.el (c-search-backward-char-property): New macro.
+
+	* cc-cmds.el (c-electric-lt-gt): Do not set text properties on <
+	and > any more.  (These will be handled by font locking.)
+
+2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired.el (dired-revert): If DIRED-DIRECTORY is a cons cell, call
+	`dired-uncache' for every elemnt which is an absolute file name.
+
+	* net/tramp.el (tramp-handle-dired-uncache): When DIR is not a
+	directory, handle its directory component.
+	(tramp-handle-file-remote-p): Let-bind `tramp-verbose' to 3; this
+	function is called permanently and creates noise, otherwise.
+
+	* net/tramp-imap.el (tramp-imap-handle-insert-directory):
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory):
+	Handle the case, FILENAME is not in `default-directory'.  (Bug#5478)
+
+2010-02-04  David Burger  <dburger@google.com>  (tiny change)
+
+	* macros.el (apply-macro-to-region-lines):
+	Minor simplification.  (Bug#5485)
+
+2010-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-show-message-1): Handle malformed
+	quoted-printable text.  (Bug#5441)
+
+	* mail/mail-utils.el (mail-unquote-printable-region): Doc fix.
+
+	* simple.el (visual-line-mode): Capitalize lighter.
+
 2010-02-03  John Wiegley  <jwiegley@gmail.com>
 
 	* iswitchb.el (iswitchb-completions): Add bookmark files to the

@@ -391,6 +391,27 @@ The syntax tables aren't stored directly since they're quite large."
   (and (c-lang-const c++-make-template-syntax-table)
        (funcall (c-lang-const c++-make-template-syntax-table))))
 
+(c-lang-defconst c-no-parens-syntax-table
+  ;; A variant of the standard syntax table which is used to find matching
+  ;; "<"s and ">"s which have been marked as parens using syntax table
+  ;; properties.  The other paren characters (e.g. "{", ")" "]") are given a
+  ;; non-paren syntax here. so that the list commands will work on "< ... >"
+  ;; even when there's unbalanced other parens inside them.
+  ;;
+  ;; This variable is nil for languages which don't have template stuff.
+  t  `(lambda ()
+	(if (c-lang-const c-recognize-<>-arglists)
+	    (let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
+	      (modify-syntax-entry ?\( "." table)
+	      (modify-syntax-entry ?\) "." table)
+	      (modify-syntax-entry ?\[ "." table)
+	      (modify-syntax-entry ?\] "." table)
+	      (modify-syntax-entry ?\{ "." table)
+	      (modify-syntax-entry ?\} "." table)
+	      table))))
+(c-lang-defvar c-no-parens-syntax-table
+	       (funcall (c-lang-const c-no-parens-syntax-table)))
+
 (c-lang-defconst c-identifier-syntax-modifications
   "A list that describes the modifications that should be done to the
 mode syntax table to get a syntax table that matches all identifiers
@@ -423,26 +444,36 @@ the new syntax, as accepted by `modify-syntax-entry'."
 classifies symbol constituents like '_' and '$' as word constituents,
 so that all identifiers are recognized as words.")
 
-(c-lang-defconst c-get-state-before-change-function
-  "If non-nil, a function called from c-before-change-hook.
-Typically it will record enough state to allow
+(c-lang-defconst c-get-state-before-change-functions
+  ;; For documentation see the following c-lang-defvar of the same name.
+  ;; The value here may be a list of functions or a single function.
+  t nil
+  c++ '(c-extend-region-for-CPP c-before-change-check-<>-operators)
+  (c objc) 'c-extend-region-for-CPP
+  ;; java 'c-before-change-check-<>-operators
+  awk 'c-awk-record-region-clear-NL)
+(c-lang-defvar c-get-state-before-change-functions
+	       (let ((fs (c-lang-const c-get-state-before-change-functions)))
+		  (if (listp fs)
+		      fs
+		    (list fs)))
+  "If non-nil, a list of functions called from c-before-change-hook.
+Typically these will record enough state to allow
 `c-before-font-lock-function' to extend the region to fontify,
 and may do such things as removing text-properties which must be
 recalculated.
 
-It takes 2 parameters, the BEG and END supplied to every
+These functions will be run in the order given.  Each of them
+takes 2 parameters, the BEG and END supplied to every
 before-change function; on entry, the buffer will have been
 widened and match-data will have been saved; point is undefined
 on both entry and exit; the return value is ignored.
 
-When the mode is initialized, this function is called with
-parameters \(point-min) and \(point-max)."
-  t nil
-  (c c++ objc) 'c-extend-region-for-CPP
-  awk 'c-awk-record-region-clear-NL)
-(c-lang-defvar c-get-state-before-change-function
-	       (c-lang-const c-get-state-before-change-function))
-  
+The functions are called even when font locking isn't enabled.
+
+When the mode is initialized, the functions are called with
+parameters \(point-min) and \(point-max).")
+
 (c-lang-defconst c-before-font-lock-function
   "If non-nil, a function called just before font locking.
 Typically it will extend the region about to be fontified \(see

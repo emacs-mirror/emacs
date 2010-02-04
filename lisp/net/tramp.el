@@ -4035,9 +4035,11 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 			(concat file ".z"))
 		       (t nil)))))))))
 
-(defun tramp-handle-dired-uncache (dir)
+(defun tramp-handle-dired-uncache (dir &optional dir-p)
   "Like `dired-uncache' for Tramp files."
-  (with-parsed-tramp-file-name dir nil
+  ;; DIR-P is valid for XEmacs only.
+  (with-parsed-tramp-file-name
+      (if (or dir-p (file-directory-p dir)) dir (file-name-directory dir)) nil
     (tramp-flush-file-property v localname)))
 
 ;; Pacify byte-compiler.  The function is needed on XEmacs only.  I'm
@@ -4663,20 +4665,21 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 
 (defun tramp-handle-file-remote-p (filename &optional identification connected)
   "Like `file-remote-p' for Tramp files."
-  (when (tramp-tramp-file-p filename)
-    (let* ((v (tramp-dissect-file-name filename))
-	   (p (tramp-get-connection-process v))
-	   (c (and p (processp p) (memq (process-status p) '(run open)))))
-      ;; We expand the file name only, if there is already a connection.
-      (with-parsed-tramp-file-name
-	  (if c (expand-file-name filename) filename) nil
-	(and (or (not connected) c)
-	     (cond
-	      ((eq identification 'method) method)
-	      ((eq identification 'user) user)
-	      ((eq identification 'host) host)
-	      ((eq identification 'localname) localname)
-	      (t (tramp-make-tramp-file-name method user host ""))))))))
+  (let ((tramp-verbose 3))
+    (when (tramp-tramp-file-p filename)
+      (let* ((v (tramp-dissect-file-name filename))
+	     (p (tramp-get-connection-process v))
+	     (c (and p (processp p) (memq (process-status p) '(run open)))))
+	;; We expand the file name only, if there is already a connection.
+	(with-parsed-tramp-file-name
+	    (if c (expand-file-name filename) filename) nil
+	  (and (or (not connected) c)
+	       (cond
+		((eq identification 'method) method)
+		((eq identification 'user) user)
+		((eq identification 'host) host)
+		((eq identification 'localname) localname)
+		(t (tramp-make-tramp-file-name method user host "")))))))))
 
 (defun tramp-find-file-name-coding-system-alist (filename tmpname)
   "Like `find-operation-coding-system' for Tramp filenames.
