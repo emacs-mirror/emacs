@@ -1,3 +1,8 @@
+2010-02-04  David Burger  <dburger@google.com>  (tiny change)
+
+	* macros.el (apply-macro-to-region-lines):
+	Minor simplification.  (Bug#5485)
+
 2010-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-show-message-1): Handle malformed
