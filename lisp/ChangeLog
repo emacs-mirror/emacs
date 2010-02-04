@@ -1,5 +1,7 @@
 2010-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* mail/mail-utils.el (mail-unquote-printable-region): Doc fix.
+
 	* simple.el (visual-line-mode): Capitalize lighter.
 
 2010-02-03  John Wiegley  <jwiegley@gmail.com>
