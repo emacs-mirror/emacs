@@ -472,14 +472,18 @@ SIZE MODE WEIRD INODE DEVICE)."
 		(nth 6 x)))) ; date
 	     ;; For the file name, we set the `dired-filename'
 	     ;; property.  This allows to handle file names with
-	     ;; leading or trailing spaces as well.
+	     ;; leading or trailing spaces as well.  The inserted name
+	     ;; could be from somewhere else, so we use the relative
+	     ;; file name of `default-directory'.
 	     (let ((pos (point)))
-	       (insert (format "%s" (nth 0 x))) ; file name
-	       (put-text-property pos (point) 'dired-filename t))
-	     (insert "\n")
+	       (insert
+		(format
+		 "%s\n"
+		 (file-relative-name (expand-file-name (nth 0 x) filename))))
+	       (put-text-property pos (1- (point)) 'dired-filename t))
 	     (forward-line)
 	     (beginning-of-line)))
-	   entries)))))
+	 entries)))))
 
 (defun tramp-imap-handle-insert-file-contents
   (filename &optional visit beg end replace)

@@ -1,3 +1,17 @@
+2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired.el (dired-revert): If DIRED-DIRECTORY is a cons cell, call
+	`dired-uncache' for every elemnt which is an absolute file name.
+
+	* net/tramp.el (tramp-handle-dired-uncache): When DIR is not a
+	directory, handle its directory component.
+	(tramp-handle-file-remote-p): Let-bind `tramp-verbose' to 3; this
+	function is called permanently and creates noise, otherwise.
+
+	* net/tramp-imap.el (tramp-imap-handle-insert-directory):
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory):
+	Handle the case, FILENAME is not in `default-directory'.  (Bug#5478)
+
 2010-02-04  David Burger  <dburger@google.com>  (tiny change)
 
 	* macros.el (apply-macro-to-region-lines):

@@ -716,7 +716,7 @@ PRESERVE-UID-GID is completely ignored."
 		    (when (tramp-smb-get-stat-capability v)
 		      (ignore-errors
 			(file-attributes
-			 (expand-file-name (nth 0 x)) 'string)))))
+			 (expand-file-name (nth 0 x) filename) 'string)))))
 	       (insert
 		(format
 		 "%10s %3d %-8s %-8s %8s %s "
@@ -732,9 +732,14 @@ PRESERVE-UID-GID is completely ignored."
 		      "%b %e %R"
 		    "%b %e  %Y")
 		  (nth 3 x)))) ; date
-	       ;; We mark the filename.
+	       ;; We mark the file name.  The inserted name could be
+	       ;; from somewhere else, so we use the relative file
+	       ;; name of `default-directory'.
 	       (let ((start (point)))
-		 (insert (format "%s\n" (nth 0 x))) ; file name
+		 (insert
+		  (format
+		   "%s\n"
+		   (file-relative-name (expand-file-name (nth 0 x) filename))))
 		 (put-text-property start (1- (point)) 'dired-filename t))
 	       (forward-line)
 	       (beginning-of-line))))
