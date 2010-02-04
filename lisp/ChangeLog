@@ -1,5 +1,8 @@
 2010-02-04  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-show-message-1): Handle malformed
+	quoted-printable text.  (Bug#5441)
+
 	* mail/mail-utils.el (mail-unquote-printable-region): Doc fix.
 
 	* simple.el (visual-line-mode): Capitalize lighter.
