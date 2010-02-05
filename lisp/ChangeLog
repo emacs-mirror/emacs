@@ -1,5 +1,10 @@
 2010-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Make `initials' completion work for /hh -> /home/horn again (bug#5524).
+	* minibuffer.el (completion-initials-expand): Only check the presence
+	of delims *within* the boundaries, since otherwise the / delim is
+	always found for files.
+
 	Fix up various corner case problems.
 	* doc-view.el (doc-view-last-page-number): New function.
 	(doc-view-mode, doc-view-last-page, doc-view-goto-page): Use it.
@@ -18,8 +23,8 @@
 	Change strategy for marking < and > as template delimiters: mark
 	them strictly in matching pairs.
 
-	* cc-mode.el (c-before-change): Use
-	c-get-state-before-change-functions.
+	* cc-mode.el (c-before-change):
+	Use c-get-state-before-change-functions.
 	(c-common-init): Adapt to use
 	c-get-state-before-change-functions (note plural).
 
@@ -31,7 +36,7 @@
 	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
 	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
 	(c-clear->-pair-props-if-match-before)
-	(c-before-change-check-<>-operators): new functions.
+	(c-before-change-check-<>-operators): New functions.
 	(c-after-change-check-<>-operators): Use macro
 	c-unmark-<->-as-paren.
 

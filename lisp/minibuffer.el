@@ -2063,9 +2063,12 @@ filter out additional entries (because TABLE migth not obey PRED)."
 ;; Complete /ums to /usr/monnier/src or lch to list-command-history.
 
 (defun completion-initials-expand (str table pred)
-  (unless (or (zerop (length str))
-              (string-match completion-pcm--delim-wild-regex str))
-    (let ((bounds (completion-boundaries str table pred "")))
+  (let ((bounds (completion-boundaries str table pred "")))
+    (unless (or (zerop (length str))
+                ;; Only check within the boundaries, since the
+                ;; boundary char (e.g. /) might be in delim-regexp.
+                (string-match completion-pcm--delim-wild-regex str
+                              (car bounds)))
       (if (zerop (car bounds))
           (mapconcat 'string str "-")
         ;; If there's a boundary, it's trickier.  The main use-case
