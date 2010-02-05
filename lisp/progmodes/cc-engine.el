@@ -4880,7 +4880,168 @@ comment at the start of cc-engine.el for more info."
 	)))
 
 
-;; Handling of small scale constructs like types and names.
+;; Setting and removing syntax properties on < and > in languages (C++
+;; and Java) where they can be template/generic delimiters as well as
+;; their normal meaning of "less/greater than".
+
+;; Normally, < and > have syntax 'punctuation'.  When they are found to
+;; be delimiters, they are marked as such with the category properties
+;; c-<-as-paren-syntax, c->-as-paren-syntax respectively.
+
+;; STRATEGY:
+;;
+;; It is impossible to determine with certainty whether a <..> pair in
+;; C++ is two comparison operators or is template delimiters, unless
+;; one duplicates a lot of a C++ compiler.  For example, the following
+;; code fragment:
+;;
+;;     foo (a < b, c > d) ;
+;;
+;; could be a function call with two integer parameters (each a
+;; relational expression), or it could be a constructor for class foo
+;; taking one parameter d of templated type "a < b, c >".  They are
+;; somewhat easier to distinguish in Java.
+;;
+;; The strategy now (2010-01) adopted is to mark and unmark < and
+;; > IN MATCHING PAIRS ONLY.  [Previously, they were marked
+;; individually when their context so indicated.  This gave rise to
+;; intractible problems when one of a matching pair was deleted, or
+;; pulled into a literal.]
+;;
+;; At each buffer change, the syntax-table properties are removed in a
+;; before-change function and reapplied, when needed, in an
+;; after-change function.  It is far more important that the
+;; properties get removed when they they are spurious than that they
+;; be present when wanted.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun c-clear-<-pair-props (&optional pos)
+  ;; POS (default point) is at a < character.  If it is marked with
+  ;; open paren syntax-table text property, remove the property,
+  ;; together with the close paren property on the matching > (if
+  ;; any).
+  (save-excursion
+    (if pos
+	(goto-char pos)
+      (setq pos (point)))
+    (when (equal (c-get-char-property (point) 'syntax-table)
+		 c-<-as-paren-syntax)
+      (with-syntax-table c-no-parens-syntax-table ; ignore unbalanced [,{,(,..
+	(c-go-list-forward))
+      (when (equal (c-get-char-property (1- (point)) 'syntax-table)
+		   c->-as-paren-syntax) ; should always be true.
+	(c-clear-char-property (1- (point)) 'syntax-table))
+      (c-clear-char-property pos 'syntax-table))))
+
+(defun c-clear->-pair-props (&optional pos)
+  ;; POS (default point) is at a > character.  If it is marked with
+  ;; close paren syntax-table property, remove the property, together
+  ;; with the open paren property on the matching < (if any).
+  (save-excursion
+    (if pos
+	(goto-char pos)
+      (setq pos (point)))
+    (when (equal (c-get-char-property (point) 'syntax-table)
+		 c->-as-paren-syntax)
+      (with-syntax-table c-no-parens-syntax-table ; ignore unbalanced [,{,(,..
+	(c-go-up-list-backward))
+      (when (equal (c-get-char-property (point) 'syntax-table)
+			c-<-as-paren-syntax) ; should always be true.
+	(c-clear-char-property (point) 'syntax-table))
+      (c-clear-char-property pos 'syntax-table))))
+
+(defun c-clear-<>-pair-props (&optional pos)
+  ;; POS (default point) is at a < or > character.  If it has an
+  ;; open/close paren syntax-table property, remove this property both
+  ;; from the current character and its partner (which will also be
+  ;; thusly marked).
+  (cond
+   ((eq (char-after) ?\<)
+    (c-clear-<-pair-props pos))
+   ((eq (char-after) ?\>)
+    (c-clear->-pair-props pos))
+   (t (c-benign-error
+       "c-clear-<>-pair-props called from wrong position"))))
+
+(defun c-clear-<-pair-props-if-match-after (lim &optional pos)
+  ;; POS (default point) is at a < character.  If it is both marked
+  ;; with open/close paren syntax-table property, and has a matching >
+  ;; (also marked) which is after LIM, remove the property both from
+  ;; the current > and its partner.
+  (save-excursion
+    (if pos
+	(goto-char pos)
+      (setq pos (point)))
+    (when (equal (c-get-char-property (point) 'syntax-table)
+		 c-<-as-paren-syntax)
+      (with-syntax-table c-no-parens-syntax-table ; ignore unbalanced [,{,(,..
+	(c-go-list-forward))
+      (when (and (>= (point) lim)
+		 (equal (c-get-char-property (1- (point)) 'syntax-table)
+			c->-as-paren-syntax)) ; should always be true.
+	(c-unmark-<->-as-paren (1- (point)))
+	(c-unmark-<->-as-paren pos)))))
+
+(defun c-clear->-pair-props-if-match-before (lim &optional pos)
+  ;; POS (default point) is at a > character.  If it is both marked
+  ;; with open/close paren syntax-table property, and has a matching <
+  ;; (also marked) which is before LIM, remove the property both from
+  ;; the current < and its partner.
+  (save-excursion
+    (if pos
+	(goto-char pos)
+      (setq pos (point)))
+    (when (equal (c-get-char-property (point) 'syntax-table)
+		 c->-as-paren-syntax)
+      (with-syntax-table c-no-parens-syntax-table ; ignore unbalanced [,{,(,..
+	(c-go-up-list-backward))
+      (when (and (<= (point) lim)
+		 (equal (c-get-char-property (point) 'syntax-table)
+			c-<-as-paren-syntax)) ; should always be true.
+	(c-unmark-<->-as-paren (point))
+	(c-unmark-<->-as-paren pos)))))
+
+(defun c-before-change-check-<>-operators (beg end)
+  ;; Unmark certain pairs of "< .... >" which are currently marked as
+  ;; template/generic delimiters.  (This marking is via syntax-table
+  ;; text properties).
+  ;;
+  ;; These pairs are those which are in the current "statement" (i.e.,
+  ;; the region between the {, }, or ; before BEG and the one after
+  ;; END), and which enclose any part of the interval (BEG END).
+  ;;
+  ;; Note that in C++ (?and Java), template/generic parens cannot
+  ;; enclose a brace or semicolon, so we use these as bounds on the
+  ;; region we must work on.
+  ;;
+  ;; This function is called from before-change-functions (via
+  ;; c-get-state-before-change-functions).  Thus the buffer is widened,
+  ;; and point is undefined, both at entry and exit.
+  ;;
+  ;; FIXME!!!  This routine ignores the possibility of macros entirely.
+  ;; 2010-01-29.
+  (save-excursion
+    (let ((beg-lit-limits (progn (goto-char beg) (c-literal-limits)))
+	  (end-lit-limits (progn (goto-char end) (c-literal-limits))))
+      ;; Locate the barrier before the changed region
+      (goto-char  (if beg-lit-limits (car beg-lit-limits) beg))
+      (c-syntactic-skip-backward "^;{}" (max (- beg 2048) (point-min)))
+
+      ;; Remove the syntax-table properties from each pertinent <...> pair.
+      ;; Firsly, the ones with the < before beg and > after beg.
+      (while (c-search-forward-char-property 'category 'c-<-as-paren-syntax beg)
+	(c-clear-<-pair-props-if-match-after beg (1- (point))))
+
+      ;; Locate the barrier after END.
+      (goto-char (if end-lit-limits (cdr end-lit-limits) end))
+      (c-syntactic-re-search-forward "[;{}]"
+				     (min (+ end 2048) (point-max)) 'end)
+
+      ;; Remove syntax-table properties from the remaining pertinent <...>
+      ;; pairs, those with a > after end and < before end.
+      (while (c-search-backward-char-property 'category 'c->-as-paren-syntax end)
+	(c-clear->-pair-props-if-match-before end)))))
+
+
 
 (defun c-after-change-check-<>-operators (beg end)
   ;; This is called from `after-change-functions' when
@@ -4902,7 +5063,7 @@ comment at the start of cc-engine.el for more info."
 		 (< beg (setq beg (match-end 0))))
 	(while (progn (skip-chars-forward "^<>" beg)
 		      (< (point) beg))
-	  (c-clear-char-property (point) 'syntax-table)
+	  (c-clear-<>-pair-props)
 	  (forward-char))))
 
     (when (< beg end)
@@ -4917,8 +5078,12 @@ comment at the start of cc-engine.el for more info."
 		   (< end (setq end (match-end 0))))
 	  (while (progn (skip-chars-forward "^<>" end)
 			(< (point) end))
-	    (c-clear-char-property (point) 'syntax-table)
+	    (c-clear-<>-pair-props)
 	    (forward-char)))))))
+
+
+
+;; Handling of small scale constructs like types and names.
 
 ;; Dynamically bound variable that instructs `c-forward-type' to also
 ;; treat possible types (i.e. those that it normally returns 'maybe or
