@@ -1,3 +1,18 @@
+2010-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix up various corner case problems.
+	* doc-view.el (doc-view-last-page-number): New function.
+	(doc-view-mode, doc-view-last-page, doc-view-goto-page): Use it.
+	(doc-view-goto-page): Avoid inf-loops when the conversion fails.
+	(doc-view-kill-proc): Avoid inf-loop in freak cases.
+	(doc-view-reconvert-doc): Use the new recursive delete-directory.
+	(doc-view-convert-current-doc): Don't create the resolution.el file
+	here any more.
+	(doc-view-pdf/ps->png): Do it here instead.
+	(doc-view-already-converted-p): Check that resolution.el is present.
+	(doc-view-pdf->png): Don't rely on doc-view-pdf/ps->png for the few
+	windows that are not yet showing images.
+
 2010-02-04  Alan Mackenzie  <acm@muc.de>
 
 	Change strategy for marking < and > as template delimiters: mark
