@@ -4533,9 +4533,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
        (when (string-match "-?d\\'" switches)
          ;; Remove "d" which dired added to `switches'.
          (setq switches (substring switches 0 (match-beginning 0))))
+       (setq file (directory-file-name file))
        (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
                                     switches 'parse))
-              (filename (file-name-nondirectory (directory-file-name file)))
+              (filename (file-name-nondirectory file))
               (case-fold-search nil))
          ;; FIXME: This presumes a particular output format, which is
          ;; basically Unix.
