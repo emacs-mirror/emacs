@@ -526,7 +526,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
     error ("Failure in loading charset map: %S", SDATA (mapfile));
 
   head = entries = ((struct charset_map_entries *)
-		    alloca (sizeof (struct charset_map_entries)));
+		    xmalloc (sizeof (struct charset_map_entries)));
   n_entries = 0;
   eof = 0;
   while (1)
@@ -563,6 +563,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   close (fd);
 
   load_charset_map (charset, head, n_entries, control_flag);
+  xfree (head);
 }
 
 static void

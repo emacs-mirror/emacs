@@ -1144,8 +1144,12 @@ Preserves old cursor, marks/flags, hidden-p."
     (setq mark-alist;; only after dired-remember-hidden since this unhides:
 	  (dired-remember-marks (point-min) (point-max)))
     ;; treat top level dir extra (it may contain wildcards)
-    (dired-uncache
-     (if (consp dired-directory) (car dired-directory) dired-directory))
+    (if (not (consp dired-directory))
+	(dired-uncache dired-directory)
+      (dired-uncache (car dired-directory))
+      (dolist (dir (cdr dired-directory))
+	(if (file-name-absolute-p dir)
+	    (dired-uncache dir))))
     ;; Run dired-after-readin-hook just once, below.
     (let ((dired-after-readin-hook nil))
       (dired-readin)

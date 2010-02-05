@@ -20,6 +20,7 @@ Makefile.c
 stamp_BLD
 subdirs.el
 TAGS
+TAGS-LISP
 info/*
 leim/leim-list.el
 leim/quail/*.el

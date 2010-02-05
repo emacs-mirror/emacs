@@ -558,9 +558,8 @@ logical\\|double[ \t]*precision\\|\
 \\(function\\)\\>[ \t]*\\(\\sw+\\)[ \t]*\\(([^&!\n]*)\\)"
       (1 font-lock-type-face t) (4 font-lock-keyword-face t)
       (5 font-lock-function-name-face t) (6 'default t))
-    ;; enum (F2003; cf type in -1).
-    '("\\<\\(enum\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
-      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+    ;; enum (F2003; must be followed by ", bind(C)").
+    '("\\<\\(enum\\)[ \t]*," (1 font-lock-keyword-face))
     ;; end do, enum (F2003), if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"

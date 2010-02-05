@@ -273,7 +273,7 @@ and then select the region of un-tablified names and use
 	  (set-marker next-line-marker (point)))
 	(save-excursion
 	  (let ((mark-active nil))
-	    (execute-kbd-macro (or macro last-kbd-macro)))))
+	    (execute-kbd-macro macro))))
       (set-marker end-marker nil)
       (set-marker next-line-marker nil))))
 
