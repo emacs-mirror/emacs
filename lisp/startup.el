@@ -2103,7 +2103,7 @@ A fancy display is used on graphic displays, normal otherwise."
 	      (when (string-match "\\`\\(--[^=]*\\)=" argi)
 		(setq argval (substring argi (match-end 0))
 		      argi (match-string 1 argi)))
-	      (when (string-match "\\`--." orig-argi)
+	      (when (string-match "\\`--?[^-]" orig-argi)
 		(setq completion (try-completion argi longopts))
 		(if (eq completion t)
 		    (setq argi (substring argi 1))

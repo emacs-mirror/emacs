@@ -1,3 +1,8 @@
+2010-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line-1): Convert options beginning with a
+	single dash as well (Bug#5519).
+
 2010-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make `initials' completion work for /hh -> /home/horn again (bug#5524).
