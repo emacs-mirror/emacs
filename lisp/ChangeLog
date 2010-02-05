@@ -1,3 +1,9 @@
+2010-02-05  Juri Linkov  <juri@jurta.org>
+
+	* doc-view.el (doc-view-mode):
+	* image-mode.el (image-mode): Put property mode-class=special.
+	(Bug#4896)
+
 2010-02-05  Mark A. Hershberger  <mah@everybody.org>
 
 	* vc-svn.el (vc-svn-revision-table): New function.
