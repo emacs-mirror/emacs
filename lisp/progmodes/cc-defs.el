@@ -1029,6 +1029,44 @@ MODE is either a mode symbol or a list of mode symbols."
     ;; Emacs.
     `(remove-text-properties ,from ,to '(,property nil))))
 
+(defmacro c-search-forward-char-property (property value &optional limit)
+  "Search forward for a text-property PROPERTY having value VALUE.
+LIMIT bounds the search.  The comparison is done with `equal'.
+
+Leave point just after the character, and set the match data on
+this character, and return point.  If VALUE isn't found, Return
+nil; point is then left undefined."
+  `(let ((place (point)))
+     (while
+	 (and
+	  (< place ,(or limit '(point-max)))
+	  (not (equal (get-text-property place ,property) ,value)))
+       (setq place (next-single-property-change
+		    place ,property nil ,(or limit '(point-max)))))
+     (when (< place ,(or limit '(point-max)))
+       (goto-char place)
+       (search-forward-regexp ".")	; to set the match-data.
+       (point))))
+
+(defmacro c-search-backward-char-property (property value &optional limit)
+  "Search backward for a text-property PROPERTY having value VALUE.
+LIMIT bounds the search.  The comparison is done with `equal'.
+
+Leave point just before the character, set the match data on this
+character, and return point.  If VALUE isn't found, Return nil;
+point is then left undefined."
+  `(let ((place (point)))
+     (while
+	 (and
+	  (> place ,(or limit '(point-min)))
+	  (not (equal (get-text-property (1- place) ,property) ,value)))
+       (setq place (previous-single-property-change
+		    place ,property nil ,(or limit '(point-min)))))
+     (when (> place ,(or limit '(point-max)))
+       (goto-char place)
+       (search-backward-regexp ".")	; to set the match-data.
+       (point))))
+
 (defun c-clear-char-property-with-value-function (from to property value)
   "Remove all text-properties PROPERTY from the region (FROM, TO)
 which have the value VALUE, as tested by `equal'.  These

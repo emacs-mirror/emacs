@@ -651,9 +651,10 @@ PRESERVE-UID-GID is completely ignored."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
-  (when full-directory-p
-    ;; Called from `dired-add-entry'.
-    (setq filename (file-name-as-directory filename)))
+  (if full-directory-p
+      ;; Called from `dired-add-entry'.
+      (setq filename (file-name-as-directory filename))
+    (setq filename (directory-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     (save-match-data
       (let ((base (file-name-nondirectory filename))
@@ -715,8 +716,7 @@ PRESERVE-UID-GID is completely ignored."
 	     (let ((attr
 		    (when (tramp-smb-get-stat-capability v)
 		      (ignore-errors
-			(file-attributes
-			 (expand-file-name (nth 0 x)) 'string)))))
+			(file-attributes filename 'string)))))
 	       (insert
 		(format
 		 "%10s %3d %-8s %-8s %8s %s "
@@ -732,9 +732,16 @@ PRESERVE-UID-GID is completely ignored."
 		      "%b %e %R"
 		    "%b %e  %Y")
 		  (nth 3 x)))) ; date
-	       ;; We mark the filename.
+	       ;; We mark the file name.  The inserted name could be
+	       ;; from somewhere else, so we use the relative file
+	       ;; name of `default-directory'.
 	       (let ((start (point)))
-		 (insert (format "%s\n" (nth 0 x))) ; file name
+		 (insert
+		  (format
+		   "%s\n"
+		   (file-relative-name
+		    (expand-file-name
+		     (nth 0 x) (file-name-directory filename)))))
 		 (put-text-property start (1- (point)) 'dired-filename t))
 	       (forward-line)
 	       (beginning-of-line))))

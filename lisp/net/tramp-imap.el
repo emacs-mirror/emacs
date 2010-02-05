@@ -395,9 +395,10 @@ SIZE MODE WEIRD INODE DEVICE)."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
-  (when full-directory-p
-    ;; Called from `dired-add-entry'.
-    (setq filename (file-name-as-directory filename)))
+  (if full-directory-p
+      ;; Called from `dired-add-entry'.
+      (setq filename (file-name-as-directory filename))
+    (setq filename (directory-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     (save-match-data
       (let ((base (file-name-nondirectory localname))
@@ -472,14 +473,19 @@ SIZE MODE WEIRD INODE DEVICE)."
 		(nth 6 x)))) ; date
 	     ;; For the file name, we set the `dired-filename'
 	     ;; property.  This allows to handle file names with
-	     ;; leading or trailing spaces as well.
+	     ;; leading or trailing spaces as well.  The inserted name
+	     ;; could be from somewhere else, so we use the relative
+	     ;; file name of `default-directory'.
 	     (let ((pos (point)))
-	       (insert (format "%s" (nth 0 x))) ; file name
-	       (put-text-property pos (point) 'dired-filename t))
-	     (insert "\n")
+	       (insert
+		(format
+		 "%s\n"
+		 (file-relative-name
+		  (expand-file-name (nth 0 x) (file-name-directory filename)))))
+	       (put-text-property pos (1- (point)) 'dired-filename t))
 	     (forward-line)
 	     (beginning-of-line)))
-	   entries)))))
+	 entries)))))
 
 (defun tramp-imap-handle-insert-file-contents
   (filename &optional visit beg end replace)

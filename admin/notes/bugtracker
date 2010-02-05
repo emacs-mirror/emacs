@@ -403,6 +403,17 @@ http://debbugs.gnu.org/db/ix/full.html
     maintainers (ie, bug-gnu-emacs).  These have some changed headers
     (Resent-*, Subject, etc).
 
+** What do the pkgreport.cgi sort options mean?
+
+"normal" = by open/closed status, then severity, then tag, then bug number
+
+"oldview" = as above, but without the tag part
+
+"age" = as normal, but sort in decreasing order of last modification
+time, rather than by increasing bug number
+
+"raw" = ?
+
 ** ChangeLog issues
 
 *** When you fix a bug, it can be helpful to put the bug number in the
@@ -526,6 +537,15 @@ recipient: emacs-bug-tracker AT debbugs\.gnu\.org
 
 The latter is because that is the address that debbugs actually sends to.
 An /etc/aliases entry redirects it to the real emacs-bug-tracker address.
+
+** Recovering from moderation mistakes
+
+All discarded messages are stored in /var/lib/mailman/spam.
+If a non-spam message accidentally gets discarded, just do:
+
+cat /var/lib/mailman/spam/not-really-spam.msg | /usr/lib/debbugs/receive
+... check it works ...
+mv /var/lib/mailman/spam/not-really-spam.msg /var/lib/mailman/not-spam/
 
 ** Administrivia
 
