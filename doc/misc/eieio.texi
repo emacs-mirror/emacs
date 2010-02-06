@@ -27,13 +27,10 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@ifinfo
-@format
-START-INFO-DIR-ENTRY
+@dircategory Emacs
+@direntry
 * eieio: (eieio).       Objects for Emacs
-END-INFO-DIR-ENTRY
-@end format
-@end ifinfo
+@end direntry
 
 @titlepage
 @center @titlefont{@value{TITLE}}
