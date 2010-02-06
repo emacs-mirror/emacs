@@ -1,3 +1,9 @@
+2010-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* charset.c (load_charset_map_from_file)
+	(load_charset_map_from_vector): Fix last change to use SAFE_ALLOCA
+	instead of xmalloc (Bug#5526).
+
 2010-02-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* charset.c (load_charset_map_from_file): Allocate large
