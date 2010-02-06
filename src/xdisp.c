@@ -7009,6 +7009,8 @@ move_it_in_display_line_to (struct it *it,
   struct glyph_row *saved_glyph_row;
   struct it wrap_it, atpos_it, atx_it;
   int may_wrap = 0;
+  enum it_method prev_method = it->method;
+  EMACS_INT prev_pos = IT_CHARPOS (*it);
 
   /* Don't produce glyphs in produce_glyphs.  */
   saved_glyph_row = it->glyph_row;
@@ -7026,7 +7028,7 @@ move_it_in_display_line_to (struct it *it,
 #define BUFFER_POS_REACHED_P()					\
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
-   && IT_CHARPOS (*it) >= to_charpos				\
+   && IT_CHARPOS (*it) == to_charpos				\
    && (it->method == GET_FROM_BUFFER				\
        || (it->method == GET_FROM_DISPLAY_VECTOR		\
 	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
@@ -7050,7 +7052,14 @@ move_it_in_display_line_to (struct it *it,
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
-	  && IT_CHARPOS (*it) > to_charpos)
+	  && (prev_method == GET_FROM_IMAGE
+	      || prev_method == GET_FROM_STRETCH)
+	  /* Passed TO_CHARPOS from left to right.  */
+	  && ((prev_pos < to_charpos
+	       && IT_CHARPOS (*it) > to_charpos)
+	      /* Passed TO_CHARPOS from right to left.  */
+	      || (prev_pos > to_charpos)
+		  && IT_CHARPOS (*it) < to_charpos))
 	{
 	  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 	    {
@@ -7064,6 +7073,9 @@ move_it_in_display_line_to (struct it *it,
 	    atpos_it = *it;
 	}
 
+      prev_method = it->method;
+      if (it->method == GET_FROM_BUFFER)
+	prev_pos = IT_CHARPOS (*it);
       /* Stop when ZV reached.
          We used to stop here when TO_CHARPOS reached as well, but that is
          too soon if this glyph does not fit on this line.  So we handle it
@@ -7329,6 +7341,8 @@ move_it_in_display_line_to (struct it *it,
 	  break;
 	}
 
+      if (it->method == GET_FROM_BUFFER)
+	prev_pos = IT_CHARPOS (*it);
       /* The current display element has been consumed.  Advance
 	 to the next.  */
       set_iterator_to_next (it, 1);

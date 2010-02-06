@@ -1,3 +1,10 @@
+2010-02-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Start working on cursor movement in continuation lines.
+	* xdisp.c (move_it_in_display_line_to): New variables prev_method
+	and prev_pos.  Compare for strict equality in
+	BUFFER_POS_REACHED_P.
+
 2010-01-30  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix fallout from changes to managing glyph row reversed_p flag.
