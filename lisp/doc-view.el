@@ -1134,7 +1134,7 @@ If BACKWARD is non-nil, jump to the previous match."
 
 ;;;; User interface commands and the mode
 
-;; (put 'doc-view-mode 'mode-class 'special)
+(put 'doc-view-mode 'mode-class 'special)
 
 (defun doc-view-already-converted-p ()
   "Return non-nil if the current doc was already converted."

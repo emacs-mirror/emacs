@@ -1,3 +1,7 @@
+2010-02-05  Mark A. Hershberger  <mah@everybody.org>
+
+	* ede.texi, eieio.texi, semantic.texi: Use standard direntry format.
+
 2010-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Score File Format): Fix typo.

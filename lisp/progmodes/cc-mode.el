@@ -642,9 +642,11 @@ compatible with old code; callers should always specify it."
     (widen)
     (save-excursion
       (if c-get-state-before-change-functions
-	  (mapc (lambda (fn)
-		  (funcall fn beg end))
-		c-get-state-before-change-functions))
+	  (let ((beg (point-min))
+		(end (point-max)))
+	    (mapc (lambda (fn)
+		    (funcall fn beg end))
+		  c-get-state-before-change-functions)))
       (if c-before-font-lock-function
 	  (funcall c-before-font-lock-function (point-min) (point-max)
 		   (- (point-max) (point-min))))))
