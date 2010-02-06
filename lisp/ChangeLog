@@ -1,3 +1,12 @@
+2010-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-mode.el (c-common-init): Bind temporary variables
+	beg and end before calling c-get-state-before-change-functions.
+
+2010-02-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-dir-extra-headers): Disable the pending merges header.
+
 2010-02-05  Juri Linkov  <juri@jurta.org>
 
 	* doc-view.el (doc-view-mode):
