@@ -1,3 +1,7 @@
+2010-02-07  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc-services.el (erc-nickserv-alist): Fix defcustom type (Bug#5520).
+
 2010-01-25  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* erc-backend.el (erc-session-connector): New var.
