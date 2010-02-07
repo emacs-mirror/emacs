@@ -1,3 +1,10 @@
+2010-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/esh-util.el (eshell-file-attributes): New optional arg
+	ID-FORMAT.  Pass it to `file-attributes'.
+
+	* eshell/em-ls.el (eshell-do-ls): Use it (Bug#5528).
+
 2010-02-07  sj  <prime.wizard+emacs@gmail.com>  (tiny change)
 
 	* faces.el (set-face-attribute): Allow calling
