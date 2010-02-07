@@ -1,10 +1,91 @@
+2010-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-1, f90-font-lock-keywords-2):
+	Move F2003 named interfaces from keywords-2 to keywords-1, and
+	use function-name-face rather than constant-face.
+	Simplify "abstract interface" regexp.
+
+2010-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/esh-util.el (eshell-file-attributes): New optional arg
+	ID-FORMAT.  Pass it to `file-attributes'.
+
+	* eshell/em-ls.el (eshell-do-ls): Use it (Bug#5528).
+
+2010-02-07  sj  <prime.wizard+emacs@gmail.com>  (tiny change)
+
+	* faces.el (set-face-attribute): Allow calling
+	internal-set-lisp-face-attribute with 'unspecified family and
+	foundry argument (Bug#5536).
+
+2010-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-2)
+	(f90-looking-at-type-like, f90-looking-at-program-block-end):
+	Handle F2003 named interfaces.
+
+2010-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-mode.el (c-common-init): Bind temporary variables
+	beg and end before calling c-get-state-before-change-functions.
+
+2010-02-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-dir-extra-headers): Disable the pending merges header.
+
+2010-02-05  Juri Linkov  <juri@jurta.org>
+
+	* doc-view.el (doc-view-mode):
+	* image-mode.el (image-mode): Put property mode-class=special.
+	(Bug#4896)
+
+2010-02-05  Mark A. Hershberger  <mah@everybody.org>
+
+	* vc-svn.el (vc-svn-revision-table): New function.
+
+2010-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory):
+	* net/tramp-imap.el (tramp-imap-handle-insert-directory):
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory):
+	Handle also directories.  (Bug#5478)
+
+2010-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-2): Fix `enum'.
+
+2010-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line-1): Convert options beginning with a
+	single dash as well (Bug#5519).
+
+2010-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make `initials' completion work for /hh -> /home/horn again (bug#5524).
+	* minibuffer.el (completion-initials-expand): Only check the presence
+	of delims *within* the boundaries, since otherwise the / delim is
+	always found for files.
+
+	Fix up various corner case problems.
+	* doc-view.el (doc-view-last-page-number): New function.
+	(doc-view-mode, doc-view-last-page, doc-view-goto-page): Use it.
+	(doc-view-goto-page): Avoid inf-loops when the conversion fails.
+	(doc-view-kill-proc): Avoid inf-loop in freak cases.
+	(doc-view-reconvert-doc): Use the new recursive delete-directory.
+	(doc-view-convert-current-doc): Don't create the resolution.el file
+	here any more.
+	(doc-view-pdf/ps->png): Do it here instead.
+	(doc-view-already-converted-p): Check that resolution.el is present.
+	(doc-view-pdf->png): Don't rely on doc-view-pdf/ps->png for the few
+	windows that are not yet showing images.
+
 2010-02-04  Alan Mackenzie  <acm@muc.de>
 
 	Change strategy for marking < and > as template delimiters: mark
 	them strictly in matching pairs.
 
-	* cc-mode.el (c-before-change): Use
-	c-get-state-before-change-functions.
+	* cc-mode.el (c-before-change):
+	Use c-get-state-before-change-functions.
 	(c-common-init): Adapt to use
 	c-get-state-before-change-functions (note plural).
 
@@ -16,7 +97,7 @@
 	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
 	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
 	(c-clear->-pair-props-if-match-before)
-	(c-before-change-check-<>-operators): new functions.
+	(c-before-change-check-<>-operators): New functions.
 	(c-after-change-check-<>-operators): Use macro
 	c-unmark-<->-as-paren.
 

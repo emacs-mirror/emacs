@@ -31,6 +31,10 @@
 (eval-when-compile
   (require 'vc))
 
+;; Clear up the cache to force vc-call to check again and discover
+;; new functions when we reload this file.
+(put 'SVN 'vc-functions nil)
+
 ;;;
 ;;; Customization options
 ;;;
@@ -721,6 +725,21 @@ information about FILENAME and return its status."
   (save-excursion
     (beginning-of-line)
     (if (looking-at vc-svn-annotate-re) (match-string 1))))
+
+(defun vc-svn-revision-table (files)
+  (let ((vc-svn-revisions '()))
+    (with-current-buffer "*vc*"
+      (vc-svn-command nil 0 files "log" "-q")
+      (goto-char (point-min))
+      (forward-line)
+      (let ((start (point-min))
+            (loglines (buffer-substring-no-properties (point-min)
+                                                      (point-max))))
+        (while (string-match "^r\\([0-9]+\\) " loglines)
+          (push (match-string 1 loglines) vc-svn-revisions)
+          (setq start (+ start (match-end 0)))
+          (setq loglines (buffer-substring-no-properties start (point-max)))))
+    vc-svn-revisions)))
 
 (provide 'vc-svn)
 

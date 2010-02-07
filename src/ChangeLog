@@ -1,3 +1,15 @@
+2010-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* charset.c (load_charset_map_from_file)
+	(load_charset_map_from_vector): Fix last change to use SAFE_ALLOCA
+	instead of xmalloc (Bug#5526).  Suggested by Vivek Dasmohapatra.
+
+2010-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* charset.c (load_charset_map_from_file): Allocate large
+	charset_map_entries structure on the heap rather than the stack.
+	(Bug#5526).
+
 2010-01-31  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_parse_xlfd): If FONT is a font-entity and pixel
