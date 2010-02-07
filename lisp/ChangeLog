@@ -1,3 +1,9 @@
+2010-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-2)
+	(f90-looking-at-type-like, f90-looking-at-program-block-end):
+	Handle F2003 named interfaces.
+
 2010-02-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cc-mode.el (c-common-init): Bind temporary variables
