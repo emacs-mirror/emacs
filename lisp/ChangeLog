@@ -1,3 +1,9 @@
+2010-02-07  sj  <prime.wizard+emacs@gmail.com>  (tiny change)
+
+	* faces.el (set-face-attribute): Allow calling
+	internal-set-lisp-face-attribute with 'unspecified family and
+	foundry argument (Bug#5536).
+
 2010-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-font-lock-keywords-2)
