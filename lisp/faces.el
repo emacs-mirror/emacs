@@ -735,10 +735,10 @@ like an underlying face would be, with higher priority than underlying faces."
 	(unless foundry
 	  (setq foundry (match-string 1 family)))
 	(setq family (match-string 2 family)))
-      (when (stringp family)
+      (when (or (stringp family) (eq family 'unspecified))
 	(internal-set-lisp-face-attribute face :family (purecopy family)
 					  where))
-      (when (stringp foundry)
+      (when (or (stringp foundry) (eq foundry 'unspecified))
 	(internal-set-lisp-face-attribute face :foundry (purecopy foundry)
 					  where)))
     (while args

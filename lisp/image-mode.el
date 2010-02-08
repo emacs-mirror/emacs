@@ -317,6 +317,8 @@ This variable is used to display the current image type in the mode line.")
 
 (defvar bookmark-make-record-function)
 
+(put 'image-mode 'mode-class 'special)
+
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.

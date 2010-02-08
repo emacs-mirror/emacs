@@ -393,13 +393,13 @@ Sort entries alphabetically across.")
 	       (eshell-glob-regexp ignore-pattern))))
      ;; list the files!
      (eshell-ls-entries
-      (mapcar (function
-	       (lambda (arg)
-		 (cons (if (and (eshell-under-windows-p)
-				(file-name-absolute-p arg))
-			   (expand-file-name arg)
-			 arg)
-		       (eshell-file-attributes arg))))
+      (mapcar (lambda (arg)
+		(cons (if (and (eshell-under-windows-p)
+			       (file-name-absolute-p arg))
+			  (expand-file-name arg)
+			arg)
+		      (eshell-file-attributes
+		       arg (if numeric-uid-gid 'integer 'string))))
 	      args)
       t (expand-file-name default-directory)))
    (funcall flush-func)))
@@ -710,7 +710,7 @@ Each member of FILES is either a string or a cons cell of the form
 	    (funcall insert-func need-return "\n"))))))
 
 (defun eshell-ls-entries (entries &optional separate root-dir)
-  "Output PATH's directory ENTRIES, formatted according to OPTIONS.
+  "Output PATH's directory ENTRIES.
 Each member of ENTRIES may either be a string or a cons cell, the car
 of which is the file name, and the cdr of which is the list of
 attributes.
