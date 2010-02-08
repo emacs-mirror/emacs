@@ -1,3 +1,9 @@
+2010-02-08  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* progmodes/ada-mode.el (ada-in-numeric-literal-p): New function.
+	(ada-adjust-case): Don't adjust case in hexadecimal number
+	literals.
+
 2010-02-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-util.el (with-coding-priority): Add autoload

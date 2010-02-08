@@ -1017,6 +1017,9 @@ If PARSE-RESULT is non-nil, use it instead of calling `parse-partial-sexp'."
 			  (line-beginning-position) (point))))
   (or (ada-in-string-p parse-result) (ada-in-comment-p parse-result)))
 
+(defsubst ada-in-numeric-literal-p ()
+  "Return t if point is after a prefix of a numeric literal."
+  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
 
 ;;------------------------------------------------------------------
 ;; Contextual menus
@@ -1606,6 +1609,8 @@ If FORCE-IDENTIFIER is non-nil then also adjust keyword as identifier."
 		 (eq (char-syntax (char-before)) ?w)
 		 ;;  if in a string or a comment
 		 (not (ada-in-string-or-comment-p))
+		 ;;  if in a numeric literal
+		 (not (ada-in-numeric-literal-p))
 		 )
 	    (if (save-excursion
 		  (forward-word -1)
