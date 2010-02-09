@@ -1,3 +1,8 @@
+2010-02-08  Francis Devereux  <francis@devrx.org>
+
+	* nsfont.m (nsfont_open): The system's value for the font descent
+	is negative, so round it down to avoid clipping.
+
 2010-02-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* charset.c (load_charset_map_from_file)
