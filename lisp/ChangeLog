@@ -1,3 +1,8 @@
+2010-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/em-ls.el (eshell-ls-applicable): Frob file attributes
+	correctly (Bug#5548).
+
 2010-02-08  Jose E. Marchesi  <jemarch@gnu.org>
 
 	* progmodes/ada-mode.el (ada-in-numeric-literal-p): New function.
