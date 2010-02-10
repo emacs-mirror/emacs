@@ -1,5 +1,7 @@
 2010-02-10  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
+	* info.el (Info-bookmark-jump): Simplify.
+
 	* bookmark.el (bookmark-handle-bookmark): Catch the right error.
 	(bookmark-default-handler): Accept new bookmark field `buffer'.
 
@@ -10,13 +12,13 @@
 2010-02-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ls-lisp.el (ls-lisp-insert-directory): When WILDCARD-REGEXP and
-	FULL-DIRECTORY-P are nil, and FILE is absolute, expand it.  This
-	prevents file names like "~/" being listed literally.
+	FULL-DIRECTORY-P are nil, and FILE is absolute, expand it.
+	This prevents file names like "~/" being listed literally.
 
 2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (xterm-maybe-set-dark-background-mode): Remove
-	dead code.  (Bug#5546)
+	* term/xterm.el (xterm-maybe-set-dark-background-mode):
+	Remove dead code.  (Bug#5546)
 
 2010-02-09  Chong Yidong  <cyd@stupidchicken.com>
 
