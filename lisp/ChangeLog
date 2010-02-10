@@ -4,9 +4,9 @@
 
 2010-02-10  Michael Albinus  <michael.albinus@gmx.de>
 
-	* ls-lisp.el (ls-lisp-insert-directory): Wen WILDCARD-REGEXP and
+	* ls-lisp.el (ls-lisp-insert-directory): When WILDCARD-REGEXP and
 	FULL-DIRECTORY-P are nil, and FILE is absolute, expand it.  This
-	prevents file names like "~/" been listed literally.
+	prevents file names like "~/" being listed literally.
 
 2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
