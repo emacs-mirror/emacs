@@ -1,3 +1,8 @@
+2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-maybe-set-dark-background-mode): Remove
+	dead code.  (Bug#5546)
+
 2010-02-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eshell/em-ls.el (eshell-ls-applicable): Frob file attributes
