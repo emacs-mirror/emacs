@@ -1,3 +1,54 @@
+2010-02-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* iswitchb.el (iswitchb-completions): Revert last change.
+
+2010-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Wen WILDCARD-REGEXP and
+	FULL-DIRECTORY-P are nil, and FILE is absolute, expand it.  This
+	prevents file names like "~/" been listed literally.
+
+2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-maybe-set-dark-background-mode): Remove
+	dead code.  (Bug#5546)
+
+2010-02-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/em-ls.el (eshell-ls-applicable): Frob file attributes
+	correctly (Bug#5548).
+
+2010-02-08  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* progmodes/ada-mode.el (ada-in-numeric-literal-p): New function.
+	(ada-adjust-case): Don't adjust case in hexadecimal number
+	literals.
+
+2010-02-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (with-coding-priority): Add autoload
+	cookie for putting `lisp-indent-funciton'.
+
+2010-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-1, f90-font-lock-keywords-2):
+	Move F2003 named interfaces from keywords-2 to keywords-1, and
+	use function-name-face rather than constant-face.
+	Simplify "abstract interface" regexp.
+
+2010-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/esh-util.el (eshell-file-attributes): New optional arg
+	ID-FORMAT.  Pass it to `file-attributes'.
+
+	* eshell/em-ls.el (eshell-do-ls): Use it (Bug#5528).
+
+2010-02-07  sj  <prime.wizard+emacs@gmail.com>  (tiny change)
+
+	* faces.el (set-face-attribute): Allow calling
+	internal-set-lisp-face-attribute with 'unspecified family and
+	foundry argument (Bug#5536).
+
 2010-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-font-lock-keywords-2)

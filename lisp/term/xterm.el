@@ -679,7 +679,6 @@ versions of xterm."
   ;; Use the heuristic in `frame-set-background-mode' to decide if a
   ;; frame is dark.
   (when (< (+ redc greenc bluec) (* .6 (+ 65535 65535 65535)))
-    (setq xterm-background-mode-changed t)
     (set-terminal-parameter nil 'background-mode 'dark)
     t))
 

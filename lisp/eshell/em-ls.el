@@ -225,18 +225,28 @@ really need to stick around for very long."
       (eq (aref (nth 8 attrs) 0) type)))
 
 (defmacro eshell-ls-applicable (attrs index func file)
-  "Test whether, for ATTRS, the user UID can do what corresponds to INDEX.
-This is really just for efficiency, to avoid having to stat the file
-yet again."
-  `(if (numberp (nth 2 ,attrs))
-       (if (= (user-uid) (nth 2 ,attrs))
-	   (not (eq (aref (nth 8 ,attrs) ,index) ?-))
-	 (,(eval func) ,file))
-     (not (eq (aref (nth 8 ,attrs)
-		    (+ ,index (if (member (nth 2 ,attrs)
-					  (eshell-current-ange-uids))
-				  0 6)))
-	      ?-))))
+  "Test whether, for ATTRS, the user can do what corresponds to INDEX.
+ATTRS is a string of file modes.  See `file-attributes'.
+If we cannot determine the answer using ATTRS (e.g., if we need
+to know what group the user is in), compute the return value by
+calling FUNC with FILE as an argument."
+  `(let ((owner (nth 2 ,attrs))
+	 (modes (nth 8 ,attrs)))
+     (cond ((cond ((numberp owner)
+		   (= owner (user-uid)))
+		  ((stringp owner)
+		   (or (string-equal owner (user-login-name))
+		       (member owner (eshell-current-ange-uids)))))
+	    ;; The user owns this file.
+	    (not (eq (aref modes ,index) ?-)))
+	   ((eq (aref modes (+ ,index 3))
+		(aref modes (+ ,index 6)))
+	    ;; If the "group" and "other" fields give identical
+	    ;; results, use that.
+	    (not (eq (aref modes (+ ,index 3)) ?-)))
+	   (t
+	    ;; Otherwise call FUNC.
+	    (,(eval func) ,file)))))
 
 (defcustom eshell-ls-highlight-alist nil
   "*This alist correlates test functions to color.
@@ -393,13 +403,13 @@ Sort entries alphabetically across.")
 	       (eshell-glob-regexp ignore-pattern))))
      ;; list the files!
      (eshell-ls-entries
-      (mapcar (function
-	       (lambda (arg)
-		 (cons (if (and (eshell-under-windows-p)
-				(file-name-absolute-p arg))
-			   (expand-file-name arg)
-			 arg)
-		       (eshell-file-attributes arg))))
+      (mapcar (lambda (arg)
+		(cons (if (and (eshell-under-windows-p)
+			       (file-name-absolute-p arg))
+			  (expand-file-name arg)
+			arg)
+		      (eshell-file-attributes
+		       arg (if numeric-uid-gid 'integer 'string))))
 	      args)
       t (expand-file-name default-directory)))
    (funcall flush-func)))
@@ -710,7 +720,7 @@ Each member of FILES is either a string or a cons cell of the form
 	    (funcall insert-func need-return "\n"))))))
 
 (defun eshell-ls-entries (entries &optional separate root-dir)
-  "Output PATH's directory ENTRIES, formatted according to OPTIONS.
+  "Output PATH's directory ENTRIES.
 Each member of ENTRIES may either be a string or a cons cell, the car
 of which is the file name, and the cdr of which is the list of
 attributes.

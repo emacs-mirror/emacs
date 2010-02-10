@@ -158,10 +158,8 @@
 ;; 3. Support for align.
 ;; Font-locking:
 ;; 1. OpenMP, OpenMPI?, preprocessor highlighting.
-;; 2. interface blah - Highlight "blah" in function-name face?
-;; Need to avoid "interface operator (+)" etc.
-;; 3. integer_name = 1
-;; 4. Labels for "else" statements (F2003)?
+;; 2. integer_name = 1
+;; 3. Labels for "else" statements (F2003)?
 
 (defvar comment-auto-fill-only-comments)
 (defvar font-lock-keywords)
@@ -467,22 +465,21 @@ type-name parts, respectively."
 ;;;      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    '(f90-typedef-matcher
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
-   ;; Other functions and declarations.
+    ;; F2003.  Prevent operators being highlighted as functions.
+    '("\\<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
+read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
+   ;; Other functions and declarations.  Named interfaces = F2003.
    '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|associate\\|\
-subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
+subroutine\\|interface\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; F2003.
    '("\\<\\(use\\)[ \t]*,[ \t]*\\(\\(?:non_\\)?intrinsic\\)[ \t]*::[ \t]*\
 \\(\\sw+\\)"
      (1 font-lock-keyword-face) (2 font-lock-keyword-face)
      (3 font-lock-function-name-face))
-   "\\<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\|\
-end[ \t]*interface\\)\\>"
-   ;; "abstract interface" is F2003. Must come after previous entry.
-   '("\\<\\(\\(?:abstract[ \t]*\\)?interface\\)\\>"
-     ;; [ \t]*\\(\\(\\sw+\\)[ \t]*[^(]\\)?"
-     ;; (2) messes up "interface operator ()", etc.
-     (1 font-lock-keyword-face))) ;(2 font-lock-function-name-face nil t)))
+   "\\<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\)\\>"
+   ;; "abstract interface" is F2003.
+   '("\\<abstract[ \t]*interface\\>" (0 font-lock-keyword-face t)))
   "This does fairly subdued highlighting of comments and function calls.")
 
 ;; NB not explicitly handling this, yet it seems to work.
@@ -560,12 +557,6 @@ logical\\|double[ \t]*precision\\|\
       (5 font-lock-function-name-face t) (6 'default t))
     ;; enum (F2003; must be followed by ", bind(C)").
     '("\\<\\(enum\\)[ \t]*," (1 font-lock-keyword-face))
-    ;; F2003.  Prevent operators being highlighted as constants.
-    '("\\<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
-read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
-    ;; Interface blocks can be named in F2003.
-    '("\\<\\(\\(?:end[ \t]*\\)?interface\\)[ \t]*\\(\\sw+\\)?\\>"
-      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     ;; end do, enum (F2003), if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"
