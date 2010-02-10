@@ -22,13 +22,10 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@ifinfo
-@format
-START-INFO-DIR-ENTRY
+@dircategory Emacs
+@direntry
 * ede: (ede).       Project management for Emacs
-END-INFO-DIR-ENTRY
-@end format
-@end ifinfo
+@end direntry
 
 @titlepage
 @center @titlefont{EDE (The Emacs Development Environment)}

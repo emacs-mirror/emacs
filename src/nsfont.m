@@ -844,8 +844,10 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     /* max bounds */
     font_info->max_bounds.ascent =
       lrint (hshrink * [sfont ascender] + expand * hd/2);
+    /* [sfont descender] is usually negative.  Use floor to avoid
+       clipping descenders. */
     font_info->max_bounds.descent =
-      -lrint (hshrink* [sfont descender] - expand*hd/2);
+      -lrint (floor(hshrink* [sfont descender] - expand*hd/2));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -880,8 +882,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 #endif
 
     /* set up metrics portion of font struct */
-    font->ascent = [sfont ascender];
-    font->descent = -[sfont descender];
+    font->ascent = lrint([sfont ascender]);
+    font->descent = -lrint(floor([sfont descender]));
     font->min_width = ns_char_width(sfont, '|');
     font->space_width = lrint (ns_char_width (sfont, ' '));
     font->average_width = lrint (font_info->width);

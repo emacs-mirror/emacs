@@ -796,8 +796,12 @@ stream.  Standard error output is discarded."
        (shelve-help-echo "Use M-x vc-bzr-shelve to create shelves")
        (root-dir (vc-bzr-root dir))
        (pending-merge
-	(file-exists-p
-	 (expand-file-name ".bzr/checkout/merge-hashes" root-dir)))
+	;; FIXME: looking for .bzr/checkout/merge-hashes is not a
+	;; reliable method to detect pending merges, disable this
+	;; until a proper solution is implemented.
+	(and nil
+	 (file-exists-p
+	 (expand-file-name ".bzr/checkout/merge-hashes" root-dir))))
        (pending-merge-help-echo
 	(format "A merge has been performed.\nA commit from the top-level directory (%s)\nis required before being able to check in anything else" root-dir))
        (light-checkout

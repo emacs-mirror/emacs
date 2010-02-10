@@ -1126,8 +1126,8 @@ of the current buffer."
 
 (defun ediff-file-checked-in-p (file)
   (and (featurep 'vc-hooks)
-       ;; CVS files are considered not checked in
-       (not (memq (vc-backend file) '(nil CVS)))
+       ;; Only RCS and SCCS files are considered checked in
+       (memq (vc-backend file) '(RCS SCCS))
        (if (fboundp 'vc-state)
 	   (and
 	    (not (memq (vc-state file) '(edited needs-merge)))

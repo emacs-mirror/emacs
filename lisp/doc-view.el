@@ -235,8 +235,15 @@ of the page moves to the previous page."
 
 (defun doc-view-new-window-function (winprops)
   (let ((ol (image-mode-window-get 'overlay winprops)))
+    (when (and ol (not (overlay-buffer ol)))
+      ;; I've seen `ol' be a dead overlay.  I do not yet know how this
+      ;; happened, so maybe the bug is elsewhere, but in the mean time,
+      ;; this seems like a safe approach.
+      (setq ol nil))
     (if ol
-        (setq ol (copy-overlay ol))
+        (progn
+          (assert (eq (overlay-buffer ol) (current-buffer)))
+          (setq ol (copy-overlay ol)))
       (assert (not (get-char-property (point-min) 'display)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
@@ -323,11 +330,20 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
     ;; Open a new buffer with doc's text contents
     (define-key map (kbd "C-c C-t")   'doc-view-open-text)
-    ;; Reconvert the current document
-    (define-key map (kbd "g")         'revert-buffer)
-    (define-key map (kbd "r")         'revert-buffer)
+    ;; Reconvert the current document.  Don't just use revert-buffer
+    ;; because that resets the scale factor, the page number, ...
+    (define-key map (kbd "g")         'doc-view-revert-buffer)
+    (define-key map (kbd "r")         'doc-view-revert-buffer)
     map)
   "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+
+(defun doc-view-revert-buffer (&optional ignore-auto noconfirm)
+  "Like `revert-buffer', but preserves the buffer's current modes."
+  ;; FIXME: this should probably be moved to files.el and used for
+  ;; most/all "g" bindings to revert-buffer.
+  (interactive (list (not current-prefix-arg)))
+  (revert-buffer ignore-auto noconfirm 'preserve-modes))
+
 
 (easy-menu-define doc-view-menu doc-view-mode-map
   "Menu for Doc View mode."
@@ -367,10 +383,13 @@ Can be `dvi', `pdf', or `ps'.")
 (defmacro doc-view-current-image () `(image-mode-window-get 'image))
 (defmacro doc-view-current-slice () `(image-mode-window-get 'slice))
 
+(defun doc-view-last-page-number ()
+  (length doc-view-current-files))
+
 (defun doc-view-goto-page (page)
   "View the page given by PAGE."
   (interactive "nPage: ")
-  (let ((len (length doc-view-current-files))
+  (let ((len (doc-view-last-page-number))
 	(hscroll (window-hscroll)))
     (if (< page 1)
 	(setq page 1)
@@ -410,12 +429,15 @@ Can be `dvi', `pdf', or `ps'.")
         ;; The PNG file hasn't been generated yet.
         (doc-view-pdf->png-1 doc-view-buffer-file-name file page
                              (lexical-let ((page page)
-                                           (win (selected-window)))
+                                           (win (selected-window))
+                                           (file file))
                                (lambda ()
                                  (and (eq (current-buffer) (window-buffer win))
                                       ;; If we changed page in the mean
                                       ;; time, don't mess things up.
                                       (eq (doc-view-current-page win) page)
+                                      ;; Make sure we don't infloop.
+                                      (file-readable-p file)
                                       (with-selected-window win
                                         (doc-view-goto-page page))))))))
     (overlay-put (doc-view-current-overlay)
@@ -439,7 +461,7 @@ Can be `dvi', `pdf', or `ps'.")
 (defun doc-view-last-page ()
   "View the last page."
   (interactive)
-  (doc-view-goto-page (length doc-view-current-files)))
+  (doc-view-goto-page (doc-view-last-page-number)))
 
 (defun doc-view-scroll-up-or-next-page (&optional arg)
   "Scroll page up ARG lines if possible, else goto next page.
@@ -512,7 +534,7 @@ at the top edge of the page moves to the previous page."
 (defun doc-view-kill-proc ()
   "Kill the current converter process(es)."
   (interactive)
-  (while doc-view-current-converter-processes
+  (while (consp doc-view-current-converter-processes)
     (ignore-errors ;; Maybe it's dead already?
       (kill-process (pop doc-view-current-converter-processes))))
   (when doc-view-current-timer
@@ -622,7 +644,7 @@ Should be invoked when the cached images aren't up-to-date."
   (doc-view-kill-proc)
   ;; Clear the old cached files
   (when (file-exists-p (doc-view-current-cache-dir))
-    (dired-delete-file (doc-view-current-cache-dir) 'always))
+    (delete-directory (doc-view-current-cache-dir) 'recursive))
   (doc-view-initiate-display))
 
 (defun doc-view-sentinel (proc event)
@@ -678,11 +700,18 @@ Should be invoked when the cached images aren't up-to-date."
            (list (format "-r%d" (round doc-view-resolution))
                  (concat "-sOutputFile=" png)
                  pdf-ps))
-   (lambda ()
-     (when doc-view-current-timer
-       (cancel-timer doc-view-current-timer)
-       (setq doc-view-current-timer nil))
-     (doc-view-display (current-buffer) 'force)))
+   (lexical-let ((resolution doc-view-resolution))
+     (lambda ()
+       ;; Only create the resolution file when it's all done, so it also
+       ;; serves as a witness that the conversion is complete.
+       (write-region (prin1-to-string resolution) nil
+                     (expand-file-name "resolution.el"
+                                       (doc-view-current-cache-dir))
+                     nil 'silently)
+       (when doc-view-current-timer
+         (cancel-timer doc-view-current-timer)
+         (setq doc-view-current-timer nil))
+       (doc-view-display (current-buffer) 'force))))
   ;; Update the displayed pages as soon as they're done generating.
   (when doc-view-conversion-refresh-interval
     (setq doc-view-current-timer
@@ -724,6 +753,13 @@ Start by converting PAGES, and then the rest."
              (doc-view-pdf->png pdf png rest)
            ;; Yippie, the important pages are done, update the display.
            (clear-image-cache)
+           ;; For the windows that have a message (like "Welcome to
+           ;; DocView") display property, clearing the image cache is
+           ;; not sufficient.
+           (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
+             (with-selected-window win
+               (when (stringp (get-char-property (point-min) 'display))
+                 (doc-view-goto-page (doc-view-current-page)))))
            ;; Convert the rest of the pages.
            (doc-view-pdf/ps->png pdf png)))))))
 
@@ -790,18 +826,8 @@ Those files are saved in the directory given by the function
   ;; resets during the redisplay).
   (setq doc-view-pending-cache-flush t)
   (let ((png-file (expand-file-name "page-%d.png"
-                                    (doc-view-current-cache-dir)))
-	(res-file (expand-file-name "resolution.el"
                                     (doc-view-current-cache-dir))))
     (make-directory (doc-view-current-cache-dir) t)
-    ;; Save the used resolution so that it can be restored when
-    ;; reading the cached files.
-    (let ((res doc-view-resolution))
-      (with-temp-buffer
-	(princ res (current-buffer))
-        ;; Don't use write-file, so as to avoid prompts for `require-newline',
-        ;; or for pre-existing buffers with the same name, ...
-	(write-region nil nil res-file nil 'silently)))
     (case doc-view-doc-type
       (dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
@@ -811,10 +837,10 @@ Those files are saved in the directory given by the function
             (png-file png-file))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
-     (pdf
-      (let ((pages (doc-view-active-pages)))
-        ;; Convert PDF to PNG images starting with the active pages.
-        (doc-view-pdf->png doc-view-buffer-file-name png-file pages)))
+      (pdf
+       (let ((pages (doc-view-active-pages)))
+         ;; Convert PDF to PNG images starting with the active pages.
+         (doc-view-pdf->png doc-view-buffer-file-name png-file pages)))
       (t
        ;; Convert to PNG images.
        (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))
@@ -1108,12 +1134,18 @@ If BACKWARD is non-nil, jump to the previous match."
 
 ;;;; User interface commands and the mode
 
-;; (put 'doc-view-mode 'mode-class 'special)
+(put 'doc-view-mode 'mode-class 'special)
 
 (defun doc-view-already-converted-p ()
   "Return non-nil if the current doc was already converted."
   (and (file-exists-p (doc-view-current-cache-dir))
-       (> (length (directory-files (doc-view-current-cache-dir) nil "\\.png$")) 0)))
+       ;; Check that the resolution info is there, otherwise it means
+       ;; the conversion is incomplete.
+       (file-readable-p (expand-file-name "resolution.el"
+                                          (doc-view-current-cache-dir)))
+       (> (length (directory-files (doc-view-current-cache-dir)
+                                   nil "\\.png\\'"))
+          0)))
 
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
@@ -1125,14 +1157,14 @@ If BACKWARD is non-nil, jump to the previous match."
 	    (progn
 	      (message "DocView: using cached files!")
 	      ;; Load the saved resolution
-	      (let ((res-file (expand-file-name "resolution.el"
-						(doc-view-current-cache-dir)))
-		    (res doc-view-resolution))
-		(with-temp-buffer
-		  (when (file-exists-p res-file)
-		    (insert-file-contents res-file)
-		    (setq res (read (current-buffer)))))
-		(when (numberp res)
+	      (let* ((res-file (expand-file-name "resolution.el"
+                                                 (doc-view-current-cache-dir)))
+                     (res
+                      (with-temp-buffer
+                        (when (file-readable-p res-file)
+                          (insert-file-contents res-file)
+                          (read (current-buffer))))))
+                (when (numberp res)
 		  (set (make-local-variable 'doc-view-resolution) res)))
 	      (doc-view-display (current-buffer) 'force))
 	  (doc-view-convert-current-doc))
@@ -1266,7 +1298,7 @@ toggle between displaying the document or editing it as text.
 
     (set (make-local-variable 'mode-line-position)
 	 '(" P" (:eval (number-to-string (doc-view-current-page)))
-	   "/" (:eval (number-to-string (length doc-view-current-files)))))
+	   "/" (:eval (number-to-string (doc-view-last-page-number)))))
     ;; Don't scroll unless the user specifically asked for it.
     (set (make-local-variable 'auto-hscroll-mode) nil)
     (set (make-local-variable 'mwheel-scroll-up-function)

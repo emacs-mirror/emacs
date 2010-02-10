@@ -1782,12 +1782,16 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (apply 'vector (nreverse files))))
 
 (defun archive-zip-extract (archive name)
-  (if (equal (car archive-zip-extract) "pkzip")
+  (if (member-ignore-case (car archive-zip-extract) '("pkunzip" "pkzip"))
       (archive-*-extract archive name archive-zip-extract)
-    ;; unzip expands wildcards in NAME, so we need to quote it.
-    ;; FIXME: Does pkzip need similar treatment?
-    (archive-extract-by-stdout archive (shell-quote-argument name)
-			       archive-zip-extract)))
+    (archive-extract-by-stdout
+     archive
+     ;; unzip expands wildcards in NAME, so we need to quote it.
+     ;; FIXME: Does pkunzip need similar treatment?
+     (if (equal (car archive-zip-extract) "unzip")
+	 (shell-quote-argument name)
+       name)
+     archive-zip-extract)))
 
 (defun archive-zip-write-file-member (archive descr)
   (archive-*-write-file-member

@@ -512,12 +512,13 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   int eof;
   Lisp_Object suffixes;
   struct charset_map_entries *head, *entries;
-  int n_entries;
-  int count = SPECPDL_INDEX ();
+  int n_entries, count;
+  USE_SAFE_ALLOCA;
 
   suffixes = Fcons (build_string (".map"),
 		    Fcons (build_string (".TXT"), Qnil));
 
+  count = SPECPDL_INDEX ();
   specbind (Qfile_name_handler_alist, Qnil);
   fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil);
   unbind_to (count, Qnil);
@@ -525,8 +526,12 @@ load_charset_map_from_file (charset, mapfile, control_flag)
       || ! (fp = fdopen (fd, "r")))
     error ("Failure in loading charset map: %S", SDATA (mapfile));
 
-  head = entries = ((struct charset_map_entries *)
-		    alloca (sizeof (struct charset_map_entries)));
+  /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
+     large (larger than MAX_ALLOCA).  */
+  SAFE_ALLOCA (head, struct charset_map_entries *,
+	       sizeof (struct charset_map_entries));
+  entries = head;
+
   n_entries = 0;
   eof = 0;
   while (1)
@@ -549,8 +554,8 @@ load_charset_map_from_file (charset, mapfile, control_flag)
 
       if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
-	  entries->next = ((struct charset_map_entries *)
-			   alloca (sizeof (struct charset_map_entries)));
+	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
+		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
 	}
       idx = n_entries % 0x10000;
@@ -563,6 +568,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   close (fd);
 
   load_charset_map (charset, head, n_entries, control_flag);
+  SAFE_FREE ();
 }
 
 static void
@@ -577,6 +583,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
   int n_entries;
   int len = ASIZE (vec);
   int i;
+  USE_SAFE_ALLOCA;
 
   if (len % 2 == 1)
     {
@@ -584,8 +591,12 @@ load_charset_map_from_vector (charset, vec, control_flag)
       return;
     }
 
-  head = entries = ((struct charset_map_entries *)
-		    alloca (sizeof (struct charset_map_entries)));
+  /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
+     large (larger than MAX_ALLOCA).  */
+  SAFE_ALLOCA (head, struct charset_map_entries *,
+	       sizeof (struct charset_map_entries));
+  entries = head;
+
   n_entries = 0;
   for (i = 0; i < len; i += 2)
     {
@@ -618,8 +629,8 @@ load_charset_map_from_vector (charset, vec, control_flag)
 
       if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
-	  entries->next = ((struct charset_map_entries *)
-			   alloca (sizeof (struct charset_map_entries)));
+	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
+		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
 	}
       idx = n_entries % 0x10000;
@@ -630,6 +641,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
     }
 
   load_charset_map (charset, head, n_entries, control_flag);
+  SAFE_FREE ();
 }
 
 

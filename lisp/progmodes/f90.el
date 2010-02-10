@@ -158,10 +158,8 @@
 ;; 3. Support for align.
 ;; Font-locking:
 ;; 1. OpenMP, OpenMPI?, preprocessor highlighting.
-;; 2. interface blah - Highlight "blah" in function-name face?
-;; Need to avoid "interface operator (+)" etc.
-;; 3. integer_name = 1
-;; 4. Labels for "else" statements (F2003)?
+;; 2. integer_name = 1
+;; 3. Labels for "else" statements (F2003)?
 
 (defvar comment-auto-fill-only-comments)
 (defvar font-lock-keywords)
@@ -467,22 +465,21 @@ type-name parts, respectively."
 ;;;      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    '(f90-typedef-matcher
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
-   ;; Other functions and declarations.
+    ;; F2003.  Prevent operators being highlighted as functions.
+    '("\\<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
+read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
+   ;; Other functions and declarations.  Named interfaces = F2003.
    '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|associate\\|\
-subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
+subroutine\\|interface\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; F2003.
    '("\\<\\(use\\)[ \t]*,[ \t]*\\(\\(?:non_\\)?intrinsic\\)[ \t]*::[ \t]*\
 \\(\\sw+\\)"
      (1 font-lock-keyword-face) (2 font-lock-keyword-face)
      (3 font-lock-function-name-face))
-   "\\<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\|\
-end[ \t]*interface\\)\\>"
-   ;; "abstract interface" is F2003. Must come after previous entry.
-   '("\\<\\(\\(?:abstract[ \t]*\\)?interface\\)\\>"
-     ;; [ \t]*\\(\\(\\sw+\\)[ \t]*[^(]\\)?"
-     ;; (2) messes up "interface operator ()", etc.
-     (1 font-lock-keyword-face))) ;(2 font-lock-function-name-face nil t)))
+   "\\<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\)\\>"
+   ;; "abstract interface" is F2003.
+   '("\\<abstract[ \t]*interface\\>" (0 font-lock-keyword-face t)))
   "This does fairly subdued highlighting of comments and function calls.")
 
 ;; NB not explicitly handling this, yet it seems to work.
@@ -558,9 +555,8 @@ logical\\|double[ \t]*precision\\|\
 \\(function\\)\\>[ \t]*\\(\\sw+\\)[ \t]*\\(([^&!\n]*)\\)"
       (1 font-lock-type-face t) (4 font-lock-keyword-face t)
       (5 font-lock-function-name-face t) (6 'default t))
-    ;; enum (F2003; cf type in -1).
-    '("\\<\\(enum\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
-      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+    ;; enum (F2003; must be followed by ", bind(C)").
+    '("\\<\\(enum\\)[ \t]*," (1 font-lock-keyword-face))
     ;; end do, enum (F2003), if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"
@@ -1230,7 +1226,7 @@ NAME is nil if the statement has no label."
 
 (defsubst f90-looking-at-type-like ()
   "Return (KIND NAME) if a type/enum/interface/block-data starts after point.
-NAME is non-nil only for type."
+NAME is non-nil only for type and certain interfaces."
   (cond
    ((save-excursion
       (and (looking-at "\\<type\\>[ \t]*")
@@ -1243,7 +1239,15 @@ NAME is non-nil only for type."
 ;;;    ((and (not (looking-at f90-typeis-re))
 ;;;          (looking-at f90-type-def-re))
 ;;;     (list (match-string 1) (match-string 2)))
-   ((looking-at "\\(enum\\|interface\\|block[ \t]*data\\)\\>")
+   ((looking-at "\\<\\(interface\\)\\>[ \t]*")
+    (list (match-string 1)
+          (save-excursion
+            (goto-char (match-end 0))
+            (if (or (looking-at "\\(operator\\|assignment\\|read\\|\
+write\\)[ \t]*([^)\n]*)")
+                    (looking-at "\\sw+"))
+                (match-string 0)))))
+   ((looking-at "\\(enum\\|block[ \t]*data\\)\\>")
     (list (match-string 1) nil))
    ((looking-at "abstract[ \t]*\\(interface\\)\\>")
     (list (match-string 1) nil))))
@@ -1271,9 +1275,12 @@ NAME is non-nil only for type."
 
 (defsubst f90-looking-at-program-block-end ()
   "Return (KIND NAME) if a block with name NAME ends after point."
-  (if (looking-at (concat "end[ \t]*" f90-blocks-re
-                          "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
-      (list (match-string 1) (match-string 3))))
+  (cond ((looking-at "end[ \t]*\\(interface\\)[ \t]*\\(\
+\\(?:assignment\\|operator\\|read\\|write\\)[ \t]*([^)\n]*)\\)")
+         (list (match-string 1) (match-string 2)))
+        ((looking-at (concat "end[ \t]*" f90-blocks-re
+                             "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
+        (list (match-string 1) (match-string 3)))))
 
 (defsubst f90-comment-indent ()
   "Return the indentation to be used for a comment starting at point.

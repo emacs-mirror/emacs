@@ -720,7 +720,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^Connected \\|^$\\|^Remote system\\|^Using\\|^ \\|Password:\\|"
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
-          "^500 .*AUTH \\(KERBEROS\\|GSSAPI\\)\\|^KERBEROS\\|"
+          "^500 .*AUTH\\|^KERBEROS\\|"
 	  "^530 Please login with USER and PASS\\|" ; non kerberised vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
@@ -4533,9 +4533,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
        (when (string-match "-?d\\'" switches)
          ;; Remove "d" which dired added to `switches'.
          (setq switches (substring switches 0 (match-beginning 0))))
+       (setq file (directory-file-name file))
        (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
-                                    switches nil))
-              (filename (file-name-nondirectory (directory-file-name file)))
+                                    switches 'parse))
+              (filename (file-name-nondirectory file))
               (case-fold-search nil))
          ;; FIXME: This presumes a particular output format, which is
          ;; basically Unix.
