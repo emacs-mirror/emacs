@@ -70,7 +70,7 @@
 
 <p>Note that <code>mps_arena_step</code> will still step, even if the arena has been clamped.  This is to allow a client to advance a collection only at these mps_arena_step points (but note that barrier hits will also cause collection work).</p>
 
-<p>The client is permitted to request a full collection with <code>mps_arena_start_collect</code>.  The MPS returns 'asynchronously' from this call, usually before full collection has completed.  (Contrast the <a href="../reference/#mps_arena_collect"><code>mps_arena_collect</code></a> call, which does not return until the full collection has completed).  Work on the full collection then proceeds incrementally, just as it does when the MPS schedules a full collection automatically.</p>
+<p>The client is permitted to request a full collection with <code>mps_arena_start_collect</code>.  This is an 'asynchronous' request: the MPS returns from this call quickly, usually before the full collection has completed.  (Contrast the <a href="../reference/#mps_arena_collect"><code>mps_arena_collect</code></a> call, which does not return until the full collection has completed).  Work on the full collection then proceeds incrementally, just as it does when the MPS schedules a full collection automatically.</p>
 
 <p>Fuller documentation is currently only in email.  See:</p>
 <ol>
@@ -120,6 +120,7 @@ interface is rubbish)
                     and mps_arena_start_collect.
   2006-12-29  RHSK  More comments on chain and arena_start/_step.
   2007-04-13  DRJ   mps_class_mv
+  2010-02-10  RHSK  Clarify in what way mps_arena_start_collect is 'asynchronous'
 </pre>
 
 
