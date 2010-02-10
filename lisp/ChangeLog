@@ -1,3 +1,7 @@
+2010-02-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* iswitchb.el (iswitchb-completions): Revert last change.
+
 2010-02-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ls-lisp.el (ls-lisp-insert-directory): Wen WILDCARD-REGEXP and
