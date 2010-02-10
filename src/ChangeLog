@@ -1,3 +1,15 @@
+2010-02-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (x_session_initialize): Move initialization of ice_fd and
+	doing_interact here.
+	(ice_connection_closed): New function.
+	(x_session_check_input, smc_die_CB, ice_io_error_handler)
+	(ice_conn_watch_CB, x_session_close): Call ice_connection_closed.
+	(x_session_check_input): Call IceCloseConnection if IceProcessMessages
+	returns I/O error.
+	(ice_conn_watch_CB): Call add_keyboard_wait_descriptor on ice_fd,
+	bug #5512.
+
 2010-02-08  Francis Devereux  <francis@devrx.org>  (tiny change)
 
 	* nsfont.m (nsfont_open): The system's value for the font descent
