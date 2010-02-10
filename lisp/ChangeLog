@@ -1,3 +1,9 @@
+2010-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Wen WILDCARD-REGEXP and
+	FULL-DIRECTORY-P are nil, and FILE is absolute, expand it.  This
+	prevents file names like "~/" been listed literally.
+
 2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (xterm-maybe-set-dark-background-mode): Remove
