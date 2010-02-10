@@ -34,7 +34,7 @@
 2010-02-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-util.el (with-coding-priority): Add autoload
-	cookie for putting `lisp-indent-funciton'.
+	cookie for putting `lisp-indent-function'.
 
 2010-02-07  Glenn Morris  <rgm@gnu.org>
 
@@ -313,7 +313,7 @@
 	* progmodes/python.el: Replace reference to obsolete
 	c-subward-mode.
 
-	* vc-bzr.el: (vc-bzr-revision-table) New function.
+	* vc-bzr.el (vc-bzr-revision-table): New function.
 
 2010-01-25  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
 
@@ -346,7 +346,7 @@
 
 2010-01-23  Stephen Leake  <stephen_leake@member.fsf.org>
 
-        * progmodes/ada-mode.el (ada-in-paramlist-p): Pragma syntax
+	* progmodes/ada-mode.el (ada-in-paramlist-p): Pragma syntax
 	is the same as subprogram call, not declaration.  (Bug#5435).
 
 2010-01-23  Michael Albinus  <michael.albinus@gmx.de>
@@ -3742,7 +3742,7 @@
 	(verilog-read-decls): Fix AUTOREG not detecting "assign {a,b}".
 	Reported by Wade Smith.
 
-	(verilog-batch-execute-func) Comment on function usage.
+	(verilog-batch-execute-func): Comment on function usage.
 
 2009-11-05  Michael McNamara  <mac@mail.brushroad.com>
 
@@ -4399,7 +4399,7 @@
 	(tramp-handle-file-truename): Use it.
 	(tramp-handle-file-exists-p): Check file-attributes cache, assume
 	file exists if cache value present.
-	(tramp-check-cached-permissions) New defun.
+	(tramp-check-cached-permissions): New defun.
 	(tramp-handle-file-readable-p): Use it.
 	(tramp-handle-file-writable-p): Likewise.
 	(tramp-handle-file-executable-p): Likewise.
@@ -4630,7 +4630,7 @@
 	from `rfn-eshadow-update-overlay-hook' when unloading.
 	(tramp-methods): Add `tramp-copy-keep-tmpfile' for "rsync" and
 	"rsyncc".  Adjust doc string.
-	(tramp-temp-buffer-file-name) New buffer-local defvar.
+	(tramp-temp-buffer-file-name): New buffer-local defvar.
 	(tramp-handle-insert-file-contents, tramp-handle-write-region):
 	Keep temporary file when indicated by method ("rsync" and
 	"rsyncc").
@@ -8042,7 +8042,7 @@
 	Don't modify last-coding-system-used by accident.
 	(tramp-completion-file-name-handler): Apply the checks here,
 	instead during registration.
-	(tramp-register-file-name-handlers) Renamed from
+	(tramp-register-file-name-handlers): Renamed from
 	`tramp-register-file-name-handler'.  Register both
 	`tramp-file-name-handler' and `tramp-completion-file-name-handler'.
 	(tramp-register-completion-file-name-handler): Remove.  (Bug#4260)
@@ -10136,7 +10136,7 @@
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly):
 	Handle also the 'rename case, when setting file modes.  (Bug#3712)
-	(tramp-default-file-modes) Remove execute permissions.
+	(tramp-default-file-modes): Remove execute permissions.
 
 	* net/tramp-gvfs.el (tramp-gvfs-methods): Add "synce" method.
 	(top): Add a default for "synce" in `tramp-default-user-alist'.
@@ -10161,7 +10161,7 @@
 
 	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
 	("Chinese-CNS", "Chinese-EUC-TW", "Chinese-GBK"): Add a
-	setup-funcion to make char-widht-table suitable for respective
+	setup-function to make char-width-table suitable for respective
 	environments, and an exit-function to cancel that.
 
 	* language/japan-util.el (setup-japanese-environment-internal):
@@ -10221,7 +10221,7 @@
 	to support safe execution at almost anyline.
 	(verilog-calc-1): Properly support indenting deep inside generate
 	blocks.
-	(verilog-init-font) Remove definition & use of verilog-init-font,
+	(verilog-init-font): Remove definition & use of verilog-init-font,
 	as it is redundant with font-lock-defaults.
 	(verilog-mode): Alter the definition of verilog-font-lock-defaults
 	to avoid circular calls if syntax-ppss is a function (as is the
@@ -10235,7 +10235,7 @@
 	(verilog-defun-level-not-generate-re, verilog-defun-level-re)
 	(verilog-defun-level-generate-only-re): Really fix the defun-list
 	compilation issue.
-	(verilog-calc-1) (verilog-beg-of-statement): Enhance support for
+	(verilog-calc-1, verilog-beg-of-statement): Enhance support for
 	coverpoint, constraint and cross statements.
 	(verilog-defun-level-list, verilog-generate-defun-level-list)
 	(verilog-all-defun-level-list): Redo these specifications - it is
