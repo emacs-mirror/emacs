@@ -2239,7 +2239,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
                               (overlay-buffer o))
               (let ((o1 (make-overlay (point-min) (point-min))))
                 (delete-overlay o1)
-                o1))))
+                o1)))
 	(props (overlay-properties o)))
     (while props
       (overlay-put o1 (pop props) (pop props)))
