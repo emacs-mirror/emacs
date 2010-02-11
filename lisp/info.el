@@ -4797,7 +4797,7 @@ type returned by `Info-bookmark-make-record', which see."
     ;; Use bookmark-default-handler to move to the appropriate location
     ;; within the node.
     (bookmark-default-handler
-     (list* "" `(buffer . ,buf) (bookmark-get-bookmark-record bmk)))))
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
 (provide 'info)
 

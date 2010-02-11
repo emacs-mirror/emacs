@@ -2232,10 +2232,14 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 
 (defun copy-overlay (o)
   "Return a copy of overlay O."
-  (let ((o1 (make-overlay (overlay-start o) (overlay-end o)
-			  ;; FIXME: there's no easy way to find the
-			  ;; insertion-type of the two markers.
-			  (overlay-buffer o)))
+  (let ((o1 (if (overlay-buffer o)
+                (make-overlay (overlay-start o) (overlay-end o)
+                              ;; FIXME: there's no easy way to find the
+                              ;; insertion-type of the two markers.
+                              (overlay-buffer o))
+              (let ((o1 (make-overlay (point-min) (point-min))))
+                (delete-overlay o1)
+                o1)))
 	(props (overlay-properties o)))
     (while props
       (overlay-put o1 (pop props) (pop props)))

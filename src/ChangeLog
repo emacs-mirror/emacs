@@ -1,3 +1,15 @@
+2010-02-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (x_session_initialize): Move initialization of ice_fd and
+	doing_interact here.
+	(ice_connection_closed): New function.
+	(x_session_check_input, smc_die_CB, ice_io_error_handler)
+	(ice_conn_watch_CB, x_session_close): Call ice_connection_closed.
+	(x_session_check_input): Call IceCloseConnection if IceProcessMessages
+	returns I/O error.
+	(ice_conn_watch_CB): Call add_keyboard_wait_descriptor on ice_fd,
+	bug #5512.
+
 2010-02-08  Francis Devereux  <francis@devrx.org>  (tiny change)
 
 	* nsfont.m (nsfont_open): The system's value for the font descent
@@ -83,7 +95,7 @@
 2010-01-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_create_frame): If frame height is too big, try
-	sizes 24 and 10. Bug #3643.
+	sizes 24 and 10.  Bug #3643.
 
 2010-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -170,7 +182,7 @@
 	* xfns.c (x_get_current_desktop, x_get_desktop_workarea): New functions.
 	(Fx_create_frame): Call x_get_current_desktop and x_get_desktop_workarea
 	to find out usable size of the desktop.  Don't make frames larger than
-	this. Bug #3643.
+	this.  Bug #3643.
 
 2010-01-15  Kenichi Handa  <handa@m17n.org>
 
@@ -315,7 +327,7 @@
 
 2010-01-08  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* dispnew.c (change_frame_size_1): newwidth == FRAME_COLS  (f) must
+	* dispnew.c (change_frame_size_1): newwidth == FRAME_COLS (f) must
 	also be true before we can return early (bug #5339).
 
 2010-01-06  David Reitter  <david.reitter@gmail.com>
@@ -347,7 +359,7 @@
 
 	* xterm.c (x_new_font): Move code for setting rows/cols before
 	resizing ...
-	(x_set_window_size): ... to here. bug #2568.
+	(x_set_window_size): ... to here.  Bug #2568.
 
 	* gtkutil.c (xg_clear_under_internal_border): New function.
 	(xg_frame_resized, xg_frame_set_char_size):
@@ -1586,7 +1598,7 @@
 	Fix printf format.
 	(ns_query_color): Use CGFloat where appropriate.
 	(EmacsView<NSTextInput>, EmacsScroller): Fix method signatures.
-	(EmacsScroller-mouseDown:) Use long format in printf, and cast
+	(EmacsScroller-mouseDown:): Use long format in printf, and cast
 	argument.
 
 	* config.in (NS_HAVE_NSINTEGER): Drop.
@@ -4062,7 +4074,7 @@
 
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* keyboard.c (adjust_point_for_property): Allow stopping betwen two
+	* keyboard.c (adjust_point_for_property): Allow stopping between two
 	invisible areas.
 
 2009-02-12  Jason Rumney  <jasonr@gnu.org>
