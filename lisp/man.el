@@ -771,8 +771,13 @@ POS defaults to `point'."
           ;; quote anything.
           (let ((process-environment (copy-sequence process-environment)))
             (setenv "COLUMNS" "999") ;; don't truncate long names
-            (call-process manual-program nil '(t nil) nil
-                          "-k" (concat "^" prefix)))
+            ;; manual-program might not even exist.  And since it's
+            ;; run differently in Man-getpage-in-background, an error
+            ;; here may not necessarily mean that we'll also get an
+            ;; error later.
+            (ignore-errors
+              (call-process manual-program nil '(t nil) nil
+                            "-k" (concat "^" prefix))))
           (goto-char (point-min))
           (while (re-search-forward "^\\([^ \t\n]+\\)\\(?: ?\\((.+?)\\)\\(?:[ \t]+- \\(.*\\)\\)?\\)?" nil t)
             (push (propertize (concat (match-string 1) (match-string 2))

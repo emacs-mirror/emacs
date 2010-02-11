@@ -1,3 +1,8 @@
+2010-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Don't signal an error if we can't run
+	manual-program (bug#4056).
+
 2010-02-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/artist.el (artist-mt): Fix typos in docstring.
