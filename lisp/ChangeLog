@@ -1,5 +1,10 @@
 2010-02-12  Juri Linkov  <juri@jurta.org>
 
+	* arc-mode.el (archive-unique-fname): Make directories for nested
+	archives.  (Bug#5540)
+
+2010-02-12  Juri Linkov  <juri@jurta.org>
+
 	* ffap.el (dired-at-point): Fix docstring.  (Bug#5565)
 
 2010-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
