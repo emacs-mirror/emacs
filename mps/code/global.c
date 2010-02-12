@@ -652,7 +652,6 @@ void ArenaPoll(Globals globals)
   Arena arena;
   Clock start;
   Size tracedSize;
-  Bool didSomeTraceWork = FALSE;
 
   AVERT(Globals, globals);
 
@@ -666,26 +665,29 @@ void ArenaPoll(Globals globals)
   globals->insidePoll = TRUE;
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
-  start = ClockNow();
+  /* [Experimental code; RHSK 2010-02-12.  No consideration of */
+  /* efficiency: many calls to ClockNow(), and continued calls to */
+  /* TracePoll even when it has reported that it has no work to do.] */
   arena = GlobalsArena(globals);
   do {
-    tracedSize = TracePoll(globals);
-    if(tracedSize == 0)
-      break;
+    start = ClockNow();
 
-    didSomeTraceWork = TRUE;
-    arena->tracedSize += tracedSize;
+    tracedSize = TracePoll(globals);
+
+    if(tracedSize > 0) {
+      /* Record the work done. */
+      arena->tracedSize += tracedSize;
+      arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+    }
 
     /* Increment pollThreshold; check: enough precision? */
     AVER(globals->pollThreshold
          < globals->pollThreshold + ArenaPollALLOCTIME);
     globals->pollThreshold += ArenaPollALLOCTIME;
-  } while (tracedSize > 0
-           && globals->pollThreshold <= globals->fillMutatorSize);
 
-  if(didSomeTraceWork) {
-    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
-  }
+  } while (globals->pollThreshold <= globals->fillMutatorSize);
+
+  AVER(globals->fillMutatorSize < globals->pollThreshold);
 
   globals->insidePoll = FALSE;
 }
