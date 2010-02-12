@@ -353,6 +353,7 @@ enum pvec_type
   PVEC_FONT = 0x200000,
   PVEC_OTHER = 0x400000,
   PVEC_THREAD = 0x800000,
+  PVEC_MUTEX = 0x1000000,
   PVEC_TYPE_MASK = 0xfffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
@@ -592,6 +593,7 @@ extern size_t pure_size;
 #define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR(a))
 #define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), (struct Lisp_Sub_Char_Table *) XPNTR(a))
 #define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR(a))
+#define XMUTEX(a) (eassert (MUTEXP(a)),(struct Lisp_Mutex *) XPNTR(a))
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -628,6 +630,7 @@ extern size_t pure_size;
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
 #define XSETSUB_CHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUB_CHAR_TABLE))
 #define XSETTHREAD(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_THREAD))
+#define XSETMUTEX(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_MUTEX))
 
 /* Convenience macros for dealing with Lisp arrays.  */
 
@@ -1639,6 +1642,7 @@ typedef struct {
 #define BOOL_VECTOR_P(x) PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
 #define THREADP(x) PSEUDOVECTORP (x, PVEC_THREAD)
+#define MUTEXP(x) PSEUDOVECTORP (x, PVEC_MUTEX)
 
 /* Test for image (image . spec)  */
 #define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))
@@ -2732,6 +2736,7 @@ extern struct Lisp_Hash_Table *allocate_hash_table P_ ((void));
 extern struct window *allocate_window P_ ((void));
 extern struct frame *allocate_frame P_ ((void));
 extern struct Lisp_Process *allocate_process P_ ((void));
+extern struct Lisp_Mutex *allocate_mutex P_ ((void));
 extern struct terminal *allocate_terminal P_ ((void));
 extern int gc_in_progress;
 extern int abort_on_gc;

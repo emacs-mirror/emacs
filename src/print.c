@@ -2172,6 +2172,10 @@ print_object (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('>');
 	}
+      else if (MUTEXP (obj))
+        {
+	      strout ("#<mutex>", -1, -1, printcharfun, 0);
+        }
       else
 	{
 	  EMACS_INT size = XVECTOR (obj)->size;

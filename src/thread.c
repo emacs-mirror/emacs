@@ -365,6 +365,47 @@ DEFUN ("inhibit-yield", Finhibit_yield, Sinhibit_yield, 1, 1, 0,
   return Qnil;
 }
 
+DEFUN ("make-mutex", Fmake_mutex, Smake_mutex, 0, 0, 0,
+       doc: /* Make a mutex.  */)
+     ()
+{
+  Lisp_Object ret;
+  struct Lisp_Mutex *mutex = allocate_mutex ();
+  mutex->owner = 0;
+  XSETMUTEX (ret, mutex);
+  return ret;
+}
+
+DEFUN ("mutex-lock", Fmutex_lock, Smutex_lock, 1, 1, 0,
+       doc: /* Lock a mutex.  */)
+     (val)
+     Lisp_Object val;
+{
+  struct Lisp_Mutex *mutex = XMUTEX (val);
+  while (1)
+    {
+      if (mutex->owner == 0 || mutex->owner == pthread_self ())
+        {
+          mutex->owner = pthread_self ();
+          return Qt;
+        }
+
+      thread_yield ();
+    }
+
+  return Qt;
+}
+
+DEFUN ("mutex-unlock", Fmutex_unlock, Smutex_unlock, 1, 1, 0,
+       doc: /* Unlock a mutex.  */)
+     (val)
+     Lisp_Object val;
+{
+  struct Lisp_Mutex *mutex = XMUTEX (val);
+  mutex->owner = 0;
+  return Qt;
+}
+
 int
 thread_select (n, rfd, wfd, xfd, tmo)
   int n;
@@ -447,4 +488,7 @@ syms_of_threads (void)
   defsubr (&Srun_in_thread);
   defsubr (&Syield);
   defsubr (&Sinhibit_yield);
+  defsubr (&Smake_mutex);
+  defsubr (&Smutex_lock);
+  defsubr (&Smutex_unlock);
 }

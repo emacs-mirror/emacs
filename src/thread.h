@@ -1,5 +1,15 @@
 #include "regex.h"
 
+struct Lisp_Mutex
+{
+  EMACS_UINT size;
+
+  struct Lisp_Vector *v_next;
+
+  /* Thread that owns the mutex.  */
+  pthread_t owner;
+};
+
 struct thread_state
 {
   EMACS_UINT size;

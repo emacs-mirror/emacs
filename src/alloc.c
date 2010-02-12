@@ -3011,6 +3011,12 @@ allocate_process ()
   return ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
 }
 
+struct Lisp_Mutex *
+allocate_mutex ()
+{
+  return ALLOCATE_PSEUDOVECTOR (struct Lisp_Mutex, owner, PVEC_MUTEX);
+}
+
 
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
        doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
