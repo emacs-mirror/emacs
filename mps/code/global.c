@@ -649,19 +649,43 @@ void (ArenaPoll)(Globals globals)
 #else
 void ArenaPoll(Globals globals)
 {
-  double size;
+  Arena arena;
+  Clock start;
+  Size tracedSize;
+  Bool didSomeTraceWork = FALSE;
 
   AVERT(Globals, globals);
 
   if (globals->clamped)
     return;
-  size = globals->fillMutatorSize;
-  if (globals->insidePoll || size < globals->pollThreshold)
+  if (globals->insidePoll)
+    return;
+  if(globals->fillMutatorSize < globals->pollThreshold)
     return;
 
   globals->insidePoll = TRUE;
 
-  (void)ArenaStep(globals, 0.0, 0.0);
+  /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
+  start = ClockNow();
+  arena = GlobalsArena(globals);
+  do {
+    tracedSize = TracePoll(globals);
+    if(tracedSize == 0)
+      break;
+
+    didSomeTraceWork = TRUE;
+    arena->tracedSize += tracedSize;
+
+    /* Increment pollThreshold; check: enough precision? */
+    AVER(globals->pollThreshold
+         < globals->pollThreshold + ArenaPollALLOCTIME);
+    globals->pollThreshold += ArenaPollALLOCTIME;
+  } while (tracedSize > 0
+           && globals->pollThreshold <= globals->fillMutatorSize);
+
+  if(didSomeTraceWork) {
+    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+  }
 
   globals->insidePoll = FALSE;
 }
