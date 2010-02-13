@@ -4854,7 +4854,18 @@ With argument 0, interchanges line point is in with line mark is in."
 		       (forward-line arg))))
 		  arg))
 
+;; FIXME seems to leave point BEFORE the current object when ARG = 0,
+;; which seems inconsistent with the ARG /= 0 case.
+;; FIXME document SPECIAL.
 (defun transpose-subr (mover arg &optional special)
+  "Subroutine to do the work of transposing objects.
+Works for lines, sentences, paragraphs, etc.  MOVER is a function that
+moves forward by units of the given object (e.g. forward-sentence,
+forward-paragraph).  If ARG is zero, exchanges the current object
+with the one containing mark.  If ARG is an integer, moves the
+current object past ARG following (if ARG is positive) or
+preceding (if ARG is negative) objects, leaving point after the
+current object."
   (let ((aux (if special mover
 	       (lambda (x)
 		 (cons (progn (funcall mover x) (point))

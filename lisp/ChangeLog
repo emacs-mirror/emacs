@@ -1,3 +1,10 @@
+2010-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (transpose-subr): Give it a doc-string.
+
+	* textmodes/paragraphs.el (transpose-paragraphs, transpose-sentences):
+	Doc fixes.
+
 2010-02-12  Juri Linkov  <juri@jurta.org>
 
 	* arc-mode.el (archive-unique-fname): Make directories for nested

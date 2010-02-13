@@ -1,7 +1,8 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
 ;; Copyright (C) 1985, 1986, 1987, 1991, 1994, 1995, 1996, 1997, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -409,7 +410,12 @@ negative arg -N means kill forward to Nth end of paragraph."
   (kill-region (point) (progn (backward-paragraph arg) (point))))
 
 (defun transpose-paragraphs (arg)
-  "Interchange this (or next) paragraph with previous one."
+  "Interchange the current paragraph with the next one.
+With prefix argument ARG a non-zero integer, moves the current
+paragraph past ARG paragraphs, leaving point after the current paragraph.
+If ARG is positive, moves the current paragraph forwards, if
+ARG is negative moves it backwards.  If ARG is zero, exchanges
+the current paragraph with the one containing the mark."
   (interactive "*p")
   (transpose-subr 'forward-paragraph arg))
 
@@ -509,7 +515,12 @@ ones already marked."
    nil t))
 
 (defun transpose-sentences (arg)
-  "Interchange this (next) and previous sentence."
+  "Interchange the current sentence with the next one.
+With prefix argument ARG a non-zero integer, moves the current
+sentence past ARG sentences, leaving point after the current sentence.
+If ARG is positive, moves the current sentence forwards, if
+ARG is negative moves it backwards.  If ARG is zero, exchanges
+the current sentence with the one containing the mark."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
 
