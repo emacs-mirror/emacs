@@ -1,3 +1,8 @@
+2010-02-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_clear_frame_area): Cal gtk_widget_queue_draw if USE_GTK,
+	bug #5571.
+
 2010-02-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsmfns.c (x_session_initialize): Move initialization of ice_fd and

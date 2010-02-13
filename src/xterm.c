@@ -7446,6 +7446,11 @@ x_clear_frame_area (f, x, y, width, height)
 {
   x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		x, y, width, height, False);
+#ifdef USE_GTK
+  /* Must queue a redraw, because scroll bars might have been cleared.  */
+  if (FRAME_GTK_WIDGET (f))
+    gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+#endif
 }
 
 
