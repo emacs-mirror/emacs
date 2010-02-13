@@ -1796,7 +1796,8 @@ ffap most of the time."
 
 ;;;###autoload
 (defun dired-at-point (&optional filename)
-  "Start Dired, defaulting to file at point.  See `ffap'."
+  "Start Dired, defaulting to file at point.  See `ffap'.
+If `dired-at-point-require-prefix' is set, the prefix meaning is reversed."
   (interactive)
   (if (and (called-interactively-p 'interactive)
 	   (if dired-at-point-require-prefix

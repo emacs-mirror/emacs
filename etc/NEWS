@@ -273,6 +273,11 @@ unaware that their mail configuration has changed.
 
 To disable this check, set compose-mail-user-agent-warnings to nil.
 
+** The default value of mail-interactive is t, since Emacs 23.1.
+(This was not announced at the time.)  It means that when sending mail,
+Emacs will wait for the process sending mail to return.  If you
+experience delays when sending mail, you may wish to set this to nil.
+
 ** nXML mode is now the default for editing XML files.
 
 ** Shell
