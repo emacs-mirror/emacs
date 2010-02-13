@@ -11401,8 +11401,8 @@ redisplay_internal (preserve_echo_area)
       }
   }
 
-  Finhibit_yield (Qt);
-  record_unwind_protect (Finhibit_yield, Qnil);
+  Fmutex_lock (minibuffer_mutex);
+  record_unwind_protect (Fmutex_unlock, minibuffer_mutex);
 
  retry:
   if (!EQ (old_frame, selected_frame)

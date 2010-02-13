@@ -26,12 +26,12 @@ static struct thread_state *all_threads = &primary_thread;
 
 __thread struct thread_state *current_thread = &primary_thread;
 
-static int inhibit_yield_counter = 0;
-
 pthread_mutex_t global_lock;
 
 /* Used internally by the scheduler, it is the next that will be executed.  */
 static pthread_t next_thread;
+
+Lisp_Object minibuffer_mutex;
 
 /* Choose the next thread to be executed.  */
 static void
@@ -53,8 +53,7 @@ static inline void
 reschedule (char *end, int wait)
 {
   current_thread->stack_top = end;
-  if (!thread_inhibit_yield_p ())
-    thread_schedule ();
+  thread_schedule ();
 
   if (next_thread != current_thread->pthread_id)
     pthread_cond_broadcast (&thread_cond);
@@ -151,17 +150,10 @@ unmark_threads (void)
       unmark_byte_stack (iter->m_byte_stack_list);
 }
 
-int
-thread_inhibit_yield_p  ()
-{
-  return inhibit_yield_counter || interrupt_input_blocked || abort_on_gc;
-}
-
 static void
 thread_yield_callback (char *end, void *ignore)
 {
-  if (!thread_inhibit_yield_p ())
-    reschedule (end, 1);
+  reschedule (end, 1);
 }
 
 void
@@ -352,19 +344,6 @@ user_thread_p (void)
   return 0;
 }
 
-DEFUN ("inhibit-yield", Finhibit_yield, Sinhibit_yield, 1, 1, 0,
-       doc: /* Inhibit the yield function.  */)
-     (val)
-     Lisp_Object val;
-{
-  if (!EQ (val, Qnil))
-    inhibit_yield_counter++;
-  else if (inhibit_yield_counter > 0)
-    inhibit_yield_counter--;
-
-  return Qnil;
-}
-
 DEFUN ("make-mutex", Fmake_mutex, Smake_mutex, 0, 0, 0,
        doc: /* Make a mutex.  */)
      ()
@@ -467,6 +446,7 @@ init_threads_once (void)
   primary_thread.func = Qnil;
   primary_thread.initial_specpdl = Qnil;
   XSETPVECTYPE (&primary_thread, PVEC_THREAD);
+  minibuffer_mutex = Fmake_mutex ();
 }
 
 void
@@ -485,9 +465,11 @@ init_threads (void)
 void
 syms_of_threads (void)
 {
+  DEFVAR_LISP ("minibuffer-mutex", &minibuffer_mutex,
+	       doc: /* Mutex for the minibuffer.  */);
+
   defsubr (&Srun_in_thread);
   defsubr (&Syield);
-  defsubr (&Sinhibit_yield);
   defsubr (&Smake_mutex);
   defsubr (&Smutex_lock);
   defsubr (&Smutex_unlock);

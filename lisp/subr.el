@@ -1839,7 +1839,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                       ;; for more input to decide how to interpret the
                       ;; current input.
                       (throw 'read-key keys)))))))
-    (with-no-threads
+    (with-critical-section minibuffer-mutex
      (unwind-protect
          (progn
            (use-global-map read-key-empty-map)
@@ -1868,7 +1868,7 @@ for numeric input."
 or the octal character code.
 RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
-        (with-no-threads
+        (with-critical-section minibuffer-mutex
          (setq char (read-event (and prompt (format "%s-" prompt)) t)))
 	(if inhibit-quit (setq quit-flag nil)))
       ;; Translate TAB key into control-I ASCII character, and so on.
@@ -1926,7 +1926,7 @@ then it returns nil if the user types C-g, but quit-flag remains set.
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
   (with-local-quit
-    (with-no-threads
+    (with-critical-section minibuffer-mutex
      (if confirm
          (let (success)
            (while (not success)
@@ -1996,7 +1996,7 @@ by doing (clear-string STRING)."
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
 The value of DEFAULT is inserted into PROMPT."
-  (with-no-threads
+  (with-critical-section minibuffer-mutex
    (let ((n nil))
      (when default
        (setq prompt
@@ -2653,13 +2653,13 @@ Similar to `call-process-shell-command', but calls `process-file'."
 
 ;;;; Lisp macros to do various things temporarily.
 
-(defmacro with-no-threads (&rest body)
-  "Disable temporarily other threads to be executed."
+(defmacro with-critical-section (mutex &rest body)
+  "Execute code in a critical section."
   (declare (indent 1) (debug t))
   `(unwind-protect
-       (progn (inhibit-yield t)
+       (progn (mutex-lock mutex)
               ,@body)
-     (inhibit-yield nil)))
+     (mutex-unlock mutex)))
 
 (defmacro with-current-buffer (buffer-or-name &rest body)
   "Execute the forms in BODY with BUFFER-OR-NAME temporarily current.

@@ -585,8 +585,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 						minibuf_save_list))))));
 
 
-  Finhibit_yield (Qt);
-  record_unwind_protect (Finhibit_yield, Qnil);
+  Fmutex_lock (minibuffer_mutex);
+  record_unwind_protect (Fmutex_unlock, minibuffer_mutex);
   record_unwind_protect (read_minibuf_unwind, Qnil);
   minibuf_level++;
 

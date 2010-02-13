@@ -10329,8 +10329,8 @@ will read just one key sequence.  */)
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
-  Finhibit_yield (Qt);
-  record_unwind_protect (Finhibit_yield, Qnil);
+  Fmutex_lock (minibuffer_mutex);
+  record_unwind_protect (Fmutex_unlock, minibuffer_mutex);
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),

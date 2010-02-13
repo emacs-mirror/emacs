@@ -2738,10 +2738,9 @@ is nil, and `use-dialog-box' is non-nil.  */)
   Lisp_Object ret;
   int count = SPECPDL_INDEX ();
 
-  Finhibit_yield (Qt);
-  record_unwind_protect (Finhibit_yield, Qnil);
+  Fmutex_lock (minibuffer_mutex);
+  record_unwind_protect (Fmutex_unlock, minibuffer_mutex);
   ret = Fyes_or_no1 (prompt);
-  Finhibit_yield (Qnil);
   unbind_to (count, Qnil);
   return ret;
 }

@@ -1960,6 +1960,8 @@ extern struct backtrace *backtrace_list;
 
 extern Lisp_Object memory_signal_data;
 
+extern Lisp_Object minibuffer_mutex;
+
 /* Check quit-flag and quit if it is non-nil.
    Typing C-g does not directly cause a quit; it only sets Vquit_flag.
    So the program needs to do QUIT at times when it is safe to quit.
@@ -2372,6 +2374,11 @@ EXFUN (Fash, 2);
 EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
+
+EXFUN (Fmake_mutex, 0);
+EXFUN (Fmutex_lock, 1);
+EXFUN (Fmutex_unlock, 1);
+
 
 extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern Lisp_Object *find_variable_location (Lisp_Object *);
