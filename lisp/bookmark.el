@@ -1068,7 +1068,7 @@ that file no longer exists, then offer interactively to relocate BOOKMARK."
       (funcall (or (bookmark-get-handler bookmark)
                    'bookmark-default-handler)
                (bookmark-get-bookmark bookmark))
-    (file-error
+    (bookmark-error-no-filename         ;file-error
      ;; We were unable to find the marked file, so ask if user wants to
      ;; relocate the bookmark, else remind them to consider deletion.
      (when (stringp bookmark)
@@ -1116,24 +1116,28 @@ that file no longer exists, then offer interactively to relocate BOOKMARK."
 BMK-RECORD is a bookmark record, not a bookmark name (i.e., not a string).
 Changes current buffer and point and returns nil, or signals a `file-error'."
   (let ((file          (bookmark-get-filename bmk-record))
+	(buf           (bookmark-prop-get bmk-record 'buffer))
         (forward-str   (bookmark-get-front-context-string bmk-record))
         (behind-str    (bookmark-get-rear-context-string bmk-record))
         (place         (bookmark-get-position bmk-record)))
-    (if (not file)
-        (signal 'bookmark-error-no-filename (list 'stringp file))
-      (set-buffer (find-file-noselect file))
-      (if place (goto-char place))
-      ;; Go searching forward first.  Then, if forward-str exists and
-      ;; was found in the file, we can search backward for behind-str.
-      ;; Rationale is that if text was inserted between the two in the
-      ;; file, it's better to be put before it so you can read it,
-      ;; rather than after and remain perhaps unaware of the changes.
-      (if forward-str
-          (if (search-forward forward-str (point-max) t)
-              (goto-char (match-beginning 0))))
-      (if behind-str
-          (if (search-backward behind-str (point-min) t)
-              (goto-char (match-end 0)))))
+    (set-buffer
+     (cond
+      ((and file (file-readable-p file) (not (buffer-live-p buf)))
+       (find-file-noselect file))
+      ;; No file found.  See if buffer BUF have been created.
+      ((and buf (get-buffer buf)))
+      (t ;; If not, raise error.
+       (signal 'bookmark-error-no-filename (list 'stringp file)))))
+    (if place (goto-char place))
+    ;; Go searching forward first.  Then, if forward-str exists and
+    ;; was found in the file, we can search backward for behind-str.
+    ;; Rationale is that if text was inserted between the two in the
+    ;; file, it's better to be put before it so you can read it,
+    ;; rather than after and remain perhaps unaware of the changes.
+    (when (and forward-str (search-forward forward-str (point-max) t))
+      (goto-char (match-beginning 0)))
+    (when (and behind-str (search-backward behind-str (point-min) t))
+      (goto-char (match-end 0)))
     nil))
 
 ;;;###autoload

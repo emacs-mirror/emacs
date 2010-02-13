@@ -400,6 +400,7 @@ not contain `d', so that a full listing is expected."
     ;; If not full-directory-p, FILE *must not* end in /, as
     ;; file-attributes will not recognize a symlink to a directory,
     ;; so must make it a relative filename as ls does:
+    (if (file-name-absolute-p file) (setq file (expand-file-name file)))
     (if (eq (aref file (1- (length file))) ?/)
 	(setq file (substring file 0 -1)))
     (let ((fattr (file-attributes file 'string)))
