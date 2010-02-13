@@ -323,7 +323,7 @@ operations such as `find-coding-systems-region'."
      (unwind-protect
 	 (progn ,@body)
        (apply #'set-coding-system-priority ,current)))))
-(put 'with-coding-priority 'lisp-indent-function 1)
+;;;###autoload(put 'with-coding-priority 'lisp-indent-function 1)
 (put 'with-coding-priority 'edebug-form-spec t)
 
 ;;;###autoload

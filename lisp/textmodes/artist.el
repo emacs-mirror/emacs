@@ -859,15 +859,15 @@ ARROW-PRED is a function that is called to find out if the shape
   can have arrows.  The function is called with no arguments and
   must return nil or t.
 ARROW-SET-FN is a function that is called to set arrow end-points.
-  Arguments and return values for this funcion are described below.
+  Arguments and return values for this function are described below.
 INIT-FN is, if non-nil, a function that is called when the first
   point of the shape is set.  Arguments and return values for
-  this funcion are described below.
+  this function are described below.
 PREP-FILL-FN is, if non-nil, a function that is called after
   the last point is set, but before the filling is done.
-  Arguments and return values for this funcion are described below.
+  Arguments and return values for this function are described below.
 EXIT-FN is, if non-nil, a function that is called after filling
-  is done.  Arguments and return values for this funcion are
+  is done.  Arguments and return values for this function are
   described below.
 DRAW-HOW defines the kind of shape.  The kinds of shapes are:
   `artist-do-continously'  -- Do drawing operation continuously,
@@ -876,7 +876,7 @@ DRAW-HOW defines the kind of shape.  The kinds of shapes are:
   1                        -- Do drawing operation only once.
   2                        -- The drawing operation requires two points.
 DRAW-FN is the function to call for drawing.  Arguments and
-  return values for this funcion are described below.
+  return values for this function are described below.
 EXTRA-DRAW-INFO the layout of this depends on the value of DRAW-HOW:
   If DRAW-HOW is `artist-do-continously':
 
@@ -894,20 +894,20 @@ EXTRA-DRAW-INFO the layout of this depends on the value of DRAW-HOW:
     (UNDRAW-FN FILL-PRED FILL-FN)
 
     UNDRAW-FN is a function to call for undrawing the shape.
-      Arguments and return values for this funcion are
+      Arguments and return values for this function are
       described below.
     FILL-PRED is a function that is called to find out if the shape
       can have arrows.  The function must take no arguments and
       return nil or t.
     FILL-FN  is a function to call for filling the shape.
-      Arguments and return values for this funcion are
+      Arguments and return values for this function are
       described below.
 
   If DRAW-HOW is 1:
 
     ()
 
-Note! All symbols and keywords (both in the `funcion-call' INFO-PART
+Note! All symbols and keywords (both in the `function-call' INFO-PART
       as well as in the `graphics-operation' INFO-PART) must be unique.
 
 The following table describe function arguments and return value

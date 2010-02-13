@@ -52,11 +52,11 @@ static struct input_event emacs_event;
 
 /* The descriptor that we use to check for data from the session manager.  */
 
-static int ice_fd = -1;
+static int ice_fd;
 
 /* A flag that says if we are in shutdown interactions or not.  */
 
-static int doing_interact = False;
+static int doing_interact;
 
 /* The session manager object for the session manager connection.  */
 
@@ -90,6 +90,14 @@ Lisp_Object Vx_session_previous_id;
 
 #define NOSPLASH_OPT "--no-splash"
 
+static void
+ice_connection_closed ()
+{
+  if (ice_fd >= 0)
+    delete_keyboard_wait_descriptor (ice_fd);
+  ice_fd = -1;
+}
+
 
 /* Handle any messages from the session manager.  If no connection is
    open to a session manager, just return 0.
@@ -101,9 +109,9 @@ x_session_check_input (bufp)
 {
   SELECT_TYPE read_fds;
   EMACS_TIME tmout;
+  int ret;
 
   if (ice_fd == -1) return 0;
-
   FD_ZERO (&read_fds);
   FD_SET (ice_fd, &read_fds);
 
@@ -116,26 +124,33 @@ x_session_check_input (bufp)
      will be called.  */
   emacs_event.kind = NO_EVENT;
 
-  if (select (ice_fd+1, &read_fds,
-              (SELECT_TYPE *)0, (SELECT_TYPE *)0, &tmout) < 0)
+  ret = select (ice_fd+1, &read_fds,
+                (SELECT_TYPE *)0, (SELECT_TYPE *)0, &tmout);
+
+  if (ret < 0)
     {
-      ice_fd = -1;
-      return 0;
+      ice_connection_closed ();
     }
+  else if (ret > 0 && FD_ISSET (ice_fd, &read_fds))
+    {
+      ret = IceProcessMessages (SmcGetIceConnection (smc_conn),
+                                (IceReplyWaitInfo *)0, (Bool *)0);
+      if (ret != IceProcessMessagesSuccess)
+        {
+          /* Either IO error or Connection closed.  */
+          if (ret == IceProcessMessagesIOError)
+            IceCloseConnection (SmcGetIceConnection (smc_conn));
 
-
-  if (FD_ISSET (ice_fd, &read_fds))
-    IceProcessMessages (SmcGetIceConnection (smc_conn),
-                        (IceReplyWaitInfo *)0, (Bool *)0);
-
+          ice_connection_closed ();
+        }
+    }
 
   /* Check if smc_interact_CB was called and we shall generate a
      SAVE_SESSION_EVENT.  */
-  if (emacs_event.kind == NO_EVENT)
-    return 0;
+  if (emacs_event.kind != NO_EVENT)
+    bcopy (&emacs_event, bufp, sizeof (struct input_event));
 
-  bcopy (&emacs_event, bufp, sizeof (struct input_event));
-  return 1;
+  return emacs_event.kind != NO_EVENT ? 1 : 0;
 }
 
 /* Return non-zero if we have a connection to a session manager.  */
@@ -284,7 +299,7 @@ smc_die_CB (smcConn, clientData)
      SmPointer clientData;
 {
   SmcCloseConnection (smcConn, 0, 0);
-  ice_fd = -1;
+  ice_connection_closed ();
 }
 
 /* We don't use the next two but they are mandatory, leave them empty.
@@ -356,7 +371,7 @@ ice_io_error_handler (iceConn)
      IceConn iceConn;
 {
   /* Connection probably gone.  */
-  ice_fd = -1;
+  ice_connection_closed ();
 }
 
 /* This is called when the ICE connection is created or closed.  The SM library
@@ -371,7 +386,7 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
 {
   if (! opening)
     {
-      ice_fd = -1;
+      ice_connection_closed ();
       return;
     }
 
@@ -384,6 +399,8 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
   if (interrupt_input)
     init_sigio (ice_fd);
 #endif /* ! defined (SIGIO) */
+
+  add_keyboard_wait_descriptor (ice_fd);
 }
 
 /* Create the client leader window.  */
@@ -425,6 +442,9 @@ x_session_initialize (dpyinfo)
   char* previous_id = NULL;
   SmcCallbacks callbacks;
   int  name_len = 0;
+
+  ice_fd = -1;
+  doing_interact = False;
 
   /* Check if we where started by the session manager.  If so, we will
      have a previous id.  */
@@ -497,7 +517,7 @@ x_session_initialize (dpyinfo)
 void
 x_session_close ()
 {
-  ice_fd = -1;
+  ice_connection_closed ();
 }
 
 

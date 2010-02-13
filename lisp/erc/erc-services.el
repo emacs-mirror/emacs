@@ -303,7 +303,11 @@ The last two elements are optional."
 		 (boolean :tag "Use current nick in identify message?")
 		 (choice :tag "Command to use (optional)"
 		  (string :tag "Command")
-		  (const :tag "No special command necessary" nil)))))
+		  (const :tag "No special command necessary" nil))
+		 (choice :tag "Detect Success"
+			 (regexp :tag "Pattern to match")
+			 (const :tag "Do not try to detect success" nil)))))
+
 
 (defsubst erc-nickserv-alist-sender (network &optional entry)
   (nth 1 (or entry (assoc network erc-nickserv-alist))))
