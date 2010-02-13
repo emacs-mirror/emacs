@@ -1,7 +1,9 @@
 2010-02-13  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xterm.c (x_clear_frame_area): Cal gtk_widget_queue_draw if USE_GTK,
+	* xterm.c (x_clear_frame_area): Call gtk_widget_queue_draw if USE_GTK,
 	bug #5571.
+	(XTflash): Use Gdk-routines if USE_GTK so scroll bars doesn't get
+	overdrawn.
 
 2010-02-10  Jan Djärv  <jan.h.d@swipnet.se>
 
