@@ -1,3 +1,13 @@
+2010-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't overwrite cursor position
+	if it is not a better candidate than what we already have.
+	(display_line): Keep calling set_cursor_from_row for
+	bidi-reordered rows even if we already have a possible candidate
+	for cursor position.  Undo the row_end setting throughout the
+	code, and instead do it after all the row's glyphs have been
+	produced, by looping over the glyphs.
+
 2010-02-06  Eli Zaretskii  <eliz@gnu.org>
 
 	Start working on cursor movement in continuation lines.
