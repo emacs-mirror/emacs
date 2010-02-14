@@ -1,3 +1,24 @@
+2010-02-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (insert-directory): When WILDCARD-REGEXP and
+	FULL-DIRECTORY-P are nil, insert the file entry instead of the
+	whole directory.  (Bug#5551)
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Insert "  " for
+	dired's alignment sanity.  (Bug#5516)
+
+2010-02-14  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-fontify-manpage, Man-cleanup-manpage):
+	Remove remaining ^H with their preceding chars.  (Bug#5566)
+
+2010-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (transpose-subr): Give it a doc-string.
+
+	* textmodes/paragraphs.el (transpose-paragraphs, transpose-sentences):
+	Doc fixes.
+
 2010-02-12  Juri Linkov  <juri@jurta.org>
 
 	* arc-mode.el (archive-unique-fname): Make directories for nested
