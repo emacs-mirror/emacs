@@ -6552,7 +6552,7 @@ VAR is normally a symbol (a variable) in which case it is treated like
 a hook, with a buffer-local and a global part.  But it can also be an
 arbitrary expression.
 ARGS is a list of variables which will be passed as additional arguments
-to each function, after the inital argument, and which the first argument
+to each function, after the initial argument, and which the first argument
 expects to receive when called."
   (declare (indent 2) (debug t))
   ;; We need those two gensyms because CL's lexical scoping is not available

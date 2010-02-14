@@ -1,3 +1,17 @@
+2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* outline.el (outline-head-from-level):
+	* simple.el (with-wrapper-hook):
+	* cedet/ede.el (ede-run-target, project-delete-target)
+	(project-dist-files, ede-name, ede-documentation, ede-parent-project)
+	(ede-adebug-project, ede-adebug-project-parent)
+	(ede-adebug-project-root):
+	* emacs-lisp/elint.el (elint-extra-errors, elint-current-buffer)
+	(elint-defun, elint-buffer-env, elint-top-form-logged)
+	(elint-unbound-variable):
+	* textmodes/reftex-toc.el (reftex-toc-newhead-from-alist):
+	Fix typos in docstrings.
+
 2010-02-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (insert-directory): When WILDCARD-REGEXP and

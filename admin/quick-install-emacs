@@ -276,7 +276,7 @@ for SUBDIR in lisp leim etc lib-src info; do
 	if [ -d $DST/$DIR ]; then
 	  echo Directory $DST/$DIR exists
 	else
-	  echo Directory $DST/$DIR non-existant
+	  echo Directory $DST/$DIR non-existent
 	  if [ "`echo $DIR | egrep -v "$AVOID_PAT"`" ]; then
 	    maybe_mkdir $DST/$DIR
 	  fi
