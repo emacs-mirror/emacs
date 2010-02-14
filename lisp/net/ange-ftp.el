@@ -4517,44 +4517,54 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     ;; because some FTP servers react to "ls foo" by listing the symlink foo
     ;; rather than the directory it points to.  Now that ange-ftp-ls uses
     ;; "cd foo; ls" instead, this is not necesssary any more.
-    (insert
-     (cond
-      (wildcard
-       (let ((default-directory (file-name-directory file)))
-         (ange-ftp-ls (file-name-nondirectory file) switches nil nil t)))
-      (full
-       (ange-ftp-ls file switches 'parse))
-      (t
-       ;; If `full' is nil we're going to do `ls' for a single file.
-       ;; Problem is that for various reasons, ange-ftp-ls needs to cd and
-       ;; then do an ls of current dir, which obviously won't work if we
-       ;; want to ls a file.  So instead, we get a full listing of the
-       ;; parent directory and extract the line corresponding to `file'.
-       (when (string-match "-?d\\'" switches)
-         ;; Remove "d" which dired added to `switches'.
-         (setq switches (substring switches 0 (match-beginning 0))))
-       (setq file (directory-file-name file))
-       (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
-                                    switches 'parse))
-              (filename (file-name-nondirectory file))
-              (case-fold-search nil))
-         ;; FIXME: This presumes a particular output format, which is
-         ;; basically Unix.
-         (if (string-match (concat "^.+[^ ] " (regexp-quote filename)
-                                   "\\( -> .*\\)?[@/*=]?\n") dirlist)
-             (match-string 0 dirlist)
-           "")))))
+    (let ((beg (point))
+	  (end (point-marker)))
+      (set-marker-insertion-type end t)
+      (insert
+       (cond
+	(wildcard
+	 (let ((default-directory (file-name-directory file)))
+	   (ange-ftp-ls (file-name-nondirectory file) switches nil nil t)))
+	(full
+	 (ange-ftp-ls file switches 'parse))
+	(t
+	 ;; If `full' is nil we're going to do `ls' for a single file.
+	 ;; Problem is that for various reasons, ange-ftp-ls needs to cd and
+	 ;; then do an ls of current dir, which obviously won't work if we
+	 ;; want to ls a file.  So instead, we get a full listing of the
+	 ;; parent directory and extract the line corresponding to `file'.
+	 (when (string-match "-?d\\'" switches)
+	   ;; Remove "d" which dired added to `switches'.
+	   (setq switches (substring switches 0 (match-beginning 0))))
+	 (setq file (directory-file-name file))
+	 (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
+				      switches 'parse))
+		(filename (file-name-nondirectory file))
+		(case-fold-search nil))
+	   ;; FIXME: This presumes a particular output format, which is
+	   ;; basically Unix.
+	   (if (string-match (concat "^.+[^ ] " (regexp-quote filename)
+				     "\\( -> .*\\)?[@/*=]?\n") dirlist)
+	       (match-string 0 dirlist)
+	     "")))))
 
-    ;; The inserted file could be from somewhere else.
-    (when (and (not wildcard) (not full)
-	       (search-backward
-		(if (zerop (length (file-name-nondirectory
-				    (expand-file-name file))))
-		    "."
-		  (file-name-nondirectory file))
-		nil 'noerror))
-      (replace-match (file-relative-name (expand-file-name file)) t)
-      (goto-char (point-max)))))
+      ;; Insert "  " for dired's alignment sanity.
+      (goto-char beg)
+      (while (re-search-forward "^\\(\\S-\\)" end 'move)
+	(replace-match "  \\1"))
+
+      ;; The inserted file could be from somewhere else.
+      (when (and (not wildcard) (not full)
+		 (search-backward
+		  (if (zerop (length (file-name-nondirectory
+				      (expand-file-name file))))
+		      "."
+		    (file-name-nondirectory file))
+		  nil 'noerror))
+	(replace-match (file-relative-name (expand-file-name file)) t)
+	(goto-char end))
+
+      (set-marker end nil))))
 
 (defun ange-ftp-dired-uncache (dir)
   (if (ange-ftp-ftp-name (expand-file-name dir))

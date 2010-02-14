@@ -5699,6 +5699,11 @@ normally equivalent short `-D' option is just passed on to
 				 (shell-quote-wildcard-pattern pattern))))
 		    ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 		    ;; directory if FILE is a symbolic link.
+ 		    (unless full-directory-p
+ 		      (setq switches
+ 			    (if (stringp switches)
+ 				(concat switches " -d")
+ 			      (add-to-list 'switches "-d" 'append))))
 		    (apply 'call-process
 			   insert-directory-program nil t nil
 			   (append
