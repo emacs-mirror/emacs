@@ -1,3 +1,8 @@
+2010-02-14  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-fontify-manpage, Man-cleanup-manpage):
+	Remove remaining ^H with their preceding chars.  (Bug#5566)
+
 2010-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (transpose-subr): Give it a doc-string.
