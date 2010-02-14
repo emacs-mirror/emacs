@@ -595,7 +595,7 @@ If there are no such entries, return nil.
 ALIST defaults to `outline-heading-alist'.
 Similar to (car (rassoc LEVEL ALIST)).
 If there are several different entries with same new level, choose
-the one with the smallest distance to the assocation of HEAD in the alist.
+the one with the smallest distance to the association of HEAD in the alist.
 This makes it possible for promotion to work in modes with several
 independent sets of headings (numbered, unnumbered, appendix...)"
   (unless alist (setq alist outline-heading-alist))
