@@ -147,7 +147,7 @@ Set by `elint-initialize', if `elint-scan-preloaded' is non-nil.")
   "Those built-ins for which we can't find arguments, if any.")
 
 (defvar elint-extra-errors '(file-locked file-supersession ftp-error)
-  "Errors without error-message or error-confitions properties.")
+  "Errors without `error-message' or `error-conditions' properties.")
 
 (defconst elint-preloaded-skip-re
   (regexp-opt '("loaddefs.el" "loadup.el" "cus-start" "language/"
@@ -289,7 +289,7 @@ A complicated directory may require a lot of memory."
 ;;;###autoload
 (defun elint-current-buffer ()
   "Lint the current buffer.
-If necessary, this first calls `elint-initalize'."
+If necessary, this first calls `elint-initialize'."
   (interactive)
   (or elint-builtin-variables
       (elint-initialize))
@@ -308,7 +308,7 @@ If necessary, this first calls `elint-initalize'."
 ;;;###autoload
 (defun elint-defun ()
   "Lint the function at point.
-If necessary, this first calls `elint-initalize'."
+If necessary, this first calls `elint-initialize'."
   (interactive)
   (or elint-builtin-variables
       (elint-initialize))
@@ -325,7 +325,7 @@ If necessary, this first calls `elint-initalize'."
 ;;;
 
 (defvar elint-buffer-env nil
-  "The environment of a elisp buffer.
+  "The environment of an elisp buffer.
 Will be local in linted buffers.")
 
 (defvar elint-buffer-forms nil
@@ -528,7 +528,7 @@ Return nil if there are no more forms, t otherwise."
   "The currently linted top form, or nil.")
 
 (defvar elint-top-form-logged nil
-  "T if the currently linted top form has been mentioned in the log buffer.")
+  "The value t if the currently linted top form has been mentioned in the log buffer.")
 
 (defun elint-top-form (form)
   "Lint a top FORM."
@@ -640,7 +640,7 @@ Returns the environment created by the form."
   "Name of a temporarily bound symbol.")
 
 (defun elint-unbound-variable (var env)
-  "T if VAR is unbound in ENV."
+  "Return t if VAR is unbound in ENV."
   ;; #1063 suggests adding (symbol-file var) here, but I don't think
   ;; this is right, because it depends on what files you happen to have
   ;; loaded at the time, which might not be the same when the code runs.

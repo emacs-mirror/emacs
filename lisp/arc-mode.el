@@ -834,6 +834,11 @@ using `make-temp-file', and the generated name is returned."
 	  ;; reconstructed in the temporary directory.
 	  (make-directory (file-name-directory tmpfile) t)
 	  (make-temp-file tmpfile))
+      ;; Maked sure all the leading directories in `fullname' exist
+      ;; under archive-tmpdir.  This is necessary for nested archives
+      ;; (`archive-extract' sets `archive-remote' to t in case
+      ;; an archive occurs inside another archive).
+      (make-directory (file-name-directory fullname) t)
       fullname)))
 
 (defun archive-maybe-copy (archive)

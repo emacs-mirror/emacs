@@ -7242,7 +7242,7 @@
 
 	* subr.el (event-modifiers): Use internal-event-symbol-parse-modifiers.
 
-	* pcvs.el (cvs-revert-if-needed): Ignore `unknown' files, since cvs
+	* pcvs.el (cvs-revert-if-needed): Ignore `unknown' files, since CVS
 	did not touch them.
 
 2007-11-15  Jay Belanger  <jay.p.belanger@gmail.com>

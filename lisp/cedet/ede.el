@@ -1155,7 +1155,7 @@ Optional argument FORCE forces the file to be removed without asking."
   (ede-invoke-method 'project-debug-target))
 
 (defun ede-run-target ()
-  "Debug the current buffer's assocated target."
+  "Run the current buffer's associated target."
   (interactive)
   (ede-invoke-method 'project-run-target))
 
@@ -1381,7 +1381,7 @@ Argument FNND is an argument."
   (error "New-target-custom not supported by %s" (object-name proj)))
 
 (defmethod project-delete-target ((ot ede-target))
-  "Delete the current target OT from it's parent project."
+  "Delete the current target OT from its parent project."
   (error "add-file not supported by %s" (object-name ot)))
 
 (defmethod project-compile-project ((obj ede-project) &optional command)
@@ -1407,7 +1407,7 @@ Argument COMMAND is the command to use for compiling the target."
   (error "Make-dist not supported by %s" (object-name this)))
 
 (defmethod project-dist-files ((this ede-project))
-  "Return a list of files that constitutes a distribution of THIS project."
+  "Return a list of files that constitute a distribution of THIS project."
   (error "Dist-files is not supported by %s" (object-name this)))
 
 (defmethod project-rescan ((this ede-project))
@@ -1421,7 +1421,7 @@ Argument COMMAND is the command to use for compiling the target."
 ;; b) cosmetic.
 
 (defmethod ede-name ((this ede-target))
-  "Return the name of THIS targt."
+  "Return the name of THIS target."
   (oref this name))
 
 (defmethod ede-target-name ((this ede-target))
@@ -1510,7 +1510,7 @@ Also do a quick check to see if there is a Documentation tag in this BUFFER."
 	(ede-buffer-documentation-files cp (current-buffer))))))
 
 (defmethod ede-documentation ((this ede-project))
-  "Return a list of files that provides documentation.
+  "Return a list of files that provide documentation.
 Documentation is not for object THIS, but is provided by THIS for other
 files in the project."
   (let ((targ (oref this targets))
@@ -1525,7 +1525,7 @@ files in the project."
     found))
 
 (defmethod ede-documentation ((this ede-target))
-  "Return a list of files that provides documentation.
+  "Return a list of files that provide documentation.
 Documentation is not for object THIS, but is provided by THIS for other
 files in the project."
   nil)
@@ -1651,7 +1651,7 @@ Optional ROOTRETURN will return the root project for DIR."
 
 (defun ede-parent-project (&optional obj)
   "Return the project belonging to the parent directory.
-nil if there is no previous directory.
+Returns nil if there is no previous directory.
 Optional argument OBJ is an object to find the parent of."
   (let* ((proj (or obj ede-object-project)) ;; Current project.
 	 (root (if obj (ede-project-root obj)
@@ -1952,7 +1952,7 @@ is the project to use, instead of `ede-current-project'."
 ;;; Debugging.
 
 (defun ede-adebug-project ()
-  "Run adebug against the current ede project.
+  "Run adebug against the current EDE project.
 Display the results as a debug list."
   (interactive)
   (require 'data-debug)
@@ -1962,7 +1962,7 @@ Display the results as a debug list."
     ))
 
 (defun ede-adebug-project-parent ()
-  "Run adebug against the current ede parent project.
+  "Run adebug against the current EDE parent project.
 Display the results as a debug list."
   (interactive)
   (require 'data-debug)
@@ -1972,7 +1972,7 @@ Display the results as a debug list."
     ))
 
 (defun ede-adebug-project-root ()
-  "Run adebug against the current ede parent project.
+  "Run adebug against the current EDE parent project.
 Display the results as a debug list."
   (interactive)
   (require 'data-debug)
@@ -1983,7 +1983,7 @@ Display the results as a debug list."
 
 ;;; Hooks & Autoloads
 ;;
-;;  These let us watch various activities, and respond apropriatly.
+;;  These let us watch various activities, and respond appropriately.
 
 ;; (add-hook 'edebug-setup-hook
 ;; 	  (lambda ()

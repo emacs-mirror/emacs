@@ -1,3 +1,47 @@
+2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* outline.el (outline-head-from-level):
+	* simple.el (with-wrapper-hook):
+	* cedet/ede.el (ede-run-target, project-delete-target)
+	(project-dist-files, ede-name, ede-documentation, ede-parent-project)
+	(ede-adebug-project, ede-adebug-project-parent)
+	(ede-adebug-project-root):
+	* emacs-lisp/elint.el (elint-extra-errors, elint-current-buffer)
+	(elint-defun, elint-buffer-env, elint-top-form-logged)
+	(elint-unbound-variable):
+	* textmodes/reftex-toc.el (reftex-toc-newhead-from-alist):
+	Fix typos in docstrings.
+
+2010-02-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (insert-directory): When WILDCARD-REGEXP and
+	FULL-DIRECTORY-P are nil, insert the file entry instead of the
+	whole directory.  (Bug#5551)
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Insert "  " for
+	dired's alignment sanity.  (Bug#5516)
+
+2010-02-14  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-fontify-manpage, Man-cleanup-manpage):
+	Remove remaining ^H with their preceding chars.  (Bug#5566)
+
+2010-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (transpose-subr): Give it a doc-string.
+
+	* textmodes/paragraphs.el (transpose-paragraphs, transpose-sentences):
+	Doc fixes.
+
+2010-02-12  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-unique-fname): Make directories for nested
+	archives.  (Bug#5540)
+
+2010-02-12  Juri Linkov  <juri@jurta.org>
+
+	* ffap.el (dired-at-point): Fix docstring.  (Bug#5565)
+
 2010-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (copy-overlay): Handle deleted overlays.
