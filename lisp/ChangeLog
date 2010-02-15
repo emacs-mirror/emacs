@@ -1,3 +1,19 @@
+2010-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-compile-function): Suppress byte-compiler
+	warnings, since it is annoying for the user to see them each time he
+	runs the code.
+
+2010-02-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions, tramp-read-passwd):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection): Use VEC
+	instead of PROC for caching "first-password-request".  Otherwise,
+	new processes would not profit from passwords already entered.
+
+	* net/tramp-cache.el (tramp-dump-connection-properties):
+	Don't save "first-password-request" property.
+
 2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* outline.el (outline-head-from-level):
