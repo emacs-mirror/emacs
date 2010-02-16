@@ -1,3 +1,14 @@
+2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix
+	errors in copying directories.
+	(tramp-handle-add-name-to-file, tramp-handle-copy-directory)
+	(tramp-do-copy-or-rename-file, tramp-handle-delete-directory)
+	(tramp-handle-delete-file)
+	(tramp-handle-dired-recursive-delete-directory)
+	(tramp-handle-write-region): Flush also the cache for the upper
+	directory.
+
 2010-02-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (save-interprogram-paste-before-kill): Doc fix.
