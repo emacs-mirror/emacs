@@ -2685,7 +2685,9 @@ For that it has to be fbound with a non-autoload definition."
       (ad-with-auto-activation-disabled
        (require 'bytecomp)
        (let ((symbol (make-symbol "advice-compilation"))
-	     (byte-compile-warnings byte-compile-warnings))
+	     (byte-compile-warnings byte-compile-warnings)
+             ;; Don't pop up windows showing byte-compiler warnings.
+             (warning-suppress-types '((bytecomp))))
 	 (if (featurep 'cl)
 	     (byte-compile-disable-warning 'cl-functions))
 	 (fset symbol (symbol-function function))

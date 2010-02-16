@@ -1178,8 +1178,22 @@ these lines."
   :link '(custom-manual "(message)Message Headers")
   :type 'message-header-lines)
 
-(defcustom message-default-mail-headers ""
+(defcustom message-default-mail-headers
+  ;; Ease the transition from mail-mode to message-mode.  See bugs#4431, 5555.
+  (concat (if (and (boundp 'mail-default-reply-to)
+		   (stringp mail-default-reply-to))
+	      (format "Reply-to: %s\n" mail-default-reply-to)
+	    "")
+	  (if (and (boundp 'mail-self-blind)
+		   mail-self-blind)
+	      (format "BCC: %s\n" user-mail-address)
+	    "")
+	  (if (and (boundp 'mail-archive-file-name)
+		   (stringp mail-archive-file-name))
+	      (format "FCC: %s\n" mail-archive-file-name)
+	    ""))
   "*A string of header lines to be inserted in outgoing mails."
+  :version "23.2"
   :group 'message-headers
   :group 'message-mail
   :link '(custom-manual "(message)Mail Headers")
@@ -2768,7 +2782,7 @@ PGG manual, depending on the value of `mml2015-use'."
 ;;; Forbidden properties
 ;;
 ;; We use `after-change-functions' to keep special text properties
-;; that interfer with the normal function of message mode out of the
+;; that interfere with the normal function of message mode out of the
 ;; buffer.
 
 (defcustom message-strip-special-text-properties t

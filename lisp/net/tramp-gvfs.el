@@ -1057,8 +1057,7 @@ connection if a previous connection has died for some reason."
 	 vec 3 "Opening connection for %s@%s using %s..." user host method))
 
       ;; Enable auth-sorce and password-cache.
-      (tramp-set-connection-property
-       (tramp-get-connection-process vec) "first-password-request" t)
+      (tramp-set-connection-property vec "first-password-request" t)
 
       ;; There will be a callback of "askPassword", when a password is
       ;; needed.
