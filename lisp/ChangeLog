@@ -1,5 +1,7 @@
 2010-02-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el (save-interprogram-paste-before-kill): Doc fix.
+
 	* cus-edit.el (hardware): Doc fix.
 
 	* man.el (man): Add to external custom group.
