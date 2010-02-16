@@ -43,7 +43,7 @@ Lisp_Object Vcode_conversion_map_vector;
 /* Alist of fontname patterns vs corresponding CCL program.  */
 Lisp_Object Vfont_ccl_encoder_alist;
 
-/* This symbol is a property which assocates with ccl program vector.
+/* This symbol is a property which associates with ccl program vector.
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
 Lisp_Object Qccl_program;
 

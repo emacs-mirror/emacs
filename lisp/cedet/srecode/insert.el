@@ -190,7 +190,7 @@ Buffer based features related to change hooks is handled one level up."
 
 ;;; TEMPLATE ARGUMENTS
 ;;
-;; Some templates have arguments.  Each argument is assocaited with
+;; Some templates have arguments.  Each argument is associated with
 ;; a function that can resolve the inputs needed.
 (defun srecode-resolve-arguments (temp dict)
   "Resolve all the arguments needed by the template TEMP.

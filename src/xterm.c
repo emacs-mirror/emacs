@@ -3015,6 +3015,21 @@ XTflash (f)
   BLOCK_INPUT;
 
   {
+#ifdef USE_GTK
+    /* Use Gdk routines to draw.  This way, we won't draw over scroll bars
+       when the scroll bars and the edit widget share the same X window.  */
+    GdkGCValues vals;
+    vals.foreground.pixel = (FRAME_FOREGROUND_PIXEL (f)
+                             ^ FRAME_BACKGROUND_PIXEL (f));
+    vals.function = GDK_XOR;
+    GdkGC *gc = gdk_gc_new_with_values (FRAME_GTK_WIDGET (f)->window,
+                                        &vals,
+                                        GDK_GC_FUNCTION
+                                        | GDK_GC_FOREGROUND);
+#define XFillRectangle(d, win, gc, x, y, w, h) \
+    gdk_draw_rectangle (FRAME_GTK_WIDGET (f)->window, \
+                        gc, TRUE, x, y, w, h)
+#else
     GC gc;
 
     /* Create a GC that will use the GXxor function to flip foreground
@@ -3029,7 +3044,7 @@ XTflash (f)
       gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      GCFunction | GCForeground, &values);
     }
-
+#endif
     {
       /* Get the height not including a menu bar widget.  */
       int height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
@@ -3072,6 +3087,7 @@ XTflash (f)
 			  (height - flash_height
 			   - FRAME_INTERNAL_BORDER_WIDTH (f)),
 			  width, flash_height);
+
 	}
       else
 	/* If it is short, flash it all.  */
@@ -3133,7 +3149,12 @@ XTflash (f)
 			flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
 			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
+#ifdef USE_GTK
+      g_object_unref (G_OBJECT (gc));
+#undef XFillRectangle
+#else
       XFreeGC (FRAME_X_DISPLAY (f), gc);
+#endif
       x_flush (f);
     }
   }
@@ -7446,6 +7467,11 @@ x_clear_frame_area (f, x, y, width, height)
 {
   x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		x, y, width, height, False);
+#ifdef USE_GTK
+  /* Must queue a redraw, because scroll bars might have been cleared.  */
+  if (FRAME_GTK_WIDGET (f))
+    gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+#endif
 }
 
 
