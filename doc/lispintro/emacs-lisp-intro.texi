@@ -229,7 +229,8 @@ people who are not programmers.
 Edition @value{edition-number}, @value{update-date}
 @sp 1
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,
-   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Free Software Foundation, Inc.
 @sp 1
 
 @iftex
@@ -4732,16 +4733,16 @@ definition.
 @end ignore
 
 More generally, if you want to see a function in its original source
-file, you can use the @code{find-tags} function to jump to it.
-@code{find-tags} works with a wide variety of languages, not just
+file, you can use the @code{find-tag} function to jump to it.
+@code{find-tag} works with a wide variety of languages, not just
 Lisp, and C, and it works with non-programming text as well.  For
-example, @code{find-tags} will jump to the various nodes in the
+example, @code{find-tag} will jump to the various nodes in the
 Texinfo source file of this document.
-The @code{find-tags} function depends on `tags tables' that record
+The @code{find-tag} function depends on `tags tables' that record
 the locations of the functions, variables, and other items to which
-@code{find-tags} jumps.
+@code{find-tag} jumps.
 
-To use the @code{find-tags} command, type @kbd{M-.}  (i.e., press the
+To use the @code{find-tag} command, type @kbd{M-.}  (i.e., press the
 period key while holding down the @key{META} key, or else type the
 @key{ESC} key and then type the period key), and then, at the prompt,
 type in the name of the function whose source code you want to see,
@@ -4753,7 +4754,7 @@ screen.  To switch back to your current buffer, type @kbd{C-x b
 
 @c !!! 22.1.1 tags table location in this paragraph
 @cindex TAGS table, specifying
-@findex find-tags
+@findex find-tag
 Depending on how the initial default values of your copy of Emacs are
 set, you may also need to specify the location of your `tags table',
 which is a file called @file{TAGS}.  For example, if you are
@@ -4778,7 +4779,7 @@ M-x compile RET etags *.el RET
 For more information, see @ref{etags, , Create Your Own @file{TAGS} File}.
 
 After you become more familiar with Emacs Lisp, you will find that you will
-frequently use @code{find-tags} to navigate your way around source code;
+frequently use @code{find-tag} to navigate your way around source code;
 and you will create your own @file{TAGS} tables.
 
 @cindex Library, as term for `file'
@@ -18961,7 +18962,7 @@ introduction, it comes as a Texinfo source file, so you can read it
 on-line and as a typeset, printed book.)
 
 Go to the other on-line help that is part of GNU Emacs: the on-line
-documentation for all functions and variables, and @code{find-tags},
+documentation for all functions and variables, and @code{find-tag},
 the program that takes you to sources.
 
 Here is an example of how I explore the sources.  Because of its name,

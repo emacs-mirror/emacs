@@ -1,3 +1,7 @@
+2010-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* nxml-mode.texi (Commands for locating a schema): Fix keybinding.
+
 2010-02-05  Mark A. Hershberger  <mah@everybody.org>
 
 	* ede.texi, eieio.texi, semantic.texi: Use standard direntry format.
