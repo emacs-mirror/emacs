@@ -1,3 +1,8 @@
+2010-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-bibtex-file): Expand the result of
+	tex-main-file before using it.  (Bug#5562)
+
 2010-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-compile-function): Suppress byte-compiler

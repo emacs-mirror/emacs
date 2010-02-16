@@ -921,8 +921,8 @@ Inherits `shell-mode-map' with a few additions.")
 ;; remaining warning from byte-compiling all of Emacs...
 (eval-when-compile
   (setq byte-compile-function-environment
-        (delq (assq 'tex-mode byte-compile-function-environment)
-              byte-compile-function-environment)))
+	(delq (assq 'tex-mode byte-compile-function-environment)
+	      byte-compile-function-environment)))
 
 ;;;###autoload
 (defun tex-mode ()
@@ -2643,7 +2643,7 @@ Runs the shell command defined by `tex-show-queue-command'."
       (tex-kill-job)
     (tex-start-shell))
   (let* (shell-dirtrack-verbose
-         (source-file (tex-main-file))
+         (source-file (expand-file-name (tex-main-file)))
          (tex-out-file
           (tex-append (file-name-nondirectory source-file) ""))
          (file-dir (file-name-directory source-file)))
