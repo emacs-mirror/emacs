@@ -1,3 +1,8 @@
+2010-02-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-word): Obey the offset specified
+	by ispell-parse-output (Bug#5575).
+
 2010-02-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/ja-dic-cnv.el (iso-2022-7bit-short): Delete it.
