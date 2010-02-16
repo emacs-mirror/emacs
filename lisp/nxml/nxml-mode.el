@@ -50,8 +50,7 @@
 
 (defgroup nxml-faces nil
   "Faces for XML syntax highlighting."
-  :group 'nxml
-  :group 'font-lock-faces)
+  :group 'nxml)
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "*Non-nil means display glyph following character reference.

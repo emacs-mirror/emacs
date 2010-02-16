@@ -281,7 +281,7 @@
   :group 'environment)
 
 (defgroup hardware nil
-  "Support for interfacing with exotic hardware."
+  "Support for interfacing with miscellaneous hardware."
   :group 'environment)
 
 (defgroup terminals nil

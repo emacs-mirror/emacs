@@ -1,3 +1,7 @@
+2010-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* SKK-DIC/SKK-JISYO.L: Updated to the latest version.
+
 2009-12-05  Vasily Korytov  <vasily@korytov.pp.ru>
 
 	* quail/cyrillic.el (russian-typewriter): Change keyboard layout.

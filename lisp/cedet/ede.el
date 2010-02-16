@@ -69,10 +69,9 @@
   (interactive) (message "EDE %s" ede-version))
 
 (defgroup ede nil
-  "Emacs Development Environment gloss."
+  "Emacs Development Environment."
   :group 'tools
-  :group 'convenience
-  )
+  :group 'extensions)
 
 (defcustom ede-auto-add-method 'ask
   "Whether a new source file should be automatically added to a target.

@@ -63,7 +63,7 @@ introduced."
 
 (defgroup semantic nil
   "Parser Generator and parser framework."
-  :group 'lisp)
+  :group 'tools)
 
 (defgroup semantic-faces nil
   "Faces used for Semantic enabled tools."

@@ -144,6 +144,7 @@
   :link '(function-link doc-view)
   :version "22.2"
   :group 'applications
+  :group 'data
   :group 'multimedia
   :prefix "doc-view-")
 

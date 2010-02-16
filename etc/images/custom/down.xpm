@@ -1,6 +1,6 @@
 /* XPM */
 static char * down_xpm[] = {
-"8 8 4 1",
+"8 12 4 1",
 " 	c none",
 ".	c gray90",
 "X	c gray45",
@@ -12,4 +12,8 @@ static char * down_xpm[] = {
 "  .OOX  ",
 "  .OOX  ",
 "   OX   ",
-"   OX   "};
+"   OX   ",
+"        ",
+"        ",
+"        ",
+"        "};

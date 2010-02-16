@@ -1,3 +1,44 @@
+2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix
+	errors in copying directories.
+	(tramp-handle-add-name-to-file, tramp-handle-copy-directory)
+	(tramp-do-copy-or-rename-file, tramp-handle-delete-directory)
+	(tramp-handle-delete-file)
+	(tramp-handle-dired-recursive-delete-directory)
+	(tramp-handle-write-region): Flush also the cache for the upper
+	directory.
+
+2010-02-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (save-interprogram-paste-before-kill): Doc fix.
+
+	* cus-edit.el (hardware): Doc fix.
+
+	* man.el (man): Add to external custom group.
+
+	* delim-col.el (columns): Move to wp custom group.
+
+	* doc-view.el (doc-view): Add to data custom group.
+
+	* cedet/data-debug.el (data-debug): Move to extensions group.
+
+	* cedet/ede.el (ede):
+	* cedet/srecode.el (srecode):
+	* cedet/semantic.el (semantic): Put in tools and extensions group.
+
+	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces
+	group.
+
+	* textmodes/flyspell.el (flyspell-word): Obey the offset specified
+	by ispell-parse-output (Bug#5575).
+
+2010-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/ja-dic-cnv.el (iso-2022-7bit-short): Delete it.
+	(skkdic-convert-okuri-ari): Ignore lines starting with '>'.
+	(skkdic-convert): Use `euc-japan' coding system for writing.
+
 2010-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-bibtex-file): Expand the result of
