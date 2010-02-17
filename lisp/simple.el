@@ -2806,7 +2806,7 @@ ring directly.")
   "The tail of the kill ring whose car is the last thing yanked.")
 
 (defcustom save-interprogram-paste-before-kill nil
-  "Save the paste strings into `kill-ring' before replacing it with emacs strings.
+  "Save clipboard strings into kill ring before replacing them.
 When one selects something in another program to paste it into Emacs,
 but kills something in Emacs before actually pasting it,
 this selection is gone unless this variable is non-nil,

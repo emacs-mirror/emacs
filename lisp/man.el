@@ -98,8 +98,8 @@
 (defgroup man nil
   "Browse UNIX manual pages."
   :prefix "Man-"
+  :group 'external
   :group 'help)
-
 
 (defvar Man-notify)
 (defcustom Man-filter-list nil

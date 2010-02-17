@@ -126,7 +126,7 @@
   "Prettify columns."
   :link '(emacs-library-link :tag "Source Lisp File" "delim-col.el")
   :prefix "delimit-columns-"
-  :group 'internal)
+  :group 'wp)
 
 (defcustom delimit-columns-str-before ""
   "Specify a string to be inserted before all columns."

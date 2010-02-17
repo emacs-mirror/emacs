@@ -1,3 +1,10 @@
+2010-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* etc/images/custom/down-pushed.xpm, etc/images/custom/down.xpm:
+	* etc/images/custom/right-pushed.xpm:
+	* etc/images/custom/right-pushed.xpm: Increase height by four
+	pixels, to improve text alignment.
+
 2010-01-16  Mario Lang  <mlang@delysid.org>
 
 	* srecode/doc-cpp.srt, srecode/doc-default.srt:
