@@ -883,9 +883,6 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
   int eof_ic = ccl->eof_ic;
   int eof_hit = 0;
 
-  if (ic >= eof_ic)
-    ic = CCL_HEADER_MAIN;
-
   if (ccl->buf_magnification == 0) /* We can't read/produce any bytes.  */
     dst = NULL;
 
