@@ -1,3 +1,7 @@
+2010-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Fix typo in name of `find-tag' command.
+
 2010-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp-intro.texi (Text and Auto-fill, Mode Line):

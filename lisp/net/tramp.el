@@ -3420,6 +3420,7 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	  (tramp-error
 	   v2 'file-error
 	   "add-name-to-file: file %s already exists" newname))
+	(tramp-flush-file-property v2 (file-name-directory v2-localname))
 	(tramp-flush-file-property v2 v2-localname)
 	(tramp-barf-unless-okay
 	 v1
@@ -3478,7 +3479,13 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	     'copy dirname newname keep-date))
 	;; We must do it file-wise.
 	(tramp-run-real-handler
-	 'copy-directory (list dirname newname keep-date parents))))))
+	 'copy-directory (list dirname newname keep-date parents)))
+
+      ;; When newname did exist, we have wrong cached values.
+      (when t2
+	(with-parsed-tramp-file-name newname nil
+	  (tramp-flush-file-property v (file-name-directory localname))
+	  (tramp-flush-file-property v localname))))))
 
 (defun tramp-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -3583,11 +3590,13 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
       ;; In case of `rename', we must flush the cache of the source file.
       (when (and t1 (eq op 'rename))
 	(with-parsed-tramp-file-name filename nil
+	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname)))
 
       ;; When newname did exist, we have wrong cached values.
       (when t2
 	(with-parsed-tramp-file-name newname nil
+	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname)))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -3789,7 +3798,13 @@ The method used must be an out-of-band method."
 
 	  ;; Both are Tramp files.  We shall optimize it, when the
 	  ;; methods for filename and newname are the same.
-	  (let ((tmpfile (tramp-compat-make-temp-file localname)))
+	  (let ((tmpfile
+		 (if (file-regular-p filename)
+		     (tramp-compat-make-temp-file localname)
+		   (make-temp-name
+		    (expand-file-name
+		     tramp-temp-name-prefix
+		     (tramp-compat-temporary-file-directory))))))
 	    (unwind-protect
 		(progn
 		  (tramp-do-copy-or-rename-file-out-of-band
@@ -3798,7 +3813,9 @@ The method used must be an out-of-band method."
 		   'rename tmpfile newname keep-date))
 	      ;; Save exit.
 	      (condition-case nil
-		  (delete-file tmpfile)
+		  (if (file-regular-p tmpfile)
+		      (delete-file tmpfile)
+		    (delete-directory tmpfile 'recursive))
 		(error))))
 
 	;; Expand hops.  Might be necessary for gateway methods.
@@ -3913,7 +3930,9 @@ The method used must be an out-of-band method."
 
       ;; If the operation was `rename', delete the original file.
       (unless (eq op 'copy)
-	(delete-file filename)))))
+	(if (file-regular-p filename)
+	    (delete-file filename)
+	  (delete-directory filename 'recursive))))))
 
 (defun tramp-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -3932,6 +3951,7 @@ The method used must be an out-of-band method."
   "Like `delete-directory' for Tramp files."
   (setq directory (expand-file-name directory))
   (with-parsed-tramp-file-name directory nil
+    (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-directory-property v localname)
     (unless (zerop (tramp-send-command-and-check
 		    v
@@ -3945,6 +3965,7 @@ The method used must be an out-of-band method."
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
+    (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-file-property v localname)
     (unless (zerop (tramp-send-command-and-check
 		    v
@@ -3974,6 +3995,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
     ;; This might take a while, allow it plenty of time.
     (tramp-wait-for-output (tramp-get-connection-process v) 120)
     ;; Make sure that it worked...
+    (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-directory-property v localname)
     (and (file-exists-p filename)
 	 (tramp-error
@@ -4953,11 +4975,9 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (progn
-	    (tramp-run-real-handler
-	     'write-region
-	     (list start end localname append 'no-message lockname confirm))
-	    (tramp-flush-file-property v localname))
+	  (tramp-run-real-handler
+	   'write-region
+	   (list start end localname append 'no-message lockname confirm))
 
 	(let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
 	      (loc-enc (tramp-get-local-coding v "local-encoding"))
@@ -5121,8 +5141,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 			      " decode using `%s' failed")
 		      filename rem-dec)))
 		  (tramp-message
-		   v 5 "Decoding region into remote file %s...done" filename)
-		  (tramp-flush-file-property v localname))
+		   v 5 "Decoding region into remote file %s...done" filename))
 
 	      ;; Save exit.
 	      (delete-file tmpfile)))
@@ -5138,6 +5157,9 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  ;; Make `last-coding-system-used' have the right value.
 	  (when coding-system-used
 	    (set 'last-coding-system-used coding-system-used))))
+
+      (tramp-flush-file-property v (file-name-directory localname))
+      (tramp-flush-file-property v localname)
 
       ;; We must protect `last-coding-system-used', now we have set it
       ;; to its correct value.
@@ -6539,7 +6561,7 @@ The terminal type can be configured with `tramp-terminal-type'."
 (defun tramp-process-actions (proc vec actions &optional timeout)
   "Perform actions until success or TIMEOUT."
   ;; Enable auth-source and password-cache.
-  (tramp-set-connection-property proc "first-password-request" t)
+  (tramp-set-connection-property vec "first-password-request" t)
   (let (exit)
     (while (not exit)
       (tramp-message proc 3 "Waiting for prompts from remote shell")
@@ -8320,26 +8342,27 @@ Invokes `password-read' if available, `read-passwd' else."
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key)))))
-    (prog1
-	(or
-	 ;; See if auth-sources contains something useful, if it's bound.
-	 (and (boundp 'auth-sources)
-	      (tramp-get-connection-property proc "first-password-request" nil)
-	      ;; Try with Tramp's current method.
-	      (funcall (symbol-function 'auth-source-user-or-password)
-		       "password" tramp-current-host tramp-current-method))
-	 ;; Try the password cache.
-	 (when (functionp 'password-read)
-	   (unless (tramp-get-connection-property
-		    proc "first-password-request" nil)
-	     (funcall (symbol-function 'password-cache-remove) key))
-	   (let ((password
-		  (funcall (symbol-function 'password-read) pw-prompt key)))
-	     (funcall (symbol-function 'password-cache-add) key password)
-	     password))
-	 ;; Else, get the password interactively.
-	 (read-passwd pw-prompt))
-      (tramp-set-connection-property proc "first-password-request" nil))))
+    (with-parsed-tramp-file-name key nil
+      (prog1
+	  (or
+	   ;; See if auth-sources contains something useful, if it's bound.
+	   (and (boundp 'auth-sources)
+		(tramp-get-connection-property v "first-password-request" nil)
+		;; Try with Tramp's current method.
+		(funcall (symbol-function 'auth-source-user-or-password)
+			 "password" tramp-current-host tramp-current-method))
+	   ;; Try the password cache.
+	   (when (functionp 'password-read)
+	     (unless (tramp-get-connection-property
+		      v "first-password-request" nil)
+	       (funcall (symbol-function 'password-cache-remove) key))
+	     (let ((password
+		    (funcall (symbol-function 'password-read) pw-prompt key)))
+	       (funcall (symbol-function 'password-cache-add) key password)
+	       password))
+	   ;; Else, get the password interactively.
+	   (read-passwd pw-prompt))
+	(tramp-set-connection-property v "first-password-request" nil)))))
 
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
@@ -8585,7 +8608,7 @@ Only works for Bourne-like shells."
 ;;   rsync).
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
-;; * Support ptys in `tramp-handle-start-file-process'.
+;; * Support ptys in `tramp-handle-start-file-process'.  (Bug#4604)
 ;; * IMHO, it's a drawback that currently Tramp doesn't support
 ;;   Unicode in Dired file names by default.  Is it possible to
 ;;   improve Tramp to set LC_ALL to "C" only for commands where Tramp
@@ -8596,6 +8619,9 @@ Only works for Bourne-like shells."
 ;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448)
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
+;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
+;;   on remote hosts.
+;; * Use secrets.el for password handling.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

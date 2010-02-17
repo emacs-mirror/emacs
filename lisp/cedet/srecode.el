@@ -46,6 +46,7 @@
 ;;; Code:
 (defgroup srecode nil
   "Semantic Recoder."
+  :group 'extensions
   :group 'tools)
 
 (provide 'srecode)

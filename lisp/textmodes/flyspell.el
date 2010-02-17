@@ -1155,10 +1155,15 @@ than preceding) word when the cursor is not over a word."
 			      nil)
 			     (t
 			      (setq flyspell-word-cache-result nil)
-			      ;; incorrect highlight the location
+			      ;; Highlight the location as incorrect,
+			      ;; including offset specified in POSS.
 			      (if flyspell-highlight-flag
 				  (flyspell-highlight-incorrect-region
-				   start end poss)
+				   (if (and (consp poss)
+					    (integerp (nth 1 poss)))
+				       (+ start (nth 1 poss) -1)
+				     start)
+				   end poss)
 				(flyspell-notify-misspell word poss))
 			      nil))))
 	      ;; return to original location
