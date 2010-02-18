@@ -1,3 +1,10 @@
+2010-02-17  Mark A. Hershberger  <mah@everybody.org>
+
+	* vc-bzr.el: fix typo in Known Bugs section.
+
+	* isearch.el (isearch-update-post-hook): New hook
+	(isearch-update): Use the new hook.
+
 2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix

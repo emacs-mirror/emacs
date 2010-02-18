@@ -35,7 +35,7 @@
 ;; Known bugs
 ;; ==========
 
-;; When edititing a symlink and *both* the symlink and its target
+;; When editing a symlink and *both* the symlink and its target
 ;; are bzr-versioned, `vc-bzr` presently runs `bzr status` on the
 ;; symlink, thereby not detecting whether the actual contents
 ;; (that is, the target contents) are changed.
