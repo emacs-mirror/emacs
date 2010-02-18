@@ -1,3 +1,28 @@
+2010-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_ring_bell): Revert last change (Bug#5569).
+
+2010-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* callint.c (Finteractive): Doc fix.
+
+2010-02-18  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* coding.c (record_conversion_result): Handle
+	CODING_RESULT_INSUFFICIENT_DST.
+	(decode_coding_object): Record CODING_RESULT_INSUFFICIENT_MEM on
+	memory allocation error.
+
+2010-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_ccl): Don't setup ccl program here.  Fix
+	for the case that the output buffer is fullfilled.
+	(decode_coding): Setup ccl program here.  Keep looping when the
+	decoder stopped because the output buffer is
+	fullfilled (bug#5534).
+
+	* ccl.c (ccl_driver): Never reset ic to CCL_HEADER_MAIN.
+
 2010-02-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_clear_frame_area): Call gtk_widget_queue_draw if USE_GTK,

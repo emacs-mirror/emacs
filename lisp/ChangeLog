@@ -1,3 +1,104 @@
+2010-02-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-directory-files): When FULL, do not
+	expand "." and "..".  Reported by Thierry Volpiatto
+	<thierry.volpiatto@gmail.com>.
+
+2010-02-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Set always the
+	permissions of the temporary file to "0600".  In case the remote
+	file has no read permissions for the owner, there might be
+	problems otherwise.  Reported by Ole Laursen <olau@iola.dk>.
+
+22010-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-renamed-files-alist):
+	Add entries for INSTALL.CVS.
+
+2010-02-17  Mark A. Hershberger  <mah@everybody.org>
+
+	* vc-bzr.el: fix typo in Known Bugs section.
+
+	* isearch.el (isearch-update-post-hook): New hook
+	(isearch-update): Use the new hook.
+
+2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix
+	errors in copying directories.
+	(tramp-handle-add-name-to-file, tramp-handle-copy-directory)
+	(tramp-do-copy-or-rename-file, tramp-handle-delete-directory)
+	(tramp-handle-delete-file)
+	(tramp-handle-dired-recursive-delete-directory)
+	(tramp-handle-write-region): Flush also the cache for the upper
+	directory.
+
+2010-02-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (save-interprogram-paste-before-kill): Doc fix.
+
+	* cus-edit.el (hardware): Doc fix.
+
+	* man.el (man): Add to external custom group.
+
+	* delim-col.el (columns): Move to wp custom group.
+
+	* doc-view.el (doc-view): Add to data custom group.
+
+	* cedet/data-debug.el (data-debug): Move to extensions group.
+
+	* cedet/ede.el (ede):
+	* cedet/srecode.el (srecode):
+	* cedet/semantic.el (semantic): Put in tools and extensions group.
+
+	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces
+	group.
+
+	* textmodes/flyspell.el (flyspell-word): Obey the offset specified
+	by ispell-parse-output (Bug#5575).
+
+2010-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/ja-dic-cnv.el (iso-2022-7bit-short): Delete it.
+	(skkdic-convert-okuri-ari): Ignore lines starting with '>'.
+	(skkdic-convert): Use `euc-japan' coding system for writing.
+
+2010-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-bibtex-file): Expand the result of
+	tex-main-file before using it.  (Bug#5562)
+
+2010-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-compile-function): Suppress byte-compiler
+	warnings, since it is annoying for the user to see them each time he
+	runs the code.
+
+2010-02-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions, tramp-read-passwd):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection): Use VEC
+	instead of PROC for caching "first-password-request".  Otherwise,
+	new processes would not profit from passwords already entered.
+
+	* net/tramp-cache.el (tramp-dump-connection-properties):
+	Don't save "first-password-request" property.
+
+2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* outline.el (outline-head-from-level):
+	* simple.el (with-wrapper-hook):
+	* cedet/ede.el (ede-run-target, project-delete-target)
+	(project-dist-files, ede-name, ede-documentation, ede-parent-project)
+	(ede-adebug-project, ede-adebug-project-parent)
+	(ede-adebug-project-root):
+	* emacs-lisp/elint.el (elint-extra-errors, elint-current-buffer)
+	(elint-defun, elint-buffer-env, elint-top-form-logged)
+	(elint-unbound-variable):
+	* textmodes/reftex-toc.el (reftex-toc-newhead-from-alist):
+	Fix typos in docstrings.
+
 2010-02-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (insert-directory): When WILDCARD-REGEXP and

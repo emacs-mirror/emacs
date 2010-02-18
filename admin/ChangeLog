@@ -1,3 +1,7 @@
+2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quick-install-emacs (PRUNED): Fix typo in message.
+
 2010-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* revdiff: Remove file that only works with CVS, and isn't really

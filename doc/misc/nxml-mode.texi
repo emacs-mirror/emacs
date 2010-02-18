@@ -512,7 +512,7 @@ The rules for locating a schema are applied automatically when
 you visit a file in nXML mode. However, if you have just created a new
 file and the schema cannot be inferred from the file-name, then this
 will not locate the right schema.  In this case, you should insert the
-start-tag of the root element and then use the command @kbd{C-c
+start-tag of the root element and then use the command @kbd{C-c C-s
 C-a}, which reapplies the rules based on the current content of
 the document.  It is usually not necessary to insert the complete
 start-tag; often just @samp{<@var{name}} is

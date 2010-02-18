@@ -723,8 +723,8 @@ DELTA and PRO-OR-DE are assumed to be dynamically scoped into this function."
 (defun reftex-toc-newhead-from-alist (nlevel head alist)
   "Get new heading with level NLEVEL from ALIST.
 If there are no such entries, return nil.
-If there are several different entries with same new level, choose
-the one with the smallest distance to the assocation of HEAD in the alist.
+If there are several different entries with same new level, choose the
+one with the smallest distance to the association of HEAD in the alist.
 This makes it possible for promotion to work several sets of headings,
 if these sets are sorted blocks in the alist."
   (let* ((al alist)
