@@ -3142,7 +3142,7 @@ value of `default-file-modes', without execute permissions."
   "Like `directory-files' for Tramp files."
   ;; FILES-ONLY is valid for XEmacs only.
   (when (file-directory-p directory)
-    (setq directory (expand-file-name directory))
+    (setq directory (file-name-as-directory (expand-file-name directory)))
     (let ((temp (nreverse (file-name-all-completions "" directory)))
 	  result item)
 
@@ -3150,13 +3150,13 @@ value of `default-file-modes', without execute permissions."
 	(setq item (directory-file-name (pop temp)))
 	(when (and (or (null match) (string-match match item))
 		   (or (null files-only)
-		       ;; files only
+		       ;; Files only.
 		       (and (equal files-only t) (file-regular-p item))
-		       ;; directories only
+		       ;; Directories only.
 		       (file-directory-p item)))
-	  (push (if full (expand-file-name item directory) item)
+	  (push (if full (concat directory item) item)
 		result)))
-      result)))
+      (if nosort result (sort result 'string<)))))
 
 (defun tramp-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format)
