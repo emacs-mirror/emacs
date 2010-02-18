@@ -1,3 +1,7 @@
+2010-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_ring_bell): Revert last change (Bug#5569).
+
 2010-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* callint.c (Finteractive): Doc fix.
