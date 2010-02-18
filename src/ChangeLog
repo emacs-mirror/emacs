@@ -1,3 +1,10 @@
+2010-02-18  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* coding.c (record_conversion_result): Handle
+	CODING_RESULT_INSUFFICIENT_DST.
+	(decode_coding_object): Record CODING_RESULT_INSUFFICIENT_MEM on
+	memory allocation error.
+
 2010-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_ccl): Don't setup ccl program here.  Fix
