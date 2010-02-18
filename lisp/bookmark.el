@@ -958,14 +958,14 @@ it to the name of the bookmark currently being set, advancing
            (and
             ;; Possibly the old bookmark file, "~/.emacs-bkmrks", needs
             ;; to be renamed.
-            (file-exists-p (expand-file-name bookmark-old-default-file))
-            (not (file-exists-p (expand-file-name bookmark-default-file)))
-            (rename-file (expand-file-name bookmark-old-default-file)
-                         (expand-file-name bookmark-default-file)))
+            (file-exists-p bookmark-old-default-file)
+            (not (file-exists-p bookmark-default-file))
+            (rename-file bookmark-old-default-file
+                         bookmark-default-file))
            ;; return t so the `and' will continue...
            t)
 
-       (file-readable-p (expand-file-name bookmark-default-file))
+       (file-readable-p bookmark-default-file)
        (bookmark-load bookmark-default-file t t)
        (setq bookmarks-already-loaded t)))
 
@@ -1152,10 +1152,11 @@ after a bookmark was set in it."
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
   (let* ((bmrk-filename (bookmark-get-filename bookmark))
-         (newloc (expand-file-name
-                  (read-file-name
-                   (format "Relocate %s to: " bookmark)
-                   (file-name-directory bmrk-filename)))))
+         (newloc (abbreviate-file-name
+                  (expand-file-name
+                   (read-file-name
+                    (format "Relocate %s to: " bookmark)
+                    (file-name-directory bmrk-filename))))))
     (bookmark-set-filename bookmark newloc)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
@@ -1432,7 +1433,7 @@ method buffers use to resolve name collisions."
           ;;but there's no better default, and
           ;;I guess it's better than none at all.
           "~/" bookmark-default-file 'confirm)))
-  (setq file (expand-file-name file))
+  (setq file (abbreviate-file-name (expand-file-name file)))
   (if (not (file-readable-p file))
       (error "Cannot read bookmark file %s" file)
     (if (null no-msg)
@@ -1453,7 +1454,8 @@ method buffers use to resolve name collisions."
                 (setq bookmark-alist-modification-count
                       (1+ bookmark-alist-modification-count)))
               (if (string-equal
-                   (expand-file-name bookmark-default-file)
+                   (abbreviate-file-name
+                    (expand-file-name bookmark-default-file))
                    file)
                   (setq bookmarks-already-loaded t))
               (bookmark-bmenu-surreptitiously-rebuild-list))

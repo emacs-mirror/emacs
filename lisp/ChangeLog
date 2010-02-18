@@ -1,3 +1,33 @@
+2010-02-18  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-merge-news): Yet another fix of message parsing.
+
+2010-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use abbreviated file names in bookmarks (bug#5591).
+	* bookmark.el (bookmark-maybe-load-default-file): Remove redundant
+	calls to expand-file-name.
+	(bookmark-relocate): Use abbreviated file names in bookmarks.
+	(bookmark-load): Use abbreviated file names in messages.
+
+2010-02-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-directory-files): When FULL, do not
+	expand "." and "..".  Reported by Thierry Volpiatto
+	<thierry.volpiatto@gmail.com>.
+
+2010-02-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Set always the
+	permissions of the temporary file to "0600".  In case the remote
+	file has no read permissions for the owner, there might be
+	problems otherwise.  Reported by Ole Laursen <olau@iola.dk>.
+
+22010-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-renamed-files-alist):
+	Add entries for INSTALL.CVS.
+
 2010-02-17  Mark A. Hershberger  <mah@everybody.org>
 
 	* vc-bzr.el: fix typo in Known Bugs section.
@@ -7,8 +37,8 @@
 
 2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix
-	errors in copying directories.
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band):
+	Fix errors in copying directories.
 	(tramp-handle-add-name-to-file, tramp-handle-copy-directory)
 	(tramp-do-copy-or-rename-file, tramp-handle-delete-directory)
 	(tramp-handle-delete-file)
@@ -34,8 +64,7 @@
 	* cedet/srecode.el (srecode):
 	* cedet/semantic.el (semantic): Put in tools and extensions group.
 
-	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces
-	group.
+	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces group.
 
 	* textmodes/flyspell.el (flyspell-word): Obey the offset specified
 	by ispell-parse-output (Bug#5575).
@@ -152,8 +181,7 @@
 2010-02-08  Jose E. Marchesi  <jemarch@gnu.org>
 
 	* progmodes/ada-mode.el (ada-in-numeric-literal-p): New function.
-	(ada-adjust-case): Don't adjust case in hexadecimal number
-	literals.
+	(ada-adjust-case): Don't adjust case in hexadecimal number literals.
 
 2010-02-08  Kenichi Handa  <handa@m17n.org>
 
