@@ -993,6 +993,11 @@ record_conversion_result (struct coding_system *coding,
     case CODING_RESULT_INSUFFICIENT_MEM:
       Vlast_code_conversion_error = Qinsufficient_memory;
       break;
+    case CODING_RESULT_INSUFFICIENT_DST:
+      /* Don't record this error in Vlast_code_conversion_error
+	 because it happens just temporarily and is resolved when the
+	 whole conversion is finished.  */
+      break;
     case CODING_RESULT_SUCCESS:
       break;
     default:
@@ -7865,7 +7870,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	  if (! destination)
 	    {
 	      record_conversion_result (coding,
-					CODING_RESULT_INSUFFICIENT_DST);
+					CODING_RESULT_INSUFFICIENT_MEM);
 	      unbind_to (count, Qnil);
 	      return;
 	    }
