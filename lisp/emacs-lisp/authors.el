@@ -504,7 +504,9 @@ found) in the repository.")
     ;; index and pick merged into search.
     ("mh-index.el" . "mh-search.el")
     ("mh-pick.el" . "mh-search.el")
-    ("INSTALL-CVS" . "INSTALL.CVS")
+    ;; INSTALL-CVS -> .CVS -> .BZR
+    ("INSTALL-CVS" . "INSTALL.BZR")
+    ("INSTALL.CVS" . "INSTALL.BZR")
     ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
     ("gnus-logo.eps" . "refcards/gnus-logo.eps")
     ("build-install" . "build-ins.in")
