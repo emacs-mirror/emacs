@@ -64,15 +64,6 @@ In most cases, the problem is known about and is just waiting for
 someone to fix it.
 
 
-Note on accessing the Bazaar repository
----------------------------------------
-
-Write access to the Bazaar repository is currently done via Bazaar's
-sftp:// protocol; see http://www.emacswiki.org/emacs/BzrForEmacsDevs.
-We plan to offer bzr+ssh:// access later.  More discussion about that
-is at https://savannah.gnu.org/support/?107077.
-
-
 
 This file is part of GNU Emacs.
 
