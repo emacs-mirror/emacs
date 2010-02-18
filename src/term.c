@@ -3938,6 +3938,8 @@ fatal (const char *str, ...)
   va_start (ap, str);
   fprintf (stderr, "emacs: ");
   vfprintf (stderr, str, ap);
+  if (!(strlen (str) > 0 && str[strlen (str) - 1] == '\n'))
+    fprintf (stderr, "\n");
   va_end (ap);
   fflush (stderr);
   exit (1);
