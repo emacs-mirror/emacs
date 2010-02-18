@@ -1,4 +1,11 @@
-2010-02-18  Glenn Morris  <rgm@gnu.org>
+2010-02-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Set always the
+	permissions of the temporary file to "0600".  In case the remote
+	file has no read permissions for the owner, there might be
+	problems otherwise.  Reported by Ole Laursen <olau@iola.dk>.
+
+22010-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-renamed-files-alist):
 	Add entries for INSTALL.CVS.
