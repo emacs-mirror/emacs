@@ -1175,9 +1175,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match
        (concat nonmarker
                "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)\\s-*" ; date
-               "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?" ; start time
+               "\\(\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?" ; start time
                "\\("
-               "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?" ; end time
+               "-\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?" ; end time
                "\\)?"
                "\\s-*\\(.*?\\) ?$")
        entry-main)
@@ -1271,10 +1271,10 @@ NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (and (string-match (concat nonmarker
                                  "\\([a-z]+\\)\\s-+"
-                                 "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)"
+                                 "\\(\\([0-9][0-9]?:[0-9][0-9]\\)"
                                  "\\([ap]m\\)?"
-                                 "\\(-0?"
-                                 "\\([1-9][0-9]?:[0-9][0-9]\\)"
+                                 "\\(-"
+                                 "\\([0-9][0-9]?:[0-9][0-9]\\)"
                                  "\\([ap]m\\)?\\)?"
                                  "\\)?"
                                  "\\s-*\\(.*?\\) ?$")
@@ -1353,12 +1353,12 @@ NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
                             (if (eq (icalendar--date-style) 'european)
-                                "0?\\([1-9]+[0-9]?\\)\\s-+\\([a-z]+\\)\\s-+"
-                              "\\([a-z]+\\)\\s-+0?\\([1-9]+[0-9]?\\)\\s-+")
+                                "\\([0-9]+[0-9]?\\)\\s-+\\([a-z]+\\)\\s-+"
+                              "\\([a-z]+\\)\\s-+\\([0-9]+[0-9]?\\)\\s-+")
                             "\\*?\\s-*"
-                            "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                            "\\(\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
                             "\\("
-                            "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                            "-\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
                             "\\)?"
                             "\\s-*\\([^0-9]+.*?\\) ?$" ; must not match years
                             )
@@ -1461,9 +1461,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
                             "%%(diary-block \\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)"
                             " +\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\))\\s-*"
-                            "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                            "\\(\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
                             "\\("
-                            "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                            "-\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
                             "\\)?"
                             "\\s-*\\(.*?\\) ?$")
                     entry-main)
@@ -1569,9 +1569,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
                             "%%(diary-cyclic \\([^ ]+\\) +"
                             "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\))\\s-*"
-                            "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                            "\\(\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
                             "\\("
-                            "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                            "-\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
                             "\\)?"
                             "\\s-*\\(.*?\\) ?$")
                     entry-main)
@@ -1642,9 +1642,9 @@ NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
                             "%%(diary-anniversary \\([^)]+\\))\\s-*"
-                            "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
+                            "\\(\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
                             "\\("
-                            "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
+                            "-\\([0-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
                             "\\)?"
                             "\\s-*\\(.*?\\) ?$")
                     entry-main)

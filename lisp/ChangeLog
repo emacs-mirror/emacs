@@ -1,3 +1,13 @@
+2010-02-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical)
+	(icalendar--convert-yearly-to-ical)
+	(icalendar--convert-block-to-ical)
+	(icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical): Take care of time
+	specifications where hour has 1-digit only (Bug#5549).
+
 2010-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-assembler-handler): Accommodate change
