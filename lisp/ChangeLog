@@ -1,3 +1,8 @@
+2010-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-electric-insert): Give it a delete-selection
+	property.  (Bug#5593)
+
 2010-02-18  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-merge-news): Yet another fix of message parsing.
