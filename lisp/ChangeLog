@@ -1,3 +1,8 @@
+2010-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-assembler-handler): Accommodate change
+	of disassemble output in GDB 7.1.
+
 2010-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-electric-insert): Give it a delete-selection

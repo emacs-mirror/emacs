@@ -3573,18 +3573,24 @@ BUFFER nil or omitted means use the current buffer."
   (setq gdb-pending-triggers
 	(delq 'gdb-invalidate-assembler
 	      gdb-pending-triggers))
-     (let ((buf (gdb-get-buffer 'gdb-assembler-buffer)))
-       (and buf
-	    (with-current-buffer buf
-	      (let* ((window (get-buffer-window buf 0))
-		     (p (window-point window))
-		    (buffer-read-only nil))
-		(erase-buffer)
-		(insert-buffer-substring (gdb-get-buffer-create
+  (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
+    (with-current-buffer buf
+      (goto-char (point-min))
+      ;; The disassemble command in GDB 7.1 onwards displays an overlay arrow.
+      (while (re-search-forward "\\(^   0x\\|=> 0x\\)" nil t)
+	(replace-match "0x" nil nil))))
+  (let ((buf (gdb-get-buffer 'gdb-assembler-buffer)))
+    (and buf
+	 (with-current-buffer buf
+	   (let* ((window (get-buffer-window buf 0))
+		  (p (window-point window))
+		  (buffer-read-only nil))
+	     (erase-buffer)
+	     (insert-buffer-substring (gdb-get-buffer-create
 					  'gdb-partial-output-buffer))
-		(set-window-point window p)))))
-     ;; put customisation here
-     (gdb-assembler-custom))
+	     (set-window-point window p)))))
+  ;; put customisation here
+  (gdb-assembler-custom))
 
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
