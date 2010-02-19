@@ -1356,6 +1356,8 @@ if all else fails."
   (if auto-fill-function (f90-do-auto-fill) ; also updates line
     (f90-update-line)))
 
+;; Behave like self-insert-command for delete-selection-mode (bug#5593).
+(put 'f90-electric-insert 'delete-selection t)
 
 (defun f90-get-correct-indent ()
   "Get correct indent for a line starting with line number.

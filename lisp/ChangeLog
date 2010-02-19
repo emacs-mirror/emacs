@@ -1,3 +1,25 @@
+2010-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-assembler-handler): Accommodate change
+	of disassemble output in GDB 7.1.
+
+2010-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-electric-insert): Give it a delete-selection
+	property.  (Bug#5593)
+
+2010-02-18  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-merge-news): Yet another fix of message parsing.
+
+2010-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use abbreviated file names in bookmarks (bug#5591).
+	* bookmark.el (bookmark-maybe-load-default-file): Remove redundant
+	calls to expand-file-name.
+	(bookmark-relocate): Use abbreviated file names in bookmarks.
+	(bookmark-load): Use abbreviated file names in messages.
+
 2010-02-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-directory-files): When FULL, do not
@@ -25,8 +47,8 @@
 
 2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix
-	errors in copying directories.
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band):
+	Fix errors in copying directories.
 	(tramp-handle-add-name-to-file, tramp-handle-copy-directory)
 	(tramp-do-copy-or-rename-file, tramp-handle-delete-directory)
 	(tramp-handle-delete-file)
@@ -52,8 +74,7 @@
 	* cedet/srecode.el (srecode):
 	* cedet/semantic.el (semantic): Put in tools and extensions group.
 
-	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces
-	group.
+	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces group.
 
 	* textmodes/flyspell.el (flyspell-word): Obey the offset specified
 	by ispell-parse-output (Bug#5575).
@@ -170,8 +191,7 @@
 2010-02-08  Jose E. Marchesi  <jemarch@gnu.org>
 
 	* progmodes/ada-mode.el (ada-in-numeric-literal-p): New function.
-	(ada-adjust-case): Don't adjust case in hexadecimal number
-	literals.
+	(ada-adjust-case): Don't adjust case in hexadecimal number literals.
 
 2010-02-08  Kenichi Handa  <handa@m17n.org>
 
