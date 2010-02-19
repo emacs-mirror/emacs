@@ -127,7 +127,7 @@ If the string begins with `@', Emacs searches the key sequence which
  invoked the command for its first mouse click (or any other event
  which specifies a window).
 If the string begins with `^' and `shift-select-mode' is non-nil,
- Emacs first calls the function `handle-shift-select'.
+ Emacs first calls the function `handle-shift-selection'.
 You may use `@', `*', and `^' together.  They are processed in the
  order that they appear, before reading any arguments.
 usage: (interactive &optional ARGS)  */)

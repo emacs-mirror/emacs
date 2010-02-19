@@ -1568,8 +1568,9 @@ append_glyph (it)
    and where in the glyph matrix we currently are (glyph row and hpos).
    produce_glyphs fills in output fields of *IT with information such as the
    pixel width and height of a character, and maybe output actual glyphs at
-   the same time if IT->glyph_row is non-null.  See the explanation of
-   struct display_iterator in dispextern.h for an overview.
+   the same time if IT->glyph_row is non-null.  For an overview, see
+   the explanation in dispextern.h, before the definition of the
+   display_element_type enumeration.
 
    produce_glyphs also stores the result of glyph width, ascent
    etc. computations in *IT.
@@ -3938,6 +3939,8 @@ fatal (const char *str, ...)
   va_start (ap, str);
   fprintf (stderr, "emacs: ");
   vfprintf (stderr, str, ap);
+  if (!(strlen (str) > 0 && str[strlen (str) - 1] == '\n'))
+    fprintf (stderr, "\n");
   va_end (ap);
   fflush (stderr);
   exit (1);

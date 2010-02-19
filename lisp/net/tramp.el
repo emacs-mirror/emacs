@@ -3142,7 +3142,7 @@ value of `default-file-modes', without execute permissions."
   "Like `directory-files' for Tramp files."
   ;; FILES-ONLY is valid for XEmacs only.
   (when (file-directory-p directory)
-    (setq directory (expand-file-name directory))
+    (setq directory (file-name-as-directory (expand-file-name directory)))
     (let ((temp (nreverse (file-name-all-completions "" directory)))
 	  result item)
 
@@ -3150,13 +3150,13 @@ value of `default-file-modes', without execute permissions."
 	(setq item (directory-file-name (pop temp)))
 	(when (and (or (null match) (string-match match item))
 		   (or (null files-only)
-		       ;; files only
+		       ;; Files only.
 		       (and (equal files-only t) (file-regular-p item))
-		       ;; directories only
+		       ;; Directories only.
 		       (file-directory-p item)))
-	  (push (if full (expand-file-name item directory) item)
+	  (push (if full (concat directory item) item)
 		result)))
-      result)))
+      (if nosort result (sort result 'string<)))))
 
 (defun tramp-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format)
@@ -4781,12 +4781,16 @@ coding system might not be determined.  This function repairs it."
 			tramp-temp-buffer-file-name)
 		       (t (file-local-copy filename)))))
 
+	      ;; When the file is not readable for the owner, it
+	      ;; cannot be inserted, even it is redable for the group
+	      ;; or for everybody.
+	      (set-file-modes local-copy (tramp-octal-to-decimal "0600"))
+
 	      (when (and (null remote-copy)
 			 (tramp-get-method-parameter
 			  method 'tramp-copy-keep-tmpfile))
 		;; We keep the local file for performance reasons,
 		;; useful for "rsync".
-		(set-file-modes local-copy (tramp-octal-to-decimal "0600"))
 		(setq tramp-temp-buffer-file-name local-copy)
 		(put 'tramp-temp-buffer-file-name 'permanent-local t))
 
@@ -8584,26 +8588,26 @@ Only works for Bourne-like shells."
 ;;   equivalent of the emacsclient -eval option in order to make this
 ;;   reasonably unproblematic.  And maybe trampclient should have some
 ;;   way of passing credentials, like by using an SSL socket or
-;;   something. (David Kastrup)
+;;   something.  (David Kastrup)
 ;; * Reconnect directly to a compliant shell without first going
-;;   through the user's default shell. (Pete Forman)
+;;   through the user's default shell.  (Pete Forman)
 ;; * Make `tramp-default-user' obsolete.
 ;; * How can I interrupt the remote process with a signal
-;;   (interrupt-process seems not to work)? (Markus Triska)
+;;   (interrupt-process seems not to work)?  (Markus Triska)
 ;; * Avoid the local shell entirely for starting remote processes.  If
 ;;   so, I think even a signal, when delivered directly to the local
 ;;   SSH instance, would correctly be propagated to the remote process
 ;;   automatically; possibly SSH would have to be started with
-;;   "-t". (Markus Triska)
+;;   "-t".  (Markus Triska)
 ;; * It makes me wonder if tramp couldn't fall back to ssh when scp
-;;   isn't on the remote host. (Mark A. Hershberger)
-;; * Use lsh instead of ssh. (Alfred M. Szmidt)
+;;   isn't on the remote host.  (Mark A. Hershberger)
+;; * Use lsh instead of ssh.  (Alfred M. Szmidt)
 ;; * Implement a general server-local-variable mechanism, as there are
 ;;   probably other variables that need different values for different
 ;;   servers too.  The user could then configure a variable (such as
 ;;   tramp-server-local-variable-alist) to define any such variables
 ;;   that they need to, which would then be let bound as appropriate
-;;   in tramp functions. (Jason Rumney)
+;;   in tramp functions.  (Jason Rumney)
 ;; * Optimize out-of-band copying, when both methods are scp-like (not
 ;;   rsync).
 ;; * Keep a second connection open for out-of-band methods like scp or
@@ -8613,7 +8617,7 @@ Only works for Bourne-like shells."
 ;;   Unicode in Dired file names by default.  Is it possible to
 ;;   improve Tramp to set LC_ALL to "C" only for commands where Tramp
 ;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
-;;   expects only English messages? (Juri Linkov)
+;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
 ;; * Do not handle files with drive letter as remote.  (Bug#5447)
 ;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448)

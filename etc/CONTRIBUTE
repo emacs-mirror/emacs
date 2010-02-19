@@ -1,4 +1,5 @@
-Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 See end for license conditions.
 
 
@@ -30,7 +31,7 @@ Here are some style and legal conventions for contributors to Emacs:
 
 * Coding Standards
 
-Contributed code should follow the GNU Coding Standard.
+Contributed code should follow the GNU Coding Standards.
 
 If it doesn't, we'll need to find someone to fix the code before we
 can use it.
@@ -44,24 +45,24 @@ Ref: The "Tips" Appendix in the Emacs Lisp Reference.
 
 * Copyright Assignment
 
-We can accept small changes without legal papers, and for medium-size
-changes a copyright disclaimer is ok too.  To accept substantial
-contributions from you, we need a copyright assignment form filled out
-and filed with the FSF.
-
-Contact us at emacs-devel@gnu.org to obtain the relevant forms.
+We can accept small changes (roughly, fewer than 15 lines) without
+legal papers.  Anything more substantial requires a copyright
+disclaimer or assignment (the latter is preferred, especially for
+larger changes).  Both of these involved filling out a short form and
+filing it with the FSF.  The process is straightforward -- contact us
+at emacs-devel@gnu.org to obtain the relevant forms.
 
 
 * Getting the Source Code
 
-The latest version of Emacs can be downloaded using CVS (or other
-version control systems) from the Savannah web site.  It is important
-to write your patch based on this version; if you start from an older
-version, your patch may be outdated when you write it, and maintainers
-will have a hard time applying it.
+The latest version of Emacs can be downloaded using Bazaar from the
+Savannah web site.  It is important to write your patch based on the
+latest version.  If you start from an older version, your patch may be
+outdated (so that maintainers will have a hard time applying it), or
+changes in Emacs may have made your patch unnecessary.
 
-After you have downloaded the CVS source, you should read the file
-INSTALL.CVS for build instructions (they differ to some extent from a
+After you have downloaded the Bazaar source, you should read the file
+INSTALL.BZR for build instructions (they differ to some extent from a
 normal build).
 
 Ref: http://savannah.gnu.org/projects/emacs
@@ -75,7 +76,7 @@ can properly evaluate it.
 When you have all these pieces, bundle them up in a mail message and
 send it to bug-gnu-emacs@gnu.org or emacs-devel@gnu.org.
 
-All subsequent discussion should also be sent to the mailing list.
+All subsequent discussion should be sent to the same mailing list.
 
 ** Description
 
@@ -88,7 +89,7 @@ For new features, a description of the feature and your implementation.
 
 A ChangeLog entry as plaintext (separate from the patch).
 
-See the various ChangeLog files for format and content. Note that,
+See the various ChangeLog files for format and content.  Note that,
 unlike some other projects, we do require ChangeLogs also for
 documentation, i.e. Texinfo files.
 
@@ -99,9 +100,10 @@ Manual, for how to write good log entries.
 
 Please use "Context Diff" format.
 
-If you are accessing the CVS repository use
-	cvs update; cvs diff -cp
-else, use
+If you are accessing the Bazaar repository, make sure your copy is
+up-to-date (e.g. with `bzr pull'), then use
+        bzr diff --no-aliases --diff-options=-cp
+Else, use
 	diff -cp OLD NEW
 
 If your version of diff does not support these options, then get the
@@ -122,6 +124,11 @@ as a last resort, uuencoded gzipped text.
 If you send several unrelated changes together, we will ask you to
 separate them so we can consider each of the changes by itself.
 
+** Do not make formatting changes.
+
+Making cosmetic formatting changes (indentation, etc) makes it harder
+to see what you have really changed.
+
 
 * Coding style and conventions.
 
@@ -139,17 +146,17 @@ included in Emacs.
 
 * Supplemental information for Emacs Developers.
 
-** Write access to Emacs' CVS repository.
+** Write access to the Emacs repository.
 
 Once you become a frequent contributor to Emacs, we can consider
-giving you write access to the CVS repository.
+giving you write access to the Bazaar repository.
 
 
 ** Emacs Mailing lists.
 
 Discussion about Emacs development takes place on emacs-devel@gnu.org.
 
-Bug reports are sent to bug-gnu-emacs@gnu.org.
+Bug reports and feature requests are sent to bug-gnu-emacs@gnu.org.
 
 You can subscribe to the mailing lists at savannah.gnu.org/projects/emacs.
 

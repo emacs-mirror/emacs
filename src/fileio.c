@@ -1408,8 +1408,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
    bugs _are_ found, it might be of interest to look at the old code and
    see what did it do in the relevant situation.
 
-   Don't remove this code: it's true that it will be accessible via CVS,
-   but a few years from deletion, people will forget it is there.  */
+   Don't remove this code: it's true that it will be accessible
+   from the repository, but a few years from deletion, people will
+   forget it is there.  */
 
 /* Changed this DEFUN to a DEAFUN, so as not to confuse `make-docfile'.  */
 DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,

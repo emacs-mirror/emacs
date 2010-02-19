@@ -1,9 +1,16 @@
 HOW TO COMMIT CHANGES TO EMACS
 
+Most of these points are from:
+
 http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00555.html
 From: 	 Miles Bader
 Subject: commit style redux
 Date: 	 Tue, 31 Mar 2009 12:21:20 +0900
+
+(0) Each commit should correspond to a single change (whether spread
+    over multiple files or not).  Do not mix different changes in the
+    same commit (eg adding a feature in one file, fixing a bug in
+    another should be two commits, not one).
 
 (1) Commit all changed files at once with a single log message (which
     in CVS will result in an identical log message for all committed
@@ -41,6 +48,7 @@ Date: 	 Tue, 31 Mar 2009 12:21:20 +0900
 
 Followup discussion:
 http://lists.gnu.org/archive/html/emacs-devel/2010-01/msg00897.html
+http://lists.gnu.org/archive/html/emacs-devel/2010-02/msg00401.html
 
 
 PREVIOUS GUIDELINES FOR CVS

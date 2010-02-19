@@ -1,5 +1,5 @@
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -44,7 +44,7 @@ Build Emacs in various ways.
 
 Install emacs quickly (`incrementally').
 
-** alloc-color.c
+** alloc-colors.c
 
 A utility program that allocates a given number of colors on X.  Can
 be used to debug Emacs with dense colormaps (PseudoColor).
@@ -60,10 +60,6 @@ Tests for custom types and load problems.
 ** diff-tar-files
 
 Show files added/removed between two tar files.
-
-** revdiff
-
-Get CVS diffs of files.
 
 
 Brief description of sub-directories:
