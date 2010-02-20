@@ -1,3 +1,8 @@
+2010-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (remove-yank-excluded-properties): Explain in a comment
+	why `category' property is removed.
+
 2010-02-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* isearch.el (isearch-update-post-hook, isearch-update): Revert
