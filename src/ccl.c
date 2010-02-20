@@ -43,7 +43,7 @@ Lisp_Object Vcode_conversion_map_vector;
 /* Alist of fontname patterns vs corresponding CCL program.  */
 Lisp_Object Vfont_ccl_encoder_alist;
 
-/* This symbol is a property which assocates with ccl program vector.
+/* This symbol is a property which associates with ccl program vector.
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
 Lisp_Object Qccl_program;
 
@@ -882,9 +882,6 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
   struct charset *charset;
   int eof_ic = ccl->eof_ic;
   int eof_hit = 0;
-
-  if (ic >= eof_ic)
-    ic = CCL_HEADER_MAIN;
 
   if (ccl->buf_magnification == 0) /* We can't read/produce any bytes.  */
     dst = NULL;

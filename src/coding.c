@@ -993,6 +993,11 @@ record_conversion_result (struct coding_system *coding,
     case CODING_RESULT_INSUFFICIENT_MEM:
       Vlast_code_conversion_error = Qinsufficient_memory;
       break;
+    case CODING_RESULT_INSUFFICIENT_DST:
+      /* Don't record this error in Vlast_code_conversion_error
+	 because it happens just temporarily and is resolved when the
+	 whole conversion is finished.  */
+      break;
     case CODING_RESULT_SUCCESS:
       break;
     default:
@@ -5220,18 +5225,16 @@ decode_coding_ccl (coding)
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int consumed_chars = 0;
   int multibytep = coding->src_multibyte;
-  struct ccl_program ccl;
+  struct ccl_program *ccl = &coding->spec.ccl->ccl;
   int source_charbuf[1024];
   int source_byteidx[1024];
   Lisp_Object attrs, charset_list;
 
   CODING_GET_INFO (coding, attrs, charset_list);
-  setup_ccl_program (&ccl, CODING_CCL_DECODER (coding));
 
-  while (src < src_end)
+  while (1)
     {
       const unsigned char *p = src;
-      int *source, *source_end;
       int i = 0;
 
       if (multibytep)
@@ -5245,37 +5248,26 @@ decode_coding_ccl (coding)
 	  source_charbuf[i++] = *p++;
 
       if (p == src_end && coding->mode & CODING_MODE_LAST_BLOCK)
-	ccl.last_block = 1;
-
-      source = source_charbuf;
-      source_end = source + i;
-      while (source < source_end)
-	{
-	  ccl_driver (&ccl, source, charbuf,
-		      source_end - source, charbuf_end - charbuf,
-		      charset_list);
-	  source += ccl.consumed;
-	  charbuf += ccl.produced;
-	  if (ccl.status != CCL_STAT_SUSPEND_BY_DST)
-	    break;
-	}
-      if (source < source_end)
-	src += source_byteidx[source - source_charbuf];
+	ccl->last_block = 1;
+      ccl_driver (ccl, source_charbuf, charbuf, i, charbuf_end - charbuf,
+		  charset_list);
+      charbuf += ccl->produced;
+      if (multibytep && ccl->consumed < i)
+	src += source_byteidx[ccl->consumed];
       else
-	src = p;
-      consumed_chars += source - source_charbuf;
-
-      if (ccl.status != CCL_STAT_SUSPEND_BY_SRC
-	  && ccl.status != CODING_RESULT_INSUFFICIENT_SRC)
+	src += ccl->consumed;
+      consumed_chars += ccl->consumed;
+      if (p == src_end || ccl->status != CCL_STAT_SUSPEND_BY_SRC)
 	break;
     }
 
-  switch (ccl.status)
+  switch (ccl->status)
     {
     case CCL_STAT_SUSPEND_BY_SRC:
       record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
       break;
     case CCL_STAT_SUSPEND_BY_DST:
+      record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_DST);
       break;
     case CCL_STAT_QUIT:
     case CCL_STAT_INVALID_CMD:
@@ -7117,6 +7109,7 @@ decode_coding (coding)
   Lisp_Object attrs;
   Lisp_Object undo_list;
   Lisp_Object translation_table;
+  struct ccl_spec cclspec;
   int carryover;
   int i;
 
@@ -7149,6 +7142,11 @@ decode_coding (coding)
   translation_table = get_translation_table (attrs, 0, NULL);
 
   carryover = 0;
+  if (coding->decoder == decode_coding_ccl)
+    {
+      coding->spec.ccl = &cclspec;
+      setup_ccl_program (&cclspec.ccl, CODING_CCL_DECODER (coding));
+    }
   do
     {
       EMACS_INT pos = coding->dst_pos + coding->produced_char;
@@ -7165,9 +7163,10 @@ decode_coding (coding)
 	coding->charbuf[i]
 	  = coding->charbuf[coding->charbuf_used - carryover + i];
     }
-  while (coding->consumed < coding->src_bytes
-	 && (coding->result == CODING_RESULT_SUCCESS
-	     || coding->result == CODING_RESULT_INVALID_SRC));
+  while (coding->result == CODING_RESULT_INSUFFICIENT_DST
+	 || (coding->consumed < coding->src_bytes
+	     && (coding->result == CODING_RESULT_SUCCESS
+		 || coding->result == CODING_RESULT_INVALID_SRC)));
 
   if (carryover > 0)
     {
@@ -7871,7 +7870,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	  if (! destination)
 	    {
 	      record_conversion_result (coding,
-					CODING_RESULT_INSUFFICIENT_DST);
+					CODING_RESULT_INSUFFICIENT_MEM);
 	      unbind_to (count, Qnil);
 	      return;
 	    }

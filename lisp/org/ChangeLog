@@ -1,3 +1,10 @@
+2010-02-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* org-freemind.el (org-freemind-from-org-mode-node)
+	(org-freemind-from-org-mode, )
+	(org-freemind-from-org-sparse-tree, org-freemind-to-org-mode):
+	Pass arg to called-interactively-p.
+
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-protocol.el (org-protocol-flatten-greedy, org-protocol-flatten):
@@ -748,7 +755,7 @@
 	next clock in, the user will be prompted to see if they want to
 	back-date their new clock to then.
 	(org-clock-resolve): Do not jump the user to the location of a
-	dangling clock if the resolution is occuring due to an idle
+	dangling clock if the resolution is occurring due to an idle
 	timeout.  In that case there is typically only one dangling clock,
 	the active one, and there is no value gained by shuffling their
 	windows around to show it to them.  Being prompted to resolve an

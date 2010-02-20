@@ -2806,7 +2806,7 @@ ring directly.")
   "The tail of the kill ring whose car is the last thing yanked.")
 
 (defcustom save-interprogram-paste-before-kill nil
-  "Save the paste strings into `kill-ring' before replacing it with emacs strings.
+  "Save clipboard strings into kill ring before replacing them.
 When one selects something in another program to paste it into Emacs,
 but kills something in Emacs before actually pasting it,
 this selection is gone unless this variable is non-nil,
@@ -4854,7 +4854,18 @@ With argument 0, interchanges line point is in with line mark is in."
 		       (forward-line arg))))
 		  arg))
 
+;; FIXME seems to leave point BEFORE the current object when ARG = 0,
+;; which seems inconsistent with the ARG /= 0 case.
+;; FIXME document SPECIAL.
 (defun transpose-subr (mover arg &optional special)
+  "Subroutine to do the work of transposing objects.
+Works for lines, sentences, paragraphs, etc.  MOVER is a function that
+moves forward by units of the given object (e.g. forward-sentence,
+forward-paragraph).  If ARG is zero, exchanges the current object
+with the one containing mark.  If ARG is an integer, moves the
+current object past ARG following (if ARG is positive) or
+preceding (if ARG is negative) objects, leaving point after the
+current object."
   (let ((aux (if special mover
 	       (lambda (x)
 		 (cons (progn (funcall mover x) (point))
@@ -6541,7 +6552,7 @@ VAR is normally a symbol (a variable) in which case it is treated like
 a hook, with a buffer-local and a global part.  But it can also be an
 arbitrary expression.
 ARGS is a list of variables which will be passed as additional arguments
-to each function, after the inital argument, and which the first argument
+to each function, after the initial argument, and which the first argument
 expects to receive when called."
   (declare (indent 2) (debug t))
   ;; We need those two gensyms because CL's lexical scoping is not available

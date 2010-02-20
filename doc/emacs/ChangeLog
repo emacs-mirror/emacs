@@ -1,3 +1,7 @@
+2010-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Contributing): Repository is no longer CVS.
+
 2010-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* buffers.texi (Uniquify): Must explicitly load library.  (Bug#5529)
@@ -33,7 +37,7 @@
 
 	* building.texi (Grep Searching): Document zrgrep.
 
-	* mini.texi (Completion Options): Mention `initals' completion style.
+	* mini.texi (Completion Options): Mention `initials' completion style.
 
 2009-12-29  Nick Roberts  <nickrob@snap.net.nz>
 

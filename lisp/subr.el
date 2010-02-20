@@ -2442,7 +2442,11 @@ Otherwise, return nil."
   "Remove `yank-excluded-properties' between START and END positions.
 Replaces `category' properties with their defined properties."
   (let ((inhibit-read-only t))
-    ;; Replace any `category' property with the properties it stands for.
+    ;; Replace any `category' property with the properties it stands
+    ;; for.  This is to remove `mouse-face' properties that are placed
+    ;; on categories in *Help* buffers' buttons.  See
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2002-04/msg00648.html
+    ;; for the details.
     (unless (memq yank-excluded-properties '(t nil))
       (save-excursion
 	(goto-char start)

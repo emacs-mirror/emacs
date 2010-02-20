@@ -842,7 +842,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
 ;;
 (defgroup data-debug nil
   "data-debug group."
-  :group 'languages)
+  :group 'extensions)
 
 (defvar data-debug-mode-syntax-table
   (let ((table (make-syntax-table (standard-syntax-table))))

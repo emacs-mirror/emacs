@@ -98,8 +98,8 @@
 (defgroup man nil
   "Browse UNIX manual pages."
   :prefix "Man-"
+  :group 'external
   :group 'help)
-
 
 (defvar Man-notify)
 (defcustom Man-filter-list nil
@@ -1087,6 +1087,11 @@ Same for the ANSI bold and normal escape sequences."
     (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
       (replace-match "+")
       (put-text-property (1- (point)) (point) 'face 'bold))
+    ;; When the header is longer than the manpage name, groff tries to
+    ;; condense it to a shorter line interspered with ^H.  Remove ^H with
+    ;; their preceding chars (but don't put Man-overstrike-face).  (Bug#5566)
+    (goto-char (point-min))
+    (while (re-search-forward ".\b" nil t) (backward-delete-char 2))
     (goto-char (point-min))
     ;; Try to recognize common forms of cross references.
     (Man-highlight-references)
@@ -1174,6 +1179,11 @@ script would have done them."
 	))
   (goto-char (point-min))
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t) (replace-match "+"))
+  ;; When the header is longer than the manpage name, groff tries to
+  ;; condense it to a shorter line interspered with ^H.  Remove ^H with
+  ;; their preceding chars (but don't put Man-overstrike-face).  (Bug#5566)
+  (goto-char (point-min))
+  (while (re-search-forward ".\b" nil t) (backward-delete-char 2))
   (Man-softhyphen-to-minus)
   (message "%s man page cleaned up" Man-arguments))
 

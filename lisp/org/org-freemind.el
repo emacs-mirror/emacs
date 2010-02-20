@@ -825,13 +825,13 @@ Otherwise give an error say the file exists."
                                      ".mm"))
             (mm-file (read-file-name "Output FreeMind file: " nil nil nil default-mm-file)))
        (list line mm-file))))
-  (when (org-freemind-check-overwrite mm-file (called-interactively-p))
+  (when (org-freemind-check-overwrite mm-file (called-interactively-p 'any))
     (let ((org-buffer (current-buffer))
           (mm-buffer (find-file-noselect mm-file)))
       (org-freemind-write-mm-buffer org-buffer mm-buffer node-line)
       (with-current-buffer mm-buffer
         (basic-save-buffer)
-        (when (called-interactively-p)
+        (when (called-interactively-p 'any)
           (switch-to-buffer-other-window mm-buffer)
           (when (y-or-n-p "Show in FreeMind? ")
             (org-freemind-show buffer-file-name)))))))
@@ -849,13 +849,13 @@ Otherwise give an error say the file exists."
                             ".mm"))
           (mm-file (read-file-name "Output FreeMind file: " nil nil nil default-mm-file)))
      (list org-file mm-file)))
-  (when (org-freemind-check-overwrite mm-file (called-interactively-p))
+  (when (org-freemind-check-overwrite mm-file (called-interactively-p 'any))
     (let ((org-buffer (if org-file (find-file-noselect org-file) (current-buffer)))
           (mm-buffer (find-file-noselect mm-file)))
       (org-freemind-write-mm-buffer org-buffer mm-buffer nil)
       (with-current-buffer mm-buffer
         (basic-save-buffer)
-        (when (called-interactively-p)
+        (when (called-interactively-p 'any)
           (switch-to-buffer-other-window mm-buffer)
           (when (y-or-n-p "Show in FreeMind? ")
             (org-freemind-show buffer-file-name)))))))
@@ -872,7 +872,7 @@ Otherwise give an error say the file exists."
                             "-sparse.mm"))
           (mm-file (read-file-name "Output FreeMind file: " nil nil nil default-mm-file)))
      (list (current-buffer) mm-file)))
-  (when (org-freemind-check-overwrite mm-file (called-interactively-p))
+  (when (org-freemind-check-overwrite mm-file (called-interactively-p 'any))
     (let (org-buffer
           (mm-buffer (find-file-noselect mm-file)))
       (save-window-excursion
@@ -881,7 +881,7 @@ Otherwise give an error say the file exists."
       (org-freemind-write-mm-buffer org-buffer mm-buffer nil)
       (with-current-buffer mm-buffer
         (basic-save-buffer)
-        (when (called-interactively-p)
+        (when (called-interactively-p 'any)
           (switch-to-buffer-other-window mm-buffer)
           (when (y-or-n-p "Show in FreeMind? ")
             (org-freemind-show buffer-file-name)))))))
@@ -1108,7 +1108,7 @@ PATH should be a list of steps, where each step has the form
             (default-org-file (concat (file-name-nondirectory mm-file) ".org"))
             (org-file (read-file-name "Output org-mode file: " nil nil nil default-org-file)))
        (list mm-file org-file))))
-  (when (org-freemind-check-overwrite org-file (called-interactively-p))
+  (when (org-freemind-check-overwrite org-file (called-interactively-p 'any))
     (let ((mm-buffer (find-file-noselect mm-file))
           (org-buffer (find-file-noselect org-file)))
       (with-current-buffer mm-buffer

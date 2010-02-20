@@ -125,8 +125,8 @@
 (load "case-table")
 (load "international/characters")
 (load "composite")
-;; This file doesn't exist when building Emacs from CVS.  It is
-;; generated just after temacs is build.
+;; This file doesn't exist when building a development version of Emacs
+;; from the repository.  It is generated just after temacs is built.
 (load "international/charprop.el" t)
 
 ;; Load language-specific files.
