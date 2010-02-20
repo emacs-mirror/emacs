@@ -1,3 +1,9 @@
+2010-02-20  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
+	`watcom' anchor regexp to start of line, to avoid slowness
+	(Bug#5599).
+
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (remove-yank-excluded-properties): Explain in a comment
