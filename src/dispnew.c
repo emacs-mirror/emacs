@@ -1543,6 +1543,7 @@ row_equal_p (w, a, b, mouse_face_p)
 	  || a->overlapped_p != b->overlapped_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (a)
 	      != MATRIX_ROW_CONTINUATION_LINE_P (b))
+	  || a->reversed_p != b->reversed_p
 	  /* Different partially visible characters on left margin.  */
 	  || a->x != b->x
 	  /* Different height.  */

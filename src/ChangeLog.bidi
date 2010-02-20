@@ -1,3 +1,13 @@
+2010-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Compare candidate cursor
+	positions only in rows whose buffer positions occlude point.
+	(display_line): Fix computation of row->start and row->end for
+	empty lines.
+
+	* dispnew.c (row_equal_p): Compare the reversed_p attributes as
+	well.
+
 2010-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't overwrite cursor position

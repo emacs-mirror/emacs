@@ -13012,7 +13012,13 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
      rows whose start and end charpos occlude point.  Only set
      w->cursor if we found a better approximation to the cursor
      position than we have from previously examined rows.  */
-  if (w->cursor.vpos >= 0)
+  if (w->cursor.vpos >= 0
+      /* Make sure cursor.vpos specifies a row whose start and end
+	 charpos occlude point.  This is because some callers of this
+	 function leave cursor.vpos at the row where the cursor was
+	 displayed during the last redisplay cycle.  */
+      && MATRIX_ROW_START_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)) <= pt_old
+      && pt_old < MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)))
     {
       struct glyph *g1 =
 	MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
@@ -17597,7 +17603,7 @@ display_line (it)
     row->end = row_end = it->current;
   else
     {
-      EMACS_INT min_pos = ZV, max_pos = BEGV;
+      EMACS_INT min_pos = row->start.pos.charpos, max_pos = 0;
       struct glyph *g;
       struct it save_it;
       struct text_pos tpos;
@@ -17612,24 +17618,40 @@ display_line (it)
 	{
 	  if (BUFFERP (g->object))
 	    {
-	      if (g->charpos < min_pos)
+	      if (g->charpos && g->charpos < min_pos)
 		min_pos = g->charpos;
 	      if (g->charpos > max_pos)
 		max_pos = g->charpos;
 	    }
 	}
-      row->start.pos.charpos = min_pos;
-      row->start.pos.bytepos = CHAR_TO_BYTE (min_pos);
-      /* For ROW->end, we need the display element that is _after_
-	 max_pos, in the logical order.  Note that this may be after
-	 skipping some invisible text.  */
-      save_it = *it;
-      it->bidi_p = 0;
-      SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
-      reseat_1 (it, tpos, 0);
-      set_iterator_to_next (it, 1);
-      row->end = row_end = it->current;
-      *it = save_it;
+      if (min_pos < row->start.pos.charpos)
+	{
+	  row->start.pos.charpos = min_pos;
+	  row->start.pos.bytepos = CHAR_TO_BYTE (min_pos);
+	}
+      if (max_pos == 0)
+	max_pos = min_pos;
+      /* For ROW->end, we need the position that is _after_ max_pos,
+	 in the logical order.  */
+      SET_TEXT_POS (tpos, max_pos + 1, CHAR_TO_BYTE (max_pos + 1));
+      /* If the character at max_pos+1 is a newline, skip that as
+	 well.  Note that this may skip some invisible text.  */
+      if (FETCH_CHAR (tpos.bytepos) == '\n'
+	  || (FETCH_CHAR (tpos.bytepos) == '\r' && it->selective))
+	{
+	  save_it = *it;
+	  it->bidi_p = 0;
+	  reseat_1 (it, tpos, 0);
+	  set_iterator_to_next (it, 1);
+	  row_end = it->current;
+	  *it = save_it;
+	}
+      else
+	{
+	  row_end = it->current;
+	  row_end.pos = tpos;
+	}
+      row->end = row_end;
     }
 
   /* Record whether this row ends inside an ellipsis.  */
