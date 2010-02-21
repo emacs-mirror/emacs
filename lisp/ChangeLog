@@ -1,5 +1,9 @@
 2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (directory-listing-before-filename-regexp): Use
+	stricter matching for iso-style dates, to avoid false matches with
+	date-like filenames (Bug#5597).
+
 	* htmlfontify.el (htmlfontify): Doc fix.
 
 	* eshell/eshell.el (eshell): Doc fix.
