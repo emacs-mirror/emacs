@@ -5004,8 +5004,9 @@ Scheme_functions (inf)
       if (strneq (bp, "(def", 4) || strneq (bp, "(DEF", 4))
 	{
 	  bp = skip_non_spaces (bp+4);
-	  /* Skip over open parens and white space */
-	  while (notinname (*bp))
+	  /* Skip over open parens and white space.  Don't continue past
+	     '\0'. */
+	  while (*bp && notinname (*bp))
 	    bp++;
 	  get_tag (bp, NULL);
 	}

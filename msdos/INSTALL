@@ -5,8 +5,9 @@ Copyright (C) 1992, 1994, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
 See the end of the file for license conditions.
 
 The DJGPP port of GNU Emacs builds and runs on plain DOS and also on
-all versions of MS-Windows from version 3.X on, including Windows XP
-and Vista.
+all versions of MS-Windows from version 3.X on, including Windows XP,
+Vista, and Windows 7 (however, see below for issues with Windows Vista
+and 7).
 
 To build and install the DJGPP port, you need to have the DJGPP ports
 of GCC (the GNU C compiler), GNU Make, rm, mv, and sed.  See the
@@ -19,28 +20,25 @@ will refuse to continue if any of them isn't found.
 Bootstrapping Emacs or recompiling Lisp files in the `lisp'
 subdirectory using the various targets in the lisp/Makefile file
 requires additional utilities: `find' (from Findutils), GNU `echo' and
-`test' (from Sh-utils), `ls' and `chmod' (from Fileutils), `grep'
-(from Grep), and a port of Bash.  However, you should not normally
-need to run lisp/Makefile, as all the Lisp files are distributed in
-byte-compiled form as well.  As for bootstrapping, you will only need
-that if you check-out development sources from the Emacs source
-repository.  (Note: If you are checking out of CVS, use the -kb option
-of the `checkout' and `update' commands, to preserve the original
-Unix-style EOL format of the files.  If some files are converted to
-DOS EOL format by the default operation of CVS, the build might fail.)
+`test' (from Sh-utils or Coreutils), `ls' and `chmod' (from Fileutils
+or Coreutils), `grep' (from Grep), and a port of Bash.  However, you
+should not normally need to run lisp/Makefile, as all the Lisp files
+are distributed in byte-compiled form as well.  As for bootstrapping
+itself, you will only need that if you check-out development sources
+from the Emacs source repository.
 
 If you are building the DJGPP version of Emacs on a DOS-like system
 which supports long file names (e.g. Windows 9X or Windows XP), you
 need to make sure that long file names are handled consistently both
-when you unpack the distribution and compile it.  If you intend to
-compile with DJGPP v2.0 or later, and long file names support is
-enabled (LFN=y in the environment), you need to unpack Emacs
-distribution in a way that doesn't truncate the original long
+when you unpack the distribution and compile it.  With DJGPP v2.0 or
+later, long file names support is by default, so you need to unpack
+Emacs distribution in a way that doesn't truncate the original long
 filenames to the DOS 8.3 namespace; the easiest way to do this is to
-use djtar program which comes with DJGPP, since it will note the LFN
-setting and behave accordingly.  You can build Emacs with LFN=n, if
-some of your tools don't support long file names: just ensure that LFN
-is set to `n' during both unpacking and compiling.
+use djtar program which comes with DJGPP, since it will behave
+consistently with the rest of DJGPP tools.  Alternatively, you can
+build Emacs with LFN=n, if some of your tools don't support long file
+names: just ensure that LFN is set to `n' during both unpacking and
+compiling.
 
 (By the time you read this, you have already unpacked the Emacs
 distribution, but if the explanations above imply that you should have
@@ -100,14 +98,14 @@ rerun CONFIG.BAT.  If you have neither ECHO.EXE nor DJECHO.EXE, you
 should be able to find them in your djdevNNN.zip archive (where NNN is
 the DJGPP version number).
 
-On Windows NT, Windows 2000/XP/Vista, running "config msdos" might
-print an error message like "VDM has been already loaded".  This is
-because those systems have a program called `redir.exe' which is
+On Windows NT and Windows 2000/XP/Vista/7, running "config msdos"
+might print an error message like "VDM has been already loaded".  This
+is because those systems have a program called `redir.exe' which is
 incompatible with a program by the same name supplied with DJGPP,
 which is used by config.bat.  To resolve this, move the DJGPP's `bin'
 subdirectory to the front of your PATH environment variable.
 
-Windows Vista has several bugs in its DPMI server related to memory
+Windows Vista/7 has several bugs in its DPMI server related to memory
 allocation: it fails DPMI resize memory block function, and it
 arbitrarily limits the default amount of DPMI memory to 32MB.  To work
 around these bugs, first configure Emacs to use the `malloc' function
@@ -117,8 +115,8 @@ from the DJGPP library.  To this end, run CONFIG.BAT with the
     config --with-system-malloc msdos
     make install
 
-In addition, you'll need to install Service Pack 1 (SP1) or later to
-Windows Vista and enlarge its DPMI memory limit by setting the value
+In addition, for Windows Vista you'll need to install Service Pack 1
+(SP1) or later and enlarge its DPMI memory limit by setting the value
 of this Registry key:
 
   HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Wow\DpmiLimit
@@ -164,8 +162,8 @@ the location of the `info' directory).
 
 Emacs features which require asynchronous subprocesses that depend on
 multitasking do not work in the DJGPP port.  Synchronous subprocesses
-do work, so features such as compilation and grep run synchronously,
-unlike opn other platforms.
+do work, so features such as compilation, grep, and Ispell run
+synchronously, unlike on other platforms.
 
 Version 2.0 of djgpp has two bugs that affect Emacs.  We've included
 corrected versions of two files from djgpp in the msdos subdirectory:

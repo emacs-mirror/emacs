@@ -1,3 +1,8 @@
+2010-02-20  Kevin Ryde  <user42@zip.com.au>
+
+	* etags.c (Scheme_functions): Don't loop past a null character
+	(Bug#5601).
+
 2010-01-29  Kester Habermann  <kester@linuxtag.org>  (tiny change)
 
 	* etags.c (Fortran_functions): Handle recursive keyword
