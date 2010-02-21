@@ -1,3 +1,7 @@
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/arm.h: Define the LIB_GCC flag to be -lgcc_s (Bug#5518).
+
 2010-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (fatal): Add a final \n if needed (bug#5596).
