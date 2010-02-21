@@ -1,3 +1,8 @@
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-about-screen): In mode-line, apply
+	mode-line-buffer-id face only to the buffer name (Bug#5613).
+
 2010-02-20  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
