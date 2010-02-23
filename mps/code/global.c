@@ -651,7 +651,9 @@ void ArenaPoll(Globals globals)
 {
   Arena arena;
   Clock start;
+  Count quanta;
   Size tracedSize;
+  double nextPollThreshold = 0.0;
 
   AVERT(Globals, globals);
 
@@ -665,27 +667,31 @@ void ArenaPoll(Globals globals)
   globals->insidePoll = TRUE;
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
-  /* [Experimental code; RHSK 2010-02-12.  No consideration of */
-  /* efficiency: many calls to ClockNow(), and continued calls to */
-  /* TracePoll even when it has reported that it has no work to do.] */
   arena = GlobalsArena(globals);
-  do {
-    start = ClockNow();
-
+  start = ClockNow();
+  quanta = 0;
+  while(globals->pollThreshold <= globals->fillMutatorSize) {
     tracedSize = TracePoll(globals);
 
-    if(tracedSize > 0) {
-      /* Record the work done. */
+    if(tracedSize == 0) {
+      /* No work to do.  Sleep until NOW + a bit. */
+      nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
+    } else {
+      /* We did one quantum of work; consume one unit of 'time'. */
+      quanta += 1;
       arena->tracedSize += tracedSize;
-      arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+      nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
     }
 
-    /* Increment pollThreshold; check: enough precision? */
-    AVER(globals->pollThreshold
-         < globals->pollThreshold + ArenaPollALLOCTIME);
-    globals->pollThreshold += ArenaPollALLOCTIME;
+    /* Advance pollThreshold; check: enough precision? */
+    AVER(nextPollThreshold > globals->pollThreshold);
+    globals->pollThreshold = nextPollThreshold;
+  }
 
-  } while (globals->pollThreshold <= globals->fillMutatorSize);
+  /* Don't count time spent checking for work, if there was no work to do. */
+  if(quanta > 0) {
+    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+  }
 
   AVER(globals->fillMutatorSize < globals->pollThreshold);
 
