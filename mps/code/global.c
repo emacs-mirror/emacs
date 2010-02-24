@@ -657,6 +657,8 @@ void ArenaPoll(Globals globals)
 
   AVERT(Globals, globals);
 
+  if (globals->clamped)
+    return;
   if (globals->insidePoll)
     return;
   if(globals->fillMutatorSize < globals->pollThreshold)
@@ -713,9 +715,8 @@ static Bool arenaShouldCollectWorld(Arena arena,
 
   /* don't collect the world if we're not given any time */
   if ((interval > 0.0) && (multiplier > 0.0)) {
-    /* don't collect the world if we're clamped or busy. */
-    if (!ArenaGlobals(arena)->clamped
-        && arena->busyTraces == TraceSetEMPTY) {
+    /* don't collect the world if we're already collecting. */
+    if (arena->busyTraces == TraceSetEMPTY) {
       /* don't collect the world if it's very small */
       arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
       if (arenaSize > 1000000) {
@@ -745,6 +746,7 @@ static Bool arenaShouldCollectWorld(Arena arena,
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
+  double size;
   Size scanned;
   Bool stepped;
   Clock start, end, now;
@@ -785,6 +787,10 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   if (stepped) {
     arena->tracedTime += (now - start) / (double) clocks_per_sec;
   }
+
+  size = globals->fillMutatorSize;
+  globals->pollThreshold = size + ArenaPollALLOCTIME;
+  AVER(globals->pollThreshold > size); /* enough precision? */
 
   return stepped;
 }
