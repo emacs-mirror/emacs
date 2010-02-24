@@ -4684,17 +4684,17 @@ to find out how to use this."
 
 (defun message-smtpmail-send-it ()
   "Send the prepared message buffer with `smtpmail-send-it'.
-This only differs from `smtpmail-send-it' that this command evaluates
-`message-send-mail-hook' just before sending a message.  It is useful
-if your ISP requires the POP-before-SMTP authentication.  See the Gnus
-manual for details."
+The only difference from `smtpmail-send-it' is that this command
+evaluates `message-send-mail-hook' just before sending a message.
+It is useful if your ISP requires the POP-before-SMTP
+authentication.  See the Gnus manual for details."
   (run-hooks 'message-send-mail-hook)
   (smtpmail-send-it))
 
 (defun message-send-mail-with-mailclient ()
   "Send the prepared message buffer with `mailclient-send-it'.
-This only differs from `smtpmail-send-it' that this command evaluates
-`message-send-mail-hook' just before sending a message."
+The only difference from `mailclient-send-it' is that this
+command evaluates `message-send-mail-hook' just before sending a message."
   (run-hooks 'message-send-mail-hook)
   (mailclient-send-it))
 

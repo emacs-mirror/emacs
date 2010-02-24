@@ -450,7 +450,7 @@ idle timer to be restarted.
 
 ** Investigate performance on large files all on one line.
 
-* CVS emacs issues
+* Issues for Emacs versions >= 22
 
 ** Take advantage of UTF-8 CJK support.
 

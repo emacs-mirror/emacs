@@ -622,18 +622,24 @@ terminal.
 Delete all frames except the selected one.
 @end table
 
+  The @kbd{C-x 5 0} (@code{delete-frame}) command will never delete
+the last frame, to prevent you from losing the ability to interact
+with the Emacs process.  Note that when Emacs is run as a daemon
+(@pxref{Emacs Server}), there is always a ``virtual frame'' that
+remains after all the ordinary, interactive frames are deleted.  In
+this case, @kbd{C-x 5 0} can delete the last interactive frame; you
+can use @command{emacsclient} to reconnect to the Emacs session.
+
 @vindex focus-follows-mouse
-  To make the command @kbd{C-x 5 o} work properly, you should tell
-Emacs how the system (or the window manager) handles focus-switching
-between windows.  There are two possibilities: either simply moving
-the mouse onto a window selects it (gives it focus), or you have to
-click on it to do so.  On X, this focus policy also affects whether
-the focus is given to a frame that Emacs raises.  Unfortunately there
-is no way Emacs can find out automatically which way the system
-handles this, so you have to explicitly say, by setting the variable
-@code{focus-follows-mouse}.  If just moving the mouse onto a window
-selects it, that variable should be @code{t}; if a click is necessary,
-the variable should be @code{nil}.  The default is @code{t}.
+  On X, you may have to tell Emacs how the system (or the window
+manager) handles focus-switching between windows, in order for the
+command @kbd{C-x 5 o} (@code{other-frame}) to work properly.
+Unfortunately, there is no way for Emacs to detect this automatically,
+so you should set the variable @code{focus-follows-mouse}.  If simply
+moving the mouse onto a window selects it and gives it focus, the
+variable should be @code{t}; if you have to click on the window to
+select it, the variable should be @code{nil}.  The default is
+@code{t}.
 
   The window manager that is part of MS-Windows always gives focus to
 a frame that raises, so this variable has no effect in the native

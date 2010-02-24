@@ -1,3 +1,29 @@
+2010-02-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Protect
+	setting the modes by `ignore-errors'.  It might fail, for example
+	if the file is not owned by the user but the group.
+	(tramp-handle-write-region): Ensure, that `tmpfile' is always readable.
+
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (directory-listing-before-filename-regexp): Use
+	stricter matching for iso-style dates, to avoid false matches with
+	date-like filenames (Bug#5597).
+
+	* htmlfontify.el (htmlfontify): Doc fix.
+
+	* eshell/eshell.el (eshell): Doc fix.
+
+	* startup.el (fancy-about-screen): In mode-line, apply
+	mode-line-buffer-id face only to the buffer name (Bug#5613).
+
+2010-02-20  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
+	`watcom' anchor regexp to start of line, to avoid slowness
+	(Bug#5599).
+
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (remove-yank-excluded-properties): Explain in a comment
