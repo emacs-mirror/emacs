@@ -1,3 +1,8 @@
+2010-02-24  Eduard Wiebe  <usenet@pusto.de>
+
+	* javascript.el (wisent-javascript-jv-expand-tag): Avoid c(ad)ddr
+	and use c(ad)r of cddr (Bug#5640).
+
 2010-02-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Protect
