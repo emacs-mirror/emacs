@@ -3019,13 +3019,14 @@ XTflash (f)
     /* Use Gdk routines to draw.  This way, we won't draw over scroll bars
        when the scroll bars and the edit widget share the same X window.  */
     GdkGCValues vals;
+    GdkGC *gc;
     vals.foreground.pixel = (FRAME_FOREGROUND_PIXEL (f)
                              ^ FRAME_BACKGROUND_PIXEL (f));
     vals.function = GDK_XOR;
-    GdkGC *gc = gdk_gc_new_with_values (FRAME_GTK_WIDGET (f)->window,
-                                        &vals,
-                                        GDK_GC_FUNCTION
-                                        | GDK_GC_FOREGROUND);
+    gc = gdk_gc_new_with_values (FRAME_GTK_WIDGET (f)->window,
+                                 &vals,
+                                 GDK_GC_FUNCTION
+                                 | GDK_GC_FOREGROUND);
 #define XFillRectangle(d, win, gc, x, y, w, h) \
     gdk_draw_rectangle (FRAME_GTK_WIDGET (f)->window, \
                         gc, TRUE, x, y, w, h)

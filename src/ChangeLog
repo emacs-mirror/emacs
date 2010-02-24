@@ -1,3 +1,14 @@
+2010-02-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTflash): Move declarations before statements.
+
+	* gtkutil.c (xg_get_gdk_display): Remove (unused).
+	(xg_get_pixbuf_from_pix_and_mask, xg_create_frame_widgets)
+	(xg_toggle_notify_cb, xg_set_toolkit_scroll_bar_thumb)
+	(xg_create_tool_bar): Remove unused variables.
+	(x_wm_set_size_hint): Move declarations before statements.
+	(xg_create_frame_widgets): Remove variable grav,
+
 2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* m/arm.h: Define the LIB_GCC flag to be -lgcc_s (Bug#5518).
