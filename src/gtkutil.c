@@ -58,15 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static GdkDisplay *gdpy_def;
 
-/* Return the GdkDisplay that corresponds to the X display DPY.  */
-
-static GdkDisplay *
-xg_get_gdk_display (dpy)
-     Display *dpy;
-{
-  return gdk_x11_lookup_xdisplay (dpy);
-}
-
 /* When the GTK widget W is to be created on a display for F that
    is not the default display, set the display for W.
    W can be a GtkMenu or a GtkWindow widget.  */
@@ -252,10 +243,8 @@ xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap)
      GdkPixmap *gmask;
      GdkColormap *cmap;
 {
-  int x, y, width, height, rowstride, mask_rowstride;
+  int width, height;
   GdkPixbuf *icon_buf, *tmp_buf;
-  guchar *pixels;
-  guchar *mask_pixels;
 
   gdk_drawable_get_size (gpix, &width, &height);
   tmp_buf = gdk_pixbuf_get_from_drawable (NULL, gpix, cmap,
@@ -776,7 +765,6 @@ xg_create_frame_widgets (f)
   GtkWidget *wfixed;
   GdkColor bg;
   GtkRcStyle *style;
-  int i;
   char *title = 0;
 
   BLOCK_INPUT;
@@ -844,8 +832,8 @@ xg_create_frame_widgets (f)
      and specify it.
      GTK will itself handle calculating the real position this way.  */
   xg_set_geometry (f);
-  int grav = gtk_window_get_gravity (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-  f->win_gravity = grav;
+  f->win_gravity
+    = gtk_window_get_gravity (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 
   gtk_widget_add_events (wfixed,
                          GDK_POINTER_MOTION_MASK
@@ -901,12 +889,6 @@ x_wm_set_size_hint (f, flags, user_position)
      long flags;
      int user_position;
 {
-  /* Don't set size hints during initialization; that apparently leads
-     to a race condition.  See the thread at
-     http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html  */
-  if (NILP (Vafter_init_time) || !FRAME_GTK_OUTER_WIDGET (f))
-    return;
-
   /* Must use GTK routines here, otherwise GTK resets the size hints
      to its own defaults.  */
   GdkGeometry size_hints;
@@ -914,6 +896,12 @@ x_wm_set_size_hint (f, flags, user_position)
   int base_width, base_height;
   int min_rows = 0, min_cols = 0;
   int win_gravity = f->win_gravity;
+
+  /* Don't set size hints during initialization; that apparently leads
+     to a race condition.  See the thread at
+     http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html  */
+  if (NILP (Vafter_init_time) || !FRAME_GTK_OUTER_WIDGET (f))
+    return;
 
   if (flags)
     {
@@ -1391,7 +1379,6 @@ xg_toggle_notify_cb (gobject, arg1, user_data)
 
   if (strcmp (arg1->name, "show-hidden") == 0)
     {
-      GtkFileChooser *dialog = GTK_FILE_CHOOSER (gobject);
       GtkWidget *wtoggle = GTK_WIDGET (user_data);
       gboolean visible, toggle_on;
 
@@ -3347,8 +3334,6 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 
       if (changed || (int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
-        GtkWidget *wfixed = f->output_data.x->edit_widget;
-
         BLOCK_INPUT;
 
         /* gtk_range_set_value invokes the callback.  Set
@@ -3801,7 +3786,6 @@ xg_create_tool_bar (f)
      FRAME_PTR f;
 {
   struct x_output *x = f->output_data.x;
-  GtkRequisition req;
 
   x->toolbar_widget = gtk_toolbar_new ();
   x->toolbar_detached = 0;
