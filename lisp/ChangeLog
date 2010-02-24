@@ -1,3 +1,8 @@
+2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-filter): For eval forms, also
+	check safe-local-variable-p (Bug#5636).
+
 2010-02-24  Eduard Wiebe  <usenet@pusto.de>
 
 	* javascript.el (wisent-javascript-jv-expand-tag): Avoid c(ad)ddr
