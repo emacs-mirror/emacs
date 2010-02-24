@@ -1,3 +1,16 @@
+2010-02-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar-testsuite.el
+	(icalendar-testsuite--run-function-tests): Added new tests.
+	(icalendar-testsuite--test-diarytime-to-isotime): Added another
+	testcase.
+	(icalendar-testsuite--test-convert-ordinary-to-ical): New.
+	(icalendar-testsuite--test-convert-weekly-to-ical): New.
+	(icalendar-testsuite--test-convert-yearly-to-ical): New.
+	(icalendar-testsuite--test-convert-block-to-ical): New.
+	(icalendar-testsuite--test-convert-cyclic-to-ical): New.
+	(icalendar-testsuite--test-convert-anniversary-to-ical): New.
+
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/semantic-tests.el (semanticdb-test-gnu-global)

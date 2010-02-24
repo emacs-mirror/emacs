@@ -1,3 +1,59 @@
+2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-filter): For eval forms, also
+	check safe-local-variable-p (Bug#5636).
+
+2010-02-24  Eduard Wiebe  <usenet@pusto.de>
+
+	* javascript.el (wisent-javascript-jv-expand-tag): Avoid c(ad)ddr
+	and use c(ad)r of cddr (Bug#5640).
+
+2010-02-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Protect
+	setting the modes by `ignore-errors'.  It might fail, for example
+	if the file is not owned by the user but the group.
+	(tramp-handle-write-region): Ensure, that `tmpfile' is always readable.
+
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (directory-listing-before-filename-regexp): Use
+	stricter matching for iso-style dates, to avoid false matches with
+	date-like filenames (Bug#5597).
+
+	* htmlfontify.el (htmlfontify): Doc fix.
+
+	* eshell/eshell.el (eshell): Doc fix.
+
+	* startup.el (fancy-about-screen): In mode-line, apply
+	mode-line-buffer-id face only to the buffer name (Bug#5613).
+
+2010-02-20  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
+	`watcom' anchor regexp to start of line, to avoid slowness
+	(Bug#5599).
+
+2010-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (remove-yank-excluded-properties): Explain in a comment
+	why `category' property is removed.
+
+2010-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-update-post-hook, isearch-update): Revert
+	2010-02-17 change.
+
+2010-02-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical)
+	(icalendar--convert-yearly-to-ical)
+	(icalendar--convert-block-to-ical)
+	(icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical): Take care of time
+	specifications where hour has 1-digit only (Bug#5549).
+
 2010-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-assembler-handler): Accommodate change

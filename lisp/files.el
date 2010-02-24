@@ -2981,6 +2981,7 @@ DIR-NAME is a directory name if these settings come from
 		 (push elt all-vars)
 		 (or (eq enable-local-eval t)
 		     (hack-one-local-variable-eval-safep (eval (quote val)))
+		     (safe-local-variable-p var val)
 		     (push elt unsafe-vars))))
 	      ;; Ignore duplicates (except `mode') in the present list.
 	      ((and (assq var all-vars) (not (eq var 'mode))) nil)
@@ -5592,8 +5593,10 @@ program specified by `directory-free-space-program' if that is non-nil."
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
 
 	 ;; The "[BkKMGTPEZY]?" below supports "ls -alh" output.
-	 ;; The ".*" below finds the last match if there are multiple matches.
-	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
+
+	 ;; For non-iso date formats, we add the ".*" in order to find
+	 ;; the last possible match.  This avoids recognizing
+	 ;; `jservice 10 1024' as a date in the line:
 	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
 
          ;; vc dired listings provide the state or blanks between file
@@ -5601,9 +5604,10 @@ program specified by `directory-free-space-program' if that is non-nil."
          ;; parantheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
-    (purecopy (concat ".*[0-9][BkKMGTPEZY]?" s
-	    "\\(" western "\\|" western-comma "\\|" east-asian "\\|" iso "\\)"
-	    s "+")))
+    (purecopy (concat "\\([0-9][BkKMGTPEZY]? " iso
+		      "\\|.*[0-9][BkKMGTPEZY]? "
+		      "\\(" western "\\|" western-comma "\\|" east-asian "\\)"
+		      "\\) +")))
   "Regular expression to match up to the file name in a directory listing.
 The default value is designed to recognize dates and times
 regardless of the language.")

@@ -2257,8 +2257,8 @@ struct it
       && ((IT)->c == '\n'				\
 	  || ((IT)->c == '\r' && (IT)->selective)))
 
-/* Call produce_glyphs or produce_glyphs_hook, if set.  Shortcut to
-   avoid the function call overhead.  */
+/* Call produce_glyphs or FRAME_RIF->produce_glyphs, if set.  Shortcut
+   to avoid the function call overhead.  */
 
 #define PRODUCE_GLYPHS(IT)                              \
   do {                                                  \
