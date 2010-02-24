@@ -531,6 +531,8 @@ static void traceFlip(Trace trace)
   AVER(trace->state == TraceUNFLIPPED);
   AVER(!TraceSetIsMember(arena->flippedTraces, trace));
 
+  AVER(ArenaGlobals(arena)->clamped == FALSE);  /* clamped => no flip */
+
   EVENT_PP(TraceFlipBegin, trace, arena);
 
   traceFlipBuffers(ArenaGlobals(arena));
@@ -1772,7 +1774,7 @@ Size TracePoll(Globals globals)
   arena = GlobalsArena(globals);
 
   scannedSize = (Size)0;
-  if(arena->busyTraces == TraceSetEMPTY) {
+  if(!globals->clamped && arena->busyTraces == TraceSetEMPTY) {
     /* If no traces are going on, see if we need to start one. */
     Size sFoundation, sCondemned, sSurvivors, sConsTrace;
     double tTracePerScan; /* tTrace/cScan */
