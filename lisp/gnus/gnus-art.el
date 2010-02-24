@@ -1422,8 +1422,12 @@ predicate.  See Info node `(gnus)Customizing Articles'."
        (gnus-image-type-available-p 'xbm)
        (if (featurep 'xemacs)
 	   (featurep 'xface)
-	 (and (string-match "^0x" (shell-command-to-string "uncompface"))
-	      (executable-find "icontopbm")))
+	 (condition-case nil
+             (and (string-match "^0x" (shell-command-to-string "uncompface"))
+                  (executable-find "icontopbm"))
+           ;; shell-command-to-string may signal an error, e.g. if
+           ;; shell-file-name is not found.
+           (error nil)))
        'head)
   "Display X-Face headers.
 Valid values are nil and `head'.
