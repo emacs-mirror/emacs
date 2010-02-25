@@ -4764,7 +4764,7 @@ the @file{/usr/local/share/emacs/} directory; thus you would use the
 @code{M-x visit-tags-table} command and specify a pathname such as
 @file{/usr/local/share/emacs/22.1.1/lisp/TAGS}.  If the tags table
 has not already been created, you will have to create it yourself.  It
-will in a file such as @file{/usr/local/src/emacs/src/TAGS}.
+will be in a file such as @file{/usr/local/src/emacs/src/TAGS}.
 
 @need 1250
 To create a @file{TAGS} file in a specific directory, switch to that
