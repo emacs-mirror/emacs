@@ -1,3 +1,12 @@
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Frame Commands): Note that the last ordinary frame can
+	be deleted in daemon mode (Bug#5616).
+
+2010-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Contributing): Repository is no longer CVS.
+
 2010-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* buffers.texi (Uniquify): Must explicitly load library.  (Bug#5529)

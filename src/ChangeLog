@@ -1,14 +1,41 @@
+2010-02-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTflash): Move declarations before statements.
+
+	* gtkutil.c (xg_get_gdk_display): Remove (unused).
+	(xg_get_pixbuf_from_pix_and_mask, xg_create_frame_widgets)
+	(xg_toggle_notify_cb, xg_set_toolkit_scroll_bar_thumb)
+	(xg_create_tool_bar): Remove unused variables.
+	(x_wm_set_size_hint): Move declarations before statements.
+	(xg_create_frame_widgets): Remove variable grav,
+
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/arm.h: Define the LIB_GCC flag to be -lgcc_s (Bug#5518).
+
+2010-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c (fatal): Add a final \n if needed (bug#5596).
+
+2010-02-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_ring_bell): Revert last change (Bug#5569).
+
+2010-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* callint.c (Finteractive): Doc fix.
+
 2010-02-18  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
-	* coding.c (record_conversion_result): Handle
-	CODING_RESULT_INSUFFICIENT_DST.
+	* coding.c (record_conversion_result):
+	Handle CODING_RESULT_INSUFFICIENT_DST.
 	(decode_coding_object): Record CODING_RESULT_INSUFFICIENT_MEM on
 	memory allocation error.
 
 2010-02-17  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding_ccl): Don't setup ccl program here.  Fix
-	for the case that the output buffer is fullfilled.
+	* coding.c (decode_coding_ccl): Don't setup ccl program here.
+	Fix for the case that the output buffer is fullfilled.
 	(decode_coding): Setup ccl program here.  Keep looping when the
 	decoder stopped because the output buffer is
 	fullfilled (bug#5534).
@@ -19,7 +46,7 @@
 
 	* xterm.c (x_clear_frame_area): Call gtk_widget_queue_draw if USE_GTK,
 	bug #5571.
-	(XTflash): Use Gdk-routines if USE_GTK so scroll bars doesn't get
+	(XTflash): Use Gdk-routines if USE_GTK so scroll bars don't get
 	overdrawn.
 
 2010-02-10  Jan Djärv  <jan.h.d@swipnet.se>

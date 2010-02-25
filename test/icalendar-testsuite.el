@@ -52,6 +52,12 @@
   (icalendar-testsuite--test-datestring-to-isodate)
   (icalendar-testsuite--test-datetime-to-diary-date)
   (icalendar-testsuite--test-diarytime-to-isotime)
+  (icalendar-testsuite--test-convert-ordinary-to-ical)
+  (icalendar-testsuite--test-convert-weekly-to-ical)
+  (icalendar-testsuite--test-convert-yearly-to-ical)
+  (icalendar-testsuite--test-convert-block-to-ical)
+  (icalendar-testsuite--test-convert-cyclic-to-ical)
+  (icalendar-testsuite--test-convert-anniversary-to-ical)
   (icalendar-testsuite--test-calendar-style)
   (icalendar-testsuite--test-create-uid)
   (icalendar-testsuite--test-parse-vtimezone))
@@ -213,6 +219,12 @@ END:VEVENT
 
 (defun icalendar-testsuite--test-diarytime-to-isotime ()
   "Test method for `icalendar--diarytime-to-isotime'."
+  (assert (string= (icalendar--diarytime-to-isotime "01:15" "")
+                   "T011500"))
+  (assert (string= (icalendar--diarytime-to-isotime "1:15" "")
+                   "T011500"))
+  (assert (string= (icalendar--diarytime-to-isotime "0:01" "")
+                   "T000100"))
   (assert (string= (icalendar--diarytime-to-isotime "0100" "")
                    "T010000"))
   (assert (string= (icalendar--diarytime-to-isotime "0100" "am")
@@ -235,6 +247,106 @@ END:VEVENT
                    "T120100"))
   (assert (string= (icalendar--diarytime-to-isotime "1259" "pm")
                    "T125900")))
+
+(defun icalendar-testsuite--test-convert-ordinary-to-ical ()
+  "Test method for `icalendar--convert-ordinary-to-ical'."
+  (let* ((calendar-date-style 'iso)
+         result)
+    ;; without time
+    (setq result (icalendar--convert-ordinary-to-ical "&?" "2010 2 15 subject"))
+    (assert (= 2 (length result)))
+    (assert (string=  "\nDTSTART;VALUE=DATE:20100215\nDTEND;VALUE=DATE:20100216"
+                      (car result)))
+    (assert (string= "subject" (cadr result)))
+  
+    ;; with time
+    (setq result (icalendar--convert-ordinary-to-ical 
+                  "&?" "&2010 2 15 12:34-23:45 s"))
+    (assert (= 2 (length result)))
+    (assert (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T123400"
+                              "\nDTEND;VALUE=DATE-TIME:20100215T234500")
+                      (car result)))
+    (assert (string= "s" (cadr result)))
+
+    ;; with time, again -- test bug#5549
+    (setq result (icalendar--convert-ordinary-to-ical 
+                  "x?" "x2010 2 15 0:34-1:45 s"))
+    (assert (= 2 (length result)))
+    (assert (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T003400"
+                              "\nDTEND;VALUE=DATE-TIME:20100215T014500")
+                      (car result)))
+    (assert (string= "s" (cadr result)))))
+
+(defun icalendar-testsuite--test-convert-weekly-to-ical ()
+  "Test method for `icalendar--convert-weekly-to-ical'."
+  (let* ((calendar-date-style 'iso)
+         result
+         (calendar-day-name-array
+          ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday"
+           "Saturday"]))
+    (setq result (icalendar--convert-weekly-to-ical "" "Monday 8:30 subject"))
+    (assert (= 2 (length result)))
+    (assert (string= (concat "\nDTSTART;VALUE=DATE-TIME:20050103T083000"
+                             "\nDTEND;VALUE=DATE-TIME:20050103T093000"
+                             "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO")
+                     (car result)))
+    (assert (string= "subject" (cadr result)))))
+
+(defun icalendar-testsuite--test-convert-yearly-to-ical ()
+  "Test method for `icalendar--convert-yearly-to-ical'."
+  (let* ((calendar-date-style 'iso)
+         result
+         (calendar-month-name-array
+          ["January" "February" "March" "April" "May" "June" "July" "August"
+           "September" "October" "November" "December"]))
+    (setq result (icalendar--convert-yearly-to-ical "" "May 1 Tag der Arbeit"))
+    (assert (= 2 (length result)))
+    (assert (string= (concat
+                      "\nDTSTART;VALUE=DATE:19000501"
+                      "\nDTEND;VALUE=DATE:19000502"
+                      "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=5;BYMONTHDAY=1")
+                     (car result)))
+    (assert (string= "Tag der Arbeit" (cadr result)))))
+
+(defun icalendar-testsuite--test-convert-block-to-ical ()
+  "Test method for `icalendar--convert-block-to-ical'."
+  (let* ((calendar-date-style 'iso)
+         result)
+    (setq result (icalendar--convert-block-to-ical 
+                  "" "%%(diary-block 2004 7 19 2004 8 27) Sommerferien"))
+    (assert (= 2 (length result)))
+    (assert (string= (concat
+                      "\nDTSTART;VALUE=DATE:20040719"
+                      "\nDTEND;VALUE=DATE:20040828")
+                     (car result)))
+    (assert (string= "Sommerferien" (cadr result)))))
+
+(defun icalendar-testsuite--test-convert-cyclic-to-ical ()
+  "Test method for `icalendar--convert-cyclic-to-ical'."
+  (let* ((calendar-date-style 'iso)
+         result)
+    (setq result (icalendar--convert-block-to-ical 
+                  "" "%%(diary-block 2004 7 19 2004 8 27) Sommerferien"))
+    (assert (= 2 (length result)))
+    (assert (string= (concat
+                      "\nDTSTART;VALUE=DATE:20040719"
+                      "\nDTEND;VALUE=DATE:20040828")
+                     (car result)))
+    (assert (string= "Sommerferien" (cadr result)))))
+
+(defun icalendar-testsuite--test-convert-anniversary-to-ical ()
+  "Test method for `icalendar--convert-anniversary-to-ical'."
+  (let* ((calendar-date-style 'iso)
+         result)
+    (setq result (icalendar--convert-anniversary-to-ical 
+                  "" "%%(diary-anniversary 1964 6 30) g"))
+    (assert (= 2 (length result)))
+    (assert (string= (concat
+                      "\nDTSTART;VALUE=DATE:19640630"
+                      "\nDTEND;VALUE=DATE:19640701"
+                      "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=06;BYMONTHDAY=30")
+                     (car result)))
+    (assert (string= "g" (cadr result)))))
 
 (defun icalendar-testsuite--test-calendar-style ()
   "Test method for `icalendar--date-style'."

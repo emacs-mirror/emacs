@@ -1,3 +1,8 @@
+2010-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Remove a CVS-specific note.  Update for latest versions
+	of Windows.
+
 2009-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (OTHER_FILES): Edit to empty.

@@ -1022,7 +1022,7 @@ you have not yet started work, it is useful to contact
 possible to suggest ways to make your extension fit in better with the
 rest of Emacs.
 
-The development version of Emacs can be downloaded from the CVS
+The development version of Emacs can be downloaded from the
 repository where it is actively maintained by a group of developers.
 See the Emacs project page
 @url{http://savannah.gnu.org/projects/emacs/} for details.
