@@ -1,3 +1,13 @@
+2010-02-25  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-clear-<-pair-props)
+	(c-clear->-pair-props): Correct to wipe category text props, not
+	syntax-table ones.
+
+	* progmodes/cc-mode.el (c-after-change): Remove any hard
+	syntax-table properties for <, > which, e.g., C-y has
+	inopportunely converted from category properties.
+
 2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (hack-local-variables-filter): For eval forms, also
