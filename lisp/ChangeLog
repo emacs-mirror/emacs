@@ -1,3 +1,14 @@
+2010-02-26  Kenichi Handa  <handa@m17n.org>
+
+	* language/burmese.el: Fix entries in composition-function-table.
+	(myanmar-composable-pattern): New variable.
+
+	* international/fontset.el (setup-default-fontset): Add an entry
+	for myanmar.
+
+	* international/characters.el (script-list): Add Myanmar
+	Extended-A.
+
 2010-02-25  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-clear-<-pair-props)

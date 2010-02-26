@@ -1,5 +1,7 @@
 2010-02-26  Kenichi Handa  <handa@m17n.org>
 
+	* ftfont.c (ftfont_get_open_type_spec): Fix parsing of otf_spec.
+
 	* xdisp.c (reseat_to_string): Fix previous change.
 
 2010-02-26  David Reitter  <david.reitter@gmail.com>
