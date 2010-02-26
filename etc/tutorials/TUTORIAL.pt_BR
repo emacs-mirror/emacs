@@ -356,7 +356,7 @@ Emacs e corrigir os erros. Você pode remover palavras ou linhas
 também. Aqui vai um sumário dos comandos de deleção:
 
         <Delete>     remove o caractere imediatamente antes do cursor
-        M-d          remove o próximo caractere apos o cursor
+        C-d          remove o próximo caractere apos o cursor
 
         M-<Delete>   Mata a palavra imediatamente antes do cursor
         M-d          Mata a próxima palavra depois do cursor
