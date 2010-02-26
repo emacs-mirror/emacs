@@ -642,11 +642,9 @@ compatible with old code; callers should always specify it."
     (widen)
     (save-excursion
       (if c-get-state-before-change-functions
-	  (let ((beg (point-min))
-		(end (point-max)))
-	    (mapc (lambda (fn)
-		    (funcall fn beg end))
-		  c-get-state-before-change-functions)))
+	  (mapc (lambda (fn)
+		  (funcall fn (point-min) (point-max)))
+		c-get-state-before-change-functions))
       (if c-before-font-lock-function
 	  (funcall c-before-font-lock-function (point-min) (point-max)
 		   (- (point-max) (point-min))))))
@@ -1041,6 +1039,14 @@ Note that the style variables are always made local to the buffer."
 	  (setq end (point-max))
 	  (when (> beg end)
 	    (setq beg end)))
+
+	;; C-y is capable of spuriously converting category properties
+	;; c-</>-as-paren-syntax into hard syntax-table properties.  Remove
+	;; these when it happens.
+	(c-clear-char-property-with-value beg end 'syntax-table
+					  c-<-as-paren-syntax)
+	(c-clear-char-property-with-value beg end 'syntax-table
+					  c->-as-paren-syntax)
 
 	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
 	(c-invalidate-sws-region-after beg end)

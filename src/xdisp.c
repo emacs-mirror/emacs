@@ -5610,8 +5610,13 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
 
   it->stop_charpos = charpos;
   if (s == NULL && it->multibyte_p)
-    composition_compute_stop_pos (&it->cmp_it, charpos, -1, it->end_charpos,
-				  it->string);
+    {
+      EMACS_INT endpos = SCHARS (it->string);
+      if (endpos > it->end_charpos)
+	endpos = it->end_charpos;
+      composition_compute_stop_pos (&it->cmp_it, charpos, -1, endpos,
+				    it->string);
+    }
   CHECK_IT (it);
 }
 

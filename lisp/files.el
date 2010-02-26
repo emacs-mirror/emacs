@@ -2981,6 +2981,7 @@ DIR-NAME is a directory name if these settings come from
 		 (push elt all-vars)
 		 (or (eq enable-local-eval t)
 		     (hack-one-local-variable-eval-safep (eval (quote val)))
+		     (safe-local-variable-p var val)
 		     (push elt unsafe-vars))))
 	      ;; Ignore duplicates (except `mode') in the present list.
 	      ((and (assq var all-vars) (not (eq var 'mode))) nil)

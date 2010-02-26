@@ -1,3 +1,29 @@
+2010-02-26  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_get_open_type_spec): Fix parsing of otf_spec.
+
+	* xdisp.c (reseat_to_string): Fix previous change.
+
+2010-02-26  David Reitter  <david.reitter@gmail.com>
+
+	* nsfont.m (nsfont_draw): ns_antialias_text should be a
+	Lisp_Object (Bug#4736).
+
+2010-02-25  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (reseat_to_string): Fix previous change (bug#5609).
+
+2010-02-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTflash): Move declarations before statements.
+
+	* gtkutil.c (xg_get_gdk_display): Remove (unused).
+	(xg_get_pixbuf_from_pix_and_mask, xg_create_frame_widgets)
+	(xg_toggle_notify_cb, xg_set_toolkit_scroll_bar_thumb)
+	(xg_create_tool_bar): Remove unused variables.
+	(x_wm_set_size_hint): Move declarations before statements.
+	(xg_create_frame_widgets): Remove variable grav,
+
 2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* m/arm.h: Define the LIB_GCC flag to be -lgcc_s (Bug#5518).
