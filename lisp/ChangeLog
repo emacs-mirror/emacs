@@ -1,5 +1,7 @@
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
+	* custom.el (custom-initialize-delay): Doc fix.
+
 	* mail/sendmail.el (send-mail-function): Autoload the call
 	to custom-initialize-delay, not otherwise preserved in loaddefs.el.
 
