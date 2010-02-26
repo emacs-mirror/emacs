@@ -663,19 +663,19 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
   else
     spec->script_tag = 0x44464C54; 	/* "DFLT" */
   otf_spec = XCDR (otf_spec);
-  val = XCAR (otf_spec);
-  if (! NILP (val))
-    OTF_SYM_TAG (val, spec->langsys_tag);
-  else
-    spec->langsys_tag = 0;
+  spec->langsys_tag = 0;
+  if (! NILP (otf_spec))
+    {
+      val = XCAR (otf_spec);
+      if (! NILP (val))
+	OTF_SYM_TAG (val, spec->langsys_tag);
+      otf_spec = XCDR (otf_spec);
+    }
   spec->nfeatures[0] = spec->nfeatures[1] = 0;
-  for (i = 0; i < 2; i++)
+  for (i = 0; i < 2 && ! NILP (otf_spec); i++, otf_spec = XCDR (otf_spec))
     {
       Lisp_Object len;
 
-      otf_spec = XCDR (otf_spec);
-      if (NILP (otf_spec))
-	break;
       val = XCAR (otf_spec);
       if (NILP (val))
 	continue;
