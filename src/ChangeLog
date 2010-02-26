@@ -1,3 +1,7 @@
+2010-02-26  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (reseat_to_string): Fix previous change.
+
 2010-02-26  David Reitter  <david.reitter@gmail.com>
 
 	* nsfont.m (nsfont_draw): ns_antialias_text should be a
