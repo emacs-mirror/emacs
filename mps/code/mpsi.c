@@ -550,7 +550,7 @@ mps_bool_t mps_addr_fmt(mps_fmt_t *mps_fmt_o,
 {
     Bool b;
     Pool pool;
-    Format format;
+    Format format = 0;
     Arena arena = (Arena)mps_arena;
 
     AVER(mps_fmt_o != NULL);
