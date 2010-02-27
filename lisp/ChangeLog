@@ -1,11 +1,17 @@
+2010-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix in-buffer completion when after-change-functions modify the buffer.
+	* minibuffer.el (completion--replace): New function.
+	(completion--do-completion): Use it and use relative movement.
+
 2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/fontset.el (setup-default-fontset): Fix :otf spec.
 
 2010-02-27  Jeremy Whitlock  <jcscoobyrs@gmail.com>  (tiny change)
 
-	* progmodes/python.el (python-pdbtrack-stack-entry-regexp): Allow
-	the characters _<> in the stack entry (Bug#5653).
+	* progmodes/python.el (python-pdbtrack-stack-entry-regexp):
+	Allow the characters _<> in the stack entry (Bug#5653).
 
 2010-02-26  Kenichi Handa  <handa@m17n.org>
 
