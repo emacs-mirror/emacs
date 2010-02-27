@@ -1,3 +1,7 @@
+2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Low-Level Font): Document :otf font-spec property.
+
 2010-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* display.texi (Line Height): Avoid obsolete special default variables
