@@ -1,3 +1,8 @@
+2010-02-27  Jeremy Whitlock  <jcscoobyrs@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-pdbtrack-stack-entry-regexp): Allow
+	the characters _<> in the stack entry (Bug#5653).
+
 2010-02-26  Kenichi Handa  <handa@m17n.org>
 
 	* language/burmese.el: Fix entries in composition-function-table.

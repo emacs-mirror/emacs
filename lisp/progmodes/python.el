@@ -576,7 +576,7 @@ Currently-active file is at the head of the list.")
 (defvar python-pdbtrack-is-tracking-p nil)
 
 (defconst python-pdbtrack-stack-entry-regexp
-  "^> \\(.*\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_]+\\)()"
+  "^> \\(.*\\)(\\([0-9]+\\))\\([?a-zA-Z0-9_<>]+\\)()"
   "Regular expression pdbtrack uses to find a stack trace entry.")
 
 (defconst python-pdbtrack-input-prompt "\n[(<]*[Pp]db[>)]+ "
