@@ -1576,6 +1576,18 @@ font_parse_fcname (name, font)
 	      prop = font_intern_prop ("light", 5, 1);
 	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
 	    }
+	  else if (PROP_MATCH ("Book", 4))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("book", 4, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Medium", 6))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("medium", 6, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
 	  else if (PROP_MATCH ("Semi-Bold", 9))
 	    {
 	      prop_found = 1;
@@ -1599,6 +1611,18 @@ font_parse_fcname (name, font)
 	      prop_found = 1;
 	      prop = font_intern_prop ("oblique", 7, 1);
 	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Semi-Condensed", 14))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("semi-condensed", 14, 1);
+	      FONT_SET_STYLE (font, FONT_WIDTH_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Condensed", 9))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("condensed", 9, 1);
+	      FONT_SET_STYLE (font, FONT_WIDTH_INDEX, prop);
 	    }
 	  else {
 	    if (prop_found)
