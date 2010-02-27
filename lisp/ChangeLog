@@ -1,3 +1,7 @@
+2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/fontset.el (setup-default-fontset): Fix :otf spec.
+
 2010-02-27  Jeremy Whitlock  <jcscoobyrs@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-pdbtrack-stack-entry-regexp): Allow
