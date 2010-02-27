@@ -1582,6 +1582,12 @@ font_parse_fcname (name, font)
 	      prop = font_intern_prop ("book", 4, 1);
 	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
 	    }
+	  else if (PROP_MATCH ("Medium", 6))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("medium", 6, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
 	  else if (PROP_MATCH ("Semi-Bold", 9))
 	    {
 	      prop_found = 1;

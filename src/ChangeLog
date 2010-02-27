@@ -1,7 +1,7 @@
 2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* font.c (font_parse_fcname): Recognize "Book", "Condensed", and
-	"Semi-Condensed" keywords in GTK names (Bug#5646).
+	* font.c (font_parse_fcname): Recognize "Book", "Condensed",
+	"Medium", and "Semi-Condensed" keywords in GTK names (Bug#5646).
 
 2010-02-26  Kenichi Handa  <handa@m17n.org>
 
