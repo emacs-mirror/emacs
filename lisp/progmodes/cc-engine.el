@@ -4929,8 +4929,8 @@ comment at the start of cc-engine.el for more info."
 	(c-go-list-forward))
       (when (equal (c-get-char-property (1- (point)) 'syntax-table)
 		   c->-as-paren-syntax) ; should always be true.
-	(c-clear-char-property (1- (point)) 'syntax-table))
-      (c-clear-char-property pos 'syntax-table))))
+	(c-clear-char-property (1- (point)) 'category))
+      (c-clear-char-property pos 'category))))
 
 (defun c-clear->-pair-props (&optional pos)
   ;; POS (default point) is at a > character.  If it is marked with
@@ -4946,8 +4946,8 @@ comment at the start of cc-engine.el for more info."
 	(c-go-up-list-backward))
       (when (equal (c-get-char-property (point) 'syntax-table)
 			c-<-as-paren-syntax) ; should always be true.
-	(c-clear-char-property (point) 'syntax-table))
-      (c-clear-char-property pos 'syntax-table))))
+	(c-clear-char-property (point) 'category))
+      (c-clear-char-property pos 'category))))
 
 (defun c-clear-<>-pair-props (&optional pos)
   ;; POS (default point) is at a < or > character.  If it has an

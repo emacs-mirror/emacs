@@ -170,6 +170,8 @@ This is used by the default mail-sending commands.  See also
   :initialize 'custom-initialize-delay
   :group 'sendmail)
 
+;;;###autoload(custom-initialize-delay 'send-mail-function nil)
+
 ;;;###autoload
 (defcustom mail-header-separator (purecopy "--text follows this line--")
   "Line used to separate headers from text in messages being composed."

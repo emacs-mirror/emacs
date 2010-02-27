@@ -675,7 +675,12 @@ Done before generating the new subject of a forward."
 	   (error "Don't know how to send mail.  Please customize `message-send-mail-function'")))))
 
 ;; Useful to set in site-init.el
-(defcustom message-send-mail-function (message-send-mail-function)
+(defcustom message-send-mail-function
+  (cond ((eq send-mail-function 'smtpmail-send-it) 'message-smtpmail-send-it)
+	((eq send-mail-function 'feedmail-send-it) 'feedmail-send-it)
+	((eq send-mail-function 'mailclient-send-it)
+	 'message-send-mail-with-mailclient)
+	(t (message-send-mail-function)))
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'.
@@ -698,7 +703,7 @@ See also `send-mail-function'."
 			       :tag "Use Mailclient package")
  		(function :tag "Other"))
   :group 'message-sending
-  :version "23.1" ;; No Gnus
+  :version "23.2"
   :initialize 'custom-initialize-default
   :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)
@@ -4684,17 +4689,17 @@ to find out how to use this."
 
 (defun message-smtpmail-send-it ()
   "Send the prepared message buffer with `smtpmail-send-it'.
-This only differs from `smtpmail-send-it' that this command evaluates
-`message-send-mail-hook' just before sending a message.  It is useful
-if your ISP requires the POP-before-SMTP authentication.  See the Gnus
-manual for details."
+The only difference from `smtpmail-send-it' is that this command
+evaluates `message-send-mail-hook' just before sending a message.
+It is useful if your ISP requires the POP-before-SMTP
+authentication.  See the Gnus manual for details."
   (run-hooks 'message-send-mail-hook)
   (smtpmail-send-it))
 
 (defun message-send-mail-with-mailclient ()
   "Send the prepared message buffer with `mailclient-send-it'.
-This only differs from `smtpmail-send-it' that this command evaluates
-`message-send-mail-hook' just before sending a message."
+The only difference from `mailclient-send-it' is that this
+command evaluates `message-send-mail-hook' just before sending a message."
   (run-hooks 'message-send-mail-hook)
   (mailclient-send-it))
 

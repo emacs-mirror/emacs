@@ -176,10 +176,9 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
     (htmlfontify-copy-and-link-dir srcdir destdir \".src\" \".html\")))")
 
 (defgroup htmlfontify nil
-  "Copy and convert buffers and files to HTML, adding hyperlinks between
-files (driven by etags) if requested.\n
-See also `htmlfontify-manual'."
+  "Convert buffers and files to HTML."
   :group  'applications
+  :link '(variable-link htmlfontify-manual)
   :prefix "hfy-")
 
 (defcustom hfy-page-header 'hfy-default-header

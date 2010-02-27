@@ -48,8 +48,8 @@ to this variable NAME."
               elts  (cdr elts)
               clone (semantic-tag-clone tag (car elt))
 	      value (car (cdr elt))
-              start (if elts  (caddr elt) (semantic-tag-start tag))
-              end   (if xpand (cdddr elt) (semantic-tag-end   tag))
+	      start (if elts  (car (cddr elt)) (semantic-tag-start tag))
+	      end   (if xpand (cdr (cddr elt)) (semantic-tag-end   tag))
               xpand (cons clone xpand))
 	;; Set the definition of the cloned tag
 	(semantic-tag-put-attribute clone :default-value value)

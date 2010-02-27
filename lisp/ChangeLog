@@ -1,3 +1,72 @@
+2010-02-27  Jeremy Whitlock  <jcscoobyrs@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-pdbtrack-stack-entry-regexp): Allow
+	the characters _<> in the stack entry (Bug#5653).
+
+2010-02-26  Kenichi Handa  <handa@m17n.org>
+
+	* language/burmese.el: Fix entries in composition-function-table.
+	(myanmar-composable-pattern): New variable.
+
+	* international/fontset.el (setup-default-fontset): Add an entry
+	for myanmar.
+
+	* international/characters.el (script-list): Add Myanmar
+	Extended-A.
+
+2010-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* custom.el (custom-initialize-delay): Doc fix.
+
+	* mail/sendmail.el (send-mail-function): Autoload the call
+	to custom-initialize-delay, not otherwise preserved in loaddefs.el.
+
+2010-02-25  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-clear-<-pair-props)
+	(c-clear->-pair-props): Correct to wipe category text props, not
+	syntax-table ones.
+
+	* progmodes/cc-mode.el (c-after-change): Remove any hard
+	syntax-table properties for <, > which, e.g., C-y has
+	inopportunely converted from category properties.
+
+2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables-filter): For eval forms, also
+	check safe-local-variable-p (Bug#5636).
+
+2010-02-24  Eduard Wiebe  <usenet@pusto.de>
+
+	* javascript.el (wisent-javascript-jv-expand-tag): Avoid c(ad)ddr
+	and use c(ad)r of cddr (Bug#5640).
+
+2010-02-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Protect
+	setting the modes by `ignore-errors'.  It might fail, for example
+	if the file is not owned by the user but the group.
+	(tramp-handle-write-region): Ensure, that `tmpfile' is always readable.
+
+2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (directory-listing-before-filename-regexp): Use
+	stricter matching for iso-style dates, to avoid false matches with
+	date-like filenames (Bug#5597).
+
+	* htmlfontify.el (htmlfontify): Doc fix.
+
+	* eshell/eshell.el (eshell): Doc fix.
+
+	* startup.el (fancy-about-screen): In mode-line, apply
+	mode-line-buffer-id face only to the buffer name (Bug#5613).
+
+2010-02-20  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
+	`watcom' anchor regexp to start of line, to avoid slowness
+	(Bug#5599).
+
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (remove-yank-excluded-properties): Explain in a comment

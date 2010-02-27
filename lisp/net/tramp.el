@@ -3926,7 +3926,8 @@ The method used must be an out-of-band method."
 
 	;; Set the mode.
 	(unless (and keep-date copy-keep-date)
-	  (set-file-modes newname (tramp-default-file-modes filename))))
+	  (ignore-errors
+	    (set-file-modes newname (tramp-default-file-modes filename)))))
 
       ;; If the operation was `rename', delete the original file.
       (unless (eq op 'copy)
@@ -5031,7 +5032,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  ;; filename does not exist (eq modes nil) it has been
 	  ;; renamed to the backup file.  This case `save-buffer'
 	  ;; handles permissions.
-	  (when modes (set-file-modes tmpfile modes))
+	  ;; Ensure, that it is still readable.
+	  (when modes
+	    (set-file-modes
+	     tmpfile (logior (or modes 0) (tramp-octal-to-decimal "0400"))))
 
 	  ;; This is a bit lengthy due to the different methods
 	  ;; possible for file transfer.  First, we check whether the
