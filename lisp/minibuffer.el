@@ -59,6 +59,8 @@
 
 ;; - extend `boundaries' to provide various other meta-data about the
 ;;   output of `all-completions':
+;;   - preferred sorting order when displayed in *Completions*.
+;;   - annotations/text-properties to add when displayed in *Completions*.
 ;;   - quoting/unquoting (so we can complete files names with envvars
 ;;     and backslashes, and all-completion can list names without
 ;;     quoting backslashes and dollars).
@@ -444,6 +446,17 @@ in the last `cdr'."
           (if completions 2 0)
           (if exact       1 0)))
 
+(defun completion--replace (beg end newtext)
+  "Replace the buffer text between BEG and END with NEWTEXT.
+Moves point to the end of the new text."
+  ;; This should be in subr.el.
+  ;; You'd think this is trivial to do, but details matter if you want
+  ;; to keep markers "at the right place" and be robust in the face of
+  ;; after-change-functions that may themselves modify the buffer.
+  (goto-char beg)
+  (insert newtext)
+  (delete-region (point) (+ (point) (- end beg))))
+
 (defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
 M = completion was performed, the text was Modified.
@@ -486,14 +499,12 @@ E = after completion we now have an Exact match.
 						    string nil nil t))))
 	     (unchanged (eq t (compare-strings completion nil nil
 					       string nil nil nil))))
-        (unless unchanged
-
-          ;; Insert in minibuffer the chars we got.
+        (if unchanged
           (goto-char end)
-          (insert completion)
-          (delete-region beg end))
-	;; Move point.
-	(goto-char (+ beg comp-pos))
+          ;; Insert in minibuffer the chars we got.
+          (completion--replace beg end completion))
+	;; Move point to its completion-mandated destination.
+	(forward-char (- comp-pos (length completion)))
 
         (if (not (or unchanged completed))
 	   ;; The case of the string changed, but that's all.  We're not sure
@@ -1813,7 +1824,6 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern '(point)))
            (case-fold-search completion-ignore-case))
-      ;; Remove base-size during mapcar, and add it back later.
       (mapcar
        (lambda (str)
 	 ;; Don't modify the string itself.

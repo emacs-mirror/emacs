@@ -76,9 +76,8 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
 	(rev nil)
 	(ans nil)
 	)
-    (save-excursion
+    (with-current-buffer b
       ;; Setup, and execute make.
-      (set-buffer b)
       (setq default-directory cd)
       (erase-buffer)
       (call-process ede-make-command nil b nil

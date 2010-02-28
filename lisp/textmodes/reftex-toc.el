@@ -665,9 +665,8 @@ promotion/demotion later."
           (if (and (markerp marker) (marker-buffer marker))
               ;; Buffer is still live and we have the marker.
               (progn
-                (save-excursion
+                (with-current-buffer (marker-buffer marker)
                   ;; Goto the buffer and check of section is unchanged
-                  (set-buffer (marker-buffer marker))
                   (goto-char (marker-position marker))
                   (if (looking-at (regexp-quote literal))
                       ;; OK, get the makro name
