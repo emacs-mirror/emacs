@@ -415,6 +415,9 @@
      (sinhala ,(font-spec :registry "iso10646-1" :otf '(sinh nil (akhn))))
      (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
+     (myanmar ,(font-spec :registry "iso10646-1" :otf '(mymr brm (liga mark)))
+	      ,(font-spec :registry "iso10646-1" :script 'myanmar))
+
      (lao ,(font-spec :registry "iso10646-1" :otf '(lao\  nil nil (mark)))
 	  ,(font-spec :registry "iso10646-1" :script 'lao)
 	  (nil . "MuleLao-1"))
@@ -548,7 +551,6 @@
 		    armenian
 		    syriac
 		    thaana
-		    myanmar
 		    georgian
 		    cherokee
 		    canadian-aboriginal

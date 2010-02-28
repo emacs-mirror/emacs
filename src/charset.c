@@ -531,6 +531,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   SAFE_ALLOCA (head, struct charset_map_entries *,
 	       sizeof (struct charset_map_entries));
   entries = head;
+  bzero (entries, sizeof (struct charset_map_entries));
 
   n_entries = 0;
   eof = 0;
@@ -557,6 +558,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
 	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
+	  bzero (entries, sizeof (struct charset_map_entries));
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;
@@ -596,6 +598,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
   SAFE_ALLOCA (head, struct charset_map_entries *,
 	       sizeof (struct charset_map_entries));
   entries = head;
+  bzero (entries, sizeof (struct charset_map_entries));
 
   n_entries = 0;
   for (i = 0; i < len; i += 2)
@@ -632,6 +635,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
 	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
+	  bzero (entries, sizeof (struct charset_map_entries));
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;

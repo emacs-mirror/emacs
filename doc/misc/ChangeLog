@@ -1,3 +1,8 @@
+2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): D-Bus messages are retrieved only,
+	when Emacs runs in interactive mode.  (Bug#5645)
+
 2010-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* nxml-mode.texi (Commands for locating a schema): Fix keybinding.

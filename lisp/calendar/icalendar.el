@@ -2246,8 +2246,7 @@ the entry."
                  'make-diary-entry)
                string non-marking diary-file)))
   ;; Würgaround to remove the trailing blank char
-  (save-excursion
-    (set-buffer (find-file diary-file))
+  (with-current-buffer (find-file diary-file)
     (goto-char (point-max))
     (if (= (char-before) ? )
         (delete-char -1)))
