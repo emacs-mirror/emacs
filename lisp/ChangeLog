@@ -1,3 +1,8 @@
+2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (recover-session-finish): Use with-current-buffer
+	instead of save-excursion.
+
 2010-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix in-buffer completion when after-change-functions modify the buffer.
