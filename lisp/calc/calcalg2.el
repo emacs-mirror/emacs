@@ -670,8 +670,8 @@
 (defmacro math-tracing-integral (&rest parts)
   (list 'and
 	'trace-buffer
-	(list 'save-excursion
-	      '(set-buffer trace-buffer)
+	(list 'with-current-buffer
+	      'trace-buffer
 	      '(goto-char (point-max))
 	      (list 'and
 		    '(bolp)

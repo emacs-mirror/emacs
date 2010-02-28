@@ -1,5 +1,12 @@
 2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* textmodes/reftex-toc.el (reftex-toc-promote-prepare):
+	* emacs-lisp/elint.el (elint-add-required-env):
+	* cedet/semantic/db-find.el
+	(semanticdb-find-translate-path-brutish-default):
+	* cedet/ede/make.el (ede-make-check-version):
+	* calendar/icalendar.el (icalendar--add-diary-entry):
+	* calc/calcalg2.el (math-tracing-integral):
 	* files.el (recover-session-finish): Use with-current-buffer
 	instead of save-excursion.
 
