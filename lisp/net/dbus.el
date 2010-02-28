@@ -573,7 +573,8 @@ the introspection data, is a string in XML format."
   ;; is used, because the handler can be registered in our Emacs
   ;; instance; caller an callee would block each other.
   (dbus-ignore-errors
-    (dbus-call-method-non-blocking
+    (funcall
+     (if noninteractive 'dbus-call-method 'dbus-call-method-non-blocking)
      bus service path dbus-interface-introspectable "Introspect")))
 
 (defun dbus-introspect-xml (bus service path)
@@ -831,7 +832,8 @@ valid D-Bus value, or `nil' if there is no PROPERTY."
   (dbus-ignore-errors
     ;; "Get" returns a variant, so we must use the `car'.
     (car
-     (dbus-call-method-non-blocking
+     (funcall
+      (if noninteractive 'dbus-call-method 'dbus-call-method-non-blocking)
       bus service path dbus-interface-properties
       "Get" :timeout 500 interface property))))
 
@@ -842,7 +844,8 @@ been set successful, the result is VALUE.  Otherwise, `nil' is
 returned."
   (dbus-ignore-errors
     ;; "Set" requires a variant.
-    (dbus-call-method-non-blocking
+    (funcall
+     (if noninteractive 'dbus-call-method 'dbus-call-method-non-blocking)
      bus service path dbus-interface-properties
      "Set" :timeout 500 interface property (list :variant value))
     ;; Return VALUE.
@@ -857,7 +860,10 @@ name of the property, and its value.  If there are no properties,
     ;; "GetAll" returns "a{sv}".
     (let (result)
       (dolist (dict
-	       (dbus-call-method-non-blocking
+	       (funcall
+		(if noninteractive
+		    'dbus-call-method
+		  'dbus-call-method-non-blocking)
 		bus service path dbus-interface-properties
 		"GetAll" :timeout 500 interface)
 	       result)
