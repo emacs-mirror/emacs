@@ -1,3 +1,7 @@
+2010-02-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* scroll-bar.el (scroll-bar-drag-1): Add save-excursion, bug #5654.
+
 2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-write-region): START can be a string.
