@@ -1,3 +1,8 @@
+2010-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-send-mail-function): Change the default, so that
+	it inherits from a customized send-mail-function.  (Bug#5643)
+
 2010-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el (gnus-treat-display-x-face): Don't burp if

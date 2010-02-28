@@ -675,7 +675,12 @@ Done before generating the new subject of a forward."
 	   (error "Don't know how to send mail.  Please customize `message-send-mail-function'")))))
 
 ;; Useful to set in site-init.el
-(defcustom message-send-mail-function (message-send-mail-function)
+(defcustom message-send-mail-function
+  (cond ((eq send-mail-function 'smtpmail-send-it) 'message-smtpmail-send-it)
+	((eq send-mail-function 'feedmail-send-it) 'feedmail-send-it)
+	((eq send-mail-function 'mailclient-send-it)
+	 'message-send-mail-with-mailclient)
+	(t (message-send-mail-function)))
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'.
@@ -698,7 +703,7 @@ See also `send-mail-function'."
 			       :tag "Use Mailclient package")
  		(function :tag "Other"))
   :group 'message-sending
-  :version "23.1" ;; No Gnus
+  :version "23.2"
   :initialize 'custom-initialize-default
   :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)

@@ -50,7 +50,7 @@ extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
 static Lisp_Object Vns_reg_to_script;
 static Lisp_Object Qapple, Qroman, Qmedium;
 extern Lisp_Object Qappend;
-extern int ns_antialias_text;
+extern Lisp_Object ns_antialias_text;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
 extern struct nsfont_info *ns_tmp_font;
@@ -1231,7 +1231,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     CGContextSetFont (gcontext, font->cgfont);
     CGContextSetFontSize (gcontext, font->size);
-    if (ns_antialias_text == Qnil || font->size <= ns_antialias_threshold)
+    if (NILP (ns_antialias_text) || font->size <= ns_antialias_threshold)
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);

@@ -1591,8 +1591,9 @@ errors can be made visible when variable @code{dbus-debug} is set to
 @code{t}.
 @end defspec
 
-Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
-Events, , , elisp}).  The generated event has this form:
+Incoming D-Bus messages are handled as Emacs events, see @pxref{Misc
+Events, , , elisp}.  They are retrieved only, when Emacs runs in
+interactive mode.  The generated event has this form:
 
 @lisp
 (dbus-event @var{bus} @var{type} @var{serial} @var{service} @var{path} @var{interface} @var{member} @var{handler}
