@@ -5045,11 +5045,12 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  ;; encoding function, then that is used for encoding the
 	  ;; contents of the tmp file.
 	  (cond
-	   ;; `rename-file' handles direct copy and out-of-band methods.
+	   ;; `copy-file' handles direct copy and out-of-band methods.
 	   ((or (tramp-local-host-p v)
 		(tramp-method-out-of-band-p
-		 v (- (or end (point-max)) (or start (point-min)))))
-	    (if (and (= (or end (point-max)) (point-max))
+		 v (nth 7 (file-attributes tmpfile))))
+	    (if (and (not (stringp start))
+		     (= (or end (point-max)) (point-max))
 		     (= (or start (point-min)) (point-min))
 		     (tramp-get-method-parameter
 		      method 'tramp-copy-keep-tmpfile))

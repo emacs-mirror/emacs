@@ -1,3 +1,15 @@
+2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-write-region): START can be a string.
+	Take care in the checks.  Reported by Dan Davison
+	<davison@stats.ox.ac.uk>.
+
+2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-introspect, dbus-get-property)
+	(dbus-set-property, dbus-get-all-properties): Use
+	`dbus-call-method' when noninteractive.  (Bug#5645)
+
 2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/reftex-toc.el (reftex-toc-promote-prepare):
