@@ -1,3 +1,7 @@
+2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* menu-bar.el (menu-bar-manuals-menu): Fix typo.
+
 2010-02-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* scroll-bar.el (scroll-bar-drag-1): Add save-excursion, bug #5654.
