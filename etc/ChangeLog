@@ -1,5 +1,7 @@
 2010-03-01  Glenn Morris  <rgm@gnu.org>
 
+	* refcards/de-refcard.tex: Fix paren typo.
+
 	* refcards/ru-refcard.tex: Rename \year command to \cyear, since
 	the former seems to be already used in some TeX installations.
 
