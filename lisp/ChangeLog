@@ -1,3 +1,16 @@
+2010-03-01  Kenichi Handa  <handa@m17n.org>
+
+	* language/burmese.el (burmese-composable-pattern): Renamed from
+	myanmar-composable-pattern.
+
+	* international/characters.el (script-list): Change myanmar to
+	burmese.
+
+	* international/fontset.el (script-representative-chars): Change
+	myanmar to burmese.
+	(otf-script-alist): Likewise.
+	(setup-default-fontset): Likewise.
+
 2010-02-27  Jeremy Whitlock  <jcscoobyrs@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-pdbtrack-stack-entry-regexp): Allow
