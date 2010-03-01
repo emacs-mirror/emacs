@@ -19,9 +19,9 @@
 
 2010-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* etc/images/custom/down-pushed.xpm, etc/images/custom/down.xpm:
-	* etc/images/custom/right-pushed.xpm:
-	* etc/images/custom/right-pushed.xpm: Increase height by four
+	* images/custom/down-pushed.xpm, images/custom/down.xpm:
+	* images/custom/right-pushed.xpm:
+	* images/custom/right-pushed.xpm: Increase height by four
 	pixels, to improve text alignment.
 
 2010-01-16  Mario Lang  <mlang@delysid.org>
@@ -31,10 +31,10 @@
 
 2010-01-14  Nick Roberts  <nickrob@snap.net.nz>
 
-	* etc/images/gud/recstart.xpm, etc/images/gud/recstop.xpm:
-	* etc/images/gud/rcont.xpm, etc/images/gud/rnext.xpm:
-	* etc/images/gud/rfinish.xpm, etc/images/gud/rnexti.xpm:
-	* etc/images/gud/rstep.xpm, etc/images/gud/rstepi.xpm:
+	* images/gud/recstart.xpm, images/gud/recstop.xpm:
+	* images/gud/rcont.xpm, images/gud/rnext.xpm:
+	* images/gud/rfinish.xpm, images/gud/rnexti.xpm:
+	* images/gud/rstep.xpm, images/gud/rstepi.xpm:
 	New icons for reverse debugging.
 
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
@@ -2573,7 +2573,7 @@
 	* images/gud/ni.xpm, images/gud/ni.xpm
 	* images/gud/s.xpm, images/gud/s.xpm
 	* images/gud/si.xpm, images/gud/si.xpm: Rename to
-	next.*, nexti.*, step.*, and stepi.* , respectively, as the
+	next.*, nexti.*, step.*, and stepi.*, respectively, as the
 	file-name no longer clashes on 8+3 filesystems.
 
 2005-10-14  Bill Wohler  <wohler@newt.com>
