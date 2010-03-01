@@ -2591,7 +2591,7 @@ comment at the start of cc-engine.el for more info."
   (save-restriction
     (narrow-to-region 1 (point-max))
     (save-excursion
-      (let* ((in-macro-start   ; point-max or beginning of macro containing it
+      (let* ((in-macro-start   ; start of macro containing (point-max) or nil.
 	      (save-excursion
 		(goto-char (point-max))
 		(and (c-beginning-of-macro)
@@ -2642,7 +2642,8 @@ comment at the start of cc-engine.el for more info."
 	;; between `good-pos'/`good-pos-actual-macro-start' and (point-max),
 	;; due to the interface spec to this function.
 	(setq pos (if (and good-pos-actual-macro-end
-			   (> in-macro-start good-pos-actual-macro-start))
+			   (not (eq good-pos-actual-macro-start
+				    in-macro-start)))
 		      (1+ good-pos-actual-macro-end) ; get outside the macro as
 					; marked by a `category' text property.
 		    good-pos))

@@ -1,3 +1,8 @@
+2010-03-01  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-remove-stale-state-cache): Correct
+	previous patch.
+
 2010-03-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/burmese.el (burmese-composable-pattern): Renamed from
