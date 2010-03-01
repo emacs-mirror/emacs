@@ -1,5 +1,7 @@
 2010-03-01  Glenn Morris  <rgm@gnu.org>
 
+	* refcards/pl-refcard.tex: Double forward-slashes in URL for Mex.
+
 	* refcards/de-refcard.tex: Fix paren typo.
 
 	* refcards/ru-refcard.tex: Rename \year command to \cyear, since
