@@ -1,3 +1,13 @@
+2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* charset.c (load_charset_map_from_file)
+	(load_charset_map_from_vector): Zero out allocated
+	charset_map_entries before using them.
+
+2010-02-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32uniscribe.c (uniscribe_check_otf): Fix length check.
+
 2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Recognize "Book", "Condensed",

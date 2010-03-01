@@ -415,7 +415,7 @@
      (sinhala ,(font-spec :registry "iso10646-1" :otf '(sinh nil (akhn))))
      (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
-     (burmese ,(font-spec :registry "iso10646-1" :otf '(mymr))
+     (burmese ,(font-spec :registry "iso10646-1" :otf '(mymr nil nil))
 	      ,(font-spec :registry "iso10646-1" :script 'burmese))
 
      (lao ,(font-spec :registry "iso10646-1" :otf '(lao\  nil nil (mark)))

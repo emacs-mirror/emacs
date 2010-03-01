@@ -1,3 +1,24 @@
+2010-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/pl-refcard.tex: Double forward-slashes in URL for Mex.
+
+	* refcards/de-refcard.tex: Fix paren typo.
+
+	* refcards/ru-refcard.tex: Rename \year command to \cyear, since
+	the former seems to be already used in some TeX installations.
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/orgcard.pdf:
+	* refcards/orgcard.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/ru-refcard.tex, refcards/sk-dired-ref.tex:
+	* refcards/sk-refcard.tex, refcards/sk-survival.tex:
+	* refcards/survival.tex, refcards/vipcard.tex:
+	* refcards/viperCard.tex: Update short copyright year to 2010.
+
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.pt_BR:
@@ -5,9 +26,9 @@
 
 2010-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* etc/images/custom/down-pushed.xpm, etc/images/custom/down.xpm:
-	* etc/images/custom/right-pushed.xpm:
-	* etc/images/custom/right-pushed.xpm: Increase height by four
+	* images/custom/down-pushed.xpm, images/custom/down.xpm:
+	* images/custom/right-pushed.xpm:
+	* images/custom/right-pushed.xpm: Increase height by four
 	pixels, to improve text alignment.
 
 2010-01-16  Mario Lang  <mlang@delysid.org>
@@ -17,10 +38,10 @@
 
 2010-01-14  Nick Roberts  <nickrob@snap.net.nz>
 
-	* etc/images/gud/recstart.xpm, etc/images/gud/recstop.xpm:
-	* etc/images/gud/rcont.xpm, etc/images/gud/rnext.xpm:
-	* etc/images/gud/rfinish.xpm, etc/images/gud/rnexti.xpm:
-	* etc/images/gud/rstep.xpm, etc/images/gud/rstepi.xpm:
+	* images/gud/recstart.xpm, images/gud/recstop.xpm:
+	* images/gud/rcont.xpm, images/gud/rnext.xpm:
+	* images/gud/rfinish.xpm, images/gud/rnexti.xpm:
+	* images/gud/rstep.xpm, images/gud/rstepi.xpm:
 	New icons for reverse debugging.
 
 2010-01-14  Juanma Barranquero  <lekktu@gmail.com>
@@ -2559,7 +2580,7 @@
 	* images/gud/ni.xpm, images/gud/ni.xpm
 	* images/gud/s.xpm, images/gud/s.xpm
 	* images/gud/si.xpm, images/gud/si.xpm: Rename to
-	next.*, nexti.*, step.*, and stepi.* , respectively, as the
+	next.*, nexti.*, step.*, and stepi.*, respectively, as the
 	file-name no longer clashes on 8+3 filesystems.
 
 2005-10-14  Bill Wohler  <wohler@newt.com>

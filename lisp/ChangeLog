@@ -9,12 +9,59 @@
 	* international/fontset.el (script-representative-chars): Change
 	myanmar to burmese.
 	(otf-script-alist): Likewise.
-	(setup-default-fontset): Likewise.
+	(setup-default-fontset): Likewise.  Re-fix :otf spec.
+
+2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-remove-stale-state-cache): Take account of when
+	`good-pos' is in the same macro as `here'.  Fixes bug 5649.
+
+2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* menu-bar.el (menu-bar-manuals-menu): Fix typo.
+
+2010-02-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* scroll-bar.el (scroll-bar-drag-1): Add save-excursion, bug #5654.
+
+2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-write-region): START can be a string.
+	Take care in the checks.  Reported by Dan Davison
+	<davison@stats.ox.ac.uk>.
+
+2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-introspect, dbus-get-property)
+	(dbus-set-property, dbus-get-all-properties): Use
+	`dbus-call-method' when noninteractive.  (Bug#5645)
+
+2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/reftex-toc.el (reftex-toc-promote-prepare):
+	* emacs-lisp/elint.el (elint-add-required-env):
+	* cedet/semantic/db-find.el
+	(semanticdb-find-translate-path-brutish-default):
+	* cedet/ede/make.el (ede-make-check-version):
+	* calendar/icalendar.el (icalendar--add-diary-entry):
+	* calc/calcalg2.el (math-tracing-integral):
+	* files.el (recover-session-finish): Use with-current-buffer
+	instead of save-excursion.
+
+2010-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix in-buffer completion when after-change-functions modify the buffer.
+	* minibuffer.el (completion--replace): New function.
+	(completion--do-completion): Use it and use relative movement.
+
+2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/fontset.el (setup-default-fontset): Fix :otf spec.
 
 2010-02-27  Jeremy Whitlock  <jcscoobyrs@gmail.com>  (tiny change)
 
-	* progmodes/python.el (python-pdbtrack-stack-entry-regexp): Allow
-	the characters _<> in the stack entry (Bug#5653).
+	* progmodes/python.el (python-pdbtrack-stack-entry-regexp):
+	Allow the characters _<> in the stack entry (Bug#5653).
 
 2010-02-26  Kenichi Handa  <handa@m17n.org>
 

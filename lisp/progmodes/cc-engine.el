@@ -2641,7 +2641,8 @@ comment at the start of cc-engine.el for more info."
 	;; (car c-state-cache).  There can be no open parens/braces/brackets
 	;; between `good-pos'/`good-pos-actual-macro-start' and (point-max),
 	;; due to the interface spec to this function.
-	(setq pos (if good-pos-actual-macro-end
+	(setq pos (if (and good-pos-actual-macro-end
+			   (> in-macro-start good-pos-actual-macro-start))
 		      (1+ good-pos-actual-macro-end) ; get outside the macro as
 					; marked by a `category' text property.
 		    good-pos))
