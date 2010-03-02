@@ -1,3 +1,7 @@
+2010-03-02  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-index-next): Decrement line number by 2.  (Bug#5652)
+
 2010-03-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix an

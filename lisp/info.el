@@ -3062,7 +3062,7 @@ Give an empty topic name to go to the Index node itself."
 	  num (1- num)))
   (Info-goto-node (nth 1 (car Info-index-alternatives)))
   (if (> (nth 3 (car Info-index-alternatives)) 0)
-      (forward-line (1- (nth 3 (car Info-index-alternatives))))
+      (forward-line (- (nth 3 (car Info-index-alternatives)) 2))
     (forward-line 3)			; don't search in headers
     (let ((name (car (car Info-index-alternatives))))
       (Info-find-index-name name)))
