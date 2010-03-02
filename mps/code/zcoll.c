@@ -81,12 +81,11 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 100, 0.85 }, { 170, 0.45 } };
 
 
-/* myroot -- array of exact references that are the root
- *
- * (note: static, so pointers are auto-initialised to NULL)
- */
-#define myrootCOUNT 30000
-static void *myroot[myrootCOUNT];
+/* myroot -- arrays of references that are the root */
+#define myrootAmbigCOUNT 30000
+static void *myrootAmbig[myrootAmbigCOUNT];
+#define myrootExactCOUNT 30000
+static void *myrootExact[myrootExactCOUNT];
 
 
 static unsigned long cols(size_t bytes)
@@ -292,7 +291,7 @@ static void CatalogCheck(void)
   int i, j, k;
 
   /* retrieve Catalog from root */
-  Catalog = myroot[CatalogRootIndex];
+  Catalog = myrootExact[CatalogRootIndex];
   if(!Catalog)
     return;
   Insist(DYLAN_VECTOR_SLOT(Catalog, 0) == DYLAN_INT(CatalogSig));
@@ -354,7 +353,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
   Catalog = (void *)v;
   
   /* store Catalog in root */
-  myroot[CatalogRootIndex] = Catalog;
+  myrootExact[CatalogRootIndex] = Catalog;
   get(arena);
 
   fflush(stdout);
@@ -397,6 +396,54 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 }
 
 
+/* MakeThing -- make an object of the size requested (in bytes)
+ *
+ * Any size is accepted.  MakeThing may round it up (MakeThing always 
+ * makes a dylan vector, which has a minimum size of 8 bytes).  Vector 
+ * slots, if any, are initialized to DYLAN_INT(0).
+ *
+ * After making the object, calls get(), to retrieve MPS messages.
+ *
+ * make_dylan_vector [fmtdytst.c] says:
+ *   size = (slots + 2) * sizeof(mps_word_t);
+ * That is: a dylan vector has two header words before the first slot.
+ */
+static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
+{
+  mps_word_t v;
+  unsigned long words;
+  unsigned long slots;
+
+  words = (size + (sizeof(mps_word_t) - 1) ) / sizeof(mps_word_t);
+  if(words < 2)
+    words = 2;
+
+  slots = words - 2;
+  die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
+  get(arena);
+  
+  return (void *)v;
+}
+
+static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_ref)
+{
+  static unsigned long keepCount = 0;
+  unsigned long i;
+  
+  mps_arena_park(arena);
+  for(i = 0; i < 100; i++) {
+    (void) MakeThing(arena, ap, big);
+    if(small_ref == 'A') {
+      myrootAmbig[keepCount++ % myrootAmbigCOUNT] = MakeThing(arena, ap, 1);
+    } else if(small_ref == 'E') {
+      myrootExact[keepCount++ % myrootExactCOUNT] = MakeThing(arena, ap, 1);
+    } else {
+      cdie(0, "BigdropSmall: small must be 'A' or 'E'.\n");
+    }
+  }
+}
+
+
 /* checksi -- check count of sscanf items is correct
  */
 
@@ -404,7 +451,7 @@ static void checksi(int si, int si_shouldBe, const char *script, const char *scr
 {
   if(si != si_shouldBe) {
     printf("bad script command %s (full script %s).\n", script, scriptAll);
-    cdie(FALSE, "unknown script command");
+    cdie(FALSE, "bad script command!");
   }
 }
 
@@ -436,31 +483,65 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         CatalogDo(arena, ap);
         break;
       }
+      case 'B': {
+        size_t big = 0;
+        char small_ref = ' ';
+        si = sscanf(script, "BigdropSmall(big %lu, small %c)%n",
+                       &big, &small_ref, &sb);
+        checksi(si, 2, script, scriptAll);
+        script += sb;
+        printf("  BigdropSmall(big %lu, small %c)\n", big, small_ref);
+        BigdropSmall(arena, ap, big, small_ref);
+        break;
+      }
       case 'M': {
         unsigned keepCount = 0;
         unsigned long objCount = 0;
         unsigned keepTotal = 0;
         unsigned keep1in = 0;
         unsigned keepRootspace = 0;
-        si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u)%n",
-                    &keep1in, &keepTotal, &keepRootspace, &sb);
-        checksi(si, 3, script, scriptAll);
+        unsigned sizemethod = 0;
+        si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u)%n",
+                    &keep1in, &keepTotal, &keepRootspace, &sizemethod, &sb);
+        checksi(si, 4, script, scriptAll);
         script += sb;
-        printf("  Make(keep-1-in %u, keep %u, rootspace %u).\n",
-               keep1in, keepTotal, keepRootspace);
+        printf("  Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u).\n",
+               keep1in, keepTotal, keepRootspace, sizemethod);
         
-        Insist(keepRootspace <= myrootCOUNT);
+        Insist(keepRootspace <= myrootExactCOUNT);
 
         objCount = 0;
         while(keepCount < keepTotal) {
           mps_word_t v;
-          die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
+          unsigned slots = 2;  /* minimum */
+          switch(sizemethod) {
+            case 0: {
+              /* minimum */
+              slots = 2;
+              break;
+            }
+            case 1: {
+              slots = 2;
+              if(rnd() % 10000 == 0) {
+                printf("*");
+                slots = 300000;
+              }
+              break;
+            }
+            default: {
+              printf("bad script command %s (full script %s).\n", script, scriptAll);
+              printf(" -- sizemethod %u unknown.\n", sizemethod);
+              cdie(FALSE, "bad script command!");
+              break;
+            }
+          }
+          die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
           DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
           DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
           objCount++;
           if(rnd() % keep1in == 0) {
             /* keep this one */
-            myroot[rnd() % keepRootspace] = (void*)v;
+            myrootExact[rnd() % keepRootspace] = (void*)v;
             keepCount++;
           }
           get(arena);
@@ -480,9 +561,9 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       default: {
-        printf("unknown script command %c (script %s).\n",
+        printf("unknown script command '%c' (script %s).\n",
                *script, scriptAll);
-        cdie(FALSE, "unknown script command");
+        cdie(FALSE, "unknown script command!");
         return;
       }
     }
@@ -514,7 +595,8 @@ static void *testscriptB(void *arg, size_t s)
   mps_chain_t chain;
   mps_pool_t amc;
   int i;
-  mps_root_t root_table;
+  mps_root_t root_table_Ambig;
+  mps_root_t root_table_Exact;
   mps_ap_t ap;
   mps_root_t root_stackreg;
   void *stack_starts_here;  /* stack scanning starts here */
@@ -529,12 +611,21 @@ static void *testscriptB(void *arg, size_t s)
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
       "pool_create amc");
-  for(i = 0; i < myrootCOUNT; ++i) {
-    myroot[i] = NULL;
+
+  for(i = 0; i < myrootAmbigCOUNT; ++i) {
+    myrootAmbig[i] = NULL;
   }
-  die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
-                            myroot, (size_t)myrootCOUNT),
-      "root_create");
+  die(mps_root_create_table(&root_table_Ambig, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
+                            myrootAmbig, (size_t)myrootAmbigCOUNT),
+      "root_create - ambig");
+
+  for(i = 0; i < myrootExactCOUNT; ++i) {
+    myrootExact[i] = NULL;
+  }
+  die(mps_root_create_table(&root_table_Exact, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+                            myrootExact, (size_t)myrootExactCOUNT),
+      "root_create - exact");
+
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create");
   
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
@@ -552,7 +643,8 @@ static void *testscriptB(void *arg, size_t s)
 
   mps_root_destroy(root_stackreg);
   mps_ap_destroy(ap);
-  mps_root_destroy(root_table);
+  mps_root_destroy(root_table_Exact);
+  mps_root_destroy(root_table_Ambig);
   mps_pool_destroy(amc);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
@@ -608,11 +700,45 @@ int main(int argc, char **argv)
 {
 
   randomize(argc, argv);
-
-  /* The most basic scripts */
+  /* 1<<19 == 524288 == 1/2 Mebibyte */
+  /* 16<<20 == 16777216 == 16 Mebibyte */
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect.");
+  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
+
+  /* LSP -- Large Segment Padding (job001811)
+   *
+   * BigdropSmall creates a big object & drops ref to it, 
+   * then a small object but keeps a ref to it.  Do this 100 
+   * times.  (It also parks the arena, to avoid incremental 
+   * collections).
+   *
+   * If big is 28000, it is <= 28672 bytes and therefore fits on a seg 
+   * of 7 pages.  AMC classes this as a Medium Segment and uses the 
+   * remainder, placing the subsequent small object there.  If the ref 
+   * to small is "A" = ambig, the entire 7-page seg is retained.
+   *
+   * If big is > 28672 bytes (7 pages), it requires a seg of >= 8 
+   * pages.  AMC classes this as a Large Segment, and does LSP (Large 
+   * Segment Padding), to prevent the subsequent small object being 
+   * placed in the remainder.  If the ref to small is "A" = ambig, 
+   * only its 1-page seg is retained.  This greatly reduces the 
+   * retention page-count.
+   *
+   * If the ref to small is "E" = exact, then the small object is 
+   * preserved-by-copy onto a new seg.  In this case there is no 
+   * seg/page retention, so LSP does not help.  It has a small cost:
+   * total pages increase from 700 to 900.  So in this case (no ambig 
+   * retention at all, pessimal allocation pattern) LSP would slightly 
+   * increase the frequency of minor collections.
+   */
+  /* 7p = 28672b; 8p = 32768b */
+  /* 28000 = Medium segment */
+  /* 29000 = Large segment */
+  testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small A), Collect.");
+  testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small A), Collect.");
+  testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small E), Collect.");
+  testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small E), Collect.");
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.

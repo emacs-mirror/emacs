@@ -303,8 +303,8 @@
 /* Diagnostics Buffer */
 
 #ifdef DIAG_WITH_STREAM_AND_WRITEF
-/* DIAG_BUFFER_SIZE: 10 screenfuls: 10x80x25 = 20000 */
-#define DIAG_BUFFER_SIZE      ((Size)20000)
+/* DIAG_BUFFER_SIZE: 100 screenfuls: 100x80x25 = 200000 */
+#define DIAG_BUFFER_SIZE      ((Size)200000)
 #else
 #define DIAG_BUFFER_SIZE      ((Size)1)
 #endif
@@ -390,16 +390,18 @@
 /* Dongle configuration */
 
 #if defined(DONGLE)
-
 #define DONGLE_TEST_FREQUENCY ((unsigned int)4000)
-
 #elif defined(DONGLE_NONE)
-
 /* nothing to do */
-
 #else
 #error "No dongle configured."
 #endif
+
+
+/* Pool Class AMC configuration */
+
+/* AMC treats segments of this many pages (or more) as "Large" */
+#define AMCLargeSegPAGES ((Count)8)
 
 
 #endif /* config_h */

@@ -39,9 +39,114 @@
 <p> Readership: any MPS developer.  Not confidential. </p>
 
 <h2> Introduction </h2>
-<p>The AMC pool class is a general-purpose automatic (collecting) pool class. It is intended for most client objects.  AMC is "Automatic, Mostly Copying": it uses copying collection except when prevented by ambiguous references. It is generational.  Chain: specify capacity and mortality of generations 0..N-1. Survivors from N-1 get promoted into an arena-wide topGen (often anachronistically called the "dynamic" generation).
+<p>The AMC pool class is a general-purpose automatic (collecting) pool class. It is intended for most client objects.  AMC is "Automatic, Mostly Copying": it preserves objects by copying, except when an ambiguous reference 'nails' the object in place. It is generational.  Chain: specify capacity and mortality of generations 0..N-1. Survivors from N-1 get promoted into an arena-wide topGen (often anachronistically called the "dynamic" generation).
 </p>
 
+<p>Design documentation for AMC is rather incomplete.  There is some in the wiki.</p>
+
+
+<h2> AMC Seg States </h2>
+
+<p>AMC Segs are in one of three states: "<b>mobile</b>", "<b>boarded</b>", or "<b>stuck</b>".  <em>This is new terminology, not used in the initial design, and not yet widespread in the source code</em>.  Segs are normally "<b>mobile</b>": all objects on the seg are un-nailed, and thus may be preserved by copying.  An ambiguous reference to any address within an AMC seg makes that seg "<b>boarded</b>": a nailboard is allocated to record ambiguous refs ("nails"), but un-nailed objects on the seg are still preserved by copying.  Stuck segments only occur in emergency tracing: a discovery fix to an object in a mobile segment is recorded in the only non-allocating way available: by making the entire segment "<b>stuck</b>".</p>
+
+
+<h2> Pads </h2>
+
+<p>(See also job001809 and job001811, and mps/branch/2009-03-31/padding)</p>
+
+<p>A pad is logically a trivial client object.  Pads are created by the MPS asking the client's format code to create them, to fill up a space in a seg.  Thereafter, the pad appears to the MPS as a normal client object (that is: the MPS cannot distinguish a pad from a client object).</p>
+
+<p>AMC creates pads for three reasons: buffer empty, LSP, or NMR.  (LSP pads are new with job001811).</p>
+
+<p>Buffer empty pads are made by AMCBufferEmpty whenever it detaches a non-empty buffer from an AMC segment.  Buffer detachment is most often caused because the buffer is too small for the current buffer reserve request (which may be either a client requested or a forwarding allocation).  Detachment may happen for other reasons, such as trace flip.</p>
+
+<p>LSP pads (Large Segment Padding) are made by AMCBufferFill when the requested fill size is 'large' (see "The LSP payoff calculation" below).  AMCBufferFill fills the buffer to exactly the size requested by the current buffer reserve operation; that is: it does not round up to the whole segment size.  This prevents subsequent small objects being placed in the same segment as a single very large object.  If the buffer fill size is less than the segment size, AMCBufferFill fills any remainder with an LSP pad.</p>
+
+<p>NMR pads (Non-Mobile Reclaim) are made by amcReclaimNailed, when performing reclaim on a boarded or stuck segment:</p>
+
+<p>The more common NMR scenario is reclaim of a boarded seg after a non-emergency trace.  Ambiguous refs into the seg are recorded as nails.  Subsequent exact refs to a nailed object do nothing further, but exact refs that do not match a nail cause preserve-by-copy and leave a forwarding object.  Unreachable objects are not touched during the scan+fix part of the trace.  On reclaim, only nailed objects need to be preserved; others (namely forwarding pointers and unreachable objects) are replaced by an NMR pad.  (Note that a BE or LSP pad appears to be an unreachable object, and is therefore overwritten by an NMR pad).</p>
+
+<p>The less common NMR scenario is after emergency tracing.  Boarded segs still occur; they may have nailed objects from ambiguous refs, forwarding objects from pre-emergency exact fixes, nailed objects from mid-emergency exact fixes, and unpreserved objects; reclaim is as in the non-emergency case.  Stuck segs may have forwarding objects from pre-emergency exact fixes, objects from mid-emergency fixes, and unreachable objects -- but the latter two are not distinguishable because there is no nailboard.  On reclaim, all objects except forwarding pointers are preserved; each forwarding object is replaced by an NMR pad.</p>
+
+<p>If amcReclaimNailed finds no objects to be preserved then it calls SegFree (new with job001809).</p>
+
+
+<h3> Placement Pads are okay </h3>
+
+<p>Placement Pads are the BE and LSP pads created in "to-space" when placing objects into segments.  This wasted space is an expected space-cost of AMC's naive (but time-efficient) approach to placement of objects into segments.  This is normally not a severe problem.  (The worst case is a client that always requests ArenaAlign()+1 byte objects: this has a nearly 100% overhead).</p>
+
+
+<h3> Retained Pads could be a problem </h3>
+
+<p>Retained Pads are the NMR pads stuck in "from-space": non-mobile segments that were condemned but have preserved-in-place objects cannot be freed by amcReclaimNailed.  The space around the preserved objects is filled with NMR pads.</p>
+
+<p>In the worst case, retained pads could waste an enormous amount of space!  A small (1 byte) object could retain a multi-page segment for as long as the ambiguous reference persists; that is: indefinitely.  Imagine a 256-page (1 MiB) segment containing a very large object followed by a handful of small objects.  An ambiguous ref to one of the small objects will unfortunately cause the entire 256-page seg to be retained, mostly as an NMR pad; this is a massive overhead of wasted space.</p>
+
+<p>AMC mitigates this worst-case behaviour, by treating large segments specially.</p>
+
+
+<h3> Small, Medium, and Large Segments </h3>
+
+<p>AMC categorises segments as "<b>small</b>" (1 page), "<b>medium</b>" (several pages), or "<b>large</b>" (>= AMCLargeSegPAGES pages):</p>
+
+<blockquote><pre><code>      pages = SegSize(seg) / ArenaAlign(arena);
+      if(pages == 1) {
+        /* small */
+      } else if(pages &lt; AMCLargeSegPAGES) {
+        /* medium */
+      } else {
+        /* large */
+      }</code></pre></blockquote>
+
+<p>AMCLargeSegPAGES is currently 8 -- see "The LSP payoff calculation" below.</p>
+
+<p>AMC might treat "Large" segments specially, in two ways:</p>
+<ul>
+  <li>.large.single-reserve: A large segment is only used for a single (large) buffer reserve request; the remainder of the segment (if any) is immediately padded with an LSP pad.</li>
+  <li>.large.lsp-no-retain: Nails to such an LSP pad do not cause AMCReclaimNailed to retain the segment.</li>
+</ul>
+
+<p>.large.single-reserve is implemented.  See job001811.</p>
+
+<p>.large.lsp-no-retain is <strong>NOT</strong> currently implemented.</p>
+
+<p>The point of .large.lsp-no-retain would be to avoid retention of the (large) segment when there is a spurious ambiguous reference to the LSP pad at the end of the segment.  Such an ambiguous reference might happen naturally and repeatably if the preceding large object is an array, the array is accessed by an ambiguous element pointer (eg. on the stack), and the element pointer ends up pointing just off the end of the large object (as is normal for sequential element access in C) and remains with that value for a while.  (Such an ambiguous reference could also occur by chance, eg. by coincidence with an int or float, or when the stack grows to include old unerased values). </p>
+
+<p>Implementing .large.lsp-no-retain is a little tricky.  A pad is indistinguishable from a client object, so AMC has no direct way to detect, and safely ignore, the final LSP object in the seg.  If AMC could <em>guarantee</em> that the single buffer reserve (.large.single-reserve) is only used for a single <em>object</em>, then AMCReclaimNailed could honour a nail at the start of a large seg and ignore all others; this would be extremely simple to implement.  But AMC cannot guarantee this, because in the MPS Allocation Point Protocol the client is permitted to make a large buffer reserve and then fill it with many small objects.  In such a case, AMC must honour all nails (if the buffer reserve request was an exact multiple of ArenaAlign), or all nails except to the last object (if there was a remainder filled with an LSP pad).  Because an LSP pad cannot be distinguished from a client object, and the requested allocation size is not recorded, AMC cannot distinguish these two conditions at reclaim time.  Therefore AMC must record whether or not the last object in the seg is a pad, in order to ignore nails to it.  This could be done by adding a flag to AMCSegStruct.  (This can be done without increasing the structure size, by making the "Bool new;" field smaller than its current 32 bits.) </p>
+
+
+<h3>The LSP payoff calculation</h3>
+
+<p>The job001811 LSP fix treats large segments differently.  Without it, after allocating a very large object (in a new very large multi-page segment), MPS would happily place subsequent small objects in any remaining space at the end of the segment.  This would risk pathological fragmentation: if these small objects were systematically preserved by ambiguous refs, enormous NMR pads would be retained along with them.</p>
+
+<p>The payoff calculation is a bit like deciding whether or not to purchase insurance.  For single-page and medium-sized segments, we go ahead and use the remaining space for subsequent small objects.  This is equivalent to choosing <strong>not</strong> to purchase insurance.  If the small objects were to be preserved by ambiguous refs, the retained NMR pads would be big, but not massive.  We expect such ambiguous refs to be uncommon, so we choose to live with this slight risk of bad fragmentation.  The benefit is that the remaining space is used.</p>
+
+<p>For large segments, we decide that the risk of using the remainder is just too great, and the benefit too small, so we throw it away as an LSP pad.  This is equivalent to purchasing insurance: we choose to pay a known small cost every time, to avoid risking an occasional disaster.</p>
+
+<p>To decide what size of segment counts as "large", we must decide how much uninsured risk we can tolerate, versus how much insurance cost we can tolerate.  The likelihood of ambiguous references retaining objects is entirely dependent on client behaviour.  However, as a sufficient 'one size fits all' policy, I have judged that segments smaller than 8 pages long do not need to be treated as large: the insurance cost to 'play safe' would be considerable (wasting up to 1 page of remainder per 7 pages of allocation), and the fragmentation overhead risk is not that great (at most 8 times worse than the unavoidable minimum).  So AMCLargeSegPAGES is defined as 8 in config.h.  As long as the assumption that most segments are not ambiguously referenced remains correct, I expect this policy will be satisfactory.</p>
+
+<p>To verify that this threshold is acceptable for a given client, poolamc.c calculates metrics; see "Feedback about retained pages" below.  If this one-size-fits-all approach is not satisfactory, AMCLargeSegPAGES could be made a client-tunable parameter.</p>
+
+
+<h2> Retained pages </h2>
+
+<p>The reasons why a segment and its pages might be retained are:</p>
+<ol>
+  <li>ambiguous ref to first-obj: unavoidable page retention (only the mutator can reduce this, if they so wish, by nulling out ambig refs);</li>
+  <li>ambiguous ref to rest-obj: tuning MPS LSP policy could mitigate this, reducing the likelihood of rest-objs being co-located with large first-objs;</li>
+  <li>ambiguous ref to final pad: implementing .large.lsp-no-retain could mitigate this;</li>
+  <li>ambiguous ref to other (NMR) pad: hard to mitigate, as pads are indistinguishable from client objects;</li>
+  <li>emergency trace;</li>
+  <li>non-object-aligned ambiguous ref: fixed by job001809;</li>
+  <li>other reason (eg. buffered at flip): not expected to be a problem.</li>
+</ol>
+
+<p>(This list puts the reasons that are more 'obvious' to the client programmer first, and the more obscure reasons last).</p>
+
+
+<h3>Feedback about retained pages</h3>
+
+<p>(New with job001811).  AMC now accumulates counts of pages condemned and retained during a trace, in categories according to size and reason for retention, and emits diagnostic at trace-end via the pool->class->traceEnd method.  See comments on the PageRetStruct in poolamc.c.  These page-based metrics are not as precise as actually counting the size of objects, but they require much less intrusive code to implement, and should be sufficient to assess whether AMC's page retention policies and behaviour are acceptable.</p>
 
 <hr />
 
@@ -614,6 +719,12 @@ Group Scanning
   <td>2009-08-11</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
   <td>Prepend Guide, using design/template-with-guide.html.</td>
+</tr>
+
+<tr valign="top">
+  <td>2009-09-14</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Guide covers: seg states; pads; retained pages.</td>
 </tr>
 
 </table>
