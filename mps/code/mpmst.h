@@ -66,6 +66,7 @@ typedef struct PoolClassStruct {
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolFixEmergencyMethod fixEmergency;  /* as fix, no failure allowed */
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
+  PoolTraceEndMethod traceEnd;  /* do something after all reclaims */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */

@@ -308,6 +308,9 @@ static void traceSetSignalEmergency(TraceSet ts, Arena arena)
   TraceId ti;
   Trace trace;
 
+  DIAG_SINGLEF(( "traceSetSignalEmergency",
+    "traceSet: $B", ts, NULL ));
+
   TRACE_SET_ITER(ti, trace, ts, arena)
     trace->emergency = TRUE;
   TRACE_SET_ITER_END(ti, trace, ts, arena);
@@ -767,6 +770,7 @@ static void traceReclaim(Trace trace)
 {
   Arena arena;
   Seg seg;
+  Ring node, nextNode;
 
   AVER(trace->state == TraceRECLAIM);
 
@@ -802,6 +806,13 @@ static void traceReclaim(Trace trace)
   }
 
   trace->state = TraceFINISHED;
+
+  /* Call each pool's TraceEnd method -- do end-of-trace work */
+  RING_FOR(node, &ArenaGlobals(arena)->poolRing, nextNode) {
+    Pool pool = RING_ELT(Pool, arenaRing, node);
+    PoolTraceEnd(pool, trace);
+  }
+
   TracePostMessage(trace);  /* trace end */
   /* Immediately pre-allocate messages for next time; failure is okay */
   (void)TraceIdMessagesCreate(arena, trace->ti);
