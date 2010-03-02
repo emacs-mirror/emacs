@@ -649,19 +649,51 @@ void (ArenaPoll)(Globals globals)
 #else
 void ArenaPoll(Globals globals)
 {
-  double size;
+  Arena arena;
+  Clock start;
+  Count quanta;
+  Size tracedSize;
+  double nextPollThreshold = 0.0;
 
   AVERT(Globals, globals);
 
   if (globals->clamped)
     return;
-  size = globals->fillMutatorSize;
-  if (globals->insidePoll || size < globals->pollThreshold)
+  if (globals->insidePoll)
+    return;
+  if(globals->fillMutatorSize < globals->pollThreshold)
     return;
 
   globals->insidePoll = TRUE;
 
-  (void)ArenaStep(globals, 0.0, 0.0);
+  /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
+  arena = GlobalsArena(globals);
+  start = ClockNow();
+  quanta = 0;
+  while(globals->pollThreshold <= globals->fillMutatorSize) {
+    tracedSize = TracePoll(globals);
+
+    if(tracedSize == 0) {
+      /* No work to do.  Sleep until NOW + a bit. */
+      nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
+    } else {
+      /* We did one quantum of work; consume one unit of 'time'. */
+      quanta += 1;
+      arena->tracedSize += tracedSize;
+      nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
+    }
+
+    /* Advance pollThreshold; check: enough precision? */
+    AVER(nextPollThreshold > globals->pollThreshold);
+    globals->pollThreshold = nextPollThreshold;
+  }
+
+  /* Don't count time spent checking for work, if there was no work to do. */
+  if(quanta > 0) {
+    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+  }
+
+  AVER(globals->fillMutatorSize < globals->pollThreshold);
 
   globals->insidePoll = FALSE;
 }
@@ -714,7 +746,6 @@ static Bool arenaShouldCollectWorld(Arena arena,
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
-  double size;
   Size scanned;
   Bool stepped;
   Clock start, end, now;
@@ -755,10 +786,6 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   if (stepped) {
     arena->tracedTime += (now - start) / (double) clocks_per_sec;
   }
-
-  size = globals->fillMutatorSize;
-  globals->pollThreshold = size + ArenaPollALLOCTIME;
-  AVER(globals->pollThreshold > size); /* enough precision? */
 
   return stepped;
 }
