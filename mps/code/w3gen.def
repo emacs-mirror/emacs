@@ -149,8 +149,6 @@ mps_mv_free_size
 mps_class_mv
 ; mpscsnc.h
 mps_class_snc
-; mpslibcb.h
-mps_lib_callback_register
 ; mpstd.h
 ; mpsw3.h - by hand
 mps_SEH_filter
