@@ -1,3 +1,10 @@
+2010-03-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Mouse Avoidance): Mention make-pointer-invisible.
+
+	* display.texi (Display Custom): Document make-pointer-invisible and
+	underline-minimum-offset.  Remove inverse-video.
+
 2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Frame Commands): Note that the last ordinary frame can

@@ -50,7 +50,7 @@ so that you can use many of the features described in this chapter.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
-* Mouse Avoidance::     Moving the mouse pointer out of the way.
+* Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text-only terminals.
 @end menu
@@ -1072,12 +1072,20 @@ customizing the windows that display tooltips.
 @cindex avoiding mouse in the way of your typing
 @cindex mouse avoidance
 
+  On graphical terminals, the mouse pointer may obscure the text in
+the Emacs frame.  Emacs provides two methods to avoid this problem.
+
+@vindex make-pointer-invisible
+  Firstly, Emacs hides the mouse pointer each time you type a
+self-inserting character, if the pointer lies inside an Emacs frame;
+moving the mouse pointer makes it visible again.  To disable this
+feature, set the variable @code{make-pointer-invisible} to @code{nil}.
+
 @vindex mouse-avoidance-mode
-Mouse Avoidance mode keeps the mouse pointer away from point, to avoid
-obscuring text you want to edit.  Whenever it moves the mouse, it also
-raises the frame.  To use Mouse Avoidance mode, customize the variable
-@code{mouse-avoidance-mode}.  You can set this to various values to
-move the mouse in several ways:
+  Secondly, you can use Mouse Avoidance mode, a minor mode, to keep
+the mouse pointer away from point.  To use Mouse Avoidance mode,
+customize the variable @code{mouse-avoidance-mode}.  You can set this
+to various values to move the mouse in several ways:
 
 @table @code
 @item banish
@@ -1098,7 +1106,8 @@ As @code{animate}, but changes the shape of the mouse pointer too.
 
 @findex mouse-avoidance-mode
 You can also use the command @kbd{M-x mouse-avoidance-mode} to enable
-the mode.
+the mode.  Whenever Mouse Avoidance mode moves the mouse, it also
+raises the frame.
 
 @node Non-Window Terminals
 @section Non-Window Terminals
