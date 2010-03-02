@@ -75,21 +75,53 @@ static mps_addr_t make(void)
     return p;
 }
 
-/* A stepper function.  Passed to mps_arena_formatted_objects_walk. */
+/* A stepper function.  Passed to mps_arena_formatted_objects_walk.
+ *
+ * Tests the (pool, format) values that MPS passes to it for each 
+ * object, by...
+ *
+ * ...1: making explicit queries with:
+ *   mps_arena_has_addr
+ *   mps_addr_pool
+ *   mps_addr_fmt
+ *
+ * ...2: comparing with what we expect for:
+ *   pool
+ *   fmt
+ */
+struct stepper_data {
+  mps_arena_t arena;
+  mps_pool_t expect_pool;
+  mps_fmt_t expect_fmt;
+  unsigned long count;
+};
+
 static void stepper(mps_addr_t object, mps_fmt_t format,
     mps_pool_t pool, void *p, size_t s)
 {
-    mps_arena_t arena = p;
+    struct stepper_data *sd;
+    mps_arena_t arena;
+    mps_bool_t b;
+    mps_pool_t query_pool;
+    mps_fmt_t query_fmt;
 
-    UNUSED(format);
-    UNUSED(pool);
-    UNUSED(pool);
-    UNUSED(s);
+    Insist(s == sizeof *sd);
+    sd = p;
+    arena = sd->arena;
 
-    if(!mps_arena_has_addr(arena, object)) {
-      printf("Stepper got called with object at address %p,\n"
-       "which is not managed by the arena!\n", (void *)object);
-    }
+    Insist(mps_arena_has_addr(arena, object));
+
+    b = mps_addr_pool(&query_pool, arena, object);
+    Insist(b);
+    Insist(query_pool == pool);
+    Insist(pool == sd->expect_pool);
+
+    b = mps_addr_fmt(&query_fmt, arena, object);
+    Insist(b);
+    Insist(query_fmt == format);
+    Insist(format == sd->expect_fmt);
+    
+    sd->count += 1;
     return;
 }
 
@@ -104,6 +136,7 @@ static void *test(void *arg, size_t s)
     mps_root_t exactRoot;
     size_t i;
     unsigned long objs;
+    struct stepper_data sdStruct, *sd;
 
     arena = (mps_arena_t)arg;
     (void)s; /* unused */
@@ -143,7 +176,14 @@ static void *test(void *arg, size_t s)
         ++objs;
     }
 
-    mps_arena_formatted_objects_walk(arena, stepper, arena, 0);
+    sd = &sdStruct;
+    sd->arena = arena;
+    sd->expect_pool = pool;
+    sd->expect_fmt = format;
+    sd->count = 0;
+    mps_arena_formatted_objects_walk(arena, stepper, sd, sizeof *sd);
+    /* Note: stepper finds more than we expect, due to pad objects */
+    /* printf("stepper found %ld objs\n", sd->count); */
 
     mps_ap_destroy(ap);
     mps_root_destroy(exactRoot);
@@ -160,8 +200,7 @@ int main(int argc, char **argv)
     mps_thr_t thread;
     void *r;
 
-    UNUSED(argc);
-    UNUSED(argv);
+    randomize(argc, argv);
 
     die(mps_arena_create(&arena, mps_arena_class_vm(),
                          testArenaSIZE),

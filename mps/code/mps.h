@@ -276,6 +276,8 @@ extern size_t mps_space_reserved(mps_space_t);
 extern size_t mps_space_committed(mps_space_t);
 
 extern mps_bool_t mps_arena_has_addr(mps_arena_t, mps_addr_t);
+extern mps_bool_t mps_addr_pool(mps_pool_t *, mps_arena_t, mps_addr_t);
+extern mps_bool_t mps_addr_fmt(mps_fmt_t *, mps_arena_t, mps_addr_t);
 
 /* Client memory arenas */
 extern mps_res_t mps_arena_extend(mps_arena_t, mps_addr_t, size_t);

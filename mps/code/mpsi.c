@@ -501,6 +501,79 @@ mps_bool_t mps_arena_has_addr(mps_arena_t mps_arena, mps_addr_t p)
 }
 
 
+/* mps_addr_pool -- return the pool containing the given address
+ *
+ * Wrapper for PoolOfAddr.  Note: may return an MPS-internal pool.
+ */
+
+mps_bool_t mps_addr_pool(mps_pool_t *mps_pool_o,
+                         mps_arena_t mps_arena,
+                         mps_addr_t p)
+{
+    Bool b;
+    Pool pool;
+    Arena arena = (Arena)mps_arena;
+
+    AVER(mps_pool_o != NULL);
+    /* mps_arena -- will be checked by ArenaEnterRecursive */
+    /* p -- cannot be checked */
+
+    /* One of the few functions that can be called
+       during the call to an MPS function.  IE this function
+       can be called when walking the heap. */
+    ArenaEnterRecursive(arena);
+    b = PoolOfAddr(&pool, arena, (Addr)p);
+    ArenaLeaveRecursive(arena);
+
+    if(b)
+      *mps_pool_o = (mps_pool_t)pool;
+
+    return b;
+}
+
+
+/* mps_addr_fmt -- what format might this address have?
+ *
+ * .per-pool: There's no reason why all objects in a pool should have 
+ * the same format.  But currently, MPS internals support at most one 
+ * format per pool.
+ *
+ * If the address is in a pool and has a format, returns TRUE and 
+ * updates *mps_fmt_o to be that format.  Otherwise, returns FALSE 
+ * and does not update *mps_fmt_o.
+ *
+ * Note: may return an MPS-internal format.
+ */
+mps_bool_t mps_addr_fmt(mps_fmt_t *mps_fmt_o,
+                        mps_arena_t mps_arena,
+                        mps_addr_t p)
+{
+    Bool b;
+    Pool pool;
+    Format format = 0;
+    Arena arena = (Arena)mps_arena;
+
+    AVER(mps_fmt_o != NULL);
+    /* mps_arena -- will be checked by ArenaEnterRecursive */
+    /* p -- cannot be checked */
+
+    /* One of the few functions that can be called
+       during the call to an MPS function.  IE this function
+       can be called when walking the heap. */
+    ArenaEnterRecursive(arena);
+    /* .per-pool */
+    b = PoolOfAddr(&pool, arena, (Addr)p);
+    if(b)
+      b = PoolFormat(&format, pool);
+    ArenaLeaveRecursive(arena);
+
+    if(b)
+      *mps_fmt_o = (mps_fmt_t)format;
+
+    return b;
+}
+
+
 /* mps_fmt_create_A -- create an object format of variant A
  *
  * .fmt.create.A.purpose: This function converts an object format spec
