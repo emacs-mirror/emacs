@@ -2065,7 +2065,7 @@ detect_coding_emacs_mule (coding, detect_info)
 /* Parse emacs-mule multibyte sequence at SRC and return the decoded
    character.  If CMP_STATUS indicates that we must expect MSEQ or
    RULE described above, decode it and return the negative value of
-   the deocded character or rule.  If an invalid byte is found, return
+   the decoded character or rule.  If an invalid byte is found, return
    -1.  If SRC is too short, return -2.  */
 
 int
