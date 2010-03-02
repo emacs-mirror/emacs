@@ -1,3 +1,8 @@
+2010-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (holiday-hebrew-passover): Fix date
+	of Yom HaAtzma'ut when it falls on a Monday (rule changed in 2004).
+
 2010-03-01  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-remove-stale-state-cache): Correct
