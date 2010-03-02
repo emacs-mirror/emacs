@@ -704,7 +704,9 @@ int main(int argc, char **argv)
   /* 16<<20 == 16777216 == 16 Mebibyte */
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
+  /* This is bogus!  sizemethod 1 can make a 300,000-slot dylan vector, ie. 1.2MB. */
+  /* Try 100MB arena */
+  testscriptA("Arena(size 100000000), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
 
   /* LSP -- Large Segment Padding (job001811)
    *
