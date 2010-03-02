@@ -215,7 +215,7 @@ this is the function `temp-directory'."
 ;; has been introduced with Emacs 22.  We try it, if it fails, we fall
 ;; back to `make-temp-name', creating the temporary file immediately
 ;; in order to avoid a security hole.
-(defsubst tramp-compat-make-temp-file (filename)
+(defsubst tramp-compat-make-temp-file (filename &optional dir-flag)
   "Create a temporary file (compat function).
 Add the extension of FILENAME, if existing."
   (let* (file-name-handler-alist
@@ -226,21 +226,24 @@ Add the extension of FILENAME, if existing."
 	 result)
     (condition-case nil
 	(setq result
-	      (funcall (symbol-function 'make-temp-file) prefix nil extension))
+	      (funcall
+	       (symbol-function 'make-temp-file) prefix dir-flag extension))
       (error
        ;; We use our own implementation, taken from files.el.
        (while
 	   (condition-case ()
 	       (progn
 		 (setq result (concat (make-temp-name prefix) extension))
-		 (write-region
-		  "" nil result nil 'silent nil
-		  ;; 7th parameter is MUSTBENEW in Emacs, and
-		  ;; CODING-SYSTEM in XEmacs.  It is not a security
-		  ;; hole in XEmacs if we cannot use this parameter,
-		  ;; because XEmacs uses a user-specific subdirectory
-		  ;; with 0700 permissions.
-		  (when (not (featurep 'xemacs)) 'excl))
+		 (if dir-flag
+		     (make-directory result)
+		   (write-region
+		    "" nil result nil 'silent nil
+		    ;; 7th parameter is MUSTBENEW in Emacs, and
+		    ;; CODING-SYSTEM in XEmacs.  It is not a security
+		    ;; hole in XEmacs if we cannot use this parameter,
+		    ;; because XEmacs uses a user-specific
+		    ;; subdirectory with 0700 permissions.
+		    (when (not (featurep 'xemacs)) 'excl)))
 		 nil)
 	     (file-already-exists t))
 	 ;; The file was somehow created by someone else between

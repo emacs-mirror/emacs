@@ -1,3 +1,11 @@
+2010-03-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-out-of-band): Fix an
+	error when FILENAME and NEWNAME are existing remote directories.
+
+	* net/tramp-compat.el (tramp-compat-make-temp-file): Add optional
+	parameter DIR-FLAG.
+
 2010-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-hebrew.el (holiday-hebrew-passover): Fix date
