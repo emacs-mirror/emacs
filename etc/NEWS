@@ -66,6 +66,7 @@ freedesktop.org specifications, the same method used by the Gnome,
 KDE, and XFCE desktops.  (This change has no effect on Windows, which
 uses `system-move-file-to-trash' for trashing.)
 
++++
 ** The pointer now becomes invisible when typing.
 Customize `make-pointer-invisible' to disable this feature.
 
