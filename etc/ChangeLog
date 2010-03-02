@@ -1,3 +1,11 @@
+2010-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/Makefile: For cs- and sk-, use pdfcsplain if available.
+	(pl-refcard.pdf): Let presence of pdfmex be another test for the
+	required TeX files.  Pass explicit output-format to tex command.
+	(orgcard.pdf): Use ps2pdf, since pdftex tends to produce a
+	portrait layout rather than the desired landscape.
+
 2010-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/pl-refcard.tex: Double forward-slashes in URL for Mex.
