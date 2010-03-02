@@ -1,3 +1,10 @@
+2010-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (decode_coding_emacs_mule): Fixup pointers to buffer
+	text that could be relocated inside the call to emacs_mule_char.
+	(emacs_mule_char): Use CODING_DECODE_CHAR instead of DECODE_CHAR.
+	(CODING_DECODE_CHAR): Add a comment describing its purpose.
+
 2010-03-02  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (parse_str_as_multibyte): Fix handling of the
