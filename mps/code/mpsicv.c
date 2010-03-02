@@ -229,6 +229,79 @@ static void ap_create_v_test(mps_pool_t pool, ...)
 }
 
 
+/* addr_pool_test
+ *
+ * intended to test:
+ *   mps_addr_pool
+ *   mps_addr_fmt
+ */
+
+static void addr_pool_test(mps_arena_t arena,
+                           mps_addr_t  obj1,   /* unformatted */
+                           mps_pool_t  pool1,
+                           mps_addr_t  obj2,   /* formatted */
+                           mps_pool_t  pool2,
+                           mps_fmt_t   fmt2)
+{
+  /* Things we might test.  An addr might be:
+   *   0- a valid reference to an MPS-managed object;
+   *   1- interior pointer to an MPS-managed object;
+   *   2- pointer into some other part of a Seg owned by a Pool;
+   *   ^^^(mps_addr_pool returns TRUE for these)
+   *   3- pointer to some MPS memory that's not a Seg;
+   *   4- pointer to unmapped memory;
+   *   5- pointer to memory not in any Chunk.
+   *   ^^^(mps_addr_pool returns FALSE for these)
+   *
+   * We actually test case 0 (for both unformatted and formatted 
+   * objects), and case 5.
+   */
+
+  mps_bool_t b;
+  mps_addr_t addr;
+  /* DISTInguished values are to observe overwrites. */
+  mps_pool_t poolDistinguished = (mps_pool_t)0x000d1521;
+  mps_pool_t pool = poolDistinguished;
+  mps_fmt_t fmtDistinguished = (mps_fmt_t)0x000d1521;
+  mps_fmt_t fmt = fmtDistinguished;
+
+  /* 0a -- obj1 in pool1 (unformatted) */
+  addr = obj1;
+  pool = poolDistinguished;
+  fmt = fmtDistinguished;
+  b = mps_addr_pool(&pool, arena, addr);
+  /* printf("b %d; pool %p; sig %lx\n", b, (void *)pool,
+            b ? ((mps_word_t*)pool)[0] : (mps_word_t)0); */
+  cdie(b == TRUE && pool == pool1, "mps_addr_pool 0a");
+  b = mps_addr_fmt(&fmt, arena, addr);
+  /* printf("b %d; fmt %p; sig %lx\n", b, (void *)fmt,
+            b ? ((mps_word_t*)fmt)[0] : (mps_word_t)0); */
+  cdie(b == FALSE && fmt == fmtDistinguished, "mps_addr_fmt 0a");
+
+  /* 0b -- obj2 in pool2, with fmt2 */
+  addr = obj2;
+  pool = poolDistinguished;
+  fmt = fmtDistinguished;
+  b = mps_addr_pool(&pool, arena, addr);
+  /* printf("b %d; pool %p; sig %lx\n", b, (void *)pool,
+            b ? ((mps_word_t*)pool)[0] : (mps_word_t)0); */
+  cdie(b == TRUE && pool == pool2, "mps_addr_pool 0b");
+  b = mps_addr_fmt(&fmt, arena, addr);
+  /* printf("b %d; fmt %p; sig %lx\n", b, (void *)fmt,
+            b ? ((mps_word_t*)fmt)[0] : (mps_word_t)0); */
+  cdie(b == TRUE && fmt == fmt2, "mps_addr_fmt 0b");
+
+  /* 5 */
+  addr = &pool;  /* point at stack, not in any chunk */
+  pool = poolDistinguished;
+  fmt = fmtDistinguished;
+  b = mps_addr_pool(&pool, arena, addr);
+  cdie(b == FALSE && pool == poolDistinguished, "mps_addr_pool 5");
+  b = mps_addr_fmt(&fmt, arena, addr);
+  cdie(b == FALSE && fmt == fmtDistinguished, "mps_addr_fmt 5");
+}
+
+
 static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
 {
   testlib_unused(s);
@@ -377,6 +450,8 @@ static void *test(void *arg, size_t s)
   die(mps_alloc(&alloced_obj, mv, asize), "mps_alloc");
   die(dylan_init(alloced_obj, asize, exactRoots, exactRootsCOUNT),
       "dylan_init(alloced_obj)");
+
+  addr_pool_test(arena, alloced_obj, mv, make(), amcpool, format);
 
   die(mps_root_create_fmt(&fmtRoot, arena,
                           MPS_RANK_EXACT, (mps_rm_t)0,

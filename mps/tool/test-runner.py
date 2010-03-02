@@ -121,6 +121,7 @@ runtestlist([
     "mpsicv",
     "zcoll",
     "zmess",
+    "walkt0",
     "messtest",
  ], ["we", "hi", "di", "ci"], testout)
 
