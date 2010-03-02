@@ -47,7 +47,7 @@
 
 <h2> AMC Seg States </h2>
 
-<p>AMC Segs are in one of three states: "<b>mobile</b>", "<b>boarded</b>", or "<b>stuck</b>".  <em>This is new terminology, not used in the initial design, and not yet widespread in the source code</em>.  Segs are normally "<b>mobile</b>": all objects on the seg are un-nailed, and thus may be preserved by copying.  An ambiguous reference to any address within an AMC seg makes that seg "<b>boarded</b>": a nailboard is allocated to record ambiguous refs ("nails"), but un-nailed objects on the seg are still preserved by copying.  Stuck segments only occur in emergency tracing: a discovery fix to an object in a mobile segment is recorded in the only non-allocating way available: by making the entire segment "<b>stuck</b>".</p>
+<p>AMC Segs are in one of three states: "<b>mobile</b>", "<b>boarded</b>", or "<b>stuck</b>" <em>[This is new terminology, not used in the initial design, and not yet widespread in the source code -- RHSK 2009-09-14]</em>.  Segs are normally "<b>mobile</b>": all objects on the seg are un-nailed, and thus may be preserved by copying.  An ambiguous reference to any address within an AMC seg makes that seg "<b>boarded</b>": a nailboard is allocated to record ambiguous refs ("nails"), but un-nailed objects on the seg are still preserved by copying.  Stuck segments only occur in emergency tracing: a discovery fix to an object in a mobile segment is recorded in the only non-allocating way available: by making the entire segment "<b>stuck</b>".</p>
 
 
 <h2> Pads </h2>
@@ -62,7 +62,7 @@
 
 <p>LSP pads (Large Segment Padding) are made by AMCBufferFill when the requested fill size is 'large' (see "The LSP payoff calculation" below).  AMCBufferFill fills the buffer to exactly the size requested by the current buffer reserve operation; that is: it does not round up to the whole segment size.  This prevents subsequent small objects being placed in the same segment as a single very large object.  If the buffer fill size is less than the segment size, AMCBufferFill fills any remainder with an LSP pad.</p>
 
-<p>NMR pads (Non-Mobile Reclaim) are made by amcReclaimNailed, when performing reclaim on a boarded or stuck segment:</p>
+<p>NMR pads (Non-Mobile Reclaim) are made by amcReclaimNailed, when performing reclaim on a non-mobile (that is: either boarded or stuck) segment:</p>
 
 <p>The more common NMR scenario is reclaim of a boarded seg after a non-emergency trace.  Ambiguous refs into the seg are recorded as nails.  Subsequent exact refs to a nailed object do nothing further, but exact refs that do not match a nail cause preserve-by-copy and leave a forwarding object.  Unreachable objects are not touched during the scan+fix part of the trace.  On reclaim, only nailed objects need to be preserved; others (namely forwarding pointers and unreachable objects) are replaced by an NMR pad.  (Note that a BE or LSP pad appears to be an unreachable object, and is therefore overwritten by an NMR pad).</p>
 
@@ -123,7 +123,7 @@
 
 <p>For large segments, we decide that the risk of using the remainder is just too great, and the benefit too small, so we throw it away as an LSP pad.  This is equivalent to purchasing insurance: we choose to pay a known small cost every time, to avoid risking an occasional disaster.</p>
 
-<p>To decide what size of segment counts as "large", we must decide how much uninsured risk we can tolerate, versus how much insurance cost we can tolerate.  The likelihood of ambiguous references retaining objects is entirely dependent on client behaviour.  However, as a sufficient 'one size fits all' policy, I have judged that segments smaller than 8 pages long do not need to be treated as large: the insurance cost to 'play safe' would be considerable (wasting up to 1 page of remainder per 7 pages of allocation), and the fragmentation overhead risk is not that great (at most 8 times worse than the unavoidable minimum).  So AMCLargeSegPAGES is defined as 8 in config.h.  As long as the assumption that most segments are not ambiguously referenced remains correct, I expect this policy will be satisfactory.</p>
+<p>To decide what size of segment counts as "large", we must decide how much uninsured risk we can tolerate, versus how much insurance cost we can tolerate.  The likelihood of ambiguous references retaining objects is entirely dependent on client behaviour.  However, as a sufficient 'one size fits all' policy, I (RHSK 2009-09-14) have judged that segments smaller than 8 pages long do not need to be treated as large: the insurance cost to 'play safe' would be considerable (wasting up to 1 page of remainder per 7 pages of allocation), and the fragmentation overhead risk is not that great (at most 8 times worse than the unavoidable minimum).  So AMCLargeSegPAGES is defined as 8 in config.h.  As long as the assumption that most segments are not ambiguously referenced remains correct, I expect this policy will be satisfactory.</p>
 
 <p>To verify that this threshold is acceptable for a given client, poolamc.c calculates metrics; see "Feedback about retained pages" below.  If this one-size-fits-all approach is not satisfactory, AMCLargeSegPAGES could be made a client-tunable parameter.</p>
 
