@@ -1,5 +1,9 @@
 2010-03-02  Kenichi Handa  <handa@m17n.org>
 
+	* character.c (parse_str_as_multibyte): Fix handling of the
+	multibyte form of raw-bytes.
+	(str_as_multibyte): Likewise.
+
 	* buffer.c (Fset_buffer_multibyte): Fix handling of the multibyte
 	form of raw-bytes.
 
