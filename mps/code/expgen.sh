@@ -117,7 +117,8 @@ tu () {
 # followed by manual removal of mpsw3.h mpswin.h (which gcc on UNIX
 # cannot parse).  Also removed are mpsio.h mpslib.h as they defined
 # interfaces that mps _uses_ not defines.  Also removed is mpscmvff.h as
-# it does not get included in mps.lib
+# it does not get included in mps.lib.  Also removed is mpslibcb.h, 
+# which now has its own mpslibcb.def file (job002148).
 # The functions declared in mpsw3.h have to be added to the .def file by
 # hand later in this script.
 f='mps.h
@@ -129,7 +130,6 @@ mpscawl.h
 mpsclo.h
 mpscmv.h
 mpscsnc.h
-mpslibcb.h
 mpstd.h'
 
 tu $f
