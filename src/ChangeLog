@@ -1,3 +1,9 @@
+2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fwhere_is_internal): Use Fequal to compare
+	definitions, so that keyboard macros are correctly handled
+	(Bug#5481).
+
 2010-03-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (decode_coding_emacs_mule): Fixup pointers to buffer

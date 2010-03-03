@@ -138,7 +138,8 @@ use this command, and then save the file."
 	(prin1 definition (current-buffer))))
     (insert ")\n")
     (if keys
-	(let ((keys (where-is-internal macroname '(keymap))))
+	(let ((keys (where-is-internal (symbol-function macroname)
+				       '(keymap))))
 	  (while keys
 	    (insert "(global-set-key ")
 	    (prin1 (car keys) (current-buffer))

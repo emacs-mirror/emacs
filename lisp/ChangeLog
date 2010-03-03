@@ -1,3 +1,8 @@
+2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macros.el (insert-kbd-macro): Look up keyboard macro using the
+	definition, not the name (Bug#5481).
+
 2010-03-03  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* subr.el (momentary-string-display): Don't overwrite the MESSAGE
