@@ -1,4 +1,4 @@
-2010-03-03  Štěpán Němec  <stepnem@gmail.com>
+2010-03-03  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* subr.el (momentary-string-display): Don't overwrite the MESSAGE
 	argument with a local variable.  (Bug#5670)
