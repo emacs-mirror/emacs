@@ -3062,6 +3062,8 @@ Give an empty topic name to go to the Index node itself."
 	  num (1- num)))
   (Info-goto-node (nth 1 (car Info-index-alternatives)))
   (if (> (nth 3 (car Info-index-alternatives)) 0)
+      ;; Forward 2 lines less because `Info-find-node-2' initially
+      ;; puts point to the 2nd line.
       (forward-line (- (nth 3 (car Info-index-alternatives)) 2))
     (forward-line 3)			; don't search in headers
     (let ((name (car (car Info-index-alternatives))))
