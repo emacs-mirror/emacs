@@ -1,3 +1,8 @@
+2010-03-03  Štěpán Němec  <stepnem@gmail.com>
+
+	* subr.el (momentary-string-display): Don't overwrite the MESSAGE
+	argument with a local variable.  (Bug#5670)
+
 2010-03-02  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-index-next): Decrement line number by 2.  (Bug#5652)
