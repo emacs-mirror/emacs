@@ -68,6 +68,7 @@ Compiler Toolchains
   cx    SunPro C CXREF tool
   gp    GCC with profiling
   mv    Microsoft Visual C
+  m9    Microsoft Visual C 9.0 (temporary designation)
   sc    SunPro C
   ac    Apple Mr C
   mw    Metrowerks Codewarrior
@@ -92,6 +93,7 @@ sos9sc  Not maintained
 sus8gc  Not maintained
 w3almv  Not maintained (no makefile in trunk)
 w3i3mv  Maintained
+w3i3m9  Maintained
 w3ppmv  Not Maintained (no makefile in trunk)
 xci3gc  Maintained
 xcppgc  Maintained (in sunset)
@@ -164,7 +166,7 @@ necessary to enable the new DLL version of the MPS, "mpsdy.dll".
 RHSK.
 See <http://www.ravenbrook.com/project/mps/master/manual/supplement/dll-notes/>
 
-2008-10-23 (1.108.3)
+2010-03-03 (1.109.0)
 New platform "w3i3m9" -- using Microsoft Visual C++ 9.0
 This platform is a clone of w3i3mv; the only differences are:
   - compiler & linker options (see commpre9.nmk);
@@ -174,8 +176,14 @@ The only reason for this to be separate from the w3i3mv platform is
 to enable builds with version 6.0 and version 9.0 compilers to be 
 kept separate, to enable performance comparisons.  The w3i3m9 
 clone may merge back into w3i3mv in the future.
-RHSK.
 See <http://www.ravenbrook.com/project/mps/issue/job001944/>
+
+The Windows linker can accept a .def file to allow re-export of MPS 
+functions from a client executable that includes the MPS, such that 
+other client DLLs can link to and call those MPS functions.  See the 
+w3gen.def file (renamed mps-fns.def for Configura releases).  A 
+suitable command-line fragment might be "/def:w3gen.def".
+See <http://www.ravenbrook.com/project/mps/issue/job001936/>
 
 
 A. REFERENCES
@@ -189,11 +197,12 @@ B. DOCUMENT HISTORY
 2007-12-21  RHSK  Note re PPC Mac compiler flags.
 2008-10-23  RHSK  Note re w3i3m9 (Windows Visual C++ 9.0) platform
 2008-12-09  RHSK  Remove w3almv and w3ppmv makefiles.
+2010-03-03  RHSK  More w3i3m9 details.  Linker .def file for re-export.
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2005,2006,2007,2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright (C) 2005,2006,2007,2008,2010 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved.  This is an open source license.  Contact
 Ravenbrook for commercial licensing options.
 
