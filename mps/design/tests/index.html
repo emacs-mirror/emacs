@@ -46,8 +46,8 @@
   <dd>Oldest.  Registers a few objects (for finalization) and pseudorandomly makes them unreachable, deregisters them, etc.  Churns to provoke minor (nursery) collection.</dd>
   <dt>finaltest.c</dt>
   <dd>Uses newer fmtdytst facilities.  Creates a large binary tree, and registers every node.  Drops top ref, requests collection, and counts the messages.</dd>
-  <dt>fin1638a.c</dt>
-  <dd>Newest.  Single-issue test: see job001638.  Drops refs and requests collection.  Verifies that all non-E-reachable registered objects are finalized in a single collection, even if there are >1 segs of poolmrg guardians.</dd>
+  <dt>fin1658a.c</dt>
+  <dd>Newest.  Single-issue test: see job001658.  Drops refs and requests collection.  Verifies that all non-E-reachable registered objects are finalized in a single collection, even if there are >1 segs of poolmrg guardians.</dd>
 </dl>
 
 <p>There's also expt825.c, which verifies that protection expose/remember works correctly for poolmrg (scanned but not GC'd segs); see job000825.</p>
@@ -95,12 +95,18 @@
   <td>Create.  Describe finalization tests.</td>
 </tr>
 
+<tr valign="top">
+  <td>2010-03-03</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Correction: it's fin1658a.c and job001658, not 1638.</td>
+</tr>
+
 </table>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2008, 2010 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
