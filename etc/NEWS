@@ -282,7 +282,7 @@ experience delays when sending mail, you may wish to set this to nil.
 ** nXML mode is now the default for editing XML files.
 
 ** Shell
-
++++
 *** ansi-color is now enabled by default.
 To disable it, set ansi-color-for-comint-mode to nil.
 
@@ -363,7 +363,7 @@ to sacrifice some accuracy for a faster startup.
 *** Customize `elint-ignored-warnings' to suppress some warnings.
 
 ** Miscellaneous
-
++++
 *** The new command `async-shell-command' bound globally to `M-&' executes
 the command asynchronously without the need to manually add ampersand to
 the end of the command.  Its output appears in the buffer `*Async Shell
@@ -437,6 +437,7 @@ System (CLOS).  It is used by the other CEDET packages.
 
 * Incompatible Lisp Changes in Emacs 23.2
 
+---
 ** Several obsolete functions removed.
 The functions have been obsolete since Emacs 19, and are unlikely to
 be in use:
