@@ -38,6 +38,16 @@
 
 <p> Readership: any MPS developer.  Not confidential. </p>
 
+<h2> zmess.c </h2>
+
+<p>Tests message lifecycle, and finalization (by using finalization messages).</p>
+
+
+<h2> zcoll.c </h2>
+
+<p>Tests collection scheduling, and collection feedback.</p>
+
+
 <h2> Finalization Tests </h2>
 
 <p>There are three main ones:</p>
@@ -46,8 +56,8 @@
   <dd>Oldest.  Registers a few objects (for finalization) and pseudorandomly makes them unreachable, deregisters them, etc.  Churns to provoke minor (nursery) collection.</dd>
   <dt>finaltest.c</dt>
   <dd>Uses newer fmtdytst facilities.  Creates a large binary tree, and registers every node.  Drops top ref, requests collection, and counts the messages.</dd>
-  <dt>fin1658a.c</dt>
-  <dd>Newest.  Single-issue test: see job001658.  Drops refs and requests collection.  Verifies that all non-E-reachable registered objects are finalized in a single collection, even if there are >1 segs of poolmrg guardians.</dd>
+  <dt>fin1658a.c  -- deleted</dt>
+  <dd>[Subsumed into and replaced by zmess.c, 2009-02-17].  fin1658a.c was a single-issue test: see job001658.  Drops refs and requests collection.  Verifies that all non-E-reachable registered objects are finalized in a single collection, even if there are >1 segs of poolmrg guardians.</dd>
 </dl>
 
 <p>There's also expt825.c, which verifies that protection expose/remember works correctly for poolmrg (scanned but not GC'd segs); see job000825.</p>
@@ -99,6 +109,12 @@
   <td>2010-03-03</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
   <td>Correction: it's fin1658a.c and job001658, not 1638.</td>
+</tr>
+
+<tr valign="top">
+  <td>2010-03-03</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Add zmess.c, zcoll.c.  zmess.c subsumes and replaces fin1658a.c.</td>
 </tr>
 
 </table>
