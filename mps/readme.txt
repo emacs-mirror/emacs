@@ -53,7 +53,7 @@ record of changes.  In a release of the MPS-Kit, this section becomes
 the summary of what is new for that release.)
 
 [
-......Post 1.108.2 changes:
+After a release, bracket the previous section, and start a new section like this:
 
 This is release A.BBB.C, made on YYYY-MM-DD.
 Changes from release A.BBB.C-1:
@@ -64,8 +64,82 @@ Other changes:
 
 ]
 
-This is release 1.108.2, made on 2008-05-01.
-Changes from release 1.108.1:
+This is release 1.109.0, made on YYYY-MM-DD.
+Changes from release 1.108.2:
+
+Functional changes to MPS code:
+
+<http://www.ravenbrook.com/project/mps/issue/job001570/>
+<http://www.ravenbrook.com/project/mps/issue/job001989/>
+Defects discovered in mps_message_type_gc_start lifecycle:
+  - enabling mps_message_type_gc_start and then failing to promptly 
+    mps_message_get the resulting messages could corrupt the MPS 
+    message queue;
+  - a corrupted message queue could cause an assert, incorrect 
+    behaviour, or an infinite loop, when getting or deleting 
+    messages, or when calling mps_arena_destroy;
+  - also, the _gc_start message could change while the client read it, 
+    and the message for a new GC start could be silently skipped.
+Fixed: redesign _gc_start message lifecycle:
+  - if mps_message_type_gc_start is enabled, a separate GC start 
+    message is issued for each collection, as long as there is 
+    sufficient memory to create the message;
+  - these messages will be queued indefinitely until the client gets 
+    and discards them;
+  - therefore: a client that enables mps_message_type_gc_start must 
+    call mps_message_get() and mps_message_discard() to get and 
+    discard these messages;
+  - warning: failure to do so will eventually exhaust memory.
+
+<http://www.ravenbrook.com/project/mps/issue/job001968/>
+<http://www.ravenbrook.com/project/mps/issue/job001969/>
+New features to inform client of activity and timing of collections:
+  mps_message_clock():
+    - for a _gc_start or _gc message, returns the time at which the 
+      MPS posted it; see Reference Manual for documentation;
+  mps_alert_collection_set():
+    - set a client-supplied function which the MPS will synchronously 
+      call when a collection begins or ends;
+    - there are restrictions on what the client-supplied function is 
+      permitted to do; please ask Ravenbrook if you require further 
+      details.
+
+<http://www.ravenbrook.com/project/mps/issue/job001811/>
+Improvement: reduce the risk of ambiguous retention, when the client 
+allocates large objects in mps_class_amc and mps_class_amcz.
+
+<http://www.ravenbrook.com/project/mps/issue/job002205/>
+Defect discovered:
+  - collections run too slow if client allocates big objects.
+Fix:
+  - improved collection scheduling, when client allocates large 
+    objects.
+
+<http://www.ravenbrook.com/project/mps/issue/job002209/>
+New features for client to determine pool or format, given object 
+address:
+  mps_addr_pool()
+  mps_addr_fmt()
+Not documented in the Reference Manual yet, so see mps.h.
+
+Other changes:
+
+<http://www.ravenbrook.com/project/mps/issue/job001934/>
+<http://www.ravenbrook.com/project/mps/issue/job001944/>
+MPS now builds with Microsoft Visual C++ 9.0.  
+See manual/build-notes.
+
+<http://www.ravenbrook.com/project/mps/issue/job001936/>
+<http://www.ravenbrook.com/project/mps/issue/job001935/>
+<http://www.ravenbrook.com/project/mps/issue/job002148/>
+Configura releases include a .def file to allow re-export of MPS 
+functions from a client executable that includes the MPS, such that 
+other client DLLs can link to and call those MPS functions.
+See manual/build-notes.
+
+
+[
+Historical: changes in release 1.108.2, made on (2008-05-01).
 
 Functional changes to MPS code:
 
@@ -126,7 +200,7 @@ New interface function mps_arena_vm_growth().  This function allows
 the client more control over how a VM arena (mps_arena_class_vm) 
 grows.  The interface is under development and is likely to change; 
 please contact us if you would like further details.
-
+]
 
 [
 Historical: changes in release 1.108.1 (2007-12-21).
@@ -510,11 +584,12 @@ B. DOCUMENT HISTORY
 2007-07-05  RHSK  Release 1.108.0
 2007-12-21  RHSK  Release 1.108.1
 2008-05-01  RHSK  Release 1.108.2
+2010-03-03  RHSK  Release 1.109.0
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2002, 2006-2007, 2008 Ravenbrook Limited.  
+Copyright (C) 2001-2002, 2006-2007, 2008, 2010 Ravenbrook Limited.  
 All rights reserved.  <http://www.ravenbrook.com/>.  
 This is an open source license.  
 Contact Ravenbrook for commercial licensing options.

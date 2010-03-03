@@ -85,6 +85,18 @@
     <td>Message</td>
     <td>add postedClock field to messages; move message type from MessageStruct to MessageClassStruct</td>
   </tr>
+  <tr>
+    <td>2008-12-19</td>
+    <td>166995</td>
+    <td>Message</td>
+    <td>_gc_start message lifecycle was thoroughly broken; fix it.</td>
+  </tr>
+  <tr>
+    <td>2009-09-18</td>
+    <td>168761</td>
+    <td>PoolAMC</td>
+    <td>AMC Large Segment Padding to reduce risk of pathological ambiguous retention.  PoolTraceEnd methods.</td>
+  </tr>
 </table>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
@@ -93,12 +105,13 @@
   2006-11-27  RHSK  Created.
   2007-04-26  RHSK  1998-11-10: Sunset on segments
   2008-11-07  RHSK  2008-11-07: Message changes
+  2010-03-03  RHSK  2008-12-19: _gc_start message fix; 2009-09-18 AMC LSP.
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2006, 2007, 2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2006, 2007, 2008, 2010 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
