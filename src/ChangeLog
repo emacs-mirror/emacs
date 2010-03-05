@@ -1,3 +1,8 @@
+2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (skip_chars): Setup gl_state (bug#3823).
+	(in_classes): Use CONSP before XCAR/XCDR.
+
 2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (Fwhere_is_internal): Use Fequal to compare
