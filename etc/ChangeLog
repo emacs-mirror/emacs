@@ -1,3 +1,8 @@
+2010-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/orgcard.tex: Use pdflayout.sty.
+	* refcards/Makefile (orgcard.pdf): Special rule no longer needed.
+
 2010-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/Makefile: For cs- and sk-, use pdfcsplain if available.
