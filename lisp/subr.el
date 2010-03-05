@@ -2196,15 +2196,15 @@ Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\s))
   (let ((ol (make-overlay pos pos))
-        (message (copy-sequence string)))
+        (str (copy-sequence string)))
     (unwind-protect
         (progn
           (save-excursion
-            (overlay-put ol 'after-string message)
+            (overlay-put ol 'after-string str)
             (goto-char pos)
             ;; To avoid trouble with out-of-bounds position
             (setq pos (point))
-            ;; If the message end is off screen, recenter now.
+            ;; If the string end is off screen, recenter now.
             (if (<= (window-end nil t) pos)
                 (recenter (/ (window-height) 2))))
           (message (or message "Type %s to continue editing.")

@@ -3798,13 +3798,12 @@ The method used must be an out-of-band method."
 
 	  ;; Both are Tramp files.  We shall optimize it, when the
 	  ;; methods for filename and newname are the same.
-	  (let ((tmpfile
-		 (if (file-regular-p filename)
-		     (tramp-compat-make-temp-file localname)
-		   (make-temp-name
-		    (expand-file-name
-		     tramp-temp-name-prefix
-		     (tramp-compat-temporary-file-directory))))))
+	  (let* ((dir-flag (file-directory-p filename))
+		 (tmpfile (tramp-compat-make-temp-file localname dir-flag)))
+	    (if dir-flag
+		(setq tmpfile
+		      (expand-file-name
+		       (file-name-nondirectory newname) tmpfile)))
 	    (unwind-protect
 		(progn
 		  (tramp-do-copy-or-rename-file-out-of-band
@@ -3813,9 +3812,10 @@ The method used must be an out-of-band method."
 		   'rename tmpfile newname keep-date))
 	      ;; Save exit.
 	      (condition-case nil
-		  (if (file-regular-p tmpfile)
-		      (delete-file tmpfile)
-		    (delete-directory tmpfile 'recursive))
+		  (if dir-flag
+		      (delete-directory
+		       (expand-file-name ".." tmpfile) 'recursive)
+		    (delete-file tmpfile))
 		(error))))
 
 	;; Expand hops.  Might be necessary for gateway methods.

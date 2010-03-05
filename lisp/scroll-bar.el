@@ -210,13 +210,14 @@ EVENT should be a scroll bar click or drag event."
   (let* ((start-position (event-start event))
 	 (window (nth 0 start-position))
 	 (portion-whole (nth 2 start-position)))
-    (with-current-buffer (window-buffer window)
-      ;; Calculate position relative to the accessible part of the buffer.
-      (goto-char (+ (point-min)
-		    (scroll-bar-scale portion-whole
-				      (- (point-max) (point-min)))))
-      (vertical-motion 0 window)
-      (set-window-start window (point)))))
+    (save-excursion 
+      (with-current-buffer (window-buffer window)
+	;; Calculate position relative to the accessible part of the buffer.
+	(goto-char (+ (point-min)
+		      (scroll-bar-scale portion-whole
+					(- (point-max) (point-min)))))
+	(vertical-motion 0 window)
+	(set-window-start window (point))))))
 
 (defun scroll-bar-drag (event)
   "Scroll the window by dragging the scroll bar slider.

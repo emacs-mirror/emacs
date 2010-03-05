@@ -1,3 +1,31 @@
+2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fwhere_is_internal): Use Fequal to compare
+	definitions, so that keyboard macros are correctly handled
+	(Bug#5481).
+
+2010-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (decode_coding_emacs_mule): Fixup pointers to buffer
+	text that could be relocated inside the call to emacs_mule_char.
+	(emacs_mule_char): Use CODING_DECODE_CHAR instead of DECODE_CHAR.
+	(CODING_DECODE_CHAR): Add a comment describing its purpose.
+
+2010-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (parse_str_as_multibyte): Fix handling of the
+	multibyte form of raw-bytes.
+	(str_as_multibyte): Likewise.
+
+	* buffer.c (Fset_buffer_multibyte): Fix handling of the multibyte
+	form of raw-bytes.
+
+2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* charset.c (load_charset_map_from_file)
+	(load_charset_map_from_vector): Zero out allocated
+	charset_map_entries before using them.
+
 2010-02-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* w32uniscribe.c (uniscribe_check_otf): Fix length check.

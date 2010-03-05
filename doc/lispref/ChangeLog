@@ -1,3 +1,8 @@
+2010-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* numbers.texi (Integer Basics, Bitwise Operations):
+	* objects.texi (Integer Type): Update for integers now being 30-bit.
+
 2010-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Low-Level Font): Document :otf font-spec property.

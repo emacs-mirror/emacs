@@ -630,7 +630,8 @@ parse_str_as_multibyte (str, len, nchars, nbytes)
       const unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
       while (str < adjusted_endp)
 	{
-	  if ((n = MULTIBYTE_LENGTH_NO_CHECK (str)) > 0)
+	  if (! CHAR_BYTE8_HEAD_P (*str)
+	      && (n = MULTIBYTE_LENGTH_NO_CHECK (str)) > 0)
 	    str += n, bytes += n;
 	  else
 	    str++, bytes += 2;
@@ -639,7 +640,8 @@ parse_str_as_multibyte (str, len, nchars, nbytes)
     }
   while (str < endp)
     {
-      if ((n = MULTIBYTE_LENGTH (str, endp)) > 0)
+      if (! CHAR_BYTE8_HEAD_P (*str)
+	  && (n = MULTIBYTE_LENGTH (str, endp)) > 0)
 	str += n, bytes += n;
       else
 	str++, bytes += 2;
@@ -673,10 +675,13 @@ str_as_multibyte (str, len, nbytes, nchars)
     {
       unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
       while (p < adjusted_endp
+	     && ! CHAR_BYTE8_HEAD_P (*p)
 	     && (n = MULTIBYTE_LENGTH_NO_CHECK (p)) > 0)
 	p += n, chars++;
     }
-  while ((n = MULTIBYTE_LENGTH (p, endp)) > 0)
+  while (p < endp
+	 && ! CHAR_BYTE8_HEAD_P (*p)
+	 && (n = MULTIBYTE_LENGTH (p, endp)) > 0)
     p += n, chars++;
   if (nchars)
     *nchars = chars;
@@ -694,7 +699,8 @@ str_as_multibyte (str, len, nbytes, nchars)
       unsigned char *adjusted_endp = endp - MAX_MULTIBYTE_LENGTH;
       while (p < adjusted_endp)
 	{
-	  if ((n = MULTIBYTE_LENGTH_NO_CHECK (p)) > 0)
+	  if (! CHAR_BYTE8_HEAD_P (*p)
+	      && (n = MULTIBYTE_LENGTH_NO_CHECK (p)) > 0)
 	    {
 	      while (n--)
 		*to++ = *p++;
@@ -710,7 +716,8 @@ str_as_multibyte (str, len, nbytes, nchars)
     }
   while (p < endp)
     {
-      if ((n = MULTIBYTE_LENGTH (p, endp)) > 0)
+      if (! CHAR_BYTE8_HEAD_P (*p)
+	  && (n = MULTIBYTE_LENGTH (p, endp)) > 0)
 	{
 	  while (n--)
 	    *to++ = *p++;
