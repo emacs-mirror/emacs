@@ -1,3 +1,7 @@
+2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-files-regexp): Tighten up the regexp (bug#5686).
+
 2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* macros.el (insert-kbd-macro): Look up keyboard macro using the
@@ -27,19 +31,17 @@
 
 2010-03-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-remove-stale-state-cache): Correct
-	previous patch.
+	* progmodes/cc-engine.el (c-remove-stale-state-cache):
+	Correct previous patch.
 
 2010-03-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/burmese.el (burmese-composable-pattern): Renamed from
+	* language/burmese.el (burmese-composable-pattern): Rename from
 	myanmar-composable-pattern.
 
-	* international/characters.el (script-list): Change myanmar to
-	burmese.
-
-	* international/fontset.el (script-representative-chars): Change
-	myanmar to burmese.
+	* international/characters.el (script-list):
+	* international/fontset.el (script-representative-chars):
+	Change myanmar to burmese.
 	(otf-script-alist): Likewise.
 	(setup-default-fontset): Likewise.  Re-fix :otf spec.
 
