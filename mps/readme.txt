@@ -76,7 +76,7 @@ Defects discovered in mps_message_type_gc_start lifecycle:
     mps_message_get the resulting messages could corrupt the MPS 
     message queue;
   - a corrupted message queue could cause an assert, incorrect 
-    behaviour, or an infinite loop, when getting or deleting 
+    behaviour, or an infinite loop, when getting or discarding 
     messages, or when calling mps_arena_destroy;
   - also, the _gc_start message could change while the client read it, 
     and the message for a new GC start could be silently skipped.
@@ -126,7 +126,7 @@ Other changes:
 
 <http://www.ravenbrook.com/project/mps/issue/job001934/>
 <http://www.ravenbrook.com/project/mps/issue/job001944/>
-MPS now builds with Microsoft Visual C++ 9.0.  
+MPS may now be built with Microsoft's Visual C++ 9.0 compiler.  
 See manual/build-notes.
 
 <http://www.ravenbrook.com/project/mps/issue/job001936/>
@@ -135,7 +135,7 @@ See manual/build-notes.
 Configura releases include a .def file to allow re-export of MPS 
 functions from a client executable that includes the MPS, such that 
 other client DLLs can link to and call those MPS functions.
-See manual/build-notes.
+See also manual/build-notes.
 
 
 [
