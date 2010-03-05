@@ -48,23 +48,7 @@ This document is not confidential.
 
 2. WHAT'S NEW; STATUS
 
-(In Master sources, this is a good place to accumulate a succinct
-record of changes.  In a release of the MPS-Kit, this section becomes
-the summary of what is new for that release.)
-
-[
-After a release, bracket the previous section, and start a new section like this:
-
-This is release A.BBB.C, made on YYYY-MM-DD.
-Changes from release A.BBB.C-1:
-
-Functional changes to MPS code:
-
-Other changes:
-
-]
-
-This is release 1.109.0, made on YYYY-MM-DD.
+This is release 1.109.0, made on 2010-03-05.
 Changes from release 1.108.2:
 
 Functional changes to MPS code:
