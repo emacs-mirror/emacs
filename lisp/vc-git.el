@@ -69,8 +69,8 @@
 ;; * revert (file &optional contents-done)         OK
 ;; - rollback (files)                              COULD BE SUPPORTED
 ;; - merge (file rev1 rev2)                   It would be possible to merge
-;;                                          changes into a single file, but when
-;;                                          committing they wouldn't
+;;                                          changes into a single file, but
+;;                                          when committing they wouldn't
 ;;                                          be identified as a merge
 ;;                                          by git, so it's probably
 ;;                                          not a good idea.
@@ -130,7 +130,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;;###autoload (defun vc-git-registered (file)
 ;;;###autoload   "Return non-nil if FILE is registered with git."
-;;;###autoload   (if (vc-find-root file ".git")       ; short cut
+;;;###autoload   (if (vc-find-root file ".git")       ; Short cut.
 ;;;###autoload       (progn
 ;;;###autoload         (load "vc-git")
 ;;;###autoload         (vc-git-registered file))))
@@ -149,9 +149,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	       (str (ignore-errors
 		     (cd dir)
 		     (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
-		     ;; if result is empty, use ls-tree to check for deleted file
+		     ;; If result is empty, use ls-tree to check for deleted
+                     ;; file.
 		     (when (eq (point-min) (point-max))
-		       (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD" "--" name))
+		       (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
+                                       "--" name))
 		     (buffer-string))))
 	  (and str
 	       (> (length str) (length name))
@@ -173,7 +175,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (if (not (vc-git-registered file))
       'unregistered
     (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
-    (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
+    (let ((diff (vc-git--run-command-string
+                 file "diff-index" "-z" "HEAD" "--")))
       (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0"
 				  diff))
 	  (vc-git--state-code (match-string 1 diff))
@@ -206,11 +209,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defstruct (vc-git-extra-fileinfo
             (:copier nil)
-            (:constructor vc-git-create-extra-fileinfo (old-perm new-perm &optional rename-state orig-name))
+            (:constructor vc-git-create-extra-fileinfo
+                          (old-perm new-perm &optional rename-state orig-name))
             (:conc-name vc-git-extra-fileinfo->))
-  old-perm new-perm   ;; permission flags
-  rename-state        ;; rename or copy state
-  orig-name)          ;; original name for renames or copies
+  old-perm new-perm   ;; Permission flags.
+  rename-state        ;; Rename or copy state.
+  orig-name)          ;; Original name for renames or copies.
 
 (defun vc-git-escape-file-name (name)
   "Escape a file name if necessary."
@@ -232,23 +236,23 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let* ((old-type (lsh (or old-perm 0) -9))
 	 (new-type (lsh (or new-perm 0) -9))
 	 (str (case new-type
-		(?\100  ;; file
+		(?\100  ;; File.
 		 (case old-type
 		   (?\100 nil)
 		   (?\120 "   (type change symlink -> file)")
 		   (?\160 "   (type change subproject -> file)")))
-		 (?\120  ;; symlink
+		 (?\120  ;; Symlink.
 		  (case old-type
 		    (?\100 "   (type change file -> symlink)")
 		    (?\160 "   (type change subproject -> symlink)")
 		    (t "   (symlink)")))
-		  (?\160  ;; subproject
+		  (?\160  ;; Subproject.
 		   (case old-type
 		     (?\100 "   (type change file -> subproject)")
 		     (?\120 "   (type change symlink -> subproject)")
 		     (t "   (subproject)")))
-                  (?\110 nil)  ;; directory (internal, not a real git state)
-		  (?\000  ;; deleted or unknown
+                  (?\110 nil)  ;; Directory (internal, not a real git state).
+		  (?\000  ;; Deleted or unknown.
 		   (case old-type
 		     (?\120 "   (symlink)")
 		     (?\160 "   (subproject)")))
@@ -258,7 +262,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
           (t ""))))
 
 (defun vc-git-rename-as-string (state extra)
-  "Return a string describing the copy or rename associated with INFO, or an empty string if none."
+  "Return a string describing the copy or rename associated with INFO,
+or an empty string if none."
   (let ((rename-state (when extra
 			(vc-git-extra-fileinfo->rename-state extra))))
     (if rename-state
@@ -267,8 +272,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (if (eq rename-state 'copy) "copied from "
                    (if (eq state 'added) "renamed from "
                      "renamed to "))
-                 (vc-git-escape-file-name (vc-git-extra-fileinfo->orig-name extra))
-                 ")") 'face 'font-lock-comment-face)
+                 (vc-git-escape-file-name
+                  (vc-git-extra-fileinfo->orig-name extra))
+                 ")")
+         'face 'font-lock-comment-face)
       "")))
 
 (defun vc-git-permissions-as-string (old-perm new-perm)
@@ -302,7 +309,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
      "  " (vc-git-permissions-as-string old-perm new-perm)
      "    "
      (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))
-                 'face (if isdir 'font-lock-comment-delimiter-face 'font-lock-function-name-face)
+                 'face (if isdir 'font-lock-comment-delimiter-face
+                         'font-lock-function-name-face)
 		 'help-echo
 		 (if isdir
 		     "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
@@ -314,32 +322,39 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-after-dir-status-stage (stage files update-function)
   "Process sentinel for the various dir-status stages."
-  (let (remaining next-stage result)
+  (let (next-stage result)
     (goto-char (point-min))
     (case stage
-      ('update-index
+      (update-index
        (setq next-stage (if (vc-git--empty-db-p) 'ls-files-added
                           (if files 'ls-files-up-to-date 'diff-index))))
-      ('ls-files-added
+      (ls-files-added
        (setq next-stage 'ls-files-unknown)
        (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
          (let ((new-perm (string-to-number (match-string 1) 8))
                (name (match-string 2)))
-           (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm)) result))))
-      ('ls-files-up-to-date
+           (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm))
+                 result))))
+      (ls-files-up-to-date
        (setq next-stage 'diff-index)
        (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
          (let ((perm (string-to-number (match-string 1) 8))
                (name (match-string 2)))
-           (push (list name 'up-to-date (vc-git-create-extra-fileinfo perm perm)) result))))
-      ('ls-files-unknown
+           (push (list name 'up-to-date
+                       (vc-git-create-extra-fileinfo perm perm))
+                 result))))
+      (ls-files-unknown
        (when files (setq next-stage 'ls-files-ignored))
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-         (push (list (match-string 1) 'unregistered (vc-git-create-extra-fileinfo 0 0)) result)))
-      ('ls-files-ignored
+         (push (list (match-string 1) 'unregistered
+                     (vc-git-create-extra-fileinfo 0 0))
+               result)))
+      (ls-files-ignored
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-         (push (list (match-string 1) 'ignored (vc-git-create-extra-fileinfo 0 0)) result)))
-      ('diff-index
+         (push (list (match-string 1) 'ignored
+                     (vc-git-create-extra-fileinfo 0 0))
+               result)))
+      (diff-index
        (setq next-stage 'ls-files-unknown)
        (while (re-search-forward
                ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
@@ -349,41 +364,60 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                (state (or (match-string 4) (match-string 6)))
                (name (or (match-string 5) (match-string 7)))
                (new-name (match-string 8)))
-           (if new-name  ; copy or rename
+           (if new-name  ; Copy or rename.
                (if (eq ?C (string-to-char state))
-                   (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'copy name)) result)
-                 (push (list name 'removed (vc-git-create-extra-fileinfo 0 0 'rename new-name)) result)
-                 (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'rename name)) result))
-             (push (list name (vc-git--state-code state) (vc-git-create-extra-fileinfo old-perm new-perm)) result))))))
+                   (push (list new-name 'added
+                               (vc-git-create-extra-fileinfo old-perm new-perm
+                                                             'copy name))
+                         result)
+                 (push (list name 'removed
+                             (vc-git-create-extra-fileinfo 0 0
+                                                           'rename new-name))
+                       result)
+                 (push (list new-name 'added
+                             (vc-git-create-extra-fileinfo old-perm new-perm
+                                                           'rename name))
+                       result))
+             (push (list name (vc-git--state-code state)
+                         (vc-git-create-extra-fileinfo old-perm new-perm))
+                   result))))))
     (when result
       (setq result (nreverse result))
       (when files
         (dolist (entry result) (setq files (delete (car entry) files)))
         (unless files (setq next-stage nil))))
-    (when (or result (not next-stage)) (funcall update-function result next-stage))
-    (when next-stage (vc-git-dir-status-goto-stage next-stage files update-function))))
+    (when (or result (not next-stage))
+      (funcall update-function result next-stage))
+    (when next-stage
+      (vc-git-dir-status-goto-stage next-stage files update-function))))
 
 (defun vc-git-dir-status-goto-stage (stage files update-function)
   (erase-buffer)
   (case stage
-    ('update-index
+    (update-index
      (if files
          (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
-       (vc-git-command (current-buffer) 'async nil "update-index" "--refresh")))
-    ('ls-files-added
-     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-c" "-s" "--"))
-    ('ls-files-up-to-date
-     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-c" "-s" "--"))
-    ('ls-files-unknown
-     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-o"
-                     "--directory" "--no-empty-directory" "--exclude-standard" "--"))
-    ('ls-files-ignored
-     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-o" "-i"
-                     "--directory" "--no-empty-directory" "--exclude-standard" "--"))
-    ('diff-index
-     (vc-git-command (current-buffer) 'async files "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
+       (vc-git-command (current-buffer) 'async nil
+                       "update-index" "--refresh")))
+    (ls-files-added
+     (vc-git-command (current-buffer) 'async files
+                     "ls-files" "-z" "-c" "-s" "--"))
+    (ls-files-up-to-date
+     (vc-git-command (current-buffer) 'async files
+                     "ls-files" "-z" "-c" "-s" "--"))
+    (ls-files-unknown
+     (vc-git-command (current-buffer) 'async files
+                     "ls-files" "-z" "-o" "--directory"
+                     "--no-empty-directory" "--exclude-standard" "--"))
+    (ls-files-ignored
+     (vc-git-command (current-buffer) 'async files
+                     "ls-files" "-z" "-o" "-i" "--directory"
+                     "--no-empty-directory" "--exclude-standard" "--"))
+    (diff-index
+     (vc-git-command (current-buffer) 'async files
+                     "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
   (vc-exec-after
-   `(vc-git-after-dir-status-stage (quote ,stage) (quote ,files) (quote ,update-function))))
+   `(vc-git-after-dir-status-stage ',stage  ',files ',update-function)))
 
 (defun vc-git-dir-status (dir update-function)
   "Return a list of (FILE STATE EXTRA) entries for DIR."
@@ -439,14 +473,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	  (setq remote
 		(with-output-to-string
 		  (with-current-buffer standard-output
-		    (vc-git--out-ok "config" (concat "branch." branch ".remote")))))
+		    (vc-git--out-ok "config"
+                                    (concat "branch." branch ".remote")))))
 	  (when (string-match "\\([^\n]+\\)" remote)
 	    (setq remote (match-string 1 remote)))
 	  (when remote
 	    (setq remote-url
 		  (with-output-to-string
 		    (with-current-buffer standard-output
-		      (vc-git--out-ok "config" (concat "remote." remote ".url"))))))
+		      (vc-git--out-ok "config"
+                                      (concat "remote." remote ".url"))))))
 	  (when (string-match "\\([^\n]+\\)" remote-url)
 	    (setq remote-url (match-string 1 remote-url))))
       (setq branch "not (detached HEAD)"))
@@ -550,8 +586,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	       (append
 		'("log" "--no-color")
 		(when shortlog
-		  '("--graph" "--decorate"
-		    "--date=short" "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
+		  '("--graph" "--decorate" "--date=short"
+                    "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
 		(when limit (list "-n" (format "%s" limit)))
 		(when start-revision (list start-revision))
 		'("--")))))))
@@ -565,7 +601,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defvar vc-short-log)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
-  (require 'add-log) ;; we need the faces add-log
+  (require 'add-log) ;; We need the faces add-log.
   ;; Don't have file markers, so use impossible regexp.
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
@@ -610,17 +646,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 REVISION may have the form BRANCH, BRANCH~N,
 or BRANCH^ (where \"^\" can be repeated)."
   (goto-char (point-min))
-  (let (found)
-    (when revision
-      (setq found
-	    (search-forward (format "\ncommit %s" revision) nil t
-			    (cond ((string-match "~\\([0-9]\\)$" revision)
-				   (1+ (string-to-number (match-string 1 revision))))
-				  ((string-match "\\^+$" revision)
-				   (1+ (length (match-string 0 revision))))
-				  (t nil)))))
-    (beginning-of-line)
-    found))
+  (prog1
+      (when revision
+        (search-forward
+         (format "\ncommit %s" revision) nil t
+         (cond ((string-match "~\\([0-9]\\)\\'" revision)
+                (1+ (string-to-number (match-string 1 revision))))
+               ((string-match "\\^+\\'" revision)
+                (1+ (length (match-string 0 revision))))
+               (t nil))))
+    (beginning-of-line)))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."
@@ -948,7 +983,8 @@ Returns nil if not possible."
                       (goto-char (point-min))
                       (= (forward-line 2) 1)
                       (bolp)
-                      (buffer-substring-no-properties (point-min) (1- (point-max)))))))
+                      (buffer-substring-no-properties (point-min)
+                                                      (1- (point-max)))))))
          (and name (not (string= name "undefined")) name))))
 
 (provide 'vc-git)

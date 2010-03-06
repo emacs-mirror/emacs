@@ -1,3 +1,11 @@
+2010-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-git.el: Re-flow to fit into 80 columns.
+	(vc-git-after-dir-status-stage, vc-git-dir-status-goto-stage):
+	Remove spurious `quote' element in each case alternative.
+	(vc-git-show-log-entry): Use prog1.
+	(vc-git-after-dir-status-stage): Remove unused var `remaining'.
+
 2010-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* cedet/semantic/grammar.el (semantic-grammar-header-template):
