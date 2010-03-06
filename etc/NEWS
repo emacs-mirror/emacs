@@ -432,6 +432,12 @@ System (CLOS).  It is used by the other CEDET packages.
 
 * Incompatible Lisp Changes in Emacs 23.2
 
++++
+** The Lisp reader turns integers that are too large/small into floats.
+For instance, on machines where `536870911' is the largest integer,
+reading `536870912' gives the floating-point object `536870912.0'.
+This change does not change how integers overflow.
+
 ---
 ** Several obsolete functions removed.
 The functions have been obsolete since Emacs 19, and are unlikely to
