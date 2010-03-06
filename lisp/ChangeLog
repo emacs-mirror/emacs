@@ -1,3 +1,8 @@
+2010-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* cedet/semantic/grammar.el (semantic-grammar-header-template):
+	Update template copyright to GPLv3+.
+
 2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* man.el (Man-files-regexp): Tighten up the regexp (bug#5686).
