@@ -436,7 +436,9 @@ System (CLOS).  It is used by the other CEDET packages.
 ** The Lisp reader turns integers that are too large/small into floats.
 For instance, on machines where `536870911' is the largest integer,
 reading `536870912' gives the floating-point object `536870912.0'.
-This change does not change how integers overflow.
+
+This change only concerns the Lisp reader; it does not affect how
+actual integer objects overflow.
 
 ---
 ** Several obsolete functions removed.
