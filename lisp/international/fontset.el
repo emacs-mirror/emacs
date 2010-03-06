@@ -169,7 +169,7 @@
 	(thai #xE17)
 	(lao #xEA5)
 	(tibetan #xF40)
-	(myanmar #x1000)
+	(burmese #x1000)
 	(georgian #x10D3)
 	(ethiopic #x1208)
 	(cherokee #x13B6)
@@ -260,7 +260,7 @@
 	(math . mathematical)
 	(mong . mongolian)
 	(musc . musical-symbol)
-	(mymr . myanmar)
+	(mymr . burmese)
 	(nko\  . nko)
 	(ogam . ogham)
 	(ital . old_italic)
@@ -415,8 +415,8 @@
      (sinhala ,(font-spec :registry "iso10646-1" :otf '(sinh nil (akhn))))
      (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
-     (myanmar ,(font-spec :registry "iso10646-1" :otf '(mymr))
-	      ,(font-spec :registry "iso10646-1" :script 'myanmar))
+     (burmese ,(font-spec :registry "iso10646-1" :otf '(mymr nil nil))
+	      ,(font-spec :registry "iso10646-1" :script 'burmese))
 
      (lao ,(font-spec :registry "iso10646-1" :otf '(lao\  nil nil (mark)))
 	  ,(font-spec :registry "iso10646-1" :script 'lao)

@@ -2617,22 +2617,19 @@ Add the following line to your @file{.emacs} file:
 @cindex Escape sequences in @code{ls} output
 @cindex @code{ls} in Shell mode
 
-This happens because @code{ls} is aliased to @samp{ls --color} in your
-shell init file.  You have two alternatives to solve this:
+In many systems, @code{ls} is aliased to @samp{ls --color}, which
+prints using ANSI color escape sequences.  Emacs version 21.1 and
+later includes the @code{ansi-color} package, which lets Shell mode
+recognize these escape sequences.  In Emacs 23.2 and later, the
+package is enabled by default; in earlier versions you can enable it
+by typing @kbd{M-x ansi-color-for-comint-mode} in the Shell buffer, or
+by adding @code{(add-hook 'shell-mode-hook
+'ansi-color-for-comint-mode-on)} to your init file.
 
-@itemize @bullet
-@item
-Make the alias conditioned on the @code{EMACS} variable in the
-environment.  When Emacs runs a subsidiary shell, it exports the
-@code{EMACS} variable to that shell, with value equal to the absolute
-file name of Emacs.  You can
-unalias @code{ls} when that happens, thus limiting the alias to your
-interactive sessions.
-
-@item
-Install the @code{ansi-color} package (bundled with Emacs 21.1 and
-later), which converts these ANSI escape sequences into colors.
-@end itemize
+In Emacs versions before 21.1, the @code{ansi-color} package is not
+included.  In that case, you need to unalias @code{ls} for interactive
+shells running in Emacs; this can be done by checking the @code{EMACS}
+variable in the environment.
 
 @node Fullscreen mode on MS-Windows
 @section How can I start Emacs in fullscreen mode on MS-Windows?

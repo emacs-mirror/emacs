@@ -1186,7 +1186,7 @@ subshells can nest."
   "Variables controlling indentation in shell scripts.
 
 Note: customizing these variables will not affect existing buffers if
-`sh-make-vars-local' is no-nil.  See the documentation for
+`sh-make-vars-local' is non-nil.  See the documentation for
 variable `sh-make-vars-local', command `sh-make-vars-local'
 and command `sh-reset-indent-vars-to-global-values'."
   :group 'sh-script)

@@ -1278,10 +1278,6 @@ it.
 @c the reason for that pxref is because an xref early in the
 @c ``echo area'' section leads here.
 
-@vindex inverse-video
-  If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
-to invert all the lines of the display from what they normally are.
-
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts
 to make the whole screen blink when it would normally make an audible bell
@@ -1296,35 +1292,51 @@ there is someting to echo.  @xref{Echo Area}.
 
 @vindex baud-rate
   The variable @anchor{baud-rate}@code{baud-rate} holds the output
-speed of the terminal, as far as Emacs knows.  Setting this variable
-does not change the speed of actual data transmission, but the value
-is used for calculations.  On text-only terminals, it affects padding,
-and decisions about whether to scroll part of the screen or redraw it
-instead.  It also affects the behavior of incremental search.
-
-  On graphical displays, @code{baud-rate} is only used to determine
-how frequently to look for pending input during display updating.  A
+speed of the terminal.  Setting this variable does not change the
+speed of actual data transmission, but the value is used for
+calculations.  On text-only terminals, it affects padding, and
+decisions about whether to scroll part of the screen or redraw it
+instead.  It also affects the behavior of incremental search.  On
+graphical displays, @code{baud-rate} is only used to determine how
+frequently to look for pending input during display updating.  A
 higher value of @code{baud-rate} means that check for pending input
 will be done less frequently.
 
+@cindex mouse pointer
 @cindex hourglass pointer display
+@vindex display-hourglass
 @vindex hourglass-delay
-  On graphical displays, Emacs can optionally display the mouse pointer
-in a special shape to say that Emacs is busy.  To turn this feature on
-or off, customize the group @code{cursor}.  You can also control the
-amount of time Emacs must remain busy before the busy indicator is
-displayed, by setting the variable @code{hourglass-delay}.
+  On graphical displays, Emacs displays the mouse pointer as an
+hourglass if Emacs is busy.  To disable this feature, set the variable
+@code{display-hourglass} to @code{nil}.  The variable
+@code{hourglass-delay} determines the number of seconds of ``busy
+time'' before the hourglass is shown; the default is 1.
+
+@vindex make-pointer-invisible
+  If the mouse pointer lies inside an Emacs frame, Emacs makes it
+invisible each time you type a character to insert text, to prevent it
+from obscuring the text.  (To be precise, the hiding occurs when you
+type a ``self-inserting'' character.  @xref{Inserting Text}.)  Moving
+the mouse pointer makes it visible again.  To disable this feature,
+set the variable @code{make-pointer-invisible} to @code{nil}.
+
+@vindex underline-minimum-offset
+@vindex x-underline-at-descent-line
+  On graphical displays, the variable @code{underline-minimum-offset}
+determines the minimum distance between the baseline and underline, in
+pixels, for underlined text.  By default, the value is 1; increasing
+it may improve the legibility of underlined text for certain fonts.
+(However, Emacs will never draw the underline below the current line
+area.)  The variable @code{x-underline-at-descent-line} determines how
+to draw underlined text.  The default is @code{nil}, which means to
+draw it at the baseline level of the font; if you change it to
+@code{nil}, Emacs draws the underline at the same height as the font's
+descent line.
 
 @vindex overline-margin
-  On graphical displays, the variable @code{overline-margin} specifies
-the vertical position of an overline above the text, including the
-height of the overline itself, in pixels.  The default value is 2.
-
-@vindex x-underline-at-descent-line
-  On graphical displays, Emacs normally draws an underline at the
-baseline level of the font.  If @code{x-underline-at-descent-line} is
-non-@code{nil}, Emacs draws the underline at the same height as the
-font's descent line.
+  The variable @code{overline-margin} specifies the vertical position
+of an overline above the text, including the height of the overline
+itself, in pixels; the default is 2.
 
 @findex tty-suppress-bold-inverse-default-colors
   On some text-only terminals, bold face and inverse video together

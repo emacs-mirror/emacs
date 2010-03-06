@@ -505,11 +505,10 @@ Return nil if there are no more forms, t otherwise."
 	;; (Messes up the "Initializing elint..." message.)
 ;;;	(message nil)
 	(if lib
-	    (save-excursion
+	    (with-current-buffer (find-file-noselect lib)
 	      ;; FIXME this doesn't use a temp buffer, because it
 	      ;; stores the result in buffer-local variables so that
 	      ;; it can be reused.
-	      (set-buffer (find-file-noselect lib))
 	      (elint-update-env)
 	      (setq env (elint-env-add-env env elint-buffer-env)))
 	      ;;; (with-temp-buffer

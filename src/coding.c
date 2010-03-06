@@ -1005,6 +1005,10 @@ record_conversion_result (struct coding_system *coding,
     }
 }
 
+/* This wrapper macro is used to preserve validity of pointers into
+   buffer text across calls to decode_char, which could cause
+   relocation of buffers if it loads a charset map, because loading a
+   charset map allocates large structures.  */
 #define CODING_DECODE_CHAR(coding, src, src_base, src_end, charset, code, c) \
   do {									     \
     charset_map_loaded = 0;						     \
@@ -2061,7 +2065,7 @@ detect_coding_emacs_mule (coding, detect_info)
 /* Parse emacs-mule multibyte sequence at SRC and return the decoded
    character.  If CMP_STATUS indicates that we must expect MSEQ or
    RULE described above, decode it and return the negative value of
-   the deocded character or rule.  If an invalid byte is found, return
+   the decoded character or rule.  If an invalid byte is found, return
    -1.  If SRC is too short, return -2.  */
 
 int
@@ -2178,7 +2182,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
 	default:
 	  abort ();
 	}
-      c = DECODE_CHAR (charset, code);
+      CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, code, c);
       if (c < 0)
 	goto invalid_code;
     }
@@ -2525,9 +2529,23 @@ decode_coding_emacs_mule (coding)
       else
 	{
 	  int nchars, nbytes;
+	  /* emacs_mule_char can load a charset map from a file, which
+	     allocates a large structure and might cause buffer text
+	     to be relocated as result.  Thus, we need to remember the
+	     original pointer to buffer text, and fixup all related
+	     pointers after the call.  */
+	  const unsigned char *orig = coding->source;
+	  EMACS_INT offset;
 
 	  c = emacs_mule_char (coding, src_base, &nbytes, &nchars, &id,
 			       cmp_status);
+	  offset = coding->source - orig;
+	  if (offset)
+	    {
+	      src += offset;
+	      src_base += offset;
+	      src_end += offset;
+	    }
 	  if (c < 0)
 	    {
 	      if (c == -1)

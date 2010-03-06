@@ -393,6 +393,7 @@ unmark_byte_stack ()
 	Fsignal (Qquit, Qnil);				\
 	AFTER_POTENTIAL_GC ();				\
       }							\
+    ELSE_PENDING_SIGNALS				\
   } while (0)
 
 

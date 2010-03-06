@@ -3068,6 +3068,26 @@ The charset registry and encoding of the font, such as
 
 @item :script
 The script that the font must support (a symbol).
+
+@item :otf
+The font must be an OpenType font that supports these OpenType
+features, provided Emacs is compiled with support for @samp{libotf} (a
+library for performing complex text layout in certain scripts).  The
+value must be a list of the form
+
+@smallexample
+@code{(@var{script-tag} @var{langsys-tag} @var{gsub} @var{gpos})}
+@end smallexample
+
+where @var{script-tag} is the OpenType script tag symbol;
+@var{langsys-tag} is the OpenType language system tag symbol, or
+@code{nil} to use the default language system; @code{gsub} is a list
+of OpenType GSUB feature tag symbols, or @code{nil} if none is
+required; and @code{gpos} is a list of OpenType GPOS feature tag
+symbols, or @code{nil} if none is required.  If @code{gsub} or
+@code{gpos} is a list, a @code{nil} element in that list means that
+the font must not match any of the remaining tag symbols.  The
+@code{gpos} element may be omitted.
 @end table
 @end defun
 
