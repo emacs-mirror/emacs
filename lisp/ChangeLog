@@ -1,3 +1,8 @@
+2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calculator.el (calculator): Don't bind split-window-keep-point
+	(Bug#5674).
+
 2010-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-git.el: Re-flow to fit into 80 columns.
