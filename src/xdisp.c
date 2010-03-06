@@ -17604,19 +17604,18 @@ display_line (it)
   compute_line_metrics (it);
 
   /* Remember the position at which this line ends.  */
-  if (!it->bidi_p)
-    row->end = row_end = it->current;
-  else
+  row->end = row_end = it->current;
+  if (it->bidi_p)
     {
-      EMACS_INT min_pos = row->start.pos.charpos, max_pos = 0;
-      struct glyph *g;
-      struct it save_it;
-      struct text_pos tpos;
-
       /* ROW->start and ROW->end must be the smallest and largest
 	 buffer positions in ROW.  But if ROW was bidi-reordered,
 	 these two positions can be anywhere in the row, so we must
 	 rescan all of the ROW's glyphs to find them.  */
+      EMACS_INT min_pos = ZV + 1, max_pos = 0;
+      struct glyph *g;
+      struct it save_it;
+      struct text_pos tpos;
+
       for (g = row->glyphs[TEXT_AREA];
 	   g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
 	   g++)
@@ -17629,34 +17628,68 @@ display_line (it)
 		max_pos = g->charpos;
 	    }
 	}
-      if (min_pos < row->start.pos.charpos)
+      /* Empty lines have a valid buffer position at their first
+	 glyph, but that glyph's OBJECT is zero, as if it didn't come
+	 from a buffer.  If we didn't find any valid buffer positions
+	 in this row, maybe we have such an empty line.  */
+      if (min_pos == ZV + 1 && row->used[TEXT_AREA])
 	{
-	  row->start.pos.charpos = min_pos;
-	  row->start.pos.bytepos = CHAR_TO_BYTE (min_pos);
+	  for (g = row->glyphs[TEXT_AREA];
+	       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+	       g++)
+	    {
+	      if (INTEGERP (g->object))
+		{
+		  if (g->charpos && g->charpos < min_pos)
+		    min_pos = g->charpos;
+		  if (g->charpos > max_pos)
+		    max_pos = g->charpos;
+		}
+	    }
 	}
-      if (max_pos == 0)
-	max_pos = min_pos;
+      if (min_pos <= ZV)
+	{
+	  if (min_pos != row->start.pos.charpos)
+	    {
+	      row->start.pos.charpos = min_pos;
+	      row->start.pos.bytepos = CHAR_TO_BYTE (min_pos);
+	    }
+	  if (max_pos == 0)
+	    max_pos = min_pos;
+	}
       /* For ROW->end, we need the position that is _after_ max_pos,
-	 in the logical order.  */
-      SET_TEXT_POS (tpos, max_pos + 1, CHAR_TO_BYTE (max_pos + 1));
-      /* If the character at max_pos+1 is a newline, skip that as
-	 well.  Note that this may skip some invisible text.  */
-      if (FETCH_CHAR (tpos.bytepos) == '\n'
-	  || (FETCH_CHAR (tpos.bytepos) == '\r' && it->selective))
+	 in the logical order, unless we are at ZV.  */
+      if (row->ends_at_zv_p)
 	{
-	  save_it = *it;
-	  it->bidi_p = 0;
-	  reseat_1 (it, tpos, 0);
-	  set_iterator_to_next (it, 1);
-	  row_end = it->current;
-	  *it = save_it;
+	  row_end = row->end = it->current;
+	  if (!row->used[TEXT_AREA])
+	    {
+	      row->start.pos.charpos = row_end.pos.charpos;
+	      row->start.pos.bytepos = row_end.pos.bytepos;
+	    }
 	}
-      else
+      else if (row->used[TEXT_AREA] && max_pos)
 	{
-	  row_end = it->current;
-	  row_end.pos = tpos;
+	  SET_TEXT_POS (tpos, max_pos + 1, CHAR_TO_BYTE (max_pos + 1));
+	  /* If the character at max_pos+1 is a newline, skip that as
+	     well.  Note that this may skip some invisible text.  */
+	  if (FETCH_CHAR (tpos.bytepos) == '\n'
+	      || (FETCH_CHAR (tpos.bytepos) == '\r' && it->selective))
+	    {
+	      save_it = *it;
+	      it->bidi_p = 0;
+	      reseat_1 (it, tpos, 0);
+	      set_iterator_to_next (it, 1);
+	      row_end = it->current;
+	      *it = save_it;
+	    }
+	  else
+	    {
+	      row_end = it->current;
+	      row_end.pos = tpos;
+	    }
+	  row->end = row_end;
 	}
-      row->end = row_end;
     }
 
   /* Record whether this row ends inside an ellipsis.  */
@@ -17680,8 +17713,11 @@ display_line (it)
        /* In bidi-reordered rows, keep checking for proper cursor
 	  position even if one has been found already, because buffer
 	  positions in such rows change non-linearly with ROW->VPOS,
-	  when a line is continued.  */
-       || it->bidi_p)
+	  when a line is continued.  One exception: when we are at ZV,
+	  display cursor on the first suitable glyph row, since all
+	  the empty rows after that also have their ends_at_zv_p flag
+	  set.  */
+       || (it->bidi_p && !row->ends_at_zv_p))
       && PT >= MATRIX_ROW_START_CHARPOS (row)
       && PT <= MATRIX_ROW_END_CHARPOS (row)
       && cursor_row_p (it->w, row))

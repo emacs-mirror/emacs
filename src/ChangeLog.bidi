@@ -1,3 +1,13 @@
+2010-03-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (prowlims, pmtxrows): New commands.
+
+	* xdisp.c (display_line): Special-case the calculation of row->end
+	in rows that end at ZV, to avoid abort in CHAR_TO_BYTE.  Handle
+	empty lines correctly when calculating row's max and min pos.
+	Display cursor at the first glyph row that has its ends_at_zv_p
+	flag set.
+
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Compare candidate cursor

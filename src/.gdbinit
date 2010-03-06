@@ -613,6 +613,28 @@ document pgrowit
 Pretty print all glyphs in it->glyph_row.
 end
 
+define prowlims
+  printf "start=%d,end=%d,reversed=%d,cont=%d\n", $arg0->start.pos.charpos, $arg0->end.pos.charpos, $arg0->reversed_p, $arg0->continued_p
+end
+document prowlims
+Print important attributes of a glyph_row structure.
+Takes one argument, a pointer to a glyph_row structure.
+end
+
+define pmtxrows
+  set $mtx = $arg0
+  set $gl = $mtx->rows
+  set $glend = $mtx->rows + $mtx->nrows
+  while ($gl < $glend)
+    prowlims $gl
+    set $gl = $gl + 1
+  end
+end
+document pmtxrows
+Print data about glyph rows in a glyph matrix.
+Takes one argument, a pointer to a glyph_matrix structure.
+end
+
 define xtype
   xgettype $
   output $type
