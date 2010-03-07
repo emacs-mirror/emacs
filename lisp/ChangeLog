@@ -1,3 +1,8 @@
+2010-03-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mail/rfc822.el (rfc822-addresses): Move catch clause down around
+	call to rfc822-bad-address.  (Bug#5692)
+
 2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
