@@ -703,7 +703,8 @@ or BRANCH^ (where \"^\" can be repeated)."
     (when (looking-at "\\([0-9a-f^][0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
       (let ((revision (match-string-no-properties 1)))
 	(if (match-beginning 2)
-	  (cons revision (expand-file-name (match-string-no-properties 3)))
+	    (cons revision (expand-file-name (match-string-no-properties 3)
+					     (vc-git-root default-directory)))
 	  revision)))))
 
 ;;; TAG SYSTEM
