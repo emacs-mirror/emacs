@@ -12,7 +12,46 @@ it best.  Since Emacs is an FSF-copyrighted package, please be
 prepared to sign legal papers to transfer the copyright on your work
 to the FSF.
 
-* Simple tasks. These don't require much emacs knowledge, they are
+* Tentative plan for Emacs-24
+
+** Bidi
+** lexbind: I haven't checked the status of the code recently, so
+  I don't know how realistic it is to include it.  But it's been around
+  for a long time, and I trust Miles, so I have hope.
+** concurrency: including it as an "experimental" compile-time option
+  sounds good.  Of course there might still be big questions around
+  "which form of concurrency" we'll want.
+** Overhaul of customize: sounds wonderful.
+** some kind of color-theme: agreed.
+** better support for dynamic embedded graphics: I like this idea (my
+  mpc.el code could use it for the volume widget), tho I wonder if the
+  resulting efficiency will be sufficient.
+** Spread Semantic.
+** Improve the "code snippets" support: consolidate skeleton.el, tempo.el,
+  and expand.el (any other?) and then advertise/use/improve it.
+** Improve VC: yes, there's a lot of work to be done there :-(
+  And most of it could/should make it into Emacs-23.3.
+** package manager.
+
+** Random things that cross my mind right now that I'd like to see (some of
+them from my local hacks), but it's not obvious at all whether they'll
+make it.
+*** multiple inheritance for keymaps (to get rid of the
+  fix_submap_inheritance hack and to more cleanly express the
+  relationship between minibuffer-local-*-map): I've had this locally
+  for a long time, but the details of the semantics is somewhat ... delicate.
+*** prog-mode (a parent-mode, like text-mode).  Could/should provide
+  a better fill-paragraph default that uses syntax-tables to recognize
+  string/comment boundaries.
+*** provide more completion-at-point-functions.  Make existing
+  in-buffer completion use completion-at-point.
+*** "functional" function-key-map that would make it easy to add (and
+  remove) mappings like "FOO-mouse-4 -> FOO-scroll-down",
+  "FOO-tab -> ?\FOO-\t", "uppercase -> lowercase", "[fringe KEY...] ->
+  [KEY]", "H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
+
+
+* Simple tasks. These don't require much Emacs knowledge, they are
 suitable for anyone from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead.
