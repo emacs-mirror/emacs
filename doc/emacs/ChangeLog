@@ -1,3 +1,10 @@
+2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Init Examples): Add xref to Locals.
+
+	* major.texi (Choosing Modes): Mention usage of setq-default for
+	setting the default value of major-mode (Bug#5688).
+
 2010-03-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Mouse Avoidance): Mention make-pointer-invisible.

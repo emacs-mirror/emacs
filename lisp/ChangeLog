@@ -1,3 +1,25 @@
+2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calculator.el (calculator): Don't bind split-window-keep-point
+	(Bug#5674).
+
+2010-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-git.el: Re-flow to fit into 80 columns.
+	(vc-git-after-dir-status-stage, vc-git-dir-status-goto-stage):
+	Remove spurious `quote' element in each case alternative.
+	(vc-git-show-log-entry): Use prog1.
+	(vc-git-after-dir-status-stage): Remove unused var `remaining'.
+
+2010-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* cedet/semantic/grammar.el (semantic-grammar-header-template):
+	Update template copyright to GPLv3+.
+
+2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-files-regexp): Tighten up the regexp (bug#5686).
+
 2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* macros.el (insert-kbd-macro): Look up keyboard macro using the
@@ -27,19 +49,17 @@
 
 2010-03-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-remove-stale-state-cache): Correct
-	previous patch.
+	* progmodes/cc-engine.el (c-remove-stale-state-cache):
+	Correct previous patch.
 
 2010-03-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/burmese.el (burmese-composable-pattern): Renamed from
+	* language/burmese.el (burmese-composable-pattern): Rename from
 	myanmar-composable-pattern.
 
-	* international/characters.el (script-list): Change myanmar to
-	burmese.
-
-	* international/fontset.el (script-representative-chars): Change
-	myanmar to burmese.
+	* international/characters.el (script-list):
+	* international/fontset.el (script-representative-chars):
+	Change myanmar to burmese.
 	(otf-script-alist): Likewise.
 	(setup-default-fontset): Likewise.  Re-fix :otf spec.
 

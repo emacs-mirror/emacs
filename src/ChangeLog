@@ -1,3 +1,15 @@
+2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make it possible to C-g in a tight bytecode loop again (bug#5680).
+	* lisp.h (ELSE_PENDING_SIGNALS): New macro.
+	(QUIT): Use it to consolidate code and remove redundancy.
+	* bytecode.c (BYTE_CODE_QUIT): Use it as well.
+
+	* regex.c (regex_compile): Setup gl_state as well.
+
+	* syntax.c (skip_chars): Setup gl_state (bug#3823).
+	(in_classes): Use CONSP before XCAR/XCDR.
+
 2010-03-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (Fwhere_is_internal): Use Fequal to compare
