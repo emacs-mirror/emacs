@@ -1,3 +1,9 @@
+2010-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rfc822.el (rfc822-addresses): Use nested catches to ensure
+	that all errors are caught, and that the return value is always a
+	list (Bug#5692).
+
 2010-03-08  Kenichi Handa  <handa@m17n.org>
 
 	* language/misc-lang.el (windows-1256): New coding system.
