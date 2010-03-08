@@ -3065,6 +3065,13 @@ regex_compile (pattern, size, syntax, bufp)
 			   don't need to handle them for multibyte.
 			   They are distinguished by a negative wctype.  */
 
+			/* Setup the gl_state object to its buffer-defined
+			   value.  This hardcodes the buffer-global
+			   syntax-table for ASCII chars, while the other chars
+			   will obey syntax-table properties.  It's not ideal,
+			   but it's the way it's been done until now.  */
+			SETUP_SYNTAX_TABLE (BEGV, 0);
+
 			for (ch = 0; ch < 256; ++ch)
 			  {
 			    c = RE_CHAR_TO_MULTIBYTE (ch);

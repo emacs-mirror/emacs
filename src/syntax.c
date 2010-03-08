@@ -1747,6 +1747,12 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
       }
 
     immediate_quit = 1;
+    /* This code may look up syntax tables using macros that rely on the
+       gl_state object.  To make sure this object is not out of date,
+       let's initialize it manually.
+       We ignore syntax-table text-properties for now, since that's
+       what we've done in the past.  */
+    SETUP_SYNTAX_TABLE (BEGV, 0);
     if (forwardp)
       {
 	if (multibyte)
@@ -2072,7 +2078,7 @@ in_classes (c, iso_classes)
 {
   int fits_class = 0;
 
-  while (! NILP (iso_classes))
+  while (CONSP (iso_classes))
     {
       Lisp_Object elt;
       elt = XCAR (iso_classes);

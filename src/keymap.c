@@ -1633,13 +1633,13 @@ like in the respective argument of `key-binding'. */)
   /* If a mouse click position is given, our variables are based on
      the buffer clicked on, not the current buffer.  So we may have to
      switch the buffer here. */
-  
+
   if (CONSP (position))
     {
       Lisp_Object window;
-      
+
       window = POSN_WINDOW (position);
-	  
+
       if (WINDOWP (window)
 	  && BUFFERP (XWINDOW (window)->buffer)
 	  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
@@ -1651,14 +1651,14 @@ like in the respective argument of `key-binding'. */)
 	     would not be a problem here, but it is easier to keep
 	     things the same.
 	  */
-	      
+
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-	  
+
 	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 	}
     }
 
-  keymaps = Fcons (current_global_map, Qnil);  
+  keymaps = Fcons (current_global_map, Qnil);
 
   if (!NILP (olp))
     {
@@ -1685,8 +1685,8 @@ like in the respective argument of `key-binding'. */)
       /* Get the buffer local maps, possibly overriden by text or
 	 overlay properties */
 
-      local_map = get_local_map (pt, current_buffer, Qlocal_map); 
-      keymap = get_local_map (pt, current_buffer, Qkeymap); 
+      local_map = get_local_map (pt, current_buffer, Qlocal_map);
+      keymap = get_local_map (pt, current_buffer, Qkeymap);
 
       if (CONSP (position))
 	{
@@ -1694,7 +1694,7 @@ like in the respective argument of `key-binding'. */)
 
 	  /* For a mouse click, get the local text-property keymap
 	     of the place clicked on, rather than point.  */
-	  
+
 	  if (POSN_INBUFFER_P (position))
 	    {
 	      Lisp_Object pos;
@@ -1705,7 +1705,7 @@ like in the respective argument of `key-binding'. */)
 		{
 		  local_map = get_local_map (XINT (pos),
 					     current_buffer, Qlocal_map);
-		  
+
 		  keymap = get_local_map (XINT (pos),
 					  current_buffer, Qkeymap);
 		}
@@ -1716,12 +1716,12 @@ like in the respective argument of `key-binding'. */)
 	     string displayed via the `display' property,
 	     consider `local-map' and `keymap' properties of
 	     that string.  */
-	  
+
 	  if (string = POSN_STRING (position),
 	      (CONSP (string) && STRINGP (XCAR (string))))
 	    {
 	      Lisp_Object pos, map;
-	      
+
 	      pos = XCDR (string);
 	      string = XCAR (string);
 	      if (INTEGERP (pos)
@@ -1737,7 +1737,7 @@ like in the respective argument of `key-binding'. */)
 		    keymap = map;
 		}
 	    }
-	  
+
 	}
 
       if (!NILP (local_map))
@@ -2890,7 +2890,7 @@ remapped command in the returned list.  */)
 	     CONSP (sequences)))
     {
       Lisp_Object sequence, function;
-	  
+
       sequence = XCAR (sequences);
       sequences = XCDR (sequences);
 
@@ -2903,8 +2903,8 @@ remapped command in the returned list.  */)
 
 	 Either nil or number as value from Flookup_key
 	 means undefined.  */
-      if (!EQ (shadow_lookup (keymaps, sequence, Qnil, remapped),
-	       definition))
+      if (NILP (Fequal (shadow_lookup (keymaps, sequence, Qnil, remapped),
+			definition)))
 	continue;
 
       /* If the current sequence is a command remapping with
@@ -2933,12 +2933,12 @@ remapped command in the returned list.  */)
 	    Faset (sequence, make_number (ASIZE (sequence) - 1),
 		   build_string ("(any string)"));
 	}
-      
+
       /* It is a true unshadowed match.  Record it, unless it's already
 	 been seen (as could happen when inheriting keymaps).  */
       if (NILP (Fmember (sequence, found)))
 	found = Fcons (sequence, found);
-      
+
       /* If firstonly is Qnon_ascii, then we can return the first
 	 binding we find.  If firstonly is not Qnon_ascii but not
 	 nil, then we should return the first ascii-only binding

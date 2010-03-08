@@ -196,17 +196,33 @@ only after @code{auto-mode-alist}.  By default,
 @code{magic-fallback-mode-alist} contains forms that check for image
 files, HTML/XML/SGML files, and Postscript files.
 
-  When you visit a file that does not specify a major mode to use, or
-when you create a new buffer with @kbd{C-x b}, the default value of
-the variable @code{major-mode} specifies which major mode to use.  Normally
-its value is the symbol @code{fundamental-mode}, which specifies
-Fundamental mode.  If the default value of @code{major-mode} is @code{nil},
-the major mode is taken from the previously current buffer.
+@vindex major-mode
+  Once a major mode is chosen, Emacs sets the value of the variable
+@code{major-mode} to the symbol for that major mode (e.g.,
+@code{text-mode} for Text mode).  This is a per-buffer variable
+(@pxref{Locals}); its buffer-local value is set automatically, and you
+should not change it yourself.
+
+  The default value of @code{major-mode} determines the major mode to
+use for files that do not specify a major mode, and for new buffers
+created with @kbd{C-x b}.  Normally, this default value is the symbol
+@code{fundamental-mode}, which specifies Fundamental mode.  You can
+change it via the Customization interface (@pxref{Easy
+Customization}), or by adding a line like this to your init file
+(@pxref{Init File}):
+
+@smallexample
+(setq-default major-mode 'text-mode)
+@end smallexample
+
+@noindent
+If the default value of @code{major-mode} is @code{nil}, the major
+mode is taken from the previously current buffer.
 
 @findex normal-mode
-  If you change the major mode of a buffer, you can go back to the major
-mode Emacs would choose automatically: use the command @kbd{M-x
-normal-mode} to do this.  This is the same function that
+  If you have changed the major mode of a buffer, you can return to
+the major mode Emacs would have chosen automatically, by typing
+@kbd{M-x normal-mode}.  This is the same function that
 @code{find-file} calls to choose the major mode.  It also processes
 the file's @samp{-*-} line or local variables list (if any).
 @xref{File Variables}.

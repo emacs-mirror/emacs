@@ -81,14 +81,9 @@ gnus-refcard.pdf: %.pdf: %.tex gnus-logo.pdf
 gnus-booklet.pdf: gnus-refcard.tex gnus-logo.pdf
 	pdflatex -jobname=gnus-booklet '\def\booklettrue{}\def\letterpapertrue{}\input{gnus-refcard}'
 
-## FIXME just pdftex produces portrait rather than landscape.
-orgcard.pdf: orgcard.ps
-	ps2pdf $<
-
 ## Everything not explicitly listed above.
 %.pdf: %.tex
 	pdftex $<
-
 
 
 ## dvi files.

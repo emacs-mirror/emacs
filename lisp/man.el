@@ -283,7 +283,8 @@ This regular expression should start with a `^' character.")
   "Regular expression for SYNOPSIS heading (or your equivalent).
 This regexp should not start with a `^' character.")
 
-(defvar Man-files-regexp "FILES"
+(defvar Man-files-regexp "FILES\\>"
+  ;; Add \> so as not to match mount(8)'s FILESYSTEM INDEPENDENT MOUNT OPTIONS.
   "Regular expression for FILES heading (or your equivalent).
 This regexp should not start with a `^' character.")
 

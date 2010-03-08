@@ -1933,22 +1933,12 @@ extern char *stack_bottom;
 #ifdef SYNC_INPUT
 extern void process_pending_signals P_ ((void));
 extern int pending_signals;
-
-#define QUIT						\
-  do {							\
-    if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
-      {							\
-        Lisp_Object flag = Vquit_flag;			\
-	Vquit_flag = Qnil;				\
-	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qt);			\
-	Fsignal (Qquit, Qnil);				\
-      }							\
-    else if (pending_signals)				\
-      process_pending_signals ();			\
-  } while (0)
-
+#define ELSE_PENDING_SIGNALS				\
+  else if (pending_signals)				\
+    process_pending_signals ();
 #else  /* not SYNC_INPUT */
+#define ELSE_PENDING_SIGNALS
+#endif	/* not SYNC_INPUT */
 
 #define QUIT						\
   do {							\
@@ -1960,9 +1950,8 @@ extern int pending_signals;
 	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
       }							\
+    ELSE_PENDING_SIGNALS				\
   } while (0)
-
-#endif	/* not SYNC_INPUT */
 
 
 /* Nonzero if ought to quit now.  */

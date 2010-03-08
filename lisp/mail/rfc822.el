@@ -296,26 +296,26 @@
                   ;; initial value to prevent rfc822-bad-address from
                   ;; raising a wrong-type-argument error
                   (rfc822-address-start (point)))
-              (catch 'address         ; this is for rfc822-bad-address
-                (rfc822-nuke-whitespace)
-                (while (not (eobp))
-                  (setq rfc822-address-start (point))
-                  (setq tem
-                        (cond ((rfc822-looking-at ?\,)
-                               nil)
-                              ((looking-at "[][\000-\037@;:\\.>)]")
-                               (forward-char)
-                               (rfc822-bad-address
-                                (format "Strange character \\%c found"
-                                        (preceding-char))))
-                              (t
-                               (rfc822-addresses-1 t))))
-                  (cond ((null tem))
-                        ((stringp tem)
-                         (setq list (cons tem list)))
-                        (t
-                         (setq list (nconc (nreverse tem) list)))))
-                (nreverse list))))
+	      (rfc822-nuke-whitespace)
+	      (while (not (eobp))
+		(setq rfc822-address-start (point))
+		(setq tem
+		      (cond ((rfc822-looking-at ?\,)
+			     nil)
+			    ((looking-at "[][\000-\037@;:\\.>)]")
+			     (forward-char)
+			     (catch 'address ; this is for rfc822-bad-address
+			       (rfc822-bad-address
+				(format "Strange character \\%c found"
+					(preceding-char)))))
+			    (t
+			     (rfc822-addresses-1 t))))
+		(cond ((null tem))
+		      ((stringp tem)
+		       (setq list (cons tem list)))
+		      (t
+		       (setq list (nconc (nreverse tem) list)))))
+	      (nreverse list)))
 	(and buf (kill-buffer buf))))))
 
 (provide 'rfc822)
