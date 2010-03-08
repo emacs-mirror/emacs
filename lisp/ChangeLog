@@ -1,7 +1,7 @@
 2010-03-08  Kenichi Handa  <handa@m17n.org>
 
 	* language/misc-lang.el (windows-1256): New coding system.
-	(cp1256): New alias of windows-1256 (bug#5684).
+	(cp1256): New alias of windows-1256 (bug#5690).
 
 2010-03-07  Andreas Schwab  <schwab@linux-m68k.org>
 
