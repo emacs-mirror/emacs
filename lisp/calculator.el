@@ -724,8 +724,7 @@ See the documentation for `calculator-mode' for more information."
     (progn
       (cond
         ((not (get-buffer-window calculator-buffer))
-         (let ((split-window-keep-point nil)
-               (window-min-height 2))
+         (let ((window-min-height 2))
            ;; maybe leave two lines for our window because of the normal
            ;; `raised' modeline in Emacs 21
            (select-window

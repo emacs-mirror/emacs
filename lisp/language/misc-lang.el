@@ -50,6 +50,14 @@ and Italian.")))
   :charset-list '(iso-8859-6)
   :mime-charset 'iso-8859-6)
 
+(define-coding-system 'windows-1256
+  "windows-1256 (Arabic) encoding (MIME: WINDOWS-1256)"
+  :coding-type 'charset
+  :mnemonic ?A
+  :charset-list '(windows-1256)
+  :mime-charset 'windows-1256)
+(define-coding-system-alias 'cp1256 'windows-1256)
+
 (provide 'misc-lang)
 
 ;; arch-tag: 6953585c-1a1a-4c09-be82-a2518afb6074

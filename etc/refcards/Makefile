@@ -55,13 +55,19 @@ viper-cards_ps: ${VIPER-CARDS_PDF:.pdf=.ps}
 
 cs-refcard.pdf cs-dired-ref.pdf cs-survival.pdf sk-refcard.pdf \
 sk-dired-ref.pdf sk-survival.pdf: %.pdf:	%.tex
-	csplain "\pdfoutput=1\input $<"
+	if pdfcsplain --version > /dev/null 2> /dev/null; then \
+	  pdfcsplain $<; \
+	else \
+	  csplain "\pdfoutput=1\input $<"; \
+	fi
 
+## Some versions of pdfmex seem to create dvi by default, hence output-format.
 pl-refcard.pdf: %.pdf: %.tex
-	if ! kpsewhich -format=fmt mex > /dev/null; then \
+	if ! kpsewhich -format=fmt mex > /dev/null && \
+	  ! pdfmex --version > /dev/null 2> /dev/null; then \
 	  echo "No mex format found."; false; \
 	fi
-	pdftex $<
+	pdftex -output-format=pdf $<
 
 ru-refcard.pdf: %.pdf: %.tex
 	pdflatex $<
@@ -78,7 +84,6 @@ gnus-booklet.pdf: gnus-refcard.tex gnus-logo.pdf
 ## Everything not explicitly listed above.
 %.pdf: %.tex
 	pdftex $<
-
 
 
 ## dvi files.

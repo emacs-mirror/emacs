@@ -2256,9 +2256,10 @@ override this).
 @end example
 
 This sets the default value, which is effective in all buffers that do
-not have local values for the variable.  Setting @code{case-fold-search}
-with @code{setq} affects only the current buffer's local value, which
-is not what you probably want to do in an init file.
+not have local values for the variable (@pxref{Locals}).  Setting
+@code{case-fold-search} with @code{setq} affects only the current
+buffer's local value, which is probably not what you want to do in an
+init file.
 
 @item
 @vindex user-mail-address
