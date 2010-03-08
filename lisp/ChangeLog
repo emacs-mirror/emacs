@@ -11,7 +11,7 @@
 2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
-	vc-git-root as default direcotry for revision path (Bug#5657).
+	vc-git-root as default directory for revision path (Bug#5657).
 
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -81,7 +81,7 @@
 2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug 5649.
+	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
 
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -190,8 +190,8 @@
 
 2010-02-20  Kevin Ryde  <user42@zip.com.au>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
-	`watcom' anchor regexp to start of line, to avoid slowness
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	In `watcom' anchor regexp to start of line, to avoid slowness
 	(Bug#5599).
 
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
@@ -256,9 +256,9 @@
 
 2010-02-17  Mark A. Hershberger  <mah@everybody.org>
 
-	* vc-bzr.el: fix typo in Known Bugs section.
+	* vc-bzr.el: Fix typo in Known Bugs section.
 
-	* isearch.el (isearch-update-post-hook): New hook
+	* isearch.el (isearch-update-post-hook): New hook.
 	(isearch-update): Use the new hook.
 
 2010-02-16  Michael Albinus  <michael.albinus@gmx.de>
