@@ -1,3 +1,9 @@
+2010-03-09  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
+	instead of "format:"; this ensures that the output is
+	newline-terminated.
+
 2010-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/rfc822.el (rfc822-addresses): Use nested catches to ensure

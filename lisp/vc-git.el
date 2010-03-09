@@ -587,7 +587,7 @@ or an empty string if none."
 		'("log" "--no-color")
 		(when shortlog
 		  '("--graph" "--decorate" "--date=short"
-                    "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
+                    "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"))
 		(when limit (list "-n" (format "%s" limit)))
 		(when start-revision (list start-revision))
 		'("--")))))))
