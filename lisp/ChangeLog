@@ -1,3 +1,7 @@
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-git.el (vc-git-revision-table): Include remote branches.

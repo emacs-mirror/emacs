@@ -1,3 +1,7 @@
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.1: Copyedits.  Update options -Q, -mm and --daemon.  Remove
