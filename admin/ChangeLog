@@ -1,6 +1,8 @@
 2010-03-10  Miles Bader  <miles@gnu.org>
 
-	* quick-install-emacs (AVOID): Be more picky about files we avoid
+	* quick-install-emacs: Use more portable shell syntax.
+
+	* quick-install-emacs: (AVOID): Be more picky about files we avoid
 	installing.
 
 2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
