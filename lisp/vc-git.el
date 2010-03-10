@@ -587,7 +587,7 @@ or an empty string if none."
 		'("log" "--no-color")
 		(when shortlog
 		  '("--graph" "--decorate" "--date=short"
-                    "--pretty=format:%d%h  %ad  %s" "--abbrev-commit"))
+                    "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"))
 		(when limit (list "-n" (format "%s" limit)))
 		(when start-revision (list start-revision))
 		'("--")))))))
@@ -673,7 +673,8 @@ or BRANCH^ (where \"^\" can be repeated)."
     (with-temp-buffer
       (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
       (goto-char (point-min))
-      (while (re-search-forward "^refs/\\(heads\\|tags\\)/\\(.*\\)$" nil t)
+      (while (re-search-forward "^refs/\\(heads\\|tags\\|remotes\\)/\\(.*\\)$"
+                                nil t)
         (push (match-string 2) table)))
     table))
 
@@ -703,7 +704,8 @@ or BRANCH^ (where \"^\" can be repeated)."
     (when (looking-at "\\([0-9a-f^][0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
       (let ((revision (match-string-no-properties 1)))
 	(if (match-beginning 2)
-	  (cons revision (expand-file-name (match-string-no-properties 3)))
+	    (cons revision (expand-file-name (match-string-no-properties 3)
+					     (vc-git-root default-directory)))
 	  revision)))))
 
 ;;; TAG SYSTEM

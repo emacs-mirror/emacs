@@ -466,7 +466,7 @@ was inserted."
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
 	 (type (image-type file-or-data nil data-p))
-	 (image (create-image file-or-data type data-p))
+	 (image (create-animated-image file-or-data type data-p))
 	 (props
 	  `(display ,image
 		    intangible ,image
