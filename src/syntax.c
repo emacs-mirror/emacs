@@ -385,8 +385,7 @@ find_defun_start (pos, pos_byte)
   /* We optimize syntax-table lookup for rare updates.  Thus we accept
      only those `^\s(' which are good in global _and_ text-property
      syntax-tables.  */
-  gl_state.current_syntax_table = current_buffer->syntax_table;
-  gl_state.use_global = 0;
+  SETUP_BUFFER_SYNTAX_TABLE ();
   while (PT > BEGV)
     {
       int c;
@@ -401,8 +400,7 @@ find_defun_start (pos, pos_byte)
 	  if (SYNTAX (c) == Sopen)
 	    break;
 	  /* Now fallback to the default value.  */
-	  gl_state.current_syntax_table = current_buffer->syntax_table;
-	  gl_state.use_global = 0;
+	  SETUP_BUFFER_SYNTAX_TABLE ();
 	}
       /* Move to beg of previous line.  */
       scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -2, 1);
@@ -860,11 +858,9 @@ are listed in the documentation of `modify-syntax-entry'.  */)
      Lisp_Object character;
 {
   int char_int;
-  gl_state.current_syntax_table = current_buffer->syntax_table;
-
-  gl_state.use_global = 0;
   CHECK_NUMBER (character);
   char_int = XINT (character);
+  SETUP_BUFFER_SYNTAX_TABLE ();
   return make_number (syntax_code_spec[(int) SYNTAX (char_int)]);
 }
 
@@ -874,10 +870,9 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
      Lisp_Object character;
 {
   int char_int, code;
-  gl_state.current_syntax_table = current_buffer->syntax_table;
-  gl_state.use_global = 0;
   CHECK_NUMBER (character);
   char_int = XINT (character);
+  SETUP_BUFFER_SYNTAX_TABLE ();
   code = SYNTAX (char_int);
   if (code == Sopen || code == Sclose)
     return SYNTAX_MATCH (char_int);
@@ -1752,7 +1747,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
        let's initialize it manually.
        We ignore syntax-table text-properties for now, since that's
        what we've done in the past.  */
-    SETUP_SYNTAX_TABLE (BEGV, 0);
+    SETUP_BUFFER_SYNTAX_TABLE ();
     if (forwardp)
       {
 	if (multibyte)

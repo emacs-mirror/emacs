@@ -1,3 +1,14 @@
+2010-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Cleanup setup of gl_state in various parts of the code.
+	* syntax.h (SETUP_BUFFER_SYNTAX_TABLE): New macro.
+	(SETUP_SYNTAX_TABLE, SETUP_SYNTAX_TABLE_FOR_OBJECT):
+	* syntax.c (find_defun_start, Fchar_syntax, Fmatching_paren)
+	(skip_chars):
+	* regex.c (regex_compile): Use it.
+	(re_compile_pattern): Don't set gl_state.current_syntax_table since
+	it's now set in regex_compile when/if we need it.
+
 2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make it possible to C-g in a tight bytecode loop again (bug#5680).

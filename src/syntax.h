@@ -245,6 +245,14 @@ extern char syntax_code_spec[16];
 	 1)							\
       : 0))
 
+/* This macro sets up the buffer-global syntax table.  */
+#define SETUP_BUFFER_SYNTAX_TABLE()					\
+do									\
+  {									\
+    gl_state.use_global = 0;						\
+    gl_state.current_syntax_table = current_buffer->syntax_table;	\
+  } while (0)
+
 /* This macro should be called with FROM at the start of forward
    search, or after the last position of the backward search.  It
    makes sure that the first char is picked up with correct table, so
@@ -256,12 +264,11 @@ extern char syntax_code_spec[16];
 #define SETUP_SYNTAX_TABLE(FROM, COUNT)					\
 do									\
   {									\
+    SETUP_BUFFER_SYNTAX_TABLE ();					\
     gl_state.b_property = BEGV;						\
     gl_state.e_property = ZV + 1;					\
     gl_state.object = Qnil;						\
-    gl_state.use_global = 0;						\
     gl_state.offset = 0;						\
-    gl_state.current_syntax_table = current_buffer->syntax_table;	\
     if (parse_sexp_lookup_properties)					\
       if ((COUNT) > 0 || (FROM) > BEGV)					\
         update_syntax_table ((COUNT) > 0 ? (FROM) : (FROM) - 1, (COUNT),\
@@ -279,6 +286,7 @@ while (0)
 #define SETUP_SYNTAX_TABLE_FOR_OBJECT(OBJECT, FROM, COUNT)		\
 do									\
   {									\
+    SETUP_BUFFER_SYNTAX_TABLE ();					\
     gl_state.object = (OBJECT);						\
     if (BUFFERP (gl_state.object))					\
       {									\
@@ -305,8 +313,6 @@ do									\
 	gl_state.e_property = 1 + SCHARS (gl_state.object);		\
 	gl_state.offset = 0;						\
       }									\
-    gl_state.use_global = 0;						\
-    gl_state.current_syntax_table = current_buffer->syntax_table;	\
     if (parse_sexp_lookup_properties)					\
       update_syntax_table (((FROM) + gl_state.offset			\
 			    + (COUNT > 0 ? 0 :  -1)),			\
