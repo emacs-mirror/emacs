@@ -673,7 +673,8 @@ or BRANCH^ (where \"^\" can be repeated)."
     (with-temp-buffer
       (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
       (goto-char (point-min))
-      (while (re-search-forward "^refs/\\(heads\\|tags\\)/\\(.*\\)$" nil t)
+      (while (re-search-forward "^refs/\\(heads\\|tags\\|remotes\\)/\\(.*\\)$"
+                                nil t)
         (push (match-string 2) table)))
     table))
 
