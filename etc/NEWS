@@ -36,8 +36,6 @@ so we will look at it and add it to the manual.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
-** FIXME animated image API
-
 
 * New Modes and Packages in Emacs 24.1
 
@@ -46,6 +44,15 @@ so we will look at it and add it to the manual.
 
 
 * Lisp changes in Emacs 24.1
+
+** Image API
+
+*** When the image type is one of listed in `image-animated-types'
+and the number of sub-images in the image is more then one, then the
+new function `create-animated-image' creates an animated image where
+sub-images are displayed successively with the duration defined by
+`image-animate-max-time' and the delay between sub-images defined
+by the Graphic Control Extension of the image.
 
 
 * Changes in Emacs 24.1 on non-free operating systems
