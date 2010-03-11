@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MENU_H
 #define MENU_H
 
-extern Lisp_Object Vmenu_updating_frame;
+extern Lisp_Object impl_Vmenu_updating_frame;
 
 extern void init_menu_items P_ ((void));
 extern void finish_menu_items P_ ((void));

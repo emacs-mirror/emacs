@@ -250,7 +250,7 @@ extern char syntax_code_spec[16];
 do									\
   {									\
     gl_state.use_global = 0;						\
-    gl_state.current_syntax_table = current_buffer->syntax_table;	\
+    gl_state.current_syntax_table = BUF_SYNTAX_TABLE (current_buffer);  \
   } while (0)
 
 /* This macro should be called with FROM at the start of forward

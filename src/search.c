@@ -3264,7 +3264,7 @@ syms_of_search ()
   Fput (Qinvalid_regexp, Qerror_conditions,
 	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
-	build_string ("Invalid regexp"));
+	make_pure_c_string ("Invalid regexp"));
 
   last_thing_searched = Qnil;
   saved_last_thing_searched = Qnil;

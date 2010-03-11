@@ -1947,8 +1947,8 @@ struct catchtag
   struct gcpro *gcpro;
   jmp_buf jmp;
   struct backtrace *backlist;
-  struct handler *handlerlist;
-  int lisp_eval_depth;
+  struct handler *m_handlerlist;
+  int m_lisp_eval_depth;
   int pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;

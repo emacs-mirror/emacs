@@ -47,6 +47,11 @@ struct backtrace
   char debug_on_exit;
 };
 
+#ifdef DEBUG_GCPRO
+/* Count levels of GCPRO to detect failure to UNGCPRO.  */
+int gcpro_level;
+#endif
+
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit, impl_Vinhibit_quit, impl_Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;

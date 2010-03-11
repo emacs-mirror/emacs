@@ -87,7 +87,6 @@ Lisp_Object impl_Vscript_representative_chars;
 static Lisp_Object Qchar_script_table;
 
 Lisp_Object impl_Vunicode_category_table;
-
 
 
 /* If character code C has modifier masks, reflect them to the

@@ -1126,12 +1126,12 @@ term.o: term.c termchar.h termhooks.h termopts.h lisp.h $(config_h) cm.h frame.h
    syssignal.h $(INTERVALS_H) buffer.h
 termcap.o: termcap.c lisp.h $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
-   keyboard.h $(config_h)
-terminfo.o: terminfo.c $(config_h)
-thread.o: thread.c $(config_h) lisp.h
-tparam.o: tparam.c $(config_h)
-undo.o: undo.c buffer.h commands.h window.h $(config_h)
-unexaix.o: unexaix.c $(config_h)
+   keyboard.h lisp.h $(config_h) dispextern.h composite.h systime.h
+terminfo.o: terminfo.c lisp.h $(config_h)
+thread.o: thread.c lisp.h $(config_h)
+tparam.o: tparam.c lisp.h $(config_h)
+undo.o: undo.c buffer.h commands.h window.h dispextern.h lisp.h $(config_h)
+unexaix.o: unexaix.c lisp.h $(config_h)
 unexalpha.o: unexalpha.c $(config_h)
 unexcw.o: unexcw.c lisp.h $(config_h)
 unexec.o: unexec.c lisp.h $(config_h)

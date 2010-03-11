@@ -501,6 +501,7 @@ Lisp_Object Qevent_symbol_elements;
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
 Lisp_Object QCbutton, QCtoggle, QCradio;
+extern Lisp_Object impl_Vdefine_key_rebound_commands;
 extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named

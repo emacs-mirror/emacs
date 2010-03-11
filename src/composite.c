@@ -1039,7 +1039,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
     }
   if (NILP (string) && PT > charpos && PT < endpos)
     cmp_it->stop_pos = PT;
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
       || NILP (Vauto_composition_mode))
     return;
   if (bytepos < 0)
@@ -1478,7 +1478,7 @@ composition_adjust_point (last_pt, new_pt)
       return new_pt;
     }
 
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
       || NILP (Vauto_composition_mode))
     return new_pt;
 
@@ -1661,7 +1661,7 @@ See `find-composition' for more details.  */)
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
-      if (!NILP (current_buffer->enable_multibyte_characters)
+      if (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	  && ! NILP (Vauto_composition_mode)
 	  && find_automatic_composition (from, to, &start, &end, &gstring,
 					 string))

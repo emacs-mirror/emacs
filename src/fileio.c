@@ -4120,7 +4120,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       SAVE_MODIFF = MODIFF;
       BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
-      XSETFASTINT (current_buffer->save_length, Z - BEG);
+      XSETFASTINT (BUF_SAVE_LENGTH (current_buffer), Z - BEG);
 #ifdef CLASH_DETECTION
       if (NILP (handler))
 	{
@@ -5372,7 +5372,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    internal_condition_case (auto_save_1, Qt, auto_save_error);
 	    auto_saved++;
 	    BUF_AUTOSAVE_MODIFF (b) = BUF_MODIFF (b);
-	    XSETFASTINT (current_buffer->save_length, Z - BEG);
+	    XSETFASTINT (BUF_SAVE_LENGTH (current_buffer), Z - BEG);
 	    set_buffer_internal (old);
 
 	    EMACS_GET_TIME (after_time);
@@ -5419,7 +5419,7 @@ No auto-save file will be written until the buffer changes again.  */)
   /* FIXME: This should not be called in indirect buffers, since
      they're not autosaved.  */
   BUF_AUTOSAVE_MODIFF (current_buffer) = MODIFF;
-  XSETFASTINT (current_buffer->save_length, Z - BEG);
+  XSETFASTINT (BUF_SAVE_LENGTH (current_buffer), Z - BEG);
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
 }

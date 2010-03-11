@@ -1,11 +1,13 @@
 
 #include <config.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "buffer.h"
 #include "blockinput.h"
 #include <pthread.h>
 #include "systime.h"
 #include "sysselect.h"
+
 
 void mark_byte_stack P_ ((struct byte_stack *));
 void mark_backtrace P_ ((struct backtrace *));

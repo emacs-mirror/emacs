@@ -5555,15 +5555,6 @@ png_image_p (object)
 
 #ifdef HAVE_PNG
 
-/* png.h has a struct with a field named current_buffer.  */
-#undef current_buffer
-
-#if defined HAVE_LIBPNG_PNG_H
-# include <libpng/png.h>
-#else
-# include <png.h>
-#endif
-
 #ifdef HAVE_NTGUI
 /* PNG library details.  */
 

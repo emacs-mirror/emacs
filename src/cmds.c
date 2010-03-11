@@ -497,8 +497,6 @@ internal_self_insert (c, noautofill)
       hairy = 2;
     }
 
-  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
-    MAKE_CHAR_MULTIBYTE (c);
   synt = SYNTAX (c);
 
   if (!NILP (BUF_ABBREV_MODE (current_buffer))

@@ -3282,7 +3282,7 @@ save_restriction_restore (data)
 			? XMARKER (XCAR (data))->buffer
 			: XBUFFER (data));
 
-  if (buf && buf != current_buffer && !NILP (buf->pt_marker))
+  if (buf && buf != current_buffer && !NILP (BUF_PT_MARKER (buf)))
     { /* If `buf' uses markers to keep track of PT, BEGV, and ZV (as
 	 is the case if it is or has an indirect buffer), then make
 	 sure it is current before we update BEGV, so

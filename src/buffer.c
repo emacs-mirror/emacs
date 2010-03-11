@@ -415,7 +415,7 @@ b->width_table_ = Qnil;
 
   b->mark_ = Fmake_marker ();
   BUF_MARKERS (b) = NULL;
-  b->name = name;
+  b->name_ = name;
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
@@ -700,7 +700,7 @@ reset_buffer (b)
   /* It is more conservative to start out "changed" than "unchanged".  */
   b->clip_changed = 0;
   b->prevent_redisplay_optimizations_p = 1;
-  b->backed_up = Qnil;
+  b->backed_up_ = Qnil;
   BUF_AUTOSAVE_MODIFF (b) = 0;
   b->auto_save_failure_time = -1;
   b->auto_save_file_name_ = Qnil;
@@ -1550,7 +1550,7 @@ with SIGHUP.  */)
 
   /* Delete any auto-save file, if we saved it in this session.
      But not if the buffer is modified.  */
-  if (STRINGP (b->auto_save_file_name)
+  if (STRINGP (BUF_AUTO_SAVE_FILE_NAME (b))
       && BUF_AUTOSAVE_MODIFF (b) != 0
       && BUF_SAVE_MODIFF (b) < BUF_AUTOSAVE_MODIFF (b)
       && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
@@ -5202,14 +5202,14 @@ init_buffer_once ()
   buffer_defaults.overlays_after = NULL;
   buffer_defaults.overlay_center = BEG;
 
-  XSETFASTINT (buffer_defaults.tab_width, 8);
-  buffer_defaults.truncate_lines = Qnil;
-  buffer_defaults.word_wrap = Qnil;
-  buffer_defaults.ctl_arrow = Qt;
-  buffer_defaults.direction_reversed = Qnil;
-  buffer_defaults.cursor_type = Qt;
-  buffer_defaults.extra_line_spacing = Qnil;
-  buffer_defaults.cursor_in_non_selected_windows = Qt;
+  XSETFASTINT (BUF_TAB_WIDTH (&buffer_defaults), 8);
+  BUF_TRUNCATE_LINES (&buffer_defaults) = Qnil;
+  BUF_WORD_WRAP (&buffer_defaults) = Qnil;
+  BUF_CTL_ARROW (&buffer_defaults) = Qt;
+  BUF_DIRECTION_REVERSED (&buffer_defaults) = Qnil;
+  BUF_CURSOR_TYPE (&buffer_defaults) = Qt;
+  BUF_EXTRA_LINE_SPACING (&buffer_defaults) = Qnil;
+  BUF_CURSOR_IN_NON_SELECTED_WINDOWS (&buffer_defaults) = Qt;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
@@ -5758,17 +5758,17 @@ Format with `format-mode-line' to produce a string value.  */);
 		     doc: /* *Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column_,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* *Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin_,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* *Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width_,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow_, Qnil,
@@ -5879,7 +5879,7 @@ If it is nil, that means don't auto-save this buffer.  */);
 Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length_,
-		     make_number (Lisp_Int),
+		     make_number (LISP_INT_TAG),
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.
 -1 means auto-saving turned off until next real save.

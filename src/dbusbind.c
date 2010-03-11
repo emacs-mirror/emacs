@@ -60,7 +60,7 @@ Lisp_Object QCdbus_type_array, QCdbus_type_variant;
 Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
 
 /* Hash table which keeps function definitions.  */
-Lisp_Object impl_Vdbus_registered_functions_table;
+Lisp_Object impl_Vdbus_registered_objects_table;
 
 /* Whether to debug D-Bus.  */
 Lisp_Object impl_Vdbus_debug;
