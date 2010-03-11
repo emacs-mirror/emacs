@@ -1,3 +1,44 @@
+2010-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (customize-changed-options-previous-release):
+	Bump to 23.1.
+
+	* image.el (image-animate-max-time): Fix :version tag.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
+2010-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-git.el (vc-git-revision-table): Include remote branches.
+
+2010-03-10  Kim F. Storm  <storm@cua.dk>
+
+	Animated image API.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00211.html
+
+	* image.el (image-animate-max-time): New defcustom.
+	(image-animated-types): New defconst.
+	(create-animated-image, image-animate-timer)
+	(image-animate-start, image-animate-stop, image-animate-timeout)
+	(image-animated-p): New functions.
+
+	* image-mode.el (image-toggle-display-image):
+	Replace `create-image' with `create-animated-image'.
+
+2010-03-09  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
+	instead of "format:"; this ensures that the output is
+	newline-terminated.
+
+2010-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rfc822.el (rfc822-addresses): Use nested catches to ensure
+	that all errors are caught, and that the return value is always a
+	list (Bug#5692).
+
 2010-03-08  Kenichi Handa  <handa@m17n.org>
 
 	* language/misc-lang.el (windows-1256): New coding system.
@@ -11,7 +52,7 @@
 2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
-	vc-git-root as default direcotry for revision path (Bug#5657).
+	vc-git-root as default directory for revision path (Bug#5657).
 
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -81,7 +122,7 @@
 2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug 5649.
+	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
 
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -190,8 +231,8 @@
 
 2010-02-20  Kevin Ryde  <user42@zip.com.au>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
-	`watcom' anchor regexp to start of line, to avoid slowness
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	In `watcom' anchor regexp to start of line, to avoid slowness
 	(Bug#5599).
 
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
@@ -256,9 +297,9 @@
 
 2010-02-17  Mark A. Hershberger  <mah@everybody.org>
 
-	* vc-bzr.el: fix typo in Known Bugs section.
+	* vc-bzr.el: Fix typo in Known Bugs section.
 
-	* isearch.el (isearch-update-post-hook): New hook
+	* isearch.el (isearch-update-post-hook): New hook.
 	(isearch-update): Use the new hook.
 
 2010-02-16  Michael Albinus  <michael.albinus@gmx.de>

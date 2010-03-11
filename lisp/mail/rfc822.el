@@ -290,32 +290,36 @@
               (replace-match "\\1 " t))
 
             (goto-char (point-min))
-            (let ((list ())
-                  tem
-                  ;; This is for rfc822-bad-address.  Give it a non-nil
-                  ;; initial value to prevent rfc822-bad-address from
-                  ;; raising a wrong-type-argument error
-                  (rfc822-address-start (point)))
-	      (rfc822-nuke-whitespace)
-	      (while (not (eobp))
-		(setq rfc822-address-start (point))
-		(setq tem
-		      (cond ((rfc822-looking-at ?\,)
-			     nil)
-			    ((looking-at "[][\000-\037@;:\\.>)]")
-			     (forward-char)
-			     (catch 'address ; this is for rfc822-bad-address
-			       (rfc822-bad-address
-				(format "Strange character \\%c found"
-					(preceding-char)))))
-			    (t
-			     (rfc822-addresses-1 t))))
-		(cond ((null tem))
-		      ((stringp tem)
-		       (setq list (cons tem list)))
-		      (t
-		       (setq list (nconc (nreverse tem) list)))))
-	      (nreverse list)))
+	    ;; Give `rfc822-address-start' a non-nil initial value to
+	    ;; prevent `rfc822-bad-address' from raising a
+	    ;; `wrong-type-argument' error.
+            (let* ((rfc822-address-start (point))
+		   list tem
+		   (err
+		    (catch 'address
+		      ;; Note that `rfc822-nuke-whitespace' and
+		      ;; `rfc822-looking-at' can throw.
+		      (rfc822-nuke-whitespace)
+		      (while (not (eobp))
+			(setq rfc822-address-start (point))
+			(setq tem
+			      (cond ((rfc822-looking-at ?\,)
+				     nil)
+				    ((looking-at "[][\000-\037@;:\\.>)]")
+				     (forward-char)
+				     (catch 'address ; For rfc822-bad-address
+				       (rfc822-bad-address
+					(format "Strange character \\%c found"
+						(preceding-char)))))
+				    (t
+				     (rfc822-addresses-1 t))))
+			(cond ((null tem))
+			      ((stringp tem)
+			       (setq list (cons tem list)))
+			      (t
+			       (setq list (nconc (nreverse tem) list)))))
+		      nil)))
+	      (nreverse (append (if err (list err)) list))))
 	(and buf (kill-buffer buf))))))
 
 (provide 'rfc822)

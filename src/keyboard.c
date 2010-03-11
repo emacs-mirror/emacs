@@ -11235,6 +11235,7 @@ handle_interrupt ()
 	  GCPRO4 (saved.object, saved.global_code,
 		  saved.current_syntax_table, saved.old_prop);
 	  Fsignal (Qquit, Qnil);
+	  /* FIXME: AFAIK, `quit' can never return, so this code is dead!  */
 	  gl_state = saved;
 	  UNGCPRO;
 	}
