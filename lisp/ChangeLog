@@ -1,5 +1,8 @@
 2010-03-11  Glenn Morris  <rgm@gnu.org>
 
+	* cus-edit.el (customize-changed-options-previous-release):
+	Bump to 23.1.
+
 	* image.el (image-animate-max-time): Fix :version tag.
 
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
