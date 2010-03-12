@@ -1,6 +1,3 @@
-2010-03-12    <dann@ics.uci.edu>
-
-
 2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add .dir-locals.el support for file-less buffers.
