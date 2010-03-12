@@ -1,3 +1,21 @@
+2010-03-12    <dann@ics.uci.edu>
+
+
+2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add .dir-locals.el support for file-less buffers.
+	* files.el (hack-local-variables): Split out code to apply local
+	variable settings ...
+	(hack-local-variables-apply): ... here.  New function.
+	(hack-dir-local-variables): Use the default directory for when the
+	buffer does not have an associated file.
+	(hack-dir-local-variables-non-file-buffer): New function.
+	* diff-mode.el (diff-mode):
+	* vc-annotate.el (vc-annotate-mode):
+	* vc-dir.el (vc-dir-mode):
+	* log-edit.el (log-edit-mode):
+	* log-view.el (log-view-mode): Call hack-dir-local-variables-non-file-buffer.
+
 2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add support for shelving snapshots and for showing shelves.

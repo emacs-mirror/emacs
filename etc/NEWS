@@ -40,6 +40,11 @@ so we will look at it and add it to the manual.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
+** Directory local variables can apply to file-less buffers.
+For example, adding "(diff-mode . ((mode . whitespace)))" to your
+.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff*
+buffers.
+
 
 * New Modes and Packages in Emacs 24.1
 

@@ -938,6 +938,7 @@ the *vc-dir* buffer.
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
+    (hack-dir-local-variables-non-file-buffer)
     (vc-dir-refresh)))
 
 (defun vc-dir-headers (backend dir)
