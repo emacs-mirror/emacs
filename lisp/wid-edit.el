@@ -639,8 +639,7 @@ extension (xpm, xbm, gif, jpg, or png) located in
 	   (dolist (elt widget-image-conversion)
 	     (dolist (ext (cdr elt))
 	       (push (list :type (car elt) :file (concat image ext)) specs)))
-	   (setq specs (nreverse specs))
-	   (find-image specs)))
+ 	   (find-image (nreverse specs))))
 	(t
 	 ;; Oh well.
 	 nil)))
@@ -2806,11 +2805,19 @@ Return an alist of (TYPE MATCH)."
 ;;; The `visibility' Widget.
 
 (define-widget 'visibility 'item
-  "An indicator and manipulator for hidden items."
+  "An indicator and manipulator for hidden items.
+
+The following properties have special meanings for this widget:
+:on-image  Image filename or spec to display when the item is visible.
+:on        Text shown if the \"on\" image is nil or cannot be displayed.
+:off-image Image filename or spec to display when the item is hidden.
+:off       Text shown if the \"off\" image is nil cannot be displayed."
   :format "%[%v%]"
   :button-prefix ""
   :button-suffix ""
+  :on-image "down"
   :on "Hide"
+  :off-image "right"
   :off "Show"
   :value-create 'widget-visibility-value-create
   :action 'widget-toggle-action
@@ -2818,21 +2825,17 @@ Return an alist of (TYPE MATCH)."
 
 (defun widget-visibility-value-create (widget)
   ;; Insert text representing the `on' and `off' states.
-  (let ((on (widget-get widget :on))
-	(off (widget-get widget :off)))
-    (if on
-	(setq on (concat widget-push-button-prefix
-			 on
-			 widget-push-button-suffix))
-      (setq on ""))
-    (if off
-	(setq off (concat widget-push-button-prefix
-			  off
-			  widget-push-button-suffix))
-      (setq off ""))
-    (if (widget-value widget)
-	(widget-image-insert widget on "down" "down-pushed")
-      (widget-image-insert widget off "right" "right-pushed"))))
+  (let* ((val (widget-value widget))
+	 (text (widget-get widget (if val :on :off)))
+	 (img (widget-image-find
+	       (widget-get widget (if val :on-image :off-image)))))
+    (widget-image-insert widget
+			 (if text
+			     (concat widget-push-button-prefix text
+				     widget-push-button-suffix)
+			   "")
+			 (if img
+			     (append img '(:ascent center))))))
 
 ;;; The `documentation-link' Widget.
 ;;
@@ -2935,7 +2938,7 @@ link for that string."
 		(widget-create-child-and-convert
 		 widget (widget-get widget :visibility-widget)
 		 :help-echo "Show or hide rest of the documentation."
-		 :on "Hide Rest"
+		 :on "Hide"
 		 :off "More"
 		 :always-active t
 		 :action 'widget-parent-action

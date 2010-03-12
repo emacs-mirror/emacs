@@ -1,5 +1,33 @@
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-edit.el: Resort topmost custom groups.
+	(custom-buffer-sort-alphabetically): Default to t.
+	(customize-apropos): Use apropos-parse-pattern.
+	(custom-search-field): New var.
+	(custom-buffer-create-internal): Add custom-apropos search field.
+	(custom-add-parent-links): Don't display parent doc.
+	(custom-group-value-create): Don't sort top-level custom group.
+	(custom-magic-value-create): Show visibility button before option
+	name.
+
+	(custom-variable-state): New fun, from custom-variable-state-set.
+	(custom-variable-state-set): Use it.
+	(custom-group-value-create): Hide options with standard values
+	using the :hidden-states property.  Use progress reporter.
+
+	(custom-show): Simplify.
+	(custom-visibility): Disable images by default.
+	(custom-variable): New property :hidden-states.
+	(custom-variable-value-create): Enable images for
+	custom-visibility widgets.  Use :hidden-states property to
+	determine initial visibility.
+
+	* wid-edit.el (widget-image-find): Give images center ascent.
+	(visibility): Add :on-image and :off-image properties.
+	(widget-visibility-value-create): Use them.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cus-edit.el (processes): Remove from development group.
 	(oop, hypermedia): Delete group.
 	(comm): Promote to top-level group.
