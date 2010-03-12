@@ -78,8 +78,7 @@
   :link '(custom-manual "(widget)Top")
   :link '(emacs-library-link :tag "Lisp File" "widget.el")
   :prefix "widget-"
-  :group 'extensions
-  :group 'hypermedia)
+  :group 'extensions)
 
 (defgroup widget-documentation nil
   "Options controlling the display of documentation strings."
@@ -656,7 +655,7 @@ IMAGE should either be an image or an image file name sans extension
 
 Optional arguments DOWN and INACTIVE are used instead of IMAGE when the
 button is pressed or inactive, respectively.  These are currently ignored."
-  (if (and (display-graphic-p)
+  (if (and (featurep 'image)
 	   (setq image (widget-image-find image)))
       (progn (widget-put widget :suppress-face t)
 	     (insert-image image tag))
@@ -1873,6 +1872,7 @@ by some other text in the `:format' string (if specified)."
   :valid-regexp ""
   :error "Field's value doesn't match allowed forms"
   :value-create 'widget-field-value-create
+  :value-set 'widget-field-value-set
   :value-delete 'widget-field-value-delete
   :value-get 'widget-field-value-get
   :match 'widget-field-match)
@@ -1911,6 +1911,18 @@ the earlier input."
 			(widget-apply widget :value-get))
     widget))
 
+(defun widget-field-value-set (widget value)
+  "Set an editable text field WIDGET to VALUE"
+  (let ((from (widget-field-start widget))
+	(to (widget-field-text-end widget))
+	(buffer (widget-field-buffer widget))
+	(size (widget-get widget :size)))
+    (when (and from to (buffer-live-p buffer))
+      (with-current-buffer buffer
+	(goto-char from)
+	(delete-char (- to from))
+	(insert value)))))
+
 (defun widget-field-value-create (widget)
   "Create an editable text field."
   (let ((size (widget-get widget :size))
@@ -1948,7 +1960,6 @@ the earlier input."
   (let ((from (widget-field-start widget))
 	(to (widget-field-text-end widget))
 	(buffer (widget-field-buffer widget))
-	(size (widget-get widget :size))
 	(secret (widget-get widget :secret))
 	(old (current-buffer)))
     (if (and from to)
@@ -3695,6 +3706,7 @@ example:
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
   :format "%{%t%}: %v (%{sample%})\n"
+  :value-create 'widget-color-value-create
   :size 10
   :tag "Color"
   :value "black"
@@ -3702,6 +3714,27 @@ example:
   :sample-face-get 'widget-color-sample-face-get
   :notify 'widget-color-notify
   :action 'widget-color-action)
+
+(defun widget-color-value-create (widget)
+  (widget-field-value-create widget)
+  (widget-insert " ")
+  (widget-create-child-and-convert
+   widget 'push-button
+   :tag "Choose" :action 'widget-color--choose-action)
+  (widget-insert " "))
+
+(defun widget-color--choose-action (widget &optional event)
+  (list-colors-display
+   nil nil
+   `(lambda (color)
+      (when (buffer-live-p ,(current-buffer))
+	(widget-value-set ',(widget-get widget :parent) color)
+	(let* ((buf (get-buffer "*Colors*"))
+	       (win (get-buffer-window buf 0)))
+	  (bury-buffer buf)
+	  (and win (> (length (window-list)) 1)
+	       (delete-window win)))
+	(pop-to-buffer ,(current-buffer))))))
 
 (defun widget-color-complete (widget)
   "Complete the color in WIDGET."

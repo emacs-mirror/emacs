@@ -1,5 +1,18 @@
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* facemenu.el (list-colors-display, list-colors-print): New arg
+	callback.  Use it to allow selecting colors.
+
+	* wid-edit.el (widget-image-insert): Insert image prop even if the
+	current display is non-graphic.
+	(widget-field-value-set): New fun.
+	(editable-field): Use it.
+	(widget-field-value-get): Clean up unused var.
+	(widget-color-value-create, widget-color--choose-action): New
+	funs.  Allow using list-colors-display to choose color.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cus-edit.el: Resort topmost custom groups.
 	(custom-buffer-sort-alphabetically): Default to t.
 	(customize-apropos): Use apropos-parse-pattern.

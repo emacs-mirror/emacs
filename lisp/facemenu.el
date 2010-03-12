@@ -479,12 +479,20 @@ These special properties include `invisible', `intangible' and `read-only'."
 	nil
       col)))
 
-(defun list-colors-display (&optional list buffer-name)
+
+(defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
-colors that the current display can handle.  If the optional
-argument BUFFER-NAME is nil, it defaults to *Colors*."
+colors that the current display can handle.
+
+If the optional argument BUFFER-NAME is nil, it defaults to
+*Colors*.
+
+If the optional argument CALLBACK is non-nil, it should be a
+function to call each time the user types RET or clicks on a
+color.  The function should accept a single argument, the color
+name."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (list-colors-duplicates (defined-colors)))
@@ -493,49 +501,57 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
 	(if lc
 	    (setcdr lc nil)))))
-  (with-help-window (or buffer-name "*Colors*")
-    (with-current-buffer standard-output
+  (let ((buf (get-buffer-create "*Colors*")))
+    (with-current-buffer buf
+      (erase-buffer)
       (setq truncate-lines t)
-      (if temp-buffer-show-function
-	  (list-colors-print list)
-	;; Call list-colors-print from temp-buffer-show-hook
-	;; to get the right value of window-width in list-colors-print
-	;; after the buffer is displayed.
-	(add-hook 'temp-buffer-show-hook
-		  (lambda ()
-		    (set-buffer-modified-p
-		     (prog1 (buffer-modified-p)
-		       (list-colors-print list))))
-		  nil t)))))
+      (list-colors-print list callback)
+      (set-buffer-modified-p nil))
+    (pop-to-buffer buf))
+  (if callback
+      (message "Click on a color to select it.")))
 
-(defun list-colors-print (list)
-  (dolist (color list)
-    (if (consp color)
-	(if (cdr color)
-	    (setq color (sort color (lambda (a b)
-				      (string< (downcase a)
-					       (downcase b))))))
-      (setq color (list color)))
-    (put-text-property
-     (prog1 (point)
-       (insert (car color))
-       (indent-to 22))
-     (point)
-     'face (list ':background (car color)))
-    (put-text-property
-     (prog1 (point)
-       (insert " " (if (cdr color)
-		       (mapconcat 'identity (cdr color) ", ")
-		     (car color))))
-     (point)
-     'face (list ':foreground (car color)))
-    (indent-to (max (- (window-width) 8) 44))
-    (insert (apply 'format "#%02x%02x%02x"
-		   (mapcar (lambda (c) (lsh c -8))
-			   (color-values (car color)))))
+(defun list-colors-print (list &optional callback)
+  (let ((callback-fn
+	 (if callback
+	     `(lambda (button)
+		(funcall ,callback (button-get button 'color-name))))))
+    (dolist (color list)
+      (if (consp color)
+	  (if (cdr color)
+	      (setq color (sort color (lambda (a b)
+					(string< (downcase a)
+						 (downcase b))))))
+	(setq color (list color)))
+      (let* ((opoint (point))
+	     (color-values (color-values (car color)))
+	     (light-p (>= (apply 'max color-values)
+			  (* (car (color-values "white")) .5))))
+	(insert (car color))
+	(indent-to 22)
+	(put-text-property opoint (point) 'face `(:background ,(car color)))
+	(put-text-property
+	 (prog1 (point)
+	   (insert " " (if (cdr color)
+			   (mapconcat 'identity (cdr color) ", ")
+			 (car color))))
+	 (point)
+	 'face (list :foreground (car color)))
+	(indent-to (max (- (window-width) 8) 44))
+	(insert (apply 'format "#%02x%02x%02x"
+		       (mapcar (lambda (c) (lsh c -8))
+			       color-values)))
+	(when callback
+	  (make-text-button
+	   opoint (point)
+	   'follow-link t
+	   'mouse-face (list :background (car color)
+			     :foreground (if light-p "black" "white"))
+	   'color-name (car color)
+	   'action callback-fn)))
+      (insert "\n"))
+    (goto-char (point-min))))
 
-    (insert "\n"))
-  (goto-char (point-min)))
 
 (defun list-colors-duplicates (&optional list)
   "Return a list of colors with grouped duplicate colors.
