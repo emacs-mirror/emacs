@@ -192,8 +192,9 @@
   "Interfacing to external utilities."
   :group 'emacs)
 
-(defgroup net nil
-  "Networking support."
+(defgroup comm nil
+  "Communications, networking, and remote access to files."
+  :tag "Communication"
   :group 'emacs)
 
 (defgroup processes nil
@@ -273,11 +274,6 @@
 (defgroup environment nil
   "Fitting Emacs with its environment."
   :group 'emacs)
-
-(defgroup comm nil
-  "Communications, networking, remote access to files."
-  :tag "Communication"
-  :group 'environment)
 
 (defgroup hardware nil
   "Support for interfacing with miscellaneous hardware."

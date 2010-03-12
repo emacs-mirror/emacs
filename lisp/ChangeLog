@@ -2,13 +2,13 @@
 
 	* cus-edit.el (processes): Remove from development group.
 	(oop, hypermedia): Delete group.
-	(net): New group.
+	(comm): Promote to top-level group.
 
 	* net/browse-url.el (browse-url):
 	* net/xesam.el (xesam):
 	* net/tramp.el (tramp):
 	* net/goto-addr.el (goto-address):
-	* net/ange-ftp.el (ange-ftp): Put in net group.
+	* net/ange-ftp.el (ange-ftp): Put in comm group.
 
 	* view.el (view): Remove from editing group.
 

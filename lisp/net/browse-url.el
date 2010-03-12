@@ -216,7 +216,7 @@
   :prefix "browse-url-"
   :link '(emacs-commentary-link "browse-url")
   :group 'external
-  :group 'net)
+  :group 'comm)
 
 ;;;###autoload
 (defcustom browse-url-browser-function
