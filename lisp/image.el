@@ -1,7 +1,7 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
@@ -590,7 +590,7 @@ Example:
 (defcustom image-animate-max-time 30
   "Time in seconds to animate images."
   :type 'integer
-  :version "22.1"
+  :version "24.1"
   :group 'image)
 
 (defconst image-animated-types '(gif)

@@ -1287,7 +1287,9 @@ a diff with \\[diff-reverse-direction].
   (set (make-local-variable 'add-log-current-defun-function)
        'diff-current-defun)
   (set (make-local-variable 'add-log-buffer-file-name-function)
-       (lambda () (diff-find-file-name nil 'noprompt))))
+       (lambda () (diff-find-file-name nil 'noprompt)))
+  (unless (buffer-file-name)
+    (hack-dir-local-variables-non-file-buffer)))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode

@@ -8,7 +8,7 @@
 @c Please remember to update the edition number in README as well.
 @c And also the copies in vol1.texi and vol2.texi.
 @set VERSION  3.0
-@set EMACSVER 23.1.93
+@set EMACSVER 24.0.50
 @set DATE July 2009
 
 @c in general, keep the following line commented out, unless doing a

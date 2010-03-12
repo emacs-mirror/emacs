@@ -5,7 +5,7 @@
 @c %**end of header
 
 @c This is used in many places
-@set VER 23.1.93
+@set VER 24.0.50
 
 @c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
 @c Feel free to install changes without prior permission (but I'd
