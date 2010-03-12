@@ -30,11 +30,28 @@ so we will look at it and add it to the manual.
 
 * Changes in Emacs 24.1
 
+** The scroll-bar is now on the right on GNU/Linux and UNIX-like systems.
+Use `set-scroll-bar-mode' to change this.
+
 
 * Editing Changes in Emacs 24.1
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** Customize
+
+*** Customize buffers now contain a search field.
+The search is performed using `customize-apropos'.
+To turn off the search field, set custom-search-field to nil .
+
+*** Custom options now start out hidden if at their default values.
+Use the arrow to the left of the option name to toggle visibility.
+
+*** custom-buffer-sort-alphabetically now defaults to t.
+
+*** The color widget now has a "Choose" button, which allows you to
+choose a color via list-colors-display.
 
 ** VC and related modes
 
