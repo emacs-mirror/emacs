@@ -1,7 +1,7 @@
 ;;; cl-macs.el --- Common Lisp macros
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -2596,6 +2596,7 @@ and then returning foo."
       (byte-compile-normal-call form)
     (byte-compile-form form)))
 
+;;;###autoload
 (defmacro defsubst* (name args &rest body)
   "Define NAME as a function.
 Like `defun', except the function is automatically declared `inline',

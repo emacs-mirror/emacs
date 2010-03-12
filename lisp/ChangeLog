@@ -1,3 +1,7 @@
+2010-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (defsubst*): Add autoload cookie.  (Bug#4427)
+
 2010-03-11  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* files.el (auto-mode-alist): Accept more verilog file patterns.

@@ -273,8 +273,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (compiler-macroexpand define-compiler-macro assert
-;;;;;;  check-type typep deftype cl-struct-setf-expander defstruct
+;;;### (autoloads (defsubst* compiler-macroexpand define-compiler-macro
+;;;;;;  assert check-type typep deftype cl-struct-setf-expander defstruct
 ;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
 ;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
 ;;;;;;  declare the locally multiple-value-setq multiple-value-bind
@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "e10a7e42199c08dc39460f67dd2d424b")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "273ba25f4a116c61a464dbe55f1f8c63")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -738,6 +738,14 @@ and then returning foo.
 Not documented
 
 \(fn FORM)" nil nil)
+
+(autoload 'defsubst* "cl-macs" "\
+Define NAME as a function.
+Like `defun', except the function is automatically declared `inline',
+ARGLIST allows full Common Lisp conventions, and BODY is implicitly
+surrounded by (block NAME ...).
+
+\(fn NAME ARGLIST [DOCSTRING] BODY...)" nil (quote macro))
 
 ;;;***
 
