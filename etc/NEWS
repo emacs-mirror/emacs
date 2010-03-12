@@ -36,6 +36,10 @@ so we will look at it and add it to the manual.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** VC and related modes
+
+*** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
+
 
 * New Modes and Packages in Emacs 24.1
 

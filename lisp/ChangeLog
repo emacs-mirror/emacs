@@ -1,3 +1,12 @@
+2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add support for shelving snapshots and for showing shelves.
+	* vc-bzr.el (vc-bzr-shelve-show, vc-bzr-shelve-show-at-point)
+	(vc-bzr-shelve-apply-and-keep-at-point, vc-bzr-shelve-snapshot):
+	New functions.
+	(vc-bzr-shelve-map, vc-bzr-shelve-menu-map)
+	(vc-bzr-extra-menu-map): Map them.
+
 2010-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* cus-edit.el (customize-changed-options-previous-release):
