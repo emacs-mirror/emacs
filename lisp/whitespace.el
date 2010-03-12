@@ -378,8 +378,7 @@
   "Visualize blanks (TAB, (HARD) SPACE and NEWLINE)."
   :link '(emacs-library-link :tag "Source Lisp File" "whitespace.el")
   :version "23.1"
-  :group 'wp
-  :group 'data)
+  :group 'convenience)
 
 
 (defcustom whitespace-style

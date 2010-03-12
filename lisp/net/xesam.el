@@ -151,7 +151,7 @@
 (defgroup xesam nil
   "Xesam compatible interface to search engines."
   :group 'extensions
-  :group 'hypermedia
+  :group 'net
   :version "23.1")
 
 (defcustom xesam-query-type 'user-query

@@ -1,3 +1,46 @@
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (processes): Remove from development group.
+	(oop, hypermedia): Delete group.
+	(net): New group.
+
+	* net/browse-url.el (browse-url):
+	* net/xesam.el (xesam):
+	* net/tramp.el (tramp):
+	* net/goto-addr.el (goto-address):
+	* net/ange-ftp.el (ange-ftp): Put in net group.
+
+	* view.el (view): Remove from editing group.
+
+	* uniquify.el (uniquify): Put in files group.
+
+	* net/browse-url.el (browse-url):
+	* ps-print.el (postscript): Put in external group.
+
+	* cus-edit.el (outlines):
+	* textmodes/text-mode.el (text-mode-hook):
+	* textmodes/table.el (table):
+	* textmodes/picture.el (picture):
+	* outline.el (outlines): Put in wp group.
+
+	* nxml/nxml-mode.el (nxml): Remove from wp group.
+
+	* net/tramp-imap.el (tramp-imap): Put in tramp group.
+
+	* mail/metamail.el (metamail): Remove from hypermedia group.
+
+	* cus-edit.el (abbrev):
+	* whitespace.el (whitespace):
+	* vcursor.el (vcursor):
+	* reveal.el (reveal):
+	* hl-line.el (hl-line): Put in convenience group.
+
+	* epg-config.el (epg): Put in data group.
+
+	* emulation/pc-select.el (pc-select): Put in emulations group.
+
+	* calculator.el (calculator): Put in applications group.
+
 2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add .dir-locals.el support for file-less buffers.

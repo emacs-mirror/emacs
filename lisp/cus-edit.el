@@ -169,7 +169,7 @@
 (defgroup abbrev nil
   "Abbreviation handling, typing shortcuts, macros."
   :tag "Abbreviations"
-  :group 'editing)
+  :group 'convenience)
 
 (defgroup matching nil
   "Various sorts of searching and matching."
@@ -186,16 +186,19 @@
 
 (defgroup outlines nil
   "Support for hierarchical outlining."
-  :group 'editing)
+  :group 'wp)
 
 (defgroup external nil
   "Interfacing to external utilities."
   :group 'emacs)
 
+(defgroup net nil
+  "Networking support."
+  :group 'emacs)
+
 (defgroup processes nil
   "Process, subshell, compilation, and job control support."
-  :group 'external
-  :group 'development)
+  :group 'external)
 
 (defgroup convenience nil
   "Convenience features for faster editing."
@@ -223,10 +226,6 @@
 
 (defgroup tools nil
   "Programming tools."
-  :group 'programming)
-
-(defgroup oop nil
-  "Support for object-oriented programming."
   :group 'programming)
 
 (defgroup applications nil
@@ -325,10 +324,6 @@
 
 (defgroup faces nil
   "Support for multiple fonts."
-  :group 'emacs)
-
-(defgroup hypermedia nil
-  "Support for links between text or other media types."
   :group 'emacs)
 
 (defgroup help nil

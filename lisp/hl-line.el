@@ -72,7 +72,7 @@
 (defgroup hl-line nil
   "Highlight the current line."
   :version "21.1"
-  :group 'editing)
+  :group 'convenience)
 
 (defface hl-line
   '((t :inherit highlight))

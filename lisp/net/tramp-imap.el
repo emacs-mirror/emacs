@@ -168,7 +168,7 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 (defgroup tramp-imap nil
   "Tramp over IMAP configuration."
   :version "23.2"
-  :group 'applications)
+  :group 'tramp)
 
 (defcustom tramp-imap-subject-marker "tramp-imap-subject-marker"
   "The subject marker that Tramp-IMAP will use."

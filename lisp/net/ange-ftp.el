@@ -676,6 +676,7 @@
   "Accessing remote files and directories using FTP
    made as simple and transparent as possible."
   :group 'files
+  :group 'net
   :prefix "ange-ftp-")
 
 (defcustom ange-ftp-name-format
