@@ -1,5 +1,7 @@
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xfns.c (Fx_create_frame): Set default to Qright.
+
 	* frame.c (Vdefault_frame_scroll_bars): Set default to Qright for
 	all window systems.
 
