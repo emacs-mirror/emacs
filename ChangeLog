@@ -1,3 +1,9 @@
+2010-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in <AC_CHECK_HEADERS>: Remove termcap.h.
+
+	* configure: Regenerated.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.
