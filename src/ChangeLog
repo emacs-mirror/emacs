@@ -1,3 +1,8 @@
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Vdefault_frame_scroll_bars): Set default to Qright for
+	all window systems.
+
 2010-03-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefilie.in (termcapobj): Move termcap.o from here...
