@@ -614,7 +614,7 @@ Pretty print all glyphs in it->glyph_row.
 end
 
 define prowlims
-  printf "start=%d,end=%d,reversed=%d,cont=%d\n", $arg0->start.pos.charpos, $arg0->end.pos.charpos, $arg0->reversed_p, $arg0->continued_p
+  printf "start=%d,end=%d,reversed=%d,cont=%d,at_zv=%d\n", $arg0->start.pos.charpos, $arg0->end.pos.charpos, $arg0->reversed_p, $arg0->continued_p, $arg0->ends_at_zv_p
 end
 document prowlims
 Print important attributes of a glyph_row structure.

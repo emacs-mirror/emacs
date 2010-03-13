@@ -2016,8 +2016,8 @@ struct it
      iterator position in `current'.  */
   EMACS_INT prev_stop;
 
-  /* Last stop position iterated across whose embedding level is equal
-     to the current paragraph's embedding level.  */
+  /* Last stop position iterated across whose bidi embedding level is
+     equal to the current paragraph's base embedding level.  */
   EMACS_INT base_level_stop;
 
   /* Maximum string or buffer position + 1.  ZV when iterating over
@@ -2326,6 +2326,14 @@ struct it
      are currently in a continuation line.  This is initially zero and
      incremented/reset by display_line, move_it_to etc.  */
   int continuation_lines_width;
+
+  /* Buffer position that ends the buffer text line being iterated.
+     This is normally the position after the newline at EOL.  If this
+     is the last line of the buffer and it doesn't have a newline,
+     value is ZV/ZV_BYTE.  Set and used only if IT->bidi_p, for
+     setting the end position of glyph rows produced for continuation
+     lines, see display_line.  */
+  struct text_pos eol_pos;
 
   /* Current y-position.  Automatically incremented by the height of
      glyph_row in move_it_to and display_line.  */

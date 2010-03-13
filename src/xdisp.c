@@ -13541,6 +13541,12 @@ try_cursor_movement (window, startp, scroll_step)
       && NILP (Vshow_trailing_whitespace)
       /* Right after splitting windows, last_point may be nil.  */
       && INTEGERP (w->last_point)
+      /* Can't use this optimization if rows were bidi-reordered and
+	 point moved backwards, because that would mean we would need
+	 to examine previous rows that came from the same continued
+	 line.  */
+      && (PT > XFASTINT (w->last_point)
+	  || NILP (XBUFFER (w->buffer)->bidi_display_reordering))
       /* This code is not used for mini-buffer for the sake of the case
 	 of redisplaying to replace an echo area message; since in
 	 that case the mini-buffer contents per se are usually
@@ -13714,6 +13720,43 @@ try_cursor_movement (window, startp, scroll_step)
 	    }
 	  else if (scroll_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
+	  else if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	    {
+	      /* With bidi-reordered rows, there could be more than
+		 one candidate row whose start and end positions
+		 occlude point.  We need to find the best
+		 candidate.  */
+	      int rv = 0;
+
+	      do
+		{
+		  rv |= set_cursor_from_row (w, row, w->current_matrix,
+					     0, 0, 0, 0);
+		  /* As soon as we've found the first suitable row
+		     whose ends_at_zv_p flag is set, we are done.  */
+		  if (rv
+		      && MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p)
+		    {
+		      rc = CURSOR_MOVEMENT_SUCCESS;
+		      break;
+		    }
+		  ++row;
+		}
+	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		     && MATRIX_ROW_START_CHARPOS (row) <= PT
+		     && PT <= MATRIX_ROW_END_CHARPOS (row)
+		     && cursor_row_p (w, row));
+	      /* If we didn't find any candidate rows, or exited the
+		 loop before all the candidates were examined, signal
+		 to the caller that this method failed.  */
+	      if (rc != CURSOR_MOVEMENT_SUCCESS
+		  && (!rv
+		      || (MATRIX_ROW_START_CHARPOS (row) <= PT
+			  && PT <= MATRIX_ROW_END_CHARPOS (row))))
+		rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
+	      else
+		rc = CURSOR_MOVEMENT_SUCCESS;
+	    }
 	  else
 	    {
 	      do
@@ -15339,6 +15382,8 @@ row_containing_pos (w, charpos, start, end, dy)
      int dy;
 {
   struct glyph_row *row = start;
+  struct glyph_row *best_row = NULL;
+  EMACS_INT mindif = BUF_ZV (XBUFFER (w->buffer)) + 1;
   int last_y;
 
   /* If we happen to start on a header-line, skip that.  */
@@ -15371,7 +15416,30 @@ row_containing_pos (w, charpos, start, end, dy)
 		 && !row->ends_at_zv_p
 		 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
 	  && charpos >= MATRIX_ROW_START_CHARPOS (row))
-	return row;
+	{
+	  struct glyph *g;
+
+	  if (NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	    return row;
+	  /* In bidi-reordered rows, there could be several rows
+	     occluding point.  We need to find the one which fits
+	     CHARPOS the best.  */
+	  for (g = row->glyphs[TEXT_AREA];
+	       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+	       g++)
+	    {
+	      if (!STRINGP (g->object))
+		{
+		  if (g->charpos > 0 && eabs (g->charpos - charpos) < mindif)
+		    {
+		      mindif = eabs (g->charpos - charpos);
+		      best_row = row;
+		    }
+		}
+	    }
+	}
+      else if (best_row)
+	return best_row;
       ++row;
     }
 }
@@ -17104,6 +17172,7 @@ display_line (it)
   int wrap_row_phys_ascent, wrap_row_phys_height;
   int wrap_row_extra_line_spacing;
   struct display_pos row_end;
+  int cvpos;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   xassert (it->hpos == 0 && it->current_x == 0);
@@ -17622,7 +17691,7 @@ display_line (it)
 	{
 	  if (BUFFERP (g->object))
 	    {
-	      if (g->charpos && g->charpos < min_pos)
+	      if (g->charpos > 0 && g->charpos < min_pos)
 		min_pos = g->charpos;
 	      if (g->charpos > max_pos)
 		max_pos = g->charpos;
@@ -17640,7 +17709,7 @@ display_line (it)
 	    {
 	      if (INTEGERP (g->object))
 		{
-		  if (g->charpos && g->charpos < min_pos)
+		  if (g->charpos > 0 && g->charpos < min_pos)
 		    min_pos = g->charpos;
 		  if (g->charpos > max_pos)
 		    max_pos = g->charpos;
@@ -17671,6 +17740,8 @@ display_line (it)
       else if (row->used[TEXT_AREA] && max_pos)
 	{
 	  SET_TEXT_POS (tpos, max_pos + 1, CHAR_TO_BYTE (max_pos + 1));
+	  row_end = it->current;
+	  row_end.pos = tpos;
 	  /* If the character at max_pos+1 is a newline, skip that as
 	     well.  Note that this may skip some invisible text.  */
 	  if (FETCH_CHAR (tpos.bytepos) == '\n'
@@ -17680,13 +17751,32 @@ display_line (it)
 	      it->bidi_p = 0;
 	      reseat_1 (it, tpos, 0);
 	      set_iterator_to_next (it, 1);
-	      row_end = it->current;
+	      /* Record the position after the newline of a continued
+		 row.  We will need that to set ROW->end of the last
+		 row produced for a continued line.  */
+	      if (row->continued_p)
+		{
+		  save_it.eol_pos.charpos = IT_CHARPOS (*it);
+		  save_it.eol_pos.bytepos = IT_BYTEPOS (*it);
+		}
+	      else
+		{
+		  row_end = it->current;
+		  save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
+		}
 	      *it = save_it;
 	    }
-	  else
+	  else if (!row->continued_p
+		   && row->continuation_lines_width
+		   && it->eol_pos.charpos > 0)
 	    {
-	      row_end = it->current;
-	      row_end.pos = tpos;
+	      /* Last row of a continued line.  Use the position
+		 recorded in ROW->eol_pos, to the effect that the
+		 newline belongs to this row, not to the row which
+		 displays the character with the largest buffer
+		 position.  */
+	      row_end.pos = it->eol_pos;
+	      it->eol_pos.charpos = it->eol_pos.bytepos = 0;
 	    }
 	  row->end = row_end;
 	}
@@ -17709,15 +17799,16 @@ display_line (it)
   it->right_user_fringe_face_id = 0;
 
   /* Maybe set the cursor.  */
-  if ((it->w->cursor.vpos < 0
+  cvpos = it->w->cursor.vpos;
+  if ((cvpos < 0
        /* In bidi-reordered rows, keep checking for proper cursor
 	  position even if one has been found already, because buffer
 	  positions in such rows change non-linearly with ROW->VPOS,
 	  when a line is continued.  One exception: when we are at ZV,
 	  display cursor on the first suitable glyph row, since all
-	  the empty rows after that also have their ends_at_zv_p flag
-	  set.  */
-       || (it->bidi_p && !row->ends_at_zv_p))
+	  the empty rows after that also have their position set to ZV.  */
+       || (it->bidi_p
+	   && !MATRIX_ROW (it->w->desired_matrix, cvpos)->ends_at_zv_p))
       && PT >= MATRIX_ROW_START_CHARPOS (row)
       && PT <= MATRIX_ROW_END_CHARPOS (row)
       && cursor_row_p (it->w, row))

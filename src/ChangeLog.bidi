@@ -1,3 +1,23 @@
+2010-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Give up if rows are
+	bidi-reordered and point moved backwards.  Examine all the
+	candidate rows that occlude point, to return the best match.
+	(row_containing_pos): With bidi-reordered rows, don't return the
+	first one that occludes point; rather, examine all candidates and
+	return the best match, with he glyph that's closest to point.
+	(display_line): When looking for min position, don't consider
+	negative values of glyph->charpos.  (Fixes a crash with "C-x 3" at
+	ZV.)  Record the position after EOL in it->eol_pos, and use it to
+	set end_pos of the last row produced for a continued line.  Fix
+	the condition for passing candidate rows to set_cursor_from_row:
+	check ends_at_zv_p flag of the best candidate row, not of the
+	current row.
+
+	* dispextern.h (struct it): New member eol_pos.
+
+	* .gdbinit (prowlims): Display the ends_at_zv_p flag.
+
 2010-03-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (prowlims, pmtxrows): New commands.
