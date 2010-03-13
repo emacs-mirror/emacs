@@ -1,3 +1,9 @@
+2010-03-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (ELCFILES): Add net/secrets.elc.
+
+	* net/secrets.el: New file.
+
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* facemenu.el (list-colors-display, list-colors-print): New arg
