@@ -3070,7 +3070,7 @@ regex_compile (pattern, size, syntax, bufp)
 			   syntax-table for ASCII chars, while the other chars
 			   will obey syntax-table properties.  It's not ideal,
 			   but it's the way it's been done until now.  */
-			SETUP_SYNTAX_TABLE (BEGV, 0);
+			SETUP_BUFFER_SYNTAX_TABLE ();
 
 			for (ch = 0; ch < 256; ++ch)
 			  {
@@ -4496,7 +4496,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
   anchored_start = (bufp->buffer[0] == begline);
 
 #ifdef emacs
-  gl_state.object = re_match_object;
+  gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
   {
     int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (startpos));
 
@@ -5099,7 +5099,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 #ifdef emacs
   int charpos;
-  gl_state.object = re_match_object;
+  gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
   charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (pos));
   SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
 #endif
@@ -6503,10 +6503,6 @@ re_compile_pattern (pattern, length, bufp)
      struct re_pattern_buffer *bufp;
 {
   reg_errcode_t ret;
-
-#ifdef emacs
-  gl_state.current_syntax_table = current_buffer->syntax_table;
-#endif
 
   /* GNU code is written to assume at least RE_NREGS registers will be set
      (and at least one extra will be -1).  */

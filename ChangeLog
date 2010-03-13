@@ -1,3 +1,14 @@
+2010-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	These changes remove termcap.c from the build on Posix platforms.
+	* configure.in <AC_CHECK_HEADERS>: Remove termcap.h.
+
+	* configure: Regenerated.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-01-31  Juri Linkov  <juri@jurta.org>
 
 	* .bzrignore: Add TAGS-LISP.

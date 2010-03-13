@@ -325,7 +325,7 @@
 (defgroup vcursor nil
   "Manipulate an alternative (\"virtual\") cursor."
   :prefix "vcursor-"
-  :group 'editing)
+  :group 'convenience)
 
 (defface vcursor
   '((((class color)) (:foreground "blue" :background "cyan" :underline t))

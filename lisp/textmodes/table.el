@@ -640,14 +640,10 @@
 ;;;
 
 (defgroup table nil
-  "Text based table manipulation utilities.
-See `table-insert' for examples about how to use."
+  "Text based table manipulation utilities."
   :tag "Table"
   :prefix "table-"
-  :group 'editing
   :group 'wp
-  :group 'paragraphs
-  :group 'fill
   :version "22.1")
 
 (defgroup table-hooks nil

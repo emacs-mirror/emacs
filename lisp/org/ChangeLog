@@ -1,3 +1,11 @@
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* org.el (org): Remove from hypermedia group.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-02-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* org-freemind.el (org-freemind-from-org-mode-node)

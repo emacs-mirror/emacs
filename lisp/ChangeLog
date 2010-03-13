@@ -1,3 +1,172 @@
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* facemenu.el (list-colors-display, list-colors-print): New arg
+	callback.  Use it to allow selecting colors.
+
+	* wid-edit.el (widget-image-insert): Insert image prop even if the
+	current display is non-graphic.
+	(widget-field-value-set): New fun.
+	(editable-field): Use it.
+	(widget-field-value-get): Clean up unused var.
+	(widget-color-value-create, widget-color--choose-action): New
+	funs.  Allow using list-colors-display to choose color.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el: Resort topmost custom groups.
+	(custom-buffer-sort-alphabetically): Default to t.
+	(customize-apropos): Use apropos-parse-pattern.
+	(custom-search-field): New var.
+	(custom-buffer-create-internal): Add custom-apropos search field.
+	(custom-add-parent-links): Don't display parent doc.
+	(custom-group-value-create): Don't sort top-level custom group.
+	(custom-magic-value-create): Show visibility button before option
+	name.
+
+	(custom-variable-state): New fun, from custom-variable-state-set.
+	(custom-variable-state-set): Use it.
+	(custom-group-value-create): Hide options with standard values
+	using the :hidden-states property.  Use progress reporter.
+
+	(custom-show): Simplify.
+	(custom-visibility): Disable images by default.
+	(custom-variable): New property :hidden-states.
+	(custom-variable-value-create): Enable images for
+	custom-visibility widgets.  Use :hidden-states property to
+	determine initial visibility.
+
+	* wid-edit.el (widget-image-find): Give images center ascent.
+	(visibility): Add :on-image and :off-image properties.
+	(widget-visibility-value-create): Use them.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (processes): Remove from development group.
+	(oop, hypermedia): Delete group.
+	(comm): Promote to top-level group.
+
+	* net/browse-url.el (browse-url):
+	* net/xesam.el (xesam):
+	* net/tramp.el (tramp):
+	* net/goto-addr.el (goto-address):
+	* net/ange-ftp.el (ange-ftp): Put in comm group.
+
+	* view.el (view): Remove from editing group.
+
+	* uniquify.el (uniquify): Put in files group.
+
+	* net/browse-url.el (browse-url):
+	* ps-print.el (postscript): Put in external group.
+
+	* cus-edit.el (outlines):
+	* textmodes/text-mode.el (text-mode-hook):
+	* textmodes/table.el (table):
+	* textmodes/picture.el (picture):
+	* outline.el (outlines): Put in wp group.
+
+	* nxml/nxml-mode.el (nxml): Remove from wp group.
+
+	* net/tramp-imap.el (tramp-imap): Put in tramp group.
+
+	* mail/metamail.el (metamail): Remove from hypermedia group.
+
+	* cus-edit.el (abbrev):
+	* whitespace.el (whitespace):
+	* vcursor.el (vcursor):
+	* reveal.el (reveal):
+	* hl-line.el (hl-line): Put in convenience group.
+
+	* epg-config.el (epg): Put in data group.
+
+	* emulation/pc-select.el (pc-select): Put in emulations group.
+
+	* calculator.el (calculator): Put in applications group.
+
+2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add .dir-locals.el support for file-less buffers.
+	* files.el (hack-local-variables): Split out code to apply local
+	variable settings ...
+	(hack-local-variables-apply): ... here.  New function.
+	(hack-dir-local-variables): Use the default directory for when the
+	buffer does not have an associated file.
+	(hack-dir-local-variables-non-file-buffer): New function.
+	* diff-mode.el (diff-mode):
+	* vc-annotate.el (vc-annotate-mode):
+	* vc-dir.el (vc-dir-mode):
+	* log-edit.el (log-edit-mode):
+	* log-view.el (log-view-mode): Call hack-dir-local-variables-non-file-buffer.
+
+2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add support for shelving snapshots and for showing shelves.
+	* vc-bzr.el (vc-bzr-shelve-show, vc-bzr-shelve-show-at-point)
+	(vc-bzr-shelve-apply-and-keep-at-point, vc-bzr-shelve-snapshot):
+	New functions.
+	(vc-bzr-shelve-map, vc-bzr-shelve-menu-map)
+	(vc-bzr-extra-menu-map): Map them.
+
+2010-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (customize-changed-options-previous-release):
+	Bump to 23.1.
+
+	* image.el (image-animate-max-time): Fix :version tag.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
+2010-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-git.el (vc-git-revision-table): Include remote branches.
+
+2010-03-10  Kim F. Storm  <storm@cua.dk>
+
+	Animated image API.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00211.html
+
+	* image.el (image-animate-max-time): New defcustom.
+	(image-animated-types): New defconst.
+	(create-animated-image, image-animate-timer)
+	(image-animate-start, image-animate-stop, image-animate-timeout)
+	(image-animated-p): New functions.
+
+	* image-mode.el (image-toggle-display-image):
+	Replace `create-image' with `create-animated-image'.
+
+2010-03-09  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
+	instead of "format:"; this ensures that the output is
+	newline-terminated.
+
+2010-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rfc822.el (rfc822-addresses): Use nested catches to ensure
+	that all errors are caught, and that the return value is always a
+	list (Bug#5692).
+
+2010-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/misc-lang.el (windows-1256): New coding system.
+	(cp1256): New alias of windows-1256 (bug#5690).
+
+2010-03-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mail/rfc822.el (rfc822-addresses): Move catch clause down around
+	call to rfc822-bad-address.  (Bug#5692)
+
+2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
+	vc-git-root as default directory for revision path (Bug#5657).
+
+2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calculator.el (calculator): Don't bind split-window-keep-point
+	(Bug#5674).
+
 2010-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-git.el: Re-flow to fit into 80 columns.
@@ -61,7 +230,7 @@
 2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug 5649.
+	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
 
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -170,8 +339,8 @@
 
 2010-02-20  Kevin Ryde  <user42@zip.com.au>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): In
-	`watcom' anchor regexp to start of line, to avoid slowness
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	In `watcom' anchor regexp to start of line, to avoid slowness
 	(Bug#5599).
 
 2010-02-20  Eli Zaretskii  <eliz@gnu.org>
@@ -236,9 +405,9 @@
 
 2010-02-17  Mark A. Hershberger  <mah@everybody.org>
 
-	* vc-bzr.el: fix typo in Known Bugs section.
+	* vc-bzr.el: Fix typo in Known Bugs section.
 
-	* isearch.el (isearch-update-post-hook): New hook
+	* isearch.el (isearch-update-post-hook): New hook.
 	(isearch-update): Use the new hook.
 
 2010-02-16  Michael Albinus  <michael.albinus@gmx.de>

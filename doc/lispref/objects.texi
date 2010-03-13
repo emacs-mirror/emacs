@@ -200,6 +200,13 @@ leading @samp{+} or a final @samp{.}.
 @end group
 @end example
 
+@noindent
+As a special exception, if a sequence of digits specifies an integer
+too large or too small to be a valid integer object, the Lisp reader
+reads it as a floating-point number (@pxref{Floating Point Type}).
+For instance, on most machines @code{536870912} is read as the
+floating-point number @code{536870912.0}.
+
   @xref{Numbers}, for more information.
 
 @node Floating Point Type

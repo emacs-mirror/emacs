@@ -1497,7 +1497,7 @@ Please send all bug fixes and enhancements to
   "Support for printing and PostScript."
   :tag "PostScript"
   :version "20"
-  :group 'emacs)
+  :group 'external)
 
 (defgroup ps-print nil
   "PostScript generator for Emacs."

@@ -1,7 +1,7 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
@@ -584,7 +584,111 @@ Example:
   (declare (doc-string 3))
   `(defvar ,symbol (find-image ',specs) ,doc))
 
+
+;;; Animated image API
 
+(defcustom image-animate-max-time 30
+  "Time in seconds to animate images."
+  :type 'integer
+  :version "24.1"
+  :group 'image)
+
+(defconst image-animated-types '(gif)
+  "List of supported animated image types.")
+
+;;;###autoload
+(defun create-animated-image (file-or-data &optional type data-p &rest props)
+  "Create an animated image.
+FILE-OR-DATA is an image file name or image data.
+Optional TYPE is a symbol describing the image type.  If TYPE is omitted
+or nil, try to determine the image type from its first few bytes
+of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
+use its file extension as image type.
+Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
+Optional PROPS are additional image attributes to assign to the image,
+like, e.g. `:mask MASK'.
+Value is the image created, or nil if images of type TYPE are not supported.
+
+Images should not be larger than specified by `max-image-size'."
+  (setq type (image-type file-or-data type data-p))
+  (when (image-type-available-p type)
+    (let* ((animate (memq type image-animated-types))
+	   (image
+	    (append (list 'image :type type (if data-p :data :file) file-or-data)
+		    (if animate '(:index 0 :mask heuristic))
+		    props)))
+      (if animate
+	  (image-animate-start image))
+      image)))
+
+(defun image-animate-timer (image)
+  "Return the animation timer for image IMAGE."
+  ;; See cancel-function-timers
+  (let ((tail timer-list) timer)
+    (while tail
+      (setq timer (car tail)
+	    tail (cdr tail))
+      (if (and (eq (aref timer 5) #'image-animate-timeout)
+	       (consp (aref timer 6))
+	       (eq (car (aref timer 6)) image))
+	  (setq tail nil)
+	(setq timer nil)))
+    timer))
+
+(defun image-animate-start (image &optional max-time)
+  "Start animation of image IMAGE.
+Optional second arg MAX-TIME is number of seconds to animate image,
+or t to animate infinitely."
+  (let ((anim (image-animated-p image))
+	timer tmo)
+    (when anim
+      (if (setq timer (image-animate-timer image))
+	  (setcar (nthcdr 3 (aref timer 6)) max-time)
+	(setq tmo (* (cdr anim) 0.01))
+	(setq max-time (or max-time image-animate-max-time))
+	(run-with-timer tmo nil #'image-animate-timeout
+			image 1 (car anim)
+			(if (numberp max-time)
+			    (- max-time tmo)
+			  max-time))))))
+
+(defun image-animate-stop (image)
+  "Stop animation of image."
+  (let ((timer (image-animate-timer image)))
+    (when timer
+      (cancel-timer timer))))
+
+(defun image-animate-timeout (image ino count time-left)
+  (if (>= ino count)
+      (setq ino 0))
+  (plist-put (cdr image) :index ino)
+  (force-window-update)
+  (let ((anim (image-animated-p image)) tmo)
+    (when anim
+      (setq tmo (* (cdr anim) 0.01))
+      (unless (and (= ino 0) (numberp time-left) (< time-left tmo))
+	(run-with-timer tmo nil #'image-animate-timeout
+			image (1+ ino) count
+			(if (numberp time-left)
+			    (- time-left tmo)
+			  time-left))))))
+
+(defun image-animated-p (image)
+  "Return non-nil if image is animated.
+Actually, return value is a cons (IMAGES . DELAY) where IMAGES
+is the number of sub-images in the animated image, and DELAY
+is the delay in 100ths of a second until the next sub-image
+shall be displayed."
+  (cond
+   ((eq (plist-get (cdr image) :type) 'gif)
+    (let* ((extdata (image-extension-data image))
+	   (images (plist-get extdata 'count))
+	   (anim (plist-get extdata #xF9)))
+      (and (integerp images) (> images 1)
+	   (stringp anim) (>= (length anim) 4)
+	   (cons images (+ (aref anim 1) (* (aref anim 2) 256))))))))
+
+
 (provide 'image)
 
 ;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3

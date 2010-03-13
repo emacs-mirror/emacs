@@ -34,7 +34,7 @@
 (defgroup picture nil
   "Picture mode --- editing using quarter-plane screen model."
   :prefix "picture-"
-  :group 'editing)
+  :group 'wp)
 
 (defcustom picture-rectangle-ctl ?+
   "*Character `picture-draw-rectangle' uses for top left corners."

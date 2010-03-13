@@ -162,7 +162,8 @@ menu items."
   (remove-from-invisibility-spec 'foo)
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
-       '(vc-annotate-font-lock-keywords t)))
+       '(vc-annotate-font-lock-keywords t))
+  (hack-dir-local-variables-non-file-buffer))
 
 (defun vc-annotate-toggle-annotation-visibility ()
   "Toggle whether or not the annotation is visible."

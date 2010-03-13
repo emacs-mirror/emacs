@@ -2,7 +2,7 @@
     ApplicationDescription = "GNU Emacs for GNUstep / OS X";
     ApplicationIcon = emacs.tiff;
     ApplicationName = Emacs;
-    ApplicationRelease = "23.1.93";
+    ApplicationRelease = "24.0.50";
     Authors = (
 	"Adrian Robert (GNUstep)",
 	"Christophe de Dinechin (MacOS X)",
@@ -13,7 +13,7 @@
     );
     Copyright = "Copyright (C) 2010 Free Software Foundation, Inc.";
     CopyrightDescription = "Released under the GNU General Public License Version 3 or later";
-    FullVersionID = "Emacs 23.1.93, NS Windowing";
+    FullVersionID = "Emacs 24.0.50, NS Windowing";
     NSExecutable = Emacs;
     NSIcon = emacs.tiff;
     NSPrincipalClass = NSApplication;
