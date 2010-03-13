@@ -1,3 +1,8 @@
+2010-03-13  Eric M. Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/imenu.el: New file, from the CEDET repository
+	(Bug#5412).
+
 2010-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (defsubst*): Add autoload cookie.  (Bug#4427)
