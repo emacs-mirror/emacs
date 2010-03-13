@@ -6294,7 +6294,7 @@ only in DIRLIST.
 Returns the absolute file name of PROGNAME, if found, and nil otherwise.
 
 This function expects to be in the right *tramp* buffer."
-  (with-current-buffer (tramp-get-buffer vec)
+  (with-current-buffer (tramp-get-connection-buffer vec)
     (let (result)
       ;; Check whether the executable is in $PATH. "which(1)" does not
       ;; report always a correct error code; therefore we check the
@@ -6302,7 +6302,7 @@ This function expects to be in the right *tramp* buffer."
       (unless ignore-path
 	(tramp-send-command vec (format "which \\%s | wc -w" progname))
 	(goto-char (point-min))
-	(if (looking-at "^1$")
+	(if (looking-at "^\\s-*1$")
 	    (setq result (concat "\\" progname))))
       (unless result
 	(when ignore-tilde
@@ -6403,12 +6403,15 @@ file exists and nonzero exit status otherwise."
       (with-current-buffer (tramp-get-buffer vec)
 	(tramp-send-command vec "echo ~root" t)
 	(cond
-	 ((string-match "^~root$" (buffer-string))
+	 ((or (string-match "^~root$" (buffer-string))
+	      ;; The default shell (ksh93) of OpenSolaris is buggy.
+	      (string-equal (tramp-get-connection-property vec "uname" "")
+			    "SunOS 5.11"))
 	  (setq shell
 		(or (tramp-find-executable
-		     vec "bash" (tramp-get-remote-path vec) t)
+		     vec "bash" (tramp-get-remote-path vec) t t)
 		    (tramp-find-executable
-		     vec "ksh" (tramp-get-remote-path vec) t)))
+		     vec "ksh" (tramp-get-remote-path vec) t t)))
 	  (unless shell
 	    (tramp-error
 	     vec 'file-error
@@ -6837,9 +6840,11 @@ process to set up.  VEC specifies the connection."
   ;; "test foo; echo $?" to check if various conditions hold, and
   ;; there are buggy /bin/sh implementations which don't execute the
   ;; "echo $?"  part if the "test" part has an error.  In particular,
-  ;; the Solaris /bin/sh is a problem.  I'm betting that all systems
-  ;; with buggy /bin/sh implementations will have a working bash or
-  ;; ksh.  Whee...
+  ;; the OpenSolaris /bin/sh is a problem.  There are also other
+  ;; problems with /bin/sh of OpenSolaris, like redirection of stderr
+  ;; in in function declarations, or changing HISTFILE in place.
+  ;; Therefore, OpenSolaris' /bin/sh is replaced by bash, when
+  ;; detected.
   (tramp-find-shell vec)
 
   ;; Disable unexpected output.
@@ -6847,12 +6852,6 @@ process to set up.  VEC specifies the connection."
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
-
-  ;; On OpenSolaris, there is a bug when HISTFILE is changed in place
-  ;; <http://bugs.opensolaris.org/view_bug.do?bug_id=6834184>.  We
-  ;; apply the workaround.
-  (if (string-equal (tramp-get-connection-property vec "uname" "") "SunOS 5.11")
-      (tramp-send-command vec "unset HISTFILE" t))
 
   (let ((env (copy-sequence tramp-remote-process-environment))
 	unset item)
