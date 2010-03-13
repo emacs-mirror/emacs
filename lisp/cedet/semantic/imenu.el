@@ -6,8 +6,6 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Maintainer: Eric Ludlam
 
-;; This file is not part of GNU Emacs.
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
