@@ -527,7 +527,7 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 #ifdef HAVE_X_WINDOWS
 MSDOS_OBJ = dosfns.o msdos.o xmenu.o
 #else
-MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o
+MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o termcap.o
 #endif
 #endif
 
@@ -595,10 +595,8 @@ termcapobj = terminfo.o
 #else /* ! defined (TERMINFO) */
 #ifndef LIBS_TERMCAP
 #define LIBS_TERMCAP
-termcapobj = termcap.o tparam.o
-#else /* LIBS_TERMCAP */
-termcapobj = tparam.o
 #endif /* LIBS_TERMCAP */
+termcapobj = tparam.o
 #endif /* ! defined (TERMINFO) */
 
 
