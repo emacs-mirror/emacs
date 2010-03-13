@@ -76,7 +76,7 @@
 (defgroup goto-address nil
   "Click to browse URL or to send to e-mail address."
   :group 'mouse
-  :group 'hypermedia)
+  :group 'comm)
 
 
 ;; I don't expect users to want fontify'ing without highlighting.

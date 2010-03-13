@@ -1,3 +1,8 @@
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/custom/down.xpm, images/custom/right.xpm: Update images
+	to increase contrast on bright backgrounds.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.

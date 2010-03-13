@@ -176,6 +176,7 @@
 (defgroup tramp nil
   "Edit remote files with a combination of rsh and rcp or similar programs."
   :group 'files
+  :group 'comm
   :version "22.1")
 
 ;; Maybe we need once a real Tramp mode, with key bindings etc.

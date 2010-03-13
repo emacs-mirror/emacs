@@ -45,8 +45,7 @@
 
 (defgroup nxml nil
   "New XML editing mode."
-  :group 'languages
-  :group 'wp)
+  :group 'languages)
 
 (defgroup nxml-faces nil
   "Faces for XML syntax highlighting."

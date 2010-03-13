@@ -89,7 +89,7 @@
 
 (defgroup uniquify nil
   "Unique buffer names dependent on file name."
-  :group 'applications)
+  :group 'files)
 
 
 (defcustom uniquify-buffer-name-style nil

@@ -40,7 +40,6 @@
 (defgroup metamail nil
   "Metamail interface for Emacs."
   :group 'mail
-  :group 'hypermedia
   :group 'processes)
 
 (defcustom metamail-program-name "metamail"

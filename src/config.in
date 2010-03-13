@@ -319,10 +319,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <kerberos/krb.h> header file. */
 #undef HAVE_KERBEROS_KRB_H
 
-/* Define to 1 if `e_text' is member of `krb5_error'. */
+/* Define to 1 if `krb5_error' is a member of `e_text'. */
 #undef HAVE_KRB5_ERROR_E_TEXT
 
-/* Define to 1 if `text' is member of `krb5_error'. */
+/* Define to 1 if `krb5_error' is a member of `text'. */
 #undef HAVE_KRB5_ERROR_TEXT
 
 /* Define to 1 if you have the <krb5.h> header file. */
@@ -616,25 +616,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
 
-/* Define to 1 if `ifr_addr' is member of `struct ifreq'. */
+/* Define to 1 if `struct ifreq' is a member of `ifr_addr'. */
 #undef HAVE_STRUCT_IFREQ_IFR_ADDR
 
-/* Define to 1 if `ifr_broadaddr' is member of `struct ifreq'. */
+/* Define to 1 if `struct ifreq' is a member of `ifr_broadaddr'. */
 #undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
 
-/* Define to 1 if `ifr_flags' is member of `struct ifreq'. */
+/* Define to 1 if `struct ifreq' is a member of `ifr_flags'. */
 #undef HAVE_STRUCT_IFREQ_IFR_FLAGS
 
-/* Define to 1 if `ifr_hwaddr' is member of `struct ifreq'. */
+/* Define to 1 if `struct ifreq' is a member of `ifr_hwaddr'. */
 #undef HAVE_STRUCT_IFREQ_IFR_HWADDR
 
-/* Define to 1 if `ifr_netmask' is member of `struct ifreq'. */
+/* Define to 1 if `struct ifreq' is a member of `ifr_netmask'. */
 #undef HAVE_STRUCT_IFREQ_IFR_NETMASK
 
-/* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
+/* Define to 1 if `struct nlist' is a member of `n_un.n_name'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
-/* Define to 1 if `tm_zone' is member of `struct tm'. */
+/* Define to 1 if `struct tm' is a member of `tm_zone'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
@@ -696,9 +696,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <sys/_mbstate_t.h> header file. */
 #undef HAVE_SYS__MBSTATE_T_H
-
-/* Define to 1 if you have the <termcap.h> header file. */
-#undef HAVE_TERMCAP_H
 
 /* Define to 1 if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
@@ -858,6 +855,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -917,6 +917,28 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using the Motif X toolkit. */
 #undef USE_MOTIF
 
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
+
 /* Define to 1 if we should use toolkit scroll bars. */
 #undef USE_TOOLKIT_SCROLL_BARS
 
@@ -951,28 +973,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 #undef _POSIX_SOURCE
-
-/* Enable extensions on AIX 3, Interix.  */
-#ifndef _ALL_SOURCE
-# undef _ALL_SOURCE
-#endif
-/* Enable GNU extensions on systems that have them.  */
-#ifndef _GNU_SOURCE
-# undef _GNU_SOURCE
-#endif
-/* Enable threading extensions on Solaris.  */
-#ifndef _POSIX_PTHREAD_SEMANTICS
-# undef _POSIX_PTHREAD_SEMANTICS
-#endif
-/* Enable extensions on HP NonStop.  */
-#ifndef _TANDEM_SOURCE
-# undef _TANDEM_SOURCE
-#endif
-/* Enable general extensions on Solaris.  */
-#ifndef __EXTENSIONS__
-# undef __EXTENSIONS__
-#endif
-
 
 /* Define to rpl_ if the getopt replacement functions and variables should be
    used. */
