@@ -182,7 +182,7 @@ no arguments compiles from `load-path'."
                            f)))
                 (prin1 summary (current-buffer))
                 (insert "\n        ")
-                (princ keywords (current-buffer))
+                (prin1 (mapcar 'intern keywords) (current-buffer))
                 (insert ")\n")))
 	    (directory-files d nil
                              ;; Allow compressed files also.  FIXME:
