@@ -1,3 +1,8 @@
+2010-03-13  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* editfns.c (Fformat): Account for string precision when computing
+	field width (Bug#5710).
+
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_create_frame): Set default to Qright.
