@@ -5,6 +5,7 @@
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
+;;
 ;; Special thanks to Hallvard Furuseth for his many ideas and contributions.
 
 ;; This file is part of GNU Emacs.

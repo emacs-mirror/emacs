@@ -215,7 +215,8 @@
   "Use a web browser to look at a URL."
   :prefix "browse-url-"
   :link '(emacs-commentary-link "browse-url")
-  :group 'hypermedia)
+  :group 'external
+  :group 'comm)
 
 ;;;###autoload
 (defcustom browse-url-browser-function

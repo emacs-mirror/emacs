@@ -54,7 +54,7 @@
   :prefix "calculator"
   :version "21.1"
   :group 'tools
-  :group 'convenience)
+  :group 'applications)
 
 (defcustom calculator-electric-mode nil
   "Run `calculator' electrically, in the echo area.

@@ -34,7 +34,7 @@
 (defgroup epg ()
   "The EasyPG library."
   :version "23.1"
-  :group 'emacs)
+  :group 'data)
 
 (defcustom epg-gpg-program "gpg"
   "The `gpg' executable."

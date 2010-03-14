@@ -49,7 +49,7 @@
 
 (defgroup reveal nil
   "Reveal hidden text on the fly."
-  :group 'editing)
+  :group 'convenience)
 
 (defcustom reveal-around-mark t
   "Reveal text around the mark, if active."

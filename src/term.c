@@ -66,15 +66,10 @@ static int been_here = -1;
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
    won't find.  */
-
-#if defined HAVE_TERMCAP_H && 0
-#include <termcap.h>
-#else
 extern void tputs P_ ((const char *, int, int (*)(int)));
 extern int tgetent P_ ((char *, const char *));
 extern int tgetflag P_ ((char *id));
 extern int tgetnum P_ ((char *id));
-#endif
 
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS

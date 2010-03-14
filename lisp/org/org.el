@@ -134,7 +134,6 @@ With prefix arg HERE, insert it at point."
   "Outline-based notes management and organizer."
   :tag "Org"
   :group 'outlines
-  :group 'hypermedia
   :group 'calendar)
 
 (defcustom org-mode-hook nil

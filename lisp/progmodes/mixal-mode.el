@@ -7,7 +7,7 @@
 ;; Maintainer: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Created: 09 Nov 2002
 ;; Version: 0.1
-;; Keywords: languages Knuth mix mixal asm mixvm "The Art Of Computer Programming"
+;; Keywords: languages, Knuth, mix, mixal, asm, mixvm, The Art Of Computer Programming
 
 ;; This file is part of GNU Emacs.
 
