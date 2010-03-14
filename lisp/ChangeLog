@@ -1,5 +1,14 @@
 2010-03-14  Juri Linkov  <juri@jurta.org>
 
+	Add finder unknown keywords.
+
+	* finder.el (finder-unknown-keywords): New function.
+
+	* info.el (Info-finder-find-node): Use `finder-unknown-keywords'
+	to create a Finder node with unknown keywords.
+
+2010-03-14  Juri Linkov  <juri@jurta.org>
+
 	* finder.el (finder-compile-keywords): Replace `princ' with
 	`prin1' on a list of symbols interned from keyword strings.
 
