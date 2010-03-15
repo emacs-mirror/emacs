@@ -1030,6 +1030,7 @@ ELCFILES = \
 	$(lisp)/net/sasl-digest.elc \
 	$(lisp)/net/sasl-ntlm.elc \
 	$(lisp)/net/sasl.elc \
+	$(lisp)/net/secrets.elc \
 	$(lisp)/net/snmp-mode.elc \
 	$(lisp)/net/socks.elc \
 	$(lisp)/net/telnet.elc \

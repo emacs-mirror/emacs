@@ -3376,7 +3376,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qvertical_scroll_bars, Qleft,
+  x_default_parameter (f, parms, Qvertical_scroll_bars, Qright,
 		       "verticalScrollBars", "ScrollBars",
 		       RES_TYPE_SYMBOL);
 

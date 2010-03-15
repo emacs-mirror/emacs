@@ -3782,7 +3782,11 @@ usage: (format STRING &rest OBJECTS)  */)
 	       to be as large as is calculated here.  Easy check for
 	       the case PRECISION = 0. */
 	    thissize = precision[n] ? CONVERTED_BYTE_SIZE (multibyte, args[n]) : 0;
+	    /* The precision also constrains how much of the argument
+	       string will finally appear (Bug#5710). */
 	    actual_width = lisp_string_width (args[n], -1, NULL, NULL);
+	    if (precision[n] != -1)
+	      actual_width = min(actual_width,precision[n]);
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')

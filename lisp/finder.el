@@ -33,7 +33,6 @@
 ;; there doesn't seem to be any way to get completing-read to exit on
 ;; an EOL with no substring pending, which is what we'd want to end the loop.
 ;;    2. Search by string in synopsis line?
-;;    3. Function to check finder-package-info for unknown keywords.
 
 ;;; Code:
 
@@ -182,7 +181,7 @@ no arguments compiles from `load-path'."
                            f)))
                 (prin1 summary (current-buffer))
                 (insert "\n        ")
-                (princ keywords (current-buffer))
+                (prin1 (mapcar 'intern keywords) (current-buffer))
                 (insert ")\n")))
 	    (directory-files d nil
                              ;; Allow compressed files also.  FIXME:
@@ -229,6 +228,29 @@ no arguments compiles from `load-path'."
      (line-beginning-position) (line-end-position)
      '(mouse-face highlight
 		  help-echo finder-help-echo))))
+
+(defun finder-unknown-keywords ()
+  "Return an alist of unknown keywords and number of their occurences.
+Unknown are keywords that are present in `finder-package-info'
+but absent in `finder-known-keywords'."
+  (let ((unknown-keywords-hash (make-hash-table)))
+    ;; Prepare a hash where key is a keyword
+    ;; and value is the number of keyword occurences.
+    (mapc (lambda (package)
+	    (mapc (lambda (keyword)
+		    (unless (assq keyword finder-known-keywords)
+		      (puthash keyword
+			       (1+ (gethash keyword unknown-keywords-hash 0))
+			       unknown-keywords-hash)))
+		  (nth 2 package)))
+	  finder-package-info)
+    ;; Make an alist from the hash and sort by the keyword name.
+    (sort (let (unknown-keywords-list)
+	    (maphash (lambda (key value)
+		       (push (cons key value) unknown-keywords-list))
+		     unknown-keywords-hash)
+	    unknown-keywords-list)
+	  (lambda (a b) (string< (car a) (car b))))))
 
 ;;;###autoload
 (defun finder-list-keywords ()

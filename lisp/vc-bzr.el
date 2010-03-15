@@ -758,9 +758,11 @@ stream.  Standard error output is discarded."
 
     (define-key map [down-mouse-3] 'vc-bzr-shelve-menu)
     (define-key map "\C-k" 'vc-bzr-shelve-delete-at-point)
-    ;; (define-key map "=" 'vc-bzr-shelve-show-at-point)
-    ;; (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
+    (define-key map "=" 'vc-bzr-shelve-show-at-point)
+    (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
+    (define-key map "A" 'vc-bzr-shelve-apply-and-keep-at-point)
     (define-key map "P" 'vc-bzr-shelve-apply-at-point)
+    (define-key map "S" 'vc-bzr-shelve-snapshot)
     map))
 
 (defvar vc-bzr-shelve-menu-map
@@ -768,16 +770,22 @@ stream.  Standard error output is discarded."
     (define-key map [de]
       '(menu-item "Delete shelf" vc-bzr-shelve-delete-at-point
 		  :help "Delete the current shelf"))
+    (define-key map [ap]
+      '(menu-item "Apply and keep shelf" vc-bzr-shelve-apply-and-keep-at-point
+		  :help "Apply the current shelf and keep it"))
     (define-key map [po]
       '(menu-item "Apply and remove shelf (pop)" vc-bzr-shelve-apply-at-point
 		  :help "Apply the current shelf and remove it"))
-    ;; (define-key map [sh]
-    ;;   '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
-    ;; 		  :help "Show the contents of the current shelve"))
+    (define-key map [sh]
+      '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
+    		  :help "Show the contents of the current shelve"))
     map))
 
 (defvar vc-bzr-extra-menu-map
   (let ((map (make-sparse-keymap)))
+    (define-key map [bzr-sn]
+      '(menu-item "Shelve a snapshot" vc-bzr-shelve-snapshot
+		  :help "Shelve the current state of the tree and keep the current state"))
     (define-key map [bzr-sh]
       '(menu-item "Shelve..." vc-bzr-shelve
 		  :help "Shelve changes"))
@@ -864,21 +872,38 @@ stream.  Standard error output is discarded."
       (vc-bzr-command "shelve" nil 0 nil "--all" "-m" name)
       (vc-resynch-buffer root t t))))
 
-;; (defun vc-bzr-shelve-show (name)
-;;   "Show the contents of shelve NAME."
-;;   (interactive "sShelve name: ")
-;;   (vc-setup-buffer "*vc-bzr-shelve*")
-;;   ;; FIXME: how can you show the contents of a shelf?
-;;   (vc-bzr-command "shelve" "*vc-bzr-shelve*" 'async nil name)
-;;   (set-buffer "*vc-bzr-shelve*")
-;;   (diff-mode)
-;;   (setq buffer-read-only t)
-;;   (pop-to-buffer (current-buffer)))
+(defun vc-bzr-shelve-show (name)
+  "Show the contents of shelve NAME."
+  (interactive "sShelve name: ")
+  (vc-setup-buffer "*vc-bzr-shelve*")
+  ;; FIXME: how can you show the contents of a shelf?
+  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 'async nil "--preview" name)
+  (set-buffer "*vc-bzr-shelve*")
+  (diff-mode)
+  (setq buffer-read-only t)
+  (pop-to-buffer (current-buffer)))
 
 (defun vc-bzr-shelve-apply (name)
   "Apply shelve NAME and remove it afterwards."
   (interactive "sApply (and remove) shelf: ")
   (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" name)
+  (vc-resynch-buffer (vc-bzr-root default-directory) t t))
+
+(defun vc-bzr-shelve-apply-and-keep (name)
+  "Apply shelve NAME and keep it afterwards."
+  (interactive "sApply (and keep) shelf: ")
+  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep" name)
+  (vc-resynch-buffer (vc-bzr-root default-directory) t t))
+
+(defun vc-bzr-shelve-snapshot ()
+  "Create a stash with the current tree state."
+  (interactive)
+  (vc-bzr-command "shelve" nil 0 nil "--all" "-m"
+		  (let ((ct (current-time)))
+		    (concat
+		     (format-time-string "Snapshot on %Y-%m-%d" ct)
+		     (format-time-string " at %H:%M" ct))))
+  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep")
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-list ()
@@ -905,13 +930,17 @@ stream.  Standard error output is discarded."
       (vc-bzr-command "unshelve" nil 0 nil "--delete-only" shelve)
       (vc-dir-refresh))))
 
-;; (defun vc-bzr-shelve-show-at-point ()
-;;   (interactive)
-;;   (vc-bzr-shelve-show (vc-bzr-shelve-get-at-point (point))))
+(defun vc-bzr-shelve-show-at-point ()
+  (interactive)
+  (vc-bzr-shelve-show (vc-bzr-shelve-get-at-point (point))))
 
 (defun vc-bzr-shelve-apply-at-point ()
   (interactive)
   (vc-bzr-shelve-apply (vc-bzr-shelve-get-at-point (point))))
+
+(defun vc-bzr-shelve-apply-and-keep-at-point ()
+  (interactive)
+  (vc-bzr-shelve-apply-and-keep (vc-bzr-shelve-get-at-point (point))))
 
 (defun vc-bzr-shelve-menu (e)
   (interactive "e")

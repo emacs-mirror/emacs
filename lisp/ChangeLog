@@ -1,3 +1,143 @@
+2010-03-14  Juri Linkov  <juri@jurta.org>
+
+	Add finder unknown keywords.
+
+	* finder.el (finder-unknown-keywords): New function.
+
+	* info.el (Info-finder-find-node): Use `finder-unknown-keywords'
+	to create a Finder node with unknown keywords.
+
+2010-03-14  Juri Linkov  <juri@jurta.org>
+
+	* finder.el (finder-compile-keywords): Replace `princ' with
+	`prin1' on a list of symbols interned from keyword strings.
+
+	* emacs-lisp/lisp-mnt.el (lm-keywords-list): If `keywords' contains
+	a comma, then split keywords using a comma and optional whitespace.
+	Otherwise, split by whitespace.
+
+	* complete.el:
+	* face-remap.el:
+	* log-view.el:
+	* net/hmac-def.el:
+	* net/hmac-md5.el:
+	* net/netrc.el:
+	* progmodes/mixal-mode.el: Fix keywords.
+
+2010-03-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (ELCFILES): Add net/secrets.elc.
+
+	* net/secrets.el: New file.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* facemenu.el (list-colors-display, list-colors-print): New arg
+	callback.  Use it to allow selecting colors.
+
+	* wid-edit.el (widget-image-insert): Insert image prop even if the
+	current display is non-graphic.
+	(widget-field-value-set): New fun.
+	(editable-field): Use it.
+	(widget-field-value-get): Clean up unused var.
+	(widget-color-value-create, widget-color--choose-action): New
+	funs.  Allow using list-colors-display to choose color.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el: Resort topmost custom groups.
+	(custom-buffer-sort-alphabetically): Default to t.
+	(customize-apropos): Use apropos-parse-pattern.
+	(custom-search-field): New var.
+	(custom-buffer-create-internal): Add custom-apropos search field.
+	(custom-add-parent-links): Don't display parent doc.
+	(custom-group-value-create): Don't sort top-level custom group.
+	(custom-magic-value-create): Show visibility button before option
+	name.
+
+	(custom-variable-state): New fun, from custom-variable-state-set.
+	(custom-variable-state-set): Use it.
+	(custom-group-value-create): Hide options with standard values
+	using the :hidden-states property.  Use progress reporter.
+
+	(custom-show): Simplify.
+	(custom-visibility): Disable images by default.
+	(custom-variable): New property :hidden-states.
+	(custom-variable-value-create): Enable images for
+	custom-visibility widgets.  Use :hidden-states property to
+	determine initial visibility.
+
+	* wid-edit.el (widget-image-find): Give images center ascent.
+	(visibility): Add :on-image and :off-image properties.
+	(widget-visibility-value-create): Use them.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (processes): Remove from development group.
+	(oop, hypermedia): Delete group.
+	(comm): Promote to top-level group.
+
+	* net/browse-url.el (browse-url):
+	* net/xesam.el (xesam):
+	* net/tramp.el (tramp):
+	* net/goto-addr.el (goto-address):
+	* net/ange-ftp.el (ange-ftp): Put in comm group.
+
+	* view.el (view): Remove from editing group.
+
+	* uniquify.el (uniquify): Put in files group.
+
+	* net/browse-url.el (browse-url):
+	* ps-print.el (postscript): Put in external group.
+
+	* cus-edit.el (outlines):
+	* textmodes/text-mode.el (text-mode-hook):
+	* textmodes/table.el (table):
+	* textmodes/picture.el (picture):
+	* outline.el (outlines): Put in wp group.
+
+	* nxml/nxml-mode.el (nxml): Remove from wp group.
+
+	* net/tramp-imap.el (tramp-imap): Put in tramp group.
+
+	* mail/metamail.el (metamail): Remove from hypermedia group.
+
+	* cus-edit.el (abbrev):
+	* whitespace.el (whitespace):
+	* vcursor.el (vcursor):
+	* reveal.el (reveal):
+	* hl-line.el (hl-line): Put in convenience group.
+
+	* epg-config.el (epg): Put in data group.
+
+	* emulation/pc-select.el (pc-select): Put in emulations group.
+
+	* calculator.el (calculator): Put in applications group.
+
+2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add .dir-locals.el support for file-less buffers.
+	* files.el (hack-local-variables): Split out code to apply local
+	variable settings ...
+	(hack-local-variables-apply): ... here.  New function.
+	(hack-dir-local-variables): Use the default directory for when the
+	buffer does not have an associated file.
+	(hack-dir-local-variables-non-file-buffer): New function.
+	* diff-mode.el (diff-mode):
+	* vc-annotate.el (vc-annotate-mode):
+	* vc-dir.el (vc-dir-mode):
+	* log-edit.el (log-edit-mode):
+	* log-view.el (log-view-mode): Call hack-dir-local-variables-non-file-buffer.
+
+2010-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add support for shelving snapshots and for showing shelves.
+	* vc-bzr.el (vc-bzr-shelve-show, vc-bzr-shelve-show-at-point)
+	(vc-bzr-shelve-apply-and-keep-at-point, vc-bzr-shelve-snapshot):
+	New functions.
+	(vc-bzr-shelve-map, vc-bzr-shelve-menu-map)
+	(vc-bzr-extra-menu-map): Map them.
+
 2010-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* cus-edit.el (customize-changed-options-previous-release):

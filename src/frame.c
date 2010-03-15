@@ -4584,12 +4584,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
   DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(NS_IMPL_COCOA)
-  /* MS-Windows and Mac OS X have scroll bars on the right by default.  */
   Vdefault_frame_scroll_bars = Qright;
-#else
-  Vdefault_frame_scroll_bars = Qleft;
-#endif
 #else
   Vdefault_frame_scroll_bars = Qnil;
 #endif

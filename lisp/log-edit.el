@@ -368,7 +368,8 @@ commands (under C-x v for VC, for example).
 \\{log-edit-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
        '(log-edit-font-lock-keywords t))
-  (make-local-variable 'log-edit-comment-ring-index))
+  (make-local-variable 'log-edit-comment-ring-index)
+  (hack-dir-local-variables-non-file-buffer))
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))

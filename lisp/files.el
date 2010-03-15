@@ -2269,7 +2269,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . js-mode)		; javascript-mode would be better
-     ("\\.[ds]?v\\'" . verilog-mode)
+     ("\\.[ds]?vh?\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
@@ -3112,14 +3112,17 @@ is specified, returning t if it is specified."
 	  ;; Otherwise, set the variables.
 	  (enable-local-variables
 	   (hack-local-variables-filter result nil)
-	   (when file-local-variables-alist
-	     ;; Any 'evals must run in the Right sequence.
-	     (setq file-local-variables-alist
-		   (nreverse file-local-variables-alist))
-	     (run-hooks 'before-hack-local-variables-hook)
-	     (dolist (elt file-local-variables-alist)
-	       (hack-one-local-variable (car elt) (cdr elt))))
-	   (run-hooks 'hack-local-variables-hook)))))
+	   (hack-local-variables-apply)))))
+
+(defun hack-local-variables-apply ()
+  (when file-local-variables-alist
+    ;; Any 'evals must run in the Right sequence.
+    (setq file-local-variables-alist
+	  (nreverse file-local-variables-alist))
+    (run-hooks 'before-hack-local-variables-hook)
+    (dolist (elt file-local-variables-alist)
+      (hack-one-local-variable (car elt) (cdr elt))))
+  (run-hooks 'hack-local-variables-hook))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
@@ -3413,15 +3416,14 @@ is found.  Returns the new class name."
 Store the directory-local variables in `dir-local-variables-alist'
 and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
-	     (buffer-file-name)
-	     (not (file-remote-p (buffer-file-name))))
+	     (not (file-remote-p (or (buffer-file-name) default-directory))))
     ;; Find the variables file.
-    (let ((variables-file (dir-locals-find-file (buffer-file-name)))
+    (let ((variables-file (dir-locals-find-file (or (buffer-file-name) default-directory)))
 	  (class nil)
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	(setq dir-name (file-name-directory (buffer-file-name)))
+	(setq dir-name (if (buffer-file-name) (file-name-directory (buffer-file-name)) default-directory))
 	(setq class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
@@ -3437,6 +3439,10 @@ and `file-local-variables-alist', without applying them."
 		      (assq-delete-all (car elt) dir-local-variables-alist)))
 	      (push elt dir-local-variables-alist))
 	    (hack-local-variables-filter variables dir-name)))))))
+
+(defun hack-dir-local-variables-non-file-buffer ()
+  (hack-dir-local-variables)
+  (hack-local-variables-apply))
 
 
 (defcustom change-major-mode-with-file-name t
