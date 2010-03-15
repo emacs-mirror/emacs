@@ -30,7 +30,7 @@ so we will look at it and add it to the manual.
 
 * Changes in Emacs 24.1
 
-** The scroll-bar is now on the right on GNU/Linux and UNIX-like systems.
+** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
 
