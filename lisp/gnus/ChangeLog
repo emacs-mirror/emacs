@@ -1,3 +1,8 @@
+2010-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-charset-to-coding-system): Use coding-system-from-name
+	if it is available.  (bug#5647)
+
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-send-mail-function): Change the default, so that
