@@ -1,3 +1,8 @@
+2010-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_ccl): Fix previous change for the
+	multibyte case.
+
 2010-03-15  Andreas Politz  <politza@fh-trier.de>  (tiny change)
 
 	* editfns.c (Fformat): Account for string precision when computing
