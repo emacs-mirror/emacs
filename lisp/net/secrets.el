@@ -34,11 +34,9 @@
 ;; into your .emacs:
 ;;
 ;;   (require 'secrets)
-
-;; It can be checked afterwards, whether there is a daemon providing
-;; this interface:
 ;;
-;;   (featurep 'secrets 'enabled)
+;; Afterwards, the variable `secrets-enabled' is non-nil when there is
+;; a daemon providing this interface.
 
 ;; The atomic objects to be managed by the Secret Service API are
 ;; secret items, which are something an application wishes to store
@@ -149,6 +147,9 @@
 (defvar dbus-debug)
 
 (require 'dbus)
+
+(defvar secrets-enabled nil
+  "Whether there is a daemon offering the Secret Service API."
 
 (defvar secrets-debug t
   "Write debug messages")
@@ -664,38 +665,37 @@ If there is no such item, or the item doesn't own this attribute, return nil."
 	:session secrets-service item-path
 	secrets-interface-item "Delete")))))
 
-(if (dbus-ping :session secrets-service 100)
+(when (dbus-ping :session secrets-service 100)
 
-    (progn
-      ;; We must reset all variables, when there is a new instance of
-      ;; the "org.freedesktop.secrets" service.
-      (dbus-register-signal
-       :session dbus-service-dbus dbus-path-dbus
-       dbus-interface-dbus "NameOwnerChanged"
-       (lambda (&rest args)
-	 (when secrets-debug (message "Secret Service has changed: %S" args))
-	 (setq secrets-session-path secrets-empty-path
-	       secrets-prompt-signal nil
-	       secrets-collection-paths nil))
-       secrets-service)
+  ;; We must reset all variables, when there is a new instance of the
+  ;; "org.freedesktop.secrets" service.
+  (dbus-register-signal
+   :session dbus-service-dbus dbus-path-dbus
+   dbus-interface-dbus "NameOwnerChanged"
+   (lambda (&rest args)
+     (when secrets-debug (message "Secret Service has changed: %S" args))
+     (setq secrets-session-path secrets-empty-path
+	   secrets-prompt-signal nil
+	   secrets-collection-paths nil))
+   secrets-service)
 
-      ;; We want to refresh our cache, when there is a change in
-      ;; collections.
-      (dbus-register-signal
-       :session secrets-service secrets-path
-       secrets-interface-service "CollectionCreated"
-       'secrets-collection-handler)
+  ;; We want to refresh our cache, when there is a change in
+  ;; collections.
+  (dbus-register-signal
+   :session secrets-service secrets-path
+   secrets-interface-service "CollectionCreated"
+   'secrets-collection-handler)
 
-      (dbus-register-signal
-       :session secrets-service secrets-path
-       secrets-interface-service "CollectionDeleted"
-       'secrets-collection-handler)
+  (dbus-register-signal
+   :session secrets-service secrets-path
+   secrets-interface-service "CollectionDeleted"
+   'secrets-collection-handler)
 
-      ;; We shall inform, whether the secret service is enabled on
-      ;; this machine.
-      (provide 'secrets '(enabled)))
+  ;; We shall inform, whether the secret service is enabled on this
+  ;; machine.
+  (setq secrets-enabled t)))
 
-  (provide 'secrets))
+(provide 'secrets)
 
 ;;; TODO:
 
