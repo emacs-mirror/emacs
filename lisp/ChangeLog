@@ -1,3 +1,8 @@
+2010-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (devanagari-composable-pattern): Add more
+	consonants.
+
 2010-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/trampver.el: Update release number.
