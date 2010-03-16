@@ -5307,7 +5307,7 @@ static int
 encode_coding_ccl (coding)
      struct coding_system *coding;
 {
-  struct ccl_program ccl;
+  struct ccl_program *ccl = &coding->spec.ccl->ccl;
   int multibytep = coding->dst_multibyte;
   int *charbuf = coding->charbuf;
   int *charbuf_end = charbuf + coding->charbuf_used;
@@ -5318,35 +5318,34 @@ encode_coding_ccl (coding)
   Lisp_Object attrs, charset_list;
 
   CODING_GET_INFO (coding, attrs, charset_list);
-  setup_ccl_program (&ccl, CODING_CCL_ENCODER (coding));
-
-  ccl.last_block = coding->mode & CODING_MODE_LAST_BLOCK;
-  ccl.dst_multibyte = coding->dst_multibyte;
+  if (coding->consumed_char == coding->src_chars
+      && coding->mode & CODING_MODE_LAST_BLOCK)
+    ccl->last_block = 1;
 
   while (charbuf < charbuf_end)
     {
-      ccl_driver (&ccl, charbuf, destination_charbuf,
+      ccl_driver (ccl, charbuf, destination_charbuf,
 		  charbuf_end - charbuf, 1024, charset_list);
       if (multibytep)
 	{
-	  ASSURE_DESTINATION (ccl.produced * 2);
-	  for (i = 0; i < ccl.produced; i++)
+	  ASSURE_DESTINATION (ccl->produced * 2);
+	  for (i = 0; i < ccl->produced; i++)
 	    EMIT_ONE_BYTE (destination_charbuf[i] & 0xFF);
 	}
       else
 	{
-	  ASSURE_DESTINATION (ccl.produced);
-	  for (i = 0; i < ccl.produced; i++)
+	  ASSURE_DESTINATION (ccl->produced);
+	  for (i = 0; i < ccl->produced; i++)
 	    *dst++ = destination_charbuf[i] & 0xFF;
-	  produced_chars += ccl.produced;
+	  produced_chars += ccl->produced;
 	}
-      charbuf += ccl.consumed;
-      if (ccl.status == CCL_STAT_QUIT
-	  || ccl.status == CCL_STAT_INVALID_CMD)
+      charbuf += ccl->consumed;
+      if (ccl->status == CCL_STAT_QUIT
+	  || ccl->status == CCL_STAT_INVALID_CMD)
 	break;
     }
 
-  switch (ccl.status)
+  switch (ccl->status)
     {
     case CCL_STAT_SUSPEND_BY_SRC:
       record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
@@ -7537,6 +7536,7 @@ encode_coding (coding)
   Lisp_Object attrs;
   Lisp_Object translation_table;
   int max_lookup;
+  struct ccl_spec cclspec;
 
   attrs = CODING_ID_ATTRS (coding->id);
   if (coding->encoder == encode_coding_raw_text)
@@ -7558,6 +7558,11 @@ encode_coding (coding)
 
   ALLOC_CONVERSION_WORK_AREA (coding);
 
+  if (coding->encoder == encode_coding_ccl)
+    {
+      coding->spec.ccl = &cclspec;
+      setup_ccl_program (&cclspec.ccl, CODING_CCL_ENCODER (coding));
+    }
   do {
     coding_set_source (coding);
     consume_chars (coding, translation_table, max_lookup);
