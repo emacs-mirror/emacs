@@ -1,6 +1,6 @@
 ;;; cedet-integ-test.el --- CEDET full integration tests.
 
-;; Copyright (C) 2008, 2009 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -328,26 +328,36 @@ such as 'clean'."
     (compile (concat ede-make-command (or ARGS "")))
 
     (cit-wait-for-compilation)
+    (cit-check-compilation-for-error)
 
     (kill-buffer bufftokill)
     ))
 
 (defun cit-wait-for-compilation ()
   "Wait for a compilation to finish."
-
   (while compilation-in-progress
     (accept-process-output)
-    (sit-for 1))
+    ;; If sit for indicates that input is waiting, then
+    ;; read and discard whatever it is that is going on.
+    (when (not (sit-for 1))
+      (read-event nil nil .1)
+      ))
+  )
 
+(defun cit-check-compilation-for-error (&optional inverse)
+  "Error if the compilation buffer has errors in it.
+If optional INVERSE is non-nil, then throw an error if the
+compilation succeeded."
   (save-excursion
     (set-buffer "*compilation*")
     (goto-char (point-max))
 
-    (when (re-search-backward " Error " nil t)
-      (error "Compilation failed!"))
-
-    )
-  )
+    (if (re-search-backward "Compilation exited abnormally " nil t)
+	(when (not inverse)
+	  (error "Compilation failed!"))
+      (when inverse
+	(error "Compilation succeeded erroneously!"))
+      )))
 
 (defun cit-run-target (command)
   "Run the program (or whatever) that is associated w/ the current target.
