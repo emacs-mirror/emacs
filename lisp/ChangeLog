@@ -1,3 +1,8 @@
+2010-03-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman2-process-escapes): Only consume the newline if
+	the filler character is on a line by itself (Bug#5729).
+
 2010-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (devanagari-composable-pattern): Add more
