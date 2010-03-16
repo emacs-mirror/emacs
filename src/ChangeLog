@@ -1,3 +1,8 @@
+2010-03-15  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* editfns.c (Fformat): Account for string precision when computing
+	field width (Bug#5710).
+
 2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make it possible to C-g in a tight bytecode loop again (bug#5680).

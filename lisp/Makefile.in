@@ -391,6 +391,7 @@ ELCFILES = \
 	$(lisp)/cedet/semantic/ia-sb.elc \
 	$(lisp)/cedet/semantic/ia.elc \
 	$(lisp)/cedet/semantic/idle.elc \
+	$(lisp)/cedet/semantic/imenu.elc \
 	$(lisp)/cedet/semantic/java.elc \
 	$(lisp)/cedet/semantic/lex-spp.elc \
 	$(lisp)/cedet/semantic/lex.elc \

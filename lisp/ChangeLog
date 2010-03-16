@@ -1,4 +1,34 @@
-2010-03-09  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/trampver.el: Update release number.
+
+2010-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Add cedet/semantic/imenu.el.
+
+2010-03-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-executable): Use
+	`tramp-get-connection-buffer'.  Make the regexp for checking
+	output of "wc -l" more robust.
+	(tramp-find-shell): Use another shell but /bin/sh on OpenSolaris.
+	(tramp-open-connection-setup-interactive-shell): Remove workaround
+	for OpenSolaris bug, it is not needed anymore.
+
+2010-03-13  Eric M. Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/imenu.el: New file, from the CEDET repository
+	(Bug#5412).
+
+2010-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (defsubst*): Add autoload cookie.  (Bug#4427)
+
+2010-03-11  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* files.el (auto-mode-alist): Accept more verilog file patterns.
+
+2010-03-09  Miles Bader  <miles@gnu.org>>
 
 	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
 	instead of "format:"; this ensures that the output is
