@@ -1,9 +1,9 @@
 ;;; cit-dist.el ---
 ;;
-;; Copyright (C) 2009 Eric M. Ludlam
+;; Copyright (C) 2009, 2010 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-dist.el,v 1.2 2009-12-27 03:37:04 zappo Exp $
+;; X-RCS: $Id: cit-dist.el,v 1.3 2010-03-16 03:05:48 zappo Exp $
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -31,6 +31,7 @@
   ;; 6.a) Create the distribution
   (ede-make-dist)
   (cit-wait-for-compilation)
+  (cit-check-compilation-for-error)
 
   ;; Get the version number, then check for that file to exist.
   (when (not (file-exists-p "CEDET_Integ_Test_Project-1.0.tar.gz"))
@@ -42,6 +43,7 @@
   ;; 6.c) make a new dist.  Verify version number.
   (ede-make-dist)
   (cit-wait-for-compilation)
+  (cit-check-compilation-for-error)
 
   ;; Get the version number, then check for that file to exist.
   (when (not (file-exists-p "CEDET_Integ_Test_Project-2.1.tar.gz"))
