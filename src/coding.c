@@ -5245,7 +5245,7 @@ decode_coding_ccl (coding)
   int multibytep = coding->src_multibyte;
   struct ccl_program *ccl = &coding->spec.ccl->ccl;
   int source_charbuf[1024];
-  int source_byteidx[1024];
+  int source_byteidx[1025];
   Lisp_Object attrs, charset_list;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -5256,11 +5256,14 @@ decode_coding_ccl (coding)
       int i = 0;
 
       if (multibytep)
-	while (i < 1024 && p < src_end)
-	  {
-	    source_byteidx[i] = p - src;
-	    source_charbuf[i++] = STRING_CHAR_ADVANCE (p);
-	  }
+	{
+	  while (i < 1024 && p < src_end)
+	    {
+	      source_byteidx[i] = p - src;
+	      source_charbuf[i++] = STRING_CHAR_ADVANCE (p);
+	    }
+	  source_byteidx[i] = p - src;
+	}
       else
 	while (i < 1024 && p < src_end)
 	  source_charbuf[i++] = *p++;
@@ -5270,7 +5273,7 @@ decode_coding_ccl (coding)
       ccl_driver (ccl, source_charbuf, charbuf, i, charbuf_end - charbuf,
 		  charset_list);
       charbuf += ccl->produced;
-      if (multibytep && ccl->consumed < i)
+      if (multibytep)
 	src += source_byteidx[ccl->consumed];
       else
 	src += ccl->consumed;
