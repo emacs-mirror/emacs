@@ -1,3 +1,40 @@
+2010-03-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (secrets-enabled): New variable.  Use it instead
+	of a subfeature.
+
+2010-03-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (top): Register the D-Bus signals only when the
+	service "org.freedesktop.secrets" can be pinged.  Provide
+	subfeature 'enabled.
+
+2010-03-14  Juri Linkov  <juri@jurta.org>
+
+	Add finder unknown keywords.
+
+	* finder.el (finder-unknown-keywords): New function.
+
+	* info.el (Info-finder-find-node): Use `finder-unknown-keywords'
+	to create a Finder node with unknown keywords.
+
+2010-03-14  Juri Linkov  <juri@jurta.org>
+
+	* finder.el (finder-compile-keywords): Replace `princ' with
+	`prin1' on a list of symbols interned from keyword strings.
+
+	* emacs-lisp/lisp-mnt.el (lm-keywords-list): If `keywords' contains
+	a comma, then split keywords using a comma and optional whitespace.
+	Otherwise, split by whitespace.
+
+	* complete.el:
+	* face-remap.el:
+	* log-view.el:
+	* net/hmac-def.el:
+	* net/hmac-md5.el:
+	* net/netrc.el:
+	* progmodes/mixal-mode.el: Fix keywords.
+
 2010-03-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* Makefile.in (ELCFILES): Add net/secrets.elc.

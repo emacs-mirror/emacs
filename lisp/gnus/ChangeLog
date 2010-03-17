@@ -1,3 +1,14 @@
+2010-03-17  Kevin Ryde  <user42@zip.com.au>
+
+	* mml.el (mml-read-tag): Unquote values with `read' to reverse
+	prin1 in mml-insert-tag (just stripping the quotes gave wrong
+	value if any backslash escapes).
+
+2010-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-charset-to-coding-system): Use coding-system-from-name
+	if it is available.  (bug#5647)
+
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-send-mail-function): Change the default, so that

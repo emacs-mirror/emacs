@@ -392,8 +392,8 @@ A message part needs to be split into %d charset parts.  Really send? "
       (skip-chars-forward "= \t\n")
       (setq val (buffer-substring-no-properties
 		 (point) (progn (forward-sexp 1) (point))))
-      (when (string-match "^\"\\(.*\\)\"$" val)
-	(setq val (match-string 1 val)))
+      (when (string-match "\\`\"" val)
+	(setq val (read val))) ;; inverse of prin1 in mml-insert-tag
       (push (cons (intern elem) val) contents)
       (skip-chars-forward " \t\n"))
     (goto-char (match-end 0))
