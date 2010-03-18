@@ -1,5 +1,7 @@
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/autoload.el (autoload-rubric): Doc fix.
+
 	* replace.el (query-replace-history): Give it a doc string.
 	(map-query-replace-regexp): Use query-replace-from-history-variable
 	and query-replace-to-history-variable.

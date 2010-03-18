@@ -1,7 +1,8 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -258,14 +259,17 @@ put the output in."
 TYPE (default \"autoloads\") is a string stating the type of
 information contained in FILE.  If FEATURE is non-nil, FILE
 will provide a feature.  FEATURE may be a string naming the
-feature, otherwise it will be based on FILE's name."
+feature, otherwise it will be based on FILE's name.
+
+At present, a feature is in fact always provided, but this should
+not be relied upon."
   (let ((basename (file-name-nondirectory file)))
     (concat ";;; " basename
 	    " --- automatically extracted " (or type "autoloads") "\n"
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    "\n"
-	    ;; This is used outside of autoload.el.
+	    ;; This is used outside of autoload.el, eg cus-dep, finder.
 	    "(provide '"
 	    (if (stringp feature)
 		feature
