@@ -21058,14 +21058,14 @@ done
 # That is because we have not set up to link ncurses in lib-src.
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
-
-{ $as_echo "$as_me:$LINENO: checking for tparm in -lncurses" >&5
-$as_echo_n "checking for tparm in -lncurses... " >&6; }
-if test "${ac_cv_lib_ncurses_tparm+set}" = set; then
+# Also we need tputs and frieds to be able to build at all.
+have_tputs_et_al=true
+{ $as_echo "$as_me:$LINENO: checking for library containing tputs" >&5
+$as_echo_n "checking for library containing tputs... " >&6; }
+if test "${ac_cv_search_tputs+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lncurses  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -21079,16 +21079,23 @@ cat >>conftest.$ac_ext <<_ACEOF
 #ifdef __cplusplus
 extern "C"
 #endif
-char tparm ();
+char tputs ();
 int
 main ()
 {
-return tparm ();
+return tputs ();
   ;
   return 0;
 }
 _ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
+for ac_lib in '' ncurses terminfo termcap; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  rm -f conftest.$ac_objext conftest$ac_exeext
 if { (ac_try="$ac_link"
 case "(($ac_try" in
   *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
@@ -21109,29 +21116,52 @@ $as_echo "$ac_try_echo") >&5
 	 test "$cross_compiling" = yes ||
 	 $as_test_x conftest$ac_exeext
        }; then
-  ac_cv_lib_ncurses_tparm=yes
+  ac_cv_search_tputs=$ac_res
 else
   $as_echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_ncurses_tparm=no
+
 fi
 
 rm -rf conftest.dSYM
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+      conftest$ac_exeext
+  if test "${ac_cv_search_tputs+set}" = set; then
+  break
 fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_ncurses_tparm" >&5
-$as_echo "$ac_cv_lib_ncurses_tparm" >&6; }
-if test $ac_cv_lib_ncurses_tparm = yes; then
-  cat >>confdefs.h <<_ACEOF
+done
+if test "${ac_cv_search_tputs+set}" = set; then
+  :
+else
+  ac_cv_search_tputs=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_search_tputs" >&5
+$as_echo "$ac_cv_search_tputs" >&6; }
+ac_res=$ac_cv_search_tputs
+if test "$ac_res" != no; then
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  have_tputs_et_al=false
+fi
+
+if test "$have_tputs_et_al" != true; then
+  { { $as_echo "$as_me:$LINENO: error: I couldn't find termcap functions (tputs and friends).
+Maybe some development libraries/packages are missing?  Try installing
+libncurses-dev(el), libterminfo-dev(el) or similar." >&5
+$as_echo "$as_me: error: I couldn't find termcap functions (tputs and friends).
+Maybe some development libraries/packages are missing?  Try installing
+libncurses-dev(el), libterminfo-dev(el) or similar." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+# Must define this when any termcap library is found.
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBNCURSES 1
 _ACEOF
-
-  LIBS="-lncurses $LIBS"
-
-fi
 
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?

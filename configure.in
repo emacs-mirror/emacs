@@ -2393,7 +2393,16 @@ AC_CHECK_FUNCS(getpt)
 # That is because we have not set up to link ncurses in lib-src.
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
-AC_CHECK_LIB(ncurses, tparm)
+# Also we need tputs and frieds to be able to build at all.
+have_tputs_et_al=true
+AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap], , have_tputs_et_al=false)
+if test "$have_tputs_et_al" != true; then
+  AC_MSG_ERROR([I couldn't find termcap functions (tputs and friends).
+Maybe some development libraries/packages are missing?  Try installing
+libncurses-dev(el), libterminfo-dev(el) or similar.])
+fi
+# Must define this when any termcap library is found.
+AC_DEFINE(HAVE_LIBNCURSES)
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 
