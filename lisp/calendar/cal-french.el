@@ -1,7 +1,8 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar
 
 ;; Copyright (C) 1988, 1989, 1992, 1994, 1995, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -40,8 +41,8 @@
   "Array of month names in the French calendar.")
 
 (defconst calendar-french-multibyte-month-name-array
-  ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
-   "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"]
+  ["VendÃ©miaire" "Brumaire" "Frimaire" "NivÃ´se" "PluviÃ´se" "VentÃ´se"
+   "Germinal" "FlorÃ©al" "Prairial" "Messidor" "Thermidor" "Fructidor"]
   "Array of multibyte month names in the French calendar.")
 
 (defconst calendar-french-day-name-array
@@ -55,8 +56,8 @@
   "Array of special day names in the French calendar.")
 
 (defconst calendar-french-multibyte-special-days-array
-  ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
-   "de la Révolution"]
+  ["de la Vertu" "du GÃ©nie" "du Travail" "de la Raison" "des RÃ©compenses"
+   "de la RÃ©volution"]
   "Array of multibyte special day names in the French calendar.")
 
 (defun calendar-french-accents-p ()
@@ -174,13 +175,13 @@ Defaults to today's date if DATE is not given."
     (cond
      ((< y 1) "")
      ((= m 13) (format (if (calendar-french-accents-p)
-                           "Jour %s de l'Année %d de la Révolution"
+                           "Jour %s de l'AnnÃ©e %d de la RÃ©volution"
                          "Jour %s de l'Anne'e %d de la Re'volution")
                        (aref (calendar-french-special-days-array) (1- d))
                        y))
      (t (format
          (if (calendar-french-accents-p)
-             "%d %s an %d de la Révolution"
+             "%d %s an %d de la RÃ©volution"
            "%d %s an %d de la Re'volution")
          d
          (aref (calendar-french-month-name-array) (1- m))
@@ -208,7 +209,7 @@ Echo French Revolutionary date unless NOECHO is non-nil."
           (year (progn
                   (calendar-read
                    (if (calendar-french-accents-p)
-                       "Année de la Révolution (>0): "
+                       "AnnÃ©e de la RÃ©volution (>0): "
                      "Anne'e de la Re'volution (>0): ")
                    (lambda (x) (> x 0))
                    (number-to-string
@@ -263,6 +264,10 @@ Echo French Revolutionary date unless NOECHO is non-nil."
       (format "French Revolutionary date: %s" f))))
 
 (provide 'cal-french)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here

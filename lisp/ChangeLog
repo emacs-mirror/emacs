@@ -1,5 +1,7 @@
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-french.el: Convert to utf-8.
+
 	* files.el (interpreter-mode-alist): Use emacs-lisp-mode for
 	Emacs scripts.
 
