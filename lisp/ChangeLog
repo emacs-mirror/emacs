@@ -1,3 +1,9 @@
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-highlight-face): Restore option deleted
+	2008-02-13 without comment; mark it obsolete.
+	(rmail-highlight-headers): Use rmail-highlight-face once more.
+
 2010-03-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* woman.el (woman2-process-escapes): Only consume the newline if
