@@ -1,3 +1,19 @@
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (USAGE4): Hard-code bug address.
+	(REPORT_EMACS_BUG_ADDRESS, REPORT_EMACS_BUG_PRETEST_ADDRESS): Remove.
+	(bug_reporting_address): Remove.
+	(main): Don't call bug_reporting_address.
+
+	* Makefile.in (XFT_LIBS, LIBXPM, LIBJPEG, LIBPNG, LIBTIFF, LIBGIF)
+	(LIBGPM, LIBRESOLV): Set using autoconf rather than cpp.
+
+2010-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame):
+	* frame.c (Vdefault_frame_scroll_bars): Put non-GTK X scroll-bars
+	on left.
+
 2010-03-13  Andreas Politz  <politza@fh-trier.de>  (tiny change)
 
 	* editfns.c (Fformat): Account for string precision when computing

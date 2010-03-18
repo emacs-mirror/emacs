@@ -1,3 +1,40 @@
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-rubric): Doc fix.
+
+	* replace.el (query-replace-history): Give it a doc string.
+	(map-query-replace-regexp): Use query-replace-from-history-variable
+	and query-replace-to-history-variable.
+
+	* mail/hashcash.el (declare-function): Remove duplicate definition.
+
+	* mail/emacsbug.el (report-emacs-bug-pretest-address):
+	Make it an obsolete alias for report-emacs-bug-address.
+	(message-strip-special-text-properties): Declare.
+	(report-emacs-bug): Remove test for a pretest bug address.
+	Combine message-mode-specific code.
+
+	* mail/supercite.el: Don't require sendmail.
+	(mh-in-header-p): Declare rather than using with-no-warnings.
+	(sc-no-blank-line-or-header): Use rfc822-goto-eoh rather than
+	mail-header-end.  Don't bind mysterious variable `kill-lines-magic'.
+
+	* calendar/cal-french.el: Convert to utf-8.
+
+	* files.el (interpreter-mode-alist): Use emacs-lisp-mode for
+	Emacs scripts.
+
+2010-03-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (secrets-enabled): New variable.  Use it instead
+	of a subfeature.
+
+2010-03-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el (top): Register the D-Bus signals only when the
+	service "org.freedesktop.secrets" can be pinged.  Provide
+	subfeature 'enabled.
+
 2010-03-14  Juri Linkov  <juri@jurta.org>
 
 	Add finder unknown keywords.

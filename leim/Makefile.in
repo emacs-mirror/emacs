@@ -40,14 +40,11 @@ INSTALLDIR=$(DESTDIR)${datadir}/emacs/${version}/leim
 
 GZIP_PROG = @GZIP_PROG@
 
-# On IBM RS6000, double-dot gets screwed up.
-dot = .
-
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
-BUILT-EMACS = ${dot}${dot}/src/emacs
+BUILT-EMACS = ../src/emacs
 
-buildlisppath=${srcdir}/${dot}${dot}/lisp
+buildlisppath=${srcdir}/../lisp
 
 # How to run Emacs.
 RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
@@ -161,7 +158,7 @@ all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el ${WORLD}
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
-${dot}${dot}/src/emacs:
+../src/emacs:
 	cd ../src; ${MAKE} ${MFLAGS} emacs
 
 ${SUBDIRS}:
@@ -224,7 +221,7 @@ MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 
 install: all
 	if [ ! -d ${INSTALLDIR} ] ; then \
-          umask 022; ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
+          umask 022; ${srcdir}/../mkinstalldirs ${INSTALLDIR}; \
 	else true; fi
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -f ${INSTALLDIR}/leim-list.el; \
@@ -278,16 +275,17 @@ clean mostlyclean:
 # bootstrapping should not leave non-fresh .elc files behind.
 bootstrap-clean: clean
 	rm -f ${WORLD}
+## FIXME some compiled files go to srcdir, some don't?
+#	cd ${srcdir}; rm -f *.elc */*.elc
 
 distclean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
 	rm -f Makefile
 
-maintainer-clean: distclean
-	rm -f ${WORLD}
+maintainer-clean: distclean bootstrap-clean
 
 extraclean: maintainer-clean
-	-rm -f *~ \#* m/?*~ s/?*~
+	-rm -f *~ \#* */*~ */\#*
 
 .PHONY: check-declare
 

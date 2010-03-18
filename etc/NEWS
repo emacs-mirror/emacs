@@ -24,13 +24,19 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
+---
+** There are new configure options:
+--with-mmdf, --with-mail-unlink, --with-mailhost.
+These provide no new functionality, they just remove the need to edit
+lib-src/Makefile by hand in order to use the associated features.
+
 
 * Startup Changes in Emacs 24.1
 
 
 * Changes in Emacs 24.1
 
-** The scroll-bar is now on the right on GNU/Linux and UNIX-like systems.
+** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
 

@@ -369,75 +369,15 @@ LIBXT=$(LIBW)
 #endif
 #endif /* not USE_X_TOOLKIT */
 
-#if HAVE_XFT
-XFT_LIBS=@XFT_LIBS@
-#endif /* HAVE_XFT */
-
-#if HAVE_XPM
-#ifndef LIBXPM
-#define LIBXPM -lXpm
-#endif /* not defined LIBXPM */
-#else /* not HAVE_XPM */
-#define LIBXPM
-#endif /* not HAVE_XPM */
-
-#if HAVE_JPEG
-#ifndef LIBJPEG
-#define LIBJPEG -ljpeg
-#endif /* not defined LIBJPEG */
-#else /* not HAVE_JPEG */
-#define LIBJPEG
-#endif /* not HAVE_JPEG */
-
-#if HAVE_PNG
-#ifndef LIBPNG
-#define LIBPNG -lpng -lz -lm
-#endif /* not defined LIBPNG */
-#else /* not HAVE_PNG */
-#define LIBPNG
-#endif /* not HAVE_PNG */
-
-#if HAVE_TIFF
-#ifndef LIBTIFF
-#define LIBTIFF -ltiff
-#endif /* not defined LIBTIFF */
-#else /* not HAVE_TIFF */
-#define LIBTIFF
-#endif /* not HAVE_TIFF */
-
-#if HAVE_GIF
-#ifndef LIBGIF
-#define LIBGIF -lgif
-#endif /* not defined LIBGIF */
-#else /* not HAVE_GIF */
-#define LIBGIF
-#endif /* not HAVE_GIF */
-
 #ifdef HAVE_X11
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_SYSTEM $(XFT_LIBS)
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) @LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@ LIB_X11_LIB LIBX11_SYSTEM @XFT_LIBS@
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
 #endif /* not HAVE_X_WINDOWS */
-
-#if HAVE_GPM
-#ifndef LIBGPM
-#define LIBGPM -lgpm
-#endif /* not defined LIBGPM */
-#else /* not HAVE_GPM */
-#define LIBGPM
-#endif /* not HAVE_GPM */
-
-#if HAVE_LIBRESOLV
-#ifndef LIBRESOLV
-#define LIBRESOLV -lresolv
-#endif /* not defined LIBRESOLV */
-#else /* not HAVE_LIBRESOLV */
-#define LIBRESOLV
-#endif /* not HAVE_LIBRESOLV */
 
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
@@ -908,7 +848,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
    with GCC, we might need gnulib again after them.  */
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
-   LIBGPM LIBRESOLV LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
+   @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    LIBS_DEBUG $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
