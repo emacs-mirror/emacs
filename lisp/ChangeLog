@@ -1,5 +1,7 @@
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
+	* mail/hashcash.el (declare-function): Remove duplicate definition.
+
 	* mail/emacsbug.el (report-emacs-bug-pretest-address):
 	Make it an obsolete alias for report-emacs-bug-address.
 	(message-strip-special-text-properties): Declare.
