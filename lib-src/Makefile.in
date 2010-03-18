@@ -338,8 +338,10 @@ uninstall:
 	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS}; do \
 	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done)
-	(cd $(DESTDIR)${archlibdir}; \
-	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
+	if [ -d $(DESTDIR)${archlibdir} ]; then \
+	  (cd $(DESTDIR)${archlibdir} && \
+	   rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}) \
+	fi
 
 mostlyclean:
 	-rm -f core *.o getopt.h getopt.h-t

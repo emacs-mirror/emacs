@@ -1,3 +1,8 @@
+2010-03-18  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* Makefile.in (uninstall): Handle the case where archlibdir does not
+	exist.  (Bug#5720)
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.
