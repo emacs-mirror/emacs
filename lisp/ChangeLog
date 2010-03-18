@@ -1,5 +1,11 @@
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug-pretest-address):
+	Make it an obsolete alias for report-emacs-bug-address.
+	(message-strip-special-text-properties): Declare.
+	(report-emacs-bug): Remove test for a pretest bug address.
+	Combine message-mode-specific code.
+
 	* mail/supercite.el: Don't require sendmail.
 	(mh-in-header-p): Declare rather than using with-no-warnings.
 	(sc-no-blank-line-or-header): Use rfc822-goto-eoh rather than
