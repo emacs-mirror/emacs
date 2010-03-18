@@ -1,8 +1,8 @@
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
-;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -2404,7 +2404,8 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("pg" . text-mode)
      ("make" . makefile-gmake-mode)		; Debian uses this
      ("guile" . scheme-mode)
-     ("clisp" . lisp-mode)))
+     ("clisp" . lisp-mode)
+     ("emacs" . emacs-lisp-mode)))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).

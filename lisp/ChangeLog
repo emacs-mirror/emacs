@@ -1,3 +1,8 @@
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (interpreter-mode-alist): Use emacs-lisp-mode for
+	Emacs scripts.
+
 2010-03-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/secrets.el (secrets-enabled): New variable.  Use it instead
