@@ -1,5 +1,8 @@
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (--with-x-toolkit): In the help text, say which options
+	are synonyms.
+
 	* configure.in (--with-mmdf, --with-mail-unlink):
 	New options, off by default.
 	(--with-mailhost): New option to set default POP host.

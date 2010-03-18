@@ -123,7 +123,7 @@ dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
- [use an X toolkit (KIT one of: yes, lucid, athena, motif, gtk, no)])],
+ [use an X toolkit (KIT one of: yes or gtk, lucid or athena, motif, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
