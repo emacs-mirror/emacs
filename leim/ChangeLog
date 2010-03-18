@@ -1,5 +1,8 @@
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (maintainer-clean): Use bootstrap-clean.
+	(extraclean): Fix deletion patterns.
+
 	* Makefile.in (dot): Remove, since ../ is used throughout the
 	other Makefiles.
 
