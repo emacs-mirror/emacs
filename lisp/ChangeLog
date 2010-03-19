@@ -1,5 +1,9 @@
 2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hooks.el (vc-path): Remove variable and obsolete declaration.
+
+2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Add special markup processing for commit logs.
 	* log-edit.el (log-edit-extra-flags): New variable.
 	(log-edit): Add new argument MODE.  Use that mode when non-nil
