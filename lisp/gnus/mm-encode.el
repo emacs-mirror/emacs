@@ -26,7 +26,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'mail-parse)
-(require 'mailcap)
+(autoload 'mailcap-extension-to-mime "mailcap")
 (autoload 'mm-body-7-or-8 "mm-bodies")
 (autoload 'mm-long-lines-p "mm-bodies")
 

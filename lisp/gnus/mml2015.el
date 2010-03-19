@@ -30,7 +30,11 @@
 
 ;; For Emacs < 22.2.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
+
+  (if (locate-library "password-cache")
+      (require 'password-cache)
+    (require 'password)))
 
 (eval-when-compile (require 'cl))
 (require 'mm-decode)
@@ -985,8 +989,6 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
-
-(defvar password-cache-expiry)
 
 (defvar mml2015-epg-secret-key-id-list nil)
 

@@ -1,7 +1,7 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -29,11 +29,12 @@
 
 (eval-when-compile (require 'cl))
 
+(require 'mailcap)
+
 (eval-when-compile
   (require 'mm-decode)
   (require 'mm-view))
 
-(require 'mailcap)
 (require 'url-vars)
 (require 'url-cookie)
 (require 'url-history)

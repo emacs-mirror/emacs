@@ -29,11 +29,13 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (require 'mail-parse)
-(require 'mailcap)
 (require 'mm-bodies)
-(require 'gnus-util)
 (eval-when-compile (require 'cl)
 		   (require 'term))
+
+(autoload 'gnus-map-function "gnus-util")
+(autoload 'gnus-replace-in-string "gnus-util")
+(autoload 'gnus-read-shell-command "gnus-util")
 
 (autoload 'mm-inline-partial "mm-partial")
 (autoload 'mm-inline-external-body "mm-extern")
@@ -550,6 +552,8 @@ Postpone undisplaying of viewers for types in
     (message "Destroying external MIME viewers")
     (mm-destroy-parts mm-postponed-undisplay-list)))
 
+(autoload 'message-fetch-field "message")
+
 (defun mm-dissect-buffer (&optional no-strict-mime loose-mime from)
   "Dissect the current buffer and return a list of MIME handles."
   (save-excursion
@@ -688,6 +692,9 @@ Postpone undisplaying of viewers for types in
 	  (goto-char (point-max)))
       (mapcar 'mm-display-parts handle))))
 
+(autoload 'mailcap-parse-mailcaps "mailcap")
+(autoload 'mailcap-mime-info "mailcap")
+
 (defun mm-display-part (handle &optional no-default)
   "Display the MIME part represented by HANDLE.
 Returns nil if the part is removed; inline if displayed inline;
@@ -747,6 +754,7 @@ external if displayed external."
 		 handle 'mailcap-save-binary-file)))))))))
 
 (declare-function gnus-configure-windows "gnus-win" (setting &optional force))
+(defvar mailcap-mime-extensions)	; mailcap-mime-info autoloads
 
 (defun mm-display-external (handle method)
   "Display HANDLE using METHOD."
