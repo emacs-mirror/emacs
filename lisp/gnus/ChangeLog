@@ -1,3 +1,7 @@
+2010-03-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (netrc-machine-user-or-password): Autoload.
+
 2010-03-19  Glenn Morris  <rgm@gnu.org>
 
 	Stop message.el from loading about 40 libraries it doesn't always need.
