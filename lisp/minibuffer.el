@@ -1099,12 +1099,12 @@ variables.")
   (exit-minibuffer))
 
 (defvar completion-in-region-functions nil
-  "Wrapper hook around `complete-in-region'.
+  "Wrapper hook around `completion-in-region'.
 The functions on this special hook are called with 5 arguments:
   NEXT-FUN START END COLLECTION PREDICATE.
 NEXT-FUN is a function of four arguments (START END COLLECTION PREDICATE)
 that performs the default operation.  The other four argument are like
-the ones passed to `complete-in-region'.  The functions on this hook
+the ones passed to `completion-in-region'.  The functions on this hook
 are expected to perform completion on START..END using COLLECTION
 and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
 
