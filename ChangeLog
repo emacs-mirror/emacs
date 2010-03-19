@@ -1,3 +1,7 @@
+2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .dir-locals.el (c-mode): Turn on whitespace-mode for diff-mode.
+
 2010-03-19  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (HAVE_LIBNCURSES): Add a description to make autoheader
