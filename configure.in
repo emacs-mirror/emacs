@@ -2402,7 +2402,8 @@ Maybe some development libraries/packages are missing?  Try installing
 libncurses-dev(el), libterminfo-dev(el) or similar.])
 fi
 # Must define this when any termcap library is found.
-AC_DEFINE(HAVE_LIBNCURSES)
+AC_DEFINE(HAVE_LIBNCURSES, 1,
+          [Define to 1 if you have the `ncurses' library (-lncurses).])
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 

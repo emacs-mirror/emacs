@@ -1,3 +1,13 @@
+2010-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_LIBNCURSES): Add a description to make autoheader
+	happy.
+
+2010-03-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for tputs and friends, abort if not
+	found (bug#5735).
+
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (--with-x-toolkit): In the help text, say which options
