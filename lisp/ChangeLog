@@ -1,7 +1,11 @@
+2010-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (hide-sublevels): Don't hide trailing newline (and fix
+	parent typo).
+
 2010-03-19  Glenn Morris  <rgm@gnu.org>
 
-	* password-cache.el (password-cache, password-cache-expiry):
-	Autoload.
+	* password-cache.el (password-cache, password-cache-expiry): Autoload.
 
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
@@ -37,8 +41,8 @@
 2010-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/secrets.el (top): Register the D-Bus signals only when the
-	service "org.freedesktop.secrets" can be pinged.  Provide
-	subfeature 'enabled.
+	service "org.freedesktop.secrets" can be pinged.
+	Provide subfeature `enabled'.
 
 2010-03-14  Juri Linkov  <juri@jurta.org>
 
