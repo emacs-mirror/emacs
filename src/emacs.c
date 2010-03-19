@@ -345,7 +345,7 @@ abbreviation for a --option.\n\
 Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
 \n\
-Report bugs to %s.  First, please see the Bugs\n\
+Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
 
@@ -746,41 +746,6 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 #endif /* DOUG_LEA_MALLOC */
 
 
-#define REPORT_EMACS_BUG_ADDRESS "bug-gnu-emacs@gnu.org"
-#define REPORT_EMACS_BUG_PRETEST_ADDRESS "bug-gnu-emacs@gnu.org"
-
-/* This function is used to determine an address to which bug report should
-   be sent.  */
-
-char *
-bug_reporting_address ()
-{
-  int count = 0;
-  Lisp_Object temp;
-  char *string;
-
-  temp = Fsymbol_value (intern ("emacs-version"));
-
-  /* When `emacs-version' is invalid, use normal address.  */
-  if (!STRINGP(temp))
-    return REPORT_EMACS_BUG_ADDRESS;
-
-  string = SDATA (temp);
-
-  /* Count dots in `emacs-version'.  */
-  while (*string)
-    {
-      if (*string == '.')
-	count++;
-      string++;
-    }
-
-  /* When `emacs-version' has at least three dots, it is development or
-     pretest version of Emacs.  */
-  return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
-}
-
-
 /* ARGSUSED */
 int
 main (int argc, char **argv)
@@ -1082,7 +1047,7 @@ main (int argc, char **argv)
     {
       printf (USAGE1, argv[0], USAGE2);
       printf (USAGE3);
-      printf (USAGE4, bug_reporting_address ());
+      printf (USAGE4);
       exit (0);
     }
 

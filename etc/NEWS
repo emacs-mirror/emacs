@@ -24,6 +24,12 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
+---
+** There are new configure options:
+--with-mmdf, --with-mail-unlink, --with-mailhost.
+These provide no new functionality, they just remove the need to edit
+lib-src/Makefile by hand in order to use the associated features.
+
 
 * Startup Changes in Emacs 24.1
 
@@ -56,6 +62,16 @@ choose a color via list-colors-display.
 ** VC and related modes
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
+
+*** Special markup can be added to log-edit buffers.
+
+**** For Bzr, adding an
+Author: NAME
+line will add "--author NAME" to the "bzr commit" command.
+
+**** For Hg, adding an
+Author: NAME
+line will add "--user NAME" to the "hg commit" command.
 
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your

@@ -28,6 +28,7 @@
 
 (eval-when-compile (require 'cl))
 
+(require 'mailcap)
 (require 'nnheader)
 (require 'nnmail)
 (require 'nnoo)

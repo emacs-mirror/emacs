@@ -39,7 +39,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'time-date)
 (require 'mm-util)
 
 (defvar ietf-drums-no-ws-ctl-token "\001-\010\013\014\016-\037\177"

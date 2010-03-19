@@ -34,7 +34,7 @@
 (require 'gnus-util)
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'netrc))
+(autoload 'netrc-machine-user-or-password "netrc")
 
 (defgroup auth-source nil
   "Authentication sources."
@@ -86,7 +86,7 @@ If the value is a function, debug messages are logged by calling
  that function using the same arguments as `message'."
   :group 'auth-source
   :version "23.1" ;; No Gnus
-  :type	`(choice 
+  :type	`(choice
 	  :tag "auth-source debugging mode"
 	  (const :tag "Log using `message' to the *Messages* buffer" t)
 	  (function :tag "Function that takes arguments like `message'")
@@ -145,7 +145,7 @@ Each entry is the authentication type with optional properties."
   ;; we also check the value
   (when auth-source-debug
     (let ((logger (if (functionp auth-source-debug)
-		      auth-source-debug 
+		      auth-source-debug
 		    'message)))
       (apply logger msg))))
 

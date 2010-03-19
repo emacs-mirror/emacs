@@ -1,3 +1,14 @@
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(HESIODLIB, LIBS_MAIL): Set using autoconf rather than cpp.
+	(BASE_CFLAGS): Remove (identical to CPP_CFLAGS).
+
+2010-03-18  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* Makefile.in (uninstall): Handle the case where archlibdir does not
+	exist.  (Bug#5720)
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.

@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
 
 (defvar nnmail-extra-headers)
@@ -121,7 +123,6 @@ on your system, you could say something like:
 
 (autoload 'nnmail-message-id "nnmail")
 (autoload 'mail-position-on-field "sendmail")
-(autoload 'message-remove-header "message")
 (autoload 'gnus-buffer-live-p "gnus-util")
 
 ;;; Header access macros.
@@ -662,8 +663,12 @@ the line could be found."
       ;; without inserting extra newline.
       (fill-region-as-paragraph begin (1+ (point))))))
 
+(declare-function message-remove-header "message"
+		  (header &optional is-regexp first reverse))
+
 (defun nnheader-replace-header (header new-value)
   "Remove HEADER and insert the NEW-VALUE."
+  (require 'message)
   (save-excursion
     (save-restriction
       (nnheader-narrow-to-headers)

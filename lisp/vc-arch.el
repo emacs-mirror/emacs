@@ -428,7 +428,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
 
-(defun vc-arch-checkin (files rev comment)
+(defun vc-arch-checkin (files rev comment  &optional extra-args-ignored)
   (if rev (error "Committing to a specific revision is unsupported"))
   ;; FIXME: This implementation probably only works for singleton filesets
   (let ((summary (file-relative-name (car files) (vc-arch-root (car files)))))

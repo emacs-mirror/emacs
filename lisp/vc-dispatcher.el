@@ -522,20 +522,22 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 ;; Set up key bindings for use while editing log messages
 
-(defun vc-log-edit (fileset)
+(defun vc-log-edit (fileset mode)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
 	(with-current-buffer vc-parent-buffer default-directory))
   (log-edit 'vc-finish-logentry
 	    nil
 	    `((log-edit-listfun . (lambda () ',fileset))
-	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
+	      (log-edit-diff-function . (lambda () (vc-diff nil))))
+	    nil
+	    mode)
   (set (make-local-variable 'vc-log-fileset) fileset)
   (make-local-variable 'vc-log-extra)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files extra comment initial-contents msg logbuf action &optional after-hook)
+(defun vc-start-logentry (files extra comment initial-contents msg logbuf mode action &optional after-hook)
   "Accept a comment for an operation on FILES with extra data EXTRA.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
@@ -560,7 +562,7 @@ for `vc-log-after-operation-hook'."
     (set (make-local-variable 'vc-parent-buffer) parent)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
-    (vc-log-edit files)
+    (vc-log-edit files mode)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))
@@ -590,12 +592,16 @@ the buffer contents as a comment."
     (or (vc-dispatcher-browsing) (vc-buffer-sync)))
   (unless vc-log-operation
     (error "No log operation is pending"))
+
+  (log-view-process-buffer)
+
   ;; save the parameters held in buffer-local variables
   (let ((logbuf (current-buffer))
 	(log-operation vc-log-operation)
 	(log-fileset vc-log-fileset)
 	(log-extra vc-log-extra)
 	(log-entry (buffer-string))
+	(extra-flags log-edit-extra-flags)
 	(after-hook vc-log-after-operation-hook)
 	(tmp-vc-parent-buffer vc-parent-buffer))
     (pop-to-buffer vc-parent-buffer)
@@ -604,7 +610,9 @@ the buffer contents as a comment."
       (funcall log-operation
 	       log-fileset
 	       log-extra
-	       log-entry))
+	       log-entry
+	       extra-flags
+	       ))
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the log buffer and the typing therein).
     ;; -- IMO this should be replaced with quit-window

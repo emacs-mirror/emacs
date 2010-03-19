@@ -667,7 +667,9 @@ uninstall:
 	    esac ;					\
 	  fi ;						\
 	done
-	(cd $(DESTDIR)${archlibdir} && rm -f fns-*)
+	if [ -d $(DESTDIR)${archlibdir} ]; then \
+	  (cd $(DESTDIR)${archlibdir} && rm -f fns-*) \
+	fi
 	-rm -rf $(DESTDIR)${libexecdir}/emacs/${version}
 	(cd $(DESTDIR)${infodir} && \
 	  for elt in $(INFO_FILES); do \

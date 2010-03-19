@@ -33,7 +33,10 @@
   :type 'boolean
   :group 'matching)
 
-(defvar query-replace-history nil)
+(defvar query-replace-history nil
+  "Default history list for query-replace commands.
+See `query-replace-from-history-variable' and
+`query-replace-to-history-variable'.")
 
 (defvar query-replace-defaults nil
   "Default values of FROM-STRING and TO-STRING for `query-replace'.
@@ -394,12 +397,13 @@ Fourth and fifth arg START and END specify the region to operate on."
 		    (car regexp-search-ring)
 		  (read-from-minibuffer "Map query replace (regexp): "
 					nil nil nil
-					'query-replace-history nil t)))
+					query-replace-from-history-variable
+					nil t)))
 	  (to (read-from-minibuffer
 	       (format "Query replace %s with (space-separated strings): "
 		       (query-replace-descr from))
 	       nil nil nil
-	       'query-replace-history from t)))
+	       query-replace-to-history-variable from t)))
      (list from to
 	   (and current-prefix-arg
 		(prefix-numeric-value current-prefix-arg))
