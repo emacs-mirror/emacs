@@ -1,3 +1,41 @@
+2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add special markup processing for commit logs.
+	* log-edit.el (log-edit-extra-flags): New variable.
+	(log-edit): Add new argument MODE.  Use that mode when non-nil
+	instead of the log-view-mode.
+	(log-view-process-buffer): New function.
+
+	* vc.el: Document that the checkin method takes optional
+	arguments.  Document new backend specific method: log-view-mode.
+	(vc-default-log-edit-mode): New function.
+	(vc-checkin): Use a backend specific log-view-mode.
+	Pass extra arguments to the checkin method.
+	(vc-modify-change-comment): Pass a dummy extra argument.
+
+	* vc-dispatcher.el (vc-log-edit): Add a mode argument, pass it to
+	log-edit.
+	(vc-start-logentry): Add a mode argument, pass it to vc-log-edit.
+	(vc-finish-logentry): Process the log buffer before passing it
+	down.  Pass log-edit-extra-flags.
+
+	* vc-bzr.el (vc-bzr-checkin): Pass extra arguments to the commit
+	command.
+	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+
+	* vc-hg.el (vc-hg-checkin): Pass extra arguments to the commit
+	command.
+	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+	(vc-hg-log-edit-mode): New derived mode.
+
+	* vc-arch.el (vc-arch-checkin):
+	* vc-cvs.el (vc-cvs-checkin):
+	* vc-git.el (vc-git-checkin):
+	* vc-mtn.el (vc-mtn-checkin):
+	* vc-rcs.el (vc-rcs-checkin):
+	* vc-sccs.el (vc-sccs-checkin):
+	* vc-svn.el (vc-svn-checkin): Add an optional ignored argument.
+
 2010-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* outline.el (hide-sublevels): Don't hide trailing newline (and fix
