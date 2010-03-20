@@ -71,14 +71,14 @@ uses `system-move-file-to-trash' for trashing.)
 Customize `make-pointer-invisible' to disable this feature.
 
 ** Font changes
-
++++
 *** Emacs can use the system default monospaced font in Gnome.
 To enable this feature, set `font-use-system-font' to non-nil (it is
 nil by default).  If the system default changes, Emacs changes also.
 This feature requires Gconf support, which is automatically included
 at compile-time if configure detects the gconf libraries (you can
 disable this with the configure option --without-gconf).
-
+---
 *** On X11, Emacs reacts to Xft changes made by configuration tools,
 via the XSETTINGS mechanism.  This includes antialias, hinting,
 hintstyle, RGBA, DPI and lcdfilter changes.

@@ -1,3 +1,13 @@
+2010-03-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Font X): Move most content to Fonts.
+
+	* frames.texi (Fonts): New node.  Document font-use-system-font.
+
+	* emacs.texi (Top):
+	* xresources.texi (Table of Resources):
+	* mule.texi (Defining Fontsets, Charsets): Update xrefs.
+
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init Examples): Add xref to Locals.

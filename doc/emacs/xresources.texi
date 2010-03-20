@@ -193,7 +193,7 @@ Specifies whether to make the cursor blink. The default is @samp{on}.  Use
 @end ifnottex
 
 @item @code{font} (class @code{Font})
-Font name for the @code{default} font.  @xref{Font X}.  You can also
+Font name for the @code{default} font.  @xref{Fonts}.  You can also
 specify a fontset name (@pxref{Fontsets}).
 
 @item @code{fontBackend} (class @code{FontBackend})
