@@ -541,30 +541,14 @@ dnl see the `changequote' comment above.
 
   *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
-    | x86_64-*-solaris2*    | x86_64-*-sunos5*    \
-    | powerpc*-*-solaris2*  | rs6000-*-solaris2*)
+    | x86_64-*-solaris2*    | x86_64-*-sunos5*)
     case "${canonical}" in
       i[3456]86-*-* )     machine=intel386 ;;
       amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
-      powerpc* | rs6000* )  machine=ibmrs6000 ;;
       sparc* )		machine=sparc ;;
       * )		unported=yes ;;
     esac
     case "${canonical}" in
-      *-sunos5.3* | *-solaris2.3* )
-		opsys=sol2-3
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		;;
-      *-sunos5.4* | *-solaris2.4* )
-		opsys=sol2-4
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		RANLIB="ar -ts"
-		;;
-      *-sunos5.5* | *-solaris2.5* )
-		opsys=sol2-5
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		RANLIB="ar -ts"
-		;;
       *-sunos5.6* | *-solaris2.6* )
 		opsys=sol2-6
 		NON_GNU_CPP=/usr/ccs/lib/cpp
