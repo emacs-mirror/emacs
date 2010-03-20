@@ -1,3 +1,8 @@
+2010-03-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (Fx_create_frame) [USE_LUCID]: Add BLOCK_INPUT around
+	XLoadQueryFont.
+
 2010-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_ccl): Fix previous change for the

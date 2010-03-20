@@ -3347,7 +3347,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
+  BLOCK_INPUT;
   xlwmenu_default_font = XLoadQueryFont (FRAME_X_DISPLAY (f), "fixed");
+  UNBLOCK_INPUT;
 #endif
 
   /* Frame contents get displaced if an embedded X window has a border.  */
