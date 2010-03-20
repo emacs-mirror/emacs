@@ -458,15 +458,6 @@ dnl see the `changequote' comment above.
     esac
   ;;
 
-  ## LynxOS ports
-  *-*-lynxos* )
-    opsys=lynxos
-    case "${canonical}" in
-      i[3456]86-*-lynxos*) machine=intel386 ;;
-      powerpc-*-lynxos*) machine=powerpc ;;
-    esac
-  ;;
-
   alpha*-*-linux-gnu* )
     machine=alpha opsys=gnu-linux
   ;;

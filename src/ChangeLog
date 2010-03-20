@@ -1,5 +1,13 @@
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove non-working support for lynxos 3.0.
+	* s/lynxos.h: Remove file.
+
+	* unexec.c (unexec, adjust_lnnoptrs): Do not depend on
+	COFF_BSD_SYMBOLS, nothing defines it anymore.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Remove obsolete uses of HAVE_SHM.
 	* emacs.c (standard_args):
 	(Fdump_emacs):

@@ -1,3 +1,7 @@
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove non-working lynxos port.
+
 2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* .dir-locals.el (c-mode): Turn on whitespace-mode for diff-mode.

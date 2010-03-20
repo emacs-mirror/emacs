@@ -630,7 +630,6 @@ mark_x (name)
     PERROR (name);
 }
 
-#ifndef COFF_BSD_SYMBOLS
 
 /*
  *	If the COFF file contains a symbol table and a line number section,
@@ -699,8 +698,6 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   return 0;
 }
 
-#endif /* COFF_BSD_SYMBOLS */
-
 /* ****************************************************************
  * unexec
  *
@@ -724,9 +721,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   if (make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name) < 0
       || copy_text_and_data (new, a_out) < 0
       || copy_sym (new, a_out, a_name, new_name) < 0
-#ifndef COFF_BSD_SYMBOLS
       || adjust_lnnoptrs (new, a_out, new_name) < 0
-#endif
       )
     {
       close (new);
