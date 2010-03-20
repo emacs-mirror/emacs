@@ -23,26 +23,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Get the correct __FreeBSD_version, even if this is before that was
-   defined. */
-#ifndef __FreeBSD_version
-#ifndef __FreeBSD__
-#define __FreeBSD_version 199401
-#elif __FreeBSD__ == 1
-#define __FreeBSD_version 199405
-#else
-#include <osreldate.h>
-#endif
-#endif /* !defined __FreeBSD_version */
-
-/* '__FreeBSD__' is defined by the preprocessor on FreeBSD-1.1 and up.
-   Earlier versions do not have shared libraries, so inhibit them.
-   You can inhibit them on newer systems if you wish
-   by defining NO_SHARED_LIBS.  */
-#ifndef __FreeBSD__
-#define NO_SHARED_LIBS
-#endif
-
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
@@ -69,8 +49,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* freebsd has POSIX-style pgrp behavior. */
 #undef BSD_PGRPS
 
-#ifdef __ELF__
-
 /* Let `ld' find image libs and similar things in /usr/local/lib.  The
    system compiler, GCC, has apparently been modified to not look
    there, contrary to what a stock GCC would do.  */
@@ -81,17 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o /usr/lib/crtn.o
 #undef LIB_GCC
 #define LIB_GCC
-
-#else /* not __ELF__ */
-
-#ifdef NO_SHARED_LIBS
-#ifdef __FreeBSD__  /* shared libs are available, but the user prefers
-                     not to use them.  */
-#define LD_SWITCH_SYSTEM -Bstatic -L/usr/local/lib
-#endif /* __FreeBSD__ */
-#endif /* NO_SHARED_LIBS */
-
-#endif /* not __ELF__ */
 
 #define HAVE_GETLOADAVG 1
 #define HAVE_TERMIOS

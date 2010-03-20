@@ -1,5 +1,12 @@
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/openbsd.h: Remove support for non-ELF and for systems that do
+	not support shared libraries.
+	* s/netbsd.h:
+	* s/freebsd.h: Likewise.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Remove non-working support for lynxos 3.0.
 	* s/lynxos.h: Remove file.
 
