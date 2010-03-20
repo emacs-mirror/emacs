@@ -1,5 +1,17 @@
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Consolidate redundant definitions.
+	* s/usg5-4.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not define,
+	it's undefined in all files that include this one.
+	(POSIX_SIGNALS): Define here instead of doing it in all files that
+	include this one.
+	* s/irix6-5.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+	* s/sol2-6.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+	* s/unixware.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+
 	Remove support for old UNIX System V systems.
 	* s/unixware.h: Add the contents of s/usg-5-4-2.h.
 	* s/usg-5-4-2.h: Remove.

@@ -53,12 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define C_DEBUG_SWITCH -g -O
 #endif /* GCC */
 
-/* Info from fnf@cygnus.com suggests this is appropriate.  */
-#define POSIX_SIGNALS
-
-/* We don't need the definition from usg5-4.h with POSIX_SIGNALS.  */
-#undef sigsetmask
-
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
    work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x
@@ -68,7 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    intercepting that death.  If any child but grantpt's should die
    within, it should be caught after sigrelse(2). */
 
-#undef PTY_TTY_NAME_SPRINTF
 #define PTY_TTY_NAME_SPRINTF			\
   {						\
     char *ptsname (), *ptyname;			\

@@ -26,11 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define HAVE_GETWD  (appears to be buggy on SVR4.2) */
 #undef HAVE_GETWD
 
-/* Info from fnf@cygnus.com suggests this is appropriate.  */
-#define POSIX_SIGNALS
-
-/* We don't need the definition from usg5-3.h with POSIX_SIGNALS.  */
-#undef sigsetmask
 #undef HAVE_SYSV_SIGPAUSE
 
 /* Motif needs -lgen.  */
@@ -45,7 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    intercepting that death.  If any child but grantpt's should die
    within, it should be caught after sigrelse(2). */
 
-#undef PTY_TTY_NAME_SPRINTF
 #define PTY_TTY_NAME_SPRINTF			\
   {						\
     char *ptsname(), *ptyname;			\
