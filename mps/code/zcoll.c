@@ -472,6 +472,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         script += sb;
         printf("  Collect\n");
         mps_arena_collect(arena);
+        mps_arena_release(arena);
         break;
       }
       case 'K': {
@@ -705,8 +706,10 @@ int main(int argc, char **argv)
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
   /* This is bogus!  sizemethod 1 can make a 300,000-slot dylan vector, ie. 1.2MB. */
-  /* Try 100MB arena */
-  testscriptA("Arena(size 100000000), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
+  /* Try 10MB arena */
+  /* testscriptA("Arena(size 10485760), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect."); */
+  testscriptA("Arena(size 10485760), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect,"
+              "Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
 
   /* LSP -- Large Segment Padding (job001811)
    *
@@ -737,10 +740,12 @@ int main(int argc, char **argv)
   /* 7p = 28672b; 8p = 32768b */
   /* 28000 = Medium segment */
   /* 29000 = Large segment */
+#if 0
   testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small A), Collect.");
   testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small A), Collect.");
   testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small E), Collect.");
   testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small E), Collect.");
+#endif
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.

@@ -161,6 +161,11 @@ Res VMCreate(VM *vmReturn, Size size)
   AVERT(VM, vm);
 
   EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
+  DIAG_SINGLEF((
+    "VM_ix_Create_ok",
+    "[$W..<$W>..$W)", 
+    vm->base, (char*)vm->limit - (char*)vm->base, vm->limit,
+    NULL ));
 
   *vmReturn = vm;
   return ResOK;
@@ -179,6 +184,12 @@ void VMDestroy(VM vm)
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
+
+  DIAG_SINGLEF((
+    "VM_ix_Destroy",
+    "[$W..<$W>..$W)", 
+    vm->base, (char*)vm->limit - (char*)vm->base, vm->limit,
+    NULL ));
 
   /* This appears to be pretty pointless, since the descriptor */
   /* page is about to vanish completely.  However, munmap might fail */
