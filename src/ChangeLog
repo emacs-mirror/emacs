@@ -1,3 +1,7 @@
+2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (bootstrap_exe): Use an absolute name.
+
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove support for old GNU/Linux using libc version 5.

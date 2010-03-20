@@ -26,7 +26,15 @@ srcdir=@srcdir@/..
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-EMACS = ../src/emacs
+# We sometimes change directory before running Emacs (typically when
+# building out-of-tree, we chdir to the source directory), so we need
+# to use an aboluste file name.  But there's no standard way
+# in a makefile to get the pwd, so we simply rely on a shell
+# "$emacswd" var that needs to be set wherever we use $(EMACS) (or
+# $(emacs)).  Yet, it is setup in such a way that if you forget to set
+# $emacswd, it will still work, so long as you did not
+# change directory.
+EMACS = $$emacswd../src/emacs
 
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
@@ -80,28 +88,28 @@ emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
-setwins=subdirs=`(cd $$wd; find . -type d -print)`; \
+setwins=subdirs=`(find . -type d -print)`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* ) ;; \
-		*) wins="$$wins $$wd/$$file" ;; \
+		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 # Find all subdirectories except `obsolete' and `term'.
 
-setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
+setwins_almost=subdirs=`(find . -type d -print)`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */obsolete | */term ) ;; \
-		*) wins="$$wins $$wd/$$file" ;; \
+		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 # Find all subdirectories in which we might want to create subdirs.el
 
-setwins_for_subdirs=subdirs=`(cd $$wd; find . -type d -print)`; \
+setwins_for_subdirs=subdirs=`(find . -type d -print)`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */cedet* ) ;; \
-		*) wins="$$wins $$wd/$$file" ;; \
+		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
@@ -111,7 +119,7 @@ setwins_for_subdirs=subdirs=`(cd $$wd; find . -type d -print)`; \
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 	@: Let us check that we byte-compiled all the files.
-	$(MAKE) $(MFLAGS) compile-last EMACS=$(EMACS)
+	emacswd=`pwd`/; $(MAKE) $(MFLAGS) compile-last EMACS=$(EMACS)
 
 doit:
 
@@ -132,14 +140,14 @@ doit:
 $(lisp)/cus-load.el:
 	$(MAKE) $(MFLAGS) custom-deps
 custom-deps: doit
-	wd=$(lisp); $(setwins_almost); \
+	emacswd=`pwd`/; cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
 $(lisp)/finder-inf.el:
 	$(MAKE) $(MFLAGS) finder-data
 finder-data: doit
-	wd=$(lisp); $(setwins_almost); \
+	emacswd=`pwd`/; cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
@@ -149,7 +157,7 @@ autoloads: $(LOADDEFS) doit
 	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el $(lisp)/mail/rmail.el \
 	  $(lisp)/dired.el $(lisp)/ibuffer.el
-	wd=$(lisp); $(setwins_almost); \
+	emacswd=`pwd`/; cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
@@ -158,7 +166,7 @@ autoloads: $(LOADDEFS) doit
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
-	wd=$(lisp); $(setwins_for_subdirs); \
+	cd $(lisp); $(setwins_for_subdirs); \
 	for file in $$wins; do \
 	   $(srcdir)/update-subdirs $$file; \
 	done;
@@ -1505,7 +1513,8 @@ compile-main: $(ELCFILES)
 # Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
 # sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS)
+	emacswd=`pwd`/; \
+	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS); \
 	$(MAKE) $(MFLAGS) compile-last EMACS=$(EMACS)
 
 ## Doing this causes make install to dump another emacs.
@@ -1516,11 +1525,12 @@ compile: $(LOADDEFS) autoloads compile-first
 # set the local variable no-byte-compile.
 compile-always: doit
 	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
+	emacswd=`pwd`/; \
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
 ## In case any files are missing from ELCFILES.
 compile-last:
-	@wd=$(lisp); $(setwins); \
+	@emacswd=`pwd`/; cd $(lisp); $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
 	  test -f $$el || continue; \
