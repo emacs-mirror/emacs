@@ -639,22 +639,6 @@ esac
 if test x"${opsys}" = x; then
   case "${canonical}" in
     *-gnu* )				opsys=gnu ;;
-    *-sysv4.2uw* )			opsys=unixware ;;
-    *-sysv5uw* )			opsys=unixware ;;
-    *-sysv5OpenUNIX* )			opsys=unixware ;;
-    *-sysv4.1* | *-sysvr4.1* )
-	NON_GNU_CPP=/usr/lib/cpp
-	opsys=usg5-4 ;;
-    *-sysv4.[2-9]* | *-sysvr4.[2-9]* )
-	if [ x$NON_GNU_CPP = x ]; then
-	  if [ -f /usr/ccs/lib/cpp ]; then
-	    NON_GNU_CPP=/usr/ccs/lib/cpp
-	  else
-	    NON_GNU_CPP=/lib/cpp
-	  fi
-	fi
-	opsys=usg5-4-2 ;;
-    *-sysv4* | *-sysvr4* )		opsys=usg5-4 ;;
     * )
       unported=yes
     ;;
