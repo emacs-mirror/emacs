@@ -1030,6 +1030,7 @@ ELCFILES = \
 	$(lisp)/net/sasl-digest.elc \
 	$(lisp)/net/sasl-ntlm.elc \
 	$(lisp)/net/sasl.elc \
+	$(lisp)/net/secrets.elc \
 	$(lisp)/net/snmp-mode.elc \
 	$(lisp)/net/socks.elc \
 	$(lisp)/net/telnet.elc \
@@ -1090,6 +1091,7 @@ ELCFILES = \
 	$(lisp)/obsolete/rnewspost.elc \
 	$(lisp)/obsolete/sc.elc \
 	$(lisp)/obsolete/scribe.elc \
+	$(lisp)/obsolete/s-region.elc \
 	$(lisp)/obsolete/swedish.elc \
 	$(lisp)/obsolete/sym-comp.elc \
 	$(lisp)/obsolete/vc-mcvs.elc \
@@ -1293,7 +1295,6 @@ ELCFILES = \
 	$(lisp)/rfn-eshadow.elc \
 	$(lisp)/rot13.elc \
 	$(lisp)/ruler-mode.elc \
-	$(lisp)/s-region.elc \
 	$(lisp)/savehist.elc \
 	$(lisp)/saveplace.elc \
 	$(lisp)/sb-image.elc \

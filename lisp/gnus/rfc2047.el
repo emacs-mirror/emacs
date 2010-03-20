@@ -31,7 +31,6 @@
   (require 'cl))
 (defvar message-posting-charset)
 
-(require 'qp)
 (require 'mm-util)
 (require 'ietf-drums)
 ;; Fixme: Avoid this (used for mail-parse-charset) mm dependence on gnus.
@@ -827,6 +826,8 @@ Point moves to the end of the region."
   "Base64-encode the header contained in STRING."
   (base64-encode-string string t))
 
+(autoload 'quoted-printable-encode-region "qp")
+
 (defun rfc2047-q-encode-string (string)
   "Quoted-printable-encode the header in STRING."
   (mm-with-unibyte-buffer
@@ -928,6 +929,8 @@ only be used for decoding, not for encoding."
     (if (eq cs 'ascii)
 	'raw-text
       cs)))
+
+(autoload 'quoted-printable-decode-string "qp")
 
 (defun rfc2047-decode-encoded-words (words)
   "Decode successive encoded-words in WORDS and return a decoded string.

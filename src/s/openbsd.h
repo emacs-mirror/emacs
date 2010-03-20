@@ -19,7 +19,6 @@
 
 #undef LD_SWITCH_SYSTEM_TEMACS
 #undef LD_SWITCH_SYSTEM
-#ifdef __ELF__
 
   /*  Han Boetes <han@mijncomputer.nl> says this
       is necessary,  otherwise Emacs dumps core on elf systems.  */
@@ -28,13 +27,6 @@
 /* The version of gcc on OpenBSD doesn't search /usr/local/lib by
    default.  */
 #define LD_SWITCH_X_DEFAULT -L/usr/local/lib
-
-#else
-  
-#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp
-#define LD_SWITCH_X_DEFAULT -L/usr/local/lib
-
-#endif
 
 /* arch-tag: 7e3f65ca-3f48-4237-933f-2b208b21e8e2
    (do not change this comment) */

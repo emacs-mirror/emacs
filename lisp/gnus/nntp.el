@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'nnheader)
 (require 'nnoo)
 (require 'gnus-util)
@@ -1168,6 +1172,11 @@ It will make innd servers spawn an nnrpd process to allow actual article
 reading."
   (nntp-send-command "^.*\n" "MODE READER"))
 
+(declare-function netrc-parse "netrc" (file))
+(declare-function netrc-machine "netrc"
+		  (list machine &optional port defaultport))
+(declare-function netrc-get "netrc" (alist type))
+
 (defun nntp-send-authinfo (&optional send-if-force)
   "Send the AUTHINFO to the nntp server.
 It will look in the \"~/.authinfo\" file for matching entries.  If
@@ -1176,10 +1185,11 @@ and a password.
 
 If SEND-IF-FORCE, only send authinfo to the server if the
 .authinfo file has the FORCE token."
+  (require 'netrc)
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
-	 (auth-info 
+	 (auth-info
 	  (auth-source-user-or-password '("login" "password") nntp-address "nntp"))
 	 (auth-user (nth 0 auth-info))
 	 (auth-passwd (nth 1 auth-info))

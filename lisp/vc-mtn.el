@@ -172,7 +172,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-mtn-responsible-p (file) (vc-mtn-root file))
 (defun vc-mtn-could-register (file) (vc-mtn-root file))
 
-(defun vc-mtn-checkin (files rev comment)
+(defun vc-mtn-checkin (files rev comment  &optional extra-args-ignored)
   (vc-mtn-command nil 0 files "commit" "-m" comment))
 
 (defun vc-mtn-find-revision (file rev buffer)

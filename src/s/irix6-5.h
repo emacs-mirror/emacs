@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IRIX6_5			/* used in m/iris4d */
 #include "usg5-4.h"
 
-#undef sigsetmask  /* use sys_sigsetmask */
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
 
@@ -46,9 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SIGNALS_VIA_CHARACTERS
 
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
-#ifdef PTY_TTY_NAME_SPRINTF
-#undef PTY_TTY_NAME_SPRINTF
-#endif
 #define PTY_TTY_NAME_SPRINTF
 /* No need to get the pty name at all.  */
 #ifdef PTY_NAME_SPRINTF
@@ -79,10 +75,6 @@ char *_getpty();
     return -1;						    \
   strcpy (pty_name, name);				    \
 }
-
-/* Since we use POSIX constructs in PTY_OPEN, we must force POSIX
-   throughout. */
-#define POSIX_SIGNALS
 
 /* Ulimit(UL_GMEMLIM) is busted...  */
 #define ULIMIT_BREAK_VALUE 0x14000000

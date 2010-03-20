@@ -1,6 +1,7 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 2001, 2002, 2003, 2004,
-#               2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+#               2005, 2006, 2007, 2008, 2009, 2010
+#               Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -122,20 +123,11 @@ SCRIPTS= rcs2log vcdiff
 
 EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
-# Additional -D flags for movemail (add to MOVE_FLAGS if desired):
-# MAIL_USE_POP		Support mail retrieval from a POP mailbox.
-# MAIL_USE_MMDF		Support MMDF mailboxes.
-# MAIL_USE_FLOCK	Use flock for file locking (see the comments
-#			about locking in movemail.c)
-# MAIL_UNLINK_SPOOL	Unlink the user's spool mailbox after reading
-#			it (instead of just emptying it).
-# KERBEROS		Support Kerberized POP.
-# KRB5			Support Kerberos Version 5 pop instead of
-#			Version 4 (define this in addition to
-#			KERBEROS).
-# HESIOD		Support Hesiod lookups of user mailboxes.
-# MAILHOST		A string, the host name of the default POP
-#			mail host for the site.
+# Specify additional -D flags for movemail. Options:
+# -DMAIL_USE_FLOCK or -DMAIL_USE_LOCKF (use flock or lockf for file locking).
+# See the comments about locking in movemail.c.  Normally the values
+# in ../src/[ms]/*.h should be correct and you should not need to do anything.
+# If neither flag is set, blessmail is used.
 MOVE_FLAGS=
 
 # ========================== start of cpp stuff =======================
@@ -176,71 +168,20 @@ MOVE_FLAGS=
 #define BLESSMAIL
 #endif
 
-#ifdef KERBEROS
-# ifdef HAVE_LIBKRB
-    KRB4LIB = -lkrb
-# else
-#  ifdef HAVE_LIBKRB4
-     KRB4LIB = -lkrb4
-#  endif
-# endif
-# ifdef HAVE_LIBDES
-    DESLIB = -ldes
-# else
-#  ifdef HAVE_LIBDES425
-    DESLIB = -ldes425
-#  endif
-# endif
-# ifdef HAVE_LIBKRB5
-    KRB5LIB = -lkrb5
-# endif
-# ifdef HAVE_LIBK5CRYPTO
-    CRYPTOLIB = -lk5crypto
-# else
-#  ifdef HAVE_LIBCRYPTO
-    CRYPTOLIB = -lcrypto
-#  endif
-# endif
-# ifdef HAVE_LIBCOM_ERR
-    COM_ERRLIB = -lcom_err
-# endif
-#endif /* KERBEROS */
+LIBS_MOVE=@KRB4LIB@ @DESLIB@ @KRB5LIB@ @CRYPTOLIB@ @COM_ERRLIB@ @LIBHESIOD@ @LIBRESOLV@
 
-/* If HESIOD is defined, set this to "-lhesiod". */
-#ifdef HAVE_LIBHESIOD
-# ifdef HAVE_LIBRESOLV
-    HESIODLIB= -lhesiod -lresolv
-# else
-    HESIODLIB= -lhesiod
-# endif
-#endif
-
-LIBS_MOVE=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
-
-#ifdef HAVE_LIBLOCKFILE
-LIBS_MAIL=-llockfile
-#else
-#ifdef HAVE_LIBMAIL
-LIBS_MAIL=-lmail
-#endif
-#endif
+LIBS_MAIL=@LIBS_MAIL@
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
 
-/* We need to #define emacs to get the right versions of some files.
-   Some other files - those shared with other GNU utilities - need
-   HAVE_CONFIG_H #defined before they know they can take advantage of
-   the information in ../src/config.h.  */
+/* Those files shared with other GNU utilities need HAVE_CONFIG_H
+   defined before they know they can take advantage of the information
+   in ../src/config.h.  */
 ALL_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
-   -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
-/* This was all of CPP_CFLAGS except -Demacs.
-   Now that -Demacs has been deleted from CPP_CFLAGS,
-   this is actually the same as CPP_CFLAGS, but let\'s not delete it yet.  */
-BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
 .SUFFIXES: .m
@@ -338,8 +279,10 @@ uninstall:
 	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS}; do \
 	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done)
-	(cd $(DESTDIR)${archlibdir}; \
-	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
+	if [ -d $(DESTDIR)${archlibdir} ]; then \
+	  (cd $(DESTDIR)${archlibdir} && \
+	   rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}) \
+	fi
 
 mostlyclean:
 	-rm -f core *.o getopt.h getopt.h-t
@@ -392,7 +335,7 @@ REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
-	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
+	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
 etags${EXEEXT}: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
@@ -424,6 +367,7 @@ b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MAIL) $(LIBS_MOVE) -o movemail
 
+/*  We need to define emacs to get the right version of something (what?).  */
 movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 

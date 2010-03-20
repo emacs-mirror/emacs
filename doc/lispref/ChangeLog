@@ -1,3 +1,7 @@
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi (System Environment): Do not mention lynxos.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.

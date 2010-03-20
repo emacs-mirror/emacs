@@ -59,6 +59,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'imap)
 (require 'nnoo)
 (require 'nnmail)
@@ -789,12 +793,17 @@ If EXAMINE is non-nil the group is selected read-only."
 	    (nnheader-nov-delete-outside-range low high))))
       'nov)))
 
+(declare-function netrc-parse "netrc" (file))
+(declare-function netrc-machine-user-or-password "netrc"
+		  (mode authinfo-file-or-list machines ports defaults))
+
 (defun nnimap-open-connection (server)
   ;; Note: `nnimap-open-server' that calls this function binds
   ;; `imap-logout-timeout' to `nnimap-logout-timeout'.
   (if (not (imap-open nnimap-address nnimap-server-port nnimap-stream
 		      nnimap-authenticator nnimap-server-buffer))
       (nnheader-report 'nnimap "Can't open connection to server %s" server)
+    (require 'netrc)
     (unless (or (imap-capability 'IMAP4 nnimap-server-buffer)
 		(imap-capability 'IMAP4rev1 nnimap-server-buffer))
       (imap-close nnimap-server-buffer)
@@ -805,7 +814,7 @@ If EXAMINE is non-nil the group is selected read-only."
  	   (port (if nnimap-server-port
  		     (int-to-string nnimap-server-port)
  		   "imap"))
-	   (auth-info 
+	   (auth-info
 	    (auth-source-user-or-password '("login" "password") server port))
 	   (auth-user (nth 0 auth-info))
 	   (auth-passwd (nth 1 auth-info))

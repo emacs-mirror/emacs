@@ -24,13 +24,19 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
+---
+** There are new configure options:
+--with-mmdf, --with-mail-unlink, --with-mailhost.
+These provide no new functionality, they just remove the need to edit
+lib-src/Makefile by hand in order to use the associated features.
+
 
 * Startup Changes in Emacs 24.1
 
 
 * Changes in Emacs 24.1
 
-** The scroll-bar is now on the right on GNU/Linux and UNIX-like systems.
+** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
 
@@ -57,13 +63,30 @@ choose a color via list-colors-display.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
+*** Special markup can be added to log-edit buffers.
+
+**** For Bzr, adding an
+Author: NAME
+line will add "--author NAME" to the "bzr commit" command.
+
+**** For Hg, adding an
+Author: NAME
+line will add "--user NAME" to the "hg commit" command.
+
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
 .dir-locals.el file, will turn on `whitespace-mode' for *vc-diff*
 buffers.
 
+** s-region.el is now declared obsolete, superceded by shift-select-mode
+enabled by default in 23.1.
+
 
 * New Modes and Packages in Emacs 24.1
+
+** secrets.el is an implementation of the Secret Service API, an
+interface to password managers like GNOME Keyring or KDE Wallet.  The
+Secret Service API requires D-Bus for communication.
 
 
 * Incompatible Lisp Changes in Emacs 24.1

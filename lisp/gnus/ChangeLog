@@ -1,3 +1,104 @@
+2010-03-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (netrc-machine-user-or-password): Autoload.
+
+2010-03-19  Glenn Morris  <rgm@gnu.org>
+
+	Stop message.el from loading about 40 libraries it doesn't always need.
+	The general approach is to autoload rather than require, and to
+	require in the specific functions rather than the file.  (Bug#5642)
+
+	* gmm-utils.el: Don't require wid-edit.
+	(widget-create-child-value, widget-convert, widget-default-get):
+	Autoload.
+
+	* gnus-util.el: Don't require time-date, netrc.
+	(message-fetch-field, gnus-group-name-decode): Declare rather than
+	autoloading.
+	(gnus-fetch-field): Require message.
+	(gnus-decode-newsgroups): Require gnus-group.
+
+	* ietf-drums.el: Don't require time-date.
+
+	* message.el: Don't require hashcash, canlock, ecomplete.
+	Do require mail-utils.  Require nnheader only when compiling.
+	(smtpmail-default-smtp-server): Remove declaration.
+	(message-send-mail-function): Check smtpmail-default-smtp-server
+	is bound rather than requiring smtpmail.
+	(message-auto-save-directory, message-insert-signature): Use
+	expand-file-name rather than nnheader-concat.
+	(nnheader-insert-file-contents): Autoload.
+	(hashcash-wait-async): Declare.
+	(message-send-mail): Only call gnus-setup-posting-charset if
+	gnus-group-posting-charset-alist is bound.  Require hashcash if needed.
+	(message-send-mail-with-sendmail): Require sendmail.
+	(canlock-password, canlock-password-for-verify): Declare.
+	(message-canlock-password): Require canlock.
+	(nnheader-get-report): Autoload.
+	(gnus-setup-posting-charset): Declare.
+	(message-send-news): Require gnus-msg.
+	(message-make-references, message-make-in-reply-to): Use mail-header-id
+	rather than the alias mail-header-message-id.
+	(ecomplete-add-item, ecomplete-save): Declare.
+	(message-put-addresses-in-ecomplete): Require ecomplete.
+	(ecomplete-display-matches): Autoload.
+
+	* mm-decode.el: Don't require mailcap, gnus-util.
+	(gnus-map-function, gnus-replace-in-string, gnus-read-shell-command)
+	(message-fetch-field, mailcap-parse-mailcaps, mailcap-mime-info):
+	Autoload.
+	(mailcap-mime-extensions): Declare.
+
+	* mm-encode.el: Don't require mailcap.
+	(mailcap-extension-to-mime): Autoload.
+
+	* mml-sec.el: Don't require password-cache.
+
+	* mml.el (gnus-setup-posting-charset): Declare rather than autoload.
+	(mailcap-parse-mimetypes, mailcap-mime-types): Declare.
+	(mml-minibuffer-read-type): Require mailcap.
+	(mml-preview): Require gnus-msg.
+
+	* mml1991.el: Require password-cache.
+	(password-cache-expiry): Remove declaration.
+
+	* mml2015.el: Require password-cache.
+	(password-cache-expiry): Remove declaration.
+
+	* nneething.el (mailcap): Require mailcap.
+
+	* nnheader.el: (declare-function): Add compatibility stub.
+	(message-remove-header): Declare rather than autoload.
+	(nnheader-replace-header): Require message.
+
+	* nnimap.el (declare-function): Add compatibility stub.
+	(netrc-parse, netrc-machine-user-or-password): Declare.
+	(nnimap-open-connection): Require netrc.
+
+	* nntp.el (declare-function): Add compatibility stub.
+	(netrc-parse, netrc-machine, netrc-get): Declare.
+	(nntp-send-authinfo): Require netrc.
+
+	* rfc2047.el: Don't require qp.
+	(quoted-printable-encode-region, quoted-printable-decode-string):
+	Autoload.
+
+	* sieve-mode.el: Don't require easymenu.
+	(easy-menu-add-item): Autoload it.
+
+	* spam-stat.el (time-to-number-of-days): Autoload it.
+
+2010-03-17  Kevin Ryde  <user42@zip.com.au>
+
+	* mml.el (mml-read-tag): Unquote values with `read' to reverse
+	prin1 in mml-insert-tag (just stripping the quotes gave wrong
+	value if any backslash escapes).
+
+2010-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-charset-to-coding-system): Use coding-system-from-name
+	if it is available.  (bug#5647)
+
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-send-mail-function): Change the default, so that

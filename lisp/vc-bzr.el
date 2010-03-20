@@ -451,11 +451,11 @@ or a superior directory.")
   "Unregister FILE from bzr."
   (vc-bzr-command "remove" nil 0 file "--keep"))
 
-(defun vc-bzr-checkin (files rev comment)
+(defun vc-bzr-checkin (files rev comment &optional extra-args)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
-  (vc-bzr-command "commit" nil 0 files "-m" comment))
+  (apply 'vc-bzr-command "commit" nil 0 files (append (list "-m" comment) extra-args)))
 
 (defun vc-bzr-find-revision (file rev buffer)
   "Fetch revision REV of file FILE and put it into BUFFER."
@@ -544,6 +544,20 @@ REV non-nil gets an error."
 	    (setq found t))
 	(goto-char (point-min)))
       found)))
+
+(defvar log-edit-extra-flags)
+(defvar log-edit-before-checkin-process)
+
+(define-derived-mode vc-bzr-log-edit-mode log-edit-mode "Bzr-Log-Edit"
+  "Mode for editing Bzr commit logs.
+If a line like:
+Author: NAME
+is present in the log, it is removed, and 
+--author NAME
+is passed to the bzr commit command."
+  (set (make-local-variable 'log-edit-extra-flags) nil)
+  (set (make-local-variable 'log-edit-before-checkin-process)
+       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--author" (match-string 1))))))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."

@@ -1,3 +1,7 @@
+2010-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* url.el: Move mailcap require earlier in the file.
+
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-vars.el (url): Put in comm group.

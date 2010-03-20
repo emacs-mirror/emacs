@@ -37,16 +37,13 @@
   :group 'maint
   :group 'mail)
 
+(define-obsolete-variable-alias 'report-emacs-bug-pretest-address
+  'report-emacs-bug-address "24.1")
+
 (defcustom report-emacs-bug-address "bug-gnu-emacs@gnu.org"
   "Address of mailing list for GNU Emacs bugs."
   :group 'emacsbug
   :type 'string)
-
-(defcustom report-emacs-bug-pretest-address "bug-gnu-emacs@gnu.org"
-  "Address of mailing list for GNU Emacs pretest bugs."
-  :group 'emacsbug
-  :type 'string
-  :version "23.2")                ; emacs-pretest-bug -> bug-gnu-emacs
 
 (defcustom report-emacs-bug-no-confirmation nil
   "If non-nil, suppress the confirmations asked for the sake of novice users."
@@ -75,6 +72,7 @@
 (declare-function x-server-vendor "xfns.c" (&optional terminal))
 (declare-function x-server-version "xfns.c" (&optional terminal))
 (declare-function message-sort-headers "message" ())
+(defvar message-strip-special-text-properties)
 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
@@ -89,32 +87,25 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (setq topic (concat emacs-version "; " topic))
     (when (string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
       (setq topic (concat (match-string 1 emacs-version) "; " topic))))
-  ;; If there are four numbers in emacs-version (three for MS-DOS),
-  ;; this is a pretest version.
-  (let* ((pretest-p (string-match (if (eq system-type 'ms-dos)
-				      "\\..*\\."
-				    "\\..*\\..*\\.")
-				  emacs-version))
-	 (from-buffer (current-buffer))
-	 (reporting-address (if pretest-p
-				report-emacs-bug-pretest-address
-			      report-emacs-bug-address))
-	 ;; Put these properties on semantically-void text.
-	 ;; report-emacs-bug-hook deletes these regions before sending.
-	 (prompt-properties '(field emacsbug-prompt
-				    intangible but-helpful
-				    rear-nonsticky t))
-	 user-point message-end-point)
+  (let ((from-buffer (current-buffer))
+        ;; Put these properties on semantically-void text.
+        ;; report-emacs-bug-hook deletes these regions before sending.
+        (prompt-properties '(field emacsbug-prompt
+                                   intangible but-helpful
+                                   rear-nonsticky t))
+        user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
-    (compose-mail reporting-address topic)
+    (compose-mail report-emacs-bug-address topic)
     ;; The rest of this does not execute if the user was asked to
     ;; confirm and said no.
-    ;; Message-mode sorts the headers before sending.  We sort now so
-    ;; that report-emacs-bug-orig-text remains valid.  (Bug#5178)
-    (if (eq major-mode 'message-mode)
-        (message-sort-headers))
+    (when (eq major-mode 'message-mode)
+      ;; Message-mode sorts the headers before sending.  We sort now so
+      ;; that report-emacs-bug-orig-text remains valid.  (Bug#5178)
+      (message-sort-headers)
+      ;; Stop message-mode stealing the properties we will add.
+      (set (make-local-variable 'message-strip-special-text-properties) nil))
     (rfc822-goto-eoh)
     (forward-line 1)
     (let ((signature (buffer-substring (point) (point-max))))
@@ -123,7 +114,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (backward-char (length signature)))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
-      (when (string-match "@gnu\\.org$" reporting-address)
+      (when (string-match "@gnu\\.org$" report-emacs-bug-address)
 	(insert "This bug report will be sent to the Free Software Foundation,\n")
 	(let ((pos (point)))
 	  (insert "not to your local site managers!")
@@ -135,17 +126,12 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (insert " if possible, because the Emacs maintainers
 usually do not have translators to read other languages for them.\n\n")
       (insert (format "Your bug report will be posted to the %s mailing list"
-		      reporting-address))
-      ;; Nowadays all bug reports end up there.
-;;;      (if pretest-p (insert ".\n\n")
+		      report-emacs-bug-address))
 	(insert ",\nand to the gnu.emacs.bug news group.\n\n"))
 
     (insert "Please describe exactly what actions triggered the bug\n"
 	    "and the precise symptoms of the bug.  If you can, give\n"
 	    "a recipe starting from `emacs -Q':\n\n")
-    ;; Stop message-mode stealing the properties we are about to add.
-    (if (boundp 'message-strip-special-text-properties)
-        (set (make-local-variable 'message-strip-special-text-properties) nil))
     (add-text-properties (save-excursion
                            (rfc822-goto-eoh)
                            (line-beginning-position 2))

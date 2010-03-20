@@ -566,6 +566,9 @@ is not available."
 ;;; 	 (eq charset (coding-system-get charset 'mime-charset))
 	 )
     charset)
+   ;; Use coding system Emacs knows.
+   ((and (fboundp 'coding-system-from-name)
+	 (coding-system-from-name charset)))
    ;; Eval expressions from `mm-charset-eval-alist'
    ((let* ((el (assq charset mm-charset-eval-alist))
 	   (cs (car el))

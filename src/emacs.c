@@ -345,7 +345,7 @@ abbreviation for a --option.\n\
 Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
 \n\
-Report bugs to %s.  First, please see the Bugs\n\
+Report bugs to bug-gnu-emacs@gnu.org.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
 
@@ -746,41 +746,6 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 #endif /* DOUG_LEA_MALLOC */
 
 
-#define REPORT_EMACS_BUG_ADDRESS "bug-gnu-emacs@gnu.org"
-#define REPORT_EMACS_BUG_PRETEST_ADDRESS "bug-gnu-emacs@gnu.org"
-
-/* This function is used to determine an address to which bug report should
-   be sent.  */
-
-char *
-bug_reporting_address ()
-{
-  int count = 0;
-  Lisp_Object temp;
-  char *string;
-
-  temp = Fsymbol_value (intern ("emacs-version"));
-
-  /* When `emacs-version' is invalid, use normal address.  */
-  if (!STRINGP(temp))
-    return REPORT_EMACS_BUG_ADDRESS;
-
-  string = SDATA (temp);
-
-  /* Count dots in `emacs-version'.  */
-  while (*string)
-    {
-      if (*string == '.')
-	count++;
-      string++;
-    }
-
-  /* When `emacs-version' has at least three dots, it is development or
-     pretest version of Emacs.  */
-  return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
-}
-
-
 /* ARGSUSED */
 int
 main (int argc, char **argv)
@@ -824,11 +789,6 @@ main (int argc, char **argv)
 
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
-
-#ifdef LINUX_SBRK_BUG
-  /* This is only used GNU/LINUX running on alpha when using libc5 */
-  __sbrk (1);
-#endif
 
 #ifdef RUN_TIME_REMAP
   if (initialized)
@@ -1082,7 +1042,7 @@ main (int argc, char **argv)
     {
       printf (USAGE1, argv[0], USAGE2);
       printf (USAGE3);
-      printf (USAGE4, bug_reporting_address ());
+      printf (USAGE4);
       exit (0);
     }
 
@@ -1851,9 +1811,6 @@ struct standard_args
 const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
-#ifdef HAVE_SHM
-  { "-nl", "--no-shared-memory", 140, 0 },
-#endif
   { "-t", "--terminal", 120, 1 },
   { "-nw", "--no-window-system", 110, 0 },
   { "-nw", "--no-windows", 110, 0 },
@@ -2245,39 +2202,6 @@ shut_down_emacs (sig, no_x, stuff)
 
 #ifndef CANNOT_DUMP
 
-#ifdef HAVE_SHM
-
-DEFUN ("dump-emacs-data", Fdump_emacs_data, Sdump_emacs_data, 1, 1, 0,
-       doc: /* Dump current state of Emacs into data file FILENAME.
-This function exists on systems that use HAVE_SHM.  */)
-     (filename)
-     Lisp_Object filename;
-{
-  extern char my_edata[];
-  Lisp_Object tem;
-
-  check_pure_size ();
-  CHECK_STRING (filename);
-  filename = Fexpand_file_name (filename, Qnil);
-
-  tem = Vpurify_flag;
-  Vpurify_flag = Qnil;
-
-  fflush (stdout);
-  /* Tell malloc where start of impure now is.  */
-  /* Also arrange for warnings when nearly out of space.  */
-#ifndef SYSTEM_MALLOC
-  memory_warnings (my_edata, malloc_warning);
-#endif
-  map_out_data (SDATA (filename));
-
-  Vpurify_flag = tem;
-
-  return Qnil;
-}
-
-#else /* not HAVE_SHM */
-
 DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
        doc: /* Dump current state of Emacs into executable file FILENAME.
 Take symbols from SYMFILE (presumably the file you executed to run Emacs).
@@ -2373,8 +2297,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   return unbind_to (count, Qnil);
 }
-
-#endif /* not HAVE_SHM */
 
 #endif /* not CANNOT_DUMP */
 
@@ -2552,11 +2474,7 @@ syms_of_emacs ()
   staticpro (&Qfile_name_handler_alist);
 
 #ifndef CANNOT_DUMP
-#ifdef HAVE_SHM
-  defsubr (&Sdump_emacs_data);
-#else
   defsubr (&Sdump_emacs);
-#endif
 #endif
 
   defsubr (&Skill_emacs);
