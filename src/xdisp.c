@@ -13036,13 +13036,16 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		  && eabs (g1->charpos - pt_old)
 		   < eabs (glyph->charpos - pt_old))))
 	return 0;
-      /* Keep the candidate that comes from a row spanning less buffer
-	 positions.  This may win when one or both candidate positions
-	 are on glyphs that came from display strings, for which we
-	 cannot compare buffer positions.  */
-      if (MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos))
-	  - MATRIX_ROW_START_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos))
-	  < MATRIX_ROW_END_CHARPOS (row) - MATRIX_ROW_START_CHARPOS (row))
+      /* If this candidate gives an exact match, use that.  */
+      if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
+	  /* Otherwise, keep the candidate that comes from a row
+	     spanning less buffer positions.  This may win when one or
+	     both candidate positions are on glyphs that came from
+	     display strings, for which we cannot compare buffer
+	     positions.  */
+	  && MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos))
+	     - MATRIX_ROW_START_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos))
+	     < MATRIX_ROW_END_CHARPOS (row) - MATRIX_ROW_START_CHARPOS (row))
 	return 0;
     }
   w->cursor.hpos = glyph - row->glyphs[TEXT_AREA];
@@ -13541,12 +13544,6 @@ try_cursor_movement (window, startp, scroll_step)
       && NILP (Vshow_trailing_whitespace)
       /* Right after splitting windows, last_point may be nil.  */
       && INTEGERP (w->last_point)
-      /* Can't use this optimization if rows were bidi-reordered and
-	 point moved backwards, because that would mean we would need
-	 to examine previous rows that came from the same continued
-	 line.  */
-      && (PT > XFASTINT (w->last_point)
-	  || NILP (XBUFFER (w->buffer)->bidi_display_reordering))
       /* This code is not used for mini-buffer for the sake of the case
 	 of redisplaying to replace an echo area message; since in
 	 that case the mini-buffer contents per se are usually
@@ -13597,6 +13594,32 @@ try_cursor_movement (window, startp, scroll_step)
 	    ++row;
 	  if (!row->enabled_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
+	  /* If rows are bidi-reordered, back up until we find a row
+	     that does not belong to a continuation line.  This is
+	     because we must consider all rows of a continued line as
+	     candidates for cursor positioning, since row start and
+	     end positions change non-linearly with vertical position
+	     in such rows.  */
+	  /* FIXME: Revisit this when glyph ``spilling'' in
+	     continuation lines' rows is implemented for
+	     bidi-reordered rows.  */
+	  if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	    {
+	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
+		{
+		  xassert (row->enabled_p);
+		  --row;
+		  /* If we hit the beginning of the displayed portion
+		     without finding the first row of a continued
+		     line, give up.  */
+		  if (row <= w->current_matrix->rows)
+		    {
+		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
+		      break;
+		    }
+
+		}
+	    }
 	}
 
       if (rc == CURSOR_MOVEMENT_CANNOT_BE_USED)
@@ -13724,8 +13747,11 @@ try_cursor_movement (window, startp, scroll_step)
 	    {
 	      /* With bidi-reordered rows, there could be more than
 		 one candidate row whose start and end positions
-		 occlude point.  We need to find the best
-		 candidate.  */
+		 occlude point.  We need to let set_cursor_from_row
+		 find the best candidate.  */
+	      /* FIXME: Revisit this when glyph ``spilling'' in
+		 continuation lines' rows is implemented for
+		 bidi-reordered rows.  */
 	      int rv = 0;
 
 	      do
@@ -17680,6 +17706,8 @@ display_line (it)
 	 buffer positions in ROW.  But if ROW was bidi-reordered,
 	 these two positions can be anywhere in the row, so we must
 	 rescan all of the ROW's glyphs to find them.  */
+      /* FIXME: Revisit this when glyph ``spilling'' in continuation
+	 lines' rows is implemented for bidi-reordered rows.  */
       EMACS_INT min_pos = ZV + 1, max_pos = 0;
       struct glyph *g;
       struct it save_it;
@@ -17807,6 +17835,8 @@ display_line (it)
 	  when a line is continued.  One exception: when we are at ZV,
 	  display cursor on the first suitable glyph row, since all
 	  the empty rows after that also have their position set to ZV.  */
+       /* FIXME: Revisit this when glyph ``spilling'' in continuation
+	  lines' rows is implemented for bidi-reordered rows.  */
        || (it->bidi_p
 	   && !MATRIX_ROW (it->w->desired_matrix, cvpos)->ends_at_zv_p))
       && PT >= MATRIX_ROW_START_CHARPOS (row)

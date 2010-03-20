@@ -1,3 +1,11 @@
+2010-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't miss a candidate row whose
+	glyph->charpos is an exact match for point.
+	(try_cursor_movement): Don't give up if rows are bidi-reordered
+	and point moved backwards.  Instead, back up to the row that is
+	not a continuation line.
+
 2010-03-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_cursor_movement): Give up if rows are
