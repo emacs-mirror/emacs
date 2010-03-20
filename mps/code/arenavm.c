@@ -1614,14 +1614,16 @@ static void VMFree(Addr base, Size size, Pool pool)
   /* @@@@ Chunks are never freed. */
 
   /* ... oh yes they are */
-  sparePagesPurge(vmArena);
-#if 0
-  /* destroy any empty chunks */
-  RING_FOR(node, &arena->chunkRing, next) {
-    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
-    vmChunkDestroy(chunk);
+  {
+    Ring node, next;
+    sparePagesPurge(vmArena);
+    /* destroy any empty chunks, a la vmChunkDestroy */
+    RING_FOR(node, &arena->chunkRing, next) {
+      /*Chunk */chunk = RING_ELT(Chunk, chunkRing, node);
+      if(BTIsResRange(chunk->allocTable, 0, chunk->pages))
+        vmChunkDestroy(chunk);
+    }
   }
-#endif
 
   return;
 }
