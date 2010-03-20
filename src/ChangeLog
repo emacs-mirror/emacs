@@ -1,5 +1,20 @@
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Consolidate redundant definitions in s/bsd-common.h.
+	* s/bsd-common.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Define (or undefine) here instead of
+	doing it in all files that include this one.
+	* s/gnu.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+	* s/freebsd.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+	* s/netbsd.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+
 	Consolidate redundant definitions.
 	* s/usg5-4.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not define,
 	it's undefined in all files that include this one.
