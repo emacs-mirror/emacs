@@ -1,3 +1,15 @@
+2010-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el: Use faces for font-lock customization, and make the
+	old -face variables obsolete.
+	(rst-block, rst-external, rst-definition, rst-directive, rst-comment)
+	(rst-emphasis1, rst-emphasis2, rst-literal, rst-reference): New faces.
+	(rst-block-face, rst-external-face, rst-definition-face)
+	(rst-directive-face, rst-comment-face, rst-emphasis1-face)
+	(rst-emphasis2-face, rst-literal-face, rst-reference-face):
+	Make obsolete.
+	(rst-font-lock-keywords-function): Update for above changes.
+
 2010-03-20  Juri Linkov  <juri@jurta.org>
 
 	* s-region.el:

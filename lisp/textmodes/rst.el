@@ -2585,62 +2585,132 @@ With prefix argument set the empty lines too."
   :group 'faces
   :version "21.1")
 
-(defcustom rst-block-face 'font-lock-keyword-face
+(defface rst-block '((t :inherit font-lock-keyword-face))
+  "Face used for all syntax marking up a special block."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-block-face 'rst-block
   "All syntax marking up a special block."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-block-face
+                        "customize the face `rst-block' instead."
+                        "24.1")
 
-(defcustom rst-external-face 'font-lock-type-face
+(defface rst-external '((t :inherit font-lock-type-face))
+  "Face used for field names and interpreted text."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-external-face 'rst-external
   "Field names and interpreted text."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-external-face
+                        "customize the face `rst-external' instead."
+                        "24.1")
 
-(defcustom rst-definition-face 'font-lock-function-name-face
+(defface rst-definition '((t :inherit font-lock-function-name-face))
+  "Face used for all other defining constructs."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-definition-face 'rst-definition
   "All other defining constructs."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-definition-face
+                        "customize the face `rst-definition' instead."
+                        "24.1")
 
-(defcustom rst-directive-face
-  ;; XEmacs compatibility
-  (if (boundp 'font-lock-builtin-face)
-      'font-lock-builtin-face
-    'font-lock-preprocessor-face)
+;; XEmacs compatibility (?).
+(defface rst-directive (if (boundp 'font-lock-builtin-face)
+                           '((t :inherit font-lock-builtin-face))
+                         '((t :inherit font-lock-preprocessor-face)))
+  "Face used for directives and roles."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-directive-face 'rst-directive
   "Directives and roles."
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-directive-face
+                        "customize the face `rst-directive' instead."
+                        "24.1")
 
-(defcustom rst-comment-face 'font-lock-comment-face
+(defface rst-comment '((t :inherit font-lock-comment-face))
+  "Face used for comments."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-comment-face 'rst-comment
   "Comments."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-comment-face
+                        "customize the face `rst-comment' instead."
+                        "24.1")
 
-(defcustom rst-emphasis1-face
-  ;; XEmacs compatibility
-  (if (facep 'italic)
-      ''italic
-    'italic)
+(defface rst-emphasis1 '((t :inherit italic))
+  "Face used for simple emphasis."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-emphasis1-face 'rst-emphasis1
   "Simple emphasis."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-emphasis1-face
+                        "customize the face `rst-emphasis1' instead."
+                        "24.1")
 
-(defcustom rst-emphasis2-face
-  ;; XEmacs compatibility
-  (if (facep 'bold)
-      ''bold
-    'bold)
+(defface rst-emphasis2 '((t :inherit bold))
+  "Face used for double emphasis."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-emphasis2-face 'rst-emphasis2
   "Double emphasis."
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-emphasis2-face
+                        "customize the face `rst-emphasis2' instead."
+                        "24.1")
 
-(defcustom rst-literal-face 'font-lock-string-face
+(defface rst-literal '((t :inherit font-lock-string-face))
+  "Face used for literal text."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-literal-face 'rst-literal
   "Literal text."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-literal-face
+                        "customize the face `rst-literal' instead."
+                        "24.1")
 
-(defcustom rst-reference-face 'font-lock-variable-name-face
+(defface rst-reference '((t :inherit font-lock-variable-name-face))
+  "Face used for references to a definition."
+  :version "24.1"
+  :group 'rst-faces)
+
+(defcustom rst-reference-face 'rst-reference
   "References to a definition."
+  :version "24.1"
   :group 'rst-faces
   :type '(face))
+(make-obsolete-variable 'rst-reference-face
+                        "customize the face `rst-reference' instead."
+                        "24.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2818,94 +2888,76 @@ details check the Rst Faces Defaults group."
 
      ;; Simple `Body Elements`_
      ;; `Bullet Lists`_
-     (list
-      (concat re-bol "\\([-*+]" re-blksep1 "\\)")
-      1 rst-block-face)
+     `(,(concat re-bol "\\([-*+]" re-blksep1 "\\)")
+       1 rst-block-face)
      ;; `Enumerated Lists`_
-     (list
-      (concat re-bol "\\((?\\(#\\|[0-9]+\\|[A-Za-z]\\|[IVXLCMivxlcm]+\\)[.)]"
-	      re-blksep1 "\\)")
-      1 rst-block-face)
+     `(,(concat re-bol "\\((?\\(#\\|[0-9]+\\|[A-Za-z]\\|[IVXLCMivxlcm]+\\)[.)]"
+                re-blksep1 "\\)")
+       1 rst-block-face)
      ;; `Definition Lists`_ FIXME: missing
      ;; `Field Lists`_
-     (list
-      (concat re-bol "\\(:[^:\n]+:\\)" re-blksep1)
-      1 rst-external-face)
+     `(,(concat re-bol "\\(:[^:\n]+:\\)" re-blksep1)
+       1 rst-external-face)
      ;; `Option Lists`_
-     (list
-      (concat re-bol "\\(\\(\\(\\([-+/]\\|--\\)\\sw\\(-\\|\\sw\\)*"
-	      "\\([ =]\\S +\\)?\\)\\(,[\t ]\\)?\\)+\\)\\($\\|[\t ]\\{2\\}\\)")
-      1 rst-block-face)
+     `(,(concat re-bol "\\(\\(\\(\\([-+/]\\|--\\)\\sw\\(-\\|\\sw\\)*"
+               "\\([ =]\\S +\\)?\\)\\(,[\t ]\\)?\\)+\\)\\($\\|[\t ]\\{2\\}\\)")
+       1 rst-block-face)
 
      ;; `Tables`_ FIXME: missing
 
      ;; All the `Explicit Markup Blocks`_
      ;; `Footnotes`_ / `Citations`_
-     (list
-      (concat re-bol "\\(" re-ems "\\[[^[\n]+\\]\\)" re-blksep1)
+     `(,(concat re-bol "\\(" re-ems "\\[[^[\n]+\\]\\)" re-blksep1)
       1 rst-definition-face)
      ;; `Directives`_ / `Substitution Definitions`_
-     (list
-      (concat re-bol "\\(" re-ems "\\)\\(\\(|[^|\n]+|[\t ]+\\)?\\)\\("
-	      re-sym1 "+::\\)" re-blksep1)
-      (list 1 rst-directive-face)
-      (list 2 rst-definition-face)
-      (list 4 rst-directive-face))
+     `(,(concat re-bol "\\(" re-ems "\\)\\(\\(|[^|\n]+|[\t ]+\\)?\\)\\("
+                re-sym1 "+::\\)" re-blksep1)
+       (1 rst-directive-face)
+       (2 rst-definition-face)
+       (4 rst-directive-face))
      ;; `Hyperlink Targets`_
-     (list
-      (concat re-bol "\\(" re-ems "_\\([^:\\`\n]\\|\\\\.\\|`[^`\n]+`\\)+:\\)"
-	      re-blksep1)
-      1 rst-definition-face)
-     (list
-      (concat re-bol "\\(__\\)" re-blksep1)
-      1 rst-definition-face)
+     `(,(concat re-bol "\\(" re-ems "_\\([^:\\`\n]\\|\\\\.\\|`[^`\n]+`\\)+:\\)"
+                re-blksep1)
+       1 rst-definition-face)
+     `(,(concat re-bol "\\(__\\)" re-blksep1)
+       1 rst-definition-face)
 
      ;; All `Inline Markup`_
      ;; FIXME: Condition 5 preventing fontification of e.g. "*" not implemented
      ;; `Strong Emphasis`_
-     (list
-      (concat re-imp1 "\\(\\*\\*" re-ima2 "\\*\\*\\)" re-ims1)
-      2 rst-emphasis2-face)
+     `(,(concat re-imp1 "\\(\\*\\*" re-ima2 "\\*\\*\\)" re-ims1)
+       2 rst-emphasis2-face)
      ;; `Emphasis`_
-     (list
-      (concat re-imp1 "\\(\\*" re-ima2 "\\*\\)" re-ims1)
-      2 rst-emphasis1-face)
+     `(,(concat re-imp1 "\\(\\*" re-ima2 "\\*\\)" re-ims1)
+       2 rst-emphasis1-face)
      ;; `Inline Literals`_
-     (list
-      (concat re-imp1 "\\(``" re-imb2 "``\\)" re-ims1)
-      2 rst-literal-face)
+     `(,(concat re-imp1 "\\(``" re-imb2 "``\\)" re-ims1)
+       2 rst-literal-face)
      ;; `Inline Internal Targets`_
-     (list
-      (concat re-imp1 "\\(_`" re-imb2 "`\\)" re-ims1)
-      2 rst-definition-face)
+     `(,(concat re-imp1 "\\(_`" re-imb2 "`\\)" re-ims1)
+       2 rst-definition-face)
      ;; `Hyperlink References`_
      ;; FIXME: `Embedded URIs`_ not considered
-     (list
-      (concat re-imp1 "\\(\\(`" re-imb2 "`\\|\\(\\sw\\(\\sw\\|-\\)+\\sw\\)\\)__?\\)" re-ims1)
+     `(,(concat re-imp1 "\\(\\(`" re-imb2 "`\\|\\(\\sw\\(\\sw\\|-\\)+\\sw\\)\\)__?\\)" re-ims1)
       2 rst-reference-face)
      ;; `Interpreted Text`_
-     (list
-      (concat re-imp1 "\\(\\(:" re-sym1 "+:\\)?\\)\\(`" re-imb2 "`\\)\\(\\(:"
-	      re-sym1 "+:\\)?\\)" re-ims1)
-      (list 2 rst-directive-face)
-      (list 5 rst-external-face)
-      (list 8 rst-directive-face))
+     `(,(concat re-imp1 "\\(\\(:" re-sym1 "+:\\)?\\)\\(`" re-imb2 "`\\)\\(\\(:"
+                re-sym1 "+:\\)?\\)" re-ims1)
+       (2 rst-directive-face)
+       (5 rst-external-face)
+       (8 rst-directive-face))
      ;; `Footnote References`_ / `Citation References`_
-     (list
-      (concat re-imp1 "\\(\\[[^]]+\\]_\\)" re-ims1)
-      2 rst-reference-face)
+     `(,(concat re-imp1 "\\(\\[[^]]+\\]_\\)" re-ims1)
+       2 rst-reference-face)
      ;; `Substitution References`_
-     (list
-      (concat re-imp1 "\\(|" re-imv2 "|\\)" re-ims1)
-      2 rst-reference-face)
+     `(,(concat re-imp1 "\\(|" re-imv2 "|\\)" re-ims1)
+       2 rst-reference-face)
      ;; `Standalone Hyperlinks`_
-     (list
-      ;; FIXME: This takes it easy by using a whitespace as delimiter
-      (concat re-imp1 "\\(" re-uris1 ":\\S +\\)" re-ims1)
-      2 rst-definition-face)
-     (list
-      (concat re-imp1 "\\(" re-sym1 "+@" re-sym1 "+\\)" re-ims1)
-      2 rst-definition-face)
+     `(;; FIXME: This takes it easy by using a whitespace as delimiter
+       ,(concat re-imp1 "\\(" re-uris1 ":\\S +\\)" re-ims1)
+       2 rst-definition-face)
+     `(,(concat re-imp1 "\\(" re-sym1 "+@" re-sym1 "+\\)" re-ims1)
+       2 rst-definition-face)
 
      ;; Do all block fontification as late as possible so 'append works
 
@@ -2914,7 +2966,7 @@ details check the Rst Faces Defaults group."
       (list
        re-ado2)
       (if (not rst-mode-lazy)
-	  (list 1 rst-block-face)
+	  '(1 rst-block-face)
 	(list
 	 (list 'rst-font-lock-handle-adornment
 	       '(progn
@@ -2934,7 +2986,7 @@ details check the Rst Faces Defaults group."
       (list
        (concat re-bol "\\(" re-ems "\\)\[^[|_]\\([^:\n]\\|:\\([^:\n]\\|$\\)\\)*$")
 
-       (list 1 rst-comment-face))
+       '(1 rst-comment-face))
       (if rst-mode-lazy
 	  (list
 	   (list 'rst-font-lock-find-unindented-line
@@ -2942,12 +2994,12 @@ details check the Rst Faces Defaults group."
 		    (setq rst-font-lock-indentation-point (match-end 1))
 		    (point-max))
 		 nil
-		 (list 0 rst-comment-face 'append)))))
+		 '(0 rst-comment-face append)))))
      (append
       (list
        (concat re-bol "\\(" re-emt "\\)\\(\\s *\\)$")
-       (list 1 rst-comment-face)
-       (list 2 rst-comment-face))
+       '(1 rst-comment-face)
+       '(2 rst-comment-face))
       (if rst-mode-lazy
 	  (list
 	   (list 'rst-font-lock-find-unindented-line
@@ -2955,13 +3007,13 @@ details check the Rst Faces Defaults group."
 		    (setq rst-font-lock-indentation-point 'next)
 		    (point-max))
 		 nil
-		 (list 0 rst-comment-face 'append)))))
+		 '(0 rst-comment-face append)))))
 
      ;; `Literal Blocks`_
      (append
       (list
        (concat re-bol "\\(\\([^.\n]\\|\\.[^.\n]\\).*\\)?\\(::\\)$")
-       (list 3 rst-block-face))
+       '(3 rst-block-face))
       (if rst-mode-lazy
 	  (list
 	   (list 'rst-font-lock-find-unindented-line
@@ -2969,14 +3021,14 @@ details check the Rst Faces Defaults group."
 		    (setq rst-font-lock-indentation-point t)
 		    (point-max))
 		 nil
-		 (list 0 rst-literal-face 'append)))))
+		 '(0 rst-literal-face append)))))
 
     ;; `Doctest Blocks`_
     (append
      (list
       (concat re-bol "\\(>>>\\|\\.\\.\\.\\)\\(.+\\)")
-      (list 1 rst-block-face)
-      (list 2 rst-literal-face)))
+      '(1 rst-block-face)
+      '(2 rst-literal-face)))
     )))
 
 
