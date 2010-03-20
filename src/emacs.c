@@ -790,11 +790,6 @@ main (int argc, char **argv)
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
 
-#ifdef LINUX_SBRK_BUG
-  /* This is only used GNU/LINUX running on alpha when using libc5 */
-  __sbrk (1);
-#endif
-
 #ifdef RUN_TIME_REMAP
   if (initialized)
     run_time_remap (argv[0]);

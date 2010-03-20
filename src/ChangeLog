@@ -1,5 +1,9 @@
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove support for old GNU/Linux using libc version 5.
+	* m/alpha.h (LINUX_SBRK_BUG): Remove definition.
+	* emacs.c (main): Remove code depending on LINUX_SBRK_BUG.
+
 	Consolidate redundant definitions in s/bsd-common.h.
 	* s/bsd-common.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
 	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
