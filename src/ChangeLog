@@ -1,3 +1,76 @@
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for old GNU/Linux using libc version 5.
+	* m/alpha.h (LINUX_SBRK_BUG): Remove definition.
+	* emacs.c (main): Remove code depending on LINUX_SBRK_BUG.
+
+	Consolidate redundant definitions in s/bsd-common.h.
+	* s/bsd-common.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Define (or undefine) here instead of
+	doing it in all files that include this one.
+	* s/gnu.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+	* s/freebsd.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+	* s/netbsd.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+
+	Consolidate redundant definitions.
+	* s/usg5-4.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not define,
+	it's undefined in all files that include this one.
+	(POSIX_SIGNALS): Define here instead of doing it in all files that
+	include this one.
+	* s/irix6-5.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+	* s/sol2-6.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+	* s/unixware.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+
+	Remove support for old UNIX System V systems.
+	* s/unixware.h: Add the contents of s/usg-5-4-2.h.
+	* s/usg-5-4-2.h: Remove.
+
+	Remove support for Solaris on PPC and for old versions.
+	* s/sol2-6.h: Add the contents of s/sol-2.3.h, s/sol-2.4.h, s/sol-2.5.h.
+	(LD_SWITCH_SYSTEM, USE_MMAP_FOR_BUFFERS): Remove #defines/#undef
+	that cancel each other.
+	* s/sol2-3.h:
+	* s/sol2-4.h:
+	* s/sol2-5.h: Remove.
+	* m/ibmrs6000.h: Remove code for USG5_4, this file is only used on AIX.
+	(NO_REMAP): Remove, unused.
+	(UNEXEC): Move definition ...
+	* s/aix4-2.h (UNEXEC): ... here.
+
+	* s/openbsd.h: Remove support for non-ELF and for systems that do
+	not support shared libraries.
+	* s/netbsd.h:
+	* s/freebsd.h: Likewise.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove non-working support for lynxos 3.0.
+	* s/lynxos.h: Remove file.
+
+	* unexec.c (unexec, adjust_lnnoptrs): Do not depend on
+	COFF_BSD_SYMBOLS, nothing defines it anymore.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove obsolete uses of HAVE_SHM.
+	* emacs.c (standard_args):
+	(Fdump_emacs):
+	(syms_of_emacs): Remove code depending on HAVE_SHM.
+
+	* alloc.c: Remove HAVE_SHM dependent definition.
+
+	* Makefile.in (RUN_TEMACS): Do not depend on HAVE_SHM.
+
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (USAGE4): Hard-code bug address.

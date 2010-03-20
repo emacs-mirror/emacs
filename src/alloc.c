@@ -257,8 +257,6 @@ Lisp_Object Vpurify_flag;
 
 Lisp_Object Vmemory_full;
 
-#ifndef HAVE_SHM
-
 /* Initialize it to a nonzero value to force it into data space
    (rather than bss space).  That way unexec will remap it into text
    space (pure), on some systems.  We have not implemented the
@@ -267,13 +265,6 @@ Lisp_Object Vmemory_full;
 
 EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
 #define PUREBEG (char *) pure
-
-#else /* HAVE_SHM */
-
-#define pure PURE_SEG_BITS   /* Use shared memory segment */
-#define PUREBEG (char *)PURE_SEG_BITS
-
-#endif /* HAVE_SHM */
 
 /* Pointer to the pure area, and its size.  */
 

@@ -22,44 +22,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-#if defined (__alpha__) && !defined (__ELF__)
-#define NO_SHARED_LIBS
-#endif
-
-/* For mem-limits.h.  */
-#define BSD4_2
-
-#undef KERNEL_FILE
-#undef LDAV_SYMBOL
 #define HAVE_GETLOADAVG 1
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-/* netbsd uses OXTABS instead of the expected TAB3.  */
-#define TABDLY OXTABS
-#define TAB3 OXTABS
-
-#define HAVE_TERMIOS
-#define NO_TERMIO
-
-#define LIBS_DEBUG
 /* -lutil is not needed for NetBSD >0.9.  */
 /* #define LIBS_SYSTEM -lutil */
 #define LIBS_TERMCAP -ltermcap
 
 #define NEED_ERRNO
-#define SYSV_SYSTEM_DIR
 
-/* Netbsd has POSIX-style pgrp behavior.  */
-#undef BSD_PGRPS
-
-#if !defined (NO_SHARED_LIBS) && defined (__ELF__)
 #define START_FILES pre-crt0.o /usr/lib/crt0.o START_FILES_1 /usr/lib/crtbegin.o
-#define UNEXEC unexelf.o
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o END_FILES_1
 #undef LIB_GCC
 #define LIB_GCC
-#endif
 
 #ifdef HAVE_CRTIN
 #define START_FILES_1 /usr/lib/crti.o 
@@ -71,7 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define AMPERSAND_FULL_NAME
 
-#ifdef __ELF__
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  We convert it to a -rpath option
    which is what OSF1 uses.  */
@@ -92,16 +67,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LD_SWITCH_SYSTEM_TEMACS -Wl,-z,nocombreloc
 
-#endif /* __ELF__ */
-
 /* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
    the library search parth, i.e. it won't search /usr/lib
    for libc and friends. Using -nostartfiles instead avoids
    this problem, and will also work on earlier NetBSD releases */
 
 #define LINKER $(CC) -nostartfiles
-
-#define NARROWPROTO 1
 
 #define DEFAULT_SOUND_DEVICE "/dev/audio"
 

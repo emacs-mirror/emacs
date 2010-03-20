@@ -1,3 +1,12 @@
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove support for old UNIX System V systems and
+	for Unixware on non-x86 machines.
+
+	* configure.in:	Remove support for Solaris on PPC and for old versions.
+
+	* configure.in: Remove non-working lynxos port.
+
 2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* .dir-locals.el (c-mode): Turn on whitespace-mode for diff-mode.
