@@ -1,3 +1,8 @@
+2010-03-20  Juri Linkov  <juri@jurta.org>
+
+	* s-region.el:
+	* obsolete/s-region.el: Move to obsolete.
+
 2010-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-dispatcher.el (vc-do-command): Remove reference to `vc-path'.

@@ -78,6 +78,9 @@ For example, adding "(diff-mode . ((mode . whitespace)))" to your
 .dir-locals.el file, will turn on `whitespace-mode' for *vc-diff*
 buffers.
 
+** s-region.el is now declared obsolete, superceded by shift-select-mode
+enabled by default in 23.1.
+
 
 * New Modes and Packages in Emacs 24.1
 
