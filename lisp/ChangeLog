@@ -1,3 +1,7 @@
+2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (hide-sublevels): Unfix the paren non-typo! (bug#5738).
+
 2010-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/rst.el: Use faces for font-lock customization, and make the
