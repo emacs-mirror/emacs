@@ -28,10 +28,20 @@ typedef struct RuleStruct {
 /* RulesGlobal -- throw away some diags (see INSTRUCTIONS below) */
 
 struct RuleStruct RulesGlobal[] = {
-  { "-", "*", "*", "*" },
+  { "+", "*", "*", "*" },
   { "+", "DiagFilter_Rules", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
-  { "+", "AMCTraceEnd_pageret", "*", "*" },
+  { "-", "AMCTraceEnd_pageret", "*", "*" },
+  { "+", "VM_ix_", "*", "*" },
+  { "-", "vmArenaExtend_", "*", "*" },
+  { "-", "traceFindGrey", "*", "*" },
+  { "+", "TraceStart", "*", "*" },
+  { "-", "TraceStart", "because code 1", "*" },
+  { "+", "TraceStart", "because code 2", "controlPool" },
+  { "+", "TraceStart", "because code 2", "reserved" },
+  { "+", "TraceStart", "because code 2", "committed" },
+  { "+", "TraceStart", "because code 2", "genZoneSet" },
+  { "+", "VM_ix_", "*", "*" },
   /* ----v---- always on please (RHSK) ----v---- */
   { "+", "traceSetSignalEmergency", "*", "*" },
   { NULL, "", "", "" }

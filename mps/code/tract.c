@@ -206,6 +206,10 @@ Res ChunkInit(Chunk chunk, Arena arena,
   chunk->pageTable = pageTable = p;
 
   /* @@@@ Is BootAllocated always right? */
+  /* Last thing we BootAlloc'd is pageTable.  We requested pageSize */
+  /* alignment, and pageTableSize is itself pageSize aligned, so */
+  /* BootAllocated should also be pageSize aligned. */
+  AVER(AddrIsAligned(BootAllocated(boot), pageSize));
   chunk->allocBase = (Index)(BootAllocated(boot) >> pageShift);
 
   /* Init allocTable after class init, because it might be mapped there. */
@@ -320,6 +324,7 @@ Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr)
   /* check cache first */
   if (arena->chunkCache.base <= addr && addr < arena->chunkCache.limit) {
     *chunkReturn = arena->chunkCache.chunk;
+    AVER_CRITICAL(*chunkReturn != NULL);
     return TRUE;
   }
   RING_FOR(node, &arena->chunkRing, next) {
