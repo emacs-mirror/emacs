@@ -853,11 +853,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
-#ifdef HAVE_SHM
-RUN_TEMACS = `/bin/pwd`/temacs -nl
-#else
 RUN_TEMACS = `/bin/pwd`/temacs
-#endif
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 

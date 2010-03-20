@@ -1816,9 +1816,6 @@ struct standard_args
 const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
-#ifdef HAVE_SHM
-  { "-nl", "--no-shared-memory", 140, 0 },
-#endif
   { "-t", "--terminal", 120, 1 },
   { "-nw", "--no-window-system", 110, 0 },
   { "-nw", "--no-windows", 110, 0 },
@@ -2210,39 +2207,6 @@ shut_down_emacs (sig, no_x, stuff)
 
 #ifndef CANNOT_DUMP
 
-#ifdef HAVE_SHM
-
-DEFUN ("dump-emacs-data", Fdump_emacs_data, Sdump_emacs_data, 1, 1, 0,
-       doc: /* Dump current state of Emacs into data file FILENAME.
-This function exists on systems that use HAVE_SHM.  */)
-     (filename)
-     Lisp_Object filename;
-{
-  extern char my_edata[];
-  Lisp_Object tem;
-
-  check_pure_size ();
-  CHECK_STRING (filename);
-  filename = Fexpand_file_name (filename, Qnil);
-
-  tem = Vpurify_flag;
-  Vpurify_flag = Qnil;
-
-  fflush (stdout);
-  /* Tell malloc where start of impure now is.  */
-  /* Also arrange for warnings when nearly out of space.  */
-#ifndef SYSTEM_MALLOC
-  memory_warnings (my_edata, malloc_warning);
-#endif
-  map_out_data (SDATA (filename));
-
-  Vpurify_flag = tem;
-
-  return Qnil;
-}
-
-#else /* not HAVE_SHM */
-
 DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
        doc: /* Dump current state of Emacs into executable file FILENAME.
 Take symbols from SYMFILE (presumably the file you executed to run Emacs).
@@ -2338,8 +2302,6 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   return unbind_to (count, Qnil);
 }
-
-#endif /* not HAVE_SHM */
 
 #endif /* not CANNOT_DUMP */
 
@@ -2517,11 +2479,7 @@ syms_of_emacs ()
   staticpro (&Qfile_name_handler_alist);
 
 #ifndef CANNOT_DUMP
-#ifdef HAVE_SHM
-  defsubr (&Sdump_emacs_data);
-#else
   defsubr (&Sdump_emacs);
-#endif
 #endif
 
   defsubr (&Skill_emacs);

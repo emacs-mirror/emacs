@@ -1,3 +1,14 @@
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove obsolete uses of HAVE_SHM.
+	* emacs.c (standard_args):
+	(Fdump_emacs):
+	(syms_of_emacs): Remove code depending on HAVE_SHM.
+
+	* alloc.c: Remove HAVE_SHM dependent definition.
+
+	* Makefile.in (RUN_TEMACS): Do not depend on HAVE_SHM.
+
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (USAGE4): Hard-code bug address.
