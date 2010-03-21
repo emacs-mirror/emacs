@@ -1,3 +1,8 @@
+2010-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/ibmrs6000.h (ORDINARY_LINK): Move definition ...
+	* s/aix4-2.h (ORDINARY_LINK): ... here.
+
 2010-03-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (abs_builddir): Define.
