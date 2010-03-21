@@ -63,7 +63,7 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
-bootstrap_exe = ../src/bootstrap-emacs${EXEEXT}
+bootstrap_exe = `pwd`/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 

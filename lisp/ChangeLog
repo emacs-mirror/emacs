@@ -1,3 +1,44 @@
+2010-03-21  Juri Linkov  <juri@jurta.org>
+
+	Fix message of multi-line occur regexps and multi-buffer header lines.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00457.html
+
+	* replace.el (occur-1): Don't display regexp if it is longer
+	than window-width.  Use `query-replace-descr' to display regexp.
+	(occur-engine): Don't display regexp in the buffer header for
+	multi-buffer occur.  Display a separate header line with total
+	match count and regexp for multi-buffer occur.
+	Use `query-replace-descr' to display regexp.
+
+2010-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/secrets.el: Fix parenthesis.
+	(secrets-enabled): Fix parenthesis.
+
+2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use more relative file and directory names.
+	* Makefile.in (EMACS): Arrange for it to work when we chdir.
+	(setwins, setwins_almost, setwins_for_subdirs):
+	Don't `cd'; output relative names.
+	(all, compile, compile-always, compile-last): Set emacswd.
+	(custom-deps, finder-data, autoloads, update-subdirs, compile-last):
+	Just cd to the lisp source dir so we can use relative file names.
+
+	* outline.el (hide-sublevels): Unfix the paren non-typo! (bug#5738).
+
+2010-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el: Use faces for font-lock customization, and make the
+	old -face variables obsolete.
+	(rst-block, rst-external, rst-definition, rst-directive, rst-comment)
+	(rst-emphasis1, rst-emphasis2, rst-literal, rst-reference): New faces.
+	(rst-block-face, rst-external-face, rst-definition-face)
+	(rst-directive-face, rst-comment-face, rst-emphasis1-face)
+	(rst-emphasis2-face, rst-literal-face, rst-reference-face):
+	Make obsolete.
+	(rst-font-lock-keywords-function): Update for above changes.
+
 2010-03-20  Juri Linkov  <juri@jurta.org>
 
 	* s-region.el:

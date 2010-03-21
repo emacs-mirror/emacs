@@ -149,7 +149,7 @@
 (require 'dbus)
 
 (defvar secrets-enabled nil
-  "Whether there is a daemon offering the Secret Service API."
+  "Whether there is a daemon offering the Secret Service API.")
 
 (defvar secrets-debug t
   "Write debug messages")
@@ -693,7 +693,7 @@ If there is no such item, or the item doesn't own this attribute, return nil."
 
   ;; We shall inform, whether the secret service is enabled on this
   ;; machine.
-  (setq secrets-enabled t)))
+  (setq secrets-enabled t))
 
 (provide 'secrets)
 
