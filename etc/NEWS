@@ -185,6 +185,7 @@ that file exists.
 
 ** LaTeX mode now provides completion (via completion-at-point).
 
+---
 ** sym-comp.el is now declared obsolete, superceded by completion-at-point.
 
 ** lucid.el and levents.el are now declared obsolete.
@@ -197,20 +198,16 @@ is similar to `pcomplete' but using the standard completion UI code.
 *** The Calc settings file is now a file named calc.el in
 user-emacs-directory; but the old location, ~/.calc.el, is used if
 that file exists.
-
 ---
 *** Graphing commands (`g f' etc.) now work on MS-Windows, if you have
 the native Windows port of Gnuplot version 3.8 or later installed.
 
 ** Calendar and diary
-
 +++
 *** Fancy diary display is now the default.
 If you prefer the simple display, customize `diary-display-function'.
-
 +++
 *** The diary's fancy display now enables view-mode.
-
 ---
 *** The command `calendar-current-date' accepts an optional argument
 giving an offset from today.
@@ -468,63 +465,88 @@ mode from `auto-mode-alist' (or Fundamental mode) and `image-minor-mode'.
 
 * Lisp changes in Emacs 23.2
 
-** make-network-socket can now also create `seqpacket' Unix sockets.
-
-** New function `completion-in-region' to use the standard completion
-facilities on a particular region of text.
-
-+++
-** The 4th arg to all-completions (aka hide-spaces) is declared obsolete.
-
----
-** read-file-name-predicate is obsolete.  It was used to pass the predicate
-to read-file-name-internal because read-file-name-internal abused its `pred'
-argument to pass the current directory, but this hack is not needed
-any more.
-
-** Frame parameter changes
-
-+++
-*** You can give the `fullscreen' frame parameter the value `maximized'.
-This maximizes the frame.
-
-+++
-*** The new frame parameter `sticky' makes Emacs frames sticky in
-virtual desktops.
-
----
-** completion-base-size is obsoleted by completion-base-position.
-This change causes a few backward incompatibilities, mostly with
-choose-completion-string-functions where the `mini-p' argument has
-been replaced by a `base-position' argument, and where the `base-size'
-argument is now always nil.
-
-** called-interactively-p now takes one argument and replaces interactive-p
-which is now marked obsolete.
-** New function set-advertised-calling-convention makes it possible
-to obsolete arguments as well as make some arguments mandatory.
-** eval-next-after-load is obsolete.
-** New hook `after-load-functions' run after loading an Elisp file.
-
-** You can control which binding is preferentially shown in menus and
-docstrings by adding a `:advertised-binding' property to the corresponding
-command's symbol.  That property can hold a single binding or a list
-of bindings.
-
-** New macro with-silent-modifications to tweak text properties without
-affecting the buffer's modification state.
 ** All the default-FOO variables that hold the default value of the FOO
 variable, are now declared obsolete.
 
 ** read-key is a function halfway between read-event and read-key-sequence.
 It reads a single key, but obeys input and escape sequence decoding.
 
-** start-process-shell-command and start-file-process-shell-command
+** Frame parameter changes
++++
+*** You can give the `fullscreen' frame parameter the value `maximized'.
+This maximizes the frame.
++++
+*** The new frame parameter `sticky' makes Emacs frames sticky in
+virtual desktops.
+
+** Completion changes
+
+*** completion-base-size is obsoleted by completion-base-position.
+This change causes a few backward incompatibilities, mostly with
+choose-completion-string-functions where the `mini-p' argument has
+been replaced by a `base-position' argument, and where the `base-size'
+argument is now always nil.
+
+*** New function `completion-in-region' to use the standard completion
+facilities on a particular region of text.
++++
+*** The 4th arg to all-completions (aka hide-spaces) is declared obsolete.
+
+*** completion-annotate-function specifies how to compute annotations
+for completions displayed in *Completions*.
+
+** Minibuffer changes
+---
+*** read-file-name-predicate is obsolete.  It was used to pass the predicate
+to read-file-name-internal because read-file-name-internal abused its `pred'
+argument to pass the current directory, but this hack is not needed
+any more.
+
+** Changes to file-manipulation functions
++++
+*** `delete-directory' has an optional parameter RECURSIVE.
+
++++
+*** New function `copy-directory', which copies a directory recursively.
+
+** called-interactively-p now takes one argument and replaces interactive-p
+which is now marked obsolete.
+
+** New function set-advertised-calling-convention makes it possible
+to obsolete arguments as well as make some arguments mandatory.
+
+** You can control which binding is preferentially shown in menus and
+docstrings by adding a `:advertised-binding' property to the corresponding
+command's symbol.  That property can hold a single binding or a list
+of bindings.
+
+** Network and process changes
+
+*** start-process-shell-command and start-file-process-shell-command
 now only take a single `command' argument.
 
-** The variable `process-file-side-effects' shall be bound to nil, if
+*** The variable `process-file-side-effects' shall be bound to nil, if
 a `process-file' call does not change a remote file.  By this, file
 name handlers like Tramp can apply optimizations.
+
+*** make-network-socket can now also create `seqpacket' Unix sockets.
+
+** Loading changes
+
+*** eval-next-after-load is obsolete.
+
+*** New hook `after-load-functions' run after loading an Elisp file.
+
+** Byte compilation changes
+---
+*** Changing the file-names generated by byte-compilation by redefining
+the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
+Instead, customize byte-compile-dest-file-function.
+---
+*** `byte-compile-warnings' has new members, `constants' and `suspicious'.
+
+** New macro with-silent-modifications to tweak text properties without
+affecting the buffer's modification state.
 
 +++
 ** Hash tables have a new printed representation that is readable.
@@ -539,24 +561,9 @@ ucs-normalize-NFKC-region, ucs-normalize-NFKC-string,
 ucs-normalize-HFS-NFD-region, ucs-normalize-HFS-NFD-string,
 ucs-normalize-HFS-NFC-region, ucs-normalize-HFS-NFC-string.
 
-** completion-annotate-function specifies how to compute annotations
-for completions displayed in *Completions*.
-
 +++
 ** Face aliases can now be marked as obsolete, using the macro
 `define-obsolete-face-alias'.
-
----
-** Changing the file-names generated by byte-compilation by redefining
-the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
-Instead, customize byte-compile-dest-file-function.
-
----
-** `byte-compile-warnings' has new members, `constants' and `suspicious'.
-
-** `delete-directory' has an optional parameter RECURSIVE.
-
-** New function `copy-directory', which copies a directory recursively.
 
 +++
 ** New function `window-full-height-p', analogous to the full-width version.
