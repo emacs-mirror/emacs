@@ -1332,14 +1332,15 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
    separately below.
    With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"  */
 .el.elc:
-	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
-	                     THEFILE=$< EMACS=${bootstrap_exe}
+	@EMACS=${bootstrap_exe}; \
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile THEFILE=$< EMACS=$$EMACS
 
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
 ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
-	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
+	EMACS=${bootstrap_exe}; \
+	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=$$EMACS
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
@@ -1353,7 +1354,8 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	@: Compile some files earlier to speed up further compilation.
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
+	EMACS=${bootstrap_exe}; \
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=$$EMACS
 
 #ifdef AUTO_DEPEND
 ALLOBJS=$(STARTFILES) ${obj} ${otherobj} prefix-args.o
