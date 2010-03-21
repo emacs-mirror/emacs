@@ -1,3 +1,11 @@
+2010-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Other Repeating Search): Document multi-isearch-buffers
+	and multi-isearch-buffers-regexp.
+
+	* indent.texi (Indentation): Clarify description of
+	indent-for-tab-command.  Document tab-always-indent.
+
 2010-03-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cmdargs.texi (Font X): Move most content to Fonts.
