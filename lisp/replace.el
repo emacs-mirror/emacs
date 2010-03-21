@@ -1166,12 +1166,15 @@ See also `multi-occur'."
 		      (not (eq occur-excluded-properties t)))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
-	    (message "Searched %d buffer%s%s; %s match%s for `%s'"
+	    (message "Searched %d buffer%s%s; %s match%s%s"
 		     bufcount (if (= bufcount 1) "" "s")
 		     (if (zerop diff) "" (format " (%d killed)" diff))
 		     (if (zerop count) "no" (format "%d" count))
 		     (if (= count 1) "" "es")
-		     regexp))
+		     ;; Don't display regexp if with remaining text
+		     ;; it is longer than window-width.
+		     (if (> (+ (length regexp) 42) (window-width))
+			 "" (format " for `%s'" (query-replace-descr regexp)))))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)
@@ -1298,9 +1301,13 @@ See also `multi-occur'."
 		(goto-char headerpt)
 		(let ((beg (point))
 		      end)
-		  (insert (format "%d match%s for \"%s\" in buffer: %s\n"
+		  (insert (format "%d match%s%s in buffer: %s\n"
 				  matches (if (= matches 1) "" "es")
-				  regexp (buffer-name buf)))
+				  ;; Don't display regexp for multi-buffer.
+				  (if (> (length buffers) 1)
+				      "" (format " for \"%s\""
+						 (query-replace-descr regexp)))
+				  (buffer-name buf)))
 		  (setq end (point))
 		  (add-text-properties beg end
 				       (append
@@ -1308,6 +1315,18 @@ See also `multi-occur'."
 					  `(font-lock-face ,title-face))
 					`(occur-title ,buf))))
 		(goto-char (point-min)))))))
+      ;; Display total match count and regexp for multi-buffer.
+      (when (and (not (zerop globalcount)) (> (length buffers) 1))
+	(goto-char (point-min))
+	(let ((beg (point))
+	      end)
+	  (insert (format "%d match%s total for \"%s\":\n"
+			  globalcount (if (= globalcount 1) "" "es")
+			  (query-replace-descr regexp)))
+	  (setq end (point))
+	  (add-text-properties beg end (when title-face
+					 `(font-lock-face ,title-face))))
+	(goto-char (point-min)))
       (if coding
 	  ;; CODING is buffer-file-coding-system of the first buffer
 	  ;; that locally binds it.  Let's use it also for the output
