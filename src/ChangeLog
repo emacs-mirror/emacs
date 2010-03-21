@@ -1,5 +1,8 @@
 2010-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/vax.h (BSD_SYSTEM, BSD4_2): Remove conditionals, we only
+	support vax on BSDs.
+
 	* m/ibmrs6000.h (ORDINARY_LINK): Move definition ...
 	* s/aix4-2.h (ORDINARY_LINK): ... here.
 
