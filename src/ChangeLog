@@ -1,8 +1,8 @@
 2010-03-21  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* Makefile.in (.el.elc): Expand ${bootstrap_exe} before chdir.
-	(${lispsource}loaddefs.el): Likewise.
-	(bootstrap-emacs${EXEEXT}): Likewise.
+	* Makefile.in (abs_builddir): Define.
+	(bootstrap_exe): Use it.
+	(VPATH): Use $(srcdir) instead of @srcdir@.
 
 2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

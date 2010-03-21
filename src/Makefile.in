@@ -33,16 +33,17 @@
 
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
-srcdir=@srcdir@
-VPATH=@srcdir@
-CC=@CC@
-CPP=@CPP@
-CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@
-LDFLAGS=@LDFLAGS@
-LN_S=@LN_S@
-EXEEXT=@EXEEXT@
-version=@version@
+srcdir = @srcdir@
+abs_builddir = @abs_builddir@
+VPATH = $(srcdir)
+CC = @CC@
+CPP = @CPP@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LN_S = @LN_S@
+EXEEXT = @EXEEXT@
+version = @version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
@@ -63,7 +64,7 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
-bootstrap_exe = `pwd`/bootstrap-emacs${EXEEXT}
+bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
@@ -1332,15 +1333,14 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
    separately below.
    With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"  */
 .el.elc:
-	@EMACS=${bootstrap_exe}; \
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile THEFILE=$< EMACS=$$EMACS
+	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
+	                     THEFILE=$< EMACS=${bootstrap_exe}
 
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
 ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
-	EMACS=${bootstrap_exe}; \
-	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=$$EMACS
+	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
@@ -1354,8 +1354,7 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	@: Compile some files earlier to speed up further compilation.
-	EMACS=${bootstrap_exe}; \
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=$$EMACS
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
 
 #ifdef AUTO_DEPEND
 ALLOBJS=$(STARTFILES) ${obj} ${otherobj} prefix-args.o
