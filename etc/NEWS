@@ -335,22 +335,17 @@ displayed in the *vc-dir* header, shelves can be created, removed and applied.
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
 ** Elint
-
 ---
 *** Elint now uses compilation-mode.
-
 ---
 *** Elint can now scan individual files and whole directories,
 and can be run in batch mode.
-
 ---
 *** Elint does a more thorough initialization, and recognizes more built-in
 functions and variables.  Customize `elint-scan-preloaded' if you want
 to sacrifice some accuracy for a faster startup.
-
 ---
 *** Elint attempts some basic understanding of featurep and (f)boundp tests.
-
 ---
 *** Customize `elint-ignored-warnings' to suppress some warnings.
 
@@ -373,19 +368,16 @@ the specified regexp.  Interactively `multi-isearch-files' and
 `multi-isearch-files-regexp' read file names to search, one by one,
 ended with RET.  With a prefix argument, they ask for a wildcard, and
 search in file buffers whose file names match the specified wildcard.
-
 +++
 *** Autorevert Tail mode now works also for remote files.
-
 +++
 *** The new built-in commands `su' and `sudo' support Tramp.
 That means, they change `default-directory' to the new users value,
 and let commands run under that user permissions.  It works even when
 `default-directory' is already remote.  Calling the external commands
 is possible by `*su' or `*sudo', repectively.
-
 ---
-*** When running in a new enough xterm (newer than version 242), emacs
+*** When running in a new enough xterm (newer than version 242), Emacs
 asks xterm what the background color is and it sets up faces
 accordingly for a dark background if needed (the current default is to
 consider the background light).
@@ -505,7 +497,6 @@ any more.
 ** Changes to file-manipulation functions
 +++
 *** `delete-directory' has an optional parameter RECURSIVE.
-
 +++
 *** New function `copy-directory', which copies a directory recursively.
 
@@ -521,15 +512,15 @@ command's symbol.  That property can hold a single binding or a list
 of bindings.
 
 ** Network and process changes
-
++++
 *** start-process-shell-command and start-file-process-shell-command
 now only take a single `command' argument.
-
-*** The variable `process-file-side-effects' shall be bound to nil, if
-a `process-file' call does not change a remote file.  By this, file
-name handlers like Tramp can apply optimizations.
-
-*** make-network-socket can now also create `seqpacket' Unix sockets.
++++
+*** The new variable `process-file-side-effects' should be set to nil
+if a `process-file' call does not change a remote file.  This allows
+file name handlers such as Tramp to optimizations.
++++
+*** make-network-process can now also create `seqpacket' Unix sockets.
 
 ** Loading changes
 

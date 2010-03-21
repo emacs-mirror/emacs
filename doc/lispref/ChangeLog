@@ -1,3 +1,7 @@
+2010-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Network Processes): Document seqpacket type.
+
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* objects.texi (Integer Type): Take note of the read syntax
