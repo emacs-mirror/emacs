@@ -222,9 +222,9 @@ exempt buffers that do correspond to files, customize the value of
 `desktop-files-not-to-save' instead.
 
 ** Dired
-
-*** The new variable `dired-auto-revert-buffer' allows to revert
-dired buffers automatically on revisiting.
++++
+*** The new variable `dired-auto-revert-buffer', if non-nil, causes
+Dired buffers to be reverted automatically on revisiting them.
 
 ** DocView
 
@@ -544,7 +544,7 @@ affecting the buffer's modification state.
 The feature `hashtable-print-readable' identifies this new
 functionality.
 
-** New functions performing Unicode normalization are added:
+** New functions for performing Unicode normalization:
 ucs-normalize-NFD-region, ucs-normalize-NFD-string,
 ucs-normalize-NFC-region, ucs-normalize-NFC-string,
 ucs-normalize-NFKD-region, ucs-normalize-NFKD-string,

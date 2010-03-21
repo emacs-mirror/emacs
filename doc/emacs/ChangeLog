@@ -1,5 +1,7 @@
 2010-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.texi (Dired Updating): Document dired-auto-revert-buffer.
+
 	* search.texi (Other Repeating Search): Document multi-isearch-buffers
 	and multi-isearch-buffers-regexp.
 
