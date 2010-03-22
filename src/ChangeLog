@@ -1,5 +1,17 @@
 2010-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove dead code dealing with POSIX_SIGNALS.
+	* atimer.c (set_alarm): Remove dead code, all USG systems define
+	POSIX_SIGNALS.
+	* data.c (arith_error): Likewise.
+	* keyboard.c (input_available_signal, handle_user_signal)
+	(interrupt_signal): Likewise.
+	* process.c (sigchld_handler): Likewise.
+	(create_process): Remove if 0 code.  Remove HPUX conditional when
+	!defined (POSIX_SIGNALS), it cannot be true.
+	* syssignal.h: Remove USG5_4 and USG conditionals when
+	!POSIX_SIGNALS, they cannot be true.
+
 	* keyboard.c (Fset_input_interrupt_mode): Remove code depending on
 	NO_SOCK_SIGIO, not used anymore.
 

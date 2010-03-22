@@ -296,12 +296,6 @@ unwind_stop_other_atimers (dummy)
 static void
 set_alarm ()
 {
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time.  */
-  signal (SIGALRM, alarm_signal_handler);
-#endif /* USG */
-
   if (atimers)
     {
       EMACS_TIME now, time;

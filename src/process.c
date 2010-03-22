@@ -1878,13 +1878,7 @@ create_process (process, new_argv, current_dir)
 #ifdef AIX
   struct sigaction sighup_action;
 #endif
-#else /* !POSIX_SIGNALS */
-#if 0
-#ifdef SIGCHLD
-  SIGTYPE (*sigchld)();
-#endif
-#endif /* 0 */
-#endif /* !POSIX_SIGNALS */
+#endif /* POSIX_SIGNALS */
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
@@ -2008,14 +2002,9 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_BLOCK, &blocked, &procmask);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
   sigsetmask (sigmask (SIGCHLD));
-#else /* ordinary USG */
-#if 0
-  sigchld_deferred = 0;
-  sigchld = signal (SIGCHLD, create_process_sigchld);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2172,13 +2161,9 @@ create_process (process, new_argv, current_dir)
 	sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
 	sigsetmask (SIGEMPTYMASK);
-#else /* ordinary USG */
-#if 0
-	signal (SIGCHLD, sigchld);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2275,17 +2260,9 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
   sigsetmask (SIGEMPTYMASK);
-#else /* ordinary USG */
-#if 0
-  signal (SIGCHLD, sigchld);
-  /* Now really handle any of these signals
-     that came in during this function.  */
-  if (sigchld_deferred)
-    kill (getpid (), SIGCHLD);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -6704,11 +6681,6 @@ sigchld_handler (signo)
 	  /* PID == 0 means no processes found, PID == -1 means a real
 	     failure.  We have done all our job, so return.  */
 
-	  /* USG systems forget handlers when they are used;
-	     must reestablish each time */
-#if defined (USG) && !defined (POSIX_SIGNALS)
-	  signal (signo, sigchld_handler);   /* WARNING - must come after wait3() */
-#endif
 	  errno = old_errno;
 	  return;
 	}
@@ -6809,9 +6781,6 @@ sigchld_handler (signo)
 #if (defined WINDOWSNT \
      || (defined USG && !defined GNU_LINUX \
 	 && !(defined HPUX && defined WNOHANG)))
-#if defined (USG) && ! defined (POSIX_SIGNALS)
-      signal (signo, sigchld_handler);
-#endif
       errno = old_errno;
       return;
 #endif /* USG, but not HPUX with WNOHANG */
