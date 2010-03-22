@@ -85,8 +85,10 @@ special; we don't actually use them here."
 (defun indent-for-tab-command (&optional arg)
   "Indent line or region in proper way for current major mode or insert a tab.
 Depending on `tab-always-indent', either insert a tab or indent.
-If initial point was within line's indentation, position after
-the indentation.  Else stay at same point in text.
+
+In most major modes, if point was in the current line's indentation,
+it is moved to the first non-whitespace character after indenting;
+otherwise it stays at the same position in the text.
 
 If a prefix argument is given, also rigidly indent the entire
 balanced expression which starts at the beginning of the current

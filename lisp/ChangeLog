@@ -1,3 +1,7 @@
+2010-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.el (indent-for-tab-command): Doc fix.
+
 2010-03-22  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-remove-stale-state-cache): Fix
