@@ -87,6 +87,10 @@ static void *myrootAmbig[myrootAmbigCOUNT];
 #define myrootExactCOUNT 30000
 static void *myrootExact[myrootExactCOUNT];
 
+static mps_root_t root_stackreg;
+static void *stack_start;
+static mps_thr_t stack_thr;
+
 
 static unsigned long cols(size_t bytes)
 {
@@ -125,19 +129,28 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
 }
 
 
-/* print_M -- print count of bytes as Mebibytes with decimal fraction 
+/* print_M -- print count of bytes as Mebibytes or Megabytes
  *
- * Input:   208896
- * Output:  0m199
+ * Print as a whole number, "m" for the decimal point, and 
+ * then the decimal fraction.
+ *
+ * Input:                208896
+ * Output:  (Mebibytes)  0m199
+ * Output:  (Megabytes)  0m209
  */
+#if 0
+#define bPerM (1UL << 20)  /* Mebibytes */
+#else
+#define bPerM (1000000UL)  /* Megabytes */
+#endif
 static void print_M(size_t bytes)
 {
-  size_t M;  /* Mebibytes */
-  double Mfrac;  /* fraction of a Mebibyte */
+  size_t M;  /* M thingies */
+  double Mfrac;  /* fraction of an M thingy */
 
-  M = bytes / (1UL<<20);
-  Mfrac = (double)(bytes % (1UL<<20));
-  Mfrac = (Mfrac / (1UL<<20));
+  M = bytes / bPerM;
+  Mfrac = (double)(bytes % bPerM);
+  Mfrac = (Mfrac / bPerM);
 
   printf("%1lum%03.f", M, Mfrac * 1000);
 }
@@ -165,6 +178,7 @@ static void showStatsText(size_t notcon, size_t con, size_t live)
 /* get -- get messages
  *
  */
+#define get_print_times 0
 static void get(mps_arena_t arena)
 {
   mps_message_type_t type;
@@ -183,8 +197,10 @@ static void get(mps_arena_t arena)
     switch(type) {
       case mps_message_type_gc_start(): {
         mclockBegin = mps_message_clock(arena, message);
+#if get_print_times
         printf("    %5lu: (%5lu)",
                mclockBegin, mclockBegin - mclockEnd);
+#endif
         printf("    Coll Begin                                     (%s)\n",
                mps_message_gc_start_why(arena, message));
         break;
@@ -198,8 +214,10 @@ static void get(mps_arena_t arena)
 
         mclockEnd = mps_message_clock(arena, message);
         
+#if get_print_times
         printf("    %5lu: (%5lu)",
                mclockEnd, mclockEnd - mclockBegin);
+#endif
         printf("    Coll End  ");
         showStatsText(notcon, con, live);
         if(rnd()==0) showStatsAscii(notcon, con, live, alimit);
@@ -444,7 +462,21 @@ static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_
 }
 
 
-static void Make(mps_arena_t arena, mps_ap_t ap, unsigned keep1in, unsigned keepTotal, unsigned keepRootspace, unsigned sizemethod)
+/* df -- diversity function
+ *
+ * Either deterministic based on "number", or 'random' (ie. call rnd).
+ */
+
+static unsigned long df(unsigned randm, unsigned number)
+{
+  if(randm == 0) {
+    return number;
+  } else {
+    return rnd();
+  }
+}
+
+static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1in, unsigned keepTotal, unsigned keepRootspace, unsigned sizemethod)
 {
   unsigned keepCount = 0;
   unsigned long objCount = 0;
@@ -463,7 +495,15 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned keep1in, unsigned keep
       }
       case 1: {
         slots = 2;
-        if(rnd() % 10000 == 0) {
+        if(df(randm, objCount) % 10000 == 0) {
+          printf("*");
+          slots = 300000;
+        }
+        break;
+      }
+      case 2: {
+        slots = 2;
+        if(df(randm, objCount) % 6661 == 0) {  /* prime */
           printf("*");
           slots = 300000;
         }
@@ -479,9 +519,9 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned keep1in, unsigned keep
     DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
     DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
     objCount++;
-    if(rnd() % keep1in == 0) {
+    if(df(randm, objCount) % keep1in == 0) {
       /* keep this one */
-      myrootExact[rnd() % keepRootspace] = (void*)v;
+      myrootExact[df(randm, keepCount) % keepRootspace] = (void*)v;
       keepCount++;
     }
     get(arena);
@@ -494,13 +534,76 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned keep1in, unsigned keep
 }
 
 
+static void Rootdrop(char rank_char)
+{
+  unsigned long i;
+  
+  if(rank_char == 'A') {
+    for(i = 0; i < myrootAmbigCOUNT; ++i) {
+      myrootAmbig[i] = NULL;
+    }
+  } else if(rank_char == 'E') {
+    for(i = 0; i < myrootExactCOUNT; ++i) {
+      myrootExact[i] = NULL;
+    }
+  } else {
+    cdie(0, "Rootdrop: rank must be 'A' or 'E'.\n");
+  }
+}
+
+
+#define stackwipedepth 50000
+static void stackwipe(void)
+{
+  unsigned iw;
+  unsigned long aw[stackwipedepth];
+  
+  /* http://xkcd.com/710/ */
+  /* I don't want my friends to stop calling; I just want the */
+  /* compiler to stop optimising away my code. */
+  
+  /* Do you ever get two even numbers next to each other?  Hmmmm :-) */
+  for(iw = 0; iw < stackwipedepth; iw++) {
+    if((iw & 1) == 0) {
+      aw[iw] = 1;
+    } else {
+      aw[iw] = 0;
+    }
+  }
+  for(iw = 1; iw < stackwipedepth; iw++) {
+    if(aw[iw - 1] + aw[iw] != 1) {
+      printf("Errrr....\n");
+      break;
+    }
+  }
+}
+
+
+static void StackScan(mps_arena_t arena, int on)
+{
+  if(on) {
+    Insist(root_stackreg == NULL);
+    die(mps_root_create_reg(&root_stackreg, arena,
+                            mps_rank_ambig(), (mps_rm_t)0, stack_thr,
+                            mps_stack_scan_ambig, stack_start, 0),
+        "root_stackreg");
+    Insist(root_stackreg != NULL);
+  } else {
+    Insist(root_stackreg != NULL);
+    mps_root_destroy(root_stackreg);
+    root_stackreg = NULL;
+    Insist(root_stackreg == NULL);
+  }
+}
+
+
 /* checksi -- check count of sscanf items is correct
  */
 
 static void checksi(int si, int si_shouldBe, const char *script, const char *scriptAll)
 {
   if(si != si_shouldBe) {
-    printf("bad script command %s (full script %s).\n", script, scriptAll);
+    printf("bad script command (sscanf found wrong number of params) %s (full script %s).\n", script, scriptAll);
     cdie(FALSE, "bad script command!");
   }
 }
@@ -521,6 +624,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         checksi(si, 0, script, scriptAll);
         script += sb;
         printf("  Collect\n");
+        stackwipe();
         mps_arena_collect(arena);
         mps_arena_release(arena);
         break;
@@ -546,17 +650,48 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       case 'M': {
+        unsigned randm = 0;
         unsigned keep1in = 0;
         unsigned keepTotal = 0;
         unsigned keepRootspace = 0;
         unsigned sizemethod = 0;
-        si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u)%n",
-                    &keep1in, &keepTotal, &keepRootspace, &sizemethod, &sb);
-        checksi(si, 4, script, scriptAll);
+        si = sscanf(script, "Make(random %u, keep-1-in %u, keep %u, rootspace %u, sizemethod %u)%n",
+                    &randm, &keep1in, &keepTotal, &keepRootspace, &sizemethod, &sb);
+        checksi(si, 5, script, scriptAll);
         script += sb;
-        printf("  Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u).\n",
-               keep1in, keepTotal, keepRootspace, sizemethod);
-        Make(arena, ap, keep1in, keepTotal, keepRootspace, sizemethod);
+        printf("  Make(random %u, keep-1-in %u, keep %u, rootspace %u, sizemethod %u).\n",
+               randm, keep1in, keepTotal, keepRootspace, sizemethod);
+        Make(arena, ap, randm, keep1in, keepTotal, keepRootspace, sizemethod);
+        break;
+      }
+      case 'R': {
+        char drop_ref = ' ';
+        si = sscanf(script, "Rootdrop(rank %c)%n",
+                       &drop_ref, &sb);
+        checksi(si, 1, script, scriptAll);
+        script += sb;
+        printf("  Rootdrop(rank %c)\n", drop_ref);
+        Rootdrop(drop_ref);
+        break;
+      }
+      case 'S': {
+        unsigned on = 0;
+        si = sscanf(script, "StackScan(%u)%n",
+                       &on, &sb);
+        checksi(si, 1, script, scriptAll);
+        script += sb;
+        printf("  StackScan(%u)\n", on);
+        StackScan(arena, on);
+        break;
+      }
+      case 'Z': {
+        unsigned long s0;
+        si = sscanf(script, "ZRndStateSet(%lu)%n",
+                       &s0, &sb);
+        checksi(si, 1, script, scriptAll);
+        script += sb;
+        printf("  ZRndStateSet(%lu)\n", s0);
+        rnd_state_set(s0);
         break;
       }
       case ' ':
@@ -603,7 +738,6 @@ static void *testscriptB(void *arg, size_t s)
   mps_root_t root_table_Ambig;
   mps_root_t root_table_Exact;
   mps_ap_t ap;
-  mps_root_t root_stackreg;
   void *stack_starts_here;  /* stack scanning starts here */
 
   Insist(s == sizeof(trampDataStruct));
@@ -634,9 +768,11 @@ static void *testscriptB(void *arg, size_t s)
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create");
   
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
+  stack_start = &stack_starts_here;
+  stack_thr = thr;
   die(mps_root_create_reg(&root_stackreg, arena,
-                          mps_rank_ambig(), (mps_rm_t)0, thr,
-                          mps_stack_scan_ambig, &stack_starts_here, 0),
+                          mps_rank_ambig(), (mps_rm_t)0, stack_thr,
+                          mps_stack_scan_ambig, stack_start, 0),
       "root_stackreg");
 
 
@@ -701,8 +837,8 @@ static void testscriptA(const char *script)
  */
 int main(int argc, char **argv)
 {
-
   randomize(argc, argv);
+  
   /* 1<<19 == 524288 == 1/2 Mebibyte */
   /* 16<<20 == 16777216 == 16 Mebibyte */
 
@@ -710,8 +846,24 @@ int main(int argc, char **argv)
   /* This is bogus!  sizemethod 1 can make a 300,000-slot dylan vector, ie. 1.2MB. */
   /* Try 10MB arena */
   /* testscriptA("Arena(size 10485760), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect."); */
-  testscriptA("Arena(size 10485760), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect,"
-              "Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
+  if(1) {
+    testscriptA("Arena(size 10485760), "
+                "ZRndStateSet(239185672), "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
+                "Rootdrop(rank E), StackScan(0), Collect, Collect, StackScan(1), "
+                "ZRndStateSet(239185672), "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
+                "Rootdrop(rank E), Collect, Collect.");
+  }
+  if(0) {
+    testscriptA("Arena(size 10485760), "
+                "Make(random 0, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 2), "
+                "Collect, "
+                "Rootdrop(rank E), Collect, Collect, "
+                "Make(random 0, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 2), "
+                "Collect, "
+                "Rootdrop(rank E), Collect, Collect.");
+  }
 
   /* LSP -- Large Segment Padding (job001811)
    *
