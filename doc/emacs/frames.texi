@@ -1224,7 +1224,7 @@ menu-bar-mode} or by customizing the variable @code{menu-bar-mode}.
 With no argument, this command toggles Menu Bar mode, a
 minor mode.  With an argument, the command turns Menu Bar mode on if the
 argument is positive, off if the argument is not positive.  You can use
-the X resource @samp{menuBarLines} to control the initial setting of
+the X resource @samp{menuBar} to control the initial setting of
 Menu Bar mode.  @xref{Resources}.
 
 @kindex C-Mouse-3 @r{(when menu bar is disabled)}

@@ -3418,7 +3418,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   init_frame_faces (f);
 
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
-		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
+		       "menuBar", "MenuBar", RES_TYPE_BOOLEAN_NUMBER);
   x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
 		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
