@@ -444,6 +444,56 @@ static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_
 }
 
 
+static void Make(mps_arena_t arena, mps_ap_t ap, unsigned keep1in, unsigned keepTotal, unsigned keepRootspace, unsigned sizemethod)
+{
+  unsigned keepCount = 0;
+  unsigned long objCount = 0;
+  
+  Insist(keepRootspace <= myrootExactCOUNT);
+
+  objCount = 0;
+  while(keepCount < keepTotal) {
+    mps_word_t v;
+    unsigned slots = 2;  /* minimum */
+    switch(sizemethod) {
+      case 0: {
+        /* minimum */
+        slots = 2;
+        break;
+      }
+      case 1: {
+        slots = 2;
+        if(rnd() % 10000 == 0) {
+          printf("*");
+          slots = 300000;
+        }
+        break;
+      }
+      default: {
+        printf("bad script command: sizemethod %u unknown.\n", sizemethod);
+        cdie(FALSE, "bad script command!");
+        break;
+      }
+    }
+    die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
+    DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
+    DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
+    objCount++;
+    if(rnd() % keep1in == 0) {
+      /* keep this one */
+      myrootExact[rnd() % keepRootspace] = (void*)v;
+      keepCount++;
+    }
+    get(arena);
+  }
+  printf("  ...made and kept: %u objects, storing cyclically in "
+         "first %u roots "
+         "(actually created %lu objects, in accord with "
+         "keep-1-in %u).\n",
+         keepCount, keepRootspace, objCount, keep1in);
+}
+
+
 /* checksi -- check count of sscanf items is correct
  */
 
@@ -496,10 +546,8 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       case 'M': {
-        unsigned keepCount = 0;
-        unsigned long objCount = 0;
-        unsigned keepTotal = 0;
         unsigned keep1in = 0;
+        unsigned keepTotal = 0;
         unsigned keepRootspace = 0;
         unsigned sizemethod = 0;
         si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u)%n",
@@ -508,51 +556,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         script += sb;
         printf("  Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u).\n",
                keep1in, keepTotal, keepRootspace, sizemethod);
-        
-        Insist(keepRootspace <= myrootExactCOUNT);
-
-        objCount = 0;
-        while(keepCount < keepTotal) {
-          mps_word_t v;
-          unsigned slots = 2;  /* minimum */
-          switch(sizemethod) {
-            case 0: {
-              /* minimum */
-              slots = 2;
-              break;
-            }
-            case 1: {
-              slots = 2;
-              if(rnd() % 10000 == 0) {
-                printf("*");
-                slots = 300000;
-              }
-              break;
-            }
-            default: {
-              printf("bad script command %s (full script %s).\n", script, scriptAll);
-              printf(" -- sizemethod %u unknown.\n", sizemethod);
-              cdie(FALSE, "bad script command!");
-              break;
-            }
-          }
-          die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
-          DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
-          DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
-          objCount++;
-          if(rnd() % keep1in == 0) {
-            /* keep this one */
-            myrootExact[rnd() % keepRootspace] = (void*)v;
-            keepCount++;
-          }
-          get(arena);
-        }
-        printf("  ...made and kept: %u objects, storing cyclically in "
-               "first %u roots "
-               "(actually created %lu objects, in accord with "
-               "keep-1-in %u).\n",
-               keepCount, keepRootspace, objCount, keep1in);
-
+        Make(arena, ap, keep1in, keepTotal, keepRootspace, sizemethod);
         break;
       }
       case ' ':
