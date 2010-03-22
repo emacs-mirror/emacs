@@ -974,7 +974,7 @@ static void traceFindGrey_diag(Bool found, Rank rank)
     *report_lim++ = this;
     *report_lim++ = '\0';
     DIAG_SINGLEF(( "traceFindGrey",
-                   "rank sequence: $S\n",
+                   "rank sequence: $S",
                    (WriteFS)report_array,
                    NULL ));
   }
