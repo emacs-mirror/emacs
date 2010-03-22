@@ -1,3 +1,9 @@
+2010-03-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (compile-main): cd to $(lisp) in a sub-shell, so we
+	don't do make there.  When compiling with separate object dir, there
+	is no Makefile there.
+
 2010-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Get rid of the ELCFILES abomination, again.
