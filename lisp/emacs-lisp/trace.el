@@ -253,7 +253,7 @@
 For every call of FUNCTION Lisp-style trace messages that display argument
 and return values will be inserted into BUFFER.  This function generates the
 trace advice for FUNCTION and activates it together with any other advice
-there might be!! The trace BUFFER will popup whenever FUNCTION is called.
+there might be!!  The trace BUFFER will popup whenever FUNCTION is called.
 Do not use this to trace functions that switch buffers or do any other
 display oriented stuff, use `trace-function-background' instead."
   (interactive

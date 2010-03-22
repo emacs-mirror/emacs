@@ -440,7 +440,7 @@ whitespace)."
 ;; Default to the value of `mail-interactive', available in all Emacsen
 ;; that Gnus supports.
   "Non-nil means when sending a message wait for and display errors.
-nil means let mailer mail back a message to report errors."
+A value of nil means let mailer mail back a message to report errors."
   :version "23.2"
   :group 'message-sending
   :group 'message-mail
@@ -864,8 +864,8 @@ If this is nil, use `user-mail-address'.  If it is the symbol
 
 (defcustom message-qmail-inject-args nil
   "Arguments passed to qmail-inject programs.
-This should be a list of strings, one string for each argument.  It
-may also be a function.
+This should be a list of strings, one string for each argument.
+It may also be a function.
 
 For e.g., if you wish to set the envelope sender address so that bounces
 go to the right place or to deal with listserv's usage of that address, you
@@ -3253,7 +3253,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
 
 (defun message-kill-to-signature (&optional arg)
   "Kill all text up to the signature.
-If a numberic argument or prefix arg is given, leave that number
+If a numeric argument or prefix arg is given, leave that number
 of lines before the signature intact."
   (interactive "P")
   (save-excursion
