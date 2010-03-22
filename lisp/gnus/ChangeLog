@@ -1,3 +1,11 @@
+2010-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* message.el (message-interactive): Doc fix.
+	(message-qmail-inject-args): Reflow.
+	(message-kill-to-signature): Fix typo in docstring.
+
+	* smiley.el (smiley-buffer): Fix typo in docstring.
+
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-send-mail-function): Change the default, so that
