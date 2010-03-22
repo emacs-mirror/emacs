@@ -32,6 +32,7 @@ struct RuleStruct RulesGlobal[] = {
   { "+", "DiagFilter_Rules", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
   { "-", "AMCTraceEnd_pageret", "*", "*" },
+  { "-", "ChainCondemnAuto", "*", "*" },
   { "+", "VM_ix_", "*", "*" },
   { "-", "vmArenaExtend_", "*", "*" },
   { "-", "traceFindGrey", "*", "*" },

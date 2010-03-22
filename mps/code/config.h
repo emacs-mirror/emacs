@@ -67,6 +67,7 @@
 #define CONFIG_ASSERT
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
 #define CONFIG_STATS
+#define DIAG_WITH_STREAM_AND_WRITEF
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
