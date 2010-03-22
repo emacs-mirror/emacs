@@ -1,3 +1,25 @@
+2010-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-dired.el (image-dired-display-thumbs): Fix typo in docstring.
+	(image-dired-read-comment): Doc fix.
+
+	* json.el (json-object-type, json-array-type, json-key-type, json-false)
+	(json-null, json-read-number):
+	* minibuffer.el (completion-in-region-functions):
+	* calendar/cal-tex.el (cal-tex-daily-end, cal-tex-number-weeks)
+	(cal-tex-cursor-week):
+	* emacs-lisp/trace.el (trace-function):
+	* eshell/em-basic.el (eshell/printnl):
+	* eshell/em-dirs.el (eshell-last-dir-ring, eshell-parse-drive-letter)
+	(eshell-read-last-dir-ring, eshell-write-last-dir-ring):
+	* obsolete/levents.el (allocate-event, event-key, event-object)
+	(event-point, event-process, event-timestamp, event-to-character)
+	(event-window, event-x, event-x-pixel, event-y, event-y-pixel):
+	* textmodes/reftex-vars.el (reftex-index-macros-builtin)
+	(reftex-section-levels, reftex-auto-recenter-toc, reftex-toc-mode-hook)
+	(reftex-cite-punctuation, reftex-search-unrecursed-path-first)
+	(reftex-highlight-selection): Fix typos in docstrings.
+
 2010-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (completion-in-region-functions): Fix docstring typos.
