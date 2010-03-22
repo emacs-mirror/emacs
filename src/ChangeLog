@@ -1,3 +1,8 @@
+2010-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c (Fset_input_interrupt_mode): Remove code depending on
+	NO_SOCK_SIGIO, not used anymore.
+
 2010-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/vax.h (BSD_SYSTEM, BSD4_2): Remove conditionals, we only
