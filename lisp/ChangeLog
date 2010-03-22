@@ -1,3 +1,8 @@
+2010-03-22  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-remove-stale-state-cache): Fix
+	off-by-one error.  Fixes bug #5747.
+
 2010-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image-dired.el (image-dired-display-thumbs): Fix typo in docstring.
