@@ -170,5 +170,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define UNEXEC unexaix.o
 
+#define ORDINARY_LINK
+
 /* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
    (do not change this comment) */

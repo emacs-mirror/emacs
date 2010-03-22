@@ -1,3 +1,27 @@
+2010-03-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (compile-main): cd to $(lisp) in a sub-shell, so we
+	don't do make there.  When compiling with separate object dir, there
+	is no Makefile there.
+
+2010-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of the ELCFILES abomination, again.
+	* Makefile.in (update-elclist, ELCFILES, compile-last): Remove.
+	(all, compile): Don't call compile-last.
+	(compile-main): Build the "elcfiles" list dynamically.
+	(compile-targets): New (internal) target.
+
+2010-03-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (top_srcdir): Define.
+	(abs_top_builddir): Define.
+	(srcdir): Don't append `/..'.
+	(EMACS): Use ${abs_top_builddir}.
+	(all, compile, compile-always, compile-last): Don't set emacswd.
+	(update-subdirs, update-authors): Use $(top_srcdir) instead of $(srcdir).
+	(lisp): Use $(srcdir) instead of @srcdir@.
+
 2010-03-21  Juri Linkov  <juri@jurta.org>
 
 	Fix message of multi-line occur regexps and multi-buffer header lines.

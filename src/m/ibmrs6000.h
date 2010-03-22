@@ -81,7 +81,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BROKEN_SIGPTY
 #define BROKEN_SIGPOLL
 
-#define ORDINARY_LINK
-
 /* arch-tag: 028318ee-a7ae-4a08-804d-cc1e6588d003
    (do not change this comment) */

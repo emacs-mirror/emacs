@@ -38,7 +38,6 @@ NOTE-END  */
 
 #define CRT0_DUMMIES
 
-#ifdef BSD_SYSTEM
 /* USG systems I know of running on Vaxes do not actually
    support the load average, so disable it for them.  */
 
@@ -50,11 +49,7 @@ NOTE-END  */
 
 #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0))
 
-#endif /* BSD_SYSTEM */
-
-#ifdef BSD4_2
 #define HAVE_FTIME
-#endif
 
 /* arch-tag: 508bdf7a-01a0-4ce0-8eba-0704d0df55a0
    (do not change this comment) */

@@ -11304,11 +11304,7 @@ See also `current-input-mode'.  */)
     {
       /* When using X, don't give the user a real choice,
 	 because we haven't implemented the mechanisms to support it.  */
-#ifdef NO_SOCK_SIGIO
-      new_interrupt_input = 0;
-#else /* not NO_SOCK_SIGIO */
       new_interrupt_input = 1;
-#endif /* NO_SOCK_SIGIO */
     }
   else
 #endif /* HAVE_X_WINDOWS */
