@@ -1,7 +1,7 @@
 ;;; password-cache.el --- Read passwords, possibly using a password cache.
 
-;; Copyright (C) 1999, 2000, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 2003-12-21
@@ -51,11 +51,15 @@
 
 ;;; Code:
 
+;; Options are autoloaded since they are used by eg mml-sec.el.
+
+;;;###autoload
 (defcustom password-cache t
   "Whether to cache passwords."
   :group 'password
   :type 'boolean)
 
+;;;###autoload
 (defcustom password-cache-expiry 16
   "How many seconds passwords are cached, or nil to disable expiring.
 Whether passwords are cached at all is controlled by `password-cache'."

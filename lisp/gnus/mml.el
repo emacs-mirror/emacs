@@ -35,7 +35,7 @@
 (eval-when-compile (require 'cl))
 
 (autoload 'message-make-message-id "message")
-(autoload 'gnus-setup-posting-charset "gnus-msg")
+(declare-function gnus-setup-posting-charset "gnus-msg" (group))
 (autoload 'gnus-make-local-hook "gnus-util")
 (autoload 'message-fetch-field "message")
 (autoload 'message-mark-active-p "message")
@@ -1173,7 +1173,11 @@ If not set, `default-directory' will be used."
       (error "Permission denied: %s" file))
     file))
 
+(declare-function mailcap-parse-mimetypes "mailcap" (&optional path force))
+(declare-function mailcap-mime-types "mailcap" ())
+
 (defun mml-minibuffer-read-type (name &optional default)
+  (require 'mailcap)
   (mailcap-parse-mimetypes)
   (let* ((default (or default
 		      (mm-default-file-encoding name)
@@ -1445,6 +1449,7 @@ or the `pop-to-buffer' function."
   (setq mml-preview-buffer (generate-new-buffer
 			    (concat (if raw "*Raw MIME preview of "
 				      "*MIME preview of ") (buffer-name))))
+  (require 'gnus-msg)		      ; for gnus-setup-posting-charset
   (save-excursion
     (let* ((buf (current-buffer))
 	   (message-options message-options)

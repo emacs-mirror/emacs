@@ -541,7 +541,7 @@ or an empty string if none."
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
 
-(defun vc-git-checkin (files rev comment)
+(defun vc-git-checkin (files rev comment  &optional extra-args-ignored)
   (let ((coding-system-for-write git-commits-coding-system))
     (vc-git-command nil 0 files "commit"
 		    "-m" comment "--only" "--")))

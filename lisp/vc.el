@@ -261,7 +261,7 @@
 ;;   Unregister FILE from this backend.  This is only needed if this
 ;;   backend may be used as a "more local" backend for temporary editing.
 ;;
-;; * checkin (files rev comment)
+;; * checkin (files rev comment &optional extra-args)
 ;;
 ;;   Commit changes in FILES to this backend.  If REV is non-nil, that
 ;;   should become the new revision number (not all backends do
@@ -269,6 +269,7 @@
 ;;   implementation should pass the value of vc-checkin-switches to
 ;;   the backend command.  (Note: in older versions of VC, this
 ;;   command took a single file argument and not a list.)
+;;   EXTRA-ARGS should be passed to the backend command.
 ;;
 ;; * find-revision (file rev buffer)
 ;;
@@ -476,6 +477,12 @@
 ;;
 ;;   Return the revision number that follows REV for FILE, or nil if no such
 ;;   revision exists.
+;;
+;; - log-edit-mode ()
+;;
+;;   Turn on the mode used for editing the check in log.  This
+;;   defaults to `log-edit-mode'.  If changed, it should use a mode
+;;   derived from`log-edit-mode'.
 ;;
 ;; - check-headers ()
 ;;
@@ -1358,7 +1365,9 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
     files rev comment initial-contents
     "Enter a change comment."
     "*VC-log*"
-    (lambda (files rev comment)
+    (lambda ()
+      (vc-call-backend backend 'log-edit-mode))
+    (lambda (files rev comment extra-flags)
       (message "Checking in %s..." (vc-delistify files))
       ;; "This log message intentionally left almost blank".
       ;; RCS 5.7 gripes about white-space-only comments too.
@@ -1369,7 +1378,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
        ;; We used to change buffers to get local value of vc-checkin-switches,
        ;; but 'the' local buffer is not a well-defined concept for filesets.
        (progn
-	 (vc-call-backend backend 'checkin files rev comment)
+	 (vc-call-backend backend 'checkin files rev comment extra-flags)
 	 (mapc 'vc-delete-automatic-version-backups files))
        `((vc-state . up-to-date)
 	 (vc-checkout-time . ,(nth 5 (file-attributes file)))
@@ -1739,7 +1748,7 @@ The headers are reset to their non-expanded form."
    files rev oldcomment t
    "Enter a replacement change comment."
    "*VC-log*"
-   (lambda (files rev comment)
+   (lambda (files rev comment ignored)
      (vc-call-backend
       ;; Less of a kluge than it looks like; log-view mode only passes
       ;; this function a singleton list.  Arguments left in this form in
@@ -2423,6 +2432,8 @@ to provide the `find-revision' operation instead."
     (vc-register)))
 
 (defalias 'vc-default-check-headers 'ignore)
+
+(defun vc-default-log-edit-mode (backend) (log-edit-mode))
 
 (defun vc-default-log-view-mode (backend) (log-view-mode))
 

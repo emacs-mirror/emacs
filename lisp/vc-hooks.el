@@ -84,13 +84,6 @@ An empty list disables VC altogether."
   :type '(repeat string)
   :group 'vc)
 
-(defcustom vc-path nil
-  "List of extra directories to search for version control commands."
-  :type '(repeat directory)
-  :group 'vc)
-
-(make-obsolete-variable 'vc-path "should not be necessary anymore." "23.2")
-
 (defcustom vc-make-backup-files nil
   "If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups."

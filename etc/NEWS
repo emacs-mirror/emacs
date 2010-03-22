@@ -63,10 +63,23 @@ choose a color via list-colors-display.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
+*** Special markup can be added to log-edit buffers.
+
+**** For Bzr, adding an
+Author: NAME
+line will add "--author NAME" to the "bzr commit" command.
+
+**** For Hg, adding an
+Author: NAME
+line will add "--user NAME" to the "hg commit" command.
+
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
 .dir-locals.el file, will turn on `whitespace-mode' for *vc-diff*
 buffers.
+
+** s-region.el is now declared obsolete, superceded by shift-select-mode
+enabled by default in 23.1.
 
 
 * New Modes and Packages in Emacs 24.1

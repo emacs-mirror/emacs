@@ -32,19 +32,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define IBMR2AIX
 
-#ifndef UNEXEC
-#define UNEXEC unexaix.o
-#endif
-
-/* Define addresses, macros, change some setup for dump */
-
-#define NO_REMAP
-
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
 
-#ifndef USG5_4
 #define TEXT_START 0x10000000
 #define DATA_START 0x20000000
 #define WORDS_BIG_ENDIAN
@@ -75,12 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_MACHINE -lrts -lIM -liconv
 #endif
 
-#else /* USG5_4 */
-#undef WORDS_BIG_ENDIAN
-#define DATA_SEG_BITS 0
-#define LIBS_MACHINE
-#endif /* USG5_4 */
-
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
 
@@ -95,8 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BROKEN_SIGAIO
 #define BROKEN_SIGPTY
 #define BROKEN_SIGPOLL
-
-#define ORDINARY_LINK
 
 /* arch-tag: 028318ee-a7ae-4a08-804d-cc1e6588d003
    (do not change this comment) */

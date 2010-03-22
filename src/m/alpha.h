@@ -116,11 +116,6 @@ NOTE-END
 
 #endif /* __ELF__ */
 
-#if defined (GNU_LINUX) && __GNU_LIBRARY__ - 0 < 6
-/* This controls a conditional in main.  */
-#define LINUX_SBRK_BUG
-#endif
-
 /* On the Alpha it's best to avoid including TERMIO since struct
    termio and struct termios are mutually incompatible.  */
 #define NO_TERMIO

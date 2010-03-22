@@ -458,15 +458,6 @@ dnl see the `changequote' comment above.
     esac
   ;;
 
-  ## LynxOS ports
-  *-*-lynxos* )
-    opsys=lynxos
-    case "${canonical}" in
-      i[3456]86-*-lynxos*) machine=intel386 ;;
-      powerpc-*-lynxos*) machine=powerpc ;;
-    esac
-  ;;
-
   alpha*-*-linux-gnu* )
     machine=alpha opsys=gnu-linux
   ;;
@@ -550,30 +541,14 @@ dnl see the `changequote' comment above.
 
   *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* \
-    | x86_64-*-solaris2*    | x86_64-*-sunos5*    \
-    | powerpc*-*-solaris2*  | rs6000-*-solaris2*)
+    | x86_64-*-solaris2*    | x86_64-*-sunos5*)
     case "${canonical}" in
       i[3456]86-*-* )     machine=intel386 ;;
       amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
-      powerpc* | rs6000* )  machine=ibmrs6000 ;;
       sparc* )		machine=sparc ;;
       * )		unported=yes ;;
     esac
     case "${canonical}" in
-      *-sunos5.3* | *-solaris2.3* )
-		opsys=sol2-3
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		;;
-      *-sunos5.4* | *-solaris2.4* )
-		opsys=sol2-4
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		RANLIB="ar -ts"
-		;;
-      *-sunos5.5* | *-solaris2.5* )
-		opsys=sol2-5
-		NON_GNU_CPP=/usr/ccs/lib/cpp
-		RANLIB="ar -ts"
-		;;
       *-sunos5.6* | *-solaris2.6* )
 		opsys=sol2-6
 		NON_GNU_CPP=/usr/ccs/lib/cpp
@@ -664,22 +639,6 @@ esac
 if test x"${opsys}" = x; then
   case "${canonical}" in
     *-gnu* )				opsys=gnu ;;
-    *-sysv4.2uw* )			opsys=unixware ;;
-    *-sysv5uw* )			opsys=unixware ;;
-    *-sysv5OpenUNIX* )			opsys=unixware ;;
-    *-sysv4.1* | *-sysvr4.1* )
-	NON_GNU_CPP=/usr/lib/cpp
-	opsys=usg5-4 ;;
-    *-sysv4.[2-9]* | *-sysvr4.[2-9]* )
-	if [ x$NON_GNU_CPP = x ]; then
-	  if [ -f /usr/ccs/lib/cpp ]; then
-	    NON_GNU_CPP=/usr/ccs/lib/cpp
-	  else
-	    NON_GNU_CPP=/lib/cpp
-	  fi
-	fi
-	opsys=usg5-4-2 ;;
-    *-sysv4* | *-sysvr4* )		opsys=usg5-4 ;;
     * )
       unported=yes
     ;;
@@ -2402,7 +2361,8 @@ Maybe some development libraries/packages are missing?  Try installing
 libncurses-dev(el), libterminfo-dev(el) or similar.])
 fi
 # Must define this when any termcap library is found.
-AC_DEFINE(HAVE_LIBNCURSES)
+AC_DEFINE(HAVE_LIBNCURSES, 1,
+          [Define to 1 if you have the `ncurses' library (-lncurses).])
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 

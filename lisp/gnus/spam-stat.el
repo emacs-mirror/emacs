@@ -1,6 +1,7 @@
 ;;; spam-stat.el --- detecting spam based on statistics
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
@@ -556,6 +557,8 @@ check the variable `spam-stat-score-data'."
     (mail-narrow-to-head)
     (when (re-search-forward "^Xref:.*\n" nil t)
       (delete-region (match-beginning 0) (match-end 0)))))
+
+(autoload 'time-to-number-of-days "time-date")
 
 (defun spam-stat-process-directory (dir func)
   "Process all the regular files in directory DIR using function FUNC."

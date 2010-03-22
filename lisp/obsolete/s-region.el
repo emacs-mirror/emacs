@@ -6,6 +6,7 @@
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals
 ;; Favourite-brand-of-beer: None, I hate beer.
+;; Obsolete-since: 24.1
 
 ;; This file is part of GNU Emacs.
 

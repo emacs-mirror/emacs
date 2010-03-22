@@ -130,6 +130,27 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 # If neither flag is set, blessmail is used.
 MOVE_FLAGS=
 
+## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
+KRB4LIB=@KRB4LIB@
+## -ldes if HAVE_LIBDES or -ldes425 if HAVE_LIBDES425
+DESLIB=@DESLIB@
+## -lkrb5 if HAVE_LIBKRB5
+KRB5LIB=@KRB5LIB@
+## -lk5crypto if HAVE_LIBK5CRYPTO or -lcrypto if HAVE_LIBCRYPTO
+CRYPTOLIB=@CRYPTOLIB@
+## -lcom_err if HAVE_LIBCOM_ERR
+COM_ERRLIB=@COM_ERRLIB@
+## -lhesiod if HAVE_LIBHESIOD
+LIBHESIOD=@LIBHESIOD@
+## -lresolv if HAVE_LIBRESOLV
+LIBRESOLV=@LIBRESOLV@
+## -llockfile if HAVE_LIBLOCKFILE or -lmail if HAVE_LIBMAIL
+LIBS_MAIL=@LIBS_MAIL@
+
+## Extra libraries to use when linking movemail.
+LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
+
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -167,10 +188,6 @@ MOVE_FLAGS=
 #else
 #define BLESSMAIL
 #endif
-
-LIBS_MOVE=@KRB4LIB@ @DESLIB@ @KRB5LIB@ @CRYPTOLIB@ @COM_ERRLIB@ @LIBHESIOD@ @LIBRESOLV@
-
-LIBS_MAIL=@LIBS_MAIL@
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
 
@@ -365,7 +382,7 @@ b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	   $(GETOPTOBJS) $(LOADLIBES) -o b2m
 
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MAIL) $(LIBS_MOVE) -o movemail
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MOVE) -o movemail
 
 /*  We need to define emacs to get the right version of something (what?).  */
 movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)

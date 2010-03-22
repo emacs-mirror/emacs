@@ -33,16 +33,17 @@
 
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
-srcdir=@srcdir@
-VPATH=@srcdir@
-CC=@CC@
-CPP=@CPP@
-CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@
-LDFLAGS=@LDFLAGS@
-LN_S=@LN_S@
-EXEEXT=@EXEEXT@
-version=@version@
+srcdir = @srcdir@
+abs_builddir = @abs_builddir@
+VPATH = $(srcdir)
+CC = @CC@
+CPP = @CPP@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LN_S = @LN_S@
+EXEEXT = @EXEEXT@
+version = @version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
@@ -63,7 +64,7 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
-bootstrap_exe = ../src/bootstrap-emacs${EXEEXT}
+bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
@@ -853,11 +854,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
-#ifdef HAVE_SHM
-RUN_TEMACS = `/bin/pwd`/temacs -nl
-#else
 RUN_TEMACS = `/bin/pwd`/temacs
-#endif
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 

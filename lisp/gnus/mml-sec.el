@@ -26,10 +26,6 @@
 
 (eval-when-compile (require 'cl))
 
-(if (locate-library "password-cache")
-    (require 'password-cache)
-  (require 'password))
-
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")
 (autoload 'mml1991-sign "mml1991")

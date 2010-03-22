@@ -1,3 +1,122 @@
+2010-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of the ELCFILES abomination, again.
+	* Makefile.in (update-elclist, ELCFILES, compile-last): Remove.
+	(all, compile): Don't call compile-last.
+	(compile-main): Build the "elcfiles" list dynamically.
+	(compile-targets): New (internal) target.
+
+2010-03-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (top_srcdir): Define.
+	(abs_top_builddir): Define.
+	(srcdir): Don't append `/..'.
+	(EMACS): Use ${abs_top_builddir}.
+	(all, compile, compile-always, compile-last): Don't set emacswd.
+	(update-subdirs, update-authors): Use $(top_srcdir) instead of $(srcdir).
+	(lisp): Use $(srcdir) instead of @srcdir@.
+
+2010-03-21  Juri Linkov  <juri@jurta.org>
+
+	Fix message of multi-line occur regexps and multi-buffer header lines.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00457.html
+
+	* replace.el (occur-1): Don't display regexp if it is longer
+	than window-width.  Use `query-replace-descr' to display regexp.
+	(occur-engine): Don't display regexp in the buffer header for
+	multi-buffer occur.  Display a separate header line with total
+	match count and regexp for multi-buffer occur.
+	Use `query-replace-descr' to display regexp.
+
+2010-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/secrets.el: Fix parenthesis.
+	(secrets-enabled): Fix parenthesis.
+
+2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use more relative file and directory names.
+	* Makefile.in (EMACS): Arrange for it to work when we chdir.
+	(setwins, setwins_almost, setwins_for_subdirs):
+	Don't `cd'; output relative names.
+	(all, compile, compile-always, compile-last): Set emacswd.
+	(custom-deps, finder-data, autoloads, update-subdirs, compile-last):
+	Just cd to the lisp source dir so we can use relative file names.
+
+	* outline.el (hide-sublevels): Unfix the paren non-typo! (bug#5738).
+
+2010-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/rst.el: Use faces for font-lock customization, and make the
+	old -face variables obsolete.
+	(rst-block, rst-external, rst-definition, rst-directive, rst-comment)
+	(rst-emphasis1, rst-emphasis2, rst-literal, rst-reference): New faces.
+	(rst-block-face, rst-external-face, rst-definition-face)
+	(rst-directive-face, rst-comment-face, rst-emphasis1-face)
+	(rst-emphasis2-face, rst-literal-face, rst-reference-face):
+	Make obsolete.
+	(rst-font-lock-keywords-function): Update for above changes.
+
+2010-03-20  Juri Linkov  <juri@jurta.org>
+
+	* s-region.el:
+	* obsolete/s-region.el: Move to obsolete.
+
+2010-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-dispatcher.el (vc-do-command): Remove reference to `vc-path'.
+
+2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-path): Remove variable and obsolete declaration.
+
+2010-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add special markup processing for commit logs.
+	* log-edit.el (log-edit-extra-flags): New variable.
+	(log-edit): Add new argument MODE.  Use that mode when non-nil
+	instead of the log-view-mode.
+	(log-view-process-buffer): New function.
+
+	* vc.el: Document that the checkin method takes optional
+	arguments.  Document new backend specific method: log-view-mode.
+	(vc-default-log-edit-mode): New function.
+	(vc-checkin): Use a backend specific log-view-mode.
+	Pass extra arguments to the checkin method.
+	(vc-modify-change-comment): Pass a dummy extra argument.
+
+	* vc-dispatcher.el (vc-log-edit): Add a mode argument, pass it to
+	log-edit.
+	(vc-start-logentry): Add a mode argument, pass it to vc-log-edit.
+	(vc-finish-logentry): Process the log buffer before passing it
+	down.  Pass log-edit-extra-flags.
+
+	* vc-bzr.el (vc-bzr-checkin): Pass extra arguments to the commit
+	command.
+	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+
+	* vc-hg.el (vc-hg-checkin): Pass extra arguments to the commit
+	command.
+	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+	(vc-hg-log-edit-mode): New derived mode.
+
+	* vc-arch.el (vc-arch-checkin):
+	* vc-cvs.el (vc-cvs-checkin):
+	* vc-git.el (vc-git-checkin):
+	* vc-mtn.el (vc-mtn-checkin):
+	* vc-rcs.el (vc-rcs-checkin):
+	* vc-sccs.el (vc-sccs-checkin):
+	* vc-svn.el (vc-svn-checkin): Add an optional ignored argument.
+
+2010-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (hide-sublevels): Don't hide trailing newline (and fix
+	parent typo).
+
+2010-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* password-cache.el (password-cache, password-cache-expiry): Autoload.
+
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (autoload-rubric): Doc fix.
@@ -32,8 +151,8 @@
 2010-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/secrets.el (top): Register the D-Bus signals only when the
-	service "org.freedesktop.secrets" can be pinged.  Provide
-	subfeature 'enabled.
+	service "org.freedesktop.secrets" can be pinged.
+	Provide subfeature `enabled'.
 
 2010-03-14  Juri Linkov  <juri@jurta.org>
 
