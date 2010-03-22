@@ -296,7 +296,7 @@ void ChunkCacheEntryInit(ChunkCacheEntry entry)
 
 /* ChunkEncache -- cache a chunk */
 
-void ChunkEncache(Arena arena, Chunk chunk)
+static void ChunkEncache(Arena arena, Chunk chunk)
 {
   /* Critical path; called by ChunkOfAddr */
   AVERT_CRITICAL(Arena, arena);
@@ -312,8 +312,6 @@ void ChunkEncache(Arena arena, Chunk chunk)
   arena->chunkCache.chunk = chunk;
   arena->chunkCache.base = chunk->base;
   arena->chunkCache.limit = chunk->limit;
-  arena->chunkCache.pageTableBase = &chunk->pageTable[0];
-  arena->chunkCache.pageTableLimit = &chunk->pageTable[chunk->pages];
 
   AVERT_CRITICAL(ChunkCacheEntry, &arena->chunkCache);
   return;
