@@ -642,6 +642,7 @@ static void *testscriptB(void *arg, size_t s)
 
   testscriptC(arena, ap, script);
 
+  printf("  Destroy roots, pools, arena etc.\n\n");
   mps_root_destroy(root_stackreg);
   mps_ap_destroy(ap);
   mps_root_destroy(root_table_Exact);
@@ -688,9 +689,6 @@ static void testscriptA(const char *script)
 
   mps_thread_dereg(thr);
   mps_arena_destroy(arena);
-
-  printf("  Destroy arena etc.\n\n");
-
 }
 
 
