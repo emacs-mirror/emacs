@@ -223,9 +223,6 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
     goto failStripeSize;
   }
 
-  /* load cache */
-  ChunkEncache(arena, arena->primary);
-
   res = ControlInit(arena);
   if (res != ResOK)
     goto failControlInit;
