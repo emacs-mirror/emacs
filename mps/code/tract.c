@@ -273,9 +273,6 @@ Bool ChunkCacheEntryCheck(ChunkCacheEntry entry)
     CHECKD(Chunk, entry->chunk);
     CHECKL(entry->base == entry->chunk->base);
     CHECKL(entry->limit == entry->chunk->limit);
-    CHECKL(entry->pageTableBase == &entry->chunk->pageTable[0]);
-    CHECKL(entry->pageTableLimit
-           == &entry->chunk->pageTable[entry->chunk->pages]);
   }
   return TRUE;
 }
