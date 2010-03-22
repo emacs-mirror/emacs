@@ -1,3 +1,27 @@
+
+
+
+
+
+
+
+
+
+================ NOTES; CONSIDER ADDING THESE TO DESIGN DOCS ==================
+
+____PRIMARY____
+
+The primary chunk is used specially:
+
+1. Arenacl requires a chunk to store the ArenaStruct in.  (Whereas arenavm gets storage by simply mapping a new page).  Therefore destroying the primary chunk would (in general) destroy the arena.
+
+2. PageSize is known by chunks, not the arena.  When arena needs to know page size, it asks the primary chunk.
+
+3. Various *Check functions only bother to check the primary chunk, and ignore other chunks.
+
+
+
+______NOTES ON CHUNK_CREATE________
 VMArenaInit
   VMChunkCreate
 vmArenaExtend
