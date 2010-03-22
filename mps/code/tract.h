@@ -164,7 +164,6 @@ extern void ChunkFinish(Chunk chunk);
 
 extern Bool ChunkCacheEntryCheck(ChunkCacheEntry entry);
 extern void ChunkCacheEntryInit(ChunkCacheEntry entry);
-extern void ChunkEncache(Arena arena, Chunk chunk);
 
 extern Bool ChunkOfAddr(Chunk *chunkReturn, Arena arena, Addr addr);
 

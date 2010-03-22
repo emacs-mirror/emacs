@@ -546,8 +546,6 @@ typedef struct ChunkCacheEntryStruct {
   Chunk chunk;
   Addr base;
   Addr limit;
-  Page pageTableBase;
-  Page pageTableLimit;
 } ChunkCacheEntryStruct;
 
 
