@@ -1,0 +1,64 @@
+VMArenaInit
+  VMChunkCreate
+vmArenaExtend
+  VMChunkCreate
+
+VMChunkCreate [arenavm.c]
+  VMCreate [
+
+- normal:
+Create
+  alloc
+  Init
+    <class>Init
+
+- arena:
+ACreate
+  VMAInit
+    alloc VMAS, contains AS
+    AInit
+      init AS fields
+    init VMAS fields
+    - AS and VMAS fields are set
+    VMChunkCreate
+      VMCreate(size) - alloc big chunk of vmem!
+      BootBlockInit
+      alloc(VMChunkStruct) (contains ChunkStruct)
+      map(VMChunkStruct)
+      ChunkInit
+        ChunkStruct fields
+        RingAppend(&arena->chunkRing, &chunk->chunkRing)
+        alloc(aBPageIsAllocated "allocTable")
+        VMChunkInit
+          alloc(aBPSGIsMapped "pageTableMapped")
+          alloc(aBPSGHasNoSpares "noSparePages")
+          map(up to here)
+          res(pTM)
+          res(nSP)
+        alloc(aPS "pageTable")
+        allocBase = iPageFirstUseable
+        res(aT)
+        sig(Chunk)
+      sig(VMChunk)
+    primary = chunk
+    zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
+  alignment = ChunkPageSize(arena->primary)
+  ChunkEncache(arena, arena->primary);
+
+      --- chunk contents:
+        VMChunkStruct (contains ChunkStruct)
+
+        aBPageIsAllocated "allocTable"
+
+        - 1 PSG (PageStructGroup) fits into 1 page
+        aBPSGIsMapped "pageTableMapped"
+        aBPSGHasNoSpares "noSparePages"
+        (...memory up to here is always mapped)
+
+        aPS "pageTable"
+      
+        - iPageFirstUseable "allocBase" is here
+      ---
+      
+
+$Id$
