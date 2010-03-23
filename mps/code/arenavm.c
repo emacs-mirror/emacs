@@ -1619,18 +1619,44 @@ static void VMFree(Addr base, Size size, Pool pool)
   return;
 }
 
+
+/* M_whole, M_frac -- print count of bytes as Megabytes
+ *
+ * Split into a whole number of MB, "m" for the decimal point, and 
+ * then the decimal fraction (thousandths of a MB, ie. kB).
+ *
+ * Input:                208896
+ * Output:  (Megabytes)  0m209
+ */
+#define bPerM (1000000UL)  /* Megabytes */
+#define bThou (1000UL)
+DIAG_DECL(
+static Count M_whole(size_t bytes)
+{
+  size_t M;  /* MBs */
+  M = (bytes + (bThou / 2)) / bPerM;
+  return M;
+}
+static Count M_frac(size_t bytes)
+{
+  Count Mthou;  /* thousandths of a MB */
+  Mthou = (bytes + (bThou / 2)) / bThou;
+  Mthou = Mthou % 1000;
+  return Mthou;
+}
+)
+
+
 static void VMCompact(Arena arena, Trace trace)
 {
   VMArena vmArena;
   Ring node, next;
   DIAG_DECL( Size vmem1; )
-  DIAG_DECL( Size vmem2; )
-  DIAG_DECL( Size vmemD; )
   DIAG_DECL( Count count; )
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
-  UNUSED(trace);  /* it's there for better diag; not used yet */
+  AVERT(Trace, trace);
 
   /* Destroy any empty chunks (except the primary). */
   sparePagesPurge(vmArena);
@@ -1638,6 +1664,7 @@ static void VMCompact(Arena arena, Trace trace)
     vmem1 = VMArenaReserved(arena);
     count = 0;
   );
+
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     if(chunk != arena->primary
@@ -1646,17 +1673,30 @@ static void VMCompact(Arena arena, Trace trace)
       DIAG( count += 1; );
     }
   }
+
   DIAG(
-    vmem2 = VMArenaReserved(arena);
-    vmemD = vmem1 - vmem2;
+    Size vmem2 = VMArenaReserved(arena);
+    Size vmemD = vmem1 - vmem2;
+    Size live = trace->forwardedSize + trace->preservedInPlaceSize;
+    Size livePerc = live / (trace->condemned / 100);
     
-    if(vmemD != 0) {
+    if(vmemD != 0
+       || trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
+       || trace->why == TraceStartWhyCLIENTFULL_BLOCK) {
       DIAG_SINGLEF(( "VMCompact",
-        "vmem was $W, released $W, now $W", vmem1, vmemD, vmem2,
+        "vmem was $Um$3, ", M_whole(vmem1), M_frac(vmem1),
+        "released $Um$3, ", M_whole(vmemD), M_frac(vmemD),
+        "now $Um$3", M_whole(vmem2), M_frac(vmem2),
+        " (why $U", trace->why,
+        ": $Um$3", M_whole(trace->condemned), M_frac(trace->condemned),
+        "[->$Um$3", M_whole(live), M_frac(live),
+        " $U%-live", livePerc,
+        " $Um$3-stuck]", M_whole(trace->preservedInPlaceSize), M_frac(trace->preservedInPlaceSize),
+        " ($Um$3-not)", M_whole(trace->notCondemned), M_frac(trace->notCondemned),
+        " )",
         NULL));
     }
   );
-  
 }
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
