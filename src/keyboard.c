@@ -7507,12 +7507,6 @@ input_available_signal (signo)
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signo, input_available_signal);
-#endif /* USG */
-
   SIGNAL_THREAD_CHECK (signo);
 
 #ifdef SYNC_INPUT
@@ -7594,12 +7588,6 @@ handle_user_signal (sig)
 {
   int old_errno = errno;
   struct user_signal_info *p;
-
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (sig, handle_user_signal);
-#endif
 
   SIGNAL_THREAD_CHECK (sig);
 
@@ -11088,13 +11076,6 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
   struct terminal *terminal;
-
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (SIGINT, interrupt_signal);
-  signal (SIGQUIT, interrupt_signal);
-#endif /* USG */
 
   SIGNAL_THREAD_CHECK (signalnum);
 
