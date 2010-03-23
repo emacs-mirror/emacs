@@ -506,6 +506,7 @@ typedef struct TraceStruct {
   Bool firstStretch;            /* in first stretch of band (see accessor) */
   Bool emergency;               /* ran out of memory during trace */
   Chain chain;                  /* chain being incrementally collected */
+  STATISTIC_DECL(Size preTraceArenaReserved); /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
