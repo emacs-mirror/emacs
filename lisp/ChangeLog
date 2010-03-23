@@ -1,3 +1,14 @@
+2010-03-23  Sam Steingold  <sds@gnu.org>
+
+	Fix bug#5620: recalculate all markers on compilation buffer
+	modifications, not on file modifications.
+	* progmodes/compile.el (buffer-modtime): New buffer-local variable:
+	the buffer modification time, for buffers not associated with files.
+	(compilation-mode): Create it.
+	(compilation-filter): Update it.
+	(compilation-next-error-function): Use it instead of
+	`visited-file-modtime' for timestamp.
+
 2010-03-23  Juri Linkov  <juri@jurta.org>
 
 	Implement Occur multi-line matches.
