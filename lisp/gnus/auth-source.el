@@ -35,6 +35,9 @@
 
 (eval-when-compile (require 'cl))
 (autoload 'netrc-machine-user-or-password "netrc")
+(autoload 'secrets-search-items "secrets")
+(autoload 'secrets-get-alias "secrets")
+(autoload 'secrets-get-attribute "secrets")
 
 (defgroup auth-source nil
   "Authentication sources."
@@ -49,7 +52,7 @@
   "List of authentication protocols and their names"
 
   :group 'auth-source
-  :version "23.1" ;; No Gnus
+  :version "23.2" ;; No Gnus
   :type '(repeat :tag "Authentication Protocols"
 		 (cons :tag "Protocol Entry"
 		       (symbol :tag "Protocol")
@@ -71,7 +74,7 @@
 (defcustom auth-source-do-cache t
   "Whether auth-source should cache information."
   :group 'auth-source
-  :version "23.1" ;; No Gnus
+  :version "23.2" ;; No Gnus
   :type `boolean)
 
 (defcustom auth-source-debug nil
@@ -85,7 +88,7 @@ If the value is t, debug messages are logged with `message'.
 If the value is a function, debug messages are logged by calling
  that function using the same arguments as `message'."
   :group 'auth-source
-  :version "23.1" ;; No Gnus
+  :version "23.2" ;; No Gnus
   :type	`(choice
 	  :tag "auth-source debugging mode"
 	  (const :tag "Log using `message' to the *Messages* buffer" t)
@@ -96,19 +99,32 @@ If the value is a function, debug messages are logged by calling
   "Whether auth-source should hide passwords in log messages.
 Only relevant if `auth-source-debug' is not nil."
   :group 'auth-source
-  :version "23.1" ;; No Gnus
+  :version "23.2" ;; No Gnus
   :type `boolean)
 
 (defcustom auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t))
   "List of authentication sources.
 
-Each entry is the authentication type with optional properties."
+Each entry is the authentication type with optional properties.
+
+It's best to customize this with `M-x customize-variable' because the choices
+can get pretty complex."
   :group 'auth-source
-  :version "23.1" ;; No Gnus
+  :version "23.2" ;; No Gnus
   :type `(repeat :tag "Authentication Sources"
 		 (list :tag "Source definition"
 		       (const :format "" :value :source)
-		       (string :tag "Authentication Source")
+		       (choice :tag "Authentication backend choice"
+		               (string :tag "Authentication Source (file)")
+		               (list :tag "secrets.el (Secret Service API/KWallet/GNOME KeyRing)" 
+                                     (const :format "" :value :secrets)
+                                     (choice :tag "Collection to use"
+                                             (string :tag "Collection name")
+                                             (const :tag "Default" 'default)
+                                             (const :tag "Any" t)
+                                             (const :tag "Temporary" "session")
+                                             (string :tag "Specific session name")
+                                             (const :tag "Fallback" nil))))
 		       (const :format "" :value :host)
 		       (choice :tag "Host (machine) choice"
 			       (const :tag "Any" t)
@@ -118,7 +134,15 @@ Each entry is the authentication type with optional properties."
 		       (choice :tag "Protocol"
 			       (const :tag "Any" t)
 			       (const :tag "Fallback" nil)
-			       ,@auth-source-protocols-customize))))
+			       ,@auth-source-protocols-customize)
+		       (repeat :tag "Extra Parameters" :inline t
+			       (choice :tag "Extra parameter"
+				       (list :tag "Preferred username" :inline t
+					     (const :format "" :value :preferred-username)
+					     (choice :tag "Personality or username"
+						     (const :tag "Any" t)
+						     (const :tag "Fallback" nil)
+						     (string :tag "Specific user name"))))))))
 
 ;; temp for debugging
 ;; (unintern 'auth-source-protocols)

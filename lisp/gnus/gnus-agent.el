@@ -1583,7 +1583,8 @@ downloaded into the agent."
           (setq selected-sets (nreverse selected-sets))
 
           (gnus-make-directory dir)
-          (gnus-message 7 "Fetching articles for %s..." group)
+	  (gnus-message 7 "Fetching articles for %s..."
+			(gnus-agent-decoded-group-name group))
 
           (unwind-protect
               (while (setq articles (pop selected-sets))
@@ -1594,7 +1595,8 @@ downloaded into the agent."
                     (let (article)
                       (while (setq article (pop articles))
                         (gnus-message 10 "Fetching article %s for %s..."
-                                      article group)
+				      article
+				      (gnus-agent-decoded-group-name group))
                         (when (or
                                (gnus-backlog-request-article group article
                                                              nntp-server-buffer)
@@ -1942,7 +1944,8 @@ article numbers will be returned."
 
         (if articles
             (progn
-              (gnus-message 7 "Fetching headers for %s..." group)
+	      (gnus-message 7 "Fetching headers for %s..."
+			    (gnus-agent-decoded-group-name group))
 
               ;; Fetch them.
               (gnus-make-directory (nnheader-translate-file-chars
@@ -3904,7 +3907,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
                     (sit-for 1)
                     t)))))
   (when group
-    (gnus-message 5 "Regenerating in %s" group)
+    (gnus-message 5 "Regenerating in %s" (gnus-agent-decoded-group-name group))
     (let* ((gnus-command-method (or gnus-command-method
 				    (gnus-find-method-for-group group)))
 	   (file (gnus-agent-article-name ".overview" group))
@@ -3981,7 +3984,8 @@ If REREAD is not nil, downloaded articles are marked as unread."
 		      (or (not nov-arts)
 			  (> (car downloaded) (car nov-arts))))
 		 ;; This entry is missing from the overview file
-		 (gnus-message 3 "Regenerating NOV %s %d..." group
+		 (gnus-message 3 "Regenerating NOV %s %d..."
+			       (gnus-agent-decoded-group-name group)
 			       (car downloaded))
 		 (let ((file (concat dir (number-to-string (car downloaded)))))
 		   (mm-with-unibyte-buffer
