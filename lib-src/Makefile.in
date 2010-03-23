@@ -338,7 +338,7 @@ uninstall:
 	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS}; do \
 	  rm -f $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'` ; \
 	done)
-	(cd $(DESTDIR)${archlibdir}; \
+	(cd $(DESTDIR)${archlibdir} && \
 	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
 
 mostlyclean:

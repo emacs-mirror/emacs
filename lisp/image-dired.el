@@ -801,7 +801,7 @@ you have the dired buffer in the left window and the
 With optional argument APPEND, append thumbnail to thumbnail buffer
 instead of erasing it first.
 
-Option argument DO-NOT-POP controls if `pop-to-buffer' should be
+Optional argument DO-NOT-POP controls if `pop-to-buffer' should be
 used or not.  If non-nil, use `display-buffer' instead of
 `pop-to-buffer'.  This is used from functions like
 `image-dired-next-line-and-display' and
@@ -2113,8 +2113,7 @@ FILE-COMMENTS is an alist on the following form:
 
 (defun image-dired-read-comment (&optional file)
   "Read comment for an image.
-Read comment for an image, optionally using old comment from FILE
-as initial value."
+Optionally use old comment from FILE as initial value."
   (let ((comment
          (read-string
           "Comment: "

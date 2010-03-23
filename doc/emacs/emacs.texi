@@ -502,6 +502,7 @@ Frames and Graphical Displays
 * Mode Line Mouse::     Mouse clicks on the mode line.
 * Creating Frames::     Creating additional Emacs frames with various contents.
 * Frame Commands::      Iconifying, deleting, and switching frames.
+* Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
 * Multiple Displays::   How one Emacs job can talk to several displays.
 * Special Buffer Frames::  You can make certain buffers have their own frames.

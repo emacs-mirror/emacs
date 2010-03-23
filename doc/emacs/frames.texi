@@ -39,6 +39,7 @@ so that you can use many of the features described in this chapter.
 * Mode Line Mouse::     Mouse clicks on the mode line.
 * Creating Frames::     Creating additional Emacs frames with various contents.
 * Frame Commands::      Iconifying, deleting, and switching frames.
+* Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
 * Multiple Displays::   How one Emacs job can talk to several displays.
 * Special Buffer Frames::  You can make certain buffers have their own frames.
@@ -571,25 +572,19 @@ only the initial frame.  @xref{Initial Parameters,,, elisp, The Emacs
 Lisp Reference Manual}, for more information.
 
 @cindex font (default)
-  For instance, one way to specify the principal font for all your
-Emacs frames is to modify @code{default-frame-alist} to specify the
-@code{font} parameter (@pxref{Font X}):
+  Here is an example of using @code{default-frame-alist} to specify
+the default foreground color and font:
 
 @example
 (add-to-list 'default-frame-alist '(font . "10x20"))
-@end example
-
-@noindent
-Here's a similar example for specifying a foreground color:
-
-@example
 (add-to-list 'default-frame-alist '(foreground-color . "blue"))
 @end example
 
 @noindent
 By putting such customizations in your init file, you can control the
-appearance of all the frames Emacs creates, including the initial one.
-@xref{Init File}.
+appearance of all the frames Emacs creates, including the initial one
+(@pxref{Init File}).  @xref{Fonts}, for other ways to set the default
+font.
 
 @node Frame Commands
 @section Frame Commands
@@ -644,6 +639,278 @@ select it, the variable should be @code{nil}.  The default is
   The window manager that is part of MS-Windows always gives focus to
 a frame that raises, so this variable has no effect in the native
 MS-Windows build of Emacs.
+
+@node Fonts
+@section Fonts
+@cindex fonts
+
+  By default, Emacs displays text in X using a 12-point monospace
+font.  There are several different ways to specify a different font:
+
+@itemize
+@item
+Click on @samp{Set Default Font} in the @samp{Options} menu.  To save
+this for future sessions, click on @samp{Save Options} in the
+@samp{Options} menu.
+
+@item
+Add a line to your init file (@pxref{Init File}), modifying the
+variable @code{default-frame-alist} to specify the @code{font}
+parameter (@pxref{Creating Frames}), like this:
+
+@smallexample
+(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-12"))
+@end smallexample
+
+@cindex X defaults file
+@cindex X resources file
+@item
+Add an @samp{emacs.font} X resource setting to your X resource file,
+like this:
+
+@smallexample
+emacs.font: DejaVu Sans Mono-12
+@end smallexample
+
+@noindent
+You must restart X, or use the @command{xrdb} command, for the X
+resources file to take effect.  @xref{Resources}.  When specifying a
+font in your X resources file, you should not quote it.
+
+@item
+If you are running Emacs on the GNOME desktop, you can tell Emacs to
+use the default system font by setting the variable
+@code{font-use-system-font} to @code{t} (the default is @code{nil}).
+For this to work, Emacs must be compiled with Gconf support; this is
+done automatically if the libraries are present at compile time.
+
+@item
+Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
+X}.
+@end itemize
+
+@cindex fontconfig
+  On X, there are four different ways to express a ``font name''.  The
+first is to use a @dfn{Fontconfig pattern}.  Fontconfig patterns have
+the following form:
+
+@smallexample
+@var{fontname}[-@var{fontsize}][:@var{name1}=@var{values1}][:@var{name2}=@var{values2}]...
+@end smallexample
+
+@noindent
+Within this format, any of the elements in braces may be omitted.
+Here, @var{fontname} is the @dfn{family name} of the font, such as
+@samp{Monospace} or @samp{DejaVu Serif}; @var{fontsize} is the
+@dfn{point size} of the font (one @dfn{printer's point} is about 1/72
+of an inch); and the @samp{@var{name}=@var{values}} entries specify
+settings such as the slant and weight of the font.  Each @var{values}
+may be a single value, or a list of values separated by commas.  In
+addition, some property values are valid with only one kind of
+property name, in which case the @samp{@var{name}=} part may be
+omitted.
+
+Here is a list of common font properties:
+
+@table @samp
+@item slant
+One of @samp{italic}, @samp{oblique} or @samp{roman}.
+
+@item weight
+One of @samp{light}, @samp{medium}, @samp{demibold}, @samp{bold} or
+@samp{black}.
+
+@item style
+Some fonts define special styles which are a combination of slant and
+weight.  For instance, @samp{Dejavu Sans} defines the @samp{book}
+style, which overrides the slant and weight properties.
+
+@item width
+One of @samp{condensed}, @samp{normal}, or @samp{expanded}.
+
+@item spacing
+One of @samp{monospace}, @samp{proportional}, @samp{dual-width}, or
+@samp{charcell}.
+@end table
+
+@noindent
+Here are some examples of Fontconfig patterns:
+
+@smallexample
+Monospace
+Monospace-12
+Monospace-12:bold
+DejaVu Sans Mono:bold:italic
+Monospace-12:weight=bold:slant=italic
+@end smallexample
+
+See the Fontconfig manual for a more detailed description of
+Fontconfig patterns.  This manual is located in the file
+@file{fontconfig-user.html}, distributed with Fontconfig.  It is also
+available online at @url{http://fontconfig.org/fontconfig-user.html}.
+In particular, that manual describes additional font properties that
+influence how the font is hinted, antialiased, or scaled.
+
+  The second way to specify a font is to use a @dfn{GTK font
+description}.  These have the syntax
+
+@smallexample
+@var{fontname} [@var{properties}] [@var{fontsize}]
+@end smallexample
+
+@noindent
+where @var{fontname} is the family name, @var{properties} is a list of
+property values separated by spaces, and @var{fontsize} is the point
+size.  The properties that you may specify are as follows:
+
+@table @samp
+@item style
+One of @samp{roman}, @samp{italic} or @samp{oblique}.  If omitted, the
+@samp{roman} style is used.
+@item weight
+One of @samp{medium}, @samp{ultra-light}, @samp{light},
+@samp{semi-bold}, or @samp{bold}.  If omitted, @samp{medium} weight is
+used.
+@end table
+
+@noindent
+Here are some examples of GTK font descriptions:
+
+@smallexample
+Monospace 12
+Monospace Bold Italic 12
+@end smallexample
+
+@cindex XLFD
+@cindex X Logical Font Description
+  The third way to specify a font is to use an @dfn{XLFD} (@dfn{X
+Logical Font Description}).  This is the traditional method for
+specifying fonts under X.  Each XLFD consists of fourteen words or
+numbers, separated by dashes, like this:
+
+@smallexample
+-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+@noindent
+A wildcard character (@samp{*}) in an XLFD matches any sequence of
+characters (including none), and @samp{?} matches any single
+character.  However, matching is implementation-dependent, and can be
+inaccurate when wildcards match dashes in a long name.  For reliable
+results, supply all 14 dashes and use wildcards only within a field.
+Case is insignificant in an XLFD.  The syntax for an XLFD is as
+follows:
+
+@smallexample
+-@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
+@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
+@end smallexample
+
+@noindent
+The entries have the following meanings:
+
+@table @var
+@item maker
+The name of the font manufacturer.
+@item family
+The name of the font family (e.g. @samp{courier}).
+@item weight
+The font weight---normally either @samp{bold}, @samp{medium} or
+@samp{light}.  Some font names support other values.
+@item slant
+The font slant---normally @samp{r} (roman), @samp{i} (italic),
+@samp{o} (oblique), @samp{ri} (reverse italic), or @samp{ot} (other).
+Some font names support other values.
+@item widthtype
+The font width---normally @samp{condensed}, @samp{extended},
+@samp{semicondensed} or @samp{normal} (some font names support other
+values).
+@item style
+An optional additional style name.  Usually it is empty---most long
+font names have two hyphens in a row at this point.
+@item pixels
+The font height, in pixels.
+@item height
+The font height on the screen, measured in tenths of a printer's
+point.  This is the point size of the font, times ten.  For a given
+vertical resolution, @var{height} and @var{pixels} are proportional;
+therefore, it is common to specify just one of them and use @samp{*}
+for the other.
+@item horiz
+The horizontal resolution, in pixels per inch, of the screen for which
+the font is intended.
+@item vert
+The vertical resolution, in pixels per inch, of the screen for which
+the font is intended.  Normally the resolution of the fonts on your
+system is the right value for your screen; therefore, you normally
+specify @samp{*} for this and @var{horiz}.
+@item spacing
+This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
+(character cell).
+@item width
+The average character width, in pixels, multiplied by ten.
+@item registry
+@itemx encoding
+The X font character set that the font depicts.  (X font character
+sets are not the same as Emacs character sets, but they are similar.)
+You can use the @command{xfontsel} program to check which choices you
+have.  Normally you should use @samp{iso8859} for @var{registry} and
+@samp{1} for @var{encoding}.
+@end table
+
+  The fourth and final method of specifying a font is to use a ``font
+nickname''.  Certain fonts have shorter nicknames, which you can use
+instead of a normal font specification.  For instance, @samp{6x13} is
+equivalent to
+
+@smallexample
+-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+@cindex client-side fonts
+@cindex server-side fonts
+  On X, Emacs recognizes two types of fonts: @dfn{client-side} fonts,
+which are provided by the Xft and Fontconfig libraries, and
+@dfn{server-side} fonts, which are provided by the X server itself.
+Most client-side fonts support advanced font features such as
+antialiasing and subpixel hinting, while server-side fonts do not.
+Fontconfig and GTK patterns match only client-side fonts.
+
+@cindex listing system fonts
+  You will probably want to use a fixed-width default font---that is,
+a font in which all characters have the same width.  For Xft and
+Fontconfig fonts, you can use the @command{fc-list} command to list
+the available fixed-width fonts, like this:
+
+@example
+fc-list :spacing=mono fc-list :spacing=charcell
+@end example
+
+@noindent
+For server-side X fonts, you can use the @command{xlsfonts} program to
+list the available fixed-width fonts, like this:
+
+@example
+xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
+xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-m*'
+xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-c*'
+@end example
+
+@noindent
+Any font with @samp{m} or @samp{c} in the @var{spacing} field of the
+XLFD is a fixed-width font.  To see what a particular font looks like,
+use the @command{xfd} command.  For example:
+
+@example
+xfd -fn 6x13
+@end example
+
+@noindent
+displays the entire font @samp{6x13}.
+
+  While running Emacs, you can also set the font of a specific kind of
+text (@pxref{Faces}), or a particular frame (@pxref{Frame
+Parameters}).
 
 @node Speedbar
 @section Speedbar Frames
@@ -957,7 +1224,7 @@ menu-bar-mode} or by customizing the variable @code{menu-bar-mode}.
 With no argument, this command toggles Menu Bar mode, a
 minor mode.  With an argument, the command turns Menu Bar mode on if the
 argument is positive, off if the argument is not positive.  You can use
-the X resource @samp{menuBarLines} to control the initial setting of
+the X resource @samp{menuBar} to control the initial setting of
 Menu Bar mode.  @xref{Resources}.
 
 @kindex C-Mouse-3 @r{(when menu bar is disabled)}

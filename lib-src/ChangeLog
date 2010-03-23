@@ -1,3 +1,8 @@
+2010-03-19  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* Makefile.in (uninstall): Handle the case where archlibdir does
+	not exist.  (Bug#5720)
+
 2010-02-20  Kevin Ryde  <user42@zip.com.au>
 
 	* etags.c (Scheme_functions): Don't loop past a null character

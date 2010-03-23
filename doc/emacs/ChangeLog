@@ -1,3 +1,31 @@
+2010-03-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Table of Resources): Clarify toolBar number
+	for Gtk+.
+
+	* frames.texi (Menu Bars): menuBarLines => menuBar (bug#5736).
+
+2010-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.texi (Dired Updating): Document dired-auto-revert-buffer.
+
+	* search.texi (Other Repeating Search): Document multi-isearch-buffers
+	and multi-isearch-buffers-regexp.
+
+	* indent.texi (Indentation): Clarify description of
+	indent-for-tab-command.  Document tab-always-indent.
+
+2010-03-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Font X): Move most content to Fonts.
+
+	* frames.texi (Fonts): New node.  Document font-use-system-font.
+
+	* emacs.texi (Top):
+	* xresources.texi (Table of Resources):
+	* mule.texi (Defining Fontsets, Charsets): Update xrefs.
+
+>>>>>>> MERGE-SOURCE
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init Examples): Add xref to Locals.
