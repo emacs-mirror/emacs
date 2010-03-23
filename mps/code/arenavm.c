@@ -91,6 +91,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 static void sparePagesPurge(VMArena vmArena);
 static ArenaClass VMArenaClassGet(void);
 static ArenaClass VMNZArenaClassGet(void);
+static void VMCompact(Arena arena, Trace trace);
 
 
 /* VMChunkCheck -- check the consistency of a VM chunk */
@@ -540,7 +541,8 @@ static void VMArenaFinish(Arena arena)
   arenaVM = vmArena->vm;
 
   sparePagesPurge(vmArena);
-  /* destroy all chunks */
+  /* destroy all chunks, including the primary */
+  arena->primary = NULL;
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     vmChunkDestroy(chunk);
@@ -1611,11 +1613,94 @@ static void VMFree(Addr base, Size size, Pool pool)
   if (arena->spareCommitted > arena->spareCommitLimit) {
     sparePagesPurge(vmArena);
   }
-  /* @@@@ Chunks are never freed. */
+
+  /* Chunks are only freed when ArenaCompact is called. */
 
   return;
 }
 
+
+/* M_whole, M_frac -- print count of bytes as Megabytes
+ *
+ * Split into a whole number of MB, "m" for the decimal point, and 
+ * then the decimal fraction (thousandths of a MB, ie. kB).
+ *
+ * Input:                208896
+ * Output:  (Megabytes)  0m209
+ */
+#define bPerM (1000000UL)  /* Megabytes */
+#define bThou (1000UL)
+DIAG_DECL(
+static Count M_whole(size_t bytes)
+{
+  size_t M;  /* MBs */
+  M = (bytes + (bThou / 2)) / bPerM;
+  return M;
+}
+static Count M_frac(size_t bytes)
+{
+  Count Mthou;  /* thousandths of a MB */
+  Mthou = (bytes + (bThou / 2)) / bThou;
+  Mthou = Mthou % 1000;
+  return Mthou;
+}
+)
+
+
+static void VMCompact(Arena arena, Trace trace)
+{
+  VMArena vmArena;
+  Ring node, next;
+  DIAG_DECL( Size vmem1; )
+
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  AVERT(Trace, trace);
+
+  DIAG(
+    vmem1 = VMArenaReserved(arena);
+  );
+
+  /* Destroy any empty chunks (except the primary). */
+  sparePagesPurge(vmArena);
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    if(chunk != arena->primary
+       && BTIsResRange(chunk->allocTable, 0, chunk->pages)) {
+      vmChunkDestroy(chunk);
+    }
+  }
+
+  DIAG(
+    Size vmem0 = trace->preTraceArenaReserved;
+    Size vmem2 = VMArenaReserved(arena);
+    Size vmemD = vmem1 - vmem2;
+    Size live = trace->forwardedSize + trace->preservedInPlaceSize;
+    Size livePerc = live / (trace->condemned / 100);
+    
+    /* VMCompact diag: emit for all client-requested collections, */
+    /* plus any others where chunks were gained or lost during the */
+    /* collection.  */
+    if(trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
+       || trace->why == TraceStartWhyCLIENTFULL_BLOCK
+       || vmem0 != vmem1
+       || vmem1 != vmem2) {
+      DIAG_SINGLEF(( "VMCompact",
+        "pre-collection vmem was $Um$3, ", M_whole(vmem0), M_frac(vmem0),
+        "peaked at $Um$3, ", M_whole(vmem1), M_frac(vmem1),
+        "released $Um$3, ", M_whole(vmemD), M_frac(vmemD),
+        "now $Um$3", M_whole(vmem2), M_frac(vmem2),
+        " (why $U", trace->why,
+        ": $Um$3", M_whole(trace->condemned), M_frac(trace->condemned),
+        "[->$Um$3", M_whole(live), M_frac(live),
+        " $U%-live", livePerc,
+        " $Um$3-stuck]", M_whole(trace->preservedInPlaceSize), M_frac(trace->preservedInPlaceSize),
+        " ($Um$3-not)", M_whole(trace->notCondemned), M_frac(trace->notCondemned),
+        " )",
+        NULL));
+    }
+  );
+}
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
                               size_t mps_desired, size_t mps_minimum)
@@ -1662,6 +1747,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
   this->chunkFinish = VMChunkFinish;
+  this->compact = VMCompact;
   this->describe = VMArenaDescribe;
 }
 
