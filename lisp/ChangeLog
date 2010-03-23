@@ -1,3 +1,14 @@
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
+	* finder.el: Remove TODO tasks.
+
+	* info.el (Info-finder-find-node): Add node "all"
+	with all package info.  Handle a list of multiple keywords
+	separated by comma.
+	(info-finder): In interactive use with a prefix argument,
+	use `completing-read-multiple' to read a list of keywords
+	separated by comma.
+
 2010-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add a new completion style `substring'.
