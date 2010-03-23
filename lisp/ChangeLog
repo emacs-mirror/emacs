@@ -1,3 +1,14 @@
+2010-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add a new completion style `substring'.
+	* minibuffer.el (completion-basic--pattern): New function.
+	(completion-basic-try-completion, completion-basic-all-completions):
+	Use it.
+	(completion-substring--all-completions)
+	(completion-substring-try-completion)
+	(completion-substring-all-completions): New functions.
+	(completion-styles-alist): New style `substring'.
+
 2010-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Get rid of .elc files after removal of the corresponding .el.
