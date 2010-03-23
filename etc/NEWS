@@ -94,6 +94,8 @@ Secret Service API requires D-Bus for communication.
 
 * Lisp changes in Emacs 24.1
 
+** New completion style `substring'.
+
 ** Image API
 
 *** When the image type is one of listed in `image-animated-types'
