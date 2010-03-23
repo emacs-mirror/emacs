@@ -3,8 +3,8 @@
 ;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
-;; Author: Sam Steingold <sds@usa.net>
-;; Maintainer: Sam Steingold <sds@usa.net>
+;; Author: Sam Steingold <sds@gnu.org>
+;; Maintainer: Sam Steingold <sds@gnu.org>
 ;; Created: 1998-05-18
 ;; Keywords: utilities
 
@@ -205,7 +205,7 @@ The default value is `clean-buffer-list'."
 
 (defun midnight-next ()
   "Return the number of seconds till the next midnight."
-  (multiple-value-bind (sec min hrs) 
+  (multiple-value-bind (sec min hrs)
       (values-list (decode-time))
     (- (* 24 60 60) (* 60 60 hrs) (* 60 min) sec)))
 
