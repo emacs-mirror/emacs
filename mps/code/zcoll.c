@@ -178,7 +178,6 @@ static void showStatsText(size_t notcon, size_t con, size_t live)
 /* get -- get messages
  *
  */
-#define get_print_times 0
 static void get(mps_arena_t arena)
 {
   mps_message_type_t type;
@@ -197,10 +196,8 @@ static void get(mps_arena_t arena)
     switch(type) {
       case mps_message_type_gc_start(): {
         mclockBegin = mps_message_clock(arena, message);
-#if get_print_times
         printf("    %5lu: (%5lu)",
                mclockBegin, mclockBegin - mclockEnd);
-#endif
         printf("    Coll Begin                                     (%s)\n",
                mps_message_gc_start_why(arena, message));
         break;
@@ -214,10 +211,8 @@ static void get(mps_arena_t arena)
 
         mclockEnd = mps_message_clock(arena, message);
         
-#if get_print_times
         printf("    %5lu: (%5lu)",
                mclockEnd, mclockEnd - mclockBegin);
-#endif
         printf("    Coll End  ");
         showStatsText(notcon, con, live);
         if(rnd()==0) showStatsAscii(notcon, con, live, alimit);
@@ -919,12 +914,10 @@ int main(int argc, char **argv)
   /* 7p = 28672b; 8p = 32768b */
   /* 28000 = Medium segment */
   /* 29000 = Large segment */
-#if 0
   testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small A), Collect.");
   testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small A), Collect.");
   testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small E), Collect.");
   testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small E), Collect.");
-#endif
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.
