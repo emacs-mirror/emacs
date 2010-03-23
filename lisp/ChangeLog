@@ -1,5 +1,12 @@
 2010-03-23  Juri Linkov  <juri@jurta.org>
 
+	* replace.el (occur-accumulate-lines, occur-engine):
+	Use `occur-engine-line' instead of duplicate code.
+	(occur-engine-line): New function created from duplicate code
+	in `occur-accumulate-lines' and `occur-engine'.
+
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
 	* finder.el: Remove TODO tasks.
 
 	* info.el (Info-finder-find-node): Add node "all"

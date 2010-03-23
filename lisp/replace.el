@@ -1016,18 +1016,7 @@ which means to discard all text properties."
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
-	(if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
-		 (text-property-not-all beg end 'fontified t))
-	    (if (fboundp 'jit-lock-fontify-now)
-		(jit-lock-fontify-now beg end)))
-	(push
-	 (if (and keep-props (not (eq occur-excluded-properties t)))
-	     (let ((str (buffer-substring beg end)))
-	       (remove-list-of-text-properties
-		0 (length str) occur-excluded-properties str)
-	       str)
-	   (buffer-substring-no-properties beg end))
-	 result)
+	(push (occur-engine-line beg end) result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
 
@@ -1228,17 +1217,7 @@ See also `multi-occur'."
 			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (if (and keep-props
-			     (if (boundp 'jit-lock-mode) jit-lock-mode)
-			     (text-property-not-all begpt endpt 'fontified t))
-			(if (fboundp 'jit-lock-fontify-now)
-			    (jit-lock-fontify-now begpt endpt)))
-		    (if (and keep-props (not (eq occur-excluded-properties t)))
-			(progn
-			  (setq curstring (buffer-substring begpt endpt))
-			  (remove-list-of-text-properties
-			   0 (length curstring) occur-excluded-properties curstring))
-		      (setq curstring (buffer-substring-no-properties begpt endpt)))
+		    (setq curstring (occur-engine-line begpt endpt))
 		    ;; Highlight the matches
 		    (let ((len (length curstring))
 			  (start 0))
@@ -1334,6 +1313,18 @@ See also `multi-occur'."
 	  (set-buffer-file-coding-system coding))
       ;; Return the number of matches
       globalcount)))
+
+(defun occur-engine-line (beg end)
+  (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
+	   (text-property-not-all beg end 'fontified t))
+      (if (fboundp 'jit-lock-fontify-now)
+	  (jit-lock-fontify-now beg end)))
+  (if (and keep-props (not (eq occur-excluded-properties t)))
+      (let ((str (buffer-substring beg end)))
+	(remove-list-of-text-properties
+	 0 (length str) occur-excluded-properties str)
+	str)
+    (buffer-substring-no-properties beg end)))
 
 ;; Generate context display for occur.
 ;; OUT-LINE is the line where the match is.
