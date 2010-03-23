@@ -1,3 +1,11 @@
+2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Simplify LIBS_MACHINE definitions.
+	* m/hp800.h (LIBS_MACHINE): Remove, same as default.
+	* m/iris4d.h (LIBS_MACHINE): Likewise.
+	* m/ibmrs6000.h (LIBS_MACHINE): Rename to LIBS_SYSTEM and move ...
+	* s/aix4-2.h (LIBS_SYSTEM): ... here.
+
 2010-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove dead code dealing with POSIX_SIGNALS.
