@@ -517,6 +517,12 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
             if (res != ResOK) return res;
           } break;
 
+          case '3': {                   /* decimal for thousandths */
+            WriteFU u = va_arg(args, WriteFU);
+            res = WriteWord(stream, (Word)u, 10, 3);
+            if (res != ResOK) return res;
+          } break;
+
           case 'B': {                   /* binary, see .writef.p */
             WriteFB b = va_arg(args, WriteFB);
             res = WriteWord(stream, (Word)b, 2, sizeof(WriteFB) * CHAR_BIT);

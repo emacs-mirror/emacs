@@ -847,21 +847,46 @@ int main(int argc, char **argv)
   /* Try 10MB arena */
   /* testscriptA("Arena(size 10485760), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect."); */
   if(1) {
-    testscriptA("Arena(size 10485760), "
-                "ZRndStateSet(239185672), "
+    testscriptA("Arena(size 10000000), "
                 "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
                 "Rootdrop(rank E), StackScan(0), Collect, Collect, StackScan(1), "
-                "ZRndStateSet(239185672), "
                 "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
                 "Rootdrop(rank E), Collect, Collect.");
   }
-  if(0) {
+  if(1) {
+    testscriptA("Arena(size 4000000), "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
+                "Rootdrop(rank E), StackScan(0), Collect, Collect, StackScan(1), "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
+                "Rootdrop(rank E), Collect, Collect.");
+  }
+  if(1) {
+    testscriptA("Arena(size 4000000), "
+                "Make(random 1, keep-1-in 5, keep 10000, rootspace 30000, sizemethod 1), "
+                "Rootdrop(rank E), Collect, "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), "
+                "Rootdrop(rank E), Collect, "
+                "Make(random 1, keep-1-in 5, keep 100000, rootspace 30000, sizemethod 1), "
+                "Rootdrop(rank E), Collect, "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), "
+                "Rootdrop(rank E), Collect.");
+  }
+  if(1) {
     testscriptA("Arena(size 10485760), "
                 "Make(random 0, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 2), "
                 "Collect, "
                 "Rootdrop(rank E), Collect, Collect, "
                 "Make(random 0, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 2), "
                 "Collect, "
+                "Rootdrop(rank E), Collect, Collect.");
+  }
+  if(1) {
+    testscriptA("Arena(size 10485760), "
+                "ZRndStateSet(239185672), "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
+                "Rootdrop(rank E), StackScan(0), Collect, Collect, StackScan(1), "
+                "ZRndStateSet(239185672), "
+                "Make(random 1, keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect, "
                 "Rootdrop(rank E), Collect, Collect.");
   }
 
