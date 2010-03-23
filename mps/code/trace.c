@@ -663,6 +663,7 @@ found:
   trace->band = RankAMBIG;      /* Required to be the earliest rank. */
   trace->emergency = FALSE;
   trace->chain = NULL;
+  STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
