@@ -91,6 +91,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 static void sparePagesPurge(VMArena vmArena);
 static ArenaClass VMArenaClassGet(void);
 static ArenaClass VMNZArenaClassGet(void);
+static void VMCompact(Arena arena, Trace trace);
 
 
 /* VMChunkCheck -- check the consistency of a VM chunk */
@@ -540,7 +541,8 @@ static void VMArenaFinish(Arena arena)
   arenaVM = vmArena->vm;
 
   sparePagesPurge(vmArena);
-  /* destroy all chunks */
+  /* destroy all chunks, including the primary */
+  arena->primary = NULL;
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     vmChunkDestroy(chunk);
@@ -1611,24 +1613,51 @@ static void VMFree(Addr base, Size size, Pool pool)
   if (arena->spareCommitted > arena->spareCommitLimit) {
     sparePagesPurge(vmArena);
   }
-  /* @@@@ Chunks are never freed. */
 
-  /* ... oh yes they are */
-  {
-    Ring node, next;
-    sparePagesPurge(vmArena);
-    /* Destroy any empty chunks (except the primary). */
-    RING_FOR(node, &arena->chunkRing, next) {
-      /*Chunk */chunk = RING_ELT(Chunk, chunkRing, node);
-      if(chunk != arena->primary
-         && BTIsResRange(chunk->allocTable, 0, chunk->pages))
-        vmChunkDestroy(chunk);
-    }
-  }
+  /* Chunks are only freed when ArenaCompact is called. */
 
   return;
 }
 
+static void VMCompact(Arena arena, Trace trace)
+{
+  VMArena vmArena;
+  Ring node, next;
+  DIAG_DECL( Size vmem1; )
+  DIAG_DECL( Size vmem2; )
+  DIAG_DECL( Size vmemD; )
+  DIAG_DECL( Count count; )
+
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  UNUSED(trace);  /* it's there for better diag; not used yet */
+
+  /* Destroy any empty chunks (except the primary). */
+  sparePagesPurge(vmArena);
+  DIAG(
+    vmem1 = VMArenaReserved(arena);
+    count = 0;
+  );
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    if(chunk != arena->primary
+       && BTIsResRange(chunk->allocTable, 0, chunk->pages)) {
+      vmChunkDestroy(chunk);
+      DIAG( count += 1; );
+    }
+  }
+  DIAG(
+    vmem2 = VMArenaReserved(arena);
+    vmemD = vmem1 - vmem2;
+    
+    if(vmemD != 0) {
+      DIAG_SINGLEF(( "VMCompact",
+        "vmem was $W, released $W, now $W", vmem1, vmemD, vmem2,
+        NULL));
+    }
+  );
+  
+}
 
 mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
                               size_t mps_desired, size_t mps_minimum)
@@ -1675,6 +1704,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->free = VMFree;
   this->chunkInit = VMChunkInit;
   this->chunkFinish = VMChunkFinish;
+  this->compact = VMCompact;
   this->describe = VMArenaDescribe;
 }
 

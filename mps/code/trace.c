@@ -813,6 +813,8 @@ static void traceReclaim(Trace trace)
     PoolTraceEnd(pool, trace);
   }
 
+  ArenaCompact(arena, trace);  /* let arenavm drop chunks */
+
   TracePostMessage(trace);  /* trace end */
   /* Immediately pre-allocate messages for next time; failure is okay */
   (void)TraceIdMessagesCreate(arena, trace->ti);
