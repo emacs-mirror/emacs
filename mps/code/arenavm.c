@@ -1675,6 +1675,7 @@ static void VMCompact(Arena arena, Trace trace)
   }
 
   DIAG(
+    Size vmem0 = trace->preTraceArenaReserved;
     Size vmem2 = VMArenaReserved(arena);
     Size vmemD = vmem1 - vmem2;
     Size live = trace->forwardedSize + trace->preservedInPlaceSize;
@@ -1684,7 +1685,8 @@ static void VMCompact(Arena arena, Trace trace)
        || trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
        || trace->why == TraceStartWhyCLIENTFULL_BLOCK) {
       DIAG_SINGLEF(( "VMCompact",
-        "vmem was $Um$3, ", M_whole(vmem1), M_frac(vmem1),
+        "pre-collection vmem was $Um$3, ", M_whole(vmem0), M_frac(vmem0),
+        "peaked at $Um$3, ", M_whole(vmem1), M_frac(vmem1),
         "released $Um$3, ", M_whole(vmemD), M_frac(vmemD),
         "now $Um$3", M_whole(vmem2), M_frac(vmem2),
         " (why $U", trace->why,
