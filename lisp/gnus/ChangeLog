@@ -1,3 +1,90 @@
+2010-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (canlock-verify): Autoload it for Emacs 21.
+
+	* message.el (ecomplete-setup): Autoload it for Emacs <23.
+
+	* mml-sec.el (mml-secure-cache-passphrase): Default to t that is
+	password-cache's default if it is not bound.
+	(mml-secure-passphrase-cache-expiry): Default to 16 that is
+	password-cache-expiry's default if it is not bound.
+
+	* pop3.el (pop3-list): Don't use 3rd arg of `split-string' which is not
+	available in Emacs 21.
+
+2010-03-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Fix up definition so extra parameters
+	are always inline.
+
+2010-03-22  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* nnimap.el (nnimap-verify-uidvalidity): Fixed bug where uidvalidity
+	wasn't updated after mismatch.  Clear cached mailbox info correctly
+	when uidvalidity changes.
+	(nnimap-group-prefixed-name): New function to avoid some code
+	duplication.
+	(nnimap-verify-uidvalidity, nnimap-group-overview-filename)
+	(nnimap-request-group): Use it.
+	(nnimap-retrieve-groups, nnimap-verify-uidvalidity)
+	(nnimap-update-unseen): Significantly improved speed of Gnus startup
+	with many imap folders.  This is done by caching the group status from
+	the imap server persistently in a group parameter `imap-status'. (This
+	was cached before too if `nnimap-retrieve-groups-asynchronous' was set,
+	but not persistently, so every Gnus startup was still very slow.)
+
+2010-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Set up autoloads.  Bump to 23.2 because of the
+	secrets.el dependency.
+	(auth-sources): Add optional user name.  Add secrets.el configuration
+	choice (unused right now).
+
+2010-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Let
+	`gnus-registry-install-shortcuts' fill in the functions.
+
+	* gnus-registry.el (gnus-summary-misc-menu): Declare to avoid
+	warnings.
+	(gnus-registry-misc-menus): Variable to hold registry mark menus.
+	(gnus-registry-install-shortcuts): Populate and use it in a
+	`gnus-summary-menu-hook' lambda, under "Gnus"->"Registry Marks".
+
+2010-03-20  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* nnimap.el (nnimap-decode-group-name, nnimap-encode-group-name):
+	In-place substitutions for the group name encoding/decoding.
+	(nnimap-find-minmax-uid, nnimap-possibly-change-group)
+	(nnimap-retrieve-headers-progress, nnimap-possibly-change-group)
+	(nnimap-retrieve-headers-progress, nnimap-request-article-part)
+	(nnimap-update-unseen, nnimap-request-list)
+	(nnimap-retrieve-groups, nnimap-request-update-info-internal)
+	(nnimap-request-set-mark, nnimap-split-to-groups)
+	(nnimap-split-articles, nnimap-request-newgroups)
+	(nnimap-request-create-group, nnimap-request-accept-article)
+	(nnimap-request-delete-group, nnimap-request-rename-group)
+	(nnimap-acl-get, nnimap-acl-edit): Use them.  Replace `mbx' with
+	`encoded-mbx' for consistency.
+	(nnimap-close-group): Call `imap-current-mailbox' instead of using the
+	variable `imap-current-mailbox'.
+
+	* gnus-agent.el (gnus-agent-fetch-articles, gnus-agent-fetch-headers)
+	(gnus-agent-regenerate-group): Use `gnus-agent-decoded-group-name'.
+
+2010-03-20  Bojan Petrovic  <bpetrovi@f.bg.ac.rs>
+
+	* pop3.el (pop3-display-message-size-flag): Display message size byte
+	counts during POP3 download.
+	(pop3-movemail): Use it.
+	(pop3-list): Implement listing of available messages.
+
+2010-03-20  Mark Triggs  <mst@dishevelled.net>  (tiny change)
+
+	* nnir.el (nnir-get-article-nov-override-function): New function to
+	override the normal NOV retrieval.
+	(nnir-retrieve-headers): Use it.
+
 2010-03-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* auth-source.el (netrc-machine-user-or-password): Autoload.

@@ -358,6 +358,14 @@
 (defvar nnir-imap-search-argument-history ()
   "The history for querying search options in nnir")
 
+(defvar nnir-get-article-nov-override-function nil
+  "If non-nil, a function that will be passed each search result.  This
+should return a message's headers in NOV format.
+
+If this variable is nil, or if the provided function returns nil for a search
+result, `gnus-retrieve-headers' will be called instead.")
+
+
 ;;; Developer Extension Variable:
 
 (defvar nnir-engines
@@ -779,25 +787,31 @@ and show thread that contains this article."
 	(nnir-possibly-change-server server)
         (let ((gnus-override-method
 	       (gnus-server-to-method server)))
-	  (case (setq foo (gnus-retrieve-headers (list artno) artfullgroup nil))
-	    (nov
-	     (goto-char (point-min))
-	     (setq novitem (nnheader-parse-nov))
-	     (unless novitem
-	       (pop-to-buffer nntp-server-buffer)
-	       (error
-		"nnheader-parse-nov returned nil for article %s in group %s"
-		artno artfullgroup)))
-	    (headers
-	     (goto-char (point-min))
-	     (setq novitem (nnheader-parse-head))
-	     (unless novitem
-	       (pop-to-buffer nntp-server-buffer)
-	       (error
-		"nnheader-parse-head returned nil for article %s in group %s"
-		artno artfullgroup)))
-	    (t (error "Unknown header type %s while requesting article %s of group %s"
-		      foo artno artfullgroup))))
+	  ;; if nnir-get-article-nov-override-function is set, use it
+	  (if nnir-get-article-nov-override-function
+	      (setq novitem (funcall nnir-get-article-nov-override-function
+				     artitem))
+	  ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
+	    (case (setq foo (gnus-retrieve-headers (list artno) 
+						   artfullgroup nil))
+	      (nov
+	       (goto-char (point-min))
+	       (setq novitem (nnheader-parse-nov))
+	       (unless novitem
+		 (pop-to-buffer nntp-server-buffer)
+		 (error
+		  "nnheader-parse-nov returned nil for article %s in group %s"
+		  artno artfullgroup)))
+	      (headers
+	       (goto-char (point-min))
+	       (setq novitem (nnheader-parse-head))
+	       (unless novitem
+		 (pop-to-buffer nntp-server-buffer)
+		 (error
+		  "nnheader-parse-head returned nil for article %s in group %s"
+		  artno artfullgroup)))
+	      (t (error "Unknown header type %s while requesting article %s of group %s"
+			foo artno artfullgroup)))))
 	;; replace article number in original group with article number
         ;; in nnir group
         (mail-header-set-number novitem art)

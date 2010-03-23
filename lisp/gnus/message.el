@@ -2850,6 +2850,8 @@ See also `message-forbidden-properties'."
 	  (inhibit-read-only t))
       (remove-text-properties begin end message-forbidden-properties))))
 
+(autoload 'ecomplete-setup "ecomplete") ;; for Emacs <23.
+
 ;;;###autoload
 (define-derived-mode message-mode text-mode "Message"
   "Major mode for editing mail and news to be sent.
