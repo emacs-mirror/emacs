@@ -64,8 +64,25 @@ Other changes:
 
 ]
 
-This is release 1.109.0, made on YYYY-MM-DD.
-Changes from release 1.108.2:
+This is release 1.109.1, made on YYYY-MM-DD.
+Changes from release 1.109.0:
+
+Functional changes to MPS code:
+
+<http://www.ravenbrook.com/project/mps/issue/job002248/>
+Improvement: return virtual memory (address space) from 
+mps_arena_class_vm to the operating system, when complete chunks are 
+unused after a garbage collection.  Whether, and how much, virtual 
+memory is returned depends on many factors.  Small chunks may be more 
+likely to be returnable than big chunks.  The mps_arena_vm_growth() 
+function controls the size of chunks by which VM arena may grow.  The 
+default, if this function is never called, is for new chunks to be the 
+same size as the original arena created by mps_arena_create(), if 
+possible.
+
+
+[
+Historical: changes in release 1.109.0 (2010-03-05).
 
 Functional changes to MPS code:
 
@@ -136,7 +153,7 @@ Configura releases include a .def file to allow re-export of MPS
 functions from a client executable that includes the MPS, such that 
 other client DLLs can link to and call those MPS functions.
 See also manual/build-notes.
-
+]
 
 [
 Historical: changes in release 1.108.2, made on (2008-05-01).

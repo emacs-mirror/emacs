@@ -30,8 +30,30 @@ typedef struct RuleStruct {
 struct RuleStruct RulesGlobal[] = {
   { "-", "*", "*", "*" },
   { "+", "DiagFilter_Rules", "*", "*" },
+  { "+", "VMCompact", "*", "*" },
+  /* ----v---- always on please (RHSK) ----v---- */
+  { "+", "traceSetSignalEmergency", "*", "*" },
+  { NULL, "", "", "" }
+};
+
+struct RuleStruct RulesGlobal_RHSK[] = {
+  { "+", "*", "*", "*" },
+  { "+", "DiagFilter_Rules", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
   { "+", "AMCTraceEnd_pageret", "*", "*" },
+  { "-", "ChainCondemnAuto", "*", "*" },
+  { "+", "VM_ix_", "*", "*" },
+  { "-", "vmArenaExtend_", "*", "*" },
+  { "-", "traceFindGrey", "*", "*" },
+  { "-", "TraceStart", "*", "*" },
+  { "+", "TraceStart", "*", "controlPool" },
+  { "+", "TraceStart", "*", "reserved" },
+  { "+", "TraceStart", "*", "committed" },
+  { "+", "TraceStart", "*", "genZoneSet" },
+  { "-", "TraceStart", "because code 1", "*" },
+  { "+", "VMCompact", "*", "*" },
+  { "-", "VMCompact_hex", "*", "*" },
+  { "+", "VM_ix_Create", "*", "*" },
   /* ----v---- always on please (RHSK) ----v---- */
   { "+", "traceSetSignalEmergency", "*", "*" },
   { NULL, "", "", "" }

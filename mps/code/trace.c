@@ -308,6 +308,9 @@ static void traceSetSignalEmergency(TraceSet ts, Arena arena)
   TraceId ti;
   Trace trace;
 
+  DIAG_SINGLEF(( "traceSetSignalEmergency",
+    "traceSet: $B", ts, NULL ));
+
   TRACE_SET_ITER(ti, trace, ts, arena)
     trace->emergency = TRUE;
   TRACE_SET_ITER_END(ti, trace, ts, arena);
@@ -660,6 +663,7 @@ found:
   trace->band = RankAMBIG;      /* Required to be the earliest rank. */
   trace->emergency = FALSE;
   trace->chain = NULL;
+  STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
@@ -767,6 +771,7 @@ static void traceReclaim(Trace trace)
 {
   Arena arena;
   Seg seg;
+  Ring node, nextNode;
 
   AVER(trace->state == TraceRECLAIM);
 
@@ -802,6 +807,15 @@ static void traceReclaim(Trace trace)
   }
 
   trace->state = TraceFINISHED;
+
+  /* Call each pool's TraceEnd method -- do end-of-trace work */
+  RING_FOR(node, &ArenaGlobals(arena)->poolRing, nextNode) {
+    Pool pool = RING_ELT(Pool, arenaRing, node);
+    PoolTraceEnd(pool, trace);
+  }
+
+  ArenaCompact(arena, trace);  /* let arenavm drop chunks */
+
   TracePostMessage(trace);  /* trace end */
   /* Immediately pre-allocate messages for next time; failure is okay */
   (void)TraceIdMessagesCreate(arena, trace->ti);
@@ -963,7 +977,7 @@ static void traceFindGrey_diag(Bool found, Rank rank)
     *report_lim++ = this;
     *report_lim++ = '\0';
     DIAG_SINGLEF(( "traceFindGrey",
-                   "rank sequence: $S\n",
+                   "rank sequence: $S",
                    (WriteFS)report_array,
                    NULL ));
   }

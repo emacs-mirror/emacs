@@ -211,6 +211,7 @@ extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
   ((*(pool)->fix)(pool, ss, seg, refIO))
 extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
+extern void PoolTraceEnd(Pool pool, Trace trace);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, unsigned long s);
 extern void PoolFreeWalk(Pool pool, FreeBlockStepMethod f, void *p);
@@ -250,6 +251,7 @@ extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
+extern void PoolTrivTraceEnd(Pool pool, Trace trace);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
@@ -567,6 +569,8 @@ extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
+
+extern void ArenaCompact(Arena arena, Trace trace);
 
 extern Res ArenaFinalize(Arena arena, Ref obj);
 extern Res ArenaDefinalize(Arena arena, Ref obj);
