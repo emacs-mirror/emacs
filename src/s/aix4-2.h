@@ -95,6 +95,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIB_STANDARD
 
+/* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
+   on older versions of X where it happens to exist.  */
+#ifdef HAVE_LIBPTHREADS
+#define LIBS_SYSTEM -lrts -lIM -liconv -lpthreads
+#else
+/* IBM's X11R5 use -lIM and -liconv in AIX 3.2.2.  */
+#define LIBS_SYSTEM -lrts -lIM -liconv
+#endif
+
 /* Use terminfo instead of termcap.  */
 
 #define TERMINFO
