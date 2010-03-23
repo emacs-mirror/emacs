@@ -1016,7 +1016,7 @@ which means to discard all text properties."
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
-	(push (occur-engine-line beg end) result)
+	(push (occur-engine-line beg end keep-props) result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
 
@@ -1045,7 +1045,7 @@ invoke `occur'."
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.
-This function can not handle matches that span more than one line.
+If a match spreads across multiple lines, all those lines are shown.
 
 Each line is displayed with NLINES lines before and after, or -NLINES
 before if NLINES is negative.
@@ -1210,14 +1210,17 @@ See also `multi-occur'."
 		  (when (setq endpt (re-search-forward regexp nil t))
 		    (setq matches (1+ matches)) ;; increment match count
 		    (setq matchbeg (match-beginning 0))
-		    (setq lines (+ lines (1- (count-lines origpt endpt))))
+		    ;; Get beginning of first match line and end of the last.
 		    (save-excursion
 		      (goto-char matchbeg)
-		      (setq begpt (line-beginning-position)
-			    endpt (line-end-position)))
+		      (setq begpt (line-beginning-position))
+		      (goto-char endpt)
+		      (setq endpt (line-end-position)))
+		    ;; Sum line numbers up to the first match line.
+		    (setq lines (+ lines (count-lines origpt begpt)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (setq curstring (occur-engine-line begpt endpt))
+		    (setq curstring (occur-engine-line begpt endpt keep-props))
 		    ;; Highlight the matches
 		    (let ((len (length curstring))
 			  (start 0))
@@ -1234,24 +1237,33 @@ See also `multi-occur'."
 			 curstring)
 			(setq start (match-end 0))))
 		    ;; Generate the string to insert for this match
-		    (let* ((out-line
+		    (let* ((match-prefix
+			    ;; Using 7 digits aligns tabs properly.
+			    (apply #'propertize (format "%7d:" lines)
+				   (append
+				    (when prefix-face
+				      `(font-lock-face prefix-face))
+				    `(occur-prefix t mouse-face (highlight)
+						   occur-target ,marker follow-link t
+						   help-echo "mouse-2: go to this occurrence"))))
+			   (match-str
+			    ;; We don't put `mouse-face' on the newline,
+			    ;; because that loses.  And don't put it
+			    ;; on context lines to reduce flicker.
+			    (propertize curstring 'mouse-face (list 'highlight)
+					'occur-target marker
+					'follow-link t
+					'help-echo
+					"mouse-2: go to this occurrence"))
+			   (out-line
 			    (concat
-			     ;; Using 7 digits aligns tabs properly.
-			     (apply #'propertize (format "%7d:" lines)
-				    (append
-				     (when prefix-face
-				       `(font-lock-face prefix-face))
-				     `(occur-prefix t mouse-face (highlight)
-				       occur-target ,marker follow-link t
-				       help-echo "mouse-2: go to this occurrence")))
-			     ;; We don't put `mouse-face' on the newline,
-			     ;; because that loses.  And don't put it
-			     ;; on context lines to reduce flicker.
-			     (propertize curstring 'mouse-face (list 'highlight)
-					 'occur-target marker
-					 'follow-link t
-					 'help-echo
-					 "mouse-2: go to this occurrence")
+			     match-prefix
+			     ;; Add non-numeric prefix to all non-first lines
+			     ;; of multi-line matches.
+			     (replace-regexp-in-string
+			      "\n"
+			      "\n       :"
+			      match-str)
 			     ;; Add marker at eol, but no mouse props.
 			     (propertize "\n" 'occur-target marker)))
 			   (data
@@ -1270,7 +1282,11 @@ See also `multi-occur'."
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
-			(setq lines (1+ lines))
+			;; Sum line numbers between first and last match lines.
+			(setq lines (+ lines (count-lines begpt endpt)
+				       ;; Add 1 for empty last match line since
+				       ;; count-lines returns 1 line less.
+				       (if (and (bolp) (eolp)) 1 0)))
 			;; On to the next match...
 			(forward-line 1))
 		    (goto-char (point-max))))))
@@ -1314,7 +1330,7 @@ See also `multi-occur'."
       ;; Return the number of matches
       globalcount)))
 
-(defun occur-engine-line (beg end)
+(defun occur-engine-line (beg end &optional keep-props)
   (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
 	   (text-property-not-all beg end 'fontified t))
       (if (fboundp 'jit-lock-fontify-now)
