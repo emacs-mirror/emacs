@@ -1678,9 +1678,13 @@ static void VMCompact(Arena arena, Trace trace)
     Size live = trace->forwardedSize + trace->preservedInPlaceSize;
     Size livePerc = live / (trace->condemned / 100);
     
-    if(vmemD != 0
-       || trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
-       || trace->why == TraceStartWhyCLIENTFULL_BLOCK) {
+    /* VMCompact diag: emit for all client-requested collections, */
+    /* plus any others where chunks were gained or lost during the */
+    /* collection.  */
+    if(trace->why == TraceStartWhyCLIENTFULL_INCREMENTAL
+       || trace->why == TraceStartWhyCLIENTFULL_BLOCK
+       || vmem0 != vmem1
+       || vmem1 != vmem2) {
       DIAG_SINGLEF(( "VMCompact",
         "pre-collection vmem was $Um$3, ", M_whole(vmem0), M_frac(vmem0),
         "peaked at $Um$3, ", M_whole(vmem1), M_frac(vmem1),
