@@ -1,5 +1,7 @@
 2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/gnu-linux.h (LIBS_SYSTEM): Remove, same as default.
+
 	Simplify LIBS_MACHINE definitions.
 	* m/hp800.h (LIBS_MACHINE): Remove, same as default.
 	* m/iris4d.h (LIBS_MACHINE): Likewise.
