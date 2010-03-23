@@ -94,6 +94,7 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->chunkInit));
   CHECKL(FUNCHECK(class->chunkFinish));
+  CHECKL(FUNCHECK(class->compact));
   CHECKL(FUNCHECK(class->describe));
   CHECKS(ArenaClass, class);
   return TRUE;
