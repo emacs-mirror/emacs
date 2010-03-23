@@ -1016,7 +1016,7 @@ which means to discard all text properties."
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
-	(push (occur-engine-line beg end) result)
+	(push (occur-engine-line beg end keep-props) result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
 
@@ -1217,7 +1217,7 @@ See also `multi-occur'."
 			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (setq curstring (occur-engine-line begpt endpt))
+		    (setq curstring (occur-engine-line begpt endpt keep-props))
 		    ;; Highlight the matches
 		    (let ((len (length curstring))
 			  (start 0))
@@ -1314,7 +1314,7 @@ See also `multi-occur'."
       ;; Return the number of matches
       globalcount)))
 
-(defun occur-engine-line (beg end)
+(defun occur-engine-line (beg end &optional keep-props)
   (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
 	   (text-property-not-all beg end 'fontified t))
       (if (fboundp 'jit-lock-fontify-now)

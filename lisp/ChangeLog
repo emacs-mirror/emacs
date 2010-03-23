@@ -5,6 +5,9 @@
 	(occur-engine-line): New function created from duplicate code
 	in `occur-accumulate-lines' and `occur-engine'.
 
+	* replace.el (occur-engine-line): Add optional arg `keep-props'.
+	(occur-accumulate-lines, occur-engine): Add arg `keep-props'.
+
 2010-03-23  Juri Linkov  <juri@jurta.org>
 
 	* finder.el: Remove TODO tasks.
