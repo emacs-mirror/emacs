@@ -1652,25 +1652,22 @@ static void VMCompact(Arena arena, Trace trace)
   VMArena vmArena;
   Ring node, next;
   DIAG_DECL( Size vmem1; )
-  DIAG_DECL( Count count; )
 
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
   AVERT(Trace, trace);
 
-  /* Destroy any empty chunks (except the primary). */
-  sparePagesPurge(vmArena);
   DIAG(
     vmem1 = VMArenaReserved(arena);
-    count = 0;
   );
 
+  /* Destroy any empty chunks (except the primary). */
+  sparePagesPurge(vmArena);
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     if(chunk != arena->primary
        && BTIsResRange(chunk->allocTable, 0, chunk->pages)) {
       vmChunkDestroy(chunk);
-      DIAG( count += 1; );
     }
   }
 
