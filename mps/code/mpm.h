@@ -570,6 +570,8 @@ extern Size ArenaAvail(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
+extern void ArenaCompact(Arena arena, Trace trace);
+
 extern Res ArenaFinalize(Arena arena, Ref obj);
 extern Res ArenaDefinalize(Arena arena, Ref obj);
 

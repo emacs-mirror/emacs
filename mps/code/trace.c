@@ -663,6 +663,7 @@ found:
   trace->band = RankAMBIG;      /* Required to be the earliest rank. */
   trace->emergency = FALSE;
   trace->chain = NULL;
+  STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
@@ -812,6 +813,8 @@ static void traceReclaim(Trace trace)
     Pool pool = RING_ELT(Pool, arenaRing, node);
     PoolTraceEnd(pool, trace);
   }
+
+  ArenaCompact(arena, trace);  /* let arenavm drop chunks */
 
   TracePostMessage(trace);  /* trace end */
   /* Immediately pre-allocate messages for next time; failure is okay */
@@ -974,7 +977,7 @@ static void traceFindGrey_diag(Bool found, Rank rank)
     *report_lim++ = this;
     *report_lim++ = '\0';
     DIAG_SINGLEF(( "traceFindGrey",
-                   "rank sequence: $S\n",
+                   "rank sequence: $S",
                    (WriteFS)report_array,
                    NULL ));
   }

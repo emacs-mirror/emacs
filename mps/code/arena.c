@@ -17,6 +17,11 @@ SRCID(arena, "$Id$");
 #define ArenaControlPool(arena) MV2Pool(&(arena)->controlPoolStruct)
 
 
+/* Forward declarations */
+
+static void ArenaTrivCompact(Arena arena, Trace trace);
+
+
 /* ArenaTrivDescribe -- produce trivial description of an arena */
 
 static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
@@ -63,6 +68,7 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->free = NULL;
   class->chunkInit = NULL;
   class->chunkFinish = NULL;
+  class->compact = ArenaTrivCompact;
   class->describe = ArenaTrivDescribe;
   class->sig = ArenaClassSig;
 }
@@ -88,6 +94,7 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->free));
   CHECKL(FUNCHECK(class->chunkInit));
   CHECKL(FUNCHECK(class->chunkFinish));
+  CHECKL(FUNCHECK(class->compact));
   CHECKL(FUNCHECK(class->describe));
   CHECKS(ArenaClass, class);
   return TRUE;
@@ -222,9 +229,6 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
     res = ResMEMORY; /* size was too small */
     goto failStripeSize;
   }
-
-  /* load cache */
-  ChunkEncache(arena, arena->primary);
 
   res = ControlInit(arena);
   if (res != ResOK)
@@ -701,6 +705,23 @@ Res ArenaNoExtend(Arena arena, Addr base, Size size)
 
   NOTREACHED;
   return ResUNIMPL;
+}
+
+
+/* ArenaCompact -- respond (or not) to trace reclaim */
+
+void ArenaCompact(Arena arena, Trace trace)
+{
+  AVERT(Arena, arena);
+  AVERT(Trace, trace);
+  (*arena->class->compact)(arena, trace);
+}
+
+static void ArenaTrivCompact(Arena arena, Trace trace)
+{
+  UNUSED(arena);
+  UNUSED(trace);
+  return;
 }
 
 
