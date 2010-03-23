@@ -64,7 +64,7 @@ Other changes:
 
 ]
 
-This is release 1.109.1, made on YYYY-MM-DD.
+This is release 1.109.1, made on 2010-03-23.
 Changes from release 1.109.0:
 
 Functional changes to MPS code:
