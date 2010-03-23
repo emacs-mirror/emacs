@@ -1,5 +1,19 @@
 2010-03-23  Juri Linkov  <juri@jurta.org>
 
+	Implement Occur multi-line matches.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01044.html
+
+	* replace.el (occur): Doc fix.
+	(occur-engine): Set `begpt' to the beginning of the first line.
+	Set `endpt' to the end of the last match line.  At first, count
+	line numbers between `origpt' and `begpt'.  Split out code from
+	`out-line' variable to new let-bindings `match-prefix' and
+	`match-str'.  In `out-line' add non-numeric prefix to all
+	non-first lines of multi-line matches.  Finally, count lines
+	between `begpt' and `endpt' and add to `lines'.
+
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (occur-accumulate-lines, occur-engine):
 	Use `occur-engine-line' instead of duplicate code.
 	(occur-engine-line): New function created from duplicate code
