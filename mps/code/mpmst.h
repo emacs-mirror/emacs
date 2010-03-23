@@ -567,6 +567,7 @@ typedef struct ArenaClassStruct {
   ArenaFreeMethod free;
   ArenaChunkInitMethod chunkInit;
   ArenaChunkFinishMethod chunkFinish;
+  ArenaCompactMethod compact;
   ArenaDescribeMethod describe;
   Sig sig;
 } ArenaClassStruct;

@@ -15,9 +15,11 @@ The primary chunk is used specially:
 
 1. Arenacl requires a chunk to store the ArenaStruct in.  (Whereas arenavm gets storage by simply mapping a new page).  Therefore destroying the primary chunk would (in general) destroy the arena.
 
-2. PageSize is known by chunks, not the arena.  When arena needs to know page size, it asks the primary chunk.
+2. there's a field arena->primary that stores a pointer to the primary chunk.  If the primary chunk ever goes away (eg. at ArenaFinish), this pointer must be nulled out so it is not left dangling.
 
-3. Various *Check functions only bother to check the primary chunk, and ignore other chunks.
+3. PageSize is known by chunks, not the arena.  When arena needs to know page size, it asks the primary chunk.
+
+4. Various *Check functions only bother to check the primary chunk, and ignore other chunks.
 
 
 
