@@ -60,6 +60,7 @@
 (require 'gnus-sum)
 (require 'gnus-util)
 (require 'nnmail)
+(require 'easymenu)
 
 (defvar gnus-adaptive-word-syntax-table)
 
@@ -136,6 +137,10 @@ references.'"
   :type '(choice (const :tag "Never Install" nil)
 		 (const :tag "Always Install" t)
 		 (const :tag "Ask Me" ask)))
+
+(defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
+
+(defvar gnus-registry-misc-menus nil)	; ugly way to keep the menus
 
 (defcustom gnus-registry-clean-empty t
   "Whether the empty registry entries should be deleted.
@@ -764,7 +769,8 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
   "Install the keyboard shortcuts and menus for the registry.
 Uses `gnus-registry-marks' to find what shortcuts to install."
   (let (keys-plist)
-    (gnus-registry-do-marks 
+    (setq gnus-registry-misc-menus nil)
+    (gnus-registry-do-marks
      :char
      (lambda (mark data)
        (let ((function-format
@@ -813,19 +819,34 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 		    ;; all this just to get the mark, I must be doing it wrong
 		    (intern ,(symbol-name mark))
 		    articles ,remove t)
+		   (gnus-message
+		    9 
+		    "Applying mark %s to %d articles"
+		    ,(symbol-name mark) (length articles))
 		   (dolist (article articles)
 		     (gnus-summary-update-article 
-		      article 
+		      article
 		      (assoc article (gnus-data-list nil)))))))
 	     (push (intern function-name) keys-plist)
-	     (push shortcut keys-plist)
-	     (gnus-message 
+	     (push shortcut keys-plist)	     
+	     (push (vector (format "%s %s"
+				   (upcase-initials variant-name)
+				   (symbol-name mark))
+			   (intern function-name) t)
+		   gnus-registry-misc-menus)
+	     (gnus-message
 	      9 
 	      "Defined mark handling function %s" 
 	      function-name))))))
     (gnus-define-keys-1
-     '(gnus-registry-mark-map "M" gnus-summary-mark-map) 
-     keys-plist)))
+     '(gnus-registry-mark-map "M" gnus-summary-mark-map)
+     keys-plist)
+    (add-hook 'gnus-summary-menu-hook
+	      (lambda ()
+		(easy-menu-add-item 
+		 gnus-summary-misc-menu
+		 nil 
+		 (cons "Registry Marks" gnus-registry-misc-menus))))))
 
 ;;; use like this:
 ;;; (defalias 'gnus-user-format-function-M 

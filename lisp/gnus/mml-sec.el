@@ -105,12 +105,18 @@ details."
   :group 'message
   :type 'boolean)
 
-(defcustom mml-secure-cache-passphrase password-cache
+(defcustom mml-secure-cache-passphrase
+  (if (boundp 'password-cache)
+      password-cache
+    t)
   "If t, cache passphrase."
   :group 'message
   :type 'boolean)
 
-(defcustom mml-secure-passphrase-cache-expiry password-cache-expiry
+(defcustom mml-secure-passphrase-cache-expiry
+  (if (boundp 'password-cache-expiry)
+      password-cache-expiry
+    16)
   "How many seconds the passphrase is cached.
 Whether the passphrase is cached at all is controlled by
 `mml-secure-cache-passphrase'."
