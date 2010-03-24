@@ -1,3 +1,8 @@
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail-source.el (gnus-message): Declare.
+	(mail-source-delete-old-incoming): Require gnus-util.
+
 2010-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (canlock-verify): Autoload it for Emacs 21.

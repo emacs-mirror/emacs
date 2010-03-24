@@ -545,6 +545,7 @@ REV non-nil gets an error."
 	(goto-char (point-min)))
       found)))
 
+(declare-function log-edit-mode "log-edit" ())
 (defvar log-edit-extra-flags)
 (defvar log-edit-before-checkin-process)
 

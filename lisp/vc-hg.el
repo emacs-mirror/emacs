@@ -279,6 +279,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
           ("^date: \\(.+\\)" (1 'change-log-date))
             ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
+(declare-function log-edit-mode "log-edit" ())
 (defvar log-edit-extra-flags)
 (defvar log-edit-before-checkin-process)
 
@@ -286,7 +287,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Mode for editing Hg commit logs.
 If a line like:
 Author: NAME
-is present in the log, it is removed, and 
+is present in the log, it is removed, and
 --author NAME
 is passed to the hg commit command."
   (set (make-local-variable 'log-edit-extra-flags) nil)
