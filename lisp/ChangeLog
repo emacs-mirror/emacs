@@ -1,3 +1,9 @@
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (append-to-buffer): Ensure that point is preserved if
+	BUFFER is the current buffer.  Suggested by YAMAMOTO Mitsuharu.
+	(Bug#5749)
+
 2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/make-mode.el (makefile-rule-action-regex): Backtrack less.
