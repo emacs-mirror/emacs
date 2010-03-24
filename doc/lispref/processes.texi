@@ -2059,7 +2059,8 @@ necessary to make it unique.
 @item :type @var{type}
 Specify the communication type.  A value of @code{nil} specifies a
 stream connection (the default); @code{datagram} specifies a datagram
-connection.  Both connections and servers can be of either type.
+connection; @code{seqpacket} specifies a ``sequenced packet stream''
+connection.  Both connections and servers can be of these types.
 
 @item :server @var{server-flag}
 If @var{server-flag} is non-@code{nil}, create a server.  Otherwise,

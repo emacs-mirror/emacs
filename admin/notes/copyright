@@ -221,6 +221,11 @@ lib-src/etags.c
 lib-src/getopt1.c, getopt_int.h
   - these are from the GNU C library. Leave the copyrights alone.
 
+lisp/cedet/semantic/imenu.el
+  - See http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00410.html
+   in which Eric Ludlam established that the remaining contributions
+   from authors other than himself were negligible.
+
 lisp/play/tetris.el
   - no special rules about the copyright. We note here that we believe
   (2007/1) there is no problem with our use of the name "tetris" or

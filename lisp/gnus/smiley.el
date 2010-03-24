@@ -196,8 +196,8 @@ A list of images is returned."
 
 ;;;###autoload
 (defun smiley-buffer (&optional buffer)
-  "Run `smiley-region' at the buffer, specified in the argument or
-interactively. If there's no argument, do it at the current buffer"
+  "Run `smiley-region' at the BUFFER, specified in the argument or
+interactively.  If there's no argument, do it at the current buffer."
   (interactive "bBuffer to run smiley-region: ")
   (save-excursion
     (if buffer

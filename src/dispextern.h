@@ -3122,7 +3122,8 @@ enum resource_types
   RES_TYPE_FLOAT,
   RES_TYPE_BOOLEAN,
   RES_TYPE_STRING,
-  RES_TYPE_SYMBOL
+  RES_TYPE_SYMBOL,
+  RES_TYPE_BOOLEAN_NUMBER
 };
 
 extern Lisp_Object x_get_arg P_ ((Display_Info *, Lisp_Object,
