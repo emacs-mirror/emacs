@@ -1,5 +1,8 @@
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
+	* vc-dispatcher.el (vc-start-logentry): Doc fix.
+	(log-view-process-buffer, log-edit-extra-flags): Declare.
+
 	* log-edit.el (log-edit-before-checkin-process): Doc fix.
 
 	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):

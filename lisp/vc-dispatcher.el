@@ -539,8 +539,9 @@ contents of the log entry buffer.  If COMMENT is a string and
 INITIAL-CONTENTS is nil, do action immediately as if the user had
 entered COMMENT.  If COMMENT is t, also do action immediately with an
 empty comment.  Remember the file's buffer in `vc-parent-buffer'
-\(current one if no file).  AFTER-HOOK specifies the local value
-for `vc-log-after-operation-hook'."
+\(current one if no file).  Puts the log-entry buffer in major-mode
+MODE, defaulting to `log-edit-mode' if MODE is nil.
+AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'."
   (let ((parent
          (if (vc-dispatcher-browsing)
              ;; If we are called from a directory browser, the parent buffer is
@@ -569,6 +570,9 @@ for `vc-log-after-operation-hook'."
       (vc-finish-logentry (eq comment t)))))
 
 (declare-function vc-dir-move-to-goal-column "vc-dir" ())
+;; vc-finish-logentry is called from a log-edit buffer (see above).
+(declare-function log-view-process-buffer "log-edit" ())
+(defvar log-edit-extra-flags)
 
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry.
