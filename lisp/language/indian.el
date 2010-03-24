@@ -141,7 +141,7 @@ South Indian language Malayalam is supported in this language environment."))
 (defconst devanagari-composable-pattern
   (let ((table
 	 '(("V" . "[\u0904-\u0914\u0960-\u0961\u0972]") ; independent vowel
-	   ("C" . "[\u0915-\u0939]")		 ; consonant
+	   ("C" . "[\u0915-\u0939\u0958-\u095F\u097B-\u097C\u097E-\u097F]") ; consonant
 	   ("R" . "\u0930")			 ; RA
 	   ("n" . "\u093C")			 ; NUKTA
 	   ("H" . "\u094D")			 ; HALANT

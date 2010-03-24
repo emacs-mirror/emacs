@@ -1,3 +1,15 @@
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-scan.el (mh-scan-cmd-note-width): Doc fix.
+	(mh-scan-format-mh, mh-scan-body-regexp, mh-scan-cur-msg-number-regexp)
+	(mh-scan-cur-msg-number-regexp, mh-scan-date-regexp)
+	(mh-scan-deleted-msg-regexp, mh-scan-good-msg-regexp)
+	(mh-scan-msg-format-regexp, mh-scan-msg-format-string)
+	(mh-scan-msg-number-regexp, mh-scan-rcpt-regexp)
+	(mh-scan-refiled-msg-regexp, mh-scan-sent-to-me-sender-regexp)
+	(mh-scan-subject-regexp, mh-update-scan-format)
+	(mh-msg-num-width-to-column): Fix typos in docstrings.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.

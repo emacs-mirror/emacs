@@ -1,4 +1,109 @@
+2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-rule-action-regex): Backtrack less.
+	(makefile-make-font-lock-keywords): Adjust rule since submatch 1 may
+	not be present any more.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-attribute): Fix typo in docstring.
+	(face-valid-attribute-values): Reflow docstring.
+
+	* cedet/srecode/table.el (srecode-template-table): Fix docstring typo.
+
 2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (sgml-lexical-context): Autoload it (Bug#5752).
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.el (indent-for-tab-command): Doc fix.
+
+2010-03-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-remove-stale-state-cache):
+	Fix off-by-one error.  Fixes bug #5747.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-dired.el (image-dired-display-thumbs): Fix typo in docstring.
+	(image-dired-read-comment): Doc fix.
+
+	* json.el (json-object-type, json-array-type, json-key-type)
+	(json-false, json-null, json-read-number):
+	* minibuffer.el (completion-in-region-functions):
+	* calendar/cal-tex.el (cal-tex-daily-end, cal-tex-number-weeks)
+	(cal-tex-cursor-week):
+	* emacs-lisp/trace.el (trace-function):
+	* eshell/em-basic.el (eshell/printnl):
+	* eshell/em-dirs.el (eshell-last-dir-ring, eshell-parse-drive-letter)
+	(eshell-read-last-dir-ring, eshell-write-last-dir-ring):
+	* obsolete/levents.el (allocate-event, event-key, event-object)
+	(event-point, event-process, event-timestamp, event-to-character)
+	(event-window, event-x, event-x-pixel, event-y, event-y-pixel):
+	* textmodes/reftex-vars.el (reftex-index-macros-builtin)
+	(reftex-section-levels, reftex-auto-recenter-toc, reftex-toc-mode-hook)
+	(reftex-cite-punctuation, reftex-search-unrecursed-path-first)
+	(reftex-highlight-selection): Fix typos in docstrings.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-in-region-functions): Fix docstring typos.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-highlight-face): Restore option deleted
+	2008-02-13 without comment; mark it obsolete.
+	(rmail-highlight-headers): Use rmail-highlight-face once more.
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman2-process-escapes): Only consume the newline if
+	the filler character is on a line by itself (Bug#5729).
+
+2010-03-24  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (devanagari-composable-pattern): Add more
+	consonants.
+
+2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/trampver.el: Update release number.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Add cedet/semantic/imenu.el.
+
+2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-executable):
+	Use `tramp-get-connection-buffer'.  Make the regexp for checking
+	output of "wc -l" more robust.
+	(tramp-find-shell): Use another shell but /bin/sh on OpenSolaris.
+	(tramp-open-connection-setup-interactive-shell): Remove workaround
+	for OpenSolaris bug, it is not needed anymore.
+
+2010-03-24  Eric M. Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/imenu.el: New file, from the CEDET repository
+	(Bug#5412).
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (defsubst*): Add autoload cookie.  (Bug#4427)
+
+2010-03-24  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* files.el (auto-mode-alist): Accept more verilog file patterns.
+
+2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dir.el (vc-dir-headers): Abbreviate the working dir.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc-bzr.el (vc-bzr-log-edit-mode): Add --fixes support to
+	log-edit-before-checkin-process.
 
 	* vc.el (vc-modify-change-comment): Pass MODE to vc-start-logentry.
 

@@ -1442,7 +1442,7 @@ field.
 fontset is called @code{create-fontset-from-fontset-spec}.  You can also
 call this function explicitly to create a fontset.
 
-  @xref{Font X}, for more information about font naming in X.
+  @xref{Fonts}, for more information about font naming.
 
 @node Modifying Fontsets
 @section Modifying Fontsets
@@ -1619,7 +1619,7 @@ belong to one or more charsets.
 that you don't have to worry about them.  However, it is sometimes
 helpful to know some of the underlying details about charsets.
 
-  One example is font selection (@pxref{Font X}).  Each language
+  One example is font selection (@pxref{Fonts}).  Each language
 environment (@pxref{Language Environments}) defines a ``priority
 list'' for the various charsets.  When searching for a font, Emacs
 initially attempts to find one that can display the highest-priority

@@ -193,7 +193,7 @@ Specifies whether to make the cursor blink. The default is @samp{on}.  Use
 @end ifnottex
 
 @item @code{font} (class @code{Font})
-Font name for the @code{default} font.  @xref{Font X}.  You can also
+Font name for the @code{default} font.  @xref{Fonts}.  You can also
 specify a fontset name (@pxref{Fontsets}).
 
 @item @code{fontBackend} (class @code{FontBackend})
@@ -307,12 +307,14 @@ Name to display in the title bar of the initial Emacs frame.
 @item @code{toolBar} (class @code{ToolBar})
 @cindex tool bar
 Number of lines to reserve for the tool bar.  A zero value suppresses
-the tool bar.  If the value is non-zero and
-@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's size
-will be changed automatically so that all tool bar items are visible.
+the tool bar.  For the Emacs tool bar (i.e. not Gtk+), if the value is 
+non-zero and @code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's
+size will be changed automatically so that all tool bar items are visible.
   If the value of @code{auto-resize-tool-bars} is @code{grow-only},
 the tool bar expands automatically, but does not contract automatically.
 To contract the tool bar, you must redraw the frame by entering @kbd{C-l}.
+For the Gtk+ tool bar, any non-zero value means on and
+@code{auto-resize-tool-bars} has no effect.
 
 @item @code{useXIM} (class @code{UseXIM})
 @cindex XIM

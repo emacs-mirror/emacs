@@ -4005,6 +4005,13 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	    case RES_TYPE_NUMBER:
 	      return make_number (atoi (SDATA (tem)));
 
+	    case RES_TYPE_BOOLEAN_NUMBER:
+	      if (!strcmp (SDATA (tem), "on")
+		  || !strcmp (SDATA (tem), "true"))
+		return make_number (1);
+	      return make_number (atoi (SDATA (tem)));
+              break;
+
 	    case RES_TYPE_FLOAT:
 	      return make_float (atof (SDATA (tem)));
 
