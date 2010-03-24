@@ -12,6 +12,8 @@
 	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):
 	Consistently check ede-object is bound throughout.
 
+	* cedet/ede/project-am.el (ede-shell-run-something): Declare.
+
 2010-03-23  Sam Steingold  <sds@gnu.org>
 
 	Fix bug#5620: recalculate all markers on compilation buffer
