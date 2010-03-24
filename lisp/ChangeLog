@@ -1,3 +1,7 @@
+2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dir.el (vc-dir-headers): Abbreviate the working dir.
+
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* vc-bzr.el (vc-bzr-log-edit-mode): Add --fixes support to
