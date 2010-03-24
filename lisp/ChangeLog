@@ -1,6 +1,8 @@
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
-	* vc-bzr.el, vc-hg.el (log-edit-mode): Declare.
+	* vc.el (vc-modify-change-comment): Pass MODE to vc-start-logentry.
+
+	* vc.el, vc-bzr.el, vc-hg.el (log-edit-mode): Declare.
 
 	* vc-dispatcher.el (vc-start-logentry): Doc fix.
 	(log-view-process-buffer, log-edit-extra-flags): Declare.
