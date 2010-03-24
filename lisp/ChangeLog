@@ -1,3 +1,10 @@
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-attribute): Fix typo in docstring.
+	(face-valid-attribute-values): Reflow docstring.
+
+	* cedet/srecode/table.el (srecode-template-table): Fix docstring typo.
+
 2010-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/flyspell.el (sgml-lexical-context): Autoload it.  (Bug#5752)

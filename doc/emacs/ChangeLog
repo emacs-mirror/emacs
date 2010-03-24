@@ -1,3 +1,8 @@
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Fix ispell attribution.  (Bug#5759)
+
 2010-03-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Table of Resources): Clarify toolBar number

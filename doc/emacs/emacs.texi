@@ -12,8 +12,8 @@ This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1372,8 +1372,8 @@ Kahle, Tokuya Kameshima, Lute Kamstra, David Kastrup, David Kaufman,
 Henry Kautz, Taichi Kawabata, Howard Kaye, Michael Kifer, Richard King,
 Peter Kleiweg, Shuhei Kobayashi, Pavel Kobiakov, Larry K.@: Kolodney,
 David M.@: Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian
-Kremer, Ryszard Kubiak, Geoff Kuenning, David K@aa{}gedal, Daniel
-LaLiberte, Karl Landstrom, Mario Lang, Aaron Larson, James R.@: Larus,
+Kremer, Ryszard Kubiak, David K@aa{}gedal, Daniel LaLiberte,
+Karl Landstrom, Mario Lang, Aaron Larson, James R.@: Larus,
 Vinicius Jose Latorre, Werner Lemberg, Frederic Lepied, Peter
 Liljenberg, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
 Juri Linkov, Francis Litterio, Emilio C. Lopes, K@'{a}roly L@H{o}rentey,

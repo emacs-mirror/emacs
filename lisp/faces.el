@@ -590,7 +590,7 @@ the default for new frames (this is done automatically each time an
 attribute is changed on all frames).
 
 ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
-face attribute name. All attributes can be set to `unspecified';
+face attribute name.  All attributes can be set to `unspecified';
 this fact is not further mentioned below.
 
 The following attributes are recognized:
@@ -988,9 +988,9 @@ Otherwise, return a single face."
 (defun face-valid-attribute-values (attribute &optional frame)
   "Return valid values for face attribute ATTRIBUTE.
 The optional argument FRAME is used to determine available fonts
-and colors.  If it is nil or not specified, the selected frame is
-used.  Value is an alist of (NAME . VALUE) if ATTRIBUTE expects a value
-out of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
+and colors.  If it is nil or not specified, the selected frame is used.
+Value is an alist of (NAME . VALUE) if ATTRIBUTE expects a value out
+of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
 an integer value."
   (let ((valid
          (case attribute
