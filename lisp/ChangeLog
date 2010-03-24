@@ -1,5 +1,12 @@
 2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Misc cleanup.
+	* progmodes/make-mode.el (makefile-bsdmake-rule-action-regex):
+	Use replace-regexp-in-string.
+	(makefile-mode-abbrev-table): Merge defvar and define-abbrev-table.
+	(makefile-imake-mode-syntax-table): Move init into defvar.
+	(makefile-mode): Use define-derived-mode.
+
 	* progmodes/make-mode.el (makefile-rule-action-regex): Backtrack less.
 	(makefile-make-font-lock-keywords): Adjust rule since submatch 1 may
 	not be present any more.
