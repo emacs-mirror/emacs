@@ -1375,33 +1375,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	visible_p = 1;
       if (visible_p)
 	{
-	  if (it_method == GET_FROM_BUFFER)
-	    {
-	      Lisp_Object window, prop;
-
-	      XSETWINDOW (window, w);
-	      prop = Fget_char_property (make_number (charpos),
-					 Qinvisible, window);
-
-	      /* If charpos coincides with invisible text covered with an
-		 ellipsis, use the first glyph of the ellipsis to compute
-		 the pixel positions.  */
-	      if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
-		{
-		  struct glyph_row *row = it.glyph_row;
-		  struct glyph *glyph = row->glyphs[TEXT_AREA];
-		  struct glyph *end = glyph + row->used[TEXT_AREA];
-		  int x = row->x;
-
-		  for (; glyph < end
-			 && (!BUFFERP (glyph->object)
-			     || glyph->charpos < charpos);
-		       glyph++)
-		    x += glyph->pixel_width;
-		  top_x = x;
-		}
-	    }
-	  else if (it_method == GET_FROM_DISPLAY_VECTOR)
+	  if (it_method == GET_FROM_DISPLAY_VECTOR)
 	    {
 	      /* We stopped on the last glyph of a display vector.
 		 Try and recompute.  Hack alert!  */

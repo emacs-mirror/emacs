@@ -1,3 +1,7 @@
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Revert 2008-01-25 change (Bug#5730).
+
 2010-03-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (x_get_arg): Handle RES_TYPE_BOOLEAN_NUMBER (bug #5736).
