@@ -1,5 +1,7 @@
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
+	* log-edit.el (log-edit-before-checkin-process): Doc fix.
+
 	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):
 	Consistently check ede-object is bound throughout.
 
