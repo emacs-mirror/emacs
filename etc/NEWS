@@ -292,21 +292,24 @@ On systems which support GVFS-Fuse, Tramp offers also the new
 connection methods "dav", "davs", "obex" and "synce".
 
 ** VC and related modes
-
++++
 *** When using C-x v v or C-x v i on a unregistered file that is in a
 directory not controlled by any VCS, ask the user what VC backend to
 use to create a repository, create a new repository and register the
 file.
++++
+*** New command `vc-root-print-log', bound to `C-x v L'.
+This displays a `*vc-change-log*' buffer showing the history of the
+version-controlled directory tree as a whole.
 
-*** FIXME: add info about the new VC functions: vc-root-diff and
-vc-root-print-log once they stabilize.
-
-*** The log functions (C-x v l and C-x v L) do not show the full log
-by default anymore.  The number of entries shown can be chosen
-interactively with a prefix argument, by customizing
-vc-log-show-limit.  The log buffer display buttons that can be used
-to change the number of entries shown.
-RCS, SCCS, CVS do not support this feature.
+*** FIXME: vc-root-diff.
++++
+*** `C-x v l' and `C-x v L' do not show the full log by default.
+The number of entries shown can be chosen interactively with a prefix
+argument, or by customizing vc-log-show-limit.  The `*vc-change-log*'
+buffer now contains buttons at the end of the buffer, which can be
+used to increase the number of entries shown.  RCS, SCCS, and CVS do
+not support this feature.
 
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
@@ -319,7 +322,7 @@ backends do not support this.
 
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
-*** Diff and log operations can be used from dired buffers.
+*** Diff and log operations can be used from Dired buffers.
 
 *** vc-git changes
 

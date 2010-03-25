@@ -1,5 +1,7 @@
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc.el (vc-print-log, vc-print-root-log): Doc fix.
+
 	* simple.el (append-to-buffer): Fix last change.
 
 2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
