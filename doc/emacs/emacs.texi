@@ -574,7 +574,7 @@ Commands for Human Languages
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
-* HTML Mode::           Editing HTML, SGML, and XML files.
+* HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.

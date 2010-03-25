@@ -271,6 +271,7 @@ To disable this check, set compose-mail-user-agent-warnings to nil.
 Emacs will wait for the process sending mail to return.  If you
 experience delays when sending mail, you may wish to set this to nil.
 
++++
 ** nXML mode is now the default for editing XML files.
 
 ** Shell

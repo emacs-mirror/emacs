@@ -1,5 +1,8 @@
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* text.texi (HTML Mode): Note that nXML is now the default XML mode.
+	* emacs.texi: Update node description.
+
 	* misc.texi (Navigation): Document doc-view-continuous.
 
 2010-03-24  Glenn Morris  <rgm@gnu.org>
