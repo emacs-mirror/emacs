@@ -1,5 +1,11 @@
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* maintaining.texi (VC With A Merging VCS): C-x v v now creates a
+	repository if there is none.
+	(VC Change Log): Rename from VC Status.  Document vc-log-show-limit and
+	vc-print-root-log.
+	(Old Revisions): Copyedits.
+
 	* programs.texi (Program Modes): Mention Javascript mode.
 
 	* text.texi (HTML Mode): Note that nXML is now the default XML mode.

@@ -794,7 +794,7 @@ Basic Editing under Version Control
 The Secondary Commands of VC
 
 * Registering::         Putting a file under version control.
-* VC Status::           Viewing the VC status of files.
+* VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after check-in.
 
 VC Directory Mode
