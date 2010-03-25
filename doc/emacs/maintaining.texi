@@ -224,7 +224,7 @@ the repository, along with a log entry for those changes.
 @cindex revision
 @cindex revision ID
   A copy of a file stored in a repository is called a @dfn{revision}.
-The history of a file is a sequence of revisions.  Each revisions is
+The history of a file is a sequence of revisions.  Each revision is
 named by a @dfn{revision ID}.  The format of the revision ID depends
 on the version control system; in the simplest case, it is just an
 integer.
