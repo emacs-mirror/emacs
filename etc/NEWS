@@ -415,6 +415,7 @@ System (CLOS).  It is used by the other CEDET packages.
 
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
 
++++
 ** js.el is a new major mode for JavaScript files.
 
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.

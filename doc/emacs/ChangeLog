@@ -1,5 +1,7 @@
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* programs.texi (Program Modes): Mention Javascript mode.
+
 	* text.texi (HTML Mode): Note that nXML is now the default XML mode.
 	* emacs.texi: Update node description.
 
