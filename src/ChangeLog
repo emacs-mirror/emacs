@@ -1,3 +1,8 @@
+2010-03-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (Fmake_network_process): Don't call turn_on_atimers around
+	`connect' (Bug#5723).
+
 2010-03-25  Helmut Eller  <eller.helmut@gmail.com>
 
 	* process.c (Fmake_network_process): Call `select' for interrupted

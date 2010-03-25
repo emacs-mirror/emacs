@@ -3615,22 +3615,8 @@ usage: (make-network-process &rest ARGS)  */)
       immediate_quit = 1;
       QUIT;
 
-      /* This turns off all alarm-based interrupts; the
-	 bind_polling_period call above doesn't always turn all the
-	 short-interval ones off, especially if interrupt_input is
-	 set.
-
-	 It'd be nice to be able to control the connect timeout
-	 though.  Would non-blocking connect calls be portable?
-
-	 This used to be conditioned by HAVE_GETADDRINFO.  Why?  */
-
-      turn_on_atimers (0);
-
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
       xerrno = errno;
-
-      turn_on_atimers (1);
 
       if (ret == 0 || xerrno == EISCONN)
 	{
