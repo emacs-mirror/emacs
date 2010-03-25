@@ -6,6 +6,7 @@
 	* emacs.texi: Update node description.
 
 	* misc.texi (Navigation): Document doc-view-continuous.
+	(Shell Ring): Document new M-r binding.  M-s is no longer bound.
 
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 

@@ -274,9 +274,14 @@ experience delays when sending mail, you may wish to set this to nil.
 +++
 ** nXML mode is now the default for editing XML files.
 
-** Shell
+** Shell (and other comint modes)
 +++
-*** ansi-color is now enabled by default.
+*** M-s is no longer bound to `comint-next-matching-input'.
++++
+*** M-r is now bound to `comint-history-isearch-backward-regexp'.
+This starts an incremental search of the comint/shell input history.
++++
+*** ansi-color is now enabled by default in Shell mode.
 To disable it, set ansi-color-for-comint-mode to nil.
 
 +++
@@ -356,11 +361,6 @@ to sacrifice some accuracy for a faster startup.
 the command asynchronously without the need to manually add ampersand to
 the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
-
-*** Isearch searches in the comint/shell input history when the new variable
-`comint-history-isearch' is non-nil.  New commands `comint-history-isearch-backward'
-and `comint-history-isearch-backward-regexp' (bound to M-r) start Isearch
-in the input history regardless of the value of `comint-history-isearch'.
 +++
 *** Interactively `multi-isearch-buffers' and `multi-isearch-buffers-regexp'
 read buffer names to search, one by one, ended with RET.  With a prefix
