@@ -148,7 +148,7 @@ subsequent kills are not duplicated in the `kill-ring'.
 +++
 *** The new completion-style `initials' is available.
 For instance, this can complete M-x lch to list-command-history.
-
+---
 *** The new variable `completions-format' determines how completions
 are displayed in the *Completions* buffer.  If you set it to
 `vertical', completions are sorted vertically in columns.
@@ -227,7 +227,7 @@ exempt buffers that do correspond to files, customize the value of
 Dired buffers to be reverted automatically on revisiting them.
 
 ** DocView
-
++++
 *** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 

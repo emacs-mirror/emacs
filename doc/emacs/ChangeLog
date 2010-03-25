@@ -1,3 +1,7 @@
+2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Navigation): Document doc-view-continuous.
+
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
@@ -30,7 +34,6 @@
 	* xresources.texi (Table of Resources):
 	* mule.texi (Defining Fontsets, Charsets): Update xrefs.
 
->>>>>>> MERGE-SOURCE
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init Examples): Add xref to Locals.

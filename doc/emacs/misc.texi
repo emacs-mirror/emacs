@@ -84,11 +84,20 @@ When in DocView mode, you can scroll the current page using the usual
 Emacs movement keys: @kbd{C-p}, @kbd{C-n}, @kbd{C-b}, @kbd{C-f}, and
 the arrow keys.
 
+@vindex doc-view-continuous
+  By default, the line-motion keys @kbd{C-p} and @kbd{C-n} stop
+scrolling at the beginning and end of the current page, respectively.
+However, if you change the variable @code{doc-view-continuous} to a
+non-@code{nil} value, then @kbd{C-p} displays the previous page if you
+are already at the beginning of the current page, and @kbd{C-n}
+displays the next page if you are at the end of the current page.
+
 @findex doc-view-next-page
 @findex doc-view-previous-page
-  To display the next page, type @kbd{n}, @key{next} or @kbd{C-x ]}
-(@code{doc-view-next-page}).  To display the previous page, type
-@kbd{p}, @key{prior} or @kbd{C-x [} (@code{doc-view-previous-page}).
+  You can also display the next page by typing @kbd{n}, @key{next} or
+@kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
+page, type @kbd{p}, @key{prior} or @kbd{C-x [}
+(@code{doc-view-previous-page}).
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
