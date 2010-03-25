@@ -486,7 +486,7 @@ should be shown to the user."
 	(class nil)
 	(success nil)
 	;; other status symbols: jewelry and luxury cars
-	(status-symbol (cadr (assq status-number url-http-codes))))
+	(status-symbol (cadr (assq url-http-response-status url-http-codes))))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
     (url-http-handle-cookies)
