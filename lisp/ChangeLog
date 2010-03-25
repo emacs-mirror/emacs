@@ -1,3 +1,8 @@
+2010-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
+	all dired buffers, even tramp ones.  (Bug#5755)
+
 2010-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add "union tags" in mpc.el.
