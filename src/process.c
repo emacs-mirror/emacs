@@ -3534,8 +3534,6 @@ usage: (make-network-process &rest ARGS)  */)
     {
       int optn, optbits;
 
-    retry_connect:
-
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
 	{
@@ -3652,6 +3650,38 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 #endif
 #endif
+      if (xerrno == EINTR)
+	{
+	  /* Unlike most other syscalls connect() cannot be called
+	     again.  (That would return EALREADY.)  The proper way to
+	     wait for completion is select(). */
+	  int sc;
+	  SELECT_TYPE fdset;
+	retry_select:
+	  FD_ZERO (&fdset);
+	  FD_SET (s, &fdset);
+	  QUIT;
+	  sc = select (s + 1, (SELECT_TYPE *)0, &fdset, (SELECT_TYPE *)0,
+		       (EMACS_TIME *)0);
+	  if (sc == -1)
+	    {
+	      if (errno == EINTR) 
+		goto retry_select;
+	      else 
+		report_file_error ("select failed", Qnil);
+	    }
+	  eassert (sc > 0);
+	  {
+	    int len = sizeof xerrno;
+	    eassert (FD_ISSET (s, &fdset));
+	    if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
+	      report_file_error ("getsockopt failed", Qnil);
+	    if (xerrno != 0)
+	      errno = xerrno, report_file_error ("error during connect", Qnil);
+	    else
+	      break;
+	  }
+	}
 
       immediate_quit = 0;
 
@@ -3659,9 +3689,6 @@ usage: (make-network-process &rest ARGS)  */)
       specpdl_ptr = specpdl + count1;
       emacs_close (s);
       s = -1;
-
-      if (xerrno == EINTR)
-	goto retry_connect;
     }
 
   if (s >= 0)
