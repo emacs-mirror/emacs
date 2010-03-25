@@ -1,3 +1,7 @@
+2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (append-to-buffer): Fix last change.
+
 2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (append-to-buffer): Ensure that point is preserved if
