@@ -94,54 +94,17 @@
 
 (eval-when-compile (require 'cl))
 
-;;; Backward compatibility.
-;; This code is meant for Emacs-CVS, so to get it to run on anything else,
-;; we need to define some more things.
-
-(unless (fboundp 'tool-bar-local-item)
-  (defun tool-bar-local-item (icon def key map &rest props)
-    (define-key-after map (vector key)
-      `(menu-item ,(symbol-name key) ,def
-                  :image ,(find-image
-                           `((:type xpm :file ,(concat icon ".xpm"))))
-                  ,@props))))
-
-(unless (fboundp 'process-put)
-  (defconst mpc-process-hash (make-hash-table :weakness 'key))
-  (defun process-put (proc prop val)
-    (let ((sym (gethash proc mpc-process-hash)))
-      (unless sym
-        (setq sym (puthash proc (make-symbol "mpc-proc-sym") mpc-process-hash)))
-      (put sym prop val)))
-  (defun process-get (proc prop)
-    (let ((sym (gethash proc mpc-process-hash)))
-      (when sym (get sym prop))))
-  (defun process-plist (proc)
-    (let ((sym (gethash proc mpc-process-hash)))
-      (when sym (symbol-plist sym)))))
-(unless (fboundp 'with-local-quit)
-  (defmacro with-local-quit (&rest body)
-    `(condition-case nil (let ((inhibit-quit nil)) ,@body)
-       (quit (setq quit-flag t) nil))))
-(unless (fboundp 'balance-windows-area)
-  (defalias 'balance-windows-area 'balance-windows))
-(unless (fboundp 'posn-object) (defalias 'posn-object 'ignore))
-(unless (fboundp 'buffer-local-value)
-  (defun buffer-local-value (var buf)
-    (with-current-buffer buf (symbol-value var))))
-
-
-;;; Main code starts here.
-
 (defgroup mpc ()
   "A Client for the Music Player Daemon."
   :prefix "mpc-"
   :group 'multimedia
   :group 'applications)
 
-(defcustom mpc-browser-tags '(Genre Artist Album Playlist)
+(defcustom mpc-browser-tags '(Genre Artist|Composer|Performer
+                              Album|Playlist)
   "Tags for which a browser buffer should be created by default."
-  :type '(repeat string))
+  ;; FIXME: provide a list of tags, for completion.
+  :type '(repeat symbol))
 
 ;;; Misc utils ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -620,6 +583,19 @@ Any call to `mpc-status-refresh' may cause it to be restarted."
 ;;                       (mpc--queue-head)))
 ;;           (message "MPC's queue is out of sync"))))))
 
+(defvar mpc--find-memoize-union-tags nil)
+
+(defun mpc-cmd-flush (tag value)
+  (puthash (cons tag value) nil mpc--find-memoize)
+  (dolist (uniontag mpc--find-memoize-union-tags)
+    (if (member (symbol-name tag) (split-string (symbol-name uniontag) "|"))
+        (puthash (cons uniontag value) nil mpc--find-memoize))))
+
+
+(defun mpc-cmd-special-tag-p (tag)
+  (or (memq tag '(Playlist Search Directory))
+      (string-match "|" (symbol-name tag))))
+
 (defun mpc-cmd-find (tag value)
   "Return a list of all songs whose tag TAG has value VALUE.
 The songs are returned as alists."
@@ -628,8 +604,12 @@ The songs are returned as alists."
                (cond
                 ((eq tag 'Playlist)
                  ;; Special case for pseudo-tag playlist.
-                 (let ((l (mpc-proc-buf-to-alists
-                           (mpc-proc-cmd (list "listplaylistinfo" value))))
+                 (let ((l (condition-case err
+                              (mpc-proc-buf-to-alists
+                               (mpc-proc-cmd (list "listplaylistinfo" value)))
+                            (mpc-proc-error
+                             ;; "[50@0] {listplaylistinfo} No such playlist"
+                             nil)))
                        (i 0))
                    (mapcar (lambda (s)
                              (prog1 (cons (cons 'Pos (number-to-string i)) s)
@@ -648,6 +628,14 @@ The songs are returned as alists."
                                         (if (eq (car pair) 'directory)
                                             nil pair))
                                       pairs)))))
+                ((string-match "|" (symbol-name tag))
+                 (add-to-list 'mpc--find-memoize-union-tags tag)
+                 (let ((tag1 (intern (substring (symbol-name tag)
+                                                0 (match-beginning 0))))
+                       (tag2 (intern (substring (symbol-name tag)
+                                                (match-end 0)))))
+                   (mpc-union (mpc-cmd-find tag1 value)
+                              (mpc-cmd-find tag2 value))))
                 (t
                  (condition-case err
                      (mpc-proc-buf-to-alists
@@ -675,7 +663,7 @@ The songs are returned as alists."
       (when other-tag
         (dolist (pl (prog1 pls (setq pls nil)))
           (let ((plsongs (mpc-cmd-find 'Playlist pl)))
-            (if (not (member other-tag '(Playlist Search Directory)))
+            (if (not (mpc-cmd-special-tag-p other-tag))
                 (when (member (cons other-tag value)
                               (apply 'append plsongs))
                   (push pl pls))
@@ -743,6 +731,14 @@ The songs are returned as alists."
    ;; useful that would be tho.
    ((eq tag 'Search) (error "Not supported"))
 
+   ((string-match "|" (symbol-name tag))
+    (let ((tag1 (intern (substring (symbol-name tag)
+                                   0 (match-beginning 0))))
+          (tag2 (intern (substring (symbol-name tag)
+                                   (match-end 0)))))
+      (mpc-union (mpc-cmd-list tag1 other-tag value)
+                 (mpc-cmd-list tag2 other-tag value))))
+
    ((null other-tag)
     (condition-case nil
         (mapcar 'cdr (mpc-proc-cmd-to-alist (list "list" (symbol-name tag))))
@@ -754,7 +750,7 @@ The songs are returned as alists."
        (mpc-assq-all tag (mpc-proc-cmd-to-alist "listallinfo")))))
    (t
     (condition-case nil
-        (if (member other-tag '(Search Playlist Directory))
+        (if (mpc-cmd-special-tag-p other-tag)
             (signal 'mpc-proc-error "Not implemented")
           (mapcar 'cdr
                   (mpc-proc-cmd-to-alist
@@ -801,7 +797,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                              (list "add" file)))
                          files)))
     (if (stringp playlist)
-        (puthash (cons 'Playlist playlist) nil mpc--find-memoize)))
+        (mpc-cmd-flush 'Playlist playlist)))
 
 (defun mpc-cmd-delete (song-poss &optional playlist)
   "Delete the songs at positions SONG-POSS from PLAYLIST.
@@ -928,6 +924,10 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 ;;; Formatter ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun mpc-secs-to-time (secs)
+  ;; We could use `format-seconds', but it doesn't seem worth the trouble
+  ;; because we'd still need to check (>= secs (* 60 100)) since the special
+  ;; %z only allows us to drop the large units for small values but
+  ;; not to drop the small units for large values.
   (if (stringp secs) (setq secs (string-to-number secs)))
   (if (>= secs (* 60 100))              ;More than 100 minutes.
       (format "%dh%02d" ;"%d:%02d:%02d"
@@ -1432,6 +1432,20 @@ when constructing the set of constraints."
         (with-current-buffer buf (with-local-quit (mpc-tagbrowser-refresh)))))
     (with-local-quit (mpc-songs-refresh))))
 
+(defun mpc-tagbrowser-tag-name (tag)
+  (cond
+   ((string-match "|" (symbol-name tag))
+    (let ((tag1 (intern (substring (symbol-name tag)
+                                   0 (match-beginning 0))))
+          (tag2 (intern (substring (symbol-name tag)
+                                   (match-end 0)))))
+      (concat (mpc-tagbrowser-tag-name tag1)
+              " | "
+              (mpc-tagbrowser-tag-name tag2))))
+   ((string-match "y\\'" (symbol-name tag))
+    (concat (substring (symbol-name tag) 0 -1) "ies"))
+   (t (concat (symbol-name tag) "s"))))
+
 (defun mpc-tagbrowser-buf (tag)
   (let ((buf (mpc-proc-buffer (mpc-proc) tag)))
     (if (buffer-live-p buf) buf
@@ -1446,10 +1460,7 @@ when constructing the set of constraints."
           (insert mpc-tagbrowser-all-name "\n"))
         (forward-line -1)
         (setq mpc-tag tag)
-        (setq mpc-tag-name
-              (if (string-match "y\\'" (symbol-name tag))
-                  (concat (substring (symbol-name tag) 0 -1) "ies")
-                (concat (symbol-name tag) "s")))
+        (setq mpc-tag-name (mpc-tagbrowser-tag-name tag))
         (mpc-tagbrowser-all-select)
         (mpc-tagbrowser-refresh)
         buf))))
@@ -1858,20 +1869,22 @@ This is used so that they can be compared with `eq', which is needed for
                                  (mapcar (lambda (val)
                                            (mpc-cmd-find (car cst) val))
                                          (cdr cst)))))
-                (setq active (if (null active)
-                                 (progn
+                (setq active (cond
+                              ((null active)
                                    (if (eq (car cst) 'Playlist)
                                        (setq dontsort t))
                                    vals)
-                               (if (or dontsort
+                              ((or dontsort
                                        ;; Try to preserve ordering and
                                        ;; repetitions from playlists.
                                        (not (eq (car cst) 'Playlist)))
                                    (mpc-intersection active vals
-                                                     (lambda (x) (assq 'file x)))
+                                                 (lambda (x) (assq 'file x))))
+                              (t
                                  (setq dontsort t)
                                  (mpc-intersection vals active
-                                                   (lambda (x) (assq 'file x)))))))))
+                                                 (lambda (x)
+                                                   (assq 'file x)))))))))
           (mpc-select-save
             (erase-buffer)
             ;; Sorting songs is surprisingly difficult: when comparing two
@@ -1902,9 +1915,10 @@ This is used so that they can be compared with `eq', which is needed for
               ))
           (goto-char (point-min))
           (forward-line (car curline))
-          (when (or (search-forward (cdr curline) nil t)
+          (if (or (search-forward (cdr curline) nil t)
                     (search-backward (cdr curline) nil t))
-            (beginning-of-line))
+              (beginning-of-line)
+            (goto-char (point-min)))
           (set (make-local-variable 'mpc-songs-totaltime)
                (unless (zerop totaltime)
                  (list " " (mpc-secs-to-time totaltime))))

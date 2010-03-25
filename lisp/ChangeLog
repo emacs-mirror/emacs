@@ -1,4 +1,26 @@
+2010-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add "union tags" in mpc.el.
+	* mpc.el: Remove backward compatibility code.
+	(mpc-browser-tags): Change default.
+	(mpc--find-memoize-union-tags): New var.
+	(mpc-cmd-flush, mpc-cmd-special-tag-p): New fun.
+	(mpc-cmd-find): Handle the case where the playlist does not exist.
+	Handle union-tags.
+	(mpc-cmd-list): Use mpc-cmd-special-tag-p.  Handle union-tags.
+	(mpc-cmd-add): Use mpc-cmd-flush.
+	(mpc-tagbrowser-tag-name): New fun.
+	(mpc-tagbrowser-buf): Use it.
+	(mpc-songs-refresh): Use cond.  Move to point-min as a fallback.
+
 2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Misc cleanup.
+	* progmodes/make-mode.el (makefile-bsdmake-rule-action-regex):
+	Use replace-regexp-in-string.
+	(makefile-mode-abbrev-table): Merge defvar and define-abbrev-table.
+	(makefile-imake-mode-syntax-table): Move init into defvar.
+	(makefile-mode): Use define-derived-mode.
 
 	* progmodes/make-mode.el (makefile-rule-action-regex): Backtrack less.
 	(makefile-make-font-lock-keywords): Adjust rule since submatch 1 may
