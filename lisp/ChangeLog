@@ -1,3 +1,7 @@
+2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-root-diff): Doc fix.
+
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc.el (vc-print-log, vc-print-root-log): Doc fix.
