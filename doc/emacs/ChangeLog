@@ -1,3 +1,13 @@
+2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Program Modes): Mention Javascript mode.
+
+	* text.texi (HTML Mode): Note that nXML is now the default XML mode.
+	* emacs.texi: Update node description.
+
+	* misc.texi (Navigation): Document doc-view-continuous.
+	(Shell Ring): Document new M-r binding.  M-s is no longer bound.
+
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
@@ -30,7 +40,6 @@
 	* xresources.texi (Table of Resources):
 	* mule.texi (Defining Fontsets, Charsets): Update xrefs.
 
->>>>>>> MERGE-SOURCE
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init Examples): Add xref to Locals.

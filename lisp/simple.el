@@ -3472,8 +3472,8 @@ START and END specify the portion of the current buffer to be copied."
     (let* ((append-to (get-buffer-create buffer))
            (windows (get-buffer-window-list append-to t t))
            point)
-      (with-current-buffer append-to
-	(save-excursion
+      (save-excursion
+	(with-current-buffer append-to
 	  (setq point (point))
 	  (barf-if-buffer-read-only)
 	  (insert-buffer-substring oldbuf start end)
