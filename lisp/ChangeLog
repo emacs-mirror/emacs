@@ -1,4 +1,5 @@
-2010-03-26  Nick Roberts  <nickrob@snap.net.nz>
+2010-03-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+            Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-apple-test): New function.
 	(gdb-init-1): Use it.
