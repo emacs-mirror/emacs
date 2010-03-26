@@ -62,12 +62,12 @@
 
 (defvar json-object-type 'alist
   "Type to convert JSON objects to.
-Must be one of `alist', `plist', or `hash-table'. Consider let-binding
+Must be one of `alist', `plist', or `hash-table'.  Consider let-binding
 this around your call to `json-read' instead of `setq'ing it.")
 
 (defvar json-array-type 'vector
   "Type to convert JSON arrays to.
-Must be one of `vector' or `list'. Consider let-binding this around
+Must be one of `vector' or `list'.  Consider let-binding this around
 your call to `json-read' instead of `setq'ing it.")
 
 (defvar json-key-type nil
@@ -83,19 +83,19 @@ If nil, `json-read' will guess the type based on the value of
       `plist'                     `keyword'
 
 Note that values other than `string' might behave strangely for
-Sufficiently Weird keys. Consider let-binding this around your call to
+Sufficiently Weird keys.  Consider let-binding this around your call to
 `json-read' instead of `setq'ing it.")
 
 (defvar json-false :json-false
   "Value to use when reading JSON `false'.
 If this has the same value as `json-null', you might not be able to tell
-the difference between `false' and `null'. Consider let-binding this
+the difference between `false' and `null'.  Consider let-binding this
 around your call to `json-read' instead of `setq'ing it.")
 
 (defvar json-null nil
   "Value to use when reading JSON `null'.
 If this has the same value as `json-false', you might not be able to
-tell the difference between `false' and `null'. Consider let-binding
+tell the difference between `false' and `null'.  Consider let-binding
 this around your call to `json-read' instead of `setq'ing it.")
 
 
@@ -218,7 +218,7 @@ KEYWORD is the keyword expected."
 
 (defun json-read-number (&optional sign)
  "Read the JSON number following point.
-The optional SIGN  argument is for internal use.
+The optional SIGN argument is for internal use.
 
 N.B.: Only numbers which can fit in Emacs Lisp's native number
 representation will be parsed correctly."

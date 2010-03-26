@@ -2624,7 +2624,7 @@ comment at the start of cc-engine.el for more info."
 			   (< (point-max) c-state-old-cpp-end)))
 		  (point-max)
 		(min (point-max) c-state-old-cpp-beg)))
-	(while (and c-state-cache (> (c-state-cache-top-lparen) upper-lim))
+	(while (and c-state-cache (>= (c-state-cache-top-lparen) upper-lim))
 	  (setq c-state-cache (cdr c-state-cache)))
 	;; If `upper-lim' is inside the last recorded brace pair, remove its
 	;; RBrace and indicate we'll need to search backwards for a previous

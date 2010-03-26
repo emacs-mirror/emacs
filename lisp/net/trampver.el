@@ -29,7 +29,7 @@
 ;; "autoconf && ./configure" to change them.  (X)Emacs version check is defined
 ;; in macro AC_EMACS_INFO of aclocal.m4; should be changed only there.
 
-(defconst tramp-version "2.1.18-pre"
+(defconst tramp-version "2.1.18-23.2"
   "This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"

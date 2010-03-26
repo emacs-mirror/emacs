@@ -93,7 +93,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define UNEXEC unexhp9k800.o
 
-#define LIBS_MACHINE
 #define LIBS_DEBUG
 
 /* Include the file bsdtty.h, since this machine has job control.  */

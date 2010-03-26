@@ -61,7 +61,7 @@
 (put 'timeout 'event-symbol-elements '(eval))
 
 (defun allocate-event ()
-  "Returns an empty event structure.
+  "Return an empty event structure.
 In this emulation, it returns nil."
   nil)
 
@@ -142,7 +142,7 @@ It will be the next event read after all pending events."
   (nth 1 event))
 
 (defun event-key (event)
-  "Returns the KeySym of the given key-press event.
+  "Return the KeySym of the given key-press event.
 The value is an ASCII printing character (not upper case) or a symbol."
   (if (symbolp event)
       (car (get event 'event-symbol-elements))
@@ -150,11 +150,11 @@ The value is an ASCII printing character (not upper case) or a symbol."
       (downcase (if (< base 32) (logior base 64) base)))))
 
 (defun event-object (event)
-  "Returns the function argument of the given timeout, menu, or eval event."
+  "Return the function argument of the given timeout, menu, or eval event."
   (nth 2 event))
 
 (defun event-point (event)
-  "Returns the character position of the given mouse-related event.
+  "Return the character position of the given mouse-related event.
 If the event did not occur over a window, or did
 not occur over text, then this returns nil.  Otherwise, it returns an index
 into the buffer visible in the event's window."
@@ -201,18 +201,18 @@ or for window WINDOW if that is specified."
 	(window-start start-window)))))
 
 (defun event-process (event)
-  "Returns the process of the given process-output event."
+  "Return the process of the given process-output event."
   (nth 1 event))
 
 (defun event-timestamp (event)
-  "Returns the timestamp of the given event object.
+  "Return the timestamp of the given event object.
 In Lucid Emacs, this works for any kind of event.
 In this emulation, it returns nil for non-mouse-related events."
   (and (listp event)
        (posn-timestamp (event-end event))))
 
 (defun event-to-character (event &optional lenient)
-  "Returns the closest ASCII approximation to the given event object.
+  "Return the closest ASCII approximation to the given event object.
 If the event isn't a keypress, this returns nil.
 If the second argument is non-nil, then this is lenient in its
 translation; it will ignore modifier keys other than control and meta,
@@ -229,25 +229,25 @@ will be returned for events which have no direct ASCII equivalent."
 	event nil)))
 
 (defun event-window (event)
-  "Returns the window of the given mouse-related event object."
+  "Return the window of the given mouse-related event object."
   (posn-window (event-end event)))
 
 (defun event-x (event)
-  "Returns the X position in characters of the given mouse-related event."
+  "Return the X position in characters of the given mouse-related event."
   (/ (car (posn-col-row (event-end event)))
      (frame-char-width (window-frame (event-window event)))))
 
 (defun event-x-pixel (event)
-  "Returns the X position in pixels of the given mouse-related event."
+  "Return the X position in pixels of the given mouse-related event."
   (car (posn-col-row (event-end event))))
 
 (defun event-y (event)
-  "Returns the Y position in characters of the given mouse-related event."
+  "Return the Y position in characters of the given mouse-related event."
   (/ (cdr (posn-col-row (event-end event)))
      (frame-char-height (window-frame (event-window event)))))
 
 (defun event-y-pixel (event)
-  "Returns the Y position in pixels of the given mouse-related event."
+  "Return the Y position in pixels of the given mouse-related event."
   (cdr (posn-col-row (event-end event))))
 
 (defun key-press-event-p (obj)

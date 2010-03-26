@@ -1,3 +1,214 @@
+2010-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
+	all dired buffers, even tramp ones.  (Bug#5755)
+
+2010-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add "union tags" in mpc.el.
+	* mpc.el: Remove backward compatibility code.
+	(mpc-browser-tags): Change default.
+	(mpc--find-memoize-union-tags): New var.
+	(mpc-cmd-flush, mpc-cmd-special-tag-p): New fun.
+	(mpc-cmd-find): Handle the case where the playlist does not exist.
+	Handle union-tags.
+	(mpc-cmd-list): Use mpc-cmd-special-tag-p.  Handle union-tags.
+	(mpc-cmd-add): Use mpc-cmd-flush.
+	(mpc-tagbrowser-tag-name): New fun.
+	(mpc-tagbrowser-buf): Use it.
+	(mpc-songs-refresh): Use cond.  Move to point-min as a fallback.
+
+2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Misc cleanup.
+	* progmodes/make-mode.el (makefile-bsdmake-rule-action-regex):
+	Use replace-regexp-in-string.
+	(makefile-mode-abbrev-table): Merge defvar and define-abbrev-table.
+	(makefile-imake-mode-syntax-table): Move init into defvar.
+	(makefile-mode): Use define-derived-mode.
+
+	* progmodes/make-mode.el (makefile-rule-action-regex): Backtrack less.
+	(makefile-make-font-lock-keywords): Adjust rule since submatch 1 may
+	not be present any more.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-attribute): Fix typo in docstring.
+	(face-valid-attribute-values): Reflow docstring.
+
+	* cedet/srecode/table.el (srecode-template-table): Fix docstring typo.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (sgml-lexical-context): Autoload it (Bug#5752).
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.el (indent-for-tab-command): Doc fix.
+
+2010-03-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-remove-stale-state-cache):
+	Fix off-by-one error.  Fixes bug #5747.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-dired.el (image-dired-display-thumbs): Fix typo in docstring.
+	(image-dired-read-comment): Doc fix.
+
+	* json.el (json-object-type, json-array-type, json-key-type)
+	(json-false, json-null, json-read-number):
+	* minibuffer.el (completion-in-region-functions):
+	* calendar/cal-tex.el (cal-tex-daily-end, cal-tex-number-weeks)
+	(cal-tex-cursor-week):
+	* emacs-lisp/trace.el (trace-function):
+	* eshell/em-basic.el (eshell/printnl):
+	* eshell/em-dirs.el (eshell-last-dir-ring, eshell-parse-drive-letter)
+	(eshell-read-last-dir-ring, eshell-write-last-dir-ring):
+	* obsolete/levents.el (allocate-event, event-key, event-object)
+	(event-point, event-process, event-timestamp, event-to-character)
+	(event-window, event-x, event-x-pixel, event-y, event-y-pixel):
+	* textmodes/reftex-vars.el (reftex-index-macros-builtin)
+	(reftex-section-levels, reftex-auto-recenter-toc, reftex-toc-mode-hook)
+	(reftex-cite-punctuation, reftex-search-unrecursed-path-first)
+	(reftex-highlight-selection): Fix typos in docstrings.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-in-region-functions): Fix docstring typos.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-highlight-face): Restore option deleted
+	2008-02-13 without comment; mark it obsolete.
+	(rmail-highlight-headers): Use rmail-highlight-face once more.
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman2-process-escapes): Only consume the newline if
+	the filler character is on a line by itself (Bug#5729).
+
+2010-03-24  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (devanagari-composable-pattern): Add more
+	consonants.
+
+2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/trampver.el: Update release number.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Add cedet/semantic/imenu.el.
+
+2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-executable):
+	Use `tramp-get-connection-buffer'.  Make the regexp for checking
+	output of "wc -l" more robust.
+	(tramp-find-shell): Use another shell but /bin/sh on OpenSolaris.
+	(tramp-open-connection-setup-interactive-shell): Remove workaround
+	for OpenSolaris bug, it is not needed anymore.
+
+2010-03-24  Eric M. Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/imenu.el: New file, from the CEDET repository
+	(Bug#5412).
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (defsubst*): Add autoload cookie.  (Bug#4427)
+
+2010-03-24  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* files.el (auto-mode-alist): Accept more verilog file patterns.
+
+2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dir.el (vc-dir-headers): Abbreviate the working dir.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc-bzr.el (vc-bzr-log-edit-mode): Add --fixes support to
+	log-edit-before-checkin-process.
+
+	* vc.el (vc-modify-change-comment): Pass MODE to vc-start-logentry.
+
+	* vc.el, vc-bzr.el, vc-hg.el (log-edit-mode): Declare.
+
+	* vc-dispatcher.el (vc-start-logentry): Doc fix.
+	(log-view-process-buffer, log-edit-extra-flags): Declare.
+
+	* log-edit.el (log-edit-before-checkin-process): Doc fix.
+
+	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):
+	Consistently check ede-object is bound throughout.
+
+	* cedet/ede/project-am.el (ede-shell-run-something): Declare.
+
+2010-03-23  Sam Steingold  <sds@gnu.org>
+
+	Fix bug#5620: recalculate all markers on compilation buffer
+	modifications, not on file modifications.
+	* progmodes/compile.el (buffer-modtime): New buffer-local variable:
+	the buffer modification time, for buffers not associated with files.
+	(compilation-mode): Create it.
+	(compilation-filter): Update it.
+	(compilation-next-error-function): Use it instead of
+	`visited-file-modtime' for timestamp.
+
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
+	Implement Occur multi-line matches.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01044.html
+
+	* replace.el (occur): Doc fix.
+	(occur-engine): Set `begpt' to the beginning of the first line.
+	Set `endpt' to the end of the last match line.  At first, count
+	line numbers between `origpt' and `begpt'.  Split out code from
+	`out-line' variable to new let-bindings `match-prefix' and
+	`match-str'.  In `out-line' add non-numeric prefix to all
+	non-first lines of multi-line matches.  Finally, count lines
+	between `begpt' and `endpt' and add to `lines'.
+
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-accumulate-lines, occur-engine):
+	Use `occur-engine-line' instead of duplicate code.
+	(occur-engine-line): New function created from duplicate code
+	in `occur-accumulate-lines' and `occur-engine'.
+
+	* replace.el (occur-engine-line): Add optional arg `keep-props'.
+	(occur-accumulate-lines, occur-engine): Add arg `keep-props'.
+
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
+	* finder.el: Remove TODO tasks.
+
+	* info.el (Info-finder-find-node): Add node "all"
+	with all package info.  Handle a list of multiple keywords
+	separated by comma.
+	(info-finder): In interactive use with a prefix argument,
+	use `completing-read-multiple' to read a list of keywords
+	separated by comma.
+
+2010-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add a new completion style `substring'.
+	* minibuffer.el (completion-basic--pattern): New function.
+	(completion-basic-try-completion, completion-basic-all-completions):
+	Use it.
+	(completion-substring--all-completions)
+	(completion-substring-try-completion)
+	(completion-substring-all-completions): New functions.
+	(completion-styles-alist): New style `substring'.
+
+2010-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of .elc files after removal of the corresponding .el.
+	* Makefile.in (compile-clean): New target.
+	(compile-main): Use it.
+
 2010-03-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (compile-main): cd to $(lisp) in a sub-shell, so we
@@ -19,7 +230,8 @@
 	(srcdir): Don't append `/..'.
 	(EMACS): Use ${abs_top_builddir}.
 	(all, compile, compile-always, compile-last): Don't set emacswd.
-	(update-subdirs, update-authors): Use $(top_srcdir) instead of $(srcdir).
+	(update-subdirs, update-authors): Use $(top_srcdir) instead of
+	$(srcdir).
 	(lisp): Use $(srcdir) instead of @srcdir@.
 
 2010-03-21  Juri Linkov  <juri@jurta.org>

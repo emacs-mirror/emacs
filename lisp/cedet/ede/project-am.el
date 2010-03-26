@@ -402,6 +402,8 @@ Argument COMMAND is the command to use for compiling the target."
 	  (funcall project-am-debug-target-function cmd))
       (kill-buffer tb))))
 
+(declare-function ede-shell-run-something "ede/shell")
+
 (defmethod project-run-target ((obj project-am-objectcode))
   "Run the current project target in comint buffer."
   (let ((tb (get-buffer-create " *padt*"))

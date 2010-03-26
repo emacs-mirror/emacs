@@ -393,6 +393,9 @@ the second failed attempt to complete."
      "Completion of multiple words, each one taken as a prefix.
 E.g. M-x l-c-h can complete to list-command-history
 and C-x C-f /u/m/s to /usr/monnier/src.")
+    (substring
+     completion-substring-try-completion completion-substring-all-completions
+     "Completion of the string taken as a substring.")
     (initials
      completion-initials-try-completion completion-initials-all-completions
      "Completion of acronyms and initialisms.
@@ -1099,12 +1102,12 @@ variables.")
   (exit-minibuffer))
 
 (defvar completion-in-region-functions nil
-  "Wrapper hook around `complete-in-region'.
+  "Wrapper hook around `completion-in-region'.
 The functions on this special hook are called with 5 arguments:
   NEXT-FUN START END COLLECTION PREDICATE.
 NEXT-FUN is a function of four arguments (START END COLLECTION PREDICATE)
-that performs the default operation.  The other four argument are like
-the ones passed to `complete-in-region'.  The functions on this hook
+that performs the default operation.  The other four arguments are like
+the ones passed to `completion-in-region'.  The functions on this hook
 are expected to perform completion on START..END using COLLECTION
 and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
 
@@ -1658,6 +1661,12 @@ Return the new suffix."
     ;; Nothing to merge.
     suffix))
 
+(defun completion-basic--pattern (beforepoint afterpoint bounds)
+  (delete
+   "" (list (substring beforepoint (car bounds))
+            'point
+            (substring afterpoint 0 (cdr bounds)))))
+
 (defun completion-basic-try-completion (string table pred point)
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))
@@ -1674,10 +1683,8 @@ Return the new suffix."
              (length completion))))
       (let* ((suffix (substring afterpoint (cdr bounds)))
              (prefix (substring beforepoint 0 (car bounds)))
-             (pattern (delete
-                       "" (list (substring beforepoint (car bounds))
-                                'point
-                                (substring afterpoint 0 (cdr bounds)))))
+             (pattern (completion-basic--pattern
+                       beforepoint afterpoint bounds))
              (all (completion-pcm--all-completions prefix pattern table pred)))
         (if minibuffer-completing-file-name
             (setq all (completion-pcm--filename-try-filter all)))
@@ -1687,12 +1694,8 @@ Return the new suffix."
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))
          (bounds (completion-boundaries beforepoint table pred afterpoint))
-         (suffix (substring afterpoint (cdr bounds)))
          (prefix (substring beforepoint 0 (car bounds)))
-         (pattern (delete
-                   "" (list (substring beforepoint (car bounds))
-                            'point
-                            (substring afterpoint 0 (cdr bounds)))))
+         (pattern (completion-basic--pattern beforepoint afterpoint bounds))
          (all (completion-pcm--all-completions prefix pattern table pred)))
     (completion-hilit-commonality all point (car bounds))))
 
@@ -2069,7 +2072,38 @@ filter out additional entries (because TABLE migth not obey PRED)."
            'completion-pcm--filename-try-filter))
     (completion-pcm--merge-try pattern all prefix suffix)))
 
-;;; Initials completion
+;;; Substring completion
+;; Mostly derived from the code of `basic' completion.
+
+(defun completion-substring--all-completions (string table pred point)
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint))
+         (suffix (substring afterpoint (cdr bounds)))
+         (prefix (substring beforepoint 0 (car bounds)))
+         (basic-pattern (completion-basic--pattern
+                         beforepoint afterpoint bounds))
+         (pattern (if (not (stringp (car basic-pattern)))
+                      basic-pattern
+                    (cons 'any basic-pattern)))
+         (all (completion-pcm--all-completions prefix pattern table pred)))
+    (list all pattern prefix suffix (car bounds))))
+
+(defun completion-substring-try-completion (string table pred point)
+  (destructuring-bind (all pattern prefix suffix carbounds)
+      (completion-substring--all-completions string table pred point)
+    (if minibuffer-completing-file-name
+        (setq all (completion-pcm--filename-try-filter all)))
+    (completion-pcm--merge-try pattern all prefix suffix)))
+
+(defun completion-substring-all-completions (string table pred point)
+  (destructuring-bind (all pattern prefix suffix carbounds)
+      (completion-substring--all-completions string table pred point)
+    (when all
+      (nconc (completion-pcm--hilit-commonality pattern all)
+             (length prefix)))))
+
+;; Initials completion
 ;; Complete /ums to /usr/monnier/src or lch to list-command-history.
 
 (defun completion-initials-expand (str table pred)

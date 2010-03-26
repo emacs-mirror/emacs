@@ -1,7 +1,7 @@
 ;;; mail-source.el --- functions for fetching mail
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -574,10 +574,13 @@ Return the number of files that were found."
 		      (error "Cannot get new mail"))
 		    0)))))))))
 
+(declare-function gnus-message "gnus-util" (level &rest args))
+
 (defun mail-source-delete-old-incoming (&optional age confirm)
   "Remove incoming files older than AGE days.
 If CONFIRM is non-nil, ask for confirmation before removing a file."
   (interactive "P")
+  (require 'gnus-util)
   (let* ((high2days (/ 65536.0 60 60 24));; convert high bits to days
 	 (low2days  (/ 1.0 65536.0))     ;; convert low bits to days
 	 (diff (if (natnump age) age 30));; fallback, if no valid AGE given

@@ -1878,13 +1878,7 @@ create_process (process, new_argv, current_dir)
 #ifdef AIX
   struct sigaction sighup_action;
 #endif
-#else /* !POSIX_SIGNALS */
-#if 0
-#ifdef SIGCHLD
-  SIGTYPE (*sigchld)();
-#endif
-#endif /* 0 */
-#endif /* !POSIX_SIGNALS */
+#endif /* POSIX_SIGNALS */
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
@@ -2008,14 +2002,9 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_BLOCK, &blocked, &procmask);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
   sigsetmask (sigmask (SIGCHLD));
-#else /* ordinary USG */
-#if 0
-  sigchld_deferred = 0;
-  sigchld = signal (SIGCHLD, create_process_sigchld);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2172,13 +2161,9 @@ create_process (process, new_argv, current_dir)
 	sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
 	sigsetmask (SIGEMPTYMASK);
-#else /* ordinary USG */
-#if 0
-	signal (SIGCHLD, sigchld);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2275,17 +2260,9 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
   sigsetmask (SIGEMPTYMASK);
-#else /* ordinary USG */
-#if 0
-  signal (SIGCHLD, sigchld);
-  /* Now really handle any of these signals
-     that came in during this function.  */
-  if (sigchld_deferred)
-    kill (getpid (), SIGCHLD);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -3557,8 +3534,6 @@ usage: (make-network-process &rest ARGS)  */)
     {
       int optn, optbits;
 
-    retry_connect:
-
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
 	{
@@ -3640,22 +3615,8 @@ usage: (make-network-process &rest ARGS)  */)
       immediate_quit = 1;
       QUIT;
 
-      /* This turns off all alarm-based interrupts; the
-	 bind_polling_period call above doesn't always turn all the
-	 short-interval ones off, especially if interrupt_input is
-	 set.
-
-	 It'd be nice to be able to control the connect timeout
-	 though.  Would non-blocking connect calls be portable?
-
-	 This used to be conditioned by HAVE_GETADDRINFO.  Why?  */
-
-      turn_on_atimers (0);
-
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
       xerrno = errno;
-
-      turn_on_atimers (1);
 
       if (ret == 0 || xerrno == EISCONN)
 	{
@@ -3675,6 +3636,38 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 #endif
 #endif
+      if (xerrno == EINTR)
+	{
+	  /* Unlike most other syscalls connect() cannot be called
+	     again.  (That would return EALREADY.)  The proper way to
+	     wait for completion is select(). */
+	  int sc;
+	  SELECT_TYPE fdset;
+	retry_select:
+	  FD_ZERO (&fdset);
+	  FD_SET (s, &fdset);
+	  QUIT;
+	  sc = select (s + 1, (SELECT_TYPE *)0, &fdset, (SELECT_TYPE *)0,
+		       (EMACS_TIME *)0);
+	  if (sc == -1)
+	    {
+	      if (errno == EINTR) 
+		goto retry_select;
+	      else 
+		report_file_error ("select failed", Qnil);
+	    }
+	  eassert (sc > 0);
+	  {
+	    int len = sizeof xerrno;
+	    eassert (FD_ISSET (s, &fdset));
+	    if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
+	      report_file_error ("getsockopt failed", Qnil);
+	    if (xerrno != 0)
+	      errno = xerrno, report_file_error ("error during connect", Qnil);
+	    else
+	      break;
+	  }
+	}
 
       immediate_quit = 0;
 
@@ -3682,9 +3675,6 @@ usage: (make-network-process &rest ARGS)  */)
       specpdl_ptr = specpdl + count1;
       emacs_close (s);
       s = -1;
-
-      if (xerrno == EINTR)
-	goto retry_connect;
     }
 
   if (s >= 0)
@@ -6704,11 +6694,6 @@ sigchld_handler (signo)
 	  /* PID == 0 means no processes found, PID == -1 means a real
 	     failure.  We have done all our job, so return.  */
 
-	  /* USG systems forget handlers when they are used;
-	     must reestablish each time */
-#if defined (USG) && !defined (POSIX_SIGNALS)
-	  signal (signo, sigchld_handler);   /* WARNING - must come after wait3() */
-#endif
 	  errno = old_errno;
 	  return;
 	}
@@ -6809,9 +6794,6 @@ sigchld_handler (signo)
 #if (defined WINDOWSNT \
      || (defined USG && !defined GNU_LINUX \
 	 && !(defined HPUX && defined WNOHANG)))
-#if defined (USG) && ! defined (POSIX_SIGNALS)
-      signal (signo, sigchld_handler);
-#endif
       errno = old_errno;
       return;
 #endif /* USG, but not HPUX with WNOHANG */

@@ -1744,17 +1744,18 @@ The headers are reset to their non-expanded form."
 
 (defun vc-modify-change-comment (files rev oldcomment)
   "Edit the comment associated with the given files and revision."
-  (vc-start-logentry
-   files rev oldcomment t
-   "Enter a replacement change comment."
-   "*VC-log*"
-   (lambda (files rev comment ignored)
-     (vc-call-backend
-      ;; Less of a kluge than it looks like; log-view mode only passes
-      ;; this function a singleton list.  Arguments left in this form in
-      ;; case the more general operation ever becomes meaningful.
-      (vc-responsible-backend (car files))
-      'modify-change-comment files rev comment))))
+  ;; Less of a kluge than it looks like; log-view mode only passes
+  ;; this function a singleton list.  Arguments left in this form in
+  ;; case the more general operation ever becomes meaningful.
+  (let ((backend (vc-responsible-backend (car files))))
+    (vc-start-logentry
+     files rev oldcomment t
+     "Enter a replacement change comment."
+     "*VC-log*"
+     (lambda () (vc-call-backend backend 'log-edit-mode))
+     (lambda (files rev comment ignored)
+       (vc-call-backend backend
+                        'modify-change-comment files rev comment)))))
 
 ;;;###autoload
 (defun vc-merge ()
@@ -2432,6 +2433,8 @@ to provide the `find-revision' operation instead."
     (vc-register)))
 
 (defalias 'vc-default-check-headers 'ignore)
+
+(declare-function log-edit-mode "log-edit" ())
 
 (defun vc-default-log-edit-mode (backend) (log-edit-mode))
 
