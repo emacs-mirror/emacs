@@ -45,6 +45,7 @@ Use `set-scroll-bar-mode' to change this.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
 
 *** Customize buffers now contain a search field.

@@ -3347,7 +3347,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
+  BLOCK_INPUT;
   xlwmenu_default_font = XLoadQueryFont (FRAME_X_DISPLAY (f), "fixed");
+  UNBLOCK_INPUT;
 #endif
 
   /* Frame contents get displaced if an embedded X window has a border.  */
@@ -3421,7 +3423,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   init_frame_faces (f);
 
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
-		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
+		       "menuBar", "MenuBar", RES_TYPE_BOOLEAN_NUMBER);
   x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
 		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,

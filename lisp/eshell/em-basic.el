@@ -125,7 +125,7 @@ or `eshell-printn' for display."
    (eshell-echo args output-newline)))
 
 (defun eshell/printnl (&rest args)
-  "Print out each of the argument, separated by newlines."
+  "Print out each of the arguments, separated by newlines."
   (let ((elems (eshell-flatten-list args)))
     (while elems
       (eshell-printn (eshell-echo (list (car elems))))

@@ -821,7 +821,7 @@ This variable controls how the cursor looks in a window that is not
 selected.  It supports the same values as the @code{cursor-type} frame
 parameter; also, @code{nil} means don't display a cursor in
 nonselected windows, and @code{t} (the default) means use a standard
-modificatoin of the usual cursor type (solid box becomes hollow box,
+modification of the usual cursor type (solid box becomes hollow box,
 and bar becomes a narrower bar).
 @end defopt
 

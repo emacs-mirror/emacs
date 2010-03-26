@@ -1418,6 +1418,21 @@ single copies.  You do not need any other drivers or options.
 
 * Runtime problems on character terminals
 
+** The meta key does not work on xterm.
+Typing M-x rings the terminal bell, and inserts a string like ";120~".
+For recent xterm versions (>= 216), Emacs uses xterm's modifyOtherKeys
+feature to generate strings for key combinations that are not
+otherwise usable.  One circumstance in which this can cause problems
+is if you have specified the X resource
+
+  xterm*VT100.Translations
+
+to contain translations that use the meta key.  Then xterm will not
+use meta in modified function-keys, which confuses Emacs.  To fix
+this, you can remove the X resource or put this in your init file:
+
+  (xterm-remove-modify-other-keys)
+
 ** Emacs spontaneously displays "I-search: " at the bottom of the screen.
 
 This means that Control-S/Control-Q (XON/XOFF) "flow control" is being

@@ -130,10 +130,6 @@ Several are for Debian GNU/Linux in particular.
 
  * Boxquote: <URL:http://www.davep.org/emacs/>
 
- * CEDET: Collection of Emacs Development Environment Tools, including
-   EIEIO, Semantic, Speedbar, EDE, and COGRE:
-   <URL:http://cedet.sourceforge.net/>
-
  * CJK-emacs: Converting MULE-encoded text to TeX:
    <URL:ftp://ctan.tug.org/tex-archive/language/chinese/CJK/> and
    mirrors of the `CTAN' TeX archives.

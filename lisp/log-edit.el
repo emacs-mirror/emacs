@@ -191,22 +191,20 @@ when this variable is set to nil.")
 (defvar log-edit-extra-flags nil
   "List of extra flags to pass to the check in command.")
 (defvar log-edit-before-checkin-process nil
-  "Alist that contains instructions for processing the commit message before check in.
-
+  "Alist with instructions for processing the commit message before check in.
 The format is: (REGEXP . INSTRUCTIONS).
+All lines matching REGEXP are removed.  For example:
 
-All lines matching REGEXP are removed.
+\(\"^#.*\" . nil)
 
-For example:
-
-(\"^#.*\" . nil)
 means: just remove all lines starting with #.  This can be used
 to insert lines in the commit buffer that contain, for example, the
 list of files to be committed.
 
-(\"Author: \\(.*\\)\" . (list \"--author\" (match-string 1)))
-means: append (list \"--author\" (match-string 1)) to
-`log-edit-extra-flags'.")
+\(\"Author: \\\\(.*\\\\)\" . (list \"--author\" (match-string 1)))
+
+means: append (list \"--author\" (match-string 1)) to `log-edit-extra-flags'.")
+
 (defvar log-edit-parent-buffer nil)
 
 ;;; Originally taken from VC-Log mode

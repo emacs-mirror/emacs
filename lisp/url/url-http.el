@@ -64,6 +64,55 @@ This is only useful when debugging the HTTP subsystem.  Setting to
 nil will explicitly close the connection to the server after every
 request.")
 
+(defconst url-http-codes
+  '((100 continue                        "Continue with request")
+    (101 switching-protocols             "Switching protocols")
+    (102 processing                      "Processing (Added by DAV)")
+    (200 OK                              "OK")
+    (201 created                         "Created")
+    (202 accepted                        "Accepted")
+    (203 non-authoritative               "Non-authoritative information")
+    (204 no-content                      "No content")
+    (205 reset-content                   "Reset content")
+    (206 partial-content                 "Partial content")
+    (207 multi-status                    "Multi-status (Added by DAV)")
+    (300 multiple-choices                "Multiple choices")
+    (301 moved-permanently               "Moved permanently")
+    (302 found                           "Found")
+    (303 see-other                       "See other")
+    (304 not-modified                    "Not modified")
+    (305 use-proxy                       "Use proxy")
+    (307 temporary-redirect              "Temporary redirect")
+    (400 bad-request                     "Bad Request")
+    (401 unauthorized                    "Unauthorized")
+    (402 payment-required                "Payment required")
+    (403 forbidden                       "Forbidden")
+    (404 not-found                       "Not found")
+    (405 method-not-allowed              "Method not allowed")
+    (406 not-acceptable                  "Not acceptable")
+    (407 proxy-authentication-required   "Proxy authentication required")
+    (408 request-timeout                 "Request time-out")
+    (409 conflict                        "Conflict")
+    (410 gone                            "Gone")
+    (411 length-required                 "Length required")
+    (412 precondition-failed             "Precondition failed")
+    (413 request-entity-too-large        "Request entity too large")
+    (414 request-uri-too-large           "Request-URI too large")
+    (415 unsupported-media-type          "Unsupported media type")
+    (416 requested-range-not-satisfiable "Requested range not satisfiable")
+    (417 expectation-failed              "Expectation failed")
+    (422 unprocessable-entity            "Unprocessable Entity (Added by DAV)")
+    (423 locked                          "Locked")
+    (424 failed-Dependency               "Failed Dependency")
+    (500 internal-server-error           "Internal server error")
+    (501 not-implemented                 "Not implemented")
+    (502 bad-gateway                     "Bad gateway")
+    (503 service-unavailable             "Service unavailable")
+    (504 gateway-timeout                 "Gateway time-out")
+    (505 http-version-not-supported      "HTTP version not supported")
+    (507 insufficient-storage            "Insufficient storage")
+"The HTTP return codes and their text."))
+
 ;(eval-when-compile
 ;; These are all macros so that they are hidden from external sight
 ;; when the file is byte-compiled.
@@ -435,7 +484,9 @@ should be shown to the user."
 	(delete-process url-http-process)))))
   (let ((buffer (current-buffer))
 	(class nil)
-	(success nil))
+	(success nil)
+	;; other status symbols: jewelry and luxury cars
+	(status-symbol (cadr (assq url-http-response-status url-http-codes))))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
     (url-http-handle-cookies)
@@ -463,8 +514,8 @@ should be shown to the user."
        ;; 205 Reset content
        ;; 206 Partial content
        ;; 207 Multi-status (Added by DAV)
-       (case url-http-response-status
-	 ((204 205)
+       (case status-symbol
+	 ((no-content reset-content)
 	  ;; No new data, just stay at the same document
 	  (url-mark-buffer-as-dead buffer)
 	  (setq success t))
@@ -485,8 +536,8 @@ should be shown to the user."
        ;; 307 Temporary redirect
        (let ((redirect-uri (or (mail-fetch-field "Location")
 			       (mail-fetch-field "URI"))))
-	 (case url-http-response-status
-	   (300
+	 (case status-symbol
+	   (multiple-choices	    ; 300
 	    ;; Quoth the spec (section 10.3.1)
 	    ;; -------------------------------
 	    ;; The requested resource corresponds to any one of a set of
@@ -503,7 +554,7 @@ should be shown to the user."
 	    ;; We do not support agent-driven negotiation, so we just
 	    ;; redirect to the preferred URI if one is provided.
 	    nil)
-	   ((301 302 307)
+	   ((moved-permanently found temporary-redirect) ; 301 302 307
 	    ;; If the 301|302 status code is received in response to a
 	    ;; request other than GET or HEAD, the user agent MUST NOT
 	    ;; automatically redirect the request unless it can be
@@ -519,20 +570,20 @@ should be shown to the user."
 			      url-http-method url-http-response-status)
 	      (setq url-http-method "GET"
 		    url-http-data nil)))
-	   (303
+	   (see-other			; 303
 	    ;; The response to the request can be found under a different
 	    ;; URI and SHOULD be retrieved using a GET method on that
 	    ;; resource.
 	    (setq url-http-method "GET"
 		  url-http-data nil))
-	   (304
+	   (not-modified		; 304
 	    ;; The 304 response MUST NOT contain a message-body.
 	    (url-http-debug "Extracting document from cache... (%s)"
 			    (url-cache-create-filename (url-view-url t)))
 	    (url-cache-extract (url-cache-create-filename (url-view-url t)))
 	    (setq redirect-uri nil
 		  success t))
-	   (305
+	   (use-proxy			; 305
 	    ;; The requested resource MUST be accessed through the
 	    ;; proxy given by the Location field.  The Location field
 	    ;; gives the URI of the proxy.  The recipient is expected
@@ -620,51 +671,51 @@ should be shown to the user."
        ;; 422 Unprocessable Entity (Added by DAV)
        ;; 423 Locked
        ;; 424 Failed Dependency
-       (case url-http-response-status
-	 (401
+       (case status-symbol
+	 (unauthorized			; 401
 	  ;; The request requires user authentication.  The response
 	  ;; MUST include a WWW-Authenticate header field containing a
 	  ;; challenge applicable to the requested resource.  The
 	  ;; client MAY repeat the request with a suitable
 	  ;; Authorization header field.
 	  (url-http-handle-authentication nil))
-	 (402
+	 (payment-required              ; 402
 	  ;; This code is reserved for future use
 	  (url-mark-buffer-as-dead buffer)
 	  (error "Somebody wants you to give them money"))
-	 (403
+	 (forbidden			; 403
 	  ;; The server understood the request, but is refusing to
 	  ;; fulfill it.  Authorization will not help and the request
 	  ;; SHOULD NOT be repeated.
 	  (setq success t))
-	 (404
+	 (not-found			; 404
 	  ;; Not found
 	  (setq success t))
-	 (405
+	 (method-not-allowed		; 405
 	  ;; The method specified in the Request-Line is not allowed
 	  ;; for the resource identified by the Request-URI.  The
 	  ;; response MUST include an Allow header containing a list of
 	  ;; valid methods for the requested resource.
 	  (setq success t))
-	 (406
+	 (not-acceptable		; 406
 	  ;; The resource identified by the request is only capable of
 	  ;; generating response entities which have content
 	  ;; characteristics nota cceptable according to the accept
 	  ;; headers sent in the request.
 	  (setq success t))
-	 (407
+	 (proxy-authentication-required ; 407
 	  ;; This code is similar to 401 (Unauthorized), but indicates
 	  ;; that the client must first authenticate itself with the
 	  ;; proxy.  The proxy MUST return a Proxy-Authenticate header
 	  ;; field containing a challenge applicable to the proxy for
 	  ;; the requested resource.
 	  (url-http-handle-authentication t))
-	 (408
+	 (request-timeout		; 408
 	  ;; The client did not produce a request within the time that
 	  ;; the server was prepared to wait.  The client MAY repeat
 	  ;; the request without modifications at any later time.
 	  (setq success t))
-	 (409
+	 (conflict			; 409
 	  ;; The request could not be completed due to a conflict with
 	  ;; the current state of the resource.  This code is only
 	  ;; allowed in situations where it is expected that the user
@@ -673,11 +724,11 @@ should be shown to the user."
 	  ;; information for the user to recognize the source of the
 	  ;; conflict.
 	  (setq success t))
-	 (410
+	 (gone                          ; 410
 	  ;; The requested resource is no longer available at the
 	  ;; server and no forwarding address is known.
 	  (setq success t))
-	 (411
+	 (length-required		; 411
 	  ;; The server refuses to accept the request without a defined
 	  ;; Content-Length.  The client MAY repeat the request if it
 	  ;; adds a valid Content-Length header field containing the
@@ -687,29 +738,29 @@ should be shown to the user."
 	  ;; `url-http-create-request' automatically calculates the
 	  ;; content-length.
 	  (setq success t))
-	 (412
+	 (precondition-failed		; 412
 	  ;; The precondition given in one or more of the
 	  ;; request-header fields evaluated to false when it was
 	  ;; tested on the server.
 	  (setq success t))
-	 ((413 414)
+	 ((request-entity-too-large request-uri-too-large) ; 413 414
 	  ;; The server is refusing to process a request because the
 	  ;; request entity|URI is larger than the server is willing or
 	  ;; able to process.
 	  (setq success t))
-	 (415
+	 (unsupported-media-type	; 415
 	  ;; The server is refusing to service the request because the
 	  ;; entity of the request is in a format not supported by the
 	  ;; requested resource for the requested method.
 	  (setq success t))
-	 (416
+	 (requested-range-not-satisfiable ; 416
 	  ;; A server SHOULD return a response with this status code if
 	  ;; a request included a Range request-header field, and none
 	  ;; of the range-specifier values in this field overlap the
 	  ;; current extent of the selected resource, and the request
 	  ;; did not include an If-Range request-header field.
 	  (setq success t))
-	 (417
+	 (expectation-failed		; 417
 	  ;; The expectation given in an Expect request-header field
 	  ;; could not be met by this server, or, if the server is a
 	  ;; proxy, the server has unambiguous evidence that the
@@ -736,16 +787,16 @@ should be shown to the user."
        ;; 507 Insufficient storage
        (setq success t)
        (case url-http-response-status
-	 (501
+	 (not-implemented		; 501
 	  ;; The server does not support the functionality required to
 	  ;; fulfill the request.
 	  nil)
-	 (502
+	 (bad-gateway			; 502
 	  ;; The server, while acting as a gateway or proxy, received
 	  ;; an invalid response from the upstream server it accessed
 	  ;; in attempting to fulfill the request.
 	  nil)
-	 (503
+	 (service-unavailable		; 503
 	  ;; The server is currently unable to handle the request due
 	  ;; to a temporary overloading or maintenance of the server.
 	  ;; The implication is that this is a temporary condition
@@ -754,19 +805,19 @@ should be shown to the user."
 	  ;; header.  If no Retry-After is given, the client SHOULD
 	  ;; handle the response as it would for a 500 response.
 	  nil)
-	 (504
+	 (gateway-timeout		; 504
 	  ;; The server, while acting as a gateway or proxy, did not
 	  ;; receive a timely response from the upstream server
 	  ;; specified by the URI (e.g. HTTP, FTP, LDAP) or some other
 	  ;; auxiliary server (e.g. DNS) it needed to access in
 	  ;; attempting to complete the request.
 	  nil)
-	 (505
+	 (http-version-not-supported	; 505
 	  ;; The server does not support, or refuses to support, the
 	  ;; HTTP protocol version that was used in the request
 	  ;; message.
 	  nil)
-	 (507				; DAV
+	 (insufficient-storage		; 507 (DAV)
 	  ;; The method could not be performed on the resource
 	  ;; because the server is unable to store the representation
 	  ;; needed to successfully complete the request.  This

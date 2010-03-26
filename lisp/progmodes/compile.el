@@ -1785,7 +1785,7 @@ and runs `compilation-filter-hook'."
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
-              (set (make-local-variable buffer-modtime) (current-time))
+              (set (make-local-variable 'buffer-modtime) (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
