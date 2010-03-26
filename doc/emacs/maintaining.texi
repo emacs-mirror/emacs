@@ -647,14 +647,18 @@ to examine any revision of a file, or compare two revisions.
 
 @table @kbd
 @item C-x v ~
-Prompt for a revision of the visited file, and visit it in a buffer of
+Prompt for a revision of the current file, and visit it in a buffer of
 its own (@code{vc-revision-other-window}).
 
 @item C-x v =
-Compare the buffer associated with the current fileset with the
-working revision(s) from which you started editing (@code{vc-diff}).
-With a prefix argument, prompt for two revisions of the current
-fileset and compare them.
+Compare the files in the current fileset with the working revision(s)
+you started from (@code{vc-diff}).  With a prefix argument, prompt for
+two revisions of the current fileset and compare them.
+
+@item C-x v D
+Compare the entire tree corresponding to the current fileset with the
+tree you started from (@code{vc-root-diff}).  With a prefix argument,
+prompt for two revisions and compare their trees.
 
 @item C-x v g
 Display an annotated version of the file: for each line, show the
@@ -679,12 +683,11 @@ buffer in a separate window.
 
 @findex vc-diff
 @kindex C-x v =
-  @kbd{C-x v =} (@code{vc-diff}) compares the current buffer contents
-of each file in the current VC fileset (saving them if necessary) with
-the repository revision from which you started editing.  Note that the
-latter may or may not be the latest revision of the file(s).  The diff
-is displayed in a special buffer in another window.  @xref{Comparing
-Files}.
+  @kbd{C-x v =} (@code{vc-diff}) compares each file in the current VC
+fileset (saving them if necessary) with the repository revision(s)
+from which you started editing.  Note that the latter may or may not
+be the latest revision of the file(s).  The diff is displayed in a
+special buffer in another window.  @xref{Comparing Files}.
 
 @findex vc-diff
 @kindex C-u C-x v =
@@ -705,6 +708,12 @@ changeset-based (Subversion, GNU Arch, git, Mercurial), supplying a
 revision ID for a multi-file fileset (as opposed to a symbolic tag
 name) is unlikely to return diffs that are connected in any meaningful
 way.
+
+  The command @kbd{C-x v D} (@code{vc-root-diff}) is similar to
+@kbd{C-x v =}, but it compares the entire tree associated with the
+current VC fileset with the tree you started with.  This means all the
+files controlled by the current version control repository, even those
+that are not part of the current VC fileset.
 
   If you invoke @kbd{C-x v =} or @kbd{C-u C-x v =} from a buffer that
 is neither visiting a version-controlled file nor a VC directory

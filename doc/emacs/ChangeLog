@@ -4,7 +4,7 @@
 	repository if there is none.
 	(VC Change Log): Rename from VC Status.  Document vc-log-show-limit and
 	vc-print-root-log.
-	(Old Revisions): Copyedits.
+	(Old Revisions): Copyedits.  Document vc-root-diff.
 
 	* programs.texi (Program Modes): Mention Javascript mode.
 

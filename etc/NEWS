@@ -301,8 +301,10 @@ file.
 *** New command `vc-root-print-log', bound to `C-x v L'.
 This displays a `*vc-change-log*' buffer showing the history of the
 version-controlled directory tree as a whole.
-
-*** FIXME: vc-root-diff.
++++
+*** New command `vc-root-diff', bound to `C-x v D'.
+This is similar to `vc-diff', but compares the entire directory tree
+of the current VC directory with its working revision.
 +++
 *** `C-x v l' and `C-x v L' do not show the full log by default.
 The number of entries shown can be chosen interactively with a prefix
@@ -310,7 +312,7 @@ argument, or by customizing vc-log-show-limit.  The `*vc-change-log*'
 buffer now contains buttons at the end of the buffer, which can be
 used to increase the number of entries shown.  RCS, SCCS, and CVS do
 not support this feature.
-
+---
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take
