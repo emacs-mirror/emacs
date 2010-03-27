@@ -3573,11 +3573,11 @@ Usually the separator is \".\", but it can be any other string.")
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
     ("^[-_+ ]?b\\(eta\\)?$"    . -2)
     ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
-  "*Specify association between non-numeric version part and a priority.
+  "*Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
 \"0.9alpha1\", etc.  It's used by `version-to-list' (which see) to convert the
-non-numeric part to an integer.  For example:
+non-numeric part of a version string to an integer.  For example:
 
    String Version    Integer List Version
    \"1.0pre2\"         (1  0 -1 2)
@@ -3595,15 +3595,15 @@ Each element has the following form:
 Where:
 
 REGEXP		regexp used to match non-numeric part of a version string.
-		It should begin with a `^' anchor and end with a `$' to
+		It should begin with the `^' anchor and end with a `$' to
 		prevent false hits.  Letter-case is ignored while matching
 		REGEXP.
 
-PRIORITY	negative integer which indicate the non-numeric priority.")
+PRIORITY	a negative integer specifying non-numeric priority of REGEXP.")
 
 
 (defun version-to-list (ver)
-  "Convert version string VER into an integer list.
+  "Convert version string VER into a list of integers.
 
 The version syntax is given by the following EBNF:
 
@@ -3617,17 +3617,17 @@ The version syntax is given by the following EBNF:
 The NUMBER part is optional if SEPARATOR is a match for an element
 in `version-regexp-alist'.
 
-As an example of valid version syntax:
+Examples of valid version syntax:
 
    1.0pre2   1.0.7.5   22.8beta3   0.9alpha1   6.9.30Beta
 
-As an example of invalid version syntax:
+Examples of invalid version syntax:
 
    1.0prepre2   1.0..7.5   22.8X3   alpha3.2   .5
 
-As an example of version convertion:
+Examples of version conversion:
 
-   String Version    Integer List Version
+   Version String    Version as a List of Integers
    \"1.0.7.5\"         (1  0  7 5)
    \"1.0pre2\"         (1  0 -1 2)
    \"1.0PRE2\"         (1  0 -1 2)
@@ -3673,12 +3673,12 @@ See documentation for `version-separator' and `version-regexp-alist'."
 
 
 (defun version-list-< (l1 l2)
-  "Return t if integer list L1 is lesser than L2.
+  "Return t if L1, a list specification of a version, is lower than L2.
 
-Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
-etc.  That is, the trailing zeroes are irrelevant.  Also, integer
-list (1) is greater than (1 -1) which is greater than (1 -2)
-which is greater than (1 -3)."
+Note that a version specified by the list (1) is equal to (1 0),
+\(1 0 0), (1 0 0 0), etc.  That is, the trailing zeros are insignificant.
+Also, a version given by the list (1) is higher than (1 -1), which in
+turn is higher than (1 -2), which is higher than (1 -3)."
   (while (and l1 l2 (= (car l1) (car l2)))
     (setq l1 (cdr l1)
 	  l2 (cdr l2)))
@@ -3694,12 +3694,12 @@ which is greater than (1 -3)."
 
 
 (defun version-list-= (l1 l2)
-  "Return t if integer list L1 is equal to L2.
+  "Return t if L1, a list specification of a version, is equal to L2.
 
-Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
-etc.  That is, the trailing zeroes are irrelevant.  Also, integer
-list (1) is greater than (1 -1) which is greater than (1 -2)
-which is greater than (1 -3)."
+Note that a version specified by the list (1) is equal to (1 0),
+\(1 0 0), (1 0 0 0), etc.  That is, the trailing zeros are insignificant.
+Also, a version given by the list (1) is higher than (1 -1), which in
+turn is higher than (1 -2), which is higher than (1 -3)."
   (while (and l1 l2 (= (car l1) (car l2)))
     (setq l1 (cdr l1)
 	  l2 (cdr l2)))
@@ -3715,7 +3715,7 @@ which is greater than (1 -3)."
 
 
 (defun version-list-<= (l1 l2)
-  "Return t if integer list L1 is lesser than or equal to L2.
+  "Return t if L1, a list specification of a version, is lower or equal to L2.
 
 Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
 etc.  That is, the trailing zeroes are irrelevant.  Also, integer
@@ -3735,9 +3735,9 @@ which is greater than (1 -3)."
    (t  (<= 0 (version-list-not-zero l2)))))
 
 (defun version-list-not-zero (lst)
-  "Return the first non-zero element of integer list LST.
+  "Return the first non-zero element of LST, which is a list of integers.
 
-If all LST elements are zeroes or LST is nil, return zero."
+If all LST elements are zeros or LST is nil, return zero."
   (while (and lst (zerop (car lst)))
     (setq lst (cdr lst)))
   (if lst
@@ -3747,31 +3747,31 @@ If all LST elements are zeroes or LST is nil, return zero."
 
 
 (defun version< (v1 v2)
-  "Return t if version V1 is lesser than V2.
+  "Return t if version V1 is lower (older) than V2.
 
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
-etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
-is greater than \"1pre\" which is greater than \"1beta\" which is greater than
-\"1alpha\"."
+etc.  That is, the trailing \".0\"s are insignificant.  Also, version
+string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
+which is higher than \"1alpha\"."
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 
 (defun version<= (v1 v2)
-  "Return t if version V1 is lesser than or equal to V2.
+  "Return t if version V1 is lower (older) than or equal to V2.
 
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
-etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
-is greater than \"1pre\" which is greater than \"1beta\" which is greater than
-\"1alpha\"."
+etc.  That is, the trailing \".0\"s are insignificant..  Also, version
+string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
+which is higher than \"1alpha\"."
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
   "Return t if version V1 is equal to V2.
 
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
-etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
-is greater than \"1pre\" which is greater than \"1beta\" which is greater than
-\"1alpha\"."
+etc.  That is, the trailing \".0\"s are insignificant..  Also, version
+string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
+which is higher than \"1alpha\"."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 
