@@ -29,6 +29,7 @@ s/\.h\.in/.h-in/
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
+/^abs_builddir *=/s|@abs_builddir@|../src|
 /^VPATH *=/s/@[^@\n]*@/./
 /^CC *=/s/@[^@\n]*@/gcc/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
