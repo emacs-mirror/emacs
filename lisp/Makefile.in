@@ -30,7 +30,7 @@ VPATH = $(srcdir)
 
 # We sometimes change directory before running Emacs (typically when
 # building out-of-tree, we chdir to the source directory), so we need
-# to use an aboluste file name.
+# to use an absolute file name.
 EMACS = ${abs_top_builddir}/src/emacs
 
 # Command line flags for Emacs.  This must include --multibyte,
