@@ -1,3 +1,7 @@
+2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* Restore GDB/MI fuctionality removed by r99212.
+
 2010-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat <lib-src>: Edit out lines that begin with several #

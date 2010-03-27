@@ -43,10 +43,8 @@
 (require 'comint)
 
 (defvar gdb-active-process)
-(defvar gdb-recording)
 (defvar gdb-define-alist)
 (defvar gdb-macro-info)
-(defvar gdb-server-prefix)
 (defvar gdb-show-changed-values)
 (defvar gdb-source-window)
 (defvar gdb-var-list)
@@ -126,77 +124,52 @@ Used to grey out relevant toolbar icons.")
 		(throw 'info-found nil))))
        nil 0)
       (select-frame (make-frame)))
-    (if (memq gud-minor-mode '(gdbmi gdba))
+    (if (eq gud-minor-mode 'gdbmi)
 	(info "(emacs)GDB Graphical Interface")
       (info "(emacs)Debuggers"))))
 
 (defun gud-tool-bar-item-visible-no-fringe ()
   (not (or (eq (buffer-local-value 'major-mode (window-buffer)) 'speedbar-mode)
-	   (and (memq gud-minor-mode '(gdbmi gdba))
+	   (eq (buffer-local-value 'major-mode (window-buffer)) 'gdb-memory-mode)
+	   (and (eq gud-minor-mode 'gdbmi)
 		(> (car (window-fringes)) 0)))))
+
+(declare-function gdb-gud-context-command "gdb-mi.el")
 
 (defun gud-stop-subjob ()
   (interactive)
   (with-current-buffer gud-comint-buffer
-    (if (string-equal gud-target-name "emacs")
-	(comint-stop-subjob)
-      (if (eq gud-minor-mode 'jdb)
-	  (gud-call "suspend")
-	(comint-interrupt-subjob)))))
+    (cond ((string-equal gud-target-name "emacs")
+           (comint-stop-subjob))
+          ((eq gud-minor-mode 'jdb)
+           (gud-call "suspend"))
+          ((eq gud-minor-mode 'gdbmi)
+           (gud-call (gdb-gud-context-command "-exec-interrupt")))
+          (t 
+           (comint-interrupt-subjob)))))
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info (debugger)" . gud-goto-info)
-    ([rfinish]	menu-item "Reverse Finish Function" gud-rfinish
-                  :enable (not gud-running)
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
-    ([rstepi]	menu-item "Reverse Step Instruction" gud-rstepi
-                  :enable (not gud-running)
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
-    ([rnexti]	menu-item "Reverse Next Instruction" gud-rnexti
-                  :enable (not gud-running)
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
-    ([rstep]	menu-item "Reverse Step Line" gud-rstep
-                  :enable (not gud-running)
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
-    ([rnext]	menu-item "Reverse Next Line" gud-rnext
-                  :enable (not gud-running)
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
-    ([rcont]	menu-item "Reverse Continue" gud-rcont
-                  :enable (not gud-running)
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
-    ([recstart] menu-item "Start Recording" gdb-toggle-recording-1
-		  :visible (and (not gdb-recording)
-				(eq gud-minor-mode 'gdba)))
-    ([recstop] menu-item "Stop Recording" gdb-toggle-recording
-		  :visible (and gdb-recording
-				(eq gud-minor-mode 'gdba)))
     ([tooltips] menu-item "Show GUD tooltips" gud-tooltip-mode
                   :enable (and (not emacs-basic-display)
 			       (display-graphic-p)
 			       (fboundp 'x-show-tip))
 		  :visible (memq gud-minor-mode
-				'(gdbmi gdba dbx sdb xdb pdb))
+				'(gdbmi dbx sdb xdb pdb))
 	          :button (:toggle . gud-tooltip-mode))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
     ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
-		  :visible (and (not gud-running)
-				(eq gud-minor-mode 'gdba)))
+		  :visible (and (eq gud-minor-mode 'gdbmi)
+                                (gdb-show-run-p)))
     ([stop]	menu-item "Stop" gud-stop-subjob
-		  :visible (or (not (memq gud-minor-mode '(gdba pdb)))
-			       (and gud-running
-				    (eq gud-minor-mode 'gdba))))
+		  :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
+			       (gdb-show-stop-p)))
     ([until]	menu-item "Continue to selection" gud-until
                   :enable (not gud-running)
-		  :visible (and (memq gud-minor-mode '(gdbmi gdba gdb perldb))
+		  :visible (and (memq gud-minor-mode '(gdbmi gdb perldb))
 				(gud-tool-bar-item-visible-no-fringe)))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
@@ -204,50 +177,52 @@ Used to grey out relevant toolbar icons.")
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				'(gdbmi gdba gdb sdb xdb)))
+				'(gdbmi gdb sdb xdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
 		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				 '(gdbmi gdba gdb dbx xdb jdb pdb)))
+				 '(gdbmi gdb dbx xdb jdb pdb)))
     ([down]	menu-item "Down Stack" gud-down
 		  :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				 '(gdbmi gdba gdb dbx xdb jdb pdb)))
+				 '(gdbmi gdb dbx xdb jdb pdb)))
     ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
 				  gdb-active-process)
 		  :visible (and (string-equal
 				 (buffer-local-value
 				  'gud-target-name gud-comint-buffer) "emacs")
-				(eq gud-minor-mode 'gdba)))
-    ([print*]	menu-item "Print Dereference" gud-pstar
+				(eq gud-minor-mode 'gdbmi)))
+    ([print*]	menu-item (if (eq gud-minor-mode 'jdb)
+			      "Dump object"
+			    "Print Dereference") gud-pstar
                   :enable (not gud-running)
-		  :visible (memq gud-minor-mode '(gdbmi gdba gdb)))
+		  :visible (memq gud-minor-mode '(gdbmi gdb jdb)))
     ([print]	menu-item "Print Expression" gud-print
                   :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
 		  :enable (not gud-running)
-	  	  :visible (memq gud-minor-mode '(gdbmi gdba)))
+	  	  :visible (eq gud-minor-mode 'gdbmi))
     ([finish]	menu-item "Finish Function" gud-finish
                   :enable (not gud-running)
 		  :visible (memq gud-minor-mode
-				 '(gdbmi gdba gdb xdb jdb pdb)))
+				 '(gdbmi gdb xdb jdb pdb)))
     ([stepi]	menu-item "Step Instruction" gud-stepi
                   :enable (not gud-running)
-		  :visible (memq gud-minor-mode '(gdbmi gdba gdb dbx)))
+		  :visible (memq gud-minor-mode '(gdbmi gdb dbx)))
     ([nexti]	menu-item "Next Instruction" gud-nexti
                   :enable (not gud-running)
-		  :visible (memq gud-minor-mode '(gdbmi gdba gdb dbx)))
+		  :visible (memq gud-minor-mode '(gdbmi gdb dbx)))
     ([step]	menu-item "Step Line" gud-step
                   :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
                   :enable (not gud-running))
     ([cont]	menu-item "Continue" gud-cont
                   :enable (not gud-running)
-		  :visible (not (eq gud-minor-mode 'gdba))))
+		  :visible (not (eq gud-minor-mode 'gdbmi))))
   "Menu for `gud-mode'."
   :name "Gud")
 
@@ -269,21 +244,22 @@ Used to grey out relevant toolbar icons.")
 	. (,(propertize "next" 'face 'font-lock-doc-face) . gud-next))
        ([menu-bar until] menu-item
 	,(propertize "until" 'face 'font-lock-doc-face) gud-until
-		  :visible (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
+		  :visible (memq gud-minor-mode '(gdbmi gdb perldb)))
        ([menu-bar cont] menu-item
 	,(propertize "cont" 'face 'font-lock-doc-face) gud-cont
-	:visible (not (eq gud-minor-mode 'gdba)))
+	:visible (not (eq gud-minor-mode 'gdbmi)))
        ([menu-bar run] menu-item
 	,(propertize "run" 'face 'font-lock-doc-face) gud-run
 	:visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
        ([menu-bar go] menu-item
 	,(propertize " go " 'face 'font-lock-doc-face) gud-go
-	:visible (and (not gud-running)
-		      (eq gud-minor-mode 'gdba)))
+	:visible (and (eq gud-minor-mode 'gdbmi)
+                      (gdb-show-run-p)))
        ([menu-bar stop] menu-item
 	,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
-	:visible (and gud-running
-		     (eq gud-minor-mode 'gdba)))
+	:visible (or (and (eq gud-minor-mode 'gdbmi)
+                          (gdb-show-stop-p))
+		     (not (eq gud-minor-mode 'gdbmi))))
        ([menu-bar print]
 	. (,(propertize "print" 'face 'font-lock-doc-face) . gud-print))
        ([menu-bar tools] . undefined)
@@ -322,14 +298,6 @@ Used to grey out relevant toolbar icons.")
 		 (gud-stepi . "gud/stepi")
 		 (gud-up . "gud/up")
 		 (gud-down . "gud/down")
-		 (gdb-toggle-recording-1 . "gud/recstart")
-		 (gdb-toggle-recording . "gud/recstop")
-		 (gud-rcont . "gud/rcont")
-		 (gud-rnext . "gud/rnext")
-		 (gud-rstep . "gud/rstep")
-		 (gud-rfinish . "gud/rfinish")
-		 (gud-rnexti . "gud/rnexti")
-		 (gud-rstepi . "gud/rstepi")
 		 (gud-goto-info . "info"))
 	       map)
       (tool-bar-local-item-from-menu
@@ -354,7 +322,7 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 	(setq directories (cdr directories)))
       result)))
 
-(declare-function gdb-create-define-alist "gdb-ui" ())
+(declare-function gdb-create-define-alist "gdb-mi" ())
 
 (defun gud-find-file (file)
   ;; Don't get confused by double slashes in the name that comes from GDB.
@@ -370,7 +338,7 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 	(set (make-local-variable 'gud-minor-mode) minor-mode)
 	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
 	(when (and gud-tooltip-mode
-		   (memq gud-minor-mode '(gdbmi gdba)))
+		   (eq gud-minor-mode 'gdbmi))
 	  (make-local-variable 'gdb-define-alist)
 	  (unless  gdb-define-alist (gdb-create-define-alist))
 	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t))
@@ -499,21 +467,21 @@ The value t means that there is no stack, and we are in display-file mode.")
 
 (defvar gud-speedbar-menu-items
   '(["Jump to stack frame" speedbar-edit-line
-     :visible (not (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba)))]
+     :visible (not (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdbmi))]
     ["Edit value" speedbar-edit-line
-     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba))]
+     :visible (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdbmi)]
     ["Delete expression" gdb-var-delete
-     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba))]
+     :visible (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdbmi)]
     ["Auto raise frame" gdb-speedbar-auto-raise
      :style toggle :selected gdb-speedbar-auto-raise
-     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba))]
+     :visible (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdbmi)]
     ("Output Format"
-     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba))
+     :visible (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdbmi)
      ["Binary" (gdb-var-set-format "binary") t]
      ["Natural" (gdb-var-set-format  "natural") t]
      ["Hexadecimal" (gdb-var-set-format "hexadecimal") t]))
@@ -542,7 +510,7 @@ required by the caller."
 	  (start (window-start window))
 	  (p (window-point window)))
       (cond
-       ((memq minor-mode '(gdbmi gdba))
+       ((eq minor-mode 'gdbmi)
 	(erase-buffer)
 	(insert "Watch Expressions:\n")
 	(let ((var-list gdb-var-list) parent)
@@ -632,7 +600,7 @@ required by the caller."
 		 (car frame)
 		 'speedbar-file-face
 		 'speedbar-highlight-face
-		 (cond ((memq minor-mode '(gdbmi gdba gdb))
+		 (cond ((memq minor-mode '(gdbmi gdb))
 			'gud-gdb-goto-stackframe)
 		       (t (error "Should never be here")))
 		 frame t))))
@@ -689,8 +657,6 @@ The option \"--fullname\" must be included in this value."
        ;; Set the accumulator to the remaining text.
        gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
-    ;; Check for annotations and change gud-minor-mode to 'gdba if
-    ;; they are found.
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
       (let ((match (match-string 1 gud-marker-acc)))
 
@@ -754,10 +720,10 @@ The option \"--fullname\" must be included in this value."
 (defvar gud-filter-pending-text nil
   "Non-nil means this is text that has been saved for later in `gud-filter'.")
 
-;; If in gdba mode, gdb-ui is loaded.
-(declare-function gdb-restore-windows "gdb-ui" ())
+;; If in gdb mode, gdb-mi is loaded.
+(declare-function gdb-restore-windows "gdb-mi" ())
 
-;; The old gdb command (text command mode).  The new one is in gdb-ui.el.
+;; The old gdb command (text command mode).  The new one is in gdb-mi.el.
 ;;;###autoload
 (defun gud-gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -768,10 +734,10 @@ directory and source-file directory for your debugger."
   (when (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
 	   (get-buffer-process gud-comint-buffer)
-	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
-	(gdb-restore-windows)
-	(error
-	 "Multiple debugging requires restarting in text command mode"))
+	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdbmi)))
+    (gdb-restore-windows)
+    (error
+     "Multiple debugging requires restarting in text command mode"))
 
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
@@ -2642,7 +2608,7 @@ It is saved for when this flag is not set.")
 (defvar gud-overlay-arrow-position nil)
 (add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
-(declare-function gdb-reset "gdb-ui" ())
+(declare-function gdb-reset "gdb-mi" ())
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
@@ -2654,14 +2620,14 @@ It is saved for when this flag is not set.")
 		  (string-equal speedbar-initial-expansion-list-name "GUD"))
 	     (speedbar-change-initial-expansion-list
 	      speedbar-previously-used-expansion-list-name))
-	 (if (memq gud-minor-mode-type '(gdbmi gdba))
+	 (if (eq gud-minor-mode-type 'gdbmi)
 	     (gdb-reset)
 	   (gud-reset)))
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
-	 (if (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		   '(gdba gdbmi))
+	 (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		   'gdbmi)
 	     (gdb-reset)
 	   (gud-reset))
 	 (let* ((obuf (current-buffer)))
@@ -2692,7 +2658,9 @@ It is saved for when this flag is not set.")
 (defun gud-kill-buffer-hook ()
   (setq gud-minor-mode-type gud-minor-mode)
   (condition-case nil
-      (kill-process (get-buffer-process (current-buffer)))
+      (progn
+	(kill-process (get-buffer-process (current-buffer)))
+	(delete-process (get-process "gdb-inferior")))
     (error nil)))
 
 (defun gud-reset ()
@@ -2715,8 +2683,8 @@ Obeying it means displaying in another window the specified file and line."
 
 (declare-function global-hl-line-highlight  "hl-line" ())
 (declare-function hl-line-highlight         "hl-line" ())
-(declare-function gdb-display-source-buffer "gdb-ui"  (buffer))
-(declare-function gdb-display-buffer "gdb-ui" (buf dedicated &optional size))
+(declare-function gdb-display-source-buffer "gdb-mi"  (buffer))
+(declare-function gdb-display-buffer "gdb-mi" (buf dedicated &optional size))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
 ;; and that its line LINE is visible.
@@ -2732,7 +2700,7 @@ Obeying it means displaying in another window the specified file and line."
 	    (gud-find-file true-file)))
 	 (window (and buffer
 		      (or (get-buffer-window buffer)
-			  (if (memq gud-minor-mode '(gdbmi gdba))
+			  (if (eq gud-minor-mode 'gdbmi)
 			      (or (if (get-buffer-window buffer 'visible)
 				      (display-buffer buffer nil 'visible))
 				  (unless (gdb-display-source-buffer buffer)
@@ -2769,7 +2737,7 @@ Obeying it means displaying in another window the specified file and line."
 		   (goto-char pos))))
 	  (when window
 	    (set-window-point window gud-overlay-arrow-position)
-	    (if (memq gud-minor-mode '(gdbmi gdba))
+	    (if (eq gud-minor-mode 'gdbmi)
 		(setq gdb-source-window window)))))))
 
 ;; The gud-call function must do the right thing whether its invoking
@@ -2875,7 +2843,7 @@ Obeying it means displaying in another window the specified file and line."
             (forward-line 0))
           (if (looking-at comint-prompt-regexp)
               (set-marker gud-delete-prompt-marker (point)))
-          (if (memq gud-minor-mode '(gdbmi gdba))
+          (if (eq gud-minor-mode 'gdbmi)
               (apply comint-input-sender (list proc command))
             (process-send-string proc (concat command "\n"))))))))
 
@@ -3301,14 +3269,14 @@ Treats actions as defuns."
   (gud-tooltip-activate-mouse-motions-if-enabled)
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
-	   (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		 '(gdbmi gdba)))
+	   (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		 'gdbmi))
       (if gud-tooltip-mode
 	  (progn
 	    (dolist (buffer (buffer-list))
 	      (unless (eq buffer gud-comint-buffer)
 		(with-current-buffer buffer
-		  (when (and (memq gud-minor-mode '(gdbmi gdba))
+		  (when (and (eq gud-minor-mode 'gdbmi)
 			     (not (string-match "\\`\\*.+\\*\\'"
 						(buffer-name))))
 		    (make-local-variable 'gdb-define-alist)
@@ -3433,8 +3401,8 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 ; Larger arrays (say 400 elements) are displayed in
 ; the tooltip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
-; it may be difficult to do better. Using annotations as in
-; gdb-ui.el gets round this problem.
+; it may be difficult to do better. Using GDB/MI as in
+; gdb-mi.el gets round this problem.
 (defun gud-tooltip-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process gud-tooltip-original-filter)
@@ -3444,12 +3412,12 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
   (case gud-minor-mode
-	(gdba (concat "server print " expr))
-	((dbx gdbmi) (concat "print " expr))
+	(gdbmi (concat "-data-evaluate-expression " expr))
+	(dbx (concat "print " expr))
 	((xdb pdb) (concat "p " expr))
 	(sdb (concat expr "/"))))
 
-(declare-function gdb-enqueue-input "gdb-ui" (item))
+(declare-function gdb-input "gdb-mi" (item))
 (declare-function tooltip-expr-to-print "tooltip" (event))
 (declare-function tooltip-event-buffer "tooltip" (event))
 
@@ -3469,12 +3437,12 @@ This function must return nil if it doesn't handle EVENT."
 	       (buffer-name gud-comint-buffer); might be killed
 	       (setq process (get-buffer-process gud-comint-buffer))
 	       (posn-point (event-end event))
-	       (or (and (eq gud-minor-mode 'gdba) (not gdb-active-process))
+	       (or (and (eq gud-minor-mode 'gdbmi) (not gdb-active-process))
 		   (progn (setq gud-tooltip-event event)
 			  (eval (cons 'and gud-tooltip-display)))))
       (let ((expr (tooltip-expr-to-print event)))
 	(when expr
-	  (if (and (eq gud-minor-mode 'gdba)
+	  (if (and (eq gud-minor-mode 'gdbmi)
 		   (not gdb-active-process))
 	      (progn
 		(with-current-buffer (tooltip-event-buffer event)
@@ -3492,13 +3460,13 @@ This function must return nil if it doesn't handle EVENT."
 		(message-box "Using GUD tooltips in this mode is unsafe\n\
 so they have been disabled."))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
-		(if (memq gud-minor-mode '(gdba gdbmi))
+		(if (eq gud-minor-mode 'gdbmi)
 		      (if gdb-macro-info
-			  (gdb-enqueue-input
+			  (gdb-input
 			   (list (concat
-				  gdb-server-prefix "macro expand " expr "\n")
+				  "server macro expand " expr "\n")
 				 `(lambda () (gdb-tooltip-print-1 ,expr))))
-			(gdb-enqueue-input
+			(gdb-input
 			 (list  (concat cmd "\n")
  				 `(lambda () (gdb-tooltip-print ,expr)))))
 		  (setq gud-tooltip-original-filter (process-filter process))
