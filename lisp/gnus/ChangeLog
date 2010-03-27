@@ -1,3 +1,9 @@
+2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-default-mail-headers):
+	(message-default-headers): Carry the value mail-default-headers over
+	into message-default-mail-headers, rather than message-default-headers.
+
 2010-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* message.el (message-interactive): Doc fix.
