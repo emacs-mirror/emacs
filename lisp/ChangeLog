@@ -1,3 +1,7 @@
+2010-03-28  Stefan Guath  <stefan@automata.se>  (tiny change)
+
+	* find-dired.el (find-dired): Use read-directory-name (Bug#5777).
+
 2010-03-25  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
