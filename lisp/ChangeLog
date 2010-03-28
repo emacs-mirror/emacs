@@ -1,5 +1,9 @@
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/js.el (js-auto-indent-flag, js-mode-map)
+	(js-insert-and-indent): Revert 2009-08-15 change, restoring
+	electric punctuation for "{}();,:" (Bug#5586).
+
 	* mail/sendmail.el (mail-default-directory): Doc fix.
 
 2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
