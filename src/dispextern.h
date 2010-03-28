@@ -2399,6 +2399,13 @@ struct it
 #define PRODUCE_GLYPHS(IT)                              \
   do {                                                  \
     extern int inhibit_free_realized_faces;             \
+    if ((IT)->glyph_row != NULL && (IT)->bidi_p)	\
+      {							\
+        if ((IT)->bidi_it.paragraph_dir == R2L)		\
+	  (IT)->glyph_row->reversed_p = 1;		\
+	else						\
+	  (IT)->glyph_row->reversed_p = 0;		\
+      }							\
     if (FRAME_RIF ((IT)->f) != NULL)                    \
       FRAME_RIF ((IT)->f)->produce_glyphs ((IT));       \
     else                                                \

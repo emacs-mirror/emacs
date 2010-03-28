@@ -3869,15 +3869,6 @@ handle_invisible_prop (it)
 		     skip any text at the beginning, which resets the
 		     FIRST_ELT flag.  */
 		  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-		  /* If the paragraph base direction is R2L, its
-		     glyphs should be reversed.  */
-		  if (it->glyph_row)
-		    {
-		      if (it->bidi_it.paragraph_dir == R2L)
-			it->glyph_row->reversed_p = 1;
-		      else
-			it->glyph_row->reversed_p = 0;
-		    }
 		}
 	      do
 		{
@@ -6235,16 +6226,7 @@ set_iterator_to_next (it, reseat_p)
 	      /* If this is a new paragraph, determine its base
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
-		{
-		  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-		  if (it->glyph_row)
-		    {
-		      if (it->bidi_it.paragraph_dir == R2L)
-			it->glyph_row->reversed_p = 1;
-		      else
-			it->glyph_row->reversed_p = 0;
-		    }
-		}
+		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	      bidi_get_next_char_visually (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
@@ -6705,15 +6687,6 @@ next_element_from_buffer (it)
 	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
 	{
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  /* If the paragraph base direction is R2L, its glyphs should
-	     be reversed.  */
-	  if (it->glyph_row)
-	    {
-	      if (it->bidi_it.paragraph_dir == R2L)
-		it->glyph_row->reversed_p = 1;
-	      else
-		it->glyph_row->reversed_p = 0;
-	    }
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
       else
@@ -6728,13 +6701,6 @@ next_element_from_buffer (it)
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  if (it->glyph_row)
-	    {
-	      if (it->bidi_it.paragraph_dir == R2L)
-		it->glyph_row->reversed_p = 1;
-	      else
-		it->glyph_row->reversed_p = 0;
-	    }
 	  do
 	    {
 	      /* Now return to buffer position where we were asked to

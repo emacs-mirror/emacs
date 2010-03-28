@@ -1901,7 +1901,7 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
 
   /* Reordering of resolved levels (clause L2) is implemented by
      jumping to the other edge of the level and flipping direction of
-     scanning the buffer whenever we find a level change.  */
+     scanning the text whenever we find a level change.  */
   if (new_level != old_level)
     {
       int ascending = new_level > old_level;
@@ -1959,7 +1959,9 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
      paragraph direction, if needed.  We do this at the newline before
      the paragraph separator, because the next character might not be
      the first character of the next paragraph, due to the bidi
-     reordering.  */
+     reordering, whereas we _must_ know the paragraph base direction
+     _before_ we process the paragraph's text, since the base
+     direction affects the reordering.  */
   if (bidi_it->scan_dir == 1
       && bidi_it->orig_type == NEUTRAL_B
       && bidi_it->bytepos < ZV_BYTE)

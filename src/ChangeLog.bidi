@@ -1,3 +1,14 @@
+2010-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_next_char_visually): Improve commentary.
+
+	* dispextern.h (PRODUCE_GLYPHS): Set the reversed_p flag in the
+	iterator's glyph_row here.
+
+	* xdisp.c (handle_invisible_prop, set_iterator_to_next)
+	(next_element_from_buffer): Don't set the reversed_p flag in the
+	iterator's glyph_row here.
+
 2010-03-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't miss a candidate row whose
