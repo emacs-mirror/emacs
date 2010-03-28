@@ -886,16 +886,17 @@ Sending Mail
 * Mail Format:: 	Format of the mail being composed.
 * Mail Headers::        Details of some standard mail header fields.
 * Mail Aliases::        Abbreviating and grouping mail addresses.
-* Mail Mode::   	Special commands for editing mail being composed.
+* Mail Commands::   	Special commands for editing mail being composed.
+* Mail Signature::      Adding a signature to every message.
 * Mail Amusements::     Distracting the NSA; adding fortune messages.
 * Mail Methods::        Using alternative mail-composition methods.
 
-Mail Mode
+Mail Commands
 
 * Mail Sending::        Commands to send the message.
 * Header Editing::      Commands to move to header fields and edit them.
-* Citing Mail::         Copying all or part of a message you are replying to.
-* Mail Mode Misc::      Spell checking, signatures, etc.
+* Citing Mail::         Quoting a message you are replying to.
+* Mail Misc::           Attachments, spell checking, etc.
 
 Reading Mail with Rmail
 

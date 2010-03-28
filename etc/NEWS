@@ -250,6 +250,7 @@ matched topics found in the index.
 manual that generates an Info file which gives the same information
 through a menu structure.
 
++++
 ** Message mode is now the default mode for composing mail.
 
 The default for `mail-user-agent' is now message-user-agent, so the
@@ -259,6 +260,7 @@ Message mode has been included in Emacs, as part of the Gnus package,
 for several years.  It provides several features that are absent in
 Mail mode, such as MIME handling.
 
+---
 *** If the user has not customized mail-user-agent, `compose-mail'
 checks for Mail mode customizations, and issues a warning if these
 customizations are found.  This alerts users who may otherwise be
@@ -284,9 +286,8 @@ This starts an incremental search of the comint/shell input history.
 *** ansi-color is now enabled by default in Shell mode.
 To disable it, set ansi-color-for-comint-mode to nil.
 
-+++
 ** Tramp
-
++++
 *** New connection methods "rsyncc", "imap" and "imaps".
 On systems which support GVFS-Fuse, Tramp offers also the new
 connection methods "dav", "davs", "obex" and "synce".
@@ -317,7 +318,7 @@ not support this feature.
 it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take
 advantage of this feature.
-
+---
 *** The log command in vc-annotate can display a single log entry
 instead of redisplaying the full log.  The RCS, CVS and SCCS VC
 backends do not support this.
@@ -341,7 +342,7 @@ their content displayed.
 
 *** vc-bzr supports operating with shelves: the shelve list is
 displayed in the *vc-dir* header, shelves can be created, removed and applied.
-
+---
 *** log-edit-strip-single-file-name controls whether or not single filenames
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 

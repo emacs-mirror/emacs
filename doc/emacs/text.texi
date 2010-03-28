@@ -928,10 +928,10 @@ type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.
 @vindex text-mode-hook
   Entering Text mode runs the hook @code{text-mode-hook}.  Other major
 modes related to Text mode also run this hook, followed by hooks of
-their own; this includes Paragraph-Indent Text mode, Nroff mode, @TeX{}
-mode, Outline mode, and Mail mode.  Hook functions on
-@code{text-mode-hook} can look at the value of @code{major-mode} to see
-which of these modes is actually being entered.  @xref{Hooks}.
+their own; this includes Paragraph-Indent Text mode, Nroff mode,
+@TeX{} mode, Outline mode, and Message mode.  Hook functions on
+@code{text-mode-hook} can look at the value of @code{major-mode} to
+see which of these modes is actually being entered.  @xref{Hooks}.
 
 @node Outline Mode
 @section Outline Mode
