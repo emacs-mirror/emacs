@@ -1,3 +1,8 @@
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-start): Fix regexp detection
+	of initial cd command (Bug#5771).
+
 2010-03-28  Stefan Guath  <stefan@automata.se>  (tiny change)
 
 	* find-dired.el (find-dired): Use read-directory-name (Bug#5777).
