@@ -250,6 +250,7 @@ matched topics found in the index.
 manual that generates an Info file which gives the same information
 through a menu structure.
 
++++
 ** Message mode is now the default mode for composing mail.
 
 The default for `mail-user-agent' is now message-user-agent, so the
@@ -259,6 +260,7 @@ Message mode has been included in Emacs, as part of the Gnus package,
 for several years.  It provides several features that are absent in
 Mail mode, such as MIME handling.
 
+---
 *** If the user has not customized mail-user-agent, `compose-mail'
 checks for Mail mode customizations, and issues a warning if these
 customizations are found.  This alerts users who may otherwise be
@@ -284,9 +286,8 @@ This starts an incremental search of the comint/shell input history.
 *** ansi-color is now enabled by default in Shell mode.
 To disable it, set ansi-color-for-comint-mode to nil.
 
-+++
 ** Tramp
-
++++
 *** New connection methods "rsyncc", "imap" and "imaps".
 On systems which support GVFS-Fuse, Tramp offers also the new
 connection methods "dav", "davs", "obex" and "synce".
@@ -301,8 +302,10 @@ file.
 *** New command `vc-root-print-log', bound to `C-x v L'.
 This displays a `*vc-change-log*' buffer showing the history of the
 version-controlled directory tree as a whole.
-
-*** FIXME: vc-root-diff.
++++
+*** New command `vc-root-diff', bound to `C-x v D'.
+This is similar to `vc-diff', but compares the entire directory tree
+of the current VC directory with its working revision.
 +++
 *** `C-x v l' and `C-x v L' do not show the full log by default.
 The number of entries shown can be chosen interactively with a prefix
@@ -310,16 +313,16 @@ argument, or by customizing vc-log-show-limit.  The `*vc-change-log*'
 buffer now contains buttons at the end of the buffer, which can be
 used to increase the number of entries shown.  RCS, SCCS, and CVS do
 not support this feature.
-
+---
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take
 advantage of this feature.
-
+---
 *** The log command in vc-annotate can display a single log entry
 instead of redisplaying the full log.  The RCS, CVS and SCCS VC
 backends do not support this.
-
+---
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
 *** Diff and log operations can be used from Dired buffers.
@@ -339,7 +342,7 @@ their content displayed.
 
 *** vc-bzr supports operating with shelves: the shelve list is
 displayed in the *vc-dir* header, shelves can be created, removed and applied.
-
+---
 *** log-edit-strip-single-file-name controls whether or not single filenames
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
@@ -528,9 +531,9 @@ file name handlers such as Tramp to optimizations.
 *** make-network-process can now also create `seqpacket' Unix sockets.
 
 ** Loading changes
-
+---
 *** eval-next-after-load is obsolete.
-
++++
 *** New hook `after-load-functions' run after loading an Elisp file.
 
 ** Byte compilation changes

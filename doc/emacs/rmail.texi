@@ -683,12 +683,12 @@ standard meaning.
 @node Rmail Reply
 @section Sending Replies
 
-  Rmail has several commands that use Mail mode to send outgoing mail.
-@xref{Sending Mail}, for information on using Mail mode, including
-certain features meant to work with Rmail.  What this section documents
-are the special commands of Rmail for entering Mail mode.  Note that the
-usual keys for sending mail---@kbd{C-x m}, @kbd{C-x 4 m}, and @kbd{C-x 5
-m}---also work normally in Rmail mode.
+  Rmail has several commands to send outgoing mail.  @xref{Sending
+Mail}, for information on using Message mode, including certain
+features meant to work with Rmail.  What this section documents are
+the special commands of Rmail for entering the mail buffer.  Note that
+the usual keys for sending mail---@kbd{C-x m}, @kbd{C-x 4 m}, and
+@kbd{C-x 5 m}---also work normally in Rmail mode.
 
 @table @kbd
 @item m
@@ -735,12 +735,12 @@ the reply command with a numeric argument: @kbd{C-u r} or @kbd{1 r}.
 This means to reply only to the sender of the original message.
 
   Once the @samp{*mail*} buffer has been initialized, editing and
-sending the mail goes as usual (@pxref{Sending Mail}).  You can edit the
-presupplied header fields if they are not what you want.  You can also
-use the commands of Mail mode (@pxref{Mail Mode}), including @kbd{C-c
-C-y} which yanks in the message that you are replying to.  You can
-also switch to the Rmail buffer, select a different message there, switch
-back, and yank the new current message.
+sending the mail goes as usual (@pxref{Sending Mail}).  You can edit
+the presupplied header fields if they are not what you want.  You can
+also use commands such as @kbd{C-c C-y}, which yanks in the message
+that you are replying to (@pxref{Mail Commands}).  You can also switch
+to the Rmail buffer, select a different message there, switch back,
+and yank the new current message.
 
 @kindex M-m @r{(Rmail)}
 @findex rmail-retry-failure

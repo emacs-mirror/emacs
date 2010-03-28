@@ -1609,9 +1609,10 @@ saving the buffer."
 
 ;;;###autoload
 (defun vc-root-diff (historic &optional not-urgent)
-  "Display diffs between file revisions.
-Normally this compares the currently selected fileset with their
-working revisions.  With a prefix argument HISTORIC, it reads two revision
+  "Display diffs between VC-controlled whole tree revisions.
+Normally, this compares the tree corresponding to the current
+fileset with the working revision.
+With a prefix argument HISTORIC, prompt for two revision
 designators specifying which revisions to compare.
 
 The optional argument NOT-URGENT non-nil means it is ok to say no to

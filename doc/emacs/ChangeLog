@@ -1,10 +1,45 @@
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* sending.texi (Sending Mail): Note variables that may need
+	customizing.
+	(Mail Sending): Expand discussion of send-mail-function.
+
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	Document Message mode as the default mail mode.
+
+	* sending.texi (Sending Mail): Copyedits.
+	(Mail Format, Mail Headers): Document mail-from-style changes.
+	(Mail Commands): Rename from Mail mode.  Document Message mode.
+	(Mail Misc): Rename from Mail mode Misc.
+	(Mail Sending, Header Editing, Mail Misc): Switch to Message mode
+	command names and update keybindings.
+	(Header Editing): Document message-tab.  De-document
+	mail-self-blind, mail-default-reply-to, and mail-archive-file-name in
+	favor of mail-default-headers.  Ad index entries for user-full-name and
+	user-mail-address.
+	(Citing Mail): Update changes in Message mode behavior.  Document
+	mail-yank-prefix.
+	(Mail Signature): New node, moved from Mail Misc.
+	(Mail Aliases): Mail abbrevs are the default with Message mode.
+	(Mail Methods): Note that Message mode is now the default.
+
+	* rmail.texi (Rmail Reply):
+	* text.texi (Text Mode):
+	* major.texi (Major Modes):
+	* mule.texi (Output Coding): Refer to Message mode.
+
+	* custom.texi (Init Examples): Add xref to Mail Header.
+
+	* emacs.texi (Top):  Fix xrefs.
+
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* maintaining.texi (VC With A Merging VCS): C-x v v now creates a
 	repository if there is none.
 	(VC Change Log): Rename from VC Status.  Document vc-log-show-limit and
 	vc-print-root-log.
-	(Old Revisions): Copyedits.
+	(Old Revisions): Copyedits.  Document vc-root-diff.
 
 	* programs.texi (Program Modes): Mention Javascript mode.
 

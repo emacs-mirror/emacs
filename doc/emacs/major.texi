@@ -41,7 +41,7 @@ languages.  These include Lisp mode (which has several variants), C
 mode, Fortran mode, and others.  The remaining major modes are not
 intended for use on users' files; they are used in buffers created for
 specific purposes by Emacs, such as Dired mode for buffers made by
-Dired (@pxref{Dired}), Mail mode for buffers made by @kbd{C-x m}
+Dired (@pxref{Dired}), Message mode for buffers made by @kbd{C-x m}
 (@pxref{Sending Mail}), and Shell mode for buffers used for
 communicating with an inferior shell process (@pxref{Interactive
 Shell}).

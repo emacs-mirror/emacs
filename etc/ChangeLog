@@ -1,3 +1,13 @@
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/icons/hicolor/scalable/apps/emacs.svg: Put preamble after
+	svg tag (Bug#5790).
+
+2010-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* PROBLEMS: Mention problems on MS-Windows with incompatible
+	regex.h headers.
+
 2010-03-15  Francesc Rocher  <rocher@member.fsf.org>
 
 	* MORE.STUFF: Remove CEDET entry, now distributed as part of

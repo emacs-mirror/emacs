@@ -705,6 +705,9 @@ otherwise do not."
 
   (if gdb-use-separate-io-buffer (gdb-clear-inferior-io))
 
+  (if (eq system-type 'darwin)
+      (gdb-enqueue-input (list "server show version\n" 'gdb-apple-test)))
+
   ;; Hack to see test for GDB 6.4+ (-stack-info-frame was implemented in 6.4)
   (gdb-enqueue-input (list "server interpreter mi -stack-info-frame\n"
 			   'gdb-get-version)))
@@ -735,6 +738,18 @@ otherwise do not."
   (gdb-enqueue-input (list "server list\n" 'ignore))
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info)))
+
+;; Workaround for some Apple versions of GDB that add ^M at EOL
+;; after the command "server interpreter mi -stack-info-frame".
+(defun gdb-apple-test ()
+  (goto-char (point-min))
+  (if (re-search-forward "(Apple version " nil t)
+      (let* ((process (get-buffer-process gud-comint-buffer))
+	     (coding-systems (process-coding-system process)))
+	(set-process-coding-system process
+				   (coding-system-change-eol-conversion
+				    (car coding-systems) 'dos)
+				   (cdr coding-systems)))))
 
 (defun gdb-get-version ()
   (goto-char (point-min))
