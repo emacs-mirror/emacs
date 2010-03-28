@@ -1,3 +1,13 @@
+2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Change default to be simpler.  Explain
+	about Secret Service API sources.  Improve Customize options.
+	(auth-source-pick): Change to accept any number of search parameters.
+	Implement fallbacks iteratively, not recursively.  Add scoring on the
+	second pass and sort by score.  Call Secret Service API when needed.
+	(auth-source-user-or-password): Use it.  Call Secret Service API
+	directly when needed to get the user name and the password.
+
 2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* message.el (message-interactive): Doc fix.
