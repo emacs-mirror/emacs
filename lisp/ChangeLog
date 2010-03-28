@@ -1,3 +1,11 @@
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-default-directory): Doc fix.
+
+2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-default-directory): Doc fix.
+
 2010-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (version-regexp-alist, version-to-list)
