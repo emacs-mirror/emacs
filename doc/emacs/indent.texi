@@ -37,34 +37,38 @@ Indent from point to the next prespecified tab stop column
 Indent from point to under an indentation point in the previous line.
 @end table
 
-  In most major modes, the @key{TAB} key runs the command
-@code{indent-for-tab-command}, which either performs indentation or
-inserts whitespace at point, depending on the situation.
+@noindent
+The @key{TAB} key runs @code{indent-for-tab-command} in most major
+modes (in C and related modes, @key{TAB} runs a separate command,
+@code{c-indent-line-or-region}, which behaves similarly).  The major
+mode determines just what this entails.
 
-  In programming modes such as Lisp mode and C mode, @key{TAB} indents
-the current line if the region is inactive.  If the region is active,
-it indents every line in the region (@pxref{Mark}).  Indentation means
-adding or removing some combination of space and tab characters
-(@dfn{whitespace characters}) at the start of the line, in a way that
-makes sense given the text in the preceding lines.  Exactly how
-indentation is performed depends on the major mode.  @xref{Program
-Indent}.
+  In text modes, @key{TAB} inserts some combination of space and tab
+characters to advance point to the next tab stop (@pxref{Tab Stops}).
+If the region is active and spans multiple lines, it advances the
+first character of each of those lines to the next tab stop
+(@pxref{Using Region}).  For the purposes of this command, the
+position of the first non-whitespace character on the preceding line
+is treated as an additional tab stop.  Thus, you can use @key{TAB} to
+``align'' point with the preceding line.
 
-  In text modes, @key{TAB} inserts some whitespace characters to
-advance point to the next tab stop (@pxref{Tab Stops}).  For the
-purposes of this command, the position of the first non-whitespace
-character on the preceding line is treated as an additional tab stop.
-You can therefore use @key{TAB} to ``align'' point with the preceding
-line.  If the region is active, @key{TAB} performs this action on
-every line in the region.
+  In programming modes, @key{TAB} adds or removes some combination of
+space and tab characters at the start of the line, in a way that makes
+sense given the text in the preceding lines.  If the region is active
+and spans multiple lines, all those lines are indented this way.  If
+point was initially within the current line's indentation, it is
+positioned after that indentation; otherwise, it remains at same point
+in the newly-indented text.  @xref{Program Indent}.
 
 @vindex tab-width
-  Indentation is often performed with the help of @dfn{tab characters}
-(@acronym{ASCII} code 9), which are displayed as a stretch of empty space
-extending to the next @dfn{display tab stop}.  By default, there is
-one display tab stop every eight columns; the number of columns is
-determined by the variable @code{tab-width}.  You can insert a single
-tab character by typing @kbd{C-q @key{TAB}}.  @xref{Text Display}.
+  Normally, indentation commands insert (or remove) an optimal mix of
+@dfn{tab characters} and spaces to align to the desired column.  Tab
+characters (@acronym{ASCII} code 9) are displayed as a stretch of
+empty space extending to the next @dfn{display tab stop}.  By default,
+there is one display tab stop every eight columns; the number of
+columns is determined by the variable @code{tab-width}.  You can
+insert a single tab character by typing @kbd{C-q @key{TAB}}.
+@xref{Text Display}.
 
 @findex edit-tab-stops
 @findex tab-to-tab-stop
@@ -74,11 +78,20 @@ whitespace characters around point, inserting just enough whitespace
 to advance point up to the next tab stop.  By default, this involves
 deleting the existing whitespace and inserting a single tab character.
 
-  Normally, most of these indentation commands insert an optimal mix
-of tabs and spaces to align to the desired column.  @xref{Just
-Spaces}, for how to disable use of tabs.  However, @kbd{C-q @key{TAB}}
-always inserts a tab, even when tabs are disabled for the indentation
-commands.
+  @xref{Just Spaces}, for how to disable use of tabs.  However,
+@kbd{C-q @key{TAB}} always inserts a tab, even when tabs are disabled
+for the indentation commands.
+
+@vindex tab-always-indent
+  The variable @code{tab-always-indent} tweaks the behavior of the
+@key{TAB} (@code{indent-for-tab-command}) command.  The default value,
+@code{t}, gives the behavior described above.  If you change the value
+to the symbol @code{complete}, then @key{TAB} first tries to indent
+the current line, and if the line was already indented, it tries to
+complete the text at point (@pxref{Symbol Completion}).  If the value
+is @code{nil}, then @key{TAB} indents the current line only if point
+is at the left margin or in the line's indentation; otherwise, it
+inserts a real tab character.
 
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.

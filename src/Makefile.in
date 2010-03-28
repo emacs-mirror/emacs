@@ -33,16 +33,17 @@
 
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
-srcdir=@srcdir@
-VPATH=@srcdir@
-CC=@CC@
-CPP=@CPP@
-CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@
-LDFLAGS=@LDFLAGS@
-LN_S=@LN_S@
-EXEEXT=@EXEEXT@
-version=@version@
+srcdir = @srcdir@
+abs_builddir = @abs_builddir@
+VPATH = $(srcdir)
+CC = @CC@
+CPP = @CPP@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LN_S = @LN_S@
+EXEEXT = @EXEEXT@
+version = @version@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
@@ -63,7 +64,7 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
-bootstrap_exe = ../src/bootstrap-emacs${EXEEXT}
+bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 

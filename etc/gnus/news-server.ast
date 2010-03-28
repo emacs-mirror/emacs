@@ -2,9 +2,9 @@
 
 
 @node Setting up the news server name and port number
-@variable server :string (gnus-getenv-nntpserver)
+@variable server :string (or (gnus-getenv-nntpserver) "your-server-here")
 @variable port :number 119
-@validate (assistant-validate-connect-to-server server port)
+@validate (or (assistant-validate-connect-to-server server port) (y-or-n-p "Do you want to use the server anyway, although you can't confirm it's valid?"))
 @result gnus-select-method (list 'nntp server (list 'nntp-server port))
 @text
 Usenet news is usually read from your Internet service prodider's news
@@ -14,9 +14,9 @@ As a guess, the name of the server might be news.yourisp.com.
 
 Server name: @variable{server}
 Port number: @variable{port}
+
 @end text
 @next t "User name and password"
-
 
 @node User name and password
 @type interstitial

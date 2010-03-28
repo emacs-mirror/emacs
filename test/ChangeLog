@@ -1,3 +1,7 @@
+2010-03-23  Juri Linkov  <juri@jurta.org>
+
+	* occur-testsuite.el: New file.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.

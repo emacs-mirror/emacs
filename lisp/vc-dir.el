@@ -950,7 +950,8 @@ specific headers."
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
    (propertize "Working dir: " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
+   (propertize (format "%s\n" (abbreviate-file-name dir))
+               'face 'font-lock-variable-name-face)
    ;; Then the backend specific ones.
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"))

@@ -134,7 +134,7 @@ At present, this only affects `cal-tex-cursor-day'."
 
 (defcustom cal-tex-daily-end 20
   "The last hour of the daily LaTeX calendar page.
-At present, this only affects `cal-tex-cursor-day'"
+At present, this only affects `cal-tex-cursor-day'."
   :type 'integer
   :group 'calendar-tex)
 
@@ -654,7 +654,7 @@ in the calendar starting in MONTH YEAR."
 
 (defun cal-tex-number-weeks (month year n)
   "Determine the number of weeks in a range of dates.
-Compute the number of  weeks in the calendar starting with MONTH and YEAR,
+Compute the number of weeks in the calendar starting with MONTH and YEAR,
 and lasting N months, including only the days in WHICH-DAYS.  As it stands,
 this is only an upper bound."
   (let ((d (list month 1 year)))
@@ -683,7 +683,7 @@ this is only an upper bound."
 (defun cal-tex-cursor-week (&optional n event)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  The optional prefix
-argument N specifies the number of weeks (default 1).  The calendar
+argument N specifies number of weeks (default 1).  The calendar
 shows holidays if `cal-tex-holidays' is non-nil (note that diary
 entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
   (interactive (list (prefix-numeric-value current-prefix-arg)
@@ -1778,7 +1778,7 @@ Add trailing COMMENT if present."
   (cal-tex-comment "end framebox"))
 
 
-(defun cal-tex-b-makebox ( width position )
+(defun cal-tex-b-makebox (width position)
   "Insert makebox with parameters WIDTH and POSITION (clr)."
   (insert "\\makebox[" width "][" position "]{" )
   (cal-tex-comment))

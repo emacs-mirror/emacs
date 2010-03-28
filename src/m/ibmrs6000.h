@@ -57,15 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NLIST_STRUCT
 #endif
 
-/* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
-   on older versions of X where it happens to exist.  */
-#ifdef HAVE_LIBPTHREADS
-#define LIBS_MACHINE -lrts -lIM -liconv -lpthreads
-#else
-/* IBM's X11R5 use -lIM and -liconv in AIX 3.2.2.  */
-#define LIBS_MACHINE -lrts -lIM -liconv
-#endif
-
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
 
@@ -80,8 +71,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BROKEN_SIGAIO
 #define BROKEN_SIGPTY
 #define BROKEN_SIGPOLL
-
-#define ORDINARY_LINK
 
 /* arch-tag: 028318ee-a7ae-4a08-804d-cc1e6588d003
    (do not change this comment) */

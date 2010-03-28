@@ -1,3 +1,11 @@
+2010-03-24  Arni Magnusson  <arnima@hafro.is>  (tiny change)
+
+	* frames.texi (Cursor Parameters): Fix typo.  (Bug#5760)
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Network Processes): Document seqpacket type.
+
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* os.texi (System Environment): Do not mention lynxos.

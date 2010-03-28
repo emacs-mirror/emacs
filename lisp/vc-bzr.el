@@ -545,6 +545,7 @@ REV non-nil gets an error."
 	(goto-char (point-min)))
       found)))
 
+(declare-function log-edit-mode "log-edit" ())
 (defvar log-edit-extra-flags)
 (defvar log-edit-before-checkin-process)
 
@@ -552,12 +553,14 @@ REV non-nil gets an error."
   "Mode for editing Bzr commit logs.
 If a line like:
 Author: NAME
-is present in the log, it is removed, and 
+is present in the log, it is removed, and
 --author NAME
-is passed to the bzr commit command."
+is passed to the bzr commit command.  Similarly with Fixes: and --fixes."
   (set (make-local-variable 'log-edit-extra-flags) nil)
   (set (make-local-variable 'log-edit-before-checkin-process)
-       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--author" (match-string 1))))))
+       '(("^\\(Author\\|Fixes\\):[ \t]+\\(.*\\)[ \t]*$" .
+          (list (format "--%s" (downcase (match-string 1)))
+                (match-string 2))))))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."

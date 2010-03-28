@@ -3362,7 +3362,8 @@ Build a menu of the possible matches."
 	 (insert (format "* %-14s %s.\n"
 			 (concat (symbol-name keyword) "::")
 			 (cdr assoc)))))
-     (cons '(unknown . "unknown keywords")
+     (append '((all . "All package info")
+	       (unknown . "unknown keywords"))
 	   finder-known-keywords)))
    ((equal nodename "unknown")
     ;; Display unknown keywords
@@ -3377,6 +3378,22 @@ Build a menu of the possible matches."
 		       (concat (symbol-name (car assoc)) "::")
 		       (cdr assoc))))
      (finder-unknown-keywords)))
+   ((equal nodename "all")
+    ;; Display all package info.
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Package Info\n")
+    (insert "*******************\n\n")
+    (mapc (lambda (package)
+	    (insert (format "%s - %s\n"
+			    (format "*Note %s::" (nth 0 package))
+			    (nth 1 package)))
+	    (insert "Keywords: "
+		    (mapconcat (lambda (keyword)
+				 (format "*Note %s::" (symbol-name keyword)))
+			       (nth 2 package) ", ")
+		    "\n\n"))
+	  finder-package-info))
    ((string-match-p "\\.el\\'" nodename)
     ;; Display commentary section
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
@@ -3401,6 +3418,7 @@ Build a menu of the possible matches."
 	   (buffer-string))))))
    (t
     ;; Display packages that match the keyword
+    ;; or the list of keywords separated by comma.
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
     (insert "Finder Packages\n")
@@ -3408,21 +3426,39 @@ Build a menu of the possible matches."
     (insert
      "The following packages match the keyword `" nodename "':\n\n")
     (insert "* Menu:\n\n")
-    (let ((id (intern nodename)))
+    (let ((keywords
+	   (mapcar 'intern (if (string-match-p "," nodename)
+			       (split-string nodename ",[ \t\n]*" t)
+			     (list nodename)))))
       (mapc
-       (lambda (x)
-	 (when (memq id (cadr (cdr x)))
+       (lambda (package)
+	 (unless (memq nil (mapcar (lambda (k) (memq k (nth 2 package)))
+				   keywords))
 	   (insert (format "* %-16s %s.\n"
-			   (concat (car x) "::")
-			   (cadr x)))))
+			   (concat (nth 0 package) "::")
+			   (nth 1 package)))))
        finder-package-info)))))
 
 ;;;###autoload
-(defun info-finder ()
-  "Display descriptions of the keywords in the Finder virtual manual."
-  (interactive)
+(defun info-finder (&optional keywords)
+  "Display descriptions of the keywords in the Finder virtual manual.
+In interactive use, a prefix argument directs this command to read
+a list of keywords separated by comma.  After that, it displays a node
+with a list packages that contain all specified keywords."
+  (interactive
+   (when current-prefix-arg
+     (require 'finder)
+     (list
+      (completing-read-multiple
+       "Keywords (separated by comma): "
+       (mapcar 'symbol-name (mapcar 'car (append finder-known-keywords
+						 (finder-unknown-keywords))))
+       nil t))))
   (require 'finder)
-  (Info-find-node Info-finder-file "Top"))
+  (if keywords
+      (Info-find-node Info-finder-file (mapconcat 'identity keywords ", "))
+    (Info-find-node Info-finder-file "Top")))
+
 
 (defun Info-undefined ()
   "Make command be undefined in Info."

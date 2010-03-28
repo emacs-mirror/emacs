@@ -45,6 +45,7 @@ Use `set-scroll-bar-mode' to change this.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
 
 *** Customize buffers now contain a search field.
@@ -81,6 +82,12 @@ buffers.
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
 
+** gdb-mi
+
+*** GDB User Interface migrated to GDB Machine Interface and now
+supports multithread non-stop debugging and debugging of several
+threads simultaneously.
+
 
 * New Modes and Packages in Emacs 24.1
 
@@ -93,6 +100,8 @@ Secret Service API requires D-Bus for communication.
 
 
 * Lisp changes in Emacs 24.1
+
+** New completion style `substring'.
 
 ** Image API
 

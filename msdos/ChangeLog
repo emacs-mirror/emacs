@@ -1,3 +1,17 @@
+2010-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp (VPATH): Don't edit, no longer needed.
+	(lisp, srcdir): Adapt to lisp/Makefile.in changes.
+	(abs_top_builddir): New edit.
+
+	* sed3v2.inp (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(LIBHESIOD, LIBRESOLV, LIBS_MAIL): Edit to empty values.
+
+	* sed3.inp (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(LIBHESIOD, LIBRESOLV, LIBS_MAIL): Edit to empty values.
+
+	* sed1v2.inp (abs_builddir): Edit into "../src".
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.

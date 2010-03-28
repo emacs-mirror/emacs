@@ -27,12 +27,6 @@
 
 ;; This mode uses the Keywords library header to provide code-finding
 ;; services by keyword.
-;;
-;; Things to do:
-;;    1. Support multiple keywords per search.  This could be extremely hairy;
-;; there doesn't seem to be any way to get completing-read to exit on
-;; an EOL with no substring pending, which is what we'd want to end the loop.
-;;    2. Search by string in synopsis line?
 
 ;;; Code:
 

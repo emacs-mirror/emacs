@@ -3291,11 +3291,6 @@ SIGTYPE
 arith_error (signo)
      int signo;
 {
-#if defined(USG) && !defined(POSIX_SIGNALS)
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (signo, arith_error);
-#endif /* USG */
   sigsetmask (SIGEMPTYMASK);
 
   SIGNAL_THREAD_CHECK (signo);

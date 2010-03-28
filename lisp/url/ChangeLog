@@ -1,3 +1,14 @@
+2010-03-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-http.el (url-http-parse-headers): Fix wrong variable name.
+
+2010-03-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-http.el (url-http-codes): New variable to hold a mapping of
+	HTTP status codes' numbers, their symbolic name, and their text.
+	(url-http-parse-headers): Use it, leaving the original numeric
+	code in a comment.
+
 2010-03-19  Glenn Morris  <rgm@gnu.org>
 
 	* url.el: Move mailcap require earlier in the file.

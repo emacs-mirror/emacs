@@ -63,3 +63,5 @@ src/stamp-oldxmenu
 src/temacs
 src/deps
 configure.lineno
+conftest*
+confdefs.h

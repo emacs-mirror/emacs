@@ -170,17 +170,21 @@ $(SUBDIRS):
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 $(TIT):
-	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
+	$(RUN_EMACS) -l \
+	    $(ARGQUOTE)$(buildlisppath)/international/titdic-cnv$(ARGQUOTE) \
 	    --eval $(ARGQUOTE)(batch-titdic-convert t)$(ARGQUOTE) \
 	    -dir quail $(srcdir)/CXTERM-DIC
-	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
+	$(RUN_EMACS)  -l \
+	    $(ARGQUOTE)$(buildlisppath)/international/quail$(ARGQUOTE) \
 	    -f batch-byte-compile $(TIT:.elc=.el)
 
 # Rule to generate quail/*.el from MISC_DIC/*.tit.
 $(MISC_DIC):
-	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
+	$(RUN_EMACS) -l \
+	    $(ARGQUOTE)$(buildlisppath)/international/titdic-cnv$(ARGQUOTE) \
 	    -f batch-miscdic-convert -dir quail $(srcdir)/MISC-DIC
-	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
+	$(RUN_EMACS)  -l \
+	    $(ARGQUOTE)$(buildlisppath)/international/quail$(ARGQUOTE) \
 	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
 
 #
@@ -188,7 +192,8 @@ $(MISC_DIC):
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 leim-list.el: $(SUBDIRS) $(WORLD) $(srcdir)/leim-ext.el
 	- $(DEL) leim-list.el
-	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
+	$(RUN_EMACS) -l \
+	    $(ARGQUOTE)$(buildlisppath)/international/quail$(ARGQUOTE) \
 	    --eval $(ARGQUOTE)(update-leim-list-file $(DQUOTE).$(DQUOTE))$(ARGQUOTE)
 	$(RUN_EMACS) --eval $(ARGQUOTE)(w32-append-code-lines $(DQUOTE)$@$(DQUOTE) $(DQUOTE)$(srcdir)/leim-ext.el$(DQUOTE))$(ARGQUOTE)
 

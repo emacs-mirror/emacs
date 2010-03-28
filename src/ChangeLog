@@ -1,3 +1,90 @@
+2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (Fmake_network_process): Don't apply Bug#5173 fix for
+	Windows.
+
+2010-03-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (Fmake_network_process): Don't call turn_on_atimers around
+	`connect' (Bug#5723).
+
+2010-03-25  Helmut Eller  <eller.helmut@gmail.com>
+
+	* process.c (Fmake_network_process): Call `select' for interrupted
+	`connect' rather than creating new socket (Bug#5173).
+
+2010-03-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (x_get_arg): Handle RES_TYPE_BOOLEAN_NUMBER (bug #5736).
+
+	* xfns.c (Fx_create_frame): Make menuBar a RES_TYPE_BOOLEAN_NUMBER.
+
+	* dispextern.h (resource_types): RES_TYPE_BOOLEAN_NUMBER is new.
+
+2010-03-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (Fx_create_frame) [USE_LUCID]: Add BLOCK_INPUT around
+	XLoadQueryFont.
+
+2010-03-24  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_ccl): Fix previous change for the
+	multibyte case.
+	(encode_coding_ccl): Don't setup ccl program here.  Fix for the
+	case that the output buffer is fullfilled.
+	(encode_coding): Setup ccl program here.
+
+2010-03-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* editfns.c (Fformat): Account for string precision when computing
+	field width (Bug#5710).
+
+2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h (LIBS_SYSTEM): Remove, same as default.
+
+	Simplify LIBS_MACHINE definitions.
+	* m/hp800.h (LIBS_MACHINE): Remove, same as default.
+	* m/iris4d.h (LIBS_MACHINE): Likewise.
+	* m/ibmrs6000.h (LIBS_MACHINE): Rename to LIBS_SYSTEM and move ...
+	* s/aix4-2.h (LIBS_SYSTEM): ... here.
+	* s/netbsd.h: Remove commented out code.
+
+2010-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove dead code dealing with POSIX_SIGNALS.
+	* atimer.c (set_alarm): Remove dead code, all USG systems define
+	POSIX_SIGNALS.
+	* data.c (arith_error): Likewise.
+	* keyboard.c (input_available_signal, handle_user_signal)
+	(interrupt_signal): Likewise.
+	* process.c (sigchld_handler): Likewise.
+	(create_process): Remove if 0 code.  Remove HPUX conditional when
+	!defined (POSIX_SIGNALS), it cannot be true.
+	* syssignal.h: Remove USG5_4 and USG conditionals when
+	!POSIX_SIGNALS, they cannot be true.
+
+	* keyboard.c (Fset_input_interrupt_mode): Remove code depending on
+	NO_SOCK_SIGIO, not used anymore.
+
+2010-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/vax.h (BSD_SYSTEM, BSD4_2): Remove conditionals, we only
+	support vax on BSDs.
+
+	* m/ibmrs6000.h (ORDINARY_LINK): Move definition ...
+	* s/aix4-2.h (ORDINARY_LINK): ... here.
+
+2010-03-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (abs_builddir): Define.
+	(bootstrap_exe): Use it.
+	(VPATH): Use $(srcdir) instead of @srcdir@.
+
+2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (bootstrap_exe): Use an absolute name.
+
 2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove support for old GNU/Linux using libc version 5.

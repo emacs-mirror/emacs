@@ -359,7 +359,7 @@ property of the major mode name.")
 (put 'html-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 (put 'nxml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 
-(declare-function sgml-lexical-context "sgml-mode" &optional limit)
+(autoload 'sgml-lexical-context "sgml-mode")
 
 (defun sgml-mode-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate' in SGML mode.

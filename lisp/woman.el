@@ -3876,10 +3876,14 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots
-    ;; and zero width characters.  If on a line by itself, consume the
-    ;; newline as well, as this may interfere with (Bug#3651).
-    (while (re-search-forward "\\\\[&|^]\n?" to t)
-      (woman-delete-match 0))
+    ;; and zero width characters.
+    (while (re-search-forward "\\\\[&|^]" to t)
+      (woman-delete-match 0)
+      ;; If on a line by itself, consume newline as well (Bug#3651).
+      (and (eq (char-before (match-beginning 0)) ?\n)
+	   (eq (char-after (match-beginning 0)) ?\n)
+	   (delete-char 1)))
+
     (goto-char from)
     ;; Interrupt text processing -- CONTINUE current text with the
     ;; next text line (after any control lines, unless processing to

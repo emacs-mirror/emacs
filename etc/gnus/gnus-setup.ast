@@ -33,12 +33,16 @@ Your mail can be downloaded into Gnus in several ways, choose one:
 
 @end text
 
+@next 'finish
+
 @node Setting up a NNTP server
 
 @text
 TODO: this will be a real link.
 Run M-x assistant and use the news-server.ast file as input.
 @end text
+
+@next 'finish
 
 
 @c Local variables:
