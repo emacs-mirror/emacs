@@ -57,6 +57,7 @@ It is a way for multiple applications to share a single configuration
 @menu
 * Overview::                    Overview of the auth-source library.
 * Help for users::              
+* Secret Service API::          
 * Help for developers::         
 * Index::                       
 * Function Index::              
@@ -68,15 +69,15 @@ It is a way for multiple applications to share a single configuration
 @chapter Overview
 
 The auth-source library is simply a way for Emacs and Gnus, among
-others, to find the answer to the old burning question ``I have a
-server name and a port, what are my user name and password?''
+others, to answer the old burning question ``I have a server name and
+a port, what are my user name and password?''
 
 The auth-source library actually supports more than just the user name
 (known as the login) or the password, but only those two are in use
-today in Emacs or Gnus.  Similarly, the auth-source library can in
-theory support multiple storage formats, but currently it only
-understands the classic ``netrc'' format, examples of which you can
-see later in this document.
+today in Emacs or Gnus.  Similarly, the auth-source library supports
+multiple storage formats, currently either the classic ``netrc''
+format, examples of which you can see later in this document, or the
+Secret Service API.
 
 @node Help for users
 @chapter Help for users
@@ -120,23 +121,56 @@ auth-source library is not loaded for some other reason.
 @defvar auth-sources
 
 The @code{auth-sources} variable tells the auth-source library where
-your netrc files live for a particular host and protocol.  While you
-can get fancy, the default and simplest configuration is:
+your netrc files or Secret Service API collection items live for a
+particular host and protocol.  While you can get fancy, the default
+and simplest configuration is:
 
 @lisp
+;;; old default: required :host and :protocol, not needed anymore
 (setq auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t)))
+;;; mostly equivalent (see below about fallbacks) but shorter:
+(setq auth-sources '((:source "~/.authinfo.gpg")))
 @end lisp
 
 This says ``for any host and any protocol, use just that one file.''
-Sweet simplicity.  In fact, this is already the default, so unless you
-want to move your netrc file, it will just work if you have that
-file.  You may not, though, so make sure it exists.
+Sweet simplicity.  In fact, the latter is already the default, so
+unless you want to move your netrc file, it will just work if you have
+that file.  Make sure it exists.
 
 By adding multiple entries to @code{auth-sources} with a particular
 host or protocol, you can have specific netrc files for that host or
 protocol.  Usually this is unnecessary but may make sense if you have
 shared netrc files or some other unusual setup (90% of Emacs users
 have unusual setups and the remaining 10% are @emph{really} unusual).
+
+Here's an example that uses the Secret Service API for all lookups,
+using the default collection:
+
+@lisp
+(setq auth-sources '((:source (:secrets default))))
+@end lisp
+
+And here's a mixed example, using two sources:
+
+@lisp
+(setq auth-sources '((:source (:secrets default) :host "myserver" :user "joe")
+                     (:source "~/.authinfo.gpg")))
+@end lisp
+
+The best match is determined by order (starts from the bottom) only
+for the first pass, where things are checked exactly.  In the example
+above, the first pass would find a single match for host
+@code{myserver}.  The netrc choice would fail because it matches any
+host and protocol implicitly (as a @emph{fallback}).  A specified
+value of @code{:host t} in @code{auth-sources} is considered a match
+on the first pass, unlike a missing @code{:host}.
+
+Now if you look for host @code{missing}, it won't match either source
+explicitly.  The second pass (the @emph{fallback} pass) will look at
+all the implicit matches and collect them.  They will be scored and
+returned sorted by score.  The score is based on the number of
+explicit parameters that matched. See the @code{auth-pick} function
+for details.
 
 @end defvar
 
@@ -190,31 +224,40 @@ don't use a port entry, you match any Tramp method, as explained
 earlier.  Since Tramp has about 88 connection methods, this may be
 necessary if you have an unusual (see earlier comment on those) setup.
 
+@node Secret Service API
+@chapter Secret Service API
+
+TODO: how does it work generally, how does secrets.el work, some examples.
+
 @node Help for developers
 @chapter Help for developers
 
 The auth-source library only has one function for external use.
 
-@defun auth-source-user-or-password mode host port
+@defun auth-source-user-or-password mode host port &optional username
 
 Retrieve appropriate authentication tokens, determined by @var{mode},
-for host @var{host} and @var{port}.  If @code{auth-source-debug} is t,
-debugging messages will be printed.  Set @code{auth-source-debug} to a
-function to use that function for logging.  The parameters passed will
-be the same that the @code{message} function takes, that is, a string
+for host @var{host} and @var{port}.  If @var{username} is provided it
+will also be checked.  If @code{auth-source-debug} is t, debugging
+messages will be printed.  Set @code{auth-source-debug} to a function
+to use that function for logging.  The parameters passed will be the
+same that the @code{message} function takes, that is, a string
 formatting spec and optional parameters.
 
 If @var{mode} is a list of strings, the function will return a list of
 strings or @code{nil} objects (thus you can avoid parsing the netrc
-file more than once).  If it's a string, the function will return a
-string or a @code{nil} object.  Currently only the modes ``login'' and
-``password'' are recognized but more may be added in the future.
+file or checking the Secret Service API more than once).  If it's a
+string, the function will return a string or a @code{nil} object.
+Currently only the modes ``login'' and ``password'' are recognized but
+more may be added in the future.
 
 @var{host} is a string containing the host name.
 
 @var{port} contains the protocol name (e.g. ``imap'') or
 a port number.  It must be a string, corresponding to the port in the
 users' netrc files.
+
+@var{username} contains the user name (e.g. ``joe'') as a string.
 
 @example
 ;; IMAP example
