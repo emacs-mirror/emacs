@@ -746,14 +746,16 @@ Running Debuggers Under Emacs
 
 GDB Graphical Interface
 
-* GDB-UI Layout::       Control the number of displayed buffers.
-* Source Buffers::      Use the mouse in the fringe/margin to
-                          control your program.
-* Breakpoints Buffer::  A breakpoint control panel.
-* Stack Buffer::        Select a frame from the call stack.
-* Other GDB-UI Buffers::Input/output, locals, registers,
-                          assembler, threads and memory buffers.
-* Watch Expressions::   Monitor variable values in the speedbar.
+* GDB User Interface Layout::   Control the number of displayed buffers.
+* Source Buffers::              Use the mouse in the fringe/margin to
+                                control your program.
+* Breakpoints Buffer::          A breakpoint control panel.
+* Threads Buffer::              Displays your threads.
+* Stack Buffer::                Select a frame from the call stack.
+* Other GDB Buffers::           Input/output, locals, registers,
+                                assembler, threads and memory buffers.
+* Watch Expressions::           Monitor variable values in the speedbar.
+* Multithreaded Debugging::     Debugging programs with several threads.
 
 Maintaining Large Programs
 
