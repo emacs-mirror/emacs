@@ -82,6 +82,12 @@ buffers.
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
 
+** gdb-mi
+
+*** GDB User Interface migrated to GDB Machine Interface and now
+supports multithread non-stop debugging and debugging of several
+threads simultaneously.
+
 
 * New Modes and Packages in Emacs 24.1
 

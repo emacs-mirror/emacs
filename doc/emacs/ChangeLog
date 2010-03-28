@@ -1,3 +1,7 @@
+2010-03-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs.texi (Top): Update node names to those in building.texi.
+
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):

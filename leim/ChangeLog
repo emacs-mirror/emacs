@@ -1,3 +1,9 @@
+2010-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TIT), $(MISC_DIC), leim-list.el): Enclose the
+	argument of "-l" in $(ARGQUOTE), in case it includes blanks or
+	other special characters.
+
 2010-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (maintainer-clean): Use bootstrap-clean.

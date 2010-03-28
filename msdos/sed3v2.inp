@@ -26,6 +26,14 @@
 /^libdir *=/s!=.*$!=/emacs/bin!
 /^srcdir=/s!srcdir=@srcdir@!srcdir := $(subst \\,/,$(shell command.com /c cd))!
 /^VPATH *=/s!=.*$!=.!
+/^KRB4LIB *=/s/@[^@\n]*@//g
+/^DESLIB *=/s/@[^@\n]*@//g
+/^KRB5LIB *=/s/@[^@\n]*@//g
+/^CRYPTOLIB *=/s/@[^@\n]*@//g
+/^COM_ERRLIB *=/s/@[^@\n]*@//g
+/^LIBHESIOD *=/s/@[^@\n]*@//g
+/^LIBRESOLV *=/s/@[^@\n]*@//g
+/^LIBS_MAIL *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
 /^LOADLIBES *=/s!=.*$!=!
