@@ -56,6 +56,12 @@ current mail buffer (@pxref{Misc Buffer}).  Then you can use @kbd{C-x
 m} to make a new mail buffer, and work with each mail buffer
 independently.
 
+  Before using Emacs to send mail, you may need to customize the
+variable @code{send-mail-function} if your system is not set up to
+deliver mail directly via SMTP (@pxref{Mail Sending}).  In addition,
+you may need to customize @code{user-mail-address} if the system
+cannot receive mail via SMTP (@pxref{Mail Headers}).
+
 @menu
 * Format: Mail Format.	      Format of a mail message.
 * Headers: Mail Headers.      Details of some standard mail header fields.
@@ -404,17 +410,33 @@ showing a list of possible coding systems.
 @cindex Mailclient
 @vindex send-mail-function
   The variable @code{send-mail-function} controls how the default mail
-user agent sends mail.  It should be set to a function.  In most
-cases, the default is @code{sendmail-send-it}, which delivers mail
-using @command{sendmail} (or a @command{sendmail}-compatible program).
-On Mac OS X and MS-Windows, however, the default is normally
-@code{mailclient-send-it}, which passes the mail buffer on to the
-system's designated mail client (see @file{mailclient.el}).  To send
-mail through an SMTP server, set @code{send-mail-function} to
-@code{smtpmail-send-it} and set up the Emacs SMTP library
-(@pxref{Top,,Emacs SMTP Library, smtpmail, Sending mail via SMTP}).
-Another option is @code{feedmail-send-it} (see the commentary section
-of the @file{feedmail.el} package).
+user agent sends mail.  Its value should be a function, which can be
+one of the following:
+
+@table @code
+@item sendmail-send-it
+Send mail using the system's default @command{sendmail} (or
+@command{sendmail}-compatible) program.  This is the default on Unix
+and GNU, and works provided the system is a valid @dfn{mail host}
+(that is, provided it can deliver mail via SMTP).
+
+@item mailclient-send-it
+Pass the mail buffer on to the system's designated mail client (see
+@file{mailclient.el}).  This is the default on Mac OS X and
+MS-Windows.
+
+@item smtpmail-send-it
+Send mail through an external mail host (e.g., your Internet service
+provider's SMTP server).  You will need to tell Emacs how to contact
+the SMTP server, by customizing the variables
+@code{smtpmail-smtp-server} and @code{smtpmail-auth-credentials}.
+@xref{Top,,Emacs SMTP Library, smtpmail, Sending mail via SMTP}.
+
+@item feedmail-send-it
+This is similar to @code{sendmail-send-it}, but allows you to queue
+messages for later sending.  See the commentary section in the file
+@file{feedmail.el} for more information.
+@end table
 
 @node Header Editing
 @subsection Mail Header Editing

@@ -1,5 +1,11 @@
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* sending.texi (Sending Mail): Note variables that may need
+	customizing.
+	(Mail Sending): Expand discussion of send-mail-function.
+
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
 	Document Message mode as the default mail mode.
 
 	* sending.texi (Sending Mail): Copyedits.
