@@ -1,5 +1,9 @@
 2010-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/semantic-ia-utest.el
+	(semantic-symref-test-count-hits-in-tag): Add function, from
+	semantic-test.el.
+
 	* cedet/tests/test.cpp:
 	* cedet/tests/test.py:
 	* cedet/tests/teststruct.cpp:
