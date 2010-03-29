@@ -112,6 +112,13 @@ sub-images are displayed successively with the duration defined by
 `image-animate-max-time' and the delay between sub-images defined
 by the Graphic Control Extension of the image.
 
+** Progress reporters can now "spin".
+The MIN-VALUE and MAX-VALUE arguments of `make-progress-reporter' can
+now be nil, or omitted.  This makes a "non-numeric" reporter.  Each
+time you call `progress-reporter-update' on that progress reporter,
+with a nil or omitted VALUE argument, the reporter message is
+displayed with a "spinning bar".
+
 
 * Changes in Emacs 24.1 on non-free operating systems
 

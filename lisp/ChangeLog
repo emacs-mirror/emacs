@@ -1,3 +1,11 @@
+2010-03-29  Phil Hagelberg  <phil@evri.com>
+	    Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el: Extend progress reporters to perform "spinning".
+	(progress-reporter-update, progress-reporter-do-update): Handle
+	non-numeric value arguments.
+	(progress-reporter--pulse-characters): New var.
+
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-start): Fix regexp detection

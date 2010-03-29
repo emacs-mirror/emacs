@@ -3421,51 +3421,59 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 ;; digits of precision, it doesn't really matter here.  On the other
 ;; hand, it greatly simplifies the code.
 
-(defsubst progress-reporter-update (reporter value)
+(defsubst progress-reporter-update (reporter &optional value)
   "Report progress of an operation in the echo area.
-However, if the change since last echo area update is too small
-or not enough time has passed, then do nothing (see
-`make-progress-reporter' for details).
+REPORTER should be the result of a call to `make-progress-reporter'.
 
-First parameter, REPORTER, should be the result of a call to
-`make-progress-reporter'.  Second, VALUE, determines the actual
-progress of operation; it must be between MIN-VALUE and MAX-VALUE
-as passed to `make-progress-reporter'.
+If REPORTER is a numerical progress reporter---i.e. if it was
+ made using non-nil MIN-VALUE and MAX-VALUE arguments to
+ `make-progress-reporter'---then VALUE should be a number between
+ MIN-VALUE and MAX-VALUE.
 
-This function is very inexpensive, you may not bother how often
-you call it."
-  (when (>= value (car reporter))
+If REPORTER is a non-numerical reporter, VALUE should be nil.
+
+This function is relatively inexpensive.  If the change since
+last update is too small or insufficient time has passed, it does
+nothing."
+  (when (or (not (numberp value))      ; For pulsing reporter
+	    (>= value (car reporter))) ; For numerical reporter
     (progress-reporter-do-update reporter value)))
 
-(defun make-progress-reporter (message min-value max-value
-				       &optional current-value
-				       min-change min-time)
-  "Return progress reporter object to be used with `progress-reporter-update'.
+(defun make-progress-reporter (message &optional min-value max-value
+				       current-value min-change min-time)
+  "Return progress reporter object for use with `progress-reporter-update'.
 
-MESSAGE is shown in the echo area.  When at least 1% of operation
-is complete, the exact percentage will be appended to the
-MESSAGE.  When you call `progress-reporter-done', word \"done\"
-is printed after the MESSAGE.  You can change MESSAGE of an
-existing progress reporter with `progress-reporter-force-update'.
+MESSAGE is shown in the echo area, with a status indicator
+appended to the end.  When you call `progress-reporter-done', the
+word \"done\" is printed after the MESSAGE.  You can change the
+MESSAGE of an existing progress reporter by calling
+`progress-reporter-force-update'.
 
-MIN-VALUE and MAX-VALUE designate starting (0% complete) and
-final (100% complete) states of operation.  The latter should be
-larger; if this is not the case, then simply negate all values.
-Optional CURRENT-VALUE specifies the progress by the moment you
-call this function.  You should omit it or set it to nil in most
-cases since it defaults to MIN-VALUE.
+MIN-VALUE and MAX-VALUE, if non-nil, are starting (0% complete)
+and final (100% complete) states of operation; the latter should
+be larger.  In this case, the status message shows the percentage
+progress.
 
-Optional MIN-CHANGE determines the minimal change in percents to
-report (default is 1%.)  Optional MIN-TIME specifies the minimal
-time before echo area updates (default is 0.2 seconds.)  If
-`float-time' function is not present, then time is not tracked
-at all.  If OS is not capable of measuring fractions of seconds,
-then this parameter is effectively rounded up."
+If MIN-VALUE and/or MAX-VALUE is omitted or nil, the status
+message shows a \"spinning\", non-numeric indicator.
 
+Optional CURRENT-VALUE is the initial progress; the default is
+MIN-VALUE.
+Optional MIN-CHANGE is the minimal change in percents to report;
+the default is 1%.
+CURRENT-VALUE and MIN-CHANGE do not have any effect if MIN-VALUE
+and/or MAX-VALUE are nil.
+
+Optional MIN-TIME specifies the minimum interval time between
+echo area updates (default is 0.2 seconds.)  If the function
+`float-time' is not present, time is not tracked at all.  If the
+OS is not capable of measuring fractions of seconds, this
+parameter is effectively rounded up."
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter
-	 (cons min-value ;; Force a call to `message' now
+	 ;; Force a call to `message' now
+	 (cons (or min-value 0)
 	       (vector (if (and (fboundp 'float-time)
 				(>= min-time 0.02))
 			   (float-time) nil)
@@ -3477,12 +3485,11 @@ then this parameter is effectively rounded up."
     (progress-reporter-update reporter (or current-value min-value))
     reporter))
 
-(defun progress-reporter-force-update (reporter value &optional new-message)
+(defun progress-reporter-force-update (reporter &optional value new-message)
   "Report progress of an operation in the echo area unconditionally.
 
-First two parameters are the same as for
-`progress-reporter-update'.  Optional NEW-MESSAGE allows you to
-change the displayed message."
+The first two arguments are the same as in `progress-reporter-update'.
+NEW-MESSAGE, if non-nil, sets a new message for the reporter."
   (let ((parameters (cdr reporter)))
     (when new-message
       (aset parameters 3 new-message))
@@ -3490,15 +3497,15 @@ change the displayed message."
       (aset parameters 0 (float-time)))
     (progress-reporter-do-update reporter value)))
 
+(defvar progress-reporter--pulse-characters ["-" "\\" "|" "/"]
+  "Characters to use for pulsing progress reporters.")
+
 (defun progress-reporter-do-update (reporter value)
   (let* ((parameters   (cdr reporter))
+	 (update-time  (aref parameters 0))
 	 (min-value    (aref parameters 1))
 	 (max-value    (aref parameters 2))
-	 (one-percent  (/ (- max-value min-value) 100.0))
-	 (percentage   (if (= max-value min-value)
-			   0
-			 (truncate (/ (- value min-value) one-percent))))
-	 (update-time  (aref parameters 0))
+	 (text         (aref parameters 3))
 	 (current-time (float-time))
 	 (enough-time-passed
 	  ;; See if enough time has passed since the last update.
@@ -3506,26 +3513,41 @@ change the displayed message."
 	      (when (>= current-time update-time)
 		;; Calculate time for the next update
 		(aset parameters 0 (+ update-time (aref parameters 5)))))))
-    ;;
-    ;; Calculate NEXT-UPDATE-VALUE.  If we are not going to print
-    ;; message this time because not enough time has passed, then use
-    ;; 1 instead of MIN-CHANGE.  This makes delays between echo area
-    ;; updates closer to MIN-TIME.
-    (setcar reporter
-	    (min (+ min-value (* (+ percentage
-				    (if enough-time-passed
-					(aref parameters 4) ;; MIN-CHANGE
-				      1))
-				 one-percent))
-		 max-value))
-    (when (integerp value)
-      (setcar reporter (ceiling (car reporter))))
-    ;;
-    ;; Only print message if enough time has passed
-    (when enough-time-passed
-      (if (> percentage 0)
-	  (message "%s%d%%" (aref parameters 3) percentage)
-	(message "%s" (aref parameters 3))))))
+    (cond ((and min-value max-value)
+	   ;; Numerical indicator
+	   (let* ((one-percent (/ (- max-value min-value) 100.0))
+		  (percentage  (if (= max-value min-value)
+				   0
+				 (truncate (/ (- value min-value)
+					      one-percent)))))
+	     ;; Calculate NEXT-UPDATE-VALUE.  If we are not printing
+	     ;; message because not enough time has passed, use 1
+	     ;; instead of MIN-CHANGE.  This makes delays between echo
+	     ;; area updates closer to MIN-TIME.
+	     (setcar reporter
+		     (min (+ min-value (* (+ percentage
+					     (if enough-time-passed
+						 ;; MIN-CHANGE
+						 (aref parameters 4)
+					       1))
+					  one-percent))
+			  max-value))
+	     (when (integerp value)
+	       (setcar reporter (ceiling (car reporter))))
+	     ;; Only print message if enough time has passed
+	     (when enough-time-passed
+	       (if (> percentage 0)
+		   (message "%s%d%%" text percentage)
+		 (message "%s" text)))))
+	  ;; Pulsing indicator
+	  (enough-time-passed
+	   (let ((index (mod (1+ (car reporter)) 4))
+		 (message-log-max nil))
+	     (setcar reporter index)
+	     (message "%s %s"
+		      text
+		      (aref progress-reporter--pulse-characters
+			    index)))))))
 
 (defun progress-reporter-done (reporter)
   "Print reporter's message followed by word \"done\" in echo area."
