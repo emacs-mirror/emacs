@@ -1,3 +1,34 @@
+2010-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic-ia-utest.el
+	(semantic-symref-test-count-hits-in-tag): Add function, from
+	semantic-test.el.
+
+	* cedet/tests/test.cpp:
+	* cedet/tests/test.py:
+	* cedet/tests/teststruct.cpp:
+	* cedet/tests/testtemplates.cpp:
+	* cedet/tests/testusing.cpp:
+	* cedet/tests/scopetest.cpp:
+	* cedet/tests/scopetest.java: Files deleted.
+
+	* cedet/tests/test.make:
+	* cedet/tests/test.c:
+	* cedet/tests/testjavacomp.java:
+	* cedet/tests/testspp.c:
+	* cedet/tests/testsppreplace.c:
+	* cedet/tests/testsppreplaced.c:
+	* cedet/tests/testsubclass.cpp:
+	* cedet/tests/testsubclass.hh:
+	* cedet/tests/testtypedefs.cpp:
+	* cedet/tests/testvarnames.c:
+	* cedet/tests/test.el:
+	* cedet/tests/testdoublens.cpp:
+	* cedet/tests/testdoublens.hpp: Add copyright header.
+
+	* cedet/semantic-tests.el (semanticdb-test-gnu-global): Remove
+	reference to deleted files.
+
 2010-02-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el

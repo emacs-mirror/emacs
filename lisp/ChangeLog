@@ -1,3 +1,9 @@
+2010-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make tmm-menubar work for the Buffers menu again.
+	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
+	vectors rather than cons cells, as used in menu-bar-update-buffers.
+
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/js.el (js-auto-indent-flag, js-mode-map)

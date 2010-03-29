@@ -170,7 +170,11 @@ Its value should be an event that has a binding in MENU."
     (mapc (lambda (elt)
 	    (if (stringp elt)
 		(setq gl-str elt)
-	      (and (listp elt) (tmm-get-keymap elt not-menu))))
+	      (cond
+	       ((listp elt) (tmm-get-keymap elt not-menu))
+	       ((vectorp elt)
+		(dotimes (i (length elt))
+		  (tmm-get-keymap (cons i (aref elt i)) not-menu))))))
 	    menu)
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
