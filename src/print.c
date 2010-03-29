@@ -2174,7 +2174,11 @@ print_object (obj, printcharfun, escapeflag)
 	}
       else if (MUTEXP (obj))
         {
-	      strout ("#<mutex>", -1, -1, printcharfun, 0);
+          struct Lisp_Mutex *mutex = XMUTEX (obj);
+          strout ("#<mutex", -1, -1, printcharfun, 0);
+          if (mutex->recursive)
+            strout (" recursive", -1, -1, printcharfun, 0);
+          PRINTCHAR ('>');
         }
       else
 	{

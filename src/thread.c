@@ -346,13 +346,17 @@ user_thread_p (void)
   return 0;
 }
 
-DEFUN ("make-mutex", Fmake_mutex, Smake_mutex, 0, 0, 0,
-       doc: /* Make a mutex.  */)
-     ()
+DEFUN ("make-mutex", Fmake_mutex, Smake_mutex, 0, 1, 0,
+       doc: /* Make a mutex.  If RECURSIVE is nil the mutex is not recursive
+             and can be locked once.  */)
+     (recursive)
+     Lisp_Object recursive;
 {
   Lisp_Object ret;
   struct Lisp_Mutex *mutex = allocate_mutex ();
   mutex->owner = 0;
+  mutex->rec_counter = 0;
+  mutex->recursive = ! NILP (recursive);
   XSETMUTEX (ret, mutex);
   return ret;
 }
@@ -365,9 +369,11 @@ DEFUN ("mutex-lock", Fmutex_lock, Smutex_lock, 1, 1, 0,
   struct Lisp_Mutex *mutex = XMUTEX (val);
   while (1)
     {
-      if (mutex->owner == 0 || mutex->owner == pthread_self ())
+      if (mutex->owner == 0
+          || (mutex->recursive && mutex->owner == pthread_self ()))
         {
           mutex->owner = pthread_self ();
+          mutex->rec_counter++;
           return Qt;
         }
 
@@ -383,7 +389,15 @@ DEFUN ("mutex-unlock", Fmutex_unlock, Smutex_unlock, 1, 1, 0,
      Lisp_Object val;
 {
   struct Lisp_Mutex *mutex = XMUTEX (val);
-  mutex->owner = 0;
+
+  if (mutex->owner != pthread_self () || mutex->rec_counter == 0)
+    return Qnil;
+
+  mutex->rec_counter--;
+
+  if (mutex->rec_counter == 0)
+    mutex->owner = 0;
+
   return Qt;
 }
 
@@ -448,7 +462,7 @@ init_threads_once (void)
   primary_thread.func = Qnil;
   primary_thread.initial_specpdl = Qnil;
   XSETPVECTYPE (&primary_thread, PVEC_THREAD);
-  minibuffer_mutex = Fmake_mutex ();
+  minibuffer_mutex = Fmake_mutex (Qnil);
 }
 
 void

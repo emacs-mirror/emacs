@@ -2375,7 +2375,7 @@ EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
 
-EXFUN (Fmake_mutex, 0);
+EXFUN (Fmake_mutex, 1);
 EXFUN (Fmutex_lock, 1);
 EXFUN (Fmutex_unlock, 1);
 

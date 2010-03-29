@@ -6,8 +6,14 @@ struct Lisp_Mutex
 
   struct Lisp_Vector *v_next;
 
+  /* Is the mutex recursive?  */
+  int recursive;
+
   /* Thread that owns the mutex.  */
   pthread_t owner;
+
+  /* Number of times it was recursively owned.  */
+  unsigned int rec_counter;
 };
 
 struct thread_state
