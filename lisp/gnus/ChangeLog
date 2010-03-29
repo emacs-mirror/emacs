@@ -1,3 +1,7 @@
+2010-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-pick): Fix for non-secrets specifier.
+
 2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-sources): Change default to be simpler.  Explain

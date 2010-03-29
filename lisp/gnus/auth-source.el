@@ -214,7 +214,7 @@ checked for fallback choices."
 	(dolist (choice auth-sources)
 	  (let* ((s (plist-get choice :source))
 		 ;; this is only set for Secret Service API specs (see secrets.el)
-		 (coll (plist-get s :secrets))
+		 (coll (and (consp s) (plist-get s :secrets)))
 		 (score 0))
 	    (cond
 	     (coll				; use secrets.el here
