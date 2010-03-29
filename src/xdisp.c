@@ -17823,8 +17823,8 @@ display_line (it)
   ++it->vpos;
   ++it->glyph_row;
   /* The next row should use same value of the reversed_p flag as this
-     one.  set_iterator_to_next decides when it's a new paragraph and
-     recomputes the value of the flag accordingly.  */
+     one.  set_iterator_to_next decides when it's a new paragraph, and
+     PRODUCE_GLYPHS recomputes the value of the flag accordingly.  */
   it->glyph_row->reversed_p = row->reversed_p;
   it->start = row_end;
   return row->displays_text_p;
@@ -21355,6 +21355,17 @@ append_glyph (it)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
+      /* If the glyph row is reversed, we need to prepend the glyph
+	 rather than append it.  */
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  struct glyph *g;
+
+	  /* Make room for the additional glyph.  */
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
+	    g[1] = *g;
+	  glyph = it->glyph_row->glyphs[area];
+	}
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       if (it->pixel_width > 0)
@@ -21390,6 +21401,11 @@ append_glyph (it)
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
 	    abort ();
 	  glyph->bidi_type = it->bidi_it.type;
+	}
+      else
+	{
+	  glyph->resolved_level = 0;
+	  glyph->bidi_type = UNKNOWN_BT;
 	}
       ++it->glyph_row->used[area];
     }

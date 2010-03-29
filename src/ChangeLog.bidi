@@ -1,4 +1,24 @@
+2010-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* doc/emacs/mule.texi (International): Mention support of
+	bidirectional editing.
+	(Bidirectional Editing): New section.
+
 2010-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* etc/HELLO: Reorder Arabic and Hebrew into logical order, and
+	insert RLM before the opening paren, to make the display more
+	reasonable.  Add setting for bidi-display-reordering in the local
+	variables section.
+
+	* lisp/files.el: Make bidi-display-reordering safe variable for
+	boolean values.
+
+	* xdisp (append_glyph): If the glyph row is reversed, prepend the
+	glyph rather than appending it.
+
+	* makefile.w32-in (OBJ1): Add $(BLD)/bidi.$(O).
+	($(BLD)/bidi.$(O)): New target.
 
 	* bidi.c (bidi_get_next_char_visually): Improve commentary.
 

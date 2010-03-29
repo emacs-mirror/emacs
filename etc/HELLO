@@ -16,7 +16,7 @@ Non-ASCII examples:
 LANGUAGE (NATIVE NAME)	HELLO
 ----------------------	-----
 Amharic ($,1O M[MmN{(B)	$,1M`MKM](B
-Arabic (,GIqjHQYdG(B)	,GecjdY(B ,GeGdqSdG(B
+Arabic $,1ro(B(,GGdYQHjqI(B)	,GecjdY(B ,GeGdqSdG(B
 Bengali ($,17,7>6b727>(B)	$,17(7.787M6u7>70(B
 Braille	$,2(3(1('('(5(B
 Burmese ($,1H9HYH;H4HYrlH9HL(B)	$,1H9H$HYrmH"H<HLH5HL(B
@@ -34,7 +34,7 @@ Georgian ($,1JEJ0J@J7J5J4J:J8(B)	$,1J2J0J;J0J@JOJ=J1J0(B
 German (Deutsch)	Guten Tag / Gr,A|_(B Gott
 Greek (,Fekkgmij\(B)	,FCei\(B ,Fsar(B
 Gujarati ($,19W:!9\9p9~9d: (B)	$,19h9n9x:-9d:'(B
-Hebrew (,Hzixar(B)	,Hylem(B
+Hebrew $,1ro(B($,1-",q-(,y-*(B)	,Hylem(B
 Hungarian (magyar)	Sz,Bi(Bp j,Bs(B napot!
 Hindi ($,15y55B5f6 (B)	$,15h5n5x6-5d6'(B / $,15h5n5x6-5U5~5p(B $,16D(B
 Italian (italiano)	Ciao / Buon giorno
@@ -91,4 +91,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Local Variables:
 ;;; tab-width: 32
+;;; bidi-display-reordering: t
 ;;; End:
