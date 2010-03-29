@@ -426,6 +426,16 @@ DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0,
   return Qnil;
 }
 
+DEFUN ("mutexp", Fmutexp, Smutexp, 1, 1, 0,
+       doc: /* Return t if OBJECT is a mutex.  */)
+     (object)
+     Lisp_Object object;
+{
+  if (MUTEXP (object))
+    return Qt;
+  return Qnil;
+}
+
 DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
        1, 1, 0,
        doc: /* Return t if OBJECT is a byte-compiled function object.  */)
@@ -3448,6 +3458,7 @@ syms_of_data ()
   defsubr (&Sbufferp);
   defsubr (&Smarkerp);
   defsubr (&Ssubrp);
+  defsubr (&Smutexp);
   defsubr (&Sbyte_code_function_p);
   defsubr (&Schar_or_string_p);
   defsubr (&Scar);

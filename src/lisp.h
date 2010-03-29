@@ -2312,6 +2312,7 @@ EXFUN (Fsequencep, 1);
 EXFUN (Fbufferp, 1);
 EXFUN (Fmarkerp, 1);
 EXFUN (Fsubrp, 1);
+EXFUN (Fmutexp, 1);
 EXFUN (Fchar_or_string_p, 1);
 EXFUN (Finteger_or_marker_p, 1);
 EXFUN (Ffloatp, 1);
