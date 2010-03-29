@@ -1,3 +1,8 @@
+2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Secret Service API): Add TODO node.
+	(Help for users): Explain the new source options for `auth-sources'.
+
 2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
