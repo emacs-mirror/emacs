@@ -1,3 +1,17 @@
+2010-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* language/sinhala.el (composition-function-table): Fix regexp for
+	the new Unicode specification.
+
+	* language/indian.el (devanagari-composable-pattern)
+	(tamil-composable-pattern, kannada-composable-pattern)
+	(malayalam-composable-pattern): Adjusted for the new Unicode
+	specification.
+	(bengali-composable-pattern, gurmukhi-composable-pattern)
+	(gujarati-composable-pattern, oriya-composable-pattern)
+	(telugu-composable-pattern): New variables to cope with the new
+	Unicode specification.  Use them in composition-function-table.
+
 2010-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make tmm-menubar work for the Buffers menu again.

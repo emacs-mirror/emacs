@@ -33,7 +33,17 @@
 (set-char-table-range 
  composition-function-table
  '(#xD80 . #xDFF)
- (list (vector "[\xD80-\xDFF\x200C\x200D]+" 0 'font-shape-gstring)))
+ (list (vector
+	;; C:consonant, H:HALANT, J:ZWJ, v:vowel sign,
+	;; V:independent vowel, a:ANUSVARA .. VISARGA
+	(concat
+	 ;; C(HJC)*v*H?a?, or
+	 "[\u0D9A-\u0DC6]\\(?:\u0DCA\u200D[\u0D9A-\u0DC6]\\)*[\u0DCF-\u0DDF\u0DF2-\u0DF3]*\u0DCA?[\u0D82-\u0D83]?\\|"
+	 ;; Va?, or
+	 "[\u0D85-\u0D96][\u0D82-\u0D83]?\\|"
+	 ;; any other singleton characters
+	 "[\u0D80-\u0DFF]")
+	0 'font-shape-gstring)))
 
 ;; arch-tag: 87b9ad3b-5090-422f-b942-eb85b9d52e7c
 ;; sinhala.el ends here
