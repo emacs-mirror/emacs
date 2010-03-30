@@ -1,3 +1,11 @@
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Input Methods): Mention "C-x 8 RET" and add a
+	cross-reference to "Inserting Text".
+
+	* basic.texi (Inserting Text): Add an index entry for "C-x 8 RET".
+	Mention completion provided by `ucs-insert'.
+
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* sending.texi (Sending Mail): Note variables that may need
