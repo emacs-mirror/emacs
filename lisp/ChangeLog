@@ -1,5 +1,22 @@
 2010-03-30  Juri Linkov  <juri@jurta.org>
 
+	Make occur handle multi-line matches cleanly with context.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01280.html
+
+	* replace.el (occur-accumulate-lines): Add optional arg `pt'.
+	(occur-engine): Add local variables `ret', `prev-after-lines',
+	`prev-lines'.  Use more arguments for `occur-context-lines'.
+	Set first elem of its returned list to `data', and the second elem
+	to `prev-after-lines'.  Don't print the separator line.
+	In the end, print remaining context after-lines.
+	(occur-context-lines): Add new arguments `begpt', `endpt',
+	`lines', `prev-lines', `prev-after-lines'.  Rewrite to combine
+	after-lines of the previous match with before-lines of the
+	current match and not overlap them.  Return a list with two
+	values: the output line and the list of context after-lines.
+
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (occur-accumulate-lines): Fix a bug where the first
 	context line at the beginning of the buffer was missing.
 

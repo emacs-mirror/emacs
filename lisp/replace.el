@@ -1005,8 +1005,10 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
-(defun occur-accumulate-lines (count &optional keep-props)
+(defun occur-accumulate-lines (count &optional keep-props pt)
   (save-excursion
+    (when pt
+      (goto-char pt))
     (let ((forwardp (> count 0))
 	  result beg end moved)
       (while (not (or (zerop count)
@@ -1189,12 +1191,15 @@ See also `multi-occur'."
 	(when (buffer-live-p buf)
 	  (let ((matches 0)	;; count of matched lines
 		(lines 1)	;; line count
+		(prev-after-lines nil)	;; context lines of prev match
+		(prev-lines nil)        ;; line number of prev match endpt
 		(matchbeg 0)
 		(origpt nil)
 		(begpt nil)
 		(endpt nil)
 		(marker nil)
 		(curstring "")
+		(ret nil)
 		(inhibit-field-text-motion t)
 		(headerpt (with-current-buffer out-buf (point))))
 	    (with-current-buffer buf
@@ -1271,14 +1276,17 @@ See also `multi-occur'."
 				;; The simple display style
 				out-line
 			      ;; The complex multi-line display style.
-			      (occur-context-lines out-line nlines keep-props)
-			      )))
+			      (setq ret (occur-context-lines
+					 out-line nlines keep-props begpt endpt
+					 lines prev-lines prev-after-lines))
+			      ;; Set first elem of the returned list to `data',
+			      ;; and the second elem to `prev-after-lines'.
+			      (setq prev-after-lines (nth 1 ret))
+			      (nth 0 ret))))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
 			(let ((beg (point))
-			      (end (progn (insert data) (point))))
-			  (unless (= nlines 0)
-			    (insert "-------\n")))))
+			      (end (progn (insert data) (point)))))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
@@ -1289,7 +1297,13 @@ See also `multi-occur'."
 				       (if (and (bolp) (eolp)) 1 0)))
 			;; On to the next match...
 			(forward-line 1))
-		    (goto-char (point-max))))))
+		    (goto-char (point-max)))
+		  (setq prev-lines (1- lines)))
+		;; Flush remaining context after-lines.
+		(when prev-after-lines
+		  (with-current-buffer out-buf
+		    (insert (apply #'concat (occur-engine-add-prefix
+					     prev-after-lines)))))))
 	    (when (not (zerop matches)) ;; is the count zero?
 	      (setq globalcount (+ globalcount matches))
 	      (with-current-buffer out-buf
@@ -1345,18 +1359,60 @@ See also `multi-occur'."
 ;; Generate context display for occur.
 ;; OUT-LINE is the line where the match is.
 ;; NLINES and KEEP-PROPS are args to occur-engine.
+;; LINES is line count of the current match,
+;; PREV-LINES is line count of the previous match,
+;; PREV-AFTER-LINES is a list of after-context lines of the previous match.
 ;; Generate a list of lines, add prefixes to all but OUT-LINE,
 ;; then concatenate them all together.
-(defun occur-context-lines (out-line nlines keep-props)
-  (apply #'concat
-	 (nconc
-	  (occur-engine-add-prefix
-	   (nreverse (cdr (occur-accumulate-lines
-			   (- (1+ (abs nlines))) keep-props))))
-	  (list out-line)
-	  (if (> nlines 0)
-	      (occur-engine-add-prefix
-	       (cdr (occur-accumulate-lines (1+ nlines) keep-props)))))))
+(defun occur-context-lines (out-line nlines keep-props begpt endpt
+				     lines prev-lines prev-after-lines)
+  ;; Find after- and before-context lines of the current match.
+  (let ((before-lines
+	 (nreverse (cdr (occur-accumulate-lines
+			 (- (1+ (abs nlines))) keep-props begpt))))
+	(after-lines
+	 (cdr (occur-accumulate-lines
+	       (1+ nlines) keep-props endpt)))
+	separator)
+
+    ;; Combine after-lines of the previous match
+    ;; with before-lines of the current match.
+
+    (when prev-after-lines
+      ;; Don't overlap prev after-lines with current before-lines.
+      (if (>= (+ prev-lines (length prev-after-lines))
+	      (- lines      (length before-lines)))
+	  (setq prev-after-lines
+		(butlast prev-after-lines
+			 (- (length prev-after-lines)
+			    (- lines prev-lines (length before-lines) 1))))
+	;; Separate non-overlapping context lines with a dashed line.
+	(setq separator "-------\n")))
+
+    (when prev-lines
+      ;; Don't overlap current before-lines with previous match line.
+      (if (<= (- lines (length before-lines))
+	      prev-lines)
+	  (setq before-lines
+		(nthcdr (- (length before-lines)
+			   (- lines prev-lines 1))
+			before-lines))
+	;; Separate non-overlapping before-context lines.
+	(unless (> nlines 0)
+	  (setq separator "-------\n"))))
+
+    (list
+     ;; Return a list where the first element is the output line.
+     (apply #'concat
+	    (append
+	     (and prev-after-lines
+		  (occur-engine-add-prefix prev-after-lines))
+	     (and separator (list separator))
+	     (occur-engine-add-prefix before-lines)
+	     (list out-line)))
+     ;; And the second element is the list of context after-lines.
+     (if (> nlines 0) after-lines))))
+
 
 ;; It would be nice to use \\[...], but there is no reasonable way
 ;; to make that display both SPC and Y.

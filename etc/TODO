@@ -128,8 +128,6 @@ for users to customize.
 
 ** Enhance scroll-bar to handle tall line (similar to line-move).
 
-** Make occur handle multi-line matches cleanly with context.
-
 ** In Custom buffers, put the option that turns a mode on or off first,
   using a heuristic of some kind?
 
