@@ -1005,23 +1005,6 @@ which means to discard all text properties."
   :group 'matching
   :version "22.1")
 
-(defun occur-accumulate-lines (count &optional keep-props pt)
-  (save-excursion
-    (when pt
-      (goto-char pt))
-    (let ((forwardp (> count 0))
-	  result beg end moved)
-      (while (not (or (zerop count)
-		      (if forwardp
-			  (eobp)
-			(and (bobp) (not moved)))))
-	(setq count (+ count (if forwardp -1 1)))
-	(setq beg (line-beginning-position)
-	      end (line-end-position))
-	(push (occur-engine-line beg end keep-props) result)
-	(setq moved (= 0 (forward-line (if forwardp 1 -1)))))
-      (nreverse result))))
-
 (defun occur-read-primary-args ()
   (list (read-regexp "List lines matching regexp"
 		     (car regexp-history))
@@ -1174,12 +1157,6 @@ See also `multi-occur'."
             (setq buffer-read-only t)
             (set-buffer-modified-p nil)
             (run-hooks 'occur-hook)))))))
-
-(defun occur-engine-add-prefix (lines)
-  (mapcar
-   #'(lambda (line)
-       (concat "       :" line "\n"))
-   lines))
 
 (defun occur-engine (regexp buffers out-buf nlines case-fold-search
 			    title-face prefix-face match-face keep-props)
@@ -1355,6 +1332,29 @@ See also `multi-occur'."
 	 0 (length str) occur-excluded-properties str)
 	str)
     (buffer-substring-no-properties beg end)))
+
+(defun occur-engine-add-prefix (lines)
+  (mapcar
+   #'(lambda (line)
+       (concat "       :" line "\n"))
+   lines))
+
+(defun occur-accumulate-lines (count &optional keep-props pt)
+  (save-excursion
+    (when pt
+      (goto-char pt))
+    (let ((forwardp (> count 0))
+	  result beg end moved)
+      (while (not (or (zerop count)
+		      (if forwardp
+			  (eobp)
+			(and (bobp) (not moved)))))
+	(setq count (+ count (if forwardp -1 1)))
+	(setq beg (line-beginning-position)
+	      end (line-end-position))
+	(push (occur-engine-line beg end keep-props) result)
+	(setq moved (= 0 (forward-line (if forwardp 1 -1)))))
+      (nreverse result))))
 
 ;; Generate context display for occur.
 ;; OUT-LINE is the line where the match is.
