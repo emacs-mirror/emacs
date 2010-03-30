@@ -1,19 +1,83 @@
+2010-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make tmm-menubar work for the Buffers menu again.
+	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
+	vectors rather than cons cells, as used in menu-bar-update-buffers.
+
+2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el (js-auto-indent-flag, js-mode-map)
+	(js-insert-and-indent): Revert 2009-08-15 change, restoring
+	electric punctuation for "{}();,:" (Bug#5586).
+
+	* mail/sendmail.el (mail-default-directory): Doc fix.
+
+2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-default-directory): Doc fix.
+
+2010-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version-regexp-alist, version-to-list)
+	(version-list-<, version-list-=, version-list-<=)
+	(version-list-not-zero, version<, version<=, version=): Doc fix.
+	(Bug#5744).
+
+2010-03-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+            Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-apple-test): New function.
+	(gdb-init-1): Use it.
+
+2010-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-root-diff): Doc fix.
+
+2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc.el (vc-print-log, vc-print-root-log): Doc fix.
+
+	* simple.el (append-to-buffer): Fix last change.
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (append-to-buffer): Ensure that point is preserved if
+	BUFFER is the current buffer.  Suggested by YAMAMOTO Mitsuharu.
+	(Bug#5749)
+
+2010-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-rule-action-regex): Backtrack less.
+	(makefile-make-font-lock-keywords): Adjust rule since submatch 1 may
+	not be present any more.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (set-face-attribute): Fix typo in docstring.
+	(face-valid-attribute-values): Reflow docstring.
+
+	* cedet/srecode/table.el (srecode-template-table): Fix docstring typo.
+
+2010-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (sgml-lexical-context): Autoload it (Bug#5752).
+
 2010-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.el (indent-for-tab-command): Doc fix.
 
 2010-03-22  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-remove-stale-state-cache): Fix
-	off-by-one error.  Fixes bug #5747.
+	* progmodes/cc-engine.el (c-remove-stale-state-cache):
+	Fix off-by-one error.  Fixes bug #5747.
 
 2010-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image-dired.el (image-dired-display-thumbs): Fix typo in docstring.
 	(image-dired-read-comment): Doc fix.
 
-	* json.el (json-object-type, json-array-type, json-key-type, json-false)
-	(json-null, json-read-number):
+	* json.el (json-object-type, json-array-type, json-key-type)
+	(json-false, json-null, json-read-number):
 	* minibuffer.el (completion-in-region-functions):
 	* calendar/cal-tex.el (cal-tex-daily-end, cal-tex-number-weeks)
 	(cal-tex-cursor-week):
@@ -59,8 +123,8 @@
 
 2010-03-13  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-find-executable): Use
-	`tramp-get-connection-buffer'.  Make the regexp for checking
+	* net/tramp.el (tramp-find-executable):
+	Use `tramp-get-connection-buffer'.  Make the regexp for checking
 	output of "wc -l" more robust.
 	(tramp-find-shell): Use another shell but /bin/sh on OpenSolaris.
 	(tramp-open-connection-setup-interactive-shell): Remove workaround

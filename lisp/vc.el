@@ -1609,9 +1609,10 @@ saving the buffer."
 
 ;;;###autoload
 (defun vc-root-diff (historic &optional not-urgent)
-  "Display diffs between file revisions.
-Normally this compares the currently selected fileset with their
-working revisions.  With a prefix argument HISTORIC, it reads two revision
+  "Display diffs between VC-controlled whole tree revisions.
+Normally, this compares the tree corresponding to the current
+fileset with the working revision.
+With a prefix argument HISTORIC, prompt for two revision
 designators specifying which revisions to compare.
 
 The optional argument NOT-URGENT non-nil means it is ok to say no to
@@ -1931,7 +1932,12 @@ Not all VC backends support short logs!")
 ;;;###autoload
 (defun vc-print-log (&optional working-revision limit)
   "List the change log of the current fileset in a window.
-If WORKING-REVISION is non-nil, leave the point at that revision."
+If WORKING-REVISION is non-nil, leave point at that revision.
+If LIMIT is non-nil, it should be a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+
+When called interactively with a prefix argument, prompt for
+WORKING-REVISION and LIMIT."
   (interactive
    (cond
     (current-prefix-arg
@@ -1955,7 +1961,10 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
 
 ;;;###autoload
 (defun vc-print-root-log (&optional limit)
-  "List the change log of for the current VC controlled tree in a window."
+  "List the change log for the current VC controlled tree in a window.
+If LIMIT is non-nil, it should be a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+When called interactively with a prefix argument, prompt for LIMIT."
   (interactive
    (cond
     (current-prefix-arg

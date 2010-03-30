@@ -1,5 +1,23 @@
-/* Special test file for Semantic Analyzer and complex C++ inheritance.
- */
+// testsubclass.cpp --- unit test for analyzer and complex C++ inheritance
+
+// Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+// Author: Eric M. Ludlam <eric@siege-engine.com>
+
+// This file is part of GNU Emacs.
+
+// GNU Emacs is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// GNU Emacs is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 //#include <iostream>
 #include "testsubclass.hh"
@@ -94,7 +112,7 @@ moose deer::alces::createMoose()
   MooseVariableName = createMoose();
 
   doLatinStuff(MooseVariableName);
-  
+
   tmp = this.f// -1-
     // #1# ( "fAlcesBool" "fIsValid" "fLatin" )
     ;
@@ -125,7 +143,7 @@ moose deer::alces::createMoose()
 int someFunction(int mPickle)
 {
   moose mMoose = deer::alces::createMoose();
-  
+
   if (mPickle == 1) {
 
     int mOption1 = 2;
@@ -152,7 +170,7 @@ namespace pub_priv {
   class A{
   private:
     void private_a(){}
-  public: 
+  public:
     void public_a();
   };
 

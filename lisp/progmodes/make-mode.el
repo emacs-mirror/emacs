@@ -272,7 +272,7 @@ not be enclosed in { } or ( )."
   "Characters to skip to find a line that might be a dependency.")
 
 (defvar makefile-rule-action-regex
-  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)"
+  "^\t[ \t]*\\(?:\\([-@]+\\)[ \t]*\\)\\(.*\\(?:\\\\\n.*\\)*\\)"
   "Regex used to highlight rule action lines in font lock mode.")
 
 (defconst makefile-makepp-rule-action-regex
@@ -355,8 +355,9 @@ not be enclosed in { } or ( )."
      (3 'font-lock-string-face prepend t))
 
     ;; Rule actions.
+    ;; FIXME: When this spans multiple lines we need font-lock-multiline.
     (makefile-match-action
-     (1 font-lock-type-face)
+     (1 font-lock-type-face nil t)
      (2 'makefile-shell prepend)
      ;; Only makepp has builtin commands.
      (3 font-lock-builtin-face prepend t))

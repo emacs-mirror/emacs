@@ -84,11 +84,20 @@ When in DocView mode, you can scroll the current page using the usual
 Emacs movement keys: @kbd{C-p}, @kbd{C-n}, @kbd{C-b}, @kbd{C-f}, and
 the arrow keys.
 
+@vindex doc-view-continuous
+  By default, the line-motion keys @kbd{C-p} and @kbd{C-n} stop
+scrolling at the beginning and end of the current page, respectively.
+However, if you change the variable @code{doc-view-continuous} to a
+non-@code{nil} value, then @kbd{C-p} displays the previous page if you
+are already at the beginning of the current page, and @kbd{C-n}
+displays the next page if you are at the end of the current page.
+
 @findex doc-view-next-page
 @findex doc-view-previous-page
-  To display the next page, type @kbd{n}, @key{next} or @kbd{C-x ]}
-(@code{doc-view-next-page}).  To display the previous page, type
-@kbd{p}, @key{prior} or @kbd{C-x [} (@code{doc-view-previous-page}).
+  You can also display the next page by typing @kbd{n}, @key{next} or
+@kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
+page, type @kbd{p}, @key{prior} or @kbd{C-x [}
+(@code{doc-view-previous-page}).
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
@@ -957,12 +966,9 @@ Fetch the next earlier old shell command.
 Fetch the next later old shell command.
 
 @kindex M-r @r{(Shell mode)}
-@kindex M-s @r{(Shell mode)}
-@findex comint-previous-matching-input
-@findex comint-next-matching-input
-@item M-r @var{regexp} @key{RET}
-@itemx M-s @var{regexp} @key{RET}
-Search backwards or forwards for old shell commands that match @var{regexp}.
+@findex comint-history-isearch-backward-regexp
+@item M-r
+Begin an incremental regexp search of old shell commands.
 
 @item C-c C-x
 @kindex C-c C-x @r{(Shell mode)}
@@ -995,15 +1001,15 @@ successively more recent shell commands from the buffer.
 @kbd{C-@key{UP}} works like @kbd{M-p}, and @kbd{C-@key{DOWN}} like
 @kbd{M-n}.
 
-  The history search commands @kbd{M-r} and @kbd{M-s} read a regular
-expression and search through the history for a matching command.  Aside
-from the choice of which command to fetch, they work just like @kbd{M-p}
-and @kbd{M-n}.  If you enter an empty regexp, these commands reuse the
-same regexp used last time.
-
-  When you find the previous input you want, you can resubmit it by
-typing @key{RET}, or you can edit it first and then resubmit it if you
-wish.  Any partial input you were composing before navigating the
+  The history search command @kbd{M-r} begins an incremental regular
+expression search of previous shell commands.  After typing @kbd{M-r},
+start typing the desired string or regular expression; the last
+matching shell command will be displayed in the current line.
+Incremental search commands have their usual effects---for instance,
+@kbd{C-s} and @kbd{C-r} search forward and backward for the next match
+(@pxref{Incremental Search}).  When you find the desired input, type
+@key{RET} to terminate the search.  This puts the input in the command
+line.  Any partial input you were composing before navigating the
 history list is restored when you go to the beginning or end of the
 history ring.
 

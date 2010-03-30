@@ -436,6 +436,13 @@ The value must be no less than minus `js-indent-level'."
   :type 'integer
   :group 'js)
 
+(defcustom js-auto-indent-flag t
+  "Whether to automatically indent when typing punctuation characters.
+If non-nil, the characters {}();,: also indent the current line
+in Javascript mode."
+  :type 'boolean
+  :group 'js)
+
 (defcustom js-flat-functions nil
   "Treat nested functions as top-level functions in `js-mode'.
 This applies to function movement, marking, and so on."
@@ -483,6 +490,9 @@ getting timeout messages."
 
 (defvar js-mode-map
   (let ((keymap (make-sparse-keymap)))
+    (mapc (lambda (key)
+	    (define-key keymap key #'js-insert-and-indent))
+	  '("{" "}" "(" ")" ":" ";" ","))
     (define-key keymap [(control ?c) (meta ?:)] #'js-eval)
     (define-key keymap [(control ?c) (control ?j)] #'js-set-js-context)
     (define-key keymap [(control meta ?x)] #'js-eval-defun)
@@ -497,6 +507,21 @@ getting timeout messages."
          (fboundp #'inferior-moz-process)]))
     keymap)
   "Keymap for `js-mode'.")
+
+(defun js-insert-and-indent (key)
+  "Run the command bound to KEY, and indent if necessary.
+Indentation does not take place if point is in a string or
+comment."
+  (interactive (list (this-command-keys)))
+  (call-interactively (lookup-key (current-global-map) key))
+  (let ((syntax (save-restriction (widen) (syntax-ppss))))
+    (when (or (and (not (nth 8 syntax))
+                   js-auto-indent-flag)
+              (and (nth 4 syntax)
+                   (eq (current-column)
+                       (1+ (current-indentation)))))
+      (indent-according-to-mode))))
+
 
 ;;; Syntax table and parsing
 

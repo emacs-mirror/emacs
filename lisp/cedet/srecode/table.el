@@ -66,7 +66,7 @@ Format is from the `file-attributes' function.")
 If this is nil, then this template table belongs to a set of generic
 templates that can be used with no additional dictionary values.
 When it is non-nil, it is assumed the template macros need specialized
-Emacs Lisp code to fill in the dictoinary.")
+Emacs Lisp code to fill in the dictionary.")
    (priority :initarg :priority
 	     :type number
 	     :documentation

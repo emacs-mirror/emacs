@@ -1,6 +1,24 @@
-;; Test file for Emacs Lisp.
-;; Attempt to include as many aspects of Emacs Lisp as possible.
-;;
+;;; test.el --- Unit test file for Semantic Emacs Lisp support.
+
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
+
+;; Author: Eric M. Ludlam <eric@siege-engine.com>
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Require
 ;;
@@ -88,7 +106,7 @@
 (autoload (quote a-autoload) "somefile"
   "Non-interactive autoload." nil nil)
 
-(autoload (quote a-autoload-interactive) "somefile" 
+(autoload (quote a-autoload-interactive) "somefile"
 "Interactive autoload." t nil)
 
 
@@ -116,7 +134,7 @@
   (slot-1 :equal 'eq)
   slot-2)
 
-(defstruct test-struct-2 
+(defstruct test-struct-2
   slot-1
   slot-2)
 

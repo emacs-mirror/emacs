@@ -1,3 +1,28 @@
+2010-03-29  Adrian Robert  <adrian.b.robert@gmail.com>
+
+	* xdisp.c (x_consider_frame_title, update_window_cursor): Remove
+	HAVE_NS conditionals.
+	(prepare_menu_bars)[HAVE_NS]: Call ns_set_doc_edited.
+
+	* nsfns.m (x_implicitly_set_name): If frame-title-format is t, use
+	filename for the title.
+	(ns_set_doc_edited): Do nothing if the selected window is a
+	minibuffer window.
+
+	* nsterm.h: Add prototypes for ns_set_name_as_filename and
+	ns_set_doc_edited.
+
+	* nsterm.m: Remove unneeded prototype.
+
+2010-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Ensure dbus stuff is always
+	in the DOC file.  (Bug#5336)
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Revert 2008-01-25 change (Bug#5730).
+
 2010-03-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (x_get_arg): Handle RES_TYPE_BOOLEAN_NUMBER (bug #5736).

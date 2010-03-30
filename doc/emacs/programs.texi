@@ -88,11 +88,12 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 @cindex PostScript mode
 @cindex Conf mode
 @cindex DNS mode
+@cindex Javascript mode
   The existing programming language major modes include Lisp, Scheme
 (a variant of Lisp) and the Scheme-based DSSSL expression language,
 Ada, ASM, AWK, C, C++, Delphi (Object Pascal), Fortran, Icon, IDL
-(CORBA), IDLWAVE, Java, Metafont (@TeX{}'s companion for font
-creation), Modula2, Objective-C, Octave, Pascal, Perl, Pike,
+(CORBA), IDLWAVE, Java, Javascript, Metafont (@TeX{}'s companion for
+font creation), Modula2, Objective-C, Octave, Pascal, Perl, Pike,
 PostScript, Prolog, Python, Ruby, Simula, Tcl, and VHDL.  An
 alternative mode for Perl is called CPerl mode.  Modes are available
 for the scripting languages of the common GNU and Unix shells, VMS

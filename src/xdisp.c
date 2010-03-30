@@ -1375,33 +1375,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	visible_p = 1;
       if (visible_p)
 	{
-	  if (it_method == GET_FROM_BUFFER)
-	    {
-	      Lisp_Object window, prop;
-
-	      XSETWINDOW (window, w);
-	      prop = Fget_char_property (make_number (charpos),
-					 Qinvisible, window);
-
-	      /* If charpos coincides with invisible text covered with an
-		 ellipsis, use the first glyph of the ellipsis to compute
-		 the pixel positions.  */
-	      if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
-		{
-		  struct glyph_row *row = it.glyph_row;
-		  struct glyph *glyph = row->glyphs[TEXT_AREA];
-		  struct glyph *end = glyph + row->used[TEXT_AREA];
-		  int x = row->x;
-
-		  for (; glyph < end
-			 && (!BUFFERP (glyph->object)
-			     || glyph->charpos < charpos);
-		       glyph++)
-		    x += glyph->pixel_width;
-		  top_x = x;
-		}
-	    }
-	  else if (it_method == GET_FROM_DISPLAY_VECTOR)
+	  if (it_method == GET_FROM_DISPLAY_VECTOR)
 	    {
 	      /* We stopped on the last glyph of a display vector.
 		 Try and recompute.  Hack alert!  */
@@ -9498,32 +9472,7 @@ x_consider_frame_title (frame)
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
 	  || bcmp (title, SDATA (f->name), len) != 0)
-        {
-#ifdef HAVE_NS
-          if (FRAME_NS_P (f))
-            {
-              if (!MINI_WINDOW_P(XWINDOW(f->selected_window)))
-                {
-                  if (EQ (fmt, Qt))
-                    ns_set_name_as_filename (f);
-                  else
-                    x_implicitly_set_name (f, make_string(title, len),
-                                           Qnil);
-                }
-            }
-          else
-#endif
-	    x_implicitly_set_name (f, make_string (title, len), Qnil);
-        }
-#ifdef HAVE_NS
-      if (FRAME_NS_P (f))
-        {
-          /* do this also for frames with explicit names */
-          ns_implicitly_set_icon_type(f);
-          ns_set_doc_edited(f, Fbuffer_modified_p
-                            (XWINDOW (f->selected_window)->buffer), Qnil);
-        }
-#endif
+	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
 
@@ -9619,6 +9568,11 @@ prepare_menu_bars ()
 	  menu_bar_hooks_run = update_menu_bar (f, 0, menu_bar_hooks_run);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
+#endif
+#ifdef HAVE_NS
+          if (windows_or_buffers_changed)
+            ns_set_doc_edited (f, Fbuffer_modified_p
+			       (XWINDOW (f->selected_window)->buffer));
 #endif
 	  UNGCPRO;
 	}
@@ -22679,9 +22633,6 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 /* Switch the display of W's cursor on or off, according to the value
    of ON.  */
 
-#ifndef HAVE_NS
-static
-#endif
 void
 update_window_cursor (w, on)
      struct window *w;
