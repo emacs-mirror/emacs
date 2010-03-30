@@ -2,6 +2,11 @@
 
 	* emacs.texi (Top): Update node names to those in building.texi.
 
+2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	doc/emacs/building.texi: Describe restored GDB/MI fuctionality removed by r99212.
+	doc/emacs/emacs.texi: Update node names for building.texi.
+
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):

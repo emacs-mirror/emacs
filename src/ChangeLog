@@ -1,3 +1,18 @@
+2010-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all uses of C_DEBUG_SWITCH and LIBS_DEBUG.
+	* s/usg5-4.h (LIBS_DEBUG):
+	* s/irix6-5.h (C_DEBUG_SWITCH):
+	* s/gnu-linux.h (LIBS_DEBUG):
+	* s/darwin.h (LIBS_DEBUG):
+	* s/bsd-common.h (LIBS_DEBUG):
+	* s/aix4-2.h (LIBS_DEBUG, C_DEBUG_SWITCH):
+	* m/iris4d.h (LIBS_DEBUG):
+	* m/hp800.h (LIBS_DEBUG): Remove definitions.
+
+	* Makefile.in (LIBES): Remove reference to LIBS_DEBUG.
+	(LIBS_DEBUG): Remove definition.
+
 2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (Fmake_network_process): Don't apply Bug#5173 fix for

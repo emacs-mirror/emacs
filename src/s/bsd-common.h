@@ -46,8 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_TERMIOS
 #define NO_TERMIO
 
-#define LIBS_DEBUG
-
 #define SYSV_SYSTEM_DIR
 
 /* POSIX-style pgrp behavior.  */
