@@ -1,5 +1,9 @@
 2010-03-30  Juri Linkov  <juri@jurta.org>
 
+	* dired-x.el (dired-omit-mode): Doc fix.
+
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
 	Make occur handle multi-line matches cleanly with context.
 	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01280.html
 

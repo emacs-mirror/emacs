@@ -163,7 +163,13 @@ With numeric ARG, enable Dired-Omit mode if ARG is positive, disable
 otherwise.  Enabling and disabling is buffer-local.
 If enabled, \"uninteresting\" files are not listed.
 Uninteresting files are those whose filenames match regexp `dired-omit-files',
-plus those ending with extensions in `dired-omit-extensions'."
+plus those ending with extensions in `dired-omit-extensions'.
+
+To enable omitting in every Dired buffer, you can put in your ~/.emacs
+
+  (add-hook 'dired-mode-hook (lambda () (dired-omit-mode 1)))
+
+See Info node `(dired-x) Omitting Variables' for more information."
   :group 'dired-x
   (if dired-omit-mode
       ;; This will mention how many lines were omitted:
