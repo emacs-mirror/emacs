@@ -1,3 +1,8 @@
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el: Make bidi-display-reordering safe variable for boolean
+	values.
+
 2010-03-29  Phil Hagelberg  <phil@evri.com>
 	    Chong Yidong  <cyd@stupidchicken.com>
 

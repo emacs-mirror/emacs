@@ -36,6 +36,30 @@ lib-src/Makefile by hand in order to use the associated features.
 
 * Changes in Emacs 24.1
 
++++
+** Emacs now supports display and editing of bidirectional text.
+Warning: This is still very much experimental!  The existing support
+is minimal, and when it's turned on (see below), many features are
+likely to give unexpected results, or break, or even crash!  Use at
+your own risk!
+
+See the node "Bidirectional Editing" in the Emacs Manual for some
+initial documentation.
+
+To turn this on in any given buffer, set the buffer-local variable
+`bidi-display-reordering' to a non-nil value.  The default is nil.
+
+The buffer-local variable `bidi-paragraph-direction', if non-nil,
+forces each paragraph in the buffer to have its base direction
+according to the value of this variable.  Possible values are
+`right-to-left' and `left-to-right'.  If the value is nil (the
+default), Emacs determines the base direction of each paragraph from
+its text, as specified by the Unicode Bidirectional Algorithm.
+
+Reordering of bidirectional text for display in Emacs is a "Full
+bidirectionality" class implementation of the Unicode Bidirectional
+Algorithm.
+
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 

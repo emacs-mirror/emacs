@@ -1388,8 +1388,11 @@ prepare_desired_row (row)
 {
   if (!row->enabled_p)
     {
+      unsigned rp = row->reversed_p;
+
       clear_glyph_row (row);
       row->enabled_p = 1;
+      row->reversed_p = rp;
     }
 }
 
@@ -1540,6 +1543,7 @@ row_equal_p (w, a, b, mouse_face_p)
 	  || a->overlapped_p != b->overlapped_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (a)
 	      != MATRIX_ROW_CONTINUATION_LINE_P (b))
+	  || a->reversed_p != b->reversed_p
 	  /* Different partially visible characters on left margin.  */
 	  || a->x != b->x
 	  /* Different height.  */
@@ -3500,6 +3504,8 @@ direct_output_for_insert (g)
       || !display_completed
       /* Give up if buffer appears in two places.  */
       || buffer_shared > 1
+      /* Give up if we need to reorder bidirectional text.  */
+      || !NILP (current_buffer->bidi_display_reordering)
       /* Give up if currently displaying a message instead of the
 	 minibuffer contents.  */
       || (EQ (selected_window, minibuf_window)
@@ -3774,6 +3780,10 @@ direct_output_forward_char (n)
   /* Give up if current matrix is not up to date or we are
      displaying a message.  */
   if (!display_completed || cursor_in_echo_area)
+    return 0;
+
+  /* Give up if we need to reorder bidirectional text.  */
+  if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
     return 0;
 
   /* Give up if the buffer's direction is reversed.  */
