@@ -1008,16 +1008,16 @@ which means to discard all text properties."
 (defun occur-accumulate-lines (count &optional keep-props)
   (save-excursion
     (let ((forwardp (> count 0))
-	  result beg end)
+	  result beg end moved)
       (while (not (or (zerop count)
 		      (if forwardp
 			  (eobp)
-			(bobp))))
+			(and (bobp) (not moved)))))
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
 	(push (occur-engine-line beg end keep-props) result)
-	(forward-line (if forwardp 1 -1)))
+	(setq moved (= 0 (forward-line (if forwardp 1 -1)))))
       (nreverse result))))
 
 (defun occur-read-primary-args ()
@@ -1028,7 +1028,7 @@ which means to discard all text properties."
 
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
-Here `original-buffer-name' is the buffer name were Occur was originally run.
+Here `original-buffer-name' is the buffer name where Occur was originally run.
 When given the prefix argument, or called non-interactively, the renaming
 will not clobber the existing buffer(s) of that name, but use
 `generate-new-buffer-name' instead.  You can add this to `occur-hook'
