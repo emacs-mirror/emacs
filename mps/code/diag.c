@@ -32,6 +32,7 @@ struct RuleStruct RulesGlobal[] = {
   { "+", "DiagFilter_Rules", "*", "*" },
   { "+", "VMCompact", "*", "*" },
   /* ----v---- always on please (RHSK) ----v---- */
+  { "+", "MPSVersion", "*", "*" },
   { "+", "traceSetSignalEmergency", "*", "*" },
   { NULL, "", "", "" }
 };
@@ -189,6 +190,12 @@ enum {
   TPMatch_Yes,
   TPMatch_No
 };
+
+static void version_diag(void)
+{
+  DIAG_SINGLEF(( "MPSVersion",
+    "$S", MPSVersion(), NULL ));
+}
 
 static void rules_diag(Rule rules)
 {
@@ -406,6 +413,7 @@ static void filterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
 
   if(first) {
     first = FALSE;
+    version_diag();
     rules_diag(&RulesGlobal[0]);
     diag_test();
   }
