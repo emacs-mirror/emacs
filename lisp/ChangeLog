@@ -1,3 +1,8 @@
+2010-03-30  Tomas Abrahamsson  <tab@lysator.liu.se>
+
+	* textmodes/artist.el (artist-mode): Fix typo in docstring.
+	Reported by Alex Schröder <kensanata@gmail.com>.  (Bug#5807)
+
 2010-03-30  Kenichi Handa  <handa@m17n.org>
 
 	* language/sinhala.el (composition-function-table): Fix regexp for
