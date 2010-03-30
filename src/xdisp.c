@@ -23551,7 +23551,8 @@ note_mouse_highlight (f, x, y)
 #endif
 
   if (NILP (Vmouse_highlight)
-      || !f->glyphs_initialized_p)
+      || !f->glyphs_initialized_p
+      || f->pointer_invisible)
     return;
 
   dpyinfo->mouse_face_mouse_x = x;

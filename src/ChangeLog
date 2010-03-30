@@ -1,3 +1,8 @@
+2010-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (note_mouse_highlight): Don't do highlight if pointer is
+	invisible (Bug#5766).
+
 2010-03-29  Adrian Robert  <adrian.b.robert@gmail.com>
 
 	* xdisp.c (x_consider_frame_title, update_window_cursor): Remove
