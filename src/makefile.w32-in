@@ -115,6 +115,7 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/vm-limit.$(O)		\
 	$(BLD)/region-cache.$(O)	\
 	$(BLD)/strftime.$(O)		\
+	$(BLD)/bidi.$(O)		\
 	$(BLD)/charset.$(O)		\
 	$(BLD)/character.$(O)		\
 	$(BLD)/chartab.$(O)		\
@@ -337,6 +338,15 @@ $(BLD)/atimer.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h
+
+$(BLD)/bidi.$(O) : \
+	$(SRC)/bidi.c \
+	$(CONFIG_H) \
+	$(SRC)/lisp.h \
+	$(SRC)/buffer.h \
+	$(SRC)/character.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/buffer.$(O) : \
 	$(SRC)/buffer.c \

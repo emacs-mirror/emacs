@@ -1,3 +1,13 @@
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Other Repeating Search): Remove line that `occur'
+	can not handle multiline matches.
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (International): Mention support of bidirectional editing.
+	(Bidirectional Editing): New section.
+
 2010-03-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs.texi (Top): Update node names to those in building.texi.

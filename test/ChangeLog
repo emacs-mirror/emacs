@@ -1,3 +1,7 @@
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
+	* occur-testsuite.el (occur-tests): Add tests for context lines.
+
 2010-03-23  Juri Linkov  <juri@jurta.org>
 
 	* occur-testsuite.el: New file.

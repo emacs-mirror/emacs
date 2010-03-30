@@ -107,7 +107,214 @@ fx
        :fx
        :
 ")
-    )
+    ;; * Test non-overlapping context lines with matches at bob/eob.
+    ("x" 1 "\
+ax
+b
+c
+d
+ex
+f
+g
+hx
+" "\
+3 matches for \"x\" in buffer:  *temp*
+      1:ax
+       :b
+-------
+       :d
+      5:ex
+       :f
+-------
+       :g
+      8:hx
+")
+    ;; * Test non-overlapping context lines with matches not at bob/eob.
+    ("x" 1 "\
+a
+bx
+c
+d
+ex
+f
+" "\
+2 matches for \"x\" in buffer:  *temp*
+       :a
+      2:bx
+       :c
+-------
+       :d
+      5:ex
+       :f
+")
+    ;; * Test overlapping context lines with matches at bob/eob.
+    ("x" 2 "\
+ax
+bx
+c
+dx
+e
+f
+gx
+h
+i
+j
+kx
+" "\
+5 matches for \"x\" in buffer:  *temp*
+      1:ax
+      2:bx
+       :c
+      4:dx
+       :e
+       :f
+      7:gx
+       :h
+       :i
+       :j
+     11:kx
+")
+    ;; * Test overlapping context lines with matches not at bob/eob.
+    ("x" 2 "\
+a
+b
+cx
+d
+e
+f
+gx
+h
+i
+" "\
+2 matches for \"x\" in buffer:  *temp*
+       :a
+       :b
+      3:cx
+       :d
+       :e
+       :f
+      7:gx
+       :h
+       :i
+")
+    ;; * Test overlapping context lines with empty first and last line..
+    ("x" 2 "\
+
+b
+cx
+d
+e
+f
+gx
+h
+
+" "\
+2 matches for \"x\" in buffer:  *temp*
+       :
+       :b
+      3:cx
+       :d
+       :e
+       :f
+      7:gx
+       :h
+       :
+")
+    ;; * Test multi-line overlapping context lines.
+    ("x\n.x" 2 "\
+ax
+bx
+c
+d
+ex
+fx
+g
+h
+i
+jx
+kx
+" "\
+3 matches for \"x^J.x\" in buffer:  *temp*
+      1:ax
+       :bx
+       :c
+       :d
+      5:ex
+       :fx
+       :g
+       :h
+       :i
+     10:jx
+       :kx
+")
+    ;; * Test multi-line non-overlapping context lines.
+    ("x\n.x" 2 "\
+ax
+bx
+c
+d
+e
+f
+gx
+hx
+" "\
+2 matches for \"x^J.x\" in buffer:  *temp*
+      1:ax
+       :bx
+       :c
+       :d
+-------
+       :e
+       :f
+      7:gx
+       :hx
+")
+    ;; * Test non-overlapping negative (before-context) lines.
+    ("x" -2 "\
+a
+bx
+c
+d
+e
+fx
+g
+h
+ix
+" "\
+3 matches for \"x\" in buffer:  *temp*
+       :a
+      2:bx
+-------
+       :d
+       :e
+      6:fx
+-------
+       :g
+       :h
+      9:ix
+")
+    ;; * Test overlapping negative (before-context) lines.
+    ("x" -3 "\
+a
+bx
+c
+dx
+e
+f
+gx
+h
+" "\
+3 matches for \"x\" in buffer:  *temp*
+       :a
+      2:bx
+       :c
+      4:dx
+       :e
+       :f
+      7:gx
+")
+
+)
   "List of tests for `occur'.
 Each element has the format:
 \(REGEXP NLINES INPUT-BUFFER-STRING OUTPUT-BUFFER-STRING).")
