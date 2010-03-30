@@ -2893,7 +2893,8 @@ message header will be added to the bodies of the \"text/html\" parts."
 	     ;; Add a meta html tag to specify charset and a header.
 	     (cond
 	      (header
-	       (let (title eheader body hcharset coding cid-image-dir)
+	       (let (title eheader body hcharset coding force-charset
+			   cid-image-dir)
 		 (with-temp-buffer
 		   (mm-enable-multibyte)
 		   (setq case-fold-search t)
@@ -2917,7 +2918,8 @@ message header will be added to the bodies of the \"text/html\" parts."
 			     title (when title
 				     (mm-encode-coding-string title charset))
 			     body (mm-encode-coding-string (mm-get-part handle)
-							   charset))
+							   charset)
+			     force-charset t)
 		     (setq hcharset (mm-find-mime-charset-region (point-min)
 								 (point-max)))
 		     (cond ((= (length hcharset) 1)
@@ -2948,7 +2950,8 @@ message header will be added to the bodies of the \"text/html\" parts."
 				       body (mm-encode-coding-string
 					     (mm-decode-coding-string
 					      (mm-get-part handle) body)
-					     charset))))
+					     charset)
+				       force-charset t)))
 			   (setq charset hcharset
 				 eheader (mm-encode-coding-string
 					  (buffer-string) coding)
@@ -2962,7 +2965,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 		   (mm-disable-multibyte)
 		   (insert body)
 		   (when charset
-		     (mm-add-meta-html-tag handle charset))
+		     (mm-add-meta-html-tag handle charset force-charset))
 		   (when title
 		     (goto-char (point-min))
 		     (unless (search-forward "<title>" nil t)
