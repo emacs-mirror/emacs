@@ -15,6 +15,13 @@
 
 	* find-dired.el (find-dired): Use read-directory-name (Bug#5777).
 
+2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	Restore GDB/MI fuctionality removed by r99212.
+        * lisp/progmodes/gdb-mi.el: Restored.
+	* lisp/progmodes/gdb-ui.el: Removed.
+	* lisp/progmodes/gud.el: Re-accommodated for gdb-mi.el.
+
 2010-03-25  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
