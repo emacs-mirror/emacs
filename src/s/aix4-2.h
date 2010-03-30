@@ -87,10 +87,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LINKER cc
 #endif
 
-/* Prevent -lg from being used for debugging.  Not needed.  */
-
-#define LIBS_DEBUG
-
 /* No need to specify -lc when linking.  */
 
 #define LIB_STANDARD
@@ -129,16 +125,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    lose declaring char * rindex without this.
    It is just a guess which versions of AIX need this definition.  */
 #undef HAVE_STRING_H
-
-/* For AIX, it turns out compiling emacs under AIX 3.2.4 REQUIRES "cc -g"
-   because "cc -O" crashes. Under AIX 3.2.5, "cc -O" is required because
-   "cc -g" crashes. Go figure.  --floppy@merlin.mit.edu */
-/* The above isn't generally true.  If it occurs with some compiler
-   release, seek a fixed version, be it XLC or GCC.  The XLC version
-   isn't tied to the OS version on AIX any more than elsewhere.  XLC
-   (the IBM compiler) can use -g with -O.  (-O3 is also a possibility
-   for the optimization level.)  -- fx, after David Edelsohn.  */
-#define C_DEBUG_SWITCH -g -O
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define SIGNALS_VIA_CHARACTERS

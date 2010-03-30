@@ -127,11 +127,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LIB_STANDARD
 #endif
 
-/* Unless inhibited or changed, use -lg to link for debugging.  */
-#ifndef LIBS_DEBUG
-#define LIBS_DEBUG -lg
-#endif
-
 /* Some s/SYSTEM.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
@@ -850,7 +845,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   LIBS_DEBUG $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
+   $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
