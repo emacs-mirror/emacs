@@ -1,3 +1,11 @@
+2010-03-30  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* mm-decode.el (mm-add-meta-html-tag): Added option to override the
+	charset.
+
+	* gnus-art.el (gnus-article-browse-html-parts): Force the correct
+	charset into the <meta> tag when the article is encoded to utf-8.
+
 2010-03-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-delete-temp-files): Delete
