@@ -1,3 +1,8 @@
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_cache_iterator_state): Invalidate the cache if we
+	are outside the range of cached character positions.
+
 2010-03-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/bidi.$(O)): Add dependency on w32gui.h.

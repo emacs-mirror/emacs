@@ -671,10 +671,16 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       /* Don't overrun the cache limit.  */
       if (idx > sizeof (bidi_cache) / sizeof (bidi_cache[0]) - 1)
 	abort ();
-      /* Don't violate cache integrity: character positions should
-	 correspond to cache positions 1:1.  */
-      if (idx > 0 && bidi_it->charpos != bidi_cache[idx - 1].charpos + 1)
-	abort ();
+      /* Character positions should correspond to cache positions 1:1.
+	 If we are outside the range of cached positions, the cache is
+	 useless and must be reset.  */
+      if (idx > 0 &&
+	  (bidi_it->charpos > bidi_cache[idx - 1].charpos + 1
+	   || bidi_it->charpos < bidi_cache[0].charpos))
+	{
+	  bidi_cache_reset ();
+	  idx = 0;
+	}
       bidi_copy_it (&bidi_cache[idx], bidi_it);
       if (!resolved)
 	bidi_cache[idx].resolved_level = -1;
