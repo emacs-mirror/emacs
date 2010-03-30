@@ -6999,7 +6999,8 @@ move_it_in_display_line_to (struct it *it,
 #define BUFFER_POS_REACHED_P()					\
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
-   && IT_CHARPOS (*it) == to_charpos				\
+   && (IT_CHARPOS (*it) == to_charpos				\
+       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos))	\
    && (it->method == GET_FROM_BUFFER				\
        || (it->method == GET_FROM_DISPLAY_VECTOR		\
 	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
@@ -7023,14 +7024,16 @@ move_it_in_display_line_to (struct it *it,
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
-	  && (prev_method == GET_FROM_IMAGE
-	      || prev_method == GET_FROM_STRETCH)
-	  /* Passed TO_CHARPOS from left to right.  */
-	  && ((prev_pos < to_charpos
-	       && IT_CHARPOS (*it) > to_charpos)
-	      /* Passed TO_CHARPOS from right to left.  */
-	      || (prev_pos > to_charpos)
-		  && IT_CHARPOS (*it) < to_charpos))
+	  && ((!it->bidi_p && IT_CHARPOS (*it) > to_charpos)
+	      || (it->bidi_p
+		  && (prev_method == GET_FROM_IMAGE
+		      || prev_method == GET_FROM_STRETCH)
+		  /* Passed TO_CHARPOS from left to right.  */
+		  && ((prev_pos < to_charpos
+		       && IT_CHARPOS (*it) > to_charpos)
+		      /* Passed TO_CHARPOS from right to left.  */
+		      || (prev_pos > to_charpos
+			  && IT_CHARPOS (*it) < to_charpos)))))
 	{
 	  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 	    {

@@ -1,3 +1,8 @@
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (BUFFER_POS_REACHED_P, move_it_in_display_line_to):
+	Restore original behavior when the iterator is not bidi_p.
+
 2010-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xdisp.c (syms_of_xdisp): Use intern_c_string instead of intern.
