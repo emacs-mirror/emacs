@@ -345,7 +345,8 @@ $(BLD)/bidi.$(O) : \
 	$(SRC)/lisp.h \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
-	$(SRC)/dispextern.h
+	$(SRC)/dispextern.h \
+	$(SRC)/w32gui.h
 
 $(BLD)/buffer.$(O) : \
 	$(SRC)/buffer.c \
