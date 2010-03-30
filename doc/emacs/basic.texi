@@ -100,13 +100,15 @@ character code, just like digits.
 character to insert (@pxref{Arguments}).
 
 @findex ucs-insert
+@kindex C-x 8 RET
 @cindex Unicode
   Instead of @kbd{C-q}, you can use @kbd{C-x 8 @key{RET}}
 (@code{ucs-insert}) to insert a character based on its Unicode name or
 code-point.  This commands prompts for a character to insert, using
 the minibuffer; you can specify the character using either (i) the
 character's name in the Unicode standard, or (ii) the character's
-code-point in the Unicode standard.
+code-point in the Unicode standard.  If you specify the character's
+name, the command provides completion.
 
 @node Moving Point
 @section Changing the Location of Point
