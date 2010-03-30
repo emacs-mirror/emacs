@@ -2819,11 +2819,42 @@ summary buffer."
 		     ;; `how' is neither `nil', `ask' nor `t' (i.e. `file'):
 		     (gnus-y-or-n-p
 		      (format "Delete temporary HTML file `%s'? " file))))
-	(delete-file file)))
+	(if (file-directory-p file)
+	    (gnus-delete-directory file)
+	  (delete-file file))))
     ;; Also remove file from the list when not deleted or if file doesn't
     ;; exist anymore.
     (setq gnus-article-browse-html-temp-list nil))
   gnus-article-browse-html-temp-list)
+
+(defun gnus-article-browse-html-save-cid-image (cid dir)
+  "Save CID contents to a file in DIR.  Return file name."
+  (save-match-data
+    (gnus-with-article-buffer
+      (let (cid-handle cid-tmp-file cid-type)
+	(mapc
+	 (lambda (handle)
+	   (when (and (listp handle)
+		      (stringp (car (last handle)))
+		      (string= (format "<%s>" cid)
+			       (car (last handle))))
+	     (setq cid-handle handle)
+	     (setq cid-tmp-file
+		   (expand-file-name
+		    (or (mail-content-type-get
+			 (mm-handle-disposition handle) 'filename)
+			(mail-content-type-get
+			 (setq cid-type (mm-handle-type handle)) 'name)
+			(concat (make-temp-name "cid")
+				(or (car (rassoc (car cid-type)
+						 mailcap-mime-extensions))
+				    "")))
+		    dir))))
+	 gnus-article-mime-handles)
+	(when (and cid-handle cid-tmp-file)
+	  (mm-save-part-to-file cid-handle
+				cid-tmp-file)
+	  (concat "file://" cid-tmp-file))))))
 
 (defun gnus-article-browse-html-parts (list &optional header)
   "View all \"text/html\" parts from LIST.
@@ -2862,7 +2893,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 	     ;; Add a meta html tag to specify charset and a header.
 	     (cond
 	      (header
-	       (let (title eheader body hcharset coding)
+	       (let (title eheader body hcharset coding cid-image-dir)
 		 (with-temp-buffer
 		   (mm-enable-multibyte)
 		   (setq case-fold-search t)
@@ -2943,6 +2974,18 @@ message header will be added to the bodies of the \"text/html\" parts."
 		       (re-search-forward
 			"</head\\(?:\\s-+[^>]+\\|\\s-*\\)>\\s-*" nil t))
 		   (insert eheader)
+		   ;; resolve cid images
+		   (while (re-search-forward
+			   "<img src=\"\\(cid:\\([^\"]+\\)\\)\""
+			   nil t)
+		     (unless cid-image-dir
+		       (setq cid-image-dir (make-temp-file "cid" t))
+		       (add-to-list 'gnus-article-browse-html-temp-list
+				    cid-image-dir))
+		     (replace-match
+		      (gnus-article-browse-html-save-cid-image
+		       (match-string 2) cid-image-dir)
+		      nil nil nil 1))
 		   (mm-write-region (point-min) (point-max)
 				    tmp-file nil nil nil 'binary t))))
 	      (charset

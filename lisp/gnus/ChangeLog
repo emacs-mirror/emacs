@@ -1,3 +1,17 @@
+2010-03-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Delete
+	directories as well.
+	(gnus-article-browse-html-parts): Work for images that do not specify
+	file names; delete temp directory when quitting; insert header at the
+	right place; use file: scheme for image files.
+
+2010-03-30  Eric Schulte  <schulte.eric@gmail.com>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-image): New function.
+	(gnus-article-browse-html-parts): Use it to make temporary cid image
+	files in addition to html file so that browser may display them.
+
 2010-03-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-add-meta-html-tag): Fix regexp matching meta tag.
