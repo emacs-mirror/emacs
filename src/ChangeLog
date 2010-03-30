@@ -1,3 +1,7 @@
+2010-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xdisp.c (syms_of_xdisp): Use intern_c_string instead of intern.
+
 2010-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_cache_iterator_state): Invalidate the cache if we

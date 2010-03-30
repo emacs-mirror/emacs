@@ -25663,9 +25663,9 @@ syms_of_xdisp ()
   staticpro (&previous_help_echo_string);
   help_echo_pos = -1;
 
-  Qright_to_left = intern ("right-to-left");
+  Qright_to_left = intern_c_string ("right-to-left");
   staticpro (&Qright_to_left);
-  Qleft_to_right = intern ("left-to-right");
+  Qleft_to_right = intern_c_string ("left-to-right");
   staticpro (&Qleft_to_right);
 
 #ifdef HAVE_WINDOW_SYSTEM
