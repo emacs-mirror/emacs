@@ -1,3 +1,8 @@
+2010-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (highlight_trailing_whitespace): Support highlight of
+	trailing whitespace in right-to-left rows.
+
 2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Get rid of the direct_output optimizations.
