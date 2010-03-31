@@ -1,3 +1,7 @@
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (keys_of_window): Remove redundant/overridden bindings.
+
 2010-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (BUFFER_POS_REACHED_P, move_it_in_display_line_to):
