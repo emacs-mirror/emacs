@@ -1,3 +1,8 @@
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Update
+	:version.
+
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (next-line, previous-line): Re-throw a signal
