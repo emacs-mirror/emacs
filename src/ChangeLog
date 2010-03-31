@@ -1,3 +1,7 @@
+2010-03-30  Bernhard Herzog  <bh@intevation.de>  (tiny change)
+
+	* menu.c (Fx_popup_menu): Use last_event_timestamp (Bug#4930).
+
 2010-03-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (note_mouse_highlight): Don't do highlight if pointer is
