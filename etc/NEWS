@@ -132,11 +132,13 @@ Secret Service API requires D-Bus for communication.
 ** Image API
 
 *** When the image type is one of listed in `image-animated-types'
-and the number of sub-images in the image is more then one, then the
+and the number of sub-images in the image is more than one, then the
 new function `create-animated-image' creates an animated image where
 sub-images are displayed successively with the duration defined by
 `image-animate-max-time' and the delay between sub-images defined
 by the Graphic Control Extension of the image.
+
+*** `image-extension-data' is renamed to `image-metadata'.
 
 ** Progress reporters can now "spin".
 The MIN-VALUE and MAX-VALUE arguments of `make-progress-reporter' can

@@ -1,3 +1,9 @@
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
+	* image.el (image-animated-p): Use `image-metadata' instead of
+	`image-extension-data'.  Get GIF extenstion data from metadata
+	property `extension-data'.
+
 2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (append-to-buffer): Simplify.

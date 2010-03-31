@@ -1,3 +1,11 @@
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
+	* image.c: Add `Qextension_data'.
+	(syms_of_image): Initialize and staticpro `Qextension_data'.
+	(Fimage_metadata): Rename from `Fimage_extension_data'.
+	(gif_load): Put GIF extension data to the property
+	`Qextension_data'.
+
 2010-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (highlight_trailing_whitespace): Support highlight of

@@ -604,7 +604,7 @@ Lisp_Object Qxbm;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata, QCtype;
 extern Lisp_Object Qcenter;
-Lisp_Object QCascent, QCmargin, QCrelief, Qcount;
+Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
@@ -1011,8 +1011,8 @@ or omitted means use the selected frame.  */)
   return mask;
 }
 
-DEFUN ("image-extension-data", Fimage_extension_data, Simage_extension_data, 1, 2, 0,
-       doc: /* Return extension data for image SPEC.
+DEFUN ("image-metadata", Fimage_metadata, Simage_metadata, 1, 2, 0,
+       doc: /* Return metadata for image SPEC.
 FRAME is the frame on which the image will be displayed.  FRAME nil
 or omitted means use the selected frame.  */)
      (spec, frame)
@@ -7169,7 +7169,7 @@ gif_clear_image (f, img)
      struct frame *f;
      struct image *img;
 {
-  /* IMG->data.ptr_val may contain extension data.  */
+  /* IMG->data.ptr_val may contain metadata with extension data.  */
   img->data.lisp_val = Qnil;
   x_clear_image (f, img);
 }
@@ -7488,8 +7488,8 @@ gif_load (f, img)
 	  }
     }
 
-  /* Save GIF image extension data for `image-extension-data'.
-     Format is (count IMAGES FUNCTION "BYTES" ...).  */
+  /* Save GIF image extension data for `image-metadata'.
+     Format is (count IMAGES extension-data (FUNCTION "BYTES" ...)).  */
   img->data.lisp_val = Qnil;
   if (gif->SavedImages[ino].ExtensionBlockCount > 0)
     {
@@ -7499,7 +7499,9 @@ gif_load (f, img)
 	img->data.lisp_val = Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
 				    Fcons (make_number (ext->Function),
 					   img->data.lisp_val));
-      img->data.lisp_val = Fnreverse (img->data.lisp_val);
+      img->data.lisp_val = Fcons (Qextension_data,
+				  Fcons (Fnreverse (img->data.lisp_val),
+					 Qnil));
     }
   if (gif->ImageCount > 1)
     img->data.lisp_val = Fcons (Qcount,
@@ -8403,6 +8405,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   Qcount = intern_c_string ("count");
   staticpro (&Qcount);
+  Qextension_data = intern_c_string ("extension-data");
+  staticpro (&Qextension_data);
 
   QCascent = intern_c_string (":ascent");
   staticpro (&QCascent);
@@ -8498,7 +8502,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simage_refresh);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
-  defsubr (&Simage_extension_data);
+  defsubr (&Simage_metadata);
 
 #if GLYPH_DEBUG
   defsubr (&Simagep);
