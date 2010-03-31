@@ -1,3 +1,8 @@
+2010-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Update description of
+	gnus-article-browse-html-article.
+
 2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Secret Service API): Add TODO node.
