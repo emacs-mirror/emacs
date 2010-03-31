@@ -1,3 +1,8 @@
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_set_doc_edited): Remove unused arg OLDVAL.
+	* nsterm.h: Fix prototype.
+
 2010-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (x_create_tip_frame): Copy `parms' before we modify it
