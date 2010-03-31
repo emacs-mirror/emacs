@@ -1,3 +1,13 @@
+2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/icons/hicolor/scalable/apps/emacs.svg: Put preamble after
+	svg tag (Bug#5790).
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* PROBLEMS: Mention problems on MS-Windows with incompatible
+	regex.h headers.
+
 2010-03-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* HELLO: Reorder Arabic and Hebrew into logical order, and

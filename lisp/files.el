@@ -2159,7 +2159,7 @@ in that case, this function acts as if `enable-local-variables' were t."
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
 
-(defcustom auto-mode-case-fold nil
+(defcustom auto-mode-case-fold t
   "Non-nil means to try second pass through `auto-mode-alist'.
 This means that if the first case-sensitive search through the alist fails
 to find a matching major mode, a second case-insensitive search is made.

@@ -3468,17 +3468,18 @@ START and END specify the portion of the current buffer to be copied."
   (interactive
    (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
 	 (region-beginning) (region-end)))
-  (let ((oldbuf (current-buffer)))
-    (let* ((append-to (get-buffer-create buffer))
-           (windows (get-buffer-window-list append-to t t))
-           point)
+  (let* ((oldbuf (current-buffer))
+         (append-to (get-buffer-create buffer))
+         (windows (get-buffer-window-list append-to t t))
+         point)
+    (save-excursion
       (with-current-buffer append-to
-	(setq point (point))
-	(barf-if-buffer-read-only)
-	(insert-buffer-substring oldbuf start end)
-	(dolist (window windows)
-	  (when (= (window-point window) point)
-	    (set-window-point window (point))))))))
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
 
 (defun prepend-to-buffer (buffer start end)
   "Prepend to specified buffer the text of the region.

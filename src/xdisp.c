@@ -32,9 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    decides it's time to do it.  This is done either automatically for
    you as part of the interpreter's command loop or as the result of
    calling Lisp functions like `sit-for'.  The C function `redisplay'
-   in xdisp.c is the only entry into the inner redisplay code.  (Or,
-   let's say almost---see the description of direct update
-   operations, below.)
+   in xdisp.c is the only entry into the inner redisplay code.
 
    The following diagram shows how redisplay code is invoked.  As you
    can see, Lisp calls redisplay and vice versa.  Under window systems
@@ -46,12 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    change the interpreter's state.  If you don't follow these rules,
    you will encounter bugs which are very hard to explain.
 
-	     (Direct functions, see below)
-             direct_output_for_insert,
-             direct_forward_char (dispnew.c)
-   	  +---------------------------------+
-          |                                 |
-	  |                                 V
    +--------------+   redisplay     +----------------+
    | Lisp machine |---------------->| Redisplay code |<--+
    +--------------+   (xdisp.c)     +----------------+   |
@@ -85,27 +77,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    then compared to find a cheap way to update the display, e.g. by
    reusing part of the display by scrolling lines.
 
-
-   Direct operations.
-
    You will find a lot of redisplay optimizations when you start
    looking at the innards of redisplay.  The overall goal of all these
    optimizations is to make redisplay fast because it is done
    frequently.
-
-   Two optimizations are not found in xdisp.c.  These are the direct
-   operations mentioned above.  As the name suggests they follow a
-   different principle than the rest of redisplay.  Instead of
-   building a desired matrix and then comparing it with the current
-   display, they perform their actions directly on the display and on
-   the current matrix.
-
-   One direct operation updates the display after one character has
-   been entered.  The other one moves the cursor by one position
-   forward or backward.  You find these functions under the names
-   `direct_output_for_insert' and `direct_output_forward_char' in
-   dispnew.c.
-
 
    Desired matrices.
 
@@ -1377,33 +1352,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	visible_p = 1;
       if (visible_p)
 	{
-	  if (it_method == GET_FROM_BUFFER)
-	    {
-	      Lisp_Object window, prop;
-
-	      XSETWINDOW (window, w);
-	      prop = Fget_char_property (make_number (charpos),
-					 Qinvisible, window);
-
-	      /* If charpos coincides with invisible text covered with an
-		 ellipsis, use the first glyph of the ellipsis to compute
-		 the pixel positions.  */
-	      if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
-		{
-		  struct glyph_row *row = it.glyph_row;
-		  struct glyph *glyph = row->glyphs[TEXT_AREA];
-		  struct glyph *end = glyph + row->used[TEXT_AREA];
-		  int x = row->x;
-
-		  for (; glyph < end
-			 && (!BUFFERP (glyph->object)
-			     || glyph->charpos < charpos);
-		       glyph++)
-		    x += glyph->pixel_width;
-		  top_x = x;
-		}
-	    }
-	  else if (it_method == GET_FROM_DISPLAY_VECTOR)
+	  if (it_method == GET_FROM_DISPLAY_VECTOR)
 	    {
 	      /* We stopped on the last glyph of a display vector.
 		 Try and recompute.  Hack alert!  */
@@ -9787,32 +9736,7 @@ x_consider_frame_title (frame)
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
 	  || bcmp (title, SDATA (f->name), len) != 0)
-        {
-#ifdef HAVE_NS
-          if (FRAME_NS_P (f))
-            {
-              if (!MINI_WINDOW_P(XWINDOW(f->selected_window)))
-                {
-                  if (EQ (fmt, Qt))
-                    ns_set_name_as_filename (f);
-                  else
-                    x_implicitly_set_name (f, make_string(title, len),
-                                           Qnil);
-                }
-            }
-          else
-#endif
-	    x_implicitly_set_name (f, make_string (title, len), Qnil);
-        }
-#ifdef HAVE_NS
-      if (FRAME_NS_P (f))
-        {
-          /* do this also for frames with explicit names */
-          ns_implicitly_set_icon_type(f);
-          ns_set_doc_edited(f, Fbuffer_modified_p
-                            (XWINDOW (f->selected_window)->buffer), Qnil);
-        }
-#endif
+	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
 
@@ -9908,6 +9832,11 @@ prepare_menu_bars ()
 	  menu_bar_hooks_run = update_menu_bar (f, 0, menu_bar_hooks_run);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
+#endif
+#ifdef HAVE_NS
+          if (windows_or_buffers_changed)
+            ns_set_doc_edited (f, Fbuffer_modified_p
+			       (XWINDOW (f->selected_window)->buffer));
 #endif
 	  UNGCPRO;
 	}
@@ -11663,16 +11592,6 @@ redisplay_internal (preserve_echo_area)
 
   if (!f->glyphs_initialized_p)
     return;
-
-  /* The flag redisplay_performed_directly_p is set by
-     direct_output_for_insert when it already did the whole screen
-     update necessary.  */
-  if (redisplay_performed_directly_p)
-    {
-      redisplay_performed_directly_p = 0;
-      if (!hscroll_windows (selected_window))
-	return;
-    }
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)
   if (popup_activated ())
@@ -23519,9 +23438,6 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 /* Switch the display of W's cursor on or off, according to the value
    of ON.  */
 
-#ifndef HAVE_NS
-static
-#endif
 void
 update_window_cursor (w, on)
      struct window *w;
@@ -24440,7 +24356,8 @@ note_mouse_highlight (f, x, y)
 #endif
 
   if (NILP (Vmouse_highlight)
-      || !f->glyphs_initialized_p)
+      || !f->glyphs_initialized_p
+      || f->pointer_invisible)
     return;
 
   dpyinfo->mouse_face_mouse_x = x;

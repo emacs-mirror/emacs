@@ -1319,7 +1319,7 @@ Selecting operation
 
 Variables
 
- This is a brief overview of the different varaibles. For more info,
+ This is a brief overview of the different variables.  For more info,
  see the documentation for the variables (type \\[describe-variable] <variable> RET).
 
  artist-rubber-banding		Interactively do rubber-banding or not
