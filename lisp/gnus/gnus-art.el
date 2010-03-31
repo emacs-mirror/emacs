@@ -2827,41 +2827,39 @@ summary buffer."
     (setq gnus-article-browse-html-temp-list nil))
   gnus-article-browse-html-temp-list)
 
-(defun gnus-article-browse-html-save-cid-image (cid dir)
-  "Save CID contents to a file in DIR.  Return file name."
+(defun gnus-article-browse-html-save-cid-content (cid handles directory)
+  "Find CID content in HANDLES and save it in a file in DIRECTORY.
+Return file name."
   (save-match-data
-    (gnus-with-article-buffer
-      (let (cid-handle cid-tmp-file cid-type)
-	(mapc
-	 (lambda (handle)
-	   (when (and (listp handle)
-		      (stringp (car (last handle)))
-		      (string= (format "<%s>" cid)
-			       (car (last handle))))
-	     (setq cid-handle handle)
-	     (setq cid-tmp-file
-		   (expand-file-name
-		    (or (mail-content-type-get
-			 (mm-handle-disposition handle) 'filename)
-			(mail-content-type-get
-			 (setq cid-type (mm-handle-type handle)) 'name)
-			(concat (make-temp-name "cid")
-				(or (car (rassoc (car cid-type)
-						 mailcap-mime-extensions))
-				    "")))
-		    dir))))
-	 gnus-article-mime-handles)
-	(when (and cid-handle cid-tmp-file)
-	  (mm-save-part-to-file cid-handle
-				cid-tmp-file)
-	  (concat "file://" cid-tmp-file))))))
+    (let (file type)
+      (catch 'found
+	(dolist (handle handles)
+	  (cond
+	   ((not (listp handle)))
+	   ((equal (mm-handle-media-supertype handle) "multipart")
+	    (when (setq file (gnus-article-browse-html-save-cid-content
+			      cid handle directory))
+	      (throw 'found file)))
+	   ((equal (concat "<" cid ">") (mm-handle-id handle))
+	    (setq file
+		  (expand-file-name
+		   (or (mail-content-type-get
+			(mm-handle-disposition handle) 'filename)
+		       (mail-content-type-get
+			(setq type (mm-handle-type handle)) 'name)
+		       (concat
+			(make-temp-name "cid")
+			(car (rassoc (car type) mailcap-mime-extensions))))
+		   directory))
+	    (mm-save-part-to-file handle file)
+	    (throw 'found file))))))))
 
 (defun gnus-article-browse-html-parts (list &optional header)
   "View all \"text/html\" parts from LIST.
 Recurse into multiparts.  The optional HEADER that should be a decoded
 message header will be added to the bodies of the \"text/html\" parts."
   ;; Internal function used by `gnus-article-browse-html-article'.
-  (let (type file charset tmp-file showed)
+  (let (type file charset content cid-dir tmp-file showed)
     ;; Find and show the html-parts.
     (dolist (handle list)
       ;; If HTML, show it:
@@ -2884,17 +2882,42 @@ message header will be added to the bodies of the \"text/html\" parts."
 			(setq handle (mm-handle-cache handle)
 			      type (mm-handle-type handle))
 			(equal (car type) "text/html"))))
-	     (when (or (setq charset (mail-content-type-get type 'charset))
-		       header
-		       (not file))
+	     (setq charset (mail-content-type-get type 'charset)
+		   content (mm-get-part handle))
+	     (with-temp-buffer
+	       (if (eq charset 'gnus-decoded)
+		   (mm-enable-multibyte)
+		 (mm-disable-multibyte))
+	       (insert content)
+	       ;; resolve cid contents
+	       (let ((case-fold-search t)
+		     cid-file)
+		 (goto-char (point-min))
+		 (while (re-search-forward "\
+<img[\t\n ]+\\(?:[^\t\n >]+[\t\n ]+\\)*src=\"\\(cid:\\([^\"]+\\)\\)\""
+					   nil t)
+		   (unless cid-dir
+		     (setq cid-dir (make-temp-file "cid" t))
+		     (add-to-list 'gnus-article-browse-html-temp-list cid-dir))
+		   (setq file nil
+			 content nil)
+		   (when (setq cid-file
+			       (gnus-article-browse-html-save-cid-content
+				(match-string 2)
+				(with-current-buffer gnus-article-buffer
+				  gnus-article-mime-handles)
+				cid-dir))
+		     (replace-match (concat "file://" cid-file)
+				    nil nil nil 1))))
+	       (unless content (setq content (buffer-string))))
+	     (when (or charset header (not file))
 	       (setq tmp-file (mm-make-temp-file
 			       ;; Do we need to care for 8.3 filenames?
 			       "mm-" nil ".html")))
 	     ;; Add a meta html tag to specify charset and a header.
 	     (cond
 	      (header
-	       (let (title eheader body hcharset coding force-charset
-			   cid-image-dir)
+	       (let (title eheader body hcharset coding force-charset)
 		 (with-temp-buffer
 		   (mm-enable-multibyte)
 		   (setq case-fold-search t)
@@ -2917,8 +2940,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 							      charset)
 			     title (when title
 				     (mm-encode-coding-string title charset))
-			     body (mm-encode-coding-string (mm-get-part handle)
-							   charset)
+			     body (mm-encode-coding-string content charset)
 			     force-charset t)
 		     (setq hcharset (mm-find-mime-charset-region (point-min)
 								 (point-max)))
@@ -2940,7 +2962,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 					 title (when title
 						 (mm-encode-coding-string
 						  title coding))
-					 body (mm-get-part handle))
+					 body content)
 				 (setq charset 'utf-8
 				       eheader (mm-encode-coding-string
 						(buffer-string) charset)
@@ -2949,7 +2971,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 						title charset))
 				       body (mm-encode-coding-string
 					     (mm-decode-coding-string
-					      (mm-get-part handle) body)
+					      content body)
 					     charset)
 				       force-charset t)))
 			   (setq charset hcharset
@@ -2958,9 +2980,9 @@ message header will be added to the bodies of the \"text/html\" parts."
 				 title (when title
 					 (mm-encode-coding-string
 					  title coding))
-				 body (mm-get-part handle)))
+				 body content))
 		       (setq eheader (mm-string-as-unibyte (buffer-string))
-			     body (mm-get-part handle))))
+			     body content)))
 		   (erase-buffer)
 		   (mm-disable-multibyte)
 		   (insert body)
@@ -2977,27 +2999,14 @@ message header will be added to the bodies of the \"text/html\" parts."
 		       (re-search-forward
 			"</head\\(?:\\s-+[^>]+\\|\\s-*\\)>\\s-*" nil t))
 		   (insert eheader)
-		   ;; resolve cid images
-		   (while (re-search-forward
-			   "<img src=\"\\(cid:\\([^\"]+\\)\\)\""
-			   nil t)
-		     (unless cid-image-dir
-		       (setq cid-image-dir (make-temp-file "cid" t))
-		       (add-to-list 'gnus-article-browse-html-temp-list
-				    cid-image-dir))
-		     (replace-match
-		      (gnus-article-browse-html-save-cid-image
-		       (match-string 2) cid-image-dir)
-		      nil nil nil 1))
 		   (mm-write-region (point-min) (point-max)
 				    tmp-file nil nil nil 'binary t))))
 	      (charset
 	       (mm-with-unibyte-buffer
 		 (insert (if (eq charset 'gnus-decoded)
-			     (mm-encode-coding-string
-			      (mm-get-part handle)
-			      (setq charset 'utf-8))
-			   (mm-get-part handle)))
+			     (mm-encode-coding-string content
+						      (setq charset 'utf-8))
+			   content))
 		 (if (or (mm-add-meta-html-tag handle charset)
 			 (not file))
 		     (mm-write-region (point-min) (point-max)
@@ -3044,17 +3053,23 @@ message header will be added to the bodies of the \"text/html\" parts."
 
 (defun gnus-article-browse-html-article (&optional arg)
   "View \"text/html\" parts of the current article with a WWW browser.
+Inline images embedded in a message using the cid scheme, as they are
+generally considered to be safe, will be processed properly.
 The message header is added to the beginning of every html part unless
 the prefix argument ARG is given.
 
-Warning: Spammers use links to images in HTML articles to verify
-whether you have read the message.  As
+Warning: Spammers use links to images (using the http scheme) in HTML
+articles to verify whether you have read the message.  As
 `gnus-article-browse-html-article' passes the HTML content to the
 browser without eliminating these \"web bugs\" you should only
 use it for mails from trusted senders.
 
 If you always want to display HTML parts in the browser, set
-`mm-text-html-renderer' to nil."
+`mm-text-html-renderer' to nil.
+
+This command creates temporary files to pass HTML contents including
+images if any to the browser, and deletes them when exiting the group
+\(if you want)."
   ;; Cf. `mm-w3m-safe-url-regexp'
   (interactive "P")
   (if arg
