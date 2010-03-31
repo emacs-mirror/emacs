@@ -1,3 +1,13 @@
+2010-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Clean up BSD_SYSTEM use.
+	* xterm.c:
+	* process.c:
+	* emacs.c: Use HAVE_SYS_IOCTL_H instead of BSD_SYSTEM as a guard
+	for including <sys/ioctl.h>.
+	* sysdep.c (wait_without_blocking): Remove BSD_SYSTEM case, this
+	code is only used for MSDOS.
+
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
 	* image.c: Add `Qextension_data'.
