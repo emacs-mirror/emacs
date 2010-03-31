@@ -1,3 +1,8 @@
+2010-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (x_create_tip_frame): Copy `parms' before we modify it
+	in this function.  (Bug#5703)
+
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.h: Fix last change.
