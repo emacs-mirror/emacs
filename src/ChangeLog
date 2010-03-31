@@ -1,3 +1,19 @@
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of the direct_output optimizations.
+	* keyboard.c (nonundocount): Remove extern declaration.
+	(command_loop_1): Remove brittle optimisation for cheap and
+	common operations.
+	* xdisp.c (redisplay_internal): Don't bother checking
+	redisplay_performed_directly_p any more.
+	* sysdep.c (init_sys_modes): Don't call direct_output_forward_char
+	any more.
+	* dispnew.c (redisplay_performed_directly_p)
+	(direct_output_for_insert, direct_output_forward_char):
+	* dispextern.h (redisplay_performed_directly_p)
+	(direct_output_for_insert, direct_output_forward_char): Remove.
+	* cmds.c (nonundocount): Make it static.
+
 2010-03-31  Bernhard Herzog  <bh@intevation.de>  (tiny change)
 
 	* menu.c (Fx_popup_menu): Use last_event_timestamp (Bug#4930).
@@ -9,8 +25,8 @@
 
 2010-03-31  Adrian Robert  <adrian.b.robert@gmail.com>
 
-	* xdisp.c (x_consider_frame_title, update_window_cursor): Remove
-	HAVE_NS conditionals.
+	* xdisp.c (x_consider_frame_title, update_window_cursor):
+	Remove HAVE_NS conditionals.
 	(prepare_menu_bars)[HAVE_NS]: Call ns_set_doc_edited.
 
 	* nsfns.m (x_implicitly_set_name): If frame-title-format is t, use

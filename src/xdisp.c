@@ -32,9 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    decides it's time to do it.  This is done either automatically for
    you as part of the interpreter's command loop or as the result of
    calling Lisp functions like `sit-for'.  The C function `redisplay'
-   in xdisp.c is the only entry into the inner redisplay code.  (Or,
-   let's say almost---see the description of direct update
-   operations, below.)
+   in xdisp.c is the only entry into the inner redisplay code.
 
    The following diagram shows how redisplay code is invoked.  As you
    can see, Lisp calls redisplay and vice versa.  Under window systems
@@ -46,12 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    change the interpreter's state.  If you don't follow these rules,
    you will encounter bugs which are very hard to explain.
 
-	     (Direct functions, see below)
-             direct_output_for_insert,
-             direct_forward_char (dispnew.c)
-   	  +---------------------------------+
-          |                                 |
-	  |                                 V
    +--------------+   redisplay     +----------------+
    | Lisp machine |---------------->| Redisplay code |<--+
    +--------------+   (xdisp.c)     +----------------+   |
@@ -85,27 +77,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    then compared to find a cheap way to update the display, e.g. by
    reusing part of the display by scrolling lines.
 
-
-   Direct operations.
-
    You will find a lot of redisplay optimizations when you start
    looking at the innards of redisplay.  The overall goal of all these
    optimizations is to make redisplay fast because it is done
    frequently.
-
-   Two optimizations are not found in xdisp.c.  These are the direct
-   operations mentioned above.  As the name suggests they follow a
-   different principle than the rest of redisplay.  Instead of
-   building a desired matrix and then comparing it with the current
-   display, they perform their actions directly on the display and on
-   the current matrix.
-
-   One direct operation updates the display after one character has
-   been entered.  The other one moves the cursor by one position
-   forward or backward.  You find these functions under the names
-   `direct_output_for_insert' and `direct_output_forward_char' in
-   dispnew.c.
-
 
    Desired matrices.
 
@@ -11617,16 +11592,6 @@ redisplay_internal (preserve_echo_area)
 
   if (!f->glyphs_initialized_p)
     return;
-
-  /* The flag redisplay_performed_directly_p is set by
-     direct_output_for_insert when it already did the whole screen
-     update necessary.  */
-  if (redisplay_performed_directly_p)
-    {
-      redisplay_performed_directly_p = 0;
-      if (!hscroll_windows (selected_window))
-	return;
-    }
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)
   if (popup_activated ())

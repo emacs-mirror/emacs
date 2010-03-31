@@ -1102,17 +1102,9 @@ extern int cursor_in_echo_area;
 
 extern int display_completed;
 
-/* Non-zero means redisplay has been performed directly (see also
-   direct_output_for_insert and direct_output_forward_char), so that
-   no further updating has to be performed.  The function
-   redisplay_internal checks this flag, and does nothing but reset it
-   to zero if it is non-zero.  */
-
-extern int redisplay_performed_directly_p;
-
 /* A temporary storage area, including a row of glyphs.  Initialized
    in xdisp.c.  Used for various purposes, as an example see
-   direct_output_for_insert.  */
+   get_overlay_arrow_glyph_row.  */
 
 extern struct glyph_row scratch_glyph_row;
 
@@ -3172,8 +3164,6 @@ extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
 extern void init_desired_glyphs P_ ((struct frame *));
 extern int scroll_frame_lines P_ ((struct frame *, int, int, int, int));
-extern int direct_output_for_insert P_ ((int));
-extern int direct_output_forward_char P_ ((int));
 extern int update_frame P_ ((struct frame *, int, int));
 extern int scrolling P_ ((struct frame *));
 extern void bitch_at_user P_ ((void));
@@ -3200,8 +3190,6 @@ void set_window_update_flags P_ ((struct window *, int));
 void redraw_frame P_ ((struct frame *));
 void redraw_garbaged_frames P_ ((void));
 int scroll_cost P_ ((struct frame *, int, int, int));
-int direct_output_for_insert P_ ((int));
-int direct_output_forward_char P_ ((int));
 int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));

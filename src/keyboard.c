@@ -1520,8 +1520,6 @@ cancel_hourglass_unwind (arg)
 }
 #endif
 
-extern int nonundocount;	/* Declared in cmds.c.  */
-
 Lisp_Object
 command_loop_1 ()
 {
@@ -1744,149 +1742,8 @@ command_loop_1 ()
 	}
       else
 	{
-	  if (NILP (current_kboard->Vprefix_arg))
-	    {
-	      /* In case we jump to directly_done.  */
-	      Vcurrent_prefix_arg = current_kboard->Vprefix_arg;
-
-	      /* Recognize some common commands in common situations and
-		 do them directly.  */
-	      if (EQ (Vthis_command, Qforward_char) && PT < ZV
-		  && NILP (Vthis_command_keys_shift_translated)
-		  && !CONSP (Vtransient_mark_mode))
-		{
-                  struct Lisp_Char_Table *dp
-		    = window_display_table (XWINDOW (selected_window));
-		  lose = FETCH_CHAR (PT_BYTE);
-		  SET_PT (PT + 1);
-		  if (! NILP (Vpost_command_hook))
-		    /* Put this before calling adjust_point_for_property
-		       so it will only get called once in any case.  */
-		    goto directly_done;
-		  if (current_buffer == prev_buffer
-		      && last_point_position != PT
-		      && NILP (Vdisable_point_adjustment)
-		      && NILP (Vglobal_disable_point_adjustment))
-		    adjust_point_for_property (last_point_position, 0);
-		  already_adjusted = 1;
-		  if (PT == last_point_position + 1
-		      && (dp
-			  ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
-			     ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
-			     : (NILP (DISP_CHAR_VECTOR (dp, lose))
-				&& (lose >= 0x20 && lose < 0x7f)))
-			  : (lose >= 0x20 && lose < 0x7f))
-		      /* To extract the case of continuation on
-                         wide-column characters.  */
-		      && ASCII_BYTE_P (lose)
-		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
-			  >= MODIFF)
-		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
-			  >= OVERLAY_MODIFF)
-		      && (XFASTINT (XWINDOW (selected_window)->last_point)
-			  == PT - 1)
-		      && !windows_or_buffers_changed
-		      && EQ (current_buffer->selective_display, Qnil)
-		      && !detect_input_pending ()
-		      && NILP (XWINDOW (selected_window)->column_number_displayed)
-		      && NILP (Vexecuting_kbd_macro))
-		    direct_output_forward_char (1);
-		  goto directly_done;
-		}
-	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV
-		       && NILP (Vthis_command_keys_shift_translated)
-		       && !CONSP (Vtransient_mark_mode))
-		{
-                  struct Lisp_Char_Table *dp
-		    = window_display_table (XWINDOW (selected_window));
-		  SET_PT (PT - 1);
-		  lose = FETCH_CHAR (PT_BYTE);
-		  if (! NILP (Vpost_command_hook))
-		    goto directly_done;
-		  if (current_buffer == prev_buffer
-		      && last_point_position != PT
-		      && NILP (Vdisable_point_adjustment)
-		      && NILP (Vglobal_disable_point_adjustment))
-		    adjust_point_for_property (last_point_position, 0);
-		  already_adjusted = 1;
-		  if (PT == last_point_position - 1
-		      && (dp
-			  ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
-			     ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
-			     : (NILP (DISP_CHAR_VECTOR (dp, lose))
-				&& (lose >= 0x20 && lose < 0x7f)))
-			  : (lose >= 0x20 && lose < 0x7f))
-		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
-			  >= MODIFF)
-		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
-			  >= OVERLAY_MODIFF)
-		      && (XFASTINT (XWINDOW (selected_window)->last_point)
-			  == PT + 1)
-		      && !windows_or_buffers_changed
-		      && EQ (current_buffer->selective_display, Qnil)
-		      && !detect_input_pending ()
-		      && NILP (XWINDOW (selected_window)->column_number_displayed)
-		      && NILP (Vexecuting_kbd_macro))
-		    direct_output_forward_char (-1);
-		  goto directly_done;
-		}
-	      else if (EQ (Vthis_command, Qself_insert_command)
-		       /* Try this optimization only on char keystrokes.  */
-		       && NATNUMP (last_command_event)
-		       && CHAR_VALID_P (XFASTINT (last_command_event), 0))
-		{
-		  unsigned int c
-		    = translate_char (Vtranslation_table_for_input,
-				      XFASTINT (last_command_event));
-		  int value;
-		  if (NILP (Vexecuting_kbd_macro)
-		      && !EQ (minibuf_window, selected_window))
-		    {
-		      if (!nonundocount || nonundocount >= 20)
-			{
-			  Fundo_boundary ();
-			  nonundocount = 0;
-			}
-		      nonundocount++;
-		    }
-
-		  lose = ((XFASTINT (XWINDOW (selected_window)->last_modified)
-			   < MODIFF)
-			  || (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
-			      < OVERLAY_MODIFF)
-			  || (XFASTINT (XWINDOW (selected_window)->last_point)
-			      != PT)
-			  || MODIFF <= SAVE_MODIFF
-			  || windows_or_buffers_changed
-			  || !EQ (current_buffer->selective_display, Qnil)
-			  || detect_input_pending ()
-			  || !NILP (XWINDOW (selected_window)->column_number_displayed)
-			  || !NILP (Vexecuting_kbd_macro));
-
-		  value = internal_self_insert (c, 0);
-
-		  if (value == 2)
-		    nonundocount = 0;
-
-                  frame_make_pointer_invisible ();
-
-		  if (! NILP (Vpost_command_hook))
-		    /* Put this before calling adjust_point_for_property
-		       so it will only get called once in any case.  */
-		    goto directly_done;
-
-		  /* VALUE == 1 when AFTER-CHANGE functions are
-		     installed which is the case most of the time
-		     because FONT-LOCK installs one.  */
-		  if (!lose && !value)
-		    direct_output_for_insert (c);
-		  goto directly_done;
-		}
-	    }
-
 	  /* Here for a command that isn't executed directly */
 
-          {
 #ifdef HAVE_WINDOW_SYSTEM
             int scount = SPECPDL_INDEX ();
 
@@ -1898,7 +1755,6 @@ command_loop_1 ()
               }
 #endif
 
-            nonundocount = 0;
             if (NILP (current_kboard->Vprefix_arg)) /* FIXME: Why?  --Stef  */
               Fundo_boundary ();
             Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
@@ -1913,8 +1769,6 @@ command_loop_1 ()
             unbind_to (scount, Qnil);
 #endif
           }
-	}
-    directly_done: ;
       current_kboard->Vlast_prefix_arg = Vcurrent_prefix_arg;
 
       /* Note that the value cell will never directly contain nil
