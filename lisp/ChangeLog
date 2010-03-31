@@ -1,3 +1,7 @@
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (append-to-buffer): Simplify.
+
 2010-03-31  Tomas Abrahamsson  <tab@lysator.liu.se>
 
 	* textmodes/artist.el (artist-mode): Fix typo in docstring.
@@ -10,7 +14,7 @@
 
 	* language/indian.el (devanagari-composable-pattern)
 	(tamil-composable-pattern, kannada-composable-pattern)
-	(malayalam-composable-pattern): Adjusted for the new Unicode
+	(malayalam-composable-pattern): Adjust for the new Unicode
 	specification.
 	(bengali-composable-pattern, gurmukhi-composable-pattern)
 	(gujarati-composable-pattern, oriya-composable-pattern)
@@ -103,8 +107,8 @@
 	    Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el: Extend progress reporters to perform "spinning".
-	(progress-reporter-update, progress-reporter-do-update): Handle
-	non-numeric value arguments.
+	(progress-reporter-update, progress-reporter-do-update):
+	Handle non-numeric value arguments.
 	(progress-reporter--pulse-characters): New var.
 
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
@@ -119,9 +123,9 @@
 2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	Restore GDB/MI fuctionality removed by r99212.
-        * lisp/progmodes/gdb-mi.el: Restored.
-	* lisp/progmodes/gdb-ui.el: Removed.
-	* lisp/progmodes/gud.el: Re-accommodated for gdb-mi.el.
+	* lisp/progmodes/gdb-mi.el: Restore.
+	* lisp/progmodes/gdb-ui.el: Remove.
+	* lisp/progmodes/gud.el: Re-accommodate for gdb-mi.el.
 
 2010-03-25  Glenn Morris  <rgm@gnu.org>
 
@@ -436,11 +440,13 @@
 
 	* vc-bzr.el (vc-bzr-checkin): Pass extra arguments to the commit
 	command.
-	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+	(log-edit-extra-flags, log-edit-before-checkin-process):
+	New declarations.
 
 	* vc-hg.el (vc-hg-checkin): Pass extra arguments to the commit
 	command.
-	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+	(log-edit-extra-flags, log-edit-before-checkin-process):
+	New declarations.
 	(vc-hg-log-edit-mode): New derived mode.
 
 	* vc-arch.el (vc-arch-checkin):
@@ -539,8 +545,8 @@
 	(widget-field-value-set): New fun.
 	(editable-field): Use it.
 	(widget-field-value-get): Clean up unused var.
-	(widget-color-value-create, widget-color--choose-action): New
-	funs.  Allow using list-colors-display to choose color.
+	(widget-color-value-create, widget-color--choose-action):
+	New funs.  Allow using list-colors-display to choose color.
 
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -551,8 +557,7 @@
 	(custom-buffer-create-internal): Add custom-apropos search field.
 	(custom-add-parent-links): Don't display parent doc.
 	(custom-group-value-create): Don't sort top-level custom group.
-	(custom-magic-value-create): Show visibility button before option
-	name.
+	(custom-magic-value-create): Show visibility button before option name.
 
 	(custom-variable-state): New fun, from custom-variable-state-set.
 	(custom-variable-state-set): Use it.
@@ -690,8 +695,8 @@
 
 2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
-	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
-	vc-git-root as default directory for revision path (Bug#5657).
+	* vc-git.el (vc-git-annotate-extract-revision-at-line):
+	Use vc-git-root as default directory for revision path (Bug#5657).
 
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -780,8 +785,8 @@
 2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-introspect, dbus-get-property)
-	(dbus-set-property, dbus-get-all-properties): Use
-	`dbus-call-method' when noninteractive.  (Bug#5645)
+	(dbus-set-property, dbus-get-all-properties):
+	Use `dbus-call-method' when noninteractive.  (Bug#5645)
 
 2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2166,9 +2171,9 @@
 
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar--convert-tz-offset): Fixed
-	timezone names.
-	(icalendar--convert-tz-offset): Fixed the "last-day-problem".
+	* calendar/icalendar.el (icalendar--convert-tz-offset):
+	Fix timezone names.
+	(icalendar--convert-tz-offset): Fix the "last-day-problem".
 	(icalendar--add-diary-entry): Remove the trailing blank that
 	diary-make-entry inserts.
 
@@ -2185,7 +2190,7 @@
 	(tramp-advice-file-expand-wildcards): Remove it.
 
 	* net/tramp-compat.el (top): Autoload `tramp-handle-file-remote-p'.
-	(tramp-advice-file-expand-wildcards): Moved from tramp.el.
+	(tramp-advice-file-expand-wildcards): Move from tramp.el.
 	Activate advice for older GNU Emacs versions.  (Bug#5237)
 
 2009-12-17  Juanma Barranquero  <lekktu@gmail.com>
@@ -2202,12 +2207,12 @@
 
 	* files.el (hack-local-variables-filter): While ignoring duplicates,
 	don't take `mode' into account.
-	(hack-local-variables-filter, hack-dir-local-variables): Don't
-	remove duplicate `mode' from local-variables-alist (like `eval').
+	(hack-local-variables-filter, hack-dir-local-variables):
+	Don't remove duplicate `mode' from local-variables-alist (like `eval').
 
 2009-12-17  Juri Linkov  <juri@jurta.org>
 
-	Make `dired-diff' more safe.  (Bug#5225)
+	Make `dired-diff' safer.  (Bug#5225)
 
 	* dired-aux.el (dired-diff): Signal an error when `file' equals to
 	`current' or when `file' is a directory of the `current' file.
@@ -2404,7 +2409,7 @@
 
 2009-12-09  Vivek Dasmohapatra  <vivek@etla.org>
 
-	Drop some properties to avoid surprises.
+	Drop some properties to avoid surprises (bug#5002).
 	* htmlfontify.el (hfy-ignored-properties): New defcustom.
 	(hfy-fontify-buffer): Use it.
 
