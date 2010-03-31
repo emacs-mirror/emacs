@@ -36,6 +36,8 @@ lib-src/Makefile by hand in order to use the associated features.
 
 * Changes in Emacs 24.1
 
+** auto-mode-case-fold is now enabled by default.
+
 +++
 ** Emacs now supports display and editing of bidirectional text.
 Warning: This is still very much experimental!  The existing support
