@@ -4003,9 +4003,10 @@ and more reliable (no dependence on goal column, etc.)."
 	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
     (if (called-interactively-p 'interactive)
-	(condition-case nil
+	(condition-case err
 	    (line-move arg nil nil try-vscroll)
-	  ((beginning-of-buffer end-of-buffer) (ding)))
+	  ((beginning-of-buffer end-of-buffer)
+	   (signal (car err) (cdr err))))
       (line-move arg nil nil try-vscroll)))
   nil)
 
@@ -4033,9 +4034,10 @@ to use and more reliable (no dependence on goal column, etc.)."
   (interactive "^p\np")
   (or arg (setq arg 1))
   (if (called-interactively-p 'interactive)
-      (condition-case nil
+      (condition-case err
 	  (line-move (- arg) nil nil try-vscroll)
-	((beginning-of-buffer end-of-buffer) (ding)))
+	((beginning-of-buffer end-of-buffer)
+	 (signal (car err) (cdr err))))
     (line-move (- arg) nil nil try-vscroll))
   nil)
 
