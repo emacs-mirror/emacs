@@ -16868,19 +16868,37 @@ highlight_trailing_whitespace (f, row)
       struct glyph *start = row->glyphs[TEXT_AREA];
       struct glyph *glyph = start + used - 1;
 
+      if (row->reversed_p)
+	{
+	  /* Right-to-left rows need to be processed in the opposite
+	     direction, so swap the edge pointers. */
+	  glyph = start;
+	  start = row->glyphs[TEXT_AREA] + used - 1;
+	}
+
       /* Skip over glyphs inserted to display the cursor at the
 	 end of a line, for extending the face of the last glyph
 	 to the end of the line on terminals, and for truncation
 	 and continuation glyphs.  */
-      while (glyph >= start
-	     && glyph->type == CHAR_GLYPH
-	     && INTEGERP (glyph->object))
-	--glyph;
+      if (!row->reversed_p)
+	{
+	  while (glyph >= start
+		 && glyph->type == CHAR_GLYPH
+		 && INTEGERP (glyph->object))
+	    --glyph;
+	}
+      else
+	{
+	  while (glyph <= start
+		 && glyph->type == CHAR_GLYPH
+		 && INTEGERP (glyph->object))
+	    ++glyph;
+	}
 
       /* If last glyph is a space or stretch, and it's trailing
 	 whitespace, set the face of all trailing whitespace glyphs in
 	 IT->glyph_row to `trailing-whitespace'.  */
-      if (glyph >= start
+      if ((row->reversed_p ? glyph <= start : glyph >= start)
 	  && BUFFERP (glyph->object)
 	  && (glyph->type == STRETCH_GLYPH
 	      || (glyph->type == CHAR_GLYPH
@@ -16891,12 +16909,24 @@ highlight_trailing_whitespace (f, row)
 	  if (face_id < 0)
 	    return;
 
-	  while (glyph >= start
-		 && BUFFERP (glyph->object)
-		 && (glyph->type == STRETCH_GLYPH
-		     || (glyph->type == CHAR_GLYPH
-			 && glyph->u.ch == ' ')))
-	    (glyph--)->face_id = face_id;
+	  if (!row->reversed_p)
+	    {
+	      while (glyph >= start
+		     && BUFFERP (glyph->object)
+		     && (glyph->type == STRETCH_GLYPH
+			 || (glyph->type == CHAR_GLYPH
+			     && glyph->u.ch == ' ')))
+		(glyph--)->face_id = face_id;
+	    }
+	  else
+	    {
+	      while (glyph <= start
+		     && BUFFERP (glyph->object)
+		     && (glyph->type == STRETCH_GLYPH
+			 || (glyph->type == CHAR_GLYPH
+			     && glyph->u.ch == ' ')))
+		(glyph++)->face_id = face_id;
+	    }
 	}
     }
 }

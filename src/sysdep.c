@@ -384,11 +384,7 @@ set_exclusive_use (fd)
 
 wait_without_blocking ()
 {
-#ifdef BSD_SYSTEM
-  wait3 (0, WNOHANG | WUNTRACED, 0);
-#else
   croak ("wait_without_blocking");
-#endif
   synch_process_alive = 0;
 }
 
