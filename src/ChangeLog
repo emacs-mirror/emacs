@@ -16,6 +16,11 @@
 	(gif_load): Put GIF extension data to the property
 	`Qextension_data'.
 
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_set_doc_edited): Remove unused arg OLDVAL.
+	* nsterm.h: Fix prototype.
+
 2010-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (highlight_trailing_whitespace): Support highlight of
