@@ -1,3 +1,7 @@
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.h: Fix last change.
+
 2010-03-30  Bernhard Herzog  <bh@intevation.de>  (tiny change)
 
 	* menu.c (Fx_popup_menu): Use last_event_timestamp (Bug#4930).
