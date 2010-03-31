@@ -1,6 +1,12 @@
+2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-default-mail-headers):
+	(message-default-headers): Carry the value mail-default-headers over
+	into message-default-mail-headers, rather than message-default-headers.
+
 2010-03-30  Martin Stjernholm  <mast@lysator.liu.se>
 
-	* mm-decode.el (mm-add-meta-html-tag): Added option to override the
+	* mm-decode.el (mm-add-meta-html-tag): Add option to override the
 	charset.
 
 	* gnus-art.el (gnus-article-browse-html-parts): Force the correct
@@ -8,8 +14,8 @@
 
 2010-03-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-article-browse-delete-temp-files): Delete
-	directories as well.
+	* gnus-art.el (gnus-article-browse-delete-temp-files):
+	Delete directories as well.
 	(gnus-article-browse-html-parts): Work for images that do not specify
 	file names; delete temp directory when quitting; insert header at the
 	right place; use file: scheme for image files.
@@ -30,8 +36,8 @@
 
 2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* auth-source.el (auth-sources): Change default to be simpler.  Explain
-	about Secret Service API sources.  Improve Customize options.
+	* auth-source.el (auth-sources): Change default to be simpler.
+	Explain about Secret Service API sources.  Improve Customize options.
 	(auth-source-pick): Change to accept any number of search parameters.
 	Implement fallbacks iteratively, not recursively.  Add scoring on the
 	second pass and sort by score.  Call Secret Service API when needed.
