@@ -5490,12 +5490,12 @@ cancel the use of the current buffer (for special-purpose buffers),
 or go back to just one window (by deleting all but the selected window)."
   (interactive)
   (cond ((eq last-command 'mode-exited) nil)
+	((region-active-p)
+	 (deactivate-mark))
 	((> (minibuffer-depth) 0)
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((region-active-p)
-	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))
 	(buffer-quit-function

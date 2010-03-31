@@ -1,5 +1,11 @@
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
+	* simple.el (keyboard-escape-quit): Raise deselecting the active
+	region higher than exiting the minibuffer.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00904.html
+
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
 	* image.el (image-animated-p): Use `image-metadata' instead of
 	`image-extension-data'.  Get GIF extenstion data from metadata
 	property `extension-data'.
