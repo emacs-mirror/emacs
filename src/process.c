@@ -69,12 +69,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* HAVE_SOCKETS */
 
-#if defined(BSD_SYSTEM)
+#if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
-#endif /* BSD_SYSTEM */
+#endif /* HAVE_SYS_IOCTL_H */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
@@ -3534,6 +3534,8 @@ usage: (make-network-process &rest ARGS)  */)
     {
       int optn, optbits;
 
+    retry_connect:
+
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
 	{
@@ -3636,12 +3638,14 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 #endif
 #endif
+
+#ifndef WINDOWSNT
       if (xerrno == EINTR)
 	{
 	  /* Unlike most other syscalls connect() cannot be called
 	     again.  (That would return EALREADY.)  The proper way to
 	     wait for completion is select(). */
-	  int sc;
+	  int sc, len;
 	  SELECT_TYPE fdset;
 	retry_select:
 	  FD_ZERO (&fdset);
@@ -3651,23 +3655,23 @@ usage: (make-network-process &rest ARGS)  */)
 		       (EMACS_TIME *)0);
 	  if (sc == -1)
 	    {
-	      if (errno == EINTR) 
+	      if (errno == EINTR)
 		goto retry_select;
-	      else 
+	      else
 		report_file_error ("select failed", Qnil);
 	    }
 	  eassert (sc > 0);
-	  {
-	    int len = sizeof xerrno;
-	    eassert (FD_ISSET (s, &fdset));
-	    if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
-	      report_file_error ("getsockopt failed", Qnil);
-	    if (xerrno != 0)
-	      errno = xerrno, report_file_error ("error during connect", Qnil);
-	    else
-	      break;
-	  }
+
+	  len = sizeof xerrno;
+	  eassert (FD_ISSET (s, &fdset));
+	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
+	    report_file_error ("getsockopt failed", Qnil);
+	  if (xerrno)
+	    errno = xerrno, report_file_error ("error during connect", Qnil);
+	  else
+	    break;
 	}
+#endif /* !WINDOWSNT */
 
       immediate_quit = 0;
 
@@ -3675,6 +3679,11 @@ usage: (make-network-process &rest ARGS)  */)
       specpdl_ptr = specpdl + count1;
       emacs_close (s);
       s = -1;
+
+#ifdef WINDOWSNT
+      if (xerrno == EINTR)
+	goto retry_connect;
+#endif
     }
 
   if (s >= 0)

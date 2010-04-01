@@ -1,3 +1,57 @@
+2010-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content): Rename from
+	gnus-article-browse-html-save-cid-image; make it work recursively for
+	forwarded messages as well.
+	(gnus-article-browse-html-parts): Work when prefix arg is given.
+	(gnus-article-browse-html-article): Doc fix.
+
+2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-default-mail-headers):
+	(message-default-headers): Carry the value mail-default-headers over
+	into message-default-mail-headers, rather than message-default-headers.
+
+2010-03-30  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* mm-decode.el (mm-add-meta-html-tag): Add option to override the
+	charset.
+
+	* gnus-art.el (gnus-article-browse-html-parts): Force the correct
+	charset into the <meta> tag when the article is encoded to utf-8.
+
+2010-03-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files):
+	Delete directories as well.
+	(gnus-article-browse-html-parts): Work for images that do not specify
+	file names; delete temp directory when quitting; insert header at the
+	right place; use file: scheme for image files.
+
+2010-03-30  Eric Schulte  <schulte.eric@gmail.com>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-image): New function.
+	(gnus-article-browse-html-parts): Use it to make temporary cid image
+	files in addition to html file so that browser may display them.
+
+2010-03-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-add-meta-html-tag): Fix regexp matching meta tag.
+
+2010-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-pick): Fix for non-secrets specifier.
+
+2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Change default to be simpler.
+	Explain about Secret Service API sources.  Improve Customize options.
+	(auth-source-pick): Change to accept any number of search parameters.
+	Implement fallbacks iteratively, not recursively.  Add scoring on the
+	second pass and sort by score.  Call Secret Service API when needed.
+	(auth-source-user-or-password): Use it.  Call Secret Service API
+	directly when needed to get the user name and the password.
+
 2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* message.el (message-interactive): Doc fix.

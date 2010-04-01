@@ -675,7 +675,8 @@ If `last', order groups after non-groups."
 (defcustom custom-buffer-sort-alphabetically t
   "Whether to sort customization groups alphabetically in Custom buffer."
   :type 'boolean
-  :group 'custom-buffer)
+  :group 'custom-buffer
+  :version "24.1")
 
 (defcustom custom-buffer-order-groups 'last
   "If non-nil, order group members within each customization group.

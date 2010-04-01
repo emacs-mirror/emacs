@@ -417,9 +417,11 @@ and should insert whatever you want to insert."
 
 ;;;###autoload
 (defcustom mail-default-directory (purecopy "~/")
-  "Directory for mail buffers.
-Value of `default-directory' for mail buffers.
-This directory is used for auto-save files of mail buffers."
+  "Value of `default-directory' for Mail mode buffers.
+This directory is used for auto-save files of Mail mode buffers.
+
+Note that Message mode does not use this variable; it auto-saves
+in `message-auto-save-directory'."
   :type '(directory :tag "Directory")
   :group 'sendmail
   :version "22.1")

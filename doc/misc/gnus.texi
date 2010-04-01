@@ -10506,16 +10506,23 @@ the same manner:
 @kindex K H (Summary)
 @findex gnus-article-browse-html-article
 View @samp{text/html} parts of the current article with a WWW browser.
-The message header is added to the beginning of every html part unless
-the prefix argument is given.
+Inline images embedded in a message using the @code{cid} scheme, as they
+are generally considered to be safe, will be processed properly.  The
+message header is added to the beginning of every @acronym{HTML} part
+unless the prefix argument is given.
 
-Warning: Spammers use links to images in HTML articles to verify whether
-you have read the message.  As this command passes the @acronym{HTML}
-content to the browser without eliminating these ``web bugs'' you should
-only use it for mails from trusted senders.
+Warning: Spammers use links to images (using the @code{http} scheme) in
+@acronym{HTML} articles to verify whether you have read the message.  As
+this command passes the @acronym{HTML} content to the browser without
+eliminating these ``web bugs'' you should only use it for mails from
+trusted senders.
 
 If you always want to display @acronym{HTML} parts in the browser, set
 @code{mm-text-html-renderer} to @code{nil}.
+
+This command creates temporary files to pass @acronym{HTML} contents
+including images if any to the browser, and deletes them when exiting
+the group (if you want).
 
 @item K b
 @kindex K b (Summary)

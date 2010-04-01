@@ -103,10 +103,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIB_STANDARD
 
-/* there are no -lg libraries on this system, and no libPW */
-
-#define LIBS_DEBUG
-
 /* Undump with ELF */
 
 #undef COFF

@@ -189,9 +189,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
 
-/* We don't have a g library, so override the -lg LIBS_DEBUG switch.  */
-#define LIBS_DEBUG
-
 /* Adding -lm confuses the dynamic linker, so omit it.  */
 #define LIB_MATH
 

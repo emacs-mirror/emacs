@@ -681,8 +681,9 @@ is the delay in 100ths of a second until the next sub-image
 shall be displayed."
   (cond
    ((eq (plist-get (cdr image) :type) 'gif)
-    (let* ((extdata (image-extension-data image))
-	   (images (plist-get extdata 'count))
+    (let* ((metadata (image-metadata image))
+	   (images (plist-get metadata 'count))
+	   (extdata (plist-get metadata 'extension-data))
 	   (anim (plist-get extdata #xF9)))
       (and (integerp images) (> images 1)
 	   (stringp anim) (>= (length anim) 4)

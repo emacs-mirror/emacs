@@ -384,11 +384,7 @@ set_exclusive_use (fd)
 
 wait_without_blocking ()
 {
-#ifdef BSD_SYSTEM
-  wait3 (0, WNOHANG | WUNTRACED, 0);
-#else
   croak ("wait_without_blocking");
-#endif
   synch_process_alive = 0;
 }
 
@@ -1401,9 +1397,8 @@ init_sys_modes (tty_out)
 
   if (tty_out->term_initted && no_redraw_on_reenter)
     {
-      /* XXX This seems wrong on multi-tty. */
-      if (display_completed)
-	direct_output_forward_char (0);
+      /* We used to call "direct_output_forward_char(0)" here,
+	 but it's not clear why, since it may not do anything anyway.  */
     }
   else
     {

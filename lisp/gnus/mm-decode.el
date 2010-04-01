@@ -1258,11 +1258,11 @@ PROMPT overrides the default one used to ask user for a file name."
 	   (mm-save-part-to-file handle file)
 	   file))))
 
-(defun mm-add-meta-html-tag (handle &optional charset)
+(defun mm-add-meta-html-tag (handle &optional charset force-charset)
   "Add meta html tag to specify CHARSET of HANDLE in the current buffer.
 CHARSET defaults to the one HANDLE specifies.  Existing meta tag that
-specifies charset will not be modified.  Return t if meta tag is added
-or replaced."
+specifies charset will not be modified unless FORCE-CHARSET is non-nil.
+Return t if meta tag is added or replaced."
   (when (equal (mm-handle-media-type handle) "text/html")
     (when (or charset
 	      (setq charset (mail-content-type-get (mm-handle-type handle)
@@ -1273,8 +1273,9 @@ or replaced."
 	(goto-char (point-min))
 	(if (re-search-forward "\
 <meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']\
-text/\\(\\sw+\\)\\(?:\;\\s-*charset=\\(.+?\\)\\)?[\"'][^>]*>" nil t)
-	    (if (and (match-beginning 2)
+text/\\(\\sw+\\)\\(?:\;\\s-*charset=\\(.+\\)\\)?[\"'][^>]*>" nil t)
+	    (if (and (not force-charset)
+		     (match-beginning 2)
 		     (string-match "\\`html\\'" (match-string 1)))
 		;; Don't modify existing meta tag.
 		nil

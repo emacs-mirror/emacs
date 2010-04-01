@@ -12167,7 +12167,7 @@ You are prompted for a file name.  All Calc modes are then reset to
 their default values, then settings from the file you named are loaded
 if this file exists, and this file becomes the one that Calc will
 use in the future for commands like @kbd{m m}.  The default settings
-file name is @file{~/.calc.el}.  You can see the current file name by
+file name is @file{~/.emacs.d/calc.el}.  You can see the current file name by
 giving a blank response to the @kbd{m F} prompt.  See also the
 discussion of the @code{calc-settings-file} variable; @pxref{Customizing Calc}.
 
@@ -16006,7 +16006,7 @@ No line breaking (@kbd{d b}).
 Selections show deep structure (@kbd{j b}; @pxref{Making Selections}).
 
 @item Save
-Record modes in @file{~/.calc.el} (@kbd{m R}; @pxref{General Mode Commands}).
+Record modes in @file{~/.emacs.d/calc.el} (@kbd{m R}; @pxref{General Mode Commands}).
 
 @item Local
 Record modes in Embedded buffer (@kbd{m R}).
@@ -28108,7 +28108,7 @@ possible to create user-defined temperature units.
 @cindex Calc init file, user-defined units
 The @kbd{u p} (@code{calc-permanent-units}) command stores the user-defined
 units in your Calc init file (the file given by the variable
-@code{calc-settings-file}, typically @file{~/.calc.el}), so that the
+@code{calc-settings-file}, typically @file{~/.emacs.d/calc.el}), so that the
 units will still be available in subsequent Emacs sessions.  If there
 was already a set of user-defined units in your Calc init file, it
 is replaced by the new set.  (@xref{General Mode Commands}, for a way to
@@ -28509,7 +28509,7 @@ names rather than prompting for the variable name.
 @cindex Calc init file, variables
 The @kbd{s p} (@code{calc-permanent-variable}) command saves a
 variable's value permanently in your Calc init file (the file given by
-the variable @code{calc-settings-file}, typically @file{~/.calc.el}), so
+the variable @code{calc-settings-file}, typically @file{~/.emacs.d/calc.el}), so
 that its value will still be available in future Emacs sessions.  You
 can re-execute @w{@kbd{s p}} later on to update the saved value, but the
 only way to remove a saved variable is to edit your calc init file
@@ -30862,7 +30862,7 @@ Two more mode-recording modes selectable by @kbd{m R} are available
 which are also available outside of Embedded mode.  
 (@pxref{General Mode Commands}.) They are @code{Save},  in which mode
 settings are recorded permanently in your Calc init file (the file given
-by the variable @code{calc-settings-file}, typically @file{~/.calc.el})
+by the variable @code{calc-settings-file}, typically @file{~/.emacs.d/calc.el})
 rather than by annotating the current document, and no-recording
 mode (where there is no symbol like @code{Save} or @code{Local} in
 the mode line), in which mode-changing commands do not leave any
@@ -31122,7 +31122,7 @@ The @kbd{Z P} (@code{calc-user-define-permanent}) command makes a key
 binding permanent so that it will remain in effect even in future Emacs
 sessions.  (It does this by adding a suitable bit of Lisp code into
 your Calc init file; that is, the file given by the variable
-@code{calc-settings-file}, typically @file{~/.calc.el}.)  For example,
+@code{calc-settings-file}, typically @file{~/.emacs.d/calc.el}.)  For example,
 @kbd{Z P s} would register our @code{sincos} command permanently.  If
 you later wish to unregister this command you must edit your Calc init
 file by hand.  (@xref{General Mode Commands}, for a way to tell Calc to
@@ -31855,7 +31855,7 @@ step of @code{myfact} could have been written
 
 A good place to put your @code{defmath} commands is your Calc init file
 (the file given by @code{calc-settings-file}, typically
-@file{~/.calc.el}), which will not be loaded until Calc starts.
+@file{~/.emacs.d/calc.el}), which will not be loaded until Calc starts.
 If a file named @file{.emacs} exists in your home directory, Emacs reads
 and executes the Lisp forms in this file as it starts up.  While it may
 seem reasonable to put your favorite @code{defmath} commands there,
@@ -34956,7 +34956,9 @@ If @code{calc-settings-file} is not your user init file (typically
 @code{nil}, then Calc will automatically load your settings file (if it
 exists) the first time Calc is invoked.
 
-The default value for this variable is @code{"~/.calc.el"}.
+The default value for this variable is @code{"~/.emacs.d/calc.el"}
+unless the file @file{~/.calc.el} exists, in which case the default
+value will be @code{"~/.calc.el"}.
 @end defvar
 
 @defvar calc-gnuplot-name

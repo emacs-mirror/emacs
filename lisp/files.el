@@ -2159,7 +2159,7 @@ in that case, this function acts as if `enable-local-variables' were t."
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
 
-(defcustom auto-mode-case-fold nil
+(defcustom auto-mode-case-fold t
   "Non-nil means to try second pass through `auto-mode-alist'.
 This means that if the first case-sensitive search through the alist fails
 to find a matching major mode, a second case-insensitive search is made.
@@ -2768,14 +2768,15 @@ asking you for confirmation."
 
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only     . booleanp)   ;; C source code
-	(default-directory    . stringp)    ;; C source code
-	(fill-column          . integerp)   ;; C source code
-	(indent-tabs-mode     . booleanp)   ;; C source code
-	(left-margin          . integerp)   ;; C source code
-	(no-update-autoloads  . booleanp)
-	(tab-width            . integerp)   ;; C source code
-	(truncate-lines       . booleanp))) ;; C source code
+      '((buffer-read-only        . booleanp)   ;; C source code
+	(default-directory       . stringp)    ;; C source code
+	(fill-column             . integerp)   ;; C source code
+	(indent-tabs-mode        . booleanp)   ;; C source code
+	(left-margin             . integerp)   ;; C source code
+	(no-update-autoloads     . booleanp)
+	(tab-width               . integerp)   ;; C source code
+	(truncate-lines          . booleanp)   ;; C source code
+	(bidi-display-reordering . booleanp))) ;; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 

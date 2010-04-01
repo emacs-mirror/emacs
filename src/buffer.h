@@ -662,8 +662,16 @@ struct buffer
   Lisp_Object word_wrap;
   /* Non-nil means display ctl chars with uparrow.  */
   Lisp_Object ctl_arrow;
-  /* Non-nil means display text from right to left.  */
+  /* Non-nil means reorder bidirectional text for display in the
+     visual order.  */
+  Lisp_Object bidi_display_reordering;
+  /* Non-nil means set beginning of lines at the right edge of
+     windows.  */
   Lisp_Object direction_reversed;
+  /* If non-nil, specifies which direction of text to force in all the
+     paragraphs of the buffer.  Nil means determine paragraph
+     direction dynamically for each paragraph.  */
+  Lisp_Object bidi_paragraph_direction;
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
   Lisp_Object selective_display;
