@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    menus, and the Windows clipboard.  */
 
 /* Written by Dale P. Smith <dpsm@en.com>  */
-/* Adapted to DJGPP v1 by Eli Zaretskii <eliz@is.elta.co.il>  */
+/* Adapted to DJGPP by Eli Zaretskii <eliz@gnu.org>  */
 
 #ifdef MSDOS
 
@@ -93,25 +93,6 @@ static unsigned char *last_clipboard_text;
 
 /* The size of allocated storage for storing the clipboard data.  */
 static size_t clipboard_storage_size;
-
-/* Emulation of `__dpmi_int' and friends for DJGPP v1.x  */
-
-#if __DJGPP__ < 2
-
-typedef _go32_dpmi_registers __dpmi_regs;
-#define __tb      _go32_info_block.linear_address_of_transfer_buffer
-#define _dos_ds	  _go32_info_block.selector_for_linear_memory
-
-static int
-__dpmi_int (intno, regs)
-     int intno;
-     __dpmi_regs *regs;
-{
-  regs->x.ss = regs->x.sp = regs->x.flags = 0;
-  return _go32_dpmi_simulate_int (intno, regs);
-}
-
-#endif /* __DJGPP__ < 2 */
 
 /* C functions to access the Windows 3.1x clipboard from DOS apps.
 
