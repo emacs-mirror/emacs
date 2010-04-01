@@ -4450,6 +4450,12 @@ croak (badfunc)
   exit (1);
 }
 
+/*
+ * A few unimplemented functions that we silently ignore.
+ */
+setpgrp () {return 0; }
+setpriority (x,y,z) int x,y,z; { return 0; }
+
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
 #ifdef POSIX_SIGNALS
