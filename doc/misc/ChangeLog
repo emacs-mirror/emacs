@@ -1,3 +1,8 @@
+2010-04-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Finding the News): Add pointers to the Server buffer
+	because it's essential.
+
 2010-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (MIME Commands): Update description of
