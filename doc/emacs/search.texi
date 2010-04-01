@@ -1311,8 +1311,7 @@ Prompt for a regexp, and display a list showing each line in the
 buffer that contains a match for it.  To limit the search to part of
 the buffer, narrow to that part (@pxref{Narrowing}).  A numeric
 argument @var{n} specifies that @var{n} lines of context are to be
-displayed before and after each matching line.  Currently,
-@code{occur} can not correctly handle multiline matches.
+displayed before and after each matching line.
 
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}

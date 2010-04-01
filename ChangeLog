@@ -1,6 +1,6 @@
-2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
+2010-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* Restore GDB/MI fuctionality removed by r99212.
+	* configure.in: Remove all references to C_DEBUG_SWITCH.
 
 2010-03-27  Eli Zaretskii  <eliz@gnu.org>
 

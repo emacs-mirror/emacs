@@ -224,7 +224,7 @@ the repository, along with a log entry for those changes.
 @cindex revision
 @cindex revision ID
   A copy of a file stored in a repository is called a @dfn{revision}.
-The history of a file is a sequence of revisions.  Each revisions is
+The history of a file is a sequence of revisions.  Each revision is
 named by a @dfn{revision ID}.  The format of the revision ID depends
 on the version control system; in the simplest case, it is just an
 integer.
@@ -403,10 +403,10 @@ Directory buffer, and some files in it are marked, the VC fileset
 consists of the marked files (@pxref{VC Directory Mode}).
 
   The principal VC command is an all-purpose command, @kbd{C-x v v}
-(@code{vc-next-action}), that performs either locking, merging or a
-check-in (depending on the situation) on the current VC fileset.  You
-can use @kbd{C-x v v} in a file-visiting buffer or in a VC Directory
-buffer.
+(@code{vc-next-action}), that performs either registration, locking,
+merging or a check-in (depending on the situation) on the current VC
+fileset.  You can use @kbd{C-x v v} in a file-visiting buffer or in a
+VC Directory buffer.
 
 @table @kbd
 @itemx C-x v v
@@ -461,23 +461,31 @@ unmodified; it flips to @samp{:} as soon as you save any changes
 
 @itemize @bullet
 @item
-If the work file is the same as in the repository, it does nothing.
+If the work file is in a directory that is not controlled by any
+version control system, prompt for a repository type.  Then, create a
+version control repository of that type and register the file with it.
+
+@item
+If the work file is in a directory that is controlled by a version
+control system but not registered with it, register the file.
+
+@item
+If the work file is the same as in the repository, do nothing.
 
 @item
 If you have not changed the work file, but some other user has checked
-in changes to the repository, @kbd{C-x v v} merges those changes into
-the work file.
+in changes to the repository, merge those changes into the work file.
 
 @item
-If you have made modifications to the work file, @kbd{C-x v v}
-attempts to check in your changes.  To do this, Emacs first reads the
-log entry for the new revision (@pxref{Log Buffer}).  If some other
-user has checked in changes to the repository since you last checked
-it out, the checkin fails.  In that case, type @kbd{C-x v v} again to
-merge those changes into your own work file; this puts the work file
-into a ``conflicted'' state.  Type @kbd{C-x v v} to clear the
-``conflicted'' state; VC then regards the file as up-to-date and
-modified, and you can try to check it in again.
+If you have made modifications to the work file, attempts to check in
+your changes.  To do this, Emacs first reads the log entry for the new
+revision (@pxref{Log Buffer}).  If some other user has checked in
+changes to the repository since you last checked it out, the checkin
+fails.  In that case, type @kbd{C-x v v} again to merge those changes
+into your own work file; this puts the work file into a ``conflicted''
+state.  Type @kbd{C-x v v} to clear the ``conflicted'' state; VC then
+regards the file as up-to-date and modified, and you can try to check
+it in again.
 
 To pick up any recent changes from the repository @emph{without}
 trying to commit your own changes, type @kbd{C-x v m @key{RET}}.
@@ -485,15 +493,15 @@ trying to commit your own changes, type @kbd{C-x v m @key{RET}}.
 @end itemize
 
   These rules also apply when you use RCS in its ``non-locking'' mode,
-except that changes will not be automatically merged from the
-repository.  Nothing informs you if another user has checked in
-changes in the same file since you began editing it; when you check in
-your revision, his changes are removed (however, they remain in the
-repository and are thus not irrevocably lost).  Therefore, you must
-verify that the current revision is unchanged before checking in your
-changes.  In addition, locking is possible with RCS even in this mode:
-@kbd{C-x v v} with an unmodified file locks the file, just as it does
-with RCS in its normal locking mode (@pxref{VC With A Locking VCS}).
+except that changes are not automatically merged from the repository.
+Nothing informs you if another user has checked in changes in the same
+file since you began editing it; when you check in your revision, his
+changes are removed (however, they remain in the repository and are
+thus not irrevocably lost).  Therefore, you must verify that the
+current revision is unchanged before checking in your changes.  In
+addition, locking is possible with RCS even in this mode: @kbd{C-x v
+v} with an unmodified file locks the file, just as it does with RCS in
+its normal locking mode (@pxref{VC With A Locking VCS}).
 
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
@@ -501,26 +509,25 @@ with RCS in its normal locking mode (@pxref{VC With A Locking VCS}).
   Under a locking-based version control system (such as SCCS, and RCS
 in its default mode), @kbd{C-x v v} does the following:
 
- @itemize @bullet
+@itemize @bullet
 @item
-If the file is not locked, @kbd{C-x v v} locks it, and makes it
-writable so that you can change it.
+If the file is not locked, lock it and make it writable, so that you
+can change it.
 
 @item
-If the file is locked by you, and contains changes, @kbd{C-x v v}
-checks in the changes.  In order to do this, it first reads the log
-entry for the new revision.  @xref{Log Buffer}.
+If the file is locked by you, and contains changes, check in the
+changes.  In order to do this, Emacs first reads the log entry for the
+new revision.  @xref{Log Buffer}.
 
 @item
 If the file is locked by you, but you have not changed it since you
-locked it, @kbd{C-x v v} releases the lock and makes the file
-read-only again.
+locked it, release the lock and makes the file read-only again.
 
 @item
-If the file is locked by some other user, @kbd{C-x v v} asks you whether
-you want to ``steal the lock'' from that user.  If you say yes, the file
-becomes locked by you, but a message is sent to the person who had
-formerly locked the file, to inform him of what has happened.
+If the file is locked by some other user, ask whether you want to
+``steal the lock'' from that user.  If you say yes, the file becomes
+locked by you, but a message is sent to the person who had formerly
+locked the file, to inform him of what has happened.
 @end itemize
 
   These rules also apply when you use CVS in locking mode, except
@@ -639,20 +646,23 @@ and @code{vc-log-mode-hook}.  @xref{Hooks}.
 to examine any revision of a file, or compare two revisions.
 
 @table @kbd
-@item C-x v ~ @var{revision} @key{RET}
-Examine revision @var{revision} of the visited file, in a buffer of its
-own.
+@item C-x v ~
+Prompt for a revision of the current file, and visit it in a buffer of
+its own (@code{vc-revision-other-window}).
 
 @item C-x v =
-Compare the buffer contents associated with the current
-fileset with the working revision(s) from which you started editing.
+Compare the files in the current fileset with the working revision(s)
+you started from (@code{vc-diff}).  With a prefix argument, prompt for
+two revisions of the current fileset and compare them.
 
-@item C-u C-x v = @key{RET} @var{oldvers} @key{RET} @var{newvers} @key{RET}
-Compare the specified two repository revisions of the current fileset.
+@item C-x v D
+Compare the entire tree corresponding to the current fileset with the
+tree you started from (@code{vc-root-diff}).  With a prefix argument,
+prompt for two revisions and compare their trees.
 
 @item C-x v g
 Display an annotated version of the file: for each line, show the
-latest revision in which it was modified.
+latest revision in which it was modified (@code{vc-annotate}).
 @end table
 
 @findex vc-revision-other-window
@@ -673,12 +683,11 @@ buffer in a separate window.
 
 @findex vc-diff
 @kindex C-x v =
-  @kbd{C-x v =} (@code{vc-diff}) compares the current buffer contents
-of each file in the current VC fileset (saving them if necessary) with
-the repository revision from which you started editing.  Note that the
-latter may or may not be the latest revision of the file(s).  The diff
-is displayed in a special buffer in another window.  @xref{Comparing
-Files}.
+  @kbd{C-x v =} (@code{vc-diff}) compares each file in the current VC
+fileset (saving them if necessary) with the repository revision(s)
+from which you started editing.  Note that the latter may or may not
+be the latest revision of the file(s).  The diff is displayed in a
+special buffer in another window.  @xref{Comparing Files}.
 
 @findex vc-diff
 @kindex C-u C-x v =
@@ -699,6 +708,12 @@ changeset-based (Subversion, GNU Arch, git, Mercurial), supplying a
 revision ID for a multi-file fileset (as opposed to a symbolic tag
 name) is unlikely to return diffs that are connected in any meaningful
 way.
+
+  The command @kbd{C-x v D} (@code{vc-root-diff}) is similar to
+@kbd{C-x v =}, but it compares the entire tree associated with the
+current VC fileset with the tree you started with.  This means all the
+files controlled by the current version control repository, even those
+that are not part of the current VC fileset.
 
   If you invoke @kbd{C-x v =} or @kbd{C-u C-x v =} from a buffer that
 is neither visiting a version-controlled file nor a VC directory
@@ -801,7 +816,7 @@ the file contents without distraction from the annotations.
 
 @menu
 * Registering::         Putting a file under version control.
-* VC Status::           Viewing the VC status of files.
+* VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after check-in.
 @end menu
 
@@ -857,22 +872,36 @@ particular file using the minibuffer.
 initial comment to describe the purpose of this source file.  Reading
 the initial comment works like reading a log entry (@pxref{Log Buffer}).
 
-@node VC Status
-@subsubsection VC Status Commands
+@node VC Change Log
+@subsubsection VC Change Log
 
 @table @kbd
 @item C-x v l
-Display revision control state and change history.
+Display revision control state and change history
+(@code{vc-print-log}).
+
+@item C-x v L
+Display the change history for the current repository
+(@code{vc-print-root-log}).
 @end table
 
 @kindex C-x v l
 @findex vc-print-log
-  To view the detailed revision control status and history of a file,
-type @kbd{C-x v l} (@code{vc-print-log}).  This pops up a special
-buffer named @samp{*vc-change-log*}, in a new window, that displays
-the history of changes to the current file, including the text of the
-log entries.  The point is centered at the revision of the file that
-is currently being visited.
+  The command @kbd{C-x v l} (@code{vc-print-log}) displays a buffer
+named @samp{*vc-change-log*} in a new window.  This buffer lists the
+changes to the current file, including the associated log entries.
+(These are the log entries associated with the version control system,
+i.e. the ones you enter via the @samp{*VC-Log*} buffer.  @xref{Log
+Buffer}.)  Point is centered at the revision of the file currently
+being visited.  With a prefix argument, the command prompts for the
+revision to center on, and the maximum number of revisions to display.
+
+@findex vc-print-root-log
+  Type @kbd{C-x v L} (@code{vc-print-root-log}) to display a
+@samp{*vc-change-log*} buffer showing the history of the
+version-controlled directory tree as a whole.  With a prefix argument,
+the command prompts for the maximum number of revisions to display.
+RCS, SCCS, and CVS do not support this feature.
 
   In the @samp{*vc-change-log*} buffer, you can use the following keys
 to move between the logs of revisions and of files, to view past
@@ -925,6 +954,16 @@ revision indicated at the current line and the next earlier revision.
 This is useful to see all the changes to all files that the revision
 indicated on the current line did when it was committed.
 @end table
+
+@vindex vc-log-show-limit
+Because fetching many log entries can be slow, the
+@samp{*vc-change-log*} buffer displays no more than 2000 revisions by
+default.  The variable @code{vc-log-show-limit} specifies this limit;
+if you set the value to zero, that removes the limit.  You can also
+increase the number of revisions shown in an existing
+@samp{*vc-change-log*} buffer by clicking on the @samp{Show 2X
+entries} or @samp{Show unlimited entries} buttons at the end of the
+buffer.  However, RCS, SCCS, and CVS do not support this feature.
 
 @node VC Undo
 @subsubsection Undoing Version Control Actions

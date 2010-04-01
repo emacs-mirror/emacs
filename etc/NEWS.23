@@ -148,7 +148,7 @@ subsequent kills are not duplicated in the `kill-ring'.
 +++
 *** The new completion-style `initials' is available.
 For instance, this can complete M-x lch to list-command-history.
-
+---
 *** The new variable `completions-format' determines how completions
 are displayed in the *Completions* buffer.  If you set it to
 `vertical', completions are sorted vertically in columns.
@@ -227,7 +227,7 @@ exempt buffers that do correspond to files, customize the value of
 Dired buffers to be reverted automatically on revisiting them.
 
 ** DocView
-
++++
 *** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 
@@ -250,6 +250,7 @@ matched topics found in the index.
 manual that generates an Info file which gives the same information
 through a menu structure.
 
++++
 ** Message mode is now the default mode for composing mail.
 
 The default for `mail-user-agent' is now message-user-agent, so the
@@ -259,6 +260,7 @@ Message mode has been included in Emacs, as part of the Gnus package,
 for several years.  It provides several features that are absent in
 Mail mode, such as MIME handling.
 
+---
 *** If the user has not customized mail-user-agent, `compose-mail'
 checks for Mail mode customizations, and issues a warning if these
 customizations are found.  This alerts users who may otherwise be
@@ -271,49 +273,59 @@ To disable this check, set compose-mail-user-agent-warnings to nil.
 Emacs will wait for the process sending mail to return.  If you
 experience delays when sending mail, you may wish to set this to nil.
 
++++
 ** nXML mode is now the default for editing XML files.
 
-** Shell
+** Shell (and other comint modes)
 +++
-*** ansi-color is now enabled by default.
+*** M-s is no longer bound to `comint-next-matching-input'.
++++
+*** M-r is now bound to `comint-history-isearch-backward-regexp'.
+This starts an incremental search of the comint/shell input history.
++++
+*** ansi-color is now enabled by default in Shell mode.
 To disable it, set ansi-color-for-comint-mode to nil.
 
-+++
 ** Tramp
-
++++
 *** New connection methods "rsyncc", "imap" and "imaps".
 On systems which support GVFS-Fuse, Tramp offers also the new
 connection methods "dav", "davs", "obex" and "synce".
 
 ** VC and related modes
-
++++
 *** When using C-x v v or C-x v i on a unregistered file that is in a
 directory not controlled by any VCS, ask the user what VC backend to
 use to create a repository, create a new repository and register the
 file.
-
-*** FIXME: add info about the new VC functions: vc-root-diff and
-vc-root-print-log once they stabilize.
-
-*** The log functions (C-x v l and C-x v L) do not show the full log
-by default anymore.  The number of entries shown can be chosen
-interactively with a prefix argument, by customizing
-vc-log-show-limit.  The log buffer display buttons that can be used
-to change the number of entries shown.
-RCS, SCCS, CVS do not support this feature.
-
++++
+*** New command `vc-root-print-log', bound to `C-x v L'.
+This displays a `*vc-change-log*' buffer showing the history of the
+version-controlled directory tree as a whole.
++++
+*** New command `vc-root-diff', bound to `C-x v D'.
+This is similar to `vc-diff', but compares the entire directory tree
+of the current VC directory with its working revision.
++++
+*** `C-x v l' and `C-x v L' do not show the full log by default.
+The number of entries shown can be chosen interactively with a prefix
+argument, or by customizing vc-log-show-limit.  The `*vc-change-log*'
+buffer now contains buttons at the end of the buffer, which can be
+used to increase the number of entries shown.  RCS, SCCS, and CVS do
+not support this feature.
+---
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take
 advantage of this feature.
-
+---
 *** The log command in vc-annotate can display a single log entry
 instead of redisplaying the full log.  The RCS, CVS and SCCS VC
 backends do not support this.
-
+---
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
-*** Diff and log operations can be used from dired buffers.
+*** Diff and log operations can be used from Dired buffers.
 
 *** vc-git changes
 
@@ -330,7 +342,7 @@ their content displayed.
 
 *** vc-bzr supports operating with shelves: the shelve list is
 displayed in the *vc-dir* header, shelves can be created, removed and applied.
-
+---
 *** log-edit-strip-single-file-name controls whether or not single filenames
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
@@ -355,11 +367,6 @@ to sacrifice some accuracy for a faster startup.
 the command asynchronously without the need to manually add ampersand to
 the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
-
-*** Isearch searches in the comint/shell input history when the new variable
-`comint-history-isearch' is non-nil.  New commands `comint-history-isearch-backward'
-and `comint-history-isearch-backward-regexp' (bound to M-r) start Isearch
-in the input history regardless of the value of `comint-history-isearch'.
 +++
 *** Interactively `multi-isearch-buffers' and `multi-isearch-buffers-regexp'
 read buffer names to search, one by one, ended with RET.  With a prefix
@@ -414,6 +421,7 @@ System (CLOS).  It is used by the other CEDET packages.
 
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
 
++++
 ** js.el is a new major mode for JavaScript files.
 
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
@@ -523,9 +531,9 @@ file name handlers such as Tramp to optimizations.
 *** make-network-process can now also create `seqpacket' Unix sockets.
 
 ** Loading changes
-
+---
 *** eval-next-after-load is obsolete.
-
++++
 *** New hook `after-load-functions' run after loading an Elisp file.
 
 ** Byte compilation changes

@@ -26,11 +26,16 @@ structure.
 @xref{Outline Mode}.
 @end iftex
 
+@cindex nXML mode
+@cindex mode, XML
+@cindex mode, nXML
+@findex nxml-mode
   Emacs has other major modes for text which contains ``embedded''
-commands, such as @TeX{} and La@TeX{} (@pxref{TeX Mode}); HTML, SGML,
-and XML (@pxref{HTML Mode}); and Groff and Nroff (@pxref{Nroff Mode}).
-In addition, you can edit formatted text in WYSIWYG style (``what you
-see is what you get''), using Enriched mode (@pxref{Formatted Text}).
+commands, such as @TeX{} and La@TeX{} (@pxref{TeX Mode}); HTML and
+SGML (@pxref{HTML Mode}); XML (@pxref{Top, nXML Mode,,nxml-mode, nXML
+Mode}); and Groff and Nroff (@pxref{Nroff Mode}).  In addition, you
+can edit formatted text in WYSIWYG style (``what you see is what you
+get''), using Enriched mode (@pxref{Formatted Text}).
 
 @cindex ASCII art
   If you need to edit pictures made out of text characters (commonly
@@ -61,7 +66,7 @@ for editing such pictures.
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
-* HTML Mode::           Editing HTML, SGML, and XML files.
+* HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
@@ -923,10 +928,10 @@ type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.
 @vindex text-mode-hook
   Entering Text mode runs the hook @code{text-mode-hook}.  Other major
 modes related to Text mode also run this hook, followed by hooks of
-their own; this includes Paragraph-Indent Text mode, Nroff mode, @TeX{}
-mode, Outline mode, and Mail mode.  Hook functions on
-@code{text-mode-hook} can look at the value of @code{major-mode} to see
-which of these modes is actually being entered.  @xref{Hooks}.
+their own; this includes Paragraph-Indent Text mode, Nroff mode,
+@TeX{} mode, Outline mode, and Message mode.  Hook functions on
+@code{text-mode-hook} can look at the value of @code{major-mode} to
+see which of these modes is actually being entered.  @xref{Hooks}.
 
 @node Outline Mode
 @section Outline Mode
@@ -1743,29 +1748,17 @@ required.  This is set up for Czech---customize the group
 Ref@TeX{}.  @inforef{Top,, reftex}.
 
 @node HTML Mode
-@section SGML, XML, and HTML Modes
+@section SGML and HTML Modes
 @cindex SGML mode
 @cindex HTML mode
-@cindex XML mode
 @cindex mode, SGML
 @cindex mode, HTML
-@cindex mode, XML
 @findex sgml-mode
 @findex html-mode
-@findex xml-mode
 
-  The major modes for SGML, XML, and HTML provide indentation support
-and commands for operating on tags.  XML mode is actually identical to
-SGML mode (to be precise, @code{xml-mode} is an alias for
-@code{sgml-mode}), because XML is a strict subset of SGML.  HTML mode
-is a slightly customized variant of SGML mode.
-
-@vindex sgml-xml-mode
-  In XML, every opening tag must have an explicit closing tag.  When
-the variable @code{sgml-xml-mode} is non-@code{nil}, the tag insertion
-commands described below always insert explicit closing tags as well.
-When you visit a file, Emacs determines whether it is XML by examining
-the file contents, and sets @code{sgml-xml-mode} accordingly.
+  The major modes for SGML and HTML provide indentation support and
+commands for operating on tags.  HTML mode is a slightly customized
+variant of SGML mode.
 
 @table @kbd
 @item C-c C-n
@@ -1855,13 +1848,22 @@ used as a cheap preview.
 @cindex mode, nXML
 @findex nxml-mode
 @cindex XML schema
-  Emacs also provides a more advanced mode for editing XML
-documents, called nXML mode (@code{nxml-mode}).  nXML mode is aware of
-many existing XML schema, and uses them to provide completion of XML
-elements via @kbd{C-@key{RET}} or @kbd{M-@key{TAB}}, as well as
-``on-the-fly'' validation of XML, with errors highlighted via Font
-Lock (@pxref{Font Lock}).  It is described in its own manual.
-@xref{Top, nXML Mode,,nxml-mode, nXML Mode}.
+  The default mode for editing XML documents is called nXML mode
+(@code{xml-mode} or @code{nxml-mode}).  This is a powerful major mode
+that can recognize many existing XML schema and use them to provide
+completion of XML elements via @kbd{C-@key{RET}} or @kbd{M-@key{TAB}},
+as well as ``on-the-fly'' XML validation with error highlighting.  It
+is described in its own manual.  @xref{Top, nXML Mode,,nxml-mode, nXML
+Mode}.
+
+@vindex sgml-xml-mode
+  However, you can also use SGML mode to edit XML, since XML is a
+strict subset of SGML.  In XML, every opening tag must have an
+explicit closing tag.  When the variable @code{sgml-xml-mode} is
+non-@code{nil}, the tag insertion commands described above always
+insert explicit closing tags as well.  When you visit a file in SGML
+mode, Emacs determines whether it is XML by examining the file
+contents, and sets @code{sgml-xml-mode} accordingly.
 
 @node Nroff Mode
 @section Nroff Mode

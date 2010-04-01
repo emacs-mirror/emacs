@@ -574,7 +574,7 @@ Commands for Human Languages
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
-* HTML Mode::           Editing HTML, SGML, and XML files.
+* HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
@@ -796,7 +796,7 @@ Basic Editing under Version Control
 The Secondary Commands of VC
 
 * Registering::         Putting a file under version control.
-* VC Status::           Viewing the VC status of files.
+* VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after check-in.
 
 VC Directory Mode
@@ -888,16 +888,17 @@ Sending Mail
 * Mail Format:: 	Format of the mail being composed.
 * Mail Headers::        Details of some standard mail header fields.
 * Mail Aliases::        Abbreviating and grouping mail addresses.
-* Mail Mode::   	Special commands for editing mail being composed.
+* Mail Commands::   	Special commands for editing mail being composed.
+* Mail Signature::      Adding a signature to every message.
 * Mail Amusements::     Distracting the NSA; adding fortune messages.
 * Mail Methods::        Using alternative mail-composition methods.
 
-Mail Mode
+Mail Commands
 
 * Mail Sending::        Commands to send the message.
 * Header Editing::      Commands to move to header fields and edit them.
-* Citing Mail::         Copying all or part of a message you are replying to.
-* Mail Mode Misc::      Spell checking, signatures, etc.
+* Citing Mail::         Quoting a message you are replying to.
+* Mail Misc::           Attachments, spell checking, etc.
 
 Reading Mail with Rmail
 

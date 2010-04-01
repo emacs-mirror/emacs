@@ -68,6 +68,13 @@ bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
+LIBTIFF=@LIBTIFF@
+LIBJPEG=@LIBJPEG@
+LIBPNG=@LIBPNG@
+LIBGIF=@LIBGIF@
+LIBXPM=@LIBXPM@
+XFT_LIBS=@XFT_LIBS@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -125,11 +132,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #ifdef NS_IMPL_GNUSTEP
 #undef LIB_STANDARD
 #define LIB_STANDARD
-#endif
-
-/* Unless inhibited or changed, use -lg to link for debugging.  */
-#ifndef LIBS_DEBUG
-#define LIBS_DEBUG -lg
 #endif
 
 /* Some s/SYSTEM.h files define this to request special libraries.  */
@@ -374,7 +376,7 @@ LIBXT=$(LIBW)
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) @LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@ LIB_X11_LIB LIBX11_SYSTEM @XFT_LIBS@
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) $(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) LIB_X11_LIB LIBX11_SYSTEM $(XFT_LIBS)
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
@@ -501,7 +503,7 @@ FONT_DRIVERS = xfont.o
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
-	charset.o coding.o category.o ccl.o character.o chartab.o \
+	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
@@ -520,7 +522,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-  fontset.o \
+  fontset.o dbusbind.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
@@ -850,7 +852,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   LIBS_DEBUG $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
+   $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
@@ -987,6 +989,7 @@ doc.o: buildobj.h
 
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  $(config_h)
+bidi.o: bidi.c buffer.h character.h dispextern.h lisp.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    $(INTERVALS_H) blockinput.h atimer.h systime.h character.h \
    indent.h keyboard.h coding.h keymap.h frame.h lisp.h $(config_h)

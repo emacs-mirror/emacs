@@ -3468,17 +3468,18 @@ START and END specify the portion of the current buffer to be copied."
   (interactive
    (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
 	 (region-beginning) (region-end)))
-  (let ((oldbuf (current-buffer)))
-    (let* ((append-to (get-buffer-create buffer))
-           (windows (get-buffer-window-list append-to t t))
-           point)
+  (let* ((oldbuf (current-buffer))
+         (append-to (get-buffer-create buffer))
+         (windows (get-buffer-window-list append-to t t))
+         point)
+    (save-excursion
       (with-current-buffer append-to
-	(setq point (point))
-	(barf-if-buffer-read-only)
-	(insert-buffer-substring oldbuf start end)
-	(dolist (window windows)
-	  (when (= (window-point window) point)
-	    (set-window-point window (point))))))))
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
 
 (defun prepend-to-buffer (buffer start end)
   "Prepend to specified buffer the text of the region.
@@ -4002,9 +4003,10 @@ and more reliable (no dependence on goal column, etc.)."
 	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
     (if (called-interactively-p 'interactive)
-	(condition-case nil
+	(condition-case err
 	    (line-move arg nil nil try-vscroll)
-	  ((beginning-of-buffer end-of-buffer) (ding)))
+	  ((beginning-of-buffer end-of-buffer)
+	   (signal (car err) (cdr err))))
       (line-move arg nil nil try-vscroll)))
   nil)
 
@@ -4032,9 +4034,10 @@ to use and more reliable (no dependence on goal column, etc.)."
   (interactive "^p\np")
   (or arg (setq arg 1))
   (if (called-interactively-p 'interactive)
-      (condition-case nil
+      (condition-case err
 	  (line-move (- arg) nil nil try-vscroll)
-	((beginning-of-buffer end-of-buffer) (ding)))
+	((beginning-of-buffer end-of-buffer)
+	 (signal (car err) (cdr err))))
     (line-move (- arg) nil nil try-vscroll))
   nil)
 
@@ -5489,12 +5492,12 @@ cancel the use of the current buffer (for special-purpose buffers),
 or go back to just one window (by deleting all but the selected window)."
   (interactive)
   (cond ((eq last-command 'mode-exited) nil)
+	((region-active-p)
+	 (deactivate-mark))
 	((> (minibuffer-depth) 0)
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((region-active-p)
-	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))
 	(buffer-quit-function

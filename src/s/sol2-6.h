@@ -48,11 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_TERMCAP -ltermcap
 #endif
 
-#ifndef __GNUC__
-/* eggert thinks all versions of SunPro C allowed this.  */
-#define C_DEBUG_SWITCH -g -O
-#endif /* GCC */
-
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
    work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x

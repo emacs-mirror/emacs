@@ -50,9 +50,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #endif /* makedev */
 
-#ifdef BSD_SYSTEM
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif /* ! defined (BSD_SYSTEM) */
+#endif /* ! defined (HAVE_SYS_IOCTL_H) */
 
 #include "systime.h"
 

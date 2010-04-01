@@ -6,120 +6,110 @@
 @chapter Sending Mail
 @cindex sending mail
 @cindex mail
+@cindex email
 @cindex message
-
-  To send a message in Emacs, you start by typing a command (@kbd{C-x m})
-to select and initialize the @samp{*mail*} buffer.  Then you edit the text
-and headers of the message in this buffer, and type another command
-(@kbd{C-c C-s} or @kbd{C-c C-c}) to send the message.
-
-@table @kbd
-@item C-x m
-Begin composing a message to send (@code{compose-mail}).
-@item C-x 4 m
-Likewise, but display the message in another window
-(@code{compose-mail-other-window}).
-@item C-x 5 m
-Likewise, but make a new frame (@code{compose-mail-other-frame}).
-@item C-c C-s
-In Mail mode, send the message (@code{mail-send}).
-@item C-c C-c
-Send the message and bury the mail buffer (@code{mail-send-and-exit}).
-@end table
 
 @kindex C-x m
 @findex compose-mail
+  To send an @dfn{e-mail} message in Emacs, type @kbd{C-x m}.  This
+selects and initializes a buffer named @samp{*mail*}, where you can
+edit the text and headers of the message.  Finally, type @kbd{C-c C-s}
+or @kbd{C-c C-c} to send the message.
+
+@table @kbd
+@item C-x m
+Begin composing mail (@code{compose-mail}).
+@item C-x 4 m
+Likewise, in another window (@code{compose-mail-other-window}).
+@item C-x 5 m
+Likewise, but in a new frame (@code{compose-mail-other-frame}).
+@item C-c C-s
+In the mail buffer, send the message (@code{message-send}).
+@item C-c C-c
+In the mail buffer, send the message and bury the buffer
+(@code{message-send-and-exit}).
+@end table
+
 @kindex C-x 4 m
 @findex compose-mail-other-window
 @kindex C-x 5 m
 @findex compose-mail-other-frame
-  The command @kbd{C-x m} (@code{compose-mail}) selects a buffer named
-@samp{*mail*} and initializes it with the skeleton of an outgoing
-message.  @kbd{C-x 4 m} (@code{compose-mail-other-window}) selects the
-@samp{*mail*} buffer in a different window, leaving the previous current
-buffer visible.  @kbd{C-x 5 m} (@code{compose-mail-other-frame}) creates
-a new frame to select the @samp{*mail*} buffer.
+@noindent
+The command @kbd{C-x 4 m} (@code{compose-mail-other-window}) does the
+same as @kbd{C-x m}, except it displays the mail buffer in a different
+window.  The command @kbd{C-x 5 m} (@code{compose-mail-other-frame})
+creates a new frame for the mail buffer.
 
-  Because the mail-composition buffer is an ordinary Emacs buffer, you can
-switch to other buffers while in the middle of composing mail, and switch
-back later (or never).  If you use the @kbd{C-x m} command again when you
-have been composing another message but have not sent it, you are asked to
-confirm before the old message is erased.  If you answer @kbd{n}, the
-@samp{*mail*} buffer remains selected with its old contents, so you can
-finish the old message and send it.  @kbd{C-u C-x m} is another way to do
-this.  Sending the message marks the @samp{*mail*} buffer ``unmodified,''
-which avoids the need for confirmation when @kbd{C-x m} is next used.
+  Because the mail buffer is an ordinary Emacs buffer, you can switch
+to other buffers while in the middle of composing mail, and switch
+back later (or never).  If you type @kbd{C-x m} again when you have
+been composing another message but have not sent it, Emacs asks for
+confirmation before erasing the old message.  If you answer @kbd{n},
+Emacs selects the mail buffer with its old contents, so you can finish
+the old message and send it.  @kbd{C-u C-x m} is another way to do
+this.  Sending the message marks the mail buffer ``unmodified,'' which
+avoids the need for confirmation when @kbd{C-x m} is next used.
 
-  If you are composing a message in the @samp{*mail*} buffer and want to
-send another message before finishing the first, rename the
-@samp{*mail*} buffer using @kbd{M-x rename-uniquely} (@pxref{Misc
-Buffer}).  Then you can use @kbd{C-x m} or its variants described above
-to make a new @samp{*mail*} buffer.  Once you've done that, you can work
-with each mail buffer independently.
+  If you want to send another message before finishing the current
+message, use the command @kbd{M-x rename-uniquely} to rename the
+current mail buffer (@pxref{Misc Buffer}).  Then you can use @kbd{C-x
+m} to make a new mail buffer, and work with each mail buffer
+independently.
 
-@vindex mail-default-directory
-  The variable @code{mail-default-directory} controls the default
-directory for mail buffers, and also says where to put their auto-save
-files.
-
-@c Not mentioned: mail-bury-selects-summary.  Really an Rmail feature.
-
-@ignore
-@c Commented out because it is not user-oriented;
-@c it doesn't say how to do some job.  -- rms.
-@cindex directory servers
-@cindex LDAP
-@cindex PH/QI
-@cindex names and addresses
-There is an interface to directory servers using various protocols such
-as LDAP or the CCSO white pages directory system (PH/QI), described in a
-separate manual.  It may be useful for looking up names and addresses.
-@xref{Top,,EUDC, eudc, EUDC Manual}.
-@end ignore
+  Before using Emacs to send mail, you may need to customize the
+variable @code{send-mail-function} if your system is not set up to
+deliver mail directly via SMTP (@pxref{Mail Sending}).  In addition,
+you may need to customize @code{user-mail-address} if the system
+cannot receive mail via SMTP (@pxref{Mail Headers}).
 
 @menu
-* Format: Mail Format.	     Format of the mail being composed.
-* Headers: Mail Headers.     Details of some standard mail header fields.
-* Aliases: Mail Aliases.     Abbreviating and grouping mail addresses.
-* Mode: Mail Mode.	     Special commands for editing mail being composed.
-* Amuse: Mail Amusements.    Distracting the NSA; adding fortune messages.
-* Methods: Mail Methods.     Using alternative mail-composition methods.
+* Format: Mail Format.	      Format of a mail message.
+* Headers: Mail Headers.      Details of some standard mail header fields.
+* Aliases: Mail Aliases.      Abbreviating and grouping mail addresses.
+* Commands: Mail Commands.    Special commands for editing mail being composed.
+* Signature: Mail Signature.  Adding a signature to every message.
+* Amuse: Mail Amusements.     Distracting the NSA; adding fortune messages.
+* Methods: Mail Methods.      Using alternative mail-composition methods.
 @end menu
 
 @node Mail Format
 @section The Format of the Mail Buffer
 
-  In addition to the @dfn{text} or @dfn{body}, a message has @dfn{header
-fields} which say who sent it, when, to whom, why, and so on.  Some
-header fields, such as @samp{Date} and @samp{Message-Id}, are created
-automatically when you send the message.  Others, such as the recipient
-names, must be specified by you in order to send the message properly.
+  An email message must contain certain pieces of information, called
+@dfn{headers}, which specify the message's sender, recipient(s), and
+so on.
 
-  In the mail buffer, you can insert and edit header fields using
-ordinary editing commands.  Mail mode provides commands to help you
-edit some header fields, and some are automatically preinitialized in
-the buffer, when appropriate.
+  At the top of the mail buffer is a set of @dfn{header fields}, where
+you can enter this information.  You can insert and edit header fields
+using ordinary editing commands.  @xref{Header Editing}, for commands
+specific to editing header fields.
+
+  Some header fields are automatically pre-initialized in the buffer,
+when appropriate; other headers, such as @samp{Date} and
+@samp{Message-Id}, are normally omitted from the mail buffer and
+created automatically when the message is sent.
 
 @vindex mail-header-separator
   The line in the buffer that says
 
-@example
+@smallexample
 --text follows this line--
-@end example
+@end smallexample
 
 @noindent
-is a special delimiter that separates the headers you have specified from
-the text.  Whatever follows this line is the text of the message; the
-headers precede it.  The delimiter line itself does not appear in the
-message actually sent.  The text used for the delimiter line is controlled
-by the variable @code{mail-header-separator}.
+separates the header fields from the @dfn{body} (or @dfn{text}) of the
+message.  Everything above this line is treated as part of the
+headers; everything below it is treated as the body.  The delimiter
+line itself does not appear in the message actually sent.  The text
+used for the delimiter line is controlled by the variable
+@code{mail-header-separator}.
 
   Here is an example of what the headers and text in the mail buffer
 might look like.
 
 @example
-To: gnu@@gnu.org
-CC: lungfish@@spam.org, byob@@spam.org
+To: gnu@@example.org
+CC: lungfish@@example.com, byob@@example.net
 Subject: The Emacs Manual
 --text follows this line--
 Please ignore this message.
@@ -134,85 +124,51 @@ beginning of a line, terminated by a colon.  Upper and lower case are
 equivalent in field names (and in mailing addresses also).  After the
 colon and optional whitespace comes the contents of the field.
 
-  You can use any name you like for a header field, but normally people
-use only standard field names with accepted meanings.  Here is a table
-of fields commonly used in outgoing messages.  Emacs preinitializes some
-of these when you start to compose a mail, depending on various options
-you can set.  You can delete or alter any header field before you send
-the message, if you wish.
+  You can use any name you like for a header field, but normally
+people use only standard field names with accepted meanings.  Here is
+a table of commonly-used fields.  Emacs pre-initializes some of these,
+depending on various options you can set.  You can delete or alter any
+header field before you send the message, if you wish.
 
 @table @samp
+@item From
+@vindex user-mail-address
+The address of the sender (you).  This should be a valid mailing
+address, as replies will normally go there.  Emacs initializes this
+field using the variables @code{user-full-name} and
+@code{user-mail-address}; see below.
+
 @item To
-This field contains the mailing addresses to which the message is
-addressed.  If you list more than one address, use commas, not spaces,
-to separate them.
+The mailing address(es) to which the message is addressed.  To list
+more than one address, use commas (not spaces) to separate them.
 
 @item Subject
-The contents of the @samp{Subject} field should be a piece of text
-that says what the message is about.  The reason @samp{Subject} fields
-are useful is that most mail-reading programs can provide a summary of
-messages, listing the subject of each message but not its text.
+A piece of text saying what the message is about.  Most mail-reading
+programs can display a summary of messages, listing the subject of
+each message but not its text.
 
 @item CC
-This field contains additional mailing addresses to send the message to,
-like @samp{To} except that these readers should not regard the message
-as directed at them.
+Additional mailing address(es) to send the message to.  This is like
+@samp{To}, except that these readers should not regard the message as
+directed at them.
 
 @item BCC
-This field contains additional mailing addresses to send the message to,
-which should not appear in the header of the message actually sent.
-Copies sent this way are called @dfn{blind carbon copies}.
-
-@vindex mail-self-blind
-@cindex copy of every outgoing message
-To send a blind carbon copy of every outgoing message to yourself, set
-the variable @code{mail-self-blind} to @code{t}.  To send a blind carbon
-copy of every message to some other @var{address}, set the variable
-@code{mail-default-headers} to @code{"Bcc: @var{address}\n"}.
+Additional mailing address(es) to send the message to, which should
+not appear in the header of the message actually sent.  ``BCC'' stands
+for @dfn{blind carbon copies}.
 
 @item FCC
-This field contains the name of one file and directs Emacs to append a
-copy of the message to that file when you send the message.  Emacs
-writes the message in mbox format, unless the file is in Babyl format
-(used by Rmail before Emacs 23), in which case Emacs writes Babyl.  If
-an Rmail buffer is visiting the file, Emacs updates it accordingly.
-To specify more than one file, use several @samp{FCC} fields, with one
-file name in each field.
-
-@vindex mail-archive-file-name
-To put a fixed file name in the @samp{FCC} field each time you start
-editing an outgoing message, set the variable
-@code{mail-archive-file-name} to that file name.  Unless you remove the
-@samp{FCC} field before sending, the message will be written into that
-file when it is sent.
-
-@item From
-Use the @samp{From} field to say who you are.  You might need to change
-this if the account you are using to send the mail is not your own.  The
-contents of the @samp{From} field should be a valid mailing address,
-since replies will normally go there.  
-
-@vindex mail-setup-with-from
-Emacs initializes this field (unless the variable
-@code{mail-setup-with-from} is @code{nil}) using
-@code{user-mail-address} as the default.  If there is no @samp{From}
-field when you send a mail, Emacs adds one.
+The name of one file, to which a copy of the sent message should be
+appended.  Emacs writes the message in mbox format, unless the file is
+in Babyl format (used by Rmail before Emacs 23), in which case Emacs
+writes Babyl.  If an Rmail buffer is visiting the file, Emacs updates
+it accordingly.  To specify more than one file, use several @samp{FCC}
+fields, with one file name in each field.
 
 @item Reply-to
-Use this field to direct replies to a different address.  Most
-mail-reading programs (including Rmail) automatically send replies to
-the @samp{Reply-to} address in preference to the @samp{From} address.
-By adding a @samp{Reply-to} field to your header, you can work around
-any problems your @samp{From} address may cause for replies.
-
-@cindex @env{REPLYTO} environment variable
-@vindex mail-default-reply-to
-To put a fixed @samp{Reply-to} address into every outgoing message, set
-the variable @code{mail-default-reply-to} to that address (as a string).
-Then Emacs initializes the message with a @samp{Reply-to} field as
-specified.  When you first compose a mail, if
-@code{mail-default-reply-to} is @code{nil}, Emacs initializes it from the
-environment variable @env{REPLYTO}.
+An address to which replies should be sent, instead of @samp{From}.
+You can use this header if, for some reason, your @samp{From} address
+is unable to receive replies.
 
 @item Mail-reply-to
   This field takes precedence over @samp{Reply-to}.  It is used because
@@ -225,70 +181,88 @@ you reply to a message from a mailing list that you are subscribed to.
 It usually indicates that you want replies to go to the list, and that
 you do not need an extra copy sent directly to you.
 
-@vindex mail-mailing-lists
-  The variable @code{mail-mailing-lists} holds a list of mailing list
-addresses that you are subscribed to.  If it is non-@code{nil}, Emacs
-inserts an appropriate @samp{Mail-followup-to} header when sending mail
-to a mailing list.
-
-@c There is also "Sent-via", added by C-c C-v, but it does not seem
-@c particularly useful (?).
+@c Message mode handles this differently...
+@c @vindex mail-mailing-lists
+@c   The variable @code{mail-mailing-lists} holds a list of mailing list
+@c addresses that you are subscribed to.  If it is non-@code{nil}, Emacs
+@c inserts an appropriate @samp{Mail-followup-to} header when sending mail
+@c to a mailing list.
 
 @item In-reply-to
-This field contains a piece of text describing the message you are
-replying to.  Some mail systems can use this information to correlate
-related pieces of mail.  Normally this field is filled in by Rmail
-when you reply to a message in Rmail, and you never need to
-think about it (@pxref{Rmail}).
+A piece of text describing the message you are replying to.  Some mail
+systems can use this information to correlate related pieces of mail.
+Normally, you never need to think about this, because it is filled in
+automatically when you reply to a message in Rmail (or any other mail
+program built into Emacs).
 
 @item References
-This field lists the Message-Ids of related previous messages (a
-Message-Id is a unique identifier generated when a message is sent).
-Rmail sets up this field automatically when you reply to a message.
+The Message-Ids of previous related messages (a Message-Id is a unique
+identifier generated when a message is sent).  Like
+@samp{In-reply-to}, this is normally set up automatically for you.
 @end table
 
-  The @samp{To}, @samp{CC}, and @samp{BCC} header fields can appear
-any number of times, and each such header field can contain multiple
-addresses, separated by commas.  This way, you can specify any number
-of places to send the message.  These fields can also have
-continuation lines: one or more lines starting with whitespace,
-following the starting line of the field, are considered part of the
-field.  Here's an example of a @samp{To} field with a continuation
-line:
+@noindent
+The @samp{To}, @samp{CC}, and @samp{BCC} fields can appear any number
+of times, and each such header field can contain multiple addresses,
+separated by commas.  This way, you can specify any number of places
+to send the message.  These fields can also have continuation lines:
+one or more lines starting with whitespace, following the starting
+line of the field, are considered part of the field.  Here's an
+example of a @samp{To} field with a continuation line:
 
 @example
 @group
-To: foo@@here.net, this@@there.net,
-  me@@gnu.cambridge.mass.usa.earth.spiral3281
+To: foo@@example.net, this@@example.net,
+  bob@@example.com
 @end group
 @end example
 
-@vindex mail-from-style
-  When you send the message, if you didn't write a @samp{From} field
-yourself, Emacs puts in one for you, using @code{user-mail-address}.
-The variable @code{mail-from-style} controls the format:
+@vindex user-full-name
+@vindex user-mail-address
+  The default contents of the @samp{From} header field are computed
+from the variables @code{user-full-name} and @code{user-mail-address}.
+On some operating systems, Emacs initializes these two variables using
+environment variables (@pxref{General Variables}).  If this
+information is unavailable or wrong, you can customize the variables
+yourself (@pxref{Easy Customization}).
 
-@table @code
-@item nil
-Use just the email address, as in @samp{king@@grassland.com}.
-@item parens
-Use both email address and full name, as in:@*
+@vindex mail-from-style
+  The value of the variable @code{mail-from-style} specifies how to
+format the address in the @samp{From} field:
+
+@table @asis
+@item @code{nil}
+Use just the address, as in @samp{king@@grassland.com}.
+@item @code{parens}
+Use both address and full name, as in:@*
 @samp{king@@grassland.com (Elvis Parsley)}.
-@item angles
-Use both email address and full name, as in:@*
+@item @code{angles}
+Use both address and full name, as in:@*
 @samp{Elvis Parsley <king@@grassland.com>}.
-@item system-default
-Allow the system to insert the @samp{From} field.
+@item any other value
+Use @code{angles} for most addresses.  However, if the address must be
+``quoted'' to remain syntactically-valid under the @code{angles}
+format but not under the @code{parens} format, use @code{parens}
+instead.  This is the default.
 @end table
 
 @c There is also mail-specify-envelope-from and mail-envelope-from, but
 @c these are probably not topics for the Emacs manual.
 
 @vindex mail-default-headers
-  You can direct Emacs to insert certain default headers into the
-outgoing message by setting the variable @code{mail-default-headers}
-to a string.  Then @code{C-x m} inserts this string into the message
-headers.  If the default header fields are not appropriate for a
+  You can direct Emacs to insert certain default headers into the mail
+buffer by setting the variable @code{mail-default-headers} to a
+string.  Then @kbd{C-x m} inserts this string into the message
+headers.  For example, here is how to add a @samp{Reply-to} and
+@samp{FCC} header to each message:
+
+@smallexample
+(setq mail-default-headers
+      "Reply-to: foo@@example.com\nFCC: ~/Mail/sent")
+@end smallexample
+
+@noindent
+If the default header fields are not appropriate for a
 particular message, edit them as necessary before sending the message.
 
 @node Mail Aliases
@@ -296,29 +270,26 @@ particular message, edit them as necessary before sending the message.
 @cindex mail aliases
 @cindex @file{.mailrc} file
 @cindex mailrc file
+@vindex mail-personal-alias-file
 
-  You can define @dfn{mail aliases} in a file named @file{~/.mailrc}.
-These are short mnemonic names which stand for mail addresses or groups of
-mail addresses.  Like many other mail programs, Emacs expands aliases
-when they occur in the @samp{To}, @samp{From}, @samp{CC}, @samp{BCC}, and
-@samp{Reply-to} fields, plus their @samp{Resent-} variants.
-@c The list is defined by mail-address-field-regexp.
+  You can define @dfn{mail aliases}, which are short mnemonic names
+that stand for mail addresses or groups of mail addresses.  By
+default, mail aliases are defined in the file @file{~/.mailrc}.  You
+can specify a different file name to use, by setting the variable
+@code{mail-personal-alias-file}.
 
-  To define an alias in @file{~/.mailrc}, write a line in the following
+  To define an alias in @file{.mailrc}, write a line in the following
 format:
 
 @example
-alias @var{shortaddress} @var{fulladdresses}
+alias @var{nick} @var{fulladdresses}
 @end example
 
 @noindent
-Here @var{fulladdresses} stands for one or more mail addresses for
-@var{shortaddress} to expand into.  Separate multiple addresses with
-spaces; if an address contains a space, quote the whole address with a
-pair of double quotes.
-
-For instance, to make @code{maingnu} stand for
-@code{gnu@@gnu.org} plus a local address of your own, put in
+This means that @var{nick} should expand into @var{fulladdresses},
+where @var{fulladdresses} can be either a single address, or multiple
+addresses separated with spaces.  For instance, to make @code{maingnu}
+stand for @code{gnu@@gnu.org} plus a local address of your own, put in
 this line:@refill
 
 @example
@@ -326,170 +297,112 @@ alias maingnu gnu@@gnu.org local-gnu
 @end example
 
 @noindent
-Addresses specified in this way should use double quotes around an
-entire address when the address contains spaces.  But you need not
-include double quotes around parts of the address, such as the person's
-full name.  Emacs puts them in if they are needed.  For example,
+If an address contains a space, quote the whole address with a pair of
+double quotes, like this:
 
 @example
 alias jsmith "John Q. Smith <none@@example.com>"
 @end example
 
 @noindent
-is correct in @samp{.mailrc}.  Emacs will insert the address as
+Note that you need not include double quotes around individual parts
+of the address, such as the person's full name.  Emacs puts them in if
+they are needed.  For instance, it inserts the above address as
 @samp{"John Q. Smith" <none@@example.com>}.
 
-  Emacs also recognizes ``include'' commands in @samp{.mailrc} files.
-They look like this:
+  Emacs also recognizes ``include'' commands in @file{.mailrc}.  They
+look like this:
 
 @example
 source @var{filename}
 @end example
 
 @noindent
-The file @file{~/.mailrc} is used primarily by other mail-reading
-programs; it can contain various other commands.  Emacs ignores
-everything in it except for alias definitions and include commands.
+The @file{.mailrc} file is not unique to Emacs; many other
+mail-reading programs use it for mail aliases, and it can contain
+various other commands.  However, Emacs ignores everything except
+alias definitions and include commands.
 
-@findex define-mail-alias
-  Another way to define a mail alias, within Emacs alone, is with the
-@code{define-mail-alias} command.  It prompts for the alias and then the
-full address.  You can use it to define aliases in your @file{.emacs}
-file, like this:
-
-@example
-(define-mail-alias "maingnu" "gnu@@gnu.org")
-@end example
-
-@vindex mail-aliases
-  @code{define-mail-alias} records aliases by adding them to a
-variable named @code{mail-aliases}.  If you are comfortable with
-manipulating Lisp lists, you can set @code{mail-aliases} directly.  The
-initial value of @code{mail-aliases} is @code{t}, which means that
-Emacs should read @file{.mailrc} to get the proper value.
-
-@vindex mail-personal-alias-file
-  You can specify a different file name to use instead of
-@file{~/.mailrc} by setting the variable
-@code{mail-personal-alias-file}.
-
-@c There is also mail-alias-file for the system aliases.
-
-@findex expand-mail-aliases
-  Normally, Emacs expands aliases when you send the message.  You do not
-need to expand mail aliases before sending the message, but you can
-expand them if you want to see where the mail will actually go.  To do
-this, use the command @kbd{M-x expand-mail-aliases}; it expands all mail
-aliases currently present in the mail headers that hold addresses.
-
-  If you like, you can have mail aliases expand as abbrevs, as soon as
-you type them in (@pxref{Abbrevs}).  To enable this feature, execute the
-following:
-
-@example
-(add-hook 'mail-mode-hook 'mail-abbrevs-setup)
-@end example
-
-@noindent
-@findex define-mail-abbrev
-@vindex mail-abbrevs
-This can go in your @file{.emacs} file.  @xref{Hooks}.  If you use this
-feature, you must use @code{define-mail-abbrev} instead of
-@code{define-mail-alias}; the latter does not work with this package.
-Note that the mail abbreviation package uses the variable
-@code{mail-abbrevs} instead of @code{mail-aliases}, and that all alias
-names are converted to lower case.
-
-@kindex C-c C-a @r{(Mail mode)}
 @findex mail-abbrev-insert-alias
-  The mail abbreviation package also provides the @kbd{C-c C-a}
-(@code{mail-abbrev-insert-alias}) command, which reads an alias
-name (with completion) and inserts its definition at point.  This is
-useful when editing the message text itself or a header field such as
-@samp{Subject} in which Emacs does not normally expand aliases.
+  Mail aliases expand as abbrevs---that is to say, as soon as you type
+a word-separator character after an alias (@pxref{Abbrevs}).  This
+expansion takes place only within the @samp{To}, @samp{From},
+@samp{CC}, @samp{BCC}, and @samp{Reply-to} header fields (plus their
+@samp{Resent-} variants); it does not take place in other header
+fields, such as @samp{Subject}.
 
-  Note that abbrevs expand only if you insert a word-separator character
-afterward.  However, you can rebind @kbd{C-n} and @kbd{M->} to cause
-expansion as well.  Here's how to do that:
+  You can also insert an aliased address directly, using the command
+@kbd{M-x mail-abbrev-insert-alias}.  This reads an alias name, with
+completion, and inserts its definition at point.
 
-@smallexample
-(add-hook 'mail-mode-hook
-    (lambda ()
-      (define-key
-        mail-mode-map [remap next-line] 'mail-abbrev-next-line)
-      (define-key
-        mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
-@end smallexample
+@node Mail Commands
+@section Mail Commands
+@cindex Message mode
+@cindex mode, Message
 
-@node Mail Mode
-@section Mail Mode
-@cindex Mail mode
-@cindex mode, Mail
+  The default major mode for the @samp{*mail*} buffer is called
+Message mode.  It behaves like Text mode in many ways, but provides
+several additional commands on the @kbd{C-c} prefix, which make
+editing a message more convenient.
 
-  The major mode used in the mail buffer is Mail mode, which is much
-like Text mode except that various special commands are provided on the
-@kbd{C-c} prefix.  These commands all have to do specifically with
-editing or sending the message. 
-
-  Mail mode is normally used in buffers set up automatically by the
-@code{mail} command and related commands.  However, you can also switch
-to Mail mode in a file-visiting buffer.  This is a useful thing to do if
-you have saved the text of a draft message in a file.
+  In this section, we will describe some of the most commonly-used
+commands available in Message mode.
+@ifnottex
+Message mode also has its own manual, where its features are described
+in greater detail.  @xref{Top,,Message, message, Message}.
+@end ifnottex
 
 @menu
 * Mail Sending::        Commands to send the message.
 * Header Editing::      Commands to move to header fields and edit them.
-* Citing Mail::         Copying all or part of a message you are replying to.
-* Mail Mode Misc::      Spell checking, signatures, etc.
+* Citing Mail::         Quoting a message you are replying to.
+* Mail Misc::           Attachments, spell checking, etc.
 @end menu
 
 @node Mail Sending
 @subsection Mail Sending
 
-  Mail mode has two commands for sending the message you have been
-editing:
+  There are two commands to send a message you have been editing:
 
 @table @kbd
-@item C-c C-s
-Send the message, and leave the mail buffer selected (@code{mail-send}).
 @item C-c C-c
-Send the message, and select some other buffer (@code{mail-send-and-exit}).
+Send the message, and deselect the mail buffer (@code{message-send-and-exit}).
+@item C-c C-s
+Send the message, and leave the mail buffer selected (@code{message-send}).
 @end table
 
-@kindex C-c C-s @r{(Mail mode)}
-@kindex C-c C-c @r{(Mail mode)}
-@findex mail-send
-@findex mail-send-and-exit
-@vindex mail-send-hook
-  @kbd{C-c C-s} (@code{mail-send}) sends the message and marks the mail
-buffer unmodified, but leaves that buffer selected so that you can
-modify the message (perhaps with new recipients) and send it again.
-@kbd{C-c C-c} (@code{mail-send-and-exit}) sends and then deletes the
-window or switches to another buffer.  It puts the mail buffer at the
-lowest priority for reselection by default, since you are finished with
-using it.  This is the usual way to send the message.  Sending a message
-runs the hook @code{mail-send-hook}.
+@kindex C-c C-s @r{(Message mode)}
+@kindex C-c C-c @r{(Message mode)}
+@findex message-send
+  If you want to send a message and be done with it, type @kbd{C-c
+C-c} (@code{mail-send-and-exit}).  This sends the message and then
+either deletes the window or switches to another buffer.  It also
+``buries'' the mail buffer, putting it at the lowest priority for
+reselection.  This is the usual command for sending a message.
 
-@c Options not mentioned: mail-interactive, mail-use-dsn.
+@findex message-send-and-exit
+  The command @kbd{C-c C-s} (@code{message-send}) sends the message
+and marks the mail buffer unmodified, but leaves the buffer selected.
+Use this command if you want to modify the message (perhaps with new
+recipients) and send it again.
+
+@vindex message-send-hook
+  Sending a message runs the hook @code{message-send-hook}.
 
   In a file-visiting buffer, sending the message does not clear the
 modified flag, because only saving the file should do that.  Also, you
 don't get a warning if you try to send the same message twice.
 
-@c This is indexed in mule.texi, node "Recognize Coding".
-@c @vindex sendmail-coding-system
-  When you send a message that contains non-@acronym{ASCII} characters, they need
-to be encoded with a coding system (@pxref{Coding Systems}).  Usually
-the coding system is specified automatically by your chosen language
-environment (@pxref{Language Environments}).  You can explicitly specify
-the coding system for outgoing mail by setting the variable
-@code{sendmail-coding-system} (@pxref{Recognize Coding}).
-
-  If the coding system thus determined does not handle the characters in
-a particular message, Emacs asks you to select the coding system to use,
+@vindex sendmail-coding-system
+  When you send a message containing non-@acronym{ASCII} characters,
+they need to be encoded with a coding system (@pxref{Coding Systems}).
+Usually the coding system is specified automatically by your chosen
+language environment (@pxref{Language Environments}).  You can
+explicitly specify the coding system for outgoing mail by setting the
+variable @code{sendmail-coding-system} (@pxref{Recognize Coding}).  If
+the coding system thus determined does not handle the characters in a
+particular message, Emacs asks you to select the coding system to use,
 showing a list of possible coding systems.
-
-@c Not mentioned: mail-send-nonascii.
 
 @cindex SMTP
 @cindex Feedmail
@@ -497,158 +410,135 @@ showing a list of possible coding systems.
 @cindex Mailclient
 @vindex send-mail-function
   The variable @code{send-mail-function} controls how the default mail
-user agent sends mail.  It should be set to a function.  In most cases,
-the default is @code{sendmail-send-it}, which delivers mail using the
-Sendmail installation on the local host.  On Mac OS X and MS-Windows,
-however, the default is normally @code{mailclient-send-it}, which
-passes the mail buffer on to the system's designated mail client (see
-@file{mailclient.el}).  To send mail through an SMTP server, set
-@code{send-mail-function} to @code{smtpmail-send-it} and set up the
-Emacs SMTP library (@pxref{Top,,Emacs SMTP Library, smtpmail, Sending
-mail via SMTP}).  Another option is @code{feedmail-send-it} (see the
-commentary section of the @file{feedmail.el} package).
+user agent sends mail.  Its value should be a function, which can be
+one of the following:
+
+@table @code
+@item sendmail-send-it
+Send mail using the system's default @command{sendmail} (or
+@command{sendmail}-compatible) program.  This is the default on Unix
+and GNU, and works provided the system is a valid @dfn{mail host}
+(that is, provided it can deliver mail via SMTP).
+
+@item mailclient-send-it
+Pass the mail buffer on to the system's designated mail client (see
+@file{mailclient.el}).  This is the default on Mac OS X and
+MS-Windows.
+
+@item smtpmail-send-it
+Send mail through an external mail host (e.g., your Internet service
+provider's SMTP server).  You will need to tell Emacs how to contact
+the SMTP server, by customizing the variables
+@code{smtpmail-smtp-server} and @code{smtpmail-auth-credentials}.
+@xref{Top,,Emacs SMTP Library, smtpmail, Sending mail via SMTP}.
+
+@item feedmail-send-it
+This is similar to @code{sendmail-send-it}, but allows you to queue
+messages for later sending.  See the commentary section in the file
+@file{feedmail.el} for more information.
+@end table
 
 @node Header Editing
 @subsection Mail Header Editing
 
-  Mail mode provides special commands to move to particular header
-fields and to complete addresses in headers.
+  Message mode provides the following special commands to move to
+particular header fields and to complete addresses in headers.
 
 @table @kbd
 @item C-c C-f C-t
-Move to the @samp{To} header field, creating one if there is none
-(@code{mail-to}).
+Move to the @samp{To} header (@code{message-goto-to}).
 @item C-c C-f C-s
-Move to the @samp{Subject} header field, creating one if there is
-none (@code{mail-subject}).
+Move to the @samp{Subject} header (@code{message-goto-subject}).
 @item C-c C-f C-c
-Move to the @samp{CC} header field, creating one if there is none
-(@code{mail-cc}).
+Move to the @samp{CC} header (@code{message-goto-cc}).
 @item C-c C-f C-b
-Move to the @samp{BCC} header field, creating one if there is none
-(@code{mail-bcc}).
+Move to the @samp{BCC} header (@code{message-goto-bcc}).
 @item C-c C-f C-r
-Move to the @samp{Reply-To} header field, creating one if there is none
-(@code{mail-reply-to}).
-@item C-c C-f C-a
-Move to the @samp{Mail-Reply-To} header field, creating one if there is none
-(@code{mail-mail-reply-to}).
-@item C-c C-f C-l
-Move to the @samp{Mail-Followup-To} header field, creating one if there is none
-(@code{mail-mail-followup-to}).
+Move to the @samp{Reply-To} header (@code{message-goto-reply-to}).
 @item C-c C-f C-f
+Move to the @samp{Mail-Followup-To} header field
+(@code{message-goto-followup-to}).
+@item C-c C-f C-w
 Add a new @samp{FCC} header field, with file-name completion
-(@code{mail-fcc}).
-@c There is also C-c C-v, mail-sent-via, which adds one or more
-@c "Sent-via" headers, but I don't know what the point of that header is.
-@item M-@key{TAB}
-Complete a mailing address (@code{mail-complete}).
+(@code{message-goto-fcc}).
+@item C-c C-b
+Move to the start of the message body (@code{message-goto-body}).
+@item @key{TAB}
+Complete a mailing address (@code{message-tab}).
 @end table
 
-@kindex C-c C-f C-t @r{(Mail mode)}
-@findex mail-to
-@kindex C-c C-f C-s @r{(Mail mode)}
-@findex mail-subject
-@kindex C-c C-f C-c @r{(Mail mode)}
-@findex mail-cc
-@kindex C-c C-f C-b @r{(Mail mode)}
-@findex mail-bcc
-@kindex C-c C-f C-r @r{(Mail mode)}
-@findex mail-reply-to
-@kindex C-c C-f C-a @r{(Mail mode)}
-@findex mail-mail-reply-to
-@kindex C-c C-f C-l @r{(Mail mode)}
-@findex mail-mail-followup-to
-@kindex C-c C-f C-f @r{(Mail mode)}
-@findex mail-fcc
-  There are several commands to move point to particular header fields,
-all based on the prefix @kbd{C-c C-f} (@samp{C-f} is for ``field'').
-They are listed in the table above.  If the field in question does not
-exist, these commands create one (the exception is @code{mail-fcc},
-which creates a new field each time).  We provide special motion
-commands for these particular fields because they are the fields users
-most often want to edit.
+@kindex C-c C-f C-t @r{(Message mode)}
+@findex message-goto-to
+@kindex C-c C-f C-s @r{(Message mode)}
+@findex message-goto-subject
+@kindex C-c C-f C-c @r{(Message mode)}
+@findex message-goto-cc
+@kindex C-c C-f C-b @r{(Message mode)}
+@findex message-goto-bcc
+@kindex C-c C-f C-r @r{(Message mode)}
+@findex goto-reply-to
+@kindex C-c C-f C-f @r{(Message mode)}
+@findex goto-followup-to
+@kindex C-c C-f C-w @r{(Message mode)}
+@findex message-goto-fcc
+  The commands to move point to particular header fields are all based
+on the prefix @kbd{C-c C-f} (@samp{C-f} is for ``field'').  If the
+field in question does not exist, the command creates one (the
+exception is @code{mail-fcc}, which creates a new field each time).
 
-@findex mail-complete
-@kindex M-TAB @r{(Mail mode)}
-@c `mail-complete-alist' specifies the headers.
-  While editing a header field that contains mailing addresses, such
-as @samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete a mailing
-address by typing @kbd{M-@key{TAB}} (@code{mail-complete}).  It
-inserts the full name corresponding to the address, if it can
-determine the full name.  The variable @code{mail-complete-style}
-controls whether to insert the full name, and what style to use, as in
-@code{mail-from-style} (@pxref{Mail Headers}).  (If your window
-manager defines @kbd{M-@key{TAB}} to switch windows, you can type
-@kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.)
+@kindex C-c C-b @r{(Message mode)}
+@findex mail-text
+  The command @kbd{C-c C-b} (@code{message-goto-body}) moves point to
+just after the header separator line---that is, to the beginning of
+the body.
 
-  For completion purposes, the valid mailing addresses are taken to be
-the local users' names plus your personal mail aliases (@pxref{Mail
-Aliases}).  You can specify additional sources of valid addresses;
-browse the customization group @samp{mailalias} to see the variables for
-customizing this feature (@pxref{Customization Groups}).
-
-  If you type @kbd{M-@key{TAB}} in the body of the message, or on a
-unrecognized header, @code{mail-complete} invokes the function specified
-by @code{mail-complete-function}.  By default, this is
-@code{ispell-complete-word}, as in Text mode.
+@findex message-tab
+@kindex TAB @r{(Message mode)}
+  While editing a header field that contains addresses, such as
+@samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete an address by
+typing @key{TAB} (@code{message-tab}).  This attempts to insert the
+full name corresponding to the address based on a couple of methods,
+including EUDC, a library that recognizes a number of directory server
+protocols (@pxref{Top,,EUDC,eudc, The Emacs Unified Directory
+Client}).  Failing that, it attempts to expand the address as a mail
+alias (@pxref{Mail Aliases}).  If point is on a header field that does
+not take addresses, or if it is in the message body, then @key{TAB}
+just inserts a tab character.
 
 @node Citing Mail
 @subsection Citing Mail
 @cindex citing mail
 
-  Mail mode also has commands for yanking or @dfn{citing} all or part of
-a message that you are replying to.  These commands are active only when
-you started sending a message using an Rmail command.
-
 @table @kbd
 @item C-c C-y
-Yank the selected message from Rmail (@code{mail-yank-original}).
-@item C-c C-r
-Yank the region from the Rmail buffer (@code{mail-yank-region}).
+Yank the selected message from Rmail (@code{message-yank-original}).
 @item C-c C-q
 Fill each paragraph cited from another message
-(@code{mail-fill-yanked-message}).
-@c There is also mail-split-line, but it does not seem very useful.
+(@code{message-fill-yanked-message}).
 @end table
 
-@kindex C-c C-y @r{(Mail mode)}
-@findex mail-yank-original
-  When mail sending is invoked from the Rmail mail reader using an Rmail
-command, @kbd{C-c C-y} can be used inside the mail buffer to insert the
-text of the message you are replying to.  Normally it indents each line
-of that message three spaces and eliminates most header fields (as
-specified by the variable @code{mail-yank-ignored-headers}).  A numeric
-argument specifies the number of spaces to indent (the variable
-@code{mail-indentation-spaces} specifies the default number).  An
-argument of just @kbd{C-u} says not to indent at all and not to
-eliminate anything.  @kbd{C-c C-y} always uses the current message from
-the Rmail buffer, so you can insert several old messages by selecting
-one in Rmail, switching to @samp{*mail*} and yanking it, then switching
-back to Rmail to select another.
+@kindex C-c C-y @r{(Message mode)}
+@findex message-yank-original
+@findex message-yank-prefix
+  You can use the command @kbd{C-c C-y} (@code{message-yank-original})
+to @dfn{cite} a message that you are replying to.  This inserts the
+text of that message into the mail buffer.  This command is active
+only when the mail buffer is invoked from a mail program running in
+Emacs, such as Rmail.
 
-@vindex mail-yank-prefix
-  You can specify the text for @kbd{C-c C-y} to insert at the beginning
-of each line: set @code{mail-yank-prefix} to the desired string.  (A
-value of @code{nil} means to use indentation; this is the default.)
-However, @kbd{C-u C-c C-y} never adds anything at the beginning of the
-inserted lines, regardless of the value of @code{mail-yank-prefix}.
+  By default, Emacs inserts the string @samp{>} in front of each line
+of the cited text; this prefix string is specified by the variable
+@code{message-yank-prefix}.  If you call @code{message-yank-original}
+with a prefix argument, the citation prefix is not inserted.
 
-@kindex C-c C-r @r{(Mail mode)}
-@findex mail-yank-region
-  To yank just a part of an incoming message, set the region in Rmail to
-the part you want; then go to the @samp{*Mail*} message and type
-@kbd{C-c C-r} (@code{mail-yank-region}).  Each line that is copied is
-indented or prefixed according to @code{mail-yank-prefix}.
-
-@kindex C-c C-q @r{(Mail mode)}
+@kindex C-c C-q @r{(Message mode)}
 @findex mail-fill-yanked-message
-  After using @kbd{C-c C-y} or @kbd{C-c C-r}, you can type @kbd{C-c C-q}
-(@code{mail-fill-yanked-message}) to fill the paragraphs of the yanked
-old message or messages.  One use of @kbd{C-c C-q} fills all such
-paragraphs, each one individually.  To fill a single paragraph of the
-quoted message, use @kbd{M-q}.  If filling does not automatically
-handle the type of citation prefix you use, try setting the fill prefix
+  After using @kbd{C-c C-y}, you can type @kbd{C-c C-q}
+(@code{message-fill-yanked-message}) to fill the paragraphs of the
+cited message.  One use of @kbd{C-c C-q} fills all such paragraphs,
+each one individually.  To fill a single paragraph of the quoted
+message, use @kbd{M-q}.  If filling does not automatically handle the
+type of citation prefix you use, try setting the fill prefix
 explicitly.  @xref{Filling}.
 
 @vindex mail-citation-hook
@@ -657,91 +547,103 @@ explicitly.  @xref{Filling}.
 package, which provides more flexible citation
 (@pxref{Introduction,,,sc, Supercite}).
 
-@c No need to mention: mail-citation-prefix-regexp.
+@node Mail Misc
+@subsection Mail Miscellany
 
-@node Mail Mode Misc
-@subsection Mail Mode Miscellany
+@kindex C-c C-a @r{(Message mode)}
+@findex mail-attach-file
+@cindex MIME
+@cindex Multipurpose Internet Mail Extensions
+  You can @dfn{attach} a file to an outgoing message by typing
+@kbd{C-c C-a} (@code{mml-attach-file}) in the mail buffer.  Attaching
+is done using the MIME (Multipurpose Internet Mail Extensions)
+standard.
 
-@table @kbd
-@item C-c C-t
-Move to the beginning of the message body text (@code{mail-text}).
-@item C-c C-w
-Insert a signature at the end of the message text (@code{mail-signature}).
-@item C-c C-i @var{file} @key{RET}
-Insert the contents of @var{file} at the end of the message text
-(@code{mail-attach-file}).
-@item M-x ispell-message
-Perform spelling correction on the message text, but not on citations from
-other messages, or the message headers.
-@end table
+  The @code{mml-attach-file} command prompts for the name of the file,
+and for the attachment's @dfn{content type}, @dfn{description}, and
+@dfn{disposition}.  The content type is normally detected
+automatically; just type @key{RET} to accept the default.  The
+description is a single line of text that the recipient will see next
+to the attachment; you may also choose to leave this empty.  The
+disposition is either @samp{inline} (the default), which means the
+recipient will see a link to the attachment within the message body,
+or @samp{attachment}, which means the link will be separate from the
+body.
 
-@kindex C-c C-t @r{(Mail mode)}
-@findex mail-text
-  @kbd{C-c C-t} (@code{mail-text}) moves point to just after the header
-separator line---that is, to the beginning of the message body text.
+  The actual contents of the attached file are not inserted into the
+mail buffer.  Instead, some placeholder text is inserted into the mail
+buffer, like this:
 
-@kindex C-c C-w @r{(Mail mode)}
-@findex mail-signature
-@vindex mail-signature
-  @kbd{C-c C-w} (@code{mail-signature}) adds a standard piece of text
-(your @dfn{mail signature}) at the end of the message to say more about who
-you are.  For example, it may contain telephone numbers, or your
-physical location.  The text comes from the variable
-@code{mail-signature}.  It can be a fixed string, or a Lisp expression
-that returns a string.  If it is @code{t} or @code{nil}, the function
-inserts the contents of the file @code{mail-signature-file}.  By
-default, this is the file @file{~/.signature} in your home directory.
+@smallexample
+<#part type="text/plain" filename="~/foo.txt" disposition=inline>
+<#/part>
+@end smallexample
 
-  If the variable @code{mail-signature} has a non-@code{nil} value,
-starting a mail automatically inserts your signature.  Otherwise, you
-must explicitly use the command @code{mail-signature}.  If you want to
-omit your signature from a particular message, just delete it from the
-buffer before you send the message.
-
-  Convention says that the start of your signature should be marked by a
-line whose contents are @samp{-- }.  If your signature comes from a
-file, this prefix is added for you, but in all other cases you must add
-it yourself.  The remainder of your signature should be no more than
-four lines.
+@noindent
+When you type @kbd{C-c C-c} or @kbd{C-c C-s} to send the message, the
+attached file will be delivered with it.
 
 @findex ispell-message
-  You can do spelling correction on the message text you have written
-with the command @kbd{M-x ispell-message}.  If you have yanked an
-incoming message into the outgoing draft, this command skips what was
-yanked, but it checks the text that you yourself inserted.  (It looks
-for indentation or @code{mail-yank-prefix} to distinguish the cited
-lines from your input.)  @xref{Spelling}.
-
-@kindex C-c C-i @r{(Mail mode)}
-@findex mail-attach-file
-  To include a file in the outgoing message, you can use @kbd{C-x i},
-the usual command to insert a file in the current buffer.  But it is
-often more convenient to use a special command, @kbd{C-c C-i}
-(@code{mail-attach-file}).  This command inserts the file contents at
-the end of the buffer, after your signature (if any), with a delimiter
-line that includes the file name.  Note that this is not a MIME
-attachment.
+  While composing a message, you can do spelling correction on the
+message text by typing @kbd{M-x ispell-message}.  If you have yanked
+an incoming message into the outgoing draft, this command skips what
+was yanked, but it checks the text that you yourself inserted (it
+looks for indentation or @code{mail-yank-prefix} to distinguish the
+cited lines from your input).  @xref{Spelling}.
 
 @vindex mail-mode-hook
 @vindex mail-setup-hook
-  Turning on Mail mode (which @kbd{C-x m} does automatically) runs the
-normal hooks @code{text-mode-hook} and @code{mail-mode-hook}.
+  Turning on Message mode (which @kbd{C-x m} does automatically) runs
+the normal hooks @code{text-mode-hook} and @code{message-mode-hook}.
 Initializing a new outgoing message runs the normal hook
-@code{mail-setup-hook}; if you want to add special fields to your mail
-header or make other changes to the appearance of the mail buffer, use
-that hook.  @xref{Hooks}.
+@code{message-setup-hook}; you can use this hook if you want to make
+changes to the appearance of the mail buffer.  @xref{Hooks}.
 
   The main difference between these hooks is just when they are
-invoked.  Whenever you type @kbd{M-x mail}, @code{mail-mode-hook} runs
-as soon as the @samp{*mail*} buffer is created.  Then the
-@code{mail-setup} function inserts the default contents of the buffer.
-After these default contents are inserted, @code{mail-setup-hook} runs.
+invoked.  Whenever you type @kbd{C-x m}, @code{message-mode-hook} runs
+as soon as the mail buffer is created.  Then the @code{message-setup}
+function inserts the default contents of the buffer.  After these
+default contents are inserted, @code{message-setup-hook} runs.
 
-  If you use @kbd{M-x mail} to continue an existing composition,
-@code{mail-mode-hook} runs immediately after switching to the
-@samp{*mail*} buffer.  If the buffer is unmodified, or if you decide to
-erase it and start again, @code{mail-setup-hook} runs after the default
-contents are inserted.
+  If you use @kbd{C-x m} to continue an existing composition,
+@code{message-mode-hook} runs immediately after switching to the mail
+buffer.  If the buffer is unmodified, or if you decide to erase it and
+start again, @code{message-setup-hook} runs after the default contents
+are inserted.
+
+@node Mail Signature
+@section Mail Signature
+
+@cindex mail signature
+@vindex mail-signature-file
+@vindex mail-signature
+  You can add a standard piece of text---your @dfn{mail
+signature}---to the end of every message.  This signature may contain
+information such as your telephone number or your physical location.
+The variable @code{mail-signature} determines how Emacs handles the
+mail signature.
+
+  The default value of @code{mail-signature} is @code{t}; this means
+to look for your mail signature in the file @file{~/.signature}.  If
+this file exists, its contents are automatically inserted into the end
+of the mail buffer.  You can change the signature file via the
+variable @code{mail-signature-file}.
+
+  If you change @code{mail-signature} to a string, that specifies the
+text of the signature directly.
+
+@kindex C-c C-w @r{(Message mode)}
+@findex message-insert-signature
+  If you change @code{mail-signature} to @code{nil}, Emacs will not
+insert your mail signature automatically.  You can insert your mail
+signature by typing @kbd{C-c C-w} (@code{message-insert-signature}) in
+the mail buffer.  Emacs will look for your signature in the signature
+file.
+
+  By convention, a mail signature should be marked by a line whose
+contents are @samp{-- }.  If your signature lacks this prefix, it is
+added for you.  The remainder of your signature should be no more than
+four lines.
 
 @node Mail Amusements
 @section Mail Amusements
@@ -778,28 +680,32 @@ using this.
 @node Mail Methods
 @section Mail-Composition Methods
 @cindex mail-composition methods
+@cindex Mail mode
+@cindex mode, Mail
 
 @cindex MH mail interface
 @cindex Message mode for sending mail
   In this chapter we have described the usual Emacs mode for editing
-and sending mail---Mail mode.  Emacs has alternative facilities for
-editing and sending mail, including
-MH-E and Message mode, not documented in this manual.
-@xref{Top,,MH-E,mh-e, The Emacs Interface to MH}.  @xref{Top,,Message,message,
-Message Manual}.  You can choose any of them as your preferred method.
-The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
-whichever agent you have specified, as do various other Emacs commands
-and facilities that send mail.
+and sending mail---Message mode.  This is only one of several
+available modes.  Prior to Emacs 23.2, the default mode was Mail mode,
+which is similar to Message mode in many respects but lacks features
+such as MIME support.  Another available mode is MH-E
+(@pxref{Top,,MH-E,mh-e, The Emacs Interface to MH}).
 
 @vindex mail-user-agent
-  To specify your mail-composition method, customize the variable
-@code{mail-user-agent}.  Currently legitimate values include
-@code{sendmail-user-agent} (Mail mode), @code{mh-e-user-agent},
-@code{message-user-agent} and @code{gnus-user-agent}.
+  You can choose any of these @dfn{mail user agents} as your preferred
+method for editing and sending mail.  The commands @code{C-x m},
+@code{C-x 4 m} and @code{C-x 5 m} use whichever agent you have
+specified; so do various other parts of Emacs that send mail, such as
+the bug reporter (@pxref{Bugs}).  To specify a mail user agent,
+customize the variable @code{mail-user-agent}.  Currently, legitimate
+values include @code{message-user-agent} (Message mode)
+@code{sendmail-user-agent} (Mail mode), @code{gnus-user-agent}, and
+@code{mh-e-user-agent}.
 
   If you select a different mail-composition method, the information
-in this chapter about the @samp{*mail*} buffer and Mail mode does not
-apply; the other methods use a different format of text in a different
+in this chapter about the mail buffer and Message mode does not apply;
+the other methods use a different format of text in a different
 buffer, and their commands are different as well.
 
 @vindex read-mail-command

@@ -1,3 +1,139 @@
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Update
+	:version.
+
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-line, previous-line): Re-throw a signal
+	with `signal' instead of using `ding'.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01432.html
+
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (keyboard-escape-quit): Raise deselecting the active
+	region higher than exiting the minibuffer.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00904.html
+
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
+	* image.el (image-animated-p): Use `image-metadata' instead of
+	`image-extension-data'.  Get GIF extenstion data from metadata
+	property `extension-data'.
+
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (append-to-buffer): Simplify.
+
+2010-03-31  Tomas Abrahamsson  <tab@lysator.liu.se>
+
+	* textmodes/artist.el (artist-mode): Fix typo in docstring.
+	Reported by Alex Schröder <kensanata@gmail.com>.  (Bug#5807)
+
+2010-03-31  Kenichi Handa  <handa@m17n.org>
+
+	* language/sinhala.el (composition-function-table): Fix regexp for
+	the new Unicode specification.
+
+	* language/indian.el (devanagari-composable-pattern)
+	(tamil-composable-pattern, kannada-composable-pattern)
+	(malayalam-composable-pattern): Adjust for the new Unicode
+	specification.
+	(bengali-composable-pattern, gurmukhi-composable-pattern)
+	(gujarati-composable-pattern, oriya-composable-pattern)
+	(telugu-composable-pattern): New variables to cope with the new
+	Unicode specification.  Use them in composition-function-table.
+
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make tmm-menubar work for the Buffers menu again.
+	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
+	vectors rather than cons cells, as used in menu-bar-update-buffers.
+
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el (js-auto-indent-flag, js-mode-map)
+	(js-insert-and-indent): Revert 2009-08-15 change, restoring
+	electric punctuation for "{}();,:" (Bug#5586).
+
+	* mail/sendmail.el (mail-default-directory): Doc fix.
+
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-default-directory): Doc fix.
+
+2010-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version-regexp-alist, version-to-list)
+	(version-list-<, version-list-=, version-list-<=)
+	(version-list-not-zero, version<, version<=, version=): Doc fix.
+	(Bug#5744).
+
+2010-02-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-root-diff): Doc fix.
+
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc.el (vc-print-log, vc-print-root-log): Doc fix.
+
+	* simple.el (append-to-buffer): Fix last change.
+
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (append-to-buffer): Ensure that point is preserved if
+	BUFFER is the current buffer.  Suggested by YAMAMOTO Mitsuharu.
+	(Bug#5749)
+
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (auto-mode-case-fold): Change default to t.
+
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
+	* dired-x.el (dired-omit-mode): Doc fix.
+
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-accumulate-lines): Move occur-engine related
+	functions `occur-accumulate-lines' and `occur-engine-add-prefix'
+	to be located after `occur-engine'.
+
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
+	Make occur handle multi-line matches cleanly with context.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01280.html
+
+	* replace.el (occur-accumulate-lines): Add optional arg `pt'.
+	(occur-engine): Add local variables `ret', `prev-after-lines',
+	`prev-lines'.  Use more arguments for `occur-context-lines'.
+	Set first elem of its returned list to `data', and the second elem
+	to `prev-after-lines'.  Don't print the separator line.
+	In the end, print remaining context after-lines.
+	(occur-context-lines): Add new arguments `begpt', `endpt',
+	`lines', `prev-lines', `prev-after-lines'.  Rewrite to combine
+	after-lines of the previous match with before-lines of the
+	current match and not overlap them.  Return a list with two
+	values: the output line and the list of context after-lines.
+
+2010-03-30  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-accumulate-lines): Fix a bug where the first
+	context line at the beginning of the buffer was missing.
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el: Make bidi-display-reordering safe variable for boolean
+	values.
+
+2010-03-29  Phil Hagelberg  <phil@evri.com>
+	    Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el: Extend progress reporters to perform "spinning".
+	(progress-reporter-update, progress-reporter-do-update):
+	Handle non-numeric value arguments.
+	(progress-reporter--pulse-characters): New var.
+
 2010-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-start): Fix regexp detection
@@ -6,6 +142,13 @@
 2010-03-28  Stefan Guath  <stefan@automata.se>  (tiny change)
 
 	* find-dired.el (find-dired): Use read-directory-name (Bug#5777).
+
+2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	Restore GDB/MI fuctionality removed by r99212.
+	* lisp/progmodes/gdb-mi.el: Restore.
+	* lisp/progmodes/gdb-ui.el: Remove.
+	* lisp/progmodes/gud.el: Re-accommodate for gdb-mi.el.
 
 2010-03-25  Glenn Morris  <rgm@gnu.org>
 
@@ -320,11 +463,13 @@
 
 	* vc-bzr.el (vc-bzr-checkin): Pass extra arguments to the commit
 	command.
-	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+	(log-edit-extra-flags, log-edit-before-checkin-process):
+	New declarations.
 
 	* vc-hg.el (vc-hg-checkin): Pass extra arguments to the commit
 	command.
-	(log-edit-extra-flags, log-edit-before-checkin-process): New declarations.
+	(log-edit-extra-flags, log-edit-before-checkin-process):
+	New declarations.
 	(vc-hg-log-edit-mode): New derived mode.
 
 	* vc-arch.el (vc-arch-checkin):
@@ -423,8 +568,8 @@
 	(widget-field-value-set): New fun.
 	(editable-field): Use it.
 	(widget-field-value-get): Clean up unused var.
-	(widget-color-value-create, widget-color--choose-action): New
-	funs.  Allow using list-colors-display to choose color.
+	(widget-color-value-create, widget-color--choose-action):
+	New funs.  Allow using list-colors-display to choose color.
 
 2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -435,8 +580,7 @@
 	(custom-buffer-create-internal): Add custom-apropos search field.
 	(custom-add-parent-links): Don't display parent doc.
 	(custom-group-value-create): Don't sort top-level custom group.
-	(custom-magic-value-create): Show visibility button before option
-	name.
+	(custom-magic-value-create): Show visibility button before option name.
 
 	(custom-variable-state): New fun, from custom-variable-state-set.
 	(custom-variable-state-set): Use it.
@@ -574,8 +718,8 @@
 
 2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
-	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
-	vc-git-root as default directory for revision path (Bug#5657).
+	* vc-git.el (vc-git-annotate-extract-revision-at-line):
+	Use vc-git-root as default directory for revision path (Bug#5657).
 
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -664,8 +808,8 @@
 2010-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-introspect, dbus-get-property)
-	(dbus-set-property, dbus-get-all-properties): Use
-	`dbus-call-method' when noninteractive.  (Bug#5645)
+	(dbus-set-property, dbus-get-all-properties):
+	Use `dbus-call-method' when noninteractive.  (Bug#5645)
 
 2010-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2050,9 +2194,9 @@
 
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar--convert-tz-offset): Fixed
-	timezone names.
-	(icalendar--convert-tz-offset): Fixed the "last-day-problem".
+	* calendar/icalendar.el (icalendar--convert-tz-offset):
+	Fix timezone names.
+	(icalendar--convert-tz-offset): Fix the "last-day-problem".
 	(icalendar--add-diary-entry): Remove the trailing blank that
 	diary-make-entry inserts.
 
@@ -2069,7 +2213,7 @@
 	(tramp-advice-file-expand-wildcards): Remove it.
 
 	* net/tramp-compat.el (top): Autoload `tramp-handle-file-remote-p'.
-	(tramp-advice-file-expand-wildcards): Moved from tramp.el.
+	(tramp-advice-file-expand-wildcards): Move from tramp.el.
 	Activate advice for older GNU Emacs versions.  (Bug#5237)
 
 2009-12-17  Juanma Barranquero  <lekktu@gmail.com>
@@ -2086,12 +2230,12 @@
 
 	* files.el (hack-local-variables-filter): While ignoring duplicates,
 	don't take `mode' into account.
-	(hack-local-variables-filter, hack-dir-local-variables): Don't
-	remove duplicate `mode' from local-variables-alist (like `eval').
+	(hack-local-variables-filter, hack-dir-local-variables):
+	Don't remove duplicate `mode' from local-variables-alist (like `eval').
 
 2009-12-17  Juri Linkov  <juri@jurta.org>
 
-	Make `dired-diff' more safe.  (Bug#5225)
+	Make `dired-diff' safer.  (Bug#5225)
 
 	* dired-aux.el (dired-diff): Signal an error when `file' equals to
 	`current' or when `file' is a directory of the `current' file.
@@ -2288,7 +2432,7 @@
 
 2009-12-09  Vivek Dasmohapatra  <vivek@etla.org>
 
-	Drop some properties to avoid surprises.
+	Drop some properties to avoid surprises (bug#5002).
 	* htmlfontify.el (hfy-ignored-properties): New defcustom.
 	(hfy-fontify-buffer): Use it.
 

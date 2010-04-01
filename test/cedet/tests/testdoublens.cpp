@@ -1,7 +1,24 @@
-//
-// CPP file for semantic-ia-utest
-// completion engine unit tests.
-//
+// testdoublens.cpp --- semantic-ia-utest completion engine unit tests
+
+// Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+
+// Author: Eric M. Ludlam <eric@siege-engine.com>
+
+// This file is part of GNU Emacs.
+
+// GNU Emacs is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// GNU Emacs is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "testdoublens.hpp"
 
 namespace Name1 {
@@ -29,7 +46,7 @@ namespace Name1 {
     void Foo::sendStuff(int /* a */, int /* b */) // ^3^
     {
     }
-    
+
   } // namespace Name2
 } // namespace Name1
 
@@ -44,7 +61,7 @@ int test_fcn () {
   Name1::Name2::F//-4-
     // #4# ( "Foo" )
     ;
-  
+
   // @TODO - get this working...
   Name1::stage2_Foo::M//-5-
     /// #5# ( "Mumble" )
@@ -58,15 +75,15 @@ stage3_Foo foo_fcn() {
 
 // Second test from Ravikiran Rajagopal
 
-namespace A { 
+namespace A {
   class foo {
   public:
     void aa();
     void bb();
   };
 }
-namespace A { 
-  class bar { 
+namespace A {
+  class bar {
   public:
     void xx();
   public:
@@ -96,7 +113,7 @@ namespace a {
 
     int Bar::baz()
     {
-      return dum// -7- 
+      return dum// -7-
 	// #7# ( "dumdum" )
 	;
     }

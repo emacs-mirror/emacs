@@ -101,19 +101,6 @@ char *_getpty();
 #define _LP64			/* lisp.h takes care of the rest */
 #endif /* _MIPS_SZLONG */
 
-/* The only supported 32-bit configuration of GCC under IRIX6.x produces
-   n32 MIPS ABI binaries and also supports -g. */
-#ifdef __GNUC__
-#define C_DEBUG_SWITCH -g
-#else
-/* Optimize, inaccurate debugging, increase limit on size of what's
-   optimized.
-
-   This should also be applicable other than on Irix 6.5, but I don't
-   know for which compiler versions.  -- fx */
-#define C_DEBUG_SWITCH -g3 -O -OPT:Olimit=3500
-#endif
-
 #undef SA_RESTART
 
 #undef TIOCSIGSEND		/* defined in usg5-4.h */

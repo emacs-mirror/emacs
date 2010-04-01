@@ -2269,8 +2269,9 @@ Specify your own email address, if Emacs can't figure it out correctly.
 (setq user-mail-address "cheney@@torture.gov")
 @end example
 
-Various Emacs packages that need your own email address use the value of
-@code{user-mail-address}.
+Various Emacs packages, such as Message mode, consult
+@code{user-mail-address} when they need to know your email address.
+@xref{Mail Headers}.
 
 @item
 Make Text mode the default mode for new buffers.
