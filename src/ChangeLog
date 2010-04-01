@@ -1,3 +1,9 @@
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning when the
+	string with `cursor' property comes from an `after-string'
+	overlay.  (Bug#5816)
+
 2010-04-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBTIFF, LIBJPEG, LIBPNG, LIBGIF, LIBXPM, XFT_LIBS):
