@@ -865,10 +865,7 @@ configure___ c_switch_machine=C_SWITCH_MACHINE
 #define LIB_X11_LIB -lX11
 #endif
 
-#ifndef LIBX11_SYSTEM
-#define LIBX11_SYSTEM
-#endif
-configure___ LIBX=LIB_X11_LIB LIBX11_SYSTEM
+configure___ LIBX=LIB_X11_LIB
 
 #ifdef UNEXEC
 configure___ unexec=UNEXEC
