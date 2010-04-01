@@ -37,7 +37,7 @@ how they are stored in strings and buffers.
 
   Emacs buffers and strings support a large repertoire of characters
 from many different scripts, allowing users to type and display text
-in most any known written language.
+in almost any known written language.
 
 @cindex character codepoint
 @cindex codespace
