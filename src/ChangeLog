@@ -1,3 +1,9 @@
+2010-04-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBTIFF, LIBJPEG, LIBPNG, LIBGIF, LIBXPM, XFT_LIBS):
+	Define as Makefile variables.
+	(LIBX): Use above variables rather than directly using autoconf.
+
 2010-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Clean up BSD_SYSTEM use.
