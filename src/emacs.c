@@ -945,7 +945,6 @@ main (int argc, char **argv)
 #endif /* MSDOS || WINDOWSNT */
 
 #ifdef MSDOS
-#if __DJGPP__ >= 2
   if (!isatty (fileno (stdin)))
     setmode (fileno (stdin), O_BINARY);
   if (!isatty (fileno (stdout)))
@@ -953,11 +952,6 @@ main (int argc, char **argv)
       fflush (stdout);
       setmode (fileno (stdout), O_BINARY);
     }
-#else  /* not __DJGPP__ >= 2 */
-  (stdin)->_flag &= ~_IOTEXT;
-  (stdout)->_flag &= ~_IOTEXT;
-  (stderr)->_flag &= ~_IOTEXT;
-#endif /* not __DJGPP__ >= 2 */
 #endif /* MSDOS */
 
 #ifdef SET_EMACS_PRIORITY

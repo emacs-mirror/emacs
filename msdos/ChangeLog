@@ -1,3 +1,12 @@
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove support for DJGPP v1.x.
+
+	* sed3.inp:
+	* sed2.inp:
+	* sed1.inp:
+	* mainmake: Files removed.
+
 2010-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlisp.inp (VPATH): Don't edit, no longer needed.

@@ -122,7 +122,7 @@ extern __ptr_t calloc PP ((__malloc_size_t __nmemb, __malloc_size_t __size));
 extern void free PP ((__ptr_t __ptr));
 
 /* Allocate SIZE bytes allocated to ALIGNMENT bytes.  */
-#if ! (defined (_MALLOC_INTERNAL) && __DJGPP__ - 0 == 1) /* Avoid conflict.  */
+#if !defined (_MALLOC_INTERNAL) || defined (MSDOS) /* Avoid conflict.  */
 extern __ptr_t memalign PP ((__malloc_size_t __alignment,
 			     __malloc_size_t __size));
 extern int posix_memalign PP ((__ptr_t *, __malloc_size_t,
@@ -1763,13 +1763,6 @@ Fifth Floor, Boston, MA 02110-1301, USA.  */
 #include <malloc.h>
 #endif
 
-#if __DJGPP__ - 0 == 1
-
-/* There is some problem with memalign in DJGPP v1 and we are supposed
-   to omit it.  Noone told me why, they just told me to do it.  */
-
-#else
-
 __ptr_t (*__memalign_hook) PP ((__malloc_size_t __size,
 				__malloc_size_t __alignment));
 
@@ -1878,7 +1871,6 @@ posix_memalign (memptr, alignment, size)
   return 0;
 }
 
-#endif /* Not DJGPP v1 */
 /* Allocate memory on a page boundary.
    Copyright (C) 1991, 92, 93, 94, 96 Free Software Foundation, Inc.
 
