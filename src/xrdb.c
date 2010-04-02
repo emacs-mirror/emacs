@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
+#include <errno.h>
 #include <epaths.h>
 
 #include <stdio.h>
@@ -734,8 +735,6 @@ fatal (msg, prog, x1, x2, x3, x4, x5)
     char *msg, *prog;
     int x1, x2, x3, x4, x5;
 {
-    extern int errno;
-
     if (errno)
       perror (prog);
 

@@ -1,3 +1,66 @@
+2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove extern errno declarations.
+	* xterm.c:
+	* xrdb.c:
+	* w32term.c:
+	* unexec.c:
+	* unexaix.c:
+	* sysdep.c:
+	* process.c:
+	* lread.c:
+	* keyboard.c:
+	* floatfns.c:
+	* filelock.c:
+	* fileio.c:
+	* emacs.c (main):
+	* ecrt0.c:
+	* dispnew.c:
+	* callproc.c:
+	* buffer.c: Remove errno extern declarations.
+	* s/netbsd.h (NEED_ERRNO): Remove.
+
+2010-04-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all uses of LIBX11_SYSTEM.
+	* Makefile.in (LIBX11_SYSTEM): Remove.
+	* s/msdos.h (LIBX11_SYSTEM): Do not define, define LIBS_SYSTEM
+	instead.
+
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove support for DJGPP v1.x (bug#5813).
+
+	* w16select.c (__dpmi_int): Remove DJGPP v1.x compatibility.
+	* s/msdos.h:
+	* unexec.c (make_hdr, copy_text_and_data):
+	* sysdep.c (wait_for_termination, sys_subshell):
+	* msdos.c (dos_set_window_size, msdos_set_cursor_shape)
+	(IT_set_terminal_modes, __write, _rename, gethostname)
+	(gettimeofday, alarm, fork, kill, dos_ttraw, dos_ttcooked)
+	(run_msdos_command, abort): Remove DJGPP v1.x code and tests of
+	the value of __DJGPP__.
+	(nice, pause, sigsetmask, sigblock): Remove DJGPP v1.x
+	compatibility code.
+	* lread.c:
+	* gmalloc.c (memalign):
+	* fileio.c (Fcopy_file, check_executable, Ffile_modes):
+	* emacs.c (main):
+	* dosfns.c (init_dosfns):
+	* dired.c (file_name_completion_stat): Remove tests of __DJGPP__.
+
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning when the
+	string with `cursor' property comes from an `after-string'
+	overlay.  (Bug#5816)
+
+2010-04-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBTIFF, LIBJPEG, LIBPNG, LIBGIF, LIBXPM, XFT_LIBS):
+	Define as Makefile variables.
+	(LIBX): Use above variables rather than directly using autoconf.
+
 2010-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Clean up BSD_SYSTEM use.

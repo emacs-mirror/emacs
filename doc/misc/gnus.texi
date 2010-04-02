@@ -996,6 +996,15 @@ terminology section (@pxref{Terminology}).
 @section Finding the News
 @cindex finding news
 
+First of all, you should know that there is a special buffer called
+@code{*Server*} that lists all the servers Gnus knows about.  You can
+press @kbd{^} from the Group buffer to see it.  In the Server buffer,
+you can press @kbd{RET} on a defined server to see all the groups it
+serves (subscribed or not!).  You can also add or delete servers, edit
+a foreign server's definition, agentize or de-agentize a server, and
+do many other neat things.  @xref{Server Buffer}.  
+@xref{Foreign Groups}.  @xref{Agent Basics}.
+
 @vindex gnus-select-method
 @c @head
 The @code{gnus-select-method} variable says where Gnus should look for

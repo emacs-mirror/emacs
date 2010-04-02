@@ -47,9 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* __FreeBSD__ */
 
 #include <errno.h>
-#ifndef errno
-extern int errno;
-#endif
 
 #include "lisp.h"
 #include "buffer.h"

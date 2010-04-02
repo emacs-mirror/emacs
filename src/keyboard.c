@@ -79,10 +79,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-
 /* Variables for blockinput.h: */
 
 /* Non-zero if interrupt input is blocked right now.  */

@@ -12606,7 +12606,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    }
 	  if (INTEGERP (glyph->object) && glyph->charpos < 0)
 	    --glyph;
-	  /* By default, put the cursor on the rightmost glyph.  */
+	  /* By default, in reversed rows we put the cursor on the
+	     rightmost (first in the reading order) glyph.  */
 	  for (g = end + 1; g < glyph; g++)
 	    x += g->pixel_width;
 	  cursor_x = x;
@@ -12683,7 +12684,16 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		bpos_covered = bpos_max + XINT (chprop);
 		/* If the `cursor' property covers buffer positions up
 		   to and including point, we should display cursor on
-		   this glyph.  */
+		   this glyph.  Note that overlays and text properties
+		   with string values stop bidi reordering, so every
+		   buffer position to the left of the string is always
+		   smaller than any position to the right of the
+		   string.  Therefore, if a `cursor' property on one
+		   of the string's characters has an integer value, we
+		   will break out of the loop below _before_ we get to
+		   the position match above.  IOW, integer values of
+		   the `cursor' property override the "exact match for
+		   point" strategy of positioning the cursor.  */
 		/* Implementation note: bpos_max == pt_old when, e.g.,
 		   we are in an empty line, where bpos_max is set to
 		   MATRIX_ROW_START_CHARPOS, see above.  */
@@ -12823,12 +12833,19 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 		  str = glyph->object;
 		  tem = string_buffer_position_lim (w, str, pos, pos_after, 0);
-		  if (pos <= tem)
+		  if (tem == 0	/* from overlay */
+		      || pos <= tem)
 		    {
 		      /* If the string from which this glyph came is
 			 found in the buffer at point, then we've
-			 found the glyph we've been looking for.  */
-		      if (tem == pt_old)
+			 found the glyph we've been looking for.  If
+			 it comes from an overlay (tem == 0), and it
+			 has the `cursor' property on one of its
+			 glyphs, record that glyph as a candidate for
+			 displaying the cursor.  (As in the
+			 unidirectional version, we will display the
+			 cursor on the last candidate we find.)  */
+		      if (tem == 0 || tem == pt_old)
 			{
 			  /* The glyphs from this string could have
 			     been reordered.  Find the one with the
@@ -12861,9 +12878,11 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 				}
 			    }
 
-			  goto compute_x;
+			  if (tem == pt_old)
+			    goto compute_x;
 			}
-		      pos = tem + 1; /* don't find previous instances */
+		      if (tem)
+			pos = tem + 1; /* don't find previous instances */
 		    }
 		  /* This string is not what we want; skip all of the
 		     glyphs that came from it.  */

@@ -68,6 +68,13 @@ bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
+LIBTIFF=@LIBTIFF@
+LIBJPEG=@LIBJPEG@
+LIBPNG=@LIBPNG@
+LIBGIF=@LIBGIF@
+LIBXPM=@LIBXPM@
+XFT_LIBS=@XFT_LIBS@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -277,10 +284,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
-#ifndef LIBX11_SYSTEM
-#define LIBX11_SYSTEM
-#endif
-
 #ifndef LIB_X11_LIB
 #define LIB_X11_LIB -lX11
 #endif
@@ -369,7 +372,7 @@ LIBXT=$(LIBW)
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) @LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@ LIB_X11_LIB LIBX11_SYSTEM @XFT_LIBS@
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) $(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) LIB_X11_LIB $(XFT_LIBS)
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */

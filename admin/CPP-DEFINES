@@ -7,9 +7,7 @@ CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 MSDOS		Compiling the MS-DOS port.
 __MSDOS__	Ditto.
-__DJGPP__	Major version number of the DJGPP library for the DOS port.
-__DJGPP_MINOR__ Minor version number of the DJGPP library.
-__GO32__	Compiling the DOS port with DJGPP v1.x (obsolete).
+__DJGPP_MINOR__ Minor version number of the DJGPP library; used only in msdos.c and dosfns.c.
 DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
 WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
@@ -236,7 +234,6 @@ LD_SWITCH_X_DEFAULT
 LIBS_MACHINE
 LIBS_SYSTEM
 LIBS_TERMCAP
-LIBX11_SYSTEM
 LIBXMU
 LIB_GCC
 LIB_MATH

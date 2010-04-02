@@ -48,10 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <grp.h>
 #include <crt0.h>
 
-#ifndef __DJGPP_MINOR__
-# define __tb _go32_info_block.linear_address_of_transfer_buffer;
-#endif
-
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
        doc: /* Call specific MS-DOS interrupt number INTERRUPT with REGISTERS.
 Return the updated REGISTER vector.
@@ -385,8 +381,6 @@ init_dosfns ()
     }
 #endif /* !HAVE_X_WINDOWS */
 
-#if __DJGPP__ >= 2
-
   /* Without this, we never see hidden files.
      Don't OR it with the previous value, so the value recorded at dump
      time, possibly with `preserve-case' flags set, won't get through.  */
@@ -398,7 +392,6 @@ init_dosfns ()
   if (!NILP (Fmsdos_long_file_names ()))
     __opendir_flags |= __OPENDIR_PRESERVE_CASE;
 #endif /* __DJGPP_MINOR__ == 0 */
-#endif /* __DJGPP__ >= 2 */
 }
 
 #ifndef HAVE_X_WINDOWS

@@ -756,9 +756,6 @@ main (int argc, char **argv)
   char stack_bottom_variable;
   int do_initial_setlocale;
   int skip_args = 0;
-#ifndef USE_CRT_DLL
-  extern int errno;
-#endif
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
 #endif
@@ -945,7 +942,6 @@ main (int argc, char **argv)
 #endif /* MSDOS || WINDOWSNT */
 
 #ifdef MSDOS
-#if __DJGPP__ >= 2
   if (!isatty (fileno (stdin)))
     setmode (fileno (stdin), O_BINARY);
   if (!isatty (fileno (stdout)))
@@ -953,11 +949,6 @@ main (int argc, char **argv)
       fflush (stdout);
       setmode (fileno (stdout), O_BINARY);
     }
-#else  /* not __DJGPP__ >= 2 */
-  (stdin)->_flag &= ~_IOTEXT;
-  (stdout)->_flag &= ~_IOTEXT;
-  (stderr)->_flag &= ~_IOTEXT;
-#endif /* not __DJGPP__ >= 2 */
 #endif /* MSDOS */
 
 #ifdef SET_EMACS_PRIORITY

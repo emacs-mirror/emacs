@@ -30,11 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MSDOS
 #endif
 
-#ifdef __GO32__
 #ifndef __DJGPP__
-#define __DJGPP__ 1	/* V2 defines __DJGPP__ == 2 */
-#endif
-#else
 You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 
@@ -97,33 +93,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
-#if __DJGPP__ < 2
-
-/* New chdir () routine.
-   DJGPP v2.0 and later doesn't need it because its chdir() does
-   set the drive itself. */
-#ifdef chdir
-#undef chdir
-#endif
-#define chdir sys_chdir
-
-#define LIBS_SYSTEM -lpc  /* isn't required in DJGPP v2.0, either */
-
-#endif /* __DJGPP__ < 2 */
-
-#if __DJGPP__ > 1
-
 #define DATA_START  (&etext + 1)
 #define TEXT_START  &start
 
 #define _NAIVE_DOS_REGS
-
-#else /* not __DJGPP__ > 1 */
-
-/* This somehow needs to be defined even though we use COFF.  */
-#define TEXT_START -1
-
-#endif /* not __DJGPP__ > 1 */
 
 #define ORDINARY_LINK
 
@@ -132,19 +105,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define SEPCHAR ';'
 
 #define NULL_DEVICE "nul"
-
-#if __DJGPP__ < 2
-#define O_RDONLY        0x0001
-#define O_WRONLY        0x0002
-#define O_RDWR          0x0004
-#define O_CREAT         0x0100
-#define O_TRUNC         0x0200
-#define O_EXCL          0x0400
-#define O_APPEND        0x0800
-#define O_TEXT          0x4000
-#define O_BINARY        0x8000
-#define NO_MATHERR
-#endif
 
 #define HAVE_INVERSE_HYPERBOLIC
 #define FLOAT_CHECK_DOMAIN
@@ -166,12 +126,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
-/* Call init_gettimeofday when TZ changes.  */
-#if __DJGPP__ < 2
-#define LOCALTIME_CACHE
-#define tzset init_gettimeofday
-#endif
-
 /* bcopy under djgpp is quite safe */
 #define GAP_USE_BCOPY
 #define BCOPY_UPWARD_SAFE 1
@@ -181,9 +135,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
 
 /* Do we have POSIX signals?  */
-#if __DJGPP__ > 1
 #define POSIX_SIGNALS
-#endif
 
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
@@ -197,7 +149,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    commentary below, in the non-X branch.  The 140KB number was
    measured on GNU/Linux and on MS-WIndows.  */
 #define SYSTEM_PURESIZE_EXTRA (-170000+140000)
-#define LIBX11_SYSTEM -lxext -lsys
+#define LIBS_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el.
    As of 20091024, DOS-specific files use up 62KB of pure space.  But

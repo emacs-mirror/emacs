@@ -25,10 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <setjmp.h>
 
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-
 /* Define SIGCHLD as an alias for SIGCLD.  */
 
 #if !defined (SIGCHLD) && defined (SIGCLD)
@@ -61,7 +57,6 @@ extern int errno;
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/param.h>
-#include <errno.h>
 #endif /* MSDOS */
 
 #ifndef O_RDONLY
