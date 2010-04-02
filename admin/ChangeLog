@@ -1,6 +1,6 @@
 2010-04-01  Eli Zaretskii  <eliz@gnu.org>
 
-	* CPP-DEFINES (__DJGPP__, __GO32__): Remove, o longer used.
+	* CPP-DEFINES (__DJGPP__, __GO32__): Remove, no longer used.
 
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
