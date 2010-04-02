@@ -25,7 +25,7 @@
 
 	* xdisp.c (x_consider_frame_title, update_window_cursor): Remove
 	HAVE_NS conditionals.
-	(prepare_menu_bars)[HAVE_NS]: Call ns_set_doc_edited.
+	(prepare_menu_bars) [HAVE_NS]: Call ns_set_doc_edited.
 
 	* nsfns.m (x_implicitly_set_name): If frame-title-format is t, use
 	filename for the title.
@@ -331,7 +331,7 @@
 2010-01-19  Alan Mackenzie  <acm@muc.de>
 
 	Fix spurious before-change-functions invocation from (insert ?\n).
-	* textprop.c (set_text_properties): rename parameter
+	* textprop.c (set_text_properties): Rename parameter
 	`signal_after_change_p' to `coherent_change_p', and make the
 	invocation of `modify_region' conditional on it.
 
@@ -10353,7 +10353,7 @@
 
 	* font.c (Vfont_encoding_alist, find_font_encoding): Move from
 	fontset.c.
-	(font_pixel_size)[! HAVE_WINDOW_SYSTEM]: Return 1.
+	(font_pixel_size) [! HAVE_WINDOW_SYSTEM]: Return 1.
 	(font_open_entity): Update FRAME_X_DISPLAY_INFO (f)->n_fonts,
 	FRAME_SMALLEST_CHAR_WIDTH (f), and FRAME_SMALLEST_FONT_HEIGHT (f)
 	only when HAVE_WINDOW_SYSTEM is defined.
@@ -20187,7 +20187,7 @@
 
 2007-08-29  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
-	* term.c (dissociate_if_controlling_tty)[USG]: Fix parse error.
+	* term.c (dissociate_if_controlling_tty) [USG]: Fix parse error.
 
 2007-08-29  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 
