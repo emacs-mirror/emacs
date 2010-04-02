@@ -1,3 +1,9 @@
+2010-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/imenu.el (semantic-imenu-bucketize-type-members)
+	(semantic-create-imenu-directory-index): Fix typos in docstrings.
+	(semantic-imenu-goto-function): Reflow docstring.
+
 2010-03-30  Tomas Abrahamsson  <tab@lysator.liu.se>
 
 	* textmodes/artist.el (artist-mode): Fix typo in docstring.
