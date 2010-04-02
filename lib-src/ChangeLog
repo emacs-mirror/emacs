@@ -1,3 +1,9 @@
+2010-04-02  Dan Rosenberg  <dan.j.rosenberg@gmail.com>  (tiny change)
+
+	* movemail.c (main): Check return values of setuid.  Avoid
+	possibility of symlink attack when movemail is setgid mail
+	(CVE-2010-0825).
+
 2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove extern errno declarations.
