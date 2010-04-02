@@ -465,8 +465,8 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	      ((if (listp (cdr-safe (cdr-safe elt)))
 		   (or (keymapp (cdr-safe (cdr-safe elt)))
 		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
-		 (and (symbolp (cdr-safe (cdr-safe elt))
-			       (fboundp (cdr-safe (cdr-safe elt))))))
+		 (and (symbolp (cdr-safe (cdr-safe elt)))
+			       (fboundp (cdr-safe (cdr-safe elt)))))
 	       (setq km (cddr elt))
 	       (and (stringp (car elt)) (setq str (car elt)))
 	       (and str
