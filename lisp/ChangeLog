@@ -10,7 +10,7 @@
 
 	* language/indian.el (devanagari-composable-pattern)
 	(tamil-composable-pattern, kannada-composable-pattern)
-	(malayalam-composable-pattern): Adjusted for the new Unicode
+	(malayalam-composable-pattern): Adjust for the new Unicode
 	specification.
 	(bengali-composable-pattern, gurmukhi-composable-pattern)
 	(gujarati-composable-pattern, oriya-composable-pattern)
@@ -3324,7 +3324,7 @@
 	* bookmark.el: Formatting and doc fixes only:
 	(bookmark-search-delay): Shorten doc string to fit in 80 columns.
 	(bookmark-bmenu-search): Wrap to fit within 80 columns.
-	  Minor grammar and punctuation fixes in doc string.
+	Minor grammar and punctuation fixes in doc string.
 	(bookmark-read-search-input): Adjust to fit within 80 columns.
 
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
@@ -6079,12 +6079,12 @@
 2009-10-05  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-handle-bookmark): If bookmark has no file,
-	  don't do anything related to relocating, just return nil.
+	don't do anything related to relocating, just return nil.
 	(bookmark-error-no-filename): New error.
 	(bookmark-default-handler): Signal `bookmark-error-no-filename' if
-	  bookmark has no file.  Don't even attempt to handle things that
-	  are not files; the whole point of custom handlers is to keep that
-	  knowledge elsewhere anyway.  Tighten some comments.
+	bookmark has no file.  Don't even attempt to handle things that
+	are not files; the whole point of custom handlers is to keep that
+	knowledge elsewhere anyway.  Tighten some comments.
 	(bookmark-file-or-variation-thereof): Remove now-unused function.
 	(bookmark-location): Doc string fix.
 	(Bug#4250)
@@ -6114,8 +6114,8 @@
 	(bookmark-relocate, bookmark-insert-location, bookmark-rename)
 	(bookmark-insert, bookmark-delete, bookmark-time-to-save-p)
 	(bookmark-edit-annotation-mode, bookmark-edit-annotation):
-	   Improve doc strings to say whether bookmark can be a string or
-	   a record or both, and make other consistency and clarity fixes.
+	Improve doc strings to say whether bookmark can be a string or
+	a record or both, and make other consistency and clarity fixes.
 	(bookmark-get-handler, bookmark--jump-via, bookmark-write-file)
 	(bookmark-default-annotation-text, bookmark-yank-word)
 	(bookmark-maybe-load-default-file, bookmark-maybe-sort-alist)
@@ -6123,12 +6123,12 @@
 	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
 	(bookmark-bmenu-bookmark): Give these doc strings.
 	(bookmark-bmenu-check-position): Give this a doc string, but also
-	   add a FIXME comment about how the function may be pointless.
+	add a FIXME comment about how the function may be pointless.
 	(bookmark-default-handler): Rework doc string and change a
-	   parameter name, to clarify that this takes a bookmark record
-	   not a bookmark name.
+	parameter name, to clarify that this takes a bookmark record
+	not a bookmark name.
 	(bookmark-set): Change a parameter name to indicate its meaning,
-	   and improve the doc string a bit.
+	and improve the doc string a bit.
 	(Bug#4188)
 
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>
