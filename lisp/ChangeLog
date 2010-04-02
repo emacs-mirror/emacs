@@ -1,3 +1,8 @@
+2010-04-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tmm.el (tmm-get-keymap): Check with symbolp before passing
+	value to fboundp, it may not be a symbol.
+
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-buffer-sort-alphabetically): Update
