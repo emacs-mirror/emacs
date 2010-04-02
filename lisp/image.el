@@ -690,6 +690,31 @@ shall be displayed."
 	   (cons images (+ (aref anim 1) (* (aref anim 2) 256))))))))
 
 
+(defconst imagemagick-types-inhibit
+  '(C HTML HTM TXT)
+  "Types the imagemagic loader should not try to handle.")
+
+;;;###autoload
+(defun imagemagic-register-types ()
+  "Register file types that imagemagick is able to handle."
+  (let ((im-types (imagemagick-types))
+        (im-inhibit imagemagick-types-inhibit))
+    (while im-inhibit
+      (setq im-types (remove (car im-inhibit) im-types))
+      (setq im-inhibit (cdr im-inhibit)))
+    (while im-types
+      (let
+	  ((extension (downcase (symbol-name (car im-types)))))
+	(push
+	 (cons  (concat "\\." extension "\\'") 'image-mode)
+	 auto-mode-alist)
+	(push
+	 (cons  (concat "\\." extension "\\'") 'imagemagick)
+	 image-type-file-name-regexps)
+	(setq im-types (cdr im-types))))))
+
+
+
 (provide 'image)
 
 ;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3
