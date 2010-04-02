@@ -195,10 +195,6 @@ extern int serial_open (char *port);
 extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
 #endif
 
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif

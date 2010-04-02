@@ -228,10 +228,6 @@ static int input_signal_count;
 
 extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-
 /* A mask of extra modifier bits to put into every keyboard char.  */
 extern EMACS_INT extra_keyboard_modifiers;
 

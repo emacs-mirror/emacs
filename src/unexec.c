@@ -131,11 +131,9 @@ initialize nonstandard fields in the file header
 #ifdef HAVE_COFF_H
 #include <coff.h>
 #ifdef MSDOS
-#if __DJGPP__ > 1
 #include <fcntl.h>  /* for O_RDONLY, O_RDWR */
 #include <crt0.h>   /* for _crt0_startup_flags and its bits */
 static int save_djgpp_startup_flags;
-#endif /* __DJGPP__ > 1 */
 #define filehdr external_filehdr
 #define scnhdr external_scnhdr
 #define syment external_syment
@@ -310,7 +308,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   if (a_out >= 0)
     {
 #ifdef MSDOS
-#if __DJGPP__ > 1
       /* Support the coff-go32-exe format with a prepended stub, since
 	 this is what GCC 2.8.0 and later generates by default in DJGPP.  */
       unsigned short mz_header[3];
@@ -328,7 +325,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 	}
       else
 	lseek (a_out, 0L, 0);
-#endif /* __DJGPP__ > 1 */
 #endif /* MSDOS */
       if (read (a_out, &f_hdr, sizeof (f_hdr)) != sizeof (f_hdr))
 	{
@@ -470,9 +466,6 @@ write_segment (new, ptr, end)
 {
   register int i, nwrite, ret;
   char buf[80];
-#ifndef USE_CRT_DLL
-  extern int errno;
-#endif
   /* This is the normal amount to write at once.
      It is the size of block that NFS uses.  */
   int writesize = 1 << 13;
@@ -532,7 +525,6 @@ copy_text_and_data (new, a_out)
   register char *ptr;
 
 #ifdef MSDOS
-#if __DJGPP__ >= 2
   /* Dump the original table of exception handlers, not the one
      where our exception hooks are registered.  */
   __djgpp_exception_toggle ();
@@ -541,7 +533,6 @@ copy_text_and_data (new, a_out)
      and which might change the way that dumped Emacs works.  */
   save_djgpp_startup_flags = _crt0_startup_flags;
   _crt0_startup_flags &= ~(_CRT0_FLAG_NO_LFN | _CRT0_FLAG_NEARPTR);
-#endif
 #endif
 
   lseek (new, (long) text_scnptr, 0);
@@ -555,13 +546,11 @@ copy_text_and_data (new, a_out)
   write_segment (new, ptr, end);
 
 #ifdef MSDOS
-#if __DJGPP__ >= 2
   /* Restore our exception hooks.  */
   __djgpp_exception_toggle ();
 
   /* Restore the startup flags.  */
   _crt0_startup_flags = save_djgpp_startup_flags;
-#endif
 #endif
 
 

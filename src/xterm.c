@@ -309,8 +309,6 @@ extern Lisp_Object Vx_no_window_manager;
 
 extern Lisp_Object Qeql;
 
-extern int errno;
-
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
 extern EMACS_INT extra_keyboard_modifiers;

@@ -99,10 +99,6 @@ extern double logb ();
 
 #ifdef FLOAT_CHECK_ERRNO
 # include <errno.h>
-
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
 #endif
 
 #ifdef FLOAT_CATCH_SIGILL

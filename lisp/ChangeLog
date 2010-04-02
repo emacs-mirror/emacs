@@ -1,3 +1,13 @@
+2010-04-02  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
+	`vc-hg-command' with a list of flags.
+
+2010-04-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tmm.el (tmm-get-keymap): Check with symbolp before passing
+	value to fboundp, it may not be a symbol.
+
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-buffer-sort-alphabetically): Update

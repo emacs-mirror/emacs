@@ -41,9 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 
 #ifdef MSDOS
-#if __DJGPP__ < 2
-#include <unistd.h>	/* to get X_OK */
-#endif
 #include "msdos.h"
 #endif
 
@@ -74,10 +71,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 #define file_offset long
 #define file_tell ftell
-#endif
-
-#ifndef USE_CRT_DLL
-extern int errno;
 #endif
 
 /* hash table read constants */

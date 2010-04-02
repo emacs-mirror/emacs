@@ -28,11 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <setjmp.h>
 
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -4627,7 +4622,6 @@ buffer_slot_type_mismatch (newval, type)
 #endif
 
 #include <stdio.h>
-#include <errno.h>
 
 #if MAP_ANON == 0
 #include <fcntl.h>

@@ -859,7 +859,6 @@ file_name_completion_stat (dirname, dp, st_addr)
   char *fullname = (char *) alloca (len + pos + 2);
 
 #ifdef MSDOS
-#if __DJGPP__ > 1
   /* Some fields of struct stat are *very* expensive to compute on MS-DOS,
      but aren't required here.  Avoid computing the following fields:
      st_inode, st_size and st_nlink for directories, and the execute bits
@@ -868,7 +867,6 @@ file_name_completion_stat (dirname, dp, st_addr)
   unsigned short save_djstat_flags = _djstat_flags;
 
   _djstat_flags = _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
-#endif /* __DJGPP__ > 1 */
 #endif /* MSDOS */
 
   bcopy (SDATA (dirname), fullname, pos);
@@ -888,9 +886,7 @@ file_name_completion_stat (dirname, dp, st_addr)
 #else
   value = stat (fullname, st_addr);
 #ifdef MSDOS
-#if __DJGPP__ > 1
   _djstat_flags = save_djstat_flags;
-#endif /* __DJGPP__ > 1 */
 #endif /* MSDOS */
   return value;
 #endif /* S_IFLNK */

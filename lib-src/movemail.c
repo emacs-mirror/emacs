@@ -140,9 +140,6 @@ static char *mail_spool_name ();
 #endif
 #endif
 
-#ifndef errno
-extern int errno;
-#endif
 char *strerror ();
 #ifdef HAVE_INDEX
 extern char *index __P ((const char *, int));
