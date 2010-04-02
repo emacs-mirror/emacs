@@ -723,7 +723,6 @@ main (argc, argv)
 #define SEND_BUFFER_SIZE   4096
 
 extern char *strerror ();
-extern int errno;
 
 /* Buffer to accumulate data to send in TCP connections.  */
 char send_buffer[SEND_BUFFER_SIZE + 1];

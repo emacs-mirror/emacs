@@ -53,12 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 
-#ifndef vax11c
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-#endif
-
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"

@@ -28,8 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIBS_TERMCAP -ltermcap
 
-#define NEED_ERRNO
-
 #define START_FILES pre-crt0.o /usr/lib/crt0.o START_FILES_1 /usr/lib/crtbegin.o
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o END_FILES_1
 #undef LIB_GCC

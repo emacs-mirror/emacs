@@ -1,3 +1,25 @@
+2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove extern errno declarations.
+	* xterm.c:
+	* xrdb.c:
+	* w32term.c:
+	* unexec.c:
+	* unexaix.c:
+	* sysdep.c:
+	* process.c:
+	* lread.c:
+	* keyboard.c:
+	* floatfns.c:
+	* filelock.c:
+	* fileio.c:
+	* emacs.c (main):
+	* ecrt0.c:
+	* dispnew.c:
+	* callproc.c:
+	* buffer.c: Remove errno extern declarations.
+	* s/netbsd.h (NEED_ERRNO): Remove.
+
 2010-04-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove all uses of LIBX11_SYSTEM.

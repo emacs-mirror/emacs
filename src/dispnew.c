@@ -5809,9 +5809,6 @@ window_change_signal (signalnum) /* If we don't have an argument, */
      int signalnum;		/* some compilers complain in signal calls.  */
 {
   int width, height;
-#ifndef USE_CRT_DLL
-  extern int errno;
-#endif
   int old_errno = errno;
 
   struct tty_display_info *tty;
