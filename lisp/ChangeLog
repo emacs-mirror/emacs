@@ -3,6 +3,12 @@
 	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
 	`vc-hg-command' with a list of flags.
 
+	* progmodes/bug-reference.el (bug-reference-bug-regexp): Also
+	accept "patch" and "RFE".
+	(bug-reference-fontify): `bug-reference-url-format' can also be a
+	function to be able to handle the bug kind.
+	(turn-on-bug-reference-mode, turn-on-bug-reference-prog-mode): Add
+
 2010-04-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* tmm.el (tmm-get-keymap): Check with symbolp before passing
