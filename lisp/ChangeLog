@@ -1,3 +1,12 @@
+2010-04-02  Juri Linkov  <juri@jurta.org>
+
+	* ehelp.el (electric-help-orig-major-mode):
+	New buffer-local variable.
+	(electric-help-mode): Set it to original major-mode.  Doc fix.
+	(with-electric-help): Use `electric-help-orig-major-mode' instead
+	of (default-value 'major-mode).  Doc fix.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00069.html
+
 2010-04-02  Sam Steingold  <sds@gnu.org>
 
 	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
