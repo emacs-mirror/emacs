@@ -94,12 +94,6 @@ extern int etext;
 extern unsigned start __asm__ ("start");
 #endif
 
-#ifndef USE_CRT_DLL
-#ifndef errno
-extern int errno;
-#endif
-#endif
-
 #include <sys/file.h>
 
 #ifdef HAVE_FCNTL_H

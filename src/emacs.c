@@ -756,9 +756,6 @@ main (int argc, char **argv)
   char stack_bottom_variable;
   int do_initial_setlocale;
   int skip_args = 0;
-#ifndef USE_CRT_DLL
-  extern int errno;
-#endif
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
 #endif

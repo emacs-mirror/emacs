@@ -59,10 +59,6 @@ And always:
 
 int data_start = 0;
 
-#ifdef NEED_ERRNO
-int errno;
-#endif
-
 #ifndef MSDOS
 char **environ;
 #endif
