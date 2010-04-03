@@ -1,3 +1,8 @@
+2010-04-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use buffer-file-coding-system
+	if set.
+
 2010-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-html-save-cid-content): Rename from

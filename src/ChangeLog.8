@@ -2886,10 +2886,10 @@
 
 	* sysdep.c: Define numerous routines to emulate Unix system calls.
 
-	* xfaces.c: on MacOS, define the set of colors listed in rgb.txt
+	* xfaces.c: On MacOS, define the set of colors listed in rgb.txt
 	file of an X Window environment.
 
-	* xfaces.c: on MacOS, define the Lisp functions x-display-color-p,
+	* xfaces.c: On MacOS, define the Lisp functions x-display-color-p,
 	x-display-grayscale, x-color-defined-p, and x-color-values.
 
 	* sysdep.c [macintosh] (stat, fstat, mkdir, rmdir, utime, access)
@@ -3160,7 +3160,7 @@
 
 1999-08-25  Alexandre Oliva  <oliva@dcc.unicamp.br>
 
-	* unexelf.c: Merge IRIX debugging info patch from unexsgi.c
+	* unexelf.c: Merge IRIX debugging info patch from unexsgi.c.
 	* m/iris4d.h: Use unexelf for IRIX 5.*.
 	* m/iris5d.h: Use unexelf for IRIX 6.*.
 	* unexsgi.c: Deleted.
@@ -3767,8 +3767,8 @@
 1999-08-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (compute_line_metrics): If first line's physical ascent
-	 is larger than its logical ascent, use the physical ascent, and
-	 make the row taller.  Set row's overlapping_p flag.
+	is larger than its logical ascent, use the physical ascent, and
+	make the row taller.  Set row's overlapping_p flag.
 
 	* dispnew.c (redraw_overlapping_rows): Use flag overlapping_p.
 	(direct_output_for_insert): Ditto.
@@ -4675,7 +4675,7 @@
 
 1999-06-04  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfaces.c (recompute_basic_faces)[GLYPH_DEBUG]: Check return
+	* xfaces.c (recompute_basic_faces) [GLYPH_DEBUG]: Check return
 	value of realize_basic_faces.
 	(load_face_font_or_fontset): Store full font name in face.
 	(realize_default_face): Use full font name.
@@ -5601,9 +5601,9 @@
 	* window.c (coordinates_in_window): Use CURRENT_MODE_LINE_HEIGHT.
 
 	* xdisp.c (redisplay_window): If mode line height has changed,
-	 arrange for a thorough immediate redisplay using the correct mode
-	 line height.
-	 (window_box_height): Use CURRENT_MODE_LINE_HEIGHT.
+	arrange for a thorough immediate redisplay using the correct mode
+	line height.
+	(window_box_height): Use CURRENT_MODE_LINE_HEIGHT.
 
 	* dispextern.h (MATRIX_MODE_LINE_HEIGHT): New.
 	(CURRENT_MODE_LINE_HEIGHT): New.
@@ -7062,7 +7062,7 @@
 1998-05-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (LIBXPM): If not already defined, define to -lXpm.
-	(LIBX)[HAVE_X11]: Add LIBXPM.
+	(LIBX) [HAVE_X11]: Add LIBXPM.
 
 	* xfns.c (xpm_image_p): Implementation of image type functions
 	for XPM.
@@ -10052,7 +10052,7 @@
 
 	* xterm.h (WINDOW_COL_PIXEL_X etc.) Removed.
 
-	* dispextern.h (WINDOW_TO_FRAME_HPOS/VPOS): Moved to dispnew.c
+	* dispextern.h (WINDOW_TO_FRAME_HPOS/VPOS): Moved to dispnew.c.
 
 	* xfns.c (x_contour_region): Use pixel coordinates from window
 	cursor instead of WINDOW_TO_FRAME_H/VPOS.
@@ -10897,7 +10897,7 @@
 	(MATRIX_ROW_INVERSE_P): Former MATRIX_ROW_HIGHLIGHT_P.
 	(struct glyph_row): HIGHLIGHT_P -> INVERSE_P
 
-	* all files: use above new names.
+	* all files: Use above new names.
 
 	* dispnew.c (scroll_frame_lines): Simplified.  Use
 	SCROLL_GLYPH_MATRIX.
@@ -10961,7 +10961,7 @@
 	(init_display): Ditto.
 	(syms_of_display): Ditto.
 
-	* dispextern.h: add prototypes for REDRAW_FRAME,
+	* dispextern.h: Add prototypes for REDRAW_FRAME,
 	REDRAW_GARBAGED_FRAMES, CANCEL_LINE, CLEAR_FRAME_RECORDS,
 	INIT_DESIRED_GLYPHS, SCROLL_FRAME_LINES, PRESERVE_OTHER_COLUMNS,
 	ADJUST_WINDOW_CHARSTARTS, CANCEL_MY_COLUMNS,
@@ -11108,9 +11108,9 @@
 	(make_window): Initialize DESIRED_MATRIX and CURRENT_MATRIX.
 	(replace_window): Reset DESIRED_MATRIX and CURRENT_MATRIX
 
-	* Makefile.in (window.o): Add dependency window.c -> dispextern.h
+	* Makefile.in (window.o): Add dependency window.c -> dispextern.h.
 
-	* window.c: Include dispextern.h
+	* window.c: Include dispextern.h.
 
 	* scroll.c (do_scrolling): Use new glyphs.
 	(do_direct_scrolling): Ditto.
@@ -11141,9 +11141,9 @@
 	(write_glyphs): Ditto.
 	(insert_glyphs): Ditto.
 
-	* Makefile.in (term.o): term.c depends on dispextern.h
+	* Makefile.in (term.o): term.c depends on dispextern.h.
 
-	* term.c: Include dispextern.h
+	* term.c: Include dispextern.h.
 
 	* dispnew.c (direct_output_forward_char): Old glyph functions
 	removed, new inserted.
@@ -11560,8 +11560,8 @@
 1999-05-02  Andrew Innes  <andrewi@gnu.org>
 
 	* s/ms-w32.h (HAVE_FSYNC): New macro.
-	 (fsync): Map to _commit.
-	 (ftruncate): Map to _chsize.
+	(fsync): Map to _commit.
+	(ftruncate): Map to _chsize.
 
 	* w32term.c (dumpglyphs): On Windows NT, do output in Unicode even
 	for ASCII, if enabled, to avoid memory allocation overhead for
@@ -11666,7 +11666,7 @@
 
 	* fontset.c (Fquery_fontset): Don't check for fontset aliases here.
 	(Fnew_fontset, Fset_fontset_font): Check for them here.
-	 (Ffontset_info, Fnew_fontset, Fset_fontset_font):
+	(Ffontset_info, Fnew_fontset, Fset_fontset_font):
 	Fix error message syntax.
 
 	* buffer.c (Fmake_indirect_buffer): Copy multibyte status
@@ -12775,7 +12775,7 @@
 1998-12-06  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
 	* Makefile.in (msdos.o): Depend on termchar.h, charset.h,
-	coding.h, and disptab.h
+	coding.h, and disptab.h.
 
 	* msdos.c (Vdos_unsupported_char_glyph): New variable.
 	(syms_of_msdos): DEFVAR_LISP it.

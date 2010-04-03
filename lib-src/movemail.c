@@ -194,6 +194,9 @@ main (argc, argv)
 # define ARGSTR "p"
 #endif /* MAIL_USE_POP */
 
+  uid_t real_gid = getgid();
+  uid_t priv_gid = getegid();
+
 #ifdef WINDOWSNT
   /* Ensure all file i/o is in binary mode. */
   _fmode = _O_BINARY;
@@ -244,25 +247,6 @@ main (argc, argv)
   if (*outname == 0)
     fatal ("Destination file name is empty", 0, 0);
 
-  /* Check access to output file.  */
-  if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
-    pfatal_with_name (outname);
-
-  /* Also check that outname's directory is writable to the real uid.  */
-  {
-    char *buf = (char *) xmalloc (strlen (outname) + 1);
-    char *p;
-    strcpy (buf, outname);
-    p = buf + strlen (buf);
-    while (p > buf && !IS_DIRECTORY_SEP (p[-1]))
-      *--p = 0;
-    if (p == buf)
-      *p++ = '.';
-    if (access (buf, W_OK) != 0)
-      pfatal_with_name (buf);
-    free (buf);
-  }
-
 #ifdef MAIL_USE_POP
   if (!strncmp (inname, "po:", 3))
     {
@@ -274,15 +258,12 @@ main (argc, argv)
       exit (status);
     }
 
-  setuid (getuid ());
+  if (setuid (getuid ()) < 0)
+    fatal ("Failed to drop privileges", 0, 0);
+
 #endif /* MAIL_USE_POP */
 
 #ifndef DISABLE_DIRECT_ACCESS
-
-  /* Check access to input file.  */
-  if (access (inname, R_OK | W_OK) != 0)
-    pfatal_with_name (inname);
-
 #ifndef MAIL_USE_MMDF
 #ifndef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_MAILLOCK
@@ -376,7 +357,8 @@ main (argc, argv)
       time_t touched_lock, now;
 #endif
 
-      setuid (getuid ());
+      if (setuid (getuid ()) < 0 || setegid (real_gid) < 0)
+	fatal ("Failed to drop privileges", 0, 0);
 
 #ifndef MAIL_USE_MMDF
 #ifdef MAIL_USE_SYSTEM_LOCK
@@ -401,6 +383,9 @@ main (argc, argv)
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
+
+      if (setegid (priv_gid) < 0)
+	fatal ("Failed to regain privileges", 0, 0);
 
       /* This label exists so we can retry locking
 	 after a delay, if it got EAGAIN or EBUSY.  */
@@ -495,6 +480,10 @@ main (argc, argv)
 	pfatal_and_delete (outname);
 #endif
 
+      /* Prevent symlink attacks truncating other users' mailboxes */
+      if (setegid (real_gid) < 0)
+	fatal ("Failed to drop privileges", 0, 0);
+
       /* Check to make sure no errors before we zap the inbox.  */
       if (close (outdesc) != 0)
 	pfatal_and_delete (outname);
@@ -525,6 +514,10 @@ main (argc, argv)
 	    creat (inname, 0600);
 	}
 #endif /* not MAIL_USE_SYSTEM_LOCK */
+
+      /* End of mailbox truncation */
+      if (setegid (priv_gid) < 0)
+	fatal ("Failed to regain privileges", 0, 0);
 
 #ifdef MAIL_USE_MAILLOCK
       /* This has to occur in the child, i.e., in the process that

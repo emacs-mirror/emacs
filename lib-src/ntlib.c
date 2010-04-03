@@ -125,8 +125,26 @@ getuid ()
   return 0;
 }
 
+unsigned
+getgid ()
+{
+  return 0;
+}
+
+unsigned
+getegid ()
+{
+  return 0;
+}
+
 int
 setuid (unsigned uid)
+{
+  return 0;
+}
+
+int
+setegid (unsigned gid)
 {
   return 0;
 }

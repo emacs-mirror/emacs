@@ -486,9 +486,11 @@ apply the face `mm-uu-extract'."
       (if (mm-uu-pgp-signed-test)
 	  (progn
 	    (mml2015-clean-buffer)
-	    (let ((coding-system-for-write (or gnus-newsgroup-charset
+	    (let ((coding-system-for-write (or buffer-file-coding-system
+					       gnus-newsgroup-charset
 					       'iso-8859-1))
-		  (coding-system-for-read (or gnus-newsgroup-charset
+		  (coding-system-for-read (or buffer-file-coding-system
+					      gnus-newsgroup-charset
 					      'iso-8859-1)))
 	      (funcall (mml2015-clear-verify-function))))
 	(when (and mml2015-use (null (mml2015-clear-verify-function)))
