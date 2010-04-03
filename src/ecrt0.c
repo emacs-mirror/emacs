@@ -59,9 +59,7 @@ And always:
 
 int data_start = 0;
 
-#ifndef MSDOS
 char **environ;
-#endif
 
 #ifndef static
 /* On systems where the static storage class is usable, this function
@@ -100,70 +98,7 @@ start1 (CRT0_DUMMIES argc, xargv)
      and optimize it out.  */
   (void) &start1;
 }
-#else /* not CRT0_DUMMIES */
-
-/* This is a kludge.  Now that the CRT0_DUMMIES mechanism above exists,
-   most of these machines could use the vax code above
-   with some suitable definition of CRT0_DUMMIES.
-   Then the symbol m68k could be flushed.
-   But I don't want to risk breaking these machines
-   in a version 17 patch release, so that change is being put off.  */
-
-#ifdef m68k			/* Can't do it all from C */
-	asm ("	global	_start");
-	asm ("	text");
-	asm ("_start:");
-	asm ("  comm	splimit%,4");
-	asm ("	global	exit");
-	asm ("	text");
-  	asm ("	mov.l	%d0,splimit%");
-	asm ("	jsr	start1");
-	asm ("	mov.l	%d0,(%sp)");
-	asm ("	jsr	exit");
-	asm ("	mov.l	&1,%d0");	/* d0 = 1 => exit */
-	asm ("	trap	&0");
-
-/* ignore takes care of skipping the a6 value pushed in start.  */
-static
-start1 (argc, xargv)
-     int argc;
-     char *xargv;
-{
-  register char **argv = &xargv;
-  environ = argv + argc + 1;
-
-  if ((char *)environ == xargv)
-    environ--;
-  exit (main (argc, argv, environ));
-}
-
-#endif /* m68k */
-
-#endif /* not CRT0_DUMMIES */
-
-#ifdef __sparc__
-asm (".global __start");
-asm (".text");
-asm ("__start:");
-asm ("	mov	0, %fp");
-asm ("	ld	[%sp + 64], %o0");
-asm ("	add	%sp, 68, %o1");
-asm ("	sll	%o0, 2,	%o2");
-asm ("	add	%o2, 4,	%o2");
-asm ("	add	%o1, %o2, %o2");
-asm ("	sethi	%hi(_environ), %o3");
-asm ("	st	%o2, [%o3+%lo(_environ)]");
-asm ("	andn	%sp, 7,	%sp");
-asm ("	call	_main");
-asm ("	sub	%sp, 24, %sp");
-asm ("	call	__exit");
-asm ("	nop");
-
-#endif /* __sparc__ */
-
-#if __FreeBSD__ == 2
-char *__progname;
-#endif
+#endif /* CRT0_DUMMIES */
 
 /* arch-tag: 4025c2fb-d6b1-4d29-b1b6-8100b6bd1e74
    (do not change this comment) */
