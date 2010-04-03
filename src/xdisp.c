@@ -12606,7 +12606,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    }
 	  if (INTEGERP (glyph->object) && glyph->charpos < 0)
 	    --glyph;
-	  /* By default, put the cursor on the rightmost glyph.  */
+	  /* By default, in reversed rows we put the cursor on the
+	     rightmost (first in the reading order) glyph.  */
 	  for (g = end + 1; g < glyph; g++)
 	    x += g->pixel_width;
 	  cursor_x = x;
@@ -12683,7 +12684,16 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 		bpos_covered = bpos_max + XINT (chprop);
 		/* If the `cursor' property covers buffer positions up
 		   to and including point, we should display cursor on
-		   this glyph.  */
+		   this glyph.  Note that overlays and text properties
+		   with string values stop bidi reordering, so every
+		   buffer position to the left of the string is always
+		   smaller than any position to the right of the
+		   string.  Therefore, if a `cursor' property on one
+		   of the string's characters has an integer value, we
+		   will break out of the loop below _before_ we get to
+		   the position match above.  IOW, integer values of
+		   the `cursor' property override the "exact match for
+		   point" strategy of positioning the cursor.  */
 		/* Implementation note: bpos_max == pt_old when, e.g.,
 		   we are in an empty line, where bpos_max is set to
 		   MATRIX_ROW_START_CHARPOS, see above.  */

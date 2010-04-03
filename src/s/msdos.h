@@ -149,7 +149,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    commentary below, in the non-X branch.  The 140KB number was
    measured on GNU/Linux and on MS-WIndows.  */
 #define SYSTEM_PURESIZE_EXTRA (-170000+140000)
-#define LIBX11_SYSTEM -lxext -lsys
+#define LIBS_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el.
    As of 20091024, DOS-specific files use up 62KB of pure space.  But
@@ -169,6 +169,8 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
+#define NO_REMAP
 
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */

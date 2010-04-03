@@ -1,7 +1,47 @@
+2010-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el: Require CL when compiling.
+	(font-lock-turn-on-thing-lock): Use `case'.
+
+2010-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Add entry for Eli
+	Zaretskii.
+
+2010-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/imenu.el (semantic-imenu-bucketize-type-members)
+	(semantic-create-imenu-directory-index): Fix typos in docstrings.
+	(semantic-imenu-goto-function): Reflow docstring.
+
+2010-04-02  Juri Linkov  <juri@jurta.org>
+
+	* ehelp.el (electric-help-orig-major-mode):
+	New buffer-local variable.
+	(electric-help-mode): Set it to original major-mode.  Doc fix.
+	(with-electric-help): Use `electric-help-orig-major-mode' instead
+	of (default-value 'major-mode).  Doc fix.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00069.html
+
+2010-04-02  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
+	`vc-hg-command' with a list of flags.
+
+	* progmodes/bug-reference.el (bug-reference-bug-regexp):
+	Also accept "patch" and "RFE".
+	(bug-reference-fontify): `bug-reference-url-format' can also be a
+	function to be able to handle the bug kind.
+	(turn-on-bug-reference-mode, turn-on-bug-reference-prog-mode): Add.
+
+2010-04-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tmm.el (tmm-get-keymap): Check with symbolp before passing
+	value to fboundp, it may not be a symbol.
+
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cus-edit.el (custom-buffer-sort-alphabetically): Update
-	:version.
+	* cus-edit.el (custom-buffer-sort-alphabetically): Update :version.
 
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
@@ -3856,7 +3896,7 @@
 	* bookmark.el: Formatting and doc fixes only:
 	(bookmark-search-delay): Shorten doc string to fit in 80 columns.
 	(bookmark-bmenu-search): Wrap to fit within 80 columns.
-	  Minor grammar and punctuation fixes in doc string.
+	Minor grammar and punctuation fixes in doc string.
 	(bookmark-read-search-input): Adjust to fit within 80 columns.
 
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
@@ -6611,12 +6651,12 @@
 2009-10-05  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-handle-bookmark): If bookmark has no file,
-	  don't do anything related to relocating, just return nil.
+	don't do anything related to relocating, just return nil.
 	(bookmark-error-no-filename): New error.
 	(bookmark-default-handler): Signal `bookmark-error-no-filename' if
-	  bookmark has no file.  Don't even attempt to handle things that
-	  are not files; the whole point of custom handlers is to keep that
-	  knowledge elsewhere anyway.  Tighten some comments.
+	bookmark has no file.  Don't even attempt to handle things that
+	are not files; the whole point of custom handlers is to keep that
+	knowledge elsewhere anyway.  Tighten some comments.
 	(bookmark-file-or-variation-thereof): Remove now-unused function.
 	(bookmark-location): Doc string fix.
 	(Bug#4250)
@@ -6646,8 +6686,8 @@
 	(bookmark-relocate, bookmark-insert-location, bookmark-rename)
 	(bookmark-insert, bookmark-delete, bookmark-time-to-save-p)
 	(bookmark-edit-annotation-mode, bookmark-edit-annotation):
-	   Improve doc strings to say whether bookmark can be a string or
-	   a record or both, and make other consistency and clarity fixes.
+	Improve doc strings to say whether bookmark can be a string or
+	a record or both, and make other consistency and clarity fixes.
 	(bookmark-get-handler, bookmark--jump-via, bookmark-write-file)
 	(bookmark-default-annotation-text, bookmark-yank-word)
 	(bookmark-maybe-load-default-file, bookmark-maybe-sort-alist)
@@ -6655,12 +6695,12 @@
 	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
 	(bookmark-bmenu-bookmark): Give these doc strings.
 	(bookmark-bmenu-check-position): Give this a doc string, but also
-	   add a FIXME comment about how the function may be pointless.
+	add a FIXME comment about how the function may be pointless.
 	(bookmark-default-handler): Rework doc string and change a
-	   parameter name, to clarify that this takes a bookmark record
-	   not a bookmark name.
+	parameter name, to clarify that this takes a bookmark record
+	not a bookmark name.
 	(bookmark-set): Change a parameter name to indicate its meaning,
-	   and improve the doc string a bit.
+	and improve the doc string a bit.
 	(Bug#4188)
 
 2009-10-04  Karl Fogel  <kfogel@red-bean.com>

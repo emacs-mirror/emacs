@@ -73,10 +73,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define file_tell ftell
 #endif
 
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-
 /* hash table read constants */
 Lisp_Object Qhash_table, Qdata;
 Lisp_Object Qtest, Qsize;

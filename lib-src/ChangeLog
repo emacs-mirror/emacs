@@ -1,3 +1,22 @@
+2010-04-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Add stubs for Windows, required after CVE-2010-0825 change.
+	* ntlib.c (getgid, getegid, setegid): New stubs.
+	* ntlib.h (getgid, getegid, setegid): Declare them.
+
+2010-04-02  Dan Rosenberg  <dan.j.rosenberg@gmail.com>  (tiny change)
+
+	* movemail.c (main): Check return values of setuid.  Avoid
+	possibility of symlink attack when movemail is setgid mail
+	(CVE-2010-0825).
+
+2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove extern errno declarations.
+	* movemail.c:
+	* etags.c:
+	* emacsclient.c: Remove extern errno declarations.
+
 2010-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
@@ -3960,7 +3979,7 @@
 	(xmalloc, fatal, error): New functions.
 	(delete_socket, handle_signals): New functions.
 	(progname, socket_name): New variables.
-	 [HAVE_SOCKETS] (main): Call handle_signals; set the new variables.
+	[HAVE_SOCKETS] (main): Call handle_signals; set the new variables.
 
 1996-09-01  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
@@ -4733,9 +4752,9 @@
 1995-01-12  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* etags.c (FILEPOS, GET_CHARNO, GET_FILEPOS, max, LINENO): Deleted.
-	(append_to_tagfile, typedefs, typedefs_and_cplusplus,
-	 constantypedefs, update, vgrind_style, no_warnings,
-	 cxref_style, cplusplus, noindentypedefs): Were int, now logical.
+	(append_to_tagfile, typedefs, typedefs_and_cplusplus)
+	(constantypedefs, update, vgrind_style, no_warnings)
+	(cxref_style, cplusplus, noindentypedefs): Were int, now logical.
 	(permit_duplicates): Was a var, now a #define.
 	(filename_lb): Was global, now local to main.
 	(main): Open the tag file when in cxref mode.
@@ -4754,8 +4773,8 @@
 	(TOKEN_SAVED_P, SAVE_TOKEN, RESTORE_TOKEN): Deleted.
 	(C_entries): nameb and savenameb deleted.  Use dinamic allocation.
 	(pfcnt): Deleted.  Users updated.
-	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme,
-	 TEX_getit, prolog_getit): Use dinamic allocation for storing
+	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme)
+	(TEX_getit, prolog_getit): Use dinamic allocation for storing
 	the tag instead of a fixed size buffer.
 
 1995-01-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -6680,8 +6699,8 @@
 1990-01-19  David Lawrence  (tale@cocoa-puffs)
 
 	* timer.c, getdate.y (new files) and Makefile:
-	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG.
+	Sub-process support for run-at-time in timer.el.
+	Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon@pogo)
 

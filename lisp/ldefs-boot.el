@@ -1319,7 +1319,7 @@ Selecting operation
 
 Variables
 
- This is a brief overview of the different varaibles. For more info,
+ This is a brief overview of the different variables.  For more info,
  see the documentation for the variables (type \\[describe-variable] <variable> RET).
 
  artist-rubber-banding		Interactively do rubber-banding or not
@@ -23982,9 +23982,11 @@ File containing the text inserted at end of mail buffer.")
 (custom-autoload 'mail-signature-file "sendmail" t)
 
 (defvar mail-default-directory (purecopy "~/") "\
-Directory for mail buffers.
-Value of `default-directory' for mail buffers.
-This directory is used for auto-save files of mail buffers.")
+Value of `default-directory' for Mail mode buffers.
+This directory is used for auto-save files of Mail mode buffers.
+
+Note that Message mode does not use this variable; it auto-saves
+in `message-auto-save-directory'.")
 
 (custom-autoload 'mail-default-directory "sendmail" t)
 
@@ -29315,9 +29317,10 @@ saving the buffer.
 \(fn HISTORIC &optional NOT-URGENT)" t nil)
 
 (autoload 'vc-root-diff "vc" "\
-Display diffs between file revisions.
-Normally this compares the currently selected fileset with their
-working revisions.  With a prefix argument HISTORIC, it reads two revision
+Display diffs between VC-controlled whole tree revisions.
+Normally, this compares the tree corresponding to the current
+fileset with the working revision.
+With a prefix argument HISTORIC, prompt for two revision
 designators specifying which revisions to compare.
 
 The optional argument NOT-URGENT non-nil means it is ok to say no to
@@ -29372,12 +29375,20 @@ allowed and simply skipped).
 
 (autoload 'vc-print-log "vc" "\
 List the change log of the current fileset in a window.
-If WORKING-REVISION is non-nil, leave the point at that revision.
+If WORKING-REVISION is non-nil, leave point at that revision.
+If LIMIT is non-nil, it should be a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+
+When called interactively with a prefix argument, prompt for
+WORKING-REVISION and LIMIT.
 
 \(fn &optional WORKING-REVISION LIMIT)" t nil)
 
 (autoload 'vc-print-root-log "vc" "\
-List the change log of for the current VC controlled tree in a window.
+List the change log for the current VC controlled tree in a window.
+If LIMIT is non-nil, it should be a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+When called interactively with a prefix argument, prompt for LIMIT.
 
 \(fn &optional LIMIT)" t nil)
 
