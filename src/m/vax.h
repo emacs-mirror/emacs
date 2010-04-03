@@ -34,10 +34,6 @@ NOTE-END  */
 
 /* #define vax    -- appears to be done automatically  */
 
-/* crt0.c should use the vax-bsd style of entry, with no dummy args.  */
-
-#define CRT0_DUMMIES
-
 /* USG systems I know of running on Vaxes do not actually
    support the load average, so disable it for them.  */
 

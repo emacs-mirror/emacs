@@ -1,5 +1,7 @@
 2010-04-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/vax.h (CRT0_DUMMIES): Remove, unused.
+
 	* ecrt0.c: Remove MSDOS, m68k and __sparc__ conditionals, file not
 	used on those platforms.
 
