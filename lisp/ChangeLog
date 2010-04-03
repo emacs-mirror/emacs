@@ -1,3 +1,9 @@
+2010-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Add entry for Eli
+	Zaretskii.
+	(batch-update-authors): Fix popping arguments from command line.
+
 2010-04-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/semantic/imenu.el (semantic-imenu-bucketize-type-members)

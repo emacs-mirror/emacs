@@ -427,6 +427,7 @@ Changes to files in this list are not listed.")
     ("Geoff Voelker" :wrote "w32-fns.el" "w32.c" "w32.h" "w32heap.c"
      "w32heap.h" "w32inevt.c" "w32proc.c" "w32term.c" "ms-w32.h")
     ("Morten Welinder" :wrote "dosfns.c" "[many MS-DOS files]" "msdos.h")
+    ("Eli Zaretskii" :wrote "bidi.c" "[bidirectional display in xdisp.c]")
     ;; Not using this version any more.
 ;;;    ("Pace Willisson" :wrote "ispell.el")
     ;; FIXME overwritten by Author:.
@@ -949,8 +950,8 @@ the Emacs source tree, from which to build the file."
     (error "`batch-update-authors' is to be used only with -batch"))
   (when (/= (length command-line-args-left) 2)
     (error "Call `batch-update-authors' with the name of the file to write"))
-  (let* ((file (pop command-line-args-left))
-	 (root (pop command-line-args-left)))
+  (let* ((root (pop command-line-args-left))
+	 (file (pop command-line-args-left)))
     (authors root)
     (write-file file)))
 
