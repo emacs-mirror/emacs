@@ -1,3 +1,8 @@
+2010-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-window-setup-finish): Doc fix (Bug#5830).
+	Reported by monkey@sandpframing.com.
+
 2010-04-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cedet/semantic/imenu.el (semantic-imenu-bucketize-type-members)
