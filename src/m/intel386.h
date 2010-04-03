@@ -85,10 +85,6 @@ NOTE-END */
 #define TEXT_START 0
 #endif /* USG */
 
-#ifdef MSDOS
-#define NO_REMAP
-#endif
-
 #ifdef WINDOWSNT
 #define VIRT_ADDR_VARIES
 #define DATA_START 	get_data_start ()
