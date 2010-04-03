@@ -950,8 +950,8 @@ the Emacs source tree, from which to build the file."
     (error "`batch-update-authors' is to be used only with -batch"))
   (when (/= (length command-line-args-left) 2)
     (error "Call `batch-update-authors' with the name of the file to write"))
-  (let* ((root (pop command-line-args-left))
-	 (file (pop command-line-args-left)))
+  (let* ((file (pop command-line-args-left))
+	 (root (pop command-line-args-left)))
     (authors root)
     (write-file file)))
 
