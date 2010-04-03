@@ -774,7 +774,7 @@ Examines the variable `semanticdb-find-lost-includes'."
 		 (buffer-name))
 
       (data-debug-new-buffer "*SEMANTICDB lost-includes ADEBUG*")
-      (data-debug-insert-tag-list lost "*")
+      ;; (data-debug-insert-tag-list lost "*")
       )))
 
 (defun semanticdb-find-adebug-insert-scanned-tag-cons (consdata prefix prebuttontext)

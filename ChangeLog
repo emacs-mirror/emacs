@@ -3631,8 +3631,8 @@
 
 1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* make-dist (dontcompile): look for the DONTCOMPILE variable rather
-	  than the obsolete dontcompilefiles pseudo-rule in lisp/Makefile.
+	* make-dist (dontcompile): Look for the DONTCOMPILE variable rather
+	than the obsolete dontcompilefiles pseudo-rule in lisp/Makefile.
 
 1999-10-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -3641,7 +3641,7 @@
 
 1999-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* update-subdirs: also ignore CVS subdirs.
+	* update-subdirs: Also ignore CVS subdirs.
 
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
@@ -6201,8 +6201,8 @@
 	src/Makefile.in is built from src/Makefile.
 
 	* Makefile.in (src/Makefile, lib-src/Makefile, oldXMenu/Makefile):
-	  If these files are out of date, simply have config.status
-	  rebuild them; don't rebuild them explicitly.
+	If these files are out of date, simply have config.status
+	rebuild them; don't rebuild them explicitly.
 
 1993-09-25  Brian J. Fox  (bfox@ai.mit.edu)
 
@@ -6397,7 +6397,7 @@
 
 1993-07-12  Frederic Pierresteguy  (F.Pierresteguy@frcl.bull.fr)
 
-	* configure.in (m68k-bull-sysv3): new config.
+	* configure.in (m68k-bull-sysv3): New config.
 
 1993-07-10  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -6620,7 +6620,7 @@
 
 	* make-dist: Rebuild configure if configure.in is newer.
 
-	* Makefile.in (src:, lib-src:, FRC:): force the src and lib-src
+	* Makefile.in (src:, lib-src:, FRC:): Force the src and lib-src
 	targets to be executed even if make remembers that it has already
 	satisfied FRC.
 
@@ -7120,7 +7120,7 @@
 	* make-dist: Don't distribute etc/Old files.
 
 	* GETTING.GNU.SOFTWARE, PROBLEMS: Registered into RCS with their
-	  backups.
+	backups.
 
 1993-03-20  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -7150,7 +7150,7 @@
 1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* Makefile.in: Add commented-out variable settings for developer's
-	  configuration.
+	configuration.
 
 1993-03-14  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -7765,7 +7765,7 @@
 	the script.
 	* INSTALL: Doc fix.
 
-	* Makefile: brought the Makefile up to the GNU coding
+	* Makefile: Brought the Makefile up to the GNU coding
 	standards, as described in standards.text:
 	(TAGS): New name for the target which rebuilds the tags table.
 	(check): New target; doesn't do anything yet.
