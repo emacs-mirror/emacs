@@ -1,3 +1,8 @@
+2010-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el: Require CL when compiling.
+	(font-lock-turn-on-thing-lock): Use `case'.
+
 2010-04-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries): Add entry for Eli
@@ -23,11 +28,11 @@
 	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
 	`vc-hg-command' with a list of flags.
 
-	* progmodes/bug-reference.el (bug-reference-bug-regexp): Also
-	accept "patch" and "RFE".
+	* progmodes/bug-reference.el (bug-reference-bug-regexp):
+	Also accept "patch" and "RFE".
 	(bug-reference-fontify): `bug-reference-url-format' can also be a
 	function to be able to handle the bug kind.
-	(turn-on-bug-reference-mode, turn-on-bug-reference-prog-mode): Add
+	(turn-on-bug-reference-mode, turn-on-bug-reference-prog-mode): Add.
 
 2010-04-02  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -36,8 +41,7 @@
 
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cus-edit.el (custom-buffer-sort-alphabetically): Update
-	:version.
+	* cus-edit.el (custom-buffer-sort-alphabetically): Update :version.
 
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
