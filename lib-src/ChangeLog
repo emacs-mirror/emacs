@@ -1,3 +1,15 @@
+2010-04-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Add stubs for Windows, required after CVE-2010-0825 change.
+	* ntlib.c (getgid, getegid, setegid): New stubs.
+	* ntlib.h (getgid, getegid, setegid): Declare them.
+
+2010-04-02  Dan Rosenberg  <dan.j.rosenberg@gmail.com>  (tiny change)
+
+	* movemail.c (main): Check return values of setuid.  Avoid
+	possibility of symlink attack when movemail is setgid mail
+	(CVE-2010-0825).
+
 2010-03-19  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
 
 	* Makefile.in (uninstall): Handle the case where archlibdir does
