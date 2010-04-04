@@ -3156,6 +3156,7 @@ set_machine_and_pid_properties (struct frame *f)
   XTextProperty text;
   int bytes, stringp;
   int do_free_text_value = 0;
+  long pid = (long)getpid();
 
   text.value = x_encode_text (Vsystem_name,
                               Qcompound_text, 0, &bytes, &stringp,
@@ -3170,7 +3171,6 @@ set_machine_and_pid_properties (struct frame *f)
   if (do_free_text_value)
     xfree (text.value);
 
-  long pid = (long)getpid();
   XChangeProperty (FRAME_X_DISPLAY (f),
                    FRAME_OUTER_WINDOW (f),
                    XInternAtom (FRAME_X_DISPLAY (f),
