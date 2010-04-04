@@ -774,6 +774,13 @@ can be completed using TAB,
   :type '(repeat string)
   :group 'ido)
 
+(defcustom ido-use-virtual-buffers nil
+  "If non-nil, refer to past buffers as well as existing ones.
+This feature relies upon the `recentf' package, which will be
+enabled if this variable is configured to a non-nil value."
+  :type 'boolean
+  :group 'ido)
+
 (defcustom ido-use-faces t
   "Non-nil means use ido faces to highlighting first match, only match and
 subdirs in the alternatives."
@@ -796,6 +803,10 @@ subdirs in the alternatives."
                              (:foreground "red"))
                             (t (:underline t)))
   "Face used by ido for highlighting subdirs in the alternatives."
+  :group 'ido)
+
+(defface ido-virtual '((t (:inherit font-lock-builtin-face)))
+  "Face used by ido for matching virtual buffer names."
   :group 'ido)
 
 (defface ido-indicator  '((((min-colors 88) (class color))
@@ -2155,7 +2166,8 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-directory-too-big nil)
 	   (require-match (confirm-nonexistent-file-or-buffer))
 	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
-				   require-match initial)))
+				   require-match initial))
+	   filename)
 
       ;; Choose the buffer name: either the text typed in, or the head
       ;; of the list of matches
@@ -2190,6 +2202,16 @@ If cursor is not at the end of the user input, move to end of input."
 		 (insert-buffer-substring (get-buffer buf))
 		 (point))))
 	  (ido-visit-buffer buf method t)))
+
+       ;; check for a virtual buffer reference
+       ((and ido-use-virtual-buffers ido-virtual-buffers
+	     (setq filename (assoc buf ido-virtual-buffers)))
+	(ido-visit-buffer (find-file-noselect (cdr filename)) method t))
+
+       ((and (eq ido-create-new-buffer 'prompt)
+	     (null require-match)
+	     (not (y-or-n-p (format "No buffer matching `%s', create one? " buf))))
+	nil)
 
        ;; buffer doesn't exist
        ((and (eq ido-create-new-buffer 'never)
@@ -3350,8 +3372,40 @@ for first matching file."
 		(delete default ido-temp-list))
 	  (setq ido-temp-list
 		(cons default ido-temp-list))))
+    (if ido-use-virtual-buffers
+	(ido-add-virtual-buffers-to-list))
     (run-hooks 'ido-make-buffer-list-hook)
     ido-temp-list))
+
+(defvar ido-virtual-buffers nil)
+
+(defun ido-add-virtual-buffers-to-list ()
+  "Add recently visited files, and bookmark files, to the buffer list.
+This is to make them appear as if they were \"virtual buffers\"."
+  ;; If no buffers matched, and virtual buffers are being used, then
+  ;; consult the list of past visited files, to see if we can find
+  ;; the file which the user might thought was still open.
+  (setq ido-virtual-buffers nil)
+  (let ((head recentf-list) name)
+    (while head
+      (if (and (setq name (file-name-nondirectory (car head)))
+	       (null (get-file-buffer (car head)))
+	       (not (assoc name ido-virtual-buffers))
+	       (not (ido-ignore-item-p name ido-ignore-buffers))
+	       ;;(file-exists-p (car head))
+	       )
+	  (setq ido-virtual-buffers
+		(cons (cons name (car head)) ido-virtual-buffers)))
+      (setq head (cdr head))))
+  (when ido-virtual-buffers
+    (if ido-use-faces
+	(dolist (comp ido-virtual-buffers)
+	  (put-text-property 0 (length (car comp))
+			     'face 'ido-virtual
+			     (car comp))))
+    (setq ido-temp-list
+	  (nconc ido-temp-list
+		 (nreverse (mapcar #'car ido-virtual-buffers))))))
 
 (defun ido-make-choice-list (default)
   ;; Return the current list of choices.

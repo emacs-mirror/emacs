@@ -1242,7 +1242,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   if (prev_level < new_level
       && bidi_it->type == WEAK_BN
       && bidi_it->ignore_bn_limit == 0 /* only if not already known */
-      && bidi_it->ch != BIDI_EOB       /* not already at EOB */
+      && bidi_it->bytepos < ZV_BYTE    /* not already at EOB */
       && bidi_explicit_dir_char (FETCH_CHAR (bidi_it->bytepos
 					     + bidi_it->ch_len)))
     {
@@ -1648,7 +1648,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   if (bidi_it->scan_dir == 1)
     {
       /* There's no sense in trying to advance if we hit end of text.  */
-      if (bidi_it->ch == BIDI_EOB)
+      if (bidi_it->bytepos >= ZV_BYTE)
 	return bidi_it->resolved_level;
 
       /* Record the info about the previous character.  */

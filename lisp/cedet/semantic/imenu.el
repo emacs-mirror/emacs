@@ -95,7 +95,7 @@ This option is ignored if `semantic-imenu-bucketize-file' is nil."
 
 (defcustom semantic-imenu-bucketize-type-members t
   "*Non-nil if members of a type should be grouped into buckets.
-nil means to keep them in the same order.
+A nil value means to keep them in the same order.
 Overriden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
@@ -167,8 +167,8 @@ concoct a combination of file name, and position."
 
 (defun semantic-imenu-goto-function (name position &optional rest)
   "Move point associated with NAME to POSITION.
-Used to override function `imenu-default-goto-function' so that we can continue
-to use overlays to maintain the current position.
+Used to override function `imenu-default-goto-function' so that
+we can continue to use overlays to maintain the current position.
 Optional argument REST is some extra stuff."
   (require 'pulse)
   (if (semantic-overlay-p position)
@@ -249,7 +249,7 @@ Optional argument STREAM is an optional stream of tags used to create menus."
               'semantic-imenu-flush-fcn nil t)))
 
 (defun semantic-create-imenu-directory-index (&optional stream)
-  "Create an IMENU tag index based on all files active in semanticdb.
+  "Create an imenu tag index based on all files active in semanticdb.
 Optional argument STREAM is the stream of tags for the current buffer."
   (if (not semanticdb-current-database)
       (semantic-create-imenu-index-1 stream nil)

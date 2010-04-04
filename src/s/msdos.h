@@ -170,5 +170,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
+#define NO_REMAP
+
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */

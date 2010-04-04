@@ -1,3 +1,31 @@
+2010-04-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (set_machine_and_pid_properties): New function.
+	(Fx_create_frame): Call set_machine_and_pid_properties.
+
+2010-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_explicit, bidi_level_of_next_char): Check
+	bidi_it->bytepos against ZV_BYTE instead of bidi_it->ch against
+	BIDI_EOB.  Fixes infloop with vertical cursor motion at ZV.
+
+	* w32fns.c (x_create_tip_frame): Copy `parms' before we modify it
+	in this function.  (Bug#5703)
+
+2010-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.h: Fix last change.
+
+2010-04-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/intel386.h (NO_REMAP): Move definition ...
+	* s/msdos.h (NO_REMAP): ... here.
+
+	* m/vax.h (CRT0_DUMMIES): Remove, unused.
+
+	* ecrt0.c: Remove MSDOS, m68k and __sparc__ conditionals, file not
+	used on those platforms.
+
 2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove extern errno declarations.
@@ -118,7 +146,7 @@
 
 	* xdisp.c (x_consider_frame_title, update_window_cursor):
 	Remove HAVE_NS conditionals.
-	(prepare_menu_bars)[HAVE_NS]: Call ns_set_doc_edited.
+	(prepare_menu_bars) [HAVE_NS]: Call ns_set_doc_edited.
 
 	* nsfns.m (x_implicitly_set_name): If frame-title-format is t, use
 	filename for the title.
@@ -475,7 +503,7 @@
 2010-03-12  Eli Zaretskii  <eliz@gnu.org>
 
 	These changes remove termcap.c from the build on Posix platforms.
-	* Makefilie.in (termcapobj): Move termcap.o from here...
+	* Makefile.in (termcapobj): Move termcap.o from here...
 	(MSDOS_OBJ): ...to here.
 	(termcapobj) [!LIBS_TERMCAP]: Remove specialized value, as it is
 	now identical to when LIBS_TERMCAP is defined.
@@ -760,7 +788,7 @@
 2010-01-19  Alan Mackenzie  <acm@muc.de>
 
 	Fix spurious before-change-functions invocation from (insert ?\n).
-	* textprop.c (set_text_properties): rename parameter
+	* textprop.c (set_text_properties): Rename parameter
 	`signal_after_change_p' to `coherent_change_p', and make the
 	invocation of `modify_region' conditional on it.
 
@@ -10782,7 +10810,7 @@
 
 	* font.c (Vfont_encoding_alist, find_font_encoding): Move from
 	fontset.c.
-	(font_pixel_size)[! HAVE_WINDOW_SYSTEM]: Return 1.
+	(font_pixel_size) [! HAVE_WINDOW_SYSTEM]: Return 1.
 	(font_open_entity): Update FRAME_X_DISPLAY_INFO (f)->n_fonts,
 	FRAME_SMALLEST_CHAR_WIDTH (f), and FRAME_SMALLEST_FONT_HEIGHT (f)
 	only when HAVE_WINDOW_SYSTEM is defined.
@@ -20616,7 +20644,7 @@
 
 2007-08-29  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
-	* term.c (dissociate_if_controlling_tty)[USG]: Fix parse error.
+	* term.c (dissociate_if_controlling_tty) [USG]: Fix parse error.
 
 2007-08-29  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 

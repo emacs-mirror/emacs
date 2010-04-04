@@ -735,7 +735,7 @@
 
 1994-04-30  Morten Welinder  (terra@diku.dk)
 
-	* sed1.inp: don't comment out the inc-vers run as that
+	* sed1.inp: Don't comment out the inc-vers run as that
 	does not exist anymore.
 	Don't reset DEBUG_MOLE as that no longer is used.
 	Identify the file being patched as src/...
@@ -758,7 +758,7 @@
 
 1994-01-08  Morten Welinder  (terra@diku.dk)
 
-	* sed3.inp: improve make-compatibility by not using drive
+	* sed3.inp: Improve make-compatibility by not using drive
 	specifications and by not specifying an explicit shell.
 
 1994-01-07  Morten Welinder  (terra@diku.dk)
