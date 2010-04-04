@@ -215,6 +215,10 @@ Several are for Debian GNU/Linux in particular.
  * Quack: <URL:http://www.neilvandyke.org/quack/>
    Quack enhances Emacs support for Scheme.
 
+ * QWE: <URL:http://www.nongnu.org/qwe/>
+   QWE's not WEB for Emacs is a quasi-WYSIWYG literate programming system for
+   Emacs that can be used with almost every programming language.
+
  * Session: <URL:http://emacs-session.sourceforge.net/>
    Session Management for Emacs.
 
