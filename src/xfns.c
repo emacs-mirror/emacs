@@ -203,6 +203,10 @@ Lisp_Object Qfont_param;
 
 extern Lisp_Object Vwindow_system_version;
 
+/* In editfns.c */
+
+extern Lisp_Object Vsystem_name;
+
 /* The below are defined in frame.c.  */
 
 #if GLYPH_DEBUG
@@ -3145,6 +3149,37 @@ If FRAME is nil, use the selected frame.  */)
   return Qnil;
 }
 
+static void
+set_machine_and_pid_properties (struct frame *f)
+{
+  /* See the above comment "Note: Encoding strategy".  */
+  XTextProperty text;
+  int bytes, stringp;
+  int do_free_text_value = 0;
+
+  text.value = x_encode_text (Vsystem_name,
+                              Qcompound_text, 0, &bytes, &stringp,
+                              &do_free_text_value);
+  text.encoding = (stringp ? XA_STRING
+                   : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+  text.format = 8;
+  text.nitems = bytes;
+  XSetWMClientMachine (FRAME_X_DISPLAY (f),
+                       FRAME_OUTER_WINDOW (f),
+                       &text);
+  if (do_free_text_value)
+    xfree (text.value);
+
+  long pid = (long)getpid();
+  XChangeProperty (FRAME_X_DISPLAY (f),
+                   FRAME_OUTER_WINDOW (f),
+                   XInternAtom (FRAME_X_DISPLAY (f),
+                                "_NET_WM_PID",
+                                False),
+                   XA_CARDINAL, 32, PropModeReplace,
+                   (unsigned char *) &pid, 1);
+}
+
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
@@ -3531,18 +3566,23 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	;
     }
 
+  BLOCK_INPUT;
+                       
+  /* Set machine name and pid for the purpose of window managers.  */
+  set_machine_and_pid_properties(f);
+
   /* Set the WM leader property.  GTK does this itself, so this is not
      needed when using GTK.  */
   if (dpyinfo->client_leader_window != 0)
     {
-      BLOCK_INPUT;
       XChangeProperty (FRAME_X_DISPLAY (f),
                        FRAME_OUTER_WINDOW (f),
                        dpyinfo->Xatom_wm_client_leader,
                        XA_WINDOW, 32, PropModeReplace,
                        (unsigned char *) &dpyinfo->client_leader_window, 1);
-      UNBLOCK_INPUT;
     }
+
+  UNBLOCK_INPUT;
 
   /* Initialize `default-minibuffer-frame' in case this is the first
      frame on this terminal.  */

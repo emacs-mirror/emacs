@@ -1,3 +1,8 @@
+2010-04-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (set_machine_and_pid_properties): New function.
+	(Fx_create_frame): Call set_machine_and_pid_properties.
+
 2010-04-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_resolve_explicit, bidi_level_of_next_char): Check
