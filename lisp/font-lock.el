@@ -209,6 +209,7 @@
 ;;; Code:
 
 (require 'syntax)
+(eval-when-compile (require 'cl))
 
 ;; Define core `font-lock' group.
 (defgroup font-lock '((jit-lock custom-group))
@@ -902,26 +903,24 @@ The value of this variable is used when Font Lock mode is turned on."
 (declare-function lazy-lock-mode "lazy-lock")
 
 (defun font-lock-turn-on-thing-lock ()
-  (let ((thing-mode (font-lock-value-in-major-mode font-lock-support-mode)))
-    (cond ((eq thing-mode 'fast-lock-mode)
-	   (fast-lock-mode t))
-	  ((eq thing-mode 'lazy-lock-mode)
-	   (lazy-lock-mode t))
-	  ((eq thing-mode 'jit-lock-mode)
-	   ;; Prepare for jit-lock
-	   (remove-hook 'after-change-functions
-			'font-lock-after-change-function t)
-	   (set (make-local-variable 'font-lock-fontify-buffer-function)
-		'jit-lock-refontify)
-	   ;; Don't fontify eagerly (and don't abort if the buffer is large).
-	   (set (make-local-variable 'font-lock-fontified) t)
-	   ;; Use jit-lock.
-	   (jit-lock-register 'font-lock-fontify-region
-			      (not font-lock-keywords-only))
-           ;; Tell jit-lock how we extend the region to refontify.
-           (add-hook 'jit-lock-after-change-extend-region-functions
-                     'font-lock-extend-jit-lock-region-after-change
-                     nil t)))))
+  (case (font-lock-value-in-major-mode font-lock-support-mode)
+    (fast-lock-mode (fast-lock-mode t))
+    (lazy-lock-mode (lazy-lock-mode t))
+    (jit-lock-mode
+     ;; Prepare for jit-lock
+     (remove-hook 'after-change-functions
+                  'font-lock-after-change-function t)
+     (set (make-local-variable 'font-lock-fontify-buffer-function)
+          'jit-lock-refontify)
+     ;; Don't fontify eagerly (and don't abort if the buffer is large).
+     (set (make-local-variable 'font-lock-fontified) t)
+     ;; Use jit-lock.
+     (jit-lock-register 'font-lock-fontify-region
+                        (not font-lock-keywords-only))
+     ;; Tell jit-lock how we extend the region to refontify.
+     (add-hook 'jit-lock-after-change-extend-region-functions
+               'font-lock-extend-jit-lock-region-after-change
+               nil t))))
 
 (defun font-lock-turn-off-thing-lock ()
   (cond ((bound-and-true-p fast-lock-mode)

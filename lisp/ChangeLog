@@ -1,3 +1,38 @@
+2010-04-04  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-use-virtual-buffers): New variable to indicate
+	whether "virtual buffer" support is enabled for IDO.  Essentially
+	it works as follows: Say you are visiting a file and the buffer
+	gets cleaned up by mignight.el.  Later, you want to switch to that
+	buffer, but find it's no longer open.  With virtual buffers
+	enabled, the buffer name stays in the buffer list (using the
+	ido-virtual face, and always at the end), and if you select it, it
+	opens the file back up again.  This allows you to think less about
+	whether recently opened files are still open or not.  Most of the
+	time you can quit Emacs, restart, and then switch to a file buffer
+	that was previously open as if it still were.  NOTE: This feature
+	has been present in iswitchb for several years now, and I'm
+	porting the same logic to IDO.
+	(ido-virtual): Face used to indicate virtual buffers in the list.
+	(ido-buffer-internal): If a buffer is chosen, and no such buffer
+	exists, but a virtual buffer of that name does (which would be why
+	it was in the list), recreate the buffer by reopening the file.
+	(ido-make-buffer-list): If virtual buffers are being used, call
+	`ido-add-virtual-buffers-to-list' before the make list hook.
+	(ido-virtual-buffers): New variable which contains a copy of the
+	current contents of the `recentf-list', albeit pared down for the
+	sake of speed, and with proper faces applied.
+	(ido-add-virtual-buffers-to-list): Using the `recentf-list',
+	create a list of "virtual buffers" to present to the user in
+	addition to the currently open set.  Note that this logic could
+	get rather slow if that list is too large.  With the default
+	`recentf-max-saved-items' of 200, there is little speed penalty.
+
+2010-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el: Require CL when compiling.
+	(font-lock-turn-on-thing-lock): Use `case'.
+
 2010-04-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries): Add entry for Eli
@@ -23,11 +58,11 @@
 	* vc-hg.el (vc-hg-push, vc-hg-pull): Use `apply' when calling
 	`vc-hg-command' with a list of flags.
 
-	* progmodes/bug-reference.el (bug-reference-bug-regexp): Also
-	accept "patch" and "RFE".
+	* progmodes/bug-reference.el (bug-reference-bug-regexp):
+	Also accept "patch" and "RFE".
 	(bug-reference-fontify): `bug-reference-url-format' can also be a
 	function to be able to handle the bug kind.
-	(turn-on-bug-reference-mode, turn-on-bug-reference-prog-mode): Add
+	(turn-on-bug-reference-mode, turn-on-bug-reference-prog-mode): Add.
 
 2010-04-02  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -36,8 +71,7 @@
 
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cus-edit.el (custom-buffer-sort-alphabetically): Update
-	:version.
+	* cus-edit.el (custom-buffer-sort-alphabetically): Update :version.
 
 2010-03-31  Juri Linkov  <juri@jurta.org>
 

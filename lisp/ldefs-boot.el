@@ -10464,13 +10464,7 @@ Turn flymake mode off.
 
 ;;;### (autoloads (flyspell-buffer flyspell-region flyspell-mode-off
 ;;;;;;  turn-off-flyspell turn-on-flyspell flyspell-mode flyspell-prog-mode)
-<<<<<<< TREE
 ;;;;;;  "flyspell" "textmodes/flyspell.el" (19370 36541))
-||||||| BASE-REVISION
-;;;;;;  "flyspell" "textmodes/flyspell.el" (19352 21362))
-=======
-;;;;;;  "flyspell" "textmodes/flyspell.el" (19369 7847))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from textmodes/flyspell.el
 
 (autoload 'flyspell-prog-mode "flyspell" "\
@@ -10792,7 +10786,6 @@ and choose the directory as the fortune-file.
 
 ;;;***
 
-<<<<<<< TREE
 ;;;### (autoloads (gdb gdb-enable-debug) "gdb-mi" "progmodes/gdb-mi.el"
 ;;;;;;  (19375 49830))
 ;;; Generated autoloads from progmodes/gdb-mi.el
@@ -10803,19 +10796,6 @@ Non-nil means record the process input and output in `gdb-debug-log'.")
 (custom-autoload 'gdb-enable-debug "gdb-mi" t)
 
 (autoload 'gdb "gdb-mi" "\
-||||||| BASE-REVISION
-;;;### (autoloads (gdb-enable-debug gdb) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (19352 21362))
-;;; Generated autoloads from progmodes/gdb-ui.el
-
-(autoload 'gdb "gdb-ui" "\
-=======
-;;;### (autoloads (gdb-enable-debug gdb) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (19372 60979))
-;;; Generated autoloads from progmodes/gdb-ui.el
-
-(autoload 'gdb "gdb-ui" "\
->>>>>>> MERGE-SOURCE
 Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
@@ -13669,16 +13649,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-<<<<<<< TREE
 ;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19292
 ;;;;;;  15231))
-||||||| BASE-REVISION
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19352
-;;;;;;  21354))
-=======
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19355
-;;;;;;  62587))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -14170,13 +14142,7 @@ Images should not be larger than specified by `max-image-size'.
 ;;;;;;  image-dired-jump-thumbnail-buffer image-dired-delete-tag
 ;;;;;;  image-dired-tag-files image-dired-show-all-from-dir image-dired-display-thumbs
 ;;;;;;  image-dired-dired-with-window-configuration image-dired-dired-insert-marked-thumbs)
-<<<<<<< TREE
 ;;;;;;  "image-dired" "image-dired.el" (19370 36540))
-||||||| BASE-REVISION
-;;;;;;  "image-dired" "image-dired.el" (19352 21354))
-=======
-;;;;;;  "image-dired" "image-dired.el" (19367 42949))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from image-dired.el
 
 (autoload 'image-dired-dired-insert-marked-thumbs "image-dired" "\
@@ -15428,13 +15394,7 @@ by `jka-compr-installed'.
 
 ;;;***
 
-<<<<<<< TREE
 ;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19279 5151))
-||||||| BASE-REVISION
-;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19352 21355))
-=======
-;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19375 48608))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from progmodes/js.el
 
 (autoload 'js-mode "js" "\
@@ -16543,13 +16503,7 @@ The mail client is taken to be the handler of mailto URLs.
 
 ;;;### (autoloads (makefile-imake-mode makefile-bsdmake-mode makefile-makepp-mode
 ;;;;;;  makefile-gmake-mode makefile-automake-mode makefile-mode)
-<<<<<<< TREE
 ;;;;;;  "make-mode" "progmodes/make-mode.el" (19372 27330))
-||||||| BASE-REVISION
-;;;;;;  "make-mode" "progmodes/make-mode.el" (19352 21355))
-=======
-;;;;;;  "make-mode" "progmodes/make-mode.el" (19370 15152))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from progmodes/make-mode.el
 
 (autoload 'makefile-mode "make-mode" "\
@@ -16781,13 +16735,7 @@ Returns non-nil if the new state is enabled.
 ;;;;;;  message-forward-make-body message-forward message-recover
 ;;;;;;  message-supersede message-cancel-news message-followup message-wide-reply
 ;;;;;;  message-reply message-news message-mail message-mode) "message"
-<<<<<<< TREE
 ;;;;;;  "gnus/message.el" (19370 36541))
-||||||| BASE-REVISION
-;;;;;;  "gnus/message.el" (19352 21361))
-=======
-;;;;;;  "gnus/message.el" (19374 17766))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from gnus/message.el
 
 (define-mail-user-agent 'message-user-agent 'message-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
@@ -17433,13 +17381,7 @@ Insert file contents of URL using `mm-url-program'.
 ;;;***
 
 ;;;### (autoloads (mm-uu-dissect-text-parts mm-uu-dissect) "mm-uu"
-<<<<<<< TREE
 ;;;;;;  "gnus/mm-uu.el" (19279 5150))
-||||||| BASE-REVISION
-;;;;;;  "gnus/mm-uu.el" (19352 21355))
-=======
-;;;;;;  "gnus/mm-uu.el" (19382 2266))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from gnus/mm-uu.el
 
 (autoload 'mm-uu-dissect "mm-uu" "\
@@ -22665,16 +22607,8 @@ of master file.
 
 ;;;***
 
-<<<<<<< TREE
 ;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (19370
 ;;;;;;  36541))
-||||||| BASE-REVISION
-;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (19352
-;;;;;;  21358))
-=======
-;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (19367
-;;;;;;  42950))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from textmodes/reftex-vars.el
 (put 'reftex-vref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
 (put 'reftex-fref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
@@ -22926,16 +22860,8 @@ variable.
 ;;;;;;  rmail-secondary-file-directory rmail-primary-inbox-list rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
 ;;;;;;  rmail-dont-reply-to-names rmail-user-mail-address-regexp
-<<<<<<< TREE
 ;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19370
 ;;;;;;  36541))
-||||||| BASE-REVISION
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19352
-;;;;;;  21360))
-=======
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19363
-;;;;;;  36802))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
@@ -23902,13 +23828,7 @@ Semantic mode.
 ;;;;;;  mail-alias-file mail-default-reply-to mail-archive-file-name
 ;;;;;;  mail-header-separator send-mail-function mail-interactive
 ;;;;;;  mail-self-blind mail-specify-envelope-from mail-from-style)
-<<<<<<< TREE
 ;;;;;;  "sendmail" "mail/sendmail.el" (19338 9841))
-||||||| BASE-REVISION
-;;;;;;  "sendmail" "mail/sendmail.el" (19352 21361))
-=======
-;;;;;;  "sendmail" "mail/sendmail.el" (19374 15070))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style 'default "\
@@ -24787,13 +24707,7 @@ If no conflict maker is found, turn off `smerge-mode'.
 ;;;***
 
 ;;;### (autoloads (smiley-buffer smiley-region) "smiley" "gnus/smiley.el"
-<<<<<<< TREE
 ;;;;;;  (19370 36541))
-||||||| BASE-REVISION
-;;;;;;  (19352 21358))
-=======
-;;;;;;  (19367 42950))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from gnus/smiley.el
 
 (autoload 'smiley-region "smiley" "\
@@ -26811,13 +26725,7 @@ tetris-mode keybindings:
 ;;;;;;  tex-start-commands tex-start-options slitex-run-command latex-run-command
 ;;;;;;  tex-run-command tex-offer-save tex-main-file tex-first-line-header-regexp
 ;;;;;;  tex-directory tex-shell-file-name) "tex-mode" "textmodes/tex-mode.el"
-<<<<<<< TREE
 ;;;;;;  (19323 49698))
-||||||| BASE-REVISION
-;;;;;;  (19352 21363))
-=======
-;;;;;;  (19371 46148))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -27812,13 +27720,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\".
 ;;;***
 
 ;;;### (autoloads (tmm-prompt tmm-menubar-mouse tmm-menubar) "tmm"
-<<<<<<< TREE
 ;;;;;;  "tmm.el" (19279 5148))
-||||||| BASE-REVISION
-;;;;;;  "tmm.el" (19352 21359))
-=======
-;;;;;;  "tmm.el" (19376 53416))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from tmm.el
  (define-key global-map "\M-`" 'tmm-menubar)
  (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
@@ -28068,13 +27970,7 @@ to a tcp server on another machine.
 ;;;***
 
 ;;;### (autoloads (trace-function-background trace-function trace-buffer)
-<<<<<<< TREE
 ;;;;;;  "trace" "emacs-lisp/trace.el" (19370 36541))
-||||||| BASE-REVISION
-;;;;;;  "trace" "emacs-lisp/trace.el" (19352 21359))
-=======
-;;;;;;  "trace" "emacs-lisp/trace.el" (19367 42950))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from emacs-lisp/trace.el
 
 (defvar trace-buffer (purecopy "*trace-output*") "\
@@ -28111,13 +28007,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-syntax tramp-mode) "tramp"
-<<<<<<< TREE
 ;;;;;;  "net/tramp.el" (19370 36541))
-||||||| BASE-REVISION
-;;;;;;  "net/tramp.el" (19352 21361))
-=======
-;;;;;;  "net/tramp.el" (19356 59749))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-mode t "\
@@ -29340,13 +29230,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-create-tag vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-root-diff vc-diff vc-version-diff vc-register vc-next-action
 ;;;;;;  vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
-<<<<<<< TREE
 ;;;;;;  "vc" "vc.el" (19370 36540))
-||||||| BASE-REVISION
-;;;;;;  "vc" "vc.el" (19352 21359))
-=======
-;;;;;;  "vc" "vc.el" (19371 62620))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -31607,13 +31491,7 @@ With arg, turn Winner mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (woman-find-file woman-dired-find-file woman woman-locale)
-<<<<<<< TREE
 ;;;;;;  "woman" "woman.el" (19370 36540))
-||||||| BASE-REVISION
-;;;;;;  "woman" "woman.el" (19352 21359))
-=======
-;;;;;;  "woman" "woman.el" (19359 48737))
->>>>>>> MERGE-SOURCE
 ;;; Generated autoloads from woman.el
 
 (defvar woman-locale nil "\
@@ -31967,7 +31845,6 @@ Zone out, completely.
 ;;;;;;  "cedet/semantic/edit.el" "cedet/semantic/find.el" "cedet/semantic/format.el"
 ;;;;;;  "cedet/semantic/fw.el" "cedet/semantic/grammar-wy.el" "cedet/semantic/grammar.el"
 ;;;;;;  "cedet/semantic/html.el" "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el"
-<<<<<<< TREE
 ;;;;;;  "cedet/semantic/idle.el" "cedet/semantic/imenu.el" "cedet/semantic/java.el"
 ;;;;;;  "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el" "cedet/semantic/loaddefs.el"
 ;;;;;;  "cedet/semantic/mru-bookmark.el" "cedet/semantic/sb.el" "cedet/semantic/scope.el"
@@ -31976,25 +31853,6 @@ Zone out, completely.
 ;;;;;;  "cedet/semantic/symref/global.el" "cedet/semantic/symref/grep.el"
 ;;;;;;  "cedet/semantic/symref/idutils.el" "cedet/semantic/symref/list.el"
 ;;;;;;  "cedet/semantic/tag-file.el" "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
-||||||| BASE-REVISION
-;;;;;;  "cedet/semantic/idle.el" "cedet/semantic/java.el" "cedet/semantic/lex-spp.el"
-;;;;;;  "cedet/semantic/lex.el" "cedet/semantic/mru-bookmark.el"
-;;;;;;  "cedet/semantic/sb.el" "cedet/semantic/scope.el" "cedet/semantic/senator.el"
-;;;;;;  "cedet/semantic/sort.el" "cedet/semantic/symref.el" "cedet/semantic/symref/cscope.el"
-;;;;;;  "cedet/semantic/symref/filter.el" "cedet/semantic/symref/global.el"
-;;;;;;  "cedet/semantic/symref/grep.el" "cedet/semantic/symref/idutils.el"
-;;;;;;  "cedet/semantic/symref/list.el" "cedet/semantic/tag-file.el"
-;;;;;;  "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
-=======
-;;;;;;  "cedet/semantic/idle.el" "cedet/semantic/imenu.el" "cedet/semantic/java.el"
-;;;;;;  "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el" "cedet/semantic/mru-bookmark.el"
-;;;;;;  "cedet/semantic/sb.el" "cedet/semantic/scope.el" "cedet/semantic/senator.el"
-;;;;;;  "cedet/semantic/sort.el" "cedet/semantic/symref.el" "cedet/semantic/symref/cscope.el"
-;;;;;;  "cedet/semantic/symref/filter.el" "cedet/semantic/symref/global.el"
-;;;;;;  "cedet/semantic/symref/grep.el" "cedet/semantic/symref/idutils.el"
-;;;;;;  "cedet/semantic/symref/list.el" "cedet/semantic/tag-file.el"
-;;;;;;  "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
->>>>>>> MERGE-SOURCE
 ;;;;;;  "cedet/semantic/tag.el" "cedet/semantic/texi.el" "cedet/semantic/util-modes.el"
 ;;;;;;  "cedet/semantic/util.el" "cedet/semantic/wisent.el" "cedet/semantic/wisent/comp.el"
 ;;;;;;  "cedet/semantic/wisent/java-tags.el" "cedet/semantic/wisent/javascript.el"
@@ -32108,7 +31966,6 @@ Zone out, completely.
 ;;;;;;  "org/org-mac-message.el" "org/org-macs.el" "org/org-mew.el"
 ;;;;;;  "org/org-mhe.el" "org/org-mouse.el" "org/org-protocol.el"
 ;;;;;;  "org/org-rmail.el" "org/org-src.el" "org/org-vm.el" "org/org-w3m.el"
-<<<<<<< TREE
 ;;;;;;  "org/org-wl.el" "patcomp.el" "pcvs-info.el" "pcvs-parse.el"
 ;;;;;;  "pcvs-util.el" "pgg-def.el" "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el"
 ;;;;;;  "play/gamegrid.el" "play/gametree.el" "play/meese.el" "progmodes/ada-prj.el"
@@ -32131,55 +31988,6 @@ Zone out, completely.
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "vc-dav.el"
 ;;;;;;  "vcursor.el" "vt-control.el" "vt100-led.el" "w32-fns.el"
 ;;;;;;  "w32-vars.el" "x-dnd.el") (19375 51700 955763))
-||||||| BASE-REVISION
-;;;;;;  "org/org-wl.el" "password-cache.el" "patcomp.el" "pcvs-info.el"
-;;;;;;  "pcvs-parse.el" "pcvs-util.el" "pgg-def.el" "pgg-parse.el"
-;;;;;;  "pgg-pgp.el" "pgg-pgp5.el" "play/gamegrid.el" "play/gametree.el"
-;;;;;;  "play/meese.el" "progmodes/ada-prj.el" "progmodes/cc-align.el"
-;;;;;;  "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el" "progmodes/cc-cmds.el"
-;;;;;;  "progmodes/cc-defs.el" "progmodes/cc-fonts.el" "progmodes/cc-langs.el"
-;;;;;;  "progmodes/cc-menus.el" "progmodes/ebnf-abn.el" "progmodes/ebnf-bnf.el"
-;;;;;;  "progmodes/ebnf-dtd.el" "progmodes/ebnf-ebx.el" "progmodes/ebnf-iso.el"
-;;;;;;  "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el" "progmodes/idlw-complete-structtag.el"
-;;;;;;  "progmodes/idlw-help.el" "progmodes/idlw-toolbar.el" "progmodes/mantemp.el"
-;;;;;;  "progmodes/xscheme.el" "ps-def.el" "ps-mule.el" "ps-samp.el"
-;;;;;;  "s-region.el" "saveplace.el" "sb-image.el" "scroll-bar.el"
-;;;;;;  "select.el" "soundex.el" "subdirs.el" "tempo.el" "textmodes/bib-mode.el"
-;;;;;;  "textmodes/makeinfo.el" "textmodes/page-ext.el" "textmodes/refbib.el"
-;;;;;;  "textmodes/refer.el" "textmodes/reftex-auc.el" "textmodes/reftex-dcr.el"
-;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
-;;;;;;  "textmodes/texnfo-upd.el" "timezone.el" "tooltip.el" "tree-widget.el"
-;;;;;;  "uniquify.el" "url/url-about.el" "url/url-cookie.el" "url/url-dired.el"
-;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
-;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
-;;;;;;  "url/url-vars.el" "vc-dav.el" "vcursor.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19352
-;;;;;;  23109 108328))
-=======
-;;;;;;  "org/org-wl.el" "password-cache.el" "patcomp.el" "pcvs-info.el"
-;;;;;;  "pcvs-parse.el" "pcvs-util.el" "pgg-def.el" "pgg-parse.el"
-;;;;;;  "pgg-pgp.el" "pgg-pgp5.el" "play/gamegrid.el" "play/gametree.el"
-;;;;;;  "play/meese.el" "progmodes/ada-prj.el" "progmodes/cc-align.el"
-;;;;;;  "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el" "progmodes/cc-cmds.el"
-;;;;;;  "progmodes/cc-defs.el" "progmodes/cc-fonts.el" "progmodes/cc-langs.el"
-;;;;;;  "progmodes/cc-menus.el" "progmodes/ebnf-abn.el" "progmodes/ebnf-bnf.el"
-;;;;;;  "progmodes/ebnf-dtd.el" "progmodes/ebnf-ebx.el" "progmodes/ebnf-iso.el"
-;;;;;;  "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el" "progmodes/idlw-complete-structtag.el"
-;;;;;;  "progmodes/idlw-help.el" "progmodes/idlw-toolbar.el" "progmodes/mantemp.el"
-;;;;;;  "progmodes/xscheme.el" "ps-def.el" "ps-mule.el" "ps-samp.el"
-;;;;;;  "s-region.el" "saveplace.el" "sb-image.el" "scroll-bar.el"
-;;;;;;  "select.el" "soundex.el" "subdirs.el" "tempo.el" "textmodes/bib-mode.el"
-;;;;;;  "textmodes/makeinfo.el" "textmodes/page-ext.el" "textmodes/refbib.el"
-;;;;;;  "textmodes/refer.el" "textmodes/reftex-auc.el" "textmodes/reftex-dcr.el"
-;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
-;;;;;;  "textmodes/texnfo-upd.el" "timezone.el" "tooltip.el" "tree-widget.el"
-;;;;;;  "uniquify.el" "url/url-about.el" "url/url-cookie.el" "url/url-dired.el"
-;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
-;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
-;;;;;;  "url/url-vars.el" "vc-dav.el" "vcursor.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19382
-;;;;;;  35538 347447))
->>>>>>> MERGE-SOURCE
 
 ;;;***
 

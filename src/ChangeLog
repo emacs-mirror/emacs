@@ -1,4 +1,13 @@
+2010-04-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (set_machine_and_pid_properties): New function.
+	(Fx_create_frame): Call set_machine_and_pid_properties.
+
 2010-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_explicit, bidi_level_of_next_char): Check
+	bidi_it->bytepos against ZV_BYTE instead of bidi_it->ch against
+	BIDI_EOB.  Fixes infloop with vertical cursor motion at ZV.
 
 	* w32fns.c (x_create_tip_frame): Copy `parms' before we modify it
 	in this function.  (Bug#5703)

@@ -6570,7 +6570,10 @@ next_element_from_stretch (it)
 /* Scan forward from CHARPOS in the current buffer, until we find a
    stop position > current IT's position.  Then handle the stop
    position before that.  This is called when we bump into a stop
-   position while reordering bidirectional text.  */
+   position while reordering bidirectional text.  CHARPOS should be
+   the last previously processed stop_pos (or BEGV, if none were
+   processed yet) whose position is less that IT's current
+   position.  */
 
 static void
 handle_stop_backwards (it, charpos)
