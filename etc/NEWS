@@ -65,6 +65,10 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
+** New scrolling commands `scroll-up-command' and `scroll-down-command'
+(bound to [next] and [prior]) does not signal errors at top/bottom
+of buffer at first key-press (instead moves to top/bottom of buffer).
+
 
 * Editing Changes in Emacs 24.1
 

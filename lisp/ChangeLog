@@ -1,3 +1,20 @@
+2010-04-05  Juri Linkov  <juri@jurta.org>
+
+	Scrolling commands which does not signal errors at top/bottom.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01452.html
+
+	* simple.el (scroll-up-command, scroll-down-command): New commands.
+	Put property isearch-scroll=t on them.
+
+	* bindings.el (global-map): Rebind [prior] from `scroll-down' to
+	`scroll-down-command' and [next] from `scroll-up' to
+	`scroll-up-command'.
+
+	* emulation/cua-base.el: Put property CUA=move on
+	`scroll-up-command' and `scroll-down-command'.
+	(cua--init-keymaps): Remap `scroll-up-command' to `cua-scroll-up'
+	and `scroll-down-command' to `cua-scroll-down'.
+
 2010-04-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (describe-mode): Return nil.
