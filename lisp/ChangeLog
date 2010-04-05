@@ -1,3 +1,7 @@
+2010-04-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (describe-mode): Return nil.
+
 2010-04-04  John Wiegley  <jwiegley@gmail.com>
 
 	* ido.el (ido-use-virtual-buffers): New variable to indicate
