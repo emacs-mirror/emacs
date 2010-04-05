@@ -69,6 +69,9 @@ Use `set-scroll-bar-mode' to change this.
 (bound to [next] and [prior]) does not signal errors at top/bottom
 of buffer at first key-press (instead moves to top/bottom of buffer).
 
+** New scrolling commands `scroll-up-line' and `scroll-down-line'
+scroll a line instead of full screen.
+
 
 * Editing Changes in Emacs 24.1
 

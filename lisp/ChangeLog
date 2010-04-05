@@ -1,5 +1,16 @@
 2010-04-05  Juri Linkov  <juri@jurta.org>
 
+	Scrolling commands which scroll a line instead of full screen.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01452.html
+
+	* simple.el (scroll-up-line, scroll-down-line): New commands.
+	Put property isearch-scroll=t on them.
+
+	* emulation/ws-mode.el (scroll-down-line, scroll-up-line):
+	Remove commands.
+
+2010-04-05  Juri Linkov  <juri@jurta.org>
+
 	Scrolling commands which does not signal errors at top/bottom.
 	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01452.html
 
