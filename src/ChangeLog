@@ -1,3 +1,8 @@
+2010-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
+	terminal frames (Bug#5837).
+
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsfns.m (ns_set_doc_edited): Remove unused arg OLDVAL.
