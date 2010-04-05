@@ -3156,7 +3156,7 @@ set_machine_and_pid_properties (struct frame *f)
   XTextProperty text;
   int bytes, stringp;
   int do_free_text_value = 0;
-  long pid = (long)getpid();
+  long pid = (long) getpid ();
 
   text.value = x_encode_text (Vsystem_name,
                               Qcompound_text, 0, &bytes, &stringp,
