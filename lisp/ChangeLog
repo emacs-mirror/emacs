@@ -1,3 +1,8 @@
+2010-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (latex-mode): Revert 2008-03-03 change to
+	paragraph-separate (Bug#5821).
+
 2010-04-05  Juri Linkov  <juri@jurta.org>
 
 	Put breadcrumbs on overlay instead of inserting to buffer (bug#5809).
