@@ -1,5 +1,11 @@
 2010-04-06  John Wiegley  <jwiegley@gmail.com>
 
+	* ido.el (ido-add-virtual-buffers-to-list): Fixed duplicated names
+	appearing in buffer list (if a live buffer name matched a recentf
+	file basename).  Should use uniqify to offer a real solution.
+
+2010-04-06  John Wiegley  <jwiegley@gmail.com>
+
 	* ido.el (ido-use-virtual-buffers, ido-virtual): Moved a ChangeLog
 	comment to code, and added a :version tag.
 	(ido-virtual-buffers): Moved defvar to fix byte-compiler warning.

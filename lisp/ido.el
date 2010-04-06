@@ -3408,6 +3408,7 @@ This is to make them appear as if they were \"virtual buffers\"."
       (and (setq name (file-name-nondirectory head))
            (null (get-file-buffer head))
            (not (assoc name ido-virtual-buffers))
+           (not (member name ido-temp-list))
            (not (ido-ignore-item-p name ido-ignore-buffers))
            ;;(file-exists-p head)
            (push (cons name head) ido-virtual-buffers))))
