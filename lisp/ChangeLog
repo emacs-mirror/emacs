@@ -1,3 +1,25 @@
+2010-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (latex-mode): Revert 2008-03-03 change to
+	paragraph-separate (Bug#5821).
+
+2010-04-05  Juri Linkov  <juri@jurta.org>
+
+	Put breadcrumbs on overlay instead of inserting to buffer (bug#5809).
+
+	* info.el (Info-find-node-2): Comment out code that skips
+	breadcrumbs line.
+	(Info-mouse-follow-link): New command.
+	(Info-link-keymap): New keymap.
+	(Info-breadcrumbs): Rename from `Info-insert-breadcrumbs'.
+	Return a string with links instead of inserting breadcrumbs
+	to the Info buffer.
+	(Info-fontify-node): Comment out code that inserts breadcrumbs.
+	Instead of putting the `invisible' text property over the Info
+	header, make an overlay over the Info header with the `invisible'
+	property and `after-string' set to the string returned by
+	`Info-breadcrumbs'.
+
 2010-04-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.el (help-window-setup-finish): Doc fix (Bug#5830).
