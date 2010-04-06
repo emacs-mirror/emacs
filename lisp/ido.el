@@ -323,6 +323,7 @@
 ;;; Code:
 
 (defvar cua-inhibit-cua-keys)
+(defvar recentf-list)
 
 ;;; User Variables
 ;;
@@ -776,8 +777,19 @@ can be completed using TAB,
 
 (defcustom ido-use-virtual-buffers nil
   "If non-nil, refer to past buffers as well as existing ones.
-This feature relies upon the `recentf' package, which will be
+Essentially it works as follows: Say you are visiting a file and
+the buffer gets cleaned up by mignight.el.  Later, you want to
+switch to that buffer, but find it's no longer open.  With
+virtual buffers enabled, the buffer name stays in the buffer
+list (using the ido-virtual face, and always at the end), and if
+you select it, it opens the file back up again.  This allows you
+to think less about whether recently opened files are still open
+or not.  Most of the time you can quit Emacs, restart, and then
+switch to a file buffer that was previously open as if it still
+were.
+    This feature relies upon the `recentf' package, which will be
 enabled if this variable is configured to a non-nil value."
+  :version "24.1"
   :type 'boolean
   :group 'ido)
 
@@ -807,6 +819,7 @@ subdirs in the alternatives."
 
 (defface ido-virtual '((t (:inherit font-lock-builtin-face)))
   "Face used by ido for matching virtual buffer names."
+  :version "24.1"
   :group 'ido)
 
 (defface ido-indicator  '((((min-colors 88) (class color))
@@ -1040,6 +1053,11 @@ so that it doesn't interfere with other minibuffer usage.")
 (defvar ido-initial-position nil
   "Non-nil means to explicitly cursor on entry to minibuffer.
 Value is an integer which is number of chars to right of prompt.")
+
+(defvar ido-virtual-buffers nil
+  "List of virtual buffers, that is, past visited files.
+This is a copy of `recentf-list', pared down and with faces applied.
+Only used if `ido-use-virtual-buffers' is non-nil.")
 
 ;;; Variables with dynamic bindings.
 ;;; Declared here to keep the byte compiler quiet.
@@ -3366,18 +3384,13 @@ for first matching file."
     (if ido-temp-list
 	(nconc ido-temp-list ido-current-buffers)
       (setq ido-temp-list ido-current-buffers))
-    (if (and default (buffer-live-p (get-buffer default)))
-	(progn
-	  (setq ido-temp-list
-		(delete default ido-temp-list))
-	  (setq ido-temp-list
-		(cons default ido-temp-list))))
+    (when (and default (buffer-live-p (get-buffer default)))
+      (setq ido-temp-list
+	    (cons default (delete default ido-temp-list))))
     (if ido-use-virtual-buffers
 	(ido-add-virtual-buffers-to-list))
     (run-hooks 'ido-make-buffer-list-hook)
     ido-temp-list))
-
-(defvar ido-virtual-buffers nil)
 
 (defun ido-add-virtual-buffers-to-list ()
   "Add recently visited files, and bookmark files, to the buffer list.
@@ -3385,18 +3398,17 @@ This is to make them appear as if they were \"virtual buffers\"."
   ;; If no buffers matched, and virtual buffers are being used, then
   ;; consult the list of past visited files, to see if we can find
   ;; the file which the user might thought was still open.
+  (unless recentf-mode (recentf-mode 1))
   (setq ido-virtual-buffers nil)
-  (let ((head recentf-list) name)
-    (while head
-      (if (and (setq name (file-name-nondirectory (car head)))
-	       (null (get-file-buffer (car head)))
-	       (not (assoc name ido-virtual-buffers))
-	       (not (ido-ignore-item-p name ido-ignore-buffers))
-	       ;;(file-exists-p (car head))
-	       )
-	  (setq ido-virtual-buffers
-		(cons (cons name (car head)) ido-virtual-buffers)))
-      (setq head (cdr head))))
+  (let (name)
+    (dolist (head recentf-list)
+      (and (setq name (file-name-nondirectory head))
+           (null (get-file-buffer head))
+           (not (assoc name ido-virtual-buffers))
+           (not (member name ido-temp-list))
+           (not (ido-ignore-item-p name ido-ignore-buffers))
+           ;;(file-exists-p head)
+           (push (cons name head) ido-virtual-buffers))))
   (when ido-virtual-buffers
     (if ido-use-faces
 	(dolist (comp ido-virtual-buffers)
