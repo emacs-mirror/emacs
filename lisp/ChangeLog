@@ -1,14 +1,14 @@
 2010-04-06  John Wiegley  <jwiegley@gmail.com>
 
-	* ido.el (ido-add-virtual-buffers-to-list): Fixed duplicated names
+	* ido.el (ido-add-virtual-buffers-to-list): Fix duplicated names
 	appearing in buffer list (if a live buffer name matched a recentf
-	file basename).  Should use uniqify to offer a real solution.
+	file basename).  Should use uniquify to offer a real solution.
 
 2010-04-06  John Wiegley  <jwiegley@gmail.com>
 
-	* ido.el (ido-use-virtual-buffers, ido-virtual): Moved a ChangeLog
-	comment to code, and added a :version tag.
-	(ido-virtual-buffers): Moved defvar to fix byte-compiler warning.
+	* ido.el (ido-use-virtual-buffers, ido-virtual): Move a ChangeLog
+	comment to code, and add a :version tag.
+	(ido-virtual-buffers): Move defvar to fix byte-compiler warning.
 
 2010-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -31,7 +31,7 @@
 
 2010-04-05  Juri Linkov  <juri@jurta.org>
 
-	Scrolling commands which does not signal errors at top/bottom.
+	Scrolling commands which do not signal errors at top/bottom.
 	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01452.html
 
 	* simple.el (scroll-up-command, scroll-down-command): New commands.
