@@ -1,3 +1,11 @@
+2010-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	Enable recentf-mode if using virtual buffers.
+	* ido.el (recentf-list): Declare for byte-compiler.
+	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
+	(ido-make-buffer-list): Simplify.
+	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
+
 2010-04-05  Juri Linkov  <juri@jurta.org>
 
 	Scrolling commands which scroll a line instead of full screen.
