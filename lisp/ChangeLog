@@ -1,3 +1,34 @@
+2010-04-07  Michael McNamara  <mac@mail.brushroad.com>
+
+        * verilog-mode.el (verilog-forward-sexp, verilog-calc-1): Support
+        "disable fork" and "fork wait" multi word keywords, suggested by
+        Steve Pearlmutter.
+        (verilog-pretty-declarations): Support lineup of declarations in
+	port lists.
+        (verilog-skip-backward-comments, verilog-skip-forward-comment-p):
+        fix bug for /* / comments
+        (verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
+	Speed up and simplfy as this is never called with a bound.
+        (verilog-pretty-declarations): Enhance to line up declarations
+        inside a parameter list, suggested by Alan Morgan.
+        (verilog-pretty-expr): Tune assignment regular expression match
+        string for corner cases; also use markers instead of character
+        number as indent changes the later.
+
+2010-04-07  Wilson Snyder  <wsnyder@wsnyder.org>
+
+        * verilog-mode.el (verilog-type-keywords): Fix pulldown as missing
+        keyword.
+        (verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
+        causing truncation of AUTOWIRE signals.  Reported by Bruce
+        Tennant.
+        (verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
+        AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
+        Tennant.
+        (verilog-keywords):
+	(verilog-1800-2005-keywords, verilog-1800-2009-keywords): Add IEEE
+	1800-2009 keywords, including "global.".
+
 2010-04-06  John Wiegley  <jwiegley@gmail.com>
 
 	* ido.el (ido-add-virtual-buffers-to-list): Fix duplicated names
