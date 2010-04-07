@@ -1,5 +1,11 @@
 2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Simplify code for HP machines.
+	* m/hp800.h (LOAD_AVE_TYPE, LOAD_AVE_CVT, NO_REMAP): Do not define
+	for GNU_LINUX, not needed.
+	(UNEXEC, NEED_BSDTTY): Move definitions...
+	* s/hpux10-20.h (UNEXEC, NEED_BSDTTY): ... here.
+
 	* m/iris4d.h (UNEXEC): Move definition ...
 	* s/irix6-5.h (UNEXEC): ... here.
 
