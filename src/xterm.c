@@ -8933,11 +8933,9 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols)
-    + 2*f->border_width;
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
-    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f)
-    + 2*f->border_width;
+    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
   if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);

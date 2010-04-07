@@ -997,8 +997,8 @@ extern Lisp_Object selected_frame;
    + FRAME_INTERNAL_BORDER_WIDTH (f))
 
 #define FRAME_TEXT_LINES_TO_PIXEL_HEIGHT(f, lines) \
-  (FRAME_LINE_TO_PIXEL_Y (f, lines) \
-   + FRAME_INTERNAL_BORDER_WIDTH (f))
+  ((lines) * FRAME_LINE_HEIGHT (f) \
+   + 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
 
 
 /* Return the row/column (zero-based) of the character cell containing

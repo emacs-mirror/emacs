@@ -1,3 +1,13 @@
+2010-04-07  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (malayalam-composable-pattern): Fix previous
+	change (add U+0D4D "SIGN VIRAMA").
+	(oriya-composable-pattern): Add U+0B30 and fix typo in the regexp.
+	(tamil-composable-pattern): Fix typo in the regexp.
+	(telugu-composable-pattern): Fix U+0C4D and typo in the regexp.
+	(kannada-composable-pattern): Fix U+0CB0 and typo in the regexp.
+	(malayalam-composable-pattern): Fix U+0D4D and typo in the regexp.
+
 2010-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/tex-mode.el (latex-mode): Revert 2008-03-03 change to
