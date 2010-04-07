@@ -268,6 +268,7 @@ unaware that their mail configuration has changed.
 
 To disable this check, set compose-mail-user-agent-warnings to nil.
 
+---
 ** The default value of mail-interactive is t, since Emacs 23.1.
 (This was not announced at the time.)  It means that when sending mail,
 Emacs will wait for the process sending mail to return.  If you
@@ -464,7 +465,7 @@ mode from `auto-mode-alist' (or Fundamental mode) and `image-minor-mode'.
 
 
 * Lisp changes in Emacs 23.2
-
+---
 ** All the default-FOO variables that hold the default value of the FOO
 variable, are now declared obsolete.
 

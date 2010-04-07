@@ -1023,6 +1023,20 @@ error description.
 
 If @var{var} is @code{nil}, that means no variable is bound.  Then the
 error symbol and associated data are not available to the handler.
+
+@cindex rethrow a signal
+Sometimes it is necessary to re-throw a signal caught by
+@code{condition-case}, for some outer-level handler to catch.  Here's
+how to do that:
+
+@smallexample
+  (signal (car err) (cdr err))
+@end smallexample
+
+@noindent
+where @code{err} is the error description variable, the first argument
+to @code{condition-case} whose error condition you want to re-throw.
+@xref{Definition of signal}.
 @end defspec
 
 @defun error-message-string error-description
@@ -1108,6 +1122,7 @@ Here's the example at the beginning of this subsection rewritten using
 @end group
 @end smallexample
 @end defmac
+
 
 @node Error Symbols
 @subsubsection Error Symbols and Condition Names

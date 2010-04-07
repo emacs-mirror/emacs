@@ -9570,7 +9570,8 @@ prepare_menu_bars ()
 	  update_tool_bar (f, 0);
 #endif
 #ifdef HAVE_NS
-          if (windows_or_buffers_changed)
+          if (windows_or_buffers_changed
+	      && FRAME_NS_P (f))
             ns_set_doc_edited (f, Fbuffer_modified_p
 			       (XWINDOW (f->selected_window)->buffer));
 #endif
@@ -23551,7 +23552,8 @@ note_mouse_highlight (f, x, y)
 #endif
 
   if (NILP (Vmouse_highlight)
-      || !f->glyphs_initialized_p)
+      || !f->glyphs_initialized_p
+      || f->pointer_invisible)
     return;
 
   dpyinfo->mouse_face_mouse_x = x;

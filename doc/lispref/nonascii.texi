@@ -37,7 +37,7 @@ how they are stored in strings and buffers.
 
   Emacs buffers and strings support a large repertoire of characters
 from many different scripts, allowing users to type and display text
-in most any known written language.
+in almost any known written language.
 
 @cindex character codepoint
 @cindex codespace
@@ -95,7 +95,7 @@ strings except for manipulating encoded text or binary non-text data.
 The representation for a string is determined and recorded in the string
 when the string is constructed.
 
-@defopt enable-multibyte-characters
+@defvar enable-multibyte-characters
 This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
 it contains unibyte encoded text or binary non-text data.
@@ -105,7 +105,7 @@ You cannot set this variable directly; instead, use the function
 
 The @samp{--unibyte} command line option does its job by setting the
 default value to @code{nil} early in startup.
-@end defopt
+@end defvar
 
 @defun position-bytes position
 Buffer positions are measured in character units.  This function

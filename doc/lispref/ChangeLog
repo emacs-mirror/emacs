@@ -1,3 +1,13 @@
+2010-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations): Don't mark
+	enable-multibyte-characters as a user option.
+
+2010-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* control.texi (Handling Errors): How to re-throw a signal caught
+	by condition-case.
+
 2010-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* loading.texi (Hooks for Loading): Document after-load-functions.

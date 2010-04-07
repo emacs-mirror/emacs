@@ -1149,8 +1149,8 @@ Entering array mode calls the function `array-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads (artist-mode) "artist" "textmodes/artist.el" (19352
-;;;;;;  21362))
+;;;### (autoloads (artist-mode) "artist" "textmodes/artist.el" (19378
+;;;;;;  33860))
 ;;; Generated autoloads from textmodes/artist.el
 
 (autoload 'artist-mode "artist" "\
@@ -1319,7 +1319,7 @@ Selecting operation
 
 Variables
 
- This is a brief overview of the different varaibles. For more info,
+ This is a brief overview of the different variables.  For more info,
  see the documentation for the variables (type \\[describe-variable] <variable> RET).
 
  artist-rubber-banding		Interactively do rubber-banding or not
@@ -2963,7 +2963,7 @@ Obsoletes `c-forward-into-nomenclature'.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (19352 21360))
+;;;;;;  (19367 42950))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload 'c-guess-basic-syntax "cc-engine" "\
@@ -4851,7 +4851,7 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 ;;;;;;  customize-mode customize customize-save-variable customize-set-variable
 ;;;;;;  customize-set-value custom-menu-sort-alphabetically custom-buffer-sort-alphabetically
 ;;;;;;  custom-browse-sort-alphabetically) "cus-edit" "cus-edit.el"
-;;;;;;  (19352 21362))
+;;;;;;  (19359 48895))
 ;;; Generated autoloads from cus-edit.el
 
 (defvar custom-browse-sort-alphabetically nil "\
@@ -5719,7 +5719,7 @@ as well as widgets, buttons, overlays, and text properties.
 ;;;### (autoloads (desktop-revert desktop-save-in-desktop-dir desktop-change-dir
 ;;;;;;  desktop-load-default desktop-read desktop-remove desktop-save
 ;;;;;;  desktop-clear desktop-locals-to-save desktop-save-mode) "desktop"
-;;;;;;  "desktop.el" (19352 21353))
+;;;;;;  "desktop.el" (19370 51420))
 ;;; Generated autoloads from desktop.el
 
 (defvar desktop-save-mode nil "\
@@ -10459,7 +10459,7 @@ Turn flymake mode off.
 
 ;;;### (autoloads (flyspell-buffer flyspell-region flyspell-mode-off
 ;;;;;;  turn-off-flyspell turn-on-flyspell flyspell-mode flyspell-prog-mode)
-;;;;;;  "flyspell" "textmodes/flyspell.el" (19352 21362))
+;;;;;;  "flyspell" "textmodes/flyspell.el" (19369 7847))
 ;;; Generated autoloads from textmodes/flyspell.el
 
 (autoload 'flyspell-prog-mode "flyspell" "\
@@ -10782,7 +10782,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdb) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (19352 21362))
+;;;;;;  (19372 60979))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload 'gdb "gdb-ui" "\
@@ -13641,8 +13641,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19352
-;;;;;;  21354))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (19355
+;;;;;;  62587))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -14118,7 +14118,7 @@ Example:
 ;;;;;;  image-dired-jump-thumbnail-buffer image-dired-delete-tag
 ;;;;;;  image-dired-tag-files image-dired-show-all-from-dir image-dired-display-thumbs
 ;;;;;;  image-dired-dired-with-window-configuration image-dired-dired-insert-marked-thumbs)
-;;;;;;  "image-dired" "image-dired.el" (19352 21354))
+;;;;;;  "image-dired" "image-dired.el" (19367 42949))
 ;;; Generated autoloads from image-dired.el
 
 (autoload 'image-dired-dired-insert-marked-thumbs "image-dired" "\
@@ -14160,7 +14160,7 @@ you have the dired buffer in the left window and the
 With optional argument APPEND, append thumbnail to thumbnail buffer
 instead of erasing it first.
 
-Option argument DO-NOT-POP controls if `pop-to-buffer' should be
+Optional argument DO-NOT-POP controls if `pop-to-buffer' should be
 used or not.  If non-nil, use `display-buffer' instead of
 `pop-to-buffer'.  This is used from functions like
 `image-dired-next-line-and-display' and
@@ -15367,7 +15367,7 @@ by `jka-compr-installed'.
 
 ;;;***
 
-;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19352 21355))
+;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19375 48608))
 ;;; Generated autoloads from progmodes/js.el
 
 (autoload 'js-mode "js" "\
@@ -16475,7 +16475,7 @@ The mail client is taken to be the handler of mailto URLs.
 
 ;;;### (autoloads (makefile-imake-mode makefile-bsdmake-mode makefile-makepp-mode
 ;;;;;;  makefile-gmake-mode makefile-automake-mode makefile-mode)
-;;;;;;  "make-mode" "progmodes/make-mode.el" (19352 21355))
+;;;;;;  "make-mode" "progmodes/make-mode.el" (19370 15152))
 ;;; Generated autoloads from progmodes/make-mode.el
 
 (autoload 'makefile-mode "make-mode" "\
@@ -16707,7 +16707,7 @@ Returns non-nil if the new state is enabled.
 ;;;;;;  message-forward-make-body message-forward message-recover
 ;;;;;;  message-supersede message-cancel-news message-followup message-wide-reply
 ;;;;;;  message-reply message-news message-mail message-mode) "message"
-;;;;;;  "gnus/message.el" (19352 21361))
+;;;;;;  "gnus/message.el" (19374 17766))
 ;;; Generated autoloads from gnus/message.el
 
 (define-mail-user-agent 'message-user-agent 'message-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
@@ -17353,7 +17353,7 @@ Insert file contents of URL using `mm-url-program'.
 ;;;***
 
 ;;;### (autoloads (mm-uu-dissect-text-parts mm-uu-dissect) "mm-uu"
-;;;;;;  "gnus/mm-uu.el" (19352 21355))
+;;;;;;  "gnus/mm-uu.el" (19382 2266))
 ;;; Generated autoloads from gnus/mm-uu.el
 
 (autoload 'mm-uu-dissect "mm-uu" "\
@@ -22562,8 +22562,8 @@ of master file.
 
 ;;;***
 
-;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (19352
-;;;;;;  21358))
+;;;### (autoloads nil "reftex-vars" "textmodes/reftex-vars.el" (19367
+;;;;;;  42950))
 ;;; Generated autoloads from textmodes/reftex-vars.el
 (put 'reftex-vref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
 (put 'reftex-fref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
@@ -22815,8 +22815,8 @@ variable.
 ;;;;;;  rmail-secondary-file-directory rmail-primary-inbox-list rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
 ;;;;;;  rmail-dont-reply-to-names rmail-user-mail-address-regexp
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19352
-;;;;;;  21360))
+;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (19363
+;;;;;;  36802))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
@@ -23783,7 +23783,7 @@ Semantic mode.
 ;;;;;;  mail-alias-file mail-default-reply-to mail-archive-file-name
 ;;;;;;  mail-header-separator send-mail-function mail-interactive
 ;;;;;;  mail-self-blind mail-specify-envelope-from mail-from-style)
-;;;;;;  "sendmail" "mail/sendmail.el" (19352 21361))
+;;;;;;  "sendmail" "mail/sendmail.el" (19374 15070))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style 'default "\
@@ -23937,9 +23937,11 @@ File containing the text inserted at end of mail buffer.")
 (custom-autoload 'mail-signature-file "sendmail" t)
 
 (defvar mail-default-directory (purecopy "~/") "\
-Directory for mail buffers.
-Value of `default-directory' for mail buffers.
-This directory is used for auto-save files of mail buffers.")
+Value of `default-directory' for Mail mode buffers.
+This directory is used for auto-save files of Mail mode buffers.
+
+Note that Message mode does not use this variable; it auto-saves
+in `message-auto-save-directory'.")
 
 (custom-autoload 'mail-default-directory "sendmail" t)
 
@@ -24660,7 +24662,7 @@ If no conflict maker is found, turn off `smerge-mode'.
 ;;;***
 
 ;;;### (autoloads (smiley-buffer smiley-region) "smiley" "gnus/smiley.el"
-;;;;;;  (19352 21358))
+;;;;;;  (19367 42950))
 ;;; Generated autoloads from gnus/smiley.el
 
 (autoload 'smiley-region "smiley" "\
@@ -24670,8 +24672,8 @@ A list of images is returned.
 \(fn START END)" t nil)
 
 (autoload 'smiley-buffer "smiley" "\
-Run `smiley-region' at the buffer, specified in the argument or
-interactively. If there's no argument, do it at the current buffer
+Run `smiley-region' at the BUFFER, specified in the argument or
+interactively.  If there's no argument, do it at the current buffer.
 
 \(fn &optional BUFFER)" t nil)
 
@@ -26678,7 +26680,7 @@ tetris-mode keybindings:
 ;;;;;;  tex-start-commands tex-start-options slitex-run-command latex-run-command
 ;;;;;;  tex-run-command tex-offer-save tex-main-file tex-first-line-header-regexp
 ;;;;;;  tex-directory tex-shell-file-name) "tex-mode" "textmodes/tex-mode.el"
-;;;;;;  (19352 21363))
+;;;;;;  (19371 46148))
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -27673,7 +27675,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\".
 ;;;***
 
 ;;;### (autoloads (tmm-prompt tmm-menubar-mouse tmm-menubar) "tmm"
-;;;;;;  "tmm.el" (19352 21359))
+;;;;;;  "tmm.el" (19376 53416))
 ;;; Generated autoloads from tmm.el
  (define-key global-map "\M-`" 'tmm-menubar)
  (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
@@ -27923,7 +27925,7 @@ to a tcp server on another machine.
 ;;;***
 
 ;;;### (autoloads (trace-function-background trace-function trace-buffer)
-;;;;;;  "trace" "emacs-lisp/trace.el" (19352 21359))
+;;;;;;  "trace" "emacs-lisp/trace.el" (19367 42950))
 ;;; Generated autoloads from emacs-lisp/trace.el
 
 (defvar trace-buffer (purecopy "*trace-output*") "\
@@ -27936,7 +27938,7 @@ Traces FUNCTION with trace output going to BUFFER.
 For every call of FUNCTION Lisp-style trace messages that display argument
 and return values will be inserted into BUFFER.  This function generates the
 trace advice for FUNCTION and activates it together with any other advice
-there might be!! The trace BUFFER will popup whenever FUNCTION is called.
+there might be!!  The trace BUFFER will popup whenever FUNCTION is called.
 Do not use this to trace functions that switch buffers or do any other
 display oriented stuff, use `trace-function-background' instead.
 
@@ -27960,7 +27962,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-syntax tramp-mode) "tramp"
-;;;;;;  "net/tramp.el" (19352 21361))
+;;;;;;  "net/tramp.el" (19356 59749))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-mode t "\
@@ -29183,7 +29185,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-create-tag vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-root-diff vc-diff vc-version-diff vc-register vc-next-action
 ;;;;;;  vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
-;;;;;;  "vc" "vc.el" (19352 21359))
+;;;;;;  "vc" "vc.el" (19371 62620))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -29270,9 +29272,10 @@ saving the buffer.
 \(fn HISTORIC &optional NOT-URGENT)" t nil)
 
 (autoload 'vc-root-diff "vc" "\
-Display diffs between file revisions.
-Normally this compares the currently selected fileset with their
-working revisions.  With a prefix argument HISTORIC, it reads two revision
+Display diffs between VC-controlled whole tree revisions.
+Normally, this compares the tree corresponding to the current
+fileset with the working revision.
+With a prefix argument HISTORIC, prompt for two revision
 designators specifying which revisions to compare.
 
 The optional argument NOT-URGENT non-nil means it is ok to say no to
@@ -29327,12 +29330,20 @@ allowed and simply skipped).
 
 (autoload 'vc-print-log "vc" "\
 List the change log of the current fileset in a window.
-If WORKING-REVISION is non-nil, leave the point at that revision.
+If WORKING-REVISION is non-nil, leave point at that revision.
+If LIMIT is non-nil, it should be a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+
+When called interactively with a prefix argument, prompt for
+WORKING-REVISION and LIMIT.
 
 \(fn &optional WORKING-REVISION LIMIT)" t nil)
 
 (autoload 'vc-print-root-log "vc" "\
-List the change log of for the current VC controlled tree in a window.
+List the change log for the current VC controlled tree in a window.
+If LIMIT is non-nil, it should be a number specifying the maximum
+number of revisions to show; the default is `vc-log-show-limit'.
+When called interactively with a prefix argument, prompt for LIMIT.
 
 \(fn &optional LIMIT)" t nil)
 
@@ -31435,7 +31446,7 @@ With arg, turn Winner mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (woman-find-file woman-dired-find-file woman woman-locale)
-;;;;;;  "woman" "woman.el" (19352 21359))
+;;;;;;  "woman" "woman.el" (19359 48737))
 ;;; Generated autoloads from woman.el
 
 (defvar woman-locale nil "\
@@ -31788,8 +31799,8 @@ Zone out, completely.
 ;;;;;;  "cedet/semantic/edit.el" "cedet/semantic/find.el" "cedet/semantic/format.el"
 ;;;;;;  "cedet/semantic/fw.el" "cedet/semantic/grammar-wy.el" "cedet/semantic/grammar.el"
 ;;;;;;  "cedet/semantic/html.el" "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el"
-;;;;;;  "cedet/semantic/idle.el" "cedet/semantic/java.el" "cedet/semantic/lex-spp.el"
-;;;;;;  "cedet/semantic/lex.el" "cedet/semantic/mru-bookmark.el"
+;;;;;;  "cedet/semantic/idle.el" "cedet/semantic/imenu.el" "cedet/semantic/java.el"
+;;;;;;  "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el" "cedet/semantic/mru-bookmark.el"
 ;;;;;;  "cedet/semantic/sb.el" "cedet/semantic/scope.el" "cedet/semantic/senator.el"
 ;;;;;;  "cedet/semantic/sort.el" "cedet/semantic/symref.el" "cedet/semantic/symref/cscope.el"
 ;;;;;;  "cedet/semantic/symref/filter.el" "cedet/semantic/symref/global.el"
@@ -31928,8 +31939,8 @@ Zone out, completely.
 ;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
 ;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
 ;;;;;;  "url/url-vars.el" "vc-dav.el" "vcursor.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19352
-;;;;;;  23109 108328))
+;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19382
+;;;;;;  35538 347447))
 
 ;;;***
 

@@ -686,7 +686,7 @@ ns_set_name_as_filename (struct frame *f)
 
 
 void
-ns_set_doc_edited (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+ns_set_doc_edited (struct frame *f, Lisp_Object arg)
 {
   NSView *view = FRAME_NS_VIEW (f);
   NSAutoreleasePool *pool;

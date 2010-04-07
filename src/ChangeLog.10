@@ -2137,7 +2137,7 @@
 
 	* Makefile.in (keymap.o): Add "keymap.h" and "window.h" dependencies.
 
-	* keymap.c: include "window.h".
+	* keymap.c: Include "window.h".
 	(Fcommand_remapping): New optional POSITION argument.
 	(Fkey_binding): New optional POSITION argument.  Completely rework
 	handling of mouse clicks to get the same order of keymaps as
@@ -5867,9 +5867,9 @@
 
 2005-12-26  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* keyboard.h: extern last_point_position_window.
+	* keyboard.h: Extern last_point_position_window.
 
-	* undo.c: include keyboard.h.
+	* undo.c: Include keyboard.h.
 
 	* Makefile.in (undo.o): Depend on keyboard.h.
 
@@ -8276,7 +8276,7 @@
 	* xdisp.c (syms_of_xdisp) <nobreak-char-display>: Doc fix.
 	(syms_of_xdisp) <void-text-area-pointer>: Doc fix.
 
-	* fileio.c (Frename_file)[!DOS_NT]: Don't call chown on MSDOS/Windows.
+	* fileio.c (Frename_file) [!DOS_NT]: Don't call chown on MSDOS/Windows.
 
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -12611,7 +12611,7 @@
 	* macterm.c (mac_check_for_quit_char): Remove warning for using
 	NULL where 0 should be used.
 	* unexmacosx.c: Use malloc/malloc.h on Tiger instead of
-	objc/malloc.h
+	objc/malloc.h.
 	* mac.c: Include time.h for Tiger compatibility.
 
 2004-10-07  Kim F. Storm  <storm@cua.dk>
@@ -12843,7 +12843,7 @@
 	* Makefile.in (msdos.o): Depend on buffer.h, commands.h, and
 	blockinput.h.
 	(dosfns.o): Depend on blockinput.h, window.h, dispextern.h,
-	charset.h, and coding.h
+	charset.h, and coding.h.
 	(w16select.o): Depend on buffer.h, charset.h, coding.h, and composite.h.
 	(term.o): Depend on window.h and keymap.h.
 	(abbrev.o): Depend on syntax.h.
@@ -17222,7 +17222,7 @@
 2003-09-01  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (alloca.o): Remove.
-	(coding.o): Depend on intervals.h
+	(coding.o): Depend on intervals.h.
 	(emacs.o, bytecode.o): Depend on window.h.
 
 2003-09-01  Dave Love  <fx@gnu.org>
@@ -22643,7 +22643,7 @@
 	(Fx_popup_menu): Don't show pop up menu until preceding one is
 	actually cleaned up.  Moved UNGCPRO outside #ifdef HAVE_MENUS block.
 
-	* w32menu.c: Changes adapted from xmenu.c
+	* w32menu.c: Changes adapted from xmenu.c.
 	(set_frame_menubar): First parse all submenus,
 	then make widget_value trees from them.
 	Don't allocate any widget_value objects
@@ -24232,7 +24232,7 @@
 	m/ibmps2-aix.h, m/ibmrs6000.h, m/ibmrt-aix.h, m/ibmrt.h,
 	m/ibms390.h, m/intel386.h, m/iris4d.h, m/irist.h, m/isi-ov.h,
 	m/m68k.h, m/macppc.h, m/masscomp.h, m/mg1.h, m/mips-siemens.h,
-	m/mips.h, m/news-r6.h, m/news.h, m/next.h, m/nh3000.h, m/nh4000.h
+	m/mips.h, m/news-r6.h, m/news.h, m/next.h, m/nh3000.h, m/nh4000.h,
 	m/ns32000.h, m/orion.h, m/pfa50.h, m/plexus.h, m/pmax.h,
 	m/powerpcle.h, m/pyrmips.h, m/sequent-ptx.h, m/sequent.h,
 	m/sparc.h, m/sr2k.h, m/symmetry.h, m/tad68k.h, m/tahoe.h,

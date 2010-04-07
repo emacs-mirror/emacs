@@ -1053,8 +1053,8 @@ a case-insensitive match is tried."
 	    (Info-select-node)
 	    (goto-char (point-min))
 	    (forward-line 1)		       ; skip header line
-	    (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
-	      (forward-line 1))
+	    ;; (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
+	    ;;   (forward-line 1))
 
 	    (cond (anchorpos
                    (let ((new-history (list Info-current-file
@@ -3551,6 +3551,19 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
      ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
       (Info-goto-node node fork)))
     node))
+
+(defun Info-mouse-follow-link (click)
+  "Follow a link where you click."
+  (interactive "e")
+  (let* ((position (event-start click))
+	 (posn-string (and position (posn-string position)))
+	 (string (car-safe posn-string))
+	 (string-pos (cdr-safe posn-string))
+	 (link-args (and string string-pos
+			 (get-text-property string-pos 'link-args string))))
+    (when link-args
+      (Info-goto-node link-args))))
+
 
 (defvar Info-mode-map
   (let ((map (make-keymap)))
@@ -4141,11 +4154,22 @@ the variable `Info-file-list-for-emacs'."
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
 
-(defun Info-insert-breadcrumbs ()
+(defvar Info-link-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
+    (define-key keymap [header-line mouse-2] 'Info-mouse-follow-link)
+    (define-key keymap [header-line down-mouse-1] 'ignore)
+    (define-key keymap [mouse-2] 'Info-mouse-follow-link)
+    (define-key keymap [follow-link] 'mouse-face)
+    keymap)
+  "Keymap to put on the link in the text or the header line.")
+
+(defun Info-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
 	(node Info-current-node)
         (crumbs ())
-        (depth Info-breadcrumbs-depth))
+        (depth Info-breadcrumbs-depth)
+	line)
 
     ;; Get ancestors from the cached parent-children node info
     (while (and (not (equal "Top" node)) (> depth 0))
@@ -4172,15 +4196,25 @@ the variable `Info-file-list-for-emacs'."
 			     (file-name-nondirectory Info-current-file)
 			   ;; Some legacy code can still use a symbol.
 			   Info-current-file)))))
-	  (insert (if (bolp) "" " > ")
-		  (cond
-		   ((null node) "...")
-		   ((equal node Info-current-node)
-		    ;; No point linking to ourselves.
-		    (propertize text 'font-lock-face 'info-header-node))
-		   (t
-		    (concat "*Note " text "::"))))))
-      (insert "\n"))))
+	  (setq line (concat
+		      line
+		      (if (null line) "" " > ")
+		      (cond
+		       ((null node) "...")
+		       ((equal node Info-current-node)
+			;; No point linking to ourselves.
+			(propertize text 'font-lock-face 'info-header-node))
+		       (t
+			(propertize text
+				    'mouse-face 'highlight
+				    'font-lock-face 'info-header-xref
+				    'help-echo "mouse-2: Go to node"
+				    'keymap Info-link-keymap
+				    'link-args text)))))))
+      (setq line (concat line "\n")))
+    ;; (font-lock-append-text-property 0 (length line)
+    ;; 				    'font-lock-face 'header-line line)
+    line))
 
 (defun Info-fontify-node ()
   "Fontify the node."
@@ -4227,8 +4261,8 @@ the variable `Info-file-list-for-emacs'."
 		((string-equal (downcase tag) "next") Info-next-link-keymap)
 		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
 
-        (when (> Info-breadcrumbs-depth 0)
-          (Info-insert-breadcrumbs))
+        ;; (when (> Info-breadcrumbs-depth 0)
+        ;;   (insert (Info-breadcrumbs)))
 
         ;; Treat header line.
         (when Info-use-header-line
@@ -4260,7 +4294,10 @@ the variable `Info-file-list-for-emacs'."
             ;; that is in the header, if it is just part.
             (cond
              ((> Info-breadcrumbs-depth 0)
-              (put-text-property (point-min) (1+ header-end) 'invisible t))
+	      (let ((ov (make-overlay (point-min) (1+ header-end))))
+		(overlay-put ov 'invisible t)
+		(overlay-put ov 'after-string (Info-breadcrumbs))
+		(overlay-put ov 'evaporate t)))
              ((not (bobp))
               ;; Hide the punctuation at the end, too.
               (skip-chars-backward " \t,")

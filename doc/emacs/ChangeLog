@@ -1,3 +1,8 @@
+2010-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Persistent Mark): Copyedits.  Replace undo example with
+	query-replace (Bug#5774).
+
 2010-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Input Methods): Mention "C-x 8 RET" and add a
