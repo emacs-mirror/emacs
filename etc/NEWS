@@ -65,6 +65,13 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
+** New scrolling commands `scroll-up-command' and `scroll-down-command'
+(bound to [next] and [prior]) does not signal errors at top/bottom
+of buffer at first key-press (instead moves to top/bottom of buffer).
+
+** New scrolling commands `scroll-up-line' and `scroll-down-line'
+scroll a line instead of full screen.
+
 
 * Editing Changes in Emacs 24.1
 
@@ -87,6 +94,8 @@ Use the arrow to the left of the option name to toggle visibility.
 choose a color via list-colors-display.
 
 ** VC and related modes
+
+*** New VC commands: vc-log-incoming and vc-log-outgoing.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 

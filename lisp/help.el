@@ -873,6 +873,7 @@ whose documentation describes the minor mode."
               (add-text-properties start (point) '(face bold)))))
 	(princ " mode:\n")
 	(princ (documentation major-mode)))))
+  ;; For the sake of IELM and maybe others
   nil)
 
 

@@ -4738,6 +4738,89 @@ This also turns on `word-wrap' in the buffer."
   visual-line-mode turn-on-visual-line-mode
   :lighter " vl")
 
+;;; Scrolling commands.
+
+;;; Scrolling commands which does not signal errors at top/bottom
+;;; of buffer at first key-press (instead moves to top/bottom
+;;; of buffer).
+
+(defun scroll-up-command (&optional arg)
+  "Scroll text of selected window upward ARG lines; or near full screen if no ARG.
+If `scroll-up' cannot scroll window further, move cursor to the bottom line.
+When point is already on that position, then signal an error.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen."
+  (interactive "^P")
+  (cond
+   ((eq arg '-) (scroll-down-command nil))
+   ((< (prefix-numeric-value arg) 0)
+    (scroll-down-command (- (prefix-numeric-value arg))))
+   ((eobp)
+    (scroll-up arg))  ; signal error
+   (t
+    (condition-case nil
+	(scroll-up arg)
+      (end-of-buffer
+       (if arg
+	   ;; When scrolling by ARG lines can't be done,
+	   ;; move by ARG lines instead.
+	   (forward-line arg)
+	 ;; When ARG is nil for full-screen scrolling,
+	 ;; move to the bottom of the buffer.
+	 (goto-char (point-max))))))))
+
+(put 'scroll-up-command 'isearch-scroll t)
+
+(defun scroll-down-command (&optional arg)
+  "Scroll text of selected window down ARG lines; or near full screen if no ARG.
+If `scroll-down' cannot scroll window further, move cursor to the top line.
+When point is already on that position, then signal an error.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll upward.
+If ARG is the atom `-', scroll upward by nearly full screen."
+  (interactive "^P")
+  (cond
+   ((eq arg '-) (scroll-up-command nil))
+   ((< (prefix-numeric-value arg) 0)
+    (scroll-up-command (- (prefix-numeric-value arg))))
+   ((bobp)
+    (scroll-down arg))  ; signal error
+   (t
+    (condition-case nil
+	(scroll-down arg)
+      (beginning-of-buffer
+       (if arg
+	   ;; When scrolling by ARG lines can't be done,
+	   ;; move by ARG lines instead.
+	   (forward-line (- arg))
+	 ;; When ARG is nil for full-screen scrolling,
+	 ;; move to the top of the buffer.
+	 (goto-char (point-min))))))))
+
+(put 'scroll-down-command 'isearch-scroll t)
+
+;;; Scrolling commands which scroll a line instead of full screen.
+
+(defun scroll-up-line (&optional arg)
+  "Scroll text of selected window upward ARG lines; or one line if no ARG.
+If ARG is omitted or nil, scroll upward by one line.
+This is different from `scroll-up-command' that scrolls a full screen."
+  (interactive "p")
+  (scroll-up (or arg 1)))
+
+(put 'scroll-up-line 'isearch-scroll t)
+
+(defun scroll-down-line (&optional arg)
+  "Scroll text of selected window down ARG lines; or one line if no ARG.
+If ARG is omitted or nil, scroll down by one line.
+This is different from `scroll-down-command' that scrolls a full screen."
+  (interactive "p")
+  (scroll-down (or arg 1)))
+
+(put 'scroll-down-line 'isearch-scroll t)
+
+
 (defun scroll-other-window-down (lines)
   "Scroll the \"other window\" down.
 For more details, see the documentation for `scroll-other-window'."

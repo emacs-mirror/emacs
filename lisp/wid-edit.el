@@ -253,7 +253,9 @@ minibuffer."
 	       ;; Allocate digits to disabled alternatives
 	       ;; so that the digit of a given alternative never varies.
 	       (setq next-digit (1+ next-digit)))
-	     (insert "\nC-g = Quit"))
+	     (insert "\nC-g = Quit")
+	     (goto-char (point-min))
+	     (forward-line))
 	   (or some-choice-enabled
 	       (error "None of the choices is currently meaningful"))
 	   (define-key map [?\C-g] 'keyboard-quit)

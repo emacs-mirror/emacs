@@ -345,6 +345,16 @@
 ;;   revision.  At this point START-REVISION is only required to work
 ;;   in conjunction with LIMIT = 1.
 ;;
+;; * log-outgoing (backend remote-location)
+;;
+;;   Insert in BUFFER the revision log for the changes that will be
+;;   sent when performing a push operation to REMOTE-LOCATION.
+;;
+;; * log-incoming (backend remote-location)
+;;
+;;   Insert in BUFFER the revision log for the changes that will be
+;;   received when performing a pull operation from REMOTE-LOCATION.
+;;
 ;; - log-view-mode ()
 ;;
 ;;   Mode to use for the output of print-log.  This defaults to
@@ -1642,9 +1652,14 @@ saving the buffer."
 	(error "Buffer is not version controlled"))
       (setq rootdir (vc-call-backend backend 'root default-directory))
       (setq working-revision (vc-working-revision rootdir))
-      (vc-diff-internal
-       t (list backend (list rootdir) working-revision) nil nil
-       (called-interactively-p 'interactive)))))
+      ;; VC diff for the root directory produces output that is
+      ;; relative to it.  Bind default-directory to the root directory
+      ;; here, this way the *vc-diff* buffer is setup correctly, so
+      ;; relative file names work.
+      (let ((default-directory rootdir))
+	(vc-diff-internal
+	 t (list backend (list rootdir) working-revision) nil nil
+	 (called-interactively-p 'interactive))))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)
@@ -1886,6 +1901,29 @@ Not all VC backends support short logs!")
 (defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
 
+(defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
+  (when (and limit (not (eq 'limit-unsupported pl-return))
+	     (not is-start-revision))
+    (goto-char (point-max))
+    (lexical-let ((working-revision working-revision)
+		  (limit limit))
+      (widget-create 'push-button
+		     :notify (lambda (&rest ignore)
+			       (vc-print-log-internal
+				log-view-vc-backend log-view-vc-fileset
+				working-revision nil (* 2 limit)))
+		     :help-echo "Show the log again, and double the number of log entries shown"
+		     "Show 2X entries")
+      (widget-insert "    ")
+      (widget-create 'push-button
+		     :notify (lambda (&rest ignore)
+			       (vc-print-log-internal
+				log-view-vc-backend log-view-vc-fileset
+				working-revision nil nil))
+		     :help-echo "Show the log again, showing all entries"
+		     "Show unlimited entries"))
+    (widget-setup)))
+
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit)
   ;; Don't switch to the output buffer before running the command,
@@ -1893,6 +1931,8 @@ Not all VC backends support short logs!")
   ;; buffer can be accessed by the command.
   (let ((dir-present nil)
 	(vc-short-log nil)
+	(buffer-name "*vc-change-log*")
+	type
 	pl-return)
     (dolist (file files)
       (when (file-directory-p file)
@@ -1901,43 +1941,63 @@ Not all VC backends support short logs!")
 	  (not (null (if dir-present
 			 (memq 'directory vc-log-short-style)
 		       (memq 'file vc-log-short-style)))))
+    (setq type (if vc-short-log 'short 'long))
+    (lexical-let
+	((working-revision working-revision)
+	 (limit limit)
+	 (shortlog vc-short-log)
+	 (is-start-revision is-start-revision))
+      (vc-log-internal-common
+       backend buffer-name files type
+       (lambda (bk buf type-arg files-arg)
+	 (vc-call-backend bk 'print-log files-arg buf
+			  shortlog (when is-start-revision working-revision) limit))
+       (lambda (bk files-arg ret)
+	 (vc-print-log-setup-buttons working-revision
+				     is-start-revision limit ret))
+       (lambda (bk)
+	 (vc-call-backend bk 'show-log-entry working-revision))))))
 
-    (setq pl-return (vc-call-backend
-		     backend 'print-log files "*vc-change-log*"
-		     vc-short-log (when is-start-revision working-revision) limit))
-    (pop-to-buffer "*vc-change-log*")
+(defvar vc-log-view-type nil
+  "Set this to differentiate the different types of logs.")
+(put 'vc-log-view-type 'permanent-local t)
+
+(defun vc-log-internal-common (backend
+			       buffer-name
+			       files
+			       type
+			       backend-func
+			       setup-buttons-func
+			       goto-location-func)
+  (let (retval)
+    (with-current-buffer (get-buffer-create buffer-name)
+      (set (make-local-variable 'vc-log-view-type) type))
+    (setq retval (funcall backend-func backend buffer-name type files))
+    (pop-to-buffer buffer-name)
     (let ((inhibit-read-only t))
       ;; log-view-mode used to be called with inhibit-read-only bound
       ;; to t, so let's keep doing it, just in case.
-      (vc-call-backend backend 'log-view-mode))
-    (set (make-local-variable 'log-view-vc-backend) backend)
-    (set (make-local-variable 'log-view-vc-fileset) files)
-
+      (vc-call-backend backend 'log-view-mode)
+      (set (make-local-variable 'log-view-vc-backend) backend)
+      (set (make-local-variable 'log-view-vc-fileset) files))
     (vc-exec-after
      `(let ((inhibit-read-only t))
-	(when (and ,limit (not ,(eq 'limit-unsupported pl-return))
-		   (not ,is-start-revision))
-	  (goto-char (point-max))
-	  (widget-create 'push-button
-			 :notify (lambda (&rest ignore)
-				   (vc-print-log-internal
-				    ',backend ',files ',working-revision nil (* 2 ,limit)))
-			 :help-echo "Show the log again, and double the number of log entries shown"
-			 "Show 2X entries")
-	  (widget-insert "    ")
-	  (widget-create 'push-button
-			 :notify (lambda (&rest ignore)
-				   (vc-print-log-internal
-				    ',backend ',files ',working-revision nil nil))
-			 :help-echo "Show the log again, showing all entries"
-			 "Show unlimited entries")
-	  (widget-setup))
-
+	(funcall ',setup-buttons-func ',backend ',files ',retval)
 	(shrink-window-if-larger-than-buffer)
-	;; move point to the log entry for the working revision
-	(vc-call-backend ',backend 'show-log-entry ',working-revision)
+	(funcall ',goto-location-func ',backend)
 	(setq vc-sentinel-movepoint (point))
 	(set-buffer-modified-p nil)))))
+
+(defun vc-incoming-outgoing-internal (backend remote-location buffer-name type)
+  (vc-log-internal-common
+   backend buffer-name nil type
+   (lexical-let
+       ((remote-location remote-location))
+     (lambda (bk buf type-arg files)
+       (vc-call-backend bk type-arg buf remote-location)))
+   (lambda (bk files-arg ret))
+   (lambda (bk)
+     (goto-char (point-min)))))
 
 ;;;###autoload
 (defun vc-print-log (&optional working-revision limit)
@@ -1997,6 +2057,32 @@ When called interactively with a prefix argument, prompt for LIMIT."
     (setq rootdir (vc-call-backend backend 'root default-directory))
     (setq working-revision (vc-working-revision rootdir))
     (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
+
+;;;###autoload
+(defun vc-log-incoming (&optional remote-location)
+  "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION."
+  (interactive "sRemote location (empty for default): ")
+  (let ((backend
+	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
+	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
+	       (vc-mode (vc-backend buffer-file-name))))
+	rootdir working-revision)
+    (unless backend
+      (error "Buffer is not version controlled"))
+    (vc-incoming-outgoing-internal backend remote-location "*vc-incoming*" 'log-incoming)))
+
+;;;###autoload
+(defun vc-log-outgoing (&optional remote-location)
+  "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION."
+  (interactive "sRemote location (empty for default): ")
+  (let ((backend
+	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
+	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
+	       (vc-mode (vc-backend buffer-file-name))))
+	rootdir working-revision)
+    (unless backend
+      (error "Buffer is not version controlled"))
+    (vc-incoming-outgoing-internal backend remote-location "*vc-outgoing*" 'log-outgoing)))
 
 ;;;###autoload
 (defun vc-revert ()
