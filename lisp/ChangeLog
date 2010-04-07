@@ -1,3 +1,8 @@
+2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* wid-edit.el (widget-choose): Move cursor to the second line of
+	the buffer (Bug#5695).
+
 2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add new VC methods: vc-log-incoming and vc-log-outgoing.
