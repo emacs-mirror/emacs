@@ -981,6 +981,12 @@ current, and kill the buffer that visits the link."
     (define-key map [vc-update-change-log]
       `(menu-item ,(purecopy "Update ChangeLog") vc-update-change-log
 		  :help ,(purecopy "Find change log file and add entries from recent version control logs")))
+    (define-key map [vc-log-out]
+      `(menu-item ,(purecopy "Show Outgoing Log") vc-log-outgoing
+		  :help ,(purecopy "Show a log of changes that will be sent with a push operation")))
+    (define-key map [vc-log-in]
+      `(menu-item ,(purecopy "Show Incoming Log") vc-log-incoming
+		  :help ,(purecopy "Show a log of changes that will be received with a pull operation")))
     (define-key map [vc-print-log]
       `(menu-item ,(purecopy "Show History") vc-print-log
 		  :help ,(purecopy "List the change log of the current file set in a window")))

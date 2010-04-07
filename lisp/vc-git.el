@@ -592,13 +592,20 @@ or an empty string if none."
 		(when start-revision (list start-revision))
 		'("--")))))))
 
+(defun vc-git-log-outgoing (buffer remote-location)
+  (interactive)
+  (vc-git-command
+   buffer 0 nil
+   "log" (if (string= remote-location "")
+	     ;; FIXME: this hardcodes the location, it should compute
+	     ;; it properly.
+	     "origin/master..HEAD"
+	   remote-location)))
+
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
-
-;; Dynamically bound.
-(defvar vc-short-log)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
@@ -606,11 +613,11 @@ or an empty string if none."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
 	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	   '(
 	     ;; Same as log-view-message-re, except that we don't
 	     ;; want the shy group for the tag name.

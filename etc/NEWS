@@ -95,6 +95,8 @@ choose a color via list-colors-display.
 
 ** VC and related modes
 
+*** New VC commands: vc-log-incoming and vc-log-outgoing.
+
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
 *** Special markup can be added to log-edit buffers.
