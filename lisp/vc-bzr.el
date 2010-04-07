@@ -478,7 +478,6 @@ REV non-nil gets an error."
 (defvar log-view-font-lock-keywords)
 (defvar log-view-current-tag-function)
 (defvar log-view-per-file-logs)
-(defvar vc-short-log)
 
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
@@ -486,13 +485,13 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	   "^ *\\([0-9.]+\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	 (append `((,log-view-message-re
 		    (1 'log-view-message-face)
 		    (2 'change-log-name)
@@ -525,6 +524,14 @@ REV non-nil gets an error."
 	    (if (stringp vc-bzr-log-switches)
 		(list vc-bzr-log-switches)
 	      vc-bzr-log-switches)))))
+
+(defun vc-bzr-log-incoming (buffer remote-location)
+  (apply 'vc-bzr-command "missing" buffer 'async nil
+	 (list "--theirs-only" (unless (string= remote-location "") remote-location))))
+
+(defun vc-bzr-log-outgoing (buffer remote-location)
+  (apply 'vc-bzr-command "missing" buffer 'async nil
+	 (list "--mine-only" (unless (string= remote-location "") remote-location))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."

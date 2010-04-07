@@ -1,3 +1,81 @@
+2010-04-07  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-save-buffers-predicate): New
+	custom variable.
+	(compile, recompile): Pass it to `save-some-buffers'.
+
+2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* wid-edit.el (widget-choose): Move cursor to the second line of
+	the buffer (Bug#5695).
+
+2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add new VC methods: vc-log-incoming and vc-log-outgoing.
+	* vc.el (vc-print-log-setup-buttons): New function split out from
+	vc-print-log-internal.
+	(vc-log-internal-common): New function, a parametrized version of
+	vc-print-log-internal.
+	(vc-print-log-internal): Just call vc-log-internal-common with the
+	right arguments.
+	(vc-incoming-outgoing-internal):
+	(vc-log-incoming, vc-log-outgoing): New functions.
+	(vc-log-view-type): New permanent local variable.
+
+	* vc-hooks.el (vc-menu-map): Bind vc-log-incoming and vc-log-outgoing.
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.
+	(vc-bzr-log-incoming, vc-bzr-log-outgoing): New functions.
+
+	* vc-git.el (vc-git-log-outgoing): New function.
+	(vc-git-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.
+
+	* vc-hg.el (vc-hg-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.  Highlight the tag.
+	(vc-hg-log-incoming, vc-hg-log-outgoing): New functions.
+	(vc-hg-outgoing, vc-hg-incoming, vc-hg-outgoing-mode):
+	(vc-hg-incoming-mode): Remove.
+	(vc-hg-extra-menu-map): Do not bind vc-hg-incoming and vc-hg-outgoing.
+
+2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix default-directory for vc-root-diff.
+	* vc.el (vc-root-diff): Bind default-directory to the root
+	directory for the diff command.
+
+2010-04-07  Michael McNamara  <mac@mail.brushroad.com>
+
+        * progmodes/verilog-mode.el (verilog-forward-sexp):
+	(verilog-calc-1): Support "disable fork" and "fork wait" multi
+	word keywords, suggested by Steve Pearlmutter.
+        (verilog-pretty-declarations): Support lineup of declarations in
+	port lists.
+        (verilog-skip-backward-comments, verilog-skip-forward-comment-p):
+        fix bug for /* / comments
+        (verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
+	Speed up and simplfy as this is never called with a bound.
+        (verilog-pretty-declarations): Enhance to line up declarations
+        inside a parameter list, suggested by Alan Morgan.
+        (verilog-pretty-expr): Tune assignment regular expression match
+        string for corner cases; also use markers instead of character
+        number as indent changes the later.
+
+2010-04-07  Wilson Snyder  <wsnyder@wsnyder.org>
+
+        * progmodes/verilog-mode.el (verilog-type-keywords): Fix pulldown as missing
+        keyword.
+        (verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
+        causing truncation of AUTOWIRE signals.  Reported by Bruce
+        Tennant.
+        (verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
+        AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
+        Tennant.
+        (verilog-keywords):
+	(verilog-1800-2005-keywords, verilog-1800-2009-keywords): Add IEEE
+	1800-2009 keywords, including "global.".
+
 2010-04-06  John Wiegley  <jwiegley@gmail.com>
 
 	* ido.el (ido-add-virtual-buffers-to-list): Fix duplicated names

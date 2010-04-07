@@ -1,3 +1,22 @@
+2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use
+	FRAME_LINE_TO_PIXEL_Y.
+
+	* xterm.c (x_set_window_size_1): Don't add border_width/height to
+	pixelwidth/height.
+
+2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Simplify code for HP machines.
+	* m/hp800.h (LOAD_AVE_TYPE, LOAD_AVE_CVT, NO_REMAP): Do not define
+	for GNU_LINUX, not needed.
+	(UNEXEC, NEED_BSDTTY): Move definitions...
+	* s/hpux10-20.h (UNEXEC, NEED_BSDTTY): ... here.
+
+	* m/iris4d.h (UNEXEC): Move definition ...
+	* s/irix6-5.h (UNEXEC): ... here.
+
 2010-04-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (set_machine_and_pid_properties): New function.
