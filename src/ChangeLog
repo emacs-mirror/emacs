@@ -1,3 +1,29 @@
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (current_font, SYSTEM_FONT, XSETTINGS_FONT_NAME): New.
+	(parse_xft_settings): Also check for XSETTINGS_FONT_NAME and save that
+	in current_font.
+	(init_gconf): Read value of SYSTEM_FONT and save it in current_font.
+	(Ffont_get_system_normal_font, xsettings_get_system_normal_font): New
+	functions.
+	(syms_of_xsettings): Initialize current_font. defsubr
+	Sfont_get_system_normal_font.
+
+	* xsettings.h (Ffont_get_system_normal_font,
+	xsettings_get_system_normal_font): Declare.
+
+	* xfns.c (extern xlwmenu_default_font): Remove.
+	(Fx_create_frame): Remove setting of xlwmenu_default_font, moved
+	to xlwmenu.c.
+
+	* menu.c (digest_single_submenu): If USE_LUCID and HAVE_XFT, encode
+	menu items in UTF-8.
+
+	* xmenu.c: include xsettings.h and xlwmenu.h if USE_LUCID.
+	(apply_systemfont_to_menu): New function.
+	(set_frame_menubar, create_and_show_popup_menu): Call
+	apply_systemfont_to_menu.
+
 2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use

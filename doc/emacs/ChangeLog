@@ -1,3 +1,7 @@
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Lucid Resources): Mention faceName to set Xft fonts.
+
 2010-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Input Methods): Mention "C-x 8 RET" and add a
