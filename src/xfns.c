@@ -110,11 +110,6 @@ extern void _XEditResCheckMessages ();
 
 extern LWLIB_ID widget_id_tick;
 
-#ifdef USE_LUCID
-/* This is part of a kludge--see lwlib/xlwmenu.c.  */
-extern XFontStruct *xlwmenu_default_font;
-#endif
-
 extern void free_frame_menubar ();
 extern double atof ();
 
@@ -3378,14 +3373,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       delete_frame (frame, Qnoelisp);
       error ("Invalid frame font");
     }
-
-#ifdef USE_LUCID
-  /* Prevent lwlib/xlwmenu.c from crashing because of a bug
-     whereby it fails to get any font.  */
-  BLOCK_INPUT;
-  xlwmenu_default_font = XLoadQueryFont (FRAME_X_DISPLAY (f), "fixed");
-  UNBLOCK_INPUT;
-#endif
 
   /* Frame contents get displaced if an embedded X window has a border.  */
   if (! FRAME_X_EMBEDDED_P (f))

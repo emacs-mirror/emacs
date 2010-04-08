@@ -415,7 +415,7 @@ Emacs.pane.menubar.@var{resource}:  @var{value}
 @end example
 
 @noindent
-For example, to specify the font @samp{8x16} for the menu-bar items,
+For example, to specify the font @samp{Courier-12} for the menu-bar items,
 write this:
 @end ifnottex
 @iftex
@@ -423,11 +423,45 @@ write this:
 with the Lucid menu widgets, then the menu bar is a separate widget
 and has its own resources.  The resource specifications start with
 @samp{Emacs.pane.menubar}---for instance, to specify the font
-@samp{8x16} for the menu-bar items, write this:
+@samp{Courier-12} for the menu-bar items, write this:
 @end iftex
 
 @example
-Emacs.pane.menubar.font:  8x16
+Emacs.pane.menubar.faceName:  Courier-12
+@end example
+
+@noindent
+To specify a font, use fontconfig font names as values to the @code{faceName}
+resource.
+
+If Emacs is not built with the Xft library, Lucid menus can only display
+old style fonts.  If Emacs is built with Xft and you prefer the old fonts,
+you have to specify @samp{none} to @code{faceName}:
+
+@example
+Emacs.pane.menubar.faceName:	none
+@end example
+
+@noindent
+To specify a non-Xft font, use @code{font}.  For example:
+
+@example
+Emacs.pane.menubar.font: lucidasanstypewriter-10
+@end example
+
+@noindent
+The Lucid menus can display multilingual text in your locale with old style
+fonts.  For more information about fontsets see the man page for
+@code{XCreateFontSet}.  To enable multilingual menu text you specify a
+@code{fontSet} resource instead of the font resource.  If both
+@code{font} and @code{fontSet} resources are specified, the
+@code{fontSet} resource is used.
+
+  Thus, to specify @samp{-*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*}
+for both the popup and menu bar menus, write this:
+
+@example
+Emacs*menu*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*
 @end example
 
 @noindent
@@ -447,21 +481,6 @@ Emacs.dialog*.font:	8x16
 @end example
 
 @noindent
-The Lucid menus can display multilingual text in your locale.  For
-more information about fontsets see the man page for
-@code{XCreateFontSet}.  To enable multilingual menu text you specify a
-@code{fontSet} resource instead of the font resource.  If both
-@code{font} and @code{fontSet} resources are specified, the
-@code{fontSet} resource is used.
-
-  Thus, to specify @samp{-*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*}
-for both the popup and menu bar menus, write this:
-
-@example
-Emacs*menu*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*
-@end example
-
-@noindent
 The @samp{*menu*} as a wildcard matches @samp{pane.menubar} and
 @samp{menu@dots{}}.
 
@@ -473,6 +492,8 @@ approach should work on both kinds of systems.
   Here is a list of the specific resources for menu bars and pop-up menus:
 
 @table @code
+@item faceName
+Xft font for menu item text.
 @item font
 Font for menu item text.
 @item fontSet

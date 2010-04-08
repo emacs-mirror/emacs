@@ -1,3 +1,34 @@
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (xlwmenu_default_font): Make static.
+	(xlwMenuResources): Add XtNfaceName and XtNdefaultFace.
+	(string_width): Use XftTextExtentsUtf8 if HAVE_XFT.
+	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Add versions for
+	HAVE_XFT.
+	(size_menu): Set max_rest_width in window_state structure.
+	(display_menu_item): If HAVE_XFT and xft_draw is set, use
+	XftDrawRect and XftDrawStringUtf8 to draw text.
+	(make_windows_if_needed): Set max_rest_width and xft_draw
+	in windows[i].
+	(openXftFont): New.
+	(XlwMenuInitialize): Call openXftFont if HAVE_XFT. If mw->menu.font
+	is not set, load font fixed and save it in xlwmenu_default_font.
+	(XlwMenuInitialize): Set max_rest_width and xft_draw in windows[0].
+	(XlwMenuClassInitialize): Initialize xlwmenu_default_font.
+	(XlwMenuRealize): Set xft_fg, xft_bg, xft_disabled_fg and
+	windows[0].xft_draw if xft_font is set.
+	(XlwMenuDestroy): Destroy all xft_draw and close xft_font.
+	(facename_changed): New.
+	(XlwMenuSetValues): Call facename_changed. If face name did change,
+	close old fonts and destroy xft_draw:s.  Then create new ones.
+
+	* xlwmenu.h (XtNfaceName, XtCFaceName, XtNdefaultFace,
+	XtCDefaultFace): New.
+
+	* xlwmenuP.h (_window_state): Add max_rest_width and xft_draw.
+	(_XlwMenu_part): Add faceName,xft_fg, xft_bg, xft_disabled_fg and
+	xft_font.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.
