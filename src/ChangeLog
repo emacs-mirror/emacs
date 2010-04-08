@@ -1,3 +1,8 @@
+2010-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_weak): Use prev.type_after_w1, instead of
+	prev.orig_type, for resolving type of NSM.  (Bug#5858)
+
 2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (current_font, SYSTEM_FONT, XSETTINGS_FONT_NAME): New.
