@@ -1,7 +1,13 @@
+2010-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix some of the problems in defsubst* (bug#5728).
+	* emacs-lisp/cl-macs.el (defsubst*): Don't substitute non-trivial args.
+	(cl-defsubst-expand): Do the substitutions simultaneously (bug#5728).
+
 2010-04-07  Sam Steingold  <sds@gnu.org>
 
-	* progmodes/compile.el (compilation-save-buffers-predicate): New
-	custom variable.
+	* progmodes/compile.el (compilation-save-buffers-predicate):
+	New custom variable.
 	(compile, recompile): Pass it to `save-some-buffers'.
 
 2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
