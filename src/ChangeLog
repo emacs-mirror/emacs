@@ -1,3 +1,7 @@
+2010-04-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.h (FRAME_LINE_TO_PIXEL_Y): Add missing parenthesis.
+
 2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use

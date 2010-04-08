@@ -980,7 +980,7 @@ extern Lisp_Object selected_frame;
    at ROW/COL.  */
 
 #define FRAME_LINE_TO_PIXEL_Y(f, row) \
-  ((row < FRAME_TOP_MARGIN (f) ? 0 : FRAME_INTERNAL_BORDER_WIDTH (f))	\
+  (((row) < FRAME_TOP_MARGIN (f) ? 0 : FRAME_INTERNAL_BORDER_WIDTH (f))	\
    + (row) * FRAME_LINE_HEIGHT (f))
 
 #define FRAME_COL_TO_PIXEL_X(f, col) \
