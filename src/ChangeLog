@@ -1,3 +1,8 @@
+2010-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't dereference glyphs beyond
+	the end of TEXT_AREA.  (Bug#5856)
+
 2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (XSETTINGS_FONT_NAME): Move XSETTINGS_FONT_NAME out of
