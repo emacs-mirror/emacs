@@ -64,11 +64,12 @@ store_font_changed_event (arg, display_name)
   kbd_buffer_store_event (&event);
 }
 
+#define XSETTINGS_FONT_NAME  "Gtk/FontName"
+
 #ifdef HAVE_GCONF
 
 #define SYSTEM_MONO_FONT     "/desktop/gnome/interface/monospace_font_name"
 #define SYSTEM_FONT          "/desktop/gnome/interface/font_name"
-#define XSETTINGS_FONT_NAME  "Gtk/FontName"
 
 /* Callback called when something changed in GConf that we care about,
    that is SYSTEM_MONO_FONT.  */

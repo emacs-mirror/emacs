@@ -1,3 +1,8 @@
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (XSETTINGS_FONT_NAME): Move XSETTINGS_FONT_NAME out of
+	HAVE_GCONF.
+
 2010-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_resolve_weak): Use prev.type_after_w1, instead of
