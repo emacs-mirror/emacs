@@ -130,6 +130,7 @@ There is no default setting for this, it must be set per file.")
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
+;;;###autoload
 (defun turn-on-bug-reference-mode ()
   "Unconditionally turn bug reference mode on."
   (unless bug-reference-mode
@@ -148,6 +149,7 @@ There is no default setting for this, it must be set per file.")
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
+;;;###autoload
 (defun turn-on-bug-reference-prog-mode ()
   "Unconditionally turn bug reference prog mode on."
   (unless bug-reference-prog-mode

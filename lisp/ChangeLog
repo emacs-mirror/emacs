@@ -1,3 +1,9 @@
+2010-04-07  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-save-buffers-predicate): New
+	custom variable.
+	(compile, recompile): Pass it to `save-some-buffers'.
+
 2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* wid-edit.el (widget-choose): Move cursor to the second line of
