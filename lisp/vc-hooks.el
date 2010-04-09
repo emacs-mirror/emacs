@@ -396,7 +396,7 @@ If the argument is a list, the files must all have the same back end."
 
 
 (defun vc-backend-subdirectory-name (file)
-  "Return where the master and lock FILEs for the current directory are kept."
+  "Return where the repository for the current directory is kept."
   (symbol-name (vc-backend file)))
 
 (defun vc-name (file)
@@ -467,13 +467,13 @@ For registered files, the value returned is one of:
   USER               The current version of the working file is locked by
                      some other USER (a string).
 
-  'needs-update       The file has not been edited by the user, but there is
+  'needs-update      The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
-                     in the master file.
+                     in the repository.
 
   'needs-merge       The file has been edited by the user, and there is also
                      a more recent version on the current branch stored in
-                     the master file.  This state can only occur if locking
+                     the repository.  This state can only occur if locking
                      is not used for the file.
 
   'unlocked-changes  The working version of the file is not locked,
@@ -552,7 +552,7 @@ and does not employ any heuristic at all."
 	unchanged))))
 
 (defun vc-default-workfile-unchanged-p (backend file)
-  "Check if FILE is unchanged by diffing against the master version.
+  "Check if FILE is unchanged by diffing against the repository version.
 Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
