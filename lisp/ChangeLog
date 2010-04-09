@@ -3,6 +3,10 @@
 	* progmodes/compile.el (compilation-save-buffers-predicate):
 	Remove the "autoload" cookie.
 
+	* progmodes/bug-reference.el (turn-on-bug-reference-mode)
+	(turn-on-bug-reference-prog-mode): Remove, `bug-reference-mode'
+	and `bug-reference-prog-mode' can be used in hooks directly.
+
 2010-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add --author support to git commit.
