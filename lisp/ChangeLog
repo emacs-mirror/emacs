@@ -1,3 +1,11 @@
+2010-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add --author support to git commit.
+	* vc-git.el (vc-git-checkin): Pass extra-args to the commit command.
+	(vc-git-log-edit-mode): New minor mode.
+	(log-edit-mode, log-edit-extra-flags, log-edit-mode): New
+	declarations.
+
 2010-04-09  Eric Raymond  <esr@snark.thyrsus.com>
 
 	* vc-hooks.el, vc-git.el: Improve documentation comments.

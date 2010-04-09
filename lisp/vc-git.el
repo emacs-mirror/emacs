@@ -548,10 +548,10 @@ or an empty string if none."
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
 
-(defun vc-git-checkin (files rev comment  &optional extra-args-ignored)
+(defun vc-git-checkin (files rev comment  &optional extra-args)
   (let ((coding-system-for-write git-commits-coding-system))
-    (vc-git-command nil 0 files "commit"
-		    "-m" comment "--only" "--")))
+    (apply 'vc-git-command nil 0 files
+	   (nconc (list "commit" "-m" comment) extra-args (list "--only" "--")))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -789,6 +789,21 @@ or BRANCH^ (where \"^\" can be repeated)."
                    (point)
                    (progn (forward-line 1) (1- (point)))))))))
     (or (vc-git-symbolic-commit next-rev) next-rev)))
+
+(declare-function log-edit-mode "log-edit" ())
+(defvar log-edit-extra-flags)
+(defvar log-edit-before-checkin-process)
+
+(define-derived-mode vc-git-log-edit-mode log-edit-mode "Git-log-edit"
+  "Mode for editing Git commit logs.
+If a line like:
+Author: NAME
+is present in the log, it is removed, and
+--author=NAME
+is passed to the git commit command."
+  (set (make-local-variable 'log-edit-extra-flags) nil)
+  (set (make-local-variable 'log-edit-before-checkin-process)
+       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--author" (match-string 1))))))
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))
