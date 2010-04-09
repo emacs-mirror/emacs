@@ -171,7 +171,14 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  ;; FIXME: This can't set 'ignored yet
+  ;; FIXME: This can't set 'ignored or 'conflict yet
+  ;; The 'ignored state could be detected with `git ls-files -i -o
+  ;; --exclude-standard` It also can't set 'needs-update or
+  ;; 'needs-merge. The rough equivalent would be that upstream branch
+  ;; for current branch is in fast-forward state i.e. current branch
+  ;; is direct ancestor of corresponding upstream branch, and the file
+  ;; was modified upstream.  But we can't check that without a network
+  ;; operation.
   (if (not (vc-git-registered file))
       'unregistered
     (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))

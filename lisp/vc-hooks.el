@@ -460,6 +460,9 @@ For registered files, the value returned is one of:
   'edited            The working file has been edited by the user.  If
                      locking is used for the file, this state means that
                      the current version is locked by the calling user.
+                     This status should *not* be reported for files 
+                     which have a changed mtime but the same content 
+                     as the repo copy.
 
   USER               The current version of the working file is locked by
                      some other USER (a string).
