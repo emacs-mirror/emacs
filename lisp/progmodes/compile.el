@@ -583,7 +583,6 @@ Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
-;;;###autoload
 (defcustom compilation-save-buffers-predicate nil
   "The second argument (PRED) passed to `save-some-buffers' before compiling.
 E.g., one can set this to

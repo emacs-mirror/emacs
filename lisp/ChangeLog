@@ -1,3 +1,8 @@
+2010-04-09  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-save-buffers-predicate):
+	Remove the "autoload" cookie.
+
 2010-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add --author support to git commit.
