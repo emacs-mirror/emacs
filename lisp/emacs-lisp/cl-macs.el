@@ -128,6 +128,12 @@
   (and (eq (cl-const-expr-p x) t) (if (consp x) (nth 1 x) x)))
 
 (defun cl-expr-access-order (x v)
+  ;; This apparently tries to return nil iff the expression X evaluates
+  ;; the variables V in the same order as they appear in V (so as to
+  ;; be able to replace those vars with the expressions they're bound
+  ;; to).
+  ;; FIXME: This is very naive, it doesn't even check to see if those
+  ;; variables appear more than once.
   (if (cl-const-expr-p x) v
     (if (consp x)
 	(progn
@@ -2616,21 +2622,36 @@ surrounded by (block NAME ...).
 		    (cons '&cl-quote args))
 		  (list* 'cl-defsubst-expand (list 'quote argns)
 			 (list 'quote (list* 'block name body))
-			 (not (or unsafe (cl-expr-access-order pbody argns)))
+                         ;; We used to pass `simple' as
+                         ;; (not (or unsafe (cl-expr-access-order pbody argns)))
+                         ;; But this is much too simplistic since it
+                         ;; does not pay attention to the argvs (and
+                         ;; cl-expr-access-order itself is also too naive).
+			 nil
 			 (and (memq '&key args) 'cl-whole) unsafe argns)))
 	  (list* 'defun* name args body))))
 
 (defun cl-defsubst-expand (argns body simple whole unsafe &rest argvs)
   (if (and whole (not (cl-safe-expr-p (cons 'progn argvs)))) whole
     (if (cl-simple-exprs-p argvs) (setq simple t))
-    (let ((lets (delq nil
-		      (mapcar* (function
-				(lambda (argn argv)
-				  (if (or simple (cl-const-expr-p argv))
-				      (progn (setq body (subst argv argn body))
-					     (and unsafe (list argn argv)))
-				    (list argn argv))))
-			       argns argvs))))
+    (let* ((substs ())
+           (lets (delq nil
+                       (mapcar* (function
+                                 (lambda (argn argv)
+                                   (if (or simple (cl-const-expr-p argv))
+                                       (progn (push (cons argn argv) substs)
+                                              (and unsafe (list argn argv)))
+                                     (list argn argv))))
+                                argns argvs))))
+      ;; FIXME: `sublis/subst' will happily substitute the symbol
+      ;; `argn' in places where it's not used as a reference
+      ;; to a variable.
+      ;; FIXME: `sublis/subst' will happily copy `argv' to a different
+      ;; scope, leading to name capture.
+      (setq body (cond ((null substs) body)
+                       ((null (cdr substs))
+                        (subst (cdar substs) (caar substs) body))
+                       (t (sublis substs body))))
       (if lets (list 'let lets body) body))))
 
 

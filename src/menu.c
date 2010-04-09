@@ -697,6 +697,12 @@ digest_single_submenu (start, end, top_level_items)
 
 	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
+#elif defined (USE_LUCID) && defined (HAVE_XFT)
+	  if (STRINGP (pane_name))
+            {
+              pane_name = ENCODE_UTF_8 (pane_name);
+	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
+            }
 #elif !defined (HAVE_MULTILINGUAL_MENU)
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
@@ -768,6 +774,18 @@ digest_single_submenu (start, end, top_level_items)
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_SYSTEM (descrip);
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
+	    }
+#elif USE_LUCID
+	  if (STRINGP (item_name))
+	    {
+              item_name = ENCODE_UTF_8 (item_name);
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
+	    }
+
+	  if (STRINGP (descrip))
+	    {
+	      descrip = ENCODE_UTF_8 (descrip);
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 #elif !defined (HAVE_MULTILINGUAL_MENU)

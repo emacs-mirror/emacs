@@ -12553,6 +12553,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   EMACS_INT pos_before = MATRIX_ROW_START_CHARPOS (row) + delta;
   EMACS_INT pos_after = MATRIX_ROW_END_CHARPOS (row) + delta;
   struct glyph *glyph_before = glyph - 1, *glyph_after = end;
+  /* A glyph beyond the edge of TEXT_AREA which we should never
+     touch.  */
+  struct glyph *glyphs_end = end;
   /* Non-zero means we've found a match for cursor position, but that
      glyph has the avoid_cursor_p flag set.  */
   int match_with_avoid_cursor = 0;
@@ -12594,7 +12597,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 	  /* If the glyph row is reversed, we need to process it from back
 	     to front, so swap the edge pointers.  */
-	  end = glyph - 1;
+	  glyphs_end = end = glyph - 1;
 	  glyph += row->used[TEXT_AREA] - 1;
 	  /* Reverse the known positions in the row.  */
 	  last_pos = pos_after = MATRIX_ROW_START_CHARPOS (row) + delta;
@@ -12772,7 +12775,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* Step 2: If we didn't find an exact match for point, we need to
      look for a proper place to put the cursor among glyphs between
      GLYPH_BEFORE and GLYPH_AFTER.  */
-  if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
+  if (!((row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
+	&& BUFFERP (glyph->object) && glyph->charpos == pt_old)
       && bpos_covered < pt_old)
     {
       if (row->ends_in_ellipsis_p && pos_after == last_pos)
@@ -12938,9 +12942,15 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       struct glyph *g1 =
 	MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
 
+      /* Don't consider glyphs that are outside TEXT_AREA.  */
+      if (!(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end))
+	return 0;
       /* Keep the candidate whose buffer position is the closest to
 	 point.  */
-      if (BUFFERP (g1->object)
+      if (/* previous candidate is a glyph in TEXT_AREA of that row */
+	  w->cursor.hpos >= 0
+	  && w->cursor.hpos < MATRIX_ROW_USED(matrix, w->cursor.vpos)
+	  && BUFFERP (g1->object)
 	  && (g1->charpos == pt_old /* an exact match always wins */
 	      || (BUFFERP (glyph->object)
 		  && eabs (g1->charpos - pt_old)
