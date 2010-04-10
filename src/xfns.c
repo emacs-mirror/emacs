@@ -5225,14 +5225,10 @@ Text larger than the specified size is clipped.  */)
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
   current_buffer->truncate_lines = Qnil;
-
-  do {
-    fonts_changed_p = 0;
-    clear_glyph_matrix (w->desired_matrix);
-    clear_glyph_matrix (w->current_matrix);
-    SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
-    try_window (FRAME_ROOT_WINDOW (f), pos, 0);
-  } while (fonts_changed_p);
+  clear_glyph_matrix (w->desired_matrix);
+  clear_glyph_matrix (w->current_matrix);
+  SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
+  try_window (FRAME_ROOT_WINDOW (f), pos, 0);
 
   /* Compute width and height of the tooltip.  */
   width = height = 0;
