@@ -5245,15 +5245,15 @@ Text larger than the specified size is clipped.  */)
       /* Let the row go over the full width of the frame.  */
       row->full_width_p = 1;
 
+      row_width = row->pixel_width;
       /* There's a glyph at the end of rows that is used to place
 	 the cursor there.  Don't include the width of this glyph.  */
       if (row->used[TEXT_AREA])
 	{
 	  last = &row->glyphs[TEXT_AREA][row->used[TEXT_AREA] - 1];
-	  row_width = row->pixel_width - last->pixel_width;
+	  if (INTEGERP (last->object))
+	    row_width -= last->pixel_width;
 	}
-      else
-	row_width = row->pixel_width;
 
       height += row->height;
       width = max (width, row_width);

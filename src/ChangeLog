@@ -9,7 +9,8 @@
 	TRY_WINDOW_CHECK_MARGINS.
 
 	* xfns.c (Fx_show_tip): Undo last change.  Call try_window with
-	TRY_WINDOW_IGNORE_FONTS_CHANGE (Bug#2423).
+	TRY_WINDOW_IGNORE_FONTS_CHANGE (Bug#2423).  Subtract last glyph's
+	width only when it is for padding.
 
 2010-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
