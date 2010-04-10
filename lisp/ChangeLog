@@ -2,7 +2,7 @@
 
 	* progmodes/fortran.el (fortran-match-and-skip-declaration):
 	New function.
-	(fortran-font-lock-keywords-3): Use it.  (Bug#1835)
+	(fortran-font-lock-keywords-3): Use it.  (Bug#1385)
 
 2010-04-07  Kenichi Handa  <handa@m17n.org>
 

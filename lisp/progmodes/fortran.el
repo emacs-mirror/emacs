@@ -403,7 +403,7 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
            '("^ *\\([0-9]+\\)" . font-lock-constant-face)))
   "Medium level highlighting for Fortran mode.")
 
-;; See bug#1835. Never really looked into _why_ this matters...
+;; See bug#1385. Never really looked into _why_ this matters...
 (defun fortran-match-and-skip-declaration (limit)
   "Like `font-lock-match-c-style-declaration-item-and-skip-to-next'.
 The only difference is, it returns t in a case when the default returns nil."
