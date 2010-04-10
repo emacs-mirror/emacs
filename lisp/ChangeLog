@@ -1,3 +1,46 @@
+2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Synchronize with Tramp repository.
+
+	* net/tramp.el (tramp-completion-function-alist)
+	(tramp-file-name-regexp, tramp-chunksize)
+	(tramp-local-coding-commands, tramp-remote-coding-commands): Fix
+	docstring.
+	(tramp-remote-process-environment): Use `format' instead of
+	`concat'.
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-get-remote-path): Use `copy-tree'.
+	(tramp-handle-file-name-all-completions): Backward/ XEmacs
+	compatibility: Use `completion-ignore-case' if
+	`read-file-name-completion-ignore-case' does not exist.
+	(tramp-do-copy-or-rename-file-directly): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-do-copy-or-rename-file-out-of-band): Use
+	`tramp-compat-delete-directory'.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection): Use
+	`format-spec-make'.
+	(tramp-find-foreign-file-name-handler)
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-set-auto-save-file-modes): Remove superfluous check for
+	`stringp'.  This is done inside `tramp-tramp-file-p'.
+	(tramp-debug-outline-regexp): New defconst.
+	(tramp-get-debug-buffer): Use it.
+	(tramp-check-for-regexp): Use (forward-line 1).
+	(tramp-set-auto-save-file-modes): Adapt version check.
+
+	* net/tramp-compat.el (tramp-advice-file-expand-wildcards): Wrap
+	call of `featurep' for 2nd argument.
+	(tramp-compat-make-temp-file): Simplify fallback implementation.
+	(tramp-compat-copy-tree): Remove function.
+	(tramp-compat-delete-directory): Provide implementation for older
+	Emacsen.
+
+	* net/tramp-fish.el (tramp-fish-handle-directory-files-and-attributes):
+	Do not use `tramp-fish-handle-file-attributes.
+
+	* net/trampver.el: Update release number.
+
 2010-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-save-buffers-predicate):
