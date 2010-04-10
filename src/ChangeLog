@@ -1,3 +1,17 @@
+2010-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement display of R2L paragraphs in GUI sessions.
+
+	* xdisp.c [HAVE_WINDOW_SYSTEM]: Add prototype for
+	append_stretch_glyph.
+	(set_cursor_from_row) <cursor_x>: Remove unused variable.  Fix
+	off-by-one error in computing x at end of text in the row.
+	(extend_face_to_end_of_line): If the row is reversed, prepend a
+	stretch glyph whose width is such that the rightmost glyph will be
+	drawn at the right margin of the window.
+	(append_stretch_glyph): In reversed row, prepend the glyph rather
+	than append it.  Set resolved_level and bidi_type of the glyph.
+
 2010-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't dereference glyphs beyond

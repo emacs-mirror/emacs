@@ -999,6 +999,8 @@ static void display_tool_bar_line P_ ((struct it *, int));
 static void notice_overwritten_cursor P_ ((struct window *,
 					   enum glyph_row_area,
 					   int, int, int, int));
+static void append_stretch_glyph P_ ((struct it *, Lisp_Object,
+				      int, int, int));
 
 
 
@@ -12548,7 +12550,6 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* The last known character position in row.  */
   int last_pos = MATRIX_ROW_START_CHARPOS (row) + delta;
   int x = row->x;
-  int cursor_x = x;
   EMACS_INT pt_old = PT - delta;
   EMACS_INT pos_before = MATRIX_ROW_START_CHARPOS (row) + delta;
   EMACS_INT pos_after = MATRIX_ROW_END_CHARPOS (row) + delta;
@@ -12616,7 +12617,6 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	     rightmost (first in the reading order) glyph.  */
 	  for (g = end + 1; g < glyph; g++)
 	    x += g->pixel_width;
-	  cursor_x = x;
 	  while (end < glyph
 		 && INTEGERP ((end + 1)->object)
 		 && (end + 1)->charpos <= 0)
@@ -12631,7 +12631,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	 rightmost glyph.  Case in point: an empty last line that is
 	 part of an R2L paragraph.  */
       cursor = end - 1;
-      x = -1;	/* will be computed below, at lable compute_x */
+      x = -1;	/* will be computed below, at label compute_x */
     }
 
   /* Step 1: Try to find the glyph whose character position
@@ -12767,7 +12767,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    string_seen = 1;
 	  }
 	--glyph;
-	if (glyph == end)
+	if (glyph == glyphs_end) /* don't dereference outside TEXT_AREA */
 	  break;
 	x -= glyph->pixel_width;
     }
@@ -16772,9 +16772,11 @@ append_space_for_newline (it, default_face_p)
 
 
 /* Extend the face of the last glyph in the text area of IT->glyph_row
-   to the end of the display line.  Called from display_line.
-   If the glyph row is empty, add a space glyph to it so that we
-   know the face to draw.  Set the glyph row flag fill_line_p.  */
+   to the end of the display line.  Called from display_line.  If the
+   glyph row is empty, add a space glyph to it so that we know the
+   face to draw.  Set the glyph row flag fill_line_p.  If the glyph
+   row is R2L, prepend a stretch glyph to cover the empty space to the
+   left of the leftmost glyph.  */
 
 static void
 extend_face_to_end_of_line (it)
@@ -16791,7 +16793,7 @@ extend_face_to_end_of_line (it)
      to the end of the line.  If the background equals the background
      of the frame, we don't have to do anything.  */
   if (it->face_before_selective_p)
-    face = FACE_FROM_ID (it->f, it->saved_face_id);
+    face = FACE_FROM_ID (f, it->saved_face_id);
   else
     face = FACE_FROM_ID (f, it->face_id);
 
@@ -16799,7 +16801,8 @@ extend_face_to_end_of_line (it)
       && it->glyph_row->displays_text_p
       && face->box == FACE_NO_BOX
       && face->background == FRAME_BACKGROUND_PIXEL (f)
-      && !face->stipple)
+      && !face->stipple
+      && !it->glyph_row->reversed_p)
     return;
 
   /* Set the glyph row flag indicating that the face of the last glyph
@@ -16826,6 +16829,44 @@ extend_face_to_end_of_line (it)
 	  it->glyph_row->glyphs[TEXT_AREA][0].face_id = it->face_id;
 	  it->glyph_row->used[TEXT_AREA] = 1;
 	}
+#ifdef HAVE_WINDOW_SYSTEM
+      if (it->glyph_row->reversed_p)
+	{
+	  /* Prepend a stretch glyph to the row, such that the
+	     rightmost glyph will be drawn flushed all the way to the
+	     right margin of the window.  The stretch glyph that will
+	     occupy the empty space, if any, to the left of the
+	     glyphs.  */
+	  struct font *font = face->font ? face->font : FRAME_FONT (f);
+	  struct glyph *row_start = it->glyph_row->glyphs[TEXT_AREA];
+	  struct glyph *row_end = row_start + it->glyph_row->used[TEXT_AREA];
+	  struct glyph *g;
+	  int row_width, stretch_ascent, stretch_width;
+	  struct text_pos saved_pos;
+	  int saved_face_id, saved_avoid_cursor;
+
+	  for (row_width = 0, g = row_start; g < row_end; g++)
+	    row_width += g->pixel_width;
+	  stretch_width = WINDOW_BOX_RIGHT_EDGE_X(it->w)
+	    		  - WINDOW_BOX_LEFT_EDGE_X(it->w)
+	    		  - WINDOW_TOTAL_FRINGE_WIDTH(it->w)
+	    		  - row_width;
+	  stretch_ascent =
+	    (((it->ascent + it->descent)
+	      * FONT_BASE (font)) / FONT_HEIGHT (font));
+	  saved_pos = it->position;
+	  saved_avoid_cursor = it->avoid_cursor_p;
+	  saved_face_id = it->face_id;
+	  bzero (&it->position, sizeof it->position);
+	  it->avoid_cursor_p = 1;
+	  it->face_id = face->id;
+	  append_stretch_glyph (it, make_number (0), stretch_width,
+				it->ascent + it->descent, stretch_ascent);
+	  it->position = saved_pos;
+	  it->avoid_cursor_p = saved_avoid_cursor;
+	  it->face_id = saved_face_id;
+	}
+#endif	/* HAVE_WINDOW_SYSTEM */
     }
   else
     {
@@ -21658,6 +21699,17 @@ append_stretch_glyph (it, object, width, height, ascent)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
+      /* If the glyph row is reversed, we need to prepend the glyph
+	 rather than append it.  */
+      if (it->glyph_row->reversed_p && area == TEXT_AREA)
+	{
+	  struct glyph *g;
+
+	  /* Make room for the additional glyph.  */
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[area]; g--)
+	    g[1] = *g;
+	  glyph = it->glyph_row->glyphs[area];
+	}
       glyph->charpos = CHARPOS (it->position);
       glyph->object = object;
       glyph->pixel_width = width;
@@ -21683,6 +21735,11 @@ append_stretch_glyph (it, object, width, height, ascent)
 	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
 	    abort ();
 	  glyph->bidi_type = it->bidi_it.type;
+	}
+      else
+	{
+	  glyph->resolved_level = 0;
+	  glyph->bidi_type = UNKNOWN_BT;
 	}
       ++it->glyph_row->used[area];
     }
