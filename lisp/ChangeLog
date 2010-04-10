@@ -1,5 +1,9 @@
 2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-do-copy-or-rename-file): Add progress reporter.
+
+2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
 	Synchronize with Tramp repository.
 
 	* net/tramp.el (tramp-completion-function-alist)

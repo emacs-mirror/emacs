@@ -3524,7 +3524,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
   (let ((t1 (tramp-tramp-file-p filename))
-	(t2 (tramp-tramp-file-p newname)))
+	(t2 (tramp-tramp-file-p newname))
+	pr tm)
 
     (when (and (not ok-if-already-exists) (file-exists-p newname))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -3534,7 +3535,16 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (tramp-message v 0 "Transferring %s to %s..." filename newname))
 
-    (prog1
+    ;; We start a pulsing progress reporter.  Introduced in Emacs 24.1.
+    (when (> (nth 7 (file-attributes filename)) tramp-copy-size-limit)
+      (condition-case nil
+	  (setq pr (funcall
+		    'make-progress-reporter
+		    (format "Transferring %s to %s..." filename newname))
+		tm (run-at-time 0 0.1 'progress-reporter-update pr))
+	(error nil)))
+
+    (unwind-protect
 	(cond
 	 ;; Both are Tramp files.
 	 ((and t1 t2)
@@ -3604,6 +3614,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname)))
 
+      ;; Stop progress reporter.
+      (if tm (cancel-timer tm))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(tramp-message v 0 "Transferring %s to %s...done" filename newname)))))
 
@@ -8569,7 +8581,6 @@ Only works for Bourne-like shells."
 ;; * Remove unneeded parameters from methods.
 ;; * Make it work for different encodings, and for different file name
 ;;   encodings, too.  (Daniel Pittman)
-;; * Progress reports while copying files.  (Michael Kifer)
 ;; * Don't search for perl5 and perl.  Instead, only search for perl and
 ;;   then look if it's the right version (with `perl -v').
 ;; * When editing a remote CVS controlled file as a different user, VC
