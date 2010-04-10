@@ -595,7 +595,8 @@ of `my-compilation-root' here."
           (const :tag "Default (save all file-visiting buffers)" nil)
           (const :tag "Save all buffers" t)
           function)
-  :group 'compilation)
+  :group 'compilation
+  :version "24.1")
 
 ;;;###autoload
 (defcustom compilation-search-path '(nil)
