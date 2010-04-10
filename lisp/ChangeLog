@@ -1,3 +1,8 @@
+2010-04-10  Jari Aalto  <jari.aalto@cante.net>
+
+	* comint.el (comint-password-prompt-regexp): Use regexp-opt, and
+	recognize ssh-keygen prompt (Bug#2817).
+
 2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file): Add progress reporter.
