@@ -326,12 +326,14 @@ extern Lisp_Object Voverflow_newline_into_fringe;
 /* Test if overflow newline into fringe.  Called with iterator IT
    at or past right window margin, and with IT->current_x set.  */
 
-#define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it)	\
-  (!NILP (Voverflow_newline_into_fringe)	\
-   && FRAME_WINDOW_P (it->f)			\
-   && WINDOW_RIGHT_FRINGE_WIDTH (it->w) > 0	\
-   && it->current_x == it->last_visible_x	\
-   && it->line_wrap != WORD_WRAP)
+#define IT_OVERFLOW_NEWLINE_INTO_FRINGE(IT)		\
+  (!NILP (Voverflow_newline_into_fringe)		\
+   && FRAME_WINDOW_P ((IT)->f)				\
+   && ((IT)->bidi_it.paragraph_dir == R2L		\
+       ? (WINDOW_LEFT_FRINGE_WIDTH ((IT)->w) > 0)	\
+       : (WINDOW_RIGHT_FRINGE_WIDTH ((IT)->w) > 0))	\
+   && (IT)->current_x == (IT)->last_visible_x		\
+   && (IT)->line_wrap != WORD_WRAP)
 
 #else /* !HAVE_WINDOW_SYSTEM */
 #define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it) 0
@@ -12600,9 +12602,6 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	     to front, so swap the edge pointers.  */
 	  glyphs_end = end = glyph - 1;
 	  glyph += row->used[TEXT_AREA] - 1;
-	  /* Reverse the known positions in the row.  */
-	  last_pos = pos_after = MATRIX_ROW_START_CHARPOS (row) + delta;
-	  pos_before = MATRIX_ROW_END_CHARPOS (row) + delta;
 
 	  while (glyph > end + 1
 		 && INTEGERP (glyph->object)
@@ -12768,7 +12767,10 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  }
 	--glyph;
 	if (glyph == glyphs_end) /* don't dereference outside TEXT_AREA */
-	  break;
+	  {
+	    x--;		/* can't use any pixel_width */
+	    break;
+	  }
 	x -= glyph->pixel_width;
     }
 
@@ -16851,20 +16853,23 @@ extend_face_to_end_of_line (it)
 	    		  - WINDOW_BOX_LEFT_EDGE_X(it->w)
 	    		  - WINDOW_TOTAL_FRINGE_WIDTH(it->w)
 	    		  - row_width;
-	  stretch_ascent =
-	    (((it->ascent + it->descent)
-	      * FONT_BASE (font)) / FONT_HEIGHT (font));
-	  saved_pos = it->position;
-	  saved_avoid_cursor = it->avoid_cursor_p;
-	  saved_face_id = it->face_id;
-	  bzero (&it->position, sizeof it->position);
-	  it->avoid_cursor_p = 1;
-	  it->face_id = face->id;
-	  append_stretch_glyph (it, make_number (0), stretch_width,
-				it->ascent + it->descent, stretch_ascent);
-	  it->position = saved_pos;
-	  it->avoid_cursor_p = saved_avoid_cursor;
-	  it->face_id = saved_face_id;
+	  if (stretch_width > 0)
+	    {
+	      stretch_ascent =
+		(((it->ascent + it->descent)
+		  * FONT_BASE (font)) / FONT_HEIGHT (font));
+	      saved_pos = it->position;
+	      saved_avoid_cursor = it->avoid_cursor_p;
+	      saved_face_id = it->face_id;
+	      bzero (&it->position, sizeof it->position);
+	      it->avoid_cursor_p = 1;
+	      it->face_id = face->id;
+	      append_stretch_glyph (it, make_number (0), stretch_width,
+				    it->ascent + it->descent, stretch_ascent);
+	      it->position = saved_pos;
+	      it->avoid_cursor_p = saved_avoid_cursor;
+	      it->face_id = saved_face_id;
+	    }
 	}
 #endif	/* HAVE_WINDOW_SYSTEM */
     }
@@ -23221,7 +23226,7 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
   if (row->cursor_in_fringe_p)
     {
       row->cursor_in_fringe_p = 0;
-      draw_fringe_bitmap (w, row, 0);
+      draw_fringe_bitmap (w, row, row->reversed_p);
       w->phys_cursor_on_p = 0;
       return;
     }
@@ -23322,7 +23327,9 @@ draw_phys_cursor_glyph (w, row, hl)
   /* If cursor hpos is out of bounds, don't draw garbage.  This can
      happen in mini-buffer windows when switching between echo area
      glyphs and mini-buffer.  */
-  if (w->phys_cursor.hpos < row->used[TEXT_AREA])
+  if ((row->reversed_p
+       ? (w->phys_cursor.hpos >= 0)
+       : (w->phys_cursor.hpos < row->used[TEXT_AREA])))
     {
       int on_p = w->phys_cursor_on_p;
       int x1;
@@ -23402,7 +23409,7 @@ erase_phys_cursor (w)
   if (cursor_row->cursor_in_fringe_p)
     {
       cursor_row->cursor_in_fringe_p = 0;
-      draw_fringe_bitmap (w, cursor_row, 0);
+      draw_fringe_bitmap (w, cursor_row, cursor_row->reversed_p);
       goto mark_cursor_off;
     }
 
@@ -23411,7 +23418,9 @@ erase_phys_cursor (w)
      should have cleared the cursor.  Note that we wouldn't be
      able to erase the cursor in this case because we don't have a
      cursor glyph at hand.  */
-  if (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])
+  if ((cursor_row->reversed_p
+       ? (w->phys_cursor.hpos < 0)
+       : (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])))
     goto mark_cursor_off;
 
   /* If the cursor is in the mouse face area, redisplay that when

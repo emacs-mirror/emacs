@@ -2,6 +2,31 @@
 
 	Implement display of R2L paragraphs in GUI sessions.
 
+	* xdisp.c (IT_OVERFLOW_NEWLINE_INTO_FRINGE): For R2L lines,
+	consider the left fringe, not the right one.
+	(set_cursor_from_row): Don't reverse pos_before and pos_after for
+	reversed glyph rows.  Set cursor.x to negative value when the
+	cursor might be on the left fringe.
+	(extend_face_to_end_of_line): Append the stretch glyph only if its
+	width is positive.
+	(notice_overwritten_cursor, draw_phys_cursor_glyph)
+	(erase_phys_cursor): For reversed cursor_row, support cursor on
+	the left fringe.
+
+	* w32term.c (w32_draw_window_cursor): For reversed glyph rows,
+	draw cursor on the left fringe.
+
+	* xterm.c (x_draw_window_cursor): For reversed glyph rows, draw
+	cursor on the left fringe.
+
+	* fringe.c (draw_fringe_bitmap): For reversed glyph rows, allow
+	cursor on the left fringe.
+
+	* dispnew.c (update_text_area): Handle reversed desired rows when
+	the cursor is on the left fringe.
+	(set_window_cursor_after_update): Limit cursor's hpos by -1 from
+	below, not by 0, for when the cursor is on the left fringe.
+
 	* xdisp.c [HAVE_WINDOW_SYSTEM]: Add prototype for
 	append_stretch_glyph.
 	(set_cursor_from_row) <cursor_x>: Remove unused variable.  Fix

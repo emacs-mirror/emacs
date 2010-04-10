@@ -825,7 +825,7 @@ draw_fringe_bitmap (w, row, left_p)
 {
   int overlay = 0;
 
-  if (!left_p && row->cursor_in_fringe_p)
+  if (left_p == row->reversed_p && row->cursor_in_fringe_p)
     {
       Lisp_Object cursor = Qnil;
 
@@ -857,7 +857,7 @@ draw_fringe_bitmap (w, row, left_p)
 	  int bm = get_logical_cursor_bitmap (w, cursor);
 	  if (bm != NO_FRINGE_BITMAP)
 	    {
-	      draw_fringe_bitmap_1 (w, row, 0, 2, bm);
+	      draw_fringe_bitmap_1 (w, row, left_p, 2, bm);
 	      overlay = EQ (cursor, Qbox) ? 3 : 1;
 	    }
 	}
