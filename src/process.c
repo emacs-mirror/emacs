@@ -6840,6 +6840,11 @@ exec_sentinel (proc, reason)
   XSETBUFFER (obuffer, current_buffer);
   okeymap = current_buffer->keymap;
 
+  /* There's no good reason to let sentinels change the current
+     buffer, and many callers of accept-process-output, sit-for, and
+     friends don't expect current-buffer to be changed from under them.  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
   sentinel = p->sentinel;
   if (NILP (sentinel))
     return;

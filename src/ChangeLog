@@ -1,5 +1,7 @@
 2010-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.c (exec_sentinel): Preserve current-buffer.
+
 	* process.c (read_process_output): Move the save-current-buffer to
 	apply to both the filter and the non-filter branches.
 
