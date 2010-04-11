@@ -1,3 +1,8 @@
+2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (apply_systemfont_to_dialog): New.
+	(create_and_show_dialog): Call apply_systemfont_to_dialog if HAVE_XFT.
+
 2010-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (exec_sentinel): Preserve current-buffer.

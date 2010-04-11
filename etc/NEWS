@@ -65,7 +65,8 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
-** Lucid menus can display antialiased fonts if Emacs is build with Xft.
+** Lucid menus and dialogs can display antialiased fonts if Emacs is built
+with Xft.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to [next] and [prior]) does not signal errors at top/bottom
