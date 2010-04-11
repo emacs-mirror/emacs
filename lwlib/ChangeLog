@@ -1,3 +1,8 @@
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
+	(C_SWITCH_X_SITE): Define using autoconf.
+
 2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xaw.c (widget_xft_data): New for Xft data.
