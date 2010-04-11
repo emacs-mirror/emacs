@@ -2974,6 +2974,10 @@ extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 #endif
 
+/* Flags passed to try_window.  */
+#define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
+#define TRY_WINDOW_IGNORE_FONTS_CHANGE	(1 << 1)
+
 /* Defined in fringe.c */
 
 int lookup_fringe_bitmap (Lisp_Object);

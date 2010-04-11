@@ -14203,7 +14203,7 @@ redisplay_window (window, just_this_one_p)
 	       = try_window_reusing_current_matrix (w)))
 	{
 	  IF_DEBUG (debug_method_add (w, "1"));
-	  if (try_window (window, startp, 1) < 0)
+	  if (try_window (window, startp, TRY_WINDOW_CHECK_MARGINS) < 0)
 	    /* -1 means we need to scroll.
 	       0 means we need new matrices, but fonts_changed_p
 	       is set in that case, so we will detect it below.  */
@@ -14554,13 +14554,15 @@ redisplay_window (window, just_this_one_p)
    Value is 1 if successful.  It is zero if fonts were loaded during
    redisplay which makes re-adjusting glyph matrices necessary, and -1
    if point would appear in the scroll margins.
-   (We check that only if CHECK_MARGINS is nonzero.  */
+   (We check the former only if TRY_WINDOW_IGNORE_FONTS_CHANGE is
+   unset in FLAGS, and the latter only if TRY_WINDOW_CHECK_MARGINS is
+   set in FLAGS.)  */
 
 int
-try_window (window, pos, check_margins)
+try_window (window, pos, flags)
      Lisp_Object window;
      struct text_pos pos;
-     int check_margins;
+     int flags;
 {
   struct window *w = XWINDOW (window);
   struct it it;
@@ -14582,12 +14584,12 @@ try_window (window, pos, check_margins)
     {
       if (display_line (&it))
 	last_text_row = it.glyph_row - 1;
-      if (fonts_changed_p)
+      if (fonts_changed_p && !(flags & TRY_WINDOW_IGNORE_FONTS_CHANGE))
 	return 0;
     }
 
   /* Don't let the cursor end in the scroll margins.  */
-  if (check_margins
+  if ((flags & TRY_WINDOW_CHECK_MARGINS)
       && !MINI_WINDOW_P (w))
     {
       int this_scroll_margin;

@@ -63,11 +63,18 @@
 ;; although you might prefer to use C-c C-a (i.e. `log-edit-insert-changelog')
 ;; from the commit buffer instead or to set `log-edit-setup-invert'.
 ;;
-;; The vc code maintains some internal state in order to reduce expensive
-;; version-control operations to a minimum.  Some names are only computed
-;; once.  If you perform version control operations with the backend while
-;; vc's back is turned, or move/rename master files while vc is running,
-;; vc may get seriously confused.  Don't do these things!
+;; When using SCCS, RCS, CVS: be careful not to do repo surgery, or
+;; operations like registrations and deletions and renames, outside VC
+;; while VC is running. The support for these systems was designed
+;; when disks were much slower, and the code maintains a lot of
+;; internal state in order to reduce expensive operations to a
+;; minimum. Thus, if you mess with the repo while VC's back is turned,
+;; VC may get seriously confused.
+;;
+;; When using Subversion or a later system, anything you do outside VC
+;; *through the VCS tools* should safely interlock with VC
+;; operations. Under these VC does little state caching, because local
+;; operations are assumed to be fast.  The dividing line is
 ;;
 ;; ADDING SUPPORT FOR OTHER BACKENDS
 ;;
@@ -196,7 +203,7 @@
 ;;
 ;;   Return non-nil if FILE is unchanged from the working revision.
 ;;   This function should do a brief comparison of FILE's contents
-;;   with those of the repository master of the working revision.  If
+;;   with those of the repository copy of the working revision.  If
 ;;   the backend does not have such a brief-comparison feature, the
 ;;   default implementation of this function can be used, which
 ;;   delegates to a full vc-BACKEND-diff.  (Note that vc-BACKEND-diff
@@ -784,7 +791,7 @@ is sensitive to blank lines."
 (defcustom vc-checkout-carefully (= (user-uid) 0)
   "Non-nil means be extra-careful in checkout.
 Verify that the file really is not locked
-and that its contents match what the master file says."
+and that its contents match what the repository version says."
   :type 'boolean
   :group 'vc)
 (make-obsolete-variable 'vc-checkout-carefully
@@ -1518,7 +1525,7 @@ returns t if the buffer had changes, nil otherwise."
                   (not (string= (vc-working-revision file) "0")))
               (push file filtered)
             ;; This file is added but not yet committed;
-            ;; there is no master file to diff against.
+            ;; there is no repository version to diff against.
             (if (or rev1 rev2)
                 (error "No revisions of %s exist" file)
               ;; We regard this as "changed".
@@ -2318,7 +2325,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 		(if unmodified-file
 		    (copy-file unmodified-file file
 			       'ok-if-already-exists 'keep-date)
-		  (when (y-or-n-p "Get base revision from master? ")
+		  (when (y-or-n-p "Get base revision from repository? ")
 		    (vc-revert-file file))))
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
@@ -2405,7 +2412,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 
 ;;;###autoload
 (defun vc-rename-file (old new)
-  "Rename file OLD to NEW, and rename its master file likewise."
+  "Rename file OLD to NEW in both work area and repository."
   (interactive "fVC rename file: \nFRename to: ")
   ;; in CL I would have said (setq new (merge-pathnames new old))
   (let ((old-base (file-name-nondirectory old)))

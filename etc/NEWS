@@ -107,6 +107,10 @@ choose a color via list-colors-display.
 Author: NAME
 line will add "--author NAME" to the "bzr commit" command.
 
+**** For Git, adding an
+Author: NAME
+line will add "--author NAME" to the "git commit" command.
+
 **** For Hg, adding an
 Author: NAME
 line will add "--user NAME" to the "hg commit" command.

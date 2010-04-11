@@ -171,7 +171,14 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  ;; FIXME: This can't set 'ignored yet
+  ;; FIXME: This can't set 'ignored or 'conflict yet
+  ;; The 'ignored state could be detected with `git ls-files -i -o
+  ;; --exclude-standard` It also can't set 'needs-update or
+  ;; 'needs-merge. The rough equivalent would be that upstream branch
+  ;; for current branch is in fast-forward state i.e. current branch
+  ;; is direct ancestor of corresponding upstream branch, and the file
+  ;; was modified upstream.  But we can't check that without a network
+  ;; operation.
   (if (not (vc-git-registered file))
       'unregistered
     (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
@@ -541,10 +548,10 @@ or an empty string if none."
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
 
-(defun vc-git-checkin (files rev comment  &optional extra-args-ignored)
+(defun vc-git-checkin (files rev comment  &optional extra-args)
   (let ((coding-system-for-write git-commits-coding-system))
-    (vc-git-command nil 0 files "commit"
-		    "-m" comment "--only" "--")))
+    (apply 'vc-git-command nil 0 files
+	   (nconc (list "commit" "-m" comment) extra-args (list "--only" "--")))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -782,6 +789,21 @@ or BRANCH^ (where \"^\" can be repeated)."
                    (point)
                    (progn (forward-line 1) (1- (point)))))))))
     (or (vc-git-symbolic-commit next-rev) next-rev)))
+
+(declare-function log-edit-mode "log-edit" ())
+(defvar log-edit-extra-flags)
+(defvar log-edit-before-checkin-process)
+
+(define-derived-mode vc-git-log-edit-mode log-edit-mode "Git-log-edit"
+  "Mode for editing Git commit logs.
+If a line like:
+Author: NAME
+is present in the log, it is removed, and
+--author=NAME
+is passed to the git commit command."
+  (set (make-local-variable 'log-edit-extra-flags) nil)
+  (set (make-local-variable 'log-edit-before-checkin-process)
+       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--author" (match-string 1))))))
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))

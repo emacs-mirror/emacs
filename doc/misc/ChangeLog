@@ -1,3 +1,14 @@
+2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Synchronize with Tramp repository.
+
+	* tramp.texi (Auto-save and Backup): Remove reference to Emacs 21.
+	(Frequently Asked Questions): Adapt supported (X)Emacs versions.  Adapt
+	supported MS Windows versions.  Remove obsolete URL.  Use the $()
+	syntax, texi2dvi reports errors with the backquotes.
+
+	* trampver.texi: Update release number.
+
 2010-04-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Finding the News): Add pointers to the Server buffer

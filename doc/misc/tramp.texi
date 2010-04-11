@@ -2125,10 +2125,9 @@ The backup file name of @file{@trampfn{su, root, localhost,
 
 The same problem can happen with auto-saving files.
 @ifset emacs
-Since @value{emacsname} 21, the variable
-@code{auto-save-file-name-transforms} keeps information, on which
-directory an auto-saved file should go.  By default, it is initialized
-for @value{tramp} files to the local temporary directory.
+The variable @code{auto-save-file-name-transforms} keeps information,
+on which directory an auto-saved file should go.  By default, it is
+initialized for @value{tramp} files to the local temporary directory.
 
 On some versions of @value{emacsname}, namely the version built for
 Debian GNU/Linux, the variable @code{auto-save-file-name-transforms}
@@ -2749,17 +2748,13 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on GNU Emacs 21, GNU Emacs 22,
-GNU Emacs 23, XEmacs 21 (starting with 21.4), and SXEmacs 22.
+The package has been used successfully on GNU Emacs 22, GNU Emacs 23,
+XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
-Unix-like system on the remote end (except the @option{smb} method),
-but some people seemed to have some success getting it to work on MS
-Windows NT/2000/XP @value{emacsname}.
-
-There is some informations on @value{tramp} on NT at the following URL;
-many thanks to Joe Stoy for providing the information:
-@uref{ftp://ftp.comlab.ox.ac.uk/tmp/Joe.Stoy/}
+Unix-like system on the remote end (except the @option{smb} and
+@option{imap} methods), but some people seemed to have some success
+getting it to work on MS Windows XP/Vista/7 @value{emacsname}.
 
 
 @item
@@ -3339,7 +3334,7 @@ could write a script @file{emacsclient.sh}:
 
 @example
 #!/bin/sh
-emacsclient @trampfn{ssh, `whoami`, `hostname --fqdn`, $1}
+emacsclient @trampfn{ssh, $(whoami), $(hostname --fqdn), $1}
 @end example
 
 Then you must set the environment variable @code{EDITOR} pointing to

@@ -1,3 +1,26 @@
+2010-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/msdos.h (UNEXEC): New definition.
+
+2010-04-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (TRY_WINDOW_CHECK_MARGINS)
+	(TRY_WINDOW_IGNORE_FONTS_CHANGE): New defines.
+
+	* xdisp.c (try_window): Change arg from CHECK_MARGINS to FLAGS.
+	Don't abort with fonts change if TRY_WINDOW_IGNORE_FONTS_CHANGE is
+	set in FLAGS.  Callers with non-zero CHECK_MARGINS changed to use
+	TRY_WINDOW_CHECK_MARGINS.
+
+	* xfns.c (Fx_show_tip): Undo last change.  Call try_window with
+	TRY_WINDOW_IGNORE_FONTS_CHANGE (Bug#2423).  Subtract last glyph's
+	width only when it is for padding.
+
+2010-04-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_show_tip): Call try_window in a loop until
+	fonts_changed_p is zero (Bug#2423).
+
 2010-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't dereference glyphs beyond
