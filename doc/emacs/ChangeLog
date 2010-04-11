@@ -1,3 +1,7 @@
+2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Lucid Resources): Mention faceName for dialogs.
+
 2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Lucid Resources): Mention faceName to set Xft fonts.
