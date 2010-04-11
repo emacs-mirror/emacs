@@ -1,3 +1,8 @@
+2010-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (read_process_output): Move the save-current-buffer to
+	apply to both the filter and the non-filter branches.
+
 2010-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/msdos.h (UNEXEC): New definition.

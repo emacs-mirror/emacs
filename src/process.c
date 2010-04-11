@@ -5314,6 +5314,8 @@ read_process_output (proc, channel)
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
   int readmax = 4096;
+  int count = SPECPDL_INDEX ();
+  Lisp_Object odeactivate;
 
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
@@ -5386,15 +5388,16 @@ read_process_output (proc, channel)
   /* Now set NBYTES how many bytes we must decode.  */
   nbytes += carryover;
 
+  odeactivate = Vdeactivate_mark;
+  /* There's no good reason to let process filters change the current
+     buffer, and many callers of accept-process-output, sit-for, and
+     friends don't expect current-buffer to be changed from under them.  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
   /* Read and dispose of the process output.  */
   outstream = p->filter;
   if (!NILP (outstream))
     {
-      /* We inhibit quit here instead of just catching it so that
-	 hitting ^G when a filter happens to be running won't screw
-	 it up.  */
-      int count = SPECPDL_INDEX ();
-      Lisp_Object odeactivate;
       Lisp_Object obuffer, okeymap;
       Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
@@ -5402,10 +5405,12 @@ read_process_output (proc, channel)
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
-      odeactivate = Vdeactivate_mark;
       XSETBUFFER (obuffer, current_buffer);
       okeymap = current_buffer->keymap;
 
+      /* We inhibit quit here instead of just catching it so that
+	 hitting ^G when a filter happens to be running won't screw
+	 it up.  */
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
 
@@ -5474,9 +5479,6 @@ read_process_output (proc, channel)
       restore_search_regs ();
       running_asynch_code = outer_running_asynch_code;
 
-      /* Handling the process output should not deactivate the mark.  */
-      Vdeactivate_mark = odeactivate;
-
       /* Restore waiting_for_user_input_p as it was
 	 when we were called, in case the filter clobbered it.  */
       waiting_for_user_input_p = waiting;
@@ -5492,27 +5494,19 @@ read_process_output (proc, channel)
 	   cause trouble (for example it would make sit_for return).  */
 	if (waiting_for_user_input_p == -1)
 	  record_asynch_buffer_change ();
-
-      unbind_to (count, Qnil);
-      return nbytes;
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
-  if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
+  else if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
     {
       Lisp_Object old_read_only;
       int old_begv, old_zv;
       int old_begv_byte, old_zv_byte;
-      Lisp_Object odeactivate;
       int before, before_byte;
       int opoint_byte;
       Lisp_Object text;
       struct buffer *b;
-      int count = SPECPDL_INDEX ();
 
-      odeactivate = Vdeactivate_mark;
-
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (p->buffer);
       opoint = PT;
       opoint_byte = PT_BYTE;
@@ -5610,13 +5604,14 @@ read_process_output (proc, channel)
       if (old_begv != BEGV || old_zv != ZV)
 	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
 
-      /* Handling the process output should not deactivate the mark.  */
-      Vdeactivate_mark = odeactivate;
 
       current_buffer->read_only = old_read_only;
       SET_PT_BOTH (opoint, opoint_byte);
-      unbind_to (count, Qnil);
     }
+  /* Handling the process output should not deactivate the mark.  */
+  Vdeactivate_mark = odeactivate;
+
+  unbind_to (count, Qnil);
   return nbytes;
 }
 
