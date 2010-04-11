@@ -1,3 +1,11 @@
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Use autoconf, not cpp for some variables.
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
+	(C_SWITCH_X_SITE): Define using autoconf, not cpp.
+	(ALL_CFLAGS): Use them as make variables.
+	(really-lwlib, really-oldXMenu): Do not pass them.
+
 2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (apply_systemfont_to_dialog): New.
