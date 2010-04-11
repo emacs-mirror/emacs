@@ -165,9 +165,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    each); under Cocoa 31 commands are required.  */
 #define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
-#define C_SWITCH_SYSTEM_TEMACS -Dtemacs
-
-#ifdef temacs
+#ifdef emacs
 #define malloc unexec_malloc
 #define realloc unexec_realloc
 #define free unexec_free

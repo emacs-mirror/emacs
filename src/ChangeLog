@@ -1,5 +1,13 @@
 2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove C_SWITCH_SYSTEM_TEMACS.
+	* s/darwin.h (C_SWITCH_SYSTEM_TEMACS): Remove.
+	(malloc, realloc, free): Use emacs, not temacs for conditional
+	definition.
+
+	* Makefile.in (C_SWITCH_SYSTEM_TEMACS): Remove.
+	(ALL_CFLAGS): Do not use C_SWITCH_SYSTEM_TEMACS.
+
 	Use autoconf, not cpp for some variables.
 	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
 	(C_SWITCH_X_SITE): Define using autoconf, not cpp.
