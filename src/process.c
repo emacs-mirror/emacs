@@ -6982,12 +6982,10 @@ status_notify (deleting_process)
 	     when a process becomes runnable.  */
 	  else if (!EQ (symbol, Qrun) && !NILP (buffer))
 	    {
-	      Lisp_Object ro, tem;
+	      Lisp_Object tem;
 	      struct buffer *old = current_buffer;
 	      int opoint, opoint_byte;
 	      int before, before_byte;
-
-	      ro = XBUFFER (buffer)->read_only;
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */

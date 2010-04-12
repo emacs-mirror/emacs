@@ -1,3 +1,7 @@
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (status_notify): Remove unused var `ro'.
+
 2010-04-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (select_visual): Don't call error if XGetVisualInfo returns
