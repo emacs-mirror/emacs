@@ -1,5 +1,8 @@
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-dir.el (vc-dir-kill-line): New command.
+	(vc-dir-mode-map): Bind it to C-k.
+
 	* bookmark.el (bookmark-insert-location): Handle a nil filename.
 
 	* woman.el: Add bookmark declarations to silence the compiler.
