@@ -4129,7 +4129,7 @@ select_visual (dpyinfo)
       vinfo_template.screen = XScreenNumberOfScreen (screen);
       vinfo = XGetVisualInfo (dpy, VisualIDMask | VisualScreenMask,
 			      &vinfo_template, &n_visuals);
-      if (n_visuals != 1)
+      if (n_visuals <= 0)
 	fatal ("Can't get proper X visual info");
 
       dpyinfo->n_planes = vinfo->depth;
