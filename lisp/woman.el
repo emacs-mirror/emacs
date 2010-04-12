@@ -1934,6 +1934,9 @@ See `Man-mode' for additional details."
        ;; `make-local-variable' in case imenu not yet loaded!
        woman-imenu-generic-expression)
   (set (make-local-variable 'imenu-space-replacement) " ")
+  ;; Bookmark support.
+  (set (make-local-variable 'bookmark-make-record-function)
+       'woman-bookmark-make-record)
   ;; For reformat ...
   ;; necessary when reformatting a file in its old buffer:
   (setq imenu--last-menubar-index-alist nil)
@@ -4515,6 +4518,24 @@ logging the message."
 		    (forward-line -1)
 		    (recenter 0))))))))
   nil)					; for woman-file-readable-p etc.
+
+;;; Bookmark Woman support.
+
+(defun woman-bookmark-make-record ()
+  "Make a bookmark entry for a Woman buffer."
+  `(,(man-set-default-bookmark-title)
+    ,@(bookmark-make-record-default 'point-only)
+      (filename . ,woman-last-file-name)
+      (handler . woman-bookmark-jump)))
+
+
+(defun woman-bookmark-jump (bookmark)
+  "Default bookmark handler for Woman buffers."
+  (let* ((file (bookmark-prop-get bookmark 'filename))
+         (buf  (save-window-excursion
+                 (woman-find-file file) (current-buffer))))
+    (bookmark-default-handler
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (provide 'woman)
 

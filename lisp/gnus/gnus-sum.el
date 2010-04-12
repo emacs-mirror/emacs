@@ -3072,6 +3072,9 @@ The following commands are available:
   (gnus-run-mode-hooks 'gnus-summary-mode-hook)
   (turn-on-gnus-mailing-list-mode)
   (mm-enable-multibyte)
+  ;; Bookmark support.
+  (set (make-local-variable 'bookmark-make-record-function)
+       'gnus-summary-bookmark-make-record)
   (gnus-update-format-specifications nil 'summary 'summary-mode 'summary-dummy)
   (gnus-update-summary-mark-positions))
 
@@ -12639,6 +12642,38 @@ If ALL is a number, fetch this number of articles."
 		(gnus-sorted-nunion gnus-newsgroup-unreads new))
 	  (gnus-summary-limit (gnus-sorted-nunion old new))))
     (gnus-summary-position-point)))
+
+;;; BOOKMARK support for GNUS.
+
+(defun gnus-summary-bookmark-make-record ()
+  "Make a bookmark entry for a Gnus buffer."
+  (require 'gnus)
+  (unless (and (eq major-mode 'gnus-summary-mode) gnus-article-current)
+    (error "Please retry from the Gnus summary buffer")) ;[1]
+  (let* ((subject (elt (gnus-summary-article-header) 1))
+         (grp     (car gnus-article-current))
+         (art     (cdr gnus-article-current))
+         (head    (gnus-summary-article-header art))
+         (id      (mail-header-id head)))
+    `(,subject
+      ,@(bookmark-make-record-default 'point-only)
+        (group . ,grp) (article . ,art)
+        (message-id . ,id) (handler . gnus-summary-bookmark-jump))))
+
+
+(defun gnus-summary-bookmark-jump (bookmark)
+  "Handler function for record returned by `gnus-summary-bookmark-make-record'.
+BOOKMARK is a bookmark name or a bookmark record."
+  (let ((group    (bookmark-prop-get bookmark 'group))
+        (article  (bookmark-prop-get bookmark 'article))
+        (id       (bookmark-prop-get bookmark 'message-id))
+        buf)
+    (gnus-fetch-group group (list article))
+    (gnus-summary-insert-cached-articles)
+    (gnus-summary-goto-article id nil 'force)
+    (setq buf (current-buffer))
+    (bookmark-default-handler
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (gnus-summary-make-all-marking-commands)
 

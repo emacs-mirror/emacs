@@ -221,6 +221,11 @@ the associated section number."
   :type '(repeat string)
   :group 'man)
 
+(defcustom Man-name-local-regexp "^NOM$"
+  "*The translation of the uppercase word NAME in your language.
+Used in `bookmark-set' to get the default bookmark name."
+  :type 'string :group 'bookmark)
+
 (defvar manual-program "man"
   "The name of the program that produces man pages.")
 
@@ -1325,6 +1330,9 @@ The following key bindings are currently in effect in the buffer:
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
   (set (make-local-variable 'outline-regexp) Man-heading-regexp)
   (set (make-local-variable 'outline-level) (lambda () 1))
+  ;; Bookmark support.
+  (set (make-local-variable 'bookmark-make-record-function)
+       'man-bookmark-make-record)
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
@@ -1659,6 +1667,44 @@ Specify which REFERENCE to use; default is based on word at point."
                  (setq path nil))
         (setq complete-path nil)))
     complete-path))
+
+;;; Bookmark Man Support
+
+(defun man-set-default-bookmark-title ()
+  "Set default bookmark title for Man or woman page based \
+on NAME or `Man-name-local-regexp' entry."
+  (save-excursion
+    (goto-char (point-min))
+    (when (or (re-search-forward Man-name-local-regexp nil t)
+              (re-search-forward "^NAME$" nil t))
+      (forward-line 1)
+      (unless (> (skip-chars-forward " ") 0)
+        (skip-chars-forward "\t"))
+      (buffer-substring-no-properties (point) (line-end-position)))))
+
+(defun man-bookmark-make-record ()
+  "Make a bookmark entry for a Man buffer."
+  `(,(man-set-default-bookmark-title)
+    ,@(bookmark-make-record-default 'point-only)
+      (buffer-name . ,(buffer-name (current-buffer)))
+      (handler . man-bookmark-jump)))
+
+(defun man-bookmark-jump (bookmark)
+  "Default bookmark handler for Man buffers."
+  (let* ((buf               (bookmark-prop-get bookmark 'buffer-name))
+         (buf-lst           (split-string buf))
+         (node              (replace-regexp-in-string "\*" "" (car (last buf-lst))))
+         (ind               (when (> (length buf-lst) 2) (second buf-lst)))
+         (Man-notify-method (case bookmark-jump-display-function
+                              ('switch-to-buffer              'pushy)
+                              ('switch-to-buffer-other-window 'friendly)
+                              ('display-buffer                'quiet)
+                              (t                              'friendly))))
+    (man (if ind (format "%s(%s)" node ind) node))
+    (while (get-process "man") (sit-for 1))
+    (bookmark-default-handler
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
+
 
 ;; Init the man package variables, if not already done.
 (Man-init-defvars)

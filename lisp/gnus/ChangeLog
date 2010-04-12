@@ -1,3 +1,9 @@
+2010-04-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record)
+	(gnus-summary-bookmark-jump): New functions.
+	(gnus-summary-mode): Setup bookmark support.
+
 2010-04-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use buffer-file-coding-system
