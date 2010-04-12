@@ -1,3 +1,12 @@
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el: Add bookmark declarations to silence the compiler.
+	(gnus-mark-xrefs-as-read, gnus-summary-limit-to-bodies):
+	Use with-current-buffer to silence the byte-compiler.
+	(gnus-summary-bookmark-make-record): Use derived-mode-p and don't
+	bother to require `gnus'.
+	(gnus-summary-bookmark-jump): Don't forget to autoload.  Simplify.
+
 2010-04-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* gnus-sum.el (gnus-summary-bookmark-make-record)

@@ -221,8 +221,8 @@ the associated section number."
   :type '(repeat string)
   :group 'man)
 
-(defcustom Man-name-local-regexp "^NOM$"
-  "*The translation of the uppercase word NAME in your language.
+(defcustom Man-name-local-regexp (concat "^" (regexp-opt '("NOM" "NAME")) "$")
+  "Regexp that matches the text that precedes the command's name.
 Used in `bookmark-set' to get the default bookmark name."
   :type 'string :group 'bookmark)
 
@@ -888,7 +888,8 @@ names or descriptions.  The pattern argument is usually an
     (man man-args)))
 
 (defun Man-getpage-in-background (topic)
-  "Use TOPIC to build and fire off the manpage and cleaning command."
+  "Use TOPIC to build and fire off the manpage and cleaning command.
+Return the buffer in which the manpage will appear."
   (let* ((man-args topic)
 	 (bufname (concat "*Man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
@@ -966,15 +967,16 @@ names or descriptions.  The pattern argument is usually an
 			   (format "exited abnormally with code %d"
 				   exit-status)))
 		(setq msg exit-status))
-	    (Man-bgproc-sentinel bufname msg)))))))
+	    (Man-bgproc-sentinel bufname msg)))))
+    buffer))
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
 See the variable `Man-notify-method' for the different notification behaviors."
   (let ((saved-frame (with-current-buffer man-buffer
 		       Man-original-frame)))
-    (cond
-     ((eq Man-notify-method 'newframe)
+    (case Man-notify-method
+     (newframe
       ;; Since we run asynchronously, perhaps while Emacs is waiting
       ;; for input, we must not leave a different buffer current.  We
       ;; can't rely on the editor command loop to reselect the
@@ -985,28 +987,27 @@ See the variable `Man-notify-method' for the different notification behaviors."
           (set-window-dedicated-p (frame-selected-window frame) t)
 	  (or (display-multi-frame-p frame)
 	      (select-frame frame)))))
-     ((eq Man-notify-method 'pushy)
+     (pushy
       (switch-to-buffer man-buffer))
-     ((eq Man-notify-method 'bully)
+     (bully
       (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (pop-to-buffer man-buffer)
       (delete-other-windows))
-     ((eq Man-notify-method 'aggressive)
+     (aggressive
       (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (pop-to-buffer man-buffer))
-     ((eq Man-notify-method 'friendly)
+     (friendly
       (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (display-buffer man-buffer 'not-this-window))
-     ((eq Man-notify-method 'polite)
+     (polite
       (beep)
       (message "Manual buffer %s is ready" (buffer-name man-buffer)))
-     ((eq Man-notify-method 'quiet)
+     (quiet
       (message "Manual buffer %s is ready" (buffer-name man-buffer)))
-     ((or (eq Man-notify-method 'meek)
-	  t)
+     (t ;; meek
       (message ""))
      )))
 
@@ -1274,6 +1275,8 @@ manpage command."
 ;; ======================================================================
 ;; set up manual mode in buffer and build alists
 
+(defvar bookmark-make-record-function)
+
 (put 'Man-mode 'mode-class 'special)
 
 (defun Man-mode ()
@@ -1330,9 +1333,8 @@ The following key bindings are currently in effect in the buffer:
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
   (set (make-local-variable 'outline-regexp) Man-heading-regexp)
   (set (make-local-variable 'outline-level) (lambda () 1))
-  ;; Bookmark support.
   (set (make-local-variable 'bookmark-make-record-function)
-       'man-bookmark-make-record)
+       'Man-bookmark-make-record)
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
@@ -1669,39 +1671,39 @@ Specify which REFERENCE to use; default is based on word at point."
     complete-path))
 
 ;;; Bookmark Man Support
+(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
 
-(defun man-set-default-bookmark-title ()
-  "Set default bookmark title for Man or woman page based \
-on NAME or `Man-name-local-regexp' entry."
+(defun Man-default-bookmark-title ()
+  "Default bookmark name for Man or WoMan pages.
+Uses `Man-name-local-regexp'."
   (save-excursion
     (goto-char (point-min))
-    (when (or (re-search-forward Man-name-local-regexp nil t)
-              (re-search-forward "^NAME$" nil t))
-      (forward-line 1)
-      (unless (> (skip-chars-forward " ") 0)
-        (skip-chars-forward "\t"))
+    (when (re-search-forward Man-name-local-regexp nil t)
+      (skip-chars-forward "\n\t ")
       (buffer-substring-no-properties (point) (line-end-position)))))
 
-(defun man-bookmark-make-record ()
+(defun Man-bookmark-make-record ()
   "Make a bookmark entry for a Man buffer."
-  `(,(man-set-default-bookmark-title)
+  `(,(Man-default-bookmark-title)
     ,@(bookmark-make-record-default 'point-only)
-      (buffer-name . ,(buffer-name (current-buffer)))
-      (handler . man-bookmark-jump)))
+      (man-args . ,Man-arguments)
+      (handler . Man-bookmark-jump)))
 
-(defun man-bookmark-jump (bookmark)
+;;;###autoload
+(defun Man-bookmark-jump (bookmark)
   "Default bookmark handler for Man buffers."
-  (let* ((buf               (bookmark-prop-get bookmark 'buffer-name))
-         (buf-lst           (split-string buf))
-         (node              (replace-regexp-in-string "\*" "" (car (last buf-lst))))
-         (ind               (when (> (length buf-lst) 2) (second buf-lst)))
-         (Man-notify-method (case bookmark-jump-display-function
-                              ('switch-to-buffer              'pushy)
-                              ('switch-to-buffer-other-window 'friendly)
-                              ('display-buffer                'quiet)
-                              (t                              'friendly))))
-    (man (if ind (format "%s(%s)" node ind) node))
-    (while (get-process "man") (sit-for 1))
+  (let* ((man-args (bookmark-prop-get bookmark 'man-args))
+         ;; Let bookmark.el do the window handling.
+         ;; This let-binding needs to be active during the call to both
+         ;; Man-getpage-in-background and accept-process-output.
+         (Man-notify-method 'meek)
+         (buf (Man-getpage-in-background man-args))
+         (proc (get-buffer-process buf)))
+    (while (and proc (eq (process-status proc) 'run))
+      (accept-process-output proc))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 

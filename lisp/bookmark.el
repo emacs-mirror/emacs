@@ -92,7 +92,7 @@ To specify the file in which to save them, modify the variable
   (if bookmark-file
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
-    (convert-standard-filename "~/.emacs.bmk"))
+    (locate-user-emacs-file "bookmarks" ".emacs.bmk"))
   "File in which to save bookmarks by default."
   :type 'file
   :group 'bookmark)

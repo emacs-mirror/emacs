@@ -1897,6 +1897,7 @@ Argument EVENT is the invoking mouse event."
   (setq woman-emulation value)
   (woman-reformat-last-file))
 
+(defvar bookmark-make-record-function)
 (put 'woman-mode 'mode-class 'special)
 
 (defun woman-mode ()
@@ -4520,18 +4521,29 @@ logging the message."
   nil)					; for woman-file-readable-p etc.
 
 ;;; Bookmark Woman support.
+(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
+
+;; FIXME: woman.el and man.el should be better integrated so, for
+;; example, bookmarks of one can be used with the other.
 
 (defun woman-bookmark-make-record ()
   "Make a bookmark entry for a Woman buffer."
-  `(,(man-set-default-bookmark-title)
+  `(,(Man-default-bookmark-title)
     ,@(bookmark-make-record-default 'point-only)
-      (filename . ,woman-last-file-name)
-      (handler . woman-bookmark-jump)))
+    ;; Use the same form as man's bookmarks, as much as possible.
+    (man-args . ,woman-last-file-name)
+    (handler . woman-bookmark-jump)))
 
-
+;;;###autoload
 (defun woman-bookmark-jump (bookmark)
   "Default bookmark handler for Woman buffers."
-  (let* ((file (bookmark-prop-get bookmark 'filename))
+  (let* ((file (bookmark-prop-get bookmark 'man-args))
+         ;; FIXME: we need woman-find-file-noselect, since
+         ;; save-window-excursion can't protect us from the case where
+         ;; woman-find-file creates a new frame.
          (buf  (save-window-excursion
                  (woman-find-file file) (current-buffer))))
     (bookmark-default-handler
