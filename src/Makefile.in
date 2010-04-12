@@ -94,6 +94,11 @@ SHELL=/bin/sh
 DEPFLAGS = -MMD -MF deps/$*.d
 #endif
 
+/* Undefine until the user can be moved in the non-cpp section. */
+#undef C_SWITCH_SYSTEM
+#undef C_SWITCH_MACHINE
+#undef C_SWITCH_X_SITE
+
 /* Do not let the file name mktime.c get messed up.  */
 #ifdef mktime
 #undef mktime

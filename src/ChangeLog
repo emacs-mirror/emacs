@@ -1,3 +1,7 @@
+2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE): Undefine.
+
 2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove C_SWITCH_SYSTEM_TEMACS.
