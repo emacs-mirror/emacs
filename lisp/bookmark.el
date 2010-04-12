@@ -92,7 +92,7 @@ To specify the file in which to save them, modify the variable
   (if bookmark-file
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
-    (convert-standard-filename "~/.emacs.bmk"))
+    (locate-user-emacs-file "bookmarks" ".emacs.bmk"))
   "File in which to save bookmarks by default."
   :type 'file
   :group 'bookmark)
@@ -1176,7 +1176,9 @@ minibuffer history list `bookmark-history'."
   (or no-history (bookmark-maybe-historicize-string bookmark))
   (let ((start (point)))
     (prog1
-	(insert (bookmark-location bookmark)) ; *Return this line*
+        ;; FIXME: Each bookmark should come with a `location' method
+        ;; rather than just say "-- no file --".
+	(insert (or (bookmark-location bookmark) "   -- no file --"))
       (if (display-mouse-p)
 	  (add-text-properties
 	   start

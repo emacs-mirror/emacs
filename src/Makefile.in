@@ -94,6 +94,11 @@ SHELL=/bin/sh
 DEPFLAGS = -MMD -MF deps/$*.d
 #endif
 
+/* Undefine until the user can be moved in the non-cpp section. */
+#undef C_SWITCH_SYSTEM
+#undef C_SWITCH_MACHINE
+#undef C_SWITCH_X_SITE
+
 /* Do not let the file name mktime.c get messed up.  */
 #ifdef mktime
 #undef mktime
@@ -249,6 +254,10 @@ GCONF_LIBS = @GCONF_LIBS@
 
    -DHAVE_CONFIG_H is needed for some other files to take advantage of
    the information in ``config.h''.  */
+
+#undef C_SWITCH_MACHINE
+#undef C_SWITCH_SYSTEM
+#undef C_SWITCH_X_SITE
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */

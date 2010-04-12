@@ -1,3 +1,12 @@
+2010-04-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (select_visual): Don't call error if XGetVisualInfo returns
+	more than one visual (Bug#5938).
+
+2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE): Undefine.
+
 2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove C_SWITCH_SYSTEM_TEMACS.
