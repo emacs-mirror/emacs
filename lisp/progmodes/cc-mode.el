@@ -641,12 +641,8 @@ compatible with old code; callers should always specify it."
   (save-restriction
     (widen)
     (save-excursion
-      (if c-get-state-before-change-functions
-	  (let ((beg (point-min))
-		(end (point-max)))
-	    (mapc (lambda (fn)
-		    (funcall fn beg end))
-		  c-get-state-before-change-functions)))
+      (if c-get-state-before-change-function
+	  (funcall c-get-state-before-change-function (point-min) (point-max)))
       (if c-before-font-lock-function
 	  (funcall c-before-font-lock-function (point-min) (point-max)
 		   (- (point-max) (point-min))))))
@@ -779,7 +775,7 @@ Note that the style variables are always made local to the buffer."
 
 (defmacro c-run-mode-hooks (&rest hooks)
   ;; Emacs 21.1 has introduced a system with delayed mode hooks that
-  ;; requires the use of the new function `run-mode-hooks'.
+  ;; require the use of the new function `run-mode-hooks'.
   (if (cc-bytecomp-fboundp 'run-mode-hooks)
       `(run-mode-hooks ,@hooks)
     `(progn ,@(mapcar (lambda (hook) `(run-hooks ,hook)) hooks))))
@@ -812,8 +808,8 @@ Note that the style variables are always made local to the buffer."
   ;; has already been widened, and match-data saved.  The return value is
   ;; meaningless.
   ;;
-  ;; This function is in the C/C++/ObjC values of
-  ;; `c-get-state-before-change-functions' and is called exclusively as a
+  ;; This function is the C/C++/ObjC value of
+  ;; `c-get-state-before-change-function' and is called exclusively as a
   ;; before change function.
   (goto-char beg)
   (c-beginning-of-macro)
@@ -926,8 +922,8 @@ Note that the style variables are always made local to the buffer."
 	  )))))
 
 (defun c-before-change (beg end)
-  ;; Function to be put on `before-change-functions'.  Primarily, this calls
-  ;; the language dependent `c-get-state-before-change-functions'.  It is
+  ;; Function to be put on `before-change-function'.  Primarily, this calls
+  ;; the language dependent `c-get-state-before-change-function'.  It is
   ;; otherwise used only to remove stale entries from the `c-found-types'
   ;; cache, and to record entries which a `c-after-change' function might
   ;; confirm as stale.
@@ -1005,10 +1001,8 @@ Note that the style variables are always made local to the buffer."
 	;; larger than (beg end).
 	(setq c-new-BEG beg
 	      c-new-END end)
-	(if c-get-state-before-change-functions
-	    (mapc (lambda (fn)
-		    (funcall fn beg end))
-		  c-get-state-before-change-functions))
+	(if c-get-state-before-change-function
+	    (funcall c-get-state-before-change-function beg end))
 	))))
 
 (defun c-after-change (beg end old-len)

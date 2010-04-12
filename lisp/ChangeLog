@@ -695,33 +695,6 @@
 	(doc-view-pdf->png): Don't rely on doc-view-pdf/ps->png for the few
 	windows that are not yet showing images.
 
-2010-02-04  Alan Mackenzie  <acm@muc.de>
-
-	Change strategy for marking < and > as template delimiters: mark
-	them strictly in matching pairs.
-
-	* cc-mode.el (c-before-change):
-	Use c-get-state-before-change-functions.
-	(c-common-init): Adapt to use
-	c-get-state-before-change-functions (note plural).
-
-	* cc-langs.el (c-no-parens-syntax-table): New syntax table, used
-	for searching syntactically for matching <s and >s.
-	(c-get-state-before-change-functions): New language variable (note
-	the plural) which supersedes c-get-state-before-change-function.
-
-	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
-	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
-	(c-clear->-pair-props-if-match-before)
-	(c-before-change-check-<>-operators): New functions.
-	(c-after-change-check-<>-operators): Use macro
-	c-unmark-<->-as-paren.
-
-	* cc-defs.el (c-search-backward-char-property): New macro.
-
-	* cc-cmds.el (c-electric-lt-gt): Do not set text properties on <
-	and > any more.  (These will be handled by font locking.)
-
 2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dired.el (dired-revert): If DIRED-DIRECTORY is a cons cell, call
