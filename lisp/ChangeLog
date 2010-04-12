@@ -293,11 +293,6 @@
 	(otf-script-alist): Likewise.
 	(setup-default-fontset): Likewise.  Re-fix :otf spec.
 
-2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
-
-	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
-
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* menu-bar.el (menu-bar-manuals-menu): Fix typo.
