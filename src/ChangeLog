@@ -1,3 +1,12 @@
+2010-04-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* s/darwin.h (PTY_ITERATION, PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF)
+	(PTY_OPEN): New defines.  Use openpty (Bug#726, Bug#5819).
+
+2010-04-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.h (FRAME_LINE_TO_PIXEL_Y): Add missing parenthesis.
+
 2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use

@@ -1008,6 +1008,7 @@ form that is clearly safe to install.
 
 @node Contributing, Service, Bugs, Top
 @section Contributing to Emacs Development
+@cindex contributing to Emacs
 
 If you would like to help pretest Emacs releases to assure they work
 well, or if you would like to work on improving Emacs, please contact
@@ -1026,6 +1027,9 @@ The development version of Emacs can be downloaded from the
 repository where it is actively maintained by a group of developers.
 See the Emacs project page
 @url{http://savannah.gnu.org/projects/emacs/} for details.
+
+For more information on how to contribute, see the @file{etc/CONTRIBUTE}
+file in the Emacs distribution.
 
 @node Service, Copying, Contributing, Top
 @section How To Get Help with GNU Emacs
