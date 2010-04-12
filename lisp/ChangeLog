@@ -1,5 +1,7 @@
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bookmark.el (bookmark-insert-location): Handle a nil filename.
+
 	* woman.el: Add bookmark declarations to silence the compiler.
 	(bookmark-prop-get): Use `man-args' rather than `filename' as a first
 	step to compatibility between man and woman bookmarks.

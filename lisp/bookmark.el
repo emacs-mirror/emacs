@@ -1176,7 +1176,9 @@ minibuffer history list `bookmark-history'."
   (or no-history (bookmark-maybe-historicize-string bookmark))
   (let ((start (point)))
     (prog1
-	(insert (bookmark-location bookmark)) ; *Return this line*
+        ;; FIXME: Each bookmark should come with a `location' method
+        ;; rather than just say "-- no file --".
+	(insert (or (bookmark-location bookmark) "   -- no file --"))
       (if (display-mouse-p)
 	  (add-text-properties
 	   start
