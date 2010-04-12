@@ -75,10 +75,13 @@ LIBGIF=@LIBGIF@
 LIBXPM=@LIBXPM@
 XFT_LIBS=@XFT_LIBS@
 
+C_SWITCH_SYSTEM=@c_switch_system@
+C_SWITCH_MACHINE=@c_switch_machine@
+
+C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
-
-C_SWITCH_SYSTEM=
 
 /* just to be sure the sh is used */
 SHELL=/bin/sh
@@ -163,12 +166,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_SYSTEM_TEMACS
 #endif
 
-/* Some s/SYSTEM.h files define this to request special switches
-   for compiling temacs.  */
-#ifndef C_SWITCH_SYSTEM_TEMACS
-#define C_SWITCH_SYSTEM_TEMACS
-#endif
-
 /* Some m/MACHINE.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE
@@ -180,16 +177,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_MACHINE_TEMACS
 #endif
 
-/* Some m/MACHINE.h files define this to request special switches in cc.  */
-#ifndef C_SWITCH_MACHINE
-#define C_SWITCH_MACHINE
-#endif
-
-/* Some s/SYSTEM.h files define this to request special switches in cc.  */
-#ifndef C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM
-#endif
-
 /* These macros are for switches specifically related to X Windows.  */
 #ifndef C_SWITCH_X_MACHINE
 #define C_SWITCH_X_MACHINE
@@ -197,10 +184,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 
 #ifndef C_SWITCH_X_SYSTEM
 #define C_SWITCH_X_SYSTEM
-#endif
-
-#ifndef C_SWITCH_X_SITE
-#define C_SWITCH_X_SITE
 #endif
 
 #ifndef LD_SWITCH_X_SITE
@@ -269,7 +252,7 @@ GCONF_LIBS = @GCONF_LIBS@
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -924,9 +907,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
-C_SWITCH_SYSTEM_1 = C_SWITCH_SYSTEM
-C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 
@@ -936,11 +916,8 @@ $(OLDXMENU): really-lwlib
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
-    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)" \
-    "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
-    "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
+    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
 #else /* not USE_X_TOOLKIT */
@@ -949,11 +926,8 @@ $(OLDXMENU): really-oldXMenu
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
-    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)" \
-    "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
-    "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
+    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */

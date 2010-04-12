@@ -65,6 +65,9 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
+** Lucid menus and dialogs can display antialiased fonts if Emacs is built
+with Xft.
+
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to [next] and [prior]) does not signal errors at top/bottom
 of buffer at first key-press (instead moves to top/bottom of buffer).
@@ -104,6 +107,10 @@ choose a color via list-colors-display.
 **** For Bzr, adding an
 Author: NAME
 line will add "--author NAME" to the "bzr commit" command.
+
+**** For Git, adding an
+Author: NAME
+line will add "--author NAME" to the "git commit" command.
 
 **** For Hg, adding an
 Author: NAME

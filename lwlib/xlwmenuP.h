@@ -25,6 +25,9 @@ Boston, MA 02110-1301, USA.  */
 
 #include "xlwmenu.h"
 #include <X11/CoreP.h>
+#ifdef HAVE_XFT
+#include <X11/Xft/Xft.h>
+#endif
 
 /* Elements in the stack arrays. */
 typedef struct _window_state
@@ -35,9 +38,13 @@ typedef struct _window_state
   Dimension	width;
   Dimension	height;
   Dimension	label_width;
+  int           max_rest_width;
 
   /* Width of toggle buttons or radio buttons.  */
   Dimension     button_width;
+#ifdef HAVE_XFT
+  XftDraw*      xft_draw;
+#endif
 } window_state;
 
 
@@ -48,6 +55,12 @@ typedef struct _XlwMenu_part
 #ifdef HAVE_X_I18N
   XFontSet	fontSet;
   XFontSetExtents *font_extents;
+#endif
+#ifdef HAVE_XFT
+  String        faceName;
+  int           default_face;
+  XftFont*      xft_font;
+  XftColor      xft_fg, xft_bg, xft_disabled_fg;
 #endif
   XFontStruct*	font;
   Pixel		foreground;

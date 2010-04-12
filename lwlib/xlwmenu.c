@@ -30,6 +30,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 
 #include <stdio.h>
+#include <ctype.h>
 
 #include <sys/types.h>
 #if (defined __sun) && !(defined SUNOS41)
@@ -69,7 +70,7 @@ extern char *gray_bitmap_bits;
 static int pointer_grabbed;
 static XEvent menu_post_event;
 
-XFontStruct *xlwmenu_default_font;
+static XFontStruct *xlwmenu_default_font;
 
 static char
 xlwMenuTranslations [] =
@@ -127,6 +128,13 @@ xlwMenuResources[] =
 #ifdef HAVE_X_I18N
   {XtNfontSet,  XtCFontSet, XtRFontSet, sizeof(XFontSet),
      offset(menu.fontSet), XtRFontSet, NULL},
+#endif
+#ifdef HAVE_XFT
+#define DEFAULT_FACENAME "Sans-10"
+  {XtNfaceName,  XtCFaceName, XtRString, sizeof(String),
+   offset(menu.faceName), XtRString, DEFAULT_FACENAME},
+  {XtNdefaultFace,  XtCDefaultFace, XtRInt, sizeof(int),
+   offset(menu.default_face), XtRImmediate, (XtPointer)1},
 #endif
   {XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
      offset(menu.font), XtRString, "XtDefaultFont"},
@@ -352,10 +360,20 @@ string_width (mw, s)
 {
   XCharStruct xcs;
   int drop;
+#ifdef HAVE_XFT
+  if (mw->menu.xft_font)
+    {
+      XGlyphInfo gi;
+      XftTextExtentsUtf8 (XtDisplay (mw), mw->menu.xft_font,
+                          (FcChar8 *) s,
+                          strlen (s), &gi);
+      return gi.width;
+    }
+#endif
 #ifdef HAVE_X_I18N
-  XRectangle ink, logical;
   if (mw->menu.fontSet)
     {
+      XRectangle ink, logical;
       XmbTextExtents (mw->menu.fontSet, s, strlen (s), &ink, &logical);
       return logical.width;
     }
@@ -366,6 +384,20 @@ string_width (mw, s)
 
 }
 
+#ifdef HAVE_XFT
+#define MENU_FONT_HEIGHT(mw)                                    \
+  ((mw)->menu.xft_font != NULL                                  \
+   ? (mw)->menu.xft_font->height                                \
+   : ((mw)->menu.fontSet != NULL                                \
+      ? (mw)->menu.font_extents->max_logical_extent.height      \
+      : (mw)->menu.font->ascent + (mw)->menu.font->descent))
+#define MENU_FONT_ASCENT(mw)                                    \
+  ((mw)->menu.xft_font != NULL                                  \
+    ? (mw)->menu.xft_font->ascent                               \
+    : ((mw)->menu.fontSet != NULL                               \
+       ? - (mw)->menu.font_extents->max_logical_extent.y        \
+       : (mw)->menu.font->ascent))
+#else
 #ifdef HAVE_X_I18N
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.fontSet != NULL \
@@ -379,6 +411,7 @@ string_width (mw, s)
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.font->ascent + (mw)->menu.font->descent)
 #define MENU_FONT_ASCENT(mw) ((mw)->menu.font->ascent)
+#endif
 #endif
 
 static int
@@ -559,6 +592,7 @@ size_menu (mw, level)
 
   ws->width += 2 * mw->menu.shadow_thickness;
   ws->height += 2 * mw->menu.shadow_thickness;
+  ws->max_rest_width = max_rest_width;
 
   if (horizontal_p)
     {
@@ -987,6 +1021,9 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
   int width;
   enum menu_separator separator;
   int separator_p = lw_separator_p (val->name, &separator, 0);
+#ifdef HAVE_XFT
+  XftColor *xftfg;
+#endif
 
   /* compute the sizes of the item */
   size_menu_item (mw, val, horizontal_p, &label_width, &rest_width,
@@ -1024,6 +1061,9 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
       else
 	text_gc = mw->menu.disabled_gc;
       deco_gc = mw->menu.foreground_gc;
+#ifdef HAVE_XFT
+      xftfg = val->enabled ? &mw->menu.xft_fg : &mw->menu.xft_disabled_fg;
+#endif
 
       if (separator_p)
 	{
@@ -1048,6 +1088,21 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 	    x_offset += ws->button_width;
 
 
+#ifdef HAVE_XFT
+          if (ws->xft_draw)
+            {
+              int draw_y = y + v_spacing + shadow;
+              XftDrawRect (ws->xft_draw, &mw->menu.xft_bg,
+                           x_offset, draw_y,
+                           ws->width, font_height);
+              XftDrawStringUtf8 (ws->xft_draw, xftfg,
+                                 mw->menu.xft_font,
+                                 x_offset, draw_y + font_ascent,
+                                 (unsigned char *) display_string,
+                                 strlen (display_string));
+            }
+          else
+#endif
 #ifdef HAVE_X_I18N
           if (mw->menu.fontSet)
             XmbDrawString (XtDisplay (mw), ws->window, mw->menu.fontSet,
@@ -1082,6 +1137,21 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 		}
 	      else if (val->key)
 		{
+#ifdef HAVE_XFT
+                  if (ws->xft_draw)
+                    {
+                      XGlyphInfo gi;
+                      int draw_x = ws->width - ws->max_rest_width
+                        + mw->menu.arrow_spacing;
+                      int draw_y = y + v_spacing + shadow + font_ascent;
+                      XftDrawStringUtf8 (ws->xft_draw, xftfg,
+                                         mw->menu.xft_font,
+                                         draw_x, draw_y,
+                                         (unsigned char *) val->key,
+                                         strlen (val->key));
+                    }
+                  else
+#endif
 #ifdef HAVE_X_I18N
                   if (mw->menu.fontSet)
                     XmbDrawString (XtDisplay (mw), ws->window,
@@ -1242,6 +1312,9 @@ make_windows_if_needed (mw, n)
   int mask;
   Window root = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   window_state* windows;
+#ifdef HAVE_XFT
+  int screen = XScreenNumberOfScreen (mw->core.screen);
+#endif
 
   if (mw->menu.windows_length >= n)
     return;
@@ -1280,10 +1353,21 @@ make_windows_if_needed (mw, n)
      windows [i].y = 0;
      windows [i].width = 1;
      windows [i].height = 1;
+     windows [i].max_rest_width = 0;
      windows [i].window =
        XCreateWindow (XtDisplay (mw), root, 0, 0, 1, 1,
 		      0, 0, CopyFromParent, CopyFromParent, mask, &xswa);
-  }
+#ifdef HAVE_XFT
+     if (mw->menu.xft_font)
+       mw->menu.windows [i].xft_draw
+         = XftDrawCreate (XtDisplay (mw),
+                          windows [i].window,
+                          DefaultVisual (XtDisplay (mw), screen),
+                          mw->core.colormap);
+     else
+       mw->menu.windows [i].xft_draw = 0;
+#endif
+   }
 }
 
 /* Value is non-zero if WINDOW is part of menu bar widget W.  */
@@ -1758,6 +1842,44 @@ release_shadow_gcs (mw)
   XtReleaseGC ((Widget) mw, mw->menu.shadow_bottom_gc);
 }
 
+#ifdef HAVE_XFT
+static int
+openXftFont (mw)
+     XlwMenuWidget mw;
+{
+  char *fname = mw->menu.faceName;
+
+  mw->menu.xft_font = 0;
+  mw->menu.default_face = fname && strcmp (fname, DEFAULT_FACENAME) == 0;
+
+  if (fname && strcmp (fname, "none") != 0)
+    {
+      int screen = XScreenNumberOfScreen (mw->core.screen);
+      int len = strlen (fname), i = len-1;
+      /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
+      while (i > 0 && isdigit (fname[i]))
+        --i;
+      if (fname[i] == ' ')
+        {
+          fname = xstrdup (mw->menu.faceName);
+          fname[i] = '-';
+        }
+
+      mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
+      if (!mw->menu.xft_font) 
+        {
+          fprintf (stderr, "Can't find font '%s'\n", fname);
+          mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen,
+                                               DEFAULT_FACENAME);
+        }
+    }
+
+  if (fname != mw->menu.faceName) free (fname);
+
+  return mw->menu.xft_font != 0;
+}
+#endif
+
 static void
 XlwMenuInitialize (request, mw, args, num_args)
      Widget request;
@@ -1779,7 +1901,7 @@ XlwMenuInitialize (request, mw, args, num_args)
   mw->menu.contents = tem;
 #endif
 
-/*  mw->menu.cursor = XCreateFontCursor (display, mw->menu.cursor_shape); */
+  /*  mw->menu.cursor = XCreateFontCursor (display, mw->menu.cursor_shape); */
   mw->menu.cursor = mw->menu.cursor_shape;
 
   mw->menu.gray_pixmap
@@ -1787,11 +1909,24 @@ XlwMenuInitialize (request, mw, args, num_args)
 				   gray_bitmap_width, gray_bitmap_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
-  /* I don't understand why this ends up 0 sometimes,
-     but it does.  This kludge works around it.
-     Can anyone find a real fix?   -- rms.  */
-  if (mw->menu.font == 0)
-    mw->menu.font = xlwmenu_default_font;
+#ifdef HAVE_XFT
+  if (openXftFont (mw))
+    ;
+  else
+#endif
+  
+  if (!mw->menu.font)
+    {
+      if (!xlwmenu_default_font)
+        xlwmenu_default_font = XLoadQueryFont (display, "fixed");
+      mw->menu.font = xlwmenu_default_font;
+      if (!mw->menu.font) 
+        {
+          fprintf (stderr, "Menu font fixed not found, can't continue.\n");
+          abort ();
+        }
+    }
+
 #ifdef HAVE_X_I18N
   if (mw->menu.fontSet)
     mw->menu.font_extents = XExtentsOfFontSet (mw->menu.fontSet);
@@ -1818,6 +1953,10 @@ XlwMenuInitialize (request, mw, args, num_args)
   mw->menu.windows [0].y = 0;
   mw->menu.windows [0].width = 0;
   mw->menu.windows [0].height = 0;
+  mw->menu.windows [0].max_rest_width = 0;
+#ifdef HAVE_XFT
+  mw->menu.windows [0].xft_draw = 0;
+#endif
   size_menu (mw, 0);
 
   mw->core.width = mw->menu.windows [0].width;
@@ -1827,6 +1966,7 @@ XlwMenuInitialize (request, mw, args, num_args)
 static void
 XlwMenuClassInitialize ()
 {
+  xlwmenu_default_font = 0;
 }
 
 static void
@@ -1861,6 +2001,38 @@ XlwMenuRealize (w, valueMask, attributes)
   mw->menu.windows [0].y = w->core.y;
   mw->menu.windows [0].width = w->core.width;
   mw->menu.windows [0].height = w->core.height;
+
+#ifdef HAVE_XFT
+  if (mw->menu.xft_font)
+    {
+      XColor colors[3];
+      int screen = XScreenNumberOfScreen (mw->core.screen);
+      mw->menu.windows [0].xft_draw
+        = XftDrawCreate (XtDisplay (w),
+                         mw->menu.windows [0].window,
+                         DefaultVisual (XtDisplay (w), screen),
+                         mw->core.colormap);
+      colors[0].pixel = mw->menu.xft_fg.pixel = mw->menu.foreground;
+      colors[1].pixel = mw->menu.xft_bg.pixel = mw->core.background_pixel;
+      colors[2].pixel = mw->menu.xft_disabled_fg.pixel
+        = mw->menu.disabled_foreground;
+      XQueryColors (XtDisplay (mw), mw->core.colormap, colors, 3);
+      mw->menu.xft_fg.color.alpha = 0xFFFF;
+      mw->menu.xft_fg.color.red = colors[0].red;
+      mw->menu.xft_fg.color.green = colors[0].green;
+      mw->menu.xft_fg.color.blue = colors[0].blue;
+      mw->menu.xft_bg.color.alpha = 0xFFFF;
+      mw->menu.xft_bg.color.red = colors[1].red;
+      mw->menu.xft_bg.color.green = colors[1].green;
+      mw->menu.xft_bg.color.blue = colors[1].blue;
+      mw->menu.xft_disabled_fg.color.alpha = 0xFFFF;
+      mw->menu.xft_disabled_fg.color.red = colors[2].red;
+      mw->menu.xft_disabled_fg.color.green = colors[2].green;
+      mw->menu.xft_disabled_fg.color.blue = colors[2].blue;
+    }
+  else
+    mw->menu.windows [0].xft_draw = 0;
+#endif
 }
 
 /* Only the toplevel menubar/popup is a widget so it's the only one that
@@ -1942,11 +2114,35 @@ XlwMenuDestroy (w)
      client exits.  Nice, eh?
    */
 
+#ifdef HAVE_XFT
+  if (mw->menu.windows [0].xft_draw)
+    XftDrawDestroy (mw->menu.windows [0].xft_draw);
+  if (mw->menu.xft_font)
+    XftFontClose (XtDisplay (mw), mw->menu.xft_font);
+#endif
+
   /* start from 1 because the one in slot 0 is w->core.window */
   for (i = 1; i < mw->menu.windows_length; i++)
-    XDestroyWindow (XtDisplay (mw), mw->menu.windows [i].window);
+    {
+      XDestroyWindow (XtDisplay (mw), mw->menu.windows [i].window);
+#ifdef HAVE_XFT
+      if (mw->menu.windows [i].xft_draw)
+        XftDrawDestroy (mw->menu.windows [i].xft_draw);
+#endif
+    }
+
   if (mw->menu.windows)
     XtFree ((char *) mw->menu.windows);
+}
+
+static int
+facename_changed (XlwMenuWidget newmw,
+                  XlwMenuWidget oldmw)
+{
+  /* This will fore a new XftFont even if the same sting is set.
+     This is good, as rendering parameters may have changed and
+     we just want to do a redisplay.  */
+  return newmw->menu.faceName != oldmw->menu.faceName;
 }
 
 static Boolean
@@ -1972,6 +2168,9 @@ XlwMenuSetValues (current, request, new)
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
+#ifdef HAVE_XFT
+      || facename_changed (newmw, oldmw)
+#endif
 #ifdef HAVE_X_I18N
       || newmw->menu.fontSet != oldmw->menu.fontSet
       || (newmw->menu.fontSet == NULL && newmw->menu.font != oldmw->menu.font)
@@ -2004,6 +2203,29 @@ XlwMenuSetValues (current, request, new)
 	  }
     }
 
+#ifdef HAVE_XFT
+  if (facename_changed (newmw, oldmw))
+    {
+      int i;
+      int screen = XScreenNumberOfScreen (newmw->core.screen);
+      if (newmw->menu.xft_font)
+        XftFontClose (XtDisplay (newmw), newmw->menu.xft_font);
+      openXftFont (newmw);
+      for (i = 0; i < newmw->menu.windows_length; i++)
+        {
+          if (newmw->menu.windows [i].xft_draw)
+            XftDrawDestroy (newmw->menu.windows [i].xft_draw);
+          newmw->menu.windows [i].xft_draw = 0;
+        }
+      if (newmw->menu.xft_font)
+      for (i = 0; i < newmw->menu.windows_length; i++)
+          newmw->menu.windows [i].xft_draw
+            = XftDrawCreate (XtDisplay (newmw),
+                             newmw->menu.windows [i].window,
+                             DefaultVisual (XtDisplay (newmw), screen),
+                             newmw->core.colormap);
+    }
+#endif
 #ifdef HAVE_X_I18N
   if (newmw->menu.fontSet != oldmw->menu.fontSet && newmw->menu.fontSet != NULL)
     {

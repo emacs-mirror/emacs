@@ -583,7 +583,6 @@ Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
-;;;###autoload
 (defcustom compilation-save-buffers-predicate nil
   "The second argument (PRED) passed to `save-some-buffers' before compiling.
 E.g., one can set this to
@@ -596,7 +595,8 @@ of `my-compilation-root' here."
           (const :tag "Default (save all file-visiting buffers)" nil)
           (const :tag "Save all buffers" t)
           function)
-  :group 'compilation)
+  :group 'compilation
+  :version "24.1")
 
 ;;;###autoload
 (defcustom compilation-search-path '(nil)

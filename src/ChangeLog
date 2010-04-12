@@ -1,3 +1,95 @@
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove C_SWITCH_SYSTEM_TEMACS.
+	* s/darwin.h (C_SWITCH_SYSTEM_TEMACS): Remove.
+	(malloc, realloc, free): Use emacs, not temacs for conditional
+	definition.
+
+	* Makefile.in (C_SWITCH_SYSTEM_TEMACS): Remove.
+	(ALL_CFLAGS): Do not use C_SWITCH_SYSTEM_TEMACS.
+
+	Use autoconf, not cpp for some variables.
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
+	(C_SWITCH_X_SITE): Define using autoconf, not cpp.
+	(ALL_CFLAGS): Use them as make variables.
+	(really-lwlib, really-oldXMenu): Do not pass them.
+
+2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (apply_systemfont_to_dialog): New.
+	(create_and_show_dialog): Call apply_systemfont_to_dialog if HAVE_XFT.
+
+2010-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (exec_sentinel): Preserve current-buffer.
+
+	* process.c (read_process_output): Move the save-current-buffer to
+	apply to both the filter and the non-filter branches.
+
+2010-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/msdos.h (UNEXEC): New definition.
+
+2010-04-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (TRY_WINDOW_CHECK_MARGINS)
+	(TRY_WINDOW_IGNORE_FONTS_CHANGE): New defines.
+
+	* xdisp.c (try_window): Change arg from CHECK_MARGINS to FLAGS.
+	Don't abort with fonts change if TRY_WINDOW_IGNORE_FONTS_CHANGE is
+	set in FLAGS.  Callers with non-zero CHECK_MARGINS changed to use
+	TRY_WINDOW_CHECK_MARGINS.
+
+	* xfns.c (Fx_show_tip): Undo last change.  Call try_window with
+	TRY_WINDOW_IGNORE_FONTS_CHANGE (Bug#2423).  Subtract last glyph's
+	width only when it is for padding.
+
+2010-04-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_show_tip): Call try_window in a loop until
+	fonts_changed_p is zero (Bug#2423).
+
+2010-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't dereference glyphs beyond
+	the end of TEXT_AREA.  (Bug#5856)
+
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (XSETTINGS_FONT_NAME): Move XSETTINGS_FONT_NAME out of
+	HAVE_GCONF.
+
+2010-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_weak): Use prev.type_after_w1, instead of
+	prev.orig_type, for resolving type of NSM.  (Bug#5858)
+
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (current_font, SYSTEM_FONT, XSETTINGS_FONT_NAME): New.
+	(parse_xft_settings): Also check for XSETTINGS_FONT_NAME and save that
+	in current_font.
+	(init_gconf): Read value of SYSTEM_FONT and save it in current_font.
+	(Ffont_get_system_normal_font, xsettings_get_system_normal_font): New
+	functions.
+	(syms_of_xsettings): Initialize current_font. defsubr
+	Sfont_get_system_normal_font.
+
+	* xsettings.h (Ffont_get_system_normal_font,
+	xsettings_get_system_normal_font): Declare.
+
+	* xfns.c (extern xlwmenu_default_font): Remove.
+	(Fx_create_frame): Remove setting of xlwmenu_default_font, moved
+	to xlwmenu.c.
+
+	* menu.c (digest_single_submenu): If USE_LUCID and HAVE_XFT, encode
+	menu items in UTF-8.
+
+	* xmenu.c: include xsettings.h and xlwmenu.h if USE_LUCID.
+	(apply_systemfont_to_menu): New function.
+	(set_frame_menubar, create_and_show_popup_menu): Call
+	apply_systemfont_to_menu.
+
 2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use
