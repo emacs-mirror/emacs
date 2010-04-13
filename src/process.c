@@ -4643,6 +4643,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
   FD_ZERO (&Connecting);
 #endif
 
+  if (time_limit == 0 && wait_proc && !NILP (Vinhibit_quit)
+      && !(CONSP (wait_proc->status) && EQ (XCAR (wait_proc->status), Qexit)))
+    message ("Blocking call to accept-process-output with quit inhibited!!");
+
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)
     wait_channel = wait_proc->infd;
@@ -5768,34 +5772,6 @@ send_process (proc, buf, len, object)
 	{
 	  int this = len;
 
-	  /* Decide how much data we can send in one batch.
-	     Long lines need to be split into multiple batches.  */
-	  if (p->pty_flag)
-	    {
-	      /* Starting this at zero is always correct when not the first
-		 iteration because the previous iteration ended by sending C-d.
-		 It may not be correct for the first iteration
-		 if a partial line was sent in a separate send_process call.
-		 If that proves worth handling, we need to save linepos
-		 in the process object.  */
-	      int linepos = 0;
-	      unsigned char *ptr = (unsigned char *) buf;
-	      unsigned char *end = (unsigned char *) buf + len;
-
-	      /* Scan through this text for a line that is too long.  */
-	      while (ptr != end && linepos < pty_max_bytes)
-		{
-		  if (*ptr == '\n')
-		    linepos = 0;
-		  else
-		    linepos++;
-		  ptr++;
-		}
-	      /* If we found one, break the line there
-		 and put in a C-d to force the buffer through.  */
-	      this = ptr - buf;
-	    }
-
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
@@ -5899,11 +5875,6 @@ send_process (proc, buf, len, object)
 	      len -= rv;
 	      this -= rv;
 	    }
-
-	  /* If we sent just part of the string, put in an EOF (C-d)
-	     to force it through, before we send the rest.  */
-	  if (len > 0)
-	    Fprocess_send_eof (proc);
 	}
     }
   else
