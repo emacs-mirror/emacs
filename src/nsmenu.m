@@ -1709,7 +1709,7 @@ void process_dialog (id window, Lisp_Object list)
 
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
-  int ret;
+  NSInteger ret;
   extern EMACS_TIME timer_check (int do_it_now); /* TODO: add to a header */
 
   /* initiate a session that will be ended by pop_down_menu */
