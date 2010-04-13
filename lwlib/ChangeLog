@@ -1,3 +1,28 @@
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
+	(C_SWITCH_X_SITE): Define using autoconf.
+
+2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xaw.c (widget_xft_data): New for Xft data.
+	(fill_xft_data, openFont, get_text_width_and_height)
+	(draw_text, set_text, find_xft_data, command_press)
+	(command_reset): New functions.
+	(xaw_update_one_widget): Call set_text for dialog and buttons
+	if HAVE_XFT.  Also set internalHeight for buttons.
+	(xaw_destroy_instance): Free all Xft related data.
+	(button_actions, buttonTrans): New structures.
+	(make_dialog): Call XtAppAddActions for button_actions.
+	Find xft font to use and call fill_xft_data for widgets.
+	(xaw_create_dialog): Pass instance parameter to make_dialog.
+
+	* lwlib-int.h (_widget_instance): Add Xft data if HAVE_XFT.
+	Override translations for buttons.  If depth is 16 or more, tell
+	Xaw3d to not be nice to colormap.
+	Remove separator widget, use XtNhorizDistance on first right button
+	instead.
+
 2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (xlwmenu_default_font): Make static.

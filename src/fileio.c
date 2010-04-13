@@ -4092,6 +4092,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (NILP (handler))
 	{
 	  current_buffer->modtime = st.st_mtime;
+	  current_buffer->modtime_size = st.st_size;
 	  current_buffer->filename = orig_filename;
 	}
 
@@ -4695,7 +4696,10 @@ This calls `write-region-annotate-functions' at the start, and
      to avoid a "file has changed on disk" warning on
      next attempt to save.  */
   if (visiting)
-    current_buffer->modtime = st.st_mtime;
+    {
+      current_buffer->modtime = st.st_mtime;
+      current_buffer->modtime_size = st.st_size;
+    }
 
   if (failure)
     error ("IO error writing %s: %s", SDATA (filename),
@@ -5004,11 +5008,13 @@ See Info node `(elisp)Modification Time' for more details.  */)
       else
 	st.st_mtime = 0;
     }
-  if (st.st_mtime == b->modtime
-      /* If both are positive, accept them if they are off by one second.  */
-      || (st.st_mtime > 0 && b->modtime > 0
-	  && (st.st_mtime == b->modtime + 1
-	      || st.st_mtime == b->modtime - 1)))
+  if ((st.st_mtime == b->modtime
+       /* If both are positive, accept them if they are off by one second.  */
+       || (st.st_mtime > 0 && b->modtime > 0
+	   && (st.st_mtime == b->modtime + 1
+	       || st.st_mtime == b->modtime - 1)))
+      && (st.st_size == b->modtime_size
+          || b->modtime_size < 0))
     return Qt;
   return Qnil;
 }
@@ -5020,6 +5026,7 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
      ()
 {
   current_buffer->modtime = 0;
+  current_buffer->modtime_size = -1;
   return Qnil;
 }
 
@@ -5049,7 +5056,10 @@ An argument specifies the modification time value to use
      Lisp_Object time_list;
 {
   if (!NILP (time_list))
-    current_buffer->modtime = cons_to_long (time_list);
+    {
+      current_buffer->modtime = cons_to_long (time_list);
+      current_buffer->modtime_size = -1;
+    }
   else
     {
       register Lisp_Object filename;
@@ -5068,7 +5078,10 @@ An argument specifies the modification time value to use
       filename = ENCODE_FILE (filename);
 
       if (stat (SDATA (filename), &st) >= 0)
-	current_buffer->modtime = st.st_mtime;
+        {
+	  current_buffer->modtime = st.st_mtime;
+          current_buffer->modtime_size = st.st_size;
+        }
     }
 
   return Qnil;

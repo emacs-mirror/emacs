@@ -65,7 +65,8 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
-** Lucid menus can display antialiased fonts if Emacs is build with Xft.
+** Lucid menus and dialogs can display antialiased fonts if Emacs is built
+with Xft.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to [next] and [prior]) does not signal errors at top/bottom
@@ -79,6 +80,8 @@ scroll a line instead of full screen.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** partial-completion-mode is now obsolete.
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
@@ -139,6 +142,8 @@ Secret Service API requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** Passing a nil argument to a minor mode function now turns the mode
+   ON unconditionally.
 
 * Lisp changes in Emacs 24.1
 

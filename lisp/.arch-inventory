@@ -1,4 +1,0 @@
-# Auto-generated lisp files, which ignore
-precious ^(loaddefs|finder-inf|cus-load)\.el$
-
-# arch-tag: fc62dc9f-3a91-455b-b8e7-d49df66beee0

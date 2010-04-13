@@ -1,3 +1,51 @@
+2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/complete.el: Move from lisp/complete.el.
+
+	* pcomplete.el (pcomplete-here*): Fix mistaken change (bug#5935).
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Passing a nil argument
+	to the minor mode function now turns the mode ON unconditionally.
+
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dir.el (vc-dir-kill-line): New command.
+	(vc-dir-mode-map): Bind it to C-k.
+
+	* bookmark.el (bookmark-insert-location): Handle a nil filename.
+
+	* woman.el: Add bookmark declarations to silence the compiler.
+	(bookmark-prop-get): Use `man-args' rather than `filename' as a first
+	step to compatibility between man and woman bookmarks.
+	Adjust for Man-default-bookmark-title renaming.
+	(woman-bookmark-jump): Adjust accordingly.  Don't forget to autoload.
+
+	* man.el: Add bookmark declarations to silence the compiler.
+	(Man-name-local-regexp): Make it match NAME as well.
+	(Man-getpage-in-background): Return the buffer.
+	(Man-notify-when-ready): Use `case'.
+	(man-set-default-bookmark-title): Rename to Man-default-bookmark-title.
+	Don't hardcode "NAME".  Simplify.
+	(Man-bookmark-make-record): Use Man-arguments rather than buffer-name.
+	Rename from Man-bookmark-make-record.
+	(Man-bookmark-jump): Rename from man-bookmark-jump.  Simplify now that
+	we have the actual man-args.  Use Man-getpage-in-background rather
+	than `man' since the arg is already processed.  Let bookmark.el do the
+	window handling.  Only wait for the relevant process.
+	Don't forget to autoload.
+
+	* bookmark.el (bookmark-default-file): Use locate-user-emacs-file.
+
+2010-04-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* woman.el (woman-bookmark-make-record, woman-bookmark-jump):
+	New functions.
+	(woman-mode): Setup bookmark support.
+
+	* man.el (man-set-default-bookmark-title, man-bookmark-make-record)
+	(man-bookmark-jump): New functions.
+	(Man-mode): Setup bookmark support.
+
 2010-04-10  Jari Aalto  <jari.aalto@cante.net>
 
 	* comint.el (comint-password-prompt-regexp): Use regexp-opt, and
@@ -13,10 +61,9 @@
 
 	* net/tramp.el (tramp-completion-function-alist)
 	(tramp-file-name-regexp, tramp-chunksize)
-	(tramp-local-coding-commands, tramp-remote-coding-commands): Fix
-	docstring.
-	(tramp-remote-process-environment): Use `format' instead of
-	`concat'.
+	(tramp-local-coding-commands, tramp-remote-coding-commands):
+	Fix docstring.
+	(tramp-remote-process-environment): Use `format' instead of `concat'.
 	(tramp-handle-directory-files-and-attributes)
 	(tramp-get-remote-path): Use `copy-tree'.
 	(tramp-handle-file-name-all-completions): Backward/ XEmacs
@@ -24,11 +71,11 @@
 	`read-file-name-completion-ignore-case' does not exist.
 	(tramp-do-copy-or-rename-file-directly): Do not use
 	`tramp-handle-file-remote-p'.
-	(tramp-do-copy-or-rename-file-out-of-band): Use
-	`tramp-compat-delete-directory'.
+	(tramp-do-copy-or-rename-file-out-of-band):
+	Use `tramp-compat-delete-directory'.
 	(tramp-do-copy-or-rename-file-out-of-band)
-	(tramp-compute-multi-hops, tramp-maybe-open-connection): Use
-	`format-spec-make'.
+	(tramp-compute-multi-hops, tramp-maybe-open-connection):
+	Use `format-spec-make'.
 	(tramp-find-foreign-file-name-handler)
 	(tramp-advice-make-auto-save-file-name)
 	(tramp-set-auto-save-file-modes): Remove superfluous check for
@@ -38,8 +85,8 @@
 	(tramp-check-for-regexp): Use (forward-line 1).
 	(tramp-set-auto-save-file-modes): Adapt version check.
 
-	* net/tramp-compat.el (tramp-advice-file-expand-wildcards): Wrap
-	call of `featurep' for 2nd argument.
+	* net/tramp-compat.el (tramp-advice-file-expand-wildcards):
+	Wrap call of `featurep' for 2nd argument.
 	(tramp-compat-make-temp-file): Simplify fallback implementation.
 	(tramp-compat-copy-tree): Remove function.
 	(tramp-compat-delete-directory): Provide implementation for older
@@ -69,8 +116,8 @@
 	Add --author support to git commit.
 	* vc-git.el (vc-git-checkin): Pass extra-args to the commit command.
 	(vc-git-log-edit-mode): New minor mode.
-	(log-edit-mode, log-edit-extra-flags, log-edit-mode): New
-	declarations.
+	(log-edit-mode, log-edit-extra-flags, log-edit-mode):
+	New declarations.
 
 2010-04-09  Eric Raymond  <esr@snark.thyrsus.com>
 
