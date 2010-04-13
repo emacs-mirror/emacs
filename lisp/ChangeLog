@@ -1,3 +1,8 @@
+2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Passing a nil argument
+	to the minor mode function now turns the mode ON unconditionally.
+
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-dir.el (vc-dir-kill-line): New command.
