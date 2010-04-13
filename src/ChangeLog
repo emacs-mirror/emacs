@@ -1,3 +1,13 @@
+2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try to detect file modification within the same second.
+	* buffer.h (struct buffer): New field modtime_size.
+	* buffer.c (reset_buffer): Initialize it.
+	* fileio.c (Finsert_file_contents, Fwrite_region): Set it.
+	(Fverify_visited_file_modtime): Check it.
+	(Fclear_visited_file_modtime, Fset_visited_file_modtime): Clear it.
+	(Fset_visited_file_modtime): Set (or clear) it.
+
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (status_notify): Remove unused var `ro'.
