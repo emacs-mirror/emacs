@@ -134,11 +134,6 @@
 
 	* indent.el (indent-for-tab-command): Doc fix.
 
-2010-03-22  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-remove-stale-state-cache):
-	Fix off-by-one error.  Fixes bug #5747.
-
 2010-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image-dired.el (image-dired-display-thumbs): Fix typo in docstring.
@@ -287,11 +282,6 @@
 	* calendar/cal-hebrew.el (holiday-hebrew-passover): Fix date
 	of Yom HaAtzma'ut when it falls on a Monday (rule changed in 2004).
 
-2010-03-01  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-remove-stale-state-cache):
-	Correct previous patch.
-
 2010-03-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/burmese.el (burmese-composable-pattern): Rename from
@@ -302,11 +292,6 @@
 	Change myanmar to burmese.
 	(otf-script-alist): Likewise.
 	(setup-default-fontset): Likewise.  Re-fix :otf spec.
-
-2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
-
-	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
 
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -372,16 +357,6 @@
 
 	* mail/sendmail.el (send-mail-function): Autoload the call
 	to custom-initialize-delay, not otherwise preserved in loaddefs.el.
-
-2010-02-25  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-clear-<-pair-props)
-	(c-clear->-pair-props): Correct to wipe category text props, not
-	syntax-table ones.
-
-	* progmodes/cc-mode.el (c-after-change): Remove any hard
-	syntax-table properties for <, > which, e.g., C-y has
-	inopportunely converted from category properties.
 
 2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -719,33 +694,6 @@
 	(doc-view-already-converted-p): Check that resolution.el is present.
 	(doc-view-pdf->png): Don't rely on doc-view-pdf/ps->png for the few
 	windows that are not yet showing images.
-
-2010-02-04  Alan Mackenzie  <acm@muc.de>
-
-	Change strategy for marking < and > as template delimiters: mark
-	them strictly in matching pairs.
-
-	* cc-mode.el (c-before-change):
-	Use c-get-state-before-change-functions.
-	(c-common-init): Adapt to use
-	c-get-state-before-change-functions (note plural).
-
-	* cc-langs.el (c-no-parens-syntax-table): New syntax table, used
-	for searching syntactically for matching <s and >s.
-	(c-get-state-before-change-functions): New language variable (note
-	the plural) which supersedes c-get-state-before-change-function.
-
-	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
-	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
-	(c-clear->-pair-props-if-match-before)
-	(c-before-change-check-<>-operators): New functions.
-	(c-after-change-check-<>-operators): Use macro
-	c-unmark-<->-as-paren.
-
-	* cc-defs.el (c-search-backward-char-property): New macro.
-
-	* cc-cmds.el (c-electric-lt-gt): Do not set text properties on <
-	and > any more.  (These will be handled by font locking.)
 
 2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
 

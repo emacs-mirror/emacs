@@ -1086,76 +1086,104 @@ numeric argument is supplied, or the point is inside a literal."
 
   (interactive "*P")
   (let ((c-echo-syntactic-information-p nil)
-	final-pos close-paren-inserted found-delim)
+	final-pos close-paren-inserted)
 
     (self-insert-command (prefix-numeric-value arg))
     (setq final-pos (point))
 
-;;;; 2010-01-31: There used to be code here to put a syntax-table text
-;;;; property on the new < or > and its mate (if any) when they are template
-;;;; parens.  This is now done in an after-change function.
+    (c-save-buffer-state (c-parse-and-markup-<>-arglists
+			  c-restricted-<>-arglists
+			  <-pos)
+
+      (when c-recognize-<>-arglists
+	(if (eq last-command-event ?<)
+	    (when (and (progn
+			 (backward-char)
+			 (= (point)
+			    (progn
+			      (c-beginning-of-current-token)
+			      (point))))
+		       (progn
+			 (c-backward-token-2)
+			 (looking-at c-opt-<>-sexp-key)))
+	      (c-mark-<-as-paren (1- final-pos)))
+
+	  ;; It's a ">".  Check if there's an earlier "<" which either has
+	  ;; open paren syntax already or that can be recognized as an arglist
+	  ;; together with this ">".  Note that this won't work in cases like
+	  ;; "template <x, a < b, y>" but they ought to be rare.
+
+	  (save-restriction
+	    ;; Narrow to avoid that `c-forward-<>-arglist' below searches past
+	    ;; our position.
+	    (narrow-to-region (point-min) final-pos)
+
+	    (while (and
+		    (progn
+		      (goto-char final-pos)
+		      (c-syntactic-skip-backward "^<;}" nil t)
+		      (eq (char-before) ?<))
+		    (progn
+		      (backward-char)
+		      ;; If the "<" already got open paren syntax we know we
+		      ;; have the matching closer.  Handle it and exit the
+		      ;; loop.
+		      (if (looking-at "\\s\(")
+			  (progn
+			    (c-mark->-as-paren (1- final-pos))
+			    (setq close-paren-inserted t)
+			    nil)
+			t))
+
+		    (progn
+		      (setq <-pos (point))
+		      (c-backward-syntactic-ws)
+		      (c-simple-skip-symbol-backward))
+		    (or (looking-at c-opt-<>-sexp-key)
+			(not (looking-at c-keywords-regexp)))
+
+		    (let ((c-parse-and-markup-<>-arglists t)
+			  c-restricted-<>-arglists
+			  (containing-sexp
+			   (c-most-enclosing-brace (c-parse-state))))
+		      (when (and containing-sexp
+				 (progn (goto-char containing-sexp)
+					(eq (char-after) ?\())
+				 (not (eq (get-text-property (point) 'c-type)
+					  'c-decl-arg-start)))
+			(setq c-restricted-<>-arglists t))
+		      (goto-char <-pos)
+		      (c-forward-<>-arglist nil))
+
+		    ;; Loop here if the "<" we found above belongs to a nested
+		    ;; angle bracket sexp.  When we start over we'll find the
+		    ;; previous or surrounding sexp.
+		    (if (< (point) final-pos)
+			t
+		      (setq close-paren-inserted t)
+		      nil)))))))
+    (goto-char final-pos)
 
     ;; Indent the line if appropriate.
-    (when (and c-electric-flag c-syntactic-indentation c-recognize-<>-arglists)
-      (setq found-delim
-	    (if (eq last-command-event ?<)
-		;; If a <, basically see if it's got "template" before it .....
-		(or (and (progn
-			   (backward-char)
-			   (= (point)
-			      (progn (c-beginning-of-current-token) (point))))
-			 (progn
-			   (c-backward-token-2)
-			   (looking-at c-opt-<>-sexp-key)))
-		    ;; ..... or is a C++ << operator.
-		    (and (c-major-mode-is 'c++-mode)
-			 (progn
-			   (goto-char (1- final-pos))
-			   (c-beginning-of-current-token)
-			   (looking-at "<<"))
-			 (>= (match-end 0) final-pos)))
+    (when (and c-electric-flag c-syntactic-indentation)
+      (backward-char)
+      (when (prog1 (or (looking-at "\\s\(\\|\\s\)")
+		       (and (c-major-mode-is 'c++-mode)
+			    (progn
+			      (c-beginning-of-current-token)
+			      (looking-at "<<\\|>>"))
+			    (= (match-end 0) final-pos)))
+	      (goto-char final-pos))
+	(indent-according-to-mode)))
 
-	      ;; It's a >.  Either a C++ >> operator. ......
-	      (or (and (c-major-mode-is 'c++-mode)
-		       (progn
-			 (goto-char (1- final-pos))
-			 (c-beginning-of-current-token)
-			 (looking-at ">>"))
-		       (>= (match-end 0) final-pos))
-		  ;; ...., or search back for a < which isn't already marked as an
-		  ;; opening template delimiter.
-		  (save-restriction
-		    (widen)
-		    ;; Narrow to avoid `c-forward-<>-arglist' below searching past
-		    ;; our position.
-		    (narrow-to-region (point-min) final-pos)
-		    (goto-char final-pos)
-		    (while
-			(and
-			 (progn
-			   (c-syntactic-skip-backward "^<;}" nil t)
-			   (eq (char-before) ?<))
-			 (progn
-			   (backward-char)
-			   (looking-at "\\s\("))))
-		    (and (eq (char-after) ?<)
-			 (not (looking-at "\\s\("))
-			 (progn (c-backward-syntactic-ws)
-				(c-simple-skip-symbol-backward))
-			 (or (looking-at c-opt-<>-sexp-key)
-			     (not (looking-at c-keywords-regexp)))))))))
-
-    (goto-char final-pos)
-    (when found-delim
-      (indent-according-to-mode)
-      (when (and (eq (char-before) ?>)
-		 (not executing-kbd-macro)
-		 blink-paren-function)
-	    ;; Note: Most paren blink functions, such as the standard
-	    ;; `blink-matching-open', currently doesn't handle paren chars
-	    ;; marked with text properties very well.  Maybe we should avoid
-	    ;; this call for the time being?
-	    (funcall blink-paren-function)))))
+    (when (and close-paren-inserted
+	       (not executing-kbd-macro)
+	       blink-paren-function)
+      ;; Note: Most paren blink functions, such as the standard
+      ;; `blink-matching-open', currently doesn't handle paren chars
+      ;; marked with text properties very well.  Maybe we should avoid
+      ;; this call for the time being?
+      (funcall blink-paren-function))))
 
 (defun c-electric-paren (arg)
   "Insert a parenthesis.
