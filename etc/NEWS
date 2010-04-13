@@ -81,6 +81,8 @@ scroll a line instead of full screen.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** partial-completion-mode is now obsolete.
+
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
 
