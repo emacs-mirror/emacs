@@ -1,3 +1,8 @@
+2010-04-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsmenu.m (EmacsDialog-runDialogAt:): Declare ret as
+	NSInteger (Bug#5811).
+
 2010-04-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* s/darwin.h (PTY_ITERATION, PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF)
