@@ -529,8 +529,6 @@ child_setup_tty (out)
 #endif
   s.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
   s.main.c_cflag = (s.main.c_cflag & ~CSIZE) | CS8; /* Don't strip 8th bit */
-  s.main.c_lflag |= ICANON;	/* Enable erase/kill and eof processing */
-  s.main.c_cc[VEOF] = 04;	/* insure that EOF is Control-D */
   s.main.c_cc[VERASE] = CDISABLE;	/* disable erase processing */
   s.main.c_cc[VKILL] = CDISABLE;	/* disable kill processing */
 
@@ -560,7 +558,6 @@ child_setup_tty (out)
   /* rms: Formerly it set s.main.c_cc[VINTR] to 0377 here
      unconditionally.  Then a SIGNALS_VIA_CHARACTERS conditional
      would force it to 0377.  That looks like duplicated code.  */
-  s.main.c_cc[VEOL] = CDISABLE;
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
@@ -572,6 +569,18 @@ child_setup_tty (out)
   s.main.sg_erase = 0377;
   s.main.sg_kill = 0377;
   s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
+
+  /* We used to enable ICANON (and set VEOF to 04), but this leads to
+     problems where process.c wants to send EOFs every once in a while
+     to force the output, which leads to weird effects when the
+     subprocess has disabled ICANON and ends up seeing those spurious
+     extra EOFs.  So we don't send EOFs any more in
+     process.c:send_process, and instead we disable ICANON by default,
+     so if a subsprocess sets up ICANON, it's his problem (or the Elisp
+     package that talks to it) to deal with lines that are too long.  */
+  s.main.c_lflag &= ~ICANON;	/* Disable line editing and eof processing */
+  s.main.c_cc[VMIN] = 1;
+  s.main.c_cc[VTIME] = 0;
 
 #endif /* not HAVE_TERMIO */
 
@@ -3344,7 +3353,7 @@ system_process_attributes (Lisp_Object pid)
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
   time_t sec;
   unsigned usec;
-  EMACS_TIME tnow, tstart, tboot, telapsed,ttotal;
+  EMACS_TIME tnow, tstart, tboot, telapsed;
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;

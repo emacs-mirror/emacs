@@ -1,4 +1,0 @@
-# Generated files
-precious ^(config\.status|config\.cache)$
-
-# arch-tag: dde817a2-94ff-4c6e-838c-bb5b33e7f0df

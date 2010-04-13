@@ -3593,25 +3593,18 @@ init_tty (char *name, char *terminal_type, int must_succeed)
     }
   if (status == 0)
     {
+      maybe_fatal (must_succeed, terminal,
+                   "Terminal type %s is not defined",
+                   "Terminal type %s is not defined.\n\
+If that is not the actual type of terminal you have,\n\
+use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
+`setenv TERM ...') to specify the correct type.  It may be necessary\n"
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, terminal,
-                   "Terminal type %s is not defined",
-                   "Terminal type %s is not defined.\n\
-If that is not the actual type of terminal you have,\n\
-use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
-`setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
-                   terminal_type);
+"to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
 #else
-      maybe_fatal (must_succeed, terminal,
-                   "Terminal type %s is not defined",
-                   "Terminal type %s is not defined.\n\
-If that is not the actual type of terminal you have,\n\
-use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
-`setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
-                   terminal_type);
+"to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif
+                   terminal_type);
     }
 
 #ifndef TERMINFO
@@ -3878,20 +3871,15 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     {
       maybe_fatal (must_succeed, terminal,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",
+                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+It lacks the ability to position the cursor.\n\
+If that is not the actual type of terminal you have,\n\
+use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
+`setenv TERM ...') to specify the correct type.  It may be necessary\n"
 # ifdef TERMINFO
-                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
-It lacks the ability to position the cursor.\n\
-If that is not the actual type of terminal you have,\n\
-use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
-`setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
+"to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
 # else /* TERMCAP */
-                   "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
-It lacks the ability to position the cursor.\n\
-If that is not the actual type of terminal you have,\n\
-use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
-`setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
+"to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 # endif /* TERMINFO */
                    terminal_type);
     }
