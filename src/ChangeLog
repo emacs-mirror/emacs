@@ -1,5 +1,9 @@
 2010-04-13  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_set_geometry): Set geometry for PPosition also.
+	(x_wm_set_size_hint): Dont set position flags, gtk_window_parse_geometry
+	does that.
+
 	* xfns.c (Fx_create_frame, x_create_tip_frame): Set default border width
 	to zero.
 
