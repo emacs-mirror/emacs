@@ -1,5 +1,7 @@
 2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcomplete.el (pcomplete-here*): Fix mistaken change (bug#5935).
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Passing a nil argument
 	to the minor mode function now turns the mode ON unconditionally.
 
