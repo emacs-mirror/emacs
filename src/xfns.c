@@ -3376,7 +3376,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Frame contents get displaced if an embedded X window has a border.  */
   if (! FRAME_X_EMBEDDED_P (f))
-    x_default_parameter (f, parms, Qborder_width, make_number (2),
+    x_default_parameter (f, parms, Qborder_width, make_number (0),
 			 "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* This defaults to 1 in order to match xterm.  We recognize either
@@ -4847,7 +4847,7 @@ x_create_tip_frame (dpyinfo, parms, text)
      needed to determine window geometry.  */
   x_default_font_parameter (f, parms);
 
-  x_default_parameter (f, parms, Qborder_width, make_number (2),
+  x_default_parameter (f, parms, Qborder_width, make_number (0),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* This defaults to 2 in order to match xterm.  We recognize either

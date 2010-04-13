@@ -1,3 +1,8 @@
+2010-04-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Set default border width
+	to zero.
+
 2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (init_tty): Move common text outside of #ifdef TERMINFO.
