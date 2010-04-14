@@ -1,3 +1,12 @@
+2010-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce cpp use in Makefile.in.
+	* Makefile.in (DBUS_CFLAGS, DBUS_LIBS, GCONF_CFLAGS, GCONF_LIBS)
+	(LIBSOUND, CFLAGS_SOUND, RSVG_LIBS, RSVG_CFLAGS, INTERVALS_H)
+	(GETLOADAVG_LIBS, RUN_TEMACS): Move to the autoconf section.
+	(ORDINARY_LINK): Remove, defined in src/s/gnu.h.
+	(CRT0_COMPILE): Remove, inline it in the only user.
+
 2010-04-14  Juri Linkov  <juri@jurta.org>
 
 	* window.c (keys_of_window): Rebind `C-v' from `scroll-up' to
