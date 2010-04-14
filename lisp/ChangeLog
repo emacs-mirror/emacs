@@ -1,5 +1,13 @@
 2010-04-14  Juri Linkov  <juri@jurta.org>
 
+	* simple.el (scroll-error-top-bottom): New defcustom.
+	(scroll-up-command, scroll-down-command): Use it.  Doc fix.
+
+	* emulation/pc-select.el (pc-select-override-scroll-error):
+	Obsolete in favor of `scroll-error-top-bottom'.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
 	* tutorial.el (tutorial--default-keys): Rebind `C-v' to
 	`scroll-up-command' and `M-v' to `scroll-down-command'.
 
