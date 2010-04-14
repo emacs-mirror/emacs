@@ -69,11 +69,15 @@ Use `set-scroll-bar-mode' to change this.
 with Xft.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
-(bound to [next] and [prior]) does not signal errors at top/bottom
-of buffer at first key-press (instead moves to top/bottom of buffer).
+(bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
+of buffer at first key-press (instead moves to top/bottom of buffer)
+when a new variable `scroll-error-top-bottom' is non-nil.
 
 ** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
+
+** New variable `scroll-preserve-screen-position-commands' defines
+a list of scroll command affected by `scroll-preserve-screen-position.
 
 
 * Editing Changes in Emacs 24.1

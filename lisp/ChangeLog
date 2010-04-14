@@ -1,3 +1,31 @@
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (scroll-error-top-bottom): New defcustom.
+	(scroll-up-command, scroll-down-command): Use it.  Doc fix.
+
+	* emulation/pc-select.el (pc-select-override-scroll-error):
+	Obsolete in favor of `scroll-error-top-bottom'.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* tutorial.el (tutorial--default-keys): Rebind `C-v' to
+	`scroll-up-command' and `M-v' to `scroll-down-command'.
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* forms.el (forms--change-commands):
+	* image-mode.el (image-mode-map):
+	Remap scroll-down-command and scroll-up-command
+	in addition to scroll-down and scroll-up.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* mwheel.el (scroll-preserve-screen-position-commands):
+	Add mwheel-scroll to this list of commands.
+
+	* simple.el (scroll-preserve-screen-position-commands):
+	Add scroll-up-command, scroll-down-command, scroll-up-line,
+	scroll-down-line to this list of commands.
+
 2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/complete.el: Move from lisp/complete.el.

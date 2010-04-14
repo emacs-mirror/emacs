@@ -4744,20 +4744,34 @@ This also turns on `word-wrap' in the buffer."
 ;;; of buffer at first key-press (instead moves to top/bottom
 ;;; of buffer).
 
+(defcustom scroll-error-top-bottom nil
+  "Move point to top/bottom of buffer before signalling a scrolling error.
+A value of nil means just signal an error if no more scrolling possible.
+A value of t means point moves to the beginning or the end of the buffer
+\(depending on scrolling direction) when no more scrolling possible.
+When point is already on that position, then signal an error."
+  :type 'boolean
+  :group 'scrolling
+  :version "24.1")
+
 (defun scroll-up-command (&optional arg)
   "Scroll text of selected window upward ARG lines; or near full screen if no ARG.
-If `scroll-up' cannot scroll window further, move cursor to the bottom line.
+If `scroll-error-top-bottom' is non-nil and `scroll-up' cannot
+scroll window further, move cursor to the bottom line.
 When point is already on that position, then signal an error.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
 If ARG is the atom `-', scroll downward by nearly full screen."
   (interactive "^P")
   (cond
-   ((eq arg '-) (scroll-down-command nil))
+   ((null scroll-error-top-bottom)
+    (scroll-up arg))
+   ((eq arg '-)
+    (scroll-down-command nil))
    ((< (prefix-numeric-value arg) 0)
     (scroll-down-command (- (prefix-numeric-value arg))))
    ((eobp)
-    (scroll-up arg))  ; signal error
+    (scroll-up arg))			; signal error
    (t
     (condition-case nil
 	(scroll-up arg)
@@ -4771,21 +4785,26 @@ If ARG is the atom `-', scroll downward by nearly full screen."
 	 (goto-char (point-max))))))))
 
 (put 'scroll-up-command 'isearch-scroll t)
+(add-to-list 'scroll-preserve-screen-position-commands 'scroll-up-command)
 
 (defun scroll-down-command (&optional arg)
   "Scroll text of selected window down ARG lines; or near full screen if no ARG.
-If `scroll-down' cannot scroll window further, move cursor to the top line.
+If `scroll-error-top-bottom' is non-nil and `scroll-down' cannot
+scroll window further, move cursor to the top line.
 When point is already on that position, then signal an error.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
 If ARG is the atom `-', scroll upward by nearly full screen."
   (interactive "^P")
   (cond
-   ((eq arg '-) (scroll-up-command nil))
+   ((null scroll-error-top-bottom)
+    (scroll-down arg))
+   ((eq arg '-)
+    (scroll-up-command nil))
    ((< (prefix-numeric-value arg) 0)
     (scroll-up-command (- (prefix-numeric-value arg))))
    ((bobp)
-    (scroll-down arg))  ; signal error
+    (scroll-down arg))			; signal error
    (t
     (condition-case nil
 	(scroll-down arg)
@@ -4799,6 +4818,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	 (goto-char (point-min))))))))
 
 (put 'scroll-down-command 'isearch-scroll t)
+(add-to-list 'scroll-preserve-screen-position-commands 'scroll-down-command)
 
 ;;; Scrolling commands which scroll a line instead of full screen.
 
@@ -4810,6 +4830,7 @@ This is different from `scroll-up-command' that scrolls a full screen."
   (scroll-up (or arg 1)))
 
 (put 'scroll-up-line 'isearch-scroll t)
+(add-to-list 'scroll-preserve-screen-position-commands 'scroll-up-line)
 
 (defun scroll-down-line (&optional arg)
   "Scroll text of selected window down ARG lines; or one line if no ARG.
@@ -4819,6 +4840,7 @@ This is different from `scroll-down-command' that scrolls a full screen."
   (scroll-down (or arg 1)))
 
 (put 'scroll-down-line 'isearch-scroll t)
+(add-to-list 'scroll-preserve-screen-position-commands 'scroll-down-line)
 
 
 (defun scroll-other-window-down (lines)
