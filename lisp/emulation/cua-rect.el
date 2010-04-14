@@ -1432,6 +1432,8 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap beginning-of-buffer] 'cua-resize-rectangle-top)
   (define-key cua--rectangle-keymap [remap scroll-down]         'cua-resize-rectangle-page-up)
   (define-key cua--rectangle-keymap [remap scroll-up]           'cua-resize-rectangle-page-down)
+  (define-key cua--rectangle-keymap [remap scroll-down-command] 'cua-resize-rectangle-page-up)
+  (define-key cua--rectangle-keymap [remap scroll-up-command]   'cua-resize-rectangle-page-down)
 
   (define-key cua--rectangle-keymap [remap delete-backward-char] 'cua-delete-char-rectangle)
   (define-key cua--rectangle-keymap [remap backward-delete-char] 'cua-delete-char-rectangle)

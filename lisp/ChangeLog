@@ -1,5 +1,16 @@
 2010-04-14  Juri Linkov  <juri@jurta.org>
 
+	* tutorial.el (tutorial--default-keys): Rebind `C-v' to
+	`scroll-up-command' and `M-v' to `scroll-down-command'.
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* forms.el (forms--change-commands):
+	* image-mode.el (image-mode-map):
+	Remap scroll-down-command and scroll-up-command
+	in addition to scroll-down and scroll-up.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
 	* mwheel.el (scroll-preserve-screen-position-commands):
 	Add mwheel-scroll to this list of commands.
 

@@ -1,5 +1,11 @@
 2010-04-14  Juri Linkov  <juri@jurta.org>
 
+	* window.c (keys_of_window): Rebind `C-v' from `scroll-up' to
+	`scroll-up-command' and `M-v' from `scroll-down' to
+	`scroll-down-command'.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
 	* window.c (Vscroll_preserve_screen_position_commands): New variable
 	with the default value as the list of Qscroll_down and Qscroll_up.
 	(window_scroll_pixel_based, window_scroll_line_based): Search the

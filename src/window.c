@@ -7391,9 +7391,9 @@ keys_of_window ()
   initial_define_key (control_x_map, '<', "scroll-left");
   initial_define_key (control_x_map, '>', "scroll-right");
 
-  initial_define_key (global_map, Ctl ('V'), "scroll-up");
+  initial_define_key (global_map, Ctl ('V'), "scroll-up-command");
   initial_define_key (meta_map, Ctl ('V'), "scroll-other-window");
-  initial_define_key (meta_map, 'v', "scroll-down");
+  initial_define_key (meta_map, 'v', "scroll-down-command");
 }
 
 /* arch-tag: 90a9c576-0590-48f1-a5f1-6c96a0452d9f
