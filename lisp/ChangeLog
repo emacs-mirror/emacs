@@ -1,3 +1,7 @@
+2010-04-14  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* ido.el (ido-file-internal): Fix 2009-12-02 change.
+
 2010-04-14  Christoph  <cschol2112@googlemail.com>  (tiny change)
 
 	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
