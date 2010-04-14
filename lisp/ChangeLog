@@ -1,3 +1,11 @@
+2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add a new field `location' to bookmarks for non-file bookmarks.
+	* bookmark.el (bookmark-location): Use the new field, if present.
+	(bookmark-insert-location): Undo last change, not needed any more.
+	* man.el (Man-bookmark-make-record):
+	* woman.el (woman-bookmark-make-record): Add `location' field.
+
 2010-04-14  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (scroll-error-top-bottom): New defcustom.
