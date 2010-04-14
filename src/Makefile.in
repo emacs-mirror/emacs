@@ -80,6 +80,24 @@ C_SWITCH_MACHINE=@c_switch_machine@
 
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 
+DBUS_CFLAGS = @DBUS_CFLAGS@
+DBUS_LIBS = @DBUS_LIBS@
+
+GCONF_CFLAGS = @GCONF_CFLAGS@
+GCONF_LIBS = @GCONF_LIBS@
+
+LIBSOUND= @LIBSOUND@
+CFLAGS_SOUND= @CFLAGS_SOUND@
+
+RSVG_LIBS= @RSVG_LIBS@
+RSVG_CFLAGS= @RSVG_CFLAGS@
+
+INTERVALS_H = dispextern.h intervals.h composite.h
+
+GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
+
+RUN_TEMACS = `/bin/pwd`/temacs
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -116,14 +134,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 /* On some machines #define register is done in config;
    do not let it interfere with this file.  */
 #undef register
-
-/* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
-   GNU/Linux is an exception because it uses a funny variant of GNU libc.  */
-#ifdef __GNU_LIBRARY__
-#ifndef GNU_LINUX
-#define ORDINARY_LINK
-#endif
-#endif
 
 /* Some machines do not find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
@@ -201,10 +211,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 
 #ifndef ORDINARY_LINK
 
-#ifndef CRT0_COMPILE
-#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS)
-#endif
-
 #ifndef START_FILES
 #ifdef NO_REMAP
 #define START_FILES pre-crt0.o /lib/crt0.o
@@ -234,14 +240,7 @@ shared=no
 #endif
 
 #ifdef HAVE_DBUS
-DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_LIBS = @DBUS_LIBS@
 DBUS_OBJ = dbusbind.o
-#endif
-
-#ifdef HAVE_GCONF
-GCONF_CFLAGS = @GCONF_CFLAGS@
-GCONF_LIBS = @GCONF_LIBS@
 #endif
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
@@ -370,12 +369,6 @@ LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
 #endif /* not HAVE_X_WINDOWS */
 
-LIBSOUND= @LIBSOUND@
-CFLAGS_SOUND= @CFLAGS_SOUND@
-
-RSVG_LIBS= @RSVG_LIBS@
-RSVG_CFLAGS= @RSVG_CFLAGS@
-
 #ifndef ORDINARY_LINK
 /* Fix linking if compiled with GCC.  */
 #ifdef __GNUC__
@@ -444,15 +437,6 @@ TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_S
 #ifndef YMF_PASS_LDFLAGS
 #define YMF_PASS_LDFLAGS(flags) flags
 #endif
-
-/* Allow config.h to specify a replacement file for unexec.c.  */
-#ifndef UNEXEC
-#define UNEXEC unexec.o
-#endif
-
-INTERVALS_H = dispextern.h intervals.h composite.h
-
-GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
@@ -844,8 +828,6 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
-RUN_TEMACS = `/bin/pwd`/temacs
-
 all: emacs${EXEEXT} $(OTHER_FILES)
 
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
@@ -961,7 +943,7 @@ ecrt0.o: ecrt0.c $(config_h)
 #ifdef AUTO_DEPEND
 	@-test -d deps || mkdir deps
 #endif
-	CRT0_COMPILE ${srcdir}/ecrt0.c
+	$(CC) -c $(ALL_CFLAGS) ${srcdir}/ecrt0.c
 doc.o: buildobj.h
 
 #ifndef AUTO_DEPEND

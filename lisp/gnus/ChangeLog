@@ -1,3 +1,7 @@
+2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Add `location' field.
+
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el: Add bookmark declarations to silence the compiler.

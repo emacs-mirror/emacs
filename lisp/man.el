@@ -1689,8 +1689,9 @@ Uses `Man-name-local-regexp'."
   "Make a bookmark entry for a Man buffer."
   `(,(Man-default-bookmark-title)
     ,@(bookmark-make-record-default 'point-only)
-      (man-args . ,Man-arguments)
-      (handler . Man-bookmark-jump)))
+    (location . ,(concat "man " Man-arguments))
+    (man-args . ,Man-arguments)
+    (handler . Man-bookmark-jump)))
 
 ;;;###autoload
 (defun Man-bookmark-jump (bookmark)

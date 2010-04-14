@@ -1,3 +1,26 @@
+2010-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce cpp use in Makefile.in.
+	* Makefile.in (DBUS_CFLAGS, DBUS_LIBS, GCONF_CFLAGS, GCONF_LIBS)
+	(LIBSOUND, CFLAGS_SOUND, RSVG_LIBS, RSVG_CFLAGS, INTERVALS_H)
+	(GETLOADAVG_LIBS, RUN_TEMACS): Move to the autoconf section.
+	(ORDINARY_LINK): Remove, defined in src/s/gnu.h.
+	(CRT0_COMPILE): Remove, inline it in the only user.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* window.c (keys_of_window): Rebind `C-v' from `scroll-up' to
+	`scroll-up-command' and `M-v' from `scroll-down' to
+	`scroll-down-command'.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* window.c (Vscroll_preserve_screen_position_commands): New variable
+	with the default value as the list of Qscroll_down and Qscroll_up.
+	(window_scroll_pixel_based, window_scroll_line_based): Search the
+	last command in the list Vscroll_preserve_screen_position_commands
+	instead of comparing with Qscroll_up and Qscroll_down.
+
 2010-04-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_geometry): Set geometry for PPosition also.

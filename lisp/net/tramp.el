@@ -5527,7 +5527,9 @@ Falls back to normal file name handler if no Tramp file name handler exists."
          ;; disable this part of the completion, unless the user implicitly
          ;; indicated his interest in using a fancier completion system.
          (or (eq tramp-syntax 'sep)
-             (featurep 'tramp) ; If it's loaded, we may as well use it.
+             (featurep 'tramp) ;; If it's loaded, we may as well use
+	     ;; it.  `partial-completion-mode' does not exist in
+	     ;; XEmacs.  It is obsoleted with Emacs 24.1.
              (and (boundp 'partial-completion-mode) partial-completion-mode)
              ;; FIXME: These may have been loaded even if the user never
              ;; intended to use them.
@@ -5603,7 +5605,8 @@ should never be set globally, the intention is to let-bind it.")
 (defun tramp-completion-mode-p ()
   "Checks whether method / user name / host name completion is active."
   (or
-   ;; Signal from outside.
+   ;; Signal from outside.  `non-essential' has been introduced in Emacs 24.
+   (and (boundp 'non-essential) (symbol-value 'non-essential))
    tramp-completion-mode
    ;; Emacs.
    (equal last-input-event 'tab)
@@ -8651,6 +8654,7 @@ Only works for Bourne-like shells."
 ;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
 ;;   on remote hosts.
 ;; * Use secrets.el for password handling.
+;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

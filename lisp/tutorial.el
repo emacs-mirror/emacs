@@ -218,8 +218,8 @@ LEFT and RIGHT are the elements to compare."
              (save-buffers-kill-terminal [?\C-x ?\C-c])
 
              ;; * SUMMARY
-             (scroll-up [?\C-v])
-             (scroll-down [?\M-v])
+             (scroll-up-command [?\C-v])
+             (scroll-down-command [?\M-v])
              (recenter-top-bottom [?\C-l])
 
              ;; * BASIC CURSOR CONTROL

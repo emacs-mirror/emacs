@@ -1028,7 +1028,8 @@ variables.")
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
   (message "Making completion list...")
-  (let* ((start (field-beginning))
+  (let* ((non-essential t)
+	 (start (field-beginning))
          (string (field-string))
          (completions (completion-all-completions
                        string

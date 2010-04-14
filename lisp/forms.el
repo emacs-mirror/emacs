@@ -1407,7 +1407,9 @@ Commands:                        Equivalent keys in read-only mode:
   (if forms-forms-scroll
       (progn
 	(local-set-key [remap scroll-up] 'forms-next-record)
-	(local-set-key [remap scroll-down] 'forms-prev-record)))
+	(local-set-key [remap scroll-down] 'forms-prev-record)
+	(local-set-key [remap scroll-up-command] 'forms-next-record)
+	(local-set-key [remap scroll-down-command] 'forms-prev-record)))
   ;;
   ;; beginning-of-buffer -> forms-first-record
   ;; end-of-buffer -> forms-end-record
