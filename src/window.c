@@ -168,6 +168,10 @@ static Lisp_Object Vwindow_configuration_change_hook;
 
 Lisp_Object Vscroll_preserve_screen_position;
 
+/* List of commands affected by `Vscroll_preserve_screen_position'.  */
+
+Lisp_Object Vscroll_preserve_screen_position_commands;
+
 /* Non-nil means that text is inserted before window's markers.  */
 
 Lisp_Object Vwindow_point_insertion_type;
@@ -4946,8 +4950,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	 possibility of point becoming "stuck" on a tall line when
 	 scrolling by one line.  */
       if (window_scroll_pixel_based_preserve_y < 0
-	  || (!EQ (current_kboard->Vlast_command, Qscroll_up)
-	      && !EQ (current_kboard->Vlast_command, Qscroll_down)))
+	  || NILP (Fmemq (current_kboard->Vlast_command,
+			  Vscroll_preserve_screen_position_commands)))
 	{
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
@@ -5207,8 +5211,8 @@ window_scroll_line_based (window, n, whole, noerror)
   if (!NILP (Vscroll_preserve_screen_position))
     {
       if (window_scroll_preserve_vpos <= 0
-	  || (!EQ (current_kboard->Vlast_command, Qscroll_up)
-	      && !EQ (current_kboard->Vlast_command, Qscroll_down)))
+	  || NILP (Fmemq (current_kboard->Vlast_command,
+			  Vscroll_preserve_screen_position_commands)))
 	{
 	  struct position posit
 	    = *compute_motion (startpos, 0, 0, 0,
@@ -7265,8 +7269,18 @@ at the scroll margin or window boundary respectively.
 A value of t means point keeps its screen position if the scroll
 command moved it vertically out of the window, e.g. when scrolling
 by full screens.
-Any other value means point always keeps its screen position.  */);
+Any other value means point always keeps its screen position.
+Scroll commands are defined by the variable
+`scroll-preserve-screen-position-commands'.  */);
   Vscroll_preserve_screen_position = Qnil;
+
+  DEFVAR_LISP ("scroll-preserve-screen-position-commands",
+	       &Vscroll_preserve_screen_position_commands,
+	       doc: /* A list of commands whose scrolling should keep screen position unchanged.
+This list defines the names of scroll commands affected by the variable
+`scroll-preserve-screen-position'.  */);
+  Vscroll_preserve_screen_position_commands =
+    Fcons (Qscroll_down, Fcons (Qscroll_up, Qnil));
 
   DEFVAR_LISP ("window-point-insertion-type", &Vwindow_point_insertion_type,
 	       doc: /* Type of marker to use for `window-point'.  */);

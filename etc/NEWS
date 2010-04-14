@@ -75,6 +75,9 @@ of buffer at first key-press (instead moves to top/bottom of buffer).
 ** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 
+** New variable `scroll-preserve-screen-position-commands' defines
+a list of scroll command affected by `scroll-preserve-screen-position.
+
 
 * Editing Changes in Emacs 24.1
 
