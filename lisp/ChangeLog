@@ -1,3 +1,10 @@
+2010-04-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#5840.
+	* ido.el (ido-file-name-all-completions-1):
+	* minibuffer.el (minibuffer-completion-help):
+	* net/tramp.el (tramp-completion-mode-p): Use `non-essential'.
+
 2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (non-essential): New var.

@@ -3458,7 +3458,7 @@ This is to make them appear as if they were \"virtual buffers\"."
     ;; Strip method:user@host: part of tramp completions.
     ;; Tramp completions do not include leading slash.
     (let* ((len (1- (length dir)))
-	   (tramp-completion-mode t)
+	   (non-essential t)
 	   (compl
 	    (or (file-name-all-completions "" dir)
 		;; work around bug in ange-ftp.
