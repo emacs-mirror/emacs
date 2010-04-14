@@ -281,7 +281,7 @@ function returns @code{nil} as its value, then @code{expand-abbrev}
 returns @code{nil} even though expansion did occur.
 @end deffn
 
-@deffn abbrev-insert abbrev &optional name start end
+@defun abbrev-insert abbrev &optional name start end
 This function inserts the abbrev expansion of @code{abbrev}, replacing
 the text between @code{start} and @code{end}.  If @code{start} is
 omitted, it defaults to point.  @code{name}, if non-@code{nil}, should
@@ -289,7 +289,7 @@ be the name by which this abbrev was found (a string); it is used to
 figure out whether to adjust the capitalization of the expansion.  The
 function returns @code{abbrev} if the abbrev was successfully
 inserted.
-@end deffn
+@end defun
 
 @deffn Command abbrev-prefix-mark &optional arg
 This command marks the current location of point as the beginning of
