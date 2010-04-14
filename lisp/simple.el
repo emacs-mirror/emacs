@@ -3940,6 +3940,14 @@ the current accessible part of the buffer.
 If `widen-automatically' is nil, these commands will do something else
 as a fallback, and won't change the buffer bounds.")
 
+(defvar non-essential nil
+  "Whether the currently executing code is performing an essential task.
+This variable should be non-nil only when running code which should not
+disturb the user.  E.g. it can be used to prevent Tramp from prompting the
+user for a password when we are simply scanning a set of files in the
+background or displaying possible completions before the user even asked
+for it.")
+
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
   (interactive)

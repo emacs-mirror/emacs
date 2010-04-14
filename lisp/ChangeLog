@@ -1,5 +1,7 @@
 2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (non-essential): New var.
+
 	Add a new field `location' to bookmarks for non-file bookmarks.
 	* bookmark.el (bookmark-location): Use the new field, if present.
 	(bookmark-insert-location): Undo last change, not needed any more.
