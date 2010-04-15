@@ -345,8 +345,6 @@ it's not supported on git versions earlier than 1.5.
 the stash list is displayed in the *vc-dir* header, stashes can be
 created, removed, applied and their content displayed.
 
-**** vc-dir displays the stash status
-
 **** vc-dir requires at least git-1.5.5.
 
 *** vc-bzr supports operating with shelves: the shelve list is
