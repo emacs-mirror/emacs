@@ -793,7 +793,7 @@ typedef struct frame *FRAME_PTR;
 
 #define FRAME_SAMPLE_VISIBILITY(f) \
   (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
-   SET_FRAME_GARBAGED (f) : \
+   SET_FRAME_GARBAGED (f) : 0, \
    (f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
 
