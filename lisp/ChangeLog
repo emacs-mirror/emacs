@@ -1,3 +1,23 @@
+2010-04-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-error-with-buffer): Don't show the
+	connection buffer when we are in completion mode.
+	(tramp-file-name-handler): Catch the error for some operations
+	when we are in completion mode.  This gives the user the chance to
+	correct the file name in the minibuffer.
+
+2010-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/verilog-mode.el (verilog-forward-sexp): Avoid free variable.
+
+2010-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	Simplify by using `define-derived-mode'.
+	* info.el (Info-mode):
+	* calendar/todo-mode.el (todo-mode):
+	* play/gomoku.el (gomoku-mode): Define with `define-derived-mode'.
+	(gomoku-mode-map): Move initialization into declaration.
+
 2010-04-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	Fix Bug#5840.

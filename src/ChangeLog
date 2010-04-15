@@ -1,3 +1,7 @@
+2010-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xdisp.c (message): Do not use NO_ARG_ARRAY.
+
 2010-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Reduce cpp use in Makefile.in.

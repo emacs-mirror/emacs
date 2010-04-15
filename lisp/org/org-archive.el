@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -40,7 +40,12 @@
   :type '(choice
 	  (const org-archive-subtree)
 	  (const org-archive-to-archive-sibling)
-	  (const org-archive-set-tag)))  
+	  (const org-archive-set-tag)))
+
+(defcustom org-archive-reversed-order nil
+  "Non-nil means make the tree first child under the archive heading, not last."
+  :group 'org-archive
+  :type 'boolean)
 
 (defcustom org-archive-sibling-heading "Archive"
   "Name of the local archive sibling that is used to archive entries locally.
@@ -50,7 +55,7 @@ See `org-archive-to-archive-sibling' for more information."
   :type 'string)
 
 (defcustom org-archive-mark-done nil
-  "Non-nil means, mark entries as DONE when they are moved to the archive file.
+  "Non-nil means mark entries as DONE when they are moved to the archive file.
 This can be a string to set the keyword to use.  When t, Org-mode will
 use the first keyword in its list that means done."
   :group 'org-archive
@@ -60,7 +65,7 @@ use the first keyword in its list that means done."
 	  (string :tag "Use this keyword")))
 
 (defcustom org-archive-stamp-time t
-  "Non-nil means, add a time stamp to entries moved to an archive file.
+  "Non-nil means add a time stamp to entries moved to an archive file.
 This variable is obsolete and has no effect anymore, instead add or remove
 `time' from the variable `org-archive-save-context-info'."
   :group 'org-archive
@@ -273,7 +278,11 @@ this heading."
 		  (end-of-line 0))
 		;; Make the subtree visible
 		(show-subtree)
-		(org-end-of-subtree t)
+		(if org-archive-reversed-order
+		    (progn
+		      (org-back-to-heading t)
+		      (outline-next-heading))
+		  (org-end-of-subtree t))
 		(skip-chars-backward " \t\r\n")
 		(and (looking-at "[ \t\r\n]*")
 		     (replace-match "\n\n")))
@@ -355,7 +364,9 @@ sibling does not exist, it will be created at the end of the subtree."
 	(beginning-of-line 0)
 	(org-toggle-tag org-archive-tag 'on))
       (beginning-of-line 1)
-      (org-end-of-subtree t t)
+      (if org-archive-reversed-order
+	  (outline-next-heading)
+	(org-end-of-subtree t t))
       (save-excursion
 	(goto-char pos)
 	(let ((this-command this-command)) (org-cut-subtree)))
@@ -389,7 +400,8 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
 	(progn
 	  (setq re1 (concat "^" (regexp-quote
 				 (make-string
-				  (1+ (- (match-end 0) (match-beginning 0) 1))
+				  (+ (- (match-end 0) (match-beginning 0) 1)
+				     (if org-odd-levels-only 2 1))
 				  ?*))
 			    " "))
 	  (move-marker begm (point))

@@ -2170,7 +2170,9 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
   (save-window-excursion
     (unwind-protect
 	(apply 'tramp-error vec-or-proc signal fmt-string args)
-      (when (and vec-or-proc (not (zerop tramp-verbose)))
+      (when (and vec-or-proc
+		 (not (zerop tramp-verbose))
+		 (not (tramp-completion-mode-p)))
 	(let ((enable-recursive-minibuffers t))
 	  (pop-to-buffer
 	   (or (and (bufferp buffer) buffer)
@@ -5425,19 +5427,28 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	       (completion (tramp-completion-mode-p))
 	       (foreign (tramp-find-foreign-file-name-handler filename)))
 	  (with-parsed-tramp-file-name filename nil
-	    (cond
-	     ;; When we are in completion mode, some operations
-	     ;; shouldn't be handled by backend.
-	     ((and completion (zerop (length localname))
-		   (memq operation '(file-exists-p file-directory-p)))
-	      t)
-	     ((and completion (zerop (length localname))
-		   (memq operation '(file-name-as-directory)))
-	      filename)
-	     ;; Call the backend function.
-	     (foreign (apply foreign operation args))
-	     ;; Nothing to do for us.
-	     (t (tramp-run-real-handler operation args))))))
+	    ;; Call the backend function.
+	    (if foreign
+		(condition-case err
+		    (apply foreign operation args)
+		  (error
+		   (cond
+		    ;; When we are in completion mode, some failed
+		    ;; operations shall return at least a default
+		    ;; value in order to give the user a chance to
+		    ;; correct the file name in the minibuffer.
+		    ((and completion (zerop (length localname))
+			  (memq operation '(file-exists-p file-directory-p)))
+		     t)
+		    ((and completion (zerop (length localname))
+			  (memq operation
+				'(expand-file-name file-name-as-directory)))
+		     filename)
+		    ;; Propagate the error.
+		    (t (signal (car err) (cdr err))))))
+	      ;; Nothing to do for us.
+	      (tramp-run-real-handler operation args)))))
+
     ;; When `tramp-mode' is not enabled, we don't do anything.
     (tramp-run-real-handler operation args)))
 

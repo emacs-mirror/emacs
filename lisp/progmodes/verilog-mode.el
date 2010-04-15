@@ -2611,7 +2611,7 @@ Use filename, if current buffer being edited shorten to just buffer name."
 	    (if (or
 		 (looking-at verilog-disable-fork-re)
 		 (and (looking-at "fork")
-		      (progn 
+		      (progn
 			(setq here (point)) ;; sometimes a fork is just a fork
 			(forward-word -1)
 			(looking-at verilog-disable-fork-re))))
@@ -2670,7 +2670,8 @@ Use filename, if current buffer being edited shorten to just buffer name."
 	       (forward-word 1))
 	  (catch 'skip
 	    (if (eq nest 'yes)
-		(let ((depth 1))
+		(let ((depth 1)
+		      here)
 		  (while (verilog-re-search-forward reg nil 'move)
 		    (cond
 		     ((match-end md) ; a closer in regular expression, so we are climbing out
@@ -2686,7 +2687,7 @@ Use filename, if current buffer being edited shorten to just buffer name."
 		       ((if (or
 			     (looking-at verilog-disable-fork-re)
 			     (and (looking-at "fork")
-				  (progn 
+				  (progn
 				    (forward-word -1)
 				    (looking-at verilog-disable-fork-re))))
 			    (progn ;; it is a disable fork; another false alarm

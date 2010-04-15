@@ -8472,7 +8472,6 @@ message (m, a1, a2, a3)
 	  if (m)
 	    {
 	      int len;
-#ifdef NO_ARG_ARRAY
 	      char *a[3];
 	      a[0] = (char *) a1;
 	      a[1] = (char *) a2;
@@ -8480,11 +8479,6 @@ message (m, a1, a2, a3)
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
 			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, a);
-#else
-	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3,
-			    (char **) &a1);
-#endif /* NO_ARG_ARRAY */
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }

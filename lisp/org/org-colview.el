@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -459,10 +459,16 @@ Where possible, use the standard interface for changing this line."
      ((equal key "SCHEDULED")
       (setq eval '(org-with-point-at pom
 		    (call-interactively 'org-schedule))))
+     ((equal key "BEAMER_env")
+      (setq eval '(org-with-point-at pom
+		    (call-interactively 'org-beamer-set-environment-tag))))
      (t
       (setq allowed (org-property-get-allowed-values pom key 'table))
       (if allowed
-	  (setq nval (org-icompleting-read "Value: " allowed nil t))
+	  (setq nval (org-icompleting-read
+		      "Value: " allowed nil
+		      (not (get-text-property 0 'org-unrestricted
+					      (caar allowed)))))
 	(setq nval (read-string "Edit: " value)))
       (setq nval (org-trim nval))
       (when (not (equal nval value))
@@ -1377,10 +1383,11 @@ and tailing newline characters."
 This will add overlays to the date lines, to show the summary for each day."
   (let* ((fmt (mapcar (lambda (x)
 			(if (equal (car x) "CLOCKSUM")
-			    (list "CLOCKSUM" (nth 2 x) nil 'add_times nil '+ 'identity)
-			  (cdr x)))
+			    (list "CLOCKSUM" (nth 1 x) (nth 2 x) ":" 'add_times
+				  nil '+ nil)
+			  x))
 		      org-columns-current-fmt-compiled))
-	 line c c1 stype calc sumfunc props lsum entries prop v)
+	 line c c1 stype calc sumfunc props lsum entries prop v title)
     (catch 'exit
       (when (delq nil (mapcar 'cadr fmt))
 	;; OK, at least one summation column, it makes sense to try this
@@ -1404,9 +1411,10 @@ This will add overlays to the date lines, to show the summary for each day."
 		    (mapcar
 		     (lambda (f)
 		       (setq prop (car f)
-			     stype (nth 3 f)
-			     sumfunc (nth 5 f)
-			     calc (or (nth 6 f) 'identity))
+			     title (nth 1 f)
+			     stype (nth 4 f)
+			     sumfunc (nth 6 f)
+			     calc (or (nth 7 f) 'identity))
 		       (cond
 			((equal prop "ITEM")
 			 (cons prop (buffer-substring (point-at-bol)
