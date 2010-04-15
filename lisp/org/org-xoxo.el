@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -43,6 +43,7 @@
   "Export the org buffer as XOXO.
 The XOXO buffer is named *xoxo-<source buffer name>*"
   (interactive (list (current-buffer)))
+  (run-hooks 'org-export-first-hook)
   ;; A quickie abstraction
 
   ;; Output everything as XOXO

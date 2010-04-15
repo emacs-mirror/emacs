@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,7 +54,7 @@
   :group 'org)
 
 (defcustom org-remember-store-without-prompt t
-  "Non-nil means, `C-c C-c' stores remember note without further prompts.
+  "Non-nil means `C-c C-c' stores remember note without further prompts.
 It then uses the file and headline specified by the template or (if the
 template does not specify them) by the variables `org-default-notes-file'
 and `org-remember-default-headline'.  To force prompting anyway, use
@@ -131,7 +131,7 @@ Furthermore, the following %-escapes will be replaced with content:
               You may define a prompt like %^{Please specify birthday
   %n          user name (taken from `user-full-name')
   %a          annotation, normally the link created with org-store-link
-  %i          initial content, copied from the active region.  If %i is 
+  %i          initial content, copied from the active region.  If %i is
               indented, the entire inserted text will be indented as well.
   %c          current kill ring head
   %x          content of the X clipboard
@@ -225,7 +225,7 @@ for a Remember buffer.")
 (define-key org-remember-mode-map "\C-c\C-k" 'org-remember-kill)
 
 (defcustom org-remember-clock-out-on-exit 'query
-  "Non-nil means, stop the clock when exiting a clocking remember buffer.
+  "Non-nil means stop the clock when exiting a clocking remember buffer.
 This only applies if the clock is running in the remember buffer.  If the
 clock is not stopped, it continues to run in the storage location.
 Instead of nil or t, this may also be the symbol `query' to prompt the
@@ -248,7 +248,7 @@ See also `org-remember-auto-remove-backup-files'."
 	  (directory :tag "Directory")))
 
 (defcustom org-remember-auto-remove-backup-files t
-  "Non-nil means, remove remember backup files after successfully storage.
+  "Non-nil means remove remember backup files after successfully storage.
 When remember is finished successfully, with storing the note at the
 desired target, remove the backup files related to this remember process
 and show a message about remaining backup files, from previous, unfinished
@@ -351,7 +351,7 @@ RET at beg-of-buf -> Append to file as level 2 headline
 			 org-force-remember-template-char))
 		      (t
 		       (setq msg (format
-				  "Select template: %s"
+				  "Select template: %s%s"
 				  (mapconcat
 				   (lambda (x)
 				     (cond
@@ -362,13 +362,17 @@ RET at beg-of-buf -> Append to file as level 2 headline
 				       (format "[%c]%s" (car x)
 					       (substring (nth 1 x) 1)))
 				      (t (format "[%c]%s" (car x) (nth 1 x)))))
-				   templates " ")))
+				   templates " ")
+				  (if (assoc ?C templates)
+				      ""
+				    " [C]customize templates")))
 		       (let ((inhibit-quit t) char0)
 			 (while (not char0)
 			   (message msg)
 			   (setq char0 (read-char-exclusive))
 			   (when (and (not (assoc char0 templates))
-				      (not (equal char0 ?\C-g)))
+				      (not (equal char0 ?\C-g))
+				      (not (equal char0 ?C)))
 			     (message "No such template \"%c\"" char0)
 			     (ding) (sit-for 1)
 			     (setq char0 nil)))
@@ -376,6 +380,11 @@ RET at beg-of-buf -> Append to file as level 2 headline
 			   (jump-to-register remember-register)
 			   (kill-buffer remember-buffer)
 			   (error "Abort"))
+			 (when (not (assoc char0 templates))
+			   (jump-to-register remember-register)
+			   (kill-buffer remember-buffer)
+			   (customize-variable 'org-remember-templates)
+			   (error "Customize templates"))
 			 char0))))))
       (cddr (assoc char templates)))))
 
@@ -470,7 +479,7 @@ to be run from that hook to function properly."
 ## C-u C-c C-c  like C-c C-c, and immediately visit note at target location
 ## C-0 C-c C-c  \"%s\" -> \"* %s\"
 ## %s  to select file and header location interactively.
-## C-2 C-c C-c  as child of the currently clocked item
+## C-2 C-c C-c  as child (C-3: as sibling) of the currently clocked item
 ## To switch templates, use `\\[org-remember]'.  To abort use `C-c C-k'.\n\n"
 		  (if org-remember-store-without-prompt "    C-c C-c" "    C-1 C-c C-c")
 		  (abbreviate-file-name (or file org-default-notes-file))
@@ -479,21 +488,6 @@ to be run from that hook to function properly."
 		  (or (cdr org-remember-previous-location) "???")
 		  (if org-remember-store-without-prompt "C-1 C-c C-c" "        C-c C-c"))))
 	(insert tpl)
-	(goto-char (point-min))
-
-	;; Simple %-escapes
-	(while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
-	  (unless (org-remember-escaped-%)
-	    (when (and initial (equal (match-string 0) "%i"))
-	      (save-match-data
-		(let* ((lead (buffer-substring
-			      (point-at-bol) (match-beginning 0))))
-		  (setq v-i (mapconcat 'identity
-				       (org-split-string initial "\n")
-				       (concat "\n" lead))))))
-	    (replace-match
-	     (or (eval (intern (concat "v-" (match-string 1)))) "")
-	     t t)))
 
 	;; %[] Insert contents of a file.
 	(goto-char (point-min))
@@ -508,6 +502,21 @@ to be run from that hook to function properly."
 		  (insert-file-contents filename)
 		(error (insert (format "%%![Couldn't insert %s: %s]"
 				       filename error)))))))
+	;; Simple %-escapes
+	(goto-char (point-min))
+	(while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
+	  (unless (org-remember-escaped-%)
+	    (when (and initial (equal (match-string 0) "%i"))
+	      (save-match-data
+		(let* ((lead (buffer-substring
+			      (point-at-bol) (match-beginning 0))))
+		  (setq v-i (mapconcat 'identity
+				       (org-split-string initial "\n")
+				       (concat "\n" lead))))))
+	    (replace-match
+	     (or (eval (intern (concat "v-" (match-string 1)))) "")
+	     t t)))
+
 	;; %() embedded elisp
 	(goto-char (point-min))
 	(while (re-search-forward "%\\((.+)\\)" nil t)
@@ -860,6 +869,7 @@ See also the variable `org-reverse-note-order'."
 	   (previousp (and (member current-prefix-arg '((16) 0))
 			   org-remember-previous-location))
 	   (clockp (equal current-prefix-arg 2))
+	   (clocksp (equal current-prefix-arg 3))
 	   (fastp (org-xor (equal current-prefix-arg 1)
 			   org-remember-store-without-prompt))
 	   (file (cond
@@ -882,7 +892,7 @@ See also the variable `org-reverse-note-order'."
 	      visiting (and file (org-find-base-buffer-visiting file))
 	      heading (cdr org-remember-previous-location)
 	      fastp t))
-      (when clockp
+      (when (or clockp clocksp)
 	(setq file (buffer-file-name (marker-buffer org-clock-marker))
 	      visiting (and file (org-find-base-buffer-visiting file))
 	      heading org-clock-heading-for-remember
@@ -1015,7 +1025,9 @@ See also the variable `org-reverse-note-order'."
 			       (beginning-of-line 2)
 			     (end-of-line 1)
 			     (insert "\n"))))
-		     (org-paste-subtree (org-get-valid-level level 1) txt)
+		     (org-paste-subtree (if clocksp
+					    level
+					  (org-get-valid-level level 1)) txt)
 		     (and org-auto-align-tags (org-set-tags nil t))
 		     (bookmark-set "org-remember-last-stored")
 		     (move-marker org-remember-last-stored-marker (point)))

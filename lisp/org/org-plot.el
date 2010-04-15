@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -134,7 +134,7 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
 
 (defun org-plot/gnuplot-to-grid-data (table data-file params)
   "Export the data in TABLE to DATA-FILE for gnuplot.
-This means, in a format appropriate for grid plotting by gnuplot.
+This means in a format appropriate for grid plotting by gnuplot.
 PARAMS specifies which columns of TABLE should be plotted as independent
 and dependant variables."
   (interactive)
@@ -250,8 +250,9 @@ manner suitable for prepending to a user-specified script."
 		 (setf plot-lines
 		       (cons
 			(format plot-str data-file
-				(or (and (not text-ind) ind
-					 (> ind 0) (format "%d:" ind)) "")
+				(or (and ind (> ind 0)
+                                         (not text-ind)
+                                         (format "%d:" ind)) "")
 				(+ 1 col)
 				(if text-ind (format ":xticlabel(%d)" ind) "")
 				with
@@ -300,7 +301,7 @@ line directly before or after the table."
 	(setf table (delq 'hline (cdr table)))) ;; clean non-data from table
       ;; collect options
       (save-excursion (while (and (equal 0 (forward-line -1))
-				  (looking-at "#\\+"))
+				  (looking-at "[[:space:]]*#\\+"))
 			(setf params (org-plot/collect-options params))))
       ;; dump table to datafile (very different for grid)
       (case (plist-get params :plot-type)
@@ -320,7 +321,6 @@ line directly before or after the table."
 			   (mapcar (lambda (row) (nth ind row)) table)))) 0)
 	      (plist-put params :timeind t)
 	    ;; check for text ind column
-
 	    (if (or (string= (plist-get params :with) "hist")
 		    (> (length
 			(delq 0 (mapcar

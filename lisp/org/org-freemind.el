@@ -5,7 +5,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,7 @@
 
 (require 'xml)
 (require 'org)
+(require 'rx)
 (require 'org-exp)
 (eval-when-compile (require 'cl))
 
@@ -240,7 +241,7 @@ The characters \"&<> will be escaped."
                       ;; file is utf-8:
                       ;;
                       ;; (format "&#x%x;" (- cc ;; ?\x800))
-		      (format "&#x%x" (encode-char cc 'ucs))
+		      (format "&#x%x;" (encode-char cc 'ucs))
                       ))))
     fm-str))
 
@@ -561,11 +562,10 @@ Otherwise give an error say the file exists."
              (num-top2-nodes 0)
              num-left-nodes
              (unclosed-nodes 0)
+	     (odd-only org-odd-levels-only)
              (first-time t)
              (current-level 1)
              base-level
-             skipping-odd
-             (skipped-odd 0)
              prev-node-end
              rich-text
              unfinished-tag
@@ -671,21 +671,6 @@ Otherwise give an error say the file exists."
                 (setq next-node-start (match-beginning 0))
                 (setq next-m2 (match-string-no-properties 2))
                 (setq next-level (length next-m1))
-                (when (> next-level current-level)
-                  (if (not (and org-odd-levels-only
-                                (/= (mod current-level 2) 0)
-                                (= next-level (+ 2 current-level))))
-                      (setq skipping-odd nil)
-                    (setq skipping-odd t)
-                    (setq skipped-odd (1+ skipped-odd)))
-                  (unless (or (= next-level (1+ current-level))
-                              skipping-odd)
-                    (if (or org-odd-levels-only
-                            (/= next-level (+ 2 current-level)))
-                        (error "Next level step > +1 for node ending at line %s" (line-number-at-pos))
-                      (error "Next level step = +2 for node ending at line %s, forgot org-odd-levels-only?"
-                             (line-number-at-pos)))
-                    ))
                 (setq next-children-visible
                       (not (eq 'outline
                                (get-char-property (line-end-position) 'invisible))))
@@ -698,11 +683,8 @@ Otherwise give an error say the file exists."
                   (while (>= current-level next-level)
                     (with-current-buffer mm-buffer
                       (insert "</node>\n")
-                      (setq current-level (1- current-level))
-                      (when (< 0 skipped-odd)
-                        (setq skipped-odd (1- skipped-odd))
-                        (setq current-level (1- current-level)))
-                      )))
+                      (setq current-level
+			    (- current-level (if odd-only 2 1))))))
                 (setq this-node-end (1+ next-node-end))
                 (setq this-m2 next-m2)
                 (setq current-level next-level)
@@ -725,7 +707,8 @@ Otherwise give an error say the file exists."
           (with-current-buffer mm-buffer
             (while (> current-level base-level)
               (insert "</node>\n")
-              (setq current-level (1- current-level))
+	      (setq current-level
+		    (- current-level (if odd-only 2 1)))
               ))
           (with-current-buffer mm-buffer
             (insert "</map>")
