@@ -1,3 +1,7 @@
+2010-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.h (FRAME_SAMPLE_VISIBILITY): Remove unused 0 in comma expression.
+
 2010-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Reduce cpp use in Makefile.in.
