@@ -95,12 +95,14 @@ with `set-process-query-on-exit-flag'.
 unconditionally.  The previous behavior, toggling the mode, was
 neither reliable nor generally desirable.
 
-*** New commands for adding and removing file-local variables:
++++
+*** There are new commands for adding and removing file-local variables:
 `add-file-local-variable', `delete-file-local-variable',
 `add-file-local-variable-prop-line', and
 `delete-file-local-variable-prop-line'.
 
-*** New commands for adding and removing directory-local variables,
++++
+*** There are new commands for adding and removing directory-local variables,
 and copying them to and from file-local variable lists:
 `add-dir-local-variable', `delete-dir-local-variable',
 `copy-dir-locals-to-file-locals',

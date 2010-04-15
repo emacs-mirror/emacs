@@ -1,3 +1,8 @@
+2010-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Specifying File Variables, Directory Variables):
+	Document new commands for manipulating local variable lists.
+
 2010-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Contributing): Add cindex entry.
