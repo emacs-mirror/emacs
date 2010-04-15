@@ -61,6 +61,7 @@
 ;; A list of recent changes can be found at
 ;; http://orgmode.org/Changes.html
 ;;
+
 ;;; Code:
 
 (defvar org-inhibit-highlight-removal nil) ; dynamically scoped param
