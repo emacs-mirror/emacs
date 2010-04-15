@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -63,6 +63,8 @@ Also, do not record undo information."
 	    (setq ss (replace-match "a-zA-Z0-9" t t ss)))
 	  (while (string-match "\\[:alpha:\\]" ss)
 	    (setq ss (replace-match "a-zA-Z" t t ss)))
+	  (while (string-match "\\[:punct:\\]" ss)
+	    (setq ss (replace-match "\001-@[-`{-~" t t ss)))
 	  ss))
     s))
 
@@ -123,6 +125,14 @@ We use a macro so that the test can happen at compilation time."
      ,@body))
 (put 'org-if-unprotected-at 'lisp-indent-function 1)
 
+(defun org-re-search-forward-unprotected (&rest args)
+  "Like re-search-forward, but stop only in unprotected places."
+  (catch 'exit
+    (while t
+      (unless (apply 're-search-forward args)
+	(throw 'exit nil))
+      (unless (get-text-property (match-beginning 0) 'org-protected)
+	(throw 'exit (point))))))
 
 (defmacro org-with-remote-undo (_buffer &rest _body)
   "Execute BODY while recording undo information in two buffers."

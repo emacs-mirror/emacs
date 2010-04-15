@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -38,7 +38,7 @@
 
 (defgroup org-indent nil
   "Options concerning dynamic virtual outline indentation."
-  :tag "Org Structure"
+  :tag "Org Indent"
   :group 'org)
 
 (defconst org-indent-max 40
@@ -67,13 +67,13 @@ it may be prettier to customize the org-indent face."
   :type 'character)
 
 (defcustom org-indent-mode-turns-off-org-adapt-indentation t
-  "Non-nil means, turning on org-indent-mode turns off indentation adaptation.
+  "Non-nil means turning on `org-indent-mode' turns off indentation adaptation.
 For details see the variable `org-adapt-indentation'."
   :group 'org-indent
   :type 'boolean)
 
 (defcustom org-indent-mode-turns-on-hiding-stars t
-  "Non-nil means, turning on org-indent-mode turns on `org-hide-leading-stars'."
+  "Non-nil means turning on `org-indent-mode' turns on `org-hide-leading-stars'."
   :group 'org-indent
   :type 'boolean)
 
@@ -227,7 +227,7 @@ Assumes that BEG is at the beginning of a line."
 	      b  e (list 'line-prefix (aref org-indent-strings n)
 			 'wrap-prefix (aref org-indent-strings n))))
 	   (setq b (1+ (point-at-eol))
-		 n (* level org-indent-indentation-per-level))))))))
+		 n (* (or level 0) org-indent-indentation-per-level))))))))
 
 (defun org-indent-refresh-section ()
   "Refresh indentation properties in the current outline section.

@@ -1,3 +1,50 @@
+2010-04-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (LaTeX and PDF export): Add a footnote about xetex.
+	(LaTeX/PDF export commands): Section renamed and
+	moved.
+	(Sectioning structure): Update.
+	(References): New use case for field coordinates.
+	(The export dispatcher): Renamed from ASCII export.
+	(Setting up the staging area): Document the availability of
+	encryption for MobileOrg.
+	(Images and tables): Document how to reference labels.
+	(Index entries): New section.
+	(Generating an index): New section.
+	(Column width and alignment): Document that <N> now
+	means a fixed width, not a maximum width.
+	(Publishing options): Document the :email option.
+	(Beamer class export): Fix bug in the BEAMER example.
+	(Refiling notes): Document refile logging.
+	(In-buffer settings): Document refile logging keywords.
+	(Drawers): Document `C-c C-z' command.
+	(Agenda commands): Mention the alternative key `C-c C-z'.
+	(Special properties): Document the BLOCKED property.
+	(The spreadsheet): Mention the formula editor.
+	(References): Document field coordinates.
+	(Publishing action): Correct the documentation for the
+	publishing function.
+	(The date/time prompt): Document that we accept dates
+	like month/day/year.
+	(Cooperation): Document the changes in table.el support.
+	(Faces for TODO keywords, Faces for TODO keywords)
+	(Priorities): Document the easy colors.
+	(Visibility cycling): Document the new double prefix
+	arg for `org-reveal'.
+	(Cooperation): Remember.el is part of Emacs.
+	(Clean view): Mention that `wrap-prefix' is also set by
+	org-indent-mode.
+	(Agenda commands): Add information about prefix args to
+	scheduling and deadline commands.
+	(Search view): Point to the docstring of
+	`org-search-view' for more details.
+	(Agenda commands): Document that `>' prompts for a
+	date.
+	(Setting tags): Document variable
+	org-complete-tags-always-offer-all-agenda-tags.
+	(Column attributes): Cross-reference special
+	properties.
+
 2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	Synchronize with Tramp repository.

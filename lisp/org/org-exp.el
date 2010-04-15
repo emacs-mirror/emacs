@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,7 +54,7 @@
   :group 'org-export)
 
 (defcustom org-export-allow-BIND 'confirm
-  "Non-nil means, allow #+BIND to define local variable values for export.
+  "Non-nil means allow #+BIND to define local variable values for export.
 This is a potential security risk, which is why the user must confirm the
 use of these lines."
   :group 'org-export-general
@@ -67,7 +67,7 @@ use of these lines."
 (defvar org-export-publishing-directory nil)
 
 (defcustom org-export-show-temporary-export-buffer t
-  "Non-nil means, show buffer after exporting to temp buffer.
+  "Non-nil means show buffer after exporting to temp buffer.
 When Org exports to a file, the buffer visiting that file is ever
 shown, but remains buried.  However, when exporting to a temporary
 buffer, that buffer is popped up in a second window.  When this variable
@@ -76,7 +76,14 @@ is nil, the buffer remains buried also in these cases."
   :type 'boolean)
 
 (defcustom org-export-copy-to-kill-ring t
-  "Non-nil means, exported stuff will also be pushed onto the kill ring."
+  "Non-nil means exported stuff will also be pushed onto the kill ring."
+  :group 'org-export-general
+  :type 'boolean)
+
+(defcustom org-export-kill-product-buffer-when-displayed nil
+  "Non-nil means kill the product buffer if it is displayed immediately.
+This applied to the commands `org-export-html-and-open' and
+`org-export-as-pdf-and-open'."
   :group 'org-export-general
   :type 'boolean)
 
@@ -114,7 +121,7 @@ This is without condition, so even subtrees inside that carry one of the
 
 ;; FIXME: rename, this is a general variable
 (defcustom org-export-html-expand t
-  "Non-nil means, for HTML export, treat @<...> as HTML tag.
+  "Non-nil means for HTML export, treat @<...> as HTML tag.
 When nil, these tags will be exported as plain text and therefore
 not be interpreted by a browser.
 
@@ -124,7 +131,7 @@ This option can also be set with the +OPTIONS line, e.g. \"@:nil\"."
   :type 'boolean)
 
 (defcustom org-export-with-special-strings t
-  "Non-nil means, interpret \"\-\", \"--\" and \"---\" for export.
+  "Non-nil means interpret \"\-\", \"--\" and \"---\" for export.
 When this option is turned on, these strings will be exported as:
 
   Org   HTML       LaTeX
@@ -198,7 +205,7 @@ This is best set with the #+KEYWORDS line in a file, it does not make
 sense to set this globally.")
 
 (defcustom org-export-skip-text-before-1st-heading nil
-  "Non-nil means, skip all text before the first headline when exporting.
+  "Non-nil means skip all text before the first headline when exporting.
 When nil, that text is exported as well."
   :group 'org-export-general
   :type 'boolean)
@@ -214,7 +221,7 @@ This option can also be set with the +OPTIONS line, e.g. \"H:2\"."
   :type 'integer)
 
 (defcustom org-export-with-section-numbers t
-  "Non-nil means, add section numbers to headlines when exporting.
+  "Non-nil means add section numbers to headlines when exporting.
 
 This option can also be set with the +OPTIONS line, e.g. \"num:t\"."
   :group 'org-export-general
@@ -241,7 +248,7 @@ The variable has two components.
 	  (string :tag "Terminator")))
 
 (defcustom org-export-with-toc t
-  "Non-nil means, create a table of contents in exported files.
+  "Non-nil means create a table of contents in exported files.
 The TOC contains headlines with levels up to`org-export-headline-levels'.
 When an integer, include levels up to N in the toc, this may then be
 different from `org-export-headline-levels', but it will not be allowed
@@ -263,24 +270,24 @@ or \"toc:3\"."
 	  (integer :tag "TOC to level")))
 
 (defcustom org-export-mark-todo-in-toc nil
-  "Non-nil means, mark TOC lines that contain any open TODO items."
+  "Non-nil means mark TOC lines that contain any open TODO items."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-with-todo-keywords t
-  "Non-nil means, include TODO keywords in export.
+  "Non-nil means include TODO keywords in export.
 When nil, remove all these keywords from the export."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-with-priority nil
-  "Non-nil means, include priority cookies in export.
+  "Non-nil means include priority cookies in export.
 When nil, remove priority cookies for export."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-preserve-breaks nil
-  "Non-nil means, preserve all line breaks when exporting.
+  "Non-nil means preserve all line breaks when exporting.
 Normally, in HTML output paragraphs will be reformatted.  In ASCII
 export, line breaks will always be preserved, regardless of this variable.
 
@@ -302,21 +309,29 @@ headline  Only export the headline, but skip the tree below it."
 	  (const :tag "entirely" t)))
 
 (defcustom org-export-author-info t
-  "Non-nil means, insert author name and email into the exported file.
+  "Non-nil means insert author name and email into the exported file.
 
 This option can also be set with the +OPTIONS line,
-e.g. \"author-info:nil\"."
+e.g. \"author:nil\"."
+  :group 'org-export-general
+  :type 'boolean)
+
+(defcustom org-export-email-info nil
+  "Non-nil means insert author name and email into the exported file.
+
+This option can also be set with the +OPTIONS line,
+e.g. \"email:t\"."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-creator-info t
-  "Non-nil means, the postamble should contain a creator sentence.
+  "Non-nil means the postamble should contain a creator sentence.
 This sentence is \"HTML generated by org-mode XX in emacs XXX\"."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-time-stamp-file t
-  "Non-nil means, insert a time stamp into the exported file.
+  "Non-nil means insert a time stamp into the exported file.
 The time stamp shows when the file was created.
 
 This option can also be set with the +OPTIONS line,
@@ -347,7 +362,7 @@ This option can also be set with the +OPTIONS line, e.g. \"tags:nil\"."
 	  (const :tag "On" t)))
 
 (defcustom org-export-with-drawers nil
-  "Non-nil means, export with drawers like the property drawer.
+  "Non-nil means export with drawers like the property drawer.
 When t, all drawers are exported.  This may also be a list of
 drawer names to export."
   :group 'org-export-general
@@ -357,9 +372,19 @@ drawer names to export."
 	  (repeat :tag "Selected drawers"
 		  (string :tag "Drawer name"))))
 
+(defvar org-export-first-hook nil
+  "Hook called as the first thing in each exporter.
+Point will be still in the original buffer.
+Good for general initialization")
+
 (defvar org-export-preprocess-hook nil
   "Hook for preprocessing an export buffer.
-Pretty much the first thing when exporting is running this hook.")
+Pretty much the first thing when exporting is running this hook.
+Point will be in a temporary buffer that contains a copy of
+the original buffer, or of the section that is being export.
+All the other hooks in the org-export-preprocess... category
+also work in that temporary buffer, already modified by various
+stages of the processing.")
 
 (defvar org-export-preprocess-after-include-files-hook nil
   "Hook for preprocessing an export buffer.
@@ -371,10 +396,23 @@ This is run after selection of trees to be exported has happened.
 This selection includes tags-based selection, as well as removal
 of commented and archived trees.")
 
+(defvar org-export-preprocess-after-headline-targets-hook nil
+  "Hook for preprocessing export buffer.
+This is run just after the headline targets have been defined and
+the target-alist has been set up.")
+
+(defvar org-export-preprocess-before-selecting-backend-code-hook nil
+  "Hook for preprocessing an export buffer.
+This is run just before backend-specific blocks get selected.")
+
 (defvar org-export-preprocess-after-blockquote-hook nil
   "Hook for preprocessing an export buffer.
 This is run after blockquote/quote/verse/center have been marked
 with cookies.")
+
+(defvar org-export-preprocess-before-normalizing-links-hook nil
+  "Hook for preprocessing an export buffer.
+This hook is run before links are normalized.")
 
 (defvar org-export-preprocess-before-backend-specifics-hook nil
   "Hook run before backend-specific functions are called during preprocessing.")
@@ -390,7 +428,7 @@ returning the buffer string to the backend.")
   :group 'org-export)
 
 (defcustom org-export-with-emphasize t
-  "Non-nil means, interpret *word*, /word/, and _word_ as emphasized text.
+  "Non-nil means interpret *word*, /word/, and _word_ as emphasized text.
 If the export target supports emphasizing text, the word will be
 typeset in bold, italic, or underlined, respectively.  Works only for
 single words, but you can say: I *really* *mean* *this*.
@@ -409,7 +447,7 @@ This option can also be set with the +OPTIONS line, e.g. \"f:nil\"."
   :type 'boolean)
 
 (defcustom org-export-with-sub-superscripts t
-  "Non-nil means, interpret \"_\" and \"^\" for export.
+  "Non-nil means interpret \"_\" and \"^\" for export.
 When this option is turned on, you can use TeX-like syntax for sub- and
 superscripts.  Several characters after \"_\" or \"^\" will be
 considered as a single item - so grouping with {} is normally not
@@ -438,11 +476,12 @@ This option can also be set with the +OPTIONS line, e.g. \"^:nil\"."
 	  (const :tag "Never interpret" nil)))
 
 (defcustom org-export-with-TeX-macros t
-  "Non-nil means, interpret simple TeX-like macros when exporting.
+  "Non-nil means interpret simple TeX-like macros when exporting.
 For example, HTML export converts \\alpha to &alpha; and \\AA to &Aring;.
 Not only real TeX macros will work here, but the standard HTML entities
 for math can be used as macro names as well.  For a list of supported
-names in HTML export, see the constant `org-html-entities'.
+names in HTML export, see the constant `org-entities' and the user option
+`org-entities-user'.
 Not all export backends support this.
 
 This option can also be set with the +OPTIONS line, e.g. \"TeX:nil\"."
@@ -451,7 +490,7 @@ This option can also be set with the +OPTIONS line, e.g. \"TeX:nil\"."
   :type 'boolean)
 
 (defcustom org-export-with-LaTeX-fragments nil
-  "Non-nil means, convert LaTeX fragments to images when exporting to HTML.
+  "Non-nil means convert LaTeX fragments to images when exporting to HTML.
 When set, the exporter will find LaTeX environments if the \\begin line is
 the first non-white thing on a line.  It will also find the math delimiters
 like $a=b$ and \\( a=b \\) for inline math,  $$a=b$$ and \\[ a=b \\] for
@@ -466,7 +505,7 @@ is not available on all systems."
   :type 'boolean)
 
 (defcustom org-export-with-fixed-width t
-  "Non-nil means, lines starting with \":\" will be in fixed width font.
+  "Non-nil means lines starting with \":\" will be in fixed width font.
 This can be used to have pre-formatted text, fragments of code etc.  For
 example:
   : ;; Some Lisp examples
@@ -505,7 +544,7 @@ This option can also be set with the +OPTIONS line, e.g. \"|:nil\"."
   :type 'boolean)
 
 (defcustom org-export-highlight-first-table-line t
-  "Non-nil means, highlight the first table line.
+  "Non-nil means highlight the first table line.
 In HTML export, this means use <th> instead of <td>.
 In tables created with table.el, this applies to the first table line.
 In Org-mode tables, all lines before the first horizontal separator
@@ -523,13 +562,14 @@ the values of constants may be useful to have."
   :type 'boolean)
 
 (defcustom org-export-prefer-native-exporter-for-tables nil
-  "Non-nil means, always export tables created with table.el natively.
-Natively means, use the HTML code generator in table.el.
+  "Non-nil means always export tables created with table.el natively.
+Natively means use the HTML code generator in table.el.
 When nil, Org-mode's own HTML generator is used when possible (i.e. if
 the table does not use row- or column-spanning).  This has the
 advantage, that the automatic HTML conversions for math symbols and
 sub/superscripts can be applied.  Org-mode's HTML generator is also
-much faster."
+much faster.  The LaTeX exporter always use the native exporter for
+table.el tables."
   :group 'org-export-tables
   :type 'boolean)
 
@@ -581,6 +621,7 @@ much faster."
     (:fixed-width	      ":"	  org-export-with-fixed-width)
     (:timestamps	      "<"	  org-export-with-timestamps)
     (:author-info	      "author"	  org-export-author-info)
+    (:email-info	      "email"	  org-export-email-info)
     (:creator-info	      "creator"	  org-export-creator-info)
     (:time-stamp-file	      "timestamp" org-export-time-stamp-file)
     (:tables		      "|"	  org-export-with-tables)
@@ -772,9 +813,10 @@ security risks."
 
 (defun org-install-letbind ()
   "Install the values from #+BIND lines as local variables."
-  (let ((letbind (plist-get org-export-opt-plist :let-bind)))
-    (while letbind
-      (org-set-local (caar letbind) (nth 1 (pop letbind))))))
+  (let ((letbind (plist-get org-export-opt-plist :let-bind))
+	pair)
+    (while (setq pair (pop letbind))
+      (org-set-local (car pair) (nth 1 pair)))))
 
 (defun org-export-add-options-to-plist (p options)
   "Parse an OPTIONS line and set values in the property list P."
@@ -835,29 +877,28 @@ ARG is a double universal prefix `C-u C-u', that means to inverse the
 value of `org-export-run-in-background'."
   (interactive "P")
   (let* ((bg (org-xor (equal arg '(16)) org-export-run-in-background))
+	 subtree-p
 	 (help "[t]   insert the export option template
 \[v]   limit export to visible part of outline tree
+\[1]   only export the current subtree
+\[SPC] publish enclosing subtree (with LaTeX_CLASS or EXPORT_FILE_NAME prop)
 
-\[a] export as ASCII   [A] to temporary buffer
+\[a/n/u] export as ASCII/Latin-1/UFT-8         [A/N/U] to temporary buffer
 
-\[h] export as HTML    [H] to temporary buffer   [R] export region
+\[h] export as HTML      [H] to temporary buffer   [R] export region
 \[b] export as HTML and open in browser
 
-\[l] export as LaTeX   [L] to temporary buffer
-\[p] export as LaTeX and process to PDF
-\[d] export as LaTeX, process to PDF, and open the resulting PDF document
+\[l] export as LaTeX     [L] to temporary buffer
+\[p] export as LaTeX and process to PDF            [d] ... and open PDF file
 
-\[D] export as DocBook
-\[V] export as DocBook, process to PDF, and open the resulting PDF document
+\[D] export as DocBook   [V] export as DocBook, process to PDF, and open
 
 \[m] export as Freemind mind map
-
 \[x] export as XOXO
 \[g] export using Wes Hardaker's generic exporter
 
 \[i] export current file as iCalendar file
-\[I] export all agenda files as iCalendar files
-\[c] export agenda files into combined iCalendar file
+\[I] export all agenda files as iCalendar files   [c] ...as one combined file
 
 \[F] publish current file          [P] publish current project
 \[X] publish a project...          [E] publish every projects")
@@ -866,6 +907,10 @@ value of `org-export-run-in-background'."
 	    (?v org-export-visible nil)
 	    (?a org-export-as-ascii t)
 	    (?A org-export-as-ascii-to-buffer t)
+	    (?n org-export-as-latin1 t)
+	    (?N org-export-as-latin1-to-buffer t)
+	    (?u org-export-as-utf8 t)
+	    (?U org-export-as-utf8-to-buffer t)
 	    (?h org-export-as-html t)
 	    (?b org-export-as-html-and-open t)
 	    (?H org-export-as-html-to-buffer nil)
@@ -886,7 +931,8 @@ value of `org-export-run-in-background'."
 	    (?P org-publish-current-project t)
 	    (?X org-publish t)
 	    (?E org-publish-all t)))
-	 r1 r2 ass)
+	 r1 r2 ass
+	 (cpos (point)) (cbuf (current-buffer)) bpos)
     (save-excursion
       (save-window-excursion
 	(delete-other-windows)
@@ -895,7 +941,25 @@ value of `org-export-run-in-background'."
 	(org-fit-window-to-buffer (get-buffer-window
 				   "*Org Export/Publishing Help*"))
 	(message "Select command: ")
-	(setq r1 (read-char-exclusive))))
+	(setq r1 (read-char-exclusive))
+	(when (eq r1 ?1)
+	  (setq subtree-p t)
+	  (message "Select command (for subtree): ")
+	  (setq r1 (read-char-exclusive)))
+	(when (eq r1 ?\ )
+	  (let ((case-fold-search t))
+	    (if (re-search-backward
+		 "^[ \t]+\\(:latex_class:\\|:export_title:\\)[ \t]+\\S-"
+		 nil t)
+		(progn
+		  (org-back-to-heading t)
+		  (setq subtree-p t)
+		  (setq bpos (point))
+		  (message "Select command (for subtree): ")
+		  (setq r1 (read-char-exclusive)))
+	      (error "No enclosing node with LaTeX_CLASS or EXPORT_FILE_NAME")
+	      )))))
+    (and bpos (goto-char bpos))
     (setq r2 (if (< r1 27) (+ r1 96) r1))
     (unless (setq ass (assq r2 cmds))
       (error "No command associated with key %c" r1))
@@ -916,319 +980,27 @@ value of `org-export-run-in-background'."
 	  (set-process-sentinel p 'org-export-process-sentinel)
 	  (message "Background process \"%s\": started" p))
       ;; background processing not requested, or not possible
-      (call-interactively (nth 1 ass)))))
+      (if subtree-p (progn (outline-mark-subtree) (activate-mark)))
+      (call-interactively (nth 1 ass))
+      (when (and bpos (get-buffer-window cbuf))
+	(let ((cw (selected-window)))
+	  (select-window (get-buffer-window cbuf))
+	  (goto-char cpos)
+	  (deactivate-mark)
+	  (select-window cw))))))
 
 (defun org-export-process-sentinel (process status)
   (if (string-match "\n+\\'" status)
       (setq status (substring status 0 -1)))
   (message "Background process \"%s\": %s" process status))
 
-(defconst org-html-entities
-  '(("nbsp")
-    ("iexcl")
-    ("cent")
-    ("pound")
-    ("curren")
-    ("yen")
-    ("brvbar")
-    ("vert" . "&#124;")
-    ("sect")
-    ("uml")
-    ("copy")
-    ("ordf")
-    ("laquo")
-    ("not")
-    ("shy")
-    ("reg")
-    ("macr")
-    ("deg")
-    ("pm" . "&plusmn;")
-    ("plusmn")
-    ("sup2")
-    ("sup3")
-    ("acute")
-    ("micro")
-    ("para")
-    ("middot")
-    ("odot"."o")
-    ("star"."*")
-    ("cedil")
-    ("sup1")
-    ("ordm")
-    ("raquo")
-    ("frac14")
-    ("frac12")
-    ("frac34")
-    ("iquest")
-    ("Agrave")
-    ("Aacute")
-    ("Acirc")
-    ("Atilde")
-    ("Auml")
-    ("Aring") ("AA"."&Aring;")
-    ("AElig")
-    ("Ccedil")
-    ("Egrave")
-    ("Eacute")
-    ("Ecirc")
-    ("Euml")
-    ("Igrave")
-    ("Iacute")
-    ("Icirc")
-    ("Iuml")
-    ("ETH")
-    ("Ntilde")
-    ("Ograve")
-    ("Oacute")
-    ("Ocirc")
-    ("Otilde")
-    ("Ouml")
-    ("times")
-    ("Oslash")
-    ("Ugrave")
-    ("Uacute")
-    ("Ucirc")
-    ("Uuml")
-    ("Yacute")
-    ("THORN")
-    ("szlig")
-    ("agrave")
-    ("aacute")
-    ("acirc")
-    ("atilde")
-    ("auml")
-    ("aring")
-    ("aelig")
-    ("ccedil")
-    ("egrave")
-    ("eacute")
-    ("ecirc")
-    ("euml")
-    ("igrave")
-    ("iacute")
-    ("icirc")
-    ("iuml")
-    ("eth")
-    ("ntilde")
-    ("ograve")
-    ("oacute")
-    ("ocirc")
-    ("otilde")
-    ("ouml")
-    ("divide")
-    ("oslash")
-    ("ugrave")
-    ("uacute")
-    ("ucirc")
-    ("uuml")
-    ("yacute")
-    ("thorn")
-    ("yuml")
-    ("fnof")
-    ("Alpha")
-    ("Beta")
-    ("Gamma")
-    ("Delta")
-    ("Epsilon")
-    ("Zeta")
-    ("Eta")
-    ("Theta")
-    ("Iota")
-    ("Kappa")
-    ("Lambda")
-    ("Mu")
-    ("Nu")
-    ("Xi")
-    ("Omicron")
-    ("Pi")
-    ("Rho")
-    ("Sigma")
-    ("Tau")
-    ("Upsilon")
-    ("Phi")
-    ("Chi")
-    ("Psi")
-    ("Omega")
-    ("alpha")
-    ("beta")
-    ("gamma")
-    ("delta")
-    ("epsilon")
-    ("varepsilon"."&epsilon;")
-    ("zeta")
-    ("eta")
-    ("theta")
-    ("iota")
-    ("kappa")
-    ("lambda")
-    ("mu")
-    ("nu")
-    ("xi")
-    ("omicron")
-    ("pi")
-    ("rho")
-    ("sigmaf") ("varsigma"."&sigmaf;")
-    ("sigma")
-    ("tau")
-    ("upsilon")
-    ("phi")
-    ("chi")
-    ("psi")
-    ("omega")
-    ("thetasym") ("vartheta"."&thetasym;")
-    ("upsih")
-    ("piv")
-    ("bull") ("bullet"."&bull;")
-    ("hellip") ("dots"."&hellip;")
-    ("prime")
-    ("Prime")
-    ("oline")
-    ("frasl")
-    ("weierp")
-    ("image")
-    ("real")
-    ("trade")
-    ("alefsym")
-    ("larr") ("leftarrow"."&larr;") ("gets"."&larr;")
-    ("uarr") ("uparrow"."&uarr;")
-    ("rarr") ("to"."&rarr;") ("rightarrow"."&rarr;")
-    ("darr")("downarrow"."&darr;")
-    ("harr") ("leftrightarrow"."&harr;")
-    ("crarr") ("hookleftarrow"."&crarr;") ; has round hook, not quite CR
-    ("lArr") ("Leftarrow"."&lArr;")
-    ("uArr") ("Uparrow"."&uArr;")
-    ("rArr") ("Rightarrow"."&rArr;")
-    ("dArr") ("Downarrow"."&dArr;")
-    ("hArr") ("Leftrightarrow"."&hArr;")
-    ("forall")
-    ("part") ("partial"."&part;")
-    ("exist") ("exists"."&exist;")
-    ("empty") ("emptyset"."&empty;")
-    ("nabla")
-    ("isin") ("in"."&isin;")
-    ("notin")
-    ("ni")
-    ("prod")
-    ("sum")
-    ("minus")
-    ("lowast") ("ast"."&lowast;")
-    ("radic")
-    ("prop") ("proptp"."&prop;")
-    ("infin") ("infty"."&infin;")
-    ("ang") ("angle"."&ang;")
-    ("and") ("wedge"."&and;")
-    ("or") ("vee"."&or;")
-    ("cap")
-    ("cup")
-    ("int")
-    ("there4")
-    ("sim")
-    ("cong") ("simeq"."&cong;")
-    ("asymp")("approx"."&asymp;")
-    ("ne") ("neq"."&ne;")
-    ("equiv")
-    ("le")
-    ("ge")
-    ("sub") ("subset"."&sub;")
-    ("sup") ("supset"."&sup;")
-    ("nsub")
-    ("sube")
-    ("supe")
-    ("oplus")
-    ("otimes")
-    ("perp")
-    ("sdot") ("cdot"."&sdot;")
-    ("lceil")
-    ("rceil")
-    ("lfloor")
-    ("rfloor")
-    ("lang")
-    ("rang")
-    ("loz") ("Diamond"."&loz;")
-    ("spades") ("spadesuit"."&spades;")
-    ("clubs") ("clubsuit"."&clubs;")
-    ("hearts") ("diamondsuit"."&hearts;")
-    ("diams") ("diamondsuit"."&diams;")
-    ("smile"."&#9786;") ("blacksmile"."&#9787;") ("sad"."&#9785;")
-    ("quot")
-    ("amp")
-    ("lt")
-    ("gt")
-    ("OElig")
-    ("oelig")
-    ("Scaron")
-    ("scaron")
-    ("Yuml")
-    ("circ")
-    ("tilde")
-    ("ensp")
-    ("emsp")
-    ("thinsp")
-    ("zwnj")
-    ("zwj")
-    ("lrm")
-    ("rlm")
-    ("ndash")
-    ("mdash")
-    ("lsquo")
-    ("rsquo")
-    ("sbquo")
-    ("ldquo")
-    ("rdquo")
-    ("bdquo")
-    ("dagger")
-    ("Dagger")
-    ("permil")
-    ("lsaquo")
-    ("rsaquo")
-    ("euro")
-
-    ("arccos"."arccos")
-    ("arcsin"."arcsin")
-    ("arctan"."arctan")
-    ("arg"."arg")
-    ("cos"."cos")
-    ("cosh"."cosh")
-    ("cot"."cot")
-    ("coth"."coth")
-    ("csc"."csc")
-    ("deg"."deg")
-    ("det"."det")
-    ("dim"."dim")
-    ("exp"."exp")
-    ("gcd"."gcd")
-    ("hom"."hom")
-    ("inf"."inf")
-    ("ker"."ker")
-    ("lg"."lg")
-    ("lim"."lim")
-    ("liminf"."liminf")
-    ("limsup"."limsup")
-    ("ln"."ln")
-    ("log"."log")
-    ("max"."max")
-    ("min"."min")
-    ("Pr"."Pr")
-    ("sec"."sec")
-    ("sin"."sin")
-    ("sinh"."sinh")
-    ("sup"."sup")
-    ("tan"."tan")
-    ("tanh"."tanh")
-    )
-  "Entities for TeX->HTML translation.
-Entries can be like (\"ent\"), in which case \"\\ent\" will be translated to
-\"&ent;\".  An entry can also be a dotted pair like (\"ent\".\"&other;\").
-In that case, \"\\ent\" will be translated to \"&other;\".
-The list contains HTML entities for Latin-1, Greek and other symbols.
-It is supplemented by a number of commonly used TeX macros with appropriate
-translations.  There is currently no way for users to extend this.")
-
 ;;; General functions for all backends
 
 (defvar org-export-target-aliases nil
   "Alist of targets with invisible aliases.")
 (defvar org-export-preferred-target-alist nil
+  "Alist of section id's with preferred aliases.")
+(defvar org-export-id-target-alist nil
   "Alist of section id's with preferred aliases.")
 (defvar org-export-code-refs nil
   "Alist of code references and line numbers")
@@ -1254,14 +1026,19 @@ on this string to produce the exported version."
 	 (outline-regexp "\\*+ ")
 	 target-alist rtn)
 
-    (setq org-export-target-aliases nil)
-    (setq org-export-preferred-target-alist nil)
-    (setq org-export-code-refs nil)
+    (setq org-export-target-aliases nil
+	  org-export-preferred-target-alist nil
+	  org-export-id-target-alist nil
+	  org-export-code-refs nil)
 
     (with-current-buffer (get-buffer-create " org-mode-tmp")
       (erase-buffer)
       (insert string)
       (setq case-fold-search t)
+
+      (let ((inhibit-read-only t))
+	(remove-text-properties (point-min) (point-max)
+				'(read-only t)))
 
       ;; Remove license-to-kill stuff
       ;; The caller marks some stuff for killing, stuff that has been
@@ -1309,6 +1086,11 @@ on this string to produce the exported version."
       ;; Find all headings and compute the targets for them
       (setq target-alist (org-export-define-heading-targets target-alist))
 
+      (run-hooks 'org-export-preprocess-after-headline-targets-hook)
+
+      ;; Find HTML special classes for headlines
+      (org-export-remember-html-container-classes)
+
       ;; Get rid of drawers
       (org-export-remove-or-extract-drawers
        drawers (plist-get parameters :drawers) backend)
@@ -1333,6 +1115,7 @@ on this string to produce the exported version."
 
       ;; Select and protect backend specific stuff, throw away stuff
       ;; that is specific for other backends
+      (run-hooks 'org-export-preprocess-before-selecting-backend-code-hook)
       (org-export-select-backend-specific-text backend)
 
       ;; Protect quoted subtrees
@@ -1364,6 +1147,7 @@ on this string to produce the exported version."
 
       ;; Normalize links: Convert angle and plain links into bracket links
       ;; and expand link abbreviations
+      (run-hooks 'org-export-preprocess-before-normalizing-links-hook)
       (org-export-normalize-links)
 
       ;; Find all internal links.  If they have a fuzzy match (i.e. not
@@ -1442,7 +1226,12 @@ The new targets are added to TARGET-ALIST, which is also returned."
 	      (if (not (assoc last-section-target
 			      org-export-preferred-target-alist))
 		  (push (cons last-section-target id)
-			org-export-preferred-target-alist))))
+			org-export-preferred-target-alist)))
+	    (when (equal (match-string 1) "ID")
+	      (if (not (assoc last-section-target
+			      org-export-id-target-alist))
+		  (push (cons last-section-target (concat "ID-" id))
+			org-export-id-target-alist))))
 	(setq level (org-reduced-level
 		     (save-excursion (goto-char (point-at-bol))
 				     (org-outline-level))))
@@ -1488,7 +1277,7 @@ This function also handles the id links, if they have a match in
 the current file."
   (goto-char (point-min))
   (while (re-search-forward org-bracket-link-regexp nil t)
-    (org-if-unprotected
+    (org-if-unprotected-at (1+ (match-beginning 0))
      (let* ((md (match-data))
 	    (desc (match-end 2))
 	    (link (org-link-unescape (match-string 1)))
@@ -1534,6 +1323,17 @@ the current file."
 	 (insert target)
 	 (unless desc (insert "][" link))
 	 (add-text-properties pos (point) props))))))
+
+(defun org-export-remember-html-container-classes ()
+  "Store the HTML_CONTAINER_CLASS properties in a text property."
+  (goto-char (point-min))
+  (let (class)
+    (while (re-search-forward
+	    "^[ \t]*:HTML_CONTAINER_CLASS:[ \t]+\\(\\S-+\\)" nil t)
+      (setq class (match-string 1))
+      (save-excursion
+	(org-back-to-heading t)
+	(put-text-property (point-at-bol) (point-at-eol) 'html-container-class class)))))
 
 (defvar org-export-format-drawer-function nil
   "Function to be called to format the contents of a drawer.
@@ -1739,6 +1539,7 @@ from the buffer."
   (let ((formatters
 	 '((docbook "DOCBOOK" "BEGIN_DOCBOOK" "END_DOCBOOK")
 	   (html "HTML" "BEGIN_HTML" "END_HTML")
+	   (beamer "BEAMER" "BEGIN_BEAMER" "END_BEAMER")
 	   (ascii "ASCII" "BEGIN_ASCII" "END_ASCII")
 	   (latex "LaTeX" "BEGIN_LaTeX" "END_LaTeX")))
 	(case-fold-search t)
@@ -1811,10 +1612,10 @@ table line.  If it is a link, add it to the line containing the link."
 		    "\\|"
 		    "^[ \t]*#\\+label:[ \t]+\\(.*\\)"
 		    "\\|"
-		    "^[ \t]*|[^-]"
+		    "^[ \t]*\\(|[^-]\\)"
 		    "\\|"
 		    "^[ \t]*\\[\\[.*\\]\\][ \t]*$"))
-	cap attr label)
+	cap attr label end)
     (while (re-search-forward re nil t)
       (cond
        ((match-end 1)
@@ -1824,25 +1625,32 @@ table line.  If it is a link, add it to the line containing the link."
        ((match-end 3)
 	(setq label (org-trim (match-string 3))))
        (t
-	(add-text-properties (point-at-bol) (point-at-eol)
+	(setq end (if (match-end 4)
+		      (let ((ee (org-table-end)))
+			(prog1 (1- (marker-position ee)) (move-marker ee nil)))
+		    (point-at-eol)))
+	(add-text-properties (point-at-bol) end
 			     (list 'org-caption cap
 				   'org-attributes attr
 				   'org-label label))
 	(if label (push (cons label label) target-alist))
+	(goto-char end)
 	(setq cap nil attr nil label nil)))))
   target-alist)
 
 (defun org-export-remove-comment-blocks-and-subtrees ()
   "Remove the comment environment, and also commented subtrees."
   (let ((re-commented (concat "^\\*+[ \t]+" org-comment-string "\\>"))
-	(case-fold-search nil))
+	case-fold-search)
     ;; Remove comment environment
     (goto-char (point-min))
+    (setq case-fold-search t)
     (while (re-search-forward
-	    "^#\\+BEGIN_COMMENT[ \t]*\n[^\000]*?^#\\+END_COMMENT\\>.*" nil t)
+	    "^#\\+begin_comment[ \t]*\n[^\000]*?^#\\+end_comment\\>.*" nil t)
       (replace-match "" t t))
     ;; Remove subtrees that are commented
     (goto-char (point-min))
+    (setq case-fold-search nil)
     (while (re-search-forward re-commented nil t)
       (goto-char (match-beginning 0))
       (delete-region (point) (org-end-of-subtree t)))))
@@ -1877,7 +1685,8 @@ When it is nil, all comments will be removed."
 	(unless
 	    (save-match-data
 	      (or (org-in-regexp org-bracket-link-regexp)
-		  (org-in-regexp org-plain-link-re)))
+		  (org-in-regexp org-plain-link-re)
+		  (org-in-regexp "<<[^<>]+>>")))
 	  (org-if-unprotected
 	   (replace-match "\\1[[\\2]]")))))))
 
@@ -1887,7 +1696,7 @@ When it is nil, all comments will be removed."
   (while (re-search-forward "^[ \t]*|" nil t)
     (beginning-of-line 1)
     (if (or (looking-at "[ \t]*| *[!_^] *|")
-	    (not 
+	    (not
 	     (memq
 	      nil
 	      (mapcar
@@ -1962,7 +1771,7 @@ This is to make sure that the line-processing export backends
 can work correctly."
   (goto-char (point-min))
   (while (re-search-forward "\\(\\(\\[\\|\\]\\)\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\(\\[\\|\\]\\)\\)" nil t)
-    (org-if-unprotected
+    (org-if-unprotected-at (match-beginning 1)
      (replace-match "\\1 \\3")
      (goto-char (match-beginning 0)))))
 
@@ -2263,24 +2072,26 @@ in the list) and remove property and value from the list in LISTVAR."
   "Replace source code segments with special code for export."
   (setq org-export-last-code-line-counter-value 0)
   (let ((case-fold-search t)
-	lang code trans opts indent)
+	lang code trans opts indent caption)
     (goto-char (point-min))
     (while (re-search-forward
-	    "\\(^\\([ \t]*\\)#\\+BEGIN_SRC:?[ \t]+\\([^ \t\n]+\\)\\(.*\\)\n\\([^\000]+?\n\\)[ \t]*#\\+END_SRC.*\\)\\|\\(^\\([ \t]*\\)#\\+BEGIN_EXAMPLE:?\\(?:[ \t]+\\(.*\\)\\)?\n\\([^\000]+?\n\\)[ \t]*#\\+END_EXAMPLE.*\\)"
+	    "\\(^\\([ \t]*\\)#\\+BEGIN_SRC:?[ \t]+\\([^ \t\n]+\\)\\(.*\\)\n\\([^\000]+?\n\\)[ \t]*#\\+END_SRC.*\n?\\)\\|\\(^\\([ \t]*\\)#\\+BEGIN_EXAMPLE:?\\(?:[ \t]+\\(.*\\)\\)?\n\\([^\000]+?\n\\)[ \t]*#\\+END_EXAMPLE.*\n?\\)"
 	    nil t)
       (if (match-end 1)
 	  ;; src segments
 	  (setq lang (match-string 3)
 		opts (match-string 4)
 		code (match-string 5)
-		indent (length (match-string 2)))
+		indent (length (match-string 2))
+                caption (get-text-property 0 'org-caption (match-string 0)))
 	(setq lang nil
 	      opts (match-string 8)
 	      code (match-string 9)
-	      indent (length (match-string 7))))
+	      indent (length (match-string 7))
+              caption (get-text-property 0 'org-caption (match-string 0))))
 
       (setq trans (org-export-format-source-code-or-example
-		   backend lang code opts indent))
+		   backend lang code opts indent caption))
       (replace-match trans t t))))
 
 (defvar htmlp)  ;; dynamically scoped
@@ -2290,7 +2101,7 @@ in the list) and remove property and value from the list in LISTVAR."
 (defvar org-export-latex-listings-langs) ;; defined in org-latex.el
 
 (defun org-export-format-source-code-or-example
-  (backend lang code &optional opts indent)
+  (backend lang code &optional opts indent caption)
   "Format CODE from language LANG and return it formatted for export.
 If LANG is nil, do not add any fontification.
 OPTS contains formatting options, like `-n' for triggering numbering lines,
@@ -2341,7 +2152,7 @@ INDENT was the original indentation of the block."
 	      (concat "\n#+BEGIN_DOCBOOK\n"
 		      (org-add-props (concat "<programlisting><![CDATA["
 					     rtn
-					     "]]>\n</programlisting>\n")
+					     "]]></programlisting>\n")
 			  '(org-protected t))
 		      "#+END_DOCBOOK\n"))
 	     ((eq backend 'html)
@@ -2378,12 +2189,22 @@ INDENT was the original indentation of the block."
 			    (org-export-htmlize-region-for-paste
 			     (point-min) (point-max))))
 		    (if (string-match "<pre\\([^>]*\\)>\n*" rtn)
-			(setq rtn (replace-match
-				   (format "<pre class=\"src src-%s\">\n" lang)
-				   t t rtn))))
+			(setq rtn
+                              (concat
+                               (if caption
+                                   (concat
+                                    "<div class=\"org-src-container\">"
+                                    (format
+                                     "<label class=\"org-src-name\">%s</label>"
+                                     caption))
+                                 "")
+                               (replace-match
+                                (format "<pre class=\"src src-%s\">\n" lang)
+                                t t rtn)
+                               (if caption "</div>" "")))))
 		(if textareap
 		    (setq rtn (concat
-			       (format "<p>\n<textarea cols=\"%d\" rows=\"%d\" overflow-x:scroll >\n"
+			       (format "<p>\n<textarea cols=\"%d\" rows=\"%d\">"
 				       cols rows)
 			       rtn "</textarea>\n</p>\n"))
 		  (with-temp-buffer
@@ -2403,7 +2224,7 @@ INDENT was the original indentation of the block."
 	      (concat "\n#+BEGIN_HTML\n" (org-add-props rtn '(org-protected t)) "\n#+END_HTML\n\n"))
 	     ((eq backend 'latex)
 	      (setq rtn (org-export-number-lines rtn 'latex 0 0 num cont rpllbl fmt))
-	      (concat "\n#+BEGIN_LaTeX\n"
+	      (concat "#+BEGIN_LaTeX\n"
 		      (org-add-props
                           (if org-export-latex-listings
                               (concat
@@ -2417,17 +2238,20 @@ INDENT was the original indentation of the block."
 					       org-export-latex-listings-langs))
 					     lang)))
                                      (format "\\lstset{language=%s}\n" lstlang))
-                                 "")
+                                 "\n")
+                               (when caption
+                                 (format "\n%s $\\equiv$ \n" caption))
                                "\\begin{lstlisting}\n"
                                rtn "\\end{lstlisting}\n")
                             (concat (car org-export-latex-verbatim-wrap)
                                     rtn (cdr org-export-latex-verbatim-wrap)))
 			  '(org-protected t))
-		      "#+END_LaTeX\n\n"))
+		      "#+END_LaTeX\n"))
 	     ((eq backend 'ascii)
 	      ;; This is not HTML or LaTeX, so just make it an example.
 	      (setq rtn (org-export-number-lines rtn 'ascii 0 0 num cont rpllbl fmt))
-	      (concat "#+BEGIN_ASCII\n"
+	      (concat caption "\n"
+                      "#+BEGIN_ASCII\n"
 		      (org-add-props
 			  (concat
 			   (mapconcat
@@ -2546,14 +2370,19 @@ continue to use it.  The prefix arg ARG is passed through to the exporting
 command."
   (interactive
    (list (progn
-	   (message "Export visible: [a]SCII  [h]tml  [b]rowse HTML [H/R]uffer with HTML  [D]ocBook  [x]OXO  [ ]keep buffer")
+	   (message "Export visible: [a]SCII  [h]tml  [b]rowse HTML [H/R]buffer with HTML  [D]ocBook  [l]atex  [p]df  [d]view pdf  [L]atex buffer  [x]OXO  [ ]keep buffer")
 	   (read-char-exclusive))
 	 current-prefix-arg))
-  (if (not (member type '(?a ?\C-a ?b ?\C-b ?h ?D ?x ?\ )))
+  (if (not (member type '(?a ?n ?u ?\C-a ?b ?\C-b ?h ?D ?x ?\ ?l ?p ?d ?L)))
       (error "Invalid export key"))
   (let* ((binding (cdr (assoc type
-			      '((?a . org-export-as-ascii)
+			      '(
+				(?a . org-export-as-ascii)
 				(?A . org-export-as-ascii-to-buffer)
+				(?n . org-export-as-latin1)
+				(?N . org-export-as-latin1-to-buffer)
+				(?u . org-export-as-utf8)
+				(?U . org-export-as-utf8-to-buffer)
 				(?\C-a . org-export-as-ascii)
 				(?b . org-export-as-html-and-open)
 				(?\C-b . org-export-as-html-and-open)
@@ -2561,6 +2390,12 @@ command."
 				(?H . org-export-as-html-to-buffer)
 				(?R . org-export-region-as-html)
 				(?D . org-export-as-docbook)
+
+				(?l . org-export-as-latex)
+				(?p . org-export-as-pdf)
+				(?d . org-export-as-pdf-and-open)
+				(?L . org-export-as-latex-to-buffer)
+
 				(?x . org-export-as-xoxo)))))
 	 (keepp (equal type ?\ ))
 	 (file buffer-file-name)

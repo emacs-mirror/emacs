@@ -5,7 +5,7 @@
 ;; Author: John Wiegley <johnw@gnu.org>
 ;;         Christopher Suckling <suckling at gmail dot com>
 
-;; Version: 6.33x
+;; Version: 6.35i
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -209,7 +209,7 @@ list of message:// links to flagged mail after heading."
 	    (insert "\n" (org-mac-message-get-links "f")))
 	(goto-char (point-max))
 	(insert "\n")
-	(org-insert-heading)
+	(org-insert-heading nil t)
 	(insert org-heading "\n" (org-mac-message-get-links "f"))))))
 
 (provide 'org-mac-message)

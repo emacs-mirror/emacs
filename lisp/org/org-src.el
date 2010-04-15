@@ -8,7 +8,7 @@
 ;;         Dan Davison <davison at stats dot ox dot ac dot uk>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -38,6 +38,7 @@
   (require 'cl))
 
 (declare-function org-do-remove-indentation "org" (&optional n))
+(declare-function org-at-table.el-p "org" ())
 (declare-function org-get-indentation "org" (&optional line))
 (declare-function org-switch-to-buffer-other-window "org" (&rest args))
 
@@ -112,7 +113,6 @@ first line of the window showing the editing buffer.
 When nil, the message will only be shown intermittently in the echo area."
   :group 'org-edit-structure
   :type 'boolean)
-
 
 (defcustom org-src-window-setup 'reorganize-frame
   "How the source code edit buffer should be displayed.
@@ -192,7 +192,7 @@ There is a mode hook, and keybindings for `org-edit-src-exit' and
 The example is copied to a separate buffer, and that buffer is switched
 to the correct language mode.  When done, exit with \\[org-edit-src-exit].
 This will remove the original code in the Org buffer, and replace it with
-the edited version. Optional argument CONTEXT is used by 
+the edited version. Optional argument CONTEXT is used by
 \\[org-edit-src-save] when calling this function."
   (interactive)
   (unless (eq context 'save)
@@ -221,6 +221,13 @@ the edited version. Optional argument CONTEXT is used by
 	    block-nindent (nth 5 info)
 	    lang-f (intern (concat lang "-mode"))
 	    begline (save-excursion (goto-char beg) (org-current-line)))
+      (if (equal lang-f 'table.el-mode)
+	  (setq lang-f (lambda ()
+			 (text-mode)
+			 (if (org-bound-and-true-p flyspell-mode)
+			     (flyspell-mode -1))
+			 (table-recognize)
+			 (org-set-local 'org-edit-src-content-indentation 0))))
       (unless (functionp lang-f)
 	(error "No such language mode: %s" lang-f))
       (org-goto-line line)
@@ -452,6 +459,15 @@ the language, a switch telling if the content should be in a single line."
 	(pos (point))
 	re1 re2 single beg end lang lfmt match-re1 ind entry)
     (catch 'exit
+      (when (org-at-table.el-p)
+	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
+	(setq beg (1+ (point-at-eol)))
+	(goto-char beg)
+	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
+	    (progn (goto-char (point-max)) (newline)))
+	(setq end (point-at-bol))
+	(setq ind (org-edit-src-get-indentation beg))
+	(throw 'exit (list beg end 'table.el nil nil ind)))
       (while (setq entry (pop re-list))
 	(setq re1 (car entry) re2 (nth 1 entry) lang (nth 2 entry)
 	      single (nth 3 entry))
@@ -515,6 +531,7 @@ the language, a switch telling if the content should be in a single line."
   (interactive)
   (unless org-edit-src-from-org-mode
     (error "This is not a sub-editing buffer, something is wrong..."))
+  (widen)
   (let* ((beg org-edit-src-beg-marker)
 	 (end org-edit-src-end-marker)
 	 (ovl org-edit-src-overlay)
@@ -525,7 +542,7 @@ the language, a switch telling if the content should be in a single line."
 			   org-edit-src-content-indentation))
 	 (preserve-indentation org-src-preserve-indentation)
 	 (delta 0) code line col indent)
-    (untabify (point-min) (point-max))
+    (unless preserve-indentation (untabify (point-min) (point-max)))
     (save-excursion
       (goto-char (point-min))
       (if (looking-at "[ \t\n]*\n") (replace-match ""))
@@ -575,8 +592,15 @@ the language, a switch telling if the content should be in a single line."
     (insert code)
     (goto-char beg)
     (if single (just-one-space))
-    (org-goto-line (1- (+ (org-current-line) line)))
-    (org-move-to-column (if preserve-indentation col (+ col total-nindent delta)))
+    (if (memq t (mapcar (lambda (overlay)
+			  (eq (org-overlay-get overlay 'invisible)
+			      'org-hide-block))
+			(org-overlays-at (point))))
+	;; Block is hidden; put point at start of block
+	(beginning-of-line 0)
+      ;; Block is visible, put point where it was in the code buffer
+      (org-goto-line (1- (+ (org-current-line) line)))
+      (org-move-to-column (if preserve-indentation col (+ col total-nindent delta))))
     (move-marker beg nil)
     (move-marker end nil))
   (unless (eq context 'save)

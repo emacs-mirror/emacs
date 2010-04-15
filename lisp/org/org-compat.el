@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -361,6 +361,40 @@ TIME defaults to the current time."
   (if (featurep 'xemacs)
       (time-to-seconds (or time (current-time)))
     (float-time time)))
+
+; XEmacs does not have `looking-back'.
+(if (fboundp 'looking-back)
+    (defalias 'org-looking-back 'looking-back)
+  (defun org-looking-back (regexp &optional limit greedy)
+    "Return non-nil if text before point matches regular expression REGEXP.
+Like `looking-at' except matches before point, and is slower.
+LIMIT if non-nil speeds up the search by specifying a minimum
+starting position, to avoid checking matches that would start
+before LIMIT.
+
+If GREEDY is non-nil, extend the match backwards as far as
+possible, stopping when a single additional previous character
+cannot be part of a match for REGEXP.  When the match is
+extended, its starting position is allowed to occur before
+LIMIT."
+    (let ((start (point))
+	  (pos
+	   (save-excursion
+	     (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
+		  (point)))))
+      (if (and greedy pos)
+	  (save-restriction
+	    (narrow-to-region (point-min) start)
+	    (while (and (> pos (point-min))
+			(save-excursion
+			  (goto-char pos)
+			  (backward-char 1)
+			  (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+	      (setq pos (1- pos)))
+	    (save-excursion
+	      (goto-char pos)
+	      (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+      (not (null pos)))))
 
 (provide 'org-compat)
 
