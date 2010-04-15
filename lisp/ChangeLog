@@ -1,3 +1,11 @@
+2010-04-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-error-with-buffer): Don't show the
+	connection buffer when we are in completion mode.
+	(tramp-file-name-handler): Catch the error for some operations
+	when we are in completion mode.  This gives the user the chance to
+	correct the file name in the minibuffer.
+
 2010-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/verilog-mode.el (verilog-forward-sexp): Avoid free variable.
