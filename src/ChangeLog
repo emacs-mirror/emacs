@@ -1,3 +1,15 @@
+2010-04-15  Juri Linkov  <juri@jurta.org>
+
+	* window.c: Add Qscroll_command.
+	Remove Vscroll_preserve_screen_position_commands.
+	(window_scroll_pixel_based, window_scroll_line_based): Check the
+	`scroll-command' property on the last command instead of searching
+	the last command in Vscroll_preserve_screen_position_commands.
+	(syms_of_window): Initialize and staticpro `Qscroll_command'.
+	Put Qscroll_command property on Qscroll_up and Qscroll_down.
+	(scroll-preserve-screen-position): Doc fix.
+	(Vscroll_preserve_screen_position_commands): Remove variable.
+
 2010-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xdisp.c (message): Do not use NO_ARG_ARRAY.

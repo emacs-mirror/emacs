@@ -76,8 +76,8 @@ when a new variable `scroll-error-top-bottom' is non-nil.
 ** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 
-** New variable `scroll-preserve-screen-position-commands' defines
-a list of scroll command affected by `scroll-preserve-screen-position.
+** New property `scroll-command' should be set on a command's symbol to
+define it as a scroll command affected by `scroll-preserve-screen-position.
 
 
 * Editing Changes in Emacs 24.1

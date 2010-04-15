@@ -1,3 +1,16 @@
+2010-04-15  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (scroll-up-command, scroll-down-command)
+	(scroll-up-line, scroll-down-line): Put `scroll-command'
+	property on the these symbols.  Remove them from
+	`scroll-preserve-screen-position-commands'.
+
+	* mwheel.el (mwheel-scroll): Put `scroll-command' and
+	`isearch-scroll' properties on the `mwheel-scroll' symbol.
+	Remove it from `scroll-preserve-screen-position-commands'.
+
+	* isearch.el (isearch-allow-scroll): Doc fix.
+
 2010-04-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-error-with-buffer): Don't show the

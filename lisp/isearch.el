@@ -1757,7 +1757,7 @@ Scroll-bar or mode-line events are processed appropriately."
   "Whether scrolling is allowed during incremental search.
 If non-nil, scrolling commands can be used in Isearch mode.
 However, the current match will never scroll offscreen.
-If nil, scolling commands will first cancel Isearch mode."
+If nil, scrolling commands will first cancel Isearch mode."
   :type 'boolean
   :group 'isearch)
 
