@@ -249,6 +249,7 @@ collections as watch expressions.  These features require GDB 7.0 or later.
 
 ** Info
 
++++
 *** The new command `Info-virtual-index' bound to "I" displays a menu of
 matched topics found in the index.
 

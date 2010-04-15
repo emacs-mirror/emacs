@@ -1,3 +1,7 @@
+2010-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* info.texi (Search Index): Mention Emacs's Info-virtual-index.
+
 2010-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
