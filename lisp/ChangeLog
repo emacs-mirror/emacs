@@ -1,3 +1,7 @@
+2010-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/verilog-mode.el (verilog-forward-sexp): Avoid free variable.
+
 2010-04-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	Simplify by using `define-derived-mode'.
