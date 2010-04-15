@@ -102,59 +102,60 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
   "*Number of lines between the Gomoku board and the top of the window.")
 
 
-(defvar gomoku-mode-map nil
+(defvar gomoku-mode-map
+  (let ((map (make-sparse-keymap)))
+
+    ;; Key bindings for cursor motion.
+    (define-key map "y" 'gomoku-move-nw)		    ; y
+    (define-key map "u" 'gomoku-move-ne)		    ; u
+    (define-key map "b" 'gomoku-move-sw)		    ; b
+    (define-key map "n" 'gomoku-move-se)		    ; n
+    (define-key map "h" 'backward-char)			    ; h
+    (define-key map "l" 'forward-char)			    ; l
+    (define-key map "j" 'gomoku-move-down)		    ; j
+    (define-key map "k" 'gomoku-move-up)		    ; k
+
+    (define-key map [kp-7] 'gomoku-move-nw)
+    (define-key map [kp-9] 'gomoku-move-ne)
+    (define-key map [kp-1] 'gomoku-move-sw)
+    (define-key map [kp-3] 'gomoku-move-se)
+    (define-key map [kp-4] 'backward-char)
+    (define-key map [kp-6] 'forward-char)
+    (define-key map [kp-2] 'gomoku-move-down)
+    (define-key map [kp-8] 'gomoku-move-up)
+
+    (define-key map "\C-n" 'gomoku-move-down)		    ; C-n
+    (define-key map "\C-p" 'gomoku-move-up)		    ; C-p
+
+    ;; Key bindings for entering Human moves.
+    (define-key map "X" 'gomoku-human-plays)		    ; X
+    (define-key map "x" 'gomoku-human-plays)		    ; x
+    (define-key map " " 'gomoku-human-plays)		    ; SPC
+    (define-key map "\C-m" 'gomoku-human-plays)		    ; RET
+    (define-key map "\C-c\C-p" 'gomoku-human-plays)	    ; C-c C-p
+    (define-key map "\C-c\C-b" 'gomoku-human-takes-back)    ; C-c C-b
+    (define-key map "\C-c\C-r" 'gomoku-human-resigns)	    ; C-c C-r
+    (define-key map "\C-c\C-e" 'gomoku-emacs-plays)	    ; C-c C-e
+
+    (define-key map [kp-enter] 'gomoku-human-plays)
+    (define-key map [insert] 'gomoku-human-plays)
+    (define-key map [down-mouse-1] 'gomoku-click)
+    (define-key map [drag-mouse-1] 'gomoku-click)
+    (define-key map [mouse-1] 'gomoku-click)
+    (define-key map [down-mouse-2] 'gomoku-click)
+    (define-key map [mouse-2] 'gomoku-mouse-play)
+    (define-key map [drag-mouse-2] 'gomoku-mouse-play)
+
+    (define-key map [remap previous-line] 'gomoku-move-up)
+    (define-key map [remap next-line] 'gomoku-move-down)
+    (define-key map [remap move-beginning-of-line] 'gomoku-beginning-of-line)
+    (define-key map [remap move-end-of-line] 'gomoku-end-of-line)
+    (define-key map [remap undo] 'gomoku-human-takes-back)
+    (define-key map [remap advertised-undo] 'gomoku-human-takes-back)
+    map)
+
   "Local keymap to use in Gomoku mode.")
 
-(if gomoku-mode-map nil
-  (setq gomoku-mode-map (make-sparse-keymap))
-
-  ;; Key bindings for cursor motion.
-  (define-key gomoku-mode-map "y" 'gomoku-move-nw)		; y
-  (define-key gomoku-mode-map "u" 'gomoku-move-ne)		; u
-  (define-key gomoku-mode-map "b" 'gomoku-move-sw)		; b
-  (define-key gomoku-mode-map "n" 'gomoku-move-se)		; n
-  (define-key gomoku-mode-map "h" 'backward-char)		; h
-  (define-key gomoku-mode-map "l" 'forward-char)		; l
-  (define-key gomoku-mode-map "j" 'gomoku-move-down)		; j
-  (define-key gomoku-mode-map "k" 'gomoku-move-up)		; k
-
-  (define-key gomoku-mode-map [kp-7] 'gomoku-move-nw)
-  (define-key gomoku-mode-map [kp-9] 'gomoku-move-ne)
-  (define-key gomoku-mode-map [kp-1] 'gomoku-move-sw)
-  (define-key gomoku-mode-map [kp-3] 'gomoku-move-se)
-  (define-key gomoku-mode-map [kp-4] 'backward-char)
-  (define-key gomoku-mode-map [kp-6] 'forward-char)
-  (define-key gomoku-mode-map [kp-2] 'gomoku-move-down)
-  (define-key gomoku-mode-map [kp-8] 'gomoku-move-up)
-
-  (define-key gomoku-mode-map "\C-n" 'gomoku-move-down)		; C-n
-  (define-key gomoku-mode-map "\C-p" 'gomoku-move-up)		; C-p
-
-  ;; Key bindings for entering Human moves.
-  (define-key gomoku-mode-map "X" 'gomoku-human-plays)		; X
-  (define-key gomoku-mode-map "x" 'gomoku-human-plays)		; x
-  (define-key gomoku-mode-map " " 'gomoku-human-plays)		; SPC
-  (define-key gomoku-mode-map "\C-m" 'gomoku-human-plays)	; RET
-  (define-key gomoku-mode-map "\C-c\C-p" 'gomoku-human-plays)	; C-c C-p
-  (define-key gomoku-mode-map "\C-c\C-b" 'gomoku-human-takes-back) ; C-c C-b
-  (define-key gomoku-mode-map "\C-c\C-r" 'gomoku-human-resigns)	; C-c C-r
-  (define-key gomoku-mode-map "\C-c\C-e" 'gomoku-emacs-plays)	; C-c C-e
-
-  (define-key gomoku-mode-map [kp-enter] 'gomoku-human-plays)
-  (define-key gomoku-mode-map [insert] 'gomoku-human-plays)
-  (define-key gomoku-mode-map [down-mouse-1] 'gomoku-click)
-  (define-key gomoku-mode-map [drag-mouse-1] 'gomoku-click)
-  (define-key gomoku-mode-map [mouse-1] 'gomoku-click)
-  (define-key gomoku-mode-map [down-mouse-2] 'gomoku-click)
-  (define-key gomoku-mode-map [mouse-2] 'gomoku-mouse-play)
-  (define-key gomoku-mode-map [drag-mouse-2] 'gomoku-mouse-play)
-
-  (define-key gomoku-mode-map [remap previous-line] 'gomoku-move-up)
-  (define-key gomoku-mode-map [remap next-line] 'gomoku-move-down)
-  (define-key gomoku-mode-map [remap move-beginning-of-line] 'gomoku-beginning-of-line)
-  (define-key gomoku-mode-map [remap move-end-of-line] 'gomoku-end-of-line)
-  (define-key gomoku-mode-map [remap undo] 'gomoku-human-takes-back)
-  (define-key gomoku-mode-map [remap advertised-undo] 'gomoku-human-takes-back))
 
 (defvar gomoku-emacs-won ()
   "For making font-lock use the winner's face for the line.")
@@ -182,28 +183,20 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 ;; allow View Mode to be activated in its buffer.
 (put 'gomoku-mode 'mode-class 'special)
 
-(defun gomoku-mode ()
+(define-derived-mode gomoku-mode nil "Gomoku"
   "Major mode for playing Gomoku against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
-
+\\<gomoku-mode-map>
 You play by moving the cursor over the square you choose and hitting \\[gomoku-human-plays].
 
-Other useful commands:
-\\{gomoku-mode-map}
-Entry to this mode calls the value of `gomoku-mode-hook' if that value
-is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'gomoku-mode
-	mode-name "Gomoku")
+Other useful commands:\n
+\\{gomoku-mode-map}"
   (gomoku-display-statistics)
-  (use-local-map gomoku-mode-map)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(gomoku-font-lock-keywords t))
-  (toggle-read-only t)
-  (run-mode-hooks 'gomoku-mode-hook))
+  (toggle-read-only t))
 
 ;;;
 ;;; THE BOARD.

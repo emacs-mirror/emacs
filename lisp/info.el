@@ -3833,7 +3833,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
-(defun Info-mode ()
+(define-derived-mode Info-mode nil "Info"
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
 one topic and contains references to other nodes which discuss related
@@ -3895,23 +3895,17 @@ Advanced commands:
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
-  (kill-all-local-variables)
-  (setq major-mode 'Info-mode)
-  (setq mode-name "Info")
+  :syntax-table text-mode-syntax-table
+  :abbrev-table text-mode-abbrev-table
   (setq tab-width 8)
-  (use-local-map Info-mode-map)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
-  (set-syntax-table text-mode-syntax-table)
-  (setq local-abbrev-table text-mode-abbrev-table)
   (setq case-fold-search t)
   (setq buffer-read-only t)
   (make-local-variable 'Info-current-file)
   (make-local-variable 'Info-current-subfile)
   (make-local-variable 'Info-current-node)
-  (make-local-variable 'Info-tag-table-marker)
-  (setq Info-tag-table-marker (make-marker))
-  (make-local-variable 'Info-tag-table-buffer)
-  (setq Info-tag-table-buffer nil)
+  (set (make-local-variable 'Info-tag-table-marker) (make-marker))
+  (set (make-local-variable 'Info-tag-table-buffer) nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-history-forward)
   (make-local-variable 'Info-index-alternatives)
@@ -3920,12 +3914,10 @@ Advanced commands:
  	    '(:eval (get-text-property (point-min) 'header-line))))
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
-  (make-local-variable 'line-move-ignore-invisible)
-  (setq line-move-ignore-invisible t)
-  (make-local-variable 'desktop-save-buffer)
-  (make-local-variable 'widen-automatically)
-  (setq widen-automatically nil)
-  (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
+  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (set (make-local-variable 'desktop-save-buffer)
+       'Info-desktop-buffer-misc-data)
+  (set (make-local-variable 'widen-automatically) nil)
   (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
@@ -3944,8 +3936,7 @@ Advanced commands:
        'Info-revert-buffer-function)
   (Info-set-mode-line)
   (set (make-local-variable 'bookmark-make-record-function)
-       'Info-bookmark-make-record)
-  (run-mode-hooks 'Info-mode-hook))
+       'Info-bookmark-make-record))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
