@@ -1,5 +1,9 @@
 2010-04-15  Glenn Morris  <rgm@gnu.org>
 
+	* dired.texi (Misc Dired Features): Mention VC diff and log.
+	* maintaining.texi (Old Revisions, VC Change Log):
+	Mention that diff and log work in Dired buffers.
+
 	* help.texi (Help Summary): Mention M-x info-finder.
 
 	* ack.texi (Acknowledgments): Add mpc.el
