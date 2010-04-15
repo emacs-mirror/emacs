@@ -1,5 +1,7 @@
 2010-04-15  Glenn Morris  <rgm@gnu.org>
 
+	* help.texi (Help Summary): Mention M-x info-finder.
+
 	* ack.texi (Acknowledgments): Add mpc.el
 
 	* custom.texi (Specifying File Variables, Directory Variables):

@@ -252,6 +252,7 @@ collections as watch expressions.  These features require GDB 7.0 or later.
 *** The new command `Info-virtual-index' bound to "I" displays a menu of
 matched topics found in the index.
 
++++
 *** The new command `info-finder' replaces finder.el with a virtual Info
 manual that generates an Info file which gives the same information
 through a menu structure.
