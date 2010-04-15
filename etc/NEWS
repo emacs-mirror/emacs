@@ -24,6 +24,7 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 23.2
 
+---
 ** New configure options for Emacs developers
 These are not new features; only the configure flags are new.
 ---
@@ -188,10 +189,12 @@ that file exists.
 ** LaTeX mode now provides completion (via completion-at-point).
 
 ---
-** sym-comp.el is now declared obsolete, superceded by completion-at-point.
+** sym-comp.el is now declared obsolete, superseded by completion-at-point.
 
+---
 ** lucid.el and levents.el are now declared obsolete.
 
+---
 ** pcomplete provides a new command `pcomplete-std-completion' which
 is similar to `pcomplete' but using the standard completion UI code.
 
@@ -385,7 +388,7 @@ search in file buffers whose file names match the specified wildcard.
 That means, they change `default-directory' to the new users value,
 and let commands run under that user permissions.  It works even when
 `default-directory' is already remote.  Calling the external commands
-is possible by `*su' or `*sudo', repectively.
+is possible by `*su' or `*sudo', respectively.
 ---
 *** When running in a new enough xterm (newer than version 242), Emacs
 asks xterm what the background color is and it sets up faces
@@ -456,8 +459,8 @@ the variable `byte-compile-compatibility') has been removed.
 
 ** In image-mode.el `image-mode-maybe' is obsolete.  Instead, you can
 either use `image-mode' that displays an image file as the actual image
-inititally, or `image-mode-as-text' when you want to display an image file
-as text inititally.  `image-mode-as-text' is a combination of a non-image
+initially, or `image-mode-as-text' when you want to display an image file
+as text initially.  `image-mode-as-text' is a combination of a non-image
 mode from `auto-mode-alist' (or Fundamental mode) and `image-minor-mode'.
 `image-minor-mode' provides `C-c C-c' key binding to toggle image display.
 `image-toggle-display-text' removes image properties.
