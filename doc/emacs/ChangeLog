@@ -1,5 +1,7 @@
 2010-04-15  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): Add mpc.el
+
 	* custom.texi (Specifying File Variables, Directory Variables):
 	Document new commands for manipulating local variable lists.
 
