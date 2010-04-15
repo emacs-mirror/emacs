@@ -653,7 +653,8 @@ its own (@code{vc-revision-other-window}).
 @item C-x v =
 Compare the files in the current fileset with the working revision(s)
 you started from (@code{vc-diff}).  With a prefix argument, prompt for
-two revisions of the current fileset and compare them.
+two revisions of the current fileset and compare them.  You can call
+this command from a Dired buffer (@pxref{Dired}).
 
 @item C-x v D
 Compare the entire tree corresponding to the current fileset with the
@@ -895,6 +896,7 @@ i.e. the ones you enter via the @samp{*VC-Log*} buffer.  @xref{Log
 Buffer}.)  Point is centered at the revision of the file currently
 being visited.  With a prefix argument, the command prompts for the
 revision to center on, and the maximum number of revisions to display.
+You can call this command from a Dired buffer (@pxref{Dired}).
 
 @findex vc-print-root-log
   Type @kbd{C-x v L} (@code{vc-print-root-log}) to display a
