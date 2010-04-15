@@ -172,5 +172,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define NO_REMAP
 
+#define UNEXEC unexec.o
+
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */

@@ -171,7 +171,14 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  ;; FIXME: This can't set 'ignored yet
+  ;; FIXME: This can't set 'ignored or 'conflict yet
+  ;; The 'ignored state could be detected with `git ls-files -i -o
+  ;; --exclude-standard` It also can't set 'needs-update or
+  ;; 'needs-merge. The rough equivalent would be that upstream branch
+  ;; for current branch is in fast-forward state i.e. current branch
+  ;; is direct ancestor of corresponding upstream branch, and the file
+  ;; was modified upstream.  But we can't check that without a network
+  ;; operation.
   (if (not (vc-git-registered file))
       'unregistered
     (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
@@ -541,10 +548,10 @@ or an empty string if none."
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
 
-(defun vc-git-checkin (files rev comment  &optional extra-args-ignored)
+(defun vc-git-checkin (files rev comment  &optional extra-args)
   (let ((coding-system-for-write git-commits-coding-system))
-    (vc-git-command nil 0 files "commit"
-		    "-m" comment "--only" "--")))
+    (apply 'vc-git-command nil 0 files
+	   (nconc (list "commit" "-m" comment) extra-args (list "--only" "--")))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -592,13 +599,20 @@ or an empty string if none."
 		(when start-revision (list start-revision))
 		'("--")))))))
 
+(defun vc-git-log-outgoing (buffer remote-location)
+  (interactive)
+  (vc-git-command
+   buffer 0 nil
+   "log" (if (string= remote-location "")
+	     ;; FIXME: this hardcodes the location, it should compute
+	     ;; it properly.
+	     "origin/master..HEAD"
+	   remote-location)))
+
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
-
-;; Dynamically bound.
-(defvar vc-short-log)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
@@ -606,11 +620,11 @@ or an empty string if none."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
 	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	   '(
 	     ;; Same as log-view-message-re, except that we don't
 	     ;; want the shy group for the tag name.
@@ -775,6 +789,21 @@ or BRANCH^ (where \"^\" can be repeated)."
                    (point)
                    (progn (forward-line 1) (1- (point)))))))))
     (or (vc-git-symbolic-commit next-rev) next-rev)))
+
+(declare-function log-edit-mode "log-edit" ())
+(defvar log-edit-extra-flags)
+(defvar log-edit-before-checkin-process)
+
+(define-derived-mode vc-git-log-edit-mode log-edit-mode "Git-log-edit"
+  "Mode for editing Git commit logs.
+If a line like:
+Author: NAME
+is present in the log, it is removed, and
+--author=NAME
+is passed to the git commit command."
+  (set (make-local-variable 'log-edit-extra-flags) nil)
+  (set (make-local-variable 'log-edit-before-checkin-process)
+       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--author" (match-string 1))))))
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))

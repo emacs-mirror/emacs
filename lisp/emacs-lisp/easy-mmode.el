@@ -222,15 +222,10 @@ With zero or negative ARG turn mode off.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
            (setq ,mode
-                 (cond
-                  ((eq arg 'toggle) (not ,mode))
-                  (arg (> (prefix-numeric-value arg) 0))
-                  (t
-                   (if (null ,mode) t
-                     (message
-                      "Toggling %s off; better pass an explicit argument."
-                      ',mode)
-                     nil))))
+                 (if (eq arg 'toggle)
+                     (not ,mode)
+                   ;; A nil argument also means ON now.
+                   (> (prefix-numeric-value arg) 0)))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,mode ',hook-on ',hook-off))

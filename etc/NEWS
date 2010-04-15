@@ -65,11 +65,27 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
+** Lucid menus and dialogs can display antialiased fonts if Emacs is built
+with Xft.
+
+** New scrolling commands `scroll-up-command' and `scroll-down-command'
+(bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
+of buffer at first key-press (instead moves to top/bottom of buffer)
+when a new variable `scroll-error-top-bottom' is non-nil.
+
+** New scrolling commands `scroll-up-line' and `scroll-down-line'
+scroll a line instead of full screen.
+
+** New variable `scroll-preserve-screen-position-commands' defines
+a list of scroll command affected by `scroll-preserve-screen-position.
+
 
 * Editing Changes in Emacs 24.1
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** partial-completion-mode is now obsolete.
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
@@ -88,6 +104,8 @@ choose a color via list-colors-display.
 
 ** VC and related modes
 
+*** New VC commands: vc-log-incoming and vc-log-outgoing.
+
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
 *** Special markup can be added to log-edit buffers.
@@ -95,6 +113,10 @@ choose a color via list-colors-display.
 **** For Bzr, adding an
 Author: NAME
 line will add "--author NAME" to the "bzr commit" command.
+
+**** For Git, adding an
+Author: NAME
+line will add "--author NAME" to the "git commit" command.
 
 **** For Hg, adding an
 Author: NAME
@@ -124,6 +146,8 @@ Secret Service API requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** Passing a nil argument to a minor mode function now turns the mode
+   ON unconditionally.
 
 * Lisp changes in Emacs 24.1
 

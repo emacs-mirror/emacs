@@ -41,9 +41,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EXPLICIT_SIGN_EXTEND
 
 
-/* Common definitions for HPUX and GNU/Linux.  */
+/* Stuff for just HPUX.  */
 
-#if defined (__hpux) || defined (GNU_LINUX)
+#if defined (__hpux)
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -51,26 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
-
-#endif /* __hpux or GNU_LINUX */
-
-/* Stuff for just GNU/Linux.  */
-
-#ifdef GNU_LINUX
-
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-
-#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-#endif /* GNU_LINUX */
-
-/* Stuff for just HPUX.  */
-
-#ifdef __hpux
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
@@ -87,14 +67,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DATA_START    0x40000000
 #define TEXT_START    0x00000000
-
-/* This machine requires completely different unexec code
-   which lives in a separate file.  Specify the file name.  */
-
-#define UNEXEC unexhp9k800.o
-
-/* Include the file bsdtty.h, since this machine has job control.  */
-#define NEED_BSDTTY
 
 /* Data type of load average, as read out of kmem.  */
 

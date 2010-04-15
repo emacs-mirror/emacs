@@ -693,6 +693,7 @@ reset_buffer (b)
   b->file_truename = Qnil;
   b->directory = (current_buffer) ? current_buffer->directory : Qnil;
   b->modtime = 0;
+  b->modtime_size = -1;
   XSETFASTINT (b->save_length, 0);
   b->last_window_start = 1;
   /* It is more conservative to start out "changed" than "unchanged".  */

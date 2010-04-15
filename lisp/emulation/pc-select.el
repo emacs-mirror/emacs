@@ -93,6 +93,9 @@ text with these commands.  If you set this variable to non-nil, these
 errors are suppressed."
   :type 'boolean
   :group 'pc-select)
+(define-obsolete-variable-alias 'pc-select-override-scroll-error
+                                'scroll-error-top-bottom
+                                "24.1")
 
 (defcustom pc-select-selection-keys-only nil
   "*Non-nil means only bind the basic selection keys when started.

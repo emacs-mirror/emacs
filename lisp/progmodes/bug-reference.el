@@ -130,11 +130,6 @@ There is no default setting for this, it must be set per file.")
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
-(defun turn-on-bug-reference-mode ()
-  "Unconditionally turn bug reference mode on."
-  (unless bug-reference-mode
-    (bug-reference-mode)))
-
 ;;;###autoload
 (define-minor-mode bug-reference-prog-mode
   "Like `bug-reference-mode', but only buttonize in comments and strings."
@@ -147,11 +142,6 @@ There is no default setting for this, it must be set per file.")
     (save-restriction
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
-
-(defun turn-on-bug-reference-prog-mode ()
-  "Unconditionally turn bug reference prog mode on."
-  (unless bug-reference-prog-mode
-    (bug-reference-prog-mode)))
 
 ;; arch-tag: b138abce-e5c3-475e-bd58-7afba40387ea
 ;;; bug-reference.el ends here

@@ -1,3 +1,22 @@
+2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Add `location' field.
+
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el: Add bookmark declarations to silence the compiler.
+	(gnus-mark-xrefs-as-read, gnus-summary-limit-to-bodies):
+	Use with-current-buffer to silence the byte-compiler.
+	(gnus-summary-bookmark-make-record): Use derived-mode-p and don't
+	bother to require `gnus'.
+	(gnus-summary-bookmark-jump): Don't forget to autoload.  Simplify.
+
+2010-04-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record)
+	(gnus-summary-bookmark-jump): New functions.
+	(gnus-summary-mode): Setup bookmark support.
+
 2010-04-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use buffer-file-coding-system

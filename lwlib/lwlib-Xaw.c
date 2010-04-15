@@ -54,6 +54,22 @@ Boston, MA 02110-1301, USA.  */
 
 #include <X11/Xatom.h>
 
+#ifdef HAVE_XFT
+#include <X11/Xft/Xft.h>
+
+struct widget_xft_data
+{
+  Widget widget;
+  XftFont *xft_font;
+  XftDraw *xft_draw;
+  XftColor xft_fg, xft_bg;
+  int p_width, p_height;
+  Pixmap p;
+};
+
+
+#endif
+
 static void xaw_generic_callback (/*Widget, XtPointer, XtPointer*/);
 
 
@@ -130,6 +146,207 @@ xaw_update_scrollbar (instance, widget, val)
 }
 #endif
 
+#ifdef HAVE_XFT
+static void
+fill_xft_data (struct widget_xft_data *data, Widget widget, XftFont *font)
+{
+  data->widget = widget;
+  data->xft_font = font;
+  Pixel bg, fg;
+  XColor colors[2];
+  int screen = XScreenNumberOfScreen (XtScreen (widget));
+
+  XtVaGetValues (widget,
+                 XtNbackground, &bg,
+                 XtNforeground, &fg,
+                 NULL);
+
+  colors[0].pixel = data->xft_fg.pixel = fg;
+  colors[1].pixel = data->xft_bg.pixel = bg;
+  XQueryColors (XtDisplay (widget),
+                DefaultColormapOfScreen (XtScreen (widget)),
+                colors, 2);
+
+  data->xft_fg.color.alpha = 0xFFFF;
+  data->xft_fg.color.red = colors[0].red;
+  data->xft_fg.color.green = colors[0].green;
+  data->xft_fg.color.blue = colors[0].blue;
+  data->xft_bg.color.alpha = 0xFFFF;
+  data->xft_bg.color.red = colors[1].red;
+  data->xft_bg.color.green = colors[1].green;
+  data->xft_bg.color.blue = colors[1].blue;
+
+  data->p = None;
+  data->xft_draw = 0;
+  data->p_width = data->p_height = 0;
+}
+
+static XftFont*
+openFont (Widget widget, char *name)
+{
+  char *fname = name;
+  int screen = XScreenNumberOfScreen (XtScreen (widget));
+  int len = strlen (fname), i = len-1;
+  XftFont *fn;
+
+  /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
+  while (i > 0 && isdigit (fname[i]))
+    --i;
+  if (fname[i] == ' ')
+    {
+      fname = xstrdup (name);
+      fname[i] = '-';
+    }
+
+  fn = XftFontOpenName (XtDisplay (widget), screen, fname);
+  if (fname != name) free (fname);
+
+  return fn;
+}
+
+static int
+get_text_width_and_height (Widget widget, char *text,
+                           XftFont *xft_font,
+                           int *height)
+{
+  int w = 0, h = 0;
+  char *bp = text;
+  
+  while (bp && *bp != '\0')
+    {
+      XGlyphInfo gi;
+      char *cp = strchr (bp, '\n');
+      XftTextExtentsUtf8 (XtDisplay (widget), xft_font,
+                          (FcChar8 *) bp,
+                          cp ? cp - bp : strlen (bp),
+                          &gi);
+      bp = cp ? cp + 1 : NULL;
+      h += xft_font->height;
+      if (w < gi.width) w = gi.width;
+    }
+
+  *height = h;
+  return w;
+}
+
+static void
+draw_text (struct widget_xft_data *data, char *lbl, int inverse)
+{
+  Screen *sc = XtScreen (data->widget);
+  int screen = XScreenNumberOfScreen (sc);
+  int y = data->xft_font->ascent;
+  int x = inverse ? 0 : 2;
+  char *bp = lbl;
+
+  data->xft_draw = XftDrawCreate (XtDisplay (data->widget),
+                                  data->p,
+                                  DefaultVisual (XtDisplay (data->widget),
+                                                 screen),
+                                  DefaultColormapOfScreen (sc));
+  XftDrawRect (data->xft_draw,
+               inverse ? &data->xft_fg : &data->xft_bg,
+               0, 0, data->p_width, data->p_height);
+
+  if (!inverse) y += 2;
+  while (bp && *bp != '\0')
+    {
+      char *cp = strchr (bp, '\n');
+      XftDrawStringUtf8 (data->xft_draw,
+                         inverse ? &data->xft_bg : &data->xft_fg,
+                         data->xft_font, x, y, bp, cp ? cp - bp : strlen (bp));
+      bp = cp ? cp + 1 : NULL;
+      /* 1.2 gives reasonable line spacing.  */
+      y += data->xft_font->height * 1.2;
+    }
+
+}
+
+
+static void
+set_text (struct widget_xft_data *data, Widget toplevel, char *lbl, int margin)
+{
+  int screen = XScreenNumberOfScreen (XtScreen (data->widget));
+  int width, height;
+
+  width = get_text_width_and_height (data->widget, lbl, data->xft_font,
+                                     &height);
+  data->p_width = width + margin;
+  data->p_height = height + margin;
+
+  data->p = XCreatePixmap (XtDisplay (data->widget),
+                           XtWindow (toplevel),
+                           data->p_width,
+                           data->p_height,
+                           DefaultDepthOfScreen (XtScreen (data->widget)));
+  draw_text (data, lbl, 0);
+  XtVaSetValues (data->widget, XtNbitmap, data->p, NULL);
+}
+
+static struct widget_xft_data *
+find_xft_data (Widget widget)
+{
+  widget_instance *inst = NULL;
+  Widget parent = XtParent (widget);
+  struct widget_xft_data *data = NULL;
+  int nr;
+  while (parent && !inst) 
+    {
+      inst = lw_get_widget_instance (parent);
+      parent = XtParent (parent);
+    }
+  if (!inst || !inst->xft_data || !inst->xft_data[0].xft_font) return;
+
+  for (nr = 0; data == NULL && nr < inst->nr_xft_data; ++nr) 
+    {
+      if (inst->xft_data[nr].widget == widget) 
+        data = &inst->xft_data[nr];
+    }
+
+  return data;
+}
+
+static void
+command_press (Widget widget,
+               XEvent* event,
+               String *params,
+               Cardinal *num_params)
+{
+  struct widget_xft_data *data = find_xft_data (widget);
+  if (data) 
+    {
+      char *lbl;
+      /* Since this isn't used for rectangle buttons, use it to for armed.  */
+      XtVaSetValues (widget, XtNcornerRoundPercent, 1, NULL);
+
+      XtVaGetValues (widget, XtNlabel, &lbl, NULL);
+      draw_text (data, lbl, 1);
+    }
+}
+
+static void
+command_reset (Widget widget,
+                 XEvent* event,
+                 String *params,
+                 Cardinal *num_params)
+{
+  struct widget_xft_data *data = find_xft_data (widget);
+  if (data) 
+    {
+      Dimension cr;
+      XtVaGetValues (widget, XtNcornerRoundPercent, &cr, NULL);
+      if (cr == 1) 
+        {
+          char *lbl;
+          XtVaSetValues (widget, XtNcornerRoundPercent, 0, NULL);
+          XtVaGetValues (widget, XtNlabel, &lbl, NULL);
+          draw_text (data, lbl, 0);
+        }
+    }
+}
+
+
+#endif
+
 void
 #ifdef PROTOTYPES
 xaw_update_one_widget (widget_instance *instance, Widget widget,
@@ -150,15 +367,21 @@ xaw_update_one_widget (instance, widget, val, deep_p)
 #endif
   if (XtIsSubclass (widget, dialogWidgetClass))
     {
-      Arg al[1];
-      int ac = 0;
-      XtSetArg (al[ac], XtNlabel, val->contents->value); ac++;
-      XtSetValues (widget,  al, ac);
+
+#ifdef HAVE_XFT
+      if (instance->xft_data && instance->xft_data[0].xft_font)
+        {
+          set_text (&instance->xft_data[0], instance->parent,
+                    val->contents->value, 10);
+        }
+#endif
+      XtVaSetValues (widget, XtNlabel, val->contents->value, NULL);
     }
   else if (XtIsSubclass (widget, commandWidgetClass))
     {
       Dimension bw = 0;
-      Arg al[3];
+      Arg al[10];
+      int ac = 0;
 
       XtVaGetValues (widget, XtNborderWidth, &bw, NULL);
       if (bw == 0)
@@ -174,10 +397,30 @@ xaw_update_one_widget (instance, widget, val, deep_p)
 	}
 
       XtSetSensitive (widget, val->enabled);
-      XtSetArg (al[0], XtNlabel, val->value);
+      XtSetArg (al[ac], XtNlabel, val->value);ac++;
       /* Force centered button text.  Se above. */
-      XtSetArg (al[1], XtNjustify, XtJustifyCenter);
-      XtSetValues (widget, al, 2);
+      XtSetArg (al[ac], XtNjustify, XtJustifyCenter);ac++;
+#ifdef HAVE_XFT
+      if (instance->xft_data && instance->xft_data[0].xft_font)
+        {
+          int th;
+          int nr;
+          for (nr = 0; nr < instance->nr_xft_data; ++nr)
+            if (instance->xft_data[nr].widget == widget)
+              break;
+          if (nr < instance->nr_xft_data)
+            {
+              set_text (&instance->xft_data[nr], instance->parent,
+                        val->value, 6);
+
+              /* Must set internalHeight to twice the highlight thickness,
+                 or else it gets overwritten by our pixmap.  Probably a bug.  */
+              XtVaGetValues (widget, XtNhighlightThickness, &th, NULL);
+              XtSetArg (al[ac], XtNinternalHeight, 2*th);ac++;
+            }
+        }
+#endif
+      XtSetValues (widget, al, ac);
       XtRemoveAllCallbacks (widget, XtNcallback);
       XtAddCallback (widget, XtNcallback, xaw_generic_callback, instance);
     }
@@ -198,6 +441,28 @@ void
 xaw_destroy_instance (instance)
      widget_instance *instance;
 {
+#ifdef HAVE_XFT
+  if (instance->xft_data) 
+    {
+      int i;
+      for (i = 0; i < instance->nr_xft_data; ++i) 
+        {
+          if (instance->xft_data[i].xft_draw)
+            XftDrawDestroy (instance->xft_data[i].xft_draw);
+          if (instance->xft_data[i].p != None) 
+            {
+              XtVaSetValues (instance->xft_data[i].widget, XtNbitmap, None,
+                             NULL);
+              XFreePixmap (XtDisplay (instance->widget),
+                           instance->xft_data[i].p);
+            }
+        }
+      if (instance->xft_data[0].xft_font)
+        XftFontClose (XtDisplay (instance->widget),
+                      instance->xft_data[0].xft_font);
+      free (instance->xft_data);
+    }
+#endif
   if (XtIsSubclass (instance->widget, dialogWidgetClass))
     /* Need to destroy the Shell too. */
     XtDestroyWidget (XtParent (instance->widget));
@@ -298,8 +563,21 @@ static XtActionsRec xaw_actions [] = {
 };
 static Boolean actions_initted = False;
 
+#ifdef HAVE_XFT
+static XtActionsRec button_actions[] = 
+  {
+    { "my_reset", command_reset },
+    { "my_press", command_press },
+  };
+char buttonTrans[] =
+  "<Leave>: reset() my_reset()\n"
+  "<Btn1Down>: set() my_press()\n"
+  "<Btn1Up>:  my_reset() notify() unset()\n";
+#endif
+
 static Widget
-make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, radio_box, list, left_buttons, right_buttons)
+make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
+             radio_box, list, left_buttons, right_buttons, instance)
      char* name;
      Widget parent;
      Boolean pop_up_p;
@@ -310,6 +588,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
      Boolean list;
      int left_buttons;
      int right_buttons;
+     widget_instance *instance;
 {
   Arg av [20];
   int ac = 0;
@@ -319,6 +598,10 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
   Widget dialog;
   Widget button;
   XtTranslations override;
+#ifdef HAVE_XFT
+  XftFont *xft_font = 0;
+  XtTranslations button_override;
+#endif
 
   if (! pop_up_p) abort (); /* not implemented */
   if (text_input_slot) abort (); /* not implemented */
@@ -330,6 +613,10 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
       XtAppContext app = XtWidgetToApplicationContext (parent);
       XtAppAddActions (app, xaw_actions,
 		       sizeof (xaw_actions) / sizeof (xaw_actions[0]));
+#ifdef HAVE_XFT
+      XtAppAddActions (app, button_actions,
+		       sizeof (button_actions) / sizeof (button_actions[0]));
+#endif
       actions_initted = True;
     }
 
@@ -351,6 +638,49 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
   override = XtParseTranslationTable (dialogOverride);
   XtOverrideTranslations (dialog, override);
 
+#ifdef HAVE_XFT
+  {
+    int num;
+    Widget *ch = NULL;
+    Widget w = 0;
+    XtVaGetValues (dialog,
+                   XtNnumChildren, &num,
+                   XtNchildren, &ch, NULL);
+    for (i = 0; i < num; ++i) 
+      {
+        if (!XtIsSubclass (ch[i], commandWidgetClass)
+            && XtIsSubclass (ch[i], labelWidgetClass))
+          {
+            w = ch[i];
+            break;
+          }
+      }
+    instance->xft_data = 0;
+    instance->nr_xft_data = 0;
+    if (w) 
+      {
+        XtResource rec[] = 
+          { { "faceName", "FaceName", XtRString, sizeof(String), 0, XtRString,
+              (XtPointer)"Sans-14" }};
+        char *faceName;
+        XtVaGetSubresources (dialog, &faceName, "Dialog", "dialog",
+                             rec, 1, 0, NULL);
+        if (strcmp ("none", faceName) != 0)
+          xft_font = openFont (dialog, faceName);
+        if (xft_font) 
+          {
+            instance->nr_xft_data = left_buttons + right_buttons + 1;
+            instance->xft_data = calloc (instance->nr_xft_data,
+                                         sizeof(*instance->xft_data));
+
+            fill_xft_data (&instance->xft_data[0], w, xft_font);
+          }
+      }
+
+    button_override = XtParseTranslationTable (buttonTrans);
+  }
+#endif
+
   bc = 0;
   button = 0;
   for (i = 0; i < left_buttons; i++)
@@ -362,51 +692,56 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
       XtSetArg (av [ac], XtNtop, XtChainBottom); ac++;
       XtSetArg (av [ac], XtNbottom, XtChainBottom); ac++;
       XtSetArg (av [ac], XtNresizable, True); ac++;
+#ifdef HAVE_XAW3D
+      if (DefaultDepthOfScreen (XtScreen (dialog)) >= 16)
+        {
+          /* Turn of dithered shadow if we can.  Looks bad */
+          XtSetArg (av [ac], "beNiceToColormap", False); ac++;
+        }
+#endif
       sprintf (button_name, "button%d", ++bc);
       button = XtCreateManagedWidget (button_name, commandWidgetClass,
 				      dialog, av, ac);
+#ifdef HAVE_XFT
+      if (xft_font)
+        {
+          fill_xft_data (&instance->xft_data[bc], button, xft_font);
+          XtOverrideTranslations (button, button_override);
+        }
+#endif
     }
-  if (right_buttons)
-    {
-      /* Create a separator
 
-	 I want the separator to take up the slack between the buttons on
-	 the right and the buttons on the left (that is I want the buttons
-	 after the separator to be packed against the right edge of the
-	 window) but I can't seem to make it do it.
-       */
-      ac = 0;
-      XtSetArg (av [ac], XtNfromHoriz, button); ac++;
-/*  XtSetArg (av [ac], XtNfromVert, XtNameToWidget (dialog, "label")); ac++; */
-      XtSetArg (av [ac], XtNleft, XtChainLeft); ac++;
-      XtSetArg (av [ac], XtNright, XtChainRight); ac++;
-      XtSetArg (av [ac], XtNtop, XtChainBottom); ac++;
-      XtSetArg (av [ac], XtNbottom, XtChainBottom); ac++;
-      XtSetArg (av [ac], XtNlabel, ""); ac++;
-      XtSetArg (av [ac], XtNwidth, 30); ac++;	/* #### aaack!! */
-      XtSetArg (av [ac], XtNborderWidth, 0); ac++;
-      XtSetArg (av [ac], XtNshapeStyle, XmuShapeRectangle); ac++;
-      XtSetArg (av [ac], XtNresizable, False); ac++;
-      XtSetArg (av [ac], XtNsensitive, False); ac++;
-      button = XtCreateManagedWidget ("separator",
-				      /* labelWidgetClass, */
-				      /* This has to be Command to fake out
-					 the Dialog widget... */
-				      commandWidgetClass,
-				      dialog, av, ac);
-    }
   for (i = 0; i < right_buttons; i++)
     {
       ac = 0;
       XtSetArg (av [ac], XtNfromHoriz, button); ac++;
+      if (i == 0) 
+        {
+          /* Separator to the other buttons. */
+          XtSetArg (av [ac], XtNhorizDistance, 30); ac++;
+        }
       XtSetArg (av [ac], XtNleft, XtChainRight); ac++;
       XtSetArg (av [ac], XtNright, XtChainRight); ac++;
       XtSetArg (av [ac], XtNtop, XtChainBottom); ac++;
       XtSetArg (av [ac], XtNbottom, XtChainBottom); ac++;
       XtSetArg (av [ac], XtNresizable, True); ac++;
+#ifdef HAVE_XAW3D
+      if (DefaultDepthOfScreen (XtScreen (dialog)) >= 16)
+        {
+          /* Turn of dithered shadow if we can.  Looks bad */
+          XtSetArg (av [ac], "beNiceToColormap", False); ac++;
+        }
+#endif
       sprintf (button_name, "button%d", ++bc);
       button = XtCreateManagedWidget (button_name, commandWidgetClass,
 				      dialog, av, ac);
+#ifdef HAVE_XFT
+      if (xft_font)
+        {
+          fill_xft_data (&instance->xft_data[bc], button, xft_font);
+          XtOverrideTranslations (button, button_override);
+        }
+#endif
     }
 
   return dialog;
@@ -472,8 +807,7 @@ xaw_create_dialog (instance)
 
   widget = make_dialog (name, parent, pop_up_p,
 			shell_name, icon_name, text_input_slot, radio_box,
-			list, left_buttons, right_buttons);
-
+			list, left_buttons, right_buttons, instance);
   return widget;
 }
 

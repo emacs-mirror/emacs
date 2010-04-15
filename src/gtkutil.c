@@ -529,7 +529,7 @@ static void
 xg_set_geometry (f)
      FRAME_PTR f;
 {
-  if (f->size_hint_flags & USPosition)
+  if (f->size_hint_flags & (USPosition | PPosition))
     {
       int left = f->left_pos;
       int xneg = f->size_hint_flags & XNegative;
@@ -542,9 +542,7 @@ xg_set_geometry (f)
       if (yneg)
         top = -top;
 
-      sprintf (geom_str, "=%dx%d%c%d%c%d",
-               FRAME_PIXEL_WIDTH (f),
-               FRAME_TOTAL_PIXEL_HEIGHT (f),
+      sprintf (geom_str, "%c%d%c%d",
                (xneg ? '-' : '+'), left,
                (yneg ? '-' : '+'), top);
 
@@ -552,9 +550,6 @@ xg_set_geometry (f)
                                       geom_str))
         fprintf (stderr, "Failed to parse: '%s'\n", geom_str);
     }
-  else if (f->size_hint_flags & PPosition)
-    gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                     f->left_pos, f->top_pos);
 }
 
 /* Clear under internal border if any.  As we use a mix of Gtk+ and X calls
@@ -955,16 +950,6 @@ x_wm_set_size_hint (f, flags, user_position)
     size_hints.win_gravity = GDK_GRAVITY_SOUTH_EAST;
   else if (win_gravity == StaticGravity)
     size_hints.win_gravity = GDK_GRAVITY_STATIC;
-
-  if (flags & PPosition) hint_flags |= GDK_HINT_POS;
-  if (flags & USPosition) hint_flags |= GDK_HINT_USER_POS;
-  if (flags & USSize) hint_flags |= GDK_HINT_USER_SIZE;
-
-  if (user_position)
-    {
-      hint_flags &= ~GDK_HINT_POS;
-      hint_flags |= GDK_HINT_USER_POS;
-    }
 
   if (hint_flags != f->output_data.x->hint_flags
       || memcmp (&size_hints,

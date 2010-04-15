@@ -872,7 +872,9 @@ whose documentation describes the minor mode."
               (insert (format-mode-line mode nil nil buffer))
               (add-text-properties start (point) '(face bold)))))
 	(princ " mode:\n")
-	(princ (documentation major-mode))))))
+	(princ (documentation major-mode)))))
+  ;; For the sake of IELM and maybe others
+  nil)
 
 
 (defun describe-minor-mode (minor-mode)

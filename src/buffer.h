@@ -513,6 +513,12 @@ struct buffer
      0 means visited file modtime unknown; in no case complain
      about any mismatch on next save attempt.  */
   int modtime;
+  /* Size of the file when modtime was set.  This is used to detect the
+     case where the file grew while we were reading it, so the modtime
+     is still the same (since it's rounded up to seconds) but we're actually
+     not up-to-date.  -1 means the size is unknown.  Only meaningful if
+     modtime is actually set.  */
+  EMACS_INT modtime_size;
   /* The value of text->modiff at the last auto-save.  */
   int auto_save_modified;
   /* The value of text->modiff at the last display error.

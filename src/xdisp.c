@@ -6570,7 +6570,10 @@ next_element_from_stretch (it)
 /* Scan forward from CHARPOS in the current buffer, until we find a
    stop position > current IT's position.  Then handle the stop
    position before that.  This is called when we bump into a stop
-   position while reordering bidirectional text.  */
+   position while reordering bidirectional text.  CHARPOS should be
+   the last previously processed stop_pos (or BEGV, if none were
+   processed yet) whose position is less that IT's current
+   position.  */
 
 static void
 handle_stop_backwards (it, charpos)
@@ -12550,6 +12553,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   EMACS_INT pos_before = MATRIX_ROW_START_CHARPOS (row) + delta;
   EMACS_INT pos_after = MATRIX_ROW_END_CHARPOS (row) + delta;
   struct glyph *glyph_before = glyph - 1, *glyph_after = end;
+  /* A glyph beyond the edge of TEXT_AREA which we should never
+     touch.  */
+  struct glyph *glyphs_end = end;
   /* Non-zero means we've found a match for cursor position, but that
      glyph has the avoid_cursor_p flag set.  */
   int match_with_avoid_cursor = 0;
@@ -12591,7 +12597,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 	  /* If the glyph row is reversed, we need to process it from back
 	     to front, so swap the edge pointers.  */
-	  end = glyph - 1;
+	  glyphs_end = end = glyph - 1;
 	  glyph += row->used[TEXT_AREA] - 1;
 	  /* Reverse the known positions in the row.  */
 	  last_pos = pos_after = MATRIX_ROW_START_CHARPOS (row) + delta;
@@ -12769,7 +12775,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   /* Step 2: If we didn't find an exact match for point, we need to
      look for a proper place to put the cursor among glyphs between
      GLYPH_BEFORE and GLYPH_AFTER.  */
-  if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
+  if (!((row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end)
+	&& BUFFERP (glyph->object) && glyph->charpos == pt_old)
       && bpos_covered < pt_old)
     {
       if (row->ends_in_ellipsis_p && pos_after == last_pos)
@@ -12935,9 +12942,15 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       struct glyph *g1 =
 	MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
 
+      /* Don't consider glyphs that are outside TEXT_AREA.  */
+      if (!(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end))
+	return 0;
       /* Keep the candidate whose buffer position is the closest to
 	 point.  */
-      if (BUFFERP (g1->object)
+      if (/* previous candidate is a glyph in TEXT_AREA of that row */
+	  w->cursor.hpos >= 0
+	  && w->cursor.hpos < MATRIX_ROW_USED(matrix, w->cursor.vpos)
+	  && BUFFERP (g1->object)
 	  && (g1->charpos == pt_old /* an exact match always wins */
 	      || (BUFFERP (glyph->object)
 		  && eabs (g1->charpos - pt_old)
@@ -14190,7 +14203,7 @@ redisplay_window (window, just_this_one_p)
 	       = try_window_reusing_current_matrix (w)))
 	{
 	  IF_DEBUG (debug_method_add (w, "1"));
-	  if (try_window (window, startp, 1) < 0)
+	  if (try_window (window, startp, TRY_WINDOW_CHECK_MARGINS) < 0)
 	    /* -1 means we need to scroll.
 	       0 means we need new matrices, but fonts_changed_p
 	       is set in that case, so we will detect it below.  */
@@ -14541,13 +14554,15 @@ redisplay_window (window, just_this_one_p)
    Value is 1 if successful.  It is zero if fonts were loaded during
    redisplay which makes re-adjusting glyph matrices necessary, and -1
    if point would appear in the scroll margins.
-   (We check that only if CHECK_MARGINS is nonzero.  */
+   (We check the former only if TRY_WINDOW_IGNORE_FONTS_CHANGE is
+   unset in FLAGS, and the latter only if TRY_WINDOW_CHECK_MARGINS is
+   set in FLAGS.)  */
 
 int
-try_window (window, pos, check_margins)
+try_window (window, pos, flags)
      Lisp_Object window;
      struct text_pos pos;
-     int check_margins;
+     int flags;
 {
   struct window *w = XWINDOW (window);
   struct it it;
@@ -14569,12 +14584,12 @@ try_window (window, pos, check_margins)
     {
       if (display_line (&it))
 	last_text_row = it.glyph_row - 1;
-      if (fonts_changed_p)
+      if (fonts_changed_p && !(flags & TRY_WINDOW_IGNORE_FONTS_CHANGE))
 	return 0;
     }
 
   /* Don't let the cursor end in the scroll margins.  */
-  if (check_margins
+  if ((flags & TRY_WINDOW_CHECK_MARGINS)
       && !MINI_WINDOW_P (w))
     {
       int this_scroll_margin;

@@ -89,6 +89,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_PERROR  /* Delete this line for version 6.  */
 
+#define UNEXEC unexhp9k800.o
+
+/* Include the file bsdtty.h, since this machine has job control.  */
+#define NEED_BSDTTY
+
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
             sprintf (pty_name, "/dev/pty/tty%c%x", c, i);

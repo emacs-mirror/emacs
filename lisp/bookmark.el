@@ -92,7 +92,7 @@ To specify the file in which to save them, modify the variable
   (if bookmark-file
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
-    (convert-standard-filename "~/.emacs.bmk"))
+    (locate-user-emacs-file "bookmarks" ".emacs.bmk"))
   "File in which to save bookmarks by default."
   :type 'file
   :group 'bookmark)
@@ -1176,7 +1176,7 @@ minibuffer history list `bookmark-history'."
   (or no-history (bookmark-maybe-historicize-string bookmark))
   (let ((start (point)))
     (prog1
-	(insert (bookmark-location bookmark)) ; *Return this line*
+	(insert (bookmark-location bookmark))
       (if (display-mouse-p)
 	  (add-text-properties
 	   start
@@ -1191,10 +1191,16 @@ minibuffer history list `bookmark-history'."
 (defalias 'bookmark-locate 'bookmark-insert-location)
 
 (defun bookmark-location (bookmark)
-  "Return the name of the file associated with BOOKMARK, or nil if none.
+  "Return a description of the location of BOOKMARK.
 BOOKMARK may be a bookmark name (a string) or a bookmark record."
   (bookmark-maybe-load-default-file)
-  (bookmark-get-filename bookmark))
+  ;; We could call the `handler' and ask for it to construct a description
+  ;; dynamically: it would open up several new possibilities, but it
+  ;; would have the major disadvantage of forcing to load each and
+  ;; every handler when the user calls bookmark-menu.
+  (or (bookmark-prop-get bookmark 'location)
+      (bookmark-get-filename bookmark)
+      "-- Unknown location --"))
 
 
 ;;;###autoload

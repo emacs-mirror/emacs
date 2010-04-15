@@ -3974,7 +3974,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "bb37ec379c0a523368794491b691fd8d")
+;;;;;;  "2f8d3d5a31b969b181e23c40d6bb16a0")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

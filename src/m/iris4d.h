@@ -36,12 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
-/* This machine requires completely different unexec code
-   which lives in a separate file.  Specify the file name.  */
-
-#undef UNEXEC
-#define UNEXEC unexelf.o
-
 #define TEXT_START 0x400000
 
 /*

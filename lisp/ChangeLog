@@ -1,3 +1,336 @@
+2010-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	Simplify by using `define-derived-mode'.
+	* info.el (Info-mode):
+	* calendar/todo-mode.el (todo-mode):
+	* play/gomoku.el (gomoku-mode): Define with `define-derived-mode'.
+	(gomoku-mode-map): Move initialization into declaration.
+
+2010-04-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#5840.
+	* ido.el (ido-file-name-all-completions-1):
+	* minibuffer.el (minibuffer-completion-help):
+	* net/tramp.el (tramp-completion-mode-p): Use `non-essential'.
+
+2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (non-essential): New var.
+
+	Add a new field `location' to bookmarks for non-file bookmarks.
+	* bookmark.el (bookmark-location): Use the new field, if present.
+	(bookmark-insert-location): Undo last change, not needed any more.
+	* man.el (Man-bookmark-make-record):
+	* woman.el (woman-bookmark-make-record): Add `location' field.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (scroll-error-top-bottom): New defcustom.
+	(scroll-up-command, scroll-down-command): Use it.  Doc fix.
+
+	* emulation/pc-select.el (pc-select-override-scroll-error):
+	Obsolete in favor of `scroll-error-top-bottom'.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* tutorial.el (tutorial--default-keys): Rebind `C-v' to
+	`scroll-up-command' and `M-v' to `scroll-down-command'.
+
+	* emulation/cua-rect.el (cua--init-rectangles):
+	* forms.el (forms--change-commands):
+	* image-mode.el (image-mode-map):
+	Remap scroll-down-command and scroll-up-command
+	in addition to scroll-down and scroll-up.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* mwheel.el (scroll-preserve-screen-position-commands):
+	Add mwheel-scroll to this list of commands.
+
+	* simple.el (scroll-preserve-screen-position-commands):
+	Add scroll-up-command, scroll-down-command, scroll-up-line,
+	scroll-down-line to this list of commands.
+
+2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/complete.el: Move from lisp/complete.el.
+
+	* pcomplete.el (pcomplete-here*): Fix mistaken change (bug#5935).
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Passing a nil argument
+	to the minor mode function now turns the mode ON unconditionally.
+
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dir.el (vc-dir-kill-line): New command.
+	(vc-dir-mode-map): Bind it to C-k.
+
+	* bookmark.el (bookmark-insert-location): Handle a nil filename.
+
+	* woman.el: Add bookmark declarations to silence the compiler.
+	(bookmark-prop-get): Use `man-args' rather than `filename' as a first
+	step to compatibility between man and woman bookmarks.
+	Adjust for Man-default-bookmark-title renaming.
+	(woman-bookmark-jump): Adjust accordingly.  Don't forget to autoload.
+
+	* man.el: Add bookmark declarations to silence the compiler.
+	(Man-name-local-regexp): Make it match NAME as well.
+	(Man-getpage-in-background): Return the buffer.
+	(Man-notify-when-ready): Use `case'.
+	(man-set-default-bookmark-title): Rename to Man-default-bookmark-title.
+	Don't hardcode "NAME".  Simplify.
+	(Man-bookmark-make-record): Use Man-arguments rather than buffer-name.
+	Rename from Man-bookmark-make-record.
+	(Man-bookmark-jump): Rename from man-bookmark-jump.  Simplify now that
+	we have the actual man-args.  Use Man-getpage-in-background rather
+	than `man' since the arg is already processed.  Let bookmark.el do the
+	window handling.  Only wait for the relevant process.
+	Don't forget to autoload.
+
+	* bookmark.el (bookmark-default-file): Use locate-user-emacs-file.
+
+2010-04-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* woman.el (woman-bookmark-make-record, woman-bookmark-jump):
+	New functions.
+	(woman-mode): Setup bookmark support.
+
+	* man.el (man-set-default-bookmark-title, man-bookmark-make-record)
+	(man-bookmark-jump): New functions.
+	(Man-mode): Setup bookmark support.
+
+2010-04-10  Jari Aalto  <jari.aalto@cante.net>
+
+	* comint.el (comint-password-prompt-regexp): Use regexp-opt, and
+	recognize ssh-keygen prompt (Bug#2817).
+
+2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file): Add progress reporter.
+
+2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Synchronize with Tramp repository.
+
+	* net/tramp.el (tramp-completion-function-alist)
+	(tramp-file-name-regexp, tramp-chunksize)
+	(tramp-local-coding-commands, tramp-remote-coding-commands):
+	Fix docstring.
+	(tramp-remote-process-environment): Use `format' instead of `concat'.
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-get-remote-path): Use `copy-tree'.
+	(tramp-handle-file-name-all-completions): Backward/ XEmacs
+	compatibility: Use `completion-ignore-case' if
+	`read-file-name-completion-ignore-case' does not exist.
+	(tramp-do-copy-or-rename-file-directly): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-do-copy-or-rename-file-out-of-band):
+	Use `tramp-compat-delete-directory'.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection):
+	Use `format-spec-make'.
+	(tramp-find-foreign-file-name-handler)
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-set-auto-save-file-modes): Remove superfluous check for
+	`stringp'.  This is done inside `tramp-tramp-file-p'.
+	(tramp-debug-outline-regexp): New defconst.
+	(tramp-get-debug-buffer): Use it.
+	(tramp-check-for-regexp): Use (forward-line 1).
+	(tramp-set-auto-save-file-modes): Adapt version check.
+
+	* net/tramp-compat.el (tramp-advice-file-expand-wildcards):
+	Wrap call of `featurep' for 2nd argument.
+	(tramp-compat-make-temp-file): Simplify fallback implementation.
+	(tramp-compat-copy-tree): Remove function.
+	(tramp-compat-delete-directory): Provide implementation for older
+	Emacsen.
+
+	* net/tramp-fish.el (tramp-fish-handle-directory-files-and-attributes):
+	Do not use `tramp-fish-handle-file-attributes.
+
+	* net/trampver.el: Update release number.
+
+2010-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-save-buffers-predicate):
+	Add missing :version tag.
+
+2010-04-09  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-save-buffers-predicate):
+	Remove the "autoload" cookie.
+
+	* progmodes/bug-reference.el (turn-on-bug-reference-mode)
+	(turn-on-bug-reference-prog-mode): Remove, `bug-reference-mode'
+	and `bug-reference-prog-mode' can be used in hooks directly.
+
+2010-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add --author support to git commit.
+	* vc-git.el (vc-git-checkin): Pass extra-args to the commit command.
+	(vc-git-log-edit-mode): New minor mode.
+	(log-edit-mode, log-edit-extra-flags, log-edit-mode):
+	New declarations.
+
+2010-04-09  Eric Raymond  <esr@snark.thyrsus.com>
+
+	* vc-hooks.el, vc-git.el: Improve documentation comments.
+
+2010-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix some of the problems in defsubst* (bug#5728).
+	* emacs-lisp/cl-macs.el (defsubst*): Don't substitute non-trivial args.
+	(cl-defsubst-expand): Do the substitutions simultaneously (bug#5728).
+
+2010-04-07  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-save-buffers-predicate):
+	New custom variable.
+	(compile, recompile): Pass it to `save-some-buffers'.
+
+2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* wid-edit.el (widget-choose): Move cursor to the second line of
+	the buffer (Bug#5695).
+
+2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add new VC methods: vc-log-incoming and vc-log-outgoing.
+	* vc.el (vc-print-log-setup-buttons): New function split out from
+	vc-print-log-internal.
+	(vc-log-internal-common): New function, a parametrized version of
+	vc-print-log-internal.
+	(vc-print-log-internal): Just call vc-log-internal-common with the
+	right arguments.
+	(vc-incoming-outgoing-internal):
+	(vc-log-incoming, vc-log-outgoing): New functions.
+	(vc-log-view-type): New permanent local variable.
+
+	* vc-hooks.el (vc-menu-map): Bind vc-log-incoming and vc-log-outgoing.
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.
+	(vc-bzr-log-incoming, vc-bzr-log-outgoing): New functions.
+
+	* vc-git.el (vc-git-log-outgoing): New function.
+	(vc-git-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.
+
+	* vc-hg.el (vc-hg-log-view-mode): Use vc-log-view-type instead
+	of the dynamic bound vc-short-log.  Highlight the tag.
+	(vc-hg-log-incoming, vc-hg-log-outgoing): New functions.
+	(vc-hg-outgoing, vc-hg-incoming, vc-hg-outgoing-mode):
+	(vc-hg-incoming-mode): Remove.
+	(vc-hg-extra-menu-map): Do not bind vc-hg-incoming and vc-hg-outgoing.
+
+2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix default-directory for vc-root-diff.
+	* vc.el (vc-root-diff): Bind default-directory to the root
+	directory for the diff command.
+
+2010-04-07  Michael McNamara  <mac@mail.brushroad.com>
+
+        * progmodes/verilog-mode.el (verilog-forward-sexp):
+	(verilog-calc-1): Support "disable fork" and "fork wait" multi
+	word keywords, suggested by Steve Pearlmutter.
+        (verilog-pretty-declarations): Support lineup of declarations in
+	port lists.
+        (verilog-skip-backward-comments, verilog-skip-forward-comment-p):
+        fix bug for /* / comments
+        (verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
+	Speed up and simplfy as this is never called with a bound.
+        (verilog-pretty-declarations): Enhance to line up declarations
+        inside a parameter list, suggested by Alan Morgan.
+        (verilog-pretty-expr): Tune assignment regular expression match
+        string for corner cases; also use markers instead of character
+        number as indent changes the later.
+
+2010-04-07  Wilson Snyder  <wsnyder@wsnyder.org>
+
+        * progmodes/verilog-mode.el (verilog-type-keywords): Fix pulldown as missing
+        keyword.
+        (verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
+        causing truncation of AUTOWIRE signals.  Reported by Bruce
+        Tennant.
+        (verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
+        AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
+        Tennant.
+        (verilog-keywords):
+	(verilog-1800-2005-keywords, verilog-1800-2009-keywords): Add IEEE
+	1800-2009 keywords, including "global.".
+
+2010-04-06  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-add-virtual-buffers-to-list): Fix duplicated names
+	appearing in buffer list (if a live buffer name matched a recentf
+	file basename).  Should use uniquify to offer a real solution.
+
+2010-04-06  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-use-virtual-buffers, ido-virtual): Move a ChangeLog
+	comment to code, and add a :version tag.
+	(ido-virtual-buffers): Move defvar to fix byte-compiler warning.
+
+2010-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	Enable recentf-mode if using virtual buffers.
+	* ido.el (recentf-list): Declare for byte-compiler.
+	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
+	(ido-make-buffer-list): Simplify.
+	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
+
+2010-04-05  Juri Linkov  <juri@jurta.org>
+
+	Scrolling commands which scroll a line instead of full screen.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01452.html
+
+	* simple.el (scroll-up-line, scroll-down-line): New commands.
+	Put property isearch-scroll=t on them.
+
+	* emulation/ws-mode.el (scroll-down-line, scroll-up-line):
+	Remove commands.
+
+2010-04-05  Juri Linkov  <juri@jurta.org>
+
+	Scrolling commands which do not signal errors at top/bottom.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01452.html
+
+	* simple.el (scroll-up-command, scroll-down-command): New commands.
+	Put property isearch-scroll=t on them.
+
+	* bindings.el (global-map): Rebind [prior] from `scroll-down' to
+	`scroll-down-command' and [next] from `scroll-up' to
+	`scroll-up-command'.
+
+	* emulation/cua-base.el: Put property CUA=move on
+	`scroll-up-command' and `scroll-down-command'.
+	(cua--init-keymaps): Remap `scroll-up-command' to `cua-scroll-up'
+	and `scroll-down-command' to `cua-scroll-down'.
+
+2010-04-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (describe-mode): Return nil.
+
+2010-04-04  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-use-virtual-buffers): New variable to indicate
+	whether "virtual buffer" support is enabled for IDO.
+	(ido-virtual): Face used to indicate virtual buffers in the list.
+	(ido-buffer-internal): If a buffer is chosen, and no such buffer
+	exists, but a virtual buffer of that name does (which would be why
+	it was in the list), recreate the buffer by reopening the file.
+	(ido-make-buffer-list): If virtual buffers are being used, call
+	`ido-add-virtual-buffers-to-list' before the make list hook.
+	(ido-virtual-buffers): New variable which contains a copy of the
+	current contents of the `recentf-list', albeit pared down for the
+	sake of speed, and with proper faces applied.
+	(ido-add-virtual-buffers-to-list): Using the `recentf-list',
+	create a list of "virtual buffers" to present to the user in
+	addition to the currently open set.  Note that this logic could
+	get rather slow if that list is too large.  With the default
+	`recentf-max-saved-items' of 200, there is little speed penalty.
+
 2010-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el: Require CL when compiling.

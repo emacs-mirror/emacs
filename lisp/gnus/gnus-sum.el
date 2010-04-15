@@ -3017,7 +3017,7 @@ When FORCE, rebuild the tool bar."
 
 
 (declare-function turn-on-gnus-mailing-list-mode "gnus-ml" ())
-
+(defvar bookmark-make-record-function)
 
 
 (defun gnus-summary-mode (&optional group)
@@ -3072,6 +3072,8 @@ The following commands are available:
   (gnus-run-mode-hooks 'gnus-summary-mode-hook)
   (turn-on-gnus-mailing-list-mode)
   (mm-enable-multibyte)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'gnus-summary-bookmark-make-record)
   (gnus-update-format-specifications nil 'summary 'summary-mode 'summary-dummy)
   (gnus-update-summary-mark-positions))
 
@@ -6090,8 +6092,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
   "Look through all the headers and mark the Xrefs as read."
   (let ((virtual (gnus-virtual-group-p from-newsgroup))
 	name info xref-hashtb idlist method nth4)
-    (save-excursion
-      (set-buffer gnus-group-buffer)
+    (with-current-buffer gnus-group-buffer
       (when (setq xref-hashtb
 		  (gnus-create-xref-hashtb from-newsgroup headers unreads))
 	(mapatoms
@@ -8341,8 +8342,7 @@ If REVERSE (the prefix), limit to articles that don't match."
     (dolist (data gnus-newsgroup-data)
       (let (gnus-mark-article-hook)
 	(gnus-summary-select-article t t nil (gnus-data-number data)))
-      (save-excursion
-	(set-buffer gnus-article-buffer)
+      (with-current-buffer gnus-article-buffer
 	(article-goto-body)
 	(let* ((case-fold-search t)
 	       (found (if headersp
@@ -9026,7 +9026,7 @@ Obeys the standard process/prefix convention."
       (setq group (format "%s-%d" gnus-newsgroup-name article))
       (gnus-summary-remove-process-mark article)
       (when (gnus-summary-display-article article)
-	(save-excursion
+	(save-excursion ;;What for?
 	  (with-temp-buffer
 	    (insert-buffer-substring gnus-original-article-buffer)
 	    ;; Remove some headers that may lead nndoc to make
@@ -12639,6 +12639,42 @@ If ALL is a number, fetch this number of articles."
 		(gnus-sorted-nunion gnus-newsgroup-unreads new))
 	  (gnus-summary-limit (gnus-sorted-nunion old new))))
     (gnus-summary-position-point)))
+
+;;; Bookmark support for Gnus.
+(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
+
+(defun gnus-summary-bookmark-make-record ()
+  "Make a bookmark entry for a Gnus summary buffer."
+  (unless (and (derived-mode-p 'gnus-summary-mode) gnus-article-current)
+    (error "Please retry from the Gnus summary buffer")) ;[1]
+  (let* ((subject (elt (gnus-summary-article-header) 1))
+         (grp     (car gnus-article-current))
+         (art     (cdr gnus-article-current))
+         (head    (gnus-summary-article-header art))
+         (id      (mail-header-id head)))
+    `(,subject
+      ,@(bookmark-make-record-default 'point-only)
+      (location . ,(format "Gnus %s:%d:%s" grp art id))
+      (group . ,grp) (article . ,art)
+      (message-id . ,id) (handler . gnus-summary-bookmark-jump))))
+
+;;;###autoload
+(defun gnus-summary-bookmark-jump (bookmark)
+  "Handler function for record returned by `gnus-summary-bookmark-make-record'.
+BOOKMARK is a bookmark name or a bookmark record."
+  (let ((group    (bookmark-prop-get bookmark 'group))
+        (article  (bookmark-prop-get bookmark 'article))
+        (id       (bookmark-prop-get bookmark 'message-id)))
+    (gnus-fetch-group group (list article))
+    (gnus-summary-insert-cached-articles)
+    (gnus-summary-goto-article id nil 'force)
+    (bookmark-default-handler
+     `(""
+       (buffer . ,(current-buffer))
+       . ,(bookmark-get-bookmark-record bookmark)))))
 
 (gnus-summary-make-all-marking-commands)
 
