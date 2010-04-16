@@ -1,3 +1,9 @@
+2010-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't consider possibility of
+	other rows with cursor unless they are different from this row and
+	this row is part of a continued line.  (Bug#5943)
+
 2010-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/freebsd.h: Restore osreldate.h include.

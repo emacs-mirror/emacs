@@ -12925,7 +12925,12 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
      rows whose start and end charpos occlude point.  Only set
      w->cursor if we found a better approximation to the cursor
      position than we have from previously examined rows.  */
-  if (w->cursor.vpos >= 0
+  if (/* we already have a candidate row */
+      w->cursor.vpos >= 0
+      /* that candidate is not the row we are processing */
+      && MATRIX_ROW (matrix, w->cursor.vpos) != row
+      /* this row is part of a continued line */
+      && (row->continued_p || row->continuation_lines_width)
       /* Make sure cursor.vpos specifies a row whose start and end
 	 charpos occlude point.  This is because some callers of this
 	 function leave cursor.vpos at the row where the cursor was
