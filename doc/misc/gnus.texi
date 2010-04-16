@@ -11315,6 +11315,7 @@ disappear forever into that big @file{/dev/null} in the sky.
 
 @item B DEL
 @kindex B DEL (Summary)
+@cindex deleting mail
 @findex gnus-summary-delete-article
 @c @icon{gnus-summary-mail-delete}
 Delete the mail article.  This is ``delete'' as in ``delete it from your
@@ -21827,7 +21828,7 @@ You can do this with the following two score file entries:
 
 When you enter the group the first time, you will only see the new
 threads.  You then raise the score of the threads that you find
-interesting (with @kbd{I T} or @kbd{I S}), and ignore (@kbd{C y}) the
+interesting (with @kbd{I T} or @kbd{I S}), and ignore (@kbd{c y}) the
 rest.  Next time you enter the group, you will see new articles in the
 interesting threads, plus any new threads.
 

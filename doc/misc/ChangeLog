@@ -1,3 +1,8 @@
+2010-04-15  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus.texi (Score File Format): Fix typo.  Reported by Štěpán Němec.
+	(Mail Group Commands): Add index entry.
+
 2010-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* info.texi (Search Index): Mention Emacs's Info-virtual-index.
