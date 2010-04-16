@@ -1708,9 +1708,10 @@ Scroll-bar or mode-line events are processed appropriately."
 ;; attempts this, we scroll the text back again.
 ;;
 ;; We implement this feature with a property called `isearch-scroll'.
-;; If a command's symbol has the value t for this property it is a
-;; scrolling command.  The feature needs to be enabled by setting the
-;; customizable variable `isearch-allow-scroll' to a non-nil value.
+;; If a command's symbol has the value t for this property or for the
+;; `scroll-command' property, it is a scrolling command.  The feature
+;; needs to be enabled by setting the customizable variable
+;; `isearch-allow-scroll' to a non-nil value.
 ;;
 ;; The universal argument commands (e.g. C-u) in simple.el are marked
 ;; as scrolling commands, and isearch.el has been amended to allow
@@ -1727,12 +1728,11 @@ Scroll-bar or mode-line events are processed appropriately."
 (if (fboundp 'w32-handle-scroll-bar-event)
     (put 'w32-handle-scroll-bar-event 'isearch-scroll t))
 
-;; Commands which scroll the window:
+;; Commands which scroll the window (some scroll commands
+;; already have the `scroll-command' property on them):
 (put 'recenter 'isearch-scroll t)
 (put 'recenter-top-bottom 'isearch-scroll t)
 (put 'reposition-window 'isearch-scroll t)
-(put 'scroll-up 'isearch-scroll t)
-(put 'scroll-down 'isearch-scroll t)
 
 ;; Commands which act on the other window
 (put 'list-buffers 'isearch-scroll t)
@@ -1757,7 +1757,7 @@ Scroll-bar or mode-line events are processed appropriately."
   "Whether scrolling is allowed during incremental search.
 If non-nil, scrolling commands can be used in Isearch mode.
 However, the current match will never scroll offscreen.
-If nil, scolling commands will first cancel Isearch mode."
+If nil, scrolling commands will first cancel Isearch mode."
   :type 'boolean
   :group 'isearch)
 
@@ -1821,7 +1821,8 @@ Otherwise return nil."
   (let* ((overriding-terminal-local-map nil)
          (binding (key-binding key-seq)))
     (and binding (symbolp binding) (commandp binding)
-         (eq (get binding 'isearch-scroll) t)
+         (or (eq (get binding 'isearch-scroll) t)
+	     (eq (get binding 'scroll-command) t))
          binding)))
 
 (defalias 'isearch-other-control-char 'isearch-other-meta-char)

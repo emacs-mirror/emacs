@@ -1,3 +1,7 @@
+2010-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xlwmenu.c (facename_changed): Put function in #ifdef HAVE_XFT.
+
 2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
