@@ -1403,9 +1403,9 @@ Schnoebelen, Jan Schormann, Alex Schroeder, Stephen Schoef, Raymond
 Scholz, Eric Schulte, Andreas Schwab, Randal Schwartz, Oliver Seidel,
 Manuel Serrano, Hovav Shacham, Stanislav Shalunov, Marc Shapiro, Richard
 Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris
-Smith, David Smith, Paul D.@: Smith, Andre Spiegel, Michael Staats,
-William Sommerfeld, Michael Staats, Reiner Steib, Sam Steingold, Ake
-Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart, Jonathan
+Smith, David Smith, Paul D.@: Smith, William Sommerfeld, Andre Spiegel,
+Michael Staats, Reiner Steib, Sam Steingold, Ake Stenhoff,
+Peter Stephenson, Ken Stevens, Andy Stewart, Jonathan
 Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman, Olaf
 Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge, Jens
 T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc Teirlinck,
