@@ -2135,6 +2135,7 @@ XlwMenuDestroy (w)
     XtFree ((char *) mw->menu.windows);
 }
 
+#ifdef HAVE_XFT
 static int
 facename_changed (XlwMenuWidget newmw,
                   XlwMenuWidget oldmw)
@@ -2144,6 +2145,7 @@ facename_changed (XlwMenuWidget newmw,
      we just want to do a redisplay.  */
   return newmw->menu.faceName != oldmw->menu.faceName;
 }
+#endif
 
 static Boolean
 XlwMenuSetValues (current, request, new)
