@@ -413,6 +413,7 @@ or an empty string if none."
      (vc-git-command (current-buffer) 'async files
                      "ls-files" "-z" "-o" "-i" "--directory"
                      "--no-empty-directory" "--exclude-standard" "--"))
+    ;; --relative added in Git 1.5.5.
     (diff-index
      (vc-git-command (current-buffer) 'async files
                      "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
@@ -572,7 +573,8 @@ or an empty string if none."
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Get change log associated with FILES.
-Note that using SHORTLOG requires at least Git version 1.5."
+Note that using SHORTLOG requires at least Git version 1.5.6,
+for the --graph option."
   (let ((coding-system-for-read git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
