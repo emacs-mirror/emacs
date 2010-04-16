@@ -1147,9 +1147,14 @@ directory buffer will be used.
 
   @kbd{M-s a C-M-s} does an incremental search on the marked files.
 
-  Commands are also accessible from the VC-dir menu.  Note that some VC
-backends use the VC-dir menu to make available extra backend specific
-commands.
+@cindex stashes in version control
+@cindex shelves in version control
+  Commands are also accessible from the VC-dir menu.  Note that some
+VC backends use the VC-dir menu to make available extra,
+backend-specific, commands.  For example, Git and Bazaar allow you to
+manipulate @dfn{stashes} and @dfn{shelves}.  (These provide a
+mechanism to temporarily store uncommitted changes somewhere out of
+the way, and bring them back at a later time.)
 
   Normal VC commands with the @kbd{C-x v} prefix work in VC directory
 buffers.  Some single-key shortcuts are available as well; @kbd{=},

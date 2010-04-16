@@ -1,3 +1,7 @@
+2010-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* maintaining.texi (VC Directory Commands): Mention stashes and shelves.
+
 2010-04-15  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Misc Dired Features): Mention VC diff and log.
