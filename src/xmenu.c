@@ -978,14 +978,9 @@ apply_systemfont_to_menu (w)
   if (XtIsShell (w)) /* popup menu */
     {
       Widget *childs = NULL;
-      int num = 0;
 
-      XtVaGetValues (w, XtNnumChildren, &num, NULL);
-      if (num != 1) return; /* Should only be one. */
-
-      childs[0] = 0;
       XtVaGetValues (w, XtNchildren, &childs, NULL);
-      if (childs && *childs) w = *childs;
+      if (*childs) w = *childs;
     }
 
   /* Only use system font if the default is used for the menu.  */

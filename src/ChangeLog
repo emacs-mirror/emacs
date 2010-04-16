@@ -1,3 +1,7 @@
+2010-04-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (apply_systemfont_to_menu): *childs was incorrectly used.
+
 2010-04-16  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* s/cygwin.h: Avoid linking against static libgcc.
