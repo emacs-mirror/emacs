@@ -571,7 +571,8 @@ or an empty string if none."
 ;;; HISTORY FUNCTIONS
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
-  "Get change log associated with FILES."
+  "Get change log associated with FILES.
+Note that using SHORTLOG requires at least Git version 1.5."
   (let ((coding-system-for-read git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.

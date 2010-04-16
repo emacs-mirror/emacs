@@ -1,3 +1,7 @@
+2010-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* vc-git.el (vc-git-print-log): Doc fix.
+
 2010-04-14  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* ido.el (ido-file-internal): Fix 2009-12-02 change.
