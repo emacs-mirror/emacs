@@ -1,3 +1,14 @@
+2010-04-16  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lookup-scroll-key): Check both
+	`isearch-scroll' and `scroll-command' properties.
+	(scroll-up, scroll-down): Remove `isearch-scroll' property.
+
+	* mwheel.el (mwheel-scroll): Remove `isearch-scroll' property.
+
+	* simple.el (scroll-up-command, scroll-down-command)
+	(scroll-up-line, scroll-down-line): Remove `isearch-scroll' property.
+
 2010-04-15  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (scroll-up-command, scroll-down-command)

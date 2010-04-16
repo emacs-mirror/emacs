@@ -4793,7 +4793,6 @@ If ARG is the atom `-', scroll downward by nearly full screen."
 	 (goto-char (point-max))))))))
 
 (put 'scroll-up-command 'scroll-command t)
-(put 'scroll-up-command 'isearch-scroll t)
 
 (defun scroll-down-command (&optional arg)
   "Scroll text of selected window down ARG lines; or near full screen if no ARG.
@@ -4826,7 +4825,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	 (goto-char (point-min))))))))
 
 (put 'scroll-down-command 'scroll-command t)
-(put 'scroll-down-command 'isearch-scroll t)
 
 ;;; Scrolling commands which scroll a line instead of full screen.
 
@@ -4838,7 +4836,6 @@ This is different from `scroll-up-command' that scrolls a full screen."
   (scroll-up (or arg 1)))
 
 (put 'scroll-up-line 'scroll-command t)
-(put 'scroll-up-line 'isearch-scroll t)
 
 (defun scroll-down-line (&optional arg)
   "Scroll text of selected window down ARG lines; or one line if no ARG.
@@ -4848,7 +4845,6 @@ This is different from `scroll-down-command' that scrolls a full screen."
   (scroll-down (or arg 1)))
 
 (put 'scroll-down-line 'scroll-command t)
-(put 'scroll-down-line 'isearch-scroll t)
 
 
 (defun scroll-other-window-down (lines)

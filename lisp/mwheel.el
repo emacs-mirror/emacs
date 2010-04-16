@@ -247,7 +247,6 @@ This should only be bound to mouse buttons 4 and 5."
 			  'mwheel-inhibit-click-timeout))))
 
 (put 'mwheel-scroll 'scroll-command t)
-(put 'mwheel-scroll 'isearch-scroll t)
 
 (defvar mwheel-installed-bindings nil)
 
