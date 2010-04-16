@@ -338,15 +338,18 @@ backends do not support this.
 
 *** vc-git changes
 
-**** The short log format for git makes use of the graph display, so
-it's not supported on git versions earlier than 1.5.
+---
+**** The short log format for git makes use of the graph display,
+so it's not supported on git versions earlier than 1.5.6.
+
+---
+**** vc-dir uses the --relative option of git, and so requires at least
+git version 1.5.5.
 
 +++
 **** Support for operating with stashes has been added to vc-dir:
 the stash list is displayed in the *vc-dir* header, stashes can be
 created, removed, applied and their content displayed.
-
-**** vc-dir requires at least git-1.5.5.
 
 +++
 *** vc-bzr supports operating with shelves: the shelve list is
