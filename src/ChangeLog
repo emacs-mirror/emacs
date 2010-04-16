@@ -1,3 +1,7 @@
+2010-04-16  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* s/cygwin.h: Avoid linking against static libgcc.
+
 2010-04-15  Juri Linkov  <juri@jurta.org>
 
 	* window.c: Add Qscroll_command.
