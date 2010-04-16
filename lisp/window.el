@@ -1617,6 +1617,7 @@ Otherwise, bury WINDOW's buffer, see `bury-buffer'."
 	(kill-buffer buffer)
       (bury-buffer buffer))))
 
+
 (defvar recenter-last-op nil
   "Indicates the last recenter operation performed.
 Possible values: `top', `middle', `bottom', integer or float numbers.")
@@ -1707,6 +1708,154 @@ by `recenter-positions'."
 	     (move-to-window-line (round (* recenter-last-op (window-height))))))))))
 
 (define-key global-map [?\M-r] 'move-to-window-line-top-bottom)
+
+
+;;; Scrolling commands.
+
+;;; Scrolling commands which does not signal errors at top/bottom
+;;; of buffer at first key-press (instead moves to top/bottom
+;;; of buffer).
+
+(defcustom scroll-error-top-bottom nil
+  "Move point to top/bottom of buffer before signalling a scrolling error.
+A value of nil means just signal an error if no more scrolling possible.
+A value of t means point moves to the beginning or the end of the buffer
+\(depending on scrolling direction) when no more scrolling possible.
+When point is already on that position, then signal an error."
+  :type 'boolean
+  :group 'scrolling
+  :version "24.1")
+
+(defun scroll-up-command (&optional arg)
+  "Scroll text of selected window upward ARG lines; or near full screen if no ARG.
+If `scroll-error-top-bottom' is non-nil and `scroll-up' cannot
+scroll window further, move cursor to the bottom line.
+When point is already on that position, then signal an error.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen."
+  (interactive "^P")
+  (cond
+   ((null scroll-error-top-bottom)
+    (scroll-up arg))
+   ((eq arg '-)
+    (scroll-down-command nil))
+   ((< (prefix-numeric-value arg) 0)
+    (scroll-down-command (- (prefix-numeric-value arg))))
+   ((eobp)
+    (scroll-up arg))			; signal error
+   (t
+    (condition-case nil
+	(scroll-up arg)
+      (end-of-buffer
+       (if arg
+	   ;; When scrolling by ARG lines can't be done,
+	   ;; move by ARG lines instead.
+	   (forward-line arg)
+	 ;; When ARG is nil for full-screen scrolling,
+	 ;; move to the bottom of the buffer.
+	 (goto-char (point-max))))))))
+
+(put 'scroll-up-command 'scroll-command t)
+
+(defun scroll-down-command (&optional arg)
+  "Scroll text of selected window down ARG lines; or near full screen if no ARG.
+If `scroll-error-top-bottom' is non-nil and `scroll-down' cannot
+scroll window further, move cursor to the top line.
+When point is already on that position, then signal an error.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll upward.
+If ARG is the atom `-', scroll upward by nearly full screen."
+  (interactive "^P")
+  (cond
+   ((null scroll-error-top-bottom)
+    (scroll-down arg))
+   ((eq arg '-)
+    (scroll-up-command nil))
+   ((< (prefix-numeric-value arg) 0)
+    (scroll-up-command (- (prefix-numeric-value arg))))
+   ((bobp)
+    (scroll-down arg))			; signal error
+   (t
+    (condition-case nil
+	(scroll-down arg)
+      (beginning-of-buffer
+       (if arg
+	   ;; When scrolling by ARG lines can't be done,
+	   ;; move by ARG lines instead.
+	   (forward-line (- arg))
+	 ;; When ARG is nil for full-screen scrolling,
+	 ;; move to the top of the buffer.
+	 (goto-char (point-min))))))))
+
+(put 'scroll-down-command 'scroll-command t)
+
+;;; Scrolling commands which scroll a line instead of full screen.
+
+(defun scroll-up-line (&optional arg)
+  "Scroll text of selected window upward ARG lines; or one line if no ARG.
+If ARG is omitted or nil, scroll upward by one line.
+This is different from `scroll-up-command' that scrolls a full screen."
+  (interactive "p")
+  (scroll-up (or arg 1)))
+
+(put 'scroll-up-line 'scroll-command t)
+
+(defun scroll-down-line (&optional arg)
+  "Scroll text of selected window down ARG lines; or one line if no ARG.
+If ARG is omitted or nil, scroll down by one line.
+This is different from `scroll-down-command' that scrolls a full screen."
+  (interactive "p")
+  (scroll-down (or arg 1)))
+
+(put 'scroll-down-line 'scroll-command t)
+
+
+(defun scroll-other-window-down (lines)
+  "Scroll the \"other window\" down.
+For more details, see the documentation for `scroll-other-window'."
+  (interactive "P")
+  (scroll-other-window
+   ;; Just invert the argument's meaning.
+   ;; We can do that without knowing which window it will be.
+   (if (eq lines '-) nil
+     (if (null lines) '-
+       (- (prefix-numeric-value lines))))))
+
+(defun beginning-of-buffer-other-window (arg)
+  "Move point to the beginning of the buffer in the other window.
+Leave mark at previous position.
+With arg N, put point N/10 of the way from the true beginning."
+  (interactive "P")
+  (let ((orig-window (selected-window))
+	(window (other-window-for-scrolling)))
+    ;; We use unwind-protect rather than save-window-excursion
+    ;; because the latter would preserve the things we want to change.
+    (unwind-protect
+	(progn
+	  (select-window window)
+	  ;; Set point and mark in that window's buffer.
+	  (with-no-warnings
+	   (beginning-of-buffer arg))
+	  ;; Set point accordingly.
+	  (recenter '(t)))
+      (select-window orig-window))))
+
+(defun end-of-buffer-other-window (arg)
+  "Move point to the end of the buffer in the other window.
+Leave mark at previous position.
+With arg N, put point N/10 of the way from the true end."
+  (interactive "P")
+  ;; See beginning-of-buffer-other-window for comments.
+  (let ((orig-window (selected-window))
+	(window (other-window-for-scrolling)))
+    (unwind-protect
+	(progn
+	  (select-window window)
+	  (with-no-warnings
+	   (end-of-buffer arg))
+	  (recenter '(t)))
+      (select-window orig-window))))
 
 
 (defvar mouse-autoselect-window-timer nil

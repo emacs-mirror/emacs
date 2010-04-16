@@ -1,5 +1,21 @@
 2010-04-16  Juri Linkov  <juri@jurta.org>
 
+	Move scrolling commands from simple.el to window.el
+	because their primitives are implemented in window.c.
+
+	* simple.el (scroll-error-top-bottom)
+	(scroll-up-command, scroll-down-command, scroll-up-line)
+	(scroll-down-line, scroll-other-window-down)
+	(beginning-of-buffer-other-window, end-of-buffer-other-window):
+	* window.el (scroll-error-top-bottom)
+	(scroll-up-command, scroll-down-command, scroll-up-line)
+	(scroll-down-line, scroll-other-window-down)
+	(beginning-of-buffer-other-window, end-of-buffer-other-window):
+	Move from simple.el to window.el because their primitives are
+	implemented in window.c.
+
+2010-04-16  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-lookup-scroll-key): Check both
 	`isearch-scroll' and `scroll-command' properties.
 	(scroll-up, scroll-down): Remove `isearch-scroll' property.
