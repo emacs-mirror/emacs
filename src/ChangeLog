@@ -1,3 +1,11 @@
+2010-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a crash when an NSM character is inserted at BEGV.
+
+	* bidi.c (bidi_init_it): Fix initialization of bidi_it->prev.
+	(bidi_resolve_weak): Don't use prev.type_after_w1 if it is
+	NEUTRAL_B or UNKNOWN_BT.
+
 2010-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't consider possibility of
