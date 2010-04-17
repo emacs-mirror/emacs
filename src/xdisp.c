@@ -6635,13 +6635,20 @@ next_element_from_buffer (it)
     {
       it->bidi_it.charpos = IT_CHARPOS (*it);
       it->bidi_it.bytepos = IT_BYTEPOS (*it);
-      /* If we are at the beginning of a line, we can produce the next
-	 element right away.  */
-      if (it->bidi_it.bytepos == BEGV_BYTE
+      if (it->bidi_it.bytepos == ZV_BYTE)
+	{
+	  /* Nothing to do, but reset the FIRST_ELT flag, like
+	     bidi_paragraph_init does, because we are not going to
+	     call it.  */
+	  it->bidi_it.first_elt = 0;
+	}
+      else if (it->bidi_it.bytepos == BEGV_BYTE
 	  /* FIXME: Should support all Unicode line separators.  */
 	  || FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
 	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
 	{
+	  /* If we are at the beginning of a line, we can produce the
+	     next element right away.  */
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	  bidi_get_next_char_visually (&it->bidi_it);
 	}
@@ -23448,7 +23455,7 @@ erase_phys_cursor (w)
       /* Don't redraw the cursor's spot in mouse face if it is at the
 	 end of a line (on a newline).  The cursor appears there, but
 	 mouse highlighting does not.  */
-      && cursor_row->used[TEXT_AREA] > hpos)
+      && cursor_row->used[TEXT_AREA] > hpos && hpos >= 0)
     mouse_face_here_p = 1;
 
   /* Maybe clear the display under the cursor.  */
@@ -23530,7 +23537,7 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 
   glyph = NULL;
   if (!glyph_row->exact_window_width_line_p
-      || hpos < glyph_row->used[TEXT_AREA])
+      || (0 <= hpos && hpos < glyph_row->used[TEXT_AREA]))
     glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
 
   xassert (interrupt_input_blocked);

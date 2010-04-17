@@ -1,5 +1,12 @@
 2010-04-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (next_element_from_buffer): Don't call
+	bidi_paragraph_init if we are at ZV.  Fixes a crash when reseated to
+	ZV by try_window_reusing_current_matrix.
+	(display_and_set_cursor, erase_phys_cursor): Handle negative HPOS,
+	which happens with R2L glyph rows.  Fixes a crash when inserting a
+	character at end of an R2L line.
+
 	Continue work on R2L paragraphs in GUI sessions.
 
 	* xdisp.c (set_cursor_from_row): Don't be fooled by truncated
