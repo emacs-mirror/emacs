@@ -1,3 +1,21 @@
+2010-04-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-ext.el (calc-init-extensions): Add keybinding for 'calc-option'.
+	Add `calc-option-prefix-help' to calc-help autoloads.
+	(calc-inverse): Add "Option" to message, as appropriate.
+	(calc-hyperbolic): Add "Option" to message, as appropriate.
+	(calc-option, calc-is-option): New functions.
+
+	* calc-help.el (calc-full-help):  Add `calc-option-help'.
+	(calc-option-prefix-help): New function.
+
+	* calc-misc.el (calc-help): Add "Option" entry.
+
+	* calc.el (calc-local-var-list): Add `calc-option-flag'.
+	(calc-option-flag): New variable.
+	(calc-do): Set `calc-option-flag to nil.
+	(calc-set-mode-line): Add "Opt " as appropriate.
+
 2010-04-16  Juri Linkov  <juri@jurta.org>
 
 	Move scrolling commands from simple.el to window.el
