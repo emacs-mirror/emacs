@@ -1,5 +1,8 @@
 2010-04-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (extend_face_to_end_of_line): Fix off-by-one error on
+	TTY frames in testing whether a line needs face extension.
+
 	* xdisp.c (extend_face_to_end_of_line): Fix face extension at ZV.
 
 	* term.c (produce_special_glyphs): Mirror the backslash

@@ -16803,8 +16803,10 @@ extend_face_to_end_of_line (it)
   struct face *face;
   struct frame *f = it->f;
 
-  /* If line is already filled, do nothing.  */
-  if (it->current_x >= it->last_visible_x)
+  /* If line is already filled, do nothing.  Non window-system frames
+     get a grace of one more ``pixel'' because their characters are
+     1-``pixel'' wide, so they hit the equality too early.  */
+  if (it->current_x >= it->last_visible_x + !FRAME_WINDOW_P (f))
     return;
 
   /* Face extension extends the background and box of IT->face_id
