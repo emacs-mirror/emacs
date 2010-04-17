@@ -104,6 +104,7 @@
   (define-key calc-mode-map "J" 'calc-conj)
   (define-key calc-mode-map "L" 'calc-ln)
   (define-key calc-mode-map "N" 'calc-eval-num)
+  (define-key calc-mode-map "O" 'calc-option)
   (define-key calc-mode-map "P" 'calc-pi)
   (define-key calc-mode-map "Q" 'calc-sqrt)
   (define-key calc-mode-map "R" 'calc-round)
@@ -1045,7 +1046,7 @@ calc-graph-zero-x calc-graph-zero-y)
 calc-d-prefix-help calc-describe-function calc-describe-key
 calc-describe-key-briefly calc-describe-variable calc-f-prefix-help
 calc-full-help calc-g-prefix-help calc-help-prefix
-calc-hyperbolic-prefix-help calc-inv-hyp-prefix-help
+calc-hyperbolic-prefix-help calc-inv-hyp-prefix-help calc-option-prefix-help
 calc-inverse-prefix-help calc-j-prefix-help calc-k-prefix-help
 calc-m-prefix-help calc-r-prefix-help calc-s-prefix-help
 calc-t-prefix-help calc-u-prefix-help calc-v-prefix-help)
@@ -1408,9 +1409,18 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-hyperbolic-flag)
                      calc-hyperbolic-flag))
-         (msg (if hyp-flag
-                 "Inverse Hyperbolic..."
-               "Inverse...")))
+         (opt-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
+                       (with-current-buffer calc-main-buffer
+                         calc-option-flag)
+                     calc-option-flag))
+         (msg 
+          (cond
+           ((and opt-flag hyp-flag) "Option Inverse Hyperbolic...")
+           (hyp-flag "Inverse Hyperbolic...")
+           (opt-flag "Option Inverse...")
+           (t "Inverse..."))))
     (calc-fancy-prefix 'calc-inverse-flag msg n)))
 
 (defconst calc-fancy-prefix-map
@@ -1489,9 +1499,18 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-inverse-flag)
                      calc-inverse-flag))
-         (msg (if inv-flag
-                  "Inverse Hyperbolic..."
-                "Hyperbolic...")))
+         (opt-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
+                       (with-current-buffer calc-main-buffer
+                         calc-option-flag)
+                     calc-option-flag))
+         (msg 
+          (cond 
+           ((and opt-flag inv-flag) "Option Inverse Hyperbolic...")
+           (opt-flag "Option Hyperbolic...")
+           (inv-flag "Inverse Hyperbolic...")
+           (t "Hyperbolic..."))))
     (calc-fancy-prefix 'calc-hyperbolic-flag msg n)))
 
 (defun calc-hyperbolic-func ()
@@ -1503,6 +1522,31 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-is-hyperbolic ()
   calc-hyperbolic-flag)
+
+(defun calc-option (&optional n)
+  (interactive "P")
+  (let* ((inv-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
+                       (with-current-buffer calc-main-buffer
+                         calc-inverse-flag)
+                     calc-inverse-flag))
+         (hyp-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
+                       (with-current-buffer calc-main-buffer
+                         calc-hyperbolic-flag)
+                     calc-hyperbolic-flag))
+         (msg 
+          (cond 
+           ((and hyp-flag inv-flag) "Option Inverse Hyperbolic...")
+           (hyp-flag "Option Hyperbolic...")
+           (inv-flag "Option Inverse...")
+           (t "Option..."))))
+    (calc-fancy-prefix 'calc-option-flag msg n)))
+
+(defun calc-is-option ()
+  calc-option-flag)
 
 (defun calc-keep-args (&optional n)
   (interactive "P")
