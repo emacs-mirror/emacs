@@ -1,3 +1,8 @@
+2010-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* htmlfontify.el (htmlfontify-buffer)
+	(htmlfontify-copy-and-link-dir): Autoload entry points.
+
 2010-04-17  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* vc-hg.el (vc-hg-annotate-extract-revision-at-line): Expand file
