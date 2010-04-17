@@ -1,3 +1,15 @@
+2010-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Continue work on R2L paragraphs in GUI sessions.
+
+	* xdisp.c (set_cursor_from_row): Don't be fooled by truncated
+	rows: don't treat them as having zero-width characters.  Improve
+	comments.
+	(extend_face_to_end_of_line): Use window_box_width to compute the
+	width of the stretch glyph, to account for margins.  If this is
+	the last glyph row, use DEFAULT_FACE_ID, to avoid painting the
+	rest of the window with the region face.
+
 2010-04-10  Eli Zaretskii  <eliz@gnu.org>
 
 	Implement display of R2L paragraphs in GUI sessions.

@@ -12587,8 +12587,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    }
 	  while (end > glyph
 		 && INTEGERP ((end - 1)->object)
-		 /* CHARPOS is zero for blanks inserted by
-		    extend_face_to_end_of_line.  */
+		 /* CHARPOS is zero for blanks and stretch glyphs
+		    inserted by extend_face_to_end_of_line.  */
 		 && (end - 1)->charpos <= 0)
 	    --end;
 	  glyph_before = glyph - 1;
@@ -12810,7 +12810,10 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	}
       else if (match_with_avoid_cursor
 	       /* zero-width characters produce no glyphs */
-	       || eabs (glyph_after - glyph_before) == 1)
+	       || ((row->reversed_p
+		    ? glyph_after > glyphs_end
+		    : glyph_after < glyphs_end)
+		   && eabs (glyph_after - glyph_before) == 1))
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -12929,11 +12932,17 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	}
     }
 
-  /* ROW could be part of a continued line, which might have other
-     rows whose start and end charpos occlude point.  Only set
-     w->cursor if we found a better approximation to the cursor
-     position than we have from previously examined rows.  */
-  if (w->cursor.vpos >= 0
+  /* ROW could be part of a continued line, which, under bidi
+     reordering, might have other rows whose start and end charpos
+     occlude point.  Only set w->cursor if we found a better
+     approximation to the cursor position than we have from previously
+     examined candidate rows belonging to the same continued line.  */
+  if (/* we already have a candidate row */
+      w->cursor.vpos >= 0
+      /* that candidate is not the row we are processing */
+      && MATRIX_ROW (matrix, w->cursor.vpos) != row
+      /* the row we are processing is part of a continued line */
+      && (row->continued_p || row->continuation_lines_width)
       /* Make sure cursor.vpos specifies a row whose start and end
 	 charpos occlude point.  This is because some callers of this
 	 function leave cursor.vpos at the row where the cursor was
@@ -16849,21 +16858,24 @@ extend_face_to_end_of_line (it)
 
 	  for (row_width = 0, g = row_start; g < row_end; g++)
 	    row_width += g->pixel_width;
-	  stretch_width = WINDOW_BOX_RIGHT_EDGE_X(it->w)
-	    		  - WINDOW_BOX_LEFT_EDGE_X(it->w)
-	    		  - WINDOW_TOTAL_FRINGE_WIDTH(it->w)
-	    		  - row_width;
+	  stretch_width = window_box_width (it->w, TEXT_AREA) - row_width;
 	  if (stretch_width > 0)
 	    {
 	      stretch_ascent =
 		(((it->ascent + it->descent)
 		  * FONT_BASE (font)) / FONT_HEIGHT (font));
 	      saved_pos = it->position;
-	      saved_avoid_cursor = it->avoid_cursor_p;
-	      saved_face_id = it->face_id;
 	      bzero (&it->position, sizeof it->position);
+	      saved_avoid_cursor = it->avoid_cursor_p;
 	      it->avoid_cursor_p = 1;
-	      it->face_id = face->id;
+	      saved_face_id = it->face_id;
+	      /* The last row should get the default face, to avoid
+		 painting the rest of the window with the region face,
+		 if the region ends at ZV.  */
+	      if (it->glyph_row->ends_at_zv_p)
+		it->face_id = DEFAULT_FACE_ID;
+	      else
+		it->face_id = face->id;
 	      append_stretch_glyph (it, make_number (0), stretch_width,
 				    it->ascent + it->descent, stretch_ascent);
 	      it->position = saved_pos;
