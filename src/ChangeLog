@@ -1,5 +1,17 @@
 2010-04-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (extend_face_to_end_of_line): Fix face extension at ZV.
+
+	* term.c (produce_special_glyphs): Mirror the backslash
+	continuation character in R2L lines.
+
+	* xdisp.c (set_cursor_from_row, display_line): Use
+	MATRIX_ROW_CONTINUATION_LINE_P instead of testing value of
+	row->continuation_lines_width.
+
+	* fringe.c (update_window_fringes): For R2L rows, swap the bitmaps
+	of continuation indicators on the fringes.
+
 	* xdisp.c (next_element_from_buffer): Don't call
 	bidi_paragraph_init if we are at ZV.  Fixes a crash when reseated to
 	ZV by try_window_reusing_current_matrix.

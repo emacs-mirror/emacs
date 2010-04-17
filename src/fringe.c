@@ -1090,7 +1090,8 @@ update_window_fringes (w, keep_current_p)
 		: LEFT_FRINGE (2, Qtop, 0));
       else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
 	left = LEFT_FRINGE (3, Qbottom, row->ends_at_zv_p);
-      else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
+      else if ((!row->reversed_p && MATRIX_ROW_CONTINUATION_LINE_P (row))
+	       || (row->reversed_p && row->continued_p))
 	left = LEFT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
 	left = LEFT_FRINGE (5, Qempty_line, 0);
@@ -1117,7 +1118,8 @@ update_window_fringes (w, keep_current_p)
 		 : RIGHT_FRINGE (2, Qtop, 0));
       else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
 	right = RIGHT_FRINGE (3, Qbottom, row->ends_at_zv_p);
-      else if (row->continued_p)
+      else if ((!row->reversed_p && row->continued_p)
+	       || (row->reversed_p && MATRIX_ROW_CONTINUATION_LINE_P (row)))
 	right = RIGHT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
 	right = RIGHT_FRINGE (6, Qup, 0);

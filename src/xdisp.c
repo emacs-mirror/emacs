@@ -12949,7 +12949,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       /* that candidate is not the row we are processing */
       && MATRIX_ROW (matrix, w->cursor.vpos) != row
       /* the row we are processing is part of a continued line */
-      && (row->continued_p || row->continuation_lines_width)
+      && (row->continued_p || MATRIX_ROW_CONTINUATION_LINE_P (row))
       /* Make sure cursor.vpos specifies a row whose start and end
 	 charpos occlude point.  This is because some callers of this
 	 function leave cursor.vpos at the row where the cursor was
@@ -16876,9 +16876,9 @@ extend_face_to_end_of_line (it)
 	      saved_avoid_cursor = it->avoid_cursor_p;
 	      it->avoid_cursor_p = 1;
 	      saved_face_id = it->face_id;
-	      /* The last row should get the default face, to avoid
-		 painting the rest of the window with the region face,
-		 if the region ends at ZV.  */
+	      /* The last row's stretch glyph should get the default
+		 face, to avoid painting the rest of the window with
+		 the region face, if the region ends at ZV.  */
 	      if (it->glyph_row->ends_at_zv_p)
 		it->face_id = DEFAULT_FACE_ID;
 	      else
@@ -16909,7 +16909,13 @@ extend_face_to_end_of_line (it)
       it->object = make_number (0);
       it->c = ' ';
       it->len = 1;
-      it->face_id = face->id;
+      /* The last row's blank glyphs should get the default face, to
+	 avoid painting the rest of the window with the region face,
+	 if the region ends at ZV.  */
+      if (it->glyph_row->ends_at_zv_p)
+	it->face_id = DEFAULT_FACE_ID;
+      else
+	it->face_id = face->id;
 
       PRODUCE_GLYPHS (it);
 
@@ -17810,7 +17816,7 @@ display_line (it)
 	      *it = save_it;
 	    }
 	  else if (!row->continued_p
-		   && row->continuation_lines_width
+		   && MATRIX_ROW_CONTINUATION_LINE_P (row)
 		   && it->eol_pos.charpos > 0)
 	    {
 	      /* Last row of a continued line.  Use the position

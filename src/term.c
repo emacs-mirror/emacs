@@ -1889,12 +1889,16 @@ produce_special_glyphs (it, what)
 
   if (what == IT_CONTINUATION)
     {
-      /* Continuation glyph.  */
-      SET_GLYPH_FROM_CHAR (glyph, '\\');
+      /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
+      if (it->bidi_it.paragraph_dir == R2L)
+	SET_GLYPH_FROM_CHAR (glyph, '/');
+      else
+	SET_GLYPH_FROM_CHAR (glyph, '\\');
       if (it->dp
 	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc))
 	  && GLYPH_CODE_CHAR_VALID_P (gc))
 	{
+	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
 	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
 	}
@@ -1907,6 +1911,7 @@ produce_special_glyphs (it, what)
 	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc))
 	  && GLYPH_CODE_CHAR_VALID_P (gc))
 	{
+	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
 	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
 	}
