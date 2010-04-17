@@ -24,6 +24,8 @@
 	(XlwMenuDestroy): Free pixmap.  Call XtDestroyWidget instead of
 	XDestroyWindow.
 	(handle_motion_event): Only call handle_single_motion_event once.
+	(set_window_type): New function.
+	(make_windows_if_needed, XlwMenuRealize): Call set_window_type.
 
 	* xlwmenuP.h (window_state): Add pixmap and w.
 

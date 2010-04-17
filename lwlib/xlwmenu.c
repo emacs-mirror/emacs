@@ -1315,6 +1315,23 @@ expose_cb (Widget widget,
 }
 
 static void
+set_window_type (Widget w, XlwMenuWidget mw)
+{
+  int popup_menu_p = mw->menu.top_depth == 1;
+  Atom type = XInternAtom (XtDisplay (w),
+                           popup_menu_p
+                           ? "_NET_WM_WINDOW_TYPE_POPUP_MENU"
+                           : "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU",
+                           False);
+
+  XChangeProperty (XtDisplay (w), XtWindow (w),
+                   XInternAtom (XtDisplay (w), "_NET_WM_WINDOW_TYPE", False),
+                   XA_ATOM, 32, PropModeReplace,
+                   (unsigned char *)&type, 1);
+}
+
+
+static void
 make_windows_if_needed (mw, n)
      XlwMenuWidget mw;
      int n;
@@ -1372,6 +1389,7 @@ make_windows_if_needed (mw, n)
 #ifdef HAVE_XFT
      windows [i].xft_draw = 0;
 #endif
+     set_window_type (windows [i].w, mw);
    }
 }
 
@@ -2039,6 +2057,7 @@ XlwMenuRealize (w, valueMask, attributes)
   mw->menu.windows [0].width = w->core.width;
   mw->menu.windows [0].height = w->core.height;
 
+  set_window_type (mw->menu.windows [0].w, mw);
   create_pixmap_for_menu (&mw->menu.windows [0], mw);
 
 #ifdef HAVE_XFT
