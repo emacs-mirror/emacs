@@ -196,16 +196,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let*
       ((status nil)
        (default-directory (file-name-directory file))
+       ;; Avoid localization of messages so we can parse the output.
+       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=")
+				     process-environment))
        (out
         (with-output-to-string
           (with-current-buffer
               standard-output
             (setq status
                   (condition-case nil
-		      (let ((process-environment
-			     ;; Avoid localization of messages so we can parse the output.
-			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=")
-				     process-environment)))
+		      (let ((process-environment avoid-local-env))
 			;; Ignore all errors.
 			(process-file
 			 "hg" nil t nil
@@ -213,7 +213,23 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
-    (when (eq 0 status) out)))
+    (if (eq 0 status)
+	out
+      ;; Check if the file is in the 'added state, the above hg
+      ;; command does not distinguish between 'added and 'unregistered.
+      (setq status
+	    (condition-case nil
+		(let ((process-environment avoid-local-env))
+		  (process-file
+		   "hg" nil nil nil
+		   ;; We use "log" here, if there's a faster command
+		   ;; that returns true for an 'added file and false
+		   ;; for an 'unregistered one, we could use that.
+		   "log" "-l1" (file-relative-name file)))
+	      ;; Some problem happened.  E.g. We can't find an `hg'
+	      ;; executable.
+	      (error nil)))
+      (when (eq 0 status) "0"))))
 
 ;;; History functions
 

@@ -1,3 +1,9 @@
+2010-04-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix the version number for added files.
+	* vc-hg.el (vc-hg-working-revision): Check if the file is
+	registered after hg parent fails (Bug#5961).
+
 2010-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* htmlfontify.el (htmlfontify-buffer)
