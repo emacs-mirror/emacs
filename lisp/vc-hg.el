@@ -340,7 +340,8 @@ Optional arg REVISION is a revision to annotate from."
       (if (match-beginning 3)
 	  (match-string-no-properties 1)
 	(cons (match-string-no-properties 1)
-	      (expand-file-name (match-string-no-properties 4)))))))
+	      (expand-file-name (match-string-no-properties 4)
+				(vc-hg-root default-directory)))))))
 
 (defun vc-hg-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))

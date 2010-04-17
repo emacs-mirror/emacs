@@ -1,3 +1,8 @@
+2010-04-17  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* vc-hg.el (vc-hg-annotate-extract-revision-at-line): Expand file
+	name relative to the project root (Bug#5960).
+
 2010-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* vc-git.el (vc-git-print-log): Doc fix.
