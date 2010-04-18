@@ -1,5 +1,7 @@
 2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el: Setup hash-cons for pure data.
+
 	Fix duplicate entries in cedet's loaddefs.el files.
 	* emacs-lisp/autoload.el (autoload-file-load-name): Be more clever.
 	Should make most file-local generated-autoload-file unnecessary.
