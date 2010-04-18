@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-cpp.el,v 1.9 2010-03-16 03:05:27 zappo Exp $
+;; X-RCS: $Id: cit-cpp.el,v 1.10 2010-04-18 00:37:06 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -35,7 +35,8 @@
      (semantic-tag-new-function
       "foo" '("foo" type (:type "class"))
       (list (semantic-tag-new-variable "f" "int"))
-      :constructor-flag t)
+      :constructor-flag t
+      :code " Field1 = f; ")
      (semantic-tag-new-function
       "foo" "void" nil :destructor-flag t )
      (semantic-tag-new-function
@@ -70,6 +71,7 @@
 
 (defvar cit-src-cpp-tags
   (list
+   (semantic-tag-new-include "stdio.h" nil)
    (semantic-tag-new-include "foo.hh" nil)
    (semantic-tag-new-function
     "doSomethingPublic" "void"
@@ -77,38 +79,54 @@
 	  (semantic-tag-new-variable "thing" "char"
 				     nil
 				     :pointer 1))
-    :parent "foo")
+    :parent "foo"
+    :code "   setField1(1);
+   if(getField1() == 1) {
+      // Call doSomethingProtected <== multi-hit for grep, not for global.
+      doSomethingProtected(ctxt,thing);
+   }\n")
    (semantic-tag-new-function
     "setField1" "void"
     (list (semantic-tag-new-variable "f" "int"))
-    :parent "foo")
+    :parent "foo"
+    :code "   Field1 = f;\n")
    (semantic-tag-new-function
     "getField1" "int" nil
-    :parent "foo")
+    :parent "foo"
+    :code "   return Field1;\n")
    (semantic-tag-new-function
     "doSomethingProtected" "void"
     (list (semantic-tag-new-variable "ctxt" "int")
 	  (semantic-tag-new-variable "thing" "char"
 				     nil
 				     :pointer 1))
-    :parent "foo")
+    :parent "foo"
+    :code "   printf(\"%s\\n\",thing);\n")
    )
   "Tags to be inserted into a source file.")
 
 (defvar cit-main-cpp-tags
   (list
-   (semantic-tag-new-include "stdio.h" nil)
    (semantic-tag-new-include "foo.hh" nil)
+   (semantic-tag-new-include "string.h" nil)
    (semantic-tag-new-function
     "main" "int"
     (list (semantic-tag-new-variable "argc" "int")
 	  (semantic-tag-new-variable "argv" "char"
 				     nil
 				     :pointer 2 ))
-    :code "   printf(\"MOOSE\\n\");\n")
+    :code "   foo myFoo(2);
+   char *myStr = strdup(\"MOOSE\");
+   myFoo.doSomethingPublic(1,myStr);
+")
    )
   "Tags to be inserted into main.")
 
+(defvar cit-symref-operations
+  '( "doSomethingProtected" "renameSomething" )
+  "A set of symref operations based on the tags defined here.
+The symref test (in cit-symref.el) will use these operations
+to test they symbol reference system in C++.")
 
 (defun cit-srecode-fill-cpp (make-type)
   "Fill up a base set of files with some base tags.
@@ -142,7 +160,7 @@ MAKE-TYPE is the type of make process to use."
   ;; 1 g) build the sources.
   (cit-compile-and-wait)
 
-  ;; 1 g.1) Run the compiled program.
+  ;; 1 g.1) Run the compiled program.  (Test for MOOSE output.)
   (find-file (cit-file "src/main.cpp"))
   (cit-run-target "./Prog")
   )
@@ -156,6 +174,7 @@ Argument MAKE-TYPE is the type of make project to create."
   (ede-remove-file t)
   (kill-buffer (current-buffer))
   (delete-file (cit-file "src/bar.cpp"))
+  (delete-file (cit-file "src/bar.o"))
 
   ;; Create a new shared lib target, and add bar.cpp to it.
   (find-file (cit-file "lib/bar.cpp"))
@@ -163,6 +182,10 @@ Argument MAKE-TYPE is the type of make project to create."
   (ede-new make-type "Libs")
   (ede-new-target "testlib" "sharedobject" "n")
   (ede-add-file "testlib")
+  (let ((mt ede-object))
+    (oset mt :compiler 'ede-g++-libtool-shared-compiler)
+    (oset mt :linker 'ede-g++-linker-libtool)
+    )
 
   ;; 1 g) build the sources.
   ;; Direct compile to test that make fails properly.
@@ -178,7 +201,14 @@ Argument MAKE-TYPE is the type of make project to create."
       (oset p :variables '( ( "CPPFLAGS" . "-I../include") )))
     (ede-commit-project p)
     )
-
+  ;; Flip back over to main, and add our new testlib.
+  (find-file (cit-file "src/main.cpp"))
+  (let ((mt ede-object))
+    (if (string= make-type "Automake")
+	(oset mt :ldlibs '("../lib/libtestlib.la"))
+      ;; FIX THIS
+      (oset mt :ldflags '("../lib/bar.o"));;HACK for libtool!
+      ))
   (cit-compile-and-wait)
   )
 
