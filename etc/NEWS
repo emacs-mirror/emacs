@@ -85,6 +85,8 @@ define it as a scroll command affected by `scroll-preserve-screen-position.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** Archive Mode has basic support to browse 7z archives.
+
 ** partial-completion-mode is now obsolete.
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
