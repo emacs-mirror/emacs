@@ -74,8 +74,14 @@
 ;;    b Generate C++ code from the graph.
 ;;    c Compile the sources.
 ;;
-;; @TODO -
-;; 6) Create a distribution file.
+;; 6) Symref
+;;    a Attempt to use symref to create a results list.
+;;    b open/close entries in symref
+;;    c Use 'rename' command to rename and rebuild.
+;;    d See if GNU Global is installed
+;;    e repeat above.
+;;
+;; 7) Create a distribution file.
 ;;    a Call "make dist"
 ;;    b update the version number
 ;;    c make a new dist.  Verify version number.
@@ -94,6 +100,7 @@
   )
 
 (require 'cit-cpp)
+(require 'cit-symref)
 (require 'cit-uml)
 (require 'cit-srec)
 (require 'cit-el)
@@ -124,49 +131,57 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
       (error "Invalid make-type for test: %S" make-type))
   (message "Running integration test of style %S" make-type)
 
-  ;; 1 a) build directories
-  ;;
-  (cit-make-dir cedet-integ-base)
-  (cit-make-dir cedet-integ-target)
-  ;; 1 c) make src and include directories
-  (cit-make-dir (cit-file "src"))
-  (cit-make-dir (cit-file "lib"))
-  (cit-make-dir (cit-file "include"))
-  (cit-make-dir (cit-file "uml"))
-  ;;
-  ;; 1 b) make a toplevel project
-  ;;
-  (find-file (expand-file-name "README" cedet-integ-target))
-  (ede-new make-type "CEDET_Integ_Test_Project")
-  ;; 1 d) Put C++ src into the right directories.
-  ;; 2 a) Create sources with SRecode
-  ;;
-  (cit-srecode-fill-cpp make-type)
+  ;; Setup EDE to be turned on.
+  (let ((ede-auto-add-method 'never))
+    (global-ede-mode 1)
 
-  ;; 5 a,b,c) UML code generation test
-  (cit-fill-uml make-type)
+    ;; 1 a) build directories
+    ;;
+    (cit-make-dir cedet-integ-base)
+    (cit-make-dir cedet-integ-target)
+    ;; 1 c) make src and include directories
+    (cit-make-dir (cit-file "src"))
+    (cit-make-dir (cit-file "lib"))
+    (cit-make-dir (cit-file "include"))
+    (cit-make-dir (cit-file "uml"))
+    ;;
+    ;; 1 b) make a toplevel project
+    ;;
+    (find-file (expand-file-name "README" cedet-integ-target))
+    (ede-new make-type "CEDET_Integ_Test_Project")
+    ;; 1 d) Put C++ src into the right directories.
+    ;; 2 a) Create sources with SRecode
+    ;;
+    (cit-srecode-fill-cpp make-type)
 
-  ;; 1 e) remove files from a project
-  (cit-remove-add-to-project-cpp)
+    ;; 5 a,b,c) UML code generation test
+    (cit-fill-uml make-type)
 
-  ;; 1 f) remove files from a project
-  (cit-remove-and-do-shared-lib make-type)
+    ;; 1 e) remove files from a project
+    (cit-remove-add-to-project-cpp)
 
-  ;; 2 e) srecode map manipulation
-  (cit-srecode-map-test)
+    ;; 1 f) remove files from a project
+    (when (string= make-type "Automake")  ;; Only works w/ Automake
+      (cit-remove-and-do-shared-lib make-type))
 
-  ;; Do some more with Emacs Lisp.
-  (cit-srecode-fill-el make-type)
+    ;; 6) Test symref/refactoring tools
+    (cit-symref)
 
-  ;; Do some texinfo documentation.
-  (cit-srecode-fill-texi)
+    ;; 2 e) srecode map manipulation
+    (cit-srecode-map-test)
 
-  ;; Create a distribution
-  (find-file (expand-file-name "README" cedet-integ-target))
-  (cit-make-dist)
+    ;; Do some more with Emacs Lisp.
+    (cit-srecode-fill-el make-type)
 
-  (cit-finish-message "PASSED" make-type)
-  )
+    ;; Do some texinfo documentation.
+    (cit-srecode-fill-texi)
+
+    ;; Create a distribution
+    (find-file (expand-file-name "README" cedet-integ-target))
+    (cit-make-dist)
+
+    (cit-finish-message "PASSED" make-type)
+    ))
 
 (defun cedet-integ-test-GNUStep ()
   "Run the CEDET integration test using GNUStep style project."
@@ -376,8 +391,9 @@ Use COMMAND to run the program."
 	    (setq cnt (1+ cnt))
 	    (when (> cnt 10) (error "Program output not detected"))
 	    (sit-for .1))
-	;; Kill the buffer.
-	(kill-buffer (ede-shell-buffer target)))
+	;; Show program output
+	(sit-for .2)
+	)
       )))
 
 (provide 'cedet-integ-test)
