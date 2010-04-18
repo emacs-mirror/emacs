@@ -9,7 +9,7 @@
 top=
 ede_FILES=Project.ede Makefile
 
-Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el cit-srec.el cit-gnustep.el cit-uml.el cit-dist.el
+Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el cit-srec.el cit-gnustep.el cit-uml.el cit-dist.el cit-symref.el
 EMACS=emacs
 EMACSFLAGS=-batch --no-site-file
 LOADPATH= ../speedbar/ ../cogre/ ../contrib/ ../ede/ ../srecode/ ../semantic/wisent/ ../semantic/bovine/ ../semantic/ ../eieio/ ../common/
