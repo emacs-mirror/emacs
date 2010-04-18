@@ -1,3 +1,8 @@
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Don't
+	destroy list before using it.
+
 2010-04-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix the version number for added files.
