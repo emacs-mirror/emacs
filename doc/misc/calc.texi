@@ -12289,15 +12289,21 @@ may be executed with @kbd{x} or @kbd{M-x}.  Their effect is simply to
 toggle the Inverse and/or Hyperbolic flags and then execute the
 corresponding base command (@code{calc-sin} in this case).
 
-The Inverse and Hyperbolic flags apply only to the next Calculator
-command, after which they are automatically cleared.  (They are also
-cleared if the next keystroke is not a Calc command.)  Digits you
-type after @kbd{I} or @kbd{H} (or @kbd{K}) are treated as prefix
-arguments for the next command, not as numeric entries.  The same
-is true of @kbd{C-u}, but not of the minus sign (@kbd{K -} means to
-subtract and keep arguments).
+@kindex O
+@pindex calc-option
+The @kbd{O} key (@code{calc-option}) sets another flag, the
+@dfn{Option Flag}, which also can alter the subsequent Calc command in
+various ways. 
 
-The third Calc prefix flag, @kbd{K} (keep-arguments), is discussed
+The Inverse, Hyperbolic and Option flags apply only to the next
+Calculator command, after which they are automatically cleared.  (They
+are also cleared if the next keystroke is not a Calc command.)  Digits
+you type after @kbd{I}, @kbd{H} or @kbd{O} (or @kbd{K}) are treated as
+prefix arguments for the next command, not as numeric entries.  The
+same is true of @kbd{C-u}, but not of the minus sign (@kbd{K -} means
+to subtract and keep arguments).
+
+Another Calc prefix flag, @kbd{K} (keep-arguments), is discussed
 elsewhere.  @xref{Keep Arguments}.
 
 @node Calculation Modes, Simplification Modes, Inverse and Hyperbolic, Mode Settings
@@ -13175,12 +13181,13 @@ in the current radix.  (Larger integers will still be displayed in their
 entirety.) 
 
 @cindex Two's complements
-With the binary, octal and hexadecimal display modes, Calc can
-display @expr{w}-bit integers using two's complement notation.  This
-option is selected with the key sequences @kbd{C-u d 2}, @kbd{C-u d 8}
-and @kbd{C-u d 6}, respectively, and a negative word size might be
-appropriate (@pxref{Binary Functions}). In two's complement 
-notation, the integers in the (nearly) symmetric interval from
+Calc can display @expr{w}-bit integers using two's complement
+notation, although this is most useful with the binary, octal and
+hexadecimal display modes.  This option is selected by using the
+@kbd{O} option prefix before setting the display radix, and a negative word
+size might be appropriate (@pxref{Binary Functions}). In two's
+complement notation, the integers in the (nearly) symmetric interval
+from
 @texline @math{-2^{w-1}}
 @infoline @expr{-2^(w-1)}
 to
@@ -35461,6 +35468,7 @@ keystrokes are not listed in this summary.
 @r{       @:      M     @:             @:        @:calc-more-recursion-depth@:}
 @r{       @:    I M     @:             @:        @:calc-less-recursion-depth@:}
 @r{      a@:      N     @:             @:     5  @:evalvn@:(a)}
+@r{       @:      O     @:command      @:    32  @:@:Option}
 @r{       @:      P     @:             @:        @:@:pi}
 @r{       @:    I P     @:             @:        @:@:gamma}
 @r{       @:    H P     @:             @:        @:@:e}

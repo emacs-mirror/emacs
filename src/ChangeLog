@@ -1,3 +1,36 @@
+2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fpurecopy): Hash-cons if requested.
+	(syms_of_alloc): Update purify-flag docstring.
+
+2010-04-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Set size in geometry string also.
+	(x_wm_set_size_hint): Set USER_POS in hint_flags (Bug#5968).
+
+2010-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a crash when an NSM character is inserted at BEGV.
+
+	* bidi.c (bidi_init_it): Fix initialization of bidi_it->prev.
+	(bidi_resolve_weak): Don't use prev.type_after_w1 if it is
+	NEUTRAL_B or UNKNOWN_BT.
+
+2010-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't consider possibility of
+	other rows with cursor unless they are different from this row and
+	this row is part of a continued line.  (Bug#5943)
+
+2010-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/freebsd.h: Restore osreldate.h include.
+	Suggested by Naohiro Aota.
+
+2010-04-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (apply_systemfont_to_menu): *childs was incorrectly used.
+
 2010-04-16  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* s/cygwin.h: Avoid linking against static libgcc.
@@ -303,6 +336,11 @@
 	(Fimage_metadata): Rename from `Fimage_extension_data'.
 	(gif_load): Put GIF extension data to the property
 	`Qextension_data'.
+
+2010-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
+	terminal frames (Bug#5837).
 
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 

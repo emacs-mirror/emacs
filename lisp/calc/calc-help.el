@@ -446,6 +446,7 @@ C-w  Describe how there is no warranty for Calc."
 	    '(calc-inverse-prefix-help
 	      calc-hyperbolic-prefix-help
 	      calc-inv-hyp-prefix-help
+              calc-option-prefix-help
 	      calc-a-prefix-help
 	      calc-b-prefix-help
 	      calc-c-prefix-help
@@ -512,6 +513,11 @@ C-w  Describe how there is no warranty for Calc."
      "I H + a S (general invert func); v h (rtail)")
    "inverse-hyperbolic" nil))
 
+(defun calc-option-prefix-help ()
+  (interactive)
+  (calc-do-prefix-help
+   '("")
+   "option" nil))
 
 (defun calc-f-prefix-help ()
   (interactive)

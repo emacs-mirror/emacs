@@ -976,10 +976,11 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
   bidi_it->new_paragraph = 1;
   bidi_it->separator_limit = -1;
   bidi_it->type = NEUTRAL_B;
-  bidi_it->type_after_w1 = UNKNOWN_BT;
-  bidi_it->orig_type = UNKNOWN_BT;
+  bidi_it->type_after_w1 = NEUTRAL_B;
+  bidi_it->orig_type = NEUTRAL_B;
   bidi_it->prev_was_pdf = 0;
-  bidi_it->prev.type = bidi_it->prev.type_after_w1 = UNKNOWN_BT;
+  bidi_it->prev.type = bidi_it->prev.type_after_w1 =
+    bidi_it->prev.orig_type = UNKNOWN_BT;
   bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
     bidi_it->last_strong.orig_type = UNKNOWN_BT;
   bidi_it->next_for_neutral.charpos = -1;
@@ -1353,7 +1354,9 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	     current level run, and thus not relevant to this NSM.
 	     This is why NSM gets the type_after_w1 of the previous
 	     character.  */
-	  if (bidi_it->prev.type != UNKNOWN_BT)
+	  if (bidi_it->prev.type_after_w1 != UNKNOWN_BT
+	      /* if type_after_w1 is NEUTRAL_B, this NSM is at sor */
+	      && bidi_it->prev.type_after_w1 != NEUTRAL_B)
 	    type = bidi_it->prev.type_after_w1;
 	  else if (bidi_it->sor == R2L)
 	    type = STRONG_R;

@@ -1,3 +1,9 @@
+2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Radix modes): Mention that the option prefix will
+	turn on twos-complement mode.
+	(Inverse and Hyperbolic Flags): Mention the Option flag.
+
 2010-04-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (LaTeX and PDF export): Add a footnote about xetex.

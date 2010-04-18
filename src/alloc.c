@@ -4893,14 +4893,21 @@ Does not copy symbols.  Copies strings without text properties.  */)
   if (PURE_POINTER_P (XPNTR (obj)))
     return obj;
 
+  if (HASH_TABLE_P (Vpurify_flag)) /* Hash consing.  */
+    {
+      Lisp_Object tmp = Fgethash (obj, Vpurify_flag, Qnil);
+      if (!NILP (tmp))
+	return tmp;
+    }
+
   if (CONSP (obj))
-    return pure_cons (XCAR (obj), XCDR (obj));
+    obj = pure_cons (XCAR (obj), XCDR (obj));
   else if (FLOATP (obj))
-    return make_pure_float (XFLOAT_DATA (obj));
+    obj = make_pure_float (XFLOAT_DATA (obj));
   else if (STRINGP (obj))
-    return make_pure_string (SDATA (obj), SCHARS (obj),
-			     SBYTES (obj),
-			     STRING_MULTIBYTE (obj));
+    obj = make_pure_string (SDATA (obj), SCHARS (obj),
+			    SBYTES (obj),
+			    STRING_MULTIBYTE (obj));
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
@@ -4920,10 +4927,15 @@ Does not copy symbols.  Copies strings without text properties.  */)
 	}
       else
 	XSETVECTOR (obj, vec);
-      return obj;
     }
   else if (MARKERP (obj))
     error ("Attempt to copy a marker to pure storage");
+  else
+    /* Not purified, don't hash-cons.  */
+    return obj;
+
+  if (HASH_TABLE_P (Vpurify_flag)) /* Hash consing.  */
+    Fputhash (obj, obj, Vpurify_flag);
 
   return obj;
 }
@@ -6371,7 +6383,9 @@ If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
 
   DEFVAR_LISP ("purify-flag", &Vpurify_flag,
 	       doc: /* Non-nil means loading Lisp code in order to dump an executable.
-This means that certain objects should be allocated in shared (pure) space.  */);
+This means that certain objects should be allocated in shared (pure) space.
+It can also be set to a hash-table, in which case this table is used to
+do hash-consing of the objects allocated to pure space.  */);
 
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);
