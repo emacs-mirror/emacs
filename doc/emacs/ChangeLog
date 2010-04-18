@@ -1,3 +1,13 @@
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Semantic): New node.
+
+	* maintaining.texi (EDE): New node.
+
+	* emacs.texi: Update node listing.
+
+	* misc.texi (Gnus): Use the `C-h i' keybinding for info.
+
 2010-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Acknowledgments): Remove duplicate.
