@@ -1,5 +1,14 @@
 2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Fix duplicate entries in cedet's loaddefs.el files.
+	* emacs-lisp/autoload.el (autoload-file-load-name): Be more clever.
+	Should make most file-local generated-autoload-file unnecessary.
+	(print-readably): Silence warnings.
+	(autoload-find-destination): Take load-name as an arg to make sure
+	it's the same as the one that will be in the file.
+	(autoload-generate-file-autoloads): Adjust to above changes.
+	Try to make the dataflow a bit simpler.
+
 	* cvs-status.el (cvs-refontify): Remove unused.
 
 2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
