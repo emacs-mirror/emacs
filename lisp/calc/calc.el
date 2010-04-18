@@ -1041,7 +1041,7 @@ Used by `calc-user-invocation'.")
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
-          (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
+          (concat "ABCDEFGHIJKLMNOPQRSTUVXZabcdfghjkmoprstuvwxyz"
                   ":\\|!()[]<>{},;=~`\C-k\C-w\C-_"))
     (define-key map "\M-w" 'calc-missing-key)
     (define-key map "\M-k" 'calc-missing-key)
