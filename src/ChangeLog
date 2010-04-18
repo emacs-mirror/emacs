@@ -1,3 +1,8 @@
+2010-04-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Set size in geometry string also.
+	(x_wm_set_size_hint): Set USER_POS in hint_flags (Bug#5968).
+
 2010-04-17  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix a crash when an NSM character is inserted at BEGV.

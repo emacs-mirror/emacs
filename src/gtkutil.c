@@ -542,7 +542,9 @@ xg_set_geometry (f)
       if (yneg)
         top = -top;
 
-      sprintf (geom_str, "%c%d%c%d",
+      sprintf (geom_str, "=%dx%d%c%d%c%d",
+               FRAME_PIXEL_WIDTH (f),
+               FRAME_PIXEL_HEIGHT (f),
                (xneg ? '-' : '+'), left,
                (yneg ? '-' : '+'), top);
 
@@ -950,6 +952,12 @@ x_wm_set_size_hint (f, flags, user_position)
     size_hints.win_gravity = GDK_GRAVITY_SOUTH_EAST;
   else if (win_gravity == StaticGravity)
     size_hints.win_gravity = GDK_GRAVITY_STATIC;
+
+  if (user_position)
+    {
+      hint_flags &= ~GDK_HINT_POS;
+      hint_flags |= GDK_HINT_USER_POS;
+    }
 
   if (hint_flags != f->output_data.x->hint_flags
       || memcmp (&size_hints,
