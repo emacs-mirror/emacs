@@ -1,3 +1,21 @@
+2010-04-18  Juri Linkov  <juri@jurta.org>
+
+	Add 7z archive format support (bug#5475).
+
+	* arc-mode.el (archive-zip-extract): Try to find 7z executable.
+	(archive-7z-extract): New defcustom.
+	(archive-find-type): Add magic string for 7z.
+	(archive-extract-by-stdout): Add new optional arg `stderr-file'.
+	If `stderr-file' is non-nil, use `(t stderr-file)' for the
+	`buffer' arg of `call-process'.
+	(archive-zip-extract): Check `archive-zip-extract' for "7z" and
+	call the function `archive-7z-extract' with the variable
+	`archive-7z-extract' let-bound to `archive-zip-extract'.
+	(archive-7z-summarize, archive-7z-extract): New functions.
+
+	* international/mule.el (auto-coding-alist):
+	* files.el (auto-mode-alist): Add 7z file extension.
+
 2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loadup.el: Setup hash-cons for pure data.
