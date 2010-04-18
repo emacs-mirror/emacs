@@ -42,7 +42,7 @@
 ;; done on messages encoded in these formats.  The terminology chosen
 ;; reflect this.
 ;;
-;; The home of this file is in Gnus CVS, but also available from
+;; The home of this file is in Gnus, but also available from
 ;; http://josefsson.org/smime.html.
 
 ;;; Quick introduction:

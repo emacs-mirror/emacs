@@ -27096,6 +27096,10 @@ Gnus 5.10 on May 1st 2003 (24 releases).
 
 On the January 4th 2004, No Gnus was begun.
 
+On April 19, 2010 Gnus development was moved to Git.  See
+http://git.gnus.org for details (http://www.gnus.org will be updated
+with the information when possible).
+
 If you happen upon a version of Gnus that has a prefixed name --
 ``(ding) Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'',
 ``Pterodactyl Gnus'', ``Oort Gnus'', ``No Gnus'' -- don't panic.
@@ -28492,7 +28496,7 @@ directory is not used any more.  You can safely delete the entire
 hierarchy.
 
 @c FIXME: `gnus-load' is mentioned in README, which is not included in
-@c CVS.  We should find a better place for this item.
+@c the repository.  We should find a better place for this item.
 @item
 @code{(require 'gnus-load)}
 
