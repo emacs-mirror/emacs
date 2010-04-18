@@ -1,3 +1,24 @@
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Don't
+	destroy list before using it.
+
+2010-04-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix the version number for added files.
+	* vc-hg.el (vc-hg-working-revision): Check if the file is
+	registered after hg parent fails (Bug#5961).
+
+2010-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* htmlfontify.el (htmlfontify-buffer)
+	(htmlfontify-copy-and-link-dir): Autoload entry points.
+
+2010-04-17  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* vc-hg.el (vc-hg-annotate-extract-revision-at-line): Expand file
+	name relative to the project root (Bug#5960).
+
 2010-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* vc-git.el (vc-git-print-log): Doc fix.

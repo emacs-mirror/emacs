@@ -1790,6 +1790,7 @@ FILE, if set, is the file name."
     (when font-lock-defaults
       (font-lock-fontify-buffer)) ))
 
+;;;###autoload
 (defun htmlfontify-buffer (&optional srcdir file)
   "Create a new buffer, named for the current buffer + a .html extension,
 containing an inline CSS-stylesheet and formatted CSS-markup HTML
@@ -2276,6 +2277,7 @@ See also `hfy-load-tags-cache'."
     (save-buffer)
     (kill-buffer B)))
 
+;;;###autoload
 (defun htmlfontify-copy-and-link-dir (srcdir dstdir &optional f-ext l-ext)
   "Trawl SRCDIR and write fontified-and-hyperlinked output in DSTDIR.
 F-EXT and L-EXT specify values for `hfy-extn' and `hfy-link-extn'.\n

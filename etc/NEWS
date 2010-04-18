@@ -37,8 +37,10 @@ This might not work on all platforms.
 ** `make install' now consistently ignores umask, creating a
 world-readable install.
 
++++
 ** Emacs compiles with Gconf support, if it is detected.
 Use the configure option --without-gconf to disable this.
+This is used by the `font-use-system-font' feature (see below).
 
 * Startup Changes in Emacs 23.2
 +++
@@ -440,6 +442,7 @@ System (CLOS).  It is used by the other CEDET packages.
 +++
 ** js.el is a new major mode for JavaScript files.
 
+---
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
 
 
