@@ -1,3 +1,7 @@
+2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cvs-status.el (cvs-refontify): Remove unused.
+
 2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.el (calc-mode-map): Bind "O" to `calc-missing-key'.
