@@ -1,3 +1,11 @@
+2010-04-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Gnus Versions, Oort Gnus): Mention the Git repo instead of
+	the CVS repo.  Put the Git repo in the news section.
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Fixed title typo.
+	Removed some mentions of CVS.  Mention the new Git repo.
+
 2010-04-15  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* gnus.texi (Score File Format): Fix typo.  Reported by Štěpán Němec.

@@ -1,3 +1,11 @@
+2010-04-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* smime.el: Don't mention CVS.
+
+	* nnrss.el (nnrss-fetch): Don't mention CVS.
+
+	* nnir.el: Don't mention CVS.
+
 2010-04-01  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use buffer-file-coding-system
