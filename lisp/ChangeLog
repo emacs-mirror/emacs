@@ -1,5 +1,15 @@
 2010-04-18  Juri Linkov  <juri@jurta.org>
 
+	Test for special mode-class in view-buffer instead of view-file (bug#5513).
+
+	* view.el (view-file, view-buffer): Move test for special mode-class
+	from view-file to view-buffer.
+
+	* tar-mode.el (tar-extract): Turn if's into one cond
+	like in arc-mode.el.
+
+2010-04-18  Juri Linkov  <juri@jurta.org>
+
 	Add 7z archive format support (bug#5475).
 
 	* arc-mode.el (archive-zip-extract): Try to find 7z executable.

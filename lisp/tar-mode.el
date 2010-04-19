@@ -852,14 +852,12 @@ appear on disk when you save the tar-file's buffer."
           (set (make-local-variable 'tar-superior-descriptor) descriptor)
           (setq buffer-read-only read-only-p)
           (tar-subfile-mode 1)))
-      (if view-p
-	  (view-buffer
-	   buffer (and just-created 'kill-buffer-if-not-modified))
-	(if (eq other-window-p 'display)
-	    (display-buffer buffer)
-	  (if other-window-p
-	      (switch-to-buffer-other-window buffer)
-	    (switch-to-buffer buffer)))))))
+      (cond
+       (view-p
+	(view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
+       ((eq other-window-p 'display) (display-buffer buffer))
+       (other-window-p (switch-to-buffer-other-window buffer))
+       (t (switch-to-buffer buffer))))))
 
 
 (defun tar-extract-other-window ()

@@ -1062,8 +1062,8 @@ using `make-temp-file', and the generated name is returned."
 	(archive-maybe-update t))
       (or (not (buffer-name buffer))
           (cond
-           (view-p (view-buffer
-		    buffer (and just-created 'kill-buffer-if-not-modified)))
+           (view-p
+	    (view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
            (t (switch-to-buffer buffer))))))
