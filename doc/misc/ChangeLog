@@ -1,3 +1,10 @@
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ede.texi (EDE Mode): Refer to init file rather than `.emacs'.  Note
+	that Development menu is always available.
+	(Creating a project): Fix terminology.
+	(Add/Remove files): Fix typo.
+
 2010-04-17  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Gnus Versions, Oort Gnus): Mention the Git repo instead of
