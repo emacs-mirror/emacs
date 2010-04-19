@@ -1,3 +1,10 @@
+2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el: Use standard *vc* and *vc-diff* buffers.
+	(vc-bzr-shelve-show, vc-bzr-shelve-apply)
+	(vc-bzr-shelve-apply-and-keep, vc-bzr-shelve-snapshot):
+	Don't use *vc-bzr-shelve*.
+
 2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables):
