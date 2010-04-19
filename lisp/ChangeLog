@@ -102,7 +102,7 @@
 
 2010-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Make tmm-menubar work for the Buffers menu again.
+	Make tmm-menubar work for the Buffers menu again (bug#5726).
 	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
 	vectors rather than cons cells, as used in menu-bar-update-buffers.
 
