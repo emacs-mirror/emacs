@@ -1,3 +1,7 @@
+2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.c (Ffile_attributes): Fix typo in docstring.
+
 2010-04-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsmenu.m (EmacsDialog-runDialogAt:): Declare ret as
