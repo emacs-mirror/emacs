@@ -402,14 +402,17 @@ pattern \"foo*bar*\".")
      "Completion of multiple words, each one taken as a prefix.
 I.e. when completing \"l-co_h\" (where _ is the position of point),
 it will consider all completions candidates matching the glob
-    (substring
-     completion-substring-try-completion completion-substring-all-completions
-     "Completion of the string taken as a substring.")
 pattern \"l*-co*h*\".
 Furthermore, for completions that are done step by step in subfields,
 the method is applied to all the preceding fields that do not yet match.
 E.g. C-x C-f /u/mo/s TAB could complete to /usr/monnier/src.
 Additionally the user can use the char \"*\" as a glob pattern.")
+    (substring
+     completion-substring-try-completion completion-substring-all-completions
+     "Completion of the string taken as a substring.
+I.e. when completing \"foo_bar\" (where _ is the position of point),
+it will consider all completions candidates matching the glob
+pattern \"*foo*bar*\".")
     (initials
      completion-initials-try-completion completion-initials-all-completions
      "Completion of acronyms and initialisms.
