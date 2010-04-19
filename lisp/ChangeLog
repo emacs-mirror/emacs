@@ -1,5 +1,9 @@
 2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tmm.el (tmm-prompt): Remove obsolete call to x-popup-menu.
+	(tmm-get-keymap): Add key-binding shortcuts now that they're not
+	available in the "keyseq cache" any more.
+
 	* custom.el (defcustom): Add edebug spec.
 
 2010-04-18  Juri Linkov  <juri@jurta.org>
