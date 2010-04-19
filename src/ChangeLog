@@ -1,3 +1,10 @@
+2010-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type, bidi_get_category)
+	(bidi_at_paragraph_end, bidi_resolve_weak, bidi_resolve_neutral)
+	(bidi_type_of_next_char, bidi_level_of_next_char): Declare
+	static.  Use `INLINE' rather than `inline'.
+
 2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dired.c (Ffile_attributes): Fix typo in docstring.
