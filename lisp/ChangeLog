@@ -1,5 +1,10 @@
 2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/mule.el: Help the user choose a valid coding-system.
+	(read-buffer-file-coding-system): New function.
+	(set-buffer-file-coding-system): Use it.  Prompt the user if the
+	coding-system cannot encode all the chars.
+
 	* vc-bzr.el: Use standard *vc* and *vc-diff* buffers.
 	(vc-bzr-shelve-show, vc-bzr-shelve-apply)
 	(vc-bzr-shelve-apply-and-keep, vc-bzr-shelve-snapshot):
