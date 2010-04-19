@@ -1,5 +1,7 @@
 2010-04-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit (xsubchartable): New command.
+
 	* xdisp.c (display_line): Don't write beyond the last glyph row in
 	the desired matrix.  Fixes a crash in "emacs -nw", see
 	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00075.html
