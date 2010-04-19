@@ -1,3 +1,80 @@
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables):
+	Don't destroy list before using it.
+
+2010-04-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix the version number for added files.
+	* vc-hg.el (vc-hg-working-revision): Check if the file is
+	registered after hg parent fails (Bug#5961).
+
+2010-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* htmlfontify.el (htmlfontify-buffer)
+	(htmlfontify-copy-and-link-dir): Autoload entry points.
+
+2010-04-19  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* vc-hg.el (vc-hg-annotate-extract-revision-at-line): Expand file
+	name relative to the project root (Bug#5960).
+
+2010-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc-git.el (vc-git-print-log): Doc fix.
+
+2010-04-19  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* ido.el (ido-file-internal): Fix 2009-12-02 change.
+
+2010-04-19  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
+	default settings (Bug#5928).
+
+2010-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-match-and-skip-declaration):
+	New function.
+	(fortran-font-lock-keywords-3): Use it.  (Bug#1385)
+
+2010-04-19  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (malayalam-composable-pattern): Fix previous
+	change (add U+0D4D "SIGN VIRAMA").
+	(oriya-composable-pattern): Add U+0B30 and fix typo in the regexp.
+	(tamil-composable-pattern): Fix typo in the regexp.
+	(telugu-composable-pattern): Fix U+0C4D and typo in the regexp.
+	(kannada-composable-pattern): Fix U+0CB0 and typo in the regexp.
+	(malayalam-composable-pattern): Fix U+0D4D and typo in the regexp.
+
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (latex-mode): Revert 2008-03-03 change to
+	paragraph-separate (Bug#5821).
+
+2010-04-19  Juri Linkov  <juri@jurta.org>
+
+	Put breadcrumbs on overlay instead of inserting to buffer (bug#5809).
+
+	* info.el (Info-find-node-2): Comment out code that skips
+	breadcrumbs line.
+	(Info-mouse-follow-link): New command.
+	(Info-link-keymap): New keymap.
+	(Info-breadcrumbs): Rename from `Info-insert-breadcrumbs'.
+	Return a string with links instead of inserting breadcrumbs
+	to the Info buffer.
+	(Info-fontify-node): Comment out code that inserts breadcrumbs.
+	Instead of putting the `invisible' text property over the Info
+	header, make an overlay over the Info header with the `invisible'
+	property and `after-string' set to the string returned by
+	`Info-breadcrumbs'.
+
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-window-setup-finish): Doc fix (Bug#5830).
+	Reported by monkey@sandpframing.com.
+
 2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tmm.el (tmm-prompt): Remove obsolete call to x-popup-menu.
@@ -359,32 +436,31 @@
 
 2010-04-07  Michael McNamara  <mac@mail.brushroad.com>
 
-        * progmodes/verilog-mode.el (verilog-forward-sexp):
+	* progmodes/verilog-mode.el (verilog-forward-sexp):
 	(verilog-calc-1): Support "disable fork" and "fork wait" multi
 	word keywords, suggested by Steve Pearlmutter.
-        (verilog-pretty-declarations): Support lineup of declarations in
+	(verilog-pretty-declarations): Support lineup of declarations in
 	port lists.
-        (verilog-skip-backward-comments, verilog-skip-forward-comment-p):
-        fix bug for /* / comments
-        (verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
+	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
+	fix bug for /* / comments
+	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
 	Speed up and simplfy as this is never called with a bound.
-        (verilog-pretty-declarations): Enhance to line up declarations
-        inside a parameter list, suggested by Alan Morgan.
-        (verilog-pretty-expr): Tune assignment regular expression match
-        string for corner cases; also use markers instead of character
-        number as indent changes the later.
+	(verilog-pretty-declarations): Enhance to line up declarations
+	inside a parameter list, suggested by Alan Morgan.
+	(verilog-pretty-expr): Tune assignment regular expression match
+	string for corner cases; also use markers instead of character
+	number as indent changes the later.
 
 2010-04-07  Wilson Snyder  <wsnyder@wsnyder.org>
 
-        * progmodes/verilog-mode.el (verilog-type-keywords): Fix pulldown as missing
-        keyword.
-        (verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
-        causing truncation of AUTOWIRE signals.  Reported by Bruce
-        Tennant.
-        (verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
-        AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
-        Tennant.
-        (verilog-keywords):
+	* progmodes/verilog-mode.el (verilog-type-keywords): Fix pulldown
+	as missing keyword.
+	(verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
+	causing truncation of AUTOWIRE signals.  Reported by Bruce Tennant.
+	(verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
+	AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
+	Tennant.
+	(verilog-keywords):
 	(verilog-1800-2005-keywords, verilog-1800-2009-keywords): Add IEEE
 	1800-2009 keywords, including "global.".
 
@@ -547,7 +623,7 @@
 
 2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Make tmm-menubar work for the Buffers menu again.
+	Make tmm-menubar work for the Buffers menu again (bug#5726).
 	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
 	vectors rather than cons cells, as used in menu-bar-update-buffers.
 
@@ -1271,11 +1347,6 @@
 	* calendar/cal-hebrew.el (holiday-hebrew-passover): Fix date
 	of Yom HaAtzma'ut when it falls on a Monday (rule changed in 2004).
 
-2010-03-01  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-remove-stale-state-cache):
-	Correct previous patch.
-
 2010-03-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/burmese.el (burmese-composable-pattern): Rename from
@@ -1286,11 +1357,6 @@
 	Change myanmar to burmese.
 	(otf-script-alist): Likewise.
 	(setup-default-fontset): Likewise.  Re-fix :otf spec.
-
-2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
-
-	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
 
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1356,16 +1422,6 @@
 
 	* mail/sendmail.el (send-mail-function): Autoload the call
 	to custom-initialize-delay, not otherwise preserved in loaddefs.el.
-
-2010-02-25  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-clear-<-pair-props)
-	(c-clear->-pair-props): Correct to wipe category text props, not
-	syntax-table ones.
-
-	* progmodes/cc-mode.el (c-after-change): Remove any hard
-	syntax-table properties for <, > which, e.g., C-y has
-	inopportunely converted from category properties.
 
 2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1703,33 +1759,6 @@
 	(doc-view-already-converted-p): Check that resolution.el is present.
 	(doc-view-pdf->png): Don't rely on doc-view-pdf/ps->png for the few
 	windows that are not yet showing images.
-
-2010-02-04  Alan Mackenzie  <acm@muc.de>
-
-	Change strategy for marking < and > as template delimiters: mark
-	them strictly in matching pairs.
-
-	* cc-mode.el (c-before-change):
-	Use c-get-state-before-change-functions.
-	(c-common-init): Adapt to use
-	c-get-state-before-change-functions (note plural).
-
-	* cc-langs.el (c-no-parens-syntax-table): New syntax table, used
-	for searching syntactically for matching <s and >s.
-	(c-get-state-before-change-functions): New language variable (note
-	the plural) which supersedes c-get-state-before-change-function.
-
-	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
-	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
-	(c-clear->-pair-props-if-match-before)
-	(c-before-change-check-<>-operators): New functions.
-	(c-after-change-check-<>-operators): Use macro
-	c-unmark-<->-as-paren.
-
-	* cc-defs.el (c-search-backward-char-property): New macro.
-
-	* cc-cmds.el (c-electric-lt-gt): Do not set text properties on <
-	and > any more.  (These will be handled by font locking.)
 
 2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
 

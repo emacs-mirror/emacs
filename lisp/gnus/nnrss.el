@@ -427,7 +427,7 @@ otherwise return nil."
 (defun nnrss-fetch (url &optional local)
   "Fetch URL and put it in a the expected Lisp structure."
   (mm-with-unibyte-buffer
-    ;;some CVS versions of url.el need this to close the connection quickly
+    ;;some versions of url.el need this to close the connection quickly
     (let (cs xmlform htmlform)
       ;; bit o' work necessary for w3 pre-cvs and post-cvs
       (if local

@@ -403,6 +403,28 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
            '("^ *\\([0-9]+\\)" . font-lock-constant-face)))
   "Medium level highlighting for Fortran mode.")
 
+;; See bug#1385. Never really looked into _why_ this matters...
+(defun fortran-match-and-skip-declaration (limit)
+  "Like `font-lock-match-c-style-declaration-item-and-skip-to-next'.
+The only difference is, it returns t in a case when the default returns nil."
+  (when (looking-at "[ \n\t*]*\\(\\sw+\\)[ \t\n]*\\(((?\\)?")
+    (when (and (match-end 2) (> (- (match-end 2) (match-beginning 2)) 1))
+      (let ((pos (point)))
+	(skip-chars-backward " \t\n")
+	(skip-syntax-backward "w")
+	(unless (looking-at "\\(\\sw+\\)[ \t\n]*\\sw+[ \t\n]*\\(((?\\)?")
+	  (goto-char pos)
+	  (looking-at "[ \n\t*]*\\(\\sw+\\)[ \t\n]*\\(((?\\)?"))))
+    (save-match-data
+      (condition-case nil
+	  (save-restriction
+	    (narrow-to-region (point-min) limit)
+	    (goto-char (match-end 1))
+	    (while (not (looking-at "[ \t\n]*\\(\\(,\\)\\|;\\|\\'\\)"))
+	      (goto-char (or (scan-sexps (point) 1) (point-max))))
+            (goto-char (match-end 2)))
+	(error t)))))
+
 (defvar fortran-font-lock-keywords-3
   (append
    fortran-font-lock-keywords-1
@@ -412,7 +434,7 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
           ;; Type specifier.
           '(1 font-lock-type-face)
           ;; Declaration item (or just /.../ block name).
-          `(font-lock-match-c-style-declaration-item-and-skip-to-next
+          `(fortran-match-and-skip-declaration
             ;; Start after any *(...) expression.
             (condition-case nil
                 (and (match-beginning ,(1+ (regexp-opt-depth

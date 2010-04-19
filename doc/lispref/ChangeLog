@@ -1,3 +1,17 @@
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	Fix @deffn without category.
+
+	* abbrevs.texi (Abbrev Expansion): Replace @deffn with @defun
+	for `abbrev-insert'.
+
+	* buffers.texi (Indirect Buffers): Add category `Command'
+	to @deffn of `clone-indirect-buffer'.
+
+	* windows.texi (Cyclic Window Ordering): Replace @deffn with @defun
+	for `next-window' and `previous-window'.  Add category `Command'
+	to @deffn of `pop-to-buffer'.
+
 2010-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nonascii.texi (Text Representations): Don't mark

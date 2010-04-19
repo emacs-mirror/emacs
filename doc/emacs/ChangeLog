@@ -1,3 +1,42 @@
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* programs.texi (Semantic): New node.
+
+	* maintaining.texi (EDE): New node.
+
+	* emacs.texi: Update node listing.
+
+	* misc.texi (Gnus): Use the `C-h i' keybinding for info.
+
+2010-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Acknowledgments): Remove duplicate.
+
+	* maintaining.texi (VC Directory Commands): Mention stashes and shelves.
+
+2010-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Misc Dired Features): Mention VC diff and log.
+	* maintaining.texi (Old Revisions, VC Change Log):
+	Mention that diff and log work in Dired buffers.
+
+	* help.texi (Help Summary): Mention M-x info-finder.
+
+	* ack.texi (Acknowledgments): Add mpc.el.
+
+	* custom.texi (Specifying File Variables, Directory Variables):
+	Document new commands for manipulating local variable lists.
+
+2010-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Contributing): Add cindex entry.
+	Mention etc/CONTRIBUTE.
+
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Persistent Mark): Copyedits.  Replace undo example with
+	query-replace (Bug#5774).
+
 2010-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi, emacs.texi (Acknowledgments): Update for Org changes.
