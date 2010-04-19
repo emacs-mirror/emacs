@@ -17808,10 +17808,12 @@ display_line (it)
   it->current_y += row->height;
   ++it->vpos;
   ++it->glyph_row;
-  /* The next row should use same value of the reversed_p flag as this
-     one.  set_iterator_to_next decides when it's a new paragraph, and
-     PRODUCE_GLYPHS recomputes the value of the flag accordingly.  */
-  it->glyph_row->reversed_p = row->reversed_p;
+  /* The next row should by default use the same value of the
+     reversed_p flag as this one.  set_iterator_to_next decides when
+     it's a new paragraph, and PRODUCE_GLYPHS recomputes the value of
+     the flag accordingly.  */
+  if (it->glyph_row < MATRIX_BOTTOM_TEXT_ROW (it->w->desired_matrix, it->w))
+    it->glyph_row->reversed_p = row->reversed_p;
   it->start = row_end;
   return row->displays_text_p;
 }
