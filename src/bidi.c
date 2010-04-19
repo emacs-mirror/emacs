@@ -23,7 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    as per UAX#9, a part of the Unicode Standard.
 
    Unlike the reference and most other implementations, this one is
-   designed to be called once for every character in the buffer.
+   designed to be called once for every character in the buffer or
+   string.
 
    The main entry point is bidi_get_next_char_visually.  Each time it
    is called, it finds the next character in the visual order, and
@@ -33,6 +34,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    character.  See the comments in bidi_get_next_char_visually for
    more details about its algorithm that finds the next visual-order
    character by resolving their levels on the fly.
+
+   The two other entry points are bidi_paragraph_init and
+   bidi_mirror_char.  The first determines the base direction of a
+   paragraph, while the second returns the mirrored version of its
+   argument character.
 
    If you want to understand the code, you will have to read it
    together with the relevant portions of UAX#9.  The comments include
