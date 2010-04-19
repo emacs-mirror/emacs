@@ -80,7 +80,39 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    You will find a lot of redisplay optimizations when you start
    looking at the innards of redisplay.  The overall goal of all these
    optimizations is to make redisplay fast because it is done
-   frequently.
+   frequently.  Some of these optimizations are implemented by the
+   following functions:
+
+    . try_cursor_movement
+
+      This function tries to update the display if the text in the
+      window did not change and did not scroll, only point moved, and
+      it did not move off the displayed portion of the text.
+
+    . try_window_reusing_current_matrix
+
+      This function reuses the current matrix of a window when text
+      has not changed, but the window start changed (e.g., due to
+      scrolling).
+
+    . try_window_id
+
+      This function attempts to redisplay a window by reusing parts of
+      its existing display.  It finds and reuses the part that was not
+      changed, and redraws the rest.
+
+    . try_window
+
+      This function performs the full redisplay of a single window
+      assuming that its fonts were not changed and that the cursor
+      will not end up in the scroll margins.  (Loading fonts requires
+      re-adjustment of dimensions of glyph matrices, which makes this
+      method impossible to use.)
+
+   These optimizations are tried in sequence (some can be skipped if
+   it is known that they are not applicable).  If none of the
+   optimizations were successful, redisplay calls redisplay_windows,
+   which performs a full redisplay of all windows.
 
    Desired matrices.
 
@@ -112,13 +144,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    see in dispextern.h.
 
    Glyphs in a desired matrix are normally constructed in a loop
-   calling get_next_display_element and then produce_glyphs.  The call
-   to produce_glyphs will fill the iterator structure with pixel
+   calling get_next_display_element and then PRODUCE_GLYPHS.  The call
+   to PRODUCE_GLYPHS will fill the iterator structure with pixel
    information about the element being displayed and at the same time
    produce glyphs for it.  If the display element fits on the line
    being displayed, set_iterator_to_next is called next, otherwise the
-   glyphs produced are discarded.
-
+   glyphs produced are discarded.  The function display_line is the
+   workhorse of filling glyph rows in the desired matrix with glyphs.
+   In addition to producing glyphs, it also handles line truncation
+   and continuation, word wrap, and cursor positioning (for the
+   latter, see also set_cursor_from_row).
 
    Frame matrices.
 
@@ -139,7 +174,50 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    wanted to have without having to move many bytes around.  To be
    honest, there is a little bit more done, but not much more.  If you
    plan to extend that code, take a look at dispnew.c.  The function
-   build_frame_matrix is a good starting point.  */
+   build_frame_matrix is a good starting point.
+
+   Bidirectional display.
+
+   Bidirectional display adds quite some hair to this already complex
+   design.  The good news are that a large portion of that hairy stuff
+   is hidden in bidi.c behind only 3 interfaces.  bidi.c implements a
+   reordering engine which is called by set_iterator_to_next and
+   returns the next character to display in the visual order.  See
+   commentary on bidi.c for more details.  As far as redisplay is
+   concerned, the effect of calling bidi_get_next_char_visually, the
+   main interface of the reordering engine, is that the iterator gets
+   magically placed on the buffer or string position that is to be
+   displayed next.  In other words, a linear iteration through the
+   buffer/string is replaced with a non-linear one.  All the rest of
+   the redisplay is oblivious to the bidi reordering.
+
+   Well, almost oblivious---there are still complications, most of
+   them due to the fact that buffer and string positions no longer
+   change monotonously with glyph indices in a glyph row.  Moreover,
+   for continued lines, the buffer positions may not even be
+   monotonously changing with vertical positions.  Also, accounting
+   for face changes, overlays, etc. becomes more complex because
+   non-linear iteration could potentially skip many positions with
+   changes, and then cross them again on the way back...
+
+   One other prominent effect of bidirectional display is that some
+   paragraphs of text need to be displayed starting at the right
+   margin of the window---the so-called right-to-left, or R2L
+   paragraphs.  R2L paragraphs are displayed with R2L glyph rows,
+   which have their reversed_p flag set.  The bidi reordering engine
+   produces characters in such rows starting from the character which
+   should be the rightmost on display.  PRODUCE_GLYPHS then reverses
+   the order, when it fills up the glyph row whose reversed_p flag is
+   set, by prepending each new glyph to what is already there, instead
+   of appending it.  When the glyph row is complete, the function
+   extend_face_to_end_of_line fills the empty space to the left of the
+   leftmost character with special glyphs, which will display as,
+   well, empty.  On text terminals, these special glyphs are simply
+   blank characters.  On graphics terminals, there's a single stretch
+   glyph with suitably computed width.  Both the blanks and the
+   stretch glyph are given the face of the background of the line.
+   This way, the terminal-specific back-end can still draw the glyphs
+   left to right, even for R2L lines.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -17808,10 +17886,12 @@ display_line (it)
   it->current_y += row->height;
   ++it->vpos;
   ++it->glyph_row;
-  /* The next row should use same value of the reversed_p flag as this
-     one.  set_iterator_to_next decides when it's a new paragraph, and
-     PRODUCE_GLYPHS recomputes the value of the flag accordingly.  */
-  it->glyph_row->reversed_p = row->reversed_p;
+  /* The next row should by default use the same value of the
+     reversed_p flag as this one.  set_iterator_to_next decides when
+     it's a new paragraph, and PRODUCE_GLYPHS recomputes the value of
+     the flag accordingly.  */
+  if (it->glyph_row < MATRIX_BOTTOM_TEXT_ROW (it->w->desired_matrix, it->w))
+    it->glyph_row->reversed_p = row->reversed_p;
   it->start = row_end;
   return row->displays_text_p;
 }

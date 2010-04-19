@@ -1,3 +1,7 @@
+2010-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* quail/vntelex.el: Fix "af" rule (Bug#5836).
+
 2010-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(TIT), $(MISC_DIC), leim-list.el): Enclose the

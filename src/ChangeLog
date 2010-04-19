@@ -1,3 +1,51 @@
+2010-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type, bidi_get_category)
+	(bidi_at_paragraph_end, bidi_resolve_weak, bidi_resolve_neutral)
+	(bidi_type_of_next_char, bidi_level_of_next_char): Declare
+	static.  Use `INLINE' rather than `inline'.
+
+2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.c (Ffile_attributes): Fix typo in docstring.
+
+2010-04-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsmenu.m (EmacsDialog-runDialogAt:): Declare ret as
+	NSInteger (Bug#5811).
+
+2010-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* s/darwin.h (PTY_ITERATION, PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF)
+	(PTY_OPEN): New defines.  Use openpty (Bug#726, Bug#5819).
+
+2010-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.h (FRAME_LINE_TO_PIXEL_Y): Add missing parenthesis.
+
+2010-04-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use
+	FRAME_LINE_TO_PIXEL_Y.
+
+	* xterm.c (x_set_window_size_1): Don't add border_width/height to
+	pixelwidth/height.
+
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
+	terminal frames (Bug#5837).
+
+2010-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (xsubchartable): New command.
+
+	* xdisp.c (display_line): Don't write beyond the last glyph row in
+	the desired matrix.  Fixes a crash in "emacs -nw" (bug#5972), see
+	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00075.html
+	and
+	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00213.html
+
 2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (Fpurecopy): Hash-cons if requested.

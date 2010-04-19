@@ -23,7 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    as per UAX#9, a part of the Unicode Standard.
 
    Unlike the reference and most other implementations, this one is
-   designed to be called once for every character in the buffer.
+   designed to be called once for every character in the buffer or
+   string.
 
    The main entry point is bidi_get_next_char_visually.  Each time it
    is called, it finds the next character in the visual order, and
@@ -33,6 +34,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    character.  See the comments in bidi_get_next_char_visually for
    more details about its algorithm that finds the next visual-order
    character by resolving their levels on the fly.
+
+   The two other entry points are bidi_paragraph_init and
+   bidi_mirror_char.  The first determines the base direction of a
+   paragraph, while the second returns the mirrored version of its
+   argument character.
 
    If you want to understand the code, you will have to read it
    together with the relevant portions of UAX#9.  The comments include
@@ -412,7 +418,7 @@ bidi_initialize ()
 
 /* Return the bidi type of a character CH, subject to the current
    directional OVERRIDE.  */
-bidi_type_t
+static INLINE bidi_type_t
 bidi_get_type (int ch, bidi_dir_t override)
 {
   bidi_type_t default_type;
@@ -463,7 +469,7 @@ bidi_check_type (bidi_type_t type)
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
-bidi_category_t
+static INLINE bidi_category_t
 bidi_get_category (bidi_type_t type)
 {
   switch (type)
@@ -520,7 +526,7 @@ bidi_mirror_char (int c)
 
 /* Copy the bidi iterator from FROM to TO.  To save cycles, this only
    copies the part of the level stack that is actually in use.  */
-static inline void
+static INLINE void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
   int i;
@@ -540,14 +546,14 @@ static struct bidi_it bidi_cache[1000]; /* FIXME: make this dynamically allocate
 static int bidi_cache_idx;
 static int bidi_cache_last_idx;
 
-static inline void
+static INLINE void
 bidi_cache_reset (void)
 {
   bidi_cache_idx = 0;
   bidi_cache_last_idx = -1;
 }
 
-static inline void
+static INLINE void
 bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
@@ -564,7 +570,7 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static inline int
+static INLINE int
 bidi_cache_search (int charpos, int level, int dir)
 {
   int i, i_start;
@@ -655,7 +661,7 @@ bidi_cache_find_level_change (int level, int dir, int before)
   return -1;
 }
 
-static inline void
+static INLINE void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 {
   int idx;
@@ -710,7 +716,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
     bidi_cache_idx = idx + 1;
 }
 
-static inline bidi_type_t
+static INLINE bidi_type_t
 bidi_cache_find (int charpos, int level, struct bidi_it *bidi_it)
 {
   int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
@@ -730,7 +736,7 @@ bidi_cache_find (int charpos, int level, struct bidi_it *bidi_it)
   return UNKNOWN_BT;
 }
 
-static inline int
+static INLINE int
 bidi_peek_at_next_level (struct bidi_it *bidi_it)
 {
   if (bidi_cache_idx == 0 || bidi_cache_last_idx == -1)
@@ -743,7 +749,7 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
    following the buffer position, -1 if position is at the beginning
    of a new paragraph, or -2 if position is neither at beginning nor
    at end of a paragraph.  */
-EMACS_INT
+static EMACS_INT
 bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
   Lisp_Object sep_re = Fbuffer_local_value (Qparagraph_separate,
@@ -773,7 +779,7 @@ bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
    embedding levels on either side of the run boundary.  Also, update
    the saved info about previously seen characters, since that info is
    generally valid for a single level run.  */
-static inline void
+static INLINE void
 bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
   int higher_level = level_before > level_after ? level_before : level_after;
@@ -954,7 +960,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 
 /* Do whatever UAX#9 clause X8 says should be done at paragraph's
    end.  */
-static inline void
+static INLINE void
 bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
   bidi_it->invalid_levels = 0;
@@ -996,7 +1002,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
 
 /* Push the current embedding level and override status; reset the
    current level to LEVEL and the current override status to OVERRIDE.  */
-static inline void
+static INLINE void
 bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
@@ -1009,7 +1015,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 
 /* Pop the embedding level and directional override status from the
    stack, and return the new level.  */
-static inline int
+static INLINE int
 bidi_pop_embedding_level (struct bidi_it *bidi_it)
 {
   /* UAX#9 says to ignore invalid PDFs.  */
@@ -1019,7 +1025,7 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 }
 
 /* Record in SAVED_INFO the information about the current character.  */
-static inline void
+static INLINE void
 bidi_remember_char (struct bidi_saved_info *saved_info,
 		    struct bidi_it *bidi_it)
 {
@@ -1035,7 +1041,7 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
 
 /* Resolve the type of a neutral character according to the type of
    surrounding strong text and the current embedding level.  */
-static inline bidi_type_t
+static INLINE bidi_type_t
 bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 {
   /* N1: European and Arabic numbers are treated as though they were R.  */
@@ -1052,7 +1058,7 @@ bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
     return STRONG_R;
 }
 
-static inline int
+static INLINE int
 bidi_explicit_dir_char (int c)
 {
   /* FIXME: this should be replaced with a lookup table with suitable
@@ -1302,7 +1308,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 
 /* Advance in the buffer, resolve weak types and return the type of
    the next character after weak type resolution.  */
-bidi_type_t
+static bidi_type_t
 bidi_resolve_weak (struct bidi_it *bidi_it)
 {
   bidi_type_t type;
@@ -1493,7 +1499,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   return type;
 }
 
-bidi_type_t
+static bidi_type_t
 bidi_resolve_neutral (struct bidi_it *bidi_it)
 {
   int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
@@ -1617,7 +1623,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 /* Given an iterator state in BIDI_IT, advance one character position
    in the buffer to the next character (in the logical order), resolve
    the bidi type of that next character, and return that type.  */
-bidi_type_t
+static bidi_type_t
 bidi_type_of_next_char (struct bidi_it *bidi_it)
 {
   bidi_type_t type;
@@ -1643,7 +1649,7 @@ bidi_type_of_next_char (struct bidi_it *bidi_it)
    the buffer to the next character (in the logical order), resolve
    the embedding and implicit levels of that next character, and
    return the resulting level.  */
-int
+static int
 bidi_level_of_next_char (struct bidi_it *bidi_it)
 {
   bidi_type_t type;

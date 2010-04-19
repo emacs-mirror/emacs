@@ -387,10 +387,10 @@ Mark}), or with shift-selection (@pxref{Shift Selection}).
 
 @findex transient-mark-mode
   To turn off Transient Mark mode, type @kbd{M-x transient-mark-mode}.
-This command toggles the mode; you can use the same command to turn
-Transient Mark mode on again.  You can also turn off Transient Mark
-mode using the menu bar: in the @samp{Options} menu, toggle the
-@samp{Active Region Highlighting} menu item.
+This command toggles the mode; you can use the same command to turn it
+on again.  You can also toggle Transient Mark mode using the
+@samp{Active Region Highlighting} menu item in the @samp{Options}
+menu.
 
   Here are the details of how Emacs behaves when Transient Mark mode
 is off:
@@ -415,13 +415,12 @@ Many commands that move point long distances, like @kbd{M-<} and
 @kbd{C-s}, first set the mark where point was.
 
 @item
-Some commands, which ordinarily operate on the region when the mark is
-active, instead act on the entire buffer.  For instance, @kbd{C-x u}
-normally reverses changes within the region if the mark is active;
-when Transient Mark mode is off, it acts on the entire buffer.
-However, you can type @kbd{C-u C-x u} to make it operate on the
-region.  @xref{Undo}.  Other commands that act this way are identified
-in their own documentation.
+Some commands, which ordinarily act on the region when the mark is
+active, no longer do so.  For example, normally @kbd{M-%}
+(@code{query-replace}) performs replacements within the region, if the
+mark is active.  When Transient Mark mode is off, it always operates
+from point to the end of the buffer.  Commands that act this way are
+identified in their own documentation.
 @end itemize
 
   While Transient Mark mode is off, you can activate it temporarily
@@ -437,9 +436,9 @@ command twice.)
 
 @item C-u C-x C-x
 @kindex C-u C-x C-x
-Activate the mark without changing it; enable Transient Mark mode just
-once, until the mark is deactivated.  (This is the @kbd{C-x C-x}
-command, @code{exchange-point-and-mark}, with a prefix argument.)
+Activate the mark and enable Transient Mark mode temporarily, until
+the mark is next deactivated.  (This is the @kbd{C-x C-x} command,
+@code{exchange-point-and-mark}, with a prefix argument.)
 @end table
 
   These commands set or activate the mark, and enable Transient Mark

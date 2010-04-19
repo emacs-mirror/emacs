@@ -889,6 +889,19 @@ Print the address of the char-table $, and its purpose.
 This command assumes that $ is an Emacs Lisp char-table value.
 end
 
+define xsubchartable
+  xgetptr $
+  print (struct Lisp_Sub_Char_Table *) $ptr
+  xgetint $->depth
+  set $depth = $int
+  xgetint $->min_char
+  printf "Depth: %d, Min char: %d (0x%x)\n", $depth, $int, $int
+end
+document xsubchartable
+Print the address of the sub-char-table $, its depth and min-char.
+This command assumes that $ is an Emacs Lisp sub-char-table value.
+end
+
 define xboolvector
   xgetptr $
   print (struct Lisp_Bool_Vector *) $ptr
