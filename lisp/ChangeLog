@@ -1,3 +1,7 @@
+2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* custom.el (defcustom): Add edebug spec.
+
 2010-04-18  Juri Linkov  <juri@jurta.org>
 
 	Test for special mode-class in view-buffer instead of view-file (bug#5513).
