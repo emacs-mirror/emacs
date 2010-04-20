@@ -399,20 +399,18 @@ bidi_initialize ()
 			  bidi_type[i].to ? bidi_type[i].to : bidi_type[i].from,
 			  make_number (bidi_type[i].type));
 
-  fallback_paragraph_start_re =
-    XSYMBOL (Fintern_soft (build_string ("paragraph-start"), Qnil))->value;
+  Qparagraph_start = intern ("paragraph-start");
+  staticpro (&Qparagraph_start);
+  fallback_paragraph_start_re = Fsymbol_value (Qparagraph_start);
   if (!STRINGP (fallback_paragraph_start_re))
     fallback_paragraph_start_re = build_string ("\f\\|[ \t]*$");
   staticpro (&fallback_paragraph_start_re);
-  Qparagraph_start = intern ("paragraph-start");
-  staticpro (&Qparagraph_start);
-  fallback_paragraph_separate_re =
-    XSYMBOL (Fintern_soft (build_string ("paragraph-separate"), Qnil))->value;
+  Qparagraph_separate = intern ("paragraph-separate");
+  staticpro (&Qparagraph_separate);
+  fallback_paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
   if (!STRINGP (fallback_paragraph_separate_re))
     fallback_paragraph_separate_re = build_string ("[ \t\f]*$");
   staticpro (&fallback_paragraph_separate_re);
-  Qparagraph_separate = intern ("paragraph-separate");
-  staticpro (&Qparagraph_separate);
   bidi_initialized = 1;
 }
 
@@ -752,6 +750,7 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 static EMACS_INT
 bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
+  /* FIXME: Why Fbuffer_local_value rather than just Fsymbol_value?  */
   Lisp_Object sep_re = Fbuffer_local_value (Qparagraph_separate,
 					    Fcurrent_buffer ());
   Lisp_Object start_re = Fbuffer_local_value (Qparagraph_start,
@@ -830,6 +829,7 @@ bidi_line_init (struct bidi_it *bidi_it)
 static EMACS_INT
 bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
 {
+  /* FIXME: Why Fbuffer_local_value rather than just Fsymbol_value?  */
   Lisp_Object re = Fbuffer_local_value (Qparagraph_start, Fcurrent_buffer ());
   EMACS_INT limit = ZV, limit_byte = ZV_BYTE;
 
@@ -879,7 +879,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
       int ch, ch_len;
       EMACS_INT pos;
       bidi_type_t type;
-      EMACS_INT sep_len;
 
       /* If we are inside a paragraph separator, we are just waiting
 	 for the separator to be exhausted; use the previous paragraph

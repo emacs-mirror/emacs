@@ -5136,10 +5136,12 @@ w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	}
 
       if (glyph_row->exact_window_width_line_p
-	  && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
+	  && (glyph_row->reversed_p
+	      ? (w->phys_cursor.hpos < 0)
+	      : (w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])))
 	{
 	  glyph_row->cursor_in_fringe_p = 1;
-	  draw_fringe_bitmap (w, glyph_row, 0);
+	  draw_fringe_bitmap (w, glyph_row, glyph_row->reversed_p);
 	  return;
 	}
 

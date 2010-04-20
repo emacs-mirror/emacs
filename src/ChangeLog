@@ -1,9 +1,169 @@
+2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable):
+	Just signal a warning rather than an error when inside a let.
+	(Fmake_variable_frame_local): Add the same test.
+
+	* font.c (syms_of_font): Make the style table vars read-only.
+
+	* buffer.h (struct buffer): Remove unused var `direction_reversed'.
+	* buffer.c (init_buffer_once, syms_of_buffer): Remove its initialization.
+
+	* bidi.c (bidi_initialize): Simplify fallback_paragraph_*_re init.
+
+2010-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix R2L paragraph display on TTY.
+
+	* xdisp.c (unproduce_glyphs): New function.
+	(display_line): Use it when produced glyphs are discarded from R2L
+	glyph rows.
+	(append_composite_glyph): In R2L rows, prepend the glyph rather
+	than appending it.
+
+	* term.c (append_composite_glyph): In R2L rows, prepend the glyph
+	rather than append it.  Set up the resolved_level and bidi_type
+	attributes of the appended glyph.
+	(produce_special_glyphs): Mirror the backslash continuation
+	character in R2L lines.
+
+	Implement display of R2L paragraphs in GUI sessions.
+
+	* xdisp.c [HAVE_WINDOW_SYSTEM]: Add prototype for
+	append_stretch_glyph.
+	(set_cursor_from_row) <cursor_x>: Remove unused variable.  Fix
+	off-by-one error in computing x at end of text in the row.
+	(append_stretch_glyph): In reversed row, prepend the glyph rather
+	than append it.  Set resolved_level and bidi_type of the glyph.
+	(extend_face_to_end_of_line): If the row is reversed, prepend a
+	stretch glyph whose width is such that the rightmost glyph will be
+	drawn at the right margin of the window.  Fix off-by-one error on
+	TTY frames in testing whether a line needs face extension.  Fix
+	face extension at ZV.  If this is the last glyph row, use
+	DEFAULT_FACE_ID, to avoid painting the rest of the window with the
+	region face.
+	(set_cursor_from_row, display_line): Use
+	MATRIX_ROW_CONTINUATION_LINE_P instead of testing value of
+	row->continuation_lines_width.
+	(next_element_from_buffer): Don't call bidi_paragraph_init if we
+	are at ZV.  Fixes a crash when reseated to ZV by
+	try_window_reusing_current_matrix.
+	(display_and_set_cursor, erase_phys_cursor): Handle negative HPOS,
+	which happens with R2L glyph rows.  Fixes a crash when inserting a
+	character at end of an R2L line.
+	(set_cursor_from_row): Don't be fooled by truncated rows: don't
+	treat them as having zero-width characters.  Improve comments.
+	Don't reverse pos_before and pos_after for reversed glyph rows.
+	Set cursor.x to negative value when the cursor might be on the
+	left fringe.
+	(IT_OVERFLOW_NEWLINE_INTO_FRINGE): For R2L lines, consider the
+	left fringe, not the right one.
+	(notice_overwritten_cursor, draw_phys_cursor_glyph)
+	(erase_phys_cursor): For reversed cursor_row, support cursor on
+	the left fringe.
+
+	* fringe.c (update_window_fringes): For R2L rows, swap the bitmaps
+	of continuation indicators on the fringes.
+	(draw_fringe_bitmap): For reversed glyph rows, allow cursor on the
+	left fringe.
+
+	* w32term.c (w32_draw_window_cursor): For reversed glyph rows,
+	draw cursor on the left fringe.
+
+	* xterm.c (x_draw_window_cursor): For reversed glyph rows, draw
+	cursor on the left fringe.
+
+	* dispnew.c (update_text_area): Handle reversed desired rows when
+	the cursor is on the left fringe.
+	(set_window_cursor_after_update): Limit cursor's hpos by -1 from
+	below, not by 0, for when the cursor is on the left fringe.
+
+2010-04-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_scrollbar): Check if grabbed
+	widget is a scrollbar.
+
+2010-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (char_charset): Consider Vcharset_non_preferred_head
+	only when the arg CHARSET_LIST is nil.
+
+2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make variable forwarding explicit rather the using special values.
+	Basically, this makes the structure of buffer-local values and object
+	forwarding explicit in the type of Lisp_Symbols rather than use
+	special Lisp_Objects for that.  This tends to lead to slightly more
+	verbose code, but is more C-like, simpler, and makes it easier to make
+	sure we handled all cases, among other things by letting the compiler
+	help us check it.
+	* lisp.h (enum Lisp_Misc_Type, union Lisp_Misc):
+	Removing forwarding objects.
+	(enum Lisp_Fwd_Type, enum symbol_redirect, union Lisp_Fwd): New types.
+	(struct Lisp_Symbol): Make the various forms of variable-forwarding
+	explicit rather than hiding them inside Lisp_Object "values".
+	(XFWDTYPE): New macro.
+	(XINTFWD, XBOOLFWD, XOBJFWD, XKBOARD_OBJFWD): Redefine.
+	(XBUFFER_LOCAL_VALUE): Remove.
+	(SYMBOL_VAL, SYMBOL_ALIAS, SYMBOL_BLV, SYMBOL_FWD, SET_SYMBOL_VAL)
+	(SET_SYMBOL_ALIAS, SET_SYMBOL_BLV, SET_SYMBOL_FWD): New macros.
+	(SYMBOL_VALUE, SET_SYMBOL_VALUE): Remove.
+	(struct Lisp_Intfwd, struct Lisp_Boolfwd, struct Lisp_Objfwd)
+	(struct Lisp_Buffer_Objfwd, struct Lisp_Kboard_Objfwd):
+	Remove the Lisp_Misc_* header.
+	(struct Lisp_Buffer_Local_Value): Redefine.
+	(BLV_FOUND, SET_BLV_FOUND, BLV_VALUE, SET_BLV_VALUE): New macros.
+	(struct Lisp_Misc_Any): Add filler to get the right size.
+	(struct Lisp_Free): Use struct Lisp_Misc_Any rather than struct
+	Lisp_Intfwd.
+	(DEFVAR_LISP, DEFVAR_LISP_NOPRO, DEFVAR_BOOL, DEFVAR_INT)
+	(DEFVAR_KBOARD): Allocate a forwarding object.
+	* data.c (do_blv_forwarding, store_blv_forwarding): New macros.
+	(let_shadows_global_binding_p): New function.
+	(union Lisp_Val_Fwd): New type.
+	(make_blv): New function.
+	(swap_in_symval_forwarding, indirect_variable, do_symval_forwarding)
+	(store_symval_forwarding, swap_in_global_binding, Fboundp)
+	(swap_in_symval_forwarding, find_symbol_value, Fset)
+	(let_shadows_buffer_binding_p, set_internal, default_value)
+	(Fset_default, Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fkill_local_variable, Fmake_variable_frame_local)
+	(Flocal_variable_p, Flocal_variable_if_set_p)
+	(Fvariable_binding_locus):
+	* xdisp.c (select_frame_for_redisplay):
+	* lread.c (Fintern, Funintern, init_obarray, defvar_int)
+	(defvar_bool, defvar_lisp_nopro, defvar_lisp, defvar_kboard):
+	* frame.c (store_frame_param):
+	* eval.c (Fdefvaralias, Fuser_variable_p, specbind, unbind_to):
+	* bytecode.c (Fbyte_code) <varref, varset>: Adapt to the new symbol
+	value structure.
+	* buffer.c (PER_BUFFER_SYMBOL): Move from buffer.h.
+	(clone_per_buffer_values): Only adjust markers into the current buffer.
+	(reset_buffer_local_variables): PER_BUFFER_IDX is never -2.
+	(Fbuffer_local_value, set_buffer_internal_1)
+	(swap_out_buffer_local_variables):
+	Adapt to the new symbol value structure.
+	(DEFVAR_PER_BUFFER): Allocate a Lisp_Buffer_Objfwd object.
+	(defvar_per_buffer): Take a new arg for the fwd object.
+	(buffer_lisp_local_variables): Return a proper alist (different fix
+	for bug#4138).
+	* alloc.c (Fmake_symbol): Use SET_SYMBOL_VAL.
+	(Fgarbage_collect): Don't handle buffer_defaults specially.
+	(mark_object): Handle new symbol value structure rather than the old
+	special Lisp_Misc_* objects.
+	(gc_sweep) <symbols>: Free also the buffer-local-value objects.
+	* term.c (set_tty_color_mode):
+	* bidi.c (bidi_initialize): Don't access the ->value field directly.
+	* buffer.h (PER_BUFFER_VAR_OFFSET): Don't bother with
+	a buffer_local_flags.
+	* print.c (print_object): Get rid of impossible forwarding objects.
+
 2010-04-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_get_type, bidi_get_category)
 	(bidi_at_paragraph_end, bidi_resolve_weak, bidi_resolve_neutral)
-	(bidi_type_of_next_char, bidi_level_of_next_char): Declare
-	static.  Use `INLINE' rather than `inline'.
+	(bidi_type_of_next_char, bidi_level_of_next_char):
+	Declare static.  Use `INLINE' rather than `inline'.
 
 2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -39,6 +199,8 @@
 2010-04-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (xsubchartable): New command.
+
+2010-04-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Don't write beyond the last glyph row in
 	the desired matrix.  Fixes a crash in "emacs -nw" (bug#5972), see

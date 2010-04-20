@@ -2082,8 +2082,9 @@ char_charset (c, charset_list, code_return)
 	  return charset;
 	}
       charset_list = XCDR (charset_list);
-      if (c <= MAX_UNICODE_CHAR
-	 && EQ (charset_list, Vcharset_non_preferred_head))
+      if (! maybe_null
+	  && c <= MAX_UNICODE_CHAR
+	  && EQ (charset_list, Vcharset_non_preferred_head))
 	return CHARSET_FROM_ID (charset_unicode);
     }
   return (maybe_null ? NULL

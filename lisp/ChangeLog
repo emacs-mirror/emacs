@@ -1,3 +1,15 @@
+2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-finish-logentry): Don't mess so badly with the
+	windows/frames.
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Complete around point.
+	I.e. include text after point in the completion region.
+	Also, return nil when we're not after/in a symbol.
+
+	* international/mule-cmds.el (view-hello-file): Don't fiddle with the
+	default enable-multibyte-characters.
+
 2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule.el: Help the user choose a valid coding-system.

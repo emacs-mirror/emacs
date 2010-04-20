@@ -631,12 +631,11 @@ considered."
 
 (defun lisp-completion-at-point (&optional predicate)
   ;; FIXME: the `end' could be after point?
-  (let* ((end (point))
+  (let* ((pos (point))
          (beg (with-syntax-table emacs-lisp-mode-syntax-table
                 (save-excursion
                   (backward-sexp 1)
-                  (while (= (char-syntax (following-char)) ?\')
-                    (forward-char 1))
+                  (skip-syntax-forward "'")
                   (point))))
          (predicate
           (or predicate
@@ -656,12 +655,21 @@ considered."
                       ;; Maybe a `let' varlist or something.
                       nil
                     ;; Else, we assume that a function name is expected.
-                    'fboundp))))))
-    (list beg end obarray
-          :predicate predicate
-          :annotate-function
+                    'fboundp)))))
+         (end
+          (unless (or (eq beg (point-max))
+                      (member (char-syntax (char-after beg)) '(?\( ?\))))
+            (save-excursion
+              (goto-char beg)
+              (forward-sexp 1)
+              (when (>= (point) pos)
+                (point))))))
+    (when end
+      (list beg end obarray
+            :predicate predicate
+            :annotate-function
             (unless (eq predicate 'fboundp)
-              (lambda (str) (if (fboundp (intern-soft str)) " <f>"))))))
+              (lambda (str) (if (fboundp (intern-soft str)) " <f>")))))))
 
 ;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

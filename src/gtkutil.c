@@ -3371,8 +3371,8 @@ xg_event_is_for_scrollbar (f, event)
                || event->type == MotionNotify))
     {
       /* If we are releasing or moving the scroll bar, it has the grab.  */
-      retval = gtk_grab_get_current () != 0
-        && gtk_grab_get_current () != f->output_data.x->edit_widget;
+      GtkWidget *w = gtk_grab_get_current ();
+      retval = w != 0 && GTK_IS_SCROLLBAR (w);
     }
   
   return retval;

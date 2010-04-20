@@ -2298,13 +2298,20 @@ store_frame_param (f, prop, val)
      without messing up the symbol's status.  */
   if (SYMBOLP (prop))
     {
-      Lisp_Object valcontents;
-      valcontents = SYMBOL_VALUE (prop);
-      if ((BUFFER_LOCAL_VALUEP (valcontents))
-	  && XBUFFER_LOCAL_VALUE (valcontents)->check_frame
-	  && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame
- 	  && XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame) == f)
- 	swap_in_global_binding (prop);
+      struct Lisp_Symbol *sym = XSYMBOL (prop);
+    start:
+      switch (sym->redirect)
+	{
+	case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+	case SYMBOL_PLAINVAL: case SYMBOL_FORWARDED: break;
+	case SYMBOL_LOCALIZED:
+	  { struct Lisp_Buffer_Local_Value *blv = sym->val.blv;
+	    if (blv->frame_local && BLV_FOUND (blv) && XFRAME (blv->where) == f)
+	      swap_in_global_binding (sym);
+	    break;
+	  }
+	default: abort ();
+	}
     }
 
   /* The tty color needed to be set before the frame's parameter
@@ -2520,6 +2527,8 @@ If FRAME is nil, describe the currently selected frame.  */)
 	       || EQ (parameter, Qbackground_mode))
 	value = Fcdr (Fassq (parameter, f->param_alist));
       else
+	/* FIXME: Avoid this code path at all (as well as code duplication)
+	   by sharing more code with Fframe_parameters.  */
 	value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
     }
 
