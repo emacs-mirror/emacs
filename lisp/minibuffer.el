@@ -1163,7 +1163,9 @@ Currently supported properties are:
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
 (defun completion-at-point ()
-  "Complete the thing at point according to local mode."
+  "Complete the thing at point according to local mode.
+This runs the hook `completion-at-point-functions' until a member returns
+non-nil."
   (interactive)
   (let ((res (run-hook-with-args-until-success
               'completion-at-point-functions)))

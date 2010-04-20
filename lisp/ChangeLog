@@ -1,3 +1,7 @@
+2010-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-at-point): Doc fix.
+
 2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Don't
