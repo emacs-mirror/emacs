@@ -2793,6 +2793,9 @@ enum tool_bar_item_idx
   /* Icon file name of right to left image when an RTL locale is used.  */
   TOOL_BAR_ITEM_RTL_IMAGE,
 
+  /* Label to show when text labels are enabled.  */
+  TOOL_BAR_ITEM_LABEL,
+
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
   TOOL_BAR_ITEM_NSLOTS
@@ -2813,6 +2816,15 @@ enum tool_bar_item_image
 /* Margin around tool-bar buttons in pixels.  */
 
 extern Lisp_Object Vtool_bar_button_margin;
+
+/* Tool bar style */
+
+extern Lisp_Object Vtool_bar_style;
+
+/* Maximum number of characters a label can have to be shown.  */
+
+extern EMACS_INT tool_bar_max_label_size;
+#define DEFAULT_TOOL_BAR_LABEL_SIZE 14
 
 /* Thickness of relief to draw around tool-bar buttons.  */
 

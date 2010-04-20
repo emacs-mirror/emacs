@@ -267,7 +267,7 @@ holds a keymap."
   ;; People say it's bad to have EXIT on the tool bar, since users
   ;; might inadvertently click that button.
   ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
-  (tool-bar-add-item-from-menu 'find-file "new")
+  (tool-bar-add-item-from-menu 'find-file "new" nil :label "New File")
   (tool-bar-add-item-from-menu 'menu-find-file-existing "open")
   (tool-bar-add-item-from-menu 'dired "diropen")
   (tool-bar-add-item-from-menu 'kill-this-buffer "close")
@@ -294,14 +294,15 @@ holds a keymap."
 			       "paste" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
-  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
+  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search"
+			       nil :label "Search")
   ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
 
   ;; There's no icon appropriate for News and we need a command rather
   ;; than a lambda for Read Mail.
   ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
-  (tool-bar-add-item-from-menu 'print-buffer "print")
+  (tool-bar-add-item-from-menu 'print-buffer "print" nil :label "Print")
 
   ;; tool-bar-add-item-from-menu itself operates on
   ;; (default-value 'tool-bar-map), but when we don't use that function,

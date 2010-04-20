@@ -2322,10 +2322,13 @@ x_draw_image_relief (s)
       raised_p = s->img->relief > 0;
     }
 
-  x0 = x - thick;
-  y0 = y - thick;
-  x1 = x + s->slice.width + thick - 1;
-  y1 = y + s->slice.height + thick - 1;
+  int extra = s->face->id == TOOL_BAR_FACE_ID
+    ? XINT (Vtool_bar_button_margin) : 0;
+  
+  x0 = x - thick - extra;
+  y0 = y - thick - extra;
+  x1 = x + s->slice.width + thick - 1 + extra;
+  y1 = y + s->slice.height + thick - 1 + extra;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);

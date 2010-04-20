@@ -1,5 +1,63 @@
 2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xsettings.c: Qmonospace_font_name, Qtool_bar_style and
+	current_tool_bar_style are new.
+	(store_config_changed_event): Rename from store_font_changed_event.
+	(XSETTINGS_TOOL_BAR_STYLE): New define.
+	(SEEN_FONT, SEEN_TB_STYLE): New enum values.
+	(struct xsettings): Add font and tb_style, set xft stuff inside #ifdef
+	HAVE_XFT.
+	(something_changedCB): store_font_changed_event is now
+	store_config_changed_event
+	(parse_settings): Rename from parse_xft_settings.  Read
+	non-xft xsettings outside #ifdef HAVE_XFT.
+	(read_settings): Renamed from read_xft_settings.
+	(apply_xft_settings): Take current settings as parameter.  Do not
+	call read_(xft)_settings.
+	(read_and_apply_settings): New function.
+	(xft_settings_event): Do non-xft stuff out of HAVE_XFT.  Call
+	read_and_apply_settings if there are settings to be read.
+	(init_xsettings): Renamed from init_xfd_settings.
+	Call read_and_apply_settings unconditionally.
+	(xsettings_initialize): Call init_xsettings.
+	(Ftool_bar_get_system_style): New function.
+	(syms_of_xsettings): Define Qmonospace_font_name and
+	Qtool_bar_style.  Initialize current_tool_bar_style to nil.
+	defsubr Stool_bar_get_system_style. Fprovide on
+	dynamic-setting.
+
+	* xsettings.h (Ftool_bar_get_system_style): Declare.
+
+	* xdisp.c: Vtool_bar_style, tool_bar_max_label_size,
+	Qtext, Qboth, Qboth_horiz are new.
+	(syms_of_xdisp): Intern Qtext, Qboth, Qboth_horiz, DEFVAR
+	Vtool_bar_style, tool_bar_max_label_size.
+
+	* lisp.h: Extern declare Qtext, Qboth, Qboth_horiz.
+
+	* keyboard.c: QClabel is new.
+	(parse_tool_bar_item): Take out QClabel from tool bar items.
+	Try to construct a label if ther is no QClabel.
+	(syms_of_keyboard): Intern :label as QClabel.
+
+	* dispextern.h (tool_bar_item_idx): TOOL_BAR_ITEM_LABEL is new.
+	(Vtool_bar_style, tool_bar_max_label_size, DEFAULT_TOOL_BAR_LABEL_SIZE):
+	New.
+
+	* Makefile.in (SOME_MACHINE_LISP): font-setting.el renamed to
+	dynamic-setting.el.
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle label in tool bar item.
+	(xg_make_tool_item, xg_show_toolbar_item): New function.
+	(update_frame_tool_bar): Take label from TOOL_BAR_ITEM_LABEL.
+	Call xg_make_tool_item to make a tool bar item.
+	Call xg_show_toolbar_item.  Use wtoolbar instead of x->toolbar_widget.
+
+	* xterm.c (x_draw_image_relief): Take Vtool_bar_button_margin
+	into account for toolbars.
+
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
 	* data.c (make_blv): Declarations before code (Bug#5993).
 
 2010-04-21  Glenn Morris  <rgm@gnu.org>
