@@ -1,3 +1,7 @@
+2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (default-direction-reversed): Remove obsolescence info.
+
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-dispatcher.el (vc-finish-logentry): Don't mess so badly with the
