@@ -1,5 +1,7 @@
 2010-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (copy-directory): Handle symlinks (Bug#5982).
+
 	* progmodes/compile.el (compilation-next-error-function): Revert
 	2009-10-12 change (Bug#5983).
 
