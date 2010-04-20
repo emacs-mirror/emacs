@@ -1956,6 +1956,7 @@ enum it_method {
   NUM_IT_METHODS
 };
 
+/* FIXME: What is this?  Why 5?  */
 #define IT_STACK_SIZE 5
 
 /* Iterator for composition (both for static and automatic).  */

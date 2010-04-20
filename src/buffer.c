@@ -5175,7 +5175,6 @@ init_buffer_once ()
   buffer_defaults.word_wrap = Qnil;
   buffer_defaults.ctl_arrow = Qt;
   buffer_defaults.bidi_display_reordering = Qnil;
-  buffer_defaults.direction_reversed = Qnil;
   buffer_defaults.bidi_paragraph_direction = Qnil;
   buffer_defaults.cursor_type = Qt;
   buffer_defaults.extra_line_spacing = Qnil;
@@ -5262,7 +5261,6 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, idx); ++idx;
   XSETFASTINT (buffer_local_flags.category_table, idx); ++idx;
   XSETFASTINT (buffer_local_flags.bidi_display_reordering, idx); ++idx;
-  XSETFASTINT (buffer_local_flags.direction_reversed, idx); ++idx;
   XSETFASTINT (buffer_local_flags.bidi_paragraph_direction, idx); ++idx;
   XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx);
   /* Make this one a permanent local.  */
@@ -5784,11 +5782,6 @@ The variable `coding-system-for-write', if non-nil, overrides this variable.
 
 This variable is never applied to a way of decoding a file while reading it.  */);
 
-  DEFVAR_PER_BUFFER ("direction-reversed",
-		     &current_buffer->direction_reversed, Qnil,
-		     doc: /* Non-nil means set beginning of lines at the right edge of the window.
-See also the variable `bidi-display-reordering'.  */);
-
   DEFVAR_PER_BUFFER ("bidi-display-reordering",
 		     &current_buffer->bidi_display_reordering, Qnil,
 		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.
@@ -5797,12 +5790,12 @@ See also the variable `direction-reversed'.  */);
   DEFVAR_PER_BUFFER ("bidi-paragraph-direction",
 		     &current_buffer->bidi_paragraph_direction, Qnil,
 		     doc: /* *If non-nil, forces directionality of text paragraphs in the buffer.
-			     
+
 If this is nil (the default), the direction of each paragraph is
 determined by the first strong directional character of its text.
 The values of `right-to-left' and `left-to-right' override that.
 Any other value is treated as nil.
-			     
+
 This variable has no effect unless the buffer's value of
 \`bidi-display-reordering' is non-nil.  */);
 

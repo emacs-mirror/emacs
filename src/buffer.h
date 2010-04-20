@@ -679,9 +679,6 @@ struct buffer
   /* Non-nil means reorder bidirectional text for display in the
      visual order.  */
   Lisp_Object bidi_display_reordering;
-  /* Non-nil means set beginning of lines at the right edge of
-     windows.  */
-  Lisp_Object direction_reversed;
   /* If non-nil, specifies which direction of text to force in all the
      paragraphs of the buffer.  Nil means determine paragraph
      direction dynamically for each paragraph.  */

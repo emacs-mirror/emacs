@@ -1,3 +1,10 @@
+2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (struct buffer): Remove unused var `direction_reversed'.
+	* buffer.c (init_buffer_once, syms_of_buffer): Remove its initialization.
+
+	* bidi.c (bidi_initialize): Simplify fallback_paragraph_*_re init.
+
 2010-04-20  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix R2L paragraph display on TTY.
