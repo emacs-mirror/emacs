@@ -1,3 +1,9 @@
+2010-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-state): Use HGRCPATH, not HGRC.
+	(vc-hg-working-revision): Likewise.  Use hg parents, not hg parent
+	(Bug#5846).
+
 2010-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Give it a doc string.
