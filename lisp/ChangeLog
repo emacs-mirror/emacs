@@ -1,5 +1,9 @@
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Complete around point.
+	I.e. include text after point in the completion region.
+	Also, return nil when we're not after/in a symbol.
+
 	* international/mule-cmds.el (view-hello-file): Don't fiddle with the
 	default enable-multibyte-characters.
 
