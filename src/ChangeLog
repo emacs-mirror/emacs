@@ -1,4 +1,20 @@
+2010-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix R2L paragraph display on TTY.
+
+	* xdisp.c (unproduce_glyphs): New function.
+	(display_line): Use it when produced glyphs are discarded from R2L
+	glyph rows.
+	(append_composite_glyph): In R2L rows, prepend the glyph rather
+	than appending it.
+
+	* term.c (append_composite_glyph): In R2L rows, prepend the glyph
+	rather than append it.  Set up the resolved_level and bidi_type
+	attributes of the appended glyph.
+
 2010-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Continue work on R2L paragraphs in GUI sessions.
 
 	* xdisp.c (extend_face_to_end_of_line): Fix off-by-one error on
 	TTY frames in testing whether a line needs face extension.
@@ -21,8 +37,6 @@
 	(display_and_set_cursor, erase_phys_cursor): Handle negative HPOS,
 	which happens with R2L glyph rows.  Fixes a crash when inserting a
 	character at end of an R2L line.
-
-	Continue work on R2L paragraphs in GUI sessions.
 
 	* xdisp.c (set_cursor_from_row): Don't be fooled by truncated
 	rows: don't treat them as having zero-width characters.  Improve

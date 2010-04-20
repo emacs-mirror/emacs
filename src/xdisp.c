@@ -17203,6 +17203,31 @@ handle_line_prefix (struct it *it)
 
 
 
+/* Remove N glyphs at the start of a reversed IT->glyph_row.  Called
+   only for R2L lines from display_line, when it decides that too many
+   glyphs were produced by PRODUCE_GLYPHS, and the line needs to be
+   continued.  */
+static void
+unproduce_glyphs (it, n)
+     struct it *it;
+     int n;
+{
+  struct glyph *glyph, *end;
+
+  xassert (it->glyph_row);
+  xassert (it->glyph_row->reversed_p);
+  xassert (it->area == TEXT_AREA);
+  xassert (n <= it->glyph_row->used[TEXT_AREA]);
+
+  if (n > it->glyph_row->used[TEXT_AREA])
+    n = it->glyph_row->used[TEXT_AREA];
+  glyph = it->glyph_row->glyphs[TEXT_AREA] + n;
+  end = it->glyph_row->glyphs[TEXT_AREA] + it->glyph_row->used[TEXT_AREA];
+  for ( ; glyph < end; glyph++)
+    glyph[-n] = *glyph;
+}
+
+
 /* Construct the glyph row IT->glyph_row in the desired matrix of
    IT->w from text at the current position of IT.  See dispextern.h
    for an overview of struct it.  Value is non-zero if
@@ -17467,6 +17492,9 @@ display_line (it)
 		      /* A padding glyph that doesn't fit on this line.
 			 This means the whole character doesn't fit
 			 on the line.  */
+		      if (row->reversed_p)
+			unproduce_glyphs (it, row->used[TEXT_AREA]
+					       - n_glyphs_before);
 		      row->used[TEXT_AREA] = n_glyphs_before;
 
 		      /* Fill the rest of the row with continuation
@@ -17489,6 +17517,9 @@ display_line (it)
 		  else if (wrap_row_used > 0)
 		    {
 		    back_to_wrap:
+		      if (row->reversed_p)
+			unproduce_glyphs (it,
+					  row->used[TEXT_AREA] - wrap_row_used);
 		      *it = wrap_it;
 		      it->continuation_lines_width += wrap_x;
 		      row->used[TEXT_AREA] = wrap_row_used;
@@ -17524,6 +17555,9 @@ display_line (it)
 		      /* Something other than a TAB that draws past
 			 the right edge of the window.  Restore
 			 positions to values before the element.  */
+		      if (row->reversed_p)
+			unproduce_glyphs (it, row->used[TEXT_AREA]
+					       - (n_glyphs_before + i));
 		      row->used[TEXT_AREA] = n_glyphs_before + i;
 
 		      /* Display continuation glyphs.  */
@@ -17629,9 +17663,22 @@ display_line (it)
 	    {
 	      int i, n;
 
-	      for (i = row->used[TEXT_AREA] - 1; i > 0; --i)
-		if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
-		  break;
+	      if (!row->reversed_p)
+		{
+		  for (i = row->used[TEXT_AREA] - 1; i > 0; --i)
+		    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
+		      break;
+		}
+	      else
+		{
+		  for (i = 0; i < row->used[TEXT_AREA]; i++)
+		    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
+		      break;
+		  /* Remove padding glyphs at the front of ROW, to
+		     make room for the truncation glyphs we will be
+		     adding below.  */
+		  unproduce_glyphs (it, i);
+		}
 
 	      for (n = row->used[TEXT_AREA]; i < n; ++i)
 		{
@@ -17882,7 +17929,8 @@ display_line (it)
   /* The next row should use same value of the reversed_p flag as this
      one.  set_iterator_to_next decides when it's a new paragraph, and
      PRODUCE_GLYPHS recomputes the value of the flag accordingly.  */
-  it->glyph_row->reversed_p = row->reversed_p;
+  if (it->glyph_row < MATRIX_BOTTOM_TEXT_ROW (it->w->desired_matrix, it->w))
+    it->glyph_row->reversed_p = row->reversed_p;
   it->start = row_end;
   return row->displays_text_p;
 }
@@ -21486,6 +21534,17 @@ append_composite_glyph (it)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
+      /* If the glyph row is reversed, we need to prepend the glyph
+	 rather than append it.  */
+      if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
+	{
+	  struct glyph *g;
+
+	  /* Make room for the new glyph.  */
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+	    g[1] = *g;
+	  glyph = it->glyph_row->glyphs[it->area];
+	}
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       glyph->pixel_width = it->pixel_width;
