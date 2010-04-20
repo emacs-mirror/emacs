@@ -1,3 +1,8 @@
+2010-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-next-error-function): Revert
+	2009-10-12 change (Bug#5983).
+
 2010-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-state): Use HGRCPATH, not HGRC.
