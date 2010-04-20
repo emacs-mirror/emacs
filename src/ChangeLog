@@ -1,3 +1,8 @@
+2010-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (char_charset): Consider Vcharset_non_preferred_head
+	only when the arg CHARSET_LIST is nil.
+
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make variable forwarding explicit rather the using special values.
@@ -109,6 +114,8 @@
 2010-04-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (xsubchartable): New command.
+
+2010-04-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Don't write beyond the last glyph row in
 	the desired matrix.  Fixes a crash in "emacs -nw" (bug#5972), see
