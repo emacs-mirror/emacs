@@ -435,8 +435,8 @@ Chong Yidong: wrote redisplay-testsuite.el
 and co-wrote longlines.el
 and changed xdisp.c simple.el files.el display.texi frames.texi
   files.texi emacs.texi keyboard.c cus-edit.el faces.el xterm.c
-  Makefile.in xfaces.c font.c startup.el xfns.c misc.texi image.c
-  compile.el custom.texi text.texi and 633 other files
+  Makefile.in xfaces.c font.c misc.texi startup.el xfns.c image.c
+  compile.el custom.texi text.texi and 635 other files
 
 Chris Chase: co-wrote idlw-shell.el idlwave.el
 
@@ -1002,7 +1002,7 @@ Flemming Hoejstrup Hansen: changed forms.el
 Florian Weimer: changed message.el gnus.el coding.c gnus-sum.el gnus.texi
   mm-decode.el mm-util.el
 
-Francesc Rocher: changed startup.el MORE.STUFF cus-start.el gnus.el
+Francesc Rocher: changed MORE.STUFF startup.el cus-start.el gnus.el
   gnus.png gnus.svg macterm.c splash.png splash.svg splash8.xpm w32term.c
   xdisp.c xterm.c
 
@@ -1131,9 +1131,9 @@ Giuseppe Scrivano: changed buffer.c configure.in sysdep.c xsmfns.c
 Glenn Morris: wrote check-declare.el
 and changed Makefile.in calendar.el diary-lib.el rmail.el f90.el
   cal-menu.el cal-hebrew.el fortran.el holidays.el configure.in
-  cal-islam.el bytecomp.el calendar.texi cal-bahai.el files.el appt.el
-  cal-china.el emacs.texi rmailsum.el simple.el startup.el
-  and 975 other files
+  cal-islam.el bytecomp.el calendar.texi cal-bahai.el emacs.texi files.el
+  appt.el cal-china.el rmailsum.el simple.el startup.el
+  and 976 other files
 
 Glynn Clements: wrote gamegrid.el snake.el tetris.el
 
@@ -1346,7 +1346,7 @@ Jan Djärv: wrote dnd.el font-setting.el x-dnd.el
 and changed gtkutil.c xterm.c xfns.c configure.in xterm.h xmenu.c
   x-win.el Makefile.in gtkutil.h keyboard.c frame.c frames.texi config.in
   emacs.c xselect.c xresources.texi startup.el alloc.c cus-start.el
-  xlwmenu.c process.c and 203 other files
+  xlwmenu.c frame.h and 203 other files
 
 Jan Moringen: co-wrote cpp.el
 
@@ -1635,7 +1635,7 @@ and changed files.el perl-mode.el
 Juanma Barranquero: changed makefile.w32-in subr.el files.el faces.el
   bs.el help-fns.el w32fns.c org.el server.el simple.el emacsclient.c
   desktop.el buffer.c mule-cmds.el ido.el window.c xdisp.c allout.el
-  keyboard.c replace.el eval.c and 930 other files
+  keyboard.c replace.el eval.c and 932 other files
 
 Juergen Hoetzel: changed url-handlers.el
 
@@ -1657,7 +1657,7 @@ Juri Linkov: wrote files-x.el misearch.el
 and changed info.el isearch.el simple.el replace.el dired-aux.el
   startup.el grep.el compile.el dired.el files.el faces.el display.texi
   menu-bar.el descr-text.el cus-edit.el bindings.el man.el image-mode.el
-  ispell.el text.texi dired-x.el and 280 other files
+  ispell.el text.texi dired-x.el and 281 other files
 
 Justin Bogner: changed fortune.el
 
@@ -1969,7 +1969,7 @@ Maciek Pasternacki: changed nnrss.el
 Magnus Henoch: changed url-http.el ispell.el url.el dbusbind.c dns.el
   url-gw.el url-parse.el url-proxy.el autoinsert.el cl.texi configure.in
   cyrillic.el dbus.el gnus.texi hashcash.el log-edit.el message.el
-  org-latex.el org-table.el process.c rcirc.el and 7 other files
+  org-latex.el org-table.el process.c rcirc.el and 8 other files
 
 Malcolm Purvis: changed spam-stat.el
 
@@ -2432,7 +2432,7 @@ Oscar Figueiredo: wrote eudc-bob.el eudc-export.el eudc-hotlist.el
   eudc-vars.el eudc.el eudcb-bbdb.el eudcb-ldap.el eudcb-ph.el ldap.el
 and changed ph.el
 
-Óscar Fuentes: changed emacsclient.c ido.el vc-bzr.el
+Óscar Fuentes: changed ido.el emacsclient.c vc-bzr.el
 
 P. E. Jareth Hein: changed gnus-util.el
 
@@ -3080,7 +3080,7 @@ Teodor Zlatanov: wrote auth-source.el gnus-registry.el imap-hash.el
 and changed spam.el gnus.el gnus-sum.el gnus.texi nnimap.el netrc.el
   spam-stat.el gnus-start.el gnus-util.el nnmail.el encrypt.el message.el
   gnus-encrypt.el mail-source.el assistant.el auth.texi imap.el
-  nnbabyl.el nnfolder.el nnmbox.el nnmh.el and 48 other files
+  nnbabyl.el nnfolder.el nnmbox.el nnmh.el and 51 other files
 
 Terje Rosten: changed xfns.c version.el xterm.c xterm.h
 
