@@ -2244,7 +2244,7 @@ set_tty_color_mode (tty, f)
      struct tty_display_info *tty;
      struct frame *f;
 {
-  Lisp_Object tem, val, color_mode_spec;
+  Lisp_Object tem, val;
   Lisp_Object color_mode;
   int mode;
   extern Lisp_Object Qtty_color_mode;
@@ -2256,12 +2256,13 @@ set_tty_color_mode (tty, f)
 
   if (INTEGERP (val))
     color_mode = val;
-  else
+  else if (SYMBOLP (tty_color_mode_alist))
     {
-      tem = (NILP (tty_color_mode_alist) ? Qnil
-	     : Fassq (val, XSYMBOL (tty_color_mode_alist)->value));
+      tem = Fassq (val, Fsymbol_value (tty_color_mode_alist));
       color_mode = CONSP (tem) ? XCDR (tem) : Qnil;
     }
+  else
+    color_mode = Qnil;
 
   mode = INTEGERP (color_mode) ? XINT (color_mode) : 0;
 

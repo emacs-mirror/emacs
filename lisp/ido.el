@@ -2312,7 +2312,8 @@ If cursor is not at the end of the user input, move to end of input."
 	   (or ido-use-url-at-point ido-use-filename-at-point))
       (let (fn d)
 	(require 'ffap)
-	;; Duplicate code from ffap-guesser as we want different behavior for files and URLs.
+	;; Duplicate code from ffap-guesser as we want different
+	;; behavior for files and URLs.
 	(cond
 	 ((with-no-warnings
 	    (and ido-use-url-at-point
@@ -2328,7 +2329,10 @@ If cursor is not at the end of the user input, move to end of input."
 			      (ffap-guesser)
 			    (ffap-string-at-point))))
 	       (not (string-match "^http:/" fn))
-	       (setq d (file-name-directory (expand-file-name fn)))
+	       (let ((absolute-fn (expand-file-name fn)))
+		 (setq d (if (file-directory-p absolute-fn)
+			     (file-name-as-directory absolute-fn)
+			   (file-name-directory absolute-fn))))
 	       (file-directory-p d))
 	  (setq ido-current-directory d)
 	  (setq initial (file-name-nondirectory fn))))))

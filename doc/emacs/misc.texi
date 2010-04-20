@@ -203,7 +203,7 @@ Here we introduce Gnus and describe several basic features.
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
 @end ifnottex
 @iftex
-For full details on Gnus, type @kbd{M-x info} and then select the Gnus
+For full details on Gnus, type @kbd{C-h i} and then select the Gnus
 manual.
 @end iftex
 

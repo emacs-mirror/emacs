@@ -1520,7 +1520,6 @@ Lisp_Object
 command_loop_1 ()
 {
   Lisp_Object cmd;
-  int lose;
   Lisp_Object keybuf[30];
   int i;
   int prev_modiff = 0;

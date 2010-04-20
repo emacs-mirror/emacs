@@ -285,7 +285,7 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
  ("Dd" ?,2p(B)
 ;("$$" ?$,1tK(B)	; U+20AB DONG SIGN (#### check)
 
- ("aff" ["aff"])
+ ("aff" ["af"])
  ("AFF" ["AF"])
  ("Aff" ["Af"])
  ("ass" ["as"])

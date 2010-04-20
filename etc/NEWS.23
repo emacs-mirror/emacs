@@ -24,6 +24,7 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 23.2
 
+---
 ** New configure options for Emacs developers
 These are not new features; only the configure flags are new.
 ---
@@ -36,8 +37,10 @@ This might not work on all platforms.
 ** `make install' now consistently ignores umask, creating a
 world-readable install.
 
++++
 ** Emacs compiles with Gconf support, if it is detected.
 Use the configure option --without-gconf to disable this.
+This is used by the `font-use-system-font' feature (see below).
 
 * Startup Changes in Emacs 23.2
 +++
@@ -95,12 +98,14 @@ with `set-process-query-on-exit-flag'.
 unconditionally.  The previous behavior, toggling the mode, was
 neither reliable nor generally desirable.
 
-*** New commands for adding and removing file-local variables:
++++
+*** There are new commands for adding and removing file-local variables:
 `add-file-local-variable', `delete-file-local-variable',
 `add-file-local-variable-prop-line', and
 `delete-file-local-variable-prop-line'.
 
-*** New commands for adding and removing directory-local variables,
++++
+*** There are new commands for adding and removing directory-local variables,
 and copying them to and from file-local variable lists:
 `add-dir-local-variable', `delete-dir-local-variable',
 `copy-dir-locals-to-file-locals',
@@ -181,15 +186,18 @@ that file exists.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+---
 ** The bookmark menu has a narrowing search via bookmark-bmenu-search.
 
 ** LaTeX mode now provides completion (via completion-at-point).
 
 ---
-** sym-comp.el is now declared obsolete, superceded by completion-at-point.
+** sym-comp.el is now declared obsolete, superseded by completion-at-point.
 
+---
 ** lucid.el and levents.el are now declared obsolete.
 
+---
 ** pcomplete provides a new command `pcomplete-std-completion' which
 is similar to `pcomplete' but using the standard completion UI code.
 
@@ -233,9 +241,9 @@ on the page edge advances to the next/previous page.
 
 ** GDB-UI
 
++++
 *** Toolbar functionality for reverse debugging.  Display of STL
-collections as watch expressions.  These features require GDB 7.0
-or later.
+collections as watch expressions.  These features require GDB 7.0 or later.
 
 ** Grep
 +++
@@ -243,9 +251,11 @@ or later.
 
 ** Info
 
++++
 *** The new command `Info-virtual-index' bound to "I" displays a menu of
 matched topics found in the index.
 
++++
 *** The new command `info-finder' replaces finder.el with a virtual Info
 manual that generates an Info file which gives the same information
 through a menu structure.
@@ -325,22 +335,25 @@ instead of redisplaying the full log.  The RCS, CVS and SCCS VC
 backends do not support this.
 ---
 *** When a file is not found, VC will not try to check it out of RCS anymore.
-
++++
 *** Diff and log operations can be used from Dired buffers.
 
 *** vc-git changes
 
-**** The short log format for git makes use of the graph display, so
-it's not supported on git versions earlier than 1.5.
+---
+**** The short log format for git makes use of the graph display,
+so it's not supported on git versions earlier than 1.5.6.
 
-**** Support for operating with stashes has been added to vc-dir: the stash list is
-displayed in the *vc-dir* header, stashes can be created, removed, applied and
-their content displayed.
+---
+**** vc-dir uses the --relative option of git, and so requires at least
+git version 1.5.5.
 
-**** vc-dir displays the stash status
++++
+**** Support for operating with stashes has been added to vc-dir:
+the stash list is displayed in the *vc-dir* header, stashes can be
+created, removed, applied and their content displayed.
 
-**** vc-dir requires at least git-1.5.5.
-
++++
 *** vc-bzr supports operating with shelves: the shelve list is
 displayed in the *vc-dir* header, shelves can be created, removed and applied.
 ---
@@ -383,7 +396,7 @@ search in file buffers whose file names match the specified wildcard.
 That means, they change `default-directory' to the new users value,
 and let commands run under that user permissions.  It works even when
 `default-directory' is already remote.  Calling the external commands
-is possible by `*su' or `*sudo', repectively.
+is possible by `*su' or `*sudo', respectively.
 ---
 *** When running in a new enough xterm (newer than version 242), Emacs
 asks xterm what the background color is and it sets up faces
@@ -397,6 +410,7 @@ consider the background light).
 This is a collection of packages to aid with using Emacs as an IDE
 (integrated development environment):
 
++++
 *** The Semantic package allows the use of parsers to intelligently
 edit and navigate source code.  Parsers for C/C++, Java, Javascript,
 and several other languages are included by default, and Semantic can
@@ -405,6 +419,7 @@ also interface with external tools such as GNU Global and GNU Idutils.
 To enable Semantic, use the global minor mode `semantic-mode'.
 See the Semantic manual for details.
 
++++
 *** EDE (Emacs Development Environment) is a package for managing code
 projects, including features such as automatic Makefile generation.
 
@@ -415,9 +430,11 @@ See the EDE manual for details.
 code.  It is currently used by some parts of Semantic and EDE; in the
 future, it may be used for code generation features.
 
++++
 *** The EIEIO library implements a subset of the Common Lisp Object
 System (CLOS).  It is used by the other CEDET packages.
 
+---
 ** mpc.el is a front end for the Music Player Daemon.  Run it with M-x mpc.
 
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
@@ -425,6 +442,7 @@ System (CLOS).  It is used by the other CEDET packages.
 +++
 ** js.el is a new major mode for JavaScript files.
 
+---
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
 
 
@@ -452,16 +470,17 @@ be in use:
 ** Support for generating Emacs 18 compatible bytecode (by setting
 the variable `byte-compile-compatibility') has been removed.
 
-** In image-mode.el `image-mode-maybe' is obsolete.  Instead, you can
-either use `image-mode' that displays an image file as the actual image
-inititally, or `image-mode-as-text' when you want to display an image file
-as text inititally.  `image-mode-as-text' is a combination of a non-image
-mode from `auto-mode-alist' (or Fundamental mode) and `image-minor-mode'.
-`image-minor-mode' provides `C-c C-c' key binding to toggle image display.
+---
+** In image-mode.el `image-mode-maybe' is obsolete.
+Instead, you can either use `image-mode' (which displays an image file
+as the actual image initially), or `image-mode-as-text' (when you want
+to display an image file as text initially).  `image-mode-as-text' is a
+combination of a non-image mode from `auto-mode-alist' (or Fundamental
+mode) and `image-minor-mode'.  `image-minor-mode' provides a `C-c C-c'
+key binding to toggle image display.
 `image-toggle-display-text' removes image properties.
 `image-toggle-display-image' adds image properties.
-`image-toggle-display' toggles between `image-mode-as-text' and
-`image-mode'.
+`image-toggle-display' toggles between `image-mode-as-text' and `image-mode'.
 
 
 * Lisp changes in Emacs 23.2

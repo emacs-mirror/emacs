@@ -1365,7 +1365,7 @@ uninterrupt_malloc ()
   pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
   pthread_mutex_init (&alloc_mutex, &attr);
 #else  /* !DOUG_LEA_MALLOC */
-  /* Some systems such as Solaris 2.6 doesn't have a recursive mutex,
+  /* Some systems such as Solaris 2.6 don't have a recursive mutex,
      and the bundled gmalloc.c doesn't require it.  */
   pthread_mutex_init (&alloc_mutex, NULL);
 #endif /* !DOUG_LEA_MALLOC */
@@ -3193,13 +3193,13 @@ Its value and function definition are void, and its property list is nil.  */)
   p = XSYMBOL (val);
   p->xname = name;
   p->plist = Qnil;
-  p->value = Qunbound;
+  p->redirect = SYMBOL_PLAINVAL;
+  SET_SYMBOL_VAL (p, Qunbound);
   p->function = Qunbound;
   p->next = NULL;
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
-  p->indirect_variable = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
   return val;
@@ -5581,17 +5581,42 @@ mark_object (arg)
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
-	mark_object (ptr->value);
 	mark_object (ptr->function);
 	mark_object (ptr->plist);
-
+	switch (ptr->redirect)
+	  {
+	  case SYMBOL_PLAINVAL: mark_object (SYMBOL_VAL (ptr)); break;
+	  case SYMBOL_VARALIAS:
+	    {
+	      Lisp_Object tem;
+	      XSETSYMBOL (tem, SYMBOL_ALIAS (ptr));
+	      mark_object (tem);
+	      break;
+	    }
+	  case SYMBOL_LOCALIZED:
+	    {
+	      struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
+	      /* If the value is forwarded to a buffer or keyboard field,
+		 these are marked when we see the corresponding object.
+		 And if it's forwarded to a C variable, either it's not
+		 a Lisp_Object var, or it's staticpro'd already.  */
+	      mark_object (blv->where);
+	      mark_object (blv->valcell);
+	      mark_object (blv->defcell);
+	      break;
+	    }
+	  case SYMBOL_FORWARDED:
+	    /* If the value is forwarded to a buffer or keyboard field,
+	       these are marked when we see the corresponding object.
+	       And if it's forwarded to a C variable, either it's not
+	       a Lisp_Object var, or it's staticpro'd already.  */
+	    break;
+	  default: abort ();
+	  }
 	if (!PURE_POINTER_P (XSTRING (ptr->xname)))
 	  MARK_STRING (XSTRING (ptr->xname));
 	MARK_INTERVAL_TREE (STRING_INTERVALS (ptr->xname));
 
-	/* Note that we do not mark the obarray of the symbol.
-	   It is safe not to do so because nothing accesses that
-	   slot except to check whether it is nil.  */
 	ptr = ptr->next;
 	if (ptr)
 	  {
@@ -5610,38 +5635,11 @@ mark_object (arg)
 
       switch (XMISCTYPE (obj))
 	{
-	case Lisp_Misc_Buffer_Local_Value:
-	  {
-	    register struct Lisp_Buffer_Local_Value *ptr
-	      = XBUFFER_LOCAL_VALUE (obj);
-	    /* If the cdr is nil, avoid recursion for the car.  */
-	    if (EQ (ptr->cdr, Qnil))
-	      {
-		obj = ptr->realvalue;
-		goto loop;
-	      }
-	    mark_object (ptr->realvalue);
-	    mark_object (ptr->buffer);
-	    mark_object (ptr->frame);
-	    obj = ptr->cdr;
-	    goto loop;
-	  }
 
 	case Lisp_Misc_Marker:
 	  /* DO NOT mark thru the marker's chain.
 	     The buffer's markers chain does not preserve markers from gc;
 	     instead, markers are removed from the chain when freed by gc.  */
-	  break;
-
-	case Lisp_Misc_Intfwd:
-	case Lisp_Misc_Boolfwd:
-	case Lisp_Misc_Objfwd:
-	case Lisp_Misc_Buffer_Objfwd:
-	case Lisp_Misc_Kboard_Objfwd:
-	  /* Don't bother with Lisp_Buffer_Objfwd,
-	     since all markable slots in current buffer marked anyway.  */
-	  /* Don't need to do Lisp_Objfwd, since the places they point
-	     are protected with staticpro.  */
 	  break;
 
 	case Lisp_Misc_Save_Value:
@@ -6048,6 +6046,8 @@ gc_sweep ()
 
 	    if (!sym->gcmarkbit && !pure_p)
 	      {
+		if (sym->redirect == SYMBOL_LOCALIZED)
+		  xfree (SYMBOL_BLV (sym));
 		sym->next = symbol_free_list;
 		symbol_free_list = sym;
 #if GC_MARK_STACK

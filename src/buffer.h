@@ -107,6 +107,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BUF_BEG(buf) (BEG)
 #define BUF_BEG_BYTE(buf) (BEG_BYTE)
 
+/* !!!FIXME:  all the BUF_BEGV/BUF_ZV/BUF_PT macros are flawed:
+   on indirect (or base) buffers, that value is only correct if that buffer
+   is the current_buffer, or if the buffer's text hasn't been modified (via
+   an indirect buffer) since it was last current.  */
+
 /* Position of beginning of accessible range of buffer.  */
 #define BUF_BEGV(buf) ((buf)->begv)
 #define BUF_BEGV_BYTE(buf) ((buf)->begv_byte)
@@ -313,7 +318,7 @@ while (0)
  - (ptr - (current_buffer)->text->beg <= (unsigned) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE) \
  + BEG_BYTE)
 
-/* Return character at position POS.  */
+/* Return character at byte position POS.  */
 
 #define FETCH_CHAR(pos)				      	\
   (!NILP (current_buffer->enable_multibyte_characters)	\
@@ -327,7 +332,7 @@ while (0)
 /* Variables used locally in FETCH_MULTIBYTE_CHAR.  */
 extern unsigned char *_fetch_multibyte_char_p;
 
-/* Return character code of multi-byte form at position POS.  If POS
+/* Return character code of multi-byte form at byte position POS.  If POS
    doesn't point the head of valid multi-byte form, only the byte at
    POS is returned.  No range checking.  */
 
@@ -336,7 +341,7 @@ extern unsigned char *_fetch_multibyte_char_p;
 			       + (pos) + BEG_ADDR - BEG_BYTE),	 	\
    STRING_CHAR (_fetch_multibyte_char_p))
 
-/* Return character at position POS.  If the current buffer is unibyte
+/* Return character at byte position POS.  If the current buffer is unibyte
    and the character is not ASCII, make the returning character
    multibyte.  */
 
@@ -447,7 +452,10 @@ struct buffer_text
     /* The markers that refer to this buffer.
        This is actually a single marker ---
        successive elements in its marker `chain'
-       are the other markers referring to this buffer.  */
+       are the other markers referring to this buffer.
+       This is a singly linked unordered list, which means that it's
+       very cheap to add a marker to the list and it's also very cheap
+       to move a marker within a buffer.  */
     struct Lisp_Marker *markers;
 
     /* Usually 0.  Temporarily set to 1 in decode_coding_gap to
@@ -843,6 +851,7 @@ extern struct buffer buffer_defaults;
    be a Lisp-level local variable for the slot, it has no default value,
    and the corresponding slot in buffer_defaults is not used.  */
 
+
 extern struct buffer buffer_local_flags;
 
 /* For each buffer slot, this points to the Lisp symbol name
@@ -948,7 +957,7 @@ extern int last_per_buffer_idx;
    from the start of a buffer structure.  */
 
 #define PER_BUFFER_VAR_OFFSET(VAR) \
-    ((char *) &buffer_local_flags.VAR - (char *) &buffer_local_flags)
+  ((char *) &((struct buffer *)0)->VAR - (char *) ((struct buffer *)0))
 
 /* Return the index of buffer-local variable VAR.  Each per-buffer
    variable has an index > 0 associated with it, except when it always
@@ -1012,12 +1021,6 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_VALUE(BUFFER, OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
-
-/* Return the symbol of the per-buffer variable at offset OFFSET in
-   the buffer structure.  */
-
-#define PER_BUFFER_SYMBOL(OFFSET) \
-      (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_symbols))
 
 /* arch-tag: 679305dd-d41c-4a50-b170-3caf5c97b2d1
    (do not change this comment) */

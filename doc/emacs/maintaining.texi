@@ -14,6 +14,7 @@ programs.
 * Change Log::	        Maintaining a change history for your program.
 * Tags::	        Go directly to any function in your program in one
 			  command.  Tags remembers which file it is in.
+* EDE::                 An integrated development environment for Emacs.
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex
@@ -653,7 +654,8 @@ its own (@code{vc-revision-other-window}).
 @item C-x v =
 Compare the files in the current fileset with the working revision(s)
 you started from (@code{vc-diff}).  With a prefix argument, prompt for
-two revisions of the current fileset and compare them.
+two revisions of the current fileset and compare them.  You can call
+this command from a Dired buffer (@pxref{Dired}).
 
 @item C-x v D
 Compare the entire tree corresponding to the current fileset with the
@@ -895,6 +897,7 @@ i.e. the ones you enter via the @samp{*VC-Log*} buffer.  @xref{Log
 Buffer}.)  Point is centered at the revision of the file currently
 being visited.  With a prefix argument, the command prompts for the
 revision to center on, and the maximum number of revisions to display.
+You can call this command from a Dired buffer (@pxref{Dired}).
 
 @findex vc-print-root-log
   Type @kbd{C-x v L} (@code{vc-print-root-log}) to display a
@@ -1145,9 +1148,14 @@ directory buffer will be used.
 
   @kbd{M-s a C-M-s} does an incremental search on the marked files.
 
-  Commands are also accessible from the VC-dir menu.  Note that some VC
-backends use the VC-dir menu to make available extra backend specific
-commands.
+@cindex stashes in version control
+@cindex shelves in version control
+  Commands are also accessible from the VC-dir menu.  Note that some
+VC backends use the VC-dir menu to make available extra,
+backend-specific, commands.  For example, Git and Bazaar allow you to
+manipulate @dfn{stashes} and @dfn{shelves}.  (These provide a
+mechanism to temporarily store uncommitted changes somewhere out of
+the way, and bring them back at a later time.)
 
   Normal VC commands with the @kbd{C-x v} prefix work in VC directory
 buffers.  Some single-key shortcuts are available as well; @kbd{=},
@@ -2259,6 +2267,69 @@ name in the buffer.  @xref{Symbol Completion}.
 @ifnottex
 @include emerge-xtra.texi
 @end ifnottex
+
+@node EDE
+@section Emacs Development Environment
+@cindex EDE (Emacs Development Environment)
+@cindex Emacs Development Environment
+@cindex Integrated development environment
+
+EDE (@dfn{Emacs Development Environment}) is a package that simplifies
+the task of creating, building, and debugging large programs with
+Emacs.  It provides some of the features of an IDE, or @dfn{Integrated
+Development Environment}, in Emacs.
+
+This section provides a brief description of EDE usage.
+@ifnottex
+For full details, see @ref{Top, EDE,, ede, Emacs Development Environment}.
+@end ifnottex
+@iftex
+For full details on Ede, type @kbd{C-h i} and then select the EDE
+manual.
+@end iftex
+
+  EDE is implemented as a global minor mode (@pxref{Minor Modes}).  To
+enable it, type @kbd{M-x global-ede-mode} or click on the
+@samp{Project Support (EDE)} item in the @samp{Tools} menu.  You can
+also enable EDE each time you start Emacs, by adding the following
+line to your initialization file:
+
+@smallexample
+(global-ede-mode t)
+@end smallexample
+
+@noindent
+Activating EDE adds a menu named @samp{Development} to the menu bar.
+Many EDE commands, including the ones described below, can be invoked
+from this menu.
+
+  EDE organizes files into @dfn{projects}, which correspond to
+directory trees.  The @dfn{project root} is the topmost directory of a
+project.  To define a new project, visit a file in the desired project
+root and type @kbd{M-x ede-new}.  This command prompts for a
+@dfn{project type}, which refers to the underlying method that EDE
+will use to manage the project (@pxref{Creating a Project, EDE,, ede,
+Emacs Development Environment}).  The most common project types are
+@samp{Make}, which uses Makefiles, and @samp{Automake}, which uses GNU
+Automake (@pxref{Top, Automake,, automake, Automake}).  In both cases,
+EDE also creates a file named @file{Project.ede}, which stores
+information about the project.
+
+  A project may contain one or more @dfn{targets}.  A target can be an
+object file, executable program, or some other type of file, which is
+``built'' from one or more of the files in the project.
+
+  To add a new @dfn{target} to a project, type @kbd{C-c . t}
+(@code{M-x ede-new-target}).  This command also asks if you wish to
+``add'' the current file to that target, which means that the target
+is to be built from that file.  After you have defined a target, you
+can add more files to it by typing @kbd{C-c . a}
+(@code{ede-add-file}).
+
+  To build a target, type @kbd{C-c . c} (@code{ede-compile-target}).
+To build all the targets in the project, type @kbd{C-c . C}
+(@code{ede-compile-project}).  EDE uses the file types to guess how
+the target should be built.
 
 @ignore
    arch-tag: b9d83dfb-82ea-4ff6-bab5-05a3617091fb

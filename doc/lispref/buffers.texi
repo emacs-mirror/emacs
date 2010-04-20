@@ -1135,7 +1135,7 @@ non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
 @end deffn
 
-@deffn clone-indirect-buffer newname display-flag &optional norecord
+@deffn Command clone-indirect-buffer newname display-flag &optional norecord
 This function creates and returns a new indirect buffer that shares
 the current buffer's base buffer and copies the rest of the current
 buffer's attributes.  (If the current buffer is not indirect, it is

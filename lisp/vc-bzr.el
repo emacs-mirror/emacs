@@ -899,10 +899,10 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-shelve-show (name)
   "Show the contents of shelve NAME."
   (interactive "sShelve name: ")
-  (vc-setup-buffer "*vc-bzr-shelve*")
+  (vc-setup-buffer "*vc-diff*")
   ;; FIXME: how can you show the contents of a shelf?
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 'async nil "--preview" name)
-  (set-buffer "*vc-bzr-shelve*")
+  (vc-bzr-command "unshelve" "*vc-diff*" 'async nil "--preview" name)
+  (set-buffer "*vc-diff*")
   (diff-mode)
   (setq buffer-read-only t)
   (pop-to-buffer (current-buffer)))
@@ -910,13 +910,13 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-shelve-apply (name)
   "Apply shelve NAME and remove it afterwards."
   (interactive "sApply (and remove) shelf: ")
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" name)
+  (vc-bzr-command "unshelve" nil 0 nil "--apply" name)
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-apply-and-keep (name)
   "Apply shelve NAME and keep it afterwards."
   (interactive "sApply (and keep) shelf: ")
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep" name)
+  (vc-bzr-command "unshelve" nil 0 nil "--apply" "--keep" name)
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-snapshot ()
@@ -927,7 +927,7 @@ stream.  Standard error output is discarded."
 		    (concat
 		     (format-time-string "Snapshot on %Y-%m-%d" ct)
 		     (format-time-string " at %H:%M" ct))))
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep")
+  (vc-bzr-command "unshelve" nil 0 nil "--apply" "--keep")
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-list ()

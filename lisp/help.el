@@ -1048,10 +1048,9 @@ scroll the \"other\" window."
 Select WINDOW according to the value of `help-window-select'.
 Display message telling how to scroll and eventually quit WINDOW.
 
-Optional argument REUSE non-nil means WINDOW has been reused \(by
-`display-buffer'\) for displaying help.  Optional argument
-KEEP-FRAME non-nil means that quitting must no delete the frame
-of WINDOW."
+Optional argument REUSE non-nil means WINDOW has been reused by
+`display-buffer'.  Optional argument KEEP-FRAME non-nil means
+that quitting should not delete WINDOW's frame."
   (let ((number-of-windows
 	 (length (window-list (window-frame window) 'no-mini window))))
     (cond

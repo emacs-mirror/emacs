@@ -3687,7 +3687,8 @@ it defaults to the value of `obarray'.  */)
       && EQ (obarray, initial_obarray))
     {
       XSYMBOL (sym)->constant = 1;
-      XSYMBOL (sym)->value = sym;
+      XSYMBOL (sym)->redirect = SYMBOL_PLAINVAL;
+      SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
   ptr = &XVECTOR (obarray)->contents[XINT (tem)];
@@ -3768,8 +3769,6 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
        error ("Attempt to unintern t or nil"); */
 
   XSYMBOL (tem)->interned = SYMBOL_UNINTERNED;
-  XSYMBOL (tem)->constant = 0;
-  XSYMBOL (tem)->indirect_variable = 0;
 
   hash = oblookup_last_bucket_number;
 
@@ -3914,35 +3913,31 @@ void
 init_obarray ()
 {
   Lisp_Object oblength;
-  int hash;
-  Lisp_Object *tem;
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
-  Qnil = Fmake_symbol (make_pure_c_string ("nil"));
   Vobarray = Fmake_vector (oblength, make_number (0));
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
-  /* Intern nil in the obarray */
-  XSYMBOL (Qnil)->interned = SYMBOL_INTERNED_IN_INITIAL_OBARRAY;
-  XSYMBOL (Qnil)->constant = 1;
-
-  /* These locals are to kludge around a pyramid compiler bug. */
-  hash = hash_string ("nil", 3);
-  /* Separate statement here to avoid VAXC bug. */
-  hash %= OBARRAY_SIZE;
-  tem = &XVECTOR (Vobarray)->contents[hash];
-  *tem = Qnil;
 
   Qunbound = Fmake_symbol (make_pure_c_string ("unbound"));
-  XSYMBOL (Qnil)->function = Qunbound;
-  XSYMBOL (Qunbound)->value = Qunbound;
+  /* Set temporary dummy values to Qnil and Vpurify_flag to satisfy the
+     NILP (Vpurify_flag) check in intern_c_string.  */
+  Qnil = make_number (-1); Vpurify_flag = make_number (1);
+  Qnil = intern_c_string ("nil");
+
+  /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
+     so those two need to be fixed manally.  */
+  SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
   XSYMBOL (Qunbound)->function = Qunbound;
+  XSYMBOL (Qunbound)->plist = Qnil;
+  /* XSYMBOL (Qnil)->function = Qunbound; */
+  SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
+  XSYMBOL (Qnil)->constant = 1;
+  XSYMBOL (Qnil)->plist = Qnil;
 
   Qt = intern_c_string ("t");
-  XSYMBOL (Qnil)->value = Qnil;
-  XSYMBOL (Qnil)->plist = Qnil;
-  XSYMBOL (Qt)->value = Qt;
+  SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);
   XSYMBOL (Qt)->constant = 1;
 
   /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */
@@ -3981,27 +3976,29 @@ defalias (sname, string)
    to a C variable of type int.  Sample call:
    DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
-defvar_int (const char *namestring, EMACS_INT *address)
+defvar_int (struct Lisp_Intfwd *i_fwd,
+	    const char *namestring, EMACS_INT *address)
 {
-  Lisp_Object sym, val;
+  Lisp_Object sym;
   sym = intern_c_string (namestring);
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Intfwd;
-  XINTFWD (val)->intvar = address;
-  SET_SYMBOL_VALUE (sym, val);
+  i_fwd->type = Lisp_Fwd_Int;
+  i_fwd->intvar = address;
+  XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
+  SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)i_fwd);
 }
 
 /* Similar but define a variable whose value is t if address contains 1,
    nil if address contains 0.  */
 void
-defvar_bool (const char *namestring, int *address)
+defvar_bool (struct Lisp_Boolfwd *b_fwd,
+	     const char *namestring, int *address)
 {
-  Lisp_Object sym, val;
+  Lisp_Object sym;
   sym = intern_c_string (namestring);
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Boolfwd;
-  XBOOLFWD (val)->boolvar = address;
-  SET_SYMBOL_VALUE (sym, val);
+  b_fwd->type = Lisp_Fwd_Bool;
+  b_fwd->boolvar = address;
+  XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
+  SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)b_fwd);
   Vbyte_boolean_vars = Fcons (sym, Vbyte_boolean_vars);
 }
 
@@ -4011,20 +4008,22 @@ defvar_bool (const char *namestring, int *address)
    gc-marked for some other reason, since marking the same slot twice
    can cause trouble with strings.  */
 void
-defvar_lisp_nopro (const char *namestring, Lisp_Object *address)
+defvar_lisp_nopro (struct Lisp_Objfwd *o_fwd,
+		   const char *namestring, Lisp_Object *address)
 {
-  Lisp_Object sym, val;
+  Lisp_Object sym;
   sym = intern_c_string (namestring);
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Objfwd;
-  XOBJFWD (val)->objvar = address;
-  SET_SYMBOL_VALUE (sym, val);
+  o_fwd->type = Lisp_Fwd_Obj;
+  o_fwd->objvar = address;
+  XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
+  SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)o_fwd);
 }
 
 void
-defvar_lisp (const char *namestring, Lisp_Object *address)
+defvar_lisp (struct Lisp_Objfwd *o_fwd,
+	     const char *namestring, Lisp_Object *address)
 {
-  defvar_lisp_nopro (namestring, address);
+  defvar_lisp_nopro (o_fwd, namestring, address);
   staticpro (address);
 }
 
@@ -4032,14 +4031,15 @@ defvar_lisp (const char *namestring, Lisp_Object *address)
    at a particular offset in the current kboard object.  */
 
 void
-defvar_kboard (const char *namestring, int offset)
+defvar_kboard (struct Lisp_Kboard_Objfwd *ko_fwd,
+	       const char *namestring, int offset)
 {
-  Lisp_Object sym, val;
+  Lisp_Object sym;
   sym = intern_c_string (namestring);
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Kboard_Objfwd;
-  XKBOARD_OBJFWD (val)->offset = offset;
-  SET_SYMBOL_VALUE (sym, val);
+  ko_fwd->type = Lisp_Fwd_Kboard_Obj;
+  ko_fwd->offset = offset;
+  XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
+  SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)ko_fwd);
 }
 
 /* Record the value of load-path used at the start of dumping
