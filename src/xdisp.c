@@ -11592,7 +11592,7 @@ static void
 select_frame_for_redisplay (frame)
      Lisp_Object frame;
 {
-  Lisp_Object tail, symbol, val;
+  Lisp_Object tail, tem;
   Lisp_Object old = selected_frame;
   struct Lisp_Symbol *sym;
 
@@ -11600,20 +11600,18 @@ select_frame_for_redisplay (frame)
 
   selected_frame = frame;
 
-  do
-    {
-      for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
-	if (CONSP (XCAR (tail))
-	    && (symbol = XCAR (XCAR (tail)),
-		SYMBOLP (symbol))
-	    && (sym = indirect_variable (XSYMBOL (symbol)),
-		val = sym->value,
-		(BUFFER_LOCAL_VALUEP (val)))
-	    && XBUFFER_LOCAL_VALUE (val)->check_frame)
-	  /* Use find_symbol_value rather than Fsymbol_value
-	     to avoid an error if it is void.  */
-	  find_symbol_value (symbol);
-    } while (!EQ (frame, old) && (frame = old, 1));
+  do {
+    for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
+      if (CONSP (XCAR (tail))
+	  && (tem = XCAR (XCAR (tail)),
+	      SYMBOLP (tem))
+	  && (sym = indirect_variable (XSYMBOL (tem)),
+	      sym->redirect == SYMBOL_LOCALIZED)
+	  && sym->val.blv->frame_local)
+	/* Use find_symbol_value rather than Fsymbol_value
+	   to avoid an error if it is void.  */
+	find_symbol_value (tem);
+  } while (!EQ (frame, old) && (frame = old, 1));
 }
 
 

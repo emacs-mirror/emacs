@@ -78,9 +78,6 @@ static Lisp_Object Vbuffer_defaults;
    be a DEFVAR_PER_BUFFER for the slot, there is no default value for it;
    and the corresponding slot in buffer_defaults is not used.
 
-   If a slot is -2, then there is no DEFVAR_PER_BUFFER for it,
-   but there is a default value which is copied into each buffer.
-
    If a slot in this structure corresponding to a DEFVAR_PER_BUFFER is
    zero, that is a bug */
 
@@ -93,6 +90,12 @@ DECL_ALIGN (struct buffer, buffer_local_symbols);
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
+
+/* Return the symbol of the per-buffer variable at offset OFFSET in
+   the buffer structure.  */
+
+#define PER_BUFFER_SYMBOL(OFFSET) \
+      (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_symbols))
 
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
@@ -507,7 +510,7 @@ clone_per_buffer_values (from, to)
 	continue;
 
       obj = PER_BUFFER_VALUE (from, offset);
-      if (MARKERP (obj))
+      if (MARKERP (obj) && XMARKER (obj)->buffer == from)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
 	  obj = Fmake_marker ();
@@ -770,9 +773,7 @@ reset_buffer_local_variables (b, permanent_too)
     {
       Lisp_Object tmp, prop, last = Qnil;
       for (tmp = b->local_var_alist; CONSP (tmp); tmp = XCDR (tmp))
-	if (CONSP (XCAR (tmp))
-	    && SYMBOLP (XCAR (XCAR (tmp)))
-	    && !NILP (prop = Fget (XCAR (XCAR (tmp)), Qpermanent_local)))
+	if (!NILP (prop = Fget (XCAR (XCAR (tmp)), Qpermanent_local)))
 	  {
 	    /* If permanent-local, keep it.  */
 	    last = tmp;
@@ -822,9 +823,7 @@ reset_buffer_local_variables (b, permanent_too)
       int idx = PER_BUFFER_IDX (offset);
       if ((idx > 0
 	   && (permanent_too
-	       || buffer_permanent_local_flags[idx] == 0))
-	  /* Is -2 used anywhere?  */
-	  || idx == -2)
+	       || buffer_permanent_local_flags[idx] == 0)))
 	PER_BUFFER_VALUE (b, offset) = PER_BUFFER_DEFAULT (offset);
     }
 }
@@ -938,59 +937,49 @@ is the default binding of the variable. */)
   CHECK_SYMBOL (variable);
   CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
+  sym = XSYMBOL (variable);
 
-  sym = indirect_variable (XSYMBOL (variable));
-  XSETSYMBOL (variable, sym);
-
-  /* Look in local_var_list */
-  result = Fassoc (variable, buf->local_var_alist);
-  if (NILP (result))
+ start:
+  switch (sym->redirect)
     {
-      int offset, idx;
-      int found = 0;
+    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_PLAINVAL: result = SYMBOL_VAL (sym); break;
+    case SYMBOL_LOCALIZED:
+      { /* Look in local_var_alist.  */
+	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
+	XSETSYMBOL (variable, sym); /* Update In case of aliasing.  */
+	result = Fassoc (variable, buf->local_var_alist);
+	if (!NILP (result))
+	  {
+	    if (blv->fwd)
+	      { /* What binding is loaded right now?  */
+		Lisp_Object current_alist_element = blv->valcell;
 
-      /* Look in special slots */
-      /* buffer-local Lisp variables start at `undo_list',
-	 tho only the ones from `name' on are GC'd normally.  */
-      for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-	   offset < sizeof (struct buffer);
-	   /* sizeof EMACS_INT == sizeof Lisp_Object */
-	   offset += (sizeof (EMACS_INT)))
-	{
-	  idx = PER_BUFFER_IDX (offset);
-	  if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
-	      && SYMBOLP (PER_BUFFER_SYMBOL (offset))
-	      && EQ (PER_BUFFER_SYMBOL (offset), variable))
-	    {
-	      result = PER_BUFFER_VALUE (buf, offset);
-	      found = 1;
-	      break;
-	    }
-	}
+		/* The value of the currently loaded binding is not
+		   stored in it, but rather in the realvalue slot.
+		   Store that value into the binding it belongs to
+		   in case that is the one we are about to use.  */
 
-      if (!found)
-	result = Fdefault_value (variable);
-    }
-  else
-    {
-      Lisp_Object valcontents;
-      Lisp_Object current_alist_element;
-
-      /* What binding is loaded right now?  */
-      valcontents = sym->value;
-      current_alist_element
-	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
-
-      /* The value of the currently loaded binding is not
-	 stored in it, but rather in the realvalue slot.
-	 Store that value into the binding it belongs to
-	 in case that is the one we are about to use.  */
-
-      Fsetcdr (current_alist_element,
-	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
-
-      /* Now get the (perhaps updated) value out of the binding.  */
-      result = XCDR (result);
+		XSETCDR (current_alist_element,
+			 do_symval_forwarding (blv->fwd));
+	      }
+	    /* Now get the (perhaps updated) value out of the binding.  */
+	    result = XCDR (result);
+	  }
+	else
+	  result = Fdefault_value (variable);
+	break;
+      }
+    case SYMBOL_FORWARDED:
+      {
+	union Lisp_Fwd *fwd = SYMBOL_FWD (sym);
+	if (BUFFER_OBJFWDP (fwd))
+	  result = PER_BUFFER_VALUE (buf, XBUFFER_OBJFWD (fwd)->offset);
+	else
+	  result = Fdefault_value (variable);
+	break;
+      }
+    default: abort ();
     }
 
   if (!EQ (result, Qunbound))
@@ -1025,12 +1014,7 @@ buffer_lisp_local_variables (buf)
       if (buf != current_buffer)
 	val = XCDR (elt);
 
-      /* If symbol is unbound, put just the symbol in the list.  */
-      if (EQ (val, Qunbound))
-	result = Fcons (XCAR (elt), result);
-      /* Otherwise, put (symbol . value) in the list.  */
-      else
-	result = Fcons (Fcons (XCAR (elt), val), result);
+      result = Fcons (Fcons (XCAR (elt), val), result);
     }
 
   return result;
@@ -1862,8 +1846,7 @@ set_buffer_internal_1 (b)
      register struct buffer *b;
 {
   register struct buffer *old_buf;
-  register Lisp_Object tail, valcontents;
-  Lisp_Object tem;
+  register Lisp_Object tail;
 
 #ifdef USE_MMAP_FOR_BUFFERS
   if (b->text->beg == NULL)
@@ -1935,34 +1918,21 @@ set_buffer_internal_1 (b)
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
 
-  for (tail = b->local_var_alist; CONSP (tail); tail = XCDR (tail))
+  do
     {
-      if (CONSP (XCAR (tail))
-	  && SYMBOLP (XCAR (XCAR (tail)))
-	  && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
-	      (BUFFER_LOCAL_VALUEP (valcontents)))
-	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
-	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
-	/* Just reference the variable to cause it to become set for
-	   this buffer.  */
-	Fsymbol_value (XCAR (XCAR (tail)));
+      for (tail = b->local_var_alist; CONSP (tail); tail = XCDR (tail))
+	{
+	  Lisp_Object var = XCAR (XCAR (tail));
+	  struct Lisp_Symbol *sym = XSYMBOL (var);
+	  if (sym->redirect == SYMBOL_LOCALIZED /* Just to be sure.  */
+	      && SYMBOL_BLV (sym)->fwd)
+	    /* Just reference the variable
+	       to cause it to become set for this buffer.  */
+	    Fsymbol_value (var);
+	}
     }
-
   /* Do the same with any others that were local to the previous buffer */
-
-  if (old_buf)
-    for (tail = old_buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
-      {
-	if (CONSP (tail)
-	    && SYMBOLP (XCAR (XCAR (tail)))
-	    && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
-		(BUFFER_LOCAL_VALUEP (valcontents)))
-	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
-		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
-	  /* Just reference the variable to cause it to become set for
-	     this buffer.  */
-	  Fsymbol_value (XCAR (XCAR (tail)));
-      }
+  while (b != old_buf && (b = old_buf, b));
 }
 
 /* Switch to buffer B temporarily for redisplay purposes.
@@ -2677,23 +2647,22 @@ static void
 swap_out_buffer_local_variables (b)
      struct buffer *b;
 {
-  Lisp_Object oalist, alist, sym, buffer;
+  Lisp_Object oalist, alist, buffer;
 
   XSETBUFFER (buffer, b);
   oalist = b->local_var_alist;
 
   for (alist = oalist; CONSP (alist); alist = XCDR (alist))
     {
-      if (CONSP (XCAR (alist))
-	  && (sym = XCAR (XCAR (alist)), SYMBOLP (sym))
-	  /* Need not do anything if some other buffer's binding is
-	     now encached.  */
-	  && EQ (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer,
-		 buffer))
+      Lisp_Object sym = XCAR (XCAR (alist));
+      eassert (XSYMBOL (sym)->redirect == SYMBOL_LOCALIZED);
+      /* Need not do anything if some other buffer's binding is
+	 now encached.  */
+      if (EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
 	{
 	  /* Symbol is set up for this buffer's old local value:
 	     swap it out!  */
-	  swap_in_global_binding (sym);
+	  swap_in_global_binding (XSYMBOL (sym));
 	}
     }
 }
@@ -5162,7 +5131,9 @@ init_buffer_once ()
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
   reset_buffer (&buffer_defaults);
+  eassert (EQ (buffer_defaults.name, make_number (0)));
   reset_buffer_local_variables (&buffer_defaults, 1);
+  eassert (EQ (buffer_local_symbols.name, make_number (0)));
   reset_buffer (&buffer_local_symbols);
   reset_buffer_local_variables (&buffer_local_symbols, 1);
   /* Prevent GC from getting confused.  */
@@ -5421,33 +5392,41 @@ init_buffer ()
    in the buffer that is current now. */
 
 /* TYPE is nil for a general Lisp variable.
-   An integer specifies a type; then only LIsp values
+   An integer specifies a type; then only Lisp values
    with that type code are allowed (except that nil is allowed too).
-   LNAME is the LIsp-level variable name.
+   LNAME is the Lisp-level variable name.
    VNAME is the name of the buffer slot.
    DOC is a dummy where you write the doc string as a comment.  */
-#define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
- defvar_per_buffer (lname, vname, type, 0)
+#define DEFVAR_PER_BUFFER(lname, vname, type, doc)			\
+  do {									\
+    static struct Lisp_Buffer_Objfwd bo_fwd;				\
+    defvar_per_buffer (&bo_fwd, lname, vname, type, 0);			\
+  } while (0)
 
 static void
-defvar_per_buffer (namestring, address, type, doc)
+defvar_per_buffer (bo_fwd, namestring, address, type, doc)
+     struct Lisp_Buffer_Objfwd *bo_fwd;
      char *namestring;
      Lisp_Object *address;
      Lisp_Object type;
      char *doc;
 {
-  Lisp_Object sym, val;
+  struct Lisp_Symbol *sym;
   int offset;
 
-  sym = intern (namestring);
-  val = allocate_misc ();
+  sym = XSYMBOL (intern (namestring));
   offset = (char *)address - (char *)current_buffer;
 
-  XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
-  XBUFFER_OBJFWD (val)->offset = offset;
-  XBUFFER_OBJFWD (val)->slottype = type;
-  SET_SYMBOL_VALUE (sym, val);
-  PER_BUFFER_SYMBOL (offset) = sym;
+  bo_fwd->type = Lisp_Fwd_Buffer_Obj;
+  bo_fwd->offset = offset;
+  bo_fwd->slottype = type;
+  sym->redirect = SYMBOL_FORWARDED;
+  {
+    /* I tried to do the job without a cast, but it seems impossible.
+       union Lisp_Fwd *fwd; &(fwd->u_buffer_objfwd) = bo_fwd;  */
+    SET_SYMBOL_FWD (sym, (union Lisp_Fwd *)bo_fwd);
+  }
+  XSETSYMBOL (PER_BUFFER_SYMBOL (offset), sym);
 
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding

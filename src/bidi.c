@@ -400,14 +400,14 @@ bidi_initialize ()
 			  make_number (bidi_type[i].type));
 
   fallback_paragraph_start_re =
-    XSYMBOL (Fintern_soft (build_string ("paragraph-start"), Qnil))->value;
+    Fsymbol_value (Fintern_soft (build_string ("paragraph-start"), Qnil));
   if (!STRINGP (fallback_paragraph_start_re))
     fallback_paragraph_start_re = build_string ("\f\\|[ \t]*$");
   staticpro (&fallback_paragraph_start_re);
   Qparagraph_start = intern ("paragraph-start");
   staticpro (&Qparagraph_start);
   fallback_paragraph_separate_re =
-    XSYMBOL (Fintern_soft (build_string ("paragraph-separate"), Qnil))->value;
+    Fsymbol_value (Fintern_soft (build_string ("paragraph-separate"), Qnil));
   if (!STRINGP (fallback_paragraph_separate_re))
     fallback_paragraph_separate_re = build_string ("[ \t\f]*$");
   staticpro (&fallback_paragraph_separate_re);
@@ -879,7 +879,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
       int ch, ch_len;
       EMACS_INT pos;
       bidi_type_t type;
-      EMACS_INT sep_len;
 
       /* If we are inside a paragraph separator, we are just waiting
 	 for the separator to be exhausted; use the previous paragraph

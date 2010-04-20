@@ -6408,7 +6408,7 @@ detect_coding (coding)
 			{
 			  /* We didn't find an 8-bit code.  We may
 			     have found a null-byte, but it's very
-			     rare that a binary file confirm to
+			     rare that a binary file conforms to
 			     ISO-2022.  */
 			  src = src_end;
 			  coding->head_ascii = src - coding->source;
