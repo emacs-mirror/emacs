@@ -168,12 +168,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                   (condition-case nil
                       ;; Ignore all errors.
 		      (let ((process-environment
-			     ;; Avoid localization of messages so we can parse the output.
-			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=") process-environment)))
-
-		      (process-file
-                       "hg" nil t nil
-                       "status" "-A" (file-relative-name file)))
+			     ;; Avoid localization of messages so we
+			     ;; can parse the output.
+			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRCPATH=")
+				     process-environment)))
+			(process-file
+			 "hg" nil t nil
+			 "status" "-A" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -197,7 +198,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       ((status nil)
        (default-directory (file-name-directory file))
        ;; Avoid localization of messages so we can parse the output.
-       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=")
+       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C" "HGRCPATH=")
 				     process-environment))
        (out
         (with-output-to-string
@@ -209,7 +210,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 			;; Ignore all errors.
 			(process-file
 			 "hg" nil t nil
-			 "parent" "--template" "{rev}" (file-relative-name file)))
+			 "parents" "--template" "{rev}" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
