@@ -1,5 +1,7 @@
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font.c (syms_of_font): Make the style table vars read-only.
+
 	* buffer.h (struct buffer): Remove unused var `direction_reversed'.
 	* buffer.c (init_buffer_once, syms_of_buffer): Remove its initialization.
 
