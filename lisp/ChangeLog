@@ -1,5 +1,8 @@
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-dispatcher.el (vc-finish-logentry): Don't mess so badly with the
+	windows/frames.
+
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Complete around point.
 	I.e. include text after point in the completion region.
 	Also, return nil when we're not after/in a symbol.

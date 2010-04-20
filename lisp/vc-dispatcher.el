@@ -599,8 +599,7 @@ the buffer contents as a comment."
 	(log-extra vc-log-extra)
 	(log-entry (buffer-string))
 	(extra-flags log-edit-extra-flags)
-	(after-hook vc-log-after-operation-hook)
-	(tmp-vc-parent-buffer vc-parent-buffer))
+	(after-hook vc-log-after-operation-hook))
     (pop-to-buffer vc-parent-buffer)
     ;; OK, do it to it
     (save-excursion
@@ -617,9 +616,11 @@ the buffer contents as a comment."
 	   (delete-windows-on logbuf (selected-frame))
 	   ;; Kill buffer and delete any other dedicated windows/frames.
 	   (kill-buffer logbuf))
-	  (logbuf (pop-to-buffer logbuf)
-		  (bury-buffer)
-		  (pop-to-buffer tmp-vc-parent-buffer)))
+	  (logbuf
+           (with-selected-window (or (get-buffer-window logbuf 0)
+                                     (selected-window))
+             (with-current-buffer logbuf
+               (bury-buffer)))))
     ;; Now make sure we see the expanded headers
     (when log-fileset
       (mapc
