@@ -1,5 +1,7 @@
 2010-04-20  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Give it a doc string.
+
 	* minibuffer.el (completion-at-point): Doc fix.
 
 2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
