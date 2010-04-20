@@ -5784,8 +5784,7 @@ This variable is never applied to a way of decoding a file while reading it.  */
 
   DEFVAR_PER_BUFFER ("bidi-display-reordering",
 		     &current_buffer->bidi_display_reordering, Qnil,
-		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.
-See also the variable `direction-reversed'.  */);
+		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.  */);
 
   DEFVAR_PER_BUFFER ("bidi-paragraph-direction",
 		     &current_buffer->bidi_paragraph_direction, Qnil,

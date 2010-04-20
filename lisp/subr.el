@@ -1055,7 +1055,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'default-line-spacing 'line-spacing "23.2")
 (make-obsolete-variable 'default-abbrev-mode 'abbrev-mode "23.2")
 (make-obsolete-variable 'default-ctl-arrow 'ctl-arrow "23.2")
-(make-obsolete-variable 'default-direction-reversed 'direction-reversed "23.2")
 (make-obsolete-variable 'default-truncate-lines 'truncate-lines "23.2")
 (make-obsolete-variable 'default-left-margin 'left-margin "23.2")
 (make-obsolete-variable 'default-tab-width 'tab-width "23.2")

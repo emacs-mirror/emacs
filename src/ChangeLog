@@ -1,3 +1,7 @@
+2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <bidi-display-reordering>: Doc fix.
+
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (Fmake_variable_buffer_local, Fmake_local_variable):
