@@ -1,5 +1,9 @@
 2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable):
+	Just signal a warning rather than an error when inside a let.
+	(Fmake_variable_frame_local): Add the same test.
+
 	* font.c (syms_of_font): Make the style table vars read-only.
 
 	* buffer.h (struct buffer): Remove unused var `direction_reversed'.
