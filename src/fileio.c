@@ -53,12 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 
-#ifndef vax11c
-#ifndef USE_CRT_DLL
-extern int errno;
-#endif
-#endif
-
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -79,10 +73,8 @@ extern int errno;
 #ifdef MSDOS
 #include "msdos.h"
 #include <sys/param.h>
-#if __DJGPP__ >= 2
 #include <fcntl.h>
 #include <string.h>
-#endif
 #endif
 
 #ifdef DOS_NT
@@ -2012,7 +2004,6 @@ uid and gid of FILE to NEWNAME.  */)
      copyable by us. */
   input_file_statable_p = (fstat (ifd, &st) >= 0);
 
-#if !defined (MSDOS) || __DJGPP__ > 1
   if (out_st.st_mode != 0
       && st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
     {
@@ -2020,7 +2011,6 @@ uid and gid of FILE to NEWNAME.  */)
       report_file_error ("Input and output files are the same",
 			 Fcons (file, Fcons (newname, Qnil)));
     }
-#endif
 
 #if defined (S_ISREG) && defined (S_ISLNK)
   if (input_file_statable_p)
@@ -2091,7 +2081,7 @@ uid and gid of FILE to NEWNAME.  */)
 
   emacs_close (ifd);
 
-#if defined (__DJGPP__) && __DJGPP__ > 1
+#ifdef MSDOS
   if (input_file_statable_p)
     {
       /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
@@ -2101,7 +2091,7 @@ uid and gid of FILE to NEWNAME.  */)
       if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
 	chmod (SDATA (encoded_newname), st.st_mode & 07777);
     }
-#endif /* DJGPP version 2 or newer */
+#endif /* MSDOS */
 #endif /* not WINDOWSNT */
 
   /* Discard the unwind protects.  */
@@ -2477,16 +2467,7 @@ check_executable (filename)
   struct stat st;
   if (stat (filename, &st) < 0)
     return 0;
-#if defined (WINDOWSNT) || (defined (MSDOS) && __DJGPP__ > 1)
   return ((st.st_mode & S_IEXEC) != 0);
-#else
-  return (S_ISREG (st.st_mode)
-	  && len >= 5
-	  && (xstrcasecmp ((suffix = filename + len-4), ".com") == 0
-	      || xstrcasecmp (suffix, ".exe") == 0
-	      || xstrcasecmp (suffix, ".bat") == 0)
-	  || (st.st_mode & S_IFMT) == S_IFDIR);
-#endif /* not WINDOWSNT */
 #else /* not DOS_NT */
 #ifdef HAVE_EUIDACCESS
   return (euidaccess (filename, 1) >= 0);
@@ -2885,10 +2866,6 @@ Return nil, if file does not exist or is not accessible.  */)
 
   if (stat (SDATA (absname), &st) < 0)
     return Qnil;
-#if defined (MSDOS) && __DJGPP__ < 2
-  if (check_executable (SDATA (absname)))
-    st.st_mode |= S_IEXEC;
-#endif /* MSDOS && __DJGPP__ < 2 */
 
   return make_number (st.st_mode & 07777);
 }
@@ -4115,6 +4092,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (NILP (handler))
 	{
 	  current_buffer->modtime = st.st_mtime;
+	  current_buffer->modtime_size = st.st_size;
 	  current_buffer->filename = orig_filename;
 	}
 
@@ -4718,7 +4696,10 @@ This calls `write-region-annotate-functions' at the start, and
      to avoid a "file has changed on disk" warning on
      next attempt to save.  */
   if (visiting)
-    current_buffer->modtime = st.st_mtime;
+    {
+      current_buffer->modtime = st.st_mtime;
+      current_buffer->modtime_size = st.st_size;
+    }
 
   if (failure)
     error ("IO error writing %s: %s", SDATA (filename),
@@ -5027,11 +5008,13 @@ See Info node `(elisp)Modification Time' for more details.  */)
       else
 	st.st_mtime = 0;
     }
-  if (st.st_mtime == b->modtime
-      /* If both are positive, accept them if they are off by one second.  */
-      || (st.st_mtime > 0 && b->modtime > 0
-	  && (st.st_mtime == b->modtime + 1
-	      || st.st_mtime == b->modtime - 1)))
+  if ((st.st_mtime == b->modtime
+       /* If both are positive, accept them if they are off by one second.  */
+       || (st.st_mtime > 0 && b->modtime > 0
+	   && (st.st_mtime == b->modtime + 1
+	       || st.st_mtime == b->modtime - 1)))
+      && (st.st_size == b->modtime_size
+          || b->modtime_size < 0))
     return Qt;
   return Qnil;
 }
@@ -5043,6 +5026,7 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
      ()
 {
   current_buffer->modtime = 0;
+  current_buffer->modtime_size = -1;
   return Qnil;
 }
 
@@ -5072,7 +5056,10 @@ An argument specifies the modification time value to use
      Lisp_Object time_list;
 {
   if (!NILP (time_list))
-    current_buffer->modtime = cons_to_long (time_list);
+    {
+      current_buffer->modtime = cons_to_long (time_list);
+      current_buffer->modtime_size = -1;
+    }
   else
     {
       register Lisp_Object filename;
@@ -5091,7 +5078,10 @@ An argument specifies the modification time value to use
       filename = ENCODE_FILE (filename);
 
       if (stat (SDATA (filename), &st) >= 0)
-	current_buffer->modtime = st.st_mtime;
+        {
+	  current_buffer->modtime = st.st_mtime;
+          current_buffer->modtime_size = st.st_size;
+        }
     }
 
   return Qnil;

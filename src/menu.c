@@ -61,6 +61,10 @@ extern HMENU current_popup_menu;
 #define HAVE_BOXES 1
 #endif
 
+/* The timestamp of the last input event Emacs received from the X server.  */
+/* Defined in keyboard.c.  */
+extern unsigned long last_event_timestamp;
+
 extern Lisp_Object QCtoggle, QCradio;
 
 Lisp_Object menu_items;
@@ -693,6 +697,12 @@ digest_single_submenu (start, end, top_level_items)
 
 	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
+#elif defined (USE_LUCID) && defined (HAVE_XFT)
+	  if (STRINGP (pane_name))
+            {
+              pane_name = ENCODE_UTF_8 (pane_name);
+	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
+            }
 #elif !defined (HAVE_MULTILINGUAL_MENU)
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
@@ -764,6 +774,18 @@ digest_single_submenu (start, end, top_level_items)
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_SYSTEM (descrip);
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
+	    }
+#elif USE_LUCID
+	  if (STRINGP (item_name))
+	    {
+              item_name = ENCODE_UTF_8 (item_name);
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
+	    }
+
+	  if (STRINGP (descrip))
+	    {
+	      descrip = ENCODE_UTF_8 (descrip);
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 #elif !defined (HAVE_MULTILINGUAL_MENU)
@@ -1073,7 +1095,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   int keymaps = 0;
   int for_click = 0;
   int specpdl_count = SPECPDL_INDEX ();
-  Lisp_Object timestamp = Qnil;
   struct gcpro gcpro1;
 
   if (NILP (position))
@@ -1107,10 +1128,9 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	    for_click = 1;
 	    tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
 	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
-	    tem = Fcdr (Fcdr (tem));
-	    x = Fcar (Fcar (tem));
-	    y = Fcdr (Fcar (tem));
-	    timestamp = Fcar (Fcdr (tem));
+	    tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
+	    x = Fcar (tem);
+	    y = Fcdr (tem);
 	  }
 
 	/* If a click happens in an external tool bar or a detached
@@ -1318,9 +1338,13 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   selection = ns_menu_show (f, xpos, ypos, for_click,
 			    keymaps, title, &error_name);
 #else /* MSDOS and X11 */
+  /* Assume last_event_timestamp is the timestamp of the button event.
+     Is this assumption ever violated?  We can't use the timestamp
+     stored within POSITION because there the top bits from the actual
+     timestamp may be truncated away (Bug#4930).  */
   selection = xmenu_show (f, xpos, ypos, for_click,
 			  keymaps, title, &error_name,
-			  INTEGERP (timestamp) ? XUINT (timestamp) : 0);
+			  last_event_timestamp);
 #endif
 
   UNBLOCK_INPUT;

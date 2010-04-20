@@ -194,22 +194,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define POSIX                 /* affects getpagesize.h and systty.h */
 #define POSIX_SIGNALS
 
-/* Best not to include -lg, unless it is last on the command line */
-#define LIBS_DEBUG
 #undef LIB_GCC
 #define LIB_GCC
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
 
-/* Don't use -g in test compiles in configure.
-   This is so we will use the same shared libs for that linking
-   that are used when linking temacs.  */
-#ifdef THIS_IS_CONFIGURE
-#define C_DEBUG_SWITCH
-#endif
-
-/* alane@wozzle.linet.org says that -lipc is not a separate library,
-   since libc-4.4.1.  So -lipc was deleted.  */
-#define LIBS_SYSTEM
 /* _BSD_SOURCE is redundant, at least in glibc2, since we define
    _GNU_SOURCE.  Left in in case it's relevant to libc5 systems and
    anyone's still using Emacs on those.  --fx 2002-12-14  */

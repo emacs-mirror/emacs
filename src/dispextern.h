@@ -370,6 +370,16 @@ struct glyph
   /* Non-zero means don't display cursor here.  */
   unsigned avoid_cursor_p : 1;
 
+  /* Resolved bidirectional level of this character [0..63].  */
+  unsigned resolved_level : 5;
+
+  /* Resolved bidirectional type of this character, see enum
+     bidi_type_t below.  Note that according to UAX#9, only some
+     values (STRONG_L, STRONG_R, WEAK_AN, WEAK_EN, WEAK_BN, and
+     NEUTRAL_B) can appear in the resolved type, so we only reserve
+     space for those that can.  */
+  unsigned bidi_type : 3;
+
 #define FACE_ID_BITS	20
 
   /* Face of the glyph.  This is a realized face ID,
@@ -739,14 +749,18 @@ struct glyph_row
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
      started, and can thus be less the position of the first glyph
-     (e.g. due to invisible text or horizontal scrolling).  */
+     (e.g. due to invisible text or horizontal scrolling).  BIDI Note:
+     This is the smallest character position in the row, but not
+     necessarily the character that is the leftmost on the display.  */
   struct display_pos start;
 
   /* Text position at the end of this row.  This is the position after
      the last glyph on this row.  It can be greater than the last
      glyph position + 1, due to truncation, invisible text etc.  In an
      up-to-date display, this should always be equal to the start
-     position of the next row.  */
+     position of the next row.  BIDI Note: this is the character whose
+     buffer position is the largest, but not necessarily the rightmost
+     one on the display.  */
   struct display_pos end;
 
   /* Non-zero means the overlay arrow bitmap is on this line.
@@ -872,6 +886,10 @@ struct glyph_row
      the bottom line of the window, but not end of the buffer.  */
   unsigned indicate_bottom_line_p : 1;
 
+  /* Non-zero means the row was reversed to display text in a
+     right-to-left paragraph.  */
+  unsigned reversed_p : 1;
+
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 
@@ -924,12 +942,18 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
      (MATRIX_ROW ((MATRIX), (ROW))->used[TEXT_AREA])
 
 /* Return the character/ byte position at which the display of ROW
-   starts.  */
+   starts.  BIDI Note: this is the smallest character/byte position
+   among characters in ROW, i.e. the first logical-order character
+   displayed by ROW, which is not necessarily the smallest horizontal
+   position.  */
 
 #define MATRIX_ROW_START_CHARPOS(ROW) ((ROW)->start.pos.charpos)
 #define MATRIX_ROW_START_BYTEPOS(ROW) ((ROW)->start.pos.bytepos)
 
-/* Return the character/ byte position at which ROW ends.  */
+/* Return the character/ byte position at which ROW ends.  BIDI Note:
+   this is the largest character/byte position among characters in
+   ROW, i.e. the last logical-order character displayed by ROW, which
+   is not necessarily the largest horizontal position.  */
 
 #define MATRIX_ROW_END_CHARPOS(ROW) ((ROW)->end.pos.charpos)
 #define MATRIX_ROW_END_BYTEPOS(ROW) ((ROW)->end.pos.bytepos)
@@ -1078,17 +1102,9 @@ extern int cursor_in_echo_area;
 
 extern int display_completed;
 
-/* Non-zero means redisplay has been performed directly (see also
-   direct_output_for_insert and direct_output_forward_char), so that
-   no further updating has to be performed.  The function
-   redisplay_internal checks this flag, and does nothing but reset it
-   to zero if it is non-zero.  */
-
-extern int redisplay_performed_directly_p;
-
 /* A temporary storage area, including a row of glyphs.  Initialized
    in xdisp.c.  Used for various purposes, as an example see
-   direct_output_for_insert.  */
+   get_overlay_arrow_glyph_row.  */
 
 extern struct glyph_row scratch_glyph_row;
 
@@ -1702,7 +1718,93 @@ struct face_cache
 
 extern int face_change_count;
 
+/* For reordering of bidirectional text.  */
+#define BIDI_MAXLEVEL 64
 
+/* Data type for describing the bidirectional character types.  The
+   first 7 must be at the beginning, because they are the only values
+   valid in the `bidi_type' member of `struct glyph'; we only reserve
+   3 bits for it, so we cannot use there values larger than 7.  */
+typedef enum {
+  UNKNOWN_BT = 0,
+  STRONG_L,	/* strong left-to-right */
+  STRONG_R,	/* strong right-to-left */
+  WEAK_EN,	/* european number */
+  WEAK_AN,	/* arabic number */
+  WEAK_BN,	/* boundary neutral */
+  NEUTRAL_B,	/* paragraph separator */
+  STRONG_AL,	/* arabic right-to-left letter */
+  LRE,		/* left-to-right embedding */
+  LRO,		/* left-to-right override */
+  RLE,		/* right-to-left embedding */
+  RLO,		/* right-to-left override */
+  PDF,		/* pop directional format */
+  WEAK_ES,	/* european number separator */
+  WEAK_ET,	/* european number terminator */
+  WEAK_CS,	/* common separator */
+  WEAK_NSM,	/* non-spacing mark */
+  NEUTRAL_S,	/* segment separator */
+  NEUTRAL_WS,	/* whitespace */
+  NEUTRAL_ON	/* other neutrals */
+} bidi_type_t;
+
+/* The basic directionality data type.  */
+typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
+
+/* Data type for storing information about characters we need to
+   remember.  */
+struct bidi_saved_info {
+  int bytepos, charpos;		/* character's buffer position */
+  bidi_type_t type;		/* character's resolved bidi type */
+  bidi_type_t type_after_w1;	/* original type of the character, after W1 */
+  bidi_type_t orig_type;	/* type as we found it in the buffer */
+};
+
+/* Data type for keeping track of saved embedding levels and override
+   status information.  */
+struct bidi_stack {
+  int level;
+  bidi_dir_t override;
+};
+
+/* Data type for iterating over bidi text.  */
+struct bidi_it {
+  EMACS_INT bytepos;		/* iterator's position in buffer */
+  EMACS_INT charpos;
+  int ch;			/* character itself */
+  int ch_len;			/* length of its multibyte sequence */
+  bidi_type_t type;		/* bidi type of this character, after
+				   resolving weak and neutral types */
+  bidi_type_t type_after_w1;	/* original type, after overrides and W1 */
+  bidi_type_t orig_type;	/* original type, as found in the buffer */
+  int resolved_level;		/* final resolved level of this character */
+  int invalid_levels;		/* how many PDFs to ignore */
+  int invalid_rl_levels;	/* how many PDFs from RLE/RLO to ignore */
+  int prev_was_pdf;		/* if non-zero, previous char was PDF */
+  struct bidi_saved_info prev;	/* info about previous character */
+  struct bidi_saved_info last_strong; /* last-seen strong directional char */
+  struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
+  struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
+  struct bidi_saved_info next_for_ws; /* character after sequence of ws */
+  EMACS_INT next_en_pos;	/* position of next EN char for ET */
+  EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
+  bidi_dir_t sor;		/* direction of start-of-run in effect */
+  int scan_dir;			/* direction of text scan */
+  int stack_idx;		/* index of current data on the stack */
+  /* Note: Everything from here on is not copied/saved when the bidi
+     iterator state is saved, pushed, or popped.  So only put here
+     stuff that is not part of the bidi iterator's state!  */
+  struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
+  int first_elt;		/* if non-zero, examine current char first */
+  bidi_dir_t paragraph_dir;	/* current paragraph direction */
+  int new_paragraph;		/* if non-zero, we expect a new paragraph */
+  EMACS_INT separator_limit;	/* where paragraph separator should end */
+};
+
+/* Value is non-zero when the bidi iterator is at base paragraph
+   embedding level.  */
+#define BIDI_AT_BASE_LEVEL(BIDI_IT) \
+  ((BIDI_IT).resolved_level == (BIDI_IT).level_stack[0].level)
 
 
 /***********************************************************************
@@ -1854,7 +1956,7 @@ enum it_method {
   NUM_IT_METHODS
 };
 
-#define IT_STACK_SIZE 4
+#define IT_STACK_SIZE 5
 
 /* Iterator for composition (both for static and automatic).  */
 struct composition_it
@@ -1901,6 +2003,14 @@ struct it
   /* The next position at which to check for face changes, invisible
      text, overlay strings, end of text etc., which see.  */
   EMACS_INT stop_charpos;
+
+  /* Previous stop position, i.e. the last one before the current
+     iterator position in `current'.  */
+  EMACS_INT prev_stop;
+
+  /* Last stop position iterated across whose bidi embedding level is
+     equal to the current paragraph's base embedding level.  */
+  EMACS_INT base_level_stop;
 
   /* Maximum string or buffer position + 1.  ZV when iterating over
      current_buffer.  */
@@ -2008,6 +2118,8 @@ struct it
     int string_nchars;
     EMACS_INT end_charpos;
     EMACS_INT stop_charpos;
+    EMACS_INT prev_stop;
+    EMACS_INT base_level_stop;
     struct composition_it cmp_it;
     int face_id;
 
@@ -2207,6 +2319,14 @@ struct it
      incremented/reset by display_line, move_it_to etc.  */
   int continuation_lines_width;
 
+  /* Buffer position that ends the buffer text line being iterated.
+     This is normally the position after the newline at EOL.  If this
+     is the last line of the buffer and it doesn't have a newline,
+     value is ZV/ZV_BYTE.  Set and used only if IT->bidi_p, for
+     setting the end position of glyph rows produced for continuation
+     lines, see display_line.  */
+  struct text_pos eol_pos;
+
   /* Current y-position.  Automatically incremented by the height of
      glyph_row in move_it_to and display_line.  */
   int current_y;
@@ -2233,6 +2353,14 @@ struct it
 
   /* Face of the right fringe glyph.  */
   unsigned right_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Non-zero means we need to reorder bidirectional text for display
+     in the visual order.  */
+  int bidi_p;
+
+  /* For iterating over bidirectional text.  */
+  struct bidi_it bidi_it;
+  bidi_dir_t paragraph_embedding;
 };
 
 
@@ -2263,6 +2391,13 @@ struct it
 #define PRODUCE_GLYPHS(IT)                              \
   do {                                                  \
     extern int inhibit_free_realized_faces;             \
+    if ((IT)->glyph_row != NULL && (IT)->bidi_p)	\
+      {							\
+        if ((IT)->bidi_it.paragraph_dir == R2L)		\
+	  (IT)->glyph_row->reversed_p = 1;		\
+	else						\
+	  (IT)->glyph_row->reversed_p = 0;		\
+      }							\
     if (FRAME_RIF ((IT)->f) != NULL)                    \
       FRAME_RIF ((IT)->f)->produce_glyphs ((IT));       \
     else                                                \
@@ -2704,12 +2839,20 @@ extern EMACS_INT tool_bar_button_relief;
 			  Function Prototypes
  ***********************************************************************/
 
+/* Defined in bidi.c */
+
+extern void bidi_init_it P_ ((EMACS_INT, EMACS_INT, struct bidi_it *));
+extern void bidi_get_next_char_visually P_ ((struct bidi_it *));
+extern void bidi_paragraph_init P_ ((bidi_dir_t, struct bidi_it *));
+extern int  bidi_mirror_char P_ ((int));
+
 /* Defined in xdisp.c */
 
 struct glyph_row *row_containing_pos P_ ((struct window *, int,
 					  struct glyph_row *,
 					  struct glyph_row *, int));
-int string_buffer_position P_ ((struct window *, Lisp_Object, int));
+EMACS_INT string_buffer_position P_ ((struct window *, Lisp_Object,
+				      EMACS_INT));
 int line_bottom_y P_ ((struct it *));
 int display_prop_intangible_p P_ ((Lisp_Object));
 void resize_echo_area_exactly P_ ((void));
@@ -2830,6 +2973,10 @@ extern void expose_frame P_ ((struct frame *, int, int, int, int));
 extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 #endif
+
+/* Flags passed to try_window.  */
+#define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
+#define TRY_WINDOW_IGNORE_FONTS_CHANGE	(1 << 1)
 
 /* Defined in fringe.c */
 
@@ -3021,8 +3168,6 @@ extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
 extern void init_desired_glyphs P_ ((struct frame *));
 extern int scroll_frame_lines P_ ((struct frame *, int, int, int, int));
-extern int direct_output_for_insert P_ ((int));
-extern int direct_output_forward_char P_ ((int));
 extern int update_frame P_ ((struct frame *, int, int));
 extern int scrolling P_ ((struct frame *));
 extern void bitch_at_user P_ ((void));
@@ -3049,8 +3194,6 @@ void set_window_update_flags P_ ((struct window *, int));
 void redraw_frame P_ ((struct frame *));
 void redraw_garbaged_frames P_ ((void));
 int scroll_cost P_ ((struct frame *, int, int, int));
-int direct_output_for_insert P_ ((int));
-int direct_output_forward_char P_ ((int));
 int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
@@ -3122,7 +3265,8 @@ enum resource_types
   RES_TYPE_FLOAT,
   RES_TYPE_BOOLEAN,
   RES_TYPE_STRING,
-  RES_TYPE_SYMBOL
+  RES_TYPE_SYMBOL,
+  RES_TYPE_BOOLEAN_NUMBER
 };
 
 extern Lisp_Object x_get_arg P_ ((Display_Info *, Lisp_Object,

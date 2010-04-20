@@ -188,6 +188,23 @@ when this variable is set to nil.")
 (defvar log-edit-callback nil)
 (defvar log-edit-diff-function nil)
 (defvar log-edit-listfun nil)
+(defvar log-edit-extra-flags nil
+  "List of extra flags to pass to the check in command.")
+(defvar log-edit-before-checkin-process nil
+  "Alist with instructions for processing the commit message before check in.
+The format is: (REGEXP . INSTRUCTIONS).
+All lines matching REGEXP are removed.  For example:
+
+\(\"^#.*\" . nil)
+
+means: just remove all lines starting with #.  This can be used
+to insert lines in the commit buffer that contain, for example, the
+list of files to be committed.
+
+\(\"Author: \\\\(.*\\\\)\" . (list \"--author\" (match-string 1)))
+
+means: append (list \"--author\" (match-string 1)) to `log-edit-extra-flags'.")
+
 (defvar log-edit-parent-buffer nil)
 
 ;;; Originally taken from VC-Log mode
@@ -318,9 +335,10 @@ automatically."
      (2 font-lock-function-name-face))))
 
 ;;;###autoload
-(defun log-edit (callback &optional setup params buffer &rest ignore)
+(defun log-edit (callback &optional setup params buffer mode &rest ignore)
   "Setup a buffer to enter a log message.
-\\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
+\\<log-edit-mode-map>The buffer will be put in mode MODE or `log-edit-mode'
+if MODE is nil.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
 Mark and point will be set around the entire contents of the buffer so
 that it is easy to kill the contents of the buffer with \\[kill-region].
@@ -341,7 +359,9 @@ uses the current buffer."
     (when (and log-edit-setup-invert (not (eq setup 'force)))
       (setq setup (not setup)))
     (when setup (erase-buffer))
-    (log-edit-mode)
+    (if mode
+	(funcall mode)
+      (log-edit-mode))
     (set (make-local-variable 'log-edit-callback) callback)
     (if (listp params)
 	(dolist (crt params)
@@ -368,7 +388,8 @@ commands (under C-x v for VC, for example).
 \\{log-edit-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
        '(log-edit-font-lock-keywords t))
-  (make-local-variable 'log-edit-comment-ring-index))
+  (make-local-variable 'log-edit-comment-ring-index)
+  (hack-dir-local-variables-non-file-buffer))
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
@@ -709,6 +730,17 @@ Sort REGIONS front-to-back first."
     (dolist (buffer-entry buffer-entries)
       (log-edit-changelog-insert-entries (car buffer-entry) (cdr buffer-entry))
       (when (cdr buffer-entry) (newline)))))
+
+(defun log-view-process-buffer ()
+  (when log-edit-before-checkin-process
+    (dolist (crt log-edit-before-checkin-process)
+      ;; Remove all lines matching (car crt)
+      ;; Append to `log-edit-extra-flags' the results of (cdr crt).
+      (goto-char (point-min))
+      (while (re-search-forward (car crt) nil t)
+	(when (cdr crt)
+	  (setq log-edit-extra-flags (append log-edit-extra-flags (eval (cdr crt)))))
+	(replace-match "" nil t)))))
 
 (provide 'log-edit)
 

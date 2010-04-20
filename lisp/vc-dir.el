@@ -263,6 +263,7 @@ See `run-hooks'."
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "x" 'vc-dir-hide-up-to-date)
+    (define-key map [?\C-k] 'vc-dir-kill-line)
     (define-key map "S" 'vc-dir-search) ;; FIXME: Maybe use A like dired?
     (define-key map "Q" 'vc-dir-query-replace-regexp)
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
@@ -938,6 +939,7 @@ the *vc-dir* buffer.
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
+    (hack-dir-local-variables-non-file-buffer)
     (vc-dir-refresh)))
 
 (defun vc-dir-headers (backend dir)
@@ -949,7 +951,8 @@ specific headers."
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
    (propertize "Working dir: " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
+   (propertize (format "%s\n" (abbreviate-file-name dir))
+               'face 'font-lock-variable-name-face)
    ;; Then the backend specific ones.
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"))
@@ -1085,6 +1088,13 @@ outside of VC) and one wants to do some operation on it."
 		 (eq (vc-dir-fileinfo->state data) 'up-to-date))
 	    (ewoc-delete vc-ewoc crt))
 	  (setq crt prev)))))
+
+(defun vc-dir-kill-line ()
+  "Remove the current line from display."
+  (interactive)
+  (let ((crt (ewoc-locate vc-ewoc))
+        (inhibit-read-only t))
+    (ewoc-delete vc-ewoc crt)))
 
 (defun vc-dir-printer (fileentry)
   (vc-call-backend vc-dir-backend 'dir-printer fileentry))

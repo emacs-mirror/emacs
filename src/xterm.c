@@ -50,9 +50,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #endif /* makedev */
 
-#ifdef BSD_SYSTEM
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif /* ! defined (BSD_SYSTEM) */
+#endif /* ! defined (HAVE_SYS_IOCTL_H) */
 
 #include "systime.h"
 
@@ -308,8 +308,6 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 extern Lisp_Object Vx_no_window_manager;
 
 extern Lisp_Object Qeql;
-
-extern int errno;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
@@ -8933,11 +8931,9 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols)
-    + 2*f->border_width;
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
-    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f)
-    + 2*f->border_width;
+    + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
   if (change_gravity) f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);

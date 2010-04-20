@@ -4,6 +4,7 @@
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
+;;
 ;;  Modularized by Ted Zlatanov <tzz@lifelogs.com>
 ;;  when it was part of Gnus.
 

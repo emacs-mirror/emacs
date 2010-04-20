@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999, 2001, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
-;; Keywords: HMAC, RFC 2104, HMAC-MD5, MD5, KEYED-MD5, CRAM-MD5
+;; Keywords: HMAC, RFC2104, HMAC-MD5, MD5, KEYED-MD5, CRAM-MD5
 
 ;; This file is part of GNU Emacs.
 

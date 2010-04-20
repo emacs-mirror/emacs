@@ -31,7 +31,7 @@
 PUBLIC_LIBSRC_BINARIES='b2m emacsclient etags ctags ebrowse'
 PUBLIC_LIBSRC_SCRIPTS='grep-changelog rcs-checkin'
 
-AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile makefile stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
+AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile$ Makefile.in$ Makefile.c$ makefile$ makefile.w32-in$ stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
 
 # Prune old binaries lying around in the source tree
 PRUNE=no
@@ -120,7 +120,7 @@ Written by Miles Bader <miles@gnu.org>
 EOF
       exit 0
       ;;
-    -[^-]?*)
+    -[!-]?*)
       # split concatenated single-letter options apart
       FIRST="$1"; shift
       set -- `echo $FIRST | sed 's/-\(.\)\(.*\)/-\1 -\2/'` "$@"

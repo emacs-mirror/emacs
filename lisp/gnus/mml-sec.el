@@ -26,10 +26,6 @@
 
 (eval-when-compile (require 'cl))
 
-(if (locate-library "password-cache")
-    (require 'password-cache)
-  (require 'password))
-
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")
 (autoload 'mml1991-sign "mml1991")
@@ -109,12 +105,18 @@ details."
   :group 'message
   :type 'boolean)
 
-(defcustom mml-secure-cache-passphrase password-cache
+(defcustom mml-secure-cache-passphrase
+  (if (boundp 'password-cache)
+      password-cache
+    t)
   "If t, cache passphrase."
   :group 'message
   :type 'boolean)
 
-(defcustom mml-secure-passphrase-cache-expiry password-cache-expiry
+(defcustom mml-secure-passphrase-cache-expiry
+  (if (boundp 'password-cache-expiry)
+      password-cache-expiry
+    16)
   "How many seconds the passphrase is cached.
 Whether the passphrase is cached at all is controlled by
 `mml-secure-cache-passphrase'."

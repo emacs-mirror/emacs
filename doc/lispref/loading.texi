@@ -920,8 +920,17 @@ library, to remove functions defined in the library.
 @cindex loading hooks
 @cindex hooks for loading
 
-You can ask for code to be executed if and when a particular library is
-loaded, by calling @code{eval-after-load}.
+You can ask for code to be executed each time Emacs loads a library,
+by using the variable @code{after-load-functions}:
+
+@defvar after-load-functions
+This abnormal hook is run after loading a file.  Each function in the
+hook is called with a single argument, the absolute filename of the
+file that was just loaded.
+@end defvar
+
+If you want code to be executed when a @emph{particular} library is
+loaded, use the function @code{eval-after-load}:
 
 @defun eval-after-load library form
 This function arranges to evaluate @var{form} at the end of loading
@@ -930,7 +939,7 @@ the file @var{library}, each time @var{library} is loaded.  If
 Don't forget to quote @var{form}!
 
 You don't need to give a directory or extension in the file name
-@var{library}---normally you just give a bare file name, like this:
+@var{library}.  Normally, you just give a bare file name, like this:
 
 @example
 (eval-after-load "edebug" '(def-edebug-spec c-point t))
@@ -955,31 +964,30 @@ An error in @var{form} does not undo the load, but does prevent
 execution of the rest of @var{form}.
 @end defun
 
-In general, well-designed Lisp programs should not use this feature.
-The clean and modular ways to interact with a Lisp library are (1)
-examine and set the library's variables (those which are meant for
-outside use), and (2) call the library's functions.  If you wish to
-do (1), you can do it immediately---there is no need to wait for when
-the library is loaded.  To do (2), you must load the library (preferably
-with @code{require}).
+Normally, well-designed Lisp programs should not use
+@code{eval-after-load}.  If you need to examine and set the variables
+defined in another library (those meant for outside use), you can do
+it immediately---there is no need to wait until the library is loaded.
+If you need to call functions defined by that library, you should load
+the library, preferably with @code{require} (@pxref{Named Features}).
 
 But it is OK to use @code{eval-after-load} in your personal
-customizations if you don't feel they must meet the design standards for
-programs meant for wider use.
+customizations if you don't feel that they must meet the design
+standards for programs meant for wider use.
 
 @defvar after-load-alist
-This variable, an alist built by @code{eval-after-load}, holds the
-expressions to evaluate when particular libraries are loaded.  Each
-element looks like this:
+This variable stores an alist built by @code{eval-after-load},
+containing the expressions to evaluate when certain libraries are
+loaded.  Each element looks like this:
 
 @example
 (@var{regexp-or-feature} @var{forms}@dots{})
 @end example
 
 The key @var{regexp-or-feature} is either a regular expression or a
-symbol, and the value is a list of forms.  The forms are evaluated when
-the key matches the absolute true name of the file being
-@code{load}ed or the symbol being @code{provide}d.
+symbol, and the value is a list of forms.  The forms are evaluated
+when the key matches the absolute true name or feature name of the
+library being loaded.
 @end defvar
 
 @ignore

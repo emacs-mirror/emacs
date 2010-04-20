@@ -36,7 +36,10 @@ int getppid(void);
 char * getlogin ();
 char * cuserid (char * s);
 unsigned getuid ();
+unsigned getegid ();
+unsigned getgid ();
 int setuid (unsigned uid);
+int setegid (unsigned gid);
 char * getpass (const char * prompt);
 int fchown (int fd, unsigned uid, unsigned gid);
 

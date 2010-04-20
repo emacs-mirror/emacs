@@ -170,7 +170,11 @@ Its value should be an event that has a binding in MENU."
     (mapc (lambda (elt)
 	    (if (stringp elt)
 		(setq gl-str elt)
-	      (and (listp elt) (tmm-get-keymap elt not-menu))))
+	      (cond
+	       ((listp elt) (tmm-get-keymap elt not-menu))
+	       ((vectorp elt)
+		(dotimes (i (length elt))
+		  (tmm-get-keymap (cons i (aref elt i)) not-menu))))))
 	    menu)
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
@@ -448,20 +452,21 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
       (unless (assoc event tmm-table-undef)
 	(cond ((if (listp elt)
 		   (or (keymapp elt) (eq (car elt) 'lambda))
-		 (fboundp elt))
+		 (and (symbolp elt) (fboundp elt)))
 	       (setq km elt))
 
 	      ((if (listp (cdr-safe elt))
 		   (or (keymapp (cdr-safe elt))
 		       (eq (car (cdr-safe elt)) 'lambda))
-		 (fboundp (cdr-safe elt)))
+		 (and (symbolp (cdr-safe elt)) (fboundp (cdr-safe elt))))
 	       (setq km (cdr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
 	      ((if (listp (cdr-safe (cdr-safe elt)))
 		   (or (keymapp (cdr-safe (cdr-safe elt)))
 		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
-		 (fboundp (cdr-safe (cdr-safe elt))))
+		 (and (symbolp (cdr-safe (cdr-safe elt)))
+			       (fboundp (cdr-safe (cdr-safe elt)))))
 	       (setq km (cddr elt))
 	       (and (stringp (car elt)) (setq str (car elt)))
 	       (and str
@@ -495,7 +500,8 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	      ((if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
 		   (or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
 		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
-		 (fboundp (cdr-safe (cdr-safe (cdr-safe elt)))))
+		 (and (symbolp (cdr-safe (cdr-safe (cdr-safe elt))))
+		      (fboundp (cdr-safe (cdr-safe (cdr-safe elt))))))
 					 ; New style of easy-menu
 	       (setq km (cdr (cddr elt)))
 	       (and (stringp (car elt)) (setq str (car elt)))

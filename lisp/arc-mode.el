@@ -52,17 +52,17 @@
 ;; ARCHIVE TYPES: Currently only the archives below are handled, but the
 ;; structure for handling just about anything is in place.
 ;;
-;;			Arc	Lzh	Zip	Zoo	 Rar
-;;			----------------------------------------
-;; View listing		Intern	Intern	Intern	Intern   Y
-;; Extract member	Y	Y	Y	Y        Y
-;; Save changed member	Y	Y	Y	Y        N
-;; Add new member	N	N	N	N        N
-;; Delete member	Y	Y	Y	Y        N
-;; Rename member	Y	Y	N	N        N
-;; Chmod		-	Y	Y	-        N
-;; Chown		-	Y	-	-        N
-;; Chgrp		-	Y	-	-        N
+;;			Arc	Lzh	Zip	Zoo	Rar	7z
+;;			--------------------------------------------
+;; View listing		Intern	Intern	Intern	Intern	Y	Y
+;; Extract member	Y	Y	Y	Y	Y	Y
+;; Save changed member	Y	Y	Y	Y	N	N
+;; Add new member	N	N	N	N	N	N
+;; Delete member	Y	Y	Y	Y	N	N
+;; Rename member	Y	Y	N	N	N	N
+;; Chmod		-	Y	Y	-	N	N
+;; Chown		-	Y	-	-	N	N
+;; Chgrp		-	Y	-	-	N	N
 ;;
 ;; Special thanks to Bill Brodie <wbrodie@panix.com> for very useful tips
 ;; on the first released version of this package.
@@ -217,17 +217,17 @@ Archive and member name will be added."
 ;; Zip archive configuration
 
 (defcustom archive-zip-extract
-  (if (and (not (executable-find "unzip"))
-           (executable-find "pkunzip"))
-      '("pkunzip" "-e" "-o-")
-    '("unzip" "-qq" "-c"))
+  (cond ((executable-find "unzip") '("unzip" "-qq" "-c"))
+	((executable-find "7z") '("7z" "x" "-so"))
+	((executable-find "pkunzip") '("pkunzip" "-e" "-o-"))
+	(t '("unzip" "-qq" "-c")))
   "Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
   :type '(list (string :tag "Program")
-		(repeat :tag "Options"
-			:inline t
-			(string :format "%v")))
+	       (repeat :tag "Options"
+		       :inline t
+		       (string :format "%v")))
   :group 'archive-zip)
 
 ;; For several reasons the latter behavior is not desirable in general.
@@ -315,6 +315,20 @@ Archive and member name will be added."
 			:inline t
 			(string :format "%v")))
   :group 'archive-zoo)
+;; ------------------------------
+;; 7z archive configuration
+
+(defcustom archive-7z-extract
+  '("7z" "x" "-so")
+  "Program and its options to run in order to extract a 7z file member.
+Extraction should happen to standard output.  Archive and member name will
+be added."
+  :type '(list (string :tag "Program")
+		(repeat :tag "Options"
+			:inline t
+			(string :format "%v")))
+  :group 'archive-7z)
+
 ;; -------------------------------------------------------------------------
 ;;; Section: Variables
 
@@ -732,6 +746,7 @@ archive.
           ((and (looking-at "MZ")
                 (re-search-forward "Rar!" (+ (point) 100000) t))
            'rar-exe)
+	  ((looking-at "7z\274\257\047\034") '7z)
 	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 
@@ -1047,8 +1062,8 @@ using `make-temp-file', and the generated name is returned."
 	(archive-maybe-update t))
       (or (not (buffer-name buffer))
           (cond
-           (view-p (view-buffer
-		    buffer (and just-created 'kill-buffer-if-not-modified)))
+           (view-p
+	    (view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
            (t (switch-to-buffer buffer))))))
@@ -1081,11 +1096,11 @@ using `make-temp-file', and the generated name is returned."
     (archive-delete-local tmpfile)
     success))
 
-(defun archive-extract-by-stdout (archive name command)
+(defun archive-extract-by-stdout (archive name command &optional stderr-file)
   (apply 'call-process
 	 (car command)
 	 nil
-	 t
+	 (if stderr-file (list t stderr-file) t)
 	 nil
 	 (append (cdr command) (list archive name))))
 
@@ -1787,16 +1802,22 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (apply 'vector (nreverse files))))
 
 (defun archive-zip-extract (archive name)
-  (if (member-ignore-case (car archive-zip-extract) '("pkunzip" "pkzip"))
-      (archive-*-extract archive name archive-zip-extract)
+  (cond
+   ((member-ignore-case (car archive-zip-extract) '("pkunzip" "pkzip"))
+    (archive-*-extract archive name archive-zip-extract))
+   ((equal (car archive-zip-extract) "7z")
+    (let ((archive-7z-extract archive-zip-extract))
+      (archive-7z-extract archive name)))
+   (t
     (archive-extract-by-stdout
      archive
      ;; unzip expands wildcards in NAME, so we need to quote it.
      ;; FIXME: Does pkunzip need similar treatment?
+     ;; (7z doesn't need to quote wildcards)
      (if (equal (car archive-zip-extract) "unzip")
 	 (shell-quote-argument name)
        name)
-     archive-zip-extract)))
+     archive-zip-extract))))
 
 (defun archive-zip-write-file-member (archive descr)
   (archive-*-write-file-member
@@ -2004,7 +2025,65 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (if tmpbuf (kill-buffer tmpbuf))
       (delete-file tmpfile))))
 
+;; -------------------------------------------------------------------------
+;;; Section: 7z Archives
 
+(defun archive-7z-summarize ()
+  (let ((maxname 10)
+	(maxsize 5)
+	(file buffer-file-name)
+	(files ()))
+    (with-temp-buffer
+      (call-process "7z" nil t nil "l" "-slt" file)
+      (goto-char (point-min))
+      (re-search-forward "^-+\n")
+      (while (re-search-forward "^Path = \\(.*\\)\n" nil t)
+        (goto-char (match-end 0))
+        (let ((name (match-string 1))
+              (size (save-excursion
+		      (and (re-search-forward "^Size = \\(.*\\)\n")
+			   (match-string 1))))
+	      (time (save-excursion
+		      (and (re-search-forward "^Modified = \\(.*\\)\n")
+			   (match-string 1)))))
+          (if (> (length name) maxname) (setq maxname (length name)))
+          (if (> (length size) maxsize) (setq maxsize (length size)))
+          (push (vector name name nil nil time nil nil size)
+                files))))
+    (setq files (nreverse files))
+    (goto-char (point-min))
+    (let* ((format (format " %%%ds %%s %%s" maxsize))
+           (sep (format format (make-string maxsize ?-) "-------------------" ""))
+           (column (length sep)))
+      (insert (format format "Size " "Date       Time    " " Filename") "\n")
+      (insert sep (make-string maxname ?-) "\n")
+      (archive-summarize-files (mapcar (lambda (desc)
+                                         (let ((text
+                                                (format format
+							(aref desc 7)
+							(aref desc 4)
+							(aref desc 1))))
+                                           (vector text
+                                                   column
+                                                   (length text))))
+                                       files))
+      (insert sep (make-string maxname ?-) "\n")
+      (apply 'vector files))))
+
+(defun archive-7z-extract (archive name)
+  (let ((tmpfile (make-temp-file "7z-stderr")))
+    ;; 7z doesn't provide a `quiet' option to suppress non-essential
+    ;; stderr messages.  So redirect stderr to a temp file and display it
+    ;; in the echo area when it contains error messages.
+    (prog1 (archive-extract-by-stdout
+	    archive name archive-7z-extract tmpfile)
+      (with-temp-buffer
+	(insert-file-contents tmpfile)
+	(unless (search-forward "Everything is Ok" nil t)
+	  (message "%s" (buffer-string)))
+	(delete-file tmpfile)))))
+
+;; -------------------------------------------------------------------------
 ;;; Section `ar' archives.
 
 ;; TODO: we currently only handle the basic format of ar archives,

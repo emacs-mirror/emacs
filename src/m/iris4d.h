@@ -36,12 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
-/* This machine requires completely different unexec code
-   which lives in a separate file.  Specify the file name.  */
-
-#undef UNEXEC
-#define UNEXEC unexelf.o
-
 #define TEXT_START 0x400000
 
 /*
@@ -53,10 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_START 0x10000000
 #define DATA_SEG_BITS	0x10000000
 
-#undef LIBS_MACHINE
-#define LIBS_MACHINE
-#define LIBS_DEBUG
-
 /* Use terminfo instead of termcap.  */
 
 #define TERMINFO

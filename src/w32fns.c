@@ -5427,6 +5427,10 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   kb = dpyinfo->terminal->kboard;
 
+  /* The calls to x_get_arg remove elements from PARMS, so copy it to
+     avoid destructive changes behind our caller's back.  */
+  parms = Fcopy_alist (parms);
+
   /* Get the name of the frame to use for resource lookup.  */
   name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)

@@ -41,13 +41,20 @@
 (defvar bug-reference-url-format nil
   "Format used to turn a bug number into a URL.
 The bug number is supplied as a string, so this should have a single %s.
+This can also be a function designator; it is called without arguments
+ and should return a string.
+It can use `match-string' to get parts matched against
+`bug-reference-bug-regexp', specifically:
+ 1. issue kind (bug, patch, rfe &c)
+ 2. issue number.
+
 There is no default setting for this, it must be set per file.")
 
 ;;;###autoload
 (put 'bug-reference-url-format 'safe-local-variable 'stringp)
 
 (defconst bug-reference-bug-regexp
-  "\\(?:[Bb]ug ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
+  "\\([Bb]ug ?#\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
   "Regular expression which matches bug references.")
 
 (defun bug-reference-set-overlay-properties ()
@@ -87,9 +94,11 @@ There is no default setting for this, it must be set per file.")
 	    (overlay-put overlay 'category 'bug-reference)
 	    ;; Don't put a link if format is undefined
 	    (when bug-reference-url-format
-	      (overlay-put overlay 'bug-reference-url
-			   (format bug-reference-url-format
-				   (match-string-no-properties 1))))))))))
+              (overlay-put overlay 'bug-reference-url
+                           (if (stringp bug-reference-url-format)
+                               (format bug-reference-url-format
+                                       (match-string-no-properties 2))
+                             (funcall bug-reference-url-format))))))))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos use-mouse-action)

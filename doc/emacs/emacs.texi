@@ -5,15 +5,15 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  23.1.93
+@set EMACSVER  24.0.50
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -502,6 +502,7 @@ Frames and Graphical Displays
 * Mode Line Mouse::     Mouse clicks on the mode line.
 * Creating Frames::     Creating additional Emacs frames with various contents.
 * Frame Commands::      Iconifying, deleting, and switching frames.
+* Fonts::               Changing the frame font.
 * Speedbar::            How to make and use a speedbar frame.
 * Multiple Displays::   How one Emacs job can talk to several displays.
 * Special Buffer Frames::  You can make certain buffers have their own frames.
@@ -573,7 +574,7 @@ Commands for Human Languages
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
-* HTML Mode::           Editing HTML, SGML, and XML files.
+* HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
@@ -745,14 +746,16 @@ Running Debuggers Under Emacs
 
 GDB Graphical Interface
 
-* GDB-UI Layout::       Control the number of displayed buffers.
-* Source Buffers::      Use the mouse in the fringe/margin to
-                          control your program.
-* Breakpoints Buffer::  A breakpoint control panel.
-* Stack Buffer::        Select a frame from the call stack.
-* Other GDB-UI Buffers::Input/output, locals, registers,
-                          assembler, threads and memory buffers.
-* Watch Expressions::   Monitor variable values in the speedbar.
+* GDB User Interface Layout::   Control the number of displayed buffers.
+* Source Buffers::              Use the mouse in the fringe/margin to
+                                control your program.
+* Breakpoints Buffer::          A breakpoint control panel.
+* Threads Buffer::              Displays your threads.
+* Stack Buffer::                Select a frame from the call stack.
+* Other GDB Buffers::           Input/output, locals, registers,
+                                assembler, threads and memory buffers.
+* Watch Expressions::           Monitor variable values in the speedbar.
+* Multithreaded Debugging::     Debugging programs with several threads.
 
 Maintaining Large Programs
 
@@ -793,7 +796,7 @@ Basic Editing under Version Control
 The Secondary Commands of VC
 
 * Registering::         Putting a file under version control.
-* VC Status::           Viewing the VC status of files.
+* VC Change Log::       Viewing the VC Change Log.
 * VC Undo::             Canceling changes before or after check-in.
 
 VC Directory Mode
@@ -885,16 +888,17 @@ Sending Mail
 * Mail Format:: 	Format of the mail being composed.
 * Mail Headers::        Details of some standard mail header fields.
 * Mail Aliases::        Abbreviating and grouping mail addresses.
-* Mail Mode::   	Special commands for editing mail being composed.
+* Mail Commands::   	Special commands for editing mail being composed.
+* Mail Signature::      Adding a signature to every message.
 * Mail Amusements::     Distracting the NSA; adding fortune messages.
 * Mail Methods::        Using alternative mail-composition methods.
 
-Mail Mode
+Mail Commands
 
 * Mail Sending::        Commands to send the message.
 * Header Editing::      Commands to move to header fields and edit them.
-* Citing Mail::         Copying all or part of a message you are replying to.
-* Mail Mode Misc::      Spell checking, signatures, etc.
+* Citing Mail::         Quoting a message you are replying to.
+* Mail Misc::           Attachments, spell checking, etc.
 
 Reading Mail with Rmail
 
@@ -1342,13 +1346,13 @@ Abrahamsson, Jay K.@: Adams, Michael Albinus, Nagy Andras, Ralf Angeli,
 Joe Arceneaux, Miles Bader, David Bakhash, Juanma Barranquero, Eli
 Barzilay, Thomas Baumann, Steven L.@: Baur, Jay Belanger, Alexander L.@:
 Belikoff, Boaz Ben-Zvi, Karl Berry, Anna M.@: Bigatti, Ray Blaak, Jim
-Blandy, Johan Bockg@aa{}rd, Lennart Borgman, Per Bothner, Terrence
-Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin Broadey,
-Vincent Broman, David M.@: Brown, Georges Brun-Cottan, Joe Buehler,
-W@l{}odek Bzyl, Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chong
-Yidong, Chris Chase, Bob Chassell, Andrew Choi, Sacha Chua, James Clark,
-Mike Clarkson, Glynn Clements, Daniel Colascione, Andrew Csillag, Baoqiu
-Cui, Doug Cutting, Mathias Dahl, Satyaki Das, Vivek Dasmohapatra,
+Blandy, Johan Bockg@aa{}rd, Jan Böcker, Lennart Borgman, Per Bothner,
+Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
+Broadey, Vincent Broman, David M.@: Brown, Georges Brun-Cottan, Joe
+Buehler, W@l{}odek Bzyl, Bill Carpenter, Per Cederqvist, Hans Chalupsky,
+Chong Yidong, Chris Chase, Bob Chassell, Andrew Choi, Sacha Chua, James
+Clark, Mike Clarkson, Glynn Clements, Daniel Colascione, Andrew Csillag,
+Baoqiu Cui, Doug Cutting, Mathias Dahl, Satyaki Das, Vivek Dasmohapatra,
 Michael DeCorte, Gary Delp, Matthieu Devin, Eri Ding, Jan Dj@"{a}rv,
 Carsten Dominik, Scott Draves, Benjamin Drieu, Viktor Dukhovni, Dmitry
 Dzhus, John Eaton, Rolf Ebert, Paul Eggert, Stephen Eglen, Torbj@"orn
@@ -1371,16 +1375,16 @@ Kahle, Tokuya Kameshima, Lute Kamstra, David Kastrup, David Kaufman,
 Henry Kautz, Taichi Kawabata, Howard Kaye, Michael Kifer, Richard King,
 Peter Kleiweg, Shuhei Kobayashi, Pavel Kobiakov, Larry K.@: Kolodney,
 David M.@: Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian
-Kremer, Ryszard Kubiak, Geoff Kuenning, David K@aa{}gedal, Daniel
-LaLiberte, Karl Landstrom, Mario Lang, Aaron Larson, James R.@: Larus,
-Vinicius Jose Latorre, Werner Lemberg, Frederic Lepied, Peter
-Liljenberg, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
-Juri Linkov, Francis Litterio, Emilio C. Lopes, K@'{a}roly L@H{o}rentey,
-Dave Love, Sascha L@"{u}decke, Eric Ludlam, Alan Mackenzie, Christopher
-J.@: Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann, Brian Marick,
-Simon Marshall, Bengt Martensson, Charlie Martin, Thomas May, Roland
-McGrath, Will Mengarini, David Megginson, Ben A. Mesander, Wayne Mesard,
-Brad Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
+Kremer, Ryszard Kubiak, David K@aa{}gedal, Daniel LaLiberte, Karl
+Landstrom, Mario Lang, Aaron Larson, James R.@: Larus, Vinicius Jose
+Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Lars
+Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link, Juri Linkov,
+Francis Litterio, Emilio C. Lopes, K@'{a}roly L@H{o}rentey, Dave Love,
+Sascha L@"{u}decke, Eric Ludlam, Alan Mackenzie, Christopher J.@:
+Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
+Marshall, Bengt Martensson, Charlie Martin, Thomas May, Roland McGrath,
+Will Mengarini, David Megginson, Ben A. Mesander, Wayne Mesard, Brad
+Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
 Monnier, Morioka Tomohiko, Keith Moore, Jan Moringen, Glenn Morris,
 Diane Murray, Sen Nagata, Erik Naggum, Thomas Neumann, Thien-Thi Nguyen,
 Mike Newton, Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff
@@ -1399,22 +1403,22 @@ Sato, Jorgen Schaefer, Holger Schauer, William Schelter, Ralph
 Schleicher, Gregor Schmid, Michael Schmidt, Ronald S. Schnell, Philippe
 Schnoebelen, Jan Schormann, Alex Schroeder, Stephen Schoef, Raymond
 Scholz, Eric Schulte, Andreas Schwab, Randal Schwartz, Oliver Seidel,
-Manuel Serrano, Hovav Shacham, Stanislav Shalunov, Marc Shapiro, Richard
-Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris
-Smith, David Smith, Paul D.@: Smith, Andre Spiegel, Michael Staats,
-William Sommerfeld, Michael Staats, Reiner Steib, Sam Steingold, Ake
-Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart, Jonathan
-Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman, Olaf
-Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge, Jens
-T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc Teirlinck,
-David O'Toole, Tom Tromey, Enami Tsugutomo, Eli Tziperman, Daiki Ueno,
-Masanobu Umeda, Rajesh Vaidheeswarran, Neil W.@: Van Dyke, Didier Verna,
-Joakim Verona, Ulrik Vieth, Geoffrey Voelker, Johan Vromans, Inge
-Wallin, John Paul Wallington, Colin Walters, Barry Warsaw, Morten
-Welinder, Joseph Brian Wells, Rodney Whitby, John Wiegley, Ed Wilkinson,
-Mike Williams, Bill Wohler, Steven A. Wood, Dale R.@: Worley, Francis
-J.@: Wright, Felix S. T. Wu, Tom Wurgler, Katsumi Yamaoka, Yamamoto
-Mitsuharu, Masatake Yamato, Jonathan Yavner, Ryan Yeske, Ilya
+Manuel Serrano, Paul Sexton, Hovav Shacham, Stanislav Shalunov, Marc
+Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey,
+Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith, William
+Sommerfeld, Andre Spiegel, Michael Staats, Ulf Stegemann, Reiner Steib,
+Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart,
+Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman,
+Olaf Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge,
+Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc
+Teirlinck, David O'Toole, Tom Tromey, Enami Tsugutomo, Eli Tziperman,
+Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil W.@: Van Dyke,
+Didier Verna, Joakim Verona, Ulrik Vieth, Geoffrey Voelker, Johan
+Vromans, Inge Wallin, John Paul Wallington, Colin Walters, Barry Warsaw,
+Morten Welinder, Joseph Brian Wells, Rodney Whitby, John Wiegley, Ed
+Wilkinson, Mike Williams, Bill Wohler, Steven A. Wood, Dale R.@: Worley,
+Francis J.@: Wright, Felix S. T. Wu, Tom Wurgler, Katsumi Yamaoka,
+Yamamoto Mitsuharu, Masatake Yamato, Jonathan Yavner, Ryan Yeske, Ilya
 Zakharevich, Milan Zamazal, Victor Zandy, Eli Zaretskii, Jamie Zawinski,
 Shenghuo Zhu, Piotr Zielinski, Ian T.@: Zimmermann, Reto Zimmermann,
 Neal Ziring, Teodor Zlatanov, and Detlev Zundel.

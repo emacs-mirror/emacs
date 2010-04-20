@@ -69,12 +69,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* HAVE_SOCKETS */
 
-#if defined(BSD_SYSTEM)
+#if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
-#endif /* BSD_SYSTEM */
+#endif /* HAVE_SYS_IOCTL_H */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
@@ -193,10 +193,6 @@ extern char *get_operating_system_release ();
 /* From sysdep.c or w32.c  */
 extern int serial_open (char *port);
 extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
-#endif
-
-#ifndef USE_CRT_DLL
-extern int errno;
 #endif
 
 #ifndef HAVE_H_ERRNO
@@ -1878,13 +1874,7 @@ create_process (process, new_argv, current_dir)
 #ifdef AIX
   struct sigaction sighup_action;
 #endif
-#else /* !POSIX_SIGNALS */
-#if 0
-#ifdef SIGCHLD
-  SIGTYPE (*sigchld)();
-#endif
-#endif /* 0 */
-#endif /* !POSIX_SIGNALS */
+#endif /* POSIX_SIGNALS */
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
@@ -2008,14 +1998,9 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_BLOCK, &blocked, &procmask);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
   sigsetmask (sigmask (SIGCHLD));
-#else /* ordinary USG */
-#if 0
-  sigchld_deferred = 0;
-  sigchld = signal (SIGCHLD, create_process_sigchld);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2172,13 +2157,9 @@ create_process (process, new_argv, current_dir)
 	sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
 	sigsetmask (SIGEMPTYMASK);
-#else /* ordinary USG */
-#if 0
-	signal (SIGCHLD, sigchld);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2275,17 +2256,9 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if defined (BSD_SYSTEM)
   sigsetmask (SIGEMPTYMASK);
-#else /* ordinary USG */
-#if 0
-  signal (SIGCHLD, sigchld);
-  /* Now really handle any of these signals
-     that came in during this function.  */
-  if (sigchld_deferred)
-    kill (getpid (), SIGCHLD);
-#endif
-#endif /* ordinary USG */
+#endif /* BSD_SYSTEM */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -3640,22 +3613,8 @@ usage: (make-network-process &rest ARGS)  */)
       immediate_quit = 1;
       QUIT;
 
-      /* This turns off all alarm-based interrupts; the
-	 bind_polling_period call above doesn't always turn all the
-	 short-interval ones off, especially if interrupt_input is
-	 set.
-
-	 It'd be nice to be able to control the connect timeout
-	 though.  Would non-blocking connect calls be portable?
-
-	 This used to be conditioned by HAVE_GETADDRINFO.  Why?  */
-
-      turn_on_atimers (0);
-
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
       xerrno = errno;
-
-      turn_on_atimers (1);
 
       if (ret == 0 || xerrno == EISCONN)
 	{
@@ -3676,6 +3635,40 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 #endif
 
+#ifndef WINDOWSNT
+      if (xerrno == EINTR)
+	{
+	  /* Unlike most other syscalls connect() cannot be called
+	     again.  (That would return EALREADY.)  The proper way to
+	     wait for completion is select(). */
+	  int sc, len;
+	  SELECT_TYPE fdset;
+	retry_select:
+	  FD_ZERO (&fdset);
+	  FD_SET (s, &fdset);
+	  QUIT;
+	  sc = select (s + 1, (SELECT_TYPE *)0, &fdset, (SELECT_TYPE *)0,
+		       (EMACS_TIME *)0);
+	  if (sc == -1)
+	    {
+	      if (errno == EINTR)
+		goto retry_select;
+	      else
+		report_file_error ("select failed", Qnil);
+	    }
+	  eassert (sc > 0);
+
+	  len = sizeof xerrno;
+	  eassert (FD_ISSET (s, &fdset));
+	  if (getsockopt (s, SOL_SOCKET, SO_ERROR, &xerrno, &len) == -1)
+	    report_file_error ("getsockopt failed", Qnil);
+	  if (xerrno)
+	    errno = xerrno, report_file_error ("error during connect", Qnil);
+	  else
+	    break;
+	}
+#endif /* !WINDOWSNT */
+
       immediate_quit = 0;
 
       /* Discard the unwind protect closing S.  */
@@ -3683,8 +3676,10 @@ usage: (make-network-process &rest ARGS)  */)
       emacs_close (s);
       s = -1;
 
+#ifdef WINDOWSNT
       if (xerrno == EINTR)
 	goto retry_connect;
+#endif
     }
 
   if (s >= 0)
@@ -4648,6 +4643,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
   FD_ZERO (&Connecting);
 #endif
 
+  if (time_limit == 0 && wait_proc && !NILP (Vinhibit_quit)
+      && !(CONSP (wait_proc->status) && EQ (XCAR (wait_proc->status), Qexit)))
+    message ("Blocking call to accept-process-output with quit inhibited!!");
+
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)
     wait_channel = wait_proc->infd;
@@ -5319,6 +5318,8 @@ read_process_output (proc, channel)
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
   int readmax = 4096;
+  int count = SPECPDL_INDEX ();
+  Lisp_Object odeactivate;
 
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
@@ -5391,15 +5392,16 @@ read_process_output (proc, channel)
   /* Now set NBYTES how many bytes we must decode.  */
   nbytes += carryover;
 
+  odeactivate = Vdeactivate_mark;
+  /* There's no good reason to let process filters change the current
+     buffer, and many callers of accept-process-output, sit-for, and
+     friends don't expect current-buffer to be changed from under them.  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
   /* Read and dispose of the process output.  */
   outstream = p->filter;
   if (!NILP (outstream))
     {
-      /* We inhibit quit here instead of just catching it so that
-	 hitting ^G when a filter happens to be running won't screw
-	 it up.  */
-      int count = SPECPDL_INDEX ();
-      Lisp_Object odeactivate;
       Lisp_Object obuffer, okeymap;
       Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
@@ -5407,10 +5409,12 @@ read_process_output (proc, channel)
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
-      odeactivate = Vdeactivate_mark;
       XSETBUFFER (obuffer, current_buffer);
       okeymap = current_buffer->keymap;
 
+      /* We inhibit quit here instead of just catching it so that
+	 hitting ^G when a filter happens to be running won't screw
+	 it up.  */
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
 
@@ -5479,9 +5483,6 @@ read_process_output (proc, channel)
       restore_search_regs ();
       running_asynch_code = outer_running_asynch_code;
 
-      /* Handling the process output should not deactivate the mark.  */
-      Vdeactivate_mark = odeactivate;
-
       /* Restore waiting_for_user_input_p as it was
 	 when we were called, in case the filter clobbered it.  */
       waiting_for_user_input_p = waiting;
@@ -5497,27 +5498,19 @@ read_process_output (proc, channel)
 	   cause trouble (for example it would make sit_for return).  */
 	if (waiting_for_user_input_p == -1)
 	  record_asynch_buffer_change ();
-
-      unbind_to (count, Qnil);
-      return nbytes;
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
-  if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
+  else if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
     {
       Lisp_Object old_read_only;
       int old_begv, old_zv;
       int old_begv_byte, old_zv_byte;
-      Lisp_Object odeactivate;
       int before, before_byte;
       int opoint_byte;
       Lisp_Object text;
       struct buffer *b;
-      int count = SPECPDL_INDEX ();
 
-      odeactivate = Vdeactivate_mark;
-
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (p->buffer);
       opoint = PT;
       opoint_byte = PT_BYTE;
@@ -5615,13 +5608,14 @@ read_process_output (proc, channel)
       if (old_begv != BEGV || old_zv != ZV)
 	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
 
-      /* Handling the process output should not deactivate the mark.  */
-      Vdeactivate_mark = odeactivate;
 
       current_buffer->read_only = old_read_only;
       SET_PT_BOTH (opoint, opoint_byte);
-      unbind_to (count, Qnil);
     }
+  /* Handling the process output should not deactivate the mark.  */
+  Vdeactivate_mark = odeactivate;
+
+  unbind_to (count, Qnil);
   return nbytes;
 }
 
@@ -5778,34 +5772,6 @@ send_process (proc, buf, len, object)
 	{
 	  int this = len;
 
-	  /* Decide how much data we can send in one batch.
-	     Long lines need to be split into multiple batches.  */
-	  if (p->pty_flag)
-	    {
-	      /* Starting this at zero is always correct when not the first
-		 iteration because the previous iteration ended by sending C-d.
-		 It may not be correct for the first iteration
-		 if a partial line was sent in a separate send_process call.
-		 If that proves worth handling, we need to save linepos
-		 in the process object.  */
-	      int linepos = 0;
-	      unsigned char *ptr = (unsigned char *) buf;
-	      unsigned char *end = (unsigned char *) buf + len;
-
-	      /* Scan through this text for a line that is too long.  */
-	      while (ptr != end && linepos < pty_max_bytes)
-		{
-		  if (*ptr == '\n')
-		    linepos = 0;
-		  else
-		    linepos++;
-		  ptr++;
-		}
-	      /* If we found one, break the line there
-		 and put in a C-d to force the buffer through.  */
-	      this = ptr - buf;
-	    }
-
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
@@ -5909,11 +5875,6 @@ send_process (proc, buf, len, object)
 	      len -= rv;
 	      this -= rv;
 	    }
-
-	  /* If we sent just part of the string, put in an EOF (C-d)
-	     to force it through, before we send the rest.  */
-	  if (len > 0)
-	    Fprocess_send_eof (proc);
 	}
     }
   else
@@ -6704,11 +6665,6 @@ sigchld_handler (signo)
 	  /* PID == 0 means no processes found, PID == -1 means a real
 	     failure.  We have done all our job, so return.  */
 
-	  /* USG systems forget handlers when they are used;
-	     must reestablish each time */
-#if defined (USG) && !defined (POSIX_SIGNALS)
-	  signal (signo, sigchld_handler);   /* WARNING - must come after wait3() */
-#endif
 	  errno = old_errno;
 	  return;
 	}
@@ -6809,9 +6765,6 @@ sigchld_handler (signo)
 #if (defined WINDOWSNT \
      || (defined USG && !defined GNU_LINUX \
 	 && !(defined HPUX && defined WNOHANG)))
-#if defined (USG) && ! defined (POSIX_SIGNALS)
-      signal (signo, sigchld_handler);
-#endif
       errno = old_errno;
       return;
 #endif /* USG, but not HPUX with WNOHANG */
@@ -6857,6 +6810,11 @@ exec_sentinel (proc, reason)
   odeactivate = Vdeactivate_mark;
   XSETBUFFER (obuffer, current_buffer);
   okeymap = current_buffer->keymap;
+
+  /* There's no good reason to let sentinels change the current
+     buffer, and many callers of accept-process-output, sit-for, and
+     friends don't expect current-buffer to be changed from under them.  */
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
   sentinel = p->sentinel;
   if (NILP (sentinel))
@@ -6995,12 +6953,10 @@ status_notify (deleting_process)
 	     when a process becomes runnable.  */
 	  else if (!EQ (symbol, Qrun) && !NILP (buffer))
 	    {
-	      Lisp_Object ro, tem;
+	      Lisp_Object tem;
 	      struct buffer *old = current_buffer;
 	      int opoint, opoint_byte;
 	      int before, before_byte;
-
-	      ro = XBUFFER (buffer)->read_only;
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */

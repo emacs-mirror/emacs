@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999, 2001, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
-;; Keywords: HMAC, RFC 2104
+;; Keywords: HMAC, RFC2104
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This program is implemented from RFC 2104,
+;; This program is implemented from RFC2104,
 ;; "HMAC: Keyed-Hashing for Message Authentication".
 
 ;;; Code:

@@ -28,11 +28,17 @@ Boston, MA 02110-1301, USA.  */
 
 extern char *safe_strdup __P ((const char *));
 
+struct widget_xft_data;
+
 typedef struct _widget_instance
 {
   Widget		widget;
   Widget		parent;
   Boolean		pop_up_p;
+#ifdef HAVE_XFT
+  struct widget_xft_data *xft_data;
+  int                   nr_xft_data;
+#endif
   struct _widget_info*		info;
   struct _widget_instance*	next;
 } widget_instance;

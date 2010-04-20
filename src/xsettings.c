@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 static char *current_mono_font;
+static char *current_font;
 static struct x_display_info *first_dpyinfo;
 static Lisp_Object Qfont_name, Qfont_render;
 static int use_system_font;
@@ -63,9 +64,12 @@ store_font_changed_event (arg, display_name)
   kbd_buffer_store_event (&event);
 }
 
+#define XSETTINGS_FONT_NAME  "Gtk/FontName"
+
 #ifdef HAVE_GCONF
 
-#define SYSTEM_MONO_FONT       "/desktop/gnome/interface/monospace_font_name"
+#define SYSTEM_MONO_FONT     "/desktop/gnome/interface/monospace_font_name"
+#define SYSTEM_FONT          "/desktop/gnome/interface/font_name"
 
 /* Callback called when something changed in GConf that we care about,
    that is SYSTEM_MONO_FONT.  */
@@ -235,7 +239,7 @@ parse_xft_settings (prop, bytes, settings)
 
   memset (settings, 0, sizeof (*settings));
 
-  while (bytes_parsed+4 < bytes && settings_seen < 6
+  while (bytes_parsed+4 < bytes && settings_seen < 7
          && i < n_settings)
     {
       int type = prop[bytes_parsed++];
@@ -243,7 +247,7 @@ parse_xft_settings (prop, bytes, settings)
       CARD32 vlen, ival = 0;
       char name[128]; /* The names we are looking for are not this long.  */
       char sval[128]; /* The values we are looking for are not this long.  */
-      int is_xft;
+      int want_this;
       int to_cpy;
 
       sval[0] = '\0';
@@ -264,13 +268,14 @@ parse_xft_settings (prop, bytes, settings)
       bytes_parsed += 4; /* Skip serial for this value */
       if (bytes_parsed > bytes) return BadLength;
 
-      is_xft = nlen > 6 && strncmp (name, "Xft/", 4) == 0;
+      want_this = (nlen > 6 && strncmp (name, "Xft/", 4) == 0)
+        || (strcmp (XSETTINGS_FONT_NAME, name) == 0);
 
       switch (type) 
         {
         case 0: /* Integer */
           if (bytes_parsed+4 > bytes) return BadLength;
-          if (is_xft)
+          if (want_this)
             {
               memcpy (&ival, prop+bytes_parsed, 4);
               if (my_bo != that_bo) ival = SWAP32 (ival);
@@ -283,7 +288,7 @@ parse_xft_settings (prop, bytes, settings)
           memcpy (&vlen, prop+bytes_parsed, 4);
           bytes_parsed += 4;
           if (my_bo != that_bo) vlen = SWAP32 (vlen);
-          if (is_xft)
+          if (want_this)
             {
               to_cpy = vlen > 127 ? 127 : vlen;
               memcpy (sval, prop+bytes_parsed, to_cpy);
@@ -303,7 +308,7 @@ parse_xft_settings (prop, bytes, settings)
           return BadValue;
         }
 
-      if (is_xft) 
+      if (want_this) 
         {
           ++settings_seen;
           if (strcmp (name, "Xft/Antialias") == 0)
@@ -360,6 +365,11 @@ parse_xft_settings (prop, bytes, settings)
                 settings->lcdfilter = FC_LCD_DEFAULT;
               else
                 settings->seen &= ~SEEN_LCDFILTER;
+            }
+          else if (strcmp (name, XSETTINGS_FONT_NAME) == 0)
+            {
+              free (current_font);
+              current_font = xstrdup (sval);
             }
         }
     }
@@ -571,6 +581,12 @@ init_gconf ()
       current_mono_font = xstrdup (s);
       g_free (s);
     }
+  s = gconf_client_get_string (gconf_client, SYSTEM_FONT, NULL);
+  if (s)
+    {
+      current_font = xstrdup (s);
+      g_free (s);
+    }
   gconf_client_set_error_handling (gconf_client, GCONF_CLIENT_HANDLE_NONE);
   gconf_client_add_dir (gconf_client,
                         SYSTEM_MONO_FONT,
@@ -635,6 +651,23 @@ xsettings_get_system_font ()
   return current_mono_font;
 }
 
+const char *
+xsettings_get_system_normal_font ()
+{
+  return current_font;
+}
+
+DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
+       Sfont_get_system_normal_font,
+       0, 0, 0,
+       doc: /* Get the system default font. */)
+  ()
+{
+  return current_font && use_system_font
+    ? make_string (current_font, strlen (current_font))
+    : Qnil;
+}
+
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
        doc: /* Get the system default monospaced font. */)
@@ -649,6 +682,7 @@ void
 syms_of_xsettings ()
 {
   current_mono_font = NULL;
+  current_font = NULL;
   first_dpyinfo = NULL;
 #ifdef HAVE_GCONF
   gconf_client = NULL;
@@ -659,6 +693,7 @@ syms_of_xsettings ()
   Qfont_render = intern_c_string ("font-render");
   staticpro (&Qfont_render);
   defsubr (&Sfont_get_system_font);
+  defsubr (&Sfont_get_system_normal_font);
 
   DEFVAR_BOOL ("font-use-system-font", &use_system_font,
     doc: /* *Non-nil means to use the system defined font.  */);

@@ -54,7 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qdisplay_buffer;
-Lisp_Object Qscroll_up, Qscroll_down;
+Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 Lisp_Object Qwindow_size_fixed;
 
 extern Lisp_Object Qleft_margin, Qright_margin;
@@ -4942,12 +4942,13 @@ window_scroll_pixel_based (window, n, whole, noerror)
   if (!NILP (Vscroll_preserve_screen_position))
     {
       /* We preserve the goal pixel coordinate across consecutive
-	 calls to scroll-up or scroll-down.  This avoids the
+	 calls to scroll-up, scroll-down and other commands that
+	 have the `scroll-command' property.  This avoids the
 	 possibility of point becoming "stuck" on a tall line when
 	 scrolling by one line.  */
       if (window_scroll_pixel_based_preserve_y < 0
-	  || (!EQ (current_kboard->Vlast_command, Qscroll_up)
-	      && !EQ (current_kboard->Vlast_command, Qscroll_down)))
+	  || !SYMBOLP (current_kboard->Vlast_command)
+	  || NILP (Fget (current_kboard->Vlast_command, Qscroll_command)))
 	{
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
@@ -5207,8 +5208,8 @@ window_scroll_line_based (window, n, whole, noerror)
   if (!NILP (Vscroll_preserve_screen_position))
     {
       if (window_scroll_preserve_vpos <= 0
-	  || (!EQ (current_kboard->Vlast_command, Qscroll_up)
-	      && !EQ (current_kboard->Vlast_command, Qscroll_down)))
+	  || !SYMBOLP (current_kboard->Vlast_command)
+	  || NILP (Fget (current_kboard->Vlast_command, Qscroll_command)))
 	{
 	  struct position posit
 	    = *compute_motion (startpos, 0, 0, 0,
@@ -7176,6 +7177,12 @@ syms_of_window ()
   Qscroll_down = intern_c_string ("scroll-down");
   staticpro (&Qscroll_down);
 
+  Qscroll_command = intern_c_string ("scroll-command");
+  staticpro (&Qscroll_command);
+
+  Fput (Qscroll_up, Qscroll_command, Qt);
+  Fput (Qscroll_down, Qscroll_command, Qt);
+
   Qwindow_size_fixed = intern_c_string ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
   Fset (Qwindow_size_fixed, Qnil);
@@ -7265,7 +7272,9 @@ at the scroll margin or window boundary respectively.
 A value of t means point keeps its screen position if the scroll
 command moved it vertically out of the window, e.g. when scrolling
 by full screens.
-Any other value means point always keeps its screen position.  */);
+Any other value means point always keeps its screen position.
+Scroll commands should have the `scroll-command' property
+on their symbols to be controlled by this variable.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-point-insertion-type", &Vwindow_point_insertion_type,
@@ -7377,12 +7386,9 @@ keys_of_window ()
   initial_define_key (control_x_map, '<', "scroll-left");
   initial_define_key (control_x_map, '>', "scroll-right");
 
-  initial_define_key (global_map, Ctl ('V'), "scroll-up");
+  initial_define_key (global_map, Ctl ('V'), "scroll-up-command");
   initial_define_key (meta_map, Ctl ('V'), "scroll-other-window");
-  initial_define_key (meta_map, 'v', "scroll-down");
-
-  initial_define_key (global_map, Ctl('L'), "recenter");
-  initial_define_key (meta_map, 'r', "move-to-window-line");
+  initial_define_key (meta_map, 'v', "scroll-down-command");
 }
 
 /* arch-tag: 90a9c576-0590-48f1-a5f1-6c96a0452d9f

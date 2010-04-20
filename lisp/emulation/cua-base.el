@@ -1440,6 +1440,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   ;; scrolling
   (define-key cua-global-keymap [remap scroll-up]	'cua-scroll-up)
   (define-key cua-global-keymap [remap scroll-down]	'cua-scroll-down)
+  (define-key cua-global-keymap [remap scroll-up-command]   'cua-scroll-up)
+  (define-key cua-global-keymap [remap scroll-down-command] 'cua-scroll-down)
 
   (define-key cua--cua-keys-keymap [(control x) timeout] 'kill-region)
   (define-key cua--cua-keys-keymap [(control c) timeout] 'copy-region-as-kill)
@@ -1499,6 +1501,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    move-end-of-line move-beginning-of-line
    end-of-buffer beginning-of-buffer
    scroll-up scroll-down
+   scroll-up-command scroll-down-command
    up-list down-list backward-up-list
    end-of-defun beginning-of-defun
    forward-sexp backward-sexp

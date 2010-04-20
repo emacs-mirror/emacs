@@ -271,6 +271,9 @@ define pitx
     end
   end
   printf "\n"
+  if ($it->bidi_p)
+    printf "BIDI: base_stop=%d prev_stop=%d level=%d\n", $it->base_level_stop, $it->prev_stop, $it->bidi_it.resolved_level
+  end
   if ($it->region_beg_charpos >= 0)
     printf "reg=%d-%d ", $it->region_beg_charpos, $it->region_end_charpos
   end
@@ -447,6 +450,36 @@ document pwin
 Pretty print window structure w.
 end
 
+define pbiditype
+  if ($arg0 == 0)
+    printf "UNDEF"
+  end
+  if ($arg0 == 1)
+    printf "L"
+  end
+  if ($arg0 == 2)
+    printf "R"
+  end
+  if ($arg0 == 3)
+    printf "EN"
+  end
+  if ($arg0 == 4)
+    printf "AN"
+  end
+  if ($arg0 == 5)
+    printf "BN"
+  end
+  if ($arg0 == 6)
+    printf "B"
+  end
+  if ($arg0 < 0 || $arg0 > 6)
+    printf "%d??", $arg0
+  end
+end
+document pbiditype
+Print textual description of bidi type given as first argument.
+end
+
 define pgx
   set $g = $arg0
   # CHAR_GLYPH
@@ -474,6 +507,11 @@ define pgx
     printf " str=%x[%d]", $g->object, $g->charpos
   else
     printf " pos=%d", $g->charpos
+  end
+  # For characters, print their resolved level and bidi type
+  if ($g->type == 0)
+    printf " blev=%d,btyp=", $g->resolved_level
+    pbiditype $g->bidi_type
   end
   printf " w=%d a+d=%d+%d", $g->pixel_width, $g->ascent, $g->descent
   # If not DEFAULT_FACE_ID
@@ -573,6 +611,28 @@ define pgrowit
 end
 document pgrowit
 Pretty print all glyphs in it->glyph_row.
+end
+
+define prowlims
+  printf "start=%d,end=%d,reversed=%d,cont=%d,at_zv=%d\n", $arg0->start.pos.charpos, $arg0->end.pos.charpos, $arg0->reversed_p, $arg0->continued_p, $arg0->ends_at_zv_p
+end
+document prowlims
+Print important attributes of a glyph_row structure.
+Takes one argument, a pointer to a glyph_row structure.
+end
+
+define pmtxrows
+  set $mtx = $arg0
+  set $gl = $mtx->rows
+  set $glend = $mtx->rows + $mtx->nrows
+  while ($gl < $glend)
+    prowlims $gl
+    set $gl = $gl + 1
+  end
+end
+document pmtxrows
+Print data about glyph rows in a glyph matrix.
+Takes one argument, a pointer to a glyph_matrix structure.
 end
 
 define xtype

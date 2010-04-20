@@ -34,7 +34,6 @@
 
 
 (require 'regi)
-(require 'sendmail)	;; For mail-header-end.
 
 ;; start user configuration variables
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -1484,18 +1483,22 @@ non-nil."
   "Does nothing.  Use this instead of nil to get a blank header."
   ())
 
-(defun sc-no-blank-line-or-header()
+(declare-function mh-in-header-p "mh-utils" ())
+
+(defun sc-no-blank-line-or-header ()
   "Similar to `sc-no-header' except it removes the preceding blank line."
-  (if (not (bobp))
-      (if (and (eolp)
-	       (progn (forward-line -1)
-		      (or (= (point) (mail-header-end))
-			  (and (eq major-mode 'mh-letter-mode)
-			       (with-no-warnings
-				 (mh-in-header-p))))))
-	  (progn (forward-line)
-		 (let ((kill-lines-magic t))
-		   (kill-line))))))
+  (and (not (bobp))
+       (eolp)
+       (progn (forward-line -1)
+	      (or (= (point)
+		     (save-excursion
+		       (rfc822-goto-eoh)
+		       (line-beginning-position 2)))
+		  (and (eq major-mode 'mh-letter-mode)
+		       (mh-in-header-p))))
+       (progn
+	 (forward-line)
+	 (kill-line))))
 
 (defun sc-header-on-said ()
   "\"On <date>, <from> said:\" unless:

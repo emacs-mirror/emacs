@@ -1,3 +1,49 @@
+2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* HELLO (Mathematics): Prefer Unicode charset.
+
+2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/icons/hicolor/scalable/apps/emacs.svg: Put preamble after
+	svg tag (Bug#5790).
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* PROBLEMS: Mention problems on MS-Windows with incompatible
+	regex.h headers.
+
+2010-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* HELLO: Reorder Arabic and Hebrew into logical order, and
+	insert RLM before the opening paren, to make the display more
+	reasonable.  Add setting for bidi-display-reordering in the local
+	variables section.
+	* NEWS: Mention initial support for bidirectional editing.
+
+2010-03-24  Francesc Rocher  <rocher@member.fsf.org>
+
+	* MORE.STUFF: Remove CEDET entry, now distributed as part of
+	Emacs.
+
+2010-03-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus/gnus-setup.ast: Add finish links to the top nodes.
+
+	* gnus/news-server.ast: Add some trivial validation.
+
+2010-03-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add secrets.el.
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/custom/down.xpm, images/custom/right.xpm: Update images
+	to increase contrast on bright backgrounds.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* srecode/default.srt (COPYRIGHT): Update template copyright to GPLv3+.

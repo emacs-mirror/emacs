@@ -64,6 +64,10 @@
 			    (expand-file-name "international" dir)
 			    (expand-file-name "textmodes" dir)))))
 
+(if (eq t purify-flag)
+    ;; Hash consing saved around 11% of pure space in my tests.
+    (setq purify-flag (make-hash-table :test 'equal)))
+
 (message "Using load-path %s" load-path)
 
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
@@ -345,6 +349,10 @@
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+;; Avoid error if user loads some more libraries now and make sure the
+;; hash-consing hash table is GC'd.
+(setq purify-flag nil)
+
 (if (null (garbage-collect))
     (setq pure-space-overflow t))
 
@@ -377,9 +385,6 @@
             (message "Adding name %s" name)
 	    (add-name-to-file "emacs" name t)))
       (kill-emacs)))
-
-;; Avoid error if user loads some more libraries now.
-(setq purify-flag nil)
 
 ;; For machines with CANNOT_DUMP defined in config.h,
 ;; this file must be loaded each time Emacs is run.

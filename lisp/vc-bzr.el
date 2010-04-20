@@ -451,11 +451,11 @@ or a superior directory.")
   "Unregister FILE from bzr."
   (vc-bzr-command "remove" nil 0 file "--keep"))
 
-(defun vc-bzr-checkin (files rev comment)
+(defun vc-bzr-checkin (files rev comment &optional extra-args)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
-  (vc-bzr-command "commit" nil 0 files "-m" comment))
+  (apply 'vc-bzr-command "commit" nil 0 files (append (list "-m" comment) extra-args)))
 
 (defun vc-bzr-find-revision (file rev buffer)
   "Fetch revision REV of file FILE and put it into BUFFER."
@@ -478,7 +478,6 @@ REV non-nil gets an error."
 (defvar log-view-font-lock-keywords)
 (defvar log-view-current-tag-function)
 (defvar log-view-per-file-logs)
-(defvar vc-short-log)
 
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
@@ -486,13 +485,13 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	   "^ *\\([0-9.]+\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
-       (if vc-short-log
+       (if (eq vc-log-view-type 'short)
 	 (append `((,log-view-message-re
 		    (1 'log-view-message-face)
 		    (2 'change-log-name)
@@ -526,6 +525,14 @@ REV non-nil gets an error."
 		(list vc-bzr-log-switches)
 	      vc-bzr-log-switches)))))
 
+(defun vc-bzr-log-incoming (buffer remote-location)
+  (apply 'vc-bzr-command "missing" buffer 'async nil
+	 (list "--theirs-only" (unless (string= remote-location "") remote-location))))
+
+(defun vc-bzr-log-outgoing (buffer remote-location)
+  (apply 'vc-bzr-command "missing" buffer 'async nil
+	 (list "--mine-only" (unless (string= remote-location "") remote-location))))
+
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
@@ -544,6 +551,23 @@ REV non-nil gets an error."
 	    (setq found t))
 	(goto-char (point-min)))
       found)))
+
+(declare-function log-edit-mode "log-edit" ())
+(defvar log-edit-extra-flags)
+(defvar log-edit-before-checkin-process)
+
+(define-derived-mode vc-bzr-log-edit-mode log-edit-mode "Bzr-Log-Edit"
+  "Mode for editing Bzr commit logs.
+If a line like:
+Author: NAME
+is present in the log, it is removed, and
+--author NAME
+is passed to the bzr commit command.  Similarly with Fixes: and --fixes."
+  (set (make-local-variable 'log-edit-extra-flags) nil)
+  (set (make-local-variable 'log-edit-before-checkin-process)
+       '(("^\\(Author\\|Fixes\\):[ \t]+\\(.*\\)[ \t]*$" .
+          (list (format "--%s" (downcase (match-string 1)))
+                (match-string 2))))))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
@@ -758,9 +782,11 @@ stream.  Standard error output is discarded."
 
     (define-key map [down-mouse-3] 'vc-bzr-shelve-menu)
     (define-key map "\C-k" 'vc-bzr-shelve-delete-at-point)
-    ;; (define-key map "=" 'vc-bzr-shelve-show-at-point)
-    ;; (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
+    (define-key map "=" 'vc-bzr-shelve-show-at-point)
+    (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
+    (define-key map "A" 'vc-bzr-shelve-apply-and-keep-at-point)
     (define-key map "P" 'vc-bzr-shelve-apply-at-point)
+    (define-key map "S" 'vc-bzr-shelve-snapshot)
     map))
 
 (defvar vc-bzr-shelve-menu-map
@@ -768,16 +794,22 @@ stream.  Standard error output is discarded."
     (define-key map [de]
       '(menu-item "Delete shelf" vc-bzr-shelve-delete-at-point
 		  :help "Delete the current shelf"))
+    (define-key map [ap]
+      '(menu-item "Apply and keep shelf" vc-bzr-shelve-apply-and-keep-at-point
+		  :help "Apply the current shelf and keep it"))
     (define-key map [po]
       '(menu-item "Apply and remove shelf (pop)" vc-bzr-shelve-apply-at-point
 		  :help "Apply the current shelf and remove it"))
-    ;; (define-key map [sh]
-    ;;   '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
-    ;; 		  :help "Show the contents of the current shelve"))
+    (define-key map [sh]
+      '(menu-item "Show shelve" vc-bzr-shelve-show-at-point
+    		  :help "Show the contents of the current shelve"))
     map))
 
 (defvar vc-bzr-extra-menu-map
   (let ((map (make-sparse-keymap)))
+    (define-key map [bzr-sn]
+      '(menu-item "Shelve a snapshot" vc-bzr-shelve-snapshot
+		  :help "Shelve the current state of the tree and keep the current state"))
     (define-key map [bzr-sh]
       '(menu-item "Shelve..." vc-bzr-shelve
 		  :help "Shelve changes"))
@@ -864,21 +896,38 @@ stream.  Standard error output is discarded."
       (vc-bzr-command "shelve" nil 0 nil "--all" "-m" name)
       (vc-resynch-buffer root t t))))
 
-;; (defun vc-bzr-shelve-show (name)
-;;   "Show the contents of shelve NAME."
-;;   (interactive "sShelve name: ")
-;;   (vc-setup-buffer "*vc-bzr-shelve*")
-;;   ;; FIXME: how can you show the contents of a shelf?
-;;   (vc-bzr-command "shelve" "*vc-bzr-shelve*" 'async nil name)
-;;   (set-buffer "*vc-bzr-shelve*")
-;;   (diff-mode)
-;;   (setq buffer-read-only t)
-;;   (pop-to-buffer (current-buffer)))
+(defun vc-bzr-shelve-show (name)
+  "Show the contents of shelve NAME."
+  (interactive "sShelve name: ")
+  (vc-setup-buffer "*vc-bzr-shelve*")
+  ;; FIXME: how can you show the contents of a shelf?
+  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 'async nil "--preview" name)
+  (set-buffer "*vc-bzr-shelve*")
+  (diff-mode)
+  (setq buffer-read-only t)
+  (pop-to-buffer (current-buffer)))
 
 (defun vc-bzr-shelve-apply (name)
   "Apply shelve NAME and remove it afterwards."
   (interactive "sApply (and remove) shelf: ")
   (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" name)
+  (vc-resynch-buffer (vc-bzr-root default-directory) t t))
+
+(defun vc-bzr-shelve-apply-and-keep (name)
+  "Apply shelve NAME and keep it afterwards."
+  (interactive "sApply (and keep) shelf: ")
+  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep" name)
+  (vc-resynch-buffer (vc-bzr-root default-directory) t t))
+
+(defun vc-bzr-shelve-snapshot ()
+  "Create a stash with the current tree state."
+  (interactive)
+  (vc-bzr-command "shelve" nil 0 nil "--all" "-m"
+		  (let ((ct (current-time)))
+		    (concat
+		     (format-time-string "Snapshot on %Y-%m-%d" ct)
+		     (format-time-string " at %H:%M" ct))))
+  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep")
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-list ()
@@ -905,13 +954,17 @@ stream.  Standard error output is discarded."
       (vc-bzr-command "unshelve" nil 0 nil "--delete-only" shelve)
       (vc-dir-refresh))))
 
-;; (defun vc-bzr-shelve-show-at-point ()
-;;   (interactive)
-;;   (vc-bzr-shelve-show (vc-bzr-shelve-get-at-point (point))))
+(defun vc-bzr-shelve-show-at-point ()
+  (interactive)
+  (vc-bzr-shelve-show (vc-bzr-shelve-get-at-point (point))))
 
 (defun vc-bzr-shelve-apply-at-point ()
   (interactive)
   (vc-bzr-shelve-apply (vc-bzr-shelve-get-at-point (point))))
+
+(defun vc-bzr-shelve-apply-and-keep-at-point ()
+  (interactive)
+  (vc-bzr-shelve-apply-and-keep (vc-bzr-shelve-get-at-point (point))))
 
 (defun vc-bzr-shelve-menu (e)
   (interactive "e")

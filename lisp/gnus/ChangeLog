@@ -1,3 +1,282 @@
+2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Add `location' field.
+
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el: Add bookmark declarations to silence the compiler.
+	(gnus-mark-xrefs-as-read, gnus-summary-limit-to-bodies):
+	Use with-current-buffer to silence the byte-compiler.
+	(gnus-summary-bookmark-make-record): Use derived-mode-p and don't
+	bother to require `gnus'.
+	(gnus-summary-bookmark-jump): Don't forget to autoload.  Simplify.
+
+2010-04-12  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record)
+	(gnus-summary-bookmark-jump): New functions.
+	(gnus-summary-mode): Setup bookmark support.
+
+2010-04-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mm-uu.el (mm-uu-pgp-signed-extract-1): Use buffer-file-coding-system
+	if set.
+
+2010-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content): Rename from
+	gnus-article-browse-html-save-cid-image; make it work recursively for
+	forwarded messages as well.
+	(gnus-article-browse-html-parts): Work when prefix arg is given.
+	(gnus-article-browse-html-article): Doc fix.
+
+2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-default-mail-headers):
+	(message-default-headers): Carry the value mail-default-headers over
+	into message-default-mail-headers, rather than message-default-headers.
+
+2010-03-30  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* mm-decode.el (mm-add-meta-html-tag): Add option to override the
+	charset.
+
+	* gnus-art.el (gnus-article-browse-html-parts): Force the correct
+	charset into the <meta> tag when the article is encoded to utf-8.
+
+2010-03-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files):
+	Delete directories as well.
+	(gnus-article-browse-html-parts): Work for images that do not specify
+	file names; delete temp directory when quitting; insert header at the
+	right place; use file: scheme for image files.
+
+2010-03-30  Eric Schulte  <schulte.eric@gmail.com>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-image): New function.
+	(gnus-article-browse-html-parts): Use it to make temporary cid image
+	files in addition to html file so that browser may display them.
+
+2010-03-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-add-meta-html-tag): Fix regexp matching meta tag.
+
+2010-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-pick): Fix for non-secrets specifier.
+
+2010-03-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Change default to be simpler.
+	Explain about Secret Service API sources.  Improve Customize options.
+	(auth-source-pick): Change to accept any number of search parameters.
+	Implement fallbacks iteratively, not recursively.  Add scoring on the
+	second pass and sort by score.  Call Secret Service API when needed.
+	(auth-source-user-or-password): Use it.  Call Secret Service API
+	directly when needed to get the user name and the password.
+
+2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* message.el (message-interactive): Doc fix.
+	(message-qmail-inject-args): Reflow.
+	(message-kill-to-signature): Fix typo in docstring.
+
+	* smiley.el (smiley-buffer): Fix typo in docstring.
+
+2010-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail-source.el (gnus-message): Declare.
+	(mail-source-delete-old-incoming): Require gnus-util.
+
+2010-03-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (canlock-verify): Autoload it for Emacs 21.
+
+	* message.el (ecomplete-setup): Autoload it for Emacs <23.
+
+	* mml-sec.el (mml-secure-cache-passphrase): Default to t that is
+	password-cache's default if it is not bound.
+	(mml-secure-passphrase-cache-expiry): Default to 16 that is
+	password-cache-expiry's default if it is not bound.
+
+	* pop3.el (pop3-list): Don't use 3rd arg of `split-string' which is not
+	available in Emacs 21.
+
+2010-03-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Fix up definition so extra parameters
+	are always inline.
+
+2010-03-22  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* nnimap.el (nnimap-verify-uidvalidity): Fixed bug where uidvalidity
+	wasn't updated after mismatch.  Clear cached mailbox info correctly
+	when uidvalidity changes.
+	(nnimap-group-prefixed-name): New function to avoid some code
+	duplication.
+	(nnimap-verify-uidvalidity, nnimap-group-overview-filename)
+	(nnimap-request-group): Use it.
+	(nnimap-retrieve-groups, nnimap-verify-uidvalidity)
+	(nnimap-update-unseen): Significantly improved speed of Gnus startup
+	with many imap folders.  This is done by caching the group status from
+	the imap server persistently in a group parameter `imap-status'. (This
+	was cached before too if `nnimap-retrieve-groups-asynchronous' was set,
+	but not persistently, so every Gnus startup was still very slow.)
+
+2010-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Set up autoloads.  Bump to 23.2 because of the
+	secrets.el dependency.
+	(auth-sources): Add optional user name.  Add secrets.el configuration
+	choice (unused right now).
+
+2010-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Let
+	`gnus-registry-install-shortcuts' fill in the functions.
+
+	* gnus-registry.el (gnus-summary-misc-menu): Declare to avoid
+	warnings.
+	(gnus-registry-misc-menus): Variable to hold registry mark menus.
+	(gnus-registry-install-shortcuts): Populate and use it in a
+	`gnus-summary-menu-hook' lambda, under "Gnus"->"Registry Marks".
+
+2010-03-20  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* nnimap.el (nnimap-decode-group-name, nnimap-encode-group-name):
+	In-place substitutions for the group name encoding/decoding.
+	(nnimap-find-minmax-uid, nnimap-possibly-change-group)
+	(nnimap-retrieve-headers-progress, nnimap-possibly-change-group)
+	(nnimap-retrieve-headers-progress, nnimap-request-article-part)
+	(nnimap-update-unseen, nnimap-request-list)
+	(nnimap-retrieve-groups, nnimap-request-update-info-internal)
+	(nnimap-request-set-mark, nnimap-split-to-groups)
+	(nnimap-split-articles, nnimap-request-newgroups)
+	(nnimap-request-create-group, nnimap-request-accept-article)
+	(nnimap-request-delete-group, nnimap-request-rename-group)
+	(nnimap-acl-get, nnimap-acl-edit): Use them.  Replace `mbx' with
+	`encoded-mbx' for consistency.
+	(nnimap-close-group): Call `imap-current-mailbox' instead of using the
+	variable `imap-current-mailbox'.
+
+	* gnus-agent.el (gnus-agent-fetch-articles, gnus-agent-fetch-headers)
+	(gnus-agent-regenerate-group): Use `gnus-agent-decoded-group-name'.
+
+2010-03-20  Bojan Petrovic  <bpetrovi@f.bg.ac.rs>
+
+	* pop3.el (pop3-display-message-size-flag): Display message size byte
+	counts during POP3 download.
+	(pop3-movemail): Use it.
+	(pop3-list): Implement listing of available messages.
+
+2010-03-20  Mark Triggs  <mst@dishevelled.net>  (tiny change)
+
+	* nnir.el (nnir-get-article-nov-override-function): New function to
+	override the normal NOV retrieval.
+	(nnir-retrieve-headers): Use it.
+
+2010-03-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (netrc-machine-user-or-password): Autoload.
+
+2010-03-19  Glenn Morris  <rgm@gnu.org>
+
+	Stop message.el from loading about 40 libraries it doesn't always need.
+	The general approach is to autoload rather than require, and to
+	require in the specific functions rather than the file.  (Bug#5642)
+
+	* gmm-utils.el: Don't require wid-edit.
+	(widget-create-child-value, widget-convert, widget-default-get):
+	Autoload.
+
+	* gnus-util.el: Don't require time-date, netrc.
+	(message-fetch-field, gnus-group-name-decode): Declare rather than
+	autoloading.
+	(gnus-fetch-field): Require message.
+	(gnus-decode-newsgroups): Require gnus-group.
+
+	* ietf-drums.el: Don't require time-date.
+
+	* message.el: Don't require hashcash, canlock, ecomplete.
+	Do require mail-utils.  Require nnheader only when compiling.
+	(smtpmail-default-smtp-server): Remove declaration.
+	(message-send-mail-function): Check smtpmail-default-smtp-server
+	is bound rather than requiring smtpmail.
+	(message-auto-save-directory, message-insert-signature): Use
+	expand-file-name rather than nnheader-concat.
+	(nnheader-insert-file-contents): Autoload.
+	(hashcash-wait-async): Declare.
+	(message-send-mail): Only call gnus-setup-posting-charset if
+	gnus-group-posting-charset-alist is bound.  Require hashcash if needed.
+	(message-send-mail-with-sendmail): Require sendmail.
+	(canlock-password, canlock-password-for-verify): Declare.
+	(message-canlock-password): Require canlock.
+	(nnheader-get-report): Autoload.
+	(gnus-setup-posting-charset): Declare.
+	(message-send-news): Require gnus-msg.
+	(message-make-references, message-make-in-reply-to): Use mail-header-id
+	rather than the alias mail-header-message-id.
+	(ecomplete-add-item, ecomplete-save): Declare.
+	(message-put-addresses-in-ecomplete): Require ecomplete.
+	(ecomplete-display-matches): Autoload.
+
+	* mm-decode.el: Don't require mailcap, gnus-util.
+	(gnus-map-function, gnus-replace-in-string, gnus-read-shell-command)
+	(message-fetch-field, mailcap-parse-mailcaps, mailcap-mime-info):
+	Autoload.
+	(mailcap-mime-extensions): Declare.
+
+	* mm-encode.el: Don't require mailcap.
+	(mailcap-extension-to-mime): Autoload.
+
+	* mml-sec.el: Don't require password-cache.
+
+	* mml.el (gnus-setup-posting-charset): Declare rather than autoload.
+	(mailcap-parse-mimetypes, mailcap-mime-types): Declare.
+	(mml-minibuffer-read-type): Require mailcap.
+	(mml-preview): Require gnus-msg.
+
+	* mml1991.el: Require password-cache.
+	(password-cache-expiry): Remove declaration.
+
+	* mml2015.el: Require password-cache.
+	(password-cache-expiry): Remove declaration.
+
+	* nneething.el (mailcap): Require mailcap.
+
+	* nnheader.el: (declare-function): Add compatibility stub.
+	(message-remove-header): Declare rather than autoload.
+	(nnheader-replace-header): Require message.
+
+	* nnimap.el (declare-function): Add compatibility stub.
+	(netrc-parse, netrc-machine-user-or-password): Declare.
+	(nnimap-open-connection): Require netrc.
+
+	* nntp.el (declare-function): Add compatibility stub.
+	(netrc-parse, netrc-machine, netrc-get): Declare.
+	(nntp-send-authinfo): Require netrc.
+
+	* rfc2047.el: Don't require qp.
+	(quoted-printable-encode-region, quoted-printable-decode-string):
+	Autoload.
+
+	* sieve-mode.el: Don't require easymenu.
+	(easy-menu-add-item): Autoload it.
+
+	* spam-stat.el (time-to-number-of-days): Autoload it.
+
+2010-03-17  Kevin Ryde  <user42@zip.com.au>
+
+	* mml.el (mml-read-tag): Unquote values with `read' to reverse
+	prin1 in mml-insert-tag (just stripping the quotes gave wrong
+	value if any backslash escapes).
+
+2010-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-charset-to-coding-system): Use coding-system-from-name
+	if it is available.  (bug#5647)
+
 2010-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-send-mail-function): Change the default, so that

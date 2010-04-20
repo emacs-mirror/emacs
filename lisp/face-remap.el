@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
-;; Keywords: faces face remapping display user commands
+;; Keywords: faces, face remapping, display, user commands
 ;;
 ;; This file is part of GNU Emacs.
 ;;

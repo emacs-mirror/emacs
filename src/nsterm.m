@@ -4173,8 +4173,6 @@ ns_term_shutdown (int sig)
   ns_send_appdefined (-2);
 }
 
-extern void update_window_cursor (struct window *w, int on);
-
 - (void)fd_handler: (NSTimer *) fdEntry
 /* --------------------------------------------------------------------------
      Check data waiting on file descriptors and terminate if so

@@ -302,6 +302,8 @@ This variable is used to display the current image type in the mode line.")
     (define-key map [remap next-line] 'image-next-line)
     (define-key map [remap scroll-up] 'image-scroll-up)
     (define-key map [remap scroll-down] 'image-scroll-down)
+    (define-key map [remap scroll-up-command] 'image-scroll-up)
+    (define-key map [remap scroll-down-command] 'image-scroll-down)
     (define-key map [remap move-beginning-of-line] 'image-bol)
     (define-key map [remap move-end-of-line] 'image-eol)
     (define-key map [remap beginning-of-buffer] 'image-bob)
@@ -466,7 +468,7 @@ was inserted."
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
 	 (type (image-type file-or-data nil data-p))
-	 (image (create-image file-or-data type data-p))
+	 (image (create-animated-image file-or-data type data-p))
 	 (props
 	  `(display ,image
 		    intangible ,image

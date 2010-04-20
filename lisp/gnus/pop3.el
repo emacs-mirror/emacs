@@ -98,6 +98,12 @@ thing can fall apart and leave you with a corrupt mailbox."
   :type 'boolean
   :group 'pop3)
 
+(defcustom pop3-display-message-size-flag t
+  "*If non-nil, display the size of the message that is being fetched."
+  :version "22.1" ;; Oort Gnus
+  :type 'boolean
+  :group 'pop3) 
+
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
 Used for APOP authentication.")
@@ -135,6 +141,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
 	 (crashbuf (get-buffer-create " *pop3-retr*"))
 	 (n 1)
 	 message-count
+	 message-sizes
 	 (pop3-password pop3-password))
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
@@ -149,10 +156,18 @@ Shorter values mean quicker response, but are more CPU intensive.")
 	   (pop3-pass process))
 	  (t (error "Invalid POP3 authentication scheme")))
     (setq message-count (car (pop3-stat process)))
+    (when (and pop3-display-message-size-flag
+	       (> message-count 0))
+      (setq message-sizes (pop3-list process)))
     (unwind-protect
 	(while (<= n message-count)
-	  (message "Retrieving message %d of %d from %s..."
-		   n message-count pop3-mailhost)
+	  (if pop3-display-message-size-flag
+	      (message "Retrieving message %d of %d from %s... (%.1fk)"
+		       n message-count pop3-mailhost
+		       (/ (cdr (assoc n message-sizes))
+			  1024.0))
+	    (message "Retrieving message %d of %d from %s..."
+		     n message-count pop3-mailhost)) 	  
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
@@ -451,8 +466,28 @@ If NOW, use that time instead."
     ))
 
 (defun pop3-list (process &optional msg)
-  "Scan listing of available messages.
-This function currently does nothing.")
+  "If MSG is nil, return an alist of (MESSAGE-ID . SIZE) pairs.
+Otherwise, return the size of the message-id MSG"
+  (pop3-send-command process (if msg 
+				 (format "LIST %d" msg)
+			       "LIST"))
+  (let ((response (pop3-read-response process t)))
+    (if msg
+	(string-to-number (nth 2 (split-string response " ")))
+      (let ((start pop3-read-point) end)
+	(save-excursion
+	  (set-buffer (process-buffer process))
+	  (while (not (re-search-forward "^\\.\r\n" nil t))
+	    (pop3-accept-process-output process)
+	    (goto-char start))
+	  (setq pop3-read-point (point-marker))
+	  (goto-char (match-beginning 0))
+	  (setq end (point-marker))
+	  (mapcar #'(lambda (s) (let ((split (split-string s " ")))
+				  (cons (string-to-number (nth 0 split))
+					(string-to-number (nth 1 split)))))
+		  (delete "" (split-string (buffer-substring start end)
+					   "\r\n"))))))))
 
 (defun pop3-retr (process msg crashbuf)
   "Retrieve message-id MSG to buffer CRASHBUF."

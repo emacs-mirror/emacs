@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -123,7 +123,7 @@ to have no space characters in them."
 	  (string :tag "Prefix")))
 
 (defcustom org-id-include-domain nil
-  "Non-nil means, add the domain name to new IDs.
+  "Non-nil means add the domain name to new IDs.
 This ensures global uniqueness of IDs, and is also suggested by
 RFC 2445 in combination with RFC 822.  This is only relevant if
 `org-id-method' is `org'.  When uuidgen is used, the domain will never
@@ -135,7 +135,7 @@ people to make this necessary."
   :type 'boolean)
 
 (defcustom org-id-track-globally t
-  "Non-nil means, track IDs through files, so that links work globally.
+  "Non-nil means track IDs through files, so that links work globally.
 This work by maintaining a hash table for IDs and writing this table
 to disk when exiting Emacs.  Because of this, it works best if you use
 a single Emacs process, not many.
@@ -178,7 +178,7 @@ This variable is only relevant when `org-id-track-globally' is set."
 	    (file))))
 
 (defcustom org-id-search-archives t
-  "Non-nil means, search also the archive files of agenda files for entries.
+  "Non-nil means search also the archive files of agenda files for entries.
 This is a possibility to reduce overhead, but it means that entries moved
 to the archives can no longer be found by ID.
 This variable is only relevant when `org-id-track-globally' is set."
@@ -466,7 +466,7 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 
 (defun org-id-locations-save ()
   "Save `org-id-locations' in `org-id-locations-file'."
-  (when org-id-track-globally
+  (when (and org-id-track-globally org-id-locations)
     (let ((out (if (hash-table-p org-id-locations)
 		   (org-id-hash-to-alist org-id-locations)
 		 org-id-locations)))
@@ -545,7 +545,9 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 (defun org-id-find-id-file (id)
   "Query the id database for the file in which this ID is located."
   (unless org-id-locations (org-id-locations-load))
-  (or (gethash id org-id-locations)
+  (or (and org-id-locations
+	   (hash-table-p org-id-locations)
+	   (gethash id org-id-locations))
       ;; ball back on current buffer
       (buffer-file-name (or (buffer-base-buffer (current-buffer))
 			    (current-buffer)))))
@@ -576,6 +578,7 @@ optional argument MARKERP, return the position as a new marker."
   "Store a link to the current entry, using its ID."
   (interactive)
   (let* ((link (org-make-link "id:" (org-id-get-create)))
+	 (case-fold-search nil)
 	 (desc (save-excursion
 		 (org-back-to-heading t)
 		 (or (and (looking-at org-complex-heading-regexp)

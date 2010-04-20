@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 
 ;; This file is part of GNU Emacs.
 
@@ -94,7 +94,7 @@ the value of this variable."
   :type 'boolean)
 
 (defcustom org-inlinetask-export t
-  "Non-nil means, export inline tasks.
+  "Non-nil means export inline tasks.
 When nil, they will not be exported."
   :group 'org-inlinetask
   :type 'boolean)
@@ -149,7 +149,17 @@ Either remove headline and meta data, or do special formatting."
 	(when (string-match org-complex-heading-regexp headline)
 	  (setq headline (concat
 			  (if (match-end 2)
-			      (concat (match-string 2 headline) " ") "")
+			      (concat
+			       (org-add-props
+				   (format
+				    "@<span class=\"%s %s\"> %s@</span>"
+				    (if (member (match-string 2 headline)
+						org-done-keywords)
+					"done" "todo")
+				    (match-string 2 headline)
+				    (match-string 2 headline))
+				   nil 'org-protected t)
+			       " ") "")
 			  (match-string 4 headline)))
 	  (when content
 	    (if (not (string-match "\\S-" content))
@@ -232,5 +242,4 @@ Either remove headline and meta data, or do special formatting."
 
 (provide 'org-inlinetask)
 
-;; arch-tag: 59fdac51-8bcc-469e-a21e-6897dd6697bb
 ;;; org-inlinetask.el ends here

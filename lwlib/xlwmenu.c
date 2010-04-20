@@ -30,6 +30,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 
 #include <stdio.h>
+#include <ctype.h>
 
 #include <sys/types.h>
 #if (defined __sun) && !(defined SUNOS41)
@@ -43,6 +44,7 @@ Boston, MA 02110-1301, USA.  */
 #include <X11/ObjectP.h>
 #include <X11/StringDefs.h>
 #include <X11/cursorfont.h>
+#include <X11/Shell.h>
 #include "xlwmenuP.h"
 
 #ifdef emacs
@@ -69,7 +71,7 @@ extern char *gray_bitmap_bits;
 static int pointer_grabbed;
 static XEvent menu_post_event;
 
-XFontStruct *xlwmenu_default_font;
+static XFontStruct *xlwmenu_default_font;
 
 static char
 xlwMenuTranslations [] =
@@ -128,6 +130,13 @@ xlwMenuResources[] =
   {XtNfontSet,  XtCFontSet, XtRFontSet, sizeof(XFontSet),
      offset(menu.fontSet), XtRFontSet, NULL},
 #endif
+#ifdef HAVE_XFT
+#define DEFAULT_FACENAME "Sans-10"
+  {XtNfaceName,  XtCFaceName, XtRString, sizeof(String),
+   offset(menu.faceName), XtRString, DEFAULT_FACENAME},
+  {XtNdefaultFace,  XtCDefaultFace, XtRInt, sizeof(int),
+   offset(menu.default_face), XtRImmediate, (XtPointer)1},
+#endif
   {XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
      offset(menu.font), XtRString, "XtDefaultFont"},
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
@@ -178,7 +187,6 @@ xlwMenuResources[] =
 
 static Boolean XlwMenuSetValues();
 static void XlwMenuRealize();
-static void XlwMenuRedisplay();
 static void XlwMenuResize();
 static void XlwMenuInitialize();
 static void XlwMenuRedisplay();
@@ -352,10 +360,20 @@ string_width (mw, s)
 {
   XCharStruct xcs;
   int drop;
+#ifdef HAVE_XFT
+  if (mw->menu.xft_font)
+    {
+      XGlyphInfo gi;
+      XftTextExtentsUtf8 (XtDisplay (mw), mw->menu.xft_font,
+                          (FcChar8 *) s,
+                          strlen (s), &gi);
+      return gi.width;
+    }
+#endif
 #ifdef HAVE_X_I18N
-  XRectangle ink, logical;
   if (mw->menu.fontSet)
     {
+      XRectangle ink, logical;
       XmbTextExtents (mw->menu.fontSet, s, strlen (s), &ink, &logical);
       return logical.width;
     }
@@ -366,6 +384,20 @@ string_width (mw, s)
 
 }
 
+#ifdef HAVE_XFT
+#define MENU_FONT_HEIGHT(mw)                                    \
+  ((mw)->menu.xft_font != NULL                                  \
+   ? (mw)->menu.xft_font->height                                \
+   : ((mw)->menu.fontSet != NULL                                \
+      ? (mw)->menu.font_extents->max_logical_extent.height      \
+      : (mw)->menu.font->ascent + (mw)->menu.font->descent))
+#define MENU_FONT_ASCENT(mw)                                    \
+  ((mw)->menu.xft_font != NULL                                  \
+    ? (mw)->menu.xft_font->ascent                               \
+    : ((mw)->menu.fontSet != NULL                               \
+       ? - (mw)->menu.font_extents->max_logical_extent.y        \
+       : (mw)->menu.font->ascent))
+#else
 #ifdef HAVE_X_I18N
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.fontSet != NULL \
@@ -379,6 +411,7 @@ string_width (mw, s)
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.font->ascent + (mw)->menu.font->descent)
 #define MENU_FONT_ASCENT(mw) ((mw)->menu.font->ascent)
+#endif
 #endif
 
 static int
@@ -559,6 +592,7 @@ size_menu (mw, level)
 
   ws->width += 2 * mw->menu.shadow_thickness;
   ws->height += 2 * mw->menu.shadow_thickness;
+  ws->max_rest_width = max_rest_width;
 
   if (horizontal_p)
     {
@@ -987,6 +1021,9 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
   int width;
   enum menu_separator separator;
   int separator_p = lw_separator_p (val->name, &separator, 0);
+#ifdef HAVE_XFT
+  XftColor *xftfg;
+#endif
 
   /* compute the sizes of the item */
   size_menu_item (mw, val, horizontal_p, &label_width, &rest_width,
@@ -1024,16 +1061,19 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
       else
 	text_gc = mw->menu.disabled_gc;
       deco_gc = mw->menu.foreground_gc;
+#ifdef HAVE_XFT
+      xftfg = val->enabled ? &mw->menu.xft_fg : &mw->menu.xft_disabled_fg;
+#endif
 
       if (separator_p)
 	{
-	  draw_separator (mw, ws->window, x, y, width, separator);
+	  draw_separator (mw, ws->pixmap, x, y, width, separator);
 	}
       else
 	{
 	  int x_offset = x + h_spacing + shadow;
 	  char* display_string = resource_widget_value (mw, val);
-	  draw_shadow_rectangle (mw, ws->window, x, y, width, height, True,
+	  draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height, True,
 				 False);
 
 	  /* Deal with centering a menu title. */
@@ -1048,15 +1088,27 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 	    x_offset += ws->button_width;
 
 
+#ifdef HAVE_XFT
+          if (ws->xft_draw)
+            {
+              int draw_y = y + v_spacing + shadow;
+              XftDrawStringUtf8 (ws->xft_draw, xftfg,
+                                 mw->menu.xft_font,
+                                 x_offset, draw_y + font_ascent,
+                                 (unsigned char *) display_string,
+                                 strlen (display_string));
+            }
+          else
+#endif
 #ifdef HAVE_X_I18N
           if (mw->menu.fontSet)
-            XmbDrawString (XtDisplay (mw), ws->window, mw->menu.fontSet,
+            XmbDrawString (XtDisplay (mw), ws->pixmap, mw->menu.fontSet,
                            text_gc, x_offset,
                            y + v_spacing + shadow + font_ascent,
                            display_string, strlen (display_string));
           else
 #endif
-          XDrawString (XtDisplay (mw), ws->window,
+          XDrawString (XtDisplay (mw), ws->pixmap,
 		       text_gc, x_offset,
 		       y + v_spacing + shadow + font_ascent,
 		       display_string, strlen (display_string));
@@ -1064,16 +1116,16 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 	  if (!horizontal_p)
 	    {
 	      if (val->button_type == BUTTON_TYPE_TOGGLE)
-		draw_toggle (mw, ws->window, x, y + v_spacing + shadow,
+		draw_toggle (mw, ws->pixmap, x, y + v_spacing + shadow,
 			     val->selected);
 	      else if (val->button_type == BUTTON_TYPE_RADIO)
-		draw_radio (mw, ws->window, x, y + v_spacing + shadow,
+		draw_radio (mw, ws->pixmap, x, y + v_spacing + shadow,
 			    val->selected);
 
 	      if (val->contents)
 		{
 		  int a_w = arrow_width (mw);
-		  draw_arrow (mw, ws->window, deco_gc,
+		  draw_arrow (mw, ws->pixmap, deco_gc,
 			      x + width - a_w
 			      - mw->menu.horizontal_spacing
 			      - mw->menu.shadow_thickness,
@@ -1082,9 +1134,24 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 		}
 	      else if (val->key)
 		{
+#ifdef HAVE_XFT
+                  if (ws->xft_draw)
+                    {
+                      XGlyphInfo gi;
+                      int draw_x = ws->width - ws->max_rest_width
+                        + mw->menu.arrow_spacing;
+                      int draw_y = y + v_spacing + shadow + font_ascent;
+                      XftDrawStringUtf8 (ws->xft_draw, xftfg,
+                                         mw->menu.xft_font,
+                                         draw_x, draw_y,
+                                         (unsigned char *) val->key,
+                                         strlen (val->key));
+                    }
+                  else
+#endif
 #ifdef HAVE_X_I18N
                   if (mw->menu.fontSet)
-                    XmbDrawString (XtDisplay (mw), ws->window,
+                    XmbDrawString (XtDisplay (mw), ws->pixmap,
                                    mw->menu.fontSet,
                                    text_gc,
                                    x + label_width + mw->menu.arrow_spacing,
@@ -1092,7 +1159,7 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
                                    val->key, strlen (val->key));
                   else
 #endif
-		  XDrawString (XtDisplay (mw), ws->window,
+		  XDrawString (XtDisplay (mw), ws->pixmap,
 			       text_gc,
 			       x + label_width + mw->menu.arrow_spacing,
 			       y + v_spacing + shadow + font_ascent,
@@ -1101,17 +1168,17 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 	    }
 	  else
 	    {
-	      XDrawRectangle (XtDisplay (mw), ws->window,
+	      XDrawRectangle (XtDisplay (mw), ws->pixmap,
 			      mw->menu.background_gc,
 			      x + shadow, y + shadow,
 			      label_width + h_spacing - 1,
 			      font_height + 2 * v_spacing - 1);
-	      draw_shadow_rectangle (mw, ws->window, x, y, width, height,
+	      draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height,
 				     True, False);
 	    }
 
 	  if (highlighted_p)
-	    draw_shadow_rectangle (mw, ws->window, x, y, width, height, False,
+	    draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height, False,
 				   False);
 	}
     }
@@ -1121,16 +1188,13 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 }
 
 static void
-display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
-	      this, that)
+display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return)
      XlwMenuWidget mw;
      int level;
      Boolean just_compute_p;
      XPoint* highlighted_pos;
      XPoint* hit;
      widget_value** hit_return;
-     widget_value* this;
-     widget_value* that;
 {
   widget_value*	val;
   widget_value* following_item;
@@ -1138,9 +1202,6 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
   XPoint	where;
   int horizontal_p = mw->menu.horizontal && (level == 0);
   int highlighted_p;
-  int just_compute_this_one_p;
-  /* This is set nonzero if the element containing HIGHLIGHTED_POS
-     is disabled, so that we do not return any subsequent element either.  */
   int no_return = 0;
   enum menu_separator separator;
 
@@ -1159,6 +1220,11 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
   where.y = 0;
 
   ws = &mw->menu.windows [level];
+
+  if (!just_compute_p)
+    XFillRectangle (XtDisplay (mw), ws->pixmap, mw->menu.background_gc,
+                    0, 0, ws->width, ws->height);
+
   for (val = mw->menu.old_stack [level]->contents; val; val = val->next)
     {
       highlighted_p = val == following_item;
@@ -1170,11 +1236,8 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
 	    highlighted_pos->y = where.y;
 	}
 
-      just_compute_this_one_p =
-	just_compute_p || ((this || that) && val != this &&  val != that);
-
       display_menu_item (mw, val, ws, &where, highlighted_p, horizontal_p,
-			 just_compute_this_one_p);
+			 just_compute_p);
 
       if (highlighted_p && highlighted_pos)
 	{
@@ -1212,8 +1275,12 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
     }
 
   if (!just_compute_p)
-    draw_shadow_rectangle (mw, ws->window, 0, 0, ws->width, ws->height,
-			   False, False);
+    {
+      draw_shadow_rectangle (mw, ws->pixmap, 0, 0, ws->width, ws->height,
+                             False, False);
+      XCopyArea (XtDisplay (mw), ws->pixmap, ws->window,
+                 mw->menu.foreground_gc, 0, 0, ws->width, ws->height, 0, 0);
+    }
 }
 
 /* Motion code */
@@ -1232,30 +1299,52 @@ set_new_state (mw, val, level)
 }
 
 static void
+expose_cb (Widget widget,
+           XtPointer closure,
+           XEvent* event,
+           Boolean* continue_to_dispatch)
+{
+  *continue_to_dispatch = False;
+  XlwMenuWidget mw = (XlwMenuWidget) closure;
+  int i;
+
+  for (i = 0; i < mw->menu.windows_length; ++i)
+    if (mw->menu.windows [i].w == widget) break;
+  if (i < mw->menu.windows_length && i < mw->menu.old_depth)
+    display_menu (mw, i, False, NULL, NULL, NULL, NULL, NULL);
+}
+
+static void
+set_window_type (Widget w, XlwMenuWidget mw)
+{
+  int popup_menu_p = mw->menu.top_depth == 1;
+  Atom type = XInternAtom (XtDisplay (w),
+                           popup_menu_p
+                           ? "_NET_WM_WINDOW_TYPE_POPUP_MENU"
+                           : "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU",
+                           False);
+
+  XChangeProperty (XtDisplay (w), XtWindow (w),
+                   XInternAtom (XtDisplay (w), "_NET_WM_WINDOW_TYPE", False),
+                   XA_ATOM, 32, PropModeReplace,
+                   (unsigned char *)&type, 1);
+}
+
+
+static void
 make_windows_if_needed (mw, n)
      XlwMenuWidget mw;
      int n;
 {
   int i;
   int start_at;
-  XSetWindowAttributes xswa;
-  int mask;
-  Window root = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   window_state* windows;
+#ifdef HAVE_XFT
+  int screen = XScreenNumberOfScreen (mw->core.screen);
+#endif
 
   if (mw->menu.windows_length >= n)
     return;
-
-  xswa.save_under = True;
-  xswa.override_redirect = True;
-  xswa.background_pixel = mw->core.background_pixel;
-  xswa.border_pixel = mw->core.border_pixel;
-  xswa.event_mask =
-    ExposureMask | PointerMotionMask | PointerMotionHintMask
-      | ButtonReleaseMask | ButtonPressMask;
-  xswa.cursor = mw->menu.cursor_shape;
-  mask = CWSaveUnder | CWOverrideRedirect | CWBackPixel | CWBorderPixel
-    | CWEventMask | CWCursor;
 
   if (!mw->menu.windows)
     {
@@ -1276,14 +1365,32 @@ make_windows_if_needed (mw, n)
 
   for (i = start_at; i < n; i++)
    {
+     Arg av[10];
+     int ac = 0;
      windows [i].x = 0;
      windows [i].y = 0;
      windows [i].width = 1;
      windows [i].height = 1;
-     windows [i].window =
-       XCreateWindow (XtDisplay (mw), root, 0, 0, 1, 1,
-		      0, 0, CopyFromParent, CopyFromParent, mask, &xswa);
-  }
+     windows [i].max_rest_width = 0;
+     XtSetArg (av[ac], XtNwidth, 1); ++ac;
+     XtSetArg (av[ac], XtNheight, 1); ++ac;
+     XtSetArg (av[ac], XtNsaveUnder, True); ++ac;
+     XtSetArg (av[ac], XtNbackground, mw->core.background_pixel); ++ac;
+     XtSetArg (av[ac], XtNborderColor, mw->core.border_pixel); ++ac;
+     XtSetArg (av[ac], XtNborderWidth, mw->core.border_width); ++ac;
+     XtSetArg (av[ac], XtNcursor, mw->menu.cursor_shape); ++ac;
+     windows [i].w =
+       XtCreatePopupShell ("sub", overrideShellWidgetClass,
+                           (Widget) mw, av, ac);
+     XtRealizeWidget (windows [i].w);
+     XtAddEventHandler (windows [i].w, ExposureMask, False, expose_cb, mw);
+     windows [i].window = XtWindow (windows [i].w);
+     windows [i].pixmap = None;
+#ifdef HAVE_XFT
+     windows [i].xft_draw = 0;
+#endif
+     set_window_type (windows [i].w, mw);
+   }
 }
 
 /* Value is non-zero if WINDOW is part of menu bar widget W.  */
@@ -1361,6 +1468,33 @@ fit_to_screen (mw, ws, previous_ws, horizontal_p)
     }
 }
 
+static void
+create_pixmap_for_menu (window_state* ws, XlwMenuWidget mw)
+{
+  if (ws->pixmap != None) 
+    {
+      XFreePixmap (XtDisplay (ws->w), ws->pixmap);
+      ws->pixmap = None;
+    }
+  ws->pixmap = XCreatePixmap (XtDisplay (ws->w), ws->window,
+                              ws->width, ws->height,
+                              DefaultDepthOfScreen (XtScreen (ws->w)));
+#ifdef HAVE_XFT
+  if (ws->xft_draw)
+    XftDrawDestroy (ws->xft_draw);
+  if (mw->menu.xft_font)
+    {
+      int screen = XScreenNumberOfScreen (mw->core.screen);
+      ws->xft_draw = XftDrawCreate (XtDisplay (ws->w),
+                                    ws->pixmap,
+                                    DefaultVisual (XtDisplay (ws->w), screen),
+                                    mw->core.colormap);
+    }
+  else
+    ws->xft_draw = 0;
+#endif
+}
+
 /* Updates old_stack from new_stack and redisplays. */
 static void
 remap_menubar (mw)
@@ -1406,14 +1540,17 @@ remap_menubar (mw)
   /* updates old_state from new_state.  It has to be done now because
      display_menu (called below) uses the old_stack to know what to display. */
   for (i = last_same + 1; i < new_depth; i++)
-    old_stack [i] = new_stack [i];
+    {
+      XtPopdown (mw->menu.windows [i].w);
+      old_stack [i] = new_stack [i];
+    }
   mw->menu.old_depth = new_depth;
 
   /* refresh the last selection */
   selection_position.x = 0;
   selection_position.y = 0;
   display_menu (mw, last_same, new_selection == old_selection,
-		&selection_position, NULL, NULL, old_selection, new_selection);
+		&selection_position, NULL, NULL);
 
   /* Now place the new menus.  */
   for (i = last_same + 1; i < new_depth && new_stack[i]->contents; i++)
@@ -1440,17 +1577,17 @@ remap_menubar (mw)
 
       fit_to_screen (mw, ws, previous_ws, mw->menu.horizontal && i == 1);
 
-      XClearWindow (XtDisplay (mw), ws->window);
-      XMoveResizeWindow (XtDisplay (mw), ws->window, ws->x, ws->y,
-			 ws->width, ws->height);
-      XMapRaised (XtDisplay (mw), ws->window);
-      display_menu (mw, i, False, &selection_position, NULL, NULL, NULL, NULL);
+      XtVaSetValues (ws->w, XtNwidth, ws->width, XtNheight, ws->height,
+                     XtNx, ws->x, XtNy, ws->y, NULL);
+      create_pixmap_for_menu (ws, mw);
+      XtPopup (ws->w, XtGrabNone);
+      display_menu (mw, i, False, &selection_position, NULL, NULL);
     }
 
   /* unmap the menus that popped down */
   for (i = new_depth - 1; i < old_depth; i++)
     if (i >= new_depth || (i > 0 && !new_stack[i]->contents))
-      XUnmapWindow (XtDisplay (mw), windows[i].window);
+      XtPopdown (windows[i].w);
 }
 
 static Boolean
@@ -1491,7 +1628,7 @@ map_event_to_widget_value (mw, ev, val, level)
       if (ws && motion_event_is_in_menu (mw, ev, i, &relative_pos))
 	{
           inside = 1;
-	  display_menu (mw, i, True, NULL, &relative_pos, val, NULL, NULL);
+	  display_menu (mw, i, True, NULL, &relative_pos, val);
 
 	  if (*val)
 	    {
@@ -1758,6 +1895,44 @@ release_shadow_gcs (mw)
   XtReleaseGC ((Widget) mw, mw->menu.shadow_bottom_gc);
 }
 
+#ifdef HAVE_XFT
+static int
+openXftFont (mw)
+     XlwMenuWidget mw;
+{
+  char *fname = mw->menu.faceName;
+
+  mw->menu.xft_font = 0;
+  mw->menu.default_face = fname && strcmp (fname, DEFAULT_FACENAME) == 0;
+
+  if (fname && strcmp (fname, "none") != 0)
+    {
+      int screen = XScreenNumberOfScreen (mw->core.screen);
+      int len = strlen (fname), i = len-1;
+      /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
+      while (i > 0 && isdigit (fname[i]))
+        --i;
+      if (fname[i] == ' ')
+        {
+          fname = xstrdup (mw->menu.faceName);
+          fname[i] = '-';
+        }
+
+      mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
+      if (!mw->menu.xft_font) 
+        {
+          fprintf (stderr, "Can't find font '%s'\n", fname);
+          mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen,
+                                               DEFAULT_FACENAME);
+        }
+    }
+
+  if (fname != mw->menu.faceName) free (fname);
+
+  return mw->menu.xft_font != 0;
+}
+#endif
+
 static void
 XlwMenuInitialize (request, mw, args, num_args)
      Widget request;
@@ -1779,7 +1954,7 @@ XlwMenuInitialize (request, mw, args, num_args)
   mw->menu.contents = tem;
 #endif
 
-/*  mw->menu.cursor = XCreateFontCursor (display, mw->menu.cursor_shape); */
+  /*  mw->menu.cursor = XCreateFontCursor (display, mw->menu.cursor_shape); */
   mw->menu.cursor = mw->menu.cursor_shape;
 
   mw->menu.gray_pixmap
@@ -1787,11 +1962,24 @@ XlwMenuInitialize (request, mw, args, num_args)
 				   gray_bitmap_width, gray_bitmap_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
-  /* I don't understand why this ends up 0 sometimes,
-     but it does.  This kludge works around it.
-     Can anyone find a real fix?   -- rms.  */
-  if (mw->menu.font == 0)
-    mw->menu.font = xlwmenu_default_font;
+#ifdef HAVE_XFT
+  if (openXftFont (mw))
+    ;
+  else
+#endif
+  
+  if (!mw->menu.font)
+    {
+      if (!xlwmenu_default_font)
+        xlwmenu_default_font = XLoadQueryFont (display, "fixed");
+      mw->menu.font = xlwmenu_default_font;
+      if (!mw->menu.font) 
+        {
+          fprintf (stderr, "Menu font fixed not found, can't continue.\n");
+          abort ();
+        }
+    }
+
 #ifdef HAVE_X_I18N
   if (mw->menu.fontSet)
     mw->menu.font_extents = XExtentsOfFontSet (mw->menu.fontSet);
@@ -1818,6 +2006,11 @@ XlwMenuInitialize (request, mw, args, num_args)
   mw->menu.windows [0].y = 0;
   mw->menu.windows [0].width = 0;
   mw->menu.windows [0].height = 0;
+  mw->menu.windows [0].max_rest_width = 0;
+  mw->menu.windows [0].pixmap = None;
+#ifdef HAVE_XFT
+  mw->menu.windows [0].xft_draw = 0;
+#endif
   size_menu (mw, 0);
 
   mw->core.width = mw->menu.windows [0].width;
@@ -1827,6 +2020,7 @@ XlwMenuInitialize (request, mw, args, num_args)
 static void
 XlwMenuClassInitialize ()
 {
+  xlwmenu_default_font = 0;
 }
 
 static void
@@ -1856,11 +2050,39 @@ XlwMenuRealize (w, valueMask, attributes)
   x_uncatch_errors ();
 #endif
 
+  mw->menu.windows [0].w = w;
   mw->menu.windows [0].window = XtWindow (w);
   mw->menu.windows [0].x = w->core.x;
   mw->menu.windows [0].y = w->core.y;
   mw->menu.windows [0].width = w->core.width;
   mw->menu.windows [0].height = w->core.height;
+
+  set_window_type (mw->menu.windows [0].w, mw);
+  create_pixmap_for_menu (&mw->menu.windows [0], mw);
+
+#ifdef HAVE_XFT
+  if (mw->menu.xft_font)
+    {
+      XColor colors[3];
+      colors[0].pixel = mw->menu.xft_fg.pixel = mw->menu.foreground;
+      colors[1].pixel = mw->menu.xft_bg.pixel = mw->core.background_pixel;
+      colors[2].pixel = mw->menu.xft_disabled_fg.pixel
+        = mw->menu.disabled_foreground;
+      XQueryColors (XtDisplay (mw), mw->core.colormap, colors, 3);
+      mw->menu.xft_fg.color.alpha = 0xFFFF;
+      mw->menu.xft_fg.color.red = colors[0].red;
+      mw->menu.xft_fg.color.green = colors[0].green;
+      mw->menu.xft_fg.color.blue = colors[0].blue;
+      mw->menu.xft_bg.color.alpha = 0xFFFF;
+      mw->menu.xft_bg.color.red = colors[1].red;
+      mw->menu.xft_bg.color.green = colors[1].green;
+      mw->menu.xft_bg.color.blue = colors[1].blue;
+      mw->menu.xft_disabled_fg.color.alpha = 0xFFFF;
+      mw->menu.xft_disabled_fg.color.red = colors[2].red;
+      mw->menu.xft_disabled_fg.color.green = colors[2].green;
+      mw->menu.xft_disabled_fg.color.blue = colors[2].blue;
+    }
+#endif
 }
 
 /* Only the toplevel menubar/popup is a widget so it's the only one that
@@ -1883,8 +2105,7 @@ XlwMenuRedisplay (w, ev, region)
       submenu_destroyed = 0;
     }
 
-  for (i = 0; i < mw->menu.old_depth; i++)
-    display_menu (mw, i, False, NULL, NULL, NULL, NULL, NULL);
+  display_menu (mw, 0, False, NULL, NULL, NULL);
 }
 
 
@@ -1942,12 +2163,42 @@ XlwMenuDestroy (w)
      client exits.  Nice, eh?
    */
 
+#ifdef HAVE_XFT
+  if (mw->menu.windows [0].xft_draw)
+    XftDrawDestroy (mw->menu.windows [0].xft_draw);
+  if (mw->menu.xft_font)
+    XftFontClose (XtDisplay (mw), mw->menu.xft_font);
+#endif
+
+  if (mw->menu.windows [0].pixmap != None) 
+    XFreePixmap (XtDisplay (mw), mw->menu.windows [0].pixmap);
   /* start from 1 because the one in slot 0 is w->core.window */
   for (i = 1; i < mw->menu.windows_length; i++)
-    XDestroyWindow (XtDisplay (mw), mw->menu.windows [i].window);
+    {
+      if (mw->menu.windows [i].pixmap != None) 
+        XFreePixmap (XtDisplay (mw), mw->menu.windows [i].pixmap);
+      XtDestroyWidget (mw->menu.windows [i].w);
+#ifdef HAVE_XFT
+      if (mw->menu.windows [i].xft_draw)
+        XftDrawDestroy (mw->menu.windows [i].xft_draw);
+#endif
+    }
+
   if (mw->menu.windows)
     XtFree ((char *) mw->menu.windows);
 }
+
+#ifdef HAVE_XFT
+static int
+facename_changed (XlwMenuWidget newmw,
+                  XlwMenuWidget oldmw)
+{
+  /* This will fore a new XftFont even if the same string is set.
+     This is good, as rendering parameters may have changed and
+     we just want to do a redisplay.  */
+  return newmw->menu.faceName != oldmw->menu.faceName;
+}
+#endif
 
 static Boolean
 XlwMenuSetValues (current, request, new)
@@ -1972,6 +2223,9 @@ XlwMenuSetValues (current, request, new)
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
+#ifdef HAVE_XFT
+      || facename_changed (newmw, oldmw)
+#endif
 #ifdef HAVE_X_I18N
       || newmw->menu.fontSet != oldmw->menu.fontSet
       || (newmw->menu.fontSet == NULL && newmw->menu.font != oldmw->menu.font)
@@ -2004,6 +2258,29 @@ XlwMenuSetValues (current, request, new)
 	  }
     }
 
+#ifdef HAVE_XFT
+  if (facename_changed (newmw, oldmw))
+    {
+      int i;
+      int screen = XScreenNumberOfScreen (newmw->core.screen);
+      if (newmw->menu.xft_font)
+        XftFontClose (XtDisplay (newmw), newmw->menu.xft_font);
+      openXftFont (newmw);
+      for (i = 0; i < newmw->menu.windows_length; i++)
+        {
+          if (newmw->menu.windows [i].xft_draw)
+            XftDrawDestroy (newmw->menu.windows [i].xft_draw);
+          newmw->menu.windows [i].xft_draw = 0;
+        }
+      if (newmw->menu.xft_font)
+      for (i = 0; i < newmw->menu.windows_length; i++)
+          newmw->menu.windows [i].xft_draw
+            = XftDrawCreate (XtDisplay (newmw),
+                             newmw->menu.windows [i].window,
+                             DefaultVisual (XtDisplay (newmw), screen),
+                             newmw->core.colormap);
+    }
+#endif
 #ifdef HAVE_X_I18N
   if (newmw->menu.fontSet != oldmw->menu.fontSet && newmw->menu.fontSet != NULL)
     {
@@ -2026,13 +2303,14 @@ XlwMenuResize (w)
       /* Don't allow the popup menu to resize itself.  */
       mw->core.width = mw->menu.windows [0].width;
       mw->core.height = mw->menu.windows [0].height;
-      mw->core.parent->core.width = mw->core.width ;
-      mw->core.parent->core.height = mw->core.height ;
+      mw->core.parent->core.width = mw->core.width;
+      mw->core.parent->core.height = mw->core.height;
     }
   else
     {
       mw->menu.windows [0].width = mw->core.width;
       mw->menu.windows [0].height = mw->core.height;
+      create_pixmap_for_menu (&mw->menu.windows [0], mw);
     }
 }
 
@@ -2063,8 +2341,7 @@ handle_motion_event (mw, ev)
   int x = ev->x_root;
   int y = ev->y_root;
   int state = ev->state;
-
-  handle_single_motion_event (mw, ev);
+  XMotionEvent oldev = *ev;
 
   /* allow motion events to be generated again */
   if (ev->is_hint
@@ -2076,6 +2353,8 @@ handle_motion_event (mw, ev)
       && ev->state == state
       && (ev->x_root != x || ev->y_root != y))
     handle_single_motion_event (mw, ev);
+  else
+    handle_single_motion_event (mw, &oldev);
 }
 
 static void
@@ -2385,7 +2664,7 @@ Key (w, ev, params, num_params)
       else
 	{
 	  XtRemoveGrab ((Widget) mw);
-	  display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+	  display_menu (mw, 0, False, NULL, NULL, NULL);
 	}
     }
 
@@ -2426,7 +2705,7 @@ Select (w, ev, params, num_params)
       else
 	{
 	  XtRemoveGrab ((Widget) mw);
-	  display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+	  display_menu (mw, 0, False, NULL, NULL, NULL);
 	}
     }
 
@@ -2477,7 +2756,7 @@ pop_up_menu (mw, event)
       XtConfigureWidget (XtParent ((Widget)mw), x, y, w, h,
 			 XtParent ((Widget)mw)->core.border_width);
       XtPopup (XtParent ((Widget)mw), XtGrabExclusive);
-      display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+      display_menu (mw, 0, False, NULL, NULL, NULL);
       mw->menu.windows [0].x = x + borderwidth;
       mw->menu.windows [0].y = y + borderwidth;
       mw->menu.top_depth = 1;  /* Popup menus don't have a bar so top is 1  */

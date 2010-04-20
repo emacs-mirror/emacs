@@ -67,6 +67,12 @@ incorrectly, refer to @ref{Undisplayable Characters}, which describes
 possible problems and explains how to solve them.
 
 @item
+Characters from scripts whose natural ordering of text is from right
+to left are reordered for display (@pxref{Bidirectional Editing}).
+These scripts include Arabic, Hebrew, Syriac, Thaana, and a few
+others.
+
+@item
 You can insert non-@acronym{ASCII} characters or search for them.  To do that,
 you can specify an input method (@pxref{Select Input Method}) suitable
 for your language, or use the default input method set up when you set
@@ -107,6 +113,7 @@ to make sure Emacs interprets keyboard input correctly; see
 * Unibyte Mode::            You can pick one European character set
                               to use without multibyte characters.
 * Charsets::                How Emacs groups its internal character codes.
+* Bidirectional Editing::   Support for right-to-left scripts.
 @end menu
 
 @node International Chars
@@ -532,6 +539,11 @@ most input methods---some disable this feature).  If
 @code{input-method-verbose-flag} is non-@code{nil}, the list of
 possible characters to type next is displayed in the echo area (but
 not when you are in the minibuffer).
+
+  Another facility for typing characters not on your keyboard is by
+using the @kbd{C-x 8 @key{RET}} (@code{ucs-insert}) to insert a single
+character based on its Unicode name or code-point; see @ref{Inserting
+Text}.
 
 @node Select Input Method
 @section Selecting an Input Method
@@ -961,15 +973,16 @@ still use an unsuitable coding system if you type its name in response
 to the question.)
 
 @vindex sendmail-coding-system
-  When you send a message with Mail mode (@pxref{Sending Mail}), Emacs has
-four different ways to determine the coding system to use for encoding
-the message text.  It tries the buffer's own value of
-@code{buffer-file-coding-system}, if that is non-@code{nil}.  Otherwise,
-it uses the value of @code{sendmail-coding-system}, if that is
-non-@code{nil}.  The third way is to use the default coding system for
-new files, which is controlled by your choice of language environment,
-if that is non-@code{nil}.  If all of these three values are @code{nil},
-Emacs encodes outgoing mail using the Latin-1 coding system.
+  When you send a message with Message mode (@pxref{Sending Mail}),
+Emacs has four different ways to determine the coding system to use
+for encoding the message text.  It tries the buffer's own value of
+@code{buffer-file-coding-system}, if that is non-@code{nil}.
+Otherwise, it uses the value of @code{sendmail-coding-system}, if that
+is non-@code{nil}.  The third way is to use the default coding system
+for new files, which is controlled by your choice of language
+environment, if that is non-@code{nil}.  If all of these three values
+are @code{nil}, Emacs encodes outgoing mail using the Latin-1 coding
+system.
 
 @node Text Coding
 @section Specifying a Coding System for File Text
@@ -1442,7 +1455,7 @@ field.
 fontset is called @code{create-fontset-from-fontset-spec}.  You can also
 call this function explicitly to create a fontset.
 
-  @xref{Font X}, for more information about font naming in X.
+  @xref{Fonts}, for more information about font naming.
 
 @node Modifying Fontsets
 @section Modifying Fontsets
@@ -1619,7 +1632,7 @@ belong to one or more charsets.
 that you don't have to worry about them.  However, it is sometimes
 helpful to know some of the underlying details about charsets.
 
-  One example is font selection (@pxref{Font X}).  Each language
+  One example is font selection (@pxref{Fonts}).  Each language
 environment (@pxref{Language Environments}) defines a ``priority
 list'' for the various charsets.  When searching for a font, Emacs
 initially attempts to find one that can display the highest-priority
@@ -1652,6 +1665,84 @@ older Emacs versions.
   To find out which charset a character in the buffer belongs to, put
 point before it and type @kbd{C-u C-x =} (@pxref{International
 Chars}).
+
+@node Bidirectional Editing
+@section Bidirectional Editing
+@cindex bidirectional editing
+@cindex right-to-left text
+
+  Emacs supports editing text written in scripts, such as Arabic and
+Hebrew, whose natural ordering of horizontal text for display is from
+right to left.  However, digits and Latin text embedded in these
+scripts are still displayed left to right.  It is also not uncommon to
+have small portions of text in Arabic or Hebrew embedded in otherwise
+Latin document, e.g., as comments and strings in a program source
+file.  For these reasons, text that uses these scripts is actually
+@dfn{bidirectional}: a mixture of runs of left-to-right and
+right-to-left characters.
+
+  This section describes the facilities and options provided by Emacs
+for editing bidirectional text.
+
+@cindex logical order
+@cindex visual order
+  Emacs stores right-to-left and bidirectional text in the so-called
+@dfn{logical} (or @dfn{reading}) order: the buffer or string position
+of the first character you read precedes that of the next character.
+Reordering of bidirectional text into the @dfn{visual} order happens
+at display time.  As result, character positions no longer increase
+monotonically with their positions on display.  Emacs implements the
+Unicode Bidirectional Algorithm described in the Unicode Standard
+Annex #9, for reordering of bidirectional text for display.
+
+@vindex bidi-display-reordering
+  The buffer-local variable @code{bidi-display-reordering} controls
+whether text in the buffer is reordered for display.  If its value is
+non-@code{nil}, Emacs reorders characters that have right-to-left
+directionality when they are displayed.  The default value is
+@code{nil}.
+
+  Each paragraph of bidirectional text can have its own @dfn{base
+direction}, either right-to-left or left-to-right.  (Paragraph
+boundaries are defined by the regular expressions
+@code{paragraph-start} and @code{paragraph-separate}, see
+@ref{Paragraphs}.)  Text in left-to-right paragraphs begins at the
+left margin of the window and is truncated or continued when it
+reaches the right margin.  By contrast, text in right-to-left
+paragraphs begins at the right margin and is continued or truncated at
+the left margin.
+
+@vindex bidi-paragraph-direction
+  Emacs determines the base direction of each paragraph dynamically,
+based on the text at the beginning of the paragraph.  However,
+sometimes a buffer may need to force a certain base direction for its
+paragraphs.  The variable @code{bidi-paragraph-direction}, if
+non-@code{nil}, disables the dynamic determination of the base
+direction, and instead forces all paragraphs in the buffer to have the
+direction specified by its buffer-local value.  The value can be either
+@code{right-to-left} or @code{left-to-right}.  Any other value is
+interpreted as @code{nil}.
+
+@cindex LRM
+@cindex RLM
+  Alternatively, you can control the base direction of a paragraph by
+inserting special formatting characters in front of the paragraph.
+The special character @code{RIGHT-TO-LEFT MARK}, or @sc{rlm}, forces
+the right-to-left direction on the following paragraph, while
+@code{LEFT-TO-RIGHT MARK}, or @sc{lrm} forces the left-to-right
+direction.  (You can use @kbd{C-x 8 RET} to insert these characters.)
+In a GUI session, the @sc{lrm} and @sc{rlm} characters display as
+blanks.
+
+  Because characters are reordered for display, Emacs commands that
+operate in the logical order or on stretches of buffer positions may
+produce unusual effects.  For example, @kbd{C-f} and @kbd{C-b}
+commands move point in the logical order, so the cursor will sometimes
+jump when point traverses reordered bidirectional text.  Similarly, a
+highlighted region covering a contiguous range of character positions
+may look discontinuous if the region spans reordered text.  This is
+normal and similar to behavior of other programs that support
+bidirectional text.
 
 @ignore
    arch-tag: 310ba60d-31ef-4ce7-91f1-f282dd57b6b3

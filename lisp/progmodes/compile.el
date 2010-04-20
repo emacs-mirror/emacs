@@ -583,6 +583,21 @@ Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
+(defcustom compilation-save-buffers-predicate nil
+  "The second argument (PRED) passed to `save-some-buffers' before compiling.
+E.g., one can set this to
+  (lambda ()
+    (string-prefix-p my-compilation-root (file-truename (buffer-file-name))))
+to limit saving to files located under `my-compilation-root'.
+Note, that, in general, `compilation-directory' cannot be used instead
+of `my-compilation-root' here."
+  :type '(choice
+          (const :tag "Default (save all file-visiting buffers)" nil)
+          (const :tag "Save all buffers" t)
+          function)
+  :group 'compilation
+  :version "24.1")
+
 ;;;###autoload
 (defcustom compilation-search-path '(nil)
   "List of directories to search for source files named in error messages.
@@ -733,6 +748,9 @@ Faces `compilation-error-face', `compilation-warning-face',
   "If non-nil, automatically jump to the next error encountered.")
 (make-variable-buffer-local 'compilation-auto-jump-to-next)
 
+(defvar buffer-modtime nil
+  "The buffer modification time, for buffers not associated with files.")
+(make-variable-buffer-local 'buffer-modtime)
 
 (defvar compilation-skip-to-next-location t
   "*If non-nil, skip multiple error messages for the same source location.")
@@ -1094,7 +1112,8 @@ to a function that generates a unique name."
     (consp current-prefix-arg)))
   (unless (equal command (eval compile-command))
     (setq compile-command command))
-  (save-some-buffers (not compilation-ask-about-save) nil)
+  (save-some-buffers (not compilation-ask-about-save)
+                     compilation-save-buffers-predicate)
   (setq-default compilation-directory default-directory)
   (compilation-start command comint))
 
@@ -1105,7 +1124,8 @@ If this is run in a Compilation mode buffer, re-use the arguments from the
 original use.  Otherwise, recompile using `compile-command'.
 If the optional argument `edit-command' is non-nil, the command can be edited."
   (interactive "P")
-  (save-some-buffers (not compilation-ask-about-save) nil)
+  (save-some-buffers (not compilation-ask-about-save)
+                     compilation-save-buffers-predicate)
   (let ((default-directory (or compilation-directory default-directory)))
     (when edit-command
       (setcar compilation-arguments
@@ -1217,7 +1237,8 @@ Returns the compilation buffer created."
 	;; Then evaluate a cd command if any, but don't perform it yet, else
 	;; start-command would do it again through the shell: (cd "..") AND
 	;; sh -c "cd ..; make"
-	(cd (if (string-match "^\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]" command)
+	(cd (if (string-match "\\`\\s *cd\\(?:\\s +\\(\\S +?\\)\\)?\\s *[;&\n]"
+			      command)
 		(if (match-end 1)
 		    (substitute-env-vars (match-string 1 command))
 		  "~")
@@ -1566,6 +1587,7 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
+  (set (make-local-variable 'buffer-modtime) nil)
   (compilation-setup)
   (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
@@ -1781,6 +1803,7 @@ and runs `compilation-filter-hook'."
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
+              (set (make-local-variable 'buffer-modtime) (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
@@ -1954,9 +1977,7 @@ This is the value of `next-error-function' in Compilation buffers."
                  ;; There may be no timestamp info if the loc is a `fake-loc',
                  ;; but we just checked that the file has been visited before!
                  (equal (nth 4 loc)
-                        (setq timestamp
-                              (with-current-buffer (marker-buffer (nth 3 loc))
-                                (visited-file-modtime)))))
+                        (setq timestamp buffer-modtime)))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (cadr (car (nth 2 loc))))
 	(save-restriction

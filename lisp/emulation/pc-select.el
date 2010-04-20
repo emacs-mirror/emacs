@@ -82,8 +82,7 @@
 (defgroup pc-select nil
   "Emulate pc bindings."
   :prefix "pc-select"
-  :group 'editing-basics
-  :group 'convenience)
+  :group 'emulations)
 
 (defcustom pc-select-override-scroll-error t
   "*Non-nil means don't generate error on scrolling past edge of buffer.
@@ -94,6 +93,9 @@ text with these commands.  If you set this variable to non-nil, these
 errors are suppressed."
   :type 'boolean
   :group 'pc-select)
+(define-obsolete-variable-alias 'pc-select-override-scroll-error
+                                'scroll-error-top-bottom
+                                "24.1")
 
 (defcustom pc-select-selection-keys-only nil
   "*Non-nil means only bind the basic selection keys when started.

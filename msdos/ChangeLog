@@ -1,3 +1,30 @@
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove support for DJGPP v1.x.
+
+	* sed3.inp:
+	* sed2.inp:
+	* sed1.inp:
+	* mainmake: Files removed.
+
+2010-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlisp.inp (VPATH): Don't edit, no longer needed.
+	(lisp, srcdir): Adapt to lisp/Makefile.in changes.
+	(abs_top_builddir): New edit.
+
+	* sed3v2.inp (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(LIBHESIOD, LIBRESOLV, LIBS_MAIL): Edit to empty values.
+
+	* sed3.inp (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(LIBHESIOD, LIBRESOLV, LIBS_MAIL): Edit to empty values.
+
+	* sed1v2.inp (abs_builddir): Edit into "../src".
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Remove a CVS-specific note.  Update for latest versions
@@ -708,7 +735,7 @@
 
 1994-04-30  Morten Welinder  (terra@diku.dk)
 
-	* sed1.inp: don't comment out the inc-vers run as that
+	* sed1.inp: Don't comment out the inc-vers run as that
 	does not exist anymore.
 	Don't reset DEBUG_MOLE as that no longer is used.
 	Identify the file being patched as src/...
@@ -731,7 +758,7 @@
 
 1994-01-08  Morten Welinder  (terra@diku.dk)
 
-	* sed3.inp: improve make-compatibility by not using drive
+	* sed3.inp: Improve make-compatibility by not using drive
 	specifications and by not specifying an explicit shell.
 
 1994-01-07  Morten Welinder  (terra@diku.dk)

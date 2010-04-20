@@ -1,3 +1,34 @@
+2010-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations): Don't mark
+	enable-multibyte-characters as a user option.
+
+2010-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* control.texi (Handling Errors): How to re-throw a signal caught
+	by condition-case.
+
+2010-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* loading.texi (Hooks for Loading): Document after-load-functions.
+	Copyedits.
+
+2010-03-24  Arni Magnusson  <arnima@hafro.is>  (tiny change)
+
+	* frames.texi (Cursor Parameters): Fix typo.  (Bug#5760)
+
+2010-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Network Processes): Document seqpacket type.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi (System Environment): Do not mention lynxos.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* objects.texi (Integer Type): Take note of the read syntax

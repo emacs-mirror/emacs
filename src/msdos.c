@@ -39,7 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #include <dir.h>	 /* for getdisk */
-#if __DJGPP__ >= 2
 #pragma pack(0)		 /* dir.h does a pack(4), which isn't GCC's default */
 #include <fcntl.h>
 #include <io.h>		 /* for setmode */
@@ -47,7 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/farptr.h>	 /* for _farsetsel, _farnspokeb */
 #include <libc/dosio.h>  /* for _USE_LFN */
 #include <conio.h>	 /* for cputs */
-#endif
 
 #include "msdos.h"
 #include "systime.h"
@@ -81,8 +79,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _dos_ds _go32_info_block.selector_for_linear_memory
 #endif
 
-#if __DJGPP__ > 1
-
 #include <signal.h>
 #include "syssignal.h"
 
@@ -104,7 +100,6 @@ int _crt0_startup_flags = (_CRT0_FLAG_UNIX_SBRK | _CRT0_FLAG_FILL_SBRK_MEMORY);
 #endif /* GNU_MALLOC */
 
 #endif /* not SYSTEM_MALLOC */
-#endif /* __DJGPP__ > 1 */
 
 static unsigned long
 event_timestamp ()
@@ -427,7 +422,6 @@ extern Lisp_Object Qbar, Qhbar;
    colors for newly-created frames.  */
 static int initial_screen_colors[2];
 
-#if __DJGPP__ > 1
 /* Update the screen from a part of relocated DOS/V screen buffer which
    begins at OFFSET and includes COUNT characters.  */
 static void
@@ -444,7 +438,6 @@ dosv_refresh_virtual_screen (int offset, int count)
   regs.x.cx = count;
   __dpmi_int (0x10, &regs);
 }
-#endif
 
 static void
 dos_direct_output (y, x, buf, len)
@@ -456,67 +449,12 @@ dos_direct_output (y, x, buf, len)
   int t = t0 + (int) ScreenPrimary;
   int l0 = len;
 
-#if (__DJGPP__ < 2)
-  while (--len >= 0) {
-    dosmemput (buf++, 1, t);
-    t += 2;
-  }
-#else
   /* This is faster.  */
   for (_farsetsel (_dos_ds); --len >= 0; t += 2, buf++)
     _farnspokeb (t, *buf);
 
   if (screen_virtual_segment)
     dosv_refresh_virtual_screen (t0, l0);
-#endif
-}
-#endif
-
-/* Flash the screen as a substitute for BEEPs.  */
-
-#if (__DJGPP__ < 2)
-static void
-do_visible_bell (xorattr)
-     unsigned char xorattr;
-{
-  asm volatile
-    ("  movb   $1,%%dl				\n\
-visible_bell_0:					\n\
-	movl   _ScreenPrimary,%%eax		\n\
-	call   dosmemsetup			\n\
-	movl   %%eax,%%ebx			\n\
-	movl   %1,%%ecx				\n\
-	movb   %0,%%al				\n\
-	incl   %%ebx				\n\
-visible_bell_1:					\n\
-	xorb   %%al,%%gs:(%%ebx)		\n\
-	addl   $2,%%ebx				\n\
-	decl   %%ecx				\n\
-	jne    visible_bell_1			\n\
-	decb   %%dl				\n\
-	jne    visible_bell_3			\n\
-visible_bell_2:					\n\
-	movzwl %%ax,%%eax			\n\
-        movzwl %%ax,%%eax			\n\
-	movzwl %%ax,%%eax			\n\
-	movzwl %%ax,%%eax			\n\
-	decw   %%cx				\n\
-	jne    visible_bell_2			\n\
-	jmp    visible_bell_0                   \n\
-visible_bell_3:"
-     : /* no output */
-     : "m" (xorattr), "g" (screen_size)
-     : "%eax", "%ebx", /* "%gs",*/ "%ecx", "%edx");
-}
-
-static void
-ScreenVisualBell (void)
-{
-  /* This creates an xor-mask that will swap the default fore- and
-     background colors.  */
-  do_visible_bell (((FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ())
-		     ^ FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()))
-		    * 0x11) & 0x7f);
 }
 #endif
 
@@ -611,9 +549,6 @@ dos_set_window_size (rows, cols)
 
   /* Find one of the dimensions supported by standard EGA/VGA
      which gives us at least the required dimensions.  */
-
-#if __DJGPP__ > 1
-
   else
     {
       static struct {
@@ -642,41 +577,6 @@ dos_set_window_size (rows, cols)
 	}
     }
 
-#else /* not __DJGPP__ > 1 */
-
-  else if (*rows <= 25)
-    {
-      if (current_rows != 25 || current_cols != 80)
-	{
-	  regs.x.ax = 3;
-	  int86 (0x10, &regs, &regs);
-	  regs.x.ax = 0x1101;
-	  regs.h.bl = 0;
-	  int86 (0x10, &regs, &regs);
-	  regs.x.ax = 0x1200;
-	  regs.h.bl = 32;
-	  int86 (0x10, &regs, &regs);
-	  regs.x.ax = 3;
-	  int86 (0x10, &regs, &regs);
-	}
-    }
-  else if (*rows <= 50)
-    if (have_vga && (current_rows != 50 || current_cols != 80)
-	|| *rows <= 43 && (current_rows != 43 || current_cols != 80))
-      {
-	regs.x.ax = 3;
-	int86 (0x10, &regs, &regs);
-	regs.x.ax = 0x1112;
-	regs.h.bl = 0;
-	int86 (0x10, &regs, &regs);
-	regs.x.ax = 0x1200;
-	regs.h.bl = 32;
-	int86 (0x10, &regs, &regs);
-	regs.x.ax = 0x0100;
-	regs.x.cx = 7;
-	int86 (0x10, &regs, &regs);
-      }
-#endif /* not __DJGPP__ > 1 */
 
   if (have_mouse)
     {
@@ -693,7 +593,6 @@ dos_set_window_size (rows, cols)
   screen_size_Y = *rows;
   screen_size = *cols * *rows;
 
-#if __DJGPP__ > 1
   /* If the dimensions changed, the mouse highlight info is invalid.  */
   if (current_rows != *rows || current_cols != *cols)
     {
@@ -708,7 +607,6 @@ dos_set_window_size (rows, cols)
 	  dpyinfo->mouse_face_window = Qnil;
 	}
     }
-#endif
 
   /* Enable bright background colors.  */
   bright_bg ();
@@ -747,7 +645,6 @@ mouse_off_maybe ()
 static void
 msdos_set_cursor_shape (struct frame *f, int start_line, int width)
 {
-#if __DJGPP__ > 1
   unsigned desired_cursor;
   __dpmi_regs regs;
   int max_line, top_line, bot_line;
@@ -824,7 +721,6 @@ msdos_set_cursor_shape (struct frame *f, int start_line, int width)
   regs.h.ah = 1;
   regs.x.cx = desired_cursor;
   __dpmi_int (0x10, &regs);
-#endif /* __DJGPP__ > 1 */
 }
 
 static void
@@ -2041,7 +1937,6 @@ IT_set_terminal_modes (struct terminal *term)
   startup_screen_size_Y = screen_size_Y;
   startup_screen_attrib = ScreenAttrib;
 
-#if __DJGPP__ > 1
   /* Is DOS/V (or any other RSIS software which relocates
      the screen) installed?  */
   {
@@ -2072,7 +1967,6 @@ IT_set_terminal_modes (struct terminal *term)
 	ScreenPrimary = (screen_virtual_segment << 4) + screen_virtual_offset;
       }
   }
-#endif /* __DJGPP__ > 1 */
 
   ScreenGetCursor (&startup_pos_Y, &startup_pos_X);
   ScreenRetrieve (startup_screen_buffer = xmalloc (screen_size * 2));
@@ -4068,195 +3962,6 @@ crlf_to_lf (n, buf)
   return np - startp;
 }
 
-#if defined(__DJGPP__) && __DJGPP__ == 2 && __DJGPP_MINOR__ == 0
-
-/* In DJGPP v2.0, library `write' can call `malloc', which might
-   cause relocation of the buffer whose address we get in ADDR.
-   Here is a version of `write' that avoids calling `malloc',
-   to serve us until such time as the library is fixed.
-   Actually, what we define here is called `__write', because
-   `write' is a stub that just jmp's to `__write' (to be
-   POSIXLY-correct with respect to the global name-space).  */
-
-#include <io.h>		      /* for _write */
-#include <libc/dosio.h>       /* for __file_handle_modes[] */
-
-static char xbuf[64 * 1024];  /* DOS cannot write more in one chunk */
-
-#define XBUF_END (xbuf + sizeof (xbuf) - 1)
-
-int
-__write (int handle, const void *buffer, size_t count)
-{
-  if (count == 0)
-    return 0;
-
-  if(__file_handle_modes[handle] & O_BINARY)
-    return _write (handle, buffer, count);
-  else
-    {
-      char *xbp = xbuf;
-      const char *bp = buffer;
-      int total_written = 0;
-      int nmoved = 0, ncr = 0;
-
-      while (count)
-	{
-	  /* The next test makes sure there's space for at least 2 more
-	     characters in xbuf[], so both CR and LF can be put there.  */
-	  if (xbp < XBUF_END)
-	    {
-	      if (*bp == '\n')
-		{
-		  ncr++;
-		  *xbp++ = '\r';
-		}
-	      *xbp++ = *bp++;
-	      nmoved++;
-	      count--;
-	    }
-	  if (xbp >= XBUF_END || !count)
-	    {
-	      size_t to_write = nmoved + ncr;
-	      int written = _write (handle, xbuf, to_write);
-
-	      if (written == -1)
-		return -1;
-	      else
-		total_written += nmoved;  /* CRs aren't counted in ret value */
-
-	      /* If some, but not all were written (disk full?), return
-		 an estimate of the total written bytes not counting CRs.  */
-	      if (written < to_write)
-		return total_written - (to_write - written) * nmoved/to_write;
-
-	      nmoved = 0;
-	      ncr = 0;
-	      xbp = xbuf;
-	    }
-	}
-      return total_written;
-    }
-}
-
-/* A low-level file-renaming function which works around Windows 95 bug.
-   This is pulled directly out of DJGPP v2.01 library sources, and only
-   used when you compile with DJGPP v2.0.  */
-
-#include <io.h>
-
-int _rename(const char *old, const char *new)
-{
-  __dpmi_regs r;
-  int olen    = strlen(old) + 1;
-  int i;
-  int use_lfn = _USE_LFN;
-  char tempfile[FILENAME_MAX];
-  const char *orig = old;
-  int lfn_fd = -1;
-
-  r.x.dx = __tb_offset;
-  r.x.di = __tb_offset + olen;
-  r.x.ds = r.x.es = __tb_segment;
-
-  if (use_lfn)
-    {
-      /* Windows 95 bug: for some filenames, when you rename
-	 file -> file~ (as in Emacs, to leave a backup), the
-	 short 8+3 alias doesn't change, which effectively
-	 makes OLD and NEW the same file.  We must rename
-	 through a temporary file to work around this.  */
-
-      char *pbase = 0, *p;
-      static char try_char[] = "abcdefghijklmnopqrstuvwxyz012345789";
-      int idx = sizeof(try_char) - 1;
-
-      /* Generate a temporary name.  Can't use `tmpnam', since $TMPDIR
-	 might point to another drive, which will fail the DOS call.  */
-      strcpy(tempfile, old);
-      for (p = tempfile; *p; p++) /* ensure temporary is on the same drive */
-	if (*p == '/' || *p == '\\' || *p == ':')
-	  pbase = p;
-      if (pbase)
-	pbase++;
-      else
-	pbase = tempfile;
-      strcpy(pbase, "X$$djren$$.$$temp$$");
-
-      do
-	{
-	  if (idx <= 0)
-	    return -1;
-	  *pbase = try_char[--idx];
-	} while (_chmod(tempfile, 0) != -1);
-
-      r.x.ax = 0x7156;
-      _put_path2(tempfile, olen);
-      _put_path(old);
-      __dpmi_int(0x21, &r);
-      if (r.x.flags & 1)
-	{
-	  errno = __doserr_to_errno(r.x.ax);
-	  return -1;
-	}
-
-      /* Now create a file with the original name.  This will
-	 ensure that NEW will always have a 8+3 alias
-	 different from that of OLD.  (Seems to be required
-	 when NameNumericTail in the Registry is set to 0.)  */
-      lfn_fd = _creat(old, 0);
-
-      olen = strlen(tempfile) + 1;
-      old  = tempfile;
-      r.x.di = __tb_offset + olen;
-    }
-
-  for (i=0; i<2; i++)
-    {
-      if(use_lfn)
-	r.x.ax = 0x7156;
-      else
-	r.h.ah = 0x56;
-      _put_path2(new, olen);
-      _put_path(old);
-      __dpmi_int(0x21, &r);
-      if(r.x.flags & 1)
-	{
-	  if (r.x.ax == 5 && i == 0) /* access denied */
-	    remove(new);		 /* and try again */
-	  else
-	    {
-	      errno = __doserr_to_errno(r.x.ax);
-
-	      /* Restore to original name if we renamed it to temporary.  */
-	      if (use_lfn)
-		{
-		  if (lfn_fd != -1)
-		    {
-		      _close (lfn_fd);
-		      remove (orig);
-		    }
-		  _put_path2(orig, olen);
-		  _put_path(tempfile);
-		  r.x.ax = 0x7156;
-		  __dpmi_int(0x21, &r);
-		}
-	      return -1;
-	    }
-	}
-      else
-	break;
-    }
-
-  /* Success.  Delete the file possibly created to work
-     around the Windows 95 bug.  */
-  if (lfn_fd != -1)
-    return (_close (lfn_fd) == 0) ? remove (orig) : -1;
-  return 0;
-}
-
-#endif /* __DJGPP__ == 2 && __DJGPP_MINOR__ == 0 */
-
 DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
        0, 0, 0,
        doc: /* Return non-nil if long file names are supported on MS-DOS.  */)
@@ -4502,39 +4207,6 @@ init_environment (argc, argv, skip_args)
 static int break_stat;	 /* BREAK check mode status.	*/
 static int stdin_stat;	 /* stdin IOCTL status.		*/
 
-#if __DJGPP__ < 2
-
-/* These must be global.  */
-static _go32_dpmi_seginfo ctrl_break_vector;
-static _go32_dpmi_registers ctrl_break_regs;
-static int ctrlbreakinstalled = 0;
-
-/* Interrupt level detection of Ctrl-Break.  Don't do anything fancy here!  */
-
-void
-ctrl_break_func (regs)
-     _go32_dpmi_registers *regs;
-{
-  Vquit_flag = Qt;
-}
-
-void
-install_ctrl_break_check ()
-{
-  if (!ctrlbreakinstalled)
-    {
-      /* Don't press Ctrl-Break if you don't have either DPMI or Emacs
-	 was compiler with Djgpp 1.11 maintenance level 5 or later!  */
-      ctrlbreakinstalled = 1;
-      ctrl_break_vector.pm_offset = (int) ctrl_break_func;
-      _go32_dpmi_allocate_real_mode_callback_iret (&ctrl_break_vector,
-						   &ctrl_break_regs);
-      _go32_dpmi_set_real_mode_interrupt_vector (0x1b, &ctrl_break_vector);
-    }
-}
-
-#endif /* __DJGPP__ < 2 */
-
 /* Turn off Dos' Ctrl-C checking and inhibit interpretation of
    control chars by DOS.   Determine the keyboard type.  */
 
@@ -4551,9 +4223,6 @@ dos_ttraw (struct tty_display_info *tty)
 
   break_stat = getcbrk ();
   setcbrk (0);
-#if __DJGPP__ < 2
-  install_ctrl_break_check ();
-#endif
 
   if (first_time)
     {
@@ -4585,42 +4254,18 @@ dos_ttraw (struct tty_display_info *tty)
 	    mouse_button_count = outregs.x.bx;
 
 #ifndef HAVE_X_WINDOWS
-#if __DJGPP__ >= 2
 	  /* Save the cursor shape used outside Emacs.  */
 	  outside_cursor = _farpeekw (_dos_ds, 0x460);
-#endif
 #endif
 	}
 
       first_time = 0;
-
-#if __DJGPP__ >= 2
 
       stdin_stat = setmode (fileno (stdin), O_BINARY);
       return (stdin_stat != -1);
     }
   else
     return (setmode (fileno (stdin), O_BINARY) != -1);
-
-#else /* __DJGPP__ < 2 */
-
-    }
-
-  /* I think it is wrong to overwrite `stdin_stat' every time
-     but the first one this function is called, but I don't
-     want to change the way it used to work in v1.x.--EZ  */
-
-  inregs.x.ax = 0x4400;		/* Get IOCTL status. */
-  inregs.x.bx = 0x00;		/* 0 = stdin. */
-  intdos (&inregs, &outregs);
-  stdin_stat = outregs.h.dl;
-
-  inregs.x.dx = stdin_stat | 0x0020; /* raw mode */
-  inregs.x.ax = 0x4401;		/* Set IOCTL status */
-  intdos (&inregs, &outregs);
-  return !outregs.x.cflag;
-
-#endif /* __DJGPP__ < 2 */
 }
 
 /*  Restore status of standard input and Ctrl-C checking.  */
@@ -4633,8 +4278,6 @@ dos_ttcooked ()
   setcbrk (break_stat);
   mouse_off ();
 
-#if __DJGPP__ >= 2
-
 #ifndef HAVE_X_WINDOWS
   /* Restore the cursor shape we found on startup.  */
   if (outside_cursor)
@@ -4646,16 +4289,6 @@ dos_ttcooked ()
 #endif
 
   return (setmode (fileno (stdin), stdin_stat) != -1);
-
-#else  /* not __DJGPP__ >= 2 */
-
-  inregs.x.ax = 0x4401;	/* Set IOCTL status.	*/
-  inregs.x.bx = 0x00;	/* 0 = stdin.		*/
-  inregs.x.dx = stdin_stat;
-  intdos (&inregs, &outregs);
-  return !outregs.x.cflag;
-
-#endif /* not __DJGPP__ >= 2 */
 }
 
 
@@ -4735,8 +4368,6 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   dup2 (tempout, 1);
   dup2 (temperr, 2);
 
-#if __DJGPP__ > 1
-
   if (msshell && !argv[3])
     {
       /* MS-DOS native shells are too restrictive.  For starters, they
@@ -4777,10 +4408,7 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
 	result = 0;	/* emulate Unixy shell behavior with empty cmd line */
     }
   else
-
-#endif /* __DJGPP__ > 1 */
-
-  result = spawnve (P_WAIT, argv[0], argv, envv);
+    result = spawnve (P_WAIT, argv[0], argv, envv);
 
   dup2 (inbak, 0);
   dup2 (outbak, 1);
@@ -4822,88 +4450,13 @@ croak (badfunc)
   exit (1);
 }
 
-#if __DJGPP__ < 2
-
-/* ------------------------- Compatibility functions -------------------
- *	gethostname
- *	gettimeofday
- */
-
-/* Hostnames for a pc are not really funny,
-   but they are used in change log so we emulate the best we can.  */
-
-gethostname (p, size)
-     char *p;
-     int size;
-{
-  char *q = egetenv ("HOSTNAME");
-
-  if (!q) q = "pc";
-  strcpy (p, q);
-  return 0;
-}
-
-/* When time zones are set from Ms-Dos too many C-libraries are playing
-   tricks with time values.  We solve this by defining our own version
-   of `gettimeofday' bypassing GO32.  Our version needs to be initialized
-   once and after each call to `tzset' with TZ changed.  That is
-   accomplished by aliasing tzset to init_gettimeofday. */
-
-static struct tm time_rec;
-
-int
-gettimeofday (struct timeval *tp, struct timezone *tzp)
-{
-  if (tp)
-    {
-      struct time t;
-      struct tm tm;
-
-      gettime (&t);
-      if (t.ti_hour < time_rec.tm_hour) /* midnight wrap */
-	{
-	  struct date d;
-	  getdate (&d);
-	  time_rec.tm_year = d.da_year - 1900;
-	  time_rec.tm_mon = d.da_mon - 1;
-	  time_rec.tm_mday = d.da_day;
-	}
-
-      time_rec.tm_hour = t.ti_hour;
-      time_rec.tm_min = t.ti_min;
-      time_rec.tm_sec = t.ti_sec;
-
-      tm = time_rec;
-      tm.tm_gmtoff = dos_timezone_offset;
-
-      tp->tv_sec = mktime (&tm);	/* may modify tm */
-      tp->tv_usec = t.ti_hund * (1000000 / 100);
-    }
-  /* Ignore tzp; it's obsolescent.  */
-  return 0;
-}
-
-#endif /* __DJGPP__ < 2 */
-
 /*
- * A list of unimplemented functions that we silently ignore.
+ * A few unimplemented functions that we silently ignore.
  */
-
-#if __DJGPP__ < 2
-unsigned alarm (s) unsigned s; {}
-fork () { return 0; }
-int kill (x, y) int x, y; { return -1; }
-nice (p) int p; {}
-void volatile pause () {}
-sigsetmask (x) int x; { return 0; }
-sigblock (mask) int mask; { return 0; }
-#endif
-
 setpgrp () {return 0; }
 setpriority (x,y,z) int x,y,z; { return 0; }
-
-#if __DJGPP__ > 1
-#if __DJGPP_MINOR__ < 2
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
 #ifdef POSIX_SIGNALS
 
@@ -5011,7 +4564,6 @@ sigblock (mask) int mask; { return 0; }
 
 #endif /* not POSIX_SIGNALS */
 #endif /* not __DJGPP_MINOR__ < 2 */
-#endif /* __DJGPP__ > 1 */
 
 #ifndef HAVE_SELECT
 #include "sysselect.h"
@@ -5194,7 +4746,6 @@ abort ()
   dos_ttcooked ();
   ScreenSetCursor (10, 0);
   cputs ("\r\n\nEmacs aborted!\r\n");
-#if __DJGPP__ > 1
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
   if (screen_virtual_segment)
     dosv_refresh_virtual_screen (2 * 10 * screen_size_X, 4 * screen_size_X);
@@ -5204,7 +4755,6 @@ abort ()
 #else  /* __DJGPP_MINOR__ >= 2 */
   raise (SIGABRT);
 #endif /* __DJGPP_MINOR__ >= 2 */
-#endif
   exit (2);
 }
 #endif

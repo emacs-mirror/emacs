@@ -1897,6 +1897,7 @@ Argument EVENT is the invoking mouse event."
   (setq woman-emulation value)
   (woman-reformat-last-file))
 
+(defvar bookmark-make-record-function)
 (put 'woman-mode 'mode-class 'special)
 
 (defun woman-mode ()
@@ -1934,6 +1935,9 @@ See `Man-mode' for additional details."
        ;; `make-local-variable' in case imenu not yet loaded!
        woman-imenu-generic-expression)
   (set (make-local-variable 'imenu-space-replacement) " ")
+  ;; Bookmark support.
+  (set (make-local-variable 'bookmark-make-record-function)
+       'woman-bookmark-make-record)
   ;; For reformat ...
   ;; necessary when reformatting a file in its old buffer:
   (setq imenu--last-menubar-index-alist nil)
@@ -3876,10 +3880,14 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots
-    ;; and zero width characters.  If on a line by itself, consume the
-    ;; newline as well, as this may interfere with (Bug#3651).
-    (while (re-search-forward "\\\\[&|^]\n?" to t)
-      (woman-delete-match 0))
+    ;; and zero width characters.
+    (while (re-search-forward "\\\\[&|^]" to t)
+      (woman-delete-match 0)
+      ;; If on a line by itself, consume newline as well (Bug#3651).
+      (and (eq (char-before (match-beginning 0)) ?\n)
+	   (eq (char-after (match-beginning 0)) ?\n)
+	   (delete-char 1)))
+
     (goto-char from)
     ;; Interrupt text processing -- CONTINUE current text with the
     ;; next text line (after any control lines, unless processing to
@@ -4511,6 +4519,36 @@ logging the message."
 		    (forward-line -1)
 		    (recenter 0))))))))
   nil)					; for woman-file-readable-p etc.
+
+;;; Bookmark Woman support.
+(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
+
+;; FIXME: woman.el and man.el should be better integrated so, for
+;; example, bookmarks of one can be used with the other.
+
+(defun woman-bookmark-make-record ()
+  "Make a bookmark entry for a Woman buffer."
+  `(,(Man-default-bookmark-title)
+    ,@(bookmark-make-record-default 'point-only)
+    (location . ,(concat "woman " woman-last-file-name))
+    ;; Use the same form as man's bookmarks, as much as possible.
+    (man-args . ,woman-last-file-name)
+    (handler . woman-bookmark-jump)))
+
+;;;###autoload
+(defun woman-bookmark-jump (bookmark)
+  "Default bookmark handler for Woman buffers."
+  (let* ((file (bookmark-prop-get bookmark 'man-args))
+         ;; FIXME: we need woman-find-file-noselect, since
+         ;; save-window-excursion can't protect us from the case where
+         ;; woman-find-file creates a new frame.
+         (buf  (save-window-excursion
+                 (woman-find-file file) (current-buffer))))
+    (bookmark-default-handler
+     `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (provide 'woman)
 

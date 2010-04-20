@@ -165,9 +165,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    each); under Cocoa 31 commands are required.  */
 #define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
-#define C_SWITCH_SYSTEM_TEMACS -Dtemacs
-
-#ifdef temacs
+#ifdef emacs
 #define malloc unexec_malloc
 #define realloc unexec_realloc
 #define free unexec_free
@@ -188,9 +186,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
-
-/* We don't have a g library, so override the -lg LIBS_DEBUG switch.  */
-#define LIBS_DEBUG
 
 /* Adding -lm confuses the dynamic linker, so omit it.  */
 #define LIB_MATH

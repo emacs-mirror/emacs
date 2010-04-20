@@ -1418,6 +1418,21 @@ single copies.  You do not need any other drivers or options.
 
 * Runtime problems on character terminals
 
+** The meta key does not work on xterm.
+Typing M-x rings the terminal bell, and inserts a string like ";120~".
+For recent xterm versions (>= 216), Emacs uses xterm's modifyOtherKeys
+feature to generate strings for key combinations that are not
+otherwise usable.  One circumstance in which this can cause problems
+is if you have specified the X resource
+
+  xterm*VT100.Translations
+
+to contain translations that use the meta key.  Then xterm will not
+use meta in modified function-keys, which confuses Emacs.  To fix
+this, you can remove the X resource or put this in your init file:
+
+  (xterm-remove-modify-other-keys)
+
 ** Emacs spontaneously displays "I-search: " at the bottom of the screen.
 
 This means that Control-S/Control-Q (XON/XOFF) "flow control" is being
@@ -2462,6 +2477,26 @@ reportedly build a working Cygwin binary of Emacs, so we recommend
 these GCC versions.  Note that these versions of GCC, 4.0.3, 4.0.4,
 4.1.1, and 4.1.2, are currently the _only_ versions known to succeed
 in building Emacs (as of v22.1).
+
+*** Building the native MS-Windows port fails due to unresolved externals
+
+The linker error messages look like this:
+
+ oo-spd/i386/ctags.o:ctags.c:(.text+0x156e): undefined reference to `_imp__re_set_syntax'
+ collect2: ld returned 1 exit status
+
+This happens because GCC finds an incompatible header regex.h
+somewhere on the include path, before the version of regex.h supplied
+with Emacs.  One such incompatible version of regex.h is part of the
+GnuWin32 Regex package.
+
+The solution is to remove the incompatible regex.h from the include
+path, when compiling Emacs.  Alternatively, re-run the configure.bat
+script with the "-isystem C:/GnuWin32/include" switch (adapt for your
+system's place where you keep the GnuWin32 include files) -- this will
+cause the compiler to search headers in the directories specified by
+the Emacs Makefile _before_ it looks in the GnuWin32 include
+directories.
 
 *** Building the native MS-Windows port with Cygwin GCC can fail.
 

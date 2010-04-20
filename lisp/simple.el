@@ -3468,17 +3468,18 @@ START and END specify the portion of the current buffer to be copied."
   (interactive
    (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
 	 (region-beginning) (region-end)))
-  (let ((oldbuf (current-buffer)))
-    (let* ((append-to (get-buffer-create buffer))
-           (windows (get-buffer-window-list append-to t t))
-           point)
+  (let* ((oldbuf (current-buffer))
+         (append-to (get-buffer-create buffer))
+         (windows (get-buffer-window-list append-to t t))
+         point)
+    (save-excursion
       (with-current-buffer append-to
-	(setq point (point))
-	(barf-if-buffer-read-only)
-	(insert-buffer-substring oldbuf start end)
-	(dolist (window windows)
-	  (when (= (window-point window) point)
-	    (set-window-point window (point))))))))
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
 
 (defun prepend-to-buffer (buffer start end)
   "Prepend to specified buffer the text of the region.
@@ -3939,6 +3940,14 @@ the current accessible part of the buffer.
 If `widen-automatically' is nil, these commands will do something else
 as a fallback, and won't change the buffer bounds.")
 
+(defvar non-essential nil
+  "Whether the currently executing code is performing an essential task.
+This variable should be non-nil only when running code which should not
+disturb the user.  E.g. it can be used to prevent Tramp from prompting the
+user for a password when we are simply scanning a set of files in the
+background or displaying possible completions before the user even asked
+for it.")
+
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
   (interactive)
@@ -4002,9 +4011,10 @@ and more reliable (no dependence on goal column, etc.)."
 	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
     (if (called-interactively-p 'interactive)
-	(condition-case nil
+	(condition-case err
 	    (line-move arg nil nil try-vscroll)
-	  ((beginning-of-buffer end-of-buffer) (ding)))
+	  ((beginning-of-buffer end-of-buffer)
+	   (signal (car err) (cdr err))))
       (line-move arg nil nil try-vscroll)))
   nil)
 
@@ -4032,9 +4042,10 @@ to use and more reliable (no dependence on goal column, etc.)."
   (interactive "^p\np")
   (or arg (setq arg 1))
   (if (called-interactively-p 'interactive)
-      (condition-case nil
+      (condition-case err
 	  (line-move (- arg) nil nil try-vscroll)
-	((beginning-of-buffer end-of-buffer) (ding)))
+	((beginning-of-buffer end-of-buffer)
+	 (signal (car err) (cdr err))))
     (line-move (- arg) nil nil try-vscroll))
   nil)
 
@@ -4734,52 +4745,7 @@ This also turns on `word-wrap' in the buffer."
 (define-globalized-minor-mode global-visual-line-mode
   visual-line-mode turn-on-visual-line-mode
   :lighter " vl")
-
-(defun scroll-other-window-down (lines)
-  "Scroll the \"other window\" down.
-For more details, see the documentation for `scroll-other-window'."
-  (interactive "P")
-  (scroll-other-window
-   ;; Just invert the argument's meaning.
-   ;; We can do that without knowing which window it will be.
-   (if (eq lines '-) nil
-     (if (null lines) '-
-       (- (prefix-numeric-value lines))))))
 
-(defun beginning-of-buffer-other-window (arg)
-  "Move point to the beginning of the buffer in the other window.
-Leave mark at previous position.
-With arg N, put point N/10 of the way from the true beginning."
-  (interactive "P")
-  (let ((orig-window (selected-window))
-	(window (other-window-for-scrolling)))
-    ;; We use unwind-protect rather than save-window-excursion
-    ;; because the latter would preserve the things we want to change.
-    (unwind-protect
-	(progn
-	  (select-window window)
-	  ;; Set point and mark in that window's buffer.
-	  (with-no-warnings
-	   (beginning-of-buffer arg))
-	  ;; Set point accordingly.
-	  (recenter '(t)))
-      (select-window orig-window))))
-
-(defun end-of-buffer-other-window (arg)
-  "Move point to the end of the buffer in the other window.
-Leave mark at previous position.
-With arg N, put point N/10 of the way from the true end."
-  (interactive "P")
-  ;; See beginning-of-buffer-other-window for comments.
-  (let ((orig-window (selected-window))
-	(window (other-window-for-scrolling)))
-    (unwind-protect
-	(progn
-	  (select-window window)
-	  (with-no-warnings
-	   (end-of-buffer arg))
-	  (recenter '(t)))
-      (select-window orig-window))))
 
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
@@ -5489,12 +5455,12 @@ cancel the use of the current buffer (for special-purpose buffers),
 or go back to just one window (by deleting all but the selected window)."
   (interactive)
   (cond ((eq last-command 'mode-exited) nil)
+	((region-active-p)
+	 (deactivate-mark))
 	((> (minibuffer-depth) 0)
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((region-active-p)
-	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))
 	(buffer-quit-function

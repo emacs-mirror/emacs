@@ -72,6 +72,12 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
+Emacs 24.1
+
+* Added "O" option prefix.
+
+* Used "O" prefix to "d r" (`calc-radix') to turn on twos-complement mode.
+
 Emacs 23.2
 
 * Added twos-complement display.

@@ -340,11 +340,17 @@ This variable is buffer-local."
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 ;; Something called "perforce" uses "Enter password:".
 (defcustom comint-password-prompt-regexp
-  "\\(\\(Enter \\|[Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
-Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|\\[sudo] \\|^\\)\
-\[Pp]assword\\( (again)\\)?\\|\
-pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
-\\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
+  (concat
+   "^\\("
+   (regexp-opt
+    '("Enter" "Enter same" "Old" "old" "New" "new" "'s" "login"
+      "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad"))
+   " +\\)?"
+   (regexp-opt
+    '("password" "Password" "passphrase" "Passphrase"
+      "pass phrase" "Pass phrase"))
+   "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
+\\(?: for [^:]+\\)?:\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp

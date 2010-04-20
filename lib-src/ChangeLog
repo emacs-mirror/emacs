@@ -1,3 +1,61 @@
+2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (ALL_CFLAGS, LINK_CFLAGS, CPP_CFLAGS): Move to the
+	non-cpp section.
+
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE): Define using
+	autoconf, not cpp.
+	(ALL_CFLAGS): Use them as make variables.
+
+2010-04-07  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis
+	for macros for nmake compatibility.
+
+2010-04-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Add stubs for Windows, required after CVE-2010-0825 change.
+	* ntlib.c (getgid, getegid, setegid): New stubs.
+	* ntlib.h (getgid, getegid, setegid): Declare them.
+
+2010-04-02  Dan Rosenberg  <dan.j.rosenberg@gmail.com>  (tiny change)
+
+	* movemail.c (main): Check return values of setuid.  Avoid
+	possibility of symlink attack when movemail is setgid mail
+	(CVE-2010-0825).
+
+2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove extern errno declarations.
+	* movemail.c:
+	* etags.c:
+	* emacsclient.c: Remove extern errno declarations.
+
+2010-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(LIBHESIOD, LIBRESOLV): Make previous change a bit more friendly by
+	defining these as Makefile variables.
+	(LIBS_MOVE): Add LIBS_MAIL into this.
+	(movemail${EXEEXT}): Just use LIBS_MOVE, not LIBS_MAIL as well.
+
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (KRB4LIB, DESLIB, KRB5LIB, CRYPTOLIB, COM_ERRLIB)
+	(HESIODLIB, LIBS_MAIL): Set using autoconf rather than cpp.
+	(BASE_CFLAGS): Remove (identical to CPP_CFLAGS).
+
+2010-03-18  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* Makefile.in (uninstall): Handle the case where archlibdir does not
+	exist.  (Bug#5720)
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2010-02-20  Kevin Ryde  <user42@zip.com.au>
 
 	* etags.c (Scheme_functions): Don't loop past a null character
@@ -21,7 +79,7 @@
 
 2009-11-23  Tobias Ringström  <tobias@ringis.se>  (tiny change)
 
-	* etags.c (absolute_filename): Use memove if we have it for
+	* etags.c (absolute_filename): Use memmove if we have it for
 	overlapping copy.
 
 2009-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -3937,7 +3995,7 @@
 	(xmalloc, fatal, error): New functions.
 	(delete_socket, handle_signals): New functions.
 	(progname, socket_name): New variables.
-	 [HAVE_SOCKETS] (main): Call handle_signals; set the new variables.
+	[HAVE_SOCKETS] (main): Call handle_signals; set the new variables.
 
 1996-09-01  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
@@ -4710,9 +4768,9 @@
 1995-01-12  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* etags.c (FILEPOS, GET_CHARNO, GET_FILEPOS, max, LINENO): Deleted.
-	(append_to_tagfile, typedefs, typedefs_and_cplusplus,
-	 constantypedefs, update, vgrind_style, no_warnings,
-	 cxref_style, cplusplus, noindentypedefs): Were int, now logical.
+	(append_to_tagfile, typedefs, typedefs_and_cplusplus)
+	(constantypedefs, update, vgrind_style, no_warnings)
+	(cxref_style, cplusplus, noindentypedefs): Were int, now logical.
 	(permit_duplicates): Was a var, now a #define.
 	(filename_lb): Was global, now local to main.
 	(main): Open the tag file when in cxref mode.
@@ -4731,8 +4789,8 @@
 	(TOKEN_SAVED_P, SAVE_TOKEN, RESTORE_TOKEN): Deleted.
 	(C_entries): nameb and savenameb deleted.  Use dinamic allocation.
 	(pfcnt): Deleted.  Users updated.
-	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme,
-	 TEX_getit, prolog_getit): Use dinamic allocation for storing
+	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme)
+	(TEX_getit, prolog_getit): Use dinamic allocation for storing
 	the tag instead of a fixed size buffer.
 
 1995-01-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -6657,8 +6715,8 @@
 1990-01-19  David Lawrence  (tale@cocoa-puffs)
 
 	* timer.c, getdate.y (new files) and Makefile:
-	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG.
+	Sub-process support for run-at-time in timer.el.
+	Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon@pogo)
 

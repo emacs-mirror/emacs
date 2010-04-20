@@ -1,8 +1,8 @@
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
-;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -2159,7 +2159,7 @@ in that case, this function acts as if `enable-local-variables' were t."
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
 
-(defcustom auto-mode-case-fold nil
+(defcustom auto-mode-case-fold t
   "Non-nil means to try second pass through `auto-mode-alist'.
 This means that if the first case-sensitive search through the alist fails
 to find a matching major mode, a second case-insensitive search is made.
@@ -2252,8 +2252,8 @@ since only a single case-insensitive search through the alist is made."
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
      ("\\.\\(\
-arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
-ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.\\(sx[dmicw]\\|od[fgpst]\\|oxt\\)\\'" . archive-mode) ;OpenOffice.org
      ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
@@ -2269,7 +2269,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . js-mode)		; javascript-mode would be better
-     ("\\.[ds]?v\\'" . verilog-mode)
+     ("\\.[ds]?vh?\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
@@ -2404,7 +2404,8 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("pg" . text-mode)
      ("make" . makefile-gmake-mode)		; Debian uses this
      ("guile" . scheme-mode)
-     ("clisp" . lisp-mode)))
+     ("clisp" . lisp-mode)
+     ("emacs" . emacs-lisp-mode)))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
@@ -2767,14 +2768,15 @@ asking you for confirmation."
 
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only     . booleanp)   ;; C source code
-	(default-directory    . stringp)    ;; C source code
-	(fill-column          . integerp)   ;; C source code
-	(indent-tabs-mode     . booleanp)   ;; C source code
-	(left-margin          . integerp)   ;; C source code
-	(no-update-autoloads  . booleanp)
-	(tab-width            . integerp)   ;; C source code
-	(truncate-lines       . booleanp))) ;; C source code
+      '((buffer-read-only        . booleanp)   ;; C source code
+	(default-directory       . stringp)    ;; C source code
+	(fill-column             . integerp)   ;; C source code
+	(indent-tabs-mode        . booleanp)   ;; C source code
+	(left-margin             . integerp)   ;; C source code
+	(no-update-autoloads     . booleanp)
+	(tab-width               . integerp)   ;; C source code
+	(truncate-lines          . booleanp)   ;; C source code
+	(bidi-display-reordering . booleanp))) ;; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 
@@ -3112,14 +3114,17 @@ is specified, returning t if it is specified."
 	  ;; Otherwise, set the variables.
 	  (enable-local-variables
 	   (hack-local-variables-filter result nil)
-	   (when file-local-variables-alist
-	     ;; Any 'evals must run in the Right sequence.
-	     (setq file-local-variables-alist
-		   (nreverse file-local-variables-alist))
-	     (run-hooks 'before-hack-local-variables-hook)
-	     (dolist (elt file-local-variables-alist)
-	       (hack-one-local-variable (car elt) (cdr elt))))
-	   (run-hooks 'hack-local-variables-hook)))))
+	   (hack-local-variables-apply)))))
+
+(defun hack-local-variables-apply ()
+  (when file-local-variables-alist
+    ;; Any 'evals must run in the Right sequence.
+    (setq file-local-variables-alist
+	  (nreverse file-local-variables-alist))
+    (run-hooks 'before-hack-local-variables-hook)
+    (dolist (elt file-local-variables-alist)
+      (hack-one-local-variable (car elt) (cdr elt))))
+  (run-hooks 'hack-local-variables-hook))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
@@ -3413,15 +3418,14 @@ is found.  Returns the new class name."
 Store the directory-local variables in `dir-local-variables-alist'
 and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
-	     (buffer-file-name)
-	     (not (file-remote-p (buffer-file-name))))
+	     (not (file-remote-p (or (buffer-file-name) default-directory))))
     ;; Find the variables file.
-    (let ((variables-file (dir-locals-find-file (buffer-file-name)))
+    (let ((variables-file (dir-locals-find-file (or (buffer-file-name) default-directory)))
 	  (class nil)
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	(setq dir-name (file-name-directory (buffer-file-name)))
+	(setq dir-name (if (buffer-file-name) (file-name-directory (buffer-file-name)) default-directory))
 	(setq class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
@@ -3437,6 +3441,10 @@ and `file-local-variables-alist', without applying them."
 		      (assq-delete-all (car elt) dir-local-variables-alist)))
 	      (push elt dir-local-variables-alist))
 	    (hack-local-variables-filter variables dir-name)))))))
+
+(defun hack-dir-local-variables-non-file-buffer ()
+  (hack-dir-local-variables)
+  (hack-local-variables-apply))
 
 
 (defcustom change-major-mode-with-file-name t

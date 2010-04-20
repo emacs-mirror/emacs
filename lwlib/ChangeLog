@@ -1,3 +1,98 @@
+2010-04-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c: Include Shell.h, remove duplicate declaration of
+	XlwMenuRedisplay.
+	(display_menu_item): Replace ws->window with ws->pixmap, remove
+	call to XftDrawRect.
+	(display_menu): Remove this and that argument.  Remove
+	just_compute_this_one_p. Fill pixmap at start and copy it to window
+	at end.
+	(expose_cb): New function.
+	(make_windows_if_needed): Replace XCreateWindow with XtCreatePopup.
+	Add eventhandler for expose to expose_cb.  Remove creation of
+	xft_draw.
+	(create_pixmap_for_menu): New function.
+	(remap_menubar): Pop down menus that aren't the same as in old_stack.
+	Set width, heigh, x, y on widget with XtVaSetValues.  Call
+	create_pixmap_for_menu.
+	Replace XUnmapWindow with XtPopdown.
+	Remowe two last parameters to display_menu.
+	(map_event_to_widget_value, XlwMenuRedisplay, Key, Select)
+	(pop_up_menu): Remowe two last parameters to display_menu.
+	(XlwMenuRealize): Call create_pixmap_for_menu, set w and pixmap.
+	Remove call to XftDrawCreate.
+	(XlwMenuDestroy): Free pixmap.  Call XtDestroyWidget instead of
+	XDestroyWindow.
+	(handle_motion_event): Only call handle_single_motion_event once.
+	(set_window_type): New function.
+	(make_windows_if_needed, XlwMenuRealize): Call set_window_type.
+
+	* xlwmenuP.h (window_state): Add pixmap and w.
+
+2010-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xlwmenu.c (facename_changed): Put function in #ifdef HAVE_XFT.
+
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
+	(C_SWITCH_X_SITE): Define using autoconf.
+
+2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xaw.c (widget_xft_data): New for Xft data.
+	(fill_xft_data, openFont, get_text_width_and_height)
+	(draw_text, set_text, find_xft_data, command_press)
+	(command_reset): New functions.
+	(xaw_update_one_widget): Call set_text for dialog and buttons
+	if HAVE_XFT.  Also set internalHeight for buttons.
+	(xaw_destroy_instance): Free all Xft related data.
+	(button_actions, buttonTrans): New structures.
+	(make_dialog): Call XtAppAddActions for button_actions.
+	Find xft font to use and call fill_xft_data for widgets.
+	(xaw_create_dialog): Pass instance parameter to make_dialog.
+
+	* lwlib-int.h (_widget_instance): Add Xft data if HAVE_XFT.
+	Override translations for buttons.  If depth is 16 or more, tell
+	Xaw3d to not be nice to colormap.
+	Remove separator widget, use XtNhorizDistance on first right button
+	instead.
+
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (xlwmenu_default_font): Make static.
+	(xlwMenuResources): Add XtNfaceName and XtNdefaultFace.
+	(string_width): Use XftTextExtentsUtf8 if HAVE_XFT.
+	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Add versions for
+	HAVE_XFT.
+	(size_menu): Set max_rest_width in window_state structure.
+	(display_menu_item): If HAVE_XFT and xft_draw is set, use
+	XftDrawRect and XftDrawStringUtf8 to draw text.
+	(make_windows_if_needed): Set max_rest_width and xft_draw
+	in windows[i].
+	(openXftFont): New.
+	(XlwMenuInitialize): Call openXftFont if HAVE_XFT. If mw->menu.font
+	is not set, load font fixed and save it in xlwmenu_default_font.
+	(XlwMenuInitialize): Set max_rest_width and xft_draw in windows[0].
+	(XlwMenuClassInitialize): Initialize xlwmenu_default_font.
+	(XlwMenuRealize): Set xft_fg, xft_bg, xft_disabled_fg and
+	windows[0].xft_draw if xft_font is set.
+	(XlwMenuDestroy): Destroy all xft_draw and close xft_font.
+	(facename_changed): New.
+	(XlwMenuSetValues): Call facename_changed. If face name did change,
+	close old fonts and destroy xft_draw:s.  Then create new ones.
+
+	* xlwmenu.h (XtNfaceName, XtCFaceName, XtNdefaultFace,
+	XtCDefaultFace): New.
+
+	* xlwmenuP.h (_window_state): Add max_rest_width and xft_draw.
+	(_XlwMenu_part): Add faceName,xft_fg, xft_bg, xft_disabled_fg and
+	xft_font.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
 2009-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xlwmenu.c:

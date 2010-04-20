@@ -272,7 +272,7 @@ not be enclosed in { } or ( )."
   "Characters to skip to find a line that might be a dependency.")
 
 (defvar makefile-rule-action-regex
-  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)"
+  "^\t[ \t]*\\(?:\\([-@]+\\)[ \t]*\\)\\(.*\\(?:\\\\\n.*\\)*\\)"
   "Regex used to highlight rule action lines in font lock mode.")
 
 (defconst makefile-makepp-rule-action-regex
@@ -281,8 +281,7 @@ not be enclosed in { } or ( )."
   "Regex used to highlight makepp rule action lines in font lock mode.")
 
 (defconst makefile-bsdmake-rule-action-regex
-  (progn (string-match "-@" makefile-rule-action-regex)
-	 (replace-match "-+@" t t makefile-rule-action-regex))
+  (replace-regexp-in-string "-@" "-+@" makefile-rule-action-regex)
   "Regex used to highlight BSD rule action lines in font lock mode.")
 
 ;; Note that the first and second subexpression is used by font lock.  Note
@@ -355,8 +354,9 @@ not be enclosed in { } or ( )."
      (3 'font-lock-string-face prepend t))
 
     ;; Rule actions.
+    ;; FIXME: When this spans multiple lines we need font-lock-multiline.
     (makefile-match-action
-     (1 font-lock-type-face)
+     (1 font-lock-type-face nil t)
      (2 'makefile-shell prepend)
      ;; Only makepp has builtin commands.
      (3 font-lock-builtin-face prepend t))
@@ -520,25 +520,25 @@ not be enclosed in { } or ( )."
     ("Macro Assignment" ,makefile-macroassign-regex 1))
   "Imenu generic expression for Makefile mode.  See `imenu-generic-expression'.")
 
-;;; ------------------------------------------------------------
-;;; The following configurable variables are used in the
-;;; up-to-date overview .
-;;; The standard configuration assumes that your `make' program
-;;; can be run in question/query mode using the `-q' option, this
-;;; means that the command
-;;;
-;;;    make -q foo
-;;;
-;;; should return an exit status of zero if the target `foo' is
-;;; up to date and a nonzero exit status otherwise.
-;;; Many makes can do this although the docs/manpages do not mention
-;;; it. Try it with your favourite one.  GNU make, System V make, and
-;;; Dennis Vadura's DMake have no problems.
-;;; Set the variable `makefile-brave-make' to the name of the
-;;; make utility that does this on your system.
-;;; To understand what this is all about see the function definition
-;;; of `makefile-query-by-make-minus-q' .
-;;; ------------------------------------------------------------
+;; ------------------------------------------------------------
+;; The following configurable variables are used in the
+;; up-to-date overview .
+;; The standard configuration assumes that your `make' program
+;; can be run in question/query mode using the `-q' option, this
+;; means that the command
+;;
+;;    make -q foo
+;;
+;; should return an exit status of zero if the target `foo' is
+;; up to date and a nonzero exit status otherwise.
+;; Many makes can do this although the docs/manpages do not mention
+;; it. Try it with your favourite one.  GNU make, System V make, and
+;; Dennis Vadura's DMake have no problems.
+;; Set the variable `makefile-brave-make' to the name of the
+;; make utility that does this on your system.
+;; To understand what this is all about see the function definition
+;; of `makefile-query-by-make-minus-q' .
+;; ------------------------------------------------------------
 
 (defcustom makefile-brave-make "make"
   "*How to invoke make, for `makefile-query-targets'.
@@ -573,11 +573,8 @@ The function must satisfy this calling convention:
 
 ;;; --- end of up-to-date-overview configuration ------------------
 
-(defvar makefile-mode-abbrev-table nil
+(define-abbrev-table 'makefile-mode-abbrev-table ()
   "Abbrev table in use in Makefile buffers.")
-(if makefile-mode-abbrev-table
-    ()
-  (define-abbrev-table 'makefile-mode-abbrev-table ()))
 
 (defvar makefile-mode-map
   (let ((map (make-sparse-keymap))
@@ -705,15 +702,13 @@ The function must satisfy this calling convention:
     (modify-syntax-entry ?\n ">     " st)
     st))
 
-(defvar makefile-imake-mode-syntax-table (copy-syntax-table
-					  makefile-mode-syntax-table))
-(if makefile-imake-mode-syntax-table
-    ()
-  (modify-syntax-entry ?/  ". 14" makefile-imake-mode-syntax-table)
-  (modify-syntax-entry ?*  ". 23" makefile-imake-mode-syntax-table)
-  (modify-syntax-entry ?#  "'" makefile-imake-mode-syntax-table)
-  (modify-syntax-entry ?\n ". b" makefile-imake-mode-syntax-table))
-
+(defvar makefile-imake-mode-syntax-table
+  (let ((st (make-syntax-table makefile-mode-syntax-table)))
+    (modify-syntax-entry ?/  ". 14" st)
+    (modify-syntax-entry ?*  ". 23" st)
+    (modify-syntax-entry ?#  "'"    st)
+    (modify-syntax-entry ?\n ". b"  st)
+    st))
 
 ;;; ------------------------------------------------------------
 ;;; Internal variables.
@@ -773,7 +768,7 @@ The function must satisfy this calling convention:
 ;;; ------------------------------------------------------------
 
 ;;;###autoload
-(defun makefile-mode ()
+(define-derived-mode makefile-mode nil "Makefile"
   "Major mode for editing standard Makefiles.
 
 If you are editing a file for a different make, try one of the
@@ -857,9 +852,6 @@ Makefile mode can be configured by modifying the following variables:
    List of special targets. You will be offered to complete
    on one of those in the minibuffer whenever you enter a `.'.
    at the beginning of a line in Makefile mode."
-
-  (interactive)
-  (kill-all-local-variables)
   (add-hook 'write-file-functions
 	    'makefile-warn-suspicious-lines nil t)
   (add-hook 'write-file-functions
@@ -873,59 +865,44 @@ Makefile mode can be configured by modifying the following variables:
   (make-local-variable 'makefile-need-macro-pickup)
 
   ;; Font lock.
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	;; SYNTAX-BEGIN set to backward-paragraph to avoid slow-down
-	;; near the end of a large buffer, due to parse-partial-sexp's
-	;; trying to parse all the way till the beginning of buffer.
- 	'(makefile-font-lock-keywords
- 	  nil nil
- 	  ((?$ . "."))
- 	  backward-paragraph
-	  (font-lock-syntactic-keywords
-	   . makefile-font-lock-syntactic-keywords)))
+  (set (make-local-variable 'font-lock-defaults)
+       ;; SYNTAX-BEGIN set to backward-paragraph to avoid slow-down
+       ;; near the end of a large buffer, due to parse-partial-sexp's
+       ;; trying to parse all the way till the beginning of buffer.
+       '(makefile-font-lock-keywords
+         nil nil
+         ((?$ . "."))
+         backward-paragraph
+         (font-lock-syntactic-keywords
+          . makefile-font-lock-syntactic-keywords)))
 
   ;; Add-log.
-  (make-local-variable 'add-log-current-defun-function)
-  (setq add-log-current-defun-function 'makefile-add-log-defun)
+  (set (make-local-variable 'add-log-current-defun-function)
+       'makefile-add-log-defun)
 
   ;; Imenu.
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression makefile-imenu-generic-expression)
+  (set (make-local-variable 'imenu-generic-expression)
+       makefile-imenu-generic-expression)
 
   ;; Dabbrev.
-  (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
-  (setq dabbrev-abbrev-skip-leading-regexp "\\$")
+  (set (make-local-variable 'dabbrev-abbrev-skip-leading-regexp) "\\$")
 
   ;; Other abbrevs.
   (setq local-abbrev-table makefile-mode-abbrev-table)
 
   ;; Filling.
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'makefile-fill-paragraph)
+  (set (make-local-variable 'fill-paragraph-function) 'makefile-fill-paragraph)
 
   ;; Comment stuff.
-  (make-local-variable 'comment-start)
-  (setq comment-start "#")
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "#+[ \t]*")
+  (set (make-local-variable 'comment-start) "#")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "#+[ \t]*")
 
   ;; Make sure TAB really inserts \t.
   (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
 
-  ;; become the current major mode
-  (setq major-mode 'makefile-mode)
-  (setq mode-name "Makefile")
-
-  ;; Activate keymap and syntax table.
-  (use-local-map makefile-mode-map)
-  (set-syntax-table makefile-mode-syntax-table)
-
   ;; Real TABs are important in makefiles
-  (setq indent-tabs-mode t)
-  (run-mode-hooks 'makefile-mode-hook))
+  (setq indent-tabs-mode t))
 
 ;; These should do more than just differentiate font-lock.
 ;;;###autoload

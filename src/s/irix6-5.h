@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IRIX6_5			/* used in m/iris4d */
 #include "usg5-4.h"
 
-#undef sigsetmask  /* use sys_sigsetmask */
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
 
@@ -46,9 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SIGNALS_VIA_CHARACTERS
 
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
-#ifdef PTY_TTY_NAME_SPRINTF
-#undef PTY_TTY_NAME_SPRINTF
-#endif
 #define PTY_TTY_NAME_SPRINTF
 /* No need to get the pty name at all.  */
 #ifdef PTY_NAME_SPRINTF
@@ -80,15 +76,13 @@ char *_getpty();
   strcpy (pty_name, name);				    \
 }
 
-/* Since we use POSIX constructs in PTY_OPEN, we must force POSIX
-   throughout. */
-#define POSIX_SIGNALS
-
 /* Ulimit(UL_GMEMLIM) is busted...  */
 #define ULIMIT_BREAK_VALUE 0x14000000
 
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
+
+#define UNEXEC unexelf.o
 
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
@@ -108,19 +102,6 @@ char *_getpty();
 #if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
 #define _LP64			/* lisp.h takes care of the rest */
 #endif /* _MIPS_SZLONG */
-
-/* The only supported 32-bit configuration of GCC under IRIX6.x produces
-   n32 MIPS ABI binaries and also supports -g. */
-#ifdef __GNUC__
-#define C_DEBUG_SWITCH -g
-#else
-/* Optimize, inaccurate debugging, increase limit on size of what's
-   optimized.
-
-   This should also be applicable other than on Irix 6.5, but I don't
-   know for which compiler versions.  -- fx */
-#define C_DEBUG_SWITCH -g3 -O -OPT:Olimit=3500
-#endif
 
 #undef SA_RESTART
 

@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(require 'wid-edit)
-
 (defgroup gmm nil
   "Utility functions for Gnus, Message and MML."
   :prefix "gmm-"
@@ -94,6 +92,10 @@ ARGS are passed to `message'."
 (defun gmm-widget-p (symbol)
   "Non-nil if SYMBOL is a widget."
   (get symbol 'widget-type))
+
+(autoload 'widget-create-child-value "wid-edit")
+(autoload 'widget-convert "wid-edit")
+(autoload 'widget-default-get "wid-edit")
 
 ;; Copy of the `nnmail-lazy' code from `nnmail.el':
 (define-widget 'gmm-lazy 'default

@@ -513,6 +513,12 @@ struct buffer
      0 means visited file modtime unknown; in no case complain
      about any mismatch on next save attempt.  */
   int modtime;
+  /* Size of the file when modtime was set.  This is used to detect the
+     case where the file grew while we were reading it, so the modtime
+     is still the same (since it's rounded up to seconds) but we're actually
+     not up-to-date.  -1 means the size is unknown.  Only meaningful if
+     modtime is actually set.  */
+  EMACS_INT modtime_size;
   /* The value of text->modiff at the last auto-save.  */
   int auto_save_modified;
   /* The value of text->modiff at the last display error.
@@ -662,8 +668,16 @@ struct buffer
   Lisp_Object word_wrap;
   /* Non-nil means display ctl chars with uparrow.  */
   Lisp_Object ctl_arrow;
-  /* Non-nil means display text from right to left.  */
+  /* Non-nil means reorder bidirectional text for display in the
+     visual order.  */
+  Lisp_Object bidi_display_reordering;
+  /* Non-nil means set beginning of lines at the right edge of
+     windows.  */
   Lisp_Object direction_reversed;
+  /* If non-nil, specifies which direction of text to force in all the
+     paragraphs of the buffer.  Nil means determine paragraph
+     direction dynamically for each paragraph.  */
+  Lisp_Object bidi_paragraph_direction;
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
   Lisp_Object selective_display;

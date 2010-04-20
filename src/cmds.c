@@ -317,7 +317,7 @@ N was explicitly specified.  */)
   return value;
 }
 
-int nonundocount;
+static int nonundocount;
 
 /* Note that there's code in command_loop_1 which typically avoids
    calling this.  */

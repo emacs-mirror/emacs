@@ -175,7 +175,7 @@ the size of a Calc bignum digit.")
        (progn
 	 (calc-change-mode 
           (list 'calc-number-radix 'calc-twos-complement-mode)
-          (list n (and (or (= n 2) (= n 8) (= n 16)) arg)) t)
+          (list n (or arg (calc-is-option))) t)
 	 ;; also change global value so minibuffer sees it
 	 (setq-default calc-number-radix calc-number-radix))
      (setq n calc-number-radix))

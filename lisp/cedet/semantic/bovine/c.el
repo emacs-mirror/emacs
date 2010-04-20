@@ -1761,8 +1761,9 @@ DO NOT return the list of tags encompassing point."
 
       (when (arrayp semantic-lex-spp-project-macro-symbol-obarray)
 	(princ "\n  Project symbol map:\n")
-	(princ "      Your project symbol map is derived from the EDE object:\n      ")
-	(princ (object-print ede-object))
+	(when (and (boundp 'ede-object) ede-object)
+	  (princ "      Your project symbol map is derived from the EDE object:\n      ")
+	  (princ (object-print ede-object)))
 	(princ "\n\n")
 	(let ((macros nil))
 	  (mapatoms

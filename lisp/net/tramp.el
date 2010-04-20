@@ -36,7 +36,7 @@
 ;; Notes:
 ;; -----
 ;;
-;; This package only works for Emacs 21.1 and higher, and for XEmacs 21.4
+;; This package only works for Emacs 22.1 and higher, and for XEmacs 21.4
 ;; and higher.  For XEmacs 21, you need the package `fsf-compat' for
 ;; the `with-timeout' macro.
 ;;
@@ -79,7 +79,7 @@
 	    (when (featurep 'tramp-compat)
 	      (unload-feature 'tramp-compat 'force))))
 
-(require 'format-spec)                  ; from Gnus 5.8, also in tar ball
+(require 'format-spec)
 ;; As long as password.el is not part of (X)Emacs, it shouldn't
 ;; be mandatory
 (if (featurep 'xemacs)
@@ -176,6 +176,7 @@
 (defgroup tramp nil
   "Edit remote files with a combination of rsh and rcp or similar programs."
   :group 'files
+  :group 'comm
   :version "22.1")
 
 ;; Maybe we need once a real Tramp mode, with key bindings etc.
@@ -870,9 +871,9 @@ interpreted as a regular expression which always matches."
 
 (defvar tramp-completion-function-alist nil
   "*Alist of methods for remote files.
-This is a list of entries of the form (NAME PAIR1 PAIR2 ...).
+This is a list of entries of the form \(NAME PAIR1 PAIR2 ...\).
 Each NAME stands for a remote access method.  Each PAIR is of the form
-\(FUNCTION FILE).  FUNCTION is responsible to extract user names and host
+\(FUNCTION FILE\).  FUNCTION is responsible to extract user names and host
 names from FILE for completion.  The following predefined FUNCTIONs exists:
 
  * `tramp-parse-rhosts'      for \"~/.rhosts\" like files,
@@ -1024,7 +1025,7 @@ as given in your `~/.profile'."
 
 (defcustom tramp-remote-process-environment
   `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
-    ,(concat "TERM=" tramp-terminal-type)
+    ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
     ,(format "INSIDE_EMACS=%s,tramp:%s" emacs-version tramp-version)
     "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH="
@@ -1428,14 +1429,14 @@ See `tramp-file-name-structure' for more explanations.")
 	(t (error "Wrong `tramp-syntax' defined")))
   "*Regular expression matching file names handled by Tramp.
 This regexp should match Tramp file names but no other file names.
-\(When tramp.el is loaded, this regular expression is prepended to
+When tramp.el is loaded, this regular expression is prepended to
 `file-name-handler-alist', and that is searched sequentially.  Thus,
 if the Tramp entry appears rather early in the `file-name-handler-alist'
 and is a bit too general, then some files might be considered Tramp
 files which are not really Tramp files.
 
 Please note that the entry in `file-name-handler-alist' is made when
-this file (tramp.el) is loaded.  This means that this variable must be set
+this file \(tramp.el\) is loaded.  This means that this variable must be set
 before loading tramp.el.  Alternatively, `file-name-handler-alist' can be
 updated after changing this variable.
 
@@ -1565,18 +1566,18 @@ checked via the following code:
 
 In the Emacs normally running Tramp, evaluate the above code
 \(replace \"xxx\" and \"yyy\" by the remote user and host name,
-respectively).  You can do this, for example, by pasting it into
+respectively\).  You can do this, for example, by pasting it into
 the `*scratch*' buffer and then hitting C-j with the cursor after the
 last closing parenthesis.  Note that it works only if you have configured
-\"ssh\" to run without password query, see ssh-agent(1).
+\"ssh\" to run without password query, see ssh-agent\(1\).
 
 You will see the number of bytes sent successfully to the remote host.
 If that number exceeds 1000, you can stop the execution by hitting
 C-g, because your Emacs is likely clean.
 
 When it is necessary to set `tramp-chunksize', you might consider to
-use an out-of-the-band method (like \"scp\") instead of an internal one
-\(like \"ssh\"), because setting `tramp-chunksize' to non-nil decreases
+use an out-of-the-band method \(like \"scp\"\) instead of an internal one
+\(like \"ssh\"\), because setting `tramp-chunksize' to non-nil decreases
 performance.
 
 If your Emacs is buggy, the code stops and gives you an indication
@@ -2169,7 +2170,9 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
   (save-window-excursion
     (unwind-protect
 	(apply 'tramp-error vec-or-proc signal fmt-string args)
-      (when (and vec-or-proc (not (zerop tramp-verbose)))
+      (when (and vec-or-proc
+		 (not (zerop tramp-verbose))
+		 (not (tramp-completion-mode-p)))
 	(let ((enable-recursive-minibuffers t))
 	  (pop-to-buffer
 	   (or (and (bufferp buffer) buffer)
@@ -3165,7 +3168,7 @@ value of `default-file-modes', without execute permissions."
   (when (file-directory-p directory)
     (setq directory (expand-file-name directory))
     (let* ((temp
-	    (tramp-compat-copy-tree
+	    (copy-tree
 	     (with-parsed-tramp-file-name directory nil
 	       (with-file-property
 		   v localname
@@ -3296,7 +3299,12 @@ value of `default-file-modes', without execute permissions."
                           (tramp-shell-quote-argument localname)
                           (tramp-shell-quote-argument filename)
                           (if (symbol-value
-			       'read-file-name-completion-ignore-case)
+			       ;; `read-file-name-completion-ignore-case'
+			       ;; is introduced with Emacs 22.1.
+			       (if (boundp
+				    'read-file-name-completion-ignore-case)
+				   'read-file-name-completion-ignore-case
+				 'completion-ignore-case))
 			      1 0)))
 
               (format (concat
@@ -3381,7 +3389,6 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
             "file-name-all-completions"
             result))))))))
 
-;; The following isn't needed for Emacs 20 but for 19.34?
 (defun tramp-handle-file-name-completion
   (filename directory &optional predicate)
   "Like `file-name-completion' for Tramp files."
@@ -3519,7 +3526,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
   (let ((t1 (tramp-tramp-file-p filename))
-	(t2 (tramp-tramp-file-p newname)))
+	(t2 (tramp-tramp-file-p newname))
+	pr tm)
 
     (when (and (not ok-if-already-exists) (file-exists-p newname))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -3529,7 +3537,16 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (tramp-message v 0 "Transferring %s to %s..." filename newname))
 
-    (prog1
+    ;; We start a pulsing progress reporter.  Introduced in Emacs 24.1.
+    (when (> (nth 7 (file-attributes filename)) tramp-copy-size-limit)
+      (condition-case nil
+	  (setq pr (funcall
+		    'make-progress-reporter
+		    (format "Transferring %s to %s..." filename newname))
+		tm (run-at-time 0 0.1 'progress-reporter-update pr))
+	(error nil)))
+
+    (unwind-protect
 	(cond
 	 ;; Both are Tramp files.
 	 ((and t1 t2)
@@ -3599,6 +3616,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 	  (tramp-flush-file-property v (file-name-directory localname))
 	  (tramp-flush-file-property v localname)))
 
+      ;; Stop progress reporter.
+      (if tm (cancel-timer tm))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(tramp-message v 0 "Transferring %s to %s...done" filename newname)))))
 
@@ -3649,9 +3668,13 @@ the uid and gid from FILENAME."
 			    "Unknown operation `%s', must be `copy' or `rename'"
 			    op))))
 	     (localname1
-	      (if t1 (tramp-handle-file-remote-p filename 'localname) filename))
+	      (if t1
+		  (tramp-file-name-handler 'file-remote-p filename 'localname)
+		filename))
 	     (localname2
-	      (if t2 (tramp-handle-file-remote-p newname 'localname) newname))
+	      (if t2
+		  (tramp-file-name-handler 'file-remote-p newname 'localname)
+		newname))
 	     (prefix (file-remote-p (if t1 filename newname)))
              cmd-result)
 
@@ -3813,7 +3836,7 @@ The method used must be an out-of-band method."
 	      ;; Save exit.
 	      (condition-case nil
 		  (if dir-flag
-		      (delete-directory
+		      (tramp-compat-delete-directory
 		       (expand-file-name ".." tmpfile) 'recursive)
 		    (delete-file tmpfile))
 		(error))))
@@ -3840,10 +3863,11 @@ The method used must be an out-of-band method."
 	      port (or (and port (number-to-string port)) ""))
 
 	;; Compose copy command.
-	(setq spec `((?h . ,host) (?u . ,user) (?p . ,port)
-		     (?t . ,(tramp-get-connection-property
-			     (tramp-get-connection-process v) "temp-file" ""))
-		     (?k . ,(if keep-date " " "")))
+	(setq spec (format-spec-make
+		    ?h host ?u user ?p port
+		    ?t (tramp-get-connection-property
+			(tramp-get-connection-process v) "temp-file" "")
+		    ?k (if keep-date " " ""))
 	      copy-program (tramp-get-method-parameter
 			    method 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
@@ -3933,7 +3957,7 @@ The method used must be an out-of-band method."
       (unless (eq op 'copy)
 	(if (file-regular-p filename)
 	    (delete-file filename)
-	  (delete-directory filename 'recursive))))))
+	  (tramp-compat-delete-directory filename 'recursive))))))
 
 (defun tramp-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -4862,9 +4886,9 @@ coding system might not be determined.  This function repairs it."
   "Like `find-backup-file-name' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     ;; We set both variables. It doesn't matter whether it is
-    ;; Emacs or XEmacs
+    ;; Emacs or XEmacs.
     (let ((backup-directory-alist
-	   ;; Emacs case
+	   ;; Emacs case.
 	   (when (boundp 'backup-directory-alist)
 	     (if (symbol-value 'tramp-backup-directory-alist)
 		 (mapcar
@@ -4880,7 +4904,7 @@ coding system might not be determined.  This function repairs it."
 	       (symbol-value 'backup-directory-alist))))
 
 	  (bkup-backup-directory-info
-	   ;; XEmacs case
+	   ;; XEmacs case.
 	   (when (boundp 'bkup-backup-directory-info)
 	     (if (symbol-value 'tramp-bkup-backup-directory-info)
 		 (mapcar
@@ -5294,7 +5318,7 @@ pass to the OPERATION."
   "Return file name related to OPERATION file primitive.
 ARGS are the arguments OPERATION has been called with."
   (cond
-   ; FILE resp DIRECTORY
+   ;; FILE resp DIRECTORY.
    ((member operation
 	    (list 'access-file 'byte-compiler-base-file-name 'delete-directory
 		  'delete-file 'diff-latest-backup-file 'directory-file-name
@@ -5312,9 +5336,9 @@ ARGS are the arguments OPERATION has been called with."
 		  'load 'make-directory 'make-directory-internal
 		  'set-file-modes 'substitute-in-file-name
 		  'unhandled-file-name-directory 'vc-registered
-		  ; Emacs 22 only
+		  ;; Emacs 22+ only.
 		  'set-file-times
-		  ; XEmacs only
+		  ;; XEmacs only.
 		  'abbreviate-file-name 'create-file-buffer
 		  'dired-file-modtime 'dired-make-compressed-filename
 		  'dired-recursive-delete-directory 'dired-set-file-modtime
@@ -5324,14 +5348,14 @@ ARGS are the arguments OPERATION has been called with."
     (if (file-name-absolute-p (nth 0 args))
 	(nth 0 args)
       (expand-file-name (nth 0 args))))
-   ; FILE DIRECTORY resp FILE1 FILE2
+   ;; FILE DIRECTORY resp FILE1 FILE2.
    ((member operation
 	    (list 'add-name-to-file 'copy-file 'expand-file-name
 		  'file-name-all-completions 'file-name-completion
 		  'file-newer-than-file-p 'make-symbolic-link 'rename-file
-		  ; Emacs 23 only
+		  ;; Emacs 23+ only.
 		  'copy-directory
-		  ; XEmacs only
+		  ;; XEmacs only.
 		  'dired-make-relative-symlink
 		  'vm-imap-move-mail 'vm-pop-move-mail 'vm-spool-move-mail))
     (save-match-data
@@ -5339,39 +5363,39 @@ ARGS are the arguments OPERATION has been called with."
        ((string-match tramp-file-name-regexp (nth 0 args)) (nth 0 args))
        ((string-match tramp-file-name-regexp (nth 1 args)) (nth 1 args))
        (t (buffer-file-name (current-buffer))))))
-   ; START END FILE
+   ;; START END FILE.
    ((eq operation 'write-region)
     (nth 2 args))
-   ; BUF
+   ;; BUFFER.
    ((member operation
 	    (list 'set-visited-file-modtime 'verify-visited-file-modtime
-                  ; since Emacs 22 only
+                  ;; Emacs 22+ only.
 		  'make-auto-save-file-name
-	          ; XEmacs only
+	          ;; XEmacs only.
 		  'backup-buffer))
     (buffer-file-name
      (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
-   ; COMMAND
+   ;; COMMAND.
    ((member operation
-	    (list ; not in Emacs 23
+	    (list ;; not in Emacs 23+.
 	          'dired-call-process
-                  ; Emacs only
+                  ;; Emacs only.
 		  'shell-command
-                  ; since Emacs 22 only
+                  ;; Emacs 22+ only.
                   'process-file
-                  ; since Emacs 23 only
+                  ;; Emacs 23+ only.
                   'start-file-process
-	          ; XEmacs only
+	          ;; XEmacs only.
 		  'dired-print-file 'dired-shell-call-process
-		  ; nowhere yet
+		  ;; nowhere yet.
 		  'executable-find 'start-process 'call-process))
     default-directory)
-   ; unknown file primitive
+   ;; Unknown file primitive.
    (t (error "unknown file I/O primitive: %s" operation))))
 
 (defun tramp-find-foreign-file-name-handler (filename)
   "Return foreign file name handler if exists."
-  (when (and (stringp filename) (tramp-tramp-file-p filename))
+  (when (tramp-tramp-file-p filename)
     (let ((v (tramp-dissect-file-name filename t))
 	  (handler tramp-foreign-file-name-handler-alist)
 	  elt res)
@@ -5403,19 +5427,28 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	       (completion (tramp-completion-mode-p))
 	       (foreign (tramp-find-foreign-file-name-handler filename)))
 	  (with-parsed-tramp-file-name filename nil
-	    (cond
-	     ;; When we are in completion mode, some operations
-	     ;; shouldn't be handled by backend.
-	     ((and completion (zerop (length localname))
-		   (memq operation '(file-exists-p file-directory-p)))
-	      t)
-	     ((and completion (zerop (length localname))
-		   (memq operation '(file-name-as-directory)))
-	      filename)
-	     ;; Call the backend function.
-	     (foreign (apply foreign operation args))
-	     ;; Nothing to do for us.
-	     (t (tramp-run-real-handler operation args))))))
+	    ;; Call the backend function.
+	    (if foreign
+		(condition-case err
+		    (apply foreign operation args)
+		  (error
+		   (cond
+		    ;; When we are in completion mode, some failed
+		    ;; operations shall return at least a default
+		    ;; value in order to give the user a chance to
+		    ;; correct the file name in the minibuffer.
+		    ((and completion (zerop (length localname))
+			  (memq operation '(file-exists-p file-directory-p)))
+		     t)
+		    ((and completion (zerop (length localname))
+			  (memq operation
+				'(expand-file-name file-name-as-directory)))
+		     filename)
+		    ;; Propagate the error.
+		    (t (signal (car err) (cdr err))))))
+	      ;; Nothing to do for us.
+	      (tramp-run-real-handler operation args)))))
+
     ;; When `tramp-mode' is not enabled, we don't do anything.
     (tramp-run-real-handler operation args)))
 
@@ -5505,7 +5538,9 @@ Falls back to normal file name handler if no Tramp file name handler exists."
          ;; disable this part of the completion, unless the user implicitly
          ;; indicated his interest in using a fancier completion system.
          (or (eq tramp-syntax 'sep)
-             (featurep 'tramp) ; If it's loaded, we may as well use it.
+             (featurep 'tramp) ;; If it's loaded, we may as well use
+	     ;; it.  `partial-completion-mode' does not exist in
+	     ;; XEmacs.  It is obsoleted with Emacs 24.1.
              (and (boundp 'partial-completion-mode) partial-completion-mode)
              ;; FIXME: These may have been loaded even if the user never
              ;; intended to use them.
@@ -5581,7 +5616,8 @@ should never be set globally, the intention is to let-bind it.")
 (defun tramp-completion-mode-p ()
   "Checks whether method / user name / host name completion is active."
   (or
-   ;; Signal from outside.
+   ;; Signal from outside.  `non-essential' has been introduced in Emacs 24.
+   (and (boundp 'non-essential) (symbol-value 'non-essential))
    tramp-completion-mode
    ;; Emacs.
    (equal last-input-event 'tab)
@@ -6256,22 +6292,24 @@ from the default one."
 	(format "*debug tramp/%s %s@%s*" method user host)
       (format "*debug tramp/%s %s*" method host))))
 
+(defconst tramp-debug-outline-regexp
+  "[0-9]+:[0-9]+:[0-9]+\\.[0-9]+ [a-z0-9-]+ (\\([0-9]+\\)) #")
+
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer for VEC."
   (with-current-buffer
       (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
       (setq buffer-undo-list t)
-      ;; Activate outline-mode.  This runs `text-mode-hook' and
+      ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
-      ;; die.  Yes: I've seen `flyspell-mode', which starts "ispell"
-      ;; ...
-      (let ((default-directory (tramp-compat-temporary-file-directory)))
+      ;; die.  Yes: I've seen `flyspell-mode', which starts "ispell".
+      ;; Furthermore, `outline-regexp' must have the correct value
+      ;; already, because it is used by `font-lock-compile-keywords'.
+      (let ((default-directory (tramp-compat-temporary-file-directory))
+	    (outline-regexp tramp-debug-outline-regexp))
 	(outline-mode))
-      (set (make-local-variable 'outline-regexp)
-	   "[0-9]+:[0-9]+:[0-9]+\\.[0-9]+ [a-z0-9-]+ (\\([0-9]+\\)) #")
-;      (set (make-local-variable 'outline-regexp)
-;	   "[a-z.-]+:[0-9]+: [a-z0-9-]+ (\\([0-9]+\\)) #")
+      (set (make-local-variable 'outline-regexp) tramp-debug-outline-regexp)
       (set (make-local-variable 'outline-level) 'tramp-outline-level))
     (current-buffer)))
 
@@ -6294,7 +6332,7 @@ only in DIRLIST.
 Returns the absolute file name of PROGNAME, if found, and nil otherwise.
 
 This function expects to be in the right *tramp* buffer."
-  (with-current-buffer (tramp-get-buffer vec)
+  (with-current-buffer (tramp-get-connection-buffer vec)
     (let (result)
       ;; Check whether the executable is in $PATH. "which(1)" does not
       ;; report always a correct error code; therefore we check the
@@ -6302,11 +6340,11 @@ This function expects to be in the right *tramp* buffer."
       (unless ignore-path
 	(tramp-send-command vec (format "which \\%s | wc -w" progname))
 	(goto-char (point-min))
-	(if (looking-at "^1$")
+	(if (looking-at "^\\s-*1$")
 	    (setq result (concat "\\" progname))))
       (unless result
 	(when ignore-tilde
-	  ;; Remove all ~/foo directories from dirlist.  In Emacs 20,
+	  ;; Remove all ~/foo directories from dirlist.  In XEmacs,
 	  ;; `remove' is in CL, and we want to avoid CL dependencies.
 	  (let (newdl d)
 	    (while dirlist
@@ -6403,12 +6441,15 @@ file exists and nonzero exit status otherwise."
       (with-current-buffer (tramp-get-buffer vec)
 	(tramp-send-command vec "echo ~root" t)
 	(cond
-	 ((string-match "^~root$" (buffer-string))
+	 ((or (string-match "^~root$" (buffer-string))
+	      ;; The default shell (ksh93) of OpenSolaris is buggy.
+	      (string-equal (tramp-get-connection-property vec "uname" "")
+			    "SunOS 5.11"))
 	  (setq shell
 		(or (tramp-find-executable
-		     vec "bash" (tramp-get-remote-path vec) t)
+		     vec "bash" (tramp-get-remote-path vec) t t)
 		    (tramp-find-executable
-		     vec "ksh" (tramp-get-remote-path vec) t)))
+		     vec "ksh" (tramp-get-remote-path vec) t t)))
 	  (unless shell
 	    (tramp-error
 	     vec 'file-error
@@ -6620,7 +6661,7 @@ Erase echoed commands if exists."
 	  ;; Discard echo from remote output.
 	  (tramp-set-connection-property proc "check-remote-echo" nil)
 	  (tramp-message proc 5 "echo-mark found")
-	  (forward-line)
+	  (forward-line 1)
 	  (delete-region begin (point))
 	  (goto-char (point-min)))))
 
@@ -6837,9 +6878,11 @@ process to set up.  VEC specifies the connection."
   ;; "test foo; echo $?" to check if various conditions hold, and
   ;; there are buggy /bin/sh implementations which don't execute the
   ;; "echo $?"  part if the "test" part has an error.  In particular,
-  ;; the Solaris /bin/sh is a problem.  I'm betting that all systems
-  ;; with buggy /bin/sh implementations will have a working bash or
-  ;; ksh.  Whee...
+  ;; the OpenSolaris /bin/sh is a problem.  There are also other
+  ;; problems with /bin/sh of OpenSolaris, like redirection of stderr
+  ;; in in function declarations, or changing HISTFILE in place.
+  ;; Therefore, OpenSolaris' /bin/sh is replaced by bash, when
+  ;; detected.
   (tramp-find-shell vec)
 
   ;; Disable unexpected output.
@@ -6847,12 +6890,6 @@ process to set up.  VEC specifies the connection."
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
-
-  ;; On OpenSolaris, there is a bug when HISTFILE is changed in place
-  ;; <http://bugs.opensolaris.org/view_bug.do?bug_id=6834184>.  We
-  ;; apply the workaround.
-  (if (string-equal (tramp-get-connection-property vec "uname" "") "SunOS 5.11")
-      (tramp-send-command vec "unset HISTFILE" t))
 
   (let ((env (copy-sequence tramp-remote-process-environment))
 	unset item)
@@ -6895,7 +6932,7 @@ process to set up.  VEC specifies the connection."
   "List of local coding commands for inline transfer.
 Each item is a list that looks like this:
 
-\(FORMAT ENCODING DECODING)
+\(FORMAT ENCODING DECODING\)
 
 FORMAT is  symbol describing the encoding/decoding format.  It can be
 `b64' for base64 encoding, `uu' for uu encoding, or `pack' for simple packing.
@@ -6928,7 +6965,7 @@ with the encoded or decoded results, respectively.")
   "List of remote coding commands for inline transfer.
 Each item is a list that looks like this:
 
-\(FORMAT ENCODING DECODING)
+\(FORMAT ENCODING DECODING\)
 
 FORMAT is  symbol describing the encoding/decoding format.  It can be
 `b64' for base64 encoding, `uu' for uu encoding, or `pack' for simple packing.
@@ -7089,8 +7126,9 @@ Gateway hops are already opened."
 	  (setq proxy
 		(format-spec
 		 proxy
-		 `((?u . ,(or (tramp-file-name-user (car target-alist)) ""))
-		   (?h . ,(or (tramp-file-name-host (car target-alist)) "")))))
+		 (format-spec-make
+		  ?u (or (tramp-file-name-user (car target-alist)) "")
+		  ?h (or (tramp-file-name-host (car target-alist)) ""))))
 	  (with-parsed-tramp-file-name proxy l
 	    ;; Add the hop.
 	    (add-to-list 'target-alist l)
@@ -7308,8 +7346,7 @@ connection if a previous connection has died for some reason."
 	       l-host (or l-host "")
 	       l-user (or l-user "")
 	       l-port (or l-port "")
-	       spec `((?h . ,l-host) (?u . ,l-user) (?p . ,l-port)
-		      (?t . ,tmpfile))
+	       spec (format-spec-make ?h l-host ?u l-user ?p l-port ?t tmpfile)
 	       command
 	       (concat
 		;; We do not want to see the trailing local prompt in
@@ -7981,7 +8018,7 @@ necessary only.  This function will be used in file name completion."
 	  (tramp-get-connection-process vec)
 	vec)
       "remote-path"
-    (let* ((remote-path (tramp-compat-copy-tree tramp-remote-path))
+    (let* ((remote-path (copy-tree tramp-remote-path))
 	   (elt1 (memq 'tramp-default-remote-path remote-path))
 	   (elt2 (memq 'tramp-own-remote-path remote-path))
 	   (default-remote-path
@@ -8280,7 +8317,7 @@ If the `tramp-methods' entry does not exist, return NIL."
   (defadvice make-auto-save-file-name
     (around tramp-advice-make-auto-save-file-name () activate)
     "Invoke `tramp-handle-make-auto-save-file-name' for Tramp files."
-    (if (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name)))
+    (if (tramp-tramp-file-p (buffer-file-name))
 	;; We cannot call `tramp-handle-make-auto-save-file-name'
 	;; directly, because this would bypass the locking mechanism.
 	(setq ad-return-value
@@ -8294,14 +8331,13 @@ If the `tramp-methods' entry does not exist, return NIL."
       'around 'tramp-advice-make-auto-save-file-name)
      (ad-activate 'make-auto-save-file-name))))
 
-;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
-;; permission 0666 minus umask. This is a security threat.
+;; In XEmacs < 21.5, autosaved remote files have permission 0666 minus
+;; umask. This is a security threat.
 
 (defun tramp-set-auto-save-file-modes ()
   "Set permissions of autosaved remote files to the original permissions."
   (let ((bfn (buffer-file-name)))
-    (when (and (stringp bfn)
-	       (tramp-tramp-file-p bfn)
+    (when (and (tramp-tramp-file-p bfn)
 	       (buffer-modified-p)
 	       (stringp buffer-auto-save-file-name)
 	       (not (equal bfn buffer-auto-save-file-name)))
@@ -8313,10 +8349,9 @@ If the `tramp-methods' entry does not exist, return NIL."
       (set-file-modes buffer-auto-save-file-name
 		      (or (file-modes bfn) (tramp-octal-to-decimal "0600"))))))
 
-(unless (or (> emacs-major-version 21)
-	    (and (featurep 'xemacs)
-		 (= emacs-major-version 21)
-		 (> emacs-minor-version 4)))
+(unless (and (featurep 'xemacs)
+	     (= emacs-major-version 21)
+	     (> emacs-minor-version 4))
   (add-hook 'auto-save-hook 'tramp-set-auto-save-file-modes)
   (add-hook 'tramp-unload-hook
 	    (lambda ()
@@ -8560,7 +8595,6 @@ Only works for Bourne-like shells."
 ;; * Remove unneeded parameters from methods.
 ;; * Make it work for different encodings, and for different file name
 ;;   encodings, too.  (Daniel Pittman)
-;; * Progress reports while copying files.  (Michael Kifer)
 ;; * Don't search for perl5 and perl.  Instead, only search for perl and
 ;;   then look if it's the right version (with `perl -v').
 ;; * When editing a remote CVS controlled file as a different user, VC
@@ -8625,12 +8659,13 @@ Only works for Bourne-like shells."
 ;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
 ;; * Do not handle files with drive letter as remote.  (Bug#5447)
-;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448)
+;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448, Bug#5705)
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
 ;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
 ;;   on remote hosts.
 ;; * Use secrets.el for password handling.
+;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

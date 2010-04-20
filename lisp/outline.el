@@ -41,7 +41,7 @@
 (defgroup outlines nil
   "Support for hierarchical outlining."
   :prefix "outline-"
-  :group 'editing)
+  :group 'wp)
 
 (defcustom outline-regexp "[*\^L]+"
   "Regular expression to match the beginning of a heading.
@@ -915,7 +915,11 @@ Show the heading too, if it is currently invisible."
        (lambda ()
 	 (if (<= (funcall outline-level) levels)
 	     (outline-show-heading)))
-       beg end)))
+       beg end)
+      ;; Finally unhide any trailing newline.
+      (goto-char (point-max))
+      (if (and (bolp) (not (bobp)) (outline-invisible-p (1- (point))))
+          (outline-flag-region (1- (point)) (point) nil))))
   (run-hooks 'outline-view-change-hook))
 
 (defun hide-other ()

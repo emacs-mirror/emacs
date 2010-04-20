@@ -1294,13 +1294,24 @@ point to the end of the buffer, or on the region if it is active.
 @findex keep-lines
 
 @table @kbd
-@item M-x occur @key{RET} @var{regexp} @key{RET}
-Display a list showing each line in the buffer that contains a match
-for @var{regexp}.  To limit the search to part of the buffer, narrow
-to that part (@pxref{Narrowing}).  A numeric argument @var{n}
-specifies that @var{n} lines of context are to be displayed before and
-after each matching line.  Currently, @code{occur} can not correctly
-handle multiline matches.
+@item M-x multi-isearch-buffers
+Prompt for one or more buffer names, ending with @key{RET}; then,
+begin a multi-buffer incremental search in those buffers.  (If the
+search fails in one buffer, the next @kbd{C-s} tries searching the
+next specified buffer, and so forth.)  With a prefix argument, prompt
+for a regexp and begin a multi-buffer incremental search in buffers
+matching that regexp.
+
+@item M-x multi-isearch-buffers-regexp
+This command is just like @code{multi-isearch-buffers}, except it
+performs an incremental regexp search.
+
+@item M-x occur
+Prompt for a regexp, and display a list showing each line in the
+buffer that contains a match for it.  To limit the search to part of
+the buffer, narrow to that part (@pxref{Narrowing}).  A numeric
+argument @var{n} specifies that @var{n} lines of context are to be
+displayed before and after each matching line.
 
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
@@ -1325,41 +1336,42 @@ search is active; this uses the current search string.
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.
 
-@item M-x multi-occur @key{RET} @var{buffers} @key{RET} @var{regexp} @key{RET}
-This function is just like @code{occur}, except it is able to search
-through multiple buffers.  It asks you to specify the buffer names one by one.
+@item M-x multi-occur
+This command is just like @code{occur}, except it is able to search
+through multiple buffers.  It asks you to specify the buffer names one
+by one.
 
-@item M-x multi-occur-in-matching-buffers @key{RET} @var{bufregexp} @key{RET} @var{regexp} @key{RET}
-This function is similar to @code{multi-occur}, except the buffers to
-search are specified by a regular expression that matches visited
-file names.  With a prefix argument, it uses the regular expression to match
-buffer names instead.
+@item M-x multi-occur-in-matching-buffers
+This command is similar to @code{multi-occur}, except the buffers to
+search are specified by a regular expression that matches visited file
+names.  With a prefix argument, it uses the regular expression to
+match buffer names instead.
 
-@item M-x how-many @key{RET} @var{regexp} @key{RET}
-Print the number of matches for @var{regexp} that exist in the buffer
-after point.  If the region is active, this operates on the region
-instead.
+@item M-x how-many
+Prompt for a regexp, and print the number of matches for it in the
+buffer after point.  If the region is active, this operates on the
+region instead.
 
-@item M-x flush-lines @key{RET} @var{regexp} @key{RET}
-This command deletes each line that contains a match for @var{regexp},
-operating on the text after point; it deletes the current line if it
-contains a match starting after point.  If the region is active, it
-operates on the region instead; if a line partially contained in the
-region contains a match entirely contained in the region, it is
-deleted.
+@item M-x flush-lines
+Prompt for a regexp, and delete each line that contains a match for
+it, operating on the text after point.  This command deletes the
+current line if it contains a match starting after point.  If the
+region is active, it operates on the region instead; if a line
+partially contained in the region contains a match entirely contained
+in the region, it is deleted.
 
 If a match is split across lines, @code{flush-lines} deletes all those
 lines.  It deletes the lines before starting to look for the next
 match; hence, it ignores a match starting on the same line at which
 another match ended.
 
-@item M-x keep-lines @key{RET} @var{regexp} @key{RET}
-This command deletes each line that @emph{does not} contain a match
-for @var{regexp}, operating on the text after point; if point is not
-at the beginning of a line, it always keeps the current line.  If the
-region is active, the command operates on the region instead; it never
-deletes lines that are only partially contained in the region (a
-newline that ends a line counts as part of that line).
+@item M-x keep-lines
+Prompt for a regexp, and delete each line that @emph{does not} contain
+a match for it, operating on the text after point.  If point is not at
+the beginning of a line, this command always keeps the current line.
+If the region is active, the command operates on the region instead;
+it never deletes lines that are only partially contained in the region
+(a newline that ends a line counts as part of that line).
 
 If a match is split across lines, this command keeps all those lines.
 @end table

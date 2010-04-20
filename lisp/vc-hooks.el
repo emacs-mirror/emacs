@@ -84,13 +84,6 @@ An empty list disables VC altogether."
   :type '(repeat string)
   :group 'vc)
 
-(defcustom vc-path nil
-  "List of extra directories to search for version control commands."
-  :type '(repeat directory)
-  :group 'vc)
-
-(make-obsolete-variable 'vc-path "should not be necessary anymore." "23.2")
-
 (defcustom vc-make-backup-files nil
   "If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups."
@@ -403,7 +396,7 @@ If the argument is a list, the files must all have the same back end."
 
 
 (defun vc-backend-subdirectory-name (file)
-  "Return where the master and lock FILEs for the current directory are kept."
+  "Return where the repository for the current directory is kept."
   (symbol-name (vc-backend file)))
 
 (defun vc-name (file)
@@ -467,17 +460,20 @@ For registered files, the value returned is one of:
   'edited            The working file has been edited by the user.  If
                      locking is used for the file, this state means that
                      the current version is locked by the calling user.
+                     This status should *not* be reported for files 
+                     which have a changed mtime but the same content 
+                     as the repo copy.
 
   USER               The current version of the working file is locked by
                      some other USER (a string).
 
-  'needs-update       The file has not been edited by the user, but there is
+  'needs-update      The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
-                     in the master file.
+                     in the repository.
 
   'needs-merge       The file has been edited by the user, and there is also
                      a more recent version on the current branch stored in
-                     the master file.  This state can only occur if locking
+                     the repository.  This state can only occur if locking
                      is not used for the file.
 
   'unlocked-changes  The working version of the file is not locked,
@@ -556,7 +552,7 @@ and does not employ any heuristic at all."
 	unchanged))))
 
 (defun vc-default-workfile-unchanged-p (backend file)
-  "Check if FILE is unchanged by diffing against the master version.
+  "Check if FILE is unchanged by diffing against the repository version.
 Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
@@ -988,6 +984,12 @@ current, and kill the buffer that visits the link."
     (define-key map [vc-update-change-log]
       `(menu-item ,(purecopy "Update ChangeLog") vc-update-change-log
 		  :help ,(purecopy "Find change log file and add entries from recent version control logs")))
+    (define-key map [vc-log-out]
+      `(menu-item ,(purecopy "Show Outgoing Log") vc-log-outgoing
+		  :help ,(purecopy "Show a log of changes that will be sent with a push operation")))
+    (define-key map [vc-log-in]
+      `(menu-item ,(purecopy "Show Incoming Log") vc-log-incoming
+		  :help ,(purecopy "Show a log of changes that will be received with a pull operation")))
     (define-key map [vc-print-log]
       `(menu-item ,(purecopy "Show History") vc-print-log
 		  :help ,(purecopy "List the change log of the current file set in a window")))

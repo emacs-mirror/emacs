@@ -90,16 +90,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include <sys/param.h>
 
-#if __DJGPP__ > 1
 extern int etext;
 extern unsigned start __asm__ ("start");
-#endif
-#endif
-
-#ifndef USE_CRT_DLL
-#ifndef errno
-extern int errno;
-#endif
 #endif
 
 #include <sys/file.h>
@@ -384,11 +376,7 @@ set_exclusive_use (fd)
 
 wait_without_blocking ()
 {
-#ifdef BSD_SYSTEM
-  wait3 (0, WNOHANG | WUNTRACED, 0);
-#else
   croak ("wait_without_blocking");
-#endif
   synch_process_alive = 0;
 }
 
@@ -466,13 +454,7 @@ wait_for_termination (pid)
 #endif /* not POSIX_SIGNALS */
 #endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #else /* not subprocesses */
-#if __DJGPP__ > 1
       break;
-#else /* not __DJGPP__ > 1 */
-      if (kill (pid, 0) < 0)
-	break;
-      wait (0);
-#endif /* not __DJGPP__ > 1*/
 #endif /* not subprocesses */
     }
 }
@@ -547,8 +529,6 @@ child_setup_tty (out)
 #endif
   s.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
   s.main.c_cflag = (s.main.c_cflag & ~CSIZE) | CS8; /* Don't strip 8th bit */
-  s.main.c_lflag |= ICANON;	/* Enable erase/kill and eof processing */
-  s.main.c_cc[VEOF] = 04;	/* insure that EOF is Control-D */
   s.main.c_cc[VERASE] = CDISABLE;	/* disable erase processing */
   s.main.c_cc[VKILL] = CDISABLE;	/* disable kill processing */
 
@@ -578,7 +558,6 @@ child_setup_tty (out)
   /* rms: Formerly it set s.main.c_cc[VINTR] to 0377 here
      unconditionally.  Then a SIGNALS_VIA_CHARACTERS conditional
      would force it to 0377.  That looks like duplicated code.  */
-  s.main.c_cc[VEOL] = CDISABLE;
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
@@ -590,6 +569,18 @@ child_setup_tty (out)
   s.main.sg_erase = 0377;
   s.main.sg_kill = 0377;
   s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
+
+  /* We used to enable ICANON (and set VEOF to 04), but this leads to
+     problems where process.c wants to send EOFs every once in a while
+     to force the output, which leads to weird effects when the
+     subprocess has disabled ICANON and ends up seeing those spurious
+     extra EOFs.  So we don't send EOFs any more in
+     process.c:send_process, and instead we disable ICANON by default,
+     so if a subsprocess sets up ICANON, it's his problem (or the Elisp
+     package that talks to it) to deal with lines that are too long.  */
+  s.main.c_lflag &= ~ICANON;	/* Disable line editing and eof processing */
+  s.main.c_cc[VMIN] = 1;
+  s.main.c_cc[VTIME] = 0;
 
 #endif /* not HAVE_TERMIO */
 
@@ -676,10 +667,8 @@ sys_subshell ()
 
 #ifdef DOS_NT
   pid = 0;
-#if __DJGPP__ > 1
   save_signal_handlers (saved_handlers);
   synch_process_alive = 1;
-#endif /* __DJGPP__ > 1 */
 #else
   pid = vfork ();
   if (pid == -1)
@@ -751,7 +740,7 @@ sys_subshell ()
     }
 
   /* Do this now if we did not do it before.  */
-#if !defined (MSDOS) || __DJGPP__ == 1
+#ifndef MSDOS
   save_signal_handlers (saved_handlers);
   synch_process_alive = 1;
 #endif
@@ -1401,9 +1390,8 @@ init_sys_modes (tty_out)
 
   if (tty_out->term_initted && no_redraw_on_reenter)
     {
-      /* XXX This seems wrong on multi-tty. */
-      if (display_completed)
-	direct_output_forward_char (0);
+      /* We used to call "direct_output_forward_char(0)" here,
+	 but it's not clear why, since it may not do anything anyway.  */
     }
   else
     {
@@ -3365,7 +3353,7 @@ system_process_attributes (Lisp_Object pid)
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
   time_t sec;
   unsigned usec;
-  EMACS_TIME tnow, tstart, tboot, telapsed,ttotal;
+  EMACS_TIME tnow, tstart, tboot, telapsed;
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;

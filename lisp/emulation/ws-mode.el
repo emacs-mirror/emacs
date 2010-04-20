@@ -339,16 +339,6 @@ the distance between the end of the text and `fill-column'."
        (+ left-margin
 	  (/ (- fill-column left-margin line-length) 2))))))
 
-(defun scroll-down-line ()
-  "Scroll one line down."
-  (interactive)
-  (scroll-down 1))
-
-(defun scroll-up-line ()
-  "Scroll one line up."
-  (interactive)
-  (scroll-up 1))
-
 ;;;;;;;;;;;
 ;; wordstar special variables:
 

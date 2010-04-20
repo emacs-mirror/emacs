@@ -3343,6 +3343,7 @@ Build a menu of the possible matches."
 (defvar finder-known-keywords)
 (defvar finder-package-info)
 (declare-function find-library-name "find-func" (library))
+(declare-function finder-unknown-keywords "finder" ())
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 
 (defun Info-finder-find-node (filename nodename &optional no-going-back)
@@ -3361,7 +3362,38 @@ Build a menu of the possible matches."
 	 (insert (format "* %-14s %s.\n"
 			 (concat (symbol-name keyword) "::")
 			 (cdr assoc)))))
-     finder-known-keywords))
+     (append '((all . "All package info")
+	       (unknown . "unknown keywords"))
+	   finder-known-keywords)))
+   ((equal nodename "unknown")
+    ;; Display unknown keywords
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Unknown Keywords\n")
+    (insert "***********************\n\n")
+    (insert "* Menu:\n\n")
+    (mapc
+     (lambda (assoc)
+       (insert (format "* %-14s %s.\n"
+		       (concat (symbol-name (car assoc)) "::")
+		       (cdr assoc))))
+     (finder-unknown-keywords)))
+   ((equal nodename "all")
+    ;; Display all package info.
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Package Info\n")
+    (insert "*******************\n\n")
+    (mapc (lambda (package)
+	    (insert (format "%s - %s\n"
+			    (format "*Note %s::" (nth 0 package))
+			    (nth 1 package)))
+	    (insert "Keywords: "
+		    (mapconcat (lambda (keyword)
+				 (format "*Note %s::" (symbol-name keyword)))
+			       (nth 2 package) ", ")
+		    "\n\n"))
+	  finder-package-info))
    ((string-match-p "\\.el\\'" nodename)
     ;; Display commentary section
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
@@ -3386,6 +3418,7 @@ Build a menu of the possible matches."
 	   (buffer-string))))))
    (t
     ;; Display packages that match the keyword
+    ;; or the list of keywords separated by comma.
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
     (insert "Finder Packages\n")
@@ -3393,21 +3426,39 @@ Build a menu of the possible matches."
     (insert
      "The following packages match the keyword `" nodename "':\n\n")
     (insert "* Menu:\n\n")
-    (let ((id (intern nodename)))
+    (let ((keywords
+	   (mapcar 'intern (if (string-match-p "," nodename)
+			       (split-string nodename ",[ \t\n]*" t)
+			     (list nodename)))))
       (mapc
-       (lambda (x)
-	 (when (memq id (cadr (cdr x)))
+       (lambda (package)
+	 (unless (memq nil (mapcar (lambda (k) (memq k (nth 2 package)))
+				   keywords))
 	   (insert (format "* %-16s %s.\n"
-			   (concat (car x) "::")
-			   (cadr x)))))
+			   (concat (nth 0 package) "::")
+			   (nth 1 package)))))
        finder-package-info)))))
 
 ;;;###autoload
-(defun info-finder ()
-  "Display descriptions of the keywords in the Finder virtual manual."
-  (interactive)
+(defun info-finder (&optional keywords)
+  "Display descriptions of the keywords in the Finder virtual manual.
+In interactive use, a prefix argument directs this command to read
+a list of keywords separated by comma.  After that, it displays a node
+with a list packages that contain all specified keywords."
+  (interactive
+   (when current-prefix-arg
+     (require 'finder)
+     (list
+      (completing-read-multiple
+       "Keywords (separated by comma): "
+       (mapcar 'symbol-name (mapcar 'car (append finder-known-keywords
+						 (finder-unknown-keywords))))
+       nil t))))
   (require 'finder)
-  (Info-find-node Info-finder-file "Top"))
+  (if keywords
+      (Info-find-node Info-finder-file (mapconcat 'identity keywords ", "))
+    (Info-find-node Info-finder-file "Top")))
+
 
 (defun Info-undefined ()
   "Make command be undefined in Info."
@@ -3782,7 +3833,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
-(defun Info-mode ()
+(define-derived-mode Info-mode nil "Info"
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
 one topic and contains references to other nodes which discuss related
@@ -3844,23 +3895,17 @@ Advanced commands:
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
-  (kill-all-local-variables)
-  (setq major-mode 'Info-mode)
-  (setq mode-name "Info")
+  :syntax-table text-mode-syntax-table
+  :abbrev-table text-mode-abbrev-table
   (setq tab-width 8)
-  (use-local-map Info-mode-map)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
-  (set-syntax-table text-mode-syntax-table)
-  (setq local-abbrev-table text-mode-abbrev-table)
   (setq case-fold-search t)
   (setq buffer-read-only t)
   (make-local-variable 'Info-current-file)
   (make-local-variable 'Info-current-subfile)
   (make-local-variable 'Info-current-node)
-  (make-local-variable 'Info-tag-table-marker)
-  (setq Info-tag-table-marker (make-marker))
-  (make-local-variable 'Info-tag-table-buffer)
-  (setq Info-tag-table-buffer nil)
+  (set (make-local-variable 'Info-tag-table-marker) (make-marker))
+  (set (make-local-variable 'Info-tag-table-buffer) nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-history-forward)
   (make-local-variable 'Info-index-alternatives)
@@ -3869,12 +3914,10 @@ Advanced commands:
  	    '(:eval (get-text-property (point-min) 'header-line))))
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
-  (make-local-variable 'line-move-ignore-invisible)
-  (setq line-move-ignore-invisible t)
-  (make-local-variable 'desktop-save-buffer)
-  (make-local-variable 'widen-automatically)
-  (setq widen-automatically nil)
-  (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
+  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (set (make-local-variable 'desktop-save-buffer)
+       'Info-desktop-buffer-misc-data)
+  (set (make-local-variable 'widen-automatically) nil)
   (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
@@ -3893,8 +3936,7 @@ Advanced commands:
        'Info-revert-buffer-function)
   (Info-set-mode-line)
   (set (make-local-variable 'bookmark-make-record-function)
-       'Info-bookmark-make-record)
-  (run-mode-hooks 'Info-mode-hook))
+       'Info-bookmark-make-record))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.

@@ -140,7 +140,7 @@ Remember to fix FOO, as discussed on emacs-devel at http://... .
 ** Not interested in tracker control messages (tags being set, etc)?
 Discard mails matching:
 
-^X-Emacs-PR-Message: (transcript|closed)
+^X-GNU-PR-Message: (transcript|closed)
 
 ** How to avoid multiple copies of mails.
 If you reply to reports in the normal way, this should work fine.
@@ -166,18 +166,18 @@ Sending a mail to 123-done does the following:
 2) Send a mail to the original submitter telling them that their bug
 has been closed.  This mail has a header:
 
-X-Emacs-PR-Message: they-closed 123
+X-GNU-PR-Message: they-closed 123
 
 3) Send a mail to you and to the emacs-bug-tracker list confirming
 that the bug has been closed.  This mail has a header:
 
-X-Emacs-PR-Message: closed 123
+X-GNU-PR-Message: closed 123
 
 4) Send a copy of your mail to the bug-gnu-emacs list in exactly the
 same way as if you had sent mail to "123" (sans -done). This mail has
 headers:
 
-X-Emacs-PR-Message: cc-closed 123
+X-GNU-PR-Message: cc-closed 123
 Mail-Followup-To: 123@debbugs.gnu.org, person-who-closed
 
 (This is Emacs-specific.  Normally the bug list gets the same mail as in 3).

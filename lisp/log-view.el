@@ -4,7 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: rcs sccs cvs log version-control tools
+;; Keywords: rcs, sccs, cvs, log, version control, tools
 
 ;; This file is part of GNU Emacs.
 
@@ -255,7 +255,8 @@ The match group number 1 should match the revision number itself.")
        'log-view-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function)
        'log-view-end-of-defun)
-  (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
+  (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap)
+  (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
 ;;;; Navigation

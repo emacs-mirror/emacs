@@ -53,10 +53,6 @@
 (defvar gnus-original-article-buffer)
 (defvar gnus-user-agent)
 
-(require 'time-date)
-(require 'netrc)
-
-(autoload 'message-fetch-field "message")
 (autoload 'gnus-get-buffer-window "gnus-win")
 (autoload 'nnheader-narrow-to-headers "nnheader")
 (autoload 'nnheader-replace-chars-in-string "nnheader")
@@ -206,8 +202,11 @@ Uses `gnus-extract-address-components'."
 Uses `gnus-extract-address-components'."
   (nth 1 (gnus-extract-address-components from)))
 
+(declare-function message-fetch-field "message" (header &optional not-all))
+
 (defun gnus-fetch-field (field)
   "Return the value of the header FIELD of current article."
+  (require 'message)
   (save-excursion
     (save-restriction
       (let ((inhibit-point-motion-hooks t))
@@ -228,13 +227,14 @@ Uses `gnus-extract-address-components'."
 		   (point)))))
 
 (declare-function gnus-find-method-for-group "gnus" (group &optional info))
-(autoload 'gnus-group-name-decode "gnus-group")
+(declare-function gnus-group-name-decode "gnus-group" (string charset))
 (declare-function gnus-group-name-charset "gnus-group" (method group))
 ;; gnus-group requires gnus-int which requires message.
 (declare-function message-tokenize-header "message"
                   (header &optional separator))
 
 (defun gnus-decode-newsgroups (newsgroups group &optional method)
+  (require 'gnus-group)
   (let ((method (or method (gnus-find-method-for-group group))))
     (mapconcat (lambda (group)
 		 (gnus-group-name-decode group (gnus-group-name-charset

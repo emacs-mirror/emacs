@@ -1,3 +1,777 @@
+2010-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Don't write beyond the last glyph row in
+	the desired matrix.  Fixes a crash in "emacs -nw", see
+	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00075.html
+	and
+	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00213.html
+
+2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fpurecopy): Hash-cons if requested.
+	(syms_of_alloc): Update purify-flag docstring.
+
+2010-04-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Set size in geometry string also.
+	(x_wm_set_size_hint): Set USER_POS in hint_flags (Bug#5968).
+
+2010-04-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a crash when an NSM character is inserted at BEGV.
+
+	* bidi.c (bidi_init_it): Fix initialization of bidi_it->prev.
+	(bidi_resolve_weak): Don't use prev.type_after_w1 if it is
+	NEUTRAL_B or UNKNOWN_BT.
+
+2010-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't consider possibility of
+	other rows with cursor unless they are different from this row and
+	this row is part of a continued line.  (Bug#5943)
+
+2010-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/freebsd.h: Restore osreldate.h include.
+	Suggested by Naohiro Aota.
+
+2010-04-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (apply_systemfont_to_menu): *childs was incorrectly used.
+
+2010-04-16  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* s/cygwin.h: Avoid linking against static libgcc.
+
+2010-04-15  Juri Linkov  <juri@jurta.org>
+
+	* window.c: Add Qscroll_command.
+	Remove Vscroll_preserve_screen_position_commands.
+	(window_scroll_pixel_based, window_scroll_line_based): Check the
+	`scroll-command' property on the last command instead of searching
+	the last command in Vscroll_preserve_screen_position_commands.
+	(syms_of_window): Initialize and staticpro `Qscroll_command'.
+	Put Qscroll_command property on Qscroll_up and Qscroll_down.
+	(scroll-preserve-screen-position): Doc fix.
+	(Vscroll_preserve_screen_position_commands): Remove variable.
+
+2010-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xdisp.c (message): Do not use NO_ARG_ARRAY.
+
+2010-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce cpp use in Makefile.in.
+	* Makefile.in (DBUS_CFLAGS, DBUS_LIBS, GCONF_CFLAGS, GCONF_LIBS)
+	(LIBSOUND, CFLAGS_SOUND, RSVG_LIBS, RSVG_CFLAGS, INTERVALS_H)
+	(GETLOADAVG_LIBS, RUN_TEMACS): Move to the autoconf section.
+	(ORDINARY_LINK): Remove, defined in src/s/gnu.h.
+	(CRT0_COMPILE): Remove, inline it in the only user.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* window.c (keys_of_window): Rebind `C-v' from `scroll-up' to
+	`scroll-up-command' and `M-v' from `scroll-down' to
+	`scroll-down-command'.
+
+2010-04-14  Juri Linkov  <juri@jurta.org>
+
+	* window.c (Vscroll_preserve_screen_position_commands): New variable
+	with the default value as the list of Qscroll_down and Qscroll_up.
+	(window_scroll_pixel_based, window_scroll_line_based): Search the
+	last command in the list Vscroll_preserve_screen_position_commands
+	instead of comparing with Qscroll_up and Qscroll_down.
+
+2010-04-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Set geometry for PPosition also.
+	(x_wm_set_size_hint): Dont set position flags, gtk_window_parse_geometry
+	does that.
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Set default border width
+	to zero.
+
+2010-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c (init_tty): Move common text outside of #ifdef TERMINFO.
+
+	Try to solve the problem of spurious EOF chars in long lines of text
+	sent to interactive subprocesses.
+	* sysdep.c (child_setup_tty): Do not enable ICANON any more.
+	(system_process_attributes): Remove unused var `ttotal'.
+	* process.c (send_process): Don't bother breaking long line with EOF
+	chars when talking to ttys any more.
+	(wait_reading_process_output): Output a warning when called in such
+	a way that it could block without being interruptible.
+
+	Try to detect file modification within the same second.
+	* buffer.h (struct buffer): New field modtime_size.
+	* buffer.c (reset_buffer): Initialize it.
+	* fileio.c (Finsert_file_contents, Fwrite_region): Set it.
+	(Fverify_visited_file_modtime): Check it.
+	(Fclear_visited_file_modtime, Fset_visited_file_modtime): Clear it.
+	(Fset_visited_file_modtime): Set (or clear) it.
+
+2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (status_notify): Remove unused var `ro'.
+
+2010-04-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (select_visual): Don't call error if XGetVisualInfo returns
+	more than one visual (Bug#5938).
+
+2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE): Undefine.
+
+2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove C_SWITCH_SYSTEM_TEMACS.
+	* s/darwin.h (C_SWITCH_SYSTEM_TEMACS): Remove.
+	(malloc, realloc, free): Use emacs, not temacs for conditional
+	definition.
+
+	* Makefile.in (C_SWITCH_SYSTEM_TEMACS): Remove.
+	(ALL_CFLAGS): Do not use C_SWITCH_SYSTEM_TEMACS.
+
+	Use autoconf, not cpp for some variables.
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE)
+	(C_SWITCH_X_SITE): Define using autoconf, not cpp.
+	(ALL_CFLAGS): Use them as make variables.
+	(really-lwlib, really-oldXMenu): Do not pass them.
+
+2010-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (apply_systemfont_to_dialog): New.
+	(create_and_show_dialog): Call apply_systemfont_to_dialog if HAVE_XFT.
+
+2010-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (exec_sentinel): Preserve current-buffer.
+
+	* process.c (read_process_output): Move the save-current-buffer to
+	apply to both the filter and the non-filter branches.
+
+2010-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/msdos.h (UNEXEC): New definition.
+
+2010-04-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (TRY_WINDOW_CHECK_MARGINS)
+	(TRY_WINDOW_IGNORE_FONTS_CHANGE): New defines.
+
+	* xdisp.c (try_window): Change arg from CHECK_MARGINS to FLAGS.
+	Don't abort with fonts change if TRY_WINDOW_IGNORE_FONTS_CHANGE is
+	set in FLAGS.  Callers with non-zero CHECK_MARGINS changed to use
+	TRY_WINDOW_CHECK_MARGINS.
+
+	* xfns.c (Fx_show_tip): Undo last change.  Call try_window with
+	TRY_WINDOW_IGNORE_FONTS_CHANGE (Bug#2423).  Subtract last glyph's
+	width only when it is for padding.
+
+2010-04-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_show_tip): Call try_window in a loop until
+	fonts_changed_p is zero (Bug#2423).
+
+2010-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't dereference glyphs beyond
+	the end of TEXT_AREA.  (Bug#5856)
+
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (XSETTINGS_FONT_NAME): Move XSETTINGS_FONT_NAME out of
+	HAVE_GCONF.
+
+2010-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_weak): Use prev.type_after_w1, instead of
+	prev.orig_type, for resolving type of NSM.  (Bug#5858)
+
+2010-04-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (current_font, SYSTEM_FONT, XSETTINGS_FONT_NAME): New.
+	(parse_xft_settings): Also check for XSETTINGS_FONT_NAME and save that
+	in current_font.
+	(init_gconf): Read value of SYSTEM_FONT and save it in current_font.
+	(Ffont_get_system_normal_font, xsettings_get_system_normal_font): New
+	functions.
+	(syms_of_xsettings): Initialize current_font. defsubr
+	Sfont_get_system_normal_font.
+
+	* xsettings.h (Ffont_get_system_normal_font,
+	xsettings_get_system_normal_font): Declare.
+
+	* xfns.c (extern xlwmenu_default_font): Remove.
+	(Fx_create_frame): Remove setting of xlwmenu_default_font, moved
+	to xlwmenu.c.
+
+	* menu.c (digest_single_submenu): If USE_LUCID and HAVE_XFT, encode
+	menu items in UTF-8.
+
+	* xmenu.c: include xsettings.h and xlwmenu.h if USE_LUCID.
+	(apply_systemfont_to_menu): New function.
+	(set_frame_menubar, create_and_show_popup_menu): Call
+	apply_systemfont_to_menu.
+
+2010-04-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use
+	FRAME_LINE_TO_PIXEL_Y.
+
+	* xterm.c (x_set_window_size_1): Don't add border_width/height to
+	pixelwidth/height.
+
+2010-04-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Simplify code for HP machines.
+	* m/hp800.h (LOAD_AVE_TYPE, LOAD_AVE_CVT, NO_REMAP): Do not define
+	for GNU_LINUX, not needed.
+	(UNEXEC, NEED_BSDTTY): Move definitions...
+	* s/hpux10-20.h (UNEXEC, NEED_BSDTTY): ... here.
+
+	* m/iris4d.h (UNEXEC): Move definition ...
+	* s/irix6-5.h (UNEXEC): ... here.
+
+2010-04-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (set_machine_and_pid_properties): New function.
+	(Fx_create_frame): Call set_machine_and_pid_properties.
+
+2010-04-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_resolve_explicit, bidi_level_of_next_char): Check
+	bidi_it->bytepos against ZV_BYTE instead of bidi_it->ch against
+	BIDI_EOB.  Fixes infloop with vertical cursor motion at ZV.
+
+	* w32fns.c (x_create_tip_frame): Copy `parms' before we modify it
+	in this function.  (Bug#5703)
+
+2010-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.h: Fix last change.
+
+2010-04-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/intel386.h (NO_REMAP): Move definition ...
+	* s/msdos.h (NO_REMAP): ... here.
+
+	* m/vax.h (CRT0_DUMMIES): Remove, unused.
+
+	* ecrt0.c: Remove MSDOS, m68k and __sparc__ conditionals, file not
+	used on those platforms.
+
+2010-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove extern errno declarations.
+	* xterm.c:
+	* xrdb.c:
+	* w32term.c:
+	* unexec.c:
+	* unexaix.c:
+	* sysdep.c:
+	* process.c:
+	* lread.c:
+	* keyboard.c:
+	* floatfns.c:
+	* filelock.c:
+	* fileio.c:
+	* emacs.c (main):
+	* ecrt0.c:
+	* dispnew.c:
+	* callproc.c:
+	* buffer.c: Remove errno extern declarations.
+	* s/netbsd.h (NEED_ERRNO): Remove.
+
+2010-04-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all uses of LIBX11_SYSTEM.
+	* Makefile.in (LIBX11_SYSTEM): Remove.
+	* s/msdos.h (LIBX11_SYSTEM): Do not define, define LIBS_SYSTEM
+	instead.
+
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove support for DJGPP v1.x (bug#5813).
+
+	* w16select.c (__dpmi_int): Remove DJGPP v1.x compatibility.
+	* s/msdos.h:
+	* unexec.c (make_hdr, copy_text_and_data):
+	* sysdep.c (wait_for_termination, sys_subshell):
+	* msdos.c (dos_set_window_size, msdos_set_cursor_shape)
+	(IT_set_terminal_modes, __write, _rename, gethostname)
+	(gettimeofday, alarm, fork, kill, dos_ttraw, dos_ttcooked)
+	(run_msdos_command, abort): Remove DJGPP v1.x code and tests of
+	the value of __DJGPP__.
+	(nice, pause, sigsetmask, sigblock): Remove DJGPP v1.x
+	compatibility code.
+	* lread.c:
+	* gmalloc.c (memalign):
+	* fileio.c (Fcopy_file, check_executable, Ffile_modes):
+	* emacs.c (main):
+	* dosfns.c (init_dosfns):
+	* dired.c (file_name_completion_stat): Remove tests of __DJGPP__.
+
+2010-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning when the
+	string with `cursor' property comes from an `after-string'
+	overlay.  (Bug#5816)
+
+2010-04-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBTIFF, LIBJPEG, LIBPNG, LIBGIF, LIBXPM, XFT_LIBS):
+	Define as Makefile variables.
+	(LIBX): Use above variables rather than directly using autoconf.
+
+2010-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Clean up BSD_SYSTEM use.
+	* xterm.c:
+	* process.c:
+	* emacs.c: Use HAVE_SYS_IOCTL_H instead of BSD_SYSTEM as a guard
+	for including <sys/ioctl.h>.
+	* sysdep.c (wait_without_blocking): Remove BSD_SYSTEM case, this
+	code is only used for MSDOS.
+
+2010-03-31  Juri Linkov  <juri@jurta.org>
+
+	* image.c: Add `Qextension_data'.
+	(syms_of_image): Initialize and staticpro `Qextension_data'.
+	(Fimage_metadata): Rename from `Fimage_extension_data'.
+	(gif_load): Put GIF extension data to the property
+	`Qextension_data'.
+
+2010-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
+	terminal frames (Bug#5837).
+
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (ns_set_doc_edited): Remove unused arg OLDVAL.
+	* nsterm.h: Fix prototype.
+
+2010-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (highlight_trailing_whitespace): Support highlight of
+	trailing whitespace in right-to-left rows.
+
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of the direct_output optimizations.
+	* keyboard.c (nonundocount): Remove extern declaration.
+	(command_loop_1): Remove brittle optimisation for cheap and
+	common operations.
+	* xdisp.c (redisplay_internal): Don't bother checking
+	redisplay_performed_directly_p any more.
+	* sysdep.c (init_sys_modes): Don't call direct_output_forward_char
+	any more.
+	* dispnew.c (redisplay_performed_directly_p)
+	(direct_output_for_insert, direct_output_forward_char):
+	* dispextern.h (redisplay_performed_directly_p)
+	(direct_output_for_insert, direct_output_forward_char): Remove.
+	* cmds.c (nonundocount): Make it static.
+
+2010-03-31  Bernhard Herzog  <bh@intevation.de>  (tiny change)
+
+	* menu.c (Fx_popup_menu): Use last_event_timestamp (Bug#4930).
+
+2010-03-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (note_mouse_highlight): Don't do highlight if pointer is
+	invisible (Bug#5766).
+
+2010-03-31  Adrian Robert  <adrian.b.robert@gmail.com>
+
+	* xdisp.c (x_consider_frame_title, update_window_cursor):
+	Remove HAVE_NS conditionals.
+	(prepare_menu_bars) [HAVE_NS]: Call ns_set_doc_edited.
+
+	* nsfns.m (x_implicitly_set_name): If frame-title-format is t, use
+	filename for the title.
+	(ns_set_doc_edited): Do nothing if the selected window is a
+	minibuffer window.
+
+	* nsterm.h: Add prototypes for ns_set_name_as_filename and
+	ns_set_doc_edited.
+
+	* nsterm.m: Remove unneeded prototype.
+
+2010-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Ensure dbus stuff is always
+	in the DOC file.  (Bug#5336)
+
+2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Revert 2008-01-25 change (Bug#5730).
+
+2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (keys_of_window): Remove redundant/overridden bindings.
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (BUFFER_POS_REACHED_P, move_it_in_display_line_to):
+	Restore original behavior when the iterator is not bidi_p.
+
+2010-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xdisp.c (syms_of_xdisp): Use intern_c_string instead of intern.
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_cache_iterator_state): Invalidate the cache if we
+	are outside the range of cached character positions.
+
+2010-03-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/bidi.$(O)): Add dependency on w32gui.h.
+
+2010-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Initial support for bidirectional editing.
+
+	* Makefile.in (obj): Include bidi.o.
+	(bidi.o): New target.
+
+	* makefile.w32-in (OBJ1): Add $(BLD)/bidi.$(O).
+	($(BLD)/bidi.$(O)): New target.
+
+	* bidi.c: New file.
+
+	* buffer.h (struct buffer): New members bidi_display_reordering
+	and bidi_paragraph_direction.
+
+	* buffer.c (init_buffer_once): Initialize bidi_display_reordering
+	and bidi_paragraph_direction.
+	(syms_of_buffer): Declare Lisp variables bidi-display-reordering
+	and bidi-paragraph-direction.
+	(Fbuffer_swap_text): Swap the values of
+	bidi_display_reordering and bidi_paragraph_direction.
+
+	* dispextern.h (BIDI_MAXLEVEL, BIDI_AT_BASE_LEVEL): New macros.
+	(bidi_type_t, bidi_dir_t): New types.
+	(bidi_saved_info, bidi_stack, bidi_it): New structures.
+	(struct it): New members bidi_p, bidi_it, paragraph_embedding,
+	prev_stop, base_level_stop, and eol_pos.
+	(bidi_init_it, bidi_get_next_char_visually): New prototypes.
+	(IT_STACK_SIZE): Enlarge to 5.
+	(struct glyph_row): New member reversed_p.
+	<string_buffer_position>: Update prototype.
+	(PRODUCE_GLYPHS): Set the reversed_p flag in the iterator's
+	glyph_row if bidi_it.paragraph_dir == R2L.
+	(struct glyph): New members resolved_level and bidi_type.
+
+	* dispnew.c (direct_output_forward_char): Give up if we need bidi
+	processing or buffer's direction is right-to-left.
+	(prepare_desired_row): Preserve the reversed_p flag.
+	(row_equal_p): Compare the reversed_p attributes as well.
+
+	* xdisp.c (init_iterator): Initialize it->bidi_p.  Call
+	bidi_init_it and set it->paragraph_embedding from the current
+	buffer's value of bidi_paragraph_direction.
+	(reseat_1): Initialize bidi_it.first_elt.
+	(set_iterator_to_next, next_element_from_buffer): Use the value of
+	paragraph_embedding to determine the paragraph direction.
+	(set_iterator_to_next): Under bidi reordering, call
+	bidi_get_next_char_visually.  Call bidi_paragraph_init if the
+	new_paragraph flag is set in the bidi iterator.
+	(next_element_from_buffer): If bidi_it.first_elt is set,
+	initialize paragraph direction and find the first character to
+	display in the visual order.  If reseated to a middle of a line,
+	prime the bidi iterator starting at the line's beginning.  Handle
+	the situation where we overstepped stop_charpos due to
+	non-linearity of the bidi iteration.  Likewise for when we back up
+	beyond the previous stop_charpos.  When moving across stop_charpos,
+	record it in prev_stop.
+	(display_line): Set row->end and it->start for the next row to the
+	next character in logical order.  Always extend reversed_p rows to
+	the end of line, even if they end at ZV.  Copy the reversed_p flag
+	to the next glyph row.  Keep calling set_cursor_from_row for
+	bidi-reordered rows even if we already have a possible candidate
+	for cursor position.  Set row_end after all the row's glyphs have
+	been produced, by looping over the glyphs.  Record the position
+	after EOL in it->eol_pos, and use it to set end_pos of the last
+	row produced for a continued line.
+	<Qright_to_left, Qleft_to_right>: New variables.
+	(syms_of_xdisp): Initialize and staticpro them.
+	(string_buffer_position_lim): New function.
+	(string_buffer_position): Most of code moved to
+	string_buffer_position_lim.  Last argument and return value are
+	now EMACS_INT; all callers changed.
+	(set_cursor_from_row): Rewritten to support bidirectional text and
+	reversed glyph rows.
+	(text_outside_line_unchanged_p, try_window_id): Disable
+	optimizations if we are reordering bidirectional text and the
+	paragraph direction can be affected by the change.
+	(append_glyph, append_composite_glyph)
+	(produce_image_glyph, append_stretch_glyph): Set the
+	resolved_level and bidi_type members of each glyph.
+	(append_glyph): If the glyph row is reversed, prepend the glyph
+	rather than appending it.
+	(handle_stop_backwards): New function.
+	(reseat_1, pop_it, push_it): Set prev_stop and base_level_stop.
+	(reseat): call handle_stop_backwards to recompute prev_stop and
+	base_level_stop for the new position.
+	(handle_invisible_prop): Under bidi iteration, skip invisible text
+	using bidi_get_next_char_visually.  If we are `reseat'ed, init the
+	paragraph direction.  Update IT->prev_stop after skipping
+	invisible text.
+	(move_it_in_display_line_to): New variables prev_method
+	and prev_pos.  Compare for strict equality in
+	BUFFER_POS_REACHED_P.
+	(try_cursor_movement): Examine all the candidate rows that occlude
+	point, to return the best match.  If rows are bidi-reordered
+	and point moved backwards, back up to the row that is not a
+	continuation line, and start looking for a suitable row from
+	there.
+
+	* term.c (append_glyph): Reverse glyphs by pre-pending them,
+	rather than appending, if the glyph_row's reversed_p flag is set.
+	Set the resolved_level and bidi_type members of each glyph.
+
+	* .gdbinit (pbiditype): New command.
+	(pgx): Use it to display bidi level and type of the glyph.
+	(pitx): Display some bidi information about the iterator.
+	(prowlims, pmtxrows): New commands.
+
+2010-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all uses of C_DEBUG_SWITCH and LIBS_DEBUG.
+	* s/usg5-4.h (LIBS_DEBUG):
+	* s/irix6-5.h (C_DEBUG_SWITCH):
+	* s/gnu-linux.h (LIBS_DEBUG):
+	* s/darwin.h (LIBS_DEBUG):
+	* s/bsd-common.h (LIBS_DEBUG):
+	* s/aix4-2.h (LIBS_DEBUG, C_DEBUG_SWITCH):
+	* m/iris4d.h (LIBS_DEBUG):
+	* m/hp800.h (LIBS_DEBUG): Remove definitions.
+
+	* Makefile.in (LIBES): Remove reference to LIBS_DEBUG.
+	(LIBS_DEBUG): Remove definition.
+
+2010-03-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (Fmake_network_process): Don't apply Bug#5173 fix for
+	Windows.
+
+2010-03-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (Fmake_network_process): Don't call turn_on_atimers around
+	`connect' (Bug#5723).
+
+2010-03-25  Helmut Eller  <eller.helmut@gmail.com>
+
+	* process.c (Fmake_network_process): Call `select' for interrupted
+	`connect' rather than creating new socket (Bug#5173).
+
+2010-03-24  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (x_get_arg): Handle RES_TYPE_BOOLEAN_NUMBER (bug #5736).
+
+	* xfns.c (Fx_create_frame): Make menuBar a RES_TYPE_BOOLEAN_NUMBER.
+
+	* dispextern.h (resource_types): RES_TYPE_BOOLEAN_NUMBER is new.
+
+2010-03-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xfns.c (Fx_create_frame) [USE_LUCID]: Add BLOCK_INPUT around
+	XLoadQueryFont.
+
+2010-03-24  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_ccl): Fix previous change for the
+	multibyte case.
+	(encode_coding_ccl): Don't setup ccl program here.  Fix for the
+	case that the output buffer is fullfilled.
+	(encode_coding): Setup ccl program here.
+
+2010-03-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* editfns.c (Fformat): Account for string precision when computing
+	field width (Bug#5710).
+
+2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h (LIBS_SYSTEM): Remove, same as default.
+
+	Simplify LIBS_MACHINE definitions.
+	* m/hp800.h (LIBS_MACHINE): Remove, same as default.
+	* m/iris4d.h (LIBS_MACHINE): Likewise.
+	* m/ibmrs6000.h (LIBS_MACHINE): Rename to LIBS_SYSTEM and move ...
+	* s/aix4-2.h (LIBS_SYSTEM): ... here.
+	* s/netbsd.h: Remove commented out code.
+
+2010-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove dead code dealing with POSIX_SIGNALS.
+	* atimer.c (set_alarm): Remove dead code, all USG systems define
+	POSIX_SIGNALS.
+	* data.c (arith_error): Likewise.
+	* keyboard.c (input_available_signal, handle_user_signal)
+	(interrupt_signal): Likewise.
+	* process.c (sigchld_handler): Likewise.
+	(create_process): Remove if 0 code.  Remove HPUX conditional when
+	!defined (POSIX_SIGNALS), it cannot be true.
+	* syssignal.h: Remove USG5_4 and USG conditionals when
+	!POSIX_SIGNALS, they cannot be true.
+
+	* keyboard.c (Fset_input_interrupt_mode): Remove code depending on
+	NO_SOCK_SIGIO, not used anymore.
+
+2010-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/vax.h (BSD_SYSTEM, BSD4_2): Remove conditionals, we only
+	support vax on BSDs.
+
+	* m/ibmrs6000.h (ORDINARY_LINK): Move definition ...
+	* s/aix4-2.h (ORDINARY_LINK): ... here.
+
+2010-03-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (abs_builddir): Define.
+	(bootstrap_exe): Use it.
+	(VPATH): Use $(srcdir) instead of @srcdir@.
+
+2010-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (bootstrap_exe): Use an absolute name.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove support for old GNU/Linux using libc version 5.
+	* m/alpha.h (LINUX_SBRK_BUG): Remove definition.
+	* emacs.c (main): Remove code depending on LINUX_SBRK_BUG.
+
+	Consolidate redundant definitions in s/bsd-common.h.
+	* s/bsd-common.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Define (or undefine) here instead of
+	doing it in all files that include this one.
+	* s/gnu.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+	* s/freebsd.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+	* s/netbsd.h (BSD4_2, TABDLY, TAB3, HAVE_TERMIOS, NO_TERMIO)
+	(LIBS_DEBUG, SYSV_SYSTEM_DIR, UNEXEC, NARROWPROTO, BSD_PGRPS)
+	(LDAV_SYMBOL, KERNEL_FILE): Remove.
+
+	Consolidate redundant definitions.
+	* s/usg5-4.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not define,
+	it's undefined in all files that include this one.
+	(POSIX_SIGNALS): Define here instead of doing it in all files that
+	include this one.
+	* s/irix6-5.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+	* s/sol2-6.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+	* s/unixware.h (sigsetmask, PTY_TTY_NAME_SPRINTF): Do not undef.
+	(POSIX_SIGNALS): Do not define.
+
+	Remove support for old UNIX System V systems.
+	* s/unixware.h: Add the contents of s/usg-5-4-2.h.
+	* s/usg-5-4-2.h: Remove.
+
+	Remove support for Solaris on PPC and for old versions.
+	* s/sol2-6.h: Add the contents of s/sol-2.3.h, s/sol-2.4.h, s/sol-2.5.h.
+	(LD_SWITCH_SYSTEM, USE_MMAP_FOR_BUFFERS): Remove #defines/#undef
+	that cancel each other.
+	* s/sol2-3.h:
+	* s/sol2-4.h:
+	* s/sol2-5.h: Remove.
+	* m/ibmrs6000.h: Remove code for USG5_4, this file is only used on AIX.
+	(NO_REMAP): Remove, unused.
+	(UNEXEC): Move definition ...
+	* s/aix4-2.h (UNEXEC): ... here.
+
+	* s/openbsd.h: Remove support for non-ELF and for systems that do
+	not support shared libraries.
+	* s/netbsd.h:
+	* s/freebsd.h: Likewise.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove non-working support for lynxos 3.0.
+	* s/lynxos.h: Remove file.
+
+	* unexec.c (unexec, adjust_lnnoptrs): Do not depend on
+	COFF_BSD_SYMBOLS, nothing defines it anymore.
+
+2010-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove obsolete uses of HAVE_SHM.
+	* emacs.c (standard_args):
+	(Fdump_emacs):
+	(syms_of_emacs): Remove code depending on HAVE_SHM.
+
+	* alloc.c: Remove HAVE_SHM dependent definition.
+
+	* Makefile.in (RUN_TEMACS): Do not depend on HAVE_SHM.
+
+2010-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (USAGE4): Hard-code bug address.
+	(REPORT_EMACS_BUG_ADDRESS, REPORT_EMACS_BUG_PRETEST_ADDRESS): Remove.
+	(bug_reporting_address): Remove.
+	(main): Don't call bug_reporting_address.
+
+	* Makefile.in (XFT_LIBS, LIBXPM, LIBJPEG, LIBPNG, LIBTIFF, LIBGIF)
+	(LIBGPM, LIBRESOLV): Set using autoconf rather than cpp.
+
+2010-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame):
+	* frame.c (Vdefault_frame_scroll_bars): Put non-GTK X scroll-bars
+	on left.
+
+2010-03-13  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* editfns.c (Fformat): Account for string precision when computing
+	field width (Bug#5710).
+
+2010-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Set default to Qright.
+
+	* frame.c (Vdefault_frame_scroll_bars): Set default to Qright for
+	all window systems.
+
+2010-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	These changes remove termcap.c from the build on Posix platforms.
+	* Makefile.in (termcapobj): Move termcap.o from here...
+	(MSDOS_OBJ): ...to here.
+	(termcapobj) [!LIBS_TERMCAP]: Remove specialized value, as it is
+	now identical to when LIBS_TERMCAP is defined.
+
+	* term.c: Remove (ifdef'ed away) inclusion of termcap.h.
+
+	* cm.c: Remove (ifdef'ed away) inclusion of termcap.h.
+
+	* config.in: Regenerated.  (See top-level ChangeLog.)
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
+2010-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Cleanup setup of gl_state in various parts of the code.
+	* syntax.h (SETUP_BUFFER_SYNTAX_TABLE): New macro.
+	(SETUP_SYNTAX_TABLE, SETUP_SYNTAX_TABLE_FOR_OBJECT):
+	* syntax.c (find_defun_start, Fchar_syntax, Fmatching_paren)
+	(skip_chars):
+	* regex.c (regex_compile): Use it.
+	(re_compile_pattern): Don't set gl_state.current_syntax_table since
+	it's now set in regex_compile when/if we need it.
+
 2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make it possible to C-g in a tight bytecode loop again (bug#5680).
@@ -257,7 +1031,7 @@
 2010-01-19  Alan Mackenzie  <acm@muc.de>
 
 	Fix spurious before-change-functions invocation from (insert ?\n).
-	* textprop.c (set_text_properties): rename parameter
+	* textprop.c (set_text_properties): Rename parameter
 	`signal_after_change_p' to `coherent_change_p', and make the
 	invocation of `modify_region' conditional on it.
 
@@ -10279,7 +11053,7 @@
 
 	* font.c (Vfont_encoding_alist, find_font_encoding): Move from
 	fontset.c.
-	(font_pixel_size)[! HAVE_WINDOW_SYSTEM]: Return 1.
+	(font_pixel_size) [! HAVE_WINDOW_SYSTEM]: Return 1.
 	(font_open_entity): Update FRAME_X_DISPLAY_INFO (f)->n_fonts,
 	FRAME_SMALLEST_CHAR_WIDTH (f), and FRAME_SMALLEST_FONT_HEIGHT (f)
 	only when HAVE_WINDOW_SYSTEM is defined.
@@ -20113,7 +20887,7 @@
 
 2007-08-29  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
-	* term.c (dissociate_if_controlling_tty)[USG]: Fix parse error.
+	* term.c (dissociate_if_controlling_tty) [USG]: Fix parse error.
 
 2007-08-29  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 

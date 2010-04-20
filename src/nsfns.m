@@ -81,6 +81,7 @@ extern Lisp_Object Qunderline, Qundefined;
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 extern Lisp_Object Qnone;
+extern Lisp_Object Vframe_title_format;
 
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
@@ -583,6 +584,8 @@ x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
   NSTRACE (x_implicitly_set_name);
   if (FRAME_ICONIFIED_P (f))
     ns_set_name_iconic (f, arg, 0);
+  else if (FRAME_NS_P (f) && EQ (Vframe_title_format, Qt))
+    ns_set_name_as_filename (f);
   else
     ns_set_name (f, arg, 0);
 }
@@ -627,14 +630,14 @@ ns_set_name_as_filename (struct frame *f)
 
   BLOCK_INPUT;
   pool = [[NSAutoreleasePool alloc] init];
-  name =XBUFFER (buf)->filename;
+  name = XBUFFER (buf)->filename;
   if (NILP (name) || FRAME_ICONIFIED_P (f)) name =XBUFFER (buf)->name;
 
   if (FRAME_ICONIFIED_P (f) && !NILP (f->icon_name))
     name = f->icon_name;
 
   if (NILP (name))
-    name = build_string([ns_app_name UTF8String]);
+    name = build_string ([ns_app_name UTF8String]);
   else
     CHECK_STRING (name);
 
@@ -683,15 +686,18 @@ ns_set_name_as_filename (struct frame *f)
 
 
 void
-ns_set_doc_edited (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+ns_set_doc_edited (struct frame *f, Lisp_Object arg)
 {
   NSView *view = FRAME_NS_VIEW (f);
   NSAutoreleasePool *pool;
-  BLOCK_INPUT;
-  pool = [[NSAutoreleasePool alloc] init];
-  [[view window] setDocumentEdited: !NILP (arg)];
-  [pool release];
-  UNBLOCK_INPUT;
+  if (!MINI_WINDOW_P (XWINDOW (f->selected_window)))
+    {
+      BLOCK_INPUT;
+      pool = [[NSAutoreleasePool alloc] init];
+      [[view window] setDocumentEdited: !NILP (arg)];
+      [pool release];
+      UNBLOCK_INPUT;
+    }
 }
 
 
