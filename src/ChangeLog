@@ -1,3 +1,14 @@
+2010-04-21  Karel Klíč  <kklic@redhat.com>
+
+	* Makefile.in (LIBSELINUX_LIBS): New.
+	(LIBES): Add $LIBSELINUX_LIBS.
+	* eval.c, lisp.h (call7): New function.
+	* fileio.c [HAVE_LIBSELINUX]: Include selinux headers.
+	(Ffile_selinux_context, Fset_file_selinux_context):
+	New functions.
+	(Fcopy_file): New parameter preserve-selinux-context.
+	(Frename_file): Preserve selinux context when renaming by copy-file.
+
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 

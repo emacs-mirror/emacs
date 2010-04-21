@@ -243,6 +243,10 @@ shared=no
 DBUS_OBJ = dbusbind.o
 #endif
 
+#ifdef HAVE_LIBSELINUX
+LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
+#endif
+
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
    at initial startup, then labeled as part of the text area when
@@ -824,7 +828,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
+   $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 

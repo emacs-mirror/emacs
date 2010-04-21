@@ -5326,7 +5326,7 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-compress-file 'dired-uncache
 		  'file-accessible-directory-p 'file-attributes
 		  'file-directory-p 'file-executable-p 'file-exists-p
-		  'file-local-copy 'file-remote-p 'file-modes
+		  'file-local-copy 'file-remote-p 'file-modes 'file-selinux-context
 		  'file-name-as-directory 'file-name-directory
 		  'file-name-nondirectory 'file-name-sans-versions
 		  'file-ownership-preserved-p 'file-readable-p

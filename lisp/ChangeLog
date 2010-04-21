@@ -1,3 +1,15 @@
+2010-04-21  Karel Klíč  <kklic@redhat.com>
+
+	* files.el (backup-buffer): Handle SELinux context, and return it
+	if a backup was made by renaming.
+	(backup-buffer-copy): Set SELinux context to the target file.
+	(basic-save-buffer): Set SELinux context of the newly written file.
+	(basic-save-buffer-1): Now it also returns any SELinux context.
+	(basic-save-buffer-2): Set SELinux context of the newly created file,
+	and return it.
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add file-selinux-context.
+
 2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-checkin, vc-modify-change-comment):

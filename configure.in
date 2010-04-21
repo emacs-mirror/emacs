@@ -161,6 +161,7 @@ OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
+OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -1731,6 +1732,17 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
    fi
 fi
 
+dnl SELinux is available for GNU/Linux only.
+HAVE_LIBSELINUX=no
+if test "${with_selinux}" = "yes"; then
+   AC_CHECK_LIB([selinux], [lgetfilecon], HAVE_LIBSELINUX=yes, HAVE_LIBSELINUX=no)
+   if test "$HAVE_LIBSELINUX" = yes; then
+      AC_DEFINE(HAVE_LIBSELINUX, 1, [Define to 1 if using SELinux.])
+      LIBSELINUX_LIBS=-lselinux
+      AC_SUBST(LIBSELINUX_LIBS)
+   fi
+fi
+
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
@@ -3083,6 +3095,7 @@ echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
+echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
