@@ -1612,6 +1612,7 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
 fi
 
 
+GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
 
   AC_SUBST(GTK_CFLAGS)
@@ -1629,6 +1630,7 @@ if test x"$pkg_check_gtk" = xyes; then
   else
     HAVE_GTK=yes
     AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
+    GTK_OBJ=gtkutil.o
     USE_X_TOOLKIT=none
     if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
       :
@@ -1642,6 +1644,7 @@ if test x"$pkg_check_gtk" = xyes; then
   fi
 
 fi
+AC_SUBST(GTK_OBJ)
 
 
 if test "${HAVE_GTK}" = "yes"; then
@@ -1713,14 +1716,17 @@ dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
 dnl other platforms.  Support for higher D-Bus versions than 1.0 is
 dnl also not configured.
 HAVE_DBUS=no
+DBUS_OBJ=
 if test "${with_dbus}" = "yes"; then
    PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
    if test "$HAVE_DBUS" = yes; then
      LIBS="$LIBS $DBUS_LIBS"
      AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
      AC_CHECK_FUNCS([dbus_watch_get_unix_fd])
+     DBUS_OBJ=dbusbind.o
    fi
 fi
+AC_SUBST(DBUS_OBJ)
 
 dnl GConf has been tested under GNU/Linux only.
 dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
@@ -2243,18 +2249,21 @@ fi
 
 ### Use session management (-lSM -lICE) if available
 HAVE_X_SM=no
+LIBXSM=
 if test "${HAVE_X11}" = "yes"; then
   AC_CHECK_HEADER(X11/SM/SMlib.h,
     [AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, , -lICE)])
 
   if test "${HAVE_X_SM}" = "yes"; then
     AC_DEFINE(HAVE_X_SM, 1, [Define to 1 if you have the SM library (-lSM).])
+    LIBXSM="-lSM -lICE"
     case "$LIBS" in
       *-lSM*) ;;
-      *)      LIBS="-lSM -lICE $LIBS" ;;
+      *)      LIBS="$LIBXSM $LIBS" ;;
     esac
   fi
 fi
+AC_SUBST(LIBXSM)
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_CACHE_CHECK(whether netdb declares h_errno,
@@ -2762,10 +2771,17 @@ AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
 AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC},
 		   [Define to the unexec source file name.])
 
+XMENU_OBJ=
+XOBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
+  XMENU_OBJ=xmenu.o
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
 fi
+AC_SUBST(XMENU_OBJ)
+AC_SUBST(XOBJ)
+
 if test "${USE_X_TOOLKIT}" != "none" ; then
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
   if test "${USE_X_TOOLKIT}" = "LUCID"; then
