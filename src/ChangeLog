@@ -1,3 +1,11 @@
+2010-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Clean up HP-UX files.
+	* m/hp800.h (NO_REMAP, VIRT_ADDR_VARIES, DATA_SEG_BITS)
+	(DATA_START, TEXT_START, LOAD_AVE_TYPE, LOAD_AVE_CVT)
+	(LDAV_SYMBOL, index, rindex): Move definitions only used in HP-UX ...
+	* s/hpux10-20.h: ... to the only user, here.
+
 2010-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_find_paragraph_start, bidi_at_paragraph_end): Don't
