@@ -12720,6 +12720,7 @@ _ACEOF
 fi
 
 HAVE_LIBSELINUX=no
+LIBSELINUX_LIBS=
 if test "${with_selinux}" = "yes"; then
    { $as_echo "$as_me:$LINENO: checking for lgetfilecon in -lselinux" >&5
 $as_echo_n "checking for lgetfilecon in -lselinux... " >&6; }
@@ -12799,9 +12800,9 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
       LIBSELINUX_LIBS=-lselinux
-
    fi
 fi
+
 
 HAVE_XAW3D=no
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
