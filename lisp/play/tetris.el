@@ -35,7 +35,7 @@
 ;; ;;;;;;;;;;;;; customization variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgroup tetris nil
-  "Play a game of tetris."
+  "Play a game of Tetris."
   :prefix "tetris-"
   :group 'games)
 
@@ -61,10 +61,10 @@
 
 (defcustom tetris-update-speed-function
   'tetris-default-update-speed-function
-  "Function run whenever the Tetris score changes
+  "Function run whenever the Tetris score changes.
 Called with two arguments: (SHAPES ROWS)
-SHAPES is the number of shapes which have been dropped
-ROWS is the number of rows which have been completed
+SHAPES is the number of shapes which have been dropped.
+ROWS is the number of rows which have been completed.
 
 If the return value is a number, it is used as the timer period."
   :group 'tetris
@@ -77,7 +77,7 @@ If the return value is a number, it is used as the timer period."
 
 (defcustom tetris-tty-colors
   [nil "blue" "white" "yellow" "magenta" "cyan" "green" "red"]
-  "Vector of colors of the various shapes in text mode
+  "Vector of colors of the various shapes in text mode.
 Element 0 is ignored."
   :group 'tetris
   :type (let ((names `("Shape 1" "Shape 2" "Shape 3"
@@ -97,7 +97,7 @@ Element 0 is ignored."
 
 (defcustom tetris-x-colors
   [nil [0 0 1] [0.7 0 1] [1 1 0] [1 0 1] [0 1 1] [0 1 0] [1 0 0]]
-  "Vector of colors of the various shapes
+  "Vector of colors of the various shapes.
 Element 0 is ignored."
   :group 'tetris
   :type 'sexp)
@@ -274,22 +274,22 @@ Element 0 is ignored."
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar tetris-mode-map
-  (make-sparse-keymap 'tetris-mode-map))
+  (let ((map (make-sparse-keymap 'tetris-mode-map)))
+    (define-key map "n"		'tetris-start-game)
+    (define-key map "q"		'tetris-end-game)
+    (define-key map "p"		'tetris-pause-game)
 
-(define-key tetris-mode-map "n"		'tetris-start-game)
-(define-key tetris-mode-map "q"		'tetris-end-game)
-(define-key tetris-mode-map "p"		'tetris-pause-game)
-
-(define-key tetris-mode-map " "		'tetris-move-bottom)
-(define-key tetris-mode-map [left]	'tetris-move-left)
-(define-key tetris-mode-map [right]	'tetris-move-right)
-(define-key tetris-mode-map [up]	'tetris-rotate-prev)
-(define-key tetris-mode-map [down]	'tetris-rotate-next)
+    (define-key map " "		'tetris-move-bottom)
+    (define-key map [left]	'tetris-move-left)
+    (define-key map [right]	'tetris-move-right)
+    (define-key map [up]	'tetris-rotate-prev)
+    (define-key map [down]	'tetris-rotate-next)
+    map))
 
 (defvar tetris-null-map
-  (make-sparse-keymap 'tetris-null-map))
-
-(define-key tetris-null-map "n"		'tetris-start-game)
+  (let ((map (make-sparse-keymap 'tetris-null-map)))
+    (define-key map "n"		'tetris-start-game)
+    map))
 
 ;; ;;;;;;;;;;;;;;;; game functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -508,7 +508,7 @@ Drops the shape one square, testing for collision."
 	    (tetris-shape-done)))))
 
 (defun tetris-move-bottom ()
-  "Drops the shape to the bottom of the playing area"
+  "Drop the shape to the bottom of the playing area."
   (interactive)
   (if (not tetris-paused)
       (let ((hit nil))
@@ -521,7 +521,7 @@ Drops the shape one square, testing for collision."
         (tetris-shape-done))))
 
 (defun tetris-move-left ()
-  "Moves the shape one square to the left"
+  "Move the shape one square to the left."
   (interactive)
   (unless (or (= tetris-pos-x 0)
               tetris-paused)
@@ -532,7 +532,7 @@ Drops the shape one square, testing for collision."
     (tetris-draw-shape)))
 
 (defun tetris-move-right ()
-  "Moves the shape one square to the right"
+  "Move the shape one square to the right."
   (interactive)
   (unless (or (= (+ tetris-pos-x (tetris-shape-width))
                  tetris-width)
@@ -544,7 +544,7 @@ Drops the shape one square, testing for collision."
     (tetris-draw-shape)))
 
 (defun tetris-rotate-prev ()
-  "Rotates the shape clockwise"
+  "Rotate the shape clockwise."
   (interactive)
   (if (not tetris-paused)
       (progn (tetris-erase-shape)
@@ -554,7 +554,7 @@ Drops the shape one square, testing for collision."
              (tetris-draw-shape))))
 
 (defun tetris-rotate-next ()
-  "Rotates the shape anticlockwise"
+  "Rotate the shape anticlockwise."
   (interactive)
   (if (not tetris-paused)
       (progn
@@ -565,14 +565,14 @@ Drops the shape one square, testing for collision."
         (tetris-draw-shape))))
 
 (defun tetris-end-game ()
-  "Terminates the current game"
+  "Terminate the current game."
   (interactive)
   (gamegrid-kill-timer)
   (use-local-map tetris-null-map)
   (gamegrid-add-score tetris-score-file tetris-score))
 
 (defun tetris-start-game ()
-  "Starts a new game of Tetris"
+  "Start a new game of Tetris."
   (interactive)
   (tetris-reset-game)
   (use-local-map tetris-mode-map)
@@ -581,7 +581,7 @@ Drops the shape one square, testing for collision."
     (gamegrid-start-timer period 'tetris-update-game)))
 
 (defun tetris-pause-game ()
-  "Pauses (or resumes) the current game"
+  "Pause (or resume) the current game."
   (interactive)
   (setq tetris-paused (not tetris-paused))
   (message (and tetris-paused "Game paused (press p to resume)")))
@@ -591,20 +591,12 @@ Drops the shape one square, testing for collision."
 
 (put 'tetris-mode 'mode-class 'special)
 
-(defun tetris-mode ()
-  "A mode for playing Tetris.
-
-tetris-mode keybindings:
-   \\{tetris-mode-map}
-"
-  (kill-all-local-variables)
+(define-derived-mode tetris-mode nil "Tetris"
+  "A mode for playing Tetris."
 
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map tetris-null-map)
-
-  (setq major-mode 'tetris-mode)
-  (setq mode-name "Tetris")
 
   (unless (featurep 'emacs)
     (setq mode-popup-menu
@@ -617,12 +609,12 @@ tetris-mode keybindings:
 	    ["Resume"		tetris-pause-game
 	     (and (tetris-active-p) tetris-paused)])))
 
+  (setq show-trailing-whitespace nil)
+
   (setq gamegrid-use-glyphs tetris-use-glyphs)
   (setq gamegrid-use-color tetris-use-color)
 
-  (gamegrid-init (tetris-display-options))
-
-  (run-mode-hooks 'tetris-mode-hook))
+  (gamegrid-init (tetris-display-options)))
 
 ;;;###autoload
 (defun tetris ()
@@ -645,6 +637,8 @@ tetris-mode keybindings:
 "
   (interactive)
 
+  (select-window (or (get-buffer-window tetris-buffer-name)
+		     (selected-window)))
   (switch-to-buffer tetris-buffer-name)
   (gamegrid-kill-timer)
   (tetris-mode)

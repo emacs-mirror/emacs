@@ -125,6 +125,7 @@ If SETUP is 'force, this variable has no effect."
   :type 'boolean)
 
 (defcustom log-edit-hook '(log-edit-insert-cvs-template
+                           log-edit-show-files
 			   log-edit-insert-changelog)
   "Hook run at the end of `log-edit'."
   :group 'log-edit
@@ -188,22 +189,6 @@ when this variable is set to nil.")
 (defvar log-edit-callback nil)
 (defvar log-edit-diff-function nil)
 (defvar log-edit-listfun nil)
-(defvar log-edit-extra-flags nil
-  "List of extra flags to pass to the check in command.")
-(defvar log-edit-before-checkin-process nil
-  "Alist with instructions for processing the commit message before check in.
-The format is: (REGEXP . INSTRUCTIONS).
-All lines matching REGEXP are removed.  For example:
-
-\(\"^#.*\" . nil)
-
-means: just remove all lines starting with #.  This can be used
-to insert lines in the commit buffer that contain, for example, the
-list of files to be committed.
-
-\(\"Author: \\\\(.*\\\\)\" . (list \"--author\" (match-string 1)))
-
-means: append (list \"--author\" (match-string 1)) to `log-edit-extra-flags'.")
 
 (defvar log-edit-parent-buffer nil)
 
@@ -329,10 +314,53 @@ automatically."
 ;;; Actual code
 ;;;
 
+(defface log-edit-summary '((t :inherit font-lock-function-name-face))
+  "Face for the summary in `log-edit-mode' buffers.")
+
+(defface log-edit-header '((t :inherit font-lock-keyword-face))
+  "Face for the headers in `log-edit-mode' buffers.")
+
+(defface log-edit-unknown-header '((t :inherit font-lock-comment-face))
+  "Face for unknown headers in `log-edit-mode' buffers.")
+
+(defvar log-edit-headers-alist '(("Summary" . log-edit-summary)
+                                 ("Fixes") ("Author"))
+  "AList of known headers and the face to use to highlight them.")
+
+(defconst log-edit-header-contents-regexp
+  "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
+
+(defun log-edit-match-to-eoh (limit)
+  ;; FIXME: copied from message-match-to-eoh.
+  (let ((start (point)))
+    (rfc822-goto-eoh)
+    ;; Typical situation: some temporary change causes the header to be
+    ;; incorrect, so EOH comes earlier than intended: the last lines of the
+    ;; intended headers are now not considered part of the header any more,
+    ;; so they don't have the multiline property set.  When the change is
+    ;; completed and the header has its correct shape again, the lack of the
+    ;; multiline property means we won't rehighlight the last lines of
+    ;; the header.
+    (if (< (point) start)
+        nil                             ;No header within start..limit.
+      ;; Here we disregard LIMIT so that we may extend the area again.
+      (set-match-data (list start (point)))
+      (point))))
+
 (defvar log-edit-font-lock-keywords
-  '(("\\`\\(Summary:\\)\\(.*\\)"
-     (1 font-lock-keyword-face)
-     (2 font-lock-function-name-face))))
+  ;; Copied/inspired by message-font-lock-keywords.
+  `((log-edit-match-to-eoh
+     (,(concat "^\\(\\([a-z]+\\):\\)" log-edit-header-contents-regexp
+               "\\|\\(.*\\)")
+      (progn (goto-char (match-beginning 0)) (match-end 0)) nil
+      (1 (if (assoc (match-string 2) log-edit-headers-alist)
+             'log-edit-header
+           'log-edit-unknown-header)
+         nil lax)
+      (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
+             'log-edit-header)
+         nil lax)
+      (4 font-lock-warning-face)))))
 
 ;;;###autoload
 (defun log-edit (callback &optional setup params buffer mode &rest ignore)
@@ -358,7 +386,10 @@ uses the current buffer."
     (if buffer (pop-to-buffer buffer))
     (when (and log-edit-setup-invert (not (eq setup 'force)))
       (setq setup (not setup)))
-    (when setup (erase-buffer))
+    (when setup
+      (erase-buffer)
+      (insert "Summary: ")
+      (save-excursion (insert "\n\n")))
     (if mode
 	(funcall mode)
       (log-edit-mode))
@@ -387,7 +418,7 @@ commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
-       '(log-edit-font-lock-keywords t))
+       '(log-edit-font-lock-keywords t t))
   (make-local-variable 'log-edit-comment-ring-index)
   (hack-dir-local-variables-non-file-buffer))
 
@@ -401,6 +432,17 @@ commands (under C-x v for VC, for example).
   "Finish editing the log message and commit the files.
 If you want to abort the commit, simply delete the buffer."
   (interactive)
+  ;; Clean up empty headers.
+  (goto-char (point-min))
+  (while (looking-at (concat "^[a-z]*:" log-edit-header-contents-regexp))
+    (let ((beg (match-beginning 0)))
+      (goto-char (match-end 0))
+      (if (string-match "\\`[ \n\t]*\\'" (match-string 1))
+          (delete-region beg (point)))))
+  ;; Get rid of leading empty lines.
+  (goto-char (point-min))
+  (when (looking-at "\\([ \t]*\n\\)+")
+    (delete-region (match-beginning 0) (match-end 0)))
   ;; Get rid of trailing empty lines
   (goto-char (point-max))
   (skip-syntax-backward " ")
@@ -458,12 +500,13 @@ If you want to abort the commit, simply delete the buffer."
   "(Un)Indent the current buffer rigidly to `log-edit-common-indent'."
   (save-excursion
     (let ((common (point-max)))
-      (goto-char (point-min))
+      (rfc822-goto-eoh)
       (while (< (point) (point-max))
         (if (not (looking-at "^[ \t]*$"))
             (setq common (min common (current-indentation))))
         (forward-line 1))
-      (indent-rigidly (point-min) (point-max)
+      (rfc822-goto-eoh)
+      (indent-rigidly (point) (point-max)
 		      (- log-edit-common-indent common)))))
 
 (defun log-edit-show-diff ()
@@ -546,6 +589,10 @@ If the optional prefix arg USE-FIRST is given (via \\[universal-argument]),
 or if the command is repeated a second time in a row, use the first log entry
 regardless of user name or time."
   (interactive "P")
+  (let ((eoh (save-excursion (rfc822-goto-eoh) (point))))
+    (when (<= (point) eoh)
+      (goto-char eoh)
+      (if (looking-at "\n") (forward-char 1))))
   (let ((log-edit-changelog-use-first
 	 (or use-first (eq last-command 'log-edit-insert-changelog))))
     (log-edit-insert-changelog-entries (log-edit-files)))
@@ -731,16 +778,39 @@ Sort REGIONS front-to-back first."
       (log-edit-changelog-insert-entries (car buffer-entry) (cdr buffer-entry))
       (when (cdr buffer-entry) (newline)))))
 
-(defun log-view-process-buffer ()
-  (when log-edit-before-checkin-process
-    (dolist (crt log-edit-before-checkin-process)
-      ;; Remove all lines matching (car crt)
-      ;; Append to `log-edit-extra-flags' the results of (cdr crt).
+(defun log-edit-extract-headers (headers comment)
+  "Extract headers from COMMENT to form command line arguments.
+HEADERS should be an alist with elements of the form (HEADER . CMDARG)
+associating header names to the corresponding cmdline option name and the
+result is then a list of the form (MSG CMDARG1 HDRTEXT1 CMDARG2 HDRTEXT2...).
+where MSG is the remaining text from STRING.
+If \"Summary\" is not in HEADERS, then the \"Summary\" header is extracted
+anyway and put back as the first line of MSG."
+  (with-temp-buffer
+    (insert comment)
+    (rfc822-goto-eoh)
+    (narrow-to-region (point-min) (point))
+    (let ((case-fold-search t)
+          (summary ())
+          (res ()))
+      (dolist (header (if (assoc "Summary" headers) headers
+                        (cons '("Summary" . t) headers)))
+        (goto-char (point-min))
+        (while (re-search-forward (concat "^" (car header)
+                                          ":" log-edit-header-contents-regexp)
+                                  nil t)
+          (if (eq t (cdr header))
+              (setq summary (match-string 1))
+            (push (match-string 1) res)
+            (push (or (cdr header) (car header)) res))
+          (replace-match "" t t)))
+      ;; Remove header separator if the header is empty.
+      (widen)
       (goto-char (point-min))
-      (while (re-search-forward (car crt) nil t)
-	(when (cdr crt)
-	  (setq log-edit-extra-flags (append log-edit-extra-flags (eval (cdr crt)))))
-	(replace-match "" nil t)))))
+      (when (looking-at "\\([ \t]*\n\\)+")
+        (delete-region (match-beginning 0) (match-end 0)))
+      (if summary (insert summary "\n"))
+      (cons (buffer-string) res))))
 
 (provide 'log-edit)
 

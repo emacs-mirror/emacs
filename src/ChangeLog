@@ -1,3 +1,128 @@
+2010-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Clean up HP-UX files.
+	* m/hp800.h (NO_REMAP, VIRT_ADDR_VARIES, DATA_SEG_BITS)
+	(DATA_START, TEXT_START, LOAD_AVE_TYPE, LOAD_AVE_CVT)
+	(LDAV_SYMBOL, index, rindex): Move definitions only used in HP-UX ...
+	* s/hpux10-20.h: ... to the only user, here.
+
+2010-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_find_paragraph_start, bidi_at_paragraph_end): Don't
+	use buffer-local values of paragraph-start and paragraph-separate.
+	<paragraph_start_re, paragraph_separate_re>: Rename from
+	fallback_paragraph_start_re and fallback_paragraph_separate_re.
+	(Bug#5992)
+
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c: Qmonospace_font_name, Qtool_bar_style and
+	current_tool_bar_style are new.
+	(store_config_changed_event): Rename from store_font_changed_event.
+	(XSETTINGS_TOOL_BAR_STYLE): New define.
+	(SEEN_FONT, SEEN_TB_STYLE): New enum values.
+	(struct xsettings): Add font and tb_style, set xft stuff inside #ifdef
+	HAVE_XFT.
+	(something_changedCB): store_font_changed_event is now
+	store_config_changed_event
+	(parse_settings): Rename from parse_xft_settings.  Read
+	non-xft xsettings outside #ifdef HAVE_XFT.
+	(read_settings): Renamed from read_xft_settings.
+	(apply_xft_settings): Take current settings as parameter.  Do not
+	call read_(xft)_settings.
+	(read_and_apply_settings): New function.
+	(xft_settings_event): Do non-xft stuff out of HAVE_XFT.  Call
+	read_and_apply_settings if there are settings to be read.
+	(init_xsettings): Renamed from init_xfd_settings.
+	Call read_and_apply_settings unconditionally.
+	(xsettings_initialize): Call init_xsettings.
+	(Ftool_bar_get_system_style): New function.
+	(syms_of_xsettings): Define Qmonospace_font_name and
+	Qtool_bar_style.  Initialize current_tool_bar_style to nil.
+	defsubr Stool_bar_get_system_style. Fprovide on
+	dynamic-setting.
+	Move misplaced HAVE_GCONF
+
+	* xsettings.h (Ftool_bar_get_system_style): Declare.
+
+	* xdisp.c: Vtool_bar_style, tool_bar_max_label_size,
+	Qtext, Qboth, Qboth_horiz are new.
+	(syms_of_xdisp): Intern Qtext, Qboth, Qboth_horiz, DEFVAR
+	Vtool_bar_style, tool_bar_max_label_size.
+
+	* lisp.h: Extern declare Qtext, Qboth, Qboth_horiz.
+
+	* keyboard.c: QClabel is new.
+	(parse_tool_bar_item): Take out QClabel from tool bar items.
+	Try to construct a label if ther is no QClabel.
+	(syms_of_keyboard): Intern :label as QClabel.
+
+	* dispextern.h (tool_bar_item_idx): TOOL_BAR_ITEM_LABEL is new.
+	(Vtool_bar_style, tool_bar_max_label_size, DEFAULT_TOOL_BAR_LABEL_SIZE):
+	New.
+
+	* Makefile.in (SOME_MACHINE_LISP): font-setting.el renamed to
+	dynamic-setting.el.
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle label in tool bar item.
+	(xg_make_tool_item, xg_show_toolbar_item): New function.
+	(update_frame_tool_bar): Take label from TOOL_BAR_ITEM_LABEL.
+	Call xg_make_tool_item to make a tool bar item.
+	Call xg_show_toolbar_item.  Use wtoolbar instead of x->toolbar_widget.
+
+	* xterm.c (x_draw_image_relief): Take Vtool_bar_button_margin
+	into account for toolbars.
+
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* data.c (make_blv): Declarations before code (Bug#5993).
+
+2010-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (DBUS_OBJ, GTK_OBJ, XMENU_OBJ, XOBJ):
+	Define using autoconf, not cpp.
+	(LIBXSM): New variable, set by autoconf.
+	(LIBXT): Use $LIBXSM.
+
+2010-04-21  Dan Nicolaescu  <local_user@dannlt>
+
+	Remove NOMULTIPLEJOBS, unused.
+	* s/template.h (NOMULTIPLEJOBS):
+	* s/msdos.h (NOMULTIPLEJOBS): Remove, unused.
+
+	Simplify LD_SWITCH_SYSTEM_TEMACS usage.
+	* s/freebsd.h (LD_SWITCH_SYSTEM_TEMACS):
+	* s/gnu-linux.h (LD_SWITCH_SYSTEM_TEMACS): Remove, configure
+	detects -znocombreloc and passes it to the linker
+	* s/hpux10-20.h (LD_SWITCH_SYSTEM_TEMACS): Remove, empty.
+
+2010-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBSELINUX_LIBS): Move out of #ifdef.
+
+2010-04-21  Karel Klíč  <kklic@redhat.com>
+
+	* Makefile.in (LIBSELINUX_LIBS): New.
+	(LIBES): Add $LIBSELINUX_LIBS.
+	* eval.c, lisp.h (call7): New function.
+	* fileio.c [HAVE_LIBSELINUX]: Include selinux headers.
+	(Ffile_selinux_context, Fset_file_selinux_context):
+	New functions.
+	(Fcopy_file): New parameter preserve-selinux-context.
+	(Frename_file): Preserve selinux context when renaming by copy-file.
+
+2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	Don't depend on cm.c or termcap.c on Windows, use stubs.
+	* makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
+	($(BLD)/cm.$(O), $(BLD)/termcap.$(O)): Remove.
+	* w32console.c (current_tty, cost): New vars; lifted from cm.c.
+	(evalcost, cmputc, cmcheckmagic, cmcostinit, cmgoto, Wcm_clear)
+	(sys_tputs, sys_tgetstr): New stubs.
+	* s/ms-w32.h (chcheckmagic, cmcostinit, cmgoto, cmputc, Wcm_clear)
+	(tputs, tgetstr): New; define to sys_*.
+
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <bidi-display-reordering>: Doc fix.
@@ -187,14 +312,6 @@
 
 	* frame.h (FRAME_LINE_TO_PIXEL_Y): Add missing parenthesis.
 
-2010-04-19  Jan Djärv  <jan.h.d@swipnet.se>
-
-	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use
-	FRAME_LINE_TO_PIXEL_Y.
-
-	* xterm.c (x_set_window_size_1): Don't add border_width/height to
-	pixelwidth/height.
-
 2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
@@ -329,7 +446,8 @@
 
 2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE): Undefine.
+	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE):
+	Undefine.
 
 2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -403,10 +521,10 @@
 	(parse_xft_settings): Also check for XSETTINGS_FONT_NAME and save that
 	in current_font.
 	(init_gconf): Read value of SYSTEM_FONT and save it in current_font.
-	(Ffont_get_system_normal_font, xsettings_get_system_normal_font): New
-	functions.
-	(syms_of_xsettings): Initialize current_font. defsubr
-	Sfont_get_system_normal_font.
+	(Ffont_get_system_normal_font, xsettings_get_system_normal_font):
+	New functions.
+	(syms_of_xsettings): Initialize current_font.
+	defsubr Sfont_get_system_normal_font.
 
 	* xsettings.h (Ffont_get_system_normal_font,
 	xsettings_get_system_normal_font): Declare.
@@ -3033,7 +3151,7 @@
 	* xterm.h: Rename x_non_menubar_window_to_frame to
 	x_menubar_window_to_frame.
 
-	* xterm.c: Remove declarations also in xterm.h
+	* xterm.c: Remove declarations also in xterm.h.
 	(XTmouse_position): Do not return valid positions
 	for clicks in the menubar and the toolbar for Gtk+.
 
@@ -3593,7 +3711,7 @@
 2009-07-04  Eli Zaretskii  <eliz@gnu.org>
 
 	Emulation of `getloadavg' on MS-Windows.
-	* w32.c: Include float.h
+	* w32.c: Include float.h.
 	(g_b_init_get_native_system_info, g_b_init_get_system_times)
 	(GetNativeSystemInfo_Proc, GetSystemTimes_Proc): Declare.
 	(get_native_system_info, get_system_times): New functions.
@@ -9539,7 +9657,7 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fileio.c:
-	* sysdep.c
+	* sysdep.c:
 	* systty.h:
 	* m/ibmrs6000.h:
 	* m/iris4d.h:

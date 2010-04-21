@@ -82,15 +82,25 @@ C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
+DBUS_OBJ = @DBUS_OBJ@
 
 GCONF_CFLAGS = @GCONF_CFLAGS@
 GCONF_LIBS = @GCONF_LIBS@
+
+GTK_OBJ=@GTK_OBJ@
+
+LIBXSM=@LIBXSM@
+
+XMENU_OBJ=@XMENU_OBJ@
+XOBJ=@XOBJ@
 
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
 RSVG_LIBS= @RSVG_LIBS@
 RSVG_CFLAGS= @RSVG_CFLAGS@
+
+LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
 
@@ -239,10 +249,6 @@ include @GNUSTEP_MAKEFILES@/Additional/gui.make
 shared=no
 #endif
 
-#ifdef HAVE_DBUS
-DBUS_OBJ = dbusbind.o
-#endif
-
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
    at initial startup, then labeled as part of the text area when
@@ -280,15 +286,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 #endif
 
 #ifdef HAVE_X_WINDOWS
-XMENU_OBJ = xmenu.o
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o \
-      xsettings.o xgselect.o
-
 #ifdef HAVE_MENUS
-
-#ifdef USE_GTK
-GTK_OBJ= gtkutil.o
-#endif
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -352,11 +350,7 @@ OLDXMENU=
 LIBXMENU=
 #endif /* USE_GTK */
 
-#ifdef HAVE_X_SM
-LIBXT=$(LIBW) -lSM -lICE
-#else
-LIBXT=$(LIBW)
-#endif
+LIBXT=$(LIBW) $(LIBXSM)
 #endif /* not USE_X_TOOLKIT */
 
 #ifdef HAVE_X11
@@ -572,7 +566,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
  ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
  ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc \
- ${lispsource}font-setting.elc
+ ${lispsource}dynamic-setting.elc
 #else
 #define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
@@ -807,7 +801,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/tooltip.elc ../lisp/image.elc \
   ../lisp/fringe.elc ../lisp/dnd.elc \
   ../lisp/mwheel.elc ../lisp/tool-bar.elc \
-  ../lisp/x-dnd.elc ../lisp/font-setting.elc \
+  ../lisp/x-dnd.elc ../lisp/dynamic-setting.elc \
   ../lisp/international/ccl.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
@@ -824,7 +818,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
+   $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 

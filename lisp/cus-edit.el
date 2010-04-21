@@ -739,25 +739,31 @@ groups after non-groups, if nil do not order groups at all."
 (defvar custom-commands
   '(("Set for current session" Custom-set t
      "Apply all settings in this buffer to the current session"
-     "index")
+     "index"
+     "Apply")
     ("Save for future sessions" Custom-save
      (or custom-file user-init-file)
      "Apply all settings in this buffer and save them for future Emacs sessions."
-     "save")
+     "save"
+     "Save")
     ("Undo edits" Custom-reset-current t
      "Restore all settings in this buffer to reflect their current values."
-     "refresh")
+     "refresh"
+     "Undo")
     ("Reset to saved" Custom-reset-saved t
      "Restore all settings in this buffer to their saved values (if any)."
-     "undo")
+     "undo"
+     "Reset")
     ("Erase customizations" Custom-reset-standard
      (or custom-file user-init-file)
      "Un-customize all settings in this buffer and save them with standard values."
-     "delete")
+     "delete"
+     "Uncustomize")
     ("Help for Customize" Custom-help t
      "Get help for using Customize."
-     "help")
-    ("Exit" Custom-buffer-done t "Exit Customize." "exit")))
+     "help"
+     "Help")
+    ("Exit" Custom-buffer-done t "Exit Customize." "exit" "Exit")))
 
 (defun Custom-help ()
   "Read the node on Easy Customization in the Emacs manual."
@@ -1616,7 +1622,7 @@ Otherwise use brackets."
     (if custom-buffer-verbose-help
 	(widget-insert "
  Operate on all settings in this buffer:\n"))
-    (let ((button (lambda (tag action active help icon)
+    (let ((button (lambda (tag action active help icon label)
 		    (widget-insert " ")
 		    (if (eval active)
 			(widget-create 'push-button :tag tag
@@ -4680,7 +4686,8 @@ if that value is non-nil."
 	     (mapc
 	      (lambda (arg)
 		(tool-bar-local-item-from-menu
-		 (nth 1 arg) (nth 4 arg) map custom-mode-map))
+		 (nth 1 arg) (nth 4 arg) map custom-mode-map
+		 :label (nth 5 arg)))
 	      custom-commands)
 	     (setq custom-tool-bar-map map))))
   (make-local-variable 'custom-options)

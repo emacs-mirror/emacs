@@ -2952,6 +2952,33 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
 #endif /* not NO_ARG_ARRAY */
 }
 
+/* Call function fn with 7 arguments arg1, arg2, arg3, arg4, arg5, arg6, arg7 */
+/* ARGSUSED */
+Lisp_Object
+call7 (fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+     Lisp_Object fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7;
+{
+  struct gcpro gcpro1;
+#ifdef NO_ARG_ARRAY
+  Lisp_Object args[8];
+  args[0] = fn;
+  args[1] = arg1;
+  args[2] = arg2;
+  args[3] = arg3;
+  args[4] = arg4;
+  args[5] = arg5;
+  args[6] = arg6;
+  args[7] = arg7;
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 8;
+  RETURN_UNGCPRO (Ffuncall (8, args));
+#else /* not NO_ARG_ARRAY */
+  GCPRO1 (fn);
+  gcpro1.nvars = 8;
+  RETURN_UNGCPRO (Ffuncall (8, &fn));
+#endif /* not NO_ARG_ARRAY */
+}
+
 /* The caller should GCPRO all the elements of ARGS.  */
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,

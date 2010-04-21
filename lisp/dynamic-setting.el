@@ -1,10 +1,10 @@
-;;; font-setting.el --- Support dynamic font changes
+;;; dynamic-setting.el --- Support dynamic changes
 
 ;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
-;; Keywords: font, system-font
+;; Keywords: font, system-font, tool-bar-style
 
 ;; This file is part of GNU Emacs.
 
@@ -81,21 +81,25 @@ current form for the frame (i.e. hinting or somesuch changed)."
 	  (custom-push-theme 'theme-face 'default 'user 'set spec)
 	  (put 'default 'face-modified nil))))))
 
-(defun font-setting-handle-config-changed-event (event)
-  "Handle config-changed-event to change fonts on the display in EVENT.
-If `font-use-system-font' is nil, the font is not changed."
+(defun dynamic-setting-handle-config-changed-event (event)
+  "Handle config-changed-event on the display in EVENT.
+Changes can be
+  The monospace font. If `font-use-system-font' is nil, the font
+    is not changed.
+  Xft parameters, like DPI and hinting.
+  The tool bar style."
   (interactive "e")
-  (let ((type (nth 1 event)) ;; font-name or font-render
+  (let ((type (nth 1 event))
 	(display-name (nth 2 event)))
-    (if (or (not (eq type 'font-name))
-	    font-use-system-font)
-	(font-setting-change-default-font display-name
-					  (eq type 'font-name)))))
+    (cond ((and (eq type 'monospace-font-name) font-use-system-font)
+	   (font-setting-change-default-font display-name t))
 
-(if (or (featurep 'system-font-setting) (featurep 'font-render-setting))
-  (define-key special-event-map [config-changed-event]
-    'font-setting-handle-config-changed-event))
+	  ((eq type 'font-render)
+	   (font-setting-change-default-font display-name nil))
 
-(provide 'font-setting)
+	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
+
+(define-key special-event-map [config-changed-event]
+  'dynamic-setting-handle-config-changed-event)
 
 ;; arch-tag: 3a57e78f-1cd6-48b6-ab75-98f160dcc017

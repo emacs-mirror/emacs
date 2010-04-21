@@ -357,6 +357,14 @@ EMACS_INT tool_bar_button_relief;
 
 Lisp_Object Vauto_resize_tool_bars;
 
+/* Type of tool bar.  Can be symbols image, text, both or both-hroiz.  */
+
+Lisp_Object Vtool_bar_style;
+
+/* Maximum number of characters a label can have to be shown.  */
+
+EMACS_INT tool_bar_max_label_size;
+
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
    drawn as wide as that tab on the display.  */
@@ -442,13 +450,16 @@ Lisp_Object Qescape_glyph;
 Lisp_Object Qnobreak_space;
 
 /* The symbol `image' which is the car of the lists used to represent
-   images in Lisp.  */
+   images in Lisp.  Also a tool bar style.  */
 
 Lisp_Object Qimage;
 
 /* The image map types.  */
 Lisp_Object QCmap, QCpointer;
 Lisp_Object Qrect, Qcircle, Qpoly;
+
+/* Tool bar styles */
+Lisp_Object Qtext, Qboth, Qboth_horiz;
 
 /* Non-zero means print newline to stdout before next mini-buffer
    message.  */
@@ -25781,6 +25792,12 @@ syms_of_xdisp ()
   staticpro (&Qnobreak_space);
   Qimage = intern_c_string ("image");
   staticpro (&Qimage);
+  Qtext = intern_c_string ("text");
+  staticpro (&Qtext);
+  Qboth = intern_c_string ("both");
+  staticpro (&Qboth);
+  Qboth_horiz = intern_c_string ("both-horiz");
+  staticpro (&Qboth_horiz);
   QCmap = intern_c_string (":map");
   staticpro (&QCmap);
   QCpointer = intern_c_string (":pointer");
@@ -26120,6 +26137,22 @@ vertical margin.  */);
   DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
     doc: /* *Relief thickness of tool-bar buttons.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
+
+  DEFVAR_LISP ("tool-bar-style", &Vtool_bar_style,
+    doc: /* *Tool bar style to use.
+It can be one of
+ image      - show images only
+ text       - show text only
+ both       - show both, text under image
+ both-horiz - show text to the right of the image
+ any other  - use system default or image if no system default.  */);
+  Vtool_bar_style = Qnil;
+
+  DEFVAR_INT ("tool-bar-max-label-size", &tool_bar_max_label_size,
+    doc: /* *Maximum number of characters a label can have to be shown.
+The tool bar style must also show labels for this to have any effect, see
+`tool-bar-style'.  */);
+  tool_bar_max_label_size = DEFAULT_TOOL_BAR_LABEL_SIZE;
 
   DEFVAR_LISP ("fontification-functions", &Vfontification_functions,
     doc: /* List of functions to call to fontify regions of text.

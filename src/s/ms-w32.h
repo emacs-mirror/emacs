@@ -260,6 +260,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define kill    sys_kill
 #define signal  sys_signal
 
+/* termcap.c calls that are emulated */
+#define tputs   sys_tputs
+#define tgetstr sys_tgetstr
+
+/* cm.c calls that are emulated */
+#define chcheckmagic sys_chcheckmagic
+#define cmcostinit   sys_cmcostinit
+#define cmgoto       sys_cmgoto
+#define cmputc       sys_cmputc
+#define Wcm_clear    sys_Wcm_clear
+
 #endif /* emacs */
 
 /* map to MSVC names */

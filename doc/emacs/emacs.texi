@@ -1375,12 +1375,12 @@ Janik, Paul Jarc, Ulf Jasper, Michael K. Johnson, Kyle Jones, Terry
 Jones, Simon Josefsson, Arne J@o{}rgensen, Tomoji Kagatani, Brewster
 Kahle, Tokuya Kameshima, Lute Kamstra, David Kastrup, David Kaufman,
 Henry Kautz, Taichi Kawabata, Howard Kaye, Michael Kifer, Richard King,
-Peter Kleiweg, Shuhei Kobayashi, Pavel Kobiakov, Larry K.@: Kolodney,
-David M.@: Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian
-Kremer, Ryszard Kubiak, David K@aa{}gedal, Daniel LaLiberte, Karl
-Landstrom, Mario Lang, Aaron Larson, James R.@: Larus, Vinicius Jose
-Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Lars
-Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link, Juri Linkov,
+Peter Kleiweg, Karel Kl@'{@dotless{i}}@v{c}, Shuhei Kobayashi, Pavel
+Kobiakov, Larry K.@: Kolodney, David M.@: Koppelman, Koseki Yoshinori,
+Robert Krawitz, Sebastian Kremer, Ryszard Kubiak, David K@aa{}gedal, Daniel
+LaLiberte, Karl Landstrom, Mario Lang, Aaron Larson, James R.@: Larus,
+Vinicius Jose Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg,
+Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link, Juri Linkov,
 Francis Litterio, Emilio C. Lopes, K@'{a}roly L@H{o}rentey, Dave Love,
 Sascha L@"{u}decke, Eric Ludlam, Alan Mackenzie, Christopher J.@:
 Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon

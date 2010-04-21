@@ -1,3 +1,107 @@
+2010-04-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#5840.
+
+	* icomplete.el (icomplete-completions): Use `non-essential'.
+
+	* net/tramp.el (tramp-connectable-p): New defun.
+	(tramp-handle-expand-file-name)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Use it.
+
+2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Try and handle errors.
+
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vc-dir.el (vc-dir-tool-bar-map): Add :label on some tool bar items.
+
+	* tool-bar.el (tool-bar-setup): Add :label on some tool bar items.
+
+	* loadup.el: Load dynamic-setting.el if feature dynamic-setting
+	is present.
+
+	* info.el (info-tool-bar-map): Add labels.
+
+	* cus-start.el (all): Add tool-bar-style and tool-bar-max-label-size.
+
+	* cus-edit.el (custom-commands): Add labels for tool bar.
+	(custom-buffer-create-internal, Custom-mode): Adjust for
+	labels in custom-commands.
+
+	* dynamic-setting.el: Renamed from font-setting.el.
+
+2010-04-21  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-init-completion-maps): For ido-switch-buffer, C-o
+	toggles the use of virtual buffers.
+	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global
+	value.
+	(ido-toggle-virtual-buffers): New function.
+
+2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	Use `define-derived-mode'; fix window selection; doc fixes.
+	* play/tetris.el (tetris, tetris-update-speed-function)
+	(tetris-tty-colors, tetris-x-colors, tetris-move-bottom)
+	(tetris-move-left, tetris-move-right, tetris-rotate-prev)
+	(tetris-rotate-next, tetris-end-game, tetris-start-game)
+	(tetris-pause-game): Fix typos in docstrings.
+	(tetris-mode-map, tetris-null-map):
+	Move initialization into declaration.
+	(tetris-mode): Define with `define-derived-mode';
+	set show-trailing-whitespace to nil.
+	(tetris): Prefer window already displaying the "*Tetris*" buffer.
+
+2010-04-21  Karel Klíč  <kklic@redhat.com>
+
+	* files.el (backup-buffer): Handle SELinux context, and return it
+	if a backup was made by renaming.
+	(backup-buffer-copy): Set SELinux context to the target file.
+	(basic-save-buffer): Set SELinux context of the newly written file.
+	(basic-save-buffer-1): Now it also returns any SELinux context.
+	(basic-save-buffer-2): Set SELinux context of the newly created file,
+	and return it.
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add file-selinux-context.
+
+2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-checkin, vc-modify-change-comment):
+	Adjust to new vc-start/finish-logentry.
+	(vc-find-conflicted-file): New command.
+	(vc-transfer-file): Adjust to new vc-checkin.
+	(vc-next-action): Improve scoping.
+
+	* vc-hg.el (vc-hg-log-edit-mode): Remove.
+	(vc-hg-checkin): Remove extra arg.  Use log-edit-extract-headers.
+
+	* vc-git.el (vc-git-log-edit-mode): Remove.
+	(vc-git-checkin): Remove extra arg.  Use log-edit-extract-headers.
+	(vc-git-commits-coding-system): Rename from git-commits-coding-system.
+
+	* vc-dispatcher.el (vc-log-edit): Shorten names for log-edit-show-files.
+	(vc-start-logentry): Remove argument `extra'.
+	(vc-finish-logentry): Remove extra args.
+
+	* vc-bzr.el (vc-bzr-log-edit-mode): Remove.
+	(vc-bzr-checkin): Remove extra arg.  Use log-edit-extract-headers.
+	(vc-bzr-conflicted-files): New function.
+
+	* log-edit.el (log-edit-extra-flags)
+	(log-edit-before-checkin-process): Remove.
+	(log-edit-summary, log-edit-header, log-edit-unknown-header): New faces.
+	(log-edit-headers-alist): New var.
+	(log-edit-header-contents-regexp): New const.
+	(log-edit-match-to-eoh): New function.
+	(log-edit-font-lock-keywords): Use them.
+	(log-edit): Insert a "Summary:" header as default.
+	(log-edit-mode): Mark font-lock rules as case-insensitive.
+	(log-edit-done): Cleanup headers.
+	(log-view-process-buffer): Remove.
+	(log-edit-extract-headers): New function to replace it.
+
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (default-direction-reversed): Remove obsolescence info.

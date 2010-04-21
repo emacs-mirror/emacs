@@ -633,10 +633,12 @@ considered."
   ;; FIXME: the `end' could be after point?
   (let* ((pos (point))
          (beg (with-syntax-table emacs-lisp-mode-syntax-table
-                (save-excursion
-                  (backward-sexp 1)
-                  (skip-syntax-forward "'")
-                  (point))))
+                (condition-case nil
+                    (save-excursion
+                      (backward-sexp 1)
+                      (skip-syntax-forward "'")
+                      (point))
+                  (scan-error pos))))
          (predicate
           (or predicate
               (save-excursion
@@ -658,12 +660,14 @@ considered."
                     'fboundp)))))
          (end
           (unless (or (eq beg (point-max))
-                      (member (char-syntax (char-after beg)) '(?\( ?\))))
-            (save-excursion
-              (goto-char beg)
-              (forward-sexp 1)
-              (when (>= (point) pos)
-                (point))))))
+                      (member (char-syntax (char-after beg)) '(?\" ?\( ?\))))
+            (condition-case nil
+                (save-excursion
+                  (goto-char beg)
+                  (forward-sexp 1)
+                  (when (>= (point) pos)
+                    (point)))
+                  (scan-error pos)))))
     (when end
       (list beg end obarray
             :predicate predicate

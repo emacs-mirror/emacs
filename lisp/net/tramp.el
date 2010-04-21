@@ -4225,7 +4225,7 @@ the result will be a local, non-Tramp, filename."
   (unless (file-name-absolute-p name)
     (setq name (concat (file-name-as-directory dir) name)))
   ;; If NAME is not a Tramp file, run the real handler.
-  (if (not (tramp-tramp-file-p name))
+  (if (not (tramp-connectable-p name))
       (tramp-run-real-handler 'expand-file-name (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
@@ -5326,7 +5326,7 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-compress-file 'dired-uncache
 		  'file-accessible-directory-p 'file-attributes
 		  'file-directory-p 'file-executable-p 'file-exists-p
-		  'file-local-copy 'file-remote-p 'file-modes
+		  'file-local-copy 'file-remote-p 'file-modes 'file-selinux-context
 		  'file-name-as-directory 'file-name-directory
 		  'file-name-nondirectory 'file-name-sans-versions
 		  'file-ownership-preserved-p 'file-readable-p
@@ -5647,6 +5647,15 @@ should never be set globally, the intention is to let-bind it.")
 		   (funcall (symbol-function 'event-to-character)
 			    last-input-event) ?\ )))))))
 
+(defun tramp-connectable-p (filename)
+  "Check, whether it is possible to connect the remote host w/o side-effects.
+This is true, if either the remote host is already connected, or if we are
+not in completion mode."
+  (and (tramp-tramp-file-p filename)
+       (with-parsed-tramp-file-name filename nil
+	 (or (get-buffer (tramp-buffer-name v))
+	     (not (tramp-completion-mode-p))))))
+
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
 ;; tramp-file-name structures. For all of them we return possible completions.
@@ -5710,8 +5719,9 @@ should never be set globally, the intention is to let-bind it.")
     (append
      result1
      (condition-case nil
-	 (tramp-completion-run-real-handler
-	  'file-name-all-completions (list filename directory))
+	 (when (tramp-connectable-p fullname)
+	   (tramp-completion-run-real-handler
+	    'file-name-all-completions (list filename directory)))
        (error nil)))))
 
 ;; Method, host name and user name completion for a file.
@@ -5722,7 +5732,8 @@ should never be set globally, the intention is to let-bind it.")
   (try-completion
    filename
    (mapcar 'list (file-name-all-completions filename directory))
-   (when predicate
+   (when (and predicate
+	      (tramp-connectable-p (expand-file-name filename directory)))
      (lambda (x) (funcall predicate (expand-file-name (car x) directory))))))
 
 ;; I misuse a little bit the tramp-file-name structure in order to handle
