@@ -1,3 +1,8 @@
+2010-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Displaying the Diary, Format of Diary File):
+	Fix external cross-references for TeX format output.
+
 2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* programs.texi (Semantic): New node.
