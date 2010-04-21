@@ -1633,6 +1633,7 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-x\C-f" 'ido-enter-find-file)
     (define-key map "\C-x\C-b" 'ido-fallback-command)
     (define-key map "\C-k" 'ido-kill-buffer-at-head)
+    (define-key map "\C-o" 'ido-toggle-virtual-buffers)
     (set-keymap-parent map ido-common-completion-map)
     (setq ido-buffer-completion-map map)))
 
@@ -2182,6 +2183,7 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
 	   (ido-directory-too-big nil)
+	   (ido-use-virtual-buffers ido-use-virtual-buffers)
 	   (require-match (confirm-nonexistent-file-or-buffer))
 	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
 				   require-match initial))
@@ -2704,6 +2706,16 @@ C-x C-f ... C-d  enter `dired' on current directory."
 	(setq ido-text-init ido-text)
 	(setq ido-exit 'keep)
 	(exit-minibuffer))))
+
+(defun ido-toggle-virtual-buffers ()
+  "Toggle the use of virtual buffers.
+See `ido-use-virtual-buffers' for explanation of virtual buffer."
+  (interactive)
+  (when (and ido-mode (eq ido-cur-item 'buffer))
+    (setq ido-use-virtual-buffers (not ido-use-virtual-buffers))
+    (setq ido-text-init ido-text)
+    (setq ido-exit 'refresh)
+    (exit-minibuffer)))
 
 (defun ido-reread-directory ()
   "Read current directory again.

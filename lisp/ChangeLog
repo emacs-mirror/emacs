@@ -1,3 +1,11 @@
+2010-04-21  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-init-completion-maps): For ido-switch-buffer, C-o
+	toggles the use of virtual buffers.
+	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global
+	value.
+	(ido-toggle-virtual-buffers): New function.
+
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	Use `define-derived-mode'; fix window selection; doc fixes.
