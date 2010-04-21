@@ -1262,6 +1262,13 @@ bar uses monochrome icons (PBM or XBM format).
   You can turn display of tool bars on or off with @kbd{M-x
 tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
 
+@vindex tool-bar-style
+@cindex Tool Bar style
+  When Emacs is compiled with GTK+ support, tool bars can have text and images.
+Customize @code{tool-bar-style} to select style.  The default style is
+the same as for the desktop in the Gnome case.  If no default is found,
+the tool bar uses just images.
+
 @node Dialog Boxes
 @section Using Dialog Boxes
 @cindex dialog boxes

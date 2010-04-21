@@ -68,6 +68,10 @@ Algorithm.
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
+** GTK tool bars can have just text, just images or images and text.
+Customize `tool-bar-style´ to choose style.  On a Gnome desktop, the default
+is taken from the desktop settings.
+
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.
 

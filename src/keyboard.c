@@ -496,7 +496,7 @@ Lisp_Object Qevent_symbol_elements;
 /* menu item parts */
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
-Lisp_Object QCbutton, QCtoggle, QCradio;
+Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
 extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named
@@ -8248,7 +8248,11 @@ process_tool_bar_item (key, def, data, args)
 
    - `:help HELP-STRING'.
 
-   Gives a help string to display for the tool bar item.  */
+   Gives a help string to display for the tool bar item.
+
+   - `:label LABEL-STRING'.
+
+   A text label to show with the tool bar button if labels are enabled.  */
 
 static int
 parse_tool_bar_item (key, item)
@@ -8259,7 +8263,7 @@ parse_tool_bar_item (key, item)
 
   Lisp_Object filter = Qnil;
   Lisp_Object caption;
-  int i;
+  int i, have_label = 0;
 
   /* Defininition looks like `(menu-item CAPTION BINDING PROPS...)'.
      Rule out items that aren't lists, don't start with
@@ -8337,6 +8341,12 @@ parse_tool_bar_item (key, item)
       else if (EQ (key, QChelp))
 	/* `:help HELP-STRING'.  */
 	PROP (TOOL_BAR_ITEM_HELP) = value;
+      else if (EQ (key, QClabel))
+        {
+          /* `:label LABEL-STRING'.  */
+          PROP (TOOL_BAR_ITEM_LABEL) = value;
+          have_label = 1;
+        }
       else if (EQ (key, QCfilter))
 	/* ':filter FORM'.  */
 	filter = value;
@@ -8362,6 +8372,49 @@ parse_tool_bar_item (key, item)
       else if (EQ (key, Qrtl))
         /* ':rtl STRING' */
 	PROP (TOOL_BAR_ITEM_RTL_IMAGE) = value;
+    }
+
+
+  if (!have_label)
+    {
+      /* Try to make one from caption and key.  */
+      Lisp_Object key = PROP (TOOL_BAR_ITEM_KEY);
+      Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
+      char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
+      char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
+      char buf[64];
+      EMACS_INT max_lbl = 2*tool_bar_max_label_size;
+      Lisp_Object new_lbl;
+
+      if (strlen (caption) < max_lbl && caption[0] != '\0') 
+        {
+          strcpy (buf, caption);
+          while (buf[0] != '\0' &&  buf[strlen (buf) -1] == '.')
+            buf[strlen (buf)-1] = '\0';
+          if (strlen (buf) <= max_lbl)
+            caption = buf;
+        }
+
+      if (strlen (caption) <= max_lbl)
+        label = caption;
+
+      if (strlen (label) <= max_lbl && label[0] != '\0') 
+        {
+          int i;
+          if (label != buf) strcpy (buf, label);
+
+          for (i = 0; i < strlen (buf); ++i) 
+            {
+              if (buf[i] == '-') buf[i] = ' ';
+            }
+          label = buf;
+      
+        }
+      else label = "";
+
+      new_lbl = Fupcase_initials (make_string (label, strlen (label)));
+      if (SCHARS (new_lbl) <= tool_bar_max_label_size)
+        PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
     }
 
   /* If got a filter apply it on binding.  */
@@ -11699,6 +11752,8 @@ syms_of_keyboard ()
   staticpro (&QCtoggle);
   QCradio = intern_c_string (":radio");
   staticpro (&QCradio);
+  QClabel = intern_c_string (":label");
+  staticpro (&QClabel);
 
   Qmode_line = intern_c_string ("mode-line");
   staticpro (&Qmode_line);

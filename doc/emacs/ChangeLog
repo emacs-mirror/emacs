@@ -1,3 +1,7 @@
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Tool Bars): Add tool-bar-style.
+
 2010-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi, emacs.texi (Acknowledgments): Add SELinux support.

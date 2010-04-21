@@ -1,3 +1,22 @@
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vc-dir.el (vc-dir-tool-bar-map): Add :label on some tool bar items.
+
+	* tool-bar.el (tool-bar-setup): Add :label on some tool bar items.
+
+	* loadup.el: Load dynamic-setting.el if feature dynamic-setting
+	is present.
+
+	* info.el (info-tool-bar-map): Add labels.
+
+	* cus-start.el (all): Add tool-bar-style and tool-bar-max-label-size.
+
+	* cus-edit.el (custom-commands): Add labels for tool bar.
+	(custom-buffer-create-internal, Custom-mode): Adjust for
+	labels in custom-commands.
+
+	* dynamic-setting.el: Renamed from font-setting.el.
+
 2010-04-21  John Wiegley  <jwiegley@gmail.com>
 
 	* ido.el (ido-init-completion-maps): For ido-switch-buffer, C-o
