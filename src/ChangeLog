@@ -233,14 +233,6 @@
 
 	* frame.h (FRAME_LINE_TO_PIXEL_Y): Add missing parenthesis.
 
-2010-04-19  Jan Djärv  <jan.h.d@swipnet.se>
-
-	* frame.h (FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Don't use
-	FRAME_LINE_TO_PIXEL_Y.
-
-	* xterm.c (x_set_window_size_1): Don't add border_width/height to
-	pixelwidth/height.
-
 2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
