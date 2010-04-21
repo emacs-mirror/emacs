@@ -1,3 +1,9 @@
+2010-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (oriya-composable-pattern)
+	(tamil-composable-pattern, malayalam-composable-pattern): Add
+	two-part vowels to "v" (vowel sign).
+
 2010-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (copy-directory): Handle symlinks (Bug#5982).
