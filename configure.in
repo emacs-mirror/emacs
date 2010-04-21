@@ -783,7 +783,7 @@ fi
 if test "$MAKEINFO" = "no"; then
   if test "x${with_makeinfo}" = "xno"; then
     MAKEINFO=off
-  elif ! test -e $srcdir/info/emacs; then
+  elif test ! -e $srcdir/info/emacs; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
 source tree does not seem to have pre-built manuals in the `info' directory.
 Either install a suitable version of makeinfo, or re-run configure
@@ -3232,7 +3232,7 @@ echo creating src/Makefile
   mv -f Makefile.new Makefile
 )
 
-if ! test -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
