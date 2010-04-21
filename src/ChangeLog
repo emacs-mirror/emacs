@@ -1,3 +1,11 @@
+2010-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_find_paragraph_start, bidi_at_paragraph_end): Don't
+	use buffer-local values of paragraph-start and paragraph-separate.
+	<paragraph_start_re, paragraph_separate_re>: Rename from
+	fallback_paragraph_start_re and fallback_paragraph_separate_re.
+	(Bug#5992)
+
 2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c: Qmonospace_font_name, Qtool_bar_style and

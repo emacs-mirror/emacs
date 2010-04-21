@@ -102,7 +102,7 @@ typedef enum {
 
 int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
-static Lisp_Object fallback_paragraph_start_re, fallback_paragraph_separate_re;
+static Lisp_Object paragraph_start_re, paragraph_separate_re;
 static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
 static void
@@ -401,16 +401,16 @@ bidi_initialize ()
 
   Qparagraph_start = intern ("paragraph-start");
   staticpro (&Qparagraph_start);
-  fallback_paragraph_start_re = Fsymbol_value (Qparagraph_start);
-  if (!STRINGP (fallback_paragraph_start_re))
-    fallback_paragraph_start_re = build_string ("\f\\|[ \t]*$");
-  staticpro (&fallback_paragraph_start_re);
+  paragraph_start_re = Fsymbol_value (Qparagraph_start);
+  if (!STRINGP (paragraph_start_re))
+    paragraph_start_re = build_string ("\f\\|[ \t]*$");
+  staticpro (&paragraph_start_re);
   Qparagraph_separate = intern ("paragraph-separate");
   staticpro (&Qparagraph_separate);
-  fallback_paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
-  if (!STRINGP (fallback_paragraph_separate_re))
-    fallback_paragraph_separate_re = build_string ("[ \t\f]*$");
-  staticpro (&fallback_paragraph_separate_re);
+  paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
+  if (!STRINGP (paragraph_separate_re))
+    paragraph_separate_re = build_string ("[ \t\f]*$");
+  staticpro (&paragraph_separate_re);
   bidi_initialized = 1;
 }
 
@@ -751,16 +751,12 @@ static EMACS_INT
 bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
   /* FIXME: Why Fbuffer_local_value rather than just Fsymbol_value?  */
-  Lisp_Object sep_re = Fbuffer_local_value (Qparagraph_separate,
-					    Fcurrent_buffer ());
-  Lisp_Object start_re = Fbuffer_local_value (Qparagraph_start,
-					      Fcurrent_buffer ());
+  Lisp_Object sep_re;
+  Lisp_Object start_re;
   EMACS_INT val;
 
-  if (!STRINGP (sep_re))
-    sep_re = fallback_paragraph_separate_re;
-  if (!STRINGP (start_re))
-    start_re = fallback_paragraph_start_re;
+  sep_re = paragraph_separate_re;
+  start_re = paragraph_start_re;
 
   val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
   if (val < 0)
@@ -829,12 +825,9 @@ bidi_line_init (struct bidi_it *bidi_it)
 static EMACS_INT
 bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
 {
-  /* FIXME: Why Fbuffer_local_value rather than just Fsymbol_value?  */
-  Lisp_Object re = Fbuffer_local_value (Qparagraph_start, Fcurrent_buffer ());
+  Lisp_Object re = paragraph_start_re;
   EMACS_INT limit = ZV, limit_byte = ZV_BYTE;
 
-  if (!STRINGP (re))
-    re = fallback_paragraph_start_re;
   while (pos_byte > BEGV_BYTE
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
     {
