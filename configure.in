@@ -3232,7 +3232,7 @@ echo creating src/Makefile
   mv -f Makefile.new Makefile
 )
 
-if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if ! test -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi

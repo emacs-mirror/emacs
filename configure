@@ -714,8 +714,10 @@ RSVG_CFLAGS
 RSVG_LIBS
 GTK_CFLAGS
 GTK_LIBS
+GTK_OBJ
 DBUS_CFLAGS
 DBUS_LIBS
+DBUS_OBJ
 GCONF_CFLAGS
 GCONF_LIBS
 LIBSELINUX_LIBS
@@ -735,6 +737,7 @@ LIBPNG
 LIBTIFF
 LIBGIF
 LIBGPM
+LIBXSM
 ALLOCA
 liblockfile
 LIBS_MAIL
@@ -782,6 +785,8 @@ GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
 LIB_SRC_EXTRA_INSTALLABLES
 OTHER_FILES
+XMENU_OBJ
+XOBJ
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -11578,6 +11583,7 @@ $as_echo "$as_me: error: $GTK_PKG_ERRORS" >&2;}
 fi
 
 
+GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
 
 
@@ -11699,6 +11705,7 @@ cat >>confdefs.h <<\_ACEOF
 #define USE_GTK 1
 _ACEOF
 
+    GTK_OBJ=gtkutil.o
     USE_X_TOOLKIT=none
     if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
       :
@@ -11716,6 +11723,7 @@ $as_echo "$as_me: WARNING: Your version of Gtk+ will have problems with
   fi
 
 fi
+
 
 
 if test "${HAVE_GTK}" = "yes"; then
@@ -12409,6 +12417,7 @@ _ACEOF
 fi
 
 HAVE_DBUS=no
+DBUS_OBJ=
 if test "${with_dbus}" = "yes"; then
 
   succeeded=no
@@ -12611,8 +12620,10 @@ _ACEOF
 fi
 done
 
+     DBUS_OBJ=dbusbind.o
    fi
 fi
+
 
 HAVE_GCONF=no
 if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
@@ -16069,6 +16080,7 @@ fi
 
 ### Use session management (-lSM -lICE) if available
 HAVE_X_SM=no
+LIBXSM=
 if test "${HAVE_X11}" = "yes"; then
   if test "${ac_cv_header_X11_SM_SMlib_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for X11/SM/SMlib.h" >&5
@@ -16277,12 +16289,14 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_X_SM 1
 _ACEOF
 
+    LIBXSM="-lSM -lICE"
     case "$LIBS" in
       *-lSM*) ;;
-      *)      LIBS="-lSM -lICE $LIBS" ;;
+      *)      LIBS="$LIBXSM $LIBS" ;;
     esac
   fi
 fi
+
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 { $as_echo "$as_me:$LINENO: checking whether netdb declares h_errno" >&5
@@ -25885,13 +25899,20 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+XMENU_OBJ=
+XOBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_X_WINDOWS 1
 _ACEOF
 
+  XMENU_OBJ=xmenu.o
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
 fi
+
+
+
 if test "${USE_X_TOOLKIT}" != "none" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -27340,7 +27361,7 @@ echo creating src/Makefile
   mv -f Makefile.new Makefile
 )
 
-if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
+if ! test -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi

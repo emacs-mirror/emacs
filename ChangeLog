@@ -1,3 +1,7 @@
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Change "if test ! -f" to "if ! test -f".
+
 2010-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIBSELINUX_LIBS): Always substitute in Makefiles.
