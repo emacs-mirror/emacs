@@ -1,3 +1,7 @@
+2010-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBSELINUX_LIBS): Always substitute in Makefiles.
+
 2010-04-21  Karel Klíč  <kklic@redhat.com>
 
 	* configure.in: New option: --with(out)-selinux, on by default.

@@ -1734,14 +1734,15 @@ fi
 
 dnl SELinux is available for GNU/Linux only.
 HAVE_LIBSELINUX=no
+LIBSELINUX_LIBS=
 if test "${with_selinux}" = "yes"; then
    AC_CHECK_LIB([selinux], [lgetfilecon], HAVE_LIBSELINUX=yes, HAVE_LIBSELINUX=no)
    if test "$HAVE_LIBSELINUX" = yes; then
       AC_DEFINE(HAVE_LIBSELINUX, 1, [Define to 1 if using SELinux.])
       LIBSELINUX_LIBS=-lselinux
-      AC_SUBST(LIBSELINUX_LIBS)
    fi
 fi
+AC_SUBST(LIBSELINUX_LIBS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.

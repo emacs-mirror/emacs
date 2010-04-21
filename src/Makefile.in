@@ -92,6 +92,8 @@ CFLAGS_SOUND= @CFLAGS_SOUND@
 RSVG_LIBS= @RSVG_LIBS@
 RSVG_CFLAGS= @RSVG_CFLAGS@
 
+LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
+
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
@@ -241,10 +243,6 @@ shared=no
 
 #ifdef HAVE_DBUS
 DBUS_OBJ = dbusbind.o
-#endif
-
-#ifdef HAVE_LIBSELINUX
-LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 #endif
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c

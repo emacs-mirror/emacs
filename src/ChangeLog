@@ -1,3 +1,7 @@
+2010-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBSELINUX_LIBS): Move out of #ifdef.
+
 2010-04-21  Karel Klíč  <kklic@redhat.com>
 
 	* Makefile.in (LIBSELINUX_LIBS): New.
