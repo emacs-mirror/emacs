@@ -1,3 +1,39 @@
+2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-checkin, vc-modify-change-comment):
+	Adjust to new vc-start/finish-logentry.
+	(vc-find-conflicted-file): New command.
+	(vc-transfer-file): Adjust to new vc-checkin.
+	(vc-next-action): Improve scoping.
+
+	* vc-hg.el (vc-hg-log-edit-mode): Remove.
+	(vc-hg-checkin): Remove extra arg.  Use log-edit-extract-headers.
+
+	* vc-git.el (vc-git-log-edit-mode): Remove.
+	(vc-git-checkin): Remove extra arg.  Use log-edit-extract-headers.
+	(vc-git-commits-coding-system): Rename from git-commits-coding-system.
+
+	* vc-dispatcher.el (vc-log-edit): Shorten names for log-edit-show-files.
+	(vc-start-logentry): Remove argument `extra'.
+	(vc-finish-logentry): Remove extra args.
+
+	* vc-bzr.el (vc-bzr-log-edit-mode): Remove.
+	(vc-bzr-checkin): Remove extra arg.  Use log-edit-extract-headers.
+	(vc-bzr-conflicted-files): New function.
+
+	* log-edit.el (log-edit-extra-flags)
+	(log-edit-before-checkin-process): Remove.
+	(log-edit-summary, log-edit-header, log-edit-unknown-header): New faces.
+	(log-edit-headers-alist): New var.
+	(log-edit-header-contents-regexp): New const.
+	(log-edit-match-to-eoh): New function.
+	(log-edit-font-lock-keywords): Use them.
+	(log-edit): Insert a "Summary:" header as default.
+	(log-edit-mode): Mark font-lock rules as case-insensitive.
+	(log-edit-done): Cleanup headers.
+	(log-view-process-buffer): Remove.
+	(log-edit-extract-headers): New function to replace it.
+
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (default-direction-reversed): Remove obsolescence info.
