@@ -30,6 +30,9 @@ so we will look at it and add it to the manual.
 These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
+** Configure links against libselinux if it is found.
+You can disable this by using --without-selinux.
+
 
 * Startup Changes in Emacs 24.1
 
@@ -67,6 +70,14 @@ Use `set-scroll-bar-mode' to change this.
 
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.
+
+** Basic SELinux support has been added.
+This requires Emacs to be linked with libselinux at build time.
+
+*** Emacs preserves the SELinux file context when backing up or copying files.
+
+*** The new functions file-selinux-context and set-file-selinux-context
+get and set the SELinux context of a file.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
