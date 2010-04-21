@@ -68,11 +68,6 @@ store_config_changed_event (arg, display_name)
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
 
-#ifdef HAVE_GCONF
-
-#define SYSTEM_MONO_FONT     "/desktop/gnome/interface/monospace_font_name"
-#define SYSTEM_FONT          "/desktop/gnome/interface/font_name"
-
 enum {
   SEEN_AA         = 0x01,
   SEEN_HINTING    = 0x02,
@@ -96,6 +91,11 @@ struct xsettings
 
   unsigned seen;
 };
+
+#ifdef HAVE_GCONF
+
+#define SYSTEM_MONO_FONT     "/desktop/gnome/interface/monospace_font_name"
+#define SYSTEM_FONT          "/desktop/gnome/interface/font_name"
 
 /* Callback called when something changed in GConf that we care about,
    that is SYSTEM_MONO_FONT.  */

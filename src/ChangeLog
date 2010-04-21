@@ -33,6 +33,7 @@
 	Qtool_bar_style.  Initialize current_tool_bar_style to nil.
 	defsubr Stool_bar_get_system_style. Fprovide on
 	dynamic-setting.
+	Move misplaced HAVE_GCONF
 
 	* xsettings.h (Ftool_bar_get_system_style): Declare.
 
