@@ -1558,10 +1558,14 @@ make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents
 {
   struct Lisp_Buffer_Local_Value *blv
     = xmalloc (sizeof (struct Lisp_Buffer_Local_Value));
-  Lisp_Object symbol; XSETSYMBOL (symbol, sym);
-  Lisp_Object tem = Fcons (symbol, (forwarded
-				    ? do_symval_forwarding (valcontents.fwd)
-				    : valcontents.value));
+  Lisp_Object symbol;
+  Lisp_Object tem;
+
+ XSETSYMBOL (symbol, sym);
+ tem = Fcons (symbol, (forwarded
+                       ? do_symval_forwarding (valcontents.fwd)
+                       : valcontents.value));
+
   /* Buffer_Local_Values cannot have as realval a buffer-local
      or keyboard-local forwarding.  */
   eassert (!(forwarded && BUFFER_OBJFWDP (valcontents.fwd)));

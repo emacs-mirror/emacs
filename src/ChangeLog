@@ -1,3 +1,7 @@
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* data.c (make_blv): Declarations before code (Bug#5993).
+
 2010-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (DBUS_OBJ, GTK_OBJ, XMENU_OBJ, XOBJ):

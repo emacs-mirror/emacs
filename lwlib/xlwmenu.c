@@ -1304,10 +1304,10 @@ expose_cb (Widget widget,
            XEvent* event,
            Boolean* continue_to_dispatch)
 {
-  *continue_to_dispatch = False;
   XlwMenuWidget mw = (XlwMenuWidget) closure;
   int i;
 
+  *continue_to_dispatch = False;
   for (i = 0; i < mw->menu.windows_length; ++i)
     if (mw->menu.windows [i].w == widget) break;
   if (i < mw->menu.windows_length && i < mw->menu.old_depth)
