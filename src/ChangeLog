@@ -1,3 +1,15 @@
+2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+       Don't depend on cm.c or termcap.c on Windows, use stubs.
+       * makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
+       ($(BLD)/cm.$(O), $(BLD)/termcap.$(O)): Remove.
+       * w32console.c (current_tty, cost): New vars; lifted from cm.c.
+       (evalcost, cmputc, cmcheckmagic, cmcostinit, cmgoto, Wcm_clear)
+       (sys_tputs, sys_tgetstr): New stubs.
+       * s/ms-w32.h (chcheckmagic, cmcostinit, cmgoto, cmputc, Wcm_clear)
+       (tputs, tgetstr): New; define to sys_*.
+
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <bidi-display-reordering>: Doc fix.

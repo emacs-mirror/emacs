@@ -488,6 +488,62 @@ w32con_set_terminal_window (struct frame *f, int size)
 }
 
 /***********************************************************************
+			stubs from termcap.c
+ ***********************************************************************/
+
+void
+sys_tputs (char *str, int nlines, int (*outfun)())
+{
+}
+
+char *
+sys_tgetstr (char *cap, char **area)
+{
+  return NULL;
+}
+
+
+/***********************************************************************
+			stubs from cm.c
+ ***********************************************************************/
+
+struct tty_display_info *current_tty = NULL;
+int cost = 0;
+
+int
+evalcost (char c)
+{
+  return c;
+}
+
+int
+cmputc (char c)
+{
+  return c;
+}
+
+void
+cmcheckmagic (struct tty_display_info *tty)
+{
+}
+
+void
+cmcostinit (struct tty_display_info *tty)
+{
+}
+
+void
+cmgoto (struct tty_display_info *tty, int row, int col)
+{
+}
+
+void
+Wcm_clear (struct tty_display_info *tty)
+{
+}
+
+
+/***********************************************************************
 				Faces
  ***********************************************************************/
 
