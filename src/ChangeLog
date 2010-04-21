@@ -1,14 +1,14 @@
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
-       Don't depend on cm.c or termcap.c on Windows, use stubs.
-       * makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
-       ($(BLD)/cm.$(O), $(BLD)/termcap.$(O)): Remove.
-       * w32console.c (current_tty, cost): New vars; lifted from cm.c.
-       (evalcost, cmputc, cmcheckmagic, cmcostinit, cmgoto, Wcm_clear)
-       (sys_tputs, sys_tgetstr): New stubs.
-       * s/ms-w32.h (chcheckmagic, cmcostinit, cmgoto, cmputc, Wcm_clear)
-       (tputs, tgetstr): New; define to sys_*.
+	Don't depend on cm.c or termcap.c on Windows, use stubs.
+	* makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
+	($(BLD)/cm.$(O), $(BLD)/termcap.$(O)): Remove.
+	* w32console.c (current_tty, cost): New vars; lifted from cm.c.
+	(evalcost, cmputc, cmcheckmagic, cmcostinit, cmgoto, Wcm_clear)
+	(sys_tputs, sys_tgetstr): New stubs.
+	* s/ms-w32.h (chcheckmagic, cmcostinit, cmgoto, cmputc, Wcm_clear)
+	(tputs, tgetstr): New; define to sys_*.
 
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -341,7 +341,8 @@
 
 2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE): Undefine.
+	* Makefile.in (C_SWITCH_SYSTEM,C_SWITCH_MACHINE,C_SWITCH_X_SITE):
+	Undefine.
 
 2010-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -415,10 +416,10 @@
 	(parse_xft_settings): Also check for XSETTINGS_FONT_NAME and save that
 	in current_font.
 	(init_gconf): Read value of SYSTEM_FONT and save it in current_font.
-	(Ffont_get_system_normal_font, xsettings_get_system_normal_font): New
-	functions.
-	(syms_of_xsettings): Initialize current_font. defsubr
-	Sfont_get_system_normal_font.
+	(Ffont_get_system_normal_font, xsettings_get_system_normal_font):
+	New functions.
+	(syms_of_xsettings): Initialize current_font.
+	defsubr Sfont_get_system_normal_font.
 
 	* xsettings.h (Ffont_get_system_normal_font,
 	xsettings_get_system_normal_font): Declare.
@@ -3045,7 +3046,7 @@
 	* xterm.h: Rename x_non_menubar_window_to_frame to
 	x_menubar_window_to_frame.
 
-	* xterm.c: Remove declarations also in xterm.h
+	* xterm.c: Remove declarations also in xterm.h.
 	(XTmouse_position): Do not return valid positions
 	for clicks in the menubar and the toolbar for Gtk+.
 
@@ -3605,7 +3606,7 @@
 2009-07-04  Eli Zaretskii  <eliz@gnu.org>
 
 	Emulation of `getloadavg' on MS-Windows.
-	* w32.c: Include float.h
+	* w32.c: Include float.h.
 	(g_b_init_get_native_system_info, g_b_init_get_system_times)
 	(GetNativeSystemInfo_Proc, GetSystemTimes_Proc): Declare.
 	(get_native_system_info, get_system_times): New functions.
@@ -9551,7 +9552,7 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fileio.c:
-	* sysdep.c
+	* sysdep.c:
 	* systty.h:
 	* m/ibmrs6000.h:
 	* m/iris4d.h:
