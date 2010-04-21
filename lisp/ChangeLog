@@ -4,6 +4,25 @@
 	(tamil-composable-pattern, malayalam-composable-pattern): Add
 	two-part vowels to "v" (vowel sign).
 
+2010-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Handle symlinks (Bug#5982).
+
+	* progmodes/compile.el (compilation-next-error-function): Revert
+	2009-10-12 change (Bug#5983).
+
+2010-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-state): Use HGRCPATH, not HGRC.
+	(vc-hg-working-revision): Likewise.  Use hg parents, not hg parent
+	(Bug#5846).
+
+2010-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Give it a doc string.
+
+	* minibuffer.el (completion-at-point): Doc fix.
+
 2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Don't
@@ -108,7 +127,7 @@
 
 2010-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Make tmm-menubar work for the Buffers menu again.
+	Make tmm-menubar work for the Buffers menu again (bug#5726).
 	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
 	vectors rather than cons cells, as used in menu-bar-update-buffers.
 
