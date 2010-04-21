@@ -105,11 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This triggers a conditional in xfaces.c.  */
 #define XOS_NEEDS_TIME_H
 
-/* Don't use shared libraries.  unexec doesn't handle them.
-   Note GCC automatically passes -a archive to ld, and it has its own
-   conflicting -a.  */
-#define LD_SWITCH_SYSTEM_TEMACS
-
 #ifndef HAVE_LIBXMU
 /* HP-UX doesn't supply Xmu.  */
 #define LIBXMU

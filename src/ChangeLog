@@ -1,3 +1,11 @@
+2010-04-21  Dan Nicolaescu  <local_user@dannlt>
+
+	Simplify LD_SWITCH_SYSTEM_TEMACS usage.
+	* s/freebsd.h (LD_SWITCH_SYSTEM_TEMACS):
+	* s/gnu-linux.h (LD_SWITCH_SYSTEM_TEMACS): Remove, configure
+	detects -znocombreloc and passes it to the linker
+	* s/hpux10-20.h (LD_SWITCH_SYSTEM_TEMACS): Remove, empty.
+
 2010-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBSELINUX_LIBS): Move out of #ifdef.
