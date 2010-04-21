@@ -1,3 +1,14 @@
+2010-04-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#5840.
+
+	* icomplete.el (icomplete-completions): Use `non-essential'.
+
+	* net/tramp.el (tramp-connectable-p): New defun.
+	(tramp-handle-expand-file-name)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Use it.
+
 2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point): Try and handle errors.
