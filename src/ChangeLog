@@ -1,5 +1,9 @@
 2010-04-21  Dan Nicolaescu  <local_user@dannlt>
 
+	Remove NOMULTIPLEJOBS, unused.
+	* s/template.h (NOMULTIPLEJOBS):
+	* s/msdos.h (NOMULTIPLEJOBS): Remove, unused.
+
 	Simplify LD_SWITCH_SYSTEM_TEMACS usage.
 	* s/freebsd.h (LD_SWITCH_SYSTEM_TEMACS):
 	* s/gnu-linux.h (LD_SWITCH_SYSTEM_TEMACS): Remove, configure
