@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -48,7 +48,7 @@ The file name should be absolute, the file will be overwritten without warning."
   :type 'string)
 
 (defcustom org-icalendar-use-plain-timestamp t
-  "Non-nil means, make an event from every plain time stamp."
+  "Non-nil means make an event from every plain time stamp."
   :group 'org-export-icalendar
   :type 'boolean)
 
@@ -104,7 +104,7 @@ all-tags    All tags, including inherited ones."
 	   (const :tag "All tags, including inherited ones" all-tags))))
 
 (defcustom org-icalendar-include-todo nil
-  "Non-nil means, export to iCalendar files should also cover TODO items.
+  "Non-nil means export to iCalendar files should also cover TODO items.
 Valid values are:
 nil         don't include any TODO items
 t           include all TODO items that are not in a DONE state
@@ -129,13 +129,13 @@ up in the ics file.  But for normal iCalendar export, you can use this
 for whatever you need.")
 
 (defcustom org-icalendar-include-bbdb-anniversaries nil
-  "Non-nil means, a combined iCalendar files should include anniversaries.
+  "Non-nil means a combined iCalendar files should include anniversaries.
 The anniversaries are define in the BBDB database."
   :group 'org-export-icalendar
   :type 'boolean)
 
 (defcustom org-icalendar-include-sexps t
-  "Non-nil means, export to iCalendar files should also cover sexp entries.
+  "Non-nil means export to iCalendar files should also cover sexp entries.
 These are entries like in the diary, but directly in an Org-mode file."
   :group 'org-export-icalendar
   :type 'boolean)
@@ -152,7 +152,7 @@ The text will be inserted into the DESCRIPTION field."
 	  (integer :tag "Max characters")))
 
 (defcustom org-icalendar-store-UID nil
-  "Non-nil means, store any created UIDs in properties.
+  "Non-nil means store any created UIDs in properties.
 The iCalendar standard requires that all entries have a unique identifier.
 Org will create these identifiers as needed.  When this variable is non-nil,
 the created UIDs will be stored in the ID property of the entry.  Then the

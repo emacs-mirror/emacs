@@ -133,7 +133,9 @@ Display documentation of the current major mode (@code{describe-mode}).
 @item C-h n
 Display news of recent Emacs changes (@code{view-emacs-news}).
 @item C-h p
-Find packages by topic keyword (@code{finder-by-keyword}).
+Find packages by topic keyword (@code{finder-by-keyword}).  For an
+alternative interface to the same information, try the @code{info-finder}
+command.
 @item C-h r
 Display the Emacs manual in Info (@code{info-emacs-manual}).
 @item C-h s

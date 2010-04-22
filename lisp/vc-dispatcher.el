@@ -141,7 +141,6 @@ preserve the setting."
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-log-fileset)
-(defvar vc-log-extra)
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
@@ -521,17 +520,20 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	(with-current-buffer vc-parent-buffer default-directory))
   (log-edit 'vc-finish-logentry
 	    nil
-	    `((log-edit-listfun . (lambda () ',fileset))
+	    `((log-edit-listfun . (lambda ()
+                                    ;; FIXME: Should expand the list
+                                    ;; for directories.
+                                    (mapcar 'file-relative-name
+                                            ',fileset)))
 	      (log-edit-diff-function . (lambda () (vc-diff nil))))
 	    nil
 	    mode)
   (set (make-local-variable 'vc-log-fileset) fileset)
-  (make-local-variable 'vc-log-extra)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files extra comment initial-contents msg logbuf mode action &optional after-hook)
-  "Accept a comment for an operation on FILES with extra data EXTRA.
+(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook)
+  "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
 INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
@@ -561,7 +563,6 @@ AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'."
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
-    (setq vc-log-extra extra)
     (when comment
       (erase-buffer)
       (when (stringp comment) (insert comment)))
@@ -570,10 +571,8 @@ AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'."
       (vc-finish-logentry (eq comment t)))))
 
 (declare-function vc-dir-move-to-goal-column "vc-dir" ())
-;; vc-finish-logentry is called from a log-edit buffer (see above).
-(declare-function log-view-process-buffer "log-edit" ())
-(defvar log-edit-extra-flags)
-
+;; vc-finish-logentry is typically called from a log-edit buffer (see
+;; vc-start-logentry).
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry.
 Use the contents of the current buffer as a check-in or registration
@@ -590,26 +589,21 @@ the buffer contents as a comment."
   (unless vc-log-operation
     (error "No log operation is pending"))
 
-  (log-view-process-buffer)
-
   ;; save the parameters held in buffer-local variables
   (let ((logbuf (current-buffer))
 	(log-operation vc-log-operation)
+        ;; FIXME: When coming from VC-Dir, we should check that the
+        ;; set of selected files is still equal to vc-log-fileset,
+        ;; to avoid surprises.
 	(log-fileset vc-log-fileset)
-	(log-extra vc-log-extra)
 	(log-entry (buffer-string))
-	(extra-flags log-edit-extra-flags)
-	(after-hook vc-log-after-operation-hook)
-	(tmp-vc-parent-buffer vc-parent-buffer))
+	(after-hook vc-log-after-operation-hook))
     (pop-to-buffer vc-parent-buffer)
     ;; OK, do it to it
     (save-excursion
       (funcall log-operation
 	       log-fileset
-	       log-extra
-	       log-entry
-	       extra-flags
-	       ))
+	       log-entry))
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the log buffer and the typing therein).
     ;; -- IMO this should be replaced with quit-window
@@ -617,9 +611,11 @@ the buffer contents as a comment."
 	   (delete-windows-on logbuf (selected-frame))
 	   ;; Kill buffer and delete any other dedicated windows/frames.
 	   (kill-buffer logbuf))
-	  (logbuf (pop-to-buffer logbuf)
-		  (bury-buffer)
-		  (pop-to-buffer tmp-vc-parent-buffer)))
+	  (logbuf
+           (with-selected-window (or (get-buffer-window logbuf 0)
+                                     (selected-window))
+             (with-current-buffer logbuf
+               (bury-buffer)))))
     ;; Now make sure we see the expanded headers
     (when log-fileset
       (mapc

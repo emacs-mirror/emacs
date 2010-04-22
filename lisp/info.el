@@ -1053,8 +1053,8 @@ a case-insensitive match is tried."
 	    (Info-select-node)
 	    (goto-char (point-min))
 	    (forward-line 1)		       ; skip header line
-	    (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
-	      (forward-line 1))
+	    ;; (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
+	    ;;   (forward-line 1))
 
 	    (cond (anchorpos
                    (let ((new-history (list Info-current-file
@@ -3602,6 +3602,19 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
      ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
       (Info-goto-node node fork)))
     node))
+
+(defun Info-mouse-follow-link (click)
+  "Follow a link where you click."
+  (interactive "e")
+  (let* ((position (event-start click))
+	 (posn-string (and position (posn-string position)))
+	 (string (car-safe posn-string))
+	 (string-pos (cdr-safe posn-string))
+	 (link-args (and string string-pos
+			 (get-text-property string-pos 'link-args string))))
+    (when link-args
+      (Info-goto-node link-args))))
+
 
 (defvar Info-mode-map
   (let ((map (make-keymap)))
@@ -3723,9 +3736,11 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 (defvar info-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map
-				   :rtl "right-arrow")
+				   :rtl "right-arrow"
+				   :label "Back")
     (tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map
-				   :rtl "left-arrow")
+				   :rtl "left-arrow"
+				   :label "Forward")
     (tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map
 				   :rtl "next-node")
     (tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map
@@ -3733,7 +3748,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
-    (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map
+				   :label "Index Search")
     (tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-exit "exit" map Info-mode-map)
     map))
@@ -3833,7 +3849,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
-(defun Info-mode ()
+(define-derived-mode Info-mode nil "Info"
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
 one topic and contains references to other nodes which discuss related
@@ -3895,23 +3911,17 @@ Advanced commands:
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
-  (kill-all-local-variables)
-  (setq major-mode 'Info-mode)
-  (setq mode-name "Info")
+  :syntax-table text-mode-syntax-table
+  :abbrev-table text-mode-abbrev-table
   (setq tab-width 8)
-  (use-local-map Info-mode-map)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
-  (set-syntax-table text-mode-syntax-table)
-  (setq local-abbrev-table text-mode-abbrev-table)
   (setq case-fold-search t)
   (setq buffer-read-only t)
   (make-local-variable 'Info-current-file)
   (make-local-variable 'Info-current-subfile)
   (make-local-variable 'Info-current-node)
-  (make-local-variable 'Info-tag-table-marker)
-  (setq Info-tag-table-marker (make-marker))
-  (make-local-variable 'Info-tag-table-buffer)
-  (setq Info-tag-table-buffer nil)
+  (set (make-local-variable 'Info-tag-table-marker) (make-marker))
+  (set (make-local-variable 'Info-tag-table-buffer) nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-history-forward)
   (make-local-variable 'Info-index-alternatives)
@@ -3920,12 +3930,10 @@ Advanced commands:
  	    '(:eval (get-text-property (point-min) 'header-line))))
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
-  (make-local-variable 'line-move-ignore-invisible)
-  (setq line-move-ignore-invisible t)
-  (make-local-variable 'desktop-save-buffer)
-  (make-local-variable 'widen-automatically)
-  (setq widen-automatically nil)
-  (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
+  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (set (make-local-variable 'desktop-save-buffer)
+       'Info-desktop-buffer-misc-data)
+  (set (make-local-variable 'widen-automatically) nil)
   (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
@@ -3944,8 +3952,7 @@ Advanced commands:
        'Info-revert-buffer-function)
   (Info-set-mode-line)
   (set (make-local-variable 'bookmark-make-record-function)
-       'Info-bookmark-make-record)
-  (run-mode-hooks 'Info-mode-hook))
+       'Info-bookmark-make-record))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
@@ -4192,11 +4199,22 @@ the variable `Info-file-list-for-emacs'."
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
 
-(defun Info-insert-breadcrumbs ()
+(defvar Info-link-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
+    (define-key keymap [header-line mouse-2] 'Info-mouse-follow-link)
+    (define-key keymap [header-line down-mouse-1] 'ignore)
+    (define-key keymap [mouse-2] 'Info-mouse-follow-link)
+    (define-key keymap [follow-link] 'mouse-face)
+    keymap)
+  "Keymap to put on the link in the text or the header line.")
+
+(defun Info-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
 	(node Info-current-node)
         (crumbs ())
-        (depth Info-breadcrumbs-depth))
+        (depth Info-breadcrumbs-depth)
+	line)
 
     ;; Get ancestors from the cached parent-children node info
     (while (and (not (equal "Top" node)) (> depth 0))
@@ -4223,15 +4241,25 @@ the variable `Info-file-list-for-emacs'."
 			     (file-name-nondirectory Info-current-file)
 			   ;; Some legacy code can still use a symbol.
 			   Info-current-file)))))
-	  (insert (if (bolp) "" " > ")
-		  (cond
-		   ((null node) "...")
-		   ((equal node Info-current-node)
-		    ;; No point linking to ourselves.
-		    (propertize text 'font-lock-face 'info-header-node))
-		   (t
-		    (concat "*Note " text "::"))))))
-      (insert "\n"))))
+	  (setq line (concat
+		      line
+		      (if (null line) "" " > ")
+		      (cond
+		       ((null node) "...")
+		       ((equal node Info-current-node)
+			;; No point linking to ourselves.
+			(propertize text 'font-lock-face 'info-header-node))
+		       (t
+			(propertize text
+				    'mouse-face 'highlight
+				    'font-lock-face 'info-header-xref
+				    'help-echo "mouse-2: Go to node"
+				    'keymap Info-link-keymap
+				    'link-args text)))))))
+      (setq line (concat line "\n")))
+    ;; (font-lock-append-text-property 0 (length line)
+    ;; 				    'font-lock-face 'header-line line)
+    line))
 
 (defun Info-fontify-node ()
   "Fontify the node."
@@ -4278,8 +4306,8 @@ the variable `Info-file-list-for-emacs'."
 		((string-equal (downcase tag) "next") Info-next-link-keymap)
 		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
 
-        (when (> Info-breadcrumbs-depth 0)
-          (Info-insert-breadcrumbs))
+        ;; (when (> Info-breadcrumbs-depth 0)
+        ;;   (insert (Info-breadcrumbs)))
 
         ;; Treat header line.
         (when Info-use-header-line
@@ -4311,7 +4339,10 @@ the variable `Info-file-list-for-emacs'."
             ;; that is in the header, if it is just part.
             (cond
              ((> Info-breadcrumbs-depth 0)
-              (put-text-property (point-min) (1+ header-end) 'invisible t))
+	      (let ((ov (make-overlay (point-min) (1+ header-end))))
+		(overlay-put ov 'invisible t)
+		(overlay-put ov 'after-string (Info-breadcrumbs))
+		(overlay-put ov 'evaporate t)))
              ((not (bobp))
               ;; Hide the punctuation at the end, too.
               (skip-chars-backward " \t,")

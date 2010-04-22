@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.33x}
-\def\versionyear{2009}          % latest update
+\def\orgversionnumber{6.35i}
+\def\versionyear{2010}          % latest update
 \def\year{2010}                 % latest copyright year
 
 %**start of header
@@ -11,10 +11,6 @@
 % Specify how many you want here.
 \columnsperpage=3
 
-% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
-% only when columnsperpage is 2 or 3.
-\letterpaper=0
-
 % PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
 % a landscape layout.
 \input pdflayout.sty
@@ -22,7 +18,7 @@
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004, 2005,
-%   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+%   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
 
@@ -279,12 +275,12 @@ are preserved on all copies.
 
 \section{Getting Started}
 %
-\vskip -2mm
-\beginexample%
-(add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
-(define-key global-map "\\C-cl" 'org-store-link)$^1$
-(define-key global-map "\\C-ca" 'org-agenda)$^1$
-\endexample
+%\vskip -2mm
+%\beginexample%
+%(add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
+%(define-key global-map "\\C-cl" 'org-store-link)$^1$
+%(define-key global-map "\\C-ca" 'org-agenda)$^1$
+%\endexample
 %
 \metax{To read the on-line documentation try}{M-x org-info}
 
@@ -374,9 +370,9 @@ Outside of tables, the same keys may have other functionality.
 
 {\bf Regions}
 
-\key{cut rectangular region}{C-c C-x C-w}
-\key{copy rectangular region}{C-c C-x M-w}
-\key{paste rectangular region}{C-c C-x C-y}
+\metax{cut/copy/paste rectangular region}{C-c C-x C-w/M-w/C-y}
+%\key{copy rectangular region}{C-c C-x M-w}
+%\key{paste rectangular region}{C-c C-x C-y}
 \key{fill paragraph across selected cells}{C-c C-q}
 
 {\bf Miscellaneous}

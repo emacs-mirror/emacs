@@ -10,6 +10,7 @@
 oo
 oo-spd
 autom4te.cache
+*.dSYM
 *.elc
 *.exe
 DOC
@@ -48,6 +49,7 @@ lisp/**/loaddefs.el
 lisp/cus-load.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
+nextstep/Emacs.app
 nt/config.log
 src/buildobj.h
 src/config.h

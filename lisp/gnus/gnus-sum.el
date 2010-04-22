@@ -12657,8 +12657,9 @@ If ALL is a number, fetch this number of articles."
          (id      (mail-header-id head)))
     `(,subject
       ,@(bookmark-make-record-default 'point-only)
-        (group . ,grp) (article . ,art)
-        (message-id . ,id) (handler . gnus-summary-bookmark-jump))))
+      (location . ,(format "Gnus %s:%d:%s" grp art id))
+      (group . ,grp) (article . ,art)
+      (message-id . ,id) (handler . gnus-summary-bookmark-jump))))
 
 ;;;###autoload
 (defun gnus-summary-bookmark-jump (bookmark)

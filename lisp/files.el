@@ -2252,8 +2252,8 @@ since only a single case-insensitive search through the alist is made."
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
      ("\\.\\(\
-arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
-ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.\\(sx[dmicw]\\|od[fgpst]\\|oxt\\)\\'" . archive-mode) ;OpenOffice.org
      ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
@@ -3625,10 +3625,13 @@ variable `make-backup-files'.  If it's done by renaming, then the file is
 no longer accessible under its old name.
 
 The value is non-nil after a backup was made by renaming.
-It has the form (MODES . BACKUPNAME).
+It has the form (MODES SELINUXCONTEXT BACKUPNAME).
 MODES is the result of `file-modes' on the original
 file; this means that the caller, after saving the buffer, should change
 the modes of the new file to agree with the old modes.
+SELINUXCONTEXT is the result of `file-selinux-context' on the original
+file; this means that the caller, after saving the buffer, should change
+the SELinux context of the new file to agree with the old context.
 BACKUPNAME is the backup file name, which is the old file renamed."
   (if (and make-backup-files (not backup-inhibited)
 	   (not buffer-backed-up)
@@ -3656,7 +3659,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			    (or delete-old-versions
 				(y-or-n-p (format "Delete excess backup versions of %s? "
 						  real-file-name)))))
-		      (modes (file-modes buffer-file-name)))
+		      (modes (file-modes buffer-file-name))
+		      (context (file-selinux-context buffer-file-name)))
 		  ;; Actually write the back up file.
 		  (condition-case ()
 		      (if (or file-precious-flag
@@ -3676,10 +3680,10 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
 					  (or (nth 9 attr)
 					      (not (file-ownership-preserved-p real-file-name)))))))
-			  (backup-buffer-copy real-file-name backupname modes)
+			  (backup-buffer-copy real-file-name backupname modes context)
 			;; rename-file should delete old backup.
 			(rename-file real-file-name backupname t)
-			(setq setmodes (cons modes backupname)))
+			(setq setmodes (list modes context backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in ~.
 		     (setq backupname (expand-file-name
@@ -3688,7 +3692,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		     (message "Cannot write backup file; backing up in %s"
 			      backupname)
 		     (sleep-for 1)
-		     (backup-buffer-copy real-file-name backupname modes)))
+		     (backup-buffer-copy real-file-name backupname modes context)))
 		  (setq buffer-backed-up t)
 		  ;; Now delete the old versions, if desired.
 		  (if delete-old-versions
@@ -3700,7 +3704,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		  setmodes)
 	    (file-error nil))))))
 
-(defun backup-buffer-copy (from-name to-name modes)
+(defun backup-buffer-copy (from-name to-name modes context)
   (let ((umask (default-file-modes)))
     (unwind-protect
 	(progn
@@ -3727,7 +3731,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
       ;; Reset the umask.
       (set-default-file-modes umask)))
   (and modes
-       (set-file-modes to-name (logand modes #o1777))))
+       (set-file-modes to-name (logand modes #o1777)))
+  (and context
+       (set-file-selinux-context to-name context)))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
@@ -4257,7 +4263,9 @@ Before and after saving the buffer, this function runs
 		  (nthcdr 10 (file-attributes buffer-file-name)))
 	    (if setmodes
 		(condition-case ()
-		    (set-file-modes buffer-file-name (car setmodes))
+		    (progn
+		      (set-file-modes buffer-file-name (car setmodes))
+		      (set-file-selinux-context buffer-file-name (nth 1 setmodes)))
 		  (error nil))))
 	  ;; If the auto-save file was recent before this command,
 	  ;; delete it now.
@@ -4270,7 +4278,7 @@ Before and after saving the buffer, this function runs
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
 ;; but inhibited if one of write-file-functions returns non-nil.
-;; It returns a value (MODES . BACKUPNAME), like backup-buffer.
+;; It returns a value (MODES SELINUXCONTEXT BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-1 ()
   (prog1
       (if save-buffer-coding-system
@@ -4282,7 +4290,7 @@ Before and after saving the buffer, this function runs
       (setq buffer-file-coding-system-explicit
 	    (cons last-coding-system-used nil)))))
 
-;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
+;; This returns a value (MODES SELINUXCONTEXT BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
   (let (tempsetmodes setmodes)
     (if (not (file-writable-p buffer-file-name))
@@ -4353,8 +4361,9 @@ Before and after saving the buffer, this function runs
 	    ;; Since we have created an entirely new file,
 	    ;; make sure it gets the right permission bits set.
 	    (setq setmodes (or setmodes
- 			       (cons (or (file-modes buffer-file-name)
+ 			       (list (or (file-modes buffer-file-name)
 					 (logand ?\666 umask))
+				     (file-selinux-context buffer-file-name)
 				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
@@ -4365,8 +4374,11 @@ Before and after saving the buffer, this function runs
 	;; (setmodes is set) because that says we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
-	       (setq setmodes (cons (file-modes buffer-file-name) buffer-file-name))
-	       (set-file-modes buffer-file-name (logior (car setmodes) 128))))
+	       (setq setmodes (list (file-modes buffer-file-name)
+				    (file-selinux-context buffer-file-name)
+				    buffer-file-name))
+	       (set-file-modes buffer-file-name (logior (car setmodes) 128))
+	       (set-file-selinux-context buffer-file-name (nth 1 setmodes)))))
 	(let (success)
 	  (unwind-protect
 	      (progn
@@ -4380,8 +4392,8 @@ Before and after saving the buffer, this function runs
 	    ;; the backup by renaming, undo the backing-up.
 	    (and setmodes (not success)
 		 (progn
-		   (rename-file (cdr setmodes) buffer-file-name t)
-		   (setq buffer-backed-up nil)))))))
+		   (rename-file (nth 2 setmodes) buffer-file-name t)
+		   (setq buffer-backed-up nil))))))
     setmodes))
 
 (defun diff-buffer-with-file (&optional buffer)

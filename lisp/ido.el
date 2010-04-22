@@ -1633,6 +1633,7 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-x\C-f" 'ido-enter-find-file)
     (define-key map "\C-x\C-b" 'ido-fallback-command)
     (define-key map "\C-k" 'ido-kill-buffer-at-head)
+    (define-key map "\C-o" 'ido-toggle-virtual-buffers)
     (set-keymap-parent map ido-common-completion-map)
     (setq ido-buffer-completion-map map)))
 
@@ -2182,6 +2183,7 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
 	   (ido-directory-too-big nil)
+	   (ido-use-virtual-buffers ido-use-virtual-buffers)
 	   (require-match (confirm-nonexistent-file-or-buffer))
 	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
 				   require-match initial))
@@ -2312,7 +2314,8 @@ If cursor is not at the end of the user input, move to end of input."
 	   (or ido-use-url-at-point ido-use-filename-at-point))
       (let (fn d)
 	(require 'ffap)
-	;; Duplicate code from ffap-guesser as we want different behavior for files and URLs.
+	;; Duplicate code from ffap-guesser as we want different
+	;; behavior for files and URLs.
 	(cond
 	 ((with-no-warnings
 	    (and ido-use-url-at-point
@@ -2328,7 +2331,10 @@ If cursor is not at the end of the user input, move to end of input."
 			      (ffap-guesser)
 			    (ffap-string-at-point))))
 	       (not (string-match "^http:/" fn))
-	       (setq d (file-name-directory (expand-file-name fn)))
+	       (let ((absolute-fn (expand-file-name fn)))
+		 (setq d (if (file-directory-p absolute-fn)
+			     (file-name-as-directory absolute-fn)
+			   (file-name-directory absolute-fn))))
 	       (file-directory-p d))
 	  (setq ido-current-directory d)
 	  (setq initial (file-name-nondirectory fn))))))
@@ -2700,6 +2706,16 @@ C-x C-f ... C-d  enter `dired' on current directory."
 	(setq ido-text-init ido-text)
 	(setq ido-exit 'keep)
 	(exit-minibuffer))))
+
+(defun ido-toggle-virtual-buffers ()
+  "Toggle the use of virtual buffers.
+See `ido-use-virtual-buffers' for explanation of virtual buffer."
+  (interactive)
+  (when (and ido-mode (eq ido-cur-item 'buffer))
+    (setq ido-use-virtual-buffers (not ido-use-virtual-buffers))
+    (setq ido-text-init ido-text)
+    (setq ido-exit 'refresh)
+    (exit-minibuffer)))
 
 (defun ido-reread-directory ()
   "Read current directory again.
@@ -3458,7 +3474,7 @@ This is to make them appear as if they were \"virtual buffers\"."
     ;; Strip method:user@host: part of tramp completions.
     ;; Tramp completions do not include leading slash.
     (let* ((len (1- (length dir)))
-	   (tramp-completion-mode t)
+	   (non-essential t)
 	   (compl
 	    (or (file-name-all-completions "" dir)
 		;; work around bug in ange-ftp.

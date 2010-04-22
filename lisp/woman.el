@@ -4533,6 +4533,7 @@ logging the message."
   "Make a bookmark entry for a Woman buffer."
   `(,(Man-default-bookmark-title)
     ,@(bookmark-make-record-default 'point-only)
+    (location . ,(concat "woman " woman-last-file-name))
     ;; Use the same form as man's bookmarks, as much as possible.
     (man-args . ,woman-last-file-name)
     (handler . woman-bookmark-jump)))

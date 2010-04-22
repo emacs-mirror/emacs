@@ -39,6 +39,7 @@ Highlight program syntax (@pxref{Font Lock}).
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
 * Glasses::             Making identifiersLikeThis more readable.
+* Semantic::            Suite of editing tools based on source code parsing.
 * Misc for Programs::   Other Emacs features useful for editing programs.
 * C Modes::             Special commands of C, C++, Objective-C,
                           Java, and Pike modes.
@@ -1386,6 +1387,73 @@ command @kbd{M-x glasses-mode} to enable or disable the mode in the
 current buffer; you can also add @code{glasses-mode} to the mode hook
 of the programming language major modes in which you normally want
 to use Glasses mode.
+
+@node Semantic
+@section Semantic
+@cindex Semantic package
+
+Semantic is a package that provides language-aware editing commands
+based on @code{source code parsers}.  This section provides a brief
+description of Semantic;
+@ifnottex
+for full details, see @ref{Top, Semantic,, semantic, Semantic}.
+@end ifnottex
+@iftex
+for full details, type @kbd{C-h i} (@code{info}) and then select the
+Semantic manual.
+@end iftex
+
+  Most of the ``language aware'' features in Emacs, such as font lock
+(@pxref{Font Lock}), rely on ``rules of thumb''@footnote{Regular
+expressions and syntax tables.} that usually give good results but are
+never completely exact.  In contrast, the parsers used by Semantic
+have an exact understanding of programming language syntax.  This
+allows Semantic to provide search, navigation, and completion commands
+that are powerful and precise.
+
+  To begin using Semantic, type @kbd{M-x semantic-mode} or click on
+the menu item named @samp{Source Code Parsers (Semantic)} in the
+@samp{Tools} menu.  This enables Semantic mode, a global minor mode.
+
+   When Semantic mode is enabled, Emacs automatically attempts to
+parses each file you visit.  Currently, Semantic understands C, C++,
+Scheme, Javascript, Java, HTML, and Make.  Within each parsed buffer,
+the following commands are available:
+
+@table @kbd
+@item C-c , j
+@kindex C-c , j
+Prompt for the name of a function defined in the current file, and
+move point there (@code{semantic-complete-jump-local}).
+
+@item C-c , J
+@kindex C-c , J
+Prompt for the name of a function defined in any file Emacs has
+parsed, and move point there (@code{semantic-complete-jump}).
+
+@item C-c , @key{SPC}
+@kindex C-c , @key{SPC}
+Display a list of possible completions for the symbol at point
+(@code{semantic-complete-analyze-inline}).  This also activates a set
+of special keybindings for choosing a completion: @key{RET} accepts
+the current completion, @kbd{M-n} and @kbd{M-p} cycle through possible
+completions, @key{TAB} completes as far as possible and then cycles,
+and @kbd{C-g} or any other key aborts completion.
+
+@item C-c , l
+@kindex C-c , l
+Display a list of the possible completions of the symbol at point, in
+another window (@code{semantic-analyze-possible-completions}).
+@end table
+
+@noindent
+In addition to the above commands, the Semantic package provides a
+variety of other ways to make use of parser information.  For
+instance, you can use it to display a list of completions when Emacs
+is idle.
+@ifnottex
+@xref{Top, Semantic,, semantic, Semantic}, for details.
+@end ifnottex
 
 @node Misc for Programs
 @section Other Features Useful for Editing Programs

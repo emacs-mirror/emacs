@@ -223,19 +223,25 @@ enum Lisp_Misc_Type
   {
     Lisp_Misc_Free = 0x5eab,
     Lisp_Misc_Marker,
-    Lisp_Misc_Intfwd,
-    Lisp_Misc_Boolfwd,
-    Lisp_Misc_Objfwd,
-    Lisp_Misc_Buffer_Objfwd,
-    Lisp_Misc_Buffer_Local_Value,
     Lisp_Misc_Overlay,
-    Lisp_Misc_Kboard_Objfwd,
     Lisp_Misc_Save_Value,
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
     /* This is not a type code.  It is for range checking.  */
     Lisp_Misc_Limit
+  };
+
+/* These are the types of forwarding objects used in the value slot
+   of symbols for special built-in variables whose value is stored in
+   C variables.  */
+enum Lisp_Fwd_Type
+  {
+    Lisp_Fwd_Int,		/* Fwd to a C `int' variable.  */
+    Lisp_Fwd_Bool,		/* Fwd to a C boolean var.  */
+    Lisp_Fwd_Obj,		/* Fwd to a C Lisp_Object variable.  */
+    Lisp_Fwd_Buffer_Obj,	/* Fwd to a Lisp_Object field of buffers.  */
+    Lisp_Fwd_Kboard_Obj,	/* Fwd to a Lisp_Object field of kboards.  */
   };
 
 #ifndef GCTYPEBITS
@@ -566,17 +572,19 @@ extern size_t pure_size;
 #define XMISCANY(a)	(eassert (MISCP (a)), &(XMISC(a)->u_any))
 #define XMISCTYPE(a)   (XMISCANY (a)->type)
 #define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC(a)->u_marker))
-#define XINTFWD(a)	(eassert (INTFWDP (a)), &(XMISC(a)->u_intfwd))
-#define XBOOLFWD(a)	(eassert (BOOLFWDP (a)), &(XMISC(a)->u_boolfwd))
-#define XOBJFWD(a)	(eassert (OBJFWDP (a)), &(XMISC(a)->u_objfwd))
 #define XOVERLAY(a)	(eassert (OVERLAYP (a)), &(XMISC(a)->u_overlay))
 #define XSAVE_VALUE(a)	(eassert (SAVE_VALUEP (a)), &(XMISC(a)->u_save_value))
+
+/* Forwarding object types.  */
+
+#define XFWDTYPE(a)     (a->u_intfwd.type)
+#define XINTFWD(a)	(eassert (INTFWDP (a)), &((a)->u_intfwd))
+#define XBOOLFWD(a)	(eassert (BOOLFWDP (a)), &((a)->u_boolfwd))
+#define XOBJFWD(a)	(eassert (OBJFWDP (a)), &((a)->u_objfwd))
 #define XBUFFER_OBJFWD(a) \
-  (eassert (BUFFER_OBJFWDP (a)), &(XMISC(a)->u_buffer_objfwd))
-#define XBUFFER_LOCAL_VALUE(a) \
-  (eassert (BUFFER_LOCAL_VALUEP (a)), &(XMISC(a)->u_buffer_local_value))
+  (eassert (BUFFER_OBJFWDP (a)), &((a)->u_buffer_objfwd))
 #define XKBOARD_OBJFWD(a) \
-  (eassert (KBOARD_OBJFWDP (a)), &(XMISC(a)->u_kboard_objfwd))
+  (eassert (KBOARD_OBJFWDP (a)), &((a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
 
@@ -988,19 +996,32 @@ enum symbol_interned
   SYMBOL_INTERNED_IN_INITIAL_OBARRAY = 2
 };
 
+enum symbol_redirect
+{
+  SYMBOL_PLAINVAL  = 4,
+  SYMBOL_VARALIAS  = 1,
+  SYMBOL_LOCALIZED = 2,
+  SYMBOL_FORWARDED   = 3
+};
+
 /* In a symbol, the markbit of the plist is used as the gc mark bit */
 
 struct Lisp_Symbol
 {
   unsigned gcmarkbit : 1;
 
-  /* Non-zero means symbol serves as a variable alias.  The symbol
-     holding the real value is found in the value slot.  */
-  unsigned indirect_variable : 1;
+  /* Indicates where the value can be found:
+     0 : it's a plain var, the value is in the `value' field.
+     1 : it's a varalias, the value is really in the `alias' symbol.
+     2 : it's a localized var, the value is in the `blv' object.
+     3 : it's a forwarding variable, the value is in `forward'.
+   */
+  enum symbol_redirect redirect : 3;
 
   /* Non-zero means symbol is constant, i.e. changing its value
-     should signal an error.  */
-  unsigned constant : 1;
+     should signal an error.  If the value is 3, then the var
+     can be changed, but only by `defconst'.  */
+  unsigned constant : 2;
 
   /* Interned state of the symbol.  This is an enumerator from
      enum symbol_interned.  */
@@ -1013,10 +1034,15 @@ struct Lisp_Symbol
   Lisp_Object xname;
 
   /* Value of the symbol or Qunbound if unbound.  If this symbol is a
-     defvaralias, `value' contains the symbol for which it is an
+     defvaralias, `alias' contains the symbol for which it is an
      alias.  Use the SYMBOL_VALUE and SET_SYMBOL_VALUE macros to get
      and set a symbol's value, to take defvaralias into account.  */
-  Lisp_Object value;
+  union {
+    Lisp_Object value;
+    struct Lisp_Symbol *alias;
+    struct Lisp_Buffer_Local_Value *blv;
+    union Lisp_Fwd *fwd;
+  } val;
 
   /* Function value of the symbol or Qunbound if not fboundp.  */
   Lisp_Object function;
@@ -1029,6 +1055,23 @@ struct Lisp_Symbol
 };
 
 /* Value is name of symbol.  */
+
+#define SYMBOL_VAL(sym)   \
+  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  (sym)->val.value)
+#define SYMBOL_ALIAS(sym) \
+  (eassert ((sym)->redirect == SYMBOL_VARALIAS),  (sym)->val.alias)
+#define SYMBOL_BLV(sym)   \
+  (eassert ((sym)->redirect == SYMBOL_LOCALIZED), (sym)->val.blv)
+#define SYMBOL_FWD(sym)   \
+  (eassert ((sym)->redirect == SYMBOL_FORWARDED), (sym)->val.fwd)
+#define SET_SYMBOL_VAL(sym, v)     \
+  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  (sym)->val.value = (v))
+#define SET_SYMBOL_ALIAS(sym, v)   \
+  (eassert ((sym)->redirect == SYMBOL_VARALIAS),  (sym)->val.alias = (v))
+#define SET_SYMBOL_BLV(sym, v)     \
+  (eassert ((sym)->redirect == SYMBOL_LOCALIZED), (sym)->val.blv = (v))
+#define SET_SYMBOL_FWD(sym, v) \
+  (eassert ((sym)->redirect == SYMBOL_FORWARDED), (sym)->val.fwd = (v))
 
 #define SYMBOL_NAME(sym)  \
      LISP_MAKE_RVALUE (XSYMBOL (sym)->xname)
@@ -1048,24 +1091,6 @@ struct Lisp_Symbol
    whose value can be set to the keyword symbol itself).  */
 
 #define SYMBOL_CONSTANT_P(sym)   XSYMBOL (sym)->constant
-
-/* Value is the value of SYM, with defvaralias taken into
-   account.  */
-
-#define SYMBOL_VALUE(sym)			\
-   (XSYMBOL (sym)->indirect_variable		\
-    ? indirect_variable (XSYMBOL (sym))->value	\
-    : XSYMBOL (sym)->value)
-
-/* Set SYM's value to VAL, taking defvaralias into account.  */
-
-#define SET_SYMBOL_VALUE(sym, val)				\
-     do {							\
-       if (XSYMBOL (sym)->indirect_variable)			\
-	 indirect_variable (XSYMBOL (sym))->value = (val);	\
-       else							\
-	 XSYMBOL (sym)->value = (val);				\
-     } while (0)
 
 
 /***********************************************************************
@@ -1200,9 +1225,11 @@ struct Lisp_Hash_Table
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 {
-  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_Marker */
+  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_??? */
   unsigned gcmarkbit : 1;
   int spacer : 15;
+  /* Make it as long as "Lisp_Free without padding". */
+  void *fill;
 };
 
 struct Lisp_Marker
@@ -1225,7 +1252,7 @@ struct Lisp_Marker
      - Fmarker_buffer
      - Fset_marker: check eq(oldbuf, newbuf) to avoid unchain+rechain.
      - unchain_marker: to find the list from which to unchain.
-     - Fkill_buffer: to unchain the markers of current indirect buffer.
+     - Fkill_buffer: to only unchain the markers of current indirect buffer.
      */
   struct buffer *buffer;
 
@@ -1239,7 +1266,10 @@ struct Lisp_Marker
   struct Lisp_Marker *next;
   /* This is the char position where the marker points.  */
   EMACS_INT charpos;
-  /* This is the byte position.  */
+  /* This is the byte position.
+     It's mostly used as a charpos<->bytepos cache (i.e. it's not directly
+     used to implement the functionality of markers, but rather to (ab)use
+     markers as a cache for char<->byte mappings).  */
   EMACS_INT bytepos;
 };
 
@@ -1249,9 +1279,7 @@ struct Lisp_Marker
    specified int variable.  */
 struct Lisp_Intfwd
   {
-    int type : 16;	/* = Lisp_Misc_Intfwd */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
+    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Int */
     EMACS_INT *intvar;
   };
 
@@ -1261,9 +1289,7 @@ struct Lisp_Intfwd
    nil if it is zero.  */
 struct Lisp_Boolfwd
   {
-    int type : 16;	/* = Lisp_Misc_Boolfwd */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
+    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Bool */
     int *boolvar;
   };
 
@@ -1273,9 +1299,7 @@ struct Lisp_Boolfwd
    specified variable.  */
 struct Lisp_Objfwd
   {
-    int type : 16;	/* = Lisp_Misc_Objfwd */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
+    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Obj */
     Lisp_Object *objvar;
   };
 
@@ -1283,11 +1307,9 @@ struct Lisp_Objfwd
    current buffer.  Value is byte index of slot within buffer.  */
 struct Lisp_Buffer_Objfwd
   {
-    int type : 16;	/* = Lisp_Misc_Buffer_Objfwd */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
-    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
+    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Buffer_Obj */
     int offset;
+    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
   };
 
 /* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
@@ -1316,48 +1338,51 @@ struct Lisp_Buffer_Objfwd
 
 struct Lisp_Buffer_Local_Value
   {
-    int type : 16;      /* = Lisp_Misc_Buffer_Local_Value  */
-    unsigned gcmarkbit : 1;
-    int spacer : 11;
-
     /* 1 means that merely setting the variable creates a local
        binding for the current buffer */
     unsigned int local_if_set : 1;
-    /* 1 means this variable is allowed to have frame-local bindings,
-       so check for them when looking for the proper binding.  */
-    unsigned int check_frame : 1;
-    /* 1 means that the binding now loaded was found
-       as a local binding for the buffer in the `buffer' slot.  */
-    unsigned int found_for_buffer : 1;
-    /* 1 means that the binding now loaded was found
-       as a local binding for the frame in the `frame' slot.  */
-    unsigned int found_for_frame : 1;
-    Lisp_Object realvalue;
-    /* The buffer and frame for which the loaded binding was found.  */
-    /* Having both is only needed if we want to allow variables that are
-       both buffer local and frame local (in which case, we currently give
-       precedence to the buffer-local binding).  I don't think such
-       a combination is desirable.  --Stef  */
-    Lisp_Object buffer, frame;
-
-    /* A cons cell, (LOADED-BINDING . DEFAULT-VALUE).
-
-       LOADED-BINDING is the binding now loaded.  It is a cons cell
-       whose cdr is the binding's value.  The cons cell may be an
-       element of a buffer's local-variable alist, or an element of a
-       frame's parameter alist, or it may be this cons cell.
-
-       DEFAULT-VALUE is the variable's default value, seen when the
-       current buffer and selected frame do not have their own
-       bindings for the variable.  When the default binding is loaded,
-       LOADED-BINDING is actually this very cons cell; thus, its car
-       points to itself.  */
-    Lisp_Object cdr;
+    /* 1 means this variable can have frame-local bindings, otherwise, it is
+       can have buffer-local bindings.  The two cannot be combined.  */
+    unsigned int frame_local : 1;
+    /* 1 means that the binding now loaded was found.
+       Presumably equivalent to (defcell!=valcell) */
+    unsigned int found : 1;
+    /* If non-NULL, a forwarding to the C var where it should also be set.  */
+    union Lisp_Fwd *fwd;	/* Should never be (Buffer|Kboard)_Objfwd.  */
+    /* The buffer or frame for which the loaded binding was found.  */
+    Lisp_Object where;
+    /* A cons cell that holds the default value.  It has the form
+       (SYMBOL . DEFAULT-VALUE).  */
+    Lisp_Object defcell;
+    /* The cons cell from `where's parameter alist.
+       It always has the form (SYMBOL . VALUE)
+       Note that if `forward' is non-nil, VALUE may be out of date.
+       Also if the currently loaded binding is the default binding, then
+       this is `eq'ual to defcell.  */
+    Lisp_Object valcell;
   };
+
+#define BLV_FOUND(blv) \
+  (eassert ((blv)->found == !EQ ((blv)->defcell, (blv)->valcell)), (blv)->found)
+#define SET_BLV_FOUND(blv, v) \
+  (eassert ((v) == !EQ ((blv)->defcell, (blv)->valcell)), (blv)->found = (v))
+
+#define BLV_VALUE(blv) (XCDR ((blv)->valcell))
+#define SET_BLV_VALUE(blv, v) (XSETCDR ((blv)->valcell, v))
 
 /* START and END are markers in the overlay's buffer, and
    PLIST is the overlay's property list.  */
 struct Lisp_Overlay
+/* An overlay's real data content is:
+   - plist
+   - buffer
+   - insertion type of both ends
+   - start & start_byte
+   - end & end_byte
+   - next (singly linked list of overlays).
+   - start_next and end_next (singly linked list of markers).
+   I.e. 9words plus 2 bits, 3words of which are for external linked lists.
+*/
   {
     enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
@@ -1370,9 +1395,7 @@ struct Lisp_Overlay
    current kboard.  */
 struct Lisp_Kboard_Objfwd
   {
-    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
+    enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Kboard_Obj */
     int offset;
   };
 
@@ -1401,9 +1424,9 @@ struct Lisp_Free
 #ifdef USE_LSB_TAG
     /* Try to make sure that sizeof(Lisp_Misc) preserves TYPEBITS-alignment.
        This assumes that Lisp_Marker is the largest of the alternatives and
-       that Lisp_Intfwd has the same size as "Lisp_Free w/o padding".  */
+       that Lisp_Misc_Any has the same size as "Lisp_Free w/o padding".  */
     char padding[((((sizeof (struct Lisp_Marker) - 1) >> GCTYPEBITS) + 1)
-		  << GCTYPEBITS) - sizeof (struct Lisp_Intfwd)];
+		  << GCTYPEBITS) - sizeof (struct Lisp_Misc_Any)];
 #endif
   };
 
@@ -1414,15 +1437,18 @@ union Lisp_Misc
   {
     struct Lisp_Misc_Any u_any;	   /* Supertype of all Misc types.  */
     struct Lisp_Free u_free;	   /* Includes padding to force alignment.  */
-    struct Lisp_Marker u_marker;
-    struct Lisp_Intfwd u_intfwd;
-    struct Lisp_Boolfwd u_boolfwd;
-    struct Lisp_Objfwd u_objfwd;
-    struct Lisp_Buffer_Objfwd u_buffer_objfwd;
-    struct Lisp_Buffer_Local_Value u_buffer_local_value;
-    struct Lisp_Overlay u_overlay;
-    struct Lisp_Kboard_Objfwd u_kboard_objfwd;
-    struct Lisp_Save_Value u_save_value;
+    struct Lisp_Marker u_marker;			 /* 5 */
+    struct Lisp_Overlay u_overlay;			 /* 5 */
+    struct Lisp_Save_Value u_save_value;		 /* 3 */
+  };
+
+union Lisp_Fwd
+  {
+    struct Lisp_Intfwd u_intfwd;			 /* 2 */
+    struct Lisp_Boolfwd u_boolfwd;			 /* 2 */
+    struct Lisp_Objfwd u_objfwd;			 /* 2 */
+    struct Lisp_Buffer_Objfwd u_buffer_objfwd;		 /* 2 */
+    struct Lisp_Kboard_Objfwd u_kboard_objfwd;		 /* 2 */
   };
 
 /* Lisp floating point type */
@@ -1564,15 +1590,13 @@ typedef struct {
 #define VECTORP(x)    (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
-#define INTFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Intfwd)
-#define BOOLFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Boolfwd)
-#define OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Objfwd)
-#define BUFFER_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Objfwd)
-#define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
-#define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
-#define KBOARD_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
 #define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
 
+#define INTFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Int)
+#define BOOLFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Bool)
+#define OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Obj)
+#define BUFFER_OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Buffer_Obj)
+#define KBOARD_OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Kboard_Obj)
 
 /* True if object X is a pseudovector whose code is CODE.  */
 #define PSEUDOVECTORP(x, code)					\
@@ -1789,24 +1813,44 @@ extern void defsubr P_ ((struct Lisp_Subr *));
 #define MANY -2
 #define UNEVALLED -1
 
-extern void defvar_lisp (const char *, Lisp_Object *);
-extern void defvar_lisp_nopro (const char *, Lisp_Object *);
-extern void defvar_bool (const char *, int *);
-extern void defvar_int (const char *, EMACS_INT *);
-extern void defvar_kboard (const char *, int);
+extern void defvar_lisp (struct Lisp_Objfwd *, const char *, Lisp_Object *);
+extern void defvar_lisp_nopro (struct Lisp_Objfwd *, const char *, Lisp_Object *);
+extern void defvar_bool (struct Lisp_Boolfwd *, const char *, int *);
+extern void defvar_int (struct Lisp_Intfwd *, const char *, EMACS_INT *);
+extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.  */
 
-#define DEFVAR_LISP(lname, vname, doc) defvar_lisp (lname, vname)
-#define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
-#define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
-#define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
+#define DEFVAR_LISP(lname, vname, doc)		\
+  do {						\
+    static struct Lisp_Objfwd o_fwd;		\
+    defvar_lisp (&o_fwd, lname, vname);		\
+  } while (0)
+#define DEFVAR_LISP_NOPRO(lname, vname, doc)	\
+  do {						\
+    static struct Lisp_Objfwd o_fwd;		\
+    defvar_lisp_nopro (&o_fwd, lname, vname);	\
+  } while (0)
+#define DEFVAR_BOOL(lname, vname, doc)		\
+  do {						\
+    static struct Lisp_Boolfwd b_fwd;		\
+    defvar_bool (&b_fwd, lname, vname);		\
+  } while (0)
+#define DEFVAR_INT(lname, vname, doc)		\
+  do {						\
+    static struct Lisp_Intfwd i_fwd;		\
+    defvar_int (&i_fwd, lname, vname);		\
+  } while (0)
 
-#define DEFVAR_KBOARD(lname, vname, doc) \
- defvar_kboard (lname, \
-		(int)((char *)(&current_kboard->vname) \
-		      - (char *)current_kboard))
+#define DEFVAR_KBOARD(lname, vname, doc)			\
+  do {								\
+    static struct Lisp_Kboard_Objfwd ko_fwd;			\
+    defvar_kboard (&ko_fwd,					\
+		   lname,					\
+		   (int)((char *)(&current_kboard->vname)	\
+			 - (char *)current_kboard));		\
+  } while (0)
 
 
 
@@ -2341,13 +2385,11 @@ extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object)) NO_RETURN;
 extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
-extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object,
-					 Lisp_Object, struct buffer *));
-extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
-extern Lisp_Object set_internal P_ ((Lisp_Object, Lisp_Object, struct buffer *, int));
+extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
+extern void set_internal (Lisp_Object, Lisp_Object, struct buffer *, int);
 extern void syms_of_data P_ ((void));
 extern void init_data P_ ((void));
-extern void swap_in_global_binding P_ ((Lisp_Object));
+extern void swap_in_global_binding P_ ((struct Lisp_Symbol *));
 
 /* Defined in cmds.c */
 EXFUN (Fend_of_line, 1);
@@ -2593,7 +2635,7 @@ extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
-extern Lisp_Object Qimage;
+extern Lisp_Object Qimage, Qtext, Qboth, Qboth_horiz;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
@@ -2855,6 +2897,7 @@ extern Lisp_Object call3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object
 extern Lisp_Object call4 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object call5 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object call6 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
+extern Lisp_Object call7 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 EXFUN (Fdo_auto_save, 2);
 extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int));
 extern Lisp_Object internal_catch P_ ((Lisp_Object, Lisp_Object (*) (Lisp_Object), Lisp_Object));
@@ -3388,6 +3431,7 @@ extern void syms_of_term P_ ((void));
 extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 
 /* Defined in terminal.c */
+EXFUN (Fframe_terminal, 1);
 EXFUN (Fdelete_terminal, 2);
 extern void syms_of_terminal P_ ((void));
 

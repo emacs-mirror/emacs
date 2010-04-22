@@ -54,7 +54,7 @@ static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 Lisp_Object Fcombine_after_change_execute ();
 
 /* Non-nil means don't call the after-change-functions right away,
-   just record an element in Vcombine_after_change_calls_list.  */
+   just record an element in combine_after_change_list.  */
 Lisp_Object Vcombine_after_change_calls;
 
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)

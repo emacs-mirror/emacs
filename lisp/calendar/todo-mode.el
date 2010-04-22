@@ -918,17 +918,9 @@ If INCLUDE-SEP is non-nil, return point after the separator."
 
 ;; As calendar reads .todo-do before todo-mode is loaded.
 ;;;###autoload
-(defun todo-mode ()
-  "Major mode for editing TODO lists.
-
-\\{todo-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'todo-mode)
-  (setq mode-name "TODO")
-  (use-local-map todo-mode-map)
-  (easy-menu-add todo-menu)
-  (run-mode-hooks 'todo-mode-hook))
+(define-derived-mode todo-mode nil "TODO"
+  "Major mode for editing TODO lists."
+  (easy-menu-add todo-menu))
 
 (defvar date)
 (defvar entry)

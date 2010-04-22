@@ -2322,10 +2322,13 @@ x_draw_image_relief (s)
       raised_p = s->img->relief > 0;
     }
 
-  x0 = x - thick;
-  y0 = y - thick;
-  x1 = x + s->slice.width + thick - 1;
-  y1 = y + s->slice.height + thick - 1;
+  int extra = s->face->id == TOOL_BAR_FACE_ID
+    ? XINT (Vtool_bar_button_margin) : 0;
+  
+  x0 = x - thick - extra;
+  y0 = y - thick - extra;
+  x1 = x + s->slice.width + thick - 1 + extra;
+  y1 = y + s->slice.height + thick - 1 + extra;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
@@ -7492,36 +7495,40 @@ x_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, activ
       w->phys_cursor_on_p = 1;
 
       if (glyph_row->exact_window_width_line_p
-	  && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
+	  && (glyph_row->reversed_p
+	      ? (w->phys_cursor.hpos < 0)
+	      : (w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])))
 	{
 	  glyph_row->cursor_in_fringe_p = 1;
-	  draw_fringe_bitmap (w, glyph_row, 0);
+	  draw_fringe_bitmap (w, glyph_row, glyph_row->reversed_p);
 	}
       else
-      switch (cursor_type)
 	{
-	case HOLLOW_BOX_CURSOR:
-	  x_draw_hollow_cursor (w, glyph_row);
-	  break;
+	  switch (cursor_type)
+	    {
+	    case HOLLOW_BOX_CURSOR:
+	      x_draw_hollow_cursor (w, glyph_row);
+	      break;
 
-	case FILLED_BOX_CURSOR:
-	  draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
-	  break;
+	    case FILLED_BOX_CURSOR:
+	      draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+	      break;
 
-	case BAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
-	  break;
+	    case BAR_CURSOR:
+	      x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
+	      break;
 
-	case HBAR_CURSOR:
-	  x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
-	  break;
+	    case HBAR_CURSOR:
+	      x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
+	      break;
 
-	case NO_CURSOR:
-	  w->phys_cursor_width = 0;
-	  break;
+	    case NO_CURSOR:
+	      w->phys_cursor_width = 0;
+	      break;
 
-	default:
-	  abort ();
+	    default:
+	      abort ();
+	    }
 	}
 
 #ifdef HAVE_X_I18N

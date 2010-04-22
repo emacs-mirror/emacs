@@ -525,7 +525,7 @@ horizontal, the ordering is top to bottom in the left part, and so on.
 In general, within each set of siblings at any level in the window tree
 (@pxref{Window Tree}), the order is left to right, or top to bottom.
 
-@deffn next-window &optional window minibuf all-frames
+@defun next-window &optional window minibuf all-frames
 @cindex minibuffer window, and @code{next-window}
 This function returns the window following @var{window} in the cyclic
 ordering of windows.  This is the window @kbd{C-x o} selects if typed
@@ -588,13 +588,13 @@ buffer @samp{windows.texi}:
      @result{} #<window 56 on windows.texi>
 @end group
 @end example
-@end deffn
+@end defun
 
-@deffn previous-window &optional window minibuf all-frames
+@defun previous-window &optional window minibuf all-frames
 This function returns the window preceding @var{window} in the cyclic
 ordering of windows.  The other arguments specify which windows to
 include in the cycle, as in @code{next-window}.
-@end deffn
+@end defun
 
 @deffn Command other-window count &optional all-frames
 This function selects another window in the cyclic ordering of windows.
@@ -827,7 +827,7 @@ This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
 @end deffn
 
-@deffn pop-to-buffer buffer-or-name &optional other-window norecord
+@deffn Command pop-to-buffer buffer-or-name &optional other-window norecord
 This command makes @var{buffer-or-name} the current buffer and switches
 to it in some window, preferably not the window previously selected.
 The ``popped-to'' window becomes the selected window.  Its frame is

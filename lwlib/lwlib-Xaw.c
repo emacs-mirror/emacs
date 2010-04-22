@@ -150,12 +150,12 @@ xaw_update_scrollbar (instance, widget, val)
 static void
 fill_xft_data (struct widget_xft_data *data, Widget widget, XftFont *font)
 {
-  data->widget = widget;
-  data->xft_font = font;
   Pixel bg, fg;
   XColor colors[2];
   int screen = XScreenNumberOfScreen (XtScreen (widget));
 
+  data->widget = widget;
+  data->xft_font = font;
   XtVaGetValues (widget,
                  XtNbackground, &bg,
                  XtNforeground, &fg,

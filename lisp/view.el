@@ -262,13 +262,7 @@ This command runs the normal hook `view-mode-hook'."
   (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file))
 	(buffer (find-file-noselect file)))
-    (if (eq (with-current-buffer buffer
-	      (get major-mode 'mode-class))
-	    'special)
-	(progn
-	  (switch-to-buffer buffer)
-	  (message "Not using View mode because the major mode is special"))
-      (view-buffer buffer (and (not had-a-buf) 'kill-buffer-if-not-modified)))))
+    (view-buffer buffer (and (not had-a-buf) 'kill-buffer-if-not-modified))))
 
 ;;;###autoload
 (defun view-file-other-window (file)
@@ -334,10 +328,16 @@ file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
 EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
   (interactive "bView buffer: ")
-  (let ((undo-window (list (window-buffer) (window-start) (window-point))))
-    (switch-to-buffer buffer)
-    (view-mode-enter (cons (selected-window) (cons nil undo-window))
-		     exit-action)))
+  (if (eq (with-current-buffer buffer
+	    (get major-mode 'mode-class))
+	  'special)
+      (progn
+	(switch-to-buffer buffer)
+	(message "Not using View mode because the major mode is special"))
+    (let ((undo-window (list (window-buffer) (window-start) (window-point))))
+      (switch-to-buffer buffer)
+      (view-mode-enter (cons (selected-window) (cons nil undo-window))
+		       exit-action))))
 
 ;;;###autoload
 (defun view-buffer-other-window (buffer &optional not-return exit-action)

@@ -283,7 +283,8 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  (let* ((comps (completion-all-sorted-completions))
+  (let* ((non-essential t)
+	 (comps (completion-all-sorted-completions))
          (last (if (consp comps) (last comps)))
          (base-size (cdr last))
          (open-bracket (if require-match "(" "["))

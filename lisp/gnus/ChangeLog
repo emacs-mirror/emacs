@@ -1,3 +1,22 @@
+2010-04-22  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* message.el (message-generate-headers): Record insertion of optional
+	headers as well.  Otherwise the check to prevent repeated insertion of
+	optional headers is a no-op.
+
+2010-04-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* smime.el: Don't mention CVS.
+
+	* nnrss.el (nnrss-fetch): Don't mention CVS.
+
+	* nnir.el: Don't mention CVS.
+
+2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record):
+	Add `location' field.
+
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el: Add bookmark declarations to silence the compiler.

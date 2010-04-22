@@ -1165,6 +1165,64 @@ Internal use only.")
 (make-variable-buffer-local 'buffer-file-coding-system-explicit)
 (put 'buffer-file-coding-system-explicit 'permanent-local t)
 
+(defun read-buffer-file-coding-system ()
+  (let* ((bcss (find-coding-systems-region (point-min) (point-max)))
+         (css-table
+          (unless (equal bcss '(undecided))
+            (append '("dos" "unix" "mac")
+                    (delq nil (mapcar (lambda (cs)
+                                        (if (memq (coding-system-base cs) bcss)
+                                            (symbol-name cs)))
+                                      coding-system-list)))))
+         (combined-table
+          (if css-table
+              (completion-table-in-turn css-table coding-system-alist)
+            coding-system-alist))
+         (auto-cs
+          (unless find-file-literally
+            (save-excursion
+              (save-restriction
+                (widen)
+                (goto-char (point-min))
+                (funcall set-auto-coding-function
+                         (or buffer-file-name "") (buffer-size))))))
+         (preferred
+          (let ((bfcs (default-value 'buffer-file-coding-system)))
+            (cons (and (or (equal bcss '(undecided))
+                           (memq (coding-system-base bfcs) bcss))
+                       bfcs)
+                  (mapcar (lambda (cs)
+                            (and (coding-system-p cs)
+                                 (coding-system-get cs :mime-charset)
+                                 (or (equal bcss '(undecided))
+                                     (memq (coding-system-base cs) bcss))
+                                 cs))
+                          (coding-system-priority-list)))))
+         (default
+           (let ((current (coding-system-base buffer-file-coding-system)))
+             ;; Generally use as a default the first preferred coding-system
+             ;; different from the current coding-system, except for
+             ;; the case of auto-cs since choosing anything else is asking
+             ;; for trouble (would lead to using a different coding
+             ;; system than specified in the coding tag).
+             (or auto-cs
+                 (car (delq nil
+                            (mapcar (lambda (cs)
+                                      (if (eq current (coding-system-base cs))
+                                          nil
+                                        cs))
+                                    preferred))))))
+         (completion-ignore-case t)
+         (completion-pcm--delim-wild-regex ; Let "u8" complete to "utf-8".
+          (concat completion-pcm--delim-wild-regex
+                  "\\|\\([[:alpha:]]\\)[[:digit:]]"))
+         (cs (completing-read
+              (format "Coding system for saving file (default %s): " default)
+              combined-table
+              nil t nil 'coding-system-history
+              (if default (symbol-name default)))))
+    (unless (zerop (length cs)) (intern cs))))
+
 (defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
@@ -1182,19 +1240,26 @@ surely saves the buffer with CODING-SYSTEM.  From a program, if you
 don't want to mark the buffer modified, specify t for NOMODIFY.
 If you know exactly what coding system you want to use,
 just set the variable `buffer-file-coding-system' directly."
-  (interactive "zCoding system for saving file (default nil): \nP")
+  (interactive
+   (list (read-buffer-file-coding-system)
+         current-prefix-arg))
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
 	    (merge-coding-systems coding-system buffer-file-coding-system)))
+  (when (called-interactively-p 'interactive)
+    ;; Check whether save would succeed, and jump to the offending char(s)
+    ;; if not.
+    (let ((css (find-coding-systems-region (point-min) (point-max))))
+      (unless (or (eq (car css) 'undecided)
+                  (memq (coding-system-base coding-system) css))
+        (setq coding-system (select-safe-coding-system-interactively
+                             (point-min) (point-max) css
+                             (list coding-system))))))
   (setq buffer-file-coding-system coding-system)
   (if buffer-file-coding-system-explicit
       (setcdr buffer-file-coding-system-explicit coding-system)
     (setq buffer-file-coding-system-explicit (cons nil coding-system)))
-  ;; This is in case of an explicit call.  Normally, `normal-mode' and
-  ;; `set-buffer-major-mode-hook' take care of setting the table.
-  (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
-      (ucs-set-table-for-input))
   (unless nomodify
     (set-buffer-modified-p t))
   (force-mode-line-update))
@@ -1626,8 +1691,8 @@ and convert it in the temporary buffer.  Otherwise, convert in-place."
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
   (purecopy '(("\\.\\(\
-arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
-ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'"
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
      . no-conversion-multibyte)
     ("\\.\\(exe\\|EXE\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)

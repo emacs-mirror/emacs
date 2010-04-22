@@ -451,11 +451,16 @@ or a superior directory.")
   "Unregister FILE from bzr."
   (vc-bzr-command "remove" nil 0 file "--keep"))
 
-(defun vc-bzr-checkin (files rev comment &optional extra-args)
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
+(defun vc-bzr-checkin (files rev comment)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
-  (apply 'vc-bzr-command "commit" nil 0 files (append (list "-m" comment) extra-args)))
+  (apply 'vc-bzr-command "commit" nil 0
+         files (cons "-m" (log-edit-extract-headers '(("Author" . "--author")
+                                                      ("Fixes" . "--fixes"))
+                                                    comment))))
 
 (defun vc-bzr-find-revision (file rev buffer)
   "Fetch revision REV of file FILE and put it into BUFFER."
@@ -551,23 +556,6 @@ REV non-nil gets an error."
 	    (setq found t))
 	(goto-char (point-min)))
       found)))
-
-(declare-function log-edit-mode "log-edit" ())
-(defvar log-edit-extra-flags)
-(defvar log-edit-before-checkin-process)
-
-(define-derived-mode vc-bzr-log-edit-mode log-edit-mode "Bzr-Log-Edit"
-  "Mode for editing Bzr commit logs.
-If a line like:
-Author: NAME
-is present in the log, it is removed, and
---author NAME
-is passed to the bzr commit command.  Similarly with Fixes: and --fixes."
-  (set (make-local-variable 'log-edit-extra-flags) nil)
-  (set (make-local-variable 'log-edit-before-checkin-process)
-       '(("^\\(Author\\|Fixes\\):[ \t]+\\(.*\\)[ \t]*$" .
-          (list (format "--%s" (downcase (match-string 1)))
-                (match-string 2))))))
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
@@ -899,10 +887,10 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-shelve-show (name)
   "Show the contents of shelve NAME."
   (interactive "sShelve name: ")
-  (vc-setup-buffer "*vc-bzr-shelve*")
+  (vc-setup-buffer "*vc-diff*")
   ;; FIXME: how can you show the contents of a shelf?
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 'async nil "--preview" name)
-  (set-buffer "*vc-bzr-shelve*")
+  (vc-bzr-command "unshelve" "*vc-diff*" 'async nil "--preview" name)
+  (set-buffer "*vc-diff*")
   (diff-mode)
   (setq buffer-read-only t)
   (pop-to-buffer (current-buffer)))
@@ -910,13 +898,13 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-shelve-apply (name)
   "Apply shelve NAME and remove it afterwards."
   (interactive "sApply (and remove) shelf: ")
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" name)
+  (vc-bzr-command "unshelve" nil 0 nil "--apply" name)
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-apply-and-keep (name)
   "Apply shelve NAME and keep it afterwards."
   (interactive "sApply (and keep) shelf: ")
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep" name)
+  (vc-bzr-command "unshelve" nil 0 nil "--apply" "--keep" name)
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-snapshot ()
@@ -927,7 +915,7 @@ stream.  Standard error output is discarded."
 		    (concat
 		     (format-time-string "Snapshot on %Y-%m-%d" ct)
 		     (format-time-string " at %H:%M" ct))))
-  (vc-bzr-command "unshelve" "*vc-bzr-shelve*" 0 nil "--apply" "--keep")
+  (vc-bzr-command "unshelve" nil 0 nil "--apply" "--keep")
   (vc-resynch-buffer (vc-bzr-root default-directory) t t))
 
 (defun vc-bzr-shelve-list ()
@@ -982,6 +970,19 @@ stream.  Standard error output is discarded."
           (setq start (+ start (match-end 0)))
           (setq loglines (buffer-substring-no-properties start (point-max))))))
     vc-bzr-revisions))
+
+(defun vc-bzr-conflicted-files (dir)
+  (let ((default-directory (vc-bzr-root dir))
+        (files ()))
+    (with-temp-buffer
+      (vc-bzr-command "status" t 0 default-directory)
+      (goto-char (point-min))
+      (when (re-search-forward "^conflicts:\n" nil t)
+        (while (looking-at "  \\(?:Text conflict in \\(.*\\)\\|.*\\)\n")
+          (if (match-end 1)
+              (push (expand-file-name (match-string 1)) files))
+          (goto-char (match-end 0)))))
+    files))
 
 ;;; Revision completion
 

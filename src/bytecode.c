@@ -505,8 +505,9 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    v1 = vectorp[op];
 	    if (SYMBOLP (v1))
 	      {
-		v2 = SYMBOL_VALUE (v1);
-		if (MISCP (v2) || EQ (v2, Qunbound))
+		if (XSYMBOL (v1)->redirect != SYMBOL_PLAINVAL
+		    || (v2 = SYMBOL_VAL (XSYMBOL (v1)),
+			EQ (v2, Qunbound)))
 		  {
 		    BEFORE_POTENTIAL_GC ();
 		    v2 = Fsymbol_value (v1);
@@ -597,10 +598,9 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
-		&& !XSYMBOL (sym)->indirect_variable
-		&& !SYMBOL_CONSTANT_P (sym)
-		&& !MISCP (XSYMBOL (sym)->value))
-	      XSYMBOL (sym)->value = val;
+		&& !XSYMBOL (sym)->redirect
+		&& !SYMBOL_CONSTANT_P (sym))
+	      XSYMBOL (sym)->val.value = val;
 	    else
 	      {
 		BEFORE_POTENTIAL_GC ();
