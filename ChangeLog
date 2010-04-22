@@ -1,3 +1,8 @@
+2010-04-22  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* configure.in: Get rid of "unix" pre-defined macro when
+	preprocessing Makefile.
+
 2010-04-21  Andreas Schwab  <schwab@linux-m68k.org>
 
 	Avoid non-portable shell command negation
