@@ -723,6 +723,16 @@ started on the local host.  You should specify a remote host
 `localhost' or the name of the local host.  Another host name is
 useful only in combination with `tramp-default-proxies-alist'.")
 
+(defun tramp-detect-ssh-controlmaster ()
+  "Call ssh to detect whether it supports the ControlMaster argument.
+This function may return nil when the argument is supported, but
+shouldn't return t when it isn't."
+  (ignore-errors
+    (with-temp-buffer
+      (call-process "ssh" nil t nil "-o" "ControlMaster")
+      (goto-char (point-min))
+      (search-forward-regexp "Missing ControlMaster argument" nil t))))
+
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it is much
   ;; more performant for large files, and it hasn't too serious delays
@@ -730,9 +740,8 @@ useful only in combination with `tramp-default-proxies-alist'.")
   ;; permanent password queries.  Either a password agent like
   ;; "ssh-agent" or "Pageant" shall run, or the optional
   ;; password-cache.el or auth-sources.el packages shall be active for
-  ;; password caching.  "scpc" would be another good choice because of
-  ;; the "ControlMaster" option, but this is a more modern alternative
-  ;; in OpenSSH 4, which cannot be taken as default.
+  ;; password caching.  "scpc" is chosen if we detect that the user is
+  ;; running OpenSSH 4.0 or newer.
   (cond
    ;; PuTTY is installed.
    ((executable-find "pscp")
@@ -744,13 +753,15 @@ useful only in combination with `tramp-default-proxies-alist'.")
       "plink"))
    ;; There is an ssh installation.
    ((executable-find "scp")
-    (if	(or (fboundp 'password-read)
-	    (fboundp 'auth-source-user-or-password)
-	    ;; ssh-agent is running.
-	    (getenv "SSH_AUTH_SOCK")
-	    (getenv "SSH_AGENT_PID"))
-	"scp"
-      "ssh"))
+    (cond
+     ((tramp-detect-ssh-controlmaster) "scpc")
+     ((or (fboundp 'password-read)
+	  (fboundp 'auth-source-user-or-password)
+	  ;; ssh-agent is running.
+	  (getenv "SSH_AUTH_SOCK")
+	  (getenv "SSH_AGENT_PID"))
+      "scp")
+     (t "ssh")))
    ;; Fallback.
    (t "ftp"))
   "*Default method to use for transferring files.

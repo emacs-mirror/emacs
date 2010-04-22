@@ -1,8 +1,17 @@
+2010-04-22  Noah Lavine  <noah549@gmail.com>  (tiny change)
+
+	Detect ssh 'ControlMaster' argument automatically in some cases.
+
+	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
+	(tramp-default-method): Use it.
+
 2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-copy-file): Add new optional
 	parameter `preserve-selinux-context'.
 	(tramp-file-name-for-operation): Add `set-file-selinux-context'.
+
+2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-handle-file-name-all-completions):
 	Ensure, that non remote files are still checked.  Oops.
