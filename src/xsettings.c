@@ -578,7 +578,7 @@ read_and_apply_settings (dpyinfo, send_event_p)
 
   if (settings.seen & SEEN_FONT)
     {
-      if (strcmp (current_font, settings.font) != 0) 
+      if (!current_font || strcmp (current_font, settings.font) != 0) 
         {
           free (current_font);
           current_font = settings.font;

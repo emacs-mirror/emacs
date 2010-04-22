@@ -1,3 +1,8 @@
+2010-04-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (read_and_apply_settings): Check if current_font is
+	NULL before strcmp (Bug#6001).
+
 2010-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Clean up HP-UX files.
