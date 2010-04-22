@@ -3437,7 +3437,8 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 	 (buffer-name))))))
 
 (defun tramp-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
   ;; Check if both files are local -- invoke normal copy-file.
   ;; Otherwise, use Tramp from local system.
@@ -5326,7 +5327,7 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-compress-file 'dired-uncache
 		  'file-accessible-directory-p 'file-attributes
 		  'file-directory-p 'file-executable-p 'file-exists-p
-		  'file-local-copy 'file-remote-p 'file-modes 'file-selinux-context
+		  'file-local-copy 'file-remote-p 'file-modes
 		  'file-name-as-directory 'file-name-directory
 		  'file-name-nondirectory 'file-name-sans-versions
 		  'file-ownership-preserved-p 'file-readable-p
@@ -5338,6 +5339,8 @@ ARGS are the arguments OPERATION has been called with."
 		  'unhandled-file-name-directory 'vc-registered
 		  ;; Emacs 22+ only.
 		  'set-file-times
+		  ;; Emacs 24+ only.
+		  'file-selinux-context 'set-file-selinux-context
 		  ;; XEmacs only.
 		  'abbreviate-file-name 'create-file-buffer
 		  'dired-file-modtime 'dired-make-compressed-filename
@@ -8678,6 +8681,7 @@ Only works for Bourne-like shells."
 ;;   on remote hosts.
 ;; * Use secrets.el for password handling.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
+;; * Implement selinux-context.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

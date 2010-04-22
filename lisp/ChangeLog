@@ -1,5 +1,9 @@
 2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-handle-copy-file): Add new optional
+	parameter `preserve-selinux-context'.
+	(tramp-file-name-for-operation): Add `set-file-selinux-context'.
+
 	* net/tramp.el (tramp-completion-handle-file-name-all-completions):
 	Ensure, that non remote files are still checked.  Oops.
 
