@@ -1,3 +1,15 @@
+2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Synchronize with Tramp repository.
+
+	* net/tramp.el (with-connection-property, tramp-completion-mode-p)
+	(tramp-action-process-alive, tramp-action-out-of-band)
+	(tramp-check-for-regexp, tramp-file-name-p, tramp-equal-remote)
+	(tramp-exists-file-name-handler): Fix docstring.
+	(with-progress-reporter): New defmacro.
+	(tramp-do-copy-or-rename-file, tramp-handle-dired-compress-file)
+	(tramp-maybe-open-connection): Use it.
+
 2010-04-22  Noah Lavine  <noah549@gmail.com>  (tiny change)
 
 	Detect ssh 'ControlMaster' argument automatically in some cases.
