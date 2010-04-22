@@ -225,7 +225,7 @@ South Indian language Malayalam is supported in this language environment."))
 (defconst gujarati-composable-pattern
   (let ((table
 	 '(("a" . "[\u0A81-\u0A82]")	; SIGN CANDRABINDU .. ANUSVARA
-	   ("A" . "\u0A83]")		; SIGN VISARGA
+	   ("A" . "\u0A83")		; SIGN VISARGA
 	   ("V" . "[\u0A85-\u0A94\u0AE0-\u0AE1]") ; independent vowel
 	   ("C" . "[\u0A95-\u0AB9]")	; consonant
 	   ("R" . "\u0AB0")		; RA
