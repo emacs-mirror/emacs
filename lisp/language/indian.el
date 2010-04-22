@@ -198,15 +198,14 @@ South Indian language Malayalam is supported in this language environment."))
 
 (defconst gurmukhi-composable-pattern
   (let ((table
-	 '(("a" . "[\u0A01-\u0A02]")	; SIGN ADAK BINDI .. BINDI
-	   ("A" . "\u0A03]")		; SIGN VISARGA
+	 '(("a" . "[\u0A01-\u0A02\u0A70]") ; SIGN ADAK BINDI .. BINDI, TIPPI
+	   ("A" . "\u0A03")		; SIGN VISARGA
 	   ("V" . "[\u0A05-\u0A14]")	; independent vowel
 	   ("C" . "[\u0A15-\u0A39\u0A59-\u0A5E]")	; consonant
-	   ("Y" . "[\u0A2F\u0A30\u0A35\u0A39]") ; YA, RA, VA, HA
+	   ("Y" . "[\u0A2F-u0A30\u0A35\u0A39]") ; YA, RA, VA, HA
 	   ("n" . "\u0A3C")		; NUKTA
 	   ("v" . "[\u0A3E-\u0A4C]")	; vowel sign
 	   ("H" . "\u0A4D")		; VIRAMA
-	   ("a" . "\u0A70")		; TIPPI
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
 	   ("X" . "[\u0A00-\u0A7F]"))))	; all coverage
@@ -226,7 +225,7 @@ South Indian language Malayalam is supported in this language environment."))
 (defconst gujarati-composable-pattern
   (let ((table
 	 '(("a" . "[\u0A81-\u0A82]")	; SIGN CANDRABINDU .. ANUSVARA
-	   ("A" . "\u0A83]")		; SIGN VISARGA
+	   ("A" . "\u0A83")		; SIGN VISARGA
 	   ("V" . "[\u0A85-\u0A94\u0AE0-\u0AE1]") ; independent vowel
 	   ("C" . "[\u0A95-\u0AB9]")	; consonant
 	   ("R" . "\u0AB0")		; RA
