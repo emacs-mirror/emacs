@@ -1,3 +1,7 @@
+2010-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (gurmukhi-composable-pattern): Fix typo.
+
 2010-04-20  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (oriya-composable-pattern)
