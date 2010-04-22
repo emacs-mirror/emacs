@@ -1,3 +1,7 @@
+2010-04-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (REAL_CFLAGS, CFLAGS): Restore -g for gcc.
+
 2010-04-22  Miles Bader  <Miles Bader <miles@gnu.org>>
 
 	* configure.in: Get rid of "unix" pre-defined macro when
