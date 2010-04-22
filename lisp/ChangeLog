@@ -1,6 +1,6 @@
 2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el(tramp-completion-handle-file-name-all-completions):
+	* net/tramp.el (tramp-completion-handle-file-name-all-completions):
 	Ensure, that non remote files are still checked.  Oops.
 
 2010-04-21  Michael Albinus  <michael.albinus@gmx.de>
