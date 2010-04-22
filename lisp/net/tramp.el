@@ -5719,9 +5719,10 @@ not in completion mode."
     (append
      result1
      (condition-case nil
-	 (when (tramp-connectable-p fullname)
-	   (tramp-completion-run-real-handler
-	    'file-name-all-completions (list filename directory)))
+	 (apply (if (tramp-connectable-p fullname)
+		    'tramp-completion-run-real-handler
+		  'tramp-run-real-handler)
+		'file-name-all-completions (list (list filename directory)))
        (error nil)))))
 
 ;; Method, host name and user name completion for a file.
