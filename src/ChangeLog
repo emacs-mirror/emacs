@@ -1,5 +1,8 @@
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/macppc.h (LD_SWITCH_SYSTEM_TEMACS): Remove #undef.
+	(LD_SWITCH_MACHINE_TEMACS): Remove, configure sets nocombreloc.
+
 	* s/netbsd.h (LD_SWITCH_SYSTEM_TEMACS): Remove, configure sets nocombreloc.
 	* s/openbsd.h (LD_SWITCH_SYSTEM_TEMACS): Remove.
 
