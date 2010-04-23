@@ -1,5 +1,7 @@
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in: Remove C_SWITCH_X_MACHINE, unused.
+
 	* s/cygwin.h (LIBS_DEBUG): Remove, unused.
 
 	Remove redundant flags.
