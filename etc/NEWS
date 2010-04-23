@@ -86,6 +86,9 @@ context in their return values.
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
 
+*** Tramp offers handlers for file-selinux-context and set-file-selinux-context
+for remote machines which support SELinux.
+
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
 of buffer at first key-press (instead moves to top/bottom of buffer)
