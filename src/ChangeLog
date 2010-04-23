@@ -3,6 +3,9 @@
 	* xdisp.c (pop_it): When the stack is popped after displaying
 	from a string, bidi-iterate to exit from the text portion covered
 	by the `display' property or overlay.  (Bug#5988, bug#5920)
+	(set_iterator_to_next, next_element_from_composition): Fix display
+	of composed characters from L2R scripts in bidi buffers.
+	(Bug#5977)
 
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
