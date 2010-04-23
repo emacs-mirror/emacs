@@ -2,10 +2,10 @@
 
 	* configure.in (REAL_CFLAGS, CFLAGS): Restore -g for gcc.
 
-2010-04-22  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-04-22  Miles Bader <miles@gnu.org>
 
 	* configure.in: Get rid of "unix" pre-defined macro when
-	preprocessing Makefile.
+	preprocessing Makefile.  (Bug#5857)
 
 2010-04-21  Andreas Schwab  <schwab@linux-m68k.org>
 
