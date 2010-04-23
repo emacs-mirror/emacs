@@ -5309,7 +5309,7 @@ pop_it (it)
 	     determine the paragraph base direction if the overlay we
 	     just processed is at the beginning of a new
 	     paragraph.  */
-	  if (it->bidi_it.first_elt)
+	  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
 	    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
 	  /* prev_stop can be zero, so check against BEGV as well.  */
 	  while (it->bidi_it.charpos >= BEGV
