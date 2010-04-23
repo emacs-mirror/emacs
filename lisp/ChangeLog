@@ -1,5 +1,10 @@
 2010-04-23  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-fontify-node): Put Info-breadcrumbs to the `display'
+	property instead of `invisible' and `after-string' (bug#5998).
+
+2010-04-23  Juri Linkov  <juri@jurta.org>
+
 	* image-mode.el (image-mode-as-text): Fix typo in docstring.
 
 2010-04-23  Juanma Barranquero  <lekktu@gmail.com>
