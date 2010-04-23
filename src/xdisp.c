@@ -5299,6 +5299,36 @@ pop_it (it)
       break;
     case GET_FROM_BUFFER:
       it->object = it->w->buffer;
+      if (it->bidi_p)
+	{
+	  /* Bidi-iterate until we get out of the portion of text, if
+	     any, covered by a `display' text property or an overlay
+	     with `display' property.  (We cannot just jump there,
+	     because the internal coherency of the bidi iterator state
+	     can not be preserved across such jumps.)  We also must
+	     determine the paragraph base direction if the overlay we
+	     just processed is at the beginning of a new
+	     paragraph.  */
+	  if (it->bidi_it.first_elt)
+	    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	  /* prev_stop can be zero, so check against BEGV as well.  */
+	  while (it->bidi_it.charpos >= BEGV
+		 && it->prev_stop <= it->bidi_it.charpos
+		 && it->bidi_it.charpos < CHARPOS (it->position))
+	    bidi_get_next_char_visually (&it->bidi_it);
+	  /* Record the stop_pos we just crossed, for when we cross it
+	     back, maybe.  */
+	  if (it->bidi_it.charpos > CHARPOS (it->position))
+	    it->prev_stop = CHARPOS (it->position);
+	  /* If we ended up not where pop_it put us, resync IT's
+	     positional members with the bidi iterator. */
+	  if (it->bidi_it.charpos != CHARPOS (it->position))
+	    {
+	      SET_TEXT_POS (it->position,
+			    it->bidi_it.charpos, it->bidi_it.bytepos);
+	      it->current.pos = it->position;
+	    }
+	}
       break;
     case GET_FROM_STRING:
       it->object = it->string;
