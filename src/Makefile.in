@@ -196,12 +196,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_MACHINE
 #endif
 
-/* This holds special options for linking temacs
-   that should be used for linking anything else.  */
-#ifndef LD_SWITCH_MACHINE_TEMACS
-#define LD_SWITCH_MACHINE_TEMACS
-#endif
-
 /* These macros are for switches specifically related to X Windows.  */
 #ifndef C_SWITCH_X_MACHINE
 #define C_SWITCH_X_MACHINE
@@ -403,7 +397,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
