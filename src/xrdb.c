@@ -34,24 +34,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <setjmp.h>
 
-#if 1 /* I'd really appreciate it if this code could go away...  -JimB */
-/* This avoids lossage in the `dual-universe' headers on AT&T SysV
-   X11.  Don't do it on Solaris, because it breaks compilation with
-   XFree86 4.0.3 (and probably many other X11R6 releases) on Solaris
-   2 */
-#if defined(USG5) && !defined(SOLARIS2)
-#ifndef SYSV
-#define SYSV
-#endif
-#endif /* USG5 && !SOLARIS2 */
-
-#endif /* 1 */
-
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-#if 0
-#include <X11/Xos.h>
-#endif
 #include <X11/X.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>

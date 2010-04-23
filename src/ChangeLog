@@ -1,3 +1,14 @@
+2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Clean up Solaris code.
+	* s/sol2-6.h (LD_SWITCH_SYSTEM_TEMACS, C_SWITCH_X_SYSTEM)
+	(LIB_MOTIF): Remove, configure takes care of this.
+	(NOT_USING_MOTIF): Remove, unused.
+	* xrdb.c: Remove #if 0-ed #include.
+	(SYSV): Remove conditional for old SysV.
+	* sysdep.c (closedir): Remove conditional code for Solaris,
+	Solaris has closedir.
+
 2010-04-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (read_and_apply_settings): Check if current_font is

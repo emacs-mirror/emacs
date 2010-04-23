@@ -73,35 +73,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     pty_name[sizeof (pty_name) - 1] = 0;	\
   }
 
-/* `#ifdef USE_MOTIF' won't work here, since USE_MOTIF isn't defined yet.
-   Instead, dynamically check whether USE_MOTIF expands to something.  */
-#define NOT_USING_MOTIF { set x USE_MOTIF; test "$$2" = "USE_MOTIF"; }
-
-#ifndef __GNUC__
-#define LD_SWITCH_SYSTEM_TEMACS -L/usr/ccs/lib LD_SWITCH_X_SITE_AUX \
-  `NOT_USING_MOTIF || echo ' -R/usr/dt/lib'`
-#else /* GCC */
-/* We use ./prefix-args because we don't know whether LD_SWITCH_X_SITE_AUX
-   has anything in it.  It can be empty.
-   This works ok in temacs.  */
-#define LD_SWITCH_SYSTEM_TEMACS -L/usr/ccs/lib \
- `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX` \
-  `NOT_USING_MOTIF || echo ' -R/usr/dt/lib -L/usr/dt/lib'`
-
-/* Get rid of -traditional and let const really do its thing.  */
-#undef C_SWITCH_SYSTEM
-#undef const
-#endif /* GCC */
-
-/* Gregory Neil Shapiro <gshapiro@hhmi.org> reports the Motif header files
-   are in this directory on Solaris 2.4.  */
-#define C_SWITCH_X_SYSTEM -I/usr/dt/include
-
-/* -lgen is needed for the regex and regcmp functions
-   which are used by Motif.  In the future we can try changing
-   regex.c to provide them in Emacs, but this is safer for now.  */
-#define LIB_MOTIF -lXm -lgen
-
 /* This is the only known way to avoid some crashes
    that seem to relate to screwed up malloc data
    after deleting a frame.  */
