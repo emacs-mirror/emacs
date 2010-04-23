@@ -219,25 +219,7 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_X_DEFAULT
 #endif
 
-#ifndef ORDINARY_LINK
-
-#ifndef START_FILES
-#ifdef NO_REMAP
-#define START_FILES pre-crt0.o /lib/crt0.o
-#else /* ! defined (NO_REMAP) */
-#define START_FILES ecrt0.o
-#endif /* ! defined (NO_REMAP) */
-#endif /* START_FILES */
 STARTFILES = START_FILES
-
-#else /* ORDINARY_LINK */
-
-/* config.h might want to force START_FILES anyway */
-#ifdef START_FILES
-STARTFILES = START_FILES
-#endif /* START_FILES */
-
-#endif /* not ORDINARY_LINK */
 
 
 #ifdef NS_IMPL_GNUSTEP

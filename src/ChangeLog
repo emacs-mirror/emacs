@@ -1,5 +1,11 @@
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Simplify STARTFILES definition.
+	* s/hpux10-20.h (START_FILES): Explicitly define here instead of
+	relying on Makefile.in to define it.
+	* s/cygwin.h (START_FILES): Likewise.
+	* Makefile.in (STARTFILES): Remove conditional code, not needed anymore.
+
 	Clean up Solaris code.
 	* s/sol2-6.h (LD_SWITCH_SYSTEM_TEMACS, C_SWITCH_X_SYSTEM)
 	(LIB_MOTIF): Remove, configure takes care of this.

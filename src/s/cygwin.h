@@ -140,6 +140,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIB_MATH
 #define LIBS_DEBUG
 
+#define START_FILES ecrt0.o
+
 /* the end */
 
 /* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b
