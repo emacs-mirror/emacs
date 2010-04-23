@@ -1,3 +1,7 @@
+2010-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Adjust Burmese for Unicode 5.2 encoding.
+
 2010-04-04  Francesc Rocher  <rocher@member.fsf.org>
 
 	* MORE.STUFF: Add a new entry for QWE.
