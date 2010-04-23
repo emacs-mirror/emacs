@@ -1,3 +1,10 @@
+2010-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of composed characters from L2R scripts in bidi buffers.
+	* xdisp.c (set_iterator_to_next, next_element_from_composition):
+	After advancing IT past the composition, resync the bidi iterator
+	with IT's position.  (Bug#5977)
+
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (LD_SWITCH_MACHINE_TEMACS): Remove, unused.

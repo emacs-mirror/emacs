@@ -6274,6 +6274,15 @@ set_iterator_to_next (it, reseat_p)
 	{
 	  IT_CHARPOS (*it) += it->cmp_it.nchars;
 	  IT_BYTEPOS (*it) += it->cmp_it.nbytes;
+	  if (it->bidi_p)
+	    {
+	      if (it->bidi_it.new_paragraph)
+		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	      /* Resync the bidi iterator with IT's new position.
+		 FIXME: this doesn't support bidirectional text.  */
+	      while (it->bidi_it.charpos < IT_CHARPOS (*it))
+		bidi_get_next_char_visually (&it->bidi_it);
+	    }
 	  if (it->cmp_it.to < it->cmp_it.nglyphs)
 	    it->cmp_it.from = it->cmp_it.to;
 	  else
@@ -6995,6 +7004,15 @@ next_element_from_composition (it)
 	{
 	  IT_CHARPOS (*it) += it->cmp_it.nchars;
 	  IT_BYTEPOS (*it) += it->cmp_it.nbytes;
+	  if (it->bidi_p)
+	    {
+	      if (it->bidi_it.new_paragraph)
+		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	      /* Resync the bidi iterator with IT's new position.
+		 FIXME: this doesn't support bidirectional text.  */
+	      while (it->bidi_it.charpos < IT_CHARPOS (*it))
+		bidi_get_next_char_visually (&it->bidi_it);
+	    }
 	  return 0;
 	}
       it->position = it->current.pos;
