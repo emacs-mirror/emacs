@@ -1,3 +1,7 @@
+2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gtkutil.c: Include xsettings.h for Ftool_bar_get_system_style.
+
 2010-04-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Support `display' text properties and overlay strings in bidi
