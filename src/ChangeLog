@@ -1,5 +1,8 @@
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/netbsd.h (LD_SWITCH_SYSTEM_TEMACS): Remove, configure sets nocombreloc.
+	* s/openbsd.h (LD_SWITCH_SYSTEM_TEMACS): Remove.
+
 	Simplify STARTFILES definition.
 	* s/hpux10-20.h (START_FILES): Explicitly define here instead of
 	relying on Makefile.in to define it.

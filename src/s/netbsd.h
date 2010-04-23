@@ -56,13 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/pkg/include -I/usr/local/include -L/usr/pkg/lib -L/usr/local/lib
 
-/* Link temacs with -z nocombreloc so that unexec works right, whether or
-   not -z combreloc is the default.  GNU ld ignores unknown -z KEYWORD
-   switches, so this also works with older versions that don't implement
-   -z combreloc.  */
-
-#define LD_SWITCH_SYSTEM_TEMACS -Wl,-z,nocombreloc
-
 /* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
    the library search parth, i.e. it won't search /usr/lib
    for libc and friends. Using -nostartfiles instead avoids
