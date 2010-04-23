@@ -1,3 +1,8 @@
+2010-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filecache.el (file-cache-add-directory-list)
+	(file-cache-add-directory-recursively): Fix typos in docstrings.
+
 2010-04-22  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (gurmukhi-composable-pattern): Fix typo.
