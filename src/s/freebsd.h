@@ -69,13 +69,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
 
-/* The following is needed to make `configure' find Xpm, Xaw3d and
-   image include and library files if using /usr/bin/gcc.  That
-   compiler seems to be modified to not find headers in
-   /usr/local/include or libs in /usr/local/lib by default.  */
-
-#define C_SWITCH_SYSTEM -I/usr/X11R6/include -I/usr/local/include -L/usr/local/lib
-
 /* Circumvent a bug in FreeBSD.  In the following sequence of
    writes/reads on a PTY, read(2) returns bogus data:
 

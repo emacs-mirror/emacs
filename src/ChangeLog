@@ -1,5 +1,12 @@
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove redundant flags.
+	* s/freebsd.h (C_SWITCH_SYSTEM):
+	* s/hpux10-20.h (C_SWITCH_X_SYSTEM, LD_SWITCH_X_DEFAULT):
+	* s/netbsd.h (C_SWITCH_SYSTEM):
+	* s/openbsd.h (LD_SWITCH_X_DEFAULT): Remove, configure takes care
+	of these.
+
 	Simplify m/intel386.h.
 	* m/intel386.h (CRT0_DUMMIES): Remove, inline value in the only
 	user: ecrt0.c.

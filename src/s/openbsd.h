@@ -23,9 +23,5 @@
       is necessary,  otherwise Emacs dumps core on elf systems.  */
 #define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -Z
 
-/* The version of gcc on OpenBSD doesn't search /usr/local/lib by
-   default.  */
-#define LD_SWITCH_X_DEFAULT -L/usr/local/lib
-
 /* arch-tag: 7e3f65ca-3f48-4237-933f-2b208b21e8e2
    (do not change this comment) */
