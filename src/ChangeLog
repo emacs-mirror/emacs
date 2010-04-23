@@ -1,3 +1,18 @@
+2010-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (M17N_FLT_USE_NEW_FEATURE): Define it if we can use the
+	new feature of libotf and m17n-flt.
+	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]: Call
+	OTF_check_features even if no specific feature is given.
+	(PACK_OTF_TAG) [M17N_FLT_USE_NEW_FEATURE]: New macro.
+	(ftfont_drive_otf) [M17N_FLT_USE_NEW_FEATURE]: Handle the case
+	that OUT is NULL.  Use OTF_drive_gsub_with_log and
+	OTF_drive_gpos_with_log instead of OTF_drive_gsub and
+	OTF_drive_gpos.
+	(ftfont_try_otf) [M17N_FLT_USE_NEW_FEATURE]: New function.
+	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]: Setup
+	mflt_enable_new_feature and mflt_try_otf.
+
 2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dired.c (Ffile_attributes): Fix typo in docstring.
