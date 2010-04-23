@@ -1,5 +1,7 @@
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/cygwin.h (LIBS_DEBUG): Remove, unused.
+
 	Remove redundant flags.
 	* s/freebsd.h (C_SWITCH_SYSTEM):
 	* s/hpux10-20.h (C_SWITCH_X_SYSTEM, LD_SWITCH_X_DEFAULT):

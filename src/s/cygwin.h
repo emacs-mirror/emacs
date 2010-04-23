@@ -138,7 +138,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't list system libs on link command line */
 #define LIB_STANDARD
 #define LIB_MATH
-#define LIBS_DEBUG
 
 #define START_FILES ecrt0.o
 
