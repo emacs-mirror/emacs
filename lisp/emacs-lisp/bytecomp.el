@@ -3333,21 +3333,31 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
     (setq for-effect nil)))
 
 (defun byte-compile-setq-default (form)
-  (let ((bytecomp-args (cdr form))
-	setters)
-    (while bytecomp-args
-      (let ((var (car bytecomp-args)))
-	(and (or (not (symbolp var))
-		 (byte-compile-const-symbol-p var t))
-	     (byte-compile-warning-enabled-p 'constants)
-	     (byte-compile-warn
-	      "variable assignment to %s `%s'"
-	      (if (symbolp var) "constant" "nonvariable")
-	      (prin1-to-string var)))
-	(push (list 'set-default (list 'quote var) (car (cdr bytecomp-args)))
-	      setters))
-      (setq bytecomp-args (cdr (cdr bytecomp-args))))
-    (byte-compile-form (cons 'progn (nreverse setters)))))
+  (setq form (cdr form))
+  (if (> (length form) 2)
+      (let ((setters ()))
+        (while (consp form)
+          (push `(setq-default ,(pop form) ,(pop form)) setters))
+        (byte-compile-form (cons 'progn (nreverse setters))))
+    (let ((var (car form)))
+      (and (or (not (symbolp var))
+               (byte-compile-const-symbol-p var t))
+           (byte-compile-warning-enabled-p 'constants)
+           (byte-compile-warn
+            "variable assignment to %s `%s'"
+            (if (symbolp var) "constant" "nonvariable")
+            (prin1-to-string var)))
+      (byte-compile-normal-call `(set-default ',var ,@(cdr form))))))
+
+(byte-defop-compiler-1 set-default)
+(defun byte-compile-set-default (form)
+  (let ((varexp (car-safe (cdr-safe form))))
+    (if (eq (car-safe varexp) 'quote)
+        ;; If the varexp is constant, compile it as a setq-default
+        ;; so we get more warnings.
+        (byte-compile-setq-default `(setq-default ,(car-safe (cdr varexp))
+                                                  ,@(cddr form)))
+      (byte-compile-normal-call form))))
 
 (defun byte-compile-quote (form)
   (byte-compile-constant (car (cdr form))))

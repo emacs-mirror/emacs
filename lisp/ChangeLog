@@ -1,5 +1,10 @@
 2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-set-default): New function.
+	(byte-compile-setq-default): Optimize for the
+	single-var case and don't call byte-compile-form in this case to avoid
+	inf-loop with byte-compile-set-default.
+
 	* progmodes/compile.el (compilation-start): Abbreviate default directory.
 
 2010-04-23  Michael Albinus  <michael.albinus@gmx.de>
