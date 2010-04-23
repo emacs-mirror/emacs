@@ -1,3 +1,26 @@
+2010-04-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement SELINUX backends.
+
+	* net/tramp.el (tramp-file-name-handler-alist): Add
+	`file-selinux-context' and `set-file-selinux-context'.
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context): New defuns.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file): Handle
+	PRESERVE-SELINUX-CONTEXT.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist): Add
+	`file-selinux-context' and `set-file-selinux-context'.
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
+	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
+
+	* net/ange-ftp.el (ange-ftp-copy-file):
+	* net/tramp-fish.el (tramp-fish-handle-copy-file):
+	* net/tramp-imap.el (tramp-imap-handle-copy-file):
+	* net/tramp-smb.el (tramp-smb-handle-copy-file): Add
+	PRESERVE-SELINUX-CONTEXT.
+
 2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Synchronize with Tramp repository.
