@@ -2231,7 +2231,7 @@ struct it
      If `what' == IT_COMPOSITION, the first component of a composition
      and length in bytes of the composition.
 
-     If `what' is anything else, these tow are undefined (will
+     If `what' is anything else, these two are undefined (will
      probably hold values for the last IT_CHARACTER or IT_COMPOSITION
      traversed by the iterator.
 
