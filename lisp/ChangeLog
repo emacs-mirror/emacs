@@ -1,3 +1,35 @@
+2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-set-default): New function.
+	(byte-compile-setq-default): Optimize for the
+	single-var case and don't call byte-compile-form in this case to avoid
+	inf-loop with byte-compile-set-default.
+
+	* progmodes/compile.el (compilation-start): Abbreviate default directory.
+
+2010-04-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement SELINUX backends.
+
+	* net/tramp.el (tramp-file-name-handler-alist):
+	Add `file-selinux-context' and `set-file-selinux-context'.
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context): New defuns.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file):
+	Handle PRESERVE-SELINUX-CONTEXT.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	Add `file-selinux-context' and `set-file-selinux-context'.
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
+	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
+
+	* net/ange-ftp.el (ange-ftp-copy-file):
+	* net/tramp-fish.el (tramp-fish-handle-copy-file):
+	* net/tramp-imap.el (tramp-imap-handle-copy-file):
+	* net/tramp-smb.el (tramp-smb-handle-copy-file):
+	Add PRESERVE-SELINUX-CONTEXT.
+
 2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Synchronize with Tramp repository.
@@ -1433,7 +1465,7 @@
 	* image-mode.el (image-toggle-display-image):
 	Replace `create-image' with `create-animated-image'.
 
-2010-03-09  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-03-09  Miles Bader  <miles@gnu.org>
 
 	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
 	instead of "format:"; this ensures that the output is

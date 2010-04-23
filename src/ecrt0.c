@@ -61,15 +61,7 @@ int data_start = 0;
 
 char **environ;
 
-#ifndef static
-/* On systems where the static storage class is usable, this function
-   should be declared as static.  Otherwise, the static keyword has
-   been defined to be something else, and code for those systems must
-   take care of this declaration appropriately.  */
 static start1 ();
-#endif
-
-#ifdef CRT0_DUMMIES
 
 /* Define symbol "start": here; some systems want that symbol.  */
 asm("	.text		");
@@ -83,7 +75,7 @@ _start ()
 }
 
 static
-start1 (CRT0_DUMMIES argc, xargv)
+start1 (bogus_fp, argc, xargv)
      int argc;
      char *xargv;
 {
@@ -98,7 +90,6 @@ start1 (CRT0_DUMMIES argc, xargv)
      and optimize it out.  */
   (void) &start1;
 }
-#endif /* CRT0_DUMMIES */
 
 /* arch-tag: 4025c2fb-d6b1-4d29-b1b6-8100b6bd1e74
    (do not change this comment) */

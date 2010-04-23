@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "charset.h"
 #include "coding.h"
 #include <gdk/gdkkeysyms.h>
+#include "xsettings.h"
 
 #ifdef HAVE_XFT
 #include <X11/Xft/Xft.h>

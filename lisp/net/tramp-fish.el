@@ -217,7 +217,6 @@ Used instead of analyzing error codes of commands.")
     (file-executable-p . tramp-fish-handle-file-executable-p)
     (file-exists-p . tramp-fish-handle-file-exists-p)
     (file-local-copy . tramp-fish-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-fish-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -229,6 +228,8 @@ Used instead of analyzing error codes of commands.")
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-fish-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    ;; `file-selinux-context' performed by default handler.
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; `file-truename' performed by default handler
     (file-writable-p . tramp-fish-handle-file-writable-p)
@@ -243,6 +244,7 @@ Used instead of analyzing error codes of commands.")
     (make-symbolic-link . tramp-fish-handle-make-symbolic-link)
     (rename-file . tramp-fish-handle-rename-file)
     (set-file-modes . tramp-fish-handle-set-file-modes)
+    ;; `set-file-selinux-context' performed by default handler.
     (set-file-times . tramp-fish-handle-set-file-times)
     (set-visited-file-modtime . ignore)
     (shell-command . tramp-handle-shell-command)
@@ -307,7 +309,8 @@ pass to the OPERATION."
 	 v1 'file-error "Error with add-name-to-file %s" newname)))))
 
 (defun tramp-fish-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
   (tramp-fish-do-copy-or-rename-file
    'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))

@@ -917,7 +917,7 @@ configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
 /* Get the CFLAGS for tests in configure.  */
 #ifdef __GNUC__
-configure___ CFLAGS=C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+configure___ CFLAGS=-g C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
 #else
 configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -926,7 +926,7 @@ configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
+configure___ REAL_CFLAGS=-g C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
 #else
 configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
 #endif

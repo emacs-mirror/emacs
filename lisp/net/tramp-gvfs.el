@@ -386,7 +386,6 @@ Every entry is a list (NAME ADDRESS).")
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
     (file-exists-p . tramp-gvfs-handle-file-exists-p)
     (file-local-copy . tramp-gvfs-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
     ;; `file-modes' performed by default handler.
     (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -398,6 +397,8 @@ Every entry is a list (NAME ADDRESS).")
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    (file-selinux-context . tramp-gvfs-handle-file-selinux-context)
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; `file-truename' performed by default handler.
     (file-writable-p . tramp-gvfs-handle-file-writable-p)
@@ -413,6 +414,7 @@ Every entry is a list (NAME ADDRESS).")
     (process-file . tramp-gvfs-handle-process-file)
     (rename-file . tramp-gvfs-handle-rename-file)
     (set-file-modes . tramp-gvfs-handle-set-file-modes)
+    (set-file-selinux-context . tramp-gvfs-handle-set-file-selinux-context)
     (set-visited-file-modtime . tramp-gvfs-handle-set-visited-file-modtime)
     (shell-command . tramp-gvfs-handle-shell-command)
     (start-file-process . tramp-gvfs-handle-start-file-process)
@@ -510,16 +512,21 @@ is no information where to trace the message.")
 ;; File name primitives.
 
 (defun tramp-gvfs-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
-  (copy-file
-   (if (tramp-gvfs-file-name-p filename)
-       (tramp-gvfs-fuse-file-name filename)
-     filename)
-   (if (tramp-gvfs-file-name-p newname)
-       (tramp-gvfs-fuse-file-name newname)
-     newname)
-   ok-if-already-exists keep-date preserve-uid-gid))
+  (let ((args
+	 (list
+	  (if (tramp-gvfs-file-name-p filename)
+	      (tramp-gvfs-fuse-file-name filename)
+	    filename)
+	  (if (tramp-gvfs-file-name-p newname)
+	      (tramp-gvfs-fuse-file-name newname)
+	    newname)
+	  ok-if-already-exists keep-date preserve-uid-gid)))
+    (when preserve-selinux-context
+      (setq args (append args (list preserve-uid-gid))))
+    (apply 'copy-file args)))
 
 (defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
@@ -620,6 +627,10 @@ is no information where to trace the message.")
   "Like `file-readable-p' for Tramp files."
   (file-readable-p (tramp-gvfs-fuse-file-name filename)))
 
+(defun tramp-gvfs-handle-file-selinux-context (filename)
+  "Like `file-selinux-context' for Tramp files."
+  (funcall 'file-selinux-context (tramp-gvfs-fuse-file-name filename)))
+
 (defun tramp-gvfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (file-writable-p (tramp-gvfs-fuse-file-name filename)))
@@ -681,6 +692,11 @@ is no information where to trace the message.")
   "Like `set-file-modes' for Tramp files."
   (with-tramp-gvfs-error-message filename 'set-file-modes
     (tramp-gvfs-fuse-file-name filename) mode))
+
+(defun tramp-gvfs-handle-set-file-selinux-context (filename context)
+  "Like `set-file-selinux-context' for Tramp files."
+  (with-tramp-gvfs-error-message filename 'set-file-selinux-context
+    (tramp-gvfs-fuse-file-name filename) context))
 
 (defun tramp-gvfs-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."

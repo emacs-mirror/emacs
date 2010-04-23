@@ -5477,7 +5477,7 @@ configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
 /* Get the CFLAGS for tests in configure.  */
 #ifdef __GNUC__
-configure___ CFLAGS=C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+configure___ CFLAGS=-g C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
 #else
 configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -5486,7 +5486,7 @@ configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
+configure___ REAL_CFLAGS=-g C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
 #else
 configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -7510,7 +7510,6 @@ int
 main ()
 {
   char *data, *data2, *data3;
-  const char *cdata2;
   int i, pagesize;
   int fd, fd2;
 
@@ -7535,10 +7534,10 @@ main ()
   fd2 = open ("conftest.txt", O_RDWR | O_CREAT | O_TRUNC, 0600);
   if (fd2 < 0)
     return 4;
-  cdata2 = "";
-  if (write (fd2, cdata2, 1) != 1)
+  data2 = "";
+  if (write (fd2, data2, 1) != 1)
     return 5;
-  data2 = (char *) mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
+  data2 = mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
   if (data2 == MAP_FAILED)
     return 6;
   for (i = 0; i < pagesize; ++i)
