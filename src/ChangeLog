@@ -1,3 +1,7 @@
+2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/mips.h: Remove #if 0 code.
+
 2010-04-23  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix display of composed characters from L2R scripts in bidi buffers.
