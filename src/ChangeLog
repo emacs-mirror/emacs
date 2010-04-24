@@ -1,3 +1,9 @@
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CRT_DIR): New variable, set by configure.
+	* m/amdx86-64.h, m/ibms390x.h (START_FILES, LIB_STANDARD):
+	Use $CRT_DIR rather than HAVE_LIB64_DIR.  (Bug#5655)
+
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in: Remove C_SWITCH_X_MACHINE, unused.

@@ -1,3 +1,9 @@
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (CRT_DIR): New output variable.
+	(--with-crt-dir): New option.  (Bug#5655)
+	(HAVE_LIB64_DIR): Remove.
+
 2010-04-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (REAL_CFLAGS, CFLAGS): Restore -g for gcc.
