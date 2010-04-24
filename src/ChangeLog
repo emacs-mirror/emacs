@@ -1,3 +1,10 @@
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* m/amdx86-64.h (START_FILES, LIB_STANDARD) [__OpenBSD__]:
+	For clarity, revert to using fixed /usr/lib rather than $CRT_DIR.
+	(START_FILES, LIB_STANDARD) [__FreeBSD__]: Merge into the generic case,
+	since CRT_DIR defaults to /usr/lib.  Suggested by Dan Nicolaescu.
+
 2010-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Use `reseat' instead of `reseat_1', and
