@@ -1011,7 +1011,7 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
    BYTEPOS) where character composition may happen.  If BYTEPOS is
-   negative, compoute it.  If it is a static composition, set
+   negative, compute it.  If it is a static composition, set
    cmp_it->ch to -1.  Otherwise, set cmp_it->ch to the character that
    triggers a automatic composition.  */
 
