@@ -12,6 +12,17 @@
 	(authors-canonical-file-name, authors-scan-el):
 	Use authors-disambiguate-file-name.
 
+	* hfy-cmap.el (htmlfontify-load-rgb-file, hfy-fallback-colour-values):
+	Add autoload cookies.
+	(htmlfontify-unload-rgb-file, hfy-fallback-colour-values): Add docs.
+	(generated-autoload-file): Set file-local value to "htmlfontify.el".
+	* htmlfontify.el (caddr, cadddr): Remove fallback definitions.
+	They have definitions / compiler macros in cl.el.
+	(htmlfontify-load-rgb-file, hfy-fallback-colour-values):
+	Replace manual autoloads with generated ones.
+	(htmlfontify-unload-rgb-file): Remove autoload.
+	* Makefile.in (autoloads): Ensure htmlfontify.el is writable.
+
 2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-set-default): New function.
