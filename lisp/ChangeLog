@@ -1,3 +1,17 @@
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-obsolete-files-regexps):
+	Ignore VCS-ignore files, and deleted nextstep preferences files.
+	(authors-ignored-files): Ignore deleted cedet test files, and "*.el".
+	(authors-ambiguous-files): New list.
+	(authors-valid-file-names): Add some deleted files.
+	(authors-renamed-files-alist): Add font-setting.el, edt-user.doc.
+	(authors-disambiguate-file-name): New function.  (Bug#5501)
+	(authors-canonical-file-name): Doc fix.
+	Don't warn about obsolete files.
+	(authors-canonical-file-name, authors-scan-el):
+	Use authors-disambiguate-file-name.
+
 2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-set-default): New function.
