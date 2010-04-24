@@ -30,6 +30,10 @@ so we will look at it and add it to the manual.
 These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
+---
+** There is a new configure option --with-crt-dir.
+This is only useful if your crt*.o files are in a non-standard location.
+
 ** Configure links against libselinux if it is found.
 You can disable this by using --without-selinux.
 
