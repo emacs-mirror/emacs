@@ -1,3 +1,25 @@
+2010-04-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sql.el (sql-electric-stuff): Fix typo in tag.
+	(sql-oracle-program, sql-sqlite-options)
+	(sql-query-placeholders-and-send): Doc fixes.
+	(sql-set-product, sql-interactive-mode): Reflow docstrings.
+	(sql-imenu-generic-expression, sql-buffer)
+	(sql-mode-ansi-font-lock-keywords, sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords, sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords, sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords, sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords, sql-mode-font-lock-keywords)
+	(sql-product-feature, sql-highlight-product)
+	(comint-line-beginning-position, sql-rename-buffer)
+	(sql-toggle-pop-to-buffer-after-send-region)
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql, sql-solid)
+	(sql-ingres, sql-ms, sql-postgres, sql-interbase, sql-db2, sql-linter):
+	Fix typos in docstrings.
+
 2010-04-23  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-fontify-node): Put Info-breadcrumbs to the `display'
