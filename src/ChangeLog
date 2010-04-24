@@ -1,3 +1,8 @@
+2010-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Add a "set Fmake_symbol" line to force GDB to load the
+	definition of "struct Lisp_Symbol".
+
 2010-04-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pop_it): When the stack is popped after displaying
