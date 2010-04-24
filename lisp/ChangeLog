@@ -1,3 +1,7 @@
+2010-04-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.el (find-composition): Doc fix.
+
 2010-04-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/sql.el (sql-electric-stuff): Fix typo in tag.

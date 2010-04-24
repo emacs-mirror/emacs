@@ -331,7 +331,7 @@ MOD-FUNC is a modification function of the composition.
 
 WIDTH is a number of columns the composition occupies on the screen.
 
-When Automatic Compostion mode is on, this function also finds a
+When Automatic Composition mode is on, this function also finds a
 chunk of text that is automatically composed.  If such a chunk is
 found closer to POS than the position that has `composition'
 property, the value is a list of FROM, TO, and a glyph gstring
