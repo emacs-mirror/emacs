@@ -392,7 +392,7 @@ search in file buffers whose file names match the specified wildcard.
 +++
 *** Autorevert Tail mode now works also for remote files.
 +++
-*** The new built-in commands `su' and `sudo' support Tramp.
+*** The new eshell built-in commands `su' and `sudo' support Tramp.
 That means, they change `default-directory' to the new users value,
 and let commands run under that user permissions.  It works even when
 `default-directory' is already remote.  Calling the external commands
