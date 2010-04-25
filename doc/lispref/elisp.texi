@@ -649,7 +649,6 @@ Minibuffers
 Completion
 
 * Basic Completion::        Low-level functions for completing strings.
-                              (These are too low level to use the minibuffer.)
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion

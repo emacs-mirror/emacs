@@ -1,3 +1,7 @@
+2010-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Printing): Document htmlfontify-buffer.
+
 2010-04-21  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Displaying the Diary, Format of Diary File):

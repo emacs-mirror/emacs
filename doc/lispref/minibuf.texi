@@ -626,7 +626,6 @@ for reading certain kinds of names with completion.
 
 @menu
 * Basic Completion::       Low-level functions for completing strings.
-                             (These are too low level to use the minibuffer.)
 * Minibuffer Completion::  Invoking the minibuffer with completion.
 * Completion Commands::    Minibuffer commands that do completion.
 * High-Level Completion::  Convenient special cases of completion
@@ -640,31 +639,23 @@ for reading certain kinds of names with completion.
 @node Basic Completion
 @subsection Basic Completion Functions
 
-  The completion functions @code{try-completion},
-@code{all-completions} and @code{test-completion} have nothing in
-themselves to do with minibuffers.  We describe them in this chapter
-so as to keep them near the higher-level completion features that do
-use the minibuffer.
-
-  If you store a completion alist in a variable, you should mark the
-variable as ``risky'' with a non-@code{nil}
-@code{risky-local-variable} property.
+  The following completion functions have nothing in themselves to do
+with minibuffers.  We describe them here to keep them near the
+higher-level completion features that do use the minibuffer.
 
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.  The value of
 @var{collection} must be a list of strings or symbols, an alist, an
-obarray, a hash table, or a function that implements a virtual set of
-strings (see below).
+obarray, a hash table, or a completion function (@pxref{Programmed
+Completion}).
 
 Completion compares @var{string} against each of the permissible
-completions specified by @var{collection}; if the beginning of the
-permissible completion equals @var{string}, it matches.  If no permissible
-completions match, @code{try-completion} returns @code{nil}.  If only
-one permissible completion matches, and the match is exact, then
-@code{try-completion} returns @code{t}.  Otherwise, the value is the
-longest initial sequence common to all the permissible completions that
-match.
+completions specified by @var{collection}.  If no permissible
+completions match, @code{try-completion} returns @code{nil}.  If there
+is just one matching completion, and the match is exact, it returns
+@code{t}.  Otherwise, it returns the longest initial sequence common
+to all possible matching completions.
 
 If @var{collection} is an alist (@pxref{Association Lists}), the
 permissible completions are the elements of the alist that are either
@@ -688,13 +679,13 @@ Also, you cannot intern a given symbol in more than one obarray.
 If @var{collection} is a hash table, then the keys that are strings
 are the possible completions.  Other keys are ignored.
 
-You can also use a symbol that is a function as @var{collection}.  Then
-the function is solely responsible for performing completion;
+You can also use a symbol that is a function as @var{collection}.
+Then the function is solely responsible for performing completion;
 @code{try-completion} returns whatever this function returns.  The
 function is called with three arguments: @var{string}, @var{predicate}
-and @code{nil}.  (The reason for the third argument is so that the same
+and @code{nil} (the reason for the third argument is so that the same
 function can be used in @code{all-completions} and do the appropriate
-thing in either case.)  @xref{Programmed Completion}.
+thing in either case).  @xref{Programmed Completion}.
 
 If the argument @var{predicate} is non-@code{nil}, then it must be a
 function of one argument, unless @var{collection} is a hash table, in
@@ -823,6 +814,10 @@ the values @var{string}, @var{predicate} and @code{lambda}; whatever
 it returns, @code{test-completion} returns in turn.
 @end defun
 
+If you store a completion alist in a variable, you should mark the
+variable as ``risky'' with a non-@code{nil}
+@code{risky-local-variable} property.  @xref{File Local Variables}.
+
 @defvar completion-ignore-case
 If the value of this variable is non-@code{nil}, Emacs does not
 consider case significant in completion.  Note, however, that this
@@ -855,6 +850,23 @@ Here is an example of use:
 @end smallexample
 @end defmac
 
+The function @code{completion-in-region} provides a convenient way to
+perform completion on an arbitrary stretch of text in an Emacs buffer:
+
+@defun completion-in-region start end collection &optional predicate
+This function completes the text in the current buffer between the
+positions @var{start} and @var{end}, using @var{collection}.  The
+argument @var{collection} has the same meaning as in
+@code{try-completion} (@pxref{Basic Completion}).
+
+This function inserts the completion text directly into the current
+buffer.  Unlike @code{completing-read} (@pxref{Minibuffer
+Completion}), it does not activate the minibuffer.
+
+For this function to work, point must be somewhere between @var{start}
+and @var{end}.
+@end defun
+
 @node Minibuffer Completion
 @subsection Completion and the Minibuffer
 @cindex minibuffer completion
@@ -869,12 +881,12 @@ providing completion.  It activates the minibuffer with prompt
 @var{prompt}, which must be a string.
 
 The actual completion is done by passing @var{collection} and
-@var{predicate} to the function @code{try-completion}.  This happens
-in certain commands bound in the local keymaps used for completion.
-Some of these commands also call @code{test-completion}.  Thus, if
-@var{predicate} is non-@code{nil}, it should be compatible with
-@var{collection} and @code{completion-ignore-case}.  @xref{Definition
-of test-completion}.
+@var{predicate} to the function @code{try-completion} (@pxref{Basic
+Completion}).  This happens in certain commands bound in the local
+keymaps used for completion.  Some of these commands also call
+@code{test-completion}.  Thus, if @var{predicate} is non-@code{nil},
+it should be compatible with @var{collection} and
+@code{completion-ignore-case}.  @xref{Definition of test-completion}.
 
 The value of the optional argument @var{require-match} determines how
 the user may exit the minibuffer:
@@ -1603,8 +1615,10 @@ which performs completion according to the rules used in Emacs 21; and
 
   Sometimes it is not possible to create an alist or an obarray
 containing all the intended possible completions.  In such a case, you
-can supply your own function to compute the completion of a given string.
-This is called @dfn{programmed completion}.
+can supply your own function to compute the completion of a given
+string.  This is called @dfn{programmed completion}.  Emacs uses
+programmed completion when completing file names (@pxref{File Name
+Completion}).
 
   To use this feature, pass a symbol with a function definition as the
 @var{collection} argument to @code{completing-read}.  The function
@@ -1659,9 +1673,6 @@ unreliable to treat one differently just because it is also a possible
 function.  So you must arrange for any function you wish to use for
 completion to be encapsulated in a symbol.
 
-  Emacs uses programmed completion when completing file names.
-@xref{File Name Completion}.
-
 @defun completion-table-dynamic function
 This function is a convenient way to write a function that can act as
 programmed completion function.  The argument @var{function} should be
@@ -1670,6 +1681,19 @@ possible completions of it.  You can think of
 @code{completion-table-dynamic} as a transducer between that interface
 and the interface for programmed completion functions.
 @end defun
+
+@defvar completion-annotate-function
+The value of this variable, if non-@code{nil}, should be a function
+for ``annotating'' the entries in the @samp{*Completions*} buffer.
+The function should accept a single argument, the completion string
+for an entry.  It should return an additional string to display next
+to that entry in the @samp{*Completions*} buffer, or @code{nil} if no
+additional string is to be displayed.
+
+The function can determine the collection used for the current
+completion via the variable @code{minibuffer-completion-table}
+(@pxref{Completion Commands}).
+@end defvar
 
 @node Yes-or-No Queries
 @section Yes-or-No Queries

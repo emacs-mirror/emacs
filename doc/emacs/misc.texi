@@ -1701,8 +1701,14 @@ process, type @kbd{M-x kill-emacs}.
   Emacs provides commands for printing hard copies of either an entire
 buffer or just part of one, with or without page headers.  You can
 invoke the printing commands directly, as detailed in the following
-section, or using the @samp{File} menu on the menu bar.  See also the
-hardcopy commands of Dired (@pxref{Misc File Ops}) and the diary
+section, or using the @samp{File} menu on the menu bar.
+
+@findex htmlfontify-buffer
+  Aside from the commands described in this section, you can also
+``print'' an Emacs buffer to HTML with @kbd{M-x htmlfontify-buffer}.
+This command converts the current buffer to a HTML file, replacing
+Emacs faces with CSS-based markup.  In addition, see the hardcopy
+commands of Dired (@pxref{Misc File Ops}) and the diary
 (@pxref{Displaying the Diary}).
 
 @table @kbd

@@ -1,3 +1,17 @@
+2010-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* functions.texi (Obsolete Functions): Document
+	set-advertised-calling-convention.
+
+	* minibuf.texi (Basic Completion): Document completion-in-region.
+	(Programmed Completion): Document completion-annotate-function.
+
+	* commands.texi (Reading One Event): Document read-key.
+	(Distinguish Interactive): Document KIND arg to
+	called-interactively-p.  Delete obsolete interactive-p.
+
+	* elisp.texi (Top): Update node description.
+
 2010-04-14  Juri Linkov  <juri@jurta.org>
 
 	Fix @deffn without category.

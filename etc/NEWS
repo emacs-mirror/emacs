@@ -437,6 +437,7 @@ System (CLOS).  It is used by the other CEDET packages.
 ---
 ** mpc.el is a front end for the Music Player Daemon.  Run it with M-x mpc.
 
++++
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
 
 +++
@@ -488,6 +489,7 @@ key binding to toggle image display.
 ** All the default-FOO variables that hold the default value of the FOO
 variable, are now declared obsolete.
 
++++
 ** read-key is a function halfway between read-event and read-key-sequence.
 It reads a single key, but obeys input and escape sequence decoding.
 
@@ -500,18 +502,18 @@ This maximizes the frame.
 virtual desktops.
 
 ** Completion changes
-
+---
 *** completion-base-size is obsoleted by completion-base-position.
 This change causes a few backward incompatibilities, mostly with
 choose-completion-string-functions where the `mini-p' argument has
 been replaced by a `base-position' argument, and where the `base-size'
 argument is now always nil.
-
++++
 *** New function `completion-in-region' to use the standard completion
 facilities on a particular region of text.
 +++
 *** The 4th arg to all-completions (aka hide-spaces) is declared obsolete.
-
++++
 *** completion-annotate-function specifies how to compute annotations
 for completions displayed in *Completions*.
 
@@ -528,9 +530,11 @@ any more.
 +++
 *** New function `copy-directory', which copies a directory recursively.
 
++++
 ** called-interactively-p now takes one argument and replaces interactive-p
 which is now marked obsolete.
 
++++
 ** New function set-advertised-calling-convention makes it possible
 to obsolete arguments as well as make some arguments mandatory.
 
