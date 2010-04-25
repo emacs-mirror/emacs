@@ -1,5 +1,7 @@
 2010-04-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* keymaps.texi (Menu Bar): Document :advertised-binding property.
+
 	* functions.texi (Obsolete Functions): Document
 	set-advertised-calling-convention.
 
