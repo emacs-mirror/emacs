@@ -17979,9 +17979,8 @@ display_line (it)
 	  row_end = it->current;
 	  /* If the character at max_pos+1 is a newline, skip that as
 	     well.  Note that this may skip some invisible text.  */
-	  if (!get_next_display_element (it))
-	    abort ();
-	  if (ITERATOR_AT_END_OF_LINE_P (it))
+	  if (get_next_display_element (it)
+	      && ITERATOR_AT_END_OF_LINE_P (it))
 	    {
 	      set_iterator_to_next (it, 1);
 	      /* Record the position after the newline of a continued
