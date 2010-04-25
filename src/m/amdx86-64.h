@@ -72,25 +72,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #undef DATA_SEG_BITS
 
-#ifdef __FreeBSD__
-
-/* The libraries for binaries native to the build host's architecture are
-   installed under /usr/lib in FreeBSD, and the ones that need special paths
-   are 32-bit compatibility libraries (installed under /usr/lib32).  To build
-   a native binary of Emacs on FreeBSD/amd64 we can just point to /usr/lib.  */
-
-#undef START_FILES
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-
-/* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
-   The reason is that some functions in libgcc.a call functions from libc.a,
-   and some libc.a functions need functions from libgcc.a.  Since most
-   versions of ld are one-pass linkers, we need to mention -lgcc twice,
-   or else we risk getting unresolved externals.  */
-#undef LIB_STANDARD
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
-
-#elif defined(__OpenBSD__)
+#ifdef __OpenBSD__
 
 #undef START_FILES
 #define START_FILES pre-crt0.o /usr/lib/crt0.o /usr/lib/crtbegin.o
@@ -110,24 +92,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* LIB_STANDARD and START_FILES set correctly in s/darwin.h */
 
-#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !SOLARIS2
-         && !__APPLE__ */
+#else /* !__OpenBSD__ && !__NetBSD__ && !SOLARIS2 && !__APPLE__ */
+/* CRT_DIR defaults to /usr/lib.  On GNU/Linux, it may be /usr/lib64.
+   On FreeBSD, the libraries for binaries native to the build host's
+   architecture are installed under /usr/lib, and the ones that need
+   special paths are 32-bit compatibility libraries (installed under
+   /usr/lib32).  So to build a native binary of Emacs on FreeBSD/amd64
+   we can just point to /usr/lib.
+ */
+#undef START_FILES
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
 /* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
    The reason is that some functions in libgcc.a call functions from libc.a,
    and some libc.a functions need functions from libgcc.a.  Since most
    versions of ld are one-pass linkers, we need to mention -lgcc twice,
    or else we risk getting unresolved externals.  */
-#undef START_FILES
 #undef LIB_STANDARD
-#ifdef HAVE_LIB64_DIR
-#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
-#endif
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
-#endif /* __FreeBSD__ */
+#endif /* __OpenBSD__ */
 #endif /* !i386 */
 
 /* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e

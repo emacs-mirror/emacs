@@ -803,6 +803,7 @@
 (defconst hfy-rgb-regex
   "^\\s-*\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\(.+\\)\\s-*$")
 
+;;;###autoload
 (defun htmlfontify-load-rgb-file (&optional file)
   "Load an X11 style rgb.txt FILE.
 Search `hfy-rgb-load-path' if FILE is not specified.
@@ -832,14 +833,21 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
 	  (kill-buffer rgb-buffer)))))
 
 (defun htmlfontify-unload-rgb-file ()
+  "Unload the current color name -> rgb translation map."
   (interactive)
   (setq hfy-rgb-txt-colour-map nil))
 
+;;;###autoload
 (defun hfy-fallback-colour-values (colour-string)
+  "Use a fallback method for obtaining the rgb values for a color."
   (cdr (assoc-string colour-string (or hfy-rgb-txt-colour-map
                                        hfy-fallback-colour-map))) )
 
 (provide 'hfy-cmap)
-;;; hfy-cmap.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "htmlfontify.el"
+;; End:
 
 ;; arch-tag: dff7feea-add4-48ba-937c-e79ac40cec9b
+;;; hfy-cmap.el ends here

@@ -17969,17 +17969,20 @@ display_line (it)
 	}
       else if (row->used[TEXT_AREA] && max_pos)
 	{
-	  SET_TEXT_POS (tpos, max_pos + 1, CHAR_TO_BYTE (max_pos + 1));
+	  SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
+	  save_it = *it;
+	  it->bidi_p = 0;
+	  reseat (it, tpos, 0);
+	  if (!get_next_display_element (it))
+	    abort ();	/* row at ZV was already handled above */
+	  set_iterator_to_next (it, 1);
 	  row_end = it->current;
-	  row_end.pos = tpos;
 	  /* If the character at max_pos+1 is a newline, skip that as
 	     well.  Note that this may skip some invisible text.  */
-	  if (FETCH_CHAR (tpos.bytepos) == '\n'
-	      || (FETCH_CHAR (tpos.bytepos) == '\r' && it->selective))
+	  if (!get_next_display_element (it))
+	    abort ();
+	  if (ITERATOR_AT_END_OF_LINE_P (it))
 	    {
-	      save_it = *it;
-	      it->bidi_p = 0;
-	      reseat_1 (it, tpos, 0);
 	      set_iterator_to_next (it, 1);
 	      /* Record the position after the newline of a continued
 		 row.  We will need that to set ROW->end of the last
@@ -17994,7 +17997,6 @@ display_line (it)
 		  row_end = it->current;
 		  save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
 		}
-	      *it = save_it;
 	    }
 	  else if (!row->continued_p
 		   && MATRIX_ROW_CONTINUATION_LINE_P (row)
@@ -18008,6 +18010,7 @@ display_line (it)
 	      row_end.pos = it->eol_pos;
 	      it->eol_pos.charpos = it->eol_pos.bytepos = 0;
 	    }
+	  *it = save_it;
 	  row->end = row_end;
 	}
     }

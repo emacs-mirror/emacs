@@ -21,6 +21,8 @@
 
 # Force loading of symbols, enough to give us gdb_valbits etc.
 set main
+# With some compilers, we need this to give us struct Lisp_Symbol etc.:
+set Fmake_symbol
 
 # Find lwlib source files too.
 dir ../lwlib

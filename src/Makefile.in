@@ -68,6 +68,9 @@ bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
+## Only used by amdx86-64 and ibms390x GNU/Linux.
+CRT_DIR=@CRT_DIR@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -197,10 +200,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #endif
 
 /* These macros are for switches specifically related to X Windows.  */
-#ifndef C_SWITCH_X_MACHINE
-#define C_SWITCH_X_MACHINE
-#endif
-
 #ifndef C_SWITCH_X_SYSTEM
 #define C_SWITCH_X_SYSTEM
 #endif
@@ -240,9 +239,9 @@ shared=no
 #undef C_SWITCH_SYSTEM
 #undef C_SWITCH_X_SITE
 
-/* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
+/* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -868,7 +867,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 
 #ifdef USE_X_TOOLKIT
@@ -877,7 +875,6 @@ $(OLDXMENU): really-lwlib
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
@@ -887,7 +884,6 @@ $(OLDXMENU): really-oldXMenu
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
