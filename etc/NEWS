@@ -30,6 +30,10 @@ so we will look at it and add it to the manual.
 These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
+---
+** There is a new configure option --with-crt-dir.
+This is only useful if your crt*.o files are in a non-standard location.
+
 ** Configure links against libselinux if it is found.
 You can disable this by using --without-selinux.
 
@@ -69,7 +73,7 @@ Algorithm.
 Use `set-scroll-bar-mode' to change this.
 
 ** GTK tool bars can have just text, just images or images and text.
-Customize `tool-bar-style´ to choose style.  On a Gnome desktop, the default
+Customize `tool-bar-style' to choose style.  On a Gnome desktop, the default
 is taken from the desktop settings.
 
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
@@ -78,10 +82,16 @@ with Xft.
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
-*** Emacs preserves the SELinux file context when backing up or copying files.
+*** Emacs preserves the SELinux file context when backing up, and
+optionally when copying files. To this end, copy-file has an extra
+optional argument, and backup-buffer and friends include the SELinux
+context in their return values.
 
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
+
+*** Tramp offers handlers for file-selinux-context and set-file-selinux-context
+for remote machines which support SELinux.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
@@ -138,8 +148,7 @@ is just left as is in the message, so it is not lost.
 
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
-.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff*
-buffers.
+.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff* buffers.
 
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.

@@ -2036,6 +2036,8 @@ This is used to map a mode number to a permission string.")
     (dired-uncache . tramp-handle-dired-uncache)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
+    (file-selinux-context . tramp-handle-file-selinux-context)
+    (set-file-selinux-context . tramp-handle-set-file-selinux-context)
     (vc-registered . tramp-handle-vc-registered))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
@@ -3028,6 +3030,46 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 	 "chown" nil nil nil
          (format "%d:%d" uid gid) (tramp-shell-quote-argument filename))))))
 
+(defun tramp-handle-file-selinux-context (filename)
+  "Like `file-selinux-context' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (with-file-property v localname "file-selinux-context"
+      (let ((context '(nil nil nil nil))
+	    (regexp (concat "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\):"
+			    "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\)")))
+	(when (zerop (tramp-send-command-and-check
+		      v (format
+			 "%s -d -Z %s"
+			 (tramp-get-ls-command v)
+			 (tramp-shell-quote-argument localname))))
+	  (with-current-buffer (tramp-get-connection-buffer v)
+	    (goto-char (point-min))
+	    (when (re-search-forward regexp (tramp-compat-line-end-position) t)
+	      (setq context (list (match-string 1) (match-string 2)
+				  (match-string 3) (match-string 4))))))
+	;; Return the context.
+	context))))
+
+(defun tramp-handle-set-file-selinux-context (filename context)
+  "Like `set-file-selinux-context' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (if (and (consp context)
+	     (zerop (tramp-send-command-and-check
+		     v (format "chcon %s %s %s %s %s"
+			       (if (stringp (nth 0 context))
+				   (format "--user=%s" (nth 0 context)) "")
+			       (if (stringp (nth 1 context))
+				   (format "--role=%s" (nth 1 context)) "")
+			       (if (stringp (nth 2 context))
+				   (format "--type=%s" (nth 2 context)) "")
+			       (if (stringp (nth 3 context))
+				   (format "--range=%s" (nth 3 context)) "")
+			       (tramp-shell-quote-argument localname)))))
+	(tramp-set-file-property v localname "file-selinux-context" context)
+      (tramp-set-file-property v localname "file-selinux-context" 'undef)))
+  ;; We always return nil.
+  nil)
+
 ;; Simple functions using the `test' command.
 
 (defun tramp-handle-file-executable-p (filename)
@@ -3473,8 +3515,6 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
   (filename newname &optional ok-if-already-exists keep-date
 	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
-  ;; Check if both files are local -- invoke normal copy-file.
-  ;; Otherwise, use Tramp from local system.
   (setq filename (expand-file-name filename))
   (setq newname (expand-file-name newname))
   (cond
@@ -3482,8 +3522,14 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
    ((or (tramp-tramp-file-p filename)
 	(tramp-tramp-file-p newname))
     (tramp-do-copy-or-rename-file
-     'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
+     'copy filename newname ok-if-already-exists keep-date
+     preserve-uid-gid preserve-selinux-context))
    ;; Compat section.
+   (preserve-selinux-context
+    (tramp-run-real-handler
+     'copy-file
+     (list filename newname ok-if-already-exists keep-date
+	   preserve-uid-gid preserve-selinux-context)))
    (preserve-uid-gid
     (tramp-run-real-handler
      'copy-file
@@ -3544,7 +3590,8 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
      'rename-file (list filename newname ok-if-already-exists))))
 
 (defun tramp-do-copy-or-rename-file
-  (op filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (op filename newname &optional ok-if-already-exists keep-date
+      preserve-uid-gid preserve-selinux-context)
   "Copy or rename a remote file.
 OP must be `copy' or `rename' and indicates the operation to perform.
 FILENAME specifies the file to copy or rename, NEWNAME is the name of
@@ -3553,6 +3600,7 @@ OK-IF-ALREADY-EXISTS means don't barf if NEWNAME exists already.
 KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid if both files are on the same host.
+PRESERVE-SELINUX-CONTEXT activates selinux commands.
 
 This function is invoked by `tramp-handle-copy-file' and
 `tramp-handle-rename-file'.  It is an error if OP is neither of `copy'
@@ -3561,6 +3609,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
+	(context (and preserve-selinux-context
+		      (apply 'file-selinux-context (list filename))))
 	pr tm)
 
     (when (and (not ok-if-already-exists) (file-exists-p newname))
@@ -3627,6 +3677,9 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 	(t
 	 ;; One of them must be a Tramp file.
 	 (error "Tramp implementation says this cannot happen")))
+
+       ;; Handle `preserve-selinux-context'.
+       (when context (apply 'set-file-selinux-context (list newname context)))
 
        ;; In case of `rename', we must flush the cache of the source file.
        (when (and t1 (eq op 'rename))

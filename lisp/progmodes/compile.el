@@ -1265,7 +1265,8 @@ Returns the compilation buffer created."
             (set (make-local-variable 'compilation-auto-jump-to-next) t))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
-		"; default-directory: " (prin1-to-string default-directory)
+		"; default-directory: "
+                (prin1-to-string (abbreviate-file-name default-directory))
 		" -*-\n"
 		(format "%s started at %s\n\n"
 			mode-name

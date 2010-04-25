@@ -392,14 +392,10 @@ Lisp_Object
 concat2 (s1, s2)
      Lisp_Object s1, s2;
 {
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
   args[0] = s1;
   args[1] = s2;
   return concat (2, args, Lisp_String, 0);
-#else
-  return concat (2, &s1, Lisp_String, 0);
-#endif /* NO_ARG_ARRAY */
 }
 
 /* ARGSUSED */
@@ -407,15 +403,11 @@ Lisp_Object
 concat3 (s1, s2, s3)
      Lisp_Object s1, s2, s3;
 {
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[3];
   args[0] = s1;
   args[1] = s2;
   args[2] = s3;
   return concat (3, args, Lisp_String, 0);
-#else
-  return concat (3, &s1, Lisp_String, 0);
-#endif /* NO_ARG_ARRAY */
 }
 
 DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
@@ -2344,14 +2336,10 @@ Lisp_Object
 nconc2 (s1, s2)
      Lisp_Object s1, s2;
 {
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
   args[0] = s1;
   args[1] = s2;
   return Fnconc (2, args);
-#else
-  return Fnconc (2, &s1);
-#endif /* NO_ARG_ARRAY */
 }
 
 DEFUN ("nconc", Fnconc, Snconc, 0, MANY, 0,

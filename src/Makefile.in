@@ -68,6 +68,9 @@ bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
+## Only used by amdx86-64 and ibms390x GNU/Linux.
+CRT_DIR=@CRT_DIR@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -196,17 +199,7 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_MACHINE
 #endif
 
-/* This holds special options for linking temacs
-   that should be used for linking anything else.  */
-#ifndef LD_SWITCH_MACHINE_TEMACS
-#define LD_SWITCH_MACHINE_TEMACS
-#endif
-
 /* These macros are for switches specifically related to X Windows.  */
-#ifndef C_SWITCH_X_MACHINE
-#define C_SWITCH_X_MACHINE
-#endif
-
 #ifndef C_SWITCH_X_SYSTEM
 #define C_SWITCH_X_SYSTEM
 #endif
@@ -219,25 +212,7 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_X_DEFAULT
 #endif
 
-#ifndef ORDINARY_LINK
-
-#ifndef START_FILES
-#ifdef NO_REMAP
-#define START_FILES pre-crt0.o /lib/crt0.o
-#else /* ! defined (NO_REMAP) */
-#define START_FILES ecrt0.o
-#endif /* ! defined (NO_REMAP) */
-#endif /* START_FILES */
 STARTFILES = START_FILES
-
-#else /* ORDINARY_LINK */
-
-/* config.h might want to force START_FILES anyway */
-#ifdef START_FILES
-STARTFILES = START_FILES
-#endif /* START_FILES */
-
-#endif /* not ORDINARY_LINK */
 
 
 #ifdef NS_IMPL_GNUSTEP
@@ -264,9 +239,9 @@ shared=no
 #undef C_SWITCH_SYSTEM
 #undef C_SWITCH_X_SITE
 
-/* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
+/* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -421,7 +396,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -892,7 +867,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 
 #ifdef USE_X_TOOLKIT
@@ -901,7 +875,6 @@ $(OLDXMENU): really-lwlib
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
@@ -911,7 +884,6 @@ $(OLDXMENU): really-oldXMenu
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu

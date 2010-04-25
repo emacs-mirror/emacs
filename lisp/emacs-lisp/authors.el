@@ -220,6 +220,9 @@ If REALNAME is nil, ignore that author.")
   '("vc-\\*\\.el$"
     "spec.txt$"
     ".*loaddefs.el$"			; not obsolete, but auto-generated
+    "\\.\\(cvs\\|git\\)ignore$"		; obsolete or uninteresting
+    "\\.arch-inventory$"
+    "preferences\\.\\(nib\\|gorm\\)"
     "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not
@@ -244,6 +247,14 @@ listed.")
     "Imakefile" "icons/sink.ico" "aixcc.lex"
     "nxml/char-name/unicode"
     "js2-mode.el"      ; only installed very briefly, replaced by js.el
+    "cedet/tests/testtemplates.cpp"
+    "cedet/tests/testusing.cpp"
+    "cedet/tests/scopetest.cpp"
+    "cedet/tests/scopetest.java"
+    "cedet/tests/test.cpp"
+    "cedet/tests/test.py"
+    "cedet/tests/teststruct.cpp"
+    "*.el"
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el"
     ;; Never had any meaningful changes logged, now deleted:
@@ -285,6 +296,42 @@ listed.")
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
+
+;; List via: find . -name '*.el' | sed 's/.*\///g' | sort | uniq -d
+;; FIXME It would be better to discover these dynamically.
+;; Note that traditionally "Makefile.in" etc have not been in this list.
+;; Ditto for "abbrev.texi" etc.
+(defconst authors-ambiguous-files
+  '("chart.el"
+    "compile.el"
+    "complete.el"
+    "cpp.el"
+    "ctxt.el"
+    "debug.el"
+    "dired.el"
+    "el.el"
+    "files.el"
+    "find.el"
+    "format.el"
+    "grep.el"
+    "imenu.el"
+    "java.el"
+    "linux.el"
+    "locate.el"
+    "make.el"
+    "mode.el"
+    "python.el"
+    "semantic.el"
+    "shell.el"
+    "simple.el"
+    "sort.el"
+    "speedbar.el"
+    "srecode.el"
+    "table.el"
+    "texi.el"
+    "util.el"
+    "wisent.el")
+  "List of basenames occurring more than once in the source.")
 
 ;; FIXME :cowrote entries here can be overwritten by :wrote entries
 ;; derived from a file's Author: header (eg mh-e).  This really means
@@ -464,11 +511,14 @@ Changes to files in this list are not listed.")
     "emacs16_mac.png" "emacs24_mac.png"
     "emacs256_mac.png" "emacs32_mac.png"
     "emacs48_mac.png" "emacs512_mac.png"
+    "revdiff"				; admin/
+    "mainmake" "sed1.inp" "sed2.inp" "sed3.inp" ; msdos/
+    "mac-fix-env.m"
     ;; Deleted vms stuff:
     "temacs.opt" "descrip.mms" "compile.com" "link.com"
     )
-  "File names which are valid, but no longer exist (or cannot be
-found) in the repository.")
+  "File names which are valid, but no longer exist (or cannot be found)
+in the repository.")
 
 (defconst authors-renamed-files-alist
   '(("nt.c" . "w32.c") ("nt.h" . "w32.h")
@@ -505,6 +555,7 @@ found) in the repository.")
     ;; index and pick merged into search.
     ("mh-index.el" . "mh-search.el")
     ("mh-pick.el" . "mh-search.el")
+    ("font-setting.el" . "dynamic-setting.el")
     ;; INSTALL-CVS -> .CVS -> .BZR
     ("INSTALL-CVS" . "INSTALL.BZR")
     ("INSTALL.CVS" . "INSTALL.BZR")
@@ -530,6 +581,7 @@ found) in the repository.")
     ("schema/docbook-dyntbl.rnc" . "schema/docbk-dyntbl.rnc")
     ("schema/docbook-soextbl.rnc" . "schema/docbk-soextbl.rn" )
     ("texi/url.txi" . "url.texi")
+    ("edt-user.doc" . "edt.texi")
     ;; Moved to different directories.
     ("ctags.1" . "ctags.1")
     ("etags.1" . "etags.1")
@@ -574,10 +626,25 @@ Otherwise, the file name is accepted as is.")
 (defvar authors-checked-files-alist)
 (defvar authors-invalid-file-names)
 
+(defun authors-disambiguate-file-name (fullname)
+  "Convert FULLNAME to an unambiguous relative-name."
+  (let ((relname (file-name-nondirectory fullname))
+	parent)
+    (if (member relname authors-ambiguous-files)
+	;; In case of ambiguity, just prepend the parent directory.
+	;; FIXME obviously this is not a perfect solution.
+	(if (string-equal "lisp"
+			  (setq parent (file-name-nondirectory
+					(directory-file-name
+					 (file-name-directory fullname)))))
+	    relname
+	  (format "%s/%s" parent relname))
+      relname)))
+
 (defun authors-canonical-file-name (file log-file pos author)
   "Return canonical file name for FILE found in LOG-FILE.
 Checks whether FILE is a valid (existing) file name, has been renamed,
-or is on the list of removed files.  Returns the non-diretory part of
+or is on the list of removed files.  Returns the non-directory part of
 the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
 to print a message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
@@ -594,7 +661,7 @@ to print a message if FILE is not found."
 	      (file-exists-p file)
 	      (file-exists-p relname)
 	      (file-exists-p (concat "etc/" relname)))
-	  (setq valid relname)
+	  (setq valid (authors-disambiguate-file-name fullname))
 	(setq valid (assoc file authors-renamed-files-alist))
 	(if valid
 	    (setq valid (cdr valid))
@@ -611,6 +678,7 @@ to print a message if FILE is not found."
 	    (cons (cons fullname valid) authors-checked-files-alist))
       (unless (or valid
 		  (member file authors-ignored-files)
+		  (authors-obsolete-file-p file)
 		  (string-match "[*]" file)
 		  (string-match "^[0-9.]+$" file))
 	(setq authors-invalid-file-names
@@ -759,7 +827,7 @@ TABLE is a hash table to add author information to."
 	 (enable-local-variables :safe)	; for find-file, hence let*
 	 (enable-local-eval nil)
 	 (buffer (find-file-noselect file)))
-    (setq file (file-name-nondirectory file))
+    (setq file (authors-disambiguate-file-name (expand-file-name file)))
     (with-current-buffer buffer
       (save-restriction
 	(widen)

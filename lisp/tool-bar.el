@@ -232,6 +232,7 @@ holds a keymap."
 	 submap key)
     ;; We'll pick up the last valid entry in the list of keys if
     ;; there's more than one.
+    ;; FIXME: Aren't they *all* "valid"??  --Stef
     (dolist (k keys)
       ;; We're looking for a binding of the command in a submap of
       ;; the menu bar map, so the key sequence must be two or more

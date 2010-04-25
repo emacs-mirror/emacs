@@ -2709,13 +2709,6 @@ closedir (DIR *dirp /* stream from opendir */)
   int rtnval;
 
   rtnval = emacs_close (dirp->dd_fd);
-
-  /* Some systems (like Solaris) allocate the buffer and the DIR all
-     in one block.  Why in the world are we freeing this ourselves
-     anyway?  */
-#if ! defined (SOLARIS2)
-  xfree ((char *) dirp->dd_buf); /* directory block defined in <dirent.h> */
-#endif
   xfree ((char *) dirp);
 
   return rtnval;

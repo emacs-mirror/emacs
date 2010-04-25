@@ -299,16 +299,16 @@ A composition rule is a cons of glyph reference points of the form
     (compose-string-internal str 0 (length str) components)))
 
 (defun find-composition (pos &optional limit string detail-p)
-  "Return information about a composition at or nearest to buffer position POS.
+  "Return information about a composition at or near buffer position POS.
 
 If the character at POS has `composition' property, the value is a list
-of FROM, TO, and VALID-P.
+\(FROM TO VALID-P).
 
 FROM and TO specify the range of text that has the same `composition'
 property, VALID-P is t if this composition is valid, and nil if not.
 
 If there's no composition at POS, and the optional 2nd argument LIMIT
-is non-nil, search for a composition toward LIMIT.
+is non-nil, search for a composition toward the position given by LIMIT.
 
 If no composition is found, return nil.
 
@@ -316,8 +316,9 @@ Optional 3rd argument STRING, if non-nil, is a string to look for a
 composition in; nil means the current buffer.
 
 If a valid composition is found and the optional 4th argument DETAIL-P
-is non-nil, the return value is a list of FROM, TO, COMPONENTS,
-RELATIVE-P, MOD-FUNC, and WIDTH.
+is non-nil, the return value is a list of the form
+
+   (FROM TO COMPONENTS RELATIVE-P MOD-FUNC WIDTH)
 
 COMPONENTS is a vector of integers, the meaning depends on RELATIVE-P.
 
@@ -334,9 +335,9 @@ WIDTH is a number of columns the composition occupies on the screen.
 When Automatic Compostion mode is on, this function also finds a
 chunk of text that is automatically composed.  If such a chunk is
 found closer to POS than the position that has `composition'
-property, the value is a list of FROM, TO, and a glyph gstring
-the specify how the chunk is composed.  See the function
-`composition-get-gstring' for the format of the glyph string."
+property, the value is a list of FROM, TO, and a glyph-string
+that specifies how the chunk is to be composed.  See the function
+`composition-get-gstring' for the format of the glyph-string."
   (let ((result (find-composition-internal pos limit string detail-p)))
     (if (and detail-p (> (length result) 3) (nth 2 result) (not (nth 3 result)))
 	;; This is a valid rule-base composition.

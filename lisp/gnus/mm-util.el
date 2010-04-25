@@ -1239,6 +1239,9 @@ worth using this macro in unibyte buffers of course).  Use of
 harmful since it is likely to modify existing data in the buffer.
 For instance, it converts \"\\300\\255\" into \"\\255\" in
 Emacs 23 (unicode)."
+  ;; FIXME: (default-value 'enable-multibyte-characters) is read-only
+  ;; so let-binding it is wrong.  The right fix is to not use this
+  ;; macro at all any more, since it's been ill-defined from the start.
   (let ((multibyte (make-symbol "multibyte"))
 	(buffer (make-symbol "buffer")))
     `(if mm-emacs-mule
@@ -1593,8 +1596,8 @@ gzip, bzip2, etc. are allowed."
 			    filename))
 		    (mm-decompress-buffer filename nil t))))
       (when decomp
-	(set-buffer (letf (((default-value 'enable-multibyte-characters) nil))
-			  (generate-new-buffer " *temp*")))
+	(set-buffer (generate-new-buffer " *temp*"))
+        (mm-disable-multibyte)
 	(insert decomp)
 	(setq filename (file-name-sans-extension filename)))
       (goto-char (point-min))

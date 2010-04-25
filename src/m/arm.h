@@ -24,16 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef WORDS_BIG_ENDIAN
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  We can't
- * do this on the arm with gcc, since the first 4 args are in registers.  */
-
-#ifdef __GNUC__
-#define NO_ARG_ARRAY
-#else
-#undef NO_ARG_ARRAY
-#endif
-
 #define NO_REMAP
 
 /* armin76@gentoo.org reported that the lgcc_s flag is necessary to

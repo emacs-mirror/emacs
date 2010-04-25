@@ -22,11 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define WORDS_BIG_ENDIAN
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
-
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long
@@ -44,10 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef GNU_LINUX
 #define LINKER $(CC) -nostdlib
-/* s/gnu-linux.h defines this to `-z nocombreloc' which does not work here
-   because prefix-args is not used.  */
-#undef LD_SWITCH_SYSTEM_TEMACS
-#define LD_SWITCH_MACHINE_TEMACS -Xlinker -znocombreloc
 #ifdef _ARCH_PPC64
 #undef START_FILES
 #define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o

@@ -40,11 +40,6 @@ NOTE-END */
 
 #define WORDS_BIG_ENDIAN
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
-
 /* Define the type to use.  */
 #define EMACS_INT long
 #define EMACS_UINT unsigned long
@@ -91,18 +86,10 @@ NOTE-END */
 #define XPNTR(a) XUINT (a)
 
 #undef START_FILES
-#ifdef HAVE_LIB64_DIR
-#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-#endif
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
 
 #undef LIB_STANDARD
-#ifdef HAVE_LIB64_DIR
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
-#else
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
-#endif
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
 /* arch-tag: 4b87653c-6add-4663-8691-7d9dc17b5519
    (do not change this comment) */

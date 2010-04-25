@@ -151,7 +151,7 @@ finder-data: doit
 autoloads: $(LOADDEFS) doit
 	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el $(lisp)/mail/rmail.el \
-	  $(lisp)/dired.el $(lisp)/ibuffer.el
+	  $(lisp)/dired.el $(lisp)/ibuffer.el $(lisp)/htmlfontify.el
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins

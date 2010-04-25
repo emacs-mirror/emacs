@@ -1,3 +1,128 @@
+2010-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all NO_ARG_ARRAY uses.
+	* fns.c (concat2, concat3, nconc2):
+	* eval.c (apply1, call1, call2, call3, call4, call5, call6)
+	(call7): Remove NO_ARG_ARRAY usage, assume it's always true.
+	* m/xtensa.h (NO_ARG_ARRAY):
+	* m/template.h (NO_ARG_ARRAY):
+	* m/sparc.h (NO_ARG_ARRAY):
+	* m/sh3.h (NO_ARG_ARRAY):
+	* m/mips.h (NO_ARG_ARRAY):
+	* m/macppc.h (NO_ARG_ARRAY):
+	* m/iris4d.h (NO_ARG_ARRAY):
+	* m/intel386.h (NO_ARG_ARRAY):
+	* m/ibms390x.h (NO_ARG_ARRAY):
+	* m/ibms390.h (NO_ARG_ARRAY):
+	* m/ibmrs6000.h (NO_ARG_ARRAY):
+	* m/ia64.h (NO_ARG_ARRAY):
+	* m/hp800.h (NO_ARG_ARRAY):
+	* m/arm.h (NO_ARG_ARRAY):
+	* m/amdx86-64.h (NO_ARG_ARRAY):
+	* m/alpha.h (NO_ARG_ARRAY): Remove definition.
+
+2010-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Don't assume 2nd call to
+	get_next_display_element cannot return zero.  (Bug#6030)
+	(iterate_out_of_display_property): New function, body from pop_it.
+	(pop_it): Use it.
+
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* m/amdx86-64.h (START_FILES, LIB_STANDARD) [__OpenBSD__]:
+	For clarity, revert to using fixed /usr/lib rather than $CRT_DIR.
+	(START_FILES, LIB_STANDARD) [__FreeBSD__]: Merge into the generic case,
+	since CRT_DIR defaults to /usr/lib.  Suggested by Dan Nicolaescu.
+
+2010-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Use `reseat' instead of `reseat_1', and
+	use `get_next_display_element' and `set_iterator_to_next' to
+	advance to the next character, when looking for the character that
+	begins the next row.
+
+	* .gdbinit: Add a "set Fmake_symbol" line to force GDB to load the
+	definition of "struct Lisp_Symbol".
+
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CRT_DIR): New variable, set by configure.
+	* m/amdx86-64.h, m/ibms390x.h (START_FILES, LIB_STANDARD):
+	Use $CRT_DIR rather than HAVE_LIB64_DIR.  (Bug#5655)
+
+2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: Remove C_SWITCH_X_MACHINE, unused.
+
+	* s/cygwin.h (LIBS_DEBUG): Remove, unused.
+
+	Remove redundant flags.
+	* s/freebsd.h (C_SWITCH_SYSTEM):
+	* s/hpux10-20.h (C_SWITCH_X_SYSTEM, LD_SWITCH_X_DEFAULT):
+	* s/netbsd.h (C_SWITCH_SYSTEM):
+	* s/openbsd.h (LD_SWITCH_X_DEFAULT): Remove, configure takes care
+	of these.
+
+	Simplify m/intel386.h.
+	* m/intel386.h (CRT0_DUMMIES): Remove, inline value in the only
+	user: ecrt0.c.
+	(SOLARIS2): Remove LOAD_AVE_TYPE, LOAD_AVE_CVT, LIBS_MACHINE, unused.
+	(USG5_4): Move LOAD_AVE_TYPE, LOAD_AVE_CVT, FSCALE definitions to
+	the only user: s/unixware.h.
+	* ecrt0.c: Remove #ifndef static.  Inline CRT0_DUMMIES definition
+	from m/intel386.h.
+	* s/unixware.h (LOAD_AVE_TYPE, LOAD_AVE_CVT, FSCALE): Definitions
+	moved here from m/intel386.h.
+
+	* m/mips.h: Remove #if 0 code.
+
+2010-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of composed characters from L2R scripts in bidi buffers.
+	* xdisp.c (set_iterator_to_next, next_element_from_composition):
+	After advancing IT past the composition, resync the bidi iterator
+	with IT's position.  (Bug#5977)
+
+2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (LD_SWITCH_MACHINE_TEMACS): Remove, unused.
+	(TEMACS_LDFLAGS): Don't use LD_SWITCH_SYSTEM_TEMACS.
+
+2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gtkutil.c: Include xsettings.h for Ftool_bar_get_system_style.
+
+2010-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Support `display' text properties and overlay strings in bidi buffers.
+	* xdisp.c (pop_it): When the stack is popped after displaying
+	from a string, bidi-iterate to exit from the text portion covered
+	by the `display' property or overlay.  (Bug#5988, bug#5920)
+
+2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/macppc.h (LD_SWITCH_SYSTEM_TEMACS): Remove #undef.
+	(LD_SWITCH_MACHINE_TEMACS): Remove, configure sets nocombreloc.
+
+	* s/netbsd.h (LD_SWITCH_SYSTEM_TEMACS): Remove, configure sets nocombreloc.
+	* s/openbsd.h (LD_SWITCH_SYSTEM_TEMACS): Remove.
+
+	Simplify STARTFILES definition.
+	* s/hpux10-20.h (START_FILES): Explicitly define here instead of
+	relying on Makefile.in to define it.
+	* s/cygwin.h (START_FILES): Likewise.
+	* Makefile.in (STARTFILES): Remove conditional code, not needed anymore.
+
+	Clean up Solaris code.
+	* s/sol2-6.h (LD_SWITCH_SYSTEM_TEMACS, C_SWITCH_X_SYSTEM)
+	(LIB_MOTIF): Remove, configure takes care of this.
+	(NOT_USING_MOTIF): Remove, unused.
+	* xrdb.c: Remove #if 0-ed #include.
+	(SYSV): Remove conditional for old SysV.
+	* sysdep.c (closedir): Remove conditional code for Solaris,
+	Solaris has closedir.
+
 2010-04-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (read_and_apply_settings): Check if current_font is
