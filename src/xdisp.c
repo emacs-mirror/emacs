@@ -5259,6 +5259,33 @@ push_it (it)
   ++it->sp;
 }
 
+static void
+iterate_out_of_display_property (it)
+     struct it *it;
+{
+  /* Maybe initialize paragraph direction.  If we are at the beginning
+     of a new paragraph, next_element_from_buffer may not have a
+     chance to do that.  */
+  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+  /* prev_stop can be zero, so check against BEGV as well.  */
+  while (it->bidi_it.charpos >= BEGV
+	 && it->prev_stop <= it->bidi_it.charpos
+	 && it->bidi_it.charpos < CHARPOS (it->position))
+    bidi_get_next_char_visually (&it->bidi_it);
+  /* Record the stop_pos we just crossed, for when we cross it
+     back, maybe.  */
+  if (it->bidi_it.charpos > CHARPOS (it->position))
+    it->prev_stop = CHARPOS (it->position);
+  /* If we ended up not where pop_it put us, resync IT's
+     positional members with the bidi iterator. */
+  if (it->bidi_it.charpos != CHARPOS (it->position))
+    {
+      SET_TEXT_POS (it->position,
+		    it->bidi_it.charpos, it->bidi_it.bytepos);
+      it->current.pos = it->position;
+    }
+}
 
 /* Restore IT's settings from IT->stack.  Called, for example, when no
    more overlay strings must be processed, and we return to delivering
@@ -5309,25 +5336,7 @@ pop_it (it)
 	     determine the paragraph base direction if the overlay we
 	     just processed is at the beginning of a new
 	     paragraph.  */
-	  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
-	    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  /* prev_stop can be zero, so check against BEGV as well.  */
-	  while (it->bidi_it.charpos >= BEGV
-		 && it->prev_stop <= it->bidi_it.charpos
-		 && it->bidi_it.charpos < CHARPOS (it->position))
-	    bidi_get_next_char_visually (&it->bidi_it);
-	  /* Record the stop_pos we just crossed, for when we cross it
-	     back, maybe.  */
-	  if (it->bidi_it.charpos > CHARPOS (it->position))
-	    it->prev_stop = CHARPOS (it->position);
-	  /* If we ended up not where pop_it put us, resync IT's
-	     positional members with the bidi iterator. */
-	  if (it->bidi_it.charpos != CHARPOS (it->position))
-	    {
-	      SET_TEXT_POS (it->position,
-			    it->bidi_it.charpos, it->bidi_it.bytepos);
-	      it->current.pos = it->position;
-	    }
+	  iterate_out_of_display_property (it);
 	}
       break;
     case GET_FROM_STRING:
