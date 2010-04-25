@@ -1,5 +1,11 @@
 2010-04-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (set_cursor_from_row): Don't return zero if cursor was
+	found by `cursor' property of a display string.
+	(display_line): Preserve overlay and string info in row->end.
+
+2010-04-25  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (display_line): Fix crash with bidi display on the last
 	empty line.  (Bug#6030)
 	(iterate_out_of_display_property): New function, body from pop_it.

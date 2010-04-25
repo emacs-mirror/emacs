@@ -13055,7 +13055,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 	  /* If we reached the end of the line, and END was from a string,
 	     the cursor is not on this line.  */
-	  if (glyph == end
+	  if (cursor == NULL
+	      && glyph == end
 	      && STRINGP ((glyph - incr)->object)
 	      && row->continued_p)
 	    return 0;
@@ -17969,7 +17970,6 @@ display_line (it)
 	 in the logical order, unless we are at ZV.  */
       if (row->ends_at_zv_p)
 	{
-	  row_end = row->end = it->current;
 	  if (!row->used[TEXT_AREA])
 	    {
 	      row->start.pos.charpos = row_end.pos.charpos;
@@ -18019,6 +18019,9 @@ display_line (it)
 	      it->eol_pos.charpos = it->eol_pos.bytepos = 0;
 	    }
 	  *it = save_it;
+	  row_end.string_pos = it->current.string_pos;
+	  row_end.overlay_string_index = it->current.overlay_string_index;
+	  row_end.dpvec_index = it->current.dpvec_index;
 	  row->end = row_end;
 	}
     }
