@@ -31,11 +31,6 @@ NOTE-END  */
 
 #define WORDS_BIG_ENDIAN
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
-
 /* __sparc__ is defined by the compiler by default.  */
 
 /* XINT must explicitly sign-extend

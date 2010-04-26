@@ -1,3 +1,50 @@
+2010-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all NO_ARG_ARRAY uses.
+	* fns.c (concat2, concat3, nconc2):
+	* eval.c (apply1, call1, call2, call3, call4, call5, call6)
+	(call7): Remove NO_ARG_ARRAY usage, assume it's always true.
+	* m/xtensa.h (NO_ARG_ARRAY):
+	* m/template.h (NO_ARG_ARRAY):
+	* m/sparc.h (NO_ARG_ARRAY):
+	* m/sh3.h (NO_ARG_ARRAY):
+	* m/mips.h (NO_ARG_ARRAY):
+	* m/macppc.h (NO_ARG_ARRAY):
+	* m/iris4d.h (NO_ARG_ARRAY):
+	* m/intel386.h (NO_ARG_ARRAY):
+	* m/ibms390x.h (NO_ARG_ARRAY):
+	* m/ibms390.h (NO_ARG_ARRAY):
+	* m/ibmrs6000.h (NO_ARG_ARRAY):
+	* m/ia64.h (NO_ARG_ARRAY):
+	* m/hp800.h (NO_ARG_ARRAY):
+	* m/arm.h (NO_ARG_ARRAY):
+	* m/amdx86-64.h (NO_ARG_ARRAY):
+	* m/alpha.h (NO_ARG_ARRAY): Remove definition.
+
+2010-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Don't assume 2nd call to
+	get_next_display_element cannot return zero.  (Bug#6030)
+	(iterate_out_of_display_property): New function, body from pop_it.
+	(pop_it): Use it.
+
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* m/amdx86-64.h (START_FILES, LIB_STANDARD) [__OpenBSD__]:
+	For clarity, revert to using fixed /usr/lib rather than $CRT_DIR.
+	(START_FILES, LIB_STANDARD) [__FreeBSD__]: Merge into the generic case,
+	since CRT_DIR defaults to /usr/lib.  Suggested by Dan Nicolaescu.
+
+2010-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Use `reseat' instead of `reseat_1', and
+	use `get_next_display_element' and `set_iterator_to_next' to
+	advance to the next character, when looking for the character that
+	begins the next row.
+
+	* .gdbinit: Add a "set Fmake_symbol" line to force GDB to load the
+	definition of "struct Lisp_Symbol".
+
 2010-04-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (CRT_DIR): New variable, set by configure.
@@ -48,8 +95,7 @@
 
 2010-04-23  Eli Zaretskii  <eliz@gnu.org>
 
-	Support `display' text properties and overlay strings in bidi
-	buffers.
+	Support `display' text properties and overlay strings in bidi buffers.
 	* xdisp.c (pop_it): When the stack is popped after displaying
 	from a string, bidi-iterate to exit from the text portion covered
 	by the `display' property or overlay.  (Bug#5988, bug#5920)

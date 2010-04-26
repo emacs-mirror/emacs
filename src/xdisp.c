@@ -5259,6 +5259,33 @@ push_it (it)
   ++it->sp;
 }
 
+static void
+iterate_out_of_display_property (it)
+     struct it *it;
+{
+  /* Maybe initialize paragraph direction.  If we are at the beginning
+     of a new paragraph, next_element_from_buffer may not have a
+     chance to do that.  */
+  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+  /* prev_stop can be zero, so check against BEGV as well.  */
+  while (it->bidi_it.charpos >= BEGV
+	 && it->prev_stop <= it->bidi_it.charpos
+	 && it->bidi_it.charpos < CHARPOS (it->position))
+    bidi_get_next_char_visually (&it->bidi_it);
+  /* Record the stop_pos we just crossed, for when we cross it
+     back, maybe.  */
+  if (it->bidi_it.charpos > CHARPOS (it->position))
+    it->prev_stop = CHARPOS (it->position);
+  /* If we ended up not where pop_it put us, resync IT's
+     positional members with the bidi iterator. */
+  if (it->bidi_it.charpos != CHARPOS (it->position))
+    {
+      SET_TEXT_POS (it->position,
+		    it->bidi_it.charpos, it->bidi_it.bytepos);
+      it->current.pos = it->position;
+    }
+}
 
 /* Restore IT's settings from IT->stack.  Called, for example, when no
    more overlay strings must be processed, and we return to delivering
@@ -5309,25 +5336,7 @@ pop_it (it)
 	     determine the paragraph base direction if the overlay we
 	     just processed is at the beginning of a new
 	     paragraph.  */
-	  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
-	    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  /* prev_stop can be zero, so check against BEGV as well.  */
-	  while (it->bidi_it.charpos >= BEGV
-		 && it->prev_stop <= it->bidi_it.charpos
-		 && it->bidi_it.charpos < CHARPOS (it->position))
-	    bidi_get_next_char_visually (&it->bidi_it);
-	  /* Record the stop_pos we just crossed, for when we cross it
-	     back, maybe.  */
-	  if (it->bidi_it.charpos > CHARPOS (it->position))
-	    it->prev_stop = CHARPOS (it->position);
-	  /* If we ended up not where pop_it put us, resync IT's
-	     positional members with the bidi iterator. */
-	  if (it->bidi_it.charpos != CHARPOS (it->position))
-	    {
-	      SET_TEXT_POS (it->position,
-			    it->bidi_it.charpos, it->bidi_it.bytepos);
-	      it->current.pos = it->position;
-	    }
+	  iterate_out_of_display_property (it);
 	}
       break;
     case GET_FROM_STRING:
@@ -17969,17 +17978,19 @@ display_line (it)
 	}
       else if (row->used[TEXT_AREA] && max_pos)
 	{
-	  SET_TEXT_POS (tpos, max_pos + 1, CHAR_TO_BYTE (max_pos + 1));
+	  SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
+	  save_it = *it;
+	  it->bidi_p = 0;
+	  reseat (it, tpos, 0);
+	  if (!get_next_display_element (it))
+	    abort ();	/* row at ZV was already handled above */
+	  set_iterator_to_next (it, 1);
 	  row_end = it->current;
-	  row_end.pos = tpos;
 	  /* If the character at max_pos+1 is a newline, skip that as
 	     well.  Note that this may skip some invisible text.  */
-	  if (FETCH_CHAR (tpos.bytepos) == '\n'
-	      || (FETCH_CHAR (tpos.bytepos) == '\r' && it->selective))
+	  if (get_next_display_element (it)
+	      && ITERATOR_AT_END_OF_LINE_P (it))
 	    {
-	      save_it = *it;
-	      it->bidi_p = 0;
-	      reseat_1 (it, tpos, 0);
 	      set_iterator_to_next (it, 1);
 	      /* Record the position after the newline of a continued
 		 row.  We will need that to set ROW->end of the last
@@ -17994,7 +18005,6 @@ display_line (it)
 		  row_end = it->current;
 		  save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
 		}
-	      *it = save_it;
 	    }
 	  else if (!row->continued_p
 		   && MATRIX_ROW_CONTINUATION_LINE_P (row)
@@ -18008,6 +18018,7 @@ display_line (it)
 	      row_end.pos = it->eol_pos;
 	      it->eol_pos.charpos = it->eol_pos.bytepos = 0;
 	    }
+	  *it = save_it;
 	  row->end = row_end;
 	}
     }

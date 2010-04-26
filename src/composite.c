@@ -74,8 +74,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	composition rules to tell how to compose (2N+2)th element with
 	the previously composed 2N glyphs.
 
-   COMPONENTS-VEC -- Vector of integers.  In relative composition, the
-	elements are characters to be composed.  In rule-base
+   COMPONENTS-VEC -- Vector of integers.  In a relative composition,
+	the elements are the characters to be composed.  In a rule-base
 	composition, the elements are characters or encoded
 	composition rules.
 
@@ -95,13 +95,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    get_composition_id checks the validity of `composition' property,
    and, if valid, assigns a new ID, registers the information in
    composition_hash_table and composition_table, and changes the form
-   of the property value.  If the property is invalid, return -1
-   without changing the property value.
+   of the property value.  If the property is invalid,
+   get_composition_id returns -1 without changing the property value.
 
-   We use two tables to keep information about composition;
+   We use two tables to keep the information about composition;
    composition_hash_table and composition_table.
 
-   The former is a hash table in which keys are COMPONENTS-VECs and
+   The former is a hash table whose keys are COMPONENTS-VECs and
    values are the corresponding COMPOSITION-IDs.  This hash table is
    weak, but as each key (COMPONENTS-VEC) is also kept as a value of the
    `composition' property, it won't be collected as garbage until all
@@ -162,8 +162,8 @@ Lisp_Object Vauto_composition_function;
 Lisp_Object Qauto_composition_function;
 Lisp_Object Vcomposition_function_table;
 
-/* Maxinum number of characters to lookback to check
-   auto-composition.  */
+/* Maximum number of characters to look back for
+   auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
 EXFUN (Fremove_list_of_text_properties, 4);
@@ -1011,7 +1011,7 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
    BYTEPOS) where character composition may happen.  If BYTEPOS is
-   negative, compoute it.  If it is a static composition, set
+   negative, compute it.  If it is a static composition, set
    cmp_it->ch to -1.  Otherwise, set cmp_it->ch to the character that
    triggers a automatic composition.  */
 
@@ -1241,7 +1241,7 @@ struct position_record
   unsigned char *p;
 };
 
-/* Update the members of POSTION to the next character boundary.  */
+/* Update the members of POSITION to the next character boundary.  */
 #define FORWARD_CHAR(POSITION, STOP)					\
   do {									\
     (POSITION).pos++;							\
@@ -1257,7 +1257,7 @@ struct position_record
       }									\
   } while (0)
 
-/* Update the members of POSTION to the previous character boundary.  */
+/* Update the members of POSITION to the previous character boundary.  */
 #define BACKWARD_CHAR(POSITION, STOP)		\
   do {						\
     if ((POSITION).pos == STOP)			\
@@ -1429,7 +1429,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 	    }
 	  if (need_adjustment)
 	    {
-	      /* As we have called Lisp, there's a possibilily that
+	      /* As we have called Lisp, there's a possibility that
 		 buffer/string is relocated.  */
 	      if (NILP (string))
 		cur.p  = BYTE_POS_ADDR (cur.pos_byte);

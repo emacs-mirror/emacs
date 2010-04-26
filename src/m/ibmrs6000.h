@@ -22,11 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    operating system this machine is likely to run.
    USUAL-OPSYS="aix3-1"  */
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
 

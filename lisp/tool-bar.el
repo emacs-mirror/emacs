@@ -243,24 +243,24 @@ holds a keymap."
                 ;; Last element in the bound key sequence:
                 (kk (aref k (1- (length k)))))
             (if (and (keymapp m)
-                     (symbolp kk))      ;FIXME: Why?  --Stef
+                     (symbolp kk))
                 (setq submap m
                       key kk)))))
-    (when submap
-      (let ((defn nil))
-        ;; Here, we're essentially doing a "lookup-key without get_keyelt".
-        (map-keymap (lambda (k b) (if (eq k key) (setq defn b)))
-                    submap)
+    (when (and (symbolp submap) (boundp submap))
+      (setq submap (eval submap)))
+    (let ((defn (assq key (cdr submap))))
+      (if (eq (cadr defn) 'menu-item)
+          (define-key-after in-map (vector key)
+            (append (cdr defn) (list :image image-exp) props))
+        (setq defn (cdr defn))
         (define-key-after in-map (vector key)
-          (if (eq (car defn) 'menu-item)
-              (append (cdr defn) (list :image image-exp) props)
-            (let ((rest (cdr defn)))
-              ;; If the rest of the definition starts
-              ;; with a list of menu cache info, get rid of that.
-              (if (and (consp rest) (consp (car rest)))
-                  (setq rest (cdr rest)))
-              (append `(menu-item ,(car defn) ,rest)
-                      (list :image image-exp) props))))))))
+          (let ((rest (cdr defn)))
+            ;; If the rest of the definition starts
+            ;; with a list of menu cache info, get rid of that.
+            (if (and (consp rest) (consp (car rest)))
+                (setq rest (cdr rest)))
+            (append `(menu-item ,(car defn) ,rest)
+                    (list :image image-exp) props)))))))
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
