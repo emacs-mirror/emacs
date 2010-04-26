@@ -1674,7 +1674,7 @@ See `find-composition' for more details.  */)
 
       if (find_automatic_composition (from, to, &s, &e, &gstring, string)
 	  && (e <= XINT (pos) ? e > end : s < start))
-	return list3 (make_number (start), make_number (end), gstring);
+	return list3 (make_number (s), make_number (e), gstring);
     }
   if (!COMPOSITION_VALID_P (start, end, prop))
     return Fcons (make_number (start), Fcons (make_number (end),

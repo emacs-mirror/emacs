@@ -1,3 +1,8 @@
+2010-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (Ffind_composition_internal): Fix the return value
+	for an automatic composition.
+
 2010-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove all NO_ARG_ARRAY uses.
