@@ -1676,8 +1676,11 @@ static void VMCompact(Arena arena, Trace trace)
     Size vmem2 = VMArenaReserved(arena);
     Size vmemD = vmem1 - vmem2;
     Size live = trace->forwardedSize + trace->preservedInPlaceSize;
-    Size livePerc = live / (trace->condemned / 100);
-    
+    Size livePerc = 0;
+
+    if(trace->condemned / 100 != 0)
+      livePerc = live / (trace->condemned / 100);
+
     /* VMCompact diag: emit for all client-requested collections, */
     /* plus any others where chunks were gained or lost during the */
     /* collection.  */
