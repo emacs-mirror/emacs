@@ -39,11 +39,6 @@ NOTE-END */
 
 #undef WORDS_BIG_ENDIAN
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-/* #define NO_ARG_ARRAY */
-
 #ifdef USG
 #define TEXT_START 0
 #endif /* USG */
@@ -51,7 +46,6 @@ NOTE-END */
 #ifdef WINDOWSNT
 #define VIRT_ADDR_VARIES
 #define DATA_START 	get_data_start ()
-#define NO_ARG_ARRAY
 #endif
 
 #ifdef GNU_LINUX

@@ -2786,7 +2786,6 @@ apply1 (fn, arg)
   if (NILP (arg))
     RETURN_UNGCPRO (Ffuncall (1, &fn));
   gcpro1.nvars = 2;
-#ifdef NO_ARG_ARRAY
   {
     Lisp_Object args[2];
     args[0] = fn;
@@ -2794,9 +2793,6 @@ apply1 (fn, arg)
     gcpro1.var = args;
     RETURN_UNGCPRO (Fapply (2, args));
   }
-#else /* not NO_ARG_ARRAY */
-  RETURN_UNGCPRO (Fapply (2, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn on no arguments */
@@ -2817,7 +2813,6 @@ call1 (fn, arg1)
      Lisp_Object fn, arg1;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
 
   args[0] = fn;
@@ -2825,11 +2820,6 @@ call1 (fn, arg1)
   GCPRO1 (args[0]);
   gcpro1.nvars = 2;
   RETURN_UNGCPRO (Ffuncall (2, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 2;
-  RETURN_UNGCPRO (Ffuncall (2, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn with 2 arguments arg1, arg2 */
@@ -2839,7 +2829,6 @@ call2 (fn, arg1, arg2)
      Lisp_Object fn, arg1, arg2;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[3];
   args[0] = fn;
   args[1] = arg1;
@@ -2847,11 +2836,6 @@ call2 (fn, arg1, arg2)
   GCPRO1 (args[0]);
   gcpro1.nvars = 3;
   RETURN_UNGCPRO (Ffuncall (3, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 3;
-  RETURN_UNGCPRO (Ffuncall (3, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn with 3 arguments arg1, arg2, arg3 */
@@ -2861,7 +2845,6 @@ call3 (fn, arg1, arg2, arg3)
      Lisp_Object fn, arg1, arg2, arg3;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[4];
   args[0] = fn;
   args[1] = arg1;
@@ -2870,11 +2853,6 @@ call3 (fn, arg1, arg2, arg3)
   GCPRO1 (args[0]);
   gcpro1.nvars = 4;
   RETURN_UNGCPRO (Ffuncall (4, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 4;
-  RETURN_UNGCPRO (Ffuncall (4, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn with 4 arguments arg1, arg2, arg3, arg4 */
@@ -2884,7 +2862,6 @@ call4 (fn, arg1, arg2, arg3, arg4)
      Lisp_Object fn, arg1, arg2, arg3, arg4;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[5];
   args[0] = fn;
   args[1] = arg1;
@@ -2894,11 +2871,6 @@ call4 (fn, arg1, arg2, arg3, arg4)
   GCPRO1 (args[0]);
   gcpro1.nvars = 5;
   RETURN_UNGCPRO (Ffuncall (5, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 5;
-  RETURN_UNGCPRO (Ffuncall (5, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn with 5 arguments arg1, arg2, arg3, arg4, arg5 */
@@ -2908,7 +2880,6 @@ call5 (fn, arg1, arg2, arg3, arg4, arg5)
      Lisp_Object fn, arg1, arg2, arg3, arg4, arg5;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[6];
   args[0] = fn;
   args[1] = arg1;
@@ -2919,11 +2890,6 @@ call5 (fn, arg1, arg2, arg3, arg4, arg5)
   GCPRO1 (args[0]);
   gcpro1.nvars = 6;
   RETURN_UNGCPRO (Ffuncall (6, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 6;
-  RETURN_UNGCPRO (Ffuncall (6, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn with 6 arguments arg1, arg2, arg3, arg4, arg5, arg6 */
@@ -2933,7 +2899,6 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
      Lisp_Object fn, arg1, arg2, arg3, arg4, arg5, arg6;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[7];
   args[0] = fn;
   args[1] = arg1;
@@ -2945,11 +2910,6 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
   GCPRO1 (args[0]);
   gcpro1.nvars = 7;
   RETURN_UNGCPRO (Ffuncall (7, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 7;
-  RETURN_UNGCPRO (Ffuncall (7, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* Call function fn with 7 arguments arg1, arg2, arg3, arg4, arg5, arg6, arg7 */
@@ -2959,7 +2919,6 @@ call7 (fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
      Lisp_Object fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7;
 {
   struct gcpro gcpro1;
-#ifdef NO_ARG_ARRAY
   Lisp_Object args[8];
   args[0] = fn;
   args[1] = arg1;
@@ -2972,11 +2931,6 @@ call7 (fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
   GCPRO1 (args[0]);
   gcpro1.nvars = 8;
   RETURN_UNGCPRO (Ffuncall (8, args));
-#else /* not NO_ARG_ARRAY */
-  GCPRO1 (fn);
-  gcpro1.nvars = 8;
-  RETURN_UNGCPRO (Ffuncall (8, &fn));
-#endif /* not NO_ARG_ARRAY */
 }
 
 /* The caller should GCPRO all the elements of ARGS.  */

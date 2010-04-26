@@ -22,11 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define WORDS_BIG_ENDIAN
 
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
-
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long

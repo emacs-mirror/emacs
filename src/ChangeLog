@@ -1,3 +1,38 @@
+2010-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (Ffind_composition_internal): Fix the return value
+	for an automatic composition.
+
+2010-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove all NO_ARG_ARRAY uses.
+	* fns.c (concat2, concat3, nconc2):
+	* eval.c (apply1, call1, call2, call3, call4, call5, call6)
+	(call7): Remove NO_ARG_ARRAY usage, assume it's always true.
+	* m/xtensa.h (NO_ARG_ARRAY):
+	* m/template.h (NO_ARG_ARRAY):
+	* m/sparc.h (NO_ARG_ARRAY):
+	* m/sh3.h (NO_ARG_ARRAY):
+	* m/mips.h (NO_ARG_ARRAY):
+	* m/macppc.h (NO_ARG_ARRAY):
+	* m/iris4d.h (NO_ARG_ARRAY):
+	* m/intel386.h (NO_ARG_ARRAY):
+	* m/ibms390x.h (NO_ARG_ARRAY):
+	* m/ibms390.h (NO_ARG_ARRAY):
+	* m/ibmrs6000.h (NO_ARG_ARRAY):
+	* m/ia64.h (NO_ARG_ARRAY):
+	* m/hp800.h (NO_ARG_ARRAY):
+	* m/arm.h (NO_ARG_ARRAY):
+	* m/amdx86-64.h (NO_ARG_ARRAY):
+	* m/alpha.h (NO_ARG_ARRAY): Remove definition.
+
+2010-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Don't assume 2nd call to
+	get_next_display_element cannot return zero.  (Bug#6030)
+	(iterate_out_of_display_property): New function, body from pop_it.
+	(pop_it): Use it.
+
 2010-04-24  Glenn Morris  <rgm@gnu.org>
 
 	* m/amdx86-64.h (START_FILES, LIB_STANDARD) [__OpenBSD__]:
