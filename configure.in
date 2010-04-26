@@ -828,6 +828,20 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
+LIB_MATH=-lm
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    ;;
+esac
+
+AC_SUBST(LIB_MATH)
+
 #### Extract some information from the operating system and machine files.
 
 AC_CHECKING([the machine- and system-dependent files to find out

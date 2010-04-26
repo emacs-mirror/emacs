@@ -175,10 +175,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LIBS_MACHINE
 #endif
 
-#ifndef LIB_MATH
-#  define LIB_MATH -lm
-#endif /* LIB_MATH */
-
 /* Some s/SYSTEM.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_SYSTEM
 #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
@@ -795,7 +791,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
-   $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
+   $(GNULIB_VAR) @LIB_MATH@ LIB_STANDARD $(GNULIB_VAR)
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
