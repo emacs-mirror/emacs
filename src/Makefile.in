@@ -170,11 +170,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LIBS_SYSTEM
 #endif
 
-/* Some m/MACHINE.h files define this to request special libraries.  */
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
-
 /* Some s/SYSTEM.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_SYSTEM
 #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))

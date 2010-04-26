@@ -1,5 +1,7 @@
 2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in (LIBS_MACHINE): Remove, unused.
+
 	Use autoconf instead of cpp for LIB_MATH.
 	* s/darwin.h (LIB_MATH): Do not define here, move to configure.
 	* s/cygwin.h (LIB_MATH): Likewise.

@@ -866,9 +866,6 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
@@ -878,7 +875,7 @@ echo '
 #ifndef C_SWITCH_MACHINE
 #define C_SWITCH_MACHINE
 #endif
-configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+configure___ libsrc_libs=LIBS_SYSTEM
 configure___ c_switch_system=C_SWITCH_SYSTEM
 configure___ c_switch_machine=C_SWITCH_MACHINE
 

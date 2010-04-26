@@ -171,11 +171,6 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 #define LIBS_SYSTEM
 #endif
 
-/* Some m/MACHINE.h files define this to request special libraries.  */
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
-
 #undef MOVEMAIL_NEEDS_BLESSING
 #ifndef MAIL_USE_FLOCK
 #ifndef MAIL_USE_LOCKF
