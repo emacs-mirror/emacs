@@ -68,6 +68,9 @@ bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
 OTHER_FILES = @OTHER_FILES@
 
+## Only used by amdx86-64 and ibms390x GNU/Linux.
+CRT_DIR=@CRT_DIR@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -82,15 +85,25 @@ C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
+DBUS_OBJ = @DBUS_OBJ@
 
 GCONF_CFLAGS = @GCONF_CFLAGS@
 GCONF_LIBS = @GCONF_LIBS@
+
+GTK_OBJ=@GTK_OBJ@
+
+LIBXSM=@LIBXSM@
+
+XMENU_OBJ=@XMENU_OBJ@
+XOBJ=@XOBJ@
 
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
 RSVG_LIBS= @RSVG_LIBS@
 RSVG_CFLAGS= @RSVG_CFLAGS@
+
+LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
 
@@ -186,17 +199,7 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_MACHINE
 #endif
 
-/* This holds special options for linking temacs
-   that should be used for linking anything else.  */
-#ifndef LD_SWITCH_MACHINE_TEMACS
-#define LD_SWITCH_MACHINE_TEMACS
-#endif
-
 /* These macros are for switches specifically related to X Windows.  */
-#ifndef C_SWITCH_X_MACHINE
-#define C_SWITCH_X_MACHINE
-#endif
-
 #ifndef C_SWITCH_X_SYSTEM
 #define C_SWITCH_X_SYSTEM
 #endif
@@ -209,25 +212,7 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_X_DEFAULT
 #endif
 
-#ifndef ORDINARY_LINK
-
-#ifndef START_FILES
-#ifdef NO_REMAP
-#define START_FILES pre-crt0.o /lib/crt0.o
-#else /* ! defined (NO_REMAP) */
-#define START_FILES ecrt0.o
-#endif /* ! defined (NO_REMAP) */
-#endif /* START_FILES */
 STARTFILES = START_FILES
-
-#else /* ORDINARY_LINK */
-
-/* config.h might want to force START_FILES anyway */
-#ifdef START_FILES
-STARTFILES = START_FILES
-#endif /* START_FILES */
-
-#endif /* not ORDINARY_LINK */
 
 
 #ifdef NS_IMPL_GNUSTEP
@@ -237,10 +222,6 @@ GUI_LIB=gnu
 include @GNUSTEP_MAKEFILES@/Additional/base.make
 include @GNUSTEP_MAKEFILES@/Additional/gui.make
 shared=no
-#endif
-
-#ifdef HAVE_DBUS
-DBUS_OBJ = dbusbind.o
 #endif
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
@@ -258,9 +239,9 @@ DBUS_OBJ = dbusbind.o
 #undef C_SWITCH_SYSTEM
 #undef C_SWITCH_X_SITE
 
-/* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
+/* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -280,15 +261,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 #endif
 
 #ifdef HAVE_X_WINDOWS
-XMENU_OBJ = xmenu.o
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o \
-      xsettings.o xgselect.o
-
 #ifdef HAVE_MENUS
-
-#ifdef USE_GTK
-GTK_OBJ= gtkutil.o
-#endif
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -352,11 +325,7 @@ OLDXMENU=
 LIBXMENU=
 #endif /* USE_GTK */
 
-#ifdef HAVE_X_SM
-LIBXT=$(LIBW) -lSM -lICE
-#else
-LIBXT=$(LIBW)
-#endif
+LIBXT=$(LIBW) $(LIBXSM)
 #endif /* not USE_X_TOOLKIT */
 
 #ifdef HAVE_X11
@@ -427,7 +396,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -572,7 +541,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
  ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
  ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc \
- ${lispsource}font-setting.elc
+ ${lispsource}dynamic-setting.elc
 #else
 #define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
@@ -807,7 +776,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/tooltip.elc ../lisp/image.elc \
   ../lisp/fringe.elc ../lisp/dnd.elc \
   ../lisp/mwheel.elc ../lisp/tool-bar.elc \
-  ../lisp/x-dnd.elc ../lisp/font-setting.elc \
+  ../lisp/x-dnd.elc ../lisp/dynamic-setting.elc \
   ../lisp/international/ccl.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
@@ -824,7 +793,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   $(GETLOADAVG_LIBS) ${GCONF_LIBS} \
+   $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
@@ -898,7 +867,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 
 #ifdef USE_X_TOOLKIT
@@ -907,7 +875,6 @@ $(OLDXMENU): really-lwlib
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
@@ -917,7 +884,6 @@ $(OLDXMENU): really-oldXMenu
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
     "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu

@@ -296,20 +296,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	  ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
-(declare-function log-edit-mode "log-edit" ())
-(defvar log-edit-extra-flags)
-(defvar log-edit-before-checkin-process)
-
-(define-derived-mode vc-hg-log-edit-mode log-edit-mode "Hg-log-edit"
-  "Mode for editing Hg commit logs.
-If a line like:
-Author: NAME
-is present in the log, it is removed, and
---author NAME
-is passed to the hg commit command."
-  (set (make-local-variable 'log-edit-extra-flags) nil)
-  (set (make-local-variable 'log-edit-before-checkin-process)
-       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--user" (match-string 1))))))
+(declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -434,11 +421,15 @@ COMMENT is ignored."
 ;;   "Unregister FILE from hg."
 ;;   (vc-hg-command nil nil file "remove"))
 
-(defun vc-hg-checkin (files rev comment &optional extra-args)
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
+(defun vc-hg-checkin (files rev comment)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
   (apply 'vc-hg-command nil 0 files
-         (nconc (list "commit" "-m" comment) extra-args)))
+         (nconc (list "commit" "-m")
+                (log-edit-extract-headers '(("Author" . "--user"))
+                                          comment))))
 
 (defun vc-hg-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)

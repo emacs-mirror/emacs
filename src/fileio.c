@@ -53,6 +53,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 
+#ifdef HAVE_LIBSELINUX
+#include <selinux/selinux.h>
+#include <selinux/context.h>
+#endif
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -331,6 +336,8 @@ Lisp_Object Qfile_accessible_directory_p;
 Lisp_Object Qfile_modes;
 Lisp_Object Qset_file_modes;
 Lisp_Object Qset_file_times;
+Lisp_Object Qfile_selinux_context;
+Lisp_Object Qset_file_selinux_context;
 Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
@@ -1894,7 +1901,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
   return;
 }
 
-DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 5,
+DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 6,
        "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
 If NEWNAME names a directory, copy FILE there.
@@ -1916,10 +1923,13 @@ last-modified time as the old one.  (This works on only some systems.)
 A prefix arg makes KEEP-TIME non-nil.
 
 If PRESERVE-UID-GID is non-nil, we try to transfer the
-uid and gid of FILE to NEWNAME.  */)
-  (file, newname, ok_if_already_exists, keep_time, preserve_uid_gid)
+uid and gid of FILE to NEWNAME.
+
+If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled 
+on the system, we copy the SELinux context of FILE to NEWNAME.  */)
+     (file, newname, ok_if_already_exists, keep_time, preserve_uid_gid, preserve_selinux_context)
      Lisp_Object file, newname, ok_if_already_exists, keep_time;
-     Lisp_Object preserve_uid_gid;
+     Lisp_Object preserve_uid_gid, preserve_selinux_context;
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
@@ -1929,6 +1939,10 @@ uid and gid of FILE to NEWNAME.  */)
   int count = SPECPDL_INDEX ();
   int input_file_statable_p;
   Lisp_Object encoded_file, encoded_newname;
+#if HAVE_LIBSELINUX
+  security_context_t con;
+  int fail, conlength = 0;
+#endif
 
   encoded_file = encoded_newname = Qnil;
   GCPRO4 (file, newname, encoded_file, encoded_newname);
@@ -1949,8 +1963,9 @@ uid and gid of FILE to NEWNAME.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call6 (handler, Qcopy_file, file, newname,
-			   ok_if_already_exists, keep_time, preserve_uid_gid));
+    RETURN_UNGCPRO (call7 (handler, Qcopy_file, file, newname,
+			   ok_if_already_exists, keep_time, preserve_uid_gid,
+			   preserve_selinux_context));
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
@@ -2003,6 +2018,15 @@ uid and gid of FILE to NEWNAME.  */)
   /* We can only copy regular files and symbolic links.  Other files are not
      copyable by us. */
   input_file_statable_p = (fstat (ifd, &st) >= 0);
+
+#if HAVE_LIBSELINUX
+  if (!NILP (preserve_selinux_context) && is_selinux_enabled ())
+    {
+      conlength = fgetfilecon (ifd, &con);
+      if (conlength == -1)
+	report_file_error ("Doing fgetfilecon", Fcons (file, Qnil));
+    }
+#endif
 
   if (out_st.st_mode != 0
       && st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
@@ -2060,6 +2084,18 @@ uid and gid of FILE to NEWNAME.  */)
       fchmod (ofd, st.st_mode & 07777);
     }
 #endif	/* not MSDOS */
+
+#if HAVE_LIBSELINUX
+  if (conlength > 0)
+    {
+      /* Set the modified context back to the file. */
+      fail = fsetfilecon (ofd, con);
+      if (fail)
+	report_file_error ("Doing fsetfilecon", Fcons (newname, Qnil));
+
+      freecon (con);
+    }
+#endif
 
   /* Closing the output clobbers the file times on some systems.  */
   if (emacs_close (ofd) < 0)
@@ -2287,7 +2323,7 @@ This is what happens in interactive use with M-x.  */)
 	       have copy-file prompt again.  */
 	    Fcopy_file (file, newname,
 			NILP (ok_if_already_exists) ? Qnil : Qt,
-			Qt, Qt);
+			Qt, Qt, Qt);
 
 	  count = SPECPDL_INDEX ();
 	  specbind (Qdelete_by_moving_to_trash, Qnil);
@@ -2842,6 +2878,136 @@ See `file-symlink-p' to distinguish symlinks.  */)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
 #endif
+}
+
+DEFUN ("file-selinux-context", Ffile_selinux_context,
+       Sfile_selinux_context, 1, 1, 0,
+       doc: /* Return SELinux context of file named FILENAME,
+as a list ("user", "role", "type", "range"). Return (nil, nil, nil, nil)
+if file does not exist, is not accessible, or SELinux is disabled */)
+     (filename)
+     Lisp_Object filename;
+{
+  Lisp_Object absname;
+  Lisp_Object values[4];
+  Lisp_Object handler;
+#if HAVE_LIBSELINUX
+  security_context_t con;
+  int conlength;
+  context_t context;
+#endif
+
+  absname = expand_and_dir_to_file (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (absname, Qfile_selinux_context);
+  if (!NILP (handler))
+    return call2 (handler, Qfile_selinux_context, absname);
+
+  absname = ENCODE_FILE (absname);
+
+  values[0] = Qnil;
+  values[1] = Qnil;
+  values[2] = Qnil;
+  values[3] = Qnil;
+#if HAVE_LIBSELINUX
+  if (is_selinux_enabled ())
+    {
+      conlength = lgetfilecon (SDATA (absname), &con);
+      if (conlength > 0)
+	{
+	  context = context_new (con);
+	  values[0] = build_string (context_user_get (context));
+	  values[1] = build_string (context_role_get (context));
+	  values[2] = build_string (context_type_get (context));
+	  values[3] = build_string (context_range_get (context));
+	  context_free (context);
+	}
+      if (con)
+	freecon (con);
+    }
+#endif
+
+  return Flist (sizeof(values) / sizeof(values[0]), values);
+}
+
+DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
+       Sset_file_selinux_context, 2, 2, 0,
+       doc: /* Set SELinux context of file named FILENAME to CONTEXT
+as a list ("user", "role", "type", "range"). Has no effect if SELinux
+is disabled. */)
+     (filename, context)
+     Lisp_Object filename, context;
+{
+  Lisp_Object absname, encoded_absname;
+  Lisp_Object handler;
+  Lisp_Object user = CAR_SAFE (context);
+  Lisp_Object role = CAR_SAFE (CDR_SAFE (context));
+  Lisp_Object type = CAR_SAFE (CDR_SAFE (CDR_SAFE (context)));
+  Lisp_Object range = CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (context))));
+#if HAVE_LIBSELINUX
+  security_context_t con;
+  int fail, conlength;
+  context_t parsed_con;
+#endif
+
+  absname = Fexpand_file_name (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (absname, Qset_file_selinux_context);
+  if (!NILP (handler))
+    return call3 (handler, Qset_file_selinux_context, absname, context);
+
+  encoded_absname = ENCODE_FILE (absname);
+
+#if HAVE_LIBSELINUX
+  if (is_selinux_enabled ())
+    {
+      /* Get current file context. */
+      conlength = lgetfilecon (SDATA (encoded_absname), &con);
+      if (conlength > 0)
+	{
+	  parsed_con = context_new (con);
+	  /* Change the parts defined in the parameter.*/
+	  if (STRINGP (user))
+	    {
+	      if (context_user_set (parsed_con, SDATA (user)))
+		error ("Doing context_user_set");
+	    }
+	  if (STRINGP (role))
+	    {
+	      if (context_role_set (parsed_con, SDATA (role)))
+		error ("Doing context_role_set");
+	    }
+	  if (STRINGP (type))
+	    {
+	      if (context_type_set (parsed_con, SDATA (type)))
+		error ("Doing context_type_set");
+	    }
+	  if (STRINGP (range))
+	    {
+	      if (context_range_set (parsed_con, SDATA (range)))
+		error ("Doing context_range_set");
+	    }
+
+	  /* Set the modified context back to the file. */
+	  fail = lsetfilecon (SDATA (encoded_absname), context_str (parsed_con));
+	  if (fail)
+	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
+
+	  context_free (parsed_con);
+	}
+      else
+	report_file_error("Doing lgetfilecon", Fcons (absname, Qnil));
+
+      if (con)
+	freecon (con);
+    }
+#endif
+
+  return Qnil;
 }
 
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
@@ -5505,6 +5671,8 @@ syms_of_fileio ()
   Qfile_modes = intern_c_string ("file-modes");
   Qset_file_modes = intern_c_string ("set-file-modes");
   Qset_file_times = intern_c_string ("set-file-times");
+  Qfile_selinux_context = intern_c_string("file-selinux-context");
+  Qset_file_selinux_context = intern_c_string("set-file-selinux-context");
   Qfile_newer_than_file_p = intern_c_string ("file-newer-than-file-p");
   Qinsert_file_contents = intern_c_string ("insert-file-contents");
   Qwrite_region = intern_c_string ("write-region");
@@ -5540,6 +5708,8 @@ syms_of_fileio ()
   staticpro (&Qfile_modes);
   staticpro (&Qset_file_modes);
   staticpro (&Qset_file_times);
+  staticpro (&Qfile_selinux_context);
+  staticpro (&Qset_file_selinux_context);
   staticpro (&Qfile_newer_than_file_p);
   staticpro (&Qinsert_file_contents);
   staticpro (&Qwrite_region);
@@ -5773,6 +5943,8 @@ When non-nil, the function `move-file-to-trash' will be used by
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
   defsubr (&Sset_file_times);
+  defsubr (&Sfile_selinux_context);
+  defsubr (&Sset_file_selinux_context);
   defsubr (&Sset_default_file_modes);
   defsubr (&Sdefault_file_modes);
   defsubr (&Sfile_newer_than_file_p);

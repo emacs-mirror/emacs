@@ -106,11 +106,6 @@ Minor mode variables will not be listed here.
 @item desktop-save-buffer
 @xref{Desktop Save Mode}.
 
-@ignore
-@item direction-reversed
-Does not work yet.
-@end ignore
-
 @item enable-multibyte-characters
 @ref{Text Representations}.
 

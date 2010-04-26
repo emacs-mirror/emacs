@@ -574,6 +574,10 @@ files and running a PostScript interpreter interactively from within
 Emacs.
 
 @item
+Karel Kl@'{@dotless{i}}@v{c} contributed SELinux support, for preserving the
+Security-Enchanced Linux context of files on backup and copy.
+
+@item
 Shuhei Kobayashi wrote @file{hex-util.el}, for operating on hexadecimal
 strings; support for HMAC (Keyed-Hashing for Message Authentication);
 and a Lisp implementation of the SHA1 Secure Hash Algorithm.

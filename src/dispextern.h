@@ -1956,6 +1956,7 @@ enum it_method {
   NUM_IT_METHODS
 };
 
+/* FIXME: What is this?  Why 5?  */
 #define IT_STACK_SIZE 5
 
 /* Iterator for composition (both for static and automatic).  */
@@ -2230,7 +2231,7 @@ struct it
      If `what' == IT_COMPOSITION, the first component of a composition
      and length in bytes of the composition.
 
-     If `what' is anything else, these tow are undefined (will
+     If `what' is anything else, these two are undefined (will
      probably hold values for the last IT_CHARACTER or IT_COMPOSITION
      traversed by the iterator.
 
@@ -2792,6 +2793,9 @@ enum tool_bar_item_idx
   /* Icon file name of right to left image when an RTL locale is used.  */
   TOOL_BAR_ITEM_RTL_IMAGE,
 
+  /* Label to show when text labels are enabled.  */
+  TOOL_BAR_ITEM_LABEL,
+
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
   TOOL_BAR_ITEM_NSLOTS
@@ -2812,6 +2816,15 @@ enum tool_bar_item_image
 /* Margin around tool-bar buttons in pixels.  */
 
 extern Lisp_Object Vtool_bar_button_margin;
+
+/* Tool bar style */
+
+extern Lisp_Object Vtool_bar_style;
+
+/* Maximum number of characters a label can have to be shown.  */
+
+extern EMACS_INT tool_bar_max_label_size;
+#define DEFAULT_TOOL_BAR_LABEL_SIZE 14
 
 /* Thickness of relief to draw around tool-bar buttons.  */
 

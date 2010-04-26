@@ -105,11 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This triggers a conditional in xfaces.c.  */
 #define XOS_NEEDS_TIME_H
 
-/* Don't use shared libraries.  unexec doesn't handle them.
-   Note GCC automatically passes -a archive to ld, and it has its own
-   conflicting -a.  */
-#define LD_SWITCH_SYSTEM_TEMACS
-
 #ifndef HAVE_LIBXMU
 /* HP-UX doesn't supply Xmu.  */
 #define LIBXMU
@@ -158,11 +153,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    We used to use -lc -lcurses, but this may be cleaner.  */
 #define LIBS_TERMCAP -ltermcap
 
-/* However, HPUX 10 puts Xaw and Xmu in a strange place
-   (if you install them at all).  So search that place.  */
-#define C_SWITCH_X_SYSTEM  -I/usr/include/X11R6 -I/usr/include/X11R5 -I/usr/include/Motif1.2 -I/usr/contrib/X11R6/include -I/usr/contrib/X11R5/include
-#define LD_SWITCH_X_DEFAULT -L/usr/lib/X11R6 -L/usr/lib/X11R5 -L/usr/lib/Motif1.2 -L/usr/contrib/X11R5/lib
-
 /* 2000-11-21: Temporarily disable Unix 98 large file support found by
    configure.  It fails on HPUX 11, at least, because it enables
    header sections which lose when `static' is defined away, as it is
@@ -172,6 +162,53 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* otherwise sigunblock wont be defined */
 #define POSIX_SIGNALS
+
+/* Define NO_REMAP if memory segmentation makes it not work well
+   to change the boundary between the text section and data section
+   when Emacs is dumped.  If you define this, the preloaded Lisp
+   code will not be sharable; but that's better than failing completely.  */
+
+#define NO_REMAP
+
+#define START_FILES pre-crt0.o /lib/crt0.o
+
+/* Define VIRT_ADDR_VARIES if the virtual addresses of
+   pure and impure space as loaded can vary, and even their
+   relative order cannot be relied on.
+
+   Otherwise Emacs assumes that text space precedes data space,
+   numerically.  */
+
+#define VIRT_ADDR_VARIES
+
+/* the data segment on this machine always starts at address 0x40000000. */
+
+#define DATA_SEG_BITS 0x40000000
+
+#define DATA_START    0x40000000
+#define TEXT_START    0x00000000
+
+/* Data type of load average, as read out of kmem.  */
+
+#define LOAD_AVE_TYPE double
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+
+#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
+
+/* The symbol in the kernel where the load average is found
+   is named _avenrun.  At this time there are two major flavors
+   of hp-ux (there is the s800 and s300 (s200) flavors).  The
+   differences are thusly moved to the corresponding machine description file.
+*/
+
+/* no underscore please */
+#define LDAV_SYMBOL "avenrun"
+
+/* On USG systems these have different names. */
+
+#define index strchr
+#define rindex strrchr
 
 /* arch-tag: 8d8dcbf1-ca9b-48a1-94be-b750de18a5c6
    (do not change this comment) */

@@ -44,12 +44,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define SYMS_SYSTEM syms_of_dosfns();syms_of_msdos();syms_of_win16select()
 
-/* NOMULTIPLEJOBS should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).  */
-
-#define NOMULTIPLEJOBS
-
 #define SYSV_SYSTEM_DIR
 
 /* Define this symbol if your system has the functions bcopy, etc. */

@@ -5376,22 +5376,30 @@ non-nil value in the table are supported.  If REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);
   Vfont_encoding_alist = Qnil;
 
+  /* FIXME: These 3 vars are not quite what they appear: setq on them
+     won't have any effect other than disconnect them from the style
+     table used by the font display code.  So we make them read-only,
+     to avoid this confusing situation.  */
+
   DEFVAR_LISP_NOPRO ("font-weight-table", &Vfont_weight_table,
 	       doc: /*  Vector of valid font weight values.
 Each element has the form:
     [NUMERIC-VALUE SYMBOLIC-NAME ALIAS-NAME ...]
 NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symbols. */);
   Vfont_weight_table = BUILD_STYLE_TABLE (weight_table);
+  XSYMBOL (intern_c_string ("font-weight-table"))->constant = 1;
 
   DEFVAR_LISP_NOPRO ("font-slant-table", &Vfont_slant_table,
 	       doc: /*  Vector of font slant symbols vs the corresponding numeric values.
 See `font-weight-table' for the format of the vector. */);
   Vfont_slant_table = BUILD_STYLE_TABLE (slant_table);
+  XSYMBOL (intern_c_string ("font-slant-table"))->constant = 1;
 
   DEFVAR_LISP_NOPRO ("font-width-table", &Vfont_width_table,
 	       doc: /*  Alist of font width symbols vs the corresponding numeric values.
 See `font-weight-table' for the format of the vector. */);
   Vfont_width_table = BUILD_STYLE_TABLE (width_table);
+  XSYMBOL (intern_c_string ("font-width-table"))->constant = 1;
 
   staticpro (&font_style_table);
   font_style_table = Fmake_vector (make_number (3), Qnil);

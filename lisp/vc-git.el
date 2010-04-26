@@ -118,7 +118,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
-(defvar git-commits-coding-system 'utf-8
+(defvar vc-git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
 ;;; BACKEND PROPERTIES
@@ -548,11 +548,15 @@ or an empty string if none."
 (defun vc-git-unregister (file)
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
 
-(defun vc-git-checkin (files rev comment  &optional extra-args)
-  (let ((coding-system-for-write git-commits-coding-system))
+(defun vc-git-checkin (files rev comment)
+  (let ((coding-system-for-write vc-git-commits-coding-system))
     (apply 'vc-git-command nil 0 files
-	   (nconc (list "commit" "-m" comment) extra-args (list "--only" "--")))))
+	   (nconc (list "commit" "-m")
+                  (log-edit-extract-headers '(("Author" . "--author"))
+                                            comment)
+                  (list "--only" "--")))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -582,7 +586,7 @@ or an empty string if none."
   "Get change log associated with FILES.
 Note that using SHORTLOG requires at least Git version 1.5.6,
 for the --graph option."
-  (let ((coding-system-for-read git-commits-coding-system))
+  (let ((coding-system-for-read vc-git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
@@ -792,21 +796,6 @@ or BRANCH^ (where \"^\" can be repeated)."
                    (point)
                    (progn (forward-line 1) (1- (point)))))))))
     (or (vc-git-symbolic-commit next-rev) next-rev)))
-
-(declare-function log-edit-mode "log-edit" ())
-(defvar log-edit-extra-flags)
-(defvar log-edit-before-checkin-process)
-
-(define-derived-mode vc-git-log-edit-mode log-edit-mode "Git-log-edit"
-  "Mode for editing Git commit logs.
-If a line like:
-Author: NAME
-is present in the log, it is removed, and
---author=NAME
-is passed to the git commit command."
-  (set (make-local-variable 'log-edit-extra-flags) nil)
-  (set (make-local-variable 'log-edit-before-checkin-process)
-       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--author" (match-string 1))))))
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))

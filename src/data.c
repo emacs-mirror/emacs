@@ -1558,10 +1558,14 @@ make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents
 {
   struct Lisp_Buffer_Local_Value *blv
     = xmalloc (sizeof (struct Lisp_Buffer_Local_Value));
-  Lisp_Object symbol; XSETSYMBOL (symbol, sym);
-  Lisp_Object tem = Fcons (symbol, (forwarded
-				    ? do_symval_forwarding (valcontents.fwd)
-				    : valcontents.value));
+  Lisp_Object symbol;
+  Lisp_Object tem;
+
+ XSETSYMBOL (symbol, sym);
+ tem = Fcons (symbol, (forwarded
+                       ? do_symval_forwarding (valcontents.fwd)
+                       : valcontents.value));
+
   /* Buffer_Local_Values cannot have as realval a buffer-local
      or keyboard-local forwarding.  */
   eassert (!(forwarded && BUFFER_OBJFWDP (valcontents.fwd)));
@@ -1639,8 +1643,8 @@ The function `default-value' gets the default value and `set-default' sets it.  
 	Lisp_Object symbol;
 	XSETSYMBOL (symbol, sym); /* In case `variable' is aliased.  */
 	if (let_shadows_global_binding_p (symbol))
-	error ("Making %s buffer-local while let-bound!",
-	       SDATA (SYMBOL_NAME (variable)));
+	  message ("Making %s buffer-local while let-bound!",
+		   SDATA (SYMBOL_NAME (variable)));
       }
     }
 
@@ -1702,7 +1706,8 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
     }
 
   if (sym->constant)
-    error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
+    error ("Symbol %s may not be buffer-local",
+	   SDATA (SYMBOL_NAME (variable)));
 
   if (blv ? blv->local_if_set
       : (forwarded && BUFFER_OBJFWDP (valcontents.fwd)))
@@ -1722,8 +1727,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	Lisp_Object symbol;
 	XSETSYMBOL (symbol, sym); /* In case `variable' is aliased.  */
 	if (let_shadows_global_binding_p (symbol))
-	  error ("Making %s local to %s while let-bound!",
-		 SDATA (SYMBOL_NAME (variable)), SDATA (current_buffer->name));
+	  message ("Making %s local to %s while let-bound!",
+		   SDATA (SYMBOL_NAME (variable)),
+		   SDATA (current_buffer->name));
       }
     }
 
@@ -1899,6 +1905,13 @@ frame-local bindings).  */)
   blv->frame_local = 1;
   sym->redirect = SYMBOL_LOCALIZED;
   SET_SYMBOL_BLV (sym, blv);
+  {
+    Lisp_Object symbol;
+    XSETSYMBOL (symbol, sym); /* In case `variable' is aliased.  */
+    if (let_shadows_global_binding_p (symbol))
+      message ("Making %s frame-local while let-bound!",
+	       SDATA (SYMBOL_NAME (variable)));
+  }
   return variable;
 }
 

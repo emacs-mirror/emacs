@@ -301,7 +301,8 @@ If BODY uses EVENT, it should be a variable,
 				   map vc-dir-mode-map)
     (tool-bar-local-item "bookmark_add"
 			 'vc-dir-toggle-mark 'vc-dir-toggle-mark map
-			 :help "Toggle mark on current item")
+			 :help "Toggle mark on current item"
+			 :label "Toggle Mark")
     (tool-bar-local-item-from-menu 'vc-dir-previous-line "left-arrow"
 				   map vc-dir-mode-map
 				   :rtl "right-arrow")
@@ -313,11 +314,14 @@ If BODY uses EVENT, it should be a variable,
     (tool-bar-local-item-from-menu 'revert-buffer "refresh"
 				   map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'nonincremental-search-forward
-				   "search" map)
+				   "search" map nil
+				   :label "Search")
     (tool-bar-local-item-from-menu 'vc-dir-query-replace-regexp
-				   "search-replace" map vc-dir-mode-map)
+				   "search-replace" map vc-dir-mode-map
+				   :label "Replace")
     (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
-				   map vc-dir-mode-map)
+				   map vc-dir-mode-map
+				   :label "Cancel")
     (tool-bar-local-item-from-menu 'quit-window "exit"
 				   map vc-dir-mode-map)
     map))

@@ -4251,7 +4251,9 @@ update_text_area (w, vpos)
 	     doesn't work with lbearing/rbearing), so we must do it
 	     this way.  */
 	  if (vpos == w->phys_cursor.vpos
-	      && w->phys_cursor.hpos >= desired_row->used[TEXT_AREA])
+	      && (desired_row->reversed_p
+		  ? (w->phys_cursor.hpos < 0)
+		  : (w->phys_cursor.hpos >= desired_row->used[TEXT_AREA])))
 	    {
 	      w->phys_cursor_on_p = 0;
 	      x = -1;
@@ -4415,7 +4417,7 @@ set_window_cursor_after_update (w)
     }
 
   /* Window cursor can be out of sync for horizontally split windows.  */
-  hpos = max (0, hpos);
+  hpos = max (-1, hpos); /* -1 is for when cursor is on the left fringe */
   hpos = min (w->current_matrix->matrix_w - 1, hpos);
   vpos = max (0, vpos);
   vpos = min (w->current_matrix->nrows - 1, vpos);

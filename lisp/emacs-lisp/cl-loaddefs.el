@@ -1242,7 +1242,6 @@ Keywords supported:  :test :test-not :key
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
-
-;; arch-tag: 08cc5aab-e992-47f6-992e-12a7428c1a0e
 ;;; cl-loaddefs.el ends here

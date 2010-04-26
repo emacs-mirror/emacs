@@ -179,12 +179,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
 #endif /* __mips__ */
 
-/* Link temacs with -z nocombreloc so that unexec works right, whether or
-   not -z combreloc is the default.  GNU ld ignores unknown -z KEYWORD
-   switches, so this also works with older versions that don't implement
-   -z combreloc.  */
-#define LD_SWITCH_SYSTEM_TEMACS -z nocombreloc
-
 #ifdef emacs
 #define INTERRUPT_INPUT
 #endif
@@ -201,7 +195,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* _BSD_SOURCE is redundant, at least in glibc2, since we define
    _GNU_SOURCE.  Left in in case it's relevant to libc5 systems and
    anyone's still using Emacs on those.  --fx 2002-12-14  */
-#define C_SWITCH_SYSTEM -D_BSD_SOURCE
+/* #define C_SWITCH_SYSTEM -D_BSD_SOURCE */
 
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
 #define LIB_MOTIF -lXm -lXpm
@@ -223,7 +217,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use BSD process groups, but use setpgid() instead of setpgrp() to
    actually set a process group. */
 /* Interesting: only GNU/Linux defines this,  but the BSDs do not... */
-#define BSD_PGRPS
+/* #define BSD_PGRPS */
 
 #define NARROWPROTO 1
 

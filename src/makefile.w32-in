@@ -62,7 +62,6 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/callint.$(O)		\
 	$(BLD)/callproc.$(O)		\
 	$(BLD)/casefiddle.$(O)		\
-	$(BLD)/cm.$(O)			\
 	$(BLD)/cmds.$(O)		\
 	$(BLD)/data.$(O)		\
 	$(BLD)/dired.$(O)		\
@@ -98,7 +97,6 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/syntax.$(O)		\
 	$(BLD)/sysdep.$(O)		\
 	$(BLD)/term.$(O)		\
-	$(BLD)/termcap.$(O)		\
 	$(BLD)/tparam.$(O)		\
 	$(BLD)/undo.$(O)		\
 	$(BLD)/unexw32.$(O)		\
@@ -493,17 +491,6 @@ $(BLD)/chartab.$(O) : \
 	$(SRC)/ccl.h \
 	$(SRC)/character.h \
 	$(SRC)/charset.h
-
-$(BLD)/cm.$(O) : \
-	$(SRC)/cm.c \
-	$(CONFIG_H) \
-	$(SRC)/lisp.h \
-	$(SRC)/cm.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h
 
 $(BLD)/cmds.$(O) : \
 	$(SRC)/cmds.c \
@@ -1406,13 +1393,6 @@ $(BLD)/term.$(O) : \
 	$(SRC)/termopts.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
-
-$(BLD)/termcap.$(O) : \
-	$(SRC)/termcap.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(SRC)/lisp.h
 
 $(BLD)/terminal.$(O) : \
 	$(SRC)/terminal.c \

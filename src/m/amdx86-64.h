@@ -80,7 +80,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    a native binary of Emacs on FreeBSD/amd64 we can just point to /usr/lib.  */
 
 #undef START_FILES
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
 
 /* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
    The reason is that some functions in libgcc.a call functions from libc.a,
@@ -88,14 +88,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    versions of ld are one-pass linkers, we need to mention -lgcc twice,
    or else we risk getting unresolved externals.  */
 #undef LIB_STANDARD
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
 #elif defined(__OpenBSD__)
 
 #undef START_FILES
-#define START_FILES pre-crt0.o /usr/lib/crt0.o /usr/lib/crtbegin.o
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o
 #undef LIB_STANDARD
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtend.o
 
 #elif defined(__NetBSD__)
 
@@ -119,13 +119,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    or else we risk getting unresolved externals.  */
 #undef START_FILES
 #undef LIB_STANDARD
-#ifdef HAVE_LIB64_DIR
-#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
-#endif
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
 #endif /* __FreeBSD__ */
 #endif /* !i386 */

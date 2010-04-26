@@ -339,6 +339,15 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Off (nil)" :value nil)
 		       (const :tag "Immediate" :value t)
 		       (number :tag "Delay by secs" :value 0.5)) "22.1")
+             (tool-bar-style
+	      frames (choice
+		      (const :tag "Images" :value image)
+		      (const :tag "Text" :value text)
+		      (const :tag "Both" :value both)
+		      (const :tag "Both-horiz" :value both-horiz)
+		      (const :tag "System default" :value nil)) "23.3")
+             (tool-bar-max-label-size frames integer "23.3")
+
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c

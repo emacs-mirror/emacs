@@ -37,12 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "berkeley-unix"
 
-/* NOMULTIPLEJOBS should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).  */
-
-/* #define NOMULTIPLEJOBS */
-
 /* Emacs can read input using SIGIO and buffering characters itself,
    or using CBREAK mode and making C-g cause SIGINT.
    The choice is controlled by the variable interrupt_input.
