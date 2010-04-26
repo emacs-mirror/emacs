@@ -1,3 +1,18 @@
+2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (LIBS_MACHINE): Remove, unused.
+
+	Use autoconf instead of cpp for LIB_MATH.
+	* s/darwin.h (LIB_MATH): Do not define here, move to configure.
+	* s/cygwin.h (LIB_MATH): Likewise.
+	* Makefile.in (LIB_MATH): Do not define with cpp.
+	(LIBES): Use autoconf for LIB_MATH.
+
+2010-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (Ffind_composition_internal): Fix the return value
+	for an automatic composition.
+
 2010-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove all NO_ARG_ARRAY uses.

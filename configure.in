@@ -828,6 +828,20 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
+LIB_MATH=-lm
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    ;;
+esac
+
+AC_SUBST(LIB_MATH)
+
 #### Extract some information from the operating system and machine files.
 
 AC_CHECKING([the machine- and system-dependent files to find out
@@ -852,9 +866,6 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
@@ -864,7 +875,7 @@ echo '
 #ifndef C_SWITCH_MACHINE
 #define C_SWITCH_MACHINE
 #endif
-configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+configure___ libsrc_libs=LIBS_SYSTEM
 configure___ c_switch_system=C_SWITCH_SYSTEM
 configure___ c_switch_machine=C_SWITCH_MACHINE
 
