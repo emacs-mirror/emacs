@@ -624,9 +624,12 @@ considered."
   (interactive)
   (let* ((data (lisp-completion-at-point predicate))
          (plist (nthcdr 3 data)))
-    (let ((completion-annotate-function (plist-get plist :annotate-function)))
-      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
-                            (plist-get plist :predicate)))))
+    (if (null data)
+        (minibuffer-message "Nothing to complete")
+      (let ((completion-annotate-function
+             (plist-get plist :annotate-function)))
+        (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
+                              (plist-get plist :predicate))))))
     
 
 (defun lisp-completion-at-point (&optional predicate)

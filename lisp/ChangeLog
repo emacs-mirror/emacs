@@ -1,3 +1,7 @@
+2010-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Fail gracefully.
+
 2010-04-27  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
