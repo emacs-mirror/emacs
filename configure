@@ -723,6 +723,7 @@ DBUS_OBJ
 GCONF_CFLAGS
 GCONF_LIBS
 LIBSELINUX_LIBS
+LIBXTR6
 FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
 XFT_CFLAGS
@@ -13012,6 +13013,7 @@ fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
+LIBXTR6=
 if test "${USE_X_TOOLKIT}" != "none"; then
   { $as_echo "$as_me:$LINENO: checking X11 toolkit version" >&5
 $as_echo_n "checking X11 toolkit version... " >&6; }
@@ -13079,6 +13081,11 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_X11XTR6 1
 _ACEOF
 
+    LIBXTR6="-lSM -lICE"
+    case "$opsys" in
+      ## Use libw.a along with X11R6 Xt.
+      unixware) LIBXTR6="$LIBXTR6 -lw" ;;
+    esac
   else
     { $as_echo "$as_me:$LINENO: result: before 6" >&5
 $as_echo "before 6" >&6; }
@@ -13167,6 +13174,7 @@ fi
 
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
 fi
+
 
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
