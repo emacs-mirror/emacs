@@ -197,9 +197,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    anyone's still using Emacs on those.  --fx 2002-12-14  */
 /* #define C_SWITCH_SYSTEM -D_BSD_SOURCE */
 
-/* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
-#define LIB_MOTIF -lXm -lXpm
-
 #ifdef HAVE_LIBNCURSES
 #define TERMINFO
 #define LIBS_TERMCAP -lncurses

@@ -361,13 +361,14 @@ See `%s' for more information on %s."
 	 (dolist (buf ,MODE-buffers)
 	   (when (buffer-live-p buf)
 	     (with-current-buffer buf
-	       (if ,mode
-		   (unless (eq ,MODE-major-mode major-mode)
-		     (,mode -1)
-		     (,turn-on)
-		     (setq ,MODE-major-mode major-mode))
-		 (,turn-on)
-		 (setq ,MODE-major-mode major-mode))))))
+               (unless (eq ,MODE-major-mode major-mode)
+                 (if ,mode
+                     (progn
+                       (,mode -1)
+                       (,turn-on)
+                       (setq ,MODE-major-mode major-mode))
+                   (,turn-on)
+                   (setq ,MODE-major-mode major-mode)))))))
        (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
 
        (defun ,MODE-check-buffers ()

@@ -1830,10 +1830,10 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     fi
   fi
 fi
-AC_SUBST(LUCID_LIBW)
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
+LIBXTR6=
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
@@ -1847,6 +1847,11 @@ fail;
     AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11XTR6, 1,
 	      [Define to 1 if you have the X11R6 or newer version of Xt.])
+    LIBXTR6="-lSM -lICE"
+    case "$opsys" in
+      ## Use libw.a along with X11R6 Xt.
+      unixware) LIBXTR6="$LIBXTR6 -lw" ;;
+    esac
   else
     AC_MSG_RESULT(before 6)
   fi
@@ -1862,6 +1867,7 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
 fi
+AC_SUBST(LIBXTR6)
 
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
@@ -1880,7 +1886,6 @@ int x = 5;
 Motif version prior to 2.1.
 #endif],
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
-  HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
     AC_CHECK_LIB(Xp, XpCreateContext, LIBXP=-lXp)
   else
@@ -1909,7 +1914,6 @@ Motif version prior to 2.1.
     fi
   fi
 fi
-AC_SUBST(LIBXP)
 
 dnl Use toolkit scroll bars if configured for GTK or X toolkit and either
 dnl using Motif or Xaw3d is available, and unless
@@ -2769,6 +2773,7 @@ AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
+## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
@@ -2820,6 +2825,7 @@ AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
 
 WIDGET_OBJ=
+MOTIF_LIBW=
 if test "${USE_X_TOOLKIT}" != "none" ; then
   WIDGET_OBJ=widget.o
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
@@ -2827,9 +2833,36 @@ if test "${USE_X_TOOLKIT}" != "none" ; then
     AC_DEFINE(USE_LUCID, 1, [Define to 1 if using the Lucid X toolkit.])
   elif test "${USE_X_TOOLKIT}" = "MOTIF"; then
     AC_DEFINE(USE_MOTIF, 1, [Define to 1 if using the Motif X toolkit.])
+    MOTIF_LIBW=-lXm
+    case "$opsys" in
+      gnu-linux)
+        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
+        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
+        ;;
+
+      unixware)
+        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
+        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
+        MOTIF_LIBW="MOTIF_LIBW -lXimp"
+        ;;
+
+      aix4-2)
+        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
+        MOTIF_LIBW="$MOTIF_LIBW -li18n"
+        ;;
+    esac
+    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
   fi
 fi
 AC_SUBST(WIDGET_OBJ)
+
+case "$USE_X_TOOLKIT" in
+  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
+  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
+  *) TOOLKIT_LIBW= ;;
+esac
+AC_SUBST(TOOLKIT_LIBW)
+
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
