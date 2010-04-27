@@ -1,3 +1,9 @@
+2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce CPP usage.
+	* Makefile.in (LIB_X11_LIB): Remove, inline in the only user.
+	(obj): Use autoconf for unexec instead of cpp.
+
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* m/amdx86-64.h (START_FILES, LIB_STANDARD): Change the logic around,

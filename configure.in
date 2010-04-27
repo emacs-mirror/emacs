@@ -879,17 +879,9 @@ configure___ libsrc_libs=LIBS_SYSTEM
 configure___ c_switch_system=C_SWITCH_SYSTEM
 configure___ c_switch_machine=C_SWITCH_MACHINE
 
-#ifndef LIB_X11_LIB
-#define LIB_X11_LIB -lX11
-#endif
+configure___ LIBX=-lX11
 
-configure___ LIBX=LIB_X11_LIB
-
-#ifdef UNEXEC
 configure___ unexec=UNEXEC
-#else
-configure___ unexec=unexec.o
-#endif
 
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
@@ -2767,6 +2759,7 @@ AC_SUBST(gamedir)
 AC_SUBST(gameuser)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
+AC_SUBST(unexec)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
@@ -2809,8 +2802,6 @@ AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
  HAVE_X_WINDOWS above and your X include files aren't in a place
  that your compiler can find on its own, you might want to add
  "-I/..." or something similar.])
-AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC},
-		   [Define to the unexec source file name.])
 
 XMENU_OBJ=
 XOBJ=

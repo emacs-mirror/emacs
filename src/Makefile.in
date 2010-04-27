@@ -252,10 +252,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
-#ifndef LIB_X11_LIB
-#define LIB_X11_LIB -lX11
-#endif
-
 #ifdef HAVE_X_WINDOWS
 #ifdef HAVE_MENUS
 
@@ -318,7 +314,7 @@ LIBXT=$(LIBW) $(LIBXSM)
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) $(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) LIB_X11_LIB $(XFT_LIBS)
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) $(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
@@ -438,7 +434,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o font.o print.o lread.o \
-	syntax.o UNEXEC bytecode.o \
+	syntax.o @unexec@ bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
