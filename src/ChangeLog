@@ -1,3 +1,8 @@
+2010-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix a crash when a display string
+	is continued to the next line.
+
 2010-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't return zero if cursor was

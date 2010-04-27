@@ -13015,7 +13015,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 			  cursor = glyph;
 			  for (glyph += incr;
-			       EQ (glyph->object, str);
+			       (row->reversed_p ? glyph > stop : glyph < stop)
+				 && EQ (glyph->object, str);
 			       glyph += incr)
 			    {
 			      Lisp_Object cprop;
@@ -13056,8 +13057,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  /* If we reached the end of the line, and END was from a string,
 	     the cursor is not on this line.  */
 	  if (cursor == NULL
-	      && glyph == end
-	      && STRINGP ((glyph - incr)->object)
+	      && (row->reversed_p ? glyph <= end : glyph >= end)
+	      && STRINGP (end->object)
 	      && row->continued_p)
 	    return 0;
 	}
