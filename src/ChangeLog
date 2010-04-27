@@ -1,3 +1,11 @@
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBXP): Remove, since included in MOTIF_LIBW.
+	(MOTIF_LIBW): Set with configure, not cpp.
+	* s/aix4-2.h (LIB_MOTIF):
+	* s/gnu-linux.h (LIB_MOTIF):
+	* s/unixware.h (LIB_MOTIF): Move to configure.in.
+
 2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Reduce CPP usage.

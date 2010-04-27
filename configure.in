@@ -1880,7 +1880,6 @@ int x = 5;
 Motif version prior to 2.1.
 #endif],
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
-  HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
     AC_CHECK_LIB(Xp, XpCreateContext, LIBXP=-lXp)
   else
@@ -1909,7 +1908,6 @@ Motif version prior to 2.1.
     fi
   fi
 fi
-AC_SUBST(LIBXP)
 
 dnl Use toolkit scroll bars if configured for GTK or X toolkit and either
 dnl using Motif or Xaw3d is available, and unless
@@ -2820,6 +2818,7 @@ AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
 
 WIDGET_OBJ=
+MOTIF_LIBW=
 if test "${USE_X_TOOLKIT}" != "none" ; then
   WIDGET_OBJ=widget.o
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
@@ -2827,9 +2826,29 @@ if test "${USE_X_TOOLKIT}" != "none" ; then
     AC_DEFINE(USE_LUCID, 1, [Define to 1 if using the Lucid X toolkit.])
   elif test "${USE_X_TOOLKIT}" = "MOTIF"; then
     AC_DEFINE(USE_MOTIF, 1, [Define to 1 if using the Motif X toolkit.])
+    MOTIF_LIBW=-lXm
+    case "$opsys" in
+      gnu-linux)
+        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
+        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
+        ;;
+
+      unixware)
+        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
+        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
+        MOTIF_LIBW="MOTIF_LIBW -lXimp"
+        ;;
+
+      aix4-2)
+        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
+        MOTIF_LIBW="$MOTIF_LIBW -li18n"
+        ;;
+    esac
+    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
   fi
 fi
 AC_SUBST(WIDGET_OBJ)
+AC_SUBST(MOTIF_LIBW)
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.

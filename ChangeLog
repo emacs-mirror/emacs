@@ -1,3 +1,10 @@
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_MOTIF_2_1): Remove unused variable.
+	(LIBXP): No longer substitute in Makefiles.
+	(MOTIF_LIBW): New output variable.  Move system-specific settings here
+	from src/s files.
+
 2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Reduce CPP usage.
