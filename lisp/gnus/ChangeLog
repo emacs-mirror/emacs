@@ -1,3 +1,7 @@
+2010-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el: Don't load tm and apel XEmacs packages when compiling.
+
 2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-find-buffer-file-coding-system):

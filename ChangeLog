@@ -1,3 +1,43 @@
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXTR6): New output variable.  Move unixware special
+	case here from src/s/unixware.h.
+
+	* configure.in (LUCID_LIBW, MOTIF_LIBW): No longer substitute
+	in Makefiles.
+	(TOOLKIT_LIBW): New output variable, replacing LUCID_LIBW/MOTIF_LIBW.
+
+	* configure.in (HAVE_MOTIF_2_1): Remove unused variable.
+	(LIBXP): No longer substitute in Makefiles.
+	(MOTIF_LIBW): New output variable.  Move system-specific settings here
+	from src/s files.
+
+2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce CPP usage.
+	* configure.in (LIB_X11_LIB): Remove, inline in the only user.
+	(unexec): Define unconditionally, all platforms define
+	UNEXEC.  AC_SUBST it.
+	(UNEXEC_SRC): Remove, unused.
+	(C_SWITCH_X_SYSTEM): Define using autoconf, not cpp.
+
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_MOTIF_2_1, HAVE_LIBXP): Remove unused AC_DEFINEs,
+	replaced by LIBXP.
+
+	* configure.in (--with-crt-dir): Doc fix (now valid for all platforms).
+	(CRT_DIR): On (powerpc64|sparc64)-*-linux-gnu*, default to /usr/lib64.
+	On hpux10-20, default to /lib.
+
+	* configure.in (LUCID_LIBW, LIBXP, WIDGET_OBJ): New output variables.
+
+2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LIBS_MACHINE): Remove, unused.
+
+	* configure.in (LIB_MATH): New output variable.  Set it for some systems.
+
 2010-04-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (CRT_DIR): New output variable.

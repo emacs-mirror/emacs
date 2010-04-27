@@ -56,17 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
 
-/* Use libw.a along with X11R6 Xt.  */
-#define NEED_LIBW
-
-/* ryanr@ellingtn.ftc.nrcs.usda.gov (Richard Anthony Ryan) says -lXimp
-   is needed in UNIX_SV ... 4.2 1.1.2.  */
-#define LIB_MOTIF -lXm -lXimp
-
-/* arch-tag: 9bbfcfc1-19be-45a1-9699-af57b87da2c6
-   (do not change this comment) */
-
-
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long

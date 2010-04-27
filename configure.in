@@ -189,7 +189,7 @@ fi
 CRT_DIR=
 AC_ARG_WITH([crt-dir],dnl
 [AS_HELP_STRING([--with-crt-dir=DIR],[directory containing crtn.o etc.
-This option is only used on x86-64 and s390x GNU/Linux architectures.])])
+The default is /usr/lib, or /usr/lib64 on some platforms.])])
 CRT_DIR="${with_crt_dir}"
 
 AC_ARG_WITH([gnustep-conf],dnl
@@ -828,6 +828,20 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
+LIB_MATH=-lm
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    ;;
+esac
+
+AC_SUBST(LIB_MATH)
+
 #### Extract some information from the operating system and machine files.
 
 AC_CHECKING([the machine- and system-dependent files to find out
@@ -852,9 +866,6 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
@@ -864,21 +875,13 @@ echo '
 #ifndef C_SWITCH_MACHINE
 #define C_SWITCH_MACHINE
 #endif
-configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+configure___ libsrc_libs=LIBS_SYSTEM
 configure___ c_switch_system=C_SWITCH_SYSTEM
 configure___ c_switch_machine=C_SWITCH_MACHINE
 
-#ifndef LIB_X11_LIB
-#define LIB_X11_LIB -lX11
-#endif
+configure___ LIBX=-lX11
 
-configure___ LIBX=LIB_X11_LIB
-
-#ifdef UNEXEC
 configure___ unexec=UNEXEC
-#else
-configure___ unexec=unexec.o
-#endif
 
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
@@ -972,29 +975,40 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
-## Note: at present CRT_DIR is only used for amdx86-64 and ibms390x.
-## Other machine types hard-code the location in src/[ms]/*.h.
-case "${canonical}" in
-  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
+## If user specified a crt-dir, use that unconditionally.
+if test "X$CRT_DIR" = "X"; then
 
-   ## On x86-64 and s390x GNU/Linux distributions, the standard library
-   ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
-   ## For anything else (eg /usr/lib32), it is up the user to specify
-   ## the location (bug#5655).
-   ## Test for crtn.o, not just the directory, because sometimes the
-   ## directory exists but does not have the relevant files (bug#1287).
-   ## If user specified a crt-dir, use that unconditionally.
-   if test "X$CRT_DIR" = "X"; then
-     CRT_DIR=/usr/lib
-     test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
-   fi
+  case "$canonical" in
+    x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
+    ## On x86-64 and s390x GNU/Linux distributions, the standard library
+    ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
+    ## For anything else (eg /usr/lib32), it is up the user to specify
+    ## the location (bug#5655).
+    ## Test for crtn.o, not just the directory, because sometimes the
+    ## directory exists but does not have the relevant files (bug#1287).
+    ## FIXME better to test for binary compatibility somehow.
+    test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
+    ;;
 
-   test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
-     AC_MSG_ERROR([crt*.o not found.  Use --with-crt-dir to specify the location.])
-   ;;
+    powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
+  esac
 
-esac
-test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+  case "$opsys" in
+    hpux10-20) CRT_DIR=/lib ;;
+  esac
+
+  ## Default is /usr/lib.
+  test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+
+else
+
+  ## Some platforms don't use any of these files, so it is not
+  ## appropriate to put this test outside the if block.
+  test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
+    AC_MSG_ERROR([crt*.o not found in specified location.])
+
+fi
+
 AC_SUBST(CRT_DIR)
 
 
@@ -1773,6 +1787,7 @@ AC_SUBST(LIBSELINUX_LIBS)
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
+LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
     AC_MSG_CHECKING(for xaw3d)
@@ -1790,6 +1805,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     AC_MSG_RESULT([yes; using Lucid toolkit])
     USE_X_TOOLKIT=LUCID
     HAVE_XAW3D=yes
+    LUCID_LIBW=-lXaw3d
     AC_DEFINE(HAVE_XAW3D, 1,
               [Define to 1 if you have the Xaw3d library (-lXaw3d).])
   else
@@ -1805,6 +1821,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     if test $emacs_cv_xaw = yes; then
       AC_MSG_RESULT([yes; using Lucid toolkit])
       USE_X_TOOLKIT=LUCID
+      LUCID_LIBW=-lXaw
     elif test x"${USE_X_TOOLKIT}" = xLUCID; then
       AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
     else
@@ -1816,6 +1833,7 @@ fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
+LIBXTR6=
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
@@ -1829,6 +1847,11 @@ fail;
     AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11XTR6, 1,
 	      [Define to 1 if you have the X11R6 or newer version of Xt.])
+    LIBXTR6="-lSM -lICE"
+    case "$opsys" in
+      ## Use libw.a along with X11R6 Xt.
+      unixware) LIBXTR6="$LIBXTR6 -lw" ;;
+    esac
   else
     AC_MSG_RESULT(before 6)
   fi
@@ -1844,6 +1867,7 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
 fi
+AC_SUBST(LIBXTR6)
 
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
@@ -1852,6 +1876,7 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
+LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
   [AC_TRY_COMPILE([#include <Xm/Xm.h>],
@@ -1861,16 +1886,8 @@ int x = 5;
 Motif version prior to 2.1.
 #endif],
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
-  HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
-    HAVE_LIBXP=no
-    AC_DEFINE(HAVE_MOTIF_2_1, 1,
-	      [Define to 1 if you have Motif 2.1 or newer.])
-    AC_CHECK_LIB(Xp, XpCreateContext, HAVE_LIBXP=yes)
-    if test ${HAVE_LIBXP} = yes; then
-      AC_DEFINE(HAVE_LIBXP, 1,
-		[Define to 1 if you have the Xp library (-lXp).])
-    fi
+    AC_CHECK_LIB(Xp, XpCreateContext, LIBXP=-lXp)
   else
     AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
     # We put this in CFLAGS temporarily to precede other -I options
@@ -2247,6 +2264,7 @@ AC_SUBST(LIBGPM)
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
 
+C_SWITCH_X_SYSTEM=
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
   AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
@@ -2256,6 +2274,9 @@ if test "${HAVE_NS}" = "yes"; then
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
+    # See also .m.o rule in Makefile.in */
+    # FIXME: are all these flags really needed?  Document here why.  */
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
     GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
@@ -2746,10 +2767,13 @@ AC_SUBST(gamedir)
 AC_SUBST(gameuser)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
+AC_SUBST(unexec)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
+AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
+## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
@@ -2788,8 +2812,6 @@ AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
  HAVE_X_WINDOWS above and your X include files aren't in a place
  that your compiler can find on its own, you might want to add
  "-I/..." or something similar.])
-AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC},
-		   [Define to the unexec source file name.])
 
 XMENU_OBJ=
 XOBJ=
@@ -2802,14 +2824,45 @@ fi
 AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
 
+WIDGET_OBJ=
+MOTIF_LIBW=
 if test "${USE_X_TOOLKIT}" != "none" ; then
+  WIDGET_OBJ=widget.o
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
   if test "${USE_X_TOOLKIT}" = "LUCID"; then
     AC_DEFINE(USE_LUCID, 1, [Define to 1 if using the Lucid X toolkit.])
   elif test "${USE_X_TOOLKIT}" = "MOTIF"; then
     AC_DEFINE(USE_MOTIF, 1, [Define to 1 if using the Motif X toolkit.])
+    MOTIF_LIBW=-lXm
+    case "$opsys" in
+      gnu-linux)
+        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
+        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
+        ;;
+
+      unixware)
+        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
+        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
+        MOTIF_LIBW="MOTIF_LIBW -lXimp"
+        ;;
+
+      aix4-2)
+        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
+        MOTIF_LIBW="$MOTIF_LIBW -li18n"
+        ;;
+    esac
+    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
   fi
 fi
+AC_SUBST(WIDGET_OBJ)
+
+case "$USE_X_TOOLKIT" in
+  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
+  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
+  *) TOOLKIT_LIBW= ;;
+esac
+AC_SUBST(TOOLKIT_LIBW)
+
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
@@ -2918,9 +2971,6 @@ AH_BOTTOM([
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
-/* See also .m.o rule in Makefile.in */
-/* FIXME: are all these flags really needed?  Document here why.  */
-#  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000

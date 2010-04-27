@@ -67,34 +67,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #undef DATA_SEG_BITS
 
-#ifdef __OpenBSD__
 
-#undef START_FILES
-#define START_FILES pre-crt0.o /usr/lib/crt0.o /usr/lib/crtbegin.o
-#undef LIB_STANDARD
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o
-
-#elif defined(__NetBSD__)
-
-/* LIB_STANDARD and START_FILES set correctly in s/netbsd.h */
-
-#elif defined(SOLARIS2)
-
+/* For GNU_LINUX,  __OpenBSD__, __NetBSD__, __APPLE__, things are set
+   correctly in s/gnu-linux.h, netbsd.h, darwin.h.  */
+#ifdef SOLARIS2
 #undef START_FILES
 #undef LIB_STANDARD
-
-#elif defined(__APPLE__)
-
-/* LIB_STANDARD and START_FILES set correctly in s/darwin.h */
-
-#else /* !__OpenBSD__ && !__NetBSD__ && !SOLARIS2 && !__APPLE__ */
-/* CRT_DIR defaults to /usr/lib.  On GNU/Linux, it may be /usr/lib64.
-   On FreeBSD, the libraries for binaries native to the build host's
+#elif defined (__FreeBSD__) || (defined (DARWIN_OS) && !defined (__APPLE__))
+/* On FreeBSD, the libraries for binaries native to the build host's
    architecture are installed under /usr/lib, and the ones that need
    special paths are 32-bit compatibility libraries (installed under
    /usr/lib32).  So to build a native binary of Emacs on FreeBSD/amd64
-   we can just point to /usr/lib.
- */
+   we can just point to /usr/lib (the default $CRT_DIR).  */
 #undef START_FILES
 #define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
 /* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
@@ -105,7 +89,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef LIB_STANDARD
 #define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
-#endif /* __OpenBSD__ */
+#endif /* SOLARIS2 */
 #endif /* !i386 */
 
 /* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e

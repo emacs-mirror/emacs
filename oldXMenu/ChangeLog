@@ -1,3 +1,7 @@
+2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_X_SYSTEM): Define using autoconf.
+
 2010-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (ALL_CFLAGS): Remove C_SWITCH_X_MACHINE, unused.
