@@ -1,3 +1,10 @@
+2010-04-27  Agustín Martín <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-init-process): Fix personal dictionary condition
+	in default directory check.
+	(ispell-init-process,ispell-kill-ispell,kill-buffer-hook):
+	Kill ispell process when killing its associated buffer.
+
 2010-04-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* desktop.el (desktop-kill): ask-if-new: Ask if desktop file exists,
