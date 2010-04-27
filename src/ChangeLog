@@ -1,5 +1,9 @@
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (LUCID_LIBW, MOTIF_LIBW): Remove, replacing by...
+	(TOOLKIT_LIBW): New, set by configure.
+	(@X_TOOLKIT_TYPE@): No longer define it.
+
 	* Makefile.in (LIBXP): Remove, since included in MOTIF_LIBW.
 	(MOTIF_LIBW): Set with configure, not cpp.
 	* s/aix4-2.h (LIB_MOTIF):

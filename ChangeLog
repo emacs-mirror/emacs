@@ -1,5 +1,9 @@
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LUCID_LIBW, MOTIF_LIBW): No longer substitute
+	in Makefiles.
+	(TOOLKIT_LIBW): New output variable, replacing LUCID_LIBW/MOTIF_LIBW.
+
 	* configure.in (HAVE_MOTIF_2_1): Remove unused variable.
 	(LIBXP): No longer substitute in Makefiles.
 	(MOTIF_LIBW): New output variable.  Move system-specific settings here

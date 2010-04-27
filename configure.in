@@ -1830,7 +1830,6 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     fi
   fi
 fi
-AC_SUBST(LUCID_LIBW)
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
@@ -2767,6 +2766,7 @@ AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
+## Used in lwlib/Makefile.in.
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
@@ -2848,7 +2848,14 @@ if test "${USE_X_TOOLKIT}" != "none" ; then
   fi
 fi
 AC_SUBST(WIDGET_OBJ)
-AC_SUBST(MOTIF_LIBW)
+
+case "$USE_X_TOOLKIT" in
+  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
+  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
+  *) TOOLKIT_LIBW= ;;
+esac
+AC_SUBST(TOOLKIT_LIBW)
+
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
