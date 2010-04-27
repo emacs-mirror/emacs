@@ -620,7 +620,10 @@ is nil, ask the user where to save the desktop."
   (when (and desktop-save-mode
              (let ((exists (file-exists-p (desktop-full-file-name))))
                (or (eq desktop-save t)
-                   (and exists (memq desktop-save '(ask-if-new if-exists)))
+                   (and exists (eq desktop-save 'if-exists))
+		   ;; If it exists, but we aren't using it, we are going
+		   ;; to ask for a new directory below.
+                   (and exists desktop-dirname (eq desktop-save 'ask-if-new))
                    (and
                     (or (memq desktop-save '(ask ask-if-new))
                         (and exists (eq desktop-save 'ask-if-exists)))
