@@ -1,3 +1,9 @@
+2010-04-27  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
+	`safe-local-variable' if the value is a string or a function, as
+	documented and implemented on 2010-04-02.
+
 2010-04-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-buffer-internal): Bind `ido-use-virtual-buffers' to nil
