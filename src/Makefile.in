@@ -77,11 +77,6 @@ LIBGIF=@LIBGIF@
 LIBXPM=@LIBXPM@
 XFT_LIBS=@XFT_LIBS@
 
-C_SWITCH_SYSTEM=@c_switch_system@
-C_SWITCH_MACHINE=@c_switch_machine@
-
-C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
-
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_OBJ = @DBUS_OBJ@
@@ -129,11 +124,6 @@ SHELL=/bin/sh
 #ifdef AUTO_DEPEND
 DEPFLAGS = -MMD -MF deps/$*.d
 #endif
-
-/* Undefine until the user can be moved in the non-cpp section. */
-#undef C_SWITCH_SYSTEM
-#undef C_SWITCH_MACHINE
-#undef C_SWITCH_X_SITE
 
 /* Do not let the file name mktime.c get messed up.  */
 #ifdef mktime
@@ -196,16 +186,8 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #endif
 
 /* These macros are for switches specifically related to X Windows.  */
-#ifndef C_SWITCH_X_SYSTEM
-#define C_SWITCH_X_SYSTEM
-#endif
-
 #ifndef LD_SWITCH_X_SITE
 #define LD_SWITCH_X_SITE
-#endif
-
-#ifndef LD_SWITCH_X_DEFAULT
-#define LD_SWITCH_X_DEFAULT
 #endif
 
 STARTFILES = START_FILES
@@ -231,13 +213,9 @@ shared=no
    -DHAVE_CONFIG_H is needed for some other files to take advantage of
    the information in ``config.h''.  */
 
-#undef C_SWITCH_MACHINE
-#undef C_SWITCH_SYSTEM
-#undef C_SWITCH_X_SITE
-
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) C_SWITCH_X_SYSTEM ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} @c_switch_machine@ @c_switch_system@ @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -311,9 +289,7 @@ LIBXT=$(LIBW) $(LIBXSM)
 #endif /* not USE_X_TOOLKIT */
 
 #ifdef HAVE_X11
-/* LD_SWITCH_X_DEFAULT comes after everything else that specifies
-   options for where to find X libraries, but before those libraries.  */
-X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
+X11_LDFLAGS = LD_SWITCH_X_SITE
 LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) $(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
@@ -840,17 +816,12 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
 
-/* Encode the values of these two macros in Make variables,
-   so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
-
 #ifdef USE_X_TOOLKIT
 $(OLDXMENU): really-lwlib
 
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
-    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
+    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
 #else /* not USE_X_TOOLKIT */
@@ -858,8 +829,7 @@ $(OLDXMENU): really-oldXMenu
 
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
-    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
-    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)"
+    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */

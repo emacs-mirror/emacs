@@ -1,3 +1,7 @@
+2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (C_SWITCH_X_SYSTEM): Define using autoconf.
+
 2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (expose_cb):

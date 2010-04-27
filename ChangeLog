@@ -5,6 +5,7 @@
 	(unexec): Define unconditionally, all platforms define
 	UNEXEC.  AC_SUBST it.
 	(UNEXEC_SRC): Remove, unused.
+	(C_SWITCH_X_SYSTEM): Define using autoconf, not cpp.
 
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 

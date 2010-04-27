@@ -2260,6 +2260,7 @@ AC_SUBST(LIBGPM)
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
 
+C_SWITCH_X_SYSTEM=
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
   AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
@@ -2269,6 +2270,9 @@ if test "${HAVE_NS}" = "yes"; then
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
+    # See also .m.o rule in Makefile.in */
+    # FIXME: are all these flags really needed?  Document here why.  */
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
     GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
@@ -2763,6 +2767,7 @@ AC_SUBST(unexec)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
+AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
@@ -2933,9 +2938,6 @@ AH_BOTTOM([
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
-/* See also .m.o rule in Makefile.in */
-/* FIXME: are all these flags really needed?  Document here why.  */
-#  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000

@@ -3,6 +3,9 @@
 	Reduce CPP usage.
 	* Makefile.in (LIB_X11_LIB): Remove, inline in the only user.
 	(obj): Use autoconf for unexec instead of cpp.
+	(C_SWITCH_SYSTEM, C_SWITCH_MACHINE, C_SWITCH_X_SITE): Remove
+	definitions and undefs.  Inline definitions in the only user.
+	(ALL_CFLAGS): Substitute C_SWITCH_X_SYSTEM using autoconf.
 
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
