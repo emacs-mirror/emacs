@@ -13315,12 +13315,6 @@ fi
 $as_echo "$emacs_cv_motif_version_2_1" >&6; }
   HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
-    HAVE_LIBXP=no
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_MOTIF_2_1 1
-_ACEOF
-
     { $as_echo "$as_me:$LINENO: checking for XpCreateContext in -lXp" >&5
 $as_echo_n "checking for XpCreateContext in -lXp... " >&6; }
 if test "${ac_cv_lib_Xp_XpCreateContext+set}" = set; then
@@ -13387,17 +13381,9 @@ fi
 { $as_echo "$as_me:$LINENO: result: $ac_cv_lib_Xp_XpCreateContext" >&5
 $as_echo "$ac_cv_lib_Xp_XpCreateContext" >&6; }
 if test $ac_cv_lib_Xp_XpCreateContext = yes; then
-  HAVE_LIBXP=yes
+  LIBXP=-lXp
 fi
 
-    if test ${HAVE_LIBXP} = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_LIBXP 1
-_ACEOF
-
-      LIBXP=-lXp
-    fi
   else
     { $as_echo "$as_me:$LINENO: checking for LessTif where some systems put it" >&5
 $as_echo_n "checking for LessTif where some systems put it... " >&6; }

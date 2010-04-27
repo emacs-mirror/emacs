@@ -1890,15 +1890,7 @@ Motif version prior to 2.1.
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
   HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
-    HAVE_LIBXP=no
-    AC_DEFINE(HAVE_MOTIF_2_1, 1,
-	      [Define to 1 if you have Motif 2.1 or newer.])
-    AC_CHECK_LIB(Xp, XpCreateContext, HAVE_LIBXP=yes)
-    if test ${HAVE_LIBXP} = yes; then
-      AC_DEFINE(HAVE_LIBXP, 1,
-		[Define to 1 if you have the Xp library (-lXp).])
-      LIBXP=-lXp
-    fi
+    AC_CHECK_LIB(Xp, XpCreateContext, LIBXP=-lXp)
   else
     AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
     # We put this in CFLAGS temporarily to precede other -I options

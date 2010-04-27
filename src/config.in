@@ -405,9 +405,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
 
-/* Define to 1 if you have the Xp library (-lXp). */
-#undef HAVE_LIBXP
-
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -487,9 +484,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
-
-/* Define to 1 if you have Motif 2.1 or newer. */
-#undef HAVE_MOTIF_2_1
 
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
