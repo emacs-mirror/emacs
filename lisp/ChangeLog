@@ -1,4 +1,9 @@
-2010-04-27  Agustín Martín <agustin.martin@hispalinux.es>
+2010-04-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-buffer-internal): Bind `ido-use-virtual-buffers' to nil
+	when method is 'kill.
+
+2010-04-27  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-init-process): Fix personal dictionary condition
 	in default directory check.
