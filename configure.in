@@ -1784,6 +1784,7 @@ AC_SUBST(LIBSELINUX_LIBS)
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
+LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
     AC_MSG_CHECKING(for xaw3d)
@@ -1801,6 +1802,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     AC_MSG_RESULT([yes; using Lucid toolkit])
     USE_X_TOOLKIT=LUCID
     HAVE_XAW3D=yes
+    LUCID_LIBW=-lXaw3d
     AC_DEFINE(HAVE_XAW3D, 1,
               [Define to 1 if you have the Xaw3d library (-lXaw3d).])
   else
@@ -1816,6 +1818,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     if test $emacs_cv_xaw = yes; then
       AC_MSG_RESULT([yes; using Lucid toolkit])
       USE_X_TOOLKIT=LUCID
+      LUCID_LIBW=-lXaw
     elif test x"${USE_X_TOOLKIT}" = xLUCID; then
       AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
     else
@@ -1824,6 +1827,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     fi
   fi
 fi
+AC_SUBST(LUCID_LIBW)
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
@@ -1863,6 +1867,7 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
+LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
   [AC_TRY_COMPILE([#include <Xm/Xm.h>],
@@ -1881,6 +1886,7 @@ Motif version prior to 2.1.
     if test ${HAVE_LIBXP} = yes; then
       AC_DEFINE(HAVE_LIBXP, 1,
 		[Define to 1 if you have the Xp library (-lXp).])
+      LIBXP=-lXp
     fi
   else
     AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
@@ -1908,6 +1914,7 @@ Motif version prior to 2.1.
     fi
   fi
 fi
+AC_SUBST(LIBXP)
 
 dnl Use toolkit scroll bars if configured for GTK or X toolkit and either
 dnl using Motif or Xaw3d is available, and unless
@@ -2813,7 +2820,9 @@ fi
 AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
 
+WIDGET_OBJ=
 if test "${USE_X_TOOLKIT}" != "none" ; then
+  WIDGET_OBJ=widget.o
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
   if test "${USE_X_TOOLKIT}" = "LUCID"; then
     AC_DEFINE(USE_LUCID, 1, [Define to 1 if using the Lucid X toolkit.])
@@ -2821,6 +2830,7 @@ if test "${USE_X_TOOLKIT}" != "none" ; then
     AC_DEFINE(USE_MOTIF, 1, [Define to 1 if using the Motif X toolkit.])
   fi
 fi
+AC_SUBST(WIDGET_OBJ)
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
