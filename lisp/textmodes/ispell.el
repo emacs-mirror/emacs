@@ -1334,6 +1334,9 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 (defvar ispell-process-directory nil
   "The directory where `ispell-process' was started.")
 
+(defvar ispell-process-buffer-name nil
+  "The buffer where `ispell-process' was started.")
+
 (defvar ispell-filter nil
   "Output filter from piped calls to Ispell.")
 
@@ -2630,7 +2633,8 @@ Keeps argument list for future ispell invocations for no async support."
 	  ispell-process-directory default-directory
 	  ispell-process (ispell-start-process)
 	  ispell-filter nil
-	  ispell-filter-continue nil)
+	  ispell-filter-continue nil
+	  ispell-process-buffer-name (buffer-name))
     (if ispell-async-processp
 	(set-process-filter ispell-process 'ispell-filter))
     ;; protect against bogus binding of `enable-multibyte-characters' in XEmacs
@@ -2691,10 +2695,16 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
       (kill-buffer ispell-session-buffer)
       (setq ispell-output-buffer nil
 	    ispell-session-buffer nil))
+    (setq ispell-process-buffer-name nil)
     (setq ispell-process nil)
     (message "Ispell process killed")
     nil))
 
+;; Kill ispell process when killing its associated buffer
+(add-hook 'kill-buffer-hook
+	  '(lambda ()
+	     (if (equal ispell-process-buffer-name (buffer-name))
+		 (ispell-kill-ispell t))))
 
 ;;; ispell-change-dictionary is set in some people's hooks.  Maybe this should
 ;;;  call ispell-init-process rather than wait for a spell checking command?
