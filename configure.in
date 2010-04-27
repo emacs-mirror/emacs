@@ -189,7 +189,7 @@ fi
 CRT_DIR=
 AC_ARG_WITH([crt-dir],dnl
 [AS_HELP_STRING([--with-crt-dir=DIR],[directory containing crtn.o etc.
-This option is only used on x86-64 and s390x GNU/Linux architectures.])])
+The default is /usr/lib, or /usr/lib64 on some platforms.])])
 CRT_DIR="${with_crt_dir}"
 
 AC_ARG_WITH([gnustep-conf],dnl
@@ -983,29 +983,40 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
-## Note: at present CRT_DIR is only used for amdx86-64 and ibms390x.
-## Other machine types hard-code the location in src/[ms]/*.h.
-case "${canonical}" in
-  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
+## If user specified a crt-dir, use that unconditionally.
+if test "X$CRT_DIR" = "X"; then
 
-   ## On x86-64 and s390x GNU/Linux distributions, the standard library
-   ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
-   ## For anything else (eg /usr/lib32), it is up the user to specify
-   ## the location (bug#5655).
-   ## Test for crtn.o, not just the directory, because sometimes the
-   ## directory exists but does not have the relevant files (bug#1287).
-   ## If user specified a crt-dir, use that unconditionally.
-   if test "X$CRT_DIR" = "X"; then
-     CRT_DIR=/usr/lib
-     test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
-   fi
+  case "$canonical" in
+    x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
+    ## On x86-64 and s390x GNU/Linux distributions, the standard library
+    ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
+    ## For anything else (eg /usr/lib32), it is up the user to specify
+    ## the location (bug#5655).
+    ## Test for crtn.o, not just the directory, because sometimes the
+    ## directory exists but does not have the relevant files (bug#1287).
+    ## FIXME better to test for binary compatibility somehow.
+    test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
+    ;;
 
-   test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
-     AC_MSG_ERROR([crt*.o not found.  Use --with-crt-dir to specify the location.])
-   ;;
+    powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
+  esac
 
-esac
-test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+  case "$opsys" in
+    hpux10-20) CRT_DIR=/lib ;;
+  esac
+
+  ## Default is /usr/lib.
+  test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+
+else
+
+  ## Some platforms don't use any of these files, so it is not
+  ## appropriate to put this test outside the if block.
+  test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
+    AC_MSG_ERROR([crt*.o not found in specified location.])
+
+fi
+
 AC_SUBST(CRT_DIR)
 
 

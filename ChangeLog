@@ -1,5 +1,9 @@
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (--with-crt-dir): Doc fix (now valid for all platforms).
+	(CRT_DIR): On (powerpc64|sparc64)-*-linux-gnu*, default to /usr/lib64.
+	On hpux10-20, default to /lib.
+
 	* configure.in (LUCID_LIBW, LIBXP, WIDGET_OBJ): New output variables.
 
 2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
