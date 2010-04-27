@@ -723,8 +723,6 @@ DBUS_OBJ
 GCONF_CFLAGS
 GCONF_LIBS
 LIBSELINUX_LIBS
-LUCID_LIBW
-LIBXP
 FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
 XFT_CFLAGS
@@ -794,6 +792,7 @@ OTHER_FILES
 XMENU_OBJ
 XOBJ
 WIDGET_OBJ
+TOOLKIT_LIBW
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -13011,7 +13010,6 @@ $as_echo "no; do not use toolkit by default" >&6; }
   fi
 fi
 
-
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 if test "${USE_X_TOOLKIT}" != "none"; then
@@ -13307,7 +13305,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 { $as_echo "$as_me:$LINENO: result: $emacs_cv_motif_version_2_1" >&5
 $as_echo "$emacs_cv_motif_version_2_1" >&6; }
-  HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
     { $as_echo "$as_me:$LINENO: checking for XpCreateContext in -lXp" >&5
 $as_echo_n "checking for XpCreateContext in -lXp... " >&6; }
@@ -13450,7 +13447,6 @@ $as_echo "$emacs_cv_lesstif" >&6; }
     fi
   fi
 fi
-
 
 
 
@@ -25888,6 +25884,7 @@ fi
 
 
 
+## Used in lwlib/Makefile.in.
 
 
 
@@ -25954,6 +25951,7 @@ fi
 
 
 WIDGET_OBJ=
+MOTIF_LIBW=
 if test "${USE_X_TOOLKIT}" != "none" ; then
   WIDGET_OBJ=widget.o
 
@@ -25973,8 +25971,35 @@ cat >>confdefs.h <<\_ACEOF
 #define USE_MOTIF 1
 _ACEOF
 
+    MOTIF_LIBW=-lXm
+    case "$opsys" in
+      gnu-linux)
+        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
+        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
+        ;;
+
+      unixware)
+        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
+        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
+        MOTIF_LIBW="MOTIF_LIBW -lXimp"
+        ;;
+
+      aix4-2)
+        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
+        MOTIF_LIBW="$MOTIF_LIBW -li18n"
+        ;;
+    esac
+    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
   fi
 fi
+
+
+case "$USE_X_TOOLKIT" in
+  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
+  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
+  *) TOOLKIT_LIBW= ;;
+esac
+
 
 if test "${HAVE_X11}" = "yes" ; then
 
