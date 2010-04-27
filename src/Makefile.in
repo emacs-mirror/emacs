@@ -88,6 +88,8 @@ GTK_OBJ=@GTK_OBJ@
 
 LIBXSM=@LIBXSM@
 
+LIBXTR6=@LIBXTR6@
+
 XMENU_OBJ=@XMENU_OBJ@
 XOBJ=@XOBJ@
 
@@ -255,14 +257,6 @@ LIBXMENU=
 
 #ifdef USE_X_TOOLKIT
 LIBW=$(TOOLKIT_LIBW)
-
-#ifdef HAVE_X11XTR6
-#ifdef NEED_LIBW
-LIBXTR6 = -lSM -lICE -lw
-#else
-LIBXTR6 = -lSM -lICE
-#endif
-#endif
 
 #ifndef LIBXMU
 #define LIBXMU -lXmu

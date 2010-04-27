@@ -1833,6 +1833,7 @@ fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
+LIBXTR6=
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
@@ -1846,6 +1847,11 @@ fail;
     AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11XTR6, 1,
 	      [Define to 1 if you have the X11R6 or newer version of Xt.])
+    LIBXTR6="-lSM -lICE"
+    case "$opsys" in
+      ## Use libw.a along with X11R6 Xt.
+      unixware) LIBXTR6="$LIBXTR6 -lw" ;;
+    esac
   else
     AC_MSG_RESULT(before 6)
   fi
@@ -1861,6 +1867,7 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
 fi
+AC_SUBST(LIBXTR6)
 
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then

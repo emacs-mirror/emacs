@@ -56,9 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
 
-/* Use libw.a along with X11R6 Xt.  */
-#define NEED_LIBW
-
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long
