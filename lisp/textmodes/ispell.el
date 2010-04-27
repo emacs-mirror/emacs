@@ -2614,9 +2614,11 @@ Keeps argument list for future ispell invocations for no async support."
   "Check status of Ispell process and start if necessary."
   (if (and ispell-process
 	   (eq (ispell-process-status) 'run)
-	   ;; If we're using a personal dictionary, ensure
-	   ;; we're in the same default directory!
-	   (or (not ispell-personal-dictionary)
+	   ;; Unless we are using an explicit personal dictionary,
+	   ;; ensure we're in the same default directory!
+	   ;; Restart check for personal dictionary is done in
+	   ;; `ispell-internal-change-dictionary', called from `ispell-buffer-local-dict'
+	   (or (or ispell-local-pdict ispell-personal-dictionary)
 	       (equal ispell-process-directory default-directory)))
       (setq ispell-filter nil ispell-filter-continue nil)
     ;; may need to restart to select new personal dictionary.
