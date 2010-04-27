@@ -1,3 +1,7 @@
+2010-04-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document gcc-4.5 bug (Bug#6031).
+
 2010-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Adjust Burmese for Unicode 5.2 encoding.

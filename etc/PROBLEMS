@@ -167,6 +167,17 @@ https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344
 
 * Crash bugs
 
+** Emacs crashes when running in a terminal, if compiled with gcc-4.5.
+This version of GCC is buggy: see
+
+  http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6031
+  http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
+
+You can work around this error in gcc-4.5 by omitting sibling call
+optimization.  To do this, configure Emacs with
+
+ CFLAGS="-g -O2 -fno-optimize-sibling-calls" ./configure
+
 ** Emacs crashes in x-popup-dialog.
 
 This can happen if the dialog widget cannot find the font it wants to
