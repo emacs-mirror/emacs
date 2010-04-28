@@ -107,6 +107,8 @@ define it as a scroll command affected by `scroll-preserve-screen-position.
 
 * Editing Changes in Emacs 24.1
 
+** completion-at-point is now an alias for complete-symbol.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
