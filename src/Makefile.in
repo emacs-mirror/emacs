@@ -104,6 +104,9 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
+NS_OBJ=@NS_OBJ@
+NS_SUPPORT=@NS_SUPPORT@
+
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
@@ -369,9 +372,6 @@ ns_appdir=@ns_appdir@/
 ns_appbindir=@ns_appbindir@/
 ns_appresdir=@ns_appresdir@/
 ns_appsrc=@ns_appsrc@
-/* Object files for NeXTstep */
-NS_OBJ= nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
-	fontset.o fringe.o image.o
 #endif  /* HAVE_NS */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -504,13 +504,6 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 #define TOOLTIP_SUPPORT
 #endif
 
-#ifdef HAVE_NS
-#define NS_SUPPORT ${lispsource}emacs-lisp/easymenu.elc \
-  ${lispsource}term/ns-win.elc
-#else
-#define NS_SUPPORT
-#endif
-
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
    it semi-mechanically from loadup.el this way.
@@ -611,7 +604,7 @@ lisp= \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
-	NS_SUPPORT \
+	${NS_SUPPORT} \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el

@@ -1,5 +1,7 @@
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (NS_OBJ, NS_SUPPORT): Set with configure, not cpp.
+
 	* m/amdx86-64.h [i386]: Move this test to configure.in.
 
 2010-04-27  Glenn Morris  <rgm@gnu.org>

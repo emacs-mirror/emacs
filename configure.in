@@ -1404,6 +1404,9 @@ if test "${with_ns}" != no; then
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
+NS_OBJ=
+NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -1413,9 +1416,13 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
+  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+AC_SUBST(NS_OBJ)
+AC_SUBST(NS_SUPPORT)
 
 case "${window_system}" in
   x11 )
