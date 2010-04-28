@@ -1,3 +1,9 @@
+2010-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-selinux-p): New defun.
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context): Use it.
+
 2010-04-28  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/bug-reference.el (bug-reference-url-format): Mark as

@@ -3030,6 +3030,17 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 	 "chown" nil nil nil
          (format "%d:%d" uid gid) (tramp-shell-quote-argument filename))))))
 
+(defun tramp-remote-selinux-p (vec)
+  "Check, whether SELINUX is enabled on the remote host."
+  (with-connection-property (tramp-get-connection-process vec) "selinux-p"
+    (let ((result (tramp-find-executable
+		   vec "getenforce" (tramp-get-remote-path vec) t t)))
+      (and result
+	   (string-equal
+	    (tramp-send-command-and-read
+	     vec (format "echo \\\"`%S`\\\"" result))
+	    "Enforcing")))))
+
 (defun tramp-handle-file-selinux-context (filename)
   "Like `file-selinux-context' for Tramp files."
   (with-parsed-tramp-file-name filename nil
@@ -3037,11 +3048,12 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
       (let ((context '(nil nil nil nil))
 	    (regexp (concat "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\):"
 			    "\\([a-z0-9_]+\\):" "\\([a-z0-9_]+\\)")))
-	(when (zerop (tramp-send-command-and-check
-		      v (format
-			 "%s -d -Z %s"
-			 (tramp-get-ls-command v)
-			 (tramp-shell-quote-argument localname))))
+	(when (and (tramp-remote-selinux-p v)
+		   (zerop (tramp-send-command-and-check
+			   v (format
+			      "%s -d -Z %s"
+			      (tramp-get-ls-command v)
+			      (tramp-shell-quote-argument localname)))))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
 	    (when (re-search-forward regexp (tramp-compat-line-end-position) t)
@@ -3054,6 +3066,7 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   "Like `set-file-selinux-context' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (if (and (consp context)
+	     (tramp-remote-selinux-p v)
 	     (zerop (tramp-send-command-and-check
 		     v (format "chcon %s %s %s %s %s"
 			       (if (stringp (nth 0 context))
@@ -6924,7 +6937,7 @@ process to set up.  VEC specifies the connection."
 	  (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
     (when (and (stringp old-uname) (not (string-equal old-uname new-uname)))
       (with-current-buffer (tramp-get-debug-buffer vec)
-	;; Keep the debug buffer
+	;; Keep the debug buffer.
 	(rename-buffer
 	 (generate-new-buffer-name tramp-temp-buffer-name) 'unique)
 	(funcall (symbol-function 'tramp-cleanup-connection) vec)
@@ -8752,7 +8765,6 @@ Only works for Bourne-like shells."
 ;;   on remote hosts.
 ;; * Use secrets.el for password handling.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
-;; * Implement selinux-context.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
