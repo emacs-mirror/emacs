@@ -112,6 +112,10 @@ NS_SUPPORT=@NS_SUPPORT@
 ## Only used if HAVE_X_WINDOWS and HAVE_WINDOW_SYSTEM.
 FONT_OBJ=@FONT_OBJ@
 
+## ${lispsource}mouse.elc if HAVE_GPM, otherwise empty.
+## Not used if HAVE_MOUSE.
+GPM_MOUSE_SUPPORT=@GPM_MOUSE_SUPPORT@
+
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
@@ -452,11 +456,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
-#ifdef HAVE_GPM
-#define MOUSE_SUPPORT ${lispsource}mouse.elc
-#else
-#define MOUSE_SUPPORT
-#endif
+#define MOUSE_SUPPORT $(GPM_MOUSE_SUPPORT)
 #endif
 
 #ifdef MSDOS

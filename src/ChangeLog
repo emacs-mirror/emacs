@@ -1,5 +1,8 @@
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (GPM_MOUSE_SUPPORT): New, set by configure.
+	(MOUSE_SUPPORT) [!HAVE_MOUSE]: Use $GPM_MOUSE_SUPPORT.
+
 	* Makefile.in (FONT_OBJ): New, set by configure.
 	(FONT_DRIVERS): Use $FONT_OBJ.
 

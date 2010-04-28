@@ -2291,6 +2291,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
+GPM_MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   AC_CHECK_HEADER(gpm.h,
     [AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes)])
@@ -2298,9 +2299,11 @@ if test "${with_gpm}" != "no"; then
   if test "${HAVE_GPM}" = "yes"; then
     AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
     LIBGPM=-lgpm
+    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
   fi
 fi
 AC_SUBST(LIBGPM)
+AC_SUBST(GPM_MOUSE_SUPPORT)
 
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
