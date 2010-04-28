@@ -1,3 +1,9 @@
+2010-04-28  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
+	`safe-local-variable' if the value is a string or a symbol with
+	the property `bug-reference-url-format'.
+
 2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/bug-reference.el (bug-reference-url-format): Revert
