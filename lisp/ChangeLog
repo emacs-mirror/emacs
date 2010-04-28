@@ -1,3 +1,19 @@
+2010-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Avoid re-enabling a minor mode after the user turned the minor mode
+	off if MODE-enable-in-buffers is run twice (typically once from
+	fundamental-mode's after-change-major-mode-hook and a second time from
+	run-mode-hook's own after-change-major-mode-hook).
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Fail gracefully.
+
+2010-04-27  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
+	`safe-local-variable' if the value is a string or a function, as
+	documented and implemented on 2010-04-02.
+
 2010-04-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-buffer-internal): Bind `ido-use-virtual-buffers' to nil

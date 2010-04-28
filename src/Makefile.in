@@ -86,6 +86,8 @@ GCONF_LIBS = @GCONF_LIBS@
 
 GTK_OBJ=@GTK_OBJ@
 
+LIBXMU=@LIBXMU@
+
 LIBXSM=@LIBXSM@
 
 LIBXTR6=@LIBXTR6@
@@ -103,6 +105,26 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
+
+## sheap.o if CYGWIN, otherwise empty.
+CYGWIN_OBJ=@CYGWIN_OBJ@
+
+NS_OBJ=@NS_OBJ@
+NS_SUPPORT=@NS_SUPPORT@
+
+## Only used if HAVE_X_WINDOWS and HAVE_WINDOW_SYSTEM.
+FONT_OBJ=@FONT_OBJ@
+
+## ${lispsource}mouse.elc if HAVE_GPM, otherwise empty.
+## Not used if HAVE_MOUSE.
+GPM_MOUSE_SUPPORT=@GPM_MOUSE_SUPPORT@
+
+BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
+  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+  ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+
+X_WINDOW_SUPPORT=${lispsource}x-dnd.elc ${lispsource}term/common-win.elc \
+  ${lispsource}term/x-win.elc ${lispsource}dynamic-setting.elc
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
@@ -258,11 +280,7 @@ LIBXMENU=
 #ifdef USE_X_TOOLKIT
 LIBW=$(TOOLKIT_LIBW)
 
-#ifndef LIBXMU
-#define LIBXMU -lXmu
-#endif
-
-LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
+LIBXT= $(LIBW) $(LIBXMU) -lXt $(LIBXTR6) -lXext
 
 #else /* not USE_X_TOOLKIT */
 
@@ -360,29 +378,16 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o termcap.o
 #endif
 #endif
 
-#ifdef CYGWIN
-CYGWIN_OBJ = sheap.o
-#endif
-
 #ifdef HAVE_NS
 ns_appdir=@ns_appdir@/
 ns_appbindir=@ns_appbindir@/
 ns_appresdir=@ns_appresdir@/
 ns_appsrc=@ns_appsrc@
-/* Object files for NeXTstep */
-NS_OBJ= nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
-	fontset.o fringe.o image.o
 #endif  /* HAVE_NS */
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-#if defined (HAVE_XFT)
-FONT_DRIVERS = xfont.o ftfont.o xftfont.o ftxfont.o
-#elif defined (HAVE_FREETYPE)
-FONT_DRIVERS = xfont.o ftfont.o ftxfont.o
-#else /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
-FONT_DRIVERS = xfont.o
-#endif /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+FONT_DRIVERS=$(FONT_OBJ)
 #endif /* HAVE_X_WINDOWS */
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -457,11 +462,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
-#ifdef HAVE_GPM
-#define MOUSE_SUPPORT ${lispsource}mouse.elc
-#else
-#define MOUSE_SUPPORT
-#endif
+#define MOUSE_SUPPORT $(GPM_MOUSE_SUPPORT)
 #endif
 
 #ifdef MSDOS
@@ -475,15 +476,9 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-#define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
- ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
- ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc \
- ${lispsource}dynamic-setting.elc
+#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)
 #else
-#define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
- ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT)
 #endif
 #else
 #define WINDOW_SUPPORT
@@ -502,13 +497,6 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 #define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
 #else
 #define TOOLTIP_SUPPORT
-#endif
-
-#ifdef HAVE_NS
-#define NS_SUPPORT ${lispsource}emacs-lisp/easymenu.elc \
-  ${lispsource}term/ns-win.elc
-#else
-#define NS_SUPPORT
 #endif
 
 /* This is the platform-specific list of Lisp files loaded into the
@@ -611,7 +599,7 @@ lisp= \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
-	NS_SUPPORT \
+	${NS_SUPPORT} \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el

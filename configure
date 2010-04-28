@@ -711,6 +711,8 @@ ALSA_LIBS
 CFLAGS_SOUND
 SET_MAKE
 XMKMF
+NS_OBJ
+NS_SUPPORT
 HAVE_XSERVER
 RSVG_CFLAGS
 RSVG_LIBS
@@ -724,6 +726,7 @@ GCONF_CFLAGS
 GCONF_LIBS
 LIBSELINUX_LIBS
 LIBXTR6
+LIBXMU
 FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
 XFT_CFLAGS
@@ -732,6 +735,7 @@ LIBOTF_CFLAGS
 LIBOTF_LIBS
 M17N_FLT_CFLAGS
 M17N_FLT_LIBS
+FONT_OBJ
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 LIBXPM
@@ -740,6 +744,7 @@ LIBPNG
 LIBTIFF
 LIBGIF
 LIBGPM
+GPM_MOUSE_SUPPORT
 LIBXSM
 ALLOCA
 liblockfile
@@ -794,6 +799,7 @@ XMENU_OBJ
 XOBJ
 WIDGET_OBJ
 TOOLKIT_LIBW
+CYGWIN_OBJ
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -5448,6 +5454,73 @@ else
 fi
 
 fi
+
+## Although we're running on an amd64 kernel, we're actually compiling for
+## the x86 architecture.  The user should probably have provided an
+## explicit --build to `configure', but if everything else than the kernel
+## is running in i386 mode, we can help them out.
+if test "$machine" = "amdx86-64"; then
+  { $as_echo "$as_me:$LINENO: checking whether i386 is declared" >&5
+$as_echo_n "checking whether i386 is declared... " >&6; }
+if test "${ac_cv_have_decl_i386+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+#ifndef i386
+  (void) i386;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_i386=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_i386=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_decl_i386" >&5
+$as_echo "$ac_cv_have_decl_i386" >&6; }
+
+  if test "$ac_cv_have_decl_i386" = "yes"; then
+    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
+    machine=intel386
+    machfile="m/${machine}.h"
+  fi
+fi
+
 # Extract the first word of "install-info", so it can be a program name with args.
 set dummy install-info; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -9922,6 +9995,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
+NS_OBJ=
+NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -9931,9 +10007,13 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
+  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
+
 
 case "${window_system}" in
   x11 )
@@ -13176,6 +13256,15 @@ fi
 fi
 
 
+LIBXMU=-lXmu
+case "$machine" in
+  ## These machines don't supply Xmu.
+  hpux* | aix4-2 )
+    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" = "Xno" && LIBXMU=
+    ;;
+esac
+
+
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then
@@ -14442,6 +14531,15 @@ else
     HAVE_LIBOTF=no
     HAVE_M17N_FLT=no
 fi
+
+FONT_OBJ=xfont.o
+if test "$HAVE_XFT" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+elif test "$HAVE_FREETYPE" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+fi
+
+
 ### End of font-backend (under X11) section.
 
 
@@ -15735,6 +15833,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
+GPM_MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   if test "${ac_cv_header_gpm_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for gpm.h" >&5
@@ -15944,8 +16043,10 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     LIBGPM=-lgpm
+    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
   fi
 fi
+
 
 
 if test "${ac_cv_header_malloc_malloc_h+set}" = set; then
@@ -26037,6 +26138,9 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
+
+CYGWIN_OBJ=
+test "$opsys" = "cygwin" && CYGWIN_OBJ="sheap.o"
 
 
 

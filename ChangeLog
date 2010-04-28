@@ -1,3 +1,18 @@
+2010-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (CYGWIN_OBJ): New output variable.
+
+	* configure.in (GPM_MOUSE_SUPPORT): New output variable.
+
+	* configure.in (FONT_OBJ): New output variable.
+
+	* configure.in (LIBXMU): New output variable.
+
+	* configure.in (NS_OBJ, NS_SUPPORT): New output variables.
+
+	* configure.in (machine, canonical): On amdx86-64, check for a 32-bit
+	userland and maybe change values to i386 (move test from s/amdx86-64.h).
+
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIBXTR6): New output variable.  Move unixware special
