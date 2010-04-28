@@ -46,8 +46,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    there, contrary to what a stock GCC would do.  */
 
 #define LD_SWITCH_SYSTEM  -L/usr/local/lib
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtbegin.o
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtend.o /usr/lib/crtn.o
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o
+#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o
 #undef LIB_GCC
 #define LIB_GCC
 

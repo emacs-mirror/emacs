@@ -170,7 +170,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_REMAP
 
-#define START_FILES pre-crt0.o /lib/crt0.o
+#define START_FILES pre-crt0.o $(CRT_DIR)/crt0.o
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their

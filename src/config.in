@@ -405,9 +405,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
 
-/* Define to 1 if you have the Xp library (-lXp). */
-#undef HAVE_LIBXP
-
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -487,9 +484,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
-
-/* Define to 1 if you have Motif 2.1 or newer. */
-#undef HAVE_MOTIF_2_1
 
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
@@ -907,9 +901,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    <sys/cpustats.h>. */
 #undef UMAX4_3
 
-/* Define to the unexec source file name. */
-#undef UNEXEC_SRC
-
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
@@ -1075,9 +1066,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
-/* See also .m.o rule in Makefile.in */
-/* FIXME: are all these flags really needed?  Document here why.  */
-#  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000

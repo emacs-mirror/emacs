@@ -39,12 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef GNU_LINUX
 #define LINKER $(CC) -nostdlib
-#ifdef _ARCH_PPC64
-#undef START_FILES
-#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
-#undef LIB_STANDARD
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
-#endif
 #endif
 
 #ifdef _ARCH_PPC64

@@ -51,7 +51,8 @@ It can use `match-string' to get parts matched against
 There is no default setting for this, it must be set per file.")
 
 ;;;###autoload
-(put 'bug-reference-url-format 'safe-local-variable 'stringp)
+(put 'bug-reference-url-format 'safe-local-variable
+     (lambda (s) (or (stringp s) (functionp s))))
 
 (defconst bug-reference-bug-regexp
   "\\([Bb]ug ?#\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"

@@ -2183,7 +2183,9 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
 	   (ido-directory-too-big nil)
-	   (ido-use-virtual-buffers ido-use-virtual-buffers)
+	   (ido-use-virtual-buffers (if (eq method 'kill)
+					nil    ;; Don't consider virtual buffers for killing
+				      ido-use-virtual-buffers))
 	   (require-match (confirm-nonexistent-file-or-buffer))
 	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
 				   require-match initial))

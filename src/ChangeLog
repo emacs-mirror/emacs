@@ -1,3 +1,56 @@
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBXTR6): Set with configure, not cpp.
+	* s/unixware.h (NEED_LIBW): Remove definition.
+
+	* Makefile.in (LUCID_LIBW, MOTIF_LIBW): Remove, replacing by...
+	(TOOLKIT_LIBW): New, set by configure.
+	(@X_TOOLKIT_TYPE@): No longer define it.
+
+	* Makefile.in (LIBXP): Remove, since included in MOTIF_LIBW.
+	(MOTIF_LIBW): Set with configure, not cpp.
+	* s/aix4-2.h (LIB_MOTIF):
+	* s/gnu-linux.h (LIB_MOTIF):
+	* s/unixware.h (LIB_MOTIF): Move to configure.in.
+
+2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce CPP usage.
+	* Makefile.in (LIB_X11_LIB): Remove, inline in the only user.
+	(obj): Use autoconf for unexec instead of cpp.
+	(C_SWITCH_SYSTEM, C_SWITCH_MACHINE, C_SWITCH_X_SITE): Remove
+	definitions and undefs.  Inline definitions in the only user.
+	(ALL_CFLAGS): Substitute C_SWITCH_X_SYSTEM using autoconf.
+
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* m/amdx86-64.h (START_FILES, LIB_STANDARD): Change the logic around,
+	since the defaults (set by the system file) are fine in most cases.
+	[GNU_LINUX, __OpenBSD__, __NetBSD__, __APPLE__]: Remove sections.
+	* m/ibms390x.h (START_FILES, LIB_STANDARD):
+	* m/macppc.h (START_FILES, LIB_STANDARD) [GNU_LINUX]:
+	* m/sparc.h (START_FILES, LIB_STANDARD) [__linux__]:
+	Remove definitions, since they are set correctly in s/gnu-linux.h.
+	* s/freebsd.h (START_FILES, LIB_STANDARD):
+	* s/gnu-linux.h (START_FILES, LIB_STANDARD):
+	* s/hpux10-20.h (START_FILES):
+	* s/netbsd.h (START_FILES, LIB_STANDARD, START_FILES_1, END_FILES_1):
+	Use $CRT_DIR in place of fixed /usr/lib, /lib directories.
+
+	* Makefile.in (LIBXP, LUCID_LIBW, WIDGET_OBJ): Set via configure.
+	(MOTIF_LIBW): Use $LIBXP.
+	(otherobj): Use $WIDGET_OBJ.
+
+2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (LIBS_MACHINE): Remove, unused.
+
+	Use autoconf instead of cpp for LIB_MATH.
+	* s/darwin.h (LIB_MATH): Do not define here, move to configure.
+	* s/cygwin.h (LIB_MATH): Likewise.
+	* Makefile.in (LIB_MATH): Do not define with cpp.
+	(LIBES): Use autoconf for LIB_MATH.
+
 2010-04-26  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (Ffind_composition_internal): Fix the return value
