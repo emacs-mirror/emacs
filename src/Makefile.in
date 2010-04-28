@@ -86,6 +86,8 @@ GCONF_LIBS = @GCONF_LIBS@
 
 GTK_OBJ=@GTK_OBJ@
 
+LIBXMU=@LIBXMU@
+
 LIBXSM=@LIBXSM@
 
 LIBXTR6=@LIBXTR6@
@@ -261,11 +263,7 @@ LIBXMENU=
 #ifdef USE_X_TOOLKIT
 LIBW=$(TOOLKIT_LIBW)
 
-#ifndef LIBXMU
-#define LIBXMU -lXmu
-#endif
-
-LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
+LIBXT= $(LIBW) $(LIBXMU) -lXt $(LIBXTR6) -lXext
 
 #else /* not USE_X_TOOLKIT */
 

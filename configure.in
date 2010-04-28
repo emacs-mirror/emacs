@@ -1890,6 +1890,17 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
 fi
 AC_SUBST(LIBXTR6)
 
+dnl FIXME the logic here seems weird, but this is what cpp was doing.
+dnl Why not just test for libxmu in the normal way?
+LIBXMU=-lXmu
+case "$machine" in
+  ## These machines don't supply Xmu.
+  hpux* | aix4-2 )
+    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" = "Xno" && LIBXMU=
+    ;;
+esac
+AC_SUBST(LIBXMU)
+
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then

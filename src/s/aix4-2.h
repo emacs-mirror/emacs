@@ -136,8 +136,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef sigmask
 
 #ifndef HAVE_LIBXMU
-#define LIBXMU
-
 /* Unfortunately without libXmu we cannot support EditRes.  */
 #define NO_EDITRES
 #endif
@@ -153,8 +151,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It is possible to completely override the malloc implementation on
    AIX, but that involves putting the malloc functions in a shared
    library and setting the MALLOCTYPE environment variable to point to
-   tha shared library.
-   
+   that shared library.
+
    Emacs currently calls xrealloc on the results of get_current_dir name,
    to avoid a crash just use the Emacs implementation for that function.
 */

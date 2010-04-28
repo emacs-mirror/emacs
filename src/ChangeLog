@@ -1,5 +1,10 @@
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (LIBXMU): Set with configure, not cpp.
+	* s/aix4-2.h (LIBXMU):
+	* s/hpux10-20.h (LIBXMU):
+	Remove definition, now set in configure.
+
 	* Makefile.in (NS_OBJ, NS_SUPPORT): Set with configure, not cpp.
 
 	* m/amdx86-64.h [i386]: Move this test to configure.in.
