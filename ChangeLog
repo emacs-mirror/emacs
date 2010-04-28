@@ -1,3 +1,8 @@
+2010-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (machine, canonical): On amdx86-64, check for a 32-bit
+	userland and maybe change values to i386 (move test from s/amdx86-64.h).
+
 2010-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIBXTR6): New output variable.  Move unixware special

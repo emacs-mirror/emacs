@@ -761,6 +761,20 @@ AC_PROG_INSTALL
 if test "x$RANLIB" = x; then
   AC_PROG_RANLIB
 fi
+
+## Although we're running on an amd64 kernel, we're actually compiling for
+## the x86 architecture.  The user should probably have provided an
+## explicit --build to `configure', but if everything else than the kernel
+## is running in i386 mode, we can help them out.
+if test "$machine" = "amdx86-64"; then
+  AC_CHECK_DECL([i386])
+  if test "$ac_cv_have_decl_i386" = "yes"; then
+    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
+    machine=intel386
+    machfile="m/${machine}.h"
+  fi
+fi
+
 AC_PATH_PROG(INSTALL_INFO, install-info)
 AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
 AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)

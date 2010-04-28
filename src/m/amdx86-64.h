@@ -17,15 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef i386
-/* Although we're running on an amd64 kernel, we're actually compiling for
-   the x86 architecture.  The user should probably have provided an
-   explicit --build to `configure', but if everything else than the kernel
-   is running in i386 mode, then the bug is really ours: we should have
-   guessed better.  */
-#include "m/intel386.h"
-#else
-
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="linux"  */
@@ -90,7 +81,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
 #endif /* SOLARIS2 */
-#endif /* !i386 */
 
 /* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
    (do not change this comment) */
