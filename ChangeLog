@@ -1,5 +1,7 @@
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (CYGWIN_OBJ): New output variable.
+
 	* configure.in (GPM_MOUSE_SUPPORT): New output variable.
 
 	* configure.in (FONT_OBJ): New output variable.

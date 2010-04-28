@@ -2928,6 +2928,9 @@ if test "${REL_ALLOC}" = "yes" ; then
 	     buffer space.])
 fi
 
+CYGWIN_OBJ=
+test "$opsys" = "cygwin" && CYGWIN_OBJ="sheap.o"
+AC_SUBST(CYGWIN_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,

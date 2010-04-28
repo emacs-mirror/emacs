@@ -106,6 +106,9 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
+## sheap.o if CYGWIN, otherwise empty.
+CYGWIN_OBJ=@CYGWIN_OBJ@
+
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
 
@@ -366,10 +369,6 @@ MSDOS_OBJ = dosfns.o msdos.o xmenu.o
 #else
 MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o termcap.o
 #endif
-#endif
-
-#ifdef CYGWIN
-CYGWIN_OBJ = sheap.o
 #endif
 
 #ifdef HAVE_NS
