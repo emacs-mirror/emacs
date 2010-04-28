@@ -1,3 +1,8 @@
+2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Revert
+	2010-04-27 change due to security risk.
+
 2010-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make it possible to locally disable a globally enabled mode.
