@@ -1080,6 +1080,10 @@ Semantic mode.
 	    (require 'semantic/db-ebrowse)
 	    (semanticdb-load-ebrowse-caches)))
 	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+	;; Add semantic-ia-complete-symbol to
+	;; completion-at-point-functions, so that it is run from
+	;; M-TAB.
+	(add-hook 'completion-at-point-functions 'semantic-ia-complete-symbol)
 	(if global-ede-mode
 	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
 	(dolist (b (buffer-list))
@@ -1087,6 +1091,7 @@ Semantic mode.
 	    (semantic-new-buffer-fcn))))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+    (remove-hook 'completion-at-point-functions 'semantic-ia-complete-symbol)
     (define-key cedet-menu-map [cedet-menu-separator] nil)
     (define-key cedet-menu-map [semantic-options-separator] nil)
     ;; FIXME: handle semanticdb-load-ebrowse-caches

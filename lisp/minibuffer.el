@@ -1157,7 +1157,7 @@ Point needs to be somewhere between START and END."
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
 
-(defvar completion-at-point-functions nil
+(defvar completion-at-point-functions '(complete-tag)
   "Special hook to find the completion table for the thing at point.
 It is called without any argument and should return either nil,
 or a function of no argument to perform completion (discouraged),
@@ -1169,22 +1169,56 @@ Currently supported properties are:
  `:predicate'           a predicate that completion candidates need to satisfy.
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
-(defun completion-at-point ()
-  "Complete the thing at point according to local mode."
+(declare-function tags-lazy-completion-table "etags.el" ())
+
+(defun complete-tag ()
+  "Perform tags completion on the text around point.
+If no tags table is loaded, do nothing and return nil.
+Otherwise, complete to the set of names listed in the tags table.
+The string to complete is chosen in the same way as the default
+for `find-tag'."
   (interactive)
-  (let ((res (run-hook-with-args-until-success
-              'completion-at-point-functions)))
-    (cond
-     ((functionp res) (funcall res))
-     (res
-      (let* ((plist (nthcdr 3 res))
-             (start (nth 0 res))
-             (end (nth 1 res))
-             (completion-annotate-function
-              (or (plist-get plist :annotation-function)
-                  completion-annotate-function)))
-        (completion-in-region start end (nth 2 res)
-                              (plist-get plist :predicate)))))))
+  (when (or tags-table-list tags-file-name)
+    (require 'etags)
+    (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
+				      tags-case-fold-search
+				    case-fold-search))
+	  (pattern (funcall (or find-tag-default-function
+				(get major-mode 'find-tag-default-function)
+				'find-tag-default)))
+	  (comp-table (tags-lazy-completion-table))
+	  beg)
+      (when pattern
+	(search-backward pattern)
+	(setq beg (point))
+	(forward-char (length pattern))
+	(completion-in-region beg (point) comp-table)))))
+
+(defun complete-symbol (&optional arg)
+  "Perform completion on the text around point.
+The completion method is determined by `completion-at-point-functions'.
+
+With a prefix argument, this command does completion within
+the collection of symbols listed in the index of the manual for the
+language you are using."
+  (interactive "P")
+  (if arg
+      (info-complete-symbol)
+    (let ((res (run-hook-with-args-until-success
+		'completion-at-point-functions)))
+      (cond
+       ((functionp res) (funcall res))
+       (res
+	(let* ((plist (nthcdr 3 res))
+	       (start (nth 0 res))
+	       (end (nth 1 res))
+	       (completion-annotate-function
+		(or (plist-get plist :annotation-function)
+		    completion-annotate-function)))
+	  (completion-in-region start end (nth 2 res)
+				(plist-get plist :predicate))))))))
+
+(defalias 'completion-at-point 'complete-symbol)
 
 ;;; Key bindings.
 
@@ -1361,7 +1395,9 @@ except that it passes the file name through `substitute-in-file-name'."
                     (substitute-in-file-name string)
                   (error string)))
            (comp (completion-file-name-table
-                  str (or pred read-file-name-predicate) action)))
+                  str
+		  (with-no-warnings (or pred read-file-name-predicate))
+		  action)))
 
       (cond
        ((stringp comp)

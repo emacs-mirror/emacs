@@ -1,3 +1,22 @@
+2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (complete-symbol): Move into minibuffer.el.
+
+	* minibuffer.el (complete-tag): Move from etags.el.  If tags
+	completion cannot be performed, return nil instead of signalling
+	an error.
+	(completion-at-point): Make it an alias for complete-symbol.
+	(complete-symbol): Move from bindings.el, and replace with the
+	body of completion-at-point.
+
+	* progmodes/etags.el (complete-tag): Move to minibuffer.el.
+
+	* cedet/semantic.el (semantic-mode): When enabled, add
+	semantic-ia-complete-symbol to completion-at-point-functions.
+
+	* cedet/semantic/ia.el (semantic-ia-complete-symbol): Return nil
+	if Semantic is not active.
+
 2010-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-remote-selinux-p): New defun.

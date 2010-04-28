@@ -2027,33 +2027,6 @@ see the doc of that variable if you want to add names to the list."
   (interactive)
   (quit-window t (selected-window)))
 
-;;;###autoload
-(defun complete-tag ()
-  "Perform tags completion on the text around point.
-Completes to the set of names listed in the current tags table.
-The string to complete is chosen in the same way as the default
-for \\[find-tag] (which see)."
-  (interactive)
-  (or tags-table-list
-      tags-file-name
-      (error "%s"
-	     (substitute-command-keys
-	      "No tags table loaded; try \\[visit-tags-table]")))
-  (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
-				    tags-case-fold-search
-				  case-fold-search))
-	(pattern (funcall (or find-tag-default-function
-			      (get major-mode 'find-tag-default-function)
-			      'find-tag-default)))
-        (comp-table (tags-lazy-completion-table))
-	beg)
-    (or pattern
-	(error "Nothing to complete"))
-    (search-backward pattern)
-    (setq beg (point))
-    (forward-char (length pattern))
-    (completion-in-region beg (point) comp-table)))
-
 (dolist (x '("^No tags table in use; use .* to select one$"
 	     "^There is no default tag$"
 	     "^No previous tag locations$"

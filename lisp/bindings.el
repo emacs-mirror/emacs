@@ -671,29 +671,6 @@ is okay.  See `mode-line-format'.")
 
 (define-key esc-map "\t" 'complete-symbol)
 
-(defun complete-symbol (arg)
-  "Perform tags completion on the text around point.
-If a tags table is loaded, call `complete-tag'.
-Otherwise, if Semantic is active, call `semantic-ia-complete-symbol'.
-
-With a prefix argument, this command does completion within
-the collection of symbols listed in the index of the manual for the
-language you are using."
-  (interactive "P")
-  (cond (arg
-	 (info-complete-symbol))
-	((or tags-table-list tags-file-name)
-	 (complete-tag))
-	((and (fboundp 'semantic-ia-complete-symbol)
-	      (fboundp 'semantic-active-p)
-	      (semantic-active-p))
-	 (semantic-ia-complete-symbol))
-	(t
-	 (error "%s"
-		(substitute-command-keys
-		 "No completions available; use \\[visit-tags-table] \
-or \\[semantic-mode]")))))
-
 ;; Reduce total amount of space we must allocate during this function
 ;; that we will not need to keep permanently.
 (garbage-collect)
