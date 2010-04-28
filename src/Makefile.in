@@ -119,6 +119,13 @@ FONT_OBJ=@FONT_OBJ@
 ## Not used if HAVE_MOUSE.
 GPM_MOUSE_SUPPORT=@GPM_MOUSE_SUPPORT@
 
+BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
+  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+  ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+
+X_WINDOW_SUPPORT=${lispsource}x-dnd.elc ${lispsource}term/common-win.elc \
+  ${lispsource}term/x-win.elc ${lispsource}dynamic-setting.elc
+
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
@@ -469,15 +476,9 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-#define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
- ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
- ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc \
- ${lispsource}dynamic-setting.elc
+#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)
 #else
-#define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
- ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT)
 #endif
 #else
 #define WINDOW_SUPPORT

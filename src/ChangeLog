@@ -1,5 +1,8 @@
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (BASE_WINDOW_SUPPORT, X_WINDOW_SUPPORT): New variables.
+	(WINDOW_SUPPORT) [HAVE_WINDOW_SYSTEM]: Use them.
+
 	* Makefile.in (CYGWIN_OBJ): Set with configure, not cpp.
 
 	* Makefile.in (GPM_MOUSE_SUPPORT): New, set by configure.
