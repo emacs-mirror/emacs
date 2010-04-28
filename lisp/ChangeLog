@@ -1,3 +1,13 @@
+2010-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make it possible to locally disable a globally enabled mode.
+	* simple.el (fundamental-mode): Run fundamental-mode-hook.
+	* emacs-lisp/derived.el (define-derived-mode): Use fundamental-mode
+	rather than kill-all-local-variables so it runs fundamental-mode-hook.
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Use fundamental-mode-hook to run MODE-enable-in-buffers earlier, so
+	that subsequent hooks get a chance to disable it.
+
 2010-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
