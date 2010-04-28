@@ -109,6 +109,9 @@ WIDGET_OBJ=@WIDGET_OBJ@
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
 
+## Only used if HAVE_X_WINDOWS and HAVE_WINDOW_SYSTEM.
+FONT_OBJ=@FONT_OBJ@
+
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
@@ -374,13 +377,7 @@ ns_appsrc=@ns_appsrc@
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-#if defined (HAVE_XFT)
-FONT_DRIVERS = xfont.o ftfont.o xftfont.o ftxfont.o
-#elif defined (HAVE_FREETYPE)
-FONT_DRIVERS = xfont.o ftfont.o ftxfont.o
-#else /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
-FONT_DRIVERS = xfont.o
-#endif /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+FONT_DRIVERS=$(FONT_OBJ)
 #endif /* HAVE_X_WINDOWS */
 #endif /* HAVE_WINDOW_SYSTEM */
 

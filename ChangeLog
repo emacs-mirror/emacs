@@ -1,5 +1,7 @@
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (FONT_OBJ): New output variable.
+
 	* configure.in (LIBXMU): New output variable.
 
 	* configure.in (NS_OBJ, NS_SUPPORT): New output variables.

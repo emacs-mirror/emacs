@@ -2121,6 +2121,15 @@ else
     HAVE_LIBOTF=no
     HAVE_M17N_FLT=no
 fi
+
+FONT_OBJ=xfont.o
+if test "$HAVE_XFT" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+elif test "$HAVE_FREETYPE" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+fi
+AC_SUBST(FONT_OBJ)
+
 ### End of font-backend (under X11) section.
 
 AC_SUBST(FREETYPE_CFLAGS)
