@@ -1,3 +1,9 @@
+2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/browse-url.el (browse-url-firefox-program): Use iceweasel if
+	firefox is absent.  Don't autoload.
+	(browse-url-galeon-program): Don't autoload.
+
 2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el (complete-symbol): Move into minibuffer.el.
