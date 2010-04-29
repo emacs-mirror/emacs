@@ -1,5 +1,8 @@
 2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.c (read_process_output, exec_sentinel): Don't burp if the
+	sentinel/filter kills the current buffer (bug#6060).
+
 	Fix wrong-docstring problem introduced with hash-consing.  (Bug#6008)
 	* eval.c (Fautoload): Set doc to a unique number rather than to 0.
 	Remove unused var `args'.

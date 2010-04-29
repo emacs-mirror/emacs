@@ -5396,7 +5396,7 @@ read_process_output (proc, channel)
   /* There's no good reason to let process filters change the current
      buffer, and many callers of accept-process-output, sit-for, and
      friends don't expect current-buffer to be changed from under them.  */
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 
   /* Read and dispose of the process output.  */
   outstream = p->filter;
@@ -6814,7 +6814,7 @@ exec_sentinel (proc, reason)
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and
      friends don't expect current-buffer to be changed from under them.  */
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 
   sentinel = p->sentinel;
   if (NILP (sentinel))
