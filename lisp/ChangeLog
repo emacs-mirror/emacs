@@ -1,5 +1,9 @@
 2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* ido.el (ido-init-completion-maps): Remove C-v binding (Bug#5765).
+
+2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
 	* minibuffer.el (tags-completion-at-point-function): New function.
 	(completion-at-point-functions): Use it.
 
