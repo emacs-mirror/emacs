@@ -1157,7 +1157,7 @@ Point needs to be somewhere between START and END."
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
 
-(defvar completion-at-point-functions '(complete-tag)
+(defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the thing at point.
 It is called without any argument and should return either nil,
 or a function of no argument to perform completion (discouraged),
@@ -1169,14 +1169,9 @@ Currently supported properties are:
  `:predicate'           a predicate that completion candidates need to satisfy.
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
-(declare-function tags-lazy-completion-table "etags.el" ())
-
-(defun complete-tag ()
-  "Perform tags completion on the text around point.
-If no tags table is loaded, do nothing and return nil.
-Otherwise, complete to the set of names listed in the tags table.
-The string to complete is chosen in the same way as the default
-for `find-tag'."
+(defun tags-completion-at-point-function ()
+  "Using tags, return a completion table for the text around point.
+If no tags table is loaded, do nothing and return nil."
   (interactive)
   (when (or tags-table-list tags-file-name)
     (require 'etags)
@@ -1185,14 +1180,11 @@ for `find-tag'."
 				    case-fold-search))
 	  (pattern (funcall (or find-tag-default-function
 				(get major-mode 'find-tag-default-function)
-				'find-tag-default)))
-	  (comp-table (tags-lazy-completion-table))
-	  beg)
+				'find-tag-default))))
       (when pattern
-	(search-backward pattern)
-	(setq beg (point))
-	(forward-char (length pattern))
-	(completion-in-region beg (point) comp-table)))))
+	(tags-lazy-completion-table)))))
+
+(declare-function tags-lazy-completion-table "etags.el" ())
 
 (defun complete-symbol (&optional arg)
   "Perform completion on the text around point.

@@ -1083,7 +1083,8 @@ Semantic mode.
 	;; Add semantic-ia-complete-symbol to
 	;; completion-at-point-functions, so that it is run from
 	;; M-TAB.
-	(add-hook 'completion-at-point-functions 'semantic-ia-complete-symbol)
+	(add-hook 'completion-at-point-functions
+		  'semantic-completion-at-point-function)
 	(if global-ede-mode
 	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
 	(dolist (b (buffer-list))
@@ -1091,13 +1092,17 @@ Semantic mode.
 	    (semantic-new-buffer-fcn))))
     ;; Disable all Semantic features.
     (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
-    (remove-hook 'completion-at-point-functions 'semantic-ia-complete-symbol)
+    (remove-hook 'completion-at-point-functions
+		 'semantic-completion-at-point-function)
     (define-key cedet-menu-map [cedet-menu-separator] nil)
     (define-key cedet-menu-map [semantic-options-separator] nil)
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
       (if (and (boundp mode) (eval mode))
 	  (funcall mode -1)))))
+
+(defun semantic-completion-at-point-function ()
+  'semantic-ia-complete-symbol)
 
 ;;; Autoload some functions that are not in semantic/loaddefs
 

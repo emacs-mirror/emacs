@@ -1,3 +1,14 @@
+2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (tags-completion-at-point-function): New function.
+	(completion-at-point-functions): Use it.
+
+	* cedet/semantic.el (semantic-completion-at-point-function): New function.
+	(semantic-mode): Use semantic-completion-at-point-function for
+	completion-at-point-functions instead.
+
+	* progmodes/etags.el (complete-tag): Revert last change.
+
 2010-04-29  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-extend-region-for-CPP): Fix an
