@@ -1,6 +1,6 @@
 2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Fix wrong-docstring problem introduced with hash-consing.
+	Fix wrong-docstring problem introduced with hash-consing.  (Bug#6008)
 	* eval.c (Fautoload): Set doc to a unique number rather than to 0.
 	Remove unused var `args'.
 	* lisp.h (XSETCARFASTINT, XSETCDRFASTINT): Remove.
@@ -258,7 +258,7 @@
 	(Ftool_bar_get_system_style): New function.
 	(syms_of_xsettings): Define Qmonospace_font_name and
 	Qtool_bar_style.  Initialize current_tool_bar_style to nil.
-	defsubr Stool_bar_get_system_style. Fprovide on
+	defsubr Stool_bar_get_system_style.  Fprovide on
 	dynamic-setting.
 	Move misplaced HAVE_GCONF
 
