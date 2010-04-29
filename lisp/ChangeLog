@@ -1,3 +1,8 @@
+2010-04-28  Alexander Klimov <alserkli@inbox.ru> (tiny change)
+
+	* calc/calc-graph.el (calc-graph-plot): Use the proper form for
+	gnuplot's "set" command.
+
 2010-04-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* abbrev.el (last-abbrev-text): Doc fix.
