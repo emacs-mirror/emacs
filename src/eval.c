@@ -2134,8 +2134,6 @@ this does nothing and returns nil.  */)
      (function, file, docstring, interactive, type)
      Lisp_Object function, file, docstring, interactive, type;
 {
-  Lisp_Object args[4];
-
   CHECK_SYMBOL (function);
   CHECK_STRING (file);
 
@@ -2151,8 +2149,11 @@ this does nothing and returns nil.  */)
     LOADHIST_ATTACH (Fcons (Qautoload, function));
   else
     /* We don't want the docstring in purespace (instead,
-       Snarf-documentation should (hopefully) overwrite it).  */
-    docstring = make_number (0);
+       Snarf-documentation should (hopefully) overwrite it).
+       We used to use 0 here, but that leads to accidental sharing in
+       purecopy's hash-consing, so we use a (hopefully) unique integer
+       instead.  */
+    docstring = make_number (XHASH (function));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
 				  interactive, type)));

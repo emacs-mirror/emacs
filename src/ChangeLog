@@ -1,3 +1,12 @@
+2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix wrong-docstring problem introduced with hash-consing.
+	* eval.c (Fautoload): Set doc to a unique number rather than to 0.
+	Remove unused var `args'.
+	* lisp.h (XSETCARFASTINT, XSETCDRFASTINT): Remove.
+	(LOADHIST_ATTACH): Wrap with do...while to avoid surprises for callers.
+	* doc.c (store_function_docstring): Use XSETCAR.
+
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (BASE_WINDOW_SUPPORT, X_WINDOW_SUPPORT): New variables.
