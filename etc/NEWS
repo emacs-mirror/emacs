@@ -114,6 +114,9 @@ define it as a scroll command affected by `scroll-preserve-screen-position.
 
 ** Archive Mode has basic support to browse 7z archives.
 
+** In ido-mode, C-v is no longer bound to ido-toggle-vc.
+The reason is that this interferes with cua-mode.
+
 ** partial-completion-mode is now obsolete.
 You can get the same behavior with
 (setq completion-styles '(partial-completion initials)).
