@@ -1,3 +1,8 @@
+2010-04-29  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-extend-region-for-CPP): Fix an
+	off-by-one error (in end of macro position).
+
 2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/browse-url.el (browse-url-firefox-program): Use iceweasel if
