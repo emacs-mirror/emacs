@@ -1,3 +1,8 @@
+2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (tags-completion-at-point-function): Fix return
+	value.
+
 2010-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* composite.el (compose-region, reference-point-alist): Fix typos

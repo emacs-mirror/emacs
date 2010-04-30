@@ -1169,6 +1169,7 @@ Currently supported properties are:
  `:predicate'           a predicate that completion candidates need to satisfy.
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
+(declare-function tags-lazy-completion-table "etags.el" ())
 (defun tags-completion-at-point-function ()
   "Using tags, return a completion table for the text around point.
 If no tags table is loaded, do nothing and return nil."
@@ -1180,11 +1181,14 @@ If no tags table is loaded, do nothing and return nil."
 				    case-fold-search))
 	  (pattern (funcall (or find-tag-default-function
 				(get major-mode 'find-tag-default-function)
-				'find-tag-default))))
+				'find-tag-default)))
+	  beg)
       (when pattern
-	(tags-lazy-completion-table)))))
-
-(declare-function tags-lazy-completion-table "etags.el" ())
+	(save-excursion
+	  (search-backward pattern)
+	  (setq beg (point))
+	  (forward-char (length pattern))
+	  (list beg (point) (tags-lazy-completion-table)))))))
 
 (defun complete-symbol (&optional arg)
   "Perform completion on the text around point.
