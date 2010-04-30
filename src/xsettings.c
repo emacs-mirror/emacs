@@ -1,4 +1,4 @@
-/* Functions for handle font changes dynamically.
+/* Functions for handle font and other changes dynamically.
    Copyright (C) 2009, 2010
                  Free Software Foundation, Inc.
 
@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "config.h"
+#include <limits.h>
 #include <setjmp.h>
 #include <fcntl.h>
 #include "lisp.h"
