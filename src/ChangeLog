@@ -1,5 +1,8 @@
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (mallocobj): Remove.
+	(otherobj): Simplify using @OTHER_OBJ@.
+
 	* Makefile.in (dispnew.o, frame.o, fringe.o, font.o, fontset.o)
 	(keyboard.o, window.o, xdisp.o, xfaces.o, menu.o):
 	Don't bother making nsgui.h dependency platform-specific.

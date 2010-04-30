@@ -2928,9 +2928,18 @@ if test "${REL_ALLOC}" = "yes" ; then
 	     buffer space.])
 fi
 
+
+OTHER_OBJ="\$(gmallocobj) \$(rallocobj)"
+if test "$opsys" = "cygwin"; then
+  CYGWIN_OBJ="sheap.o"
+  ## Cygwin differs because of its unexec().
+  OTHER_OBJ="$OTHER_OBJ lastfile.o"
+else
 CYGWIN_OBJ=
-test "$opsys" = "cygwin" && CYGWIN_OBJ="sheap.o"
+  OTHER_OBJ="lastfile.o $OTHER_OBJ"
+fi
 AC_SUBST(CYGWIN_OBJ)
+AC_SUBST(OTHER_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
