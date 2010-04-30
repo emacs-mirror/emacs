@@ -1,3 +1,7 @@
+2010-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (nsfns.o): Remove duplicate nsgui.h dependency.
+
 2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (read_process_output, exec_sentinel): Don't burp if the
