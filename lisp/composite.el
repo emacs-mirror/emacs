@@ -44,7 +44,7 @@
 A glyph reference point symbol is to be used to specify a composition
 rule in COMPONENTS argument to such functions as `compose-region'.
 
-Meanings of glyph reference point codes are as follows:
+The meaning of glyph reference point codes is as follows:
 
     0----1----2 <---- ascent	0:tl or top-left
     |         |			1:tc or top-center
@@ -212,7 +212,7 @@ If it is a string, the elements are alternate characters.  In
 this case, TAB element has a special meaning.  If the first
 characer is TAB, the glyphs are displayed with left padding space
 so that no pixel overlaps with the previous column.  If the last
-character is TAB, the glyphs are displayed with rigth padding
+character is TAB, the glyphs are displayed with right padding
 space so that no pixel overlaps with the following column.
 
 If it is a vector or list, it is a sequence of alternate characters and
@@ -222,7 +222,7 @@ elements with previously composed N glyphs.
 
 A composition rule is a cons of global and new glyph reference point
 symbols.  See the documentation of `reference-point-alist' for more
-detail.
+details.
 
 Optional 4th argument MODIFICATION-FUNC is a function to call to
 adjust the composition when it gets invalid because of a change of

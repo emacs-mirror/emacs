@@ -1,3 +1,8 @@
+2010-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.el (compose-region, reference-point-alist): Fix typos
+	in the doc strings.
+
 2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ido.el (ido-init-completion-maps): Remove C-v binding.
