@@ -1,5 +1,9 @@
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (OLDXMENU, LIBXMENU) [HAVE_MENUS]:
+	Set with configure, not cpp.
+	(LIBW): Remove, replace with $TOOLKIT_LIBW.
+
 	* Makefile.in (mallocobj): Remove.
 	(otherobj): Simplify using @OTHER_OBJ@.
 

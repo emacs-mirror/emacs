@@ -254,43 +254,21 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifdef HAVE_X_WINDOWS
+
+/* This test needs to say in cpp for the time being, since s/ms-w32.h and
+   s/msdos.h define HAVE_MENUS, possibly overriding configure.  */
 #ifdef HAVE_MENUS
-
-/* The X Menu stuff is present in the X10 distribution, but missing
-   from X11.  If we have X10, just use the installed library;
-   otherwise, use our own copy.  */
-#ifdef HAVE_X11
-#ifdef USE_X_TOOLKIT
-OLDXMENU=${lwlibdir}liblw.a
-LIBXMENU= $(OLDXMENU)
-#else /* not USE_X_TOOLKIT */
-OLDXMENU= ${oldXMenudir}libXMenu11.a
-LIBXMENU= $(OLDXMENU)
-#endif /* not USE_X_TOOLKIT */
-#else /* not HAVE_X11 */
-LIBXMENU= -lXMenu
-#endif /* not HAVE_X11 */
-
+OLDXMENU=@OLDXMENU@
+LIBXMENU=@LIBXMENU@
 #else /* not HAVE_MENUS */
-
-/* Otherwise, do not worry about the menu library at all.  */
+OLDXMENU=
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
 #ifdef USE_X_TOOLKIT
-LIBW=$(TOOLKIT_LIBW)
-
-LIBXT= $(LIBW) $(LIBXMU) -lXt $(LIBXTR6) -lXext
-
+LIBXT=$(TOOLKIT_LIBW) $(LIBXMU) -lXt $(LIBXTR6) -lXext
 #else /* not USE_X_TOOLKIT */
-
-#ifdef USE_GTK
-LIBW=@GTK_LIBS@
-OLDXMENU=
-LIBXMENU=
-#endif /* USE_GTK */
-
-LIBXT=$(LIBW) $(LIBXSM)
+LIBXT=$(TOOLKIT_LIBW) $(LIBXSM)
 #endif /* not USE_X_TOOLKIT */
 
 #ifdef HAVE_X11

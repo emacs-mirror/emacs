@@ -1,5 +1,8 @@
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (TOOLKIT_LIBW) [HAVE_GTK]: Set to $GTK_LIBS.
+	(OLDXMENU, LIBXMENU): New output variables.
+
 	* configure.in (OTHER_OBJ): New output variable.
 
 2010-04-28  Glenn Morris  <rgm@gnu.org>

@@ -2900,18 +2900,41 @@ if test "${USE_X_TOOLKIT}" != "none" ; then
 fi
 AC_SUBST(WIDGET_OBJ)
 
+TOOLKIT_LIBW=
 case "$USE_X_TOOLKIT" in
   MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
   LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  *) TOOLKIT_LIBW= ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
 esac
 AC_SUBST(TOOLKIT_LIBW)
 
+## The X Menu stuff is present in the X10 distribution, but missing
+## from X11.  If we have X10, just use the installed library;
+## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
 	     Otherwise, Emacs expects to use version 10.])
+
+  if test "$USE_X_TOOLKIT" = "none"; then
+    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+  else
+    OLDXMENU="\${lwlibdir}liblw.a"
+  fi
+  LIBXMENU="\$(OLDXMENU)"
+else
+  OLDXMENU=
+  LIBXMENU="-lXMenu"
 fi
+
+if test "$HAVE_GTK" = "yes"; then
+  OLDXMENU=
+  LIBXMENU=
+fi
+
+AC_SUBST(OLDXMENU)
+AC_SUBST(LIBXMENU)
+
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
 	    [Define to 1 if you have mouse menus.
@@ -2935,7 +2958,7 @@ if test "$opsys" = "cygwin"; then
   ## Cygwin differs because of its unexec().
   OTHER_OBJ="$OTHER_OBJ lastfile.o"
 else
-CYGWIN_OBJ=
+  CYGWIN_OBJ=
   OTHER_OBJ="lastfile.o $OTHER_OBJ"
 fi
 AC_SUBST(CYGWIN_OBJ)
