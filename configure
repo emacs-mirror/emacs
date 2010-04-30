@@ -799,7 +799,10 @@ XMENU_OBJ
 XOBJ
 WIDGET_OBJ
 TOOLKIT_LIBW
+OLDXMENU
+LIBXMENU
 CYGWIN_OBJ
+OTHER_OBJ
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -13260,7 +13263,7 @@ LIBXMU=-lXmu
 case "$machine" in
   ## These machines don't supply Xmu.
   hpux* | aix4-2 )
-    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" = "Xno" && LIBXMU=
+    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
     ;;
 esac
 
@@ -26103,20 +26106,43 @@ _ACEOF
 fi
 
 
+TOOLKIT_LIBW=
 case "$USE_X_TOOLKIT" in
   MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
   LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  *) TOOLKIT_LIBW= ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
 esac
 
 
+## The X Menu stuff is present in the X10 distribution, but missing
+## from X11.  If we have X10, just use the installed library;
+## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_X11 1
 _ACEOF
 
+
+  if test "$USE_X_TOOLKIT" = "none"; then
+    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+  else
+    OLDXMENU="\${lwlibdir}liblw.a"
+  fi
+  LIBXMENU="\$(OLDXMENU)"
+else
+  OLDXMENU=
+  LIBXMENU="-lXMenu"
 fi
+
+if test "$HAVE_GTK" = "yes"; then
+  OLDXMENU=
+  LIBXMENU=
+fi
+
+
+
+
 if test "${HAVE_MENUS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -26139,8 +26165,17 @@ _ACEOF
 
 fi
 
-CYGWIN_OBJ=
-test "$opsys" = "cygwin" && CYGWIN_OBJ="sheap.o"
+
+OTHER_OBJ="\$(gmallocobj) \$(rallocobj)"
+if test "$opsys" = "cygwin"; then
+  CYGWIN_OBJ="sheap.o"
+  ## Cygwin differs because of its unexec().
+  OTHER_OBJ="$OTHER_OBJ lastfile.o"
+else
+  CYGWIN_OBJ=
+  OTHER_OBJ="lastfile.o $OTHER_OBJ"
+fi
+
 
 
 
