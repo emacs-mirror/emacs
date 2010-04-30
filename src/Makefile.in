@@ -834,6 +834,14 @@ doc.o: buildobj.h
 
 #ifndef AUTO_DEPEND
 
+## FIXME some of these dependencies are platform-specific.
+## Eg callproc.c only depends on w32.h for WINDOWSNT builds.
+## One way to fix this would be to replace w32.h (etc) by $(W32_H),
+## a variable set by configure.  Doesn't seem worth the trouble.
+
+## nsgui.h: In fact, every .o file depends directly or indirectly on
+## dispextern.h and hence nsgui.h under NS.  But the ones that actually
+## use stuff there are more limited.
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h lisp.h $(config_h)
@@ -869,7 +877,7 @@ dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
    coding.h regex.h systime.h blockinput.h atimer.h composite.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
    window.h buffer.h termchar.h termopts.h termhooks.h cm.h \
-   disptab.h indent.h $(INTERVALS_H) \
+   disptab.h indent.h $(INTERVALS_H) nsgui.h \
    xterm.h blockinput.h atimer.h character.h msdos.h keyboard.h \
    syssignal.h lisp.h $(config_h)
 doc.o: doc.c lisp.h $(config_h) epaths.h buffer.h keyboard.h keymap.h \
@@ -890,18 +898,19 @@ filelock.o: filelock.c buffer.h character.h coding.h systime.h composite.h \
 filemode.o: filemode.c $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h font.h    \
-   msdos.h dosfns.h dispextern.h w32term.h termchar.h coding.h composite.h \
-   lisp.h $(config_h) termhooks.h ccl.h
-fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h \
+   msdos.h dosfns.h dispextern.h w32term.h nsgui.h termchar.h coding.h \
+   composite.h lisp.h $(config_h) termhooks.h ccl.h
+fringe.o: fringe.c dispextern.h nsgui.h frame.h window.h buffer.h termhooks.h \
    blockinput.h atimer.h systime.h lisp.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
-   font.h lisp.h $(config_h) buffer.h composite.h fontset.h xterm.h
+   font.h lisp.h $(config_h) buffer.h composite.h fontset.h xterm.h nsgui.h
 ftfont.o: dispextern.h frame.h character.h charset.h composite.h font.h \
    lisp.h $(config_h) blockinput.h atimer.h systime.h coding.h fontset.h \
    ccl.h ftfont.h
 fontset.o: fontset.c fontset.h ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h font.h lisp.h $(config_h) \
-   blockinput.h atimer.h systime.h coding.h $(INTERVALS_H) window.h xterm.h
+   blockinput.h atimer.h systime.h coding.h $(INTERVALS_H) nsgui.h \
+   window.h xterm.h
 getloadavg.o: getloadavg.c $(config_h)
 gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h lisp.h $(config_h) \
   blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
@@ -917,7 +926,7 @@ insdel.o: insdel.c window.h buffer.h $(INTERVALS_H) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h syntax.h $(INTERVALS_H) blockinput.h atimer.h composite.h \
-   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h coding.h \
+   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h nsgui.h coding.h \
    lisp.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h puresize.h character.h charset.h $(INTERVALS_H) keymap.h window.h \
@@ -996,16 +1005,16 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h msdos.h coding.h termhooks.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVALS_H) \
-   xterm.h w32term.h nsterm.h lisp.h $(config_h)
+   xterm.h w32term.h nsterm.h nsgui.h lisp.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
    coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
-   charset.h lisp.h $(config_h) keyboard.h $(INTERVALS_H) region-cache.h xterm.h    \
-   w32term.h nsterm.h msdos.h composite.h fontset.h ccl.h \
+   charset.h lisp.h $(config_h) keyboard.h $(INTERVALS_H) region-cache.h \
+   xterm.h w32term.h nsterm.h nsgui.h msdos.h composite.h fontset.h ccl.h \
    blockinput.h atimer.h systime.h keymap.h font.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
    systime.h keyboard.h fontset.h w32term.h nsterm.h coding.h ccl.h \
-   $(INTERVALS_H) termchar.h termhooks.h font.h lisp.h $(config_h)
+   $(INTERVALS_H) nsgui.h termchar.h termhooks.h font.h lisp.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    character.h charset.h coding.h gtkutil.h lisp.h $(config_h) termhooks.h \
@@ -1018,7 +1027,7 @@ ftxfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
    font.h lisp.h $(config_h) atimer.h systime.h fontset.h ccl.h
 menu.o: menu.c lisp.h keyboard.h keymap.h frame.h termhooks.h blockinput.h \
    dispextern.h $(srcdir)/../lwlib/lwlib.h xterm.h gtkutil.h menu.h \
-   lisp.h $(config_h) systime.h coding.h composite.h window.h atimer.h
+   lisp.h $(config_h) systime.h coding.h composite.h window.h atimer.h nsgui.h
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
    systime.h gtkutil.h msdos.h coding.h menu.h lisp.h $(config_h) composite.h \
@@ -1076,12 +1085,6 @@ textprop.o: textprop.c buffer.h window.h $(INTERVALS_H) \
    select which of these should be compiled.  */
 
 #ifdef HAVE_NS
-/* In fact, every .o file depends directly or indirectly on dispextern.h
-   and hence nsgui.h under NS.  But the ones that actually use stuff there
-   are more limited.  */
-dispnew.o font.o fontset.o frame.o fringe.o image.o keyboard.o menu.o \
-   window.o xdisp.o xfaces.o: nsgui.h
-
 ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}
