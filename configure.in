@@ -2956,10 +2956,10 @@ OTHER_OBJ="\$(gmallocobj) \$(rallocobj)"
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"
   ## Cygwin differs because of its unexec().
-  OTHER_OBJ="$OTHER_OBJ lastfile.o"
+  OTHER_OBJ="$OTHER_OBJ lastfile.o vm-limit.o"
 else
   CYGWIN_OBJ=
-  OTHER_OBJ="lastfile.o $OTHER_OBJ"
+  OTHER_OBJ="lastfile.o $OTHER_OBJ \$(vmlimitobj)"
 fi
 AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(OTHER_OBJ)

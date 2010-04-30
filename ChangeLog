@@ -1,5 +1,8 @@
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (OTHER_OBJ): Always include vm-limit.o on Cygwin.
+	Elsewhere, maybe include it.
+
 	* configure.in (TOOLKIT_LIBW) [HAVE_GTK]: Set to $GTK_LIBS.
 	(OLDXMENU, LIBXMENU): New output variables.
 

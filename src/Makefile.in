@@ -420,12 +420,14 @@ gmallocobj = gmalloc.o
 #ifdef REL_ALLOC
 rallocobj = ralloc.o
 #endif
+
+vmlimitobj = vm-limit.o
 #endif /* !SYSTEM_MALLOC */
 
+OTHER_OBJ=@OTHER_OBJ@
+
 /* List of object files that make-docfile should not be told about.  */
-/* OTHER_OBJ = $(gmallocobj) $(rallocobj), with trailing/leading
-   lastfile.o on Cygwin/other.  */
-otherobj= $(termcapobj) @OTHER_OBJ@ vm-limit.o $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(termcapobj) $(OTHER_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
