@@ -1,3 +1,12 @@
+2010-04-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.c (autocmp_chars): Save point as marker before calling
+	auto-composition-function (Bug#5984).
+
+	* lisp.h (restore_point_unwind): Add prototype.
+
+	* fileio.c (restore_point_unwind): Remove static attribute.
+
 2010-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (M17N_FLT_USE_NEW_FEATURE): Define it if we can use the
