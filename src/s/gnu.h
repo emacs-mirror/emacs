@@ -28,6 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGNALS_VIA_CHARACTERS
 
+#define POSIX_SIGNALS
+
 /* Tell Emacs that we are a terminfo based system; disable the use
    of local termcap.  (GNU uses ncurses.) */
 #ifdef HAVE_LIBNCURSES
@@ -43,6 +45,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* GNU needs its own crt0, and libc defines data_start.  */
 #define ORDINARY_LINK
 #define DATA_START ({ extern int data_start; (char *) &data_start; })
+
+#define START_FILES
 
 /* Some losing code fails to include this and then assumes
    that because it is braindead that O_RDONLY==0.  */
