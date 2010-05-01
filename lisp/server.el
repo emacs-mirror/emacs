@@ -344,7 +344,9 @@ If CLIENT is non-nil, add a description of it to the logged message."
   ;; for possible servers before doing anything, so it *should* be ours.
   (and (process-contact proc :server)
        (eq (process-status proc) 'closed)
-       (ignore-errors (delete-file (process-get proc :server-file))))
+       (ignore-errors
+	(let (delete-by-moving-to-trash)
+	  (delete-file (process-get proc :server-file)))))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
@@ -517,7 +519,9 @@ To force-start a server, do \\[server-force-delete] and then
       ;; Delete the socket files made by previous server invocations.
       (if (not (eq t (server-running-p server-name)))
 	  ;; Remove any leftover socket or authentication file
-	  (ignore-errors (delete-file server-file))
+	  (ignore-errors
+	   (let (delete-by-moving-to-trash)
+	     (delete-file server-file)))
 	(setq server-mode nil) ;; already set by the minor mode code
 	(display-warning
 	 'server
@@ -600,7 +604,7 @@ NAME defaults to `server-name'.  With argument, ask for NAME."
 				    server-auth-dir
 				  server-socket-dir))))
     (condition-case nil
-	(progn
+	(let (delete-by-moving-to-trash)
 	  (delete-file file)
 	  (message "Connection file %S deleted" file))
       (file-error
