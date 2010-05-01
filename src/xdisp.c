@@ -12776,6 +12776,13 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	 rightmost glyph.  Case in point: an empty last line that is
 	 part of an R2L paragraph.  */
       cursor = end - 1;
+      /* Avoid placing the cursor on the last glyph of the row, where
+	 on terminal frames we hold the vertical border between
+	 adjacent windows.  */
+      if (!FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && !WINDOW_RIGHTMOST_P (w)
+	  && cursor == row->glyphs[LAST_AREA] - 1)
+	cursor--;
       x = -1;	/* will be computed below, at label compute_x */
     }
 
@@ -13716,11 +13723,14 @@ try_cursor_movement (window, startp, scroll_step)
 		  ++row;
 		}
 
-	      /* The end position of a row equals the start position
-		 of the next row.  If PT is there, we would rather
-		 display it in the next line.  */
+	      /* If the end position of a row equals the start
+		 position of the next row, and PT is at that position,
+		 we would rather display cursor in the next line.  */
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_END_CHARPOS (row) == PT
+		     && row < w->current_matrix->rows
+				+ w->current_matrix->nrows - 1
+		     && MATRIX_ROW_START_CHARPOS (row+1) == PT
 		     && !cursor_row_p (w, row))
 		++row;
 

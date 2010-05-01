@@ -7,6 +7,10 @@
 	(display_line): Fix prepending of truncation glyphs to R2L rows.
 	(insert_left_trunc_glyphs): Support addition of left truncation
 	glyphs to R2L rows.
+	(set_cursor_from_row): Don't place cursor on the vertical border
+	glyph between adjacent windows.
+	(try_cursor_movement): Don't assume that row->end == (row+1)->start,
+	test for that explicitly.
 
 2010-04-27  Eli Zaretskii  <eliz@gnu.org>
 
