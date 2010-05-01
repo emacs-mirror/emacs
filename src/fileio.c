@@ -2918,10 +2918,14 @@ if file does not exist, is not accessible, or SELinux is disabled */)
       if (conlength > 0)
 	{
 	  context = context_new (con);
-	  values[0] = build_string (context_user_get (context));
-	  values[1] = build_string (context_role_get (context));
-	  values[2] = build_string (context_type_get (context));
-	  values[3] = build_string (context_range_get (context));
+	  if (context_user_get (context))
+	    values[0] = build_string (context_user_get (context));
+	  if (context_role_get (context))
+	    values[1] = build_string (context_role_get (context));
+	  if (context_type_get (context))
+	    values[2] = build_string (context_type_get (context));
+	  if (context_range_get (context))
+	    values[3] = build_string (context_range_get (context));
 	  context_free (context);
 	}
       if (con)

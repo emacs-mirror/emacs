@@ -1,3 +1,7 @@
+2010-05-01  Karel Klíč  <kklic@redhat.com>
+
+	* fileio.c (Ffile_selinux_context): Context functions may return null.
+
 2010-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/gnu.h (POSIX_SIGNALS):
