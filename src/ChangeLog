@@ -1,3 +1,23 @@
+2010-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Miscellaneous fixes of bidi display.
+
+	* xdisp.c (find_row_end): New function, refactored from
+	display_line.
+	(display_line): Use it.
+	(extend_face_to_end_of_line): In almost-filled rows, extend only
+	if the row is R2L and not continued.
+	(display_line): Fix prepending of truncation glyphs to R2L rows.
+	Preserve overlay and string info in row->end.
+	(insert_left_trunc_glyphs): Support addition of left truncation
+	glyphs to R2L rows.
+	(set_cursor_from_row): Don't place cursor on the vertical border
+	glyph between adjacent windows.  Fix a crash when a display string
+	is continued to the next line.  Don't return zero if cursor was
+	found by `cursor' property of a display string.
+	(try_cursor_movement): Don't assume that row->end == (row+1)->start,
+	test for that explicitly.
+
 2010-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (gmallocobj, rallocobj, vmlimitobj): Initialize to null,
