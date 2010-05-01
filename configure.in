@@ -921,10 +921,6 @@ configure___ use_mmap_for_buffers=no
 #define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
 #endif
 
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
-
 #ifndef LD_SWITCH_SYSTEM
 #define LD_SWITCH_SYSTEM
 #endif
@@ -934,7 +930,6 @@ configure___ use_mmap_for_buffers=no
 #endif
 
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
-configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
 #ifdef THIS_IS_CONFIGURE
 
@@ -972,7 +967,7 @@ else
 fi]
 rm ${tempcname}
 
-ac_link="$ac_link $ld_switch_machine $ld_switch_system"
+ac_link="$ac_link $ld_switch_system"
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 

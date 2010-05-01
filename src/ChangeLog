@@ -1,5 +1,9 @@
 2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove LD_SWITCH_MACHINE.
+	* Makefile.in (LD_SWITCH_MACHINE): Remove definition, unused.
+	(TEMACS_LDFLAGS): Do not use LD_SWITCH_MACHINE.
+
 	Clean up IRIX code.
 	* m/iris4d.h (TERMINFO, FIRST_PTY_LETTER): Move definitions ...
 	* s/irix6-5.h (TERMINFO, FIRST_PTY_LETTER): ... here.

@@ -203,11 +203,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_SYSTEM_TEMACS
 #endif
 
-/* Some m/MACHINE.h files define this to request special switches in ld.  */
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
-
 /* These macros are for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
 #define LD_SWITCH_X_SITE
@@ -337,7 +332,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -751,8 +746,8 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} pre
     ${LIBES}
 #endif
 
-/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
-   often contain options that have to do with using Emacs''s crt0,
+/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM
+   often contains options that have to do with using Emacs''s crt0,
    which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args

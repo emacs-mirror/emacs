@@ -1,3 +1,8 @@
+2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LD_SWITCH_MACHINE, ld_switch_machine): Remove, unused.
+	(ac_link): Do not use ld_switch_machine.
+
 2010-05-01  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (OTHER_OBJ): Remove.
