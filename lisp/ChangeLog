@@ -1,3 +1,18 @@
+2010-05-01  Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>
+	    Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement compression for inline methods.
+
+	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
+	(tramp-copy-size-limit): Allow also nil.
+	(tramp-inline-compress-commands): New defconst.
+	(tramp-find-inline-compress, tramp-get-inline-compress)
+	(tramp-get-inline-coding): New defuns.
+	(tramp-get-remote-coding, tramp-get-local-coding): Removed,
+	replaced by `tramp-get-inline-coding'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
+
 2010-05-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-sentinel, server-start, server-force-delete):
