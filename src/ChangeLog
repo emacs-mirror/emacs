@@ -1,9 +1,20 @@
 2010-05-01  Eli Zaretskii  <eliz@gnu.org>
 
+	Emulate POSIX_SIGNALS on MS-Windows.
+
+	* s/ms-w32.h (POSIX_SIGNALS, struct sigaction, SIG_BLOCK)
+	(SIG_SETMASK, SIG_UNBLOCK): Define.
+
+	* sysdep.c (sys_signal) [WINDOWSNT]: #ifdef away.
+	(wait_for_termination) [WINDOWSNT]: Move MS-Windows specific code
+	from non-POSIX_SIGNALS section to POSIX_SIGNALS section.
+
+	* w32.c (sigemptyset, sigaddset, sigfillset, sigprocmask): New
+	stubs.
+
 	Miscellaneous fixes of bidi display.
 
-	* xdisp.c (find_row_end): New function, refactored from
-	display_line.
+	* xdisp.c (find_row_end): New function, refactored from display_line.
 	(display_line): Use it.
 	(extend_face_to_end_of_line): In almost-filled rows, extend only
 	if the row is R2L and not continued.
