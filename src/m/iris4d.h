@@ -42,15 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_START 0x10000000
 #define DATA_SEG_BITS	0x10000000
 
-/* Use terminfo instead of termcap.  */
-
-#define TERMINFO
-
-/* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-
-#undef FIRST_PTY_LETTER
-#define FIRST_PTY_LETTER 'q'
 
 #if _MIPS_SZLONG != 64
 /* fixme: should there be 64-bit definitions?  (The ones below aren't OK.)  */

@@ -1,5 +1,9 @@
 2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Clean up IRIX code.
+	* m/iris4d.h (TERMINFO, FIRST_PTY_LETTER): Move definitions ...
+	* s/irix6-5.h (TERMINFO, FIRST_PTY_LETTER): ... here.
+
 	Clean up AIX code.
 	* m/ibmrs6000.inp: Remove file, unused.
 	* m/ibmrs6000.h (IBMR2AIX): Remove, unused.
