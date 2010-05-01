@@ -1,3 +1,11 @@
+2010-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (gmallocobj, rallocobj, vmlimitobj): Initialize to null,
+	for clarity.
+	(OTHER_OBJ): Remove.
+	(PRE_ALLOC_OBJ, POST_ALLOC_OBJ): New, set by configure.
+	(otherobj): Use PRE_ALLOC_OBJ, POST_ALLOC_OBJ rather than OTHER_OBJ.
+
 2010-05-01  Karel Klíč  <kklic@redhat.com>
 
 	* fileio.c (Ffile_selinux_context): Context functions may return null.

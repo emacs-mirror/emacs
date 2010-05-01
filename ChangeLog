@@ -1,3 +1,8 @@
+2010-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OTHER_OBJ): Remove.
+	(PRE_ALLOC_OBJ, POST_ALLOC_OBJ): New output variables.
+
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (OTHER_OBJ): Always include vm-limit.o on Cygwin.

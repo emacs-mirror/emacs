@@ -411,7 +411,9 @@ termcapobj = terminfo.o
 termcapobj = tparam.o
 #endif /* ! defined (TERMINFO) */
 
-
+gmallocobj =
+rallocobj =
+vmlimitobj =
 #ifndef SYSTEM_MALLOC
 #ifndef DOUG_LEA_MALLOC
 gmallocobj = gmalloc.o
@@ -424,10 +426,14 @@ rallocobj = ralloc.o
 vmlimitobj = vm-limit.o
 #endif /* !SYSTEM_MALLOC */
 
-OTHER_OBJ=@OTHER_OBJ@
+## Empty on Cygwin, lastfile.o elsewhere.
+PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
+## lastfile.o vm-limit.o on Cygwin, $vmlimitobj elsewhere.
+POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
-otherobj= $(termcapobj) $(OTHER_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(termcapobj) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
+  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \

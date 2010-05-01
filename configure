@@ -802,7 +802,8 @@ TOOLKIT_LIBW
 OLDXMENU
 LIBXMENU
 CYGWIN_OBJ
-OTHER_OBJ
+PRE_ALLOC_OBJ
+POST_ALLOC_OBJ
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -26166,15 +26167,17 @@ _ACEOF
 fi
 
 
-OTHER_OBJ="\$(gmallocobj) \$(rallocobj)"
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"
   ## Cygwin differs because of its unexec().
-  OTHER_OBJ="$OTHER_OBJ lastfile.o vm-limit.o"
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
 else
   CYGWIN_OBJ=
-  OTHER_OBJ="lastfile.o $OTHER_OBJ \$(vmlimitobj)"
+  PRE_ALLOC_OBJ=lastfile.o
+  POST_ALLOC_OBJ="\$(vmlimitobj)"
 fi
+
 
 
 

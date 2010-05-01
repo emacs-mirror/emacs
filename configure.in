@@ -2952,17 +2952,19 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 
-OTHER_OBJ="\$(gmallocobj) \$(rallocobj)"
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"
   ## Cygwin differs because of its unexec().
-  OTHER_OBJ="$OTHER_OBJ lastfile.o vm-limit.o"
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
 else
   CYGWIN_OBJ=
-  OTHER_OBJ="lastfile.o $OTHER_OBJ \$(vmlimitobj)"
+  PRE_ALLOC_OBJ=lastfile.o
+  POST_ALLOC_OBJ="\$(vmlimitobj)"
 fi
 AC_SUBST(CYGWIN_OBJ)
-AC_SUBST(OTHER_OBJ)
+AC_SUBST(PRE_ALLOC_OBJ)
+AC_SUBST(POST_ALLOC_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
