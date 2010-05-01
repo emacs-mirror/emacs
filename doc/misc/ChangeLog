@@ -1,3 +1,8 @@
+2010-05-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods, Default Method): Mention
+	`tramp-inline-compress-start-size'.
+
 2010-04-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Gnus Versions, Oort Gnus): Mention the Git repo instead of

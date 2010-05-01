@@ -592,6 +592,10 @@ If both commands aren't available on the remote host, @value{tramp}
 transfers a small piece of Perl code to the remote host, and tries to
 apply it for encoding and decoding.
 
+The variable @var{tramp-inline-compress-start-size} controls, whether
+a file shall be compressed before encoding.  This could increase
+transfer speed for large text files.
+
 
 @table @asis
 @item @option{rsh}
@@ -1230,7 +1234,9 @@ without bossing you around.  You tell me whether it works @dots{}
 
 My suggestion is to use an inline method.  For large files, external
 methods might be more efficient, but I guess that most people will
-want to edit mostly small files.
+want to edit mostly small files.  And if you access large text files,
+compression (driven by @var{tramp-inline-compress-start-size}) shall
+still result in good performance.
 
 I guess that these days, most people can access a remote machine by
 using @command{ssh}.  So I suggest that you use the @option{ssh}
