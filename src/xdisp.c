@@ -16739,24 +16739,61 @@ insert_left_trunc_glyphs (it)
   produce_special_glyphs (&truncate_it, IT_TRUNCATION);
 
   /* Overwrite glyphs from IT with truncation glyphs.  */
-  from = truncate_it.glyph_row->glyphs[TEXT_AREA];
-  end = from + truncate_it.glyph_row->used[TEXT_AREA];
-  to = it->glyph_row->glyphs[TEXT_AREA];
-  toend = to + it->glyph_row->used[TEXT_AREA];
-
-  while (from < end)
-    *to++ = *from++;
-
-  /* There may be padding glyphs left over.  Overwrite them too.  */
-  while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+  if (!it->glyph_row->reversed_p)
     {
       from = truncate_it.glyph_row->glyphs[TEXT_AREA];
+      end = from + truncate_it.glyph_row->used[TEXT_AREA];
+      to = it->glyph_row->glyphs[TEXT_AREA];
+      toend = to + it->glyph_row->used[TEXT_AREA];
+
       while (from < end)
 	*to++ = *from++;
-    }
 
-  if (to > toend)
-    it->glyph_row->used[TEXT_AREA] = to - it->glyph_row->glyphs[TEXT_AREA];
+      /* There may be padding glyphs left over.  Overwrite them too.  */
+      while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+	{
+	  from = truncate_it.glyph_row->glyphs[TEXT_AREA];
+	  while (from < end)
+	    *to++ = *from++;
+	}
+
+      if (to > toend)
+	it->glyph_row->used[TEXT_AREA] = to - it->glyph_row->glyphs[TEXT_AREA];
+    }
+  else
+    {
+      /* In R2L rows, overwrite the last (rightmost) glyphs, and do
+	 that back to front.  */
+      end = truncate_it.glyph_row->glyphs[TEXT_AREA];
+      from = end + truncate_it.glyph_row->used[TEXT_AREA] - 1;
+      toend = it->glyph_row->glyphs[TEXT_AREA];
+      to = toend + it->glyph_row->used[TEXT_AREA] - 1;
+
+      while (from >= end && to >= toend)
+	*to-- = *from--;
+      while (to >= toend && CHAR_GLYPH_PADDING_P (*to))
+	{
+	  from =
+	    truncate_it.glyph_row->glyphs[TEXT_AREA]
+	    + truncate_it.glyph_row->used[TEXT_AREA] - 1;
+	  while (from >= end && to >= toend)
+	    *to-- = *from--;
+	}
+      if (from >= end)
+	{
+	  /* Need to free some room before prepending additional
+	     glyphs.  */
+	  int move_by = from - end + 1;
+	  struct glyph *g0 = it->glyph_row->glyphs[TEXT_AREA];
+	  struct glyph *g = g0 + it->glyph_row->used[TEXT_AREA] - 1;
+
+	  for ( ; g >= g0; g--)
+	    g[move_by] = *g;
+	  while (from >= end)
+	    *to-- = *from--;
+	  it->glyph_row->used[TEXT_AREA] += move_by;
+	}
+    }
 }
 
 
@@ -17938,10 +17975,14 @@ display_line (it)
 		  for (i = 0; i < row->used[TEXT_AREA]; i++)
 		    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
 		      break;
-		  /* Remove padding glyphs at the front of ROW, to
+		  /* Remove any padding glyphs at the front of ROW, to
 		     make room for the truncation glyphs we will be
-		     adding below.  */
-		  unproduce_glyphs (it, i);
+		     adding below.  The loop below always inserts at
+		     least one truncation glyph, so also remove the
+		     last glyph added to ROW.  */
+		  unproduce_glyphs (it, i + 1);
+		  /* Adjust i for the loop below.  */
+		  i = row->used[TEXT_AREA] - (i + 1);
 		}
 
 	      for (n = row->used[TEXT_AREA]; i < n; ++i)

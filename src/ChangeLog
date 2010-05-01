@@ -4,6 +4,9 @@
 	(display_line): Use it.
 	(extend_face_to_end_of_line): In almost-filled rows, extend only
 	if the row is R2L and not continued.
+	(display_line): Fix prepending of truncation glyphs to R2L rows.
+	(insert_left_trunc_glyphs): Support addition of left truncation
+	glyphs to R2L rows.
 
 2010-04-27  Eli Zaretskii  <eliz@gnu.org>
 
