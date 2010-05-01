@@ -1,3 +1,10 @@
+2010-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (tags-completion-at-point-function): Move to etags.el.
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Remove left over interactive spec.  Add autoloading stub.
+	(complete-tag): Use tags-completion-at-point-function.
+
 2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (tags-completion-at-point-function): Fix return
