@@ -2,6 +2,8 @@
 
 	* xdisp.c (find_row_end): New function, refactored from display_line.
 	(display_line): Use it.
+	(extend_face_to_end_of_line): In almost-filled rows, extend only
+	if the row is R2L and not continued.
 
 2010-04-27  Eli Zaretskii  <eliz@gnu.org>
 

@@ -16948,8 +16948,13 @@ extend_face_to_end_of_line (it)
 
   /* If line is already filled, do nothing.  Non window-system frames
      get a grace of one more ``pixel'' because their characters are
-     1-``pixel'' wide, so they hit the equality too early.  */
-  if (it->current_x >= it->last_visible_x + !FRAME_WINDOW_P (f))
+     1-``pixel'' wide, so they hit the equality too early.  This grace
+     is needed only for R2L rows that are not continued, to produce
+     one extra blank where we could display the cursor.  */
+  if (it->current_x >= it->last_visible_x
+      + (!FRAME_WINDOW_P (f)
+	 && it->glyph_row->reversed_p
+	 && !it->glyph_row->continued_p))
     return;
 
   /* Face extension extends the background and box of IT->face_id
