@@ -1,5 +1,8 @@
 2010-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el (lisp-mode): Use define-derived-mode.
+	Set find-tag-default-function as a variable rather than a property.
+
 	* minibuffer.el (tags-completion-at-point-function): Move to etags.el.
 	* progmodes/etags.el (tags-completion-at-point-function):
 	Remove left over interactive spec.  Add autoloading stub.
