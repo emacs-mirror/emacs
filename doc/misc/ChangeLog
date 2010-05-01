@@ -1,3 +1,7 @@
+2010-05-01  Daniel E. Doherty <ddoherty03@gmail.com> (tiny change)
+
+	* calc.texi (Tutorial): Use "^{\prime}" to indicate primes.
+
 2010-05-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Inline methods, Default Method): Mention
