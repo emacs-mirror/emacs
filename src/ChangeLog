@@ -1,3 +1,8 @@
+2010-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_row_end): New function, refactored from display_line.
+	(display_line): Use it.
+
 2010-04-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Fix a crash when a display string

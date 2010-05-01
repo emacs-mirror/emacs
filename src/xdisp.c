@@ -17370,6 +17370,123 @@ unproduce_glyphs (it, n)
     glyph[-n] = *glyph;
 }
 
+/* Find the positions in a bidi-reordered ROW to serve as ROW->start
+   and ROW->end.  */
+static struct display_pos
+find_row_end (it, row)
+     struct it *it;
+     struct glyph_row *row;
+{
+  /* FIXME: Revisit this when glyph ``spilling'' in continuation
+     lines' rows is implemented for bidi-reordered rows.  */
+  EMACS_INT min_pos = ZV + 1, max_pos = 0;
+  struct glyph *g;
+  struct it save_it;
+  struct text_pos tpos;
+  struct display_pos row_end = it->current;
+
+  for (g = row->glyphs[TEXT_AREA];
+       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+       g++)
+    {
+      if (BUFFERP (g->object))
+	{
+	  if (g->charpos > 0 && g->charpos < min_pos)
+	    min_pos = g->charpos;
+	  if (g->charpos > max_pos)
+	    max_pos = g->charpos;
+	}
+    }
+  /* Empty lines have a valid buffer position at their first
+     glyph, but that glyph's OBJECT is zero, as if it didn't come
+     from a buffer.  If we didn't find any valid buffer positions
+     in this row, maybe we have such an empty line.  */
+  if (max_pos == 0 && row->used[TEXT_AREA])
+    {
+      for (g = row->glyphs[TEXT_AREA];
+	   g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+	   g++)
+	{
+	  if (INTEGERP (g->object))
+	    {
+	      if (g->charpos > 0 && g->charpos < min_pos)
+		min_pos = g->charpos;
+	      if (g->charpos > max_pos)
+		max_pos = g->charpos;
+	    }
+	}
+    }
+
+  /* ROW->start is the value of min_pos, the minimal buffer position
+     we have in ROW.  */
+  if (min_pos <= ZV)
+    {
+      /* Avoid calling the costly CHAR_TO_BYTE if possible.  */
+      if (min_pos != row->start.pos.charpos)
+	SET_TEXT_POS (row->start.pos, min_pos, CHAR_TO_BYTE (min_pos));
+      if (max_pos == 0)
+	max_pos = min_pos;
+    }
+
+  /* For ROW->end, we need the position that is _after_ max_pos, in
+     the logical order, unless we are at ZV.  */
+  if (row->ends_at_zv_p)
+    {
+      if (!row->used[TEXT_AREA])
+	row->start.pos = row_end.pos;
+    }
+  else if (row->used[TEXT_AREA] && max_pos)
+    {
+      int at_eol_p;
+
+      SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
+      save_it = *it;
+      it->bidi_p = 0;
+      reseat (it, tpos, 0);
+      if (!get_next_display_element (it))
+	abort ();	/* this row cannot be at ZV, see above */
+      at_eol_p = ITERATOR_AT_END_OF_LINE_P (it);
+      set_iterator_to_next (it, 1);
+      row_end = it->current;
+      /* If the character at max_pos is not a newline and the
+	 characters at max_pos+1 is a newline, skip that newline as
+	 well.  Note that this may skip some invisible text.  */
+      if (!at_eol_p
+	  && get_next_display_element (it)
+	  && ITERATOR_AT_END_OF_LINE_P (it))
+	{
+	  set_iterator_to_next (it, 1);
+	  /* Record the position after the newline of a continued row.
+	     We will need that to set ROW->end of the last row
+	     produced for a continued line.  */
+	  if (row->continued_p)
+	    save_it.eol_pos = it->current.pos;
+	  else
+	    {
+	      row_end = it->current;
+	      save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
+	    }
+	}
+      else if (!row->continued_p
+	       && MATRIX_ROW_CONTINUATION_LINE_P (row)
+	       && it->eol_pos.charpos > 0)
+	{
+	  /* Last row of a continued line.  Use the position recorded
+	     in IT->eol_pos, to the effect that the newline belongs to
+	     this row, not to the row which displays the character
+	     with the largest buffer position before the newline.  */
+	  row_end.pos = it->eol_pos;
+	  it->eol_pos.charpos = it->eol_pos.bytepos = 0;
+	}
+      *it = save_it;
+      /* The members of ROW->end that are not taken from buffer
+	 positions are copied from IT->current.  */
+      row_end.string_pos = it->current.string_pos;
+      row_end.overlay_string_index = it->current.overlay_string_index;
+      row_end.dpvec_index = it->current.dpvec_index;
+    }
+  return row_end;
+}
 
 /* Construct the glyph row IT->glyph_row in the desired matrix of
    IT->w from text at the current position of IT.  See dispextern.h
@@ -17388,7 +17505,6 @@ display_line (it)
   int wrap_row_used = -1, wrap_row_ascent, wrap_row_height;
   int wrap_row_phys_ascent, wrap_row_phys_height;
   int wrap_row_extra_line_spacing;
-  struct display_pos row_end;
   int cvpos;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
@@ -17912,120 +18028,13 @@ display_line (it)
   compute_line_metrics (it);
 
   /* Remember the position at which this line ends.  */
-  row->end = row_end = it->current;
+  row->end = it->current;
+  /* ROW->start and ROW->end must be the smallest and the largest
+     buffer positions in ROW.  But if ROW was bidi-reordered, these
+     two positions can be anywhere in the row, so we must rescan all
+     of the ROW's glyphs to find them.  */
   if (it->bidi_p)
-    {
-      /* ROW->start and ROW->end must be the smallest and largest
-	 buffer positions in ROW.  But if ROW was bidi-reordered,
-	 these two positions can be anywhere in the row, so we must
-	 rescan all of the ROW's glyphs to find them.  */
-      /* FIXME: Revisit this when glyph ``spilling'' in continuation
-	 lines' rows is implemented for bidi-reordered rows.  */
-      EMACS_INT min_pos = ZV + 1, max_pos = 0;
-      struct glyph *g;
-      struct it save_it;
-      struct text_pos tpos;
-
-      for (g = row->glyphs[TEXT_AREA];
-	   g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
-	   g++)
-	{
-	  if (BUFFERP (g->object))
-	    {
-	      if (g->charpos > 0 && g->charpos < min_pos)
-		min_pos = g->charpos;
-	      if (g->charpos > max_pos)
-		max_pos = g->charpos;
-	    }
-	}
-      /* Empty lines have a valid buffer position at their first
-	 glyph, but that glyph's OBJECT is zero, as if it didn't come
-	 from a buffer.  If we didn't find any valid buffer positions
-	 in this row, maybe we have such an empty line.  */
-      if (min_pos == ZV + 1 && row->used[TEXT_AREA])
-	{
-	  for (g = row->glyphs[TEXT_AREA];
-	       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
-	       g++)
-	    {
-	      if (INTEGERP (g->object))
-		{
-		  if (g->charpos > 0 && g->charpos < min_pos)
-		    min_pos = g->charpos;
-		  if (g->charpos > max_pos)
-		    max_pos = g->charpos;
-		}
-	    }
-	}
-      if (min_pos <= ZV)
-	{
-	  if (min_pos != row->start.pos.charpos)
-	    {
-	      row->start.pos.charpos = min_pos;
-	      row->start.pos.bytepos = CHAR_TO_BYTE (min_pos);
-	    }
-	  if (max_pos == 0)
-	    max_pos = min_pos;
-	}
-      /* For ROW->end, we need the position that is _after_ max_pos,
-	 in the logical order, unless we are at ZV.  */
-      if (row->ends_at_zv_p)
-	{
-	  if (!row->used[TEXT_AREA])
-	    {
-	      row->start.pos.charpos = row_end.pos.charpos;
-	      row->start.pos.bytepos = row_end.pos.bytepos;
-	    }
-	}
-      else if (row->used[TEXT_AREA] && max_pos)
-	{
-	  SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
-	  save_it = *it;
-	  it->bidi_p = 0;
-	  reseat (it, tpos, 0);
-	  if (!get_next_display_element (it))
-	    abort ();	/* row at ZV was already handled above */
-	  set_iterator_to_next (it, 1);
-	  row_end = it->current;
-	  /* If the character at max_pos+1 is a newline, skip that as
-	     well.  Note that this may skip some invisible text.  */
-	  if (get_next_display_element (it)
-	      && ITERATOR_AT_END_OF_LINE_P (it))
-	    {
-	      set_iterator_to_next (it, 1);
-	      /* Record the position after the newline of a continued
-		 row.  We will need that to set ROW->end of the last
-		 row produced for a continued line.  */
-	      if (row->continued_p)
-		{
-		  save_it.eol_pos.charpos = IT_CHARPOS (*it);
-		  save_it.eol_pos.bytepos = IT_BYTEPOS (*it);
-		}
-	      else
-		{
-		  row_end = it->current;
-		  save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
-		}
-	    }
-	  else if (!row->continued_p
-		   && MATRIX_ROW_CONTINUATION_LINE_P (row)
-		   && it->eol_pos.charpos > 0)
-	    {
-	      /* Last row of a continued line.  Use the position
-		 recorded in ROW->eol_pos, to the effect that the
-		 newline belongs to this row, not to the row which
-		 displays the character with the largest buffer
-		 position.  */
-	      row_end.pos = it->eol_pos;
-	      it->eol_pos.charpos = it->eol_pos.bytepos = 0;
-	    }
-	  *it = save_it;
-	  row_end.string_pos = it->current.string_pos;
-	  row_end.overlay_string_index = it->current.overlay_string_index;
-	  row_end.dpvec_index = it->current.dpvec_index;
-	  row->end = row_end;
-	}
-    }
+    row->end = find_row_end (it, row);
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p
@@ -18079,7 +18088,7 @@ display_line (it)
      the flag accordingly.  */
   if (it->glyph_row < MATRIX_BOTTOM_TEXT_ROW (it->w->desired_matrix, it->w))
     it->glyph_row->reversed_p = row->reversed_p;
-  it->start = row_end;
+  it->start = row->end;
   return row->displays_text_p;
 }
 
