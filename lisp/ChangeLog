@@ -1,5 +1,8 @@
 2010-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bindings.el (mode-line-abbrev-mode, mode-line-auto-fill-mode):
+	Remove unused functions.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode): Use define-derived-mode.
 	Set find-tag-default-function as a variable rather than a property.
 
