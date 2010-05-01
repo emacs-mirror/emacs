@@ -420,6 +420,10 @@ wait_for_termination (pid)
 	sigpause (SIGEMPTYMASK);
 #else /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #ifdef POSIX_SIGNALS    /* would this work for GNU/Linux as well? */
+#ifdef WINDOWSNT
+      wait (0);
+      break;
+#else /* not WINDOWSNT */
       sigblock (sigmask (SIGCHLD));
       errno = 0;
       if (kill (pid, 0) == -1 && errno == ESRCH)
@@ -429,6 +433,7 @@ wait_for_termination (pid)
 	}
 
       sigsuspend (&empty_mask);
+#endif /* not WINDOWSNT */
 #else /* not POSIX_SIGNALS */
 #ifdef HAVE_SYSV_SIGPAUSE
       sighold (SIGCHLD);
@@ -439,17 +444,12 @@ wait_for_termination (pid)
 	}
       sigpause (SIGCHLD);
 #else /* not HAVE_SYSV_SIGPAUSE */
-#ifdef WINDOWSNT
-      wait (0);
-      break;
-#else /* not WINDOWSNT */
       if (0 > kill (pid, 0))
 	break;
       /* Using sleep instead of pause avoids timing error.
 	 If the inferior dies just before the sleep,
 	 we lose just one second.  */
       sleep (1);
-#endif /* not WINDOWSNT */
 #endif /* not HAVE_SYSV_SIGPAUSE */
 #endif /* not POSIX_SIGNALS */
 #endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
@@ -2105,6 +2105,8 @@ read_input_waiting ()
 
 sigset_t empty_mask, full_mask;
 
+#ifndef WINDOWSNT
+
 signal_handler_t
 sys_signal (int signal_number, signal_handler_t action)
 {
@@ -2132,6 +2134,8 @@ sys_signal (int signal_number, signal_handler_t action)
   sigaction (signal_number, &new_action, &old_action);
   return (old_action.sa_handler);
 }
+
+#endif	/* WINDOWSNT */
 
 #ifndef __GNUC__
 /* If we're compiling with GCC, we don't need this function, since it
