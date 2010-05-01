@@ -1,5 +1,12 @@
 2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Clean up AIX code.
+	* m/ibmrs6000.inp: Remove file, unused.
+	* m/ibmrs6000.h (IBMR2AIX): Remove, unused.
+	(LD_SWITCH_MACHINE): Rename to LD_SWITCH_SYSTEM_TEMACS, and move
+	definition ...
+	* s/aix4-2.h (LD_SWITCH_SYSTEM_TEMACS): ... here.
+
 	* sysdep.c (child_setup_tty, init_sys_modes): Remove !IBMR2AIX code, unused.
 
 2010-05-01  Eli Zaretskii  <eliz@gnu.org>
