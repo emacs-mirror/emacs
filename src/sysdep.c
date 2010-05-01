@@ -546,11 +546,6 @@ child_setup_tty (out)
 #endif /* not SIGNALS_VIA_CHARACTERS */
 
 #ifdef AIX
-/* AIX enhanced edit loses NULs, so disable it */
-#ifndef IBMR2AIX
-  s.main.c_line = 0;
-  s.main.c_iflag &= ~ASCEDIT;
-#endif
   /* Also, PTY overloads NUL and BREAK.
      don't ignore break, but don't signal either, so it looks like NUL.  */
   s.main.c_iflag &= ~IGNBRK;
@@ -1258,16 +1253,10 @@ init_sys_modes (tty_out)
 #endif /* mips or HAVE_TCATTR */
 
 #ifdef AIX
-#ifndef IBMR2AIX
-  /* AIX enhanced edit loses NULs, so disable it.  */
-  tty.main.c_line = 0;
-  tty.main.c_iflag &= ~ASCEDIT;
-#else
   tty.main.c_cc[VSTRT] = CDISABLE;
   tty.main.c_cc[VSTOP] = CDISABLE;
   tty.main.c_cc[VSUSP] = CDISABLE;
   tty.main.c_cc[VDSUSP] = CDISABLE;
-#endif /* IBMR2AIX */
   if (tty_out->flow_control)
     {
 #ifdef VSTART
