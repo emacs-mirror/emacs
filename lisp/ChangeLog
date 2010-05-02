@@ -1,3 +1,43 @@
+2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode in CEDET where applicable.
+
+	* cedet/srecode/mode.el (srecode-minor-mode,global-srecode-minor-mode):
+	Use define-minor-mode.
+
+	* cedet/semantic/util-modes.el (semantic-add-minor-mode):
+	Remove unused arg `keymap' and code redundant with define-minor-mode.
+	(semantic-toggle-minor-mode-globally): Only handle arg -1 and 1.
+	(semantic-stickyfunc-mode, global-semantic-show-unmatched-syntax-mode)
+	(semantic-highlight-func-mode, global-semantic-show-parser-state-mode)
+	(global-semantic-highlight-edits-mode, semantic-highlight-edits-mode)
+	(semantic-show-unmatched-syntax-mode, semantic-show-parser-state-mode)
+	(global-semantic-stickyfunc-mode, global-semantic-highlight-func-mode):
+	Use define-minor-mode.
+	(semantic-stickyfunc-mode-setup, semantic-highlight-edits-mode-setup)
+	(semantic-show-unmatched-syntax-mode-setup)
+	(semantic-show-parser-state-mode-setup)
+	(semantic-highlight-func-mode-setup): Inline into sole caller.
+
+	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)
+	(semantic-mru-bookmark-mode): Use define-minor-mode.
+	(semantic-mru-bookmark-mode-setup): Inline into sole caller.
+
+	* cedet/semantic/idle.el (define-semantic-idle-service):
+	Use define-minor-mode and inline setup function into its sole caller.
+	(semantic-idle-scheduler-mode-setup)
+	(semantic-idle-summary-mode-setup): Inline into sole caller.
+	(global-semantic-idle-scheduler-mode, semantic-idle-scheduler-mode):
+	Use define-minor-mode.
+
+	* cedet/semantic/decorate/mode.el (global-semantic-decoration-mode)
+	(semantic-decoration-mode): Use define-minor-mode.
+	(semantic-decoration-mode-setup): Inline into sole caller.
+
+	* cedet/ede/dired.el (ede-dired-minor-mode): Initialize in declaration.
+	(ede-dired-minor-mode): Use define-minor-mode and derived-mode-p.
+	(ede-dired-add-to-target): Use dolist.
+
 2010-05-01  Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>
 	    Michael Albinus  <michael.albinus@gmx.de>
 
@@ -8,8 +48,8 @@
 	(tramp-inline-compress-commands): New defconst.
 	(tramp-find-inline-compress, tramp-get-inline-compress)
 	(tramp-get-inline-coding): New defuns.
-	(tramp-get-remote-coding, tramp-get-local-coding): Removed,
-	replaced by `tramp-get-inline-coding'.
+	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
+	replace by `tramp-get-inline-coding'.
 	(tramp-handle-file-local-copy, tramp-handle-write-region)
 	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
 
@@ -41,8 +81,7 @@
 
 2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
 
-	* minibuffer.el (tags-completion-at-point-function): Fix return
-	value.
+	* minibuffer.el (tags-completion-at-point-function): Fix return value.
 
 2010-04-30  Eli Zaretskii  <eliz@gnu.org>
 
