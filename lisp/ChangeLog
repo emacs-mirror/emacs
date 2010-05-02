@@ -1,5 +1,10 @@
 2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (with-wrapper-hook): Move.
+	(buffer-substring-filters): Mark obsolete.
+	(filter-buffer-substring-functions): New variable.
+	(buffer-substring-filters): Use it.  Remove unused arg `noprops'.
+
 	Use a mode-line spec rather than a static string in Semantic.
 	* cedet/semantic/util-modes.el:
 	(semantic-minor-modes-format): New var to replace...

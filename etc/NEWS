@@ -181,6 +181,8 @@ Secret Service API requires D-Bus for communication.
 
 * Lisp changes in Emacs 24.1
 
+** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
+
 ** New completion style `substring'.
 
 ** Image API
