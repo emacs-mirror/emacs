@@ -1,3 +1,18 @@
+2010-05-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (CHDIR_OPT): New define.
+	(smc_save_yourself_CB): Add CHDIR_OPT to options to use when
+	restarting emacs.
+
+	* xterm.c (x_connection_closed): Call Fkill_emacs instead of
+	shut_down_emacs.
+
+	* emacs.c (USAGE1): Mention --chdir.
+	(main): Handle --chdir.
+	(standard_args): Add --chdir.
+	(fatal_error_signal): Call Fkill_emacs for SIGTERM and SIGHUP (Bug
+	#5552).
+
 2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove LD_SWITCH_MACHINE.
