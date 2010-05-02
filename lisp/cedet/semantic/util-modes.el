@@ -28,6 +28,10 @@
 ;;
 
 ;;; Code:
+
+;; FIXME: compiling util-modes.el seems to require loading util-modes.el,
+;; so if the previous compilation generated a file that fails to load,
+;; recompiling fails to fix the problem.
 (require 'semantic)
 
 ;;; Group for all semantic enhancing modes
@@ -49,8 +53,7 @@ line."
   :set (lambda (sym val)
          (set-default sym val)
          ;; Update status of all Semantic enabled buffers
-         (semantic-map-buffers
-          #'semantic-mode-line-update)))
+         (semantic-mode-line-update)))
 
 (defcustom semantic-mode-line-prefix
   (propertize "S" 'face 'bold)
@@ -60,52 +63,54 @@ line."
   :require 'semantic/util-modes
   :initialize 'custom-initialize-default)
 
-(defvar semantic-minor-modes-status nil
-  "String showing Semantic minor modes which are locally enabled.
+(defvar semantic-minor-modes-format nil
+  "Mode line format showing Semantic minor modes which are locally enabled.
 It is displayed in the mode line.")
-(make-variable-buffer-local 'semantic-minor-modes-status)
+(put 'semantic-minor-modes-format 'risky-local-variable t)
 
 (defvar semantic-minor-mode-alist nil
   "Alist saying how to show Semantic minor modes in the mode line.
 Like variable `minor-mode-alist'.")
 
 (defun semantic-mode-line-update ()
-  "Update display of Semantic minor modes in the mode line.
+  "Update mode line format of Semantic minor modes.
 Only minor modes that are locally enabled are shown in the mode line."
-  (setq semantic-minor-modes-status nil)
-  (if semantic-update-mode-line
-      (let ((ml semantic-minor-mode-alist)
-            mm ms see)
-        (while ml
-          (setq mm (car ml)
-                ms (cadr mm)
-                mm (car mm)
-                ml (cdr ml))
-          (when (and (symbol-value mm)
-                     ;; Only show local minor mode status
-                     (not (memq mm semantic-init-hook)))
-            (and ms
-                 (symbolp ms)
-                 (setq ms (symbol-value ms)))
-            (and (stringp ms)
-                 (not (member ms see)) ;; Don't duplicate same status
-                 (setq see (cons ms see)
-                       ms (if (string-match "^[ ]*\\(.+\\)" ms)
-                              (match-string 1 ms)))
-                 (setq semantic-minor-modes-status
-                       (if semantic-minor-modes-status
-                           (concat semantic-minor-modes-status "/" ms)
-                         ms)))))
-        (if semantic-minor-modes-status
-            (setq semantic-minor-modes-status
-                  (concat
-                   " "
-                   (if (string-match "^[ ]*\\(.+\\)"
-                                     semantic-mode-line-prefix)
-                       (match-string 1 semantic-mode-line-prefix)
-                     "S")
-                   "/"
-                   semantic-minor-modes-status))))))
+  (setq semantic-minor-modes-format nil)
+  (dolist (x semantic-minor-mode-alist)
+    (setq minor-mode-alist (delq (assq (car x) minor-mode-alist)
+                                 minor-mode-alist)))
+  (when semantic-update-mode-line
+    (let ((locals '()))
+      ;; Select the minor modes that aren't enabled globally and who
+      ;; have a non-empty "name".
+      (dolist (x semantic-minor-mode-alist)
+        (unless (or (memq (car x) semantic-init-hook)
+                    (not (string-match "^[ ]*\\(.+\\)" (cadr x))))
+          (push (list (car x) (concat "/" (match-string 1 (cadr x)))) locals)))
+      ;; Then build the format spec.
+      (when locals
+        (let ((prefix (if (string-match "^[ ]*\\(.+\\)"
+                                        semantic-mode-line-prefix)
+                          (match-string 1 semantic-mode-line-prefix)
+                        "S")))
+          (setq semantic-minor-modes-format
+                `((:eval (if (or ,@(mapcar 'car locals))
+                             ,(concat " " prefix)))))
+          ;; It would be easier to just put `locals' inside
+          ;; semantic-minor-modes-format, but then things like
+          ;; mode-line-minor-mode-help can't find the right major mode
+          ;; any more.  So instead, we carefully put the minor modes
+          ;; in minor-mode-alist.
+          (let* ((elem (or (assq 'semantic-minor-modes-format
+                                 minor-mode-alist)
+                           ;; FIXME: This entry is meaningless for
+                           ;; mode-line-minor-mode-help.
+                           '(semantic-minor-modes-format
+                           semantic-minor-modes-format)))
+                 (tail (or (memq elem minor-mode-alist)
+                           (setq minor-mode-alist
+                                 (cons elem minor-mode-alist)))))
+            (setcdr tail (nconc locals (cdr tail)))))))))      
 
 (defun semantic-desktop-ignore-this-minor-mode (buffer)
   "Installed as a minor-mode initializer for Desktop mode.
@@ -121,25 +126,20 @@ It is also an interactive function to toggle the mode.
 NAME specifies what will appear in the mode line when the minor mode
 is active.  NAME should be either a string starting with a space, or a
 symbol whose value is such a string."
-  ;; Add a dymmy semantic minor mode to display the status
-  (or (assq 'semantic-minor-modes-status minor-mode-alist)
-      (setq minor-mode-alist (cons (list 'semantic-minor-modes-status
-                                         'semantic-minor-modes-status)
-                                   minor-mode-alist)))
   ;; Record how to display this minor mode in the mode line
   (let ((mm (assq toggle semantic-minor-mode-alist)))
     (if mm
         (setcdr mm (list name))
       (setq semantic-minor-mode-alist (cons (list toggle name)
                                        semantic-minor-mode-alist))))
+  (semantic-mode-line-update)
 
   ;; Semantic minor modes don't work w/ Desktop restore.
   ;; This line will disable this minor mode from being restored
   ;; by Desktop.
   (when (boundp 'desktop-minor-mode-handlers)
     (add-to-list 'desktop-minor-mode-handlers
-		 (cons toggle 'semantic-desktop-ignore-this-minor-mode)))
-  )
+		 (cons toggle 'semantic-desktop-ignore-this-minor-mode))))
 
 (defun semantic-toggle-minor-mode-globally (mode &optional arg)
   "Toggle minor mode MODE in every Semantic enabled buffer.
@@ -148,7 +148,8 @@ If ARG is positive, enable, if it is negative, disable.
 MODE must be a valid minor mode defined in `minor-mode-alist' and must be
 too an interactive function used to toggle the mode."
   ;; FIXME: All callers should pass a -1 or +1 argument.
-  (or (and (fboundp mode) (assq mode minor-mode-alist))
+  (or (and (fboundp mode) (or (assq mode minor-mode-alist) ;Needed?
+			      (assq mode semantic-minor-mode-alist)))
       (error "Semantic minor mode %s not found" mode))
   ;; Add or remove the MODE toggle function from `semantic-init-hook'.
   (cond
@@ -159,6 +160,8 @@ too an interactive function used to toggle the mode."
    ;; Otherwise just check MODE state
    (t
     (error "semantic-toggle-minor-mode-globally: arg should be -1 or 1")))
+  ;; Update the minor mode format.
+  (semantic-mode-line-update)
   ;; Then turn MODE on or off in every Semantic enabled buffer.
   (semantic-map-buffers #'(lambda () (funcall mode arg))))
 
@@ -224,8 +227,7 @@ minor mode is enabled."
 		  'semantic-highlight-edits-new-change-hook-fcn nil t))
     ;; Remove hooks
     (remove-hook 'semantic-edits-new-change-hooks
-		 'semantic-highlight-edits-new-change-hook-fcn t))
-  (semantic-mode-line-update))
+		 'semantic-highlight-edits-new-change-hook-fcn t)))
 
 (semantic-add-minor-mode 'semantic-highlight-edits-mode
                          "e")
@@ -390,8 +392,7 @@ minor mode is enabled.
     (remove-hook 'semantic-pre-clean-token-hooks
 		 'semantic-clean-token-of-unmatched-syntax t)
     ;; Cleanup unmatched-syntax highlighting
-    (semantic-clean-unmatched-syntax-in-buffer))
-  (semantic-mode-line-update))
+    (semantic-clean-unmatched-syntax-in-buffer)))
 
 (semantic-add-minor-mode 'semantic-show-unmatched-syntax-mode
                          "u")
@@ -508,8 +509,7 @@ minor mode is enabled."
     (remove-hook 'semantic-before-idle-scheduler-reparse-hook
 		 'semantic-show-parser-state-auto-marker t)
     (remove-hook 'semantic-after-idle-scheduler-reparse-hook
-		 'semantic-show-parser-state-marker t))
-  (semantic-mode-line-update))
+		 'semantic-show-parser-state-marker t)))
 
 (semantic-add-minor-mode 'semantic-show-parser-state-mode
                          "")
@@ -539,7 +539,7 @@ in many situations."
 	      (t
                "-")))
   ;;(message "Setup mode line indicator to [%s]" semantic-show-parser-state-string)
-  (semantic-mode-line-update))
+  )
 
 (defun semantic-show-parser-state-auto-marker ()
   "Hook function run before an autoparse.
@@ -547,7 +547,6 @@ Set up `semantic-show-parser-state-marker' to show `@'
 to indicate a parse in progress."
   (unless (semantic-parse-tree-up-to-date-p)
     (setq semantic-show-parser-state-string "@")
-    (semantic-mode-line-update)
     ;; For testing.
     ;;(sit-for 1)
     ))
@@ -737,8 +736,7 @@ minor mode is enabled."
       (kill-local-variable 'header-line-format)
       (when (local-variable-p 'semantic-stickyfunc-old-hlf (current-buffer))
 	(setq header-line-format semantic-stickyfunc-old-hlf)
-	(kill-local-variable 'semantic-stickyfunc-old-hlf))))
-  (semantic-mode-line-update))
+	(kill-local-variable 'semantic-stickyfunc-old-hlf)))))
 
 (defvar semantic-stickyfunc-sticky-classes
   '(function type)

@@ -288,8 +288,7 @@ minor mode is enabled."
     (remove-hook 'semantic-edits-new-change-hooks
 		 'semantic-mru-bookmark-change-hook-fcn t)
     (remove-hook 'semantic-edits-move-change-hooks
-		 'semantic-mru-bookmark-change-hook-fcn t))
-  (semantic-mode-line-update))
+		 'semantic-mru-bookmark-change-hook-fcn t)))
 
 (semantic-add-minor-mode 'semantic-mru-bookmark-mode
                          "k")

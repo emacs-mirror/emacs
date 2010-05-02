@@ -177,8 +177,7 @@ minor mode is enabled."
             (setq semantic-idle-scheduler-mode nil)
             (error "Buffer %s was not set up idle time scheduling"
                    (buffer-name)))
-        (semantic-idle-scheduler-setup-timers)))
-  (semantic-mode-line-update))
+        (semantic-idle-scheduler-setup-timers))))
 
 (semantic-add-minor-mode 'semantic-idle-scheduler-mode
                          "ARP")
@@ -589,8 +588,7 @@ turned on in every Semantic-supported buffer.")
 	       ;; Enable the mode mode
 	       (semantic-idle-scheduler-add #',func))
 	   ;; Disable the mode mode
-	   (semantic-idle-scheduler-remove #',func))
-         (semantic-mode-line-update))
+	   (semantic-idle-scheduler-remove #',func)))
 
        (semantic-add-minor-mode ',mode
 				"")	; idle schedulers are quiet?
@@ -758,8 +756,7 @@ of the lexical token at point whenever Emacs is idle."
 	(add-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t))
     ;; Disable the mode
     (semantic-idle-scheduler-remove 'semantic-idle-summary-idle-function)
-    (remove-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t))
-  (semantic-mode-line-update))
+    (remove-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t)))
 
 (defun semantic-idle-summary-refresh-echo-area ()
   (and semantic-idle-summary-mode

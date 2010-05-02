@@ -277,8 +277,7 @@ minor mode is enabled."
     (remove-hook 'semantic-after-partial-cache-change-hook
                  'semantic-decorate-tags-after-partial-reparse t)
     (remove-hook 'semantic-after-toplevel-cache-change-hook
-                 'semantic-decorate-tags-after-full-reparse t))
-  (semantic-mode-line-update))
+                 'semantic-decorate-tags-after-full-reparse t)))
 
 (semantic-add-minor-mode 'semantic-decoration-mode
                          "")

@@ -1,5 +1,28 @@
 2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use a mode-line spec rather than a static string in Semantic.
+	* cedet/semantic/util-modes.el:
+	(semantic-minor-modes-format): New var to replace...
+	(semantic-minor-modes-status): Remove.
+	(semantic-mode-line-update): Construct a mode-line spec rather than
+	a static string so that mouse buttons can be used on individual minor
+	modes and so that semantic-mode-line-update only needs to be called
+	when global settings are changed.
+	(semantic-add-minor-mode, semantic-toggle-minor-mode-globally):
+	Call semantic-mode-line-update.
+	(semantic-toggle-minor-mode-globally): Don't assume mode is on
+	minor-mode-alist, check semantic-minor-mode-alist as well.
+	(semantic-stickyfunc-mode, semantic-show-parser-state-auto-marker)
+	(semantic-show-parser-state-marker, semantic-show-parser-state-mode)
+	(semantic-show-unmatched-syntax-mode, semantic-highlight-edits-mode):
+	* cedet/semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
+	* cedet/semantic/idle.el (semantic-idle-scheduler-mode)
+	(define-semantic-idle-service, semantic-idle-summary-mode):
+	* cedet/semantic/decorate/mode.el (semantic-decoration-mode):
+	Don't call semantic-mode-line-update any more.
+
+2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Use define-minor-mode in CEDET where applicable.
 
 	* cedet/srecode/mode.el (srecode-minor-mode,global-srecode-minor-mode):
