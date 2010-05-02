@@ -1,3 +1,8 @@
+2010-05-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el (js-mode): Make paragraph variables local before
+	calling c-setup-paragraph-variables (Bug#6071).
+
 2010-05-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* composite.el (compose-region, reference-point-alist): Fix typos
