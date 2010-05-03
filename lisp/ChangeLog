@@ -1,3 +1,8 @@
+2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (auto-coding-alist):  Only purecopy
+	car or each item, not the whole list (Bug#6083).
+
 2010-05-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/js.el (js-mode): Make paragraph variables local before
