@@ -55,17 +55,12 @@
 (autoload 'message-buffers "message")
 (autoload 'gnus-print-buffer "gnus-sum")
 
-(defvar gnus-dired-mode nil
-  "Minor mode for intersections of MIME mail composition and dired.")
-
-(defvar gnus-dired-mode-map nil)
-
-(unless gnus-dired-mode-map
-  (setq gnus-dired-mode-map (make-sparse-keymap))
-
-  (define-key gnus-dired-mode-map "\C-c\C-m\C-a" 'gnus-dired-attach)
-  (define-key gnus-dired-mode-map "\C-c\C-m\C-l" 'gnus-dired-find-file-mailcap)
-  (define-key gnus-dired-mode-map "\C-c\C-m\C-p" 'gnus-dired-print))
+(defvar gnus-dired-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-m\C-a" 'gnus-dired-attach)
+    (define-key map "\C-c\C-m\C-l" 'gnus-dired-find-file-mailcap)
+    (define-key map "\C-c\C-m\C-p" 'gnus-dired-print)
+    map))
 
 ;; FIXME: Make it customizable, change the default to `mail-user-agent' when
 ;; this file is renamed (e.g. to `dired-mime.el').
@@ -89,19 +84,13 @@ See `mail-user-agent' for more information."
 			       gnus-user-agent)
 		(function :tag "Other")))
 
-(defun gnus-dired-mode (&optional arg)
+(define-minor-mode gnus-dired-mode
   "Minor mode for intersections of gnus and dired.
 
 \\{gnus-dired-mode-map}"
-  (interactive "P")
-  (when (eq major-mode 'dired-mode)
-    (set (make-local-variable 'gnus-dired-mode)
-	 (if (null arg) (not gnus-dired-mode)
-	   (> (prefix-numeric-value arg) 0)))
-    (when gnus-dired-mode
-      (add-minor-mode 'gnus-dired-mode "" gnus-dired-mode-map)
-      (save-current-buffer
-	(run-hooks 'gnus-dired-mode-hook)))))
+  :keymap gnus-dired-mode-map
+  (unless (derived-mode-p 'dired-mode)
+    (setq gnus-dired-mode nil)))
 
 ;;;###autoload
 (defun turn-on-gnus-dired-mode ()

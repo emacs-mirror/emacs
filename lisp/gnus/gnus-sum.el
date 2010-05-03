@@ -7237,33 +7237,21 @@ The state which existed when entering the ephemeral is reset."
 
 ;;; Dead summaries.
 
-(defvar gnus-dead-summary-mode-map nil)
+(defvar gnus-dead-summary-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (substitute-key-definition 'undefined 'gnus-summary-wake-up-the-dead map)
+    (dolist (key '("\C-d" "\r" "\177" [delete]))
+      (define-key map key 'gnus-summary-wake-up-the-dead))
+    (dolist (key '("q" "Q"))
+      (define-key map key 'bury-buffer))
+    map))
 
-(unless gnus-dead-summary-mode-map
-  (setq gnus-dead-summary-mode-map (make-keymap))
-  (suppress-keymap gnus-dead-summary-mode-map)
-  (substitute-key-definition
-   'undefined 'gnus-summary-wake-up-the-dead gnus-dead-summary-mode-map)
-  (dolist (key '("\C-d" "\r" "\177" [delete]))
-    (define-key gnus-dead-summary-mode-map
-      key 'gnus-summary-wake-up-the-dead))
-  (dolist (key '("q" "Q"))
-    (define-key gnus-dead-summary-mode-map key 'bury-buffer)))
-
-(defvar gnus-dead-summary-mode nil
-  "Minor mode for Gnus summary buffers.")
-
-(defun gnus-dead-summary-mode (&optional arg)
+(define-minor-mode gnus-dead-summary-mode
   "Minor mode for Gnus summary buffers."
-  (interactive "P")
-  (when (eq major-mode 'gnus-summary-mode)
-    (make-local-variable 'gnus-dead-summary-mode)
-    (setq gnus-dead-summary-mode
-	  (if (null arg) (not gnus-dead-summary-mode)
-	    (> (prefix-numeric-value arg) 0)))
-    (when gnus-dead-summary-mode
-      (add-minor-mode
-       'gnus-dead-summary-mode " Dead" gnus-dead-summary-mode-map))))
+  :lighter " Dead" :keymap gnus-dead-summary-mode-map
+  (unless (derived-mode-p 'gnus-summary-mode)
+    (setq gnus-dead-summary-mode nil)))
 
 (defun gnus-deaden-summary ()
   "Make the current summary buffer into a dead summary buffer."

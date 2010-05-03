@@ -898,8 +898,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ;; Determine type and stuff.
     (unless (stringp (car handle))
       (unless (setq textp (equal (mm-handle-media-supertype handle) "text"))
-	(save-excursion
-	  (set-buffer (setq buffer (mml-generate-new-buffer " *mml*")))
+	(with-current-buffer (setq buffer (mml-generate-new-buffer " *mml*"))
 	  (if (eq (mail-content-type-get (mm-handle-type handle) 'charset)
 		  'gnus-decoded)
 	      ;; A part that mm-uu dissected from a non-MIME message
@@ -1126,25 +1125,18 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
      ,@(if (featurep 'xemacs) '(t)
 	 '(:help "Display the EasyPG manual"))]))
 
-(defvar mml-mode nil
-  "Minor mode for editing MML.")
-
-(defun mml-mode (&optional arg)
+(define-minor-mode mml-mode
   "Minor mode for editing MML.
 MML is the MIME Meta Language, a minor mode for composing MIME articles.
 See Info node `(emacs-mime)Composing'.
 
 \\{mml-mode-map}"
-  (interactive "P")
-  (when (set (make-local-variable 'mml-mode)
-	     (if (null arg) (not mml-mode)
-	       (> (prefix-numeric-value arg) 0)))
-    (add-minor-mode 'mml-mode " MML" mml-mode-map)
+  :lighter " MML" :keymap mml-mode-map
+  (when mml-mode
     (easy-menu-add mml-menu mml-mode-map)
     (when (boundp 'dnd-protocol-alist)
       (set (make-local-variable 'dnd-protocol-alist)
-	   (append mml-dnd-protocol-alist dnd-protocol-alist)))
-    (run-hooks 'mml-mode-hook)))
+	   (append mml-dnd-protocol-alist dnd-protocol-alist)))))
 
 ;;;
 ;;; Helper functions for reading MIME stuff from the minibuffer and

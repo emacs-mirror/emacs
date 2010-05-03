@@ -2960,6 +2960,8 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-slave-mode ()
   "Minor mode for slave Gnusae."
+  ;; FIXME: gnus-slave-mode appears to never be set (i.e. it'll always be nil):
+  ;; Remove, or fix and use define-minor-mode.
   (add-minor-mode 'gnus-slave-mode " Slave" (make-sparse-keymap))
   (gnus-run-hooks 'gnus-slave-mode-hook))
 
@@ -3058,6 +3060,7 @@ If FORCE is non-nil, the .newsrc file is read."
       nil)
      (t
       (save-excursion
+        ;; FIXME: Shouldn't save-restriction be done after set-buffer?
 	(save-restriction
 	  (set-buffer nntp-server-buffer)
 	  (goto-char (point-min))
