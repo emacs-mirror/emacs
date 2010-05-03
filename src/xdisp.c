@@ -2451,7 +2451,7 @@ safe_call (nargs, args)
       specbind (Qinhibit_redisplay, Qt);
       /* Use Qt to ensure debugger does not run,
 	 so there is no possibility of wanting to redisplay.  */
-      val = internal_condition_case_2 (Ffuncall, nargs, args, Qt,
+      val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
 				       safe_eval_handler);
       UNGCPRO;
       val = unbind_to (count, val);

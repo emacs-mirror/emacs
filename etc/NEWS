@@ -109,6 +109,11 @@ define it as a scroll command affected by `scroll-preserve-screen-position.
 
 ** completion-at-point is now an alias for complete-symbol.
 
+** mouse-region-delete-keys has been deleted.
+
+** If delete-file is called with a prefix argument, it really deletes,
+regardless of the value of `delete-by-moving-to-trash'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
@@ -180,6 +185,9 @@ Secret Service API requires D-Bus for communication.
    ON unconditionally.
 
 * Lisp changes in Emacs 24.1
+
+** delete-file now accepts an optional second arg, FORCE, which says
+to always delete and ignore the value of delete-by-moving-to-trash.
 
 ** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
 

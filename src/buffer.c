@@ -1547,7 +1547,7 @@ with SIGHUP.  */)
       Lisp_Object tem;
       tem = Fsymbol_value (intern ("delete-auto-save-files"));
       if (! NILP (tem))
-	internal_delete_file (b->auto_save_file_name);
+	internal_delete_file (b->auto_save_file_name, Qt);
     }
 
   if (b->base_buffer)

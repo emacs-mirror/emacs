@@ -1,3 +1,16 @@
+2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* diff.el (diff-sentinel):
+
+	* epg.el (epg--make-temp-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string):
+
+	* jka-compr.el (jka-compr-partial-uncompress)
+	(jka-compr-call-process, jka-compr-write-region, jka-compr-load):
+
+	* server.el (server-sentinel): Use delete-file's new FORCE arg
+	(Bug#6070).
+
 2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use define-minor-mode where applicable.
@@ -99,19 +112,6 @@
 	replace by `tramp-get-inline-coding'.
 	(tramp-handle-file-local-copy, tramp-handle-write-region)
 	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
-
-2010-05-01  Chong Yidong  <cyd@stupidchicken.com>
-
-	* server.el (server-sentinel, server-start, server-force-delete):
-
-	* jka-compr.el (jka-compr-partial-uncompress)
-	(jka-compr-call-process, jka-compr-write-region, jka-compr-load):
-
-	* epg.el (epg--make-temp-file, epg-decrypt-string)
-	(epg-encrypt-string, epg-verify-string, epg-sign-string):
-
-	* diff.el (diff-sentinel): Bind delete-by-moving-to-trash to nil
-	before deleting (Bug#6070).
 
 2010-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 

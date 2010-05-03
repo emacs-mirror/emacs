@@ -1,3 +1,19 @@
+2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (internal_condition_case_n): Rename from
+	internal_condition_case_2.
+	(internal_condition_case_2): New function.
+
+	* xdisp.c (safe_call): Use internal_condition_case_n.
+
+	* fileio.c (Fdelete_file, internal_delete_file): New arg FORCE.
+	(internal_delete_file, Frename_file): Callers changed.
+
+	* buffer.c (Fkill_buffer):
+	* callproc.c (delete_temp_file): Callers changed (Bug#6070).
+
+	* lisp.h: Update prototypes.
+
 2010-05-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBX_EXTRA, LIBX_BASE): New variables.

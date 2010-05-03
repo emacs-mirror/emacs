@@ -181,8 +181,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 			  null-device))
 			jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
-	    (let (delete-by-moving-to-trash)
-	      (delete-file err-file))))
+	    (delete-file err-file t)))
 
       ;; Run the uncompression program directly.
       ;; We get the whole file and must delete what we don't want.
@@ -224,8 +223,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 					   "")))
 		   jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
-	    (let (delete-by-moving-to-trash)
-	      (delete-file err-file))))
+	    (delete-file err-file t)))
       (or (eq 0
 	      (apply 'call-process
 		     prog infile (if (stringp output) temp output)
@@ -337,8 +335,7 @@ There should be no more than seven characters after the final `/'."
 						(and append can-append) 'dont))
 	      (erase-buffer)) )
 
-	  (let (delete-by-moving-to-trash)
-	    (delete-file temp-file))
+	  (delete-file temp-file t)
 
 	  (and
 	   compress-message
@@ -604,8 +601,7 @@ There should be no more than seven characters after the final `/'."
 	      (setq file (file-name-sans-extension file)))
 	    (setcar l file)))
 
-      (let (delete-by-moving-to-trash)
-	(delete-file local-copy)))
+      (delete-file local-copy))
 
     t))
 
