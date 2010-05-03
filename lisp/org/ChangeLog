@@ -1,8 +1,11 @@
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-table.el (orgtbl-mode): Use define-minor-mode.
+
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-insert-link): Find the link buffer on visible
-	frames.
-	(org-export-latex-default-packages-alist): hyperref must be loaded
+	* org.el (org-insert-link): Find the link buffer on visible frames.
+	(org-export-latex-default-packages-alist): Hyperref must be loaded
 	late.
 	(org-open-file): More care with the new matching for file links.
 

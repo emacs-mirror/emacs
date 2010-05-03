@@ -745,14 +745,13 @@ This function is the default value of `auto-composition-function' (which see)."
 	  (setq func 'compose-gstring-for-terminal))
       (funcall func gstring))))
 
-(make-variable-buffer-local 'auto-composition-mode)
 (put 'auto-composition-mode 'permanent-local t)
 
 (make-variable-buffer-local 'auto-composition-function)
 (setq-default auto-composition-function 'auto-compose-chars)
 
 ;;;###autoload
-(defun auto-composition-mode (&optional arg)
+(define-minor-mode auto-composition-mode
   "Toggle Auto Composition mode.
 With ARG, turn Auto Composition mode off if and only if ARG is a non-positive
 number; if ARG is nil, toggle Auto Composition mode; anything else turns Auto
@@ -762,12 +761,7 @@ When Auto Composition is enabled, text characters are automatically composed
 by functions registered in `composition-function-table' (which see).
 
 You can use `global-auto-composition-mode' to turn on
-Auto Composition mode in all buffers (this is the default)."
-  (interactive "P")
-  (setq auto-composition-mode
-	(if arg
-	    (or (not (integerp arg)) (> arg 0))
-	  (not auto-composition-mode))))
+Auto Composition mode in all buffers (this is the default).")
 
 ;;;###autoload
 (defun global-auto-composition-mode (&optional arg)

@@ -161,14 +161,6 @@ that use View mode automatically.")
   "Overlay used to display where a search operation found its match.
 This is local in each buffer, once it is used.")
 (make-variable-buffer-local 'view-overlay)
-
-(unless (assq 'view-mode minor-mode-alist)
-  (setq minor-mode-alist
-	(cons (list 'view-mode
-		    (propertize " View"
-				'local-map mode-line-minor-mode-keymap
-				'help-echo "mouse-3: minor mode menu"))
-	      minor-mode-alist)))
 
 ;; Define keymap inside defvar to make it easier to load changes.
 ;; Some redundant "less"-like key bindings below have been commented out.
@@ -230,10 +222,6 @@ This is local in each buffer, once it is used.")
     (define-key map "?" 'describe-mode)	; Maybe do as less instead? See above.
     (define-key map "h" 'describe-mode)
     map))
-
-(or (assq 'view-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'view-mode view-mode-map) minor-mode-map-alist)))
 
 ;;; Commands that enter or exit view mode.
 
@@ -393,7 +381,7 @@ this argument instead of explicitly setting `view-exit-action'."
 		     exit-action)))
 
 ;;;###autoload
-(defun view-mode (&optional arg)
+(define-minor-mode view-mode
   ;; In the following documentation string we have to use some explicit key
   ;; bindings instead of using the \\[] construction.  The reason for this
   ;; is that most commands have more than one key binding.
@@ -473,11 +461,8 @@ If view-mode was entered from another buffer, by \\[view-buffer],
 then \\[View-leave], \\[View-quit] and \\[View-kill-and-leave] will return to that buffer.
 
 Entry to view-mode runs the normal hook `view-mode-hook'."
-  (interactive "P")
-  (unless (and arg			; Do nothing if already OK.
-	       (if (> (prefix-numeric-value arg) 0) view-mode (not view-mode)))
-    (if view-mode (view-mode-disable)
-      (view-mode-enable))))
+  :lighter " View" :keymap view-mode-map
+  (if view-mode (view-mode-enable) (view-mode-disable)))
 
 (defun view-mode-enable ()
   "Turn on View mode."

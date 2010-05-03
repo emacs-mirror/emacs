@@ -1,3 +1,22 @@
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode where applicable.
+	* view.el (view-mode):
+	* type-break.el (type-break-query-mode)
+	(type-break-mode-line-message-mode):
+	* textmodes/reftex.el (reftex-mode):
+	* term/vt100.el (vt100-wide-mode):
+	* tar-mode.el (tar-subfile-mode):
+	* savehist.el (savehist-mode):
+	* ibuf-ext.el (ibuffer-auto-mode):
+	* composite.el (auto-composition-mode):
+	* progmodes/vhdl-mode.el (vhdl-electric-mode, vhdl-stutter-mode):
+	Use define-minor-mode.
+	(vhdl-mode): Use static mode-line format.
+	(vhdl-mode-line-update): Delete.
+	(vhdl-create-mode-menu, vhdl-activate-customizations)
+	(vhdl-hs-minor-mode): Don't bother calling it.
+
 2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (with-wrapper-hook): Move.

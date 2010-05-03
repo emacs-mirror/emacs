@@ -305,10 +305,6 @@
 (defconst reftex-version "RefTeX version 4.31"
   "Version string for RefTeX.")
 
-(defvar reftex-mode nil
-  "Determines if RefTeX mode is active.")
-(make-variable-buffer-local 'reftex-mode)
-
 (defvar reftex-mode-map (make-sparse-keymap)
   "Keymap for RefTeX mode.")
 
@@ -504,8 +500,10 @@
   "Turn on RefTeX mode."
   (reftex-mode t))
 
+(put 'reftex-mode :included '(memq major-mode '(latex-mode tex-mode)))
+(put 'reftex-mode :menu-tag "RefTeX Mode")
 ;;;###autoload
-(defun reftex-mode (&optional arg)
+(define-minor-mode reftex-mode
   "Minor mode with distinct support for \\label, \\ref and \\cite in LaTeX.
 
 \\<reftex-mode-map>A Table of Contents of the entire (multifile) document with browsing
@@ -535,11 +533,7 @@ Under X, these and other functions will also be available as `Ref' menu
 on the menu bar.
 
 ------------------------------------------------------------------------------"
-
-  (interactive "P")
-  (setq reftex-mode (not (or (and (null arg) reftex-mode)
-                             (<= (prefix-numeric-value arg) 0))))
-
+  :lighter " Ref" :keymap reftex-mode-map
   (if reftex-mode
       (progn
         ;; Mode was turned on
@@ -565,23 +559,9 @@ on the menu bar.
         (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
         (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
         (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
-        (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
-
-        (run-hooks 'reftex-mode-hook))
+        (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib))
     ;; Mode was turned off
     (easy-menu-remove reftex-mode-menu)))
-
-(if (fboundp 'add-minor-mode)
-    ;; Use it so that we get the extras
-    (progn
-      (put 'reftex-mode :included '(memq major-mode '(latex-mode tex-mode)))
-      (put 'reftex-mode :menu-tag "RefTeX Mode")
-      (add-minor-mode 'reftex-mode " Ref" reftex-mode-map))
-  ;; The standard way
-  (unless (assoc 'reftex-mode minor-mode-alist)
-    (push '(reftex-mode " Ref") minor-mode-alist))
-  (unless (assoc 'reftex-mode minor-mode-map-alist)
-    (push (cons 'reftex-mode reftex-mode-map) minor-mode-map-alist)))
 
 (defvar reftex-docstruct-symbol)
 (defun reftex-kill-buffer-hook ()
@@ -625,11 +605,11 @@ on the menu bar.
 ;;;
 ;;; Multibuffer Variables
 ;;;
-;;; Technical notes: These work as follows: We keep just one list
-;;; of labels for each master file - this can save a lot of memory.
-;;; `reftex-master-index-list' is an alist which connects the true file name
-;;; of each master file with the symbols holding the information on that
-;;; document.  Each buffer has local variables which point to these symbols.
+;; Technical notes: These work as follows: We keep just one list
+;; of labels for each master file - this can save a lot of memory.
+;; `reftex-master-index-list' is an alist which connects the true file name
+;; of each master file with the symbols holding the information on that
+;; document.  Each buffer has local variables which point to these symbols.
 
 ;; List of variables which handle the multifile stuff.
 ;; This list is used to tie, untie, and reset these symbols.
