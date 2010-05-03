@@ -58,7 +58,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #undef DATA_SEG_BITS
 
-#endif /* DARWIN_OS && ! __APPLE__ */
-
 /* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
    (do not change this comment) */
