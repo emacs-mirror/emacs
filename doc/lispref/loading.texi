@@ -823,7 +823,7 @@ without extension.
 @code{load-history}.
 
 @defvar load-history
-This value of this variable is an alist that associates the names of
+The value of this variable is an alist that associates the names of
 loaded library files with the names of the functions and variables
 they defined, as well as the features they provided or required.
 

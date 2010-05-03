@@ -1350,11 +1350,11 @@ rather than fortran-indent-comment.
 ** Gnus
 
 *** The Gnus package has been updated
-There are many news features, bug fixes and improvements; see the file
+There are many new features, bug fixes and improvements; see the file
 GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
 
 *** In Emacs 23, Gnus uses Emacs' new internal coding system `utf-8-emacs' for
-saving articles drafts and ~/.newsrc.eld.  These file may not be read
+saving articles, drafts, and ~/.newsrc.eld.  These file may not be read
 correctly in Emacs 22 and below.  If you want to Gnus across different Emacs
 versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
 
@@ -1407,8 +1407,8 @@ for buff-menu.el and ibuffer.el are bound to the keys `M-s a C-s' and
 *** `C-h C-h' in Isearch mode displays isearch-specific Help screen,
 `C-h b' displays all Isearch key bindings, `C-h k' displays the full
 documentation of the given Isearch key sequence, `C-h m' displays
-documentation of Isearch mode.  All the rest Help commands exit Isearch mode
-and execute their global definitions.
+documentation for Isearch mode.  All the other Help commands exit
+Isearch mode and execute their global definitions.
 
 *** When started in the minibuffer, Isearch searches in the minibuffer
 history.  See `Minibuffer changes', above.

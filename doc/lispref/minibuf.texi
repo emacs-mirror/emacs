@@ -511,7 +511,7 @@ set to a non-@code{nil} value.
 @defopt history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
-value is @code{t}, that means there no maximum (don't delete old
+value is @code{t}, that means there is no maximum (don't delete old
 elements).  The value of @code{history-length} property of the history
 list variable's symbol, if set, overrides this variable for that
 particular history list.

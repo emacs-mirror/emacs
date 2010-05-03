@@ -1,3 +1,9 @@
+2010-05-03  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* url.texi (HTTP language/coding, Customization):
+	* message.texi (Header Commands, Responses):
+	* cl.texi (Argument Lists): Fix typos.
+
 2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ede.texi (EDE Mode): Refer to init file rather than `.emacs'.  Note

@@ -1528,7 +1528,7 @@ still use Emacs to edit the file.
 @kbd{C-x #} (@code{server-edit}) in its buffer.  This saves the file
 and sends a message back to the @command{emacsclient} program, telling
 it to exit.  Programs that use @env{EDITOR} usually wait for the
-``editor''---in the case @command{emacsclient}---to exit before doing
+``editor''---in this case @command{emacsclient}---to exit before doing
 something else.
 
   You can also call @command{emacsclient} with multiple file name

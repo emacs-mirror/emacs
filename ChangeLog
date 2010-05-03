@@ -1,3 +1,7 @@
+2010-05-03  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* INSTALL: Fix typos.
+
 2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Add check for buggy version of GCC (Bug#6031).
