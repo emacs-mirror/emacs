@@ -1,3 +1,7 @@
+2010-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: There are no more src/m/*.inp files.
+
 2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LD_SWITCH_MACHINE, ld_switch_machine): Remove, unused.
