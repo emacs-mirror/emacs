@@ -2600,6 +2600,14 @@ dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
 
+## Hack to detect a buggy GCC version.
+if test "x$GCC" = xyes \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
+   && test x"`echo $CFLAGS | grep '\-O@<:@23@:>@'`" != x \
+   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
+   AC_MSG_ERROR([GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'.])
+fi
+
 #### Find out which version of Emacs this is.
 [version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]

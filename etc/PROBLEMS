@@ -167,7 +167,7 @@ https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=239344
 
 * Crash bugs
 
-** Emacs crashes when running in a terminal, if compiled with gcc-4.5.
+** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
 This version of GCC is buggy: see
 
   http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6031
