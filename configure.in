@@ -2903,6 +2903,13 @@ case "$USE_X_TOOLKIT" in
 esac
 AC_SUBST(TOOLKIT_LIBW)
 
+if test "$USE_X_TOOLKIT" = "none"; then
+  LIBXT_OTHER="\$(LIBXSM)"
+else
+  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+fi
+AC_SUBST(LIBXT_OTHER)
+
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;
 ## otherwise, use our own copy.
@@ -2917,9 +2924,11 @@ if test "${HAVE_X11}" = "yes" ; then
     OLDXMENU="\${lwlibdir}liblw.a"
   fi
   LIBXMENU="\$(OLDXMENU)"
+  LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
 else
   OLDXMENU=
   LIBXMENU="-lXMenu"
+  LIBX_OTHER=
 fi
 
 if test "$HAVE_GTK" = "yes"; then
@@ -2929,6 +2938,7 @@ fi
 
 AC_SUBST(OLDXMENU)
 AC_SUBST(LIBXMENU)
+AC_SUBST(LIBX_OTHER)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,

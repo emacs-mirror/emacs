@@ -1,5 +1,7 @@
 2010-05-03  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LIBXT_OTHER, LIBX_OTHER): New output variables.
+
 	* make-dist: There are no more src/m/*.inp files.
 
 2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>

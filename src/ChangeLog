@@ -1,3 +1,11 @@
+2010-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBX_EXTRA, LIBX_BASE): New variables.
+	(LIBXT_OTHER, LIBX_OTHER): New, set by configure.
+	(LIBXT): Set with configure, not cpp.
+	(LIBX): Remove.
+	(LIBES): Replace $LIBX with $LIBX_BASE and $LIBX_OTHER.
+
 2010-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/amdx86-64.h (START_FILES, LIB_STANDARD): Remove.
