@@ -4,7 +4,7 @@
 	* eval.c (Fdefvaralias): Remove unintended nested if.
 	(internal_condition_case_2, internal_condition_case_n): Use ANSI type.
 
-2010-05-04  Bernhard Herzog <bh@intevation.de> (tiny change)
+2010-05-04  Bernhard Herzog  <bh@intevation.de>  (tiny change)
 
 	* xsmfns.c (smc_save_yourself_CB): strlen(client_id) => strlen(cwd).
 
@@ -135,7 +135,8 @@
 	definition ...
 	* s/aix4-2.h (LD_SWITCH_SYSTEM_TEMACS): ... here.
 
-	* sysdep.c (child_setup_tty, init_sys_modes): Remove !IBMR2AIX code, unused.
+	* sysdep.c (child_setup_tty, init_sys_modes): Remove !IBMR2AIX code,
+	unused.
 
 2010-05-01  Eli Zaretskii  <eliz@gnu.org>
 
@@ -148,8 +149,8 @@
 	(wait_for_termination) [WINDOWSNT]: Move MS-Windows specific code
 	from non-POSIX_SIGNALS section to POSIX_SIGNALS section.
 
-	* w32.c (sigemptyset, sigaddset, sigfillset, sigprocmask): New
-	stubs.
+	* w32.c (sigemptyset, sigaddset, sigfillset, sigprocmask):
+	New stubs.
 
 	Miscellaneous fixes of bidi display.
 
@@ -182,8 +183,7 @@
 
 2010-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* s/gnu.h (POSIX_SIGNALS):
-	(START_FILES): New definitions.
+	* s/gnu.h (POSIX_SIGNALS, START_FILES): New definitions.
 
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
