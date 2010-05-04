@@ -126,7 +126,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CLASH_DETECTION
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
-#define POSIX_SIGNALS
 #undef sigmask
 
 #ifndef HAVE_LIBXMU

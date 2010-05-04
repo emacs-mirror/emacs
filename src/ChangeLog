@@ -1,3 +1,26 @@
+2010-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove POSIX_SIGNALS.
+	* s/usg5-4.h (POSIX_SIGNALS):
+	* s/netbsd.h (POSIX_SIGNALS):
+	* s/msdos.h (POSIX_SIGNALS):
+	* s/ms-w32.h (POSIX_SIGNALS):
+	* s/hpux11.h (POSIX_SIGNALS):
+	* s/gnu.h (POSIX_SIGNALS):
+	* s/gnu-linux.h (POSIX_SIGNALS):
+	* s/freebsd.h (POSIX_SIGNALS):
+	* s/darwin.h (POSIX_SIGNALS):
+	* s/cygwin.h (POSIX_SIGNALS):
+	* s/aix4-2.h (POSIX_SIGNALS): Remove definition.
+	* s/unixware.h:
+	* s/sol2-6.h: Remove comments on POSIX_SIGNALS.
+	* process.c (create_process):
+	* syssignal.h:
+	* sysdep.c (wait_for_termination, init_signals):
+	* process.c (create_process):
+	* msdos.c: POSIX_SIGNALS is always defined on all platforms,
+	remove all code that assumes the contrary.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu-linux.h (LD_SWITCH_SYSTEM): Use LD_SWITCH_X_SITE_AUX as a shell

@@ -187,7 +187,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
-#define POSIX_SIGNALS
 
 #undef LIB_GCC
 #define LIB_GCC

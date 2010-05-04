@@ -4458,8 +4458,6 @@ setpriority (x,y,z) int x,y,z; { return 0; }
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
-#ifdef POSIX_SIGNALS
-
 /* Augment DJGPP library POSIX signal functions.  This is needed
    as of DJGPP v2.01, but might be in the library in later releases. */
 
@@ -4557,12 +4555,6 @@ sigprocmask (how, new_set, old_set)
   return 0;
 }
 
-#else /* not POSIX_SIGNALS */
-
-sigsetmask (x) int x; { return 0; }
-sigblock (mask) int mask; { return 0; }
-
-#endif /* not POSIX_SIGNALS */
 #endif /* not __DJGPP_MINOR__ < 2 */
 
 #ifndef HAVE_SELECT

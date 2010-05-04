@@ -1866,7 +1866,6 @@ create_process (process, new_argv, current_dir)
 #if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
   int wait_child_setup[2];
 #endif
-#ifdef POSIX_SIGNALS
   sigset_t procmask;
   sigset_t blocked;
   struct sigaction sigint_action;
@@ -1874,7 +1873,6 @@ create_process (process, new_argv, current_dir)
 #ifdef AIX
   struct sigaction sighup_action;
 #endif
-#endif /* POSIX_SIGNALS */
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
@@ -1979,7 +1977,6 @@ create_process (process, new_argv, current_dir)
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
-#ifdef POSIX_SIGNALS
   sigemptyset (&blocked);
 #ifdef SIGCHLD
   sigaddset (&blocked, SIGCHLD);
@@ -1996,13 +1993,6 @@ create_process (process, new_argv, current_dir)
 #endif
 #endif /* HAVE_WORKING_VFORK */
   sigprocmask (SIG_BLOCK, &blocked, &procmask);
-#else /* !POSIX_SIGNALS */
-#ifdef SIGCHLD
-#if defined (BSD_SYSTEM)
-  sigsetmask (sigmask (SIGCHLD));
-#endif /* BSD_SYSTEM */
-#endif /* SIGCHLD */
-#endif /* !POSIX_SIGNALS */
 
   FD_SET (inchannel, &input_wait_mask);
   FD_SET (inchannel, &non_keyboard_wait_mask);
@@ -2153,15 +2143,7 @@ create_process (process, new_argv, current_dir)
 	signal (SIGQUIT, SIG_DFL);
 
 	/* Stop blocking signals in the child.  */
-#ifdef POSIX_SIGNALS
 	sigprocmask (SIG_SETMASK, &procmask, 0);
-#else /* !POSIX_SIGNALS */
-#ifdef SIGCHLD
-#if defined (BSD_SYSTEM)
-	sigsetmask (SIGEMPTYMASK);
-#endif /* BSD_SYSTEM */
-#endif /* SIGCHLD */
-#endif /* !POSIX_SIGNALS */
 
 	if (pty_flag)
 	  child_setup_tty (xforkout);
@@ -2243,7 +2225,6 @@ create_process (process, new_argv, current_dir)
 
   /* Restore the signal state whether vfork succeeded or not.
      (We will signal an error, below, if it failed.)  */
-#ifdef POSIX_SIGNALS
 #ifdef HAVE_WORKING_VFORK
   /* Restore the parent's signal handlers.  */
   sigaction (SIGINT, &sigint_action, 0);
@@ -2254,13 +2235,6 @@ create_process (process, new_argv, current_dir)
 #endif /* HAVE_WORKING_VFORK */
   /* Stop blocking signals in the parent.  */
   sigprocmask (SIG_SETMASK, &procmask, 0);
-#else /* !POSIX_SIGNALS */
-#ifdef SIGCHLD
-#if defined (BSD_SYSTEM)
-  sigsetmask (SIGEMPTYMASK);
-#endif /* BSD_SYSTEM */
-#endif /* SIGCHLD */
-#endif /* !POSIX_SIGNALS */
 
   /* Now generate the error if vfork failed.  */
   if (pid < 0)

@@ -28,8 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGNALS_VIA_CHARACTERS
 
-#define POSIX_SIGNALS
-
 /* Tell Emacs that we are a terminfo based system; disable the use
    of local termcap.  (GNU uses ncurses.) */
 #ifdef HAVE_LIBNCURSES

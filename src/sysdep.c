@@ -419,7 +419,6 @@ wait_for_termination (pid)
       else
 	sigpause (SIGEMPTYMASK);
 #else /* not BSD_SYSTEM, and not HPUX version >= 6 */
-#ifdef POSIX_SIGNALS    /* would this work for GNU/Linux as well? */
 #ifdef WINDOWSNT
       wait (0);
       break;
@@ -434,24 +433,6 @@ wait_for_termination (pid)
 
       sigsuspend (&empty_mask);
 #endif /* not WINDOWSNT */
-#else /* not POSIX_SIGNALS */
-#ifdef HAVE_SYSV_SIGPAUSE
-      sighold (SIGCHLD);
-      if (0 > kill (pid, 0))
-	{
-	  sigrelse (SIGCHLD);
-	  break;
-	}
-      sigpause (SIGCHLD);
-#else /* not HAVE_SYSV_SIGPAUSE */
-      if (0 > kill (pid, 0))
-	break;
-      /* Using sleep instead of pause avoids timing error.
-	 If the inferior dies just before the sleep,
-	 we lose just one second.  */
-      sleep (1);
-#endif /* not HAVE_SYSV_SIGPAUSE */
-#endif /* not POSIX_SIGNALS */
 #endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #else /* not subprocesses */
       break;
@@ -2090,8 +2071,6 @@ read_input_waiting ()
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
 
-#ifdef POSIX_SIGNALS
-
 sigset_t empty_mask, full_mask;
 
 #ifndef WINDOWSNT
@@ -2168,7 +2147,6 @@ sys_sigsetmask (sigset_t new_mask)
   return (old_mask);
 }
 
-#endif /* POSIX_SIGNALS */
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
 static char *my_sys_siglist[NSIG];
@@ -2181,10 +2159,8 @@ static char *my_sys_siglist[NSIG];
 void
 init_signals ()
 {
-#ifdef POSIX_SIGNALS
   sigemptyset (&empty_mask);
   sigfillset (&full_mask);
-#endif
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)

@@ -123,8 +123,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
-/* Do we have POSIX signals?  (We don't, but we don't care, either.)  */
-#define POSIX_SIGNALS  1
 #include <sys/types.h>
 struct sigaction {
   int sa_flags;
