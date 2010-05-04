@@ -255,7 +255,7 @@ smc_save_yourself_CB (smcConn,
   cwd = get_current_dir_name ();
   if (cwd) 
     {
-      chdir_opt = xmalloc (strlen (CHDIR_OPT) + strlen (client_id) + 1);
+      chdir_opt = xmalloc (strlen (CHDIR_OPT) + strlen (cwd) + 1);
       strcpy (chdir_opt, CHDIR_OPT);
       strcat (chdir_opt, cwd);
 

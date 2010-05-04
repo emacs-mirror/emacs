@@ -1,3 +1,7 @@
+2010-05-04  Bernhard Herzog <bh@intevation.de> (tiny change)
+
+	* xsmfns.c (smc_save_yourself_CB): strlen(client_id) => strlen(cwd).
+
 2010-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove BSD_PGRPS.
