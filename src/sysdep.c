@@ -73,7 +73,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #ifdef HAVE_SETPGID
-#if !defined (USG) || defined (BSD_PGRPS)
+#if !defined (USG)
 #undef setpgrp
 #define setpgrp setpgid
 #endif
@@ -859,65 +859,7 @@ unrequest_sigio ()
 #endif /* FASYNC */
 #endif /* F_SETFL */
 #endif /* SIGIO */
-
-/* Saving and restoring the process group of Emacs's terminal.  */
 
-#ifdef BSD_PGRPS
-
-/* The process group of which Emacs was a member when it initially
-   started.
-
-   If Emacs was in its own process group (i.e. inherited_pgroup ==
-   getpid ()), then we know we're running under a shell with job
-   control (Emacs would never be run as part of a pipeline).
-   Everything is fine.
-
-   If Emacs was not in its own process group, then we know we're
-   running under a shell (or a caller) that doesn't know how to
-   separate itself from Emacs (like sh).  Emacs must be in its own
-   process group in order to receive SIGIO correctly.  In this
-   situation, we put ourselves in our own pgroup, forcibly set the
-   tty's pgroup to our pgroup, and make sure to restore and reinstate
-   the tty's pgroup just like any other terminal setting.  If
-   inherited_group was not the tty's pgroup, then we'll get a
-   SIGTTmumble when we try to change the tty's pgroup, and a CONT if
-   it goes foreground in the future, which is what should happen.
-
-   This variable is initialized in emacs.c.  */
-int inherited_pgroup;
-
-/* Split off the foreground process group to Emacs alone.  When we are
-   in the foreground, but not started in our own process group,
-   redirect the tty device handle FD to point to our own process
-   group.  We need to be in our own process group to receive SIGIO
-   properly.  */
-static void
-narrow_foreground_group (int fd)
-{
-  int me = getpid ();
-
-  setpgrp (0, inherited_pgroup);
-#if 0
-  /* XXX inherited_pgroup should not be zero here, but GTK seems to
-     mess this up. */
-  if (! inherited_pgroup)
-    abort ();                   /* Should not happen. */
-#endif
-  if (inherited_pgroup != me)
-      EMACS_SET_TTY_PGRP (fd, &me); /* XXX This only works on the controlling tty. */
-  setpgrp (0, me);
-}
-
-/* Set the tty to our original foreground group.  */
-static void
-widen_foreground_group (int fd)
-{
-  if (inherited_pgroup != getpid ())
-    EMACS_SET_TTY_PGRP (fd, &inherited_pgroup);
-  setpgrp (0, inherited_pgroup);
-}
-
-#endif /* BSD_PGRPS */
 
 /* Getting and setting emacs_tty structures.  */
 
@@ -1102,15 +1044,6 @@ init_sys_modes (tty_out)
   if (!tty_out->output)
     return;                     /* The tty is suspended. */
   
-#ifdef BSD_PGRPS
-#if 0
-  /* read_socket_hook is not global anymore.  I think doing this
-     unconditionally will not cause any problems. */
-  if (! read_socket_hook && EQ (Vinitial_window_system, Qnil))
-#endif
-    narrow_foreground_group (fileno (tty_out->input));
-#endif
-
   if (! tty_out->old_tty)
     tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
       
@@ -1560,9 +1493,6 @@ reset_sys_modes (tty_out)
   dos_ttcooked ();
 #endif
 
-#ifdef BSD_PGRPS
-  widen_foreground_group (fileno (tty_out->input));
-#endif
 }
 
 #ifdef HAVE_PTYS

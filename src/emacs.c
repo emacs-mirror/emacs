@@ -81,7 +81,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_SETPGID
-#if !defined (USG) || defined (BSD_PGRPS)
+#if !defined (USG)
 #undef setpgrp
 #define setpgrp setpgid
 #endif
@@ -192,11 +192,6 @@ EMACS_INT emacs_priority;
 /* If non-zero, a filter or a sentinel is running.  Tested to save the match
    data on the first attempt to change it inside asynchronous code.  */
 int running_asynch_code;
-
-#ifdef BSD_PGRPS
-/* See sysdep.c.  */
-extern int inherited_pgroup;
-#endif
 
 #if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 /* If non-zero, -d was specified, meaning we're using some window system.  */
@@ -1187,16 +1182,8 @@ main (int argc, char **argv)
 
   if (! noninteractive)
     {
-#ifdef BSD_PGRPS
-      if (initialized)
-	{
-	  inherited_pgroup = EMACS_GETPGRP (0);
-	  setpgrp (0, getpid ());
-	}
-#else
 #if defined (USG5) && defined (INTERRUPT_INPUT)
       setpgrp ();
-#endif
 #endif
 #if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {

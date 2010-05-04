@@ -1,5 +1,15 @@
 2010-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove BSD_PGRPS.
+	* s/bsd-common.h (BSD_PGRPS): Remove undef.
+	* s/gnu-linux.h (BSD_PGRPS): Remove.
+	* term.c (dissociate_if_controlling_tty):
+	* sysdep.c (narrow_foreground_group, widen_foreground_group)
+	(init_sys_modes, reset_sys_modes):
+	* emacs.c (main):
+	* callproc.c (Fcall_process, child_setup): Remove code depending
+	on BSD_PGRPS.
+
 	Remove POSIX_SIGNALS.
 	* s/usg5-4.h (POSIX_SIGNALS):
 	* s/netbsd.h (POSIX_SIGNALS):
