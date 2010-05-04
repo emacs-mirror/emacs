@@ -1,3 +1,9 @@
+2010-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/hpux10-20.h (LIB_STANDARD): New definition.
+	* Makefile.in (ORDINARY_LINK): Remove setting LIB_STANDARD based
+	on it, not used anymore.
+
 2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (internal_condition_case_n): Rename from

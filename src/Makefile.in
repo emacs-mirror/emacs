@@ -172,14 +172,8 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #undef register
 
 /* Some machines do not find the standard C libraries in the usual place.  */
-#ifndef ORDINARY_LINK
-#ifndef LIB_STANDARD
-#define LIB_STANDARD -lc
-#endif
-#else
 #ifndef LIB_STANDARD
 #define LIB_STANDARD
-#endif
 #endif
 
 /* Under GNUstep, putting libc on the link line causes problems. */
