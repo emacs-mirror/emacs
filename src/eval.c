@@ -770,11 +770,8 @@ The return value is BASE-VARIABLE.  */)
   sym = XSYMBOL (new_alias);
 
   if (sym->constant)
-    if (sym->redirect == SYMBOL_VARALIAS)
-      sym->constant = 0;	/* Reset.  */
-    else
-      /* Not sure why.  */
-      error ("Cannot make a constant an alias");
+    /* Not sure why, but why not?  */
+    error ("Cannot make a constant an alias");
 
   switch (sym->redirect)
     {
@@ -1567,12 +1564,11 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
    its arguments.  */
 
 Lisp_Object
-internal_condition_case_2 (bfun, arg1, arg2, handlers, hfun)
-     Lisp_Object (*bfun) ();
-     Lisp_Object arg1;
-     Lisp_Object arg2;
-     Lisp_Object handlers;
-     Lisp_Object (*hfun) ();
+internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
+			   Lisp_Object arg1,
+			   Lisp_Object arg2,
+			   Lisp_Object handlers,
+			   Lisp_Object (*hfun) (Lisp_Object))
 {
   Lisp_Object val;
   struct catchtag c;
@@ -1617,12 +1613,11 @@ internal_condition_case_2 (bfun, arg1, arg2, handlers, hfun)
    and ARGS as second argument.  */
 
 Lisp_Object
-internal_condition_case_n (bfun, nargs, args, handlers, hfun)
-     Lisp_Object (*bfun) ();
-     int nargs;
-     Lisp_Object *args;
-     Lisp_Object handlers;
-     Lisp_Object (*hfun) ();
+internal_condition_case_n (Lisp_Object (*bfun) (int, Lisp_Object*),
+			   int nargs,
+			   Lisp_Object *args,
+			   Lisp_Object handlers,
+			   Lisp_Object (*hfun) (Lisp_Object))
 {
   Lisp_Object val;
   struct catchtag c;

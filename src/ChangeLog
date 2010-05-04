@@ -1,3 +1,9 @@
+2010-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Misc tweaks.
+	* eval.c (Fdefvaralias): Remove unintended nested if.
+	(internal_condition_case_2, internal_condition_case_n): Use ANSI type.
+
 2010-05-04  Bernhard Herzog <bh@intevation.de> (tiny change)
 
 	* xsmfns.c (smc_save_yourself_CB): strlen(client_id) => strlen(cwd).
