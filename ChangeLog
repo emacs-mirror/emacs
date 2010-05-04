@@ -8,6 +8,8 @@
 
 	* configure.in (C_SWITCH_MACHINE, C_SWITCH_SYSTEM): New output
 	variables, replacing c_switch_machine, c_switch_system.
+	* Makefile.in (C_SWITCH_SYSTEM): Use @C_SWITCH_SYSTEM@ rather than
+	@c_switch_system@.
 
 2010-05-03  Glenn Morris  <rgm@gnu.org>
 
