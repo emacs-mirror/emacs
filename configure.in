@@ -883,15 +883,7 @@ echo '
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
-#ifndef C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM
-#endif
-#ifndef C_SWITCH_MACHINE
-#define C_SWITCH_MACHINE
-#endif
 configure___ libsrc_libs=LIBS_SYSTEM
-configure___ c_switch_system=C_SWITCH_SYSTEM
-configure___ c_switch_machine=C_SWITCH_MACHINE
 
 configure___ LIBX=-lX11
 
@@ -969,12 +961,43 @@ rm ${tempcname}
 
 ac_link="$ac_link $ld_switch_system"
 
+
+C_SWITCH_MACHINE=
+if test "$machine" = "alpha"; then
+  AC_CHECK_DECL([__ELF__])
+  if test "$ac_cv_have_decl___ELF__" = "yes"; then
+    ## With ELF, make sure that all common symbols get allocated to in the
+    ## data section.  Otherwise, the dump of temacs may miss variables in
+    ## the shared library that have been initialized.  For example, with
+    ## GNU libc, __malloc_initialized would normally be resolved to the
+    ## shared library's .bss section, which is fatal.
+    if test "x$GCC" = "xyes"; then
+      C_SWITCH_MACHINE="-fno-common"
+    else
+      AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
+    fi
+  fi
+fi
+AC_SUBST(C_SWITCH_MACHINE)
+
+
+C_SWITCH_SYSTEM=
+## Some programs in src produce warnings saying certain subprograms
+## are too complex and need a MAXMEM value greater than 2000 for
+## additional optimization.  --nils@exp-math.uni-essen.de
+test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
+  C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
+## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
+## It is redundant in glibc2, since we define _GNU_SOURCE.
+AC_SUBST(C_SWITCH_SYSTEM)
+
+
 ### Make sure subsequent tests use flags consistent with the build flags.
 
 if test x"${OVERRIDE_CPPFLAGS}" != x; then
   CPPFLAGS="${OVERRIDE_CPPFLAGS}"
 else
-  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+  CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
 dnl For AC_FUNC_GETLOADAVG, at least:
@@ -2804,8 +2827,6 @@ AC_SUBST(docdir)
 AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)
 AC_SUBST(gameuser)
-AC_SUBST(c_switch_system)
-AC_SUBST(c_switch_machine)
 AC_SUBST(unexec)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)

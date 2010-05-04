@@ -1,3 +1,8 @@
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
+	@c_switch_system@, @c_switch_machine@.
+
 2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (LIBS_MACHINE): Remove all uses, unused.

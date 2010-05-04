@@ -70,6 +70,11 @@ OTHER_FILES = @OTHER_FILES@
 
 CRT_DIR=@CRT_DIR@
 
+## Machine-specific CFLAGS.
+C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
+## System-specific CFLAGS.
+C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -232,7 +237,7 @@ shared=no
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} @c_switch_machine@ @c_switch_system@ @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -968,7 +973,7 @@ window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVALS_H) \
    xterm.h w32term.h nsterm.h nsgui.h lisp.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
-   coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
+   coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h \
    charset.h lisp.h $(config_h) keyboard.h $(INTERVALS_H) region-cache.h \
    xterm.h w32term.h nsterm.h nsgui.h msdos.h composite.h fontset.h ccl.h \
    blockinput.h atimer.h systime.h keymap.h font.h

@@ -1,3 +1,13 @@
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* s/aix4-2.h (C_SWITCH_SYSTEM):
+	* m/alpha.h (C_SWITCH_MACHINE):
+	Move to configure.in.
+	* Makefile.in (C_SWITCH_MACHINE, C_SWITCH_SYSTEM):
+	New variables, set by configure.
+	(ALL_CFLAGS): Use $C_SWITCH_MACHINE and $C_SWITCH_SYSTEM in place of
+	$c_switch_machine and $c_switch_system.
+
 2010-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/hpux10-20.h (LIB_STANDARD): New definition.
