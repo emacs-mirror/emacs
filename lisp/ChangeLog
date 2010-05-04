@@ -1,3 +1,8 @@
+2010-05-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Remove "-q" from `tramp-login-args'
+	in order to see error messages for failed logins.
+
 2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* diff.el (diff-sentinel):
@@ -98,7 +103,7 @@
 	(ede-dired-minor-mode): Use define-minor-mode and derived-mode-p.
 	(ede-dired-add-to-target): Use dolist.
 
-2010-05-01  Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>
+2010-05-01  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
 	    Michael Albinus  <michael.albinus@gmx.de>
 
 	Implement compression for inline methods.
@@ -109,7 +114,7 @@
 	(tramp-find-inline-compress, tramp-get-inline-compress)
 	(tramp-get-inline-coding): New defuns.
 	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
-	replace by `tramp-get-inline-coding'.
+	replaced by `tramp-get-inline-coding'.
 	(tramp-handle-file-local-copy, tramp-handle-write-region)
 	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
 
