@@ -1,5 +1,9 @@
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LD_SWITCH_X_SITE_AUX): Use AC_SUBST only, not AC_DEFINE
+	as well.
+	(LD_SWITCH_X_SITE_AUX_RPATH): New output variable.
+
 	* configure.in (LD_SWITCH_SYSTEM_TEMACS): New output variable.
 
 	* configure.in (C_SWITCH_MACHINE, C_SWITCH_SYSTEM): New output

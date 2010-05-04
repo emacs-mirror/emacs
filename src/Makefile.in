@@ -77,6 +77,11 @@ C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 ## This holds any special options for linking temacs only (ie, not
 ## used by configure).
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
+## Next two must come before LD_SWITCH_SYSTEM.
+## If needed, a -R option that says where to find X windows at run time.
+LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
+## As above, but using -rpath instead.
+LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
 
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@

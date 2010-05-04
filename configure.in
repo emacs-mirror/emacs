@@ -917,10 +917,6 @@ configure___ use_mmap_for_buffers=no
 #define LD_SWITCH_SYSTEM
 #endif
 
-#ifndef LD_SWITCH_X_SITE_AUX
-#define LD_SWITCH_X_SITE_AUX
-#endif
-
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
 
 #ifdef THIS_IS_CONFIGURE
@@ -1326,17 +1322,19 @@ fi
 ## Workaround for bug in autoconf <= 2.62.
 ## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
 ## No need to do anything special for these standard directories.
-## This is an experiment, take it out if it causes problems.
 if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
 
    x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
 
 fi
 
+LD_SWITCH_X_SITE_AUX=
+LD_SWITCH_X_SITE_AUX_RPATH=
 if test "${x_libraries}" != NONE; then
   if test -n "${x_libraries}"; then
     LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
     LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+    LD_SWITCH_X_SITE_AUX_RPATH=`echo ${LD_SWITCH_X_SITE_AUX} | sed -e 's/-R/-Wl,-rpath,/'`
   fi
   x_default_search_path=""
   x_search_path=${x_libraries}
@@ -1359,6 +1357,9 @@ ${x_library}/X11/%T/%N%S"
     fi
   done
 fi
+AC_SUBST(LD_SWITCH_X_SITE_AUX)
+AC_SUBST(LD_SWITCH_X_SITE_AUX_RPATH)
+
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
   C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
 fi
@@ -2829,7 +2830,6 @@ AC_SUBST(gamedir)
 AC_SUBST(gameuser)
 AC_SUBST(unexec)
 AC_SUBST(LD_SWITCH_X_SITE)
-AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
@@ -2863,9 +2863,6 @@ AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE},
  HAVE_X_WINDOWS above and your X libraries aren't in a place that
  your loader can find on its own, you might want to add "-L/..." or
  something similar.])
-AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE_AUX, ${LD_SWITCH_X_SITE_AUX},
-		   [Define LD_SWITCH_X_SITE_AUX with an -R option
-		    in case it's needed (for Solaris, for example).])
 AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
 [Define C_SWITCH_X_SITE to contain any special flags your compiler
  may need to deal with X Windows.  For instance, if you've defined

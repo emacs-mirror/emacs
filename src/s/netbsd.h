@@ -43,11 +43,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define AMPERSAND_FULL_NAME
 
-/* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
-   says where to find X windows at run time.  We convert it to a -rpath option
-   which is what OSF1 uses.  */
-#define LD_SWITCH_SYSTEM_tmp `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
-#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib
+/* LD_SWITCH_X_SITE_AUX_RPATH gives a -rpath option (which is what
+   OSF1 uses) that says where to find X windows at run time.  */
+#define LD_SWITCH_SYSTEM $(LD_SWITCH_X_SITE_AUX_RPATH) -Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib
 
 /* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
    the library search parth, i.e. it won't search /usr/lib

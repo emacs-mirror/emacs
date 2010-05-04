@@ -1,5 +1,15 @@
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* s/gnu-linux.h (LD_SWITCH_SYSTEM): Use LD_SWITCH_X_SITE_AUX as a shell
+	variable.
+	* s/netbsd.h (LD_SWITCH_SYSTEM_tmp): Remove.
+	(LD_SWITCH_SYSTEM): Use $LD_SWITCH_X_SITE_AUX_RPATH.
+	* s/openbsd.h (LD_SWITCH_SYSTEM_tmp): Remove.
+	(LD_SWITCH_SYSTEM): Use $LD_SWITCH_X_SITE_AUX_RPATH instead of
+	LD_SWITCH_SYSTEM_tmp.
+	* Makefile.in (LD_SWITCH_X_SITE_AUX, LD_SWITCH_X_SITE_AUX_RPATH):
+	New variables, set by configure.
+
 	* s/aix4-2.h (LD_SWITCH_SYSTEM_TEMACS): Move to configure.in.
 	* s/darwin.h (HEADERPAD_EXTRA, LIBS_NSGUI): Remove.
 	(LD_SWITCH_SYSTEM_TEMACS): Move to configure.in.
