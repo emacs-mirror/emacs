@@ -74,6 +74,9 @@ CRT_DIR=@CRT_DIR@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 ## System-specific CFLAGS.
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
+## This holds any special options for linking temacs only (ie, not
+## used by configure).
+LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
@@ -201,12 +204,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #endif /* (defined (BSD_SYSTEM) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
 
-/* This holds special options for linking temacs
-   that should be used for linking anything else.  */
-#ifndef LD_SWITCH_SYSTEM_TEMACS
-#define LD_SWITCH_SYSTEM_TEMACS
-#endif
-
 /* These macros are for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
 #define LD_SWITCH_X_SITE
@@ -326,7 +323,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM $(LD_SWITCH_SYSTEM_TEMACS)
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have

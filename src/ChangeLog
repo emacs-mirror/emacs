@@ -1,5 +1,11 @@
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* s/aix4-2.h (LD_SWITCH_SYSTEM_TEMACS): Move to configure.in.
+	* s/darwin.h (HEADERPAD_EXTRA, LIBS_NSGUI): Remove.
+	(LD_SWITCH_SYSTEM_TEMACS): Move to configure.in.
+	* Makefile.in (LD_SWITCH_SYSTEM_TEMACS): New variable, set by configure.
+	(TEMACS_LDFLAGS): Use $LD_SWITCH_SYSTEM_TEMACS.
+
 	* s/aix4-2.h (C_SWITCH_SYSTEM):
 	* m/alpha.h (C_SWITCH_MACHINE):
 	Move to configure.in.

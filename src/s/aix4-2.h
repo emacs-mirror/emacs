@@ -100,9 +100,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_SYSTEM -lrts -lIM -liconv
 #endif
 
-#define LD_SWITCH_SYSTEM_TEMACS -Wl,-bnodelcsect
-
-
 
 /* Use terminfo instead of termcap.  */
 

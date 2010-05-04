@@ -2992,6 +2992,30 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+
+case "$opsys" in
+  aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
+
+  darwin)
+  ## The -headerpad option tells ld (see man page) to leave room at the
+  ## end of the header for adding load commands.  Needed for dumping.
+  ## 0x690 is the total size of 30 segment load commands (at 56
+  ## each); under Cocoa 31 commands are required.
+  if test "$HAVE_NS" = "yes"; then
+    libs_nsgui="-framework AppKit"
+    headerpad_extra=6C8
+  else
+    libs_nsgui=
+    headerpad_extra=690
+  fi
+  LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+  ;;
+
+  *) LD_SWITCH_SYSTEM_TEMACS= ;;
+esac
+AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
+
+
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
      2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
