@@ -81,7 +81,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_SETPGID
-#if !defined (USG) || defined (BSD_PGRPS)
+#if !defined (USG)
 #undef setpgrp
 #define setpgrp setpgid
 #endif
@@ -193,11 +193,6 @@ EMACS_INT emacs_priority;
    data on the first attempt to change it inside asynchronous code.  */
 int running_asynch_code;
 
-#ifdef BSD_PGRPS
-/* See sysdep.c.  */
-extern int inherited_pgroup;
-#endif
-
 #if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 /* If non-zero, -d was specified, meaning we're using some window system.  */
 int display_arg;
@@ -268,6 +263,7 @@ read the main documentation for these command-line arguments.\n\
 Initialization options:\n\
 \n\
 --batch                     do not do interactive display; implies -q\n\
+--chdir DIR                 change to directory DIR\n\
 --daemon                    start a server in the background\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
@@ -384,6 +380,9 @@ fatal_error_signal (sig)
   if (! fatal_error_in_progress)
     {
       fatal_error_in_progress = 1;
+
+      if (sig == SIGTERM || sig == SIGHUP)
+        Fkill_emacs (make_number (sig));
 
       shut_down_emacs (sig, 0, Qnil);
     }
@@ -765,6 +764,7 @@ main (int argc, char **argv)
 #ifdef NS_IMPL_COCOA
   char dname_arg2[80];
 #endif
+  char *ch_to_dir;
 
 #if GC_MARK_STACK
   extern Lisp_Object *stack_base;
@@ -832,6 +832,14 @@ main (int argc, char **argv)
 	  exit (0);
 	}
     }
+  if (argmatch (argv, argc, "-chdir", "--chdir", 2, &ch_to_dir, &skip_args))
+      if (chdir (ch_to_dir) == -1)
+        {
+          fprintf (stderr, "%s: Can't chdir to %s: %s\n",
+                   argv[0], ch_to_dir, strerror (errno));
+          exit (1);
+        }
+
 
 #ifdef HAVE_PERSONALITY_LINUX32
   if (!initialized
@@ -1174,16 +1182,8 @@ main (int argc, char **argv)
 
   if (! noninteractive)
     {
-#ifdef BSD_PGRPS
-      if (initialized)
-	{
-	  inherited_pgroup = EMACS_GETPGRP (0);
-	  setpgrp (0, getpid ());
-	}
-#else
 #if defined (USG5) && defined (INTERRUPT_INPUT)
       setpgrp ();
-#endif
 #endif
 #if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {
@@ -1802,6 +1802,7 @@ struct standard_args
 const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
+  { "-chdir", "--chdir", 130, 1 },
   { "-t", "--terminal", 120, 1 },
   { "-nw", "--no-window-system", 110, 0 },
   { "-nw", "--no-windows", 110, 0 },

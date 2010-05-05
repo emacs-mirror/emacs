@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'disp-table)
+(eval-when-compile (require 'cl))
 
 (defgroup iso-ascii nil
   "Set up char tables for ISO 8859/1 on ASCII terminals."
@@ -162,15 +163,11 @@
 (iso-ascii-display 254 "th")  ; small thorn, Icelandic
 (iso-ascii-display 255 "\"y") ; small y with diaeresis or umlaut mark
 
-(defun iso-ascii-mode (arg)
+(define-minor-mode iso-ascii-mode
   "Toggle ISO-ASCII mode."
-  (interactive "P")
-  (unless arg
-    (setq arg (eq standard-display-table iso-ascii-standard-display-table)))
-  (setq standard-display-table
-	(if arg
-	    iso-ascii-display-table
-	  iso-ascii-standard-display-table)))
+  :variable (eq standard-display-table iso-ascii-display-table)
+  (unless standard-display-table
+    (setq standard-display-table iso-ascii-standard-display-table)))
 
 (provide 'iso-ascii)
 

@@ -35,20 +35,15 @@
 
 ;;; Draft minor mode
 
-(defvar gnus-draft-mode nil
-  "Minor mode for providing a draft summary buffers.")
-
-(defvar gnus-draft-mode-map nil)
-
-(unless gnus-draft-mode-map
-  (setq gnus-draft-mode-map (make-sparse-keymap))
-
-  (gnus-define-keys gnus-draft-mode-map
-    "Dt" gnus-draft-toggle-sending
-    "e"  gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
-    "De" gnus-draft-edit-message
-    "Ds" gnus-draft-send-message
-    "DS" gnus-draft-send-all-messages))
+(defvar gnus-draft-mode-map
+  (let ((map (make-sparse-keymap)))
+    (gnus-define-keys map
+     "Dt" gnus-draft-toggle-sending
+     "e"  gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
+     "De" gnus-draft-edit-message
+     "Ds" gnus-draft-send-message
+     "DS" gnus-draft-send-all-messages)
+    map))
 
 (defun gnus-draft-make-menu-bar ()
   (unless (boundp 'gnus-draft-menu)
@@ -61,20 +56,17 @@
        ["Send all messages" gnus-draft-send-all-messages t]
        ["Delete draft" gnus-summary-delete-article t]))))
 
-(defun gnus-draft-mode (&optional arg)
+(define-minor-mode gnus-draft-mode
   "Minor mode for providing a draft summary buffers.
 
 \\{gnus-draft-mode-map}"
-  (interactive "P")
-  (when (eq major-mode 'gnus-summary-mode)
-    (when (set (make-local-variable 'gnus-draft-mode)
-	       (if (null arg) (not gnus-draft-mode)
-		 (> (prefix-numeric-value arg) 0)))
-      ;; Set up the menu.
-      (when (gnus-visual-p 'draft-menu 'menu)
-	(gnus-draft-make-menu-bar))
-      (add-minor-mode 'gnus-draft-mode " Draft" gnus-draft-mode-map)
-      (gnus-run-hooks 'gnus-draft-mode-hook))))
+  :lighter " Draft" :keymap gnus-draft-mode-map
+  (cond
+   ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-draft-mode nil))
+   (gnus-draft-mode
+    ;; Set up the menu.
+    (when (gnus-visual-p 'draft-menu 'menu)
+      (gnus-draft-make-menu-bar)))))
 
 ;;; Commands
 

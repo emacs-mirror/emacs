@@ -7936,8 +7936,8 @@ x_connection_closed (dpy, error_message)
       if (terminal_list->next_terminal == NULL)
         {
           fprintf (stderr, "%s\n", error_msg);
-          shut_down_emacs (0, 0, Qnil);
-          exit (70);
+          Fkill_emacs (make_number (70));
+          /* NOTREACHED */
         }
       xg_display_close (dpyinfo->display);
 #endif
@@ -7963,8 +7963,8 @@ x_connection_closed (dpy, error_message)
   if (terminal_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
-      shut_down_emacs (0, 0, Qnil);
-      exit (70);
+      Fkill_emacs (make_number (70));
+      /* NOTREACHED */
     }
 
   /* Ordinary stack unwind doesn't deal with these.  */

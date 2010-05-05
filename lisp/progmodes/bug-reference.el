@@ -48,11 +48,18 @@ It can use `match-string' to get parts matched against
  1. issue kind (bug, patch, rfe &c)
  2. issue number.
 
-There is no default setting for this, it must be set per file.")
+There is no default setting for this, it must be set per file.
+If you set it to a symbol in the file Local Variables section,
+you need to add a `bug-reference-url-format' property to it:
+\(put 'my-bug-reference-url-format 'bug-reference-url-format t)
+so that it is considered safe, see `enable-local-variables'.")
 
 ;;;###autoload
 (put 'bug-reference-url-format 'safe-local-variable
-     (lambda (s) (or (stringp s) (functionp s))))
+     (lambda (s)
+       (or (stringp s)
+           (and (symbolp s)
+                (get s 'bug-reference-url-format)))))
 
 (defconst bug-reference-bug-regexp
   "\\([Bb]ug ?#\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"

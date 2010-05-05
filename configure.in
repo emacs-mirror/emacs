@@ -761,6 +761,20 @@ AC_PROG_INSTALL
 if test "x$RANLIB" = x; then
   AC_PROG_RANLIB
 fi
+
+## Although we're running on an amd64 kernel, we're actually compiling for
+## the x86 architecture.  The user should probably have provided an
+## explicit --build to `configure', but if everything else than the kernel
+## is running in i386 mode, we can help them out.
+if test "$machine" = "amdx86-64"; then
+  AC_CHECK_DECL([i386])
+  if test "$ac_cv_have_decl_i386" = "yes"; then
+    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
+    machine=intel386
+    machfile="m/${machine}.h"
+  fi
+fi
+
 AC_PATH_PROG(INSTALL_INFO, install-info)
 AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
 AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)
@@ -869,15 +883,7 @@ echo '
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
-#ifndef C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM
-#endif
-#ifndef C_SWITCH_MACHINE
-#define C_SWITCH_MACHINE
-#endif
 configure___ libsrc_libs=LIBS_SYSTEM
-configure___ c_switch_system=C_SWITCH_SYSTEM
-configure___ c_switch_machine=C_SWITCH_MACHINE
 
 configure___ LIBX=-lX11
 
@@ -907,20 +913,11 @@ configure___ use_mmap_for_buffers=no
 #define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
 #endif
 
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
-
 #ifndef LD_SWITCH_SYSTEM
 #define LD_SWITCH_SYSTEM
 #endif
 
-#ifndef LD_SWITCH_X_SITE_AUX
-#define LD_SWITCH_X_SITE_AUX
-#endif
-
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
-configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
 #ifdef THIS_IS_CONFIGURE
 
@@ -958,14 +955,45 @@ else
 fi]
 rm ${tempcname}
 
-ac_link="$ac_link $ld_switch_machine $ld_switch_system"
+ac_link="$ac_link $ld_switch_system"
+
+
+C_SWITCH_MACHINE=
+if test "$machine" = "alpha"; then
+  AC_CHECK_DECL([__ELF__])
+  if test "$ac_cv_have_decl___ELF__" = "yes"; then
+    ## With ELF, make sure that all common symbols get allocated to in the
+    ## data section.  Otherwise, the dump of temacs may miss variables in
+    ## the shared library that have been initialized.  For example, with
+    ## GNU libc, __malloc_initialized would normally be resolved to the
+    ## shared library's .bss section, which is fatal.
+    if test "x$GCC" = "xyes"; then
+      C_SWITCH_MACHINE="-fno-common"
+    else
+      AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
+    fi
+  fi
+fi
+AC_SUBST(C_SWITCH_MACHINE)
+
+
+C_SWITCH_SYSTEM=
+## Some programs in src produce warnings saying certain subprograms
+## are too complex and need a MAXMEM value greater than 2000 for
+## additional optimization.  --nils@exp-math.uni-essen.de
+test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
+  C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
+## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
+## It is redundant in glibc2, since we define _GNU_SOURCE.
+AC_SUBST(C_SWITCH_SYSTEM)
+
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 
 if test x"${OVERRIDE_CPPFLAGS}" != x; then
   CPPFLAGS="${OVERRIDE_CPPFLAGS}"
 else
-  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+  CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
 dnl For AC_FUNC_GETLOADAVG, at least:
@@ -1294,17 +1322,19 @@ fi
 ## Workaround for bug in autoconf <= 2.62.
 ## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
 ## No need to do anything special for these standard directories.
-## This is an experiment, take it out if it causes problems.
 if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
 
    x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
 
 fi
 
+LD_SWITCH_X_SITE_AUX=
+LD_SWITCH_X_SITE_AUX_RPATH=
 if test "${x_libraries}" != NONE; then
   if test -n "${x_libraries}"; then
     LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
     LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+    LD_SWITCH_X_SITE_AUX_RPATH=`echo ${LD_SWITCH_X_SITE_AUX} | sed -e 's/-R/-Wl,-rpath,/'`
   fi
   x_default_search_path=""
   x_search_path=${x_libraries}
@@ -1327,6 +1357,9 @@ ${x_library}/X11/%T/%N%S"
     fi
   done
 fi
+AC_SUBST(LD_SWITCH_X_SITE_AUX)
+AC_SUBST(LD_SWITCH_X_SITE_AUX_RPATH)
+
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
   C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
 fi
@@ -1390,6 +1423,9 @@ if test "${with_ns}" != no; then
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
+NS_OBJ=
+NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -1399,9 +1435,13 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
+  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+AC_SUBST(NS_OBJ)
+AC_SUBST(NS_SUPPORT)
 
 case "${window_system}" in
   x11 )
@@ -1869,6 +1909,17 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
 fi
 AC_SUBST(LIBXTR6)
 
+dnl FIXME the logic here seems weird, but this is what cpp was doing.
+dnl Why not just test for libxmu in the normal way?
+LIBXMU=-lXmu
+case "$machine" in
+  ## These machines don't supply Xmu.
+  hpux* | aix4-2 )
+    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
+    ;;
+esac
+AC_SUBST(LIBXMU)
+
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then
@@ -2089,6 +2140,15 @@ else
     HAVE_LIBOTF=no
     HAVE_M17N_FLT=no
 fi
+
+FONT_OBJ=xfont.o
+if test "$HAVE_XFT" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+elif test "$HAVE_FREETYPE" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+fi
+AC_SUBST(FONT_OBJ)
+
 ### End of font-backend (under X11) section.
 
 AC_SUBST(FREETYPE_CFLAGS)
@@ -2250,6 +2310,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
+GPM_MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   AC_CHECK_HEADER(gpm.h,
     [AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes)])
@@ -2257,9 +2318,11 @@ if test "${with_gpm}" != "no"; then
   if test "${HAVE_GPM}" = "yes"; then
     AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
     LIBGPM=-lgpm
+    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
   fi
 fi
 AC_SUBST(LIBGPM)
+AC_SUBST(GPM_MOUSE_SUPPORT)
 
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
@@ -2765,11 +2828,8 @@ AC_SUBST(docdir)
 AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)
 AC_SUBST(gameuser)
-AC_SUBST(c_switch_system)
-AC_SUBST(c_switch_machine)
 AC_SUBST(unexec)
 AC_SUBST(LD_SWITCH_X_SITE)
-AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SYSTEM)
 AC_SUBST(CFLAGS)
@@ -2803,9 +2863,6 @@ AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE},
  HAVE_X_WINDOWS above and your X libraries aren't in a place that
  your loader can find on its own, you might want to add "-L/..." or
  something similar.])
-AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE_AUX, ${LD_SWITCH_X_SITE_AUX},
-		   [Define LD_SWITCH_X_SITE_AUX with an -R option
-		    in case it's needed (for Solaris, for example).])
 AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
 [Define C_SWITCH_X_SITE to contain any special flags your compiler
  may need to deal with X Windows.  For instance, if you've defined
@@ -2856,18 +2913,51 @@ if test "${USE_X_TOOLKIT}" != "none" ; then
 fi
 AC_SUBST(WIDGET_OBJ)
 
+TOOLKIT_LIBW=
 case "$USE_X_TOOLKIT" in
   MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
   LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  *) TOOLKIT_LIBW= ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
 esac
 AC_SUBST(TOOLKIT_LIBW)
 
+if test "$USE_X_TOOLKIT" = "none"; then
+  LIBXT_OTHER="\$(LIBXSM)"
+else
+  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+fi
+AC_SUBST(LIBXT_OTHER)
+
+## The X Menu stuff is present in the X10 distribution, but missing
+## from X11.  If we have X10, just use the installed library;
+## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
 	     Otherwise, Emacs expects to use version 10.])
+
+  if test "$USE_X_TOOLKIT" = "none"; then
+    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+  else
+    OLDXMENU="\${lwlibdir}liblw.a"
+  fi
+  LIBXMENU="\$(OLDXMENU)"
+  LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+else
+  OLDXMENU=
+  LIBXMENU="-lXMenu"
+  LIBX_OTHER=
 fi
+
+if test "$HAVE_GTK" = "yes"; then
+  OLDXMENU=
+  LIBXMENU=
+fi
+
+AC_SUBST(OLDXMENU)
+AC_SUBST(LIBXMENU)
+AC_SUBST(LIBX_OTHER)
+
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
 	    [Define to 1 if you have mouse menus.
@@ -2883,6 +2973,44 @@ if test "${REL_ALLOC}" = "yes" ; then
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
 fi
+
+
+if test "$opsys" = "cygwin"; then
+  CYGWIN_OBJ="sheap.o"
+  ## Cygwin differs because of its unexec().
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
+else
+  CYGWIN_OBJ=
+  PRE_ALLOC_OBJ=lastfile.o
+  POST_ALLOC_OBJ="\$(vmlimitobj)"
+fi
+AC_SUBST(CYGWIN_OBJ)
+AC_SUBST(PRE_ALLOC_OBJ)
+AC_SUBST(POST_ALLOC_OBJ)
+
+
+case "$opsys" in
+  aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
+
+  darwin)
+  ## The -headerpad option tells ld (see man page) to leave room at the
+  ## end of the header for adding load commands.  Needed for dumping.
+  ## 0x690 is the total size of 30 segment load commands (at 56
+  ## each); under Cocoa 31 commands are required.
+  if test "$HAVE_NS" = "yes"; then
+    libs_nsgui="-framework AppKit"
+    headerpad_extra=6C8
+  else
+    libs_nsgui=
+    headerpad_extra=690
+  fi
+  LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+  ;;
+
+  *) LD_SWITCH_SYSTEM_TEMACS= ;;
+esac
+AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
 
 AH_TOP([/* GNU Emacs site configuration template file.

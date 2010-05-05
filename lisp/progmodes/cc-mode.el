@@ -818,8 +818,10 @@ Note that the style variables are always made local to the buffer."
   (setq c-old-BOM (point))
 
   (goto-char end)
-  (if (c-beginning-of-macro)
-    (c-end-of-macro))
+  (when (c-beginning-of-macro)
+    (c-end-of-macro)
+    (or (eobp) (forward-char)))	 ; Over the terminating NL which may be marked
+				 ; with a c-cpp-delimiter category property
   (setq c-old-EOM (point)))
 
 (defun c-neutralize-CPP-line (beg end)

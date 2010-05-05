@@ -1563,7 +1563,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 	      (error
 	       (setq err-msg (error-message-string err)))))
 	  (when (file-exists-p err-file)
-	    (ignore-errors (jka-compr-delete-temp-file err-file)))
+	    (ignore-errors (delete-file err-file)))
 	  (when inplace
 	    (unless err-msg
 	      (delete-region (point-min) (point-max))

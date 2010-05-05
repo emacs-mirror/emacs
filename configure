@@ -703,6 +703,8 @@ INSTALL_INFO
 GZIP_PROG
 MAKEINFO
 LIB_MATH
+C_SWITCH_MACHINE
+C_SWITCH_SYSTEM
 CRT_DIR
 LIBSOUND
 PKG_CONFIG
@@ -711,6 +713,10 @@ ALSA_LIBS
 CFLAGS_SOUND
 SET_MAKE
 XMKMF
+LD_SWITCH_X_SITE_AUX
+LD_SWITCH_X_SITE_AUX_RPATH
+NS_OBJ
+NS_SUPPORT
 HAVE_XSERVER
 RSVG_CFLAGS
 RSVG_LIBS
@@ -724,6 +730,7 @@ GCONF_CFLAGS
 GCONF_LIBS
 LIBSELINUX_LIBS
 LIBXTR6
+LIBXMU
 FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
 XFT_CFLAGS
@@ -732,6 +739,7 @@ LIBOTF_CFLAGS
 LIBOTF_LIBS
 M17N_FLT_CFLAGS
 M17N_FLT_LIBS
+FONT_OBJ
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 LIBXPM
@@ -740,6 +748,7 @@ LIBPNG
 LIBTIFF
 LIBGIF
 LIBGPM
+GPM_MOUSE_SUPPORT
 LIBXSM
 ALLOCA
 liblockfile
@@ -770,11 +779,8 @@ archlibdir
 bitmapdir
 gamedir
 gameuser
-c_switch_system
-c_switch_machine
 unexec
 LD_SWITCH_X_SITE
-LD_SWITCH_X_SITE_AUX
 C_SWITCH_X_SITE
 C_SWITCH_X_SYSTEM
 X_TOOLKIT_TYPE
@@ -794,6 +800,14 @@ XMENU_OBJ
 XOBJ
 WIDGET_OBJ
 TOOLKIT_LIBW
+LIBXT_OTHER
+OLDXMENU
+LIBXMENU
+LIBX_OTHER
+CYGWIN_OBJ
+PRE_ALLOC_OBJ
+POST_ALLOC_OBJ
+LD_SWITCH_SYSTEM_TEMACS
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -5448,6 +5462,73 @@ else
 fi
 
 fi
+
+## Although we're running on an amd64 kernel, we're actually compiling for
+## the x86 architecture.  The user should probably have provided an
+## explicit --build to `configure', but if everything else than the kernel
+## is running in i386 mode, we can help them out.
+if test "$machine" = "amdx86-64"; then
+  { $as_echo "$as_me:$LINENO: checking whether i386 is declared" >&5
+$as_echo_n "checking whether i386 is declared... " >&6; }
+if test "${ac_cv_have_decl_i386+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+#ifndef i386
+  (void) i386;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_i386=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_i386=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_decl_i386" >&5
+$as_echo "$ac_cv_have_decl_i386" >&6; }
+
+  if test "$ac_cv_have_decl_i386" = "yes"; then
+    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
+    machine=intel386
+    machfile="m/${machine}.h"
+  fi
+fi
+
 # Extract the first word of "install-info", so it can be a program name with args.
 set dummy install-info; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -5787,15 +5868,7 @@ echo '
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
-#ifndef C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM
-#endif
-#ifndef C_SWITCH_MACHINE
-#define C_SWITCH_MACHINE
-#endif
 configure___ libsrc_libs=LIBS_SYSTEM
-configure___ c_switch_system=C_SWITCH_SYSTEM
-configure___ c_switch_machine=C_SWITCH_MACHINE
 
 configure___ LIBX=-lX11
 
@@ -5825,20 +5898,11 @@ configure___ use_mmap_for_buffers=no
 #define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
 #endif
 
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
-
 #ifndef LD_SWITCH_SYSTEM
 #define LD_SWITCH_SYSTEM
 #endif
 
-#ifndef LD_SWITCH_X_SITE_AUX
-#define LD_SWITCH_X_SITE_AUX
-#endif
-
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
-configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
 #ifdef THIS_IS_CONFIGURE
 
@@ -5876,14 +5940,100 @@ else
 fi
 rm ${tempcname}
 
-ac_link="$ac_link $ld_switch_machine $ld_switch_system"
+ac_link="$ac_link $ld_switch_system"
+
+
+C_SWITCH_MACHINE=
+if test "$machine" = "alpha"; then
+  { $as_echo "$as_me:$LINENO: checking whether __ELF__ is declared" >&5
+$as_echo_n "checking whether __ELF__ is declared... " >&6; }
+if test "${ac_cv_have_decl___ELF__+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+#ifndef __ELF__
+  (void) __ELF__;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl___ELF__=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl___ELF__=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_decl___ELF__" >&5
+$as_echo "$ac_cv_have_decl___ELF__" >&6; }
+
+  if test "$ac_cv_have_decl___ELF__" = "yes"; then
+    ## With ELF, make sure that all common symbols get allocated to in the
+    ## data section.  Otherwise, the dump of temacs may miss variables in
+    ## the shared library that have been initialized.  For example, with
+    ## GNU libc, __malloc_initialized would normally be resolved to the
+    ## shared library's .bss section, which is fatal.
+    if test "x$GCC" = "xyes"; then
+      C_SWITCH_MACHINE="-fno-common"
+    else
+      { { $as_echo "$as_me:$LINENO: error: What gives?  Fix me if DEC Unix supports ELF now." >&5
+$as_echo "$as_me: error: What gives?  Fix me if DEC Unix supports ELF now." >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+  fi
+fi
+
+
+
+C_SWITCH_SYSTEM=
+## Some programs in src produce warnings saying certain subprograms
+## are too complex and need a MAXMEM value greater than 2000 for
+## additional optimization.  --nils@exp-math.uni-essen.de
+test "$opsys" = "aix4.2" && test "x$GCC" = "xyes" && \
+  C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
+## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
+## It is redundant in glibc2, since we define _GNU_SOURCE.
+
+
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 
 if test x"${OVERRIDE_CPPFLAGS}" != x; then
   CPPFLAGS="${OVERRIDE_CPPFLAGS}"
 else
-  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+  CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
 
@@ -9654,17 +9804,19 @@ fi
 ## Workaround for bug in autoconf <= 2.62.
 ## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
 ## No need to do anything special for these standard directories.
-## This is an experiment, take it out if it causes problems.
 if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
 
    x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
 
 fi
 
+LD_SWITCH_X_SITE_AUX=
+LD_SWITCH_X_SITE_AUX_RPATH=
 if test "${x_libraries}" != NONE; then
   if test -n "${x_libraries}"; then
     LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
     LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+    LD_SWITCH_X_SITE_AUX_RPATH=`echo ${LD_SWITCH_X_SITE_AUX} | sed -e 's/-R/-Wl,-rpath,/'`
   fi
   x_default_search_path=""
   x_search_path=${x_libraries}
@@ -9687,6 +9839,9 @@ ${x_library}/X11/%T/%N%S"
     fi
   done
 fi
+
+
+
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
   C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
 fi
@@ -9922,6 +10077,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
+NS_OBJ=
+NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -9931,9 +10089,13 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
+  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
+
 
 case "${window_system}" in
   x11 )
@@ -13176,6 +13338,15 @@ fi
 fi
 
 
+LIBXMU=-lXmu
+case "$machine" in
+  ## These machines don't supply Xmu.
+  hpux* | aix4-2 )
+    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
+    ;;
+esac
+
+
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then
@@ -14442,6 +14613,15 @@ else
     HAVE_LIBOTF=no
     HAVE_M17N_FLT=no
 fi
+
+FONT_OBJ=xfont.o
+if test "$HAVE_XFT" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+elif test "$HAVE_FREETYPE" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+fi
+
+
 ### End of font-backend (under X11) section.
 
 
@@ -15735,6 +15915,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
+GPM_MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   if test "${ac_cv_header_gpm_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for gpm.h" >&5
@@ -15944,8 +16125,10 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     LIBGPM=-lgpm
+    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
   fi
 fi
+
 
 
 if test "${ac_cv_header_malloc_malloc_h+set}" = set; then
@@ -25889,9 +26072,6 @@ fi
 
 
 
-
-
-
 ## Used in lwlib/Makefile.in.
 
 
@@ -25931,11 +26111,6 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define LD_SWITCH_X_SITE ${LD_SWITCH_X_SITE}
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define LD_SWITCH_X_SITE_AUX ${LD_SWITCH_X_SITE_AUX}
 _ACEOF
 
 
@@ -26002,20 +26177,53 @@ _ACEOF
 fi
 
 
+TOOLKIT_LIBW=
 case "$USE_X_TOOLKIT" in
   MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
   LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  *) TOOLKIT_LIBW= ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
 esac
 
 
+if test "$USE_X_TOOLKIT" = "none"; then
+  LIBXT_OTHER="\$(LIBXSM)"
+else
+  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+fi
+
+
+## The X Menu stuff is present in the X10 distribution, but missing
+## from X11.  If we have X10, just use the installed library;
+## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_X11 1
 _ACEOF
 
+
+  if test "$USE_X_TOOLKIT" = "none"; then
+    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+  else
+    OLDXMENU="\${lwlibdir}liblw.a"
+  fi
+  LIBXMENU="\$(OLDXMENU)"
+  LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+else
+  OLDXMENU=
+  LIBXMENU="-lXMenu"
+  LIBX_OTHER=
 fi
+
+if test "$HAVE_GTK" = "yes"; then
+  OLDXMENU=
+  LIBXMENU=
+fi
+
+
+
+
+
 if test "${HAVE_MENUS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -26037,6 +26245,44 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
+
+
+if test "$opsys" = "cygwin"; then
+  CYGWIN_OBJ="sheap.o"
+  ## Cygwin differs because of its unexec().
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
+else
+  CYGWIN_OBJ=
+  PRE_ALLOC_OBJ=lastfile.o
+  POST_ALLOC_OBJ="\$(vmlimitobj)"
+fi
+
+
+
+
+
+case "$opsys" in
+  aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
+
+  darwin)
+  ## The -headerpad option tells ld (see man page) to leave room at the
+  ## end of the header for adding load commands.  Needed for dumping.
+  ## 0x690 is the total size of 30 segment load commands (at 56
+  ## each); under Cocoa 31 commands are required.
+  if test "$HAVE_NS" = "yes"; then
+    libs_nsgui="-framework AppKit"
+    headerpad_extra=6C8
+  else
+    libs_nsgui=
+    headerpad_extra=690
+  fi
+  LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+  ;;
+
+  *) LD_SWITCH_SYSTEM_TEMACS= ;;
+esac
+
 
 
 

@@ -423,9 +423,9 @@ Returns non-nil if it is a valid table."
   (if (get-file-buffer file)
       ;; The file is already in a buffer.  Check for the visited file
       ;; having changed since we last used it.
-      (let (win)
+      (progn
 	(set-buffer (get-file-buffer file))
-	(setq win (or verify-tags-table-function (tags-table-mode)))
+        (or verify-tags-table-function (tags-table-mode))
 	(if (or (verify-visited-file-modtime (current-buffer))
 		;; Decide whether to revert the file.
 		;; revert-without-query can say to revert
@@ -787,6 +787,30 @@ tags table and its (recursively) included tags tables."
           (let ((enable-recursive-minibuffers t))
             (visit-tags-table-buffer))
           (complete-with-action action (tags-completion-table) string pred))))))
+
+;;;###autoload (defun tags-completion-at-point-function ()
+;;;###autoload   (if (or tags-table-list tags-file-name)
+;;;###autoload       (progn
+;;;###autoload         (load "etags")
+;;;###autoload         (tags-completion-at-point-function))))
+
+(defun tags-completion-at-point-function ()
+  "Using tags, return a completion table for the text around point.
+If no tags table is loaded, do nothing and return nil."
+  (when (or tags-table-list tags-file-name)
+    (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
+				      tags-case-fold-search
+				    case-fold-search))
+	  (pattern (funcall (or find-tag-default-function
+				(get major-mode 'find-tag-default-function)
+				'find-tag-default)))
+	  beg)
+      (when pattern
+	(save-excursion
+	  (search-backward pattern) ;FIXME: will fail if we're inside pattern.
+	  (setq beg (point))
+	  (forward-char (length pattern))
+	  (list beg (point) (tags-lazy-completion-table)))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
@@ -2039,20 +2063,10 @@ for \\[find-tag] (which see)."
       (error "%s"
 	     (substitute-command-keys
 	      "No tags table loaded; try \\[visit-tags-table]")))
-  (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
-				    tags-case-fold-search
-				  case-fold-search))
-	(pattern (funcall (or find-tag-default-function
-			      (get major-mode 'find-tag-default-function)
-			      'find-tag-default)))
-        (comp-table (tags-lazy-completion-table))
-	beg)
-    (or pattern
-	(error "Nothing to complete"))
-    (search-backward pattern)
-    (setq beg (point))
-    (forward-char (length pattern))
-    (completion-in-region beg (point) comp-table)))
+  (let ((comp-data (tags-completion-at-point-function)))
+    (if (null comp-data)
+	(error "Nothing to complete")
+      (apply 'completion-in-region comp-data))))
 
 (dolist (x '("^No tags table in use; use .* to select one$"
 	     "^There is no default tag$"

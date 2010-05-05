@@ -1,3 +1,9 @@
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE):
+	Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ instead of
+	@c_switch_system@, @c_switch_machine@.
+
 2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (C_SWITCH_X_SYSTEM): Define using autoconf.

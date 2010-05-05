@@ -322,7 +322,6 @@
 
 ;;; Code:
 
-(defvar cua-inhibit-cua-keys)
 (defvar recentf-list)
 
 ;;; User Variables
@@ -1624,7 +1623,6 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-o" 'ido-copy-current-word)
     (define-key map "\C-w" 'ido-copy-current-file-name)
     (define-key map [(meta ?l)] 'ido-toggle-literal)
-    (define-key map "\C-v" 'ido-toggle-vc)
     (set-keymap-parent map ido-file-dir-completion-map)
     (setq ido-file-completion-map map))
 
@@ -4609,7 +4607,6 @@ For details of keybindings, see `ido-find-file'."
   (when (ido-active)
     (add-hook 'pre-command-hook 'ido-tidy nil t)
     (add-hook 'post-command-hook 'ido-exhibit nil t)
-    (setq cua-inhibit-cua-keys t)
     (when (featurep 'xemacs)
       (ido-exhibit)
       (goto-char (point-min)))

@@ -77,16 +77,6 @@ NOTE-END
 /* #define SYSTEM_MALLOC */
 
 #ifdef __ELF__
-/* With ELF, make sure that all common symbols get allocated to in the
-   data section.  Otherwise, the dump of temacs may miss variables in
-   the shared library that have been initialized.  For example, with
-   GNU libc, __malloc_initialized would normally be resolved to the
-   shared library's .bss section, which is fatal.  */
-# ifdef __GNUC__
-#  define C_SWITCH_MACHINE	-fno-common
-# else
-#  error What gives?  Fix me if DEC Unix supports ELF now.
-# endif
 
 #undef UNEXEC
 #define UNEXEC unexelf.o

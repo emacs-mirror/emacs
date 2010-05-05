@@ -152,13 +152,6 @@ guess a reasonably good pair of values for this variable."
   :type 'sexp
   :group 'type-break)
 
-(defcustom type-break-query-mode t
-  "Non-nil means ask whether or not to prompt user for breaks.
-If so, call the function specified in the value of the variable
-`type-break-query-function' to do the asking."
-  :type 'boolean
-  :group 'type-break)
-
 (defcustom type-break-query-function 'yes-or-no-p
   "Function to use for making query for a typing break.
 It should take a string as an argument, the prompt.
@@ -244,14 +237,6 @@ remove themselves after running.")
 
 
 ;; Mode line frobs
-
-(defcustom type-break-mode-line-message-mode nil
-  "Non-nil means put type-break related messages in the mode line.
-Otherwise, messages typically go in the echo area.
-
-See also `type-break-mode-line-format' and its members."
-  :type 'boolean
-  :group 'type-break)
 
 (defvar type-break-mode-line-format
   '(type-break-mode-line-message-mode
@@ -447,7 +432,7 @@ problems."
            (message "Type Break mode is disabled")))))
   type-break-mode)
 
-(defun type-break-mode-line-message-mode (&optional prefix)
+(define-minor-mode type-break-mode-line-message-mode
   "Enable or disable warnings in the mode line about typing breaks.
 
 A negative PREFIX argument disables this mode.
@@ -462,16 +447,9 @@ Variables controlling the display of messages in the mode line include:
         `global-mode-string'
         `type-break-mode-line-break-message'
         `type-break-mode-line-warning'"
-  (interactive "P")
-  (setq type-break-mode-line-message-mode
-        (>= (prefix-numeric-value prefix) 0))
-  (and (called-interactively-p 'interactive)
-       (if type-break-mode-line-message-mode
-           (message "type-break-mode-line-message-mode is enabled")
-         (message "type-break-mode-line-message-mode is disabled")))
-  type-break-mode-line-message-mode)
+  :global t)
 
-(defun type-break-query-mode (&optional prefix)
+(define-minor-mode type-break-query-mode
   "Enable or disable warnings in the mode line about typing breaks.
 
 When enabled, the user is periodically queried about whether to take a
@@ -483,14 +461,7 @@ No argument or any non-negative argument enables it.
 
 The user may also enable or disable this mode simply by setting the
 variable of the same name."
-  (interactive "P")
-  (setq type-break-query-mode
-        (>= (prefix-numeric-value prefix) 0))
-  (and (called-interactively-p 'interactive)
-       (if type-break-query-mode
-           (message "type-break-query-mode is enabled")
-         (message "type-break-query-mode is disabled")))
-  type-break-query-mode)
+  :global t)
 
 
 ;;; session file functions

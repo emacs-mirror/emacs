@@ -199,21 +199,6 @@ Examples:
   "Customizations for modes."
   :group 'vhdl)
 
-(defcustom vhdl-electric-mode t
-  "*Non-nil enables electrification (automatic template generation).
-If nil, template generators can still be invoked through key bindings and
-menu.  Is indicated in the modeline by \"/e\" after the mode name and can be
-toggled by `\\[vhdl-electric-mode]'."
-  :type 'boolean
-  :group 'vhdl-mode)
-
-(defcustom vhdl-stutter-mode t
-  "*Non-nil enables stuttering.
-Is indicated in the modeline by \"/s\" after the mode name and can be toggled
-by `\\[vhdl-stutter-mode]'."
-  :type 'boolean
-  :group 'vhdl-mode)
-
 (defcustom vhdl-indent-tabs-mode nil
   "*Non-nil means indentation can insert tabs.
 Overrides local variable `indent-tabs-mode'."
@@ -3466,13 +3451,11 @@ STRING are replaced by `-' and substrings are converted to lower case."
      ("Mode"
       ["Electric Mode"
        (progn (customize-set-variable 'vhdl-electric-mode
-				      (not vhdl-electric-mode))
-	      (vhdl-mode-line-update))
+				      (not vhdl-electric-mode)))
        :style toggle :selected vhdl-electric-mode :keys "C-c C-m C-e"]
       ["Stutter Mode"
        (progn (customize-set-variable 'vhdl-stutter-mode
-				      (not vhdl-stutter-mode))
-	      (vhdl-mode-line-update))
+				      (not vhdl-stutter-mode)))
        :style toggle :selected vhdl-stutter-mode :keys "C-c C-m C-s"]
       ["Indent Tabs Mode"
        (progn (customize-set-variable 'vhdl-indent-tabs-mode
@@ -4670,7 +4653,10 @@ Key bindings:
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'vhdl-mode)
-  (setq mode-name "VHDL")
+  (setq mode-name '("VHDL"
+                    (vhdl-electric-mode "/" (vhdl-stutter-mode "/"))
+                    (vhdl-electric-mode "e")
+                    (vhdl-stutter-mode "s")))
 
   ;; set maps and tables
   (use-local-map vhdl-mode-map)
@@ -4737,7 +4723,6 @@ Key bindings:
   ;; miscellaneous
   (vhdl-ps-print-init)
   (vhdl-write-file-hooks-init)
-  (vhdl-mode-line-update)
   (message "VHDL Mode %s.%s" vhdl-version
 	   (if noninteractive "" "  See menu for documentation and release notes."))
 
@@ -4757,8 +4742,7 @@ Key bindings:
   (vhdl-write-file-hooks-init)
   (vhdl-update-mode-menu)
   (vhdl-hideshow-init)
-  (run-hooks 'menu-bar-update-hook)
-  (vhdl-mode-line-update))
+  (run-hooks 'menu-bar-update-hook))
 
 (defun vhdl-write-file-hooks-init ()
   "Add/remove hooks when buffer is saved."
@@ -8055,31 +8039,15 @@ project is defined."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Enabling/disabling
 
-(defun vhdl-mode-line-update ()
-  "Update the modeline string for VHDL major mode."
-  (setq mode-name (concat "VHDL"
-			  (and (or vhdl-electric-mode vhdl-stutter-mode) "/")
-			  (and vhdl-electric-mode "e")
-			  (and vhdl-stutter-mode "s")))
-  (force-mode-line-update t))
-
-(defun vhdl-electric-mode (arg)
+(define-minor-mode vhdl-electric-mode
   "Toggle VHDL electric mode.
 Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
-  (interactive "P")
-  (setq vhdl-electric-mode
-	(cond ((or (not arg) (zerop arg)) (not vhdl-electric-mode))
-	      ((> arg 0) t) (t nil)))
-  (vhdl-mode-line-update))
+  :global t)
 
-(defun vhdl-stutter-mode (arg)
+(define-minor-mode vhdl-stutter-mode
   "Toggle VHDL stuttering mode.
 Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
-  (interactive "P")
-  (setq vhdl-stutter-mode
-	(cond ((or (not arg) (zerop arg)) (not vhdl-stutter-mode))
-	      ((> arg 0) t) (t nil)))
-  (vhdl-mode-line-update))
+  :global t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuttering
@@ -12533,7 +12501,7 @@ File statistics: \"%s\"\n\
 	(add-hook 'hs-minor-mode-hook 'hs-hide-all)
       (remove-hook 'hs-minor-mode-hook 'hs-hide-all))
     (hs-minor-mode arg)
-    (vhdl-mode-line-update)))		; hack to update menu bar
+    (force-mode-line-update)))		; hack to update menu bar
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

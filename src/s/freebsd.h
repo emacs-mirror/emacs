@@ -101,10 +101,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define USE_MMAP_FOR_BUFFERS	1
 
-/* Use sigprocmask(2) and friends instead of sigblock(2); the man page
-   of sigblock says it is obsolete.  */
-
-#define POSIX_SIGNALS		1
-
 /* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb
    (do not change this comment) */

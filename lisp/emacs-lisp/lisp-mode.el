@@ -466,7 +466,7 @@ if that value is non-nil."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(defun lisp-mode ()
+(define-derived-mode lisp-mode nil "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -478,19 +478,12 @@ or to switch back to an existing one.
 
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map lisp-mode-map)
-  (setq major-mode 'lisp-mode)
-  (setq mode-name "Lisp")
   (lisp-mode-variables nil t)
+  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (setq imenu-case-fold-search t)
-  (set-syntax-table lisp-mode-syntax-table)
-  (run-mode-hooks 'lisp-mode-hook))
-(put 'lisp-mode 'find-tag-default-function 'lisp-find-tag-default)
+  (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
   (let ((default (find-tag-default)))

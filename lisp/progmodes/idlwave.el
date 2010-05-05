@@ -1370,6 +1370,7 @@ list order matters since matching an assignment statement exactly is
 not possible without parsing.  Thus assignment statement become just
 the leftover unidentified statements containing an equal sign.")
 
+;; FIXME: This var seems to only ever be set, but never actually used!
 (defvar idlwave-fill-function 'auto-fill-function
   "IDL mode auto fill function.")
 

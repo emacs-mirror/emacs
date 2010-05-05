@@ -1,3 +1,7 @@
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE_AUX): Remove.
+
 2010-04-20  Lewis Perin  <perin@panix.com>  (tiny change)
 
 	* emacs.manifest: Add trustInfo section to Windows manifest.

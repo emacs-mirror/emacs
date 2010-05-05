@@ -2194,11 +2194,17 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   return Qnil;
 }
 
-DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 1, "fDelete file: ",
+DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2, "fDelete file: \nP",
        doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
-If file has multiple names, it continues to exist with the other names.  */)
-     (filename)
+If file has multiple names, it continues to exist with the other names.
+
+If optional arg FORCE is non-nil, really delete the file regardless of
+`delete-by-moving-to-trash'.  Otherwise, \"deleting\" actually moves
+it to the system's trash can if `delete-by-moving-to-trash' is non-nil.
+Interactively, FORCE is non-nil if called with a prefix arg.  */)
+     (filename, force)
      Lisp_Object filename;
+     Lisp_Object force;
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
@@ -2217,7 +2223,7 @@ If file has multiple names, it continues to exist with the other names.  */)
   if (!NILP (handler))
     return call2 (handler, Qdelete_file, filename);
 
-  if (delete_by_moving_to_trash)
+  if (delete_by_moving_to_trash && NILP (force))
     return call1 (Qmove_file_to_trash, filename);
 
   encoded_file = ENCODE_FILE (filename);
@@ -2234,14 +2240,15 @@ internal_delete_file_1 (ignore)
   return Qt;
 }
 
-/* Delete file FILENAME, returning 1 if successful and 0 if failed.  */
+/* Delete file FILENAME, returning 1 if successful and 0 if failed.
+   FORCE means to ignore `delete-by-moving-to-trash'.  */
 
 int
-internal_delete_file (filename)
-     Lisp_Object filename;
+internal_delete_file (Lisp_Object filename, Lisp_Object force)
 {
   Lisp_Object tem;
-  tem = internal_condition_case_1 (Fdelete_file, filename,
+
+  tem = internal_condition_case_2 (Fdelete_file, filename, force,
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }
@@ -2335,7 +2342,7 @@ This is what happens in interactive use with M-x.  */)
 	      )
 	    call2 (Qdelete_directory, file, Qt);
 	  else
-	    Fdelete_file (file);
+	    Fdelete_file (file, Qt);
 	  unbind_to (count, Qnil);
 	}
       else
@@ -2918,10 +2925,14 @@ if file does not exist, is not accessible, or SELinux is disabled */)
       if (conlength > 0)
 	{
 	  context = context_new (con);
-	  values[0] = build_string (context_user_get (context));
-	  values[1] = build_string (context_role_get (context));
-	  values[2] = build_string (context_type_get (context));
-	  values[3] = build_string (context_range_get (context));
+	  if (context_user_get (context))
+	    values[0] = build_string (context_user_get (context));
+	  if (context_role_get (context))
+	    values[1] = build_string (context_role_get (context));
+	  if (context_type_get (context))
+	    values[2] = build_string (context_type_get (context));
+	  if (context_range_get (context))
+	    values[3] = build_string (context_range_get (context));
 	  context_free (context);
 	}
       if (con)

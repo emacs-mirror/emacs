@@ -35,10 +35,6 @@
 ;;; gnus-pick-mode
 ;;;
 
-(defvar gnus-pick-mode nil
-  "Minor mode for providing a pick-and-read interface in Gnus
-summary buffers.")
-
 (defcustom gnus-pick-display-summary nil
   "*Display summary while reading."
   :type 'boolean
@@ -72,17 +68,15 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 
 ;;; Internal variables.
 
-(defvar gnus-pick-mode-map nil)
-
-(unless gnus-pick-mode-map
-  (setq gnus-pick-mode-map (make-sparse-keymap))
-
-  (gnus-define-keys gnus-pick-mode-map
-    " " gnus-pick-next-page
-    "u" gnus-pick-unmark-article-or-thread
-    "." gnus-pick-article-or-thread
-    gnus-down-mouse-2 gnus-pick-mouse-pick-region
-    "\r" gnus-pick-start-reading))
+(defvar gnus-pick-mode-map
+  (let ((map (make-sparse-keymap)))
+    (gnus-define-keys map
+      " " gnus-pick-next-page
+      "u" gnus-pick-unmark-article-or-thread
+      "." gnus-pick-article-or-thread
+      gnus-down-mouse-2 gnus-pick-mouse-pick-region
+      "\r" gnus-pick-start-reading)
+    map))
 
 (defun gnus-pick-make-menu-bar ()
   (unless (boundp 'gnus-pick-menu)
@@ -104,30 +98,30 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 	["Start reading" gnus-pick-start-reading t]
 	["Switch pick mode off" gnus-pick-mode gnus-pick-mode]))))
 
-(defun gnus-pick-mode (&optional arg)
+(define-minor-mode gnus-pick-mode
   "Minor mode for providing a pick-and-read interface in Gnus summary buffers.
 
 \\{gnus-pick-mode-map}"
-  (interactive "P")
-  (when (eq major-mode 'gnus-summary-mode)
-    (if (not (set (make-local-variable 'gnus-pick-mode)
-		  (if (null arg) (not gnus-pick-mode)
-		    (> (prefix-numeric-value arg) 0))))
-	(remove-hook 'gnus-message-setup-hook 'gnus-pick-setup-message)
-      ;; Make sure that we don't select any articles upon group entry.
-      (set (make-local-variable 'gnus-auto-select-first) nil)
-      ;; Change line format.
-      (setq gnus-summary-line-format gnus-summary-pick-line-format)
-      (setq gnus-summary-line-format-spec nil)
-      (gnus-update-format-specifications nil 'summary)
-      (gnus-update-summary-mark-positions)
-      (add-hook 'gnus-message-setup-hook 'gnus-pick-setup-message)
-      (set (make-local-variable 'gnus-summary-goto-unread) 'never)
-      ;; Set up the menu.
-      (when (gnus-visual-p 'pick-menu 'menu)
-	(gnus-pick-make-menu-bar))
-      (add-minor-mode 'gnus-pick-mode " Pick" gnus-pick-mode-map)
-      (gnus-run-hooks 'gnus-pick-mode-hook))))
+  :lighter " Pick" :keymap gnus-pick-mode-map
+  (cond
+   ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-pick-mode nil))
+   ((not gnus-pick-mode)
+    ;; FIXME: a buffer-local minor mode removing globally from a hook??
+    (remove-hook 'gnus-message-setup-hook 'gnus-pick-setup-message))
+   (t
+    ;; Make sure that we don't select any articles upon group entry.
+    (set (make-local-variable 'gnus-auto-select-first) nil)
+    ;; Change line format.
+    (setq gnus-summary-line-format gnus-summary-pick-line-format)
+    (setq gnus-summary-line-format-spec nil)
+    (gnus-update-format-specifications nil 'summary)
+    (gnus-update-summary-mark-positions)
+    ;; FIXME: a buffer-local minor mode adding globally to a hook??
+    (add-hook 'gnus-message-setup-hook 'gnus-pick-setup-message)
+    (set (make-local-variable 'gnus-summary-goto-unread) 'never)
+    ;; Set up the menu.
+    (when (gnus-visual-p 'pick-menu 'menu)
+      (gnus-pick-make-menu-bar)))))
 
 (defun gnus-pick-setup-message ()
   "Make Message do the right thing on exit."
@@ -319,20 +313,14 @@ This must be bound to a button-down mouse event."
 ;;; gnus-binary-mode
 ;;;
 
-(defvar gnus-binary-mode nil
-  "Minor mode for providing a binary group interface in Gnus summary buffers.")
-
 (defvar gnus-binary-mode-hook nil
   "Hook run in summary binary mode buffers.")
 
-(defvar gnus-binary-mode-map nil)
-
-(unless gnus-binary-mode-map
-  (setq gnus-binary-mode-map (make-sparse-keymap))
-
-  (gnus-define-keys
-      gnus-binary-mode-map
-    "g" gnus-binary-show-article))
+(defvar gnus-binary-mode-map
+  (let ((map (make-sparse-keymap)))
+    (gnus-define-keys map
+      "g" gnus-binary-show-article)
+    map))
 
 (defun gnus-binary-make-menu-bar ()
   (unless (boundp 'gnus-binary-menu)
@@ -341,25 +329,20 @@ This must be bound to a button-down mouse event."
       '("Pick"
 	["Switch binary mode off" gnus-binary-mode t]))))
 
-(defun gnus-binary-mode (&optional arg)
+(define-minor-mode gnus-binary-mode
   "Minor mode for providing a binary group interface in Gnus summary buffers."
-  (interactive "P")
-  (when (eq major-mode 'gnus-summary-mode)
-    (make-local-variable 'gnus-binary-mode)
-    (setq gnus-binary-mode
-	  (if (null arg) (not gnus-binary-mode)
-	    (> (prefix-numeric-value arg) 0)))
-    (when gnus-binary-mode
-      ;; Make sure that we don't select any articles upon group entry.
-      (make-local-variable 'gnus-auto-select-first)
-      (setq gnus-auto-select-first nil)
-      (make-local-variable 'gnus-summary-display-article-function)
-      (setq gnus-summary-display-article-function 'gnus-binary-display-article)
-      ;; Set up the menu.
-      (when (gnus-visual-p 'binary-menu 'menu)
-	(gnus-binary-make-menu-bar))
-      (add-minor-mode 'gnus-binary-mode " Binary" gnus-binary-mode-map)
-      (gnus-run-hooks 'gnus-binary-mode-hook))))
+  :lighter " Binary" :keymap gnus-binary-mode-map
+  (cond
+   ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-binary-mode nil))
+   (gnus-binary-mode
+    ;; Make sure that we don't select any articles upon group entry.
+    (make-local-variable 'gnus-auto-select-first)
+    (setq gnus-auto-select-first nil)
+    (make-local-variable 'gnus-summary-display-article-function)
+    (setq gnus-summary-display-article-function 'gnus-binary-display-article)
+    ;; Set up the menu.
+    (when (gnus-visual-p 'binary-menu 'menu)
+      (gnus-binary-make-menu-bar)))))
 
 (defun gnus-binary-display-article (article &optional all-header)
   "Run ARTICLE through the binary decode functions."

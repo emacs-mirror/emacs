@@ -313,8 +313,11 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-;;;###autoload
-(defcustom browse-url-firefox-program (purecopy "firefox")
+(defcustom browse-url-firefox-program
+  (let ((candidates '("firefox" "iceweasel")))
+    (while (and candidates (not (executable-find (car candidates))))
+      (setq candidates (cdr candidates)))
+    (or (car candidates) "firefox"))
   "The name by which to invoke Firefox."
   :type 'string
   :group 'browse-url)
@@ -331,8 +334,7 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-;;;###autoload
-(defcustom browse-url-galeon-program (purecopy "galeon")
+(defcustom browse-url-galeon-program "galeon"
   "The name by which to invoke Galeon."
   :type 'string
   :group 'browse-url)

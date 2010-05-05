@@ -70,12 +70,26 @@ OTHER_FILES = @OTHER_FILES@
 
 CRT_DIR=@CRT_DIR@
 
+## Machine-specific CFLAGS.
+C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
+## System-specific CFLAGS.
+C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
+## This holds any special options for linking temacs only (ie, not
+## used by configure).
+LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
+## Next two must come before LD_SWITCH_SYSTEM.
+## If needed, a -R option that says where to find X windows at run time.
+LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
+## As above, but using -rpath instead.
+LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
 LIBGIF=@LIBGIF@
 LIBXPM=@LIBXPM@
 XFT_LIBS=@XFT_LIBS@
+LIBX_EXTRA=$(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
@@ -86,9 +100,15 @@ GCONF_LIBS = @GCONF_LIBS@
 
 GTK_OBJ=@GTK_OBJ@
 
+LIBXMU=@LIBXMU@
+
 LIBXSM=@LIBXSM@
 
 LIBXTR6=@LIBXTR6@
+
+## $(LIBXMU) -lXt $(LIBXTR6) -lXext if USE_X_TOOLKIT, else $(LIBXSM).
+## Only used if HAVE_X_WINDOWS.
+LIBXT_OTHER=@LIBXT_OTHER@
 
 XMENU_OBJ=@XMENU_OBJ@
 XOBJ=@XOBJ@
@@ -103,6 +123,26 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
+
+## sheap.o if CYGWIN, otherwise empty.
+CYGWIN_OBJ=@CYGWIN_OBJ@
+
+NS_OBJ=@NS_OBJ@
+NS_SUPPORT=@NS_SUPPORT@
+
+## Only used if HAVE_X_WINDOWS and HAVE_WINDOW_SYSTEM.
+FONT_OBJ=@FONT_OBJ@
+
+## ${lispsource}mouse.elc if HAVE_GPM, otherwise empty.
+## Not used if HAVE_MOUSE.
+GPM_MOUSE_SUPPORT=@GPM_MOUSE_SUPPORT@
+
+BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
+  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+  ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+
+X_WINDOW_SUPPORT=${lispsource}x-dnd.elc ${lispsource}term/common-win.elc \
+  ${lispsource}term/x-win.elc ${lispsource}dynamic-setting.elc
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
@@ -145,14 +185,8 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #undef register
 
 /* Some machines do not find the standard C libraries in the usual place.  */
-#ifndef ORDINARY_LINK
-#ifndef LIB_STANDARD
-#define LIB_STANDARD -lc
-#endif
-#else
 #ifndef LIB_STANDARD
 #define LIB_STANDARD
-#endif
 #endif
 
 /* Under GNUstep, putting libc on the link line causes problems. */
@@ -174,17 +208,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_SYSTEM
 #endif /* (defined (BSD_SYSTEM) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
-
-/* This holds special options for linking temacs
-   that should be used for linking anything else.  */
-#ifndef LD_SWITCH_SYSTEM_TEMACS
-#define LD_SWITCH_SYSTEM_TEMACS
-#endif
-
-/* Some m/MACHINE.h files define this to request special switches in ld.  */
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
 
 /* These macros are for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
@@ -216,7 +239,7 @@ shared=no
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} @c_switch_machine@ @c_switch_system@ @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
 .SUFFIXES: .m
@@ -232,55 +255,19 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifdef HAVE_X_WINDOWS
+/* This test needs to say in cpp for the time being, since s/ms-w32.h and
+   s/msdos.h define HAVE_MENUS, possibly overriding configure.  */
 #ifdef HAVE_MENUS
-
-/* The X Menu stuff is present in the X10 distribution, but missing
-   from X11.  If we have X10, just use the installed library;
-   otherwise, use our own copy.  */
-#ifdef HAVE_X11
-#ifdef USE_X_TOOLKIT
-OLDXMENU=${lwlibdir}liblw.a
-LIBXMENU= $(OLDXMENU)
-#else /* not USE_X_TOOLKIT */
-OLDXMENU= ${oldXMenudir}libXMenu11.a
-LIBXMENU= $(OLDXMENU)
-#endif /* not USE_X_TOOLKIT */
-#else /* not HAVE_X11 */
-LIBXMENU= -lXMenu
-#endif /* not HAVE_X11 */
-
+OLDXMENU=@OLDXMENU@
+LIBXMENU=@LIBXMENU@
 #else /* not HAVE_MENUS */
-
-/* Otherwise, do not worry about the menu library at all.  */
+OLDXMENU=
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
-#ifdef USE_X_TOOLKIT
-LIBW=$(TOOLKIT_LIBW)
-
-#ifndef LIBXMU
-#define LIBXMU -lXmu
-#endif
-
-LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
-
-#else /* not USE_X_TOOLKIT */
-
-#ifdef USE_GTK
-LIBW=@GTK_LIBS@
-OLDXMENU=
-LIBXMENU=
-#endif /* USE_GTK */
-
-LIBXT=$(LIBW) $(LIBXSM)
-#endif /* not USE_X_TOOLKIT */
-
-#ifdef HAVE_X11
-X11_LDFLAGS = LD_SWITCH_X_SITE
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) $(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
-#else /* not HAVE_X11 */
-LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
-#endif /* not HAVE_X11 */
+LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
+LIBX_BASE=$(LIBXMENU) LD_SWITCH_X_SITE
+LIBX_OTHER=@LIBX_OTHER@
 #endif /* not HAVE_X_WINDOWS */
 
 #ifndef ORDINARY_LINK
@@ -341,7 +328,7 @@ LD=ld
 /* Flags to pass to LD only for temacs.  */
 /* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM $(LD_SWITCH_SYSTEM_TEMACS)
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -360,29 +347,16 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o termcap.o
 #endif
 #endif
 
-#ifdef CYGWIN
-CYGWIN_OBJ = sheap.o
-#endif
-
 #ifdef HAVE_NS
 ns_appdir=@ns_appdir@/
 ns_appbindir=@ns_appbindir@/
 ns_appresdir=@ns_appresdir@/
 ns_appsrc=@ns_appsrc@
-/* Object files for NeXTstep */
-NS_OBJ= nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
-	fontset.o fringe.o image.o
 #endif  /* HAVE_NS */
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-#if defined (HAVE_XFT)
-FONT_DRIVERS = xfont.o ftfont.o xftfont.o ftxfont.o
-#elif defined (HAVE_FREETYPE)
-FONT_DRIVERS = xfont.o ftfont.o ftxfont.o
-#else /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
-FONT_DRIVERS = xfont.o
-#endif /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+FONT_DRIVERS=$(FONT_OBJ)
 #endif /* HAVE_X_WINDOWS */
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -428,9 +402,10 @@ termcapobj = terminfo.o
 termcapobj = tparam.o
 #endif /* ! defined (TERMINFO) */
 
-
+gmallocobj =
+rallocobj =
+vmlimitobj =
 #ifndef SYSTEM_MALLOC
-
 #ifndef DOUG_LEA_MALLOC
 gmallocobj = gmalloc.o
 #endif
@@ -439,29 +414,23 @@ gmallocobj = gmalloc.o
 rallocobj = ralloc.o
 #endif
 
-mallocobj = $(gmallocobj) $(rallocobj) vm-limit.o
+vmlimitobj = vm-limit.o
+#endif /* !SYSTEM_MALLOC */
 
-#endif /* SYSTEM_MALLOC */
+## Empty on Cygwin, lastfile.o elsewhere.
+PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
+## lastfile.o vm-limit.o on Cygwin, $vmlimitobj elsewhere.
+POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
-
-/* define otherobj as list of object files that make-docfile
-   should not be told about.  */
-#ifdef CYGWIN
-/* Cygwin differs because of its unexec(). */
-otherobj= $(termcapobj) $(gmallocobj) $(rallocobj) lastfile.o vm-limit.o $(WIDGET_OBJ) $(LIBOBJS)
-#else
-otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
-#endif
+/* List of object files that make-docfile should not be told about.  */
+otherobj= $(termcapobj) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
+  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
-#ifdef HAVE_GPM
-#define MOUSE_SUPPORT ${lispsource}mouse.elc
-#else
-#define MOUSE_SUPPORT
-#endif
+#define MOUSE_SUPPORT $(GPM_MOUSE_SUPPORT)
 #endif
 
 #ifdef MSDOS
@@ -475,15 +444,9 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-#define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
- ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
- ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc \
- ${lispsource}dynamic-setting.elc
+#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)
 #else
-#define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
- ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT)
 #endif
 #else
 #define WINDOW_SUPPORT
@@ -502,13 +465,6 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(WIDGET_OBJ) $(LIBOBJS)
 #define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
 #else
 #define TOOLTIP_SUPPORT
-#endif
-
-#ifdef HAVE_NS
-#define NS_SUPPORT ${lispsource}emacs-lisp/easymenu.elc \
-  ${lispsource}term/ns-win.elc
-#else
-#define NS_SUPPORT
 #endif
 
 /* This is the platform-specific list of Lisp files loaded into the
@@ -611,7 +567,7 @@ lisp= \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
-	NS_SUPPORT \
+	${NS_SUPPORT} \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el
@@ -729,8 +685,8 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
    duplicated symbols.  If the standard libraries were compiled
    with GCC, we might need gnulib again after them.  */
 
-LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
-   @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_TERMCAP \
+LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
+   $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_TERMCAP \
    $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) @LIB_MATH@ LIB_STANDARD $(GNULIB_VAR)
@@ -786,8 +742,8 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} pre
     ${LIBES}
 #endif
 
-/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
-   often contain options that have to do with using Emacs''s crt0,
+/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM
+   often contains options that have to do with using Emacs''s crt0,
    which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
@@ -846,6 +802,14 @@ doc.o: buildobj.h
 
 #ifndef AUTO_DEPEND
 
+## FIXME some of these dependencies are platform-specific.
+## Eg callproc.c only depends on w32.h for WINDOWSNT builds.
+## One way to fix this would be to replace w32.h (etc) by $(W32_H),
+## a variable set by configure.  Doesn't seem worth the trouble.
+
+## nsgui.h: In fact, every .o file depends directly or indirectly on
+## dispextern.h and hence nsgui.h under NS.  But the ones that actually
+## use stuff there are more limited.
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h lisp.h $(config_h)
@@ -881,7 +845,7 @@ dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
    coding.h regex.h systime.h blockinput.h atimer.h composite.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
    window.h buffer.h termchar.h termopts.h termhooks.h cm.h \
-   disptab.h indent.h $(INTERVALS_H) \
+   disptab.h indent.h $(INTERVALS_H) nsgui.h \
    xterm.h blockinput.h atimer.h character.h msdos.h keyboard.h \
    syssignal.h lisp.h $(config_h)
 doc.o: doc.c lisp.h $(config_h) epaths.h buffer.h keyboard.h keymap.h \
@@ -902,18 +866,19 @@ filelock.o: filelock.c buffer.h character.h coding.h systime.h composite.h \
 filemode.o: filemode.c $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h font.h    \
-   msdos.h dosfns.h dispextern.h w32term.h termchar.h coding.h composite.h \
-   lisp.h $(config_h) termhooks.h ccl.h
-fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h \
+   msdos.h dosfns.h dispextern.h w32term.h nsgui.h termchar.h coding.h \
+   composite.h lisp.h $(config_h) termhooks.h ccl.h
+fringe.o: fringe.c dispextern.h nsgui.h frame.h window.h buffer.h termhooks.h \
    blockinput.h atimer.h systime.h lisp.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
-   font.h lisp.h $(config_h) buffer.h composite.h fontset.h xterm.h
+   font.h lisp.h $(config_h) buffer.h composite.h fontset.h xterm.h nsgui.h
 ftfont.o: dispextern.h frame.h character.h charset.h composite.h font.h \
    lisp.h $(config_h) blockinput.h atimer.h systime.h coding.h fontset.h \
    ccl.h ftfont.h
 fontset.o: fontset.c fontset.h ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h font.h lisp.h $(config_h) \
-   blockinput.h atimer.h systime.h coding.h $(INTERVALS_H) window.h xterm.h
+   blockinput.h atimer.h systime.h coding.h $(INTERVALS_H) nsgui.h \
+   window.h xterm.h
 getloadavg.o: getloadavg.c $(config_h)
 gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h lisp.h $(config_h) \
   blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
@@ -929,7 +894,7 @@ insdel.o: insdel.c window.h buffer.h $(INTERVALS_H) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h syntax.h $(INTERVALS_H) blockinput.h atimer.h composite.h \
-   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h coding.h \
+   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h nsgui.h coding.h \
    lisp.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h puresize.h character.h charset.h $(INTERVALS_H) keymap.h window.h \
@@ -950,7 +915,7 @@ msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
    keyboard.h $(INTERVALS_H) buffer.h commands.h blockinput.h atimer.h lisp.h $(config_h)
 nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
-  dispextern.h nsgui.h fontset.h $(INTERVALS_H) keyboard.h blockinput.h \
+  dispextern.h fontset.h $(INTERVALS_H) keyboard.h blockinput.h \
   atimer.h systime.h epaths.h termhooks.h coding.h systime.h lisp.h $(config_h)
 nsfont.o: nsterm.h dispextern.h frame.h lisp.h lisp.h $(config_h)
 nsimage.o: nsimage.m nsterm.h lisp.h $(config_h)
@@ -1008,16 +973,16 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h msdos.h coding.h termhooks.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVALS_H) \
-   xterm.h w32term.h nsterm.h lisp.h $(config_h)
+   xterm.h w32term.h nsterm.h nsgui.h lisp.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
-   coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
-   charset.h lisp.h $(config_h) keyboard.h $(INTERVALS_H) region-cache.h xterm.h    \
-   w32term.h nsterm.h msdos.h composite.h fontset.h ccl.h \
+   coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h \
+   charset.h lisp.h $(config_h) keyboard.h $(INTERVALS_H) region-cache.h \
+   xterm.h w32term.h nsterm.h nsgui.h msdos.h composite.h fontset.h ccl.h \
    blockinput.h atimer.h systime.h keymap.h font.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
    systime.h keyboard.h fontset.h w32term.h nsterm.h coding.h ccl.h \
-   $(INTERVALS_H) termchar.h termhooks.h font.h lisp.h $(config_h)
+   $(INTERVALS_H) nsgui.h termchar.h termhooks.h font.h lisp.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    character.h charset.h coding.h gtkutil.h lisp.h $(config_h) termhooks.h \
@@ -1030,7 +995,7 @@ ftxfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
    font.h lisp.h $(config_h) atimer.h systime.h fontset.h ccl.h
 menu.o: menu.c lisp.h keyboard.h keymap.h frame.h termhooks.h blockinput.h \
    dispextern.h $(srcdir)/../lwlib/lwlib.h xterm.h gtkutil.h menu.h \
-   lisp.h $(config_h) systime.h coding.h composite.h window.h atimer.h
+   lisp.h $(config_h) systime.h coding.h composite.h window.h atimer.h nsgui.h
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
    systime.h gtkutil.h msdos.h coding.h menu.h lisp.h $(config_h) composite.h \
@@ -1088,12 +1053,6 @@ textprop.o: textprop.c buffer.h window.h $(INTERVALS_H) \
    select which of these should be compiled.  */
 
 #ifdef HAVE_NS
-/* In fact, every .o file depends directly or indirectly on dispextern.h
-   and hence nsgui.h under NS.  But the ones that actually use stuff there
-   are more limited.  */
-dispnew.o font.o fontset.o frame.o fringe.o image.o keyboard.o menu.o \
-   window.o xdisp.o xfaces.o: nsgui.h
-
 ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}

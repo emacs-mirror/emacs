@@ -469,8 +469,7 @@ echo "Making links to \`src/bitmaps'"
 
 echo "Making links to \`src/m'"
 (cd src/m
- # We call files for miscellaneous input (to linker etc) .inp.
- ln README [a-zA-Z0-9]*.h *.inp ../../${tempdir}/src/m)
+ ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/m)
 
 echo "Making links to \`src/s'"
 (cd src/s

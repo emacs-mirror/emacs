@@ -5916,9 +5916,8 @@ so that the date SD will be in that range."
 (defun org-agenda-entry-text-mode (&optional arg)
   "Toggle entry text mode in an agenda buffer."
   (interactive "P")
-  (if (integerp arg)
-      (setq org-agenda-entry-text-mode t)
-    (setq org-agenda-entry-text-mode (not org-agenda-entry-text-mode)))
+  (setq org-agenda-entry-text-mode (or (integerp arg)
+                                       (not org-agenda-entry-text-mode)))
   (org-agenda-entry-text-hide)
   (and org-agenda-entry-text-mode
        (let ((org-agenda-entry-text-maxlines

@@ -59,17 +59,6 @@
   :version "22.1"
   :group 'minibuffer)
 
-;;;###autoload
-(defcustom savehist-mode nil
-  "Mode for automatic saving of minibuffer history.
-Set this by calling the `savehist-mode' function or using the customize
-interface."
-  :type 'boolean
-  :set (lambda (symbol value) (savehist-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :require 'savehist
-  :group 'savehist)
-
 (defcustom savehist-save-minibuffer-history t
   "If non-nil, save all recorded minibuffer histories.
 If you want to save only specific histories, use `savehist-save-hook' to
@@ -181,7 +170,7 @@ minibuffer history.")
 ;; Functions.
 
 ;;;###autoload
-(defun savehist-mode (arg)
+(define-minor-mode savehist-mode
   "Toggle savehist-mode.
 Positive ARG turns on `savehist-mode'.  When on, savehist-mode causes
 minibuffer history to be saved periodically and when exiting Emacs.
@@ -191,11 +180,7 @@ previous minibuffer history to be loaded from `savehist-file'.
 This mode should normally be turned on from your Emacs init file.
 Calling it at any other time replaces your current minibuffer histories,
 which is probably undesirable."
-  (interactive "P")
-  (setq savehist-mode
-	(if (null arg)
-	    (not savehist-mode)
-	  (> (prefix-numeric-value arg) 0)))
+  :global t
   (if (not savehist-mode)
       (savehist-uninstall)
     (when (and (not savehist-loaded)
@@ -214,11 +199,7 @@ which is probably undesirable."
 	 (setq savehist-mode nil)
 	 (savehist-uninstall)
 	 (signal (car errvar) (cdr errvar)))))
-    (savehist-install)
-    (run-hooks 'savehist-mode-hook))
-  ;; Return the new setting.
-  savehist-mode)
-(add-minor-mode 'savehist-mode "")
+    (savehist-install)))
 
 (defun savehist-load ()
   "Load the variables stored in `savehist-file' and turn on `savehist-mode'.

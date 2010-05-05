@@ -25,8 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
 
-#define IBMR2AIX
-
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
@@ -35,16 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_START 0x20000000
 #define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
-
-/* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
-/* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
-   linker error for updated X11R5 libraries, which references pthread library
-   which most machines don't have.  We use the name .inp instead of .imp
-   because .inp is a better convention to use in make-dist for naming
-   random input files.  */
-#ifdef THIS_IS_MAKEFILE /* Don't use this in configure.  */
-#define LD_SWITCH_MACHINE -Wl,-bnodelcsect
-#endif /* THIS_IS_MAKEFILE */
 
 #ifndef NLIST_STRUCT
 /* AIX supposedly doesn't use this interface, but on the RS/6000
