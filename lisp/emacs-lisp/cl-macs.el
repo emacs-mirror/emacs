@@ -1769,6 +1769,7 @@ Example:
 (defsetf frame-visible-p cl-set-frame-visible-p)
 (defsetf frame-width set-screen-width t)
 (defsetf frame-parameter set-frame-parameter t)
+(defsetf terminal-parameter set-terminal-parameter)
 (defsetf getenv setenv t)
 (defsetf get-register set-register)
 (defsetf global-key-binding global-set-key)
@@ -1821,10 +1822,16 @@ Example:
 (defsetf x-get-secondary-selection x-own-secondary-selection t)
 (defsetf x-get-selection x-own-selection t)
 
+;; This is a hack that allows (setf (eq a 7) B) to mean either
+;; (setq a 7) or (setq a nil) depending on whether B is nil or not.
+;; This is useful when you have control over the PLACE but not over
+;; the VALUE, as is the case in define-minor-mode's :variable.
+(defsetf eq (a b) (v) `(setf ,a (if ,v ,b (not ,b))))
+
 ;;; More complex setf-methods.
-;;; These should take &environment arguments, but since full arglists aren't
-;;; available while compiling cl-macs, we fake it by referring to the global
-;;; variable cl-macro-environment directly.
+;; These should take &environment arguments, but since full arglists aren't
+;; available while compiling cl-macs, we fake it by referring to the global
+;; variable cl-macro-environment directly.
 
 (define-setf-method apply (func arg1 &rest rest)
   (or (and (memq (car-safe func) '(quote function function*))

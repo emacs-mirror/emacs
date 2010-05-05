@@ -1,3 +1,11 @@
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add :variable keyword.
+	* emacs-lisp/cl-macs.el (terminal-parameter, eq): Add setf method.
+	* international/iso-ascii.el (iso-ascii-mode):
+	* frame.el (auto-raise-mode, auto-lower-mode):
+	* composite.el (global-auto-composition-mode): Use define-minor-mode.
+
 2010-05-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Remove "-q" from `tramp-login-args'

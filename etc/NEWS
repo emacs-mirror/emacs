@@ -186,6 +186,8 @@ Secret Service API requires D-Bus for communication.
 
 * Lisp changes in Emacs 24.1
 
+** define-minor-mode accepts a new keyword :variable.
+
 ** delete-file now accepts an optional second arg, FORCE, which says
 to always delete and ignore the value of delete-by-moving-to-trash.
 
