@@ -1,3 +1,7 @@
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (Fchar_syntax): Check the arg is a character (bug#6080).
+
 2010-05-05  Lawrence Mitchell  <wence@gmx.li>
 
 	* m/sparc.h: Fix typo in earlier change.
