@@ -1734,7 +1734,10 @@ good, skip, fatal, or unknown."
 		      ange-ftp-gateway-tmp-name-template
 		    ange-ftp-tmp-name-template)))
 
-(defalias 'ange-ftp-del-tmp-name 'delete-file)
+(defun ange-ftp-del-tmp-name (filename)
+  "Force to delete temporary file."
+  (delete-file filename 'force))
+
 
 ;;;; ------------------------------------------------------------
 ;;;; Interactive gateway program support.
@@ -3504,7 +3507,7 @@ system TYPE.")
 	(file-exists-p file)
       (ange-ftp-real-file-executable-p file))))
 
-(defun ange-ftp-delete-file (file)
+(defun ange-ftp-delete-file (file &optional force)
   (interactive "fDelete file: ")
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
@@ -3523,7 +3526,7 @@ system TYPE.")
 		       (format "FTP Error: \"%s\"" (cdr result))
 		       file)))
 	  (ange-ftp-delete-file-entry file))
-      (ange-ftp-real-delete-file file))))
+      (ange-ftp-real-delete-file file force))))
 
 (defun ange-ftp-file-modtime (file)
   "Return the modification time of remote file FILE.
@@ -3894,7 +3897,7 @@ E.g.,
 	  (ange-ftp-add-file-entry newname)
 	  (ange-ftp-delete-file-entry filename))
       (ange-ftp-copy-file-internal filename newname t nil)
-      (delete-file filename))))
+      (delete-file filename 'force))))
 
 (defun ange-ftp-rename-local-to-remote (filename newname)
   "Rename local file FILENAME to remote file NEWNAME."
@@ -3903,7 +3906,7 @@ E.g.,
 	 (msg (format "Renaming %s to %s" fabbr nabbr)))
     (ange-ftp-copy-file-internal filename newname t nil msg)
     (let (ange-ftp-process-verbose)
-      (delete-file filename))))
+      (delete-file filename 'force))))
 
 (defun ange-ftp-rename-remote-to-local (filename newname)
   "Rename remote file FILENAME to local file NEWNAME."
@@ -3912,7 +3915,7 @@ E.g.,
 	 (msg (format "Renaming %s to %s" fabbr nabbr)))
     (ange-ftp-copy-file-internal filename newname t nil msg)
     (let (ange-ftp-process-verbose)
-      (delete-file filename))))
+      (delete-file filename 'force))))
 
 (defun ange-ftp-rename-file (filename newname &optional ok-if-already-exists)
   (interactive "fRename file: \nFRename %s to file: \np")
@@ -4193,7 +4196,7 @@ directory, so that Emacs will know its current contents."
 	(if copy
 	    (unwind-protect
 		(funcall 'load copy noerror nomessage nosuffix)
-	      (delete-file copy))
+	      (delete-file copy 'force))
 	  (or noerror
 	      (signal 'file-error (list "Cannot open load file" file)))
 	  nil))
@@ -4264,7 +4267,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (if (zerop (buffer-size))
 	      (progn
 		(let (ange-ftp-process-verbose)
-		  (delete-file file))
+		  (delete-file file 'force))
 		(ange-ftp-copy-file-internal tmp2 nfile t nil msg2))))
       (ange-ftp-del-tmp-name tmp1)
       (ange-ftp-del-tmp-name tmp2))))
@@ -4300,7 +4303,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (if (zerop (buffer-size))
 	      (progn
 		(let (ange-ftp-process-verbose)
-		  (delete-file file))
+		  (delete-file file 'force))
 		(ange-ftp-copy-file-internal tmp2 nfile t nil msg2))))
       (ange-ftp-del-tmp-name tmp1)
       (ange-ftp-del-tmp-name tmp2))))
