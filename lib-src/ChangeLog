@@ -7,12 +7,6 @@
 
 	* Makefile.in (LIBS_MACHINE): Remove all uses, unused.
 
-2010-04-18  Juanma Barranquero  <lekktu@gmail.com>
-
-	Add stubs for Windows, required after CVE-2010-0825 change.
-	* ntlib.c (getgid, getegid, setegid): New stubs.
-	* ntlib.h (getgid, getegid, setegid): Declare them.
-
 2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (ALL_CFLAGS, LINK_CFLAGS, CPP_CFLAGS): Move to the
@@ -3003,7 +2997,7 @@
 
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* etags.c (lisp_suffixes)  Add `LSP'.
+	* etags.c (lisp_suffixes): Add `LSP'.
 
 2000-02-10  Francesco Potortì  <pot@gnu.org>
 
