@@ -123,6 +123,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
+#include <sys/types.h>
+struct sigaction {
+  int sa_flags;
+  void (*sa_handler)(int);
+  sigset_t sa_mask;
+};
+#define SIG_BLOCK       1
+#define SIG_SETMASK     2
+#define SIG_UNBLOCK     3
+
 /* The null device on Windows NT. */
 #define NULL_DEVICE     "NUL:"
 

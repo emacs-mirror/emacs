@@ -3379,7 +3379,7 @@ dissociate_if_controlling_tty (int fd)
   EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
     {
-#if defined (USG) && !defined (BSD_PGRPS)
+#if defined (USG)
       setpgrp ();
       no_controlling_tty = 1;
 #elif defined (CYGWIN)

@@ -24,6 +24,7 @@
 ;;; Commentary:
 
 ;;; Code:
+(eval-when-compile (require 'cl))
 
 (defvar frame-creation-function-alist
   (list (cons nil
@@ -1132,37 +1133,26 @@ To get the frame's current border color, use `frame-parameters'."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
 
-(defun auto-raise-mode (arg)
+(define-minor-mode auto-raise-mode
   "Toggle whether or not the selected frame should auto-raise.
 With ARG, turn auto-raise mode on if and only if ARG is positive.
 Note that this controls Emacs's own auto-raise feature.
 Some window managers allow you to enable auto-raise for certain windows.
 You can use that for Emacs windows if you wish, but if you do,
 that is beyond the control of Emacs and this command has no effect on it."
-  (interactive "P")
-  (if (null arg)
-      (setq arg
-	    (if (cdr (assq 'auto-raise (frame-parameters (selected-frame))))
-		-1 1)))
-  (if (> arg 0)
-      (raise-frame (selected-frame)))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'auto-raise (> arg 0)))))
+  :variable (frame-parameter nil 'auto-raise)
+  (if (frame-parameter nil 'auto-raise)
+      (raise-frame)))
 
-(defun auto-lower-mode (arg)
+(define-minor-mode auto-lower-mode
   "Toggle whether or not the selected frame should auto-lower.
 With ARG, turn auto-lower mode on if and only if ARG is positive.
 Note that this controls Emacs's own auto-lower feature.
 Some window managers allow you to enable auto-lower for certain windows.
 You can use that for Emacs windows if you wish, but if you do,
 that is beyond the control of Emacs and this command has no effect on it."
-  (interactive "P")
-  (if (null arg)
-      (setq arg
-	    (if (cdr (assq 'auto-lower (frame-parameters (selected-frame))))
-		-1 1)))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'auto-lower (> arg 0)))))
+  :variable (frame-parameter nil 'auto-lower))
+
 (defun set-frame-name (name)
   "Set the name of the selected frame to NAME.
 When called interactively, prompt for the name of the frame.

@@ -34,8 +34,8 @@ CFLAGS=@CFLAGS@
 version=@version@
 configuration=@configuration@
 EXEEXT=@EXEEXT@
-C_SWITCH_SYSTEM=@c_switch_system@
-C_SWITCH_MACHINE=@c_switch_machine@
+C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
+C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@

@@ -1,6 +1,6 @@
 /*
-Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -100,6 +100,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_SYSTEM -lrts -lIM -liconv
 #endif
 
+
 /* Use terminfo instead of termcap.  */
 
 #define TERMINFO
@@ -114,13 +115,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* AIX doesn't define this.  */
 #define unix 1
 
-#ifndef __GNUC__
-/* Some programs in src produce warnings saying certain subprograms
-   are to comples and need a MAXMEM value greater than 2000 for
-   additional optimization.  --nils@exp-math.uni-essen.de */
-#define C_SWITCH_SYSTEM -ma -qmaxmem=4000
-#endif
-
 /* string.h defines rindex as a macro, at least with native cc, so we
    lose declaring char * rindex without this.
    It is just a guess which versions of AIX need this definition.  */
@@ -132,7 +126,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CLASH_DETECTION
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
-#define POSIX_SIGNALS
 #undef sigmask
 
 #ifndef HAVE_LIBXMU

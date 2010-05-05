@@ -128,9 +128,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* Mode line description of a buffer's type.  */
 #define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
 
-/* Do we have POSIX signals?  */
-#define POSIX_SIGNALS
-
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
 

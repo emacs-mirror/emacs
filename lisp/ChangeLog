@@ -1,3 +1,241 @@
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Minor cleanups.
+	* subr.el (add-minor-mode): Use push.
+	* mail/supercite.el (sc-electric-mode): Use more descriptive arg name.
+	* emulation/edt.el (edt-select-mode): Simplify.
+
+	Use define-minor-mode in more cases.
+	* term/tvi970.el (tvi970-set-keypad-mode):
+	* simple.el (auto-fill-mode, overwrite-mode, binary-overwrite-mode)
+	(normal-erase-is-backspace-mode):
+	* scroll-bar.el (scroll-bar-mode): Use it and define-minor-mode.
+	(set-scroll-bar-mode-1): (Re)move to its sole caller.
+	(get-scroll-bar-mode): New function.
+	* emacs-lisp/cl-macs.el (eq): Handle a non-variable first arg.
+
+	Use define-minor-mode for less obvious cases.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add :variable keyword.
+	* emacs-lisp/cl-macs.el (terminal-parameter, eq): Add setf method.
+	* international/iso-ascii.el (iso-ascii-mode):
+	* frame.el (auto-raise-mode, auto-lower-mode):
+	* composite.el (global-auto-composition-mode): Use define-minor-mode.
+
+2010-05-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Remove "-q" from `tramp-login-args'
+	in order to see error messages for failed logins.
+
+2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* diff.el (diff-sentinel):
+
+	* epg.el (epg--make-temp-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string):
+
+	* jka-compr.el (jka-compr-partial-uncompress)
+	(jka-compr-call-process, jka-compr-write-region, jka-compr-load):
+
+	* server.el (server-sentinel): Use delete-file's new FORCE arg
+	(Bug#6070).
+
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode where applicable.
+	* view.el (view-mode):
+	* type-break.el (type-break-query-mode)
+	(type-break-mode-line-message-mode):
+	* textmodes/reftex.el (reftex-mode):
+	* term/vt100.el (vt100-wide-mode):
+	* tar-mode.el (tar-subfile-mode):
+	* savehist.el (savehist-mode):
+	* ibuf-ext.el (ibuffer-auto-mode):
+	* composite.el (auto-composition-mode):
+	* progmodes/vhdl-mode.el (vhdl-electric-mode, vhdl-stutter-mode):
+	Use define-minor-mode.
+	(vhdl-mode): Use static mode-line format.
+	(vhdl-mode-line-update): Delete.
+	(vhdl-create-mode-menu, vhdl-activate-customizations)
+	(vhdl-hs-minor-mode): Don't bother calling it.
+
+2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (with-wrapper-hook): Move.
+	(buffer-substring-filters): Mark obsolete.
+	(filter-buffer-substring-functions): New variable.
+	(filter-buffer-substring): Use it.  Remove unused arg `noprops'.
+
+	Use a mode-line spec rather than a static string in Semantic.
+	* cedet/semantic/util-modes.el:
+	(semantic-minor-modes-format): New var to replace...
+	(semantic-minor-modes-status): Remove.
+	(semantic-mode-line-update): Construct a mode-line spec rather than
+	a static string so that mouse buttons can be used on individual minor
+	modes and so that semantic-mode-line-update only needs to be called
+	when global settings are changed.
+	(semantic-add-minor-mode, semantic-toggle-minor-mode-globally):
+	Call semantic-mode-line-update.
+	(semantic-toggle-minor-mode-globally): Don't assume mode is on
+	minor-mode-alist, check semantic-minor-mode-alist as well.
+	(semantic-stickyfunc-mode, semantic-show-parser-state-auto-marker)
+	(semantic-show-parser-state-marker, semantic-show-parser-state-mode)
+	(semantic-show-unmatched-syntax-mode, semantic-highlight-edits-mode):
+	* cedet/semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
+	* cedet/semantic/idle.el (semantic-idle-scheduler-mode)
+	(define-semantic-idle-service, semantic-idle-summary-mode):
+	* cedet/semantic/decorate/mode.el (semantic-decoration-mode):
+	Don't call semantic-mode-line-update any more.
+
+2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode in CEDET where applicable.
+
+	* cedet/srecode/mode.el (srecode-minor-mode,global-srecode-minor-mode):
+	Use define-minor-mode.
+
+	* cedet/semantic/util-modes.el (semantic-add-minor-mode):
+	Remove unused arg `keymap' and code redundant with define-minor-mode.
+	(semantic-toggle-minor-mode-globally): Only handle arg -1 and 1.
+	(semantic-stickyfunc-mode, global-semantic-show-unmatched-syntax-mode)
+	(semantic-highlight-func-mode, global-semantic-show-parser-state-mode)
+	(global-semantic-highlight-edits-mode, semantic-highlight-edits-mode)
+	(semantic-show-unmatched-syntax-mode, semantic-show-parser-state-mode)
+	(global-semantic-stickyfunc-mode, global-semantic-highlight-func-mode):
+	Use define-minor-mode.
+	(semantic-stickyfunc-mode-setup, semantic-highlight-edits-mode-setup)
+	(semantic-show-unmatched-syntax-mode-setup)
+	(semantic-show-parser-state-mode-setup)
+	(semantic-highlight-func-mode-setup): Inline into sole caller.
+
+	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)
+	(semantic-mru-bookmark-mode): Use define-minor-mode.
+	(semantic-mru-bookmark-mode-setup): Inline into sole caller.
+
+	* cedet/semantic/idle.el (define-semantic-idle-service):
+	Use define-minor-mode and inline setup function into its sole caller.
+	(semantic-idle-scheduler-mode-setup)
+	(semantic-idle-summary-mode-setup): Inline into sole caller.
+	(global-semantic-idle-scheduler-mode, semantic-idle-scheduler-mode):
+	Use define-minor-mode.
+
+	* cedet/semantic/decorate/mode.el (global-semantic-decoration-mode)
+	(semantic-decoration-mode): Use define-minor-mode.
+	(semantic-decoration-mode-setup): Inline into sole caller.
+
+	* cedet/ede/dired.el (ede-dired-minor-mode): Initialize in declaration.
+	(ede-dired-minor-mode): Use define-minor-mode and derived-mode-p.
+	(ede-dired-add-to-target): Use dolist.
+
+2010-05-01  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+	    Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement compression for inline methods.
+
+	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
+	(tramp-copy-size-limit): Allow also nil.
+	(tramp-inline-compress-commands): New defconst.
+	(tramp-find-inline-compress, tramp-get-inline-compress)
+	(tramp-get-inline-coding): New defuns.
+	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
+	replaced by `tramp-get-inline-coding'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
+
+2010-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-abbrev-mode, mode-line-auto-fill-mode):
+	Remove unused functions.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode): Use define-derived-mode.
+	Set find-tag-default-function as a variable rather than a property.
+
+	* minibuffer.el (tags-completion-at-point-function): Move to etags.el.
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Remove left over interactive spec.  Add autoloading stub.
+	(complete-tag): Use tags-completion-at-point-function.
+
+2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (tags-completion-at-point-function): Fix return value.
+
+2010-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.el (compose-region, reference-point-alist): Fix typos
+	in the doc strings.
+
+2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ido.el (ido-init-completion-maps): Remove C-v binding.
+	(ido-minibuffer-setup): Don't set cua-inhibit-cua-keys (Bug#5765).
+
+2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (tags-completion-at-point-function): New function.
+	(completion-at-point-functions): Use it.
+
+	* cedet/semantic.el (semantic-completion-at-point-function): New function.
+	(semantic-mode): Use semantic-completion-at-point-function for
+	completion-at-point-functions instead.
+
+	* progmodes/etags.el (complete-tag): Revert last change.
+
+2010-04-29  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-extend-region-for-CPP): Fix an
+	off-by-one error (in end of macro position).
+
+2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/browse-url.el (browse-url-firefox-program): Use iceweasel if
+	firefox is absent.  Don't autoload.
+	(browse-url-galeon-program): Don't autoload.
+
+2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (complete-symbol): Move into minibuffer.el.
+
+	* minibuffer.el (complete-tag): Move from etags.el.  If tags
+	completion cannot be performed, return nil instead of signalling
+	an error.
+	(completion-at-point): Make it an alias for complete-symbol.
+	(complete-symbol): Move from bindings.el, and replace with the
+	body of completion-at-point.
+
+	* progmodes/etags.el (complete-tag): Move to minibuffer.el.
+
+	* cedet/semantic.el (semantic-mode): When enabled, add
+	semantic-ia-complete-symbol to completion-at-point-functions.
+
+	* cedet/semantic/ia.el (semantic-ia-complete-symbol): Return nil
+	if Semantic is not active.
+
+2010-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-selinux-p): New defun.
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context): Use it.
+
+2010-04-28  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
+	`safe-local-variable' if the value is a string or a symbol with
+	the property `bug-reference-url-format'.
+
+2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Revert
+	2010-04-27 change due to security risk.
+
+2010-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make it possible to locally disable a globally enabled mode.
+	* simple.el (fundamental-mode): Run fundamental-mode-hook.
+	* emacs-lisp/derived.el (define-derived-mode): Use fundamental-mode
+	rather than kill-all-local-variables so it runs fundamental-mode-hook.
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Use fundamental-mode-hook to run MODE-enable-in-buffers earlier, so
+	that subsequent hooks get a chance to disable it.
+
 2010-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):

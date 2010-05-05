@@ -2239,13 +2239,13 @@ function can also be used as an `isearch-mode-end-hook'."
       (allout-show-to-offshoot)))
 
 ;;;_ #3 Internal Position State-Tracking -- "allout-recent-*" funcs
-;;; All the basic outline functions that directly do string matches to
-;;; evaluate heading prefix location set the variables
-;;; `allout-recent-prefix-beginning'  and `allout-recent-prefix-end'
-;;; when successful.  Functions starting with `allout-recent-' all
-;;; use this state, providing the means to avoid redundant searches
-;;; for just-established data.  This optimization can provide
-;;; significant speed improvement, but it must be employed carefully.
+;; All the basic outline functions that directly do string matches to
+;; evaluate heading prefix location set the variables
+;; `allout-recent-prefix-beginning'  and `allout-recent-prefix-end'
+;; when successful.  Functions starting with `allout-recent-' all
+;; use this state, providing the means to avoid redundant searches
+;; for just-established data.  This optimization can provide
+;; significant speed improvement, but it must be employed carefully.
 ;;;_  = allout-recent-prefix-beginning
 (defvar allout-recent-prefix-beginning 0
   "Buffer point of the start of the last topic prefix encountered.")

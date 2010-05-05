@@ -770,11 +770,8 @@ The return value is BASE-VARIABLE.  */)
   sym = XSYMBOL (new_alias);
 
   if (sym->constant)
-    if (sym->redirect == SYMBOL_VARALIAS)
-      sym->constant = 0;	/* Reset.  */
-    else
-      /* Not sure why.  */
-      error ("Cannot make a constant an alias");
+    /* Not sure why, but why not?  */
+    error ("Cannot make a constant an alias");
 
   switch (sym->redirect)
     {
@@ -1563,17 +1560,64 @@ internal_condition_case_1 (bfun, arg, handlers, hfun)
   return val;
 }
 
+/* Like internal_condition_case_1 but call BFUN with ARG1 and ARG2 as
+   its arguments.  */
+
+Lisp_Object
+internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
+			   Lisp_Object arg1,
+			   Lisp_Object arg2,
+			   Lisp_Object handlers,
+			   Lisp_Object (*hfun) (Lisp_Object))
+{
+  Lisp_Object val;
+  struct catchtag c;
+  struct handler h;
+
+  /* Since Fsignal will close off all calls to x_catch_errors,
+     we will get the wrong results if some are not closed now.  */
+#if HAVE_X_WINDOWS
+  if (x_catching_errors ())
+    abort ();
+#endif
+
+  c.tag = Qnil;
+  c.val = Qnil;
+  c.backlist = backtrace_list;
+  c.handlerlist = handlerlist;
+  c.lisp_eval_depth = lisp_eval_depth;
+  c.pdlcount = SPECPDL_INDEX ();
+  c.poll_suppress_count = poll_suppress_count;
+  c.interrupt_input_blocked = interrupt_input_blocked;
+  c.gcpro = gcprolist;
+  c.byte_stack = byte_stack_list;
+  if (_setjmp (c.jmp))
+    {
+      return (*hfun) (c.val);
+    }
+  c.next = catchlist;
+  catchlist = &c;
+  h.handler = handlers;
+  h.var = Qnil;
+  h.next = handlerlist;
+  h.tag = &c;
+  handlerlist = &h;
+
+  val = (*bfun) (arg1, arg2);
+  catchlist = c.next;
+  handlerlist = h.next;
+  return val;
+}
 
 /* Like internal_condition_case but call BFUN with NARGS as first,
    and ARGS as second argument.  */
 
 Lisp_Object
-internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
-     Lisp_Object (*bfun) ();
-     int nargs;
-     Lisp_Object *args;
-     Lisp_Object handlers;
-     Lisp_Object (*hfun) ();
+internal_condition_case_n (Lisp_Object (*bfun) (int, Lisp_Object*),
+			   int nargs,
+			   Lisp_Object *args,
+			   Lisp_Object handlers,
+			   Lisp_Object (*hfun) (Lisp_Object))
 {
   Lisp_Object val;
   struct catchtag c;
@@ -2134,8 +2178,6 @@ this does nothing and returns nil.  */)
      (function, file, docstring, interactive, type)
      Lisp_Object function, file, docstring, interactive, type;
 {
-  Lisp_Object args[4];
-
   CHECK_SYMBOL (function);
   CHECK_STRING (file);
 
@@ -2151,8 +2193,11 @@ this does nothing and returns nil.  */)
     LOADHIST_ATTACH (Fcons (Qautoload, function));
   else
     /* We don't want the docstring in purespace (instead,
-       Snarf-documentation should (hopefully) overwrite it).  */
-    docstring = make_number (0);
+       Snarf-documentation should (hopefully) overwrite it).
+       We used to use 0 here, but that leads to accidental sharing in
+       purecopy's hash-consing, so we use a (hopefully) unique integer
+       instead.  */
+    docstring = make_number (XHASH (function));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
 				  interactive, type)));

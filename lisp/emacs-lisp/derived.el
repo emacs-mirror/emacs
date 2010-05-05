@@ -230,7 +230,7 @@ No problems result if this variable is not bound.
 					; Run the parent.
 	 (delay-mode-hooks
 
-	  (,(or parent 'kill-all-local-variables))
+	  (,(or parent 'fundamental-mode))
 					; Identify the child mode.
 	  (setq major-mode (quote ,child))
 	  (setq mode-name ,name)

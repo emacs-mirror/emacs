@@ -58,29 +58,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #undef DATA_SEG_BITS
 
-
-/* For GNU_LINUX,  __OpenBSD__, __NetBSD__, __APPLE__, things are set
-   correctly in s/gnu-linux.h, netbsd.h, darwin.h.  */
-#ifdef SOLARIS2
-#undef START_FILES
-#undef LIB_STANDARD
-#elif defined (__FreeBSD__) || (defined (DARWIN_OS) && !defined (__APPLE__))
-/* On FreeBSD, the libraries for binaries native to the build host's
-   architecture are installed under /usr/lib, and the ones that need
-   special paths are 32-bit compatibility libraries (installed under
-   /usr/lib32).  So to build a native binary of Emacs on FreeBSD/amd64
-   we can just point to /usr/lib (the default $CRT_DIR).  */
-#undef START_FILES
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
-/* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
-   The reason is that some functions in libgcc.a call functions from libc.a,
-   and some libc.a functions need functions from libgcc.a.  Since most
-   versions of ld are one-pass linkers, we need to mention -lgcc twice,
-   or else we risk getting unresolved externals.  */
-#undef LIB_STANDARD
-#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
-
-#endif /* SOLARIS2 */
-
 /* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
    (do not change this comment) */

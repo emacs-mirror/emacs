@@ -181,7 +181,8 @@ to keep: LEN chars starting BEG chars from the beginning."
 			  null-device))
 			jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
-	    (jka-compr-delete-temp-file err-file)))
+	    (delete-file err-file t)))
+
       ;; Run the uncompression program directly.
       ;; We get the whole file and must delete what we don't want.
       (jka-compr-call-process prog message infile t nil args))
@@ -222,7 +223,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 					   "")))
 		   jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
-	    (jka-compr-delete-temp-file err-file)))
+	    (delete-file err-file t)))
       (or (eq 0
 	      (apply 'call-process
 		     prog infile (if (stringp output) temp output)
@@ -247,9 +248,6 @@ There should be no more than seven characters after the final `/'."
 (defun jka-compr-make-temp-name (&optional local-copy)
   "This routine will return the name of a new file."
   (make-temp-file jka-compr-temp-name-template))
-
-(defalias 'jka-compr-delete-temp-file 'delete-file)
-
 
 (defun jka-compr-write-region (start end file &optional append visit)
   (let* ((filename (expand-file-name file))
@@ -337,7 +335,7 @@ There should be no more than seven characters after the final `/'."
 						(and append can-append) 'dont))
 	      (erase-buffer)) )
 
-	  (jka-compr-delete-temp-file temp-file)
+	  (delete-file temp-file t)
 
 	  (and
 	   compress-message
@@ -603,7 +601,7 @@ There should be no more than seven characters after the final `/'."
 	      (setq file (file-name-sans-extension file)))
 	    (setcar l file)))
 
-      (jka-compr-delete-temp-file local-copy))
+      (delete-file local-copy))
 
     t))
 

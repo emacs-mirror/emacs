@@ -1,3 +1,42 @@
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_X_SITE_AUX): Use AC_SUBST only, not AC_DEFINE
+	as well.
+	(LD_SWITCH_X_SITE_AUX_RPATH): New output variable.
+
+	* configure.in (LD_SWITCH_SYSTEM_TEMACS): New output variable.
+
+	* configure.in (C_SWITCH_MACHINE, C_SWITCH_SYSTEM): New output
+	variables, replacing c_switch_machine, c_switch_system.
+	* Makefile.in (C_SWITCH_SYSTEM): Use @C_SWITCH_SYSTEM@ rather than
+	@c_switch_system@.
+
+2010-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXT_OTHER, LIBX_OTHER): New output variables.
+
+	* make-dist: There are no more src/m/*.inp files.
+
+2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LD_SWITCH_MACHINE, ld_switch_machine): Remove, unused.
+	(ac_link): Do not use ld_switch_machine.
+
+2010-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OTHER_OBJ): Remove.
+	(PRE_ALLOC_OBJ, POST_ALLOC_OBJ): New output variables.
+
+2010-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OTHER_OBJ): Always include vm-limit.o on Cygwin.
+	Elsewhere, maybe include it.
+
+	* configure.in (TOOLKIT_LIBW) [HAVE_GTK]: Set to $GTK_LIBS.
+	(OLDXMENU, LIBXMENU): New output variables.
+
+	* configure.in (OTHER_OBJ): New output variable.
+
 2010-04-28  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (CYGWIN_OBJ): New output variable.

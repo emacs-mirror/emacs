@@ -193,6 +193,15 @@ Certain options prevent loading of some of these files or substitute
 other files for them.
 
 @table @samp
+@item -chdir @var{directory}
+@opindex -chdir
+@itemx --chdir=@var{directory}
+@opindex --chdir
+@cindex change Emacs directory
+Change to @var{directory} before doing anything else.  This is mainly used
+by session management in X so that Emacs starts in the same directory as it
+stopped.  This makes desktop saving and restoring easier.
+
 @item -t @var{device}
 @opindex -t
 @itemx --terminal=@var{device}

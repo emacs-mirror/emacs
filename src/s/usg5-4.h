@@ -61,10 +61,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LDAV_SYMBOL "avenrun"
 
-/* Special hacks needed to make Emacs run on this system.  */
-
-#define POSIX_SIGNALS
-
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 

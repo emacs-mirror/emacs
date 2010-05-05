@@ -107,10 +107,20 @@ define it as a scroll command affected by `scroll-preserve-screen-position.
 
 * Editing Changes in Emacs 24.1
 
+** completion-at-point is now an alias for complete-symbol.
+
+** mouse-region-delete-keys has been deleted.
+
+** If delete-file is called with a prefix argument, it really deletes,
+regardless of the value of `delete-by-moving-to-trash'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
 ** Archive Mode has basic support to browse 7z archives.
+
+** In ido-mode, C-v is no longer bound to ido-toggle-vc.
+The reason is that this interferes with cua-mode.
 
 ** partial-completion-mode is now obsolete.
 You can get the same behavior with
@@ -175,6 +185,13 @@ Secret Service API requires D-Bus for communication.
    ON unconditionally.
 
 * Lisp changes in Emacs 24.1
+
+** define-minor-mode accepts a new keyword :variable.
+
+** delete-file now accepts an optional second arg, FORCE, which says
+to always delete and ignore the value of delete-by-moving-to-trash.
+
+** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
 
 ** New completion style `substring'.
 

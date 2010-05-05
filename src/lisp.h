@@ -721,11 +721,6 @@ struct Lisp_Cons
 #define XSETCAR(c,n) (XCAR_AS_LVALUE(c) = (n))
 #define XSETCDR(c,n) (XCDR_AS_LVALUE(c) = (n))
 
-/* For performance: Fast storage of positive integers into the
-   fields of a cons cell.  See above caveats.  */
-#define XSETCARFASTINT(c,n)  XSETFASTINT(XCAR_AS_LVALUE(c),(n))
-#define XSETCDRFASTINT(c,n)  XSETFASTINT(XCDR_AS_LVALUE(c),(n))
-
 /* Take the car or cdr of something whose type is not known.  */
 #define CAR(c)					\
  (CONSP ((c)) ? XCAR ((c))			\
@@ -2821,7 +2816,9 @@ extern Lisp_Object intern_c_string (const char *);
 extern Lisp_Object make_symbol P_ ((char *));
 extern Lisp_Object oblookup P_ ((Lisp_Object, const char *, int, int));
 #define LOADHIST_ATTACH(x) \
- if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
+  do {									\
+    if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list); \
+  } while (0)
 extern Lisp_Object Vcurrent_load_list;
 extern Lisp_Object Vload_history, Vload_suffixes, Vload_file_rep_suffixes;
 extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -2904,7 +2901,8 @@ extern Lisp_Object internal_catch P_ ((Lisp_Object, Lisp_Object (*) (Lisp_Object
 extern Lisp_Object internal_lisp_condition_case P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object internal_condition_case P_ ((Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern Lisp_Object internal_condition_case_1 P_ ((Lisp_Object (*) (Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
-extern Lisp_Object internal_condition_case_2 P_ ((Lisp_Object (*) (int, Lisp_Object *), int, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
+extern Lisp_Object internal_condition_case_2 P_ ((Lisp_Object (*) (Lisp_Object, Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
+extern Lisp_Object internal_condition_case_n P_ ((Lisp_Object (*) (int, Lisp_Object *), int, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern void specbind P_ ((Lisp_Object, Lisp_Object));
 extern void record_unwind_protect P_ ((Lisp_Object (*) (Lisp_Object), Lisp_Object));
 extern Lisp_Object unbind_to P_ ((int, Lisp_Object));
@@ -3062,7 +3060,7 @@ EXFUN (Ffile_executable_p, 1);
 EXFUN (Fread_file_name, 6);
 extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((const char *, Lisp_Object)) NO_RETURN;
-extern int internal_delete_file P_ ((Lisp_Object));
+extern int internal_delete_file P_ ((Lisp_Object, Lisp_Object));
 extern void syms_of_fileio P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 EXFUN (Fmake_symbolic_link, 3);

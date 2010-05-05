@@ -1,8 +1,16 @@
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-table.el (orgtbl-setup):
+	* org-agenda.el (org-agenda-entry-text-mode): Simplify.
+
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-table.el (orgtbl-mode): Use define-minor-mode.
+
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-insert-link): Find the link buffer on visible
-	frames.
-	(org-export-latex-default-packages-alist): hyperref must be loaded
+	* org.el (org-insert-link): Find the link buffer on visible frames.
+	(org-export-latex-default-packages-alist): Hyperref must be loaded
 	late.
 	(org-open-file): More care with the new matching for file links.
 
@@ -106,8 +114,6 @@
 	(org-html-entities): Constant removed.
 	(org-export-visible): Add the new export commands.
 
-	* org-entities.el: New file.
-
 	* org-docbook.el (org-docbook-do-expand): Use new entity code.
 
 	* org-ascii.el (org-export-ascii-entities): New variable.
@@ -116,6 +122,11 @@
 	(org-export-as-encoding): New function.
 	(org-export-ascii-preprocess): Call `org-ascii-replace-entities'.
 	(org-ascii-replace-entities): New function.
+
+2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
+	    Ulf Stegemann  <ulf@zeitform.de>
+
+	* org-entities.el: New file.
 
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -821,6 +832,10 @@
 	* org-latex.el (org-export-latex-treat-backslash-char): Do not by
 	accident protect a character that is before a backslash.
 
+2010-04-10  Paul Sexton  <eeeickythump@gmail.com>
+
+	* org-ctags.el: New file.
+
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-agenda.el (org-diary-class): Use
@@ -1099,9 +1114,7 @@
 	* org-exp.el (org-export-select-backend-specific-text): Add the
 	special beamer tags.
 
-	* org-beamer.el
-	(org-export-preprocess-before-selecting-backend-code-hook): New
-	file.
+	* org-beamer.el: New file.
 
 	* org-latex.el (org-export-latex-after-initial-vars-hook): New hook.
 	(org-export-as-latex): Run

@@ -1,3 +1,8 @@
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-show.el (mh-showing-mode): Move function to mh-e.el.
+	* mh-e.el (mh-showing-mode): Use define-minor-mode.
+
 2010-03-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-scan.el (mh-scan-cmd-note-width): Doc fix.
