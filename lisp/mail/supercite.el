@@ -1619,21 +1619,20 @@ error occurs."
 	       (cadr err) sc-eref-style)
 	      (beep))))))
 
-(defun sc-electric-mode (&optional arg)
-  "
-Mode for viewing Supercite reference headers.  Commands are:
+(defun sc-electric-mode (&optional style)
+  "Mode for viewing Supercite reference headers.  Commands are:
 \n\\{sc-electric-mode-map}
 
 `sc-electric-mode' is not intended to be run interactively, but rather
 accessed through Supercite's electric reference feature.  See
-`sc-insert-reference' for more details.  Optional ARG is the initial
+`sc-insert-reference' for more details.  Optional STYLE is the initial
 header style to use, unless not supplied or invalid, in which case
 `sc-preferred-header-style' is used."
 
   (let ((info sc-mail-info))
 
     (setq sc-eref-style
-	  (or (sc-valid-index-p arg)
+	  (or (sc-valid-index-p style)
 	      (sc-valid-index-p sc-preferred-header-style)
 	      0))
 

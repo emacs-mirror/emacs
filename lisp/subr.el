@@ -1477,8 +1477,7 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 	      (let ((rest (cdr found)))
 		(setcdr found nil)
 		(nconc found (list (list toggle name)) rest))
-	    (setq minor-mode-alist (cons (list toggle name)
-					 minor-mode-alist)))))))
+	    (push (list toggle name) minor-mode-alist))))))
   ;; Add the toggle to the minor-modes menu if requested.
   (when (get toggle :included)
     (define-key mode-line-mode-menu
@@ -1507,8 +1506,7 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 	      (let ((rest (cdr found)))
 		(setcdr found nil)
 		(nconc found (list (cons toggle keymap)) rest))
-	    (setq minor-mode-map-alist (cons (cons toggle keymap)
-					     minor-mode-map-alist))))))))
+	    (push (cons toggle keymap) minor-mode-map-alist)))))))
 
 ;;; Load history
 

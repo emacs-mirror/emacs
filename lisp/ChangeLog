@@ -1,5 +1,10 @@
 2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Minor cleanups.
+	* subr.el (add-minor-mode): Use push.
+	* mail/supercite.el (sc-electric-mode): Use more descriptive arg name.
+	* emulation/edt.el (edt-select-mode): Simplify.
+
 	Use define-minor-mode in more cases.
 	* term/tvi970.el (tvi970-set-keypad-mode):
 	* simple.el (auto-fill-mode, overwrite-mode, binary-overwrite-mode)
