@@ -1,5 +1,15 @@
 2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use define-minor-mode in more cases.
+	* term/tvi970.el (tvi970-set-keypad-mode):
+	* simple.el (auto-fill-mode, overwrite-mode, binary-overwrite-mode)
+	(normal-erase-is-backspace-mode):
+	* scroll-bar.el (scroll-bar-mode): Use it and define-minor-mode.
+	(set-scroll-bar-mode-1): (Re)move to its sole caller.
+	(get-scroll-bar-mode): New function.
+	* emacs-lisp/cl-macs.el (eq): Handle a non-variable first arg.
+
+	Use define-minor-mode for less obvious cases.
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Add :variable keyword.
 	* emacs-lisp/cl-macs.el (terminal-parameter, eq): Add setf method.
 	* international/iso-ascii.el (iso-ascii-mode):

@@ -5149,7 +5149,7 @@ Some major modes set this.")
 (put 'auto-fill-function 'safe-local-variable 'null)
 ;; FIXME: turn into a proper minor mode.
 ;; Add a global minor mode version of it.
-(defun auto-fill-mode (&optional arg)
+(define-minor-mode auto-fill-mode
   "Toggle Auto Fill mode.
 With ARG, turn Auto Fill mode on if and only if ARG is positive.
 In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
@@ -5157,14 +5157,7 @@ automatically breaks the line at a previous space.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
-  (interactive "P")
-  (prog1 (setq auto-fill-function
-	       (if (if (null arg)
-		       (not auto-fill-function)
-		       (> (prefix-numeric-value arg) 0))
-		   normal-auto-fill-function
-		   nil))
-    (force-mode-line-update)))
+  :variable (eq auto-fill-function normal-auto-fill-function))
 
 ;; This holds a document string used to document auto-fill-mode.
 (defun auto-fill-function ()
@@ -5263,7 +5256,7 @@ if long lines are truncated."
 (defvar overwrite-mode-binary (purecopy " Bin Ovwrt")
   "The string displayed in the mode line when in binary overwrite mode.")
 
-(defun overwrite-mode (arg)
+(define-minor-mode overwrite-mode
   "Toggle overwrite mode.
 With prefix argument ARG, turn overwrite mode on if ARG is positive,
 otherwise turn it off.  In overwrite mode, printing characters typed
@@ -5272,14 +5265,9 @@ it to the right.  At the end of a line, such characters extend the line.
 Before a tab, such characters insert until the tab is filled in.
 \\[quoted-insert] still inserts characters in overwrite mode; this
 is supposed to make it easier to insert characters when necessary."
-  (interactive "P")
-  (setq overwrite-mode
-	(if (if (null arg) (not overwrite-mode)
-	      (> (prefix-numeric-value arg) 0))
-	    'overwrite-mode-textual))
-  (force-mode-line-update))
+  :variable (eq overwrite-mode 'overwrite-mode-textual))
 
-(defun binary-overwrite-mode (arg)
+(define-minor-mode binary-overwrite-mode
   "Toggle binary overwrite mode.
 With prefix argument ARG, turn binary overwrite mode on if ARG is
 positive, otherwise turn it off.  In binary overwrite mode, printing
@@ -5292,13 +5280,7 @@ replaces the text at the cursor, just as ordinary typing characters do.
 Note that binary overwrite mode is not its own minor mode; it is a
 specialization of overwrite mode, entered by setting the
 `overwrite-mode' variable to `overwrite-mode-binary'."
-  (interactive "P")
-  (setq overwrite-mode
-	(if (if (null arg)
-		(not (eq overwrite-mode 'overwrite-mode-binary))
-	      (> (prefix-numeric-value arg) 0))
-	    'overwrite-mode-binary))
-  (force-mode-line-update))
+  :variable (eq overwrite-mode 'overwrite-mode-binary))
 
 (define-minor-mode line-number-mode
   "Toggle Line Number mode.
@@ -6438,7 +6420,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
              normal-erase-is-backspace)
            1 0)))))
 
-(defun normal-erase-is-backspace-mode (&optional arg)
+(define-minor-mode normal-erase-is-backspace-mode
   "Toggle the Erase and Delete mode of the Backspace and Delete keys.
 
 With numeric ARG, turn the mode on if and only if ARG is positive.
@@ -6468,13 +6450,10 @@ probably not turn on this mode on a text-only terminal if you don't
 have both Backspace, Delete and F1 keys.
 
 See also `normal-erase-is-backspace'."
-  (interactive "P")
-  (let ((enabled (or (and arg (> (prefix-numeric-value arg) 0))
-		     (not (or arg
-                              (eq 1 (terminal-parameter
-				      nil 'normal-erase-is-backspace)))))))
-    (set-terminal-parameter nil 'normal-erase-is-backspace
-			    (if enabled 1 0))
+  :variable (eq (terminal-parameter
+                 nil 'normal-erase-is-backspace) 1)
+  (let ((enabled (eq 1 (terminal-parameter
+                        nil 'normal-erase-is-backspace))))
 
     (cond ((or (memq window-system '(x w32 ns pc))
 	       (memq system-type '(ms-dos windows-nt)))
@@ -6510,7 +6489,6 @@ See also `normal-erase-is-backspace'."
 	     (keyboard-translate ?\C-h ?\C-h)
 	     (keyboard-translate ?\C-? ?\C-?))))
 
-    (run-hooks 'normal-erase-is-backspace-hook)
     (if (called-interactively-p 'interactive)
 	(message "Delete key deletes %s"
 		 (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
