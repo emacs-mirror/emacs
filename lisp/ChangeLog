@@ -1,3 +1,16 @@
+2010-05-05  Juri Linkov  <juri@jurta.org>
+
+	Add `slow' and `history' tags to the desktop data.
+
+	* info.el (Info-virtual-nodes) [*Index*]: Add `slow' tag.
+	(Info-virtual-files) [*Apropos*]: Add `slow' tag.
+	(Info-finder-find-node): Require `finder.el' to be able
+	to restore node from the desktop.
+	(Info-desktop-buffer-misc-data): Save all nodes.  Save additional
+	data `Info-history' and `slow' tag in the assoc list.
+	(Info-restore-desktop-buffer): Don't restore nodes with the
+	`slow' tag.  Restore `Info-history'.
+
 2010-05-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	Add FORCE argument to `delete-file'.
