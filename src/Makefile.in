@@ -212,8 +212,11 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_X_SITE
 #endif
 
+#ifdef START_FILES
 STARTFILES = START_FILES
-
+#else
+STARTFILES =
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
 /* Pull in stuff from GNUstep-make. */

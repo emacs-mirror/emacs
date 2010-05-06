@@ -1,3 +1,8 @@
+2010-05-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (STARTFILES): Conditionally define to make the usage clear.
+	* s/gnu.h (START_FILES): Remove empty definition.
+
 2010-05-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_draw_image_relief): Move declaration of extra to beginning.
