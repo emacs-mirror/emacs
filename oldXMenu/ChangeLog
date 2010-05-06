@@ -1,5 +1,8 @@
 2010-05-06  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (RANLIB): Let configure set it.
+	(libXMenu11.a): configure sets RANLIB = : on systems without it.
+
 	* Makefile.in (CPP, LN_S, AS, LD, MV, LS, LINTOPTS, LINTLIBFLAG, MAKE)
 	(STD_DEFINES, CDEBUGFLAGS, RM_CMD): Remove unused variables.
 

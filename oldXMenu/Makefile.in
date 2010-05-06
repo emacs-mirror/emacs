@@ -55,7 +55,7 @@ CC=@CC@
 CFLAGS=@CFLAGS@
 TAGS = etags
 RM = rm -f
-RANLIB = ranlib
+RANLIB = @RANLIB@
 # Solaris 2.1 ar doesn't accept the 'l' option.
 AR = ar cq
 
@@ -97,11 +97,7 @@ ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 libXMenu11.a: $(OBJS) $(EXTRA)
 	$(RM) $@
 	$(AR) $@ $(OBJS) $(EXTRA)
-	@echo Do not be alarmed if the following ranlib command
-	@echo fails due to the absence of a ranlib program on your system.
-	-$(RANLIB) $@ || true
-#If running ranlib fails, probably there is none.
-#That's ok.  So don't stop the build.
+	$(RANLIB) $@
 
 Activate.o: Activate.c XMenuInt.h XMenu.h X10.h
 AddPane.o: AddPane.c XMenuInt.h XMenu.h X10.h
