@@ -1,7 +1,7 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -182,7 +182,7 @@ pass to the OPERATION."
 	  (unwind-protect
 	      (rename-file tmpfile newname (car args))
 	    ;; Cleanup.
-	    (ignore-errors (delete-file tmpfile)))))
+	    (ignore-errors (tramp-compat-delete-file tmpfile 'force)))))
 
        ;; Normally, the handlers must be discarded.
        ;; `inhibit-file-name-handlers' isn't sufficient, because the

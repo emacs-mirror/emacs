@@ -117,7 +117,10 @@ BODY contains code to execute each time the mode is activated or deactivated.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
 :variable PLACE	The location (as can be used with `setf') to use instead
-		of the variable MODE to store the state of the mode.
+		of the variable MODE to store the state of the mode.  PLACE
+		can also be of the form (GET . SET) where GET is an expression
+		that returns the current state and SET is a function that takes
+		a new state and sets it.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -149,8 +152,9 @@ For example, you could write
 	 (type nil)
 	 (extra-args nil)
 	 (extra-keywords nil)
-         (variable nil)
-         (modefun mode)
+         (variable nil)          ;The PLACE where the state is stored.
+         (setter nil)            ;The function (if any) to set the mode var.
+         (modefun mode)          ;The minor mode function name we're defining.
 	 (require t)
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
@@ -171,7 +175,12 @@ For example, you could write
 	(:type (setq type (list :type (pop body))))
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
-        (:variable (setq variable (setq mode (pop body))))
+        (:variable (setq variable (pop body))
+         (if (not (functionp (cdr-safe variable)))
+             ;; PLACE is not of the form (GET . SET).
+             (setq mode variable)
+           (setq mode (car variable))
+           (setq setter (cdr variable))))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
@@ -230,7 +239,8 @@ With zero or negative ARG turn mode off.
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
-           (,(if (symbolp mode) 'setq 'setf) ,mode
+           (,@(if setter (list setter)
+                (list (if (symbolp mode) 'setq 'setf) mode))
             (if (eq arg 'toggle)
                 (not ,mode)
               ;; A nil argument also means ON now.
@@ -240,7 +250,8 @@ With zero or negative ARG turn mode off.
            (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
            (if (called-interactively-p 'any)
                (progn
-                 ,(if globalp `(customize-mark-as-set ',mode))
+                 ,(if (and globalp (symbolp mode))
+                      `(customize-mark-as-set ',mode))
                  ;; Avoid overwriting a message shown by the body,
                  ;; but do overwrite previous messages.
                  (unless (and (current-message)
@@ -265,10 +276,15 @@ With zero or negative ARG turn mode off.
 		     (t (error "Invalid keymap %S" ,keymap))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
-       ,(unless variable
-          `(add-minor-mode ',mode ',lighter
+       ,(if (not (symbolp mode))
+            (if (or lighter keymap)
+                (error ":lighter and :keymap unsupported with mode expression %s" mode))
+          `(with-no-warnings
+             (add-minor-mode ',mode ',lighter
                            ,(if keymap keymap-sym
-                              `(if (boundp ',keymap-sym) ,keymap-sym)))))))
+                                `(if (boundp ',keymap-sym) ,keymap-sym))
+                             nil
+                             ,(unless (eq mode modefun) 'modefun)))))))
 
 ;;;
 ;;; make global minor mode

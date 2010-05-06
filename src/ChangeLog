@@ -1,3 +1,19 @@
+2010-05-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_draw_image_relief): Move declaration of extra to beginning.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CPP, LN_S): Remove unused variables.
+
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (Fchar_syntax): Check the arg is a character (bug#6080).
+
+2010-05-05  Lawrence Mitchell  <wence@gmx.li>
+
+	* m/sparc.h: Fix typo in earlier change.
+
 2010-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Misc tweaks.

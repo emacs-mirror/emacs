@@ -1,3 +1,81 @@
+2010-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top, with-progress-reporter): Use
+	`symbol-function' inside `funcall'.
+
+	* net/tramp-compat.el (tramp-compat-file-attributes)
+	(tramp-compat-delete-file, tramp-compat-delete-directory): Handle
+	only `wrong-number-of-arguments' error.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Fix typo.
+	(tramp-gvfs-handle-file-selinux-context): Use `symbol-function'
+	inside `funcall'.
+
+2010-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sreverse, completion--common-suffix):
+	New functions.
+	(completion-pcm--merge-completions): Extract common suffix when safe.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Make :variable more flexible.
+	* files.el (auto-save-mode): Use it to define using define-minor-mode.
+
+2010-05-05  Juri Linkov  <juri@jurta.org>
+
+	Add `slow' and `history' tags to the desktop data.
+
+	* info.el (Info-virtual-nodes) [*Index*]: Add `slow' tag.
+	(Info-virtual-files) [*Apropos*]: Add `slow' tag.
+	(Info-finder-find-node): Require `finder.el' to be able
+	to restore node from the desktop.
+	(Info-desktop-buffer-misc-data): Save all nodes.  Save additional
+	data `Info-history' and `slow' tag in the assoc list.
+	(Info-restore-desktop-buffer): Don't restore nodes with the
+	`slow' tag.  Restore `Info-history'.
+
+2010-05-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add FORCE argument to `delete-file'.
+
+	* net/ange-ftp.el (ange-ftp-del-tmp-name): Make it a defun,
+	forcing to delete the temporary file.
+	(ange-ftp-delete-file): Add FORCE arg.
+	(ange-ftp-rename-remote-to-remote)
+	(ange-ftp-rename-local-to-remote, ange-ftp-rename-remote-to-local)
+	(ange-ftp-load, ange-ftp-compress, ange-ftp-uncompress):
+	Force file deletion.
+
+	* net/tramp-compat.el (tramp-compat-delete-file): New defun.
+
+	* net/tramp.el (tramp-handle-delete-file): Add FORCE arg.
+	(tramp-handle-make-symbolic-link, tramp-handle-load)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-process-file, tramp-handle-call-process-region)
+	(tramp-handle-shell-command, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-delete-temp-file-function): Use `tramp-compat-delete-file'.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-file): Add FORCE arg.
+	(tramp-fish-handle-make-symbolic-link)
+	(tramp-fish-handle-process-file): Use `tramp-compat-delete-file'.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
+	Use `tramp-compat-delete-file'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Add FORCE arg.
+	(tramp-gvfs-handle-write-region): Use `tramp-compat-delete-file'.
+
+	* net/tramp-imap.el (tramp-imap-handle-delete-file): Add FORCE arg.
+	(tramp-imap-do-copy-or-rename-file): Use `tramp-compat-delete-file'.
+
+	* net/tramp-smb.el (tramp-smb-handle-delete-file): Add FORCE arg.
+	(tramp-smb-handle-copy-file, tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region): Use
+	`tramp-compat-delete-file'.
+
 2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Minor cleanups.

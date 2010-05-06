@@ -1,3 +1,10 @@
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_PROG_LN_S): Remove test, nothing uses @LN_S@.
+
+	* Makefile.in (CPP, C_SWITCH_SYSTEM, ALLOCA, LN_S, C_SWITCH_X_SITE)
+	(LD_SWITCH_X_SITE): Remove unused variables.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LD_SWITCH_X_SITE_AUX): Use AC_SUBST only, not AC_DEFINE

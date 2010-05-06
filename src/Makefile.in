@@ -37,11 +37,9 @@ srcdir = @srcdir@
 abs_builddir = @abs_builddir@
 VPATH = $(srcdir)
 CC = @CC@
-CPP = @CPP@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-LN_S = @LN_S@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -239,6 +237,7 @@ shared=no
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
+/* MYCPPFLAGS only referenced in etc/DEBUG.  */
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
@@ -730,6 +729,7 @@ ${libsrc}make-docfile${EXEEXT}:
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
+/* FIXME LOCALCPP not defined or mentioned anywhere.  */
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
@@ -802,14 +802,14 @@ doc.o: buildobj.h
 
 #ifndef AUTO_DEPEND
 
-## FIXME some of these dependencies are platform-specific.
-## Eg callproc.c only depends on w32.h for WINDOWSNT builds.
-## One way to fix this would be to replace w32.h (etc) by $(W32_H),
-## a variable set by configure.  Doesn't seem worth the trouble.
+/* FIXME some of these dependencies are platform-specific.
+Eg callproc.c only depends on w32.h for WINDOWSNT builds.
+One way to fix this would be to replace w32.h (etc) by $(W32_H),
+a variable set by configure.  Does not seem worth the trouble.
 
-## nsgui.h: In fact, every .o file depends directly or indirectly on
-## dispextern.h and hence nsgui.h under NS.  But the ones that actually
-## use stuff there are more limited.
+nsgui.h: In fact, every .o file depends directly or indirectly on
+dispextern.h and hence nsgui.h under NS.  But the ones that actually
+use stuff there are more limited.  */
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h lisp.h $(config_h)

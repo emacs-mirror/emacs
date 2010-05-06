@@ -3104,6 +3104,7 @@ Give an empty topic name to go to the Index node itself."
 (add-to-list 'Info-virtual-nodes
 	     '("\\`\\*Index.*\\*\\'"
 	       (find-node . Info-virtual-index-find-node)
+	       (slow . t)
 	       ))
 
 (defvar Info-virtual-index-nodes nil
@@ -3193,6 +3194,7 @@ search results."
 	       (toc-nodes . Info-apropos-toc-nodes)
 	       (find-file . Info-apropos-find-file)
 	       (find-node . Info-apropos-find-node)
+	       (slow . t)
 	       ))
 
 (defvar Info-apropos-file "*Apropos*"
@@ -3348,6 +3350,7 @@ Build a menu of the possible matches."
 
 (defun Info-finder-find-node (filename nodename &optional no-going-back)
   "Finder-specific implementation of Info-find-node-2."
+  (require 'finder)
   (cond
    ((equal nodename "Top")
     ;; Display Top menu with descriptions of the keywords
@@ -4836,21 +4839,35 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (defun Info-desktop-buffer-misc-data (desktop-dirname)
   "Auxiliary information to be saved in desktop file."
-  (unless (Info-virtual-file-p Info-current-file)
-    (list Info-current-file Info-current-node)))
+  (list Info-current-file
+	Info-current-node
+	;; Additional data as an association list.
+	(delq nil (list
+		   (and Info-history
+			(cons 'history Info-history))
+		   (and (Info-virtual-fun
+			 'slow Info-current-file Info-current-node)
+			(cons 'slow t))))))
 
 (defun Info-restore-desktop-buffer (desktop-buffer-file-name
                                     desktop-buffer-name
                                     desktop-buffer-misc)
   "Restore an Info buffer specified in a desktop file."
-  (let ((first (nth 0 desktop-buffer-misc))
-        (second (nth 1 desktop-buffer-misc)))
-  (when (and first second)
-    (when desktop-buffer-name
-      (set-buffer (get-buffer-create desktop-buffer-name))
-      (Info-mode))
-    (Info-find-node first second)
-    (current-buffer))))
+  (let* ((file (nth 0 desktop-buffer-misc))
+	 (node (nth 1 desktop-buffer-misc))
+	 (data (nth 2 desktop-buffer-misc))
+	 (hist (assq 'history data))
+	 (slow (assq 'slow data)))
+    ;; Don't restore nodes slow to regenerate.
+    (unless slow
+      (when (and file node)
+	(when desktop-buffer-name
+	  (set-buffer (get-buffer-create desktop-buffer-name))
+	  (Info-mode))
+	(Info-find-node file node)
+	(when hist
+	  (setq Info-history (cdr hist)))
+	(current-buffer)))))
 
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(Info-mode . Info-restore-desktop-buffer))
