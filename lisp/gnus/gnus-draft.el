@@ -32,6 +32,9 @@
 (require 'nndraft)
 (require 'gnus-agent)
 (eval-when-compile (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 ;;; Draft minor mode
 
