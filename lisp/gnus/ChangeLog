@@ -1,3 +1,8 @@
+2010-05-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-dired.el, gnus-draft.el, gnus-ml.el, gnus-salt.el, gnus-sum.el,
+	gnus-undo.el, mml.el: Require easy-mmode for XEmacs when compiling.
+
 2010-05-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mm-util.el (mm-decompress-buffer): Use `delete-file';
