@@ -1,5 +1,7 @@
 2010-05-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs.c (main): Remove NO_DIR_LIBRARY conditional, unused.
+
 	* Makefile.in (STARTFILES): Conditionally define to make the usage clear.
 	* s/gnu.h (START_FILES): Remove empty definition.
 
