@@ -21,6 +21,12 @@
 	* gnus-dired.el (gnus-dired-mode-map): Initialize in declaration.
 	(gnus-dired-mode): Use define-minor-mode.
 
+2010-05-01  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* mml.el (mml-generate-mime-1,mml-compute-boundary-1): Update 'mml
+	handles on recursive mml-to-mime translation and check them for
+	boundary delimiter collisions.  Reported by: Greg Troxel.
+
 2010-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el: Don't load tm and apel XEmacs packages when compiling.
