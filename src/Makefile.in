@@ -37,11 +37,9 @@ srcdir = @srcdir@
 abs_builddir = @abs_builddir@
 VPATH = $(srcdir)
 CC = @CC@
-CPP = @CPP@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-LN_S = @LN_S@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -214,8 +212,11 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LD_SWITCH_X_SITE
 #endif
 
+#ifdef START_FILES
 STARTFILES = START_FILES
-
+#else
+STARTFILES =
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
 /* Pull in stuff from GNUstep-make. */
@@ -239,6 +240,7 @@ shared=no
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
+/* MYCPPFLAGS only referenced in etc/DEBUG.  */
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 
@@ -730,6 +732,7 @@ ${libsrc}make-docfile${EXEEXT}:
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
+/* FIXME LOCALCPP not defined or mentioned anywhere.  */
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \

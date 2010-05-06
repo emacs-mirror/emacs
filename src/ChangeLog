@@ -1,3 +1,24 @@
+2010-05-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove NEED_BSDTTY and NEED_UNISTD_H.
+	* s/hpux10-20.h (NEED_BSDTTY): Remove.
+	* s/aix4-2.h (NEED_UNISTD_H): Remove.
+	* systty.h: Simplify conditionals for including <sys/bsdtty.h>,
+	<sys/ptyio.h> and <unistd.h>.
+
+	* emacs.c (main): Remove NO_DIR_LIBRARY conditional, unused.
+
+	* Makefile.in (STARTFILES): Conditionally define to make the usage clear.
+	* s/gnu.h (START_FILES): Remove empty definition.
+
+2010-05-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_draw_image_relief): Move declaration of extra to beginning.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CPP, LN_S): Remove unused variables.
+
 2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (Fchar_syntax): Check the arg is a character (bug#6080).

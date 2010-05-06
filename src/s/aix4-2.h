@@ -109,9 +109,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It may not have been needed in certain earlier versions.  */
 #define HAVE_TCATTR
 
-/* Include unistd.h, even though we don't define POSIX.  */
-#define NEED_UNISTD_H
-
 /* AIX doesn't define this.  */
 #define unix 1
 

@@ -1582,9 +1582,7 @@ main (int argc, char **argv)
       syms_of_ccl ();
       syms_of_character ();
       syms_of_cmds ();
-#ifndef NO_DIR_LIBRARY
       syms_of_dired ();
-#endif /* not NO_DIR_LIBRARY */
       syms_of_display ();
       syms_of_doc ();
       syms_of_editfns ();

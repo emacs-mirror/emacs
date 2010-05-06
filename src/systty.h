@@ -51,11 +51,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <termios.h>
 #endif
 
-#ifdef NEED_BSDTTY
+#ifdef HPUX
 #include <sys/bsdtty.h>
-#endif
-
-#if defined (HPUX) && defined (HAVE_PTYS)
 #include <sys/ptyio.h>
 #endif
 
@@ -63,7 +60,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/pty.h>
 #endif /* AIX */
 
-#if (defined (POSIX) || defined (NEED_UNISTD_H)) && defined (HAVE_UNISTD_H)
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
