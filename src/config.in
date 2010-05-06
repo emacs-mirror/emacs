@@ -807,10 +807,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    its own, you might want to add "-L/..." or something similar. */
 #undef LD_SWITCH_X_SITE
 
-/* Define LD_SWITCH_X_SITE_AUX with an -R option in case it's needed (for
-   Solaris, for example). */
-#undef LD_SWITCH_X_SITE_AUX
-
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 

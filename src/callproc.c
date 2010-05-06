@@ -91,7 +91,7 @@ extern char **environ;
 #endif
 
 #ifdef HAVE_SETPGID
-#if !defined (USG) || defined (BSD_PGRPS)
+#if !defined (USG)
 #undef setpgrp
 #define setpgrp setpgid
 #endif
@@ -581,7 +581,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #ifdef HAVE_SETSID
         setsid ();
 #endif
-#if defined (USG) && !defined (BSD_PGRPS)
+#if defined (USG)
         setpgrp ();
 #else
         setpgrp (pid, pid);
@@ -856,7 +856,7 @@ delete_temp_file (name)
   /* Suppress jka-compr handling, etc.  */
   int count = SPECPDL_INDEX ();
   specbind (intern ("file-name-handler-alist"), Qnil);
-  internal_delete_file (name);
+  internal_delete_file (name, Qt);
   unbind_to (count, Qnil);
   return Qnil;
 }
@@ -1251,7 +1251,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 
-#if defined(USG) && !defined(BSD_PGRPS)
+#if defined(USG)
 #ifndef SETPGRP_RELEASES_CTTY
   setpgrp ();			/* No arguments but equivalent in this case */
 #endif

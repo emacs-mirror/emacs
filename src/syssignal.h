@@ -30,8 +30,6 @@ extern void init_signals P_ ((void));
 extern pthread_t main_thread;
 #endif
 
-#ifdef POSIX_SIGNALS
-
 /* Don't #include <signal.h>.  That header should always be #included
    before "config.h", because some configuration files (like s/hpux.h)
    indicate that SIGIO doesn't work by #undef-ing SIGIO.  If this file
@@ -86,15 +84,6 @@ sigset_t sys_sigunblock P_ ((sigset_t new_mask));
 sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
-
-#else /* ! defined (POSIX_SIGNALS) */
-
-#ifndef sigunblock
-#define sigunblock(SIG) \
-{ SIGMASKTYPE omask = sigblock (SIGEMPTYMASK); sigsetmask (omask & ~SIG); }
-#endif
-
-#endif /* ! defined (POSIX_SIGNALS) */
 
 #ifndef SIGMASKTYPE
 #define SIGMASKTYPE int

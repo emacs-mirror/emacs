@@ -48,9 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSV_SYSTEM_DIR
 
-/* POSIX-style pgrp behavior.  */
-#undef BSD_PGRPS
-
 #define UNEXEC unexelf.o
 
 /* If the system's imake configuration file defines `NeedWidePrototypes'

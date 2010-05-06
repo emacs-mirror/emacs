@@ -2451,7 +2451,7 @@ safe_call (nargs, args)
       specbind (Qinhibit_redisplay, Qt);
       /* Use Qt to ensure debugger does not run,
 	 so there is no possibility of wanting to redisplay.  */
-      val = internal_condition_case_2 (Ffuncall, nargs, args, Qt,
+      val = internal_condition_case_n (Ffuncall, nargs, args, Qt,
 				       safe_eval_handler);
       UNGCPRO;
       val = unbind_to (count, val);
@@ -12776,6 +12776,13 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	 rightmost glyph.  Case in point: an empty last line that is
 	 part of an R2L paragraph.  */
       cursor = end - 1;
+      /* Avoid placing the cursor on the last glyph of the row, where
+	 on terminal frames we hold the vertical border between
+	 adjacent windows.  */
+      if (!FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && !WINDOW_RIGHTMOST_P (w)
+	  && cursor == row->glyphs[LAST_AREA] - 1)
+	cursor--;
       x = -1;	/* will be computed below, at label compute_x */
     }
 
@@ -13015,7 +13022,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 			  cursor = glyph;
 			  for (glyph += incr;
-			       EQ (glyph->object, str);
+			       (row->reversed_p ? glyph > stop : glyph < stop)
+				 && EQ (glyph->object, str);
 			       glyph += incr)
 			    {
 			      Lisp_Object cprop;
@@ -13055,8 +13063,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 	  /* If we reached the end of the line, and END was from a string,
 	     the cursor is not on this line.  */
-	  if (glyph == end
-	      && STRINGP ((glyph - incr)->object)
+	  if (cursor == NULL
+	      && (row->reversed_p ? glyph <= end : glyph >= end)
+	      && STRINGP (end->object)
 	      && row->continued_p)
 	    return 0;
 	}
@@ -13714,11 +13723,14 @@ try_cursor_movement (window, startp, scroll_step)
 		  ++row;
 		}
 
-	      /* The end position of a row equals the start position
-		 of the next row.  If PT is there, we would rather
-		 display it in the next line.  */
+	      /* If the end position of a row equals the start
+		 position of the next row, and PT is at that position,
+		 we would rather display cursor in the next line.  */
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_END_CHARPOS (row) == PT
+		     && row < w->current_matrix->rows
+				+ w->current_matrix->nrows - 1
+		     && MATRIX_ROW_START_CHARPOS (row+1) == PT
 		     && !cursor_row_p (w, row))
 		++row;
 
@@ -16737,24 +16749,61 @@ insert_left_trunc_glyphs (it)
   produce_special_glyphs (&truncate_it, IT_TRUNCATION);
 
   /* Overwrite glyphs from IT with truncation glyphs.  */
-  from = truncate_it.glyph_row->glyphs[TEXT_AREA];
-  end = from + truncate_it.glyph_row->used[TEXT_AREA];
-  to = it->glyph_row->glyphs[TEXT_AREA];
-  toend = to + it->glyph_row->used[TEXT_AREA];
-
-  while (from < end)
-    *to++ = *from++;
-
-  /* There may be padding glyphs left over.  Overwrite them too.  */
-  while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+  if (!it->glyph_row->reversed_p)
     {
       from = truncate_it.glyph_row->glyphs[TEXT_AREA];
+      end = from + truncate_it.glyph_row->used[TEXT_AREA];
+      to = it->glyph_row->glyphs[TEXT_AREA];
+      toend = to + it->glyph_row->used[TEXT_AREA];
+
       while (from < end)
 	*to++ = *from++;
-    }
 
-  if (to > toend)
-    it->glyph_row->used[TEXT_AREA] = to - it->glyph_row->glyphs[TEXT_AREA];
+      /* There may be padding glyphs left over.  Overwrite them too.  */
+      while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+	{
+	  from = truncate_it.glyph_row->glyphs[TEXT_AREA];
+	  while (from < end)
+	    *to++ = *from++;
+	}
+
+      if (to > toend)
+	it->glyph_row->used[TEXT_AREA] = to - it->glyph_row->glyphs[TEXT_AREA];
+    }
+  else
+    {
+      /* In R2L rows, overwrite the last (rightmost) glyphs, and do
+	 that back to front.  */
+      end = truncate_it.glyph_row->glyphs[TEXT_AREA];
+      from = end + truncate_it.glyph_row->used[TEXT_AREA] - 1;
+      toend = it->glyph_row->glyphs[TEXT_AREA];
+      to = toend + it->glyph_row->used[TEXT_AREA] - 1;
+
+      while (from >= end && to >= toend)
+	*to-- = *from--;
+      while (to >= toend && CHAR_GLYPH_PADDING_P (*to))
+	{
+	  from =
+	    truncate_it.glyph_row->glyphs[TEXT_AREA]
+	    + truncate_it.glyph_row->used[TEXT_AREA] - 1;
+	  while (from >= end && to >= toend)
+	    *to-- = *from--;
+	}
+      if (from >= end)
+	{
+	  /* Need to free some room before prepending additional
+	     glyphs.  */
+	  int move_by = from - end + 1;
+	  struct glyph *g0 = it->glyph_row->glyphs[TEXT_AREA];
+	  struct glyph *g = g0 + it->glyph_row->used[TEXT_AREA] - 1;
+
+	  for ( ; g >= g0; g--)
+	    g[move_by] = *g;
+	  while (from >= end)
+	    *to-- = *from--;
+	  it->glyph_row->used[TEXT_AREA] += move_by;
+	}
+    }
 }
 
 
@@ -16946,8 +16995,13 @@ extend_face_to_end_of_line (it)
 
   /* If line is already filled, do nothing.  Non window-system frames
      get a grace of one more ``pixel'' because their characters are
-     1-``pixel'' wide, so they hit the equality too early.  */
-  if (it->current_x >= it->last_visible_x + !FRAME_WINDOW_P (f))
+     1-``pixel'' wide, so they hit the equality too early.  This grace
+     is needed only for R2L rows that are not continued, to produce
+     one extra blank where we could display the cursor.  */
+  if (it->current_x >= it->last_visible_x
+      + (!FRAME_WINDOW_P (f)
+	 && it->glyph_row->reversed_p
+	 && !it->glyph_row->continued_p))
     return;
 
   /* Face extension extends the background and box of IT->face_id
@@ -17368,6 +17422,123 @@ unproduce_glyphs (it, n)
     glyph[-n] = *glyph;
 }
 
+/* Find the positions in a bidi-reordered ROW to serve as ROW->start
+   and ROW->end.  */
+static struct display_pos
+find_row_end (it, row)
+     struct it *it;
+     struct glyph_row *row;
+{
+  /* FIXME: Revisit this when glyph ``spilling'' in continuation
+     lines' rows is implemented for bidi-reordered rows.  */
+  EMACS_INT min_pos = ZV + 1, max_pos = 0;
+  struct glyph *g;
+  struct it save_it;
+  struct text_pos tpos;
+  struct display_pos row_end = it->current;
+
+  for (g = row->glyphs[TEXT_AREA];
+       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+       g++)
+    {
+      if (BUFFERP (g->object))
+	{
+	  if (g->charpos > 0 && g->charpos < min_pos)
+	    min_pos = g->charpos;
+	  if (g->charpos > max_pos)
+	    max_pos = g->charpos;
+	}
+    }
+  /* Empty lines have a valid buffer position at their first
+     glyph, but that glyph's OBJECT is zero, as if it didn't come
+     from a buffer.  If we didn't find any valid buffer positions
+     in this row, maybe we have such an empty line.  */
+  if (max_pos == 0 && row->used[TEXT_AREA])
+    {
+      for (g = row->glyphs[TEXT_AREA];
+	   g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+	   g++)
+	{
+	  if (INTEGERP (g->object))
+	    {
+	      if (g->charpos > 0 && g->charpos < min_pos)
+		min_pos = g->charpos;
+	      if (g->charpos > max_pos)
+		max_pos = g->charpos;
+	    }
+	}
+    }
+
+  /* ROW->start is the value of min_pos, the minimal buffer position
+     we have in ROW.  */
+  if (min_pos <= ZV)
+    {
+      /* Avoid calling the costly CHAR_TO_BYTE if possible.  */
+      if (min_pos != row->start.pos.charpos)
+	SET_TEXT_POS (row->start.pos, min_pos, CHAR_TO_BYTE (min_pos));
+      if (max_pos == 0)
+	max_pos = min_pos;
+    }
+
+  /* For ROW->end, we need the position that is _after_ max_pos, in
+     the logical order, unless we are at ZV.  */
+  if (row->ends_at_zv_p)
+    {
+      if (!row->used[TEXT_AREA])
+	row->start.pos = row_end.pos;
+    }
+  else if (row->used[TEXT_AREA] && max_pos)
+    {
+      int at_eol_p;
+
+      SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
+      save_it = *it;
+      it->bidi_p = 0;
+      reseat (it, tpos, 0);
+      if (!get_next_display_element (it))
+	abort ();	/* this row cannot be at ZV, see above */
+      at_eol_p = ITERATOR_AT_END_OF_LINE_P (it);
+      set_iterator_to_next (it, 1);
+      row_end = it->current;
+      /* If the character at max_pos is not a newline and the
+	 characters at max_pos+1 is a newline, skip that newline as
+	 well.  Note that this may skip some invisible text.  */
+      if (!at_eol_p
+	  && get_next_display_element (it)
+	  && ITERATOR_AT_END_OF_LINE_P (it))
+	{
+	  set_iterator_to_next (it, 1);
+	  /* Record the position after the newline of a continued row.
+	     We will need that to set ROW->end of the last row
+	     produced for a continued line.  */
+	  if (row->continued_p)
+	    save_it.eol_pos = it->current.pos;
+	  else
+	    {
+	      row_end = it->current;
+	      save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
+	    }
+	}
+      else if (!row->continued_p
+	       && MATRIX_ROW_CONTINUATION_LINE_P (row)
+	       && it->eol_pos.charpos > 0)
+	{
+	  /* Last row of a continued line.  Use the position recorded
+	     in IT->eol_pos, to the effect that the newline belongs to
+	     this row, not to the row which displays the character
+	     with the largest buffer position before the newline.  */
+	  row_end.pos = it->eol_pos;
+	  it->eol_pos.charpos = it->eol_pos.bytepos = 0;
+	}
+      *it = save_it;
+      /* The members of ROW->end that are not taken from buffer
+	 positions are copied from IT->current.  */
+      row_end.string_pos = it->current.string_pos;
+      row_end.overlay_string_index = it->current.overlay_string_index;
+      row_end.dpvec_index = it->current.dpvec_index;
+    }
+  return row_end;
+}
 
 /* Construct the glyph row IT->glyph_row in the desired matrix of
    IT->w from text at the current position of IT.  See dispextern.h
@@ -17386,7 +17557,6 @@ display_line (it)
   int wrap_row_used = -1, wrap_row_ascent, wrap_row_height;
   int wrap_row_phys_ascent, wrap_row_phys_height;
   int wrap_row_extra_line_spacing;
-  struct display_pos row_end;
   int cvpos;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
@@ -17815,10 +17985,14 @@ display_line (it)
 		  for (i = 0; i < row->used[TEXT_AREA]; i++)
 		    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
 		      break;
-		  /* Remove padding glyphs at the front of ROW, to
+		  /* Remove any padding glyphs at the front of ROW, to
 		     make room for the truncation glyphs we will be
-		     adding below.  */
-		  unproduce_glyphs (it, i);
+		     adding below.  The loop below always inserts at
+		     least one truncation glyph, so also remove the
+		     last glyph added to ROW.  */
+		  unproduce_glyphs (it, i + 1);
+		  /* Adjust i for the loop below.  */
+		  i = row->used[TEXT_AREA] - (i + 1);
 		}
 
 	      for (n = row->used[TEXT_AREA]; i < n; ++i)
@@ -17910,118 +18084,13 @@ display_line (it)
   compute_line_metrics (it);
 
   /* Remember the position at which this line ends.  */
-  row->end = row_end = it->current;
+  row->end = it->current;
+  /* ROW->start and ROW->end must be the smallest and the largest
+     buffer positions in ROW.  But if ROW was bidi-reordered, these
+     two positions can be anywhere in the row, so we must rescan all
+     of the ROW's glyphs to find them.  */
   if (it->bidi_p)
-    {
-      /* ROW->start and ROW->end must be the smallest and largest
-	 buffer positions in ROW.  But if ROW was bidi-reordered,
-	 these two positions can be anywhere in the row, so we must
-	 rescan all of the ROW's glyphs to find them.  */
-      /* FIXME: Revisit this when glyph ``spilling'' in continuation
-	 lines' rows is implemented for bidi-reordered rows.  */
-      EMACS_INT min_pos = ZV + 1, max_pos = 0;
-      struct glyph *g;
-      struct it save_it;
-      struct text_pos tpos;
-
-      for (g = row->glyphs[TEXT_AREA];
-	   g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
-	   g++)
-	{
-	  if (BUFFERP (g->object))
-	    {
-	      if (g->charpos > 0 && g->charpos < min_pos)
-		min_pos = g->charpos;
-	      if (g->charpos > max_pos)
-		max_pos = g->charpos;
-	    }
-	}
-      /* Empty lines have a valid buffer position at their first
-	 glyph, but that glyph's OBJECT is zero, as if it didn't come
-	 from a buffer.  If we didn't find any valid buffer positions
-	 in this row, maybe we have such an empty line.  */
-      if (min_pos == ZV + 1 && row->used[TEXT_AREA])
-	{
-	  for (g = row->glyphs[TEXT_AREA];
-	       g < row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
-	       g++)
-	    {
-	      if (INTEGERP (g->object))
-		{
-		  if (g->charpos > 0 && g->charpos < min_pos)
-		    min_pos = g->charpos;
-		  if (g->charpos > max_pos)
-		    max_pos = g->charpos;
-		}
-	    }
-	}
-      if (min_pos <= ZV)
-	{
-	  if (min_pos != row->start.pos.charpos)
-	    {
-	      row->start.pos.charpos = min_pos;
-	      row->start.pos.bytepos = CHAR_TO_BYTE (min_pos);
-	    }
-	  if (max_pos == 0)
-	    max_pos = min_pos;
-	}
-      /* For ROW->end, we need the position that is _after_ max_pos,
-	 in the logical order, unless we are at ZV.  */
-      if (row->ends_at_zv_p)
-	{
-	  row_end = row->end = it->current;
-	  if (!row->used[TEXT_AREA])
-	    {
-	      row->start.pos.charpos = row_end.pos.charpos;
-	      row->start.pos.bytepos = row_end.pos.bytepos;
-	    }
-	}
-      else if (row->used[TEXT_AREA] && max_pos)
-	{
-	  SET_TEXT_POS (tpos, max_pos, CHAR_TO_BYTE (max_pos));
-	  save_it = *it;
-	  it->bidi_p = 0;
-	  reseat (it, tpos, 0);
-	  if (!get_next_display_element (it))
-	    abort ();	/* row at ZV was already handled above */
-	  set_iterator_to_next (it, 1);
-	  row_end = it->current;
-	  /* If the character at max_pos+1 is a newline, skip that as
-	     well.  Note that this may skip some invisible text.  */
-	  if (get_next_display_element (it)
-	      && ITERATOR_AT_END_OF_LINE_P (it))
-	    {
-	      set_iterator_to_next (it, 1);
-	      /* Record the position after the newline of a continued
-		 row.  We will need that to set ROW->end of the last
-		 row produced for a continued line.  */
-	      if (row->continued_p)
-		{
-		  save_it.eol_pos.charpos = IT_CHARPOS (*it);
-		  save_it.eol_pos.bytepos = IT_BYTEPOS (*it);
-		}
-	      else
-		{
-		  row_end = it->current;
-		  save_it.eol_pos.charpos = save_it.eol_pos.bytepos = 0;
-		}
-	    }
-	  else if (!row->continued_p
-		   && MATRIX_ROW_CONTINUATION_LINE_P (row)
-		   && it->eol_pos.charpos > 0)
-	    {
-	      /* Last row of a continued line.  Use the position
-		 recorded in ROW->eol_pos, to the effect that the
-		 newline belongs to this row, not to the row which
-		 displays the character with the largest buffer
-		 position.  */
-	      row_end.pos = it->eol_pos;
-	      it->eol_pos.charpos = it->eol_pos.bytepos = 0;
-	    }
-	  *it = save_it;
-	  row->end = row_end;
-	}
-    }
+    row->end = find_row_end (it, row);
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p
@@ -18075,7 +18144,7 @@ display_line (it)
      the flag accordingly.  */
   if (it->glyph_row < MATRIX_BOTTOM_TEXT_ROW (it->w->desired_matrix, it->w))
     it->glyph_row->reversed_p = row->reversed_p;
-  it->start = row_end;
+  it->start = row->end;
   return row->displays_text_p;
 }
 

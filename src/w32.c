@@ -1482,6 +1482,30 @@ sigunblock (int sig)
 }
 
 int
+sigemptyset (sigset_t *set)
+{
+  return 0;
+}
+
+int
+sigaddset (sigset_t *set, int signo)
+{
+  return 0;
+}
+
+int
+sigfillset (sigset_t *set)
+{
+  return 0;
+}
+
+int
+sigprocmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  return 0;
+}
+
+int
 setpgrp (int pid, int gid)
 {
   return 0;

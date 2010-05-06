@@ -90,6 +90,10 @@ Lisp_Object Vx_session_previous_id;
 
 #define NOSPLASH_OPT "--no-splash"
 
+/* The option to make Emacs start in the given directory.  */
+
+#define CHDIR_OPT "--chdir="
+
 static void
 ice_connection_closed ()
 {
@@ -206,7 +210,7 @@ smc_save_yourself_CB (smcConn,
   int props_idx = 0;
 
   char *cwd = NULL;
-  char *smid_opt;
+  char *smid_opt, *chdir_opt = NULL;
 
   /* How to start a new instance of Emacs.  */
   props[props_idx] = &prop_ptr[props_idx];
@@ -228,11 +232,12 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
 
-  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx --no-splash).  */
+  /* How to restart Emacs.  */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmRestartCommand;
   props[props_idx]->type = SmLISTofARRAY8;
-  props[props_idx]->num_vals = 3; /* /path/to/emacs, --smid=xxx --no-splash  */
+  /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir */
+  props[props_idx]->num_vals = 4;
   props[props_idx]->vals = &values[val_idx];
   props[props_idx]->vals[0].length = strlen (emacs_program);
   props[props_idx]->vals[0].value = emacs_program;
@@ -246,7 +251,19 @@ smc_save_yourself_CB (smcConn,
 
   props[props_idx]->vals[2].length = strlen (NOSPLASH_OPT);
   props[props_idx]->vals[2].value = NOSPLASH_OPT;
-  val_idx += 3;
+
+  cwd = get_current_dir_name ();
+  if (cwd) 
+    {
+      chdir_opt = xmalloc (strlen (CHDIR_OPT) + strlen (cwd) + 1);
+      strcpy (chdir_opt, CHDIR_OPT);
+      strcat (chdir_opt, cwd);
+
+      props[props_idx]->vals[3].length = strlen (chdir_opt);
+      props[props_idx]->vals[3].value = chdir_opt;
+    }
+
+  val_idx += cwd ? 4 : 3;
   ++props_idx;
 
   /* User id.  */
@@ -259,7 +276,6 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
-  cwd = get_current_dir_name ();
 
   if (cwd)
     {
@@ -277,6 +293,7 @@ smc_save_yourself_CB (smcConn,
   SmcSetProperties (smcConn, props_idx, props);
 
   xfree (smid_opt);
+  xfree (chdir_opt);
 
   free (cwd);
 

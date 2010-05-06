@@ -105,12 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This triggers a conditional in xfaces.c.  */
 #define XOS_NEEDS_TIME_H
 
-#ifndef HAVE_LIBXMU
-/* HP-UX doesn't supply Xmu.  */
-#define LIBXMU
-
-#endif
-
 /* Assar Westerlund <assar@sics.se> says this is necessary for
    HP-UX 10.20, and that it works for HP-UX 0 as well.  */
 #define NO_EDITRES
@@ -140,6 +134,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIBS_SYSTEM -l:libdld.sl
 
+#define LIB_STANDARD -lc
+
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
    using GCC.  */
@@ -159,9 +155,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    on HP-UX.  (You get duplicate symbol errors on linking). */
 
 #undef _FILE_OFFSET_BITS
-
-/* otherwise sigunblock wont be defined */
-#define POSIX_SIGNALS
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section

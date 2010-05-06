@@ -137,7 +137,6 @@ This information is useful, but it takes screen space away from file names."
 (defvar tar-parse-info nil)
 (defvar tar-superior-buffer nil)
 (defvar tar-superior-descriptor nil)
-(defvar tar-subfile-mode nil)
 (defvar tar-file-name-coding-system nil)
 
 (put 'tar-superior-buffer 'permanent-local t)
@@ -672,29 +671,21 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
      (signal (car err) (cdr err)))))
 
 
-(defun tar-subfile-mode (p)
+(define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.
 This mode arranges for \"saving\" this buffer to write the data
 into the tar-file buffer that it came from.  The changes will actually
 appear on disk when you save the tar-file's buffer."
-  (interactive "P")
+  ;; Don't do this, because it is redundant and wastes mode line space.
+  ;; :lighter " TarFile"
+  nil nil nil
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file"))
-  ;; Don't do this, because it is redundant and wastes mode line space.
-  ;;  (or (assq 'tar-subfile-mode minor-mode-alist)
-  ;;      (setq minor-mode-alist (append minor-mode-alist
-  ;;				     (list '(tar-subfile-mode " TarFile")))))
-  (make-local-variable 'tar-subfile-mode)
-  (setq tar-subfile-mode
-	(if (null p)
-	    (not tar-subfile-mode)
-	    (> (prefix-numeric-value p) 0)))
   (cond (tar-subfile-mode
 	 (add-hook 'write-file-functions 'tar-subfile-save-buffer nil t)
 	 ;; turn off auto-save.
 	 (auto-save-mode -1)
-	 (setq buffer-auto-save-file-name nil)
-	 (run-hooks 'tar-subfile-mode-hook))
+	 (setq buffer-auto-save-file-name nil))
 	(t
 	 (remove-hook 'write-file-functions 'tar-subfile-save-buffer t))))
 

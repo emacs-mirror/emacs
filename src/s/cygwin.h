@@ -104,7 +104,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 #define SYSV_SYSTEM_DIR 1
 #define UNEXEC unexcw.o
-#define POSIX_SIGNALS 1
 #define LINKER $(CC)
 
 /* Use terminfo instead of termcap.  Fewer environment variables to

@@ -342,7 +342,7 @@ PRESERVE-UID-GID is completely ignored."
 	(condition-case err
 	    (rename-file tmpfile newname ok-if-already-exists)
 	  ((error quit)
-	   (delete-file tmpfile)
+	   (tramp-compat-delete-file tmpfile 'force)
 	   (signal (car err) (cdr err))))
 
       ;; Remote newname.
@@ -404,7 +404,7 @@ PRESERVE-UID-GID is completely ignored."
 	  (tramp-error
 	   v 'file-error "%s `%s'" (match-string 0) directory))))))
 
-(defun tramp-smb-handle-delete-file (filename)
+(defun tramp-smb-handle-delete-file (filename &optional force)
   "Like `delete-file' for Tramp files."
   (setq filename (expand-file-name filename))
   (when (file-exists-p filename)
@@ -611,7 +611,7 @@ PRESERVE-UID-GID is completely ignored."
 	  (tramp-message
 	   v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
 	;; Oops, an error.  We shall cleanup.
-	(delete-file tmpfile)
+	(tramp-compat-delete-file tmpfile 'force)
 	(tramp-error
 	 v 'file-error "Cannot make local copy of file `%s'" filename))
       tmpfile)))
@@ -858,7 +858,7 @@ target of the symlink differ."
 	(condition-case err
 	    (rename-file tmpfile newname ok-if-already-exists)
 	  ((error quit)
-	   (delete-file tmpfile)
+	   (tramp-compat-delete-file tmpfile 'force)
 	   (signal (car err) (cdr err))))
 
       ;; Remote newname.
@@ -881,7 +881,7 @@ target of the symlink differ."
 	     v 0 "Copying file %s to file %s...done" filename newname)
 	  (tramp-error v 'file-error "Cannot rename `%s'" filename)))))
 
-  (delete-file filename))
+  (tramp-compat-delete-file filename 'force))
 
 (defun tramp-smb-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."
@@ -945,7 +945,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	      (tramp-message
 	       v 5 "Writing tmp file %s to file %s...done" tmpfile filename)
 	    (tramp-error v 'file-error "Cannot write `%s'" filename))
-	(delete-file tmpfile))
+	(tramp-compat-delete-file tmpfile 'force))
 
       (unless (equal curbuf (current-buffer))
 	(tramp-error

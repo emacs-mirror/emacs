@@ -110,56 +110,52 @@ Supports caching."
 If POS is nil, default to point.
 Completion options are calculated with `semantic-analyze-possible-completions'."
   (interactive "d")
-  (or pos (setq pos (point)))
-  ;; Calculating completions is a two step process.
-  ;;
-  ;; The first analyzer the current context, which finds tags
-  ;; for all the stuff that may be references by the code around
-  ;; POS.
-  ;;
-  ;; The second step derives completions from that context.
-  (let* ((a (semantic-analyze-current-context pos))
-	 (syms (semantic-ia-get-completions a pos))
-	 (pre (car (reverse (oref a prefix))))
-	 )
-    ;; If PRE was actually an already completed symbol, it doesn't
-    ;; come in as a string, but as a tag instead.
-    (if (semantic-tag-p pre)
-	;; We will try completions on it anyway.
-	(setq pre (semantic-tag-name pre)))
-    ;; Complete this symbol.
-    (if (null syms)
-	(progn
-	  ;(message "No smart completions found.  Trying senator-complete-symbol.")
+  (when (semantic-active-p)
+    (or pos (setq pos (point)))
+    ;; Calculating completions is a two step process.
+    ;;
+    ;; The first analyzer the current context, which finds tags for
+    ;; all the stuff that may be references by the code around POS.
+    ;;
+    ;; The second step derives completions from that context.
+    (let* ((a (semantic-analyze-current-context pos))
+	   (syms (semantic-ia-get-completions a pos))
+	   (pre (car (reverse (oref a prefix)))))
+      ;; If PRE was actually an already completed symbol, it doesn't
+      ;; come in as a string, but as a tag instead.
+      (if (semantic-tag-p pre)
+	  ;; We will try completions on it anyway.
+	  (setq pre (semantic-tag-name pre)))
+      ;; Complete this symbol.
+      (if (null syms)
 	  (if (semantic-analyze-context-p a)
 	      ;; This is a clever hack.  If we were unable to find any
 	      ;; smart completions, lets divert to how senator derives
 	      ;; completions.
 	      ;;
-	      ;; This is a way of making this fcn more useful since the
-	      ;; smart completion engine sometimes failes.
-	      (semantic-complete-symbol)))
-      ;; Use try completion to seek a common substring.
-      (let ((tc (try-completion (or pre "")  syms)))
-	(if (and (stringp tc) (not (string= tc (or pre ""))))
-	    (let ((tok (semantic-find-first-tag-by-name
-			tc syms)))
-	      ;; Delete what came before...
-	      (when (and (car (oref a bounds)) (cdr (oref a bounds)))
-		(delete-region (car (oref a bounds))
-			       (cdr (oref a bounds)))
-		(goto-char (car (oref a bounds))))
-	      ;; We have some new text.  Stick it in.
-	      (if tok
-		  (semantic-ia-insert-tag tok)
-		(insert tc)))
-	  ;; We don't have new text.  Show all completions.
-	  (when (cdr (oref a bounds))
-	    (goto-char (cdr (oref a bounds))))
-	  (with-output-to-temp-buffer "*Completions*"
-	    (display-completion-list
-	     (mapcar semantic-ia-completion-format-tag-function syms))
-	    ))))))
+	      ;; This is a way of making this fcn more useful since
+	      ;; the smart completion engine sometimes failes.
+	      (semantic-complete-symbol))
+	;; Use try completion to seek a common substring.
+	(let ((tc (try-completion (or pre "")  syms)))
+	  (if (and (stringp tc) (not (string= tc (or pre ""))))
+	      (let ((tok (semantic-find-first-tag-by-name
+			  tc syms)))
+		;; Delete what came before...
+		(when (and (car (oref a bounds)) (cdr (oref a bounds)))
+		  (delete-region (car (oref a bounds))
+				 (cdr (oref a bounds)))
+		  (goto-char (car (oref a bounds))))
+		;; We have some new text.  Stick it in.
+		(if tok
+		    (semantic-ia-insert-tag tok)
+		  (insert tc)))
+	    ;; We don't have new text.  Show all completions.
+	    (when (cdr (oref a bounds))
+	      (goto-char (cdr (oref a bounds))))
+	    (with-output-to-temp-buffer "*Completions*"
+	      (display-completion-list
+	       (mapcar semantic-ia-completion-format-tag-function syms)))))))))
 
 (defcustom semantic-ia-completion-menu-format-tag-function
   'semantic-uml-concise-prototype-nonterminal

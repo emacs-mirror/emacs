@@ -3401,11 +3401,6 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
 ;; active, this binding is ignored inside tables and replaced with a
 ;; modified self-insert.
 
-(defvar orgtbl-mode nil
-  "Variable controlling `orgtbl-mode', a minor mode enabling the `org-mode'
-table editor in arbitrary modes.")
-(make-variable-buffer-local 'orgtbl-mode)
-
 (defvar orgtbl-mode-map (make-keymap)
   "Keymap for `orgtbl-mode'.")
 
@@ -3426,49 +3421,51 @@ table editor in arbitrary modes.")
 	      0 (quote 'org-table) 'prepend))
   "Extra font-lock-keywords to be added when orgtbl-mode is active.")
 
+;; Install it as a minor mode.
+(put 'orgtbl-mode :included t)
+(put 'orgtbl-mode :menu-tag "Org Table Mode")
 ;;;###autoload
-(defun orgtbl-mode (&optional arg)
+(define-minor-mode orgtbl-mode
   "The `org-mode' table editor as a minor mode for use in other modes."
-  (interactive)
+  :lighter " OrgTbl" :keymap orgtbl-mode-map
   (org-load-modules-maybe)
-  (if (org-mode-p)
-      ;; Exit without error, in case some hook functions calls this
-      ;; by accident in org-mode.
-      (message "Orgtbl-mode is not useful in org-mode, command ignored")
-    (setq orgtbl-mode
-	  (if arg (> (prefix-numeric-value arg) 0) (not orgtbl-mode)))
-    (if orgtbl-mode
-	(progn
-	  (and (orgtbl-setup) (defun orgtbl-setup () nil))
-	  ;; Make sure we are first in minor-mode-map-alist
-	  (let ((c (assq 'orgtbl-mode minor-mode-map-alist)))
-	    (and c (setq minor-mode-map-alist
-			 (cons c (delq c minor-mode-map-alist)))))
-	  (org-set-local (quote org-table-may-need-update) t)
-	  (org-add-hook 'before-change-functions 'org-before-change-function
-			nil 'local)
-	  (org-set-local 'org-old-auto-fill-inhibit-regexp
-			 auto-fill-inhibit-regexp)
-	  (org-set-local 'auto-fill-inhibit-regexp
-			 (if auto-fill-inhibit-regexp
-			     (concat orgtbl-line-start-regexp "\\|"
-				     auto-fill-inhibit-regexp)
-			   orgtbl-line-start-regexp))
-	  (org-add-to-invisibility-spec '(org-cwidth))
-	  (when (fboundp 'font-lock-add-keywords)
-	    (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
-	    (org-restart-font-lock))
-	  (easy-menu-add orgtbl-mode-menu)
-	  (run-hooks 'orgtbl-mode-hook))
-      (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
-      (org-table-cleanup-narrow-column-properties)
-      (org-remove-from-invisibility-spec '(org-cwidth))
-      (remove-hook 'before-change-functions 'org-before-change-function t)
-      (when (fboundp 'font-lock-remove-keywords)
-	(font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
-	(org-restart-font-lock))
-      (easy-menu-remove orgtbl-mode-menu)
-      (force-mode-line-update 'all))))
+  (cond
+   ((org-mode-p)
+    ;; Exit without error, in case some hook functions calls this
+    ;; by accident in org-mode.
+    (message "Orgtbl-mode is not useful in org-mode, command ignored"))
+   (orgtbl-mode
+    (and (orgtbl-setup) (defun orgtbl-setup () nil)) ;; FIXME: Yuck!?!
+    ;; Make sure we are first in minor-mode-map-alist
+    (let ((c (assq 'orgtbl-mode minor-mode-map-alist)))
+      ;; FIXME: maybe it should use emulation-mode-map-alists?
+      (and c (setq minor-mode-map-alist
+                   (cons c (delq c minor-mode-map-alist)))))
+    (org-set-local (quote org-table-may-need-update) t)
+    (org-add-hook 'before-change-functions 'org-before-change-function
+                  nil 'local)
+    (org-set-local 'org-old-auto-fill-inhibit-regexp
+                   auto-fill-inhibit-regexp)
+    (org-set-local 'auto-fill-inhibit-regexp
+                   (if auto-fill-inhibit-regexp
+                       (concat orgtbl-line-start-regexp "\\|"
+                               auto-fill-inhibit-regexp)
+                     orgtbl-line-start-regexp))
+    (org-add-to-invisibility-spec '(org-cwidth))
+    (when (fboundp 'font-lock-add-keywords)
+      (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
+      (org-restart-font-lock))
+    (easy-menu-add orgtbl-mode-menu))
+   (t
+    (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
+    (org-table-cleanup-narrow-column-properties)
+    (org-remove-from-invisibility-spec '(org-cwidth))
+    (remove-hook 'before-change-functions 'org-before-change-function t)
+    (when (fboundp 'font-lock-remove-keywords)
+      (font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
+      (org-restart-font-lock))
+    (easy-menu-remove orgtbl-mode-menu)
+    (force-mode-line-update 'all))))
 
 (defun org-table-cleanup-narrow-column-properties ()
   "Remove all properties related to narrow-column invisibility."
@@ -3482,11 +3479,6 @@ table editor in arbitrary modes.")
     (setq s 1)
     (while (setq s (text-property-any s (point-max) 'invisible 'org-cwidth))
       (remove-text-properties s (1+ s) '(invisible t)))))
-
-;; Install it as a minor mode.
-(put 'orgtbl-mode :included t)
-(put 'orgtbl-mode :menu-tag "Org Table Mode")
-(add-minor-mode 'orgtbl-mode " OrgTbl" orgtbl-mode-map)
 
 (defun orgtbl-make-binding (fun n &rest keys)
   "Create a function for binding in the table minor mode.
@@ -3522,34 +3514,33 @@ to execute outside of tables."
   "Setup orgtbl keymaps."
   (let ((nfunc 0)
 	(bindings
-	 (list
-	  '([(meta shift left)]  org-table-delete-column)
-	  '([(meta left)]	 org-table-move-column-left)
-	  '([(meta right)]       org-table-move-column-right)
-	  '([(meta shift right)] org-table-insert-column)
-	  '([(meta shift up)]    org-table-kill-row)
-	  '([(meta shift down)]  org-table-insert-row)
-	  '([(meta up)]		 org-table-move-row-up)
-	  '([(meta down)]	 org-table-move-row-down)
-	  '("\C-c\C-w"		 org-table-cut-region)
-	  '("\C-c\M-w"		 org-table-copy-region)
-	  '("\C-c\C-y"		 org-table-paste-rectangle)
-	  '("\C-c-"		 org-table-insert-hline)
-	  '("\C-c}"		 org-table-toggle-coordinate-overlays)
-	  '("\C-c{"		 org-table-toggle-formula-debugger)
-	  '("\C-m"		 org-table-next-row)
-	  '([(shift return)]	 org-table-copy-down)
-	  '("\C-c?"		 org-table-field-info)
-	  '("\C-c "		 org-table-blank-field)
-	  '("\C-c+"		 org-table-sum)
-	  '("\C-c="		 org-table-eval-formula)
-	  '("\C-c'"		 org-table-edit-formulas)
-	  '("\C-c`"		 org-table-edit-field)
-	  '("\C-c*"		 org-table-recalculate)
-	  '("\C-c^"		 org-table-sort-lines)
-	  '("\M-a"		 org-table-beginning-of-field)
-	  '("\M-e"		 org-table-end-of-field)
-	  '([(control ?#)]       org-table-rotate-recalc-marks)))
+	 '(([(meta shift left)]  org-table-delete-column)
+	   ([(meta left)]	 org-table-move-column-left)
+	   ([(meta right)]       org-table-move-column-right)
+	   ([(meta shift right)] org-table-insert-column)
+	   ([(meta shift up)]    org-table-kill-row)
+	   ([(meta shift down)]  org-table-insert-row)
+	   ([(meta up)]		 org-table-move-row-up)
+	   ([(meta down)]	 org-table-move-row-down)
+	   ("\C-c\C-w"		 org-table-cut-region)
+	   ("\C-c\M-w"		 org-table-copy-region)
+	   ("\C-c\C-y"		 org-table-paste-rectangle)
+	   ("\C-c-"		 org-table-insert-hline)
+	   ("\C-c}"		 org-table-toggle-coordinate-overlays)
+	   ("\C-c{"		 org-table-toggle-formula-debugger)
+	   ("\C-m"		 org-table-next-row)
+	   ([(shift return)]	 org-table-copy-down)
+	   ("\C-c?"		 org-table-field-info)
+	   ("\C-c "		 org-table-blank-field)
+	   ("\C-c+"		 org-table-sum)
+	   ("\C-c="		 org-table-eval-formula)
+	   ("\C-c'"		 org-table-edit-formulas)
+	   ("\C-c`"		 org-table-edit-field)
+	   ("\C-c*"		 org-table-recalculate)
+	   ("\C-c^"		 org-table-sort-lines)
+	   ("\M-a"		 org-table-beginning-of-field)
+	   ("\M-e"		 org-table-end-of-field)
+	   ([(control ?#)]       org-table-rotate-recalc-marks)))
 	elt key fun cmd)
     (while (setq elt (pop bindings))
       (setq nfunc (1+ nfunc))

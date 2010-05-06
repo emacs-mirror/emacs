@@ -1,3 +1,26 @@
+2010-05-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mm-util.el (mm-decompress-buffer): Use `delete-file';
+	alias `jka-compr-delete-temp-file' no longer exists.
+
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode in Gnus where applicable.
+	* mml.el (mml-mode): Use define-minor-mode.
+	* gnus-undo.el (gnus-undo-mode-map): Initialize in declaration.
+	(gnus-undo-mode): Use define-minor-mode.
+	* gnus-sum.el (gnus-dead-summary-mode-map): Initialize in declaration.
+	(gnus-dead-summary-mode): Use define-minor-mode.
+	* gnus-salt.el (gnus-pick-mode-map, gnus-binary-mode-map):
+	Initialize in declaration.
+	(gnus-pick-mode, gnus-binary-mode): Use define-minor-mode.
+	* gnus-ml.el (gnus-mailing-list-mode-map): Initialize in declaration.
+	(gnus-mailing-list-mode): Use define-minor-mode.
+	* gnus-draft.el (gnus-draft-mode-map): Initialize in declaration.
+	(gnus-draft-mode): Use define-minor-mode.
+	* gnus-dired.el (gnus-dired-mode-map): Initialize in declaration.
+	(gnus-dired-mode): Use define-minor-mode.
+
 2010-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el: Don't load tm and apel XEmacs packages when compiling.

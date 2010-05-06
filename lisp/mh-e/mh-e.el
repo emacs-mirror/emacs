@@ -287,8 +287,10 @@ Elements have the form (SEQUENCE . MESSAGES).")
 (defvar mh-show-buffer nil
   "Buffer that displays message for this folder.")
 
-(defvar mh-showing-mode nil
-  "If non-nil, show the message in a separate window.")
+(define-minor-mode mh-showing-mode
+  "Minor mode to show the message in a separate window."
+  ;; FIXME: maybe this should be moved to mh-show.el.
+  :lighter " Show")
 
 (defvar mh-view-ops nil
   "Stack of operations that change the folder view.

@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'mouse)
+(eval-when-compile (require 'cl))
 
 
 ;;;; Utilities.
@@ -79,9 +80,6 @@ SIDE must be the symbol `left' or `right'."
   "Non-nil means `set-scroll-bar-mode' should really do something.
 This is nil while loading `scroll-bar.el', and t afterward.")
 
-(defun set-scroll-bar-mode-1 (ignore value)
-  (set-scroll-bar-mode value))
-
 (defun set-scroll-bar-mode (value)
   "Set `scroll-bar-mode' to VALUE and put the new value into effect."
   (if scroll-bar-mode
@@ -107,27 +105,23 @@ Setting the variable with a customization buffer also takes effect."
   ;; The default value for :initialize would try to use :set
   ;; when processing the file in cus-dep.el.
   :initialize 'custom-initialize-default
-  :set 'set-scroll-bar-mode-1)
+  :set (lambda (sym val) (set-scroll-bar-mode val)))
 
 ;; We just set scroll-bar-mode, but that was the default.
 ;; If it is set again, that is for real.
 (setq scroll-bar-mode-explicit t)
 
-(defun scroll-bar-mode (&optional flag)
+(defun get-scroll-bar-mode () scroll-bar-mode)
+(defsetf get-scroll-bar-mode set-scroll-bar-mode)
+(define-minor-mode scroll-bar-mode
   "Toggle display of vertical scroll bars on all frames.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is positive
 turn on scroll bars; otherwise turn off scroll bars."
-  (interactive "P")
-
-  ;; Tweedle the variable according to the argument.
-  (set-scroll-bar-mode (if (if (null flag)
-			       (not scroll-bar-mode)
-			     (setq flag (prefix-numeric-value flag))
-			     (or (not (numberp flag)) (> flag 0)))
-			   (or previous-scroll-bar-mode
-			       default-frame-scroll-bars))))
+  :variable (eq (get-scroll-bar-mode)
+                (or previous-scroll-bar-mode
+                    default-frame-scroll-bars)))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.

@@ -6234,7 +6234,7 @@ new_x = x - f(x)/f'(x)
 @end ifnottex
 @tex
 \beforedisplay
-$$ x_{\rm new} = x - {f(x) \over f'(x)} $$
+$$ x_{\rm new} = x - {f(x) \over f^{\prime}(x)} $$
 \afterdisplay
 @end tex
 
@@ -7901,7 +7901,7 @@ term.  So we can take it out to get an equivalent formula with
 @tex
 \turnoffactive
 \beforedisplay
-$$ 9 a + 3 b + c - 511 n' $$
+$$ 9 a + 3 b + c - 511 n^{\prime} $$
 \afterdisplay
 @end tex
 

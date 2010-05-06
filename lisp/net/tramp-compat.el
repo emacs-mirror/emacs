@@ -317,6 +317,17 @@ Add the extension of FILENAME, if existing."
 	(if keep-time
 	    (set-file-times newname (nth 5 (file-attributes directory))))))))
 
+;; FORCE has been introduced with Emacs 24.1.
+(defun tramp-compat-delete-file (filename &optional force)
+  "Like `delete-file' for Tramp files (compat function)."
+  (condition-case nil
+      (funcall (symbol-function 'delete-file) filename force)
+    ;; This Emacs version does not support the FORCE flag.  Setting
+    ;; `delete-by-moving-to-trash' shall give us the same effect.
+    (error
+     (let ((delete-by-moving-to-trash (null force)))
+       (delete-file filename)))))
+
 ;; RECURSIVE has been introduced with Emacs 23.2.
 (defun tramp-compat-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files (compat function)."

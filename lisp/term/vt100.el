@@ -41,19 +41,13 @@
   (tty-run-terminal-initialization (selected-frame) "lk201"))
 
 ;;; Controlling the screen width.
-(defvar vt100-wide-mode (= (frame-width) 132)
-  "t if vt100 is in 132-column mode.")
-
-(defun vt100-wide-mode (&optional arg)
+(define-minor-mode vt100-wide-mode
   "Toggle 132/80 column mode for vt100s.
 With positive argument, switch to 132-column mode.
 With negative argument, switch to 80-column mode."
- (interactive "P")
- (setq vt100-wide-mode
-	(if (null arg) (not vt100-wide-mode)
-	  (> (prefix-numeric-value arg) 0)))
- (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
- (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
+  :global t :initial-value (= (frame-width) 132)
+  (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))
+  (set-frame-width terminal-frame (if vt100-wide-mode 132 80)))
 
 ;; arch-tag: 9ff41f24-a7c9-4dee-9cf2-fbaa951eb840
 ;;; vt100.el ends here

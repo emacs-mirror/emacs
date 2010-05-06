@@ -1,3 +1,7 @@
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-dired.el (url-dired-minor-mode): Use define-minor-mode.
+
 2010-03-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-http.el (url-http-parse-headers): Fix wrong variable name.

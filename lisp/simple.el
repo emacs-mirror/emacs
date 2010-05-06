@@ -401,8 +401,7 @@ location."
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables)
-  (unless delay-mode-hooks
-    (run-hooks 'after-change-major-mode-hook)))
+  (run-mode-hooks 'fundamental-mode-hook))
 
 ;; Special major modes to view specially formatted data rather than files.
 
@@ -2689,6 +2688,60 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (reset-this-command-lengths)
   (restore-overriding-map))
 
+;; This function is here rather than in subr.el because it uses CL.
+(defmacro with-wrapper-hook (var args &rest body)
+  "Run BODY wrapped with the VAR hook.
+VAR is a special hook: its functions are called with a first argument
+which is the \"original\" code (the BODY), so the hook function can wrap
+the original function, or call it any number of times (including not calling
+it at all).  This is similar to an `around' advice.
+VAR is normally a symbol (a variable) in which case it is treated like
+a hook, with a buffer-local and a global part.  But it can also be an
+arbitrary expression.
+ARGS is a list of variables which will be passed as additional arguments
+to each function, after the initial argument, and which the first argument
+expects to receive when called."
+  (declare (indent 2) (debug t))
+  ;; We need those two gensyms because CL's lexical scoping is not available
+  ;; for function arguments :-(
+  (let ((funs (make-symbol "funs"))
+        (global (make-symbol "global"))
+        (argssym (make-symbol "args")))
+    ;; Since the hook is a wrapper, the loop has to be done via
+    ;; recursion: a given hook function will call its parameter in order to
+    ;; continue looping.
+    `(labels ((runrestofhook (,funs ,global ,argssym)
+                 ;; `funs' holds the functions left on the hook and `global'
+                 ;; holds the functions left on the global part of the hook
+                 ;; (in case the hook is local).
+                 (lexical-let ((funs ,funs)
+                               (global ,global))
+                   (if (consp funs)
+                       (if (eq t (car funs))
+                           (runrestofhook
+                            (append global (cdr funs)) nil ,argssym)
+                         (apply (car funs)
+                                (lambda (&rest ,argssym)
+				  (runrestofhook (cdr funs) global ,argssym))
+                                ,argssym))
+                     ;; Once there are no more functions on the hook, run
+                     ;; the original body.
+                     (apply (lambda ,args ,@body) ,argssym)))))
+       (runrestofhook ,var
+                      ;; The global part of the hook, if any.
+                      ,(if (symbolp var)
+                           `(if (local-variable-p ',var)
+                                (default-value ',var)))
+                      (list ,@args)))))
+
+(defvar filter-buffer-substring-functions nil
+  "Wrapper hook around `filter-buffer-substring'.
+The functions on this special hook are called with 4 arguments:
+  NEXT-FUN BEG END DELETE
+NEXT-FUN is a function of 3 arguments (BEG END DELETE)
+that performs the default operation.  The other 3 arguments are like
+the ones passed to `filter-buffer-substring'.")
+
 (defvar buffer-substring-filters nil
   "List of filter functions for `filter-buffer-substring'.
 Each function must accept a single argument, a string, and return
@@ -2698,46 +2751,34 @@ the next.  The return value of the last function is used as the
 return value of `filter-buffer-substring'.
 
 If this variable is nil, no filtering is performed.")
+(make-obsolete-variable 'buffer-substring-filters
+                        'filter-buffer-substring-functions "24.1")
 
-(defun filter-buffer-substring (beg end &optional delete noprops)
+(defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
-The buffer substring is passed through each of the filter
-functions in `buffer-substring-filters', and the value from the
-last filter function is returned.  If `buffer-substring-filters'
-is nil, the buffer substring is returned unaltered.
+The filtering is performed by `filter-buffer-substring-functions'.
 
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
 
-If NOPROPS is non-nil, final string returned does not include
-text properties, while the string passed to the filters still
-includes text properties from the buffer text.
-
-Point is temporarily set to BEG before calling
-`buffer-substring-filters', in case the functions need to know
-where the text came from.
-
 This function should be used instead of `buffer-substring',
 `buffer-substring-no-properties', or `delete-and-extract-region'
 when you want to allow filtering to take place.  For example,
-major or minor modes can use `buffer-substring-filters' to
+major or minor modes can use `filter-buffer-substring-functions' to
 extract characters that are special to a buffer, and should not
 be copied into other buffers."
-  (cond
-   ((or delete buffer-substring-filters)
-    (save-excursion
-      (goto-char beg)
-      (let ((string (if delete (delete-and-extract-region beg end)
-		      (buffer-substring beg end))))
-	(dolist (filter buffer-substring-filters)
-	  (setq string (funcall filter string)))
-	(if noprops
-	    (set-text-properties 0 (length string) nil string))
-	string)))
-   (noprops
-    (buffer-substring-no-properties beg end))
-   (t
-    (buffer-substring beg end))))
+  (with-wrapper-hook filter-buffer-substring-functions (beg end delete)
+    (cond
+     ((or delete buffer-substring-filters)
+      (save-excursion
+        (goto-char beg)
+        (let ((string (if delete (delete-and-extract-region beg end)
+                        (buffer-substring beg end))))
+          (dolist (filter buffer-substring-filters)
+            (setq string (funcall filter string)))
+          string)))
+     (t
+      (buffer-substring beg end)))))
 
 
 ;;;; Window system cut and paste hooks.
@@ -5108,7 +5149,7 @@ Some major modes set this.")
 (put 'auto-fill-function 'safe-local-variable 'null)
 ;; FIXME: turn into a proper minor mode.
 ;; Add a global minor mode version of it.
-(defun auto-fill-mode (&optional arg)
+(define-minor-mode auto-fill-mode
   "Toggle Auto Fill mode.
 With ARG, turn Auto Fill mode on if and only if ARG is positive.
 In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
@@ -5116,14 +5157,7 @@ automatically breaks the line at a previous space.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
-  (interactive "P")
-  (prog1 (setq auto-fill-function
-	       (if (if (null arg)
-		       (not auto-fill-function)
-		       (> (prefix-numeric-value arg) 0))
-		   normal-auto-fill-function
-		   nil))
-    (force-mode-line-update)))
+  :variable (eq auto-fill-function normal-auto-fill-function))
 
 ;; This holds a document string used to document auto-fill-mode.
 (defun auto-fill-function ()
@@ -5222,7 +5256,7 @@ if long lines are truncated."
 (defvar overwrite-mode-binary (purecopy " Bin Ovwrt")
   "The string displayed in the mode line when in binary overwrite mode.")
 
-(defun overwrite-mode (arg)
+(define-minor-mode overwrite-mode
   "Toggle overwrite mode.
 With prefix argument ARG, turn overwrite mode on if ARG is positive,
 otherwise turn it off.  In overwrite mode, printing characters typed
@@ -5231,14 +5265,9 @@ it to the right.  At the end of a line, such characters extend the line.
 Before a tab, such characters insert until the tab is filled in.
 \\[quoted-insert] still inserts characters in overwrite mode; this
 is supposed to make it easier to insert characters when necessary."
-  (interactive "P")
-  (setq overwrite-mode
-	(if (if (null arg) (not overwrite-mode)
-	      (> (prefix-numeric-value arg) 0))
-	    'overwrite-mode-textual))
-  (force-mode-line-update))
+  :variable (eq overwrite-mode 'overwrite-mode-textual))
 
-(defun binary-overwrite-mode (arg)
+(define-minor-mode binary-overwrite-mode
   "Toggle binary overwrite mode.
 With prefix argument ARG, turn binary overwrite mode on if ARG is
 positive, otherwise turn it off.  In binary overwrite mode, printing
@@ -5251,13 +5280,7 @@ replaces the text at the cursor, just as ordinary typing characters do.
 Note that binary overwrite mode is not its own minor mode; it is a
 specialization of overwrite mode, entered by setting the
 `overwrite-mode' variable to `overwrite-mode-binary'."
-  (interactive "P")
-  (setq overwrite-mode
-	(if (if (null arg)
-		(not (eq overwrite-mode 'overwrite-mode-binary))
-	      (> (prefix-numeric-value arg) 0))
-	    'overwrite-mode-binary))
-  (force-mode-line-update))
+  :variable (eq overwrite-mode 'overwrite-mode-binary))
 
 (define-minor-mode line-number-mode
   "Toggle Line Number mode.
@@ -6397,7 +6420,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
              normal-erase-is-backspace)
            1 0)))))
 
-(defun normal-erase-is-backspace-mode (&optional arg)
+(define-minor-mode normal-erase-is-backspace-mode
   "Toggle the Erase and Delete mode of the Backspace and Delete keys.
 
 With numeric ARG, turn the mode on if and only if ARG is positive.
@@ -6427,13 +6450,10 @@ probably not turn on this mode on a text-only terminal if you don't
 have both Backspace, Delete and F1 keys.
 
 See also `normal-erase-is-backspace'."
-  (interactive "P")
-  (let ((enabled (or (and arg (> (prefix-numeric-value arg) 0))
-		     (not (or arg
-                              (eq 1 (terminal-parameter
-				      nil 'normal-erase-is-backspace)))))))
-    (set-terminal-parameter nil 'normal-erase-is-backspace
-			    (if enabled 1 0))
+  :variable (eq (terminal-parameter
+                 nil 'normal-erase-is-backspace) 1)
+  (let ((enabled (eq 1 (terminal-parameter
+                        nil 'normal-erase-is-backspace))))
 
     (cond ((or (memq window-system '(x w32 ns pc))
 	       (memq system-type '(ms-dos windows-nt)))
@@ -6469,7 +6489,6 @@ See also `normal-erase-is-backspace'."
 	     (keyboard-translate ?\C-h ?\C-h)
 	     (keyboard-translate ?\C-? ?\C-?))))
 
-    (run-hooks 'normal-erase-is-backspace-hook)
     (if (called-interactively-p 'interactive)
 	(message "Delete key deletes %s"
 		 (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
@@ -6506,52 +6525,6 @@ the first N arguments are fixed at the values with which this function
 was called."
   (lexical-let ((fun fun) (args1 args))
     (lambda (&rest args2) (apply fun (append args1 args2)))))
-
-;; This function is here rather than in subr.el because it uses CL.
-(defmacro with-wrapper-hook (var args &rest body)
-  "Run BODY wrapped with the VAR hook.
-VAR is a special hook: its functions are called with a first argument
-which is the \"original\" code (the BODY), so the hook function can wrap
-the original function, or call it any number of times (including not calling
-it at all).  This is similar to an `around' advice.
-VAR is normally a symbol (a variable) in which case it is treated like
-a hook, with a buffer-local and a global part.  But it can also be an
-arbitrary expression.
-ARGS is a list of variables which will be passed as additional arguments
-to each function, after the initial argument, and which the first argument
-expects to receive when called."
-  (declare (indent 2) (debug t))
-  ;; We need those two gensyms because CL's lexical scoping is not available
-  ;; for function arguments :-(
-  (let ((funs (make-symbol "funs"))
-        (global (make-symbol "global"))
-        (argssym (make-symbol "args")))
-    ;; Since the hook is a wrapper, the loop has to be done via
-    ;; recursion: a given hook function will call its parameter in order to
-    ;; continue looping.
-    `(labels ((runrestofhook (,funs ,global ,argssym)
-                 ;; `funs' holds the functions left on the hook and `global'
-                 ;; holds the functions left on the global part of the hook
-                 ;; (in case the hook is local).
-                 (lexical-let ((funs ,funs)
-                               (global ,global))
-                   (if (consp funs)
-                       (if (eq t (car funs))
-                           (runrestofhook
-                            (append global (cdr funs)) nil ,argssym)
-                         (apply (car funs)
-                                (lambda (&rest ,argssym)
-				  (runrestofhook (cdr funs) global ,argssym))
-                                ,argssym))
-                     ;; Once there are no more functions on the hook, run
-                     ;; the original body.
-                     (apply (lambda ,args ,@body) ,argssym)))))
-       (runrestofhook ,var
-                      ;; The global part of the hook, if any.
-                      ,(if (symbolp var)
-                           `(if (local-variable-p ',var)
-                                (default-value ',var)))
-                      (list ,@args)))))
 
 ;; Minibuffer prompt stuff.
 

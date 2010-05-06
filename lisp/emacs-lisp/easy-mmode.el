@@ -116,6 +116,8 @@ BODY contains code to execute each time the mode is activated or deactivated.
 :lighter SPEC	Same as the LIGHTER argument.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
+:variable PLACE	The location (as can be used with `setf') to use instead
+		of the variable MODE to store the state of the mode.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -147,6 +149,8 @@ For example, you could write
 	 (type nil)
 	 (extra-args nil)
 	 (extra-keywords nil)
+         (variable nil)
+         (modefun mode)
 	 (require t)
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
@@ -167,6 +171,7 @@ For example, you could write
 	(:type (setq type (list :type (pop body))))
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
+        (:variable (setq variable (setq mode (pop body))))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
@@ -187,12 +192,16 @@ For example, you could write
 
     `(progn
        ;; Define the variable to enable or disable the mode.
-       ,(if (not globalp)
-	    `(progn
-	       (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
+       ,(cond
+         ;; If :variable is specified, then the var will be
+         ;; declared elsewhere.
+         (variable nil)
+         ((not globalp)
+          `(progn
+             (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
 Use the command `%s' to change this variable." pretty-name mode))
-	       (make-variable-buffer-local ',mode))
-
+             (make-variable-buffer-local ',mode)))
+         (t
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
 See the command `%s' for a description of this minor mode."
@@ -207,10 +216,10 @@ or call the function `%s'."))))
 	       ,@group
 	       ,@type
 	       ,@(unless (eq require t) `(:require ,require))
-               ,@(nreverse extra-keywords))))
+               ,@(nreverse extra-keywords)))))
 
        ;; The actual function.
-       (defun ,mode (&optional arg ,@extra-args)
+       (defun ,modefun (&optional arg ,@extra-args)
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 Interactively, with no prefix argument, toggle the mode.
@@ -221,11 +230,11 @@ With zero or negative ARG turn mode off.
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
-           (setq ,mode
-                 (if (eq arg 'toggle)
-                     (not ,mode)
-                   ;; A nil argument also means ON now.
-                   (> (prefix-numeric-value arg) 0)))
+           (,(if (symbolp mode) 'setq 'setf) ,mode
+            (if (eq arg 'toggle)
+                (not ,mode)
+              ;; A nil argument also means ON now.
+              (> (prefix-numeric-value arg) 0)))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
@@ -256,9 +265,10 @@ With zero or negative ARG turn mode off.
 		     (t (error "Invalid keymap %S" ,keymap))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
-       (add-minor-mode ',mode ',lighter
-		       ,(if keymap keymap-sym
-			  `(if (boundp ',keymap-sym) ,keymap-sym))))))
+       ,(unless variable
+          `(add-minor-mode ',mode ',lighter
+                           ,(if keymap keymap-sym
+                              `(if (boundp ',keymap-sym) ,keymap-sym)))))))
 
 ;;;
 ;;; make global minor mode
@@ -338,9 +348,11 @@ See `%s' for more information on %s."
 	     (progn
 	       (add-hook 'after-change-major-mode-hook
 			 ',MODE-enable-in-buffers)
+	       (add-hook 'fundamental-mode-hook ',MODE-enable-in-buffers)
 	       (add-hook 'find-file-hook ',MODE-check-buffers)
 	       (add-hook 'change-major-mode-hook ',MODE-cmhh))
 	   (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
+           (remove-hook 'fundamental-mode-hook ',MODE-enable-in-buffers)
 	   (remove-hook 'find-file-hook ',MODE-check-buffers)
 	   (remove-hook 'change-major-mode-hook ',MODE-cmhh))
 

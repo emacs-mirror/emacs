@@ -32,8 +32,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_SYSTEM -lsocket -lnsl -lelf -lgen
 
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
-   rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
-   work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x
+   rather than sighold/sigrelse, which appear to be BSD4.1 specific.
+   It may also be appropriate for SVR4.x
    (x<2) but I'm not sure.   fnf@cygnus.com */
 /* This sets the name of the slave side of the PTY.  On SysVr4,
    grantpt(3) forks a subprocess, so keep sigchld_handler() from

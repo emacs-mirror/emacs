@@ -59,6 +59,10 @@
   :group 'gnus-undo)
 
 (defcustom gnus-undo-mode nil
+  ;; FIXME: This is a buffer-local minor mode which requires running
+  ;; code upon activation/deactivation, so defining it as a defcustom
+  ;; doesn't seem very useful: setting it to non-nil via Customize
+  ;; probably won't do the right thing.
   "Minor mode for undoing in Gnus buffers."
   :type 'boolean
   :group 'gnus-undo)
@@ -77,17 +81,15 @@
 
 ;;; Minor mode definition.
 
-(defvar gnus-undo-mode-map nil)
-
-(unless gnus-undo-mode-map
-  (setq gnus-undo-mode-map (make-sparse-keymap))
-
-  (gnus-define-keys gnus-undo-mode-map
-    "\M-\C-_"     gnus-undo
-    "\C-_"        gnus-undo
-    "\C-xu"       gnus-undo
-    ;; many people are used to type `C-/' on X terminals and get `C-_'.
-    [(control /)] gnus-undo))
+(defvar gnus-undo-mode-map
+  (let ((map (make-sparse-keymap)))
+    (gnus-define-keys map
+      "\M-\C-_"     gnus-undo
+      "\C-_"        gnus-undo
+      "\C-xu"       gnus-undo
+      ;; many people are used to type `C-/' on X terminals and get `C-_'.
+      [(control /)] gnus-undo)
+    map))
 
 (defun gnus-undo-make-menu-bar ()
   ;; This is disabled for the time being.
@@ -96,24 +98,19 @@
       (cons "Undo" 'gnus-undo-actions)
       [menu-bar file whatever])))
 
-(defun gnus-undo-mode (&optional arg)
+(define-minor-mode gnus-undo-mode
   "Minor mode for providing `undo' in Gnus buffers.
 
 \\{gnus-undo-mode-map}"
-  (interactive "P")
-  (set (make-local-variable 'gnus-undo-mode)
-       (if (null arg) (not gnus-undo-mode)
-	 (> (prefix-numeric-value arg) 0)))
+  :keymap gnus-undo-mode-map
   (set (make-local-variable 'gnus-undo-actions) nil)
   (set (make-local-variable 'gnus-undo-boundary) t)
   (when gnus-undo-mode
     ;; Set up the menu.
     (when (gnus-visual-p 'undo-menu 'menu)
       (gnus-undo-make-menu-bar))
-    (add-minor-mode 'gnus-undo-mode "" gnus-undo-mode-map)
     (gnus-make-local-hook 'post-command-hook)
-    (add-hook 'post-command-hook 'gnus-undo-boundary nil t)
-    (gnus-run-hooks 'gnus-undo-mode-hook)))
+    (add-hook 'post-command-hook 'gnus-undo-boundary nil t)))
 
 ;;; Interface functions.
 

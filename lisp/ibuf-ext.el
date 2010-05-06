@@ -91,11 +91,6 @@ regardless of any active filters in this buffer."
 (defvar ibuffer-tmp-show-regexps nil
   "A list of regexps which should match buffer names to always show.")
 
-(defvar ibuffer-auto-mode nil
-  "If non-nil, Ibuffer auto-mode should be enabled for this buffer.
-Do not set this variable directly!  Use the function
-`ibuffer-auto-mode' instead.")
-
 (defvar ibuffer-auto-buffers-changed nil)
 
 (defcustom ibuffer-saved-filters '(("gnus"
@@ -220,6 +215,16 @@ Currently, this only applies to `ibuffer-saved-filters' and
 	 (ibuffer-included-in-filters-p buf ibuffer-filtering-qualifiers)
 	 (ibuffer-buf-matches-predicates buf ibuffer-always-show-predicates)))))
 
+;;;###autoload
+(define-minor-mode ibuffer-auto-mode
+  "Toggle use of Ibuffer's auto-update facility.
+With numeric ARG, enable auto-update if and only if ARG is positive."
+  nil nil nil
+  (unless (derived-mode-p 'ibuffer-mode)
+    (error "This buffer is not in Ibuffer mode"))
+  (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
+  (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
+
 (defun ibuffer-auto-update-changed ()
   (when (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
     (dolist (buf (buffer-list))
@@ -228,20 +233,6 @@ Currently, this only applies to `ibuffer-saved-filters' and
 	  (when (and ibuffer-auto-mode
 		     (derived-mode-p 'ibuffer-mode))
 	    (ibuffer-update nil t)))))))
-
-;;;###autoload
-(defun ibuffer-auto-mode (&optional arg)
-  "Toggle use of Ibuffer's auto-update facility.
-With numeric ARG, enable auto-update if and only if ARG is positive."
-  (interactive)
-  (unless (derived-mode-p 'ibuffer-mode)
-    (error "This buffer is not in Ibuffer mode"))
-  (set (make-local-variable 'ibuffer-auto-mode)
-       (if arg
-	   (plusp arg)
-	 (not ibuffer-auto-mode)))
-  (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
-  (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
 
 ;;;###autoload
 (defun ibuffer-mouse-filter-by-mode (event)

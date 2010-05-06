@@ -163,25 +163,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Definitions for how to compile & link.  */
 
 #ifdef HAVE_NS
-#define LIBS_NSGUI -framework AppKit
 #define SYSTEM_PURESIZE_EXTRA 200000
-#define HEADERPAD_EXTRA 6C8
-#else /* !HAVE_NS */
-#define LIBS_NSGUI
-#define HEADERPAD_EXTRA 690
-#endif /* !HAVE_NS */
+#endif
 
 /* On Darwin, res_init appears not to be useful: see bug#562 and
    http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html  */
 
 #undef HAVE_RES_INIT
 #undef HAVE_LIBRESOLV
-
-/* The -headerpad option tells ld (see man page) to leave room at the
-   end of the header for adding load commands.  Needed for dumping.
-   0x690 is the total size of 30 segment load commands (at 56
-   each); under Cocoa 31 commands are required.  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
 #ifdef emacs
 #define malloc unexec_malloc
@@ -225,10 +214,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
-
-/* This makes create_process in process.c save and restore signal
-   handlers correctly.  Suggested by Nozomu Ando.*/
-#define POSIX_SIGNALS
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
    stack.  */

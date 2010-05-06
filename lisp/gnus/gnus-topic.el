@@ -1140,6 +1140,7 @@ articles in the topic and its subtopics."
 
 (defun gnus-topic-mode (&optional arg redisplay)
   "Minor mode for topicsifying Gnus group buffers."
+  ;; FIXME: Use define-minor-mode.
   (interactive (list current-prefix-arg t))
   (when (eq major-mode 'gnus-group-mode)
     (make-local-variable 'gnus-topic-mode)
