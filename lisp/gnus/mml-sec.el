@@ -308,11 +308,11 @@ Use METHOD if given.  Else use `mml-secure-method' or
 
 
 (defun mml-secure-message-sign (&optional method)
-  "Add MML tags to sign this MML part.
+  "Add MML tags to sign the entire message.
 Use METHOD if given. Else use `mml-secure-method' or
 `mml-default-sign-method'."
   (interactive)
-  (mml-secure-part
+  (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'sign))
 

@@ -1,3 +1,7 @@
+2010-05-06  Tommi Vainikainen  <thv@iki.fi>  (tiny change)
+
+	* mml-sec.el (mml-secure-message-sign): Fix cut and paste error.
+
 2010-05-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-dired.el, gnus-draft.el, gnus-ml.el, gnus-salt.el, gnus-sum.el,
