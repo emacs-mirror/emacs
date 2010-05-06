@@ -39,6 +39,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 (require 'dired)
 (autoload 'mml-attach-file "mml")
 (autoload 'mm-default-file-encoding "mm-decode");; Shift this to `mailcap.el'?
