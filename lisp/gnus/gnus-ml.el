@@ -30,6 +30,9 @@
 (require 'gnus)
 (require 'gnus-msg)
 (eval-when-compile (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 ;;; Mailing list minor mode
 

@@ -332,7 +332,7 @@ pass to the OPERATION."
       (tramp-flush-directory-property v localname)
       (tramp-fish-send-command-and-check v (format "#RMD %s" localname)))))
 
-(defun tramp-fish-handle-delete-file (filename)
+(defun tramp-fish-handle-delete-file (filename &optional force)
   "Like `delete-file' for Tramp files."
   (when (file-exists-p filename)
     (with-parsed-tramp-file-name (expand-file-name filename) nil
@@ -658,7 +658,7 @@ target of the symlink differ."
 			  localname)))))
 	  (tramp-error
 	   v 'file-already-exists "File %s already exists" localname)
-	(delete-file linkname)))
+	(tramp-compat-delete-file linkname 'force)))
 
     ;; If FILENAME is a Tramp name, use just the localname component.
     (when (tramp-tramp-file-p filename)
@@ -837,8 +837,8 @@ target of the symlink differ."
       ;; Provide error file.
       (when tmpstderr (rename-file tmpstderr (cadr destination) t))
       ;; Cleanup.
-      (when tmpinput (delete-file tmpinput))
-      (when tmpoutput (delete-file tmpoutput))
+      (when tmpinput (tramp-compat-delete-file tmpinput 'force))
+      (when tmpoutput (tramp-compat-delete-file tmpoutput 'force))
       ;; Return exit status.
       ret)))
 

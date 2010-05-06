@@ -249,7 +249,7 @@ If called with a positive, numeric prefix argument, e.g.
 ``\\[universal-argument] 1 M-x rlogin-directory-tracking-mode\'',
 then do directory tracking but assume the remote filesystem is the same as
 the local system.  This only works in general if the remote machine and the
-local one share the same directories (through NFS)."
+local one share the same directories (e.g. through NFS)."
   (interactive "P")
   (cond
    ((or (null prefix)

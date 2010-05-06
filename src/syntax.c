@@ -858,7 +858,7 @@ are listed in the documentation of `modify-syntax-entry'.  */)
      Lisp_Object character;
 {
   int char_int;
-  CHECK_NUMBER (character);
+  CHECK_CHARACTER (character);
   char_int = XINT (character);
   SETUP_BUFFER_SYNTAX_TABLE ();
   return make_number (syntax_code_spec[(int) SYNTAX (char_int)]);

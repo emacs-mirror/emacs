@@ -1826,7 +1826,17 @@ Example:
 ;; (setq a 7) or (setq a nil) depending on whether B is nil or not.
 ;; This is useful when you have control over the PLACE but not over
 ;; the VALUE, as is the case in define-minor-mode's :variable.
-(defsetf eq (a b) (v) `(setf ,a (if ,v ,b (not ,b))))
+(define-setf-method eq (place val)
+  (let ((method (get-setf-method place cl-macro-environment))
+        (val-temp (make-symbol "--eq-val--"))
+        (store-temp (make-symbol "--eq-store--")))
+    (list (append (nth 0 method) (list val-temp))
+          (append (nth 1 method) (list val))
+          (list store-temp)
+          `(let ((,(car (nth 2 method))
+                  (if ,store-temp ,val-temp (not ,val-temp))))
+             ,(nth 3 method) ,store-temp)
+          `(eq ,(nth 4 method) ,val-temp))))
 
 ;;; More complex setf-methods.
 ;; These should take &environment arguments, but since full arglists aren't

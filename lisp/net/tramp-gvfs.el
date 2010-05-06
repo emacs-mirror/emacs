@@ -525,7 +525,7 @@ is no information where to trace the message.")
 	    newname)
 	  ok-if-already-exists keep-date preserve-uid-gid)))
     (when preserve-selinux-context
-      (setq args (append args (list preserve-uid-gid))))
+      (setq args (append args (list preserve-selinux-context))))
     (apply 'copy-file args)))
 
 (defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
@@ -533,9 +533,9 @@ is no information where to trace the message.")
   (tramp-compat-delete-directory
    (tramp-gvfs-fuse-file-name directory) recursive))
 
-(defun tramp-gvfs-handle-delete-file (filename)
+(defun tramp-gvfs-handle-delete-file (filename &optional force)
   "Like `delete-file' for Tramp files."
-  (delete-file (tramp-gvfs-fuse-file-name filename)))
+  (tramp-compat-delete-file (tramp-gvfs-fuse-file-name filename) force))
 
 (defun tramp-gvfs-handle-directory-files
   (directory &optional full match nosort)
@@ -629,7 +629,8 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-handle-file-selinux-context (filename)
   "Like `file-selinux-context' for Tramp files."
-  (funcall 'file-selinux-context (tramp-gvfs-fuse-file-name filename)))
+  (funcall (symbol-function 'file-selinux-context)
+	   (tramp-gvfs-fuse-file-name filename)))
 
 (defun tramp-gvfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -741,7 +742,7 @@ is no information where to trace the message.")
 		   "gvfs-save" tmpfile (tramp-get-buffer v) nil
 		   (tramp-gvfs-url-file-name filename)))
 	       (signal (car err) (cdr err)))
-	   (delete-file tmpfile)))))
+	   (tramp-compat-delete-file tmpfile 'force)))))
 
     ;; Set file modification time.
     (when (or (eq visit t) (stringp visit))

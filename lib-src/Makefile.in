@@ -1,7 +1,6 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 2001, 2002, 2003, 2004,
-#               2005, 2006, 2007, 2008, 2009, 2010
-#               Free Software Foundation, Inc.
+#   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -132,6 +131,9 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 # If neither flag is set, blessmail is used.
 MOVE_FLAGS=
 
+## May be reset below by cpp.
+BLESSMAIL_TARGET=
+
 ## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
 KRB4LIB=@KRB4LIB@
 ## -ldes if HAVE_LIBDES or -ldes425 if HAVE_LIBDES425
@@ -170,21 +172,13 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
+LOADLIBES=LIBS_SYSTEM
 
-#undef MOVEMAIL_NEEDS_BLESSING
 #ifndef MAIL_USE_FLOCK
 #ifndef MAIL_USE_LOCKF
-#define MOVEMAIL_NEEDS_BLESSING
+BLESSMAIL_TARGET = need-blessmail
 #endif
 #endif
-
-#ifdef MOVEMAIL_NEEDS_BLESSING
-#define BLESSMAIL blessmail
-#else
-#define BLESSMAIL
-#endif
-
-LOADLIBES=LIBS_SYSTEM
 
 
 .SUFFIXES: .m
@@ -218,14 +212,14 @@ grep-changelog: $(srcdir)/grep-changelog
 vcdiff: $(srcdir)/vcdiff
 	-cp -p $(srcdir)/vcdiff vcdiff
 
-#ifdef MOVEMAIL_NEEDS_BLESSING
+/* Only used if we need blessmail, but no harm in always defining.
+   This makes the actual blessmail executable.  */
 blessmail:
 	$(EMACS) $(EMACSOPT) -l $(srcdir)/../lisp/mail/blessmail.el
 	chmod +x blessmail
-#endif
 
-maybe-blessmail: BLESSMAIL
-#ifdef MOVEMAIL_NEEDS_BLESSING
+/* This checks if we need to run blessmail.  */
+need-blessmail: blessmail
 /* Don\'t charge ahead and do it!  Let the installer decide.
 	  ./blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}  */
 	@if [ `wc -l <blessmail` != 2 ] ; then \
@@ -235,7 +229,9 @@ maybe-blessmail: BLESSMAIL
 	  echo as root, to give  movemail${EXEEXT}  appropriate permissions.; \
 	  echo Do that after running  make install.; \
 	fi
-#endif
+
+/* This is the target invoked by the top-level Makefile.  */
+maybe-blessmail: $(BLESSMAIL_TARGET)
 
 /* Install the internal utilities.  Until they are installed, we can
    just run them directly from lib-src.  */

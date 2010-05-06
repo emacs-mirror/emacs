@@ -1,3 +1,12 @@
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Minimize blessmail-related cpp usage.
+	(BLESSMAIL_TARGET): New variable.
+	(MOVEMAIL_NEEDS_BLESSING): Remove, replace by above variable.
+	(blessmail): Always define this rule.
+	(need-blessmail): New rule, split out from maybe-blessmail.
+	(maybe-blessmail): Use BLESSMAIL_TARGET.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
@@ -6,12 +15,6 @@
 2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (LIBS_MACHINE): Remove all uses, unused.
-
-2010-04-18  Juanma Barranquero  <lekktu@gmail.com>
-
-	Add stubs for Windows, required after CVE-2010-0825 change.
-	* ntlib.c (getgid, getegid, setegid): New stubs.
-	* ntlib.h (getgid, getegid, setegid): Declare them.
 
 2010-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -3003,7 +3006,7 @@
 
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* etags.c (lisp_suffixes)  Add `LSP'.
+	* etags.c (lisp_suffixes): Add `LSP'.
 
 2000-02-10  Francesco Potortì  <pot@gnu.org>
 

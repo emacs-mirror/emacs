@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defvar tvi970-terminal-map
   (let ((map (make-sparse-keymap)))
 
@@ -102,7 +104,7 @@
 
 
 ;; Should keypad numbers send ordinary digits or distinct escape sequences?
-(defun tvi970-set-keypad-mode (&optional arg)
+(define-minor-mode tvi970-set-keypad-mode
   "Set the current mode of the TVI 970 numeric keypad.
 In ``numeric keypad mode'', the number keys on the keypad act as
 ordinary digits.  In ``alternate keypad mode'', the keys send distinct
@@ -111,12 +113,9 @@ independent of the normal number keys.
 With no argument, toggle between the two possible modes.
 With a positive argument, select alternate keypad mode.
 With a negative argument, select numeric keypad mode."
-  (interactive "P")
-  (let ((newval (if (null arg)
-                    (not (terminal-parameter nil 'tvi970-keypad-numeric))
-                  (> (prefix-numeric-value arg) 0))))
-    (set-terminal-parameter nil 'tvi970-keypad-numeric newval)
-    (send-string-to-terminal (if newval "\e=" "\e>"))))
+  :variable (terminal-parameter nil 'tvi970-keypad-numeric)
+  (send-string-to-terminal
+   (if (terminal-parameter nil 'tvi970-keypad-numeric) "\e=" "\e>")))
 
 ;; arch-tag: c1334cf0-1462-41c3-a963-c077d175f8f0
 ;;; tvi970.el ends here

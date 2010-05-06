@@ -1,3 +1,8 @@
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-table.el (orgtbl-setup):
+	* org-agenda.el (org-agenda-entry-text-mode): Simplify.
+
 2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-table.el (orgtbl-mode): Use define-minor-mode.
