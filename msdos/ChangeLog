@@ -1,3 +1,7 @@
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp, sed5x.inp: Remove LN_S, unused.
+
 2010-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	Remove support for DJGPP v1.x.
