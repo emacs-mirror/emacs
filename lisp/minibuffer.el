@@ -1983,6 +1983,17 @@ filter out additional entries (because TABLE migth not obey PRED)."
       (nconc (completion-pcm--hilit-commonality pattern all)
              (length prefix)))))
 
+(defun completion--sreverse (str)
+  "Like `reverse' but for a string STR rather than a list."
+  (apply 'string (nreverse (mapcar 'identity str))))
+
+(defun completion--common-suffix (strs)
+  "Return the common suffix of the strings STRS."
+  (completion--sreverse
+   (try-completion
+    ""
+    (mapcar 'completion--sreverse comps))))
+
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN."
   ;; When completing while ignoring case, we want to try and avoid
@@ -2044,7 +2055,17 @@ filter out additional entries (because TABLE migth not obey PRED)."
                 ;; `any' into a `star' because the surrounding context has
                 ;; changed such that string->pattern wouldn't add an `any'
                 ;; here any more.
-                (unless unique (push elem res))
+                (unless unique
+                  (push elem res)
+                  (when (memq elem '(star point))
+                    ;; Extract common suffix additionally to common prefix.
+                    ;; Only do it for `point' and `star' since for
+                    ;; `any' it could lead to a merged completion that
+                    ;; doesn't itself match the candidates.
+                    (let ((suffix (completion--common-suffix comps)))
+                      (assert (stringp suffix))
+                      (unless (equal suffix "")
+                        (push suffix res)))))
                 (setq fixed "")))))
         ;; We return it in reverse order.
         res)))))

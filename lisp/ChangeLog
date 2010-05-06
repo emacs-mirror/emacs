@@ -1,5 +1,9 @@
 2010-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--sreverse, completion--common-suffix):
+	New functions.
+	(completion-pcm--merge-completions): Extract common suffix when safe.
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode):
 	Make :variable more flexible.
 	* files.el (auto-save-mode): Use it to define using define-minor-mode.
