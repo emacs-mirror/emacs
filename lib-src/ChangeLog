@@ -1,3 +1,12 @@
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Minimize blessmail-related cpp usage.
+	(BLESSMAIL_TARGET): New variable.
+	(MOVEMAIL_NEEDS_BLESSING): Remove, replace by above variable.
+	(blessmail): Always define this rule.
+	(need-blessmail): New rule, split out from maybe-blessmail.
+	(maybe-blessmail): Use BLESSMAIL_TARGET.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
