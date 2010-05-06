@@ -145,7 +145,8 @@
 	 ;; this would load dbus.el.
 	 (when (and (featurep 'dbusbind)
 		    (condition-case nil
-			(funcall 'dbus-get-unique-name :session)
+			(funcall (symbol-function 'dbus-get-unique-name)
+				 :session)
 		      (error nil))
 		    (tramp-compat-process-running-p "gvfs-fuse-daemon"))
 	   'tramp-gvfs)
@@ -2273,7 +2274,7 @@ FILE must be a local file name on a connection identified via VEC."
      ;; introduced in Emacs 24.1.
      (when (<= ,level tramp-verbose)
        (condition-case nil
-	   (setq pr (funcall 'make-progress-reporter ,message)
+	   (setq pr (funcall (symbol-function 'make-progress-reporter) ,message)
 		 tm (run-at-time 3 0.1 'progress-reporter-update pr))
 	 (error nil)))
      (unwind-protect

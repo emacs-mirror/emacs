@@ -262,7 +262,7 @@ Add the extension of FILENAME, if existing."
     (tramp-file-name-handler 'file-attributes filename id-format))
    (t (condition-case nil
 	  (funcall (symbol-function 'file-attributes) filename id-format)
-	(error (file-attributes filename))))))
+	(wrong-number-of-arguments (file-attributes filename))))))
 
 ;; PRESERVE-UID-GID has been introduced with Emacs 23.  It does not
 ;; hurt to ignore it for other (X)Emacs versions.
@@ -320,13 +320,20 @@ Add the extension of FILENAME, if existing."
 ;; FORCE has been introduced with Emacs 24.1.
 (defun tramp-compat-delete-file (filename &optional force)
   "Like `delete-file' for Tramp files (compat function)."
-  (condition-case nil
-      (funcall (symbol-function 'delete-file) filename force)
-    ;; This Emacs version does not support the FORCE flag.  Setting
-    ;; `delete-by-moving-to-trash' shall give us the same effect.
-    (error
-     (let ((delete-by-moving-to-trash (null force)))
-       (delete-file filename)))))
+  (if (null force)
+      (delete-file filename)
+    (condition-case nil
+	(funcall (symbol-function 'delete-file) filename force)
+      ;; This Emacs version does not support the FORCE flag.  Setting
+      ;; `delete-by-moving-to-trash' shall give us the same effect.
+      (wrong-number-of-arguments
+       (let ((delete-by-moving-to-trash
+	      (cond
+	       ((null force) t)
+	       ((boundp 'delete-by-moving-to-trash)
+		(symbol-value 'delete-by-moving-to-trash))
+	       (t nil))))
+	 (delete-file filename))))))
 
 ;; RECURSIVE has been introduced with Emacs 23.2.
 (defun tramp-compat-delete-directory (directory &optional recursive)
@@ -337,7 +344,7 @@ Add the extension of FILENAME, if existing."
 	(funcall (symbol-function 'delete-directory) directory recursive)
       ;; This Emacs version does not support the RECURSIVE flag.  We
       ;; use the implementation from Emacs 23.2.
-      (error
+      (wrong-number-of-arguments
        (setq directory (directory-file-name (expand-file-name directory)))
        (if (not (file-symlink-p directory))
 	   (mapc (lambda (file)
