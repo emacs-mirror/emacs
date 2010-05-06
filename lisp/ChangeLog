@@ -1,3 +1,13 @@
+2010-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sreverse, completion--common-suffix):
+	New functions.
+	(completion-pcm--merge-completions): Extract common suffix when safe.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Make :variable more flexible.
+	* files.el (auto-save-mode): Use it to define using define-minor-mode.
+
 2010-05-05  Juri Linkov  <juri@jurta.org>
 
 	Add `slow' and `history' tags to the desktop data.
@@ -20,8 +30,8 @@
 	(ange-ftp-delete-file): Add FORCE arg.
 	(ange-ftp-rename-remote-to-remote)
 	(ange-ftp-rename-local-to-remote, ange-ftp-rename-remote-to-local)
-	(ange-ftp-load, ange-ftp-compress, ange-ftp-uncompress): Force
-	file deletion.
+	(ange-ftp-load, ange-ftp-compress, ange-ftp-uncompress):
+	Force file deletion.
 
 	* net/tramp-compat.el (tramp-compat-delete-file): New defun.
 
@@ -39,8 +49,8 @@
 	(tramp-fish-handle-make-symbolic-link)
 	(tramp-fish-handle-process-file): Use `tramp-compat-delete-file'.
 
-	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Use
-	`tramp-compat-delete-file'.
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
+	Use `tramp-compat-delete-file'.
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Add FORCE arg.
 	(tramp-gvfs-handle-write-region): Use `tramp-compat-delete-file'.
