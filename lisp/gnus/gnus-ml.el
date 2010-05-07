@@ -85,6 +85,12 @@ If FORCE is non-nil, replace the old ones."
 	  (gnus-mailing-list-mode 1))
       (gnus-message 1 "no list-post in this message."))))
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (defvar gnus-mailing-list-mode-hook)
+    (defvar gnus-mailing-list-mode-on-hook)
+    (defvar gnus-mailing-list-mode-off-hook)))
+
 ;;;###autoload
 (define-minor-mode gnus-mailing-list-mode
   "Minor mode for providing mailing-list commands.

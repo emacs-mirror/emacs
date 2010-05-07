@@ -1,3 +1,40 @@
+2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnweb.el (nnweb-gmane-search)
+	* yenc.el (yenc-decode-region): Don't run set-buffer-multibyte for
+	XEmacs.
+
+	* gnus-art.el (gnus-article-browse-html-parts)
+	* gnus-group.el (gnus-read-ephemeral-gmane-group)
+	(gnus-read-ephemeral-bug-grou): Use mm-make-temp-file instead of
+	make-temp-file.
+
+	* gnus-dired.el (gnus-dired-mode): Bind gnus-dired-mode-hook,
+	gnus-dired-mode-on-hook and gnus-dired-mode-off-hook for XEmacs when
+	compiling.
+
+	* gnus-ml.el (gnus-mailing-list-mode): Bind gnus-mailing-list-mode-hook,
+	gnus-mailing-list-mode-on-hook and gnus-mailing-list-mode-off-hook for
+	XEmacs when compiling.
+
+	* gnus-salt.el (gnus-pick-mode): Bind gnus-pick-mode-on-hook and
+	gnus-pick-mode-off-hook for XEmacs when compiling.
+	(gnus-binary-mode): Bind gnus-binary-mode-on-hook and
+	gnus-binary-mode-off-hook for XEmacs when compiling.
+
+	* gnus-sum.el (gnus-summary-limit-strange-charsets-predicate): Return
+	nil if char-charset is not available.
+
+	* sieve-manage.el (sieve-manage-disable-multibyte): Redefine them as a
+	macro.
+
+	* mm-url.el (mm-url-form-encode-xwfu): Use mm-encode-coding-string
+	instead of encode-coding-string.
+
+	* mm-util.el (mm-enable-multibyte, mm-disable-multibyte): Use (featurep
+	'xemacs) instead of mm-emacs-mule to switch function definitions.
+	(mm-with-unibyte-current-buffer): Make it a progn macro for XEmacs.
+
 2010-05-06  Tommi Vainikainen  <thv@iki.fi>  (tiny change)
 
 	* mml-sec.el (mml-secure-message-sign): Fix cut and paste error.

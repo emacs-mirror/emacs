@@ -191,10 +191,10 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 
 ;; Internal utility functions
 
-(defsubst sieve-manage-disable-multibyte ()
+(defmacro sieve-manage-disable-multibyte ()
   "Enable multibyte in the current buffer."
-  (when (fboundp 'set-buffer-multibyte)
-    (set-buffer-multibyte nil)))
+  (unless (featurep 'xemacs)
+    '(set-buffer-multibyte nil)))
 
 (declare-function password-read         "password-cache" (prompt &optional key))
 (declare-function password-cache-add    "password-cache" (key password))

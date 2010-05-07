@@ -87,6 +87,12 @@ See `mail-user-agent' for more information."
 			       gnus-user-agent)
 		(function :tag "Other")))
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (defvar gnus-dired-mode-hook)
+    (defvar gnus-dired-mode-on-hook)
+    (defvar gnus-dired-mode-off-hook)))
+
 (define-minor-mode gnus-dired-mode
   "Minor mode for intersections of gnus and dired.
 

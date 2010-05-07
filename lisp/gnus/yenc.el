@@ -89,9 +89,9 @@
 	      (when (re-search-forward "^=yend.*$" end t)
 		(setq last (match-beginning 0))
 		(setq footer-alist (yenc-parse-line (match-string 0)))
-                (with-current-buffer
-                    (setq work-buffer (generate-new-buffer " *yenc-work*"))
-                  (set-buffer-multibyte nil))
+		(setq work-buffer (generate-new-buffer " *yenc-work*"))
+		(unless (featurep 'xemacs)
+		  (with-current-buffer work-buffer (set-buffer-multibyte nil)))
 		(while (< first last)
 		  (setq char (char-after first))
 		  (cond ((or (eq char ?\r)
