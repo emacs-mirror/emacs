@@ -1,5 +1,9 @@
 2010-05-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (dos_set_window_size):
+	* w16select.c (Fx_selection_exists_p): Use `Fsymbol_value (foo)'
+	instead of `XSYMBOL (foo)->value'.
+
 	Fix the MS-DOS build, broken by autoconfiscation.
 
 	* Makefile.in: Don't use Make-style comments past the "start of
