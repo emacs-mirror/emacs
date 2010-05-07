@@ -1,9 +1,8 @@
 /* System description header for FreeBSD systems.
-   This file describes the parameters that system description files
-   should define or not.
-   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 Author: Shawn M. Carey
 (according to authors.el)
@@ -41,13 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_TERMCAP -lncurses
 #endif
 
-/* Let `ld' find image libs and similar things in /usr/local/lib.  The
-   system compiler, GCC, has apparently been modified to not look
-   there, contrary to what a stock GCC would do.  */
-
-#define LD_SWITCH_SYSTEM  -L/usr/local/lib
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o
-#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o
 #undef LIB_GCC
 #define LIB_GCC
 

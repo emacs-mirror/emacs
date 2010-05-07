@@ -131,7 +131,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIBS_SYSTEM -l:libdld.sl
 
-#define LIB_STANDARD -lc
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
@@ -159,8 +158,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
-
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt0.o
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their

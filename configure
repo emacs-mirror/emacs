@@ -701,10 +701,12 @@ RANLIB
 INSTALL_INFO
 GZIP_PROG
 MAKEINFO
-LIB_MATH
+LD_SWITCH_SYSTEM
 C_SWITCH_MACHINE
 C_SWITCH_SYSTEM
 CRT_DIR
+LIB_MATH
+START_FILES
 LIBSOUND
 PKG_CONFIG
 ALSA_CFLAGS
@@ -716,6 +718,7 @@ LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
 NS_OBJ
 NS_SUPPORT
+LIB_STANDARD
 HAVE_XSERVER
 RSVG_CFLAGS
 RSVG_LIBS
@@ -807,6 +810,7 @@ CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
+LD_SWITCH_SYSTEM_EXTRA
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -2782,14 +2786,6 @@ case "${canonical}" in
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    if test -f /usr/lib/crti.o; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_CRTIN /**/
-_ACEOF
-
-   fi
-
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
@@ -5812,20 +5808,6 @@ rm -rf conftest.dSYM
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 
-LIB_MATH=-lm
-
-case $opsys in
-  cygwin )
-    LIB_MATH=
-    ;;
-  darwin )
-    ## Adding -lm confuses the dynamic linker, so omit it.
-    LIB_MATH=
-    ;;
-esac
-
-
-
 #### Extract some information from the operating system and machine files.
 
 { $as_echo "$as_me:$LINENO: checking the machine- and system-dependent files to find out
@@ -5886,12 +5868,6 @@ configure___ use_mmap_for_buffers=no
 #define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
 #endif
 
-#ifndef LD_SWITCH_SYSTEM
-#define LD_SWITCH_SYSTEM
-#endif
-
-configure___ ld_switch_system=LD_SWITCH_SYSTEM
-
 #ifdef THIS_IS_CONFIGURE
 
 /* Get the CFLAGS for tests in configure.  */
@@ -5928,7 +5904,49 @@ else
 fi
 rm ${tempcname}
 
-ac_link="$ac_link $ld_switch_system"
+
+LD_SWITCH_SYSTEM=
+case "$opsys" in
+  freebsd)
+   ## Let `ld' find image libs and similar things in /usr/local/lib.
+   ## The system compiler, GCC, has apparently been modified to not
+   ## look there, contrary to what a stock GCC would do.
+   LD_SWITCH_SYSTEM=-L/usr/local/lib
+   ;;
+
+  gnu-linux)
+   ## cpp test was "ifdef __mips__", but presumably this is equivalent...
+   test "$machine" = "mips" && LD_SWITCH_SYSTEM="-G 0"
+   ;;
+
+  netbsd)
+   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+   ;;
+
+  openbsd)
+   ## Han Boetes <han@mijncomputer.nl> says this is necessary,
+   ## otherwise Emacs dumps core on elf systems.
+   LD_SWITCH_SYSTEM="-Z"
+   ;;
+esac
+
+
+ac_link="$ac_link $LD_SWITCH_SYSTEM"
+
+## This is fun.  Some settings of LD_SWITCH_SYSTEM reference
+## LD_SWITCH_X_SITE_AUX, which has not been defined yet.  When using
+## cpp, it was expanded to null.  Thus LD_SWITCH_SYSTEM had different
+## values in configure and the Makefiles.  How helpful.
+## FIXME why not use LD_SWITCH_SYSTEM_TEMACS (or somesuch) instead?
+case "$opsys" in
+  gnu-linux)
+   ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
+   LD_SWITCH_SYSTEM="$LD_SWITCH_SYSTEM \$(LD_SWITCH_X_SITE_AUX)" ;;
+
+  netbsd|openbsd)
+   ## _AUX_RPATH is like _AUX, but uses -rpath instead of -R.
+   LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_AUX_RPATH) $LD_SWITCH_SYSTEM" ;;
+esac
 
 
 C_SWITCH_MACHINE=
@@ -6419,6 +6437,45 @@ $as_echo "$as_me: error: crt*.o not found in specified location." >&2;}
    { (exit 1); exit 1; }; }
 
 fi
+
+
+
+LIB_MATH=-lm
+LIB_STANDARD=
+START_FILES=
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    START_FILES='ecrt0.o'
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    START_FILES='pre-crt0.o'
+    ;;
+  freebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    ;;
+  gnu-linux | gnu-kfreebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
+    ;;
+  hpux10-20 | hpux11 )
+    LIB_STANDARD=-lc
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
+    ;;
+  netbsd | openbsd )
+    if test -f $(CRT_DIR)/crti.o; then
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    else
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
+	START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
+    fi
+    ;;
+esac
 
 
 
@@ -9879,6 +9936,7 @@ if test "${with_ns}" != no; then
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+     LIB_STANDARD=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -10082,6 +10140,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
 
 
 
@@ -26270,6 +26329,23 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+
+
+## This exists because src/Makefile.in did some extra fiddling around
+## with LD_SWITCH_SYSTEM.  The cpp logic was:
+##   #ifndef LD_SWITCH_SYSTEM
+##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
+## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
+## not using gcc, darwin system not on an alpha (ie darwin, since
+## darwin + alpha does not occur).
+## Note that unlike L_S_S, this is not used in ac_link.
+if test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
+   test "$opsys" = "darwin"; then
+  LD_SWITCH_SYSTEM_EXTRA="-X"
+else
+  LD_SWITCH_SYSTEM_EXTRA=
+fi
 
 
 

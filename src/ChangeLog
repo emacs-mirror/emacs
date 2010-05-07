@@ -1,3 +1,30 @@
+2010-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.
+	(LD_SWITCH_SYSTEM_EXTRA): New variable, set by configure.
+	(TEMACS_LDFLAGS): Use $LD_SWITCH_SYSTEM and $LD_SWITCH_SYSTEM_EXTRA,
+	move out of cpp section.
+	* s/freebsd.h (LD_SWITCH_SYSTEM):
+	* s/gnu-linux.h (LD_SWITCH_SYSTEM):
+	* s/netbsd.h (LD_SWITCH_SYSTEM):
+	* s/openbsd.h (LD_SWITCH_SYSTEM): Move to configure.in.
+
+2010-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Define LIB_STANDARD and START_FILES using autoconf.
+	* s/usg5-4.h (LIB_STANDARD):
+	* s/netbsd.h (START_FILES):
+	* s/irix6-5.h (LIB_STANDARD):
+	* s/hpux10-20.h (LIB_STANDARD, START_FILES):
+	* s/gnu-linux.h (START_FILES, LIB_STANDARD):
+	* s/freebsd.h (START_FILES):
+	* s/darwin.h (START_FILES):
+	* s/cygwin.h (START_FILES):
+	* s/aix4-2.h (LIB_STANDARD):
+	* m/ibmrs6000.h (START_FILES): Remove, move logic to configure.in.
+	* Makefile.in (STARTFILES): Rename to START_FILES, define using
+	autoconf, not cpp.
+
 2010-05-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove NEED_BSDTTY and NEED_UNISTD_H.
