@@ -1,3 +1,37 @@
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (unbind_to): Don't unbind a local binding into the global
+	binding when the local binding disappeared.  Inversely, don't unbind
+	a global binding into a newly created local binding.
+	* data.c (set_internal): Make its `buf' arg into a `where' arg so we
+	can specify the frame to use, when applicable.  Adjust callers.
+
+2010-05-07  Vincent Belaïche  <vincent.belaiche@gmail.com>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* floatfns.c (Fisnan, Fcopysign, Ffrexp, Fldexp): New functions.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c: Include w32.h.
+	(Fw32_shell_execute): Decode the error message before passing it
+	to `error'.  (Bug#6126)
+
+	* msdos.c (dos_set_window_size):
+	* w16select.c (Fx_selection_exists_p): Use `Fsymbol_value (foo)'
+	instead of `XSYMBOL (foo)->value'.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-DOS build, broken by autoconfiscation.
+
+	* Makefile.in: Don't use Make-style comments past the "start of
+	cpp stuff" line.
+	(MSDOS_OBJ): Remove xmenu.o (it is now defined by XMENU_OBJ).
+
+	* s/msdos.h (UNEXEC): Don't define (@unexec@ in Makefile.in is
+	edited directly by msdos/sed1v2.inp).
+
 2010-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.

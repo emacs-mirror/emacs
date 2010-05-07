@@ -1992,7 +1992,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
   (completion--sreverse
    (try-completion
     ""
-    (mapcar 'completion--sreverse comps))))
+    (mapcar 'completion--sreverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN."

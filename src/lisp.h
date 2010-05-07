@@ -2381,7 +2381,7 @@ extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object)) NO_RETURN;
 extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
-extern void set_internal (Lisp_Object, Lisp_Object, struct buffer *, int);
+extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, int);
 extern void syms_of_data P_ ((void));
 extern void init_data P_ ((void));
 extern void swap_in_global_binding P_ ((struct Lisp_Symbol *));

@@ -1,3 +1,24 @@
+2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Highlight vendor specific properties.
+	* textmodes/css-mode.el (css-proprietary-nmstart-re): New var.
+	(css-proprietary-property): New face.
+	(css-font-lock-keywords): Use them.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add native condition for tool-bar-* symbols.
+
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/dns-mode.el (auto-mode-alist): Add entry for .zone files.
+	* files.el (auto-mode-alist): Remove redundant entries.
+
+	* files.el (auto-save-mode): Move to simple.el to fix bootstrap.
+	* simple.el (auto-save-mode): Move from files.el.
+	* minibuffer.el (completion--common-suffix): Fix copy&paste error.
+
 2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
 
 	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
@@ -27,12 +48,12 @@
 
 2010-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (top, with-progress-reporter): Use
-	`symbol-function' inside `funcall'.
+	* net/tramp.el (top, with-progress-reporter):
+	Use `symbol-function' inside `funcall'.
 
 	* net/tramp-compat.el (tramp-compat-file-attributes)
-	(tramp-compat-delete-file, tramp-compat-delete-directory): Handle
-	only `wrong-number-of-arguments' error.
+	(tramp-compat-delete-file, tramp-compat-delete-directory):
+	Handle only `wrong-number-of-arguments' error.
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Fix typo.
 	(tramp-gvfs-handle-file-selinux-context): Use `symbol-function'
