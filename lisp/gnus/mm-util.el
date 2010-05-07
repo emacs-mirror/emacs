@@ -908,20 +908,20 @@ mail with multiple parts is preferred to sending a Unicode one.")
 			     (fboundp 'set-buffer-multibyte))
     "True in Emacs with Mule.")
 
-  (if mm-emacs-mule
-      (defun mm-enable-multibyte ()
-	"Set the multibyte flag of the current buffer.
+  (if (featurep 'xemacs)
+      (defalias 'mm-enable-multibyte 'ignore)
+    (defun mm-enable-multibyte ()
+      "Set the multibyte flag of the current buffer.
 Only do this if the default value of `enable-multibyte-characters' is
 non-nil.  This is a no-op in XEmacs."
-	(set-buffer-multibyte 'to))
-    (defalias 'mm-enable-multibyte 'ignore))
+      (set-buffer-multibyte t)))
 
-  (if mm-emacs-mule
-      (defun mm-disable-multibyte ()
-	"Unset the multibyte flag of in the current buffer.
+  (if (featurep 'xemacs)
+      (defalias 'mm-disable-multibyte 'ignore)
+    (defun mm-disable-multibyte ()
+      "Unset the multibyte flag of in the current buffer.
 This is a no-op in XEmacs."
-	(set-buffer-multibyte nil))
-    (defalias 'mm-disable-multibyte 'ignore)))
+      (set-buffer-multibyte nil))))
 
 (defun mm-preferred-coding-system (charset)
   ;; A typo in some Emacs versions.
@@ -1239,22 +1239,24 @@ worth using this macro in unibyte buffers of course).  Use of
 harmful since it is likely to modify existing data in the buffer.
 For instance, it converts \"\\300\\255\" into \"\\255\" in
 Emacs 23 (unicode)."
-  ;; FIXME: (default-value 'enable-multibyte-characters) is read-only
-  ;; so let-binding it is wrong.  The right fix is to not use this
-  ;; macro at all any more, since it's been ill-defined from the start.
-  (let ((multibyte (make-symbol "multibyte"))
-	(buffer (make-symbol "buffer")))
-    `(if mm-emacs-mule
-	 (let ((,multibyte enable-multibyte-characters)
-	       (,buffer (current-buffer)))
-	   (unwind-protect
-	       (letf (((default-value 'enable-multibyte-characters) nil))
-		 (set-buffer-multibyte nil)
-		 ,@forms)
-	     (set-buffer ,buffer)
-	     (set-buffer-multibyte ,multibyte)))
-       (letf (((default-value 'enable-multibyte-characters) nil))
-	 ,@forms))))
+  (if (featurep 'xemacs)
+      `(progn ,@forms)
+    ;; FIXME: (default-value 'enable-multibyte-characters) is read-only
+    ;; so let-binding it is wrong.  The right fix is to not use this
+    ;; macro at all any more, since it's been ill-defined from the start.
+    (let ((multibyte (make-symbol "multibyte"))
+	  (buffer (make-symbol "buffer")))
+      `(if mm-emacs-mule
+	   (let ((,multibyte enable-multibyte-characters)
+		 (,buffer (current-buffer)))
+	     (unwind-protect
+		 (letf (((default-value 'enable-multibyte-characters) nil))
+		       (set-buffer-multibyte nil)
+		       ,@forms)
+	       (set-buffer ,buffer)
+	       (set-buffer-multibyte ,multibyte)))
+	 (letf (((default-value 'enable-multibyte-characters) nil))
+	       ,@forms)))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
 

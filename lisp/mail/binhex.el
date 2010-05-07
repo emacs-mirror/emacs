@@ -221,7 +221,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	  (goto-char start)
 	  (when (re-search-forward binhex-begin-line end t)
             (setq work-buffer (generate-new-buffer " *binhex-work*"))
-            (with-current-buffer work-buffer (set-buffer-multibyte nil))
+	    (unless (featurep 'xemacs)
+	      (with-current-buffer work-buffer (set-buffer-multibyte nil)))
 	    (beginning-of-line)
 	    (setq bits 0 counter 0)
 	    (while tmp

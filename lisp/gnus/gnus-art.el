@@ -2897,7 +2897,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 <img[\t\n ]+\\(?:[^\t\n >]+[\t\n ]+\\)*src=\"\\(cid:\\([^\"]+\\)\\)\""
 					   nil t)
 		   (unless cid-dir
-		     (setq cid-dir (make-temp-file "cid" t))
+		     (setq cid-dir (mm-make-temp-file "cid" t))
 		     (add-to-list 'gnus-article-browse-html-temp-list cid-dir))
 		   (setq file nil
 			 content nil)
