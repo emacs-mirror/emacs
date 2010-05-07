@@ -1,3 +1,8 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (GDB Graphical Interface): Remove misleading comparison
+	to an IDE (Bug#6128).
+
 2010-05-03  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* programs.texi (Man Page):
