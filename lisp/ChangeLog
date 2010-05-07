@@ -1,3 +1,7 @@
+2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+
+	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
+
 2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/binhex.el (binhex-decode-region-internal)

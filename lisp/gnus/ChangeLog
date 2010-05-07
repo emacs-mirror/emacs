@@ -1,3 +1,8 @@
+2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+
+	* mml2015.el (mml2015-epg-find-usable-key): Skip disabled key
+	(Bug#5592).
+
 2010-05-07  Julien Danjou  <julien@danjou.info>
 
 	* gnus-art.el (gnus-mime-pipe-part): Add optional argument `cmd'; pass
