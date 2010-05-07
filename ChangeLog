@@ -1,3 +1,8 @@
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Allow for 2 leading `#'s in comments in
+	src/Makefile.in.
+
 2010-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.

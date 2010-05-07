@@ -1,3 +1,7 @@
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add native condition for tool-bar-* symbols.
+
 2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (auto-save-mode): Move to simple.el to fix bootstrap.

@@ -131,7 +131,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
 
-/* We canuse mouse menus.  */
+/* We can use mouse menus.  */
 #define HAVE_MENUS
 
 /* Define one of these for easier conditionals.  */
@@ -162,8 +162,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
 #define NO_REMAP
-
-#define UNEXEC unexec.o
 
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */
