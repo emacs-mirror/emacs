@@ -428,12 +428,6 @@ case "${canonical}" in
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    if test -f /usr/lib/crti.o; then]
-dnl The close and open brackets here are because this section is quoted --
-dnl see the `changequote' comment above.
-      AC_DEFINE(HAVE_CRTIN, [], [Define to 1 if you have /usr/lib/crti.o.])
-[   fi
-
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
@@ -841,20 +835,6 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
-LIB_MATH=-lm
-
-case $opsys in
-  cygwin )
-    LIB_MATH=
-    ;;
-  darwin )
-    ## Adding -lm confuses the dynamic linker, so omit it.
-    LIB_MATH=
-    ;;
-esac
-
-AC_SUBST(LIB_MATH)
-
 #### Extract some information from the operating system and machine files.
 
 AC_CHECKING([the machine- and system-dependent files to find out
@@ -1038,6 +1018,45 @@ fi
 
 AC_SUBST(CRT_DIR)
 
+LIB_MATH=-lm
+LIB_STANDARD=
+START_FILES=
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    START_FILES='ecrt0.o'
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    START_FILES='pre-crt0.o'
+    ;;
+  freebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    ;;
+  gnu-linux | gnu-kfreebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
+    ;;
+  hpux10-20 | hpux11 )
+    LIB_STANDARD=-lc
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
+    ;;
+  netbsd | openbsd )
+    if test -f $(CRT_DIR)/crti.o; then
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    else
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
+	START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
+    fi
+    ;;
+esac
+
+AC_SUBST(LIB_MATH)
+AC_SUBST(START_FILES)
 
 dnl This function defintion taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
@@ -1409,6 +1428,7 @@ if test "${with_ns}" != no; then
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+     LIB_STANDARD=
   fi
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
@@ -1441,6 +1461,7 @@ CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_SUPPORT)
+AC_SUBST(LIB_STANDARD)
 
 case "${window_system}" in
   x11 )

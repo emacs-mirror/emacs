@@ -87,10 +87,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LINKER cc
 #endif
 
-/* No need to specify -lc when linking.  */
-
-#define LIB_STANDARD
-
 /* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
    on older versions of X where it happens to exist.  */
 #ifdef HAVE_LIBPTHREADS

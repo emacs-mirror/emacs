@@ -1,3 +1,11 @@
+2010-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Define START_FILES and LIB_STANDARD using autoconf.
+	* configure.in (START_FILES, LIB_STANDARD): New definitions, moved
+	here from src/s/*.h.
+	(HAVE_CRTIN): Remove, inline logic in the netbsd
+	START_FILES/LIB_STANDARD computation.
+
 2010-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (AC_PROG_LN_S): Remove test, nothing uses @LN_S@.

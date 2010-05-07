@@ -28,18 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIBS_TERMCAP -ltermcap
 
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt0.o START_FILES_1 $(CRT_DIR)/crtbegin.o
-#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtend.o END_FILES_1
 #undef LIB_GCC
 #define LIB_GCC
-
-#ifdef HAVE_CRTIN
-#define START_FILES_1 $(CRT_DIR)/crti.o 
-#define END_FILES_1 $(CRT_DIR)/crtn.o
-#else
-#define START_FILES_1
-#define END_FILES_1
-#endif
 
 #define AMPERSAND_FULL_NAME
 

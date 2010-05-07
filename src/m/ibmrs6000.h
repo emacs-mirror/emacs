@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
 
-#define START_FILES
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD
 /* As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.

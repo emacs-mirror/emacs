@@ -155,8 +155,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define UNEXEC unexmacosx.o
 
-#define START_FILES pre-crt0.o
-
 /* start_of_text isn't actually used, so make it compile without error.  */
 #define TEXT_START (0)
 

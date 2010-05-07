@@ -150,6 +150,8 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = `/bin/pwd`/temacs
 
+START_FILES = @START_FILES@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -182,17 +184,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
    do not let it interfere with this file.  */
 #undef register
 
-/* Some machines do not find the standard C libraries in the usual place.  */
-#ifndef LIB_STANDARD
-#define LIB_STANDARD
-#endif
-
-/* Under GNUstep, putting libc on the link line causes problems. */
-#ifdef NS_IMPL_GNUSTEP
-#undef LIB_STANDARD
-#define LIB_STANDARD
-#endif
-
 /* Some s/SYSTEM.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
@@ -210,12 +201,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 /* These macros are for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
 #define LD_SWITCH_X_SITE
-#endif
-
-#ifdef START_FILES
-STARTFILES = START_FILES
-#else
-STARTFILES =
 #endif
 
 #ifdef NS_IMPL_GNUSTEP
@@ -691,7 +676,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_TERMCAP \
    $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
-   $(GNULIB_VAR) @LIB_MATH@ LIB_STANDARD $(GNULIB_VAR)
+   $(GNULIB_VAR) @LIB_MATH@ @LIB_STANDARD@ $(GNULIB_VAR)
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
@@ -733,7 +718,7 @@ buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
 /* FIXME LOCALCPP not defined or mentioned anywhere.  */
-temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
+temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
 	-L@GNUSTEP_SYSTEM_LIBRARIES@ -lgnustep-gui -lgnustep-base \
@@ -741,7 +726,7 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} pre
 	${obj} ${otherobj} ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
-    -o temacs ${STARTFILES} ${obj} ${otherobj}  \
+    -o temacs ${START_FILES} ${obj} ${otherobj}  \
     ${LIBES}
 #endif
 
@@ -1181,6 +1166,6 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
 
 #ifdef AUTO_DEPEND
-ALLOBJS=$(STARTFILES) ${obj} ${otherobj} prefix-args.o
+ALLOBJS=$(START_FILES) ${obj} ${otherobj} prefix-args.o
 -include $(ALLOBJS:%.o=deps/%.d)
 #endif

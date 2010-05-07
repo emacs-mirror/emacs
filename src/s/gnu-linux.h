@@ -169,8 +169,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Ask GCC where to find libgcc.a.  */
 #define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
 
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o
-
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    that says where to find X windows at run time.  */
 
@@ -190,7 +188,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef LIB_GCC
 #define LIB_GCC
-#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtn.o
 
 #ifdef HAVE_LIBNCURSES
 #define TERMINFO
