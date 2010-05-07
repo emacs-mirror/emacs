@@ -1,3 +1,7 @@
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add native condition for tool-bar-* symbols.
+
 2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
 
 	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
