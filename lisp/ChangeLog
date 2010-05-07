@@ -9,7 +9,7 @@
 	* sha1.el (sha1-string-external): Don't run set-buffer-multibyte for
 	XEmacs.
 
-	* net/imap.el (imap-disable-multibyte): Redefine them as a macro.
+	* net/imap.el (imap-disable-multibyte): Redefine it as a macro.
 
 2010-05-07  Juanma Barranquero  <lekktu@gmail.com>
 

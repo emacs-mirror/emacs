@@ -33,7 +33,7 @@
 	* gnus-sum.el (gnus-summary-limit-strange-charsets-predicate): Return
 	nil if char-charset is not available.
 
-	* sieve-manage.el (sieve-manage-disable-multibyte): Redefine them as a
+	* sieve-manage.el (sieve-manage-disable-multibyte): Redefine it as a
 	macro.
 
 	* mm-url.el (mm-url-form-encode-xwfu): Use mm-encode-coding-string
