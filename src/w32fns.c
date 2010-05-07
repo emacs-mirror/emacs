@@ -47,6 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "termhooks.h"
 #include "w32heap.h"
+#include "w32.h"
 
 #include "bitmaps/gray.xbm"
 
@@ -6333,6 +6334,7 @@ an integer representing a ShowWindow flag:
      Lisp_Object operation, document, parameters, show_flag;
 {
   Lisp_Object current_dir;
+  char *errstr;
 
   CHECK_STRING (document);
 
@@ -6353,7 +6355,17 @@ an integer representing a ShowWindow flag:
 			   XINT (show_flag) : SW_SHOWDEFAULT))
       > 32)
     return Qt;
-  error ("ShellExecute failed: %s", w32_strerror (0));
+  errstr = w32_strerror (0);
+  /* The error string might be encoded in the locale's encoding.  */
+  if (!NILP (Vlocale_coding_system))
+    {
+      Lisp_Object decoded =
+	code_convert_string_norecord (make_unibyte_string (errstr,
+							   strlen (errstr)),
+				      Vlocale_coding_system, 0);
+      errstr = (char *)SDATA (decoded);
+    }
+  error ("ShellExecute failed: %s", errstr);
 }
 
 /* Lookup virtual keycode from string representing the name of a
