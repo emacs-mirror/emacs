@@ -1,7 +1,13 @@
 2010-05-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (PRE_ALLOC_OBJ): Don't use Make-style comments past
-	the "start of cpp stuff" line.
+	Fix the MS-DOS build, broken by autoconfiscation.
+
+	* Makefile.in: Don't use Make-style comments past the "start of
+	cpp stuff" line.
+	(MSDOS_OBJ): Remove xmenu.o (it is now defined by XMENU_OBJ).
+
+	* s/msdos.h (UNEXEC): Don't define (@unexec@ in Makefile.in is
+	edited directly by msdos/sed1v2.inp).
 
 2010-05-07  Glenn Morris  <rgm@gnu.org>
 

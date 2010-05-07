@@ -240,8 +240,8 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifdef HAVE_X_WINDOWS
-/* This test needs to say in cpp for the time being, since s/ms-w32.h and
-   s/msdos.h define HAVE_MENUS, possibly overriding configure.  */
+/* This test needs to say in cpp for the time being, since s/msdos.h
+   defines HAVE_MENUS, and does not use the configure script.  */
 #ifdef HAVE_MENUS
 OLDXMENU=@OLDXMENU@
 LIBXMENU=@LIBXMENU@
@@ -321,9 +321,10 @@ LD=ld
 
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
-MSDOS_OBJ = dosfns.o msdos.o xmenu.o
+MSDOS_OBJ = dosfns.o msdos.o
+#define LIBS_SYSTEM -lxext -lsys
 #else
-MSDOS_OBJ = dosfns.o msdos.o w16select.o xmenu.o termcap.o
+MSDOS_OBJ = dosfns.o msdos.o w16select.o termcap.o
 #endif
 #endif
 

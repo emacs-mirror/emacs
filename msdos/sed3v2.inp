@@ -36,6 +36,7 @@
 /^LIBS_MAIL *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
+/^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^LOADLIBES *=/s!=.*$!=!
 /^ALLOCA *=/s!@ALLOCA@!!
 /^EXEEXT *=/s!@EXEEXT@!!
