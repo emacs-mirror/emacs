@@ -5150,26 +5150,6 @@ The optional second argument indicates whether to kill internal buffers too."
         (kill-buffer-ask buffer)))))
 
 
-(define-minor-mode auto-save-mode
-  "Toggle auto-saving of contents of current buffer.
-With prefix argument ARG, turn auto-saving on if positive, else off."
-  :variable ((and buffer-auto-save-file-name
-                  ;; If auto-save is off because buffer has shrunk,
-                  ;; then toggling should turn it on.
-                  (>= buffer-saved-size 0))
-             . (lambda (val)
-                 (setq buffer-auto-save-file-name
-                       (cond
-                        ((null val) nil)
-                        ((and buffer-file-name auto-save-visited-file-name
-                              (not buffer-read-only))
-                         buffer-file-name)
-                        (t (make-auto-save-file-name))))))
-  ;; If -1 was stored here, to temporarily turn off saving,
-  ;; turn it back on.
-  (and (< buffer-saved-size 0)
-       (setq buffer-saved-size 0)))
-
 (defun rename-auto-save-file ()
   "Adjust current buffer's auto save file name for current conditions.
 Also rename any existing auto save file, if it was made in this session."
