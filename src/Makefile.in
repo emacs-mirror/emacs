@@ -73,13 +73,20 @@ C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 ## System-specific CFLAGS.
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 ## This holds any special options for linking temacs only (ie, not
-## used by configure).
+## used by configure).  Not used elsewhere because it sometimes
+## contains options that have to do with using Emacs's crt0, 
+## which are only good with temacs.
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Next two must come before LD_SWITCH_SYSTEM.
 ## If needed, a -R option that says where to find X windows at run time.
 LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
 ## As above, but using -rpath instead.
 LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+## System-specific LDFLAGS.
+LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
+LD_SWITCH_SYSTEM_EXTRA=@LD_SWITCH_SYSTEM_EXTRA@
+## Flags to pass to ld only for temacs.
+TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTEM_TEMACS)
 
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
@@ -189,16 +196,7 @@ DEPFLAGS = -MMD -MF deps/$*.d
 #define LIBS_SYSTEM
 #endif
 
-/* Some s/SYSTEM.h files define this to request special switches in ld.  */
-#ifndef LD_SWITCH_SYSTEM
-#if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-#define LD_SWITCH_SYSTEM -X
-#else /* (defined (BSD_SYSTEM) && !defined (COFF)) */
-#define LD_SWITCH_SYSTEM
-#endif /* (defined (BSD_SYSTEM) && !defined (COFF)) */
-#endif /* LD_SWITCH_SYSTEM */
-
-/* These macros are for switches specifically related to X Windows.  */
+/* This macro is for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
 #define LD_SWITCH_X_SITE
 #endif
@@ -311,11 +309,6 @@ LD=LINKER
 LD=ld
 #endif /* not LINKER */
 #endif /* not ORDINARY_LINK */
-
-/* Flags to pass to LD only for temacs.  */
-/* Do not split this line with a backslash.  That can cause trouble with
-   some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM $(LD_SWITCH_SYSTEM_TEMACS)
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -730,9 +723,6 @@ temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} pr
     ${LIBES}
 #endif
 
-/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM
-   often contains options that have to do with using Emacs''s crt0,
-   which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 

@@ -1,3 +1,14 @@
+2010-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.
+	(LD_SWITCH_SYSTEM_EXTRA): New variable, set by configure.
+	(TEMACS_LDFLAGS): Use $LD_SWITCH_SYSTEM and $LD_SWITCH_SYSTEM_EXTRA,
+	move out of cpp section.
+	* s/freebsd.h (LD_SWITCH_SYSTEM):
+	* s/gnu-linux.h (LD_SWITCH_SYSTEM):
+	* s/netbsd.h (LD_SWITCH_SYSTEM):
+	* s/openbsd.h (LD_SWITCH_SYSTEM): Move to configure.in.
+
 2010-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Define LIB_STANDARD and START_FILES using autoconf.

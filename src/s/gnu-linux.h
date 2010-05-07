@@ -1,7 +1,7 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -168,15 +168,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Ask GCC where to find libgcc.a.  */
 #define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
-
-/* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
-   that says where to find X windows at run time.  */
-
-#ifdef __mips__
-#define LD_SWITCH_SYSTEM -G 0 $(LD_SWITCH_X_SITE_AUX)
-#else
-#define LD_SWITCH_SYSTEM $(LD_SWITCH_X_SITE_AUX)
-#endif /* __mips__ */
 
 #ifdef emacs
 #define INTERRUPT_INPUT

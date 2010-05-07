@@ -1,3 +1,9 @@
+2010-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.
+	Merges logic from src/s/* and src/Makefile.in.
+	(LD_SWITCH_SYSTEM_TEMACS): New output variable.
+
 2010-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Define START_FILES and LIB_STANDARD using autoconf.
