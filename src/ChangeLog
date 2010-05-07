@@ -1,3 +1,11 @@
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (unbind_to): Don't unbind a local binding into the global
+	binding when the local binding disappeared.  Inversely, don't unbind
+	a global binding into a newly created local binding.
+	* data.c (set_internal): Make its `buf' arg into a `where' arg so we
+	can specify the frame to use, when applicable.  Adjust callers.
+
 2010-05-07  Vincent Belaïche  <vincent.belaiche@gmail.com>
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
