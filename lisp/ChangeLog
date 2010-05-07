@@ -1,3 +1,11 @@
+2010-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix use of `filter-buffer-substring' (4th arg NOPROPS removed).
+	* emulation/cua-base.el (cua-repeat-replace-region):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark):
+	Remove text properties with `set-text-properties'.
+
 2010-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top, with-progress-reporter): Use
