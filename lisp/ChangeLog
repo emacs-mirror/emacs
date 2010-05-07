@@ -1,3 +1,11 @@
+2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Highlight vendor specific properties.
+	* textmodes/css-mode.el (css-proprietary-nmstart-re): New var.
+	(css-proprietary-property): New face.
+	(css-font-lock-keywords): Use them.
+
 2010-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Add native condition for tool-bar-* symbols.
