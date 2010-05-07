@@ -1987,6 +1987,8 @@ filter out additional entries (because TABLE migth not obey PRED)."
   "Like `reverse' but for a string STR rather than a list."
   (apply 'string (nreverse (mapcar 'identity str))))
 
+(defvar comps)
+
 (defun completion--common-suffix (strs)
   "Return the common suffix of the strings STRS."
   (completion--sreverse
