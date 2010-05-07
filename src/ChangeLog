@@ -1,3 +1,8 @@
+2010-05-07  Vincent Belaïche  <vincent.belaiche@gmail.com>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* floatfns.c (Fisnan, Fcopysign, Ffrexp, Fldexp): New functions.
+
 2010-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c: Include w32.h.

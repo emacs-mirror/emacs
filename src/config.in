@@ -135,6 +135,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
+/* Define to 1 if you have the `copysign' function. */
+#undef HAVE_COPYSIGN
+
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
 
@@ -299,6 +302,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `isnan' function. */
+#undef HAVE_ISNAN
 
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG

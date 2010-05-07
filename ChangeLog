@@ -1,3 +1,7 @@
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in: Add tests for `isnan' and `copysign'.
+
 2010-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Allow for 2 leading `#'s in comments in
