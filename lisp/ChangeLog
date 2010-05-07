@@ -4,6 +4,9 @@
 
 2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/dns-mode.el (auto-mode-alist): Add entry for .zone files.
+	* files.el (auto-mode-alist): Remove redundant entries.
+
 	* files.el (auto-save-mode): Move to simple.el to fix bootstrap.
 	* simple.el (auto-save-mode): Move from files.el.
 	* minibuffer.el (completion--common-suffix): Fix copy&paste error.
