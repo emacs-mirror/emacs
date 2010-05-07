@@ -5041,13 +5041,14 @@ Deleting parts may malfunction or destroy the article; continue? "))
     (when data
       (mm-save-part data))))
 
-(defun gnus-mime-pipe-part ()
-  "Pipe the MIME part under point to a process."
+(defun gnus-mime-pipe-part (&optional cmd)
+  "Pipe the MIME part under point to a process.
+Use CMD as the process."
   (interactive)
   (gnus-article-check-buffer)
   (let ((data (get-text-property (point) 'gnus-data)))
     (when data
-      (mm-pipe-part data))))
+      (mm-pipe-part data cmd))))
 
 (defun gnus-mime-view-part ()
   "Interactively choose a viewing method for the MIME part under point."
