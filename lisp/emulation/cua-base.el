@@ -1040,7 +1040,9 @@ of text."
 		  (setq s (car u) e (cdr u)))))))
 	  (cond ((and s e (<= s e) (= s (mark t)))
 		 (setq cua--repeat-replace-text
-		       (filter-buffer-substring s e nil t)))
+		       (filter-buffer-substring s e))
+		 (set-text-properties 0 (length cua--repeat-replace-text)
+				      nil cua--repeat-replace-text))
 		((and (null s) (eq u elt)) ;; nothing inserted
 		 (setq cua--repeat-replace-text
 		       ""))

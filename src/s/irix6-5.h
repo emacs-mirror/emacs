@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SETPGRP_RELEASES_CTTY
 
-#ifdef LIB_STANDARD
-#undef LIB_STANDARD
-#endif
-
 #ifdef SYSTEM_TYPE
 #undef SYSTEM_TYPE
 #endif

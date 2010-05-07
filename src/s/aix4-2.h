@@ -87,10 +87,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LINKER cc
 #endif
 
-/* No need to specify -lc when linking.  */
-
-#define LIB_STANDARD
-
 /* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
    on older versions of X where it happens to exist.  */
 #ifdef HAVE_LIBPTHREADS
@@ -108,9 +104,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The following definition seems to be needed in AIX version 3.1.6.8.
    It may not have been needed in certain earlier versions.  */
 #define HAVE_TCATTR
-
-/* Include unistd.h, even though we don't define POSIX.  */
-#define NEED_UNISTD_H
 
 /* AIX doesn't define this.  */
 #define unix 1

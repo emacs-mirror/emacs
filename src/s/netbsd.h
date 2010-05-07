@@ -1,7 +1,7 @@
 /* s/ file for netbsd system.
 
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,24 +28,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LIBS_TERMCAP -ltermcap
 
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt0.o START_FILES_1 $(CRT_DIR)/crtbegin.o
-#define LIB_STANDARD -lgcc -lc -lgcc $(CRT_DIR)/crtend.o END_FILES_1
 #undef LIB_GCC
 #define LIB_GCC
 
-#ifdef HAVE_CRTIN
-#define START_FILES_1 $(CRT_DIR)/crti.o 
-#define END_FILES_1 $(CRT_DIR)/crtn.o
-#else
-#define START_FILES_1
-#define END_FILES_1
-#endif
-
 #define AMPERSAND_FULL_NAME
-
-/* LD_SWITCH_X_SITE_AUX_RPATH gives a -rpath option (which is what
-   OSF1 uses) that says where to find X windows at run time.  */
-#define LD_SWITCH_SYSTEM $(LD_SWITCH_X_SITE_AUX_RPATH) -Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib
 
 /* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
    the library search parth, i.e. it won't search /usr/lib

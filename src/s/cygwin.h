@@ -134,11 +134,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't link against static libgcc */
 #define LIB_GCC
 
-/* Don't list system libs on link command line */
-#define LIB_STANDARD
-
-#define START_FILES ecrt0.o
-
 /* the end */
 
 /* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b

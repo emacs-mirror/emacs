@@ -503,8 +503,8 @@
 (defun pgg-parse-armor (string)
   (with-temp-buffer
     (buffer-disable-undo)
-    (if (fboundp 'set-buffer-multibyte)
-	(set-buffer-multibyte nil))
+    (unless (featurep 'xemacs)
+      (set-buffer-multibyte nil))
     (insert string)
     (pgg-decode-armor-region (point-min)(point))))
 

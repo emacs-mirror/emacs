@@ -95,7 +95,7 @@ If this variable is set to nil, use internal function only."
       (setq prog sha1-program
 	    args nil))
     (with-temp-buffer
-      (set-buffer-multibyte nil)
+      (unless (featurep 'xemacs) (set-buffer-multibyte nil))
       (insert string)
       (apply (function call-process-region)
 	     (point-min) (point-max)

@@ -8185,14 +8185,15 @@ in `nnmail-extra-headers'."
       (gnus-summary-position-point))))
 
 (defun gnus-summary-limit-strange-charsets-predicate (header)
-  (let ((string (concat (mail-header-subject header)
-			(mail-header-from header)))
-	charset found)
-    (dotimes (i (1- (length string)))
-      (setq charset (format "%s" (char-charset (aref string (1+ i)))))
-      (when (string-match "unicode\\|big\\|japanese" charset)
-	(setq found t)))
-    found))
+  (when (fboundp 'char-charset)
+    (let ((string (concat (mail-header-subject header)
+			  (mail-header-from header)))
+	  charset found)
+      (dotimes (i (1- (length string)))
+	(setq charset (format "%s" (char-charset (aref string (1+ i)))))
+	(when (string-match "unicode\\|big\\|japanese" charset)
+	  (setq found t)))
+      found)))
 
 (defun gnus-summary-limit-to-predicate (predicate)
   "Limit to articles where PREDICATE returns non-nil.

@@ -73,13 +73,20 @@ C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 ## System-specific CFLAGS.
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 ## This holds any special options for linking temacs only (ie, not
-## used by configure).
+## used by configure).  Not used elsewhere because it sometimes
+## contains options that have to do with using Emacs's crt0, 
+## which are only good with temacs.
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Next two must come before LD_SWITCH_SYSTEM.
 ## If needed, a -R option that says where to find X windows at run time.
 LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
 ## As above, but using -rpath instead.
 LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+## System-specific LDFLAGS.
+LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
+LD_SWITCH_SYSTEM_EXTRA=@LD_SWITCH_SYSTEM_EXTRA@
+## Flags to pass to ld only for temacs.
+TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTEM_TEMACS)
 
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
@@ -150,6 +157,8 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = `/bin/pwd`/temacs
 
+START_FILES = @START_FILES@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -182,38 +191,15 @@ DEPFLAGS = -MMD -MF deps/$*.d
    do not let it interfere with this file.  */
 #undef register
 
-/* Some machines do not find the standard C libraries in the usual place.  */
-#ifndef LIB_STANDARD
-#define LIB_STANDARD
-#endif
-
-/* Under GNUstep, putting libc on the link line causes problems. */
-#ifdef NS_IMPL_GNUSTEP
-#undef LIB_STANDARD
-#define LIB_STANDARD
-#endif
-
 /* Some s/SYSTEM.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
 
-/* Some s/SYSTEM.h files define this to request special switches in ld.  */
-#ifndef LD_SWITCH_SYSTEM
-#if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-#define LD_SWITCH_SYSTEM -X
-#else /* (defined (BSD_SYSTEM) && !defined (COFF)) */
-#define LD_SWITCH_SYSTEM
-#endif /* (defined (BSD_SYSTEM) && !defined (COFF)) */
-#endif /* LD_SWITCH_SYSTEM */
-
-/* These macros are for switches specifically related to X Windows.  */
+/* This macro is for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
 #define LD_SWITCH_X_SITE
 #endif
-
-STARTFILES = START_FILES
-
 
 #ifdef NS_IMPL_GNUSTEP
 /* Pull in stuff from GNUstep-make. */
@@ -323,11 +309,6 @@ LD=LINKER
 LD=ld
 #endif /* not LINKER */
 #endif /* not ORDINARY_LINK */
-
-/* Flags to pass to LD only for temacs.  */
-/* Do not split this line with a backslash.  That can cause trouble with
-   some cpps.  */
-TEMACS_LDFLAGS = LD_SWITCH_SYSTEM $(LD_SWITCH_SYSTEM_TEMACS)
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
@@ -688,7 +669,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_TERMCAP \
    $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
-   $(GNULIB_VAR) @LIB_MATH@ LIB_STANDARD $(GNULIB_VAR)
+   $(GNULIB_VAR) @LIB_MATH@ @LIB_STANDARD@ $(GNULIB_VAR)
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
@@ -730,7 +711,7 @@ buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
 /* FIXME LOCALCPP not defined or mentioned anywhere.  */
-temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
+temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
 	-L@GNUSTEP_SYSTEM_LIBRARIES@ -lgnustep-gui -lgnustep-base \
@@ -738,13 +719,10 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} pre
 	${obj} ${otherobj} ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
-    -o temacs ${STARTFILES} ${obj} ${otherobj}  \
+    -o temacs ${START_FILES} ${obj} ${otherobj}  \
     ${LIBES}
 #endif
 
-/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM
-   often contains options that have to do with using Emacs''s crt0,
-   which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
@@ -1178,6 +1156,6 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
 
 #ifdef AUTO_DEPEND
-ALLOBJS=$(STARTFILES) ${obj} ${otherobj} prefix-args.o
+ALLOBJS=$(START_FILES) ${obj} ${otherobj} prefix-args.o
 -include $(ALLOBJS:%.o=deps/%.d)
 #endif

@@ -97,8 +97,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define ORDINARY_LINK
 
-#define LIB_STANDARD
-
 /* Undump with ELF */
 
 #undef COFF

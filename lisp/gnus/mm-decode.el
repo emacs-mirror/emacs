@@ -1301,12 +1301,13 @@ text/\\(\\sw+\\)\\(?:\;\\s-*charset=\\(.+\\)\\)?[\"'][^>]*>" nil t)
 	  (mm-write-region (point-min) (point-max) file nil nil nil 'binary t)
 	(set-default-file-modes current-file-modes)))))
 
-(defun mm-pipe-part (handle)
-  "Pipe HANDLE to a process."
-  (let* ((name (mail-content-type-get (mm-handle-type handle) 'name))
-	 (command
-	  (gnus-read-shell-command
-           "Shell command on MIME part: " mm-last-shell-command)))
+(defun mm-pipe-part (handle &optional cmd)
+  "Pipe HANDLE to a process.
+Use CMD as the process."
+  (let ((name (mail-content-type-get (mm-handle-type handle) 'name))
+	(command (or cmd
+		     (gnus-read-shell-command
+		      "Shell command on MIME part: " mm-last-shell-command))))
     (mm-with-unibyte-buffer
       (mm-insert-part handle)
       (mm-add-meta-html-tag handle)

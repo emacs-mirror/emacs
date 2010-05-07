@@ -137,7 +137,8 @@
   '((?e . encrypt)
     (?s . sign)
     (?c . certify)
-    (?a . authentication)))
+    (?a . authentication)
+    (?D . disabled)))
 
 (defvar epg-new-signature-type-alist
   '((?D . detached)

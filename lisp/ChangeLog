@@ -1,3 +1,30 @@
+2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+
+	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
+
+2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/binhex.el (binhex-decode-region-internal)
+	* mail/uudecode.el (uudecode-decode-region-internal)
+	* net/dns.el (dns-read-string-name, dns-write, dns-read)
+	(dns-read-type, dns-query)
+	* pgg-parse.el (pgg-parse-armor)
+	* pgg.el (pgg-verify-region)
+	* sha1.el (sha1-string-external): Don't run set-buffer-multibyte for
+	XEmacs.
+
+	* net/imap.el (imap-disable-multibyte): Redefine it as a macro.
+
+2010-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cperl-mode.el (cperl-mode-unload-function): New function.
+
+	Fix use of `filter-buffer-substring' (4th arg NOPROPS removed).
+	* emulation/cua-base.el (cua-repeat-replace-region):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark):
+	Remove text properties with `set-text-properties'.
+
 2010-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top, with-progress-reporter): Use
