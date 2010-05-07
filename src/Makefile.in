@@ -397,9 +397,9 @@ rallocobj = ralloc.o
 vmlimitobj = vm-limit.o
 #endif /* !SYSTEM_MALLOC */
 
-## Empty on Cygwin, lastfile.o elsewhere.
+/* Empty on Cygwin, lastfile.o elsewhere.  */
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-## lastfile.o vm-limit.o on Cygwin, $vmlimitobj elsewhere.
+/* lastfile.o vm-limit.o on Cygwin, $vmlimitobj elsewhere.  */
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
