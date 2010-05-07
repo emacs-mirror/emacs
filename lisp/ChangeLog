@@ -1,7 +1,5 @@
 2010-05-07  Juanma Barranquero  <lekktu@gmail.com>
 
-	* minibuffer.el (comps): Declare for byte-compiler.
-
 	Fix use of `filter-buffer-substring' (4th arg NOPROPS removed).
 	* emulation/cua-base.el (cua-repeat-replace-region):
 	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
