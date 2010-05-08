@@ -1,3 +1,8 @@
+2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-buffer-modtime): Rename from
+	buffer-modtime.  Adjust users.
+
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/mule.el (auto-coding-alist):  Only purecopy
