@@ -628,11 +628,12 @@ considered."
         (minibuffer-message "Nothing to complete")
       (let ((completion-annotate-function
              (plist-get plist :annotate-function)))
-        (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
                               (plist-get plist :predicate))))))
-    
+
 
 (defun lisp-completion-at-point (&optional predicate)
+  "Function used for `completion-at-point-functions' in `emacs-lisp-mode'."
   ;; FIXME: the `end' could be after point?
   (let* ((pos (point))
          (beg (with-syntax-table emacs-lisp-mode-syntax-table

@@ -345,7 +345,7 @@
 		     "set xlabel\nset ylabel\nset title\n"
 		     "set noclip points\nset clip one\nset clip two\n"
 		     "set format \"%g\"\nset tics\nset xtics\nset ytics\n"
-		     "set data style linespoints\n"
+		     "set style data linespoints\n"
 		     "set nogrid\nset nokey\nset nopolar\n"))
 	 (if (>= ver 3)
 	     (insert "set surface\nset nocontour\n"

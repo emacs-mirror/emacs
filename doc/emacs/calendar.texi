@@ -1082,7 +1082,7 @@ of the new window shows the date of the diary entries.  Holidays are
 shown either in the buffer or in the mode line, depending on the display
 method you choose
 @iftex
-(@pxref{Diary Display,, emacs-xtra}).
+(@pxref{Diary Display,,, emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
 (@pxref{Diary Display}).
@@ -1186,7 +1186,7 @@ punctuation).  For example:
 This entry will have a different appearance if you use the simple diary
 display
 @iftex
-(@pxref{Diary Display,, emacs-xtra}).
+(@pxref{Diary Display,,, emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
 (@pxref{Diary Display}).

@@ -1,3 +1,7 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.
@@ -13,8 +17,7 @@
 
 2009-12-09  David Robinow  <drobinow@gmail.com>  (tiny change)
 
-	* makefile.w32-in: Use parenthesis for macros for nmake
-	compatibility.
+	* makefile.w32-in: Use parenthesis for macros for nmake compatibility.
 
 2009-12-03  Glenn Morris  <rgm@gnu.org>
 
@@ -72,7 +75,7 @@
 
 2009-02-22  Karl Berry  <karl@gnu.org>
 
-	* emacs-lisp-intro.texi (Default Configuration): fix dup word "by by".
+	* emacs-lisp-intro.texi (Default Configuration): Fix dup word "by by".
 
 2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
 

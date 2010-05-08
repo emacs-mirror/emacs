@@ -26209,6 +26209,16 @@ fi
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
 
+## Hack to detect a buggy GCC version.
+if test "x$GCC" = xyes \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
+   && test x"`echo $CFLAGS | grep '\-O[23]'`" != x \
+   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
+   { { $as_echo "$as_me:$LINENO: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." >&5
+$as_echo "$as_me: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`

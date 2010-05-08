@@ -1169,7 +1169,7 @@ Currently supported properties are:
  `:predicate'           a predicate that completion candidates need to satisfy.
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
-(defun complete-symbol (&optional arg)
+(defun completion-at-point (&optional arg)
   "Perform completion on the text around point.
 The completion method is determined by `completion-at-point-functions'.
 
@@ -1193,7 +1193,7 @@ language you are using."
 	  (completion-in-region start end (nth 2 res)
 				(plist-get plist :predicate))))))))
 
-(defalias 'completion-at-point 'complete-symbol)
+(define-obsolete-function-alias 'complete-symbol 'completion-at-point "24.1")
 
 ;;; Key bindings.
 

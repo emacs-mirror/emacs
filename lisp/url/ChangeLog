@@ -1,3 +1,7 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-dired.el (url-dired-minor-mode): Use define-minor-mode.
@@ -62,8 +66,8 @@
 2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-methods.el (url-scheme--registering-proxy): New variable.
-	(url-scheme-register-proxy, url-scheme-get-property): Avoid
-	calling url-scheme-register-proxy in an infloop (Bug#4191).
+	(url-scheme-register-proxy, url-scheme-get-property):
+	Avoid calling url-scheme-register-proxy in an infloop (Bug#4191).
 
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 

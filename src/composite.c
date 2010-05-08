@@ -990,6 +990,14 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
 	    {
 	      Lisp_Object args[6];
 
+	      /* Save point as marker before calling out to lisp.  */
+	      if (NILP (string))
+		{
+		  Lisp_Object m = Fmake_marker ();
+		  set_marker_both (m, Qnil, pt, pt_byte);
+		  record_unwind_protect (restore_point_unwind, m);
+		}
+
 	      args[0] = Vauto_composition_function;
 	      args[1] = AREF (elt, 2);
 	      args[2] = pos;
@@ -998,8 +1006,10 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
 	      args[5] = string;
 	      gstring = safe_call (6, args);
 	    }
-	  if (NILP (string))
-	    TEMP_SET_PT_BOTH (pt, pt_byte);
+	  else if (NILP (string))
+	    {
+	      TEMP_SET_PT_BOTH (pt, pt_byte);
+	    }
 	  return unbind_to (count, gstring);
 	}
     }

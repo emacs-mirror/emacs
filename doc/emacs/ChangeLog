@@ -1,3 +1,28 @@
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (GDB Graphical Interface): Remove misleading comparison
+	to an IDE (Bug#6128).
+
+2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* programs.texi (Man Page):
+	* misc.texi (Invoking emacsclient):
+	* mini.texi (Repetition):
+	* mark.texi (Setting Mark): Fix typos.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Printing): Document htmlfontify-buffer.
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Displaying the Diary, Format of Diary File):
+	Fix external cross-references for TeX format output.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cmdargs.texi (Initial Options): Mention --chdir.

@@ -1,8 +1,20 @@
+2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* INSTALL: Fix typos.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Add check for buggy version of GCC (Bug#6031).
+
 2010-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (HAVE_LIBNCURSES): New local variable.
 	(TERMINFO, LIBS_TERMCAP, TERMCAP_OBJ): New output variables,
 	replacing cpp in src/s/*.h and src/Makefile.in.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
 
 2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 

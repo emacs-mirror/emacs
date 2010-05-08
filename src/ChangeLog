@@ -1,3 +1,31 @@
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.c (autocmp_chars): Save point as marker before calling
+	auto-composition-function (Bug#5984).
+
+	* lisp.h (restore_point_unwind): Add prototype.
+
+	* fileio.c (restore_point_unwind): Remove static attribute.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (M17N_FLT_USE_NEW_FEATURE): Define it if we can use the
+	new feature of libotf and m17n-flt.
+	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]:
+	Call OTF_check_features even if no specific feature is given.
+	(PACK_OTF_TAG) [M17N_FLT_USE_NEW_FEATURE]: New macro.
+	(ftfont_drive_otf) [M17N_FLT_USE_NEW_FEATURE]: Handle the case
+	that OUT is NULL.  Use OTF_drive_gsub_with_log and
+	OTF_drive_gpos_with_log instead of OTF_drive_gsub and
+	OTF_drive_gpos.
+	(ftfont_try_otf) [M17N_FLT_USE_NEW_FEATURE]: New function.
+	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]:
+	Setup mflt_enable_new_feature and mflt_try_otf.
+
 2010-05-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (Ftool_bar_get_system_style): Correct comment.

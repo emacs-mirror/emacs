@@ -1,9 +1,105 @@
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (auto-coding-alist):  Only purecopy
+	car of each item, not the whole list (Bug#6083).
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el (js-mode): Make paragraph variables local before
+	calling c-setup-paragraph-variables (Bug#6071).
+
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.el (compose-region, reference-point-alist): Fix typos
+	in the doc strings.
+
+2010-05-08  Alexander Klimov <alserkli@inbox.ru> (tiny change)
+
+	* calc/calc-graph.el (calc-graph-plot): Use the proper form for
+	gnuplot's "set" command.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.el (last-abbrev-text): Doc fix.
+	(abbrev-prefix-mark): Don't escape parenthesis.
+
+2010-05-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.el (find-composition): Doc fix.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sql.el (sql-electric-stuff): Fix typo in tag.
+	(sql-oracle-program, sql-sqlite-options)
+	(sql-query-placeholders-and-send): Doc fixes.
+	(sql-set-product, sql-interactive-mode): Reflow docstrings.
+	(sql-imenu-generic-expression, sql-buffer)
+	(sql-mode-ansi-font-lock-keywords, sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords, sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords, sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords, sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords, sql-mode-font-lock-keywords)
+	(sql-product-feature, sql-highlight-product)
+	(comint-line-beginning-position, sql-rename-buffer)
+	(sql-toggle-pop-to-buffer-after-send-region sql-oracle)
+	(sql-sybase, sql-informix, sql-sqlite, sql-mysql, sql-solid)
+	(sql-ingres, sql-ms, sql-postgres, sql-interbase, sql-db2, sql-linter):
+	Fix typos in docstrings.
+
+2010-05-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Put Info-breadcrumbs to the `display'
+	property instead of `invisible' and `after-string' (bug#5998).
+
+2010-05-08  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-mode-as-text): Fix typo in docstring.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filecache.el (file-cache-add-directory-list)
+	(file-cache-add-directory-recursively): Fix typos in docstrings.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (gurmukhi-composable-pattern): Fix typo.
+	(gujarati-composable-pattern): Fix typo.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (oriya-composable-pattern)
+	(tamil-composable-pattern, malayalam-composable-pattern):
+	Add two-part vowels to "v" (vowel sign).
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Handle symlinks (Bug#5982).
+
+2010-05-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-state): Use HGRCPATH, not HGRC.
+	(vc-hg-working-revision): Likewise.  Use hg parents, not hg parent
+	(Bug#5846).
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Give it a doc string.
+
+	* minibuffer.el (completion-at-point): Doc fix.
+
 2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (Electric-command-loop): Minor tweak.
 
 	* ebuff-menu.el (electric-buffer-list): Try and make it behave a bit
 	better with dedicated windows.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
 
 2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
