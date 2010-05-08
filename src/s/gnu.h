@@ -28,13 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGNALS_VIA_CHARACTERS
 
-/* Tell Emacs that we are a terminfo based system; disable the use
-   of local termcap.  (GNU uses ncurses.) */
-#ifdef HAVE_LIBNCURSES
-#define TERMINFO
-#define LIBS_TERMCAP -lncurses
-#endif
-
 /* Use mmap directly for allocating larger buffers.  */
 #ifdef DOUG_LEA_MALLOC
 #undef REL_ALLOC

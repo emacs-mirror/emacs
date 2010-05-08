@@ -180,11 +180,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef LIB_GCC
 #define LIB_GCC
 
-#ifdef HAVE_LIBNCURSES
-#define TERMINFO
-#define LIBS_TERMCAP -lncurses
-#endif
-
 #define UNEXEC unexelf.o
 
 /* This is to work around mysterious gcc failures in some system versions.

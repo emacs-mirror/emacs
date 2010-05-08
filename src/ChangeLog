@@ -1,3 +1,35 @@
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.c (update_window_fringes): Set up truncation bitmaps for
+	R2L lines.
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (THIS_IS_MAKEFILE): Remove, unused.
+
+	* Makefile.in (LIBS_TERMCAP): Set with configure, not cpp.
+	(TERMCAP_OBJ): New, set by configure, replacing termcapobj.
+	(termcapobj): Replace with TERMCAP_OBJ.
+	(otherobj): Use $TERMCAP_OBJ instead of $termcapobj.
+	(LIBES): Use LIBS_TERMCAP as a variable.
+
+	* s/freebsd.h (osreldate.h): No longer include, since this file
+	does not use __FreeBSD_version any more.
+
+	* s/aix4-2.h (TERMINFO):
+	* s/cygwin.h (TERMINFO):
+	* s/darwin.h (TERMINFO, LIBS_TERMCAP) [HAVE_LIBNCURSES]:
+	* s/freebsd.h (TERMINFO, LIBS_TERMCAP):
+	* s/gnu-linux.h (TERMINFO, LIBS_TERMCAP) [HAVE_LIBNCURSES]:
+	* s/gnu.h (TERMINFO, LIBS_TERMCAP) [HAVE_LIBNCURSES]:
+	* s/hpux10-20.h (TERMINFO, LIBS_TERMCAP):
+	* s/irix6-5.h (TERMINFO):
+	* s/netbsd.h (LIBS_TERMCAP):
+	* s/openbsd.h (TERMINFO, LIBS_TERMCAP):
+	* s/sol2-6.h (LIBS_TERMCAP) [!TERMINFO]:
+	* s/usg5-4.h (TERMINFO):
+	Move to configure.
+
 2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (unbind_to): Don't unbind a local binding into the global

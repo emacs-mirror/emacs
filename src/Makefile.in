@@ -105,6 +105,11 @@ GCONF_LIBS = @GCONF_LIBS@
 
 GTK_OBJ=@GTK_OBJ@
 
+## -ltermcap, or -lncurses, or -lcurses, or "".
+LIBS_TERMCAP=@LIBS_TERMCAP@
+## terminfo.o if TERMINFO, else tparam.o.
+TERMCAP_OBJ=@TERMCAP_OBJ@
+
 LIBXMU=@LIBXMU@
 
 LIBXSM=@LIBXSM@
@@ -165,7 +170,6 @@ START_FILES = @START_FILES@
 /* just to be sure the sh is used */
 SHELL=/bin/sh
 
-#define THIS_IS_MAKEFILE
 #define NOT_C_CODE
 #include "config.h"
 
@@ -368,21 +372,6 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
 
-
-#ifdef TERMINFO
-/* Used to be -ltermcap here.  If your machine needs that,
-   define LIBS_TERMCAP in the m/MACHINE.h file.  */
-#ifndef LIBS_TERMCAP
-#define LIBS_TERMCAP -lcurses
-#endif /* LIBS_TERMCAP */
-termcapobj = terminfo.o
-#else /* ! defined (TERMINFO) */
-#ifndef LIBS_TERMCAP
-#define LIBS_TERMCAP
-#endif /* LIBS_TERMCAP */
-termcapobj = tparam.o
-#endif /* ! defined (TERMINFO) */
-
 gmallocobj =
 rallocobj =
 vmlimitobj =
@@ -404,7 +393,7 @@ PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
-otherobj= $(termcapobj) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
+otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
   $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 #ifdef HAVE_MOUSE
@@ -667,7 +656,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
    with GCC, we might need gnulib again after them.  */
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM LIBS_TERMCAP \
+   $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM $(LIBS_TERMCAP) \
    $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) @LIB_MATH@ @LIB_STANDARD@ $(GNULIB_VAR)
