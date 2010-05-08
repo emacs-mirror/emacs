@@ -164,7 +164,6 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-#define THIS_IS_MAKEFILE
 #define NOT_C_CODE
 #include "../src/config.h"
 

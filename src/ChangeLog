@@ -1,5 +1,7 @@
 2010-05-08  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (THIS_IS_MAKEFILE): Remove, unused.
+
 	* Makefile.in (LIBS_TERMCAP): Set with configure, not cpp.
 	(TERMCAP_OBJ): New, set by configure, replacing termcapobj.
 	(termcapobj): Replace with TERMCAP_OBJ.
