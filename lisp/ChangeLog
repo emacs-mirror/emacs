@@ -1,3 +1,10 @@
+2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (Electric-command-loop): Minor tweak.
+
+	* ebuff-menu.el (electric-buffer-list): Try and make it behave a bit
+	better with dedicated windows.
+
 2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -95,7 +95,7 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 					     (cons first last))))))
 	(set-buffer buffer)
 	(Buffer-menu-mode)
-	(bury-buffer buffer)
+	(bury-buffer)                ;Get rid of window, if dedicated.
 	(message "")))
     (if select
 	(progn (set-buffer buffer)
