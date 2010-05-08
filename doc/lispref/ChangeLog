@@ -1,3 +1,9 @@
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Document
+	unicode-category-table.  Add an index entry for Unicode general
+	category.
+
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* locals.texi (Standard Buffer-Local Variables):

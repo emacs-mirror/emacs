@@ -375,6 +375,7 @@ This property corresponds to the Unicode @code{Name} property.  The
 value is a string consisting of upper-case Latin letters A to Z,
 digits, spaces, and hyphen @samp{-} characters.
 
+@cindex unicode general category
 @item general-category
 This property corresponds to the Unicode @code{General_Category}
 property.  The value is a symbol whose name is a 2-letter abbreviation
@@ -501,13 +502,18 @@ This function stores @var{value} as the value of the property
 @var{propname} for the character @var{char}.
 @end defun
 
-@defvar char-script-table
+@defvar unicode-category-table
 The value of this variable is a char-table (@pxref{Char-Tables}) that
-specifies, for each character, a symbol whose name is the script to
-which the character belongs, according to the Unicode Standard
-classification of the Unicode code space into script-specific blocks.
-This char-table has a single extra slot whose value is the list of all
-script symbols.
+specifies, for each character, its Unicode @code{General_Category}
+property as a symbol.
+@end defvar
+
+@defvar char-script-table
+The value of this variable is a char-table that specifies, for each
+character, a symbol whose name is the script to which the character
+belongs, according to the Unicode Standard classification of the
+Unicode code space into script-specific blocks.  This char-table has a
+single extra slot whose value is the list of all script symbols.
 @end defvar
 
 @defvar char-width-table
