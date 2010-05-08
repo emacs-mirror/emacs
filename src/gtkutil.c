@@ -3778,7 +3778,9 @@ xg_pack_tool_bar (f)
 
   gtk_box_reorder_child (GTK_BOX (x->vbox_widget), x->handlebox_widget,
                          vbox_pos);
-  gtk_widget_show_all (x->handlebox_widget);
+
+  gtk_widget_show (x->toolbar_widget);
+  gtk_widget_show (x->handlebox_widget);
 }
 
 /* Create a tool bar for frame F.  */
@@ -3794,13 +3796,6 @@ xg_create_tool_bar (f)
 
   gtk_widget_set_name (x->toolbar_widget, "emacs-toolbar");
 
-  /* We only have icons, so override any user setting.  We could
-     use the caption property of the toolbar item (see update_frame_tool_bar
-     below), but some of those strings are long, making the toolbar so
-     long it does not fit on the screen.  The GtkToolbar widget makes every
-     item equal size, so the longest caption determine the size of every
-     tool bar item.  I think the creators of the GtkToolbar widget
-     counted on 4 or 5 character long strings.  */
   gtk_toolbar_set_style (GTK_TOOLBAR (x->toolbar_widget), GTK_TOOLBAR_ICONS);
   gtk_toolbar_set_orientation (GTK_TOOLBAR (x->toolbar_widget),
                                GTK_ORIENTATION_HORIZONTAL);
@@ -3876,8 +3871,6 @@ xg_make_tool_item (FRAME_PTR f,
       g_signal_connect (G_OBJECT (wb), "clicked",
                         G_CALLBACK (xg_tool_bar_callback),
                         (gpointer) (EMACS_INT) i);
-
-      gtk_widget_show_all (GTK_WIDGET (ti));
 
       g_object_set_data (G_OBJECT (weventbox), XG_FRAME_DATA, (gpointer)f);
 
@@ -3963,6 +3956,7 @@ xg_show_toolbar_item (GtkToolItem *ti)
   else gtk_widget_hide (wlbl);
   if (show_image) gtk_widget_show (wimage);
   else gtk_widget_hide (wimage);
+  gtk_widget_show (GTK_WIDGET (weventbox));
   gtk_widget_show (GTK_WIDGET (vb));
   gtk_widget_show (GTK_WIDGET (wbutton));
   gtk_widget_show (GTK_WIDGET (ti));

@@ -1,3 +1,13 @@
+2010-05-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ftool_bar_get_system_style): Correct comment.
+
+	* gtkutil.c (xg_pack_tool_bar): Change show_all to show for handle
+	box and toolbar (Bug #6139).
+	(xg_create_tool_bar): Remove comment (Bug #6139).
+	(xg_make_tool_item): Remove gtk_widget_show_all (Bug #6139).
+	(xg_show_toolbar_item): Add gtk_widget_show for weventbox (Bug #6139).
+
 2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/eval.$(O), $(BLD)/w32fns.$(O)):
