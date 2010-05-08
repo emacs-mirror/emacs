@@ -96,11 +96,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_SYSTEM -lrts -lIM -liconv
 #endif
 
-
-/* Use terminfo instead of termcap.  */
-
-#define TERMINFO
-
 /* The following definition seems to be needed in AIX version 3.1.6.8.
    It may not have been needed in certain earlier versions.  */
 #define HAVE_TCATTR

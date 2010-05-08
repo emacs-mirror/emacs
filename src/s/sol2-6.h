@@ -1,7 +1,7 @@
 /* Definitions file for GNU Emacs running on Solaris 2.6.
 
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+  2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -38,15 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
    XIM support.  */
-
 #define INHIBIT_X11R6_XIM
-
-/* Must use the system's termcap, if we use any termcap.
-   It does special things.  */
-
-#ifndef TERMINFO
-#define LIBS_TERMCAP -ltermcap
-#endif
 
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific.

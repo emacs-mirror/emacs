@@ -62,6 +62,8 @@ s/@LIB_MATH@/-lm/
 /^GCONF_CFLAGS *=/s/@GCONF_CFLAGS@//
 /^GCONF_LIBS *=/s/@GCONF_LIBS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
+/^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
+/^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/tparam.o/
 /^LIBXMU *=/s/@LIBXMU@//
 /^LIBXSM *=/s/@LIBXSM@//
 /^LIBXTR6 *=/s/@LIBXTR6@//

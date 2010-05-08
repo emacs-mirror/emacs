@@ -22,8 +22,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <osreldate.h>
-
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
@@ -33,12 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
 #define LIBS_SYSTEM -lutil
-#if __FreeBSD_version < 400000
-#define LIBS_TERMCAP -ltermcap
-#else
-#define TERMINFO
-#define LIBS_TERMCAP -lncurses
-#endif
 
 #undef LIB_GCC
 #define LIB_GCC

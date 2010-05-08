@@ -1094,7 +1094,7 @@ esac
 AC_SUBST(LIB_MATH)
 AC_SUBST(START_FILES)
 
-dnl This function defintion taken from Gnome 2.0
+dnl This function definition taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
 dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
 dnl also defines GSTUFF_PKG_ERRORS on error
@@ -2527,7 +2527,7 @@ AC_CHECK_FUNCS(getpt)
 # That is because we have not set up to link ncurses in lib-src.
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
-# Also we need tputs and frieds to be able to build at all.
+# Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
 AC_SEARCH_LIBS(tputs, [ncurses terminfo termcap], , have_tputs_et_al=false)
 if test "$have_tputs_et_al" != true; then
@@ -2538,9 +2538,82 @@ fi
 # Must define this when any termcap library is found.
 AC_DEFINE(HAVE_LIBNCURSES, 1,
           [Define to 1 if you have the `ncurses' library (-lncurses).])
+## FIXME This was the cpp logic, but I am not sure it is right.
+## The above test has not necessarily found libncurses.
+HAVE_LIBNCURSES=yes
+
+## Use terminfo instead of termcap?
+## Note only system files NOT using terminfo are:
+## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## darwin|gnu without ncurses.
+TERMINFO=no
+LIBS_TERMCAP=
+case "$opsys" in
+  ## cygwin: Fewer environment variables to go wrong, more terminal types.
+  ## hpux10-20: Use the system provided termcap(3) library.
+  ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
+  ##  is necessary.  Otherwise Emacs dumps core when run -nw.
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+
+  ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
+  ##  The ncurses library has been moved out of the System framework in
+  ##  Mac OS X 10.2.  So if configure detects it, set the command-line
+  ##  option to use it.
+  darwin|gnu*)
+    ## (HAVE_LIBNCURSES was not always true, but is since 2010-03-18.)
+    if test "x$HAVE_LIBNCURSES" = "xyes"; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    fi
+    ;;
+
+  freebsd)
+    AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])
+    AC_CACHE_VAL(emacs_cv_freebsd_terminfo,
+    [AC_TRY_LINK([#include <osreldate.h>],
+[#if __FreeBSD_version < 400000
+fail;
+#endif
+], emacs_cv_freebsd_terminfo=yes, emacs_cv_freebsd_terminfo=no)])
+
+    AC_MSG_RESULT($emacs_cv_freebsd_terminfo)
+
+    if test $emacs_cv_freebsd_terminfo = yes; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
+esac
+
+case "$opsys" in
+  ## hpux: Make sure we get select from libc rather than from libcurses
+  ##  because libcurses on HPUX 10.10 has a broken version of select.
+  ##  We used to use -lc -lcurses, but this may be cleaner.
+  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+
+  openbsd) LIBS_TERMCAP="-lncurses" ;;
+
+  ## Must use system termcap, if we use any termcap.  It does special things.
+  sol2*) test "$TERMINFO" != yes && LIBS_TERMCAP="-ltermcap" ;;
+esac
+
+TERMCAP_OBJ=tparam.o
+if test $TERMINFO = yes; then
+  AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
+
+  ## Default used to be -ltermcap.  Add a case above if need something else.
+  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
+
+  TERMCAP_OBJ=terminfo.o
+fi
+AC_SUBST(LIBS_TERMCAP)
+AC_SUBST(TERMCAP_OBJ)
+
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
-
 resolv=no
 AC_TRY_LINK([#include <netinet/in.h>
 #include <arpa/nameser.h>

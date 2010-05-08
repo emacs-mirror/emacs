@@ -1,3 +1,9 @@
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_LIBNCURSES): New local variable.
+	(TERMINFO, LIBS_TERMCAP, TERMCAP_OBJ): New output variables,
+	replacing cpp in src/s/*.h and src/Makefile.in.
+
 2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in: Add tests for `isnan' and `copysign'.

@@ -179,16 +179,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_POSIX_MEMALIGN
 #endif
 
-/* The ncurses library has been moved out of the System framework in
-   Mac OS X 10.2.  So if ./configure detects it, set the command-line
-   option to use it.  */
-#ifdef HAVE_LIBNCURSES
-#define LIBS_TERMCAP -lncurses
-/* This prevents crashes when running Emacs in Terminal.app under
-   10.2.  */
-#define TERMINFO
-#endif
-
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
 

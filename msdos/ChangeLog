@@ -1,3 +1,8 @@
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LIBS_TERMCAP): Edit to empty.
+	(TERMCAP_OBJ): Edit to tparam.o.
+
 2010-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix breakage due to autoconfiscation of Makefile.in files.
