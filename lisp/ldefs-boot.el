@@ -4037,8 +4037,8 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-start-hook
-;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (19383
-;;;;;;  49284))
+;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (19405
+;;;;;;  51439))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -5979,7 +5979,7 @@ Major mode for editing the diary file.
 ;;;***
 
 ;;;### (autoloads (diff-backup diff diff-command diff-switches) "diff"
-;;;;;;  "diff.el" (19383 49279))
+;;;;;;  "diff.el" (19419 35832))
 ;;; Generated autoloads from diff.el
 
 (defvar diff-switches (purecopy "-c") "\
@@ -9886,7 +9886,7 @@ Evaluate the forms in variable `ffap-bindings'.
 ;;;### (autoloads (file-cache-minibuffer-complete file-cache-add-directory-recursively
 ;;;;;;  file-cache-add-directory-using-locate file-cache-add-directory-using-find
 ;;;;;;  file-cache-add-file file-cache-add-directory-list file-cache-add-directory)
-;;;;;;  "filecache" "filecache.el" (19383 49279))
+;;;;;;  "filecache" "filecache.el" (19409 46567))
 ;;; Generated autoloads from filecache.el
 
 (autoload 'file-cache-add-directory "filecache" "\
@@ -9899,8 +9899,8 @@ be added to the cache.
 (autoload 'file-cache-add-directory-list "filecache" "\
 Add DIRECTORY-LIST (a list of directory names) to the file cache.
 If the optional REGEXP argument is non-nil, only files which match it
-will be added to the cache. Note that the REGEXP is applied to the files
-in each directory, not to the directory list itself.
+will be added to the cache.  Note that the REGEXP is applied to the
+files in each directory, not to the directory list itself.
 
 \(fn DIRECTORY-LIST &optional REGEXP)" t nil)
 
@@ -9923,10 +9923,10 @@ STRING is passed as an argument to the locate command.
 
 (autoload 'file-cache-add-directory-recursively "filecache" "\
 Adds DIR and any subdirectories to the file-cache.
-This function does not use any external programs
+This function does not use any external programs.
 If the optional REGEXP argument is non-nil, only files which match it
-will be added to the cache. Note that the REGEXP is applied to the files
-in each directory, not to the directory list itself.
+will be added to the cache.  Note that the REGEXP is applied to the
+files in each directory, not to the directory list itself.
 
 \(fn DIR &optional REGEXP)" t nil)
 
@@ -10044,7 +10044,7 @@ result is a string that should be ready for the command line.
 
 ;;;### (autoloads (find-grep-dired find-name-dired find-dired find-grep-options
 ;;;;;;  find-ls-subdir-switches find-ls-option) "find-dired" "find-dired.el"
-;;;;;;  (19383 49279))
+;;;;;;  (19422 11991))
 ;;; Generated autoloads from find-dired.el
 
 (defvar find-ls-option (if (eq system-type 'berkeley-unix) (purecopy '("-ls" . "-gilsb")) (purecopy '("-exec ls -ld {} \\;" . "-ld"))) "\
@@ -14285,7 +14285,7 @@ easy-to-use form.
 
 ;;;### (autoloads (auto-image-file-mode insert-image-file image-file-name-regexp
 ;;;;;;  image-file-name-regexps image-file-name-extensions) "image-file"
-;;;;;;  "image-file.el" (19383 49279))
+;;;;;;  "image-file.el" (19422 11991))
 ;;; Generated autoloads from image-file.el
 
 (defvar image-file-name-extensions (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg")) "\
@@ -14347,7 +14347,7 @@ Image files are those whose name has an extension in
 ;;;***
 
 ;;;### (autoloads (image-bookmark-jump image-mode-as-text image-minor-mode
-;;;;;;  image-mode) "image-mode" "image-mode.el" (19383 49276))
+;;;;;;  image-mode) "image-mode" "image-mode.el" (19412 35030))
 ;;; Generated autoloads from image-mode.el
  (push (cons (purecopy "\\.jpe?g\\'")    'image-mode) auto-mode-alist)
  (push (cons (purecopy "\\.png\\'")      'image-mode) auto-mode-alist)
@@ -14382,7 +14382,7 @@ displays an image file as text.  `image-minor-mode' provides the key
 to display an image file as the actual image.
 
 You can use `image-mode-as-text' in `auto-mode-alist' when you want
-to display an image file as text inititally.
+to display an image file as text initially.
 
 See commands `image-mode' and `image-minor-mode' for more information
 on these modes.
@@ -14614,7 +14614,7 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;;;;  Info-goto-emacs-command-node Info-mode info-finder info-apropos
 ;;;;;;  Info-index Info-directory Info-on-current-buffer info-standalone
 ;;;;;;  info-emacs-manual info info-other-window) "info" "info.el"
-;;;;;;  (19387 20299))
+;;;;;;  (19412 35030))
 ;;; Generated autoloads from info.el
 
 (autoload 'info-other-window "info" "\
@@ -15400,7 +15400,7 @@ by `jka-compr-installed'.
 
 ;;;***
 
-;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19383 49284))
+;;;### (autoloads (js-mode) "js" "progmodes/js.el" (19421 38445))
 ;;; Generated autoloads from progmodes/js.el
 
 (autoload 'js-mode "js" "\
@@ -16740,7 +16740,7 @@ Returns non-nil if the new state is enabled.
 ;;;;;;  message-forward-make-body message-forward message-recover
 ;;;;;;  message-supersede message-cancel-news message-followup message-wide-reply
 ;;;;;;  message-reply message-news message-mail message-mode) "message"
-;;;;;;  "gnus/message.el" (19383 49284))
+;;;;;;  "gnus/message.el" (19409 46567))
 ;;; Generated autoloads from gnus/message.el
 
 (define-mail-user-agent 'message-user-agent 'message-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
@@ -25167,8 +25167,8 @@ Return a vector containing the lines from `spook-phrases-file'.
 ;;;### (autoloads (sql-linter sql-db2 sql-interbase sql-postgres
 ;;;;;;  sql-ms sql-ingres sql-solid sql-mysql sql-sqlite sql-informix
 ;;;;;;  sql-sybase sql-oracle sql-product-interactive sql-mode sql-help
-;;;;;;  sql-add-product-keywords) "sql" "progmodes/sql.el" (19383
-;;;;;;  49282))
+;;;;;;  sql-add-product-keywords) "sql" "progmodes/sql.el" (19412
+;;;;;;  35030))
 ;;; Generated autoloads from progmodes/sql.el
 
 (autoload 'sql-add-product-keywords "sql" "\
@@ -25286,7 +25286,7 @@ the variables `sql-user', `sql-password', and `sql-database' as
 defaults, if set.  Additional command line parameters can be stored in
 the list `sql-oracle-options'.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25312,7 +25312,7 @@ the variables `sql-server', `sql-user', `sql-password', and
 `sql-database' as defaults, if set.  Additional command line parameters
 can be stored in the list `sql-sybase-options'.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25336,7 +25336,7 @@ If buffer exists and a process is running, just switch to buffer
 Interpreter used comes from variable `sql-informix-program'.  Login uses
 the variable `sql-database' as default, if set.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25364,7 +25364,7 @@ the variables `sql-user', `sql-password', `sql-database', and
 `sql-server' as defaults, if set.  Additional command line parameters
 can be stored in the list `sql-sqlite-options'.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25392,7 +25392,7 @@ the variables `sql-user', `sql-password', `sql-database', and
 `sql-server' as defaults, if set.  Additional command line parameters
 can be stored in the list `sql-mysql-options'.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25417,7 +25417,7 @@ Interpreter used comes from variable `sql-solid-program'.  Login uses
 the variables `sql-user', `sql-password', and `sql-server' as
 defaults, if set.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25441,7 +25441,7 @@ If buffer exists and a process is running, just switch to buffer
 Interpreter used comes from variable `sql-ingres-program'.  Login uses
 the variable `sql-database' as default, if set.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25467,7 +25467,7 @@ variables `sql-user', `sql-password', `sql-database', and `sql-server'
 as defaults, if set.  Additional command line parameters can be stored
 in the list `sql-ms-options'.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25493,7 +25493,7 @@ the variables `sql-database' and `sql-server' as default, if set.
 Additional command line parameters can be stored in the list
 `sql-postgres-options'.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25523,7 +25523,7 @@ Interpreter used comes from variable `sql-interbase-program'.  Login
 uses the variables `sql-user', `sql-password', and `sql-database' as
 defaults, if set.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
@@ -25547,7 +25547,7 @@ If buffer exists and a process is running, just switch to buffer
 Interpreter used comes from variable `sql-db2-program'.  There is not
 automatic login.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 If you use \\[sql-accumulate-and-indent] to send multiline commands to
@@ -25585,7 +25585,7 @@ local connections, `sql-server' refers to the server name from the
 for this to work).  If `sql-password' is an empty string, inl will use
 an empty password.
 
-The buffer is put in sql-interactive-mode, giving commands for sending
+The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)
@@ -29590,7 +29590,7 @@ case, and the process object in the asynchronous case.
 
 ;;;***
 
-;;;### (autoloads nil "vc-hg" "vc-hg.el" (19403 31656))
+;;;### (autoloads nil "vc-hg" "vc-hg.el" (19405 52797))
 ;;; Generated autoloads from vc-hg.el
  (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
@@ -31971,8 +31971,8 @@ Zone out, completely.
 ;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
 ;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
 ;;;;;;  "url/url-vars.el" "vc-dav.el" "vcursor.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19405
-;;;;;;  42 652971))
+;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "x-dnd.el") (19428
+;;;;;;  55161 909254))
 
 ;;;***
 

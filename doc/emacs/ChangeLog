@@ -1,5 +1,9 @@
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* Version 23.2 released.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
 	* building.texi (GDB Graphical Interface): Remove misleading comparison
 	to an IDE (Bug#6128).
 
