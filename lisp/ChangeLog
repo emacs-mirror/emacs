@@ -1,3 +1,14 @@
+2010-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm-complete-word-inserts-delimiters):
+	New custom variable.
+	(completion-pcm--string->pattern): Use it.
+	(completion-pcm--pattern->regex, completion-pcm--pattern->string):
+	Make it handle any symbol as `any'.
+	(completion-pcm--merge-completions): Extract common suffix for the new
+	`prefix' symbol as well.
+	(completion-substring--all-completions): Use the new `prefix' symbol.
+
 2010-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-compat.el (byte-compile-not-obsolete-vars): Define if

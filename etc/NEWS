@@ -123,8 +123,9 @@ regardless of the value of `delete-by-moving-to-trash'.
 The reason is that this interferes with cua-mode.
 
 ** partial-completion-mode is now obsolete.
-You can get the same behavior with
-(setq completion-styles '(partial-completion initials)).
+You can get a comparable behavior with:
+(setq completion-styles '(partial-completion initials))
+(setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
