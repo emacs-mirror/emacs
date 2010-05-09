@@ -1197,7 +1197,7 @@ was first made obsolete---for example, a date or a release number.
 @end defun
 
 You can define a function as an alias and declare it obsolete at the
-same time using the macro @code{define-obsolete-function-alias}.
+same time using the macro @code{define-obsolete-function-alias}:
 
 @defmac define-obsolete-function-alias obsolete-name current-name &optional when docstring
 This macro marks the function @var{obsolete-name} obsolete and also
@@ -1209,6 +1209,33 @@ equivalent to the following:
 (make-obsolete @var{obsolete-name} @var{current-name} @var{when})
 @end example
 @end defmac
+
+In addition, you can mark a certain a particular calling convention
+for a function as obsolete:
+
+@defun set-advertised-calling-convention function signature
+This function specifies the argument list @var{signature} as the
+correct way to call @var{function}.  This causes the Emacs byte
+compiler to issue a warning whenever it comes across an Emacs Lisp
+program that calls @var{function} any other way (however, it will
+still allow the code to be byte compiled).
+
+For instance, in old versions of Emacs the @code{sit-for} function
+accepted three arguments, like this
+
+@smallexample
+  (sit-for seconds milliseconds nodisp)
+@end smallexample
+
+However, calling @code{sit-for} this way is considered obsolete
+(@pxref{Waiting}).  The old calling convention is deprecated like
+this:
+
+@smallexample
+(set-advertised-calling-convention
+  'sit-for '(seconds &optional nodisp))
+@end smallexample
+@end defun
 
 @node Inline Functions
 @section Inline Functions

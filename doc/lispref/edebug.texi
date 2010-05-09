@@ -186,7 +186,7 @@ instrument any top-level form regardless of the values of
 
   While Edebug is active, the command @kbd{I}
 (@code{edebug-instrument-callee}) instruments the definition of the
-function or macro called by the list form after point, if is not already
+function or macro called by the list form after point, if it is not already
 instrumented.  This is possible only if Edebug knows where to find the
 source for that function; for this reason, after loading Edebug,
 @code{eval-region} records the position of every definition it

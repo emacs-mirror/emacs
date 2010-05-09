@@ -26,8 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-#define LIBS_TERMCAP -ltermcap
-
 #undef LIB_GCC
 #define LIB_GCC
 

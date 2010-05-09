@@ -77,9 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special hacks needed to make Emacs run on this system.  */
 
-/* Use the system provided termcap(3) library */
-#define TERMINFO
-
 /* In hpux, the symbol SIGIO is defined, but the feature
    doesn't work in the way Emacs needs it to.  */
 
@@ -140,16 +137,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_XRMSETDATABASE
 #endif
 
-/* Make sure we get select from libc rather than from libcurses
-   because libcurses on HPUX 10.10 has a broken version of select.
-   We used to use -lc -lcurses, but this may be cleaner.  */
-#define LIBS_TERMCAP -ltermcap
-
 /* 2000-11-21: Temporarily disable Unix 98 large file support found by
    configure.  It fails on HPUX 11, at least, because it enables
    header sections which lose when `static' is defined away, as it is
    on HP-UX.  (You get duplicate symbol errors on linking). */
-
 #undef _FILE_OFFSET_BITS
 
 /* Define NO_REMAP if memory segmentation makes it not work well

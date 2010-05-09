@@ -47,10 +47,6 @@ You can disable this by using --without-selinux.
 
 +++
 ** Emacs now supports display and editing of bidirectional text.
-Warning: This is still very much experimental!  The existing support
-is minimal, and when it's turned on (see below), many features are
-likely to give unexpected results, or break, or even crash!  Use at
-your own risk!
 
 See the node "Bidirectional Editing" in the Emacs Manual for some
 initial documentation.
@@ -68,6 +64,10 @@ its text, as specified by the Unicode Bidirectional Algorithm.
 Reordering of bidirectional text for display in Emacs is a "Full
 bidirectionality" class implementation of the Unicode Bidirectional
 Algorithm.
+
+Note that some advanced display features, such as overlay strings and
+`display' text properties, do not yet work correctly when
+bidirectional text is reordered for display.
 
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
@@ -123,8 +123,9 @@ regardless of the value of `delete-by-moving-to-trash'.
 The reason is that this interferes with cua-mode.
 
 ** partial-completion-mode is now obsolete.
-You can get the same behavior with
-(setq completion-styles '(partial-completion initials)).
+You can get a comparable behavior with:
+(setq completion-styles '(partial-completion initials))
+(setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize

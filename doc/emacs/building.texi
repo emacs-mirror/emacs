@@ -836,12 +836,11 @@ Fully qualified class name derived from the expression surrounding point
 @subsection GDB Graphical Interface
 
   The command @code{gdb} starts GDB in a graphical interface, using
-Emacs windows for display program state information.  In effect, this
-makes Emacs into an IDE (interactive development environment).  With
-it, you do not need to use textual GDB commands; you can control the
-debugging session with the mouse.  For example, you can click in the
-fringe of a source buffer to set a breakpoint there, or on a stack
-frame in the stack buffer to select that frame.
+Emacs windows for display program state information.  With it, you do
+not need to use textual GDB commands; you can control the debugging
+session with the mouse.  For example, you can click in the fringe of a
+source buffer to set a breakpoint there, or on a stack frame in the
+stack buffer to select that frame.
 
   This mode requires telling GDB that its ``screen size'' is
 unlimited, so it sets the height and width accordingly.  For correct

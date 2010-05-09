@@ -80,7 +80,7 @@ Set the mark at point if the mark is inactive, then move point.
 character in @acronym{ASCII}; usually, typing @kbd{C-@key{SPC}} on a
 text terminal gives the character @kbd{C-@@}.  This key is also bound
 to @code{set-mark-command}, so unless you are unlucky enough to have
-an text terminal that behaves differently, you might as well think of
+a text terminal that behaves differently, you might as well think of
 @kbd{C-@@} as @kbd{C-@key{SPC}}.}.  This sets the mark where point is,
 and activates it.  You can then move point away, leaving the mark
 behind.

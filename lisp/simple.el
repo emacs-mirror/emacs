@@ -5306,6 +5306,26 @@ With ARG, turn Size Indication mode on if ARG is positive,
 otherwise turn it off.  When Size Indication mode is enabled, the
 size of the accessible part of the buffer appears in the mode line."
   :global t :group 'mode-line)
+
+(define-minor-mode auto-save-mode
+  "Toggle auto-saving of contents of current buffer.
+With prefix argument ARG, turn auto-saving on if positive, else off."
+  :variable ((and buffer-auto-save-file-name
+                  ;; If auto-save is off because buffer has shrunk,
+                  ;; then toggling should turn it on.
+                  (>= buffer-saved-size 0))
+             . (lambda (val)
+                 (setq buffer-auto-save-file-name
+                       (cond
+                        ((null val) nil)
+                        ((and buffer-file-name auto-save-visited-file-name
+                              (not buffer-read-only))
+                         buffer-file-name)
+                        (t (make-auto-save-file-name))))))
+  ;; If -1 was stored here, to temporarily turn off saving,
+  ;; turn it back on.
+  (and (< buffer-saved-size 0)
+       (setq buffer-saved-size 0)))
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."

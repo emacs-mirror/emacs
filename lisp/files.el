@@ -2260,7 +2260,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
      ("/Message[0-9]*\\'" . text-mode)
-     ("\\.zone\\'" . zone-mode)
      ;; some news reader is reported to use this
      ("\\`/tmp/fol/" . text-mode)
      ("\\.oak\\'" . scheme-mode)
@@ -2294,7 +2293,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("#\\*mail\\*" . mail-mode)
      ("\\.g\\'" . antlr-mode)
      ("\\.ses\\'" . ses-mode)
-     ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
      ("\\.docbook\\'" . sgml-mode)
      ("\\.com\\'" . dcl-mode)
      ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
@@ -4755,10 +4753,14 @@ this happens by default."
       (mapc
        (lambda (file)
 	 (let ((target (expand-file-name
-			(file-name-nondirectory file) newname)))
-	   (if (file-directory-p file)
-	       (copy-directory file target keep-time parents)
-	     (copy-file file target t keep-time))))
+			(file-name-nondirectory file) newname))
+	       (attrs (file-attributes file)))
+	   (cond ((file-directory-p file)
+		  (copy-directory file target keep-time parents))
+		 ((stringp (car attrs)) ; Symbolic link
+		  (make-symbolic-link (car attrs) target t))
+		 (t
+		  (copy-file file target t keep-time)))))
        ;; We do not want to copy "." and "..".
        (directory-files	directory 'full directory-files-no-dot-files-regexp))
 
@@ -5150,26 +5152,6 @@ The optional second argument indicates whether to kill internal buffers too."
         (kill-buffer-ask buffer)))))
 
 
-(define-minor-mode auto-save-mode
-  "Toggle auto-saving of contents of current buffer.
-With prefix argument ARG, turn auto-saving on if positive, else off."
-  :variable ((and buffer-auto-save-file-name
-                  ;; If auto-save is off because buffer has shrunk,
-                  ;; then toggling should turn it on.
-                  (>= buffer-saved-size 0))
-             . (lambda (val)
-                 (setq buffer-auto-save-file-name
-                       (cond
-                        ((null val) nil)
-                        ((and buffer-file-name auto-save-visited-file-name
-                              (not buffer-read-only))
-                         buffer-file-name)
-                        (t (make-auto-save-file-name))))))
-  ;; If -1 was stored here, to temporarily turn off saving,
-  ;; turn it back on.
-  (and (< buffer-saved-size 0)
-       (setq buffer-saved-size 0)))
-
 (defun rename-auto-save-file ()
   "Adjust current buffer's auto save file name for current conditions.
 Also rename any existing auto save file, if it was made in this session."

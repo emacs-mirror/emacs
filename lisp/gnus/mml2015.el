@@ -1021,6 +1021,7 @@ Whether the passphrase is cached at all is controlled by
       (let ((pointer (epg-key-sub-key-list (car keys))))
 	(while pointer
 	  (if (and (memq usage (epg-sub-key-capability (car pointer)))
+		   (not (memq 'disabled (epg-sub-key-capability (car pointer))))
 		   (not (memq (epg-sub-key-validity (car pointer))
 			      '(revoked expired))))
 	      (throw 'found (car keys)))

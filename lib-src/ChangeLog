@@ -1,3 +1,16 @@
+2010-05-08  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis
+	for macros for nmake compatibility.
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (THIS_IS_MAKEFILE): Remove, unused.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Minimize blessmail-related cpp usage.

@@ -528,8 +528,7 @@ dos_set_window_size (rows, cols)
   /* If the user specified a special video mode for these dimensions,
      use that mode.  */
   sprintf (video_name, "screen-dimensions-%dx%d", *rows, *cols);
-  video_mode = XSYMBOL (Fintern_soft (build_string (video_name),
-				      Qnil))-> value;
+  video_mode = Fsymbol_value (Fintern_soft (build_string (video_name), Qnil));
 
   if (INTEGERP (video_mode)
       && (video_mode_value = XINT (video_mode)) > 0)

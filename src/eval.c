@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "keyboard.h"
 #include "dispextern.h"
+#include "frame.h"		/* For XFRAME.  */
 
 #if HAVE_X_WINDOWS
 #include "xterm.h"
@@ -786,7 +787,7 @@ The return value is BASE-VARIABLE.  */)
      so that old-code that affects n_a before the aliasing is setup
      still works.  */
   if (NILP (Fboundp (base_variable)))
-    set_internal (base_variable, find_symbol_value (new_alias), NULL, 1);
+    set_internal (base_variable, find_symbol_value (new_alias), Qnil, 1);
 
   {
     struct specbinding *p;
@@ -3335,7 +3336,7 @@ specbind (symbol, value)
 	  if (!sym->constant)
 	    SET_SYMBOL_VAL (sym, value);
 	  else
-	    set_internal (symbol, value, 0, 1);
+	    set_internal (symbol, value, Qnil, 1);
 	  break;
 	}
     case SYMBOL_LOCALIZED: case SYMBOL_FORWARDED:
@@ -3395,7 +3396,7 @@ specbind (symbol, value)
 	  specpdl_ptr->symbol = symbol;
 
 	specpdl_ptr++;
-	set_internal (symbol, value, 0, 1);
+	set_internal (symbol, value, Qnil, 1);
 	break;
       }
     default: abort ();
@@ -3457,27 +3458,26 @@ unbind_to (count, value)
 
 	  if (NILP (where))
 	    Fset_default (symbol, this_binding.old_value);
+	  /* If `where' is non-nil, reset the value in the appropriate
+	     local binding, but only if that binding still exists.  */
 	  else if (BUFFERP (where))
-	    if (!NILP (Flocal_variable_p (symbol, where)))
-	      set_internal (symbol, this_binding.old_value, XBUFFER (where), 1);
-	    /* else if (!NILP (Fbuffer_live_p (where)))
-	      error ("Unbinding local %s to global!", symbol); */
-            else
-              ;
-	  else
-	    set_internal (symbol, this_binding.old_value, NULL, 1);
+	    {
+	      if (BUFFERP (where)
+		  ? !NILP (Flocal_variable_p (symbol, where))
+		  : !NILP (Fassq (symbol, XFRAME (where)->param_alist)))
+		set_internal (symbol, this_binding.old_value, where, 1);
+	    }
 	}
+      /* If variable has a trivial value (no forwarding), we can
+	 just set it.  No need to check for constant symbols here,
+	 since that was already done by specbind.  */
+      else if (XSYMBOL (this_binding.symbol)->redirect == SYMBOL_PLAINVAL)
+	SET_SYMBOL_VAL (XSYMBOL (this_binding.symbol),
+			this_binding.old_value);
       else
-	{
-	  /* If variable has a trivial value (no forwarding), we can
-	     just set it.  No need to check for constant symbols here,
-	     since that was already done by specbind.  */
-	  if (XSYMBOL (this_binding.symbol)->redirect == SYMBOL_PLAINVAL)
-	    SET_SYMBOL_VAL (XSYMBOL (this_binding.symbol),
-			    this_binding.old_value);
-	  else
-	    set_internal (this_binding.symbol, this_binding.old_value, 0, 1);
-	}
+	/* NOTE: we only ever come here if make_local_foo was used for
+	   the first time on this var within this let.  */
+	Fset_default (this_binding.symbol, this_binding.old_value);
     }
 
   if (NILP (Vquit_flag) && !NILP (quitf))

@@ -748,9 +748,9 @@ Faces `compilation-error-face', `compilation-warning-face',
   "If non-nil, automatically jump to the next error encountered.")
 (make-variable-buffer-local 'compilation-auto-jump-to-next)
 
-(defvar buffer-modtime nil
+(defvar compilation-buffer-modtime nil
   "The buffer modification time, for buffers not associated with files.")
-(make-variable-buffer-local 'buffer-modtime)
+(make-variable-buffer-local 'compilation-buffer-modtime)
 
 (defvar compilation-skip-to-next-location t
   "*If non-nil, skip multiple error messages for the same source location.")
@@ -1588,7 +1588,7 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
-  (set (make-local-variable 'buffer-modtime) nil)
+  (set (make-local-variable 'compilation-buffer-modtime) nil)
   (compilation-setup)
   (setq buffer-read-only t)
   (run-mode-hooks 'compilation-mode-hook))
@@ -1804,7 +1804,7 @@ and runs `compilation-filter-hook'."
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
-              (set (make-local-variable 'buffer-modtime) (current-time))
+              (set (make-local-variable 'compilation-buffer-modtime) (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
@@ -1978,7 +1978,7 @@ This is the value of `next-error-function' in Compilation buffers."
                  ;; There may be no timestamp info if the loc is a `fake-loc',
                  ;; but we just checked that the file has been visited before!
                  (equal (nth 4 loc)
-                        (setq timestamp buffer-modtime)))
+                        (setq timestamp compilation-buffer-modtime)))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (cadr (car (nth 2 loc))))
 	(save-restriction

@@ -1578,6 +1578,14 @@ ftfont_otf_capability (font)
 
 #ifdef HAVE_M17N_FLT
 
+#if ((LIBOTF_MAJOR_VERSION > 1) || (LIBOTF_RELEASE_NUMBER >= 10) \
+     && (M17NLIB_MAJOR_VERSION > 1) || (M17NLIB_MINOR_VERSION >= 6))
+/* We can use the new feature of libotf and m17n-flt to handle the
+   character encoding scheme introduced in Unicode 5.1 and 5.2 for
+   some Agian scripts.  */
+#define M17N_FLT_USE_NEW_FEATURE
+#endif
+
 struct MFLTFontFT
 {
   MFLTFont flt_font;
@@ -1696,10 +1704,16 @@ ftfont_check_otf (MFLTFont *font, MFLTOtfSpec *spec)
 	  else
 	    tags[n] = spec->features[i][n];
 	}
+#ifdef M17N_FLT_USE_NEW_FEATURE
+      if (OTF_check_features (otf, i == 0, spec->script, spec->langsys,
+			      tags, n - negative) != 1)
+	return 0;
+#else  /* not M17N_FLT_USE_NEW_FEATURE */
       if (n - negative > 0
 	  && OTF_check_features (otf, i == 0, spec->script, spec->langsys,
 				 tags, n - negative) != 1)
 	return 0;
+#endif	/* not M17N_FLT_USE_NEW_FEATURE */
     }
   return 1;
 }
@@ -1757,6 +1771,356 @@ setup_otf_gstring (int size)
   memset (otf_gstring.glyphs, 0, sizeof (OTF_Glyph) * size);
 }
 
+#ifdef M17N_FLT_USE_NEW_FEATURE
+
+/* Pack 32-bit OTF tag (0x7F7F7F7F) into 28-bit (0x0FFFFFFF).  */
+#define PACK_OTF_TAG(TAG)	\
+  ((((TAG) & 0x7F000000) >> 3)	\
+    | (((TAG) & 0x7F0000) >> 2)	\
+    | (((TAG) & 0x7F00) >> 1)	\
+    | ((TAG) & 0x7F))
+
+/* Assuming that FONT is an OpenType font, apply OpenType features
+   specified in SPEC on glyphs between FROM and TO of IN, and record
+   the lastly applied feature in each glyph of IN.  If OUT is not
+   NULL, append the resulting glyphs to OUT while storing glyph
+   position adjustment information in ADJUSTMENT.  */
+
+static int
+ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
+     MFLTFont *font;
+     MFLTOtfSpec *spec;
+     MFLTGlyphString *in;
+     int from, to;
+     MFLTGlyphString *out;
+     MFLTGlyphAdjustment *adjustment;
+{
+  struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
+  FT_Face ft_face = flt_font_ft->ft_face;
+  OTF *otf = flt_font_ft->otf;
+  int len = to - from;
+  int i, j, gidx;
+  OTF_Glyph *otfg;
+  char script[5], *langsys = NULL;
+  char *gsub_features = NULL, *gpos_features = NULL;
+  OTF_Feature *features;
+
+  if (len == 0)
+    return from;
+  OTF_tag_name (spec->script, script);
+  if (spec->langsys)
+    {
+      langsys = alloca (5);
+      OTF_tag_name (spec->langsys, langsys);
+    }
+  for (i = 0; i < 2; i++)
+    {
+      char *p;
+
+      if (spec->features[i] && spec->features[i][1] != 0xFFFFFFFF)
+	{
+	  for (j = 0; spec->features[i][j]; j++);
+	  if (i == 0)
+	    p = gsub_features = alloca (6 * j);
+	  else
+	    p = gpos_features = alloca (6 * j);
+	  for (j = 0; spec->features[i][j]; j++)
+	    {
+	      if (spec->features[i][j] == 0xFFFFFFFF)
+		*p++ = '*', *p++ = ',';
+	      else
+		{
+		  OTF_tag_name (spec->features[i][j], p);
+		  p[4] = ',';
+		  p += 5;
+		}
+	    }
+	  *--p = '\0';
+	}
+    }
+
+  setup_otf_gstring (len);
+  for (i = 0; i < len; i++)
+    {
+      otf_gstring.glyphs[i].c = in->glyphs[from + i].c;
+      otf_gstring.glyphs[i].glyph_id = in->glyphs[from + i].code;
+    }
+
+  OTF_drive_gdef (otf, &otf_gstring);
+  gidx = out ? out->used : from;
+
+  if (gsub_features && out)
+    {
+      if (OTF_drive_gsub_with_log (otf, &otf_gstring, script, langsys,
+				   gsub_features) < 0)
+	goto simple_copy;
+      if (out->allocated < out->used + otf_gstring.used)
+	return -2;
+      features = otf->gsub->FeatureList.Feature;
+      for (i = 0, otfg = otf_gstring.glyphs; i < otf_gstring.used; )
+	{
+	  MFLTGlyph *g;
+	  int min_from, max_to;
+	  int j;
+	  int feature_idx = otfg->positioning_type >> 4;
+
+	  g = out->glyphs + out->used;
+	  *g = in->glyphs[from + otfg->f.index.from];
+	  if (g->code != otfg->glyph_id)
+	    {
+	      g->c = 0;
+	      g->code = otfg->glyph_id;
+	      g->measured = 0;
+	    }
+	  out->used++;
+	  min_from = g->from;
+	  max_to = g->to;
+	  if (otfg->f.index.from < otfg->f.index.to)
+	    {
+	      /* OTFG substitutes multiple glyphs in IN.  */
+	      for (j = from + otfg->f.index.from + 1;
+		   j <= from + otfg->f.index.to; j++)
+		{
+		  if (min_from > in->glyphs[j].from)
+		    min_from = in->glyphs[j].from;
+		  if (max_to < in->glyphs[j].to)
+		    max_to = in->glyphs[j].to;
+		}
+	      g->from = min_from;
+	      g->to = max_to;
+	    }
+	  if (feature_idx)
+	    {
+	      unsigned int tag = features[feature_idx - 1].FeatureTag;
+	      tag = PACK_OTF_TAG (tag);
+	      g->internal = (g->internal & ~0x1FFFFFFF) | tag;
+	    }
+	  for (i++, otfg++; (i < otf_gstring.used
+			     && otfg->f.index.from == otfg[-1].f.index.from);
+	       i++, otfg++)
+	    {
+	      g = out->glyphs + out->used;
+	      *g = in->glyphs[from + otfg->f.index.to];
+	      if (g->code != otfg->glyph_id)
+		{
+		  g->c = 0;
+		  g->code = otfg->glyph_id;
+		  g->measured = 0;
+		}
+	      feature_idx = otfg->positioning_type >> 4;
+	      if (feature_idx)
+		{
+		  unsigned int tag = features[feature_idx - 1].FeatureTag;
+		  tag = PACK_OTF_TAG (tag);
+		  g->internal = (g->internal & ~0x1FFFFFFF) | tag;
+		}
+	      out->used++;
+	    }
+	}
+    }
+  else if (gsub_features)
+    {
+      /* Just for checking which features will be applied.  */
+      if (OTF_drive_gsub_with_log (otf, &otf_gstring, script, langsys,
+				   gsub_features) < 0)
+	goto simple_copy;
+      features = otf->gsub->FeatureList.Feature;
+      for (i = 0, otfg = otf_gstring.glyphs; i < otf_gstring.used; i++,
+	     otfg++)
+	{
+	  int feature_idx = otfg->positioning_type >> 4;
+
+	  if (feature_idx)
+	    {
+	      unsigned int tag = features[feature_idx - 1].FeatureTag;
+	      tag = PACK_OTF_TAG (tag);
+	      for (j = otfg->f.index.from; j <= otfg->f.index.to; j++)
+		{
+		  MFLTGlyph *g = in->glyphs + (from + j);
+		  g->internal = (g->internal & ~0x1FFFFFFF) | tag;
+		}
+	    }
+	}
+    }
+  else if (out)
+    {
+      if (out->allocated < out->used + len)
+	return -2;
+      for (i = 0; i < len; i++)
+	out->glyphs[out->used++] = in->glyphs[from + i];
+    }
+
+  if (gpos_features && out)
+    {
+      MFLTGlyph *base = NULL, *mark = NULL, *g;
+      int x_ppem, y_ppem, x_scale, y_scale;
+
+      if (OTF_drive_gpos_with_log (otf, &otf_gstring, script, langsys,
+				   gpos_features) < 0)
+	return to;
+      features = otf->gpos->FeatureList.Feature;
+      x_ppem = ft_face->size->metrics.x_ppem;
+      y_ppem = ft_face->size->metrics.y_ppem;
+      x_scale = ft_face->size->metrics.x_scale;
+      y_scale = ft_face->size->metrics.y_scale;
+
+      for (i = 0, otfg = otf_gstring.glyphs, g = out->glyphs + gidx;
+	   i < otf_gstring.used; i++, otfg++, g++)
+	{
+	  MFLTGlyph *prev;
+	  int feature_idx = otfg->positioning_type >> 4;
+
+	  if (feature_idx)
+	    {
+	      unsigned int tag = features[feature_idx - 1].FeatureTag;
+	      tag = PACK_OTF_TAG (tag);
+	      g->internal = (g->internal & ~0x1FFFFFFF) | tag;
+	    }
+
+	  if (! otfg->glyph_id)
+	    continue;
+	  switch (otfg->positioning_type & 0xF)
+	    {
+	    case 0:
+	      break;
+	    case 1: 		/* Single */
+	    case 2: 		/* Pair */
+	      {
+		int format = otfg->f.f1.format;
+
+		if (format & OTF_XPlacement)
+		  adjustment[i].xoff
+		    = otfg->f.f1.value->XPlacement * x_scale / 0x10000;
+		if (format & OTF_XPlaDevice)
+		  adjustment[i].xoff
+		    += DEVICE_DELTA (otfg->f.f1.value->XPlaDevice, x_ppem);
+		if (format & OTF_YPlacement)
+		  adjustment[i].yoff
+		    = - (otfg->f.f1.value->YPlacement * y_scale / 0x10000);
+		if (format & OTF_YPlaDevice)
+		  adjustment[i].yoff
+		    -= DEVICE_DELTA (otfg->f.f1.value->YPlaDevice, y_ppem);
+		if (format & OTF_XAdvance)
+		  adjustment[i].xadv
+		    += otfg->f.f1.value->XAdvance * x_scale / 0x10000;
+		if (format & OTF_XAdvDevice)
+		  adjustment[i].xadv
+		    += DEVICE_DELTA (otfg->f.f1.value->XAdvDevice, x_ppem);
+		if (format & OTF_YAdvance)
+		  adjustment[i].yadv
+		    += otfg->f.f1.value->YAdvance * y_scale / 0x10000;
+		if (format & OTF_YAdvDevice)
+		  adjustment[i].yadv
+		    += DEVICE_DELTA (otfg->f.f1.value->YAdvDevice, y_ppem);
+		adjustment[i].set = 1;
+	      }
+	      break;
+	    case 3:		/* Cursive */
+	      /* Not yet supported.  */
+	      break;
+	    case 4:		/* Mark-to-Base */
+	    case 5:		/* Mark-to-Ligature */
+	      if (! base)
+		break;
+	      prev = base;
+	      goto label_adjust_anchor;
+	    default:		/* i.e. case 6 Mark-to-Mark */
+	      if (! mark)
+		break;
+	      prev = mark;
+
+	    label_adjust_anchor:
+	      {
+		int base_x, base_y, mark_x, mark_y;
+		int this_from, this_to;
+
+		base_x = otfg->f.f4.base_anchor->XCoordinate * x_scale / 0x10000;
+		base_y = otfg->f.f4.base_anchor->YCoordinate * y_scale / 0x10000;
+		mark_x = otfg->f.f4.mark_anchor->XCoordinate * x_scale / 0x10000;
+		mark_y = otfg->f.f4.mark_anchor->YCoordinate * y_scale / 0x10000;
+
+		if (otfg->f.f4.base_anchor->AnchorFormat != 1)
+		  adjust_anchor (ft_face, otfg->f.f4.base_anchor,
+				 prev->code, x_ppem, y_ppem, &base_x, &base_y);
+		if (otfg->f.f4.mark_anchor->AnchorFormat != 1)
+		  adjust_anchor (ft_face, otfg->f.f4.mark_anchor, g->code,
+				 x_ppem, y_ppem, &mark_x, &mark_y);
+		adjustment[i].xoff = (base_x - mark_x);
+		adjustment[i].yoff = - (base_y - mark_y);
+		adjustment[i].back = (g - prev);
+		adjustment[i].xadv = 0;
+		adjustment[i].advance_is_absolute = 1;
+		adjustment[i].set = 1;
+		this_from = g->from;
+		this_to = g->to;
+		for (j = 0; prev + j < g; j++)
+		  {
+		    if (this_from > prev[j].from)
+		      this_from = prev[j].from;
+		    if (this_to < prev[j].to)
+		      this_to = prev[j].to;
+		  }
+		for (; prev <= g; prev++)
+		  {
+		    prev->from = this_from;
+		    prev->to = this_to;
+		  }
+	      }
+	    }
+	  if (otfg->GlyphClass == OTF_GlyphClass0)
+	    base = mark = g;
+	  else if (otfg->GlyphClass == OTF_GlyphClassMark)
+	    mark = g;
+	  else
+	    base = g;
+	}
+    }
+  else if (gpos_features)
+    {
+      if (OTF_drive_gpos_with_log (otf, &otf_gstring, script, langsys,
+				   gpos_features) < 0)
+	return to;
+      features = otf->gpos->FeatureList.Feature;
+      for (i = 0, otfg = otf_gstring.glyphs; i < otf_gstring.used;
+	   i++, otfg++)
+	if (otfg->positioning_type & 0xF)
+	  {
+	    int feature_idx = otfg->positioning_type >> 4;
+
+	    if (feature_idx)
+	      {
+		unsigned int tag = features[feature_idx - 1].FeatureTag;
+		tag = PACK_OTF_TAG (tag);
+		for (j = otfg->f.index.from; j <= otfg->f.index.to; j++)
+		  {
+		    MFLTGlyph *g = in->glyphs + (from + j);
+		    g->internal = (g->internal & ~0x1FFFFFFF) | tag;
+		  }
+	      }
+	  }
+    }
+  return to;
+
+ simple_copy:
+  if (! out)
+    return to;
+  if (out->allocated < out->used + len)
+    return -2;
+  font->get_metrics (font, in, from, to);
+  memcpy (out->glyphs + out->used, in->glyphs + from,
+	  sizeof (MFLTGlyph) * len);
+  out->used += len;
+  return to;
+}
+
+static int 
+ftfont_try_otf (MFLTFont *font, MFLTOtfSpec *spec,
+		MFLTGlyphString *in, int from, int to)
+{
+  return ftfont_drive_otf (font, spec, in, from, to, NULL, NULL);
+}
+
+#else  /* not M17N_FLT_USE_NEW_FEATURE */
 
 static int
 ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
@@ -2011,6 +2375,8 @@ ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
   return to;
 }
 
+#endif	/* not M17N_FLT_USE_NEW_FEATURE */
+
 static MFLTGlyphString gstring;
 
 static int m17n_flt_initialized;
@@ -2034,6 +2400,10 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf, matrix)
   if (! m17n_flt_initialized)
     {
       M17N_INIT ();
+#ifdef M17N_FLT_USE_NEW_FEATURE
+      mflt_enable_new_feature = 1;
+      mflt_try_otf = ftfont_try_otf;
+#endif	/* M17N_FLT_USE_NEW_FEATURE */
       m17n_flt_initialized = 1;
     }
 

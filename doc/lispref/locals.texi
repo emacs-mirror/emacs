@@ -85,6 +85,9 @@ Minor mode variables will not be listed here.
 @item case-fold-search
 @xref{Searching and Case}.
 
+@item comment-column
+@xref{Comments,,, emacs, The GNU Emacs Manual}.
+
 @item ctl-arrow
 @xref{Usual Display}.
 
@@ -93,9 +96,6 @@ Minor mode variables will not be listed here.
 
 @item cursor-type
 @xref{Cursor Parameters}.
-
-@item comment-column
-@xref{Comments,,, emacs, The GNU Emacs Manual}.
 
 @item default-directory
 @xref{File Name Expansion}.

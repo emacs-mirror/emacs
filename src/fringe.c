@@ -1082,7 +1082,8 @@ update_window_fringes (w, keep_current_p)
 	  left = row->left_user_fringe_bitmap;
 	  left_face_id = row->left_user_fringe_face_id;
 	}
-      else if (row->truncated_on_left_p)
+      else if ((!row->reversed_p && row->truncated_on_left_p)
+	       || (row->reversed_p && row->truncated_on_right_p))
 	left = LEFT_FRINGE(0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
 	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
@@ -1110,7 +1111,8 @@ update_window_fringes (w, keep_current_p)
 	  right = row->right_user_fringe_bitmap;
 	  right_face_id = row->right_user_fringe_face_id;
 	}
-      else if (row->truncated_on_right_p)
+      else if ((!row->reversed_p && row->truncated_on_right_p)
+	       || (row->reversed_p && row->truncated_on_left_p))
 	right = RIGHT_FRINGE (0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qright))
 	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))

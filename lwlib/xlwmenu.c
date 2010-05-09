@@ -2177,7 +2177,6 @@ XlwMenuDestroy (w)
     {
       if (mw->menu.windows [i].pixmap != None) 
         XFreePixmap (XtDisplay (mw), mw->menu.windows [i].pixmap);
-      XtDestroyWidget (mw->menu.windows [i].w);
 #ifdef HAVE_XFT
       if (mw->menu.windows [i].xft_draw)
         XftDrawDestroy (mw->menu.windows [i].xft_draw);

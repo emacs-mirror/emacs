@@ -1,3 +1,112 @@
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.c (autocmp_chars): Save point as marker before calling
+	auto-composition-function (Bug#5984).
+
+	* lisp.h (restore_point_unwind): Add prototype.
+
+	* fileio.c (restore_point_unwind): Remove static attribute.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (M17N_FLT_USE_NEW_FEATURE): Define it if we can use the
+	new feature of libotf and m17n-flt.
+	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]:
+	Call OTF_check_features even if no specific feature is given.
+	(PACK_OTF_TAG) [M17N_FLT_USE_NEW_FEATURE]: New macro.
+	(ftfont_drive_otf) [M17N_FLT_USE_NEW_FEATURE]: Handle the case
+	that OUT is NULL.  Use OTF_drive_gsub_with_log and
+	OTF_drive_gpos_with_log instead of OTF_drive_gsub and
+	OTF_drive_gpos.
+	(ftfont_try_otf) [M17N_FLT_USE_NEW_FEATURE]: New function.
+	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]:
+	Setup mflt_enable_new_feature and mflt_try_otf.
+
+2010-05-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ftool_bar_get_system_style): Correct comment.
+
+	* gtkutil.c (xg_pack_tool_bar): Change show_all to show for handle
+	box and toolbar (Bug #6139).
+	(xg_create_tool_bar): Remove comment (Bug #6139).
+	(xg_make_tool_item): Remove gtk_widget_show_all (Bug #6139).
+	(xg_show_toolbar_item): Add gtk_widget_show for weventbox (Bug #6139).
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/eval.$(O), $(BLD)/w32fns.$(O)):
+	Update dependencies.
+
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.c (update_window_fringes): Set up truncation bitmaps for
+	R2L lines.
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (THIS_IS_MAKEFILE): Remove, unused.
+
+	* Makefile.in (LIBS_TERMCAP): Set with configure, not cpp.
+	(TERMCAP_OBJ): New, set by configure, replacing termcapobj.
+	(termcapobj): Replace with TERMCAP_OBJ.
+	(otherobj): Use $TERMCAP_OBJ instead of $termcapobj.
+	(LIBES): Use LIBS_TERMCAP as a variable.
+
+	* s/freebsd.h (osreldate.h): No longer include, since this file
+	does not use __FreeBSD_version any more.
+
+	* s/aix4-2.h (TERMINFO):
+	* s/cygwin.h (TERMINFO):
+	* s/darwin.h (TERMINFO, LIBS_TERMCAP) [HAVE_LIBNCURSES]:
+	* s/freebsd.h (TERMINFO, LIBS_TERMCAP):
+	* s/gnu-linux.h (TERMINFO, LIBS_TERMCAP) [HAVE_LIBNCURSES]:
+	* s/gnu.h (TERMINFO, LIBS_TERMCAP) [HAVE_LIBNCURSES]:
+	* s/hpux10-20.h (TERMINFO, LIBS_TERMCAP):
+	* s/irix6-5.h (TERMINFO):
+	* s/netbsd.h (LIBS_TERMCAP):
+	* s/openbsd.h (TERMINFO, LIBS_TERMCAP):
+	* s/sol2-6.h (LIBS_TERMCAP) [!TERMINFO]:
+	* s/usg5-4.h (TERMINFO):
+	Move to configure.
+
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (unbind_to): Don't unbind a local binding into the global
+	binding when the local binding disappeared.  Inversely, don't unbind
+	a global binding into a newly created local binding.
+	* data.c (set_internal): Make its `buf' arg into a `where' arg so we
+	can specify the frame to use, when applicable.  Adjust callers.
+
+2010-05-07  Vincent Belaïche  <vincent.belaiche@gmail.com>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* floatfns.c (Fisnan, Fcopysign, Ffrexp, Fldexp): New functions.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c: Include w32.h.
+	(Fw32_shell_execute): Decode the error message before passing it
+	to `error'.  (Bug#6126)
+
+	* msdos.c (dos_set_window_size):
+	* w16select.c (Fx_selection_exists_p): Use `Fsymbol_value (foo)'
+	instead of `XSYMBOL (foo)->value'.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-DOS build, broken by autoconfiscation.
+
+	* Makefile.in: Don't use Make-style comments past the "start of
+	cpp stuff" line.
+	(MSDOS_OBJ): Remove xmenu.o (it is now defined by XMENU_OBJ).
+
+	* s/msdos.h (UNEXEC): Don't define (@unexec@ in Makefile.in is
+	edited directly by msdos/sed1v2.inp).
+
 2010-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.

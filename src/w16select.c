@@ -685,8 +685,8 @@ and t is the same as `SECONDARY'.  */)
      into the clipboard if we run under Windows, so we cannot check
      the clipboard alone.)  */
   if ((EQ (selection, Qnil) || EQ (selection, QPRIMARY))
-      && ! NILP (SYMBOL_VALUE (Fintern_soft (build_string ("kill-ring"),
-					     Qnil))))
+      && ! NILP (Fsymbol_value (Fintern_soft (build_string ("kill-ring"),
+					      Qnil))))
     return Qt;
 
   if (EQ (selection, QCLIPBOARD))

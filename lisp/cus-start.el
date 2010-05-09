@@ -408,6 +408,10 @@ since it could result in memory overflow and make Emacs crash."
 		       (fboundp 'define-fringe-bitmap))
 		      ((equal "font-use-system-font" (symbol-name symbol))
 		       (featurep 'system-font-setting))
+		      ;; Conditioned on x-create-frame, because that's
+		      ;; the condition for loadup.el to preload tool-bar.el.
+		      ((string-match "tool-bar-" (symbol-name symbol))
+		       (fboundp 'x-create-frame))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

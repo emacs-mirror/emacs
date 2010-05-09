@@ -659,7 +659,7 @@ address from @code{To:} and @code{Cc:} headers.
 @findex message-insert-disposition-notification-to
 Insert a request for a disposition
 notification.  (@code{message-insert-disposition-notification-to}).
-This means that if the recipient support RFC 2298 she might send you a
+This means that if the recipient supports RFC 2298 she might send you a
 notification that she received the message.
 
 @item M-x message-insert-importance-high
@@ -2387,7 +2387,7 @@ consulted, in turn:
 
 @item wide reply
 A @dfn{wide reply} is a mail response that includes @emph{all} entities
-mentioned in the message you are responded to.  All mailboxes from the
+mentioned in the message you are responding to.  All mailboxes from the
 following headers will be concatenated to form the outgoing
 @code{To}/@code{Cc} headers:
 

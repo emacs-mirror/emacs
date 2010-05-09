@@ -1169,7 +1169,7 @@ Currently supported properties are:
  `:predicate'           a predicate that completion candidates need to satisfy.
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
-(defun complete-symbol (&optional arg)
+(defun completion-at-point (&optional arg)
   "Perform completion on the text around point.
 The completion method is determined by `completion-at-point-functions'.
 
@@ -1193,7 +1193,7 @@ language you are using."
 	  (completion-in-region start end (nth 2 res)
 				(plist-get plist :predicate))))))))
 
-(defalias 'completion-at-point 'complete-symbol)
+(define-obsolete-function-alias 'complete-symbol 'completion-at-point "24.1")
 
 ;;; Key bindings.
 
@@ -1769,6 +1769,14 @@ expression (not containing character ranges like `a-z')."
   :group 'minibuffer
   :type 'string)
 
+(defcustom completion-pcm-complete-word-inserts-delimiters nil
+  "Treat the SPC or - inserted by `minibuffer-complete-word' as delimiters.
+Those chars are treated as delimiters iff this variable is non-nil.
+I.e. if non-nil, M-x SPC will just insert a \"-\" in the minibuffer, whereas
+if nil, it will list all possible commands in *Completions* because none of
+the commands start with a \"-\" or a SPC."
+  :type 'boolean)
+
 (defun completion-pcm--pattern-trivial-p (pattern)
   (and (stringp (car pattern))
        ;; It can be followed by `point' and "" and still be trivial.
@@ -1781,7 +1789,7 @@ expression (not containing character ranges like `a-z')."
 (defun completion-pcm--string->pattern (string &optional point)
   "Split STRING into a pattern.
 A pattern is a list where each element is either a string
-or a symbol chosen among `any', `star', `point'."
+or a symbol chosen among `any', `star', `point', `prefix'."
   (if (and point (< point (length string)))
       (let ((prefix (substring string 0 point))
             (suffix (substring string point)))
@@ -1794,11 +1802,12 @@ or a symbol chosen among `any', `star', `point'."
 
       (while (and (setq p (string-match completion-pcm--delim-wild-regex
                                         string p))
-                  ;; If the char was added by minibuffer-complete-word, then
-                  ;; don't treat it as a delimiter, otherwise "M-x SPC"
-                  ;; ends up inserting a "-" rather than listing
-                  ;; all completions.
-                  (not (get-text-property p 'completion-try-word string)))
+                  (or completion-pcm-complete-word-inserts-delimiters
+                      ;; If the char was added by minibuffer-complete-word,
+                      ;; then don't treat it as a delimiter, otherwise
+                      ;; "M-x SPC" ends up inserting a "-" rather than listing
+                      ;; all completions.
+                      (not (get-text-property p 'completion-try-word string))))
         ;; Usually, completion-pcm--delim-wild-regex matches a delimiter,
         ;; meaning that something can be added *before* it, but it can also
         ;; match a prefix and postfix, in which case something can be added
@@ -1824,11 +1833,10 @@ or a symbol chosen among `any', `star', `point'."
          (concat "\\`"
                  (mapconcat
                   (lambda (x)
-                    (case x
-                      ((star any point)
-                       (if (if (consp group) (memq x group) group)
-                           "\\(.*?\\)" ".*?"))
-                      (t (regexp-quote x))))
+                    (cond
+                     ((stringp x) (regexp-quote x))
+                     ((if (consp group) (memq x group) group)
+                      "\\(.*?\\)" ".*?")))
                   pattern
                   ""))))
     ;; Avoid pathological backtracking.
@@ -1992,7 +2000,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
   (completion--sreverse
    (try-completion
     ""
-    (mapcar 'completion--sreverse comps))))
+    (mapcar 'completion--sreverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN."
@@ -2057,9 +2065,9 @@ filter out additional entries (because TABLE migth not obey PRED)."
                 ;; here any more.
                 (unless unique
                   (push elem res)
-                  (when (memq elem '(star point))
+                  (when (memq elem '(star point prefix))
                     ;; Extract common suffix additionally to common prefix.
-                    ;; Only do it for `point' and `star' since for
+                    ;; Only do it for `point', `star', and `prefix' since for
                     ;; `any' it could lead to a merged completion that
                     ;; doesn't itself match the candidates.
                     (let ((suffix (completion--common-suffix comps)))
@@ -2074,8 +2082,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
   (mapconcat (lambda (x) (cond
                      ((stringp x) x)
                      ((eq x 'star) "*")
-                     ((eq x 'any) "")
-                     ((eq x 'point) "")))
+                     (t "")))           ;any, point, prefix.
              pattern
              ""))
 
@@ -2117,6 +2124,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
              (pointpat (or (memq 'point mergedpat)
                            (memq 'any   mergedpat)
                            (memq 'star  mergedpat)
+                           ;; Not `prefix'.
 			   mergedpat))
              ;; New pos from the start.
              (newpos (length (completion-pcm--pattern->string pointpat)))
@@ -2147,7 +2155,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
                          beforepoint afterpoint bounds))
          (pattern (if (not (stringp (car basic-pattern)))
                       basic-pattern
-                    (cons 'any basic-pattern)))
+                    (cons 'prefix basic-pattern)))
          (all (completion-pcm--all-completions prefix pattern table pred)))
     (list all pattern prefix suffix (car bounds))))
 
