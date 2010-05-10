@@ -902,12 +902,6 @@ mail with multiple parts is preferred to sending a Unicode one.")
       out)))
 
 (eval-and-compile
-  (defvar mm-emacs-mule (and (not (featurep 'xemacs))
-			     (boundp 'enable-multibyte-characters)
-			     (default-value 'enable-multibyte-characters)
-			     (fboundp 'set-buffer-multibyte))
-    "True in Emacs with Mule.")
-
   (if (featurep 'xemacs)
       (defalias 'mm-enable-multibyte 'ignore)
     (defun mm-enable-multibyte ()
