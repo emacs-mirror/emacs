@@ -356,7 +356,7 @@ is defined is automatically proclaimed @code{inline}, i.e.,
 calls to it may be expanded into in-line code by the byte compiler.
 This is analogous to the @code{defsubst} form;
 @code{defsubst*} uses a different method (compiler macros) which
-works in all version of Emacs, and also generates somewhat more
+works in all versions of Emacs, and also generates somewhat more
 efficient inline expansions.  In particular, @code{defsubst*}
 arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.

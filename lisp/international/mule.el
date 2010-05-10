@@ -1690,7 +1690,8 @@ and convert it in the temporary buffer.  Otherwise, convert in-place."
 (defcustom auto-coding-alist
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
-  (purecopy '(("\\.\\(\
+  (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
+	  '(("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
      . no-conversion-multibyte)

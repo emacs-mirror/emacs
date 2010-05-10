@@ -4753,10 +4753,14 @@ this happens by default."
       (mapc
        (lambda (file)
 	 (let ((target (expand-file-name
-			(file-name-nondirectory file) newname)))
-	   (if (file-directory-p file)
-	       (copy-directory file target keep-time parents)
-	     (copy-file file target t keep-time))))
+			(file-name-nondirectory file) newname))
+	       (attrs (file-attributes file)))
+	   (cond ((file-directory-p file)
+		  (copy-directory file target keep-time parents))
+		 ((stringp (car attrs)) ; Symbolic link
+		  (make-symbolic-link (car attrs) target t))
+		 (t
+		  (copy-file file target t keep-time)))))
        ;; We do not want to copy "." and "..".
        (directory-files	directory 'full directory-files-no-dot-files-regexp))
 

@@ -1,3 +1,13 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp, sed3v2.inp (LIBS_SYSTEM): Edit to empty.
+
+	* sed3v2.inp (BLESSMAIL_TARGET): Edit to need-blessmail.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (LIBS_TERMCAP): Edit to empty.

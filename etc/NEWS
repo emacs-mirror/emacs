@@ -123,8 +123,9 @@ regardless of the value of `delete-by-moving-to-trash'.
 The reason is that this interferes with cua-mode.
 
 ** partial-completion-mode is now obsolete.
-You can get the same behavior with
-(setq completion-styles '(partial-completion initials)).
+You can get a comparable behavior with:
+(setq completion-styles '(partial-completion initials))
+(setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
@@ -159,6 +160,38 @@ is just left as is in the message, so it is not lost.
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
 .dir-locals.el file, will turn on `whitespace-mode' for *vc-diff* buffers.
+
+** SQL Mode enhancements.
+
+*** Several variables have been marked as safe local variables.
+The variables `sql-product', `sql-user', `sql-server', and
+`sql-database' can now be safely used as local variables.
+
+*** Added ability to login with a port on MySQL.
+The custom variable `sql-port' can be specified for connection to
+MySQL servers.
+
+*** Custom variables control prompting for login parameters.
+Each supported product has a custom variable `sql-*-login-params'
+which is a list of the parameters to be prompted for before a
+connection is established.
+
+*** Added option `sql-send-terminator'.
+When set makes sure that each command sent with `sql-send-*' commands
+are properly terminated and submitted to the SQL processor.
+
+*** Added option `sql-oracle-scan-on'.
+When set commands sent to Oracle's SQL*Plus are scanned for strings
+starting with an ampersand and the user is asked for replacement
+text.  In general, the SQL*Plus option SCAN should be set OFF under
+SQL interactive mode.
+
+*** SQL interactive mode will replace tabs with spaces.
+This prevents the comand interpretter for MySQL and Postgres from
+listing object name completions when being sent text via
+`sql-send-*' functions.
+
+*** An API for manipulating SQL product definitions has been added.
 
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.

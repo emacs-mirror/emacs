@@ -85,20 +85,9 @@ char *_getpty();
 
 #define UNEXEC unexelf.o
 
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-#define MAIL_USE_FLOCK
-
 #define NARROWPROTO 1
 
 #define USE_MMAP_FOR_BUFFERS 1
-
-/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
-   (do not change this comment) */
-
 
 #if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
 #define _LP64			/* lisp.h takes care of the rest */
@@ -111,6 +100,9 @@ char *_getpty();
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
+   (do not change this comment) */
 
 /* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
    (do not change this comment) */

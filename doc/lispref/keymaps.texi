@@ -2470,9 +2470,13 @@ can do it this way:
 @cindex menu bar
 
   Most window systems allow each frame to have a @dfn{menu bar}---a
-permanently displayed menu stretching horizontally across the top of the
-frame.  The items of the menu bar are the subcommands of the fake
-``function key'' @code{menu-bar}, as defined in the active keymaps.
+permanently displayed menu stretching horizontally across the top of
+the frame.  (In order for a frame to display a menu bar, its
+@code{menu-bar-lines} parameter must be greater than zero.
+@xref{Layout Parameters}.)
+
+  The items of the menu bar are the subcommands of the fake ``function
+key'' @code{menu-bar}, as defined in the active keymaps.
 
   To add an item to the menu bar, invent a fake ``function key'' of your
 own (let's call it @var{key}), and make a binding for the key sequence
@@ -2489,13 +2493,6 @@ subcommands, and the minor mode subcommands.
 determining the menu bar contents.  That is, the menu bar is computed
 from the keymaps that would be active if @code{overriding-local-map}
 were @code{nil}.  @xref{Active Keymaps}.
-
-  In order for a frame to display a menu bar, its @code{menu-bar-lines}
-parameter must be greater than zero.  Emacs uses just one line for the
-menu bar itself; if you specify more than one line, the other lines
-serve to separate the menu bar from the windows in the frame.  We
-recommend 1 or 2 as the value of @code{menu-bar-lines}.  @xref{Layout
-Parameters}.
 
   Here's an example of setting up a menu bar item:
 
@@ -2535,8 +2532,8 @@ bar item:
 @end example
 
 @noindent
-@code{edit} is the fake function key used by the global map for the
-@samp{Edit} menu bar item.  The main reason to suppress a global
+Here, @code{edit} is the fake function key used by the global map for
+the @samp{Edit} menu bar item.  The main reason to suppress a global
 menu bar item is to regain space for mode-specific items.
 
 @defvar menu-bar-final-items
@@ -2556,6 +2553,23 @@ whose contents should vary.  Since this hook is run frequently, we
 advise you to ensure that the functions it calls do not take much time
 in the usual case.
 @end defvar
+
+Next to every menu bar item, Emacs displays a key binding that runs
+the same command (if such a key binding exists).  This serves as a
+convenient hint for users who do not know the key binding.  If a
+command has multiple bindings, Emacs normally displays the first one
+it finds.  You can specify one particular key binding by assigning an
+@code{:advertised-binding} symbol property to the command.  For
+instance, the following tells Emacs to show @kbd{C-/} for the
+@code{undo} menu item:
+
+@smallexample
+(put 'undo :advertised-binding [?\C-/])
+@end smallexample
+
+@noindent
+If the @code{:advertised-binding} property specifies a key binding
+that the command does not actually have, it is ignored.
 
 @node Tool Bar
 @subsection Tool bars

@@ -629,8 +629,8 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-handle-file-selinux-context (filename)
   "Like `file-selinux-context' for Tramp files."
-  (funcall (symbol-function 'file-selinux-context)
-	   (tramp-gvfs-fuse-file-name filename)))
+  (tramp-compat-funcall
+   'file-selinux-context (tramp-gvfs-fuse-file-name filename)))
 
 (defun tramp-gvfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."

@@ -1202,7 +1202,7 @@ completion based on the list of manual pages that are installed on
 your machine; the list of available manual pages is computed
 automatically the first time you invoke @code{woman}.  The word at
 point in the current buffer is used to suggest the default for the
-name the manual page.
+name of the manual page.
 
   With a numeric argument, @kbd{M-x woman} recomputes the list of the
 manual pages used for completion.  This is useful if you add or delete

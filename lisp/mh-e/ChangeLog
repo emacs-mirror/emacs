@@ -1,3 +1,7 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-show.el (mh-showing-mode): Move function to mh-e.el.

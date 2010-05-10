@@ -27,8 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define POSIX
 
-#define LIBS_SYSTEM -lsocket -lnsl -lkstat
-
 /* Prefer kstat over kvm in getloadavg.c, kstat doesn't require root.
    ghazi@caip.rutgers.edu, 7/21/97.  Don't redefine if already defined
    (e.g., by config.h). */

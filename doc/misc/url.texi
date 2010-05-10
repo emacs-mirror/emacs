@@ -313,7 +313,7 @@ encoding of documents which servers may honor.  For each of these
 variables, the value is a string; it can specify a single choice, or
 it can be a comma-separated list.
 
-Normally this list ordered by descending preference.  However, each
+Normally, this list is ordered by descending preference.  However, each
 element can be followed by @samp{;q=@var{priority}} to specify its
 preference level, a decimal number from 0 to 1; e.g., for
 @code{url-mime-language-string}, @w{@code{"de, en-gb;q=0.8,
@@ -1120,11 +1120,11 @@ general operation of the package.
 
 @defopt url-debug
 @cindex debugging
-Specifies the types of debug messages the library which are logged to
+Specifies the types of debug messages which are logged to
 the @code{*URL-DEBUG*} buffer.
 @code{t} means log all messages.
 A number means log all messages and show them with @code{message}.
-If may also be a list of the types of messages to be logged.
+It may also be a list of the types of messages to be logged.
 @end defopt
 @defopt url-personal-mail-address
 @end defopt

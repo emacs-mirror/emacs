@@ -1230,33 +1230,23 @@ Use multibyte mode for this."
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
   "Evaluate FORMS with current buffer temporarily made unibyte.
-Also bind the default-value of `enable-multibyte-characters' to nil.
-Equivalent to `progn' in XEmacs
+Equivalent to `progn' in XEmacs.
 
-NOTE: Use this macro with caution in multibyte buffers (it is not
-worth using this macro in unibyte buffers of course).  Use of
-`(set-buffer-multibyte t)', which is run finally, is generally
-harmful since it is likely to modify existing data in the buffer.
-For instance, it converts \"\\300\\255\" into \"\\255\" in
-Emacs 23 (unicode)."
+Note: We recommend not using this macro any more; there should be
+better ways to do a similar thing.  The previous version of this macro
+bound the default value of `enable-multibyte-characters' to nil while
+evaluating FORMS but it is no longer done.  So, some programs assuming
+it if any may malfunction."
   (if (featurep 'xemacs)
       `(progn ,@forms)
-    ;; FIXME: (default-value 'enable-multibyte-characters) is read-only
-    ;; so let-binding it is wrong.  The right fix is to not use this
-    ;; macro at all any more, since it's been ill-defined from the start.
-    (let ((multibyte (make-symbol "multibyte"))
-	  (buffer (make-symbol "buffer")))
-      `(if mm-emacs-mule
-	   (let ((,multibyte enable-multibyte-characters)
-		 (,buffer (current-buffer)))
-	     (unwind-protect
-		 (letf (((default-value 'enable-multibyte-characters) nil))
-		       (set-buffer-multibyte nil)
-		       ,@forms)
-	       (set-buffer ,buffer)
-	       (set-buffer-multibyte ,multibyte)))
-	 (letf (((default-value 'enable-multibyte-characters) nil))
-	       ,@forms)))))
+    (let ((multibyte (make-symbol "multibyte")))
+      `(let ((,multibyte enable-multibyte-characters))
+	 (when ,multibyte
+	   (set-buffer-multibyte nil))
+	 (prog1
+	     (progn ,@forms)
+	   (when ,multibyte
+	     (set-buffer-multibyte t)))))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
 
