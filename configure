@@ -704,6 +704,7 @@ MAKEINFO
 LD_SWITCH_SYSTEM
 C_SWITCH_MACHINE
 C_SWITCH_SYSTEM
+LIBS_SYSTEM
 CRT_DIR
 LIB_MATH
 START_FILES
@@ -5838,10 +5839,6 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-configure___ libsrc_libs=LIBS_SYSTEM
 
 configure___ LIBX=-lX11
 
@@ -6034,6 +6031,23 @@ test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
+
+
+
+LIBS_SYSTEM=
+case "$opsys" in
+  ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
+  aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
+
+  freebsd) LIBS_SYSTEM="-lutil" ;;
+
+  hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
+
+  sol2*) LIBS_SYSTEM="-lsocket -lnsl -lkstat" ;;
+
+  ## Motif needs -lgen.
+  unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
+esac
 
 
 
@@ -10940,7 +10954,7 @@ if test $use_mmap_for_buffers = yes; then
   REL_ALLOC=no
 fi
 
-LIBS="$libsrc_libs $LIBS"
+LIBS="$LIBS_SYSTEM $LIBS"
 
 
 { $as_echo "$as_me:$LINENO: checking for dnet_ntoa in -ldnet" >&5
@@ -11157,6 +11171,18 @@ _ACEOF
 
 fi
 
+
+## Note: when using cpp in s/aix4.2.h, this definition depended on
+## HAVE_LIBPTHREADS.  That was not defined earlier in configure when
+## the system file was sourced.  Hence the value of LIBS_SYSTEM
+## added to LIBS in configure would never contain the pthreads part,
+## but the value used in Makefiles might.  FIXME?
+##
+## -lpthreads seems to be necessary for Xlib in X11R6, and should
+## be harmless on older versions of X where it happens to exist.
+test "$opsys" = "aix4-2" && \
+  test $ac_cv_lib_pthreads_cma_open = yes && \
+  LIBS_SYSTEM="$LIBS_SYSTEM -lpthreads"
 
 
 case ${host_os} in
