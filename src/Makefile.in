@@ -88,6 +88,9 @@ LD_SWITCH_SYSTEM_EXTRA=@LD_SWITCH_SYSTEM_EXTRA@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTEM_TEMACS)
 
+## Some systems define this to request special libraries.
+LIBS_SYSTEM=@LIBS_SYSTEM@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -194,11 +197,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
 /* On some machines #define register is done in config;
    do not let it interfere with this file.  */
 #undef register
-
-/* Some s/SYSTEM.h files define this to request special libraries.  */
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
 
 /* This macro is for switches specifically related to X Windows.  */
 #ifndef LD_SWITCH_X_SITE
@@ -324,9 +322,9 @@ LD=ld
 #endif
 
 #ifdef MSDOS
+LIBS_SYSTEM = MSDOS_LIBS_SYSTEM
 #ifdef HAVE_X_WINDOWS
 MSDOS_OBJ = dosfns.o msdos.o
-#define LIBS_SYSTEM -lxext -lsys
 #else
 MSDOS_OBJ = dosfns.o msdos.o w16select.o termcap.o
 #endif
@@ -656,8 +654,8 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
    with GCC, we might need gnulib again after them.  */
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ LIBS_SYSTEM $(LIBS_TERMCAP) \
-   $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
+   $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ $(LIBS_SYSTEM) \
+   $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) @LIB_MATH@ @LIB_STANDARD@ $(GNULIB_VAR)
 

@@ -1,6 +1,7 @@
 /* System description file for hpux version 10.20.
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -126,13 +127,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* AlainF 20-Jul-1996 says this is right.  */
 #define KERNEL_FILE "/stand/vmunix"
 
-#define LIBS_SYSTEM -l:libdld.sl
-
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
    using GCC.  */
-
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
