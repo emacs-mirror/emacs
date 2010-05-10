@@ -819,6 +819,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to unlink, rather than empty, mail spool after reading. */
 #undef MAIL_UNLINK_SPOOL
 
+/* Define if the mailer uses flock to interlock the mail spool. */
+#undef MAIL_USE_FLOCK
+
+/* Define if the mailer uses lockf to interlock the mail spool. */
+#undef MAIL_USE_LOCKF
+
 /* Define to support MMDF mailboxes in movemail. */
 #undef MAIL_USE_MMDF
 

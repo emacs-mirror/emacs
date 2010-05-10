@@ -755,6 +755,7 @@ LIBXSM
 ALLOCA
 liblockfile
 LIBS_MAIL
+BLESSMAIL_TARGET
 LIBOBJS
 NEED_SETGID
 KMEM_GROUP
@@ -17562,6 +17563,56 @@ _ACEOF
 fi
 
 done
+
+
+
+## Define MAIL_USE_FLOCK (or LOCKF) if the mailer uses flock (or lockf) to
+## interlock access to the mail spool.  The alternative is a lock file named
+## /usr/spool/mail/$USER.lock.
+mail_lock=no
+case "$opsys" in
+  aix4-2) mail_lock="lockf" ;;
+
+  gnu|freebsd|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
+
+  ## On GNU/Linux systems, both methods are used by various mail programs.
+  ## I assume most people are using newer mailers that have heard of flock.
+  ## Change this if you need to.
+  ## Debian contains a patch which says: ``On Debian/GNU/Linux systems,
+  ## configure gets the right answers, and that means *NOT* using flock.
+  ## Using flock is guaranteed to be the wrong thing. See Debian Policy
+  ## for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
+  ## Debian maintainer hasn't provided a clean fix for Emacs.
+  ## movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
+  ## HAVE_MAILLOCK_H are defined, so the following appears to be the
+  ## correct logic.  -- fx
+  ## We must check for HAVE_LIBLOCKFILE too, as movemail does.
+  ## liblockfile is a Free Software replacement for libmail, used on
+  ## Debian systems and elsewhere. -rfr.
+  gnu-*)
+    mail_lock="flock"
+    if test $have_mail = yes || test $have_lockfile = yes; then
+      test $ac_cv_header_maillock_h = yes && mail_lock=no
+    fi
+    ;;
+esac
+
+BLESSMAIL_TARGET=
+case "$mail_lock" in
+  flock)
+cat >>confdefs.h <<\_ACEOF
+#define MAIL_USE_FLOCK 1
+_ACEOF
+ ;;
+
+  lockf)
+cat >>confdefs.h <<\_ACEOF
+#define MAIL_USE_LOCKF 1
+_ACEOF
+ ;;
+
+  *) BLESSMAIL_TARGET="need-blessmail" ;;
+esac
 
 
 
