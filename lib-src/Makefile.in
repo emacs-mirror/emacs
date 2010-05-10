@@ -131,8 +131,8 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 # If neither flag is set, blessmail is used.
 MOVE_FLAGS=
 
-## May be reset below by cpp.
-BLESSMAIL_TARGET=
+## Empty if either MAIL_USE_FLOCK or MAIL_USE_LOCKF, else need-blessmail.
+BLESSMAIL_TARGET=@BLESSMAIL_TARGET@
 
 ## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
 KRB4LIB=@KRB4LIB@
@@ -154,6 +154,9 @@ LIBS_MAIL=@LIBS_MAIL@
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
 
+## Some systems define this to request special libraries.
+LIBS_SYSTEM = @LIBS_SYSTEM@
+
 # Those files shared with other GNU utilities need HAVE_CONFIG_H
 # defined before they know they can take advantage of the information
 # in ../src/config.h.
@@ -164,20 +167,12 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-#define NOT_C_CODE
+#ifdef MSDOS
 #include "../src/config.h"
+LIBS_SYSTEM = MSDOS_LIBS_SYSTEM
+#endif
 
-/* Some s/SYSTEM.h files define this to request special libraries.  */
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-LOADLIBES=LIBS_SYSTEM
-
-#ifndef MAIL_USE_FLOCK
-#ifndef MAIL_USE_LOCKF
-BLESSMAIL_TARGET = need-blessmail
-#endif
-#endif
+LOADLIBES=$(LIBS_SYSTEM)
 
 
 .SUFFIXES: .m

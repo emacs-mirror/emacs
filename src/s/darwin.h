@@ -1,6 +1,7 @@
 /* System description header file for Darwin (Mac OS X).
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,10 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/*
- *	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.
- */
+/*	Define symbols to identify the version of Unix this is.
+ *	Define all the symbols that apply correctly.  */
 
 #define BSD4_2
 /* BSD4_3 and BSD4_4 are already defined in sys/param.h */
@@ -31,13 +30,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    may not be defined on non-OSX Darwin, and we cannot define DARWIN
    here because Panther and lower CoreFoundation.h uses DARWIN to
    distinguish OS X from pure Darwin. */
-
 #define DARWIN_OS
 
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
-
 #define SYSTEM_TYPE "darwin"
 
 /* Emacs can read input using SIGIO and buffering characters itself,
@@ -61,12 +58,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It would have Emacs fork off a separate process
    to read the input and send it to the true Emacs process
    through a pipe. */
-
 #define INTERRUPT_INPUT
 
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
-
 #define FIRST_PTY_LETTER 'p'
 
 /*
@@ -79,16 +74,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *	Do not define both.  HAVE_TERMIOS is preferred, if it is
  *	supported on your system.
  */
-
 #define HAVE_TERMIOS
-
 #define NO_TERMIO
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
  *      Note: PTYs are broken on darwin <6.  Use at your own risk.
  */
-
 #define HAVE_PTYS
 /* Run only once.  We need a `for'-loop because the code uses
    `continue'.  */
@@ -117,20 +109,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
 /* Define this symbol if your system has the functions bcopy, etc. */
-
 #define BSTRING
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-#define MAIL_USE_FLOCK
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
-
 #define CLASH_DETECTION
 
 /* Avoid the use of the name init_process (process.c) because it is
@@ -152,21 +135,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SOCKETS
 
 /* Definitions for how to dump.  Copied from nextstep.h.  */
-
 #define UNEXEC unexmacosx.o
 
 /* start_of_text isn't actually used, so make it compile without error.  */
 #define TEXT_START (0)
 
 /* Definitions for how to compile & link.  */
-
 #ifdef HAVE_NS
 #define SYSTEM_PURESIZE_EXTRA 200000
 #endif
 
 /* On Darwin, res_init appears not to be useful: see bug#562 and
    http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html  */
-
 #undef HAVE_RES_INIT
 #undef HAVE_LIBRESOLV
 

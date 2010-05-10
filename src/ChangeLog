@@ -1,3 +1,24 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBS_SYSTEM): Set using configure, not cpp.
+	(LIBS_SYSTEM) [MSDOS]: Reset with MSDOS_LIBS_SYSTEM.
+	(LIBES): Use LIBS_SYSTEM as a variable.
+	* s/msdos.h (LIBS_SYSTEM): Rename to MSDOS_LIBS_SYSTEM.  Always define.
+	* s/aix4-2.h (LIBS_SYSTEM):
+	* s/freebsd.h (LIBS_SYSTEM):
+	* s/hpux10-20.h (LIBS_SYSTEM):
+	* s/sol2-6.h (LIBS_SYSTEM):
+	* s/unixware.h (LIBS_SYSTEM):
+	Move to configure.
+
+	* s/aix4-2.h (MAIL_USE_LOCKF):
+	* s/bsd-common.h (MAIL_USE_FLOCK):
+	* s/darwin.h (MAIL_USE_FLOCK):
+	* s/gnu-linux.h (MAIL_USE_FLOCK):
+	* s/irix6-5.h (MAIL_USE_FLOCK):
+	* s/template.h (MAIL_USE_FLOCK):
+	Move to configure.
+
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

@@ -1,3 +1,13 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBS_SYSTEM): Set with configure, not cpp.
+	(LIBS_SYSTEM) [MSDOS]: Reset with MSDOS_LIBS_SYSTEM.
+	(NOT_C_CODE): Remove, no longer used.
+	(config.h) [!MSDOS]: No longer include.
+	(LOADLIBES): Use LIBS_SYSTEM as a variable.
+
+	* Makefile.in (BLESSMAIL_TARGET): Set with configure, not cpp.
+
 2010-05-08  Christoph  <cschol2112@googlemail.com>  (tiny change)
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis

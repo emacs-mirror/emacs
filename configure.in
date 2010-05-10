@@ -859,10 +859,6 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-configure___ libsrc_libs=LIBS_SYSTEM
 
 configure___ LIBX=-lX11
 
@@ -1001,6 +997,23 @@ test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
 AC_SUBST(C_SWITCH_SYSTEM)
+
+
+LIBS_SYSTEM=
+case "$opsys" in
+  ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
+  aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
+
+  freebsd) LIBS_SYSTEM="-lutil" ;;
+
+  hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
+
+  sol2*) LIBS_SYSTEM="-lsocket -lnsl -lkstat" ;;
+
+  ## Motif needs -lgen.
+  unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
+esac
+AC_SUBST(LIBS_SYSTEM)
 
 
 ### Make sure subsequent tests use flags consistent with the build flags.
@@ -1586,7 +1599,7 @@ if test $use_mmap_for_buffers = yes; then
   REL_ALLOC=no
 fi
 
-LIBS="$libsrc_libs $LIBS"
+LIBS="$LIBS_SYSTEM $LIBS"
 
 dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
 dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
@@ -1599,6 +1612,18 @@ dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 AC_CHECK_LIB(pthreads, cma_open)
+
+## Note: when using cpp in s/aix4.2.h, this definition depended on
+## HAVE_LIBPTHREADS.  That was not defined earlier in configure when
+## the system file was sourced.  Hence the value of LIBS_SYSTEM
+## added to LIBS in configure would never contain the pthreads part,
+## but the value used in Makefiles might.  FIXME?
+##
+## -lpthreads seems to be necessary for Xlib in X11R6, and should
+## be harmless on older versions of X where it happens to exist.
+test "$opsys" = "aix4-2" && \
+  test $ac_cv_lib_pthreads_cma_open = yes && \
+  LIBS_SYSTEM="$LIBS_SYSTEM -lpthreads"
 
 dnl Check for need for bigtoc support on IBM AIX
 
@@ -2481,6 +2506,48 @@ fi
 AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS(maillock.h)
 AC_SUBST(LIBS_MAIL)
+
+## Define MAIL_USE_FLOCK (or LOCKF) if the mailer uses flock (or lockf) to
+## interlock access to the mail spool.  The alternative is a lock file named
+## /usr/spool/mail/$USER.lock.
+mail_lock=no
+case "$opsys" in
+  aix4-2) mail_lock="lockf" ;;
+
+  gnu|freebsd|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
+
+  ## On GNU/Linux systems, both methods are used by various mail programs.
+  ## I assume most people are using newer mailers that have heard of flock.
+  ## Change this if you need to.
+  ## Debian contains a patch which says: ``On Debian/GNU/Linux systems,
+  ## configure gets the right answers, and that means *NOT* using flock.
+  ## Using flock is guaranteed to be the wrong thing. See Debian Policy
+  ## for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
+  ## Debian maintainer hasn't provided a clean fix for Emacs.
+  ## movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
+  ## HAVE_MAILLOCK_H are defined, so the following appears to be the
+  ## correct logic.  -- fx
+  ## We must check for HAVE_LIBLOCKFILE too, as movemail does.
+  ## liblockfile is a Free Software replacement for libmail, used on
+  ## Debian systems and elsewhere. -rfr.
+  gnu-*)
+    mail_lock="flock"
+    if test $have_mail = yes || test $have_lockfile = yes; then
+      test $ac_cv_header_maillock_h = yes && mail_lock=no
+    fi
+    ;;
+esac
+
+BLESSMAIL_TARGET=
+case "$mail_lock" in
+  flock) AC_DEFINE(MAIL_USE_FLOCK, 1, [Define if the mailer uses flock to interlock the mail spool.]) ;;
+
+  lockf) AC_DEFINE(MAIL_USE_LOCKF, 1, [Define if the mailer uses lockf to interlock the mail spool.]) ;;
+
+  *) BLESSMAIL_TARGET="need-blessmail" ;;
+esac
+AC_SUBST(BLESSMAIL_TARGET)
+
 
 AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
