@@ -1,3 +1,67 @@
+2010-05-09  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.1
+	(sql-product-alist): Redesigned structure of product info.
+        (sql-product, sql-user, sql-server, sql-database): Safe
+	variables.
+	(sql-port, sql-port-history): New variables.
+	(sql-interactive-product): New variable.
+	(sql-send-terminator): New variable.
+	(sql-imenu-generic-expression): Added "Types" imenu entry.
+	(sql-oracle-login-params, sql-sqlite-login-params)
+	(sql-mysql-login-params, sql-solid-login-params)
+	(sql-sybase-login-params, sql-informix-login-params)
+	(sql-ingres-login-params, sql-ms-login-params)
+	(sql-postgres-login-params, sql-interbase-login-params)
+	(sql-db2-login-params, sql-linter-login-params)
+	(sql-oracle-scan-on): New variables.
+	(sql-mode-map): Added C-c C-i to start interactive mode.
+	(sql-mode-menu): Updated existing menu entries.
+        (sql-font-lock-keywords-builder): Compile-time font-lock
+	optimization.
+	(sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords)
+	(sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords)
+	(sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords)
+	(sql-mode-linter-font-lock-keywords): Updated initialization to
+	reduce run-time complexity.
+	(sql-add-product, sql-del-product): New functions.
+	(sql-set-product-feature, sql-get-product-feature): New functions.
+	(sql-product-font-lock): Update product API.
+	(sql-add-product-keywords): New function.
+	(sql-highlight-product): Update product API.
+	(sql-help-list-products): New function.
+	(sql-help): Dynamically lists free and non-free products.
+	(sql-get-login): Corrected bug in handling history and added
+	prompt for port.
+	(sql-copy-column): Copy without properties.
+	(sqli-input-sender): Apply filters to SQLi input.
+	(sql-query-placeholders-and-send): Obey `sql-oracle-scan-on'
+	setting.  Implement as a filter.
+	(sql-escape-newlines-filter): Implement as a filter.
+	(sql-remove-tabs-filter): New function.
+	(sql-send-magic-terminator): New function.
+	(sql-send-string): Implement magic terminator.
+	(sql-send-region): Use `sql-send-string'.
+	(sql-interactive-mode): Use product API.
+	(sql-product-interactive): Use product API.
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql)
+	(sql-solid, sql-ingres, sql-ms, sql-postgres, sql-interbase)
+	(sql-db2, sql-linter): Use `sql-product-interactive'.
+	(sql-connect): New function.
+	(sql-connect-oracle, sql-connect-sybase, sql-connect-informix)
+	(sql-connect-sqlite, sql-connect-mysql, sql-connect-solid)
+	(sql-connect-ingres, sql-connect-ms, sql-connect-postgres)
+	(sql-connect-interbase, sql-connect-db2, sql-connect-linter): Use
+	`sql-connect'.
+
 2010-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm-complete-word-inserts-delimiters):
