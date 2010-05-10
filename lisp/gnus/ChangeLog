@@ -1,4 +1,10 @@
-2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-plain)
+	(message-forward-make-body-mml):
+	Don't use mm-with-unibyte-current-buffer.
+
+2010-05-07  Christian von Roques  <roques@mti.ag>  (tiny change)
 
 	* mml2015.el (mml2015-epg-find-usable-key): Skip disabled key
 	(Bug#5592).
