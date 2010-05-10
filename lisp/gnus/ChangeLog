@@ -1,5 +1,10 @@
 2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mm-util.el (mm-with-unibyte-current-buffer): Redefine it so as not to
+	bind the default value of enable-multibyte-characters to nil.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* message.el (message-forward-make-body-plain)
 	(message-forward-make-body-mml):
 	Don't use mm-with-unibyte-current-buffer.
