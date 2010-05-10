@@ -1,7 +1,19 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (RANLIB): Let configure set it.
+	(libXMenu11.a): Configure sets RANLIB = : on systems without it.
+
+	* Makefile.in (CPP, LN_S, AS, LD, MV, LS, LINTOPTS, LINTLIBFLAG, MAKE)
+	(STD_DEFINES, CDEBUGFLAGS, RM_CMD): Remove unused variables.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE): Use
-	@C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE):
+	Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
 	@c_switch_system@, @c_switch_machine@.
 
 2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>

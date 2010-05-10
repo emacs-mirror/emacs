@@ -694,7 +694,6 @@ OBJEXT
 CPP
 GREP
 EGREP
-LN_S
 INSTALL_PROGRAM
 INSTALL_SCRIPT
 INSTALL_DATA
@@ -702,10 +701,13 @@ RANLIB
 INSTALL_INFO
 GZIP_PROG
 MAKEINFO
-LIB_MATH
+LD_SWITCH_SYSTEM
 C_SWITCH_MACHINE
 C_SWITCH_SYSTEM
+LIBS_SYSTEM
 CRT_DIR
+LIB_MATH
+START_FILES
 LIBSOUND
 PKG_CONFIG
 ALSA_CFLAGS
@@ -717,6 +719,7 @@ LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
 NS_OBJ
 NS_SUPPORT
+LIB_STANDARD
 HAVE_XSERVER
 RSVG_CFLAGS
 RSVG_LIBS
@@ -753,12 +756,15 @@ LIBXSM
 ALLOCA
 liblockfile
 LIBS_MAIL
+BLESSMAIL_TARGET
 LIBOBJS
 NEED_SETGID
 KMEM_GROUP
 GETLOADAVG_LIBS
 GETOPT_H
 GETOPTOBJS
+LIBS_TERMCAP
+TERMCAP_OBJ
 LIBHESIOD
 LIBRESOLV
 COM_ERRLIB
@@ -808,6 +814,7 @@ CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
+LD_SWITCH_SYSTEM_EXTRA
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -2783,14 +2790,6 @@ case "${canonical}" in
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    if test -f /usr/lib/crti.o; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_CRTIN /**/
-_ACEOF
-
-   fi
-
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
@@ -5026,17 +5025,6 @@ unset SAVE_CFLAGS
 
 #### Some other nice autoconf tests.
 
-{ $as_echo "$as_me:$LINENO: checking whether ln -s works" >&5
-$as_echo_n "checking whether ln -s works... " >&6; }
-LN_S=$as_ln_s
-if test "$LN_S" = "ln -s"; then
-  { $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no, using $LN_S" >&5
-$as_echo "no, using $LN_S" >&6; }
-fi
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -5824,20 +5812,6 @@ rm -rf conftest.dSYM
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 
-LIB_MATH=-lm
-
-case $opsys in
-  cygwin )
-    LIB_MATH=
-    ;;
-  darwin )
-    ## Adding -lm confuses the dynamic linker, so omit it.
-    LIB_MATH=
-    ;;
-esac
-
-
-
 #### Extract some information from the operating system and machine files.
 
 { $as_echo "$as_me:$LINENO: checking the machine- and system-dependent files to find out
@@ -5865,10 +5839,6 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-configure___ libsrc_libs=LIBS_SYSTEM
 
 configure___ LIBX=-lX11
 
@@ -5897,12 +5867,6 @@ configure___ use_mmap_for_buffers=no
 #ifndef C_WARNINGS_SWITCH
 #define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
 #endif
-
-#ifndef LD_SWITCH_SYSTEM
-#define LD_SWITCH_SYSTEM
-#endif
-
-configure___ ld_switch_system=LD_SWITCH_SYSTEM
 
 #ifdef THIS_IS_CONFIGURE
 
@@ -5940,7 +5904,49 @@ else
 fi
 rm ${tempcname}
 
-ac_link="$ac_link $ld_switch_system"
+
+LD_SWITCH_SYSTEM=
+case "$opsys" in
+  freebsd)
+   ## Let `ld' find image libs and similar things in /usr/local/lib.
+   ## The system compiler, GCC, has apparently been modified to not
+   ## look there, contrary to what a stock GCC would do.
+   LD_SWITCH_SYSTEM=-L/usr/local/lib
+   ;;
+
+  gnu-linux)
+   ## cpp test was "ifdef __mips__", but presumably this is equivalent...
+   test "$machine" = "mips" && LD_SWITCH_SYSTEM="-G 0"
+   ;;
+
+  netbsd)
+   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+   ;;
+
+  openbsd)
+   ## Han Boetes <han@mijncomputer.nl> says this is necessary,
+   ## otherwise Emacs dumps core on elf systems.
+   LD_SWITCH_SYSTEM="-Z"
+   ;;
+esac
+
+
+ac_link="$ac_link $LD_SWITCH_SYSTEM"
+
+## This is fun.  Some settings of LD_SWITCH_SYSTEM reference
+## LD_SWITCH_X_SITE_AUX, which has not been defined yet.  When using
+## cpp, it was expanded to null.  Thus LD_SWITCH_SYSTEM had different
+## values in configure and the Makefiles.  How helpful.
+## FIXME why not use LD_SWITCH_SYSTEM_TEMACS (or somesuch) instead?
+case "$opsys" in
+  gnu-linux)
+   ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
+   LD_SWITCH_SYSTEM="$LD_SWITCH_SYSTEM \$(LD_SWITCH_X_SITE_AUX)" ;;
+
+  netbsd|openbsd)
+   ## _AUX_RPATH is like _AUX, but uses -rpath instead of -R.
+   LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_AUX_RPATH) $LD_SWITCH_SYSTEM" ;;
+esac
 
 
 C_SWITCH_MACHINE=
@@ -6021,10 +6027,27 @@ C_SWITCH_SYSTEM=
 ## Some programs in src produce warnings saying certain subprograms
 ## are too complex and need a MAXMEM value greater than 2000 for
 ## additional optimization.  --nils@exp-math.uni-essen.de
-test "$opsys" = "aix4.2" && test "x$GCC" = "xyes" && \
+test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
   C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
 ## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
 ## It is redundant in glibc2, since we define _GNU_SOURCE.
+
+
+
+LIBS_SYSTEM=
+case "$opsys" in
+  ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
+  aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
+
+  freebsd) LIBS_SYSTEM="-lutil" ;;
+
+  hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
+
+  sol2*) LIBS_SYSTEM="-lsocket -lnsl -lkstat" ;;
+
+  ## Motif needs -lgen.
+  unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
+esac
 
 
 
@@ -6431,6 +6454,45 @@ $as_echo "$as_me: error: crt*.o not found in specified location." >&2;}
    { (exit 1); exit 1; }; }
 
 fi
+
+
+
+LIB_MATH=-lm
+LIB_STANDARD=
+START_FILES=
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    START_FILES='ecrt0.o'
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    START_FILES='pre-crt0.o'
+    ;;
+  freebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    ;;
+  gnu-linux | gnu-kfreebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
+    ;;
+  hpux10-20 | hpux11 )
+    LIB_STANDARD=-lc
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
+    ;;
+  netbsd | openbsd )
+    if test -f $(CRT_DIR)/crti.o; then
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    else
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
+	START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
+    fi
+    ;;
+esac
 
 
 
@@ -9891,6 +9953,7 @@ if test "${with_ns}" != no; then
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+     LIB_STANDARD=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -10094,6 +10157,7 @@ if test "${HAVE_NS}" = yes; then
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
 
 
 
@@ -10890,7 +10954,7 @@ if test $use_mmap_for_buffers = yes; then
   REL_ALLOC=no
 fi
 
-LIBS="$libsrc_libs $LIBS"
+LIBS="$LIBS_SYSTEM $LIBS"
 
 
 { $as_echo "$as_me:$LINENO: checking for dnet_ntoa in -ldnet" >&5
@@ -11107,6 +11171,18 @@ _ACEOF
 
 fi
 
+
+## Note: when using cpp in s/aix4.2.h, this definition depended on
+## HAVE_LIBPTHREADS.  That was not defined earlier in configure when
+## the system file was sourced.  Hence the value of LIBS_SYSTEM
+## added to LIBS in configure would never contain the pthreads part,
+## but the value used in Makefiles might.  FIXME?
+##
+## -lpthreads seems to be necessary for Xlib in X11R6, and should
+## be harmless on older versions of X where it happens to exist.
+test "$opsys" = "aix4-2" && \
+  test $ac_cv_lib_pthreads_cma_open = yes && \
+  LIBS_SYSTEM="$LIBS_SYSTEM -lpthreads"
 
 
 case ${host_os} in
@@ -17516,6 +17592,58 @@ done
 
 
 
+## Define MAIL_USE_FLOCK (or LOCKF) if the mailer uses flock (or lockf) to
+## interlock access to the mail spool.  The alternative is a lock file named
+## /usr/spool/mail/$USER.lock.
+mail_lock=no
+case "$opsys" in
+  aix4-2) mail_lock="lockf" ;;
+
+  gnu|freebsd|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
+
+  ## On GNU/Linux systems, both methods are used by various mail programs.
+  ## I assume most people are using newer mailers that have heard of flock.
+  ## Change this if you need to.
+  ## Debian contains a patch which says: ``On Debian/GNU/Linux systems,
+  ## configure gets the right answers, and that means *NOT* using flock.
+  ## Using flock is guaranteed to be the wrong thing. See Debian Policy
+  ## for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
+  ## Debian maintainer hasn't provided a clean fix for Emacs.
+  ## movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
+  ## HAVE_MAILLOCK_H are defined, so the following appears to be the
+  ## correct logic.  -- fx
+  ## We must check for HAVE_LIBLOCKFILE too, as movemail does.
+  ## liblockfile is a Free Software replacement for libmail, used on
+  ## Debian systems and elsewhere. -rfr.
+  gnu-*)
+    mail_lock="flock"
+    if test $have_mail = yes || test $have_lockfile = yes; then
+      test $ac_cv_header_maillock_h = yes && mail_lock=no
+    fi
+    ;;
+esac
+
+BLESSMAIL_TARGET=
+case "$mail_lock" in
+  flock)
+cat >>confdefs.h <<\_ACEOF
+#define MAIL_USE_FLOCK 1
+_ACEOF
+ ;;
+
+  lockf)
+cat >>confdefs.h <<\_ACEOF
+#define MAIL_USE_LOCKF 1
+_ACEOF
+ ;;
+
+  *) BLESSMAIL_TARGET="need-blessmail" ;;
+esac
+
+
+
+
+
 
 
 
@@ -17596,7 +17724,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed
+cfmakeraw cfsetspeed isnan copysign
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -21350,7 +21478,7 @@ done
 # That is because we have not set up to link ncurses in lib-src.
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
-# Also we need tputs and frieds to be able to build at all.
+# Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
 { $as_echo "$as_me:$LINENO: checking for library containing tputs" >&5
 $as_echo_n "checking for library containing tputs... " >&6; }
@@ -21456,9 +21584,137 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBNCURSES 1
 _ACEOF
 
+## FIXME This was the cpp logic, but I am not sure it is right.
+## The above test has not necessarily found libncurses.
+HAVE_LIBNCURSES=yes
+
+## Use terminfo instead of termcap?
+## Note only system files NOT using terminfo are:
+## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## darwin|gnu without ncurses.
+TERMINFO=no
+LIBS_TERMCAP=
+case "$opsys" in
+  ## cygwin: Fewer environment variables to go wrong, more terminal types.
+  ## hpux10-20: Use the system provided termcap(3) library.
+  ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
+  ##  is necessary.  Otherwise Emacs dumps core when run -nw.
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+
+  ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
+  ##  The ncurses library has been moved out of the System framework in
+  ##  Mac OS X 10.2.  So if configure detects it, set the command-line
+  ##  option to use it.
+  darwin|gnu*)
+    ## (HAVE_LIBNCURSES was not always true, but is since 2010-03-18.)
+    if test "x$HAVE_LIBNCURSES" = "xyes"; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    fi
+    ;;
+
+  freebsd)
+    { $as_echo "$as_me:$LINENO: checking whether FreeBSD is new enough to use terminfo" >&5
+$as_echo_n "checking whether FreeBSD is new enough to use terminfo... " >&6; }
+    if test "${emacs_cv_freebsd_terminfo+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <osreldate.h>
+int
+main ()
+{
+#if __FreeBSD_version < 400000
+fail;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  emacs_cv_freebsd_terminfo=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	emacs_cv_freebsd_terminfo=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+
+
+    { $as_echo "$as_me:$LINENO: result: $emacs_cv_freebsd_terminfo" >&5
+$as_echo "$emacs_cv_freebsd_terminfo" >&6; }
+
+    if test $emacs_cv_freebsd_terminfo = yes; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
+esac
+
+case "$opsys" in
+  ## hpux: Make sure we get select from libc rather than from libcurses
+  ##  because libcurses on HPUX 10.10 has a broken version of select.
+  ##  We used to use -lc -lcurses, but this may be cleaner.
+  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+
+  openbsd) LIBS_TERMCAP="-lncurses" ;;
+
+  ## Must use system termcap, if we use any termcap.  It does special things.
+  sol2*) test "$TERMINFO" != yes && LIBS_TERMCAP="-ltermcap" ;;
+esac
+
+TERMCAP_OBJ=tparam.o
+if test $TERMINFO = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define TERMINFO 1
+_ACEOF
+
+
+  ## Default used to be -ltermcap.  Add a case above if need something else.
+  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
+
+  TERMCAP_OBJ=terminfo.o
+fi
+
+
+
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
-
 resolv=no
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -26030,6 +26286,16 @@ fi
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
 
+## Hack to detect a buggy GCC version.
+if test "x$GCC" = xyes \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
+   && test x"`echo $CFLAGS | grep '\-O[23]'`" != x \
+   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
+   { { $as_echo "$as_me:$LINENO: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." >&5
+$as_echo "$as_me: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
@@ -26282,6 +26548,23 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+
+
+## This exists because src/Makefile.in did some extra fiddling around
+## with LD_SWITCH_SYSTEM.  The cpp logic was:
+##   #ifndef LD_SWITCH_SYSTEM
+##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
+## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
+## not using gcc, darwin system not on an alpha (ie darwin, since
+## darwin + alpha does not occur).
+## Note that unlike L_S_S, this is not used in ac_link.
+if test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
+   test "$opsys" = "darwin"; then
+  LD_SWITCH_SYSTEM_EXTRA="-X"
+else
+  LD_SWITCH_SYSTEM_EXTRA=
+fi
 
 
 

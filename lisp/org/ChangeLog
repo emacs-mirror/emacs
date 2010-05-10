@@ -1,3 +1,7 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-table.el (orgtbl-setup):
@@ -40,8 +44,7 @@
 	* org-latex.el (org-export-latex-classes): Update docstring.
 
 	* org.el (org-format-latex-header): Add cookies to the header.
-	(org-splice-latex-header): Implement placement according to
-	cookies.
+	(org-splice-latex-header): Implement placement according to cookies.
 
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -54,8 +57,8 @@
 
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-latex.el (org-export-latex-make-header): Use
-	`org-splice-latex-header' to build the header.
+	* org-latex.el (org-export-latex-make-header):
+	Use `org-splice-latex-header' to build the header.
 	(org-export-latex-classes): Update docstring.
 
 	* org.el (org-splice-latex-header): New function.

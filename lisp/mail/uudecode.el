@@ -216,7 +216,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	  (skip-chars-forward non-data-chars end))
 	(if file-name
             (with-temp-file file-name
-              (set-buffer-multibyte nil)
+              (unless (featurep 'xemacs) (set-buffer-multibyte nil))
               (insert (apply 'concat (nreverse result))))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)

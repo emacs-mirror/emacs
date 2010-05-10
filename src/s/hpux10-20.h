@@ -1,6 +1,7 @@
 /* System description file for hpux version 10.20.
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -77,9 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special hacks needed to make Emacs run on this system.  */
 
-/* Use the system provided termcap(3) library */
-#define TERMINFO
-
 /* In hpux, the symbol SIGIO is defined, but the feature
    doesn't work in the way Emacs needs it to.  */
 
@@ -90,9 +88,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_PERROR  /* Delete this line for version 6.  */
 
 #define UNEXEC unexhp9k800.o
-
-/* Include the file bsdtty.h, since this machine has job control.  */
-#define NEED_BSDTTY
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
@@ -132,28 +127,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* AlainF 20-Jul-1996 says this is right.  */
 #define KERNEL_FILE "/stand/vmunix"
 
-#define LIBS_SYSTEM -l:libdld.sl
-
-#define LIB_STANDARD -lc
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
    using GCC.  */
-
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
-
-/* Make sure we get select from libc rather than from libcurses
-   because libcurses on HPUX 10.10 has a broken version of select.
-   We used to use -lc -lcurses, but this may be cleaner.  */
-#define LIBS_TERMCAP -ltermcap
 
 /* 2000-11-21: Temporarily disable Unix 98 large file support found by
    configure.  It fails on HPUX 11, at least, because it enables
    header sections which lose when `static' is defined away, as it is
    on HP-UX.  (You get duplicate symbol errors on linking). */
-
 #undef _FILE_OFFSET_BITS
 
 /* Define NO_REMAP if memory segmentation makes it not work well
@@ -162,8 +147,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
-
-#define START_FILES pre-crt0.o $(CRT_DIR)/crt0.o
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their

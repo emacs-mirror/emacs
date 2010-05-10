@@ -1156,7 +1156,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
      (symbol, newval)
      register Lisp_Object symbol, newval;
 {
-  set_internal (symbol, newval, current_buffer, 0);
+  set_internal (symbol, newval, Qnil, 0);
   return newval;
 }
 
@@ -1196,29 +1196,25 @@ let_shadows_global_binding_p (symbol)
 }
 
 /* Store the value NEWVAL into SYMBOL.
-   If buffer-locality is an issue, BUF specifies which buffer to use.
-   (0 stands for the current buffer.)
+   If buffer/frame-locality is an issue, WHERE specifies which context to use.
+   (nil stands for the current buffer/frame).
 
    If BINDFLAG is zero, then if this symbol is supposed to become
    local in every buffer where it is set, then we make it local.
    If BINDFLAG is nonzero, we don't do that.  */
 
 void
-set_internal (symbol, newval, buf, bindflag)
-     register Lisp_Object symbol, newval;
-     struct buffer *buf;
+set_internal (symbol, newval, where, bindflag)
+     register Lisp_Object symbol, newval, where;
      int bindflag;
 {
   int voide = EQ (newval, Qunbound);
   struct Lisp_Symbol *sym;
   Lisp_Object tem1;
 
-  if (buf == 0)
-    buf = current_buffer;
-
   /* If restoring in a dead buffer, do nothing.  */
-  if (NILP (buf->name))
-    return;
+  /* if (BUFFERP (where) && NILP (XBUFFER (where)->name))
+      return; */
 
   CHECK_SYMBOL (symbol);
   if (SYMBOL_CONSTANT_P (symbol))
@@ -1241,15 +1237,19 @@ set_internal (symbol, newval, buf, bindflag)
     case SYMBOL_LOCALIZED:
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	Lisp_Object tmp; XSETBUFFER (tmp, buf);
-
+	if (NILP (where))
+	  {
+	    if (blv->frame_local)
+	      where = selected_frame;
+	    else
+	      XSETBUFFER (where, current_buffer);
+	  }
 	/* If the current buffer is not the buffer whose binding is
 	   loaded, or if there may be frame-local bindings and the frame
 	   isn't the right one, or if it's a Lisp_Buffer_Local_Value and
 	   the default binding is loaded, the loaded binding may be the
 	   wrong one.  */
-	if (!EQ (blv->where,
-		 blv->frame_local ? selected_frame : tmp)
+	if (!EQ (blv->where, where)
 	    /* Also unload a global binding (if the var is local_if_set). */
 	    || (EQ (blv->valcell, blv->defcell)))
 	  {
@@ -1261,19 +1261,12 @@ set_internal (symbol, newval, buf, bindflag)
 	      SET_BLV_VALUE (blv, do_symval_forwarding (blv->fwd));
 
 	    /* Find the new binding.  */
-	    {
-	      XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
-	      if (blv->frame_local)
-		{
-		  tem1 = Fassq (symbol, XFRAME (selected_frame)->param_alist);
-		  blv->where = selected_frame;
-		}
-	      else
-		{
-		  tem1 = Fassq (symbol, buf->local_var_alist);
-		  blv->where = tmp;
-		}
-	    }
+	    XSETSYMBOL (symbol, sym); /* May have changed via aliasing.  */
+	    tem1 = Fassq (symbol,
+			  (blv->frame_local
+			   ? XFRAME (where)->param_alist
+			   : XBUFFER (where)->local_var_alist));
+	    blv->where = where;
 	    blv->found = 1;
 
 	    if (NILP (tem1))
@@ -1303,8 +1296,8 @@ set_internal (symbol, newval, buf, bindflag)
 		       bindings, not for frame-local bindings.  */
 		    eassert (!blv->frame_local);
 		    tem1 = Fcons (symbol, XCDR (blv->defcell));
-		    buf->local_var_alist
-		      = Fcons (tem1, buf->local_var_alist);
+		    XBUFFER (where)->local_var_alist
+		      = Fcons (tem1, XBUFFER (where)->local_var_alist);
 		  }
 	      }
 
@@ -1322,12 +1315,16 @@ set_internal (symbol, newval, buf, bindflag)
 		 buffer-local indicator, not through Lisp_Objfwd, etc.  */
 	      blv->fwd = NULL;
 	    else
-	      store_symval_forwarding (blv->fwd, newval, buf);
+	      store_symval_forwarding (blv->fwd, newval,
+				       BUFFERP (where)
+				       ? XBUFFER (where) : current_buffer);
 	  }
 	break;
       }
     case SYMBOL_FORWARDED:
       {
+	struct buffer *buf
+	  = BUFFERP (where) ? XBUFFER (where) : current_buffer;
 	union Lisp_Fwd *innercontents = SYMBOL_FWD (sym);
 	if (BUFFER_OBJFWDP (innercontents))
 	  {

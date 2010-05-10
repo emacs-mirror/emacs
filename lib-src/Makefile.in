@@ -1,7 +1,6 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 2001, 2002, 2003, 2004,
-#               2005, 2006, 2007, 2008, 2009, 2010
-#               Free Software Foundation, Inc.
+#   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -132,6 +131,9 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 # If neither flag is set, blessmail is used.
 MOVE_FLAGS=
 
+## Empty if either MAIL_USE_FLOCK or MAIL_USE_LOCKF, else need-blessmail.
+BLESSMAIL_TARGET=@BLESSMAIL_TARGET@
+
 ## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
 KRB4LIB=@KRB4LIB@
 ## -ldes if HAVE_LIBDES or -ldes425 if HAVE_LIBDES425
@@ -152,6 +154,9 @@ LIBS_MAIL=@LIBS_MAIL@
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
 
+## Some systems define this to request special libraries.
+LIBS_SYSTEM = @LIBS_SYSTEM@
+
 # Those files shared with other GNU utilities need HAVE_CONFIG_H
 # defined before they know they can take advantage of the information
 # in ../src/config.h.
@@ -162,29 +167,12 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-#define THIS_IS_MAKEFILE
-#define NOT_C_CODE
+#ifdef MSDOS
 #include "../src/config.h"
-
-/* Some s/SYSTEM.h files define this to request special libraries.  */
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
+LIBS_SYSTEM = MSDOS_LIBS_SYSTEM
 #endif
 
-#undef MOVEMAIL_NEEDS_BLESSING
-#ifndef MAIL_USE_FLOCK
-#ifndef MAIL_USE_LOCKF
-#define MOVEMAIL_NEEDS_BLESSING
-#endif
-#endif
-
-#ifdef MOVEMAIL_NEEDS_BLESSING
-#define BLESSMAIL blessmail
-#else
-#define BLESSMAIL
-#endif
-
-LOADLIBES=LIBS_SYSTEM
+LOADLIBES=$(LIBS_SYSTEM)
 
 
 .SUFFIXES: .m
@@ -218,14 +206,14 @@ grep-changelog: $(srcdir)/grep-changelog
 vcdiff: $(srcdir)/vcdiff
 	-cp -p $(srcdir)/vcdiff vcdiff
 
-#ifdef MOVEMAIL_NEEDS_BLESSING
+/* Only used if we need blessmail, but no harm in always defining.
+   This makes the actual blessmail executable.  */
 blessmail:
 	$(EMACS) $(EMACSOPT) -l $(srcdir)/../lisp/mail/blessmail.el
 	chmod +x blessmail
-#endif
 
-maybe-blessmail: BLESSMAIL
-#ifdef MOVEMAIL_NEEDS_BLESSING
+/* This checks if we need to run blessmail.  */
+need-blessmail: blessmail
 /* Don\'t charge ahead and do it!  Let the installer decide.
 	  ./blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}  */
 	@if [ `wc -l <blessmail` != 2 ] ; then \
@@ -235,7 +223,9 @@ maybe-blessmail: BLESSMAIL
 	  echo as root, to give  movemail${EXEEXT}  appropriate permissions.; \
 	  echo Do that after running  make install.; \
 	fi
-#endif
+
+/* This is the target invoked by the top-level Makefile.  */
+maybe-blessmail: $(BLESSMAIL_TARGET)
 
 /* Install the internal utilities.  Until they are installed, we can
    just run them directly from lib-src.  */

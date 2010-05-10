@@ -604,7 +604,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    else
 	      {
 		BEFORE_POTENTIAL_GC ();
-		set_internal (sym, val, current_buffer, 0);
+		set_internal (sym, val, Qnil, 0);
 		AFTER_POTENTIAL_GC ();
 	      }
 	  }

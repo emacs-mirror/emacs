@@ -1,3 +1,286 @@
+2010-05-09  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.1
+	(sql-product-alist): Redesigned structure of product info.
+        (sql-product, sql-user, sql-server, sql-database): Safe
+	variables.
+	(sql-port, sql-port-history): New variables.
+	(sql-interactive-product): New variable.
+	(sql-send-terminator): New variable.
+	(sql-imenu-generic-expression): Added "Types" imenu entry.
+	(sql-oracle-login-params, sql-sqlite-login-params)
+	(sql-mysql-login-params, sql-solid-login-params)
+	(sql-sybase-login-params, sql-informix-login-params)
+	(sql-ingres-login-params, sql-ms-login-params)
+	(sql-postgres-login-params, sql-interbase-login-params)
+	(sql-db2-login-params, sql-linter-login-params)
+	(sql-oracle-scan-on): New variables.
+	(sql-mode-map): Added C-c C-i to start interactive mode.
+	(sql-mode-menu): Updated existing menu entries.
+        (sql-font-lock-keywords-builder): Compile-time font-lock
+	optimization.
+	(sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords)
+	(sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords)
+	(sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords)
+	(sql-mode-linter-font-lock-keywords): Updated initialization to
+	reduce run-time complexity.
+	(sql-add-product, sql-del-product): New functions.
+	(sql-set-product-feature, sql-get-product-feature): New functions.
+	(sql-product-font-lock): Update product API.
+	(sql-add-product-keywords): New function.
+	(sql-highlight-product): Update product API.
+	(sql-help-list-products): New function.
+	(sql-help): Dynamically lists free and non-free products.
+	(sql-get-login): Corrected bug in handling history and added
+	prompt for port.
+	(sql-copy-column): Copy without properties.
+	(sqli-input-sender): Apply filters to SQLi input.
+	(sql-query-placeholders-and-send): Obey `sql-oracle-scan-on'
+	setting.  Implement as a filter.
+	(sql-escape-newlines-filter): Implement as a filter.
+	(sql-remove-tabs-filter): New function.
+	(sql-send-magic-terminator): New function.
+	(sql-send-string): Implement magic terminator.
+	(sql-send-region): Use `sql-send-string'.
+	(sql-interactive-mode): Use product API.
+	(sql-product-interactive): Use product API.
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql)
+	(sql-solid, sql-ingres, sql-ms, sql-postgres, sql-interbase)
+	(sql-db2, sql-linter): Use `sql-product-interactive'.
+	(sql-connect): New function.
+	(sql-connect-oracle, sql-connect-sybase, sql-connect-informix)
+	(sql-connect-sqlite, sql-connect-mysql, sql-connect-solid)
+	(sql-connect-ingres, sql-connect-ms, sql-connect-postgres)
+	(sql-connect-interbase, sql-connect-db2, sql-connect-linter): Use
+	`sql-connect'.
+
+2010-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm-complete-word-inserts-delimiters):
+	New custom variable.
+	(completion-pcm--string->pattern): Use it.
+	(completion-pcm--pattern->regex, completion-pcm--pattern->string):
+	Make it handle any symbol as `any'.
+	(completion-pcm--merge-completions): Extract common suffix for the new
+	`prefix' symbol as well.
+	(completion-substring--all-completions): Use the new `prefix' symbol.
+
+2010-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (byte-compile-not-obsolete-vars): Define if
+	not bound.
+	(tramp-compat-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-compat-funcall): New defmacro.
+	(tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position)
+	(tramp-compat-temporary-file-directory)
+	(tramp-compat-make-temp-file, tramp-compat-file-attributes)
+	(tramp-compat-copy-file, tramp-compat-copy-directory)
+	(tramp-compat-delete-file, tramp-compat-delete-directory)
+	(tramp-compat-number-sequence, tramp-compat-process-running-p)
+	* net/tramp.el (top, with-progress-reporter)
+	(tramp-rfn-eshadow-setup-minibuffer)
+	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
+	(tramp-handle-dired-compress-file, tramp-handle-shell-command)
+	(tramp-completion-mode-p, tramp-check-for-regexp)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-compute-multi-hops, tramp-read-passwd, tramp-clear-passwd)
+	(tramp-time-diff, tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag, tramp-unload-tramp)
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-reporter-dump-variable, tramp-load-report-modules)
+	(tramp-append-tramp-buffers)
+	* net/tramp-gvfs.el (tramp-gvfs-handle-file-selinux-context): Use it.
+
+	* net/tramp-imap.el (top): Autoload `epg-make-context'.
+
+2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-buffer-modtime): Rename from
+	buffer-modtime.  Adjust users.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (auto-coding-alist):  Only purecopy
+	car of each item, not the whole list (Bug#6083).
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el (js-mode): Make paragraph variables local before
+	calling c-setup-paragraph-variables (Bug#6071).
+
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.el (compose-region, reference-point-alist): Fix typos
+	in the doc strings.
+
+2010-05-08  Alexander Klimov <alserkli@inbox.ru> (tiny change)
+
+	* calc/calc-graph.el (calc-graph-plot): Use the proper form for
+	gnuplot's "set" command.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.el (last-abbrev-text): Doc fix.
+	(abbrev-prefix-mark): Don't escape parenthesis.
+
+2010-05-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.el (find-composition): Doc fix.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sql.el (sql-electric-stuff): Fix typo in tag.
+	(sql-oracle-program, sql-sqlite-options)
+	(sql-query-placeholders-and-send): Doc fixes.
+	(sql-set-product, sql-interactive-mode): Reflow docstrings.
+	(sql-imenu-generic-expression, sql-buffer)
+	(sql-mode-ansi-font-lock-keywords, sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords, sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords, sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords, sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords, sql-mode-font-lock-keywords)
+	(sql-product-feature, sql-highlight-product)
+	(comint-line-beginning-position, sql-rename-buffer)
+	(sql-toggle-pop-to-buffer-after-send-region sql-oracle)
+	(sql-sybase, sql-informix, sql-sqlite, sql-mysql, sql-solid)
+	(sql-ingres, sql-ms, sql-postgres, sql-interbase, sql-db2, sql-linter):
+	Fix typos in docstrings.
+
+2010-05-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Put Info-breadcrumbs to the `display'
+	property instead of `invisible' and `after-string' (bug#5998).
+
+2010-05-08  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-mode-as-text): Fix typo in docstring.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filecache.el (file-cache-add-directory-list)
+	(file-cache-add-directory-recursively): Fix typos in docstrings.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (gurmukhi-composable-pattern): Fix typo.
+	(gujarati-composable-pattern): Fix typo.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (oriya-composable-pattern)
+	(tamil-composable-pattern, malayalam-composable-pattern):
+	Add two-part vowels to "v" (vowel sign).
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Handle symlinks (Bug#5982).
+
+2010-05-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-state): Use HGRCPATH, not HGRC.
+	(vc-hg-working-revision): Likewise.  Use hg parents, not hg parent
+	(Bug#5846).
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Give it a doc string.
+
+	* minibuffer.el (completion-at-point): Doc fix.
+
+2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (Electric-command-loop): Minor tweak.
+
+	* ebuff-menu.el (electric-buffer-list): Try and make it behave a bit
+	better with dedicated windows.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Highlight vendor specific properties.
+	* textmodes/css-mode.el (css-proprietary-nmstart-re): New var.
+	(css-proprietary-property): New face.
+	(css-font-lock-keywords): Use them.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add native condition for tool-bar-* symbols.
+
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/dns-mode.el (auto-mode-alist): Add entry for .zone files.
+	* files.el (auto-mode-alist): Remove redundant entries.
+
+	* files.el (auto-save-mode): Move to simple.el to fix bootstrap.
+	* simple.el (auto-save-mode): Move from files.el.
+	* minibuffer.el (completion--common-suffix): Fix copy&paste error.
+
+2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+
+	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
+
+2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/binhex.el (binhex-decode-region-internal)
+	* mail/uudecode.el (uudecode-decode-region-internal)
+	* net/dns.el (dns-read-string-name, dns-write, dns-read)
+	(dns-read-type, dns-query)
+	* pgg-parse.el (pgg-parse-armor)
+	* pgg.el (pgg-verify-region)
+	* sha1.el (sha1-string-external): Don't run set-buffer-multibyte for
+	XEmacs.
+
+	* net/imap.el (imap-disable-multibyte): Redefine it as a macro.
+
+2010-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cperl-mode.el (cperl-mode-unload-function): New function.
+
+	Fix use of `filter-buffer-substring' (4th arg NOPROPS removed).
+	* emulation/cua-base.el (cua-repeat-replace-region):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark):
+	Remove text properties with `set-text-properties'.
+
+2010-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top, with-progress-reporter):
+	Use `symbol-function' inside `funcall'.
+
+	* net/tramp-compat.el (tramp-compat-file-attributes)
+	(tramp-compat-delete-file, tramp-compat-delete-directory):
+	Handle only `wrong-number-of-arguments' error.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Fix typo.
+	(tramp-gvfs-handle-file-selinux-context): Use `symbol-function'
+	inside `funcall'.
+
+2010-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sreverse, completion--common-suffix):
+	New functions.
+	(completion-pcm--merge-completions): Extract common suffix when safe.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Make :variable more flexible.
+	* files.el (auto-save-mode): Use it to define using define-minor-mode.
+
 2010-05-05  Juri Linkov  <juri@jurta.org>
 
 	Add `slow' and `history' tags to the desktop data.
@@ -20,8 +303,8 @@
 	(ange-ftp-delete-file): Add FORCE arg.
 	(ange-ftp-rename-remote-to-remote)
 	(ange-ftp-rename-local-to-remote, ange-ftp-rename-remote-to-local)
-	(ange-ftp-load, ange-ftp-compress, ange-ftp-uncompress): Force
-	file deletion.
+	(ange-ftp-load, ange-ftp-compress, ange-ftp-uncompress):
+	Force file deletion.
 
 	* net/tramp-compat.el (tramp-compat-delete-file): New defun.
 
@@ -39,8 +322,8 @@
 	(tramp-fish-handle-make-symbolic-link)
 	(tramp-fish-handle-process-file): Use `tramp-compat-delete-file'.
 
-	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Use
-	`tramp-compat-delete-file'.
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
+	Use `tramp-compat-delete-file'.
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Add FORCE arg.
 	(tramp-gvfs-handle-write-region): Use `tramp-compat-delete-file'.

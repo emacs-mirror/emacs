@@ -1,7 +1,7 @@
 /* System description file for MS-DOS
 
-   Copyright (C) 1993, 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 1993, 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -131,7 +131,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
 
-/* We canuse mouse menus.  */
+/* We can use mouse menus.  */
 #define HAVE_MENUS
 
 /* Define one of these for easier conditionals.  */
@@ -140,8 +140,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    commentary below, in the non-X branch.  The 140KB number was
    measured on GNU/Linux and on MS-WIndows.  */
 #define SYSTEM_PURESIZE_EXTRA (-170000+140000)
-#define LIBS_SYSTEM -lxext -lsys
+#define MSDOS_LIBS_SYSTEM -lxext -lsys
 #else
+#define MSDOS_LIBS_SYSTEM
 /* We need a little extra space, see ../../lisp/loadup.el.
    As of 20091024, DOS-specific files use up 62KB of pure space.  But
    overall, we end up wasting 130KB of pure space, because
@@ -162,8 +163,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
 #define NO_REMAP
-
-#define UNEXEC unexec.o
 
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */

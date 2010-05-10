@@ -1,3 +1,35 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBS_SYSTEM): Set with configure, not cpp.
+	(LIBS_SYSTEM) [MSDOS]: Reset with MSDOS_LIBS_SYSTEM.
+	(NOT_C_CODE): Remove, no longer used.
+	(config.h) [!MSDOS]: No longer include.
+	(LOADLIBES): Use LIBS_SYSTEM as a variable.
+
+	* Makefile.in (BLESSMAIL_TARGET): Set with configure, not cpp.
+
+2010-05-08  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis
+	for macros for nmake compatibility.
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (THIS_IS_MAKEFILE): Remove, unused.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Minimize blessmail-related cpp usage.
+	(BLESSMAIL_TARGET): New variable.
+	(MOVEMAIL_NEEDS_BLESSING): Remove, replace by above variable.
+	(blessmail): Always define this rule.
+	(need-blessmail): New rule, split out from maybe-blessmail.
+	(maybe-blessmail): Use BLESSMAIL_TARGET.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than

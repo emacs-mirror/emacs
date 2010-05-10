@@ -1,8 +1,9 @@
 /* Template for system description header files.
    This file describes the parameters that system description files
    should define or not.
-   Copyright (C) 1985, 1986, 1992, 1999, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1992, 1999, 2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -101,13 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    preprocessor symbol "COFF". */
 
 /* #define COFF */
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-#define MAIL_USE_FLOCK
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify

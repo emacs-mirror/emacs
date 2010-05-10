@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SETPGRP_RELEASES_CTTY
 
-#ifdef LIB_STANDARD
-#undef LIB_STANDARD
-#endif
-
 #ifdef SYSTEM_TYPE
 #undef SYSTEM_TYPE
 #endif
@@ -44,13 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Make process_send_signal work by "typing" a signal character on the pty.  */
 #define SIGNALS_VIA_CHARACTERS
 
-/* Use terminfo instead of termcap.  */
-
-#define TERMINFO
-
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
-
 #undef FIRST_PTY_LETTER
 #define FIRST_PTY_LETTER 'q'
 
@@ -94,20 +85,9 @@ char *_getpty();
 
 #define UNEXEC unexelf.o
 
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-#define MAIL_USE_FLOCK
-
 #define NARROWPROTO 1
 
 #define USE_MMAP_FOR_BUFFERS 1
-
-/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
-   (do not change this comment) */
-
 
 #if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
 #define _LP64			/* lisp.h takes care of the rest */
@@ -120,6 +100,9 @@ char *_getpty();
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+
+/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
+   (do not change this comment) */
 
 /* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
    (do not change this comment) */

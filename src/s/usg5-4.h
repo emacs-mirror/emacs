@@ -1,6 +1,7 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
-   Copyright (C) 1987, 1990, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1987, 1990, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -75,10 +76,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define rindex strrchr
 #endif /* ! defined (HAVE_RINDEX) */
 
-/* Use terminfo instead of termcap.  */
-
-#define TERMINFO
-
 
 /* The docs for system V/386 suggest v.3 has sigpause,
    so let's give it a try.  */
@@ -96,8 +93,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SIGTYPE void
 
 #define ORDINARY_LINK
-
-#define LIB_STANDARD
 
 /* Undump with ELF */
 

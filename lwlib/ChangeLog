@@ -1,3 +1,16 @@
+2010-05-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (XlwMenuDestroy): Remove XtDestroyWidget on subwidgets
+	(Bug #6127).
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CPP, LN_S, TOP, LN): Remove unused variables.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE):
@@ -19,17 +32,16 @@
 	XlwMenuRedisplay.
 	(display_menu_item): Replace ws->window with ws->pixmap, remove
 	call to XftDrawRect.
-	(display_menu): Remove this and that argument.  Remove
-	just_compute_this_one_p. Fill pixmap at start and copy it to window
-	at end.
+	(display_menu): Remove this and that argument.
+	Remove just_compute_this_one_p. Fill pixmap at start and copy it to
+	window at end.
 	(expose_cb): New function.
 	(make_windows_if_needed): Replace XCreateWindow with XtCreatePopup.
-	Add eventhandler for expose to expose_cb.  Remove creation of
-	xft_draw.
+	Add eventhandler for expose to expose_cb.  Remove creation of xft_draw.
 	(create_pixmap_for_menu): New function.
 	(remap_menubar): Pop down menus that aren't the same as in old_stack.
-	Set width, heigh, x, y on widget with XtVaSetValues.  Call
-	create_pixmap_for_menu.
+	Set width, heigh, x, y on widget with XtVaSetValues.
+	Call create_pixmap_for_menu.
 	Replace XUnmapWindow with XtPopdown.
 	Remowe two last parameters to display_menu.
 	(map_event_to_widget_value, XlwMenuRedisplay, Key, Select)

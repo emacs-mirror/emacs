@@ -197,7 +197,7 @@ if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile junk.c
-sed -e "1,/== start of cpp stuff ==/s@^# .*$@@" <Makefile.in >junk.c
+sed -e "1,/== start of cpp stuff ==/s@^##*[ 	].*$@@" <Makefile.in >junk.c
 If "%DJGPP_VER%" == "1" Goto mfV1
 gcc -E -traditional junk.c | sed -f ../msdos/sed1v2.inp >Makefile
 goto mfDone

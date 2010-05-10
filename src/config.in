@@ -135,8 +135,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
-/* Define to 1 if you have /usr/lib/crti.o. */
-#undef HAVE_CRTIN
+/* Define to 1 if you have the `copysign' function. */
+#undef HAVE_COPYSIGN
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
@@ -302,6 +302,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `isnan' function. */
+#undef HAVE_ISNAN
 
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
@@ -816,6 +819,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to unlink, rather than empty, mail spool after reading. */
 #undef MAIL_UNLINK_SPOOL
 
+/* Define if the mailer uses flock to interlock the mail spool. */
+#undef MAIL_USE_FLOCK
+
+/* Define if the mailer uses lockf to interlock the mail spool. */
+#undef MAIL_USE_LOCKF
+
 /* Define to support MMDF mailboxes in movemail. */
 #undef MAIL_USE_MMDF
 
@@ -883,6 +892,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Process async input synchronously. */
 #undef SYNC_INPUT
+
+/* Define to 1 if you use terminfo instead of termcap. */
+#undef TERMINFO
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME

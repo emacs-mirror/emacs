@@ -2291,7 +2291,7 @@ static void
 x_draw_image_relief (s)
      struct glyph_string *s;
 {
-  int x0, y0, x1, y1, thick, raised_p;
+  int x0, y0, x1, y1, thick, raised_p, extra;
   XRectangle r;
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2322,7 +2322,7 @@ x_draw_image_relief (s)
       raised_p = s->img->relief > 0;
     }
 
-  int extra = s->face->id == TOOL_BAR_FACE_ID
+  extra = s->face->id == TOOL_BAR_FACE_ID
     ? XINT (Vtool_bar_button_margin) : 0;
   
   x0 = x - thick - extra;

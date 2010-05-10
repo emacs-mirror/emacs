@@ -1,3 +1,58 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBS_SYSTEM): New output variable, replacing cpp.
+
+	* configure.in (MAIL_USE_FLOCK, MAIL_USE_LOCKF): New AC_DEFINEs.
+	(BLESSMAIL_TARGET): New output variable.
+
+2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* INSTALL: Fix typos.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Add check for buggy version of GCC (Bug#6031).
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_LIBNCURSES): New local variable.
+	(TERMINFO, LIBS_TERMCAP, TERMCAP_OBJ): New output variables,
+	replacing cpp in src/s/*.h and src/Makefile.in.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in: Add tests for `isnan' and `copysign'.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Allow for 2 leading `#'s in comments in
+	src/Makefile.in.
+
+2010-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.
+	Merges logic from src/s/* and src/Makefile.in.
+	(LD_SWITCH_SYSTEM_TEMACS): New output variable.
+
+2010-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Define START_FILES and LIB_STANDARD using autoconf.
+	* configure.in (START_FILES, LIB_STANDARD): New definitions, moved
+	here from src/s/*.h.
+	(HAVE_CRTIN): Remove, inline logic in the netbsd
+	START_FILES/LIB_STANDARD computation.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_PROG_LN_S): Remove test, nothing uses @LN_S@.
+
+	* Makefile.in (CPP, C_SWITCH_SYSTEM, ALLOCA, LN_S, C_SWITCH_X_SITE)
+	(LD_SWITCH_X_SITE): Remove unused variables.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LD_SWITCH_X_SITE_AUX): Use AC_SUBST only, not AC_DEFINE
@@ -102,7 +157,7 @@
 
 	* configure.in (REAL_CFLAGS, CFLAGS): Restore -g for gcc.
 
-2010-04-22  Miles Bader <miles@gnu.org>
+2010-04-22  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Get rid of "unix" pre-defined macro when
 	preprocessing Makefile.  (Bug#5857)

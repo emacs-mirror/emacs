@@ -106,10 +106,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define UNEXEC unexcw.o
 #define LINKER $(CC)
 
-/* Use terminfo instead of termcap.  Fewer environment variables to
-   go wrong, more terminal types. */
-#define TERMINFO
-
 #define HAVE_SOCKETS
 
 /* vfork() interacts badly with setsid(), causing ptys to fail to
@@ -133,11 +129,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Don't link against static libgcc */
 #define LIB_GCC
-
-/* Don't list system libs on link command line */
-#define LIB_STANDARD
-
-#define START_FILES ecrt0.o
 
 /* the end */
 

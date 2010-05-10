@@ -2381,7 +2381,7 @@ extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object)) NO_RETURN;
 extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern Lisp_Object do_symval_forwarding (union Lisp_Fwd *);
-extern void set_internal (Lisp_Object, Lisp_Object, struct buffer *, int);
+extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object, int);
 extern void syms_of_data P_ ((void));
 extern void init_data P_ ((void));
 extern void swap_in_global_binding P_ ((struct Lisp_Symbol *));
@@ -3059,6 +3059,7 @@ EXFUN (Ffile_readable_p, 1);
 EXFUN (Ffile_executable_p, 1);
 EXFUN (Fread_file_name, 6);
 extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
+extern Lisp_Object restore_point_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((const char *, Lisp_Object)) NO_RETURN;
 extern int internal_delete_file P_ ((Lisp_Object, Lisp_Object));
 extern void syms_of_fileio P_ ((void));

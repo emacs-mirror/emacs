@@ -1,6 +1,6 @@
 /* R2 AIX machine/system dependent defines
-   Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+                 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,13 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* The following line tells the configuration script what sort of
-   operating system this machine is likely to run.
-   USUAL-OPSYS="aix3-1"  */
-
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically.  */
 
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
@@ -43,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
 
-#define START_FILES
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD
 /* As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.

@@ -33,6 +33,9 @@
 (require 'mm-decode)
 (require 'mml-sec)
 (eval-when-compile (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 (autoload 'message-make-message-id "message")
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
@@ -520,7 +523,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			  ;; `m-g-d-t' will be bound to "message/rfc822"
 			  ;; when encoding an article to be forwarded.
 			  (mml-generate-default-type "text/plain"))
-		      (mml-to-mime))
+		      (mml-to-mime)
+		      ;; Update handle so mml-compute-boundary can
+		      ;; detect collisions with the nested parts.
+		      (setcdr (assoc 'contents cont) (buffer-string)))
 		    (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
 		      ;; ignore 0x1b, it is part of iso-2022-jp
 		      (setq encoding (mm-body-7-or-8))))
@@ -699,7 +705,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (defun mml-compute-boundary-1 (cont)
   (let (filename)
     (cond
-     ((eq (car cont) 'part)
+     ((member (car cont) '(part mml))
       (with-temp-buffer
 	(cond
 	 ((cdr (assq 'buffer cont))

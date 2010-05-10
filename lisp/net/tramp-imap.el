@@ -63,6 +63,7 @@
 (autoload 'epg-context-set-progress-callback "epg")
 (autoload 'epg-decrypt-string "epg")
 (autoload 'epg-encrypt-string "epg")
+(autoload 'epg-make-context "epg")
 (autoload 'imap-hash-get "imap-hash")
 (autoload 'imap-hash-make "imap-hash")
 (autoload 'imap-hash-map "imap-hash")

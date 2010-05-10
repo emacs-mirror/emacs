@@ -404,14 +404,10 @@ spaces.  Die Die Die."
       ((= char ?  ) "+")
       ((memq char mm-url-unreserved-chars) (char-to-string char))
       (t (upcase (format "%%%02x" char)))))
-   ;; Fixme: Should this actually be accepting multibyte?  Is there a
-   ;; better way in XEmacs?
-   (if (featurep 'mule)
-       (encode-coding-string chunk
-			     (if (fboundp 'find-coding-systems-string)
-				 (car (find-coding-systems-string chunk))
-				 buffer-file-coding-system))
-     chunk)
+   (mm-encode-coding-string chunk
+			    (if (fboundp 'find-coding-systems-string)
+				(car (find-coding-systems-string chunk))
+			      buffer-file-coding-system))
    ""))
 
 (defun mm-url-encode-www-form-urlencoded (pairs)

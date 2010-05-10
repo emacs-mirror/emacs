@@ -30,6 +30,9 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 (defvar tool-bar-mode)
 (defvar gnus-tmp-header)
@@ -8182,14 +8185,15 @@ in `nnmail-extra-headers'."
       (gnus-summary-position-point))))
 
 (defun gnus-summary-limit-strange-charsets-predicate (header)
-  (let ((string (concat (mail-header-subject header)
-			(mail-header-from header)))
-	charset found)
-    (dotimes (i (1- (length string)))
-      (setq charset (format "%s" (char-charset (aref string (1+ i)))))
-      (when (string-match "unicode\\|big\\|japanese" charset)
-	(setq found t)))
-    found))
+  (when (fboundp 'char-charset)
+    (let ((string (concat (mail-header-subject header)
+			  (mail-header-from header)))
+	  charset found)
+      (dotimes (i (1- (length string)))
+	(setq charset (format "%s" (char-charset (aref string (1+ i)))))
+	(when (string-match "unicode\\|big\\|japanese" charset)
+	  (setq found t)))
+      found)))
 
 (defun gnus-summary-limit-to-predicate (predicate)
   "Limit to articles where PREDICATE returns non-nil.

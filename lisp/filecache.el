@@ -296,8 +296,8 @@ be added to the cache."
 (defun file-cache-add-directory-list (directory-list &optional regexp)
   "Add DIRECTORY-LIST (a list of directory names) to the file cache.
 If the optional REGEXP argument is non-nil, only files which match it
-will be added to the cache. Note that the REGEXP is applied to the files
-in each directory, not to the directory list itself."
+will be added to the cache.  Note that the REGEXP is applied to the
+files in each directory, not to the directory list itself."
   (interactive "XAdd files from directory list: ")
   (mapcar
    (lambda (dir) (file-cache-add-directory dir regexp))
@@ -370,10 +370,10 @@ STRING is passed as an argument to the locate command."
 ;;;###autoload
 (defun file-cache-add-directory-recursively  (dir &optional regexp)
   "Adds DIR and any subdirectories to the file-cache.
-This function does not use any external programs
+This function does not use any external programs.
 If the optional REGEXP argument is non-nil, only files which match it
-will be added to the cache. Note that the REGEXP is applied to the files
-in each directory, not to the directory list itself."
+will be added to the cache.  Note that the REGEXP is applied to the
+files in each directory, not to the directory list itself."
   (interactive "DAdd directory: ")
   (require 'find-lisp)
   (mapcar

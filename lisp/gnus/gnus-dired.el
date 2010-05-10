@@ -39,6 +39,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 (require 'dired)
 (autoload 'mml-attach-file "mml")
 (autoload 'mm-default-file-encoding "mm-decode");; Shift this to `mailcap.el'?
@@ -83,6 +86,12 @@ See `mail-user-agent' for more information."
 			       :format "%t\n"
 			       gnus-user-agent)
 		(function :tag "Other")))
+
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (defvar gnus-dired-mode-hook)
+    (defvar gnus-dired-mode-on-hook)
+    (defvar gnus-dired-mode-off-hook)))
 
 (define-minor-mode gnus-dired-mode
   "Minor mode for intersections of gnus and dired.

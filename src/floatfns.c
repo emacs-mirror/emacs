@@ -288,6 +288,70 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
   IN_FLOAT (d = sin (d) / c, "tan", arg);
   return make_float (d);
 }
+
+#if defined HAVE_ISNAN && defined HAVE_COPYSIGN
+DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
+       doc: /* Return non nil iff argument X is a NaN.  */)
+     (x)
+     Lisp_Object x;
+{
+  CHECK_FLOAT (x);
+  return isnan (XFLOAT_DATA (x)) ? Qt : Qnil;
+}
+
+DEFUN ("copysign", Fcopysign, Scopysign, 1, 2, 0,
+       doc: /* Copy sign of X2 to value of X1, and return the result.
+Cause an error if X1 or X2 is not a float.  */)
+     (x1, x2)
+     Lisp_Object x1, x2;
+{
+  double f1, f2;
+
+  CHECK_FLOAT (x1);
+  CHECK_FLOAT (x2);
+
+  f1 = XFLOAT_DATA (x1);
+  f2 = XFLOAT_DATA (x2);
+
+  return make_float (copysign (f1, f2));
+}
+
+DEFUN ("frexp", Ffrexp, Sfrexp, 1, 1, 0,
+       doc: /* Get significand and exponent of a floating point number.
+Breaks the floating point number X into its binary significand SGNFCAND
+\(a floating point value between 0.5 (included) and 1.0 (excluded))
+and an integral exponent EXP for 2, such that:
+
+  X = SGNFCAND * 2^EXP
+
+The function returns the cons cell (SGNFCAND . EXP).
+If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
+     (x)
+     Lisp_Object x;
+{
+  double f = XFLOATINT (x);
+
+  if (f == 0.0)
+    return Fcons (make_float (0.0), make_number (0));
+  else
+    {
+      int    exp;
+      double sgnfcand = frexp (f, &exp);
+      return Fcons (make_float (sgnfcand), make_number (exp));
+    }
+}
+
+DEFUN ("ldexp", Fldexp, Sldexp, 1, 2, 0,
+       doc: /* Construct number X from significand SGNFCAND and exponent EXP.
+Returns the floating point value resulting from multiplying SGNFCAND
+(the significand) by 2 raised to the power of EXP (the exponent).   */)
+     (sgnfcand, exp)
+     Lisp_Object sgnfcand, exp;
+{
+  CHECK_NUMBER (exp);
+  return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exp)));
+}
+#endif
 
 #if 0 /* Leave these out unless we find there's a reason for them.  */
 
@@ -1017,6 +1081,12 @@ syms_of_floatfns ()
   defsubr (&Scos);
   defsubr (&Ssin);
   defsubr (&Stan);
+#if defined HAVE_ISNAN && defined HAVE_COPYSIGN
+  defsubr (&Sisnan);
+  defsubr (&Scopysign);
+  defsubr (&Sfrexp);
+  defsubr (&Sldexp);
+#endif 
 #if 0
   defsubr (&Sacosh);
   defsubr (&Sasinh);

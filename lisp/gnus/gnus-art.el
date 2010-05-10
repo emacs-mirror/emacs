@@ -2897,7 +2897,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 <img[\t\n ]+\\(?:[^\t\n >]+[\t\n ]+\\)*src=\"\\(cid:\\([^\"]+\\)\\)\""
 					   nil t)
 		   (unless cid-dir
-		     (setq cid-dir (make-temp-file "cid" t))
+		     (setq cid-dir (mm-make-temp-file "cid" t))
 		     (add-to-list 'gnus-article-browse-html-temp-list cid-dir))
 		   (setq file nil
 			 content nil)
@@ -5041,13 +5041,14 @@ Deleting parts may malfunction or destroy the article; continue? "))
     (when data
       (mm-save-part data))))
 
-(defun gnus-mime-pipe-part ()
-  "Pipe the MIME part under point to a process."
+(defun gnus-mime-pipe-part (&optional cmd)
+  "Pipe the MIME part under point to a process.
+Use CMD as the process."
   (interactive)
   (gnus-article-check-buffer)
   (let ((data (get-text-property (point) 'gnus-data)))
     (when data
-      (mm-pipe-part data))))
+      (mm-pipe-part data cmd))))
 
 (defun gnus-mime-view-part ()
   "Interactively choose a viewing method for the MIME part under point."

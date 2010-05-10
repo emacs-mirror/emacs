@@ -1,3 +1,7 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt (LD_SWITCH_X_SITE_AUX): Remove.
@@ -55,8 +59,8 @@
 
 2009-01-26  Jason Rumney  <jasonr@gnu.org>
 
-	* emacsclient.rc, emacs.rc: Swap name and description.  Remove
-	Windows versions.
+	* emacsclient.rc, emacs.rc: Swap name and description.
+	Remove Windows versions.
 
 2009-01-15  Jason Rumney  <jasonr@gnu.org>
 
