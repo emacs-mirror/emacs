@@ -1,3 +1,8 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (MAIL_USE_FLOCK, MAIL_USE_LOCKF): New AC_DEFINEs.
+	(BLESSMAIL_TARGET): New output variable.
+
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* INSTALL: Fix typos.

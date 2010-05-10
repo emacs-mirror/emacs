@@ -1,6 +1,7 @@
 /* System description file for Windows NT.
-   Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -89,12 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define COFF 1
 
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
 #define MAIL_USE_POP 1
 #define MAIL_USE_SYSTEM_LOCK 1
 

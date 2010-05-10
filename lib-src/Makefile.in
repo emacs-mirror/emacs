@@ -131,8 +131,8 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 # If neither flag is set, blessmail is used.
 MOVE_FLAGS=
 
-## May be reset below by cpp.
-BLESSMAIL_TARGET=
+## Empty if either MAIL_USE_FLOCK or MAIL_USE_LOCKF, else need-blessmail.
+BLESSMAIL_TARGET=@BLESSMAIL_TARGET@
 
 ## -lkrb if HAVE_LIBKRB or -lkrb4 if HAVE_LIBKRB4
 KRB4LIB=@KRB4LIB@
@@ -172,12 +172,6 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 #define LIBS_SYSTEM
 #endif
 LOADLIBES=LIBS_SYSTEM
-
-#ifndef MAIL_USE_FLOCK
-#ifndef MAIL_USE_LOCKF
-BLESSMAIL_TARGET = need-blessmail
-#endif
-#endif
 
 
 .SUFFIXES: .m

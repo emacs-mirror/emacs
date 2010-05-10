@@ -26,6 +26,7 @@
 /^libdir *=/s!=.*$!=/emacs/bin!
 /^srcdir=/s!srcdir=@srcdir@!srcdir := $(subst \\,/,$(shell command.com /c cd))!
 /^VPATH *=/s!=.*$!=.!
+/^BLESSMAIL_TARGET *=/s!@BLESSMAIL_TARGET@!need-blessmail!
 /^KRB4LIB *=/s/@[^@\n]*@//g
 /^DESLIB *=/s/@[^@\n]*@//g
 /^KRB5LIB *=/s/@[^@\n]*@//g

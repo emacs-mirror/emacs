@@ -103,41 +103,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SOCKETS
 
 /* Define this symbol if your system has the functions bcopy, etc. */
-
 #define BSTRING
 
 /* This is used in list_system_processes.  */
 #define HAVE_PROCFS 1
 
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* On GNU/Linux systems, both methods are used by various mail
-   programs.  I assume that most people are using newer mailers that
-   have heard of flock.  Change this if you need to. */
-/* Debian contains a patch which says: ``On Debian/GNU/Linux systems,
-   configure gets the right answers, and that means *NOT* using flock.
-   Using flock is guaranteed to be the wrong thing. See Debian Policy
-   for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
-   Debian maintainer hasn't provided a clean fix for Emacs.
-   movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
-   HAVE_MAILLOCK_H are defined, so the following appears to be the
-   correct logic.  -- fx */
-/* We must check for HAVE_LIBLOCKFILE too, as movemail does.
-   liblockfile is a Free Software replacement for libmail, used on
-   Debian systems and elsewhere. -rfr */
-
-#if !((defined (HAVE_LIBMAIL) || defined (HAVE_LIBLOCKFILE)) &&	\
-      defined (HAVE_MAILLOCK_H))
-#define MAIL_USE_FLOCK
-#endif
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
-
 #define CLASH_DETECTION
 
 /* Here, on a separate page, add any special hacks needed
