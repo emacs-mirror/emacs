@@ -1,13 +1,40 @@
+2010-05-10  Juri Linkov  <juri@jurta.org>
+
+	Remove nodes visited during Isearch from the Info history.
+	* info.el (Info-isearch-initial-history)
+	(Info-isearch-initial-history-list): New variables.
+	(Info-isearch-start): Record initial values of
+	Info-isearch-initial-history and Info-isearch-initial-history-list.
+	Add Info-isearch-end to isearch-mode-end-hook.
+	(Info-isearch-end): New function.
+
+2010-05-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-file-attributes-with-stat): Add space in
+	format string, in order to work around a bug in pdksh.  Reported
+	by Gilles Pion <gpion@lfdj.com>.
+	(tramp-handle-verify-visited-file-modtime): Do not send a command
+	when the connection is not established.
+	(tramp-handle-set-file-times): Simplify the check for utc.
+
+2010-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix use of `filter-buffer-substring' (rework previous change).
+	* emulation/cua-base.el (cua--filter-buffer-noprops): New function.
+	(cua-repeat-replace-region):
+	* emulation/cua-rect.el (cua--extract-rectangle, cua-incr-rectangle):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark): Use it.
+
 2010-05-09  Michael R. Mauger  <mmaug@yahoo.com>
 
-	* progmodes/sql.el: Version 2.1
-	(sql-product-alist): Redesigned structure of product info.
-        (sql-product, sql-user, sql-server, sql-database): Safe
-	variables.
+	* progmodes/sql.el: Version 2.1.
+	(sql-product-alist): Redesign structure of product info.
+	(sql-product, sql-user, sql-server, sql-database): Safe variables.
 	(sql-port, sql-port-history): New variables.
 	(sql-interactive-product): New variable.
 	(sql-send-terminator): New variable.
-	(sql-imenu-generic-expression): Added "Types" imenu entry.
+	(sql-imenu-generic-expression): Add "Types" imenu entry.
 	(sql-oracle-login-params, sql-sqlite-login-params)
 	(sql-mysql-login-params, sql-solid-login-params)
 	(sql-sybase-login-params, sql-informix-login-params)
@@ -15,10 +42,9 @@
 	(sql-postgres-login-params, sql-interbase-login-params)
 	(sql-db2-login-params, sql-linter-login-params)
 	(sql-oracle-scan-on): New variables.
-	(sql-mode-map): Added C-c C-i to start interactive mode.
-	(sql-mode-menu): Updated existing menu entries.
-        (sql-font-lock-keywords-builder): Compile-time font-lock
-	optimization.
+	(sql-mode-map): Add C-c C-i to start interactive mode.
+	(sql-mode-menu): Update existing menu entries.
+	(sql-font-lock-keywords-builder): Compile-time font-lock optimization.
 	(sql-mode-oracle-font-lock-keywords)
 	(sql-mode-postgres-font-lock-keywords)
 	(sql-mode-ms-font-lock-keywords)
@@ -30,7 +56,7 @@
 	(sql-mode-mysql-font-lock-keywords)
 	(sql-mode-sqlite-font-lock-keywords)
 	(sql-mode-db2-font-lock-keywords)
-	(sql-mode-linter-font-lock-keywords): Updated initialization to
+	(sql-mode-linter-font-lock-keywords): Update initialization to
 	reduce run-time complexity.
 	(sql-add-product, sql-del-product): New functions.
 	(sql-set-product-feature, sql-get-product-feature): New functions.
@@ -39,12 +65,12 @@
 	(sql-highlight-product): Update product API.
 	(sql-help-list-products): New function.
 	(sql-help): Dynamically lists free and non-free products.
-	(sql-get-login): Corrected bug in handling history and added
+	(sql-get-login): Correct bug in handling history and added
 	prompt for port.
 	(sql-copy-column): Copy without properties.
 	(sqli-input-sender): Apply filters to SQLi input.
-	(sql-query-placeholders-and-send): Obey `sql-oracle-scan-on'
-	setting.  Implement as a filter.
+	(sql-query-placeholders-and-send): Obey `sql-oracle-scan-on' setting.
+	Implement as a filter.
 	(sql-escape-newlines-filter): Implement as a filter.
 	(sql-remove-tabs-filter): New function.
 	(sql-send-magic-terminator): New function.
@@ -59,8 +85,8 @@
 	(sql-connect-oracle, sql-connect-sybase, sql-connect-informix)
 	(sql-connect-sqlite, sql-connect-mysql, sql-connect-solid)
 	(sql-connect-ingres, sql-connect-ms, sql-connect-postgres)
-	(sql-connect-interbase, sql-connect-db2, sql-connect-linter): Use
-	`sql-connect'.
+	(sql-connect-interbase, sql-connect-db2, sql-connect-linter):
+	Use `sql-connect'.
 
 2010-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -109,7 +135,7 @@
 
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* international/mule.el (auto-coding-alist):  Only purecopy
+	* international/mule.el (auto-coding-alist): Only purecopy
 	car of each item, not the whole list (Bug#6083).
 
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
@@ -122,7 +148,7 @@
 	* composite.el (compose-region, reference-point-alist): Fix typos
 	in the doc strings.
 
-2010-05-08  Alexander Klimov <alserkli@inbox.ru> (tiny change)
+2010-05-08  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
 
 	* calc/calc-graph.el (calc-graph-plot): Use the proper form for
 	gnuplot's "set" command.
@@ -211,7 +237,7 @@
 	* Version 23.2 released.
 
 2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
-            Stefan Monnier  <monnier@iro.umontreal.ca>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Highlight vendor specific properties.
 	* textmodes/css-mode.el (css-proprietary-nmstart-re): New var.
@@ -974,7 +1000,7 @@
 	(calc-hyperbolic): Add "Option" to message, as appropriate.
 	(calc-option, calc-is-option): New functions.
 
-	* calc-help.el (calc-full-help):  Add `calc-option-help'.
+	* calc-help.el (calc-full-help): Add `calc-option-help'.
 	(calc-option-prefix-help): New function.
 
 	* calc-misc.el (calc-help): Add "Option" entry.
