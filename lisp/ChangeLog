@@ -1,3 +1,12 @@
+2010-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix use of `filter-buffer-substring' (rework previous change).
+	* emulation/cua-base.el (cua--filter-buffer-noprops): New function.
+	(cua-repeat-replace-region):
+	* emulation/cua-rect.el (cua--extract-rectangle, cua-incr-rectangle):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark): Use it.
+
 2010-05-09  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.1
