@@ -90,7 +90,7 @@ Put a call to @code{provide} at the end of each separate Lisp file.
 If a file requires certain other Lisp programs to be loaded
 beforehand, then the comments at the beginning of the file should say
 so.  Also, use @code{require} to make sure they are loaded.
-x@xref{Named Features}.
+@xref{Named Features}.
 
 @item
 If a file @var{foo} uses a macro defined in another file @var{bar},

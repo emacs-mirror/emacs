@@ -92,7 +92,7 @@ Alex Shinn: changed files.el
 
 Alexander Becher: changed vc-annotate.el
 
-Alexander Klimov: changed man.el
+Alexander Klimov: changed calc-graph.el man.el
 
 Alexander Kreuzer: changed nnrss.el
 
@@ -167,9 +167,9 @@ Andreas Luik: changed xfns.c xterm.c
 Andreas Politz: changed editfns.c elp.el ido.el term.el
 
 Andreas Schwab: changed Makefile.in configure.in lisp.h xdisp.c files.el
-  coding.c alloc.c process.c print.c editfns.c fileio.c fns.c dired.el
+  coding.c alloc.c process.c fileio.c print.c editfns.c fns.c dired.el
   xterm.c keyboard.c simple.el eval.c info.el buffer.c sysdep.c emacs.c
-  and 483 other files
+  and 485 other files
 
 Andreas Seltenreich: changed nnweb.el gnus.texi message.el gnus.el
   nnslashdot.el gnus-util.el mm-url.el mm-uu.el url-http.el xterm.c
@@ -435,8 +435,8 @@ Chong Yidong: wrote redisplay-testsuite.el
 and co-wrote longlines.el
 and changed xdisp.c simple.el files.el display.texi frames.texi
   files.texi emacs.texi keyboard.c cus-edit.el faces.el xterm.c
-  Makefile.in xfaces.c font.c misc.texi startup.el xfns.c image.c
-  compile.el custom.texi text.texi and 635 other files
+  Makefile.in misc.texi xfaces.c font.c startup.el xfns.c compile.el
+  image.c custom.texi configure.in and 635 other files
 
 Chris Chase: co-wrote idlw-shell.el idlwave.el
 
@@ -868,7 +868,7 @@ Eli Zaretskii: wrote rxvt.el tty-colors.el
 and changed msdos.c makefile.w32-in Makefile.in files.el info.el rmail.el
   fileio.c mainmake.v2 pc-win.el startup.el config.bat simple.el msdos.h
   dired.c w32.c frame.c internal.el menu-bar.el process.c INSTALL
-  xfaces.c and 602 other files
+  xfaces.c and 603 other files
 
 Elias Oltmanns: changed tls.el gnus-agent.el gnus-int.el gnus-srvr.el
   gnus.el
@@ -1770,7 +1770,7 @@ Kenichi Handa: wrote composite.el cyrillic.el isearch-x.el ps-bdf.el
 and co-wrote ps-def.el ps-mule.el ps-print.el ps-samp.el quail.el
 and changed coding.c mule-cmds.el mule.el fontset.c charset.c fontset.el
   xdisp.c xterm.c font.c fileio.c Makefile.in mule-conf.el characters.el
-  fns.c mule-diag.el ccl.c charset.h ftfont.c xfaces.c coding.h
+  fns.c mule-diag.el ftfont.c ccl.c charset.h xfaces.c coding.h
   japanese.el and 377 other files
 
 Kenichi Okada: co-wrote sasl-cram.el sasl-digest.el
@@ -2951,7 +2951,9 @@ Stefan Wiens: changed gnus-sum.el
 
 Steinar Bang: changed imap.el
 
-Štěpán Němec: changed subr.el vc-git.el
+Štěpán Němec: changed INSTALL cl.texi edebug.texi loading.texi maps.texi
+  mark.texi message.texi mini.texi minibuf.texi misc.texi programs.texi
+  subr.el tips.texi url.texi vc-git.el windows.texi
 
 Stephan Stahl: changed which-func.el buff-menu.el buffer.c dired-x.texi
   ediff-mult.el

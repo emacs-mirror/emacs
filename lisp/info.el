@@ -4295,8 +4295,7 @@ the variable `Info-file-list-for-emacs'."
             (cond
              ((> Info-breadcrumbs-depth 0)
 	      (let ((ov (make-overlay (point-min) (1+ header-end))))
-		(overlay-put ov 'invisible t)
-		(overlay-put ov 'after-string (Info-breadcrumbs))
+		(overlay-put ov 'display (Info-breadcrumbs))
 		(overlay-put ov 'evaporate t)))
              ((not (bobp))
               ;; Hide the punctuation at the end, too.

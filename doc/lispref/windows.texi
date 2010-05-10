@@ -1661,8 +1661,8 @@ point should be placed from the bottom of the window; thus, as with
 @end defopt
 
 @defopt scroll-step
-This variable is an older variant of @code{scroll-conservatively}.  The
-difference is that it if its value is @var{n}, that permits scrolling
+This variable is an older variant of @code{scroll-conservatively}.
+The difference is that if its value is @var{n}, that permits scrolling
 only by precisely @var{n} lines, not a smaller number.  This feature
 does not work with @code{scroll-margin}.  The default value is zero.
 @end defopt

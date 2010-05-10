@@ -163,7 +163,7 @@ search.
 
 @item key-translation-map
 A keymap for translating keys.  This one overrides ordinary key
-bindings, unlike @code{local- function-key-map}.  @xref{Translation
+bindings, unlike @code{local-function-key-map}.  @xref{Translation
 Keymaps}.
 
 @item kmacro-map

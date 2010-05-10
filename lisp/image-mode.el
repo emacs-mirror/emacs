@@ -390,7 +390,7 @@ displays an image file as text.  `image-minor-mode' provides the key
 to display an image file as the actual image.
 
 You can use `image-mode-as-text' in `auto-mode-alist' when you want
-to display an image file as text inititally.
+to display an image file as text initially.
 
 See commands `image-mode' and `image-minor-mode' for more information
 on these modes."

@@ -302,7 +302,7 @@ close_file_unwind (fd)
 
 /* Restore point, having saved it as a marker.  */
 
-static Lisp_Object
+Lisp_Object
 restore_point_unwind (location)
      Lisp_Object location;
 {

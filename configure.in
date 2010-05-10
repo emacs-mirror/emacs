@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.62)
-AC_INIT(emacs, 23.1.96)
+AC_INIT(emacs, 23.2.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 
@@ -2600,6 +2600,14 @@ dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
 
+## Hack to detect a buggy GCC version.
+if test "x$GCC" = xyes \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
+   && test x"`echo $CFLAGS | grep '\-O@<:@23@:>@'`" != x \
+   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
+   AC_MSG_ERROR([GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'.])
+fi
+
 #### Find out which version of Emacs this is.
 [version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
@@ -3064,7 +3072,7 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-[cpp_undefs="`echo $srcdir $configuration $canonical |
+[cpp_undefs="`echo $srcdir $configuration $canonical unix |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"]
 

@@ -14,97 +14,80 @@ for changes in older Emacs versions.
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
-
-Temporary note:
- +++ indicates that the appropriate manual has already been updated.
- --- means no change in the manuals is called for.
-When you add a new item, please add it without either +++ or ---
-so we will look at it and add it to the manual.
-
 
 * Installation Changes in Emacs 23.2
 
----
-** New configure options for Emacs developers
+** New configure options for Emacs developers.
 These are not new features; only the configure flags are new.
----
+
 *** --enable-profiling builds Emacs with profiling enabled.
 This might not work on all platforms.
----
+
 *** --enable-checking[=OPTIONS] builds emacs with extra runtime checks.
 
----
 ** `make install' now consistently ignores umask, creating a
 world-readable install.
 
-+++
 ** Emacs compiles with Gconf support, if it is detected.
 Use the configure option --without-gconf to disable this.
 This is used by the `font-use-system-font' feature (see below).
 
 * Startup Changes in Emacs 23.2
-+++
+
 ** The command-line option -Q (--quick) also inhibits loading X resources.
 However, if Emacs is compiled with the Lucid or Motif toolkit, X
 resource settings for the graphical widgets are still applied.
 On Windows, the -Q option causes Emacs to ignore Registry settings,
 but environment variables set on the Registry are still honored.
-+++
+
 *** The new variable `inhibit-x-resources' shows whether X resources
 were loaded.
 
-+++
 ** New command-line option -mm (--maximized) maximizes the initial frame.
 
 * Changes in Emacs 23.2
 
-+++
 ** The maximum size of buffers (and the largest fixnum) is doubled.
 On typical 32bit systems, buffers can now be up to 512MB.
 
----
 ** The default value of `trash-directory' is now nil.
 This means that `move-file-to-trash' trashes files according to
 freedesktop.org specifications, the same method used by the Gnome,
 KDE, and XFCE desktops.  (This change has no effect on Windows, which
 uses `system-move-file-to-trash' for trashing.)
 
-+++
 ** The pointer now becomes invisible when typing.
 Customize `make-pointer-invisible' to disable this feature.
 
 ** Font changes
-+++
+
 *** Emacs can use the system default monospaced font in Gnome.
 To enable this feature, set `font-use-system-font' to non-nil (it is
 nil by default).  If the system default changes, Emacs changes also.
 This feature requires Gconf support, which is automatically included
 at compile-time if configure detects the gconf libraries (you can
 disable this with the configure option --without-gconf).
----
+
 *** On X11, Emacs reacts to Xft changes made by configuration tools,
 via the XSETTINGS mechanism.  This includes antialias, hinting,
 hintstyle, RGBA, DPI and lcdfilter changes.
 
-+++
 ** Killing a buffer with a running process now asks for confirmation.
 To remove this query, remove `process-kill-buffer-query-function' from
 `kill-buffer-query-functions', or set the appropriate process flag
 with `set-process-query-on-exit-flag'.
 
 ** File-local variable changes
-+++
+
 *** Specifying a minor mode as a local variables enables that mode,
 unconditionally.  The previous behavior, toggling the mode, was
 neither reliable nor generally desirable.
 
-+++
 *** There are new commands for adding and removing file-local variables:
 `add-file-local-variable', `delete-file-local-variable',
 `add-file-local-variable-prop-line', and
 `delete-file-local-variable-prop-line'.
 
-+++
 *** There are new commands for adding and removing directory-local variables,
 and copying them to and from file-local variable lists:
 `add-dir-local-variable', `delete-dir-local-variable',
@@ -113,55 +96,63 @@ and copying them to and from file-local variable lists:
 `copy-file-locals-to-dir-locals'.
 
 ** Internationalization changes
-+++
+
 *** Unibyte sessions are now considered obsolete.
 This refers to the EMACS_UNIBYTE environment variable as well as the
 --unibyte, --multibyte, --no-multibyte, and --no-unibyte command line
 arguments.  Customizing enable-multibyte-characters and setting
 default-enable-multibyte-characters are also deprecated.
----
+
 *** New coding system `utf-8-hfs'.
 This is suitable for default-file-name-coding-system on Mac OS X; see
 international/ucs-normalize.el.
 
----
 ** Function arguments in *Help* buffers are now shown in upper-case.
 Customize `help-downcase-arguments' to t to show them in lower-case.
+
+** New command `async-shell-command', bound globally to `M-&'.
+This executes the command asynchronously, similar to calling `M-!' and
+manually adding an ampersand to the end of the command.  With `M-&',
+you don't need the ampersand.  The output appears in the buffer
+`*Async Shell Command*'.
+
+** When running in a new enough xterm (newer than version 242), Emacs
+asks xterm what the background color is and it sets up faces
+accordingly for a dark background if needed (the current default is to
+consider the background light).
 
 
 * Editing Changes in Emacs 23.2
 
 ** Kill-ring and selection changes
-+++
+
 *** If `select-active-regions' is t, any active region automatically
 becomes the primary selection (for interaction with other window
 applications).  If you enable this, you might want to bind
 `mouse-yank-primary' to Mouse-2.
-+++
+
 *** When `save-interprogram-paste-before-kill' is non-nil, the kill
 commands save the interprogram-paste selection into the kill ring
 before doing anything else.  This avoids losing the selection.
-+++
+
 *** When `kill-do-not-save-duplicates' is non-nil, identical
 subsequent kills are not duplicated in the `kill-ring'.
 
 ** Completion changes
 
 *** The new command `completion-at-point' provides mode-sensitive completion.
-+++
+
 *** tab-always-indent set to `complete' lets TAB do completion as well.
-+++
+
 *** The new completion-style `initials' is available.
 For instance, this can complete M-x lch to list-command-history.
----
+
 *** The new variable `completions-format' determines how completions
 are displayed in the *Completions* buffer.  If you set it to
 `vertical', completions are sorted vertically in columns.
 
-+++
 ** The default value of `blink-matching-paren-distance' is increased.
 
----
 ** M-n provides more default values in the minibuffer for commands
 that read file names.  These include the file name at point (when ffap
 is loaded without ffap-bindings), the file name on the current line
@@ -169,59 +160,44 @@ is loaded without ffap-bindings), the file name on the current line
 (for Dired commands that operate on several directories, such as copy,
 rename, or diff).
 
-+++
 ** M-r is bound to the new `move-to-window-line-top-bottom'.
 This moves point to the window center, top and bottom on successive
 invocations, in the same spirit as the C-l (recenter-top-bottom)
 command.
 
-+++
 ** The new variable `recenter-positions' determines the default
 cycling order of C-l (`recenter-top-bottom').
 
-+++
 ** The abbrevs file is now a file named abbrev_defs in
 user-emacs-directory; but the old location, ~/.abbrev_defs, is used if
 that file exists.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
----
 ** The bookmark menu has a narrowing search via bookmark-bmenu-search.
 
-** LaTeX mode now provides completion (via completion-at-point).
-
----
-** sym-comp.el is now declared obsolete, superseded by completion-at-point.
-
----
-** lucid.el and levents.el are now declared obsolete.
-
----
-** pcomplete provides a new command `pcomplete-std-completion' which
-is similar to `pcomplete' but using the standard completion UI code.
-
 ** Calc
-+++
+
 *** The Calc settings file is now a file named calc.el in
 user-emacs-directory; but the old location, ~/.calc.el, is used if
 that file exists.
----
+
 *** Graphing commands (`g f' etc.) now work on MS-Windows, if you have
 the native Windows port of Gnuplot version 3.8 or later installed.
 
 ** Calendar and diary
-+++
+
 *** Fancy diary display is now the default.
 If you prefer the simple display, customize `diary-display-function'.
-+++
+
 *** The diary's fancy display now enables view-mode.
----
+
 *** The command `calendar-current-date' accepts an optional argument
 giving an offset from today.
 
 ** Desktop
----
+
 *** The default value for `desktop-buffers-not-to-save' is nil.
 This means Desktop will try restoring all buffers, when you restart
 your Emacs session.  Also, `desktop-buffers-not-to-save' is only
@@ -230,37 +206,50 @@ exempt buffers that do correspond to files, customize the value of
 `desktop-files-not-to-save' instead.
 
 ** Dired
-+++
+
 *** The new variable `dired-auto-revert-buffer', if non-nil, causes
 Dired buffers to be reverted automatically on revisiting them.
 
 ** DocView
-+++
+
 *** When `doc-view-continuous' is non-nil, scrolling a line
 on the page edge advances to the next/previous page.
 
+** Elint
+
+*** Elint now uses compilation-mode.
+
+*** Elint can now scan individual files and whole directories,
+and can be run in batch mode.
+
+*** Elint does a more thorough initialization, and recognizes more built-in
+functions and variables.  Customize `elint-scan-preloaded' if you want
+to sacrifice some accuracy for a faster startup.
+
+*** Elint attempts some basic understanding of featurep and (f)boundp tests.
+
+*** Customize `elint-ignored-warnings' to suppress some warnings.
+
 ** GDB-UI
 
-+++
 *** Toolbar functionality for reverse debugging.  Display of STL
 collections as watch expressions.  These features require GDB 7.0 or later.
 
 ** Grep
-+++
+
 *** A new command `zrgrep' searches recursively in gzipped files.
 
 ** Info
 
-+++
 *** The new command `Info-virtual-index' bound to "I" displays a menu of
 matched topics found in the index.
 
-+++
 *** The new command `info-finder' replaces finder.el with a virtual Info
 manual that generates an Info file which gives the same information
 through a menu structure.
 
-+++
+** LaTeX mode now provides completion (via completion-at-point).
+
 ** Message mode is now the default mode for composing mail.
 
 The default for `mail-user-agent' is now message-user-agent, so the
@@ -270,7 +259,6 @@ Message mode has been included in Emacs, as part of the Gnus package,
 for several years.  It provides several features that are absent in
 Mail mode, such as MIME handling.
 
----
 *** If the user has not customized mail-user-agent, `compose-mail'
 checks for Mail mode customizations, and issues a warning if these
 customizations are found.  This alerts users who may otherwise be
@@ -278,110 +266,87 @@ unaware that their mail configuration has changed.
 
 To disable this check, set compose-mail-user-agent-warnings to nil.
 
----
 ** The default value of mail-interactive is t, since Emacs 23.1.
 (This was not announced at the time.)  It means that when sending mail,
 Emacs will wait for the process sending mail to return.  If you
 experience delays when sending mail, you may wish to set this to nil.
 
-+++
 ** nXML mode is now the default for editing XML files.
 
+** pcomplete provides a new command `pcomplete-std-completion' which
+is similar to `pcomplete' but using the standard completion UI code.
+
 ** Shell (and other comint modes)
-+++
+
 *** M-s is no longer bound to `comint-next-matching-input'.
-+++
+
 *** M-r is now bound to `comint-history-isearch-backward-regexp'.
 This starts an incremental search of the comint/shell input history.
-+++
+
 *** ansi-color is now enabled by default in Shell mode.
 To disable it, set ansi-color-for-comint-mode to nil.
 
 ** Tramp
-+++
+
 *** New connection methods "rsyncc", "imap" and "imaps".
 On systems which support GVFS-Fuse, Tramp offers also the new
 connection methods "dav", "davs", "obex" and "synce".
 
 ** VC and related modes
-+++
+
 *** When using C-x v v or C-x v i on a unregistered file that is in a
 directory not controlled by any VCS, ask the user what VC backend to
 use to create a repository, create a new repository and register the
 file.
-+++
+
 *** New command `vc-root-print-log', bound to `C-x v L'.
 This displays a `*vc-change-log*' buffer showing the history of the
 version-controlled directory tree as a whole.
-+++
+
 *** New command `vc-root-diff', bound to `C-x v D'.
 This is similar to `vc-diff', but compares the entire directory tree
 of the current VC directory with its working revision.
-+++
+
 *** `C-x v l' and `C-x v L' do not show the full log by default.
 The number of entries shown can be chosen interactively with a prefix
 argument, or by customizing vc-log-show-limit.  The `*vc-change-log*'
 buffer now contains buttons at the end of the buffer, which can be
 used to increase the number of entries shown.  RCS, SCCS, and CVS do
 not support this feature.
----
+
 *** vc-annotate supports annotations through file copies and renames,
 it displays the old names for the files and it can show logs/diffs for
 the corresponding lines.  Currently only Git and Mercurial take
 advantage of this feature.
----
+
 *** The log command in vc-annotate can display a single log entry
 instead of redisplaying the full log.  The RCS, CVS and SCCS VC
 backends do not support this.
----
+
 *** When a file is not found, VC will not try to check it out of RCS anymore.
-+++
+
 *** Diff and log operations can be used from Dired buffers.
 
 *** vc-git changes
 
----
 **** The short log format for git makes use of the graph display,
 so it's not supported on git versions earlier than 1.5.6.
 
----
 **** vc-dir uses the --relative option of git, and so requires at least
 git version 1.5.5.
 
-+++
 **** Support for operating with stashes has been added to vc-dir:
 the stash list is displayed in the *vc-dir* header, stashes can be
 created, removed, applied and their content displayed.
 
-+++
 *** vc-bzr supports operating with shelves: the shelve list is
 displayed in the *vc-dir* header, shelves can be created, removed and applied.
----
+
 *** log-edit-strip-single-file-name controls whether or not single filenames
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
-** Elint
----
-*** Elint now uses compilation-mode.
----
-*** Elint can now scan individual files and whole directories,
-and can be run in batch mode.
----
-*** Elint does a more thorough initialization, and recognizes more built-in
-functions and variables.  Customize `elint-scan-preloaded' if you want
-to sacrifice some accuracy for a faster startup.
----
-*** Elint attempts some basic understanding of featurep and (f)boundp tests.
----
-*** Customize `elint-ignored-warnings' to suppress some warnings.
-
 ** Miscellaneous
-+++
-*** The new command `async-shell-command' bound globally to `M-&' executes
-the command asynchronously without the need to manually add ampersand to
-the end of the command.  Its output appears in the buffer `*Async Shell
-Command*'.
-+++
+
 *** Interactively `multi-isearch-buffers' and `multi-isearch-buffers-regexp'
 read buffer names to search, one by one, ended with RET.  With a prefix
 argument, they ask for a regexp, and search in buffers whose names match
@@ -389,19 +354,20 @@ the specified regexp.  Interactively `multi-isearch-files' and
 `multi-isearch-files-regexp' read file names to search, one by one,
 ended with RET.  With a prefix argument, they ask for a wildcard, and
 search in file buffers whose file names match the specified wildcard.
-+++
+
 *** Autorevert Tail mode now works also for remote files.
-+++
-*** The new built-in commands `su' and `sudo' support Tramp.
-That means, they change `default-directory' to the new users value,
-and let commands run under that user permissions.  It works even when
+
+*** The new eshell built-in commands `su' and `sudo' support Tramp.
+Thus, they change `default-directory' to reflect the new user id, and
+let commands run under that user's permissions.  This works even when
 `default-directory' is already remote.  Calling the external commands
-is possible by `*su' or `*sudo', respectively.
----
-*** When running in a new enough xterm (newer than version 242), Emacs
-asks xterm what the background color is and it sets up faces
-accordingly for a dark background if needed (the current default is to
-consider the background light).
+is possible via `*su' or `*sudo', respectively.
+
+** Obsolete packages
+
+*** sym-comp.el is now obsolete, superseded by completion-at-point.
+
+*** lucid.el and levents.el are now obsolete.
 
 
 * New Modes and Packages in Emacs 23.2
@@ -410,7 +376,6 @@ consider the background light).
 This is a collection of packages to aid with using Emacs as an IDE
 (integrated development environment):
 
-+++
 *** The Semantic package allows the use of parsers to intelligently
 edit and navigate source code.  Parsers for C/C++, Java, Javascript,
 and several other languages are included by default, and Semantic can
@@ -419,7 +384,6 @@ also interface with external tools such as GNU Global and GNU Idutils.
 To enable Semantic, use the global minor mode `semantic-mode'.
 See the Semantic manual for details.
 
-+++
 *** EDE (Emacs Development Environment) is a package for managing code
 projects, including features such as automatic Makefile generation.
 
@@ -430,25 +394,20 @@ See the EDE manual for details.
 code.  It is currently used by some parts of Semantic and EDE; in the
 future, it may be used for code generation features.
 
-+++
 *** The EIEIO library implements a subset of the Common Lisp Object
 System (CLOS).  It is used by the other CEDET packages.
 
----
 ** mpc.el is a front end for the Music Player Daemon.  Run it with M-x mpc.
 
 ** htmlfontify.el turns a fontified Emacs buffer into an HTML page.
 
-+++
 ** js.el is a new major mode for JavaScript files.
 
----
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
 
 
 * Incompatible Lisp Changes in Emacs 23.2
 
-+++
 ** The Lisp reader turns integers that are too large/small into floats.
 For instance, on machines where `536870911' is the largest integer,
 reading `536870912' gives the floating-point object `536870912.0'.
@@ -456,7 +415,6 @@ reading `536870912' gives the floating-point object `536870912.0'.
 This change only concerns the Lisp reader; it does not affect how
 actual integer objects overflow.
 
----
 ** Several obsolete functions removed.
 The functions have been obsolete since Emacs 19, and are unlikely to
 be in use:
@@ -466,11 +424,9 @@ be in use:
   time-stamp-yyyy-mm-dd, time-stamp-yymmdd, time-stamp-hh:mm:ss,
   time-stamp-hhmm, baud-rate
 
----
 ** Support for generating Emacs 18 compatible bytecode (by setting
 the variable `byte-compile-compatibility') has been removed.
 
----
 ** In image-mode.el `image-mode-maybe' is obsolete.
 Instead, you can either use `image-mode' (which displays an image file
 as the actual image initially), or `image-mode-as-text' (when you want
@@ -484,7 +440,7 @@ key binding to toggle image display.
 
 
 * Lisp changes in Emacs 23.2
----
+
 ** All the default-FOO variables that hold the default value of the FOO
 variable, are now declared obsolete.
 
@@ -492,10 +448,10 @@ variable, are now declared obsolete.
 It reads a single key, but obeys input and escape sequence decoding.
 
 ** Frame parameter changes
-+++
+
 *** You can give the `fullscreen' frame parameter the value `maximized'.
 This maximizes the frame.
-+++
+
 *** The new frame parameter `sticky' makes Emacs frames sticky in
 virtual desktops.
 
@@ -509,23 +465,23 @@ argument is now always nil.
 
 *** New function `completion-in-region' to use the standard completion
 facilities on a particular region of text.
-+++
+
 *** The 4th arg to all-completions (aka hide-spaces) is declared obsolete.
 
 *** completion-annotate-function specifies how to compute annotations
 for completions displayed in *Completions*.
 
 ** Minibuffer changes
----
+
 *** read-file-name-predicate is obsolete.  It was used to pass the predicate
 to read-file-name-internal because read-file-name-internal abused its `pred'
 argument to pass the current directory, but this hack is not needed
 any more.
 
 ** Changes to file-manipulation functions
-+++
+
 *** `delete-directory' has an optional parameter RECURSIVE.
-+++
+
 *** New function `copy-directory', which copies a directory recursively.
 
 ** called-interactively-p now takes one argument and replaces interactive-p
@@ -540,34 +496,33 @@ command's symbol.  That property can hold a single binding or a list
 of bindings.
 
 ** Network and process changes
-+++
+
 *** start-process-shell-command and start-file-process-shell-command
 now only take a single `command' argument.
-+++
+
 *** The new variable `process-file-side-effects' should be set to nil
 if a `process-file' call does not change a remote file.  This allows
 file name handlers such as Tramp to optimizations.
-+++
+
 *** make-network-process can now also create `seqpacket' Unix sockets.
 
 ** Loading changes
----
+
 *** eval-next-after-load is obsolete.
-+++
+
 *** New hook `after-load-functions' run after loading an Elisp file.
 
 ** Byte compilation changes
----
+
 *** Changing the file-names generated by byte-compilation by redefining
 the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
 Instead, customize byte-compile-dest-file-function.
----
+
 *** `byte-compile-warnings' has new members, `constants' and `suspicious'.
 
 ** New macro with-silent-modifications to tweak text properties without
 affecting the buffer's modification state.
 
-+++
 ** Hash tables have a new printed representation that is readable.
 The feature `hashtable-print-readable' identifies this new
 functionality.
@@ -580,17 +535,14 @@ ucs-normalize-NFKC-region, ucs-normalize-NFKC-string,
 ucs-normalize-HFS-NFD-region, ucs-normalize-HFS-NFD-string,
 ucs-normalize-HFS-NFC-region, ucs-normalize-HFS-NFC-string.
 
-+++
 ** Face aliases can now be marked as obsolete, using the macro
 `define-obsolete-face-alias'.
 
-+++
 ** New function `window-full-height-p', analogous to the full-width version.
 
 
 * Changes in Emacs 23.2 on non-free operating systems
 
----
 ** On MS-Windows, `display-time' now displays the system load average
 as well as the time, as it does on GNU and Unix.
 
@@ -1398,11 +1350,11 @@ rather than fortran-indent-comment.
 ** Gnus
 
 *** The Gnus package has been updated
-There are many news features, bug fixes and improvements; see the file
+There are many new features, bug fixes and improvements; see the file
 GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
 
 *** In Emacs 23, Gnus uses Emacs' new internal coding system `utf-8-emacs' for
-saving articles drafts and ~/.newsrc.eld.  These file may not be read
+saving articles, drafts, and ~/.newsrc.eld.  These file may not be read
 correctly in Emacs 22 and below.  If you want to Gnus across different Emacs
 versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
 
@@ -1455,8 +1407,8 @@ for buff-menu.el and ibuffer.el are bound to the keys `M-s a C-s' and
 *** `C-h C-h' in Isearch mode displays isearch-specific Help screen,
 `C-h b' displays all Isearch key bindings, `C-h k' displays the full
 documentation of the given Isearch key sequence, `C-h m' displays
-documentation of Isearch mode.  All the rest Help commands exit Isearch mode
-and execute their global definitions.
+documentation for Isearch mode.  All the other Help commands exit
+Isearch mode and execute their global definitions.
 
 *** When started in the minibuffer, Isearch searches in the minibuffer
 history.  See `Minibuffer changes', above.
