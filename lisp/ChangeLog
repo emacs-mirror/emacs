@@ -1,3 +1,8 @@
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
+	all dired buffers, even tramp ones.  (Bug#5755)  [Backport from trunk]
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

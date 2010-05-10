@@ -1,7 +1,8 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
 ;; Copyright (C) 1993, 1994, 1995, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: convenience
@@ -811,19 +812,23 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode.
 \n\(fn FILENAME BUFNAME MODE)"
-  (let ((case-fold-search nil))
+  (let ((case-fold-search nil)
+        dired-skip)
     (and (not (and (stringp desktop-buffers-not-to-save)
 		   (not filename)
 		   (string-match desktop-buffers-not-to-save bufname)))
          (not (memq mode desktop-modes-not-to-save))
+         ;; FIXME this is broken if desktop-files-not-to-save is nil.
          (or (and filename
 		  (stringp desktop-files-not-to-save)
                   (not (string-match desktop-files-not-to-save filename)))
              (and (eq mode 'dired-mode)
                   (with-current-buffer bufname
-                    (not (string-match desktop-files-not-to-save
-                                       default-directory))))
+                    (not (setq dired-skip
+                               (string-match desktop-files-not-to-save
+                                             default-directory)))))
              (and (null filename)
+                  (null dired-skip)     ; bug#5755
 		  (with-current-buffer bufname desktop-save-buffer))))))
 
 ;; ----------------------------------------------------------------------------
