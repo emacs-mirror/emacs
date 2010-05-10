@@ -7161,14 +7161,20 @@ Optional DIGEST will use digest to forward."
 (defun message-forward-make-body-plain (forward-buffer)
   (insert
    "\n-------------------- Start of forwarded message --------------------\n")
-  (let ((b (point)) e)
+  (let ((b (point))
+	contents multibyte-p e)
+    (with-current-buffer forward-buffer
+      (setq contents (buffer-string)
+	    multibyte-p (mm-multibyte-p)))
     (insert
      (with-temp-buffer
-       (mm-disable-multibyte)
-       (insert
-	(with-current-buffer forward-buffer
-	  (mm-with-unibyte-current-buffer (buffer-string))))
-       (mm-enable-multibyte)
+       (if multibyte-p
+	   (progn
+	     (mm-enable-multibyte)
+	     (insert contents))
+	 (mm-disable-multibyte)
+	 (insert contents)
+	 (mm-enable-multibyte))
        (mime-to-mml)
        (goto-char (point-min))
        (when (looking-at "From ")
@@ -7212,18 +7218,24 @@ Optional DIGEST will use digest to forward."
   (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
   (let ((b (point)) e)
     (if (not message-forward-decoded-p)
-	(insert
-	 (with-temp-buffer
-	   (mm-disable-multibyte)
-	   (insert
-	    (with-current-buffer forward-buffer
-	      (mm-with-unibyte-current-buffer (buffer-string))))
-	   (mm-enable-multibyte)
-	   (mime-to-mml)
-	   (goto-char (point-min))
-	   (when (looking-at "From ")
-	     (replace-match "X-From-Line: "))
-	   (buffer-string)))
+	(let (contents multibyte-p)
+	  (with-current-buffer forward-buffer
+	    (setq contents (buffer-string)
+		  multibyte-p (mm-multibyte-p)))
+	  (insert
+	   (with-temp-buffer
+	     (if multibyte-p
+		 (progn
+		   (mm-enable-multibyte)
+		   (insert contents))
+	       (mm-disable-multibyte)
+	       (insert contents)
+	       (mm-enable-multibyte))
+	     (mime-to-mml)
+	     (goto-char (point-min))
+	     (when (looking-at "From ")
+	       (replace-match "X-From-Line: "))
+	     (buffer-string))))
       (save-restriction
 	(narrow-to-region (point) (point))
 	(mml-insert-buffer forward-buffer)
