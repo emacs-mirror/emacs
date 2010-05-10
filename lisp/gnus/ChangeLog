@@ -1,5 +1,15 @@
 2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* mm-util.el (mm-emacs-mule): Remove.
+
+2010-05-10  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-mode): Don't make minor-mode-alist
+	buffer-local as it's incompatible with Stefan Monnier's 2010-05-03
+	change.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* mm-util.el (mm-with-unibyte-current-buffer): Redefine it so as not to
 	bind the default value of enable-multibyte-characters to nil.
 

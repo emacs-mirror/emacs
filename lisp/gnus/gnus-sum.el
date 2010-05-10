@@ -3056,7 +3056,6 @@ The following commands are available:
   (gnus-simplify-mode-line)
   (setq major-mode 'gnus-summary-mode)
   (setq mode-name "Summary")
-  (make-local-variable 'minor-mode-alist)
   (use-local-map gnus-summary-mode-map)
   (buffer-disable-undo)
   (setq buffer-read-only t		;Disable modification
