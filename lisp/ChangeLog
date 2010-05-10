@@ -1,3 +1,13 @@
+2010-05-10  Juri Linkov  <juri@jurta.org>
+
+	Remove nodes visited during Isearch from the Info history.
+	* info.el (Info-isearch-initial-history)
+	(Info-isearch-initial-history-list): New variables.
+	(Info-isearch-start): Record initial values of
+	Info-isearch-initial-history and Info-isearch-initial-history-list.
+	Add Info-isearch-end to isearch-mode-end-hook.
+	(Info-isearch-end): New function.
+
 2010-05-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-file-attributes-with-stat): Add space in
