@@ -1,3 +1,8 @@
+2010-05-11  Juri Linkov  <juri@jurta.org>
+
+	* scroll-all.el (scroll-all-check-to-scroll):
+	Add `scroll-up-command' and `scroll-down-command' (bug#6164).
+
 2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* iimage.el (iimage-mode-map): Move initialization into declaration.
