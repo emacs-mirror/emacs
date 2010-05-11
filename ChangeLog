@@ -1,3 +1,12 @@
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (msdos): No more mainmake.
+
+	* configure.in: Generate lib-src/Makefile directly, do not run cpp.
+	* config.bat: Do not run cpp on lib-src/Makefile.in.
+
+	* config.bat [HAVE_X11]: Run sed3x.inp on lib-src/Makefile.
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIBS_SYSTEM): New output variable, replacing cpp.
@@ -5864,7 +5873,7 @@
 1994-05-09  David J. MacKenzie  (djm@nutrimat.gnu.ai.mit.edu)
 
 	* configure.in: Remove AC_LANG_C call.  Not needed with Autoconf
-	 version > 1.8.
+	version > 1.8.
 
 1994-05-08  Morten Welinder  (terra@diku.dk)
 

@@ -2867,7 +2867,9 @@ target of the symlink differ."
   (tramp-send-command-and-read
    vec
    (format
-    "((%s %s || %s -h %s) && %s -c '((\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)' %s || echo nil)"
+    ;; On Opsware, pdksh (which is the true name of ksh there) doesn't
+    ;; parse correctly the sequence "((".  Therefore, we add a space.
+    "( (%s %s || %s -h %s) && %s -c '( (\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)' %s || echo nil)"
     (tramp-get-file-exists-command vec)
     (tramp-shell-quote-argument localname)
     (tramp-get-test-command vec)
@@ -2920,12 +2922,14 @@ already know that the buffer is visiting a file and that
 function directly, unless those two cases are already taken care
 of."
   (with-current-buffer buf
-    ;; There is no file visiting the buffer, or the buffer has no
-    ;; recorded last modification time.
-    (if (or (not (buffer-file-name))
-	    (eq (visited-file-modtime) 0))
-	t
-      (let ((f (buffer-file-name)))
+    (let ((f (buffer-file-name)))
+      ;; There is no file visiting the buffer, or the buffer has no
+      ;; recorded last modification time, or there is no established
+      ;; connection.
+      (if (or (not f)
+	      (eq (visited-file-modtime) 0)
+	      (not (tramp-file-name-handler 'file-remote-p f nil 'connected)))
+	  t
 	(with-parsed-tramp-file-name f nil
 	  (tramp-flush-file-property v localname)
 	  (let* ((attr (file-attributes f))
@@ -2984,16 +2988,11 @@ of."
 	 (let ((time (if (or (null time) (equal time '(0 0)))
 			 (current-time)
 		       time))
-	       (utc
-		;; With GNU Emacs, `format-time-string' has an
-		;; optional parameter UNIVERSAL.  This is preferred,
-		;; because we could handle the case when the remote
-		;; host is located in a different time zone as the
-		;; local host.
-		(and (functionp 'subr-arity)
-		     (subrp (symbol-function 'format-time-string))
-		     (= 3 (cdr (tramp-compat-funcall
-				'subr-arity 'format-time-string))))))
+	       ;; With GNU Emacs, `format-time-string' has an optional
+	       ;; parameter UNIVERSAL.  This is preferred, because we
+	       ;; could handle the case when the remote host is
+	       ;; located in a different time zone as the local host.
+	       (utc (not (featurep 'xemacs))))
 	   (tramp-send-command-and-check
 	    v (format "%s touch -t %s %s"
 		      (if utc "TZ=UTC; export TZ;" "")

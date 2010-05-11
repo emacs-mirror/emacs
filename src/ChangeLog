@@ -1,3 +1,14 @@
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBS_SYSTEM) [MSDOS]: Do not reset.
+	* s/msdos.h (MSDOS_LIBS_SYSTEM): Remove.
+
+2010-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Don't turn on bidi reordering in
+	unibyte buffers.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00263.html.
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBS_SYSTEM): Set using configure, not cpp.
@@ -731,7 +742,7 @@
 	(Frename_file): Preserve selinux context when renaming by copy-file.
 
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	Don't depend on cm.c or termcap.c on Windows, use stubs.
 	* makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
@@ -8922,7 +8933,7 @@
 	<after-change-functions>: Reflow docstrings.
 
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
-	    Ken Raeburn  <raeburn@gnu.org>
+            Ken Raeburn  <raeburn@gnu.org>
 
 	Dock menu customization, based on a patch by Ken Raeburn, plus some
 	other fixes.
@@ -9987,7 +9998,7 @@
 	batch-compiling for bootstrap).
 
 2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
-	    YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+            YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
 	fix crash due to different init order.
@@ -10605,7 +10616,7 @@
 	(USG_SHARED_LIBRARIES): Remove duplicate definition.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (LOCAL_FLAGS):
 	Don't include WINDOWSNT, DOS_NT and _UCHAR_T.
@@ -10853,7 +10864,7 @@
 	the property of LFACE_FONT of LFACE (if any).
 
 2008-06-21  Seiji Zenitani  <zenitani@mac.com>
-	    Ryo Yoshitake  <ryo@shiftmode.net>
+            Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* xterm.c (x_set_frame_alpha): Add x_catch_errors for bug#437.
 
@@ -11949,7 +11960,7 @@
 	* xterm.c (x_set_frame_alpha): Move declarations before statements.
 
 2008-05-21  Seiji Zenitani  <zenitani@mac.com>
-	    Ryo Yoshitake  <ryo@shiftmode.net>
+            Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* frame.c (Qalpha): Add a new frame parameter `alpha'.
 	(Vframe_alpha_lower_limit): New variable.

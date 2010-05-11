@@ -625,7 +625,7 @@ If command is repeated at same position, delete the rectangle."
     (if (not (cua--rectangle-virtual-edges))
 	(cua--rectangle-operation nil nil nil nil nil ; do not tabify
 	  '(lambda (s e l r)
-	     (setq rect (cons (filter-buffer-substring s e nil t) rect))))
+	     (setq rect (cons (cua--filter-buffer-noprops s e) rect))))
       (cua--rectangle-operation nil 1 nil nil nil ; do not tabify
 	'(lambda (s e l r v)
 	   (let ((copy t) (bs 0) (as 0) row)
@@ -643,7 +643,7 @@ If command is repeated at same position, delete the rectangle."
 	       (setq as (- r (max (current-column) l))
 		     e (point)))
        	     (setq row (if (and copy (> e s))
-			   (filter-buffer-substring s e nil t)
+			   (cua--filter-buffer-noprops s e)
 			 ""))
     	     (when (> bs 0)
     	       (setq row (concat (make-string bs ?\s) row)))
@@ -1124,12 +1124,12 @@ The length of STRING need not be the same as the rectangle width."
      '(lambda (s e l r)
         (cond
          ((re-search-forward "0x\\([0-9a-fA-F]+\\)" e t)
-          (let* ((txt (filter-buffer-substring (match-beginning 1) (match-end 1) nil t))
+          (let* ((txt (cua--filter-buffer-noprops (match-beginning 1) (match-end 1)))
                  (n (string-to-number txt 16))
                  (fmt (format "0x%%0%dx" (length txt))))
             (replace-match (format fmt (+ n increment)))))
          ((re-search-forward "\\( *-?[0-9]+\\)" e t)
-          (let* ((txt (filter-buffer-substring (match-beginning 1) (match-end 1) nil t))
+          (let* ((txt (cua--filter-buffer-noprops (match-beginning 1) (match-end 1)))
                  (prefix (if (= (aref txt 0) ?0) "0" ""))
                  (n (string-to-number txt 10))
                  (fmt (format "%%%s%dd" prefix (length txt))))

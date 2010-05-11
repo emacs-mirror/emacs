@@ -26690,7 +26690,7 @@ fi
 rm -f conftest*
 
 
-ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
+ac_config_files="$ac_config_files Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -27289,7 +27289,7 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:src/config.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "lib-src/Makefile.c") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile.c:lib-src/Makefile.in" ;;
+    "lib-src/Makefile") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile" ;;
     "oldXMenu/Makefile") CONFIG_FILES="$CONFIG_FILES oldXMenu/Makefile" ;;
     "doc/emacs/Makefile") CONFIG_FILES="$CONFIG_FILES doc/emacs/Makefile" ;;
     "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
@@ -27933,22 +27933,6 @@ ${MAKE-make} epaths-force
 if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
   CPPFLAGS="$CPPFLAGS -traditional"
 fi
-
-echo creating lib-src/Makefile
-( cd lib-src
-  rm -f junk.c junk1.c junk2.c
-  sed -e '/start of cpp stuff/q' \
-      < Makefile.c > junk1.c
-  sed -e '1,/start of cpp stuff/d'\
-      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
-      < Makefile.c > junk.c
-  $CPP -P $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
-      sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
-  cat junk1.c junk2.c > Makefile.new
-  rm -f junk.c junk1.c junk2.c
-  chmod 444 Makefile.new
-  mv -f Makefile.new Makefile
-)
 
 echo creating src/Makefile
 ( cd src

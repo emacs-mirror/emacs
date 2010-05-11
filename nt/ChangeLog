@@ -112,7 +112,7 @@
 	* config.nt (HAVE_FACES): Remove, unused.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs (FONT_CFLAGS):
 	* gmake.defs (FONT_CFLAGS): Remove.
@@ -128,7 +128,7 @@
 	* config.nt: Remove reference to UNEXEC_SRC.
 
 2008-06-23  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (DEBUG_FLAG, DEBUG_LINK) [!NODEBUG]:
 	Don't hardcode -gstabs+, use DEBUG_INFO.
