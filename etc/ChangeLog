@@ -1839,7 +1839,7 @@
 2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>
 
 	* emacs.py (eargs): Provide eldoc message for builtin types.
-	  Make sure eargs always outputs sentinel, to avoid Emacs freeze.
+	Make sure eargs always outputs sentinel, to avoid Emacs freeze.
 
 2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -4646,8 +4646,8 @@
 1990-01-19  David Lawrence  (tale@cocoa-puffs)
 
 	* timer.c, getdate.y (new files) and Makefile:
-	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG.
+	Sub-process support for run-at-time in timer.el.
+	Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon@pogo)
 

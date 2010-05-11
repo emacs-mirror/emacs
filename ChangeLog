@@ -5864,7 +5864,7 @@
 1994-05-09  David J. MacKenzie  (djm@nutrimat.gnu.ai.mit.edu)
 
 	* configure.in: Remove AC_LANG_C call.  Not needed with Autoconf
-	 version > 1.8.
+	version > 1.8.
 
 1994-05-08  Morten Welinder  (terra@diku.dk)
 

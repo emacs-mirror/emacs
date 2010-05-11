@@ -3913,7 +3913,7 @@
 2001-01-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* sysdep.c: Don't prototype srandom; it takes an unsigned argument
-	 on some systems, and an unsigned long on others, like FreeBSD 4.1.
+	on some systems, and an unsigned long on others, like FreeBSD 4.1.
 
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
@@ -5161,9 +5161,9 @@
 	`vertical-line', `mode-line' and `header-line' events.
 
 	* xdisp.c (try_window_id): Avoid starting to display in the middle
-	 of a character, a TAB for instance.  This is easier than to set
-	 up the iterator exactly, and it's not a frequent case, so the
-	 additional effort wouldn't really pay off.
+	of a character, a TAB for instance.  This is easier than to set
+	up the iterator exactly, and it's not a frequent case, so the
+	additional effort wouldn't really pay off.
 
 2000-11-26  Andrew Choi  <akochoi@i-cable.com>
 
@@ -5196,9 +5196,9 @@
 2000-11-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (init_from_display_pos): If POS says we're already after
-	 an overlay string ending at POS, make sure to pop the iterator
-	 because it will be in front of that overlay string.  When POS is
-	 ZV, we've thereby also ``processed'' overlay strings at ZV.
+	an overlay string ending at POS, make sure to pop the iterator
+	because it will be in front of that overlay string.  When POS is
+	ZV, we've thereby also ``processed'' overlay strings at ZV.
 
 	* xfaces.c (lface_from_face_name): Function comment fix.
 
