@@ -2699,8 +2699,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
   /* Do we need to reorder bidirectional text?  Not if this is a
-     unibyte buffer: all single-byte characters are by definition
-     strong L2R, so no reordering is needed.  And bidi.c doesn't
+     unibyte buffer: by definition, none of the single-byte characters
+     are strong R2L, so no reordering is needed.  And bidi.c doesn't
      support unibyte buffers anyway.  */
   it->bidi_p
     = !NILP (current_buffer->bidi_display_reordering) && it->multibyte_p;
