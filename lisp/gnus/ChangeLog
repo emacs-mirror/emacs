@@ -1,3 +1,8 @@
+2010-05-11  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-kill-thread): Use gnus-summary-mark-article
+	instead of g-s-m-a-as-unread to set the expirable mark.  (Bug#5284)
+
 2010-05-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-extern.el (mm-extern-url): Don't use
