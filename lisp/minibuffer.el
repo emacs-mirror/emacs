@@ -1835,8 +1835,8 @@ or a symbol chosen among `any', `star', `point', `prefix'."
                   (lambda (x)
                     (cond
                      ((stringp x) (regexp-quote x))
-                     ((if (consp group) (memq x group) group)
-                      "\\(.*?\\)" ".*?")))
+                     ((if (consp group) (memq x group) group) "\\(.*?\\)")
+		     (t ".*?")))
                   pattern
                   ""))))
     ;; Avoid pathological backtracking.

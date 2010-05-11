@@ -1,3 +1,8 @@
+2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--pattern->regex):
+	Fix last change (bug#6160).
+
 2010-05-10  Juri Linkov  <juri@jurta.org>
 
 	Remove nodes visited during Isearch from the Info history.
@@ -11,8 +16,8 @@
 2010-05-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-file-attributes-with-stat): Add space in
-	format string, in order to work around a bug in pdksh.  Reported
-	by Gilles Pion <gpion@lfdj.com>.
+	format string, in order to work around a bug in pdksh.
+	Reported by Gilles Pion <gpion@lfdj.com>.
 	(tramp-handle-verify-visited-file-modtime): Do not send a command
 	when the connection is not established.
 	(tramp-handle-set-file-times): Simplify the check for utc.
