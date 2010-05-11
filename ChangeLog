@@ -1,3 +1,7 @@
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* config.bat [HAVE_X11]: Run sed3x.inp on lib-src/Makefile.
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIBS_SYSTEM): New output variable, replacing cpp.

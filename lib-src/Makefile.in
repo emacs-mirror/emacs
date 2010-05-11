@@ -167,11 +167,6 @@ CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-#ifdef MSDOS
-#include "../src/config.h"
-LIBS_SYSTEM = MSDOS_LIBS_SYSTEM
-#endif
-
 LOADLIBES=$(LIBS_SYSTEM)
 
 

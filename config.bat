@@ -231,6 +231,11 @@ Goto libsrc2
 sed -f ../msdos/sed3v2.inp <makefile.new >Makefile
 :libsrc2
 rm -f makefile.new junk.c
+if "%X11%" == "" goto libsrc2a
+mv Makefile makefile.tmp
+sed -f ../msdos/sed3x.inp <makefile.tmp >Makefile
+rm -f makefile.tmp
+:libsrc2a
 if "%nodebug%" == "" goto libsrc3
 sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 sed -e "/^ALL_CFLAGS *=/s/=/= -s/" <makefile.tmp >Makefile
