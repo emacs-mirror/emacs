@@ -1,5 +1,10 @@
 2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* iimage.el (iimage-mode-map): Move initialization into declaration.
+	(iimage-mode-buffer): Use with-silent-modifications.
+	Simplify calling convention.  Adjust callers.
+	(iimage-mode): Don't run hook redundantly.
+
 	* minibuffer.el (completion-pcm--pattern->regex):
 	Fix last change (bug#6160).
 
@@ -799,6 +804,8 @@
 	Add file-selinux-context.
 
 2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make the log-edit comments use RFC822 format throughout.
 
 	* vc.el (vc-checkin, vc-modify-change-comment):
 	Adjust to new vc-start/finish-logentry.

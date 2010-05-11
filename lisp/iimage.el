@@ -55,19 +55,17 @@
   :group 'image)
 
 (defconst iimage-version "1.1")
-(defvar iimage-mode nil)
-(defvar iimage-mode-map nil)
 
-;; Set up key map.
-(unless iimage-mode-map
-  (setq iimage-mode-map (make-sparse-keymap))
-  (define-key iimage-mode-map "\C-l" 'iimage-recenter))
+(defvar iimage-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-l" 'iimage-recenter)
+    map))
 
 (defun iimage-recenter (&optional arg)
-"Re-draw images and recenter."
+  "Re-draw images and recenter."
   (interactive "P")
-  (iimage-mode-buffer 0)
-  (iimage-mode-buffer 1)
+  (iimage-mode-buffer nil)
+  (iimage-mode-buffer t)
   (recenter arg))
 
 (defvar iimage-mode-image-filename-regex
@@ -81,7 +79,7 @@
   `((,(concat "\\(`?file://\\|\\[\\[\\|<\\|`\\)?"
 	      "\\(" iimage-mode-image-filename-regex "\\)"
 	      "\\(\\]\\]\\|>\\|'\\)?") . 2))
-"*Alist of filename REGEXP vs NUM.
+  "*Alist of filename REGEXP vs NUM.
 Each element looks like (REGEXP . NUM).
 NUM specifies which parenthesized expression in the regexp.
 
@@ -90,54 +88,43 @@ Examples of image filename regexps:
     `file://foo.png'
     \\[\\[foo.gif]]
     <foo.png>
-     foo.JPG
-")
+     foo.JPG")
 
 (defvar iimage-mode-image-search-path nil
-"*List of directories to search for image files for iimage-mode.")
+  "*List of directories to search for image files for `iimage-mode'.")
 
 ;;;###autoload
-(defun turn-on-iimage-mode ()
-"Unconditionally turn on iimage mode."
-  (interactive)
-  (iimage-mode 1))
+(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
 
 (defun turn-off-iimage-mode ()
-"Unconditionally turn off iimage mode."
+  "Unconditionally turn off iimage mode."
   (interactive)
   (iimage-mode 0))
 
-(defalias 'iimage-locate-file 'locate-file)
-
 (defun iimage-mode-buffer (arg)
-"Display/undisplay images.
-With numeric ARG, display the images if and only if ARG is positive."
-  (interactive)
-  (let ((ing (if (numberp arg)
-		 (> arg 0)
-	       iimage-mode))
-	(modp (buffer-modified-p (current-buffer)))
-	file buffer-read-only)
-    (save-excursion
-      (goto-char (point-min))
-      (dolist (pair iimage-mode-image-regex-alist)
-	(while (re-search-forward (car pair) nil t)
-	  (if (and (setq file (match-string (cdr pair)))
-		   (setq file (iimage-locate-file file
-				   (cons default-directory
-					 iimage-mode-image-search-path))))
-	      (if ing
-		  (add-text-properties (match-beginning 0) (match-end 0)
-				       (list 'display (create-image file)))
-		(remove-text-properties (match-beginning 0) (match-end 0)
-					'(display)))))))
-    (set-buffer-modified-p modp)))
+  "Display images if ARG is non-nil, undisplay them otherwise."
+  (let ((image-path (cons default-directory iimage-mode-image-search-path))
+	file)
+    (with-silent-modifications
+      (save-excursion
+        (goto-char (point-min))
+        (dolist (pair iimage-mode-image-regex-alist)
+          (while (re-search-forward (car pair) nil t)
+            (if (and (setq file (match-string (cdr pair)))
+                     (setq file (locate-file file image-path)))
+                ;; FIXME: we don't mark our images, so we can't reliably
+                ;; remove them either (we may leave some of ours, and we
+                ;; may remove other packages's display properties).
+                (if arg
+                    (add-text-properties (match-beginning 0) (match-end 0)
+                                         (list 'display (create-image file)))
+                  (remove-text-properties (match-beginning 0) (match-end 0)
+                                          '(display))))))))))
 
 ;;;###autoload
 (define-minor-mode iimage-mode
   "Toggle inline image minor mode."
   :group 'iimage :lighter " iImg" :keymap iimage-mode-map
-  (run-hooks 'iimage-mode-hook)
   (iimage-mode-buffer iimage-mode))
 
 (provide 'iimage)
