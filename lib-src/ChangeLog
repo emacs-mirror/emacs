@@ -1,5 +1,7 @@
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in: Convert comments to makefile format.
+
 	* Makefile.in (LIBS_SYSTEM) [MSDOS]: Do not reset.
 	(config.h) [MSDOS]: Do not include.
 

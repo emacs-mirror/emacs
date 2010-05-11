@@ -31,6 +31,7 @@ EMACSOPT = -batch --no-site-file --multibyte
 CC=@CC@
 CFLAGS=@CFLAGS@
 version=@version@
+## Used in $archlibdir.
 configuration=@configuration@
 EXEEXT=@EXEEXT@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
@@ -127,8 +128,8 @@ EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 # Specify additional -D flags for movemail. Options:
 # -DMAIL_USE_FLOCK or -DMAIL_USE_LOCKF (use flock or lockf for file locking).
 # See the comments about locking in movemail.c.  Normally the values
-# in ../src/[ms]/*.h should be correct and you should not need to do anything.
-# If neither flag is set, blessmail is used.
+# set by configure should be correct and you should not need to do anything.
+# If neither flag is set, you need to use blessmail.
 MOVE_FLAGS=
 
 ## Empty if either MAIL_USE_FLOCK or MAIL_USE_LOCKF, else need-blessmail.
@@ -164,18 +165,15 @@ ALL_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src
 LINK_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
-# ========================== start of cpp stuff =======================
-/* From here on, comments must be done in C syntax.  */
-
 LOADLIBES=$(LIBS_SYSTEM)
 
 
 .SUFFIXES: .m
 
-/* This is the default compilation command.
-   But we should never rely on it, because some make version
-   failed to find it for getopt.o.
-   Using an explicit command made it work.  */
+## This is the default compilation command.
+## But we should never rely on it, because some make version failed to
+## find it for getopt.o.
+## Using an explicit command made it work.
 .c.o:
 	${CC} -c ${CPP_CFLAGS} $<
 
@@ -184,11 +182,10 @@ LOADLIBES=$(LIBS_SYSTEM)
 
 all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
-/* These targets copy the scripts into the build directory
-so that they can be run from there in an uninstalled Emacs.
-The "-" is prepended because some versions of cp barf when
-srcdir is the current directory, and thus the file will be
-copied into itself.  */
+## These targets copy the scripts into the build directory so that
+## they can be run from there in an uninstalled Emacs.
+## The "-" is prepended because some versions of cp barf when srcdir
+## is the current directory, and thus the file will be copied into itself.
 rcs2log: $(srcdir)/rcs2log
 	-cp -p $(srcdir)/rcs2log rcs2log
 
@@ -201,16 +198,15 @@ grep-changelog: $(srcdir)/grep-changelog
 vcdiff: $(srcdir)/vcdiff
 	-cp -p $(srcdir)/vcdiff vcdiff
 
-/* Only used if we need blessmail, but no harm in always defining.
-   This makes the actual blessmail executable.  */
+## Only used if we need blessmail, but no harm in always defining.
+## This makes the actual blessmail executable.
 blessmail:
 	$(EMACS) $(EMACSOPT) -l $(srcdir)/../lisp/mail/blessmail.el
 	chmod +x blessmail
 
-/* This checks if we need to run blessmail.  */
+## This checks if we need to run blessmail.
+## Do not charge ahead and do it!  Let the installer decide.
 need-blessmail: blessmail
-/* Don\'t charge ahead and do it!  Let the installer decide.
-	  ./blessmail $(DESTDIR)${archlibdir}/movemail${EXEEXT}  */
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
 	  echo Assuming $$dir is really the mail spool directory, you should; \
@@ -219,11 +215,14 @@ need-blessmail: blessmail
 	  echo Do that after running  make install.; \
 	fi
 
-/* This is the target invoked by the top-level Makefile.  */
+## This is the target invoked by the top-level Makefile.
 maybe-blessmail: $(BLESSMAIL_TARGET)
 
-/* Install the internal utilities.  Until they are installed, we can
-   just run them directly from lib-src.  */
+## Install the internal utilities.  Until they are installed, we can
+## just run them directly from lib-src.
+## If the chown/chmod commands fail, that is not a big deal.
+## update-game-score will detect at runtime that it is not setuid,
+## and handle things accordingly.
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
@@ -236,9 +235,6 @@ $(DESTDIR)${archlibdir}: all
 	umask 022; $(top_srcdir)/mkinstalldirs $(DESTDIR)${gamedir}; \
 	touch $(DESTDIR)${gamedir}/snake-scores; \
 	touch $(DESTDIR)${gamedir}/tetris-scores
-/* If the following commands fail, that is not a big deal.
-   update-game-score will detect at runtime that it is not setuid,
-   and handle things accordingly. */
 	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score && chmod u+s $(DESTDIR)${archlibdir}/update-game-score; then \
 	  chown ${gameuser} $(DESTDIR)${gamedir}; \
 	  chmod u=rwx,g=rwx,o=rx $(DESTDIR)${gamedir}; \
@@ -289,7 +285,7 @@ maintainer-clean: distclean
 extraclean: maintainer-clean
 	-rm -f *~ \#*
 
-/* Test the contents of the directory.  */
+## Test the contents of the directory.
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
@@ -297,16 +293,16 @@ tags: TAGS
 TAGS: etags${EXEEXT}
 	etags *.[ch]
 
-/* This verifies that the non-ASCII characters in the file \`testfile\'
-   have not been clobbered by whatever means were used to copy and
-   distribute Emacs.  If they were clobbered, all the .elc files were
-   clobbered too.  */
+## This verifies that the non-ASCII characters in the file \`testfile\'
+## have not been clobbered by whatever means were used to copy and
+## distribute Emacs.  If they were clobbered, all the .elc files were
+## clobbered too.
 test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-/* We need the following in order to create a <getopt.h> when the system
-   does not have one that works with the given compiler.  */
+## We need the following in order to create a <getopt.h> when the system
+## does not have one that works with the given compiler.
 GETOPT_H = @GETOPT_H@
 getopt.h: getopt_.h
 	cp $(srcdir)/getopt_.h $@-t
@@ -331,8 +327,8 @@ etags${EXEEXT}: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
 
-/* We depend on etags to assure that parallel makes don\'t write two
-   etags.o files on top of each other.  */
+## We depend on etags to assure that parallel makes do not write two
+## etags.o files on top of each other.
 ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
@@ -355,7 +351,7 @@ b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MOVE) -o movemail
 
-/*  We need to define emacs to get the right version of something (what?).  */
+## We need to define emacs to get the right version of something (what?).
 movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 
@@ -379,3 +375,5 @@ update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
 update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
+
+## Makefile ends here.

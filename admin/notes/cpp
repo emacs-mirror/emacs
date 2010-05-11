@@ -1,11 +1,7 @@
 ttn 2003-04-09
 
 we use a C preprocesor not only in the normal compilation of .c files
-into object files, but also for creating
-
-	src/Makefile
-	lib-src/Makefile
-
+into object files, but also for creating src/Makefile.
 (delimited by comment "start of cpp stuff").  some cpp implementations
 insert whitespace in between tokens.
 
