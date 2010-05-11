@@ -1,3 +1,10 @@
+2010-05-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-extern.el (mm-extern-url): Don't use
+	mm-with-unibyte-current-buffer.
+	(mm-extern-cache-contents): Use with-current-buffer instead of
+	save-excursion + set-buffer.
+
 2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-emacs-mule): Remove.

@@ -67,9 +67,8 @@
 	(coding-system-for-read mm-binary-coding-system))
     (unless url
       (error "URL is not specified"))
-    (mm-with-unibyte-current-buffer
-      (mm-url-insert-file-contents url))
     (mm-disable-multibyte)
+    (mm-url-insert-file-contents url)
     (setq buffer-file-name name)))
 
 (defun mm-extern-anon-ftp (handle)
@@ -125,7 +124,7 @@
 			    (or access-type
 				(error "Couldn't find access type"))))
 			  mm-extern-function-alist)))
-	 buf handles)
+	 handles)
     (unless func
       (error "Access type (%s) is not supported" access-type))
     (mm-with-part handle
@@ -136,8 +135,7 @@
     (unless (bufferp (car handles))
       (mm-destroy-parts handles)
       (error "Multipart external body is not supported"))
-    (save-excursion
-      (set-buffer (setq buf (mm-handle-buffer handles)))
+    (with-current-buffer (mm-handle-buffer handles)
       (let (good)
 	(unwind-protect
 	    (progn
