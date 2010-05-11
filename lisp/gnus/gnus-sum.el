@@ -11508,7 +11508,7 @@ If the prefix argument is negative, tick articles instead."
 	      ((> unmark 0)
 	       (gnus-summary-mark-article-as-unread gnus-unread-mark))
 	      ((= unmark 0)
-	       (gnus-summary-mark-article-as-unread gnus-expirable-mark))
+	       (gnus-summary-mark-article nil gnus-expirable-mark))
 	      (t
 	       (gnus-summary-mark-article-as-unread gnus-ticked-mark)))
 	(setq articles (cdr articles))))
