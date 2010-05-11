@@ -262,9 +262,6 @@ Its value should be an event that has a binding in MENU."
 	   (condition-case nil
 	       (require 'mouse)
 	     (error nil))
-	   (condition-case nil
-	       (x-popup-menu nil choice) ; Get the shortcuts
-	     (error nil))
 	   (tmm-prompt choice))
 	  ;; We just handled a menu keymap and found a command.
 	  (choice
@@ -445,33 +442,30 @@ element of keymap, an `x-popup-menu' argument, or an element of
 `x-popup-menu' argument (when IN-X-MENU is not-nil).
 This function adds the element only if it is not already present.
 It uses the free variable `tmm-table-undef' to keep undefined keys."
-  (let (km str cache plist filter visible enable (event (car elt)))
+  (let (km str plist filter visible enable (event (car elt)))
     (setq elt (cdr elt))
     (if (eq elt 'undefined)
 	(setq tmm-table-undef (cons (cons event nil) tmm-table-undef))
       (unless (assoc event tmm-table-undef)
 	(cond ((if (listp elt)
 		   (or (keymapp elt) (eq (car elt) 'lambda))
-		 (fboundp elt))
+		 (and (symbolp elt) (fboundp elt)))
 	       (setq km elt))
 
 	      ((if (listp (cdr-safe elt))
 		   (or (keymapp (cdr-safe elt))
 		       (eq (car (cdr-safe elt)) 'lambda))
-		 (fboundp (cdr-safe elt)))
+		 (and (symbolp (cdr-safe elt)) (fboundp (cdr-safe elt))))
 	       (setq km (cdr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
 	      ((if (listp (cdr-safe (cdr-safe elt)))
 		   (or (keymapp (cdr-safe (cdr-safe elt)))
 		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
-		 (fboundp (cdr-safe (cdr-safe elt))))
+		 (and (symbolp (cdr-safe (cdr-safe elt)))
+			       (fboundp (cdr-safe (cdr-safe elt)))))
 	       (setq km (cddr elt))
-	       (and (stringp (car elt)) (setq str (car elt)))
-	       (and str
-		    (stringp (cdr-safe (cadr elt))) ; keyseq cache
-		    (setq cache (cdr (cadr elt)))
-		    cache (setq str (concat str cache))))
+	       (and (stringp (car elt)) (setq str (car elt))))
 
 	      ((eq (car-safe elt) 'menu-item)
 	       ;; (menu-item TITLE COMMAND KEY ...)
@@ -488,30 +482,34 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 		   (setq km (and (eval visible) km)))
 	       (setq enable (plist-get plist :enable))
 	       (if enable
-                   (setq km (if (eval enable) km 'ignore)))
-	       (and str
-		    (consp (nth 3 elt))
-		    (stringp (cdr (nth 3 elt))) ; keyseq cache
-		    (setq cache (cdr (nth 3 elt)))
-		    cache
-		    (setq str (concat str cache))))
+                   (setq km (if (eval enable) km 'ignore))))
 
 	      ((if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
 		   (or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
 		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
-		 (fboundp (cdr-safe (cdr-safe (cdr-safe elt)))))
+		 (and (symbolp (cdr-safe (cdr-safe (cdr-safe elt))))
+		      (fboundp (cdr-safe (cdr-safe (cdr-safe elt))))))
 					 ; New style of easy-menu
 	       (setq km (cdr (cddr elt)))
-	       (and (stringp (car elt)) (setq str (car elt)))
-	       (and str
-		    (stringp (cdr-safe (car (cddr elt)))) ; keyseq cache
-		    (setq cache (cdr (car (cdr (cdr elt)))))
-		    cache (setq str (concat str cache))))
+	       (and (stringp (car elt)) (setq str (car elt))))
 
 	      ((stringp event)		; x-popup or x-popup element
 	       (if (or in-x-menu (stringp (car-safe elt)))
 		   (setq str event event nil km elt)
-		 (setq str event event nil km (cons 'keymap elt))))))
+		 (setq str event event nil km (cons 'keymap elt)))))
+        (unless (eq km 'ignore)
+          (let ((binding (where-is-internal km nil t)))
+            (when binding
+              (setq binding (key-description binding))
+              ;; Try to align the keybindings.
+              (let ((colwidth (min 30 (- (/ (window-width) 2) 10))))
+                (setq str
+                      (concat str
+                              (make-string (max 2 (- colwidth
+                                                     (string-width str)
+                                                     (string-width binding)))
+                                           ?\s)
+                              binding)))))))
       (and km (stringp km) (setq str km))
       ;; Verify that the command is enabled;
       ;; if not, don't mention it.

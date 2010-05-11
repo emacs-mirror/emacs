@@ -1,3 +1,8 @@
+2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Don't try to precompute bindings.
+	(tmm-get-keymap): Compute shortcuts (bug#6171).
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
