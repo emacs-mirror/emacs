@@ -1,4 +1,4 @@
-2010-05-11  Karel Klic  <kklic@redhat.com>  (tiny change)
+2010-05-11  Karel Klic  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
 	definining M17N_FLT_USE_NEW_FEATURE.
