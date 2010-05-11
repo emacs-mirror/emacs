@@ -1,3 +1,8 @@
+2010-05-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dirtrack.el (dirtrackp): Remove defcustom; don't make automatically
+	buffer-local (it's an obsolete alias for `dirtrack-mode') (bug#6173).
+
 2010-05-11  Juri Linkov  <juri@jurta.org>
 
 	* scroll-all.el (scroll-all-check-to-scroll):
