@@ -237,7 +237,7 @@
 	* Version 23.2 released.
 
 2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Highlight vendor specific properties.
 	* textmodes/css-mode.el (css-proprietary-nmstart-re): New var.
@@ -491,7 +491,7 @@
 	(ede-dired-add-to-target): Use dolist.
 
 2010-05-01  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
-	    Michael Albinus  <michael.albinus@gmx.de>
+            Michael Albinus  <michael.albinus@gmx.de>
 
 	Implement compression for inline methods.
 
@@ -1563,7 +1563,7 @@
 	values.
 
 2010-03-29  Phil Hagelberg  <phil@evri.com>
-	    Chong Yidong  <cyd@stupidchicken.com>
+            Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el: Extend progress reporters to perform "spinning".
 	(progress-reporter-update, progress-reporter-do-update):
@@ -5206,7 +5206,7 @@
 	* Makefile.in (ELCFILES): Adapt to subword.el move.
 
 2009-11-21  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bookmark.el (bookmark-bmenu-bookmark-column): Remove var.
 	(bookmark-bmenu-list): Save name on `bookmark-name-prop' text-prop.
@@ -9292,7 +9292,7 @@
 	indent buffer only if called interactively (Bug#4452).
 
 2009-09-19  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	This fixes bug#4197 (merged to bug#865, though not identical).
 	* server.el (server-auth-dir): Add docstring note about FAT32.
@@ -10109,7 +10109,7 @@
 	Don't call substitute-in-file-name on diary-file.
 
 2009-09-03  Eduard Wiebe  <usenet@pusto.de>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/footnote.el (footnote-prefix): Make it a defcustom.
 	(footnote-mode-map): Move initialization into the declaration.
@@ -11220,7 +11220,7 @@
 	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode entry.
 
 2009-08-14  Daniel Colascione  <dan.colascione@gmail.com>
-	    Karl Landstrom  <karl.landstrom@brgeight.se>
+            Karl Landstrom  <karl.landstrom@brgeight.se>
 
 	* progmodes/js.el: New file.
 
@@ -12987,7 +12987,7 @@
 	XZ is the successor to LZMA: <http://tukaani.org/xz/>
 
 2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
-	    Nick Roberts  <nickrob@snap.net.nz>
+            Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el: Pull further modified changes from Dmitry's
 	repository (http://sphinx.net.ru/hg/gdb-mi/).

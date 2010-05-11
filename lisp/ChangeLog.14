@@ -1029,7 +1029,7 @@
 
 	* paren.el (show-paren-function):
 	* simple.el (kill-forward-chars, kill-backward-chars):
-	 Use (+/- (point) N), instead of `forward-point'.
+	Use (+/- (point) N), instead of `forward-point'.
 
 2009-03-19  Glenn Morris  <rgm@gnu.org>
 
@@ -3012,12 +3012,12 @@
 	Don't activate node nil.  (Bug#1569)
 
 2009-01-22  Paul Reilly  <pmr@pajato.com>
-	    Henrik Enberg  <enberg@printf.se>
-	    Alex Schroeder  <alex@gnu.org>
-	    Chong Yidong  <cyd@stupidchicken.com>
-	    Richard M Stallman  <rms@gnu.org>
-	    Glenn Morris  <rgm@gnu.org>
-	    Juanma Barranquero  <lekktu@gmail.com>
+            Henrik Enberg  <enberg@printf.se>
+            Alex Schroeder  <alex@gnu.org>
+            Chong Yidong  <cyd@stupidchicken.com>
+            Richard M Stallman  <rms@gnu.org>
+            Glenn Morris  <rgm@gnu.org>
+            Juanma Barranquero  <lekktu@gmail.com>
 
 	* mail/rmail.el: Code implementing Rmail-mbox functionality.
 	(rmail-attribute-header, rmail-keyword-header)
@@ -4310,7 +4310,7 @@
 	was orderly adjusted, nil otherwise.
 
 2008-12-12  Juanma Barranquero  <lekktu@gmail.com>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-sentinel): Uncomment code to delete connection file.
 	(server-start): Save the connection file in the server property list.
@@ -4369,7 +4369,7 @@
 	terminal variable assignment.
 
 2008-12-10  Yukihiro Matsumoto  <matz@ruby-lang.org>
-	    Nobuyoshi Nakada  <nobu@ruby-lang.org>
+            Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
 	* progmodes/ruby-mode.el: New file.
 
@@ -5599,7 +5599,7 @@
 	New aliases, to satisfy `define-derived-mode' expectations.
 
 2008-11-15  Glenn Morris  <rgm@gnu.org>
-	    Martin Rudalics  <rudalics@gmx.at>
+            Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-function-advised-original): New.
 	(find-function-C-source, find-function-noselect):
@@ -10308,8 +10308,8 @@
 	(newsticker--treeview-propertize-tag): Show item title in tooltip.
 
 2008-06-20  Martin Blais  <blais@furius.ca>
-	    Stefan Merten  <smerten@oekonux.de>
-	    David Goodger  <goodger@python.org>
+            Stefan Merten  <smerten@oekonux.de>
+            David Goodger  <goodger@python.org>
 
 	* textmodes/rst.el: New file.
 
@@ -10627,7 +10627,7 @@
 	* term/linux.el (terminal-init-linux): Load t-mouse.
 
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-	    Drew Adams  <drew.adams@oracle.com>
+            Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-breadcrumbs-depth): New var.
 	(Info-insert-breadcrumbs): New function.
@@ -18798,7 +18798,7 @@
 	for useful options.
 
 2008-03-01  Dan Nicolaescu  <dann@ics.uci.edu>
-	    Glenn Morris  <rgm@gnu.org>
+            Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory)
 	(byte-compile-file, batch-byte-compile, batch-byte-compile-file):

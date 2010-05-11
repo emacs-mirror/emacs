@@ -1,3 +1,8 @@
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (LIBS_SYSTEM): Edit to -lxext -lsys.
+	* sed3x.inp: New file.
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp, sed3v2.inp (LIBS_SYSTEM): Edit to empty.

@@ -322,7 +322,6 @@ LD=ld
 #endif
 
 #ifdef MSDOS
-LIBS_SYSTEM = MSDOS_LIBS_SYSTEM
 #ifdef HAVE_X_WINDOWS
 MSDOS_OBJ = dosfns.o msdos.o
 #else
