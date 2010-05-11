@@ -1,3 +1,11 @@
+2010-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(SRC)/w32.h.
+
+	* w32fns.c: Include w32.h.
+	(Fw32_shell_execute): Decode the error message before passing it
+	to `error'.  (Bug#6126)
+
 2010-05-11  Karel Klic  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
