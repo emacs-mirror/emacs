@@ -1,5 +1,10 @@
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* make-dist (msdos): No more mainmake.
+
+	* configure.in: Generate lib-src/Makefile directly, do not run cpp.
+	* config.bat: Do not run cpp on lib-src/Makefile.in.
+
 	* config.bat [HAVE_X11]: Run sed3x.inp on lib-src/Makefile.
 
 2010-05-10  Glenn Morris  <rgm@gnu.org>
