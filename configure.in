@@ -3050,7 +3050,6 @@ AC_SUBST(GNUSTEP_MAKEFILES)
 AC_SUBST(GNUSTEP_SYSTEM_HEADERS)
 AC_SUBST(GNUSTEP_SYSTEM_LIBRARIES)
 AC_SUBST(GNU_OBJC_CFLAGS)
-AC_SUBST(LIB_SRC_EXTRA_INSTALLABLES)
 AC_SUBST(OTHER_FILES)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
@@ -3232,6 +3231,35 @@ else
   LD_SWITCH_SYSTEM_EXTRA=
 fi
 AC_SUBST(LD_SWITCH_SYSTEM_EXTRA)
+
+
+LIB_GCC=
+if test "x$GCC" = "xyes"; then
+
+  case "$opsys" in
+    ## cygwin: don't link against static libgcc.
+    cygwin|freebsd|netbsd|openbsd) LIB_GCC= ;;
+
+    gnu-*)
+      ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
+      ## build on ARM EABI under GNU/Linux.  (Bug#5518)
+      ## Note that m/arm.h never bothered to undefine LIB_GCC first.
+      if test "$machine" = "arm"; then
+        LIB_GCC="-lgcc_s"
+      else
+        ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
+        ## immediately undefine it again and redefine it to empty.
+        ## Was the C_SWITCH_X_SITE part really necessary?
+##      LIB_GCC=`$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
+        LIB_GCC=
+      fi
+      ;;
+
+    ## Ask GCC where to find libgcc.a.
+    *) LIB_GCC=`$(CC) -print-libgcc-file-name 2> /dev/null` ;;
+  esac
+fi                              dnl if $GCC
+AC_SUBST(LIB_GCC)
 
 
 AH_TOP([/* GNU Emacs site configuration template file.

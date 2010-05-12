@@ -30,13 +30,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-#undef LIB_GCC
-#define LIB_GCC
-
 #define HAVE_GETLOADAVG 1
 #define DECLARE_GETPWUID_WITH_UID_T
 
-/* this silences a few compilation warnings */
+/* This silences a few compilation warnings.  */
 #undef BSD_SYSTEM
 #if __FreeBSD__ == 1
 #define BSD_SYSTEM 199103
@@ -64,23 +61,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    successfully after processing (for example with CRs added if the
    terminal is set up that way which it is here).  The same bytes will
    be seen again in a later read(2), without the CRs.  */
-
 #define BROKEN_PTY_READ_AFTER_EAGAIN 1
 
 /* Tell that garbage collector that setjmp is known to save all
-   registers relevant for conservative garbage collection in the
-   jmp_buf.  */
-
+   registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1
 
-/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
-   stack.  */
-
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK 	GC_MAKE_GCPROS_NOOPS
 
 /* Define USE_MMAP_FOR_BUFFERS to let Emacs use mmap(2) to allocate
    buffer text.  This overrides REL_ALLOC.  */
-
 #define USE_MMAP_FOR_BUFFERS	1
 
 /* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb

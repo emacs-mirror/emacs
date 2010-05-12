@@ -1,6 +1,7 @@
 /* Machine description file for the alpha chip.
-   Copyright (C) 1994, 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1994, 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 Author: Rainer Schoepf
 (according to authors.el)
@@ -30,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
-
 /* __alpha defined automatically */
 
 
@@ -75,12 +75,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else  /* not __ELF__ */
 
 /* Describe layout of the address space in an executing process.  */
-
 #define TEXT_START    0x120000000
 #define DATA_START    0x140000000
 
 /* The program to be used for unexec. */
-
 #define UNEXEC unexalpha.o
 
 #endif /* __ELF__ */

@@ -21,10 +21,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/*
- *	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.
- */
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 
 /* #define USG5 */
 /* #define USG */
@@ -34,7 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define BSD_SYSTEM */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
+   It sets the Lisp variable system-type.  */
 
 #define SYSTEM_TYPE "berkeley-unix"
 
@@ -58,55 +56,46 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Another method of doing input is planned but not implemented.
    It would have Emacs fork off a separate process
    to read the input and send it to the true Emacs process
-   through a pipe. */
-
+   through a pipe.  */
 #define INTERRUPT_INPUT
 
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-
+   if system supports pty's.  'a' means it is /dev/ptya0.  */
 #define FIRST_PTY_LETTER 'a'
 
-/*
- *	Define HAVE_TERMIOS if the system provides POSIX-style
- *	functions and macros for terminal control.
- *
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- *
- *	Do not define both.  HAVE_TERMIOS is preferred, if it is
- *	supported on your system.
- */
+/* Define HAVE_TERMIOS if the system provides POSIX-style
+   functions and macros for terminal control.
+
+   Define HAVE_TERMIO if the system provides sysV-style ioctls
+   for terminal control.
+
+   Do not define both.  HAVE_TERMIOS is preferred, if it is
+   supported on your system.  */
 
 #define HAVE_TERMIOS
 /* #define HAVE_TERMIO */
 
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
+/* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
+/* Define this symbol if your system has the functions bcopy, etc.  */
 #define BSTRING
 
 /* subprocesses should be undefined if you do NOT want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
-   Currently only MSDOS does not support this. */
+   Currently only MSDOS does not support this.  */
 
 /* #undef subprocesses */
 
 /* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
+   preprocessor symbol "COFF".  */
 
 /* #define COFF */
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
-
 #define CLASH_DETECTION
 
 /* Define this if your operating system declares signal handlers to
@@ -127,12 +116,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* ============================================================ */
 
-/* Here, add any special hacks needed
-   to make Emacs work on this system.  For example,
-   you might define certain system call names that don't
-   exist on your system, or that do different things on
-   your system and must be used only through an encapsulation
-   (Which you should place, by convention, in sysdep.c).  */
+/* Here, add any special hacks needed to make Emacs work on this
+   system.  For example, you might define certain system call names
+   that don't exist on your system, or that do different things on
+   your system and must be used only through an encapsulation (which
+   you should place, by convention, in sysdep.c).  */
 
 /* If the system's imake configuration file defines `NeedWidePrototypes'
    as `NO', we must define NARROWPROTO manually.  Such a define is

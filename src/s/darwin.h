@@ -19,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/*	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.  */
-
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 #define BSD4_2
 /* BSD4_3 and BSD4_4 are already defined in sys/param.h */
 #define BSD_SYSTEM
@@ -29,12 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* More specific than the above two.  We cannot use __APPLE__ as this
    may not be defined on non-OSX Darwin, and we cannot define DARWIN
    here because Panther and lower CoreFoundation.h uses DARWIN to
-   distinguish OS X from pure Darwin. */
+   distinguish OS X from pure Darwin.  */
 #define DARWIN_OS
 
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
+   It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "darwin"
 
 /* Emacs can read input using SIGIO and buffering characters itself,
@@ -64,26 +63,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   if system supports pty's.  'a' means it is /dev/ptya0  */
 #define FIRST_PTY_LETTER 'p'
 
-/*
- *	Define HAVE_TERMIOS if the system provides POSIX-style
- *	functions and macros for terminal control.
- *
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- *
- *	Do not define both.  HAVE_TERMIOS is preferred, if it is
- *	supported on your system.
- */
+/* Define HAVE_TERMIOS if the system provides POSIX-style
+   functions and macros for terminal control.
+
+   Define HAVE_TERMIO if the system provides sysV-style ioctls
+   for terminal control.
+
+   Do not define both.  HAVE_TERMIOS is preferred, if it is supported
+   on your system. */
 #define HAVE_TERMIOS
 #define NO_TERMIO
 
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- *      Note: PTYs are broken on darwin <6.  Use at your own risk.
- */
+/* Define HAVE_PTYS if the system supports pty devices.
+   Note: PTYs are broken on darwin <6.  Use at your own risk.  */
 #define HAVE_PTYS
-/* Run only once.  We need a `for'-loop because the code uses
-   `continue'.  */
+/* Run only once.  We need a `for'-loop because the code uses `continue'.  */
 #define PTY_ITERATION	for (i = 0; i < 1; i++)
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
@@ -101,11 +95,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     }								\
   while (0)
 
-/**
- * PTYs only work correctly on Darwin 7 or higher.  So make the
- * default for process-connection-type dependent on the kernel
- * version.
- */
+/* PTYs only work correctly on Darwin 7 or higher.  So make the default
+   for process-connection-type dependent on the kernel version.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
 /* Define this symbol if your system has the functions bcopy, etc. */
@@ -123,12 +114,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Used in dispnew.c.  Copied from freebsd.h. */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-/* System uses OXTABS instead of the expected TAB3.  (Copied from
-   bsd386.h.)  */
+/* System uses OXTABS instead of the expected TAB3.  (Copied from bsd386.h.)  */
 #define TAB3 OXTABS
 
-/* Darwin ld insists on the use of malloc routines in the System
-   framework.  */
+/* Darwin ld insists on the use of malloc routines in the System framework.  */
 #define SYSTEM_MALLOC
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
@@ -154,8 +143,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define malloc unexec_malloc
 #define realloc unexec_realloc
 #define free unexec_free
-/* Don't use posix_memalign because it is not compatible with
-   unexmacosx.c.  */
+/* Don't use posix_memalign because it is not compatible with unexmacosx.c.  */
 #undef HAVE_POSIX_MEMALIGN
 #endif
 
@@ -183,8 +171,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
 
-/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
-   stack.  */
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS
 
 /* arch-tag: 481d443d-4f89-43ea-b5fb-49706d95fa41

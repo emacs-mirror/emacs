@@ -1,6 +1,7 @@
 /* machine description file for IBM S390 in 64-bit mode
-   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* This file was made by copying the significant parts of amdx86-64.h
    into ibms390.h.  */
-
 
 /* Used for machine IBM s390 64 bits with opsys gnu-linux.  */
 #define BITS_PER_LONG 64

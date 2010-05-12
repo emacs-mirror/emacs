@@ -1,3 +1,9 @@
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIB_SRC_EXTRA_INSTALLABLES): Remove, unused.
+
+	* configure.in (LIB_GCC): New output variable.
+
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist (msdos): No more mainmake.
