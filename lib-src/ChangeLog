@@ -1,3 +1,7 @@
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INSTALLABLES): Remove @LIB_SRC_EXTRA_INSTALLABLES@.
+
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (.m.o): Remove, there are no .m files.

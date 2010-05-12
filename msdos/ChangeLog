@@ -1,5 +1,7 @@
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* sed3v2.inp (INSTALLABLES): No more @LIB_SRC_EXTRA_INSTALLABLES@.
+
 	* sed1v2.inp (LIB_GCC): Edit to -Lgcc.
 
 2010-05-11  Glenn Morris  <rgm@gnu.org>
