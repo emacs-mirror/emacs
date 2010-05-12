@@ -1,3 +1,23 @@
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (YMF_PASS_LDFLAGS, LD, LINKER): Simplify the logic.
+	(LINKER_WAS_SPECIFIED): Remove.
+
+	* Makefile.in (LIB_GCC): Set using configure, not cpp.
+	(GNULIB_VAR) [!ORDINARY_LINK]: Always set to $LIB_GCC.
+	* m/arm.h (LIB_GCC) [GNU_LINUX]:
+	* s/cygwin.h (LIB_GCC):
+	* s/freebsd.h (LIB_GCC):
+	* s/gnu-linux.h (LIB_GCC):
+	* s/msdos.h (LIB_GCC):
+	* s/netbsd.h (LIB_GCC):
+	Move to configure.
+
+2010-05-11  Karel Klic  <kklic@redhat.com>
+
+	* ftfont.c: Fix incorrect parentheses of #if condition for
+	definining M17N_FLT_USE_NEW_FEATURE.
+
 2010-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBS_SYSTEM) [MSDOS]: Do not reset.

@@ -143,13 +143,6 @@ be on a single line."
   :group 'dirtrack
   :type  'string)
 
-(defcustom dirtrackp t
-  "If non-nil, directory tracking via `dirtrack' is enabled."
-  :group 'dirtrack
-  :type  'boolean)
-
-(make-variable-buffer-local 'dirtrackp)
-
 (defcustom dirtrack-directory-function
   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       'dirtrack-windows-directory-function

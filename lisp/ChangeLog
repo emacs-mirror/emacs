@@ -1,3 +1,34 @@
+2010-05-12  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):
+	Push the mark at the start of these functions when appropriate.
+
+2010-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-cycle-threshold): New custom var.
+	(completion--do-completion): Use it.
+	(minibuffer-complete): Use cycling if appropriate.
+
+2010-05-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dirtrack.el (dirtrackp): Remove defcustom; don't make automatically
+	buffer-local (it's an obsolete alias for `dirtrack-mode') (bug#6173).
+
+2010-05-11  Juri Linkov  <juri@jurta.org>
+
+	* scroll-all.el (scroll-all-check-to-scroll):
+	Add `scroll-up-command' and `scroll-down-command' (bug#6164).
+
+2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* iimage.el (iimage-mode-map): Move initialization into declaration.
+	(iimage-mode-buffer): Use with-silent-modifications.
+	Simplify calling convention.  Adjust callers.
+	(iimage-mode): Don't run hook redundantly.
+
+	* minibuffer.el (completion-pcm--pattern->regex):
+	Fix last change (bug#6160).
+
 2010-05-10  Juri Linkov  <juri@jurta.org>
 
 	Remove nodes visited during Isearch from the Info history.
@@ -11,8 +42,8 @@
 2010-05-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-file-attributes-with-stat): Add space in
-	format string, in order to work around a bug in pdksh.  Reported
-	by Gilles Pion <gpion@lfdj.com>.
+	format string, in order to work around a bug in pdksh.
+	Reported by Gilles Pion <gpion@lfdj.com>.
 	(tramp-handle-verify-visited-file-modtime): Do not send a command
 	when the connection is not established.
 	(tramp-handle-set-file-times): Simplify the check for utc.
@@ -794,6 +825,8 @@
 	Add file-selinux-context.
 
 2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make the log-edit comments use RFC822 format throughout.
 
 	* vc.el (vc-checkin, vc-modify-change-comment):
 	Adjust to new vc-start/finish-logentry.

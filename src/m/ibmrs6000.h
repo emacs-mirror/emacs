@@ -1,6 +1,7 @@
 /* R2 AIX machine/system dependent defines
-   Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-                 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
-
 #define TEXT_START 0x10000000
 #define DATA_START 0x20000000
 #define WORDS_BIG_ENDIAN

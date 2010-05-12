@@ -76,6 +76,9 @@
 ;;     the provided string (as is the case in filecache.el), in which
 ;;     case partial-completion (for example) doesn't make any sense
 ;;     and neither does the completions-first-difference highlight.
+;;   - indicate how to display the completions in *Completions* (turn
+;;     \n into something else, add special boundaries between
+;;     completions).  E.g. when completing from the kill-ring.
 
 ;; - make partial-completion-mode obsolete:
 ;;   - (?) <foo.h> style completion for file names.
@@ -489,6 +492,18 @@ Moves point to the end of the new text."
   (insert newtext)
   (delete-region (point) (+ (point) (- end beg))))
 
+(defcustom completion-cycle-threshold nil
+  "Number of completion candidates below which cycling is used.
+Depending on this setting `minibuffer-complete' may use cycling,
+like `minibuffer-force-complete'.
+If nil, cycling is never used.
+If t, cycling is always used.
+If an integer, cycling is used as soon as there are fewer completion
+candidates than this number."
+  :type '(choice (const :tag "No cycling" nil)
+          (const :tag "Always cycle" t)
+          (integer :tag "Threshold")))
+
 (defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
 M = completion was performed, the text was Modified.
@@ -548,14 +563,43 @@ E = after completion we now have an Exact match.
           ;; It did find a match.  Do we match some possibility exactly now?
           (let ((exact (test-completion completion
 					minibuffer-completion-table
-					minibuffer-completion-predicate)))
-            (if completed
+					minibuffer-completion-predicate))
+                (comps
+                 ;; Check to see if we want to do cycling.  We do it
+                 ;; here, after having performed the normal completion,
+                 ;; so as to take advantage of the difference between
+                 ;; try-completion and all-completions, for things
+                 ;; like completion-ignored-extensions.
+                 (when (and completion-cycle-threshold
+                            ;; Check that the completion didn't make
+                            ;; us jump to a different boundary.
+                            (or (not completed)
+                                (< (car (completion-boundaries
+                                         (substring completion 0 comp-pos)
+                                         minibuffer-completion-table
+                                         minibuffer-completion-predicate
+                                         ""))
+                                   comp-pos)))
+                   (completion-all-sorted-completions))))
+            (setq completion-all-sorted-completions nil)
+            (cond
+             ((and (not (ignore-errors
+                          ;; This signal an (intended) error if comps is too
+                          ;; short or if completion-cycle-threshold is t.
+                          (consp (nthcdr completion-cycle-threshold comps))))
+                   ;; More than 1, so there's something to cycle.
+                   (consp (cdr comps)))
+              ;; Fewer than completion-cycle-threshold remaining
+              ;; completions: let's cycle.
+              (setq completed t exact t)
+              (setq completion-all-sorted-completions comps)
+              (minibuffer-force-complete))
+             (completed
                 ;; We could also decide to refresh the completions,
                 ;; if they're displayed (and assuming there are
                 ;; completions left).
-                (minibuffer-hide-completions)
+              (minibuffer-hide-completions))
               ;; Show the completion table, if requested.
-              (cond
                ((not exact)
                 (if (case completion-auto-help
                       (lazy (eq this-command last-command))
@@ -566,7 +610,7 @@ E = after completion we now have an Exact match.
                ;; means we've already given a "Next char not unique" message
                ;; and the user's hit TAB again, so now we give him help.
                ((eq this-command last-command)
-                (if completion-auto-help (minibuffer-completion-help)))))
+              (if completion-auto-help (minibuffer-completion-help))))
 
             (minibuffer--bitset completed t exact))))))))
 
@@ -580,21 +624,26 @@ scroll the window of possible completions."
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
   (unless (eq this-command last-command)
+    (setq completion-all-sorted-completions nil)
     (setq minibuffer-scroll-window nil))
 
-  (let ((window minibuffer-scroll-window))
+  (cond
     ;; If there's a fresh completion window with a live buffer,
     ;; and this command is repeated, scroll that window.
-    (if (window-live-p window)
+   ((window-live-p minibuffer-scroll-window)
+    (let ((window minibuffer-scroll-window))
         (with-current-buffer (window-buffer window)
           (if (pos-visible-in-window-p (point-max) window)
 	      ;; If end is in view, scroll up to the beginning.
 	      (set-window-start window (point-min) nil)
 	    ;; Else scroll down one screen.
 	    (scroll-other-window))
-	  nil)
-
-      (case (completion--do-completion)
+        nil)))
+   ;; If we're cycling, keep on cycling.
+   (completion-all-sorted-completions
+    (minibuffer-force-complete)
+    t)
+   (t (case (completion--do-completion)
         (#b000 nil)
         (#b001 (minibuffer-message "Sole completion")
                t)
@@ -1835,8 +1884,8 @@ or a symbol chosen among `any', `star', `point', `prefix'."
                   (lambda (x)
                     (cond
                      ((stringp x) (regexp-quote x))
-                     ((if (consp group) (memq x group) group)
-                      "\\(.*?\\)" ".*?")))
+                     ((if (consp group) (memq x group) group) "\\(.*?\\)")
+		     (t ".*?")))
                   pattern
                   ""))))
     ;; Avoid pathological backtracking.
