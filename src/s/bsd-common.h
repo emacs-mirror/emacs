@@ -19,8 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/*      Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.   */
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.   */
 
 /* We give these symbols the numeric values found in <sys/param.h> to
    avoid warnings about redefined macros.  */
@@ -84,8 +84,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The file containing the kernel's symbol table is called /vmunix.  */
 #define KERNEL_FILE "/vmunix"
 
-/* The symbol in the kernel where the load average is found
-   is named _avenrun.  */
+/* The kernel symbol where the load average is found is named _avenrun.  */
 #define LDAV_SYMBOL "_avenrun"
 
 /* Send signals to subprocesses by "typing" special chars at them.  */

@@ -21,56 +21,39 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define RUN_TIME_REMAP
 
-/*
- *	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.
- */
-
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 #define USG				/* System III, System V, etc */
-
 #define USG5
-
 #define HPUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-
+   It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "hpux"
 
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
-
+   if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'
 
-/*
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- */
-
+/* Define HAVE_TERMIO if the system provides sysV-style ioctls
+   for terminal control.  */
 #define HAVE_TERMIO
 
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
+/* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
 #define HAVE_SOCKETS
 
 /* Define this symbol if your system has the functions bcopy, etc.
- * s800 and later versions of s300 (s200) kernels have equivalents
- * of the BSTRING functions of BSD.  If your s200 kernel doesn't have
- * em comment out this section.
- */
-
+   s800 and later versions of s300 (s200) kernels have equivalents
+   of the BSTRING functions of BSD.  If your s200 kernel doesn't have
+   em comment out this section.  */
 #define BSTRING
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
-
 #define CLASH_DETECTION
 
 /* The symbol in the kernel where the load average is found
@@ -80,11 +63,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* In hpux, the symbol SIGIO is defined, but the feature
    doesn't work in the way Emacs needs it to.  */
-
 #define BROKEN_SIGIO
 
 /* Some additional system facilities exist.  */
-
 #define HAVE_PERROR  /* Delete this line for version 6.  */
 
 #define UNEXEC unexhp9k800.o
@@ -112,7 +93,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    version number A.09.05.
 
    You can fix the math library by installing patch number PHSS_4630.
-   But we can fix it more reliably for Emacs like this. */
+   But we can fix it more reliably for Emacs like this.  */
 #undef HAVE_RINT
 
 /* We have to go this route, rather than hpux9's approach of renaming the
@@ -129,8 +110,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
-   HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
-   using GCC.  */
+   HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20 using GCC.  */
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
@@ -145,7 +125,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
    code will not be sharable; but that's better than failing completely.  */
-
 #define NO_REMAP
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
@@ -154,35 +133,29 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    Otherwise Emacs assumes that text space precedes data space,
    numerically.  */
-
 #define VIRT_ADDR_VARIES
 
-/* the data segment on this machine always starts at address 0x40000000. */
-
+/* The data segment on this machine always starts at address 0x40000000.  */
 #define DATA_SEG_BITS 0x40000000
 
 #define DATA_START    0x40000000
 #define TEXT_START    0x00000000
 
 /* Data type of load average, as read out of kmem.  */
-
 #define LOAD_AVE_TYPE double
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
-
 #define LOAD_AVE_CVT(x) ((int) (x * 100.0))
 
-/* The symbol in the kernel where the load average is found
-   is named _avenrun.  At this time there are two major flavors
-   of hp-ux (there is the s800 and s300 (s200) flavors).  The
-   differences are thusly moved to the corresponding machine description file.
-*/
+/* The kernel symbol where the load average is found is named _avenrun.
+   At this time there are two major flavors of hp-ux (there is the s800
+   and s300 (s200) flavors).  The differences are thusly moved to the
+   corresponding machine description file.  */
 
-/* no underscore please */
+/* No underscore please.  */
 #define LDAV_SYMBOL "avenrun"
 
-/* On USG systems these have different names. */
-
+/* On USG systems these have different names.  */
 #define index strchr
 #define rindex strrchr
 
