@@ -1,5 +1,11 @@
 2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* message.el (message-forward-make-body-plain)
+	(message-forward-make-body-mml): Use mm-multibyte-string-p instead of
+	multibyte-string-p.
+
+2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* message.el (message-forward-make-body-mml): Assume original message
 	is multibyte string; error on unibyte.
 	(message-forward-make-body-plain): Ditto; don't add excessive newline
