@@ -140,9 +140,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* !_IO_STDIO_H && ! __UCLIBC__ */
 #endif /* emacs */
 
-/* Ask GCC where to find libgcc.a.  */
-#define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
-
 #ifdef emacs
 #define INTERRUPT_INPUT
 #endif
@@ -150,9 +147,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
-
-#undef LIB_GCC
-#define LIB_GCC
 
 #define UNEXEC unexelf.o
 

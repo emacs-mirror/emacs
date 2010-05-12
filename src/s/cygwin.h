@@ -127,9 +127,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
 #define G_SLICE_ALWAYS_MALLOC
 
-/* Don't link against static libgcc */
-#define LIB_GCC
-
 /* the end */
 
 /* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b

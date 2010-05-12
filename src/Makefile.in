@@ -91,6 +91,9 @@ TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTE
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
 
+## Where to find libgcc.a, if using gcc and necessary.
+LIB_GCC=@LIB_GCC@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -258,6 +261,8 @@ LIBX_OTHER=@LIBX_OTHER@
 #endif /* not HAVE_X_WINDOWS */
 
 #ifndef ORDINARY_LINK
+GNULIB_VAR = $(LIB_GCC)
+
 /* Fix linking if compiled with GCC.  */
 #ifdef __GNUC__
 
@@ -278,13 +283,6 @@ LIBX_OTHER=@LIBX_OTHER@
 #define LINKER $(CC) -nostdlib
 #endif
 
-#ifndef LIB_GCC
-/* Ask GCC where to find libgcc.a.  */
-#define LIB_GCC `$(CC) -print-libgcc-file-name`
-#endif /* not LIB_GCC */
-
-GNULIB_VAR = LIB_GCC
-
 #ifndef LINKER_WAS_SPECIFIED
 /* GCC passes any argument prefixed with -Xlinker directly to the
    linker.  See prefix-args.c for an explanation of why we do not do
@@ -296,10 +294,6 @@ GNULIB_VAR = LIB_GCC
 #define YMF_PASS_LDFLAGS(flags) flags
 #endif
 
-#else /* not __GNUC__ */
-GNULIB_VAR =
-
-#endif /* not __GNUC__ */
 #endif /* not ORDINARY_LINK */
 
 #ifdef ORDINARY_LINK

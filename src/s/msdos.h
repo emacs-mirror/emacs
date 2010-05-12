@@ -95,7 +95,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define ORDINARY_LINK
 
 /* command.com does not understand `...` so we define this.  */
-#define LIB_GCC -Lgcc
 #define SEPCHAR ';'
 
 #define NULL_DEVICE "nul"

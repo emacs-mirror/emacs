@@ -26,9 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-#undef LIB_GCC
-#define LIB_GCC
-
 #define AMPERSAND_FULL_NAME
 
 /* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
