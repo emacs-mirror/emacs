@@ -1,0 +1,51 @@
+This is the imagemagick branch of Emacs. Imagemagick can now be used
+to load many new image formats, and also do useful transforms like
+scaling and rotation.
+
+This file will attempt to contain draft NEWS, Changelog and manual
+entries for the new functionality. 
+
+TODO
+- complete documentation drafts below
+- test with more systems, only tested on Fedora 12 so far, and the
+libmagick that ships it.
+- fix inconsistencys with spelling of imagemagick in the src
+- report number of images in image bundle types somehow
+- probably add pdf to inhibited types
+- inhibit types is defconst should probably be defcustom
+- decide what to do with some uncommitted imagemagick support
+  functions for image size etc.
+  
+
+* NEWS entry
+** ImageMagick support
+It is now possible to use the Imagemagick library to load many new
+image formats in Emacs.
+
+To enable, use the following configure option:
+--with-imagemagick
+
+The new function (imagemagick-types) returns a list of image file
+extensions that your installation of imagemagick supports.
+
+The function (imagemagic-register-types) will enable the imagemagick
+support for the extensions in imagemagick-types minus the types listed
+in imagemagick-types-inhibit.
+
+imagemagick-types-inhibit has the value  '(C HTML HTM TXT) by default.
+This means imagemagick will be used also to load jpeg files, if you
+have both jpeg and imagemagick libraries linked. Add 'JPG to
+imagemagick-types-inhibit if you do not want this.
+
+Images loaded with imagemagick will support a couple of new display
+specifications:
+
+- scale
+- rotation
+- index
+
+* Changelog entry
+nothing yet
+
+* Manual entry
+nothing yet
