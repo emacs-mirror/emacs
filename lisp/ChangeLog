@@ -1,3 +1,9 @@
+2010-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-cycle-threshold): New custom var.
+	(completion--do-completion): Use it.
+	(minibuffer-complete): Use cycling if appropriate.
+
 2010-05-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dirtrack.el (dirtrackp): Remove defcustom; don't make automatically
