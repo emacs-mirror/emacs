@@ -1,5 +1,8 @@
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (YMF_PASS_LDFLAGS, LD, LINKER): Simplify the logic.
+	(LINKER_WAS_SPECIFIED): Remove.
+
 	* Makefile.in (LIB_GCC): Set using configure, not cpp.
 	(GNULIB_VAR) [!ORDINARY_LINK]: Always set to $LIB_GCC.
 	* m/arm.h (LIB_GCC) [GNU_LINUX]:
