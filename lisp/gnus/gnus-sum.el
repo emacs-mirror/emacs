@@ -3931,7 +3931,6 @@ If NO-DISPLAY, don't generate a summary buffer."
 	  (progn
 	    (set-buffer gnus-group-buffer)
 	    (gnus-group-jump-to-group group)
-	    (gnus-group-next-unread-group 1)
 	    (gnus-configure-windows 'group 'force))
 	(gnus-handle-ephemeral-exit quit-config))
       ;; Finally signal the quit.

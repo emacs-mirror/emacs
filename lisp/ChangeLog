@@ -1,3 +1,8 @@
+2010-05-12  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):
+	Push the mark at the start of these functions when appropriate.
+
 2010-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-cycle-threshold): New custom var.
