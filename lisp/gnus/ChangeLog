@@ -1,3 +1,8 @@
+2010-05-12  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-read-group-1): Don't jump to next group
+	when catching the `C-g'.  Reported by: "Leo"
+
 2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-forward-make-body-plain)
