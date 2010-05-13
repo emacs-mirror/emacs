@@ -6484,7 +6484,7 @@ case $opsys in
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
   netbsd | openbsd )
-    if test -f $(CRT_DIR)/crti.o; then
+    if test -f $CRT_DIR/crti.o; then
 	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
         START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
     else
@@ -26578,13 +26578,13 @@ if test "x$GCC" = "xyes"; then
         ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
         ## immediately undefine it again and redefine it to empty.
         ## Was the C_SWITCH_X_SITE part really necessary?
-##      LIB_GCC=`$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
+##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
         LIB_GCC=
       fi
       ;;
 
     ## Ask GCC where to find libgcc.a.
-    *) LIB_GCC=`$(CC) -print-libgcc-file-name 2> /dev/null` ;;
+    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
   esac
 fi
 
