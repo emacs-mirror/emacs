@@ -436,15 +436,6 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
 #define WINDOW_SUPPORT
 #endif
 
-#ifdef WINDOWSNT
-#define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
-  ${lispsource}dos-w32.elc ${lispsource}w32-vars.elc \
-  ${lispsource}w32-fns.elc ${lispsource}term/common-win.elc \
-  ${lispsource}term/w32-win.elc
-#else
-#define WINNT_SUPPORT
-#endif
-
 #ifdef HAVE_WINDOW_SYSTEM
 #define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
 #else
@@ -549,7 +540,6 @@ lisp= \
 	${lispsource}epa-hook.elc \
 	TOOLTIP_SUPPORT \
 	MSDOS_SUPPORT \
-	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
 	${NS_SUPPORT} \
 	${lispsource}widget.elc \
