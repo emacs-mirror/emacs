@@ -1,5 +1,7 @@
 2010-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-mode): Use define-derived-mode.
+
 	* dos-fns.el: Add "dos-" prefix for namespace control.
 	(convert-standard-filename): Define as alias for
 	dos-convert-standard-filename but only if applicable.
