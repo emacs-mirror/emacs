@@ -1,5 +1,8 @@
 2010-05-13  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (OLDXMENU, LIBXMENU) [!HAVE_MENUS]:
+	Let configure set these variables (to empty) in this case as well.
+
 	* Makefile.in (LD_SWITCH_X_SITE): Define as a variable, not via cpp.
 	(LIBX_BASE): Use $LD_SWITCH_X_SITE.
 

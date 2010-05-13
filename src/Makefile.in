@@ -289,20 +289,12 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifdef HAVE_X_WINDOWS
-/* This test needs to say in cpp for the time being, since s/msdos.h
-   defines HAVE_MENUS, and does not use the configure script.  */
-#ifdef HAVE_MENUS
 OLDXMENU=@OLDXMENU@
 LIBXMENU=@LIBXMENU@
-#else /* not HAVE_MENUS */
-OLDXMENU=
-LIBXMENU=
-#endif /* not HAVE_MENUS */
-
 LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 LIBX_OTHER=@LIBX_OTHER@
-#endif /* not HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS */
 
 
 /* A macro which other sections of Makefile can redefine to munge the

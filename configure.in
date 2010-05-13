@@ -3144,7 +3144,7 @@ else
   LIBX_OTHER=
 fi
 
-if test "$HAVE_GTK" = "yes"; then
+if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
 fi
