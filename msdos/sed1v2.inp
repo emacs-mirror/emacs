@@ -2,8 +2,8 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-#   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+#   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -38,19 +38,58 @@ s/\.h\.in/.h-in/
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
+s/@LIB_MATH@/-lm/
 /^LIBES *=/,/^ *$/ {
   s/@[^@\n]*@//g
 }
 /^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
-/^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
+/^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
+/^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
+/^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
+/^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
+/^LD_SWITCH_X_SITE_AUX_RPATH *=/s/@LD_SWITCH_X_SITE_AUX_RPATH@//
+/^LD_SWITCH_SYSTEM *=/s/@LD_SWITCH_SYSTEM@//
+/^LD_SWITCH_SYSTEM_EXTRA *=/s/@LD_SWITCH_SYSTEM_EXTRA@//
+/^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
+/^LIB_GCC *=/s/@LIB_GCC@/-Lgcc/
+/^LIBTIFF *=/s/@LIBTIFF@//
+/^LIBJPEG *=/s/@LIBJPEG@//
+/^LIBPNG *=/s/@LIBPNG@//
+/^LIBGIF *=/s/@LIBGIF@//
+/^LIBXPM *=/s/@LIBXPM@//
+/^XFT_LIBS *=/s/@XFT_LIBS@//
+/^DBUS_CFLAGS *=/s/@DBUS_CFLAGS@//
+/^DBUS_LIBS *=/s/@DBUS_LIBS@//
+/^DBUS_OBJ *=/s/@DBUS_OBJ@//
+/^GCONF_CFLAGS *=/s/@GCONF_CFLAGS@//
+/^GCONF_LIBS *=/s/@GCONF_LIBS@//
+/^GTK_OBJ *=/s/@GTK_OBJ@//
+/^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
+/^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/tparam.o/
+/^LIBXMU *=/s/@LIBXMU@//
+/^LIBXSM *=/s/@LIBXSM@//
+/^LIBXTR6 *=/s/@LIBXTR6@//
+/^XOBJ *=/s/@XOBJ@//
+/^TOOLKIT_LIBW *=/s/@TOOLKIT_LIBW@//
 /^LIBSOUND *=/s/@LIBSOUND@//
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
+/^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
+/^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
+/^NS_OBJ *=/s/@NS_OBJ@//
+/^NS_SUPPORT *=/s/@NS_SUPPORT@//
+/^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
+/^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
+/^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//
+/^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
+/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o ftfont.o xftfont.o ftxfont.o/
 /^EXEEXT *=/s/@EXEEXT@/.exe/
+/^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
+/^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
+s/@unexec@/unexec.o/g
 /^version *=/s/@[^@\n]*@//
-/^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//

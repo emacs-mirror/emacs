@@ -1,6 +1,7 @@
 /* System description file for Windows NT.
-   Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,10 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/*
- *      Define symbols to identify the version of Unix this is.
- *      Define all the symbols that apply correctly.
- */
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 
 #ifndef WINDOWSNT
 #define WINDOWSNT
@@ -30,71 +29,55 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* If you are compiling with a non-C calling convention but need to
-   declare vararg routines differently, put it here */
+   declare vararg routines differently, put it here.  */
 #define _VARARGS_ __cdecl
 
 /* If you are providing a function to something that will call the
    function back (like a signal handler and signal, or main) its calling
-   convention must be whatever standard the libraries expect */
+   convention must be whatever standard the libraries expect.  */
 #define _CALLBACK_ __cdecl
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-
+   It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "windows-nt"
 #define SYMS_SYSTEM syms_of_ntterm ()
 
 #define NO_MATHERR 1
 
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-
+   if system supports pty's.  'a' means it is /dev/ptya0  */
 #define FIRST_PTY_LETTER 'a'
 
-/*
- *      Define HAVE_TIMEVAL if the system supports the BSD style clock values.
- *      Look in <sys/time.h> for a timeval structure.
- */
-
+/* Define HAVE_TIMEVAL if the system supports the BSD style clock values.
+   Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
 
-/* NT supports Winsock which is close enough (with some hacks) */
-
+/* NT supports Winsock which is close enough (with some hacks).  */
 #define HAVE_SOCKETS 1
 
 /* But our select implementation doesn't allow us to make non-blocking
    connects.  So until that is fixed, this is necessary:  */
-
 #define BROKEN_NON_BLOCKING_CONNECT 1
 
 /* And the select implementation does 1-byte read-ahead waiting
    for received packets, so datagrams are broken too.  */
-
 #define BROKEN_DATAGRAM_SOCKETS 1
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
+/* Define this symbol if your system has the functions bcopy, etc.  */
 #define BSTRING
 #define bzero(b, l) memset(b, 0, l)
 #define bcopy(s, d, l) memmove(d, s, l)
 #define bcmp(a, b, l) memcmp(a, b, l)
 
-/* bcopy (aka memmove aka memcpy at least on x86) under MSVC is quite safe */
+/* bcopy (aka memmove aka memcpy at least on x86) under MSVC is quite safe.  */
 #define GAP_USE_BCOPY 1
 #define BCOPY_UPWARD_SAFE 1
 #define BCOPY_DOWNWARD_SAFE 1
 
 /* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
+   preprocessor symbol "COFF".  */
 #define COFF 1
 
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
 #define MAIL_USE_POP 1
 #define MAIL_USE_SYSTEM_LOCK 1
 
@@ -106,24 +89,33 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* ============================================================ */
 
-/* Here, add any special hacks needed
-   to make Emacs work on this system.  For example,
-   you might define certain system call names that don't
-   exist on your system, or that do different things on
-   your system and must be used only through an encapsulation
-   (Which you should place, by convention, in sysdep.c).  */
+/* Here, add any special hacks needed to make Emacs work on this
+   system.  For example, you might define certain system call names
+   that don't exist on your system, or that do different things on
+   your system and must be used only through an encapsulation (which
+   you should place, by convention, in sysdep.c).  */
 
-/* Define this to be the separator between path elements */
+/* Define this to be the separator between path elements.  */
 #define DIRECTORY_SEP XINT (Vdirectory_sep_char)
 
-/* Define this to be the separator between devices and paths */
+/* Define this to be the separator between devices and paths.  */
 #define DEVICE_SEP ':'
 
 /* We'll support either convention on NT.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
-/* The null device on Windows NT. */
+#include <sys/types.h>
+struct sigaction {
+  int sa_flags;
+  void (*sa_handler)(int);
+  sigset_t sa_mask;
+};
+#define SIG_BLOCK       1
+#define SIG_SETMASK     2
+#define SIG_UNBLOCK     3
+
+/* The null device on Windows NT.  */
 #define NULL_DEVICE     "NUL:"
 
 #ifndef MAXPATHLEN
@@ -213,11 +205,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
 
-/* get some redefinitions in place */
+/* Get some redefinitions in place.  */
 
 #ifdef emacs
 
-/* calls that are emulated or shadowed */
+/* Calls that are emulated or shadowed.  */
 #undef access
 #define access  sys_access
 #undef chdir
@@ -254,15 +246,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef write
 #define write   sys_write
 
-/* subprocess calls that are emulated */
+/* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve
 #define wait    sys_wait
 #define kill    sys_kill
 #define signal  sys_signal
 
+/* termcap.c calls that are emulated.  */
+#define tputs   sys_tputs
+#define tgetstr sys_tgetstr
+
+/* cm.c calls that are emulated.  */
+#define chcheckmagic sys_chcheckmagic
+#define cmcostinit   sys_cmcostinit
+#define cmgoto       sys_cmgoto
+#define cmputc       sys_cmputc
+#define Wcm_clear    sys_Wcm_clear
+
 #endif /* emacs */
 
-/* map to MSVC names */
+/* Map to MSVC names.  */
 #define execlp    _execlp
 #define execvp    _execvp
 #define fdopen	  _fdopen
@@ -296,8 +299,8 @@ typedef int pid_t;
 #define utime	  _utime
 #endif
 
-/* this is hacky, but is necessary to avoid warnings about macro
-   redefinitions using the SDK compilers */
+/* This is hacky, but is necessary to avoid warnings about macro
+   redefinitions using the SDK compilers.  */
 #ifndef __STDC__
 #define __STDC__ 1
 #define MUST_UNDEF__STDC__
@@ -310,7 +313,7 @@ typedef int pid_t;
 #undef MUST_UNDEF__STDC__
 #endif
 
-/* Defines that we need that aren't in the standard signal.h  */
+/* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */
 #define SIGQUIT 3               /* Quit process */
 #define SIGTRAP 5               /* Trace trap */
@@ -353,8 +356,7 @@ extern char *get_emacs_configuration_options (void);
 
 #include <sys/stat.h>
 
-/* Define for those source files that do not include enough NT
-   system files.  */
+/* Define for those source files that do not include enough NT system files.  */
 #ifndef NULL
 #ifdef __cplusplus
 #define NULL	0
@@ -389,7 +391,7 @@ extern char *get_emacs_configuration_options (void);
    removed.  Also, obviously, all files that define initialized data
    must include config.h to pick up this pragma.  */
 
-/* Names must be < 8 bytes */
+/* Names must be < 8 bytes.  */
 #ifdef _MSC_VER
 #pragma data_seg("EMDATA")
 #pragma bss_seg("EMBSS")

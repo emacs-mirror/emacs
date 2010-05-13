@@ -44,7 +44,7 @@
 A glyph reference point symbol is to be used to specify a composition
 rule in COMPONENTS argument to such functions as `compose-region'.
 
-Meanings of glyph reference point codes are as follows:
+The meaning of glyph reference point codes is as follows:
 
     0----1----2 <---- ascent	0:tl or top-left
     |         |			1:tc or top-center
@@ -212,7 +212,7 @@ If it is a string, the elements are alternate characters.  In
 this case, TAB element has a special meaning.  If the first
 characer is TAB, the glyphs are displayed with left padding space
 so that no pixel overlaps with the previous column.  If the last
-character is TAB, the glyphs are displayed with rigth padding
+character is TAB, the glyphs are displayed with right padding
 space so that no pixel overlaps with the following column.
 
 If it is a vector or list, it is a sequence of alternate characters and
@@ -222,7 +222,7 @@ elements with previously composed N glyphs.
 
 A composition rule is a cons of global and new glyph reference point
 symbols.  See the documentation of `reference-point-alist' for more
-detail.
+details.
 
 Optional 4th argument MODIFICATION-FUNC is a function to call to
 adjust the composition when it gets invalid because of a change of
@@ -299,16 +299,16 @@ A composition rule is a cons of glyph reference points of the form
     (compose-string-internal str 0 (length str) components)))
 
 (defun find-composition (pos &optional limit string detail-p)
-  "Return information about a composition at or nearest to buffer position POS.
+  "Return information about a composition at or near buffer position POS.
 
 If the character at POS has `composition' property, the value is a list
-of FROM, TO, and VALID-P.
+\(FROM TO VALID-P).
 
 FROM and TO specify the range of text that has the same `composition'
 property, VALID-P is t if this composition is valid, and nil if not.
 
 If there's no composition at POS, and the optional 2nd argument LIMIT
-is non-nil, search for a composition toward LIMIT.
+is non-nil, search for a composition toward the position given by LIMIT.
 
 If no composition is found, return nil.
 
@@ -316,8 +316,9 @@ Optional 3rd argument STRING, if non-nil, is a string to look for a
 composition in; nil means the current buffer.
 
 If a valid composition is found and the optional 4th argument DETAIL-P
-is non-nil, the return value is a list of FROM, TO, COMPONENTS,
-RELATIVE-P, MOD-FUNC, and WIDTH.
+is non-nil, the return value is a list of the form
+
+   (FROM TO COMPONENTS RELATIVE-P MOD-FUNC WIDTH)
 
 COMPONENTS is a vector of integers, the meaning depends on RELATIVE-P.
 
@@ -331,12 +332,12 @@ MOD-FUNC is a modification function of the composition.
 
 WIDTH is a number of columns the composition occupies on the screen.
 
-When Automatic Compostion mode is on, this function also finds a
+When Automatic Composition mode is on, this function also finds a
 chunk of text that is automatically composed.  If such a chunk is
 found closer to POS than the position that has `composition'
-property, the value is a list of FROM, TO, and a glyph gstring
-the specify how the chunk is composed.  See the function
-`composition-get-gstring' for the format of the glyph string."
+property, the value is a list of FROM, TO, and a glyph-string
+that specifies how the chunk is to be composed.  See the function
+`composition-get-gstring' for the format of the glyph-string."
   (let ((result (find-composition-internal pos limit string detail-p)))
     (if (and detail-p (> (length result) 3) (nth 2 result) (not (nth 3 result)))
 	;; This is a valid rule-base composition.
@@ -744,14 +745,13 @@ This function is the default value of `auto-composition-function' (which see)."
 	  (setq func 'compose-gstring-for-terminal))
       (funcall func gstring))))
 
-(make-variable-buffer-local 'auto-composition-mode)
 (put 'auto-composition-mode 'permanent-local t)
 
 (make-variable-buffer-local 'auto-composition-function)
 (setq-default auto-composition-function 'auto-compose-chars)
 
 ;;;###autoload
-(defun auto-composition-mode (&optional arg)
+(define-minor-mode auto-composition-mode
   "Toggle Auto Composition mode.
 With ARG, turn Auto Composition mode off if and only if ARG is a non-positive
 number; if ARG is nil, toggle Auto Composition mode; anything else turns Auto
@@ -761,24 +761,16 @@ When Auto Composition is enabled, text characters are automatically composed
 by functions registered in `composition-function-table' (which see).
 
 You can use `global-auto-composition-mode' to turn on
-Auto Composition mode in all buffers (this is the default)."
-  (interactive "P")
-  (setq auto-composition-mode
-	(if arg
-	    (or (not (integerp arg)) (> arg 0))
-	  (not auto-composition-mode))))
+Auto Composition mode in all buffers (this is the default).")
 
 ;;;###autoload
-(defun global-auto-composition-mode (&optional arg)
+(define-minor-mode global-auto-composition-mode
   "Toggle Auto-Composition mode in every possible buffer.
 With prefix arg, turn Global-Auto-Composition mode on if and only if arg
 is positive.
 See `auto-composition-mode' for more information on Auto-Composition mode."
-  (interactive "P")
-  (setq-default auto-composition-mode
-		(if arg
-		    (or (not (integerp arg)) (> arg 0))
-		  (not (default-value 'auto-composition-mode)))))
+  :variable (default-value 'auto-composition-mode))
+
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 

@@ -90,39 +90,6 @@
 ;;  (`font-lock-fontify-region')
 (require 'cus-edit)
 
-(eval-and-compile
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; I want these - can't be bothered requiring all of cl though.
-  (if (not (fboundp 'caddr))
-      (defun caddr (list)
-        "Return the `car' of the `cddr' of LIST."
-        (car (cddr list))))
-
-  (if (not (fboundp 'cadddr))
-      (defun cadddr (list)
-        "Return the `cadr' of the `cddr' of LIST."
-        (cadr (cddr list))))
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (autoload
-    'htmlfontify-load-rgb-file
-    "hfy-cmap"
-    "Load an rgb.txt file for color name -> rgb translation purposes."
-    'interactive)
-
-  (autoload
-    'htmlfontify-unload-rgb-file
-    "hfy-cmap"
-    "Unload the current color name -> rgb translation map."
-    'interactive)
-
-  (autoload
-    'hfy-fallback-colour-values
-    "hfy-cmap"
-    "Use a fallback method for obtaining the rgb values for a color."
-    'interactive)
-  )
-
 (defconst htmlfontify-version 0.21)
 
 (defconst hfy-meta-tags
@@ -1790,6 +1757,7 @@ FILE, if set, is the file name."
     (when font-lock-defaults
       (font-lock-fontify-buffer)) ))
 
+;;;###autoload
 (defun htmlfontify-buffer (&optional srcdir file)
   "Create a new buffer, named for the current buffer + a .html extension,
 containing an inline CSS-stylesheet and formatted CSS-markup HTML
@@ -2276,6 +2244,7 @@ See also `hfy-load-tags-cache'."
     (save-buffer)
     (kill-buffer B)))
 
+;;;###autoload
 (defun htmlfontify-copy-and-link-dir (srcdir dstdir &optional f-ext l-ext)
   "Trawl SRCDIR and write fontified-and-hyperlinked output in DSTDIR.
 F-EXT and L-EXT specify values for `hfy-extn' and `hfy-link-extn'.\n
@@ -2366,7 +2335,28 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (let ((file (hfy-initfile)))
     (load file 'NOERROR nil nil) ))
 
+
+;;;### (autoloads (hfy-fallback-colour-values htmlfontify-load-rgb-file)
+;;;;;;  "hfy-cmap" "hfy-cmap.el" "3de2db2d213813bb3afe170ffd66cdde")
+;;; Generated autoloads from hfy-cmap.el
+
+(autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\
+Load an X11 style rgb.txt FILE.
+Search `hfy-rgb-load-path' if FILE is not specified.
+Loads the variable `hfy-rgb-txt-colour-map', which is used by
+`hfy-fallback-colour-values'.
+
+\(fn &optional FILE)" t nil)
+
+(autoload 'hfy-fallback-colour-values "hfy-cmap" "\
+Use a fallback method for obtaining the rgb values for a color.
+
+\(fn COLOUR-STRING)" nil nil)
+
+;;;***
+
+
 (provide 'htmlfontify)
-;;; htmlfontify.el ends here
 
 ;; arch-tag: 944e5e63-c81d-4baa-a82a-0275f9c30e61
+;;; htmlfontify.el ends here

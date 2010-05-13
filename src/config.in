@@ -135,8 +135,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
-/* Define to 1 if you have /usr/lib/crti.o. */
-#undef HAVE_CRTIN
+/* Define to 1 if you have the `copysign' function. */
+#undef HAVE_COPYSIGN
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
@@ -294,6 +294,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
+/* Define to 1 if using imagemagick. */
+#undef HAVE_IMAGEMAGICK
+
 /* Define to 1 if you have the `index' function. */
 #undef HAVE_INDEX
 
@@ -302,6 +305,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `isnan' function. */
+#undef HAVE_ISNAN
 
 /* Define to 1 if you have the jpeg library (-ljpeg). */
 #undef HAVE_JPEG
@@ -318,10 +324,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <kerberos/krb.h> header file. */
 #undef HAVE_KERBEROS_KRB_H
 
-/* Define to 1 if `e_text' is a member of `krb5_error'. */
+/* Define to 1 if `e_text' is member of `krb5_error'. */
 #undef HAVE_KRB5_ERROR_E_TEXT
 
-/* Define to 1 if `text' is a member of `krb5_error'. */
+/* Define to 1 if `text' is member of `krb5_error'. */
 #undef HAVE_KRB5_ERROR_TEXT
 
 /* Define to 1 if you have the <krb5.h> header file. */
@@ -332,9 +338,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
-
-/* Define to 1 if the directory /usr/lib64 exists. */
-#undef HAVE_LIB64_DIR
 
 /* Define to 1 if you have the `com_err' library (-lcom_err). */
 #undef HAVE_LIBCOM_ERR
@@ -399,14 +402,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the resolv library (-lresolv). */
 #undef HAVE_LIBRESOLV
 
+/* Define to 1 if using SELinux. */
+#undef HAVE_LIBSELINUX
+
 /* Define to 1 if you have the `Xext' library (-lXext). */
 #undef HAVE_LIBXEXT
 
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
-
-/* Define to 1 if you have the Xp library (-lXp). */
-#undef HAVE_LIBXP
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -487,9 +490,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
-
-/* Define to 1 if you have Motif 2.1 or newer. */
-#undef HAVE_MOTIF_2_1
 
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
@@ -615,25 +615,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
 
-/* Define to 1 if `ifr_addr' is a member of `struct ifreq'. */
+/* Define to 1 if `ifr_addr' is member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_ADDR
 
-/* Define to 1 if `ifr_broadaddr' is a member of `struct ifreq'. */
+/* Define to 1 if `ifr_broadaddr' is member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
 
-/* Define to 1 if `ifr_flags' is a member of `struct ifreq'. */
+/* Define to 1 if `ifr_flags' is member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_FLAGS
 
-/* Define to 1 if `ifr_hwaddr' is a member of `struct ifreq'. */
+/* Define to 1 if `ifr_hwaddr' is member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_HWADDR
 
-/* Define to 1 if `ifr_netmask' is a member of `struct ifreq'. */
+/* Define to 1 if `ifr_netmask' is member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_NETMASK
 
-/* Define to 1 if `n_un.n_name' is a member of `struct nlist'. */
+/* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
-/* Define to 1 if `tm_zone' is a member of `struct tm'. */
+/* Define to 1 if `tm_zone' is member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
@@ -813,10 +813,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    its own, you might want to add "-L/..." or something similar. */
 #undef LD_SWITCH_X_SITE
 
-/* Define LD_SWITCH_X_SITE_AUX with an -R option in case it's needed (for
-   Solaris, for example). */
-#undef LD_SWITCH_X_SITE_AUX
-
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
@@ -825,6 +821,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to unlink, rather than empty, mail spool after reading. */
 #undef MAIL_UNLINK_SPOOL
+
+/* Define if the mailer uses flock to interlock the mail spool. */
+#undef MAIL_USE_FLOCK
+
+/* Define if the mailer uses lockf to interlock the mail spool. */
+#undef MAIL_USE_LOCKF
 
 /* Define to support MMDF mailboxes in movemail. */
 #undef MAIL_USE_MMDF
@@ -860,9 +862,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
-/* Define to the home page for this package. */
-#undef PACKAGE_URL
-
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
@@ -897,6 +896,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Process async input synchronously. */
 #undef SYNC_INPUT
 
+/* Define to 1 if you use terminfo instead of termcap. */
+#undef TERMINFO
+
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
@@ -909,9 +911,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 for Encore UMAX 4.3 that has <inq_status/cpustats.h> instead of
    <sys/cpustats.h>. */
 #undef UMAX4_3
-
-/* Define to the unexec source file name. */
-#undef UNEXEC_SRC
 
 /* Define to 1 if using GTK. */
 #undef USE_GTK
@@ -1078,9 +1077,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
-/* See also .m.o rule in Makefile.in */
-/* FIXME: are all these flags really needed?  Document here why.  */
-#  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000

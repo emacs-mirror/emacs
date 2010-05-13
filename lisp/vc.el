@@ -268,15 +268,12 @@
 ;;   Unregister FILE from this backend.  This is only needed if this
 ;;   backend may be used as a "more local" backend for temporary editing.
 ;;
-;; * checkin (files rev comment &optional extra-args)
+;; * checkin (files rev comment)
 ;;
-;;   Commit changes in FILES to this backend.  If REV is non-nil, that
-;;   should become the new revision number (not all backends do
-;;   anything with it).  COMMENT is used as a check-in comment.  The
-;;   implementation should pass the value of vc-checkin-switches to
-;;   the backend command.  (Note: in older versions of VC, this
-;;   command took a single file argument and not a list.)
-;;   EXTRA-ARGS should be passed to the backend command.
+;;   Commit changes in FILES to this backend.  REV is a historical artifact
+;;   and should be ignored.  COMMENT is used as a check-in comment.
+;;   The implementation should pass the value of vc-checkin-switches to
+;;   the backend command.
 ;;
 ;; * find-revision (file rev buffer)
 ;;
@@ -548,6 +545,12 @@
 ;;   makes it possible to provide menu entries for functionality that
 ;;   is specific to a backend and which does not map to any of the VC
 ;;   generic concepts.
+;;
+;; - conflicted-files (dir)
+;;
+;;   Return the list of files where conflict resolution is needed in
+;;   the project that contains DIR.
+;;   FIXME: what should it do with non-text conflicts?
 
 ;;; Todo:
 
@@ -1054,8 +1057,7 @@ merge in the changes into your working copy."
          (state (nth 3 vc-fileset))
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
-	 (model (nth 4 vc-fileset))
-	 revision)
+	 (model (nth 4 vc-fileset)))
 
     ;; Do the right thing
     (cond
@@ -1070,11 +1072,13 @@ merge in the changes into your working copy."
       (cond
        (verbose
 	;; go to a different revision
-	(setq revision (read-string "Branch, revision, or backend to move to: "))
-	(let ((revision-downcase (downcase revision)))
+	(let* ((revision
+                (read-string "Branch, revision, or backend to move to: "))
+               (revision-downcase (downcase revision)))
 	  (if (member
 	       revision-downcase
-	       (mapcar (lambda (arg) (downcase (symbol-name arg))) vc-handled-backends))
+	       (mapcar (lambda (arg) (downcase (symbol-name arg)))
+                       vc-handled-backends))
 	      (let ((vsym (intern-soft revision-downcase)))
 		(dolist (file files) (vc-transfer-file file vsym)))
 	    (dolist (file files)
@@ -1119,8 +1123,8 @@ merge in the changes into your working copy."
 	    (message "No files remain to be committed")
 	  (if (not verbose)
 	      (vc-checkin ready-for-commit backend)
-	    (setq revision (read-string "New revision or backend: "))
-	    (let ((revision-downcase (downcase revision)))
+	    (let* ((revision (read-string "New revision or backend: "))
+                   (revision-downcase (downcase revision)))
 	      (if (member
 		   revision-downcase
 		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
@@ -1365,7 +1369,7 @@ Type \\[vc-next-action] to check in changes.")
 (defun vc-checkin (files backend &optional rev comment initial-contents)
   "Check in FILES.
 The optional argument REV may be a string specifying the new revision
-level (if nil increment the current level).  COMMENT is a comment
+level (strongly deprecated).  COMMENT is a comment
 string; if omitted, a buffer is popped up to accept a comment.  If
 INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial contents
 of the log entry buffer.
@@ -1379,28 +1383,30 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (lexical-let
    ((backend backend))
    (vc-start-logentry
-    files rev comment initial-contents
+    files comment initial-contents
     "Enter a change comment."
     "*VC-log*"
     (lambda ()
       (vc-call-backend backend 'log-edit-mode))
-    (lambda (files rev comment extra-flags)
-      (message "Checking in %s..." (vc-delistify files))
-      ;; "This log message intentionally left almost blank".
-      ;; RCS 5.7 gripes about white-space-only comments too.
-      (or (and comment (string-match "[^\t\n ]" comment))
-	  (setq comment "*** empty log message ***"))
-      (with-vc-properties
-       files
-       ;; We used to change buffers to get local value of vc-checkin-switches,
-       ;; but 'the' local buffer is not a well-defined concept for filesets.
-       (progn
-	 (vc-call-backend backend 'checkin files rev comment extra-flags)
-	 (mapc 'vc-delete-automatic-version-backups files))
-       `((vc-state . up-to-date)
-	 (vc-checkout-time . ,(nth 5 (file-attributes file)))
-	 (vc-working-revision . nil)))
-      (message "Checking in %s...done" (vc-delistify files)))
+    (lexical-let ((rev rev))
+      (lambda (files comment)
+        (message "Checking in %s..." (vc-delistify files))
+        ;; "This log message intentionally left almost blank".
+        ;; RCS 5.7 gripes about white-space-only comments too.
+        (or (and comment (string-match "[^\t\n ]" comment))
+            (setq comment "*** empty log message ***"))
+        (with-vc-properties
+            files
+          ;; We used to change buffers to get local value of
+          ;; vc-checkin-switches, but 'the' local buffer is
+          ;; not a well-defined concept for filesets.
+          (progn
+            (vc-call-backend backend 'checkin files rev comment)
+            (mapc 'vc-delete-automatic-version-backups files))
+          `((vc-state . up-to-date)
+            (vc-checkout-time . ,(nth 5 (file-attributes file)))
+            (vc-working-revision . nil)))
+        (message "Checking in %s...done" (vc-delistify files))))
     'vc-checkin-hook)))
 
 ;;; Additional entry points for examining version histories
@@ -1772,13 +1778,14 @@ The headers are reset to their non-expanded form."
   ;; case the more general operation ever becomes meaningful.
   (let ((backend (vc-responsible-backend (car files))))
     (vc-start-logentry
-     files rev oldcomment t
+     files oldcomment t
      "Enter a replacement change comment."
      "*VC-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
-     (lambda (files rev comment ignored)
-       (vc-call-backend backend
-                        'modify-change-comment files rev comment)))))
+     (lexical-let ((rev rev))
+       (lambda (files comment)
+         (vc-call-backend backend
+                          'modify-change-comment files rev comment))))))
 
 ;;;###autoload
 (defun vc-merge ()
@@ -1838,6 +1845,31 @@ See Info node `Merging'."
 
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
+
+;; TODO: This is OK but maybe we could integrate it better.
+;; E.g. it could be run semi-automatically (via a prompt?) when saving a file
+;; that was conflicted (i.e. upon mark-resolved).
+;; FIXME: should we add an "other-window" version?  Or maybe we should
+;; hook it inside find-file so it automatically works for
+;; find-file-other-window as well.  E.g. find-file could use a new
+;; `default-next-file' variable for its default file (M-n), and
+;; we could then set it upon mark-resolve, so C-x C-s C-x C-f M-n would
+;; automatically offer the next conflicted file.
+(defun vc-find-conflicted-file ()
+  "Visit the next conflicted file in the current project."
+  (interactive)
+  (let* ((backend (or (if buffer-file-name (vc-backend buffer-file-name))
+                      (vc-responsible-backend default-directory)
+                      (error "No VC backend")))
+         (files (vc-call-backend backend
+                                 'conflicted-files default-directory)))
+    ;; Don't try and visit the current file.
+    (if (equal (car files) buffer-file-name) (pop files))
+    (if (null files)
+        (message "No more conflicted files")
+      (find-file (pop files))
+      (message "%s more conflicted files after this one"
+               (if files (length files) "No")))))
 
 ;; Named-configuration entry points
 

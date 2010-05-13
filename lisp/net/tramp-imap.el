@@ -63,6 +63,7 @@
 (autoload 'epg-context-set-progress-callback "epg")
 (autoload 'epg-decrypt-string "epg")
 (autoload 'epg-encrypt-string "epg")
+(autoload 'epg-make-context "epg")
 (autoload 'imap-hash-get "imap-hash")
 (autoload 'imap-hash-make "imap-hash")
 (autoload 'imap-hash-map "imap-hash")
@@ -124,7 +125,6 @@
     (file-executable-p . tramp-imap-handle-file-executable-p)
     (file-exists-p . tramp-imap-handle-file-exists-p)
     (file-local-copy . tramp-imap-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-imap-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -136,6 +136,8 @@
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-imap-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    ;; `file-selinux-context' performed by default handler.
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; `file-truename' performed by default handler
     (file-writable-p . tramp-imap-handle-file-writable-p)
@@ -150,6 +152,7 @@
     (make-symbolic-link . ignore)
     (rename-file . tramp-imap-handle-rename-file)
     (set-file-modes . ignore)
+    ;; `set-file-selinux-context' performed by default handler.
     (set-file-times . ignore) ;; tramp-imap-handle-set-file-times)
     (set-visited-file-modtime . ignore)
     (shell-command . ignore)
@@ -200,7 +203,8 @@ pass to the OPERATION."
 	     (cons 'tramp-imap-file-name-p 'tramp-imap-file-name-handler))
 
 (defun tramp-imap-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
   (tramp-imap-do-copy-or-rename-file
    'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
@@ -265,7 +269,7 @@ of `copy' and `rename'."
       (tramp-message v 0 "Transferring %s to %s...done" filename newname))
 
     (when (eq op 'rename)
-      (delete-file filename))))
+      (tramp-compat-delete-file filename 'force))))
 
 ;; TODO: revise this much
 (defun tramp-imap-handle-expand-file-name (name &optional dir)
@@ -550,7 +554,7 @@ SIZE MODE WEIRD INODE DEVICE)."
   ;; (file-exists-p (file-name-directory filename)))
   (file-directory-p (file-name-directory filename)))
 
-(defun tramp-imap-handle-delete-file (filename)
+(defun tramp-imap-handle-delete-file (filename &optional force)
   "Like `delete-file' for Tramp files."
   (cond
    ((not (file-exists-p filename)) nil)

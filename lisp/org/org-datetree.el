@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -39,10 +39,11 @@ This is normally one, but if the buffer has an entry with a DATE_TREE
 property, the date tree will become a subtree under that entry, so the
 base level will be properly adjusted.")
 
+;;;###autoload
 (defun org-datetree-find-date-create (date &optional keep-restriction)
   "Find or create an entry for DATE.
 If KEEP-RESTRICTION is non-nil, do not widen the buffer.
-When it is nit, the buffer will be widened to make sure an existing date
+When it is nil, the buffer will be widened to make sure an existing date
 tree can be found."
   (let ((year (nth 2 date))
 	(month (car date))

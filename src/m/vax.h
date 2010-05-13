@@ -1,6 +1,7 @@
 /* machine description file for vax.
-   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+  2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,18 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* The following line tells the configuration script what sort of
-   operating system this machine is likely to run.
-   USUAL-OPSYS="note"
-
-NOTE-START
-The vax (-machine=vax) runs zillions of different operating systems.
-
-NOTE-END  */
-
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
-
 #undef WORDS_BIG_ENDIAN
 
 /* #define vax    -- appears to be done automatically  */
@@ -38,11 +29,9 @@ NOTE-END  */
    support the load average, so disable it for them.  */
 
 /* Data type of load average, as read out of kmem.  */
-
 #define LOAD_AVE_TYPE double
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
-
 #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0))
 
 #define HAVE_FTIME

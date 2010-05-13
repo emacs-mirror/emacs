@@ -2364,7 +2364,7 @@ specified by `gnus-gmane-group-download-format'."
   (unless range (setq range 500))
   (when (< range 1)
     (error "Invalid range: %s" range))
-  (let ((tmpfile (make-temp-file
+  (let ((tmpfile (mm-make-temp-file
 		  (format "%s.start-%s.range-%s." group start range)))
 	(gnus-thread-sort-functions '(gnus-thread-sort-by-number)))
     (with-temp-file tmpfile
@@ -2445,7 +2445,7 @@ the bug number, and browsing the URL must return mbox output."
 		     (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
   (when (stringp number)
     (setq number (string-to-number number)))
-  (let ((tmpfile (make-temp-file "gnus-temp-group-")))
+  (let ((tmpfile (mm-make-temp-file "gnus-temp-group-")))
     (with-temp-file tmpfile
       (url-insert-file-contents (format mbox-url number))
       (write-region (point-min) (point-max) tmpfile)

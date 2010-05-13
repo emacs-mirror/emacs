@@ -1,6 +1,7 @@
 /* R2 AIX machine/system dependent defines
-   Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,38 +19,13 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* The following line tells the configuration script what sort of
-   operating system this machine is likely to run.
-   USUAL-OPSYS="aix3-1"  */
-
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
-
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically.  */
-
-#define IBMR2AIX
-
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
-
 #define TEXT_START 0x10000000
 #define DATA_START 0x20000000
 #define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
-
-/* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
-/* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
-   linker error for updated X11R5 libraries, which references pthread library
-   which most machines don't have.  We use the name .inp instead of .imp
-   because .inp is a better convention to use in make-dist for naming
-   random input files.  */
-#ifdef THIS_IS_MAKEFILE /* Don't use this in configure.  */
-#define LD_SWITCH_MACHINE -Wl,-bnodelcsect
-#endif /* THIS_IS_MAKEFILE */
 
 #ifndef NLIST_STRUCT
 /* AIX supposedly doesn't use this interface, but on the RS/6000
@@ -60,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
 
-#define START_FILES
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD
 /* As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.

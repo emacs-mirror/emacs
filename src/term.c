@@ -1589,7 +1589,6 @@ append_glyph (it)
     }
 }
 
-
 /* Produce glyphs for the display element described by IT.  *IT
    specifies what we want to produce a glyph for (character, image, ...),
    and where in the glyph matrix we currently are (glyph row and hpos).
@@ -1808,6 +1807,17 @@ append_composite_glyph (it)
   glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
   if (glyph < it->glyph_row->glyphs[1 + it->area])
     {
+      /* If the glyph row is reversed, we need to prepend the glyph
+	 rather than append it.  */
+      if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
+	{
+	  struct glyph *g;
+
+	  /* Make room for the new glyph.  */
+	  for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
+	    g[1] = *g;
+	  glyph = it->glyph_row->glyphs[it->area];
+	}
       glyph->type = COMPOSITE_GLYPH;
       glyph->pixel_width = it->pixel_width;
       glyph->u.cmp.id = it->cmp_it.id;
@@ -1828,6 +1838,18 @@ append_composite_glyph (it)
       glyph->padding_p = 0;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
+      if (it->bidi_p)
+	{
+	  glyph->resolved_level = it->bidi_it.resolved_level;
+	  if ((it->bidi_it.type & 7) != it->bidi_it.type)
+	    abort ();
+	  glyph->bidi_type = it->bidi_it.type;
+	}
+      else
+	{
+	  glyph->resolved_level = 0;
+	  glyph->bidi_type = UNKNOWN_BT;
+	}
 
       ++it->glyph_row->used[it->area];
       ++glyph;
@@ -1889,12 +1911,16 @@ produce_special_glyphs (it, what)
 
   if (what == IT_CONTINUATION)
     {
-      /* Continuation glyph.  */
-      SET_GLYPH_FROM_CHAR (glyph, '\\');
+      /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
+      if (it->bidi_it.paragraph_dir == R2L)
+	SET_GLYPH_FROM_CHAR (glyph, '/');
+      else
+	SET_GLYPH_FROM_CHAR (glyph, '\\');
       if (it->dp
 	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc))
 	  && GLYPH_CODE_CHAR_VALID_P (gc))
 	{
+	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
 	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
 	}
@@ -1907,6 +1933,7 @@ produce_special_glyphs (it, what)
 	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc))
 	  && GLYPH_CODE_CHAR_VALID_P (gc))
 	{
+	  /* FIXME: Should we mirror GC for R2L lines?  */
 	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
 	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
 	}
@@ -2244,7 +2271,7 @@ set_tty_color_mode (tty, f)
      struct tty_display_info *tty;
      struct frame *f;
 {
-  Lisp_Object tem, val, color_mode_spec;
+  Lisp_Object tem, val;
   Lisp_Object color_mode;
   int mode;
   extern Lisp_Object Qtty_color_mode;
@@ -2256,12 +2283,13 @@ set_tty_color_mode (tty, f)
 
   if (INTEGERP (val))
     color_mode = val;
-  else
+  else if (SYMBOLP (tty_color_mode_alist))
     {
-      tem = (NILP (tty_color_mode_alist) ? Qnil
-	     : Fassq (val, XSYMBOL (tty_color_mode_alist)->value));
+      tem = Fassq (val, Fsymbol_value (tty_color_mode_alist));
       color_mode = CONSP (tem) ? XCDR (tem) : Qnil;
     }
+  else
+    color_mode = Qnil;
 
   mode = INTEGERP (color_mode) ? XINT (color_mode) : 0;
 
@@ -3351,7 +3379,7 @@ dissociate_if_controlling_tty (int fd)
   EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
     {
-#if defined (USG) && !defined (BSD_PGRPS)
+#if defined (USG)
       setpgrp ();
       no_controlling_tty = 1;
 #elif defined (CYGWIN)

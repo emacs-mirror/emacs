@@ -21,6 +21,8 @@
 
 # Force loading of symbols, enough to give us gdb_valbits etc.
 set main
+# With some compilers, we need this to give us struct Lisp_Symbol etc.:
+set Fmake_symbol
 
 # Find lwlib source files too.
 dir ../lwlib
@@ -887,6 +889,19 @@ end
 document xchartable
 Print the address of the char-table $, and its purpose.
 This command assumes that $ is an Emacs Lisp char-table value.
+end
+
+define xsubchartable
+  xgetptr $
+  print (struct Lisp_Sub_Char_Table *) $ptr
+  xgetint $->depth
+  set $depth = $int
+  xgetint $->min_char
+  printf "Depth: %d, Min char: %d (0x%x)\n", $depth, $int, $int
+end
+document xsubchartable
+Print the address of the sub-char-table $, its depth and min-char.
+This command assumes that $ is an Emacs Lisp sub-char-table value.
 end
 
 define xboolvector

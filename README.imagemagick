@@ -5,6 +5,15 @@ scaling and rotation.
 This file will attempt to contain draft NEWS, Changelog and manual
 entries for the new functionality. 
 
+You might need to regenerate the configure scripts:
+aclocal
+automake
+autoheader
+autoconf
+./configure --with-imagemagick
+
+
+
 TODO
 - complete documentation drafts below
 - test with more systems, only tested on Fedora 12 so far, and the
@@ -28,7 +37,7 @@ To enable, use the following configure option:
 The new function (imagemagick-types) returns a list of image file
 extensions that your installation of imagemagick supports.
 
-The function (imagemagic-register-types) will enable the imagemagick
+The function (imagemagick-register-types) will enable the imagemagick
 support for the extensions in imagemagick-types minus the types listed
 in imagemagick-types-inhibit.
 

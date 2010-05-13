@@ -4,10 +4,10 @@ Non-ASCII examples:
   Europe: ,A!(BHola!, Gr,A|_(B Gott, Hyv,Add(B p,Ad(Biv,Add(B, Tere ,Au(Bhtust, Bon,Cu(Bu
           Cze,B6f(B!, Dobr,B}(B den, ,L7T`PRabRcYbU(B!, ,FCei\(B ,Fsar(B, $,1J2J0J;J0J@JOJ=J1J0(B
   Africa: $(3!A!,!>(B
-  Middle/Near East: ,Hylem(B, ,GecjdY(B ,GeGdqSdG(B
+  Middle/Near East: ,Hylem(B, ,GGdSqdGe(B ,GYdjce(B
   South Asia: $,19h9n9x:-9d:'(B, $,15h5n5x6-5d6'(B, $,1?(?.?8?M>u?>?0(B, $,1@H@N@X@m@5@^@P@"(B, $,1;6;A;#;?;,;G(B,
               $,1AFAzB4AvB=B AqB*(B, $,1<U<C<5<m<5<N<m(B, $,1=h=n=x>-=U=~=p=B(B, $(7"7"!#C!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
-  South East Asia: $,1\'\f\:\V\4\?\]\:(B, (1JP:R-4U(B, $,1H9H$HYrmH"H<HLH5HL(B, ,TJGQJ4U$CQ:(B, Ch,1`(Bo b,1U(Bn
+  South East Asia: $,1\'\f\:\V\4\?\]\:(B, (1JP:R-4U(B, $,1H9H$HZHYH"H<HLH5HK(B, ,TJGQJ4U$CQ:(B, Ch,1`(Bo b,1U(Bn
   East Asia: $ADc:C(B, $(0*/=((B, $B$3$s$K$A$O(B, $(C>H3gGO<<?d(B
   Misc: E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde, $,2(3(1('('(5(B, $,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
   CJK variety: GB($AT*Fx(B,$A?*7"(B), BIG5($(0&x86(B,$(0DeBv(B), JIS($B855$(B,$B3+H/(B), KSC($(Cj*Q((B,$(CKR[!(B)
@@ -16,10 +16,10 @@ Non-ASCII examples:
 LANGUAGE (NATIVE NAME)	HELLO
 ----------------------	-----
 Amharic ($,1O M[MmN{(B)	$,1M`MKM](B
-Arabic $,1ro(B(,GGdYQHjqI(B)	,GecjdY(B ,GeGdqSdG(B
+Arabic $,1ro(B(,GGdYQHjqI(B)	,GGdSqdGe(B ,GYdjce(B
 Bengali ($,17,7>6b727>(B)	$,17(7.787M6u7>70(B
 Braille	$,2(3(1('('(5(B
-Burmese ($,1H9HYH;H4HYrlH9HL(B)	$,1H9H$HYrmH"H<HLH5HL(B
+Burmese ($,1H9H\H4HZH9HL(B)	$,1H9H$HZHYH"H<HLH5HK(B
 C	printf ("Hello, world!\n");
 Czech (,Bh(Be,B9(Btina)	Dobr,A}(B den
 Danish (dansk)	Hej / Goddag / Hall,Ax(Bj
@@ -44,7 +44,7 @@ Khmer ($,1\7\V\?\V\!\r\8\b\:(B)	$,1\'\f\:\V\4\?\]\:(B
 Lao ((1>RJRERG(B)	(1JP:R-4U(B / (1"mcKib*!4U(B
 Malayalam ($,1@N@R@O@^@S@"(B)	$,1@H@N@X@m@5@^@P@"(B
 Maltese (il-Malti)	Bon,Cu(Bu / Sa,C11(Ba
-Mathematics	$B"O(B p $A!J(B world $(O#@(B hello p  $A!u(B
+Mathematics	$,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
 Nederlands, Vlaams	Hallo / Dag
 Norwegian (norsk)	Hei / God dag
 Oriya ($,1:s;\;?:f(B)	$,1;6;A;#;?;,;G(B

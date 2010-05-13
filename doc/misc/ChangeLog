@@ -1,3 +1,96 @@
+2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* url.texi (HTTP language/coding, Customization):
+	* message.texi (Header Commands, Responses):
+	* cl.texi (Argument Lists): Fix typos.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ede.texi (EDE Mode): Refer to init file rather than `.emacs'.
+	Note that Development menu is always available.
+	(Creating a project): Fix terminology.
+	(Add/Remove files): Fix typo.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-01  Daniel E. Doherty <ddoherty03@gmail.com> (tiny change)
+
+	* calc.texi (Tutorial): Use "^{\prime}" to indicate primes.
+
+2010-05-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods, Default Method):
+	Mention `tramp-inline-compress-start-size'.
+
+2010-04-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Gnus Versions, Oort Gnus): Mention the Git repo instead of
+	the CVS repo.  Put the Git repo in the news section.
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Fix title typo.
+	Removed some mentions of CVS.  Mention the new Git repo.
+
+2010-04-18  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus.texi (Score File Format): Fix typo.  Reported by Štěpán Němec.
+	(Mail Group Commands): Add index entry.
+
+2010-04-18  Glenn Morris  <rgm@gnu.org>
+
+	* info.texi (Search Index): Mention Emacs's Info-virtual-index.
+
+2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Radix modes): Mention that the option prefix will
+	turn on twos-complement mode.
+	(Inverse and Hyperbolic Flags): Mention the Option flag.
+
+2010-04-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (LaTeX and PDF export): Add a footnote about xetex.
+	(LaTeX/PDF export commands): Rename and Move section.
+	(Sectioning structure): Update.
+	(References): New use case for field coordinates.
+	(The export dispatcher): Rename from ASCII export.
+	(Setting up the staging area): Document the availability of
+	encryption for MobileOrg.
+	(Images and tables): Document how to reference labels.
+	(Index entries): New section.
+	(Generating an index): New section.
+	(Column width and alignment): Document that <N> now
+	means a fixed width, not a maximum width.
+	(Publishing options): Document the :email option.
+	(Beamer class export): Fix bug in the BEAMER example.
+	(Refiling notes): Document refile logging.
+	(In-buffer settings): Document refile logging keywords.
+	(Drawers): Document `C-c C-z' command.
+	(Agenda commands): Mention the alternative key `C-c C-z'.
+	(Special properties): Document the BLOCKED property.
+	(The spreadsheet): Mention the formula editor.
+	(References): Document field coordinates.
+	(Publishing action): Correct the documentation for the
+	publishing function.
+	(The date/time prompt): Document that we accept dates
+	like month/day/year.
+	(Cooperation): Document the changes in table.el support.
+	(Faces for TODO keywords, Faces for TODO keywords)
+	(Priorities): Document the easy colors.
+	(Visibility cycling): Document the new double prefix
+	arg for `org-reveal'.
+	(Cooperation): Remember.el is part of Emacs.
+	(Clean view): Mention that `wrap-prefix' is also set by
+	org-indent-mode.
+	(Agenda commands): Add information about prefix args to
+	scheduling and deadline commands.
+	(Search view): Point to the docstring of
+	`org-search-view' for more details.
+	(Agenda commands): Document that `>' prompts for a date.
+	(Setting tags): Document variable
+	org-complete-tags-always-offer-all-agenda-tags.
+	(Column attributes): Cross-reference special properties.
+
 2010-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	Synchronize with Tramp repository.
@@ -500,7 +593,7 @@
 	(Agenda commands): Document new bulk commands.
 	(Plain lists): Document new behavior of
 	`org-cycle-include-plain-lists'.
-	 Hyphenation only in TeX.
+	Hyphenation only in TeX.
 	(Clocking work time): Document the key to update effort
 	estimates.
 	(Clocking work time): Document the clock time display.
@@ -1567,7 +1660,7 @@
 2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Mail Source Customization): Correct values of
-	 `mail-source-delete-incoming'.  Reported by Tassilo Horn.
+	`mail-source-delete-incoming'.  Reported by Tassilo Horn.
 	(Oort Gnus): Fix version comment for mml-dnd-protocol-alist.
 
 2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>

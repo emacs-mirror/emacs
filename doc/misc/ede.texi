@@ -129,27 +129,26 @@ information.
 @node EDE Mode, Creating a project, EDE Project Concepts, top
 @chapter @ede{} Mode
 
-@ede{} is implemented as a minor-mode, which augments other modes such
+@ede{} is implemented as a minor mode, which augments other modes such
 as C mode, and Texinfo mode.  You can enable @ede{} for all buffers by
 running the command @code{global-ede-mode}, or by putting this in your
-@file{~/.emacs} file:
+init file:
 
 @example
 (global-ede-mode t)
 @end example
 
-When @ede{} is active for a given buffer, the menu item
-``Development'' appears.  This menu provides several menu items for
-high-level @ede{} commands.  These menu items, and their corresponding
-keybindings, are independent of the type of project you are actually
-working on.
+Activating @ede{} adds a menu named @samp{Development} to the menu
+bar.  This menu provides several menu items for high-level @ede{}
+commands.  These menu items, and their corresponding keybindings, are
+independent of the type of project you are actually working on.
 
 @node Creating a project, Modifying your project, EDE Mode, top
 @chapter Creating a project
 
 To create a new project, first visit a file that you want to include
-in that project.  If you have a hierarchy of directories, choose a
-file in the topmost directory first.  From this buffer, type @kbd{M-x
+in that project.  If you have a hierarchy of directories, first visit
+a file in the topmost directory.  From this buffer, type @kbd{M-x
 ede-new}, or click on the @samp{Create Project} item in the
 @samp{Development} menu.
 
@@ -220,8 +219,8 @@ detailed information about exactly what these features do.
 @node Add/Remove target, Add/Remove files, Modifying your project, Modifying your project
 @section Add/Remove target
 
-To create a new target, type @kbd{C-c . t} (@code{M-x ede-new-target})
-or use the @samp{Add Target} menu item in the @samp{Project Options}
+To create a new target, type @kbd{C-c . t} (@code{ede-new-target}) or
+use the @samp{Add Target} menu item in the @samp{Project Options}
 submenu.  This prompts for a target name, and adds the current buffer
 to that target.
 
@@ -237,7 +236,7 @@ Options} submenu.
 @section Add/Remove files
 
 To add the current file to an existing target, type @kbd{C-c . a}
-(@code{ede-add-file}), or or use the @samp{Add File} menu item in the
+(@code{ede-add-file}), or use the @samp{Add File} menu item in the
 @samp{Target Options} submenu.
 
 You can add a file to more than one target; this is OK.

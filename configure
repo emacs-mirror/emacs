@@ -639,8 +639,21 @@ ac_config_libobj_dir=src
 ac_header_list=
 ac_func_list=
 ac_subst_vars='LTLIBOBJS
+LIB_GCC
+LD_SWITCH_SYSTEM_EXTRA
+LD_SWITCH_SYSTEM_TEMACS
+POST_ALLOC_OBJ
+PRE_ALLOC_OBJ
+CYGWIN_OBJ
+LIBX_OTHER
+LIBXMENU
+OLDXMENU
+LIBXT_OTHER
+TOOLKIT_LIBW
+WIDGET_OBJ
+XOBJ
+XMENU_OBJ
 OTHER_FILES
-LIB_SRC_EXTRA_INSTALLABLES
 GNU_OBJC_CFLAGS
 GNUSTEP_SYSTEM_LIBRARIES
 GNUSTEP_SYSTEM_HEADERS
@@ -652,11 +665,10 @@ ns_appdir
 opsysfile
 machfile
 X_TOOLKIT_TYPE
+C_SWITCH_X_SYSTEM
 C_SWITCH_X_SITE
-LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE
-c_switch_machine
-c_switch_system
+unexec
 gameuser
 gamedir
 bitmapdir
@@ -677,15 +689,20 @@ CRYPTOLIB
 COM_ERRLIB
 LIBRESOLV
 LIBHESIOD
+TERMCAP_OBJ
+LIBS_TERMCAP
 GETOPTOBJS
 GETOPT_H
 GETLOADAVG_LIBS
 KMEM_GROUP
 NEED_SETGID
 LIBOBJS
+BLESSMAIL_TARGET
 LIBS_MAIL
 liblockfile
 ALLOCA
+LIBXSM
+GPM_MOUSE_SUPPORT
 LIBGPM
 LIBGIF
 LIBTIFF
@@ -694,6 +711,7 @@ LIBJPEG
 LIBXPM
 FREETYPE_LIBS
 FREETYPE_CFLAGS
+FONT_OBJ
 M17N_FLT_LIBS
 M17N_FLT_CFLAGS
 LIBOTF_LIBS
@@ -702,10 +720,15 @@ XFT_LIBS
 XFT_CFLAGS
 FONTCONFIG_LIBS
 FONTCONFIG_CFLAGS
+LIBXMU
+LIBXTR6
+LIBSELINUX_LIBS
 GCONF_LIBS
 GCONF_CFLAGS
+DBUS_OBJ
 DBUS_LIBS
 DBUS_CFLAGS
+GTK_OBJ
 GTK_LIBS
 GTK_CFLAGS
 IMAGEMAGICK_LIBS
@@ -713,6 +736,11 @@ IMAGEMAGICK_CFLAGS
 RSVG_LIBS
 RSVG_CFLAGS
 HAVE_XSERVER
+LIB_STANDARD
+NS_SUPPORT
+NS_OBJ
+LD_SWITCH_X_SITE_AUX_RPATH
+LD_SWITCH_X_SITE_AUX
 XMKMF
 SET_MAKE
 CFLAGS_SOUND
@@ -720,6 +748,13 @@ ALSA_LIBS
 ALSA_CFLAGS
 PKG_CONFIG
 LIBSOUND
+START_FILES
+LIB_MATH
+CRT_DIR
+LIBS_SYSTEM
+C_SWITCH_SYSTEM
+C_SWITCH_MACHINE
+LD_SWITCH_SYSTEM
 MAKEINFO
 GZIP_PROG
 INSTALL_INFO
@@ -727,7 +762,6 @@ RANLIB
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
-LN_S
 EGREP
 GREP
 CPP
@@ -814,10 +848,12 @@ with_ns
 with_gpm
 with_dbus
 with_gconf
+with_selinux
 with_makeinfo
 with_gtk
 with_gcc
 with_pkg_config_prog
+with_crt_dir
 with_gnustep_conf
 enable_ns_self_contained
 enable_asserts
@@ -1528,10 +1564,13 @@ Optional Packages:
                           console
   --without-dbus          don't compile with D-Bus support
   --without-gconf         don't compile with GConf support
+  --without-selinux       don't compile with SELinux support
   --without-makeinfo      don't require makeinfo for building manuals
 
   --with-pkg-config-prog=PATH
                           path to pkg-config for finding GTK and librsvg
+  --with-crt-dir=DIR      directory containing crtn.o etc. The default is
+                          /usr/lib, or /usr/lib64 on some platforms.
   --with-gnustep-conf=PATH
                           path to GNUstep.conf; default $GNUSTEP_CONFIG_FILE,
                           or /etc/GNUstep/GNUstep.conf
@@ -2330,6 +2369,14 @@ else
 fi
 
 
+# Check whether --with-selinux was given.
+if test "${with_selinux+set}" = set; then
+  withval=$with_selinux;
+else
+     with_selinux=yes
+fi
+
+
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
 
@@ -2374,6 +2421,15 @@ if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
    fi
 fi
+
+CRT_DIR=
+
+# Check whether --with-crt-dir was given.
+if test "${with_crt_dir+set}" = set; then
+  withval=$with_crt_dir;
+fi
+
+CRT_DIR="${with_crt_dir}"
 
 
 # Check whether --with-gnustep-conf was given.
@@ -2748,14 +2804,6 @@ case "${canonical}" in
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    if test -f /usr/lib/crti.o; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_CRTIN /**/
-_ACEOF
-
-   fi
-
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
@@ -4996,17 +5044,6 @@ unset SAVE_CFLAGS
 
 #### Some other nice autoconf tests.
 
-{ $as_echo "$as_me:$LINENO: checking whether ln -s works" >&5
-$as_echo_n "checking whether ln -s works... " >&6; }
-LN_S=$as_ln_s
-if test "$LN_S" = "ln -s"; then
-  { $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no, using $LN_S" >&5
-$as_echo "no, using $LN_S" >&6; }
-fi
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -5430,6 +5467,73 @@ else
 fi
 
 fi
+
+## Although we're running on an amd64 kernel, we're actually compiling for
+## the x86 architecture.  The user should probably have provided an
+## explicit --build to `configure', but if everything else than the kernel
+## is running in i386 mode, we can help them out.
+if test "$machine" = "amdx86-64"; then
+  { $as_echo "$as_me:$LINENO: checking whether i386 is declared" >&5
+$as_echo_n "checking whether i386 is declared... " >&6; }
+if test "${ac_cv_have_decl_i386+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+#ifndef i386
+  (void) i386;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl_i386=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl_i386=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_decl_i386" >&5
+$as_echo "$ac_cv_have_decl_i386" >&6; }
+
+  if test "$ac_cv_have_decl_i386" = "yes"; then
+    canonical=`echo "$canonical" | sed -e 's/^amd64/i386/' -e 's/^x86_64/i386/'`
+    machine=intel386
+    machfile="m/${machine}.h"
+  fi
+fi
+
 # Extract the first word of "install-info", so it can be a program name with args.
 set dummy install-info; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -5652,7 +5756,7 @@ fi
 if test "$MAKEINFO" = "no"; then
   if test "x${with_makeinfo}" = "xno"; then
     MAKEINFO=off
-  elif ! test -e $srcdir/info/emacs; then
+  elif test ! -e $srcdir/info/emacs; then
     { { $as_echo "$as_me:$LINENO: error: You do not seem to have makeinfo >= 4.6, and your
 source tree does not seem to have pre-built manuals in the \`info' directory.
 Either install a suitable version of makeinfo, or re-run configure
@@ -5752,33 +5856,10 @@ tempcname="conftest.c"
 echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-#ifndef C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM
-#endif
-#ifndef C_SWITCH_MACHINE
-#define C_SWITCH_MACHINE
-#endif
-configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
-configure___ c_switch_system=C_SWITCH_SYSTEM
-configure___ c_switch_machine=C_SWITCH_MACHINE
 
-#ifndef LIB_X11_LIB
-#define LIB_X11_LIB -lX11
-#endif
+configure___ LIBX=-lX11
 
-configure___ LIBX=LIB_X11_LIB
-
-#ifdef UNEXEC
 configure___ unexec=UNEXEC
-#else
-configure___ unexec=unexec.o
-#endif
 
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
@@ -5804,26 +5885,11 @@ configure___ use_mmap_for_buffers=no
 #define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
 #endif
 
-#ifndef LD_SWITCH_MACHINE
-#define LD_SWITCH_MACHINE
-#endif
-
-#ifndef LD_SWITCH_SYSTEM
-#define LD_SWITCH_SYSTEM
-#endif
-
-#ifndef LD_SWITCH_X_SITE_AUX
-#define LD_SWITCH_X_SITE_AUX
-#endif
-
-configure___ ld_switch_system=LD_SWITCH_SYSTEM
-configure___ ld_switch_machine=LD_SWITCH_MACHINE
-
 #ifdef THIS_IS_CONFIGURE
 
 /* Get the CFLAGS for tests in configure.  */
 #ifdef __GNUC__
-configure___ CFLAGS=C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+configure___ CFLAGS=-g C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
 #else
 configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -5832,7 +5898,7 @@ configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
+configure___ REAL_CFLAGS=-g C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
 #else
 configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -5855,14 +5921,159 @@ else
 fi
 rm ${tempcname}
 
-ac_link="$ac_link $ld_switch_machine $ld_switch_system"
+
+LD_SWITCH_SYSTEM=
+case "$opsys" in
+  freebsd)
+   ## Let `ld' find image libs and similar things in /usr/local/lib.
+   ## The system compiler, GCC, has apparently been modified to not
+   ## look there, contrary to what a stock GCC would do.
+   LD_SWITCH_SYSTEM=-L/usr/local/lib
+   ;;
+
+  gnu-linux)
+   ## cpp test was "ifdef __mips__", but presumably this is equivalent...
+   test "$machine" = "mips" && LD_SWITCH_SYSTEM="-G 0"
+   ;;
+
+  netbsd)
+   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+   ;;
+
+  openbsd)
+   ## Han Boetes <han@mijncomputer.nl> says this is necessary,
+   ## otherwise Emacs dumps core on elf systems.
+   LD_SWITCH_SYSTEM="-Z"
+   ;;
+esac
+
+
+ac_link="$ac_link $LD_SWITCH_SYSTEM"
+
+## This is fun.  Some settings of LD_SWITCH_SYSTEM reference
+## LD_SWITCH_X_SITE_AUX, which has not been defined yet.  When using
+## cpp, it was expanded to null.  Thus LD_SWITCH_SYSTEM had different
+## values in configure and the Makefiles.  How helpful.
+## FIXME why not use LD_SWITCH_SYSTEM_TEMACS (or somesuch) instead?
+case "$opsys" in
+  gnu-linux)
+   ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
+   LD_SWITCH_SYSTEM="$LD_SWITCH_SYSTEM \$(LD_SWITCH_X_SITE_AUX)" ;;
+
+  netbsd|openbsd)
+   ## _AUX_RPATH is like _AUX, but uses -rpath instead of -R.
+   LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_AUX_RPATH) $LD_SWITCH_SYSTEM" ;;
+esac
+
+
+C_SWITCH_MACHINE=
+if test "$machine" = "alpha"; then
+  { $as_echo "$as_me:$LINENO: checking whether __ELF__ is declared" >&5
+$as_echo_n "checking whether __ELF__ is declared... " >&6; }
+if test "${ac_cv_have_decl___ELF__+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+#ifndef __ELF__
+  (void) __ELF__;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_cv_have_decl___ELF__=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_have_decl___ELF__=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_have_decl___ELF__" >&5
+$as_echo "$ac_cv_have_decl___ELF__" >&6; }
+
+  if test "$ac_cv_have_decl___ELF__" = "yes"; then
+    ## With ELF, make sure that all common symbols get allocated to in the
+    ## data section.  Otherwise, the dump of temacs may miss variables in
+    ## the shared library that have been initialized.  For example, with
+    ## GNU libc, __malloc_initialized would normally be resolved to the
+    ## shared library's .bss section, which is fatal.
+    if test "x$GCC" = "xyes"; then
+      C_SWITCH_MACHINE="-fno-common"
+    else
+      { { $as_echo "$as_me:$LINENO: error: What gives?  Fix me if DEC Unix supports ELF now." >&5
+$as_echo "$as_me: error: What gives?  Fix me if DEC Unix supports ELF now." >&2;}
+   { (exit 1); exit 1; }; }
+    fi
+  fi
+fi
+
+
+
+C_SWITCH_SYSTEM=
+## Some programs in src produce warnings saying certain subprograms
+## are too complex and need a MAXMEM value greater than 2000 for
+## additional optimization.  --nils@exp-math.uni-essen.de
+test "$opsys" = "aix4.2" && test "x$GCC" != "xyes" && \
+  C_SWITCH_SYSTEM="-ma -qmaxmem=4000"
+## gnu-linux might need -D_BSD_SOURCE on old libc5 systems.
+## It is redundant in glibc2, since we define _GNU_SOURCE.
+
+
+
+LIBS_SYSTEM=
+case "$opsys" in
+  ## IBM's X11R5 uses -lIM and -liconv in AIX 3.2.2.
+  aix4-2) LIBS_SYSTEM="-lrts -lIM -liconv" ;;
+
+  freebsd) LIBS_SYSTEM="-lutil" ;;
+
+  hpux*) LIBS_SYSTEM="-l:libdld.sl" ;;
+
+  sol2*) LIBS_SYSTEM="-lsocket -lnsl -lkstat" ;;
+
+  ## Motif needs -lgen.
+  unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
+esac
+
+
 
 ### Make sure subsequent tests use flags consistent with the build flags.
 
 if test x"${OVERRIDE_CPPFLAGS}" != x; then
   CPPFLAGS="${OVERRIDE_CPPFLAGS}"
 else
-  CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
+  CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
 
@@ -6225,20 +6436,83 @@ fi
 
 
 
-### The standard library on x86-64 and s390x GNU/Linux distributions can
-### be located in either /usr/lib64 or /usr/lib.
-### In some rare cases, /usr/lib64 exists but does not contain the
-### relevant files (bug#1287).  Hence test for crtn.o.
-case "${canonical}" in
-  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
-    if test -e /usr/lib64/crtn.o; then
+## If user specified a crt-dir, use that unconditionally.
+if test "X$CRT_DIR" = "X"; then
 
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_LIB64_DIR 1
-_ACEOF
+  case "$canonical" in
+    x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
+    ## On x86-64 and s390x GNU/Linux distributions, the standard library
+    ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
+    ## For anything else (eg /usr/lib32), it is up the user to specify
+    ## the location (bug#5655).
+    ## Test for crtn.o, not just the directory, because sometimes the
+    ## directory exists but does not have the relevant files (bug#1287).
+    ## FIXME better to test for binary compatibility somehow.
+    test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
+    ;;
+
+    powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
+  esac
+
+  case "$opsys" in
+    hpux10-20) CRT_DIR=/lib ;;
+  esac
+
+  ## Default is /usr/lib.
+  test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+
+else
+
+  ## Some platforms don't use any of these files, so it is not
+  ## appropriate to put this test outside the if block.
+  test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
+    { { $as_echo "$as_me:$LINENO: error: crt*.o not found in specified location." >&5
+$as_echo "$as_me: error: crt*.o not found in specified location." >&2;}
+   { (exit 1); exit 1; }; }
 
 fi
+
+
+
+LIB_MATH=-lm
+LIB_STANDARD=
+START_FILES=
+
+case $opsys in
+  cygwin )
+    LIB_MATH=
+    START_FILES='ecrt0.o'
+    ;;
+  darwin )
+    ## Adding -lm confuses the dynamic linker, so omit it.
+    LIB_MATH=
+    START_FILES='pre-crt0.o'
+    ;;
+  freebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    ;;
+  gnu-linux | gnu-kfreebsd )
+    LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtn.o'
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt1.o $(CRT_DIR)/crti.o'
+    ;;
+  hpux10-20 | hpux11 )
+    LIB_STANDARD=-lc
+    START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
+    ;;
+  netbsd | openbsd )
+    if test -f $(CRT_DIR)/crti.o; then
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
+        START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
+    else
+	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o'
+	START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crtbegin.o'
+    fi
+    ;;
 esac
+
+
+
 
 
 
@@ -9614,17 +9888,19 @@ fi
 ## Workaround for bug in autoconf <= 2.62.
 ## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
 ## No need to do anything special for these standard directories.
-## This is an experiment, take it out if it causes problems.
 if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
 
    x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
 
 fi
 
+LD_SWITCH_X_SITE_AUX=
+LD_SWITCH_X_SITE_AUX_RPATH=
 if test "${x_libraries}" != NONE; then
   if test -n "${x_libraries}"; then
     LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
     LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
+    LD_SWITCH_X_SITE_AUX_RPATH=`echo ${LD_SWITCH_X_SITE_AUX} | sed -e 's/-R/-Wl,-rpath,/'`
   fi
   x_default_search_path=""
   x_search_path=${x_libraries}
@@ -9647,6 +9923,9 @@ ${x_library}/X11/%T/%N%S"
     fi
   done
 fi
+
+
+
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
   C_SWITCH_X_SITE=-I`echo ${x_includes} | sed -e "s/:/ -I/g"`
 fi
@@ -9696,6 +9975,7 @@ if test "${with_ns}" != no; then
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+     LIB_STANDARD=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -9882,6 +10162,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
+NS_OBJ=
+NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -9891,9 +10174,14 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
+  NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
+
+
 
 case "${window_system}" in
   x11 )
@@ -10690,7 +10978,7 @@ if test $use_mmap_for_buffers = yes; then
   REL_ALLOC=no
 fi
 
-LIBS="$libsrc_libs $LIBS"
+LIBS="$LIBS_SYSTEM $LIBS"
 
 
 { $as_echo "$as_me:$LINENO: checking for dnet_ntoa in -ldnet" >&5
@@ -10907,6 +11195,18 @@ _ACEOF
 
 fi
 
+
+## Note: when using cpp in s/aix4.2.h, this definition depended on
+## HAVE_LIBPTHREADS.  That was not defined earlier in configure when
+## the system file was sourced.  Hence the value of LIBS_SYSTEM
+## added to LIBS in configure would never contain the pthreads part,
+## but the value used in Makefiles might.  FIXME?
+##
+## -lpthreads seems to be necessary for Xlib in X11R6, and should
+## be harmless on older versions of X where it happens to exist.
+test "$opsys" = "aix4-2" && \
+  test $ac_cv_lib_pthreads_cma_open = yes && \
+  LIBS_SYSTEM="$LIBS_SYSTEM -lpthreads"
 
 
 case ${host_os} in
@@ -11484,11 +11784,9 @@ _ACEOF
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${HAVE_X11}" = "yes" ; then
-  if test "${with_imagemagick}" != "no"; then
-    IMAGEMAGICK_REQUIRED=1
-    IMAGEMAGICK_MODULE="MagickWand >= $IMAGEMAGICK_REQUIRED"
-
+if test "${with_imagemagick}" != "no"; then
+  IMAGEMAGICK_REQUIRED=1
+  IMAGEMAGICK_MODULE="MagickWand >= $IMAGEMAGICK_REQUIRED"
 
   succeeded=no
 
@@ -11586,18 +11884,18 @@ $as_echo "no" >&6; }
 
 
 
-    if test ".${IMAGEMAGICK_CFLAGS}" != "."; then
-      HAVE_IMAGEMAGICK=yes
+  if test ".${IMAGEMAGICK_CFLAGS}" != "."; then
+    HAVE_IMAGEMAGICK=yes
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_IMAGEMAGICK 1
 _ACEOF
 
-      CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
-      LIBS="$IMAGEMAGICK_LIBS $LIBS"
-    fi
+    CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
+    LIBS="$IMAGEMAGICK_LIBS $LIBS"
   fi
 fi
+
 
 HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
@@ -11707,6 +12005,7 @@ $as_echo "$as_me: error: $GTK_PKG_ERRORS" >&2;}
 fi
 
 
+GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
 
 
@@ -11829,6 +12128,7 @@ cat >>confdefs.h <<\_ACEOF
 #define USE_GTK 1
 _ACEOF
 
+    GTK_OBJ=gtkutil.o
     USE_X_TOOLKIT=none
     if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
       :
@@ -11846,6 +12146,7 @@ $as_echo "$as_me: WARNING: Your version of Gtk+ will have problems with
   fi
 
 fi
+
 
 
 if test "${HAVE_GTK}" = "yes"; then
@@ -12543,6 +12844,7 @@ _ACEOF
 fi
 
 HAVE_DBUS=no
+DBUS_OBJ=
 if test "${with_dbus}" = "yes"; then
 
   succeeded=no
@@ -12746,8 +13048,10 @@ _ACEOF
 fi
 done
 
+     DBUS_OBJ=dbusbind.o
    fi
 fi
+
 
 HAVE_GCONF=no
 if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
@@ -12854,7 +13158,93 @@ _ACEOF
    fi
 fi
 
+HAVE_LIBSELINUX=no
+LIBSELINUX_LIBS=
+if test "${with_selinux}" = "yes"; then
+   { $as_echo "$as_me:$LINENO: checking for lgetfilecon in -lselinux" >&5
+$as_echo_n "checking for lgetfilecon in -lselinux... " >&6; }
+if test "${ac_cv_lib_selinux_lgetfilecon+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lselinux  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char lgetfilecon ();
+int
+main ()
+{
+return lgetfilecon ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  ac_cv_lib_selinux_lgetfilecon=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_selinux_lgetfilecon=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_selinux_lgetfilecon" >&5
+$as_echo "$ac_cv_lib_selinux_lgetfilecon" >&6; }
+if test "x$ac_cv_lib_selinux_lgetfilecon" = x""yes; then
+  HAVE_LIBSELINUX=yes
+else
+  HAVE_LIBSELINUX=no
+fi
+
+   if test "$HAVE_LIBSELINUX" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_LIBSELINUX 1
+_ACEOF
+
+      LIBSELINUX_LIBS=-lselinux
+   fi
+fi
+
+
 HAVE_XAW3D=no
+LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
     { $as_echo "$as_me:$LINENO: checking for xaw3d" >&5
@@ -12921,6 +13311,7 @@ fi
 $as_echo "yes; using Lucid toolkit" >&6; }
     USE_X_TOOLKIT=LUCID
     HAVE_XAW3D=yes
+    LUCID_LIBW=-lXaw3d
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_XAW3D 1
@@ -12989,6 +13380,7 @@ fi
       { $as_echo "$as_me:$LINENO: result: yes; using Lucid toolkit" >&5
 $as_echo "yes; using Lucid toolkit" >&6; }
       USE_X_TOOLKIT=LUCID
+      LUCID_LIBW=-lXaw
     elif test x"${USE_X_TOOLKIT}" = xLUCID; then
       { { $as_echo "$as_me:$LINENO: error: Lucid toolkit requires X11/Xaw include files" >&5
 $as_echo "$as_me: error: Lucid toolkit requires X11/Xaw include files" >&2;}
@@ -13003,6 +13395,7 @@ fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
+LIBXTR6=
 if test "${USE_X_TOOLKIT}" != "none"; then
   { $as_echo "$as_me:$LINENO: checking X11 toolkit version" >&5
 $as_echo_n "checking X11 toolkit version... " >&6; }
@@ -13070,6 +13463,11 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_X11XTR6 1
 _ACEOF
 
+    LIBXTR6="-lSM -lICE"
+    case "$opsys" in
+      ## Use libw.a along with X11R6 Xt.
+      unixware) LIBXTR6="$LIBXTR6 -lw" ;;
+    esac
   else
     { $as_echo "$as_me:$LINENO: result: before 6" >&5
 $as_echo "before 6" >&6; }
@@ -13159,6 +13557,16 @@ fi
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
 fi
 
+
+LIBXMU=-lXmu
+case "$machine" in
+  ## These machines don't supply Xmu.
+  hpux* | aix4-2 )
+    test "X$ac_cv_lib_Xmu_XmuConvertStandardSelection" != "Xyes" && LIBXMU=
+    ;;
+esac
+
+
 # On Irix 6.5, at least, we need XShapeQueryExtension from -lXext for Xaw3D.
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then
@@ -13240,6 +13648,7 @@ fi
   fi
 fi
 
+LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   { $as_echo "$as_me:$LINENO: checking for Motif version 2.1" >&5
 $as_echo_n "checking for Motif version 2.1... " >&6; }
@@ -13295,14 +13704,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 { $as_echo "$as_me:$LINENO: result: $emacs_cv_motif_version_2_1" >&5
 $as_echo "$emacs_cv_motif_version_2_1" >&6; }
-  HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
-    HAVE_LIBXP=no
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_MOTIF_2_1 1
-_ACEOF
-
     { $as_echo "$as_me:$LINENO: checking for XpCreateContext in -lXp" >&5
 $as_echo_n "checking for XpCreateContext in -lXp... " >&6; }
 if test "${ac_cv_lib_Xp_XpCreateContext+set}" = set; then
@@ -13369,16 +13771,9 @@ fi
 { $as_echo "$as_me:$LINENO: result: $ac_cv_lib_Xp_XpCreateContext" >&5
 $as_echo "$ac_cv_lib_Xp_XpCreateContext" >&6; }
 if test "x$ac_cv_lib_Xp_XpCreateContext" = x""yes; then
-  HAVE_LIBXP=yes
+  LIBXP=-lXp
 fi
 
-    if test ${HAVE_LIBXP} = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_LIBXP 1
-_ACEOF
-
-    fi
   else
     { $as_echo "$as_me:$LINENO: checking for LessTif where some systems put it" >&5
 $as_echo_n "checking for LessTif where some systems put it... " >&6; }
@@ -14438,6 +14833,15 @@ else
     HAVE_LIBOTF=no
     HAVE_M17N_FLT=no
 fi
+
+FONT_OBJ=xfont.o
+if test "$HAVE_XFT" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+elif test "$HAVE_FREETYPE" = "yes"; then
+  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+fi
+
+
 ### End of font-backend (under X11) section.
 
 
@@ -15732,6 +16136,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
+GPM_MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   if test "${ac_cv_header_gpm_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for gpm.h" >&5
@@ -15941,8 +16346,10 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     LIBGPM=-lgpm
+    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
   fi
 fi
+
 
 
 if test "${ac_cv_header_malloc_malloc_h+set}" = set; then
@@ -16082,6 +16489,7 @@ fi
 
 
 
+C_SWITCH_X_SYSTEM=
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
 
@@ -16103,6 +16511,9 @@ cat >>confdefs.h <<\_ACEOF
 #define NS_IMPL_GNUSTEP 1
 _ACEOF
 
+    # See also .m.o rule in Makefile.in */
+    # FIXME: are all these flags really needed?  Document here why.  */
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
     GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
@@ -16120,6 +16531,7 @@ fi
 
 ### Use session management (-lSM -lICE) if available
 HAVE_X_SM=no
+LIBXSM=
 if test "${HAVE_X11}" = "yes"; then
   if test "${ac_cv_header_X11_SM_SMlib_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for X11/SM/SMlib.h" >&5
@@ -16328,12 +16740,14 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_X_SM 1
 _ACEOF
 
+    LIBXSM="-lSM -lICE"
     case "$LIBS" in
       *-lSM*) ;;
-      *)      LIBS="-lSM -lICE $LIBS" ;;
+      *)      LIBS="$LIBXSM $LIBS" ;;
     esac
   fi
 fi
+
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 { $as_echo "$as_me:$LINENO: checking whether netdb declares h_errno" >&5
@@ -17326,6 +17740,58 @@ done
 
 
 
+## Define MAIL_USE_FLOCK (or LOCKF) if the mailer uses flock (or lockf) to
+## interlock access to the mail spool.  The alternative is a lock file named
+## /usr/spool/mail/$USER.lock.
+mail_lock=no
+case "$opsys" in
+  aix4-2) mail_lock="lockf" ;;
+
+  gnu|freebsd|netbsd|openbsd|darwin|irix6-5) mail_lock="flock" ;;
+
+  ## On GNU/Linux systems, both methods are used by various mail programs.
+  ## I assume most people are using newer mailers that have heard of flock.
+  ## Change this if you need to.
+  ## Debian contains a patch which says: ``On Debian/GNU/Linux systems,
+  ## configure gets the right answers, and that means *NOT* using flock.
+  ## Using flock is guaranteed to be the wrong thing. See Debian Policy
+  ## for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
+  ## Debian maintainer hasn't provided a clean fix for Emacs.
+  ## movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
+  ## HAVE_MAILLOCK_H are defined, so the following appears to be the
+  ## correct logic.  -- fx
+  ## We must check for HAVE_LIBLOCKFILE too, as movemail does.
+  ## liblockfile is a Free Software replacement for libmail, used on
+  ## Debian systems and elsewhere. -rfr.
+  gnu-*)
+    mail_lock="flock"
+    if test $have_mail = yes || test $have_lockfile = yes; then
+      test $ac_cv_header_maillock_h = yes && mail_lock=no
+    fi
+    ;;
+esac
+
+BLESSMAIL_TARGET=
+case "$mail_lock" in
+  flock)
+cat >>confdefs.h <<\_ACEOF
+#define MAIL_USE_FLOCK 1
+_ACEOF
+ ;;
+
+  lockf)
+cat >>confdefs.h <<\_ACEOF
+#define MAIL_USE_LOCKF 1
+_ACEOF
+ ;;
+
+  *) BLESSMAIL_TARGET="need-blessmail" ;;
+esac
+
+
+
+
+
 
 
 
@@ -17406,7 +17872,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed
+cfmakeraw cfsetspeed isnan copysign
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -21174,7 +21640,7 @@ done
 # That is because we have not set up to link ncurses in lib-src.
 # It's better to believe a function is not available
 # than to expect to find it in ncurses.
-# Also we need tputs and frieds to be able to build at all.
+# Also we need tputs and friends to be able to build at all.
 have_tputs_et_al=true
 { $as_echo "$as_me:$LINENO: checking for library containing tputs" >&5
 $as_echo_n "checking for library containing tputs... " >&6; }
@@ -21280,9 +21746,137 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBNCURSES 1
 _ACEOF
 
+## FIXME This was the cpp logic, but I am not sure it is right.
+## The above test has not necessarily found libncurses.
+HAVE_LIBNCURSES=yes
+
+## Use terminfo instead of termcap?
+## Note only system files NOT using terminfo are:
+## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## darwin|gnu without ncurses.
+TERMINFO=no
+LIBS_TERMCAP=
+case "$opsys" in
+  ## cygwin: Fewer environment variables to go wrong, more terminal types.
+  ## hpux10-20: Use the system provided termcap(3) library.
+  ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
+  ##  is necessary.  Otherwise Emacs dumps core when run -nw.
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+
+  ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
+  ##  The ncurses library has been moved out of the System framework in
+  ##  Mac OS X 10.2.  So if configure detects it, set the command-line
+  ##  option to use it.
+  darwin|gnu*)
+    ## (HAVE_LIBNCURSES was not always true, but is since 2010-03-18.)
+    if test "x$HAVE_LIBNCURSES" = "xyes"; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    fi
+    ;;
+
+  freebsd)
+    { $as_echo "$as_me:$LINENO: checking whether FreeBSD is new enough to use terminfo" >&5
+$as_echo_n "checking whether FreeBSD is new enough to use terminfo... " >&6; }
+    if test "${emacs_cv_freebsd_terminfo+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <osreldate.h>
+int
+main ()
+{
+#if __FreeBSD_version < 400000
+fail;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  emacs_cv_freebsd_terminfo=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	emacs_cv_freebsd_terminfo=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+
+
+    { $as_echo "$as_me:$LINENO: result: $emacs_cv_freebsd_terminfo" >&5
+$as_echo "$emacs_cv_freebsd_terminfo" >&6; }
+
+    if test $emacs_cv_freebsd_terminfo = yes; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
+esac
+
+case "$opsys" in
+  ## hpux: Make sure we get select from libc rather than from libcurses
+  ##  because libcurses on HPUX 10.10 has a broken version of select.
+  ##  We used to use -lc -lcurses, but this may be cleaner.
+  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+
+  openbsd) LIBS_TERMCAP="-lncurses" ;;
+
+  ## Must use system termcap, if we use any termcap.  It does special things.
+  sol2*) test "$TERMINFO" != yes && LIBS_TERMCAP="-ltermcap" ;;
+esac
+
+TERMCAP_OBJ=tparam.o
+if test $TERMINFO = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define TERMINFO 1
+_ACEOF
+
+
+  ## Default used to be -ltermcap.  Add a case above if need something else.
+  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
+
+  TERMCAP_OBJ=terminfo.o
+fi
+
+
+
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
-
 resolv=no
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -25866,6 +26460,16 @@ fi
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
 
+## Hack to detect a buggy GCC version.
+if test "x$GCC" = xyes \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
+   && test x"`echo $CFLAGS | grep '\-O[23]'`" != x \
+   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
+   { { $as_echo "$as_me:$LINENO: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." >&5
+$as_echo "$as_me: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
@@ -25908,8 +26512,7 @@ fi
 
 
 
-
-
+## Used in lwlib/Makefile.in.
 
 
 
@@ -25951,28 +26554,28 @@ _ACEOF
 
 
 cat >>confdefs.h <<_ACEOF
-#define LD_SWITCH_X_SITE_AUX ${LD_SWITCH_X_SITE_AUX}
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
 #define C_SWITCH_X_SITE ${C_SWITCH_X_SITE}
 _ACEOF
 
 
-cat >>confdefs.h <<_ACEOF
-#define UNEXEC_SRC ${UNEXEC_SRC}
-_ACEOF
-
-
+XMENU_OBJ=
+XOBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_X_WINDOWS 1
 _ACEOF
 
+  XMENU_OBJ=xmenu.o
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
 fi
+
+
+
+WIDGET_OBJ=
+MOTIF_LIBW=
 if test "${USE_X_TOOLKIT}" != "none" ; then
+  WIDGET_OBJ=widget.o
 
 cat >>confdefs.h <<\_ACEOF
 #define USE_X_TOOLKIT 1
@@ -25990,15 +26593,76 @@ cat >>confdefs.h <<\_ACEOF
 #define USE_MOTIF 1
 _ACEOF
 
+    MOTIF_LIBW=-lXm
+    case "$opsys" in
+      gnu-linux)
+        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
+        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
+        ;;
+
+      unixware)
+        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
+        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
+        MOTIF_LIBW="MOTIF_LIBW -lXimp"
+        ;;
+
+      aix4-2)
+        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
+        MOTIF_LIBW="$MOTIF_LIBW -li18n"
+        ;;
+    esac
+    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
   fi
 fi
+
+
+TOOLKIT_LIBW=
+case "$USE_X_TOOLKIT" in
+  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
+  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
+esac
+
+
+if test "$USE_X_TOOLKIT" = "none"; then
+  LIBXT_OTHER="\$(LIBXSM)"
+else
+  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+fi
+
+
+## The X Menu stuff is present in the X10 distribution, but missing
+## from X11.  If we have X10, just use the installed library;
+## otherwise, use our own copy.
 if test "${HAVE_X11}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_X11 1
 _ACEOF
 
+
+  if test "$USE_X_TOOLKIT" = "none"; then
+    OLDXMENU="\${oldXMenudir}libXMenu11.a"
+  else
+    OLDXMENU="\${lwlibdir}liblw.a"
+  fi
+  LIBXMENU="\$(OLDXMENU)"
+  LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+else
+  OLDXMENU=
+  LIBXMENU="-lXMenu"
+  LIBX_OTHER=
 fi
+
+if test "$HAVE_GTK" = "yes"; then
+  OLDXMENU=
+  LIBXMENU=
+fi
+
+
+
+
+
 if test "${HAVE_MENUS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -26019,6 +26683,89 @@ cat >>confdefs.h <<\_ACEOF
 #define REL_ALLOC 1
 _ACEOF
 
+fi
+
+
+if test "$opsys" = "cygwin"; then
+  CYGWIN_OBJ="sheap.o"
+  ## Cygwin differs because of its unexec().
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
+else
+  CYGWIN_OBJ=
+  PRE_ALLOC_OBJ=lastfile.o
+  POST_ALLOC_OBJ="\$(vmlimitobj)"
+fi
+
+
+
+
+
+case "$opsys" in
+  aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
+
+  darwin)
+  ## The -headerpad option tells ld (see man page) to leave room at the
+  ## end of the header for adding load commands.  Needed for dumping.
+  ## 0x690 is the total size of 30 segment load commands (at 56
+  ## each); under Cocoa 31 commands are required.
+  if test "$HAVE_NS" = "yes"; then
+    libs_nsgui="-framework AppKit"
+    headerpad_extra=6C8
+  else
+    libs_nsgui=
+    headerpad_extra=690
+  fi
+  LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+  ;;
+
+  *) LD_SWITCH_SYSTEM_TEMACS= ;;
+esac
+
+
+
+## This exists because src/Makefile.in did some extra fiddling around
+## with LD_SWITCH_SYSTEM.  The cpp logic was:
+##   #ifndef LD_SWITCH_SYSTEM
+##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
+## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
+## not using gcc, darwin system not on an alpha (ie darwin, since
+## darwin + alpha does not occur).
+## Note that unlike L_S_S, this is not used in ac_link.
+if test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
+   test "$opsys" = "darwin"; then
+  LD_SWITCH_SYSTEM_EXTRA="-X"
+else
+  LD_SWITCH_SYSTEM_EXTRA=
+fi
+
+
+
+LIB_GCC=
+if test "x$GCC" = "xyes"; then
+
+  case "$opsys" in
+    ## cygwin: don't link against static libgcc.
+    cygwin|freebsd|netbsd|openbsd) LIB_GCC= ;;
+
+    gnu-*)
+      ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
+      ## build on ARM EABI under GNU/Linux.  (Bug#5518)
+      ## Note that m/arm.h never bothered to undefine LIB_GCC first.
+      if test "$machine" = "arm"; then
+        LIB_GCC="-lgcc_s"
+      else
+        ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
+        ## immediately undefine it again and redefine it to empty.
+        ## Was the C_SWITCH_X_SITE part really necessary?
+##      LIB_GCC=`$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
+        LIB_GCC=
+      fi
+      ;;
+
+    ## Ask GCC where to find libgcc.a.
+    *) LIB_GCC=`$(CC) -print-libgcc-file-name 2> /dev/null` ;;
+  esac
 fi
 
 
@@ -26069,6 +26816,7 @@ echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGI
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
+echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
@@ -26118,7 +26866,7 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-cpp_undefs="`echo $srcdir $configuration $canonical |
+cpp_undefs="`echo $srcdir $configuration $canonical unix |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"
 
@@ -26144,7 +26892,7 @@ fi
 rm -f conftest*
 
 
-ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
+ac_config_files="$ac_config_files Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -26753,7 +27501,7 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:src/config.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "lib-src/Makefile.c") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile.c:lib-src/Makefile.in" ;;
+    "lib-src/Makefile") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile" ;;
     "oldXMenu/Makefile") CONFIG_FILES="$CONFIG_FILES oldXMenu/Makefile" ;;
     "doc/emacs/Makefile") CONFIG_FILES="$CONFIG_FILES doc/emacs/Makefile" ;;
     "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
@@ -27398,22 +28146,6 @@ ${MAKE-make} epaths-force
 if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
   CPPFLAGS="$CPPFLAGS -traditional"
 fi
-
-echo creating lib-src/Makefile
-( cd lib-src
-  rm -f junk.c junk1.c junk2.c
-  sed -e '/start of cpp stuff/q' \
-      < Makefile.c > junk1.c
-  sed -e '1,/start of cpp stuff/d'\
-      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
-      < Makefile.c > junk.c
-  $CPP -P $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
-      sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
-  cat junk1.c junk2.c > Makefile.new
-  rm -f junk.c junk1.c junk2.c
-  chmod 444 Makefile.new
-  mv -f Makefile.new Makefile
-)
 
 echo creating src/Makefile
 ( cd src

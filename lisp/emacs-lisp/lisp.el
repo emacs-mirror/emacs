@@ -624,20 +624,25 @@ considered."
   (interactive)
   (let* ((data (lisp-completion-at-point predicate))
          (plist (nthcdr 3 data)))
-    (let ((completion-annotate-function (plist-get plist :annotate-function)))
+    (if (null data)
+        (minibuffer-message "Nothing to complete")
+      (let ((completion-annotate-function
+             (plist-get plist :annotate-function)))
       (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
-                            (plist-get plist :predicate)))))
-    
+                              (plist-get plist :predicate))))))
+
 
 (defun lisp-completion-at-point (&optional predicate)
+  "Function used for `completion-at-point-functions' in `emacs-lisp-mode'."
   ;; FIXME: the `end' could be after point?
-  (let* ((end (point))
+  (let* ((pos (point))
          (beg (with-syntax-table emacs-lisp-mode-syntax-table
-                (save-excursion
-                  (backward-sexp 1)
-                  (while (= (char-syntax (following-char)) ?\')
-                    (forward-char 1))
-                  (point))))
+                (condition-case nil
+                    (save-excursion
+                      (backward-sexp 1)
+                      (skip-syntax-forward "'")
+                      (point))
+                  (scan-error pos))))
          (predicate
           (or predicate
               (save-excursion
@@ -656,12 +661,23 @@ considered."
                       ;; Maybe a `let' varlist or something.
                       nil
                     ;; Else, we assume that a function name is expected.
-                    'fboundp))))))
-    (list beg end obarray
-          :predicate predicate
-          :annotate-function
+                    'fboundp)))))
+         (end
+          (unless (or (eq beg (point-max))
+                      (member (char-syntax (char-after beg)) '(?\" ?\( ?\))))
+            (condition-case nil
+                (save-excursion
+                  (goto-char beg)
+                  (forward-sexp 1)
+                  (when (>= (point) pos)
+                    (point)))
+                  (scan-error pos)))))
+    (when end
+      (list beg end obarray
+            :predicate predicate
+            :annotate-function
             (unless (eq predicate 'fboundp)
-              (lambda (str) (if (fboundp (intern-soft str)) " <f>"))))))
+              (lambda (str) (if (fboundp (intern-soft str)) " <f>")))))))
 
 ;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

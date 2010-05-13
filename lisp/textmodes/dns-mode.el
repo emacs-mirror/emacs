@@ -151,6 +151,7 @@ Turning on DNS mode runs `dns-mode-hook'."
   (easy-menu-add dns-mode-menu dns-mode-map))
 
 ;;;###autoload (defalias 'zone-mode 'dns-mode)
+;;;###autoload (add-to-list 'auto-mode-alist (purecopy '("\\.zone\\'" . zone-mode)))
 
 ;; Tools.
 

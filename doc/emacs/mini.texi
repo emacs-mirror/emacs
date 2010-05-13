@@ -601,7 +601,7 @@ repetition.  If you type just @key{RET}, that repeats the command
 unchanged.  You can also change the command by editing the Lisp
 expression before you execute it.  The repeated command is added to
 the front of the command history unless it is identical to the most
-recently item.
+recent item.
 
   Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you can
 use the minibuffer history commands (@kbd{M-p}, @kbd{M-n}, @kbd{M-r},

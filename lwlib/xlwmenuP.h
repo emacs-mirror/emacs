@@ -32,7 +32,9 @@ Boston, MA 02110-1301, USA.  */
 /* Elements in the stack arrays. */
 typedef struct _window_state
 {
+  Widget        w;
   Window	window;
+  Pixmap        pixmap;
   Position	x;
   Position	y;
   Dimension	width;

@@ -1,3 +1,202 @@
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIB_SRC_EXTRA_INSTALLABLES): Remove, unused.
+
+	* configure.in (LIB_GCC): New output variable.
+
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (msdos): No more mainmake.
+
+	* configure.in: Generate lib-src/Makefile directly, do not run cpp.
+	* config.bat: Do not run cpp on lib-src/Makefile.in.
+
+	* config.bat [HAVE_X11]: Run sed3x.inp on lib-src/Makefile.
+
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBS_SYSTEM): New output variable, replacing cpp.
+
+	* configure.in (MAIL_USE_FLOCK, MAIL_USE_LOCKF): New AC_DEFINEs.
+	(BLESSMAIL_TARGET): New output variable.
+
+2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* INSTALL: Fix typos.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Add check for buggy version of GCC (Bug#6031).
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_LIBNCURSES): New local variable.
+	(TERMINFO, LIBS_TERMCAP, TERMCAP_OBJ): New output variables,
+	replacing cpp in src/s/*.h and src/Makefile.in.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in: Add tests for `isnan' and `copysign'.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Allow for 2 leading `#'s in comments in
+	src/Makefile.in.
+
+2010-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_SYSTEM): Set with configure, not cpp.
+	Merges logic from src/s/* and src/Makefile.in.
+	(LD_SWITCH_SYSTEM_TEMACS): New output variable.
+
+2010-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Define START_FILES and LIB_STANDARD using autoconf.
+	* configure.in (START_FILES, LIB_STANDARD): New definitions, moved
+	here from src/s/*.h.
+	(HAVE_CRTIN): Remove, inline logic in the netbsd
+	START_FILES/LIB_STANDARD computation.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_PROG_LN_S): Remove test, nothing uses @LN_S@.
+
+	* Makefile.in (CPP, C_SWITCH_SYSTEM, ALLOCA, LN_S, C_SWITCH_X_SITE)
+	(LD_SWITCH_X_SITE): Remove unused variables.
+
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_X_SITE_AUX): Use AC_SUBST only, not AC_DEFINE
+	as well.
+	(LD_SWITCH_X_SITE_AUX_RPATH): New output variable.
+
+	* configure.in (LD_SWITCH_SYSTEM_TEMACS): New output variable.
+
+	* configure.in (C_SWITCH_MACHINE, C_SWITCH_SYSTEM): New output
+	variables, replacing c_switch_machine, c_switch_system.
+	* Makefile.in (C_SWITCH_SYSTEM): Use @C_SWITCH_SYSTEM@ rather than
+	@c_switch_system@.
+
+2010-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXT_OTHER, LIBX_OTHER): New output variables.
+
+	* make-dist: There are no more src/m/*.inp files.
+
+2010-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LD_SWITCH_MACHINE, ld_switch_machine): Remove, unused.
+	(ac_link): Do not use ld_switch_machine.
+
+2010-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OTHER_OBJ): Remove.
+	(PRE_ALLOC_OBJ, POST_ALLOC_OBJ): New output variables.
+
+2010-04-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OTHER_OBJ): Always include vm-limit.o on Cygwin.
+	Elsewhere, maybe include it.
+
+	* configure.in (TOOLKIT_LIBW) [HAVE_GTK]: Set to $GTK_LIBS.
+	(OLDXMENU, LIBXMENU): New output variables.
+
+	* configure.in (OTHER_OBJ): New output variable.
+
+2010-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (CYGWIN_OBJ): New output variable.
+
+	* configure.in (GPM_MOUSE_SUPPORT): New output variable.
+
+	* configure.in (FONT_OBJ): New output variable.
+
+	* configure.in (LIBXMU): New output variable.
+
+	* configure.in (NS_OBJ, NS_SUPPORT): New output variables.
+
+	* configure.in (machine, canonical): On amdx86-64, check for a 32-bit
+	userland and maybe change values to i386 (move test from s/amdx86-64.h).
+
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXTR6): New output variable.  Move unixware special
+	case here from src/s/unixware.h.
+
+	* configure.in (LUCID_LIBW, MOTIF_LIBW): No longer substitute
+	in Makefiles.
+	(TOOLKIT_LIBW): New output variable, replacing LUCID_LIBW/MOTIF_LIBW.
+
+	* configure.in (HAVE_MOTIF_2_1): Remove unused variable.
+	(LIBXP): No longer substitute in Makefiles.
+	(MOTIF_LIBW): New output variable.  Move system-specific settings here
+	from src/s files.
+
+2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Reduce CPP usage.
+	* configure.in (LIB_X11_LIB): Remove, inline in the only user.
+	(unexec): Define unconditionally, all platforms define
+	UNEXEC.  AC_SUBST it.
+	(UNEXEC_SRC): Remove, unused.
+	(C_SWITCH_X_SYSTEM): Define using autoconf, not cpp.
+
+2010-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_MOTIF_2_1, HAVE_LIBXP): Remove unused AC_DEFINEs,
+	replaced by LIBXP.
+
+	* configure.in (--with-crt-dir): Doc fix (now valid for all platforms).
+	(CRT_DIR): On (powerpc64|sparc64)-*-linux-gnu*, default to /usr/lib64.
+	On hpux10-20, default to /lib.
+
+	* configure.in (LUCID_LIBW, LIBXP, WIDGET_OBJ): New output variables.
+
+2010-04-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LIBS_MACHINE): Remove, unused.
+
+	* configure.in (LIB_MATH): New output variable.  Set it for some systems.
+
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (CRT_DIR): New output variable.
+	(--with-crt-dir): New option.  (Bug#5655)
+	(HAVE_LIB64_DIR): Remove.
+
+2010-04-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (REAL_CFLAGS, CFLAGS): Restore -g for gcc.
+
+2010-04-22  Miles Bader  <miles@gnu.org>
+
+	* configure.in: Get rid of "unix" pre-defined macro when
+	preprocessing Makefile.  (Bug#5857)
+
+2010-04-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Avoid non-portable shell command negation
+	* configure.in: Revert last change.
+
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Change "if test ! -f" to "if ! test -f".
+
+2010-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBSELINUX_LIBS): Always substitute in Makefiles.
+	(GTK_OBJ, DBUS_OBJ, LIBXSM, XMENU_OBJ, XOBJ): New output variables.
+
+2010-04-21  Karel Klíč  <kklic@redhat.com>
+
+	* configure.in: New option: --with(out)-selinux, on by default.
+	Set HAVE_LIBSELINUX if we find libselinux, and substitute
+	LIBSELINUX_LIBS in Makefiles.
+
 2010-04-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove all references to LIBX11_SYSTEM.
@@ -5680,7 +5879,7 @@
 1994-05-09  David J. MacKenzie  (djm@nutrimat.gnu.ai.mit.edu)
 
 	* configure.in: Remove AC_LANG_C call.  Not needed with Autoconf
-	 version > 1.8.
+	version > 1.8.
 
 1994-05-08  Morten Welinder  (terra@diku.dk)
 

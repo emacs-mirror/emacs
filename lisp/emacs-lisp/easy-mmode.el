@@ -116,6 +116,11 @@ BODY contains code to execute each time the mode is activated or deactivated.
 :lighter SPEC	Same as the LIGHTER argument.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
+:variable PLACE	The location (as can be used with `setf') to use instead
+		of the variable MODE to store the state of the mode.  PLACE
+		can also be of the form (GET . SET) where GET is an expression
+		that returns the current state and SET is a function that takes
+		a new state and sets it.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -147,6 +152,9 @@ For example, you could write
 	 (type nil)
 	 (extra-args nil)
 	 (extra-keywords nil)
+         (variable nil)          ;The PLACE where the state is stored.
+         (setter nil)            ;The function (if any) to set the mode var.
+         (modefun mode)          ;The minor mode function name we're defining.
 	 (require t)
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
@@ -167,6 +175,12 @@ For example, you could write
 	(:type (setq type (list :type (pop body))))
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
+        (:variable (setq variable (pop body))
+         (if (not (functionp (cdr-safe variable)))
+             ;; PLACE is not of the form (GET . SET).
+             (setq mode variable)
+           (setq mode (car variable))
+           (setq setter (cdr variable))))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
@@ -187,12 +201,16 @@ For example, you could write
 
     `(progn
        ;; Define the variable to enable or disable the mode.
-       ,(if (not globalp)
-	    `(progn
-	       (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
+       ,(cond
+         ;; If :variable is specified, then the var will be
+         ;; declared elsewhere.
+         (variable nil)
+         ((not globalp)
+          `(progn
+             (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
 Use the command `%s' to change this variable." pretty-name mode))
-	       (make-variable-buffer-local ',mode))
-
+             (make-variable-buffer-local ',mode)))
+         (t
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
 See the command `%s' for a description of this minor mode."
@@ -207,10 +225,10 @@ or call the function `%s'."))))
 	       ,@group
 	       ,@type
 	       ,@(unless (eq require t) `(:require ,require))
-               ,@(nreverse extra-keywords))))
+               ,@(nreverse extra-keywords)))))
 
        ;; The actual function.
-       (defun ,mode (&optional arg ,@extra-args)
+       (defun ,modefun (&optional arg ,@extra-args)
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 Interactively, with no prefix argument, toggle the mode.
@@ -221,17 +239,19 @@ With zero or negative ARG turn mode off.
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
-           (setq ,mode
-                 (if (eq arg 'toggle)
-                     (not ,mode)
-                   ;; A nil argument also means ON now.
-                   (> (prefix-numeric-value arg) 0)))
+           (,@(if setter (list setter)
+                (list (if (symbolp mode) 'setq 'setf) mode))
+            (if (eq arg 'toggle)
+                (not ,mode)
+              ;; A nil argument also means ON now.
+              (> (prefix-numeric-value arg) 0)))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
            (if (called-interactively-p 'any)
                (progn
-                 ,(if globalp `(customize-mark-as-set ',mode))
+                 ,(if (and globalp (symbolp mode))
+                      `(customize-mark-as-set ',mode))
                  ;; Avoid overwriting a message shown by the body,
                  ;; but do overwrite previous messages.
                  (unless (and (current-message)
@@ -256,9 +276,15 @@ With zero or negative ARG turn mode off.
 		     (t (error "Invalid keymap %S" ,keymap))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
-       (add-minor-mode ',mode ',lighter
-		       ,(if keymap keymap-sym
-			  `(if (boundp ',keymap-sym) ,keymap-sym))))))
+       ,(if (not (symbolp mode))
+            (if (or lighter keymap)
+                (error ":lighter and :keymap unsupported with mode expression %s" mode))
+          `(with-no-warnings
+             (add-minor-mode ',mode ',lighter
+                           ,(if keymap keymap-sym
+                                `(if (boundp ',keymap-sym) ,keymap-sym))
+                             nil
+                             ,(unless (eq mode modefun) 'modefun)))))))
 
 ;;;
 ;;; make global minor mode
@@ -338,9 +364,11 @@ See `%s' for more information on %s."
 	     (progn
 	       (add-hook 'after-change-major-mode-hook
 			 ',MODE-enable-in-buffers)
+	       (add-hook 'fundamental-mode-hook ',MODE-enable-in-buffers)
 	       (add-hook 'find-file-hook ',MODE-check-buffers)
 	       (add-hook 'change-major-mode-hook ',MODE-cmhh))
 	   (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
+           (remove-hook 'fundamental-mode-hook ',MODE-enable-in-buffers)
 	   (remove-hook 'find-file-hook ',MODE-check-buffers)
 	   (remove-hook 'change-major-mode-hook ',MODE-cmhh))
 
@@ -361,13 +389,14 @@ See `%s' for more information on %s."
 	 (dolist (buf ,MODE-buffers)
 	   (when (buffer-live-p buf)
 	     (with-current-buffer buf
-	       (if ,mode
-		   (unless (eq ,MODE-major-mode major-mode)
-		     (,mode -1)
-		     (,turn-on)
-		     (setq ,MODE-major-mode major-mode))
-		 (,turn-on)
-		 (setq ,MODE-major-mode major-mode))))))
+               (unless (eq ,MODE-major-mode major-mode)
+                 (if ,mode
+                     (progn
+                       (,mode -1)
+                       (,turn-on)
+                       (setq ,MODE-major-mode major-mode))
+                   (,turn-on)
+                   (setq ,MODE-major-mode major-mode)))))))
        (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
 
        (defun ,MODE-check-buffers ()

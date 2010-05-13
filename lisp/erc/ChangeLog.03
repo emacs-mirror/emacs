@@ -145,7 +145,7 @@
 	to delete-if-not.
 
 	* erc.el 1.580 (erc-update-current-channel-member):
-	 Use erc-downcase when comparing
+	Use erc-downcase when comparing
 	nick entries.  Cleanup indentation.
 
 2003-11-01  Lawrence Mitchell  <wence@gmx.li>
@@ -171,7 +171,7 @@
 2003-10-24  Mario Lang  <mlang@delysid.org>
 
 	* erc-dcc.el 1.80: From Stephan Stahl <stl@isogmbh.de>:
-	 * (erc-dcc-send-block): Kill buffer if transfer completed correctly.
+	(erc-dcc-send-block): Kill buffer if transfer completed correctly.
 
 2003-10-22  Mario Lang  <mlang@delysid.org>
 

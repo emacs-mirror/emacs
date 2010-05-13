@@ -1,6 +1,7 @@
 /* Machine description file for the alpha chip.
-   Copyright (C) 1994, 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1994, 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 Author: Rainer Schoepf
 (according to authors.el)
@@ -20,35 +21,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* The following line tells the configuration script what sort of
-   operating system this machine is likely to run.
-   USUAL-OPSYS="note"
-
-NOTE-START
-Use -opsystem=osf1
-NOTE-END
-
-*/
-
 #ifndef _LP64
-#define _LP64			/* This doesn't appear to be necessary
-				   on OSF 4/5  -- fx.  */
+#define _LP64 /* This doesn't appear to be necessary on OSF 4/5  -- fx.  */
 #endif
 
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
-
 #undef WORDS_BIG_ENDIAN
-
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-#define NO_ARG_ARRAY
 
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
-
 /* __alpha defined automatically */
 
 
@@ -57,15 +39,12 @@ NOTE-END
    are always unsigned.
 
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
-
 #define EXPLICIT_SIGN_EXTEND
 
 /* Data type of load average, as read out of kmem.  */
-
 #define LOAD_AVE_TYPE long
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
-
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
 /* GNU malloc and the relocating allocator do not work together
@@ -82,16 +61,6 @@ NOTE-END
 /* #define SYSTEM_MALLOC */
 
 #ifdef __ELF__
-/* With ELF, make sure that all common symbols get allocated to in the
-   data section.  Otherwise, the dump of temacs may miss variables in
-   the shared library that have been initialized.  For example, with
-   GNU libc, __malloc_initialized would normally be resolved to the
-   shared library's .bss section, which is fatal.  */
-# ifdef __GNUC__
-#  define C_SWITCH_MACHINE	-fno-common
-# else
-#  error What gives?  Fix me if DEC Unix supports ELF now.
-# endif
 
 #undef UNEXEC
 #define UNEXEC unexelf.o
@@ -106,12 +75,10 @@ NOTE-END
 #else  /* not __ELF__ */
 
 /* Describe layout of the address space in an executing process.  */
-
 #define TEXT_START    0x120000000
 #define DATA_START    0x140000000
 
 /* The program to be used for unexec. */
-
 #define UNEXEC unexalpha.o
 
 #endif /* __ELF__ */

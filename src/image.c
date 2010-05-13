@@ -7961,7 +7961,7 @@ imagemagick_load_image (f, img, contents, size, filename)
 
 DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0,0,0,
        doc: /* Return image file types supported by ImageMagick.
-             Since ImageMagic recognizes a lot of file-types that clash with Emacs,
+             Since ImageMagick recognizes a lot of file-types that clash with Emacs,
             such as .c, we want to be able to alter the list at the lisp level.  */)
   ()
 {

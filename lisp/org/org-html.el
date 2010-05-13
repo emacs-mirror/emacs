@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,7 +81,7 @@ and corresponding declarations."
 			(string :tag "Declaration")))))
 
 (defcustom org-export-html-style-include-scripts t
-  "Non-nil means, include the javascript snippets in exported HTML files.
+  "Non-nil means include the javascript snippets in exported HTML files.
 The actual script is defined in `org-export-html-scripts' and should
 not be modified."
   :group 'org-export-html
@@ -137,6 +137,7 @@ not be modified."
   dt { font-weight: bold; }
   div.figure { padding: 0.5em; }
   div.figure p { text-align: center; }
+  textarea { overflow-x: auto; }
   .linenr { font-size:smaller }
   .code-highlighted {background-color:#ffff00;}
   .org-info-js_info-navigation { border-style:none; }
@@ -153,7 +154,7 @@ have the default style included, customize the variable
 `org-export-html-style-include-default'.")
 
 (defcustom org-export-html-style-include-default t
-  "Non-nil means, include the default style in exported HTML files.
+  "Non-nil means include the default style in exported HTML files.
 The actual style is defined in `org-export-html-style-default' and should
 not be modified.  Use the variables `org-export-html-style' to add
 your own style information."
@@ -253,7 +254,7 @@ document title."
   :type 'string)
 
 (defcustom org-export-html-link-org-files-as-html t
-  "Non-nil means, make file links to `file.org' point to `file.html'.
+  "Non-nil means make file links to `file.org' point to `file.html'.
 When org-mode is exporting an org-mode file to HTML, links to
 non-html files are directly put into a href tag in HTML.
 However, links to other Org-mode files (recognized by the
@@ -265,7 +266,7 @@ When nil, the links still point to the plain `.org' file."
   :type 'boolean)
 
 (defcustom org-export-html-inline-images 'maybe
-  "Non-nil means, inline images into exported HTML pages.
+  "Non-nil means inline images into exported HTML pages.
 This is done using an <img> tag.  When nil, an anchor with href is used to
 link to the image.  If this option is `maybe', then images in links with
 an empty description will be inlined, while images with a description will
@@ -333,13 +334,13 @@ will give even lines the class \"tr-even\" and odd lines the class \"tr-odd\"."
 
 
 (defcustom org-export-html-table-use-header-tags-for-first-column nil
-  "Non-nil means, format column one in tables with header tags.
+  "Non-nil means format column one in tables with header tags.
 When nil, also column one will use data tags."
   :group 'org-export-tables
   :type 'boolean)
 
 (defcustom org-export-html-validation-link nil
-  "Non-nil means, add validationlink to postamble of HTML exported files."
+  "Non-nil means add validationlink to postamble of HTML exported files."
   :group 'org-export-html
   :type '(choice
 	  (const :tag "Nothing" nil)
@@ -420,7 +421,7 @@ This may also be a function, building and inserting the postamble.")
   "Hook run during HTML export, after blockquote, verse, center are done.")
 
 (defvar org-export-html-final-hook nil
-  "Hook run during HTML export, after blockquote, verse, center are done.")
+  "Hook run at the end of HTML export, in the new buffer.")
 
 ;;; HTML export
 
@@ -433,7 +434,16 @@ This may also be a function, building and inserting the postamble.")
 			(file-name-nondirectory
 			 org-current-export-file)))
      org-current-export-dir nil "Creating LaTeX image %s"))
-  (message "Exporting..."))
+  (goto-char (point-min))
+  (let (label l1)
+    (while (re-search-forward "\\\\ref{\\([^{}\n]+\\)}" nil t)
+      (org-if-unprotected-at (match-beginning 1)
+	(setq label (match-string 1))
+	(save-match-data
+	  (if (string-match "\\`[a-z]\\{1,10\\}:\\(.+\\)" label)
+	      (setq l1 (substring label (match-beginning 1)))
+	    (setq l1 label)))
+	(replace-match (format "[[#%s][%s]]" label l1) t t)))))
 
 ;;;###autoload
 (defun org-export-as-html-and-open (arg)
@@ -443,7 +453,9 @@ The prefix ARG specifies how many levels of the outline should become
 headlines.  The default is 3.  Lower levels will become bulleted lists."
   (interactive "P")
   (org-export-as-html arg 'hidden)
-  (org-open-file buffer-file-name))
+  (org-open-file buffer-file-name)
+  (when org-export-kill-product-buffer-when-displayed
+    (kill-buffer)))
 
 ;;;###autoload
 (defun org-export-as-html-batch ()
@@ -539,6 +551,7 @@ the file header and footer, simply return the content of
 <body>...</body>, without even the body tags themselves.  When
 PUB-DIR is set, use this as the publishing directory."
   (interactive "P")
+  (run-hooks 'org-export-first-hook)
 
   ;; Make sure we have a file name when we need it.
   (when (and (not (or to-buffer body-only))
@@ -624,7 +637,8 @@ PUB-DIR is set, use this as the publishing directory."
 	 (author      (plist-get opt-plist :author))
 	 (title       (or (and subtree-p (org-export-get-title-from-subtree))
 			  (plist-get opt-plist :title)
-			  (and (not
+			  (and (not body-only)
+			       (not
 				(plist-get opt-plist :skip-before-1st-heading))
 			       (org-export-grab-title-from-buffer))
 			  (and buffer-file-name
@@ -804,7 +818,8 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (push "<ul>\n<li>" thetoc)
 	    (setq lines
 		  (mapcar '(lambda (line)
-		    (if (string-match org-todo-line-regexp line)
+		    (if (and (string-match org-todo-line-regexp line)
+			     (not (get-text-property 0 'org-protected line)))
 			;; This is a headline
 			(progn
 			  (setq have-headings t)
@@ -999,7 +1014,7 @@ lang=\"%s\" xml:lang=\"%s\">
 				  "\" class=\"target\">" (match-string 1 line)
 				  "@</a> ")
 			  t t line)))))
-	    
+
 	  (setq line (org-html-handle-time-stamps line))
 
 	  ;; replace "&" by "&amp;", "<" and ">" by "&lt;" and "&gt;"
@@ -1125,9 +1140,11 @@ lang=\"%s\" xml:lang=\"%s\">
 			     (not (string-match "^[0-9]*$" search))
 			     (not (string-match "^\\*" search))
 			     (not (string-match "^/.*/$" search)))
-			(setq thefile (concat thefile "#"
-					      (org-solidify-link-text
-					       (org-link-unescape search)))))
+			(setq thefile
+			      (concat thefile
+				      (if (= (string-to-char search) ?#) "" "#")
+				      (org-solidify-link-text
+				       (org-link-unescape search)))))
 		    (when (string-match "^file:" desc)
 		      (setq desc (replace-match "" t t desc))
 		      (if (string-match "\\.org$" desc)
@@ -1402,7 +1419,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	  (when (and org-export-author-info author)
 	    (insert "<p class=\"author\"> "
 		    (nth 1 lang-words) ": " author "\n")
-	    (when email
+	    (when (and org-export-email-info email (string-match "\\S-" email))
 	      (if (listp (split-string email ",+ *"))
 		  (mapc (lambda(e)
 			  (insert "<a href=\"mailto:" e "\">&lt;"
@@ -1469,6 +1486,12 @@ lang=\"%s\" xml:lang=\"%s\">
 	  (delete-region beg end)
 	  (insert (format "<span style=\"visibility:hidden;\">%s</span>"
 			  (make-string n ?x)))))
+      ;; Remove empty lines at the beginning of the file.
+      (goto-char (point-min))
+      (when (looking-at "\\s-+\n") (replace-match ""))
+      ;; Remove display properties
+      (remove-text-properties (point-min) (point-max) '(display t))
+      ;; Run the hook
       (run-hooks 'org-export-html-final-hook)
       (or to-buffer (save-buffer))
       (goto-char (point-min))
@@ -1506,10 +1529,12 @@ lang=\"%s\" xml:lang=\"%s\">
   "Create image tag with source and attributes."
   (save-match-data
     (if (string-match "^ltxpng/" src)
-	(format "<img src=\"%s\"/>" src)
+	(format "<img src=\"%s\" alt=\"%s\"/>"
+                src (org-find-text-property-in-string 'org-latex-src src))
       (let* ((caption (org-find-text-property-in-string 'org-caption src))
 	     (attr (org-find-text-property-in-string 'org-attributes src))
 	     (label (org-find-text-property-in-string 'org-label src)))
+	(setq caption (and caption (org-html-do-expand caption)))
 	(concat
 	(if caption
 	    (format "%s<div %sclass=\"figure\">
@@ -1585,16 +1610,10 @@ lang=\"%s\" xml:lang=\"%s\">
     ;; column and the special lines
     (setq lines (org-table-clean-before-export lines)))
 
-  (let* ((caption (or (get-text-property 0 'org-caption (car lines))
-		      (get-text-property (or (next-single-property-change
-					      0 'org-caption (car lines))
-					     0)
-					 'org-caption (car lines))))
-	 (attributes (or (get-text-property 0 'org-attributes (car lines))
-			 (get-text-property (or (next-single-property-change
-						 0 'org-attributes (car lines))
-						0)
-					    'org-attributes (car lines))))
+  (let* ((caption (org-find-text-property-in-string 'org-caption (car lines)))
+	 (label (org-find-text-property-in-string 'org-label (car lines)))
+	 (attributes (org-find-text-property-in-string 'org-attributes
+						       (car lines)))
 	 (html-table-tag (org-export-splice-attributes
 			  html-table-tag attributes))
 	 (head (and org-export-highlight-first-table-line
@@ -1604,6 +1623,7 @@ lang=\"%s\" xml:lang=\"%s\">
 
 	 (nline 0) fnum i
 	 tbopen line fields html gr colgropen rowstart rowend)
+    (setq caption (and caption (org-html-do-expand caption)))
     (if splice (setq head nil))
     (unless splice (push (if head "<thead>" "<tbody>") html))
     (setq tbopen t)
@@ -1676,6 +1696,8 @@ lang=\"%s\" xml:lang=\"%s\">
       ;; DocBook document, we want to always include the caption to make
       ;; DocBook XML file valid.
       (push (format "<caption>%s</caption>" (or caption "")) html)
+      (when label (push (format "<a name=\"%s\" id=\"%s\"></a>" label label)
+			html))
       (push html-table-tag html))
     (concat (mapconcat 'identity html "\n") "\n")))
 
@@ -1865,14 +1887,16 @@ If there are links in the string, don't modify these."
   (let* ((re (concat org-bracket-link-regexp "\\|"
 		     (org-re "[ \t]+\\(:[[:alnum:]_@:]+:\\)[ \t]*$")))
 	 m s l res)
-    (while (setq m (string-match re string))
-      (setq s (substring string 0 m)
-	    l (match-string 0 string)
-	    string (substring string (match-end 0)))
-      (push (org-html-do-expand s) res)
-      (push l res))
-    (push (org-html-do-expand string) res)
-    (apply 'concat (nreverse res))))
+    (if (string-match "^[ \t]*\\+-[-+]*\\+[ \t]*$" string)
+	string
+      (while (setq m (string-match re string))
+	(setq s (substring string 0 m)
+	      l (match-string 0 string)
+	      string (substring string (match-end 0)))
+	(push (org-html-do-expand s) res)
+	(push l res))
+      (push (org-html-do-expand string) res)
+      (apply 'concat (nreverse res)))))
 
 (defun org-html-do-expand (s)
   "Apply all active conversions to translate special ASCII to HTML."
@@ -1887,16 +1911,14 @@ If there are links in the string, don't modify these."
   (if org-export-with-sub-superscripts
       (setq s (org-export-html-convert-sub-super s)))
   (if org-export-with-TeX-macros
-      (let ((start 0) wd ass)
-	(while (setq start (string-match "\\\\\\([a-zA-Z]+\\)\\({}\\)?"
+      (let ((start 0) wd rep)
+	(while (setq start (string-match "\\\\\\([a-zA-Z]+[0-9]*\\)\\({}\\)?"
 					 s start))
 	  (if (get-text-property (match-beginning 0) 'org-protected s)
 	      (setq start (match-end 0))
 	    (setq wd (match-string 1 s))
-	    (if (setq ass (assoc wd org-html-entities))
-		(setq s (replace-match (or (cdr ass)
-					   (concat "&" (car ass) ";"))
-				       t t s))
+	    (if (setq rep (org-entity-get-representation wd 'html))
+		(setq s (replace-match rep t t s))
 	      (setq start (+ start (length wd))))))))
   s)
 
@@ -1994,8 +2016,11 @@ If there are links in the string, don't modify these."
 When TITLE is nil, just close all open levels."
   (org-close-par-maybe)
   (let* ((target (and title (org-get-text-property-any 0 'target title)))
-	 (extra-targets (assoc target org-export-target-aliases))
-	 (preferred (cdr (assoc target org-export-preferred-target-alist)))
+	 (extra-targets (and target
+			     (assoc target org-export-target-aliases)))
+	 (extra-class (and title (org-get-text-property-any 0 'html-container-class title)))
+	 (preferred (and target
+			 (cdr (assoc target org-export-preferred-target-alist))))
 	 (remove (or preferred target))
 	 (l org-level-max)
 	 snumber href suffix)
@@ -2058,8 +2083,9 @@ When TITLE is nil, just close all open levels."
 	(setq href (cdr (assoc (concat "sec-" snumber) org-export-preferred-target-alist)))
 	(setq suffix (or href snumber))
 	(setq href (or href (concat "sec-" snumber)))
-	(insert (format "\n<div id=\"outline-container-%s\" class=\"outline-%d\">\n<h%d id=\"%s\">%s%s</h%d>\n<div class=\"outline-text-%d\" id=\"text-%s\">\n"
-			suffix level level href
+	(insert (format "\n<div id=\"outline-container-%s\" class=\"outline-%d%s\">\n<h%d id=\"%s\">%s%s</h%d>\n<div class=\"outline-text-%d\" id=\"text-%s\">\n"
+			suffix level (if extra-class (concat " " extra-class) "")
+			level href
 			extra-targets
 			title level level suffix))
 	(org-open-par)))))

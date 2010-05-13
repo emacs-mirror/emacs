@@ -902,26 +902,20 @@ mail with multiple parts is preferred to sending a Unicode one.")
       out)))
 
 (eval-and-compile
-  (defvar mm-emacs-mule (and (not (featurep 'xemacs))
-			     (boundp 'enable-multibyte-characters)
-			     (default-value 'enable-multibyte-characters)
-			     (fboundp 'set-buffer-multibyte))
-    "True in Emacs with Mule.")
-
-  (if mm-emacs-mule
-      (defun mm-enable-multibyte ()
-	"Set the multibyte flag of the current buffer.
+  (if (featurep 'xemacs)
+      (defalias 'mm-enable-multibyte 'ignore)
+    (defun mm-enable-multibyte ()
+      "Set the multibyte flag of the current buffer.
 Only do this if the default value of `enable-multibyte-characters' is
 non-nil.  This is a no-op in XEmacs."
-	(set-buffer-multibyte 'to))
-    (defalias 'mm-enable-multibyte 'ignore))
+      (set-buffer-multibyte t)))
 
-  (if mm-emacs-mule
-      (defun mm-disable-multibyte ()
-	"Unset the multibyte flag of in the current buffer.
+  (if (featurep 'xemacs)
+      (defalias 'mm-disable-multibyte 'ignore)
+    (defun mm-disable-multibyte ()
+      "Unset the multibyte flag of in the current buffer.
 This is a no-op in XEmacs."
-	(set-buffer-multibyte nil))
-    (defalias 'mm-disable-multibyte 'ignore)))
+      (set-buffer-multibyte nil))))
 
 (defun mm-preferred-coding-system (charset)
   ;; A typo in some Emacs versions.
@@ -1230,28 +1224,23 @@ Use multibyte mode for this."
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
   "Evaluate FORMS with current buffer temporarily made unibyte.
-Also bind the default-value of `enable-multibyte-characters' to nil.
-Equivalent to `progn' in XEmacs
+Equivalent to `progn' in XEmacs.
 
-NOTE: Use this macro with caution in multibyte buffers (it is not
-worth using this macro in unibyte buffers of course).  Use of
-`(set-buffer-multibyte t)', which is run finally, is generally
-harmful since it is likely to modify existing data in the buffer.
-For instance, it converts \"\\300\\255\" into \"\\255\" in
-Emacs 23 (unicode)."
-  (let ((multibyte (make-symbol "multibyte"))
-	(buffer (make-symbol "buffer")))
-    `(if mm-emacs-mule
-	 (let ((,multibyte enable-multibyte-characters)
-	       (,buffer (current-buffer)))
-	   (unwind-protect
-	       (letf (((default-value 'enable-multibyte-characters) nil))
-		 (set-buffer-multibyte nil)
-		 ,@forms)
-	     (set-buffer ,buffer)
-	     (set-buffer-multibyte ,multibyte)))
-       (letf (((default-value 'enable-multibyte-characters) nil))
-	 ,@forms))))
+Note: We recommend not using this macro any more; there should be
+better ways to do a similar thing.  The previous version of this macro
+bound the default value of `enable-multibyte-characters' to nil while
+evaluating FORMS but it is no longer done.  So, some programs assuming
+it if any may malfunction."
+  (if (featurep 'xemacs)
+      `(progn ,@forms)
+    (let ((multibyte (make-symbol "multibyte")))
+      `(let ((,multibyte enable-multibyte-characters))
+	 (when ,multibyte
+	   (set-buffer-multibyte nil))
+	 (prog1
+	     (progn ,@forms)
+	   (when ,multibyte
+	     (set-buffer-multibyte t)))))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
 
@@ -1560,7 +1549,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 	      (error
 	       (setq err-msg (error-message-string err)))))
 	  (when (file-exists-p err-file)
-	    (ignore-errors (jka-compr-delete-temp-file err-file)))
+	    (ignore-errors (delete-file err-file)))
 	  (when inplace
 	    (unless err-msg
 	      (delete-region (point-min) (point-max))
@@ -1593,8 +1582,8 @@ gzip, bzip2, etc. are allowed."
 			    filename))
 		    (mm-decompress-buffer filename nil t))))
       (when decomp
-	(set-buffer (letf (((default-value 'enable-multibyte-characters) nil))
-			  (generate-new-buffer " *temp*")))
+	(set-buffer (generate-new-buffer " *temp*"))
+        (mm-disable-multibyte)
 	(insert decomp)
 	(setq filename (file-name-sans-extension filename)))
       (goto-char (point-min))

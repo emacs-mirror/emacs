@@ -89,13 +89,24 @@
   (unless (boundp 'byte-compile-not-obsolete-var)
     (defvar byte-compile-not-obsolete-var nil))
   (setq byte-compile-not-obsolete-var 'directory-sep-char)
-  (if (boundp 'byte-compile-not-obsolete-vars) ; Emacs 23.2
-      (setq byte-compile-not-obsolete-vars '(directory-sep-char)))
+  ;; Emacs 23.2.
+  (unless (boundp 'byte-compile-not-obsolete-vars)
+    (defvar byte-compile-not-obsolete-vars nil))
+  (setq byte-compile-not-obsolete-vars '(directory-sep-char))
 
   ;; `with-temp-message' does not exists in XEmacs.
   (condition-case nil
       (with-temp-message (current-message) nil)
     (error (defmacro with-temp-message (message &rest body) `(progn ,@body))))
+
+  ;; For not existing functions, or functions with a changed argument
+  ;; list, there are compiler warnings.  We want to avoid them in
+  ;; cases we know what we do.
+  (defmacro tramp-compat-funcall (function &rest arguments)
+    (if (featurep 'xemacs)
+	`(funcall (symbol-function ,function) ,@arguments)
+      `(when (or (subrp ,function) (functionp ,function))
+	 (with-no-warnings (funcall ,function ,@arguments)))))
 
   ;; `set-buffer-multibyte' comes from Emacs Leim.
   (unless (fboundp 'set-buffer-multibyte)
@@ -182,8 +193,8 @@ Calls `line-beginning-position' or `point-at-bol' if defined, else
 own implementation."
   (cond
    ((fboundp 'line-beginning-position)
-    (funcall (symbol-function 'line-beginning-position)))
-   ((fboundp 'point-at-bol) (funcall (symbol-function 'point-at-bol)))
+    (tramp-compat-funcall 'line-beginning-position))
+   ((fboundp 'point-at-bol) (tramp-compat-funcall 'point-at-bol))
    (t (save-excursion (beginning-of-line) (point)))))
 
 (defsubst tramp-compat-line-end-position ()
@@ -191,8 +202,8 @@ own implementation."
 Calls `line-end-position' or `point-at-eol' if defined, else
 own implementation."
   (cond
-   ((fboundp 'line-end-position) (funcall (symbol-function 'line-end-position)))
-   ((fboundp 'point-at-eol) 	 (funcall (symbol-function 'point-at-eol)))
+   ((fboundp 'line-end-position) (tramp-compat-funcall 'line-end-position))
+   ((fboundp 'point-at-eol) (tramp-compat-funcall 'point-at-eol))
    (t (save-excursion (end-of-line) (point)))))
 
 (defsubst tramp-compat-temporary-file-directory ()
@@ -201,7 +212,7 @@ For Emacs, this is the variable `temporary-file-directory', for XEmacs
 this is the function `temp-directory'."
   (cond
    ((boundp 'temporary-file-directory) (symbol-value 'temporary-file-directory))
-   ((fboundp 'temp-directory) (funcall (symbol-function 'temp-directory)))
+   ((fboundp 'temp-directory) (tramp-compat-funcall 'temp-directory))
    ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
     (file-name-as-directory (getenv "TEMP")))
    ((let ((d (getenv "TMP"))) (and d (file-directory-p d)))
@@ -227,8 +238,7 @@ Add the extension of FILENAME, if existing."
 	 result)
     (if (fboundp 'make-temp-file)
 	(setq result
-	      (funcall
-	       (symbol-function 'make-temp-file) prefix dir-flag extension))
+	      (tramp-compat-funcall 'make-temp-file prefix dir-flag extension))
       ;; We use our own implementation, taken from files.el.
       (while
 	  (condition-case ()
@@ -261,19 +271,27 @@ Add the extension of FILENAME, if existing."
    ((tramp-tramp-file-p filename)
     (tramp-file-name-handler 'file-attributes filename id-format))
    (t (condition-case nil
-	  (funcall (symbol-function 'file-attributes) filename id-format)
-	(error (file-attributes filename))))))
+	  (tramp-compat-funcall 'file-attributes filename id-format)
+	(wrong-number-of-arguments (file-attributes filename))))))
 
 ;; PRESERVE-UID-GID has been introduced with Emacs 23.  It does not
 ;; hurt to ignore it for other (X)Emacs versions.
+;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.
 (defun tramp-compat-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files (compat function)."
-  (if preserve-uid-gid
-      (funcall
-       (symbol-function 'copy-file)
-       filename newname ok-if-already-exists keep-date preserve-uid-gid)
-    (copy-file filename newname ok-if-already-exists keep-date)))
+  (cond
+   (preserve-selinux-context
+    (tramp-compat-funcall
+     'copy-file filename newname ok-if-already-exists keep-date
+     preserve-uid-gid preserve-selinux-context))
+   (preserve-uid-gid
+    (tramp-compat-funcall
+     'copy-file filename newname ok-if-already-exists keep-date
+     preserve-uid-gid))
+   (t
+    (copy-file filename newname ok-if-already-exists keep-date))))
 
 ;; `copy-directory' is a new function in Emacs 23.2.  Implementation
 ;; is taken from there.
@@ -281,8 +299,7 @@ Add the extension of FILENAME, if existing."
   (directory newname &optional keep-time parents)
   "Make a copy of DIRECTORY (compat function)."
   (if (fboundp 'copy-directory)
-      (funcall
-       (symbol-function 'copy-directory) directory newname keep-time parents)
+      (tramp-compat-funcall 'copy-directory directory newname keep-time parents)
 
     ;; If `default-directory' is a remote directory, make sure we find
     ;; its `copy-directory' handler.
@@ -317,16 +334,34 @@ Add the extension of FILENAME, if existing."
 	(if keep-time
 	    (set-file-times newname (nth 5 (file-attributes directory))))))))
 
+;; FORCE has been introduced with Emacs 24.1.
+(defun tramp-compat-delete-file (filename &optional force)
+  "Like `delete-file' for Tramp files (compat function)."
+  (if (null force)
+      (delete-file filename)
+    (condition-case nil
+	(tramp-compat-funcall 'delete-file filename force)
+      ;; This Emacs version does not support the FORCE flag.  Setting
+      ;; `delete-by-moving-to-trash' shall give us the same effect.
+      (wrong-number-of-arguments
+       (let ((delete-by-moving-to-trash
+	      (cond
+	       ((null force) t)
+	       ((boundp 'delete-by-moving-to-trash)
+		(symbol-value 'delete-by-moving-to-trash))
+	       (t nil))))
+	 (delete-file filename))))))
+
 ;; RECURSIVE has been introduced with Emacs 23.2.
 (defun tramp-compat-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files (compat function)."
   (if (null recursive)
       (delete-directory directory)
     (condition-case nil
-	(funcall (symbol-function 'delete-directory) directory recursive)
+	(tramp-compat-funcall 'delete-directory directory recursive)
       ;; This Emacs version does not support the RECURSIVE flag.  We
       ;; use the implementation from Emacs 23.2.
-      (error
+      (wrong-number-of-arguments
        (setq directory (directory-file-name (expand-file-name directory)))
        (if (not (file-symlink-p directory))
 	   (mapc (lambda (file)
@@ -342,7 +377,7 @@ Add the extension of FILENAME, if existing."
 (defun tramp-compat-number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO as a list (compat function)."
   (if (or (subrp 'number-sequence) (symbol-file 'number-sequence))
-      (funcall (symbol-function 'number-sequence) from to inc)
+      (tramp-compat-funcall 'number-sequence from to inc)
     (if (or (not to) (= from to))
 	(list from)
       (or inc (setq inc 1))
@@ -372,15 +407,13 @@ element is not omitted."
     (cond
      ;; GNU Emacs 22 on w32.
      ((fboundp 'w32-window-exists-p)
-      (funcall (symbol-function 'w32-window-exists-p)
-	       process-name process-name))
+      (tramp-compat-funcall 'w32-window-exists-p process-name process-name))
 
      ;; GNU Emacs 23.
      ((and (fboundp 'list-system-processes) (fboundp 'process-attributes))
       (let (result)
-	(dolist (pid (funcall (symbol-function 'list-system-processes)) result)
-	  (let ((attributes
-		 (funcall (symbol-function 'process-attributes) pid)))
+	(dolist (pid (tramp-compat-funcall 'list-system-processes) result)
+	  (let ((attributes (tramp-compat-funcall 'process-attributes pid)))
 	    (when (and (string-equal
                         (cdr (assoc 'user attributes)) (user-login-name))
                        (let ((comm (cdr (assoc 'comm attributes))))

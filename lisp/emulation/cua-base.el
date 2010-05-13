@@ -780,6 +780,10 @@ Repeating prefix key when region is active works as a single prefix key."
     (setq mark-active nil)
     (run-hooks 'deactivate-mark-hook)))
 
+(defun cua--filter-buffer-noprops (start end)
+  (let ((str (filter-buffer-substring start end)))
+    (set-text-properties 0 (length str) nil str)
+    str))
 
 ;; The current register prefix
 (defvar cua--register nil)
@@ -1039,8 +1043,7 @@ of text."
 		    (setq s (car u))
 		  (setq s (car u) e (cdr u)))))))
 	  (cond ((and s e (<= s e) (= s (mark t)))
-		 (setq cua--repeat-replace-text
-		       (filter-buffer-substring s e nil t)))
+		 (setq cua--repeat-replace-text (cua--filter-buffer-noprops s e)))
 		((and (null s) (eq u elt)) ;; nothing inserted
 		 (setq cua--repeat-replace-text
 		       ""))

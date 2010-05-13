@@ -101,7 +101,7 @@ If nil, /etc/resolv.conf and nslookup will be consulted.")
 
 (defun dns-read-string-name (string buffer)
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (insert string)
     (goto-char (point-min))
     (dns-read-name buffer)))
@@ -135,7 +135,7 @@ If nil, /etc/resolv.conf and nslookup will be consulted.")
   "Write a DNS packet according to SPEC.
 If TCP-P, the first two bytes of the package with be the length field."
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (dns-write-bytes (dns-get 'id spec) 2)
     (dns-write-bytes
      (logior
@@ -186,7 +186,7 @@ If TCP-P, the first two bytes of the package with be the length field."
 
 (defun dns-read (packet)
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (let ((spec nil)
           queries answers authorities additionals)
       (insert packet)
@@ -263,7 +263,7 @@ If TCP-P, the first two bytes of the package with be the length field."
 	(point (point)))
     (prog1
         (with-temp-buffer
-          (set-buffer-multibyte nil)
+	  (unless (featurep 'xemacs) (set-buffer-multibyte nil))
           (insert string)
           (goto-char (point-min))
           (cond
@@ -391,7 +391,7 @@ If REVERSEP, look up an IP address."
   (if (not dns-servers)
       (message "No DNS server configuration found")
     (with-temp-buffer
-      (set-buffer-multibyte nil)
+      (unless (featurep 'xemacs) (set-buffer-multibyte nil))
       (let ((process (condition-case ()
                          (dns-make-network-process (car dns-servers))
                        (error

@@ -1,6 +1,7 @@
 /* System description file for hpux version 10.20.
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,56 +21,39 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define RUN_TIME_REMAP
 
-/*
- *	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.
- */
-
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 #define USG				/* System III, System V, etc */
-
 #define USG5
-
 #define HPUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-
+   It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "hpux"
 
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
-
+   if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'
 
-/*
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- */
-
+/* Define HAVE_TERMIO if the system provides sysV-style ioctls
+   for terminal control.  */
 #define HAVE_TERMIO
 
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
+/* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
 #define HAVE_SOCKETS
 
 /* Define this symbol if your system has the functions bcopy, etc.
- * s800 and later versions of s300 (s200) kernels have equivalents
- * of the BSTRING functions of BSD.  If your s200 kernel doesn't have
- * em comment out this section.
- */
-
+   s800 and later versions of s300 (s200) kernels have equivalents
+   of the BSTRING functions of BSD.  If your s200 kernel doesn't have
+   em comment out this section.  */
 #define BSTRING
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
-
 #define CLASH_DETECTION
 
 /* The symbol in the kernel where the load average is found
@@ -77,22 +61,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special hacks needed to make Emacs run on this system.  */
 
-/* Use the system provided termcap(3) library */
-#define TERMINFO
-
 /* In hpux, the symbol SIGIO is defined, but the feature
    doesn't work in the way Emacs needs it to.  */
-
 #define BROKEN_SIGIO
 
 /* Some additional system facilities exist.  */
-
 #define HAVE_PERROR  /* Delete this line for version 6.  */
 
 #define UNEXEC unexhp9k800.o
-
-/* Include the file bsdtty.h, since this machine has job control.  */
-#define NEED_BSDTTY
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
@@ -104,17 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* This triggers a conditional in xfaces.c.  */
 #define XOS_NEEDS_TIME_H
-
-/* Don't use shared libraries.  unexec doesn't handle them.
-   Note GCC automatically passes -a archive to ld, and it has its own
-   conflicting -a.  */
-#define LD_SWITCH_SYSTEM_TEMACS
-
-#ifndef HAVE_LIBXMU
-/* HP-UX doesn't supply Xmu.  */
-#define LIBXMU
-
-#endif
 
 /* Assar Westerlund <assar@sics.se> says this is necessary for
    HP-UX 10.20, and that it works for HP-UX 0 as well.  */
@@ -128,7 +93,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    version number A.09.05.
 
    You can fix the math library by installing patch number PHSS_4630.
-   But we can fix it more reliably for Emacs like this. */
+   But we can fix it more reliably for Emacs like this.  */
 #undef HAVE_RINT
 
 /* We have to go this route, rather than hpux9's approach of renaming the
@@ -143,35 +108,56 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* AlainF 20-Jul-1996 says this is right.  */
 #define KERNEL_FILE "/stand/vmunix"
 
-#define LIBS_SYSTEM -l:libdld.sl
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
-   HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
-   using GCC.  */
-
+   HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20 using GCC.  */
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
-
-/* Make sure we get select from libc rather than from libcurses
-   because libcurses on HPUX 10.10 has a broken version of select.
-   We used to use -lc -lcurses, but this may be cleaner.  */
-#define LIBS_TERMCAP -ltermcap
-
-/* However, HPUX 10 puts Xaw and Xmu in a strange place
-   (if you install them at all).  So search that place.  */
-#define C_SWITCH_X_SYSTEM  -I/usr/include/X11R6 -I/usr/include/X11R5 -I/usr/include/Motif1.2 -I/usr/contrib/X11R6/include -I/usr/contrib/X11R5/include
-#define LD_SWITCH_X_DEFAULT -L/usr/lib/X11R6 -L/usr/lib/X11R5 -L/usr/lib/Motif1.2 -L/usr/contrib/X11R5/lib
 
 /* 2000-11-21: Temporarily disable Unix 98 large file support found by
    configure.  It fails on HPUX 11, at least, because it enables
    header sections which lose when `static' is defined away, as it is
    on HP-UX.  (You get duplicate symbol errors on linking). */
-
 #undef _FILE_OFFSET_BITS
 
-/* otherwise sigunblock wont be defined */
-#define POSIX_SIGNALS
+/* Define NO_REMAP if memory segmentation makes it not work well
+   to change the boundary between the text section and data section
+   when Emacs is dumped.  If you define this, the preloaded Lisp
+   code will not be sharable; but that's better than failing completely.  */
+#define NO_REMAP
+
+/* Define VIRT_ADDR_VARIES if the virtual addresses of
+   pure and impure space as loaded can vary, and even their
+   relative order cannot be relied on.
+
+   Otherwise Emacs assumes that text space precedes data space,
+   numerically.  */
+#define VIRT_ADDR_VARIES
+
+/* The data segment on this machine always starts at address 0x40000000.  */
+#define DATA_SEG_BITS 0x40000000
+
+#define DATA_START    0x40000000
+#define TEXT_START    0x00000000
+
+/* Data type of load average, as read out of kmem.  */
+#define LOAD_AVE_TYPE double
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
+
+/* The kernel symbol where the load average is found is named _avenrun.
+   At this time there are two major flavors of hp-ux (there is the s800
+   and s300 (s200) flavors).  The differences are thusly moved to the
+   corresponding machine description file.  */
+
+/* No underscore please.  */
+#define LDAV_SYMBOL "avenrun"
+
+/* On USG systems these have different names.  */
+#define index strchr
+#define rindex strrchr
 
 /* arch-tag: 8d8dcbf1-ca9b-48a1-94be-b750de18a5c6
    (do not change this comment) */

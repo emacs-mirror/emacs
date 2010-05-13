@@ -1956,6 +1956,7 @@ enum it_method {
   NUM_IT_METHODS
 };
 
+/* FIXME: What is this?  Why 5?  */
 #define IT_STACK_SIZE 5
 
 /* Iterator for composition (both for static and automatic).  */
@@ -2222,13 +2223,22 @@ struct it
      MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
   int base_face_id;
 
-  /* If what == IT_CHARACTER, character and length in bytes.  This is
-     a character from a buffer or string.  It may be different from
-     the character displayed in case that
-     unibyte_display_via_language_environment is set.
+  /* If `what' == IT_CHARACTER, the character and the length in bytes
+     of its multibyte sequence.  The character comes from a buffer or
+     a string.  It may be different from the character displayed in
+     case that unibyte_display_via_language_environment is set.
 
-     If what == IT_COMPOSITION, the first component of a composition
-     and length in bytes of the composition.  */
+     If `what' == IT_COMPOSITION, the first component of a composition
+     and length in bytes of the composition.
+
+     If `what' is anything else, these two are undefined (will
+     probably hold values for the last IT_CHARACTER or IT_COMPOSITION
+     traversed by the iterator.
+
+     The values are updated by get_next_display_element, so they are
+     out of sync with the value returned by IT_CHARPOS between the
+     time set_iterator_to_next advances the position and the time
+     get_next_display_element loads the new values into c and len.  */
   int c, len;
 
   /* If what == IT_COMPOSITION, iterator substructure for the
@@ -2783,6 +2793,9 @@ enum tool_bar_item_idx
   /* Icon file name of right to left image when an RTL locale is used.  */
   TOOL_BAR_ITEM_RTL_IMAGE,
 
+  /* Label to show when text labels are enabled.  */
+  TOOL_BAR_ITEM_LABEL,
+
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
   TOOL_BAR_ITEM_NSLOTS
@@ -2803,6 +2816,15 @@ enum tool_bar_item_image
 /* Margin around tool-bar buttons in pixels.  */
 
 extern Lisp_Object Vtool_bar_button_margin;
+
+/* Tool bar style */
+
+extern Lisp_Object Vtool_bar_style;
+
+/* Maximum number of characters a label can have to be shown.  */
+
+extern EMACS_INT tool_bar_max_label_size;
+#define DEFAULT_TOOL_BAR_LABEL_SIZE 14
 
 /* Thickness of relief to draw around tool-bar buttons.  */
 

@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -63,13 +63,20 @@ which see."
 
 (defcustom org-clock-out-when-done t
   "When non-nil, clock will be stopped when the clocked entry is marked DONE.
-A nil value means, clock will keep running until stopped explicitly with
-`C-c C-x C-o', or until the clock is started in a different item."
+DONE here means any DONE-like state.
+A nil value means clock will keep running until stopped explicitly with
+`C-c C-x C-o', or until the clock is started in a different item.
+Instead of t, this can also be a list of TODO states that should trigger
+clocking out."
   :group 'org-clock
-  :type 'boolean)
+  :type '(choice
+	  (const :tag "No" nil)
+	  (const :tag "Yes, when done" t)
+	  (repeat :tag "State list"
+		  (string :tag "TODO keyword"))))
 
 (defcustom org-clock-out-remove-zero-time-clocks nil
-  "Non-nil means, remove the clock line when the resulting time is zero."
+  "Non-nil means remove the clock line when the resulting time is zero."
   :group 'org-clock
   :type 'boolean)
 
@@ -105,7 +112,7 @@ state to switch it to."
   :type 'integer)
 
 (defcustom org-clock-goto-may-find-recent-task t
-  "Non-nil means, `org-clock-goto' can go to recent task if no active clock."
+  "Non-nil means `org-clock-goto' can go to recent task if no active clock."
   :group 'org-clock
   :type 'boolean)
 
@@ -193,6 +200,17 @@ auto     Automatically, either `all', or `repeat' for repeating tasks"
 	  (const :tag "All task time" all)
 	  (const :tag "Automatically, `all' or since `repeat'" auto)))
 
+(defcustom org-task-overrun-text nil
+  "The extra modeline text that should indicate that the clock is overrun.
+The can be nil to indicate that instead of adding text, the clock time
+should get a different face (`org-mode-line-clock-overrun').
+When this is a string, it is prepended to the clock string as an indication,
+also using the face `org-mode-line-clock-overrun'."
+  :group 'org-clock
+  :type '(choice
+	  (const :tag "Just mark the time string" nil)
+	  (string :tag "Text to prepend")))
+
 (defcustom org-show-notification-handler nil
   "Function or program to send notification with.
 The function or program will be called with the notification
@@ -222,6 +240,11 @@ string as argument."
 	  (const :tag "Always" t)
 	  (const :tag "When no clock is running" when-no-clock-is-running)))
 
+(defcustom org-clock-report-include-clocking-task nil
+  "When non-nil, include the current clocking task time in clock reports."
+  :group 'org-clock
+  :type 'boolean)
+
 (defvar org-clock-in-prepare-hook nil
   "Hook run when preparing the clock.
 This hook is run before anything happens to the task that
@@ -250,7 +273,7 @@ to add an effort property.")
 (defvar org-clock-heading-for-remember "")
 (defvar org-clock-start-time "")
 
-(defvar org-clock-left-over-time nil
+(defvar org-clock-leftover-time nil
   "If non-nil, user cancelled a clock; this is when leftover time started.")
 
 (defvar org-clock-effort ""
@@ -310,6 +333,14 @@ of a different task.")
   (mapc (lambda (m) (org-check-and-save-marker m beg end))
 	org-clock-history))
 
+(defun org-clocking-buffer ()
+  "Returns clocking buffer if we are currently clocking a task or nil"
+  (marker-buffer org-clock-marker))
+
+(defun org-clocking-p ()
+  "Returns t when clocking a task"
+  (not (equal (org-clocking-buffer) nil)))
+
 (defun org-clock-select-task (&optional prompt)
   "Select a task that recently was associated with clocking."
   (interactive)
@@ -326,7 +357,7 @@ of a different task.")
 	(insert (org-add-props "The task interrupted by starting the last one\n" nil 'face 'bold))
 	(setq s (org-clock-insert-selection-line ?i org-clock-interrupted-task))
 	(push s sel-list))
-      (when (marker-buffer org-clock-marker)
+      (when (org-clocking-p)
 	(insert (org-add-props "Current Clocking Task\n" nil 'face 'bold))
 	(setq s (org-clock-insert-selection-line ?c org-clock-marker))
 	(push s sel-list))
@@ -339,6 +370,7 @@ of a different task.")
 		    (if (< i 10)
 			(+ i ?0)
 		      (+ i (- ?A 10))) m))
+	   (if (fboundp 'int-to-char) (setf (car s) (int-to-char (car s))))
 	   (push s sel-list)))
        org-clock-history)
       (org-fit-window-to-buffer)
@@ -360,56 +392,82 @@ pointing to it."
 	(save-excursion
 	  (save-restriction
 	    (widen)
-	    (goto-char marker)
-	    (setq file (buffer-file-name (marker-buffer marker))
-		  cat (or (org-get-category)
-			  (progn (org-refresh-category-properties)
-				 (org-get-category)))
-		  heading (org-get-heading 'notags)
-		  prefix (save-excursion
-			   (org-back-to-heading t)
-			   (looking-at "\\*+ ")
-			   (match-string 0))
-		  task (substring
-			(org-fontify-like-in-org-mode
-			 (concat prefix heading)
-			 org-odd-levels-only)
-			(length prefix))))))
+	    (ignore-errors
+	      (goto-char marker)
+	      (setq file (buffer-file-name (marker-buffer marker))
+		    cat (or (org-get-category)
+			    (progn (org-refresh-category-properties)
+				   (org-get-category)))
+		    heading (org-get-heading 'notags)
+		    prefix (save-excursion
+			     (org-back-to-heading t)
+			     (looking-at "\\*+ ")
+			     (match-string 0))
+		    task (substring
+			  (org-fontify-like-in-org-mode
+			   (concat prefix heading)
+			   org-odd-levels-only)
+			  (length prefix)))))))
       (when (and cat task)
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
 
+(defvar org-task-overrun nil
+  "Internal flag indicating if the clock has overrun the planned time.")
+(defvar org-clock-update-period 60
+  "Number of seconds between mode line clock string updates.")
+
 (defun org-clock-get-clock-string ()
-  "Form a clock-string, that will be show in the mode line.
-If an effort estimate was defined for current item, use
+  "Form a clock-string, that will be shown in the mode line.
+If an effort estimate was defined for the current item, use
 01:30/01:50 format (clocked/estimated).
 If not, show simply the clocked time like 01:50."
   (let* ((clocked-time (org-clock-get-clocked-time))
 	 (h (floor clocked-time 60))
 	 (m (- clocked-time (* 60 h))))
-    (if (and org-clock-effort)
-	(let* ((effort-in-minutes (org-hh:mm-string-to-minutes org-clock-effort))
+    (if org-clock-effort
+	(let* ((effort-in-minutes
+		(org-hh:mm-string-to-minutes org-clock-effort))
 	       (effort-h (floor effort-in-minutes 60))
-	       (effort-m (- effort-in-minutes (* effort-h 60))))
-	  (format (concat "-[" org-time-clocksum-format "/" org-time-clocksum-format " (%s)]")
-		  h m effort-h effort-m  org-clock-heading))
-      (format (concat "-[" org-time-clocksum-format " (%s)]")
-	      h m org-clock-heading))))
+	       (effort-m (- effort-in-minutes (* effort-h 60)))
+	       (work-done-str
+		(org-propertize
+		 (format org-time-clocksum-format h m)
+		 'face (if (and org-task-overrun (not org-task-overrun-text))
+			   'org-mode-line-clock-overrun 'org-mode-line-clock)))
+	       (effort-str (format org-time-clocksum-format effort-h effort-m))
+	       (clockstr (org-propertize
+			  (concat  "[%s/" effort-str
+				   "] (" (replace-regexp-in-string "%" "%%" org-clock-heading) ")")
+			  'face 'org-mode-line-clock)))
+	  (format clockstr work-done-str))
+      (org-propertize (format
+		       (concat "[" org-time-clocksum-format " (%s)]")
+		       h m org-clock-heading)
+		      'face 'org-mode-line-clock))))
 
 (defun org-clock-update-mode-line ()
+  (if org-clock-effort
+      (org-clock-notify-once-if-expired)
+    (setq org-task-overrun nil))
   (setq org-mode-line-string
 	(org-propertize
 	 (let ((clock-string (org-clock-get-clock-string))
 	       (help-text "Org-mode clock is running.\nmouse-1 shows a menu\nmouse-2 will jump to task"))
 	   (if (and (> org-clock-string-limit 0)
 		    (> (length clock-string) org-clock-string-limit))
-	       (org-propertize (substring clock-string 0 org-clock-string-limit)
-			       'help-echo (concat help-text ": " org-clock-heading))
+	       (org-propertize
+		(substring clock-string 0 org-clock-string-limit)
+		'help-echo (concat help-text ": " org-clock-heading))
 	     (org-propertize clock-string 'help-echo help-text)))
 	 'local-map org-clock-mode-line-map
 	 'mouse-face (if (featurep 'xemacs) 'highlight 'mode-line-highlight)
-	 'face 'org-mode-line-clock))
-  (if org-clock-effort (org-clock-notify-once-if-expired))
+	 ))
+  (if (and org-task-overrun org-task-overrun-text)
+      (setq org-mode-line-string
+	    (concat (org-propertize
+		     org-task-overrun-text
+		     'face 'org-mode-line-clock-overrun) org-mode-line-string)))
   (force-mode-line-update))
 
 (defun org-clock-get-clocked-time ()
@@ -461,10 +519,13 @@ the mode line."
 (defun org-clock-notify-once-if-expired ()
   "Show notification if we spent more time than we estimated before.
 Notification is shown only once."
-  (when (marker-buffer org-clock-marker)
+  (when (org-clocking-p)
     (let ((effort-in-minutes (org-hh:mm-string-to-minutes org-clock-effort))
 	  (clocked-time (org-clock-get-clocked-time)))
-      (if (>= clocked-time effort-in-minutes)
+      (if (setq org-task-overrun
+		(if (or (null effort-in-minutes) (zerop effort-in-minutes))
+		    nil
+		  (>= clocked-time effort-in-minutes)))
 	  (unless org-clock-notification-was-shown
 	    (setq org-clock-notification-was-shown t)
 	    (org-notify
@@ -651,7 +712,7 @@ This routine can do one of many things:
       (org-clock-clock-out clock fail-quietly resolve-to)
       (unless org-clock-clocking-in
 	(if close-p
-	    (setq org-clock-left-over-time resolve-to)
+	    (setq org-clock-leftover-time resolve-to)
 	  (org-clock-clock-in clock)))))))
 
 (defun org-clock-resolve (clock &optional prompt-fn last-valid fail-quietly)
@@ -699,12 +760,19 @@ was started."
 			     (goto-char (match-end 0)))
 			   nil))))))
 	      (let (char-pressed)
-		(while (null char-pressed)
+		(if (featurep 'xemacs)
+		    (progn
+		      (message (concat (funcall prompt-fn clock)
+				       " [(kK)eep (sS)ubtract (C)ancel]? "))
+		      (setq char-pressed (read-char-exclusive)))
+		(while (or (null char-pressed)
+			   (and (not (memq char-pressed '(?k ?K ?s ?S ?C ?i)))
+				(or (ding) t)))
 		  (setq char-pressed
 			(read-char (concat (funcall prompt-fn clock)
-					   " [(kK)eep (sS)ubtract (C)ancel]? ")
+					   " [(kK)p (sS)ub (C)ncl (i)gn]? ")
 				   nil 45)))
-		char-pressed))))
+		(and (not (eq char-pressed ?i)) char-pressed))))))
 	 (default (floor (/ (org-float-time
 			     (time-subtract (current-time) last-valid)) 60)))
 	 (keep (and (memq ch '(?k ?K))
@@ -779,17 +847,13 @@ non-dangling (i.e., currently open and valid) clocks."
 (defun org-user-idle-seconds ()
   "Return the number of seconds the user has been idle for.
 This routine returns a floating point number."
-  (if (or (eq system-type 'darwin) (eq window-system 'x))
-      (let ((emacs-idle (org-emacs-idle-seconds)))
-	;; If Emacs has been idle for longer than the user's
-	;; `org-clock-idle-time' value, check whether the whole system has
-	;; really been idle for that long.
-	(if (> emacs-idle (* 60 org-clock-idle-time))
-	    (min emacs-idle (if (eq system-type 'darwin)
-				(org-mac-idle-seconds)
-			      (org-x11-idle-seconds)))
-	  emacs-idle))
-    (org-emacs-idle-seconds)))
+  (cond
+   ((eq system-type 'darwin)
+    (org-mac-idle-seconds))
+   ((eq window-system 'x)
+    (org-x11-idle-seconds))
+   (t
+    (org-emacs-idle-seconds))))
 
 (defvar org-clock-user-idle-seconds)
 
@@ -800,11 +864,11 @@ if the user really wants to stay clocked in after being idle for
 so long."
   (when (and org-clock-idle-time (not org-clock-resolving-clocks)
 	     org-clock-marker)
-    (let ((org-clock-user-idle-seconds (org-user-idle-seconds))
-	  (org-clock-user-idle-start
-	   (time-subtract (current-time)
-			  (seconds-to-time org-clock-user-idle-seconds)))
-	  (org-clock-resolving-clocks-due-to-idleness t))
+    (let* ((org-clock-user-idle-seconds (org-user-idle-seconds))
+	   (org-clock-user-idle-start
+	    (time-subtract (current-time)
+			   (seconds-to-time org-clock-user-idle-seconds)))
+	   (org-clock-resolving-clocks-due-to-idleness t))
       (if (> org-clock-user-idle-seconds (* 60 org-clock-idle-time))
 	  (org-clock-resolve
 	   (cons org-clock-marker
@@ -829,16 +893,16 @@ the clocking selection, associated with the letter `d'."
   (setq org-clock-notification-was-shown nil)
   (catch 'abort
     (let ((interrupting (and (not org-clock-resolving-clocks-due-to-idleness)
-			     (marker-buffer org-clock-marker)))
+			     (org-clocking-p)))
 	  ts selected-task target-pos (msg-extra "")
-	  (left-over (and (not org-clock-resolving-clocks)
-			  org-clock-left-over-time)))
+	  (leftover (and (not org-clock-resolving-clocks)
+			  org-clock-leftover-time)))
       (when (and org-clock-auto-clock-resolution
 		 (or (not interrupting)
 		     (eq t org-clock-auto-clock-resolution))
 		 (not org-clock-clocking-in)
 		 (not org-clock-resolving-clocks))
-	(setq org-clock-left-over-time nil)
+	(setq org-clock-leftover-time nil)
 	(let ((org-clock-clocking-in t))
 	  (org-resolve-clocks)))	; check if any clocks are dangling
       (when (equal select '(4))
@@ -849,15 +913,29 @@ the clocking selection, associated with the letter `d'."
       (when interrupting
 	;; We are interrupting the clocking of a different task.
 	;; Save a marker to this task, so that we can go back.
-	(move-marker org-clock-interrupted-task
-		     (marker-position org-clock-marker)
-		     (marker-buffer org-clock-marker))
-	(org-clock-out t))
-      
+	;; First check if we are trying to clock into the same task!
+	(if (save-excursion
+		(unless selected-task
+		  (org-back-to-heading t))
+		(and (equal (marker-buffer org-clock-hd-marker)
+			    (if selected-task
+				(marker-buffer selected-task)
+			      (current-buffer)))
+		     (= (marker-position org-clock-hd-marker)
+			(if selected-task
+			    (marker-position selected-task)
+			  (point)))))
+	    (message "Clock continues in \"%s\"" org-clock-heading)
+	  (progn
+	    (move-marker org-clock-interrupted-task
+			 (marker-position org-clock-marker)
+			 (org-clocking-buffer))
+	    (org-clock-out t))))
+
       (when (equal select '(16))
 	;; Mark as default clocking task
 	(org-clock-mark-default-task))
-      
+
       ;; Clock in at which position?
       (setq target-pos
 	    (if (and (eobp) (not (org-on-heading-p)))
@@ -878,6 +956,7 @@ the clocking selection, associated with the letter `d'."
 	    (org-back-to-heading t)
 	    (or interrupting (move-marker org-clock-interrupted-task nil))
 	    (org-clock-history-push)
+	    (org-clock-set-current)
 	    (cond ((functionp org-clock-in-switch-to-state)
 		   (looking-at org-complex-heading-regexp)
 		   (let ((newstate (funcall org-clock-in-switch-to-state
@@ -898,7 +977,9 @@ the clocking selection, associated with the letter `d'."
 			      (functionp org-clock-heading-function))
 			 (funcall org-clock-heading-function))
 			((looking-at org-complex-heading-regexp)
-			 (match-string 4))
+			 (replace-regexp-in-string
+			  "\\[\\[.*?\\]\\[\\(.*?\\)\\]\\]" "\\1"
+			  (match-string 4)))
 			(t "???")))
 	    (setq org-clock-heading (org-propertize org-clock-heading
 						    'face nil))
@@ -939,13 +1020,13 @@ the clocking selection, associated with the letter `d'."
 	      (setq org-clock-total-time (org-clock-sum-current-item
 					  (org-clock-get-sum-start)))
 	      (setq org-clock-start-time
-		    (or (and left-over
+		    (or (and leftover
 			     (y-or-n-p
 			      (format
 			       "You stopped another clock %d mins ago; start this one from then? "
 			       (/ (- (org-float-time (current-time))
-				     (org-float-time left-over)) 60)))
-			     left-over)
+				     (org-float-time leftover)) 60)))
+			     leftover)
 			(current-time)))
 	      (setq ts (org-insert-time-stamp org-clock-start-time
 					      'with-hm 'inactive))))
@@ -963,7 +1044,9 @@ the clocking selection, associated with the letter `d'."
 	      (cancel-timer org-clock-mode-line-timer)
 	      (setq org-clock-mode-line-timer nil))
 	    (setq org-clock-mode-line-timer
-		  (run-with-timer 60 60 'org-clock-update-mode-line))
+		  (run-with-timer org-clock-update-period
+				  org-clock-update-period
+				  'org-clock-update-mode-line))
 	    (when org-clock-idle-timer
 	      (cancel-timer org-clock-idle-timer)
 	      (setq org-clock-idle-timer nil))
@@ -971,6 +1054,15 @@ the clocking selection, associated with the letter `d'."
 		  (run-with-timer 60 60 'org-resolve-clocks-if-idle))
 	    (message "Clock starts at %s - %s" ts msg-extra)
 	    (run-hooks 'org-clock-in-hook)))))))
+
+(defvar org-clock-current-task nil
+  "Task currently clocked in.")
+(defun org-clock-set-current ()
+  "Set `org-clock-current-task' to the task currently clocked in."
+  (setq org-clock-current-task (org-get-heading)))
+(defun org-clock-delete-current ()
+  "Reset `org-clock-current-task' to nil."
+  (setq org-clock-current-task nil))
 
 (defun org-clock-mark-default-task ()
   "Mark current task as default task."
@@ -1104,11 +1196,11 @@ line and position cursor in that line."
 If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
   (interactive)
   (catch 'exit
-    (if (not (marker-buffer org-clock-marker))
+    (if (not (org-clocking-p))
 	(if fail-quietly (throw 'exit t) (error "No active clock")))
     (let (ts te s h m remove)
       (save-excursion
-	(set-buffer (marker-buffer org-clock-marker))
+	(set-buffer (org-clocking-buffer))
 	(save-restriction
 	  (widen)
 	  (goto-char org-clock-marker)
@@ -1151,7 +1243,8 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	  (when org-clock-out-switch-to-state
 	    (save-excursion
 	      (org-back-to-heading t)
-	      (let ((org-inhibit-logging t))
+	      (let ((org-inhibit-logging t)
+		    (org-clock-out-when-done nil))
 		(cond
 		 ((functionp org-clock-out-switch-to-state)
 		  (looking-at org-complex-heading-regexp)
@@ -1166,15 +1259,16 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	  (force-mode-line-update)
 	  (message (concat "Clock stopped at %s after HH:MM = " org-time-clocksum-format "%s") te h m
 		   (if remove " => LINE REMOVED" ""))
-          (run-hooks 'org-clock-out-hook))))))
+          (run-hooks 'org-clock-out-hook)
+	  (org-clock-delete-current))))))
 
 (defun org-clock-cancel ()
   "Cancel the running clock be removing the start timestamp."
   (interactive)
-  (if (not (marker-buffer org-clock-marker))
+  (if (not (org-clocking-p))
       (error "No active clock"))
   (save-excursion
-    (set-buffer (marker-buffer org-clock-marker))
+    (set-buffer (org-clocking-buffer))
     (goto-char org-clock-marker)
     (delete-region (1- (point-at-bol)) (point-at-eol))
     ;; Just in case, remove any empty LOGBOOK left over
@@ -1196,7 +1290,7 @@ With prefix arg SELECT, offer recently clocked tasks for selection."
 	     (select
 	      (or (org-clock-select-task "Select task to go to: ")
 		  (error "No task selected")))
-	     ((marker-buffer org-clock-marker) org-clock-marker)
+	     ((org-clocking-p) org-clock-marker)
 	     ((and org-clock-goto-may-find-recent-task
 		   (car org-clock-history)
 		   (marker-buffer (car org-clock-history)))
@@ -1210,6 +1304,7 @@ With prefix arg SELECT, offer recently clocked tasks for selection."
     (org-back-to-heading t)
     (org-cycle-hide-drawers 'children)
     (recenter)
+    (org-reveal)
     (if recent
 	(message "No running clock, this is the most recently clocked task"))
     (run-hooks 'org-clock-goto-hook)))
@@ -1259,6 +1354,13 @@ TSTART and TEND can mark a time range to be considered."
 	  (setq t1 (+ t1 (string-to-number (match-string 5))
 		      (* 60 (string-to-number (match-string 4))))))
 	 (t ;; A headline
+	  ;; Add the currently clocking item time to the total
+	  (when (and org-clock-report-include-clocking-task
+		     (equal (org-clocking-buffer) (current-buffer))
+		     (equal (marker-position org-clock-hd-marker) (point)))
+	      (let ((time (floor (- (org-float-time)
+				    (org-float-time org-clock-start-time)) 60)))
+		(setq t1 (+ t1 time))))
 	  (setq level (- (match-end 1) (match-beginning 1)))
 	  (when (or (> t1 0) (> (aref ltimes level) 0))
 	    (loop for l from 0 to level do
@@ -1365,16 +1467,20 @@ from the `before-change-functions' in the current buffer."
 This is used to stop the clock after a TODO entry is marked DONE,
 and is only done if the variable `org-clock-out-when-done' is not nil."
   (when (and org-clock-out-when-done
-	     (member state org-done-keywords)
-	     (equal (or (buffer-base-buffer (marker-buffer org-clock-marker))
-			(marker-buffer org-clock-marker))
+	     (or (and (eq t org-clock-out-when-done)
+		      (member state org-done-keywords))
+		 (and (listp org-clock-out-when-done)
+		      (member state org-clock-out-when-done)))
+	     (equal (or (buffer-base-buffer (org-clocking-buffer))
+			(org-clocking-buffer))
 		    (or (buffer-base-buffer (current-buffer))
 			(current-buffer)))
 	     (< (point) org-clock-marker)
 	     (> (save-excursion (outline-next-heading) (point))
 		org-clock-marker))
     ;; Clock out, but don't accept a logging message for this.
-    (let ((org-log-note-clock-out nil))
+    (let ((org-log-note-clock-out nil)
+	  (org-clock-out-switch-to-state nil))
       (org-clock-out))))
 
 (add-hook 'org-after-todo-state-change-hook
@@ -1857,7 +1963,7 @@ The details of what will be saved are regulated by the variable
 			  system-name (format-time-string
 				       (cdr org-time-stamp-formats))))
 	  (if (and (memq org-clock-persist '(t clock))
-		   (setq b (marker-buffer org-clock-marker))
+		   (setq b (org-clocking-buffer))
 		   (setq b (or (buffer-base-buffer b) b))
 		   (buffer-live-p b)
 		   (buffer-file-name b)
@@ -1866,7 +1972,7 @@ The details of what will be saved are regulated by the variable
 					 (substring-no-properties org-clock-heading)
 					 ") "))))
 	      (insert "(setq resume-clock '(\""
-		      (buffer-file-name (marker-buffer org-clock-marker))
+		      (buffer-file-name (org-clocking-buffer))
 		      "\" . " (int-to-string (marker-position org-clock-marker))
 		      "))\n"))
 	  ;; Store clocked task history. Tasks are stored reversed to make

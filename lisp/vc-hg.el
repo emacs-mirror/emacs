@@ -168,12 +168,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                   (condition-case nil
                       ;; Ignore all errors.
 		      (let ((process-environment
-			     ;; Avoid localization of messages so we can parse the output.
-			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=") process-environment)))
-
-		      (process-file
-                       "hg" nil t nil
-                       "status" "-A" (file-relative-name file)))
+			     ;; Avoid localization of messages so we
+			     ;; can parse the output.
+			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRCPATH=")
+				     process-environment)))
+			(process-file
+			 "hg" nil t nil
+			 "status" "-A" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
@@ -196,24 +197,40 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let*
       ((status nil)
        (default-directory (file-name-directory file))
+       ;; Avoid localization of messages so we can parse the output.
+       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C" "HGRCPATH=")
+				     process-environment))
        (out
         (with-output-to-string
           (with-current-buffer
               standard-output
             (setq status
                   (condition-case nil
-		      (let ((process-environment
-			     ;; Avoid localization of messages so we can parse the output.
-			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRC=")
-				     process-environment)))
+		      (let ((process-environment avoid-local-env))
 			;; Ignore all errors.
 			(process-file
 			 "hg" nil t nil
-			 "parent" "--template" "{rev}" (file-relative-name file)))
+			 "parents" "--template" "{rev}" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
                     (error nil)))))))
-    (when (eq 0 status) out)))
+    (if (eq 0 status)
+	out
+      ;; Check if the file is in the 'added state, the above hg
+      ;; command does not distinguish between 'added and 'unregistered.
+      (setq status
+	    (condition-case nil
+		(let ((process-environment avoid-local-env))
+		  (process-file
+		   "hg" nil nil nil
+		   ;; We use "log" here, if there's a faster command
+		   ;; that returns true for an 'added file and false
+		   ;; for an 'unregistered one, we could use that.
+		   "log" "-l1" (file-relative-name file)))
+	      ;; Some problem happened.  E.g. We can't find an `hg'
+	      ;; executable.
+	      (error nil)))
+      (when (eq 0 status) "0"))))
 
 ;;; History functions
 
@@ -280,20 +297,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	  ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
-(declare-function log-edit-mode "log-edit" ())
-(defvar log-edit-extra-flags)
-(defvar log-edit-before-checkin-process)
-
-(define-derived-mode vc-hg-log-edit-mode log-edit-mode "Hg-log-edit"
-  "Mode for editing Hg commit logs.
-If a line like:
-Author: NAME
-is present in the log, it is removed, and
---author NAME
-is passed to the hg commit command."
-  (set (make-local-variable 'log-edit-extra-flags) nil)
-  (set (make-local-variable 'log-edit-before-checkin-process)
-       '(("^Author:[ \t]+\\(.*\\)[ \t]*$" . (list "--user" (match-string 1))))))
+(declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -356,7 +360,8 @@ Optional arg REVISION is a revision to annotate from."
       (if (match-beginning 3)
 	  (match-string-no-properties 1)
 	(cons (match-string-no-properties 1)
-	      (expand-file-name (match-string-no-properties 4)))))))
+	      (expand-file-name (match-string-no-properties 4)
+				(vc-hg-root default-directory)))))))
 
 (defun vc-hg-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
@@ -417,11 +422,15 @@ COMMENT is ignored."
 ;;   "Unregister FILE from hg."
 ;;   (vc-hg-command nil nil file "remove"))
 
-(defun vc-hg-checkin (files rev comment &optional extra-args)
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
+(defun vc-hg-checkin (files rev comment)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
   (apply 'vc-hg-command nil 0 files
-         (nconc (list "commit" "-m" comment) extra-args)))
+         (nconc (list "commit" "-m")
+                (log-edit-extract-headers '(("Author" . "--user"))
+                                          comment))))
 
 (defun vc-hg-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)

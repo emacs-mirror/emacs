@@ -219,7 +219,7 @@ in the distribution.</indent>
 paragraph properly filled all the time, without slowing down
 editing too much.  Refill mode is a start at this, but needs
 
-</indent></indent>	<indent>improvment.
+</indent></indent>	<indent>improvement.
 
 + Refill after yank.  [Refill mode does that.]
 
@@ -272,4 +272,4 @@ COPYING PERMISSIONS:
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <<http://www.gnu.org/licenses/>.

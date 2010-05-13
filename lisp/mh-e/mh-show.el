@@ -170,16 +170,6 @@ displayed."
     (run-hooks 'mh-show-hook)))
 
 ;;;###mh-autoload
-(defun mh-showing-mode (&optional arg)
-  "Change whether messages should be displayed.
-
-With ARG, display messages if ARG is positive, otherwise don't display them."
-  (setq mh-showing-mode
-        (if (null arg)
-            (not mh-showing-mode)
-          (> (prefix-numeric-value arg) 0))))
-
-;;;###mh-autoload
 (defun mh-start-of-uncleaned-message ()
   "Position uninteresting headers off the top of the window."
   (let ((case-fold-search t))

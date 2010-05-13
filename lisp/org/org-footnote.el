@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,6 +47,7 @@
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-end-of-subtree "org"  (&optional invisible-ok to-heading))
 (declare-function org-in-verbatim-emphasis "org" ())
+(declare-function org-inside-latex-macro-p "org" ())
 (defvar org-odd-levels-only) ;; defined in org.el
 
 (defconst org-footnote-re
@@ -90,7 +91,7 @@ of the file, followed by the collected and normalized footnotes."
   :type 'string)
 
 (defcustom org-footnote-define-inline nil
-  "Non-nil means, define footnotes inline, at reference location.
+  "Non-nil means define footnotes inline, at reference location.
 When nil, footnotes will be defined in a special section near
 the end of the document.  When t, the [fn:label:definition] notation
 will be used to define the footnote at the reference position."
@@ -98,7 +99,7 @@ will be used to define the footnote at the reference position."
   :type 'boolean)
 
 (defcustom org-footnote-auto-label t
-  "Non-nil means, define automatically new labels for footnotes.
+  "Non-nil means define automatically new labels for footnotes.
 Possible values are:
 
 nil        prompt the user for each label
@@ -115,7 +116,7 @@ plain      Automatically create plain number labels like [1]"
 	  (const :tag "Create automatic [N]" plain)))
 
 (defcustom org-footnote-auto-adjust nil
-  "Non-nil means, automatically adjust footnotes after insert/delete.
+  "Non-nil means automatically adjust footnotes after insert/delete.
 When this is t, after each insertion or deletion of a footnote,
 simple fn:N footnotes will be renumbered, and all footnotes will be sorted.
 If you want to have just sorting or just renumbering, set this variable
@@ -132,7 +133,7 @@ The main values of this variable can be set with in-buffer options:
 	  (const :tag "Renumber and Sort" t)))
 
 (defcustom org-footnote-fill-after-inline-note-extraction nil
-  "Non-nil means, fill paragraphs after extracting footnotes.
+  "Non-nil means fill paragraphs after extracting footnotes.
 When extracting inline footnotes, the lengths of lines can change a lot.
 When this option is set, paragraphs from which an inline footnote has been
 extracted will be filled again."
@@ -182,7 +183,7 @@ with start and label of the footnote if there is a definition at point."
       (message "Edit definition and go back with `C-c &' or, if unique, with `C-c C-c'."))))
 
 (defun org-footnote-goto-next-reference (label)
-  "Find the definition of the footnote with label LABEL."
+  "Find the next reference of the footnote with label LABEL."
   (interactive "sLabel: ")
   (org-mark-ring-push)
   (setq label (org-footnote-normalize-label label))
@@ -366,7 +367,8 @@ referenced sequence."
       ;; Now find footnote references, and extract the definitions
       (goto-char (point-min))
       (while (re-search-forward org-footnote-re nil t)
-	(unless (or (org-in-commented-line) (org-in-verbatim-emphasis))
+	(unless (or (org-in-commented-line) (org-in-verbatim-emphasis)
+		    (org-inside-latex-macro-p))
 	  (org-if-unprotected
 	   (setq def (match-string 4)
 		 idef def
@@ -397,13 +399,13 @@ referenced sequence."
 		   (skip-chars-backward " \t\n\t")
 		   (delete-region (1+ (point)) (match-beginning 0))))))
 	   (unless sort-only
-	     (replace-match (concat before "[" marker "]"))
+	     (replace-match (concat before "[" marker "]") t t)
 	     (and idef
 		  org-footnote-fill-after-inline-note-extraction
 		  (fill-paragraph)))
 	   (if (not a) (push (list ref marker def (if idef t nil))
 			     ref-table)))))
-      
+
       ;; First find and remove the footnote section
       (goto-char (point-min))
       (cond

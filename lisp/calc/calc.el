@@ -797,6 +797,7 @@ Used by `calc-user-invocation'.")
 				calc-matrix-mode
 				calc-inverse-flag
 				calc-hyperbolic-flag
+                                calc-option-flag
 				calc-keep-args-flag
 				calc-angle-mode
 				calc-number-radix
@@ -926,6 +927,8 @@ Used by `calc-user-invocation'.")
   "If non-nil, next operation is Inverse.")
 (defvar calc-hyperbolic-flag nil
   "If non-nil, next operation is Hyperbolic.")
+(defvar calc-option-flag nil
+  "If non-nil, next operation has Optional behavior.")
 (defvar calc-keep-args-flag nil
   "If non-nil, next operation should not remove its arguments from stack.")
 (defvar calc-function-open "("
@@ -1038,7 +1041,7 @@ Used by `calc-user-invocation'.")
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
-          (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
+          (concat "ABCDEFGHIJKLMNOPQRSTUVXZabcdfghjkmoprstuvwxyz"
                   ":\\|!()[]<>{},;=~`\C-k\C-w\C-_"))
     (define-key map "\M-w" 'calc-missing-key)
     (define-key map "\M-k" 'calc-missing-key)
@@ -1619,6 +1622,7 @@ See calc-keypad for details."
 	  (calc-select-buffer)
 	  (setq calc-inverse-flag nil
 		calc-hyperbolic-flag nil
+                calc-option-flag nil
 		calc-keep-args-flag nil)))
       (when (memq 'do-edit calc-command-flags)
 	(switch-to-buffer (get-buffer-create "*Calc Edit*")))
@@ -1757,6 +1761,7 @@ See calc-keypad for details."
 			      (> (calc-stack-size) 0)
 			      (calc-top 1 'sel)) "Sel " "")
 		     (if calc-display-dirty "Dirty " "")
+                     (if calc-option-flag "Opt " "")
 		     (if calc-inverse-flag "Inv " "")
 		     (if calc-hyperbolic-flag "Hyp " "")
 		     (if calc-keep-args-flag "Keep " "")

@@ -1,3 +1,1100 @@
+2010-05-12  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):
+	Push the mark at the start of these functions when appropriate.
+
+2010-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-cycle-threshold): New custom var.
+	(completion--do-completion): Use it.
+	(minibuffer-complete): Use cycling if appropriate.
+
+2010-05-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dirtrack.el (dirtrackp): Remove defcustom; don't make automatically
+	buffer-local (it's an obsolete alias for `dirtrack-mode') (bug#6173).
+
+2010-05-11  Juri Linkov  <juri@jurta.org>
+
+	* scroll-all.el (scroll-all-check-to-scroll):
+	Add `scroll-up-command' and `scroll-down-command' (bug#6164).
+
+2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* iimage.el (iimage-mode-map): Move initialization into declaration.
+	(iimage-mode-buffer): Use with-silent-modifications.
+	Simplify calling convention.  Adjust callers.
+	(iimage-mode): Don't run hook redundantly.
+
+	* minibuffer.el (completion-pcm--pattern->regex):
+	Fix last change (bug#6160).
+
+2010-05-10  Juri Linkov  <juri@jurta.org>
+
+	Remove nodes visited during Isearch from the Info history.
+	* info.el (Info-isearch-initial-history)
+	(Info-isearch-initial-history-list): New variables.
+	(Info-isearch-start): Record initial values of
+	Info-isearch-initial-history and Info-isearch-initial-history-list.
+	Add Info-isearch-end to isearch-mode-end-hook.
+	(Info-isearch-end): New function.
+
+2010-05-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-file-attributes-with-stat): Add space in
+	format string, in order to work around a bug in pdksh.
+	Reported by Gilles Pion <gpion@lfdj.com>.
+	(tramp-handle-verify-visited-file-modtime): Do not send a command
+	when the connection is not established.
+	(tramp-handle-set-file-times): Simplify the check for utc.
+
+2010-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix use of `filter-buffer-substring' (rework previous change).
+	* emulation/cua-base.el (cua--filter-buffer-noprops): New function.
+	(cua-repeat-replace-region):
+	* emulation/cua-rect.el (cua--extract-rectangle, cua-incr-rectangle):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark): Use it.
+
+2010-05-09  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.1.
+	(sql-product-alist): Redesign structure of product info.
+	(sql-product, sql-user, sql-server, sql-database): Safe variables.
+	(sql-port, sql-port-history): New variables.
+	(sql-interactive-product): New variable.
+	(sql-send-terminator): New variable.
+	(sql-imenu-generic-expression): Add "Types" imenu entry.
+	(sql-oracle-login-params, sql-sqlite-login-params)
+	(sql-mysql-login-params, sql-solid-login-params)
+	(sql-sybase-login-params, sql-informix-login-params)
+	(sql-ingres-login-params, sql-ms-login-params)
+	(sql-postgres-login-params, sql-interbase-login-params)
+	(sql-db2-login-params, sql-linter-login-params)
+	(sql-oracle-scan-on): New variables.
+	(sql-mode-map): Add C-c C-i to start interactive mode.
+	(sql-mode-menu): Update existing menu entries.
+	(sql-font-lock-keywords-builder): Compile-time font-lock optimization.
+	(sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords)
+	(sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords)
+	(sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords)
+	(sql-mode-linter-font-lock-keywords): Update initialization to
+	reduce run-time complexity.
+	(sql-add-product, sql-del-product): New functions.
+	(sql-set-product-feature, sql-get-product-feature): New functions.
+	(sql-product-font-lock): Update product API.
+	(sql-add-product-keywords): New function.
+	(sql-highlight-product): Update product API.
+	(sql-help-list-products): New function.
+	(sql-help): Dynamically lists free and non-free products.
+	(sql-get-login): Correct bug in handling history and added
+	prompt for port.
+	(sql-copy-column): Copy without properties.
+	(sqli-input-sender): Apply filters to SQLi input.
+	(sql-query-placeholders-and-send): Obey `sql-oracle-scan-on' setting.
+	Implement as a filter.
+	(sql-escape-newlines-filter): Implement as a filter.
+	(sql-remove-tabs-filter): New function.
+	(sql-send-magic-terminator): New function.
+	(sql-send-string): Implement magic terminator.
+	(sql-send-region): Use `sql-send-string'.
+	(sql-interactive-mode): Use product API.
+	(sql-product-interactive): Use product API.
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql)
+	(sql-solid, sql-ingres, sql-ms, sql-postgres, sql-interbase)
+	(sql-db2, sql-linter): Use `sql-product-interactive'.
+	(sql-connect): New function.
+	(sql-connect-oracle, sql-connect-sybase, sql-connect-informix)
+	(sql-connect-sqlite, sql-connect-mysql, sql-connect-solid)
+	(sql-connect-ingres, sql-connect-ms, sql-connect-postgres)
+	(sql-connect-interbase, sql-connect-db2, sql-connect-linter):
+	Use `sql-connect'.
+
+2010-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm-complete-word-inserts-delimiters):
+	New custom variable.
+	(completion-pcm--string->pattern): Use it.
+	(completion-pcm--pattern->regex, completion-pcm--pattern->string):
+	Make it handle any symbol as `any'.
+	(completion-pcm--merge-completions): Extract common suffix for the new
+	`prefix' symbol as well.
+	(completion-substring--all-completions): Use the new `prefix' symbol.
+
+2010-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (byte-compile-not-obsolete-vars): Define if
+	not bound.
+	(tramp-compat-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-compat-funcall): New defmacro.
+	(tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position)
+	(tramp-compat-temporary-file-directory)
+	(tramp-compat-make-temp-file, tramp-compat-file-attributes)
+	(tramp-compat-copy-file, tramp-compat-copy-directory)
+	(tramp-compat-delete-file, tramp-compat-delete-directory)
+	(tramp-compat-number-sequence, tramp-compat-process-running-p)
+	* net/tramp.el (top, with-progress-reporter)
+	(tramp-rfn-eshadow-setup-minibuffer)
+	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
+	(tramp-handle-dired-compress-file, tramp-handle-shell-command)
+	(tramp-completion-mode-p, tramp-check-for-regexp)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-compute-multi-hops, tramp-read-passwd, tramp-clear-passwd)
+	(tramp-time-diff, tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag, tramp-unload-tramp)
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-reporter-dump-variable, tramp-load-report-modules)
+	(tramp-append-tramp-buffers)
+	* net/tramp-gvfs.el (tramp-gvfs-handle-file-selinux-context): Use it.
+
+	* net/tramp-imap.el (top): Autoload `epg-make-context'.
+
+2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-buffer-modtime): Rename from
+	buffer-modtime.  Adjust users.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule.el (auto-coding-alist): Only purecopy
+	car of each item, not the whole list (Bug#6083).
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el (js-mode): Make paragraph variables local before
+	calling c-setup-paragraph-variables (Bug#6071).
+
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.el (compose-region, reference-point-alist): Fix typos
+	in the doc strings.
+
+2010-05-08  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* calc/calc-graph.el (calc-graph-plot): Use the proper form for
+	gnuplot's "set" command.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.el (last-abbrev-text): Doc fix.
+	(abbrev-prefix-mark): Don't escape parenthesis.
+
+2010-05-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* composite.el (find-composition): Doc fix.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sql.el (sql-electric-stuff): Fix typo in tag.
+	(sql-oracle-program, sql-sqlite-options)
+	(sql-query-placeholders-and-send): Doc fixes.
+	(sql-set-product, sql-interactive-mode): Reflow docstrings.
+	(sql-imenu-generic-expression, sql-buffer)
+	(sql-mode-ansi-font-lock-keywords, sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords, sql-mode-ms-font-lock-keywords)
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords, sql-mode-solid-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords, sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords, sql-mode-font-lock-keywords)
+	(sql-product-feature, sql-highlight-product)
+	(comint-line-beginning-position, sql-rename-buffer)
+	(sql-toggle-pop-to-buffer-after-send-region sql-oracle)
+	(sql-sybase, sql-informix, sql-sqlite, sql-mysql, sql-solid)
+	(sql-ingres, sql-ms, sql-postgres, sql-interbase, sql-db2, sql-linter):
+	Fix typos in docstrings.
+
+2010-05-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Put Info-breadcrumbs to the `display'
+	property instead of `invisible' and `after-string' (bug#5998).
+
+2010-05-08  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-mode-as-text): Fix typo in docstring.
+
+2010-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filecache.el (file-cache-add-directory-list)
+	(file-cache-add-directory-recursively): Fix typos in docstrings.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (gurmukhi-composable-pattern): Fix typo.
+	(gujarati-composable-pattern): Fix typo.
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (oriya-composable-pattern)
+	(tamil-composable-pattern, malayalam-composable-pattern):
+	Add two-part vowels to "v" (vowel sign).
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (copy-directory): Handle symlinks (Bug#5982).
+
+2010-05-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-state): Use HGRCPATH, not HGRC.
+	(vc-hg-working-revision): Likewise.  Use hg parents, not hg parent
+	(Bug#5846).
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Give it a doc string.
+
+	* minibuffer.el (completion-at-point): Doc fix.
+
+2010-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (Electric-command-loop): Minor tweak.
+
+	* ebuff-menu.el (electric-buffer-list): Try and make it behave a bit
+	better with dedicated windows.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Highlight vendor specific properties.
+	* textmodes/css-mode.el (css-proprietary-nmstart-re): New var.
+	(css-proprietary-property): New face.
+	(css-font-lock-keywords): Use them.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add native condition for tool-bar-* symbols.
+
+2010-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/dns-mode.el (auto-mode-alist): Add entry for .zone files.
+	* files.el (auto-mode-alist): Remove redundant entries.
+
+	* files.el (auto-save-mode): Move to simple.el to fix bootstrap.
+	* simple.el (auto-save-mode): Move from files.el.
+	* minibuffer.el (completion--common-suffix): Fix copy&paste error.
+
+2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+
+	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
+
+2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/binhex.el (binhex-decode-region-internal)
+	* mail/uudecode.el (uudecode-decode-region-internal)
+	* net/dns.el (dns-read-string-name, dns-write, dns-read)
+	(dns-read-type, dns-query)
+	* pgg-parse.el (pgg-parse-armor)
+	* pgg.el (pgg-verify-region)
+	* sha1.el (sha1-string-external): Don't run set-buffer-multibyte for
+	XEmacs.
+
+	* net/imap.el (imap-disable-multibyte): Redefine it as a macro.
+
+2010-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cperl-mode.el (cperl-mode-unload-function): New function.
+
+	Fix use of `filter-buffer-substring' (4th arg NOPROPS removed).
+	* emulation/cua-base.el (cua-repeat-replace-region):
+	* emulation/cua-gmrk.el (cua-copy-region-to-global-mark)
+	(cua-cut-region-to-global-mark):
+	Remove text properties with `set-text-properties'.
+
+2010-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top, with-progress-reporter):
+	Use `symbol-function' inside `funcall'.
+
+	* net/tramp-compat.el (tramp-compat-file-attributes)
+	(tramp-compat-delete-file, tramp-compat-delete-directory):
+	Handle only `wrong-number-of-arguments' error.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Fix typo.
+	(tramp-gvfs-handle-file-selinux-context): Use `symbol-function'
+	inside `funcall'.
+
+2010-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--sreverse, completion--common-suffix):
+	New functions.
+	(completion-pcm--merge-completions): Extract common suffix when safe.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Make :variable more flexible.
+	* files.el (auto-save-mode): Use it to define using define-minor-mode.
+
+2010-05-05  Juri Linkov  <juri@jurta.org>
+
+	Add `slow' and `history' tags to the desktop data.
+
+	* info.el (Info-virtual-nodes) [*Index*]: Add `slow' tag.
+	(Info-virtual-files) [*Apropos*]: Add `slow' tag.
+	(Info-finder-find-node): Require `finder.el' to be able
+	to restore node from the desktop.
+	(Info-desktop-buffer-misc-data): Save all nodes.  Save additional
+	data `Info-history' and `slow' tag in the assoc list.
+	(Info-restore-desktop-buffer): Don't restore nodes with the
+	`slow' tag.  Restore `Info-history'.
+
+2010-05-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add FORCE argument to `delete-file'.
+
+	* net/ange-ftp.el (ange-ftp-del-tmp-name): Make it a defun,
+	forcing to delete the temporary file.
+	(ange-ftp-delete-file): Add FORCE arg.
+	(ange-ftp-rename-remote-to-remote)
+	(ange-ftp-rename-local-to-remote, ange-ftp-rename-remote-to-local)
+	(ange-ftp-load, ange-ftp-compress, ange-ftp-uncompress):
+	Force file deletion.
+
+	* net/tramp-compat.el (tramp-compat-delete-file): New defun.
+
+	* net/tramp.el (tramp-handle-delete-file): Add FORCE arg.
+	(tramp-handle-make-symbolic-link, tramp-handle-load)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-process-file, tramp-handle-call-process-region)
+	(tramp-handle-shell-command, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-delete-temp-file-function): Use `tramp-compat-delete-file'.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-file): Add FORCE arg.
+	(tramp-fish-handle-make-symbolic-link)
+	(tramp-fish-handle-process-file): Use `tramp-compat-delete-file'.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
+	Use `tramp-compat-delete-file'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Add FORCE arg.
+	(tramp-gvfs-handle-write-region): Use `tramp-compat-delete-file'.
+
+	* net/tramp-imap.el (tramp-imap-handle-delete-file): Add FORCE arg.
+	(tramp-imap-do-copy-or-rename-file): Use `tramp-compat-delete-file'.
+
+	* net/tramp-smb.el (tramp-smb-handle-delete-file): Add FORCE arg.
+	(tramp-smb-handle-copy-file, tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region): Use
+	`tramp-compat-delete-file'.
+
+2010-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Minor cleanups.
+	* subr.el (add-minor-mode): Use push.
+	* mail/supercite.el (sc-electric-mode): Use more descriptive arg name.
+	* emulation/edt.el (edt-select-mode): Simplify.
+
+	Use define-minor-mode in more cases.
+	* term/tvi970.el (tvi970-set-keypad-mode):
+	* simple.el (auto-fill-mode, overwrite-mode, binary-overwrite-mode)
+	(normal-erase-is-backspace-mode):
+	* scroll-bar.el (scroll-bar-mode): Use it and define-minor-mode.
+	(set-scroll-bar-mode-1): (Re)move to its sole caller.
+	(get-scroll-bar-mode): New function.
+	* emacs-lisp/cl-macs.el (eq): Handle a non-variable first arg.
+
+	Use define-minor-mode for less obvious cases.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add :variable keyword.
+	* emacs-lisp/cl-macs.el (terminal-parameter, eq): Add setf method.
+	* international/iso-ascii.el (iso-ascii-mode):
+	* frame.el (auto-raise-mode, auto-lower-mode):
+	* composite.el (global-auto-composition-mode): Use define-minor-mode.
+
+2010-05-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Remove "-q" from `tramp-login-args'
+	in order to see error messages for failed logins.
+
+2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* diff.el (diff-sentinel):
+
+	* epg.el (epg--make-temp-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string):
+
+	* jka-compr.el (jka-compr-partial-uncompress)
+	(jka-compr-call-process, jka-compr-write-region, jka-compr-load):
+
+	* server.el (server-sentinel): Use delete-file's new FORCE arg
+	(Bug#6070).
+
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode where applicable.
+	* view.el (view-mode):
+	* type-break.el (type-break-query-mode)
+	(type-break-mode-line-message-mode):
+	* textmodes/reftex.el (reftex-mode):
+	* term/vt100.el (vt100-wide-mode):
+	* tar-mode.el (tar-subfile-mode):
+	* savehist.el (savehist-mode):
+	* ibuf-ext.el (ibuffer-auto-mode):
+	* composite.el (auto-composition-mode):
+	* progmodes/vhdl-mode.el (vhdl-electric-mode, vhdl-stutter-mode):
+	Use define-minor-mode.
+	(vhdl-mode): Use static mode-line format.
+	(vhdl-mode-line-update): Delete.
+	(vhdl-create-mode-menu, vhdl-activate-customizations)
+	(vhdl-hs-minor-mode): Don't bother calling it.
+
+2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (with-wrapper-hook): Move.
+	(buffer-substring-filters): Mark obsolete.
+	(filter-buffer-substring-functions): New variable.
+	(filter-buffer-substring): Use it.  Remove unused arg `noprops'.
+
+	Use a mode-line spec rather than a static string in Semantic.
+	* cedet/semantic/util-modes.el:
+	(semantic-minor-modes-format): New var to replace...
+	(semantic-minor-modes-status): Remove.
+	(semantic-mode-line-update): Construct a mode-line spec rather than
+	a static string so that mouse buttons can be used on individual minor
+	modes and so that semantic-mode-line-update only needs to be called
+	when global settings are changed.
+	(semantic-add-minor-mode, semantic-toggle-minor-mode-globally):
+	Call semantic-mode-line-update.
+	(semantic-toggle-minor-mode-globally): Don't assume mode is on
+	minor-mode-alist, check semantic-minor-mode-alist as well.
+	(semantic-stickyfunc-mode, semantic-show-parser-state-auto-marker)
+	(semantic-show-parser-state-marker, semantic-show-parser-state-mode)
+	(semantic-show-unmatched-syntax-mode, semantic-highlight-edits-mode):
+	* cedet/semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
+	* cedet/semantic/idle.el (semantic-idle-scheduler-mode)
+	(define-semantic-idle-service, semantic-idle-summary-mode):
+	* cedet/semantic/decorate/mode.el (semantic-decoration-mode):
+	Don't call semantic-mode-line-update any more.
+
+2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode in CEDET where applicable.
+
+	* cedet/srecode/mode.el (srecode-minor-mode,global-srecode-minor-mode):
+	Use define-minor-mode.
+
+	* cedet/semantic/util-modes.el (semantic-add-minor-mode):
+	Remove unused arg `keymap' and code redundant with define-minor-mode.
+	(semantic-toggle-minor-mode-globally): Only handle arg -1 and 1.
+	(semantic-stickyfunc-mode, global-semantic-show-unmatched-syntax-mode)
+	(semantic-highlight-func-mode, global-semantic-show-parser-state-mode)
+	(global-semantic-highlight-edits-mode, semantic-highlight-edits-mode)
+	(semantic-show-unmatched-syntax-mode, semantic-show-parser-state-mode)
+	(global-semantic-stickyfunc-mode, global-semantic-highlight-func-mode):
+	Use define-minor-mode.
+	(semantic-stickyfunc-mode-setup, semantic-highlight-edits-mode-setup)
+	(semantic-show-unmatched-syntax-mode-setup)
+	(semantic-show-parser-state-mode-setup)
+	(semantic-highlight-func-mode-setup): Inline into sole caller.
+
+	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)
+	(semantic-mru-bookmark-mode): Use define-minor-mode.
+	(semantic-mru-bookmark-mode-setup): Inline into sole caller.
+
+	* cedet/semantic/idle.el (define-semantic-idle-service):
+	Use define-minor-mode and inline setup function into its sole caller.
+	(semantic-idle-scheduler-mode-setup)
+	(semantic-idle-summary-mode-setup): Inline into sole caller.
+	(global-semantic-idle-scheduler-mode, semantic-idle-scheduler-mode):
+	Use define-minor-mode.
+
+	* cedet/semantic/decorate/mode.el (global-semantic-decoration-mode)
+	(semantic-decoration-mode): Use define-minor-mode.
+	(semantic-decoration-mode-setup): Inline into sole caller.
+
+	* cedet/ede/dired.el (ede-dired-minor-mode): Initialize in declaration.
+	(ede-dired-minor-mode): Use define-minor-mode and derived-mode-p.
+	(ede-dired-add-to-target): Use dolist.
+
+2010-05-01  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+            Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement compression for inline methods.
+
+	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
+	(tramp-copy-size-limit): Allow also nil.
+	(tramp-inline-compress-commands): New defconst.
+	(tramp-find-inline-compress, tramp-get-inline-compress)
+	(tramp-get-inline-coding): New defuns.
+	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
+	replaced by `tramp-get-inline-coding'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
+
+2010-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-abbrev-mode, mode-line-auto-fill-mode):
+	Remove unused functions.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode): Use define-derived-mode.
+	Set find-tag-default-function as a variable rather than a property.
+
+	* minibuffer.el (tags-completion-at-point-function): Move to etags.el.
+	* progmodes/etags.el (tags-completion-at-point-function):
+	Remove left over interactive spec.  Add autoloading stub.
+	(complete-tag): Use tags-completion-at-point-function.
+
+2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (tags-completion-at-point-function): Fix return value.
+
+2010-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* composite.el (compose-region, reference-point-alist): Fix typos
+	in the doc strings.
+
+2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ido.el (ido-init-completion-maps): Remove C-v binding.
+	(ido-minibuffer-setup): Don't set cua-inhibit-cua-keys (Bug#5765).
+
+2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (tags-completion-at-point-function): New function.
+	(completion-at-point-functions): Use it.
+
+	* cedet/semantic.el (semantic-completion-at-point-function): New function.
+	(semantic-mode): Use semantic-completion-at-point-function for
+	completion-at-point-functions instead.
+
+	* progmodes/etags.el (complete-tag): Revert last change.
+
+2010-04-29  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-extend-region-for-CPP): Fix an
+	off-by-one error (in end of macro position).
+
+2010-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/browse-url.el (browse-url-firefox-program): Use iceweasel if
+	firefox is absent.  Don't autoload.
+	(browse-url-galeon-program): Don't autoload.
+
+2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (complete-symbol): Move into minibuffer.el.
+
+	* minibuffer.el (complete-tag): Move from etags.el.  If tags
+	completion cannot be performed, return nil instead of signalling
+	an error.
+	(completion-at-point): Make it an alias for complete-symbol.
+	(complete-symbol): Move from bindings.el, and replace with the
+	body of completion-at-point.
+
+	* progmodes/etags.el (complete-tag): Move to minibuffer.el.
+
+	* cedet/semantic.el (semantic-mode): When enabled, add
+	semantic-ia-complete-symbol to completion-at-point-functions.
+
+	* cedet/semantic/ia.el (semantic-ia-complete-symbol): Return nil
+	if Semantic is not active.
+
+2010-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-selinux-p): New defun.
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context): Use it.
+
+2010-04-28  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
+	`safe-local-variable' if the value is a string or a symbol with
+	the property `bug-reference-url-format'.
+
+2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Revert
+	2010-04-27 change due to security risk.
+
+2010-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make it possible to locally disable a globally enabled mode.
+	* simple.el (fundamental-mode): Run fundamental-mode-hook.
+	* emacs-lisp/derived.el (define-derived-mode): Use fundamental-mode
+	rather than kill-all-local-variables so it runs fundamental-mode-hook.
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Use fundamental-mode-hook to run MODE-enable-in-buffers earlier, so
+	that subsequent hooks get a chance to disable it.
+
+2010-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-globalized-minor-mode):
+	Avoid re-enabling a minor mode after the user turned the minor mode
+	off if MODE-enable-in-buffers is run twice (typically once from
+	fundamental-mode's after-change-major-mode-hook and a second time from
+	run-mode-hook's own after-change-major-mode-hook).
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Fail gracefully.
+
+2010-04-27  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference-url-format): Mark as
+	`safe-local-variable' if the value is a string or a function, as
+	documented and implemented on 2010-04-02.
+
+2010-04-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-buffer-internal): Bind `ido-use-virtual-buffers' to nil
+	when method is 'kill.
+
+2010-04-27  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-init-process): Fix personal dictionary condition
+	in default directory check.
+	(ispell-init-process,ispell-kill-ispell,kill-buffer-hook):
+	Kill ispell process when killing its associated buffer.
+
+2010-04-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* desktop.el (desktop-kill): ask-if-new: Ask if desktop file exists,
+	but we aren't using it.
+
+2010-04-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tool-bar.el (tool-bar-local-item-from-menu): Revert unintended
+	checkin in rev 100010.
+
+2010-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-obsolete-files-regexps):
+	Ignore VCS-ignore files, and deleted nextstep preferences files.
+	(authors-ignored-files): Ignore deleted cedet test files, and "*.el".
+	(authors-ambiguous-files): New list.
+	(authors-valid-file-names): Add some deleted files.
+	(authors-renamed-files-alist): Add font-setting.el, edt-user.doc.
+	(authors-disambiguate-file-name): New function.  (Bug#5501)
+	(authors-canonical-file-name): Doc fix.
+	Don't warn about obsolete files.
+	(authors-canonical-file-name, authors-scan-el):
+	Use authors-disambiguate-file-name.
+
+	* hfy-cmap.el (htmlfontify-load-rgb-file, hfy-fallback-colour-values):
+	Add autoload cookies.
+	(htmlfontify-unload-rgb-file, hfy-fallback-colour-values): Add docs.
+	(generated-autoload-file): Set file-local value to "htmlfontify.el".
+	* htmlfontify.el (caddr, cadddr): Remove fallback definitions.
+	They have definitions / compiler macros in cl.el.
+	(htmlfontify-load-rgb-file, hfy-fallback-colour-values):
+	Replace manual autoloads with generated ones.
+	(htmlfontify-unload-rgb-file): Remove autoload.
+	* Makefile.in (autoloads): Ensure htmlfontify.el is writable.
+
+2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-set-default): New function.
+	(byte-compile-setq-default): Optimize for the
+	single-var case and don't call byte-compile-form in this case to avoid
+	inf-loop with byte-compile-set-default.
+
+	* progmodes/compile.el (compilation-start): Abbreviate default directory.
+
+2010-04-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement SELINUX backends.
+
+	* net/tramp.el (tramp-file-name-handler-alist):
+	Add `file-selinux-context' and `set-file-selinux-context'.
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context): New defuns.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file):
+	Handle PRESERVE-SELINUX-CONTEXT.
+
+	* net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	Add `file-selinux-context' and `set-file-selinux-context'.
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
+	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
+
+	* net/ange-ftp.el (ange-ftp-copy-file):
+	* net/tramp-fish.el (tramp-fish-handle-copy-file):
+	* net/tramp-imap.el (tramp-imap-handle-copy-file):
+	* net/tramp-smb.el (tramp-smb-handle-copy-file):
+	Add PRESERVE-SELINUX-CONTEXT.
+
+2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Synchronize with Tramp repository.
+
+	* net/tramp.el (with-connection-property, tramp-completion-mode-p)
+	(tramp-action-process-alive, tramp-action-out-of-band)
+	(tramp-check-for-regexp, tramp-file-name-p, tramp-equal-remote)
+	(tramp-exists-file-name-handler): Fix docstring.
+	(with-progress-reporter): New defmacro.
+	(tramp-do-copy-or-rename-file, tramp-handle-dired-compress-file)
+	(tramp-maybe-open-connection): Use it.
+
+2010-04-22  Noah Lavine  <noah549@gmail.com>  (tiny change)
+
+	Detect ssh 'ControlMaster' argument automatically in some cases.
+
+	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
+	(tramp-default-method): Use it.
+
+2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-copy-file): Add new optional
+	parameter `preserve-selinux-context'.
+	(tramp-file-name-for-operation): Add `set-file-selinux-context'.
+
+2010-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-handle-file-name-all-completions):
+	Ensure, that non remote files are still checked.  Oops.
+
+2010-04-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#5840.
+
+	* icomplete.el (icomplete-completions): Use `non-essential'.
+
+	* net/tramp.el (tramp-connectable-p): New defun.
+	(tramp-handle-expand-file-name)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Use it.
+
+2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Try and handle errors.
+
+2010-04-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vc-dir.el (vc-dir-tool-bar-map): Add :label on some tool bar items.
+
+	* tool-bar.el (tool-bar-setup): Add :label on some tool bar items.
+
+	* loadup.el: Load dynamic-setting.el if feature dynamic-setting
+	is present.
+
+	* info.el (info-tool-bar-map): Add labels.
+
+	* cus-start.el (all): Add tool-bar-style and tool-bar-max-label-size.
+
+	* cus-edit.el (custom-commands): Add labels for tool bar.
+	(custom-buffer-create-internal, Custom-mode): Adjust for
+	labels in custom-commands.
+
+	* dynamic-setting.el: Renamed from font-setting.el.
+
+2010-04-21  John Wiegley  <jwiegley@gmail.com>
+
+	* ido.el (ido-init-completion-maps): For ido-switch-buffer, C-o
+	toggles the use of virtual buffers.
+	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global
+	value.
+	(ido-toggle-virtual-buffers): New function.
+
+2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	Use `define-derived-mode'; fix window selection; doc fixes.
+	* play/tetris.el (tetris, tetris-update-speed-function)
+	(tetris-tty-colors, tetris-x-colors, tetris-move-bottom)
+	(tetris-move-left, tetris-move-right, tetris-rotate-prev)
+	(tetris-rotate-next, tetris-end-game, tetris-start-game)
+	(tetris-pause-game): Fix typos in docstrings.
+	(tetris-mode-map, tetris-null-map):
+	Move initialization into declaration.
+	(tetris-mode): Define with `define-derived-mode';
+	set show-trailing-whitespace to nil.
+	(tetris): Prefer window already displaying the "*Tetris*" buffer.
+
+2010-04-21  Karel Klíč  <kklic@redhat.com>
+
+	* files.el (backup-buffer): Handle SELinux context, and return it
+	if a backup was made by renaming.
+	(backup-buffer-copy): Set SELinux context to the target file.
+	(basic-save-buffer): Set SELinux context of the newly written file.
+	(basic-save-buffer-1): Now it also returns any SELinux context.
+	(basic-save-buffer-2): Set SELinux context of the newly created file,
+	and return it.
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add file-selinux-context.
+
+2010-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make the log-edit comments use RFC822 format throughout.
+
+	* vc.el (vc-checkin, vc-modify-change-comment):
+	Adjust to new vc-start/finish-logentry.
+	(vc-find-conflicted-file): New command.
+	(vc-transfer-file): Adjust to new vc-checkin.
+	(vc-next-action): Improve scoping.
+
+	* vc-hg.el (vc-hg-log-edit-mode): Remove.
+	(vc-hg-checkin): Remove extra arg.  Use log-edit-extract-headers.
+
+	* vc-git.el (vc-git-log-edit-mode): Remove.
+	(vc-git-checkin): Remove extra arg.  Use log-edit-extract-headers.
+	(vc-git-commits-coding-system): Rename from git-commits-coding-system.
+
+	* vc-dispatcher.el (vc-log-edit): Shorten names for log-edit-show-files.
+	(vc-start-logentry): Remove argument `extra'.
+	(vc-finish-logentry): Remove extra args.
+
+	* vc-bzr.el (vc-bzr-log-edit-mode): Remove.
+	(vc-bzr-checkin): Remove extra arg.  Use log-edit-extract-headers.
+	(vc-bzr-conflicted-files): New function.
+
+	* log-edit.el (log-edit-extra-flags)
+	(log-edit-before-checkin-process): Remove.
+	(log-edit-summary, log-edit-header, log-edit-unknown-header): New faces.
+	(log-edit-headers-alist): New var.
+	(log-edit-header-contents-regexp): New const.
+	(log-edit-match-to-eoh): New function.
+	(log-edit-font-lock-keywords): Use them.
+	(log-edit): Insert a "Summary:" header as default.
+	(log-edit-mode): Mark font-lock rules as case-insensitive.
+	(log-edit-done): Cleanup headers.
+	(log-view-process-buffer): Remove.
+	(log-edit-extract-headers): New function to replace it.
+
+2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (default-direction-reversed): Remove obsolescence info.
+
+2010-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-finish-logentry): Don't mess so badly with the
+	windows/frames.
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point): Complete around point.
+	I.e. include text after point in the completion region.
+	Also, return nil when we're not after/in a symbol.
+
+	* international/mule-cmds.el (view-hello-file): Don't fiddle with the
+	default enable-multibyte-characters.
+
+2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule.el: Help the user choose a valid coding-system.
+	(read-buffer-file-coding-system): New function.
+	(set-buffer-file-coding-system): Use it.  Prompt the user if the
+	coding-system cannot encode all the chars.
+
+	* vc-bzr.el: Use standard *vc* and *vc-diff* buffers.
+	(vc-bzr-shelve-show, vc-bzr-shelve-apply)
+	(vc-bzr-shelve-apply-and-keep, vc-bzr-shelve-snapshot):
+	Don't use *vc-bzr-shelve*.
+
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables):
+	Don't destroy list before using it.
+
+2010-04-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix the version number for added files.
+	* vc-hg.el (vc-hg-working-revision): Check if the file is
+	registered after hg parent fails (Bug#5961).
+
+2010-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* htmlfontify.el (htmlfontify-buffer)
+	(htmlfontify-copy-and-link-dir): Autoload entry points.
+
+2010-04-19  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* vc-hg.el (vc-hg-annotate-extract-revision-at-line): Expand file
+	name relative to the project root (Bug#5960).
+
+2010-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc-git.el (vc-git-print-log): Doc fix.
+
+2010-04-19  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* ido.el (ido-file-internal): Fix 2009-12-02 change.
+
+2010-04-19  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
+	default settings (Bug#5928).
+
+2010-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-match-and-skip-declaration):
+	New function.
+	(fortran-font-lock-keywords-3): Use it.  (Bug#1385)
+
+2010-04-19  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (malayalam-composable-pattern): Fix previous
+	change (add U+0D4D "SIGN VIRAMA").
+	(oriya-composable-pattern): Add U+0B30 and fix typo in the regexp.
+	(tamil-composable-pattern): Fix typo in the regexp.
+	(telugu-composable-pattern): Fix U+0C4D and typo in the regexp.
+	(kannada-composable-pattern): Fix U+0CB0 and typo in the regexp.
+	(malayalam-composable-pattern): Fix U+0D4D and typo in the regexp.
+
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (latex-mode): Revert 2008-03-03 change to
+	paragraph-separate (Bug#5821).
+
+2010-04-19  Juri Linkov  <juri@jurta.org>
+
+	Put breadcrumbs on overlay instead of inserting to buffer (bug#5809).
+
+	* info.el (Info-find-node-2): Comment out code that skips
+	breadcrumbs line.
+	(Info-mouse-follow-link): New command.
+	(Info-link-keymap): New keymap.
+	(Info-breadcrumbs): Rename from `Info-insert-breadcrumbs'.
+	Return a string with links instead of inserting breadcrumbs
+	to the Info buffer.
+	(Info-fontify-node): Comment out code that inserts breadcrumbs.
+	Instead of putting the `invisible' text property over the Info
+	header, make an overlay over the Info header with the `invisible'
+	property and `after-string' set to the string returned by
+	`Info-breadcrumbs'.
+
+2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-window-setup-finish): Doc fix (Bug#5830).
+	Reported by monkey@sandpframing.com.
+
+2010-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Remove obsolete call to x-popup-menu.
+	(tmm-get-keymap): Add key-binding shortcuts now that they're not
+	available in the "keyseq cache" any more.
+
+	* custom.el (defcustom): Add edebug spec.
+
+2010-04-18  Juri Linkov  <juri@jurta.org>
+
+	Test for special mode-class in view-buffer instead of view-file (bug#5513).
+
+	* view.el (view-file, view-buffer): Move test for special mode-class
+	from view-file to view-buffer.
+
+	* tar-mode.el (tar-extract): Turn if's into one cond
+	like in arc-mode.el.
+
+2010-04-18  Juri Linkov  <juri@jurta.org>
+
+	Add 7z archive format support (bug#5475).
+
+	* arc-mode.el (archive-zip-extract): Try to find 7z executable.
+	(archive-7z-extract): New defcustom.
+	(archive-find-type): Add magic string for 7z.
+	(archive-extract-by-stdout): Add new optional arg `stderr-file'.
+	If `stderr-file' is non-nil, use `(t stderr-file)' for the
+	`buffer' arg of `call-process'.
+	(archive-zip-extract): Check `archive-zip-extract' for "7z" and
+	call the function `archive-7z-extract' with the variable
+	`archive-7z-extract' let-bound to `archive-zip-extract'.
+	(archive-7z-summarize, archive-7z-extract): New functions.
+
+	* international/mule.el (auto-coding-alist):
+	* files.el (auto-mode-alist): Add 7z file extension.
+
+2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loadup.el: Setup hash-cons for pure data.
+
+	Fix duplicate entries in cedet's loaddefs.el files.
+	* emacs-lisp/autoload.el (autoload-file-load-name): Be more clever.
+	Should make most file-local generated-autoload-file unnecessary.
+	(print-readably): Silence warnings.
+	(autoload-find-destination): Take load-name as an arg to make sure
+	it's the same as the one that will be in the file.
+	(autoload-generate-file-autoloads): Adjust to above changes.
+	Try to make the dataflow a bit simpler.
+
+	* cvs-status.el (cvs-refontify): Remove unused.
+
+2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.el (calc-mode-map): Bind "O" to `calc-missing-key'.
+
+	* calc-bin.el (calc-radix): Have the "O" option turn on
+	twos-complement mode.
+
+2010-04-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-ext.el (calc-init-extensions): Add keybinding for 'calc-option'.
+	Add `calc-option-prefix-help' to calc-help autoloads.
+	(calc-inverse): Add "Option" to message, as appropriate.
+	(calc-hyperbolic): Add "Option" to message, as appropriate.
+	(calc-option, calc-is-option): New functions.
+
+	* calc-help.el (calc-full-help): Add `calc-option-help'.
+	(calc-option-prefix-help): New function.
+
+	* calc-misc.el (calc-help): Add "Option" entry.
+
+	* calc.el (calc-local-var-list): Add `calc-option-flag'.
+	(calc-option-flag): New variable.
+	(calc-do): Set `calc-option-flag to nil.
+	(calc-set-mode-line): Add "Opt " as appropriate.
+
+2010-04-16  Juri Linkov  <juri@jurta.org>
+
+	Move scrolling commands from simple.el to window.el
+	because their primitives are implemented in window.c.
+
+	* simple.el (scroll-error-top-bottom)
+	(scroll-up-command, scroll-down-command, scroll-up-line)
+	(scroll-down-line, scroll-other-window-down)
+	(beginning-of-buffer-other-window, end-of-buffer-other-window):
+	* window.el (scroll-error-top-bottom)
+	(scroll-up-command, scroll-down-command, scroll-up-line)
+	(scroll-down-line, scroll-other-window-down)
+	(beginning-of-buffer-other-window, end-of-buffer-other-window):
+	Move from simple.el to window.el because their primitives are
+	implemented in window.c.
+
+2010-04-16  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lookup-scroll-key): Check both
+	`isearch-scroll' and `scroll-command' properties.
+	(scroll-up, scroll-down): Remove `isearch-scroll' property.
+
+	* mwheel.el (mwheel-scroll): Remove `isearch-scroll' property.
+
+	* simple.el (scroll-up-command, scroll-down-command)
+	(scroll-up-line, scroll-down-line): Remove `isearch-scroll' property.
+
+2010-04-15  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (scroll-up-command, scroll-down-command)
+	(scroll-up-line, scroll-down-line): Put `scroll-command'
+	property on the these symbols.  Remove them from
+	`scroll-preserve-screen-position-commands'.
+
+	* mwheel.el (mwheel-scroll): Put `scroll-command' and
+	`isearch-scroll' properties on the `mwheel-scroll' symbol.
+	Remove it from `scroll-preserve-screen-position-commands'.
+
+	* isearch.el (isearch-allow-scroll): Doc fix.
+
+2010-04-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-error-with-buffer): Don't show the
+	connection buffer when we are in completion mode.
+	(tramp-file-name-handler): Catch the error for some operations
+	when we are in completion mode.  This gives the user the chance to
+	correct the file name in the minibuffer.
+
+2010-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/verilog-mode.el (verilog-forward-sexp): Avoid free variable.
+
 2010-04-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	Simplify by using `define-derived-mode'.
@@ -231,32 +1328,31 @@
 
 2010-04-07  Michael McNamara  <mac@mail.brushroad.com>
 
-        * progmodes/verilog-mode.el (verilog-forward-sexp):
+	* progmodes/verilog-mode.el (verilog-forward-sexp):
 	(verilog-calc-1): Support "disable fork" and "fork wait" multi
 	word keywords, suggested by Steve Pearlmutter.
-        (verilog-pretty-declarations): Support lineup of declarations in
+	(verilog-pretty-declarations): Support lineup of declarations in
 	port lists.
-        (verilog-skip-backward-comments, verilog-skip-forward-comment-p):
-        fix bug for /* / comments
-        (verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
+	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
+	fix bug for /* / comments
+	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
 	Speed up and simplfy as this is never called with a bound.
-        (verilog-pretty-declarations): Enhance to line up declarations
-        inside a parameter list, suggested by Alan Morgan.
-        (verilog-pretty-expr): Tune assignment regular expression match
-        string for corner cases; also use markers instead of character
-        number as indent changes the later.
+	(verilog-pretty-declarations): Enhance to line up declarations
+	inside a parameter list, suggested by Alan Morgan.
+	(verilog-pretty-expr): Tune assignment regular expression match
+	string for corner cases; also use markers instead of character
+	number as indent changes the later.
 
 2010-04-07  Wilson Snyder  <wsnyder@wsnyder.org>
 
-        * progmodes/verilog-mode.el (verilog-type-keywords): Fix pulldown as missing
-        keyword.
-        (verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
-        causing truncation of AUTOWIRE signals.  Reported by Bruce
-        Tennant.
-        (verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
-        AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
-        Tennant.
-        (verilog-keywords):
+	* progmodes/verilog-mode.el (verilog-type-keywords): Fix pulldown
+	as missing keyword.
+	(verilog-read-sub-decls-line): Fix comments in AUTO_TEMPLATE
+	causing truncation of AUTOWIRE signals.  Reported by Bruce Tennant.
+	(verilog-auto-inst, verilog-auto-inst-port): Add vl_mbits for
+	AUTO_TEMPLATEs needing multiple array bits.  Suggested by Bruce
+	Tennant.
+	(verilog-keywords):
 	(verilog-1800-2005-keywords, verilog-1800-2009-keywords): Add IEEE
 	1800-2009 keywords, including "global.".
 
@@ -419,7 +1515,7 @@
 
 2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Make tmm-menubar work for the Buffers menu again.
+	Make tmm-menubar work for the Buffers menu again (bug#5726).
 	* tmm.el (tmm-prompt): Also handle keymap entries in the form of
 	vectors rather than cons cells, as used in menu-bar-update-buffers.
 
@@ -500,7 +1596,7 @@
 	values.
 
 2010-03-29  Phil Hagelberg  <phil@evri.com>
-	    Chong Yidong  <cyd@stupidchicken.com>
+            Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el: Extend progress reporters to perform "spinning".
 	(progress-reporter-update, progress-reporter-do-update):
@@ -1067,7 +2163,7 @@
 	* image-mode.el (image-toggle-display-image):
 	Replace `create-image' with `create-animated-image'.
 
-2010-03-09  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-03-09  Miles Bader  <miles@gnu.org>
 
 	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
 	instead of "format:"; this ensures that the output is
@@ -1143,11 +2239,6 @@
 	* calendar/cal-hebrew.el (holiday-hebrew-passover): Fix date
 	of Yom HaAtzma'ut when it falls on a Monday (rule changed in 2004).
 
-2010-03-01  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-remove-stale-state-cache):
-	Correct previous patch.
-
 2010-03-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/burmese.el (burmese-composable-pattern): Rename from
@@ -1158,11 +2249,6 @@
 	Change myanmar to burmese.
 	(otf-script-alist): Likewise.
 	(setup-default-fontset): Likewise.  Re-fix :otf spec.
-
-2010-03-01  Alan Mackenzie  <bug-cc-mode@gnu.org>
-
-	* cc-engine.el (c-remove-stale-state-cache): Take account of when
-	`good-pos' is in the same macro as `here'.  Fixes bug#5649.
 
 2010-02-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1228,16 +2314,6 @@
 
 	* mail/sendmail.el (send-mail-function): Autoload the call
 	to custom-initialize-delay, not otherwise preserved in loaddefs.el.
-
-2010-02-25  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-engine.el (c-clear-<-pair-props)
-	(c-clear->-pair-props): Correct to wipe category text props, not
-	syntax-table ones.
-
-	* progmodes/cc-mode.el (c-after-change): Remove any hard
-	syntax-table properties for <, > which, e.g., C-y has
-	inopportunely converted from category properties.
 
 2010-02-24  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1575,33 +2651,6 @@
 	(doc-view-already-converted-p): Check that resolution.el is present.
 	(doc-view-pdf->png): Don't rely on doc-view-pdf/ps->png for the few
 	windows that are not yet showing images.
-
-2010-02-04  Alan Mackenzie  <acm@muc.de>
-
-	Change strategy for marking < and > as template delimiters: mark
-	them strictly in matching pairs.
-
-	* cc-mode.el (c-before-change):
-	Use c-get-state-before-change-functions.
-	(c-common-init): Adapt to use
-	c-get-state-before-change-functions (note plural).
-
-	* cc-langs.el (c-no-parens-syntax-table): New syntax table, used
-	for searching syntactically for matching <s and >s.
-	(c-get-state-before-change-functions): New language variable (note
-	the plural) which supersedes c-get-state-before-change-function.
-
-	* cc-engine.el (c-clear-<-pair-props, c-clear->-pair-props)
-	(c-clear-<>-pair-props, c-clear-<-pair-props-if-match-after)
-	(c-clear->-pair-props-if-match-before)
-	(c-before-change-check-<>-operators): New functions.
-	(c-after-change-check-<>-operators): Use macro
-	c-unmark-<->-as-paren.
-
-	* cc-defs.el (c-search-backward-char-property): New macro.
-
-	* cc-cmds.el (c-electric-lt-gt): Do not set text properties on <
-	and > any more.  (These will be handled by font locking.)
 
 2010-02-04  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4190,7 +5239,7 @@
 	* Makefile.in (ELCFILES): Adapt to subword.el move.
 
 2009-11-21  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bookmark.el (bookmark-bmenu-bookmark-column): Remove var.
 	(bookmark-bmenu-list): Save name on `bookmark-name-prop' text-prop.
@@ -8276,7 +9325,7 @@
 	indent buffer only if called interactively (Bug#4452).
 
 2009-09-19  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	This fixes bug#4197 (merged to bug#865, though not identical).
 	* server.el (server-auth-dir): Add docstring note about FAT32.
@@ -9093,7 +10142,7 @@
 	Don't call substitute-in-file-name on diary-file.
 
 2009-09-03  Eduard Wiebe  <usenet@pusto.de>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/footnote.el (footnote-prefix): Make it a defcustom.
 	(footnote-mode-map): Move initialization into the declaration.
@@ -10204,7 +11253,7 @@
 	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode entry.
 
 2009-08-14  Daniel Colascione  <dan.colascione@gmail.com>
-	    Karl Landstrom  <karl.landstrom@brgeight.se>
+            Karl Landstrom  <karl.landstrom@brgeight.se>
 
 	* progmodes/js.el: New file.
 
@@ -11971,7 +13020,7 @@
 	XZ is the successor to LZMA: <http://tukaani.org/xz/>
 
 2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
-	    Nick Roberts  <nickrob@snap.net.nz>
+            Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el: Pull further modified changes from Dmitry's
 	repository (http://sphinx.net.ru/hg/gdb-mi/).

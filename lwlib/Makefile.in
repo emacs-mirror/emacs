@@ -1,6 +1,6 @@
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-#   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+#   2009, 2010  Free Software Foundation, Inc.
 # 
 # This file is part of the Lucid Widget Library.
 # 
@@ -26,32 +26,27 @@
 srcdir=@srcdir@
 VPATH=@srcdir@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
-C_SWITCH_SYSTEM=@c_switch_system@
-C_SWITCH_MACHINE=@c_switch_machine@
+C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
+C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
+C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 
 CC=@CC@
 CFLAGS=@CFLAGS@
-CPP=@CPP@
 CPPFLAGS=@CPPFLAGS@
-LN_S=@LN_S@
 RANLIB=@RANLIB@
 # See below--@X_TOOLKIT_TYPE@ is used below.
 USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
 
-              TOP = .
+AR = ar cq
+RM = rm -f
 
-               AR = ar cq
-
-               LN = ln -s
-               RM = rm -f
-
-     LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
-     MOTIF_OBJS = lwlib-Xm.o
+LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
+MOTIF_OBJS = lwlib-Xm.o
 
 TOOLKIT_DEFINES = 
-   TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
+TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
-           OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
+OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
 # ../src is needed to find config.h.
 ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \

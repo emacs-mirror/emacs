@@ -246,7 +246,7 @@ This should only be bound to mouse buttons 4 and 5."
 	  (run-with-timer mouse-wheel-inhibit-click-time nil
 			  'mwheel-inhibit-click-timeout))))
 
-(add-to-list 'scroll-preserve-screen-position-commands 'mwheel-scroll)
+(put 'mwheel-scroll 'scroll-command t)
 
 (defvar mwheel-installed-bindings nil)
 

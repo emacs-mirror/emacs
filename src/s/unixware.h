@@ -1,7 +1,7 @@
 /* s/ file for Unixware.
 
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+  2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,18 +28,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef HAVE_SYSV_SIGPAUSE
 
-/* Motif needs -lgen.  */
-#define LIBS_SYSTEM -lsocket -lnsl -lelf -lgen
-
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
-   rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
-   work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x
+   rather than sighold/sigrelse, which appear to be BSD4.1 specific.
+   It may also be appropriate for SVR4.x
    (x<2) but I'm not sure.   fnf@cygnus.com */
 /* This sets the name of the slave side of the PTY.  On SysVr4,
    grantpt(3) forks a subprocess, so keep sigchld_handler() from
    intercepting that death.  If any child but grantpt's should die
-   within, it should be caught after sigrelse(2). */
-
+   within, it should be caught after sigrelse(2).  */
 #define PTY_TTY_NAME_SPRINTF			\
   {						\
     char *ptsname(), *ptyname;			\
@@ -56,15 +52,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
 
-/* Use libw.a along with X11R6 Xt.  */
-#define NEED_LIBW
+/* Data type of load average, as read out of kmem.  */
+#define LOAD_AVE_TYPE long
 
-/* ryanr@ellingtn.ftc.nrcs.usda.gov (Richard Anthony Ryan) says -lXimp
-   is needed in UNIX_SV ... 4.2 1.1.2.  */
-#define LIB_MOTIF -lXm -lXimp
-
-/* arch-tag: 9bbfcfc1-19be-45a1-9699-af57b87da2c6
-   (do not change this comment) */
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+/* This is totally uncalibrated. */
+#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
+#define FSCALE 256.0
 
 
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)

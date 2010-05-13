@@ -212,6 +212,8 @@
 (defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re (concat css-nmstart-re css-nmchar-re "*"))
+(defconst css-proprietary-nmstart-re ;; Vendor-specific properties.
+  "[-_]\\(?:ms\\|moz\\|o\\|webkit\\|khtml\\)-")
 (defconst css-name-re (concat css-nmchar-re "+"))
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
@@ -220,6 +222,8 @@
 (defface css-property '((t :inherit font-lock-variable-name-face))
   "Face to use for properties."
   :group 'css)
+(defface css-proprietary-property '((t :inherit (css-property italic)))
+  "Face to use for vendor-specific properties.")
 
 (defvar css-font-lock-keywords
   `(("!\\s-*important" . font-lock-builtin-face)
@@ -251,8 +255,11 @@
                      ;; No face.
                      nil)))
     ;; Properties.  Again, we don't limit ourselves to css-property-ids.
-    (,(concat "\\(?:[{;]\\|^\\)[ \t]*\\(" css-ident-re "\\)\\s-*:")
-     (1 'css-property))))
+    (,(concat "\\(?:[{;]\\|^\\)[ \t]*\\("
+              "\\(?:\\(" css-proprietary-nmstart-re "\\)\\|"
+              css-nmstart-re "\\)" css-nmchar-re "*"
+              "\\)\\s-*:")
+     (1 (if (match-end 2) 'css-proprietary-property 'css-property)))))
 
 (defvar css-font-lock-defaults
   '(css-font-lock-keywords nil t))

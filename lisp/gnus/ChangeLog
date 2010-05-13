@@ -1,6 +1,164 @@
+2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-plain)
+	(message-forward-make-body-mml): Use mm-multibyte-string-p instead of
+	multibyte-string-p.
+
+2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-mml): Assume original message
+	is multibyte string; error on unibyte.
+	(message-forward-make-body-plain): Ditto; don't add excessive newline
+	in body end.
+
+2010-05-11  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-kill-thread): Use gnus-summary-mark-article
+	instead of g-s-m-a-as-unread to set the expirable mark.  (Bug#5284)
+
+2010-05-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-extern.el (mm-extern-url): Don't use
+	mm-with-unibyte-current-buffer.
+	(mm-extern-cache-contents): Use with-current-buffer instead of
+	save-excursion + set-buffer.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-emacs-mule): Remove.
+
+2010-05-10  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-mode): Don't make minor-mode-alist
+	buffer-local as it's incompatible with Stefan Monnier's 2010-05-03
+	change.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-with-unibyte-current-buffer): Redefine it so as not to
+	bind the default value of enable-multibyte-characters to nil.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-plain)
+	(message-forward-make-body-mml):
+	Don't use mm-with-unibyte-current-buffer.
+
+2010-05-07  Christian von Roques  <roques@mti.ag>  (tiny change)
+
+	* mml2015.el (mml2015-epg-find-usable-key): Skip disabled key
+	(Bug#5592).
+
+2010-05-07  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-mime-pipe-part): Add optional argument `cmd'; pass
+	it to mm-pipe-part.
+
+	* mm-decode.el (mm-pipe-part): Add optional argument `cmd'; use it if
+	it is given.
+
+2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnweb.el (nnweb-gmane-search)
+	* yenc.el (yenc-decode-region): Don't run set-buffer-multibyte for
+	XEmacs.
+
+	* gnus-art.el (gnus-article-browse-html-parts)
+	* gnus-group.el (gnus-read-ephemeral-gmane-group)
+	(gnus-read-ephemeral-bug-grou): Use mm-make-temp-file instead of
+	make-temp-file.
+
+	* gnus-dired.el (gnus-dired-mode): Bind gnus-dired-mode-hook,
+	gnus-dired-mode-on-hook and gnus-dired-mode-off-hook for XEmacs when
+	compiling.
+
+	* gnus-ml.el (gnus-mailing-list-mode): Bind gnus-mailing-list-mode-hook,
+	gnus-mailing-list-mode-on-hook and gnus-mailing-list-mode-off-hook for
+	XEmacs when compiling.
+
+	* gnus-salt.el (gnus-pick-mode): Bind gnus-pick-mode-on-hook and
+	gnus-pick-mode-off-hook for XEmacs when compiling.
+	(gnus-binary-mode): Bind gnus-binary-mode-on-hook and
+	gnus-binary-mode-off-hook for XEmacs when compiling.
+
+	* gnus-sum.el (gnus-summary-limit-strange-charsets-predicate): Return
+	nil if char-charset is not available.
+
+	* sieve-manage.el (sieve-manage-disable-multibyte): Redefine it as a
+	macro.
+
+	* mm-url.el (mm-url-form-encode-xwfu): Use mm-encode-coding-string
+	instead of encode-coding-string.
+
+	* mm-util.el (mm-enable-multibyte, mm-disable-multibyte): Use (featurep
+	'xemacs) instead of mm-emacs-mule to switch function definitions.
+	(mm-with-unibyte-current-buffer): Make it a progn macro for XEmacs.
+
+2010-05-06  Tommi Vainikainen  <thv@iki.fi>  (tiny change)
+
+	* mml-sec.el (mml-secure-message-sign): Fix cut and paste error.
+
+2010-05-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-dired.el, gnus-draft.el, gnus-ml.el, gnus-salt.el, gnus-sum.el,
+	gnus-undo.el, mml.el: Require easy-mmode for XEmacs when compiling.
+
+2010-05-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mm-util.el (mm-decompress-buffer): Use `delete-file';
+	alias `jka-compr-delete-temp-file' no longer exists.
+
+2010-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use define-minor-mode in Gnus where applicable.
+	* mml.el (mml-mode): Use define-minor-mode.
+	* gnus-undo.el (gnus-undo-mode-map): Initialize in declaration.
+	(gnus-undo-mode): Use define-minor-mode.
+	* gnus-sum.el (gnus-dead-summary-mode-map): Initialize in declaration.
+	(gnus-dead-summary-mode): Use define-minor-mode.
+	* gnus-salt.el (gnus-pick-mode-map, gnus-binary-mode-map):
+	Initialize in declaration.
+	(gnus-pick-mode, gnus-binary-mode): Use define-minor-mode.
+	* gnus-ml.el (gnus-mailing-list-mode-map): Initialize in declaration.
+	(gnus-mailing-list-mode): Use define-minor-mode.
+	* gnus-draft.el (gnus-draft-mode-map): Initialize in declaration.
+	(gnus-draft-mode): Use define-minor-mode.
+	* gnus-dired.el (gnus-dired-mode-map): Initialize in declaration.
+	(gnus-dired-mode): Use define-minor-mode.
+
+2010-05-01  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* mml.el (mml-generate-mime-1,mml-compute-boundary-1): Update 'mml
+	handles on recursive mml-to-mime translation and check them for
+	boundary delimiter collisions.  Reported by: Greg Troxel.
+
+2010-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el: Don't load tm and apel XEmacs packages when compiling.
+
+2010-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-find-buffer-file-coding-system):
+	* yenc.el (yenc-decode-region): Don't let-bind a read-only variable.
+
+2010-04-22  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* message.el (message-generate-headers): Record insertion of optional
+	headers as well.  Otherwise the check to prevent repeated insertion of
+	optional headers is a no-op.
+
+2010-04-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* smime.el: Don't mention CVS.
+
+	* nnrss.el (nnrss-fetch): Don't mention CVS.
+
+	* nnir.el: Don't mention CVS.
+
 2010-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* gnus-sum.el (gnus-summary-bookmark-make-record): Add `location' field.
+	* gnus-sum.el (gnus-summary-bookmark-make-record):
+	Add `location' field.
 
 2010-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 

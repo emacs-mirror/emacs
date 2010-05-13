@@ -30,26 +30,24 @@
 (require 'gnus)
 (require 'gnus-msg)
 (eval-when-compile (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 ;;; Mailing list minor mode
 
-(defvar gnus-mailing-list-mode nil
-  "Minor mode for providing mailing-list commands.")
-
-(defvar gnus-mailing-list-mode-map nil)
+(defvar gnus-mailing-list-mode-map
+  (let ((map (make-sparse-keymap)))
+    (gnus-define-keys map
+      "\C-c\C-nh" gnus-mailing-list-help
+      "\C-c\C-ns" gnus-mailing-list-subscribe
+      "\C-c\C-nu" gnus-mailing-list-unsubscribe
+      "\C-c\C-np" gnus-mailing-list-post
+      "\C-c\C-no" gnus-mailing-list-owner
+      "\C-c\C-na" gnus-mailing-list-archive)
+    map))
 
 (defvar gnus-mailing-list-menu)
-
-(unless gnus-mailing-list-mode-map
-  (setq gnus-mailing-list-mode-map (make-sparse-keymap))
-
-  (gnus-define-keys gnus-mailing-list-mode-map
-    "\C-c\C-nh" gnus-mailing-list-help
-    "\C-c\C-ns" gnus-mailing-list-subscribe
-    "\C-c\C-nu" gnus-mailing-list-unsubscribe
-    "\C-c\C-np" gnus-mailing-list-post
-    "\C-c\C-no" gnus-mailing-list-owner
-    "\C-c\C-na" gnus-mailing-list-archive))
 
 (defun gnus-mailing-list-make-menu-bar ()
   (unless (boundp 'gnus-mailing-list-menu)
@@ -87,22 +85,26 @@ If FORCE is non-nil, replace the old ones."
 	  (gnus-mailing-list-mode 1))
       (gnus-message 1 "no list-post in this message."))))
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (defvar gnus-mailing-list-mode-hook)
+    (defvar gnus-mailing-list-mode-on-hook)
+    (defvar gnus-mailing-list-mode-off-hook)))
+
 ;;;###autoload
-(defun gnus-mailing-list-mode (&optional arg)
+(define-minor-mode gnus-mailing-list-mode
   "Minor mode for providing mailing-list commands.
 
 \\{gnus-mailing-list-mode-map}"
-  (interactive "P")
-  (when (eq major-mode 'gnus-summary-mode)
-    (when (set (make-local-variable 'gnus-mailing-list-mode)
-	       (if (null arg) (not gnus-mailing-list-mode)
-		 (> (prefix-numeric-value arg) 0)))
-      ;; Set up the menu.
-      (when (gnus-visual-p 'mailing-list-menu 'menu)
-	(gnus-mailing-list-make-menu-bar))
-      (add-minor-mode 'gnus-mailing-list-mode " Mailing-List"
-		      gnus-mailing-list-mode-map)
-      (gnus-run-hooks 'gnus-mailing-list-mode-hook))))
+  :lighter " Mailing-List"
+  :keymap gnus-mailing-list-mode-map
+  (cond
+   ((not (derived-mode-p 'gnus-summary-mode))
+    (setq gnus-mailing-list-mode nil))
+   (gnus-mailing-list-mode
+    ;; Set up the menu.
+    (when (gnus-visual-p 'mailing-list-menu 'menu)
+      (gnus-mailing-list-make-menu-bar)))))
 
 ;;; Commands
 

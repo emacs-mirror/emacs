@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -49,7 +49,7 @@
 (defvar constants-unit-system)
 
 (defcustom orgtbl-optimized (eq org-enable-table-editor 'optimized)
-  "Non-nil means, use the optimized table editor version for `orgtbl-mode'.
+  "Non-nil means use the optimized table editor version for `orgtbl-mode'.
 In the optimized version, the table editor takes over all simple keys that
 normally just insert a character.  In tables, the characters are inserted
 in a way to minimize disturbing the table structure (i.e. in overwrite mode
@@ -142,14 +142,14 @@ alignment to the right border applies."
   :group 'org-table)
 
 (defcustom org-table-automatic-realign t
-  "Non-nil means, automatically re-align table when pressing TAB or RETURN.
+  "Non-nil means automatically re-align table when pressing TAB or RETURN.
 When nil, aligning is only done with \\[org-table-align], or after column
 removal/insertion."
   :group 'org-table-editing
   :type 'boolean)
 
 (defcustom org-table-auto-blank-field t
-  "Non-nil means, automatically blank table field when starting to type into it.
+  "Non-nil means automatically blank table field when starting to type into it.
 This only happens when typing immediately after a field motion
 command (TAB, S-TAB or RET).
 Only relevant when `org-enable-table-editor' is equal to `optimized'."
@@ -157,7 +157,7 @@ Only relevant when `org-enable-table-editor' is equal to `optimized'."
   :type 'boolean)
 
 (defcustom org-table-tab-jumps-over-hlines t
-  "Non-nil means, tab in the last column of a table with jump over a hline.
+  "Non-nil means tab in the last column of a table with jump over a hline.
 If a horizontal separator line is following the current line,
 `org-table-next-field' can either create a new row before that line, or jump
 over the line.  When this option is nil, a new line will be created before
@@ -183,7 +183,7 @@ t:      accept as input and present for editing"
 	  (const :tag "Convert user input, don't offer during editing" 'from)))
 
 (defcustom org-table-copy-increment t
-  "Non-nil means, increment when copying current field with \\[org-table-copy-down]."
+  "Non-nil means increment when copying current field with \\[org-table-copy-down]."
   :group 'org-table-calculation
   :type 'boolean)
 
@@ -204,7 +204,7 @@ relies on the variables to be present in the list."
   :type 'plist)
 
 (defcustom org-table-formula-evaluate-inline t
-  "Non-nil means, TAB and RET evaluate a formula in current table field.
+  "Non-nil means TAB and RET evaluate a formula in current table field.
 If the current field starts with an equal sign, it is assumed to be a formula
 which should be evaluated as described in the manual and in the documentation
 string of the command `org-table-eval-formula'.  This feature requires the
@@ -215,7 +215,7 @@ the command \\[org-table-eval-formula]."
   :type 'boolean)
 
 (defcustom org-table-formula-use-constants t
-  "Non-nil means, interpret constants in formulas in tables.
+  "Non-nil means interpret constants in formulas in tables.
 A constant looks like `$c' or `$Grav' and will be replaced before evaluation
 by the value given in `org-table-formula-constants', or by a value obtained
 from the `constants.el' package."
@@ -241,8 +241,8 @@ Constants can also be defined on a per-file basis using a line like
 		(string :tag "value"))))
 
 (defcustom org-table-allow-automatic-line-recalculation t
-  "Non-nil means, lines marked with |#| or |*| will be recomputed automatically.
-Automatically means, when TAB or RET or C-c C-c are pressed in the line."
+  "Non-nil means lines marked with |#| or |*| will be recomputed automatically.
+Automatically means when TAB or RET or C-c C-c are pressed in the line."
   :group 'org-table-calculation
   :type 'boolean)
 
@@ -252,7 +252,7 @@ Automatically means, when TAB or RET or C-c C-c are pressed in the line."
   :type 'boolean)
 
 (defcustom org-table-relative-ref-may-cross-hline t
-  "Non-nil means, relative formula references may cross hlines.
+  "Non-nil means relative formula references may cross hlines.
 Here are the allowed values:
 
 nil    Relative references may not cross hlines.  They will reference the
@@ -567,7 +567,7 @@ This is being used to correctly align a single field after TAB or RET.")
   "List of max width of fields in each column.
 This is being used to correctly align a single field after TAB or RET.")
 (defvar org-table-formula-debug nil
-  "Non-nil means, debug table formulas.
+  "Non-nil means debug table formulas.
 When nil, simply write \"#ERROR\" in corrupted fields.")
 (make-variable-buffer-local 'org-table-formula-debug)
 (defvar org-table-overlay-coordinates nil
@@ -575,6 +575,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 (make-variable-buffer-local 'org-table-overlay-coordinates)
 
 (defvar org-last-recalc-line nil)
+(defvar org-table-do-narrow t)   ; for dynamic scoping
 (defconst org-narrow-column-arrow "=>"
   "Used as display property in narrowed table columns.")
 
@@ -621,7 +622,8 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 
     ;; Check if we are narrowing any columns
     (goto-char beg)
-    (setq narrow (and org-format-transports-properties-p
+    (setq narrow (and org-table-do-narrow
+		      org-format-transports-properties-p
 		      (re-search-forward "<[rl]?[0-9]+>" end t)))
     (goto-char beg)
     (setq falign (re-search-forward "<[rl][0-9]*>" end t))
@@ -660,13 +662,14 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
     (while (< (setq i (1+ i)) maxfields)   ;; Loop over all columns
       (setq column (mapcar (lambda (x) (or (nth i x) "")) fields))
       ;; Check if there is an explicit width specified
+      (setq fmax nil)
       (when (or narrow falign)
 	(setq c column fmax nil falign1 nil)
 	(while c
 	  (setq e (pop c))
 	  (when (and (stringp e) (string-match "^<\\([rl]\\)?\\([0-9]+\\)?>$" e))
 	    (if (match-end 1) (setq falign1 (match-string 1 e)))
-	    (if (match-end 2)
+	    (if (and org-table-do-narrow (match-end 2))
 		(setq fmax (string-to-number (match-string 2 e)) c nil))))
 	;; Find fields that are wider than fmax, and shorten them
 	(when fmax
@@ -685,7 +688,8 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
 				       (list 'display org-narrow-column-arrow)
 				       xx)))))
       ;; Get the maximum width for each column
-      (push (apply 'max 1 (mapcar 'org-string-width column)) lengths)
+      (push (apply 'max (or fmax 1) 1 (mapcar 'org-string-width column))
+	    lengths)
       ;; Get the fraction of numbers, to decide about alignment of the column
       (if falign1
 	  (push (equal (downcase falign1) "r") typenums)
@@ -1003,6 +1007,47 @@ This actually throws an error, so it aborts the current command."
 (defvar org-table-clip nil
   "Clipboard for table regions.")
 
+(defun org-table-get (line column)
+  "Get the field in table line LINE, column COLUMN.
+If LINE is larger than the number of data lines in the table, the function
+returns nil.  However, if COLUMN is too large, we will simply return an
+empty string.
+If LINE is nil, use the current line.
+If column is nil, use the current column."
+  (setq column (or column (org-table-current-column)))
+  (save-excursion
+    (and (or (not line) (org-table-goto-line line))
+	 (org-trim (org-table-get-field column)))))
+
+(defun org-table-put (line column value &optional align)
+  "Put VALUE into line LINE, column COLUMN.
+When ALIGN is set, als realign the table."
+  (setq column (or column (org-table-current-column)))
+  (prog1 (save-excursion
+	   (and (or (not line) (org-table-goto-line line))
+		(progn (org-table-goto-column column nil 'force) t)
+		(org-table-get-field column value)))
+    (and align (org-table-align))))
+
+(defun org-table-current-line ()
+  "Return the index of the current data line."
+  (let ((pos (point)) (end (org-table-end)) (cnt 0))
+    (save-excursion
+      (goto-char (org-table-begin))
+      (while (and (re-search-forward org-table-dataline-regexp end t)
+		  (setq cnt (1+ cnt))
+		  (< (point-at-eol) pos))))
+    cnt))
+
+(defun org-table-goto-line (N)
+  "Go to the Nth data line in the current table.
+Return t when the line exists, nil if it does not exist."
+  (goto-char (org-table-begin))
+  (let ((end (org-table-end)) (cnt 0))
+    (while (and (re-search-forward org-table-dataline-regexp end t)
+		(< (setq cnt (1+ cnt)) N)))
+    (= cnt N)))
+
 (defun org-table-blank-field ()
   "Blank the current table field or active region."
   (interactive)
@@ -1102,22 +1147,20 @@ of the field.
 If there are less than N fields, just go to after the last delimiter.
 However, when FORCE is non-nil, create new columns if necessary."
   (interactive "p")
-  (let ((pos (point-at-eol)))
-    (beginning-of-line 1)
-    (when (> n 0)
-      (while (and (> (setq n (1- n)) -1)
-		  (or (search-forward "|" pos t)
-		      (and force
-			   (progn (end-of-line 1)
-				  (skip-chars-backward "^|")
-				  (insert " | "))))))
-;                                  (backward-char 2) t)))))
-      (when (and force (not (looking-at ".*|")))
-	(save-excursion (end-of-line 1) (insert " | ")))
-      (if on-delim
-	  (backward-char 1)
-	(if (looking-at " ") (forward-char 1))))))
-
+  (beginning-of-line 1)
+  (when (> n 0)
+    (while (and (> (setq n (1- n)) -1)
+		(or (search-forward "|" (point-at-eol) t)
+		    (and force
+			 (progn (end-of-line 1)
+				(skip-chars-backward "^|")
+				(insert " | ")
+				t)))))
+    (when (and force (not (looking-at ".*|")))
+      (save-excursion (end-of-line 1) (insert " | ")))
+    (if on-delim
+	(backward-char 1)
+      (if (looking-at " ") (forward-char 1)))))
 
 (defun org-table-insert-column ()
   "Insert a new column into the table."
@@ -2243,6 +2286,20 @@ not overwrite the stored one."
 	(setq form (copy-sequence formula)
 	      lispp (and (> (length form) 2)(equal (substring form 0 2) "'(")))
 	(if (and lispp literal) (setq lispp 'literal))
+
+	;; Insert row and column number of formula result field
+	(while (string-match "[@$]#" form)
+	  (setq form
+		(replace-match
+		 (format "%d"
+			 (save-match-data
+			   (if (equal (substring form (match-beginning 0)
+						 (1+ (match-beginning 0)))
+				      "@")
+			       (org-table-current-dline)
+			     (org-table-current-column))))
+		 t t form)))
+
 	;; Check for old vertical references
 	(setq form (org-table-rewrite-old-row-references form))
 	;; Insert remote references
@@ -2340,7 +2397,7 @@ $1->    %s\n" orig formula form0 form))
   "Get a calc vector from a column, according to descriptor DESC.
 Optional arguments TBEG and COL can give the beginning of the table and
 the current column, to avoid unnecessary parsing.
-HIGHLIGHT means, just highlight the range."
+HIGHLIGHT means just highlight the range."
   (if (not (equal (string-to-char desc) ?@))
       (setq desc (concat "@" desc)))
   (save-excursion
@@ -2796,6 +2853,12 @@ full TBLFM line."
 	     (equal ?. (aref s (max (1- (match-beginning 0)) 0)))
 	     (not (equal ?. (aref s (max (- (match-beginning 0) 2) 0)))))
 	;; 3.e5 or something like this.
+	(setq start (match-end 0)))
+       ((or (> (- (match-end 1) (match-beginning 1)) 2)
+	    ;; (member (match-string 1 s)
+	    ;;	    '("arctan" "exp" "expm" "lnp" "log" "stir"))
+	    )
+	;; function name, just advance
 	(setq start (match-end 0)))
        (t
 	(setq start (match-beginning 0)
@@ -3338,11 +3401,6 @@ Use COMMAND to do the motion, repeat if necessary to end up in a data line."
 ;; active, this binding is ignored inside tables and replaced with a
 ;; modified self-insert.
 
-(defvar orgtbl-mode nil
-  "Variable controlling `orgtbl-mode', a minor mode enabling the `org-mode'
-table editor in arbitrary modes.")
-(make-variable-buffer-local 'orgtbl-mode)
-
 (defvar orgtbl-mode-map (make-keymap)
   "Keymap for `orgtbl-mode'.")
 
@@ -3363,49 +3421,51 @@ table editor in arbitrary modes.")
 	      0 (quote 'org-table) 'prepend))
   "Extra font-lock-keywords to be added when orgtbl-mode is active.")
 
+;; Install it as a minor mode.
+(put 'orgtbl-mode :included t)
+(put 'orgtbl-mode :menu-tag "Org Table Mode")
 ;;;###autoload
-(defun orgtbl-mode (&optional arg)
+(define-minor-mode orgtbl-mode
   "The `org-mode' table editor as a minor mode for use in other modes."
-  (interactive)
+  :lighter " OrgTbl" :keymap orgtbl-mode-map
   (org-load-modules-maybe)
-  (if (org-mode-p)
-      ;; Exit without error, in case some hook functions calls this
-      ;; by accident in org-mode.
-      (message "Orgtbl-mode is not useful in org-mode, command ignored")
-    (setq orgtbl-mode
-	  (if arg (> (prefix-numeric-value arg) 0) (not orgtbl-mode)))
-    (if orgtbl-mode
-	(progn
-	  (and (orgtbl-setup) (defun orgtbl-setup () nil))
-	  ;; Make sure we are first in minor-mode-map-alist
-	  (let ((c (assq 'orgtbl-mode minor-mode-map-alist)))
-	    (and c (setq minor-mode-map-alist
-			 (cons c (delq c minor-mode-map-alist)))))
-	  (org-set-local (quote org-table-may-need-update) t)
-	  (org-add-hook 'before-change-functions 'org-before-change-function
-			nil 'local)
-	  (org-set-local 'org-old-auto-fill-inhibit-regexp
-			 auto-fill-inhibit-regexp)
-	  (org-set-local 'auto-fill-inhibit-regexp
-			 (if auto-fill-inhibit-regexp
-			     (concat orgtbl-line-start-regexp "\\|"
-				     auto-fill-inhibit-regexp)
-			   orgtbl-line-start-regexp))
-	  (org-add-to-invisibility-spec '(org-cwidth))
-	  (when (fboundp 'font-lock-add-keywords)
-	    (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
-	    (org-restart-font-lock))
-	  (easy-menu-add orgtbl-mode-menu)
-	  (run-hooks 'orgtbl-mode-hook))
-      (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
-      (org-table-cleanup-narrow-column-properties)
-      (org-remove-from-invisibility-spec '(org-cwidth))
-      (remove-hook 'before-change-functions 'org-before-change-function t)
-      (when (fboundp 'font-lock-remove-keywords)
-	(font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
-	(org-restart-font-lock))
-      (easy-menu-remove orgtbl-mode-menu)
-      (force-mode-line-update 'all))))
+  (cond
+   ((org-mode-p)
+    ;; Exit without error, in case some hook functions calls this
+    ;; by accident in org-mode.
+    (message "Orgtbl-mode is not useful in org-mode, command ignored"))
+   (orgtbl-mode
+    (and (orgtbl-setup) (defun orgtbl-setup () nil)) ;; FIXME: Yuck!?!
+    ;; Make sure we are first in minor-mode-map-alist
+    (let ((c (assq 'orgtbl-mode minor-mode-map-alist)))
+      ;; FIXME: maybe it should use emulation-mode-map-alists?
+      (and c (setq minor-mode-map-alist
+                   (cons c (delq c minor-mode-map-alist)))))
+    (org-set-local (quote org-table-may-need-update) t)
+    (org-add-hook 'before-change-functions 'org-before-change-function
+                  nil 'local)
+    (org-set-local 'org-old-auto-fill-inhibit-regexp
+                   auto-fill-inhibit-regexp)
+    (org-set-local 'auto-fill-inhibit-regexp
+                   (if auto-fill-inhibit-regexp
+                       (concat orgtbl-line-start-regexp "\\|"
+                               auto-fill-inhibit-regexp)
+                     orgtbl-line-start-regexp))
+    (org-add-to-invisibility-spec '(org-cwidth))
+    (when (fboundp 'font-lock-add-keywords)
+      (font-lock-add-keywords nil orgtbl-extra-font-lock-keywords)
+      (org-restart-font-lock))
+    (easy-menu-add orgtbl-mode-menu))
+   (t
+    (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
+    (org-table-cleanup-narrow-column-properties)
+    (org-remove-from-invisibility-spec '(org-cwidth))
+    (remove-hook 'before-change-functions 'org-before-change-function t)
+    (when (fboundp 'font-lock-remove-keywords)
+      (font-lock-remove-keywords nil orgtbl-extra-font-lock-keywords)
+      (org-restart-font-lock))
+    (easy-menu-remove orgtbl-mode-menu)
+    (force-mode-line-update 'all))))
 
 (defun org-table-cleanup-narrow-column-properties ()
   "Remove all properties related to narrow-column invisibility."
@@ -3419,11 +3479,6 @@ table editor in arbitrary modes.")
     (setq s 1)
     (while (setq s (text-property-any s (point-max) 'invisible 'org-cwidth))
       (remove-text-properties s (1+ s) '(invisible t)))))
-
-;; Install it as a minor mode.
-(put 'orgtbl-mode :included t)
-(put 'orgtbl-mode :menu-tag "Org Table Mode")
-(add-minor-mode 'orgtbl-mode " OrgTbl" orgtbl-mode-map)
 
 (defun orgtbl-make-binding (fun n &rest keys)
   "Create a function for binding in the table minor mode.
@@ -3459,34 +3514,33 @@ to execute outside of tables."
   "Setup orgtbl keymaps."
   (let ((nfunc 0)
 	(bindings
-	 (list
-	  '([(meta shift left)]  org-table-delete-column)
-	  '([(meta left)]	 org-table-move-column-left)
-	  '([(meta right)]       org-table-move-column-right)
-	  '([(meta shift right)] org-table-insert-column)
-	  '([(meta shift up)]    org-table-kill-row)
-	  '([(meta shift down)]  org-table-insert-row)
-	  '([(meta up)]		 org-table-move-row-up)
-	  '([(meta down)]	 org-table-move-row-down)
-	  '("\C-c\C-w"		 org-table-cut-region)
-	  '("\C-c\M-w"		 org-table-copy-region)
-	  '("\C-c\C-y"		 org-table-paste-rectangle)
-	  '("\C-c-"		 org-table-insert-hline)
-	  '("\C-c}"		 org-table-toggle-coordinate-overlays)
-	  '("\C-c{"		 org-table-toggle-formula-debugger)
-	  '("\C-m"		 org-table-next-row)
-	  '([(shift return)]	 org-table-copy-down)
-	  '("\C-c?"		 org-table-field-info)
-	  '("\C-c "		 org-table-blank-field)
-	  '("\C-c+"		 org-table-sum)
-	  '("\C-c="		 org-table-eval-formula)
-	  '("\C-c'"		 org-table-edit-formulas)
-	  '("\C-c`"		 org-table-edit-field)
-	  '("\C-c*"		 org-table-recalculate)
-	  '("\C-c^"		 org-table-sort-lines)
-	  '("\M-a"		 org-table-beginning-of-field)
-	  '("\M-e"		 org-table-end-of-field)
-	  '([(control ?#)]       org-table-rotate-recalc-marks)))
+	 '(([(meta shift left)]  org-table-delete-column)
+	   ([(meta left)]	 org-table-move-column-left)
+	   ([(meta right)]       org-table-move-column-right)
+	   ([(meta shift right)] org-table-insert-column)
+	   ([(meta shift up)]    org-table-kill-row)
+	   ([(meta shift down)]  org-table-insert-row)
+	   ([(meta up)]		 org-table-move-row-up)
+	   ([(meta down)]	 org-table-move-row-down)
+	   ("\C-c\C-w"		 org-table-cut-region)
+	   ("\C-c\M-w"		 org-table-copy-region)
+	   ("\C-c\C-y"		 org-table-paste-rectangle)
+	   ("\C-c-"		 org-table-insert-hline)
+	   ("\C-c}"		 org-table-toggle-coordinate-overlays)
+	   ("\C-c{"		 org-table-toggle-formula-debugger)
+	   ("\C-m"		 org-table-next-row)
+	   ([(shift return)]	 org-table-copy-down)
+	   ("\C-c?"		 org-table-field-info)
+	   ("\C-c "		 org-table-blank-field)
+	   ("\C-c+"		 org-table-sum)
+	   ("\C-c="		 org-table-eval-formula)
+	   ("\C-c'"		 org-table-edit-formulas)
+	   ("\C-c`"		 org-table-edit-field)
+	   ("\C-c*"		 org-table-recalculate)
+	   ("\C-c^"		 org-table-sort-lines)
+	   ("\M-a"		 org-table-beginning-of-field)
+	   ("\M-e"		 org-table-end-of-field)
+	   ([(control ?#)]       org-table-rotate-recalc-marks)))
 	elt key fun cmd)
     (while (setq elt (pop bindings))
       (setq nfunc (1+ nfunc))

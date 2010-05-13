@@ -266,6 +266,8 @@ with wrapping around the current Info node."
   :group 'info)
 
 (defvar Info-isearch-initial-node nil)
+(defvar Info-isearch-initial-history nil)
+(defvar Info-isearch-initial-history-list nil)
 
 (defcustom Info-mode-hook
   ;; Try to obey obsolete Info-fontify settings.
@@ -1053,8 +1055,8 @@ a case-insensitive match is tried."
 	    (Info-select-node)
 	    (goto-char (point-min))
 	    (forward-line 1)		       ; skip header line
-	    (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
-	      (forward-line 1))
+	    ;; (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
+	    ;;   (forward-line 1))
 
 	    (cond (anchorpos
                    (let ((new-history (list Info-current-file
@@ -1914,7 +1916,27 @@ If DIRECTION is `backward', search in the reverse direction."
   (setq Info-isearch-initial-node
 	;; Don't stop at initial node for nonincremental search.
 	;; Otherwise this variable is set after first search failure.
-	(and isearch-nonincremental Info-current-node)))
+	(and isearch-nonincremental Info-current-node))
+  (setq Info-isearch-initial-history      Info-history
+	Info-isearch-initial-history-list Info-history-list)
+  (add-hook 'isearch-mode-end-hook 'Info-isearch-end nil t))
+
+(defun Info-isearch-end ()
+  ;; Remove intermediate nodes (visited while searching)
+  ;; from the history.  Add only the last node (where Isearch ended).
+  (if (> (length Info-history)
+	 (length Info-isearch-initial-history))
+      (setq Info-history
+	    (nthcdr (- (length Info-history)
+		       (length Info-isearch-initial-history)
+		       1)
+		    Info-history)))
+  (if (> (length Info-history-list)
+	 (length Info-isearch-initial-history-list))
+      (setq Info-history-list
+	    (cons (car Info-history-list)
+		  Info-isearch-initial-history-list)))
+  (remove-hook 'isearch-mode-end-hook  'Info-isearch-end t))
 
 (defun Info-isearch-filter (beg-found found)
   "Test whether the current search hit is a visible useful text.
@@ -3104,6 +3126,7 @@ Give an empty topic name to go to the Index node itself."
 (add-to-list 'Info-virtual-nodes
 	     '("\\`\\*Index.*\\*\\'"
 	       (find-node . Info-virtual-index-find-node)
+	       (slow . t)
 	       ))
 
 (defvar Info-virtual-index-nodes nil
@@ -3193,6 +3216,7 @@ search results."
 	       (toc-nodes . Info-apropos-toc-nodes)
 	       (find-file . Info-apropos-find-file)
 	       (find-node . Info-apropos-find-node)
+	       (slow . t)
 	       ))
 
 (defvar Info-apropos-file "*Apropos*"
@@ -3348,6 +3372,7 @@ Build a menu of the possible matches."
 
 (defun Info-finder-find-node (filename nodename &optional no-going-back)
   "Finder-specific implementation of Info-find-node-2."
+  (require 'finder)
   (cond
    ((equal nodename "Top")
     ;; Display Top menu with descriptions of the keywords
@@ -3602,6 +3627,19 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
      ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
       (Info-goto-node node fork)))
     node))
+
+(defun Info-mouse-follow-link (click)
+  "Follow a link where you click."
+  (interactive "e")
+  (let* ((position (event-start click))
+	 (posn-string (and position (posn-string position)))
+	 (string (car-safe posn-string))
+	 (string-pos (cdr-safe posn-string))
+	 (link-args (and string string-pos
+			 (get-text-property string-pos 'link-args string))))
+    (when link-args
+      (Info-goto-node link-args))))
+
 
 (defvar Info-mode-map
   (let ((map (make-keymap)))
@@ -3723,9 +3761,11 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 (defvar info-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map
-				   :rtl "right-arrow")
+				   :rtl "right-arrow"
+				   :label "Back")
     (tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map
-				   :rtl "left-arrow")
+				   :rtl "left-arrow"
+				   :label "Forward")
     (tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map
 				   :rtl "next-node")
     (tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map
@@ -3733,7 +3773,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
-    (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
+    (tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map
+				   :label "Index Search")
     (tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
     (tool-bar-local-item-from-menu 'Info-exit "exit" map Info-mode-map)
     map))
@@ -4183,11 +4224,22 @@ the variable `Info-file-list-for-emacs'."
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
 
-(defun Info-insert-breadcrumbs ()
+(defvar Info-link-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
+    (define-key keymap [header-line mouse-2] 'Info-mouse-follow-link)
+    (define-key keymap [header-line down-mouse-1] 'ignore)
+    (define-key keymap [mouse-2] 'Info-mouse-follow-link)
+    (define-key keymap [follow-link] 'mouse-face)
+    keymap)
+  "Keymap to put on the link in the text or the header line.")
+
+(defun Info-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
 	(node Info-current-node)
         (crumbs ())
-        (depth Info-breadcrumbs-depth))
+        (depth Info-breadcrumbs-depth)
+	line)
 
     ;; Get ancestors from the cached parent-children node info
     (while (and (not (equal "Top" node)) (> depth 0))
@@ -4214,15 +4266,25 @@ the variable `Info-file-list-for-emacs'."
 			     (file-name-nondirectory Info-current-file)
 			   ;; Some legacy code can still use a symbol.
 			   Info-current-file)))))
-	  (insert (if (bolp) "" " > ")
-		  (cond
-		   ((null node) "...")
-		   ((equal node Info-current-node)
-		    ;; No point linking to ourselves.
-		    (propertize text 'font-lock-face 'info-header-node))
-		   (t
-		    (concat "*Note " text "::"))))))
-      (insert "\n"))))
+	  (setq line (concat
+		      line
+		      (if (null line) "" " > ")
+		      (cond
+		       ((null node) "...")
+		       ((equal node Info-current-node)
+			;; No point linking to ourselves.
+			(propertize text 'font-lock-face 'info-header-node))
+		       (t
+			(propertize text
+				    'mouse-face 'highlight
+				    'font-lock-face 'info-header-xref
+				    'help-echo "mouse-2: Go to node"
+				    'keymap Info-link-keymap
+				    'link-args text)))))))
+      (setq line (concat line "\n")))
+    ;; (font-lock-append-text-property 0 (length line)
+    ;; 				    'font-lock-face 'header-line line)
+    line))
 
 (defun Info-fontify-node ()
   "Fontify the node."
@@ -4269,8 +4331,8 @@ the variable `Info-file-list-for-emacs'."
 		((string-equal (downcase tag) "next") Info-next-link-keymap)
 		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
 
-        (when (> Info-breadcrumbs-depth 0)
-          (Info-insert-breadcrumbs))
+        ;; (when (> Info-breadcrumbs-depth 0)
+        ;;   (insert (Info-breadcrumbs)))
 
         ;; Treat header line.
         (when Info-use-header-line
@@ -4302,7 +4364,9 @@ the variable `Info-file-list-for-emacs'."
             ;; that is in the header, if it is just part.
             (cond
              ((> Info-breadcrumbs-depth 0)
-              (put-text-property (point-min) (1+ header-end) 'invisible t))
+	      (let ((ov (make-overlay (point-min) (1+ header-end))))
+		(overlay-put ov 'display (Info-breadcrumbs))
+		(overlay-put ov 'evaporate t)))
              ((not (bobp))
               ;; Hide the punctuation at the end, too.
               (skip-chars-backward " \t,")
@@ -4796,21 +4860,35 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (defun Info-desktop-buffer-misc-data (desktop-dirname)
   "Auxiliary information to be saved in desktop file."
-  (unless (Info-virtual-file-p Info-current-file)
-    (list Info-current-file Info-current-node)))
+  (list Info-current-file
+	Info-current-node
+	;; Additional data as an association list.
+	(delq nil (list
+		   (and Info-history
+			(cons 'history Info-history))
+		   (and (Info-virtual-fun
+			 'slow Info-current-file Info-current-node)
+			(cons 'slow t))))))
 
 (defun Info-restore-desktop-buffer (desktop-buffer-file-name
                                     desktop-buffer-name
                                     desktop-buffer-misc)
   "Restore an Info buffer specified in a desktop file."
-  (let ((first (nth 0 desktop-buffer-misc))
-        (second (nth 1 desktop-buffer-misc)))
-  (when (and first second)
-    (when desktop-buffer-name
-      (set-buffer (get-buffer-create desktop-buffer-name))
-      (Info-mode))
-    (Info-find-node first second)
-    (current-buffer))))
+  (let* ((file (nth 0 desktop-buffer-misc))
+	 (node (nth 1 desktop-buffer-misc))
+	 (data (nth 2 desktop-buffer-misc))
+	 (hist (assq 'history data))
+	 (slow (assq 'slow data)))
+    ;; Don't restore nodes slow to regenerate.
+    (unless slow
+      (when (and file node)
+	(when desktop-buffer-name
+	  (set-buffer (get-buffer-create desktop-buffer-name))
+	  (Info-mode))
+	(Info-find-node file node)
+	(when hist
+	  (setq Info-history (cdr hist)))
+	(current-buffer)))))
 
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(Info-mode . Info-restore-desktop-buffer))

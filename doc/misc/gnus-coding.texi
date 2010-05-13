@@ -32,16 +32,16 @@ license to the document, as described in section 6 of the license.
 
 
 @titlepage
-@title Gnus Coding Style and Maintainance Guide
+@title Gnus Coding Style and Maintenance Guide
 
 @author by Reiner Steib  <Reiner.Steib@@gmx.de>
 
 @insertcopying
 @end titlepage
 
-@c Obviously this is only a very rudimentary draft.  We put it in CVS
-@c anyway hoping that it might annoy someone enough to fix it.  ;-)
-@c Fixing only a paragraph also is appreciated.
+@c Obviously this is only a very rudimentary draft.  We put it in the
+@c repository anyway hoping that it might annoy someone enough to fix
+@c it.  ;-) Fixing only a paragraph also is appreciated.
 
 @ifnottex
 @node Top
@@ -255,15 +255,17 @@ XEmacs 21.1 and up.
 
 @section Stable and development versions
 
-The development of Gnus normally is done on the CVS trunk, i.e. there
-are no separate branches to develop and test new features.  Most of the
-time, the trunk is developed quite actively with more or less daily
-changes.  Only after a new major release, e.g. 5.10.1, there's usually a
-feature period of several months.  After the release of Gnus 5.10.6 the
-development of new features started again on the trunk while the 5.10
-series is continued on the stable branch (v5-10) from which more stable
-releases will be done when needed (5.10.8, @dots{}).
-@ref{Gnus Development, ,Gnus Development, gnus, The Gnus Newsreader}
+The development of Gnus normally is done on the Git repository trunk
+as of April 19, 2010 (formerly it was done in CVS; the repository is
+at http://git.gnus.org), i.e. there are no separate branches to
+develop and test new features.  Most of the time, the trunk is
+developed quite actively with more or less daily changes.  Only after
+a new major release, e.g. 5.10.1, there's usually a feature period of
+several months.  After the release of Gnus 5.10.6 the development of
+new features started again on the trunk while the 5.10 series is
+continued on the stable branch (v5-10) from which more stable releases
+will be done when needed (5.10.8, @dots{}).  @ref{Gnus Development,
+,Gnus Development, gnus, The Gnus Newsreader}
 
 Stable releases of Gnus finally become part of Emacs.  E.g. Gnus 5.8
 became a part of Emacs 21 (relabeled to Gnus 5.9).  The 5.10 series 
@@ -333,8 +335,12 @@ rather than having to actually fix the code.
 
 @item
 For general Gnus development changes, of course you just make the
-change on the Gnus CVS trunk and it goes into Emacs a few years
+change on the Gnus Git trunk and it goes into Emacs a few years
 later... :-)
+
+With the new Git repository, we'll probably set up something to
+automatically synchronize with Emacs when possible.  CVS was much less
+powerful for this kind of synchronization.
 @end itemize
 
 Of course in any case, if you just can't wait for me to sync your

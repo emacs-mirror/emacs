@@ -1,3 +1,15 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE_AUX): Remove.
+
+2010-04-20  Lewis Perin  <perin@panix.com>  (tiny change)
+
+	* emacs.manifest: Add trustInfo section to Windows manifest.
+
 2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.2.
@@ -47,8 +59,8 @@
 
 2009-01-26  Jason Rumney  <jasonr@gnu.org>
 
-	* emacsclient.rc, emacs.rc: Swap name and description.  Remove
-	Windows versions.
+	* emacsclient.rc, emacs.rc: Swap name and description.
+	Remove Windows versions.
 
 2009-01-15  Jason Rumney  <jasonr@gnu.org>
 
@@ -100,7 +112,7 @@
 	* config.nt (HAVE_FACES): Remove, unused.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs (FONT_CFLAGS):
 	* gmake.defs (FONT_CFLAGS): Remove.
@@ -116,7 +128,7 @@
 	* config.nt: Remove reference to UNEXEC_SRC.
 
 2008-06-23  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (DEBUG_FLAG, DEBUG_LINK) [!NODEBUG]:
 	Don't hardcode -gstabs+, use DEBUG_INFO.

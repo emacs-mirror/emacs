@@ -469,8 +469,7 @@ echo "Making links to \`src/bitmaps'"
 
 echo "Making links to \`src/m'"
 (cd src/m
- # We call files for miscellaneous input (to linker etc) .inp.
- ln README [a-zA-Z0-9]*.h *.inp ../../${tempdir}/src/m)
+ ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/m)
 
 echo "Making links to \`src/s'"
 (cd src/s
@@ -538,7 +537,7 @@ echo "Making links to \`nt/icons'"
 echo "Making links to \`msdos'"
 (cd msdos
  ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
- ln is_exec.c sigaction.c mainmake mainmake.v2 sed*.inp ../${tempdir}/msdos
+ ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos
  cd ../${tempdir}/msdos
  rm -f =*)
 

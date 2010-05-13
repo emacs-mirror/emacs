@@ -692,10 +692,10 @@ shall be displayed."
 
 (defconst imagemagick-types-inhibit
   '(C HTML HTM TXT)
-  "Types the imagemagic loader should not try to handle.")
+  "Types the imagemagick loader should not try to handle.")
 
 ;;;###autoload
-(defun imagemagic-register-types ()
+(defun imagemagick-register-types ()
   "Register file types that imagemagick is able to handle."
   (let ((im-types (imagemagick-types))
         (im-inhibit imagemagick-types-inhibit))

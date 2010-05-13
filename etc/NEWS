@@ -30,20 +30,25 @@ so we will look at it and add it to the manual.
 These provide no new functionality, they just remove the need to edit
 lib-src/Makefile by hand in order to use the associated features.
 
+---
+** There is a new configure option --with-crt-dir.
+This is only useful if your crt*.o files are in a non-standard location.
+
+** Configure links against libselinux if it is found.
+You can disable this by using --without-selinux.
+
 
 * Startup Changes in Emacs 24.1
 
 
 * Changes in Emacs 24.1
 
+** Completion can cycle, depending on completion-cycle-threshold.
+
 ** auto-mode-case-fold is now enabled by default.
 
 +++
 ** Emacs now supports display and editing of bidirectional text.
-Warning: This is still very much experimental!  The existing support
-is minimal, and when it's turned on (see below), many features are
-likely to give unexpected results, or break, or even crash!  Use at
-your own risk!
 
 See the node "Bidirectional Editing" in the Emacs Manual for some
 initial documentation.
@@ -62,11 +67,33 @@ Reordering of bidirectional text for display in Emacs is a "Full
 bidirectionality" class implementation of the Unicode Bidirectional
 Algorithm.
 
+Note that some advanced display features, such as overlay strings and
+`display' text properties, do not yet work correctly when
+bidirectional text is reordered for display.
+
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
+** GTK tool bars can have just text, just images or images and text.
+Customize `tool-bar-style' to choose style.  On a Gnome desktop, the default
+is taken from the desktop settings.
+
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.
+
+** Basic SELinux support has been added.
+This requires Emacs to be linked with libselinux at build time.
+
+*** Emacs preserves the SELinux file context when backing up, and
+optionally when copying files. To this end, copy-file has an extra
+optional argument, and backup-buffer and friends include the SELinux
+context in their return values.
+
+*** The new functions file-selinux-context and set-file-selinux-context
+get and set the SELinux context of a file.
+
+*** Tramp offers handlers for file-selinux-context and set-file-selinux-context
+for remote machines which support SELinux.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
@@ -76,16 +103,31 @@ when a new variable `scroll-error-top-bottom' is non-nil.
 ** New scrolling commands `scroll-up-line' and `scroll-down-line'
 scroll a line instead of full screen.
 
-** New variable `scroll-preserve-screen-position-commands' defines
-a list of scroll command affected by `scroll-preserve-screen-position.
+** New property `scroll-command' should be set on a command's symbol to
+define it as a scroll command affected by `scroll-preserve-screen-position.
 
 
 * Editing Changes in Emacs 24.1
 
+** completion-at-point is now an alias for complete-symbol.
+
+** mouse-region-delete-keys has been deleted.
+
+** If delete-file is called with a prefix argument, it really deletes,
+regardless of the value of `delete-by-moving-to-trash'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** Archive Mode has basic support to browse 7z archives.
+
+** In ido-mode, C-v is no longer bound to ido-toggle-vc.
+The reason is that this interferes with cua-mode.
+
 ** partial-completion-mode is now obsolete.
+You can get a comparable behavior with:
+(setq completion-styles '(partial-completion initials))
+(setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 ** Customize
@@ -104,28 +146,54 @@ choose a color via list-colors-display.
 
 ** VC and related modes
 
-*** New VC commands: vc-log-incoming and vc-log-outgoing.
+*** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
 *** Special markup can be added to log-edit buffers.
-
-**** For Bzr, adding an
-Author: NAME
-line will add "--author NAME" to the "bzr commit" command.
-
-**** For Git, adding an
-Author: NAME
-line will add "--author NAME" to the "git commit" command.
-
-**** For Hg, adding an
-Author: NAME
-line will add "--user NAME" to the "hg commit" command.
+The log-edit buffers are expected to have a format similar to email messages
+with headers of the form:
+  Author: <author of this change>
+  Summary: <one line summary of this change>
+  Fixes: <reference to the bug fixed by this change>
+Some backends handle some of those headers specially, but any unknown header
+is just left as is in the message, so it is not lost.
 
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
-.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff*
-buffers.
+.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff* buffers.
+
+** SQL Mode enhancements.
+
+*** Several variables have been marked as safe local variables.
+The variables `sql-product', `sql-user', `sql-server', and
+`sql-database' can now be safely used as local variables.
+
+*** Added ability to login with a port on MySQL.
+The custom variable `sql-port' can be specified for connection to
+MySQL servers.
+
+*** Custom variables control prompting for login parameters.
+Each supported product has a custom variable `sql-*-login-params'
+which is a list of the parameters to be prompted for before a
+connection is established.
+
+*** Added option `sql-send-terminator'.
+When set makes sure that each command sent with `sql-send-*' commands
+are properly terminated and submitted to the SQL processor.
+
+*** Added option `sql-oracle-scan-on'.
+When set commands sent to Oracle's SQL*Plus are scanned for strings
+starting with an ampersand and the user is asked for replacement
+text.  In general, the SQL*Plus option SCAN should be set OFF under
+SQL interactive mode.
+
+*** SQL interactive mode will replace tabs with spaces.
+This prevents the comand interpretter for MySQL and Postgres from
+listing object name completions when being sent text via
+`sql-send-*' functions.
+
+*** An API for manipulating SQL product definitions has been added.
 
 ** s-region.el is now declared obsolete, superceded by shift-select-mode
 enabled by default in 23.1.
@@ -146,10 +214,19 @@ Secret Service API requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** Test for special mode-class was moved from view-file to view-buffer.
+
 ** Passing a nil argument to a minor mode function now turns the mode
    ON unconditionally.
 
 * Lisp changes in Emacs 24.1
+
+** define-minor-mode accepts a new keyword :variable.
+
+** delete-file now accepts an optional second arg, FORCE, which says
+to always delete and ignore the value of delete-by-moving-to-trash.
+
+** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
 
 ** New completion style `substring'.
 

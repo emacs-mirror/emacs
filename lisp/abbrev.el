@@ -338,7 +338,7 @@ Expands the abbreviation after defining it."
 Abbrev to be expanded starts here rather than at beginning of word.
 This way, you can expand an abbrev with a prefix: insert the prefix,
 use this command, then insert the abbrev.  This command inserts a
-temporary hyphen after the prefix \(until the intended abbrev
+temporary hyphen after the prefix (until the intended abbrev
 expansion occurs).
 If the prefix is itself an abbrev, this command expands it, unless
 ARG is non-nil.  Interactively, ARG is the prefix argument."
@@ -460,7 +460,7 @@ Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.")
 
 (defvar last-abbrev-text nil
   "The exact text of the last abbrev expanded.
-nil if the abbrev has already been unexpanded.")
+It is nil if the abbrev has already been unexpanded.")
 
 (defvar last-abbrev-location 0
   "The location of the start of the last abbrev expanded.")

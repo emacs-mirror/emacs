@@ -30,6 +30,9 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 (defvar tool-bar-mode)
 (defvar gnus-tmp-header)
@@ -3053,7 +3056,6 @@ The following commands are available:
   (gnus-simplify-mode-line)
   (setq major-mode 'gnus-summary-mode)
   (setq mode-name "Summary")
-  (make-local-variable 'minor-mode-alist)
   (use-local-map gnus-summary-mode-map)
   (buffer-disable-undo)
   (setq buffer-read-only t		;Disable modification
@@ -7237,33 +7239,21 @@ The state which existed when entering the ephemeral is reset."
 
 ;;; Dead summaries.
 
-(defvar gnus-dead-summary-mode-map nil)
+(defvar gnus-dead-summary-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (substitute-key-definition 'undefined 'gnus-summary-wake-up-the-dead map)
+    (dolist (key '("\C-d" "\r" "\177" [delete]))
+      (define-key map key 'gnus-summary-wake-up-the-dead))
+    (dolist (key '("q" "Q"))
+      (define-key map key 'bury-buffer))
+    map))
 
-(unless gnus-dead-summary-mode-map
-  (setq gnus-dead-summary-mode-map (make-keymap))
-  (suppress-keymap gnus-dead-summary-mode-map)
-  (substitute-key-definition
-   'undefined 'gnus-summary-wake-up-the-dead gnus-dead-summary-mode-map)
-  (dolist (key '("\C-d" "\r" "\177" [delete]))
-    (define-key gnus-dead-summary-mode-map
-      key 'gnus-summary-wake-up-the-dead))
-  (dolist (key '("q" "Q"))
-    (define-key gnus-dead-summary-mode-map key 'bury-buffer)))
-
-(defvar gnus-dead-summary-mode nil
-  "Minor mode for Gnus summary buffers.")
-
-(defun gnus-dead-summary-mode (&optional arg)
+(define-minor-mode gnus-dead-summary-mode
   "Minor mode for Gnus summary buffers."
-  (interactive "P")
-  (when (eq major-mode 'gnus-summary-mode)
-    (make-local-variable 'gnus-dead-summary-mode)
-    (setq gnus-dead-summary-mode
-	  (if (null arg) (not gnus-dead-summary-mode)
-	    (> (prefix-numeric-value arg) 0)))
-    (when gnus-dead-summary-mode
-      (add-minor-mode
-       'gnus-dead-summary-mode " Dead" gnus-dead-summary-mode-map))))
+  :lighter " Dead" :keymap gnus-dead-summary-mode-map
+  (unless (derived-mode-p 'gnus-summary-mode)
+    (setq gnus-dead-summary-mode nil)))
 
 (defun gnus-deaden-summary ()
   "Make the current summary buffer into a dead summary buffer."
@@ -8194,14 +8184,15 @@ in `nnmail-extra-headers'."
       (gnus-summary-position-point))))
 
 (defun gnus-summary-limit-strange-charsets-predicate (header)
-  (let ((string (concat (mail-header-subject header)
-			(mail-header-from header)))
-	charset found)
-    (dotimes (i (1- (length string)))
-      (setq charset (format "%s" (char-charset (aref string (1+ i)))))
-      (when (string-match "unicode\\|big\\|japanese" charset)
-	(setq found t)))
-    found))
+  (when (fboundp 'char-charset)
+    (let ((string (concat (mail-header-subject header)
+			  (mail-header-from header)))
+	  charset found)
+      (dotimes (i (1- (length string)))
+	(setq charset (format "%s" (char-charset (aref string (1+ i)))))
+	(when (string-match "unicode\\|big\\|japanese" charset)
+	  (setq found t)))
+      found)))
 
 (defun gnus-summary-limit-to-predicate (predicate)
   "Limit to articles where PREDICATE returns non-nil.
@@ -11517,7 +11508,7 @@ If the prefix argument is negative, tick articles instead."
 	      ((> unmark 0)
 	       (gnus-summary-mark-article-as-unread gnus-unread-mark))
 	      ((= unmark 0)
-	       (gnus-summary-mark-article-as-unread gnus-expirable-mark))
+	       (gnus-summary-mark-article nil gnus-expirable-mark))
 	      (t
 	       (gnus-summary-mark-article-as-unread gnus-ticked-mark)))
 	(setq articles (cdr articles))))

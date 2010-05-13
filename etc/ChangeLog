@@ -1,3 +1,28 @@
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document gcc-4.5 bug (Bug#6031).
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Adjust Burmese for Unicode 5.2 encoding.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* HELLO: Reorder Arabic greetings into logical order (they were
+	mistakenly changed to visual order by the 2010-03-28 change).
+
+2010-04-18  Francesc Rocher  <rocher@member.fsf.org>
+
+	* MORE.STUFF: Add a new entry for QWE.
+
+2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* HELLO (Mathematics): Prefer Unicode charset.
+
 2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* images/icons/hicolor/scalable/apps/emacs.svg: Put preamble after
@@ -1814,7 +1839,7 @@
 2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>
 
 	* emacs.py (eargs): Provide eldoc message for builtin types.
-	  Make sure eargs always outputs sentinel, to avoid Emacs freeze.
+	Make sure eargs always outputs sentinel, to avoid Emacs freeze.
 
 2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -4621,8 +4646,8 @@
 1990-01-19  David Lawrence  (tale@cocoa-puffs)
 
 	* timer.c, getdate.y (new files) and Makefile:
-	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG.
+	Sub-process support for run-at-time in timer.el.
+	Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon@pogo)
 

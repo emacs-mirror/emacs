@@ -1501,6 +1501,11 @@ defun."
   (interactive "p")
   (or arg (setq arg 1))
 
+  (or (not (eq this-command 'c-beginning-of-defun))
+      (eq last-command 'c-beginning-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
+
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        (start (point))
@@ -1603,6 +1608,11 @@ An end of a defun occurs right after the close-parenthesis that matches
 the open-parenthesis that starts a defun; see `beginning-of-defun'."
   (interactive "p")
   (or arg (setq arg 1))
+
+  (or (not (eq this-command 'c-end-of-defun))
+      (eq last-command 'c-end-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
 
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function

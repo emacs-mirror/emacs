@@ -1,6 +1,7 @@
 /* Machine description file for generic Motorola 68k.
-   Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+  2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,12 +20,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
-
 #define WORDS_BIG_ENDIAN
 
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
-
 #ifndef m68k
 #define m68k
 #endif
@@ -34,7 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    are always unsigned.
 
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
-
 #define EXPLICIT_SIGN_EXTEND
 
 #ifdef GNU_LINUX

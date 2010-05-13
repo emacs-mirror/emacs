@@ -198,15 +198,14 @@ South Indian language Malayalam is supported in this language environment."))
 
 (defconst gurmukhi-composable-pattern
   (let ((table
-	 '(("a" . "[\u0A01-\u0A02]")	; SIGN ADAK BINDI .. BINDI
-	   ("A" . "\u0A03]")		; SIGN VISARGA
+	 '(("a" . "[\u0A01-\u0A02\u0A70]") ; SIGN ADAK BINDI .. BINDI, TIPPI
+	   ("A" . "\u0A03")		; SIGN VISARGA
 	   ("V" . "[\u0A05-\u0A14]")	; independent vowel
 	   ("C" . "[\u0A15-\u0A39\u0A59-\u0A5E]")	; consonant
-	   ("Y" . "[\u0A2F\u0A30\u0A35\u0A39]") ; YA, RA, VA, HA
+	   ("Y" . "[\u0A2F-u0A30\u0A35\u0A39]") ; YA, RA, VA, HA
 	   ("n" . "\u0A3C")		; NUKTA
 	   ("v" . "[\u0A3E-\u0A4C]")	; vowel sign
 	   ("H" . "\u0A4D")		; VIRAMA
-	   ("a" . "\u0A70")		; TIPPI
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
 	   ("X" . "[\u0A00-\u0A7F]"))))	; all coverage
@@ -226,7 +225,7 @@ South Indian language Malayalam is supported in this language environment."))
 (defconst gujarati-composable-pattern
   (let ((table
 	 '(("a" . "[\u0A81-\u0A82]")	; SIGN CANDRABINDU .. ANUSVARA
-	   ("A" . "\u0A83]")		; SIGN VISARGA
+	   ("A" . "\u0A83")		; SIGN VISARGA
 	   ("V" . "[\u0A85-\u0A94\u0AE0-\u0AE1]") ; independent vowel
 	   ("C" . "[\u0A95-\u0AB9]")	; consonant
 	   ("R" . "\u0AB0")		; RA
@@ -241,7 +240,7 @@ South Indian language Malayalam is supported in this language environment."))
       ;; syllables with an independent vowel, or
       "\\(?:RH\\)?Vn?\\(?:J?HR\\)?v*n?a?A?\\|"
       ;; consonant-based syllables, or
-      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?|v*n?a?A?\\)\\|"
+      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?a?A?\\)\\|"
       ;; special consonant form, or
       "JHR\\|"
       ;; any other singleton characters
@@ -256,8 +255,9 @@ South Indian language Malayalam is supported in this language environment."))
 	   ("V" . "[\u0B05-\u0B14\u0B60-\u0B61]") ; independent vowel
 	   ("C" . "[\u0B15-\u0B39\u0B5C-\u0B5D\u0B71]")	; consonant
 	   ("B" . "[\u0B15-\u0B17\u0B1B-\u0B1D\u0B1F-\u0B21\u0B23-\u0B24\u0B27-\u0B30\u0B32-\u0B35\u0B38-\u0B39]") ; consonant with below form
+	   ("R" . "\u0B30")		; RA
 	   ("n" . "\u0B3C")		; NUKTA
-	   ("v" . "[\u0B3E-\u0B44\u0B56-\u0B57\u0B62-\u0B63]") ; vowel sign
+	   ("v" . "[\u0B3E-\u0B4C\u0B56-\u0B57\u0B62-\u0B63]") ; vowel sign
 	   ("H" . "\u0B4D")		; VIRAMA
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
@@ -267,7 +267,7 @@ South Indian language Malayalam is supported in this language environment."))
       ;; syllables with an independent vowel, or
       "\\(?:RH\\)?Vn?\\(?:J?HB\\)?v*n?a?A?\\|"
       ;; consonant-based syllables, or
-      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?|v*n?a?A?\\)\\|"
+      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?a?A?\\)\\|"
       ;; special consonant form, or
       "JHB\\|"
       ;; any other singleton characters
@@ -280,7 +280,7 @@ South Indian language Malayalam is supported in this language environment."))
 	 '(("a" . "\u0B82")		; SIGN ANUSVARA
 	   ("V" . "[\u0B85-\u0B94]")	; independent vowel
 	   ("C" . "[\u0B95-\u0BB9]")	; consonant
-	   ("v" . "[\u0BBE-\u0BC8\u0BD7]") ; vowel sign
+	   ("v" . "[\u0BBE-\u0BCC\u0BD7]") ; vowel sign
 	   ("H" . "\u0BCD")		; VIRAMA
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
@@ -288,7 +288,7 @@ South Indian language Malayalam is supported in this language environment."))
     (indian-compose-regexp
      (concat
       ;; consonant-based syllables, or
-      "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?|v*a?\\)\\|"
+      "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?\\|v*a?\\)\\|"
       ;; syllables with an independent vowel, or
       "Vv*a?\\|"
       ;; any other singleton characters
@@ -302,14 +302,14 @@ South Indian language Malayalam is supported in this language environment."))
 	   ("V" . "[\u0C05-\u0C14\u0C60-\u0C61]") ; independent vowel
 	   ("C" . "[\u0C15-\u0C39\u0C58-\u0C59]") ; consonant
 	   ("v" . "[\u0C3E-\u0C4C\u0C55-\u0C56\u0C62-\u0C63]")	; vowel sign
-	   ("H" . "\u0BCD")		; VIRAMA
+	   ("H" . "\u0C4D")		; VIRAMA
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
 	   ("X" . "[\u0C00-\u0C7F]"))))	; all coverage
     (indian-compose-regexp
      (concat
       ;; consonant-based syllables, or
-      "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?|v*a?\\)\\|"
+      "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?\\|v*a?\\)\\|"
       ;; syllables with an independent vowel, or
       "V\\(?:J?HC\\)?v*a?\\|"
       ;; special consonant form, or
@@ -324,7 +324,7 @@ South Indian language Malayalam is supported in this language environment."))
 	 '(("A" . "[\u0C82-\u0C83]")	; SIGN ANUSVARA .. VISARGA
 	   ("V" . "[\u0C85-\u0C94\u0CE0-\u0CE1]") ; independent vowel
 	   ("C" . "[\u0C95-\u0CB9\u0CDE]")	  ; consonant
-	   ("B" . "\u0CB0")		; RA
+	   ("R" . "\u0CB0")		; RA
 	   ("n" . "\u0CBC")		; NUKTA
 	   ("v" . "[\u0CBE-\u0CCC\u0CD5-\u0CD6\u0CE2-\u0CE3]") ; vowel sign
 	   ("H" . "\u0CCD")		; VIRAMA
@@ -336,9 +336,9 @@ South Indian language Malayalam is supported in this language environment."))
       ;; syllables with an independent vowel, or
       "\\(?:RH\\)?Vn?\\(?:J?HC\\)?v?A?\\|"
       ;; consonant-based syllables, or
-      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?|v*n?A?\\)\\|"
+      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?A?\\)\\|"
       ;; special consonant form, or
-      "JHB\\|"
+      "JHC\\|"
       ;; any other singleton characters
       "X")
      table))
@@ -350,14 +350,15 @@ South Indian language Malayalam is supported in this language environment."))
 	   ("V" . "[\u0D05-\u0D14\u0D60-\u0D61]") ; independent vowel
 	   ("C" . "[\u0D15-\u0D39]")		  ; consonant 
 	   ("Y" . "[\u0D2F-\u0D30\u0D32\u0D35]")  ; YA, RA, LA, VA
-	   ("v" . "[\u0D3E-\u0D48\u0D57\u0D62-\u0D63]")	; postbase matra
+	   ("v" . "[\u0D3E-\u0D4C\u0D57\u0D62-\u0D63]")	; postbase matra
+	   ("H" . "\u0D4D")			  ; SIGN VIRAMA
 	   ("N" . "\u200C")			  ; ZWNJ
 	   ("J" . "\u200D")			  ; ZWJ
 	   ("X" . "[\u0D00-\u0D7F]"))))		  ; all coverage
     (indian-compose-regexp
      (concat
       ;; consonant-based syllables, or
-      "\\(?:CJ?HJ?C\\)*\\(?:H[NJ]?\\|v?A?\\)\\|"
+      "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?\\|v?A?\\)\\|"
       ;; syllables with an independent vowel, or
       "V\\(?:J?HY\\)?v*?A?\\|"
       ;; special consonant form, or

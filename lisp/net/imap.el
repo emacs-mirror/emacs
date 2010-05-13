@@ -475,10 +475,10 @@ sure of changing the value of `foo'."
       (setcdr alist (imap-remassoc key (cdr alist)))
       alist)))
 
-(defsubst imap-disable-multibyte ()
+(defmacro imap-disable-multibyte ()
   "Enable multibyte in the current buffer."
-  (when (fboundp 'set-buffer-multibyte)
-    (set-buffer-multibyte nil)))
+  (unless (featurep 'xemacs)
+    '(set-buffer-multibyte nil)))
 
 (defsubst imap-utf7-encode (string)
   (if imap-use-utf7

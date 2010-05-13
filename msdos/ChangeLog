@@ -1,3 +1,53 @@
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* sed3v2.inp (INSTALLABLES): No more @LIB_SRC_EXTRA_INSTALLABLES@.
+
+	* sed1v2.inp (LIB_GCC): Edit to -Lgcc.
+
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (LIBS_SYSTEM): Edit to -lxext -lsys.
+	* sed3x.inp: New file.
+
+2010-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp, sed3v2.inp (LIBS_SYSTEM): Edit to empty.
+
+	* sed3v2.inp (BLESSMAIL_TARGET): Edit to need-blessmail.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LIBS_TERMCAP): Edit to empty.
+	(TERMCAP_OBJ): Edit to tparam.o.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix breakage due to autoconfiscation of Makefile.in files.
+
+	* sed3v2.inp (C_SWITCH_MACHINE): Edit to empty.
+
+	* sed1v2.inp (@LIB_MATH@): Edit to -lm.
+	(C_SWITCH_MACHINE, C_SWITCH_SYSTEM, LD_SWITCH_SYSTEM_TEMACS)
+	(LD_SWITCH_X_SITE_AUX, LD_SWITCH_X_SITE_AUX_RPATH)
+	(LD_SWITCH_SYSTEM, LD_SWITCH_SYSTEM_EXTRA, LIBTIFF, LIBJPEG)
+	(LIBPNG, LIBGIF, LIBXPM, XFT_LIBS, DBUS_CFLAGS, DBUS_LIBS)
+	(DBUS_OBJ, GCONF_CFLAGS, GCONF_LIBS, GTK_OBJ, LIBXMU, LIBXSM)
+	(LIBXTR6, XOBJ, TOOLKIT_LIBW, WIDGET_OBJ, CYGWIN_OBJ, NS_OBJ)
+	(NS_SUPPORT, LIBSELINUX_LIBS, START_FILES): Edit to empty.
+	(XMENU_OBJ): Edit to xmenu.o.
+	(FONT_OBJ): Edit to value used for X on Unix.
+	(PRE_ALLOC_OBJ): Edit to lastfile.o.
+	(POST_ALLOC_OBJ): Edit to $(vmlimitobj).
+	(@unexec@): Edit to unexec.o.
+
+2010-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp, sed5x.inp: Remove LN_S, unused.
+
 2010-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	Remove support for DJGPP v1.x.

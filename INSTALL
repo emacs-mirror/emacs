@@ -408,7 +408,7 @@ to look in `/bar/mylib' for libraries, pass the -O3 optimization
 switch to the compiler, and link against libfoo.a and libbar.a
 libraries in addition to the standard ones.
 
-For some libraries, like Gtk+, fontconfig and ALSA, `configure' use
+For some libraries, like Gtk+, fontconfig and ALSA, `configure' uses
 pkg-config to find where those libraries are installed.
 If you want pkg-config to look in special directories, you have to set
 the environment variable PKG_CONFIG_PATH to point to the directories
@@ -466,7 +466,7 @@ site-load.el for additional libraries if you arrange for their
 documentation strings to be in the etc/DOC file (see
 src/Makefile.in if you wish to figure out how to do that).  For all
 else, use site-init.el.  Do not load byte-compiled code which
-was build with a non-nil value of `byte-compile-dynamic'.
+was built with a non-nil value of `byte-compile-dynamic'.
 
 If you set load-path to a different value in site-init.el or
 site-load.el, Emacs will use *precisely* that value when it starts up
@@ -491,7 +491,7 @@ named `src/emacs'.  You can execute this file "in place" without
 copying it, if you wish; then it automatically uses the sibling
 directories ../lisp, ../lib-src, ../info.
 
-Or you can "install" the executable and the other Emacs into their
+Or you can "install" the executable and the other files into their
 installed locations, with `make install'.  By default, Emacs's files
 are installed in the following directories:
 

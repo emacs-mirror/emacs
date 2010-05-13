@@ -52,7 +52,7 @@
 
 
 ;; The most recent version of this can always be fetched from the Gnus
-;; CVS repository.  See http://www.gnus.org/ for more information.
+;; repository.  See http://www.gnus.org/ for more information.
 
 ;; This code is still in the development stage but I'd like other
 ;; people to have a look at it.  Please do not hesitate to contact me

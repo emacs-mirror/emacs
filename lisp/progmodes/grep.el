@@ -513,8 +513,8 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		       grep-find-template grep-find-use-xargs
 		       grep-highlight-matches))
       (set setting
-	   (or (cadr (assq setting host-defaults))
-	       (cadr (assq setting defaults)))))
+	   (cadr (or (assq setting host-defaults)
+		     (assq setting defaults)))))
 
     (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
       (setq grep-use-null-device

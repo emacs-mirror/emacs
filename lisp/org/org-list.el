@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.33x
+;; Version: 6.35i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -125,13 +125,15 @@ the bullet in each item of he list."
 	  (regexp)))
 
 (defcustom org-empty-line-terminates-plain-lists nil
-  "Non-nil means, an empty line ends all plain list levels.
+  "Non-nil means an empty line ends all plain list levels.
+This is currently effective only during export.  It should also have
+an effect for indentation and plain list folding, but it does not.
 When nil, empty lines are part of the preceding item."
   :group 'org-plain-lists
   :type 'boolean)
 
 (defcustom org-auto-renumber-ordered-lists t
-  "Non-nil means, automatically renumber ordered plain lists.
+  "Non-nil means automatically renumber ordered plain lists.
 Renumbering happens when the sequence have been changed with
 \\[org-shiftmetaup] or \\[org-shiftmetadown].  After other editing commands,
 use \\[org-ctrl-c-ctrl-c] to trigger renumbering."
@@ -139,7 +141,7 @@ use \\[org-ctrl-c-ctrl-c] to trigger renumbering."
   :type 'boolean)
 
 (defcustom org-provide-checkbox-statistics t
-  "Non-nil means, update checkbox statistics after insert and toggle.
+  "Non-nil means update checkbox statistics after insert and toggle.
 When this is set, checkbox statistics is updated each time you
 either insert a new checkbox with \\[org-insert-todo-heading] or
 toggle a checkbox with \\[org-ctrl-c-ctrl-c]."
@@ -147,7 +149,7 @@ toggle a checkbox with \\[org-ctrl-c-ctrl-c]."
   :type 'boolean)
 
 (defcustom org-hierarchical-checkbox-statistics t
-  "Non-nil means, checkbox statistics counts only the state of direct children.
+  "Non-nil means checkbox statistics counts only the state of direct children.
 When nil, all boxes below the cookie are counted.
 This can be set to nil on a per-node basis using a COOKIE_DATA property
 with the word \"recursive\" in the value."
@@ -432,7 +434,9 @@ the whole buffer."
 	  (recursive
 	   (or (not org-hierarchical-checkbox-statistics)
 	       (string-match "\\<recursive\\>"
-			     (or (org-entry-get nil "COOKIE_DATA") ""))))
+			     (or (ignore-errors
+				   (org-entry-get nil "COOKIE_DATA"))
+				 ""))))
 	  (cstat 0)
 	  )
      (when all
@@ -614,7 +618,8 @@ Error if not at a plain list, or if this is the first item in the list."
 	(if (looking-at "[ \t]*$")
 	    nil
 	  (if (<= (setq ind1 (org-get-indentation)) ind)
-	      (throw 'exit t)))))
+	      (throw 'exit t)))
+	(if (bobp) (throw 'exit t))))
     (condition-case nil
 	(if (or (not (org-at-item-p))
 		(< ind1 (1- ind)))
@@ -847,7 +852,7 @@ Also, fix the indentation."
   (interactive)
   (unless (org-at-item-p) (error "This is not a list"))
   (let ((line (org-current-line))
-	(col (current-column))
+	(chars-from-eol (- (point-at-eol) (point)))
 	(ind (current-indentation))
 	ind1 bullet oldbullet)
     ;; find where this list begins
@@ -878,7 +883,7 @@ Also, fix the indentation."
 	  (org-shift-item-indentation (- (length bullet)
 					 (length oldbullet))))))
     (org-goto-line line)
-    (org-move-to-column col)
+    (goto-char (max (point-at-bol) (- (point-at-eol) chars-from-eol)))
     (if (string-match "[0-9]" bullet)
 	(org-renumber-ordered-list 1))))
 
@@ -1049,7 +1054,7 @@ Assumes cursor in item line."
 	(org-adapt-indentation nil))
     (cond
      ((and (looking-at "[ \t]*$")
-	   (looking-back "^\\([ \t]*\\)\\([-+*]\\|[0-9]+[).]\\)[ \t]+"))
+	   (org-looking-back "^\\([ \t]*\\)\\([-+*]\\|[0-9]+[).]\\)[ \t]+"))
       (setq this-command 'org-cycle-item-indentation)
       (if (eq last-command 'org-cycle-item-indentation)
 	  (condition-case nil
@@ -1081,7 +1086,10 @@ Return a list containing first level items as strings and
 sublevels as a list of strings."
   (let* ((item-beginning (org-list-item-beginning))
 	 (start (car item-beginning))
-	 (end (org-list-end (cdr item-beginning)))
+	 (end (save-excursion
+		(goto-char (org-list-end (cdr item-beginning)))
+		(org-back-over-empty-lines)
+		(point)))
 	 output itemsep ltype)
     (while (re-search-forward org-list-beginning-re end t)
       (goto-char (match-beginning 3))

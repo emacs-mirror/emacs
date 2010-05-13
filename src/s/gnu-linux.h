@@ -1,6 +1,9 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+This file was put together by Michael K. Johnson and Rik Faith.
 
 This file is part of GNU Emacs.
 
@@ -17,20 +20,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* This file was put together by Michael K. Johnson and Rik Faith.  */
-
-
-/*
- *	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.
- */
-
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 #define USG
 #define GNU_LINUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
-
+   It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "gnu/linux"		/* All the best software is free. */
 
 #ifndef NOT_C_CODE
@@ -49,9 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
 
-/* Run only once.  We need a `for'-loop because the code uses
-   `continue'.  */
-
+/* Run only once.  We need a `for'-loop because the code uses `continue'.  */
 #define PTY_ITERATION	for (i = 0; i < 1; i++)
 
 #ifdef HAVE_GETPT
@@ -63,7 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Note that grantpt and unlockpt may fork.  We must block SIGCHLD to
    prevent sigchld_handler from intercepting the child's death.  */
-
 #define PTY_TTY_NAME_SPRINTF				\
   {							\
     char *ptyname;					\
@@ -85,58 +78,29 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Letter to use in finding device name of first pty,
    if system supports pty's.  'p' means it is /dev/ptyp0  */
-
 #define FIRST_PTY_LETTER 'p'
 
 #endif  /* not HAVE_GRANTPT */
 
 /*  Define HAVE_TERMIOS if the system provides POSIX-style
     functions and macros for terminal control.  */
-
 #define HAVE_TERMIOS
 
-/* Define HAVE_PTYS if the system supports pty devices. */
-
+/* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
 #define HAVE_SOCKETS
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
+/* Define this symbol if your system has the functions bcopy, etc.  */
 #define BSTRING
 
 /* This is used in list_system_processes.  */
 #define HAVE_PROCFS 1
 
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* On GNU/Linux systems, both methods are used by various mail
-   programs.  I assume that most people are using newer mailers that
-   have heard of flock.  Change this if you need to. */
-/* Debian contains a patch which says: ``On Debian/GNU/Linux systems,
-   configure gets the right answers, and that means *NOT* using flock.
-   Using flock is guaranteed to be the wrong thing. See Debian Policy
-   for details.'' and then uses `#ifdef DEBIAN'.  Unfortunately the
-   Debian maintainer hasn't provided a clean fix for Emacs.
-   movemail.c will use `maillock' when MAILDIR, HAVE_LIBMAIL and
-   HAVE_MAILLOCK_H are defined, so the following appears to be the
-   correct logic.  -- fx */
-/* We must check for HAVE_LIBLOCKFILE too, as movemail does.
-   liblockfile is a Free Software replacement for libmail, used on
-   Debian systems and elsewhere. -rfr */
-
-#if !((defined (HAVE_LIBMAIL) || defined (HAVE_LIBLOCKFILE)) &&	\
-      defined (HAVE_MAILLOCK_H))
-#define MAIL_USE_FLOCK
-#endif
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
-
 #define CLASH_DETECTION
 
 /* Here, on a separate page, add any special hacks needed
@@ -146,44 +110,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* This is needed for dispnew.c:update_frame */
-
+/* This is needed for dispnew.c:update_frame.  */
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
 #if defined(_IO_STDIO_H) || defined(_STDIO_USES_IOSTREAM)
-/* new C libio names */
+/* New C libio names.  */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
 #elif defined (__UCLIBC__)
-/* using the uClibc library */
+/* Using the uClibc library.  */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->__bufpos - (FILE)->__bufstart)
 #else /* !_IO_STDIO_H && ! __UCLIBC__ */
-/* old C++ iostream names */
+/* Old C++ iostream names.  */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_pptr - (FILE)->_pbase)
 #endif /* !_IO_STDIO_H && ! __UCLIBC__ */
 #endif /* emacs */
-
-/* Ask GCC where to find libgcc.a.  */
-#define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
-
-#define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-
-/* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
-   says where to find X windows at run time.  */
-
-#ifdef __mips__
-#define LD_SWITCH_SYSTEM -G 0 LD_SWITCH_X_SITE_AUX
-#else
-#define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
-#endif /* __mips__ */
-
-/* Link temacs with -z nocombreloc so that unexec works right, whether or
-   not -z combreloc is the default.  GNU ld ignores unknown -z KEYWORD
-   switches, so this also works with older versions that don't implement
-   -z combreloc.  */
-#define LD_SWITCH_SYSTEM_TEMACS -z nocombreloc
 
 #ifdef emacs
 #define INTERRUPT_INPUT
@@ -192,24 +135,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
-#define POSIX_SIGNALS
-
-#undef LIB_GCC
-#define LIB_GCC
-#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
-
-/* _BSD_SOURCE is redundant, at least in glibc2, since we define
-   _GNU_SOURCE.  Left in in case it's relevant to libc5 systems and
-   anyone's still using Emacs on those.  --fx 2002-12-14  */
-#define C_SWITCH_SYSTEM -D_BSD_SOURCE
-
-/* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
-#define LIB_MOTIF -lXm -lXpm
-
-#ifdef HAVE_LIBNCURSES
-#define TERMINFO
-#define LIBS_TERMCAP -lncurses
-#endif
 
 #define UNEXEC unexelf.o
 
@@ -220,11 +145,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_XRMSETDATABASE
 #endif
 
-/* Use BSD process groups, but use setpgid() instead of setpgrp() to
-   actually set a process group. */
-/* Interesting: only GNU/Linux defines this,  but the BSDs do not... */
-#define BSD_PGRPS
-
 #define NARROWPROTO 1
 
 /* Use mmap directly for allocating larger buffers.  */
@@ -233,8 +153,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Tell that garbage collector that setjmp is known to save all
-   registers relevant for conservative garbage collection in the
-   jmp_buf.  */
+   registers relevant for conservative garbage collection in the jmp_buf.  */
 /* Not all the architectures are tested, but there are Debian packages
    for SCM and/or Guile on them, so the technique must work.  See also
    comments in alloc.c concerning setjmp and gcc.  Fixme:  it's
@@ -242,7 +161,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    register window-flushing.  */
 /* Don't use #cpu here since in newest development versions of GCC,
    we must call cpp with -traditional, and that disables #cpu.  */
-
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
     || defined __alpha__ || defined __mips__ || defined __s390__ \
     || defined __arm__ || defined __powerpc__ || defined __amd64__ \

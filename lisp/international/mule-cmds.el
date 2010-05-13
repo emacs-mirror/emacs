@@ -286,8 +286,7 @@ wrong, use this command again to toggle back to the right mode."
   "Display the HELLO file, which lists many languages and characters."
   (interactive)
   ;; We have to decode the file in any environment.
-  (letf (((default-value 'enable-multibyte-characters) t)
-	 (coding-system-for-read 'iso-2022-7bit))
+  (letf ((coding-system-for-read 'iso-2022-7bit))
 	(view-file (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument (coding-system)
