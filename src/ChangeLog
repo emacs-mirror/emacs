@@ -1,3 +1,13 @@
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (C_SWITCH_X_SYSTEM, C_SWITCH_X_SITE, LIB_STANDARD)
+	(LIB_MATH, FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS)
+	(FREETYPE_LIBS, LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS)
+	(M17N_FLT_LIBS, GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBGPM)
+	(LIBRESOLV, UNEXEC_OBJ): For clarity, define variables to hold
+	the values output be configure.
+	(ALL_CFLAGS, obj, LIBES, temacs${EXEEXT}): Use the above variables.
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (YMF_PASS_LDFLAGS, LD, LINKER): Simplify the logic.
