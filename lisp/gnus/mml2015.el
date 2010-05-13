@@ -680,6 +680,7 @@ Whether the passphrase is cached at all is controlled by
 	cipher)
     (mm-with-unibyte-current-buffer
       (with-temp-buffer
+	(mm-disable-multibyte)
 	;; set up a function to call the correct gpg encrypt routine
 	;; with the right arguments. (FIXME: this should be done
 	;; differently.)
