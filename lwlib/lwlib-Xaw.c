@@ -664,7 +664,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
               (XtPointer)"Sans-14" }};
         char *faceName;
         XtVaGetSubresources (dialog, &faceName, "Dialog", "dialog",
-                             rec, 1, 0, NULL);
+                             rec, 1, (String)NULL);
         if (strcmp ("none", faceName) != 0)
           xft_font = openFont (dialog, faceName);
         if (xft_font) 

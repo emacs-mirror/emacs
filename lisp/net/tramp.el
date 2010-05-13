@@ -2271,14 +2271,18 @@ FILE must be a local file name on a connection identified via VEC."
      (tramp-message ,vec ,level "%s..." ,message)
      ;; We start a pulsing progress reporter after 3 seconds.  Feature
      ;; introduced in Emacs 24.1.
-     (when (<= ,level tramp-verbose)
+     (when (and tramp-message-show-message
+		;; Display only when there is a minimum level.
+		(<= ,level (min tramp-verbose 3)))
        (condition-case nil
 	   (setq pr (tramp-compat-funcall 'make-progress-reporter ,message)
 		 tm (if pr (run-at-time 3 0.1 'progress-reporter-update pr)))
 	 (error nil)))
      (unwind-protect
 	 ;; Execute the body.
-	 (progn ,@body)
+	 (let ((tramp-message-show-message
+		(and tramp-message-show-message (not tm))))
+	   ,@body)
        ;; Stop progress reporter.
        (if tm (tramp-compat-funcall 'cancel-timer tm))
        (tramp-message ,vec ,level "%s...done" ,message))))
@@ -2558,13 +2562,13 @@ target of the symlink differ."
 	(tramp-error v 'file-error "Cannot load nonexistent file `%s'" file)))
     (if (not (file-exists-p file))
 	nil
-      (unless nomessage (tramp-message v 0 "Loading %s..." file))
-      (let ((local-copy (file-local-copy file)))
-	;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
-	(unwind-protect
-	    (load local-copy noerror t t)
-	  (tramp-compat-delete-file local-copy 'force)))
-      (unless nomessage (tramp-message v 0 "Loading %s...done" file))
+      (let ((tramp-message-show-message (not nomessage)))
+	(with-progress-reporter v 0 (format "Loading %s" file)
+	  (let ((local-copy (file-local-copy file)))
+	    ;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
+	    (unwind-protect
+		(load local-copy noerror t t)
+	      (tramp-compat-delete-file local-copy 'force)))))
       t)))
 
 ;; Localname manipulation functions that grok Tramp localnames...
@@ -4153,7 +4157,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	       nil)
 	      ((and suffix (nth 2 suffix))
 	       ;; We found an uncompression rule.
-	       (with-progress-reporter v 0 (format "Uncompressing %s..." file)
+	       (with-progress-reporter v 0 (format "Uncompressing %s" file)
 		 (when (zerop
 			(tramp-send-command-and-check
 			 v (concat (nth 2 suffix) " "
@@ -4165,7 +4169,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	      (t
 	       ;; We don't recognize the file as compressed, so compress it.
 	       ;; Try gzip.
-	       (with-progress-reporter v 0 (format "Compressing %s..." file)
+	       (with-progress-reporter v 0 (format "Compressing %s" file)
 		 (when (zerop
 			(tramp-send-command-and-check
 			 v (concat "gzip -f "
@@ -4747,11 +4751,11 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	   ;; Use inline encoding for file transfer.
 	   (rem-enc
 	    (save-excursion
-	      (tramp-message v 5 "Encoding remote file %s..." filename)
-	      (tramp-barf-unless-okay
-	       v (format rem-enc (tramp-shell-quote-argument localname))
-	       "Encoding remote file failed")
-	      (tramp-message v 5 "Encoding remote file %s...done" filename)
+	      (with-progress-reporter
+	       v 5 (format "Encoding remote file %s" filename)
+	       (tramp-barf-unless-okay
+		v (format rem-enc (tramp-shell-quote-argument localname))
+		"Encoding remote file failed"))
 
 	      (if (functionp loc-dec)
 		  ;; If local decoding is a function, we call it.  We
@@ -4761,15 +4765,15 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 		  (with-temp-buffer
 		    (set-buffer-multibyte nil)
 		    (insert-buffer-substring (tramp-get-buffer v))
-		    (tramp-message
-		     v 5 "Decoding remote file %s with function %s..."
-		     filename loc-dec)
-		    (funcall loc-dec (point-min) (point-max))
-		    ;; Unset `file-name-handler-alist'.  Otherwise,
-		    ;; epa-file gets confused.
-		    (let (file-name-handler-alist
-			  (coding-system-for-write 'binary))
-		      (write-region (point-min) (point-max) tmpfile)))
+		    (with-progress-reporter
+			v 3 (format "Decoding remote file %s with function %s"
+				    filename loc-dec)
+		      (funcall loc-dec (point-min) (point-max))
+		      ;; Unset `file-name-handler-alist'.  Otherwise,
+		      ;; epa-file gets confused.
+		      (let (file-name-handler-alist
+			    (coding-system-for-write 'binary))
+			(write-region (point-min) (point-max) tmpfile))))
 
 		;; If tramp-decoding-function is not defined for this
 		;; method, we invoke tramp-decoding-command instead.
@@ -4779,14 +4783,14 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 		  (let (file-name-handler-alist
 			(coding-system-for-write 'binary))
 		    (write-region (point-min) (point-max) tmpfile2))
-		  (tramp-message
-		   v 5 "Decoding remote file %s with command %s..."
-		   filename loc-dec)
-		  (unwind-protect
-		      (tramp-call-local-coding-command loc-dec tmpfile2 tmpfile)
-		    (tramp-compat-delete-file tmpfile2 'force))))
+		  (with-progress-reporter
+		      v 3 (format "Decoding remote file %s with command %s"
+				  filename loc-dec)
+		    (unwind-protect
+			(tramp-call-local-coding-command
+			 loc-dec tmpfile2 tmpfile)
+		      (tramp-compat-delete-file tmpfile2 'force)))))
 
-	      (tramp-message v 5 "Decoding remote file %s...done" filename)
 	      ;; Set proper permissions.
 	      (set-file-modes tmpfile (tramp-default-file-modes filename))
 	      ;; Set local user ownership.
@@ -4842,7 +4846,7 @@ coding system might not be determined.  This function repairs it."
   "Like `insert-file-contents' for Tramp files."
   (barf-if-buffer-read-only)
   (setq filename (expand-file-name filename))
-  (let (coding-system-used result local-copy remote-copy)
+  (let (result local-copy remote-copy)
     (with-parsed-tramp-file-name filename nil
       (unwind-protect
 	  (if (not (file-exists-p filename))
@@ -4913,27 +4917,16 @@ coding system might not be determined.  This function repairs it."
 		(setq tramp-temp-buffer-file-name local-copy)
 		(put 'tramp-temp-buffer-file-name 'permanent-local t))
 
-	      (tramp-message
-	       v 4 "Inserting local temp file `%s'..." local-copy)
-
-	      ;; We must ensure that `file-coding-system-alist'
-	      ;; matches `local-copy'.
-	      (let ((file-coding-system-alist
-		     (tramp-find-file-name-coding-system-alist
-		      filename local-copy)))
-		(setq result
-		      (insert-file-contents
-		       local-copy nil nil nil replace))
-		;; Now `last-coding-system-used' has right value.
-		;; Remember it.
-		(when (boundp 'last-coding-system-used)
-		  (setq coding-system-used
-			(symbol-value 'last-coding-system-used))))
-
-	      (tramp-message
-	       v 4 "Inserting local temp file `%s'...done" local-copy)
-	      (when (boundp 'last-coding-system-used)
-		(set 'last-coding-system-used coding-system-used))))
+	      (with-progress-reporter
+		  v 3 (format "Inserting local temp file `%s'" local-copy)
+		;; We must ensure that `file-coding-system-alist'
+		;; matches `local-copy'.
+		(let ((file-coding-system-alist
+		       (tramp-find-file-name-coding-system-alist
+			filename local-copy)))
+		  (setq result
+			(insert-file-contents
+			 local-copy nil nil nil replace))))))
 
 	;; Save exit.
 	(progn
@@ -5193,15 +5186,14 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	     ;; Use inline file transfer.
 	     (rem-dec
 	      ;; Encode tmpfile.
-	      (tramp-message v 5 "Encoding region...")
 	      (unwind-protect
 		  (with-temp-buffer
 		    (set-buffer-multibyte nil)
 		    ;; Use encoding function or command.
 		    (if (functionp loc-enc)
-			(progn
-			  (tramp-message
-			   v 5 "Encoding region using function `%s'..." loc-enc)
+			(with-progress-reporter
+			    v 3 (format "Encoding region using function `%s'"
+					loc-enc)
 			  (let ((coding-system-for-read 'binary))
 			    (insert-file-contents-literally tmpfile))
 			  ;; The following `let' is a workaround for the
@@ -5217,59 +5209,61 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 				  (tramp-compat-temporary-file-directory)))
 			    (funcall loc-enc (point-min) (point-max))))
 
-		      (tramp-message
-		       v 5 "Encoding region using command `%s'..." loc-enc)
-		      (unless (zerop (tramp-call-local-coding-command
-				      loc-enc tmpfile t))
-			(tramp-error
-			 v 'file-error
-			 "Cannot write to `%s', local encoding command `%s' failed"
-			 filename loc-enc)))
+		      (with-progress-reporter
+			  v 3 (format "Encoding region using command `%s'"
+				      loc-enc)
+			(unless (zerop (tramp-call-local-coding-command
+					loc-enc tmpfile t))
+			  (tramp-error
+			   v 'file-error
+			   (concat "Cannot write to `%s', "
+				   "local encoding command `%s' failed")
+			   filename loc-enc))))
 
 		    ;; Send buffer into remote decoding command which
 		    ;; writes to remote file.  Because this happens on
 		    ;; the remote host, we cannot use the function.
-		    (goto-char (point-max))
-		    (unless (bolp) (newline))
-		    (tramp-message
-		     v 5 "Decoding region into remote file %s..." filename)
-		    (tramp-send-command
-		     v
-		     (format
-		      (concat rem-dec " <<'EOF'\n%sEOF")
-		      (tramp-shell-quote-argument localname)
-		      (buffer-string)))
-		    (tramp-barf-unless-okay
-		     v nil
-		     "Couldn't write region to `%s', decode using `%s' failed"
-		     filename rem-dec)
-		    ;; When `file-precious-flag' is set, the region is
-		    ;; written to a temporary file.  Check that the
-		    ;; checksum is equal to that from the local tmpfile.
-		    (when file-precious-flag
-		      (erase-buffer)
-		      (and
-		       ;; cksum runs locally, if possible.
-		       (zerop (tramp-local-call-process "cksum" tmpfile t))
-		       ;; cksum runs remotely.
-		       (zerop
-			(tramp-send-command-and-check
-			 v
-			 (format
-			  "cksum <%s" (tramp-shell-quote-argument localname))))
-		       ;; ... they are different.
-		       (not
-			(string-equal
-			 (buffer-string)
-			 (with-current-buffer (tramp-get-buffer v)
-			   (buffer-string))))
-		       (tramp-error
-			v 'file-error
-			(concat "Couldn't write region to `%s',"
-				" decode using `%s' failed")
-			filename rem-dec)))
-		    (tramp-message
-		     v 5 "Decoding region into remote file %s...done" filename))
+		    (with-progress-reporter
+			v 3
+			(format "Decoding region into remote file %s" filename)
+		      (goto-char (point-max))
+		      (unless (bolp) (newline))
+		      (tramp-send-command
+		       v
+		       (format
+			(concat rem-dec " <<'EOF'\n%sEOF")
+			(tramp-shell-quote-argument localname)
+			(buffer-string)))
+		      (tramp-barf-unless-okay
+		       v nil
+		       "Couldn't write region to `%s', decode using `%s' failed"
+		       filename rem-dec)
+		      ;; When `file-precious-flag' is set, the region is
+		      ;; written to a temporary file.  Check that the
+		      ;; checksum is equal to that from the local tmpfile.
+		      (when file-precious-flag
+			(erase-buffer)
+			(and
+			 ;; cksum runs locally, if possible.
+			 (zerop (tramp-local-call-process "cksum" tmpfile t))
+			 ;; cksum runs remotely.
+			 (zerop
+			  (tramp-send-command-and-check
+			   v
+			   (format
+			    "cksum <%s"
+			    (tramp-shell-quote-argument localname))))
+			 ;; ... they are different.
+			 (not
+			  (string-equal
+			   (buffer-string)
+			   (with-current-buffer (tramp-get-buffer v)
+			     (buffer-string))))
+			 (tramp-error
+			  v 'file-error
+			  (concat "Couldn't write region to `%s',"
+				  " decode using `%s' failed")
+			  filename rem-dec)))))
 
 		;; Save exit.
 		(tramp-compat-delete-file tmpfile 'force)))
@@ -6286,14 +6280,13 @@ Only send the definition if it has not already been done."
   (let* ((p (tramp-get-connection-process vec))
 	 (scripts (tramp-get-connection-property p "scripts" nil)))
     (unless (member name scripts)
-      (tramp-message vec 5 "Sending script `%s'..." name)
-      ;; The script could contain a call of Perl.  This is masked with `%s'.
-      (tramp-send-command-and-check
-       vec
-       (format "%s () {\n%s\n}" name
-	       (format script (tramp-get-remote-perl vec))))
-      (tramp-set-connection-property p "scripts" (cons name scripts))
-      (tramp-message vec 5 "Sending script `%s'...done." name))))
+      (with-progress-reporter vec 5 (format "Sending script `%s'" name)
+	;; The script could contain a call of Perl.  This is masked with `%s'.
+	(tramp-send-command-and-check
+	 vec
+	 (format "%s () {\n%s\n}" name
+		 (format script (tramp-get-remote-perl vec))))
+	(tramp-set-connection-property p "scripts" (cons name scripts))))))
 
 (defun tramp-set-auto-save ()
   (when (and ;; ange-ftp has its own auto-save mechanism
@@ -6572,7 +6565,7 @@ file exists and nonzero exit status otherwise."
 		(setq extra-args (cdr item))))
 	    (when extra-args (setq shell (concat shell " " extra-args))))
 	  (tramp-message
-	   vec 5 "Starting remote shell `%s' for tilde expansion..." shell)
+	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
 	  (let ((tramp-end-of-output tramp-initial-end-of-output))
 	    (tramp-send-command
 	     vec
@@ -6580,13 +6573,12 @@ file exists and nonzero exit status otherwise."
 		     (shell-quote-argument tramp-end-of-output) shell)
 	     t))
 	  ;; Setting prompts.
-	  (tramp-message vec 5 "Setting remote shell prompt...")
-	  (tramp-send-command
-	   vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
-	  (tramp-send-command vec "PS2=''" t)
-	  (tramp-send-command vec "PS3=''" t)
-	  (tramp-send-command vec "PROMPT_COMMAND=''" t)
-	  (tramp-message vec 5 "Setting remote shell prompt...done"))
+	  (with-progress-reporter vec 5 (format "Setting remote shell prompt")
+	    (tramp-send-command
+	     vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
+	    (tramp-send-command vec "PS2=''" t)
+	    (tramp-send-command vec "PS3=''" t)
+	    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
 
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
@@ -7423,11 +7415,11 @@ connection if a previous connection has died for some reason."
 	(tramp-get-buffer vec)
 	(if (zerop (length (tramp-file-name-user vec)))
 	    (tramp-message
-	     vec 3 "Opening connection for %s using %s..."
+	     vec 3 "Opening connection for %s using %s"
 	     (tramp-file-name-host vec)
 	     (tramp-file-name-method vec))
 	  (tramp-message
-	   vec 3 "Opening connection for %s@%s using %s..."
+	   vec 3 "Opening connection for %s@%s using %s"
 	   (tramp-file-name-user vec)
 	   (tramp-file-name-host vec)
 	   (tramp-file-name-method vec)))
