@@ -1,5 +1,8 @@
 2010-05-13  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (FONT_DRIVERS): If HAVE_X_WINDOWS is defined,
+	HAVE_WINDOW_SYSTEM must be too.
+
 	* Makefile.in (WINNT_SUPPORT): Remove, nt build does not use this file.
 	(lisp): Remove WINNT_SUPPORT.
 
