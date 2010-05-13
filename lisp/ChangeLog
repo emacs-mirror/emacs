@@ -1,3 +1,16 @@
+2010-05-13  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-init-process): Do not kill ispell process
+	everytime when spellchecking from the minibuffer (bug#6143).
+
+2010-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-mode): Use define-derived-mode.
+
+	* dos-fns.el: Add "dos-" prefix for namespace control.
+	(convert-standard-filename): Define as alias for
+	dos-convert-standard-filename but only if applicable.
+
 2010-05-12  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-beginning-of-defun, c-end-of-defun):

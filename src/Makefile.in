@@ -72,19 +72,44 @@ CRT_DIR=@CRT_DIR@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 ## System-specific CFLAGS.
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
+
+## Currently only set if NS_IMPL_GNUSTEP.
+## C_SWITCH_X_SITE may override this.
+C_SWITCH_X_SYSTEM=@C_SWITCH_X_SYSTEM@
+
+## Define C_SWITCH_X_SITE to contain any special flags your compiler
+## may need to deal with X Windows.  For instance, if you've defined
+## HAVE_X_WINDOWS and your X include files aren't in a place that your
+## compiler can find on its own, you might want to add "-I/..." or
+## something similar.  This is normally set by configure.
+## This is used before C_SWITCH_X_SYSTEM and may override it.
+C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
+
+## Define LD_SWITCH_X_SITE to contain any special flags your loader
+## may need to deal with X Windows.  For instance, if your X libraries
+## aren't in a place that your loader can find on its own, you might
+## want to add "-L/..." or something similar.  Only used if
+## HAVE_X_WINDOWS.
+## FIXME? configure sets a value for this, but it has never been
+## substituted in this or any other Makefile. Cf C_SWITCH_X_SITE.
+LD_SWITCH_X_SITE=
+
 ## This holds any special options for linking temacs only (ie, not
 ## used by configure).  Not used elsewhere because it sometimes
 ## contains options that have to do with using Emacs's crt0, 
 ## which are only good with temacs.
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
+
 ## Next two must come before LD_SWITCH_SYSTEM.
 ## If needed, a -R option that says where to find X windows at run time.
 LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
 ## As above, but using -rpath instead.
 LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
+
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
 LD_SWITCH_SYSTEM_EXTRA=@LD_SWITCH_SYSTEM_EXTRA@
+
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTEM_TEMACS)
 
@@ -94,6 +119,12 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 ## Where to find libgcc.a, if using gcc and necessary.
 LIB_GCC=@LIB_GCC@
 
+## May use $CRT_DIR.
+LIB_STANDARD=@LIB_STANDARD@
+
+## -lm, or empty.
+LIB_MATH=@LIB_MATH@
+
 LIBTIFF=@LIBTIFF@
 LIBJPEG=@LIBJPEG@
 LIBPNG=@LIBPNG@
@@ -101,6 +132,15 @@ LIBGIF=@LIBGIF@
 LIBXPM=@LIBXPM@
 XFT_LIBS=@XFT_LIBS@
 LIBX_EXTRA=$(LIBTIFF) $(LIBJPEG) $(LIBPNG) $(LIBGIF) $(LIBXPM) -lX11 $(XFT_LIBS)
+
+FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
+FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
+FREETYPE_CFLAGS = @FREETYPE_CFLAGS@
+FREETYPE_LIBS = @FREETYPE_LIBS@
+LIBOTF_CFLAGS = @LIBOTF_CFLAGS@
+LIBOTF_LIBS = @LIBOTF_LIBS@
+M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
+M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
@@ -145,13 +185,17 @@ CYGWIN_OBJ=@CYGWIN_OBJ@
 
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
+## Next two only set if NS_IMPL_GNUSTEP.
+GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
+GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
 
-## Only used if HAVE_X_WINDOWS and HAVE_WINDOW_SYSTEM.
+## Only used if HAVE_X_WINDOWS.
 FONT_OBJ=@FONT_OBJ@
 
 ## ${lispsource}mouse.elc if HAVE_GPM, otherwise empty.
 ## Not used if HAVE_MOUSE.
 GPM_MOUSE_SUPPORT=@GPM_MOUSE_SUPPORT@
+LIBGPM = @LIBGPM@
 
 BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
   ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
@@ -159,6 +203,9 @@ BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
 
 X_WINDOW_SUPPORT=${lispsource}x-dnd.elc ${lispsource}term/common-win.elc \
   ${lispsource}term/x-win.elc ${lispsource}dynamic-setting.elc
+
+## -lresolv, or empty.
+LIBRESOLV = @LIBRESOLV@
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
@@ -169,6 +216,8 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 RUN_TEMACS = `/bin/pwd`/temacs
 
 START_FILES = @START_FILES@
+
+UNEXEC_OBJ = @unexec@
 
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
@@ -201,11 +250,6 @@ DEPFLAGS = -MMD -MF deps/$*.d
    do not let it interfere with this file.  */
 #undef register
 
-/* This macro is for switches specifically related to X Windows.  */
-#ifndef LD_SWITCH_X_SITE
-#define LD_SWITCH_X_SITE
-#endif
-
 #ifdef NS_IMPL_GNUSTEP
 /* Pull in stuff from GNUstep-make. */
 FOUNDATION_LIB=gnu
@@ -227,10 +271,10 @@ shared=no
    the information in ``config.h''.  */
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
-   since it may have -I options that should override those two.  */
+   since it may have -I options that should override those.  */
 /* MYCPPFLAGS only referenced in etc/DEBUG.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} @C_SWITCH_X_SITE@ @C_SWITCH_X_SYSTEM@ ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@ ${DEPFLAGS}
-ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} ${C_SWITCH_X_SITE} ${C_SWITCH_X_SYSTEM} ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS}
+ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
 .c.o:
@@ -245,20 +289,13 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) @GNU_OBJC_CFLAGS@
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 #ifdef HAVE_X_WINDOWS
-/* This test needs to say in cpp for the time being, since s/msdos.h
-   defines HAVE_MENUS, and does not use the configure script.  */
-#ifdef HAVE_MENUS
 OLDXMENU=@OLDXMENU@
 LIBXMENU=@LIBXMENU@
-#else /* not HAVE_MENUS */
-OLDXMENU=
-LIBXMENU=
-#endif /* not HAVE_MENUS */
-
 LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
-LIBX_BASE=$(LIBXMENU) LD_SWITCH_X_SITE
+LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 LIBX_OTHER=@LIBX_OTHER@
-#endif /* not HAVE_X_WINDOWS */
+FONT_DRIVERS=$(FONT_OBJ)
+#endif /* HAVE_X_WINDOWS */
 
 
 /* A macro which other sections of Makefile can redefine to munge the
@@ -317,12 +354,6 @@ ns_appresdir=@ns_appresdir@/
 ns_appsrc=@ns_appsrc@
 #endif  /* HAVE_NS */
 
-#ifdef HAVE_WINDOW_SYSTEM
-#ifdef HAVE_X_WINDOWS
-FONT_DRIVERS=$(FONT_OBJ)
-#endif /* HAVE_X_WINDOWS */
-#endif /* HAVE_WINDOW_SYSTEM */
-
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
@@ -334,7 +365,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o font.o print.o lread.o \
-	syntax.o @unexec@ bytecode.o \
+	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
@@ -391,29 +422,16 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
+#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
 #ifdef HAVE_X_WINDOWS
 #define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)
 #else
 #define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT)
-#endif
-#else
-#define WINDOW_SUPPORT
-#endif
-
-#ifdef WINDOWSNT
-#define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
-  ${lispsource}dos-w32.elc ${lispsource}w32-vars.elc \
-  ${lispsource}w32-fns.elc ${lispsource}term/common-win.elc \
-  ${lispsource}term/w32-win.elc
-#else
-#define WINNT_SUPPORT
-#endif
-
-#ifdef HAVE_WINDOW_SYSTEM
-#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
+#endif /* HAVE_X_WINDOWS */
 #else
 #define TOOLTIP_SUPPORT
-#endif
+#define WINDOW_SUPPORT
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
@@ -513,7 +531,6 @@ lisp= \
 	${lispsource}epa-hook.elc \
 	TOOLTIP_SUPPORT \
 	MSDOS_SUPPORT \
-	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
 	${NS_SUPPORT} \
 	${lispsource}widget.elc \
@@ -634,10 +651,10 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
    with GCC, we might need gnulib again after them.  */
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) $(DBUS_LIBS) @LIBGPM@ @LIBRESOLV@ $(LIBS_SYSTEM) \
+   $(RSVG_LIBS) $(DBUS_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
-   @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
-   $(GNULIB_VAR) @LIB_MATH@ @LIB_STANDARD@ $(GNULIB_VAR)
+   $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
+   $(GNULIB_VAR) $(LIB_MATH) $(LIB_STANDARD) $(GNULIB_VAR)
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
@@ -682,7 +699,7 @@ buildobj.h: Makefile
 temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
-	-L@GNUSTEP_SYSTEM_LIBRARIES@ -lgnustep-gui -lgnustep-base \
+	-L$(GNUSTEP_SYSTEM_LIBRARIES) -lgnustep-gui -lgnustep-base \
 	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
 	${obj} ${otherobj} ${LIBES}
 #else

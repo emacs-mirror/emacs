@@ -145,6 +145,7 @@ Whether the passphrase is cached at all is controlled by
       (delete-region (point-min) (point)))
     (mm-with-unibyte-current-buffer
       (with-temp-buffer
+	(inline (mm-disable-multibyte))
 	(setq cipher (current-buffer))
 	(insert-buffer-substring text)
 	(unless (mc-encrypt-generic
@@ -225,6 +226,7 @@ Whether the passphrase is cached at all is controlled by
       (delete-region (point-min) (point)))
     (mm-with-unibyte-current-buffer
       (with-temp-buffer
+	(inline (mm-disable-multibyte))
 	(flet ((gpg-encrypt-func
 		(sign plaintext ciphertext result recipients &optional
 		      passphrase sign-with-key armor textmode)

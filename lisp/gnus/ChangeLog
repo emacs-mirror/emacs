@@ -1,3 +1,14 @@
+2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-mailcrypt-encrypt, mml1991-gpg-encrypt)
+	* mml2015.el (mml2015-gpg-encrypt): Disable multibyte in buffers
+	generated within the mm-with-unibyte-current-buffer macro.
+
+2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-bind-safe-url-regexp): Bind mm-w3m-safe-url-regexp
+	to nil when we're in a mml-preview buffer and no group is selected.
+
 2010-05-12  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* gnus-sum.el (gnus-summary-read-group-1): Don't jump to next group

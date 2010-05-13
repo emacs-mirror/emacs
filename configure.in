@@ -1094,7 +1094,7 @@ case $opsys in
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
   netbsd | openbsd )
-    if test -f $(CRT_DIR)/crti.o; then
+    if test -f $CRT_DIR/crti.o; then
 	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
         START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
     else
@@ -3012,6 +3012,7 @@ fi
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 AC_SUBST(version)
 AC_SUBST(configuration)
+## Unused?
 AC_SUBST(canonical)
 AC_SUBST(srcdir)
 AC_SUBST(prefix)
@@ -3033,6 +3034,9 @@ AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)
 AC_SUBST(gameuser)
 AC_SUBST(unexec)
+## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
+## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
+## end of LIBX_BASE, but nothing ever set it.
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SYSTEM)
@@ -3060,18 +3064,6 @@ AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
 		   [Define to the used machine dependent file.])
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 		   [Define to the used os dependent file.])
-AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE},
-[Define LD_SWITCH_X_SITE to contain any special flags your loader
- may need to deal with X Windows.  For instance, if you've defined
- HAVE_X_WINDOWS above and your X libraries aren't in a place that
- your loader can find on its own, you might want to add "-L/..." or
- something similar.])
-AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
-[Define C_SWITCH_X_SITE to contain any special flags your compiler
- may need to deal with X Windows.  For instance, if you've defined
- HAVE_X_WINDOWS above and your X include files aren't in a place
- that your compiler can find on its own, you might want to add
- "-I/..." or something similar.])
 
 XMENU_OBJ=
 XOBJ=
@@ -3152,7 +3144,7 @@ else
   LIBX_OTHER=
 fi
 
-if test "$HAVE_GTK" = "yes"; then
+if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
 fi
@@ -3250,13 +3242,13 @@ if test "x$GCC" = "xyes"; then
         ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
         ## immediately undefine it again and redefine it to empty.
         ## Was the C_SWITCH_X_SITE part really necessary?
-##      LIB_GCC=`$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
+##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
         LIB_GCC=
       fi
       ;;
 
     ## Ask GCC where to find libgcc.a.
-    *) LIB_GCC=`$(CC) -print-libgcc-file-name 2> /dev/null` ;;
+    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
   esac
 fi                              dnl if $GCC
 AC_SUBST(LIB_GCC)

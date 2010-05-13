@@ -4,7 +4,9 @@
 s!^	cd \${oldXMenudir}; \${MAKE}.*$!	${MAKE} -C ${oldXMenudir}.!
 s!^	@true *$!	@rem!
 s/DOC/DOC-X/g
-#/^LIBXMENU *=/s!= *!= ../oldxmenu/!
+/^OLDXMENU *=/s!@OLDXMENU@!${oldXMenudir}libXMenu11.a!
+/^LIBXMENU *=/s!@LIBXMENU@!${OLDXMENU}!
+/^LIBX_OTHER *=/s!@LIBX_OTHER@!${LIBXT} ${LIBX_EXTRA}!
 /^LIBS_SYSTEM *=/s!= *!= -lxext -lsys!
 /^temacs *:/s!OLDXMENU!LIBXMENU!
 

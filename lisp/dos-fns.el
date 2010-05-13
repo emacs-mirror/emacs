@@ -31,7 +31,7 @@
 (declare-function msdos-long-file-names "msdos.c")
 
 ;; This overrides a trivial definition in files.el.
-(defun convert-standard-filename (filename)
+(defun dos-convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
@@ -48,7 +48,7 @@ shell requires it (see `w32-shell-dos-semantics')."
     (let ((flen (length filename)))
       ;; If FILENAME has a trailing slash, remove it and recurse.
       (if (memq (aref filename (1- flen)) '(?/ ?\\))
-	  (concat (convert-standard-filename
+	  (concat (dos-convert-standard-filename
 		   (substring filename 0 (1- flen)))
 		  "/")
 	(let* (;; ange-ftp gets in the way for names like "/foo:bar".
@@ -122,11 +122,16 @@ shell requires it (see `w32-shell-dos-semantics')."
 		(aset string (1- (length string)) lastchar))))
 	  (concat (if (and (stringp dir)
 			   (memq (aref dir dlen-m-1) '(?/ ?\\)))
-		      (concat (convert-standard-filename
+		      (concat (dos-convert-standard-filename
 			       (substring dir 0 dlen-m-1))
 			      "/")
-		    (convert-standard-filename dir))
+		    (dos-convert-standard-filename dir))
 		  string))))))
+
+;; Only redirect convert-standard-filename if it has a chance of working,
+;; otherwise loading dos-fns.el might make your non-DOS Emacs misbehave.
+(when (fboundp 'msdos-long-file-names)
+  (defalias 'convert-standard-filename 'dos-convert-standard-filename))
 
 (defun dos-8+3-filename (filename)
   "Truncate FILENAME to DOS 8+3 limits."
@@ -188,12 +193,12 @@ shell requires it (see `w32-shell-dos-semantics')."
 
 ;; This is for the sake of standard file names elsewhere in Emacs that
 ;; are defined as constant strings or via defconst, and whose
-;; conversion via `convert-standard-filename' does not give good
+;; conversion via `dos-convert-standard-filename' does not give good
 ;; enough results.
 (defun dosified-file-name (file-name)
   "Return a variant of FILE-NAME that is valid on MS-DOS filesystems.
 
-This function is for those rare cases where `convert-standard-filename'
+This function is for those rare cases where `dos-convert-standard-filename'
 does not do a job that is good enough, e.g. if you need to preserve the
 file-name extension.  It recognizes only certain specific file names
 that are used in Emacs Lisp sources; any other file name will be
@@ -209,13 +214,13 @@ returned unaltered."
 (defvar msdos-shells)
 
 ;; Override settings chosen at startup.
-(defun set-default-process-coding-system ()
+(defun dos-set-default-process-coding-system ()
   (setq default-process-coding-system
 	(if (default-value 'enable-multibyte-characters)
 	    '(undecided-dos . undecided-dos)
 	  '(raw-text-dos . raw-text-dos))))
 
-(add-hook 'before-init-hook 'set-default-process-coding-system)
+(add-hook 'before-init-hook 'dos-set-default-process-coding-system)
 
 ;; File names defined in preloaded packages can be incorrect or
 ;; invalid if long file names were available during dumping, but not
@@ -232,17 +237,17 @@ returned unaltered."
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 
-(defvar register-name-alist
+(defvar dos-register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
     (cflag . 6) (flags . 7)
     (al . (0 . 0)) (bl . (1 . 0)) (cl . (2 . 0)) (dl . (3 . 0))
     (ah . (0 . 1)) (bh . (1 . 1)) (ch . (2 . 1)) (dh . (3 . 1))))
 
-(defun make-register ()
+(defun dos-make-register ()
   (make-vector 8 0))
 
-(defun register-value (regs name)
-  (let ((where (cdr (assoc name register-name-alist))))
+(defun dos-register-value (regs name)
+  (let ((where (cdr (assoc name dos-register-name-alist))))
     (cond ((consp where)
 	   (let ((tem (aref regs (car where))))
 	     (if (zerop (cdr where))
@@ -252,10 +257,10 @@ returned unaltered."
 	   (aref regs where))
 	  (t nil))))
 
-(defun set-register-value (regs name value)
+(defun dos-set-register-value (regs name value)
   (and (numberp value)
        (>= value 0)
-       (let ((where (cdr (assoc name register-name-alist))))
+       (let ((where (cdr (assoc name dos-register-name-alist))))
 	 (cond ((consp where)
 		(let ((tem (aref regs (car where)))
 		      (value (logand value 255)))
@@ -268,18 +273,18 @@ returned unaltered."
 		(aset regs where (logand value 65535))))))
   regs)
 
-(defsubst intdos (regs)
+(defsubst dos-intdos (regs)
   (int86 33 regs))
 
 ;; Backward compatibility for obsolescent functions which
 ;; set screen size.
 
-(defun mode25 ()
+(defun dos-mode25 ()
   "Changes the number of screen rows to 25."
   (interactive)
   (set-frame-size (selected-frame) 80 25))
 
-(defun mode4350 ()
+(defun dos-mode4350 ()
   "Changes the number of rows to 43 or 50.
 Emacs always tries to set the screen height to 50 rows first.
 If this fails, it will try to set it to 43 rows, on the assumption
