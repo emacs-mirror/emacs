@@ -11785,8 +11785,7 @@ fi
 
 HAVE_IMAGEMAGICK=no
 if test "${with_imagemagick}" != "no"; then
-  IMAGEMAGICK_REQUIRED=1
-  IMAGEMAGICK_MODULE="MagickWand >= $IMAGEMAGICK_REQUIRED"
+  IMAGEMAGICK_MODULE="Wand"
 
   succeeded=no
 
