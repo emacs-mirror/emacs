@@ -1,3 +1,17 @@
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (OLDXMENU): Edit to ${oldXMenudir}libXMenu11.a.
+	(LIBXMENU): Edit to ${OLDXMENU}.
+	(LIBX_OTHER): Edit to ${LIBXT} ${LIBX_EXTRA}.
+
+	* sed1v2.inp (C_SWITCH_X_SYSTEM, C_SWITCH_X_SITE, LIB_STANDARD)
+	(FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS, FREETYPE_LIBS)
+	(LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS, M17N_FLT_LIBS)
+	(GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBRESOLV, LIBGPM):
+	Edit to empty,
+	(LIB_MATH): Edit to -lm.
+	(UNEXEC_OBJ): Edit to unexec.o.
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* sed3v2.inp (INSTALLABLES): No more @LIB_SRC_EXTRA_INSTALLABLES@.
