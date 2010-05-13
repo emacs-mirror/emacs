@@ -1,3 +1,14 @@
+2010-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	Add TeX open-block and close-block keybindings to SGML, and vice
+	versa.
+
+	* textmodes/tex-mode.el (tex-mode-map): Bind C-c C-t to
+	latex-open-block and C-c / to latex-close-block.
+
+	* textmodes/sgml-mode.el (sgml-mode-map): Bind C-c C-o to sgml-tag
+	and C-c C-e to sgml-close-tag.
+
 2010-05-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (with-progress-reporter): Create reporter object

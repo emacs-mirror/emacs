@@ -101,6 +101,11 @@ This takes effect when first loading the `sgml-mode' library.")
     (define-key map "\C-c\^?" 'sgml-delete-tag)
     (define-key map "\C-c?" 'sgml-tag-help)
     (define-key map "\C-c/" 'sgml-close-tag)
+
+    ;; Redundant keybindings, for consistency with TeX mode.
+    (define-key map "\C-c\C-o" 'sgml-tag)
+    (define-key map "\C-c\C-e" 'sgml-close-tag)
+
     (define-key map "\C-c8" 'sgml-name-8bit-mode)
     (define-key map "\C-c\C-v" 'sgml-validate)
     (when sgml-quick-keys
