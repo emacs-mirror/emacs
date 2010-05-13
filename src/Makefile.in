@@ -189,7 +189,7 @@ NS_SUPPORT=@NS_SUPPORT@
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
 GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
 
-## Only used if HAVE_X_WINDOWS and HAVE_WINDOW_SYSTEM.
+## Only used if HAVE_X_WINDOWS.
 FONT_OBJ=@FONT_OBJ@
 
 ## ${lispsource}mouse.elc if HAVE_GPM, otherwise empty.
@@ -294,6 +294,7 @@ LIBXMENU=@LIBXMENU@
 LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 LIBX_OTHER=@LIBX_OTHER@
+FONT_DRIVERS=$(FONT_OBJ)
 #endif /* HAVE_X_WINDOWS */
 
 
@@ -352,10 +353,6 @@ ns_appbindir=@ns_appbindir@/
 ns_appresdir=@ns_appresdir@/
 ns_appsrc=@ns_appsrc@
 #endif  /* HAVE_NS */
-
-#ifdef HAVE_X_WINDOWS
-FONT_DRIVERS=$(FONT_OBJ)
-#endif /* HAVE_X_WINDOWS */
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
@@ -425,20 +422,16 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
+#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
 #ifdef HAVE_X_WINDOWS
 #define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)
 #else
 #define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT)
-#endif
-#else
-#define WINDOW_SUPPORT
-#endif
-
-#ifdef HAVE_WINDOW_SYSTEM
-#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
+#endif /* HAVE_X_WINDOWS */
 #else
 #define TOOLTIP_SUPPORT
-#endif
+#define WINDOW_SUPPORT
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
