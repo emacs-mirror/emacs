@@ -26313,6 +26313,7 @@ fi
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 
 
+## Unused?
 
 
 
@@ -26334,6 +26335,9 @@ fi
 
 
 
+## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
+## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
+## end of LIBX_BASE, but nothing ever set it.
 
 
 
@@ -26371,16 +26375,6 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define config_opsysfile "${opsysfile}"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define LD_SWITCH_X_SITE ${LD_SWITCH_X_SITE}
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define C_SWITCH_X_SITE ${C_SWITCH_X_SITE}
 _ACEOF
 
 
@@ -26480,7 +26474,7 @@ else
   LIBX_OTHER=
 fi
 
-if test "$HAVE_GTK" = "yes"; then
+if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
 fi

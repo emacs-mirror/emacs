@@ -1,5 +1,8 @@
 2010-05-13  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (WINNT_SUPPORT): Remove, nt build does not use this file.
+	(lisp): Remove WINNT_SUPPORT.
+
 	* Makefile.in (OLDXMENU, LIBXMENU) [!HAVE_MENUS]:
 	Let configure set these variables (to empty) in this case as well.
 
@@ -11,7 +14,7 @@
 	(FREETYPE_LIBS, LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS)
 	(M17N_FLT_LIBS, GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBGPM)
 	(LIBRESOLV, UNEXEC_OBJ): For clarity, define variables to hold
-	the values output be configure.
+	the values output by configure.
 	(ALL_CFLAGS, obj, LIBES, temacs${EXEEXT}): Use the above variables.
 
 2010-05-12  Glenn Morris  <rgm@gnu.org>
