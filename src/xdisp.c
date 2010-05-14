@@ -6285,25 +6285,96 @@ set_iterator_to_next (it, reseat_p)
 	reseat_at_next_visible_line_start (it, 0);
       else if (it->cmp_it.id >= 0)
 	{
-	  IT_CHARPOS (*it) += it->cmp_it.nchars;
-	  IT_BYTEPOS (*it) += it->cmp_it.nbytes;
-	  if (it->bidi_p)
+	  /* We are currently getting glyphs from a composition.  */
+	  int i;
+
+	  if (! it->bidi_p)
 	    {
-	      if (it->bidi_it.new_paragraph)
-		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	      /* Resync the bidi iterator with IT's new position.
-		 FIXME: this doesn't support bidirectional text.  */
-	      while (it->bidi_it.charpos < IT_CHARPOS (*it))
-		bidi_get_next_char_visually (&it->bidi_it);
+	      IT_CHARPOS (*it) += it->cmp_it.nchars;
+	      IT_BYTEPOS (*it) += it->cmp_it.nbytes;
+	      if (it->cmp_it.to < it->cmp_it.nglyphs)
+		{
+		  it->cmp_it.from = it->cmp_it.to;
+		}
+	      else
+		{
+		  it->cmp_it.id = -1;
+		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
+						IT_BYTEPOS (*it),
+						it->stop_charpos, Qnil);
+		}
 	    }
-	  if (it->cmp_it.to < it->cmp_it.nglyphs)
-	    it->cmp_it.from = it->cmp_it.to;
+	  else if (! it->cmp_it.reversed_p)
+	    {
+	      /* Composition created while scanning forward.  */
+	      /* Update IT's char/byte positions to point the first
+		 character of the next grapheme cluster, or to the
+		 character visually after the current composition.  */
+#if 0
+	      /* Is it ok to do this directly? */
+	      IT_CHARPOS (*it) += it->cmp_it.nchars;
+	      IT_BYTEPOS (*it) += it->cmp_it.nbytes;
+#else
+	      /* Or do we have to call bidi_get_next_char_visually
+		 repeatedly (perhaps not to confuse some internal
+		 state of bidi_it)?  At least we must do this if we
+		 have consumed all grapheme clusters in the current
+		 composition because the next character will be in the
+		 different bidi level.  */
+	      for (i = 0; i < it->cmp_it.nchars; i++)
+		bidi_get_next_char_visually (&it->bidi_it);
+	      /* BTW, it seems that the name
+		 bidi_get_next_char_visually is confusing because
+		 it sounds like not advancing character position.
+		 How about bidi_set_iterator_to_next? */
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      IT_CHARPOS (*it) = it->bidi_it.charpos;
+#endif
+	      if (it->cmp_it.to < it->cmp_it.nglyphs)
+		{
+		  /* Proceed to the next grapheme cluster.  */
+		  it->cmp_it.from = it->cmp_it.to;
+		}
+	      else
+		{
+		  /* No more grapheme cluster in this composition.
+		     Find the next stop position.  */
+		  EMACS_INT stop = it->stop_charpos;
+		  if (it->bidi_it.scan_dir < 0)
+		    /* Now we are scanning backward and don't know
+		       where to stop.  */
+		    stop = -1;
+		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
+						IT_BYTEPOS (*it), stop, Qnil);
+		}
+	    }
 	  else
 	    {
-	      it->cmp_it.id = -1;
-	      composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
-					    IT_BYTEPOS (*it), it->stop_charpos,
-					    Qnil);
+	      /* Composition created while scanning backward.  */
+	      /* Update IT's char/byte positions to point the last
+		 character of the previous grapheme cluster, or the
+		 character visually after the current composition.  */
+	      bidi_get_next_char_visually (&it->bidi_it);
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      IT_CHARPOS (*it) = it->bidi_it.charpos;
+
+	      if (it->cmp_it.from > 0)
+		{
+		  /* Proceed to the previous grapheme cluster.  */
+		  it->cmp_it.to = it->cmp_it.from;
+		}
+	      else
+		{
+		  /* No more grapheme cluster in this composition.
+		     Find the next stop position.  */
+		  EMACS_INT stop = it->stop_charpos;
+		  if (it->bidi_it.scan_dir < 0)
+		    /* Now we are scanning backward and don't know
+		       where to stop.  */
+		    stop = -1;
+		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
+						IT_BYTEPOS (*it), stop, Qnil);
+		}
 	    }
 	}
       else
@@ -6317,6 +6388,7 @@ set_iterator_to_next (it, reseat_p)
 	    }
 	  else
 	    {
+	      int prev_scan_dir = it->bidi_it.scan_dir;
 	      /* If this is a new paragraph, determine its base
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
@@ -6324,6 +6396,16 @@ set_iterator_to_next (it, reseat_p)
 	      bidi_get_next_char_visually (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
+	      if (prev_scan_dir != it->bidi_it.scan_dir)
+		{
+		  /* As scan direction was changed, we must re-compute
+		     the stop position for composition.  */
+		  EMACS_INT stop = it->stop_charpos;
+		  if (it->bidi_it.scan_dir < 0)
+		    stop = -1;
+		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
+						IT_BYTEPOS (*it), stop, Qnil);
+		}
 	    }
 	  xassert (IT_BYTEPOS (*it) == CHAR_TO_BYTE (IT_CHARPOS (*it)));
 	}
@@ -6820,6 +6902,13 @@ next_element_from_buffer (it)
       IT_CHARPOS (*it) = it->bidi_it.charpos;
       IT_BYTEPOS (*it) = it->bidi_it.bytepos;
       SET_TEXT_POS (it->position, IT_CHARPOS (*it), IT_BYTEPOS (*it));
+      {
+	EMACS_INT stop = it->stop_charpos;
+	if (it->bidi_it.scan_dir < 0)
+	  stop = -1;
+	composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
+				      IT_BYTEPOS (*it), stop, Qnil);
+      }
     }
 
   if (IT_CHARPOS (*it) >= it->stop_charpos)
@@ -6897,6 +6986,7 @@ next_element_from_buffer (it)
       /* No face changes, overlays etc. in sight, so just return a
 	 character from current_buffer.  */
       unsigned char *p;
+      EMACS_INT stop;
 
       /* Maybe run the redisplay end trigger hook.  Performance note:
 	 This doesn't seem to cost measurable time.  */
@@ -6905,8 +6995,9 @@ next_element_from_buffer (it)
 	  && IT_CHARPOS (*it) >= it->redisplay_end_trigger_charpos)
 	run_redisplay_end_trigger_hook (it);
 
+      stop = it->bidi_it.scan_dir < 0 ? -1 : it->end_charpos;
       if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it),
-			   it->end_charpos)
+			   stop)
 	  && next_element_from_composition (it))
 	{
 	  return 1;
@@ -7032,6 +7123,19 @@ next_element_from_composition (it)
       it->object = it->w->buffer;
       it->c = composition_update_it (&it->cmp_it, IT_CHARPOS (*it),
 				     IT_BYTEPOS (*it), Qnil);
+      if (it->cmp_it.reversed_p)
+	{
+	  /* Now it->position points the last character of the current
+	     grapheme cluster.  Adjust it to point the first one.  We
+	     have to do it here so that append_composite_glyph sets
+	     correct (struct glyph)->charpos.  */
+	  int i;
+	  for (i = 0; i < it->cmp_it.nchars - 1; i++)
+	    bidi_get_next_char_visually (&it->bidi_it);
+	  IT_CHARPOS (*it) = it->bidi_it.charpos;
+	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	  it->position = it->current.pos;
+	}
     }
   return 1;
 }

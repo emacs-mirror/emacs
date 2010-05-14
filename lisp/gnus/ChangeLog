@@ -1,3 +1,8 @@
+2010-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-save-article): Don't bother to re-fetch
+	article unless decoding article to be saved.
+
 2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml1991.el (mml1991-mailcrypt-encrypt, mml1991-gpg-encrypt)

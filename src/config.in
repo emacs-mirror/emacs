@@ -482,6 +482,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
+/* Define if you have mouse support. */
+#undef HAVE_MOUSE
+
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
 
@@ -736,6 +739,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
+
+/* Define if you have a window system. */
+#undef HAVE_WINDOW_SYSTEM
 
 /* Define to 1 if `fork' works. */
 #undef HAVE_WORKING_FORK
@@ -1004,12 +1010,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef volatile
 
 
-/* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
-#endif
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -1034,7 +1034,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
 
-/* If using GNU, then support inline function declarations. */
+/* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
@@ -1059,7 +1059,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
    side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS. */
+   parallel this exactly since GNUstep is multi-OS.  */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
@@ -1156,7 +1156,7 @@ extern char *getenv ();
 #include "string.h"
 #endif
 #ifdef HAVE_STRINGS_H
-#include "strings.h"  /* May be needed for bcopy & al. */
+#include "strings.h"  /* May be needed for bcopy & al.  */
 #endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>

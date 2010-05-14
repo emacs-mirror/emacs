@@ -1452,6 +1452,7 @@ fi
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
+NS_IMPL_GNUSTEP_INC=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -1473,6 +1474,13 @@ if test "${with_ns}" != no; then
      GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     ## Pull in stuff from GNUstep-make.
+     NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
+GUI_LIB=gnu
+include $GNUSTEP_MAKEFILES/Additional/base.make
+include $GNUSTEP_MAKEFILES/Additional/gui.make
+shared=no
+"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -1491,6 +1499,7 @@ if test "${with_ns}" != no; then
     NS_HAVE_NSINTEGER=no
   fi
 fi
+AC_SUBST(NS_IMPL_GNUSTEP_INC)
 
 NS_OBJ=
 NS_SUPPORT=
@@ -2391,7 +2400,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
-GPM_MOUSE_SUPPORT=
+MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   AC_CHECK_HEADER(gpm.h,
     [AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes)])
@@ -2399,11 +2408,11 @@ if test "${with_gpm}" != "no"; then
   if test "${HAVE_GPM}" = "yes"; then
     AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
     LIBGPM=-lgpm
-    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
+    ## May be reset below.
+    MOUSE_SUPPORT="\$(GPM_MOUSE_SUPPORT)"
   fi
 fi
 AC_SUBST(LIBGPM)
-AC_SUBST(GPM_MOUSE_SUPPORT)
 
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
@@ -3050,7 +3059,6 @@ AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
-AC_SUBST(GNUSTEP_MAKEFILES)
 AC_SUBST(GNUSTEP_SYSTEM_HEADERS)
 AC_SUBST(GNUSTEP_SYSTEM_LIBRARIES)
 AC_SUBST(GNU_OBJC_CFLAGS)
@@ -3254,6 +3262,25 @@ fi                              dnl if $GCC
 AC_SUBST(LIB_GCC)
 
 
+TOOLTIP_SUPPORT=
+WINDOW_SUPPORT=
+## If we're using X11/GNUstep, define some consequences.
+if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
+  AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
+  AC_DEFINE(HAVE_MOUSE, 1, [Define if you have mouse support.])
+  MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
+  TOOLTIP_SUPPORT="\${lispsource}mouse.elc"
+
+  WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
+  test "$HAVE_X_WINDOWS" = "yes" && \
+    WINDOW_SUPPORT="$WINDOW_SUPPORT \$(X_WINDOW_SUPPORT)"
+
+fi
+AC_SUBST(MOUSE_SUPPORT)
+AC_SUBST(TOOLTIP_SUPPORT)
+AC_SUBST(WINDOW_SUPPORT)
+
+
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
      2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
@@ -3282,12 +3309,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ])dnl
 
 AH_BOTTOM([
-/* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
-#endif
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -3312,7 +3333,7 @@ AH_BOTTOM([
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
 
-/* If using GNU, then support inline function declarations. */
+/* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
@@ -3337,7 +3358,7 @@ AH_BOTTOM([
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
    side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS. */
+   parallel this exactly since GNUstep is multi-OS.  */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
@@ -3434,7 +3455,7 @@ extern char *getenv ();
 #include "string.h"
 #endif
 #ifdef HAVE_STRINGS_H
-#include "strings.h"  /* May be needed for bcopy & al. */
+#include "strings.h"  /* May be needed for bcopy & al.  */
 #endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -3601,7 +3622,10 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-[cpp_undefs="`echo $srcdir $configuration $canonical unix |
+# src/Makefile.in used to treat X11 as equivalent to HAVE_X11.
+# But nothing in Emacs defines X11, and everywhere else uses HAVE_X11,
+# so that cannot have been doing anything.
+[cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"]
 

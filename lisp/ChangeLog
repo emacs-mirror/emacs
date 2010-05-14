@@ -1,3 +1,30 @@
+2010-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	Add TeX open-block and close-block keybindings to SGML, and vice
+	versa.
+
+	* textmodes/tex-mode.el (tex-mode-map): Bind C-c C-t to
+	latex-open-block and C-c / to latex-close-block.
+
+	* textmodes/sgml-mode.el (sgml-mode-map): Bind C-c C-o to sgml-tag
+	and C-c C-e to sgml-close-tag.
+
+2010-05-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (with-progress-reporter): Create reporter object
+	only when the message would be displayed.  Handled nested calls.
+	(tramp-handle-load, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-maybe-send-script, tramp-find-shell): Use
+	`with-progress-reporter'.
+	(tramp-handle-dired-compress-file, tramp-maybe-open-connection):
+	Fix message text.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
+	Use `with-progress-reporter'.
+
 2010-05-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-init-process): Do not kill ispell process

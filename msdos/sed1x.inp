@@ -8,6 +8,9 @@ s/DOC/DOC-X/g
 /^LIBXMENU *=/s!@LIBXMENU@!${OLDXMENU}!
 /^LIBX_OTHER *=/s!@LIBX_OTHER@!${LIBXT} ${LIBX_EXTRA}!
 /^LIBS_SYSTEM *=/s!= *!= -lxext -lsys!
+/^MSDOS_X_OBJ *=/s!= *!= w16select.o termcap.o!
+/^TOOLTIP_SUPPORT *=/s!= *!= ${lispsource}tooltip.elc!
+/^WINDOW_SUPPORT *=/s!= *!= $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)!
 /^temacs *:/s!OLDXMENU!LIBXMENU!
 
 # arch-tag: 3e8a78f2-3dec-44f3-81f6-3785a562da19

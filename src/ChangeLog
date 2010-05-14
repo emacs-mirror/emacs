@@ -1,3 +1,52 @@
+2010-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (struct composition_it): New member reversed_p.
+
+	* composite.c (composition_compute_stop_pos): Search backward if
+	ENDPOS < CHARPOS.
+	(composition_reseat_it): Handle the case that ENDPOS < CHARPOS.
+	Set CMP_IT->reversed_p.
+	(composition_update_it): Pay attention to CMP_IT->reversed_p.
+
+	* xdisp.c (set_iterator_to_next): Call
+	composition_compute_stop_pos with negative ENDPOS if we are
+	scanning backward.  Call composition_compute_stop_pos if scan
+	direction is changed.
+	(next_element_from_buffer): Call composition_compute_stop_pos with
+	negative ENDPOS if we are scanning backward.
+	(next_element_from_composition): Pay attention to
+	IT->cmp_it.reversed_p.
+
+2010-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_range): Return the range for the font found at
+	first.
+
+2010-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ns_appdir, ns_appbindir, ns_appsrc): Always define.
+
+	* Makefile.in (mktime, X11, register): Move undefs to configure.
+
+	* Makefile.in (MSDOS_OBJ): Default to empty, let msdos scripts set it.
+	(MSDOS_X_OBJ): New variable.
+	(MSDOS_SUPPORT_REAL): New constant.
+	(MSDOS_SUPPORT): Set as a variable, not with cpp.
+	(obj): Use MSDOS_X_OBJ.
+	(lisp): Use MSDOS_SUPPORT as a variable.
+
+	* Makefile.in (REAL_MOUSE_SUPPORT): New constant.
+	(GPM_MOUSE_SUPPORT): Now it's a constant.
+	(MOUSE_SUPPORT, TOOLTIP_SUPPORT, WINDOW_SUPPORT): Set with configure,
+	not cpp.
+
+	* Makefile.in (@NS_IMPL_GNUSTEP_INC@): Use in place of #ifdef.
+	(ns_appresdir): Remove, unused.
+
+	* Makefile.in (SHELL): Move outside cpp section.
+
+	* s/netbsd.h (AMPERSAND_FULL_NAME): Remove (defined in AH_BOTTOM).
+
 2010-05-13  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (FONT_DRIVERS): Place with other HAVE_X_WINDOWS stuff.

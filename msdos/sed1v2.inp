@@ -89,6 +89,11 @@ s/\.h\.in/.h-in/
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
+/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o/
+/^MSDOS_SUPPORT *=/s/= */= $(MSDOS_SUPPORT_REAL)/
+/^ns_appdir *=/s/@ns_appdir@//
+/^ns_appbindir *=/s/@ns_appbindir@//
+/^ns_appsrc *=/s/@ns_appsrc@//
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_SUPPORT *=/s/@NS_SUPPORT@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
@@ -99,7 +104,10 @@ s/\.h\.in/.h-in/
 /^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//
 /^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
-/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o ftfont.o xftfont.o ftxfont.o/
+/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o/
+/^MOUSE_SUPPORT *=/s/@MOUSE_SUPPORT@/$(REAL_MOUSE_SUPPORT)/
+/^TOOLTIP_SUPPORT *=/s/@TOOLTIP_SUPPORT@//
+/^WINDOW_SUPPORT *=/s/@WINDOW_SUPPORT@//
 /^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
@@ -109,6 +117,7 @@ s/\.h\.in/.h-in/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
+/^@NS_IMPL_GNUSTEP_INC@/s/@NS_IMPL_GNUSTEP_INC@//
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d
