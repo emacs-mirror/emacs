@@ -984,7 +984,7 @@
 1988-01-06  Richard Stallman  (rms@frosted-flakes)
 
 	* s-hpux.h: Don't define nomultiplejobs, LDAV_SYMBOL, LIBS_DEBUG
-	 or BROKEN_FIONREAD.
+	or BROKEN_FIONREAD.
 	* m-hp9000s300.h: Define those four.
 	* s-hpux.h: Define BSTRING, and define bcopy, etc., as macros.
 
@@ -2817,7 +2817,7 @@
 1986-11-26  Richard M. Stallman  (rms@prep)
 
 	* sysdep.c (get_system_name):
-	 Eliminate internal static var in USG case.
+	Eliminate internal static var in USG case.
 
 	* lisp.h: New case testing and conversion macros
 	UPPERCASEP, LOWERCASEP, NOCASEP, UPCASE, DOWNCASE.
@@ -3852,7 +3852,7 @@
 	(so now (let ((case-fold-search t))) doesn't force buffer-localness)
 	However, setting a binding will still make it buffer-local.
 	(ie (let ((case-fold-search t)) (setq case-fold-search t))
-	 will cause case-fold-search be buffer-local even outside the let)
+	will cause case-fold-search be buffer-local even outside the let)
 
 	* xfns.c:
 	Preserve studlycaps: "Gnuemacs" => "GNU Emacs"
@@ -4452,16 +4452,16 @@
 	* search.c (Freplace_match): Delete unused some_multiletter_word init.
 	* alloc.c (gc_sweep): Delete unused next initializers.
 	* fns.c (concat): After error on non-int elt for string,
-	   do store the new value from the error handler.
+	do store the new value from the error handler.
 	* lread.c (read1): Comment out unused end =.
 	* lread.c (read_list): Delete unused tail =.
 	* data.c (Fmake_variable_buffer_local):
-	  If value type is Lisp_Some_Buffer_Local_Value,
-	  change it to Lisp_Buffer_Local_Value permanently.
+	If value type is Lisp_Some_Buffer_Local_Value,
+	change it to Lisp_Buffer_Local_Value permanently.
 	* undo.c (record_block): Delete unused cp =.
-	  Don't bother reallocing if n = 0 after first batch.
+	Don't bother reallocing if n = 0 after first batch.
 	* fileio.c (Fverify_visited_file_modtime):
-	  If CHECK_BUFFER changes buf, use the changed value.
+	If CHECK_BUFFER changes buf, use the changed value.
 
 1986-07-07  Richard M. Stallman  (rms@prep)
 

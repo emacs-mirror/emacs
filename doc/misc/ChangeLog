@@ -1,3 +1,7 @@
+2010-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Remove "\turnoffactive" commands througout.
+
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* url.texi (HTTP language/coding, Customization):
@@ -593,7 +597,7 @@
 	(Agenda commands): Document new bulk commands.
 	(Plain lists): Document new behavior of
 	`org-cycle-include-plain-lists'.
-	 Hyphenation only in TeX.
+	Hyphenation only in TeX.
 	(Clocking work time): Document the key to update effort
 	estimates.
 	(Clocking work time): Document the clock time display.
@@ -1660,7 +1664,7 @@
 2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Mail Source Customization): Correct values of
-	 `mail-source-delete-incoming'.  Reported by Tassilo Horn.
+	`mail-source-delete-incoming'.  Reported by Tassilo Horn.
 	(Oort Gnus): Fix version comment for mml-dnd-protocol-alist.
 
 2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>

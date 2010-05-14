@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SIGNALS_VIA_CHARACTERS
 
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
+   if system supports pty's.  'a' means it is /dev/ptya0  */
 #undef FIRST_PTY_LETTER
 #define FIRST_PTY_LETTER 'q'
 

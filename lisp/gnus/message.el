@@ -7161,22 +7161,28 @@ Optional DIGEST will use digest to forward."
 (defun message-forward-make-body-plain (forward-buffer)
   (insert
    "\n-------------------- Start of forwarded message --------------------\n")
-  (let ((b (point)) e)
-    (insert
-     (with-temp-buffer
-       (mm-disable-multibyte)
-       (insert
-	(with-current-buffer forward-buffer
-	  (mm-with-unibyte-current-buffer (buffer-string))))
-       (mm-enable-multibyte)
-       (mime-to-mml)
-       (goto-char (point-min))
-       (when (looking-at "From ")
-	 (replace-match "X-From-Line: "))
-       (buffer-string)))
+  (let ((b (point))
+	(contents (with-current-buffer forward-buffer (buffer-string)))
+	e)
+    (unless (featurep 'xemacs)
+      (unless (mm-multibyte-string-p contents)
+	(error "Attempt to insert unibyte string from the buffer \"%s\"\
+ to the multibyte buffer \"%s\""
+	       (if (bufferp forward-buffer)
+		   (buffer-name forward-buffer)
+		 forward-buffer)
+	       (buffer-name))))
+    (insert (mm-with-multibyte-buffer
+	      (insert contents)
+	      (mime-to-mml)
+	      (goto-char (point-min))
+	      (when (looking-at "From ")
+		(replace-match "X-From-Line: "))
+	      (buffer-string)))
+    (unless (bolp) (insert "\n"))
     (setq e (point))
     (insert
-     "\n-------------------- End of forwarded message --------------------\n")
+     "-------------------- End of forwarded message --------------------\n")
     (message-remove-ignored-headers b e)))
 
 (defun message-remove-ignored-headers (b e)
@@ -7212,18 +7218,22 @@ Optional DIGEST will use digest to forward."
   (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
   (let ((b (point)) e)
     (if (not message-forward-decoded-p)
-	(insert
-	 (with-temp-buffer
-	   (mm-disable-multibyte)
-	   (insert
-	    (with-current-buffer forward-buffer
-	      (mm-with-unibyte-current-buffer (buffer-string))))
-	   (mm-enable-multibyte)
-	   (mime-to-mml)
-	   (goto-char (point-min))
-	   (when (looking-at "From ")
-	     (replace-match "X-From-Line: "))
-	   (buffer-string)))
+	(let ((contents (with-current-buffer forward-buffer (buffer-string))))
+	  (unless (featurep 'xemacs)
+	    (unless (mm-multibyte-string-p contents)
+	      (error "Attempt to insert unibyte string from the buffer \"%s\"\
+ to the multibyte buffer \"%s\""
+		     (if (bufferp forward-buffer)
+			 (buffer-name forward-buffer)
+		       forward-buffer)
+		     (buffer-name))))
+	  (insert (mm-with-multibyte-buffer
+		    (insert contents)
+		    (mime-to-mml)
+		    (goto-char (point-min))
+		    (when (looking-at "From ")
+		      (replace-match "X-From-Line: "))
+		    (buffer-string))))
       (save-restriction
 	(narrow-to-region (point) (point))
 	(mml-insert-buffer forward-buffer)

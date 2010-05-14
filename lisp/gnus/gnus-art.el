@@ -4822,7 +4822,11 @@ General format specifiers can also be used.  See Info node
 			   (with-current-buffer gnus-article-current-summary
 			     gnus-newsgroup-name)
 			 gnus-newsgroup-name)))
-	    (if (cond ((stringp gnus-safe-html-newsgroups)
+	    (if (cond ((not group)
+		       ;; Maybe we're in a mml-preview buffer
+		       ;; and no group is selected.
+		       t)
+		      ((stringp gnus-safe-html-newsgroups)
 		       (string-match gnus-safe-html-newsgroups group))
 		      ((consp gnus-safe-html-newsgroups)
 		       (member group gnus-safe-html-newsgroups)))

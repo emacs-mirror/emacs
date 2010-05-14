@@ -127,7 +127,7 @@
 	(org-ascii-replace-entities): New function.
 
 2010-04-10  Carsten Dominik  <carsten.dominik@gmail.com>
-	    Ulf Stegemann  <ulf@zeitform.de>
+            Ulf Stegemann  <ulf@zeitform.de>
 
 	* org-entities.el: New file.
 

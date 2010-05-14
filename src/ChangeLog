@@ -17,6 +17,91 @@
 	(next_element_from_composition): Pay attention to
 	IT->cmp_it.reversed_p.
 
+2010-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_range): Return the range for the font found at
+	first.
+
+2010-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mktime, X11, register): Move undefs to configure.
+
+	* Makefile.in (MSDOS_OBJ): Default to empty, let msdos scripts set it.
+	(MSDOS_X_OBJ): New variable.
+	(MSDOS_SUPPORT_REAL): New constant.
+	(MSDOS_SUPPORT): Set as a variable, not with cpp.
+	(obj): Use MSDOS_X_OBJ.
+	(lisp): Use MSDOS_SUPPORT as a variable.
+
+	* Makefile.in (REAL_MOUSE_SUPPORT): New constant.
+	(GPM_MOUSE_SUPPORT): Now it's a constant.
+	(MOUSE_SUPPORT, TOOLTIP_SUPPORT, WINDOW_SUPPORT): Set with configure,
+	not cpp.
+
+	* Makefile.in (@NS_IMPL_GNUSTEP_INC@): Use in place of #ifdef.
+	(ns_appresdir): Remove, unused.
+
+	* Makefile.in (SHELL): Move outside cpp section.
+
+	* s/netbsd.h (AMPERSAND_FULL_NAME): Remove (defined in AH_BOTTOM).
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (FONT_DRIVERS): Place with other HAVE_X_WINDOWS stuff.
+	(TOOLTIP_SUPPORT): Place with other HAVE_WINDOW_SYSTEM stuff.
+
+	* Makefile.in (FONT_DRIVERS): If HAVE_X_WINDOWS is defined,
+	HAVE_WINDOW_SYSTEM must be too.
+
+	* Makefile.in (WINNT_SUPPORT): Remove, nt build does not use this file.
+	(lisp): Remove WINNT_SUPPORT.
+
+	* Makefile.in (OLDXMENU, LIBXMENU) [!HAVE_MENUS]:
+	Let configure set these variables (to empty) in this case as well.
+
+	* Makefile.in (LD_SWITCH_X_SITE): Define as a variable, not via cpp.
+	(LIBX_BASE): Use $LD_SWITCH_X_SITE.
+
+	* Makefile.in (C_SWITCH_X_SYSTEM, C_SWITCH_X_SITE, LIB_STANDARD)
+	(LIB_MATH, FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS)
+	(FREETYPE_LIBS, LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS)
+	(M17N_FLT_LIBS, GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBGPM)
+	(LIBRESOLV, UNEXEC_OBJ): For clarity, define variables to hold
+	the values output by configure.
+	(ALL_CFLAGS, obj, LIBES, temacs${EXEEXT}): Use the above variables.
+
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (YMF_PASS_LDFLAGS, LD, LINKER): Simplify the logic.
+	(LINKER_WAS_SPECIFIED): Remove.
+
+	* Makefile.in (LIB_GCC): Set using configure, not cpp.
+	(GNULIB_VAR) [!ORDINARY_LINK]: Always set to $LIB_GCC.
+	* m/arm.h (LIB_GCC) [GNU_LINUX]:
+	* s/cygwin.h (LIB_GCC):
+	* s/freebsd.h (LIB_GCC):
+	* s/gnu-linux.h (LIB_GCC):
+	* s/msdos.h (LIB_GCC):
+	* s/netbsd.h (LIB_GCC):
+	Move to configure.
+
+2010-05-11  Karel Klic  <kklic@redhat.com>
+
+	* ftfont.c: Fix incorrect parentheses of #if condition for
+	definining M17N_FLT_USE_NEW_FEATURE.
+
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBS_SYSTEM) [MSDOS]: Do not reset.
+	* s/msdos.h (MSDOS_LIBS_SYSTEM): Remove.
+
+2010-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Don't turn on bidi reordering in
+	unibyte buffers.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00263.html.
+>>>>>>> MERGE-SOURCE
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBS_SYSTEM): Set using configure, not cpp.
@@ -750,7 +835,7 @@
 	(Frename_file): Preserve selinux context when renaming by copy-file.
 
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	Don't depend on cm.c or termcap.c on Windows, use stubs.
 	* makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
@@ -8941,7 +9026,7 @@
 	<after-change-functions>: Reflow docstrings.
 
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
-	    Ken Raeburn  <raeburn@gnu.org>
+            Ken Raeburn  <raeburn@gnu.org>
 
 	Dock menu customization, based on a patch by Ken Raeburn, plus some
 	other fixes.
@@ -10006,7 +10091,7 @@
 	batch-compiling for bootstrap).
 
 2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
-	    YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+            YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
 	fix crash due to different init order.
@@ -10624,7 +10709,7 @@
 	(USG_SHARED_LIBRARIES): Remove duplicate definition.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (LOCAL_FLAGS):
 	Don't include WINDOWSNT, DOS_NT and _UCHAR_T.
@@ -10872,7 +10957,7 @@
 	the property of LFACE_FONT of LFACE (if any).
 
 2008-06-21  Seiji Zenitani  <zenitani@mac.com>
-	    Ryo Yoshitake  <ryo@shiftmode.net>
+            Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* xterm.c (x_set_frame_alpha): Add x_catch_errors for bug#437.
 
@@ -11968,7 +12053,7 @@
 	* xterm.c (x_set_frame_alpha): Move declarations before statements.
 
 2008-05-21  Seiji Zenitani  <zenitani@mac.com>
-	    Ryo Yoshitake  <ryo@shiftmode.net>
+            Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* frame.c (Qalpha): Add a new frame parameter `alpha'.
 	(Vframe_alpha_lower_limit): New variable.

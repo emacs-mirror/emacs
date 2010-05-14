@@ -1187,7 +1187,7 @@
 	prompt.
 	(various): Pass window being displayed as arg to vmotion.
 	(various): Compute starting-hpos arg to compute_motion
-	 using minibuf_prompt_width if in minibuf starting at top.
+	using minibuf_prompt_width if in minibuf starting at top.
 
 	* window.c (Fdisplay_buffer & callers):
 	Take second arg, non-nil means do not use selected window
@@ -1645,8 +1645,8 @@
 	Use signal, not sigset, since we simulate signal on
 	all system versions when nec.
 
-	* buffer.c (syms_of_buffer, init_buffer_once,
-	            reset_buffer_local_variables):
+	* buffer.c (syms_of_buffer, init_buffer_once)
+	(reset_buffer_local_variables):
 	Define default-abbrev-mode, and init new buffers' abbrev-mode
 	from it.  Move definition of abbrev-mode here from abbrev.c.
 
@@ -2861,7 +2861,7 @@
 	* keymap.c, callint.c, minibuf.c, fns.c, commands.h:
 	Rename MinbufLocalMap to Vminibuffer_local_map, etc.
 	Rename minibuf-local-{,-ns,-completion,must-match}map,
-	 and DefLispVar them (document even!).
+	and DefLispVar them (document even!).
 	=> New lisp variables minibuffer-local-map, minibuffer-local-ns-map,
 	minibuffer-local-completion-map, minibuffer-local-must-match-map.
 

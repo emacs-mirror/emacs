@@ -38,25 +38,38 @@ s/\.h\.in/.h-in/
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
-s/@LIB_MATH@/-lm/
 /^LIBES *=/,/^ *$/ {
   s/@[^@\n]*@//g
 }
 /^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
+/^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
+/^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
+#/^LD_SWITCH_X_SITE *=/s/@LD_SWITCH_X_SITE@//
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
 /^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
 /^LD_SWITCH_X_SITE_AUX_RPATH *=/s/@LD_SWITCH_X_SITE_AUX_RPATH@//
 /^LD_SWITCH_SYSTEM *=/s/@LD_SWITCH_SYSTEM@//
 /^LD_SWITCH_SYSTEM_EXTRA *=/s/@LD_SWITCH_SYSTEM_EXTRA@//
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
+/^LIB_GCC *=/s/@LIB_GCC@/-Lgcc/
+/^LIB_STANDARD *=/s/@LIB_STANDARD@//
+/^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIBTIFF *=/s/@LIBTIFF@//
 /^LIBJPEG *=/s/@LIBJPEG@//
 /^LIBPNG *=/s/@LIBPNG@//
 /^LIBGIF *=/s/@LIBGIF@//
 /^LIBXPM *=/s/@LIBXPM@//
 /^XFT_LIBS *=/s/@XFT_LIBS@//
+/^FONTCONFIG_CFLAGS *=/s/@FONTCONFIG_CFLAGS@//
+/^FONTCONFIG_LIBS *=/s/@FONTCONFIG_LIBS@//
+/^FREETYPE_CFLAGS *=/s/@FREETYPE_CFLAGS@//
+/^FREETYPE_LIBS *=/s/@FREETYPE_LIBS@//
+/^LIBOTF_CFLAGS *=/s/@LIBOTF_CFLAGS@//
+/^LIBOTF_LIBS *=/s/@LIBOTF_LIBS@//
+/^M17N_FLT_CFLAGS *=/s/@M17N_FLT_CFLAGS@//
+/^M17N_FLT_LIBS *=/s/@M17N_FLT_LIBS@//
 /^DBUS_CFLAGS *=/s/@DBUS_CFLAGS@//
 /^DBUS_LIBS *=/s/@DBUS_LIBS@//
 /^DBUS_OBJ *=/s/@DBUS_OBJ@//
@@ -76,22 +89,32 @@ s/@LIB_MATH@/-lm/
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
+/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o/
+/^MSDOS_SUPPORT *=/s/= */= $(MSDOS_SUPPORT_REAL)/
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_SUPPORT *=/s/@NS_SUPPORT@//
+/^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
+/^GNUSTEP_SYSTEM_LIBRARIES *=/s/@GNUSTEP_SYSTEM_LIBRARIES@//
+/^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//
 /^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
-/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o ftfont.o xftfont.o ftxfont.o/
+/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o/
+/^MOUSE_SUPPORT *=/s/@MOUSE_SUPPORT@/$(REAL_MOUSE_SUPPORT)/
+/^TOOLTIP_SUPPORT *=/s/@TOOLTIP_SUPPORT@//
+/^WINDOW_SUPPORT *=/s/@WINDOW_SUPPORT@//
+/^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
-s/@unexec@/unexec.o/g
+/^UNEXEC_OBJ *=/s/@unexec@/unexec.o/
 /^version *=/s/@[^@\n]*@//
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
+/^@NS_IMPL_GNUSTEP_INC@/s/@NS_IMPL_GNUSTEP_INC@//
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d

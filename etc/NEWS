@@ -43,6 +43,8 @@ You can disable this by using --without-selinux.
 
 * Changes in Emacs 24.1
 
+** Completion can cycle, depending on completion-cycle-threshold.
+
 ** auto-mode-case-fold is now enabled by default.
 
 +++

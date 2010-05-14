@@ -266,6 +266,8 @@ with wrapping around the current Info node."
   :group 'info)
 
 (defvar Info-isearch-initial-node nil)
+(defvar Info-isearch-initial-history nil)
+(defvar Info-isearch-initial-history-list nil)
 
 (defcustom Info-mode-hook
   ;; Try to obey obsolete Info-fontify settings.
@@ -1914,7 +1916,27 @@ If DIRECTION is `backward', search in the reverse direction."
   (setq Info-isearch-initial-node
 	;; Don't stop at initial node for nonincremental search.
 	;; Otherwise this variable is set after first search failure.
-	(and isearch-nonincremental Info-current-node)))
+	(and isearch-nonincremental Info-current-node))
+  (setq Info-isearch-initial-history      Info-history
+	Info-isearch-initial-history-list Info-history-list)
+  (add-hook 'isearch-mode-end-hook 'Info-isearch-end nil t))
+
+(defun Info-isearch-end ()
+  ;; Remove intermediate nodes (visited while searching)
+  ;; from the history.  Add only the last node (where Isearch ended).
+  (if (> (length Info-history)
+	 (length Info-isearch-initial-history))
+      (setq Info-history
+	    (nthcdr (- (length Info-history)
+		       (length Info-isearch-initial-history)
+		       1)
+		    Info-history)))
+  (if (> (length Info-history-list)
+	 (length Info-isearch-initial-history-list))
+      (setq Info-history-list
+	    (cons (car Info-history-list)
+		  Info-isearch-initial-history-list)))
+  (remove-hook 'isearch-mode-end-hook  'Info-isearch-end t))
 
 (defun Info-isearch-filter (beg-found found)
   "Test whether the current search hit is a visible useful text.

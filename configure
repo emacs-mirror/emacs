@@ -717,6 +717,7 @@ SET_MAKE
 XMKMF
 LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
+NS_IMPL_GNUSTEP_INC
 NS_OBJ
 NS_SUPPORT
 LIB_STANDARD
@@ -751,7 +752,6 @@ LIBPNG
 LIBTIFF
 LIBGIF
 LIBGPM
-GPM_MOUSE_SUPPORT
 LIBXSM
 ALLOCA
 liblockfile
@@ -796,11 +796,9 @@ ns_appdir
 ns_appbindir
 ns_appresdir
 ns_appsrc
-GNUSTEP_MAKEFILES
 GNUSTEP_SYSTEM_HEADERS
 GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
-LIB_SRC_EXTRA_INSTALLABLES
 OTHER_FILES
 XMENU_OBJ
 XOBJ
@@ -815,6 +813,10 @@ PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
 LD_SWITCH_SYSTEM_EXTRA
+LIB_GCC
+MOUSE_SUPPORT
+TOOLTIP_SUPPORT
+WINDOW_SUPPORT
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -6484,7 +6486,7 @@ case $opsys in
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
   netbsd | openbsd )
-    if test -f $(CRT_DIR)/crti.o; then
+    if test -f $CRT_DIR/crti.o; then
 	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
         START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
     else
@@ -9929,6 +9931,7 @@ fi
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
+NS_IMPL_GNUSTEP_INC=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -9949,6 +9952,13 @@ if test "${with_ns}" != no; then
           GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     ## Pull in stuff from GNUstep-make.
+     NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
+GUI_LIB=gnu
+include $GNUSTEP_MAKEFILES/Additional/base.make
+include $GNUSTEP_MAKEFILES/Additional/gui.make
+shared=no
+"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -10140,6 +10150,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
 
 NS_OBJ=
 NS_SUPPORT=
@@ -15991,7 +16002,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
-GPM_MOUSE_SUPPORT=
+MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   if test "${ac_cv_header_gpm_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for gpm.h" >&5
@@ -16201,10 +16212,10 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     LIBGPM=-lgpm
-    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
+    ## May be reset below.
+    MOUSE_SUPPORT="\$(GPM_MOUSE_SUPPORT)"
   fi
 fi
-
 
 
 if test "${ac_cv_header_malloc_malloc_h+set}" = set; then
@@ -26313,6 +26324,7 @@ fi
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 
 
+## Unused?
 
 
 
@@ -26334,13 +26346,14 @@ fi
 
 
 
+## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
+## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
+## end of LIBX_BASE, but nothing ever set it.
 
 
 
 
 ## Used in lwlib/Makefile.in.
-
-
 
 
 
@@ -26372,16 +26385,6 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define config_opsysfile "${opsysfile}"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define LD_SWITCH_X_SITE ${LD_SWITCH_X_SITE}
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define C_SWITCH_X_SITE ${C_SWITCH_X_SITE}
 _ACEOF
 
 
@@ -26481,7 +26484,7 @@ else
   LIBX_OTHER=
 fi
 
-if test "$HAVE_GTK" = "yes"; then
+if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
 fi
@@ -26565,6 +26568,61 @@ if test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
 else
   LD_SWITCH_SYSTEM_EXTRA=
 fi
+
+
+
+LIB_GCC=
+if test "x$GCC" = "xyes"; then
+
+  case "$opsys" in
+    ## cygwin: don't link against static libgcc.
+    cygwin|freebsd|netbsd|openbsd) LIB_GCC= ;;
+
+    gnu-*)
+      ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
+      ## build on ARM EABI under GNU/Linux.  (Bug#5518)
+      ## Note that m/arm.h never bothered to undefine LIB_GCC first.
+      if test "$machine" = "arm"; then
+        LIB_GCC="-lgcc_s"
+      else
+        ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
+        ## immediately undefine it again and redefine it to empty.
+        ## Was the C_SWITCH_X_SITE part really necessary?
+##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
+        LIB_GCC=
+      fi
+      ;;
+
+    ## Ask GCC where to find libgcc.a.
+    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
+  esac
+fi
+
+
+TOOLTIP_SUPPORT=
+WINDOW_SUPPORT=
+## If we're using X11/GNUstep, define some consequences.
+if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_WINDOW_SYSTEM 1
+_ACEOF
+
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_MOUSE 1
+_ACEOF
+
+  MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
+  TOOLTIP_SUPPORT="\${lispsource}mouse.elc"
+
+  WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
+  test "$HAVE_X_WINDOWS" = "yes" && \
+    WINDOW_SUPPORT="$WINDOW_SUPPORT \$(X_WINDOW_SUPPORT)"
+
+fi
+
+
 
 
 
@@ -26664,7 +26722,7 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-cpp_undefs="`echo $srcdir $configuration $canonical unix |
+cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"
 
@@ -26690,7 +26748,7 @@ fi
 rm -f conftest*
 
 
-ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
+ac_config_files="$ac_config_files Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -27289,7 +27347,7 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:src/config.in" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "lib-src/Makefile.c") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile.c:lib-src/Makefile.in" ;;
+    "lib-src/Makefile") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile" ;;
     "oldXMenu/Makefile") CONFIG_FILES="$CONFIG_FILES oldXMenu/Makefile" ;;
     "doc/emacs/Makefile") CONFIG_FILES="$CONFIG_FILES doc/emacs/Makefile" ;;
     "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
@@ -27933,22 +27991,6 @@ ${MAKE-make} epaths-force
 if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
   CPPFLAGS="$CPPFLAGS -traditional"
 fi
-
-echo creating lib-src/Makefile
-( cd lib-src
-  rm -f junk.c junk1.c junk2.c
-  sed -e '/start of cpp stuff/q' \
-      < Makefile.c > junk1.c
-  sed -e '1,/start of cpp stuff/d'\
-      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
-      < Makefile.c > junk.c
-  $CPP -P $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
-      sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
-  cat junk1.c junk2.c > Makefile.new
-  rm -f junk.c junk1.c junk2.c
-  chmod 444 Makefile.new
-  mv -f Makefile.new Makefile
-)
 
 echo creating src/Makefile
 ( cd src

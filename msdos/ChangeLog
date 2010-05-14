@@ -1,3 +1,44 @@
+2010-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (MSDOS_OBJ): Edit to dosfns.o msdos.o.
+	(MSDOS_SUPPORT): Edit to $(MSDOS_SUPPORT_REAL).
+	* sed1x.inp (MSDOS_X_OBJ): Edit to w16select.o termcap.o.
+
+	* sed2x.inp (HAVE_WINDOW_SYSTEM): Define.
+	* sed1x.inp (TOOLTIP_SUPPORT): Edit to ${lispsource}tooltip.elc.
+	(WINDOW_SUPPORT): Edit to $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT).
+	* sed1v2.inp (MOUSE_SUPPORT): Edit to $(REAL_MOUSE_SUPPORT).
+	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): Edit to empty.
+
+	* sed1v2.inp (FONT_OBJ): Use the plain X version (no XFT, Freetype).
+
+	* sed1v2.inp (@NS_IMPL_GNUSTEP_INC@): Edit to nil.
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (OLDXMENU): Edit to ${oldXMenudir}libXMenu11.a.
+	(LIBXMENU): Edit to ${OLDXMENU}.
+	(LIBX_OTHER): Edit to ${LIBXT} ${LIBX_EXTRA}.
+
+	* sed1v2.inp (C_SWITCH_X_SYSTEM, C_SWITCH_X_SITE, LIB_STANDARD)
+	(FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS, FREETYPE_LIBS)
+	(LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS, M17N_FLT_LIBS)
+	(GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBRESOLV, LIBGPM):
+	Edit to empty,
+	(LIB_MATH): Edit to -lm.
+	(UNEXEC_OBJ): Edit to unexec.o.
+
+2010-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* sed3v2.inp (INSTALLABLES): No more @LIB_SRC_EXTRA_INSTALLABLES@.
+
+	* sed1v2.inp (LIB_GCC): Edit to -Lgcc.
+
+2010-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (LIBS_SYSTEM): Edit to -lxext -lsys.
+	* sed3x.inp: New file.
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp, sed3v2.inp (LIBS_SYSTEM): Edit to empty.

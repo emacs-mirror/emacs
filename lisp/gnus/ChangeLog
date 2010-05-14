@@ -1,4 +1,66 @@
-2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-mailcrypt-encrypt, mml1991-gpg-encrypt)
+	* mml2015.el (mml2015-gpg-encrypt): Disable multibyte in buffers
+	generated within the mm-with-unibyte-current-buffer macro.
+
+2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-bind-safe-url-regexp): Bind mm-w3m-safe-url-regexp
+	to nil when we're in a mml-preview buffer and no group is selected.
+
+2010-05-12  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-read-group-1): Don't jump to next group
+	when catching the `C-g'.  Reported by: "Leo"
+
+2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-plain)
+	(message-forward-make-body-mml): Use mm-multibyte-string-p instead of
+	multibyte-string-p.
+
+2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-mml): Assume original message
+	is multibyte string; error on unibyte.
+	(message-forward-make-body-plain): Ditto; don't add excessive newline
+	in body end.
+
+2010-05-11  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-kill-thread): Use gnus-summary-mark-article
+	instead of g-s-m-a-as-unread to set the expirable mark.  (Bug#5284)
+
+2010-05-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-extern.el (mm-extern-url): Don't use
+	mm-with-unibyte-current-buffer.
+	(mm-extern-cache-contents): Use with-current-buffer instead of
+	save-excursion + set-buffer.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-emacs-mule): Remove.
+
+2010-05-10  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-mode): Don't make minor-mode-alist
+	buffer-local as it's incompatible with Stefan Monnier's 2010-05-03
+	change.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-with-unibyte-current-buffer): Redefine it so as not to
+	bind the default value of enable-multibyte-characters to nil.
+
+2010-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-plain)
+	(message-forward-make-body-mml):
+	Don't use mm-with-unibyte-current-buffer.
+
+2010-05-07  Christian von Roques  <roques@mti.ag>  (tiny change)
 
 	* mml2015.el (mml2015-epg-find-usable-key): Skip disabled key
 	(Bug#5592).
