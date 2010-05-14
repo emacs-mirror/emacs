@@ -1,3 +1,8 @@
+2010-05-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-bin.el (math-format-twos-complement): Group digits when
+	appropriate.
+
 2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-mode-default-syntax-table): Remove.
