@@ -1,5 +1,9 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* sed1v2.inp (MSDOS_OBJ): Edit to dosfns.o msdos.o.
+	(MSDOS_SUPPORT): Edit to $(MSDOS_SUPPORT_REAL).
+	* sed1x.inp (MSDOS_X_OBJ): Edit to w16select.o termcap.o.
+
 	* sed2x.inp (HAVE_WINDOW_SYSTEM): Define.
 	* sed1x.inp (TOOLTIP_SUPPORT): Edit to ${lispsource}tooltip.elc.
 	(WINDOW_SUPPORT): Edit to $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT).

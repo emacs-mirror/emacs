@@ -184,6 +184,16 @@ WIDGET_OBJ=@WIDGET_OBJ@
 ## sheap.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
+## dosfns.o msdos.o if MSDOS.
+MSDOS_OBJ =
+## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
+MSDOS_X_OBJ =
+MSDOS_SUPPORT_REAL = ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
+ ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
+ ${lispsource}term/internal.elc ${lispsource}term/pc-win.elc
+## $MSDOS_SUPPORT_REAL if MSDOS.
+MSDOS_SUPPORT = 
+
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
 ## Next two only set if NS_IMPL_GNUSTEP.
@@ -340,15 +350,6 @@ LD=ld
 
 #endif /* not ORDINARY_LINK */
 
-
-#ifdef MSDOS
-#ifdef HAVE_X_WINDOWS
-MSDOS_OBJ = dosfns.o msdos.o
-#else
-MSDOS_OBJ = dosfns.o msdos.o w16select.o termcap.o
-#endif
-#endif
-
 #ifdef HAVE_NS
 ns_appdir=@ns_appdir@/
 ns_appbindir=@ns_appbindir@/
@@ -370,7 +371,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
+	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines in case they are needed.  */
@@ -404,15 +405,6 @@ POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 /* List of object files that make-docfile should not be told about.  */
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
   $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
-
-#ifdef MSDOS
-#define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
- ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
- ${lispsource}term/internal.elc ${lispsource}term/pc-win.elc
-
-#else
-#define MSDOS_SUPPORT
-#endif
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
@@ -511,7 +503,7 @@ lisp= \
 	${lispsource}ediff-hook.elc \
 	${lispsource}epa-hook.elc \
 	${TOOLTIP_SUPPORT} \
-	MSDOS_SUPPORT \
+	${MSDOS_SUPPORT} \
 	${WINDOW_SUPPORT} \
 	${NS_SUPPORT} \
 	${lispsource}widget.elc \

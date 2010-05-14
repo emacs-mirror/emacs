@@ -1,5 +1,12 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (MSDOS_OBJ): Default to empty, let msdos scripts set it.
+	(MSDOS_X_OBJ): New variable.
+	(MSDOS_SUPPORT_REAL): New constant.
+	(MSDOS_SUPPORT): Set as a variable, not with cpp.
+	(obj): Use MSDOS_X_OBJ.
+	(lisp): Use MSDOS_SUPPORT as a variable.
+
 	* Makefile.in (REAL_MOUSE_SUPPORT): New constant.
 	(GPM_MOUSE_SUPPORT): Now it's a constant.
 	(MOUSE_SUPPORT, TOOLTIP_SUPPORT, WINDOW_SUPPORT): Set with configure,
