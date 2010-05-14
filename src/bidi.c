@@ -540,15 +540,28 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 
 /* Caching the bidi iterator states.  */
 
-static struct bidi_it bidi_cache[1000]; /* FIXME: make this dynamically allocated! */
-static int bidi_cache_idx;
-static int bidi_cache_last_idx;
+#define BIDI_CACHE_CHUNK 200
+static struct bidi_it *bidi_cache;
+static size_t bidi_cache_size = 0;
+static int bidi_cache_idx;	/* next unused cache slot */
+static int bidi_cache_last_idx;	/* slot of last cache hit */
 
 static INLINE void
 bidi_cache_reset (void)
 {
   bidi_cache_idx = 0;
   bidi_cache_last_idx = -1;
+}
+
+static INLINE void
+bidi_cache_shrink (void)
+{
+  if (bidi_cache_size > BIDI_CACHE_CHUNK)
+    {
+      bidi_cache_size = BIDI_CACHE_CHUNK * sizeof (struct bidi_it);
+      bidi_cache = (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size);
+    }
+  bidi_cache_reset ();
 }
 
 static INLINE void
@@ -672,9 +685,13 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
   if (idx < 0)
     {
       idx = bidi_cache_idx;
-      /* Don't overrun the cache limit.  */
-      if (idx > sizeof (bidi_cache) / sizeof (bidi_cache[0]) - 1)
-	abort ();
+      /* Enlarge the cache as needed.  */
+      if (idx >= bidi_cache_size)
+	{
+	  bidi_cache_size += BIDI_CACHE_CHUNK * sizeof (struct bidi_it);
+	  bidi_cache =
+	    (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size);
+	}
       /* Character positions should correspond to cache positions 1:1.
 	 If we are outside the range of cached positions, the cache is
 	 useless and must be reset.  */
@@ -990,6 +1007,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
     bidi_it->prev_for_neutral.type_after_w1 =
     bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
+  bidi_cache_shrink ();
 }
 
 /* Push the current embedding level and override status; reset the
