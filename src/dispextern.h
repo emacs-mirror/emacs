@@ -1987,6 +1987,10 @@ struct composition_it
      graphic display and in units of canonical characters on a
      terminal display.  */
   int width;
+  /* Nonzero iff the composition is created while buffer is scanned in
+     reverse order, and thus the grapheme clusters must be rendered
+     from the last to the first.  */
+  int reversed_p;
 };
 
 struct it
