@@ -1,5 +1,10 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (REAL_MOUSE_SUPPORT): New constant.
+	(GPM_MOUSE_SUPPORT): Now it's a constant.
+	(MOUSE_SUPPORT, TOOLTIP_SUPPORT, WINDOW_SUPPORT): Set with configure,
+	not cpp.
+
 	* Makefile.in (@NS_IMPL_GNUSTEP_INC@): Use in place of #ifdef.
 	(ns_appresdir): Remove, unused.
 

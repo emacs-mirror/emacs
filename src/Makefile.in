@@ -193,10 +193,17 @@ GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
 ## Only used if HAVE_X_WINDOWS.
 FONT_OBJ=@FONT_OBJ@
 
-## ${lispsource}mouse.elc if HAVE_GPM, otherwise empty.
-## Not used if HAVE_MOUSE.
-GPM_MOUSE_SUPPORT=@GPM_MOUSE_SUPPORT@
+## Used if HAVE_MOUSE.
+REAL_MOUSE_SUPPORT=${lispsource}mouse.elc ${lispsource}select.elc \
+  ${lispsource}scroll-bar.elc
+## Used if HAVE_GPM && !HAVE_MOUSE
+GPM_MOUSE_SUPPORT=${lispsource}mouse.elc
 LIBGPM = @LIBGPM@
+## Either of the two preceding options, or empty.
+MOUSE_SUPPORT=@MOUSE_SUPPORT@
+
+## ${lispsource}tooltip.elc if HAVE_WINDOW_SYSTEM, else empty.
+TOOLTIP_SUPPORT=@TOOLTIP_SUPPORT@
 
 BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
   ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
@@ -204,6 +211,10 @@ BASE_WINDOW_SUPPORT=${lispsource}fringe.elc ${lispsource}image.elc \
 
 X_WINDOW_SUPPORT=${lispsource}x-dnd.elc ${lispsource}term/common-win.elc \
   ${lispsource}term/x-win.elc ${lispsource}dynamic-setting.elc
+
+## If HAVE_X_WINDOWS, both the above
+## else if HAVE_WINDOW_SYSTEM (ie, HAVE_NS) just the former; else empty.
+WINDOW_SUPPORT=@WINDOW_SUPPORT@
 
 ## -lresolv, or empty.
 LIBRESOLV = @LIBRESOLV@
@@ -344,8 +355,8 @@ ns_appbindir=@ns_appbindir@/
 ns_appsrc=@ns_appsrc@
 #endif  /* HAVE_NS */
 
-/* lastfile must follow all files
-   whose initialized data areas should be dumped as pure by dump-emacs.  */
+/* lastfile must follow all files whose initialized data areas should
+   be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
@@ -394,13 +405,6 @@ POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
   $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
-#ifdef HAVE_MOUSE
-#define MOUSE_SUPPORT ${lispsource}mouse.elc \
-  ${lispsource}select.elc ${lispsource}scroll-bar.elc
-#else
-#define MOUSE_SUPPORT $(GPM_MOUSE_SUPPORT)
-#endif
-
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
  ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
@@ -409,18 +413,6 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
 #else
 #define MSDOS_SUPPORT
 #endif
-
-#ifdef HAVE_WINDOW_SYSTEM
-#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
-#ifdef HAVE_X_WINDOWS
-#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)
-#else
-#define WINDOW_SUPPORT $(BASE_WINDOW_SUPPORT)
-#endif /* HAVE_X_WINDOWS */
-#else
-#define TOOLTIP_SUPPORT
-#define WINDOW_SUPPORT
-#endif /* HAVE_WINDOW_SYSTEM */
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
@@ -455,7 +447,7 @@ lisp= \
 	${lispsource}files.elc \
 	${lispsource}format.elc \
 	${lispsource}facemenu.elc \
-	MOUSE_SUPPORT \
+	${MOUSE_SUPPORT} \
 	${lispsource}emacs-lisp/float-sup.elc \
 	${lispsource}frame.elc \
 	${lispsource}help.elc \
@@ -518,9 +510,9 @@ lisp= \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
 	${lispsource}epa-hook.elc \
-	TOOLTIP_SUPPORT \
+	${TOOLTIP_SUPPORT} \
 	MSDOS_SUPPORT \
-	WINDOW_SUPPORT \
+	${WINDOW_SUPPORT} \
 	${NS_SUPPORT} \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
@@ -757,6 +749,8 @@ doc.o: buildobj.h
 Eg callproc.c only depends on w32.h for WINDOWSNT builds.
 One way to fix this would be to replace w32.h (etc) by $(W32_H),
 a variable set by configure.  Does not seem worth the trouble.
+Since the w32 build does not even use this file, you might ask
+why these dependencies are here at all...
 
 nsgui.h: In fact, every .o file depends directly or indirectly on
 dispextern.h and hence nsgui.h under NS.  But the ones that actually

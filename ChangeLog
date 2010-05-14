@@ -1,5 +1,9 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (GPM_MOUSE_SUPPORT): Remove.
+	(MOUSE_SUPPORT, TOOLTIP_SUPPORT, WINDOW_SUPPORT): New output variables.
+	(HAVE_WINDOW_SYSTEM, HAVE_MOUSE): Move out of AC_BOTTOM.
+
 	* configure.in (NS_IMPL_GNUSTEP_INC): New output variable.
 	(GNUSTEP_MAKEFILES): Do not output.
 

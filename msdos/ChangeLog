@@ -1,5 +1,11 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* sed2x.inp (HAVE_WINDOW_SYSTEM): Define.
+	* sed1x.inp (TOOLTIP_SUPPORT): Edit to ${lispsource}tooltip.elc.
+	(WINDOW_SUPPORT): Edit to $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT).
+	* sed1v2.inp (MOUSE_SUPPORT): Edit to $(REAL_MOUSE_SUPPORT).
+	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): Edit to empty.
+
 	* sed1v2.inp (FONT_OBJ): Use the plain X version (no XFT, Freetype).
 
 	* sed1v2.inp (@NS_IMPL_GNUSTEP_INC@): Edit to nil.
