@@ -7926,6 +7926,14 @@ imagemagick_load_image (f, img, contents, size, filename)
                             ximg->data);
   }
   
+
+  //TODO figure out imagecount here!
+  if (MagickGetNumberImages(image_wand) > 1)
+    img->data.lisp_val = Fcons (Qcount,
+				Fcons (make_number (MagickGetNumberImages(image_wand)),
+				       img->data.lisp_val));
+
+
 #ifdef COLOR_TABLE_SUPPORT
   /* Remember colors allocated for this image.  */
   img->colors = colors_in_color_table (&img->ncolors);
