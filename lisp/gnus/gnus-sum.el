@@ -11664,12 +11664,8 @@ will not be marked as saved."
 	    (gnus-message 1 "Article %d is unsaveable" article))
 	;; This is a real article.
 	(save-window-excursion
-	  (let ((gnus-display-mime-function (when decode
-					      gnus-display-mime-function))
-		(gnus-article-prepare-hook (when decode
-					     gnus-article-prepare-hook)))
-	    (gnus-summary-select-article t t nil article)
-	    (gnus-summary-goto-subject article)))
+	  (gnus-summary-select-article decode decode nil article)
+	  (gnus-summary-goto-subject article))
 	(with-current-buffer save-buffer
 	  (erase-buffer)
 	  (insert-buffer-substring (if decode
