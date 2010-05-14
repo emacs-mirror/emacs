@@ -347,7 +347,6 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o termcap.o
 #ifdef HAVE_NS
 ns_appdir=@ns_appdir@/
 ns_appbindir=@ns_appbindir@/
-ns_appresdir=@ns_appresdir@/
 ns_appsrc=@ns_appsrc@
 #endif  /* HAVE_NS */
 

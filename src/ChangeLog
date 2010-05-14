@@ -1,6 +1,7 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SHELL): Move outside cpp section.
+	(ns_appresdir): Remove, unused.
 
 	* s/netbsd.h (AMPERSAND_FULL_NAME): Remove (defined in AH_BOTTOM).
 
