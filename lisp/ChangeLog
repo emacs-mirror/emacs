@@ -1,3 +1,12 @@
+2010-05-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sql.el (sql-oracle-program): Reflow docstring.
+	(sql-oracle-scan-on, sql-sybase-program, sql-product-font-lock)
+	(sql-add-product-keywords, sql-highlight-product, sql-set-product)
+	(sql-make-alternate-buffer-name, sql-placeholders-filter)
+	(sql-escape-newlines-filter, sql-input-sender)
+	(sql-send-magic-terminator, sql-sybase): Fix typos in docstrings.
+
 2010-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	Add TeX open-block and close-block keybindings to SGML, and vice
