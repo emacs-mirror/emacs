@@ -99,7 +99,7 @@ s/\.h\.in/.h-in/
 /^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//
 /^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
-/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o ftfont.o xftfont.o ftxfont.o/
+/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o/
 /^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/

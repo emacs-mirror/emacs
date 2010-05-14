@@ -1,5 +1,7 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* sed1v2.inp (FONT_OBJ): Use the plain X version (no XFT, Freetype).
+
 	* sed1v2.inp (@NS_IMPL_GNUSTEP_INC@): Edit to nil.
 
 2010-05-13  Glenn Morris  <rgm@gnu.org>
