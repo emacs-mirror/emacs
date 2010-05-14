@@ -91,6 +91,9 @@ s/\.h\.in/.h-in/
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o/
 /^MSDOS_SUPPORT *=/s/= */= $(MSDOS_SUPPORT_REAL)/
+/^ns_appdir *=/s/@ns_appdir@//
+/^ns_appbindir *=/s/@ns_appbindir@//
+/^ns_appsrc *=/s/@ns_appsrc@//
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_SUPPORT *=/s/@NS_SUPPORT@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//

@@ -194,6 +194,9 @@ MSDOS_SUPPORT_REAL = ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
 ## $MSDOS_SUPPORT_REAL if MSDOS.
 MSDOS_SUPPORT = 
 
+ns_appdir=@ns_appdir@/
+ns_appbindir=@ns_appbindir@/
+ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
 ## Next two only set if NS_IMPL_GNUSTEP.
@@ -332,12 +335,6 @@ LD=ld
 #endif /* not LINKER */
 
 #endif /* not ORDINARY_LINK */
-
-#ifdef HAVE_NS
-ns_appdir=@ns_appdir@/
-ns_appbindir=@ns_appbindir@/
-ns_appsrc=@ns_appsrc@
-#endif  /* HAVE_NS */
 
 /* lastfile must follow all files whose initialized data areas should
    be dumped as pure by dump-emacs.  */

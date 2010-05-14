@@ -5,6 +5,8 @@
 
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (ns_appdir, ns_appbindir, ns_appsrc): Always define.
+
 	* Makefile.in (mktime, X11, register): Move undefs to configure.
 
 	* Makefile.in (MSDOS_OBJ): Default to empty, let msdos scripts set it.

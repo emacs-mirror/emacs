@@ -1,5 +1,7 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* sed1v2.inp (ns_appdir, ns_appbindir, ns_appsrc): Edit to empty.
+
 	* sed1v2.inp (MSDOS_OBJ): Edit to dosfns.o msdos.o.
 	(MSDOS_SUPPORT): Edit to $(MSDOS_SUPPORT_REAL).
 	* sed1x.inp (MSDOS_X_OBJ): Edit to w16select.o termcap.o.
