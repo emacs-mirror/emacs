@@ -247,14 +247,8 @@ DEPFLAGS = -MMD -MF deps/$*.d
    do not let it interfere with this file.  */
 #undef register
 
-#ifdef NS_IMPL_GNUSTEP
-/* Pull in stuff from GNUstep-make.  */
-FOUNDATION_LIB=gnu
-GUI_LIB=gnu
-include @GNUSTEP_MAKEFILES@/Additional/base.make
-include @GNUSTEP_MAKEFILES@/Additional/gui.make
-shared=no
-#endif
+/* If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.  */
+@NS_IMPL_GNUSTEP_INC@
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified

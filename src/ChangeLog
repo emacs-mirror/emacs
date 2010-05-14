@@ -1,7 +1,9 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (SHELL): Move outside cpp section.
+	* Makefile.in (@NS_IMPL_GNUSTEP_INC@): Use in place of #ifdef.
 	(ns_appresdir): Remove, unused.
+
+	* Makefile.in (SHELL): Move outside cpp section.
 
 	* s/netbsd.h (AMPERSAND_FULL_NAME): Remove (defined in AH_BOTTOM).
 
