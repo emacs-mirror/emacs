@@ -1,5 +1,7 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (SHELL): Move outside cpp section.
+
 	* s/netbsd.h (AMPERSAND_FULL_NAME): Remove (defined in AH_BOTTOM).
 
 2010-05-13  Glenn Morris  <rgm@gnu.org>
