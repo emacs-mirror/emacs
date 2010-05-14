@@ -808,6 +808,11 @@ END is the position of the first delimiter after \verb."
     (define-key map "\C-c\C-c" 'tex-compile)
     (define-key map "\C-c\C-i" 'tex-bibtex-file)
     (define-key map "\C-c\C-o" 'latex-insert-block)
+
+    ;; Redundant keybindings, for consistency with SGML mode.
+    (define-key map "\C-c\C-t" 'latex-insert-block)
+    (define-key map "\C-c/" 'latex-close-block)
+
     (define-key map "\C-c\C-e" 'latex-close-block)
     (define-key map "\C-c\C-u" 'tex-goto-last-unclosed-latex-block)
     (define-key map "\C-c\C-m" 'tex-feed-input)

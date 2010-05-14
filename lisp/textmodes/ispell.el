@@ -2630,11 +2630,22 @@ Keeps argument list for future ispell invocations for no async support."
 	     (or ispell-local-dictionary ispell-dictionary "default"))
     (sit-for 0)
     (setq ispell-library-directory (ispell-check-version)
-	  ispell-process-directory default-directory
 	  ispell-process (ispell-start-process)
 	  ispell-filter nil
-	  ispell-filter-continue nil
-	  ispell-process-buffer-name (buffer-name))
+	  ispell-filter-continue nil)
+    ;; When spellchecking minibuffer contents, make sure ispell process
+    ;; is not restarted every time the minibuffer is killed.
+    (if (window-minibuffer-p)
+	(if (fboundp 'minibuffer-selected-window)
+	    ;; Assign ispell process to parent buffer
+	    (setq ispell-process-directory default-directory
+		  ispell-process-buffer-name (window-buffer (minibuffer-selected-window)))
+	  ;; Force `ispell-process-directory' to $HOME and use a dummy name
+	  (setq ispell-process-directory (expand-file-name "~/")
+		ispell-process-buffer-name " * Minibuffer-has-spellcheck-enabled"))
+      ;; Not in a minibuffer
+      (setq ispell-process-directory default-directory
+	    ispell-process-buffer-name (buffer-name)))
     (if ispell-async-processp
 	(set-process-filter ispell-process 'ispell-filter))
     ;; protect against bogus binding of `enable-multibyte-characters' in XEmacs

@@ -1,3 +1,7 @@
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE, C_SWITCH_X_SITE): Remove undefs.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

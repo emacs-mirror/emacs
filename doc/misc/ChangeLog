@@ -1,3 +1,7 @@
+2010-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Remove "\turnoffactive" commands througout.
+
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* url.texi (HTTP language/coding, Customization):
