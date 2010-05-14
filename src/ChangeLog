@@ -6,7 +6,7 @@
 	ENDPOS < CHARPOS.
 	(composition_reseat_it): Handle the case that ENDPOS < CHARPOS.
 	Set CMP_IT->reversed_p.
-	(composition_update_it): Pay attention ot CMP_IT->reversed_p.
+	(composition_update_it): Pay attention to CMP_IT->reversed_p.
 
 	* xdisp.c (set_iterator_to_next): Call
 	composition_compute_stop_pos with negative ENDPOS if we are
@@ -102,7 +102,6 @@
 	* xdisp.c (init_iterator): Don't turn on bidi reordering in
 	unibyte buffers.  See
 	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00263.html.
->>>>>>> MERGE-SOURCE
 
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
