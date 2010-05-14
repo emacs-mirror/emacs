@@ -1,5 +1,12 @@
 2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-mode-default-syntax-table): Remove.
+	(sh-mode-syntax-table): Give it a default value instead.
+	(sh-header-marker): Make buffer-local.
+	(sh-mode): Move make-local-variable to the corresponding setq.
+	(sh-add-completer): Avoid gratuitously let-binding a buffer-local var.
+	Use complete-with-action.
+
 	* simple.el (prog-mode): New (abstract) major mode.
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode, lisp-mode): Use it.
 	* progmodes/sh-script.el (sh-mode): Remove redundant var assignment.

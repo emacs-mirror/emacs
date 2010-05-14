@@ -411,11 +411,7 @@ the car and cdr are the same symbol.")
     (modify-syntax-entry (pop list) (pop list) table))
   table)
 
-(defvar sh-mode-syntax-table nil
-  "The syntax table to use for Shell-Script mode.
-This is buffer-local in every such buffer.")
-
-(defvar sh-mode-default-syntax-table
+(defvar sh-mode-syntax-table
   (sh-mode-syntax-table ()
 	?\# "<"
 	?\n ">#"
@@ -436,7 +432,8 @@ This is buffer-local in every such buffer.")
 	?= "."
 	?< "."
 	?> ".")
-  "Default syntax table for shell mode.")
+  "The syntax table to use for Shell-Script mode.
+This is buffer-local in every such buffer.")
 
 (defvar sh-mode-syntax-table-input
   '((sh . nil))
@@ -611,7 +608,7 @@ sign.  See `sh-feature'."
 (defvar sh-header-marker nil
   "When non-nil is the end of header for prepending by \\[sh-execute-region].
 That command is also used for setting this variable.")
-
+(make-variable-buffer-local 'sh-header-marker)
 
 (defcustom sh-beginning-of-command
   "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~[:alnum:]:]\\)"
@@ -1533,54 +1530,39 @@ indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
 with your script for an edit-interpret-debug cycle."
-  (make-local-variable 'skeleton-end-hook)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-start-skip)
-  (make-local-variable 'require-final-newline)
-  (make-local-variable 'sh-header-marker)
   (make-local-variable 'sh-shell-file)
   (make-local-variable 'sh-shell)
-  (make-local-variable 'skeleton-pair-alist)
-  (make-local-variable 'skeleton-pair-filter-function)
-  (make-local-variable 'comint-dynamic-complete-functions)
-  (make-local-variable 'comint-prompt-regexp)
-  (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'skeleton-filter-function)
-  (make-local-variable 'skeleton-newline-indent-rigidly)
-  (make-local-variable 'sh-shell-variables)
-  (make-local-variable 'sh-shell-variables-initialized)
-  (make-local-variable 'imenu-generic-expression)
-  (make-local-variable 'sh-indent-supported-here)
-  (make-local-variable 'skeleton-pair-default-alist)
-  (setq skeleton-pair-default-alist sh-skeleton-pair-default-alist)
-  (setq skeleton-end-hook (lambda ()
-			    (or (eolp) (newline) (indent-relative)))
-	paragraph-start (concat page-delimiter "\\|$")
-	paragraph-separate paragraph-start
-	comment-start "# "
-	comment-start-skip "#+[\t ]*"
-	local-abbrev-table sh-mode-abbrev-table
-	comint-dynamic-complete-functions sh-dynamic-complete-functions
-	;; we can't look if previous line ended with `\'
-	comint-prompt-regexp "^[ \t]*"
-	imenu-case-fold-search nil
-	font-lock-defaults
-	`((sh-font-lock-keywords
-	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
-	  nil nil
-	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-	  (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords)
-	  (font-lock-syntactic-face-function
-	   . sh-font-lock-syntactic-face-function))
-	skeleton-pair-alist '((?` _ ?`))
-	skeleton-pair-filter-function 'sh-quoted-p
-	skeleton-further-elements '((< '(- (min sh-indentation
-						(current-column)))))
-	skeleton-filter-function 'sh-feature
-	skeleton-newline-indent-rigidly t
-	sh-indent-supported-here nil)
+
+  (set (make-local-variable 'skeleton-pair-default-alist)
+       sh-skeleton-pair-default-alist)
+  (set (make-local-variable 'skeleton-end-hook)
+       (lambda () (or (eolp) (newline) (indent-relative))))
+
+  (set (make-local-variable 'paragraph-start) (concat page-delimiter "\\|$"))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-start-skip) "#+[\t ]*")
+  (set (make-local-variable 'local-abbrev-table) sh-mode-abbrev-table)
+  (set (make-local-variable 'comint-dynamic-complete-functions)
+       sh-dynamic-complete-functions)
+  ;; we can't look if previous line ended with `\'
+  (set (make-local-variable 'comint-prompt-regexp) "^[ \t]*")
+  (set (make-local-variable 'imenu-case-fold-search) nil)
+  (set (make-local-variable 'font-lock-defaults)
+       `((sh-font-lock-keywords
+          sh-font-lock-keywords-1 sh-font-lock-keywords-2)
+         nil nil
+         ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+         (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords)
+         (font-lock-syntactic-face-function
+          . sh-font-lock-syntactic-face-function)))
+  (set (make-local-variable 'skeleton-pair-alist) '((?` _ ?`)))
+  (set (make-local-variable 'skeleton-pair-filter-function) 'sh-quoted-p)
+  (set (make-local-variable 'skeleton-further-elements)
+       '((< '(- (min sh-indentation (current-column))))))
+  (set (make-local-variable 'skeleton-filter-function) 'sh-feature)
+  (set (make-local-variable 'skeleton-newline-indent-rigidly) t)
+  (set (make-local-variable 'sh-indent-supported-here) nil)
   (set (make-local-variable 'defun-prompt-regexp)
        (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
   ;; Parse or insert magic number for exec, and set all variables depending
@@ -1736,21 +1718,20 @@ Calls the value of `sh-set-shell-hook' if set."
 				  no-query-flag insert-flag)))
   (let ((tem (sh-feature sh-require-final-newline)))
     (if (eq tem t)
-	(setq require-final-newline mode-require-final-newline)))
-  (setq
-	mode-line-process (format "[%s]" sh-shell)
-	sh-shell-variables nil
-	sh-shell-variables-initialized nil
-	imenu-generic-expression (sh-feature sh-imenu-generic-expression))
-  (make-local-variable 'sh-mode-syntax-table)
+	(set (make-local-variable 'require-final-newline)
+             mode-require-final-newline)))
+  (setq mode-line-process (format "[%s]" sh-shell))
+  (set (make-local-variable 'sh-shell-variables) nil)
+  (set (make-local-variable 'sh-shell-variables-initialized) nil)
+  (set (make-local-variable 'imenu-generic-expression)
+       (sh-feature sh-imenu-generic-expression))
   (let ((tem (sh-feature sh-mode-syntax-table-input)))
-    (setq sh-mode-syntax-table
-	  (if tem (apply 'sh-mode-syntax-table tem)
-	    sh-mode-default-syntax-table)))
-  (set-syntax-table sh-mode-syntax-table)
+    (when tem
+      (set (make-local-variable 'sh-mode-syntax-table)
+           (apply 'sh-mode-syntax-table tem))
+      (set-syntax-table sh-mode-syntax-table)))
   (dolist (var (sh-feature sh-variables))
     (sh-remember-variable var))
-  (make-local-variable 'indent-line-function)
   (if (setq sh-indent-supported-here (sh-feature sh-indent-supported))
       (progn
 	(message "Setting up indent for shell type %s" sh-shell)
@@ -1763,7 +1744,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	(message "setting up indent stuff")
 	;; sh-mode has already made indent-line-function local
 	;; but do it in case this is called before that.
-	(setq indent-line-function 'sh-indent-line)
+	(set (make-local-variable 'indent-line-function) 'sh-indent-line)
 	(if sh-make-vars-local
 	    (sh-make-vars-local))
 	(message "Indentation setup for shell type %s" sh-shell))
@@ -3462,20 +3443,15 @@ CODE can be nil, t or `lambda'.
 nil means to return the best completion of STRING, or nil if there is none.
 t means to return a list of all possible completions of STRING.
 `lambda' means to return t if STRING is a valid completion as it stands."
-  (let ((sh-shell-variables
+  (let ((vars
 	 (with-current-buffer sh-add-buffer
 	   (or sh-shell-variables-initialized
 	       (sh-shell-initialize-variables))
 	   (nconc (mapcar (lambda (var)
-			    (let ((name
-				   (substring var 0 (string-match "=" var))))
-			      (cons name name)))
+                            (substring var 0 (string-match "=" var)))
 			  process-environment)
 		  sh-shell-variables))))
-    (case code
-      ((nil) (try-completion string sh-shell-variables predicate))
-      (lambda (test-completion string sh-shell-variables predicate))
-      (t (all-completions string sh-shell-variables predicate)))))
+    (complete-with-action code vars string predicate)))
 
 (defun sh-add (var delta)
   "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
