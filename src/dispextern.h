@@ -2868,7 +2868,7 @@ extern EMACS_INT tool_bar_button_relief;
 /* Defined in bidi.c */
 
 extern void bidi_init_it P_ ((EMACS_INT, EMACS_INT, struct bidi_it *));
-extern void bidi_get_next_char_visually P_ ((struct bidi_it *));
+extern void bidi_move_to_visually_next P_ ((struct bidi_it *));
 extern void bidi_paragraph_init P_ ((bidi_dir_t, struct bidi_it *));
 extern int  bidi_mirror_char P_ ((int));
 

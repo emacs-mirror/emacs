@@ -184,7 +184,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    reordering engine which is called by set_iterator_to_next and
    returns the next character to display in the visual order.  See
    commentary on bidi.c for more details.  As far as redisplay is
-   concerned, the effect of calling bidi_get_next_char_visually, the
+   concerned, the effect of calling bidi_move_to_visually_next, the
    main interface of the reordering engine, is that the iterator gets
    magically placed on the buffer or string position that is to be
    displayed next.  In other words, a linear iteration through the
@@ -3918,7 +3918,7 @@ handle_invisible_prop (it)
 		}
 	      do
 		{
-		  bidi_get_next_char_visually (&it->bidi_it);
+		  bidi_move_to_visually_next (&it->bidi_it);
 		}
 	      while (it->stop_charpos <= it->bidi_it.charpos
 		     && it->bidi_it.charpos < newpos);
@@ -5276,7 +5276,7 @@ iterate_out_of_display_property (it)
   while (it->bidi_it.charpos >= BEGV
 	 && it->prev_stop <= it->bidi_it.charpos
 	 && it->bidi_it.charpos < CHARPOS (it->position))
-    bidi_get_next_char_visually (&it->bidi_it);
+    bidi_move_to_visually_next (&it->bidi_it);
   /* Record the stop_pos we just crossed, for when we cross it
      back, maybe.  */
   if (it->bidi_it.charpos > CHARPOS (it->position))
@@ -6311,7 +6311,7 @@ set_iterator_to_next (it, reseat_p)
 		 character of the next grapheme cluster, or to the
 		 character visually after the current composition.  */
 	      for (i = 0; i < it->cmp_it.nchars; i++)
-		bidi_get_next_char_visually (&it->bidi_it);
+		bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 
@@ -6339,7 +6339,7 @@ set_iterator_to_next (it, reseat_p)
 	      /* Update IT's char/byte positions to point to the last
 		 character of the previous grapheme cluster, or the
 		 character visually after the current composition.  */
-	      bidi_get_next_char_visually (&it->bidi_it);
+	      bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 
@@ -6378,7 +6378,7 @@ set_iterator_to_next (it, reseat_p)
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
 		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	      bidi_get_next_char_visually (&it->bidi_it);
+	      bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 	      if (prev_scan_dir != it->bidi_it.scan_dir)
@@ -6858,7 +6858,7 @@ next_element_from_buffer (it)
 	  /* If we are at the beginning of a line, we can produce the
 	     next element right away.  */
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  bidi_get_next_char_visually (&it->bidi_it);
+	  bidi_move_to_visually_next (&it->bidi_it);
 	}
       else
 	{
@@ -6876,7 +6876,7 @@ next_element_from_buffer (it)
 	    {
 	      /* Now return to buffer position where we were asked to
 		 get the next display element, and produce that.  */
-	      bidi_get_next_char_visually (&it->bidi_it);
+	      bidi_move_to_visually_next (&it->bidi_it);
 	    }
 	  while (it->bidi_it.bytepos != orig_bytepos
 		 && it->bidi_it.bytepos < ZV_BYTE);
@@ -7100,7 +7100,7 @@ next_element_from_composition (it)
 	      /* Resync the bidi iterator with IT's new position.
 		 FIXME: this doesn't support bidirectional text.  */
 	      while (it->bidi_it.charpos < IT_CHARPOS (*it))
-		bidi_get_next_char_visually (&it->bidi_it);
+		bidi_move_to_visually_next (&it->bidi_it);
 	    }
 	  return 0;
 	}
@@ -7116,7 +7116,7 @@ next_element_from_composition (it)
 	     correct (struct glyph)->charpos.  */
 	  int i;
 	  for (i = 0; i < it->cmp_it.nchars - 1; i++)
-	    bidi_get_next_char_visually (&it->bidi_it);
+	    bidi_move_to_visually_next (&it->bidi_it);
 	  IT_CHARPOS (*it) = it->bidi_it.charpos;
 	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	  it->position = it->current.pos;

@@ -26,13 +26,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    designed to be called once for every character in the buffer or
    string.
 
-   The main entry point is bidi_get_next_char_visually.  Each time it
+   The main entry point is bidi_move_to_visually_next.  Each time it
    is called, it finds the next character in the visual order, and
    returns its information in a special structure.  The caller is then
    expected to process this character for display or any other
-   purposes, and call bidi_get_next_char_visually for the next
-   character.  See the comments in bidi_get_next_char_visually for
-   more details about its algorithm that finds the next visual-order
+   purposes, and call bidi_move_to_visually_next for the next
+   character.  See the comments in bidi_move_to_visually_next for more
+   details about its algorithm that finds the next visual-order
    character by resolving their levels on the fly.
 
    The two other entry points are bidi_paragraph_init and
@@ -1876,7 +1876,7 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, int end_flag)
 }
 
 void
-bidi_get_next_char_visually (struct bidi_it *bidi_it)
+bidi_move_to_visually_next (struct bidi_it *bidi_it)
 {
   int old_level, new_level, next_level;
   struct bidi_it sentinel;

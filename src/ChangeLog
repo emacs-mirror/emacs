@@ -1,3 +1,8 @@
+2010-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_move_to_visually_next): Renamed from
+	bidi_get_next_char_visually.  All callers changed.
+
 2010-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (struct composition_it): New member reversed_p.
