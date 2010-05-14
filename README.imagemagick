@@ -14,17 +14,22 @@ autoconf
 
 
 
-TODO
-- complete documentation drafts below
-- test with more systems, only tested on Fedora 12 so far, and the
-libmagick that ships it.
-- fix inconsistencys with spelling of imagemagick in the src
-- report number of images in image bundle types somehow
-- probably add pdf to inhibited types
-- inhibit types is defconst should probably be defcustom
-- decide what to do with some uncommitted imagemagick support
+* TODO
+** complete documentation drafts below
+
+** fix inconsistencys with spelling of imagemagick in the src
+** report number of images in image bundle types somehow
+** probably add pdf to inhibited types
+** inhibit types is defconst should probably be defcustom
+** decide what to do with some uncommitted imagemagick support
   functions for image size etc.
-  
+** Test with more systems
+Tested on Fedora 12 so far, and the libmagick that ships with it.
+Ubuntu 8.04 was also tested, but it seems it ships a broken ImageMagick.
+Also need some way to handle render methods that only work on newer ImageMagicks
+
+** suport "count" property in image-metadata
+
 
 * NEWS entry
 ** ImageMagick support
