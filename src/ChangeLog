@@ -1,3 +1,8 @@
+2010-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_range): Return the range for the font found at
+	first.
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (YMF_PASS_LDFLAGS, LD, LINKER): Simplify the logic.
