@@ -3961,7 +3961,7 @@ font_range (pos, limit, w, face, string)
      struct face *face;
      Lisp_Object string;
 {
-  EMACS_INT pos_byte, ignore, start, start_byte;
+  EMACS_INT pos_byte, ignore;
   int c;
   Lisp_Object font_object = Qnil;
 
@@ -3983,7 +3983,6 @@ font_range (pos, limit, w, face, string)
       pos_byte = string_char_to_byte (string, pos);
     }
 
-  start = pos, start_byte = pos_byte;
   while (pos < *limit)
     {
       Lisp_Object category;
@@ -3992,6 +3991,10 @@ font_range (pos, limit, w, face, string)
 	FETCH_CHAR_ADVANCE_NO_CHECK (c, pos, pos_byte);
       else
 	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, pos, pos_byte);
+      category = CHAR_TABLE_REF (Vunicode_category_table, c);
+      if (EQ (category, QCf)
+	  || CHAR_VARIATION_SELECTOR_P (c))
+	continue;
       if (NILP (font_object))
 	{
 	  font_object = font_for_char (face, c, pos - 1, string);
@@ -3999,40 +4002,8 @@ font_range (pos, limit, w, face, string)
 	    return Qnil;
 	  continue;
 	}
-
-      category = CHAR_TABLE_REF (Vunicode_category_table, c);
-      if (! EQ (category, QCf)
-	  && ! CHAR_VARIATION_SELECTOR_P (c)
-	  && font_encode_char (font_object, c) == FONT_INVALID_CODE)
-	{
-	  Lisp_Object f = font_for_char (face, c, pos - 1, string);
-	  EMACS_INT i, i_byte;
-
-
-	  if (NILP (f))
-	    {
-	      *limit = pos - 1;
-	      return font_object;
-	    }
-	  i = start, i_byte = start_byte;
-	  while (i < pos - 1)
-	    {
-
-	      if (NILP (string))
-		FETCH_CHAR_ADVANCE_NO_CHECK (c, i, i_byte);
-	      else
-		FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, i, i_byte);
-	      category = CHAR_TABLE_REF (Vunicode_category_table, c);
-	      if (! EQ (category, QCf)
-		  && ! CHAR_VARIATION_SELECTOR_P (c)
-		  && font_encode_char (f, c) == FONT_INVALID_CODE)
-		{
-		  *limit = pos - 1;
-		  return font_object;
-		}
-	    }
-	  font_object = f;
-	}
+      if (font_encode_char (font_object, c) == FONT_INVALID_CODE)
+	*limit = pos - 1;
     }
   return font_object;
 }
