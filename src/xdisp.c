@@ -6307,29 +6307,14 @@ set_iterator_to_next (it, reseat_p)
 	  else if (! it->cmp_it.reversed_p)
 	    {
 	      /* Composition created while scanning forward.  */
-	      /* Update IT's char/byte positions to point the first
+	      /* Update IT's char/byte positions to point to the first
 		 character of the next grapheme cluster, or to the
 		 character visually after the current composition.  */
-#if 0
-	      /* Is it ok to do this directly? */
-	      IT_CHARPOS (*it) += it->cmp_it.nchars;
-	      IT_BYTEPOS (*it) += it->cmp_it.nbytes;
-#else
-	      /* Or do we have to call bidi_get_next_char_visually
-		 repeatedly (perhaps not to confuse some internal
-		 state of bidi_it)?  At least we must do this if we
-		 have consumed all grapheme clusters in the current
-		 composition because the next character will be in the
-		 different bidi level.  */
 	      for (i = 0; i < it->cmp_it.nchars; i++)
 		bidi_get_next_char_visually (&it->bidi_it);
-	      /* BTW, it seems that the name
-		 bidi_get_next_char_visually is confusing because
-		 it sounds like not advancing character position.
-		 How about bidi_set_iterator_to_next? */
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
-#endif
+
 	      if (it->cmp_it.to < it->cmp_it.nglyphs)
 		{
 		  /* Proceed to the next grapheme cluster.  */
@@ -6337,7 +6322,7 @@ set_iterator_to_next (it, reseat_p)
 		}
 	      else
 		{
-		  /* No more grapheme cluster in this composition.
+		  /* No more grapheme clusters in this composition.
 		     Find the next stop position.  */
 		  EMACS_INT stop = it->stop_charpos;
 		  if (it->bidi_it.scan_dir < 0)
@@ -6351,7 +6336,7 @@ set_iterator_to_next (it, reseat_p)
 	  else
 	    {
 	      /* Composition created while scanning backward.  */
-	      /* Update IT's char/byte positions to point the last
+	      /* Update IT's char/byte positions to point to the last
 		 character of the previous grapheme cluster, or the
 		 character visually after the current composition.  */
 	      bidi_get_next_char_visually (&it->bidi_it);
@@ -6365,7 +6350,7 @@ set_iterator_to_next (it, reseat_p)
 		}
 	      else
 		{
-		  /* No more grapheme cluster in this composition.
+		  /* No more grapheme clusters in this composition.
 		     Find the next stop position.  */
 		  EMACS_INT stop = it->stop_charpos;
 		  if (it->bidi_it.scan_dir < 0)
@@ -6398,8 +6383,8 @@ set_iterator_to_next (it, reseat_p)
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 	      if (prev_scan_dir != it->bidi_it.scan_dir)
 		{
-		  /* As scan direction was changed, we must re-compute
-		     the stop position for composition.  */
+		  /* As the scan direction was changed, we must
+		     re-compute the stop position for composition.  */
 		  EMACS_INT stop = it->stop_charpos;
 		  if (it->bidi_it.scan_dir < 0)
 		    stop = -1;
