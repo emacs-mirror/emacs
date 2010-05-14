@@ -1765,7 +1765,11 @@ if test "${with_imagemagick}" != "no"; then
     AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
     CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
     LIBS="$IMAGEMAGICK_LIBS $LIBS"
-  fi    
+  fi
+
+  AC_DEFINE(HAVE_MAGICKEXPORTIMAGEPIXELS, 1, [Define to 1 if MagickExportImagePixels is defined.])
+  AC_CHECK_FUNCS_ONCE(MagickExportImagePixels)
+  
 fi
 
 

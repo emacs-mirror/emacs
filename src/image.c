@@ -7755,15 +7755,22 @@ imagemagick_load_image (f, img, contents, size, filename)
   long ino;
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
-  
-  /* if (ino >= ) */
-  /*   { */
-  /*     image_error ("Invalid image number `%s' in image `%s'", */
-  /*       	   image, img->spec); */
-  /*     UNGCPRO; */
-  /*     return 0; */
-  /*   } */
 
+
+
+  if (ino >= MagickGetNumberImages(image_wand)) 
+    { 
+      image_error ("Invalid image number `%s' in image `%s'", 
+         	   image, img->spec); 
+      UNGCPRO; 
+      return 0; 
+    } 
+
+ 
+  if (MagickGetNumberImages(image_wand) > 1)
+    img->data.lisp_val = Fcons (Qcount,
+                                Fcons (make_number (MagickGetNumberImages(image_wand)),
+                                       img->data.lisp_val));
   if(ino==0)
     MagickSetFirstIterator(image_wand);
   else
@@ -7917,6 +7924,7 @@ imagemagick_load_image (f, img, contents, size, filename)
 
     */
     pixelwidth=CharPixel;/*??? TODO figure out*/
+#ifdef HAVE_MAGICKEXPORTIMAGEPIXELS    
     MagickExportImagePixels(image_wand,
                             0,0,
                             width,height,
@@ -7924,15 +7932,11 @@ imagemagick_load_image (f, img, contents, size, filename)
                             pixelwidth, 
                             /*&(img->pixmap));*/
                             ximg->data);
+#else
+    image_error("You dont have MagickExportImagePixels, upgrade ImageMagick if you want to try it!",Qnil,Qnil);
+#endif    
   }
   
-
-  //TODO figure out imagecount here!
-  if (MagickGetNumberImages(image_wand) > 1)
-    img->data.lisp_val = Fcons (Qcount,
-				Fcons (make_number (MagickGetNumberImages(image_wand)),
-				       img->data.lisp_val));
-
 
 #ifdef COLOR_TABLE_SUPPORT
   /* Remember colors allocated for this image.  */

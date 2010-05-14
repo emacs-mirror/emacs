@@ -438,6 +438,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <mach/mach.h> header file. */
 #undef HAVE_MACH_MACH_H
 
+/* Define to 1 if you have the `MagickExportImagePixels' function. */
+#undef HAVE_MAGICKEXPORTIMAGEPIXELS
+
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
 

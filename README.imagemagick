@@ -28,8 +28,6 @@ Tested on Fedora 12 so far, and the libmagick that ships with it.
 Ubuntu 8.04 was also tested, but it seems it ships a broken ImageMagick.
 Also need some way to handle render methods that only work on newer ImageMagicks
 
-** suport "count" property in image-metadata
-
 
 * NEWS entry
 ** ImageMagick support
@@ -57,6 +55,16 @@ specifications:
 - scale
 - rotation
 - index
+
+See the ImageMagick manual for information on how these specifications
+work.
+
+The image-metadata function can be used to retrieve the total number
+of images in an image bundle, and the :index property can be used to
+show a particular image within the bundle. This is simmilar to how GIF
+files work.
+
+
 
 * Changelog entry
 nothing yet
