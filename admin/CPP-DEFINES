@@ -22,7 +22,6 @@ NS_IMPL_GNUSTEP	Compile support for GNUstep implementation of NS GUI API.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
 HAVE_X_WINDOWS	Compile support for X Window system
-X11		??  Makefile.in suggests it's equivalent to HAVE_X11
 USE_LUCID	Use the Lucid toolkit for menus&scrollbars.  Requires HAVE_X11.
 USE_MOTIF	Use the Motif toolkit for menus&scrollbars.  Requires HAVE_X11.
 USE_GTK		Use the Gtk   toolkit for menus&scrollbars.  Requires HAVE_X11.

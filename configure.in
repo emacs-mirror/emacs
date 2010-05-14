@@ -3622,7 +3622,10 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-[cpp_undefs="`echo $srcdir $configuration $canonical unix |
+# src/Makefile.in used to treat X11 as equivalent to HAVE_X11.
+# But nothing in Emacs defines X11, and everywhere else uses HAVE_X11,
+# so that cannot have been doing anything.
+[cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"]
 

@@ -1,5 +1,7 @@
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (mktime, X11, register): Move undefs to configure.
+
 	* Makefile.in (MSDOS_OBJ): Default to empty, let msdos scripts set it.
 	(MSDOS_X_OBJ): New variable.
 	(MSDOS_SUPPORT_REAL): New constant.

@@ -251,23 +251,6 @@ UNEXEC_OBJ = @unexec@
 DEPFLAGS = -MMD -MF deps/$*.d
 #endif
 
-/* Do not let the file name mktime.c get messed up.  */
-#ifdef mktime
-#undef mktime
-#endif
-
-/* Use HAVE_X11 as an alias for X11 in this file
-   to avoid problems with X11 as a subdirectory name
-   in -I and other such options which pass through this file.  */
-#ifdef X11
-#define HAVE_X11
-#undef X11
-#endif
-
-/* On some machines #define register is done in config;
-   do not let it interfere with this file.  */
-#undef register
-
 /* If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.  */
 @NS_IMPL_GNUSTEP_INC@
 
