@@ -1583,7 +1583,6 @@ with your script for an edit-interpret-debug cycle."
 	sh-indent-supported-here nil)
   (set (make-local-variable 'defun-prompt-regexp)
        (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell

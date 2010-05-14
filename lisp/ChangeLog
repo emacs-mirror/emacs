@@ -1,3 +1,9 @@
+2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (prog-mode): New (abstract) major mode.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode, lisp-mode): Use it.
+	* progmodes/sh-script.el (sh-mode): Remove redundant var assignment.
+
 2010-05-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/sql.el (sql-oracle-program): Reflow docstring.
@@ -24,8 +30,8 @@
 	only when the message would be displayed.  Handled nested calls.
 	(tramp-handle-load, tramp-handle-file-local-copy)
 	(tramp-handle-insert-file-contents, tramp-handle-write-region)
-	(tramp-maybe-send-script, tramp-find-shell): Use
-	`with-progress-reporter'.
+	(tramp-maybe-send-script, tramp-find-shell):
+	Use `with-progress-reporter'.
 	(tramp-handle-dired-compress-file, tramp-maybe-open-connection):
 	Fix message text.
 
