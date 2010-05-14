@@ -1,3 +1,8 @@
+2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (specbind): Remove left-over duplicate test.
+	Disallow let-binding frame-local vars.  Add comment.
+
 2010-05-14  Eli Zaretskii  <eliz@gnu.org>
 
 	Make the cache of bidi iterator states dynamically allocated.
@@ -5,7 +10,7 @@
 	(bidi_init_it): Call it.
 	(bidi_cache_iterator_state): Enlarge the cache if needed.
 
-	* bidi.c (bidi_move_to_visually_next): Renamed from
+	* bidi.c (bidi_move_to_visually_next): Rename from
 	bidi_get_next_char_visually.  All callers changed.
 
 2010-05-14  Kenichi Handa  <handa@m17n.org>
@@ -18,8 +23,8 @@
 	Set CMP_IT->reversed_p.
 	(composition_update_it): Pay attention to CMP_IT->reversed_p.
 
-	* xdisp.c (set_iterator_to_next): Call
-	composition_compute_stop_pos with negative ENDPOS if we are
+	* xdisp.c (set_iterator_to_next):
+	Call composition_compute_stop_pos with negative ENDPOS if we are
 	scanning backward.  Call composition_compute_stop_pos if scan
 	direction is changed.
 	(next_element_from_buffer): Call composition_compute_stop_pos with
