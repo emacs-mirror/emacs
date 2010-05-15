@@ -3126,10 +3126,13 @@ AC_SUBST(TOOLKIT_LIBW)
 
 if test "$USE_X_TOOLKIT" = "none"; then
   LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
 else
   LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
 fi
 AC_SUBST(LIBXT_OTHER)
+AC_SUBST(OLDXMENU_TARGET)
 
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;

@@ -65,6 +65,7 @@ config_h = config.h $(M_FILE) $(S_FILE)
 
 bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
+## ns-app if HAVE_NS, else empty.
 OTHER_FILES = @OTHER_FILES@
 
 CRT_DIR=@CRT_DIR@
@@ -166,6 +167,10 @@ LIBXTR6=@LIBXTR6@
 ## $(LIBXMU) -lXt $(LIBXTR6) -lXext if USE_X_TOOLKIT, else $(LIBXSM).
 ## Only used if HAVE_X_WINDOWS.
 LIBXT_OTHER=@LIBXT_OTHER@
+
+## Only used if HAVE_X11 && !USE_GTK.
+## really-lwlib if USE_X_TOOLKIT, else really-oldxmenu.
+OLDXMENU_TARGET=@OLDXMENU_TARGET@
 
 XMENU_OBJ=@XMENU_OBJ@
 XOBJ=@XOBJ@
@@ -665,6 +670,21 @@ temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} pr
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
+
+/* Only (possibly) used if HAVE_X11 && !USE_GTK, but no harm in always
+   defining.  */
+really-lwlib:
+	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
+    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
+	@true  /* make -t should not create really-lwlib.  */
+.PHONY: really-lwlib
+
+really-oldXMenu:
+	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
+    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
+	@true  /* make -t should not create really-oldXMenu.  */
+.PHONY: really-oldXMenu
+
 /* HAVE_X11 implies HAVE_X_WINDOWS and HAVE_MENUS.  */
 #if defined (HAVE_X11) && ! defined (USE_GTK)
 /* We use stamp-xmenu with these two deps to both ensure that lwlib
@@ -675,25 +695,9 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
 
-#ifdef USE_X_TOOLKIT
-$(OLDXMENU): really-lwlib
+$(OLDXMENU): $(OLDXMENU_TARGET)
 
-really-lwlib:
-	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
-    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
-	@true  /* make -t should not create really-lwlib.  */
-.PHONY: really-lwlib
-#else /* not USE_X_TOOLKIT */
-$(OLDXMENU): really-oldXMenu
-
-really-oldXMenu:
-	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
-    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
-	@true  /* make -t should not create really-oldXMenu.  */
-.PHONY: really-oldXMenu
-#endif /* not USE_X_TOOLKIT */
-#else /* !HAVE_X11 || USE_GTK */
-
+#else /* !HAVE_X11 || USE_GTK */ 
 /* We don''t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu

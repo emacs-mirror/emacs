@@ -1,5 +1,9 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (OLDXMENU_TARGET): New, set by configure.
+	(really-lwlib, really-oldXMenu): Always define.
+	($OLDXMENU): Depend on $OLDXMENU_TARGET.
+
 	* Makefile.in: Simplify cpp conditional.
 
 	* Makefile.in (${ns_appdir}): Simplify using umask.

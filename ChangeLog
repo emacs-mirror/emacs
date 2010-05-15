@@ -1,5 +1,7 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (OLDXMENU_TARGET): New output variable.
+
 	* Makefile.in (install-arch-dep): Update odd NS rule for Emacs version.
 
 	* Makefile.in (install-arch-indep): Remove references to RCS, CVS,
