@@ -136,26 +136,18 @@ When nil, send actual operating system end of file."
     ))
 
 ;;;###autoload
-(defun prolog-mode ()
+(define-derived-mode prolog-mode prog-mode "Prolog"
   "Major mode for editing Prolog code for Prologs.
 Blank lines and `%%...' separate paragraphs.  `%'s start comments.
 Commands:
 \\{prolog-mode-map}
 Entry to this mode calls the value of `prolog-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map prolog-mode-map)
-  (set-syntax-table prolog-mode-syntax-table)
-  (setq major-mode 'prolog-mode)
-  (setq mode-name "Prolog")
   (prolog-mode-variables)
   (set (make-local-variable 'comment-add) 1)
-  ;; font lock
   (setq font-lock-defaults '(prolog-font-lock-keywords
                              nil nil nil
-                             beginning-of-line))
-  (run-mode-hooks 'prolog-mode-hook))
+                             beginning-of-line)))
 
 (defun prolog-indent-line ()
   "Indent current line as Prolog code.

@@ -1,5 +1,7 @@
 2010-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/prolog.el (prolog-mode): Use define-derived-mode.
+
 	* pcomplete.el (pcomplete-completions-at-point): New function,
 	extracted from pcomplete-std-complete.
 	(pcomplete-std-complete): Use it.
