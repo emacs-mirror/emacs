@@ -1,3 +1,13 @@
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	Handle --version reasonably in CANNOT_DUMP configuration.
+	* emacs.c (emacs_version, emacs_copyright): New string variables.
+	(Vemacs_version, Vemacs_copyright): New Lisp_Object variables.
+	(syms_of_emacs): Defvar them, and initialize them from the C
+	string variables.
+	(main): If initialization hasn't been done, print initial version
+	info from the C strings, instead of starting an interactive session.
+
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_paragraph_init): Don't leave alone garbage values
