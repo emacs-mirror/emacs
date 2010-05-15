@@ -26485,7 +26485,12 @@ _ACEOF
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
 else
   OLDXMENU=
-  LIBXMENU="-lXMenu"
+  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
+  if test "${HAVE_X_WINDOWS}" = "yes"; then
+    LIBXMENU="-lXMenu"
+  else
+    LIBXMENU=
+  fi
   LIBX_OTHER=
 fi
 
