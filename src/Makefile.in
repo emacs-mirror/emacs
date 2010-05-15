@@ -172,6 +172,11 @@ LIBXT_OTHER=@LIBXT_OTHER@
 ## really-lwlib if USE_X_TOOLKIT, else really-oldxmenu.
 OLDXMENU_TARGET=@OLDXMENU_TARGET@
 
+## If !HAVE_X11 || USE_GTK, empty.
+## Else if USE_X_TOOLKIT, ${lwlibdir}liblw.a.
+## Else ${oldXMenudir}libXMenu11.a.
+OLDXMENU=@OLDXMENU@
+
 XMENU_OBJ=@XMENU_OBJ@
 XOBJ=@XOBJ@
 
@@ -293,11 +298,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 	@-test -d deps || mkdir deps
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
-
-/* If !HAVE_X11 || USE_GTK, empty.
-   Else if USE_X_TOOLKIT, ${lwlibdir}liblw.a.
-   Else ${oldXMenudir}libXMenu11.a.  */
-OLDXMENU=@OLDXMENU@
 
 #ifdef HAVE_X_WINDOWS
 LIBXMENU=@LIBXMENU@
