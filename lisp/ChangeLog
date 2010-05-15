@@ -1,3 +1,9 @@
+2010-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-completions-at-point): New function,
+	extracted from pcomplete-std-complete.
+	(pcomplete-std-complete): Use it.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):

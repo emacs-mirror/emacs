@@ -444,12 +444,14 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
 ;; I don't think such commands are usable before first setting up buffer-local
 ;; variables to parse args, so there's no point autoloading it.
 ;; ;;;###autoload
-(defun pcomplete-std-complete ()
+(defun pcomplete-completions-at-point ()
   "Provide standard completion using pcomplete's completion tables.
 Same as `pcomplete' but using the standard completion UI."
-  (interactive)
   ;; FIXME: it only completes the text before point, whereas the
   ;; standard UI may also consider text after point.
+  ;; FIXME: the `pcomplete' UI may be used internally during
+  ;; pcomplete-completions and then throw to `pcompleted', thus
+  ;; imposing the pcomplete UI over the standard UI.
   (catch 'pcompleted
     (let* ((pcomplete-stub)
            pcomplete-seen pcomplete-norm-func
@@ -516,7 +518,7 @@ Same as `pcomplete' but using the standard completion UI."
                                (directory-file-name f))
                       pcomplete-seen))))))
 
-      (completion-in-region
+      (list
        beg (point)
        ;; Add a space at the end of completion.  Use a terminator-regexp
        ;; that never matches since the terminator cannot appear
@@ -527,7 +529,14 @@ Same as `pcomplete' but using the standard completion UI."
                           (cons pcomplete-termination-string
                                 "\\`a\\`")
                           table))
-       pred))))
+       :predicate pred))))
+
+ ;; I don't think such commands are usable before first setting up buffer-local
+ ;; variables to parse args, so there's no point autoloading it.
+ ;; ;;;###autoload
+(defun pcomplete-std-complete ()
+  (let ((completion-at-point-functions '(pcomplete-completions-at-point)))
+    (completion-at-point)))
 
 ;;; Pcomplete's native UI.
 
