@@ -1,5 +1,8 @@
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/mule-cmds.el (mule-menu-keymap): Fix definition of
+	"Describe Language Environment" menu item.
+
 	* language/hebrew.el ("Hebrew", "Windows-1255"): Doc fix.
 
 	Bidi-sensitive movement with arrow keys.

@@ -140,7 +140,7 @@
 
     (define-key-after map [describe-language-environment]
       `(menu-item ,(purecopy "Describe Language Environment")
-            describe-language-environment-map
+            ,describe-language-environment-map
             :help ,(purecopy "Show multilingual settings for a specific language")))
     (define-key-after map [describe-input-method]
       `(menu-item ,(purecopy "Describe Input Method...") describe-input-method
