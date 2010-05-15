@@ -63,6 +63,9 @@ according to the value of this variable.  Possible values are
 default), Emacs determines the base direction of each paragraph from
 its text, as specified by the Unicode Bidirectional Algorithm.
 
+The function `current-bidi-paragraph-direction' returns the actual
+value of paragraph base direction at point.
+
 Reordering of bidirectional text for display in Emacs is a "Full
 bidirectionality" class implementation of the Unicode Bidirectional
 Algorithm.
