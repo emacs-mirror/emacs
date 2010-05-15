@@ -299,9 +299,10 @@ OLDXMENU=@OLDXMENU@
 LIBXMENU=@LIBXMENU@
 LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
-LIBX_OTHER=@LIBX_OTHER@
 #endif /* HAVE_X_WINDOWS */
 
+/* If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.  */
+LIBX_OTHER=@LIBX_OTHER@
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have

@@ -6,7 +6,7 @@ s!^	@true *$!	@rem!
 s/DOC/DOC-X/g
 /^OLDXMENU *=/s!@OLDXMENU@!${oldXMenudir}libXMenu11.a!
 /^LIBXMENU *=/s!@LIBXMENU@!${OLDXMENU}!
-/^LIBX_OTHER *=/s!@LIBX_OTHER@!${LIBXT} ${LIBX_EXTRA}!
+/^LIBX_OTHER *=/s!= *!= ${LIBXT} ${LIBX_EXTRA}!
 /^OLDXMENU_TARGET *=/s!= *!= really-oldxmenu!
 /^LIBS_SYSTEM *=/s!= *!= -lxext -lsys!
 /^MSDOS_X_OBJ *=/s!= *!= w16select.o termcap.o!
