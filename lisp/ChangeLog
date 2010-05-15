@@ -1,5 +1,7 @@
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* language/hebrew.el ("Hebrew", "Windows-1255"): Doc fix.
+
 	Bidi-sensitive movement with arrow keys.
 	* subr.el (right-arrow-command, left-arrow-command): New functions.
 
