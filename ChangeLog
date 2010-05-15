@@ -1,5 +1,7 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-dep): Update odd NS rule for Emacs version.
+
 	* Makefile.in (install-arch-indep): Remove references to RCS, CVS,
 	and other files that no longer exist.
 
