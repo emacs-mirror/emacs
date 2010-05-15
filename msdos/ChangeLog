@@ -1,5 +1,8 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* sed1v2.inp (LIBX_OTHER): Edit to empty.
+	* sed1x.inp (LIBX_OTHER): Expect empty initial value.
+
 	* sed1v2.inp (FONT_OBJ): Edit to empty for non-X case.
 	* sed1x.inp (FONT_OBJ): Edit to xfont.o for X case.
 
