@@ -805,6 +805,7 @@ XOBJ
 WIDGET_OBJ
 TOOLKIT_LIBW
 LIBXT_OTHER
+OLDXMENU_TARGET
 OLDXMENU
 LIBXMENU
 LIBX_OTHER
@@ -26456,9 +26457,12 @@ esac
 
 if test "$USE_X_TOOLKIT" = "none"; then
   LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
 else
   LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
 fi
+
 
 
 ## The X Menu stuff is present in the X10 distribution, but missing
@@ -26722,6 +26726,9 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
+# src/Makefile.in used to treat X11 as equivalent to HAVE_X11.
+# But nothing in Emacs defines X11, and everywhere else uses HAVE_X11,
+# so that cannot have been doing anything.
 cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"
