@@ -208,7 +208,10 @@ NS_SUPPORT=@NS_SUPPORT@
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
 GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
 
-## Only used if HAVE_X_WINDOWS.
+## Empty if !HAVE_X_WINDOWS
+## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
+## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
+## else xfont.o
 FONT_OBJ=@FONT_OBJ@
 
 ## Used if HAVE_MOUSE.
@@ -297,7 +300,6 @@ LIBXMENU=@LIBXMENU@
 LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 LIBX_OTHER=@LIBX_OTHER@
-FONT_DRIVERS=$(FONT_OBJ)
 #endif /* HAVE_X_WINDOWS */
 
 
@@ -356,7 +358,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
+	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines in case they are needed.  */
@@ -365,7 +367,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   fontset.o dbusbind.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_OBJ)
 
 gmallocobj =
 rallocobj =

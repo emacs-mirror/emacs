@@ -2231,14 +2231,6 @@ else
     HAVE_M17N_FLT=no
 fi
 
-FONT_OBJ=xfont.o
-if test "$HAVE_XFT" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
-elif test "$HAVE_FREETYPE" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
-fi
-AC_SUBST(FONT_OBJ)
-
 ### End of font-backend (under X11) section.
 
 AC_SUBST(FREETYPE_CFLAGS)
@@ -3075,14 +3067,23 @@ AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 
 XMENU_OBJ=
 XOBJ=
+FONT_OBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
   XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  FONT_OBJ=xfont.o
+  if test "$HAVE_XFT" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+  elif test "$HAVE_FREETYPE" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+  fi
+  AC_SUBST(FONT_OBJ)
 fi
 AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
+AC_SUBST(FONT_OBJ)
 
 WIDGET_OBJ=
 MOTIF_LIBW=

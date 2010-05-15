@@ -1,3 +1,8 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (FONT_OBJ): Edit to empty for non-X case.
+	* sed1x.inp (FONT_OBJ): Edit to xfont.o for X case.
+
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed3v2.inp (INSTALLABLES): Edit out extra ${EXEEXT} after
