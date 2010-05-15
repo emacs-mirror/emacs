@@ -1,3 +1,12 @@
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (INSTALLABLES): Edit out extra ${EXEEXT} after
+	"emacsclient".
+	(emacsserver, timer, wakeup): Remove edit-out commands.
+
+	* sed1v2.inp (MSDOS_OBJ): Add w16select.o.
+	(TERMCAP_OBJ): Add termcap.o.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (OLDXMENU_TARGET): Edit to empty.
