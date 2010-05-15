@@ -109,7 +109,7 @@
   "Additional expressions to highlight in Assembler mode.")
 
 ;;;###autoload
-(defun asm-mode ()
+(define-derived-mode asm-mode prog-mode "Assembler"
   "Major mode for editing typical assembler code.
 Features a private abbrev table and the following bindings:
 
@@ -128,13 +128,8 @@ Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
 Special commands:
 \\{asm-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq mode-name "Assembler")
-  (setq major-mode 'asm-mode)
   (setq local-abbrev-table asm-mode-abbrev-table)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(asm-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults) '(asm-font-lock-keywords))
   (set (make-local-variable 'indent-line-function) 'asm-indent-line)
   ;; Stay closer to the old TAB behavior (was tab-to-tab-stop).
   (set (make-local-variable 'tab-always-indent) nil)
@@ -157,8 +152,7 @@ Special commands:
   (setq comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
   (make-local-variable 'comment-end)
   (setq comment-end "")
-  (setq fill-prefix "\t")
-  (run-mode-hooks 'asm-mode-hook))
+  (setq fill-prefix "\t"))
 
 (defun asm-indent-line ()
   "Auto-indent the current line."

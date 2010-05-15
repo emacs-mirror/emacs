@@ -1,5 +1,6 @@
 2010-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/asm-mode.el (asm-mode):
 	* progmodes/prolog.el (prolog-mode): Use define-derived-mode.
 
 	* pcomplete.el (pcomplete-completions-at-point): New function,
