@@ -1543,6 +1543,11 @@ main (int argc, char **argv)
     ns_init_paths ();
 #endif
 
+  /* Initialize and GC-protect Vinitial_environment and
+     Vprocess_environment before set_initial_environment fills them
+     in.  */
+  if (!initialized)
+    syms_of_callproc ();
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */
@@ -1592,7 +1597,6 @@ main (int argc, char **argv)
       syms_of_callint ();
       syms_of_casefiddle ();
       syms_of_casetab ();
-      syms_of_callproc ();
       syms_of_category ();
       syms_of_ccl ();
       syms_of_character ();

@@ -1,5 +1,8 @@
 2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
 
+	* emacs.c (main): Initialize initial-environment and
+	process-environment before generating from env, not after.
+
 	Handle --version reasonably in CANNOT_DUMP configuration.
 	* emacs.c (emacs_version, emacs_copyright): New string variables.
 	(Vemacs_version, Vemacs_copyright): New Lisp_Object variables.
