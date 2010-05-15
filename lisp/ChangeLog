@@ -1,3 +1,20 @@
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Don't override standard definition of convert-standard-filename.
+	* files.el (convert-standard-filename): Call
+	w32-convert-standard-filename and dos-convert-standard-filename on
+	the corresponding systems.
+
+	* w32-fns.el (w32-convert-standard-filename): Rename from
+	convert-standard-filename.  Doc fix.
+
+	* dos-fns.el (dos-convert-standard-filename): Doc fix.
+	(convert-standard-filename): Don't defalias.
+	(register-name-alist, make-register, register-value)
+	(set-register-value, intdos): Obsolete aliases for the
+	corresponding dos-* functions and variables.
+	(dos-intdos): Add a doc string.
+
 2010-05-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-aent.el (math-read-token, math-find-user-tokens):

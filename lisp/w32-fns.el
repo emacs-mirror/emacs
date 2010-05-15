@@ -253,15 +253,16 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;	    (setq source-directory (file-name-as-directory
 ;;				     (expand-file-name ".." exec-directory)))))
 
-(defun convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for the current OS.
+(defun w32-convert-standard-filename (filename)
+  "Convert a standard file's name to something suitable for the MS-Windows.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 
-On Windows and DOS, replace invalid characters.  On DOS, make
-sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
-into native names, and also turn slashes into backslashes if the
-shell requires it (see `w32-shell-dos-semantics')."
+This function is called by `convert-standard-filename'.
+
+Replace invalid characters and turn Cygwin names into native
+names, and also turn slashes into backslashes if the shell
+requires it (see `w32-shell-dos-semantics')."
   (save-match-data
     (let ((name
 	   (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
