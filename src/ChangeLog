@@ -1,5 +1,9 @@
 2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
 
+	* lisp.h (XFLOAT_DATA): Use "0?x:x" to generate an
+	rvalue. (bug#5916)
+	(LISP_MAKE_RVALUE) [!USE_LISP_UNION_TYPE && !__GNUC__]: Likewise.
+
 	* emacs.c (main): Initialize initial-environment and
 	process-environment before generating from env, not after.
 
