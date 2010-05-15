@@ -611,6 +611,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
+/* Does anyone ever pay attention to the load-path-shadows output here?  */
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 #ifdef CANNOT_DUMP
 	rm -f emacs${EXEEXT}
@@ -664,8 +665,8 @@ temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} pr
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
-#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (USE_GTK)
-
+/* HAVE_X11 implies HAVE_X_WINDOWS and HAVE_MENUS.  */
+#if defined (HAVE_X11) && ! defined (USE_GTK)
 /* We use stamp-xmenu with these two deps to both ensure that lwlib
    gets remade based on its dependencies in its own makefile,
    and remake temacs if lwlib gets changed by this.  */
@@ -691,12 +692,12 @@ really-oldXMenu:
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */
-#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
+#else /* !HAVE_X11 || USE_GTK */
 
 /* We don''t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu
-#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
+#endif /* HAVE_X11 && !USE_GTK */
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."
@@ -979,7 +980,6 @@ ${ns_appbindir}Emacs: emacs${EXEEXT}
 	cp -f emacs${EXEEXT} ${ns_appbindir}Emacs
 
 ns-app: ${ns_appdir} ${ns_appbindir}Emacs
-
 #endif /* HAVE_NS */
 
 mostlyclean:

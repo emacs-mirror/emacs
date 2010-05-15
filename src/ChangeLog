@@ -1,5 +1,7 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in: Simplify cpp conditional.
+
 	* Makefile.in (${ns_appdir}): Simplify using umask.
 
 	* Makefile.in (${ns_appdir}): Remove references to CVS-related files.
