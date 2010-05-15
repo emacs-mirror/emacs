@@ -189,7 +189,7 @@ WIDGET_OBJ=@WIDGET_OBJ@
 ## sheap.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
-## dosfns.o msdos.o if MSDOS.
+## dosfns.o msdos.o w16select.o if MSDOS.
 MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =

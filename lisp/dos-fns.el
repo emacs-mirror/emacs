@@ -30,16 +30,16 @@
 (declare-function int86 "dosfns.c")
 (declare-function msdos-long-file-names "msdos.c")
 
-;; This overrides a trivial definition in files.el.
+;; See convert-standard-filename in files.el.
 (defun dos-convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for the current OS.
+  "Convert a standard file's name to something suitable for MS-DOS.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 
+This function is called by `convert-standard-filename'.
+
 On Windows and DOS, replace invalid characters.  On DOS, make
-sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
-into native names, and also turn slashes into backslashes if the
-shell requires it (see `w32-shell-dos-semantics')."
+sure to obey the 8.3 limitations."
   (if (or (not (stringp filename))
 	  ;; This catches the case where FILENAME is "x:" or "x:/" or
 	  ;; "/", thus preventing infinite recursion.
@@ -127,11 +127,6 @@ shell requires it (see `w32-shell-dos-semantics')."
 			      "/")
 		    (dos-convert-standard-filename dir))
 		  string))))))
-
-;; Only redirect convert-standard-filename if it has a chance of working,
-;; otherwise loading dos-fns.el might make your non-DOS Emacs misbehave.
-(when (fboundp 'msdos-long-file-names)
-  (defalias 'convert-standard-filename 'dos-convert-standard-filename))
 
 (defun dos-8+3-filename (filename)
   "Truncate FILENAME to DOS 8+3 limits."
@@ -243,8 +238,13 @@ returned unaltered."
     (al . (0 . 0)) (bl . (1 . 0)) (cl . (2 . 0)) (dl . (3 . 0))
     (ah . (0 . 1)) (bh . (1 . 1)) (ch . (2 . 1)) (dh . (3 . 1))))
 
+(define-obsolete-variable-alias
+  'register-name-alist 'dos-register-name-alist "24.1")
+
 (defun dos-make-register ()
   (make-vector 8 0))
+
+(define-obsolete-function-alias 'make-register 'dos-make-register "24.1")
 
 (defun dos-register-value (regs name)
   (let ((where (cdr (assoc name dos-register-name-alist))))
@@ -256,6 +256,8 @@ returned unaltered."
 	  ((numberp where)
 	   (aref regs where))
 	  (t nil))))
+
+(define-obsolete-function-alias 'register-value 'dos-register-value "24.1")
 
 (defun dos-set-register-value (regs name value)
   (and (numberp value)
@@ -273,8 +275,17 @@ returned unaltered."
 		(aset regs where (logand value 65535))))))
   regs)
 
+(define-obsolete-function-alias
+  'set-register-value 'dos-set-register-value "24.1")
+
 (defsubst dos-intdos (regs)
+  "Issue the DOS Int 21h with registers REGS.
+
+REGS should be a vector produced by `dos-make-register'
+and `dos-set-register-value', which see."
   (int86 33 regs))
+
+(define-obsolete-function-alias 'intdos 'dos-intdos "24.1")
 
 ;; Backward compatibility for obsolescent functions which
 ;; set screen size.
@@ -283,6 +294,8 @@ returned unaltered."
   "Changes the number of screen rows to 25."
   (interactive)
   (set-frame-size (selected-frame) 80 25))
+
+(define-obsolete-function-alias 'mode25 'dos-mode25 "24.1")
 
 (defun dos-mode4350 ()
   "Changes the number of rows to 43 or 50.
@@ -294,6 +307,8 @@ that your video hardware might not support 50-line mode."
   (if (eq (frame-height (selected-frame)) 50)
       nil  ; the original built-in function returned nil
     (set-frame-size (selected-frame) 80 43)))
+
+(define-obsolete-function-alias 'mode4350 'dos-mode4350 "24.1")
 
 (provide 'dos-fns)
 

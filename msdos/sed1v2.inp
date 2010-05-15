@@ -77,7 +77,7 @@ s/\.h\.in/.h-in/
 /^GCONF_LIBS *=/s/@GCONF_LIBS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
 /^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
-/^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/tparam.o/
+/^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/termcap.o tparam.o/
 /^LIBXMU *=/s/@LIBXMU@//
 /^LIBXSM *=/s/@LIBXSM@//
 /^LIBXTR6 *=/s/@LIBXTR6@//
@@ -91,7 +91,7 @@ s/\.h\.in/.h-in/
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
-/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o/
+/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
 /^MSDOS_SUPPORT *=/s/= */= $(MSDOS_SUPPORT_REAL)/
 /^ns_appdir *=/s/@ns_appdir@//
 /^ns_appbindir *=/s/@ns_appbindir@//

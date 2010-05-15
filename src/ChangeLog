@@ -1,3 +1,7 @@
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in: Fix MSDOS-related comments.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (OLDXMENU_TARGET): New, set by configure.
