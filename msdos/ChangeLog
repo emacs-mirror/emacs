@@ -1,3 +1,7 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LIBXT_OTHER): Exit to empty.
+
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (ns_appdir, ns_appbindir, ns_appsrc): Edit to empty.

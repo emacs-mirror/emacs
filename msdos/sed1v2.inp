@@ -81,6 +81,7 @@ s/\.h\.in/.h-in/
 /^LIBXMU *=/s/@LIBXMU@//
 /^LIBXSM *=/s/@LIBXSM@//
 /^LIBXTR6 *=/s/@LIBXTR6@//
+/^LIBXT_OTHER *=/s/@LIBXT_OTHER@//
 /^XOBJ *=/s/@XOBJ@//
 /^TOOLKIT_LIBW *=/s/@TOOLKIT_LIBW@//
 /^LIBSOUND *=/s/@LIBSOUND@//
