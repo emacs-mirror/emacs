@@ -18,7 +18,7 @@
 2010-05-14  Eli Zaretskii  <eliz@gnu.org>
 
 	Make the cache of bidi iterator states dynamically allocated.
-	(bidi_cache_shrink): New function.
+	* bidi.c (bidi_cache_shrink): New function.
 	(bidi_init_it): Call it.
 	(bidi_cache_iterator_state): Enlarge the cache if needed.
 

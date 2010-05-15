@@ -3,7 +3,7 @@
 	* sed1v2.inp (OLDXMENU_TARGET): Edit to empty.
 	* sed1x.inp (OLDXMENU_TARGET): Edit to really-oldxmenu.
 
-	* sed1v2.inp (LIBXT_OTHER): Exit to empty.
+	* sed1v2.inp (LIBXT_OTHER): Edit to empty.
 
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
