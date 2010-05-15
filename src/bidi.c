@@ -916,11 +916,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
 	 middle of it.  Find where this paragraph starts.  */
       bytepos = bidi_find_paragraph_start (pos, bytepos);
 
-      /* We should always be at the beginning of a new line at this
-	 point.  */
-      if (!(bytepos == BEGV_BYTE || FETCH_CHAR (bytepos - 1) == '\n'))
-	abort ();
-
       bidi_it->separator_limit = -1;
       bidi_it->new_paragraph = 0;
       ch = FETCH_CHAR (bytepos);

@@ -2,6 +2,8 @@
 
 	* bidi.c (bidi_paragraph_init): Don't leave alone garbage values
 	of bidi_it->paragraph_dir.  Call bidi_initialize if needed.
+	(bidi_paragraph_init): Remove redundant assertion that we are at
+	the beginning of a line after call to bidi_find_paragraph_start.
 
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): New function.
 	(syms_of_xdisp): Defsubr it.
