@@ -1,6 +1,6 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (OLDXMENU, LIBX_OTHER): Always define.
+	* Makefile.in (OLDXMENU, LIBXMENU, LIBX_OTHER): Always define.
 
 	* Makefile.in (FONT_DRIVERS): Remove, replace with $FONT_OBJ.
 	(obj, SOME_MACHINE_OBJECTS): Use $FONT_OBJ.

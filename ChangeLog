@@ -1,5 +1,7 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LIBXMENU): Set to empty if !HAVE_X_WINDOWS.
+
 	* configure.in (FONT_OBJ): Set to empty if !HAVE_X_WINDOWS.
 
 2010-05-15  Ken Raeburn  <raeburn@raeburn.org>

@@ -1,5 +1,8 @@
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
+	* sed1v2.inp (LIBXMENU): Edit to empty.
+	* sed1x.inp (LIBXMENU): Expect empty initial value.
+
 	* sed1v2.inp (OLDXMENU): Edit to empty.
 	* sed1x.inp (OLDXMENU): Expect empty initial value.
 
