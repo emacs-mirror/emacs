@@ -1,3 +1,18 @@
+2010-05-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-aent.el (math-read-token, math-find-user-tokens):
+	* calc/calc-lang.el (math-read-big-rec, math-lang-read-symbol):
+	(math-compose-tex-func):
+	* calc/calccomp.el (math-compose-expr):
+	* calc/calc-ext.el (math-format-flat-expr-fancy):
+	* calc/calc-store.el (calc-read-var-name):
+	* calc/calc-units.el (calc-explain-units-rec): Allow Greek letters.
+
+	* calc/calc.el (var-π, var-φ, var-γ): New variables.
+	* calc/calc-aent.el (math-read-replacement-list):  Add "micro" symbol.
+	* calc/calc-units.el (math-unit-prefixes): Add mu for micro.
+	(math-standard-units):  Add units.
+
 2010-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/asm-mode.el (asm-mode):
@@ -14,7 +29,7 @@
 
 2010-05-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-bin.el (math-format-twos-complement): Group digits when
+	* calc/calc-bin.el (math-format-twos-complement): Group digits when
 	appropriate.
 
 2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
