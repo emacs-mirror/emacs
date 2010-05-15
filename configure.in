@@ -3008,13 +3008,13 @@ if test "x$GCC" = xyes \
 fi
 
 #### Find out which version of Emacs this is.
-[version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+[version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
 if test x"${version}" = x; then
-  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/lisp/version.el'.])
+  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/src/emacs.c'.])
 fi
 if test x"${version}" != x"$PACKAGE_VERSION"; then
-  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/lisp/version.el'.])
+  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/src/emacs.c'.])
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.

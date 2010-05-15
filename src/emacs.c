@@ -87,6 +87,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+const char emacs_version[] = "24.0.50";
+
 extern void malloc_warning P_ ((char *));
 extern void set_time_zone_rule P_ ((char *));
 #ifdef HAVE_INDEX
@@ -179,6 +182,10 @@ Lisp_Object Vsystem_messages_locale;
 Lisp_Object Vprevious_system_messages_locale;
 Lisp_Object Vsystem_time_locale;
 Lisp_Object Vprevious_system_time_locale;
+
+/* Copyright and version info.  The version number may be updated by
+   Lisp code.  */
+Lisp_Object Vemacs_copyright, Vemacs_version;
 
 /* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
@@ -802,35 +809,43 @@ main (int argc, char **argv)
   argc = 0;
   while (argv[argc]) argc++;
 
-  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args)
-      /* We don't know the version number unless this is a dumped Emacs.
-         So ignore --version otherwise.  */
-      && initialized)
+  if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
     {
-      Lisp_Object tem, tem2;
-      tem = Fsymbol_value (intern_c_string ("emacs-version"));
-      tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
-      if (!STRINGP (tem))
+      const char *version, *copyright;
+      if (initialized)
 	{
-	  fprintf (stderr, "Invalid value of `emacs-version'\n");
-	  exit (1);
-	}
-      if (!STRINGP (tem2))
-	{
-	  fprintf (stderr, "Invalid value of `emacs-copyright'\n");
-	  exit (1);
+	  Lisp_Object tem, tem2;
+	  tem = Fsymbol_value (intern_c_string ("emacs-version"));
+	  tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
+	  if (!STRINGP (tem))
+	    {
+	      fprintf (stderr, "Invalid value of `emacs-version'\n");
+	      exit (1);
+	    }
+	  if (!STRINGP (tem2))
+	    {
+	      fprintf (stderr, "Invalid value of `emacs-copyright'\n");
+	      exit (1);
+	    }
+	  else
+	    {
+	      version = SDATA (tem);
+	      copyright = SDATA (tem2);
+	    }
 	}
       else
 	{
-	  printf ("GNU Emacs %s\n", SDATA (tem));
-	  printf ("%s\n", SDATA(tem2));
-	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
-	  printf ("You may redistribute copies of Emacs\n");
-	  printf ("under the terms of the GNU General Public License.\n");
-	  printf ("For more information about these matters, ");
-	  printf ("see the file named COPYING.\n");
-	  exit (0);
+	  version = emacs_version;
+	  copyright = emacs_copyright;
 	}
+      printf ("GNU Emacs %s\n", version);
+      printf ("%s\n", copyright);
+      printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
+      printf ("You may redistribute copies of Emacs\n");
+      printf ("under the terms of the GNU General Public License.\n");
+      printf ("For more information about these matters, ");
+      printf ("see the file named COPYING.\n");
+      exit (0);
     }
   if (argmatch (argv, argc, "-chdir", "--chdir", 2, &ch_to_dir, &skip_args))
       if (chdir (ch_to_dir) == -1)
@@ -1528,6 +1543,11 @@ main (int argc, char **argv)
     ns_init_paths ();
 #endif
 
+  /* Initialize and GC-protect Vinitial_environment and
+     Vprocess_environment before set_initial_environment fills them
+     in.  */
+  if (!initialized)
+    syms_of_callproc ();
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */
@@ -1577,7 +1597,6 @@ main (int argc, char **argv)
       syms_of_callint ();
       syms_of_casefiddle ();
       syms_of_casetab ();
-      syms_of_callproc ();
       syms_of_category ();
       syms_of_ccl ();
       syms_of_character ();
@@ -2576,6 +2595,14 @@ This is nil during initialization.  */);
   DEFVAR_BOOL ("inhibit-x-resources", &inhibit_x_resources,
 	       doc: /* If non-nil, X resources, Windows Registry settings, and NS defaults are not used.  */);
   inhibit_x_resources = 0;
+
+  DEFVAR_LISP ("emacs-copyright", &Vemacs_copyright,
+	       doc: /* Short copyright string for this version of Emacs.  */);
+  Vemacs_copyright = build_string (emacs_copyright);
+
+  DEFVAR_LISP ("emacs-version", &Vemacs_version,
+	       doc: /* Version numbers of this version of Emacs.  */);
+  Vemacs_version = build_string (emacs_version);
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

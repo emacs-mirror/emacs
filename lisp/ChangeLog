@@ -1,3 +1,8 @@
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	* version.el (emacs-copyright, emacs-version): Don't define here,
+	now that emacs.c defines it.
+
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (mule-menu-keymap): Fix definition of
