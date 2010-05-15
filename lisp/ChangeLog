@@ -1,3 +1,8 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):
+	Remove references to CVS, RCS and Old directories.
+
 2010-05-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc-bin.el (math-format-twos-complement): Group digits when

@@ -973,10 +973,8 @@ ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}
 	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; tar xf - )
-	( cd ${ns_appdir} ; for subdir in `find . -type d ! -name CVS -print` ; do \
-		chmod a+rx $${subdir} ; \
-		rm -rf $${subdir}/CVS ; \
-		rm -f  $${subdir}/.cvsignore ; done ; )
+	( cd ${ns_appdir} ; for subdir in `find . -type d -print` ; do \
+		chmod a+rx $${subdir} ; done ; )
 
 ${ns_appbindir}Emacs: emacs${EXEEXT}
 	mkdir -p ${ns_appbindir}

@@ -84,28 +84,25 @@ COMPILE_FIRST = \
 emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
-
 setwins=subdirs=`(find . -type d -print)`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* ) ;; \
+	   case $$file in */.* | */.*/* | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 # Find all subdirectories except `obsolete' and `term'.
-
 setwins_almost=subdirs=`(find . -type d -print)`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */obsolete | */term ) ;; \
+	   case $$file in */.* | */.*/* | */=* | */obsolete | */term ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 # Find all subdirectories in which we might want to create subdirs.el
-
 setwins_for_subdirs=subdirs=`(find . -type d -print)`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */cedet* ) ;; \
+	   case $$file in */.* | */.*/* | */=* | */cedet* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done

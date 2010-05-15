@@ -1,3 +1,8 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Remove references to RCS, CVS,
+	and other files that no longer exist.
+
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (cpp_undefs): Add mktime, register, X11.

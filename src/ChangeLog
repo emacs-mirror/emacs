@@ -1,3 +1,7 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (${ns_appdir}): Remove references to CVS-related files.
+
 2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (specbind): Remove left-over duplicate test.
