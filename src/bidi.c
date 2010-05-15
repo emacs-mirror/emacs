@@ -890,6 +890,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
       EMACS_INT pos;
       bidi_type_t type;
 
+      if (!bidi_initialized)
+	bidi_initialize ();
+
       /* If we are inside a paragraph separator, we are just waiting
 	 for the separator to be exhausted; use the previous paragraph
 	 direction.  But don't do that if we have been just reseated,
@@ -957,7 +960,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
   /* Contrary to UAX#9 clause P3, we only default the paragraph
      direction to L2R if we have no previous usable paragraph
      direction.  */
-  if (bidi_it->paragraph_dir == NEUTRAL_DIR)
+  if (bidi_it->paragraph_dir != L2R && bidi_it->paragraph_dir != R2L)
     bidi_it->paragraph_dir = L2R; /* P3 and ``higher protocols'' */
   if (bidi_it->paragraph_dir == R2L)
     bidi_it->level_stack[0].level = 1;

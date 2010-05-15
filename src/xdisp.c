@@ -18241,6 +18241,84 @@ display_line (it)
   return row->displays_text_p;
 }
 
+DEFUN ("current-bidi-paragraph-direction", Fcurrent_bidi_paragraph_direction,
+       Scurrent_bidi_paragraph_direction, 0, 1, 0,
+       doc: /* Return paragraph direction at point in BUFFER.
+Value is either `left-to-right' or `right-to-left'.
+If BUFFER is omitted or nil, it defaults to the current buffer.
+
+Paragraph direction determines how the text in the paragraph is displayed.
+In left-to-right paragraphs, text begins at the left margin of the window
+and the reading direction is generally left to right.  In right-to-left
+paragraphs, text begins at the right margin and is read from right to left.
+
+See also `bidi-paragraph-direction'.  */)
+     (buffer)
+     Lisp_Object buffer;
+{
+  struct buffer *buf;
+  struct buffer *old;
+
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+      old = current_buffer;
+    }
+
+  if (NILP (buf->bidi_display_reordering))
+    return Qleft_to_right;
+  else if (!NILP (buf->bidi_paragraph_direction))
+    return buf->bidi_paragraph_direction;
+  else
+    {
+      /* Determine the direction from buffer text.  We could try to
+	 use current_matrix if it is up to date, but this seems fast
+	 enough as it is.  */
+      struct bidi_it itb;
+      EMACS_INT pos = BUF_PT (buf);
+      EMACS_INT bytepos = BUF_PT_BYTE (buf);
+
+      if (buf != current_buffer)
+	set_buffer_temp (buf);
+      /* Find previous non-empty line.  */
+      if (pos >= ZV && pos > BEGV)
+	{
+	  pos--;
+	  bytepos = CHAR_TO_BYTE (pos);
+	}
+      while (FETCH_BYTE (bytepos) == '\n')
+	{
+	  if (bytepos <= BEGV_BYTE)
+	    break;
+	  bytepos--;
+	  pos--;
+	}
+      while (!CHAR_HEAD_P (FETCH_BYTE (bytepos)))
+	bytepos--;
+      itb.charpos = pos;
+      itb.bytepos = bytepos;
+      itb.first_elt = 1;
+
+      bidi_paragraph_init (NEUTRAL_DIR, &itb);
+      if (buf != current_buffer)
+	set_buffer_temp (old);
+      switch (itb.paragraph_dir)
+	{
+	case L2R:
+	  return Qleft_to_right;
+	  break;
+	case R2L:
+	  return Qright_to_left;
+	  break;
+	default:
+	  abort ();
+	}
+    }
+}
+
 
 
 /***********************************************************************
@@ -25940,6 +26018,7 @@ syms_of_xdisp ()
 #endif
   defsubr (&Sformat_mode_line);
   defsubr (&Sinvisible_p);
+  defsubr (&Scurrent_bidi_paragraph_direction);
 
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern_c_string ("menu-bar-update-hook");

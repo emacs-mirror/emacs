@@ -1,5 +1,10 @@
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
+	Bidi-sensitive movement with arrow keys.
+	* subr.el (right-arrow-command, left-arrow-command): New functions.
+
+	* bindings.el (global-map): Bind them to right and left arrow keys.
+
 	Don't override standard definition of convert-standard-filename.
 	* files.el (convert-standard-filename): Call
 	w32-convert-standard-filename and dos-convert-standard-filename on

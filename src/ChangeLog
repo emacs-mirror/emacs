@@ -1,5 +1,11 @@
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_paragraph_init): Don't leave alone garbage values
+	of bidi_it->paragraph_dir.  Call bidi_initialize if needed.
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): New function.
+	(syms_of_xdisp): Defsubr it.
+
 	* Makefile.in: Fix MSDOS-related comments.
 
 2010-05-15  Glenn Morris  <rgm@gnu.org>
