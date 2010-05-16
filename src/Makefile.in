@@ -193,6 +193,12 @@ LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 ## If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.
 LIBX_OTHER=@LIBX_OTHER@
 
+## LIBXMENU is nil if !HAVE_X_WINDOWS.
+## LD_SWITCH_X_SITE should not be used if not using X, but nothing
+## sets it at present, and if something ever does, it should be
+## configure, which should set it to nil in non-X builds.
+LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
+
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
@@ -310,9 +316,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
-#ifdef HAVE_X_WINDOWS
-LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
-#endif /* HAVE_X_WINDOWS */
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have

@@ -1,5 +1,7 @@
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (LIBX_BASE): Always define.
+
 	* Makefile.in (LIBX_OTHER): Move out of cpp section.
 
 	* Makefile.in (LIBXT): Always define.
