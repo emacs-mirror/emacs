@@ -1,5 +1,7 @@
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (ns_appbindir, ns_appresdir): Set using $ns_appdir.
+
 	* configure.in (ns_appdir, ns_appbindir): Add trailing "/" to value.
 	* Makefile.in (install-arch-dep): Update for above change.
 
