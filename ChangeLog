@@ -1,3 +1,9 @@
+2010-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove references to usg5-4 and bsd-common, $opsys
+	does not use them.
+	(X11R5_INHIBIT_I18N): Remove, unused.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIBXMENU): Set to empty if !HAVE_X_WINDOWS.
