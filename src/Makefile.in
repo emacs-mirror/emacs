@@ -224,8 +224,8 @@ MSDOS_SUPPORT_REAL = ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
 ## $MSDOS_SUPPORT_REAL if MSDOS.
 MSDOS_SUPPORT = 
 
-ns_appdir=@ns_appdir@/
-ns_appbindir=@ns_appbindir@/
+ns_appdir=@ns_appdir@
+ns_appbindir=@ns_appbindir@
 ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@

@@ -1,5 +1,8 @@
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (ns_appdir, ns_appbindir): Now configure adds the
+	trailing "/".
+
 	* Makefile.in (TEMACS_LDFLAGS2): New, set by configure.
 	(temacs${EXEEXT}): Combine the NS_IMPL_GNUSTEP case with the default.
 
