@@ -36,13 +36,13 @@
 
 ;;; Units table last updated 9-Jan-91 by Ulrich Mueller (ulm@vsnhd1.cern.ch)
 ;;; with some additions by Przemek Klosowski (przemek@rrdstrad.nist.gov)
-;;; Updated April 2002 by Jochen K�pper
+;;; Updated April 2002 by Jochen Küpper
 
 ;;; Updated August 2007, using
 ;;;     CODATA (http://physics.nist.gov/cuu/Constants/index.html)
 ;;;     NIST   (http://physics.nist.gov/Pubs/SP811/appenB9.html)
 ;;;     ESUWM  (Encyclopaedia of Scientific Units, Weights and
-;;;             Measures, by Fran�ois Cardarelli)
+;;;             Measures, by François Cardarelli)
 ;;; All conversions are exact unless otherwise noted.
 
 (defvar math-standard-units
@@ -210,6 +210,7 @@
               "1.602176487 10^-19 C (*)") ;;(approx) CODATA
     ( V       "W/A"                   "Volt" )
     ( ohm     "V/A"                   "Ohm" )
+    ( Ω       "ohm"                   "Ohm" )
     ( mho     "A/V"                   "Mho" )
     ( S       "A/V"                   "Siemens" )
     ( F       "C/V"                   "Farad" )
@@ -259,7 +260,9 @@
               "6.62606896 10^-34 J s (*)")
     ( hbar    "h / (2 pi)"                  "Planck's constant" ) ;; Exact
     ( mu0     "4 pi 10^(-7) H/m"            "Permeability of vacuum") ;; Exact
+    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
     ( eps0    "1 / (mu0 c^2)"               "Permittivity of vacuum" )
+    ( ε0      "eps0"                        "Permittivity of vacuum" )
     ( G       "6.67428*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67428 10^-11 m^3/(kg s^2) (*)")
     ( Nav     "6.02214179*10^(23) / mol"    "Avogadro's constant" nil
@@ -272,11 +275,15 @@
               "1.674927211 10^-27 kg (*)")
     ( mmu     "1.88353130*10^(-28) kg"      "Muon rest mass" nil
               "1.88353130 10^-28 kg (*)")
+    ( mμ      "mmu"                         "Muon rest mass" nil
+              "1.88353130 10^-28 kg (*)")
     ( Ryd     "10973731.568527 /m"          "Rydberg's constant" nil
               "10973731.568527 /m (*)")
     ( k       "1.3806504*10^(-23) J/K"      "Boltzmann's constant" nil
               "1.3806504 10^-23 J/K (*)")
     ( alpha   "7.2973525376*10^(-3)"        "Fine structure constant" nil
+              "7.2973525376 10^-3 (*)")
+    ( α       "alpha"                        "Fine structure constant" nil
               "7.2973525376 10^-3 (*)")
     ( muB     "927.400915*10^(-26) J/T"     "Bohr magneton" nil
               "927.400915 10^-26 J/T (*)")
@@ -316,6 +323,7 @@ that the combined units table will be rebuilt.")
      ( ?c  (^ 10 -2)  "Centi"  )
      ( ?m  (^ 10 -3)  "Milli"  )
      ( ?u  (^ 10 -6)  "Micro"  )
+     ( ?μ  (^ 10 -6)  "Micro"  )     
      ( ?n  (^ 10 -9)  "Nano"   )
      ( ?p  (^ 10 -12) "Pico"   )
      ( ?f  (^ 10 -15) "Femto"  )
@@ -581,8 +589,8 @@ If EXPR is nil, return nil."
 	(let ((name (or (nth 2 u) (symbol-name (car u)))))
 	  (if (eq (aref name 0) ?\*)
 	      (setq name (substring name 1)))
-	  (if (string-match "[^a-zA-Z0-9']" name)
-	      (if (string-match "^[a-zA-Z0-9' ()]*$" name)
+	  (if (string-match "[^a-zA-Zα-ωΑ-Ω0-9']" name)
+	      (if (string-match "^[a-zA-Zα-ωΑ-Ω0-9' ()]*$" name)
 		  (while (setq pos (string-match "[ ()]" name))
 		    (setq name (concat (substring name 0 pos)
 				       (if (eq (aref name pos) 32) "-" "")
@@ -592,7 +600,7 @@ If EXPR is nil, return nil."
 	      (setq name (concat (nth 2 (assq (aref (symbol-name
 						     (nth 1 expr)) 0)
 					      math-unit-prefixes))
-				 (if (and (string-match "[^a-zA-Z0-9']" name)
+				 (if (and (string-match "[^a-zA-Zα-ωΑ-Ω0-9']" name)
 					  (not (memq (car u) '(mHg gf))))
 				     (concat "-" name)
 				   (downcase name)))))
@@ -1539,10 +1547,6 @@ If EXPR is nil, return nil."
       (display-buffer (get-buffer "*Units Table*")))))
 
 (provide 'calc-units)
-
-;; Local Variables:
-;; coding: iso-latin-1
-;; End:
 
 ;; arch-tag: e993314f-3adc-4191-be61-4ef8874881c4
 ;;; calc-units.el ends here

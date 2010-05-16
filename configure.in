@@ -1453,6 +1453,7 @@ HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
 NS_IMPL_GNUSTEP_INC=
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -1481,11 +1482,14 @@ include $GNUSTEP_MAKEFILES/Additional/base.make
 include $GNUSTEP_MAKEFILES/Additional/gui.make
 shared=no
 "
+     dnl Presumably ${CONFIG_SYSTEM_LIBS} is defined by above includes.
+     NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
+     START_FILES=
   fi
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
@@ -1500,6 +1504,7 @@ shared=no
   fi
 fi
 AC_SUBST(NS_IMPL_GNUSTEP_INC)
+AC_SUBST(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
 
 NS_OBJ=
 NS_SUPPORT=
@@ -2231,14 +2236,6 @@ else
     HAVE_M17N_FLT=no
 fi
 
-FONT_OBJ=xfont.o
-if test "$HAVE_XFT" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
-elif test "$HAVE_FREETYPE" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
-fi
-AC_SUBST(FONT_OBJ)
-
 ### End of font-backend (under X11) section.
 
 AC_SUBST(FREETYPE_CFLAGS)
@@ -2620,7 +2617,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -2629,7 +2626,7 @@ case "$opsys" in
   ## hpux10-20: Use the system provided termcap(3) library.
   ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
   ##  is necessary.  Otherwise Emacs dumps core when run -nw.
-  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
 
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
@@ -3008,13 +3005,13 @@ if test "x$GCC" = xyes \
 fi
 
 #### Find out which version of Emacs this is.
-[version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+[version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
 if test x"${version}" = x; then
-  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/lisp/version.el'.])
+  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/src/emacs.c'.])
 fi
 if test x"${version}" != x"$PACKAGE_VERSION"; then
-  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/lisp/version.el'.])
+  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/src/emacs.c'.])
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
@@ -3059,8 +3056,6 @@ AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
-AC_SUBST(GNUSTEP_SYSTEM_HEADERS)
-AC_SUBST(GNUSTEP_SYSTEM_LIBRARIES)
 AC_SUBST(GNU_OBJC_CFLAGS)
 AC_SUBST(OTHER_FILES)
 
@@ -3075,14 +3070,23 @@ AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 
 XMENU_OBJ=
 XOBJ=
+FONT_OBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
   XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  FONT_OBJ=xfont.o
+  if test "$HAVE_XFT" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+  elif test "$HAVE_FREETYPE" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+  fi
+  AC_SUBST(FONT_OBJ)
 fi
 AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
+AC_SUBST(FONT_OBJ)
 
 WIDGET_OBJ=
 MOTIF_LIBW=
@@ -3126,10 +3130,13 @@ AC_SUBST(TOOLKIT_LIBW)
 
 if test "$USE_X_TOOLKIT" = "none"; then
   LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
 else
   LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
 fi
 AC_SUBST(LIBXT_OTHER)
+AC_SUBST(OLDXMENU_TARGET)
 
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;
@@ -3148,7 +3155,12 @@ if test "${HAVE_X11}" = "yes" ; then
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
 else
   OLDXMENU=
-  LIBXMENU="-lXMenu"
+  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
+  if test "${HAVE_X_WINDOWS}" = "yes"; then
+    LIBXMENU="-lXMenu"
+  else
+    LIBXMENU=
+  fi
   LIBX_OTHER=
 fi
 
@@ -3478,8 +3490,6 @@ typedef unsigned size_t;
 
 #ifdef HAVE_X11R6
 #define HAVE_X_I18N
-#elif !defined X11R5_INHIBIT_I18N
-#define HAVE_X_I18N
 #endif
 
 /* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
@@ -3499,11 +3509,7 @@ typedef unsigned size_t;
    that the stack is continuous.  */
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */
-  /* Exceptions (see NON_SAVING_SETJMP in target description) are
-     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
-     Fixme: Deal with SVR3.  */
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
 #  ifndef GC_LISP_OBJECT_ALIGNMENT

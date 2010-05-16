@@ -202,7 +202,7 @@
                  'calc-read-var-name-history)))))
     (setq calc-aborted-prefix "")
     (and (not (equal var "var-"))
-	 (if (string-match "\\`\\([-a-zA-Z0-9]+\\) *:?=" var)
+	 (if (string-match "\\`\\([-a-zA-Zα-ωΑ-Ω0-9]+\\) *:?=" var)
 	     (if (null calc-given-value-flag)
 		 (error "Assignment is not allowed in this command")
 	       (let ((svar (intern (substring var 0 (match-end 1)))))

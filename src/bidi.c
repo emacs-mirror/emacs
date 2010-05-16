@@ -26,13 +26,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    designed to be called once for every character in the buffer or
    string.
 
-   The main entry point is bidi_get_next_char_visually.  Each time it
+   The main entry point is bidi_move_to_visually_next.  Each time it
    is called, it finds the next character in the visual order, and
    returns its information in a special structure.  The caller is then
    expected to process this character for display or any other
-   purposes, and call bidi_get_next_char_visually for the next
-   character.  See the comments in bidi_get_next_char_visually for
-   more details about its algorithm that finds the next visual-order
+   purposes, and call bidi_move_to_visually_next for the next
+   character.  See the comments in bidi_move_to_visually_next for more
+   details about its algorithm that finds the next visual-order
    character by resolving their levels on the fly.
 
    The two other entry points are bidi_paragraph_init and
@@ -540,15 +540,28 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 
 /* Caching the bidi iterator states.  */
 
-static struct bidi_it bidi_cache[1000]; /* FIXME: make this dynamically allocated! */
-static int bidi_cache_idx;
-static int bidi_cache_last_idx;
+#define BIDI_CACHE_CHUNK 200
+static struct bidi_it *bidi_cache;
+static size_t bidi_cache_size = 0;
+static int bidi_cache_idx;	/* next unused cache slot */
+static int bidi_cache_last_idx;	/* slot of last cache hit */
 
 static INLINE void
 bidi_cache_reset (void)
 {
   bidi_cache_idx = 0;
   bidi_cache_last_idx = -1;
+}
+
+static INLINE void
+bidi_cache_shrink (void)
+{
+  if (bidi_cache_size > BIDI_CACHE_CHUNK)
+    {
+      bidi_cache_size = BIDI_CACHE_CHUNK * sizeof (struct bidi_it);
+      bidi_cache = (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size);
+    }
+  bidi_cache_reset ();
 }
 
 static INLINE void
@@ -672,9 +685,13 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
   if (idx < 0)
     {
       idx = bidi_cache_idx;
-      /* Don't overrun the cache limit.  */
-      if (idx > sizeof (bidi_cache) / sizeof (bidi_cache[0]) - 1)
-	abort ();
+      /* Enlarge the cache as needed.  */
+      if (idx >= bidi_cache_size)
+	{
+	  bidi_cache_size += BIDI_CACHE_CHUNK * sizeof (struct bidi_it);
+	  bidi_cache =
+	    (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size);
+	}
       /* Character positions should correspond to cache positions 1:1.
 	 If we are outside the range of cached positions, the cache is
 	 useless and must be reset.  */
@@ -873,6 +890,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
       EMACS_INT pos;
       bidi_type_t type;
 
+      if (!bidi_initialized)
+	bidi_initialize ();
+
       /* If we are inside a paragraph separator, we are just waiting
 	 for the separator to be exhausted; use the previous paragraph
 	 direction.  But don't do that if we have been just reseated,
@@ -895,11 +915,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
       /* We are either at the beginning of a paragraph or in the
 	 middle of it.  Find where this paragraph starts.  */
       bytepos = bidi_find_paragraph_start (pos, bytepos);
-
-      /* We should always be at the beginning of a new line at this
-	 point.  */
-      if (!(bytepos == BEGV_BYTE || FETCH_CHAR (bytepos - 1) == '\n'))
-	abort ();
 
       bidi_it->separator_limit = -1;
       bidi_it->new_paragraph = 0;
@@ -940,7 +955,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it)
   /* Contrary to UAX#9 clause P3, we only default the paragraph
      direction to L2R if we have no previous usable paragraph
      direction.  */
-  if (bidi_it->paragraph_dir == NEUTRAL_DIR)
+  if (bidi_it->paragraph_dir != L2R && bidi_it->paragraph_dir != R2L)
     bidi_it->paragraph_dir = L2R; /* P3 and ``higher protocols'' */
   if (bidi_it->paragraph_dir == R2L)
     bidi_it->level_stack[0].level = 1;
@@ -990,6 +1005,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
     bidi_it->prev_for_neutral.type_after_w1 =
     bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
+  bidi_cache_shrink ();
 }
 
 /* Push the current embedding level and override status; reset the
@@ -1876,7 +1892,7 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, int end_flag)
 }
 
 void
-bidi_get_next_char_visually (struct bidi_it *bidi_it)
+bidi_move_to_visually_next (struct bidi_it *bidi_it)
 {
   int old_level, new_level, next_level;
   struct bidi_it sentinel;

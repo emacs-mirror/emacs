@@ -57,8 +57,12 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
 }
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
-       doc: /* Move point right N characters (left if N is negative).
-On reaching end of buffer, stop and signal error.  */)
+       doc: /* Move point N characters forward (backward if N is negative).
+On reaching end or beginning of buffer, stop and signal error.
+
+Depending on the bidirectional context, the movement may be to the
+right or to the left on the screen.  This is in contrast with
+\\[right-arrow-command], which see.  */)
      (n)
      Lisp_Object n;
 {
@@ -93,8 +97,12 @@ On reaching end of buffer, stop and signal error.  */)
 }
 
 DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "^p",
-       doc: /* Move point left N characters (right if N is negative).
-On attempt to pass beginning or end of buffer, stop and signal error.  */)
+       doc: /* Move point N characters backward (forward if N is negative).
+On attempt to pass beginning or end of buffer, stop and signal error.
+
+Depending on the bidirectional context, the movement may be to the
+right or to the left on the screen.  This is in contrast with
+\\[left-arrow-command], which see.  */)
      (n)
      Lisp_Object n;
 {

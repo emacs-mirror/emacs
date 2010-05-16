@@ -3283,7 +3283,7 @@ If X is not an error form, return 1."
 	     (concat "-" (math-format-flat-expr (nth 1 a) 1000)))
 	    (t
 	     (concat (math-remove-dashes
-		      (if (string-match "\\`calcFunc-\\([a-zA-Z0-9']+\\)\\'"
+		      (if (string-match "\\`calcFunc-\\([a-zA-Zα-ωΑ-Ω0-9']+\\)\\'"
 					(symbol-name (car a)))
 			  (math-match-substring (symbol-name (car a)) 1)
 			(symbol-name (car a))))
@@ -3469,7 +3469,8 @@ If X is not an error form, return 1."
 
 (defun math-group-float (str)   ; [X X]
   (let* ((pt (or (string-match "[^0-9a-zA-Z]" str) (length str)))
-	 (g (if (integerp calc-group-digits) (math-abs calc-group-digits) 3))
+	 (g (if (integerp calc-group-digits) (math-abs calc-group-digits)
+              (if (memq calc-number-radix '(2 16)) 4 3)))
 	 (i pt))
     (if (and (integerp calc-group-digits) (< calc-group-digits 0))
 	(while (< (setq i (+ (1+ i) g)) (length str))

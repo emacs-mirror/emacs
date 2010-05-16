@@ -1150,13 +1150,13 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
       /* Search backward for a pattern that may be composed and the
 	 position of (possibly) the last character of the match is
 	 closest to (but not after) START.  The reason for the last
-	 character is that set_iterator_to_next works in reverse order
-	 and, thus we must stop at the last character for composition
+	 character is that set_iterator_to_next works in reverse order,
+	 and thus we must stop at the last character for composition
 	 check.  */
       unsigned char *p;
       int len;
-      /* limit byte position used in fast_looking_at.  This is the
-	 byte position of the next character of START. */
+      /* Limit byte position used in fast_looking_at.  This is the
+	 byte position of the character after START. */
       EMACS_INT limit;
 
       if (NILP (string))
@@ -1191,7 +1191,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 		    len = 1;
 		  if (len > 0)
 		    {
-		      /* Make CPOS points the last character of match.
+		      /* Make CPOS point to the last character of match.
 			 Note that LEN is byte-length.  */
 		      bpos += len;
 		      if (NILP (string))

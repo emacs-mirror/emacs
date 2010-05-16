@@ -1,3 +1,38 @@
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (GNUSTEP_SYSTEM_LIBRARIES): Remove.
+	(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS): Edit to empty.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LIBXMENU): Edit to empty.
+	* sed1x.inp (LIBXMENU): Expect empty initial value.
+
+	* sed1v2.inp (OLDXMENU): Edit to empty.
+	* sed1x.inp (OLDXMENU): Expect empty initial value.
+
+	* sed1v2.inp (LIBX_OTHER): Edit to empty.
+	* sed1x.inp (LIBX_OTHER): Expect empty initial value.
+
+	* sed1v2.inp (FONT_OBJ): Edit to empty for non-X case.
+	* sed1x.inp (FONT_OBJ): Edit to xfont.o for X case.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (INSTALLABLES): Edit out extra ${EXEEXT} after
+	"emacsclient".
+	(emacsserver, timer, wakeup): Remove edit-out commands.
+
+	* sed1v2.inp (MSDOS_OBJ): Add w16select.o.
+	(TERMCAP_OBJ): Add termcap.o.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (OLDXMENU_TARGET): Edit to empty.
+	* sed1x.inp (OLDXMENU_TARGET): Edit to really-oldxmenu.
+
+	* sed1v2.inp (LIBXT_OTHER): Edit to empty.
+
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (ns_appdir, ns_appbindir, ns_appsrc): Edit to empty.
