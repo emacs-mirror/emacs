@@ -1,3 +1,7 @@
+2010-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/ia64.h (UNEXEC): Remove, set in s/*.h.
+
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (LIBX_BASE): Always define.
