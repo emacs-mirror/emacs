@@ -678,9 +678,8 @@ temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} pr
 	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
 	${obj} ${otherobj} ${LIBES}
 #else
-	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
-    -o temacs ${START_FILES} ${obj} ${otherobj}  \
-    ${LIBES}
+	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} ) $(LDFLAGS) \
+	-o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 #endif
 
 prefix-args${EXEEXT}: prefix-args.o $(config_h)

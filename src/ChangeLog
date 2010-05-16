@@ -1,3 +1,8 @@
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (temacs${EXEEXT}) [!NS_IMPL_GNUSTEP]:
+	Remove ${STARTFLAGS}, nothing ever sets it.
+
 2010-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/ia64.h (UNEXEC): Remove, set in s/*.h.
