@@ -164,7 +164,6 @@ VPATH=@srcdir@
 x_default_search_path=@x_default_search_path@
 
 # Location to install Emacs.app under NeXT/Open/GNUstep / Cocoa
-ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
 ns_appresdir=@ns_appresdir@
 
@@ -418,7 +417,7 @@ install-arch-dep: mkdir
 	    ${INSTALL_DATA} lib-src/$$f $(DESTDIR)${archlibdir}/$$f; \
 	  else true; fi ; \
 	done
-	if test "${ns_appdir}" != ""; then \
+	if test "${ns_appresdir}" != ""; then \
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
 	    if test -d share/info ; then dir=share/info; $(MV_DIRS) ; fi ; \
