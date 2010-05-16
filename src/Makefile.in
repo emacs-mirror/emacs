@@ -1015,9 +1015,8 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 	-rm -rf deps
-#ifdef HAVE_NS
-	rm -fr ${ns_appdir}
-#endif
+	test "X${ns_appdir}" = "X" || rm -rf ${ns_appdir}
+
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,
    but not things like config.status or TAGS.  */

@@ -1,5 +1,7 @@
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (clean): Get rid of HAVE_NS conditional.
+
 	* Makefile.in (ns_appdir, ns_appbindir): Now configure adds the
 	trailing "/".
 
