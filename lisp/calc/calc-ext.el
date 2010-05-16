@@ -3283,7 +3283,7 @@ If X is not an error form, return 1."
 	     (concat "-" (math-format-flat-expr (nth 1 a) 1000)))
 	    (t
 	     (concat (math-remove-dashes
-		      (if (string-match "\\`calcFunc-\\([a-zA-Z0-9']+\\)\\'"
+		      (if (string-match "\\`calcFunc-\\([a-zA-Zα-ωΑ-Ω0-9']+\\)\\'"
 					(symbol-name (car a)))
 			  (math-match-substring (symbol-name (car a)) 1)
 			(symbol-name (car a))))

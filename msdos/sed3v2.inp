@@ -44,11 +44,10 @@
 /^EXEEXT *=/s!@EXEEXT@!!
 /^GETOPT_H *=/s!@GETOPT_H@!getopt.h!
 /^GETOPTOBJS *=/s!@GETOPTOBJS@!getopt.o getopt1.o!
-/^INSTALLABLES/s/emacsclient *//
+/^INSTALLABLES/s/emacsclient[^ ]* *//
 s!^	\./!	!
-/^UTILITIES=/s/ wakeup//
-/^UTILITIES=/s/ movemail//
-/^UTILITIES=/s/ emacsserver//
-/^UTILITIES=/s/ timer//
+/^UTILITIES *=/,/^$/{
+  s/movemail[^ ]* *//
+}
 
 # arch-tag: 16f3be18-a45b-496c-b19c-e43840359de8

@@ -845,6 +845,8 @@ the size of a Calc bignum digit.")
            (len (length num)))
       (if (< len digs)
           (setq num (concat (make-string (- digs len) ?0) num))))
+    (when calc-group-digits
+      (setq num (math-group-float num)))
     (concat 
      (number-to-string calc-number-radix)
      "##"

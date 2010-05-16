@@ -425,9 +425,14 @@ install-arch-dep: mkdir
 	    rm -fr share ) ; \
 	  ( cd ${ns_appbindir}/libexec ; dir=emacs/*/*/* ; $(MV_DIRS); \
 	    rm -fr emacs ) ; \
-	  ( cd ${ns_appbindir}/bin ; rm -f emacs emacs-23* ; \
+	  ( cd ${ns_appbindir}/bin ; rm -f emacs emacs-24* ; \
 	    ln -sf ../libexec/* .) ; \
 	else true ; fi
+
+## FIXME is the emacs-24* bit above really necessary and correct?
+## What if I have 24.1 and 24.2 installed at the same time?
+## In any case, it should use something like echo $version | sed 's/\..*//'
+## instead of hard-coding a version.
 
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
@@ -476,11 +481,8 @@ install-arch-indep: mkdir info install-etc
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
 	      find $${dest} -exec chown $${installuser} {} ';' ;\
-	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
+	      for subdir in `find $${dest} -type d -print` ; do \
 		chmod a+rx $${subdir} ; \
-		rm -rf $${subdir}/RCS ; \
-		rm -rf $${subdir}/CVS ; \
-		rm -f  $${subdir}/.cvsignore ; \
 		rm -f  $${subdir}/.gitignore ; \
 		rm -f  $${subdir}/.arch-inventory ; \
 		rm -f  $${subdir}/.DS_Store ; \
@@ -492,7 +494,6 @@ install-arch-indep: mkdir info install-etc
 		 rm -f $${subdir}/[mM]akefile*.c $${subdir}/[mM]akefile*[.-]in \
 		   $${subdir}/[mM]akefile ; \
 		rm -f  $${subdir}/ChangeLog* ; \
-		rm -f  $${subdir}/dired.todo ; \
 	      done) ; \
 	done
 	-rm -f $(DESTDIR)${lispdir}/subdirs.el

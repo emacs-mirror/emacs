@@ -1,3 +1,70 @@
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBXT): Always define.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (OLDXMENU, LIBXMENU, LIBX_OTHER): Always define.
+
+	* Makefile.in (FONT_DRIVERS): Remove, replace with $FONT_OBJ.
+	(obj, SOME_MACHINE_OBJECTS): Use $FONT_OBJ.
+
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	* lisp.h (XFLOAT_DATA): Use "0?x:x" to generate an
+	rvalue. (bug#5916)
+	(LISP_MAKE_RVALUE) [!USE_LISP_UNION_TYPE && !__GNUC__]: Likewise.
+
+	* emacs.c (main): Initialize initial-environment and
+	process-environment before generating from env, not after.
+
+	Handle --version reasonably in CANNOT_DUMP configuration.
+	* emacs.c (emacs_version, emacs_copyright): New string variables.
+	(Vemacs_version, Vemacs_copyright): New Lisp_Object variables.
+	(syms_of_emacs): Defvar them, and initialize them from the C
+	string variables.
+	(main): If initialization hasn't been done, print initial version
+	info from the C strings, instead of starting an interactive session.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_init): Don't leave alone garbage values
+	of bidi_it->paragraph_dir.  Call bidi_initialize if needed.
+	(bidi_paragraph_init): Remove redundant assertion that we are at
+	the beginning of a line after call to bidi_find_paragraph_start.
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): New function.
+	(syms_of_xdisp): Defsubr it.
+
+	* Makefile.in: Fix MSDOS-related comments.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (OLDXMENU_TARGET): New, set by configure.
+	(really-lwlib, really-oldXMenu): Always define.
+	($OLDXMENU): Depend on $OLDXMENU_TARGET.
+
+	* Makefile.in: Simplify cpp conditional.
+
+	* Makefile.in (${ns_appdir}): Simplify using umask.
+
+	* Makefile.in (${ns_appdir}): Remove references to CVS-related files.
+
+2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (specbind): Remove left-over duplicate test.
+	Disallow let-binding frame-local vars.  Add comment.
+
+2010-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Make the cache of bidi iterator states dynamically allocated.
+	* bidi.c (bidi_cache_shrink): New function.
+	(bidi_init_it): Call it.
+	(bidi_cache_iterator_state): Enlarge the cache if needed.
+
+	* bidi.c (bidi_move_to_visually_next): Rename from
+	bidi_get_next_char_visually.  All callers changed.
+
 2010-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (struct composition_it): New member reversed_p.
@@ -8,8 +75,8 @@
 	Set CMP_IT->reversed_p.
 	(composition_update_it): Pay attention to CMP_IT->reversed_p.
 
-	* xdisp.c (set_iterator_to_next): Call
-	composition_compute_stop_pos with negative ENDPOS if we are
+	* xdisp.c (set_iterator_to_next):
+	Call composition_compute_stop_pos with negative ENDPOS if we are
 	scanning backward.  Call composition_compute_stop_pos if scan
 	direction is changed.
 	(next_element_from_buffer): Call composition_compute_stop_pos with

@@ -743,7 +743,6 @@ LIBOTF_CFLAGS
 LIBOTF_LIBS
 M17N_FLT_CFLAGS
 M17N_FLT_LIBS
-FONT_OBJ
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 LIBXPM
@@ -800,11 +799,13 @@ GNUSTEP_SYSTEM_HEADERS
 GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
 OTHER_FILES
+FONT_OBJ
 XMENU_OBJ
 XOBJ
 WIDGET_OBJ
 TOOLKIT_LIBW
 LIBXT_OTHER
+OLDXMENU_TARGET
 OLDXMENU
 LIBXMENU
 LIBX_OTHER
@@ -14701,14 +14702,6 @@ else
     HAVE_M17N_FLT=no
 fi
 
-FONT_OBJ=xfont.o
-if test "$HAVE_XFT" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
-elif test "$HAVE_FREETYPE" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
-fi
-
-
 ### End of font-backend (under X11) section.
 
 
@@ -26308,16 +26301,16 @@ $as_echo "$as_me: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEM
 fi
 
 #### Find out which version of Emacs this is.
-version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 if test x"${version}" = x; then
-  { { $as_echo "$as_me:$LINENO: error: can't find current emacs version in \`${srcdir}/lisp/version.el'." >&5
-$as_echo "$as_me: error: can't find current emacs version in \`${srcdir}/lisp/version.el'." >&2;}
+  { { $as_echo "$as_me:$LINENO: error: can't find current emacs version in \`${srcdir}/src/emacs.c'." >&5
+$as_echo "$as_me: error: can't find current emacs version in \`${srcdir}/src/emacs.c'." >&2;}
    { (exit 1); exit 1; }; }
 fi
 if test x"${version}" != x"$PACKAGE_VERSION"; then
-  { $as_echo "$as_me:$LINENO: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/lisp/version.el'." >&5
-$as_echo "$as_me: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/lisp/version.el'." >&2;}
+  { $as_echo "$as_me:$LINENO: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&5
+$as_echo "$as_me: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&2;}
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
@@ -26390,6 +26383,7 @@ _ACEOF
 
 XMENU_OBJ=
 XOBJ=
+FONT_OBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -26398,7 +26392,15 @@ _ACEOF
 
   XMENU_OBJ=xmenu.o
   XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  FONT_OBJ=xfont.o
+  if test "$HAVE_XFT" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+  elif test "$HAVE_FREETYPE" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+  fi
+
 fi
+
 
 
 
@@ -26456,9 +26458,12 @@ esac
 
 if test "$USE_X_TOOLKIT" = "none"; then
   LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
 else
   LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
 fi
+
 
 
 ## The X Menu stuff is present in the X10 distribution, but missing
@@ -26480,7 +26485,12 @@ _ACEOF
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
 else
   OLDXMENU=
-  LIBXMENU="-lXMenu"
+  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
+  if test "${HAVE_X_WINDOWS}" = "yes"; then
+    LIBXMENU="-lXMenu"
+  else
+    LIBXMENU=
+  fi
   LIBX_OTHER=
 fi
 
@@ -26722,6 +26732,9 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
+# src/Makefile.in used to treat X11 as equivalent to HAVE_X11.
+# But nothing in Emacs defines X11, and everywhere else uses HAVE_X11,
+# so that cannot have been doing anything.
 cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"

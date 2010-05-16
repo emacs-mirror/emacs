@@ -422,6 +422,13 @@ Other major modes are defined by comparison with this one."
   "Parent major mode from which special major modes should inherit."
   (setq buffer-read-only t))
 
+;; Major mode meant to be the parent of programming modes.
+
+(define-derived-mode prog-mode fundamental-mode "Prog"
+  "Major mode for editing programming language source code."
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t))
+
 ;; Making and deleting lines.
 
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))

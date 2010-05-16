@@ -663,6 +663,8 @@
 			      (and prevc nextc
 				   (or (and (>= nextc ?a) (<= nextc ?z))
 				       (and (>= nextc ?A) (<= nextc ?Z))
+				       (and (>= nextc ?α) (<= nextc ?ω))
+				       (and (>= nextc ?Α) (<= nextc ?Ω))
 				       (and (>= nextc ?0) (<= nextc ?9))
 				       (memq nextc '(?. ?_ ?#
 							?\( ?\[ ?\{))
@@ -732,7 +734,7 @@
 				(not (math-tex-expr-is-flat (nth 1 a))))))
 		   (list 'horiz
 			 (if lr "\\left" "")
-			 (if (string-match "\\`u\\([^a-zA-Z]\\)\\'" (car op))
+			 (if (string-match "\\`u\\([^a-zA-Zα-ωΑ-Ω]\\)\\'" (car op))
 			     (substring (car op) 1)
 			   (car op))
 			 (if (or lr (> (length (car op)) 2)) " " "")
@@ -758,7 +760,7 @@
 		(t
 		 (let ((rhs (math-compose-expr (nth 1 a) (nth 3 op))))
 		   (list 'horiz
-			 (let ((ops (if (string-match "\\`u\\([^a-zA-Z]\\)\\'"
+			 (let ((ops (if (string-match "\\`u\\([^a-zA-Zα-ωΑ-Ω]\\)\\'"
 						      (car op))
 					(substring (car op) 1)
 				      (car op))))
@@ -806,7 +808,7 @@
 		     (setq func (car func2)))
 		 (setq func (math-remove-dashes
 			     (if (string-match
-				  "\\`calcFunc-\\([a-zA-Z0-9']+\\)\\'"
+				  "\\`calcFunc-\\([a-zA-Zα-ωΑ-Ω0-9']+\\)\\'"
 				  (symbol-name func))
 				 (math-match-substring (symbol-name func) 1)
 			       (symbol-name func))))

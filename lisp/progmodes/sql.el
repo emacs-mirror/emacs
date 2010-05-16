@@ -663,9 +663,9 @@ is changed."
 
 Starts `sql-interactive-mode' after doing some setup.
 
-On Windows, \"sqlplus\" usually starts the sqlplus \"GUI\".  In order to
-start the sqlplus console, use \"plus33\" or something similar.  You
-will find the file in your Orant\\bin directory."
+On Windows, \"sqlplus\" usually starts the sqlplus \"GUI\".  In order
+to start the sqlplus console, use \"plus33\" or something similar.
+You will find the file in your Orant\\bin directory."
   :type 'file
   :group 'SQL)
 
@@ -690,7 +690,7 @@ will find the file in your Orant\\bin directory."
 
 When non-nil, Emacs will scan text sent to sqlplus and prompt
 for replacement text for & placeholders as sqlplus does.  This
-is needed on Windows where sqlplus output is buffer and the
+is needed on Windows where sqlplus output is buffered and the
 prompts are not shown until after the text is entered.
 
 You will probably want to issue the following command in sqlplus
@@ -772,10 +772,10 @@ Starts `sql-interactive-mode' after doing some setup."
   :version "24.1"
   :group 'SQL)
 
-;; Customization for SyBase
+;; Customization for Sybase
 
 (defcustom sql-sybase-program "isql"
-  "Command to start isql by SyBase.
+  "Command to start isql by Sybase.
 
 Starts `sql-interactive-mode' after doing some setup."
   :type 'file
@@ -2042,7 +2042,7 @@ See `sql-product-alist' for a list of products and supported features."
       (message "`%s' is not a known product; use `sql-add-product' to add it first." product))))
 
 (defun sql-product-font-lock (keywords-only imenu)
-  "Configures font-lock and imenu with product-specific settings.
+  "Configure font-lock and imenu with product-specific settings.
 
 The KEYWORDS-ONLY flag is passed to font-lock to specify whether
 only keywords should be hilighted and syntactic hilighting
@@ -2098,7 +2098,7 @@ also be configured."
 (defun sql-add-product-keywords (product keywords &optional append)
   "Add highlighting KEYWORDS for SQL PRODUCT.
 
-PRODUCT should be a symbol, the name of a sql product, such as
+PRODUCT should be a symbol, the name of a SQL product, such as
 `oracle'.  KEYWORDS should be a list; see the variable
 `font-lock-keywords'.  By default they are added at the beginning
 of the current highlighting list.  If optional argument APPEND is
@@ -2131,7 +2131,7 @@ adds a fontification pattern to fontify identifiers ending in
 ;;; Functions to switch highlighting
 
 (defun sql-highlight-product ()
-  "Turns on the font highlighting for the SQL product selected."
+  "Turn on the font highlighting for the SQL product selected."
   (when (derived-mode-p 'sql-mode)
     ;; Setup font-lock
     (sql-product-font-lock nil t)
@@ -2141,7 +2141,7 @@ adds a fontification pattern to fontify identifiers ending in
 				       (symbol-name sql-product)) "]"))))
 
 (defun sql-set-product (product)
-  "Set `sql-product' to product and enable appropriate highlighting."
+  "Set `sql-product' to PRODUCT and enable appropriate highlighting."
   (interactive
    (list (completing-read "SQL product: "
                           (mapcar (lambda (info) (symbol-name (car info)))
@@ -2416,7 +2416,7 @@ variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
       (message "Current SQLi buffer is %s." (buffer-name sql-buffer)))))
 
 (defun sql-make-alternate-buffer-name ()
-  "Returns a string that can be used to rename a SQLi buffer.
+  "Return a string that can be used to rename a SQLi buffer.
 
 This is used to set `sql-alternate-buffer-name' within
 `sql-interactive-mode'."
@@ -2475,7 +2475,7 @@ Inserts SELECT or commas if appropriate."
 
 (defun sql-placeholders-filter (string)
   "Replace placeholders in STRING.
-Placeholders are words starting with and ampersand like &this."
+Placeholders are words starting with an ampersand like &this."
 
   (when sql-oracle-scan-on
     (while (string-match "&\\(\\sw+\\)" string)
@@ -2489,7 +2489,7 @@ Placeholders are words starting with and ampersand like &this."
 ;; Using DB2 interactively, newlines must be escaped with " \".
 ;; The space before the backslash is relevant.
 (defun sql-escape-newlines-filter (string)
-  "Escapes newlines in STRING.
+  "Escape newlines in STRING.
 Every newline in STRING will be preceded with a space and a backslash."
   (let ((result "") (start 0) mb me)
     (while (string-match "\n" string start)
@@ -2508,7 +2508,7 @@ Every newline in STRING will be preceded with a space and a backslash."
 ;;; Input sender for SQLi buffers
 
 (defun sql-input-sender (proc string)
-  "Sends STRING to PROC after applying filters."
+  "Send STRING to PROC after applying filters."
 
   (let* ((product (with-current-buffer (process-buffer proc) sql-product))
 	 (filter  (sql-get-product-feature product :input-filter)))
@@ -2575,7 +2575,7 @@ Every newline in STRING will be preceded with a space and a backslash."
   (sql-send-region (point-min) (point-max)))
 
 (defun sql-send-magic-terminator (buf str terminator)
-  "Sends TERMINATOR to buffer BUF if its not present in STR."
+  "Send TERMINATOR to buffer BUF if its not present in STR."
   (let (pat term)
     ;; If flag is merely on(t), get product-specific terminator
     (if (eq terminator t)
@@ -2961,7 +2961,7 @@ The default comes from `process-coding-system-alist' and
 
 ;;;###autoload
 (defun sql-sybase ()
-  "Run isql by SyBase as an inferior process.
+  "Run isql by Sybase as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer

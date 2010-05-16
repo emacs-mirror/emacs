@@ -214,7 +214,7 @@
 (put 'pascal 'math-lang-read-symbol
      '((?\$
         (eq (string-match
-             "\\(\\$[0-9a-fA-F]+\\)\\($\\|[^0-9a-zA-Z]\\)"
+             "\\(\\$[0-9a-fA-F]+\\)\\($\\|[^0-9a-zA-Zα-ωΑ-Ω]\\)"
              math-exp-str math-exp-pos)
             math-exp-pos)
         (setq math-exp-token 'number
@@ -312,7 +312,7 @@
 
 (put 'fortran 'math-lang-read-symbol
      '((?\.
-        (eq (string-match "\\.[a-zA-Z][a-zA-Z][a-zA-Z]?\\."
+        (eq (string-match "\\.[a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω]?\\."
                           math-exp-str math-exp-pos) math-exp-pos)
         (setq math-exp-token 'punc
               math-expr-data (upcase (math-match-substring math-exp-str 0))
@@ -603,9 +603,9 @@
      '((?\\
         (< math-exp-pos (1- (length math-exp-str)))
         (progn
-          (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}"
+          (or (string-match "\\\\hbox *{\\([a-zA-Zα-ωΑ-Ω0-9]+\\)}"
                             math-exp-str math-exp-pos)
-              (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)"
+              (string-match "\\(\\\\\\([a-zA-Zα-ωΑ-Ω]+\\|[^a-zA-Zα-ωΑ-Ω]\\)\\)"
                             math-exp-str math-exp-pos))
           (setq math-exp-token 'symbol
                 math-exp-pos (match-end 0)
@@ -691,7 +691,7 @@
 (defun math-compose-tex-var (a prec)
   (if (and calc-language-option
            (not (= calc-language-option 0))
-           (string-match "\\`[a-zA-Z][a-zA-Z0-9]+\\'"
+           (string-match "\\`[a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9]+\\'"
                          (symbol-name (nth 1 a))))
       (if (eq calc-language 'latex)
           (format "\\text{%s}" (symbol-name (nth 1 a)))
@@ -702,7 +702,7 @@
   (let (left right)
     (if (and calc-language-option
              (not (= calc-language-option 0))
-             (string-match "\\`[a-zA-Z][a-zA-Z0-9]+\\'" func))
+             (string-match "\\`[a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9]+\\'" func))
         (if (< (prefix-numeric-value calc-language-option) 0)
             (setq func (format "\\%s" func))
           (setq func (if (eq calc-language 'latex)
@@ -824,11 +824,11 @@
      '((?\\
         (< math-exp-pos (1- (length math-exp-str)))
         (progn
-          (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}"
+          (or (string-match "\\\\hbox *{\\([a-zA-Zα-ωΑ-Ω0-9]+\\)}"
                             math-exp-str math-exp-pos)
-              (string-match "\\\\text *{\\([a-zA-Z0-9]+\\)}"
+              (string-match "\\\\text *{\\([a-zA-Zα-ωΑ-Ω0-9]+\\)}"
                             math-exp-str math-exp-pos)
-              (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)"
+              (string-match "\\(\\\\\\([a-zA-Zα-ωΑ-Ω]+\\|[^a-zA-Zα-ωΑ-Ω]\\)\\)"
                             math-exp-str math-exp-pos))
           (setq math-exp-token 'symbol
                 math-exp-pos (match-end 0)
@@ -2301,9 +2301,11 @@ order to Calc's."
 
 	    ;; Variable name or function call.
 	    ((or (and (>= other-char ?a) (<= other-char ?z))
-		 (and (>= other-char ?A) (<= other-char ?Z)))
+		 (and (>= other-char ?A) (<= other-char ?Z))
+		 (and (>= other-char ?α) (<= other-char ?ω))
+		 (and (>= other-char ?Α) (<= other-char ?Ω)))
 	     (setq line (nth v math-read-big-lines))
-	     (string-match "\\([a-zA-Z'_]+\\) *" line math-rb-h1)
+	     (string-match "\\([a-zA-Zα-ωΑ-Ω'_]+\\) *" line math-rb-h1)
 	     (setq h (match-end 1)
 		   widest (match-end 0)
 		   p (math-match-substring line 1))

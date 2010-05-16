@@ -574,6 +574,9 @@ Runs the usual ange-ftp hook, but only for completion operations."
 	  (inhibit-file-name-operation op))
       (apply op args))))
 
+(declare-function dos-convert-standard-filename "dos-fns.el" (filename))
+(declare-function w32-convert-standard-filename "w32-fns.el" (filename))
+
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the OS.
 This means to guarantee valid names and perhaps to canonicalize
@@ -591,15 +594,20 @@ and also turn slashes into backslashes if the shell requires it (see
 `w32-shell-dos-semantics').
 
 See Info node `(elisp)Standard File Names' for more details."
-  (if (eq system-type 'cygwin)
-      (let ((name (copy-sequence filename))
-	    (start 0))
-	;; Replace invalid filename characters with !
-	(while (string-match "[?*:<>|\"\000-\037]" name start)
-	       (aset name (match-beginning 0) ?!)
-	  (setq start (match-end 0)))
-	name)
-    filename))
+  (cond
+   ((eq system-type 'cygwin)
+    (let ((name (copy-sequence filename))
+	  (start 0))
+      ;; Replace invalid filename characters with !
+      (while (string-match "[?*:<>|\"\000-\037]" name start)
+	(aset name (match-beginning 0) ?!)
+	(setq start (match-end 0)))
+      name))
+   ((eq system-type 'windows-nt)
+    (w32-convert-standard-filename filename))
+   ((eq system-type 'ms-dos)
+    (dos-convert-standard-filename filename))
+   (t filename)))
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.

@@ -1,3 +1,26 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXMENU): Set to empty if !HAVE_X_WINDOWS.
+
+	* configure.in (FONT_OBJ): Set to empty if !HAVE_X_WINDOWS.
+
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	* configure.in: Look for version string in its new location.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Remove support for DJGPP v1.x.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_TARGET): New output variable.
+
+	* Makefile.in (install-arch-dep): Update odd NS rule for Emacs version.
+
+	* Makefile.in (install-arch-indep): Remove references to RCS, CVS,
+	and other files that no longer exist.
+
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (cpp_undefs): Add mktime, register, X11.

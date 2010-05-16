@@ -77,10 +77,12 @@ s/\.h\.in/.h-in/
 /^GCONF_LIBS *=/s/@GCONF_LIBS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
 /^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
-/^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/tparam.o/
+/^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/termcap.o tparam.o/
 /^LIBXMU *=/s/@LIBXMU@//
 /^LIBXSM *=/s/@LIBXSM@//
 /^LIBXTR6 *=/s/@LIBXTR6@//
+/^LIBXT_OTHER *=/s/@LIBXT_OTHER@//
+/^OLDXMENU_TARGET *=/s/@OLDXMENU_TARGET@//
 /^XOBJ *=/s/@XOBJ@//
 /^TOOLKIT_LIBW *=/s/@TOOLKIT_LIBW@//
 /^LIBSOUND *=/s/@LIBSOUND@//
@@ -89,7 +91,7 @@ s/\.h\.in/.h-in/
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
-/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o/
+/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
 /^MSDOS_SUPPORT *=/s/= */= $(MSDOS_SUPPORT_REAL)/
 /^ns_appdir *=/s/@ns_appdir@//
 /^ns_appbindir *=/s/@ns_appbindir@//
@@ -104,12 +106,15 @@ s/\.h\.in/.h-in/
 /^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//
 /^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
-/^FONT_OBJ *=/s/@FONT_OBJ@/xfont.o/
+/^FONT_OBJ *=/s/@FONT_OBJ@//
 /^MOUSE_SUPPORT *=/s/@MOUSE_SUPPORT@/$(REAL_MOUSE_SUPPORT)/
 /^TOOLTIP_SUPPORT *=/s/@TOOLTIP_SUPPORT@//
 /^WINDOW_SUPPORT *=/s/@WINDOW_SUPPORT@//
 /^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
+/^OLDXMENU *=/s/@OLDXMENU@//
+/^LIBXMENU *=/s/@LIBXMENU@//
+/^LIBX_OTHER *=/s/@LIBX_OTHER@//
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
 /^UNEXEC_OBJ *=/s/@unexec@/unexec.o/
