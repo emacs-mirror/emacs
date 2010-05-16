@@ -719,6 +719,7 @@ LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
 NS_IMPL_GNUSTEP_INC
 NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
+TEMACS_LDFLAGS2
 NS_OBJ
 NS_SUPPORT
 LIB_STANDARD
@@ -9937,6 +9938,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -9967,6 +9969,7 @@ shared=no
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
+     TEMACS_LDFLAGS2=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -10153,6 +10156,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
 
 
 

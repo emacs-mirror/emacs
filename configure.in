@@ -1458,6 +1458,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -1490,6 +1491,7 @@ shared=no
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
+     TEMACS_LDFLAGS2=
   fi
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
@@ -1505,6 +1507,7 @@ shared=no
 fi
 AC_SUBST(NS_IMPL_GNUSTEP_INC)
 AC_SUBST(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
+AC_SUBST(TEMACS_LDFLAGS2)
 
 NS_OBJ=
 NS_SUPPORT=
