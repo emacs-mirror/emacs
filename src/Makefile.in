@@ -190,6 +190,9 @@ TOOLKIT_LIBW=@TOOLKIT_LIBW@
 ## Only used if HAVE_X11, in LIBX_OTHER.
 LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
 
+## If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.
+LIBX_OTHER=@LIBX_OTHER@
+
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
@@ -310,9 +313,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 #ifdef HAVE_X_WINDOWS
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 #endif /* HAVE_X_WINDOWS */
-
-/* If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.  */
-LIBX_OTHER=@LIBX_OTHER@
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they are passed to LD.  This is helpful if you have
