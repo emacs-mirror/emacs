@@ -1,5 +1,9 @@
 2010-05-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
+	* calc/calc-vec.el (calc-histogram):
+	(calcFunc-histogram):  Allow vectors as inputs.
+	(math-vector-avg): New function.
+
 	* calc/calc-ext.el (math-group-float):  Have the number of digits
 	being grouped depend on the radix (Bug#6189).
 
