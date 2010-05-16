@@ -226,9 +226,8 @@ ns_appbindir=@ns_appbindir@/
 ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
-## Next two only set if NS_IMPL_GNUSTEP.
+## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
-GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
 
 ## Empty if !HAVE_X_WINDOWS
 ## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
@@ -286,6 +285,10 @@ DEPFLAGS = -MMD -MF deps/$*.d
 
 /* If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.  */
 @NS_IMPL_GNUSTEP_INC@
+
+/* FIXME move to LD_SWITCH_SYSTEM_TEMACS?
+   This uses ${CONFIG_SYSTEM_LIBS}, presumably set by the above include.  */
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
@@ -356,6 +359,12 @@ LD=ld
 #endif /* not LINKER */
 
 #endif /* not ORDINARY_LINK */
+
+
+#ifdef NS_IMPL_GNUSTEP
+LD=$(CC) -rdynamic
+#endif
+
 
 /* lastfile must follow all files whose initialized data areas should
    be dumped as pure by dump-emacs.  */
@@ -670,16 +679,16 @@ ${libsrc}make-docfile${EXEEXT}:
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
-/* FIXME LOCALCPP not defined or mentioned anywhere.  */
-temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
+temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
-	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
-	-L$(GNUSTEP_SYSTEM_LIBRARIES) -lgnustep-gui -lgnustep-base \
-	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
-	${obj} ${otherobj} ${LIBES}
+	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
+	  ${NS_IMPL_GNUSTEP_TEMACS_LDFLAGS} ) \
+	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 #else
-	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} ) $(LDFLAGS) \
-	-o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
+	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
+	  ${NS_IMPL_GNUSTEP_TEMACS_LDFLAGS} ) \
+	  ${LDFLAGS} \
+	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 #endif
 
 prefix-args${EXEEXT}: prefix-args.o $(config_h)

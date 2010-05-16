@@ -718,6 +718,7 @@ XMKMF
 LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
 NS_IMPL_GNUSTEP_INC
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
 NS_OBJ
 NS_SUPPORT
 LIB_STANDARD
@@ -795,8 +796,6 @@ ns_appdir
 ns_appbindir
 ns_appresdir
 ns_appsrc
-GNUSTEP_SYSTEM_HEADERS
-GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
 OTHER_FILES
 FONT_OBJ
@@ -9933,6 +9932,7 @@ HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
 NS_IMPL_GNUSTEP_INC=
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -9960,11 +9960,13 @@ include $GNUSTEP_MAKEFILES/Additional/base.make
 include $GNUSTEP_MAKEFILES/Additional/gui.make
 shared=no
 "
+          NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
+     START_FILES=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -10151,6 +10153,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
 
 
 NS_OBJ=
@@ -21594,7 +21597,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -26347,8 +26350,6 @@ fi
 
 
 ## Used in lwlib/Makefile.in.
-
-
 
 
 
