@@ -3469,7 +3469,8 @@ If X is not an error form, return 1."
 
 (defun math-group-float (str)   ; [X X]
   (let* ((pt (or (string-match "[^0-9a-zA-Z]" str) (length str)))
-	 (g (if (integerp calc-group-digits) (math-abs calc-group-digits) 3))
+	 (g (if (integerp calc-group-digits) (math-abs calc-group-digits)
+              (if (memq calc-number-radix '(2 16)) 4 3)))
 	 (i pt))
     (if (and (integerp calc-group-digits) (< calc-group-digits 0))
 	(while (< (setq i (+ (1+ i) g)) (length str))

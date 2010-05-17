@@ -1179,8 +1179,6 @@ typedef unsigned size_t;
 
 #ifdef HAVE_X11R6
 #define HAVE_X_I18N
-#elif !defined X11R5_INHIBIT_I18N
-#define HAVE_X_I18N
 #endif
 
 /* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
@@ -1200,11 +1198,7 @@ typedef unsigned size_t;
    that the stack is continuous.  */
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */
-  /* Exceptions (see NON_SAVING_SETJMP in target description) are
-     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
-     Fixme: Deal with SVR3.  */
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
 #  ifndef GC_LISP_OBJECT_ALIGNMENT

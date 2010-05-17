@@ -20030,6 +20030,20 @@ range are ignored.  (You can tell if elements have been ignored by noting
 that the counts in the result vector don't add up to the length of the
 input vector.)
 
+If no prefix is given, then you will be prompted for a vector which
+will be used to determine the bins. (If a positive integer is given at
+this prompt, it will be still treated as if it were given as a
+prefix.)  Each bin will consist of the interval of numbers closest to
+the corresponding number of this new vector; if the vector 
+@expr{[a, b, c, ...]} is entered at the prompt, the bins will be 
+@expr{(-inf, (a+b)/2]}, @expr{((a+b)/2, (b+c)/2]}, etc.  The result of 
+this command will be a vector counting how many elements of the
+original vector are in each bin.
+
+The result will then be a vector with the same length as this new vector;
+each element of the new vector will be replaced by the number of
+elements of the original vector which are closest to it.
+
 @kindex H v H
 @kindex H V H
 With the Hyperbolic flag, @kbd{H V H} pulls two vectors from the stack.

@@ -52,6 +52,7 @@ s/\.h\.in/.h-in/
 /^LD_SWITCH_X_SITE_AUX_RPATH *=/s/@LD_SWITCH_X_SITE_AUX_RPATH@//
 /^LD_SWITCH_SYSTEM *=/s/@LD_SWITCH_SYSTEM@//
 /^LD_SWITCH_SYSTEM_EXTRA *=/s/@LD_SWITCH_SYSTEM_EXTRA@//
+/^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
 /^LIB_GCC *=/s/@LIB_GCC@/-Lgcc/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
@@ -83,6 +84,7 @@ s/\.h\.in/.h-in/
 /^LIBXTR6 *=/s/@LIBXTR6@//
 /^LIBXT_OTHER *=/s/@LIBXT_OTHER@//
 /^OLDXMENU_TARGET *=/s/@OLDXMENU_TARGET@//
+/^OLDXMENU_DEPS *=/s/@OLDXMENU_DEPS@//
 /^XOBJ *=/s/@XOBJ@//
 /^TOOLKIT_LIBW *=/s/@TOOLKIT_LIBW@//
 /^LIBSOUND *=/s/@LIBSOUND@//
@@ -99,7 +101,6 @@ s/\.h\.in/.h-in/
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_SUPPORT *=/s/@NS_SUPPORT@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
-/^GNUSTEP_SYSTEM_LIBRARIES *=/s/@GNUSTEP_SYSTEM_LIBRARIES@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
@@ -123,6 +124,7 @@ s/\.h\.in/.h-in/
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^@NS_IMPL_GNUSTEP_INC@/s/@NS_IMPL_GNUSTEP_INC@//
+/^NS_IMPL_GNUSTEP_TEMACS_LDFLAGS *=/s/@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@//
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d

@@ -1453,22 +1453,27 @@ HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
 NS_IMPL_GNUSTEP_INC=
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
+dnl I don't think it's especially important, but src/Makefile.in
+dnl (now the only user of ns_appdir) used to go to the trouble of adding a
+dnl trailing "/" to it, so now we do it here.
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}Contents/MacOS/
+     ns_appresdir=${ns_appdir}Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}
+     ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
      dnl FIXME sourcing this 3 times in subshells seems inefficient.
      GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
@@ -1481,11 +1486,15 @@ include $GNUSTEP_MAKEFILES/Additional/base.make
 include $GNUSTEP_MAKEFILES/Additional/gui.make
 shared=no
 "
+     dnl Presumably ${CONFIG_SYSTEM_LIBS} is defined by above includes.
+     NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
+     START_FILES=
+     TEMACS_LDFLAGS2=
   fi
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
@@ -1500,6 +1509,8 @@ shared=no
   fi
 fi
 AC_SUBST(NS_IMPL_GNUSTEP_INC)
+AC_SUBST(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
+AC_SUBST(TEMACS_LDFLAGS2)
 
 NS_OBJ=
 NS_SUPPORT=
@@ -2612,7 +2623,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -2621,7 +2632,7 @@ case "$opsys" in
   ## hpux10-20: Use the system provided termcap(3) library.
   ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
   ##  is necessary.  Otherwise Emacs dumps core when run -nw.
-  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
 
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
@@ -3051,8 +3062,6 @@ AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
-AC_SUBST(GNUSTEP_SYSTEM_HEADERS)
-AC_SUBST(GNUSTEP_SYSTEM_LIBRARIES)
 AC_SUBST(GNU_OBJC_CFLAGS)
 AC_SUBST(OTHER_FILES)
 
@@ -3150,6 +3159,7 @@ if test "${HAVE_X11}" = "yes" ; then
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
   OLDXMENU=
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
@@ -3159,16 +3169,19 @@ else
     LIBXMENU=
   fi
   LIBX_OTHER=
+  OLDXMENU_DEPS=
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
+  OLDXMENU_DEPS=
 fi
 
 AC_SUBST(OLDXMENU)
 AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
+AC_SUBST(OLDXMENU_DEPS)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
@@ -3487,8 +3500,6 @@ typedef unsigned size_t;
 
 #ifdef HAVE_X11R6
 #define HAVE_X_I18N
-#elif !defined X11R5_INHIBIT_I18N
-#define HAVE_X_I18N
 #endif
 
 /* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
@@ -3508,11 +3519,7 @@ typedef unsigned size_t;
    that the stack is continuous.  */
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */
-  /* Exceptions (see NON_SAVING_SETJMP in target description) are
-     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
-     Fixme: Deal with SVR3.  */
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
 #  ifndef GC_LISP_OBJECT_ALIGNMENT

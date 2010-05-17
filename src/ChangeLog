@@ -1,4 +1,38 @@
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (OLDXMENU_DEPS): New, set by configure.
+	(stamp-oldxmenu): Use $OLDXMENU_DEPS.
+
 2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (${ns_appbindir}Emacs, ns-app): Always define these rules.
+
+	* Makefile.in (clean): Get rid of HAVE_NS conditional.
+
+	* Makefile.in (ns_appdir, ns_appbindir): Now configure adds the
+	trailing "/".
+
+	* Makefile.in (TEMACS_LDFLAGS2): New, set by configure.
+	(temacs${EXEEXT}): Combine the NS_IMPL_GNUSTEP case with the default.
+
+	* Makefile.in (GNUSTEP_SYSTEM_LIBRARIES): Remove, unused.
+	(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS): New, set by configure.
+	(LD) [NS_IMPL_GNUSTEP]: Set to $(CC) -rdynamic.
+	(temacs${EXEEXT}): Remove $LOCALCPP, never defined or referenced.
+	Make most of the NS_IMPL_GNUSTEP case the same as the default case.
+
+	* Makefile.in (temacs${EXEEXT}) [!NS_IMPL_GNUSTEP]:
+	Remove ${STARTFLAGS}, nothing ever sets it.
+
+2010-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/ia64.h (UNEXEC): Remove, set in s/*.h.
+
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBX_BASE): Always define.
+
+	* Makefile.in (LIBX_OTHER): Move out of cpp section.
 
 	* Makefile.in (LIBXT): Always define.
 
