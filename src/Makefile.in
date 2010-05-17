@@ -999,13 +999,14 @@ ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}
 	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; umask 022; tar xf - )
+#endif /* HAVE_NS */
 
+/* These are only used if HAVE_NS, but no harm in always defining them.  */
 ${ns_appbindir}Emacs: emacs${EXEEXT}
 	mkdir -p ${ns_appbindir}
 	cp -f emacs${EXEEXT} ${ns_appbindir}Emacs
 
 ns-app: ${ns_appdir} ${ns_appbindir}Emacs
-#endif /* HAVE_NS */
 
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
