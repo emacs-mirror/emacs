@@ -1178,7 +1178,7 @@
 ;;; Replace a vector [a b c ...] with a vector of averages
 ;;; [(a+b)/2 (b+c)/2 ...]
 (defun math-vector-avg (vec)
-  (let ((vp (cdr vec))
+  (let ((vp (sort (copy-sequence (cdr vec)) 'math-beforep))
         (res nil))
     (while (and vp (cdr vp))
       (setq res (cons (math-div (math-add (car vp) (cadr vp)) 2) res)

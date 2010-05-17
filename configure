@@ -719,6 +719,7 @@ LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
 NS_IMPL_GNUSTEP_INC
 NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
+TEMACS_LDFLAGS2
 NS_OBJ
 NS_SUPPORT
 LIB_STANDARD
@@ -808,6 +809,7 @@ OLDXMENU_TARGET
 OLDXMENU
 LIBXMENU
 LIBX_OTHER
+OLDXMENU_DEPS
 CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
@@ -9937,18 +9939,19 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}Contents/MacOS/
+     ns_appresdir=${ns_appdir}Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}
+     ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
           GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
@@ -9967,6 +9970,7 @@ shared=no
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
+     TEMACS_LDFLAGS2=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -10153,6 +10157,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
 
 
 
@@ -26484,6 +26489,7 @@ _ACEOF
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
   OLDXMENU=
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
@@ -26493,12 +26499,15 @@ else
     LIBXMENU=
   fi
   LIBX_OTHER=
+  OLDXMENU_DEPS=
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
+  OLDXMENU_DEPS=
 fi
+
 
 
 

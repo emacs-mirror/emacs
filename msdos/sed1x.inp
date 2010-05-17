@@ -8,6 +8,7 @@ s/DOC/DOC-X/g
 /^LIBXMENU *=/s!= *!= ${OLDXMENU}!
 /^LIBX_OTHER *=/s!= *!= ${LIBXT} ${LIBX_EXTRA}!
 /^OLDXMENU_TARGET *=/s!= *!= really-oldxmenu!
+/^OLDXMENU_DEPS *=/s!= *!= ${OLDXMENU} ../src/${OLDXMENU}!
 /^LIBS_SYSTEM *=/s!= *!= -lxext -lsys!
 /^MSDOS_X_OBJ *=/s!= *!= w16select.o termcap.o!
 /^FONT_OBJ *=/s!= *!= xfont.o!

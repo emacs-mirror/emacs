@@ -1,4 +1,24 @@
+2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Provide the name of the VCS file that witnesses
+	a pull.
+	($(srcdir)/src/config.in): Handle accidental removal of src/config.in.
+
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_DEPS): New output variable.
+
 2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (ns_appbindir, ns_appresdir): Set using $ns_appdir.
+
+	* configure.in (ns_appdir, ns_appbindir): Add trailing "/" to value.
+	* Makefile.in (install-arch-dep): Update for above change.
+
+	* Makefile.in (ns_appdir): Remove.
+	(install-arch-dep): Test $ns_appresdir instead of $ns_appdir.
+
+	* configure.in (TEMACS_LDFLAGS2): New output variable.
 
 	* configure.in (NS_IMPL_GNUSTEP_TEMACS_LDFLAGS): New output variable.
 	(START_FILES): Set to empty if NS_IMPL_GNUSTEP.
