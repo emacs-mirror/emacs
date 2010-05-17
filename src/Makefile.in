@@ -180,6 +180,12 @@ OLDXMENU_TARGET=@OLDXMENU_TARGET@
 ## Else ${oldXMenudir}libXMenu11.a.
 OLDXMENU=@OLDXMENU@
 
+## If HAVE_X11 && !USE_GTK, ${OLDXMENU} ../src/${OLDXMENU}; else empty.
+## We use stamp-xmenu with these two deps to both ensure that lwlib
+## gets remade based on its dependencies in its own makefile,
+## and remake temacs if lwlib gets changed by this. 
+OLDXMENU_DEPS=@OLDXMENU_DEPS@
+
 ## If !HAVE_X11 && HAVE_X_WINDOWS, -lXMenu (this case no longer possible).
 ## Else if !HAVE_X11 || USE_GTK, empty.
 ## Else $(OLDXMENU).
@@ -706,23 +712,18 @@ really-oldXMenu:
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 
+/* We don''t really need this when OLDXMENU_DEPS is empty, but as
+   things stand we need something to satisfy the temacs dependency.  */
+stamp-oldxmenu: ${OLDXMENU_DEPS}
+	touch stamp-oldxmenu
+
 /* HAVE_X11 implies HAVE_X_WINDOWS and HAVE_MENUS.  */
 #if defined (HAVE_X11) && ! defined (USE_GTK)
-/* We use stamp-xmenu with these two deps to both ensure that lwlib
-   gets remade based on its dependencies in its own makefile,
-   and remake temacs if lwlib gets changed by this.  */
-stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
-	touch stamp-oldxmenu
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
 
 $(OLDXMENU): $(OLDXMENU_TARGET)
-
-#else /* !HAVE_X11 || USE_GTK */ 
-/* We don''t really need this, but satisfy the dependency.  */
-stamp-oldxmenu:
-	touch stamp-oldxmenu
-#endif /* HAVE_X11 && !USE_GTK */
+#endif /* HAVE_X11 && !USE_GTK */ 
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."

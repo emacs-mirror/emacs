@@ -1,3 +1,8 @@
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (OLDXMENU_DEPS): New, set by configure.
+	(stamp-oldxmenu): Use $OLDXMENU_DEPS.
+
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (${ns_appbindir}Emacs, ns-app): Always define these rules.

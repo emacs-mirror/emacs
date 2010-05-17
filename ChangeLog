@@ -1,3 +1,7 @@
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_DEPS): New output variable.
+
 2010-05-16  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (ns_appbindir, ns_appresdir): Set using $ns_appdir.

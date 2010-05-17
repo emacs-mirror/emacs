@@ -809,6 +809,7 @@ OLDXMENU_TARGET
 OLDXMENU
 LIBXMENU
 LIBX_OTHER
+OLDXMENU_DEPS
 CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
@@ -26488,6 +26489,7 @@ _ACEOF
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
   OLDXMENU=
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
@@ -26497,12 +26499,15 @@ else
     LIBXMENU=
   fi
   LIBX_OTHER=
+  OLDXMENU_DEPS=
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
+  OLDXMENU_DEPS=
 fi
+
 
 
 

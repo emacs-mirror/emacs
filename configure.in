@@ -3159,6 +3159,7 @@ if test "${HAVE_X11}" = "yes" ; then
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
   OLDXMENU=
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
@@ -3168,16 +3169,19 @@ else
     LIBXMENU=
   fi
   LIBX_OTHER=
+  OLDXMENU_DEPS=
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
+  OLDXMENU_DEPS=
 fi
 
 AC_SUBST(OLDXMENU)
 AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
+AC_SUBST(OLDXMENU_DEPS)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
