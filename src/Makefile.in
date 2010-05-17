@@ -1098,7 +1098,9 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
-${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
+/* VCSWITNESS points to the file that holds info about the current checkout.
+   We use it as a heuristic to decide when to rebuild loaddefs.el.  */
+${lispsource}loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the

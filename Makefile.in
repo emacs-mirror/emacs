@@ -335,9 +335,13 @@ src: Makefile FRC
 	      CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'         \
 	      LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"; \
 	fi;
+	if [ -r .bzr/checkout/dirstate ]; then 			\
+	    vcswitness="$$(pwd)/.bzr/checkout/dirstate"; 	\
+	fi; 							\
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""	\
+	  VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src FRC
 	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
@@ -369,7 +373,11 @@ $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
-	@true
+	@ # Usually, there's no need to rebuild src/config.in just
+	@ # because stamp-h.in has changed (since building stamp-h.in
+	@ # refreshes config.in as well), but if config.in is missing
+	@ # then we really need to do something more.
+	[ -r "$@" ] || ( cd ${srcdir} && autoheader )
 $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoheader
 	rm -f $(srcdir)/src/stamp-h.in

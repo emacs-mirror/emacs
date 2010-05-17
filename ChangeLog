@@ -1,3 +1,9 @@
+2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Provide the name of the VCS file that witnesses
+	a pull.
+	($(srcdir)/src/config.in): Handle accidental removal of src/config.in.
+
 2010-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (OLDXMENU_DEPS): New output variable.
