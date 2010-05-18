@@ -86,7 +86,7 @@
 PRECS should be a list, sorted by precedence (e.g. \"+\" will
 come before \"*\"), of elements of the form \(left OP ...)
 or (right OP ...) or (nonassoc OP ...)  or (assoc OP ...).  All operators in
-one of those elements shares the same precedence level and associativity."
+one of those elements share the same precedence level and associativity."
   (let ((prec2-table (make-hash-table :test 'equal)))
     (dolist (prec precs)
       (dolist (op (cdr prec))
@@ -300,7 +300,7 @@ Possible return values:
   (LEFT-LEVEL POS TOKEN): we couldn't skip TOKEN because its right-level
     is too high.  LEFT-LEVEL is the left-level of TOKEN,
     POS is its start position in the buffer.
-  (t POS TOKEN): Same thing but for an open-paren or the beginning of buffer.
+  (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (if (bobp) (list t (point))
@@ -311,7 +311,7 @@ Possible return values:
                    (token (progn (forward-comment (- (point-max)))
                                  (smie-backward-token)))
                    (toklevels (cdr (assoc token smie-op-levels))))
-      
+
               (cond
                ((null toklevels)
                 (if (equal token "")
@@ -360,7 +360,7 @@ Possible return values:
   (RIGHT-LEVEL POS TOKEN): we couldn't skip TOKEN because its left-level
     is too high.  RIGHT-LEVEL is the right-level of TOKEN,
     POS is its end position in the buffer.
-  (t POS TOKEN): Same thing but for an open-paren or the beginning of buffer.
+  (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (if (eobp) (list t (point))
@@ -371,7 +371,7 @@ Possible return values:
                    (token (progn (forward-comment (point-max))
                                  (smie-forward-token)))
                    (toklevels (cdr (assoc token smie-op-levels))))
-      
+
               (cond
                ((null toklevels)
                 (if (equal token "")
@@ -485,7 +485,7 @@ need to compute the column at which point should be indented
 in order to figure out the indentation of some other (further down) point.
 VIRTUAL can take two different non-nil values:
 - :bolp: means that the current indentation of point can be trusted
-  to be good only if if it follows a line break.
+  to be good only if it follows a line break.
 - :hanging: means that the current indentation of point can be
   trusted to be good except if the following token is hanging."
   ;; FIXME: This has accumulated a lot of rules, some of which aren't
