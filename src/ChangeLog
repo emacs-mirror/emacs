@@ -1,5 +1,12 @@
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (RALLOC_OBJ): New, set by configure.
+	(rallocobj): Replace with the previous variable.
+	(otherobj): Use $RALLOC_OBJ.
+
+	* s/gnu.h (REL_ALLOC) [DOUG_LEA_MALLOC]:
+	* s/gnu-linux.h (REL_ALLOC) [DOUG_LEA_MALLOC]: Move undef to configure.
+
 	* Makefile.in (GMALLOC_OBJ, VMLIMIT_OBJ): New, set by configure.
 	(gmallocobj, vmlimitobj): Replace with previous two variables.
 	(otherobj): Use $GMALLOC_OBJ, $VMLIMIT_OBJ.

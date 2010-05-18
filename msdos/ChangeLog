@@ -1,5 +1,7 @@
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* sed1v2.inp (RALLOC_OBJ): Edit to ralloc.o.
+
 	* sed1v2.inp (GMALLOC_OBJ): Edit to gmalloc.o.
 	(VMLIMIT_OBJ): Edit to vm-limit.o.
 

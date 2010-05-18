@@ -407,11 +407,8 @@ GMALLOC_OBJ=@GMALLOC_OBJ@
 /* vm-limit.o if !SYSTEM_MALLOC, else empty.  */
 VMLIMIT_OBJ=@VMLIMIT_OBJ@
 
-#if defined (REL_ALLOC) && ! defined (SYSTEM_MALLOC)
-rallocobj = ralloc.o
-#else
-rallocobj =
-#endif
+/* ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.  */
+RALLOC_OBJ=@RALLOC_OBJ@
 
 /* Empty on Cygwin, lastfile.o elsewhere.  */
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
@@ -419,7 +416,7 @@ PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
-otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(rallocobj) \
+otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
   $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 /* This is the platform-specific list of Lisp files loaded into the

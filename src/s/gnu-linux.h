@@ -147,11 +147,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NARROWPROTO 1
 
-/* Use mmap directly for allocating larger buffers.  */
-#ifdef DOUG_LEA_MALLOC
-#undef REL_ALLOC
-#endif
-
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.  */
 /* Not all the architectures are tested, but there are Debian packages

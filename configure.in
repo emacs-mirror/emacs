@@ -1613,6 +1613,14 @@ if test "$doug_lea_malloc" = "yes" ; then
   fi
   AC_DEFINE(DOUG_LEA_MALLOC, 1,
 	    [Define to 1 if you are using the GNU C Library.])
+
+  ## Use mmap directly for allocating larger buffers.
+  ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
+  ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
+  ## Does the AC_FUNC_MMAP test below make this check unecessary?
+  case "$opsys" in
+    gnu*) REL_ALLOC=no ;;
+  esac
 fi
 
 if test x"${REL_ALLOC}" = x; then
@@ -3198,16 +3206,21 @@ if test "${HAVE_MENUS}" = "yes" ; then
 	     (This is automatic if you use X, but the option to specify it remains.)
 	     It is also defined with other window systems that support xmenu.c.])
 fi
+
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC, 1,
 	    [Define to 1 if you want to use the GNU memory allocator.])
 fi
+
+RALLOC_OBJ=
 if test "${REL_ALLOC}" = "yes" ; then
   AC_DEFINE(REL_ALLOC, 1,
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
-fi
 
+  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
+fi
+AC_SUBST(RALLOC_OBJ)
 
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"

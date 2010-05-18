@@ -203,8 +203,9 @@ rm -f makefile.tmp
 
 if "%sys_malloc%" == "" goto src5a
 sed -e "/^GMALLOC_OBJ *=/s/gmalloc.o//" <Makefile >makefile.tmp
-sed -e "/^VMLIMIT_OBJ *=/s/vm-limit.o//" <makefile.tmp >Makefile
-rm -f makefile.tmp
+sed -e "/^VMLIMIT_OBJ *=/s/vm-limit.o//" <makefile.tmp >makefile.tmp2
+sed -e "/^RALLOC_OBJ *=/s/ralloc.o//" <makefile.tmp2 >Makefile
+rm -f makefile.tmp makefile.tmp2
 :src5a
 
 if "%nodebug%" == "" goto src6

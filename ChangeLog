@@ -1,5 +1,9 @@
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* config.bat (RALLOC_OBJ): Edit to empty if sys_malloc.
+	* configure.in (REL_ALLOC): Unset on gnu, gnu-linux if DOUG_LEA_MALLOC.
+	(RALLOC_OBJ): New output variable.
+
 	* config.bat (GMALLOC_OBJ, VMLIMIT_OBJ): Edit to empty if sys_malloc.
 	* configure.in (GMALLOC_OBJ, VMLIMIT_OBJ): New output variables.
 
