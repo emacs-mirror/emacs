@@ -1,3 +1,14 @@
+2010-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix handling of non-associative equal levels.
+	* emacs-lisp/smie.el (smie-prec2-levels): Choose distinct levels even
+	when it's not needed.
+	(smie-op-left, smie-op-right): New functions.
+	(smie-next-sexp): New function, extracted from smie-backward-sexp.
+	Better handle equal levels to distinguish the associative case from
+	the "multi-keyword construct" case.
+	(smie-backward-sexp, smie-forward-sexp): Use it.
+
 2010-05-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/prolog.el (smie-indent-basic): Declare for byte-compiler.
