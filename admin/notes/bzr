@@ -26,6 +26,14 @@ small number of "real" commits, but several "merge from trunks", it is
 preferred that you take your branch's diff, apply it to the trunk, and
 commit directly, not merge.  This keeps the history cleaner.
 
+In general, when working on some feature in a separate branch, it is
+preferable not to merge from trunk until you are done with the
+feature.  Unless you really need some change that was done on the
+trunk while you were developing on the branch, you don't really need
+those merges; just merge once, when you are done with the feature, and
+Bazaar will take care of the rest.  Bazaar is much better in this than
+CVS, so interim merges are unnecessary.
+
 Or use shelves; or rebase; or do something else.  See the thread for
 yet another fun excursion into the exciting world of version control.
 
