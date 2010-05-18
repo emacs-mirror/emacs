@@ -961,10 +961,13 @@ usage: (string &rest CHARACTERS)  */)
      int n;
      Lisp_Object *args;
 {
-  int i;
-  unsigned char *buf = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH * n);
-  unsigned char *p = buf;
-  int c;
+  int i, c;
+  unsigned char *buf, *p;
+  Lisp_Object str;
+  USE_SAFE_ALLOCA;
+
+  SAFE_ALLOCA (buf, unsigned char *, MAX_MULTIBYTE_LENGTH * n);
+  p = buf;
 
   for (i = 0; i < n; i++)
     {
@@ -973,7 +976,9 @@ usage: (string &rest CHARACTERS)  */)
       p += CHAR_STRING (c, p);
     }
 
-  return make_string_from_bytes ((char *) buf, n, p - buf);
+  str = make_string_from_bytes ((char *) buf, n, p - buf);
+  SAFE_FREE ();
+  return str;
 }
 
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
@@ -983,10 +988,13 @@ usage: (unibyte-string &rest BYTES)  */)
      int n;
      Lisp_Object *args;
 {
-  int i;
-  unsigned char *buf = (unsigned char *) alloca (n);
-  unsigned char *p = buf;
-  unsigned c;
+  int i, c;
+  unsigned char *buf, *p;
+  Lisp_Object str;
+  USE_SAFE_ALLOCA;
+
+  SAFE_ALLOCA (buf, unsigned char *, n);
+  p = buf;
 
   for (i = 0; i < n; i++)
     {
@@ -997,7 +1005,9 @@ usage: (unibyte-string &rest BYTES)  */)
       *p++ = c;
     }
 
-  return make_string_from_bytes ((char *) buf, n, p - buf);
+  str = make_string_from_bytes ((char *) buf, n, p - buf);
+  SAFE_FREE ();
+  return str;
 }
 
 DEFUN ("char-resolve-modifiers", Fchar_resolve_modifiers,
