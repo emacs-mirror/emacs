@@ -1,3 +1,14 @@
+2010-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1x.inp: Add copyright notice.
+
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (RALLOC_OBJ): Edit to ralloc.o.
+
+	* sed1v2.inp (GMALLOC_OBJ): Edit to gmalloc.o.
+	(VMLIMIT_OBJ): Edit to vm-limit.o.
+
 2010-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (OLDXMENU_DEPS): Edit to empty.

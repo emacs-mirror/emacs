@@ -86,7 +86,7 @@
 PRECS should be a list, sorted by precedence (e.g. \"+\" will
 come before \"*\"), of elements of the form \(left OP ...)
 or (right OP ...) or (nonassoc OP ...)  or (assoc OP ...).  All operators in
-one of those elements shares the same precedence level and associativity."
+one of those elements share the same precedence level and associativity."
   (let ((prec2-table (make-hash-table :test 'equal)))
     (dolist (prec precs)
       (dolist (op (cdr prec))
@@ -252,11 +252,23 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
           (dolist (cst csts)
             (unless (memq (car cst) rhvs)
               (setq progress t)
+              ;; We could give each var in a given iteration the same value,
+              ;; but we can also give them arbitrarily different values.
+              ;; Basically, these are vars between which there is no
+              ;; constraint (neither equality nor inequality), so
+              ;; anything will do.
+              ;; We give them arbitrary values, which means that we
+              ;; replace the "no constraint" case with either > or <
+              ;; but not =.  The reason we do that is so as to try and
+              ;; distinguish associative operators (which will have
+              ;; left = right).
+              (unless (caar cst)
               (setcar (car cst) i)
+                (incf i))
               (setq csts (delq cst csts))))
           (unless progress
             (error "Can't resolve the precedence table to precedence levels")))
-        (incf i))
+        (incf i 10))
       ;; Propagate equalities back to their source.
       (dolist (eq (nreverse eqs))
         (assert (null (caar eq)))
@@ -278,6 +290,9 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
 Each element is of the form (TOKEN LEFT-LEVEL RIGHT-LEVEL).
 Parsing is done using an operator precedence parser.")
 
+(defalias 'smie-op-left 'car)
+(defalias 'smie-op-right 'cadr)
+
 (defun smie-backward-token ()
   ;; FIXME: This may be an OK default but probably needs a hook.
   (buffer-substring (point)
@@ -292,6 +307,92 @@ Parsing is done using an operator precedence parser.")
                                (skip-syntax-forward "w_'"))
                            (point))))
 
+(defun smie-associative-p (toklevels)
+  ;; in "a + b + c" we want to stop at each +, but in
+  ;; "if a then b else c" we don't want to stop at each keyword.
+  ;; To distinguish the two cases, we made smie-prec2-levels choose
+  ;; different levels for each part of "if a then b else c", so that
+  ;; by checking if the left-level is equal to the right level, we can
+  ;; figure out that it's an associative operator.
+  ;; This is not 100% foolproof, tho, since a grammar like
+  ;;   (exp ("A" exp "C") ("A" exp "B" exp "C"))
+  ;; will cause "B" to have equal left and right levels, even though
+  ;; it is not an associative operator.
+  ;; A better check would be the check the actual previous operator
+  ;; against this one to see if it's the same, but we'd have to change
+  ;; `levels' to keep a stack of operators rather than only levels.
+  (eq (smie-op-left toklevels) (smie-op-right toklevels)))
+
+(defun smie-next-sexp (next-token next-sexp op-forw op-back halfsexp)
+  "Skip over one sexp.
+NEXT-TOKEN is a function of no argument that moves forward by one
+token (after skipping comments if needed) and returns it.
+NEXT-SEXP is a lower-level function to skip one sexp.
+OP-FORW is the accessor to the forward level of the level data.
+OP-BACK is the accessor to the backward level of the level data.
+HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
+first token we see is an operator, skip over its left-hand-side argument.
+Possible return values:
+  (FORW-LEVEL POS TOKEN): we couldn't skip TOKEN because its back-level
+    is too high.  FORW-LEVEL is the forw-level of TOKEN,
+    POS is its start position in the buffer.
+  (t POS TOKEN): same thing when we bump on the wrong side of a paren.
+  (nil POS TOKEN): we skipped over a paren-like pair.
+  nil: we skipped over an identifier, matched parentheses, ..."
+  (catch 'return
+    (let ((levels ()))
+      (while
+          (let* ((pos (point))
+                 (token (funcall next-token))
+                 (toklevels (cdr (assoc token smie-op-levels))))
+
+            (cond
+             ((null toklevels)
+              (when (equal token "")
+                  (condition-case err
+                      (progn (goto-char pos) (funcall next-sexp 1) nil)
+                  (scan-error (throw 'return (list t (caddr err)))))
+                (if (eq pos (point))
+                    ;; We did not move, so let's abort the loop.
+                    (throw 'return (list t (point))))))
+             ((null (funcall op-back toklevels))
+              ;; A token like a paren-close.
+              (assert (funcall op-forw toklevels)) ;Otherwise, why mention it?
+              (push (funcall op-forw toklevels) levels))
+             (t
+              (while (and levels (< (funcall op-back toklevels) (car levels)))
+                (setq levels (cdr levels)))
+              (cond
+               ((null levels)
+                (if (and halfsexp (funcall op-forw toklevels))
+                    (push (funcall op-forw toklevels) levels)
+                  (throw 'return
+                         (prog1 (list (or (car toklevels) t) (point) token)
+                           (goto-char pos)))))
+               (t
+                (if (and levels (= (funcall op-back toklevels) (car levels)))
+                    (setq levels (cdr levels)))
+                (cond
+                 ((null levels)
+                  (cond
+                   ((null (funcall op-forw toklevels))
+                    (throw 'return (list nil (point) token)))
+                   ((smie-associative-p toklevels)
+                    (throw 'return
+                           (prog1 (list (or (car toklevels) t) (point) token)
+                             (goto-char pos))))
+                   ;; We just found a match to the previously pending operator
+                   ;; but this new operator is still part of a larger RHS.
+                   ;; E.g. we're now looking at the "then" in
+                   ;; "if a then b else c".  So we have to keep parsing the
+                   ;; rest of the construct.
+                   (t (push (funcall op-forw toklevels) levels))))
+                 (t
+                  (if (funcall op-forw toklevels)
+                      (push (funcall op-forw toklevels) levels))))))))
+            levels)
+        (setq halfsexp nil)))))
+
 (defun smie-backward-sexp (&optional halfsexp)
   "Skip over one sexp.
 HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
@@ -300,58 +401,16 @@ Possible return values:
   (LEFT-LEVEL POS TOKEN): we couldn't skip TOKEN because its right-level
     is too high.  LEFT-LEVEL is the left-level of TOKEN,
     POS is its start position in the buffer.
-  (t POS TOKEN): Same thing but for an open-paren or the beginning of buffer.
+  (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
-  (if (bobp) (list t (point))
-    (catch 'return
-      (let ((levels ()))
-        (while
-            (let* ((pos (point))
-                   (token (progn (forward-comment (- (point-max)))
-                                 (smie-backward-token)))
-                   (toklevels (cdr (assoc token smie-op-levels))))
-      
-              (cond
-               ((null toklevels)
-                (if (equal token "")
-                    (condition-case err
-                        (progn (goto-char pos) (backward-sexp 1) nil)
-                      (scan-error (throw 'return (list t (caddr err)))))))
-               ((null (nth 1 toklevels))
-                ;; A token like a paren-close.
-                (assert (nth 0 toklevels)) ;Otherwise, why mention it?
-                (push (nth 0 toklevels) levels))
-               (t
-                (while (and levels (< (nth 1 toklevels) (car levels)))
-                  (setq levels (cdr levels)))
-                (cond
-                 ((null levels)
-                  (if (and halfsexp (nth 0 toklevels))
-                      (push (nth 0 toklevels) levels)
-                    (throw 'return
-                           (prog1 (list (or (car toklevels) t) (point) token)
-                             (goto-char pos)))))
-                 (t
-                  (while (and levels (= (nth 1 toklevels) (car levels)))
-                    (setq levels (cdr levels)))
-                  (cond
-                   ((null levels)
-                    (cond
-                     ((null (nth 0 toklevels))
-                      (throw 'return (list nil (point) token)))
-                     ((eq (nth 0 toklevels) (nth 1 toklevels))
-                      (throw 'return
-                             (prog1 (list (or (car toklevels) t) (point) token)
-                               (goto-char pos))))
-                     (t (debug))))      ;Not sure yet what to do here.
-                   (t
-                    (if (nth 0 toklevels)
-                        (push (nth 0 toklevels) levels))))))))
-              levels)
-          (setq halfsexp nil))))))
+    (smie-next-sexp
+     (lambda () (forward-comment (- (point-max))) (smie-backward-token))
+     (indirect-function 'backward-sexp)
+     (indirect-function 'smie-op-left)
+     (indirect-function 'smie-op-right)
+   halfsexp))
 
-;; Mirror image, not used for indentation.
 (defun smie-forward-sexp (&optional halfsexp)
   "Skip over one sexp.
 HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
@@ -360,56 +419,15 @@ Possible return values:
   (RIGHT-LEVEL POS TOKEN): we couldn't skip TOKEN because its left-level
     is too high.  RIGHT-LEVEL is the right-level of TOKEN,
     POS is its end position in the buffer.
-  (t POS TOKEN): Same thing but for an open-paren or the beginning of buffer.
+  (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
-  (if (eobp) (list t (point))
-    (catch 'return
-      (let ((levels ()))
-        (while
-            (let* ((pos (point))
-                   (token (progn (forward-comment (point-max))
-                                 (smie-forward-token)))
-                   (toklevels (cdr (assoc token smie-op-levels))))
-      
-              (cond
-               ((null toklevels)
-                (if (equal token "")
-                    (condition-case err
-                        (progn (goto-char pos) (forward-sexp 1) nil)
-                      (scan-error (throw 'return (list t (caddr err)))))))
-               ((null (nth 0 toklevels))
-                ;; A token like a paren-close.
-                (assert (nth 1 toklevels)) ;Otherwise, why mention it?
-                (push (nth 1 toklevels) levels))
-               (t
-                (while (and levels (< (nth 0 toklevels) (car levels)))
-                  (setq levels (cdr levels)))
-                (cond
-                 ((null levels)
-                  (if (and halfsexp (nth 1 toklevels))
-                      (push (nth 1 toklevels) levels)
-                    (throw 'return
-                           (prog1 (list (or (nth 1 toklevels) t) (point) token)
-                             (goto-char pos)))))
-                 (t
-                  (while (and levels (= (nth 0 toklevels) (car levels)))
-                    (setq levels (cdr levels)))
-                  (cond
-                   ((null levels)
-                    (cond
-                     ((null (nth 1 toklevels))
-                      (throw 'return (list nil (point) token)))
-                     ((eq (nth 1 toklevels) (nth 0 toklevels))
-                      (throw 'return
-                             (prog1 (list (or (nth 1 toklevels) t) (point) token)
-                               (goto-char pos))))
-                     (t (debug))))      ;Not sure yet what to do here.
-                   (t
-                    (if (nth 1 toklevels)
-                        (push (nth 1 toklevels) levels))))))))
-              levels)
-          (setq halfsexp nil))))))
+    (smie-next-sexp
+     (lambda () (forward-comment (point-max)) (smie-forward-token))
+     (indirect-function 'forward-sexp)
+     (indirect-function 'smie-op-right)
+     (indirect-function 'smie-op-left)
+   halfsexp))
 
 (defun smie-backward-sexp-command (&optional n)
   "Move backward through N logical elements."
@@ -485,7 +503,7 @@ need to compute the column at which point should be indented
 in order to figure out the indentation of some other (further down) point.
 VIRTUAL can take two different non-nil values:
 - :bolp: means that the current indentation of point can be trusted
-  to be good only if if it follows a line break.
+  to be good only if it follows a line break.
 - :hanging: means that the current indentation of point can be
   trusted to be good except if the following token is hanging."
   ;; FIXME: This has accumulated a lot of rules, some of which aren't
@@ -496,6 +514,10 @@ VIRTUAL can take two different non-nil values:
    (and virtual
         (if (eq virtual :hanging) (not (smie-indent-hanging-p)) (smie-bolp))
         (current-column))
+   ;; Start the file at column 0.
+   (save-excursion
+     (forward-comment (- (point-max)))
+     (if (bobp) 0))
    ;; Align close paren with opening paren.
    (save-excursion
      ;; (forward-comment (point-max))

@@ -146,6 +146,8 @@ keyboard commands that move point in more sophisticated ways.
 @findex move-end-of-line
 @findex forward-char
 @findex backward-char
+@findex right-arrow-command
+@findex left-arrow-command
 @findex next-line
 @findex previous-line
 @findex beginning-of-buffer
@@ -161,11 +163,19 @@ Move to the beginning of the line (@code{move-beginning-of-line}).
 @itemx @key{End}
 Move to the end of the line (@code{move-end-of-line}).
 @item C-f
-@itemx @key{right}
 Move forward one character (@code{forward-char}).
+@item @key{right}
+Move one character to the right (@code{right-arrow-command}).  This
+moves one character forward in text that is read in the usual
+left-to-right direction, but one character @emph{backward} if the text
+is read right-to-left, as needed for right-to-left scripts such as
+Arabic.  @xref{Bidirectional Editing}.
 @item C-b
-@itemx @key{left}
 Move backward one character (@code{backward-char}).
+@item @key{left}
+Move one character to the left (@code{left-arrow-command}).  This
+moves one character backward in left-to-right text and one character
+forward in right-to-left text.
 @item M-f
 @itemx M-@key{right}
 @itemx C-@key{right}

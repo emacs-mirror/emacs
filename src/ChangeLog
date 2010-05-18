@@ -1,3 +1,31 @@
+2010-05-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* character.c (Fstring, Funibyte_string): Use SAFE_ALLOCA to
+	prevent stack overflow if number of arguments is too large
+	(Bug#6214).
+
+2010-05-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* charset.c (load_charset_map_from_file): Don't call close after fclose.
+
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu-linux.h: Combine two conditionals.
+
+	* Makefile.in (otherobj): Include $(VMLIMIT_OBJ) separately from
+	$(POST_ALLOC_OBJ).
+
+	* Makefile.in (RALLOC_OBJ): New, set by configure.
+	(rallocobj): Replace with the previous variable.
+	(otherobj): Use $RALLOC_OBJ.
+
+	* s/gnu.h (REL_ALLOC) [DOUG_LEA_MALLOC]:
+	* s/gnu-linux.h (REL_ALLOC) [DOUG_LEA_MALLOC]: Move undef to configure.
+
+	* Makefile.in (GMALLOC_OBJ, VMLIMIT_OBJ): New, set by configure.
+	(gmallocobj, vmlimitobj): Replace with previous two variables.
+	(otherobj): Use $GMALLOC_OBJ, $VMLIMIT_OBJ.
+
 2010-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (OLDXMENU_DEPS): New, set by configure.
@@ -45,8 +73,7 @@
 
 2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
 
-	* lisp.h (XFLOAT_DATA): Use "0?x:x" to generate an
-	rvalue. (bug#5916)
+	* lisp.h (XFLOAT_DATA): Use "0?x:x" to generate an rvalue.  (Bug#5916)
 	(LISP_MAKE_RVALUE) [!USE_LISP_UNION_TYPE && !__GNUC__]: Likewise.
 
 	* emacs.c (main): Initialize initial-environment and
@@ -120,8 +147,7 @@
 
 2010-05-14  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_range): Return the range for the font found at
-	first.
+	* font.c (font_range): Return the range for the font found at first.
 
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
@@ -11580,7 +11606,7 @@
 	definitions from xmenu.c.  Suggested by Adrian Robert.
 
 	* xmenu.c: Remove platform-independent menu definitions.
-	(menu_items menu_items_inuse, menu_items_allocated)
+	(menu_items, menu_items_inuse, menu_items_allocated)
 	(menu_items_used, menu_items_n_panes)
 	(menu_items_submenu_depth): Move to keyboard.h.
 	(init_menu_items, finish_menu_items, unuse_menu_items)
