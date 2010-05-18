@@ -1,3 +1,9 @@
+2010-05-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* character.c (Fstring, Funibyte_string): Use SAFE_ALLOCA to
+	prevent stack overflow if number of arguments is too large
+	(Bug#6214).
+
 2010-05-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(SRC)/w32.h.
