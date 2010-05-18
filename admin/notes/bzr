@@ -1,0 +1,32 @@
+NOTES ON COMMITTING TO EMACS'S BAZAAR REPO    -*- outline -*-
+
+* Install changes only on one branch, let them get merged elsewhere if needed.
+In particular, install bug-fixes only on the release branch (if there
+is one) and let them get synced to the trunk; do not install them by
+hand on the trunk as well.  E.g. if there is an active "emacs-23" branch
+and you have a bug-fix appropriate for the next Emacs-23.x release,
+install it only on the emacs-23 branch, not on the trunk as well.
+
+Installing things manually into more than one branch makes merges more
+difficult.
+
+http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01124.html
+
+* Backporting a bug-fix from the trunk to a branch (e.g. "emacs-23").
+Label the commit as a backport, e.g. by starting the commit message with
+"Backport:".  This is helpful for the person merging the release branch
+to the trunk.
+
+http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00262.html
+
+* Installing changes from your personal branches.
+If your branch has only a single commit, or many different real
+commits, it is fine to do a merge.  If your branch has only a very
+small number of "real" commits, but several "merge from trunks", it is
+preferred that you take your branch's diff, apply it to the trunk, and
+commit directly, not merge.  This keeps the history cleaner.
+
+Or use shelves; or rebase; or do something else.  See the thread for
+yet another fun excursion into the exciting world of version control.
+
+http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00086.html
