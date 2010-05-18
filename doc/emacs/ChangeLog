@@ -1,3 +1,12 @@
+2010-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Fringes): Document reversal of fringe arrows for R2L
+	paragraphs.
+	(Line Truncation): Fix wording for bidi display.
+
+	* basic.texi (Moving Point): Document bidi-aware behavior of he arrow
+	keys.
+
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* building.texi (GDB Graphical Interface): Remove misleading comparison

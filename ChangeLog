@@ -1,3 +1,21 @@
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (POST_ALLOC_OBJ) [cygwin]: Omit vm-limit.o.
+	(POST_ALLOC_OBJ) [!cygwin]: Set to empty.
+
+	* config.bat (RALLOC_OBJ): Edit to empty if sys_malloc.
+	* configure.in (REL_ALLOC): Unset on gnu, gnu-linux if DOUG_LEA_MALLOC.
+	(RALLOC_OBJ): New output variable.
+
+	* config.bat (GMALLOC_OBJ, VMLIMIT_OBJ): Edit to empty if sys_malloc.
+	* configure.in (GMALLOC_OBJ, VMLIMIT_OBJ): New output variables.
+
+2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Provide the name of the VCS file that witnesses
+	a pull.
+	($(srcdir)/src/config.in): Handle accidental removal of src/config.in.
+
 2010-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (OLDXMENU_DEPS): New output variable.

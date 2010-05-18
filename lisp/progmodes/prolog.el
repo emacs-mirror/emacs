@@ -31,6 +31,7 @@
 
 (defvar comint-prompt-regexp)
 (defvar comint-process-echoes)
+(defvar smie-indent-basic)
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."
@@ -98,6 +99,61 @@ When nil, send actual operating system end of file."
 (defvar prolog-mode-abbrev-table nil)
 (define-abbrev-table 'prolog-mode-abbrev-table ())
 
+(defconst prolog-smie-op-levels
+  ;; Rather than construct the operator levels table from the BNF,
+  ;; we directly provide the operator precedences from GNU Prolog's
+  ;; manual.  The only problem is that GNU Prolog's manual uses
+  ;; precedence levels in the opposite sense (higher numbers bind less
+  ;; tightly) than SMIE, so we use negative numbers.
+  '(("." -10000 -10000)
+    (":-" -1200 -1200)
+    ("-->" -1200 -1200)
+    (";" -1100 -1100)
+    ("->" -1050 -1050)
+    ("," -1000 -1000)
+    ("\\+" -900 -900)
+    ("=" -700 -700)
+    ("\\=" -700 -700)
+    ("=.." -700 -700)
+    ("==" -700 -700)
+    ("\\==" -700 -700)
+    ("@<" -700 -700)
+    ("@=<" -700 -700)
+    ("@>" -700 -700)
+    ("@>=" -700 -700)
+    ("is" -700 -700)
+    ("=:=" -700 -700)
+    ("=\\=" -700 -700)
+    ("<" -700 -700)
+    ("=<" -700 -700)
+    (">" -700 -700)
+    (">=" -700 -700)
+    (":" -600 -600)
+    ("+" -500 -500)
+    ("-" -500 -500)
+    ("/\\" -500 -500)
+    ("\\/" -500 -500)
+    ("*" -400 -400)
+    ("/" -400 -400)
+    ("//" -400 -400)
+    ("rem" -400 -400)
+    ("mod" -400 -400)
+    ("<<" -400 -400)
+    (">>" -400 -400)
+    ("**" -200 -200)
+    ("^" -200 -200)
+    ;; Prefix
+    ;; ("+" 200 200)
+    ;; ("-" 200 200)
+    ;; ("\\" 200 200)
+    )
+  "Precedence levels of infix operators.")
+
+(defconst prolog-smie-indent-rules
+  '((":-")
+    ("->"))
+  "Prolog indentation rules.")
+
 (defun prolog-mode-variables ()
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat "%%\\|$\\|" page-delimiter)) ;'%%..'
@@ -105,8 +161,10 @@ When nil, send actual operating system end of file."
   (setq paragraph-ignore-fill-prefix t)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression '((nil "^\\sw+" 0)))
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'prolog-indent-line)
+  (smie-setup prolog-smie-op-levels prolog-smie-indent-rules)
+  (set (make-local-variable 'forward-sexp-function)
+       'smie-forward-sexp-command)
+  (set (make-local-variable 'smie-indent-basic) prolog-indent-width)
   (make-local-variable 'comment-start)
   (setq comment-start "%")
   (make-local-variable 'comment-start-skip)
@@ -122,7 +180,7 @@ When nil, send actual operating system end of file."
     (define-key map "\C-c\C-l" 'inferior-prolog-load-file)
     (define-key map "\C-c\C-z" 'switch-to-prolog)
     map))
- 
+
 (easy-menu-define prolog-mode-menu prolog-mode-map "Menu for Prolog mode."
   ;; Mostly copied from scheme-mode's menu.
   ;; Not tremendously useful, but it's a start.
@@ -148,65 +206,6 @@ if that value is non-nil."
   (setq font-lock-defaults '(prolog-font-lock-keywords
                              nil nil nil
                              beginning-of-line)))
-
-(defun prolog-indent-line ()
-  "Indent current line as Prolog code.
-With argument, indent any additional lines of the same clause
-rigidly along with this one (not yet)."
-  (interactive "p")
-  (let ((indent (prolog-indent-level))
-	(pos (- (point-max) (point))))
-    (beginning-of-line)
-    (indent-line-to indent)
-    (if (> (- (point-max) pos) (point))
-	(goto-char (- (point-max) pos)))))
-
-(defun prolog-indent-level ()
-  "Compute Prolog indentation level."
-  (save-excursion
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (cond
-     ((looking-at "%%%") 0)		;Large comment starts
-     ((looking-at "%[^%]") comment-column) ;Small comment starts
-     ((bobp) 0)				;Beginning of buffer
-     (t
-      (let ((empty t) ind more less)
-	(if (looking-at ")")
-	    (setq less t)		;Find close
-	  (setq less nil))
-	;; See previous indentation
-	(while empty
-	  (forward-line -1)
-	  (beginning-of-line)
- 	  (if (bobp)
- 	      (setq empty nil)
- 	    (skip-chars-forward " \t")
- 	    (if (not (or (looking-at "%[^%]") (looking-at "\n")))
- 		(setq empty nil))))
- 	(if (bobp)
- 	    (setq ind 0)		;Beginning of buffer
-	  (setq ind (current-column)))	;Beginning of clause
-	;; See its beginning
-	(if (looking-at "%%[^%]")
-	    ind
-	  ;; Real prolog code
-	  (if (looking-at "(")
-	      (setq more t)		;Find open
-	    (setq more nil))
-	  ;; See its tail
-	  (end-of-prolog-clause)
-	  (or (bobp) (forward-char -1))
-	  (cond ((looking-at "[,(;>]")
-		 (if (and more (looking-at "[^,]"))
-		     (+ ind prolog-indent-width) ;More indentation
-		   (max tab-width ind))) ;Same indentation
-		((looking-at "-") tab-width) ;TAB
-		((or less (looking-at "[^.]"))
-		 (max (- ind prolog-indent-width) 0)) ;Less indentation
-		(t 0))			;No indentation
-	  )))
-     )))
 
 (defun end-of-prolog-clause ()
   "Go to end of clause in this line."

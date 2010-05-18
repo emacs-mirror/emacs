@@ -69,10 +69,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    reasonable place to select for it is in the machine description file.  */
 #define NO_SOCK_SIGIO
 
-/* After adding support for a new system, modify the large case
-   statement in the `configure' script to recognize reasonable
+/* After adding support for a new machine, modify the large case
+   statement in configure.in to recognize reasonable
    configuration names, and add a description of the system to
    `etc/MACHINES'.
+
+   Check for any tests of $machine in configure.in, and add an entry
+   for the new machine if needed.
 
    If you've just fixed a problem in an existing configuration file,
    you should also check `etc/MACHINES' to make sure its descriptions

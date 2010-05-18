@@ -401,29 +401,23 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_OBJ)
 
-gmallocobj =
-rallocobj =
-vmlimitobj =
-#ifndef SYSTEM_MALLOC
-#ifndef DOUG_LEA_MALLOC
-gmallocobj = gmalloc.o
-#endif
+/* gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.  */
+GMALLOC_OBJ=@GMALLOC_OBJ@
 
-#ifdef REL_ALLOC
-rallocobj = ralloc.o
-#endif
+/* vm-limit.o if !SYSTEM_MALLOC, else empty.  */
+VMLIMIT_OBJ=@VMLIMIT_OBJ@
 
-vmlimitobj = vm-limit.o
-#endif /* !SYSTEM_MALLOC */
+/* ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.  */
+RALLOC_OBJ=@RALLOC_OBJ@
 
 /* Empty on Cygwin, lastfile.o elsewhere.  */
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-/* lastfile.o vm-limit.o on Cygwin, $vmlimitobj elsewhere.  */
+/* lastfile.o on Cygwin, empty elsewhere.  */
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
-otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
-  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
+  $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
@@ -1098,7 +1092,9 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
-${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
+/* VCSWITNESS points to the file that holds info about the current checkout.
+   We use it as a heuristic to decide when to rebuild loaddefs.el.  */
+${lispsource}loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
