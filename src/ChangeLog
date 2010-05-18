@@ -1,3 +1,7 @@
+2010-05-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* charset.c (load_charset_map_from_file): Don't call close after fclose.
+
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* s/gnu-linux.h: Combine two conditionals.
