@@ -1,5 +1,11 @@
 2010-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-next-sexp): Break inf-loop at BOB.
+	(smie-backward-sexp, smie-forward-sexp): Remove boundary condition now
+	handled in smie-next-sexp.
+	(smie-indent-calculate): Provide a starting indentation (so the
+	recursion is well-founded ;-).
+
 	Fix handling of non-associative equal levels.
 	* emacs-lisp/smie.el (smie-prec2-levels): Choose distinct levels even
 	when it's not needed.

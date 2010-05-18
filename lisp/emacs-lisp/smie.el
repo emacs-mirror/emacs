@@ -348,10 +348,13 @@ Possible return values:
 
             (cond
              ((null toklevels)
-              (if (equal token "")
+              (when (equal token "")
                   (condition-case err
                       (progn (goto-char pos) (funcall next-sexp 1) nil)
-                    (scan-error (throw 'return (list t (caddr err)))))))
+                  (scan-error (throw 'return (list t (caddr err)))))
+                (if (eq pos (point))
+                    ;; We did not move, so let's abort the loop.
+                    (throw 'return (list t (point))))))
              ((null (funcall op-back toklevels))
               ;; A token like a paren-close.
               (assert (funcall op-forw toklevels)) ;Otherwise, why mention it?
@@ -401,15 +404,13 @@ Possible return values:
   (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
-  (if (bobp) (list t (point))
     (smie-next-sexp
      (lambda () (forward-comment (- (point-max))) (smie-backward-token))
      (indirect-function 'backward-sexp)
      (indirect-function 'smie-op-left)
      (indirect-function 'smie-op-right)
-     halfsexp)))
+   halfsexp))
 
-;; Mirror image, not used for indentation.
 (defun smie-forward-sexp (&optional halfsexp)
   "Skip over one sexp.
 HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
@@ -421,13 +422,12 @@ Possible return values:
   (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
-  (if (eobp) (list t (point))
     (smie-next-sexp
      (lambda () (forward-comment (point-max)) (smie-forward-token))
      (indirect-function 'forward-sexp)
      (indirect-function 'smie-op-right)
      (indirect-function 'smie-op-left)
-     halfsexp)))
+   halfsexp))
 
 (defun smie-backward-sexp-command (&optional n)
   "Move backward through N logical elements."
@@ -514,6 +514,10 @@ VIRTUAL can take two different non-nil values:
    (and virtual
         (if (eq virtual :hanging) (not (smie-indent-hanging-p)) (smie-bolp))
         (current-column))
+   ;; Start the file at column 0.
+   (save-excursion
+     (forward-comment (- (point-max)))
+     (if (bobp) 0))
    ;; Align close paren with opening paren.
    (save-excursion
      ;; (forward-comment (point-max))
