@@ -1,5 +1,7 @@
 2010-05-18  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/prolog.el (smie-indent-basic): Declare for byte-compiler.
+
 	* emacs-lisp/smie.el (smie-precs-precedence-table, smie-backward-sexp)
 	(smie-forward-sexp, smie-indent-calculate): Fix typos in docstrings.
 

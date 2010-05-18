@@ -31,6 +31,7 @@
 
 (defvar comint-prompt-regexp)
 (defvar comint-process-echoes)
+(defvar smie-indent-basic)
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."
@@ -179,7 +180,7 @@ When nil, send actual operating system end of file."
     (define-key map "\C-c\C-l" 'inferior-prolog-load-file)
     (define-key map "\C-c\C-z" 'switch-to-prolog)
     map))
- 
+
 (easy-menu-define prolog-mode-menu prolog-mode-map "Menu for Prolog mode."
   ;; Mostly copied from scheme-mode's menu.
   ;; Not tremendously useful, but it's a start.
