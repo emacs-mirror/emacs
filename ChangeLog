@@ -1,5 +1,8 @@
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (POST_ALLOC_OBJ) [cygwin]: Omit vm-limit.o.
+	(POST_ALLOC_OBJ) [!cygwin]: Set to empty.
+
 	* config.bat (RALLOC_OBJ): Edit to empty if sys_malloc.
 	* configure.in (REL_ALLOC): Unset on gnu, gnu-linux if DOUG_LEA_MALLOC.
 	(RALLOC_OBJ): New output variable.

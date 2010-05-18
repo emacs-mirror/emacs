@@ -3226,11 +3226,11 @@ if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"
   ## Cygwin differs because of its unexec().
   PRE_ALLOC_OBJ=
-  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
+  POST_ALLOC_OBJ=lastfile.o
 else
   CYGWIN_OBJ=
   PRE_ALLOC_OBJ=lastfile.o
-  POST_ALLOC_OBJ="\$(VMLIMIT_OBJ)"
+  POST_ALLOC_OBJ=
 fi
 AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)

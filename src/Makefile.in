@@ -412,12 +412,12 @@ RALLOC_OBJ=@RALLOC_OBJ@
 
 /* Empty on Cygwin, lastfile.o elsewhere.  */
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-/* lastfile.o vm-limit.o on Cygwin, $VMLIMIT_OBJ elsewhere.  */
+/* lastfile.o on Cygwin, empty elsewhere.  */
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+  $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
