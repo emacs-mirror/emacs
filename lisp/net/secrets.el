@@ -129,6 +129,9 @@
 ;;   (secrets-search-items "session" :user "joe")
 ;;    => ("my item" "another item")
 
+;; Interactively, collections, items and their attributes could be
+;; inspected by the command `secrets-show-secrets'.
+
 ;;; Code:
 
 ;; It has been tested with GNOME Keyring 2.29.92.  An implementation
@@ -147,6 +150,13 @@
 (defvar dbus-debug)
 
 (require 'dbus)
+
+(declare-function tree-widget-set-theme "tree-widget")
+(declare-function widget-create-child-and-convert "wid-edit")
+(declare-function widget-default-value-set "wid-edit")
+(declare-function widget-field-end "wid-edit")
+(declare-function widget-member "wid-edit")
+(defvar tree-widget-after-toggle-functions)
 
 (defvar secrets-enabled nil
   "Whether there is a daemon offering the Secret Service API.")
@@ -664,6 +674,145 @@ If there is no such item, or the item doesn't own this attribute, return nil."
        (dbus-call-method
 	:session secrets-service item-path
 	secrets-interface-item "Delete")))))
+
+;;; Visualization.
+
+(define-derived-mode secrets-mode nil "Secrets"
+  "Major mode for presenting search results of a Xesam search.
+In this mode, widgets represent the search results.
+
+\\{secrets-mode-map}
+Turning on Xesam mode runs the normal hook `xesam-mode-hook'.  It
+can be used to set `xesam-notify-function', which must a search
+engine specific, widget :notify function to visualize xesam:url."
+  ;; Keymap.
+  (setq secrets-mode-map (copy-keymap special-mode-map))
+  (set-keymap-parent secrets-mode-map widget-keymap)
+  (define-key secrets-mode-map "z" 'kill-this-buffer)
+
+  ;; When we toggle, we must set temporary widgets.
+  (set (make-local-variable 'tree-widget-after-toggle-functions)
+       '(secrets-tree-widget-after-toggle-function))
+
+  (when (not (called-interactively-p 'interactive))
+    ;; Initialize buffer.
+    (setq buffer-read-only t)
+    (let ((inhibit-read-only t))
+      (erase-buffer))))
+
+;; It doesn't make sense to call it interactively.
+(put 'secrets-mode 'disabled t)
+
+;; The very first buffer created with `secrets-mode' does not have the
+;; keymap etc.  So we create a dummy buffer.  Stupid.
+(with-temp-buffer (secrets-mode))
+
+;;;###autoload
+(defun secrets-show-secrets ()
+  "Display a list of collections from the Secret Service API.
+The collections are in tree view, that means they can be expanded
+to the corresponding secret items, which could also be expanded
+to their attributes."
+  (interactive)
+  ;; Create the search buffer.
+  (with-current-buffer (get-buffer-create "*Secrets*")
+    (switch-to-buffer-other-window (current-buffer))
+    ;; Inialize buffer with `secrets-mode'.
+    (secrets-mode)
+    (secrets-show-collections)))
+
+(defun secrets-show-collections ()
+  "Show all available collections."
+  (let ((inhibit-read-only t)
+	(alias (secrets-get-alias "default")))
+    (erase-buffer)
+    (tree-widget-set-theme "folder")
+    (dolist (coll (secrets-list-collections))
+      (widget-create
+     `(tree-widget
+       :tag ,coll
+       :collection ,coll
+       :open nil
+       :sample-face bold
+       :expander secrets-expand-collection)))))
+
+(defun secrets-expand-collection (widget)
+  "Expand items of collection shown as WIDGET."
+  (let ((coll (widget-get widget :collection)))
+    (mapcar
+     (lambda (item)
+       `(tree-widget
+	 :tag ,item
+	 :collection ,coll
+	 :item ,item
+	 :open nil
+	 :sample-face bold
+	 :expander secrets-expand-item))
+     (secrets-list-items coll))))
+
+(defun secrets-expand-item (widget)
+  "Expand password and attributes of item shown as WIDGET."
+  (let* ((coll (widget-get widget :collection))
+	 (item (widget-get widget :item))
+	 (attributes (secrets-get-attributes coll item))
+	 ;; padding is needed to format attribute names.
+	 (padding
+	  (1+
+	   (apply
+	    'max
+	    (cons
+	     (length "password")
+	     (mapcar
+	      (lambda (attribute) (length (symbol-name (car attribute))))
+	      attributes))))))
+    (cons
+     ;; The password widget.
+     `(editable-field :tag "password"
+		      :secret ?*
+		      :value ,(secrets-get-secret coll item)
+		      :sample-face widget-button-pressed
+		      ;; We specify :size in order to limit the field.
+		      :size 0
+		      :format ,(concat
+				"%{%t%}:"
+				(make-string (- padding (length "password")) ? )
+				"%v\n"))
+     (mapcar
+      (lambda (attribute)
+	(let ((name (symbol-name (car attribute)))
+	      (value (cdr attribute)))
+	  ;; The attribute widget.
+	  `(editable-field :tag ,name
+			   :value ,value
+			   :sample-face widget-documentation
+			   ;; We specify :size in order to limit the field.
+			   :size 0
+			   :format ,(concat
+				     "%{%t%}:"
+				     (make-string (- padding (length name)) ? )
+				     "%v\n"))))
+      attributes))))
+
+(defun secrets-tree-widget-after-toggle-function (widget &rest ignore)
+  "Add a temporary widget to show the password."
+  (dolist (child (widget-get widget :children))
+    (when (widget-member child :secret)
+      (goto-char (widget-field-end child))
+      (widget-insert " ")
+      (widget-create-child-and-convert
+       child 'push-button
+       :notify 'secrets-tree-widget-show-password
+       "Show password")))
+  (widget-setup))
+
+(defun secrets-tree-widget-show-password (widget &rest ignore)
+  "Show password, and remove temporary widget."
+  (let ((parent (widget-get widget :parent)))
+    (widget-put parent :secret nil)
+    (widget-default-value-set parent (widget-get parent :value))
+    (widget-setup)))
+
+;;; Initialization.
 
 (when (dbus-ping :session secrets-service 100)
 
