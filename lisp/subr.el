@@ -1871,16 +1871,14 @@ any other non-digit terminates the character code and is then used as input."))
 	(if inhibit-quit (setq quit-flag nil)))
       ;; Translate TAB key into control-I ASCII character, and so on.
       ;; Note: `read-char' does it using the `ascii-character' property.
-      ;; We could try and use read-key-sequence instead, but then C-q ESC
-      ;; or C-q C-x might not return immediately since ESC or C-x might be
-      ;; bound to some prefix in function-key-map or key-translation-map.
+      ;; We should try and use read-key instead.
+      (let ((translation (lookup-key local-function-key-map (vector char))))
+	(if (arrayp translation)
+	    (setq translated (aref translation 0))))
       (setq translated
 	    (if (integerp char)
 		(char-resolve-modifiers char)
 	      char))
-      (let ((translation (lookup-key local-function-key-map (vector char))))
-	(if (arrayp translation)
-	    (setq translated (aref translation 0))))
       (cond ((null translated))
 	    ((not (integerp translated))
 	     (setq unread-command-events (list char)

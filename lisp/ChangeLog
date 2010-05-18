@@ -1,3 +1,8 @@
+2010-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Resolve modifiers after key
+	remapping (bug#6212).
+
 2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tmm.el (tmm-prompt): Don't try to precompute bindings.
