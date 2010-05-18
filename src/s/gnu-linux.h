@@ -97,7 +97,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This is used in list_system_processes.  */
 #define HAVE_PROCFS 1
 
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
@@ -126,11 +125,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_pptr - (FILE)->_pbase)
 #endif /* !_IO_STDIO_H && ! __UCLIBC__ */
-#endif /* emacs */
 
-#ifdef emacs
 #define INTERRUPT_INPUT
-#endif
+#endif /* emacs */
 
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 

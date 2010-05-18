@@ -1,6 +1,8 @@
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (otherobj): Include $(VMLIMIT_OBJ) seperately from
+	* s/gnu-linux.h: Combine two conditionals.
+
+	* Makefile.in (otherobj): Include $(VMLIMIT_OBJ) separately from
 	$(POST_ALLOC_OBJ).
 
 	* Makefile.in (RALLOC_OBJ): New, set by configure.
