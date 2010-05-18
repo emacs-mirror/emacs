@@ -1592,11 +1592,20 @@ AC_CACHE_CHECK(whether __after_morecore_hook exists,
 if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
+
 if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
+  GMALLOC_OBJ=
+  VMLIMIT_OBJ=
+else
+  test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
+  VMLIMIT_OBJ=vm-limit.o
 fi
+AC_SUBST(GMALLOC_OBJ)
+AC_SUBST(VMLIMIT_OBJ)
+
 if test "$doug_lea_malloc" = "yes" ; then
   if test "$GNU_MALLOC" = yes ; then
     GNU_MALLOC_reason="
@@ -3208,7 +3217,7 @@ if test "$opsys" = "cygwin"; then
 else
   CYGWIN_OBJ=
   PRE_ALLOC_OBJ=lastfile.o
-  POST_ALLOC_OBJ="\$(vmlimitobj)"
+  POST_ALLOC_OBJ="\$(VMLIMIT_OBJ)"
 fi
 AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)

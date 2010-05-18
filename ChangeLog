@@ -1,3 +1,8 @@
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* config.bat (GMALLOC_OBJ, VMLIMIT_OBJ): Edit to empty if sys_malloc.
+	* configure.in (GMALLOC_OBJ, VMLIMIT_OBJ): New output variables.
+
 2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (src): Provide the name of the VCS file that witnesses

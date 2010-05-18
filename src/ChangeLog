@@ -1,3 +1,9 @@
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (GMALLOC_OBJ, VMLIMIT_OBJ): New, set by configure.
+	(gmallocobj, vmlimitobj): Replace with previous two variables.
+	(otherobj): Use $GMALLOC_OBJ, $VMLIMIT_OBJ.
+
 2010-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (OLDXMENU_DEPS): New, set by configure.
