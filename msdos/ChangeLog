@@ -1,3 +1,7 @@
+2010-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1x.inp: Add copyright notice.
+
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (RALLOC_OBJ): Edit to ralloc.o.
