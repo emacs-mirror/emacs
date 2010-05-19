@@ -4539,6 +4539,9 @@ rests."
 	       (let ((goal-column 0)
 		     (line-move-visual nil))
 		 (and (line-move arg t)
+		      ;; With bidi reordering, we may not be at bol,
+		      ;; so make sure we are.
+		      (skip-chars-backward "^\n")
 		      (not (bobp))
 		      (progn
 			(while (and (not (bobp)) (invisible-p (1- (point))))
