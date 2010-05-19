@@ -1,5 +1,7 @@
 2010-05-19  Glenn Morris  <rgm@gnu.org>
 
+	* s/msdos.h (ORDINARY_LINK): Move to sed2v2.inp.
+
 	* Makefile.in (LD, YMF_PASS_LDFLAGS): Set with configure, not cpp.
 	(GNULIB_VAR): Remove.
 	(LIBES): Use LIB_GCC instead of GNULIB_VAR.

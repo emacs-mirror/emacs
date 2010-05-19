@@ -1,5 +1,7 @@
 2010-05-19  Glenn Morris  <rgm@gnu.org>
 
+	* sed2v2.inp (ORDINARY_LINK): Set here rather than in s/msdos.h.
+
 	* sed1v2.inp (LD): Edit to $(CC).
 	(YMF_PASS_LDFLAGS): Edit to `flags'.
 
