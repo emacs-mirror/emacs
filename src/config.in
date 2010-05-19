@@ -841,6 +841,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you are using NS windowing under GNUstep. */
 #undef NS_IMPL_GNUSTEP
 
+/* Define if the C compiler is the linker. */
+#undef ORDINARY_LINK
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
