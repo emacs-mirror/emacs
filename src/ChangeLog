@@ -1,3 +1,27 @@
+2010-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (prowlims): Display row->minpos and row->maxpos.
+	Display truncated_on_left_p and truncated_on_right_p flags.
+	Formatting fixes.
+	(pmtxrows): Display the ordinal number of each row.  Don't display
+	rows beyond the last one.
+
+	* xdisp.c (RECORD_MAX_MIN_POS): New macro.
+	(display_line): Use it to record the minimum and maximum buffer
+	positions for glyphs in the row being assembled.  If word wrap is
+	in effect, restore minimum and maximum positions seen up to the
+	wrap point, when iterator returns to it.
+	(find_row_edges): Fix logic; eol_pos should be tested before the
+	rest.
+	(try_window_reusing_current_matrix): Give up if in bidi-reordered
+	row and cursor not already at point.  Restore original pre-bidi
+	code for unidirectional buffers.
+
+	* bidi.c (bidi_cache_shrink, bidi_cache_iterator_state): Fix
+	reallocation of the cache.  (Bug#6210)
+	(bidi_cache_iterator_state): Don't zero out new_paragraph (it is
+	not copied by bidi_copy_it).
+
 2010-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct glyph_row): New members minpos and maxpos.

@@ -543,6 +543,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 #define BIDI_CACHE_CHUNK 200
 static struct bidi_it *bidi_cache;
 static size_t bidi_cache_size = 0;
+static size_t elsz = sizeof (struct bidi_it);
 static int bidi_cache_idx;	/* next unused cache slot */
 static int bidi_cache_last_idx;	/* slot of last cache hit */
 
@@ -558,8 +559,9 @@ bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
     {
-      bidi_cache_size = BIDI_CACHE_CHUNK * sizeof (struct bidi_it);
-      bidi_cache = (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size);
+      bidi_cache_size = BIDI_CACHE_CHUNK;
+      bidi_cache =
+	(struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
     }
   bidi_cache_reset ();
 }
@@ -688,9 +690,9 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       /* Enlarge the cache as needed.  */
       if (idx >= bidi_cache_size)
 	{
-	  bidi_cache_size += BIDI_CACHE_CHUNK * sizeof (struct bidi_it);
+	  bidi_cache_size += BIDI_CACHE_CHUNK;
 	  bidi_cache =
-	    (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size);
+	    (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
 	}
       /* Character positions should correspond to cache positions 1:1.
 	 If we are outside the range of cached positions, the cache is
@@ -705,7 +707,6 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       bidi_copy_it (&bidi_cache[idx], bidi_it);
       if (!resolved)
 	bidi_cache[idx].resolved_level = -1;
-      bidi_cache[idx].new_paragraph = 0;
     }
   else
     {
