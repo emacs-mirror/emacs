@@ -61,11 +61,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The kernel symbol where the load average is found is named avenrun.  */
 #define LDAV_SYMBOL "avenrun"
 
-/* Special itemss needed to make Emacs run on this system.  */
-
-#ifndef __GNUC__
-#define LINKER cc
-#endif
+/* Special items needed to make Emacs run on this system.  */
 
 /* The following definition seems to be needed in AIX version 3.1.6.8.
    It may not have been needed in certain earlier versions.  */
