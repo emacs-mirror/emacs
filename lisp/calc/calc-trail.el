@@ -108,20 +108,28 @@
 (defun calc-trail-isearch-forward ()
   (interactive)
   (calc-with-trail-buffer
-   (save-window-excursion
-     (select-window (get-buffer-window (current-buffer)))
-     (let ((search-exit-char ?\r))
-       (isearch-forward)))
-   (calc-trail-here)))
+   (let ((win (get-buffer-window (current-buffer)))
+         pos)
+     (save-window-excursion
+       (select-window win)
+       (isearch-forward)
+       (setq pos (point)))
+     (goto-char pos)
+     (set-window-point win pos)
+     (calc-trail-here))))
 
 (defun calc-trail-isearch-backward ()
   (interactive)
   (calc-with-trail-buffer
-   (save-window-excursion
-     (select-window (get-buffer-window (current-buffer)))
-     (let ((search-exit-char ?\r))
-       (isearch-backward)))
-   (calc-trail-here)))
+   (let ((win (get-buffer-window (current-buffer)))
+         pos)
+     (save-window-excursion
+       (select-window win)
+       (isearch-backward)
+       (setq pos (point)))
+     (goto-char pos)
+     (set-window-point win pos)
+     (calc-trail-here))))
 
 (defun calc-trail-yank (arg)
   (interactive "P")

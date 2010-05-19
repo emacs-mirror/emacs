@@ -4,6 +4,43 @@
 	composition-function-table only for combining characters (Mn, Mc,
 	Me).
 
+2010-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-trail.el (calc-trail-isearch-forward)
+	(calc-trail-isearch-backward): Ensure that the new window
+	point is set correctly.
+
+2010-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Resolve modifiers after key
+	remapping (bug#6212).
+
+2010-05-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add visualization code for secrets.
+	* net/secrets.el (secrets-mode): New major mode.
+	(secrets-show-secrets, secrets-show-collections)
+	(secrets-expand-collection, secrets-expand-item)
+	(secrets-tree-widget-after-toggle-function)
+	(secrets-tree-widget-show-password): New defuns.
+
+2010-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-next-sexp): Break inf-loop at BOB.
+	(smie-backward-sexp, smie-forward-sexp): Remove boundary condition now
+	handled in smie-next-sexp.
+	(smie-indent-calculate): Provide a starting indentation (so the
+	recursion is well-founded ;-).
+
+	Fix handling of non-associative equal levels.
+	* emacs-lisp/smie.el (smie-prec2-levels): Choose distinct levels even
+	when it's not needed.
+	(smie-op-left, smie-op-right): New functions.
+	(smie-next-sexp): New function, extracted from smie-backward-sexp.
+	Better handle equal levels to distinguish the associative case from
+	the "multi-keyword construct" case.
+	(smie-backward-sexp, smie-forward-sexp): Use it.
+
 2010-05-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/prolog.el (smie-indent-basic): Declare for byte-compiler.
@@ -135,7 +172,7 @@
 2010-05-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (with-progress-reporter): Create reporter object
-	only when the message would be displayed.  Handled nested calls.
+	only when the message would be displayed.  Handle nested calls.
 	(tramp-handle-load, tramp-handle-file-local-copy)
 	(tramp-handle-insert-file-contents, tramp-handle-write-region)
 	(tramp-maybe-send-script, tramp-find-shell):
