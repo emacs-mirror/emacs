@@ -69,8 +69,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* On USG systems signal handlers return void.  */
 #define SIGTYPE void
 
-#define ORDINARY_LINK
-
 /* Undump with ELF.  */
 #undef COFF
 

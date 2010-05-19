@@ -32,12 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_TEXT_START
 #endif
 
-/* NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says this is needed
-   For MkLinux/LinuxPPC.  */
-#ifdef GNU_LINUX
-#define LINKER $(CC) -nostdlib
-#endif
-
 #ifdef _ARCH_PPC64
 #ifndef _LP64
 #define _LP64

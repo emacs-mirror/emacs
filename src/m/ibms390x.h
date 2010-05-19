@@ -62,8 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 #define VALBITS         60
 
-#define LINKER $(CC) -nostdlib
-
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #define XPNTR(a) XUINT (a)
 

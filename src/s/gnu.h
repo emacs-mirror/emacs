@@ -29,8 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGNALS_VIA_CHARACTERS
 
-/* GNU needs its own crt0, and libc defines data_start.  */
-#define ORDINARY_LINK
+/* libc defines data_start.  */
 #define DATA_START ({ extern int data_start; (char *) &data_start; })
 
 /* Some losing code fails to include this and then assumes

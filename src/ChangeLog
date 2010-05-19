@@ -1,3 +1,28 @@
+2010-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_cache_shrink, bidi_cache_iterator_state): Fix
+	reallocation of the cache.  (Bug#6210)
+
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* s/msdos.h (ORDINARY_LINK): Move to sed2v2.inp.
+
+	* Makefile.in (LD, YMF_PASS_LDFLAGS): Set with configure, not cpp.
+	(GNULIB_VAR): Remove.
+	(LIBES): Use LIB_GCC instead of GNULIB_VAR.
+
+	* m/ibms390x.h (LINKER):
+	* m/macppc.h (LINKER) [GNU_LINUX]:
+	* s/aix4-2.h (ORDINARY_LINK):
+	* s/cygwin.h (LINKER):
+	* s/darwin.h (ORDINARY_LINK):
+	* s/gnu.h (ORDINARY_LINK):
+	* s/netbsd.h (LINKER):
+	* s/usg5-4.h (ORDINARY_LINK):
+	Move to configure.
+
+	* s/aix4-2.h (LINKER): Remove; this file sets ORDINARY_LINK.
+
 2010-05-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* character.c (Fstring, Funibyte_string): Use SAFE_ALLOCA to

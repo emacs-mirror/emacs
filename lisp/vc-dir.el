@@ -1169,7 +1169,8 @@ These are the commands available for use in the file status buffer:
 	  nil t nil nil)))))
   (unless backend
     (setq backend (vc-responsible-backend dir)))
-  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend))
+  (let (pop-up-windows)		      ; based on cvs-examine; bug#6204
+    (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend)))
   (if (derived-mode-p 'vc-dir-mode)
       (vc-dir-refresh)
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
