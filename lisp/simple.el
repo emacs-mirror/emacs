@@ -422,6 +422,13 @@ Other major modes are defined by comparison with this one."
   "Parent major mode from which special major modes should inherit."
   (setq buffer-read-only t))
 
+;; Major mode meant to be the parent of programming modes.
+
+(define-derived-mode prog-mode fundamental-mode "Prog"
+  "Major mode for editing programming language source code."
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t))
+
 ;; Making and deleting lines.
 
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
@@ -2070,7 +2077,11 @@ to `shell-command-history'."
 
 Like `shell-command' but if COMMAND doesn't end in ampersand, adds `&'
 surrounded by whitespace and executes the command asynchronously.
-The output appears in the buffer `*Async Shell Command*'."
+The output appears in the buffer `*Async Shell Command*'.
+
+In Elisp, you will often be better served by calling `start-process'
+directly, since it offers more control and does not impose the use of a
+shell (with its need to quote arguments)."
   (interactive
    (list
     (read-shell-command "Async shell command: " nil nil
@@ -2131,7 +2142,11 @@ If the optional third argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output.
 In an interactive call, the variable `shell-command-default-error-buffer'
-specifies the value of ERROR-BUFFER."
+specifies the value of ERROR-BUFFER.
+
+In Elisp, you will often be better served by calling `call-process' or
+`start-process' directly, since it offers more control and does not impose
+the use of a shell (with its need to quote arguments)."
 
   (interactive
    (list

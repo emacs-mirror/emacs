@@ -60,14 +60,14 @@
 	    (input-method . "hebrew")
 	    (unibyte-display . hebrew-iso-8bit)
 	    (sample-text . "Hebrew	,Hylem(B")
-	    (documentation . "Right-to-left writing is not yet supported.")))
+	    (documentation . "Bidirectional editing is supported.")))
 
 (set-language-info-alist
  "Windows-1255" '((coding-priority windows-1255)
 		  (coding-system windows-1255)
 		  (documentation . "\
 Support for Windows-1255 encoding, e.g. for Yiddish.
-Right-to-left writing is not yet supported.")))
+Bidirectional editing is supported.")))
 
 (define-coding-system 'windows-1255
   "windows-1255 (Hebrew) encoding (MIME: WINDOWS-1255)"

@@ -184,7 +184,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    reordering engine which is called by set_iterator_to_next and
    returns the next character to display in the visual order.  See
    commentary on bidi.c for more details.  As far as redisplay is
-   concerned, the effect of calling bidi_get_next_char_visually, the
+   concerned, the effect of calling bidi_move_to_visually_next, the
    main interface of the reordering engine, is that the iterator gets
    magically placed on the buffer or string position that is to be
    displayed next.  In other words, a linear iteration through the
@@ -3918,7 +3918,7 @@ handle_invisible_prop (it)
 		}
 	      do
 		{
-		  bidi_get_next_char_visually (&it->bidi_it);
+		  bidi_move_to_visually_next (&it->bidi_it);
 		}
 	      while (it->stop_charpos <= it->bidi_it.charpos
 		     && it->bidi_it.charpos < newpos);
@@ -5276,7 +5276,7 @@ iterate_out_of_display_property (it)
   while (it->bidi_it.charpos >= BEGV
 	 && it->prev_stop <= it->bidi_it.charpos
 	 && it->bidi_it.charpos < CHARPOS (it->position))
-    bidi_get_next_char_visually (&it->bidi_it);
+    bidi_move_to_visually_next (&it->bidi_it);
   /* Record the stop_pos we just crossed, for when we cross it
      back, maybe.  */
   if (it->bidi_it.charpos > CHARPOS (it->position))
@@ -6307,29 +6307,14 @@ set_iterator_to_next (it, reseat_p)
 	  else if (! it->cmp_it.reversed_p)
 	    {
 	      /* Composition created while scanning forward.  */
-	      /* Update IT's char/byte positions to point the first
+	      /* Update IT's char/byte positions to point to the first
 		 character of the next grapheme cluster, or to the
 		 character visually after the current composition.  */
-#if 0
-	      /* Is it ok to do this directly? */
-	      IT_CHARPOS (*it) += it->cmp_it.nchars;
-	      IT_BYTEPOS (*it) += it->cmp_it.nbytes;
-#else
-	      /* Or do we have to call bidi_get_next_char_visually
-		 repeatedly (perhaps not to confuse some internal
-		 state of bidi_it)?  At least we must do this if we
-		 have consumed all grapheme clusters in the current
-		 composition because the next character will be in the
-		 different bidi level.  */
 	      for (i = 0; i < it->cmp_it.nchars; i++)
-		bidi_get_next_char_visually (&it->bidi_it);
-	      /* BTW, it seems that the name
-		 bidi_get_next_char_visually is confusing because
-		 it sounds like not advancing character position.
-		 How about bidi_set_iterator_to_next? */
+		bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
-#endif
+
 	      if (it->cmp_it.to < it->cmp_it.nglyphs)
 		{
 		  /* Proceed to the next grapheme cluster.  */
@@ -6337,7 +6322,7 @@ set_iterator_to_next (it, reseat_p)
 		}
 	      else
 		{
-		  /* No more grapheme cluster in this composition.
+		  /* No more grapheme clusters in this composition.
 		     Find the next stop position.  */
 		  EMACS_INT stop = it->stop_charpos;
 		  if (it->bidi_it.scan_dir < 0)
@@ -6351,10 +6336,10 @@ set_iterator_to_next (it, reseat_p)
 	  else
 	    {
 	      /* Composition created while scanning backward.  */
-	      /* Update IT's char/byte positions to point the last
+	      /* Update IT's char/byte positions to point to the last
 		 character of the previous grapheme cluster, or the
 		 character visually after the current composition.  */
-	      bidi_get_next_char_visually (&it->bidi_it);
+	      bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 
@@ -6365,7 +6350,7 @@ set_iterator_to_next (it, reseat_p)
 		}
 	      else
 		{
-		  /* No more grapheme cluster in this composition.
+		  /* No more grapheme clusters in this composition.
 		     Find the next stop position.  */
 		  EMACS_INT stop = it->stop_charpos;
 		  if (it->bidi_it.scan_dir < 0)
@@ -6393,13 +6378,13 @@ set_iterator_to_next (it, reseat_p)
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
 		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	      bidi_get_next_char_visually (&it->bidi_it);
+	      bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
 	      if (prev_scan_dir != it->bidi_it.scan_dir)
 		{
-		  /* As scan direction was changed, we must re-compute
-		     the stop position for composition.  */
+		  /* As the scan direction was changed, we must
+		     re-compute the stop position for composition.  */
 		  EMACS_INT stop = it->stop_charpos;
 		  if (it->bidi_it.scan_dir < 0)
 		    stop = -1;
@@ -6873,7 +6858,7 @@ next_element_from_buffer (it)
 	  /* If we are at the beginning of a line, we can produce the
 	     next element right away.  */
 	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
-	  bidi_get_next_char_visually (&it->bidi_it);
+	  bidi_move_to_visually_next (&it->bidi_it);
 	}
       else
 	{
@@ -6891,7 +6876,7 @@ next_element_from_buffer (it)
 	    {
 	      /* Now return to buffer position where we were asked to
 		 get the next display element, and produce that.  */
-	      bidi_get_next_char_visually (&it->bidi_it);
+	      bidi_move_to_visually_next (&it->bidi_it);
 	    }
 	  while (it->bidi_it.bytepos != orig_bytepos
 		 && it->bidi_it.bytepos < ZV_BYTE);
@@ -7115,7 +7100,7 @@ next_element_from_composition (it)
 	      /* Resync the bidi iterator with IT's new position.
 		 FIXME: this doesn't support bidirectional text.  */
 	      while (it->bidi_it.charpos < IT_CHARPOS (*it))
-		bidi_get_next_char_visually (&it->bidi_it);
+		bidi_move_to_visually_next (&it->bidi_it);
 	    }
 	  return 0;
 	}
@@ -7131,7 +7116,7 @@ next_element_from_composition (it)
 	     correct (struct glyph)->charpos.  */
 	  int i;
 	  for (i = 0; i < it->cmp_it.nchars - 1; i++)
-	    bidi_get_next_char_visually (&it->bidi_it);
+	    bidi_move_to_visually_next (&it->bidi_it);
 	  IT_CHARPOS (*it) = it->bidi_it.charpos;
 	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	  it->position = it->current.pos;
@@ -18256,6 +18241,84 @@ display_line (it)
   return row->displays_text_p;
 }
 
+DEFUN ("current-bidi-paragraph-direction", Fcurrent_bidi_paragraph_direction,
+       Scurrent_bidi_paragraph_direction, 0, 1, 0,
+       doc: /* Return paragraph direction at point in BUFFER.
+Value is either `left-to-right' or `right-to-left'.
+If BUFFER is omitted or nil, it defaults to the current buffer.
+
+Paragraph direction determines how the text in the paragraph is displayed.
+In left-to-right paragraphs, text begins at the left margin of the window
+and the reading direction is generally left to right.  In right-to-left
+paragraphs, text begins at the right margin and is read from right to left.
+
+See also `bidi-paragraph-direction'.  */)
+     (buffer)
+     Lisp_Object buffer;
+{
+  struct buffer *buf;
+  struct buffer *old;
+
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+      old = current_buffer;
+    }
+
+  if (NILP (buf->bidi_display_reordering))
+    return Qleft_to_right;
+  else if (!NILP (buf->bidi_paragraph_direction))
+    return buf->bidi_paragraph_direction;
+  else
+    {
+      /* Determine the direction from buffer text.  We could try to
+	 use current_matrix if it is up to date, but this seems fast
+	 enough as it is.  */
+      struct bidi_it itb;
+      EMACS_INT pos = BUF_PT (buf);
+      EMACS_INT bytepos = BUF_PT_BYTE (buf);
+
+      if (buf != current_buffer)
+	set_buffer_temp (buf);
+      /* Find previous non-empty line.  */
+      if (pos >= ZV && pos > BEGV)
+	{
+	  pos--;
+	  bytepos = CHAR_TO_BYTE (pos);
+	}
+      while (FETCH_BYTE (bytepos) == '\n')
+	{
+	  if (bytepos <= BEGV_BYTE)
+	    break;
+	  bytepos--;
+	  pos--;
+	}
+      while (!CHAR_HEAD_P (FETCH_BYTE (bytepos)))
+	bytepos--;
+      itb.charpos = pos;
+      itb.bytepos = bytepos;
+      itb.first_elt = 1;
+
+      bidi_paragraph_init (NEUTRAL_DIR, &itb);
+      if (buf != current_buffer)
+	set_buffer_temp (old);
+      switch (itb.paragraph_dir)
+	{
+	case L2R:
+	  return Qleft_to_right;
+	  break;
+	case R2L:
+	  return Qright_to_left;
+	  break;
+	default:
+	  abort ();
+	}
+    }
+}
+
 
 
 /***********************************************************************
@@ -25955,6 +26018,7 @@ syms_of_xdisp ()
 #endif
   defsubr (&Sformat_mode_line);
   defsubr (&Sinvisible_p);
+  defsubr (&Scurrent_bidi_paragraph_direction);
 
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern_c_string ("menu-bar-update-hook");

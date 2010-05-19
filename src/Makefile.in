@@ -65,6 +65,7 @@ config_h = config.h $(M_FILE) $(S_FILE)
 
 bootstrap_exe = ${abs_builddir}/bootstrap-emacs${EXEEXT}
 
+## ns-app if HAVE_NS, else empty.
 OTHER_FILES = @OTHER_FILES@
 
 CRT_DIR=@CRT_DIR@
@@ -113,6 +114,9 @@ LD_SWITCH_SYSTEM_EXTRA=@LD_SWITCH_SYSTEM_EXTRA@
 
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTEM_TEMACS)
+
+## $LDFLAGS, or empty if NS_IMPL_GNUSTEP (for some reason).
+TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
@@ -167,10 +171,42 @@ LIBXTR6=@LIBXTR6@
 ## Only used if HAVE_X_WINDOWS.
 LIBXT_OTHER=@LIBXT_OTHER@
 
+## Only used if HAVE_X11 && !USE_GTK.
+## really-lwlib if USE_X_TOOLKIT, else really-oldxmenu.
+OLDXMENU_TARGET=@OLDXMENU_TARGET@
+
+## If !HAVE_X11 || USE_GTK, empty.
+## Else if USE_X_TOOLKIT, ${lwlibdir}liblw.a.
+## Else ${oldXMenudir}libXMenu11.a.
+OLDXMENU=@OLDXMENU@
+
+## If HAVE_X11 && !USE_GTK, ${OLDXMENU} ../src/${OLDXMENU}; else empty.
+## We use stamp-xmenu with these two deps to both ensure that lwlib
+## gets remade based on its dependencies in its own makefile,
+## and remake temacs if lwlib gets changed by this. 
+OLDXMENU_DEPS=@OLDXMENU_DEPS@
+
+## If !HAVE_X11 && HAVE_X_WINDOWS, -lXMenu (this case no longer possible).
+## Else if !HAVE_X11 || USE_GTK, empty.
+## Else $(OLDXMENU).
+LIBXMENU=@LIBXMENU@
+
 XMENU_OBJ=@XMENU_OBJ@
 XOBJ=@XOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
+
+## Only used if HAVE_X11, in LIBX_OTHER.
+LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
+
+## If HAVE_X11, $(LIBXT) $(LIBX_EXTRA), else empty.
+LIBX_OTHER=@LIBX_OTHER@
+
+## LIBXMENU is nil if !HAVE_X_WINDOWS.
+## LD_SWITCH_X_SITE should not be used if not using X, but nothing
+## sets it at present, and if something ever does, it should be
+## configure, which should set it to nil in non-X builds.
+LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
@@ -184,7 +220,7 @@ WIDGET_OBJ=@WIDGET_OBJ@
 ## sheap.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
-## dosfns.o msdos.o if MSDOS.
+## dosfns.o msdos.o w16select.o if MSDOS.
 MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
@@ -194,16 +230,18 @@ MSDOS_SUPPORT_REAL = ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
 ## $MSDOS_SUPPORT_REAL if MSDOS.
 MSDOS_SUPPORT = 
 
-ns_appdir=@ns_appdir@/
-ns_appbindir=@ns_appbindir@/
+ns_appdir=@ns_appdir@
+ns_appbindir=@ns_appbindir@
 ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
-## Next two only set if NS_IMPL_GNUSTEP.
+## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
-GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
 
-## Only used if HAVE_X_WINDOWS.
+## Empty if !HAVE_X_WINDOWS
+## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
+## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
+## else xfont.o
 FONT_OBJ=@FONT_OBJ@
 
 ## Used if HAVE_MOUSE.
@@ -257,6 +295,10 @@ DEPFLAGS = -MMD -MF deps/$*.d
 /* If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.  */
 @NS_IMPL_GNUSTEP_INC@
 
+/* FIXME move to LD_SWITCH_SYSTEM_TEMACS?
+   This uses ${CONFIG_SYSTEM_LIBS}, presumably set by the above include.  */
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@
+
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
    at initial startup, then labeled as part of the text area when
@@ -285,15 +327,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 	@-test -d deps || mkdir deps
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
-
-#ifdef HAVE_X_WINDOWS
-OLDXMENU=@OLDXMENU@
-LIBXMENU=@LIBXMENU@
-LIBXT=$(TOOLKIT_LIBW) $(LIBXT_OTHER)
-LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
-LIBX_OTHER=@LIBX_OTHER@
-FONT_DRIVERS=$(FONT_OBJ)
-#endif /* HAVE_X_WINDOWS */
 
 
 /* A macro which other sections of Makefile can redefine to munge the
@@ -336,6 +369,12 @@ LD=ld
 
 #endif /* not ORDINARY_LINK */
 
+
+#ifdef NS_IMPL_GNUSTEP
+LD=$(CC) -rdynamic
+#endif
+
+
 /* lastfile must follow all files whose initialized data areas should
    be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
@@ -351,7 +390,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
+	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines in case they are needed.  */
@@ -360,31 +399,25 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   fontset.o dbusbind.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_OBJ)
 
-gmallocobj =
-rallocobj =
-vmlimitobj =
-#ifndef SYSTEM_MALLOC
-#ifndef DOUG_LEA_MALLOC
-gmallocobj = gmalloc.o
-#endif
+/* gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.  */
+GMALLOC_OBJ=@GMALLOC_OBJ@
 
-#ifdef REL_ALLOC
-rallocobj = ralloc.o
-#endif
+/* vm-limit.o if !SYSTEM_MALLOC, else empty.  */
+VMLIMIT_OBJ=@VMLIMIT_OBJ@
 
-vmlimitobj = vm-limit.o
-#endif /* !SYSTEM_MALLOC */
+/* ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.  */
+RALLOC_OBJ=@RALLOC_OBJ@
 
 /* Empty on Cygwin, lastfile.o elsewhere.  */
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-/* lastfile.o vm-limit.o on Cygwin, $vmlimitobj elsewhere.  */
+/* lastfile.o on Cygwin, empty elsewhere.  */
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
 /* List of object files that make-docfile should not be told about.  */
-otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(gmallocobj) $(rallocobj) \
-  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
+  $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 /* This is the platform-specific list of Lisp files loaded into the
    dumped Emacs.  It is arranged like this because it is easier to generate
@@ -611,6 +644,7 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
+/* Does anyone ever pay attention to the load-path-shadows output here?  */
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 #ifdef CANNOT_DUMP
 	rm -f emacs${EXEEXT}
@@ -648,55 +682,42 @@ ${libsrc}make-docfile${EXEEXT}:
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
-/* FIXME LOCALCPP not defined or mentioned anywhere.  */
-temacs${EXEEXT}: $(LOCALCPP) $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
-#ifdef NS_IMPL_GNUSTEP
-	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
-	-L$(GNUSTEP_SYSTEM_LIBRARIES) -lgnustep-gui -lgnustep-base \
-	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
-	${obj} ${otherobj} ${LIBES}
-#else
-	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
-    -o temacs ${START_FILES} ${obj} ${otherobj}  \
-    ${LIBES}
-#endif
+temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
+	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
+	  ${NS_IMPL_GNUSTEP_TEMACS_LDFLAGS} ) \
+	  ${TEMACS_LDFLAGS2} \
+	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 
 prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
-#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (USE_GTK)
 
-/* We use stamp-xmenu with these two deps to both ensure that lwlib
-   gets remade based on its dependencies in its own makefile,
-   and remake temacs if lwlib gets changed by this.  */
-stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
-	touch stamp-oldxmenu
-/* Supply an ordering for parallel make.  */
-../src/$(OLDXMENU): ${OLDXMENU}
-
-#ifdef USE_X_TOOLKIT
-$(OLDXMENU): really-lwlib
-
+/* Only (possibly) used if HAVE_X11 && !USE_GTK, but no harm in always
+   defining.  */
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
-#else /* not USE_X_TOOLKIT */
-$(OLDXMENU): really-oldXMenu
 
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
-#endif /* not USE_X_TOOLKIT */
-#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
 
-/* We don''t really need this, but satisfy the dependency.  */
-stamp-oldxmenu:
+/* We don''t really need this when OLDXMENU_DEPS is empty, but as
+   things stand we need something to satisfy the temacs dependency.  */
+stamp-oldxmenu: ${OLDXMENU_DEPS}
 	touch stamp-oldxmenu
-#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
+
+/* HAVE_X11 implies HAVE_X_WINDOWS and HAVE_MENUS.  */
+#if defined (HAVE_X11) && ! defined (USE_GTK)
+/* Supply an ordering for parallel make.  */
+../src/$(OLDXMENU): ${OLDXMENU}
+
+$(OLDXMENU): $(OLDXMENU_TARGET)
+#endif /* HAVE_X11 && !USE_GTK */ 
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."
@@ -972,19 +993,15 @@ textprop.o: textprop.c buffer.h window.h $(INTERVALS_H) \
 ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}
-	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; tar xf - )
-	( cd ${ns_appdir} ; for subdir in `find . -type d ! -name CVS -print` ; do \
-		chmod a+rx $${subdir} ; \
-		rm -rf $${subdir}/CVS ; \
-		rm -f  $${subdir}/.cvsignore ; done ; )
+	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; umask 022; tar xf - )
+#endif /* HAVE_NS */
 
+/* These are only used if HAVE_NS, but no harm in always defining them.  */
 ${ns_appbindir}Emacs: emacs${EXEEXT}
 	mkdir -p ${ns_appbindir}
 	cp -f emacs${EXEEXT} ${ns_appbindir}Emacs
 
 ns-app: ${ns_appdir} ${ns_appbindir}Emacs
-
-#endif /* HAVE_NS */
 
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
@@ -994,9 +1011,8 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 	-rm -rf deps
-#ifdef HAVE_NS
-	rm -fr ${ns_appdir}
-#endif
+	test "X${ns_appdir}" = "X" || rm -rf ${ns_appdir}
+
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,
    but not things like config.status or TAGS.  */
@@ -1076,7 +1092,9 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
-${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
+/* VCSWITNESS points to the file that holds info about the current checkout.
+   We use it as a heuristic to decide when to rebuild loaddefs.el.  */
+${lispsource}loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the

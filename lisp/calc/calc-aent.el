@@ -510,6 +510,7 @@ The value t means abort and give an error message.")
     ("≥" ">=")
     ("≦" "<=")
     ("≧" ">=")
+    ("µ" "μ")
     ;; fractions
     ("¼" "(1:4)") ; 1/4
     ("½" "(1:2)") ; 1/2
@@ -675,11 +676,11 @@ in Calc algebraic input.")
     (cond ((and (stringp (car p))
 		(or (> (length (car p)) 1) (equal (car p) "$")
 		    (equal (car p) "\""))
-		(string-match "[^a-zA-Z0-9]" (car p)))
+		(string-match "[^a-zA-Zα-ωΑ-Ω0-9]" (car p)))
 	   (let ((s (regexp-quote (car p))))
-	     (if (string-match "\\`[a-zA-Z0-9]" s)
+	     (if (string-match "\\`[a-zA-Zα-ωΑ-Ω0-9]" s)
 		 (setq s (concat "\\<" s)))
-	     (if (string-match "[a-zA-Z0-9]\\'" s)
+	     (if (string-match "[a-zA-Zα-ωΑ-Ω0-9]\\'" s)
 		 (setq s (concat s "\\>")))
 	     (or (assoc s math-toks)
 		 (progn
@@ -718,15 +719,17 @@ in Calc algebraic input.")
 		   math-expr-data (math-match-substring math-exp-str 0)
 		   math-exp-pos (match-end 0)))
 	    ((or (and (>= ch ?a) (<= ch ?z))
-		 (and (>= ch ?A) (<= ch ?Z)))
+		 (and (>= ch ?A) (<= ch ?Z))
+		 (and (>= ch ?α) (<= ch ?ω))
+		 (and (>= ch ?Α) (<= ch ?Ω)))
 	     (string-match 
               (cond
                ((and (memq calc-language calc-lang-allow-underscores)
                      (memq calc-language calc-lang-allow-percentsigns))
-                "[a-zA-Z0-9_'#]*")
+                "[a-zA-Zα-ωΑ-Ω0-9_'#]*")
                ((memq calc-language calc-lang-allow-underscores)
-			       "[a-zA-Z0-9_#]*")
-               (t "[a-zA-Z0-9'#]*"))
+			       "[a-zA-Zα-ωΑ-Ω0-9_#]*")
+               (t "[a-zA-Zα-ωΑ-Ω0-9'#]*"))
               math-exp-str math-exp-pos)
 	     (setq math-exp-token 'symbol
 		   math-exp-pos (match-end 0)
@@ -744,12 +747,12 @@ in Calc algebraic input.")
 		      (or (eq math-exp-pos 0)
 			  (and (not (memq calc-language 
                                           calc-lang-allow-underscores))
-			       (eq (string-match "[^])}\"a-zA-Z0-9'$]_"
+			       (eq (string-match "[^])}\"a-zA-Zα-ωΑ-Ω0-9'$]_"
 						 math-exp-str (1- math-exp-pos))
 				   (1- math-exp-pos))))))
 	     (or (and (memq calc-language calc-lang-c-type-hex)
 		      (string-match "0[xX][0-9a-fA-F]+" math-exp-str math-exp-pos))
-		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-zA-Z:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?"
+		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-zA-Zα-ωΑ-Ω:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?"
                                math-exp-str math-exp-pos))
 	     (setq math-exp-token 'number
 		   math-expr-data (math-match-substring math-exp-str 0)

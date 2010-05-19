@@ -3308,6 +3308,21 @@ grow_specpdl ()
   specpdl_ptr = specpdl + count;
 }
 
+/* specpdl_ptr->symbol is a field which describes which variable is
+   let-bound, so it can be properly undone when we unbind_to.
+   It can have the following two shapes:
+   - SYMBOL : if it's a plain symbol, it means that we have let-bound
+     a symbol that is not buffer-local (at least at the time
+     the let binding started).  Note also that it should not be
+     aliased (i.e. when let-binding V1 that's aliased to V2, we want
+     to record V2 here).
+   - (SYMBOL WHERE . BUFFER) : this means that it is a let-binding for
+     variable SYMBOL which can be buffer-local.  WHERE tells us
+     which buffer is affected (or nil if the let-binding affects the
+     global value of the variable) and BUFFER tells us which buffer was
+     current (i.e. if WHERE is non-nil, then BUFFER==WHERE, otherwise
+     BUFFER did not yet have a buffer-local value).  */
+
 void
 specbind (symbol, value)
      Lisp_Object symbol, value;
@@ -3339,7 +3354,10 @@ specbind (symbol, value)
 	    set_internal (symbol, value, Qnil, 1);
 	  break;
 	}
-    case SYMBOL_LOCALIZED: case SYMBOL_FORWARDED:
+    case SYMBOL_LOCALIZED:
+      if (SYMBOL_BLV (sym)->frame_local)
+	error ("Frame-local vars cannot be let-bound");
+    case SYMBOL_FORWARDED:
       {
 	Lisp_Object ovalue = find_symbol_value (symbol);
 	specpdl_ptr->func = 0;
@@ -3376,6 +3394,7 @@ specbind (symbol, value)
 	    /* FIXME: The third value `current_buffer' is only used in
 	       let_shadows_buffer_binding_p which is itself only used
 	       in set_internal for local_if_set.  */
+	    eassert (NILP (where) || EQ (where, cur_buf));
 	    specpdl_ptr->symbol = Fcons (symbol, Fcons (where, cur_buf));
 
 	    /* If SYMBOL is a per-buffer variable which doesn't have a
@@ -3460,13 +3479,10 @@ unbind_to (count, value)
 	    Fset_default (symbol, this_binding.old_value);
 	  /* If `where' is non-nil, reset the value in the appropriate
 	     local binding, but only if that binding still exists.  */
-	  else if (BUFFERP (where))
-	    {
-	      if (BUFFERP (where)
-		  ? !NILP (Flocal_variable_p (symbol, where))
-		  : !NILP (Fassq (symbol, XFRAME (where)->param_alist)))
-		set_internal (symbol, this_binding.old_value, where, 1);
-	    }
+	  else if (BUFFERP (where)
+		   ? !NILP (Flocal_variable_p (symbol, where))
+		   : !NILP (Fassq (symbol, XFRAME (where)->param_alist)))
+	    set_internal (symbol, this_binding.old_value, where, 1);
 	}
       /* If variable has a trivial value (no forwarding), we can
 	 just set it.  No need to check for constant symbols here,

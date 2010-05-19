@@ -23,7 +23,7 @@ rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + msdos version 3 or better.
-rem   + DJGPP version 1.12maint1 or later (version 2.03 or later recommended).
+rem   + DJGPP version 2.0 or later (version 2.03 or later recommended).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
 rem     line length limit.  The make that comes with DJGPP does work (and is
@@ -125,11 +125,10 @@ rm -f junk.c junk junk.exe
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
 Goto End
 :go32Ok
-set djgpp_ver=1
-If ErrorLevel 20 set djgpp_ver=2
+set djgpp_ver=2
+If Not ErrorLevel 20 Echo To build 'Emacs' you need DJGPP v2.0 or later!
+If Not ErrorLevel 20 Goto End
 rm -f junk.c junk junk.exe
-rem The v1.x build does not need djecho
-if "%DJGPP_VER%" == "1" Goto djechoOk
 rem DJECHO is used by the top-level Makefile in the v2.x build
 Echo Checking whether 'djecho' is available...
 redir -o Nul -eo djecho -o junk.$$$ foo
@@ -159,12 +158,7 @@ sed -e '' config.in > config.tmp
 if "%X11%" == "" goto src4
 sed -f ../msdos/sed2x.inp <config.in >config.tmp
 :src4
-if "%DJGPP_VER%" == "2" Goto src41
-sed -f ../msdos/sed2.inp <config.tmp >config.h2
-goto src42
-:src41
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
-:src42
 Rem See if DECL_ALIGN can be supported with this GCC
 rm -f junk.c junk.o junk junk.exe
 echo struct { int i; char *p; } __attribute__((__aligned__(8))) foo;  >junk.c
@@ -198,12 +192,7 @@ if exist dir.h ren dir.h vmsdir.h
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile junk.c
 sed -e "1,/== start of cpp stuff ==/s@^##*[ 	].*$@@" <Makefile.in >junk.c
-If "%DJGPP_VER%" == "1" Goto mfV1
 gcc -E -traditional junk.c | sed -f ../msdos/sed1v2.inp >Makefile
-goto mfDone
-:mfV1
-gcc -E -traditional junk.c | sed -f ../msdos/sed1.inp >Makefile
-:mfDone
 rm -f junk.c
 
 if "%X11%" == "" goto src5
@@ -211,6 +200,13 @@ mv Makefile makefile.tmp
 sed -f ../msdos/sed1x.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src5
+
+if "%sys_malloc%" == "" goto src5a
+sed -e "/^GMALLOC_OBJ *=/s/gmalloc.o//" <Makefile >makefile.tmp
+sed -e "/^VMLIMIT_OBJ *=/s/vm-limit.o//" <makefile.tmp >makefile.tmp2
+sed -e "/^RALLOC_OBJ *=/s/ralloc.o//" <makefile.tmp2 >Makefile
+rm -f makefile.tmp makefile.tmp2
+:src5a
 
 if "%nodebug%" == "" goto src6
 sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
@@ -221,12 +217,7 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
-If "%DJGPP_VER%" == "2" goto libsrc-v2
-sed -f ../msdos/sed3.inp <Makefile.in >Makefile
-Goto libsrc2
-:libsrc-v2
 sed -f ../msdos/sed3v2.inp <Makefile.in >Makefile
-:libsrc2
 if "%X11%" == "" goto libsrc2a
 mv Makefile makefile.tmp
 sed -f ../msdos/sed3x.inp <makefile.tmp >Makefile
@@ -272,7 +263,6 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
 If Exist .dir-locals.el update .dir-locals.el _dir-locals.el
 If Exist src\.dbxinit update src/.dbxinit src/_dbxinit
-If "%DJGPP_VER%" == "1" goto mainv1
 Echo Looking for the GDB init file...
 If Exist src\.gdbinit update src/.gdbinit src/_gdbinit
 If Exist src\_gdbinit goto gdbinitOk
@@ -287,8 +277,6 @@ goto End
 :gdbinitOk
 Echo Looking for the GDB init file...found
 copy msdos\mainmake.v2 Makefile >nul
-:mainv1
-If "%DJGPP_VER%" == "1" copy msdos\mainmake Makefile >nul
 rem   ----------------------------------------------------------------------
 goto End
 :SmallEnv

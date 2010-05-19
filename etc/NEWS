@@ -63,6 +63,9 @@ according to the value of this variable.  Possible values are
 default), Emacs determines the base direction of each paragraph from
 its text, as specified by the Unicode Bidirectional Algorithm.
 
+The function `current-bidi-paragraph-direction' returns the actual
+value of paragraph base direction at point.
+
 Reordering of bidirectional text for display in Emacs is a "Full
 bidirectionality" class implementation of the Unicode Bidirectional
 Algorithm.
@@ -207,6 +210,8 @@ threads simultaneously.
 
 * New Modes and Packages in Emacs 24.1
 
+** smie.el is a package providing a simple generic indentation engine.
+
 ** secrets.el is an implementation of the Secret Service API, an
 interface to password managers like GNOME Keyring or KDE Wallet.  The
 Secret Service API requires D-Bus for communication.
@@ -221,6 +226,8 @@ Secret Service API requires D-Bus for communication.
 
 * Lisp changes in Emacs 24.1
 
+** frame-local variables cannot be let-bound any more.
+** prog-mode is a new major-mode meant to be the parent of programming mode.
 ** define-minor-mode accepts a new keyword :variable.
 
 ** delete-file now accepts an optional second arg, FORCE, which says

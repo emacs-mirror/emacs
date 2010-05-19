@@ -1,3 +1,71 @@
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (POST_ALLOC_OBJ) [cygwin]: Omit vm-limit.o.
+	(POST_ALLOC_OBJ) [!cygwin]: Set to empty.
+
+	* config.bat (RALLOC_OBJ): Edit to empty if sys_malloc.
+	* configure.in (REL_ALLOC): Unset on gnu, gnu-linux if DOUG_LEA_MALLOC.
+	(RALLOC_OBJ): New output variable.
+
+	* config.bat (GMALLOC_OBJ, VMLIMIT_OBJ): Edit to empty if sys_malloc.
+	* configure.in (GMALLOC_OBJ, VMLIMIT_OBJ): New output variables.
+
+2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Provide the name of the VCS file that witnesses
+	a pull.
+	($(srcdir)/src/config.in): Handle accidental removal of src/config.in.
+
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_DEPS): New output variable.
+
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (ns_appbindir, ns_appresdir): Set using $ns_appdir.
+
+	* configure.in (ns_appdir, ns_appbindir): Add trailing "/" to value.
+	* Makefile.in (install-arch-dep): Update for above change.
+
+	* Makefile.in (ns_appdir): Remove.
+	(install-arch-dep): Test $ns_appresdir instead of $ns_appdir.
+
+	* configure.in (TEMACS_LDFLAGS2): New output variable.
+
+	* configure.in (NS_IMPL_GNUSTEP_TEMACS_LDFLAGS): New output variable.
+	(START_FILES): Set to empty if NS_IMPL_GNUSTEP.
+	(GNUSTEP_SYSTEM_HEADERS, GNUSTEP_SYSTEM_LIBRARIES): Do not output,
+	nothing uses.
+
+2010-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove references to usg5-4 and bsd-common, $opsys
+	does not use them.
+	(X11R5_INHIBIT_I18N): Remove, unused.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXMENU): Set to empty if !HAVE_X_WINDOWS.
+
+	* configure.in (FONT_OBJ): Set to empty if !HAVE_X_WINDOWS.
+
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	* configure.in: Look for version string in its new location.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Remove support for DJGPP v1.x.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_TARGET): New output variable.
+
+	* Makefile.in (install-arch-dep): Update odd NS rule for Emacs version.
+
+	* Makefile.in (install-arch-indep): Remove references to RCS, CVS,
+	and other files that no longer exist.
+
 2010-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (cpp_undefs): Add mktime, register, X11.

@@ -567,7 +567,6 @@ load_charset_map_from_file (charset, mapfile, control_flag)
       n_entries++;
     }
   fclose (fp);
-  close (fd);
 
   load_charset_map (charset, head, n_entries, control_flag);
   SAFE_FREE ();

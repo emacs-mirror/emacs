@@ -1,6 +1,11 @@
+2010-05-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Manipulating Vectors): Mention that vectors can
+	be used to determine bins for `calc-histogram'.
+
 2010-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi: Remove "\turnoffactive" commands througout.
+	* calc.texi: Remove "\turnoffactive" commands throughout.
 
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 

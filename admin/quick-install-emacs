@@ -171,7 +171,7 @@ test x"$SRC" = x && { SRC="`get_config_var srcdir`" || exit 4 ; }
 test x"$prefix" = x && { prefix="`get_config_var prefix`" || exit 4 ; }
 test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
 
-VERSION=`grep 'defconst[	 ]*emacs-version' $SRC/lisp/version.el \
+VERSION=`grep 'char emacs_version' $SRC/src/emacs.c \
          | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 
 DST_SHARE="$prefix/share/emacs/$VERSION"

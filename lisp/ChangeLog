@@ -4,10 +4,127 @@
 	composition-function-table only for combining characters (Mn, Mc,
 	Me).
 
+2010-05-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/prolog.el (smie-indent-basic): Declare for byte-compiler.
+
+	* emacs-lisp/smie.el (smie-precs-precedence-table, smie-backward-sexp)
+	(smie-forward-sexp, smie-indent-calculate): Fix typos in docstrings.
+
+2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Provide a simple generic indentation engine and use it for Prolog.
+	* emacs-lisp/smie.el: New file.
+	* progmodes/prolog.el (prolog-smie-op-levels)
+	(prolog-smie-indent-rules): New var.
+	(prolog-mode-variables): Use them to configure SMIE.
+	(prolog-indent-line, prolog-indent-level): Remove.
+
+2010-05-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-vec.el (math-vector-avg): Put the vector elements in
+	order before computing the averages.
+
+2010-05-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-vec.el (calc-histogram):
+	(calcFunc-histogram): Allow vectors as inputs.
+	(math-vector-avg): New function.
+
+	* calc/calc-ext.el (math-group-float): Have the number of digits
+	being grouped depend on the radix (Bug#6189).
+
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	* version.el (emacs-copyright, emacs-version): Don't define here,
+	now that emacs.c defines it.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (mule-menu-keymap): Fix definition of
+	"Describe Language Environment" menu item.
+
+	* language/hebrew.el ("Hebrew", "Windows-1255"): Doc fix.
+
+	Bidi-sensitive movement with arrow keys.
+	* subr.el (right-arrow-command, left-arrow-command): New functions.
+
+	* bindings.el (global-map): Bind them to right and left arrow keys.
+
+	Don't override standard definition of convert-standard-filename.
+	* files.el (convert-standard-filename): Call
+	w32-convert-standard-filename and dos-convert-standard-filename on
+	the corresponding systems.
+
+	* w32-fns.el (w32-convert-standard-filename): Rename from
+	convert-standard-filename.  Doc fix.
+
+	* dos-fns.el (dos-convert-standard-filename): Doc fix.
+	(convert-standard-filename): Don't defalias.
+	(register-name-alist, make-register, register-value)
+	(set-register-value, intdos): Obsolete aliases for the
+	corresponding dos-* functions and variables.
+	(dos-intdos): Add a doc string.
+
+2010-05-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-aent.el (math-read-token, math-find-user-tokens):
+	* calc/calc-lang.el (math-read-big-rec, math-lang-read-symbol):
+	(math-compose-tex-func):
+	* calc/calccomp.el (math-compose-expr):
+	* calc/calc-ext.el (math-format-flat-expr-fancy):
+	* calc/calc-store.el (calc-read-var-name):
+	* calc/calc-units.el (calc-explain-units-rec): Allow Greek letters.
+
+	* calc/calc.el (var-π, var-φ, var-γ): New variables.
+	* calc/calc-aent.el (math-read-replacement-list): Add "micro" symbol.
+	* calc/calc-units.el (math-unit-prefixes): Add mu for micro.
+	(math-standard-units): Add units.
+
+2010-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/asm-mode.el (asm-mode):
+	* progmodes/prolog.el (prolog-mode): Use define-derived-mode.
+
+	* pcomplete.el (pcomplete-completions-at-point): New function,
+	extracted from pcomplete-std-complete.
+	(pcomplete-std-complete): Use it.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):
+	Remove references to CVS, RCS and Old directories.
+
+2010-05-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-bin.el (math-format-twos-complement): Group digits when
+	appropriate.
+
+2010-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-mode-default-syntax-table): Remove.
+	(sh-mode-syntax-table): Give it a default value instead.
+	(sh-header-marker): Make buffer-local.
+	(sh-mode): Move make-local-variable to the corresponding setq.
+	(sh-add-completer): Avoid gratuitously let-binding a buffer-local var.
+	Use complete-with-action.
+
+	* simple.el (prog-mode): New (abstract) major mode.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode, lisp-mode): Use it.
+	* progmodes/sh-script.el (sh-mode): Remove redundant var assignment.
+
+2010-05-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sql.el (sql-oracle-program): Reflow docstring.
+	(sql-oracle-scan-on, sql-sybase-program, sql-product-font-lock)
+	(sql-add-product-keywords, sql-highlight-product, sql-set-product)
+	(sql-make-alternate-buffer-name, sql-placeholders-filter)
+	(sql-escape-newlines-filter, sql-input-sender)
+	(sql-send-magic-terminator, sql-sybase): Fix typos in docstrings.
+
 2010-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
-	Add TeX open-block and close-block keybindings to SGML, and vice
-	versa.
+	Add TeX open-block and close-block keybindings to SGML, and vice versa.
 
 	* textmodes/tex-mode.el (tex-mode-map): Bind C-c C-t to
 	latex-open-block and C-c / to latex-close-block.
@@ -21,8 +138,8 @@
 	only when the message would be displayed.  Handled nested calls.
 	(tramp-handle-load, tramp-handle-file-local-copy)
 	(tramp-handle-insert-file-contents, tramp-handle-write-region)
-	(tramp-maybe-send-script, tramp-find-shell): Use
-	`with-progress-reporter'.
+	(tramp-maybe-send-script, tramp-find-shell):
+	Use `with-progress-reporter'.
 	(tramp-handle-dired-compress-file, tramp-maybe-open-connection):
 	Fix message text.
 
@@ -313,7 +430,7 @@
 
 	* Version 23.2 released.
 
-2010-05-07  Deniz Dogan <deniz.a.m.dogan@gmail.com>  (tiny change)
+2010-05-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Highlight vendor specific properties.
@@ -334,7 +451,7 @@
 	* simple.el (auto-save-mode): Move from files.el.
 	* minibuffer.el (completion--common-suffix): Fix copy&paste error.
 
-2010-05-07  Christian von Roques <roques@mti.ag> (tiny change)
+2010-05-07  Christian von Roques  <roques@mti.ag>  (tiny change)
 
 	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
 

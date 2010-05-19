@@ -310,11 +310,10 @@ LISP_MAKE_RVALUE (Lisp_Object o)
     return o;
 }
 #else
-/* This isn't quite right - it keeps the argument as an lvalue.
-   Making it const via casting would help avoid code actually
-   modifying the location in question, but the casting could cover
-   other type-related bugs.  */
-#define LISP_MAKE_RVALUE(o) (o)
+/* This is more portable to pre-C99 non-GCC compilers, but for
+   backwards compatibility GCC still accepts an old GNU extension
+   which caused this to only generate a warning.  */
+#define LISP_MAKE_RVALUE(o) (0 ? (o) : (o))
 #endif
 
 #else /* USE_LISP_UNION_TYPE */
@@ -1461,9 +1460,9 @@ struct Lisp_Float
   };
 
 #ifdef HIDE_LISP_IMPLEMENTATION
-#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_ + 0)
+#define XFLOAT_DATA(f)	(0 ? XFLOAT (f)->u.data_ : XFLOAT (f)->u.data_)
 #else
-#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data + 0)
+#define XFLOAT_DATA(f)	(0 ? XFLOAT (f)->u.data :  XFLOAT (f)->u.data)
 /* This should be used only in alloc.c, which always disables
    HIDE_LISP_IMPLEMENTATION.  */
 #define XFLOAT_INIT(f,n) (XFLOAT (f)->u.data = (n))

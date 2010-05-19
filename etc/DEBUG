@@ -627,8 +627,7 @@ CPU-specific headers in the subdirectories of `src'):
 
   - In src/s/SYSTEM-NAME.h add "#define SYSTEM_MALLOC".
 
-  - In src/m/MACHINE-NAME.h add "#define CANNOT_DUMP" and
-    "#define CANNOT_UNEXEC".
+  - In src/m/MACHINE-NAME.h add "#define CANNOT_DUMP"
 
   - Configure with a different --prefix= option.  If you use GCC,
     version 2.7.2 is preferred, as some malloc debugging packages

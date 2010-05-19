@@ -718,10 +718,14 @@ XMKMF
 LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
 NS_IMPL_GNUSTEP_INC
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
+TEMACS_LDFLAGS2
 NS_OBJ
 NS_SUPPORT
 LIB_STANDARD
 HAVE_XSERVER
+GMALLOC_OBJ
+VMLIMIT_OBJ
 RSVG_CFLAGS
 RSVG_LIBS
 GTK_CFLAGS
@@ -743,7 +747,6 @@ LIBOTF_CFLAGS
 LIBOTF_LIBS
 M17N_FLT_CFLAGS
 M17N_FLT_LIBS
-FONT_OBJ
 FREETYPE_CFLAGS
 FREETYPE_LIBS
 LIBXPM
@@ -796,18 +799,20 @@ ns_appdir
 ns_appbindir
 ns_appresdir
 ns_appsrc
-GNUSTEP_SYSTEM_HEADERS
-GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
 OTHER_FILES
+FONT_OBJ
 XMENU_OBJ
 XOBJ
 WIDGET_OBJ
 TOOLKIT_LIBW
 LIBXT_OTHER
+OLDXMENU_TARGET
 OLDXMENU
 LIBXMENU
 LIBX_OTHER
+OLDXMENU_DEPS
+RALLOC_OBJ
 CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
@@ -9932,22 +9937,24 @@ HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
 NS_IMPL_GNUSTEP_INC=
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}Contents/MacOS/
+     ns_appresdir=${ns_appdir}Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}
+     ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
           GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
@@ -9959,11 +9966,14 @@ include $GNUSTEP_MAKEFILES/Additional/base.make
 include $GNUSTEP_MAKEFILES/Additional/gui.make
 shared=no
 "
+          NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
      LIB_STANDARD=
+     START_FILES=
+     TEMACS_LDFLAGS2=
   fi
   if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
@@ -10150,6 +10160,8 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
+
+
 
 
 NS_OBJ=
@@ -10504,11 +10516,20 @@ $as_echo "$emacs_cv_var___after_morecore_hook" >&6; }
 if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
+
 if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
+  GMALLOC_OBJ=
+  VMLIMIT_OBJ=
+else
+  test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
+  VMLIMIT_OBJ=vm-limit.o
 fi
+
+
+
 if test "$doug_lea_malloc" = "yes" ; then
   if test "$GNU_MALLOC" = yes ; then
     GNU_MALLOC_reason="
@@ -10519,6 +10540,14 @@ cat >>confdefs.h <<\_ACEOF
 #define DOUG_LEA_MALLOC 1
 _ACEOF
 
+
+  ## Use mmap directly for allocating larger buffers.
+  ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
+  ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
+  ## Does the AC_FUNC_MMAP test below make this check unecessary?
+  case "$opsys" in
+    gnu*) REL_ALLOC=no ;;
+  esac
 fi
 
 if test x"${REL_ALLOC}" = x; then
@@ -14700,14 +14729,6 @@ else
     HAVE_LIBOTF=no
     HAVE_M17N_FLT=no
 fi
-
-FONT_OBJ=xfont.o
-if test "$HAVE_XFT" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
-elif test "$HAVE_FREETYPE" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
-fi
-
 
 ### End of font-backend (under X11) section.
 
@@ -21601,7 +21622,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -21610,7 +21631,7 @@ case "$opsys" in
   ## hpux10-20: Use the system provided termcap(3) library.
   ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
   ##  is necessary.  Otherwise Emacs dumps core when run -nw.
-  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
 
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
@@ -26308,16 +26329,16 @@ $as_echo "$as_me: error: GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEM
 fi
 
 #### Find out which version of Emacs this is.
-version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 if test x"${version}" = x; then
-  { { $as_echo "$as_me:$LINENO: error: can't find current emacs version in \`${srcdir}/lisp/version.el'." >&5
-$as_echo "$as_me: error: can't find current emacs version in \`${srcdir}/lisp/version.el'." >&2;}
+  { { $as_echo "$as_me:$LINENO: error: can't find current emacs version in \`${srcdir}/src/emacs.c'." >&5
+$as_echo "$as_me: error: can't find current emacs version in \`${srcdir}/src/emacs.c'." >&2;}
    { (exit 1); exit 1; }; }
 fi
 if test x"${version}" != x"$PACKAGE_VERSION"; then
-  { $as_echo "$as_me:$LINENO: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/lisp/version.el'." >&5
-$as_echo "$as_me: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/lisp/version.el'." >&2;}
+  { $as_echo "$as_me:$LINENO: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&5
+$as_echo "$as_me: WARNING: version mismatch between \`${srcdir}/configure.in' and \`${srcdir}/src/emacs.c'." >&2;}
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
@@ -26366,8 +26387,6 @@ fi
 
 
 
-
-
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
@@ -26390,6 +26409,7 @@ _ACEOF
 
 XMENU_OBJ=
 XOBJ=
+FONT_OBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -26398,7 +26418,15 @@ _ACEOF
 
   XMENU_OBJ=xmenu.o
   XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  FONT_OBJ=xfont.o
+  if test "$HAVE_XFT" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+  elif test "$HAVE_FREETYPE" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+  fi
+
 fi
+
 
 
 
@@ -26456,9 +26484,12 @@ esac
 
 if test "$USE_X_TOOLKIT" = "none"; then
   LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
 else
   LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
 fi
+
 
 
 ## The X Menu stuff is present in the X10 distribution, but missing
@@ -26478,16 +26509,25 @@ _ACEOF
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
   OLDXMENU=
-  LIBXMENU="-lXMenu"
+  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
+  if test "${HAVE_X_WINDOWS}" = "yes"; then
+    LIBXMENU="-lXMenu"
+  else
+    LIBXMENU=
+  fi
   LIBX_OTHER=
+  OLDXMENU_DEPS=
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU=
   LIBXMENU=
+  OLDXMENU_DEPS=
 fi
+
 
 
 
@@ -26500,6 +26540,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
+
 if test "${GNU_MALLOC}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -26507,12 +26548,16 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
+
+RALLOC_OBJ=
 if test "${REL_ALLOC}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define REL_ALLOC 1
 _ACEOF
 
+
+  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
 fi
 
 
@@ -26520,11 +26565,11 @@ if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"
   ## Cygwin differs because of its unexec().
   PRE_ALLOC_OBJ=
-  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
+  POST_ALLOC_OBJ=lastfile.o
 else
   CYGWIN_OBJ=
   PRE_ALLOC_OBJ=lastfile.o
-  POST_ALLOC_OBJ="\$(vmlimitobj)"
+  POST_ALLOC_OBJ=
 fi
 
 
@@ -26722,6 +26767,9 @@ test "${exec_prefix}" != NONE &&
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
+# src/Makefile.in used to treat X11 as equivalent to HAVE_X11.
+# But nothing in Emacs defines X11, and everywhere else uses HAVE_X11,
+# so that cannot have been doing anything.
 cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
   sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
   -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"
