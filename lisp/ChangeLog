@@ -1,3 +1,9 @@
+2010-05-19  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el: Register compose-gstring-for-graphic in
+	composition-function-table only for combining characters (Mn, Mc,
+	Me).
+
 2010-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	Add TeX open-block and close-block keybindings to SGML, and vice
