@@ -1,8 +1,11 @@
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc-dir.el (vc-dir): Don't pop-up-windows.  (Bug#6204)
+
 2010-05-19  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el: Register compose-gstring-for-graphic in
-	composition-function-table only for combining characters (Mn, Mc,
-	Me).
+	composition-function-table only for combining characters (Mn, Mc, Me).
 
 2010-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
