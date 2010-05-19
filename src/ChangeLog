@@ -1,3 +1,8 @@
+2010-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_cache_shrink, bidi_cache_iterator_state): Fix
+	reallocation of the cache.  (Bug#6210)
+
 2010-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* s/msdos.h (ORDINARY_LINK): Move to sed2v2.inp.
