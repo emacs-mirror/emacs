@@ -1,3 +1,7 @@
+2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fbyte_to_string): New function.
+
 2010-05-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* character.c (Fstring, Funibyte_string): Use SAFE_ALLOCA to

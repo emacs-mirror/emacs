@@ -65,3 +65,4 @@ src/stamp-oldxmenu
 src/temacs
 src/deps
 configure.lineno
+src/core
