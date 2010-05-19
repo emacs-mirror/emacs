@@ -1,3 +1,14 @@
+2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/secrets.el: Autoload the widget functions.
+	(secrets-search-items, secrets-create-item)
+	(secrets-get-attributes, secrets-expand-item): Attributes will be
+	stored on the password database without leading ":", as all other
+	clients do as well.
+	(secrets-mode): Fix docstring.
+	(secrets-show-secrets): Provide it as autoloaded command only when
+	D-Bus support is available.  Check existence of Secret Service API.
+
 2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent.el (indent-region): Deactivate region (bug#6200).
