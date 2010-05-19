@@ -1,3 +1,8 @@
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LD): Edit to $(CC).
+	(YMF_PASS_LDFLAGS): Edit to `flags'.
+
 2010-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1x.inp: Add copyright notice.

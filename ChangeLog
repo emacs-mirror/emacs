@@ -1,3 +1,9 @@
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LINKER, YMF_PASS_LDFLAGS): New output variables.
+	(ORDINARY_LINK): New AC_DEFINE.
+	(LIB_GCC): No need to set if ORDINARY_LINK.
+
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (POST_ALLOC_OBJ) [cygwin]: Omit vm-limit.o.

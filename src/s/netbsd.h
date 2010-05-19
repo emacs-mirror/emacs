@@ -26,12 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-/* On post 1.3 releases of NetBSD, gcc -nostdlib also clears
-   the library search parth, i.e. it won't search /usr/lib
-   for libc and friends.  Using -nostartfiles instead avoids
-   this problem, and will also work on earlier NetBSD releases.  */
-#define LINKER $(CC) -nostartfiles
-
 #define DEFAULT_SOUND_DEVICE "/dev/audio"
 
 /* Greg A. Woods <woods@weird.com> says we must include signal.h
