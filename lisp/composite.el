@@ -532,9 +532,9 @@ after a sequence of character events."
 
 (defun compose-gstring-for-graphic (gstring)
   "Compose glyph-string GSTRING for graphic display.
-Non-spacing characters are composed with the preceding base
+Combining characters are composed with the preceding base
 character.  If the preceding character is not a base character,
-each non-spacing character is composed as a spacing character by
+each combining character is composed as a spacing character by
 a padding space before and/or after the character.
 
 All non-spacing characters has this function in
@@ -660,9 +660,9 @@ All non-spacing characters has this function in
 	     [nil 0 compose-gstring-for-graphic])))
   (map-char-table
    #'(lambda (key val)
-       (if (= val 0)
+       (if (memq val '(Mn Mc Me))
 	   (set-char-table-range composition-function-table key elt)))
-   char-width-table))
+   unicode-category-table))
 
 (defun compose-gstring-for-terminal (gstring)
   "Compose glyph string GSTRING for terminal display.

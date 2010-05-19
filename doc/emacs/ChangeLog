@@ -4,7 +4,7 @@
 	paragraphs.
 	(Line Truncation): Fix wording for bidi display.
 
-	* basic.texi (Moving Point): Document bidi-aware behavior of he arrow
+	* basic.texi (Moving Point): Document bidi-aware behavior of the arrow
 	keys.
 
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
@@ -136,7 +136,7 @@
 
 	* custom.texi (Init Examples): Add xref to Mail Header.
 
-	* emacs.texi (Top):  Fix xrefs.
+	* emacs.texi (Top): Fix xrefs.
 
 2010-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1704,7 +1704,7 @@
 	(Fortran Columns): Mention font-locking.
 	(Fortran Abbrev): Word syntax not relevant with new-style abbrev.
 
-2008-08-23  Johan Bockgard  <bojohan@muon>
+2008-08-23  Johan Bockgård  <bojohan@muon>
 
 	* basic.texi (Moving Point): Fix <prior>/<next> confusion.
 

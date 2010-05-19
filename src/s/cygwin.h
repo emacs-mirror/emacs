@@ -1,7 +1,7 @@
 /* System description header file for Cygwin.
 
 Copyright (C) 1985, 1986, 1992, 1999, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
- It sets the Lisp variable system-type.  */
+   It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "cygwin"
 
 /* Emacs can read input using SIGIO and buffering characters itself,
@@ -94,7 +94,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 #define SYSV_SYSTEM_DIR 1
 #define UNEXEC unexcw.o
-#define LINKER $(CC)
 
 #define HAVE_SOCKETS
 

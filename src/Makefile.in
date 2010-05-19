@@ -124,6 +124,8 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 ## Where to find libgcc.a, if using gcc and necessary.
 LIB_GCC=@LIB_GCC@
 
+LD=@LINKER@
+
 ## May use $CRT_DIR.
 LIB_STANDARD=@LIB_STANDARD@
 
@@ -327,52 +329,6 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 	@-test -d deps || mkdir deps
 #endif
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
-
-
-/* A macro which other sections of Makefile can redefine to munge the
-   flags before they are passed to LD.  This is helpful if you have
-   redefined LD to something odd, like "gcc".
-   (The YMF prefix is a holdover from the old name "ymakefile".)  */
-#define YMF_PASS_LDFLAGS(flags) flags
-
-
-#ifdef ORDINARY_LINK
-LD = $(CC)
-
-#else /* not ORDINARY_LINK */
-GNULIB_VAR = $(LIB_GCC)
-
-/* Fix linking if compiled with GCC.  */
-#if defined (__GNUC__) && ! defined (LINKER)
-/* Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
-   places that are difficult to figure out at make time.  Fortunately,
-   these same versions allow you to pass arbitrary flags on to the
-   linker, so there is no reason not to use it as a linker.
-
-   Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
-   searching for libraries in its internal directories, so we have to
-   ask GCC explicitly where to find libgcc.a.  */
-#define LINKER $(CC) -nostdlib
-/* GCC passes any argument prefixed with -Xlinker directly to the linker.
-   See prefix-args.c for an explanation of why we do not do this with the
-   shell''s ``for'' construct.  Note that sane people do not have '.' in
-   their paths, so we must use ./prefix-args.  */
-#undef YMF_PASS_LDFLAGS
-#define YMF_PASS_LDFLAGS(flags) `./prefix-args -Xlinker flags`
-#endif /* defined (__GNUC__) && ! defined (LINKER) */
-
-#ifdef LINKER
-LD=LINKER
-#else /* not LINKER */
-LD=ld
-#endif /* not LINKER */
-
-#endif /* not ORDINARY_LINK */
-
-
-#ifdef NS_IMPL_GNUSTEP
-LD=$(CC) -rdynamic
-#endif
 
 
 /* lastfile must follow all files whose initialized data areas should
@@ -634,13 +590,13 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
    duplicated symbols.  If the standard libraries were compiled
-   with GCC, we might need gnulib again after them.  */
+   with GCC, we might need LIB_GCC again after them.  */
 
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(DBUS_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(GNULIB_VAR) $(LIB_MATH) $(LIB_STANDARD) $(GNULIB_VAR)
+   $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
@@ -681,6 +637,8 @@ ${libsrc}make-docfile${EXEEXT}:
 
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
+
+#define YMF_PASS_LDFLAGS(flags) @YMF_PASS_LDFLAGS@
 
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \

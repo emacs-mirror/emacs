@@ -214,7 +214,9 @@ threads simultaneously.
 
 ** secrets.el is an implementation of the Secret Service API, an
 interface to password managers like GNOME Keyring or KDE Wallet.  The
-Secret Service API requires D-Bus for communication.
+Secret Service API requires D-Bus for communication.  The command
+`secrets-show-secrets' offers a buffer with a visualization of the
+secrets.
 
 
 * Incompatible Lisp Changes in Emacs 24.1

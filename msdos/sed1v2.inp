@@ -55,6 +55,7 @@ s/\.h\.in/.h-in/
 /^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
 /^LIB_GCC *=/s/@LIB_GCC@/-Lgcc/
+/^LD *=/s/@LINKER@/$(CC)/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIBTIFF *=/s/@LIBTIFF@//
@@ -143,6 +144,7 @@ s/\.h\.in/.h-in/
 /^	@: /d
 /^	-\{0,1\}ln -/s/ln -f/cp -pf/
 /^[ 	]touch /s/touch/djecho $@ >/
+s/@YMF_PASS_LDFLAGS@/flags/
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/

@@ -818,6 +818,8 @@ PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
 LD_SWITCH_SYSTEM_EXTRA
+YMF_PASS_LDFLAGS
+LINKER
 LIB_GCC
 MOUSE_SUPPORT
 TOOLTIP_SUPPORT
@@ -26616,8 +26618,79 @@ fi
 
 
 
+LINKER=
+ORDINARY_LINK=
+case "$opsys" in
+  ## gnu: GNU needs its own crt0.
+  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
+
+  cygwin) LINKER="\$(CC)" ;;
+
+  ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
+  ## library search parth, i.e. it won't search /usr/lib for libc and
+  ## friends.  Using -nostartfiles instead avoids this problem, and
+  ## will also work on earlier NetBSD releases.
+  netbsd|openbsd) LINKER="\$(CC) -nostartfiles" ;;
+
+  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ##   MkLinux/LinuxPPC needs this.
+  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  gnu-*)
+    case "$machine" in
+      macppc|ibms390x) LINKER="\$(CC) -nostdlib" ;;
+    esac
+    ;;
+esac
+
+## A macro which other sections of Makefile can redefine to munge the
+## flags before they are passed to LD.  This is helpful if you have
+## redefined LD to something odd, like "gcc".
+## (The YMF prefix is a holdover from the old name "ymakefile".)
+YMF_PASS_LDFLAGS=flags
+if test "x$ORDINARY_LINK" = "xyes"; then
+
+  LINKER="\$(CC)"
+
+cat >>confdefs.h <<\_ACEOF
+#define ORDINARY_LINK 1
+_ACEOF
+
+
+## The system files defining neither ORDINARY_LINK nor LINKER are:
+## (bsd-common), freebsd, gnu-* not on macppc|ibms390x, hpux*.
+elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
+
+  ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
+  ## places that are difficult to figure out at make time.  Fortunately,
+  ## these same versions allow you to pass arbitrary flags on to the
+  ## linker, so there is no reason not to use it as a linker.
+  ##
+  ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
+  ## searching for libraries in its internal directories, so we have to
+  ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
+  LINKER="\$(CC) -nostdlib"
+  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
+  ## See prefix-args.c for an explanation of why we do not do this with the
+  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
+  ## their paths, so we must use ./prefix-args.
+  ## TODO either make prefix-args check ORDINARY_LINK internally,
+  ## or remove it altogether (bug#6184), removing the need for this macro.
+  YMF_PASS_LDFLAGS='`./prefix-args -Xlinker flags`'
+fi
+
+
+test "x$LINKER" = "x" && LINKER=ld
+## FIXME? What setting of YMF_PASS_LDFLAGS should this have?
+test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
+
+
+
+
+## FIXME? The logic here is not precisely the same as that above
+## setting YMF_PASS_LDFLAGS.  There is no check here for a pre-defined
+## LINKER.  Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
-if test "x$GCC" = "xyes"; then
+if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
     ## cygwin: don't link against static libgcc.
