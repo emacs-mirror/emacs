@@ -40,9 +40,9 @@ make it.
   fix_submap_inheritance hack and to more cleanly express the
   relationship between minibuffer-local-*-map): I've had this locally
   for a long time, but the details of the semantics is somewhat ... delicate.
-*** prog-mode (a parent-mode, like text-mode).  Could/should provide
-  a better fill-paragraph default that uses syntax-tables to recognize
-  string/comment boundaries.
+*** Derive from prog-mode in more places, close bug#5532.
+*** prog-mode could/should provide a better fill-paragraph default
+  that uses syntax-tables to recognize string/comment boundaries.
 *** provide more completion-at-point-functions.  Make existing
   in-buffer completion use completion-at-point.
 *** "functional" function-key-map that would make it easy to add (and
