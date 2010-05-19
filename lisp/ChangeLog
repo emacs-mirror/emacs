@@ -1,5 +1,7 @@
 2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
 
+	* password-cache.el (password-cache-remove): Fix docstring.
+
 	* net/secrets.el: Autoload the widget functions.
 	(secrets-search-items, secrets-create-item)
 	(secrets-get-attributes, secrets-expand-item): Attributes will be
