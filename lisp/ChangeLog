@@ -1,3 +1,8 @@
+2010-05-19  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/cl-macs.el (window-parameter): Add defsetf with
+	set-window-parameter.
+
 2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Add `tramp-async-args' attribute
