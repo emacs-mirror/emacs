@@ -1,3 +1,9 @@
+2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add `tramp-async-args' attribute
+	where appropriate.
+	(tramp-maybe-open-connection): Use it.
+
 2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (move-end-of-line): Make sure we are at line beginning
