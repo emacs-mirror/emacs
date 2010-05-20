@@ -147,6 +147,11 @@ Use the arrow to the left of the option name to toggle visibility.
 *** The color widget now has a "Choose" button, which allows you to
 choose a color via list-colors-display.
 
+** Dired-x
+
+*** dired-jump and dired-jump-other-window called with a prefix argument
+read a file name from the minibuffer instead of using buffer-file-name.
+
 ** VC and related modes
 
 *** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.

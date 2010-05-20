@@ -1,3 +1,12 @@
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* dired-x.el (dired-jump, dired-jump-other-window): Add arg
+	FILE-NAME to read from the minibuffer when called interactively
+	with prefix argument instead of using buffer-file-name.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00534.html
+
+	* dired.el: Update autoloads.
+
 2010-05-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nxml/nxml-mode.el (nxml-mode-map): Bind C-c / to
