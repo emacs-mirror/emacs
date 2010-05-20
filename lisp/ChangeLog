@@ -1,3 +1,8 @@
+2010-05-20  Mark A. Hershberger  <mah@everybody.org>
+
+	* isearch.el (isearch-update-post-hook): New hook.
+	(isearch-update): Use the new hook.  (Bug#6225)
+
 2010-05-20  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind more keys to isearch-help-map:

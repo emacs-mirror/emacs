@@ -156,6 +156,9 @@ command history."
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
 
+(defvar isearch-update-post-hook nil
+  "Function(s) to call after isearch has found matches in the buffer.")
+
 (defvar isearch-mode-end-hook nil
   "Function(s) to call after terminating an incremental search.
 When these functions are called, `isearch-mode-end-hook-quit'
@@ -870,7 +873,8 @@ It is called by the function `isearch-forward' and other related functions."
     (isearch-lazy-highlight-new-loop))
   ;; We must prevent the point moving to the end of composition when a
   ;; part of the composition has just been searched.
-  (setq disable-point-adjustment t))
+  (setq disable-point-adjustment t)
+  (run-hooks 'isearch-update-post-hook))
 
 (defun isearch-done (&optional nopush edit)
   "Exit Isearch mode.

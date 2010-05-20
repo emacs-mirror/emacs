@@ -255,6 +255,10 @@ by the Graphic Control Extension of the image.
 
 *** `image-extension-data' is renamed to `image-metadata'.
 
+** Isearch
+
+*** New hook `isearch-update-post-hook' that runs in `isearch-update'.
+
 ** Progress reporters can now "spin".
 The MIN-VALUE and MAX-VALUE arguments of `make-progress-reporter' can
 now be nil, or omitted.  This makes a "non-numeric" reporter.  Each
