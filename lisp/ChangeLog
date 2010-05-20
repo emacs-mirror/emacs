@@ -1,3 +1,11 @@
+2010-05-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml/nxml-mode.el (nxml-mode-map): Bind C-c / to
+	nxml-finish-element, for consistency with SGML mode.
+
+	* progmodes/octave-mod.el (octave-mode-map): Bind C-c / to
+	octave-close-block.
+
 2010-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* composite.el: Require cl when compiling.
