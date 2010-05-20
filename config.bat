@@ -192,8 +192,9 @@ if exist dir.h ren dir.h vmsdir.h
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile junk.c
 sed -e "1,/== start of cpp stuff ==/s@^##*[ 	].*$@@" <Makefile.in >junk.c
-gcc -E -traditional junk.c | sed -f ../msdos/sed1v2.inp >Makefile
-rm -f junk.c
+gcc -E -traditional junk.c | sed -f ../msdos/sed1v2.inp >makefile.tmp
+copy makefile.tmp + deps.mk Makefile
+rm -f junk.c makefile.tmp
 
 if "%X11%" == "" goto src5
 mv Makefile makefile.tmp

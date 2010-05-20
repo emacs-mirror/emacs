@@ -1341,6 +1341,9 @@ dnl AC_C_BIGENDIAN
 dnl check for Make feature
 AC_PROG_MAKE_SET
 
+DEPFLAGS=
+MKDEPDIR=":"
+deps_frag=deps.mk
 dnl check for GNU Make if we have GCC and autodepend is on.
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    AC_MSG_CHECKING([whether we are using GNU Make])
@@ -1363,9 +1366,16 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_RESULT([$ac_enable_autodepend])
    fi
    if test $ac_enable_autodepend = yes; then
-      AC_DEFINE(AUTO_DEPEND, 1, [Generate dependencies with gcc.])
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR}'
+      deps_frag=autodeps.mk
    fi
 fi
+deps_frag=$srcdir/src/$deps_frag
+AC_SUBST(MKDEPDIR)
+AC_SUBST(DEPFLAGS)
+AC_SUBST_FILE(deps_frag)
+
 
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES

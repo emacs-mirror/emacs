@@ -1,3 +1,14 @@
+2010-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (DEPDIR): New constant.
+	(DEPFLAGS): Set with configure, not cpp.
+	(MKDEPDIR): New, set by configure.
+	(.c.o, .m.o, ecrt0.o): Use $MKDEPDIR.
+	(clean): Use $DEPDIR.
+	(deps_frag): Include from configure.
+	Move static/dynamic dependency stuff to deps.mk/autodeps.mk.
+	* deps.mk, autodeps.mk: New files, extracted from Makefile.in.
+
 2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_cache_shrink, bidi_cache_iterator_state): Fix

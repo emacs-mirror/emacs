@@ -440,6 +440,7 @@ echo "Making links to \`src'"
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.m ../${tempdir}/src
  ln [a-zA-Z]*.in ../${tempdir}/src
+ ln [a-zA-Z]*.mk ../${tempdir}/src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
  for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in; do

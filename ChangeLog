@@ -1,5 +1,11 @@
 2010-05-20  Glenn Morris  <rgm@gnu.org>
 
+	* make-dist (src): Include *.mk.
+	* config.bat: Concatenate deps.mk onto the end of src/Makefile.
+	* configure.in (DEPFLAGS, MKDEPDIR): New output variables.
+	(deps_frag): New output file.
+	(AUTO_DEPEND): Remove this definition.
+
 	* configure.in (--with-gtk, --with-gcc): Remove option stubs.
 
 2010-05-19  Glenn Morris  <rgm@gnu.org>
