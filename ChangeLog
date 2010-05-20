@@ -1,3 +1,7 @@
+2010-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (--with-gtk, --with-gcc): Remove option stubs.
+
 2010-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LINKER, YMF_PASS_LDFLAGS): New output variables.
