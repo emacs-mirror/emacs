@@ -1,3 +1,38 @@
+2010-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* composite.el: Require cl when compiling.
+	(reference-point-alist, compose-gstring-for-graphic)
+	(compose-gstring-for-terminal): Fix typos in docstrings.
+
+2010-05-19  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/cl-macs.el (window-parameter): Add defsetf with
+	set-window-parameter.
+
+2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add `tramp-async-args' attribute
+	where appropriate.
+	(tramp-maybe-open-connection): Use it.
+
+2010-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (move-end-of-line): Make sure we are at line beginning
+	before backing up to end of previous line.
+
+2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* password-cache.el (password-cache-remove): Fix docstring.
+
+	* net/secrets.el: Autoload the widget functions.
+	(secrets-search-items, secrets-create-item)
+	(secrets-get-attributes, secrets-expand-item): Attributes will be
+	stored on the password database without leading ":", as all other
+	clients do as well.
+	(secrets-mode): Fix docstring.
+	(secrets-show-secrets): Provide it as autoloaded command only when
+	D-Bus support is available.  Check existence of Secret Service API.
+
 2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent.el (indent-region): Deactivate region (bug#6200).

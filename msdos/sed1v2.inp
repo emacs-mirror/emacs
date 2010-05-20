@@ -123,6 +123,8 @@ s/\.h\.in/.h-in/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
 /^UNEXEC_OBJ *=/s/@unexec@/unexec.o/
+/^DEPFLAGS *=/s/@DEPFLAGS@//
+/^MKDEPDIR *=/s/@MKDEPDIR@/:/
 /^version *=/s/@[^@\n]*@//
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
@@ -145,6 +147,7 @@ s/\.h\.in/.h-in/
 /^	-\{0,1\}ln -/s/ln -f/cp -pf/
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
+s/@deps_frag@//
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/

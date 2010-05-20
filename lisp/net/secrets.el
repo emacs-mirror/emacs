@@ -151,11 +151,11 @@
 
 (require 'dbus)
 
-(declare-function tree-widget-set-theme "tree-widget")
-(declare-function widget-create-child-and-convert "wid-edit")
-(declare-function widget-default-value-set "wid-edit")
-(declare-function widget-field-end "wid-edit")
-(declare-function widget-member "wid-edit")
+(autoload 'tree-widget-set-theme "tree-widget")
+(autoload 'widget-create-child-and-convert "wid-edit")
+(autoload 'widget-default-value-set "wid-edit")
+(autoload 'widget-field-end "wid-edit")
+(autoload 'widget-member "wid-edit")
 (defvar tree-widget-after-toggle-functions)
 
 (defvar secrets-enabled nil
@@ -563,7 +563,7 @@ The object paths of the found items are returned as list."
 	(setq props (add-to-list
 		     'props
 		     (list :dict-entry
-			   (symbol-name (car attributes))
+			   (substring (symbol-name (car attributes)) 1)
 			   (cadr attributes))
 		     'append)
 	      attributes (cddr attributes)))
@@ -601,7 +601,7 @@ The object path of the created item is returned."
 	  (setq props (add-to-list
 		       'props
 		       (list :dict-entry
-			     (symbol-name (car attributes))
+			     (substring (symbol-name (car attributes)) 1)
 			     (cadr attributes))
 		       'append)
 		attributes (cddr attributes)))
@@ -656,7 +656,8 @@ If there is no such item, or the item has no attributes, return nil."
   (let ((item-path (secrets-item-path collection item)))
     (unless (secrets-empty-path item-path)
       (mapcar
-       (lambda (attribute) (cons (intern (car attribute)) (cadr attribute)))
+       (lambda (attribute)
+	 (cons (intern (concat ":" (car attribute))) (cadr attribute)))
        (dbus-get-property
 	:session secrets-service item-path
 	secrets-interface-item "Attributes")))))
@@ -678,13 +679,10 @@ If there is no such item, or the item doesn't own this attribute, return nil."
 ;;; Visualization.
 
 (define-derived-mode secrets-mode nil "Secrets"
-  "Major mode for presenting search results of a Xesam search.
+  "Major mode for presenting password entries retrieved by Security Service.
 In this mode, widgets represent the search results.
 
-\\{secrets-mode-map}
-Turning on Xesam mode runs the normal hook `xesam-mode-hook'.  It
-can be used to set `xesam-notify-function', which must a search
-engine specific, widget :notify function to visualize xesam:url."
+\\{secrets-mode-map}"
   ;; Keymap.
   (setq secrets-mode-map (copy-keymap special-mode-map))
   (set-keymap-parent secrets-mode-map widget-keymap)
@@ -707,19 +705,27 @@ engine specific, widget :notify function to visualize xesam:url."
 ;; keymap etc.  So we create a dummy buffer.  Stupid.
 (with-temp-buffer (secrets-mode))
 
-;;;###autoload
+;; We autoload `secrets-show-secrets' only on systems with D-Bus support.
+;;;###autoload(when (featurep 'dbusbind)
+;;;###autoload  (autoload 'secrets-show-secrets "secrets" nil t))
+
 (defun secrets-show-secrets ()
   "Display a list of collections from the Secret Service API.
 The collections are in tree view, that means they can be expanded
 to the corresponding secret items, which could also be expanded
 to their attributes."
   (interactive)
-  ;; Create the search buffer.
-  (with-current-buffer (get-buffer-create "*Secrets*")
-    (switch-to-buffer-other-window (current-buffer))
-    ;; Inialize buffer with `secrets-mode'.
-    (secrets-mode)
-    (secrets-show-collections)))
+
+  ;; Check, whether the Secret Service API is enabled.
+  (if (null secrets-enabled)
+      (message "Secret Service not available")
+
+    ;; Create the search buffer.
+    (with-current-buffer (get-buffer-create "*Secrets*")
+      (switch-to-buffer-other-window (current-buffer))
+      ;; Inialize buffer with `secrets-mode'.
+      (secrets-mode)
+      (secrets-show-collections))))
 
 (defun secrets-show-collections ()
   "Show all available collections."
@@ -757,14 +763,14 @@ to their attributes."
 	 (attributes (secrets-get-attributes coll item))
 	 ;; padding is needed to format attribute names.
 	 (padding
-	  (1+
-	   (apply
-	    'max
-	    (cons
-	     (length "password")
-	     (mapcar
-	      (lambda (attribute) (length (symbol-name (car attribute))))
-	      attributes))))))
+	  (apply
+	   'max
+	   (cons
+	    (1+ (length "password"))
+	    (mapcar
+	     ;; Atribute names have a leading ":", which will be suppressed.
+	     (lambda (attribute) (length (symbol-name (car attribute))))
+	     attributes)))))
     (cons
      ;; The password widget.
      `(editable-field :tag "password"
@@ -779,7 +785,7 @@ to their attributes."
 				"%v\n"))
      (mapcar
       (lambda (attribute)
-	(let ((name (symbol-name (car attribute)))
+	(let ((name (substring (symbol-name (car attribute)) 1))
 	      (value (cdr attribute)))
 	  ;; The attribute widget.
 	  `(editable-field :tag ,name

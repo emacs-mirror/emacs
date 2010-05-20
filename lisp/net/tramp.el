@@ -334,6 +334,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("scp"   (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
 	     (tramp-copy-args            (("-P" "%p") ("-p" "%k")
@@ -349,6 +350,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("scp1"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-1" "-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
 	     (tramp-copy-args            (("-1") ("-P" "%p") ("-p" "%k")
@@ -364,6 +366,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("scp2"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-2" "-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
 	     (tramp-copy-args            (("-2") ("-P" "%p") ("-p" "%k")
@@ -399,6 +402,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("sftp"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "sftp")
 	     (tramp-copy-args            nil)
@@ -407,6 +411,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("rsync" (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "rsync")
 	     (tramp-copy-args            (("-e" "ssh") ("-t" "%k") ("-r")))
@@ -420,6 +425,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=yes")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "rsync")
 	     (tramp-copy-args            (("-t" "%k") ("-r")))
@@ -449,6 +455,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("ssh"   (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -462,6 +469,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("ssh1"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-1" "-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -475,6 +483,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("ssh2"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-2" "-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -489,6 +498,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
              (tramp-login-program        "ssh1")
 	     (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -539,6 +549,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=yes")
 					  ("-e" "none")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
 	     (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q")
@@ -554,6 +565,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("scpx"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none" "-t" "-t" "/bin/sh")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
 	     (tramp-copy-args            (("-p" "%k")))
@@ -567,6 +579,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     ("sshx"  (tramp-login-program        "ssh")
              (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
 					  ("-e" "none" "-t" "-t" "/bin/sh")))
+	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -672,6 +685,11 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     \"%t\" is replaced by the temporary file name produced with
     `tramp-make-tramp-temp-file'.  \"%k\" indicates the keep-date
     parameter of a program, if exists.
+  * `tramp-async-args'
+    When an asynchronous process is started, we know already that
+    the connection works.  Therefore, we can pass additional
+    parameters to suppress diagnostic messages, in order not to
+    tamper the process output.
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
     the file; this might be the absolute filename of rcp or the name of
@@ -7380,6 +7398,7 @@ Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
   (catch 'uname-changed
     (let ((p (tramp-get-connection-process vec))
+	  (process-name (tramp-get-connection-property vec "process-name" nil))
 	  (process-environment (copy-sequence process-environment)))
 
       ;; If too much time has passed since last command was sent, look
@@ -7439,8 +7458,7 @@ connection if a previous connection has died for some reason."
 	       (p (let ((default-directory
 			  (tramp-compat-temporary-file-directory)))
 		    (start-process
-		     (or (tramp-get-connection-property vec "process-name" nil)
-			 (tramp-buffer-name vec))
+		     (or process-name (tramp-buffer-name vec))
 		     (tramp-get-connection-buffer vec)
 		     tramp-encoding-shell))))
 
@@ -7464,6 +7482,8 @@ connection if a previous connection has died for some reason."
 		    (tramp-get-method-parameter l-method 'tramp-login-program))
 		   (login-args
 		    (tramp-get-method-parameter l-method 'tramp-login-args))
+		   (async-args
+		    (tramp-get-method-parameter l-method 'tramp-async-args))
 		   (gw-args
 		    (tramp-get-method-parameter l-method 'tramp-gw-args))
 		   (gw (tramp-get-file-property hop "" "gateway" nil))
@@ -7484,6 +7504,10 @@ connection if a previous connection has died for some reason."
 		       tramp-temp-name-prefix
 		       (tramp-compat-temporary-file-directory)))))
 		   spec)
+
+	      ;; Add arguments for asynchrononous processes.
+	      (when (and process-name async-args)
+		(setq login-args (append login-args async-args)))
 
 	      ;; Add gateway arguments if necessary.
 	      (when (and gw gw-args)

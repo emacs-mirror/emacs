@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defconst reference-point-alist
   '((tl . 0) (tc . 1) (tr . 2)
     (Bl . 3) (Bc . 4) (Br . 5)
@@ -77,7 +79,7 @@ follows (the point `*' corresponds to both reference points):
     +----+-----+ <--- new descent
 
 A composition rule may have the form \(GLOBAL-REF-POINT
-NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specifies how much
+NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specify how much
 to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
 and YOFF are integers in the range -100..100 representing the
 shifting percentage against the font size.")
@@ -537,7 +539,7 @@ character.  If the preceding character is not a base character,
 each combining character is composed as a spacing character by
 a padding space before and/or after the character.
 
-All non-spacing characters has this function in
+All non-spacing characters have this function in
 `composition-function-table' unless overwritten."
   (let* ((header (lgstring-header gstring))
 	 (nchars (lgstring-char-len gstring))
@@ -669,7 +671,7 @@ All non-spacing characters has this function in
 Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each non-spacing character is composed as a spacing character by
-a prepending a space before it."
+prepending a space before it."
   (let* ((header (lgstring-header gstring))
 	 (nchars (lgstring-char-len gstring))
 	 (nglyphs (lgstring-glyph-len gstring))

@@ -2,9 +2,11 @@ dnl  Autoconf script for GNU Emacs
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
+dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003,
-dnl    2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
+dnl    2005, 2006, 2007, 2008, 2009, 2010
+dnl    Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -167,15 +169,6 @@ OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 ## a suitable makeinfo, and can live without the manuals.
 dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
 OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
-
-dnl Can remove these in Emacs 24.
-AC_ARG_WITH([gtk],,
-  [AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit.])],,)
-
-AC_ARG_WITH([gcc],,
-  [AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
-variable to specify a compiler.])],,)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -1348,6 +1341,9 @@ dnl AC_C_BIGENDIAN
 dnl check for Make feature
 AC_PROG_MAKE_SET
 
+DEPFLAGS=
+MKDEPDIR=":"
+deps_frag=deps.mk
 dnl check for GNU Make if we have GCC and autodepend is on.
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    AC_MSG_CHECKING([whether we are using GNU Make])
@@ -1370,9 +1366,16 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_RESULT([$ac_enable_autodepend])
    fi
    if test $ac_enable_autodepend = yes; then
-      AC_DEFINE(AUTO_DEPEND, 1, [Generate dependencies with gcc.])
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR}'
+      deps_frag=autodeps.mk
    fi
 fi
+deps_frag=$srcdir/src/$deps_frag
+AC_SUBST(MKDEPDIR)
+AC_SUBST(DEPFLAGS)
+AC_SUBST_FILE(deps_frag)
+
 
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
@@ -2640,7 +2643,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -2682,13 +2685,22 @@ fail;
     fi
     ;;
 
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
 esac
 
 case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
 
