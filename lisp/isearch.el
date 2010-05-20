@@ -1540,14 +1540,18 @@ or it might return the position of the end of the line."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-char arg) (point))))
 
+(declare-function subword-forward "subword" (&optional arg))
 (defun isearch-yank-word-or-char ()
-  "Pull next character or word from buffer into search string."
+  "Pull next character, subword or word from buffer into search string.
+Subword is used when `subword-mode' is activated. "
   (interactive)
   (isearch-yank-internal
    (lambda ()
      (if (or (= (char-syntax (or (char-after) 0)) ?w)
              (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
-         (forward-word 1)
+	 (if (and (boundp 'subword-mode) subword-mode)
+	     (subword-forward 1)
+	   (forward-word 1))
        (forward-char 1)) (point))))
 
 (defun isearch-yank-word ()

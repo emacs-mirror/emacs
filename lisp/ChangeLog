@@ -1,3 +1,8 @@
+2009-12-15  Masatake YAMATO  <yamato@redhat.com>
+
+	* isearch.el (isearch-yank-word-or-char): Pull next subword
+	when `subword-mode' is activated.  (Bug#6220)
+
 2010-05-20  Mark A. Hershberger  <mah@everybody.org>
 
 	* isearch.el (isearch-update-post-hook): New hook.
