@@ -1,3 +1,9 @@
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* keyboard.c (Vlast_command, Vkeyboard_translate_table)
+	(Voverriding_terminal_local_map, Vsystem_key_alist)
+	(Vlocal_function_key_map): Fix manual link in docstring (Bug#6224).
+
 2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Fbyte_to_string): New function.
