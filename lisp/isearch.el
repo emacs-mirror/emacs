@@ -460,7 +460,9 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\C-y" 'isearch-yank-char)
     (define-key map    "\C-y" 'isearch-yank-line)
 
-    (define-key map "\C-h" isearch-help-map)
+    (define-key map (char-to-string help-char) isearch-help-map)
+    (define-key map [help] isearch-help-map)
+    (define-key map [f1] isearch-help-map)
 
     (define-key map "\M-n" 'isearch-ring-advance)
     (define-key map "\M-p" 'isearch-ring-retreat)
