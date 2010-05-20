@@ -1,5 +1,10 @@
 2010-05-20  Juri Linkov  <juri@jurta.org>
 
+	* locate.el (locate): Use pop-to-buffer instead of
+	switch-to-buffer-other-window.  (Bug#6204)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
 	* replace.el (replace-highlight): Fix lazy-highlighting
 	for `M-s w str M-% str RET'.
 
