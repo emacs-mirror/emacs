@@ -2643,7 +2643,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -2685,13 +2685,22 @@ fail;
     fi
     ;;
 
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
 esac
 
 case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
 

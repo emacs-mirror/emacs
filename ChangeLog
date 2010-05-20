@@ -1,3 +1,8 @@
+2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* configure.in: On NetBSD, if terminfo is found, use it in
+	preference to termcap.  (Bug#6190)
+
 2010-05-20  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist (src): Include *.mk.
