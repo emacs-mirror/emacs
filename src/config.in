@@ -27,9 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_CONFIG_H
 
 
-/* Generate dependencies with gcc. */
-#undef AUTO_DEPEND
-
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 

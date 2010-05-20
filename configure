@@ -714,6 +714,8 @@ ALSA_CFLAGS
 ALSA_LIBS
 CFLAGS_SOUND
 SET_MAKE
+MKDEPDIR
+DEPFLAGS
 XMKMF
 LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
@@ -825,7 +827,7 @@ MOUSE_SUPPORT
 TOOLTIP_SUPPORT
 WINDOW_SUPPORT
 LTLIBOBJS'
-ac_subst_files=''
+ac_subst_files='deps_frag'
 ac_user_opts='
 enable_option_checking
 with_pop
@@ -856,8 +858,6 @@ with_dbus
 with_gconf
 with_selinux
 with_makeinfo
-with_gtk
-with_gcc
 with_pkg_config_prog
 with_crt_dir
 with_gnustep_conf
@@ -1571,7 +1571,6 @@ Optional Packages:
   --without-gconf         don't compile with GConf support
   --without-selinux       don't compile with SELinux support
   --without-makeinfo      don't require makeinfo for building manuals
-
   --with-pkg-config-prog=PATH
                           path to pkg-config for finding GTK and librsvg
   --with-crt-dir=DIR      directory containing crtn.o etc. The default is
@@ -2380,28 +2379,6 @@ if test "${with_makeinfo+set}" = set; then
   withval=$with_makeinfo;
 else
      with_makeinfo=yes
-fi
-
-
-
-# Check whether --with-gtk was given.
-if test "${with_gtk+set}" = set; then
-  withval=$with_gtk; { { $as_echo "$as_me:$LINENO: error: --with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit." >&5
-$as_echo "$as_me: error: --with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-
-
-# Check whether --with-gcc was given.
-if test "${with_gcc+set}" = set; then
-  withval=$with_gcc; { { $as_echo "$as_me:$LINENO: error: --with-gcc has been removed.  Set the \`CC' environment
-variable to specify a compiler." >&5
-$as_echo "$as_me: error: --with-gcc has been removed.  Set the \`CC' environment
-variable to specify a compiler." >&2;}
-   { (exit 1); exit 1; }; }
 fi
 
 
@@ -9503,6 +9480,9 @@ $as_echo "no" >&6; }
 fi
 
 
+DEPFLAGS=
+MKDEPDIR=":"
+deps_frag=deps.mk
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    { $as_echo "$as_me:$LINENO: checking whether we are using GNU Make" >&5
 $as_echo_n "checking whether we are using GNU Make... " >&6; }
@@ -9569,13 +9549,16 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo "$ac_enable_autodepend" >&6; }
    fi
    if test $ac_enable_autodepend = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define AUTO_DEPEND 1
-_ACEOF
-
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR}'
+      deps_frag=autodeps.mk
    fi
 fi
+deps_frag=$srcdir/src/$deps_frag
+
+
+
+
 
 { $as_echo "$as_me:$LINENO: checking for long file names" >&5
 $as_echo_n "checking for long file names... " >&6; }
@@ -27531,7 +27514,24 @@ $debug ||
 # This happens for instance with `./config.status config.h'.
 if test -n "$CONFIG_FILES"; then
 
-
+if $AWK 'BEGIN { getline <"/dev/null" }' </dev/null 2>/dev/null; then
+  ac_cs_awk_getline=:
+  ac_cs_awk_pipe_init=
+  ac_cs_awk_read_file='
+      while ((getline aline < (F[key])) > 0)
+	print(aline)
+      close(F[key])'
+  ac_cs_awk_pipe_fini=
+else
+  ac_cs_awk_getline=false
+  ac_cs_awk_pipe_init="print \"cat <<'|#_!!_#|' &&\""
+  ac_cs_awk_read_file='
+      print "|#_!!_#|"
+      print "cat " F[key] " &&"
+      '$ac_cs_awk_pipe_init
+  # The final `:' finishes the AND list.
+  ac_cs_awk_pipe_fini='END { print "|#_!!_#|"; print ":" }'
+fi
 ac_cr=''
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
@@ -27543,6 +27543,19 @@ fi
 echo 'BEGIN {' >"$tmp/subs1.awk" &&
 _ACEOF
 
+# Create commands to substitute file output variables.
+{
+  echo "cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1" &&
+  echo 'cat >>"\$tmp/subs1.awk" <<\\_ACAWK &&' &&
+  echo "$ac_subst_files" | sed 's/.*/F["&"]="$&"/' &&
+  echo "_ACAWK" &&
+  echo "_ACEOF"
+} >conf$$files.sh &&
+. ./conf$$files.sh ||
+  { { $as_echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
+$as_echo "$as_me: error: could not make $CONFIG_STATUS" >&2;}
+   { (exit 1); exit 1; }; }
+rm -f conf$$files.sh
 
 {
   echo "cat >conf$$subs.awk <<_ACEOF" &&
@@ -27624,7 +27637,7 @@ _ACAWK
 cat >>"\$tmp/subs1.awk" <<_ACAWK &&
   for (key in S) S_is_set[key] = 1
   FS = ""
-
+  \$ac_cs_awk_pipe_init
 }
 {
   line = $ 0
@@ -27642,10 +27655,16 @@ cat >>"\$tmp/subs1.awk" <<_ACAWK &&
     } else
       len += 1 + keylen
   }
-
+  if (nfields == 3 && !substed) {
+    key = field[2]
+    if (F[key] != "" && line ~ /^[	 ]*@.*@[	 ]*$/) {
+      \$ac_cs_awk_read_file
+      next
+    }
+  }
   print line
 }
-
+\$ac_cs_awk_pipe_fini
 _ACAWK
 _ACEOF
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -28032,7 +28051,12 @@ s&@abs_top_builddir@&$ac_abs_top_builddir&;t t
 s&@INSTALL@&$ac_INSTALL&;t t
 $ac_datarootdir_hack
 "
-eval sed \"\$ac_sed_extra\" "$ac_file_inputs" | $AWK -f "$tmp/subs.awk" >$tmp/out \
+eval sed \"\$ac_sed_extra\" "$ac_file_inputs" |
+if $ac_cs_awk_getline; then
+  $AWK -f "$tmp/subs.awk"
+else
+  $AWK -f "$tmp/subs.awk" | $SHELL
+fi >$tmp/out \
   || { { $as_echo "$as_me:$LINENO: error: could not create $ac_file" >&5
 $as_echo "$as_me: error: could not create $ac_file" >&2;}
    { (exit 1); exit 1; }; }
