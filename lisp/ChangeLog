@@ -1,5 +1,10 @@
 2010-05-20  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-yank-string): Use isearch-process-search-string.
+	(Bug#6223)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
 	* dired-x.el (dired-jump, dired-jump-other-window): Add arg
 	FILE-NAME to read from the minibuffer when called interactively
 	with prefix argument instead of using buffer-file-name.

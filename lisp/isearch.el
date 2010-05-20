@@ -1476,14 +1476,10 @@ If search string is empty, just beep."
 	   (eq 'not-yanks search-upper-case))
       (setq string (downcase string)))
   (if isearch-regexp (setq string (regexp-quote string)))
-  (setq isearch-string (concat isearch-string string)
-	isearch-message
-	(concat isearch-message
-		(mapconcat 'isearch-text-char-description
-			   string ""))
-	;; Don't move cursor in reverse search.
-	isearch-yank-flag t)
-  (isearch-search-and-update))
+  ;; Don't move cursor in reverse search.
+  (setq isearch-yank-flag t)
+  (isearch-process-search-string
+   string (mapconcat 'isearch-text-char-description string "")))
 
 (defun isearch-yank-kill ()
   "Pull string from kill ring into search string."
