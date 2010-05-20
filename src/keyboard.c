@@ -11985,7 +11985,7 @@ The value `kill-region' is special; it means that the previous command
 was a kill command.
 
 `last-command' has a separate binding for each terminal device.
-See Info node `(elisp)Multiple displays'.  */);
+See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
 		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
@@ -12123,8 +12123,8 @@ untranslated.  In a vector, an element which is nil means "no translation".
 This is applied to the characters supplied to input methods, not their
 output.  See also `translation-table-for-input'.
 
-This variable has a separate binding for each terminal.  See Info node
-`(elisp)Multiple displays'.  */);
+This variable has a separate binding for each terminal.
+See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
@@ -12215,7 +12215,7 @@ set up a different keymap for reading the next command.
 
 `overriding-terminal-local-map' has a separate binding for each
 terminal device.
-See Info node `(elisp)Multiple displays'.  */);
+See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
 	       doc: /* Keymap that overrides all other local keymaps.
@@ -12243,7 +12243,7 @@ numeric keysym code (sans the \"system-specific\" bit 1<<28)
 and SYMBOL is its name.
 
 `system-key-alist' has a separate binding for each terminal device.
-See Info node `(elisp)Multiple displays'.  */);
+See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_KBOARD ("local-function-key-map", Vlocal_function_key_map,
                  doc: /* Keymap that translates key sequences to key sequences during input.
@@ -12269,7 +12269,7 @@ Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
 typing `ESC O P x' would return [f1 x].
 
 `local-function-key-map' has a separate binding for each terminal
-device.  See Info node `(elisp)Multiple displays'.  If you need to
+device.  See Info node `(elisp)Multiple Terminals'.  If you need to
 define a binding on all terminals, change `function-key-map'
 instead.  Initially, `local-function-key-map' is an empty keymap that
 has `function-key-map' as its parent on all terminal devices.  */);
