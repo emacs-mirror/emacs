@@ -1,3 +1,8 @@
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-highlight): Fix lazy-highlighting
+	for `M-s w str M-% str RET'.
+
 2009-12-15  Masatake YAMATO  <yamato@redhat.com>
 
 	* isearch.el (isearch-yank-word-or-char): Pull next subword
