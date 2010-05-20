@@ -433,7 +433,9 @@ that."
                     (let ((data (match-string 2)))
                       (save-match-data
                         (unless (string-match "^([^)]+)" data)
-                          (setq data (concat "(emacs)" data))))
+                          (setq data (concat "(emacs)" data)))
+			(setq data ;; possible newlines if para filled
+			      (replace-regexp-in-string "[ \t\n]+" " " data t t)))
                       (help-xref-button 2 'help-info data))))
                 ;; URLs
                 (save-excursion

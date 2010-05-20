@@ -1,3 +1,10 @@
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* help-mode.el (help-make-xrefs): For Info node links turn
+	newlines into spaces.  Link node names with newlines are matched
+	by help-xref-info-regexp and buttonized, this change ensures they
+	can be followed successfully with RET.  (Bug#6206)
+
 2010-05-20  Juri Linkov  <juri@jurta.org>
 
 	* locate.el (locate): Use pop-to-buffer instead of
