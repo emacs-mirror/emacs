@@ -1,8 +1,5 @@
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (temacs${EXEEXT}, prefix-args, mostlyclean):
-	prefix-args neither gets nor needs the $EXEEXT extension.
-
 	* Makefile.in (${ns_appdir}, ${ns_appbindir}Emacs, ns-app):
 	Move these rules to ns.mk.
 	* ns.mk: New file.
