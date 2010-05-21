@@ -1067,65 +1067,58 @@ connection if a previous connection has died for some reason."
 	    (tramp-gvfs-object-path
 	     (tramp-make-tramp-file-name method user host ""))))
 
-      (if (zerop (length (tramp-file-name-user vec)))
-	  (tramp-message
-	   vec 3 "Opening connection for %s using %s..." host method)
-	(tramp-message
-	 vec 3 "Opening connection for %s@%s using %s..." user host method))
+      (with-progress-reporter
+	  vec 3
+	  (if (zerop (length user))
+	      (format "Opening connection for %s using %s" host method)
+	    (format "Opening connection for %s@%s using %s" user host method))
 
-      ;; Enable auth-sorce and password-cache.
-      (tramp-set-connection-property vec "first-password-request" t)
+	;; Enable auth-sorce and password-cache.
+	(tramp-set-connection-property vec "first-password-request" t)
 
-      ;; There will be a callback of "askPassword", when a password is
-      ;; needed.
-      (dbus-register-method
-       :session dbus-service-emacs object-path
-       tramp-gvfs-interface-mountoperation "askPassword"
-       'tramp-gvfs-handler-askpassword)
+	;; There will be a callback of "askPassword", when a password is
+	;; needed.
+	(dbus-register-method
+	 :session dbus-service-emacs object-path
+	 tramp-gvfs-interface-mountoperation "askPassword"
+	 'tramp-gvfs-handler-askpassword)
 
-      ;; There could be a callback of "askQuestion", when adding fingerprint.
-      (dbus-register-method
-       :session dbus-service-emacs object-path
-       tramp-gvfs-interface-mountoperation "askQuestion"
-       'tramp-gvfs-handler-askquestion)
+	;; There could be a callback of "askQuestion", when adding fingerprint.
+	(dbus-register-method
+	 :session dbus-service-emacs object-path
+	 tramp-gvfs-interface-mountoperation "askQuestion"
+	 'tramp-gvfs-handler-askquestion)
 
-      ;; The call must be asynchronously, because of the "askPassword"
-      ;; or "askQuestion"callbacks.
-      (with-tramp-dbus-call-method vec nil
-	:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
-	tramp-gvfs-interface-mounttracker "mountLocation"
-	`(:struct
-	  ,(dbus-string-to-byte-array "/")
-	  ,(tramp-gvfs-mount-spec vec))
-	(dbus-get-unique-name :session)
-	:object-path object-path)
+	;; The call must be asynchronously, because of the "askPassword"
+	;; or "askQuestion"callbacks.
+	(with-tramp-dbus-call-method vec nil
+	  :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
+	  tramp-gvfs-interface-mounttracker "mountLocation"
+	  `(:struct
+	    ,(dbus-string-to-byte-array "/")
+	    ,(tramp-gvfs-mount-spec vec))
+	  (dbus-get-unique-name :session)
+	  :object-path object-path)
 
-      ;; We must wait, until the mount is applied.  This will be
-      ;; indicated by the "mounted" signal, i.e. the "fuse-mountpoint"
-      ;; file property.
-      (with-timeout
-	  (60
-	   (if (zerop (length (tramp-file-name-user vec)))
+	;; We must wait, until the mount is applied.  This will be
+	;; indicated by the "mounted" signal, i.e. the "fuse-mountpoint"
+	;; file property.
+	(with-timeout
+	    (60
+	     (if (zerop (length (tramp-file-name-user vec)))
+		 (tramp-error
+		  vec 'file-error
+		  "Timeout reached mounting %s using %s" host method)
 	       (tramp-error
 		vec 'file-error
-		"Timeout reached mounting %s using %s" host method)
-	     (tramp-error
-	      vec 'file-error
-	      "Timeout reached mounting %s@%s using %s" user host method)))
-	(while (not (tramp-get-file-property vec "/" "fuse-mountpoint" nil))
-	  (read-event nil nil 0.1)))
+		"Timeout reached mounting %s@%s using %s" user host method)))
+	  (while (not (tramp-get-file-property vec "/" "fuse-mountpoint" nil))
+	    (read-event nil nil 0.1)))
 
-      ;; We set the connection property "started" in order to put the
-      ;; remote location into the cache, which is helpful for further
-      ;; completion.
-      (tramp-set-connection-property vec "started" t)
-
-      (if (zerop (length (tramp-file-name-user vec)))
-	  (tramp-message
-	   vec 3 "Opening connection for %s using %s...done" host method)
-	(tramp-message
-	 vec 3
-	 "Opening connection for %s@%s using %s...done" user host method)))))
+	;; We set the connection property "started" in order to put the
+	;; remote location into the cache, which is helpful for further
+	;; completion.
+	(tramp-set-connection-property vec "started" t)))))
 
 
 ;; D-Bus BLUEZ functions.

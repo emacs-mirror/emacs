@@ -1,3 +1,17 @@
+2010-05-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file)
+	(tramp-handle-file-local-copy, tramp-maybe-open-connection): Tune
+	`with-progress-reporter' messages.
+	(tramp-handle-vc-registered):
+	* net/tramp-fish.el (tramp-fish-handle-file-local-copy)
+	(tramp-fish-handle-insert-file-contents)
+	(tramp-fish-maybe-open-connection):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-file-contents)
+	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
+
 2010-05-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* add-log.el (change-log-font-lock-keywords):
