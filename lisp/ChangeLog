@@ -1,3 +1,8 @@
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el [CANNOT_DUMP]: Update for bootstrap-emacs no longer
+	having a relative path in src/Makefile.in.
+
 2010-05-20  Kevin Ryde  <user42@zip.com.au>
 
 	* help-mode.el (help-make-xrefs): For Info node links turn

@@ -54,7 +54,7 @@
 	(equal (nth 3 command-line-args) "unidata-gen.el")
 	(equal (nth 4 command-line-args) "unidata-gen-files")
 	;; In case CANNOT_DUMP.
-	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
+	(string-match "src/bootstrap-emacs" (nth 0 command-line-args)))
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
