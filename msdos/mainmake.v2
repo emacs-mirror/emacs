@@ -68,10 +68,10 @@ top_srcdir := $(subst \,/,$(shell cd))
 version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
 # Q: Do we need to bootstrap?
-# A: Only if we find admin/admin.el, i.e. we are building out of CVS,
-#    and src/b-emacs.exe does not exist.  This avoids building a
-#    bootstrap-emacs and recompiling Lisp files when building a
-#    pretest/release tarball.
+# A: Only if we find admin/admin.el, i.e. we are building out of 
+#    a VCS-checkout (not a release) and src/b-emacs.exe does not exist.
+#    This avoids building a bootstrap-emacs and recompiling Lisp files
+#    when building a pretest/release tarball.
 boot :=
 ifneq ($(wildcard admin/admin.el),)
 ifeq ($(wildcard src/b-emacs.exe),)
