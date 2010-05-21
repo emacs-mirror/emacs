@@ -609,7 +609,6 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
 all: emacs${EXEEXT} $(OTHER_FILES)
 
 /* Does anyone ever pay attention to the load-path-shadows output here?  */
-/* FIXME Add EXEEXT for load-path-shadows?  */
 /* The dumped Emacs is as functional and more efficient than
    bootstrap-emacs, so we replace the latter with the former.  */
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
