@@ -700,22 +700,9 @@ ecrt0.o: ecrt0.c $(config_h)
 doc.o: buildobj.h
 
 
-/* System-specific programs to be made.
-   OTHER_FILES select which of these should be compiled.  */
+/* If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.  */
+@ns_frag@
 
-#ifdef HAVE_NS
-${ns_appdir}: ${ns_appsrc}
-	rm -fr ${ns_appdir}
-	mkdir -p ${ns_appdir}
-	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; umask 022; tar xf - )
-#endif /* HAVE_NS */
-
-/* These are only used if HAVE_NS, but no harm in always defining them.  */
-${ns_appbindir}Emacs: emacs${EXEEXT}
-	mkdir -p ${ns_appbindir}
-	cp -f emacs${EXEEXT} ${ns_appbindir}Emacs
-
-ns-app: ${ns_appdir} ${ns_appbindir}Emacs
 
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a

@@ -149,6 +149,7 @@ s/\.h\.in/.h-in/
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
 s/@deps_frag@//
+s/@ns_frag@//
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/

@@ -1,5 +1,9 @@
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (${ns_appdir}, ${ns_appbindir}Emacs, ns-app):
+	Move these rules to ns.mk.
+	* ns.mk: New file.
+
 	* Makefile.in (../src/$(OLDXMENU), $(OLDXMENU)): Always define rules.
 
 	* Makefile.in (CANNOT_DUMP): New, set by configure.
