@@ -812,5 +812,5 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	@: Compile some files earlier to speed up further compilation.
 	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
 
-## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
+/* Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.  */
 @deps_frag@
