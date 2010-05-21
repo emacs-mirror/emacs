@@ -1,3 +1,8 @@
+2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* s/netbsd.h: If terminfo is found, use it in preference to
+	termcap.  (Bug#6190)  [Backport from trunk]
+
 2010-05-20  Kevin Ryde  <user42@zip.com.au>
 
 	* keyboard.c (Vlast_command, Vkeyboard_translate_table)
