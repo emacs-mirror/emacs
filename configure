@@ -701,6 +701,7 @@ RANLIB
 INSTALL_INFO
 GZIP_PROG
 MAKEINFO
+cannot_dump
 LD_SWITCH_SYSTEM
 C_SWITCH_MACHINE
 C_SWITCH_SYSTEM
@@ -827,7 +828,8 @@ MOUSE_SUPPORT
 TOOLTIP_SUPPORT
 WINDOW_SUPPORT
 LTLIBOBJS'
-ac_subst_files='deps_frag'
+ac_subst_files='deps_frag
+ns_frag'
 ac_user_opts='
 enable_option_checking
 with_pop
@@ -5830,6 +5832,12 @@ configure___ LIBX=-lX11
 
 configure___ unexec=UNEXEC
 
+#ifdef CANNOT_DUMP
+configure___ cannot_dump=yes
+#else
+configure___ cannot_dump=no
+#endif
+
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
 #else
@@ -5889,6 +5897,9 @@ else
   REAL_CFLAGS="$CFLAGS"
 fi
 rm ${tempcname}
+
+
+
 
 
 LD_SWITCH_SYSTEM=
@@ -9945,6 +9956,7 @@ if test "${with_ns}" != no; then
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      ## Pull in stuff from GNUstep-make.
+     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
      NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
 GUI_LIB=gnu
 include $GNUSTEP_MAKEFILES/Additional/base.make
@@ -10149,6 +10161,7 @@ fi
 
 
 
+ns_frag=/dev/null
 NS_OBJ=
 NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
@@ -10160,11 +10173,13 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
   NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
 
 
 
@@ -21607,7 +21622,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -21700,13 +21715,22 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     fi
     ;;
 
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
 esac
 
 case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
 
@@ -26476,7 +26500,6 @@ else
 fi
 
 
-
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;
 ## otherwise, use our own copy.
@@ -26496,7 +26519,9 @@ _ACEOF
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
   OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  OLDXMENU=
+  ## For a syntactically valid Makefile; not actually used for anything.
+  ## See comments in src/Makefile.in.
+  OLDXMENU=nothing
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
   if test "${HAVE_X_WINDOWS}" = "yes"; then
     LIBXMENU="-lXMenu"
@@ -26508,10 +26533,12 @@ else
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU=
+  OLDXMENU_TARGET=
+  OLDXMENU=nothing
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
+
 
 
 

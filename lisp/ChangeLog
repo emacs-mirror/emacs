@@ -1,3 +1,76 @@
+2010-05-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* add-log.el (change-log-font-lock-keywords):
+	Highlight all authors in multi-author entries.
+
+	* smerge-mode.el (smerge-refine-ignore-whitespace)
+	(smerge-refine-weight-hack, smerge-refine, smerge-makeup-conflict):
+	Fix typos in docstrings.
+	(smerge-resolve, smerge-refine-subst): Reflow docstrings.
+
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-mode):
+	* progmodes/f90.el (f90-mode): Derive from prog-mode.
+
+	* loadup.el [CANNOT_DUMP]: Update for bootstrap-emacs no longer
+	having a relative path in src/Makefile.in.
+
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* help-mode.el (help-make-xrefs): For Info node links turn
+	newlines into spaces.  Link node names with newlines are matched
+	by help-xref-info-regexp and buttonized, this change ensures they
+	can be followed successfully with RET.  (Bug#6206)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* locate.el (locate): Use pop-to-buffer instead of
+	switch-to-buffer-other-window.  (Bug#6204)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-highlight): Fix lazy-highlighting
+	for `M-s w str M-% str RET'.
+
+2009-12-15  Masatake YAMATO  <yamato@redhat.com>
+
+	* isearch.el (isearch-yank-word-or-char): Pull next subword
+	when `subword-mode' is activated.  (Bug#6220)
+
+2010-05-20  Mark A. Hershberger  <mah@everybody.org>
+
+	* isearch.el (isearch-update-post-hook): New hook.
+	(isearch-update): Use the new hook.  (Bug#6225)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind more keys to isearch-help-map:
+	[f1], [help], and (char-to-string help-char) instead of "\C-h".
+	(Bug#6222)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-yank-string): Use isearch-process-search-string.
+	(Bug#6223)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* dired-x.el (dired-jump, dired-jump-other-window): Add arg
+	FILE-NAME to read from the minibuffer when called interactively
+	with prefix argument instead of using buffer-file-name.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00534.html
+
+	* dired.el: Update autoloads.
+
+2010-05-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml/nxml-mode.el (nxml-mode-map): Bind C-c / to
+	nxml-finish-element, for consistency with SGML mode.
+
+	* progmodes/octave-mod.el (octave-mode-map): Bind C-c / to
+	octave-close-block.
+
 2010-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* composite.el: Require cl when compiling.

@@ -1,3 +1,12 @@
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (ns_frag): New output file.
+
+	* configure.in (OLDXMENU): Set to "nothing" if !HAVE_X11 || USE_GTK.
+	(OLDXMENU_TARGET): Set to empty if USE_GTK.
+
+	* configure.in (cannot_dump): New output variable.
+
 2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
 
 	* configure.in: On NetBSD, if terminfo is found, use it in

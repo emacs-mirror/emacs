@@ -114,7 +114,7 @@ s/\.h\.in/.h-in/
 /^WINDOW_SUPPORT *=/s/@WINDOW_SUPPORT@//
 /^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
-/^OLDXMENU *=/s/@OLDXMENU@//
+/^OLDXMENU *=/s/@OLDXMENU@/nothing/
 /^LIBXMENU *=/s/@LIBXMENU@//
 /^LIBX_OTHER *=/s/@LIBX_OTHER@//
 /^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/
@@ -123,6 +123,7 @@ s/\.h\.in/.h-in/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
 /^UNEXEC_OBJ *=/s/@unexec@/unexec.o/
+/^CANNOT_DUMP *=/s/@cannot_dump@/no/
 /^DEPFLAGS *=/s/@DEPFLAGS@//
 /^MKDEPDIR *=/s/@MKDEPDIR@/:/
 /^version *=/s/@[^@\n]*@//
@@ -148,6 +149,7 @@ s/\.h\.in/.h-in/
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
 s/@deps_frag@//
+s/@ns_frag@//
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/

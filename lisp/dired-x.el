@@ -506,16 +506,21 @@ See variables `dired-texinfo-unclean-extensions',
 ;;; JUMP.
 
 ;;;###autoload
-(defun dired-jump (&optional other-window)
+(defun dired-jump (&optional other-window file-name)
   "Jump to dired buffer corresponding to current buffer.
 If in a file, dired the current directory and move to file's line.
 If in Dired already, pop up a level and goto old directory's line.
 In case the proper dired file line cannot be found, refresh the dired
-buffer and try again."
-  (interactive "P")
-  (let* ((file buffer-file-name)
+buffer and try again.
+When OTHER-WINDOW is non-nil, jump to dired buffer in other window.
+Interactively with prefix argument, read FILE-NAME and
+move to its line in dired."
+  (interactive
+   (list nil (and current-prefix-arg
+		  (read-file-name "Jump to dired file: "))))
+  (let* ((file (or file-name buffer-file-name))
          (dir (if file (file-name-directory file) default-directory)))
-    (if (eq major-mode 'dired-mode)
+    (if (and (eq major-mode 'dired-mode) (null file-name))
         (progn
           (setq dir (dired-current-directory))
           (dired-up-directory other-window)
@@ -539,10 +544,12 @@ buffer and try again."
 		    (dired-omit-mode)
 		    (dired-goto-file file))))))))
 
-(defun dired-jump-other-window ()
+(defun dired-jump-other-window (&optional file-name)
   "Like \\[dired-jump] (`dired-jump') but in other window."
-  (interactive)
-  (dired-jump t))
+  (interactive
+   (list (and current-prefix-arg
+	      (read-file-name "Jump to dired file: "))))
+  (dired-jump t file-name))
 
 ;;; OMITTING.
 
