@@ -1,5 +1,7 @@
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (MKDEPDIR): Parallel build tweak.
+
 	* configure.in (ns_frag): New output file.
 
 	* configure.in (OLDXMENU): Set to "nothing" if !HAVE_X11 || USE_GTK.

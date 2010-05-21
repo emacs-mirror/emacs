@@ -297,7 +297,6 @@ DEPDIR=deps
 ## -MMD -MF ${DEPDIR}/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
 ## test -d ${DEPDIR} || mkdir ${DEPDIR} (if AUTO_DEPEND); else ':'.
-## FIXME This can fail in parallel builds.  Use mkinstalldirs instead?
 MKDEPDIR=@MKDEPDIR@
 
 # ========================== start of cpp stuff =======================
