@@ -1,3 +1,10 @@
+2010-05-21  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-read-files): Fix multi-pattern aliases.
+	Remove "all" from grep-files-aliases.  Split grep-files-aliases by
+	whitespace, call wildcard-to-regexp on substrings and concat them
+	with "\\|".  (Bug#6114)
+
 2010-05-21  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-parse-state-get-strategy): Replace
