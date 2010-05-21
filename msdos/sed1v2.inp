@@ -114,7 +114,7 @@ s/\.h\.in/.h-in/
 /^WINDOW_SUPPORT *=/s/@WINDOW_SUPPORT@//
 /^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
-/^OLDXMENU *=/s/@OLDXMENU@//
+/^OLDXMENU *=/s/@OLDXMENU@/nothing/
 /^LIBXMENU *=/s/@LIBXMENU@//
 /^LIBX_OTHER *=/s/@LIBX_OTHER@//
 /^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/

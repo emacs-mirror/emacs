@@ -1,5 +1,7 @@
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (../src/$(OLDXMENU), $(OLDXMENU)): Always define rules.
+
 	* Makefile.in (CANNOT_DUMP): New, set by configure.
 	(emacs${EXEEXT}, bootstrap-emacs${EXEEXT}): Use $CANNOT_DUMP.
 

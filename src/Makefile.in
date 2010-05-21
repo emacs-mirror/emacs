@@ -173,13 +173,20 @@ LIBXTR6=@LIBXTR6@
 ## Only used if HAVE_X_WINDOWS.
 LIBXT_OTHER=@LIBXT_OTHER@
 
-## Only used if HAVE_X11 && !USE_GTK.
-## really-lwlib if USE_X_TOOLKIT, else really-oldxmenu.
+## If !HAVE_X11 || USE_GTK, empty.
+## Else if USE_X_TOOLKIT really-lwlib, else really-oldxmenu.
 OLDXMENU_TARGET=@OLDXMENU_TARGET@
 
 ## If !HAVE_X11 || USE_GTK, empty.
 ## Else if USE_X_TOOLKIT, ${lwlibdir}liblw.a.
 ## Else ${oldXMenudir}libXMenu11.a.
+## (Actually, rather than being empty, it is set to "nothing".
+## It is never actually used for anything in this case.
+## This is done because there is a rule with target $(OLDXMENU) below,
+## and I think it might be a syntax error with some makes to have
+## an empty target, even if the associated rule is never run.
+## http://lists.gnu.org/archive/html/help-make/2010-05/msg00058.html
+## The alternative would be to put that rule in a makefile fragment.)
 OLDXMENU=@OLDXMENU@
 
 ## If HAVE_X11 && !USE_GTK, ${OLDXMENU} ../src/${OLDXMENU}; else empty.
@@ -290,6 +297,7 @@ DEPDIR=deps
 ## -MMD -MF ${DEPDIR}/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
 ## test -d ${DEPDIR} || mkdir ${DEPDIR} (if AUTO_DEPEND); else ':'.
+## FIXME This can fail in parallel builds.  Use mkinstalldirs instead?
 MKDEPDIR=@MKDEPDIR@
 
 # ========================== start of cpp stuff =======================
@@ -651,8 +659,9 @@ prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
 
-/* Only (possibly) used if HAVE_X11 && !USE_GTK, but no harm in always
-   defining.  */
+/* The following oldxmenu-related rules are only (possibly) used if
+   HAVE_X11 && !USE_GTK, but there is no harm in always defining them
+   (provided we take a little care that OLDXMENU is never empty).  */
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
@@ -670,13 +679,10 @@ really-oldXMenu:
 stamp-oldxmenu: ${OLDXMENU_DEPS}
 	touch stamp-oldxmenu
 
-/* HAVE_X11 implies HAVE_X_WINDOWS and HAVE_MENUS.  */
-#if defined (HAVE_X11) && ! defined (USE_GTK)
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
 
 $(OLDXMENU): $(OLDXMENU_TARGET)
-#endif /* HAVE_X11 && !USE_GTK */ 
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."

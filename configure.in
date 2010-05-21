@@ -3181,7 +3181,6 @@ else
   OLDXMENU_TARGET="really-lwlib"
 fi
 AC_SUBST(LIBXT_OTHER)
-AC_SUBST(OLDXMENU_TARGET)
 
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;
@@ -3200,7 +3199,9 @@ if test "${HAVE_X11}" = "yes" ; then
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
   OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  OLDXMENU=
+  ## For a syntactically valid Makefile; not actually used for anything.
+  ## See comments in src/Makefile.in.
+  OLDXMENU=nothing
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
   if test "${HAVE_X_WINDOWS}" = "yes"; then
     LIBXMENU="-lXMenu"
@@ -3212,11 +3213,13 @@ else
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU=
+  OLDXMENU_TARGET=
+  OLDXMENU=nothing  
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
 
+AC_SUBST(OLDXMENU_TARGET)
 AC_SUBST(OLDXMENU)
 AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
