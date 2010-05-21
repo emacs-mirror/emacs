@@ -649,13 +649,13 @@ buildobj.h: Makefile
 
 #define YMF_PASS_LDFLAGS(flags) @YMF_PASS_LDFLAGS@
 
-temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
+temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args
 	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
 	  ${NS_IMPL_GNUSTEP_TEMACS_LDFLAGS} ) \
 	  ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 
-prefix-args${EXEEXT}: prefix-args.o $(config_h)
+prefix-args: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
 
@@ -705,7 +705,7 @@ doc.o: buildobj.h
 
 
 mostlyclean:
-	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs${EXEEXT} prefix-args core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 	rm -f buildobj.h
