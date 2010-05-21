@@ -7,6 +7,9 @@
 
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/fortran.el (fortran-mode):
+	* progmodes/f90.el (f90-mode): Derive from prog-mode.
+
 	* loadup.el [CANNOT_DUMP]: Update for bootstrap-emacs no longer
 	having a relative path in src/Makefile.in.
 

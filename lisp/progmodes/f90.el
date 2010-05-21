@@ -1008,7 +1008,7 @@ Set subexpression 1 in the match-data to the name of the type."
   :regexp "\\(?:[^[:word:]_`]\\|^\\)\\(`?[[:word:]_]+\\)[^[:word:]_]*")
 
 ;;;###autoload
-(defun f90-mode ()
+(define-derived-mode f90-mode prog-mode "F90"
   "Major mode for editing Fortran 90,95 code in free format.
 For fixed format code, use `fortran-mode'.
 
@@ -1065,13 +1065,9 @@ Variables controlling indentation style and extra features:
 
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
 with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'f90-mode
-        mode-name "F90"
-        local-abbrev-table f90-mode-abbrev-table)
-  (set-syntax-table f90-mode-syntax-table)
-  (use-local-map f90-mode-map)
+  :group 'f90
+  :syntax-table f90-mode-syntax-table
+  :abbrev-table f90-mode-abbrev-table
   (set (make-local-variable 'indent-line-function) 'f90-indent-line)
   (set (make-local-variable 'indent-region-function) 'f90-indent-region)
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
@@ -1094,8 +1090,7 @@ with no args, if that value is non-nil."
        'f90-beginning-of-subprogram)
   (set (make-local-variable 'end-of-defun-function) 'f90-end-of-subprogram)
   (set (make-local-variable 'add-log-current-defun-function)
-       #'f90-current-defun)
-  (run-mode-hooks 'f90-mode-hook))
+       #'f90-current-defun))
 
 
 ;; Inline-functions.
