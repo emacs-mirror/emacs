@@ -1,3 +1,10 @@
+2010-05-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* smerge-mode.el (smerge-refine-ignore-whitespace)
+	(smerge-refine-weight-hack, smerge-refine, smerge-makeup-conflict):
+	Fix typos in docstrings.
+	(smerge-resolve, smerge-refine-subst): Reflow docstrings.
+
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* loadup.el [CANNOT_DUMP]: Update for bootstrap-emacs no longer
