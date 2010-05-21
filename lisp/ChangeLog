@@ -1,5 +1,8 @@
 2010-05-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* add-log.el (change-log-font-lock-keywords):
+	Highlight all authors in multi-author entries.
+
 	* smerge-mode.el (smerge-refine-ignore-whitespace)
 	(smerge-refine-weight-hack, smerge-refine, smerge-makeup-conflict):
 	Fix typos in docstrings.
