@@ -284,6 +284,8 @@ START_FILES = @START_FILES@
 
 UNEXEC_OBJ = @unexec@
 
+CANNOT_DUMP=@cannot_dump@
+
 DEPDIR=deps
 ## -MMD -MF ${DEPDIR}/$*.d if AUTO_DEPEND; else empty.
 DEPFLAGS=@DEPFLAGS@
@@ -599,18 +601,19 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
 all: emacs${EXEEXT} $(OTHER_FILES)
 
 /* Does anyone ever pay attention to the load-path-shadows output here?  */
+/* FIXME Add EXEEXT for load-path-shadows?  */
+/* The dumped Emacs is as functional and more efficient than
+   bootstrap-emacs, so we replace the latter with the former.  */
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
-#ifdef CANNOT_DUMP
-	rm -f emacs${EXEEXT}
-	ln temacs${EXEEXT} emacs${EXEEXT}
-	-EMACSLOADPATH=${lispsource} ./emacs -q -batch -f list-load-path-shadows
-#else
-	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
-	@: This new Emacs is as functional and more efficient then
-	@: bootstrap-emacs, so let us replace it.
-	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
-	-./emacs -q -batch -f list-load-path-shadows
-#endif /* ! defined (CANNOT_DUMP) */
+	if test "${CANNOT_DUMP}" = "yes"; then \
+	  ln -f temacs${EXEEXT} emacs${EXEEXT}; \
+	  EMACSLOADPATH=${lispsource} ./emacs -q -batch \
+	    -f list-load-path-shadows || true; \
+	else \
+	  LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump || exit 1; \
+	  ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}; \
+	  ./emacs -q -batch -f list-load-path-shadows || true; \
+	fi
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
@@ -807,12 +810,12 @@ ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 
 bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
-#ifdef CANNOT_DUMP
-	ln -f temacs${EXEEXT} bootstrap-emacs${EXEEXT}
-#else
-	$(RUN_TEMACS) --batch --load loadup bootstrap
-	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
-#endif /* ! defined (CANNOT_DUMP) */
+	if test "${CANNOT_DUMP}" = "yes"; then \
+	  ln -f temacs${EXEEXT} bootstrap-emacs${EXEEXT}; \
+	else \
+	  $(RUN_TEMACS) --batch --load loadup bootstrap || exit 1; \
+	  mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}; \
+	fi
 	@: Compile some files earlier to speed up further compilation.
 	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
 

@@ -857,6 +857,12 @@ configure___ LIBX=-lX11
 
 configure___ unexec=UNEXEC
 
+#ifdef CANNOT_DUMP
+configure___ cannot_dump=yes
+#else
+configure___ cannot_dump=no
+#endif
+
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
 #else
@@ -916,6 +922,9 @@ else
   REAL_CFLAGS="$CFLAGS"
 fi]
 rm ${tempcname}
+
+
+AC_SUBST(cannot_dump)
 
 
 LD_SWITCH_SYSTEM=
@@ -1483,6 +1492,7 @@ if test "${with_ns}" != no; then
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      ## Pull in stuff from GNUstep-make.
+     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
      NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
 GUI_LIB=gnu
 include $GNUSTEP_MAKEFILES/Additional/base.make

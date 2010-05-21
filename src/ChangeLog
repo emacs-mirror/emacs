@@ -1,3 +1,8 @@
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (CANNOT_DUMP): New, set by configure.
+	(emacs${EXEEXT}, bootstrap-emacs${EXEEXT}): Use $CANNOT_DUMP.
+
 2010-05-20  Juri Linkov  <juri@jurta.org>
 
 	* fileio.c (Fdelete_file): Change interative spec to use

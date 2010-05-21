@@ -1,3 +1,7 @@
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (CANNOT_DUMP): Edit to no.
+
 2010-05-20  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (DEPFLAGS, deps_frag): Edit to empty.
