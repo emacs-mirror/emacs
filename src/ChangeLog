@@ -1,3 +1,7 @@
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (Fimage_flush): Rename from image-refresh.
+
 2010-05-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_internal): Clear caches even if redisplaying

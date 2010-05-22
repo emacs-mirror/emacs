@@ -1,3 +1,9 @@
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-refresh): Define as an alias for image-flush.
+
+	* image-mode.el (image-toggle-display-image): Caller changed.
+
 2010-05-21  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-read-files): Fix multi-pattern aliases.
