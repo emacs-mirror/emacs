@@ -1,3 +1,8 @@
+2010-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_write): Break writes into chunks smaller than 32MB.
+	(Bug#6237)
+
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (Fimage_flush): Rename from image-refresh.

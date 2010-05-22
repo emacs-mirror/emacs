@@ -5700,7 +5700,34 @@ sys_write (int fd, const void * buffer, unsigned int count)
     }
   else
 #endif
-    nchars = _write (fd, buffer, count);
+    {
+      /* Some networked filesystems don't like too large writes, so
+	 break them into smaller chunks.  See the Comments section of
+	 the MSDN documentation of WriteFile for details behind the
+	 choice of the value of CHUNK below.  See also the thread
+	 http://thread.gmane.org/gmane.comp.version-control.git/145294
+	 in the git mailing list.  */
+      const unsigned char *p = buffer;
+      const unsigned chunk = 30 * 1024 * 1024;
+
+      nchars = 0;
+      while (count > 0)
+	{
+	  unsigned this_chunk = count < chunk ? count : chunk;
+	  int n = _write (fd, p, this_chunk);
+
+	  nchars += n;
+	  if (n < 0)
+	    {
+	      nchars = n;
+	      break;
+	    }
+	  else if (n < this_chunk)
+	    break;
+	  count -= n;
+	  p += n;
+	}
+    }
 
   return nchars;
 }
