@@ -17538,7 +17538,9 @@ find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos)
      Line is continued from buffer            max_pos + 1
      Line ends in a newline from string       max_pos
      Line is continued from string            max_pos
+     Line is continued from display vector    max_pos
      Line is entirely from a string           min_pos == max_pos
+     Line is entirely from a display vector   min_pos == max_pos
      Line that ends at ZV                     ZV
 
      If you discover other use-cases, please add them here as
@@ -17547,21 +17549,27 @@ find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos)
     row->maxpos = it->current.pos;
   else if (row->used[TEXT_AREA])
     {
-      if (CHARPOS (it->eol_pos) > 0)
+      if (row->ends_in_newline_from_string_p)
+	SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
+      else if (CHARPOS (it->eol_pos) > 0)
 	SET_TEXT_POS (row->maxpos,
 		      CHARPOS (it->eol_pos) + 1, BYTEPOS (it->eol_pos) + 1);
       else if (row->continued_p)
 	{
-	  if (it->method == GET_FROM_BUFFER)
+	  /* If max_pos is different from IT's current position, it
+	     means IT->method does not belong to the display element
+	     at max_pos.  However, it also means that the display
+	     element at max_pos was displayed in its entirety on this
+	     line, which is equivalent to saying that the next line
+	     starts at the next buffer position.  */
+	  if (IT_CHARPOS (*it) == max_pos && it->method != GET_FROM_BUFFER)
+	    SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
+	  else
 	    {
 	      INC_BOTH (max_pos, max_bpos);
 	      SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
 	    }
-	  else
-	    SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
 	}
-      else if (row->ends_in_newline_from_string_p)
-	SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
       else if (max_pos == min_pos && it->method != GET_FROM_BUFFER)
 	/* A line that is entirely from a string/image/stretch...  */
 	row->maxpos = row->minpos;

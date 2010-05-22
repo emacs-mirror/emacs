@@ -1,3 +1,8 @@
+2010-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_row_edges): Handle the case of characters
+	delivered from display vector.  Fix tests related to it->method.
+
 2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit (prowlims): Display row->minpos and row->maxpos.
