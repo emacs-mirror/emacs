@@ -1,3 +1,33 @@
+2010-05-21  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-read-files): Fix multi-pattern aliases.
+	Remove "all" from grep-files-aliases.  Split grep-files-aliases by
+	whitespace, call wildcard-to-regexp on substrings and concat them
+	with "\\|".  (Bug#6114)
+
+2010-05-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-parse-state-get-strategy): Replace
+	parameter `here' with `here-' and `here-plus', which sandwich any
+	pertinent CPP construct.
+	(c-remove-stale-state-cache-backwards): Fix a bug which happens
+	when doing (c-parse-state) in a CPP construct: Exclude any "new"
+	CPP construct from taking part in the scanning.
+
+2010-05-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file)
+	(tramp-handle-file-local-copy, tramp-maybe-open-connection): Tune
+	`with-progress-reporter' messages.
+	(tramp-handle-vc-registered):
+	* net/tramp-fish.el (tramp-fish-handle-file-local-copy)
+	(tramp-fish-handle-insert-file-contents)
+	(tramp-fish-maybe-open-connection):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-file-contents)
+	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
+
 2010-05-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* add-log.el (change-log-font-lock-keywords):

@@ -1,3 +1,12 @@
+2010-05-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_internal): Clear caches even if redisplaying
+	just one window.
+
+	* image.c (Vimage_cache_eviction_delay): Decrease to 300.
+	(clear_image_cache): If the number of cached images is unusually
+	large, decrease the cache eviction delay (Bug#6230).
+
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (${ns_appdir}, ${ns_appbindir}Emacs, ns-app):
