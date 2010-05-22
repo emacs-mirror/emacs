@@ -1188,6 +1188,10 @@ increment_row_positions (row, delta, delta_bytes)
   MATRIX_ROW_START_BYTEPOS (row) += delta_bytes;
   MATRIX_ROW_END_CHARPOS (row) += delta;
   MATRIX_ROW_END_BYTEPOS (row) += delta_bytes;
+  CHARPOS (row->start.pos) += delta;
+  BYTEPOS (row->start.pos) += delta_bytes;
+  CHARPOS (row->end.pos) += delta;
+  BYTEPOS (row->end.pos) += delta_bytes;
 
   if (!row->enabled_p)
     return;
@@ -1748,13 +1752,19 @@ check_matrix_invariants (w)
       /* Check that character and byte positions are in sync.  */
       xassert (MATRIX_ROW_START_BYTEPOS (row)
 	       == CHAR_TO_BYTE (MATRIX_ROW_START_CHARPOS (row)));
+      xassert (BYTEPOS (row->start.pos)
+	       == CHAR_TO_BYTE (CHARPOS (row->start.pos)));
 
       /* CHAR_TO_BYTE aborts when invoked for a position > Z.  We can
 	 have such a position temporarily in case of a minibuffer
 	 displaying something like `[Sole completion]' at its end.  */
       if (MATRIX_ROW_END_CHARPOS (row) < BUF_ZV (current_buffer))
-	xassert (MATRIX_ROW_END_BYTEPOS (row)
-		 == CHAR_TO_BYTE (MATRIX_ROW_END_CHARPOS (row)));
+	{
+	  xassert (MATRIX_ROW_END_BYTEPOS (row)
+		   == CHAR_TO_BYTE (MATRIX_ROW_END_CHARPOS (row)));
+	  xassert (BYTEPOS (row->end.pos)
+		   == CHAR_TO_BYTE (CHARPOS (row->end.pos)));
+	}
 
       /* Check that end position of `row' is equal to start position
 	 of next row.  */
@@ -1764,6 +1774,8 @@ check_matrix_invariants (w)
 		   == MATRIX_ROW_START_CHARPOS (next));
 	  xassert (MATRIX_ROW_END_BYTEPOS (row)
 		   == MATRIX_ROW_START_BYTEPOS (next));
+	  xassert (CHARPOS (row->end.pos) == CHARPOS (next->start.pos));
+	  xassert (BYTEPOS (row->end.pos) == BYTEPOS (next->start.pos));
 	}
       row = next;
     }

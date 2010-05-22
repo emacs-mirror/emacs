@@ -707,7 +707,6 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       bidi_copy_it (&bidi_cache[idx], bidi_it);
       if (!resolved)
 	bidi_cache[idx].resolved_level = -1;
-      bidi_cache[idx].new_paragraph = 0;
     }
   else
     {
