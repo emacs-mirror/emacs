@@ -17536,6 +17536,7 @@ find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos)
 
      Line ends in a newline from buffer       eol_pos + 1
      Line is continued from buffer            max_pos + 1
+     Line is truncated on right               it->current.pos
      Line ends in a newline from string       max_pos
      Line is continued from string            max_pos
      Line is continued from display vector    max_pos
@@ -17570,6 +17571,11 @@ find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos)
 	      SET_TEXT_POS (row->maxpos, max_pos, max_bpos);
 	    }
 	}
+      else if (row->truncated_on_right_p)
+	/* display_line already called reseat_at_next_visible_line_start,
+	   which puts the iterator at the beginning of the next line, in
+	   the logical order. */
+	row->maxpos = it->current.pos;
       else if (max_pos == min_pos && it->method != GET_FROM_BUFFER)
 	/* A line that is entirely from a string/image/stretch...  */
 	row->maxpos = row->minpos;
