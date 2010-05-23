@@ -2911,8 +2911,8 @@ void mark_window_display_accurate P_ ((Lisp_Object, int));
 void redisplay_preserve_echo_area P_ ((int));
 int set_cursor_from_row P_ ((struct window *, struct glyph_row *,
 			     struct glyph_matrix *, int, int, int, int));
-void init_iterator P_ ((struct it *, struct window *, int,
-			int, struct glyph_row *, enum face_id));
+void init_iterator P_ ((struct it *, struct window *, EMACS_INT,
+			EMACS_INIT, struct glyph_row *, enum face_id));
 void init_iterator_to_row_start P_ ((struct it *, struct window *,
 				     struct glyph_row *));
 int get_next_display_element P_ ((struct it *));
