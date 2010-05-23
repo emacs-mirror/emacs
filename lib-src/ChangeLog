@@ -1,3 +1,11 @@
+2010-05-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPS): New (Bug #6246).
+	(all): Depend onSTAMP_INST_SCRIPTS, STAMP_SCRIPS (Bug #6246).
+	(stamp-rcs2log, stamp-rcs-checkin, stamp-grep-changelog, stamp-vcdiff):
+	New rules (Bug #6246).
+	(clean): Remove stamp-* (Bug #6246).
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INSTALLABLES): Remove @LIB_SRC_EXTRA_INSTALLABLES@.

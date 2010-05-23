@@ -1,3 +1,59 @@
+2010-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Redesign and reimplement bidi-aware edge positions of glyph rows.
+
+	* dispextern.h (struct glyph_row): New members minpos and maxpos.
+	(MATRIX_ROW_START_CHARPOS, MATRIX_ROW_START_BYTEPOS)
+	(MATRIX_ROW_END_CHARPOS, MATRIX_ROW_END_BYTEPOS): Reference minpos
+	and maxpos members instead of start.pos and end.pos, respectively.
+
+	* xdisp.c (display_line): Compare IT_CHARPOS with the position in
+	row->start.pos, rather than with MATRIX_ROW_START_CHARPOS.
+	(cursor_row_p): Use row->end.pos rather than MATRIX_ROW_END_CHARPOS.
+	(try_window_reusing_current_matrix, try_window_id): Use
+	ROW->minpos rather than ROW->start.pos.
+	(init_from_display_pos, init_iterator): Use EMACS_INT for
+	character and byte positions.
+	(find_row_edges): Renamed from find_row_end.  Accept additional
+	arguments for minimum and maximum buffer positions seen by
+	display_line for this row.  Don't use iterator to find the
+	position following the maximum one; instead, increment the
+	position found by display_line directly.  Fix logic; eol_pos
+	should be tested before the rest.  Handle the case of characters
+	delivered from display vector (bug#6036).  Fix tests related to
+	it->method.  Handle the truncated_on_right_p rows.
+	(RECORD_MAX_MIN_POS): New macro.
+	(display_line): Use it to record the minimum and maximum buffer
+	positions for glyphs in the row being assembled.  Record the
+	position of the newline that terminates the line.  If word wrap is
+	in effect, restore minimum and maximum positions seen up to the
+	wrap point, when iterator returns to it.
+	(try_window_reusing_current_matrix): Give up if in bidi-reordered
+	row and cursor not already at point.  Restore original pre-bidi
+	code for unidirectional buffers.
+
+	* dispnew.c (increment_row_positions, check_matrix_invariants):
+	Increment and check row->start.pos and row->end.pos, in addition
+	to MATRIX_ROW_START_CHARPOS and MATRIX_ROW_END_CHARPOS.
+
+	* .gdbinit (prowlims): Display row->minpos and row->maxpos.
+	Display truncated_on_left_p and truncated_on_right_p flags.
+	Formatting fixes.
+	(pmtxrows): Display the ordinal number of each row.  Don't display
+	rows beyond the last one.
+
+	* bidi.c (bidi_cache_iterator_state): Don't zero out new_paragraph:
+	it is not copied by bidi_copy_it.
+
+2010-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_write): Break writes into chunks smaller than 32MB.
+	(Bug#6237)
+
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (Fimage_flush): Rename from image-refresh.
+
 2010-05-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_internal): Clear caches even if redisplaying
@@ -41,8 +97,6 @@
 	(deps_frag): Include from configure.
 	Move static/dynamic dependency stuff to deps.mk/autodeps.mk.
 	* deps.mk, autodeps.mk: New files, extracted from Makefile.in.
-
-2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_cache_shrink, bidi_cache_iterator_state): Fix
 	reallocation of the cache.  (Bug#6210)
@@ -165,6 +219,8 @@
 
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): New function.
 	(syms_of_xdisp): Defsubr it.
+
+	* cmds.c (Fforward_char, Fbackward_char): Doc fix.
 
 	* Makefile.in: Fix MSDOS-related comments.
 

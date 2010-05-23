@@ -111,6 +111,7 @@ INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
                b2m${EXEEXT} ebrowse${EXEEXT}
 
 INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
+STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
@@ -123,6 +124,7 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
 SCRIPTS= rcs2log vcdiff
+STAMP_SCRIPTS= stamp-rcs2log stamp-vcdiff
 
 EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
@@ -180,23 +182,27 @@ LOADLIBES=$(LIBS_SYSTEM)
 .c.o:
 	${CC} -c ${CPP_CFLAGS} $<
 
-all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
+all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}  ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 ## These targets copy the scripts into the build directory so that
 ## they can be run from there in an uninstalled Emacs.
 ## The "-" is prepended because some versions of cp barf when srcdir
 ## is the current directory, and thus the file will be copied into itself.
-rcs2log: $(srcdir)/rcs2log
+stamp-rcs2log: $(srcdir)/rcs2log
 	-cp -p $(srcdir)/rcs2log rcs2log
+	touch $@
 
-rcs-checkin: $(srcdir)/rcs-checkin
+stamp-rcs-checkin: $(srcdir)/rcs-checkin
 	-cp -p $(srcdir)/rcs-checkin rcs-checkin
+	touch $@
 
-grep-changelog: $(srcdir)/grep-changelog
+stamp-grep-changelog: $(srcdir)/grep-changelog
 	-cp -p $(srcdir)/grep-changelog grep-changelog
+	touch $@
 
-vcdiff: $(srcdir)/vcdiff
+stamp-vcdiff: $(srcdir)/vcdiff
 	-cp -p $(srcdir)/vcdiff vcdiff
+	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
 ## This makes the actual blessmail executable.
@@ -273,7 +279,7 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
-	-rm -f fns*.el *.tab.c *.tab.h
+	-rm -f fns*.el *.tab.c *.tab.h stamp-*
 
 distclean: clean
 	-rm -f TAGS

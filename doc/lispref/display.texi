@@ -4730,28 +4730,34 @@ cache, it can always be displayed, even if the value of
 efficiently.  When Emacs displays an image, it searches the image
 cache for an existing image specification @code{equal} to the desired
 specification.  If a match is found, the image is displayed from the
-cache; otherwise, Emacs loads the image normally.
+cache.  Otherwise, Emacs loads the image normally.
 
-  Occasionally, you may need to tell Emacs to refresh the images
-associated with a given image specification.  For example, suppose you
-display an image using a specification that contains a @code{:file}
-property.  The image is automatically cached, and subsequent displays
-of that image, with the same image specification, will use the image
-cache.  If the image file changes in the meantime, Emacs would be
-displaying the old version of the image.  In such a situation, you can
-``refresh'' the image by calling @code{image-refresh}.
+@defun image-flush spec &optional frame
+This function removes the image with specification @var{spec} from the
+image cache of frame @var{frame}.  Image specifications are compared
+using @code{equal}.  If @var{frame} is @code{nil}, it defaults to the
+selected frame.  If @var{frame} is @code{t}, the image is flushed on
+all existing frames.
 
-  In Emacs' current implementation, each graphical terminal possesses
-an image cache, which is shared by all the frames on that terminal
+In Emacs' current implementation, each graphical terminal possesses an
+image cache, which is shared by all the frames on that terminal
 (@pxref{Multiple Terminals}).  Thus, refreshing an image in one frame
 also refreshes it in all other frames on the same terminal.
-
-@defun image-refresh spec &optional frame
-This function refreshes any images with image specifications
-@code{equal} to @var{spec} on frame @var{frame}.  If @var{frame} is
-@code{nil}, it defaults to the selected frame.  If @var{frame} is
-@code{t}, the refresh is applied to all existing frames.
 @end defun
+
+  One use for @code{image-flush} is to tell Emacs about a change in an
+image file.  If an image specification contains a @code{:file}
+property, the image is cached based on the file's contents when the
+image is first displayed.  Even if the file subsequently changes,
+Emacs continues displaying the old version of the image.  Calling
+@code{image-flush} flushes the image from the cache, forcing Emacs to
+re-read the file the next time it needs to display that image.
+
+  Another use for @code{image-flush} is for memory conservation.  If
+your Lisp program creates a large number of temporary images over a
+period much shorter than @code{image-cache-eviction-delay} (see
+below), you can opt to flush unused images yourself, instead of
+waiting for Emacs to do it automatically.
 
 @defun clear-image-cache &optional filter
 This function clears an image cache, removing all the images stored in
@@ -4768,9 +4774,12 @@ period of time, Emacs removes it from the cache and frees the
 associated memory.
 
 @defvar image-cache-eviction-delay
-This variable specifies the number of seconds an image can remain in the
-cache without being displayed.  When an image is not displayed for this
-length of time, Emacs removes it from the image cache.
+This variable specifies the number of seconds an image can remain in
+the cache without being displayed.  When an image is not displayed for
+this length of time, Emacs removes it from the image cache.
+
+Under some circumstances, if the number of images in the cache grows
+too large, the actual eviction delay may be shorter than this.
 
 If the value is @code{nil}, Emacs does not remove images from the cache
 except when you explicitly clear it.  This mode can be useful for

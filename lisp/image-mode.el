@@ -448,7 +448,7 @@ Remove text properties that display the image."
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
-(declare-function image-refresh "image.c" (spec &optional frame))
+(declare-function image-flush "image.c" (spec &optional frame))
 
 (defun image-toggle-display-image ()
   "Show the image of the image file.
@@ -477,7 +477,7 @@ was inserted."
 	 (inhibit-read-only t)
 	 (buffer-undo-list t)
 	 (modified (buffer-modified-p)))
-    (image-refresh image)
+    (image-flush image)
     (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
       (add-text-properties (point-min) (point-max) props)
       (restore-buffer-modified-p modified))

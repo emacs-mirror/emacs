@@ -1689,11 +1689,13 @@ which is then usually a filename.  */)
 }
 
 
-DEFUN ("image-refresh", Fimage_refresh, Simage_refresh,
+DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
-       doc: /* Refresh the image with specification SPEC on frame FRAME.
-If SPEC specifies an image file, the displayed image is updated with
-the current contents of that file.
+       doc: /* Fush the image with specification SPEC on frame FRAME.
+This removes the image from the Emacs image cache.  If SPEC specifies
+an image file, the next redisplay of this image will read from the
+current contents of that file.
+
 FRAME nil or omitted means use the selected frame.
 FRAME t means refresh the image on all frames.  */)
      (spec, frame)
@@ -8526,7 +8528,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
-  defsubr (&Simage_refresh);
+  defsubr (&Simage_flush);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_metadata);
