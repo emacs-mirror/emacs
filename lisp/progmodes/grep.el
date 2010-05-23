@@ -781,12 +781,17 @@ substitution string.  Note dynamic scoping of variables.")
 		  (file-name-nondirectory bn)))
 	 (default-alias
 	   (and fn
-		(let ((aliases grep-files-aliases)
+		(let ((aliases (remove (assoc "all" grep-files-aliases)
+				       grep-files-aliases))
 		      alias)
 		  (while aliases
 		    (setq alias (car aliases)
 			  aliases (cdr aliases))
-		    (if (string-match (wildcard-to-regexp (cdr alias)) fn)
+		    (if (string-match (mapconcat
+				       'wildcard-to-regexp
+				       (split-string (cdr alias) nil t)
+				       "\\|")
+				      fn)
 			(setq aliases nil)
 		      (setq alias nil)))
 		  (cdr alias))))

@@ -616,7 +616,7 @@ Pretty print all glyphs in it->glyph_row.
 end
 
 define prowlims
-  printf "start=%d,end=%d,reversed=%d,cont=%d,at_zv=%d\n", $arg0->start.pos.charpos, $arg0->end.pos.charpos, $arg0->reversed_p, $arg0->continued_p, $arg0->ends_at_zv_p
+  printf "edges=(%d,%d),r2l=%d,cont=%d,trunc=(%d,%d),at_zv=%d\n", $arg0->minpos.charpos, $arg0->maxpos.charpos, $arg0->reversed_p, $arg0->continued_p, $arg0->truncated_on_left_p, $arg0->truncated_on_right_p, $arg0->ends_at_zv_p
 end
 document prowlims
 Print important attributes of a glyph_row structure.
@@ -626,10 +626,13 @@ end
 define pmtxrows
   set $mtx = $arg0
   set $gl = $mtx->rows
-  set $glend = $mtx->rows + $mtx->nrows
+  set $glend = $mtx->rows + $mtx->nrows - 1
+  set $i = 0
   while ($gl < $glend)
+    printf "%d: ", $i
     prowlims $gl
     set $gl = $gl + 1
+    set $i = $i + 1
   end
 end
 document pmtxrows

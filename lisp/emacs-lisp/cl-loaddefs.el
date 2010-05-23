@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "0faa39d8f21ae59f2cc1baa835e28a5f")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "fbeedbf769c72fee9b4e0671957c1077")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\

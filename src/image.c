@@ -1582,29 +1582,56 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
 
-  if (c && (!NILP (filter) || INTEGERP (Vimage_cache_eviction_delay)))
+  if (c)
     {
-      EMACS_TIME t;
-      unsigned long old;
-      int i, nfreed;
-
-      EMACS_GET_TIME (t);
-      old = EMACS_SECS (t) - XFASTINT (Vimage_cache_eviction_delay);
+      int i, nfreed = 0;
 
       /* Block input so that we won't be interrupted by a SIGIO
 	 while being in an inconsistent state.  */
       BLOCK_INPUT;
 
-      for (i = nfreed = 0; i < c->used; ++i)
+      if (!NILP (filter))
 	{
-	  struct image *img = c->images[i];
-	  if (img != NULL
-	      && (NILP (filter) ? img->timestamp < old
-		  : (EQ (Qt, filter)
-		     || !NILP (Fmember (filter, img->dependencies)))))
+	  /* Filter image cache.  */
+	  for (i = 0; i < c->used; ++i)
 	    {
-	      free_image (f, img);
-	      ++nfreed;
+	      struct image *img = c->images[i];
+	      if (img && (EQ (Qt, filter)
+			  || !NILP (Fmember (filter, img->dependencies))))
+		{
+		  free_image (f, img);
+		  ++nfreed;
+		}
+	    }
+	}
+      else if (INTEGERP (Vimage_cache_eviction_delay))
+	{
+	  /* Free cache based on timestamp.  */
+	  EMACS_TIME t;
+	  unsigned long old;
+	  int delay, nimages = 0;
+
+	  for (i = 0; i < c->used; ++i)
+	    if (c->images[i])
+	      nimages++;
+
+	  /* If the number of cached images has grown unusually large,
+	     decrease the cache eviction delay (Bug#6230).  */
+	  delay = XFASTINT (Vimage_cache_eviction_delay);
+	  if (nimages > 40)
+	    delay = max (1, 1600 * delay / (nimages*nimages));
+
+	  EMACS_GET_TIME (t);
+	  old = EMACS_SECS (t) - delay;
+
+	  for (i = 0; i < c->used; ++i)
+	    {
+	      struct image *img = c->images[i];
+	      if (img && img->timestamp < old)
+		{
+		  free_image (f, img);
+		  ++nfreed;
+		}
 	    }
 	}
 
@@ -1662,11 +1689,13 @@ which is then usually a filename.  */)
 }
 
 
-DEFUN ("image-refresh", Fimage_refresh, Simage_refresh,
+DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
-       doc: /* Refresh the image with specification SPEC on frame FRAME.
-If SPEC specifies an image file, the displayed image is updated with
-the current contents of that file.
+       doc: /* Fush the image with specification SPEC on frame FRAME.
+This removes the image from the Emacs image cache.  If SPEC specifies
+an image file, the next redisplay of this image will read from the
+current contents of that file.
+
 FRAME nil or omitted means use the selected frame.
 FRAME t means refresh the image on all frames.  */)
      (spec, frame)
@@ -8499,7 +8528,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
-  defsubr (&Simage_refresh);
+  defsubr (&Simage_flush);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_metadata);
@@ -8520,11 +8549,14 @@ A cross is always drawn on black & white displays.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, PATH_BITMAPS);
 
   DEFVAR_LISP ("image-cache-eviction-delay", &Vimage_cache_eviction_delay,
-    doc: /* Time after which cached images are removed from the cache.
-When an image has not been displayed this many seconds, remove it
-from the image cache.  Value must be an integer or nil with nil
-meaning don't clear the cache.  */);
-  Vimage_cache_eviction_delay = make_number (30 * 60);
+    doc: /* Maximum time after which images are removed from the cache.
+When an image has not been displayed this many seconds, Emacs
+automatically removes it from the image cache.  If the cache contains
+a large number of images, the actual eviction time may be shorter.
+The value can also be nil, meaning the cache is never cleared.
+
+The function `clear-image-cache' disregards this variable.  */);
+  Vimage_cache_eviction_delay = make_number (300);
 }
 
 void

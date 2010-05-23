@@ -2194,7 +2194,10 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   return Qnil;
 }
 
-DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2, "fDelete file: \nP",
+DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2,
+       "(list (read-file-name \"Delete file: \" nil default-directory \
+                (confirm-nonexistent-file-or-buffer))                 \
+              current-prefix-arg)",
        doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
 If file has multiple names, it continues to exist with the other names.
 
