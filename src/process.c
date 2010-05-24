@@ -3347,11 +3347,25 @@ usage: (make-network-process &rest ARGS)  */)
   /* :service SERVICE -- string, integer (port number), or t (random port).  */
   service = Fplist_get (contact, QCservice);
 
+  /* :host HOST -- hostname, ip address, or 'local for localhost.  */
+  host = Fplist_get (contact, QChost);
+  if (!NILP (host))
+    {
+      if (EQ (host, Qlocal))
+	host = build_string ("localhost");
+      CHECK_STRING (host);
+    }
+
 #ifdef HAVE_LOCAL_SOCKETS
   if (family == AF_LOCAL)
     {
-      /* Host is not used.  */
-      host = Qnil;
+      if (!NILP (host))
+	{
+	  message (":family local ignores the :host \"%s\" property",
+		   SDATA (host));
+	  contact = Fplist_put (contact, QChost, Qnil);
+	  host = Qnil;
+	}
       CHECK_STRING (service);
       bzero (&address_un, sizeof address_un);
       address_un.sun_family = AF_LOCAL;
@@ -3361,15 +3375,6 @@ usage: (make-network-process &rest ARGS)  */)
       goto open_socket;
     }
 #endif
-
-  /* :host HOST -- hostname, ip address, or 'local for localhost.  */
-  host = Fplist_get (contact, QChost);
-  if (!NILP (host))
-    {
-      if (EQ (host, Qlocal))
-	host = build_string ("localhost");
-      CHECK_STRING (host);
-    }
 
   /* Slow down polling to every ten seconds.
      Some kernels have a bug which causes retrying connect to fail
