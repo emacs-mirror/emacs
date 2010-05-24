@@ -181,7 +181,14 @@ dired buffers and DTRT WRT `auto-revert-mode'.
 http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
 
 * Important features:
-
+** Extended text-properties (to make overlays "obsolete")
+*** Several text-property planes
+This would get us rid of font-lock-face property (and I'd be happy to
+get rid of char-property-alias-alist as well) since font-lock would
+simply use the `face' property in the `font-lock' plane.
+Each property would come with an Elisp merge-function.  The merge
+would be performed in add-text-properties.
+*** zero-width text-properties.
 ** Having tabs above a window to switch buffers in it.
 
 ** "Perspectives" are named persistent window configurations.  We have

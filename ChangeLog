@@ -1,3 +1,8 @@
+2010-05-24  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Look for version in src/emacs.c.
+	Use lisp/subr.el rather than lisp/version.el for location check.
+
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (MKDEPDIR): Parallel build tweak.
