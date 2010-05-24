@@ -66,3 +66,4 @@ src/temacs
 src/deps
 configure.lineno
 src/core
+core
