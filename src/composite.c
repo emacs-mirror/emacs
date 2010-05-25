@@ -915,15 +915,16 @@ fill_gstring_body (gstring)
 }
 
 
-/* Try to compose the characters at CHARPOS according to CFT_ELEMENT
-   which is an element of composition-function-table (which see).
-   LIMIT limits the characters to compose.  STRING, if not nil, is a
-   target string.  WIN is a window where the characters are being
-   displayed.  */
+/* Try to compose the characters at CHARPOS according to composition
+   rule RULE ([PATTERN PREV-CHARS FUNC]).  LIMIT limits the characters
+   to compose.  STRING, if not nil, is a target string.  WIN is a
+   window where the characters are being displayed.  If characters are
+   successfully composed, return the composition as a glyph-string
+   object.  Otherwise return nil.  */
 
 static Lisp_Object
-autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
-     Lisp_Object cft_element;
+autocmp_chars (rule, charpos, bytepos, limit, win, face, string)
+     Lisp_Object rule;
      EMACS_INT charpos, bytepos, limit;
      struct window *win;
      struct face *face;
@@ -932,90 +933,66 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
   int count = SPECPDL_INDEX ();
   FRAME_PTR f = XFRAME (win->frame);
   Lisp_Object pos = make_number (charpos);
+  EMACS_INT to;
   EMACS_INT pt = PT, pt_byte = PT_BYTE;
-  int lookback;
+  Lisp_Object re, font_object, lgstring;
+  int len;
 
   record_unwind_save_match_data ();
-  for (lookback = -1; CONSP (cft_element); cft_element = XCDR (cft_element))
+  re = AREF (rule, 0);
+  if (NILP (re))
+    len = 1;
+  else if (! STRINGP (re))
+    return unbind_to (count, Qnil);
+  else if ((len = fast_looking_at (re, charpos, bytepos, limit, -1, string))
+	   > 0)
     {
-      Lisp_Object elt = XCAR (cft_element);
-      Lisp_Object re;
-      Lisp_Object font_object = Qnil, gstring;
-      EMACS_INT len, to;
-
-      if (! VECTORP (elt) || ASIZE (elt) != 3)
-	continue;
-      if (lookback < 0)
-	{
-	  lookback = XFASTINT (AREF (elt, 1));
-	  if (limit > charpos + MAX_COMPOSITION_COMPONENTS)
-	    limit = charpos + MAX_COMPOSITION_COMPONENTS;
-	}
-      else if (lookback != XFASTINT (AREF (elt, 1)))
-	break;
-      re = AREF (elt, 0);
-      if (NILP (re))
-	len = 1;
-      else if ((len = fast_looking_at (re, charpos, bytepos, limit, -1, string))
-	       > 0)
-	{
-	  if (NILP (string))
-	    len = BYTE_TO_CHAR (bytepos + len) - charpos;
-	  else
-	    len = string_byte_to_char (string, bytepos + len) - charpos;
-	}
-      if (len > 0)
-	{
-	  limit = to = charpos + len;
-#ifdef HAVE_WINDOW_SYSTEM
-	  if (FRAME_WINDOW_P (f))
-	    {
-	      font_object = font_range (charpos, &to, win, face, string);
-	      if (! FONT_OBJECT_P (font_object)
-		  || (! NILP (re)
-		      && to < limit
-		      && (fast_looking_at (re, charpos, bytepos, to, -1, string) <= 0)))
-		{
-		  if (NILP (string))
-		    TEMP_SET_PT_BOTH (pt, pt_byte);
-		  return unbind_to (count, Qnil);
-		}
-	    }
-	  else
-#endif	/* not HAVE_WINDOW_SYSTEM */
-	    font_object = win->frame;
-	  gstring = Fcomposition_get_gstring (pos, make_number (to),
-					      font_object, string);
-	  if (NILP (LGSTRING_ID (gstring)))
-	    {
-	      Lisp_Object args[6];
-
-	      /* Save point as marker before calling out to lisp.  */
-	      if (NILP (string))
-		{
-		  Lisp_Object m = Fmake_marker ();
-		  set_marker_both (m, Qnil, pt, pt_byte);
-		  record_unwind_protect (restore_point_unwind, m);
-		}
-
-	      args[0] = Vauto_composition_function;
-	      args[1] = AREF (elt, 2);
-	      args[2] = pos;
-	      args[3] = make_number (to);
-	      args[4] = font_object;
-	      args[5] = string;
-	      gstring = safe_call (6, args);
-	    }
-	  else if (NILP (string))
-	    {
-	      TEMP_SET_PT_BOTH (pt, pt_byte);
-	    }
-	  return unbind_to (count, gstring);
-	}
+      if (NILP (string))
+	len = BYTE_TO_CHAR (bytepos + len) - charpos;
+      else
+	len = string_byte_to_char (string, bytepos + len) - charpos;
     }
-  if (NILP (string))
-    TEMP_SET_PT_BOTH (pt, pt_byte);
-  return unbind_to (count, Qnil);
+  if (len <= 0)
+    return unbind_to (count, Qnil);
+  to = limit = charpos + len;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
+    {
+      font_object = font_range (charpos, &to, win, face, string);
+      if (! FONT_OBJECT_P (font_object)
+	  || (! NILP (re)
+	      && to < limit
+	      && (fast_looking_at (re, charpos, bytepos, to, -1, string) <= 0)))
+	return unbind_to (count, Qnil);
+    }
+  else
+#endif	/* not HAVE_WINDOW_SYSTEM */
+    font_object = win->frame;
+  lgstring = Fcomposition_get_gstring (pos, make_number (to), font_object,
+				       string);
+  if (NILP (LGSTRING_ID (lgstring)))
+    {
+      Lisp_Object args[6];
+
+      /* Save point as marker before calling out to lisp.  */
+      if (NILP (string))
+	{
+	  Lisp_Object m = Fmake_marker ();
+	  set_marker_both (m, Qnil, pt, pt_byte);
+	  record_unwind_protect (restore_point_unwind, m);
+	}
+
+      args[0] = Vauto_composition_function;
+      args[1] = AREF (rule, 2);
+      args[2] = pos;
+      args[3] = make_number (to);
+      args[4] = font_object;
+      args[5] = string;
+      lgstring = safe_call (6, args);
+      if (NILP (string))
+	TEMP_SET_PT_BOTH (pt, pt_byte);
+    }
+  return unbind_to (count, lgstring);
 }
 
 static Lisp_Object _work_val;
@@ -1126,8 +1103,9 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 	  if (! NILP (val))
 	    {
 	      Lisp_Object elt;
+	      int ridx;
 
-	      for (; CONSP (val); val = XCDR (val))
+	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
 		  elt = XCAR (val);
 		  if (VECTORP (elt) && ASIZE (elt) == 3
@@ -1137,6 +1115,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 		}
 	      if (CONSP (val))
 		{
+		  cmp_it->rule_idx = ridx;
 		  cmp_it->lookback = XFASTINT (AREF (elt, 1));
 		  cmp_it->stop_pos = charpos - 1 - cmp_it->lookback;
 		  cmp_it->ch = c;
@@ -1167,45 +1146,54 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
       limit = bytepos + len;
       while (CHAR_COMPOSABLE_P (c))
 	{
-	  for (val = CHAR_TABLE_REF (Vcomposition_function_table, c);
-	       CONSP (val); val = XCDR (val))
+	  val = CHAR_TABLE_REF (Vcomposition_function_table, c);
+	  if (! NILP (val))
 	    {
-	      Lisp_Object elt = XCAR (val);
-	      int back, len;
+	      Lisp_Object elt;
+	      int ridx, back, len;
 
-	      if (VECTORP (elt) && ASIZE (elt) == 3
-		  && NATNUMP (AREF (elt, 1))
-		  && charpos - (back = XFASTINT (AREF (elt, 1))) > endpos)
+	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
-		  EMACS_INT cpos = charpos - back, bpos;
-
-		  if (back == 0)
-		    bpos = bytepos;
-		  else
-		    bpos = (NILP (string) ? CHAR_TO_BYTE (cpos)
-			    : string_char_to_byte (string, cpos));
-		  if (STRINGP (AREF (elt, 0)))
-		    len = fast_looking_at (AREF (elt, 0), cpos, bpos,
-					   start + 1, limit, string);
-		  else
-		    len = 1;
-		  if (len > 0)
+		  elt = XCAR (val);
+		  if (VECTORP (elt) && ASIZE (elt) == 3
+		      && NATNUMP (AREF (elt, 1))
+		      && charpos - (back = XFASTINT (AREF (elt, 1))) > endpos)
 		    {
-		      /* Make CPOS point to the last character of match.
-			 Note that LEN is byte-length.  */
-		      bpos += len;
-		      if (NILP (string))
-			cpos = BYTE_TO_CHAR (bpos) - 1;
+		      EMACS_INT cpos = charpos - back, bpos;
+
+		      if (back == 0)
+			bpos = bytepos;
 		      else
-			cpos = string_byte_to_char (string, bpos) - 1;
-		      back = cpos - (charpos - back);
-		      if (cmp_it->stop_pos < cpos
-			  || (cmp_it->stop_pos == cpos
-			      && cmp_it->lookback < back))
+			bpos = (NILP (string) ? CHAR_TO_BYTE (cpos)
+				: string_char_to_byte (string, cpos));
+		      if (STRINGP (AREF (elt, 0)))
+			len = fast_looking_at (AREF (elt, 0), cpos, bpos,
+					       start + 1, limit, string);
+		      else
+			len = 1;
+		      if (len > 0)
 			{
-			  cmp_it->stop_pos = cpos;
-			  cmp_it->ch = c;
-			  cmp_it->lookback = back;
+			  /* Make CPOS point to the last character of
+			     match.  Note that LEN is byte-length.  */
+			  if (len > 1)
+			    {
+			      bpos += len;
+			      if (NILP (string))
+				cpos = BYTE_TO_CHAR (bpos) - 1;
+			      else
+				cpos = string_byte_to_char (string, bpos) - 1;
+			    }
+			  back = cpos - (charpos - back);
+			  if (cmp_it->stop_pos < cpos
+			      || (cmp_it->stop_pos == cpos
+				  && cmp_it->lookback < back))
+			    {
+			      cmp_it->rule_idx = ridx;
+			      cmp_it->stop_pos = cpos;
+			      cmp_it->ch = c;
+			      cmp_it->lookback = back;
+			      cmp_it->nchars = back + 1;
+			    }
 			}
 		    }
 		}
@@ -1293,7 +1281,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
   if (cmp_it->ch == -2)
     {
       composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string);
-      if (cmp_it->stop_pos != charpos)
+      if (cmp_it->ch == -2 || cmp_it->stop_pos != charpos)
 	/* The current position is not composed.  */
 	return 0;
     }
@@ -1314,55 +1302,75 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
     }
   else if (w)
     {
-      Lisp_Object val, elt;
-      int i;
+      Lisp_Object lgstring = Qnil;
+      Lisp_Object val, elt, re;
+      int len, i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
+      for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
       if (charpos < endpos)
 	{
 	  for (; CONSP (val); val = XCDR (val))
 	    {
 	      elt = XCAR (val);
-	      if (cmp_it->lookback == XFASTINT (AREF (elt, 1)))
+	      if (! VECTORP (elt) || ASIZE (elt) != 3
+		  || ! INTEGERP (AREF (elt, 1)))
+		continue;
+	      if (XFASTINT (AREF (elt, 1)) != cmp_it->lookback)
+		goto no_composition;		  
+	      lgstring = autocmp_chars (elt, charpos, bytepos, endpos,
+					w, face, string);
+	      if (composition_gstring_p (lgstring))
 		break;
+	      lgstring = Qnil;
+	      /* Composition failed perhaps because the font doesn't
+		 support sufficient range of characters.  Try the
+		 other composition rules if any.  */
 	    }
-	  if (NILP (val))
-	    goto no_composition;
-
-	  val = autocmp_chars (val, charpos, bytepos, endpos, w, face, string);
-	  if (! composition_gstring_p (val))
-	    goto no_composition;
 	  cmp_it->reversed_p = 0;
 	}
       else
 	{
-	  EMACS_INT saved_charpos = charpos, saved_bytepos = bytepos;
+	  EMACS_INT cpos = charpos, bpos = bytepos;
 
-	  if (cmp_it->lookback > 0)
+	  while (1)
 	    {
-	      charpos -= cmp_it->lookback;
-	      if (charpos < endpos)
+	      elt = XCAR (val);
+	      if (cmp_it->lookback > 0)
+		{
+		  cpos -= cmp_it->lookback;
+		  if (STRINGP (string))
+		    bpos = string_char_to_byte (string, cpos);
+		  else
+		    bpos = CHAR_TO_BYTE (cpos);
+		}
+	      lgstring = autocmp_chars (elt, cpos, bpos, charpos + 1, w, face,
+					string);
+	      if (composition_gstring_p (lgstring)
+		  && cpos + LGSTRING_CHAR_LEN (lgstring) - 1 == charpos)
+		break;
+	      /* Composition failed or didn't cover the current
+		 character.  */
+	      if (cmp_it->lookback == 0)
 		goto no_composition;
-	      if (STRINGP (string))
-		bytepos = string_char_to_byte (string, charpos);
-	      else
-		bytepos = CHAR_TO_BYTE (charpos);
-	    }
-	  val = autocmp_chars (val, charpos, bytepos, saved_charpos + 1,
-			       w, face, string);
-	  if (! composition_gstring_p (val)
-	      || charpos + LGSTRING_CHAR_LEN (val) <= saved_charpos)
-	    {
-	      charpos = saved_charpos, bytepos = saved_bytepos;
-	      goto no_composition;
+	      lgstring = Qnil;
+	      /* Try to find a shorter compostion that starts after CPOS.  */
+	      composition_compute_stop_pos (cmp_it, charpos, bytepos, cpos,
+					    string);
+	      if (cmp_it->ch == -2 || cmp_it->stop_pos < charpos)
+		goto no_composition;
+	      val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
+	      for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
 	    }
 	  cmp_it->reversed_p = 1;
 	}
-      if (NILP (LGSTRING_ID (val)))
-	val = composition_gstring_put_cache (val, -1);
-      cmp_it->id = XINT (LGSTRING_ID (val));
-      for (i = 0; i < LGSTRING_GLYPH_LEN (val); i++)
-	if (NILP (LGSTRING_GLYPH (val, i)))
+      if (NILP (lgstring))
+	goto no_composition;
+      if (NILP (LGSTRING_ID (lgstring)))
+	lgstring = composition_gstring_put_cache (lgstring, -1);
+      cmp_it->id = XINT (LGSTRING_ID (lgstring));
+      for (i = 0; i < LGSTRING_GLYPH_LEN (lgstring); i++)
+	if (NILP (LGSTRING_GLYPH (lgstring, i)))
 	  break;
       cmp_it->nglyphs = i;
       cmp_it->from = 0;
@@ -1378,10 +1386,10 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
   if (charpos < endpos)
     {
       charpos++;
-      if (STRINGP (string))
-	bytepos += MULTIBYTE_LENGTH_NO_CHECK (SDATA (string) + bytepos);
-      else
+      if (NILP (string))
 	INC_POS (bytepos);
+      else
+	bytepos += MULTIBYTE_FORM_LENGTH (SDATA (string) + bytepos, 0);
     }
   else
     {
@@ -1393,11 +1401,20 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
   return 0;
 }
 
-/* Update nchars, nbytes, and width of the current grapheme cluster
-   which is identified by CMP_IT->from (if the composition is static
-   or automatic in l2r context) or CMPT_IT->to (if the composition is
-   automatic in r2l context).  In addition, in the former case, update
-   CMP_IT->to, and in the latter case, update CMP_IT->from.  */
+/* Update charpos, nchars, nbytes, and width of the current grapheme
+   cluster.
+
+   If the composition is static or automatic in L2R context, the
+   cluster is identified by CMP_IT->from, and CHARPOS is the position
+   of the first character of the cluster.  In this case, update
+   CMP_IT->to too.
+
+   If the composition is automatic in R2L context, the cluster is
+   identified by CMP_IT->to, and CHARPOS is the position of the last
+   character of the cluster.  In this case, update CMP_IT->from too.
+
+   The return value is the character code of the first character of
+   the cluster, or -1 if the composition is somehow broken.  */
 
 int
 composition_update_it (cmp_it, charpos, bytepos, string)
@@ -1409,8 +1426,10 @@ composition_update_it (cmp_it, charpos, bytepos, string)
 
   if (cmp_it->ch < 0)
     {
+      /* static composition */
       struct composition *cmp = composition_table[cmp_it->id];
 
+      cmp_it->charpos = charpos;
       cmp_it->to = cmp_it->nglyphs;
       if (cmp_it->nglyphs == 0)
 	c = -1;
@@ -1423,70 +1442,64 @@ composition_update_it (cmp_it, charpos, bytepos, string)
 	    c = ' ';
 	}
       cmp_it->width = cmp->width;
+      charpos += cmp_it->nchars;
+      if (STRINGP (string))
+	cmp_it->nbytes = string_char_to_byte (string, charpos) - bytepos;
+      else
+	cmp_it->nbytes = CHAR_TO_BYTE (charpos) - bytepos;
     }
   else
     {
+      /* automatic composition */
       Lisp_Object gstring = composition_gstring_from_id (cmp_it->id);
+      Lisp_Object glyph;
+      int from, to;
 
       if (cmp_it->nglyphs == 0)
 	{
-	  c = -1;
 	  cmp_it->nchars = LGSTRING_CHAR_LEN (gstring);
 	  cmp_it->width = 0;
+	  cmp_it->from = cmp_it->to = 0;
+	  return -1;
 	}
-      else if (! cmp_it->reversed_p)
+      if (! cmp_it->reversed_p)
 	{
-	  Lisp_Object glyph = LGSTRING_GLYPH (gstring, cmp_it->from);
-	  int from = LGLYPH_FROM (glyph);
-
-	  c = XINT (LGSTRING_CHAR (gstring, from));
-	  cmp_it->nchars = LGLYPH_TO (glyph) - from + 1;
-	  cmp_it->width = (LGLYPH_WIDTH (glyph) > 0
-			   ? CHAR_WIDTH (LGLYPH_CHAR (glyph)) : 0);
+	  glyph = LGSTRING_GLYPH (gstring, cmp_it->from);
+	  from = LGLYPH_FROM (glyph);
 	  for (cmp_it->to = cmp_it->from + 1; cmp_it->to < cmp_it->nglyphs;
 	       cmp_it->to++)
 	    {
 	      glyph = LGSTRING_GLYPH (gstring, cmp_it->to);
 	      if (LGLYPH_FROM (glyph) != from)
 		break;
-	      if (LGLYPH_WIDTH (glyph) > 0)
-		cmp_it->width += CHAR_WIDTH (LGLYPH_CHAR (glyph));
 	    }
+	  cmp_it->charpos = charpos;
 	}
       else
 	{
-	  int from_idx = cmp_it->to - 1;
-	  Lisp_Object glyph = LGSTRING_GLYPH (gstring, from_idx);
-	  int from = LGLYPH_FROM (glyph);
-
-	  c = XINT (LGSTRING_CHAR (gstring, from));
-	  cmp_it->nchars = LGLYPH_TO (glyph) - from + 1;
-	  cmp_it->width = (LGLYPH_WIDTH (glyph) > 0
-			   ? CHAR_WIDTH (LGLYPH_CHAR (glyph)) : 0);
-	  for (from_idx--; from_idx >= 0; from_idx--)
+	  glyph = LGSTRING_GLYPH (gstring, cmp_it->to - 1);
+	  from = LGLYPH_FROM (glyph);
+	  cmp_it->charpos = charpos - (LGLYPH_TO (glyph) - from);
+	  for (cmp_it->from = cmp_it->to - 1; cmp_it->from > 0;
+	       cmp_it->from--)
 	    {
-	      glyph = LGSTRING_GLYPH (gstring, from_idx);
+	      glyph = LGSTRING_GLYPH (gstring, cmp_it->from - 1);
 	      if (LGLYPH_FROM (glyph) != from)
 		break;
-	      if (LGLYPH_WIDTH (glyph) > 0)
-		cmp_it->width += CHAR_WIDTH (LGLYPH_CHAR (glyph));
 	    }
-	  cmp_it->from = from_idx + 1;
-	  charpos -= cmp_it->nchars - 1;
-	  bytepos += CHAR_BYTES (c);
-	  if (STRINGP (string))
-	    cmp_it->nbytes = bytepos - string_char_to_byte (string, charpos);
-	  else
-	    cmp_it->nbytes = bytepos - CHAR_TO_BYTE (charpos);
-	  return c;
+	}
+      glyph = LGSTRING_GLYPH (gstring, cmp_it->from);
+      cmp_it->nchars = LGLYPH_TO (glyph) + 1 - from;
+      cmp_it->nbytes = 0;
+      cmp_it->width = 0;
+      for (i = cmp_it->nchars - 1; i >= 0; i--)
+	{
+	  c = XINT (LGSTRING_CHAR (gstring, i));
+	  cmp_it->nbytes += CHAR_BYTES (c);
+	  cmp_it->width = (LGLYPH_WIDTH (glyph) > 0
+			   ? CHAR_WIDTH (LGLYPH_CHAR (glyph)) : 0);
 	}
     }
-
-  charpos += cmp_it->nchars;
-  if (STRINGP (string))
-    cmp_it->nbytes = string_char_to_byte (string, charpos) - bytepos;
-  else
-    cmp_it->nbytes = CHAR_TO_BYTE (charpos) - bytepos;
   return c;
 }
 
@@ -1655,7 +1668,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 		    check.pos_byte = cur.pos_byte;
 		  else
 		    check.pos_byte = CHAR_TO_BYTE (check.pos);
-		  val = autocmp_chars (check_val, check.pos, check.pos_byte,
+		  val = autocmp_chars (elt, check.pos, check.pos_byte,
 				       tail, w, NULL, string);
 		  need_adjustment = 1;
 		  if (! NILP (val))
@@ -2059,7 +2072,7 @@ preceding and/or following characters, this char-table contains
 a function to call to compose that character.
 
 The element at index C in the table, if non-nil, is a list of
-this form: ([PATTERN PREV-CHARS FUNC] ...)
+composition rules of this form: ([PATTERN PREV-CHARS FUNC] ...)
 
 PATTERN is a regular expression which C and the surrounding
 characters must match.
