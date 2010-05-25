@@ -1,3 +1,8 @@
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LD_SWITCH_SYSTEM_EXTRA): Remove.
+	(TEMACS_LDFLAGS): Remove LD_SWITCH_SYSTEM_EXTRA.
+
 2010-05-25  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (struct composition_it): New members rule_idx and
