@@ -220,6 +220,16 @@ usage: (char-to-string CHAR)  */)
   return make_string_from_bytes (str, 1, len);
 }
 
+DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
+       doc: /* Convert arg BYTE to a string containing that byte.  */)
+     (byte)
+     Lisp_Object byte;
+{
+  CHECK_NUMBER (byte);
+  unsigned char b = XINT (byte);
+  return make_string_from_bytes (&b, 1, 1);
+}
+
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
        doc: /* Convert arg STRING to a character, the first character of that string.
 A multibyte character is handled correctly.  */)
@@ -4686,6 +4696,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sgoto_char);
   defsubr (&Sstring_to_char);
   defsubr (&Schar_to_string);
+  defsubr (&Sbyte_to_string);
   defsubr (&Sbuffer_substring);
   defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);

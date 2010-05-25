@@ -1,12 +1,15 @@
 2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* editfns.c (Fbyte_to_string): New function.
+
+2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* process.c (Fmake_network_process): Set :host to nil if it's not used.
 	Suggested by Masatake YAMATO <yamato@redhat.com>.
 
 2010-05-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispextern.h (init_iterator): Sync prototype with changed
-	definition.
+	* dispextern.h (init_iterator): Sync prototype with changed definition.
 
 2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 
