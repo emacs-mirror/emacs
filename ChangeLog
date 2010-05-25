@@ -1,5 +1,8 @@
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (LD_SWITCH_SYSTEM): Move some gnu-linux stuff...
+	(LD_SWITCH_SYSTEM_TEMACS): ... to here.
+
 	* configure.in (LD_SWITCH_SYSTEM_EXTRA): Remove.
 	(LD_SWITCH_SYSTEM_TEMACS): Put darwin stuff from LD_SWITCH_SYSTEM_EXTRA
 	here instead.

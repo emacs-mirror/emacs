@@ -1,5 +1,8 @@
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (LD_SWITCH_SYSTEM_TEMACS): Move definition after some
+	variables it may reference.
+
 	* Makefile.in (LD_SWITCH_SYSTEM_EXTRA): Remove.
 	(TEMACS_LDFLAGS): Remove LD_SWITCH_SYSTEM_EXTRA.
 
