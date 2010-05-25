@@ -1,5 +1,10 @@
 2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-set-prec2tab): Check override before use.
+	(smie-merge-prec2s): Pass the tables as separate args.
+	(smie-bnf-precedence-table): Adjust call accordingly.
+	(smie-prec2-levels): Set levels at the end.
+
 	Replace Lisp calls to delete-backward-char by delete-char.
 	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
 	skeleton.el, term.el, time.el, wid-edit.el, woman.el,
