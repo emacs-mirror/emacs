@@ -1344,7 +1344,7 @@ With prefix arg, indent to that column."
          pad)
         (if (bolp)
             nil
-          (delete-backward-char 1)
+          (delete-char -1)
           (if (cua--rectangle-right-side t)
               (cua--rectangle-insert-col (current-column))
             (setq indent (- l (current-column))))))

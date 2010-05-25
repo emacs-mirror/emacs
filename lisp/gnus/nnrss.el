@@ -682,7 +682,7 @@ which RSS 2.0 allows."
       (rfc2047-encode-region (point-min) (point-max)))
     (goto-char (point-min))
     (while (search-forward "\n" nil t)
-      (delete-backward-char 1))
+      (delete-char -1))
     (buffer-string)))
 
 ;;; Snarf functions

@@ -58,7 +58,7 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
       ;; Create a new label, with a temporary brace for `reftex-what-macro'
       (unwind-protect
           (progn (insert "{") (setq label (or (reftex-label nil t) "")))
-        (delete-backward-char 1)))
+        (delete-char -1)))
      ((and (not definition) (reftex-plug-flag 2))
       ;; Reference a label with RefTeX
       (setq label (reftex-reference nil t)))

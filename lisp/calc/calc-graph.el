@@ -433,7 +433,7 @@
 	   (while (memq (preceding-char) '(?\s ?\t))
 	     (forward-char -1))
 	   (if (eq (preceding-char) ?\,)
-	       (delete-backward-char 1))))
+	       (delete-char -1))))
        (with-current-buffer calcbuf
 	 (setq cache-env (list calc-angle-mode
 			       calc-complex-mode

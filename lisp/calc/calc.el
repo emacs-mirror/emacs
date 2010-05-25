@@ -2386,7 +2386,7 @@ See calc-keypad for details."
 	    (progn
 	      (require 'calc-ext)
 	      (calc-digit-dots))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (beep)
 	  (calc-temp-minibuffer-message " [Bad format]"))))))
   (setq calc-prev-prev-char calc-prev-char

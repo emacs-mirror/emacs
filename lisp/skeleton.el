@@ -358,7 +358,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	     (< element 0))
 	(if skeleton-untabify
 	    (backward-delete-char-untabify (- element))
-	  (delete-backward-char (- element)))
+	  (delete-char element))
       (insert (if (not literal)
 		  (funcall skeleton-transformation-function element)
 		element))))

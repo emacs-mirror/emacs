@@ -524,7 +524,7 @@ See `display-time-world'."
 	(insert (pop result)
 		(make-string (1+ (- max-width (pop result))) ?\s)
 		(pop result) "\n")))
-    (delete-backward-char 1)))
+    (delete-char -1)))
 
 ;;;###autoload
 (defun display-time-world ()

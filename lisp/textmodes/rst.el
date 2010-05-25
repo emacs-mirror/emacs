@@ -1787,7 +1787,7 @@ The TOC is inserted indented at the current column."
       (delete-region init-point (+ init-point (length initial-indent)))
 
       ;; Delete the last newline added.
-      (delete-backward-char 1)
+      (delete-char -1)
     )))
 
 (defun rst-toc-insert-node (node level indent pfx)

@@ -553,7 +553,7 @@ completion functions list (it should occur fairly early in the list)."
 				pcomplete-expand-and-complete
 				pcomplete-reverse)))
       (progn
-	(delete-backward-char pcomplete-last-completion-length)
+	(delete-char (- pcomplete-last-completion-length))
 	(if (eq this-command 'pcomplete-reverse)
 	    (progn
               (push (car (last pcomplete-current-completions))
@@ -616,7 +616,7 @@ This will modify the current buffer."
     (pcomplete)
     (when (and pcomplete-current-completions
 	       (> (length pcomplete-current-completions) 0)) ;??
-      (delete-backward-char pcomplete-last-completion-length)
+      (delete-char (- pcomplete-last-completion-length))
       (while pcomplete-current-completions
 	(unless (pcomplete-insert-entry
 		 "" (car pcomplete-current-completions) t
@@ -639,7 +639,7 @@ This will modify the current buffer."
   (when (and pcomplete-cycle-completions
 	     pcomplete-current-completions
 	     (eq last-command 'pcomplete-argument))
-    (delete-backward-char pcomplete-last-completion-length)
+    (delete-char (- pcomplete-last-completion-length))
     (setq pcomplete-current-completions nil
 	  pcomplete-last-completion-raw nil))
   (let ((pcomplete-show-list t))
@@ -1207,7 +1207,7 @@ Returns non-nil if a space was appended at the end."
       ;; FIXME: Here we presume that quoting `stub' gives us the exact
       ;; text in the buffer before point, which is not guaranteed;
       ;; e.g. it is not the case in eshell when completing ${FOO}tm[TAB].
-      (delete-backward-char (length (pcomplete-quote-argument stub)))
+      (delete-char (- (length (pcomplete-quote-argument stub))))
       ;; if there is already a backslash present to handle the first
       ;; character, don't bother quoting it
       (when (eq (char-before) ?\\)

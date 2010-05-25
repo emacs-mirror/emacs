@@ -1067,8 +1067,8 @@ Create the buffer if it doesn't exist."
     (goto-char (point-max))
     (when (not (equal 0 (- (point) rcirc-prompt-end-marker)))
       ;; delete a trailing newline
-      (when (eq (point) (point-at-bol))
-	(delete-backward-char 1))
+      (when (bolp)
+	(delete-char -1))
       (let ((input (buffer-substring-no-properties
 		    rcirc-prompt-end-marker (point))))
 	(dolist (line (split-string input "\n"))

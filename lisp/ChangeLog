@@ -1,3 +1,22 @@
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Replace Lisp calls to delete-backward-char by delete-char.
+	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
+	skeleton.el, term.el, time.el, wid-edit.el, woman.el,
+	calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
+	calc/calc.el, emacs-cl-extra.el, emacs-cl-loaddefs.el,
+	emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
+	eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
+	gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
+	language/ethio-util.el, mh-e/mh-alias.el, mh-e/mh-search.el,
+	net/imap.el, net/rcirc.el, obsolete/complete.el, play/decipher.el,
+	progmodes/ada-mode.el, progmodes/cc-awk.el, progmodes/dcl-mode.el,
+	progmodes/ps-mode.el, progmodes/verilog-mode.el,
+	progmodes/vhdl-mode.el, textmodes/bibtex.el, textmodes/fill.el,
+	textmodes/reftex-auc.el, textmodes/rst.el, textmodes/sgml-mode.el,
+	textmodes/table.el, textmodes/texinfmt.el: Replace Lisp calls to
+	delete-backward-char by calls to delete-char.
+
 2010-05-25  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el (hebrew-shape-gstring): New function.
