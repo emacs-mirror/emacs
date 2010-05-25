@@ -685,10 +685,13 @@ shall be displayed."
     (let* ((metadata (image-metadata image))
 	   (images (plist-get metadata 'count))
 	   (extdata (plist-get metadata 'extension-data))
-	   (anim (plist-get extdata #xF9)))
-      (and (integerp images) (> images 1)
-	   (stringp anim) (>= (length anim) 4)
-	   (cons images (+ (aref anim 1) (* (aref anim 2) 256))))))))
+	   (anim (plist-get extdata #xF9))
+	   (tmo (and (integerp images) (> images 1)
+		     (stringp anim) (>= (length anim) 4)
+		     (+ (aref anim 1) (* (aref anim 2) 256)))))
+      (when tmo
+	(if (eq tmo 0) (setq tmo 10))
+	(cons images tmo))))))
 
 
 (provide 'image)

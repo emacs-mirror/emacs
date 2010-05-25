@@ -1,3 +1,8 @@
+2010-05-25  Juri Linkov  <juri@jurta.org>
+
+	* image.el (image-animated-p): When delay between animated images
+	is 0, set it to 10 (0.1 sec).  (Bug#6258)
+
 2010-05-25  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
 
 	* net/tramp.el (tramp-handle-insert-directory): Don't use
