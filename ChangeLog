@@ -1,3 +1,40 @@
+2010-05-24  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Look for version in src/emacs.c.
+	Use lisp/subr.el rather than lisp/version.el for location check.
+
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (MKDEPDIR): Parallel build tweak.
+
+	* configure.in (ns_frag): New output file.
+
+	* configure.in (OLDXMENU): Set to "nothing" if !HAVE_X11 || USE_GTK.
+	(OLDXMENU_TARGET): Set to empty if USE_GTK.
+
+	* configure.in (cannot_dump): New output variable.
+
+2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* configure.in: On NetBSD, if terminfo is found, use it in
+	preference to termcap.  (Bug#6190)
+
+2010-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (src): Include *.mk.
+	* config.bat: Concatenate deps.mk onto the end of src/Makefile.
+	* configure.in (DEPFLAGS, MKDEPDIR): New output variables.
+	(deps_frag): New output file.
+	(AUTO_DEPEND): Remove this definition.
+
+	* configure.in (--with-gtk, --with-gcc): Remove option stubs.
+
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LINKER, YMF_PASS_LDFLAGS): New output variables.
+	(ORDINARY_LINK): New AC_DEFINE.
+	(LIB_GCC): No need to set if ORDINARY_LINK.
+
 2010-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (POST_ALLOC_OBJ) [cygwin]: Omit vm-limit.o.

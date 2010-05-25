@@ -82,8 +82,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define _NAIVE_DOS_REGS
 
-#define ORDINARY_LINK
-
 /* command.com does not understand `...` so we define this.  */
 #define SEPCHAR ';'
 

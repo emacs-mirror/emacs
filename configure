@@ -701,6 +701,7 @@ RANLIB
 INSTALL_INFO
 GZIP_PROG
 MAKEINFO
+cannot_dump
 LD_SWITCH_SYSTEM
 C_SWITCH_MACHINE
 C_SWITCH_SYSTEM
@@ -714,6 +715,8 @@ ALSA_CFLAGS
 ALSA_LIBS
 CFLAGS_SOUND
 SET_MAKE
+MKDEPDIR
+DEPFLAGS
 XMKMF
 LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
@@ -818,12 +821,15 @@ PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
 LD_SWITCH_SYSTEM_EXTRA
+YMF_PASS_LDFLAGS
+LINKER
 LIB_GCC
 MOUSE_SUPPORT
 TOOLTIP_SUPPORT
 WINDOW_SUPPORT
 LTLIBOBJS'
-ac_subst_files=''
+ac_subst_files='deps_frag
+ns_frag'
 ac_user_opts='
 enable_option_checking
 with_pop
@@ -854,8 +860,6 @@ with_dbus
 with_gconf
 with_selinux
 with_makeinfo
-with_gtk
-with_gcc
 with_pkg_config_prog
 with_crt_dir
 with_gnustep_conf
@@ -1569,7 +1573,6 @@ Optional Packages:
   --without-gconf         don't compile with GConf support
   --without-selinux       don't compile with SELinux support
   --without-makeinfo      don't require makeinfo for building manuals
-
   --with-pkg-config-prog=PATH
                           path to pkg-config for finding GTK and librsvg
   --with-crt-dir=DIR      directory containing crtn.o etc. The default is
@@ -2378,28 +2381,6 @@ if test "${with_makeinfo+set}" = set; then
   withval=$with_makeinfo;
 else
      with_makeinfo=yes
-fi
-
-
-
-# Check whether --with-gtk was given.
-if test "${with_gtk+set}" = set; then
-  withval=$with_gtk; { { $as_echo "$as_me:$LINENO: error: --with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit." >&5
-$as_echo "$as_me: error: --with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-
-
-# Check whether --with-gcc was given.
-if test "${with_gcc+set}" = set; then
-  withval=$with_gcc; { { $as_echo "$as_me:$LINENO: error: --with-gcc has been removed.  Set the \`CC' environment
-variable to specify a compiler." >&5
-$as_echo "$as_me: error: --with-gcc has been removed.  Set the \`CC' environment
-variable to specify a compiler." >&2;}
-   { (exit 1); exit 1; }; }
 fi
 
 
@@ -5851,6 +5832,12 @@ configure___ LIBX=-lX11
 
 configure___ unexec=UNEXEC
 
+#ifdef CANNOT_DUMP
+configure___ cannot_dump=yes
+#else
+configure___ cannot_dump=no
+#endif
+
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
 #else
@@ -5910,6 +5897,9 @@ else
   REAL_CFLAGS="$CFLAGS"
 fi
 rm ${tempcname}
+
+
+
 
 
 LD_SWITCH_SYSTEM=
@@ -9501,6 +9491,9 @@ $as_echo "no" >&6; }
 fi
 
 
+DEPFLAGS=
+MKDEPDIR=":"
+deps_frag=deps.mk
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    { $as_echo "$as_me:$LINENO: checking whether we are using GNU Make" >&5
 $as_echo_n "checking whether we are using GNU Make... " >&6; }
@@ -9567,13 +9560,19 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo "$ac_enable_autodepend" >&6; }
    fi
    if test $ac_enable_autodepend = yes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define AUTO_DEPEND 1
-_ACEOF
-
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      ## In parallel builds, another make might create depdir between
+      ## the first test and mkdir, so stick another test on the end.
+      ## Or use mkinstalldirs?  mkdir -p is not portable.
+      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR} || test -d ${DEPDIR}'
+      deps_frag=autodeps.mk
    fi
 fi
+deps_frag=$srcdir/src/$deps_frag
+
+
+
+
 
 { $as_echo "$as_me:$LINENO: checking for long file names" >&5
 $as_echo_n "checking for long file names... " >&6; }
@@ -9960,6 +9959,7 @@ if test "${with_ns}" != no; then
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      ## Pull in stuff from GNUstep-make.
+     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
      NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
 GUI_LIB=gnu
 include $GNUSTEP_MAKEFILES/Additional/base.make
@@ -10164,6 +10164,7 @@ fi
 
 
 
+ns_frag=/dev/null
 NS_OBJ=
 NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
@@ -10175,11 +10176,13 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
   NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
+
 
 
 
@@ -21622,7 +21625,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -21715,13 +21718,22 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
     fi
     ;;
 
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
 esac
 
 case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
 
@@ -26491,7 +26503,6 @@ else
 fi
 
 
-
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;
 ## otherwise, use our own copy.
@@ -26511,7 +26522,9 @@ _ACEOF
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
   OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  OLDXMENU=
+  ## For a syntactically valid Makefile; not actually used for anything.
+  ## See comments in src/Makefile.in.
+  OLDXMENU=nothing
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
   if test "${HAVE_X_WINDOWS}" = "yes"; then
     LIBXMENU="-lXMenu"
@@ -26523,10 +26536,12 @@ else
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU=
+  OLDXMENU_TARGET=
+  OLDXMENU=nothing
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
+
 
 
 
@@ -26616,8 +26631,79 @@ fi
 
 
 
+LINKER=
+ORDINARY_LINK=
+case "$opsys" in
+  ## gnu: GNU needs its own crt0.
+  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
+
+  cygwin) LINKER="\$(CC)" ;;
+
+  ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
+  ## library search parth, i.e. it won't search /usr/lib for libc and
+  ## friends.  Using -nostartfiles instead avoids this problem, and
+  ## will also work on earlier NetBSD releases.
+  netbsd|openbsd) LINKER="\$(CC) -nostartfiles" ;;
+
+  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ##   MkLinux/LinuxPPC needs this.
+  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  gnu-*)
+    case "$machine" in
+      macppc|ibms390x) LINKER="\$(CC) -nostdlib" ;;
+    esac
+    ;;
+esac
+
+## A macro which other sections of Makefile can redefine to munge the
+## flags before they are passed to LD.  This is helpful if you have
+## redefined LD to something odd, like "gcc".
+## (The YMF prefix is a holdover from the old name "ymakefile".)
+YMF_PASS_LDFLAGS=flags
+if test "x$ORDINARY_LINK" = "xyes"; then
+
+  LINKER="\$(CC)"
+
+cat >>confdefs.h <<\_ACEOF
+#define ORDINARY_LINK 1
+_ACEOF
+
+
+## The system files defining neither ORDINARY_LINK nor LINKER are:
+## (bsd-common), freebsd, gnu-* not on macppc|ibms390x, hpux*.
+elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
+
+  ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
+  ## places that are difficult to figure out at make time.  Fortunately,
+  ## these same versions allow you to pass arbitrary flags on to the
+  ## linker, so there is no reason not to use it as a linker.
+  ##
+  ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
+  ## searching for libraries in its internal directories, so we have to
+  ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
+  LINKER="\$(CC) -nostdlib"
+  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
+  ## See prefix-args.c for an explanation of why we do not do this with the
+  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
+  ## their paths, so we must use ./prefix-args.
+  ## TODO either make prefix-args check ORDINARY_LINK internally,
+  ## or remove it altogether (bug#6184), removing the need for this macro.
+  YMF_PASS_LDFLAGS='`./prefix-args -Xlinker flags`'
+fi
+
+
+test "x$LINKER" = "x" && LINKER=ld
+## FIXME? What setting of YMF_PASS_LDFLAGS should this have?
+test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
+
+
+
+
+## FIXME? The logic here is not precisely the same as that above
+## setting YMF_PASS_LDFLAGS.  There is no check here for a pre-defined
+## LINKER.  Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
-if test "x$GCC" = "xyes"; then
+if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
     ## cygwin: don't link against static libgcc.
@@ -27458,7 +27544,24 @@ $debug ||
 # This happens for instance with `./config.status config.h'.
 if test -n "$CONFIG_FILES"; then
 
-
+if $AWK 'BEGIN { getline <"/dev/null" }' </dev/null 2>/dev/null; then
+  ac_cs_awk_getline=:
+  ac_cs_awk_pipe_init=
+  ac_cs_awk_read_file='
+      while ((getline aline < (F[key])) > 0)
+	print(aline)
+      close(F[key])'
+  ac_cs_awk_pipe_fini=
+else
+  ac_cs_awk_getline=false
+  ac_cs_awk_pipe_init="print \"cat <<'|#_!!_#|' &&\""
+  ac_cs_awk_read_file='
+      print "|#_!!_#|"
+      print "cat " F[key] " &&"
+      '$ac_cs_awk_pipe_init
+  # The final `:' finishes the AND list.
+  ac_cs_awk_pipe_fini='END { print "|#_!!_#|"; print ":" }'
+fi
 ac_cr=''
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
@@ -27470,6 +27573,19 @@ fi
 echo 'BEGIN {' >"$tmp/subs1.awk" &&
 _ACEOF
 
+# Create commands to substitute file output variables.
+{
+  echo "cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1" &&
+  echo 'cat >>"\$tmp/subs1.awk" <<\\_ACAWK &&' &&
+  echo "$ac_subst_files" | sed 's/.*/F["&"]="$&"/' &&
+  echo "_ACAWK" &&
+  echo "_ACEOF"
+} >conf$$files.sh &&
+. ./conf$$files.sh ||
+  { { $as_echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
+$as_echo "$as_me: error: could not make $CONFIG_STATUS" >&2;}
+   { (exit 1); exit 1; }; }
+rm -f conf$$files.sh
 
 {
   echo "cat >conf$$subs.awk <<_ACEOF" &&
@@ -27551,7 +27667,7 @@ _ACAWK
 cat >>"\$tmp/subs1.awk" <<_ACAWK &&
   for (key in S) S_is_set[key] = 1
   FS = ""
-
+  \$ac_cs_awk_pipe_init
 }
 {
   line = $ 0
@@ -27569,10 +27685,16 @@ cat >>"\$tmp/subs1.awk" <<_ACAWK &&
     } else
       len += 1 + keylen
   }
-
+  if (nfields == 3 && !substed) {
+    key = field[2]
+    if (F[key] != "" && line ~ /^[	 ]*@.*@[	 ]*$/) {
+      \$ac_cs_awk_read_file
+      next
+    }
+  }
   print line
 }
-
+\$ac_cs_awk_pipe_fini
 _ACAWK
 _ACEOF
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -27959,7 +28081,12 @@ s&@abs_top_builddir@&$ac_abs_top_builddir&;t t
 s&@INSTALL@&$ac_INSTALL&;t t
 $ac_datarootdir_hack
 "
-eval sed \"\$ac_sed_extra\" "$ac_file_inputs" | $AWK -f "$tmp/subs.awk" >$tmp/out \
+eval sed \"\$ac_sed_extra\" "$ac_file_inputs" |
+if $ac_cs_awk_getline; then
+  $AWK -f "$tmp/subs.awk"
+else
+  $AWK -f "$tmp/subs.awk" | $SHELL
+fi >$tmp/out \
   || { { $as_echo "$as_me:$LINENO: error: could not create $ac_file" >&5
 $as_echo "$as_me: error: could not create $ac_file" >&2;}
    { (exit 1); exit 1; }; }

@@ -156,6 +156,9 @@ command history."
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
 
+(defvar isearch-update-post-hook nil
+  "Function(s) to call after isearch has found matches in the buffer.")
+
 (defvar isearch-mode-end-hook nil
   "Function(s) to call after terminating an incremental search.
 When these functions are called, `isearch-mode-end-hook-quit'
@@ -460,7 +463,9 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\C-y" 'isearch-yank-char)
     (define-key map    "\C-y" 'isearch-yank-line)
 
-    (define-key map "\C-h" isearch-help-map)
+    (define-key map (char-to-string help-char) isearch-help-map)
+    (define-key map [help] isearch-help-map)
+    (define-key map [f1] isearch-help-map)
 
     (define-key map "\M-n" 'isearch-ring-advance)
     (define-key map "\M-p" 'isearch-ring-retreat)
@@ -868,7 +873,8 @@ It is called by the function `isearch-forward' and other related functions."
     (isearch-lazy-highlight-new-loop))
   ;; We must prevent the point moving to the end of composition when a
   ;; part of the composition has just been searched.
-  (setq disable-point-adjustment t))
+  (setq disable-point-adjustment t)
+  (run-hooks 'isearch-update-post-hook))
 
 (defun isearch-done (&optional nopush edit)
   "Exit Isearch mode.
@@ -1476,14 +1482,10 @@ If search string is empty, just beep."
 	   (eq 'not-yanks search-upper-case))
       (setq string (downcase string)))
   (if isearch-regexp (setq string (regexp-quote string)))
-  (setq isearch-string (concat isearch-string string)
-	isearch-message
-	(concat isearch-message
-		(mapconcat 'isearch-text-char-description
-			   string ""))
-	;; Don't move cursor in reverse search.
-	isearch-yank-flag t)
-  (isearch-search-and-update))
+  ;; Don't move cursor in reverse search.
+  (setq isearch-yank-flag t)
+  (isearch-process-search-string
+   string (mapconcat 'isearch-text-char-description string "")))
 
 (defun isearch-yank-kill ()
   "Pull string from kill ring into search string."
@@ -1538,14 +1540,18 @@ or it might return the position of the end of the line."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-char arg) (point))))
 
+(declare-function subword-forward "subword" (&optional arg))
 (defun isearch-yank-word-or-char ()
-  "Pull next character or word from buffer into search string."
+  "Pull next character, subword or word from buffer into search string.
+Subword is used when `subword-mode' is activated. "
   (interactive)
   (isearch-yank-internal
    (lambda ()
      (if (or (= (char-syntax (or (char-after) 0)) ?w)
              (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
-         (forward-word 1)
+	 (if (and (boundp 'subword-mode) subword-mode)
+	     (subword-forward 1)
+	   (forward-word 1))
        (forward-char 1)) (point))))
 
 (defun isearch-yank-word ()

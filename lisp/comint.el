@@ -309,7 +309,6 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
-;; FIXME: this should be defcustom
 (defcustom comint-input-ring-size 500
   "Size of the input history ring in `comint-mode'."
   :type 'integer

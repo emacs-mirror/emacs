@@ -553,8 +553,12 @@ All discarded messages are stored in /var/lib/mailman/spam.
 If a non-spam message accidentally gets discarded, just do:
 
 cat /var/lib/mailman/spam/not-really-spam.msg | /usr/lib/debbugs/receive
+chown Debian-debbugs:Debian-debbugs /var/lib/debbugs/spool/incoming/*
 ... check it works ...
 mv /var/lib/mailman/spam/not-really-spam.msg /var/lib/mailman/not-spam/
+
+Also check that the sender was not added to the auto-discard/reject list
+in the debbugs-submit Mailman interface.
 
 ** Administrivia
 

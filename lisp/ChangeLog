@@ -1,8 +1,159 @@
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-refresh): Define as an alias for image-flush.
+
+	* image-mode.el (image-toggle-display-image): Caller changed.
+
+2010-05-21  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-read-files): Fix multi-pattern aliases.
+	Remove "all" from grep-files-aliases.  Split grep-files-aliases by
+	whitespace, call wildcard-to-regexp on substrings and concat them
+	with "\\|".  (Bug#6114)
+
+2010-05-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-parse-state-get-strategy): Replace
+	parameter `here' with `here-' and `here-plus', which sandwich any
+	pertinent CPP construct.
+	(c-remove-stale-state-cache-backwards): Fix a bug which happens
+	when doing (c-parse-state) in a CPP construct: Exclude any "new"
+	CPP construct from taking part in the scanning.
+
+2010-05-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file)
+	(tramp-handle-file-local-copy, tramp-maybe-open-connection): Tune
+	`with-progress-reporter' messages.
+	(tramp-handle-vc-registered):
+	* net/tramp-fish.el (tramp-fish-handle-file-local-copy)
+	(tramp-fish-handle-insert-file-contents)
+	(tramp-fish-maybe-open-connection):
+	* net/tramp-gvfs.el (tramp-gvfs-maybe-open-connection):
+	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-file-contents)
+	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
+
+2010-05-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* add-log.el (change-log-font-lock-keywords):
+	Highlight all authors in multi-author entries.
+
+	* smerge-mode.el (smerge-refine-ignore-whitespace)
+	(smerge-refine-weight-hack, smerge-refine, smerge-makeup-conflict):
+	Fix typos in docstrings.
+	(smerge-resolve, smerge-refine-subst): Reflow docstrings.
+
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-mode):
+	* progmodes/f90.el (f90-mode): Derive from prog-mode.
+
+	* loadup.el [CANNOT_DUMP]: Update for bootstrap-emacs no longer
+	having a relative path in src/Makefile.in.
+
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* help-mode.el (help-make-xrefs): For Info node links turn
+	newlines into spaces.  Link node names with newlines are matched
+	by help-xref-info-regexp and buttonized, this change ensures they
+	can be followed successfully with RET.  (Bug#6206)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* locate.el (locate): Use pop-to-buffer instead of
+	switch-to-buffer-other-window.  (Bug#6204)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (replace-highlight): Fix lazy-highlighting
+	for `M-s w str M-% str RET'.
+
+2009-12-15  Masatake YAMATO  <yamato@redhat.com>
+
+	* isearch.el (isearch-yank-word-or-char): Pull next subword
+	when `subword-mode' is activated.  (Bug#6220)
+
+2010-05-20  Mark A. Hershberger  <mah@everybody.org>
+
+	* isearch.el (isearch-update-post-hook): New hook.
+	(isearch-update): Use the new hook.  (Bug#6225)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind more keys to isearch-help-map:
+	[f1], [help], and (char-to-string help-char) instead of "\C-h".
+	(Bug#6222)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-yank-string): Use isearch-process-search-string.
+	(Bug#6223)
+
+2010-05-20  Juri Linkov  <juri@jurta.org>
+
+	* dired-x.el (dired-jump, dired-jump-other-window): Add arg
+	FILE-NAME to read from the minibuffer when called interactively
+	with prefix argument instead of using buffer-file-name.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00534.html
+
+	* dired.el: Update autoloads.
+
+2010-05-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml/nxml-mode.el (nxml-mode-map): Bind C-c / to
+	nxml-finish-element, for consistency with SGML mode.
+
+	* progmodes/octave-mod.el (octave-mode-map): Bind C-c / to
+	octave-close-block.
+
+2010-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* composite.el: Require cl when compiling.
+	(reference-point-alist, compose-gstring-for-graphic)
+	(compose-gstring-for-terminal): Fix typos in docstrings.
+
+2010-05-19  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/cl-macs.el (window-parameter): Add defsetf with
+	set-window-parameter.
+
+2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Add `tramp-async-args' attribute
+	where appropriate.
+	(tramp-maybe-open-connection): Use it.
+
+2010-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (move-end-of-line): Make sure we are at line beginning
+	before backing up to end of previous line.
+
+2010-05-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* password-cache.el (password-cache-remove): Fix docstring.
+
+	* net/secrets.el: Autoload the widget functions.
+	(secrets-search-items, secrets-create-item)
+	(secrets-get-attributes, secrets-expand-item): Attributes will be
+	stored on the password database without leading ":", as all other
+	clients do as well.
+	(secrets-mode): Fix docstring.
+	(secrets-show-secrets): Provide it as autoloaded command only when
+	D-Bus support is available.  Check existence of Secret Service API.
+
+2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.el (indent-region): Deactivate region (bug#6200).
+
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* vc-dir.el (vc-dir): Don't pop-up-windows.  (Bug#6204)
+
 2010-05-19  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el: Register compose-gstring-for-graphic in
-	composition-function-table only for combining characters (Mn, Mc,
-	Me).
+	composition-function-table only for combining characters (Mn, Mc, Me).
 
 2010-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
 

@@ -1980,6 +1980,9 @@ make, or the user didn't cancel the call."
 	    (isearch-regexp regexp)
 	    (search-whitespace-regexp nil)
 	    (isearch-case-fold-search case-fold))
+	;; Set isearch-word to nil because word-replace is regexp-based,
+	;; so `isearch-search-fun' should not use `word-search-forward'.
+	(if (and isearch-word isearch-regexp) (setq isearch-word nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()

@@ -778,7 +778,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 
 
 ;;;###autoload
-(defun fortran-mode ()
+(define-derived-mode fortran-mode prog-mode "Fortran"
   "Major mode for editing Fortran code in fixed format.
 For free format code, use `f90-mode'.
 
@@ -848,13 +848,9 @@ Variables controlling indentation style and extra features:
 
 Turning on Fortran mode calls the value of the variable `fortran-mode-hook'
 with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'fortran-mode
-        mode-name "Fortran"
-        local-abbrev-table fortran-mode-abbrev-table)
-  (set-syntax-table fortran-mode-syntax-table)
-  (use-local-map fortran-mode-map)
+  :group 'fortran
+  :syntax-table fortran-mode-syntax-table
+  :abbrev-table fortran-mode-abbrev-table
   (set (make-local-variable 'indent-line-function) 'fortran-indent-line)
   (set (make-local-variable 'indent-region-function)
        (lambda (start end)
@@ -906,8 +902,7 @@ with no args, if that value is non-nil."
        #'fortran-current-defun)
   (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
   (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
-  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t)
-  (run-mode-hooks 'fortran-mode-hook))
+  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t))
 
 
 (defun fortran-line-length (nchars &optional global)

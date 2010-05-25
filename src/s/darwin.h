@@ -147,9 +147,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_POSIX_MEMALIGN
 #endif
 
-/* Link this program just by running cc.  */
-#define ORDINARY_LINK
-
 /* Define the following so emacs symbols will not conflict with those
    in the System framework.  Otherwise -prebind will not work.  */
 

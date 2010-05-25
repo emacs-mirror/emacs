@@ -105,7 +105,7 @@ remove incorrect ones from the cache."
 
 (defun password-cache-remove (key)
   "Remove password indexed by KEY from password cache.
-This is typically run be a timer setup from `password-cache-add',
+This is typically run by a timer setup from `password-cache-add',
 but can be invoked at any time to forcefully remove passwords
 from the cache.  This may be useful when it has been detected
 that a password is invalid, so that `password-read' query the

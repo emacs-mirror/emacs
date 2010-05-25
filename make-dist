@@ -121,8 +121,8 @@ while [ $# -gt 0 ]; do
 done
 
 ### Make sure we're running in the right place.
-if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
-  echo "${progname}: Can't find \`src/lisp.h' and \`lisp/version.el'." >&2
+if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/subr.el ]; then
+  echo "${progname}: Can't find \`src/lisp.h' and \`lisp/subr.el'." >&2
   echo "${progname} must be run in the top directory of the Emacs" >&2
   echo "distribution tree.  cd to that directory and try again." >&2
   exit 1
@@ -150,12 +150,12 @@ then
 fi
 
 ### Find out which version of Emacs this is.
-shortversion=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
+shortversion=`grep 'char emacs_version' src/emacs.c \
 	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
-version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
+version=`grep 'char emacs_version' src/emacs.c \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 if [ ! "${version}" ]; then
-  echo "${progname}: can't find current Emacs version in \`./lisp/version.el'" >&2
+  echo "${progname}: can't find current Emacs version in \`./src/emacs.c'" >&2
   exit 1
 fi
 
@@ -440,6 +440,7 @@ echo "Making links to \`src'"
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.m ../${tempdir}/src
  ln [a-zA-Z]*.in ../${tempdir}/src
+ ln [a-zA-Z]*.mk ../${tempdir}/src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
  for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in; do

@@ -1,3 +1,8 @@
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Image Cache): Update documentation about image
+	caching.
+
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* windows.texi (Textual Scrolling):

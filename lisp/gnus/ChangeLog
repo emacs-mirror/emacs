@@ -1,3 +1,7 @@
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* gnus-start.el (gnus-level-unsubscribed): Doc fix.  (Bug#6206)
+
 2010-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-save-article): Don't bother to re-fetch

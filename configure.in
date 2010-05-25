@@ -2,9 +2,11 @@ dnl  Autoconf script for GNU Emacs
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
+dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003,
-dnl    2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
+dnl    2005, 2006, 2007, 2008, 2009, 2010
+dnl    Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -167,15 +169,6 @@ OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 ## a suitable makeinfo, and can live without the manuals.
 dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
 OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
-
-dnl Can remove these in Emacs 24.
-AC_ARG_WITH([gtk],,
-  [AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit.])],,)
-
-AC_ARG_WITH([gcc],,
-  [AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
-variable to specify a compiler.])],,)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -864,6 +857,12 @@ configure___ LIBX=-lX11
 
 configure___ unexec=UNEXEC
 
+#ifdef CANNOT_DUMP
+configure___ cannot_dump=yes
+#else
+configure___ cannot_dump=no
+#endif
+
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
 #else
@@ -923,6 +922,9 @@ else
   REAL_CFLAGS="$CFLAGS"
 fi]
 rm ${tempcname}
+
+
+AC_SUBST(cannot_dump)
 
 
 LD_SWITCH_SYSTEM=
@@ -1348,6 +1350,9 @@ dnl AC_C_BIGENDIAN
 dnl check for Make feature
 AC_PROG_MAKE_SET
 
+DEPFLAGS=
+MKDEPDIR=":"
+deps_frag=deps.mk
 dnl check for GNU Make if we have GCC and autodepend is on.
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    AC_MSG_CHECKING([whether we are using GNU Make])
@@ -1370,9 +1375,19 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_RESULT([$ac_enable_autodepend])
    fi
    if test $ac_enable_autodepend = yes; then
-      AC_DEFINE(AUTO_DEPEND, 1, [Generate dependencies with gcc.])
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      ## In parallel builds, another make might create depdir between
+      ## the first test and mkdir, so stick another test on the end.
+      ## Or use mkinstalldirs?  mkdir -p is not portable.
+      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR} || test -d ${DEPDIR}'
+      deps_frag=autodeps.mk
    fi
 fi
+deps_frag=$srcdir/src/$deps_frag
+AC_SUBST(MKDEPDIR)
+AC_SUBST(DEPFLAGS)
+AC_SUBST_FILE(deps_frag)
+
 
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
@@ -1480,6 +1495,7 @@ if test "${with_ns}" != no; then
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      ## Pull in stuff from GNUstep-make.
+     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
      NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
 GUI_LIB=gnu
 include $GNUSTEP_MAKEFILES/Additional/base.make
@@ -1512,6 +1528,7 @@ AC_SUBST(NS_IMPL_GNUSTEP_INC)
 AC_SUBST(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
 AC_SUBST(TEMACS_LDFLAGS2)
 
+ns_frag=/dev/null
 NS_OBJ=
 NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
@@ -1523,6 +1540,7 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
   NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
@@ -1531,6 +1549,7 @@ CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_SUPPORT)
 AC_SUBST(LIB_STANDARD)
+AC_SUBST_FILE(ns_frag)
 
 case "${window_system}" in
   x11 )
@@ -2640,7 +2659,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -2682,13 +2701,22 @@ fail;
     fi
     ;;
 
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
 esac
 
 case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
 
@@ -3159,7 +3187,6 @@ else
   OLDXMENU_TARGET="really-lwlib"
 fi
 AC_SUBST(LIBXT_OTHER)
-AC_SUBST(OLDXMENU_TARGET)
 
 ## The X Menu stuff is present in the X10 distribution, but missing
 ## from X11.  If we have X10, just use the installed library;
@@ -3178,7 +3205,9 @@ if test "${HAVE_X11}" = "yes" ; then
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
   OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  OLDXMENU=
+  ## For a syntactically valid Makefile; not actually used for anything.
+  ## See comments in src/Makefile.in.
+  OLDXMENU=nothing
   ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
   if test "${HAVE_X_WINDOWS}" = "yes"; then
     LIBXMENU="-lXMenu"
@@ -3190,11 +3219,13 @@ else
 fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU=
+  OLDXMENU_TARGET=
+  OLDXMENU=nothing  
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
 
+AC_SUBST(OLDXMENU_TARGET)
 AC_SUBST(OLDXMENU)
 AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
@@ -3277,8 +3308,75 @@ fi
 AC_SUBST(LD_SWITCH_SYSTEM_EXTRA)
 
 
+LINKER=
+ORDINARY_LINK=
+case "$opsys" in
+  ## gnu: GNU needs its own crt0.
+  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
+
+  cygwin) LINKER="\$(CC)" ;;
+
+  ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
+  ## library search parth, i.e. it won't search /usr/lib for libc and
+  ## friends.  Using -nostartfiles instead avoids this problem, and
+  ## will also work on earlier NetBSD releases.
+  netbsd|openbsd) LINKER="\$(CC) -nostartfiles" ;;
+
+  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ##   MkLinux/LinuxPPC needs this.
+  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  gnu-*)
+    case "$machine" in
+      macppc|ibms390x) LINKER="\$(CC) -nostdlib" ;;
+    esac
+    ;;
+esac
+
+## A macro which other sections of Makefile can redefine to munge the
+## flags before they are passed to LD.  This is helpful if you have
+## redefined LD to something odd, like "gcc".
+## (The YMF prefix is a holdover from the old name "ymakefile".) 
+YMF_PASS_LDFLAGS=flags
+if test "x$ORDINARY_LINK" = "xyes"; then
+
+  LINKER="\$(CC)"
+  AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
+
+## The system files defining neither ORDINARY_LINK nor LINKER are:
+## (bsd-common), freebsd, gnu-* not on macppc|ibms390x, hpux*.
+elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
+
+  ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
+  ## places that are difficult to figure out at make time.  Fortunately,
+  ## these same versions allow you to pass arbitrary flags on to the
+  ## linker, so there is no reason not to use it as a linker.
+  ##
+  ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
+  ## searching for libraries in its internal directories, so we have to
+  ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
+  LINKER="\$(CC) -nostdlib"
+  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
+  ## See prefix-args.c for an explanation of why we do not do this with the
+  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
+  ## their paths, so we must use ./prefix-args.
+  ## TODO either make prefix-args check ORDINARY_LINK internally,
+  ## or remove it altogether (bug#6184), removing the need for this macro.
+  YMF_PASS_LDFLAGS='`./prefix-args -Xlinker flags`'
+fi
+AC_SUBST(YMF_PASS_LDFLAGS)
+
+test "x$LINKER" = "x" && LINKER=ld
+## FIXME? What setting of YMF_PASS_LDFLAGS should this have?
+test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
+
+AC_SUBST(LINKER)
+
+
+## FIXME? The logic here is not precisely the same as that above
+## setting YMF_PASS_LDFLAGS.  There is no check here for a pre-defined
+## LINKER.  Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
-if test "x$GCC" = "xyes"; then
+if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
     ## cygwin: don't link against static libgcc.

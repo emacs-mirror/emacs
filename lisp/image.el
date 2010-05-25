@@ -30,6 +30,7 @@
   "Image support."
   :group 'multimedia)
 
+(defalias 'image-refresh 'image-flush)
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
