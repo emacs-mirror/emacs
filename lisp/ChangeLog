@@ -1,3 +1,13 @@
+2010-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* log-edit.el (log-edit-strip-single-file-name): Default to nil.
+	(log-edit-changelog-entries): Doc fix.
+	(log-edit-changelog-insert-entries): Args changed.  Rename
+	relative filenames in ChangeLog entries.  Delete tabs.
+	(log-edit-insert-changelog-entries): Reorganize return value of
+	`log-edit-changelog-entries' to pass filenames to
+	log-edit-changelog-insert-entries.
+
 2010-05-25  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* dired.el (dired-mode-map): Rebind "\C-t\C-t" from
