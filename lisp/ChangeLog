@@ -1,3 +1,98 @@
+2012-09-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: Comment out calendar require, since diary-lib
+	requires calendar.  Rearrange file to group definitions according
+	to their use (types of commands, internal functions, etc.)
+	(todos-file-done, todos-insert-threshold, todos-remove-separator)
+	(todos-date-string, todos-time-string, todos-check-overlay)
+	(todos-show-paren-hack, todos-file-item, todos-more-important-p):
+	Comment out.
+	(todos-current-date, todos-item-end-overlays)
+	(todos-list-categories): Remove.
+	(todos-item-end): Remove (the variable, not the function).
+	(todos-item-overlays): Rename to todos-prefix-overlays and adjust
+	callers.
+	(todos-prefix-overlays): Rename from todos-item-overlays.
+	(todos-done-separator, todos-done-string, todos-show-with-done)
+	(todos-files, todos-archive-file, todos-categories-buffer)
+	(todos-archived-categories-buffer, todos-wrap-lines)
+	(todos-line-wrapping-function): New defcustoms.
+	(todos-done, todos-done-sep): New faces.
+	(todos-done-face, todos-done-sep-face): Corresponding new variables.
+	(todos-search-string, todos-date-nodayname-pattern)
+	(todos-dayname-date-pattern, todos-date-pattern): New variables.
+	(todos-done-string-match, todos-category-string-match)
+	(todos-check-format, todos-wrap-and-indent, todos-reset-separator)
+	(todos-current-category, todos-count-items-in-category)
+	(todos-done-item-p, todos-categories-alist, todos-count-all-items)
+	(todos-longest-category-name-length): New functions.
+	(todos-categories-list): New buffer-specific function replacing
+	todos-list-categories.
+	(todos-toggle-item-numbering, todos-toggle-view-done-items)
+	(todos-search, todos-view-archive, todos-diary-items)
+	(todos-toggle-display-date-time, todos-insert-item-no-time)
+	(todos-insert-item-ask-date, todos-insert-item-for-diary)
+	(todos-insert-item-from-calendar, todos-edit-quit)
+	(todos-change-date, todos-item-done, todos-archive-done-items)
+	(todos-item-undo): New commands.
+	(todos-archive-mode): New mode.
+	(todos-archive-mode-map, todos-edit-mode-map): New keymaps.
+	(todos-category-beg): Change value.
+	(todos-number-prefix): Change default value.
+	(todos-edit-buffer): Change from defvar to defcustom.
+	(todos-font-lock-keywords): Use todos-done-string-match and
+	todos-category-string-match.
+	(todos-backward-item, todos-forward-item): Use todos-done-string
+	and todos-date-pattern.
+	(todos-display-categories): Reimplement using buttons from
+	button.el instead of widgets.
+	(todos-top-priorities): Use with-current-buffer; take done items
+	into account; ensure buffers gets fontified.
+	(todos-add-category): Ensure new category does not begin with
+	empty lines.
+	(todos-jump-to-category): Use todos-category-select instead of
+	todos-show.
+	(todos-rename-category): Prompt for new name in body instead of in
+	interactive spec.
+	(todos-insert-item): Don't insert in done items section of
+	category.  Add two optional arguments to control insertion: (i) to
+	insert near point without prompting for priority; (ii) to use
+	defaults for date and time strings, to prompt for these, or to
+	choose date from the Calendar.
+	(todos-insert-item-here): Reimplement using todos-insert-item.
+	(todos-delete-item): Don't move point after deleting last item.
+	(todos-raise-item, todos-lower-item): Take done items into account.
+	(todos-move-item): Don't move done items; update item numbering;
+	restore if user quits before inserting moved item.
+	(todos-print): Prompt for confirmation to print.
+	(todos-reset-prefix): Search backward from end of file instead of
+	forward from top.
+	(todos-jump-to-category-noninteractively): Take Todos archive into
+	account.
+	(todos-category-select): Show or hide done items according to
+	todos-show-with-done; if shown, coordinate separator and prefix
+	overlays.
+	(todos-add-item-non-interactively): Replace binary insertion
+	algorithm with prompting for numerical priority.
+	(todos-insert-with-overlays): Remove use of variable todos-item-end.
+	(todos-item-start): Take done items into account; use
+	todos-date-pattern.
+	(todos-item-end): Reimplement using todos-forward-item.
+	(todos-remove-item): Reimplement using todos-forward-item and
+	todos-backward-item; redo overlay handling.
+	(todos-mode-map): Add some new key bindings and change numerous
+	existing bindings; use "i" as prefix key for item insertion
+	commands.
+	(todos-mode): Use todos-wrap-lines and delegate word-wrap and
+	wrap-prefix settings to todos-wrap-and-indent; add to invisibility
+	spec; set buffer-read-only to t and consequently let-bind this
+	variable in all Todos commands that change buffer content.
+	(todos-edit-mode): Make an indepent mode, not derived from text-mode.
+	(todos-save): Don't save top priorities buffer.
+	(todos-show): Make a no-op if called interactively in narrowed
+	Todos mode, since, also to work around item prefix reduplication
+	bug with show-paren-mode enabled; use todos-categories-list.
+
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Comment out time-stamp require; require
