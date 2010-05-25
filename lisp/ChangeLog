@@ -1,3 +1,12 @@
+2010-05-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
+
+	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
+
+2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Resolve modifiers after key
+	remapping (bug#6212).
+
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (image-refresh): Define as an alias for image-flush.
@@ -13,9 +22,9 @@
 
 2010-05-21  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-parse-state-get-strategy): Replace
-	parameter `here' with `here-' and `here-plus', which sandwich any
-	pertinent CPP construct.
+	* progmodes/cc-engine.el (c-parse-state-get-strategy):
+	Replace parameter `here' with `here-' and `here-plus', which sandwich
+	any pertinent CPP construct.
 	(c-remove-stale-state-cache-backwards): Fix a bug which happens
 	when doing (c-parse-state) in a CPP construct: Exclude any "new"
 	CPP construct from taking part in the scanning.
@@ -23,8 +32,8 @@
 2010-05-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file)
-	(tramp-handle-file-local-copy, tramp-maybe-open-connection): Tune
-	`with-progress-reporter' messages.
+	(tramp-handle-file-local-copy, tramp-maybe-open-connection):
+	Tune `with-progress-reporter' messages.
 	(tramp-handle-vc-registered):
 	* net/tramp-fish.el (tramp-fish-handle-file-local-copy)
 	(tramp-fish-handle-insert-file-contents)
