@@ -1549,13 +1549,11 @@ Also remove the continuation mark if easily detected."
   (interactive "*P")
   (delete-indentation arg)
   (let ((type (dcl-get-line-type)))
-    (if (and (or (equal type '$)
-		 (equal type '-)
-		 (equal type 'empty-$))
+    (if (and (member type '($ - empty-$))
 	     (not (bobp))
-	     (= (char-after (1- (point))) ?-))
+	     (= (char-before) ?-))
 	(progn
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (fixup-whitespace)))))
 
 

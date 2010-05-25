@@ -937,7 +937,7 @@ FILE-TAGS is an alist in the following form:
                ;; If on empty line at end of buffer
                (when (and (eobp)
                           (looking-at "^$"))
-                 (delete-backward-char 1))))))
+                 (delete-char -1))))))
        files)
       (save-buffer)
       (kill-buffer buf))))

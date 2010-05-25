@@ -750,7 +750,7 @@ reversed."
 			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)))
 		    (setq cont nil)
 		  ;; we are at an escaped delimiter: unescape it and continue
-		  (delete-backward-char 2)
+		  (delete-char -2)
 		  (insert c)
 		  (if (eolp)
 		      ;; if at eol, exit loop and go to next line

@@ -291,7 +291,7 @@ The characters tab, linefeed, space, return and formfeed are not affected."
       (let (c)
 	(while (re-search-forward "[\^@-\^h\^k\^n-\^_\177-\377]" nil t)
 	  (setq c (preceding-char))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (insert (if (< c ?\s)
 		      (format "\\^%c" (+ c ?@))
 		    (format "\\%02x" c))))))))

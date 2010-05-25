@@ -68,3 +68,4 @@ configure.lineno
 conftest*
 confdefs.h
 core
+lib-src/stamp-*

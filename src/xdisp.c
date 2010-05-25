@@ -6339,10 +6339,10 @@ set_iterator_to_next (it, reseat_p)
 	      /* Update IT's char/byte positions to point to the last
 		 character of the previous grapheme cluster, or the
 		 character visually after the current composition.  */
-	      bidi_move_to_visually_next (&it->bidi_it);
+	      for (i = 0; i < it->cmp_it.nchars; i++)
+		bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
-
 	      if (it->cmp_it.from > 0)
 		{
 		  /* Proceed to the previous grapheme cluster.  */
@@ -7108,19 +7108,6 @@ next_element_from_composition (it)
       it->object = it->w->buffer;
       it->c = composition_update_it (&it->cmp_it, IT_CHARPOS (*it),
 				     IT_BYTEPOS (*it), Qnil);
-      if (it->cmp_it.reversed_p)
-	{
-	  /* Now it->position points the last character of the current
-	     grapheme cluster.  Adjust it to point the first one.  We
-	     have to do it here so that append_composite_glyph sets
-	     correct (struct glyph)->charpos.  */
-	  int i;
-	  for (i = 0; i < it->cmp_it.nchars - 1; i++)
-	    bidi_move_to_visually_next (&it->bidi_it);
-	  IT_CHARPOS (*it) = it->bidi_it.charpos;
-	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
-	  it->position = it->current.pos;
-	}
     }
   return 1;
 }
@@ -21943,7 +21930,7 @@ append_composite_glyph (it)
 	    g[1] = *g;
 	  glyph = it->glyph_row->glyphs[it->area];
 	}
-      glyph->charpos = CHARPOS (it->position);
+      glyph->charpos = it->cmp_it.charpos;
       glyph->object = it->object;
       glyph->pixel_width = it->pixel_width;
       glyph->ascent = it->ascent;

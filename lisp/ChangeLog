@@ -1,3 +1,67 @@
+2010-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-progress-reporter-update): New defun.
+	(with-progress-reporter): Use it.
+	(tramp-process-actions):
+	* net/tramp-gvfs.el (tramp-gvfs-handler-askquestion): Preserve
+	current message, in order to let progress reporter continue
+	afterwards.  (Bug#6257)
+
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* net/rcirc.el (rcirc-default-user-name, rcirc-default-full-name):
+	Add :version.
+
+2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-server-alist): Add :pass.
+	(rcirc-default-user-name): Change to "user".
+	(rcirc-default-full-name): Change to "unknown".
+	(rcirc-user-name-history): Add variable.
+	(rcirc): When prompting for connection paramaters, also prompt for
+	username and password.
+	(rcirc-connect): Take a PASS argument.	If PASS is non-nil, send
+	value to server when connecting.
+
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-set-prec2tab): Check override before use.
+	(smie-merge-prec2s): Pass the tables as separate args.
+	(smie-bnf-precedence-table): Adjust call accordingly.
+	(smie-prec2-levels): Set levels at the end.
+
+	Replace Lisp calls to delete-backward-char by delete-char.
+	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
+	skeleton.el, term.el, time.el, wid-edit.el, woman.el,
+	calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
+	calc/calc.el, emacs-cl-extra.el, emacs-cl-loaddefs.el,
+	emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
+	eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
+	gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
+	language/ethio-util.el, mh-e/mh-alias.el, mh-e/mh-search.el,
+	net/imap.el, net/rcirc.el, obsolete/complete.el, play/decipher.el,
+	progmodes/ada-mode.el, progmodes/cc-awk.el, progmodes/dcl-mode.el,
+	progmodes/ps-mode.el, progmodes/verilog-mode.el,
+	progmodes/vhdl-mode.el, textmodes/bibtex.el, textmodes/fill.el,
+	textmodes/reftex-auc.el, textmodes/rst.el, textmodes/sgml-mode.el,
+	textmodes/table.el, textmodes/texinfmt.el: Replace Lisp calls to
+	delete-backward-char by calls to delete-char.
+
+2010-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el (hebrew-shape-gstring): New function.
+	Register it in composition-function-table for all Hebrew combining
+	characters.
+
+2010-05-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
+
+	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
+
+2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Resolve modifiers after key
+	remapping (bug#6212).
+
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (image-refresh): Define as an alias for image-flush.
@@ -13,9 +77,9 @@
 
 2010-05-21  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-parse-state-get-strategy): Replace
-	parameter `here' with `here-' and `here-plus', which sandwich any
-	pertinent CPP construct.
+	* progmodes/cc-engine.el (c-parse-state-get-strategy):
+	Replace parameter `here' with `here-' and `here-plus', which sandwich
+	any pertinent CPP construct.
 	(c-remove-stale-state-cache-backwards): Fix a bug which happens
 	when doing (c-parse-state) in a CPP construct: Exclude any "new"
 	CPP construct from taking part in the scanning.
@@ -23,8 +87,8 @@
 2010-05-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file)
-	(tramp-handle-file-local-copy, tramp-maybe-open-connection): Tune
-	`with-progress-reporter' messages.
+	(tramp-handle-file-local-copy, tramp-maybe-open-connection):
+	Tune `with-progress-reporter' messages.
 	(tramp-handle-vc-registered):
 	* net/tramp-fish.el (tramp-fish-handle-file-local-copy)
 	(tramp-fish-handle-insert-file-contents)

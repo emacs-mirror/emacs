@@ -9305,11 +9305,11 @@ For more information see the \\[verilog-faq] and forums at URL
 		 (delete-char 1)
 		 (insert ");")
 		 (search-forward "\n")	;; Added by inst-port
-		 (delete-backward-char 1)
+		 (delete-char -1)
 		 (if (search-forward ")" nil t) ;; From user, moved up a line
-		     (delete-backward-char 1))
+		     (delete-char -1))
 		 (if (search-forward ";" nil t) ;; Don't error if user had syntax error and forgot it
-		     (delete-backward-char 1)))))))))
+		     (delete-char -1)))))))))
 
 (defun verilog-auto-inst-param ()
   "Expand AUTOINSTPARAM statements, as part of \\[verilog-auto].
@@ -9412,9 +9412,9 @@ Templates:
 		 (delete-char 1)
 		 (insert ")")
 		 (search-forward "\n")	;; Added by inst-port
-		 (delete-backward-char 1)
+		 (delete-char -1)
 		 (if (search-forward ")" nil t) ;; From user, moved up a line
-		     (delete-backward-char 1)))))))))
+		     (delete-char -1)))))))))
 
 (defun verilog-auto-reg ()
   "Expand AUTOREG statements, as part of \\[verilog-auto].

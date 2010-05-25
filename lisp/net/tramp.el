@@ -2283,6 +2283,12 @@ FILE must be a local file name on a connection identified via VEC."
 (put 'with-connection-property 'edebug-form-spec t)
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-connection-property\\>"))
 
+(defun tramp-progress-reporter-update (reporter &optional value)
+  (let* ((parameters (cdr reporter))
+	 (message (aref parameters 3)))
+    (when (string-match message (or (current-message) ""))
+      (funcall 'progress-reporter-update reporter value))))
+
 (defmacro with-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE."
   `(let (pr tm)
@@ -2294,7 +2300,8 @@ FILE must be a local file name on a connection identified via VEC."
 		(<= ,level (min tramp-verbose 3)))
        (condition-case nil
 	   (setq pr (tramp-compat-funcall 'make-progress-reporter ,message)
-		 tm (if pr (run-at-time 3 0.1 'progress-reporter-update pr)))
+		 tm (when pr
+		      (run-at-time 3 0.1 'tramp-progress-reporter-update pr)))
 	 (error nil)))
      (unwind-protect
 	 ;; Execute the body.
@@ -6734,27 +6741,29 @@ The terminal type can be configured with `tramp-terminal-type'."
 
 (defun tramp-process-actions (proc vec actions &optional timeout)
   "Perform actions until success or TIMEOUT."
-  ;; Enable auth-source and password-cache.
-  (tramp-set-connection-property vec "first-password-request" t)
-  (let (exit)
-    (while (not exit)
-      (tramp-message proc 3 "Waiting for prompts from remote shell")
-      (setq exit
-	    (catch 'tramp-action
-	      (if timeout
-		  (with-timeout (timeout)
-		    (tramp-process-one-action proc vec actions))
-		(tramp-process-one-action proc vec actions)))))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 6 "\n%s" (buffer-string)))
-    (unless (eq exit 'ok)
-      (tramp-clear-passwd vec)
-      (tramp-error-with-buffer
-       nil vec 'file-error
-       (cond
-	((eq exit 'permission-denied) "Permission denied")
-	((eq exit 'process-died) "Process died")
-	(t "Login failed"))))))
+  ;; Preserve message for `progress-reporter'.
+  (with-temp-message ""
+    ;; Enable auth-source and password-cache.
+    (tramp-set-connection-property vec "first-password-request" t)
+    (let (exit)
+      (while (not exit)
+	(tramp-message proc 3 "Waiting for prompts from remote shell")
+	(setq exit
+	      (catch 'tramp-action
+		(if timeout
+		    (with-timeout (timeout)
+		      (tramp-process-one-action proc vec actions))
+		  (tramp-process-one-action proc vec actions)))))
+      (with-current-buffer (tramp-get-connection-buffer vec)
+	(tramp-message vec 6 "\n%s" (buffer-string)))
+      (unless (eq exit 'ok)
+	(tramp-clear-passwd vec)
+	(tramp-error-with-buffer
+	 nil vec 'file-error
+	 (cond
+	  ((eq exit 'permission-denied) "Permission denied")
+	  ((eq exit 'process-died) "Process died")
+	  (t "Login failed")))))))
 
 ;; Utility functions.
 
