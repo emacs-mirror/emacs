@@ -874,10 +874,12 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	    ;; there is only the question whether to accept an unknown
 	    ;; host signature.
 	    (with-temp-buffer
-	      (insert message)
-	      (pop-to-buffer (current-buffer))
-	      (setq choice (if (yes-or-no-p (concat (car choices) " ")) 0 1))
-	      (tramp-message v 6 "%d" choice))
+	      ;; Preserve message for `progress-reporter'.
+	      (with-temp-message ""
+		(insert message)
+		(pop-to-buffer (current-buffer))
+		(setq choice (if (yes-or-no-p (concat (car choices) " ")) 0 1))
+		(tramp-message v 6 "%d" choice)))
 
 	    ;; When the choice is "no", we set an empty
 	    ;; fuse-mountpoint in order to leave the timeout.
@@ -889,8 +891,8 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	     nil ;; no abort of D-Bus.
 	     choice))
 
-	  ;; When QUIT is raised, we shall return this information to D-Bus.
-	  (quit (list nil t 0))))))
+	;; When QUIT is raised, we shall return this information to D-Bus.
+	(quit (list nil t 0))))))
 
 (defun tramp-gvfs-handler-mounted-unmounted (mount-info)
   "Signal handler for the \"org.gtk.vfs.MountTracker.mounted\" and

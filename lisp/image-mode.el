@@ -357,6 +357,7 @@ to toggle between display as an image and display as text."
 	(image-mode-setup-winprops)
 
 	(add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
+	(add-hook 'after-revert-hook 'image-after-revert-hook nil t)
 	(run-mode-hooks 'image-mode-hook)
 	(message "%s" (concat
 		       (substitute-command-keys
@@ -503,6 +504,14 @@ the image file and `image-mode' showing the image as an image."
   (if (image-get-display-property)
       (image-mode-as-text)
     (image-mode)))
+
+(defun image-after-revert-hook ()
+  (when (image-get-display-property)
+    (image-toggle-display-text)
+    ;; Update image display.
+    (redraw-frame (selected-frame))
+    (image-toggle-display-image)))
+
 
 ;;; Support for bookmark.el
 (declare-function bookmark-make-record-default "bookmark"
