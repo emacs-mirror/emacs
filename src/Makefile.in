@@ -301,9 +301,6 @@ MKDEPDIR=@MKDEPDIR@
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-#define NOT_C_CODE
-#include "config.h"
-
 /* If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.  */
 @NS_IMPL_GNUSTEP_INC@
 

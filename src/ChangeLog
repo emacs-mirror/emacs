@@ -1,5 +1,8 @@
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (NOT_C_CODE): No longer define.
+	(config.h): No longer include.
+
 	* Makefile.in (LD_SWITCH_SYSTEM_TEMACS): Move definition after some
 	variables it may reference.
 
