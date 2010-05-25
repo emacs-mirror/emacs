@@ -1,3 +1,46 @@
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (@NS_IMPL_GNUSTEP_INC@, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS):
+	Move before TEMACS_LDFLAGS.
+	(TEMACS_LDFLAGS): Use $NS_IMPL_GNUSTEP_TEMACS_LDFLAGS.
+	(temacs${EXEEXT}): Do not use $NS_IMPL_GNUSTEP_TEMACS_LDFLAGS.
+
+	* Makefile.in (NOT_C_CODE): No longer define.
+	(config.h): No longer include.
+
+	* Makefile.in (LD_SWITCH_SYSTEM_TEMACS): Move definition after some
+	variables it may reference.
+
+	* Makefile.in (LD_SWITCH_SYSTEM_EXTRA): Remove.
+	(TEMACS_LDFLAGS): Remove LD_SWITCH_SYSTEM_EXTRA.
+
+2010-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (struct composition_it): New members rule_idx and
+	charpos.
+
+	* xdisp.c (set_iterator_to_next): While scanning backward, assume
+	that the character positions of IT point the last character of the
+	current grapheme cluster.
+	(next_element_from_composition): Don't change character positions
+	of IT.
+	(append_composite_glyph): Set glyph->charpos to
+	it->cmp_it.charpos.
+
+	* composite.c (autocmp_chars): Change the first argument to RULE,
+	and try composition with RULE only.
+	(composition_compute_stop_pos): Record the index number of the
+	composition rule in CMP_IT->rule_idx.
+	(composition_reseat_it): Call autocmp_chars repeatedly until the
+	correct rule of the composition is found.
+	(composition_update_it): Set CMP_IT->charpos.  Assume the CHARPOS
+	is at the last character of the current grapheme cluster when
+	CMP_IT->reversed_p is nonzero.
+
+2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fbyte_to_string): New function.
+
 2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Fmake_network_process): Set :host to nil if it's not used.
@@ -5,8 +48,7 @@
 
 2010-05-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispextern.h (init_iterator): Sync prototype with changed
-	definition.
+	* dispextern.h (init_iterator): Sync prototype with changed definition.
 
 2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 

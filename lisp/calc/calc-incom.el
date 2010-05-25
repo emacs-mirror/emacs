@@ -176,9 +176,9 @@
 (defun calc-digit-dots ()
   (if (eq calc-prev-char ?.)
       (progn
-	(delete-backward-char 1)
+	(delete-char -1)
 	(if (calc-minibuffer-contains ".*\\.\\'")
-	    (delete-backward-char 1))
+	    (delete-char -1))
 	(setq calc-prev-char 'dots
 	      last-command-event 32)
 	(if calc-prev-prev-char
@@ -188,7 +188,7 @@
             (erase-buffer))
 	  (exit-minibuffer)))
     ;; just ignore extra decimal point, anticipating ".."
-    (delete-backward-char 1)))
+    (delete-char -1)))
 
 (defun calc-dots ()
   (interactive)

@@ -128,7 +128,7 @@ C-w  Describe how there is no warranty for Calc."
               (dig2 (char-after (match-beginning 3))))
           (delete-region (match-end 1) (match-end 0))
           (goto-char (match-beginning 1))
-          (delete-backward-char 1)
+          (delete-char -1)
           (delete-char 5)
           (insert (format "%c .. %c" (min dig1 dig2) (max dig1 dig2)))))
       (goto-char (point-min)))))

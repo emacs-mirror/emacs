@@ -869,7 +869,7 @@ Otherwise, [0-9A-F]."
     (goto-char (point-min))
     (while (re-search-forward "[ሀ-፼]" nil t)
       (setq ucode (preceding-char))
-      (delete-backward-char 1)
+      (delete-char -1)
       (insert
        (format (if ethio-java-save-lowercase "\\u%4x" "\\u%4X")
 	       ucode)))))

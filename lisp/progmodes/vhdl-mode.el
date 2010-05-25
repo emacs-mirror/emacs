@@ -7994,7 +7994,7 @@ buffer."
 		       (condition-case () (forward-sexp)
 			 (error (goto-char (point-max))))
 		       (< (point) end))
-	   (delete-backward-char 1))
+	   (delete-char -1))
 	 ;; add closing parenthesis
 	 (when (> (point) end)
 	   (goto-char end)
@@ -8105,7 +8105,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (if (= (preceding-char) last-input-event)
-	  (progn (delete-backward-char 1) (insert-char ?\" 1))
+	  (progn (delete-char -1) (insert-char ?\" 1))
 	(insert-char ?\' 1))
     (self-insert-command count)))
 
@@ -8172,7 +8172,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
       (unless (vhdl-template-field
 	       (concat "[type" (and (vhdl-standard-p 'ams) " or nature") "]")
 	       nil t)
-	(delete-backward-char 3))
+	(delete-char -3))
       (vhdl-insert-keyword " IS ")
       (vhdl-template-field "name" ";")
       (vhdl-comment-insert-inline))))
@@ -8536,7 +8536,7 @@ a configuration declaration if not within a design unit."
 	       (vhdl-template-field "library name" "." nil nil nil nil
 				    (vhdl-work-library))
 	       (vhdl-template-field "configuration name" ";"))
-	      (t (delete-backward-char 1) (insert ";") t))))))
+	      (t (delete-char -1) (insert ";") t))))))
 
 
 (defun vhdl-template-configuration-decl ()
@@ -8703,7 +8703,7 @@ a configuration declaration if not within a design unit."
 	(vhdl-insert-keyword " OPEN ")
 	(unless (vhdl-template-field "[READ_MODE | WRITE_MODE | APPEND_MODE]"
 				     nil t)
-	  (delete-backward-char 6)))
+	  (delete-char -6)))
       (vhdl-insert-keyword " IS ")
       (when (vhdl-standard-p '87)
 	(vhdl-template-field "[IN | OUT]" " " t))
@@ -9031,7 +9031,7 @@ otherwise."
 	      (insert "\n")
 	      (indent-to margin))
 	    (delete-region end-pos (point))
-	    (delete-backward-char 1)
+	    (delete-char -1)
 	    (insert ")")
 	    (when vhdl-auto-align (vhdl-align-region-groups start (point) 1))
 	    t)
@@ -9405,7 +9405,7 @@ otherwise."
     (vhdl-insert-keyword "REPORT ")
     (if (equal "\"\"" (vhdl-template-field
 		       "string expression" nil t start (point) t))
-	(delete-backward-char 2)
+	(delete-char -2)
       (setq start (point))
       (vhdl-insert-keyword " SEVERITY ")
       (unless (vhdl-template-field "[NOTE | WARNING | ERROR | FAILURE]" nil t)
@@ -9553,7 +9553,7 @@ otherwise."
 		    "[scalar type | ARRAY | RECORD | ACCESS | FILE]" nil t)
 		   ""))))
 	(cond ((equal definition "")
-	       (delete-backward-char 4)
+	       (delete-char -4)
 	       (insert ";"))
 	      ((equal definition "ARRAY")
 	       (delete-region (point) (progn (forward-word -1) (point)))
@@ -10053,13 +10053,13 @@ If starting after end-comment-column, start a new line."
       (if (not (or (and string (progn (insert string) t))
 		   (vhdl-template-field "[comment]" nil t)))
 	  (delete-region position (point))
-	(while (= (preceding-char) ? ) (delete-backward-char 1))
-; 	(when (> (current-column) end-comment-column)
-; 	  (setq position (point-marker))
-; 	  (re-search-backward "-- ")
-; 	  (insert "\n")
-; 	  (indent-to comment-column)
-; 	  (goto-char position))
+	(while (= (preceding-char) ?\ ) (delete-char -1))
+	;; (when (> (current-column) end-comment-column)
+	;;   (setq position (point-marker))
+	;;   (re-search-backward "-- ")
+	;;   (insert "\n")
+	;;   (indent-to comment-column)
+	;;   (goto-char position))
 	))))
 
 (defun vhdl-comment-block ()
@@ -10192,7 +10192,7 @@ Point is left between them."
     (when semicolon-pos (goto-char semicolon-pos))
     (if not-empty
 	(progn (delete-char 1) (insert ")"))
-      (delete-backward-char 2))))
+      (delete-char -2))))
 
 (defun vhdl-template-generic-list (optional &optional no-value)
   "Read from user a generic spec argument list."

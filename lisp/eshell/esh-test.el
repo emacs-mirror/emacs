@@ -101,7 +101,7 @@
       (eshell-redisplay))
     (let ((truth (eval command)))
       (with-current-buffer test-buffer
-	(delete-backward-char 6)
+	(delete-char -6)
 	(insert-before-markers
 	 "[" (let (str)
 	       (if truth

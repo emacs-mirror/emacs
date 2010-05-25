@@ -820,7 +820,6 @@ CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
-LD_SWITCH_SYSTEM_EXTRA
 YMF_PASS_LDFLAGS
 LINKER
 LIB_GCC
@@ -5930,16 +5929,17 @@ esac
 
 ac_link="$ac_link $LD_SWITCH_SYSTEM"
 
-## This is fun.  Some settings of LD_SWITCH_SYSTEM reference
-## LD_SWITCH_X_SITE_AUX, which has not been defined yet.  When using
-## cpp, it was expanded to null.  Thus LD_SWITCH_SYSTEM had different
-## values in configure and the Makefiles.  How helpful.
-## FIXME why not use LD_SWITCH_SYSTEM_TEMACS (or somesuch) instead?
+## This setting of LD_SWITCH_SYSTEM references LD_SWITCH_X_SITE_AUX,
+## which has not been defined yet.  When this was handled with cpp,
+## it was expanded to null when configure sourced the s/*.h file.
+## Thus LD_SWITCH_SYSTEM had different values in configure and the Makefiles.
+## FIXME it would be cleaner to put this in LD_SWITCH_SYSTEM_TEMACS
+## (or somesuch), but because it is supposed to go at the _front_
+## of LD_SWITCH_SYSTEM, we cannot do that in exactly the same way.
+## Compare with the gnu-linux case below, which added to the end
+## of LD_SWITCH_SYSTEM, and so can instead go at the front of
+## LD_SWITCH_SYSTEM_TEMACS.
 case "$opsys" in
-  gnu-linux)
-   ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
-   LD_SWITCH_SYSTEM="$LD_SWITCH_SYSTEM \$(LD_SWITCH_X_SITE_AUX)" ;;
-
   netbsd|openbsd)
    ## _AUX_RPATH is like _AUX, but uses -rpath instead of -R.
    LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_AUX_RPATH) $LD_SWITCH_SYSTEM" ;;
@@ -26595,39 +26595,44 @@ case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
 
   darwin)
-  ## The -headerpad option tells ld (see man page) to leave room at the
-  ## end of the header for adding load commands.  Needed for dumping.
-  ## 0x690 is the total size of 30 segment load commands (at 56
-  ## each); under Cocoa 31 commands are required.
-  if test "$HAVE_NS" = "yes"; then
-    libs_nsgui="-framework AppKit"
-    headerpad_extra=6C8
-  else
-    libs_nsgui=
-    headerpad_extra=690
-  fi
-  LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
-  ;;
+   ## The -headerpad option tells ld (see man page) to leave room at the
+   ## end of the header for adding load commands.  Needed for dumping.
+   ## 0x690 is the total size of 30 segment load commands (at 56
+   ## each); under Cocoa 31 commands are required.
+   if test "$HAVE_NS" = "yes"; then
+     libs_nsgui="-framework AppKit"
+     headerpad_extra=6C8
+   else
+     libs_nsgui=
+     headerpad_extra=690
+   fi
+   LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+
+   ## This is here because src/Makefile.in did some extra fiddling around
+   ## with LD_SWITCH_SYSTEM.  The cpp logic was:
+   ##   #ifndef LD_SWITCH_SYSTEM
+   ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
+   ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
+   ## not using gcc, darwin system not on an alpha (ie darwin, since
+   ## darwin + alpha does not occur).
+   ## Because this was done in src/Makefile.in, the resulting part of
+   ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
+   ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
+   ## rather than LD_SWITCH_SYSTEM.
+   test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
+     LD_SWITCH_SYSTEM_TEMACS="-X $LD_SWITCH_SYSTEM_TEMACS"
+   ;;
+
+  ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
+  ## When handled by cpp, this was in LD_SWITCH_SYSTEM.  However, at
+  ## the point where configure sourced the s/*.h file, LD_SWITCH_X_SITE_AUX
+  ## had not yet been defined and was expanded to null.  Hence LD_SWITCH_SYSTEM
+  ## had different values in configure (in ac_link) and src/Makefile.in.
+  ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
+  gnu-linux) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_AUX)" ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
-
-
-
-## This exists because src/Makefile.in did some extra fiddling around
-## with LD_SWITCH_SYSTEM.  The cpp logic was:
-##   #ifndef LD_SWITCH_SYSTEM
-##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-## not using gcc, darwin system not on an alpha (ie darwin, since
-## darwin + alpha does not occur).
-## Note that unlike L_S_S, this is not used in ac_link.
-if test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
-   test "$opsys" = "darwin"; then
-  LD_SWITCH_SYSTEM_EXTRA="-X"
-else
-  LD_SWITCH_SYSTEM_EXTRA=
-fi
 
 
 
@@ -28154,7 +28159,6 @@ for dir in etc lisp ; do
 done
 
 # Build src/Makefile from ${srcdir}/src/Makefile.c
-# and lib-src/Makefile from ${srcdir}/lib-src/Makefile.c
 # This must be done after src/config.h is built, since we rely on that file.
 
 echo creating src/epaths.h

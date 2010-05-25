@@ -1170,7 +1170,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 	    (let* ((str (car cur)) (len (length str)) (start (- (point) len)))
 	      (if (and (>= start (point-min))
 		       (string= str (buffer-substring start (point))))
-		  (progn (delete-backward-char len)
+		  (progn (delete-char (- len))
 			 (setq term-kill-echo-list (cdr cur))
 			 (setq term-current-column nil)
 			 (setq term-current-row nil)

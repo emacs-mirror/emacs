@@ -1,3 +1,7 @@
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LD_SWITCH_SYSTEM_EXTRA): No longer present.
+
 2010-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp(@ns_frag@): Edit to nothing.
