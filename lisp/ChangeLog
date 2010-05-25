@@ -1,3 +1,9 @@
+2010-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el (hebrew-shape-gstring): New function.
+	Register it in composition-function-table for all Hebrew combining
+	characters.
+
 2010-05-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
 
 	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
