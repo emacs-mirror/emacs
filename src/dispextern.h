@@ -1968,17 +1968,31 @@ struct composition_it
      are not iterating over a composition now.  */
   int id;
   /* If non-negative, character that triggers the automatic
-     composition at `stop_pos', and this is an automatic compositoin.
+     composition at `stop_pos', and this is an automatic composition.
      If negative, this is a static composition.  This is set to -2
      temporarily if searching of composition reach a limit or a
      newline.  */
   int ch;
-  /* If this an automatic composition, how many characters to look back
-     from the position where a character triggering the composition
-     exists.  */
+  /* If this is an automatic composition, index of a rule for making
+     the automatic composition.  Provided that ELT is an element of
+     Vcomposition_function_table for CH, (nth ELT RULE_IDX) is the
+     rule for the composition.  */
+  int rule_idx;
+  /* If this is an automatic composition, how many characters to look
+     back from the position where a character triggering the
+     composition exists.  */
   int lookback;
   /* If non-negative, number of glyphs of the glyph-string.  */
   int nglyphs;
+  /* Nonzero iff the composition is created while buffer is scanned in
+     reverse order, and thus the grapheme clusters must be rendered
+     from the last to the first.  */
+  int reversed_p;
+
+  /** The following members contain information about the current
+      grapheme cluster.  */
+  /* Position of the first character of the current grapheme cluster.  */
+  EMACS_INT charpos;
   /* Number of characters and bytes of the current grapheme cluster.  */
   int nchars, nbytes;
   /* Indices of the glyphs for the current grapheme cluster.  */
@@ -1987,10 +2001,6 @@ struct composition_it
      graphic display and in units of canonical characters on a
      terminal display.  */
   int width;
-  /* Nonzero iff the composition is created while buffer is scanned in
-     reverse order, and thus the grapheme clusters must be rendered
-     from the last to the first.  */
-  int reversed_p;
 };
 
 struct it

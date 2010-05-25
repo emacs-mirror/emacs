@@ -1,3 +1,26 @@
+2010-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (struct composition_it): New members rule_idx and
+	charpos.
+
+	* xdisp.c (set_iterator_to_next): While scanning backward, assume
+	that the character positions of IT point the last character of the
+	current grapheme cluster.
+	(next_element_from_composition): Don't change character positions
+	of IT.
+	(append_composite_glyph): Set glyph->charpos to
+	it->cmp_it.charpos.
+
+	* composite.c (autocmp_chars): Change the first argument to RULE,
+	and try composition with RULE only.
+	(composition_compute_stop_pos): Record the index number of the
+	composition rule in CMP_IT->rule_idx.
+	(composition_reseat_it): Call autocmp_chars repeatedly until the
+	correct rule of the composition is found.
+	(composition_update_it): Set CMP_IT->charpos.  Assume the CHARPOS
+	is at the last character of the current grapheme cluster when
+	CMP_IT->reversed_p is nonzero.
+
 2010-05-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* character.c (Fstring, Funibyte_string): Use SAFE_ALLOCA to
