@@ -1,3 +1,12 @@
+2010-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-progress-reporter-update): New defun.
+	(with-progress-reporter): Use it.
+	(tramp-process-actions):
+	* net/tramp-gvfs.el (tramp-gvfs-handler-askquestion): Preserve
+	current message, in order to let progress reporter continue
+	afterwards.  (Bug#6257)
+
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
 	* net/rcirc.el (rcirc-default-user-name, rcirc-default-full-name):
