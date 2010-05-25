@@ -1,3 +1,8 @@
+2010-05-25  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
+
+	* net/tramp.el (tramp-handle-insert-directory): Don't use
+	`forward-word', it's default syntax could be changed.
+
 2010-05-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-progress-reporter-update): New defun.
