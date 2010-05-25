@@ -1,6 +1,7 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske
 ;; URL: http://www.nongnu.org/rcirc
@@ -115,11 +116,13 @@ connected to automatically."
 
 (defcustom rcirc-default-user-name "user"
   "Your user name sent to the server when connecting."
+  :version "24.1"                       ; changed default
   :type 'string
   :group 'rcirc)
 
 (defcustom rcirc-default-full-name "unknown"
   "The full name sent to the server when connecting."
+  :version "24.1"                       ; changed default
   :type 'string
   :group 'rcirc)
 

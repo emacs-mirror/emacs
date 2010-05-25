@@ -1,3 +1,8 @@
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* net/rcirc.el (rcirc-default-user-name, rcirc-default-full-name):
+	Add :version.
+
 2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-server-alist): Add :pass.
