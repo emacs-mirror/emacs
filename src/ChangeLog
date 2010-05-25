@@ -1,5 +1,10 @@
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (@NS_IMPL_GNUSTEP_INC@, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS):
+	Move before TEMACS_LDFLAGS.
+	(TEMACS_LDFLAGS): Use $NS_IMPL_GNUSTEP_TEMACS_LDFLAGS.
+	(temacs${EXEEXT}): Do not use $NS_IMPL_GNUSTEP_TEMACS_LDFLAGS.
+
 	* Makefile.in (NOT_C_CODE): No longer define.
 	(config.h): No longer include.
 
