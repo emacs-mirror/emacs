@@ -1,3 +1,8 @@
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa.el (epa--select-keys): Don't explicitly delete the window since
+	that can fail (e.g. sole window in frame).  Use dedication instead.
+
 2010-05-19  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
 
 	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
