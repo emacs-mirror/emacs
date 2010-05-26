@@ -1,3 +1,8 @@
+2010-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-xref.el (ada-gnat-parse-gpr):
+	* emulation/edt.el (edt-load-keys): Avoid (expand-file-name ".").
+
 2010-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/edt.el (edt-load-keys): Use locate-library.
@@ -6,8 +11,8 @@
 
 	* log-edit.el (log-edit-strip-single-file-name): Default to nil.
 	(log-edit-changelog-entries): Doc fix.
-	(log-edit-changelog-insert-entries): Args changed.  Rename
-	relative filenames in ChangeLog entries.  Delete tabs.
+	(log-edit-changelog-insert-entries): Args changed.
+	Rename relative filenames in ChangeLog entries.  Delete tabs.
 	(log-edit-insert-changelog-entries): Reorganize return value of
 	`log-edit-changelog-entries' to pass filenames to
 	log-edit-changelog-insert-entries.
