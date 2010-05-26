@@ -1,3 +1,8 @@
+2010-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (NS_IMPL_GNUSTEP_INC, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS):
+	No longer present.
+
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (LD_SWITCH_SYSTEM_EXTRA): No longer present.

@@ -129,8 +129,6 @@ s/\.h\.in/.h-in/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/^@NS_IMPL_GNUSTEP_INC@/s/@NS_IMPL_GNUSTEP_INC@//
-/^NS_IMPL_GNUSTEP_TEMACS_LDFLAGS *=/s/@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@//
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d

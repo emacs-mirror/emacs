@@ -1468,8 +1468,6 @@ fi
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
-NS_IMPL_GNUSTEP_INC=
-NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -1491,20 +1489,9 @@ if test "${with_ns}" != no; then
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     dnl FIXME sourcing this 3 times in subshells seems inefficient.
-     GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
+     dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
-     ## Pull in stuff from GNUstep-make.
-     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
-     NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
-GUI_LIB=gnu
-include $GNUSTEP_MAKEFILES/Additional/base.make
-include $GNUSTEP_MAKEFILES/Additional/gui.make
-shared=no
-"
-     dnl Presumably ${CONFIG_SYSTEM_LIBS} is defined by above includes.
-     NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -1525,8 +1512,6 @@ shared=no
     NS_HAVE_NSINTEGER=no
   fi
 fi
-AC_SUBST(NS_IMPL_GNUSTEP_INC)
-AC_SUBST(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
 AC_SUBST(TEMACS_LDFLAGS2)
 
 ns_frag=/dev/null
@@ -3311,6 +3296,11 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+if test "$NS_IMPL_GNUSTEP=yes"; then
+  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} -L${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
+fi
+
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
 

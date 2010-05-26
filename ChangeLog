@@ -1,3 +1,10 @@
+2010-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NS_IMPL_GNUSTEP_INC, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
+	(GNUSTEP_MAKEFILES): Remove.
+	(LD_SWITCH_SYSTEM_TEMACS): Move NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
+	stuff to here.
+
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LD_SWITCH_SYSTEM): Move some gnu-linux stuff...
