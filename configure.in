@@ -3304,7 +3304,7 @@ case "$opsys" in
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
 
-if test "$NS_IMPL_GNUSTEP=yes"; then
+if test "$NS_IMPL_GNUSTEP" = "yes"; then
   LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
 fi
 
