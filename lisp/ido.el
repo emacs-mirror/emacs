@@ -2815,7 +2815,7 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
    ((eq this-original-command 'viper-del-backward-char-in-insert)
     (funcall this-original-command))
    (t
-    (delete-backward-char (prefix-numeric-value count)))))
+    (delete-char (- (prefix-numeric-value count))))))
 
 (defun ido-delete-backward-word-updir (count)
   "Delete all chars backwards, or at beginning of buffer, go up one level."

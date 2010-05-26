@@ -1409,7 +1409,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-t." 'image-dired-display-thumb)
     (define-key map "\C-tc" 'image-dired-dired-comment-files)
     (define-key map "\C-tf" 'image-dired-mark-tagged-files)
-    (define-key map "\C-t\C-t" 'image-dired-dired-insert-marked-thumbs)
+    (define-key map "\C-t\C-t" 'image-dired-dired-toggle-marked-thumbs)
     (define-key map "\C-te" 'image-dired-dired-edit-comment-and-tags)
     ;; encryption and decryption (epa-dired)
     (define-key map ":d" 'epa-dired-do-decrypt)

@@ -741,7 +741,7 @@ from the document.")
 	(setq p (1+ (nth 3 blk)))))
     (goto-char begin)
     (while (re-search-forward "\r$" nil t)
-      (delete-backward-char 1))
+      (delete-char -1))
     (when head
       (goto-char begin)
       (when (search-forward "\n\n" nil t)

@@ -427,7 +427,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 		      ;; since encoded words can't occur in quotes.
 		      (progn
 			(goto-char end)
-			(delete-backward-char 1)
+			(delete-char -1)
 			(goto-char start)
 			(delete-char 1)
 			(when last-encoded
@@ -897,7 +897,7 @@ them.")
 		  (goto-char beg)
 		  (while (search-forward "\\" nil 'move)
 		    (unless (memq (char-after) '(?\"))
-		      (delete-backward-char 1))
+		      (delete-char -1))
 		    (forward-char)))
 		(forward-char))
 	    (error

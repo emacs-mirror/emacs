@@ -1152,7 +1152,7 @@ and move point to current buffer."
     (dolist (buffer list)
       (bs--insert-one-entry buffer)
       (insert "\n"))
-    (delete-backward-char 1)
+    (delete-char -1)
     (bs--set-window-height)
     (bs--goto-current-buffer)
     (font-lock-fontify-buffer)

@@ -699,7 +699,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 	(if (and (eq mode 'word)
 		 (not PC-word-failed-flag))
 	    (let ((PC-word-failed-flag t))
-	      (delete-backward-char 1)
+	      (delete-char -1)
 	      (PC-do-completion 'word))
                (when abbreviated
                  (delete-region beg end)

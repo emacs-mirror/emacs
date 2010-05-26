@@ -1060,7 +1060,7 @@ if it can't, it signals an error."
 ;;          (insert ?\()
 ;;          (while (setq undo-map (pop undo-rec))
 ;;            (insert (cdr undo-map) (car undo-map) ?\ ))
-;;          (delete-backward-char 1)
+;;          (delete-char -1)
 ;;          (insert ")\n"))))))
 
 ;; arch-tag: 8f094d88-ffe1-4f99-afe3-a5e81dd939d9

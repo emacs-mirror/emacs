@@ -96,12 +96,6 @@ C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 ## substituted in this or any other Makefile. Cf C_SWITCH_X_SITE.
 LD_SWITCH_X_SITE=
 
-## This holds any special options for linking temacs only (ie, not
-## used by configure).  Not used elsewhere because it sometimes
-## contains options that have to do with using Emacs's crt0, 
-## which are only good with temacs.
-LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
-
 ## Next two must come before LD_SWITCH_SYSTEM.
 ## If needed, a -R option that says where to find X windows at run time.
 LD_SWITCH_X_SITE_AUX=@LD_SWITCH_X_SITE_AUX@
@@ -110,10 +104,21 @@ LD_SWITCH_X_SITE_AUX_RPATH=@LD_SWITCH_X_SITE_AUX_RPATH@
 
 ## System-specific LDFLAGS.
 LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
-LD_SWITCH_SYSTEM_EXTRA=@LD_SWITCH_SYSTEM_EXTRA@
+
+## This holds any special options for linking temacs only (ie, not
+## used by configure).  Not used elsewhere because it sometimes
+## contains options that have to do with using Emacs's crt0, 
+## which are only good with temacs.
+LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
+
+## If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.
+@NS_IMPL_GNUSTEP_INC@
+
+## This uses ${CONFIG_SYSTEM_LIBS} from @NS_IMPL_GNUSTEP_INC@.
+NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@
 
 ## Flags to pass to ld only for temacs.
-TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_EXTRA) $(LD_SWITCH_SYSTEM_TEMACS)
+TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS) $(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
 
 ## $LDFLAGS, or empty if NS_IMPL_GNUSTEP (for some reason).
 TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
@@ -301,16 +306,6 @@ MKDEPDIR=@MKDEPDIR@
 
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
-
-#define NOT_C_CODE
-#include "config.h"
-
-/* If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.  */
-@NS_IMPL_GNUSTEP_INC@
-
-/* FIXME move to LD_SWITCH_SYSTEM_TEMACS?
-   This uses ${CONFIG_SYSTEM_LIBS}, presumably set by the above include.  */
-NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
@@ -648,8 +643,7 @@ buildobj.h: Makefile
 #define YMF_PASS_LDFLAGS(flags) @YMF_PASS_LDFLAGS@
 
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
-	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
-	  ${NS_IMPL_GNUSTEP_TEMACS_LDFLAGS} ) \
+	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} ) \
 	  ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 

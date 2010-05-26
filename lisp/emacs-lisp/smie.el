@@ -72,7 +72,7 @@
   (let* ((key (cons x y))
          (old (gethash key table)))
     (if (and old (not (eq old val)))
-        (if (gethash key override)
+        (if (and override (gethash key override))
             ;; FIXME: The override is meant to resolve ambiguities,
             ;; but it also hides real conflicts.  It would be great to
             ;; be able to distinguish the two cases so that overrides
@@ -104,7 +104,7 @@ one of those elements share the same precedence level and associativity."
                 (smie-set-prec2tab prec2-table other-op op op1)))))))
     prec2-table))
 
-(defun smie-merge-prec2s (tables)
+(defun smie-merge-prec2s (&rest tables)
   (if (null (cdr tables))
       (car tables)
     (let ((prec2 (make-hash-table :test 'equal)))
@@ -121,8 +121,8 @@ one of those elements share the same precedence level and associativity."
         (first-nts-table ())
         (last-nts-table ())
         (prec2 (make-hash-table :test 'equal))
-        (override (smie-merge-prec2s
-                   (mapcar 'smie-precs-precedence-table precs)))
+        (override (apply 'smie-merge-prec2s
+                         (mapcar 'smie-precs-precedence-table precs)))
         again)
     (dolist (rules bnf)
       (let ((nt (car rules))
@@ -234,7 +234,7 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
               (to (cdar eqs)))
           (setq eqs (cdr eqs))
           (if (eq to from)
-              (debug)                   ;Can it happen?
+              nil                   ;Nothing to do.
             (dolist (other-eq eqs)
               (if (eq from (cdr other-eq)) (setcdr other-eq to))
               (when (eq from (car other-eq))
@@ -271,16 +271,20 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
         (incf i 10))
       ;; Propagate equalities back to their source.
       (dolist (eq (nreverse eqs))
-        (assert (null (caar eq)))
+        (assert (or (null (caar eq)) (eq (car eq) (cdr eq))))
         (setcar (car eq) (cadr eq)))
       ;; Finally, fill in the remaining vars (which only appeared on the
       ;; right side of the < constraints).
-      ;; Tho leaving them at nil is not a bad choice, since it makes
-      ;; it clear that these don't bind at all.
-      ;; (dolist (x table)
-      ;;   (unless (nth 1 x) (setf (nth 1 x) i))
-      ;;   (unless (nth 2 x) (setf (nth 2 x) i)))
-      )
+      (dolist (x table)
+        ;; When both sides are nil, it means this operator binds very
+        ;; very tight, but it's still just an operator, so we give it
+        ;; the highest precedence.
+        ;; OTOH if only one side is nil, it usually means it's like an
+        ;; open-paren, which is very important for indentation purposes,
+        ;; so we keep it nil, to make it easier to recognize.
+        (unless (or (nth 1 x) (nth 2 x))
+          (setf (nth 1 x) i)
+          (setf (nth 2 x) i))))
     table))
 
 ;;; Parsing using a precedence level table.

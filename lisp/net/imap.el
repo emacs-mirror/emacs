@@ -2095,7 +2095,7 @@ Return nil if no complete line has arrived."
 	(while (setq end (imap-find-next-line))
 	  (save-restriction
 	    (narrow-to-region (point-min) end)
-	    (delete-backward-char (length imap-server-eol))
+	    (delete-char (- (length imap-server-eol)))
 	    (goto-char (point-min))
 	    (unwind-protect
 		(cond ((eq imap-state 'initial)

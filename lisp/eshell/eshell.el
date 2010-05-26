@@ -404,7 +404,7 @@ With prefix ARG, insert output into the current buffer at point."
 	  (assert (not (eshell-interactive-process)))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
-	    (delete-backward-char 1)))
+	    (delete-char -1)))
 	(assert (and buf (buffer-live-p buf)))
 	(unless arg
 	  (let ((len (if (not intr) 2

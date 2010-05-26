@@ -2443,7 +2443,7 @@ Preserves location of `point'."
 	    (while (and
 		    (<= (setq N (1+ N)) 0)
 		    (cond ((memq (preceding-char) '(?\  ?\t))
-			   (delete-backward-char 1) t)
+			   (delete-char -1) t)
 			  ((memq (following-char) '(?\  ?\t))
 			   (delete-char 1) t)
 			  (t nil))))
@@ -3121,7 +3121,7 @@ If optional arg CONCAT is non-nil then join arguments."
 	  (if unquote (delete-char 1) (forward-char))
 	  (re-search-forward "\"\\|$"))
 	(if (eq (preceding-char) ?\")
-	    (if unquote (delete-backward-char 1))
+	    (if unquote (delete-char -1))
 	  (WoMan-warn "Unpaired \" in .%s arguments." request)))
     ;; (re-search-forward "[^\\\n] \\|$")	; inconsistent
     (skip-syntax-forward "^ "))
@@ -4346,7 +4346,7 @@ The variable `tab-stop-list' is a list whose elements are either left
 tab stop columns or pairs (COLUMN . TYPE) where TYPE is R or C."
   ;; Based on tab-to-tab-stop in indent.el.
   ;; R & C tabs probably not quite right!
-  (delete-backward-char 1)
+  (delete-char -1)
   (let ((tabs tab-stop-list))
     (while (and tabs (>= (current-column)
 			 (woman-get-tab-stop (car tabs))))
@@ -4400,7 +4400,7 @@ Needs doing properly!"
 	  (delete-char 1)
 	  (insert woman-unpadded-space-char)
 	  (goto-char (match-end 0))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (insert-before-markers woman-unpadded-space-char)
 	  (subst-char-in-region
 	   (match-beginning 0) (match-end 0)

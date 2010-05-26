@@ -1,3 +1,92 @@
+2010-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* log-edit.el (log-edit-strip-single-file-name): Default to nil.
+	(log-edit-changelog-entries): Doc fix.
+	(log-edit-changelog-insert-entries): Args changed.  Rename
+	relative filenames in ChangeLog entries.  Delete tabs.
+	(log-edit-insert-changelog-entries): Reorganize return value of
+	`log-edit-changelog-entries' to pass filenames to
+	log-edit-changelog-insert-entries.
+
+2010-05-25  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* dired.el (dired-mode-map): Rebind "\C-t\C-t" from
+	`image-dired-dired-insert-marked-thumbs' to
+	`image-dired-dired-toggle-marked-thumbs'.
+
+	* image-dired.el: Require cl when compiling.
+	(image-dired-dired-toggle-marked-thumbs): Rename from
+	`image-dired-dired-insert-marked-thumbs'.  Add ARG.  Doc fix.
+	Use interactive spec "P".  Set LOCALP arg of `dired-get-filename'
+	to 'no-dir.  Skip files whose names don't match
+	`image-file-name-regexp'.  When file has a thumbnail overlay,
+	delete it.  (Bug#5270)
+
+2010-05-25  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-mode): Add image-after-revert-hook to
+	after-revert-hook.
+	(image-after-revert-hook): New function.  (Bug#5669)
+
+2010-05-25  Juri Linkov  <juri@jurta.org>
+
+	* image.el (image-animated-p): When delay between animated images
+	is 0, set it to 10 (0.1 sec).  (Bug#6258)
+
+2010-05-25  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
+
+	* net/tramp.el (tramp-handle-insert-directory): Don't use
+	`forward-word', its default syntax could be changed.
+
+2010-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-progress-reporter-update): New defun.
+	(with-progress-reporter): Use it.
+	(tramp-process-actions):
+	* net/tramp-gvfs.el (tramp-gvfs-handler-askquestion): Preserve
+	current message, in order to let progress reporter continue
+	afterwards.  (Bug#6257)
+
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* net/rcirc.el (rcirc-default-user-name, rcirc-default-full-name):
+	Add :version.
+
+2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-server-alist): Add :pass.
+	(rcirc-default-user-name): Change to "user".
+	(rcirc-default-full-name): Change to "unknown".
+	(rcirc-user-name-history): Add variable.
+	(rcirc): When prompting for connection paramaters, also prompt for
+	username and password.
+	(rcirc-connect): Take a PASS argument.	If PASS is non-nil, send
+	value to server when connecting.
+
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-set-prec2tab): Check override before use.
+	(smie-merge-prec2s): Pass the tables as separate args.
+	(smie-bnf-precedence-table): Adjust call accordingly.
+	(smie-prec2-levels): Set levels at the end.
+
+	Replace Lisp calls to delete-backward-char by delete-char.
+	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
+	* skeleton.el, term.el, time.el, wid-edit.el, woman.el,
+	* calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
+	* calc/calc.el, emacs-cl-extra.el, emacs-cl-loaddefs.el,
+	* emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
+	* eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
+	* gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
+	* language/ethio-util.el, mh-e/mh-alias.el, mh-e/mh-search.el,
+	* net/imap.el, net/rcirc.el, obsolete/complete.el, play/decipher.el,
+	* progmodes/ada-mode.el, progmodes/cc-awk.el, progmodes/dcl-mode.el,
+	* progmodes/ps-mode.el, progmodes/verilog-mode.el,
+	* progmodes/vhdl-mode.el, textmodes/bibtex.el, textmodes/fill.el,
+	* textmodes/reftex-auc.el, textmodes/rst.el, textmodes/sgml-mode.el,
+	* textmodes/table.el, textmodes/texinfmt.el: Replace Lisp calls to
+	delete-backward-char by calls to delete-char.
+
 2010-05-25  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el (hebrew-shape-gstring): New function.

@@ -368,7 +368,7 @@ See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
     nil))
 
 (defun expand-do-expansion ()
-  (delete-backward-char (length last-abbrev-text))
+  (delete-char (- (length last-abbrev-text)))
   (let* ((vect (symbol-value last-abbrev))
 	 (text (aref vect 0))
 	 (position (aref vect 1))

@@ -657,7 +657,7 @@ space does not end a sentence, so don't break a line there."
       (if (and oneleft
 	       (not (and use-hard-newlines
 			 (get-text-property (1- (point)) 'hard))))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	(backward-char 1)
 	(setq oneleft t)))
     (setq to (copy-marker (point) t))
