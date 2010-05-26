@@ -3369,15 +3369,15 @@ AC_SUBST(PRE_EDIT_LDFLAGS)
 AC_SUBST(POST_EDIT_LDFLAGS)
 
 test "x$LINKER" = "x" && LINKER=ld
-## FIXME? What setting of YMF_PASS_LDFLAGS should this have?
+## FIXME? What setting of EDIT_LDFLAGS should this have?
 test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
 
 AC_SUBST(LINKER)
 
 
-## FIXME? The logic here is not precisely the same as that above
-## setting YMF_PASS_LDFLAGS.  There is no check here for a pre-defined
-## LINKER.  Should we only be setting LIB_GCC if LD ~ -nostdlib?
+## FIXME? The logic here is not precisely the same as that above.
+## There is no check here for a pre-defined LINKER.
+## Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
