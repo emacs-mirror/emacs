@@ -1,5 +1,8 @@
 2010-05-26  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (YMF_PASS_LDFLAGS): Remove.
+	(PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS): New output variables.
+
 	* configure.in (CPPFLAGS, CFLAGS, REAL_CFLAGS):
 	Add $GNUSTEP_LOCAL_HEADERS.
 	(LDFLAGS, LD_SWITCH_SYSTEM_TEMACS): Add $GNUSTEP_LOCAL_LIBRARIES.

@@ -3335,11 +3335,9 @@ case "$opsys" in
     ;;
 esac
 
-## A macro which other sections of Makefile can redefine to munge the
-## flags before they are passed to LD.  This is helpful if you have
-## redefined LD to something odd, like "gcc".
-## (The YMF prefix is a holdover from the old name "ymakefile".) 
-YMF_PASS_LDFLAGS=flags
+
+PRE_EDIT_LDFLAGS=
+POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -3363,10 +3361,12 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## shell''s ``for'' construct.  Note that sane people do not have '.' in
   ## their paths, so we must use ./prefix-args.
   ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this macro.
-  YMF_PASS_LDFLAGS='`./prefix-args -Xlinker flags`'
+  ## or remove it altogether (bug#6184), removing the need for this hack.
+  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
+  POST_EDIT_LDFLAGS='`'
 fi
-AC_SUBST(YMF_PASS_LDFLAGS)
+AC_SUBST(PRE_EDIT_LDFLAGS)
+AC_SUBST(POST_EDIT_LDFLAGS)
 
 test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of YMF_PASS_LDFLAGS should this have?

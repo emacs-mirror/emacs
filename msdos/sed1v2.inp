@@ -147,6 +147,8 @@ s/\.h\.in/.h-in/
 s/@YMF_PASS_LDFLAGS@/flags/
 s/@deps_frag@//
 s/@ns_frag@//
+s/@PRE_EDIT_LDFLAGS@//
+s/@POST_EDIT_LDFLAGS@//
 s/bootstrap-emacs/b-emacs/
 s/bootstrap-temacs/b-temacs/
 s/bootstrap-doc/b-doc/

@@ -634,10 +634,14 @@ ${libsrc}make-docfile${EXEEXT}:
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
-#define YMF_PASS_LDFLAGS(flags) @YMF_PASS_LDFLAGS@
 
+/* We cannot define variables for PRE_EDIT and POST_EDIT.
+   If !ORDINARY_LINK && !LINKER && GCC, they add a
+   \`./prefix-args -Xlinker ... \` wrapper, otherwise they are empty.
+   One alternative to this approach would be to always call prefix-args, 
+   and have it DTRT in all cases, by testing the above defines.  */
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
-	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} ) \
+	$(LD) @PRE_EDIT_LDFLAGS@ ${TEMACS_LDFLAGS} @POST_EDIT_LDFLAGS@ \
 	  ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 

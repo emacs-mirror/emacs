@@ -1,5 +1,8 @@
 2010-05-26  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (YMF_PASS_LDFLAGS): Remove.
+	(temacs${EXEEXT}): Use PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS.
+
 	* Makefile.in (NS_IMPL_GNUSTEP_INC, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS):
 	Remove.
 	(TEMACS_LDFLAGS): Do not use NS_IMPL_GNUSTEP_TEMACS_LDFLAGS.
