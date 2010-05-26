@@ -1124,7 +1124,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
 	    }
 	}
     }
-  else
+  else if (charpos > endpos)
     {
       /* Search backward for a pattern that may be composed and the
 	 position of (possibly) the last character of the match is
