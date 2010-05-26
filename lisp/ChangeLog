@@ -1,3 +1,7 @@
+2010-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/edt.el (edt-load-keys): Use locate-library.
+
 2010-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* log-edit.el (log-edit-strip-single-file-name): Default to nil.
