@@ -369,6 +369,17 @@ eshell/ls is a compiled Lisp function in `em-ls.el'
 /bin/ls
 @end example
 
+If you want to discard a given built-in command, you could declare an
+alias, @ref{Aliases}.  Eample:
+
+@example
+~ $ which sudo
+eshell/sudo is a compiled Lisp function in `em-unix.el'
+~ $ alias sudo '*sudo $*'
+~ $ which sudo
+sudo is an alias, defined as "*sudo $*"
+@end example
+
 Some of the built-in commands have a special behaviour in Eshell:
 
 @table @code

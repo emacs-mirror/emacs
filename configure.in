@@ -1468,8 +1468,6 @@ fi
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
-NS_IMPL_GNUSTEP_INC=
-NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -1491,24 +1489,20 @@ if test "${with_ns}" != no; then
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     dnl FIXME sourcing this 3 times in subshells seems inefficient.
-     GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
+     dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
-     ## Pull in stuff from GNUstep-make.
-     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
-     NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
-GUI_LIB=gnu
-include $GNUSTEP_MAKEFILES/Additional/base.make
-include $GNUSTEP_MAKEFILES/Additional/gui.make
-shared=no
-"
-     dnl Presumably ${CONFIG_SYSTEM_LIBS} is defined by above includes.
-     NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
-     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+     dnl I seemed to need these as well with GNUstep-startup 0.25.
+     GNUSTEP_LOCAL_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_HEADERS)"
+     GNUSTEP_LOCAL_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_LIBRARIES)"
+     test "x${GNUSTEP_LOCAL_HEADERS}" != "x" && \
+       GNUSTEP_LOCAL_HEADERS="-I${GNUSTEP_LOCAL_HEADERS}"
+     test "x${GNUSTEP_LOCAL_LIBRARIES}" != "x" && \
+       GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
      TEMACS_LDFLAGS2=
@@ -1525,8 +1519,6 @@ shared=no
     NS_HAVE_NSINTEGER=no
   fi
 fi
-AC_SUBST(NS_IMPL_GNUSTEP_INC)
-AC_SUBST(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
 AC_SUBST(TEMACS_LDFLAGS2)
 
 ns_frag=/dev/null
@@ -3311,6 +3303,11 @@ case "$opsys" in
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+if test "$NS_IMPL_GNUSTEP" = "yes"; then
+  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
+fi
+
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
 
@@ -3338,11 +3335,9 @@ case "$opsys" in
     ;;
 esac
 
-## A macro which other sections of Makefile can redefine to munge the
-## flags before they are passed to LD.  This is helpful if you have
-## redefined LD to something odd, like "gcc".
-## (The YMF prefix is a holdover from the old name "ymakefile".) 
-YMF_PASS_LDFLAGS=flags
+
+PRE_EDIT_LDFLAGS=
+POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -3366,21 +3361,23 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## shell''s ``for'' construct.  Note that sane people do not have '.' in
   ## their paths, so we must use ./prefix-args.
   ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this macro.
-  YMF_PASS_LDFLAGS='`./prefix-args -Xlinker flags`'
+  ## or remove it altogether (bug#6184), removing the need for this hack.
+  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
+  POST_EDIT_LDFLAGS='`'
 fi
-AC_SUBST(YMF_PASS_LDFLAGS)
+AC_SUBST(PRE_EDIT_LDFLAGS)
+AC_SUBST(POST_EDIT_LDFLAGS)
 
 test "x$LINKER" = "x" && LINKER=ld
-## FIXME? What setting of YMF_PASS_LDFLAGS should this have?
+## FIXME? What setting of EDIT_LDFLAGS should this have?
 test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
 
 AC_SUBST(LINKER)
 
 
-## FIXME? The logic here is not precisely the same as that above
-## setting YMF_PASS_LDFLAGS.  There is no check here for a pre-defined
-## LINKER.  Should we only be setting LIB_GCC if LD ~ -nostdlib?
+## FIXME? The logic here is not precisely the same as that above.
+## There is no check here for a pre-defined LINKER.
+## Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
