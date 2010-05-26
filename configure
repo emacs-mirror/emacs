@@ -720,8 +720,6 @@ DEPFLAGS
 XMKMF
 LD_SWITCH_X_SITE_AUX
 LD_SWITCH_X_SITE_AUX_RPATH
-NS_IMPL_GNUSTEP_INC
-NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
 TEMACS_LDFLAGS2
 NS_OBJ
 NS_SUPPORT
@@ -820,7 +818,8 @@ CYGWIN_OBJ
 PRE_ALLOC_OBJ
 POST_ALLOC_OBJ
 LD_SWITCH_SYSTEM_TEMACS
-YMF_PASS_LDFLAGS
+PRE_EDIT_LDFLAGS
+POST_EDIT_LDFLAGS
 LINKER
 LIB_GCC
 MOUSE_SUPPORT
@@ -9935,8 +9934,6 @@ fi
 HAVE_NS=no
 NS_IMPL_COCOA=no
 NS_IMPL_GNUSTEP=no
-NS_IMPL_GNUSTEP_INC=
-NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
@@ -9955,22 +9952,18 @@ if test "${with_ns}" != no; then
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-          GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
-     GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
+          GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
-     ## Pull in stuff from GNUstep-make.
-     ## FIXME? Cleaner to use AC_SUBST_FILE for this?
-     NS_IMPL_GNUSTEP_INC="FOUNDATION_LIB=gnu
-GUI_LIB=gnu
-include $GNUSTEP_MAKEFILES/Additional/base.make
-include $GNUSTEP_MAKEFILES/Additional/gui.make
-shared=no
-"
-          NS_IMPL_GNUSTEP_TEMACS_LDFLAGS="-L${GNUSTEP_SYSTEM_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc \${CONFIG_SYSTEM_LIBS} -lpthread"
-     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+          GNUSTEP_LOCAL_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_HEADERS)"
+     GNUSTEP_LOCAL_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_LIBRARIES)"
+     test "x${GNUSTEP_LOCAL_HEADERS}" != "x" && \
+       GNUSTEP_LOCAL_HEADERS="-I${GNUSTEP_LOCAL_HEADERS}"
+     test "x${GNUSTEP_LOCAL_LIBRARIES}" != "x" && \
+       GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
      TEMACS_LDFLAGS2=
@@ -10160,8 +10153,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     NS_HAVE_NSINTEGER=no
   fi
 fi
-
-
 
 
 ns_frag=/dev/null
@@ -26634,6 +26625,11 @@ case "$opsys" in
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
 
+if test "$NS_IMPL_GNUSTEP" = "yes"; then
+  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
+fi
+
+
 
 
 LINKER=
@@ -26660,11 +26656,9 @@ case "$opsys" in
     ;;
 esac
 
-## A macro which other sections of Makefile can redefine to munge the
-## flags before they are passed to LD.  This is helpful if you have
-## redefined LD to something odd, like "gcc".
-## (The YMF prefix is a holdover from the old name "ymakefile".)
-YMF_PASS_LDFLAGS=flags
+
+PRE_EDIT_LDFLAGS=
+POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -26692,9 +26686,11 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## shell''s ``for'' construct.  Note that sane people do not have '.' in
   ## their paths, so we must use ./prefix-args.
   ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this macro.
-  YMF_PASS_LDFLAGS='`./prefix-args -Xlinker flags`'
+  ## or remove it altogether (bug#6184), removing the need for this hack.
+  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
+  POST_EDIT_LDFLAGS='`'
 fi
+
 
 
 test "x$LINKER" = "x" && LINKER=ld

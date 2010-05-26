@@ -381,9 +381,9 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1) ; first directory in list
 	  (while (not (looking-at "^$")) ; terminate on blank line
 	    (back-to-indentation) ; skip whitespace
-	    (if (looking-at "<Current_Directory>")
-		(add-to-list 'src-dir  (expand-file-name "."))
-	      (add-to-list 'src-dir
+	    (add-to-list 'src-dir
+                         (if (looking-at "<Current_Directory>")
+                             default-directory
 			   (expand-file-name
 			    (buffer-substring-no-properties
 			     (point) (line-end-position)))))
@@ -395,9 +395,9 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1)
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
-	    (if (looking-at "<Current_Directory>")
-		(add-to-list 'obj-dir (expand-file-name "."))
-	      (add-to-list 'obj-dir
+	    (add-to-list 'obj-dir
+                         (if (looking-at "<Current_Directory>")
+                             default-directory
 			   (expand-file-name
 			    (buffer-substring-no-properties
 			     (point) (line-end-position)))))
