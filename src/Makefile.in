@@ -114,7 +114,7 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.
 @NS_IMPL_GNUSTEP_INC@
 
-## This uses ${CONFIG_SYSTEM_LIBS} from @NS_IMPL_GNUSTEP_INC@.
+## This uses ${CONFIG_SYSTEM_LIBS} from NS_IMPL_GNUSTEP_INC.
 NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@
 
 ## Flags to pass to ld only for temacs.
