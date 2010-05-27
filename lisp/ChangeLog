@@ -1,3 +1,8 @@
+2010-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el (hebrew-shape-gstring): Check if a glyph
+	element of GSTRING is nil.
+
 2010-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* log-edit.el (log-edit-strip-single-file-name): Default to nil.
