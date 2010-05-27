@@ -1,3 +1,13 @@
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/verilog-mode.el (verilog-type-font-keywords): Use
+	font-lock-constant-face, not obsolete font-lock-reference-face.
+
+2010-05-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-resolve-face): New function.
+	(hfy-face-to-style): Use it (Bug#6279).
+
 2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* epa.el (epa--select-keys): Don't explicitly delete the window since

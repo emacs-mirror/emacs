@@ -1059,14 +1059,25 @@ haven't encountered them yet.  Returns a `hfy-style-assoc'."
     (setq  n (apply '* m))
     (nconc r (hfy-size (if x (round n) (* n 1.0)))) ))
 
+(defun hfy-face-resolve-face (fn)
+  (cond
+   ((facep fn)
+    (hfy-face-attr-for-class fn hfy-display-class))
+   ((and (symbolp fn)
+	 (facep (symbol-value fn)))
+    ;; Obsolete faces like `font-lock-reference-face' are defined as
+    ;; aliases for another face.
+    (hfy-face-attr-for-class (symbol-value fn) hfy-display-class))
+   (t nil)))
+
+
 (defun hfy-face-to-style (fn)
   "Take FN, a font or `defface' style font specification,
 \(as returned by `face-attr-construct' or `hfy-face-attr-for-class')
 and return a `hfy-style-assoc'.\n
 See also `hfy-face-to-style-i', `hfy-flatten-style'."
   ;;(message "hfy-face-to-style");;DBUG
-  (let ((face-def (if (facep fn)
-                      (hfy-face-attr-for-class fn hfy-display-class) fn))
+  (let ((face-def (hfy-face-resolve-face fn))
         (final-style nil))
 
     (setq final-style (hfy-flatten-style (hfy-face-to-style-i face-def)))
