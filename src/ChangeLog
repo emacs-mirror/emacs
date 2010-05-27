@@ -1,3 +1,8 @@
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): After redisplay, check if point is
+	still valid before setting it (Bug#6177).
+
 2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
 
 	* s/netbsd.h: If terminfo is found, use it in preference to
