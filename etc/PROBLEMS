@@ -2373,18 +2373,6 @@ The solution is to tell configure to use the correct C preprocessor
 for your C compiler (CPP="/opt/SUNWspro/bin/cc -E" in the above
 example).
 
-*** `configure' fails with ``"junk.c", line 660: invalid input token: 8.elc''
-
-The final stage of the Emacs configure process uses the C preprocessor
-to generate the Makefiles.  Errors of this form can occur if the C
-preprocessor inserts extra whitespace into its output.  The solution
-is to find the switches that stop your preprocessor from inserting extra
-whitespace, add them to CPPFLAGS, and re-run configure.  For example,
-this error can occur on Solaris 10 when using the Sun Studio compiler
-``Sun C 5.8'' with its preprocessor CPP="/opt/SUNWspro/bin/cc -E".
-The relevant switch in this case is "-Xs" (``compile assuming
-(pre-ANSI) K & R C style code'').
-
 ** Compilation
 
 *** Building Emacs over NFS fails with ``Text file busy''.
@@ -2426,32 +2414,6 @@ you are working on the host called `marvin'.  Then an entry in the
     marvin:/usr/local/src /usr/local/src ...options.omitted...
 
 The solution is to remove this line from `etc/fstab'.
-
-*** Building Emacs with GCC 2.9x fails in the `src' directory.
-
-This may happen if you use a development version of GNU `cpp' from one
-of the GCC snapshots between Oct 2000 and Feb 2001, or from a released
-version of GCC newer than 2.95.2 which was prepared around those
-dates; similar problems were reported with some snapshots of GCC 3.1
-around Sep 30 2001.  The preprocessor in those versions is
-incompatible with a traditional Unix cpp (e.g., it expands ".." into
-". .", which breaks relative file names that reference the parent
-directory; or inserts TAB characters before lines that set Make
-variables).
-
-The solution is to make sure the preprocessor is run with the
-`-traditional' option.  The `configure' script does that automatically
-when it detects the known problems in your cpp, but you might hit some
-unknown ones.  To force the `configure' script to use `-traditional',
-run the script like this:
-
-  CPP='gcc -E -traditional' ./configure ...
-
-(replace the ellipsis "..." with any additional arguments you pass to
-the script).
-
-Note that this problem does not pertain to the MS-Windows port of
-Emacs, since it doesn't use the preprocessor to generate Makefiles.
 
 *** src/Makefile and lib-src/Makefile are truncated--most of the file missing.
 *** Compiling wakeup, in lib-src, says it can't make wakeup.c.

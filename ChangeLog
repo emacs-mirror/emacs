@@ -1,3 +1,13 @@
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.bat: Do not preprocess src/Makefile.in.
+
+	* configure.in: Do not preprocess src/Makefile.in.
+	(cpp_undefs, CPP_NEED_TRADITIONAL): Remove.
+	(AC_EGREP_CPP): Test no longer needed.
+
+	* make-dist: No more Makefile.c files.
+
 2010-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (YMF_PASS_LDFLAGS): Remove.

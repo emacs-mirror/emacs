@@ -1,6 +1,7 @@
 GNU Emacs Installation Guide
 Copyright (C) 1992, 1994, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  2005, 2006, 2007, 2008, 2009, 2010
+  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -686,8 +687,8 @@ when running make in the subdirectories.
 
 CONFIGURATION BY HAND
 
-Instead of running the `configure' program, you have to perform the
-following steps.
+This should not be necessary and is not recommended.  Instead of
+running the `configure' program, you have to perform the following steps.
 
 1) Copy `./src/config.in' to `./src/config.h'.
 
@@ -701,22 +702,15 @@ the appropriate system and architecture description files.
 2) Edit `./src/config.h' to set the right options for your system.  If
 you need to override any of the definitions in the s/*.h and m/*.h
 files for your system and machine, do so by editing config.h, not by
-changing the s/*.h and m/*.h files.  Occasionally you may need to
-redefine parameters used in `./lib-src/movemail.c'.
+changing the s/*.h and m/*.h files.
 
-3) Create src/Makefile and lib-src/Makefile from the corresponding
-`Makefile.in' files.  First copy `Makefile.in' to `Makefile.c',
-then edit in appropriate substitutions for the @...@ constructs,
-and then copy the shell commands near the end of `configure'
-that run cpp to construct `Makefile'.
-
-4) Create `Makefile' files in various other directories
-from the corresponding `Makefile.in' files.  This isn't so hard,
-just a matter of substitution.
+3) Create `Makefile' files in various directories from the
+corresponding `Makefile.in' files.  This isn't so hard, just a matter
+of editing in appropriate substitutions for the @...@ constructs.
 
 The `configure' script is built from `configure.in' by the `autoconf'
-program.  You need version 2.51 or newer of `autoconf' to rebuild
-`configure'.
+program.  You need at least the version of autoconf specified in the
+AC_PREREQ(...) command to rebuild `configure' from `configure.in'.
 
 BUILDING GNU EMACS BY HAND
 

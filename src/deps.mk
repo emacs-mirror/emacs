@@ -1,41 +1,41 @@
-/* deps.mk --- src/Makefile fragment for GNU Emacs
+### deps.mk --- src/Makefile fragment for GNU Emacs
 
-Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
-  2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+## Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
+##   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+##   Free Software Foundation, Inc.
 
-This file is part of GNU Emacs.
+## This file is part of GNU Emacs.
 
-GNU Emacs is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-GNU Emacs is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+## Commentary:
+## 
+## This file is inserted in src/Makefile if AUTO_DEPEND=no.
+## It defines static dependencies between the various source files.
 
-You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## FIXME some of these dependencies are platform-specific.
+## Eg callproc.c only depends on w32.h for WINDOWSNT builds.
+## One way to fix this would be to replace w32.h (etc) by $(W32_H),
+## a variable set by configure.  Does not seem worth the trouble.
+## Since the w32 build does not even use this file, you might ask
+## why these dependencies are here at all...
 
-Commentary:
+## nsgui.h: In fact, every .o file depends directly or indirectly on
+## dispextern.h and hence nsgui.h under NS.  But the ones that actually
+## use stuff there are more limited.
 
-This file is inserted in src/Makefile if AUTO_DEPEND=no.
-It defines static dependencies between the various source files.
-
-FIXME some of these dependencies are platform-specific.
-Eg callproc.c only depends on w32.h for WINDOWSNT builds.
-One way to fix this would be to replace w32.h (etc) by $(W32_H),
-a variable set by configure.  Does not seem worth the trouble.
-Since the w32 build does not even use this file, you might ask
-why these dependencies are here at all...
-
-nsgui.h: In fact, every .o file depends directly or indirectly on
-dispextern.h and hence nsgui.h under NS.  But the ones that actually
-use stuff there are more limited.
-
-Code:  */
+### Code:
 
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  $(config_h)
@@ -245,7 +245,7 @@ xsettings.o: xterm.h xsettings.h lisp.h frame.h termhooks.h $(config_h) \
    dispextern.h keyboard.h systime.h coding.h composite.h blockinput.h \
    atimer.h termopts.h
 
-/* The files of Lisp proper.  */
+## The files of Lisp proper.
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h \
    keyboard.h blockinput.h atimer.h systime.h character.h lisp.h $(config_h) \
    $(INTERVALS_H) termhooks.h
@@ -267,7 +267,7 @@ lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
    charset.h lisp.h $(config_h) $(INTERVALS_H) termhooks.h coding.h msdos.h \
    systime.h frame.h blockinput.h atimer.h
 
-/* Text properties support.  */
+## Text properties support.
 composite.o: composite.c buffer.h character.h coding.h font.h ccl.h \
    frame.h termhooks.h $(INTERVALS_H) window.h lisp.h $(config_h)
 intervals.o: intervals.c buffer.h $(INTERVALS_H) keyboard.h puresize.h \
@@ -276,4 +276,4 @@ textprop.o: textprop.c buffer.h window.h $(INTERVALS_H) \
    lisp.h $(config_h)
 
 
-/* deps.mk ends here  */
+### deps.mk ends here
