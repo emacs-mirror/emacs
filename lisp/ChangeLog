@@ -1,3 +1,18 @@
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/verilog-mode.el (verilog-type-font-keywords): Use
+	font-lock-constant-face, not obsolete font-lock-reference-face.
+
+2010-05-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-resolve-face): New function.
+	(hfy-face-to-style): Use it (Bug#6279).
+
+2010-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el (hebrew-shape-gstring): Check if a glyph
+	element of GSTRING is nil.
+
 2010-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-forward-token-function)
