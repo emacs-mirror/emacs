@@ -91,14 +91,7 @@ The solution is to uncompress all .el files which don't have a .elc
 file.
 
 Another possible reason for such failures is stale *.elc files
-lurking somewhere on your load-path.  The following command will
-print any duplicate Lisp files that are present in load-path:
-
-    emacs -q -batch -f list-load-path-shadows
-
-If this command prints any file names, some of these files are stale,
-and should be deleted or their directories removed from your
-load-path.
+lurking somewhere on your load-path -- see the next section.
 
 ** Emacs prints an error at startup after upgrading from an earlier version.
 
@@ -489,13 +482,7 @@ causes it.
             else
             {
 
-** PSGML
-
-*** Old versions of the PSGML package use the obsolete variables
-`before-change-function' and `after-change-function', which are no
-longer used by Emacs.  Please use PSGML 1.2.3 or later.
-
-*** PSGML conflicts with sgml-mode.
+** PSGML conflicts with sgml-mode.
 
 PSGML package uses the same names of some variables (like keymap)
 as built-in sgml-mode.el because it was created as a replacement
@@ -504,23 +491,6 @@ sgml-mode.el before psgml.el.  E.g. this could happen if you edit
 HTML page and then start to work with SGML or XML file.  html-mode
 (from sgml-mode.el) is used for HTML file and loading of psgml.el
 (for sgml-mode or xml-mode) will cause an error.
-
-*** Versions of the PSGML package earlier than 1.0.3 (stable) or 1.1.2
-(alpha) fail to parse DTD files correctly in Emacs 20.3 and later.
-Here is a patch for psgml-parse.el from PSGML 1.0.1 and, probably,
-earlier versions.
-
---- psgml-parse.el	1998/08/21 19:18:18	1.1
-+++ psgml-parse.el	1998/08/21 19:20:00
-@@ -2383,7 +2383,7 @@ (defun sgml-push-to-entity (entity &opti
-       (setq sgml-buffer-parse-state nil))
-     (cond
-      ((stringp entity)			; a file name
--      (save-excursion (insert-file-contents entity))
-+      (insert-file-contents entity)
-       (setq default-directory (file-name-directory entity)))
-      ((consp (sgml-entity-text entity)) ; external id?
-       (let* ((extid (sgml-entity-text entity))
 
 ** PCL-CVS
 
@@ -628,13 +598,6 @@ To work around the problem, you could either (a) set the variable
 `directory-free-space-program' to nil, and thus prevent Emacs from
 invoking `df'; (b) use `df' from the GNU Fileutils package; or
 (c) use CVS, which is Free Software, instead of ClearCase.
-
-*** The LDAP support rely on ldapsearch program from OpenLDAP version 2.
-
-It can fail to work with ldapsearch program from OpenLDAP version 1.
-Version 1 of OpenLDAP is now deprecated.  If you are still using it,
-please upgrade to version 2.  As a temporary workaround, remove
-argument "-x" from the variable `ldap-ldapsearch-args'.
 
 *** ps-print commands fail to find prologue files ps-prin*.ps.
 
@@ -1365,15 +1328,6 @@ One cause of such problems is having (setq term-file-prefix nil) in
 your .emacs file.  Another cause is a bad value of EMACSLOADPATH in
 the environment.
 
-*** Emacs fails to get default settings from X Windows server.
-
-The X library in X11R4 has a bug; it interchanges the 2nd and 3rd
-arguments to XGetDefaults.  Define the macro XBACKWARDS in config.h to
-tell Emacs to compensate for this.
-
-I don't believe there is any way Emacs can determine for itself
-whether this problem is present on a given system.
-
 *** X Windows doesn't work if DISPLAY uses a hostname.
 
 People have reported kernel bugs in certain systems that cause Emacs
@@ -1384,12 +1338,6 @@ the bug has to do with SIGIO or FIONREAD.
 You may be able to compensate for the bug by doing (set-input-mode nil nil).
 However, that has the disadvantage of turning off interrupts, so that
 you are unable to quit out of a Lisp program by typing C-g.
-
-The easy way to do this is to put
-
-  (setq x-sigio-bug t)
-
-in your site-init.el file.
 
 *** Prevent double pastes in X
 
