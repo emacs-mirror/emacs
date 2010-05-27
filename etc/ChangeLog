@@ -1,3 +1,7 @@
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Remove old information no longer of relevance.
+
 2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* NEWS: Add sections for Emacs-23.3.

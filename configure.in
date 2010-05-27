@@ -3755,32 +3755,9 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
-# Now get this: Some word that is part of the ${srcdir} directory name
-# or the ${configuration} value might, just might, happen to be an
-# identifier like `sun4' or `i386' or something, and be predefined by
-# the C preprocessor to some helpful value like 1, or maybe the empty
-# string.  Needless to say consequent macro substitutions are less
-# than conducive to the makefile finding the correct directory.
-# src/Makefile.in used to treat X11 as equivalent to HAVE_X11.
-# But nothing in Emacs defines X11, and everywhere else uses HAVE_X11,
-# so that cannot have been doing anything.
-[cpp_undefs="`echo $srcdir $configuration $canonical unix mktime register X11 |
-  sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
-  -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"]
-
-## Check if the C preprocessor will convert `..' to `. .'.  If so, set
-## CPP_NEED_TRADITIONAL to `yes' so that the code to generate Makefile
-## from Makefile.c can correctly provide the arg `-traditional' to the
-## C preprocessor.
-
-AC_EGREP_CPP(yes..yes,
-	[yes..yes],
-	CPP_NEED_TRADITIONAL=no,
-	CPP_NEED_TRADITIONAL=yes)
-
 AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
-	doc/lispref/Makefile src/Makefile.c:src/Makefile.in \
+	doc/lispref/Makefile src/Makefile \
 	lwlib/Makefile lisp/Makefile leim/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
@@ -3788,41 +3765,15 @@ for dir in etc lisp ; do
   test -d ${dir} || mkdir ${dir}
 done
 
-# Build src/Makefile from ${srcdir}/src/Makefile.c
-# This must be done after src/config.h is built, since we rely on that file.
-
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
-
-# As of 2000-11-19, newest development versions of GNU cpp preprocess
-# `..' to `. .'  unless invoked with -traditional
-
-if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
-  CPPFLAGS="$CPPFLAGS -traditional"
-fi
-
-echo creating src/Makefile
-( cd src
-  rm -f junk.c junk1.c junk2.c
-  sed -e '/start of cpp stuff/q' \
-      < Makefile.c > junk1.c
-  sed -e '1,/start of cpp stuff/d'\
-      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
-      < Makefile.c > junk.c
-  $CPP -P $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
-      sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
-  cat junk1.c junk2.c > Makefile.new
-  rm -f junk.c junk1.c junk2.c
-  chmod 444 Makefile.new
-  mv -f Makefile.new Makefile
-)
 
 if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
 
-], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS" cpp_undefs="$cpp_undefs"])
+], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
 
 m4_if(dnl	Do not change this comment
    arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
