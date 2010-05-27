@@ -294,18 +294,30 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
 Each element is of the form (TOKEN LEFT-LEVEL RIGHT-LEVEL).
 Parsing is done using an operator precedence parser.")
 
+(defvar smie-forward-token-function 'smie-default-forward-token
+  "Function to scan forward for the next token.
+Called with no argument should return a token and move to its end.
+If no token is found, return nil or the empty string.
+It can return nil when bumping into a parenthesis, which lets SMIE
+use syntax-tables to handle them in efficient C code.")
+
+(defvar smie-backward-token-function 'smie-default-backward-token
+  "Function to scan backward the previous token.
+Same calling convention as `smie-forward-token-function' except
+it should move backward to the beginning of the previous token.")
+
 (defalias 'smie-op-left 'car)
 (defalias 'smie-op-right 'cadr)
 
-(defun smie-backward-token ()
-  ;; FIXME: This may be an OK default but probably needs a hook.
+(defun smie-default-backward-token ()
+  (forward-comment (- (point)))
   (buffer-substring (point)
                     (progn (if (zerop (skip-syntax-backward "."))
                                (skip-syntax-backward "w_'"))
                            (point))))
 
-(defun smie-forward-token ()
-  ;; FIXME: This may be an OK default but probably needs a hook.
+(defun smie-default-forward-token ()
+  (forward-comment (point-max))
   (buffer-substring (point)
                     (progn (if (zerop (skip-syntax-forward "."))
                                (skip-syntax-forward "w_'"))
@@ -352,7 +364,7 @@ Possible return values:
 
             (cond
              ((null toklevels)
-              (when (equal token "")
+              (when (zerop (length token))
                   (condition-case err
                       (progn (goto-char pos) (funcall next-sexp 1) nil)
                   (scan-error (throw 'return (list t (caddr err)))))
@@ -409,7 +421,7 @@ Possible return values:
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
     (smie-next-sexp
-     (lambda () (forward-comment (- (point-max))) (smie-backward-token))
+     (indirect-function smie-backward-token-function)
      (indirect-function 'backward-sexp)
      (indirect-function 'smie-op-left)
      (indirect-function 'smie-op-right)
@@ -427,7 +439,7 @@ Possible return values:
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
     (smie-next-sexp
-     (lambda () (forward-comment (point-max)) (smie-forward-token))
+     (indirect-function smie-forward-token-function)
      (indirect-function 'forward-sexp)
      (indirect-function 'smie-op-right)
      (indirect-function 'smie-op-left)
@@ -486,10 +498,14 @@ Possible return values:
 A nil offset defaults to `smie-indent-basic'.")
 
 (defun smie-indent-hanging-p ()
-  ;; A Hanging keyword is one that's at the end of a line except it's not at
+  ;; A hanging keyword is one that's at the end of a line except it's not at
   ;; the beginning of a line.
-  (and (save-excursion (smie-forward-token)
-                       (skip-chars-forward " \t") (eolp))
+  (and (save-excursion
+         (when (zerop (length (funcall smie-forward-token-function)))
+           ;; Could be an open-paren.
+           (forward-char 1))
+         (skip-chars-forward " \t")
+         (eolp))
        (save-excursion (skip-chars-backward " \t") (not (bolp)))))
 
 (defun smie-bolp ()
@@ -518,9 +534,18 @@ VIRTUAL can take two different non-nil values:
    (and virtual
         (if (eq virtual :hanging) (not (smie-indent-hanging-p)) (smie-bolp))
         (current-column))
+   ;; Obey the `fixindent' special comment.
+   (when (save-excursion
+           (comment-normalize-vars)
+           (re-search-forward (concat comment-start-skip
+                                      "fixindent"
+                                      comment-end-skip)
+                              ;; 1+ to account for the \n comment termination.
+                              (1+ (line-end-position)) t))
+     (current-column))
    ;; Start the file at column 0.
    (save-excursion
-     (forward-comment (- (point-max)))
+     (forward-comment (- (point)))
      (if (bobp) 0))
    ;; Align close paren with opening paren.
    (save-excursion
@@ -537,7 +562,7 @@ VIRTUAL can take two different non-nil values:
    ;; (e.g. "of" with "case", or "in" with "let").
    (save-excursion
      (let* ((pos (point))
-            (token (smie-forward-token))
+            (token (funcall smie-forward-token-function))
             (toklevels (cdr (assoc token smie-op-levels))))
        (when (car toklevels)
          (let ((res (smie-backward-sexp 'halfsexp)) tmp)
@@ -555,8 +580,7 @@ VIRTUAL can take two different non-nil values:
                ;; So as to align with the earliest appropriate place.
                (smie-indent-calculate :bolp))
               ((equal token (save-excursion
-                              (forward-comment (- (point-max)))
-                              (smie-backward-token)))
+                              (funcall smie-backward-token-function)))
                ;; in cases such as "fn x => fn y => fn z =>",
                ;; jump back to the very first fn.
                ;; FIXME: should we only do that for special tokens like "=>"?
@@ -574,7 +598,8 @@ VIRTUAL can take two different non-nil values:
           (forward-comment (point-max))
           (skip-chars-forward " \t\r\n")
           (smie-indent-calculate nil)))
-   ;; Indentation inside a comment.
+   ;; indentation inside a comment.
+   ;; FIXME: Hey, this is not generic!!
    (and (looking-at "\\*") (nth 4 (syntax-ppss))
         (let ((ppss (syntax-ppss)))
           (save-excursion
@@ -586,8 +611,7 @@ VIRTUAL can take two different non-nil values:
                   (current-column))))))
    ;; Indentation right after a special keyword.
    (save-excursion
-     (let* ((tok (progn (forward-comment (- (point-max)))
-                        (smie-backward-token)))
+     (let* ((tok (funcall smie-backward-token-function))
             (tokinfo (assoc tok smie-indent-rules))
             (toklevel (assoc tok smie-op-levels)))
        (when (or tokinfo (and toklevel (null (cadr toklevel))))
@@ -613,8 +637,7 @@ VIRTUAL can take two different non-nil values:
          ;; Figure out if the atom we just skipped is an argument rather
          ;; than a function.
          (setq arg (or (null (car (smie-backward-sexp)))
-                       (member (progn (forward-comment (- (point-max)))
-                                      (smie-backward-token))
+                       (member (funcall smie-backward-token-function)
                                (cdr (assoc 'list-intro smie-indent-rules))))))
        (cond
         ((and arg positions)
@@ -637,11 +660,12 @@ VIRTUAL can take two different non-nil values:
             (current-column)))
         ((and (null arg) (null positions))
          ;; We're the function itself.  Not sure what to do here yet.
+         ;; FIXME: This should not be possible, because it should mean
+         ;; we're right after some special token.
          (if virtual (current-column)
            (save-excursion
              (let* ((pos (point))
-                    (tok (progn (forward-comment (- (point-max)))
-                                (smie-backward-token)))
+                    (tok (funcall smie-backward-token-function))
                     (toklevels (cdr (assoc tok smie-op-levels))))
                (cond
                 ((numberp (car toklevels))
@@ -669,7 +693,7 @@ VIRTUAL can take two different non-nil values:
                 ;; For other cases.... hmm... we'll see when we get there.
                 )))))
         ((null positions)
-         (smie-backward-token)
+         (funcall smie-backward-token-function)
          (+ (smie-indent-offset 'args) (smie-indent-calculate :bolp)))
         ((car (smie-backward-sexp))
          ;; No arg stands on its own line, but the function does:

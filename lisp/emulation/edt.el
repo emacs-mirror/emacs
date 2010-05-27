@@ -1,7 +1,8 @@
 ;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs 19
 
 ;; Copyright (C) 1986, 1992, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -2056,40 +2057,32 @@ created."
 
      Ack!!  You're running the Enhanced EDT Emulation without loading an
      EDT key mapping file.  To create an EDT key mapping file, run the
-     edt-mapper.el program.  It is safest to run it from an Emacs loaded
+     edt-mapper program.  It is safest to run it from an Emacs loaded
      without any of your own customizations found in your .emacs file, etc.
      The reason for this is that some user customizations confuse edt-mapper.
      You can do this by quitting Emacs and then invoking Emacs again as
      follows:
 
-          emacs -q -l edt-mapper.el
+          emacs -q -l edt-mapper
 
      [NOTE:  If you do nothing out of the ordinary in your .emacs file, and
-     the search for edt-mapper.el is successful, you can try running it now.]
+     the search for edt-mapper is successful, you can try running it now.]
 
-     The file edt-mapper.el includes these same directions on how to
+     The library edt-mapper includes these same directions on how to
      use it!  Perhaps it's lying around here someplace. \n     ")
-	 (let ((file "edt-mapper.el")
-	       (found nil)
-	       (path nil)
-	       (search-list (append (list (expand-file-name ".")) load-path)))
-	   (while (and (not found) search-list)
-	     (setq path (concat (car search-list)
-				(if (string-match "/$" (car search-list)) "" "/")
-				file))
-	     (if (and (file-exists-p path) (not (file-directory-p path)))
-		 (setq found t))
-	     (setq search-list (cdr search-list)))
-	   (cond (found
-		  (insert (format
-			   "Ah yes, there it is, in \n\n       %s \n\n" path))
-		  (if (edt-y-or-n-p "Do you want to run it now? ")
-		      (load-file path)
-		    (error "EDT Emulation not configured")))
-		 (t
-		  (insert "Nope, I can't seem to find it.  :-(\n\n")
-		  (sit-for 20)
-		  (error "EDT Emulation not configured")))))))
+         (let ((path (locate-library
+                      "edt-mapper"
+                      nil (append (list default-directory) load-path))))
+           (if path
+               (progn
+                 (insert (format
+                          "Ah yes, there it is, in \n\n       %s \n\n" path))
+                 (if (edt-y-or-n-p "Do you want to run it now? ")
+                     (load-file path)
+                   (error "EDT Emulation not configured")))
+             (insert "Nope, I can't seem to find it.  :-(\n\n")
+             (sit-for 20)
+             (error "EDT Emulation not configured"))))))
 
 ;;;
 ;;;  Turning the EDT Emulation on and off.
@@ -2570,12 +2563,12 @@ Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
 ;;; DEFAULT EDT KEYPAD HELP
 ;;;
 
-;;;
-;;; Upper case commands in the keypad diagram below indicate that the
-;;; emulation should look and feel very much like EDT.  Lower case
-;;; commands are enhancements and/or additions to the EDT keypad
-;;; commands or are native Emacs commands.
-;;;
+;;
+;; Upper case commands in the keypad diagram below indicate that the
+;; emulation should look and feel very much like EDT.  Lower case
+;; commands are enhancements and/or additions to the EDT keypad
+;; commands or are native Emacs commands.
+;;
 
 (defun edt-keypad-help ()
   "DEFAULT EDT Keypad Active.
@@ -2684,7 +2677,7 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
 
 ;;;
 ;;; EDT emulation screen width commands.
-;;;
+;;
 ;; Some terminals require modification of terminal attributes when
 ;; changing the number of columns displayed, hence the fboundp tests
 ;; below.  These functions are defined in the corresponding terminal

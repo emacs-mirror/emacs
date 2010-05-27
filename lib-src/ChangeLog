@@ -1,3 +1,7 @@
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): No more Makefile.c.
+
 2010-05-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPS): New (Bug #6246).

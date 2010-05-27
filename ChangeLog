@@ -1,3 +1,27 @@
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.bat: Do not preprocess src/Makefile.in.
+
+	* configure.in: Do not preprocess src/Makefile.in.
+	(cpp_undefs, CPP_NEED_TRADITIONAL): Remove.
+	(AC_EGREP_CPP): Test no longer needed.
+
+	* make-dist: No more Makefile.c files.
+
+2010-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (YMF_PASS_LDFLAGS): Remove.
+	(PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS): New output variables.
+
+	* configure.in (CPPFLAGS, CFLAGS, REAL_CFLAGS):
+	Add $GNUSTEP_LOCAL_HEADERS.
+	(LDFLAGS, LD_SWITCH_SYSTEM_TEMACS): Add $GNUSTEP_LOCAL_LIBRARIES.
+
+	* configure.in (NS_IMPL_GNUSTEP_INC, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
+	(GNUSTEP_MAKEFILES): Remove.
+	(LD_SWITCH_SYSTEM_TEMACS): Move NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
+	stuff to here.
+
 2010-05-25  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LD_SWITCH_SYSTEM): Move some gnu-linux stuff...

@@ -23,13 +23,6 @@
 # script may need modifying in sync with changes made here.  Try to
 # avoid shell-ism because the DOS build has to use the DOS shell.
 
-# Don't try to replace the cpp processing using autoconf facilities,
-# says rms.
-# Replacing a particular part of the conditionals to work via autoconf
-# is OK.
-# Some of the conditionals might be dead now.  Finding them and
-# deleting them would be fine.
-
 SHELL = /bin/sh
 
 # Here are the things that we expect ../configure to edit.
@@ -47,7 +40,7 @@ version = @version@
 # BSD doesn't have it as a default.
 @SET_MAKE@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
-# linked with Emacs or is duplicated by the cpp stuff below.
+# linked with Emacs or is duplicated by the other stuff below.
 # LIBS = @LIBS@
 LIBOBJS = @LIBOBJS@
 
@@ -111,14 +104,8 @@ LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
 ## which are only good with temacs.
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 
-## If NS_IMPL_GNUSTEP, some definitions and includes are expanded here.
-@NS_IMPL_GNUSTEP_INC@
-
-## This uses ${CONFIG_SYSTEM_LIBS} from @NS_IMPL_GNUSTEP_INC@.
-NS_IMPL_GNUSTEP_TEMACS_LDFLAGS=@NS_IMPL_GNUSTEP_TEMACS_LDFLAGS@
-
 ## Flags to pass to ld only for temacs.
-TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS) $(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
+TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
 ## $LDFLAGS, or empty if NS_IMPL_GNUSTEP (for some reason).
 TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
@@ -304,24 +291,26 @@ DEPFLAGS=@DEPFLAGS@
 ## test -d ${DEPDIR} || mkdir ${DEPDIR} (if AUTO_DEPEND); else ':'.
 MKDEPDIR=@MKDEPDIR@
 
-# ========================== start of cpp stuff =======================
-/* From here on, comments must be done in C syntax.  */
-
-/* DO NOT use -R.  There is a special hack described in lastfile.c
-   which is used instead.  Some initialized data areas are modified
-   at initial startup, then labeled as part of the text area when
-   Emacs is dumped for the first time, and never changed again.  */
-
-/* -Demacs is needed to make some files produce the correct version
-   for use in Emacs.
-
-   -DHAVE_CONFIG_H is needed for some other files to take advantage of
-   the information in ``config.h''.  */
-
-/* C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
-   since it may have -I options that should override those.  */
-/* MYCPPFLAGS only referenced in etc/DEBUG.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} ${C_SWITCH_X_SITE} ${C_SWITCH_X_SYSTEM} ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${GCONF_CFLAGS} ${CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS}
+## DO NOT use -R.  There is a special hack described in lastfile.c
+## which is used instead.  Some initialized data areas are modified
+## at initial startup, then labeled as part of the text area when
+## Emacs is dumped for the first time, and never changed again.
+##
+## -Demacs is needed to make some files produce the correct version
+## for use in Emacs.
+##
+## -DHAVE_CONFIG_H is needed for some other files to take advantage of
+## the information in `config.h'.
+##
+## C_SWITCH_X_SITE must come before C_SWITCH_X_SYSTEM
+## since it may have -I options that should override those.
+##
+## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} \
+  ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} ${C_SWITCH_X_SITE} \
+  ${C_SWITCH_X_SYSTEM} ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} \
+  ${GCONF_CFLAGS} ${CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} \
+  ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
@@ -333,8 +322,8 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 	$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $<
 
 
-/* lastfile must follow all files whose initialized data areas should
-   be dumped as pure by dump-emacs.  */
+## lastfile must follow all files whose initialized data areas should
+## be dumped as pure by dump-emacs.
 obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
@@ -350,8 +339,8 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
 
-/* Object files used on some machine or other.
-   These go in the DOC file on all machines in case they are needed.  */
+## Object files used on some machine or other.
+## These go in the DOC file on all machines in case they are needed.
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o \
@@ -359,39 +348,38 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_OBJ)
 
-/* gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.  */
+## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
 
-/* vm-limit.o if !SYSTEM_MALLOC, else empty.  */
+## vm-limit.o if !SYSTEM_MALLOC, else empty.
 VMLIMIT_OBJ=@VMLIMIT_OBJ@
 
-/* ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.  */
+## ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.
 RALLOC_OBJ=@RALLOC_OBJ@
 
-/* Empty on Cygwin, lastfile.o elsewhere.  */
+## Empty on Cygwin, lastfile.o elsewhere.
 PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-/* lastfile.o on Cygwin, empty elsewhere.  */
+## lastfile.o on Cygwin, empty elsewhere.
 POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 
-/* List of object files that make-docfile should not be told about.  */
+## List of object files that make-docfile should not be told about.
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
   $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
-/* This is the platform-specific list of Lisp files loaded into the
-   dumped Emacs.  It is arranged like this because it is easier to generate
-   it semi-mechanically from loadup.el this way.
-
-   Note that this list should not include lisp files which might not
-   be present, like site-load.el and site-init.el; this makefile
-   expects them all to be either present or buildable.
-
-   Files which are loaded unconditionally (i.e., on all platforms) should
-   also be in shortlisp.  Files which are loaded conditionally (i.e., only
-   on some platforms) should instead be in SOME_MACHINE_LISP.  */
-
-/* Place loaddefs.el first, so it gets generated first, since it is on
-   the critical path (relevant in parallel compilations).  */
-
+## This is the platform-specific list of Lisp files loaded into the
+## dumped Emacs.  It is arranged like this because it is easier to generate
+## it semi-mechanically from loadup.el this way.
+##
+## Note that this list should not include lisp files which might not
+## be present, like site-load.el and site-init.el; this makefile
+## expects them all to be either present or buildable.
+##
+## Files which are loaded unconditionally (i.e., on all platforms) should
+## also be in shortlisp.  Files which are loaded conditionally (i.e., only
+## on some platforms) should instead be in SOME_MACHINE_LISP.
+##
+## Place loaddefs.el first, so it gets generated first, since it is on
+## the critical path (relevant in parallel compilations).
 lisp= \
 	${lispsource}loaddefs.el \
 	${lispsource}abbrev.elc \
@@ -481,11 +469,11 @@ lisp= \
 	${lispsource}window.elc \
 	${lispsource}version.el
 
-/* List of relative names for those files from $lisp that are loaded
-   unconditionally (i.e. on all platforms).  Files from $lisp that
-   are only loaded on some platforms should instead be placed in
-   SOME_MACHINE_LISP.  The only reason this variable exists is to prevent
-   the make-docfile command-line getting too long for some systems.  */
+## List of relative names for those files from $lisp that are loaded
+## unconditionally (i.e. on all platforms).  Files from $lisp that
+## are only loaded on some platforms should instead be placed in
+## SOME_MACHINE_LISP.  The only reason this variable exists is to prevent
+## the make-docfile command-line getting too long for some systems.
 shortlisp= \
 	../lisp/loaddefs.el \
 	../lisp/abbrev.elc \
@@ -569,8 +557,8 @@ shortlisp= \
 	../lisp/window.elc \
 	../lisp/version.el
 
-/* Like $shortlisp, but includes only those files from $lisp that are loaded
-   conditionally (i.e., only on some platforms).  */
+## Like $shortlisp, but includes only those files from $lisp that are loaded
+## conditionally (i.e., only on some platforms).
 SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/select.elc ../lisp/scroll-bar.elc \
   ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
@@ -589,11 +577,10 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/term/ns-win.elc ../lisp/term/w32-win.elc \
   ../lisp/emacs-lisp/easymenu.elc
 
-/* Construct full set of libraries to be linked.
-   Note that SunOS needs -lm to come before -lc; otherwise, you get
-   duplicated symbols.  If the standard libraries were compiled
-   with GCC, we might need LIB_GCC again after them.  */
-
+## Construct full set of libraries to be linked.
+## Note that SunOS needs -lm to come before -lc; otherwise, you get
+## duplicated symbols.  If the standard libraries were compiled
+## with GCC, we might need LIB_GCC again after them.
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(DBUS_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
@@ -602,9 +589,9 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
 
 all: emacs${EXEEXT} $(OTHER_FILES)
 
-/* Does anyone ever pay attention to the load-path-shadows output here?  */
-/* The dumped Emacs is as functional and more efficient than
-   bootstrap-emacs, so we replace the latter with the former.  */
+## Does anyone ever pay attention to the load-path-shadows output here?
+## The dumped Emacs is as functional and more efficient than
+## bootstrap-emacs, so we replace the latter with the former.
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 	if test "${CANNOT_DUMP}" = "yes"; then \
 	  ln -f temacs${EXEEXT} emacs${EXEEXT}; \
@@ -616,19 +603,19 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 	  ./emacs -q -batch -f list-load-path-shadows || true; \
 	fi
 
-/* We run make-docfile twice because the command line may get too long
-   on some systems.  */
-/* ${SOME_MACHINE_OBJECTS} comes before ${obj} because some files may
-   or may not be included in ${obj}, but they are always included in
-   ${SOME_MACHINE_OBJECTS}.  Since a file is processed when it is mentioned
-   for the first time, this prevents any variation between configurations
-   in the contents of the DOC file.
-   Likewise for ${SOME_MACHINE_LISP}.  */
-/* Most of this Makefile refers to Lisp files via ${lispsource}, so
-   we also use ${lisp} rather than ${shortlisp} for the dependency since
-   the Makefile uses string equality to decide when we talk about identical
-   files.  Apparently we pass ${shortlisp} rather than ${lisp} to make-docfile
-   only in order to reduce the command line length.  --Stef  */
+## We run make-docfile twice because the command line may get too long
+## on some systems.
+## ${SOME_MACHINE_OBJECTS} comes before ${obj} because some files may
+## or may not be included in ${obj}, but they are always included in
+## ${SOME_MACHINE_OBJECTS}.  Since a file is processed when it is mentioned
+## for the first time, this prevents any variation between configurations
+## in the contents of the DOC file.
+## Likewise for ${SOME_MACHINE_LISP}.
+## Most of this Makefile refers to Lisp files via ${lispsource}, so
+## we also use ${lisp} rather than ${shortlisp} for the dependency since
+## the Makefile uses string equality to decide when we talk about identical
+## files.  Apparently we pass ${shortlisp} rather than ${lisp} to make-docfile
+## only in order to reduce the command line length.  --Stef
 ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${lisp} ${SOME_MACHINE_LISP}
 	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
@@ -640,10 +627,14 @@ ${libsrc}make-docfile${EXEEXT}:
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
-#define YMF_PASS_LDFLAGS(flags) @YMF_PASS_LDFLAGS@
 
+## We cannot define variables for PRE_EDIT and POST_EDIT.
+## If !ORDINARY_LINK && !LINKER && GCC, they add a
+## `./prefix-args -Xlinker ... ` wrapper, otherwise they are empty.
+## One alternative to this approach would be to always call prefix-args, 
+## and have it DTRT in all cases, by testing the above defines.
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
-	$(LD) YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} ) \
+	$(LD) @PRE_EDIT_LDFLAGS@ ${TEMACS_LDFLAGS} @POST_EDIT_LDFLAGS@ \
 	  ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 
@@ -651,27 +642,27 @@ prefix-args${EXEEXT}: prefix-args.o $(config_h)
 	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
 
 
-/* The following oldxmenu-related rules are only (possibly) used if
-   HAVE_X11 && !USE_GTK, but there is no harm in always defining them
-   (provided we take a little care that OLDXMENU is never empty).  */
+## The following oldxmenu-related rules are only (possibly) used if
+## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
+## (provided we take a little care that OLDXMENU is never empty).
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
-	@true  /* make -t should not create really-lwlib.  */
+	@true  # make -t should not create really-lwlib.
 .PHONY: really-lwlib
 
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
-	@true  /* make -t should not create really-oldXMenu.  */
+	@true  # make -t should not create really-oldXMenu.
 .PHONY: really-oldXMenu
 
-/* We don''t really need this when OLDXMENU_DEPS is empty, but as
-   things stand we need something to satisfy the temacs dependency.  */
+## We do not really need this when OLDXMENU_DEPS is empty, but as
+## things stand we need something to satisfy the temacs dependency.
 stamp-oldxmenu: ${OLDXMENU_DEPS}
 	touch stamp-oldxmenu
 
-/* Supply an ordering for parallel make.  */
+## Supply an ordering for parallel make.
 ../src/$(OLDXMENU): ${OLDXMENU}
 
 $(OLDXMENU): $(OLDXMENU_TARGET)
@@ -692,7 +683,7 @@ ecrt0.o: ecrt0.c $(config_h)
 doc.o: buildobj.h
 
 
-/* If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.  */
+## If HAVE_NS, some ns-specific rules (for OTHER_FILES) are inserted here.
 @ns_frag@
 
 
@@ -706,18 +697,18 @@ clean: mostlyclean
 	-rm -rf ${DEPDIR}
 	test "X${ns_appdir}" = "X" || rm -rf ${ns_appdir}
 
-/* bootstrap-clean is used to clean up just before a bootstrap.
-   It should remove all files generated during a compilation/bootstrap,
-   but not things like config.status or TAGS.  */
+## bootstrap-clean is used to clean up just before a bootstrap.
+## It should remove all files generated during a compilation/bootstrap,
+## but not things like config.status or TAGS.
 bootstrap-clean: clean
-	rm -f epaths.h config.h Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
+	rm -f epaths.h config.h config.stamp stamp-oldxmenu ../etc/DOC-*
 	if test -f ./.gdbinit; then \
 	  mv ./.gdbinit ./.gdbinit.save; \
 	  if test -f "${srcdir}/.gdbinit"; then rm -f ./.gdbinit.save; \
 	  else mv ./.gdbinit.save ./.gdbinit; fi; \
 	fi
-/**/# This is used in making a distribution.
-/**/# Do not use it on development directories!
+## This is used in making a distribution.
+## Do not use it on development directories!
 distclean: bootstrap-clean
 	rm -f Makefile
 maintainer-clean: distclean
@@ -729,8 +720,8 @@ versionclean:
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
 
-/* Arrange to make a tags table TAGS-LISP for ../lisp,
-   plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
+## Arrange to make a tags table TAGS-LISP for ../lisp,
+## plus TAGS for the C files, which includes ../lisp/TAGS by reference.
 
 ctagsfiles1 = [xyzXYZ]*.[hcm]
 ctagsfiles2 = [a-wA-W]*.[hcm]
@@ -750,49 +741,49 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 .PHONY: tags
 
 
-/* Bootstrapping.  */
-/* Bootstrapping right is difficult because of the circular dependencies.
-   Furthermore, we have to deal with the fact that many compilation targets
-   such as loaddefs.el or *.elc can typically be produced by any old
-   Emacs executable, so we would like to avoid rebuilding them whenever
-   we build a new Emacs executable.
-   To solve the circularity, we use 2 different Emacs executables,
-   "emacs" is the main target and "bootstrap-emacs" is the one used
-   to build the *.elc and loaddefs.el files.
-   To solve the freshness issue, we used to use a third file "witness-emacs"
-   which was used to witness the fact that there is a bootstrap-emacs
-   executable, and then have dependencies on witness-emacs rather than
-   bootstrap-emacs, but that lead to problems in parallel builds (because
-   witness-emacs needed to be free from dependencies (to avoid rebuilding
-   it), so it was compiled in parallel, leading typically to having 2
-   processes dumping bootstrap-emacs at the same time).
-   So instead, we replace the witness-emacs dependencies by conditional
-   bootstrap-dependencies (via ${BOOTSTRAPEMACS}).  Of course, since we do
-   not want to rely on GNU Make features, we have to rely on an external
-   script to do the conditional part of the dependency
-   (i.e. see the ${SUBDIR} rule ../Makefile.in).  */
+### Bootstrapping.
+
+## Bootstrapping right is difficult because of the circular dependencies.
+## Furthermore, we have to deal with the fact that many compilation targets
+## such as loaddefs.el or *.elc can typically be produced by any old
+## Emacs executable, so we would like to avoid rebuilding them whenever
+## we build a new Emacs executable.
+## To solve the circularity, we use 2 different Emacs executables,
+## "emacs" is the main target and "bootstrap-emacs" is the one used
+## to build the *.elc and loaddefs.el files.
+## To solve the freshness issue, we used to use a third file "witness-emacs"
+## which was used to witness the fact that there is a bootstrap-emacs
+## executable, and then have dependencies on witness-emacs rather than
+## bootstrap-emacs, but that lead to problems in parallel builds (because
+## witness-emacs needed to be free from dependencies (to avoid rebuilding
+## it), so it was compiled in parallel, leading typically to having 2
+## processes dumping bootstrap-emacs at the same time).
+## So instead, we replace the witness-emacs dependencies by conditional
+## bootstrap-dependencies (via ${BOOTSTRAPEMACS}).  Of course, since we do
+## not want to rely on GNU Make features, we have to rely on an external
+## script to do the conditional part of the dependency
+## (i.e. see the ${SUBDIR} rule ../Makefile.in).
 
 .SUFFIXES: .elc .el
 
-/* These suffix rules do not allow additional dependencies, sadly, so
-   instead of adding a $(BOOTSTRAPEMACS) dependency here, we add it
-   separately below.
-   With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"  */
+## These suffix rules do not allow additional dependencies, sadly, so
+## instead of adding a $(BOOTSTRAPEMACS) dependency here, we add it
+## separately below.
+## With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"
 .el.elc:
 	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
 	                     THEFILE=$< EMACS=${bootstrap_exe}
 
-/* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
+## Since the .el.elc rule cannot specify an extra dependency, we do it here.
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
-/* VCSWITNESS points to the file that holds info about the current checkout.
-   We use it as a heuristic to decide when to rebuild loaddefs.el.  */
+## VCSWITNESS points to the file that holds info about the current checkout.
+## We use it as a heuristic to decide when to rebuild loaddefs.el.
 ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS) $(VCSWITNESS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
-/* Dump an Emacs executable named bootstrap-emacs containing the
-   files from loadup.el in source form.  */
-
+## Dump an Emacs executable named bootstrap-emacs containing the
+## files from loadup.el in source form.
 bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 	if test "${CANNOT_DUMP}" = "yes"; then \
@@ -804,5 +795,8 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	@: Compile some files earlier to speed up further compilation.
 	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
 
-/* Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.  */
+## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
 @deps_frag@
+
+
+### Makefile.in ends here
