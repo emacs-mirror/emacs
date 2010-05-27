@@ -2072,7 +2072,7 @@ created."
      use it!  Perhaps it's lying around here someplace. \n     ")
          (let ((path (locate-library
                       "edt-mapper"
-                      nil (append (list (expand-file-name ".")) load-path))))
+                      nil (append (list default-directory) load-path))))
            (if path
                (progn
                  (insert (format
@@ -2563,12 +2563,12 @@ Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
 ;;; DEFAULT EDT KEYPAD HELP
 ;;;
 
-;;;
-;;; Upper case commands in the keypad diagram below indicate that the
-;;; emulation should look and feel very much like EDT.  Lower case
-;;; commands are enhancements and/or additions to the EDT keypad
-;;; commands or are native Emacs commands.
-;;;
+;;
+;; Upper case commands in the keypad diagram below indicate that the
+;; emulation should look and feel very much like EDT.  Lower case
+;; commands are enhancements and/or additions to the EDT keypad
+;; commands or are native Emacs commands.
+;;
 
 (defun edt-keypad-help ()
   "DEFAULT EDT Keypad Active.
@@ -2677,7 +2677,7 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
 
 ;;;
 ;;; EDT emulation screen width commands.
-;;;
+;;
 ;; Some terminals require modification of terminal attributes when
 ;; changing the number of columns displayed, hence the fboundp tests
 ;; below.  These functions are defined in the corresponding terminal

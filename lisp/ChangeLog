@@ -1,3 +1,26 @@
+2010-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el (hebrew-shape-gstring): Check if a glyph
+	element of GSTRING is nil.
+
+2010-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-forward-token-function)
+	(smie-backward-token-function): New vars.
+	(smie-backward-sexp, smie-forward-sexp)
+	(smie-indent-hanging-p, smie-indent-calculate): Use them.
+	(smie-default-backward-token): Rename from smie-backward-token and
+	skip comments.
+	(smie-default-forward-token): Rename from smie-forward-token and
+	skip comments.
+	(smie-next-sexp): Handle nil results from next-token.
+	(smie-indent-calculate): Add a new case for special `fixindent' comments.
+
+2010-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-xref.el (ada-gnat-parse-gpr):
+	* emulation/edt.el (edt-load-keys): Avoid (expand-file-name ".").
+
 2010-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/edt.el (edt-load-keys): Use locate-library.
@@ -6,8 +29,8 @@
 
 	* log-edit.el (log-edit-strip-single-file-name): Default to nil.
 	(log-edit-changelog-entries): Doc fix.
-	(log-edit-changelog-insert-entries): Args changed.  Rename
-	relative filenames in ChangeLog entries.  Delete tabs.
+	(log-edit-changelog-insert-entries): Args changed.
+	Rename relative filenames in ChangeLog entries.  Delete tabs.
 	(log-edit-insert-changelog-entries): Reorganize return value of
 	`log-edit-changelog-entries' to pass filenames to
 	log-edit-changelog-insert-entries.

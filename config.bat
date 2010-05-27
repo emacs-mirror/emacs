@@ -190,11 +190,10 @@ rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
 if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
-rm -f Makefile junk.c junk2.c
-sed -e "1,/== start of cpp stuff ==/s@^##*[ 	].*$@@" <Makefile.in >junk.c
-copy junk.c + deps.mk junk2.c
-gcc -E -traditional junk2.c | sed -f ../msdos/sed1v2.inp >Makefile
-rm -f junk.c junk2.c
+rm -f Makefile makefile.tmp
+copy Makefile.in + deps.mk makefile.tmp
+sed -f ../msdos/sed1v2.inp <makefile.tmp >Makefile
+rm -f makefile.tmp
 
 if "%X11%" == "" goto src5
 mv Makefile makefile.tmp

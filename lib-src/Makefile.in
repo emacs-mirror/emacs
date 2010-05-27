@@ -283,7 +283,7 @@ clean: mostlyclean
 
 distclean: clean
 	-rm -f TAGS
-	-rm -f Makefile Makefile.c blessmail
+	-rm -f Makefile blessmail
 
 maintainer-clean: distclean
 	true

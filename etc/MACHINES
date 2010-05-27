@@ -198,8 +198,7 @@ IBM RS/6000 (rs6000-ibm-aix*)
 
 IBM System/390 running GNU/Linux (s390-*-linux-gnu)
 
-  As of Emacs 21.2, a 31-bit only version is supported on this
-  system.
+  As of Emacs 21.2, a 31-bit only version is supported on this system.
 
 Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
 	   i386-*-sol2.4,	i386-intsys-sysv,
@@ -246,11 +245,6 @@ Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
   GNU make, not the system's make.  Assuming it's installed as gmake,
   do `gmake install MAKE=gmake'.  However, more recently it is
   reported that using the system Make on NetBSD 1.3.1 works ok.
-
-  If you are using System V release 4.2, you may find that `cc -E'
-  puts spurious spaces in `src/xmakefile'.  If that happens,
-  specify CPP=/lib/cpp as an option when you run make.
-  There is no problem if you compile with GCC.
 
   Note that use of Linux with GCC 2.4 and the DLL 4.4 libraries
   requires the experimental "net 2" network patches (no relation to
@@ -490,10 +484,6 @@ System V rel 4.0.3 and 4.0.4 (usg5.4)
 
   If you get compilation errors about wrong number of
   arguments to getpgrp, define GETPGRP_NO_ARG.
-
-  The standard C preprocessor may generate xmakefile incorrectly.  However,
-  /lib/cpp will work, so use `make CPP=/lib/cpp'.  Standard cpp
-  seems to work OK under Dell 2.2.
 
   Some versions 3 and earlier of V.4, on the Intel 386 and 860, had
   problems in the X11 libraries.  These prevent Emacs from working
