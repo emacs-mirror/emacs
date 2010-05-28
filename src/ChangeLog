@@ -1,3 +1,7 @@
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fdelete_file): Pass TRASH arg to handler call.
+
 2010-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
