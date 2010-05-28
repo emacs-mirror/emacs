@@ -6,9 +6,9 @@ See the end of the file for license conditions.
 
 This is a list of the status of GNU Emacs on various machines and systems.
 
-For each system and machine, we give the configuration name you should
-pass to the `configure' script to prepare to build Emacs for that
-system/machine.
+Information about older releases, and platforms that are no longer
+supported, has been removed.  Consult older versions of this file if
+you are interested in this information.
 
 The `configure' script uses the configuration name to decide which
 machine and operating system description files `src/config.h' should
@@ -25,16 +25,10 @@ configuration name(s) should select your new machine description and
 system description files.
 
 Some obsolete platforms are unsupported beginning with Emacs 23.1, see
-the full list at the end of this file.
+the list at the end of this file.
 
 
-Here are the configurations Emacs is intended to work with, with the
-corresponding configuration names.  You can postpend version numbers
-to operating system names (i.e. sunos4.1) or architecture names (i.e.
-hppa1.1).  If you leave out the version number, the `configure' script
-will configure Emacs for the latest version it knows about.
-
-Alpha (DEC) running GNU/Linux (alpha-dec-linux-gnu)
+** Alpha (DEC) running GNU/Linux (alpha-dec-linux-gnu)
 
   DEC C compiler version 5.9 (DEC C V5.9-005 on Digital UNIX V4.0f)
   is reported to produce bogus binaries of Emacs 21.2 when the
@@ -47,125 +41,26 @@ Alpha (DEC) running GNU/Linux (alpha-dec-linux-gnu)
   versions fail to build with a message "Invalid dimension for the
   charset-ID 160".
 
-  Note that the X11 libraries on GNU/Linux systems for the Alpha are
-  said to have bugs that prevent Emacs from working with X (as of
-  November 1995).  Recent releases work (July 2000).
+** Apple Macintosh running Mac OS X
 
-Apple Macintosh running Mac OS X
+** Apple PowerPC Macintosh running GNU/Linux
 
-  For installation instructions see the file nextstep/INSTALL.
-
-Apple PowerPC Macintosh running GNU/Linux
-
-  There are special considerations for a variety of this system which
-  is known as the ``Yellow Dog [GNU/]Linux'': Emacs may crash during
-  dumping.  To solve this, edit the header file src/m/macppc.h in the
-  Emacs distribution, and remove the "#if 0" and "#endif" directives
-  which surround the following block near the end of the file:
-
-    #if 0  /* This breaks things on PPC GNU/Linux except for Yellowdog,
-	      even with identical GCC, as, ld.  Let's take it out until we
-	      know what's really going on here.  */
-    /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
-       0x10000000.  */
-    #if defined __linux__
-    #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
-    #define DATA_SEG_BITS  0x10000000
-    #endif
-    #endif
-    #endif /* 0 */
-
-  After that, reconfigure and rebuild Emacs.  It should now build
-  successfully.
-
-Cubix QBx/386 (i386-cubix-sysv)
-
-  Changes merged in 19.1.  Systems before 2/A/0 may fail to compile etags.c
-  due to a compiler bug.
-
-Motorola Delta 147 (m68k-motorola-sysv)
-
-  The EMacs 19.26 pretest was reported to work.
-
-  Motorola Delta boxes running System V/68 release 3.
-  Tested on 147 board with SVR3V7, no X and gcc.
-  Tested on 167 board with SVR3V7, no X, cc, gnucc and gcc.
-  Reports say it works with X too.
-
-  The installation script chooses the compiler itself.  gnucc is
-  preferred.
-
-Fujitsu DS/90 (sparc-fujitsu-sysv4)
-
-  Changes merged in 20.3.
-
-HP 9000 series 700 or 800 (Spectrum) (hppa1.0-hp-hpux or hppa1.1-hp-hpux
-				      or ...hpux9shr)
-
-  Use hppa1.1 for the 700 series and hppa1.0 for the 800
-  series machines.  (Emacs may not actually care which one you use.)
+** HP 9000 series 700 or 800 (Spectrum) (hppa1.0-hp-hpux or hppa1.1-hp-hpux)
 
   Emacs 20 may work on HPUX 10.  You need patch PHSS_6202 to install
   the Xaw and Xmu libraries.  On HPUX 10.20 you may need to compile with GCC;
   when Emacs was compiled with HP's C compiler, HP92453-01 A.10.32.03,
   the subprocess features failed to work.
 
-  19.26 is believed to work on HPUX 9 provided you compile with GCC.
-  As of version 19.16, Emacs was reported to build (using GCC) and run
-  on HP 9000/700 series machines running HP/UX versions 8.07 and 9.01.
-  The HP compiler is known to fail on some versions if you use +O3,
-  but it may work with lower optimization levels.
-
-  Use hppa1.1-hp-hpux9shr to use shared libraries on HPUX version 9.
-  You may need to create the X libraries libXaw.a and libXmu.a from
-  the MIT X distribute, and you may need to edit src/Makefile's
-  definition of LIBXT to look like this:
-
-     LIBXT= $(LIBW) -lXmu -lXt $(LIBXTR6) -lXext
-
-  Some people report trouble using the GNU memory allocator under
-  HP/UX version 9.  The problems often manifest as lots of ^@'s in the
-  buffer.
-
-  We are told that these problems go away if you obtain the latest
-  patches for the HP/UX C compiler.  James J Dempsey
-  <jjd@spserv.bbn.com> says that this set of versions works for him:
-    /bin/cc:
-	    HP92453-01 A.09.28 HP C Compiler
-    /lib/ccom:
-	    HP92453-01 A.09.28 HP C Compiler
-	     HP-UX SLLIC/OPTIMIZER  HP-UX.09.00.23  02/18/93
-	     Ucode Code Generator - HP-UX.09.00.23.5 (patch)  2/18/93
-
-  For 700 series machines, the HP-UX patch needed is known as
-  PHSS_2653.  (Perhaps for 800 series machines as well; we don't
-  know.)  If you are on the Internet, you should be able to obtain
-  this patch by using telnet to access the machine
-  support.mayfield.hp.com and logging in as "hpslreg" and following
-  the instructions there.  Or you may be able to use this
-  web site:
-
-    HP Patch Server: http://support.mayfield.hp.com/patches/html/patches.html
-    HP Support Line: http://support.mayfield.hp.com
-
-  Please do not ask FSF for further support on this.  If you have any
-  trouble obtaining the patch, contact HP Software Support.
-
-  If your buffer fills up with nulls (^@) at some point, it could well
-  be that problem.  That problem does not happen when people use GCC
-  to compile Emacs.  On the other hand, the HP compiler version 9.34
-  was reported to work for the 19.26 pretest.  9.65 was also reported to work.
-
-  If you turn on the DSUSP character (delayed suspend),
-  Emacs 19.26 does not know how to turn it off on HPUX.
-  You need to turn it off manually.
+  If you turn on the DSUSP character (delayed suspend), Emacs 19.26
+  does not know how to turn it off on HPUX. You need to turn it off manually.
 
   If you are running HP/UX release 8.0 or later, you need the optional
   "C/ANSI C" software in order to build Emacs (older releases of HP/UX
   do not require any special software).  If the file "/etc/filesets/C"
   exists on your machine, you have this software, otherwise you do not.
 
-IBM RS/6000 (rs6000-ibm-aix*)
+** IBM RS/6000 (rs6000-ibm-aix*)
 
   Emacs 19.26 is believed to work; its pretest was tested.
 
@@ -180,31 +75,22 @@ IBM RS/6000 (rs6000-ibm-aix*)
   persons say that the tty VMIN and VTIME settings have been
   corrupted; if you have a fix, please send it to us.
 
-  Compiling with -O using the IBM compiler has been known
-  to make Emacs work incorrectly.  It's reported that on
-  AIX 3.2.5 with an IBM compiler earlier than 1.03.00.14,
-  cc -O fails for some files.  You need to install any
-  PTF containing APAR #IX42810 to bring the compiler to
-  the 1.03.00.14 level to allow optimized compiles.
-
-  There are reports that IBM compiler versions earlier than 1.03.00.02
-  fail even without -O.  However, another report said that compiler
-  version 1.02.01.00 did work, on AIX 3.2.4, with Emacs 19.31.
+  Compiling with -O using the IBM compiler has been known to make
+  Emacs work incorrectly.  There are reports that IBM compiler versions
+  earlier than 1.03.00.02 fail even without -O.
 
   As of 19.11, if you strip the Emacs executable, it ceases to work.
 
   If anyone can fix the above problems, or confirm that they don't happen
   with certain versions of various programs, we would appreciate it.
 
-IBM System/390 running GNU/Linux (s390-*-linux-gnu)
+** IBM System/390 running GNU/Linux (s390-*-linux-gnu)
 
   As of Emacs 21.2, a 31-bit only version is supported on this system.
 
-Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
-	   i386-*-sol2.4,	i386-intsys-sysv,
-	   i386-*-sysv4,	i386-*-sysv4.2,  i386-*-cygwin,
-	   i386-*-msdos,	i386-*-windowsnt.
-	   i386... can be replaced with i486... or i586...)
+** Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
+	   i386-*-cygwin,       i386-*-msdos,	i386-*-windowsnt.
+	   i386 can be replaced with i486, i586, or i686)
 
   In the above configurations, * means that the manufacturer's name
   you specify does not matter, and you can use any name you like
@@ -213,12 +99,9 @@ Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
   Use i386-*-linux-gnu for GNU/Linux systems; Emacs runs as of version 19.26.
   Use i386-*-cygwin for Cygwin; Emacs builds as of version 22.1, in both X11
   and non-X11 modes.  (The Cygwin site has source and binaries for 21.2.)
-  Use i386-intsys-sysv for Integrated Solutions 386 machines.
-  It may also be correct for Microport systems.
 
   On GNU/Linux systems, Emacs 19.23 was said to work properly with libc
-  version 4.5.21, but not with 4.5.19.  If your system uses QMAGIC
-  for the executable format, you must edit config.h to define LINUX_QMAGIC.
+  version 4.5.21, but not with 4.5.19.
 
   On GNU/Linux, configure may fail to put these definitions in config.h:
 
@@ -230,16 +113,6 @@ Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
   To work around the problem, add those definitions by hand.
   It is possible that this problem happens only with X11R6.
   Newer system versions have fixed it.
-
-  The 19.26 pretest was reported to work on SVR4.3 and on Freebsd.
-
-  19.29 is reported to crash when using Motif on Solaris 2.5.
-  The reasons are not yet known.
-
-  For System V release 4, use i386-*-sysv4.
-  For System V release 4.2, use i386-*-sysv4.2.
-
-  If you are using SCO Unix, see notes at end under SCO.
 
   On NetBSD and FreeBSD, at one time, it was necessary to use
   GNU make, not the system's make.  Assuming it's installed as gmake,
@@ -253,16 +126,6 @@ Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
   but no coherent explanation of why that might be so.  If it is so,
   in current versions of Linux, something else should probably be changed.
 
-  Some versions have sys/sioctl.h, and require it in sysdep.c.
-  But some versions do not have sys/sioctl.h.
-  For a given version of the system, this may depend on whether you have
-  X Windows or TCP/IP.  Define or undefine NO_SIOCTL_H in config.h
-  according to whether you have the file.
-
-  Likewise, some versions have been known to need sys/ttold.h, sys/stream.h,
-  and sys/ptem.h included in sysdep.c.  If your system has these files,
-  try defining NEED_PTEM_H in config.h if you have trouble without it.
-
   You may find that adding -I/usr/X/include or -I/usr/netinclude or both
   to CFLAGS avoids compilation errors on certain systems.
 
@@ -270,14 +133,13 @@ Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
   but define `struct tc' instead; add `#define tchars tc'
   to config.h to solve this problem.
 
-Iris 4D (mips-sgi-irix6.*)
+** Iris 4D (mips-sgi-irix6.*)
 
   Emacs 21.3 is reported to work on IRIX 6.5.x.
 
   You can build a 64-bit executable (with larger maximum buffer size)
   on Irix 6.5 by specifying the 64-bit ABI using the `-64' compiler
-  flag or otherwise (see cc(1)).  This may work on earlier Irix 6
-  systems if you edit src/s/irix6-0.h following irix6-5.h.
+  flag or otherwise (see cc(1)).
 
   If compiling with GCC on Irix 6 yields an error "conflicting types
   for `initstate'", install GCC 2.95 or a newer version, and this
@@ -286,36 +148,7 @@ Iris 4D (mips-sgi-irix6.*)
   could also try reinstalling the same version of GCC, and telling us
   whether that fixes the problem.
 
-NCR Intel system (i386-ncr-sysv4.2)
-
-  This system works in 19.31, but if you don't link it with GNU ld,
-  you may need to set LD_RUN_PATH at link time to specify where
-  to find the X libraries.
-
-Prime EXL (i386-prime-sysv)
-
-  Minor changes merged in 19.1.
-
-Siemens Nixdorf RM600 and RM400 (mips-siemens-sysv4)
-
-  Changes merged in 19.29.  The version configured with
-  `--with-x' works without any modifications, but `--with-x-toolkit'
-  works only if the Athena library and the Toolkit library are linked
-  statically.  For this, edit `src/Makefile' after the `configure' run
-  and modify the lines with `-lXaw' and `-lXt' as follows:
-
-    LIBW= /usr/lib/libXaw.a
-    LIBXT= $(LIBW) -lXmu /usr/lib/libXt.a $(LIBXTR6) -lXext
-
-  In addition, `--with-x-toolkit=motif' works only
-  if the Motif library and the Toolkit library are linked statically.
-  To do this, edit `src/Makefile' after the `configure' run
-  and modify the lines with `-lXm' and `-lXt' as follows:
-
-    LIBW= /usr/lib/libXm.a /usr/ccs/lib/libgen.a
-    LIBXT= $(LIBW) -lXmu /usr/lib/libXt.a $(LIBXTR6) -lXext
-
-Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
+** Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
     			       i386-sun-solaris2.*, sparc*-*-linux-gnu)
 
   To build a 32-bit Emacs (i.e. if you are having any sort of problem
@@ -363,16 +196,6 @@ Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
   As of release 2.95, GCC doesn't work properly with the 64-bit ABI
   (applicable on UltraSPARC), but that isn't the default mode.
 
-  Emacs 20.3 fails to build on Solaris 2.5 if you use GCC 2.7.2.3.
-  Installing GCC 2.8 fixes the problem.
-
-  19.32 works on Solaris 2.4 and 2.5.  On Solaris 2.5
-  you may need one of these patches to prevent Emacs from crashing
-  when it starts up:
-        103093-03: [README] SunOS 5.5: kernel patch (2140557 bytes)
-        102832-01: [README] OpenWindows 3.5: Xview Jumbo Patch (4181613 bytes)
-	103242-04: [README] SunOS 5.5: linker patch (595363 bytes)
-
   There are reports that using SunSoft cc with -xO4 -xdepend produces
   bad code for some part of Emacs.
 
@@ -383,11 +206,6 @@ Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
   Some Sun versions of X windows use the clipboard, not the selections,
   for transferring text between clients.  The Cut, Paste and Copy items
   in the menu bar Edit menu work with the clipboard.
-
-  A user reported irreproducible segmentation faults when using 19.29
-  on Solaris 2.3 and 2.4 after compiling it with the Sun compiler.
-  The problem went away when GCC 2.7.0 was used instead.  We do not know
-  whether anything in Emacs is partly to blame for this.
 
   If you compile with Sun's ANSI compiler acc, you need additional options
   when linking temacs, such as
@@ -410,40 +228,23 @@ Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
 
   If you have trouble using open-network-stream, get the distribution
   of `bind' (the BSD name-server), build libresolv.a, and link Emacs
-  with -lresolv, by copying the #definition of LIBS_SYSTEM in
-  src/s/sunos4-1.h to src/config.h.  This problem is due to obsolete
-  software in the nonshared standard library.
+  with -lresolv, by editing LIBRESOLV in src/Makefile.  This problem is
+  due to obsolete software in the nonshared standard library.
 
-  Note that Emacs on a Sun is not really as big as it looks.
-  As dumped, it includes around 200k of zeros between the
-  original text section and the original data section
-  (now remapped as part of the text).  These are never
-  swapped in.
+  Note that Emacs on a Sun is not really as big as it looks.  As
+  dumped, it includes around 200k of zeros between the original text
+  section and the original data section (now remapped as part of the
+  text). These are never swapped in.
 
-SuperH (sh[34]*-*-linux-gnu)
+** SuperH (sh[34]*-*-linux-gnu)
 
   Emacs 23.0.60 was reported to work on GNU/Linux (October 2008).
   Tested on a little-endian sh4 system (cpu type SH7751R) running
   Gentoo Linux 2008.0.
 
-Tadpole 68K (m68k-tadpole-sysv)
+* Here are notes about some of the systems supported:
 
-  Changes merged in 19.1.
-
-  You may need to edit Makefile to change the variables LIBDIR and
-  BINDIR from /usr/local to /usr/contrib.
-
-  To give movemail access to /usr/mail, you may need to execute
-
-    chmod 2755 etc/movemail; chgrp mail etc/movemail
-
-Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3)
-
-  Works.
-
-Here are notes about some of the systems supported:
-
-Linux (actually GNU/Linux)
+** Linux (actually GNU/Linux)
 
   Most of the complete systems which use the Linux kernel are close
   enough to the GNU system to be considered variant GNU systems.  We
@@ -462,54 +263,22 @@ Linux (actually GNU/Linux)
   people to write more free software.  See the file LINUX-GNU in this
   directory for more explanation.
 
-Microport
+** Mac OS X
 
-  See under "Intel 386".
+  For installation instructions see the file nextstep/INSTALL.
 
-MSDOS
+** MSDOS
 
-  For installation on MSDOS, see the file INSTALL (search for `MSDOG',
-  near the end of the file).  See the "MS-DOS" chapter of the manual
-  for information about using Emacs on MSDOS.
+  For installation on MSDOS, see the file msdos/INSTALL.
+  See the "MS-DOS" chapter of the manual for information about using
+  Emacs on MSDOS.
 
-System V rel 4.0.3 and 4.0.4 (usg5.4)
-
-  Supported, including shared libraries for ELF, but ptys do not work
-  because TIOCGPGRP fails to work on ptys (but Dell 2.2 seems to have
-  fixed this).  This failure is probably due to a misunderstanding of
-  the consequences of the POSIX spec: many system designers mistakenly
-  think that POSIX requires this feature to fail.  This is untrue;
-  ptys are an extension, and POSIX says that extensions *when used*
-  may change the action of standard facilities in any fashion.
-
-  If you get compilation errors about wrong number of
-  arguments to getpgrp, define GETPGRP_NO_ARG.
-
-  Some versions 3 and earlier of V.4, on the Intel 386 and 860, had
-  problems in the X11 libraries.  These prevent Emacs from working
-  with X.  You can use Emacs with X provided your copy of X is based
-  on X11 release 4 or newer, or is Dell's 2.2 (which is a 4.0.3).
-  Unfortunately, the only way you can tell whether your X11 library is
-  new enough is to try compiling Emacs to use X.  If emacs runs, your
-  X11 library is new enough.
-
-  In this context, GSV4 and GSV4i are alternate names for X11R4.
-  OL2.* is X11R3 based.  OL3 is in between X11R3 and X11R4, and may or
-  may not work, depending on who made the Unix system.  If the library
-  libXol is part of the X distribution, then you have X11R3 and Emacs
-  won't work with X.
-
-  Most versions of V.4 support sockets.  If `/usr/lib/libsocket.so'
-  exists, your system supports them.  If yours does not, you must add
-  #undef HAVE_SOCKETS in config.h, after the inclusion of s-usg5-4.h.
-  (Any system that supports Internet should implement sockets.)
-
-Windows NT/95/98/ME/2000
+** MS-Windows NT/95/98/ME/2000
 
   For installation on all versions of the MS-Windows platform, see the
   file nt/INSTALL.
 
-X86_64 GNU/Linux
+** X86_64 GNU/Linux
 
   No special procedures should be needed to build a 64-bit Emacs.  To
   build a 32-bit Emacs, first ensure that the necessary 32-bit system
@@ -519,6 +288,9 @@ X86_64 GNU/Linux
       --x-libraries=/usr/X11R6/lib
 
   (using the location of the 32-bit X libraries on your system).
+
+
+* Obsolete platforms
 
 Support for the following obsolete platforms was removed in Emacs 23.1
 (the names in parentheses state the files in src/ that were removed):
@@ -612,7 +384,7 @@ Support for the following obsolete platforms was removed in Emacs 23.1
 
 
 Local variables:
-mode: text
+mode: outline
 fill-prefix: "  "
 End:
 
