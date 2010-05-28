@@ -2121,7 +2121,7 @@ ARGS to actually emit the message (if applicable)."
 	      (setq fn (symbol-name btf))
 	      (unless (and (string-match "^tramp" fn)
 			   (not (string-match
-				 "^tramp\\(-debug\\)?\\(-message\\|-error\\)$"
+				 "^tramp\\(-debug\\)?\\(-message\\|-error\\|-compat-funcall\\)$"
 				 fn)))
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
@@ -2290,7 +2290,10 @@ FILE must be a local file name on a connection identified via VEC."
       (funcall 'progress-reporter-update reporter value))))
 
 (defmacro with-progress-reporter (vec level message &rest body)
-  "Executes BODY, spinning a progress reporter with MESSAGE."
+  "Executes BODY, spinning a progress reporter with MESSAGE.
+If LEVEL does not fit for visible messages, or if this is a
+nested call of the macro, there are only traces without a visible
+progress reporter."
   `(let (pr tm)
      (tramp-message ,vec ,level "%s..." ,message)
      ;; We start a pulsing progress reporter after 3 seconds.  Feature
@@ -2304,7 +2307,9 @@ FILE must be a local file name on a connection identified via VEC."
 		      (run-at-time 3 0.1 'tramp-progress-reporter-update pr)))
 	 (error nil)))
      (unwind-protect
-	 ;; Execute the body.
+	 ;; Execute the body.  Unset `tramp-message-show-message' when
+	 ;; the timer object is created, in order to suppress
+	 ;; concurrent timers.
 	 (let ((tramp-message-show-message
 		(and tramp-message-show-message (not tm))))
 	   ,@body)
@@ -4114,15 +4119,16 @@ The method used must be an out-of-band method."
 
 (defun tramp-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  ;; TRASH needs to be implemented.  See `move-file-to-trash'.
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-file-property v localname)
-    (unless (zerop (tramp-send-command-and-check
-		    v
-		    (format "rm -f %s"
-			    (tramp-shell-quote-argument localname))))
+    (unless
+	(zerop
+	 (tramp-send-command-and-check
+	  v (format "%s %s"
+		    (or (and trash (tramp-get-remote-trash v)) "rm -f")
+		    (tramp-shell-quote-argument localname))))
       (tramp-error v 'file-error "Couldn't delete %s" filename))))
 
 ;; Dired.
@@ -8416,6 +8422,11 @@ necessary only.  This function will be used in file name completion."
 			 vec (format "%s --canonicalize-missing /" result)))
 		     (error nil))))
 	result))))
+
+(defun tramp-get-remote-trash (vec)
+  (with-connection-property vec "trash"
+    (tramp-message vec 5 "Finding a suitable `trash' command")
+    (tramp-find-executable vec "trash" (tramp-get-remote-path vec))))
 
 (defun tramp-get-remote-id (vec)
   (with-connection-property vec "id"

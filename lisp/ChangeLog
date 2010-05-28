@@ -1,5 +1,13 @@
 2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-debug-message): Add `tramp-compat-funcall'
+	to ignored backtrace functions.
+	(with-progress-reporter): Expand docstring.
+	(tramp-handle-delete-file): Implement TRASH argument.
+	(tramp-get-remote-trash): New defun.
+
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp-compat.el (tramp-compat-delete-file): Use
 	`symbol-value' for backward compatibility.
 
