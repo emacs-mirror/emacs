@@ -109,16 +109,20 @@ scroll a line instead of full screen.
 ** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position.
 
+** Trash changes
+
+*** `delete-by-moving-to-trash' now only affects commands that specify
+trashing.  This avoids inadvertently trashing temporary files.
+
+*** Calling `delete-file' or `delete-directory' with a prefix argument
+now forces true deletion, regardless of `delete-by-moving-to-trash'.
+
 
 * Editing Changes in Emacs 24.1
 
 ** completion-at-point is now an alias for complete-symbol.
 
 ** mouse-region-delete-keys has been deleted.
-
-** If delete-file is called with a prefix argument, it really deletes,
-regardless of the value of `delete-by-moving-to-trash'.
-
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
@@ -237,8 +241,10 @@ secrets.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
 ** define-minor-mode accepts a new keyword :variable.
 
-** delete-file now accepts an optional second arg, FORCE, which says
-to always delete and ignore the value of delete-by-moving-to-trash.
+** `delete-file' and `delete-directory now accept optional arg TRASH.
+Trashing is performed if TRASH and `delete-by-moving-to-trash' are
+both non-nil.  Interactively, TRASH defaults to t, unless a prefix
+argument is supplied (see Trash changes, above).
 
 ** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
 

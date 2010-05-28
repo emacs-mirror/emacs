@@ -2180,12 +2180,7 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
 
   CHECK_STRING (directory);
   directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
-
-  if (delete_by_moving_to_trash)
-    return call1 (Qmove_file_to_trash, directory);
-
   encoded_dir = ENCODE_FILE (directory);
-
   dir = SDATA (encoded_dir);
 
   if (rmdir (dir) != 0)
@@ -2195,19 +2190,21 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
 }
 
 DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2,
-       "(list (read-file-name \"Delete file: \" nil default-directory \
-                (confirm-nonexistent-file-or-buffer))                 \
-              current-prefix-arg)",
+       "(list (read-file-name \
+                (if (and delete-by-moving-to-trash (null current-prefix-arg)) \
+                    \"Move file to trash: \" \"Delete file: \") \
+                nil default-directory (confirm-nonexistent-file-or-buffer)) \
+              (null current-prefix-arg))",
        doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
 If file has multiple names, it continues to exist with the other names.
+TRASH non-nil means to trash the file instead of deleting, provided
+`delete-by-moving-to-trash' is non-nil.
 
-If optional arg FORCE is non-nil, really delete the file regardless of
-`delete-by-moving-to-trash'.  Otherwise, \"deleting\" actually moves
-it to the system's trash can if `delete-by-moving-to-trash' is non-nil.
-Interactively, FORCE is non-nil if called with a prefix arg.  */)
-     (filename, force)
+When called interactively, TRASH is t if no prefix argument is given.
+With a prefix argument, TRASH is nil.  */)
+     (filename, trash)
      Lisp_Object filename;
-     Lisp_Object force;
+     Lisp_Object trash;
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
@@ -2226,7 +2223,7 @@ Interactively, FORCE is non-nil if called with a prefix arg.  */)
   if (!NILP (handler))
     return call2 (handler, Qdelete_file, filename);
 
-  if (delete_by_moving_to_trash && NILP (force))
+  if (delete_by_moving_to_trash && !NILP (trash))
     return call1 (Qmove_file_to_trash, filename);
 
   encoded_file = ENCODE_FILE (filename);
@@ -2244,14 +2241,14 @@ internal_delete_file_1 (ignore)
 }
 
 /* Delete file FILENAME, returning 1 if successful and 0 if failed.
-   FORCE means to ignore `delete-by-moving-to-trash'.  */
+   This ignores `delete-by-moving-to-trash'.  */
 
 int
-internal_delete_file (Lisp_Object filename, Lisp_Object force)
+internal_delete_file (Lisp_Object filename)
 {
   Lisp_Object tem;
 
-  tem = internal_condition_case_2 (Fdelete_file, filename, force,
+  tem = internal_condition_case_2 (Fdelete_file, filename, Qnil,
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }
@@ -2345,7 +2342,7 @@ This is what happens in interactive use with M-x.  */)
 	      )
 	    call2 (Qdelete_directory, file, Qt);
 	  else
-	    Fdelete_file (file, Qt);
+	    Fdelete_file (file, Qnil);
 	  unbind_to (count, Qnil);
 	}
       else
@@ -5917,8 +5914,10 @@ A non-nil value may result in data loss!  */);
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", &delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.
-When non-nil, the function `move-file-to-trash' will be used by
-`delete-file' and `delete-directory'.  */);
+When non-nil, certain file deletion commands use the function
+`move-file-to-trash' instead of deleting files outright.
+This includes interactive calls to `delete-file' and
+`delete-directory' and the Dired deletion commands.  */);
   delete_by_moving_to_trash = 0;
   Qdelete_by_moving_to_trash = intern_c_string ("delete-by-moving-to-trash");
   Qmove_file_to_trash = intern_c_string ("move-file-to-trash");

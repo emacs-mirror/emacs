@@ -1,5 +1,18 @@
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* fileio.c (Fdelete_file): Change meaning of optional arg to mean
+	whether to trash.
+	(internal_delete_file, Frename_file): Callers changed.
+	(delete_by_moving_to_trash): Doc fix.
+	(Fdelete_directory_internal): Don't move to trash.
+
+	* callproc.c (delete_temp_file):
+	* buffer.c (Fkill_buffer): Callers changed.
+
+	* lisp.h: Update prototype.
+
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
 	* xdisp.c (redisplay_window): After redisplay, check if point is
 	still valid before setting it (Bug#6177).
 

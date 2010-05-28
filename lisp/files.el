@@ -4675,19 +4675,30 @@ this happens by default."
   "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"
   "Regexp of file names excluging \".\" an \"..\".")
 
-(defun delete-directory (directory &optional recursive)
+(defun delete-directory (directory &optional recursive trash)
   "Delete the directory named DIRECTORY.  Does not follow symlinks.
-If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
+If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well.
+TRASH non-nil means to trash the directory instead, provided
+`delete-by-moving-to-trash' is non-nil.
+
+When called interactively, TRASH is t if no prefix argument is
+given.  With a prefix argument, TRASH is nil."
   (interactive
-   (let ((dir (expand-file-name
-	       (read-file-name
-		"Delete directory: "
-		default-directory default-directory nil nil))))
+   (let* ((trashing (and delete-by-moving-to-trash
+			 (null current-prefix-arg)))
+	  (dir (expand-file-name
+		(read-file-name
+		 (if trashing
+		     "Move directory to trash: "
+		   "Delete directory: ")
+		 default-directory default-directory nil nil))))
      (list dir
 	   (if (directory-files	dir nil directory-files-no-dot-files-regexp)
 	       (y-or-n-p
-		(format "Directory `%s' is not empty, really delete? " dir))
-	     nil))))
+		(format "Directory `%s' is not empty, really %s? "
+			dir (if trashing "trash" "delete")))
+	     nil)
+	   (null current-prefix-arg))))
   ;; If default-directory is a remote directory, make sure we find its
   ;; delete-directory handler.
   (setq directory (directory-file-name (expand-file-name directory)))
@@ -4695,7 +4706,7 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
     (cond
      (handler
       (funcall handler 'delete-directory directory recursive))
-     (delete-by-moving-to-trash
+     ((and delete-by-moving-to-trash trash)
       ;; Only move non-empty dir to trash if recursive deletion was
       ;; requested.  This mimics the non-`delete-by-moving-to-trash'
       ;; case, where the operation fails in delete-directory-internal.
@@ -4715,8 +4726,8 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 		  ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
 		  ;; but more efficient
 		  (if (eq t (car (file-attributes file)))
-		      (delete-directory file recursive)
-		    (delete-file file)))
+		      (delete-directory file recursive nil)
+		    (delete-file file nil)))
 		;; We do not want to delete "." and "..".
 		(directory-files
 		 directory 'full directory-files-no-dot-files-regexp)))
