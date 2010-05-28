@@ -1,3 +1,80 @@
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-delete-file): New arg TRASH.
+	(dired-internal-do-deletions): New arg TRASH.  Use progress
+	reporter.
+	(dired-do-flagged-delete, dired-do-delete): Use trash.
+
+	* speedbar.el (speedbar-item-delete): Allow trashing.
+
+	* files.el (delete-directory): New arg TRASH.
+
+	* net/ange-ftp.el (ange-ftp-del-tmp-name, ange-ftp-delete-file)
+	(ange-ftp-rename-remote-to-remote)
+	(ange-ftp-rename-local-to-remote)
+	(ange-ftp-rename-remote-to-local, ange-ftp-load)
+	(ange-ftp-compress, ange-ftp-uncompress): Remove optional arg from
+	`delete-file'.
+	(ange-ftp-delete-directory): Add optional arg to `delete-file', to
+	allow trashing.
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
+	handle new TRASH arg of `delete-file'.
+
+	* net/tramp.el (tramp-handle-delete-file): Change FORCE arg to
+	TRASH.
+	(tramp-handle-make-symbolic-link, tramp-handle-load)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-process-file, tramp-handle-call-process-region)
+	(tramp-handle-shell-command, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-delete-temp-file-function): Use null TRASH arg in
+	tramp-compat-delete-file call.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-directory)
+	(tramp-fish-handle-delete-file)
+	(tramp-fish-handle-make-symbolic-link)
+	(tramp-fish-handle-process-file): Use null TRASH arg in
+	`tramp-compat-delete-file' call.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Use null TRASH
+	arg in `tramp-compat-delete-file' call.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Rename arg.
+	(tramp-gvfs-handle-write-region): Use null TRASH arg in
+	`tramp-compat-delete-file' call.
+
+	* net/tramp-imap.el (tramp-imap-handle-delete-file): Rename arg.
+	(tramp-imap-do-copy-or-rename-file): Use null TRASH arg in
+	`tramp-compat-delete-file' call.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region): Use null TRASH arg in
+	tramp-compat-delete-file call.
+	(tramp-smb-handle-delete-directory): Use tramp-compat-delete-file.
+	(tramp-smb-handle-delete-file): Rename arg.
+
+	* diff.el (diff-sentinel):
+	* epg.el (epg--make-temp-file, epg-decrypt-string)
+	(epg-verify-string, epg-sign-string, epg-encrypt-string):
+	* jka-compr.el (jka-compr-partial-uncompress)
+	(jka-compr-call-process, jka-compr-write-region):
+	* server.el (server-sentinel): Remove optional arg from
+	delete-file, reverting 2010-05-03 change.
+
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/verilog-mode.el (verilog-type-font-keywords): Use
+	font-lock-constant-face, not obsolete font-lock-reference-face.
+
+2010-05-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-resolve-face): New function.
+	(hfy-face-to-style): Use it (Bug#6279).
+
 2010-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el (hebrew-shape-gstring): Check if a glyph

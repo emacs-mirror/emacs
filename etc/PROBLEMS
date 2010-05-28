@@ -87,8 +87,7 @@ it's loaded very early in the startup procedure.)
 Similarly, any other .el file for which there's no corresponding .elc
 file could fail to load if it is compressed.
 
-The solution is to uncompress all .el files which don't have a .elc
-file.
+The solution is to uncompress all .el files that don't have a .elc file.
 
 Another possible reason for such failures is stale *.elc files
 lurking somewhere on your load-path -- see the next section.
@@ -268,8 +267,7 @@ than the corresponding .el file.
 
 These control the actions of Emacs.
 ~/.emacs is your Emacs init file.
-EMACSLOADPATH overrides which directories the function
-"load" will search.
+EMACSLOADPATH overrides which directories the function "load" will search.
 
 If you observe strange problems, check for these and get rid
 of them, then try again.
@@ -415,8 +413,7 @@ For example, (system-name) returns some variation on
 
 You need to configure your machine with a fully qualified domain name,
 (i.e. a name with at least one ".") either in /etc/hosts,
-/etc/hostname, the NIS, or wherever your system calls for specifying
-this.
+/etc/hostname, the NIS, or wherever your system calls for specifying this.
 
 If you cannot fix the configuration, you can set the Lisp variable
 mail-host-address to the value you want.
@@ -525,8 +522,7 @@ terminal type.
 
 The cause of this is a shell startup file that sets the TERMCAP
 environment variable.  The terminal emulator uses that variable to
-provide the information on the special terminal type that Emacs
-emulates.
+provide the information on the special terminal type that Emacs emulates.
 
 Rewrite your shell startup file so that it does not change TERMCAP
 in such a case.  You could use the following conditional which sets
@@ -825,8 +821,7 @@ To circumvent this problem, set x-use-underline-position-properties
 to nil in your `.emacs'.
 
 To see what is the value of UNDERLINE_POSITION defined by the font,
-type `xlsfonts -lll FONT' and look at the font's UNDERLINE_POSITION
-property.
+type `xlsfonts -lll FONT' and look at the font's UNDERLINE_POSITION property.
 
 ** When using Exceed, fonts sometimes appear too tall.
 
@@ -910,8 +905,7 @@ To see what glyphs are included in a font, use `xfd', like this:
 
   xfd -fn -schumacher-clean-medium-r-normal--12-120-75-75-c-60-iso8859-1
 
-If this shows only ASCII glyphs, the font is indeed the source of the
-problem.
+If this shows only ASCII glyphs, the font is indeed the source of the problem.
 
 The solution is to remove the corresponding lines from the appropriate
 `fonts.alias' file, then run `mkfontdir' in that directory, and then run
@@ -1017,8 +1011,7 @@ have made the key binding correctly.
 
 If C-h c reports an event that doesn't have the Alt modifier, it may
 be because your X server has no key for the Alt modifier.  The X
-server that comes from MIT does not set up the Alt modifier by
-default.
+server that comes from MIT does not set up the Alt modifier by default.
 
 If your keyboard has keys named Alt, you can enable them as follows:
 
@@ -1160,8 +1153,7 @@ menu placement.
 
 On some systems, even with Motif 1.2 emulation, Emacs occasionally
 locks up, grabbing all mouse and keyboard events.  We still don't know
-what causes these problems; they are not reproducible by Emacs
-developers.
+what causes these problems; they are not reproducible by Emacs developers.
 
 *** Motif: The Motif version of Emacs paints the screen a solid color.
 
@@ -1490,8 +1482,7 @@ In this case, there is no obvious bug in Emacs, and most likely you
 need more padding, or possibly the terminal manual is wrong.
 
 2) The characters sent are incorrect, due to an obscure aspect
- of the terminal behavior not described in an obvious way
- by termcap.
+ of the terminal behavior not described in an obvious way by termcap.
 
 This case is hard.  It will be necessary to think of a way for
 Emacs to distinguish between terminals with this kind of behavior
@@ -1517,8 +1508,7 @@ in termcap.c, tparam.c, term.c, scroll.c, cm.c or dispnew.c.
 Some versions of rlogin (and possibly telnet) do not pass flow
 control characters to the remote system to which they connect.
 On such systems, emacs on the remote system cannot disable flow
-control on the local system.  Sometimes `rlogin -8' will avoid this
-problem.
+control on the local system.  Sometimes `rlogin -8' will avoid this problem.
 
 One way to cure this is to disable flow control on the local host
 (the one running rlogin, not the one running rlogind) using the
@@ -1537,8 +1527,7 @@ following to your .emacs (on the host running rlogind):
 
 (enable-flow-control-on "vt200" "vt300" "vt101" "vt131")
 
-See the entry about spontaneous display of I-search (above) for more
-info.
+See the entry about spontaneous display of I-search (above) for more info.
 
 ** Output from Control-V is slow.
 
@@ -1936,8 +1925,8 @@ Definitions" to make them defined.
 
 ** Solaris
 
-We list bugs in current versions here.  Solaris 2.x and 4.x are covered in the
-section on legacy systems.
+We list bugs in current versions here.  See also the section on legacy
+systems.
 
 *** On Solaris, C-x doesn't get through to Emacs when you use the console.
 
@@ -1951,7 +1940,7 @@ may not work if you have used the unshared system libraries.  This
 is because the unshared libraries fail to use YP for host name lookup.
 As a result, the host name you specify may not be recognized.
 
-*** Solaris 2,6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
+*** Solaris 2.6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
 
 We suspect that this is a bug in the X libraries provided by
 Sun.  There is a report that one of these patches fixes the bug and
@@ -2267,8 +2256,7 @@ selection".
 
 Of this does not work, please inform bug-gnu-emacs@gnu.org.  Then
 please call support for your X-server and see if you can get a fix.
-If you do, please send it to bug-gnu-emacs@gnu.org so we can list it
-here.
+If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 * Build-time problems
 
@@ -2499,7 +2487,7 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 ** Bootstrapping
 
 Bootstrapping (compiling the .el files) is normally only necessary
-with CVS builds, since the .elc files are pre-compiled in releases.
+with development builds, since the .elc files are pre-compiled in releases.
 
 *** "No rule to make target" with Ubuntu 8.04 make 3.81-3build1
 
@@ -2611,32 +2599,28 @@ nonprinting characters, you can fix them:
 
 *** temacs prints "Pure Lisp storage exhausted".
 
-This means that the Lisp code loaded from the .elc and .el
-files during  temacs -l loadup inc dump  took up more
-space than was allocated.
+This means that the Lisp code loaded from the .elc and .el files
+during temacs -l loadup inc dump took up more space than was allocated.
 
 This could be caused by
  1) adding code to the preloaded Lisp files
  2) adding more preloaded files in loadup.el
  3) having a site-init.el or site-load.el which loads files.
    Note that ANY site-init.el or site-load.el is nonstandard;
-   if you have received Emacs from some other site
-   and it contains a site-init.el or site-load.el file, consider
-   deleting that file.
+   if you have received Emacs from some other site and it contains a
+   site-init.el or site-load.el file, consider deleting that file.
  4) getting the wrong .el or .elc files
    (not from the directory you expected).
  5) deleting some .elc files that are supposed to exist.
    This would cause the source files (.el files) to be
    loaded instead.  They take up more room, so you lose.
- 6) a bug in the Emacs distribution which underestimates
-   the space required.
+ 6) a bug in the Emacs distribution which underestimates the space required.
 
 If the need for more space is legitimate, change the definition
 of PURESIZE in puresize.h.
 
 But in some of the cases listed above, this problem is a consequence
-of something else that is wrong.  Be sure to check and fix the real
-problem.
+of something else that is wrong.  Be sure to check and fix the real problem.
 
 *** Linux: Emacs crashes when dumping itself on Mac PPC running Yellow Dog GNU/Linux.
 
@@ -2765,16 +2749,7 @@ This section covers bugs reported on very old hardware or software.
 If you are using hardware and an operating system shipped after 2000,
 it is unlikely you will see any of these.
 
-*** Sunos 5.3: Subprocesses remain, hanging but not zombies.
-
-A bug in Sunos 5.3 causes Emacs subprocesses to remain after Emacs
-exits.  Sun patch # 101415-02 is part of the fix for this, but it only
-applies to ptys, and doesn't fix the problem with subprocesses
-communicating through pipes.
-
-*** OPENSTEP
-
-**** OPENSTEP 4.2: Compiling syntax.c with gcc 2.7.2.1 fails.
+*** OPENSTEP 4.2: Compiling syntax.c with gcc 2.7.2.1 fails.
 
 The compiler was reported to crash while compiling syntax.c with the
 following message:
@@ -2857,15 +2832,10 @@ lists the supported locales; any locale other than "C" or "POSIX"
 should do.
 
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
-if you link with the MIT X11 libraries instead of the Solaris X11
-libraries.
-
-*** HP/UX versions before 11.0
-
-HP/UX 10 was end-of-lifed in May 1999.
+if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
 
 *** HP/UX 10: Large file support is disabled.
-
+(HP/UX 10 was end-of-lifed in May 1999.)
 See the comments in src/s/hpux10-20.h.
 
 *** HP/UX: Emacs is slow using X11R5.
@@ -2877,47 +2847,7 @@ libXmu.a, libXext.a and others.  HP/UX normally doesn't come with
 those libraries installed.  To get good performance, you need to
 install them and rebuild Emacs.
 
-*** Digital Unix 4.0: Garbled display on non-X terminals when Emacs runs.
-
-So far it appears that running `tset' triggers this problem (when TERM
-is vt100, at least).  If you do not run `tset', then Emacs displays
-properly.  If someone can tell us precisely which effect of running
-`tset' actually causes the problem, we may be able to implement a fix
-in Emacs.
-
-*** SVr4
-
-**** SVr4: On some variants of SVR4, Emacs does not work at all with X.
-
-Try defining BROKEN_FIONREAD in your config.h file.  If this solves
-the problem, please send a bug report to tell us this is needed; be
-sure to say exactly what type of machine and system you are using.
-
-**** SVr4: After running emacs once, subsequent invocations crash.
-
-Some versions of SVR4 have a serious bug in the implementation of the
-mmap () system call in the kernel; this causes emacs to run correctly
-the first time, and then crash when run a second time.
-
-Contact your vendor and ask for the mmap bug fix; in the mean time,
-you may be able to work around the problem by adding a line to your
-operating system description file (whose name is reported by the
-configure script) that reads:
-#define SYSTEM_MALLOC
-This makes Emacs use memory less efficiently, but seems to work around
-the kernel bug.
-
-*** SCO Unix and UnixWare
-
-**** SCO 4.2.0: Regular expressions matching bugs on SCO systems.
-
-On SCO, there are problems in regexp matching when Emacs is compiled
-with the system compiler.  The compiler version is "Microsoft C
-version 6", SCO 4.2.0h Dev Sys Maintenance Supplement 01/06/93; Quick
-C Compiler Version 1.00.46 (Beta).  The solution is to compile with
-GCC.
-
-**** UnixWare 2.1: Error 12 (virtual memory exceeded) when dumping Emacs.
+*** UnixWare 2.1: Error 12 (virtual memory exceeded) when dumping Emacs.
 
 Paul Abrahams (abrahams@acm.org) reports that with the installed
 virtual memory settings for UnixWare 2.1.2, an Error 12 occurs during
@@ -2940,7 +2870,7 @@ According to Martin Sohnius, you can also retune this in the kernel:
 (He recommends you not change the stack limit, though.)
 These changes take effect when you reboot.
 
-** Windows 3.1, 95, 98, and ME
+** MS-Windows 95, 98, ME, and NT
 
 *** MS-Windows NT/95: Problems running Perl under Emacs
 
@@ -3022,8 +2952,7 @@ http://www.gnu.org/software/emacs/windows/.
 When a program you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In
 particular, this has been reported when trying to compile a Java
-program in JDEE when javac.exe is installed, but not on the system
-PATH.
+program in JDEE when javac.exe is installed, but not on the system PATH.
 
 ** MS-DOS
 
@@ -3088,7 +3017,7 @@ your system works as before.
 *** MS-DOS: Emacs crashes at startup.
 
 Some users report that Emacs 19.29 requires dpmi memory management,
-and crashes on startup if the system does not have it.  We don't yet
+and crashes on startup if the system does not have it.  We don't
 know why this happens--perhaps these machines don't have enough real
 memory, or perhaps something is wrong in Emacs or the compiler.
 However, arranging to use dpmi support is a workaround.
@@ -3112,7 +3041,7 @@ This is an unfortunate side-effect of the support for Unix-style
 device names such as /dev/null in the DJGPP runtime library.  A
 work-around is to rename the problem directory to another name.
 
-*** MS-DOS+DJGPP: Problems on MS-DOG if DJGPP v2.0 is used to compile Emacs.
+*** MS-DOS+DJGPP: Problems on MS-DOS if DJGPP v2.0 is used to compile Emacs.
 
 There are two DJGPP library bugs which cause problems:
 
@@ -3134,8 +3063,7 @@ the Lisp files it needs to load at startup.  Redirect Emacs stdout
 and stderr to a file to see the error message printed by Emacs.
 
 Another manifestation of this problem is that Emacs is unable to load
-the support for editing program sources in languages such as C and
-Lisp.
+the support for editing program sources in languages such as C and Lisp.
 
 This can happen if the Emacs distribution was unzipped without LFN
 support, thus causing long filenames to be truncated to the first 6
@@ -3165,7 +3093,7 @@ shortcut keys entirely by adding this line to ~/.OWdefaults:
 
     OpenWindows.WindowMenuAccelerators: False
 
-**** twm: A position you specified in .Xdefaults is ignored, using twm.
+*** twm: A position you specified in .Xdefaults is ignored, using twm.
 
 twm normally ignores "program-specified" positions.
 You can tell it to obey them with this command in your `.twmrc' file:
@@ -3187,31 +3115,6 @@ This problem seems to be a matter of configuring the DECserver to use
 7 bit characters rather than 8 bit characters.
 
 * Build problems on legacy systems
-
-** BSD/386 1.0: --with-x-toolkit option configures wrong.
-
-This problem is due to bugs in the shell in version 1.0 of BSD/386.
-The workaround is to edit the configure file to use some other shell,
-such as bash.
-
-** Digital Unix 4.0: Emacs fails to build, giving error message
-     Invalid dimension for the charset-ID 160
-
-This is due to a bug or an installation problem in GCC 2.8.0.
-Installing a more recent version of GCC fixes the problem.
-
-** Digital Unix 4.0: Failure in unexec while dumping emacs.
-
-This problem manifests itself as an error message
-
-    unexec: Bad address, writing data section to ...
-
-The user suspects that this happened because his X libraries
-were built for an older system version,
-
-    ./configure --x-includes=/usr/include --x-libraries=/usr/shlib
-
-made the problem go away.
 
 ** SunOS: Emacs gets error message from linker on Sun.
 
@@ -3297,7 +3200,7 @@ In the XCONS, etc., macros in lisp.h you must replace (a).u.val with
 This problem will only happen if USE_LISP_UNION_TYPE is manually
 defined in lisp.h.
 
-*** C compilers lose on returning unions.
+** C compilers lose on returning unions.
 
 I hear that some C compilers cannot handle returning a union type.
 Most of the functions in GNU Emacs return type Lisp_Object, which is
