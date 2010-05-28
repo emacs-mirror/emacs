@@ -642,7 +642,7 @@ previous -ARG, if ARG<0) files."
   (interactive "P")
   (dired-map-over-marks
    (let* ((image-pos  (dired-move-to-filename))
-          (image-file (dired-get-filename 'no-dir t))
+          (image-file (dired-get-filename nil t))
           thumb-file
           overlay)
      (when (and image-file (string-match-p (image-file-name-regexp) image-file))
