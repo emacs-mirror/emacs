@@ -267,8 +267,7 @@ of `copy' and `rename'."
 	    (insert-file-contents filename)
 	    (write-region (point-min) (point-max) newname)))))
 
-    (when (eq op 'rename)
-      (tramp-compat-delete-file filename))))
+    (when (eq op 'rename) (delete-file filename))))
 
 ;; TODO: revise this much
 (defun tramp-imap-handle-expand-file-name (name &optional dir)

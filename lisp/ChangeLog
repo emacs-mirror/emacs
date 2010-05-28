@@ -1,3 +1,40 @@
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Use
+	`symbol-value' for backward compatibility.
+
+	* net/tramp.el (tramp-handle-make-symbolic-link)
+	(tramp-handle-load)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-process-file, tramp-handle-call-process-region)
+	(tramp-handle-shell-command, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-delete-temp-file-function): Use `delete-file' instead
+	of `tramp-compat-delete-file'.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-directory)
+	(tramp-fish-handle-make-symbolic-link)
+	(tramp-fish-handle-process-file): Use `delete-file' instead
+	of `tramp-compat-delete-file'.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Rename arg.
+	(tramp-gvfs-handle-write-region): Use `delete-file' instead of
+	`tramp-compat-delete-file'.
+
+	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region): Use `delete-file' instead of
+	`tramp-compat-delete-file'.
+	(tramp-smb-handle-delete-directory): Use 'trash as arg.
+
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-delete-file): New arg TRASH.

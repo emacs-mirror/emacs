@@ -343,7 +343,7 @@ Add the extension of FILENAME, if existing."
     (wrong-number-of-arguments
      (let ((delete-by-moving-to-trash
 	    (and (boundp 'delete-by-moving-to-trash)
-		 delete-by-moving-to-trash
+		 (symbol-value 'delete-by-moving-to-trash)
 		 trash)))
        (delete-file filename)))))
 

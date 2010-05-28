@@ -2544,7 +2544,7 @@ target of the symlink differ."
 			    l-localname)))))
 	    (tramp-error
 	     l 'file-already-exists "File %s already exists" l-localname)
-	  (tramp-compat-delete-file linkname)))
+	  (delete-file linkname)))
 
       ;; If FILENAME is a Tramp name, use just the localname component.
       (when (tramp-tramp-file-p filename)
@@ -2593,7 +2593,7 @@ target of the symlink differ."
 	    ;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
 	    (unwind-protect
 		(load local-copy noerror t t)
-	      (tramp-compat-delete-file local-copy)))))
+	      (delete-file local-copy)))))
       t)))
 
 ;; Localname manipulation functions that grok Tramp localnames...
@@ -3769,7 +3769,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   ;; Set the mode.
   (set-file-modes newname (tramp-default-file-modes filename))
   ;; If the operation was `rename', delete the original file.
-  (unless (eq op 'copy) (tramp-compat-delete-file filename)))
+  (unless (eq op 'copy) (delete-file filename)))
 
 (defun tramp-do-copy-or-rename-file-directly
  (op filename newname ok-if-already-exists keep-date preserve-uid-gid)
@@ -3924,7 +3924,7 @@ the uid and gid from FILENAME."
 
 		;; Save exit.
 		(condition-case nil
-		    (tramp-compat-delete-file tmpfile)
+		    (delete-file tmpfile)
 		  (error)))))))))
 
       ;; Set the time and mode. Mask possible errors.
@@ -3964,7 +3964,7 @@ The method used must be an out-of-band method."
 		  (if dir-flag
 		      (tramp-compat-delete-directory
 		       (expand-file-name ".." tmpfile) 'recursive)
-		    (tramp-compat-delete-file tmpfile))
+		    (delete-file tmpfile))
 		(error))))
 
 	;; Expand hops.  Might be necessary for gateway methods.
@@ -4082,7 +4082,7 @@ The method used must be an out-of-band method."
       ;; If the operation was `rename', delete the original file.
       (unless (eq op 'copy)
 	(if (file-regular-p filename)
-	    (tramp-compat-delete-file filename)
+	    (delete-file filename)
 	  (tramp-compat-delete-directory filename 'recursive))))))
 
 (defun tramp-handle-make-directory (dir &optional parents)
@@ -4114,6 +4114,7 @@ The method used must be an out-of-band method."
 
 (defun tramp-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
+  ;; TRASH needs to be implemented.  See `move-file-to-trash'.
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-property v (file-name-directory localname))
@@ -4629,7 +4630,7 @@ beginning of local filename are not substituted."
 
       ;; Cleanup.  We remove all file cache values for the connection,
       ;; because the remote process could have changed them.
-      (when tmpinput (tramp-compat-delete-file tmpinput))
+      (when tmpinput (delete-file tmpinput))
 
       ;; `process-file-side-effects' has been introduced with GNU
       ;; Emacs 23.2.  If set to `nil', no remote file will be changed
@@ -4666,7 +4667,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
     (when delete (delete-region start end))
     (unwind-protect
 	(apply 'call-process program tmpfile buffer display args)
-      (tramp-compat-delete-file tmpfile))))
+      (delete-file tmpfile))))
 
 (defun tramp-handle-shell-command
   (command &optional output-buffer error-buffer)
@@ -4731,7 +4732,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	(when (listp buffer)
 	  (with-current-buffer error-buffer
 	    (insert-file-contents (cadr buffer)))
-	  (tramp-compat-delete-file (cadr buffer)))
+	  (delete-file (cadr buffer)))
 	(if current-buffer-p
 	    ;; This is like exchange-point-and-mark, but doesn't
 	    ;; activate the mark.  It is cleaner to avoid activation,
@@ -4813,7 +4814,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 		    (unwind-protect
 			(tramp-call-local-coding-command
 			 loc-dec tmpfile2 tmpfile)
-		      (tramp-compat-delete-file tmpfile2)))))
+		      (delete-file tmpfile2)))))
 
 	      ;; Set proper permissions.
 	      (set-file-modes tmpfile (tramp-default-file-modes filename))
@@ -4826,7 +4827,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 
 	;; Error handling.
 	((error quit)
-	 (tramp-compat-delete-file tmpfile)
+	 (delete-file tmpfile)
 	 (signal (car err) (cdr err))))
 
       (run-hooks 'tramp-handle-file-local-copy-hook)
@@ -4961,9 +4962,9 @@ coding system might not be determined.  This function repairs it."
 	    (set-buffer-modified-p nil))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))
-	    (tramp-compat-delete-file local-copy))
+	    (delete-file local-copy))
 	  (when (stringp remote-copy)
-	    (tramp-compat-delete-file
+	    (delete-file
 	     (tramp-make-tramp-file-name method user host remote-copy))))))
 
     ;; Result.
@@ -5154,7 +5155,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		 (list start end tmpfile append 'no-message lockname confirm))
 	      ((error quit)
 	       (setq tramp-temp-buffer-file-name nil)
-	       (tramp-compat-delete-file tmpfile)
+	       (delete-file tmpfile)
 	       (signal (car err) (cdr err))))
 
 	    ;; Now, `last-coding-system-used' has the right value.  Remember it.
@@ -5198,13 +5199,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 			(copy-file tmpfile filename t)
 		      ((error quit)
 		       (setq tramp-temp-buffer-file-name nil)
-		       (tramp-compat-delete-file tmpfile)
+		       (delete-file tmpfile)
 		       (signal (car err) (cdr err)))))
 		(setq tramp-temp-buffer-file-name nil)
 		;; Don't rename, in order to keep context in SELinux.
 		(unwind-protect
 		    (copy-file tmpfile filename t)
-		  (tramp-compat-delete-file tmpfile))))
+		  (delete-file tmpfile))))
 
 	     ;; Use inline file transfer.
 	     (rem-dec
@@ -5289,7 +5290,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 			  filename rem-dec)))))
 
 		;; Save exit.
-		(tramp-compat-delete-file tmpfile)))
+		(delete-file tmpfile)))
 
 	     ;; That's not expected.
 	     (t
@@ -6372,7 +6373,7 @@ hosts, or files, disagree."
   "Remove temporary files related to current buffer."
   (when (stringp tramp-temp-buffer-file-name)
     (condition-case nil
-	(tramp-compat-delete-file tramp-temp-buffer-file-name)
+	(delete-file tramp-temp-buffer-file-name)
       (error nil))))
 
 (add-hook 'kill-buffer-hook 'tramp-delete-temp-file-function)
