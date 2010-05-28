@@ -856,7 +856,7 @@ delete_temp_file (name)
   /* Suppress jka-compr handling, etc.  */
   int count = SPECPDL_INDEX ();
   specbind (intern ("file-name-handler-alist"), Qnil);
-  internal_delete_file (name, Qt);
+  internal_delete_file (name);
   unbind_to (count, Qnil);
   return Qnil;
 }

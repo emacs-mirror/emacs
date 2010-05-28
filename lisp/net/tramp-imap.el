@@ -268,7 +268,7 @@ of `copy' and `rename'."
 	    (write-region (point-min) (point-max) newname)))))
 
     (when (eq op 'rename)
-      (tramp-compat-delete-file filename 'force))))
+      (tramp-compat-delete-file filename))))
 
 ;; TODO: revise this much
 (defun tramp-imap-handle-expand-file-name (name &optional dir)
@@ -552,7 +552,7 @@ SIZE MODE WEIRD INODE DEVICE)."
   ;; (file-exists-p (file-name-directory filename)))
   (file-directory-p (file-name-directory filename)))
 
-(defun tramp-imap-handle-delete-file (filename &optional force)
+(defun tramp-imap-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (cond
    ((not (file-exists-p filename)) nil)

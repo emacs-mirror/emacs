@@ -1899,7 +1899,7 @@ You can then use `write-region' to write new data into the file."
 	  ;; Cleanup the tempfile.
 	  (and tempfile
 	       (file-exists-p tempfile)
-	       (delete-file tempfile t))
+	       (delete-file tempfile))
 	  ;; Cleanup the tempdir.
 	  (and tempdir
 	       (file-directory-p tempdir)
@@ -1999,7 +1999,7 @@ If PLAIN is nil, it returns the result as a string."
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if (file-exists-p input-file)
-	  (delete-file input-file t))
+	  (delete-file input-file))
       (epg-reset context))))
 
 (defun epg-start-verify (context signature &optional signed-text)
@@ -2203,7 +2203,7 @@ Otherwise, it makes a cleartext signature."
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
-	  (delete-file input-file t))
+	  (delete-file input-file))
       (epg-reset context))))
 
 (defun epg-start-encrypt (context plain recipients
@@ -2323,7 +2323,7 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
-	  (delete-file input-file t))
+	  (delete-file input-file))
       (epg-reset context))))
 
 (defun epg-start-export-keys (context keys)

@@ -2446,12 +2446,12 @@ See also `verilog-font-lock-extra-types'.")
 		 (list
 		  (concat "\\<function\\>\\s-+\\(integer\\|real\\(time\\)?\\|time\\)\\s-+\\(\\sw+\\)" )
 		       '(1 font-lock-keyword-face)
-		       '(3 font-lock-reference-face prepend))
+		       '(3 font-lock-constant-face prepend))
 		 '("\\<function\\>\\s-+\\(\\[[^]]+\\]\\)\\s-+\\(\\sw+\\)"
 		   (1 font-lock-keyword-face)
-		   (2 font-lock-reference-face append))
+		   (2 font-lock-constant-face append))
 		 '("\\<function\\>\\s-+\\(\\sw+\\)"
-		   1 'font-lock-reference-face append))))
+		   1 'font-lock-constant-face append))))
 
   (setq verilog-font-lock-keywords-2
 	(append verilog-font-lock-keywords-1

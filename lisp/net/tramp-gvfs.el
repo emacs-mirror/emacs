@@ -533,9 +533,9 @@ is no information where to trace the message.")
   (tramp-compat-delete-directory
    (tramp-gvfs-fuse-file-name directory) recursive))
 
-(defun tramp-gvfs-handle-delete-file (filename &optional force)
+(defun tramp-gvfs-handle-delete-file (filename &optional tramp)
   "Like `delete-file' for Tramp files."
-  (tramp-compat-delete-file (tramp-gvfs-fuse-file-name filename) force))
+  (tramp-compat-delete-file (tramp-gvfs-fuse-file-name filename) tramp))
 
 (defun tramp-gvfs-handle-directory-files
   (directory &optional full match nosort)
@@ -742,7 +742,7 @@ is no information where to trace the message.")
 		   "gvfs-save" tmpfile (tramp-get-buffer v) nil
 		   (tramp-gvfs-url-file-name filename)))
 	       (signal (car err) (cdr err)))
-	   (tramp-compat-delete-file tmpfile 'force)))))
+	   (tramp-compat-delete-file tmpfile)))))
 
     ;; Set file modification time.
     (when (or (eq visit t) (stringp visit))

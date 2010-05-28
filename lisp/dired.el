@@ -2579,7 +2579,7 @@ Anything else means ask for each directory."
 ;; Delete file, possibly delete a directory and all its files.
 ;; This function is usefull outside of dired.  One could change it's name
 ;; to e.g. recursive-delete-file and put it somewhere else.
-(defun dired-delete-file (file &optional recursive) "\
+(defun dired-delete-file (file &optional recursive trash) "\
 Delete FILE or directory (possibly recursively if optional RECURSIVE is true.)
 RECURSIVE determines what to do with a non-empty directory.  If RECURSIVE is:
 nil, do not delete.
@@ -2590,15 +2590,19 @@ Anything else, ask for each sub-directory."
   ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
   ;; but more efficient
   (if (not (eq t (car (file-attributes file))))
-      (delete-file file)
+      (delete-file file trash)
     (if (and recursive
 	     (directory-files file t dired-re-no-dot) ; Not empty.
 	     (or (eq recursive 'always)
-		 (yes-or-no-p (format "Recursive delete of %s? "
+		 (yes-or-no-p (format "Recursively %s %s? "
+				      (if (and trash
+					       delete-by-moving-to-trash)
+					  "trash"
+					"delete")
 				      (dired-make-relative file)))))
 	(if (eq recursive 'top) (setq recursive 'always)) ; Don't ask again.
       (setq recursive nil))
-    (delete-directory file recursive)))
+    (delete-directory file recursive trash)))
 
 (defun dired-do-flagged-delete (&optional nomessage)
   "In Dired, delete the files flagged for deletion.
@@ -2616,7 +2620,7 @@ non-empty directories is allowed."
 	 ;; this can't move point since ARG is nil
 	 (dired-map-over-marks (cons (dired-get-filename) (point))
 			       nil)
-	 nil)
+	 nil t)
       (or nomessage
 	  (message "(No deletions requested)")))))
 
@@ -2631,11 +2635,11 @@ non-empty directories is allowed."
    ;; this may move point if ARG is an integer
    (dired-map-over-marks (cons (dired-get-filename) (point))
 			 arg)
-   arg))
+   arg t))
 
 (defvar dired-deletion-confirmer 'yes-or-no-p) ; or y-or-n-p?
 
-(defun dired-internal-do-deletions (l arg)
+(defun dired-internal-do-deletions (l arg &optional trash)
   ;; L is an alist of files to delete, with their buffer positions.
   ;; ARG is the prefix arg.
   ;; Filenames are absolute.
@@ -2644,14 +2648,21 @@ non-empty directories is allowed."
   ;; lines still to be changed, so the (point) values in L stay valid.
   ;; Also, for subdirs in natural order, a subdir's files are deleted
   ;; before the subdir itself - the other way around would not work.
-  (let ((files (mapcar (function car) l))
-	(count (length l))
-	(succ 0))
+  (let* ((files (mapcar (function car) l))
+	 (count (length l))
+	 (succ 0)
+	 (trashing (and trash delete-by-moving-to-trash))
+	 (progress-reporter
+	  (make-progress-reporter
+	   (if trashing "Trashing..." "Deleting...")
+	   succ count)))
     ;; canonicalize file list for pop up
     (setq files (nreverse (mapcar (function dired-make-relative) files)))
     (if (dired-mark-pop-up
 	 " *Deletions*" 'delete files dired-deletion-confirmer
-	 (format "Delete %s " (dired-mark-prompt arg files)))
+	 (format "%s %s "
+		 (if trashing "Trash" "Delete")
+		 (dired-mark-prompt arg files)))
 	(save-excursion
 	  (let (failures);; files better be in reverse order for this loop!
 	    (while l
@@ -2659,10 +2670,10 @@ non-empty directories is allowed."
 	      (let ((inhibit-read-only t))
 		(condition-case err
 		    (let ((fn (car (car l))))
-		      (dired-delete-file fn dired-recursive-deletes)
+		      (dired-delete-file fn dired-recursive-deletes trash)
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))
-		      (message "%s of %s deletions" succ count)
+		      (progress-reporter-update progress-reporter succ)
 		      (dired-fun-in-all-buffers
 		       (file-name-directory fn) (file-name-nondirectory fn)
 		       (function dired-delete-entry) fn))
@@ -2671,7 +2682,7 @@ non-empty directories is allowed."
 		   (setq failures (cons (car (car l)) failures)))))
 	      (setq l (cdr l)))
 	    (if (not failures)
-		(message "%d deletion%s done" count (dired-plural-s count))
+		(progress-reporter-done progress-reporter)
 	      (dired-log-summary
 	       (format "%d of %d deletion%s failed"
 		       (length failures) count

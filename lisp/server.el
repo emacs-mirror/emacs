@@ -345,7 +345,7 @@ If CLIENT is non-nil, add a description of it to the logged message."
   (and (process-contact proc :server)
        (eq (process-status proc) 'closed)
        (ignore-errors
-	(delete-file (process-get proc :server-file) t)))
+	(delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
