@@ -1,3 +1,8 @@
+2010-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Prevent unnecessary scrolling in
+	bidi-reordered buffers.
+
 2010-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
