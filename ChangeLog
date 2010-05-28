@@ -2111,6 +2111,10 @@
 
 	Update copyright year(s) in many files.
 
+2006-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
 2006-04-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* configure.in (HAVE_XAW3D): Disable Xaw3d check if
@@ -4070,6 +4074,11 @@
 
 	* make-dist: Unset EMACS_UNIBYTE, so Emacs runs in its default state.
 	Quote $EMACS, in case it's a program with args.
+
+1999-06-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (HAVE_GIF): Use libungif instead of libgif
+	because the former doesn't contain patented compression code.
 
 1999-05-29  Richard M. Stallman  <rms@gnu.org>
 
