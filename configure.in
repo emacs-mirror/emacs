@@ -369,7 +369,7 @@ dnl quotation begins
 ### the appropriate operating system and machine description files.
 
 ### You would hope that you could choose an m/*.h file pretty much
-### based on the machine portion of the configuration name, and an s-
+### based on the machine portion of the configuration name, and an s/*.h
 ### file based on the operating system portion.  However, it turns out
 ### that each m/*.h file is pretty manufacturer-specific - for
 ### example mips.h is MIPS
@@ -381,10 +381,6 @@ dnl quotation begins
 ### /etc/MACHINES doesn't say anything about version numbers, be
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
-###
-### Eric Raymond says we should accept strings like "sysvr4" to mean
-### "System V Release 4"; he writes, "The old convention encouraged
-### confusion between `system' and `release' levels'."
 
 machine='' opsys='' unported=no
 case "${canonical}" in
@@ -499,16 +495,16 @@ case "${canonical}" in
   s390x-*-linux-gnu* )
     machine=ibms390x opsys=gnu-linux
   ;;
-  rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
+  rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix4.3* | powerpc-ibm-aix4.3*  )
+  powerpc-ibm-aix4.[23]*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
+  rs6000-ibm-aix[56]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix6* | powerpc-ibm-aix6*  )
+  powerpc-ibm-aix[56]*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
 
