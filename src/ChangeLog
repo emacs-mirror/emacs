@@ -1,7 +1,14 @@
+2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Fix the logic.  Rewrite the loop
+	over continuation lines in bidi-reordered buffers.  Return
+	CURSOR_MOVEMENT_MUST_SCROLL upon failure to find a suitable row,
+	rather than CURSOR_MOVEMENT_CANNOT_BE_USED.
+
 2010-05-28  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (try_cursor_movement): Prevent unnecessary scrolling in
-	bidi-reordered buffers.
+	* xdisp.c (try_cursor_movement): Backup to non-continuation line
+	only after finding point's row.
 
 2010-05-28  Kenichi Handa  <handa@m17n.org>
 
