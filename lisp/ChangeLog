@@ -1,5 +1,17 @@
 2010-05-29  Eli Zaretskii  <eliz@gnu.org>
 
+	Bidi-sensitive word movement with arrow keys.
+	* subr.el (right-arrow-command, left-arrow-command): Move to
+	bindings.el.
+
+	* bindings.el (right-char, left-char): Move from subr.el and
+	rename from right-arrow-command and left-arrow-command.
+	(right-word, left-word): New functions.
+	(global-map) <right>: Bind to right-char.
+	(global-map) <left>: Bind to left-char.
+	(global-map) <C-right>: Bind to right-word.
+	(global-map) <C-left>: Bind to left-word.
+
 	* ls-lisp.el (ls-lisp-classify-file): New function.
 	(ls-lisp-insert-directory): Call it if switches include -F (bug#6294).
 	(ls-lisp-classify): Call ls-lisp-classify-file.
