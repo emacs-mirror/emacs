@@ -1,3 +1,12 @@
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ansi-color.el: Delete unused escape sequences (Bug#6085).
+	(ansi-color-drop-regexp): New constant.
+	(ansi-color-apply, ansi-color-filter-region)
+	(ansi-color-apply-on-region): Delete unrecognized control
+	sequences.
+	(ansi-color-apply): Build string list before calling concat.
+
 2010-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	Bidi-sensitive word movement with arrow keys.
