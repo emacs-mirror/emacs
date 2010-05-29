@@ -1925,7 +1925,7 @@ A prefix arg makes KEEP-TIME non-nil.
 If PRESERVE-UID-GID is non-nil, we try to transfer the
 uid and gid of FILE to NEWNAME.
 
-If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled 
+If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
 on the system, we copy the SELinux context of FILE to NEWNAME.  */)
      (file, newname, ok_if_already_exists, keep_time, preserve_uid_gid, preserve_selinux_context)
      Lisp_Object file, newname, ok_if_already_exists, keep_time;
@@ -2221,7 +2221,7 @@ With a prefix argument, TRASH is nil.  */)
 
   handler = Ffind_file_name_handler (filename, Qdelete_file);
   if (!NILP (handler))
-    return call2 (handler, Qdelete_file, filename);
+    return call3 (handler, Qdelete_file, filename, trash);
 
   if (delete_by_moving_to_trash && !NILP (trash))
     return call1 (Qmove_file_to_trash, filename);
