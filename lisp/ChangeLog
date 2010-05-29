@@ -1,5 +1,12 @@
 2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* server.el (server-process-filter): Receive parent-id argument
+	from emacsclient.
+	(server-create-window-system-frame): New arg.  Pass parent-id as
+	frame parameter.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
 	* ansi-color.el: Delete unused escape sequences (Bug#6085).
 	(ansi-color-drop-regexp): New constant.
 	(ansi-color-apply, ansi-color-filter-region)

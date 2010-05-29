@@ -43,6 +43,10 @@ You can disable this by using --without-selinux.
 
 * Changes in Emacs 24.1
 
+** New emacsclient argument --parent-id ID can be used to open a
+client frame in parent X window ID, via XEmbed.  This works like the
+--parent-id argument to Emacs.
+
 ** Completion can cycle, depending on completion-cycle-threshold.
 
 ** auto-mode-case-fold is now enabled by default.
