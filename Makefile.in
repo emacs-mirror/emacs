@@ -279,6 +279,9 @@ all: ${SUBDIR} leim
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
+# See comments in configure.in for why it is done this way, as opposed
+# to just letting configure generate epaths.h from epaths.in in a
+# similar way to how Makefile is made from Makefile.in.
 epaths-force: FRC
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
