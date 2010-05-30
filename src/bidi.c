@@ -1907,7 +1907,9 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
   if (!bidi_it->first_elt && bidi_it->orig_type == NEUTRAL_B)
     bidi_line_init (bidi_it);
 
-  /* Prepare the sentinel iterator state.  */
+  /* Prepare the sentinel iterator state, and cache it.  When we bump
+     into it, scanning backwards, we'll know that the last non-base
+     level is exhausted.  */
   if (bidi_cache_idx == 0)
     {
       bidi_copy_it (&sentinel, bidi_it);
@@ -1918,6 +1920,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	  sentinel.ch = '\n';	/* doesn't matter, but why not? */
 	  sentinel.ch_len = 1;
 	}
+      bidi_cache_iterator_state (&sentinel, 1);
     }
 
   old_level = bidi_it->resolved_level;
@@ -1933,11 +1936,6 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
       int incr = ascending ? 1 : -1;
       int expected_next_level = old_level + incr;
 
-      /* If we don't have anything cached yet, we need to cache the
-	 sentinel state, since we'll need it to record where to jump
-	 when the last non-base level is exhausted.  */
-      if (bidi_cache_idx == 0)
-	bidi_cache_iterator_state (&sentinel, 1);
       /* Jump (or walk) to the other edge of this level.  */
       bidi_find_other_level_edge (bidi_it, level_to_search, !ascending);
       /* Switch scan direction and peek at the next character in the
