@@ -67,3 +67,4 @@ src/deps
 configure.lineno
 src/core
 core
+lib-src/stamp-*

@@ -1,3 +1,8 @@
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .bzrignore: Ignore new files from trunk, which appear if you use
+	colocated branches (i.e. "bzr switch").
+
 2010-05-10  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Get rid of "unix" pre-defined macro when
