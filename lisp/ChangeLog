@@ -1,5 +1,8 @@
 2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emulation/cua-base.el: Recognize `right-char' and `left-char' as
+	movement commands.
+
 	* progmodes/ada-xref.el (ada-prj-ada-project-path-sep): Set from
 	`path-separator', but maintain compatibility with Emacs 20.2.
 
