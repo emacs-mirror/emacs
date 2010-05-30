@@ -146,8 +146,8 @@ keyboard commands that move point in more sophisticated ways.
 @findex move-end-of-line
 @findex forward-char
 @findex backward-char
-@findex right-arrow-command
-@findex left-arrow-command
+@findex right-char
+@findex left-char
 @findex next-line
 @findex previous-line
 @findex beginning-of-buffer
@@ -165,7 +165,7 @@ Move to the end of the line (@code{move-end-of-line}).
 @item C-f
 Move forward one character (@code{forward-char}).
 @item @key{right}
-Move one character to the right (@code{right-arrow-command}).  This
+Move one character to the right (@code{right-char}).  This
 moves one character forward in text that is read in the usual
 left-to-right direction, but one character @emph{backward} if the text
 is read right-to-left, as needed for right-to-left scripts such as
@@ -173,17 +173,23 @@ Arabic.  @xref{Bidirectional Editing}.
 @item C-b
 Move backward one character (@code{backward-char}).
 @item @key{left}
-Move one character to the left (@code{left-arrow-command}).  This
+Move one character to the left (@code{left-char}).  This
 moves one character backward in left-to-right text and one character
 forward in right-to-left text.
 @item M-f
 @itemx M-@key{right}
-@itemx C-@key{right}
 Move forward one word (@code{forward-word}).
+@item C-@key{right}
+Move one word to the right (@code{right-word}).  This moves one word
+forward in left-to-right text and one word backward in right-to-left
+text.
 @item M-b
 @itemx M-@key{left}
-@itemx C-@key{left}
 Move backward one word (@code{backward-word}).
+@item C-@key{left}
+Move one word to the left (@code{left-word}).  This moves one word
+backward in left-to-right text and one word forward in right-to-left
+text.
 @item C-n
 @itemx @key{down}
 Move down one screen line (@code{next-line}).  This command attempts

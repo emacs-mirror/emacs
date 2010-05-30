@@ -1,4 +1,32 @@
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter): Receive parent-id argument
+	from emacsclient.
+	(server-create-window-system-frame): New arg.  Pass parent-id as
+	frame parameter.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ansi-color.el: Delete unused escape sequences (Bug#6085).
+	(ansi-color-drop-regexp): New constant.
+	(ansi-color-apply, ansi-color-filter-region)
+	(ansi-color-apply-on-region): Delete unrecognized control
+	sequences.
+	(ansi-color-apply): Build string list before calling concat.
+
 2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Bidi-sensitive word movement with arrow keys.
+	* subr.el (right-arrow-command, left-arrow-command): Move to
+	bindings.el.
+
+	* bindings.el (right-char, left-char): Move from subr.el and
+	rename from right-arrow-command and left-arrow-command.
+	(right-word, left-word): New functions.
+	(global-map) <right>: Bind to right-char.
+	(global-map) <left>: Bind to left-char.
+	(global-map) <C-right>: Bind to right-word.
+	(global-map) <C-left>: Bind to left-word.
 
 	* ls-lisp.el (ls-lisp-classify-file): New function.
 	(ls-lisp-insert-directory): Call it if switches include -F (bug#6294).

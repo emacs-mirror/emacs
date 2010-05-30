@@ -1,3 +1,8 @@
+2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Update due to renaming of commands bound
+	to arrows.  Document bidi-aware behavior of C-<right> and C-<left>.
+
 2010-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Fringes): Document reversal of fringe arrows for R2L

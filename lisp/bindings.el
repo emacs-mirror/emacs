@@ -678,6 +678,63 @@ is okay.  See `mode-line-format'.")
 ;but they are not assigned to keys there.
 (put 'narrow-to-region 'disabled t)
 
+;; Moving with arrows in bidi-sensitive direction.
+(defun right-char (&optional n)
+  "Move point N characters to the right (to the left if N is negative).
+On reaching beginning or end of buffer, stop and signal error.
+
+Depending on the bidirectional context, this may move either forward
+or backward in the buffer.  This is in contrast with \\[forward-char]
+and \\[backward-char], which see."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (forward-char n)
+    (backward-char n)))
+
+(defun left-char ( &optional n)
+  "Move point N characters to the left (to the right if N is negative).
+On reaching beginning or end of buffer, stop and signal error.
+
+Depending on the bidirectional context, this may move either backward
+or forward in the buffer.  This is in contrast with \\[backward-char]
+and \\[forward-char], which see."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (backward-char n)
+    (forward-char n)))
+
+(defun right-word (&optional n)
+  "Move point N words to the right (to the left if N is negative).
+
+Depending on the bidirectional context, this may move either forward
+or backward in the buffer.  This is in contrast with \\[forward-word]
+and \\[backward-word], which see.
+
+Value is normally t.
+If an edge of the buffer or a field boundary is reached, point is left there
+there and the function returns nil.  Field boundaries are not noticed
+if `inhibit-field-text-motion' is non-nil."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (forward-word n)
+    (backward-word n)))
+
+(defun left-word (&optional n)
+  "Move point N words to the left (to the right if N is negative).
+
+Depending on the bidirectional context, this may move either backward
+or forward in the buffer.  This is in contrast with \\[backward-word]
+and \\[forward-word], which see.
+
+Value is normally t.
+If an edge of the buffer or a field boundary is reached, point is left there
+there and the function returns nil.  Field boundaries are not noticed
+if `inhibit-field-text-motion' is non-nil."
+  (interactive "^p")
+  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
+      (backward-word n)
+    (forward-word n)))
+
 (defvar narrow-map (make-sparse-keymap)
   "Keymap for narrowing commands.")
 (define-key ctl-x-map "n" narrow-map)
@@ -828,9 +885,9 @@ is okay.  See `mode-line-format'.")
 (define-key global-map [C-home]		'beginning-of-buffer)
 (define-key global-map [M-home]		'beginning-of-buffer-other-window)
 (define-key esc-map    [home]		'beginning-of-buffer-other-window)
-(define-key global-map [left]		'left-arrow-command)
+(define-key global-map [left]		'left-char)
 (define-key global-map [up]		'previous-line)
-(define-key global-map [right]		'right-arrow-command)
+(define-key global-map [right]		'right-char)
 (define-key global-map [down]		'next-line)
 (define-key global-map [prior]		'scroll-down-command)
 (define-key global-map [next]		'scroll-up-command)
@@ -1030,8 +1087,8 @@ is okay.  See `mode-line-format'.")
 (global-set-key [M-left]   'backward-word)
 (define-key esc-map [left] 'backward-word)
 ;; ilya@math.ohio-state.edu says these bindings are standard on PC editors.
-(global-set-key [C-right]  'forward-word)
-(global-set-key [C-left]   'backward-word)
+(global-set-key [C-right]  'right-word)
+(global-set-key [C-left]   'left-word)
 ;; This is not quite compatible, but at least is analogous
 (global-set-key [C-delete] 'kill-word)
 (global-set-key [C-backspace] 'backward-kill-word)
