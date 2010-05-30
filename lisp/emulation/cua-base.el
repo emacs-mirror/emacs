@@ -1497,6 +1497,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (dolist (cmd
  '(forward-char backward-char
+   right-char left-char
    next-line previous-line
    forward-word backward-word
    end-of-line beginning-of-line
