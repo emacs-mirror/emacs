@@ -812,6 +812,7 @@ unpredictable.
 If @var{collection} is a function, it is called with three arguments,
 the values @var{string}, @var{predicate} and @code{lambda}; whatever
 it returns, @code{test-completion} returns in turn.
+@end defun
 
 @defun completion-boundaries string collection predicate suffix
 This function returns the boundaries of the field on which @var{collection}

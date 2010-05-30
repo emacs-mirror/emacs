@@ -1,3 +1,7 @@
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (Basic Completion): Add missing "@end defun".
+
 2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.texi (Basic Completion): Document completion-boundaries.
